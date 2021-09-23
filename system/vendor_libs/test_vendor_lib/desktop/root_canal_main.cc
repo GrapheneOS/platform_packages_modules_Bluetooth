@@ -47,7 +47,7 @@ extern "C" const char* __asan_default_options() {
 }
 
 bool crash_callback(const void* crash_context, size_t crash_context_size,
-                    __attribute__((unused)) void* context) {
+                    void* /* context */) {
   pid_t tid = BACKTRACE_CURRENT_THREAD;
   if (crash_context_size >=
       sizeof(google_breakpad::ExceptionHandler::CrashContext)) {

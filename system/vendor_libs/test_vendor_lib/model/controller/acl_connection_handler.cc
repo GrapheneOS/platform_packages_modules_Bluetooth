@@ -196,8 +196,9 @@ Phy::Type AclConnectionHandler::GetPhyType(uint16_t handle) const {
 std::unique_ptr<bluetooth::hci::LeSetCigParametersCompleteBuilder>
 AclConnectionHandler::SetCigParameters(
     uint8_t id, uint32_t sdu_interval_m_to_s, uint32_t sdu_interval_s_to_m,
-    bluetooth::hci::ClockAccuracy accuracy, bluetooth::hci::Packing packing,
-    bluetooth::hci::Enable framed, uint16_t max_transport_latency_m_to_s_,
+    bluetooth::hci::ClockAccuracy /* accuracy */,
+    bluetooth::hci::Packing packing, bluetooth::hci::Enable framed,
+    uint16_t max_transport_latency_m_to_s_,
     uint16_t max_transport_latency_s_to_m_,
     std::vector<bluetooth::hci::CisParametersConfig>& streams) {
   std::vector<uint16_t> handles;

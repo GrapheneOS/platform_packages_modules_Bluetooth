@@ -137,7 +137,7 @@ bool PosixAsyncSocket::WatchForNonBlockingRead(
   bool expected = false;
   if (watching_.compare_exchange_strong(expected, true)) {
     return am_->WatchFdForNonBlockingReads(
-               fd_, [on_read_ready_callback, this](int fd) {
+               fd_, [on_read_ready_callback, this](int /* fd */) {
                  on_read_ready_callback(this);
                }) == 0;
   }
