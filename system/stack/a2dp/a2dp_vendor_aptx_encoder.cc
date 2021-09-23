@@ -29,6 +29,7 @@
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
+#include "stack/include/bt_hdr.h"
 
 //
 // Encoder for aptX Source Codec

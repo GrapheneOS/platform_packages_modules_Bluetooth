@@ -23,17 +23,18 @@
  *
  ******************************************************************************/
 
+#include <base/bind.h>
+#include <stddef.h>
+#include <string.h>
+
+#include <bitset>
+
 #include "bt_target.h"
 #include "btu.h"
 #include "hcidefs.h"
 #include "hcimsgs.h"
 #include "osi/include/allocator.h"
-
-#include <bitset>
-
-#include <base/bind.h>
-#include <stddef.h>
-#include <string.h>
+#include "stack/include/bt_hdr.h"
 
 /*******************************************************************************
  * BLE Commands

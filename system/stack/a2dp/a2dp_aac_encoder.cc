@@ -18,18 +18,18 @@
 
 #include "a2dp_aac_encoder.h"
 
+#include <aacenc_lib.h>
+#include <base/logging.h>
 #include <inttypes.h>
 #include <stdio.h>
 #include <string.h>
-
-#include <aacenc_lib.h>
-#include <base/logging.h>
 
 #include "a2dp_aac.h"
 #include "common/time_util.h"
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
+#include "stack/include/bt_hdr.h"
 
 //
 // Encoder for AAC Source Codec

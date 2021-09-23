@@ -29,6 +29,7 @@
 #include <cstdint>
 
 #include "stack/hid/hid_conn.h"
+#include "stack/include/bt_hdr.h"
 #include "stack/include/hidd_api.h"
 #include "stack/include/l2c_api.h"  // tL2CAP_CFG_INFO && FLOW_SPEC
 #include "types/raw_address.h"

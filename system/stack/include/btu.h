@@ -27,13 +27,14 @@
 #ifndef BTU_H
 #define BTU_H
 
-#include "bt_target.h"
-#include "common/message_loop_thread.h"
-#include "osi/include/alarm.h"
-
 #include <base/callback.h>
 #include <base/location.h>
 #include <base/threading/thread.h>
+
+#include "bt_target.h"
+#include "common/message_loop_thread.h"
+#include "osi/include/alarm.h"
+#include "stack/include/bt_hdr.h"
 
 /* Global BTU data */
 extern uint8_t btu_trace_level;

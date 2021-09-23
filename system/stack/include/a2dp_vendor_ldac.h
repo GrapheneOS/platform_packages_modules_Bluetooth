@@ -21,9 +21,12 @@
 #ifndef A2DP_VENDOR_LDAC_H
 #define A2DP_VENDOR_LDAC_H
 
+#include <bt_target.h>
+
 #include "a2dp_codec_api.h"
 #include "a2dp_vendor_ldac_constants.h"
 #include "avdt_api.h"
+#include "stack/include/bt_hdr.h"
 
 class A2dpCodecConfigLdacBase : public A2dpCodecConfig {
  protected:

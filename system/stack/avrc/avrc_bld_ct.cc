@@ -21,6 +21,7 @@
 #include "avrc_defs.h"
 #include "avrc_int.h"
 #include "osi/include/allocator.h"
+#include "stack/include/bt_hdr.h"
 
 /*****************************************************************************
  *  Global data

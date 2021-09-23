@@ -23,6 +23,7 @@
 #include "embdrv/sbc/decoder/include/oi_codec_sbc.h"
 #include "embdrv/sbc/decoder/include/oi_status.h"
 #include "osi/include/log.h"
+#include "stack/include/bt_hdr.h"
 
 typedef struct {
   OI_CODEC_SBC_DECODER_CONTEXT decoder_context;
