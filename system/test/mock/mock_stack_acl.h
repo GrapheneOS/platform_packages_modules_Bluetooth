@@ -39,6 +39,7 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "device/include/controller.h"
 #include "stack/acl/acl.h"
 #include "stack/btm/security_device_record.h"
+#include "stack/include/bt_hdr.h"
 #include "stack/include/btm_client_interface.h"
 #include "types/raw_address.h"
 

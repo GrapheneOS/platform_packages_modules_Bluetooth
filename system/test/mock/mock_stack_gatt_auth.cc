@@ -25,7 +25,9 @@
 extern std::map<std::string, int> mock_function_count_map;
 
 #include <cstdint>
+
 #include "stack/gatt/gatt_int.h"
+#include "stack/include/bt_hdr.h"
 
 #ifndef UNUSED_ATTR
 #define UNUSED_ATTR

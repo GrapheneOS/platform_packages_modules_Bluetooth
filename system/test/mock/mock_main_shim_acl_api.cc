@@ -26,7 +26,9 @@ extern std::map<std::string, int> mock_function_count_map;
 
 #include <cstddef>
 #include <cstdint>
+
 #include "main/shim/acl_api.h"
+#include "stack/include/bt_hdr.h"
 #include "types/ble_address_with_type.h"
 #include "types/raw_address.h"
 
