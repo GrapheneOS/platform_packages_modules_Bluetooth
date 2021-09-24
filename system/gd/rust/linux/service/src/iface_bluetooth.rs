@@ -137,4 +137,19 @@ impl IBluetooth for IBluetoothDBus {
     fn get_bond_state(&self, _device: BluetoothDevice) -> u32 {
         0
     }
+
+    #[dbus_method("GetRemoteUuids")]
+    fn get_remote_uuids(&self, _device: BluetoothDevice) -> Vec<Uuid128Bit> {
+        vec![]
+    }
+
+    #[dbus_method("FetchRemoteUuids")]
+    fn fetch_remote_uuids(&self, _device: BluetoothDevice) -> bool {
+        true
+    }
+
+    #[dbus_method("SdpSearch")]
+    fn sdp_search(&self, _device: BluetoothDevice, _uuid: Uuid128Bit) -> bool {
+        true
+    }
 }

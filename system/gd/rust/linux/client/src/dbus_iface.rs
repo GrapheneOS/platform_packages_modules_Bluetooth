@@ -281,6 +281,24 @@ impl IBluetooth for BluetoothDBus {
     fn get_bond_state(&self, device: BluetoothDevice) -> u32 {
         self.client_proxy.method("GetBondState", (BluetoothDevice::to_dbus(device).unwrap(),))
     }
+
+    fn get_remote_uuids(&self, device: BluetoothDevice) -> Vec<Uuid128Bit> {
+        let result: Vec<Vec<u8>> = self
+            .client_proxy
+            .method("GetRemoteUuids", (BluetoothDevice::to_dbus(device).unwrap(),));
+        <Vec<Uuid128Bit> as DBusArg>::from_dbus(result, None, None, None).unwrap()
+    }
+
+    fn fetch_remote_uuids(&self, device: BluetoothDevice) -> bool {
+        self.client_proxy.method("FetchRemoteUuids", (BluetoothDevice::to_dbus(device).unwrap(),))
+    }
+
+    fn sdp_search(&self, device: BluetoothDevice, uuid: Uuid128Bit) -> bool {
+        self.client_proxy.method(
+            "SdpSearch",
+            (BluetoothDevice::to_dbus(device).unwrap(), Uuid128Bit::to_dbus(uuid).unwrap()),
+        )
+    }
 }
 
 #[dbus_propmap(AdapterWithEnabled)]

@@ -29,14 +29,14 @@ impl From<bindings::bt_state_t> for BtState {
 #[derive(Clone, Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
 #[repr(u32)]
 pub enum BtTransport {
-    Invalid = 0,
+    Auto = 0,
     Bredr,
     Le,
 }
 
 impl From<i32> for BtTransport {
     fn from(item: i32) -> Self {
-        BtTransport::from_i32(item).unwrap_or_else(|| BtTransport::Invalid)
+        BtTransport::from_i32(item).unwrap_or_else(|| BtTransport::Auto)
     }
 }
 
@@ -853,6 +853,11 @@ impl BluetoothInterface {
         let prop_pair: (Box<[u8]>, bindings::bt_property_t) = prop.into();
         let ffi_addr = cast_to_ffi_address!(addr as *const RawAddress);
         ccall!(self, set_remote_device_property, ffi_addr, &prop_pair.1)
+    }
+
+    pub fn get_remote_services(&self, addr: &mut RawAddress, transport: BtTransport) -> i32 {
+        let ffi_addr = cast_to_ffi_address!(addr as *const RawAddress);
+        ccall!(self, get_remote_services, ffi_addr, transport.to_i32().unwrap())
     }
 
     pub fn start_discovery(&self) -> i32 {

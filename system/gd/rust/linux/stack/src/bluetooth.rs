@@ -77,6 +77,15 @@ pub trait IBluetooth {
 
     /// Gets the bond state of a single device.
     fn get_bond_state(&self, device: BluetoothDevice) -> u32;
+
+    /// Returns the cached UUIDs of a remote device.
+    fn get_remote_uuids(&self, device: BluetoothDevice) -> Vec<Uuid128Bit>;
+
+    /// Triggers SDP to get UUIDs of a remote device.
+    fn fetch_remote_uuids(&self, device: BluetoothDevice) -> bool;
+
+    /// Triggers SDP and searches for a specific UUID on a remote device.
+    fn sdp_search(&self, device: BluetoothDevice, uuid: Uuid128Bit) -> bool;
 }
 
 #[derive(Debug, FromPrimitive, ToPrimitive)]
@@ -303,6 +312,15 @@ pub(crate) trait BtifBluetoothCallbacks {
         bond_state: BtBondState,
         fail_reason: i32,
     );
+
+    #[btif_callback(RemoteDeviceProperties)]
+    fn remote_device_properties_changed(
+        &mut self,
+        status: BtStatus,
+        addr: RawAddress,
+        num_properties: i32,
+        properties: Vec<BluetoothProperty>,
+    );
 }
 
 #[btif_callbacks_dispatcher(Bluetooth, dispatch_sdp_callbacks, SdpCallbacks)]
@@ -502,6 +520,36 @@ impl BtifBluetoothCallbacks for Bluetooth {
             );
         });
     }
+
+    fn remote_device_properties_changed(
+        &mut self,
+        status: BtStatus,
+        addr: RawAddress,
+        _num_properties: i32,
+        properties: Vec<BluetoothProperty>,
+    ) {
+        let address = addr.to_string();
+        // Device should be in either found devices or bonded devices
+        // If it isn't in either, create it and put it found devices.
+        let device = if self.bonded_devices.contains_key(&address) {
+            self.bonded_devices.get_mut(&address)
+        } else if self.found_devices.contains_key(&address) {
+            self.found_devices.get_mut(&address)
+        } else {
+            self.found_devices.insert(
+                address.clone(),
+                BluetoothDeviceContext::new(
+                    BtBondState::NotBonded,
+                    BluetoothDevice::new(address.clone(), String::from("")),
+                    vec![],
+                ),
+            );
+
+            self.found_devices.get_mut(&address)
+        };
+
+        device.unwrap().update_properties(properties);
+    }
 }
 
 // TODO: Add unit tests for this implementation
@@ -653,6 +701,64 @@ impl IBluetooth for Bluetooth {
             Some(device) => device.bond_state.to_u32().unwrap(),
             None => BtBondState::NotBonded.to_u32().unwrap(),
         }
+    }
+
+    fn get_remote_uuids(&self, device: BluetoothDevice) -> Vec<Uuid128Bit> {
+        // Device must exist in either bonded or found list
+        let device = self
+            .bonded_devices
+            .get(&device.address)
+            .or_else(|| self.found_devices.get(&device.address));
+
+        // Extract property from the device
+        return device
+            .and_then(|d| {
+                if let Some(u) = d.properties.get(&BtPropertyType::Uuids) {
+                    match u {
+                        BluetoothProperty::Uuids(uuids) => {
+                            return Some(
+                                uuids.iter().map(|&x| x.uu.clone()).collect::<Vec<Uuid128Bit>>(),
+                            );
+                        }
+                        _ => (),
+                    }
+                }
+
+                None
+            })
+            .unwrap_or(vec![]);
+    }
+
+    fn fetch_remote_uuids(&self, device: BluetoothDevice) -> bool {
+        if !self.bonded_devices.contains_key(&device.address)
+            && !self.found_devices.contains_key(&device.address)
+        {
+            warn!("Won't fetch UUIDs on unknown device {}", device.address);
+            return false;
+        }
+
+        let addr = RawAddress::from_string(device.address.clone());
+        if addr.is_none() {
+            warn!("Can't fetch UUIDs. Address {} is not valid.", device.address);
+            return false;
+        }
+        self.intf.lock().unwrap().get_remote_services(&mut addr.unwrap(), BtTransport::Auto) == 0
+    }
+
+    fn sdp_search(&self, device: BluetoothDevice, uuid: Uuid128Bit) -> bool {
+        if self.sdp.is_none() {
+            warn!("SDP is not initialized. Can't do SDP search.");
+            return false;
+        }
+
+        let addr = RawAddress::from_string(device.address.clone());
+        if addr.is_none() {
+            warn!("Can't SDP search. Address {} is not valid.", device.address);
+            return false;
+        }
+
+        let uu = Uuid { uu: uuid };
+        self.sdp.as_ref().unwrap().sdp_search(&mut addr.unwrap(), &uu) == BtStatus::Success
     }
 }
 
