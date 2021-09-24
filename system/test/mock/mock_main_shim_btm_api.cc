@@ -244,13 +244,6 @@ uint8_t bluetooth::shim::BTM_BleMaxMultiAdvInstanceCount() {
   mock_function_count_map[__func__]++;
   return 0;
 }
-uint8_t bluetooth::shim::BTM_GetEirSupportedServices(uint32_t* p_eir_uuid,
-                                                     uint8_t** p,
-                                                     uint8_t max_num_uuid16,
-                                                     uint8_t* p_num_uuid16) {
-  mock_function_count_map[__func__]++;
-  return 0;
-}
 void bluetooth::shim::BTM_AddEirService(uint32_t* p_eir_uuid, uint16_t uuid16) {
   mock_function_count_map[__func__]++;
 }
