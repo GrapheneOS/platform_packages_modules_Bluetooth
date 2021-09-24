@@ -53,7 +53,7 @@ bool BTM_SetLinkPolicyActiveMode(const RawAddress& remote_bda) {
 }
 tBTM_CONTRL_STATE BTM_PM_ReadControllerState(void) {
   mock_function_count_map[__func__]++;
-  return 0;
+  return BTM_CONTRL_UNKNOWN;
 }
 tBTM_STATUS BTM_PmRegister(uint8_t mask, uint8_t* p_pm_id,
                            tBTM_PM_STATUS_CBACK* p_cb) {
