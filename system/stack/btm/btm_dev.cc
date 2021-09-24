@@ -342,6 +342,8 @@ bool is_address_equal(void* data, void* context) {
  *
  ******************************************************************************/
 tBTM_SEC_DEV_REC* btm_find_dev(const RawAddress& bd_addr) {
+  if (btm_cb.sec_dev_rec == nullptr) return nullptr;
+
   list_node_t* n =
       list_foreach(btm_cb.sec_dev_rec, is_address_equal, (void*)&bd_addr);
   if (n) return static_cast<tBTM_SEC_DEV_REC*>(list_node(n));
