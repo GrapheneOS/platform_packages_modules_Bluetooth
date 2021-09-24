@@ -34,6 +34,7 @@
 #include "stack/include/smp_api_types.h"
 #include "types/ble_address_with_type.h"
 #include "types/bt_transport.h"
+#include "types/raw_address.h"
 
 /* Structure returned with Vendor Specific Command complete callback */
 typedef struct {

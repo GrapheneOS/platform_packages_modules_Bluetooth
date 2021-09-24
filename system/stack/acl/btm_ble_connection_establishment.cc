@@ -33,6 +33,7 @@
 #include "stack/include/ble_hci_link_interface.h"
 #include "stack/include/l2cap_hci_link_interface.h"
 #include "stack/include/stack_metrics_logging.h"
+#include "types/raw_address.h"
 
 extern tBTM_CB btm_cb;
 

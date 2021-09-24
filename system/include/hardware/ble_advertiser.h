@@ -18,8 +18,11 @@
 #define ANDROID_INCLUDE_BLE_ADVERTISER_H
 
 #include <base/callback_forward.h>
+#include <raw_address.h>
 #include <stdint.h>
+
 #include <vector>
+
 #include "bt_common_types.h"
 #include "bt_gatt_types.h"
 

@@ -18,6 +18,7 @@
 #pragma once
 
 #include <hardware/bluetooth.h>
+#include <raw_address.h>
 
 #include <variant>
 

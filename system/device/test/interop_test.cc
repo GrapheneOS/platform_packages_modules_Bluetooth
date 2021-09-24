@@ -16,9 +16,11 @@
  *
  ******************************************************************************/
 
+#include "device/include/interop.h"
+
 #include <gtest/gtest.h>
 
-#include "device/include/interop.h"
+#include "types/raw_address.h"
 
 TEST(InteropTest, test_lookup_hit) {
   RawAddress test_address;

@@ -18,12 +18,13 @@
 
 #include "address_obfuscator.h"
 
-#include <algorithm>
-
 #include <base/logging.h>
 #include <openssl/hmac.h>
 
+#include <algorithm>
+
 #include "bt_trace.h"
+#include "types/raw_address.h"
 
 namespace bluetooth {
 namespace common {

@@ -48,6 +48,7 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "stack/include/bt_hdr.h"
 #include "stack/include/l2c_api.h"
 #include "stack/l2cap/l2c_int.h"
+#include "types/raw_address.h"
 
 // Mocked compile conditionals, if any
 #ifndef UNUSED_ATTR

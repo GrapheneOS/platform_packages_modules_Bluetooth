@@ -17,8 +17,10 @@
  ******************************************************************************/
 
 #include "mock_btm_layer.h"
+
 #include "stack/include/btm_client_interface.h"
 #include "stack/include/rfcdefs.h"
+#include "types/raw_address.h"
 
 static bluetooth::manager::MockBtmSecurityInternalInterface*
     btm_security_internal_interface = nullptr;

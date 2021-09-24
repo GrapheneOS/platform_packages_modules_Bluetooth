@@ -27,6 +27,7 @@
 #include "osi/include/osi.h"
 #include "srvc_dis_int.h"
 #include "srvc_eng_int.h"
+#include "types/raw_address.h"
 
 using base::StringPrintf;
 #define DIS_MAX_NUM_INC_SVR 0

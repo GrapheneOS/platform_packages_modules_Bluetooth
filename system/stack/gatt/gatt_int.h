@@ -34,6 +34,7 @@
 #include "gatt_api.h"
 #include "osi/include/fixed_queue.h"
 #include "stack/include/bt_hdr.h"
+#include "types/raw_address.h"
 
 #define GATT_CREATE_CONN_ID(tcb_idx, gatt_if) \
   ((uint16_t)((((uint8_t)(tcb_idx)) << 8) | ((uint8_t)(gatt_if))))

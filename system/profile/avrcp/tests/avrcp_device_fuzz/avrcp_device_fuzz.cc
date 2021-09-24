@@ -5,6 +5,7 @@
 #include "device.h"
 #include "packet_test_helper.h"
 #include "stack_config.h"
+#include "types/raw_address.h"
 
 namespace bluetooth {
 namespace avrcp {

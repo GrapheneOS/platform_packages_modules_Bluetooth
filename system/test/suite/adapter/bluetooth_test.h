@@ -25,10 +25,13 @@
 #include <hardware/bt_sock.h>
 #include <signal.h>
 #include <time.h>
+
 #include <map>
 #include <string>
+
 #include "osi/include/semaphore.h"
 #include "service/hal/bluetooth_interface.h"
+#include "types/raw_address.h"
 
 namespace bttest {
 

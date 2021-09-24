@@ -26,13 +26,13 @@
 #include <cstdint>
 
 #include "bt_target.h"  // Must be first to define build configuration
-
 #include "bta/gatt/bta_gatts_int.h"
 #include "bta/include/bta_api.h"
 #include "btif/include/btif_debug_conn.h"
 #include "osi/include/allocator.h"
 #include "osi/include/osi.h"
 #include "stack/include/gatt_api.h"
+#include "types/raw_address.h"
 
 static void bta_gatts_nv_save_cback(bool is_saved,
                                     tGATTS_HNDL_RANGE* p_hndl_range);

@@ -42,6 +42,7 @@
 #include "stack/btm/btm_sec.h"
 #include "stack/include/acl_api.h"
 #include "stack_config.h"
+#include "types/raw_address.h"
 
 tL2CAP_LE_RESULT_CODE btm_ble_start_sec_check(const RawAddress& bd_addr,
                                               uint16_t psm, bool is_originator,

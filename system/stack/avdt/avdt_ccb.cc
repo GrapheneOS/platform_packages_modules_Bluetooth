@@ -24,12 +24,14 @@
  ******************************************************************************/
 
 #include <string.h>
+
 #include "avdt_api.h"
 #include "avdt_int.h"
 #include "avdtc_api.h"
 #include "bt_target.h"
 #include "bt_utils.h"
 #include "osi/include/osi.h"
+#include "types/raw_address.h"
 
 /*****************************************************************************
  * state machine constants and types

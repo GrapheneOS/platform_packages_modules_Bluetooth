@@ -20,6 +20,8 @@
 
 #include <hardware/bluetooth.h>
 
+#include "types/raw_address.h"
+
 typedef struct thread_t thread_t;
 
 bt_status_t btsock_sco_init(thread_t* thread);

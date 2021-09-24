@@ -31,6 +31,7 @@
 #include "stack/include/avrc_defs.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/sdp_api.h"
+#include "types/raw_address.h"
 
 /*****************************************************************************
  *  constants

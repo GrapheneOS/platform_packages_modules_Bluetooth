@@ -22,6 +22,8 @@
 #include <hardware/bt_gatt.h>
 
 #include <vector>
+
+#include "btif/include/btif_common.h"
 #include "gd/common/init_flags.h"
 #include "gd/hci/acl_manager.h"
 #include "gd/hci/controller.h"
@@ -30,10 +32,9 @@
 #include "gd/storage/storage_module.h"
 #include "main/shim/entry.h"
 #include "main/shim/helpers.h"
-
-#include "btif/include/btif_common.h"
 #include "stack/include/ble_advertiser.h"
 #include "stack/include/btm_api.h"
+#include "types/raw_address.h"
 
 using bluetooth::hci::Address;
 using bluetooth::hci::AddressType;

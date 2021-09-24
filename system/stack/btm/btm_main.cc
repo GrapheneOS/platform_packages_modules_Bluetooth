@@ -24,11 +24,13 @@
 
 #include <memory>
 #include <string>
+
 #include "bt_target.h"
 #include "main/shim/dumpsys.h"
 #include "stack/btm/btm_int_types.h"
 #include "stack/include/btm_client_interface.h"
 #include "stack_config.h"
+#include "types/raw_address.h"
 
 /* Global BTM control block structure
 */

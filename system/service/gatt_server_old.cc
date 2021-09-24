@@ -18,12 +18,14 @@
 
 #include "gatt_server_old.h"
 
+#include <base/bind.h>
+#include <base/callback.h>
+#include <hardware/bluetooth.h>
+#include <hardware/bt_gatt.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 
-#include <base/bind.h>
-#include <base/callback.h>
 #include <algorithm>
 #include <array>
 #include <condition_variable>
@@ -36,16 +38,12 @@
 #include <unordered_set>
 #include <vector>
 
-#include <hardware/bluetooth.h>
-#include <hardware/bt_gatt.h>
-
 #include "bind_helpers.h"
-
-#include "service/hal/bluetooth_interface.h"
-#include "service/logging_helpers.h"
-
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
+#include "service/hal/bluetooth_interface.h"
+#include "service/logging_helpers.h"
+#include "types/raw_address.h"
 
 namespace {
 

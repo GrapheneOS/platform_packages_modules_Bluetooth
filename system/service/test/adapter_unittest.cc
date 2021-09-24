@@ -14,13 +14,15 @@
 //  limitations under the License.
 //
 
+#include "service/adapter.h"
+
 #include <base/macros.h>
 #include <gtest/gtest.h>
 
-#include "service/adapter.h"
 #include "service/hal/fake_bluetooth_gatt_interface.h"
 #include "service/hal/fake_bluetooth_interface.h"
 #include "types/bt_transport.h"
+#include "types/raw_address.h"
 
 namespace bluetooth {
 namespace {

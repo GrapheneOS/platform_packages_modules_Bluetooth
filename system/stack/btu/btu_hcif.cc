@@ -54,6 +54,7 @@
 #include "stack/include/sec_hci_link_interface.h"
 #include "stack/include/stack_metrics_logging.h"
 #include "types/hci_role.h"
+#include "types/raw_address.h"
 
 using base::Location;
 using bluetooth::hci::IsoManager;

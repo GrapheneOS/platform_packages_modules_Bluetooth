@@ -16,6 +16,9 @@
 
 #pragma once
 
+#include <base/macros.h>
+#include <bluetooth/uuid.h>
+
 #include <deque>
 #include <functional>
 #include <mutex>
@@ -24,12 +27,10 @@
 #include <unordered_set>
 #include <vector>
 
-#include <base/macros.h>
-#include <bluetooth/uuid.h>
-
 #include "service/bluetooth_instance.h"
 #include "service/common/bluetooth/service.h"
 #include "service/hal/bluetooth_gatt_interface.h"
+#include "types/raw_address.h"
 
 namespace bluetooth {
 

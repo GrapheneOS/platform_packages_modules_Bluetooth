@@ -20,9 +20,12 @@
 #include <getopt.h>
 #include <stdio.h>
 #include <unistd.h>
+
 #include <list>
 #include <string>
+
 #include "gd/os/log.h"
+#include "types/raw_address.h"
 
 namespace {
 enum OptionType {

@@ -16,14 +16,15 @@
 
 #include "service/hal/bluetooth_av_interface.h"
 
-#include <shared_mutex>
-
 #include <base/logging.h>
 #include <base/memory/ptr_util.h>
 #include <base/observer_list.h>
 
+#include <shared_mutex>
+
 #include "abstract_observer_list.h"
 #include "service/hal/bluetooth_interface.h"
+#include "types/raw_address.h"
 
 namespace bluetooth {
 namespace hal {

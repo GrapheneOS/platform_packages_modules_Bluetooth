@@ -36,6 +36,7 @@
 #include "stack/include/acl_api.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/stack_metrics_logging.h"
+#include "types/raw_address.h"
 
 #define SMP_PAIRING_REQ_SIZE 7
 #define SMP_CONFIRM_CMD_SIZE (OCTET16_LEN + 1)

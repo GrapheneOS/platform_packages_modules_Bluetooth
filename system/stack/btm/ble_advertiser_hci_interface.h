@@ -19,10 +19,12 @@
 #ifndef BLE_ADVERTISER_HCI_INTERFACE_H
 #define BLE_ADVERTISER_HCI_INTERFACE_H
 
-#include <vector>
-#include "stack/include/bt_types.h"
-
 #include <base/callback.h>
+
+#include <vector>
+
+#include "stack/include/bt_types.h"
+#include "types/raw_address.h"
 
 /* This class is an abstraction of HCI commands used for managing
  * advertisements. Please see VSC HCI SPEC at

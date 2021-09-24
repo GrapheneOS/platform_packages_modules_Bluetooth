@@ -16,13 +16,14 @@
 
 #include "service/low_energy_scanner.h"
 
-#include "service/adapter.h"
-#include "service/logging_helpers.h"
-#include "stack/include/bt_types.h"
-
 #include <base/bind.h>
 #include <base/callback.h>
 #include <base/logging.h>
+
+#include "service/adapter.h"
+#include "service/logging_helpers.h"
+#include "stack/include/bt_types.h"
+#include "types/raw_address.h"
 
 using std::lock_guard;
 using std::mutex;

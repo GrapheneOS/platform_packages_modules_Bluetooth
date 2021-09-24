@@ -33,6 +33,7 @@
 #include "bta/sys/bta_sys.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_types.h"
+#include "types/raw_address.h"
 
 /* state machine events, these events are handled by the state machine */
 enum tBTA_HH_INT_EVT : uint16_t {

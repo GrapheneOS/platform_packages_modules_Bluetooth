@@ -25,6 +25,7 @@
 #define PORT_API_H
 
 #include "bt_target.h"
+#include "types/raw_address.h"
 
 /*****************************************************************************
  *  Constants and Types

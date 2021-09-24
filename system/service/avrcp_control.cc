@@ -16,19 +16,18 @@
 
 #include "service/avrcp_control.h"
 
-#include <cerrno>
-#include <climits>
-#include <string>
-
 #include <base/logging.h>
 #include <base/memory/ptr_util.h>
 #include <base/strings/string_number_conversions.h>
 
+#include <cerrno>
+#include <climits>
+#include <string>
+
 #include "notreached.h"
 #include "service/logging_helpers.h"
-
 #include "stack/include/avrc_defs.h"
-
+#include "types/raw_address.h"
 
 namespace bluetooth {
 

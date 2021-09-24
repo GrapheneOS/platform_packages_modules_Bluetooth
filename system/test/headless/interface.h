@@ -7,6 +7,7 @@
 #include <string>
 
 #include "include/hardware/bluetooth.h"
+#include "types/raw_address.h"
 
 using acl_state_changed_params_t = struct {
   bt_status_t status;

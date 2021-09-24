@@ -33,6 +33,7 @@
 #include "osi/include/osi.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/btm_api.h"
+#include "types/raw_address.h"
 
 /*****************************************************************************
  * Constants and types

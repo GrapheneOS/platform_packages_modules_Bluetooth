@@ -22,6 +22,7 @@
 #include "bt_target.h"
 #include "gatt_api.h"
 #include "srvc_api.h"
+#include "types/raw_address.h"
 
 #define SRVC_MAX_APPS GATT_CL_MAX_LCB
 

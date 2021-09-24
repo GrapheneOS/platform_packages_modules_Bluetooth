@@ -36,6 +36,7 @@
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "smp_int.h"
 #include "stack/include/bt_hdr.h"
+#include "types/raw_address.h"
 
 static void smp_connect_callback(uint16_t channel, const RawAddress& bd_addr,
                                  bool connected, uint16_t reason,

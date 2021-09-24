@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
+#include "gd/rust/topshim/btav/btav_shim.h"
+
 #include <cstdio>
 #include <memory>
 
-#include "gd/rust/topshim/btav/btav_shim.h"
+#include "base/callback.h"
 #include "include/hardware/avrcp/avrcp.h"
 #include "include/hardware/bluetooth.h"
-
-#include "base/callback.h"
 #include "rust/cxx.h"
 #include "src/profiles/a2dp.rs.h"
 #include "src/profiles/avrcp.rs.h"
+#include "types/raw_address.h"
 
 namespace rusty = ::bluetooth::topshim::rust;
 

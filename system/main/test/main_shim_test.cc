@@ -53,6 +53,7 @@
 #include "stack/l2cap/l2c_int.h"
 #include "test/common/main_handler.h"
 #include "test/mock/mock_main_shim_entry.h"
+#include "types/raw_address.h"
 
 using namespace bluetooth;
 using namespace testing;
