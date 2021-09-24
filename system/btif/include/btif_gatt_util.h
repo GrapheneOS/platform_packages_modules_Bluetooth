@@ -24,6 +24,7 @@
 
 #include "bta/include/bta_gatt_api.h"
 #include "types/bt_transport.h"
+#include "types/raw_address.h"
 
 void btif_to_bta_response(tGATTS_RSP* p_dest, btgatt_response_t* p_src);
 

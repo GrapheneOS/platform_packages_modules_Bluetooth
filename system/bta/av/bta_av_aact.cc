@@ -53,6 +53,7 @@
 #include "stack/include/btm_client_interface.h"
 #include "stack/include/l2c_api.h"
 #include "types/hci_role.h"
+#include "types/raw_address.h"
 
 namespace {
 

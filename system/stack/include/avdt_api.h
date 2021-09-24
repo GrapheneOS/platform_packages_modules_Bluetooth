@@ -33,6 +33,7 @@
 #include "bt_target.h"
 #include "osi/include/log.h"
 #include "stack/include/bt_hdr.h"
+#include "types/raw_address.h"
 
 /*****************************************************************************
  *  Constants

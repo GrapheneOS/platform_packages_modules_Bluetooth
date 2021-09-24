@@ -52,6 +52,7 @@
 #include "stack/include/bt_hdr.h"
 #include "stack/include/btu.h"  // do_in_main_thread
 #include "stack/include/pan_api.h"
+#include "types/raw_address.h"
 
 #define FORWARD_IGNORE 1
 #define FORWARD_SUCCESS 0

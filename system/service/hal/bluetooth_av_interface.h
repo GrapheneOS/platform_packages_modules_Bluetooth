@@ -22,6 +22,8 @@
 
 #include <vector>
 
+#include "types/raw_address.h"
+
 namespace bluetooth {
 namespace hal {
 

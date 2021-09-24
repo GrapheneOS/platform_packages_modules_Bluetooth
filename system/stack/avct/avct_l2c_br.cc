@@ -32,6 +32,7 @@
 #include "osi/include/allocator.h"
 #include "osi/include/osi.h"
 #include "stack/include/bt_hdr.h"
+#include "types/raw_address.h"
 
 /* callback function declarations */
 void avct_l2c_br_connect_ind_cback(const RawAddress& bd_addr, uint16_t lcid,

@@ -21,13 +21,13 @@
 #include <climits>
 #include <string>
 
+#include "array_utils.h"
 #include "base/logging.h"
 #include "base/macros.h"
 #include "base/memory/ptr_util.h"
 #include "service/logging_helpers.h"
-
-#include "array_utils.h"
 #include "stack/include/avrc_defs.h"
+#include "types/raw_address.h"
 
 #define PARSE_ADDR(str)                                        \
   ({                                                           \

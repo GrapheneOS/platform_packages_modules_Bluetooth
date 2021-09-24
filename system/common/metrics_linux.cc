@@ -16,11 +16,11 @@
  *
  ******************************************************************************/
 
-#include "metrics.h"
-
 #include <base/logging.h>
 
 #include "leaky_bonded_queue.h"
+#include "metrics.h"
+#include "types/raw_address.h"
 
 namespace bluetooth {
 

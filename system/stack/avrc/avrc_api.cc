@@ -33,6 +33,7 @@
 #include "osi/include/osi.h"
 #include "osi/include/properties.h"
 #include "stack/include/bt_hdr.h"
+#include "types/raw_address.h"
 
 /*****************************************************************************
  *  Global data

@@ -21,11 +21,14 @@
 //       It is included by the corresponding "...Functions.h" file.
 
 #include <fuzzer/FuzzedDataProvider.h>
+
 #include <algorithm>
 #include <vector>
+
 #include "fuzzers/common/commonFuzzHelpers.h"
 #include "osi/include/alarm.h"
 #include "stack/sdp/sdpint.h"
+#include "types/raw_address.h"
 
 #define SDP_MAX_NUM_ELEMS 128
 #define SDP_MAX_ELEM_LEN 1024

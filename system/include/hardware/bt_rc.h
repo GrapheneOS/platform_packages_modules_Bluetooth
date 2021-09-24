@@ -17,6 +17,7 @@
 #ifndef ANDROID_INCLUDE_BT_RC_H
 #define ANDROID_INCLUDE_BT_RC_H
 
+#include <raw_address.h>
 __BEGIN_DECLS
 
 /* Change this macro to use multiple RC */

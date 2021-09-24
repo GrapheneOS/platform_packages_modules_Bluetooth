@@ -28,6 +28,7 @@
 #include "bta/sys/bta_sys.h"
 #include "stack/include/avct_api.h"
 #include "stack/include/avrc_api.h"
+#include "types/raw_address.h"
 
 /* AV control block */
 tBTA_AR_CB bta_ar_cb;

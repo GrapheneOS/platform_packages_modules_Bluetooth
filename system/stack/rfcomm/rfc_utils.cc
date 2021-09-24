@@ -30,6 +30,7 @@
 #include "stack/include/bt_hdr.h"
 #include "stack/include/port_ext.h"
 #include "stack/rfcomm/rfc_int.h"
+#include "types/raw_address.h"
 
 /*******************************************************************************
  *

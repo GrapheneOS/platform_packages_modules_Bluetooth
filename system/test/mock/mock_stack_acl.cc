@@ -31,6 +31,7 @@ extern std::map<std::string, int> mock_function_count_map;
 // Mock include file to share data between tests and mock
 #include "stack/include/bt_hdr.h"
 #include "test/mock/mock_stack_acl.h"
+#include "types/raw_address.h"
 
 // Mocked compile conditionals, if any
 #ifndef UNUSED_ATTR

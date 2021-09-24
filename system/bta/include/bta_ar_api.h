@@ -30,6 +30,7 @@
 
 #include "bta/sys/bta_sys.h"
 #include "stack/include/avdt_api.h"
+#include "types/raw_address.h"
 
 /*****************************************************************************
  *  Constants and data types

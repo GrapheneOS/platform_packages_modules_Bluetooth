@@ -20,6 +20,8 @@
 
 #include <gtest/gtest.h>
 
+#include "types/raw_address.h"
+
 using bluetooth::common::AddressObfuscator;
 
 constexpr AddressObfuscator::Octet32 kEmptyKey = {0};

@@ -21,6 +21,7 @@
 #include <hardware/bluetooth.h>
 
 #include "gatt_api.h"
+#include "types/raw_address.h"
 
 typedef enum {
   BTIF_DEBUG_CONNECTED = 1,

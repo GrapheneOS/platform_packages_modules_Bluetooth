@@ -16,13 +16,13 @@
 
 #pragma once
 
+#include <base/macros.h>
+#include <bluetooth/uuid.h>
+
 #include <atomic>
 #include <functional>
 #include <map>
 #include <mutex>
-
-#include <base/macros.h>
-#include <bluetooth/uuid.h>
 
 #include "service/bluetooth_instance.h"
 #include "service/common/bluetooth/low_energy_constants.h"
@@ -30,6 +30,7 @@
 #include "service/common/bluetooth/scan_result.h"
 #include "service/common/bluetooth/scan_settings.h"
 #include "service/hal/bluetooth_gatt_interface.h"
+#include "types/raw_address.h"
 
 namespace bluetooth {
 

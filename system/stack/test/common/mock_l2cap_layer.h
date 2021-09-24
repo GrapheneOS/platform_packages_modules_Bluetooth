@@ -21,6 +21,7 @@
 
 #include "l2c_api.h"
 #include "stack/include/bt_hdr.h"
+#include "types/raw_address.h"
 
 namespace bluetooth {
 namespace l2cap {

@@ -25,6 +25,7 @@
 extern std::map<std::string, int> mock_function_count_map;
 
 #include "common/metrics.h"
+#include "types/raw_address.h"
 
 #if 0
 #include <base/base64.h>

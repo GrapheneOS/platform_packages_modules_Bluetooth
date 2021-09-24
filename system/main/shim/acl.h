@@ -30,6 +30,7 @@
 #include "main/shim/link_connection_interface.h"
 #include "main/shim/link_policy_interface.h"
 #include "stack/include/bt_types.h"
+#include "types/raw_address.h"
 
 namespace bluetooth {
 namespace shim {

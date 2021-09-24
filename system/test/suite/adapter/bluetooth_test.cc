@@ -17,10 +17,14 @@
  ******************************************************************************/
 
 #include "adapter/bluetooth_test.h"
+
 #include <binder/ProcessState.h>
 #include <stdio.h>
+
 #include <mutex>
+
 #include "btcore/include/property.h"
+#include "types/raw_address.h"
 
 namespace {
 

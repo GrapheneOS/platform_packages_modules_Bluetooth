@@ -83,6 +83,7 @@
 #include "stack/include/avdt_api.h"
 #include "stack/include/btm_api.h"
 #include "stack/include/btu.h"
+#include "types/raw_address.h"
 
 using bluetooth::csis::CsisClientInterface;
 using bluetooth::hearing_aid::HearingAidInterface;

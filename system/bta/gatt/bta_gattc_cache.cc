@@ -26,12 +26,12 @@
 #define LOG_TAG "bt_bta_gattc"
 
 #include <base/strings/stringprintf.h>
+
 #include <cstdint>
 #include <cstdio>
 #include <sstream>
 
 #include "bt_target.h"  // Must be first to define build configuration
-
 #include "bta/gatt/bta_gattc_int.h"
 #include "bta/gatt/database.h"
 #include "osi/include/allocator.h"
@@ -39,6 +39,7 @@
 #include "stack/btm/btm_sec.h"
 #include "stack/include/gatt_api.h"
 #include "types/bluetooth/uuid.h"
+#include "types/raw_address.h"
 
 using base::StringPrintf;
 using bluetooth::Uuid;

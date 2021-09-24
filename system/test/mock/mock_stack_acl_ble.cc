@@ -25,6 +25,7 @@
 extern std::map<std::string, int> mock_function_count_map;
 
 #include <cstdint>
+
 #include "osi/include/log.h"
 #include "stack/btm/btm_ble_int.h"
 #include "stack/btm/btm_dev.h"
@@ -34,6 +35,7 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "stack/include/l2cap_hci_link_interface.h"
 #include "types/ble_address_with_type.h"
 #include "types/hci_role.h"
+#include "types/raw_address.h"
 
 #ifndef UNUSED_ATTR
 #define UNUSED_ATTR

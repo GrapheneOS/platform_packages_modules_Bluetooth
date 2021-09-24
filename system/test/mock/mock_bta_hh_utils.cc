@@ -30,6 +30,7 @@ extern std::map<std::string, int> mock_function_count_map;
 
 // Mock include file to share data between tests and mock
 #include "test/mock/mock_bta_hh_utils.h"
+#include "types/raw_address.h"
 
 // Mocked internal structures, if any
 

@@ -33,6 +33,7 @@
 #include "stack/btm/security_device_record.h"
 #include "stack/include/btm_ble_api_types.h"
 #include "stack/include/security_client_callbacks.h"
+#include "types/raw_address.h"
 
 #define BTM_MAX_SCN_ 31  // PORT_MAX_RFC_PORTS packages/modules/Bluetooth/system/stack/include/rfcdefs.h
 

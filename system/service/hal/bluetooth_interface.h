@@ -19,6 +19,8 @@
 #include <base/macros.h>
 #include <hardware/bluetooth.h>
 
+#include "types/raw_address.h"
+
 namespace bluetooth {
 namespace hal {
 

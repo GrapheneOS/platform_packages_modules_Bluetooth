@@ -18,13 +18,12 @@
 
 #define LOG_TAG "bt_btif_sock"
 
-#include <atomic>
-
 #include <base/logging.h>
-
 #include <frameworks/proto_logging/stats/enums/bluetooth/enums.pb.h>
 #include <hardware/bluetooth.h>
 #include <hardware/bt_sock.h>
+
+#include <atomic>
 
 #include "bta_api.h"
 #include "btif_common.h"
@@ -39,6 +38,7 @@
 #include "btif_util.h"
 #include "device/include/controller.h"
 #include "osi/include/thread.h"
+#include "types/raw_address.h"
 
 using bluetooth::Uuid;
 
