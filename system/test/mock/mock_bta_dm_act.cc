@@ -92,7 +92,6 @@ struct bta_dm_rm_cback bta_dm_rm_cback;
 struct bta_dm_rmt_name bta_dm_rmt_name;
 struct bta_dm_sdp_result bta_dm_sdp_result;
 struct bta_dm_search_cancel bta_dm_search_cancel;
-struct bta_dm_search_cancel_cmpl bta_dm_search_cancel_cmpl;
 struct bta_dm_search_cancel_notify bta_dm_search_cancel_notify;
 struct bta_dm_search_clear_queue bta_dm_search_clear_queue;
 struct bta_dm_search_cmpl bta_dm_search_cmpl;
@@ -337,10 +336,6 @@ void bta_dm_sdp_result(tBTA_DM_MSG* p_data) {
 void bta_dm_search_cancel() {
   mock_function_count_map[__func__]++;
   test::mock::bta_dm_act::bta_dm_search_cancel();
-}
-void bta_dm_search_cancel_cmpl() {
-  mock_function_count_map[__func__]++;
-  test::mock::bta_dm_act::bta_dm_search_cancel_cmpl();
 }
 void bta_dm_search_cancel_notify() {
   mock_function_count_map[__func__]++;
