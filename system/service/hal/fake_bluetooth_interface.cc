@@ -16,6 +16,8 @@
 
 #include "service/hal/fake_bluetooth_interface.h"
 
+#include "types/raw_address.h"
+
 namespace bluetooth {
 namespace hal {
 

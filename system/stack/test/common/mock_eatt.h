@@ -19,6 +19,7 @@
 #include <gmock/gmock.h>
 
 #include "stack/eatt/eatt.h"
+#include "types/raw_address.h"
 
 using bluetooth::eatt::EattChannel;
 using bluetooth::eatt::EattExtension;

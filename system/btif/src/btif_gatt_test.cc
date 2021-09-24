@@ -18,26 +18,26 @@
 
 #define LOG_TAG "bt_btif_gatt"
 
+#include "btif_gatt.h"
+
 #include <errno.h>
+#include <hardware/bluetooth.h>
+#include <hardware/bt_gatt.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include <hardware/bluetooth.h>
-#include <hardware/bt_gatt.h>
-
-#include "btif_common.h"
-#include "btif_util.h"
-
 #include "bta_gatt_api.h"
 #include "bte_appl.h"
+#include "btif_common.h"
 #include "btif_dm.h"
-#include "btif_gatt.h"
 #include "btif_gatt_util.h"
 #include "btif_storage.h"
+#include "btif_util.h"
 #include "gatt_api.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
+#include "types/raw_address.h"
 
 using bluetooth::Uuid;
 /*******************************************************************************

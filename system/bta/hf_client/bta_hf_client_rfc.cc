@@ -31,6 +31,7 @@
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/include/port_api.h"
 #include "stack/include/sdp_api.h"
+#include "types/raw_address.h"
 
 /*******************************************************************************
  *

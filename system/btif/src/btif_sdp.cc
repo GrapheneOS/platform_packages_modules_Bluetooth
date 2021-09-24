@@ -28,17 +28,17 @@
 
 #define LOG_TAG "bt_btif_sdp"
 
-#include <stdlib.h>
-#include <string.h>
-
 #include <hardware/bluetooth.h>
 #include <hardware/bt_sdp.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "bta_api.h"
 #include "bta_sdp_api.h"
 #include "btif_common.h"
 #include "btif_profile_queue.h"
 #include "btif_util.h"
+#include "types/raw_address.h"
 
 using bluetooth::Uuid;
 

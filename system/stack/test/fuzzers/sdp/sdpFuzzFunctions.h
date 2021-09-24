@@ -18,10 +18,13 @@
 #define FUZZER_SDP_FUNCTIONS_H_
 
 #include <fuzzer/FuzzedDataProvider.h>
+
 #include <vector>
+
 #include "fuzzers/common/commonFuzzHelpers.h"
 #include "fuzzers/sdp/sdpFuzzHelpers.h"
 #include "stack/include/sdp_api.h"
+#include "types/raw_address.h"
 
 #define SDP_MAX_DB_LEN 1024 * 1024  // 1 MB
 #define MAX_NUM_DBS 64

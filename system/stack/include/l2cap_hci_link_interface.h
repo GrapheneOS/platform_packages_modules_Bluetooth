@@ -18,6 +18,7 @@
 #pragma once
 
 #include "stack/include/hci_error_code.h"
+#include "types/raw_address.h"
 
 // This header contains functions for HCI-LinkManagement to invoke
 

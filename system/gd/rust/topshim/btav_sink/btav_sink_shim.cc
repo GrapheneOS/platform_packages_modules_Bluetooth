@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
+#include "gd/rust/topshim/btav_sink/btav_sink_shim.h"
+
 #include <memory>
 
-#include "gd/rust/topshim/btav_sink/btav_sink_shim.h"
 #include "include/hardware/bluetooth.h"
+#include "types/raw_address.h"
 
 namespace bluetooth {
 namespace topshim {

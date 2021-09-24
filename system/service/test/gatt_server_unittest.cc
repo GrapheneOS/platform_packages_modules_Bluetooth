@@ -14,11 +14,13 @@
 //  limitations under the License.
 //
 
+#include "service/gatt_server.h"
+
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "service/gatt_server.h"
 #include "service/hal/fake_bluetooth_gatt_interface.h"
+#include "types/raw_address.h"
 
 using ::testing::_;
 using ::testing::Return;

@@ -14,16 +14,18 @@
 //  limitations under the License.
 //
 
+#include "service/low_energy_client.h"
+
 #include <base/macros.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include "service/adapter.h"
 #include "service/hal/fake_bluetooth_gatt_interface.h"
-#include "service/low_energy_client.h"
 #include "stack/include/bt_types.h"
 #include "test/mock_adapter.h"
 #include "types/bt_transport.h"
+#include "types/raw_address.h"
 
 using ::testing::_;
 using ::testing::Return;

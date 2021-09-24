@@ -28,6 +28,7 @@
 #define BTIF_PAN_INTERNAL_H
 
 #include "btif_pan.h"
+#include "types/raw_address.h"
 
 /*******************************************************************************
  *  Constants & Macros

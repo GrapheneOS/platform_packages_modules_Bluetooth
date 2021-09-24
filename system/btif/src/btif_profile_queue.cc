@@ -33,11 +33,13 @@
 #include <base/logging.h>
 #include <base/strings/stringprintf.h>
 #include <string.h>
+
 #include <list>
 
 #include "btif/include/stack_manager.h"
 #include "btif_common.h"
 #include "main/shim/dumpsys.h"
+#include "types/raw_address.h"
 
 /*******************************************************************************
  *  Local type definitions

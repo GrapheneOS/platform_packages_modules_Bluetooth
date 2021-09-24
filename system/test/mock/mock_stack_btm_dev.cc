@@ -28,6 +28,7 @@ extern std::map<std::string, int> mock_function_count_map;
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "btm_api.h"
 #include "device/include/controller.h"
 #include "l2c_api.h"
@@ -35,6 +36,7 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "main/shim/shim.h"
 #include "stack/btm/btm_dev.h"
 #include "stack/include/acl_api.h"
+#include "types/raw_address.h"
 
 #ifndef UNUSED_ATTR
 #define UNUSED_ATTR

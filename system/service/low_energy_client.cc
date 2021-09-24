@@ -22,6 +22,7 @@
 #include "service/logging_helpers.h"
 #include "stack/include/bt_types.h"
 #include "types/bt_transport.h"
+#include "types/raw_address.h"
 
 using std::lock_guard;
 using std::mutex;

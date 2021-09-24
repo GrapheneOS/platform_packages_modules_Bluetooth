@@ -21,13 +21,12 @@
 #include <vector>
 
 #include "base/macros.h"
-
+#include "service/bluetooth_instance.h"
 #include "service/common/bluetooth/avrcp_int_value.h"
 #include "service/common/bluetooth/avrcp_register_notification_response.h"
 #include "service/common/bluetooth/avrcp_string_value.h"
-
-#include "service/bluetooth_instance.h"
 #include "service/hal/bluetooth_avrcp_interface.h"
+#include "types/raw_address.h"
 
 namespace bluetooth {
 

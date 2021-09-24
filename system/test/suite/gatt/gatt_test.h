@@ -18,6 +18,7 @@
 
 #include "adapter/bluetooth_test.h"
 #include "service/hal/bluetooth_gatt_interface.h"
+#include "types/raw_address.h"
 
 namespace bttest {
 

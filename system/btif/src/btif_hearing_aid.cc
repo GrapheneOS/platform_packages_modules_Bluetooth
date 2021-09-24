@@ -18,16 +18,17 @@
 
 /* Hearing Aid Profile Interface */
 
-#include "bta_hearing_aid_api.h"
-#include "btif_common.h"
-#include "btif_storage.h"
-#include "stack/include/btu.h"
-
 #include <base/bind.h>
 #include <base/location.h>
 #include <base/logging.h>
 #include <hardware/bluetooth.h>
 #include <hardware/bt_hearing_aid.h>
+
+#include "bta_hearing_aid_api.h"
+#include "btif_common.h"
+#include "btif_storage.h"
+#include "stack/include/btu.h"
+#include "types/raw_address.h"
 
 using base::Bind;
 using base::Unretained;

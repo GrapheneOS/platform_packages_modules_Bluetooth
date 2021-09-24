@@ -16,11 +16,13 @@
  *
  ******************************************************************************/
 
+#include "btcore/include/property.h"
+
 #include <arpa/inet.h>
 #include <gtest/gtest.h>
-#include "osi/test/AllocationTestHarness.h"
 
-#include "btcore/include/property.h"
+#include "osi/test/AllocationTestHarness.h"
+#include "types/raw_address.h"
 
 using bluetooth::Uuid;
 

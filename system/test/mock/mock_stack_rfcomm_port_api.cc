@@ -26,6 +26,7 @@ extern std::map<std::string, int> mock_function_count_map;
 
 #include <base/logging.h>
 #include <string.h>
+
 #include "l2c_api.h"
 #include "osi/include/log.h"
 #include "osi/include/mutex.h"
@@ -35,6 +36,7 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "stack/include/btm_api_types.h"
 #include "stack/rfcomm/port_int.h"
 #include "stack/rfcomm/rfc_int.h"
+#include "types/raw_address.h"
 
 #ifndef UNUSED_ATTR
 #define UNUSED_ATTR

@@ -37,6 +37,7 @@
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "stack/include/bt_hdr.h"
+#include "types/raw_address.h"
 
 /* This table is used to lookup the callback event that matches a particular
  * state machine API request event.  Note that state machine API request

@@ -17,9 +17,10 @@
 #ifndef ANDROID_INCLUDE_BT_AV_H
 #define ANDROID_INCLUDE_BT_AV_H
 
-#include <vector>
-
 #include <hardware/bluetooth.h>
+#include <raw_address.h>
+
+#include <vector>
 
 __BEGIN_DECLS
 

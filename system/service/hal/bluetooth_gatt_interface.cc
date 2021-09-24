@@ -16,15 +16,16 @@
 
 #include "service/hal/bluetooth_gatt_interface.h"
 
-#include <mutex>
-#include <shared_mutex>
-
 #include <base/logging.h>
 #include <base/observer_list.h>
+
+#include <mutex>
+#include <shared_mutex>
 
 #include "abstract_observer_list.h"
 #include "service/hal/bluetooth_interface.h"
 #include "service/logging_helpers.h"
+#include "types/raw_address.h"
 
 using std::lock_guard;
 using std::unique_lock;

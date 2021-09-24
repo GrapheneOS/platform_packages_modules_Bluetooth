@@ -52,6 +52,7 @@
 #include "stack/include/acl_api.h"
 #include "stack/include/acl_api_types.h"
 #include "stack/include/bt_hdr.h"
+#include "types/raw_address.h"
 #include "uipc.h"
 
 using bluetooth::common::A2dpSessionMetrics;

@@ -20,6 +20,8 @@
 
 #include "bt_target.h"
 #include "sdpdefs.h"
+#include "types/bluetooth/uuid.h"
+#include "types/raw_address.h"
 
 /*****************************************************************************
  *  Constants

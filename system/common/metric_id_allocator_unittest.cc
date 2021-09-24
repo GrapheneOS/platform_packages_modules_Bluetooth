@@ -16,12 +16,15 @@
  *
  ******************************************************************************/
 
+#include "common/metric_id_allocator.h"
+
 #include <base/logging.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+
 #include <thread>
 
-#include "common/metric_id_allocator.h"
+#include "types/raw_address.h"
 
 namespace testing {
 

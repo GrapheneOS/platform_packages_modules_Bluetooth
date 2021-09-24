@@ -35,6 +35,7 @@
 #include "osi/include/allocator.h"
 #include "stack/include/acl_hci_link_interface.h"
 #include "stack/include/bt_hdr.h"
+#include "types/raw_address.h"
 
 void bte_main_hci_send(BT_HDR* p_msg, uint16_t event);
 

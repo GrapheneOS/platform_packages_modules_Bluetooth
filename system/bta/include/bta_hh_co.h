@@ -27,6 +27,7 @@
 #include <cstdint>
 
 #include "bta/include/bta_hh_api.h"
+#include "types/raw_address.h"
 
 typedef struct {
   uint16_t rpt_uuid;

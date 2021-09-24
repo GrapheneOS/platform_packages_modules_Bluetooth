@@ -17,20 +17,21 @@
  ******************************************************************************/
 
 #include "ble_advertiser_hci_interface.h"
-#include "btm_api.h"
-#include "btm_ble_api.h"
-#include "btm_int_types.h"
-#include "device/include/controller.h"
-
-#include "osi/include/log.h"
-
-#include <queue>
-#include <utility>
 
 #include <base/bind.h>
 #include <base/callback.h>
 #include <base/location.h>
 #include <base/logging.h>
+
+#include <queue>
+#include <utility>
+
+#include "btm_api.h"
+#include "btm_ble_api.h"
+#include "btm_int_types.h"
+#include "device/include/controller.h"
+#include "osi/include/log.h"
+#include "types/raw_address.h"
 
 #define BTM_BLE_MULTI_ADV_SET_RANDOM_ADDR_LEN 8
 #define BTM_BLE_MULTI_ADV_ENB_LEN 3

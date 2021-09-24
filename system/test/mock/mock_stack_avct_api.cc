@@ -36,6 +36,7 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "stack/avct/avct_int.h"
 #include "stack/btm/btm_sec.h"
 #include "stack/include/bt_hdr.h"
+#include "types/raw_address.h"
 
 #ifndef UNUSED_ATTR
 #define UNUSED_ATTR

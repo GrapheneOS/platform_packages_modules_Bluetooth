@@ -24,11 +24,13 @@
 
 #pragma once
 #include <cstdint>
+
 #include "stack/btm/security_device_record.h"
 #include "stack/include/btm_api_types.h"
 #include "stack/include/hci_error_code.h"
 #include "stack/include/security_client_callbacks.h"
 #include "types/hci_role.h"
+#include "types/raw_address.h"
 
 #define BTM_SEC_MAX_COLLISION_DELAY (5000)
 

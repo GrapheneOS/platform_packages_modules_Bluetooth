@@ -20,10 +20,13 @@
 
 #include <base/callback_forward.h>
 #include <hardware/bt_hearing_aid.h>
+
 #include <cstdint>
 #include <deque>
 #include <functional>
 #include <vector>
+
+#include "types/raw_address.h"
 
 constexpr uint16_t HEARINGAID_MAX_NUM_UUIDS = 1;
 

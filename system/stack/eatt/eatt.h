@@ -20,6 +20,7 @@
 #include <queue>
 
 #include "stack/gatt/gatt_int.h"
+#include "types/raw_address.h"
 
 #define EATT_MIN_MTU_MPS (64)
 #define EATT_DEFAULT_MTU (256)

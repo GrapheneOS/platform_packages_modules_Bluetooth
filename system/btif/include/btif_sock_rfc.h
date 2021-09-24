@@ -28,7 +28,7 @@
 #define BTIF_SOCK_RFC_H
 
 #include "btif_uid.h"
-
+#include "types/raw_address.h"
 bt_status_t btsock_rfc_init(int handle, uid_set_t* set);
 bt_status_t btsock_rfc_cleanup();
 bt_status_t btsock_rfc_listen(const char* name, const bluetooth::Uuid* uuid,

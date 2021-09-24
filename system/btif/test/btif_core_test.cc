@@ -15,12 +15,14 @@
  */
 
 #include <gtest/gtest.h>
+
 #include <future>
 #include <map>
 
 #include "bta/include/bta_ag_api.h"
 #include "btif/include/btif_api.h"
 #include "btif/include/btif_common.h"
+#include "types/raw_address.h"
 
 void set_hal_cbacks(bt_callbacks_t* callbacks);
 

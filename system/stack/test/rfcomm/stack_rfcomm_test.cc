@@ -32,6 +32,7 @@
 #include "stack/rfcomm/rfc_int.h"
 #include "stack_rfcomm_test_utils.h"
 #include "stack_test_packet_utils.h"
+#include "types/raw_address.h"
 
 std::string DumpByteBufferToString(uint8_t* p_data, size_t len) {
   std::stringstream str;

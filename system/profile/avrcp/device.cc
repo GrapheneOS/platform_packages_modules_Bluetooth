@@ -24,6 +24,7 @@
 #include "packet/avrcp/set_absolute_volume.h"
 #include "packet/avrcp/set_addressed_player.h"
 #include "stack_config.h"
+#include "types/raw_address.h"
 
 namespace bluetooth {
 namespace avrcp {

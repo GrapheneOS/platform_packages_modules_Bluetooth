@@ -18,6 +18,7 @@
 #include "mock_l2cap_layer.h"
 
 #include "stack/include/bt_hdr.h"
+#include "types/raw_address.h"
 
 static bluetooth::l2cap::MockL2capInterface* l2cap_interface = nullptr;
 
