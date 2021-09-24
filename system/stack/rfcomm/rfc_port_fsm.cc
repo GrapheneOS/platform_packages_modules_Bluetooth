@@ -28,7 +28,6 @@
 #include <set>
 
 #include "bt_target.h"
-#include "hci/include/btsnoop.h"
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
@@ -236,12 +235,6 @@ void rfc_port_sm_sabme_wait_ua(tPORT* p_port, tRFC_PORT_EVENT event,
       rfc_port_timer_stop(p_port);
       p_port->rfc.state = RFC_STATE_OPENED;
 
-      if (uuid_logging_acceptlist.find(p_port->uuid) !=
-          uuid_logging_acceptlist.end()) {
-        btsnoop_get_interface()->allowlist_rfc_dlci(p_port->rfc.p_mcb->lcid,
-                                                    p_port->dlci);
-      }
-
       PORT_DlcEstablishCnf(p_port->rfc.p_mcb, p_port->dlci,
                            p_port->rfc.p_mcb->peer_l2cap_mtu, RFCOMM_SUCCESS);
       return;
@@ -356,12 +349,6 @@ void rfc_port_sm_term_wait_sec_check(tPORT* p_port, tRFC_PORT_EVENT event,
       } else {
         rfc_send_ua(p_port->rfc.p_mcb, p_port->dlci);
         p_port->rfc.state = RFC_STATE_OPENED;
-
-        if (uuid_logging_acceptlist.find(p_port->uuid) !=
-            uuid_logging_acceptlist.end()) {
-          btsnoop_get_interface()->allowlist_rfc_dlci(p_port->rfc.p_mcb->lcid,
-                                                      p_port->dlci);
-        }
       }
       return;
     default:
