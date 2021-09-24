@@ -24,12 +24,14 @@
  ******************************************************************************/
 
 #include <base/bind.h>
+
 #include <cstring>
 
 #include "bta/ag/bta_ag_int.h"
 #include "osi/include/osi.h"
 #include "stack/include/btu.h"  // do_in_main_thread
 #include "stack/include/port_api.h"
+#include "types/raw_address.h"
 
 /* Event mask for RfCOMM port callback */
 #define BTA_AG_PORT_EV_MASK PORT_EV_RXCHAR

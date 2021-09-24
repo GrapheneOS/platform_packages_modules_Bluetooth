@@ -26,6 +26,7 @@
 #include "bta_gatt_queue_mock.h"
 #include "btm_api_mock.h"
 #include "gatt/database_builder.h"
+#include "types/raw_address.h"
 
 namespace bluetooth {
 namespace vc {

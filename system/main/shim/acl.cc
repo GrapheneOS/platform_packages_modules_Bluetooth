@@ -60,6 +60,7 @@
 #include "stack/include/btm_status.h"
 #include "stack/include/sec_hci_link_interface.h"
 #include "stack/l2cap/l2c_int.h"
+#include "types/raw_address.h"
 
 extern tBTM_CB btm_cb;
 

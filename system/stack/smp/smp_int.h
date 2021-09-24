@@ -29,6 +29,7 @@
 #include "smp_api.h"
 #include "stack/crypto_toolbox/crypto_toolbox.h"
 #include "stack/include/bt_hdr.h"
+#include "types/raw_address.h"
 
 typedef enum : uint8_t {
   /* Legacy mode */

@@ -18,6 +18,7 @@
 #define ANDROID_INCLUDE_BT_HEARING_AID_H
 
 #include <hardware/bluetooth.h>
+#include <raw_address.h>
 
 namespace bluetooth {
 namespace hearing_aid {

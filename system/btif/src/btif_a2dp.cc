@@ -19,12 +19,13 @@
 
 #define LOG_TAG "bt_btif_a2dp"
 
+#include "btif_a2dp.h"
+
 #include <stdbool.h>
 
 #include "audio_a2dp_hw/include/audio_a2dp_hw.h"
 #include "audio_hal_interface/a2dp_encoding.h"
 #include "bta_av_api.h"
-#include "btif_a2dp.h"
 #include "btif_a2dp_control.h"
 #include "btif_a2dp_sink.h"
 #include "btif_a2dp_source.h"
@@ -33,6 +34,7 @@
 #include "btif_hf.h"
 #include "btif_util.h"
 #include "osi/include/log.h"
+#include "types/raw_address.h"
 
 void btif_a2dp_on_idle(void) {
   LOG_VERBOSE("Peer stream endpoint type:%s",

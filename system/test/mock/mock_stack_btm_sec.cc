@@ -28,6 +28,7 @@ extern std::map<std::string, int> mock_function_count_map;
 #include <frameworks/proto_logging/stats/enums/bluetooth/enums.pb.h>
 #include <frameworks/proto_logging/stats/enums/bluetooth/hci/enums.pb.h>
 #include <string.h>
+
 #include "btif/include/btif_storage.h"
 #include "common/metrics.h"
 #include "common/time_util.h"
@@ -45,6 +46,7 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "stack/include/btm_status.h"
 #include "stack/include/l2cap_security_interface.h"
 #include "stack/smp/smp_int.h"
+#include "types/raw_address.h"
 
 #ifndef UNUSED_ATTR
 #define UNUSED_ATTR

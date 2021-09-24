@@ -22,23 +22,23 @@
  *  applications that can run over an SMP.
  *
  ******************************************************************************/
+#include "smp_api.h"
+
 #include <base/logging.h>
 #include <string.h>
 
 #include "bt_target.h"
 #include "bt_utils.h"
-#include "stack_config.h"
-
 #include "gd/os/log.h"
 #include "gd/os/rand.h"
 #include "l2c_api.h"
 #include "l2cdefs.h"
 #include "main/shim/shim.h"
-#include "smp_api.h"
+#include "p_256_ecc_pp.h"
 #include "smp_int.h"
 #include "stack/btm/btm_dev.h"
-
-#include "p_256_ecc_pp.h"
+#include "stack_config.h"
+#include "types/raw_address.h"
 
 /*******************************************************************************
  *

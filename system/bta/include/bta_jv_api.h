@@ -31,6 +31,7 @@
 #include "bta/include/bta_api.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/l2c_api.h"
+#include "types/raw_address.h"
 
 /*****************************************************************************
  *  Constants and data types

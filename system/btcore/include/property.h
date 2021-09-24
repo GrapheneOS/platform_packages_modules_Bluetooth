@@ -24,6 +24,7 @@
 #include <stdlib.h>
 
 #include "btcore/include/device_class.h"
+#include "types/raw_address.h"
 
 // Copies an array of consecutive properties of |count| to a newly
 // allocated array. |properties| must not be NULL.

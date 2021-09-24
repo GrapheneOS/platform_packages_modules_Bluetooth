@@ -17,7 +17,9 @@
  ******************************************************************************/
 
 #include "rfcomm/rfcomm_test.h"
+
 #include "adapter/bluetooth_test.h"
+#include "types/raw_address.h"
 
 using bluetooth::Uuid;
 

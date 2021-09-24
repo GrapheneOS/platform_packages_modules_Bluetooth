@@ -22,8 +22,10 @@
 #include <base/threading/thread.h>
 #include <hardware/bluetooth.h>
 #include <stdio.h>
+
 #include <unordered_set>
 
+#include "advertise_data_parser.h"
 #include "btif/include/btif_common.h"
 #include "gd/hci/address.h"
 #include "gd/hci/le_scanning_manager.h"
@@ -33,9 +35,8 @@
 #include "main/shim/entry.h"
 #include "main/shim/helpers.h"
 #include "main/shim/shim.h"
-
-#include "advertise_data_parser.h"
 #include "stack/btm/btm_int_types.h"
+#include "types/raw_address.h"
 
 using bluetooth::ToRawAddress;
 using bluetooth::ToGdAddress;

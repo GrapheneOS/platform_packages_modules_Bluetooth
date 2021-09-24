@@ -20,6 +20,7 @@
 
 #include "bind_helpers.h"
 #include "stack/gatt/gatt_int.h"
+#include "types/raw_address.h"
 
 namespace bluetooth {
 namespace gatt {

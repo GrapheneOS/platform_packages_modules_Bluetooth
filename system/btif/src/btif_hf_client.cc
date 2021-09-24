@@ -46,10 +46,9 @@
 #define LOG_TAG "bt_btif_hfc"
 #endif
 
-#include <string.h>
-
 #include <hardware/bluetooth.h>
 #include <hardware/bt_hf_client.h>
+#include <string.h>
 
 #include "bta_hf_client_api.h"
 #include "btif_common.h"
@@ -57,6 +56,7 @@
 #include "btif_util.h"
 #include "osi/include/osi.h"
 #include "osi/include/properties.h"
+#include "types/raw_address.h"
 
 /*******************************************************************************
  *  Constants & Macros

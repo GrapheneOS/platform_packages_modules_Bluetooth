@@ -17,27 +17,26 @@
  *
  ******************************************************************************/
 
-#include "bt_target.h"
-#include "device/include/controller.h"
-#include "osi/include/alarm.h"
-
-#include "ble_advertiser.h"
-#include "ble_advertiser_hci_interface.h"
-#include "btm_int_types.h"
-#include "stack/btm/btm_ble_int.h"
-
-#include <string.h>
-#include <queue>
-#include <vector>
-
 #include <base/bind.h>
 #include <base/location.h>
 #include <base/logging.h>
 #include <base/memory/weak_ptr.h>
 #include <base/strings/string_number_conversions.h>
 #include <base/time/time.h>
+#include <string.h>
+
+#include <queue>
+#include <vector>
 
 #include "bind_helpers.h"
+#include "ble_advertiser.h"
+#include "ble_advertiser_hci_interface.h"
+#include "bt_target.h"
+#include "btm_int_types.h"
+#include "device/include/controller.h"
+#include "osi/include/alarm.h"
+#include "stack/btm/btm_ble_int.h"
+#include "types/raw_address.h"
 
 using base::Bind;
 using base::TimeDelta;

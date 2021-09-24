@@ -20,6 +20,7 @@
 #include "base/callback.h"
 #include "rust/cxx.h"
 #include "src/profiles/gatt.rs.h"
+#include "types/raw_address.h"
 
 namespace bluetooth {
 namespace topshim {

@@ -29,6 +29,7 @@
 #include "stack/gatt/gatt_int.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/l2cap/l2c_int.h"
+#include "types/raw_address.h"
 
 namespace bluetooth {
 namespace eatt {

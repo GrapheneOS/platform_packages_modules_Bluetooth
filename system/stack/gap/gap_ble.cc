@@ -19,14 +19,17 @@
 #include <base/logging.h>
 #include <base/strings/stringprintf.h>
 #include <string.h>
+
 #include <array>
 #include <list>
 #include <queue>
+
 #include "gap_api.h"
 #include "gatt_api.h"
 #include "main/shim/dumpsys.h"
 #include "osi/include/log.h"
 #include "types/bt_transport.h"
+#include "types/raw_address.h"
 
 using base::StringPrintf;
 using bluetooth::Uuid;

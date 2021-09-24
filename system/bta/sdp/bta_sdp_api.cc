@@ -22,13 +22,15 @@
  *
  ******************************************************************************/
 
+#include "bta/include/bta_sdp_api.h"
+
 #include <base/bind.h>
 #include <base/location.h>
 
 #include "bt_target.h"  // Must be first to define build configuration
-#include "bta/include/bta_sdp_api.h"
 #include "bta/sdp/bta_sdp_int.h"
 #include "stack/include/btu.h"  // do_in_main_thread
+#include "types/raw_address.h"
 
 /*****************************************************************************
  *  Constants

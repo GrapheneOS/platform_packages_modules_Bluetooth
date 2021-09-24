@@ -32,6 +32,7 @@ extern std::map<std::string, int> mock_function_count_map;
 #endif
 
 #include "bta/pan/bta_pan_int.h"
+#include "types/raw_address.h"
 
 void BTA_PanClose(uint16_t handle) { mock_function_count_map[__func__]++; }
 void BTA_PanDisable(void) { mock_function_count_map[__func__]++; }

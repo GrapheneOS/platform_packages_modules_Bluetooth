@@ -20,12 +20,12 @@
 #include <mutex>
 
 #include "base/macros.h"
-
 #include "bluetooth/uuid.h"
 #include "service/bluetooth_instance.h"
 #include "service/common/bluetooth/avrcp_media_attr.h"
 #include "service/common/bluetooth/service.h"
 #include "service/hal/bluetooth_avrcp_interface.h"
+#include "types/raw_address.h"
 
 namespace bluetooth {
 

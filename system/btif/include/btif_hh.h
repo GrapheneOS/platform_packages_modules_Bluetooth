@@ -27,6 +27,7 @@
 #include "bta/include/bta_hh_api.h"
 #include "osi/include/alarm.h"
 #include "osi/include/fixed_queue.h"
+#include "types/raw_address.h"
 
 /*******************************************************************************
  *  Constants & Macros

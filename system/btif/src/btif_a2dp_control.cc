@@ -19,19 +19,21 @@
 
 #define LOG_TAG "bt_btif_a2dp_control"
 
+#include "btif_a2dp_control.h"
+
 #include <base/logging.h>
 #include <stdbool.h>
 #include <stdint.h>
 
 #include "audio_a2dp_hw/include/audio_a2dp_hw.h"
 #include "btif_a2dp.h"
-#include "btif_a2dp_control.h"
 #include "btif_a2dp_sink.h"
 #include "btif_a2dp_source.h"
 #include "btif_av.h"
 #include "btif_av_co.h"
 #include "btif_hf.h"
 #include "osi/include/osi.h"
+#include "types/raw_address.h"
 #include "uipc.h"
 
 #define A2DP_DATA_READ_POLL_MS 10

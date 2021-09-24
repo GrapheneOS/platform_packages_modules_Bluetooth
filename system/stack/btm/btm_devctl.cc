@@ -48,6 +48,7 @@
 #include "stack/include/acl_api.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/l2cap_controller_interface.h"
+#include "types/raw_address.h"
 
 extern tBTM_CB btm_cb;
 

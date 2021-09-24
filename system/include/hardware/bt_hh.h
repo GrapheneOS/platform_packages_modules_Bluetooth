@@ -17,7 +17,9 @@
 #ifndef ANDROID_INCLUDE_BT_HH_H
 #define ANDROID_INCLUDE_BT_HH_H
 
+#include <raw_address.h>
 #include <stdint.h>
+
 #include <string>
 
 __BEGIN_DECLS

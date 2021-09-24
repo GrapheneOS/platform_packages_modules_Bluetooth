@@ -20,6 +20,7 @@
 #include <base/memory/ptr_util.h>
 
 #include "service/logging_helpers.h"
+#include "types/raw_address.h"
 
 using bluetooth::hal::BluetoothAvInterface;
 

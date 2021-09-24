@@ -20,6 +20,8 @@
 #include <hardware/bluetooth.h>
 #include <hardware/bt_rc.h>
 
+#include "types/raw_address.h"
+
 namespace bluetooth {
 namespace hal {
 

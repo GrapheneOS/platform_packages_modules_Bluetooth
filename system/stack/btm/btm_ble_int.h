@@ -32,6 +32,7 @@
 #include "btm_int_types.h"
 #include "smp_api.h"
 #include "stack/include/hci_error_code.h"
+#include "types/raw_address.h"
 
 extern void btm_ble_process_periodic_adv_sync_est_evt(uint8_t len, uint8_t* p);
 extern void btm_ble_process_periodic_adv_pkt(uint8_t len, uint8_t* p);

@@ -26,6 +26,7 @@
 #include "stack/include/hcidefs.h"
 #include "types/ble_address_with_type.h"
 #include "types/hci_role.h"
+#include "types/raw_address.h"
 
 namespace bluetooth {
 

@@ -17,6 +17,7 @@
 #ifndef ANDROID_INCLUDE_BT_GATT_SERVER_H
 #define ANDROID_INCLUDE_BT_GATT_SERVER_H
 
+#include <raw_address.h>
 #include <stdint.h>
 
 #include "bt_gatt_types.h"

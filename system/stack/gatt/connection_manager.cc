@@ -22,6 +22,7 @@
 #include <base/callback.h>
 #include <base/location.h>
 #include <base/logging.h>
+
 #include <map>
 #include <memory>
 #include <set>
@@ -32,6 +33,7 @@
 #include "osi/include/log.h"
 #include "stack/btm/btm_ble_bgconn.h"
 #include "stack/include/l2c_api.h"
+#include "types/raw_address.h"
 
 #define DIRECT_CONNECT_TIMEOUT (30 * 1000) /* 30 seconds */
 

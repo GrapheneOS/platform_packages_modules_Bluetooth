@@ -16,6 +16,8 @@
  *
  ******************************************************************************/
 
+#include "bta_hh_co.h"
+
 #include <base/logging.h>
 #include <ctype.h>
 #include <errno.h>
@@ -30,12 +32,12 @@
 
 #include "bta_api.h"
 #include "bta_hh_api.h"
-#include "bta_hh_co.h"
 #include "btif_hh.h"
 #include "btif_util.h"
 #include "osi/include/allocator.h"
 #include "osi/include/compat.h"
 #include "osi/include/osi.h"
+#include "types/raw_address.h"
 
 const char* dev_path = "/dev/uhid";
 

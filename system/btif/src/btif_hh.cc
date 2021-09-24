@@ -41,6 +41,7 @@
 #include "stack/include/bt_hdr.h"
 #include "stack/include/hidh_api.h"
 #include "stack/include/l2c_api.h"
+#include "types/raw_address.h"
 
 #define COD_HID_KEYBOARD 0x0540
 #define COD_HID_POINTING 0x0580
