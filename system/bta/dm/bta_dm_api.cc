@@ -104,6 +104,8 @@ void BTA_DmSearch(tBTA_DM_SEARCH_CBACK* p_cback, bool is_bonding_or_sdp) {
  *
  ******************************************************************************/
 void BTA_DmSearchCancel(void) {
+  bta_dm_search_clear_queue();
+
   switch (bta_dm_search_get_state()) {
     case BTA_DM_SEARCH_IDLE:
       bta_dm_search_cancel_notify();
@@ -113,7 +115,6 @@ void BTA_DmSearchCancel(void) {
       bta_dm_search_cancel();
       break;
     case BTA_DM_SEARCH_CANCELLING:
-      bta_dm_search_clear_queue();
       bta_dm_search_cancel_notify();
       break;
     case BTA_DM_DISCOVER_ACTIVE:
