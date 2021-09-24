@@ -289,21 +289,6 @@ tBTM_STATUS BTM_ClearInqDb(const RawAddress* p_bda);
 
 /*******************************************************************************
  *
- * Function         BTM_WriteEIR
- *
- * Description      This function is called to write EIR data to controller.
- *
- * Parameters       p_buff - allocated HCI command buffer including extended
- *                           inquriry response
- *
- * Returns          BTM_SUCCESS  - if successful
- *                  BTM_MODE_UNSUPPORTED - if local device cannot support it
- *
- ******************************************************************************/
-tBTM_STATUS BTM_WriteEIR(BT_HDR* p_buff);
-
-/*******************************************************************************
- *
  * Function         BTM_HasEirService
  *
  * Description      This function is called to know if UUID in bit map of UUID.
