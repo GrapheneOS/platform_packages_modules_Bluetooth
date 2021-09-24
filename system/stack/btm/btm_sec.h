@@ -26,6 +26,7 @@
 #include <cstdint>
 
 #include "stack/btm/security_device_record.h"
+#include "stack/include/bt_device_type.h"
 #include "stack/include/btm_api_types.h"
 #include "stack/include/hci_error_code.h"
 #include "stack/include/security_client_callbacks.h"
