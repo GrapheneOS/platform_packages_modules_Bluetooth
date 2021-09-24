@@ -17,6 +17,8 @@
 
 #include "mock_gatt_layer.h"
 
+#include "types/raw_address.h"
+
 static bluetooth::gatt::MockGattInterface* gatt_interface = nullptr;
 
 void bluetooth::gatt::SetMockGattInterface(

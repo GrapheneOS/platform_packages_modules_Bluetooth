@@ -34,6 +34,7 @@
 
 #include "btif_common.h"
 #include "btif_dm.h"
+#include "types/raw_address.h"
 
 /*******************************************************************************
  *  BTIF CORE API

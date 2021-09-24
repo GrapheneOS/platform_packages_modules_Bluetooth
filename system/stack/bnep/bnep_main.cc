@@ -38,6 +38,7 @@
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "stack/include/bt_hdr.h"
+#include "types/raw_address.h"
 
 /******************************************************************************/
 /*                     G L O B A L    B N E P       D A T A                   */

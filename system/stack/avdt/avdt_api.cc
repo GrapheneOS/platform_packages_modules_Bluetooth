@@ -38,6 +38,7 @@
 #include "stack/btm/btm_sec.h"
 #include "stack/include/a2dp_codec_api.h"
 #include "stack/include/bt_hdr.h"
+#include "types/raw_address.h"
 
 /* Control block for AVDTP */
 AvdtpCb avdtp_cb;

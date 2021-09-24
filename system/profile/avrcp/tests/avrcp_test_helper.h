@@ -25,6 +25,7 @@
 #include "avrcp_packet.h"
 #include "stack/include/bt_hdr.h"
 #include "tests/packet_test_helper.h"
+#include "types/raw_address.h"
 
 namespace bluetooth {
 namespace avrcp {

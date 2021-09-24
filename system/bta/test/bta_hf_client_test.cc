@@ -21,6 +21,7 @@
 #include "bta/hf_client/bta_hf_client_int.h"
 #include "bta/include/bta_hf_client_api.h"
 #include "common/message_loop_thread.h"
+#include "types/raw_address.h"
 
 namespace base {
 class MessageLoop;

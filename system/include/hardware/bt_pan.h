@@ -16,6 +16,7 @@
 
 #ifndef ANDROID_INCLUDE_BT_PAN_H
 #define ANDROID_INCLUDE_BT_PAN_H
+#include <raw_address.h>
 
 __BEGIN_DECLS
 

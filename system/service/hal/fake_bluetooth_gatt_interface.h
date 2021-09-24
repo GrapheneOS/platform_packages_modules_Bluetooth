@@ -16,13 +16,14 @@
 
 #pragma once
 
-#include <vector>
-
 #include <base/macros.h>
 #include <base/observer_list.h>
 
+#include <vector>
+
 #include "abstract_observer_list.h"
 #include "service/hal/bluetooth_gatt_interface.h"
+#include "types/raw_address.h"
 
 namespace bluetooth {
 namespace hal {

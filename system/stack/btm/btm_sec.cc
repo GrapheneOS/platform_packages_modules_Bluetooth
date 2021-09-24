@@ -51,6 +51,7 @@
 #include "stack/include/l2cap_security_interface.h"
 #include "stack/include/stack_metrics_logging.h"
 #include "stack/smp/smp_int.h"
+#include "types/raw_address.h"
 
 namespace {
 

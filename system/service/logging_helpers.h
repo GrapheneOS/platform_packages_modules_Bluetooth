@@ -22,6 +22,7 @@
 #include "hardware/bluetooth.h"
 #include "hardware/bt_av.h"
 #include "hardware/bt_gatt_types.h"
+#include "types/raw_address.h"
 
 const char* BtAvConnectionStateText(const btav_connection_state_t state);
 

@@ -17,16 +17,17 @@
 #define LOG_TAG "bt_shim_controller"
 
 #include "main/shim/controller.h"
+
 #include "btcore/include/module.h"
 #include "gd/common/init_flags.h"
+#include "hci/controller.h"
 #include "main/shim/entry.h"
 #include "main/shim/shim.h"
 #include "main/shim/stack.h"
 #include "osi/include/future.h"
 #include "osi/include/log.h"
-
-#include "hci/controller.h"
 #include "src/bridge.rs.h"
+#include "types/raw_address.h"
 
 using ::bluetooth::common::init_flags::gd_rust_is_enabled;
 using ::bluetooth::shim::GetController;

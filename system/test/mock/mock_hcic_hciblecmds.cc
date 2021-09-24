@@ -32,6 +32,7 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "bt_target.h"
 #include "btu.h"
 #include "hcimsgs.h"
+#include "types/raw_address.h"
 void btsnd_hci_ble_add_device_to_periodic_advertiser_list(
     uint8_t adv_addr_type, const RawAddress& adv_addr, uint8_t adv_sid,
     base::OnceCallback<void(uint8_t*, uint16_t)> cb) {

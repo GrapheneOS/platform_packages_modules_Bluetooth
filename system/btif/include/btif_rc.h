@@ -18,6 +18,7 @@
 #define BTIF_RC_H
 
 #include "bta_av_api.h"
+#include "types/raw_address.h"
 
 class RawAddress;
 

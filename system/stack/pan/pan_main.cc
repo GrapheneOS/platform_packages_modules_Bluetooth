@@ -33,6 +33,7 @@
 #include "stack/include/bt_hdr.h"
 #include "stack/include/sdpdefs.h"
 #include "stack/pan/pan_int.h"
+#include "types/raw_address.h"
 
 using bluetooth::Uuid;
 

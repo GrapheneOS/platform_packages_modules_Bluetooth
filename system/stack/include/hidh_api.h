@@ -21,6 +21,7 @@
 #include "stack/include/bt_hdr.h"
 #include "stack/include/hiddefs.h"
 #include "stack/include/sdp_api.h"
+#include "types/raw_address.h"
 
 /*****************************************************************************
  *  Constants

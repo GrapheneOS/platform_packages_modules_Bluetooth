@@ -85,6 +85,7 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "osi/include/wakelock.h"
 #include "stack/gatt/connection_manager.h"
 #include "stack/include/avdt_api.h"
+#include "types/raw_address.h"
 #include "utils/include/bt_utils.h"
 
 // Mocked compile conditionals, if any

@@ -27,12 +27,15 @@
 
 #include <base/callback_forward.h>
 #include <hardware/bt_common_types.h>
+
 #include <memory>
+
 #include "btm_api.h"
 #include "btm_ble_api_types.h"
 #include "osi/include/alarm.h"
 #include "stack/btm/neighbor_inquiry.h"
 #include "types/bt_transport.h"
+#include "types/raw_address.h"
 
 void btm_ble_init();
 void btm_ble_free();

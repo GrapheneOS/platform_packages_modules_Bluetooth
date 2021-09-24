@@ -17,9 +17,10 @@
 //#include <dlfcn.h>
 #include <gtest/gtest.h>
 
-#include "stack/include/avdt_api.h"
 #include "stack/avdt/avdt_int.h"
+#include "stack/include/avdt_api.h"
 #include "stack/test/common/mock_stack_avdt_msg.h"
+#include "types/raw_address.h"
 
 #ifndef UNUSED_ATTR
 #define UNUSED_ATTR

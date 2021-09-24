@@ -22,12 +22,13 @@
  *
  ******************************************************************************/
 #include <string.h>
-#include "bt_target.h"
 
 #include "ble_advertiser.h"
+#include "bt_target.h"
 #include "btm_int.h"
 #include "device/include/controller.h"
 #include "stack/btm/btm_dev.h"
+#include "types/raw_address.h"
 #include "vendor_hcidefs.h"
 
 extern tBTM_CB btm_cb;

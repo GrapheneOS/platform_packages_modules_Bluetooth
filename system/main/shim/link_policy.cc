@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 
+#include "main/shim/link_policy.h"
+
 #include <base/bind.h>
 #include <base/location.h>
 #include <base/strings/stringprintf.h>
+
 #include <cstdint>
 #include <memory>
 
@@ -24,7 +27,6 @@
 #include "hci/controller.h"
 #include "main/shim/controller.h"
 #include "main/shim/dumpsys.h"
-#include "main/shim/link_policy.h"
 #include "main/shim/stack.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
@@ -33,6 +35,7 @@
 #include "stack/include/btm_api_types.h"
 #include "stack/include/btm_ble_api_types.h"
 #include "stack/include/hci_error_code.h"
+#include "types/raw_address.h"
 
 bt_status_t do_in_main_thread(const base::Location& from_here,
                               base::OnceClosure task);

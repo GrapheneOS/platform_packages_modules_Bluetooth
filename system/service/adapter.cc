@@ -16,13 +16,13 @@
 
 #include "service/adapter.h"
 
+#include <base/logging.h>
+#include <base/observer_list.h>
+
 #include <atomic>
 #include <mutex>
 #include <string>
 #include <unordered_set>
-
-#include <base/logging.h>
-#include <base/observer_list.h>
 
 #include "abstract_observer_list.h"
 #include "notreached.h"
@@ -38,6 +38,7 @@
 #include "service/low_energy_advertiser.h"
 #include "service/low_energy_client.h"
 #include "service/low_energy_scanner.h"
+#include "types/raw_address.h"
 
 using std::lock_guard;
 using std::mutex;

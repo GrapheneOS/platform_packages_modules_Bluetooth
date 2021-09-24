@@ -16,13 +16,14 @@
  *
  ******************************************************************************/
 
-#include "bta_api.h"
-
 #include <stdlib.h>
 #include <string.h>
+
+#include "bta_api.h"
 #include "btif_util.h"
 #include "osi/include/osi.h"
 #include "stack/include/gatt_api.h"
+#include "types/raw_address.h"
 
 /*****************************************************************************
  *  Local type definitions

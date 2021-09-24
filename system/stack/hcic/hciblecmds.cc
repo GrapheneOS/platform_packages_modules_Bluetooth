@@ -35,6 +35,7 @@
 #include "hcimsgs.h"
 #include "osi/include/allocator.h"
 #include "stack/include/bt_hdr.h"
+#include "types/raw_address.h"
 
 /*******************************************************************************
  * BLE Commands

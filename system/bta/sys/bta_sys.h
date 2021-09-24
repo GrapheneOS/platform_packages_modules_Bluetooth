@@ -33,6 +33,7 @@
 #include "stack/include/bt_hdr.h"
 #include "stack/include/hci_error_code.h"
 #include "types/hci_role.h"
+#include "types/raw_address.h"
 
 /*****************************************************************************
  *  Constants and data types

@@ -22,6 +22,7 @@
 #include "avrcp_internal.h"
 #include "avrcp_test_helper.h"
 #include "connection_handler.h"
+#include "types/raw_address.h"
 
 using ::testing::_;
 using ::testing::DoAll;
