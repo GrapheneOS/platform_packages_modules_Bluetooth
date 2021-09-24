@@ -113,6 +113,13 @@ fn build_commands() -> HashMap<String, CommandOption> {
         },
     );
     command_options.insert(
+        String::from("device"),
+        CommandOption {
+            description: String::from("Take action on a remote device. (i.e. info)"),
+            function_pointer: CommandHandler::cmd_device,
+        },
+    );
+    command_options.insert(
         String::from("discovery"),
         CommandOption {
             description: String::from("Start and stop device discovery. (e.g. discovery start)"),
@@ -322,6 +329,45 @@ impl CommandHandler {
                 .as_ref()
                 .unwrap()
                 .create_bond(device, BluetoothTransport::from_i32(0).unwrap());
+        });
+    }
+
+    fn cmd_device(&mut self, args: &Vec<String>) {
+        if !self.context.lock().unwrap().adapter_ready {
+            self.adapter_not_ready();
+            return;
+        }
+
+        enforce_arg_len(args, 2, "device <info> <address>", || match &args[0][0..] {
+            "info" => {
+                let device = BluetoothDevice {
+                    address: String::from(&args[1]),
+                    name: String::from("Classic Device"),
+                };
+
+                let uuids = self
+                    .context
+                    .lock()
+                    .unwrap()
+                    .adapter_dbus
+                    .as_ref()
+                    .unwrap()
+                    .get_remote_uuids(device.clone());
+
+                print_info!("Address: {}", &device.address);
+                print_info!(
+                    "Uuids: {}",
+                    DisplayList(
+                        uuids
+                            .iter()
+                            .map(|&x| DisplayUuid128Bit(x))
+                            .collect::<Vec<DisplayUuid128Bit>>()
+                    )
+                );
+            }
+            _ => {
+                println!("Invalid argument '{}'", args[0]);
+            }
         });
     }
 

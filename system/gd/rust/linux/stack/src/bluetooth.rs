@@ -429,8 +429,8 @@ impl BtifBluetoothCallbacks for Bluetooth {
     }
 
     fn discovery_state(&mut self, state: BtDiscoveryState) {
-        // Clear found devices when discovery session ends
-        if &state == &BtDiscoveryState::Stopped {
+        // Clear found devices when discovery session starts
+        if !self.is_discovering && &state == &BtDiscoveryState::Started {
             self.found_devices.clear();
         }
 
@@ -705,13 +705,13 @@ impl IBluetooth for Bluetooth {
 
     fn get_remote_uuids(&self, device: BluetoothDevice) -> Vec<Uuid128Bit> {
         // Device must exist in either bonded or found list
-        let device = self
+        let found = self
             .bonded_devices
             .get(&device.address)
             .or_else(|| self.found_devices.get(&device.address));
 
         // Extract property from the device
-        return device
+        return found
             .and_then(|d| {
                 if let Some(u) = d.properties.get(&BtPropertyType::Uuids) {
                     match u {
