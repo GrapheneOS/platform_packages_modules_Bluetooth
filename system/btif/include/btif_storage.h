@@ -23,6 +23,7 @@
 #include <hardware/bluetooth.h>
 
 #include "bt_target.h"
+#include "stack/include/bt_device_type.h"
 #include "types/ble_address_with_type.h"
 #include "types/raw_address.h"
 
