@@ -37,6 +37,7 @@
 #include "gatt_api.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
+#include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
 using bluetooth::Uuid;

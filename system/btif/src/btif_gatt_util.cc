@@ -39,6 +39,7 @@
 #include "osi/include/allocator.h"
 #include "osi/include/osi.h"
 #include "stack/btm/btm_sec.h"
+#include "types/bluetooth/uuid.h"
 #include "types/bt_transport.h"
 #include "types/raw_address.h"
 

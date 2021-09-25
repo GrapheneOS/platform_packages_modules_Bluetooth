@@ -25,6 +25,7 @@
 #include "osi/include/osi.h"
 #include "test/suite/support/callbacks.h"
 #include "test/suite/support/hal.h"
+#include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
 static const Uuid HFP_UUID =

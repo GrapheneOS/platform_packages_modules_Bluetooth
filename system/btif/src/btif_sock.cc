@@ -38,6 +38,7 @@
 #include "btif_util.h"
 #include "device/include/controller.h"
 #include "osi/include/thread.h"
+#include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
 using bluetooth::Uuid;

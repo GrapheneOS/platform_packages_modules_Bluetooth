@@ -16,6 +16,8 @@
 
 #define LOG_TAG "bt_headless_sdp"
 
+#include "test/headless/sdp/sdp.h"
+
 #include <future>
 
 #include "base/logging.h"     // LOG() stdout and android log
@@ -23,8 +25,8 @@
 #include "stack/include/sdp_api.h"
 #include "test/headless/get_options.h"
 #include "test/headless/headless.h"
-#include "test/headless/sdp/sdp.h"
 #include "test/headless/sdp/sdp_db.h"
+#include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
 using namespace bluetooth::test::headless;

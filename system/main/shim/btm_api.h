@@ -24,6 +24,7 @@
 #include "stack/include/bt_octets.h"
 #include "stack/include/btm_api_types.h"
 #include "stack/include/btm_ble_api_types.h"
+#include "types/bluetooth/uuid.h"
 #include "types/hci_role.h"
 #include "types/raw_address.h"
 

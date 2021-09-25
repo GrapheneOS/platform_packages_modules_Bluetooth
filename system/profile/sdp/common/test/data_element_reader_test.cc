@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
+#include "common/data_element_reader.h"
+
 #include <base/logging.h>
 #include <gtest/gtest.h>
 
-#include "common/data_element_reader.h"
+#include "types/bluetooth/uuid.h"
 
 namespace bluetooth {
 namespace sdp {

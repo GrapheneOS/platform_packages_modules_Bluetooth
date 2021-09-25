@@ -25,6 +25,7 @@
 #include "check.h"
 #include "osi/include/allocator.h"
 #include "osi/include/compat.h"
+#include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
 using bluetooth::Uuid;
