@@ -18,9 +18,12 @@
 #define BT_STACK_FUZZ_COMMON_HELPERS_H_
 
 #include <fuzzer/FuzzedDataProvider.h>
+
 #include <cstring>  // For memcpy
 #include <vector>
+
 #include "stack/include/sdp_api.h"
+#include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
 // Calls a function from the ops_vector

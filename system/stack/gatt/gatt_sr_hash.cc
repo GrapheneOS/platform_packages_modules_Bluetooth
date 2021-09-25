@@ -17,10 +17,12 @@
  ******************************************************************************/
 
 #include <base/strings/string_number_conversions.h>
+
 #include <list>
 
 #include "gatt_int.h"
 #include "stack/crypto_toolbox/crypto_toolbox.h"
+#include "types/bluetooth/uuid.h"
 
 using bluetooth::Uuid;
 

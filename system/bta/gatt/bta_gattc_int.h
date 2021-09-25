@@ -33,6 +33,7 @@
 #include "bta/sys/bta_sys.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/gatt_api.h"
+#include "types/bluetooth/uuid.h"
 #include "types/bt_transport.h"
 #include "types/raw_address.h"
 

@@ -17,9 +17,11 @@
 #include "data_element_reader.h"
 
 #include <base/logging.h>
+
 #include <type_traits>
 
 #include "sdp_logging_helper.h"
+#include "types/bluetooth/uuid.h"
 
 // A helper macro that can verify that there is enough data remaining in the
 // reader to extract without overflowing. end_ - it_ should never be negative

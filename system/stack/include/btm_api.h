@@ -34,6 +34,7 @@
 #include "stack/include/btm_status.h"
 #include "stack/include/sco_client_callbacks.h"
 #include "stack/include/sdp_api.h"
+#include "types/bluetooth/uuid.h"
 #include "types/bt_transport.h"
 #include "types/raw_address.h"
 

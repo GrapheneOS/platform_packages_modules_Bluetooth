@@ -17,6 +17,7 @@
 #include "common/message_loop_thread.h"
 #include "stack/gatt/gatt_int.h"
 #include "stack/include/bt_hdr.h"
+#include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 #include "utils/include/bt_utils.h"
 

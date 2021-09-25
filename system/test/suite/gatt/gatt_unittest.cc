@@ -21,6 +21,7 @@
 #include <unistd.h>
 
 #include "gatt/gatt_test.h"
+#include "types/bluetooth/uuid.h"
 
 namespace bttest {
 
