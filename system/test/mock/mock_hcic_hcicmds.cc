@@ -32,6 +32,7 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "btu.h"
 #include "hcimsgs.h"
 #include "stack/include/acl_hci_link_interface.h"
+#include "stack/include/bt_octets.h"
 #include "types/raw_address.h"
 
 namespace test {

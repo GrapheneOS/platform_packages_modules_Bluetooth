@@ -39,6 +39,7 @@
 #include "stack/include/acl_api.h"        // BTM_ReadRSSI
 #include "stack/include/acl_api_types.h"  // tBTM_RSSI_RESULT
 #include "stack/include/bt_hdr.h"
+#include "stack/include/bt_octets.h"
 #include "stack/include/gap_api.h"
 #include "stack/include/l2c_api.h"  // L2CAP_MIN_OFFSET
 #include "types/bluetooth/uuid.h"

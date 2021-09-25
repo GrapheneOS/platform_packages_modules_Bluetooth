@@ -18,6 +18,7 @@
 
 #include <limits>
 
+#include "stack/include/bt_octets.h"
 #include "types/raw_address.h"
 
 namespace {
