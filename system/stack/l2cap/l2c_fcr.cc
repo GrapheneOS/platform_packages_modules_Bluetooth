@@ -35,6 +35,7 @@
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "stack/include/bt_hdr.h"
+#include "stack/include/bt_types.h"
 
 /* Flag passed to retransmit_i_frames() when all packets should be retransmitted
  */

@@ -34,6 +34,7 @@
 #include "osi/include/log.h"
 #include "osi/include/mutex.h"
 #include "stack/include/bt_hdr.h"
+#include "stack/include/bt_types.h"
 #include "stack/include/sdpdefs.h"
 #include "stack/rfcomm/rfc_int.h"
 #include "types/raw_address.h"

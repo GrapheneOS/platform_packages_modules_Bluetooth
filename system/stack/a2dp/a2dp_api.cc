@@ -34,6 +34,7 @@
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "sdpdefs.h"
+#include "stack/include/bt_types.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
