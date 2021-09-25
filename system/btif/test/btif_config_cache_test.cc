@@ -16,10 +16,12 @@
 
 #include "btif/include/btif_config_cache.h"
 
-#include <filesystem>
-
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+
+#include <filesystem>
+
+#include "stack/include/bt_octets.h"
 
 namespace {
 

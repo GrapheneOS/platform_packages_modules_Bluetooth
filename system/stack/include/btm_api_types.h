@@ -28,6 +28,7 @@
 #include "internal_include/bt_target.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_name.h"
+#include "stack/include/bt_octets.h"
 #include "stack/include/btm_status.h"
 #include "stack/include/hci_mode.h"
 #include "stack/include/hcidefs.h"

@@ -19,6 +19,7 @@
 #define LOG_TAG "smp_act"
 
 #include <string.h>
+
 #include "btif/include/btif_api.h"
 #include "btif/include/btif_common.h"
 #include "btif/include/btif_storage.h"
@@ -29,6 +30,7 @@
 #include "stack/btm/btm_dev.h"
 #include "stack/btm/btm_sec.h"
 #include "stack/include/acl_api.h"
+#include "stack/include/bt_octets.h"
 #include "stack/include/l2c_api.h"
 #include "stack/include/smp_api_types.h"
 #include "stack/smp/p_256_ecc_pp.h"
