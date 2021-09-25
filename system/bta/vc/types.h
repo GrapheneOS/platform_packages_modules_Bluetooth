@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "raw_address.h"
+#include "types/bluetooth/uuid.h"
 
 namespace bluetooth {
 namespace vc {

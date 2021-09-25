@@ -21,6 +21,7 @@
 #include "base.h"
 #include "btcore/include/property.h"
 #include "support/callbacks.h"
+#include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
 static bt_state_t state;

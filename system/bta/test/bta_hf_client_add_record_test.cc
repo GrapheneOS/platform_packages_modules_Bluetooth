@@ -22,6 +22,7 @@
 #include "bta/hf_client/bta_hf_client_sdp.cc"
 #include "bta/include/bta_hf_client_api.h"
 #include "btif/src/btif_hf_client.cc"
+#include "types/bluetooth/uuid.h"
 
 static uint16_t gVersion;
 

@@ -24,10 +24,12 @@
  *****************************************************************************/
 
 #include <base/logging.h>
+
 #include <cstdint>
 
 #include "stack/include/sdp_api.h"
 #include "stack/pan/pan_int.h"
+#include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
 static const uint8_t pan_proto_elem_data[] = {

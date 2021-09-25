@@ -52,6 +52,7 @@
 #include "stack/include/bt_hdr.h"
 #include "stack/include/btm_api.h"
 #include "stack/include/btu.h"  // do_in_main_thread
+#include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
 /*****************************************************************************

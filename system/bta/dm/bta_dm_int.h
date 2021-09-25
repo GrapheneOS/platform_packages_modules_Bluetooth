@@ -36,6 +36,7 @@
 #include "main/shim/dumpsys.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_octets.h"
+#include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
 #ifndef CASE_RETURN_TEXT
