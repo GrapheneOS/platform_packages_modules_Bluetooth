@@ -39,6 +39,7 @@
 #include "stack/btm/btm_sec.h"
 #include "stack/crypto_toolbox/crypto_toolbox.h"
 #include "stack/include/acl_api.h"
+#include "stack/include/bt_octets.h"
 #include "types/raw_address.h"
 
 extern tBTM_CB btm_cb;  // TODO Remove

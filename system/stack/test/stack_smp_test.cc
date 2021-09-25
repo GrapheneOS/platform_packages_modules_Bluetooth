@@ -26,6 +26,7 @@
 #include "internal_include/stack_config.h"
 #include "stack/btm/btm_int_types.h"
 #include "stack/include/acl_api.h"
+#include "stack/include/bt_octets.h"
 #include "stack/include/smp_api.h"
 #include "stack/smp/p_256_ecc_pp.h"
 #include "stack/smp/smp_int.h"

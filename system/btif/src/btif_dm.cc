@@ -74,6 +74,7 @@
 #include "osi/include/properties.h"
 #include "stack/btm/btm_dev.h"
 #include "stack/btm/btm_sec.h"
+#include "stack/include/bt_octets.h"
 #include "stack_config.h"
 #include "types/raw_address.h"
 
