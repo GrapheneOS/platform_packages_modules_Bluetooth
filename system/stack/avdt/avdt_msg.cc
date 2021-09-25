@@ -39,6 +39,7 @@
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "stack/include/bt_hdr.h"
+#include "stack/include/bt_types.h"
 
 /*****************************************************************************
  * constants
