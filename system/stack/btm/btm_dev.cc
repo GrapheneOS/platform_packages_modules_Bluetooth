@@ -37,6 +37,7 @@
 #include "osi/include/allocator.h"
 #include "osi/include/compat.h"
 #include "stack/include/acl_api.h"
+#include "stack/include/bt_octets.h"
 #include "types/raw_address.h"
 
 extern tBTM_CB btm_cb;
