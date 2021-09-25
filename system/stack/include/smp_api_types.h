@@ -20,6 +20,7 @@
 #define SMP_API_TYPES_H
 
 #include "bt_target.h"  // Must be first to define build configuration
+#include "stack/include/bt_octets.h"
 #include "stack/include/btm_status.h"
 #include "types/ble_address_with_type.h"
 #include "types/raw_address.h"

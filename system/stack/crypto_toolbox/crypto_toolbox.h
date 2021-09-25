@@ -18,6 +18,7 @@
 #include <base/logging.h>
 
 #include "check.h"
+#include "stack/include/bt_octets.h"
 #include "stack/include/bt_types.h"
 
 namespace crypto_toolbox {

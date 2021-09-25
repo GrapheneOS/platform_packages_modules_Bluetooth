@@ -24,6 +24,7 @@
 #include "bt_target.h"
 #include "device/include/esco_parameters.h"
 #include "stack/include/bt_hdr.h"
+#include "stack/include/bt_octets.h"
 #include "types/ble_address_with_type.h"
 #include "types/raw_address.h"
 

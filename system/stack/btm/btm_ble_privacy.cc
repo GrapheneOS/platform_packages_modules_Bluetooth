@@ -28,6 +28,7 @@
 #include "btm_int.h"
 #include "device/include/controller.h"
 #include "stack/btm/btm_dev.h"
+#include "stack/include/bt_octets.h"
 #include "types/raw_address.h"
 #include "vendor_hcidefs.h"
 

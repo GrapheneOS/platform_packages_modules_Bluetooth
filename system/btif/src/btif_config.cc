@@ -53,6 +53,7 @@
 #include "osi/include/osi.h"
 #include "osi/include/properties.h"
 #include "raw_address.h"
+#include "stack/include/bt_octets.h"
 
 #define BT_CONFIG_SOURCE_TAG_NUM 1010001
 #define TEMPORARY_SECTION_CAPACITY 10000
