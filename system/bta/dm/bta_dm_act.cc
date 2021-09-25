@@ -53,6 +53,7 @@
 #include "stack/include/bt_types.h"
 #include "stack/include/btm_client_interface.h"
 #include "stack/include/btu.h"  // do_in_main_thread
+#include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
 #if (GAP_INCLUDED == TRUE)

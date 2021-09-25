@@ -17,13 +17,13 @@
  ******************************************************************************/
 #include "btif/include/btif_profile_queue.h"
 
-#include <gtest/gtest.h>
-
 #include <base/bind.h>
 #include <base/callback.h>
 #include <base/location.h>
+#include <gtest/gtest.h>
 
 #include "btif/include/stack_manager.h"
+#include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
 typedef void(tBTIF_CBACK)(uint16_t event, char* p_param);

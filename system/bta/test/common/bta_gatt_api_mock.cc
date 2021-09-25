@@ -17,6 +17,7 @@
 
 #include "bta_gatt_api_mock.h"
 
+#include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
 static gatt::MockBtaGattInterface* gatt_interface = nullptr;

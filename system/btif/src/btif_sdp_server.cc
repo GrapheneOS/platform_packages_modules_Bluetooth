@@ -28,14 +28,13 @@
 
 #define LOG_TAG "bt_btif_sdp_server"
 
+#include <hardware/bluetooth.h>
+#include <hardware/bt_sdp.h>
 #include <pthread.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include <mutex>
-
-#include <hardware/bluetooth.h>
-#include <hardware/bt_sdp.h>
 
 #include "bta_sdp_api.h"
 #include "bta_sys.h"
@@ -43,6 +42,7 @@
 #include "btif_sock_util.h"
 #include "btif_util.h"
 #include "osi/include/allocator.h"
+#include "types/bluetooth/uuid.h"
 #include "utl.h"
 
 // Protects the sdp_slots array from concurrent access.

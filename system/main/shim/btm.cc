@@ -16,6 +16,8 @@
 
 #define LOG_TAG "bt_shim_btm"
 
+#include "main/shim/btm.h"
+
 #include <algorithm>
 #include <chrono>
 #include <cstddef>
@@ -24,16 +26,6 @@
 #include <mutex>
 
 #include "bta/include/bta_api.h"
-#include "main/shim/btm.h"
-#include "main/shim/controller.h"
-#include "main/shim/entry.h"
-#include "main/shim/helpers.h"
-#include "main/shim/shim.h"
-#include "stack/btm/btm_dev.h"
-#include "stack/btm/btm_int_types.h"
-#include "types/bt_transport.h"
-#include "types/raw_address.h"
-
 #include "gd/hci/le_advertising_manager.h"
 #include "gd/hci/le_scanning_manager.h"
 #include "gd/neighbor/connectability.h"
@@ -42,6 +34,15 @@
 #include "gd/neighbor/name.h"
 #include "gd/neighbor/page.h"
 #include "gd/security/security_module.h"
+#include "main/shim/controller.h"
+#include "main/shim/entry.h"
+#include "main/shim/helpers.h"
+#include "main/shim/shim.h"
+#include "stack/btm/btm_dev.h"
+#include "stack/btm/btm_int_types.h"
+#include "types/bluetooth/uuid.h"
+#include "types/bt_transport.h"
+#include "types/raw_address.h"
 
 extern tBTM_CB btm_cb;
 

@@ -36,6 +36,7 @@
 #include "main/shim/helpers.h"
 #include "main/shim/shim.h"
 #include "stack/btm/btm_int_types.h"
+#include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
 using bluetooth::ToRawAddress;

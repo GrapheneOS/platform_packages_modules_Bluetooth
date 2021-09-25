@@ -40,6 +40,7 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "osi/include/osi.h"
 #include "stack/include/sdp_api.h"
 #include "stack/sdp/sdpint.h"
+#include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
 // Mocked compile conditionals, if any

@@ -16,10 +16,12 @@
  *
  ******************************************************************************/
 
+#include "btif/include/btif_storage.h"
+
 #include <gtest/gtest.h>
 
-#include "btif/include/btif_storage.h"
 #include "btif/include/btif_util.h"
+#include "types/bluetooth/uuid.h"
 
 using bluetooth::Uuid;
 

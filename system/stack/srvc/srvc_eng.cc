@@ -24,6 +24,7 @@
 #include "osi/include/osi.h"
 #include "srvc_dis_int.h"
 #include "srvc_eng_int.h"
+#include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
 using base::StringPrintf;

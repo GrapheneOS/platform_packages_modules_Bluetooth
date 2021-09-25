@@ -22,6 +22,7 @@
 #include <gtest/gtest.h>
 
 #include "osi/test/AllocationTestHarness.h"
+#include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
 using bluetooth::Uuid;
