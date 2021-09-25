@@ -27,6 +27,7 @@
 
 #include <cstdint>
 
+#include "stack/include/bt_types.h"
 #include "stack/include/sdp_api.h"
 #include "stack/pan/pan_int.h"
 #include "types/bluetooth/uuid.h"
