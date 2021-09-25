@@ -33,6 +33,7 @@
 #include "device/include/controller.h"
 #include "stack/btm/btm_ble_int.h"
 #include "stack/btm/btm_int_types.h"
+#include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 #include "utils/include/bt_utils.h"
 

@@ -27,6 +27,7 @@
 #include "gatt/database_builder.h"
 #include "hardware/bt_gatt_types.h"
 #include "types.h"
+#include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
 void btif_storage_add_volume_control(const RawAddress& addr, bool auto_conn) {}

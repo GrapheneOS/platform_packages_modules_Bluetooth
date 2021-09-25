@@ -34,6 +34,7 @@
 #include "hiddefs.h"
 #include "osi/include/allocator.h"
 #include "stack/btm/btm_sec.h"
+#include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
 tHID_DEV_CTB hd_cb;

@@ -16,13 +16,15 @@
  *
  ******************************************************************************/
 
-#include <gtest/gtest.h>
+#include "gatt/database.h"
 
 #include <base/logging.h>
 #include <base/strings/string_number_conversions.h>
-#include "gatt/database.h"
+#include <gtest/gtest.h>
+
 #include "gatt/database_builder.h"
 #include "stack/include/gattdefs.h"
+#include "types/bluetooth/uuid.h"
 
 using bluetooth::Uuid;
 
