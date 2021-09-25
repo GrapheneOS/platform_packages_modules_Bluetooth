@@ -21,6 +21,8 @@
 
 #include <base/callback_forward.h>
 
+#include <cstdint>
+
 #include "bt_target.h"
 #include "device/include/esco_parameters.h"
 #include "stack/include/bt_hdr.h"
