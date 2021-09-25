@@ -22,13 +22,15 @@
  *
  ******************************************************************************/
 
+#include "stack/include/sdp_api.h"
+
 #include <string.h>
 
 #include <cstdint>
 
 #include "bt_target.h"
 #include "osi/include/osi.h"  // PTR_TO_UINT
-#include "stack/include/sdp_api.h"
+#include "stack/include/bt_types.h"
 #include "stack/sdp/sdpint.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
