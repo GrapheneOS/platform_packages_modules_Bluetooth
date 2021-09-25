@@ -55,7 +55,7 @@ struct sigaction old_act = {};
 void interrupt_handler(int signal_number) {
   LOG_INFO("Stopping gRPC root server due to signal: %s[%d]", strsignal(signal_number), signal_number);
   grpc_root_server.StopServer();
-  if (old_act.sa_handler != nullptr) {
+  if (old_act.sa_handler != nullptr && old_act.sa_handler != SIG_IGN && old_act.sa_handler != SIG_DFL) {
     LOG_INFO("Calling saved signal handler");
     old_act.sa_handler(signal_number);
   }
@@ -137,7 +137,11 @@ int main(int argc, const char** argv) {
     }
   }
 
-  sigaction(SIGINT, &new_act, &old_act);
+  int ret = sigaction(SIGINT, &new_act, &old_act);
+  if (ret < 0) {
+    LOG_ERROR("sigaction error: %s", strerror(errno));
+  }
+
   grpc_root_server.StartServer("0.0.0.0", root_server_port, grpc_port);
   auto wait_thread = std::thread([] { grpc_root_server.RunGrpcLoop(); });
   wait_thread.join();
