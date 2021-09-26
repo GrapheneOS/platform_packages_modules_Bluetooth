@@ -26,6 +26,7 @@
 
 #include "device/include/esco_parameters.h"
 #include "internal_include/bt_target.h"
+#include "stack/include/bt_dev_class.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_name.h"
 #include "stack/include/bt_octets.h"
