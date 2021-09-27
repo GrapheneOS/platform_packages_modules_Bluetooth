@@ -23,6 +23,7 @@
 
 #include "base/bind.h"
 #include "base/callback.h"
+#include "base/logging.h"
 #include "bind_helpers.h"
 #include "btm_iso_api.h"
 #include "common/time_util.h"

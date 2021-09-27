@@ -31,6 +31,8 @@
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
+#include <base/logging.h>
+
 using base::StringPrintf;
 #define DIS_MAX_NUM_INC_SVR 0
 #define DIS_MAX_CHAR_NUM 9

@@ -54,6 +54,8 @@
 #include "stack/include/bt_hdr.h"
 #include "types/raw_address.h"
 
+#include <base/logging.h>
+
 #define RC_INVALID_TRACK_ID (0xFFFFFFFFFFFFFFFFULL)
 
 /*****************************************************************************

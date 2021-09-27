@@ -26,6 +26,7 @@
 
 #include "stack/btm/btm_sec.h"
 
+#include <base/logging.h>
 #include <base/strings/stringprintf.h>
 #include <frameworks/proto_logging/stats/enums/bluetooth/enums.pb.h>
 #include <frameworks/proto_logging/stats/enums/bluetooth/hci/enums.pb.h>

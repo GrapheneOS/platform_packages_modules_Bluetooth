@@ -19,6 +19,8 @@
 
 #include "a2dp_vendor_ldac_decoder.h"
 
+#include <base/logging.h>
+
 #ifndef OS_GENERIC
 #include <cutils/trace.h>
 #endif

@@ -35,6 +35,8 @@
 #include "stack/rfcomm/port_int.h"
 #include "stack/rfcomm/rfc_int.h"
 
+#include <base/logging.h>
+
 #define L2CAP_SUCCESS 0
 #define L2CAP_ERROR 1
 

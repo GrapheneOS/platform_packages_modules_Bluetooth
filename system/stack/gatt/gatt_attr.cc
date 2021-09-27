@@ -39,6 +39,8 @@
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
+#include <base/logging.h>
+
 using base::StringPrintf;
 using bluetooth::Uuid;
 

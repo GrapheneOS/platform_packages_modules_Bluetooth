@@ -44,6 +44,8 @@
 #include "types/bt_transport.h"
 #include "types/raw_address.h"
 
+#include <base/logging.h>
+
 extern tBTM_CB btm_cb;
 
 static constexpr size_t kRemoteDeviceNameLength = 248;

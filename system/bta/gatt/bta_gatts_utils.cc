@@ -28,6 +28,8 @@
 
 #include "bta/gatt/bta_gatts_int.h"
 
+#include <base/logging.h>
+
 /*******************************************************************************
  *
  * Function         bta_gatts_alloc_srvc_cb

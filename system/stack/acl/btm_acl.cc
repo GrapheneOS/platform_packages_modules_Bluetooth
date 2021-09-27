@@ -69,6 +69,8 @@
 #include "types/hci_role.h"
 #include "types/raw_address.h"
 
+#include <base/logging.h>
+
 void BTM_update_version_info(const RawAddress& bd_addr,
                              const remote_version_info& remote_version_info);
 

@@ -36,6 +36,8 @@
 #include "osi/include/log.h"
 #include "types/raw_address.h"
 
+#include <base/logging.h>
+
 void btif_a2dp_on_idle(void) {
   LOG_VERBOSE("Peer stream endpoint type:%s",
               peer_stream_endpoint_text(btif_av_get_peer_sep()).c_str());

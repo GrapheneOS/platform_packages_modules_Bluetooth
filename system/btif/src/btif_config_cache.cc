@@ -21,6 +21,8 @@
 #include "stack/include/bt_octets.h"
 #include "types/raw_address.h"
 
+#include <base/logging.h>
+
 namespace {
 
 const std::unordered_set<std::string> kLinkKeyTypes = {
