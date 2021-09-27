@@ -21,7 +21,6 @@
 
 #include "bta/hf_client/bta_hf_client_int.h"
 #include "bta/include/bta_ag_api.h"
-#include "device/include/esco_parameters.h"
 #include "osi/include/allocator.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/btm_api.h"
