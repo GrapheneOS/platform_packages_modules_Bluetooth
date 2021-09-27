@@ -43,7 +43,6 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "btif/include/btif_storage.h"
 #include "btif/include/stack_manager.h"
 #include "common/message_loop_thread.h"
-#include "device/include/controller.h"
 #include "osi/include/future.h"
 #include "osi/include/log.h"
 #include "osi/include/properties.h"
