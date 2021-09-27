@@ -36,7 +36,6 @@
 #include "btif_sock_thread.h"
 #include "btif_uid.h"
 #include "btif_util.h"
-#include "device/include/controller.h"
 #include "osi/include/thread.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"

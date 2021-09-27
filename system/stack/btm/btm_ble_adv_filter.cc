@@ -30,7 +30,6 @@
 #include "btm_dev.h"
 #include "btm_int.h"
 #include "btu.h"
-#include "device/include/controller.h"
 #include "stack/btm/btm_ble_int.h"
 #include "stack/btm/btm_int_types.h"
 #include "types/bluetooth/uuid.h"
