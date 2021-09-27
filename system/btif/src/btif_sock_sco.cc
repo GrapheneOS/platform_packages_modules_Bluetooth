@@ -24,7 +24,6 @@
 #include <cstdint>
 #include <mutex>
 
-#include "device/include/esco_parameters.h"
 #include "include/hardware/bt_sock.h"
 #include "osi/include/allocator.h"
 #include "osi/include/list.h"
