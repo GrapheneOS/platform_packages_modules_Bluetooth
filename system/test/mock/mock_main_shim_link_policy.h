@@ -39,7 +39,6 @@ extern std::map<std::string, int> mock_function_count_map;
 #include <base/strings/stringprintf.h>
 #include <cstdint>
 #include <memory>
-#include "device/include/interop.h"
 #include "gd/module.h"
 #include "hci/controller.h"
 #include "main/shim/controller.h"

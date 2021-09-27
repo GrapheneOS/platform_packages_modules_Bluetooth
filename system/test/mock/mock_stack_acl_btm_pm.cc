@@ -29,7 +29,6 @@ extern std::map<std::string, int> mock_function_count_map;
 #include <unordered_map>
 #include "bt_target.h"
 #include "device/include/controller.h"
-#include "device/include/interop.h"
 #include "main/shim/dumpsys.h"
 #include "main/shim/link_policy.h"
 #include "main/shim/shim.h"
