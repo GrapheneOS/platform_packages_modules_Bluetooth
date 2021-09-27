@@ -662,7 +662,9 @@ public class ScanManager {
                 configureScanFilters(client);
             }
             // Start scan native only for the first client.
-            if (numRegularScanClients() == 1) {
+            if (numRegularScanClients() == 1
+                    && client.settings != null
+                    && client.settings.getScanMode() != ScanSettings.SCAN_MODE_OPPORTUNISTIC) {
                 gattClientScanNative(true);
             }
         }
