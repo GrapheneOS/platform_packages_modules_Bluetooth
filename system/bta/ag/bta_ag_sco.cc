@@ -30,7 +30,6 @@
 
 #include "bta/ag/bta_ag_int.h"
 #include "device/include/controller.h"
-#include "device/include/esco_parameters.h"
 #include "main/shim/dumpsys.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
