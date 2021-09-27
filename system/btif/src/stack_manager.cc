@@ -31,7 +31,6 @@
 #include "btif_api.h"
 #include "btif_common.h"
 #include "common/message_loop_thread.h"
-#include "device/include/controller.h"
 #include "hci/include/btsnoop.h"
 #include "main/shim/shim.h"
 #include "osi/include/log.h"

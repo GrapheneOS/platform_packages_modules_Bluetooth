@@ -24,7 +24,6 @@
 
 #include "common/metric_id_allocator.h"
 #include "common/time_util.h"
-#include "device/include/controller.h"
 #include "gd/common/callback.h"
 #include "gd/neighbor/name.h"
 #include "gd/os/log.h"

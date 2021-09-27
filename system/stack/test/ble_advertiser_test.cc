@@ -23,7 +23,6 @@
 
 #include <array>
 
-#include "device/include/controller.h"
 #include "stack/btm/ble_advertiser_hci_interface.h"
 #include "types/raw_address.h"
 
