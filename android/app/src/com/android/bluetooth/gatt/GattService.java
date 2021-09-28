@@ -2381,8 +2381,6 @@ public class GattService extends ProfileService {
 
         ScannerMap.App app = mScannerMap.add(uuid, null, null, piInfo, this);
 
-        pendingIntent.registerCancelListener(mScanIntentCancelListener);
-
         app.mUserHandle = UserHandle.getUserHandleForUid(Binder.getCallingUid());
         mAppOps.checkPackage(Binder.getCallingUid(), callingPackage);
         app.mEligibleForSanitizedExposureNotification =
@@ -2414,6 +2412,12 @@ public class GattService extends ProfileService {
                 Utils.checkCallerHasScanWithoutLocationPermission(this);
         app.mAssociatedDevices = getAssociatedDevices(callingPackage, app.mUserHandle);
         mScanManager.registerScanner(uuid);
+
+        // If this fails, we should stop the scan immediately.
+        if (!pendingIntent.addCancelListener(Runnable::run, mScanIntentCancelListener)) {
+            Log.d(TAG, "scanning PendingIntent is already cancelled, stopping scan.");
+            stopScan(pendingIntent, attributionSource);
+        }
     }
 
     void continuePiStartScan(int scannerId, ScannerMap.App app) {
@@ -2488,7 +2492,7 @@ public class GattService extends ProfileService {
             Log.d(TAG, "stopScan(PendingIntent): app found = " + app);
         }
         if (app != null) {
-            intent.unregisterCancelListener(mScanIntentCancelListener);
+            intent.removeCancelListener(mScanIntentCancelListener);
             final int scannerId = app.id;
             stopScan(scannerId, attributionSource);
             // Also unregister the scanner
