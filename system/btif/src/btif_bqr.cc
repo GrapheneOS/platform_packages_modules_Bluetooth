@@ -18,7 +18,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #ifdef OS_ANDROID
-#include <statslog.h>
+#include <statslog_bt.h>
 #endif
 #include <stdio.h>
 #include <sys/stat.h>
@@ -398,8 +398,8 @@ void AddLinkQualityEventToQueue(uint8_t length, uint8_t* p_link_quality_event) {
       p_bqr_event->bqr_link_quality_event_.nak_count);
 
 #ifdef OS_ANDROID
-  int ret = android::util::stats_write(
-      android::util::BLUETOOTH_QUALITY_REPORT_REPORTED,
+  int ret = stats_write(
+      BLUETOOTH_QUALITY_REPORT_REPORTED,
       p_bqr_event->bqr_link_quality_event_.quality_report_id,
       p_bqr_event->bqr_link_quality_event_.packet_types,
       p_bqr_event->bqr_link_quality_event_.connection_handle,

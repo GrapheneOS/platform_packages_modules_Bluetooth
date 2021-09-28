@@ -49,7 +49,7 @@ LOCAL_target_libraries := \
 	$(TARGET_OUT_SHARED_LIBRARIES)/libgrpc++_unsecure.so \
 	$(TARGET_OUT_SHARED_LIBRARIES)/libgrpc++.so \
 	$(TARGET_OUT_SHARED_LIBRARIES)/libgrpc_wrap.so \
-	$(TARGET_OUT_SHARED_LIBRARIES)/libstatslog.so
+	$(TARGET_OUT_SHARED_LIBRARIES)/libstatslog_bt.so
 #LINT.ThenChange(cert/run)
 
 bluetooth_cert_src_and_bin_zip := \
