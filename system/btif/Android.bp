@@ -35,6 +35,58 @@ btifCommonIncludes = [
     "system/libhwbinder/include",
 ]
 
+cc_library {
+    name: "libstatslog_bt",
+    host_supported: true,
+    generated_sources: ["statslog_bt.cpp"],
+    generated_headers: ["statslog_bt.h"],
+    export_generated_headers: ["statslog_bt.h"],
+    cflags: [
+        "-Wall",
+        "-Werror",
+    ],
+    shared_libs: [
+        "libcutils",
+    ],
+    target: {
+        android: {
+            shared_libs: [
+                "libstatssocket",
+            ],
+            export_shared_lib_headers: [
+                 "libstatssocket",
+            ],
+        },
+        host: {
+            static_libs: [
+                "libstatssocket",
+            ],
+            export_static_lib_headers: [
+                "libstatssocket",
+            ],
+        },
+        darwin: {
+            enabled: false,
+        },
+    },
+}
+
+genrule {
+    name: "statslog_bt.h",
+    tools: ["stats-log-api-gen"],
+    cmd: "$(location stats-log-api-gen) --header $(genDir)/statslog_bt.h --module bluetooth"
+        + " --namespace bluetooth",
+    out: ["statslog_bt.h"],
+}
+
+genrule {
+    name: "statslog_bt.cpp",
+    tools: ["stats-log-api-gen"],
+    cmd: "$(location stats-log-api-gen) --cpp $(genDir)/statslog_bt.cpp --module bluetooth"
+        + " --namespace bluetooth --importHeader statslog_bt.h",
+    out: ["statslog_bt.cpp"],
+}
+
 // libbtif static library for target
 cc_library_static {
     name: "libbtif",
@@ -111,12 +163,9 @@ cc_library_static {
         "android.hardware.bluetooth.audio@2.0",
         "android.hardware.bluetooth.audio@2.1",
         "libcrypto",
-        "libcutils",
         "libflatbuffers-cpp",
         "libhidlbase",
-        "liblog",
         "libtinyxml2",
-        "libutils",
         "libz",
     ],
     target: {
@@ -124,7 +173,7 @@ cc_library_static {
             shared_libs: [
                 "libaaudio",
                 "libfmq",
-                "libstatslog",
+                "libstatslog_bt",
             ],
             srcs: ["src/btif_avrcp_audio_track.cc"],
         },
@@ -165,11 +214,8 @@ cc_test {
         "libbinder_ndk",
         "libfmq",
         "libhidlbase",
-        "liblog",
         "libprotobuf-cpp-lite",
-        "libcutils",
         "libprocessgroup",
-        "libutils",
         "libcrypto",
     ],
     static_libs: [
@@ -216,9 +262,7 @@ cc_test {
         "BluetoothGeneratedPackets_h",
     ],
     shared_libs: [
-        "libcutils",
         "libflatbuffers-cpp",
-        "liblog",
     ],
     static_libs: [
         "libbluetooth-types",
