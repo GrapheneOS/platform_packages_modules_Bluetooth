@@ -25,6 +25,8 @@
 #ifndef BNEP_API_H
 #define BNEP_API_H
 
+#include <cstdint>
+
 #include "l2c_api.h"
 #include "stack/include/bt_hdr.h"
 #include "types/bluetooth/uuid.h"

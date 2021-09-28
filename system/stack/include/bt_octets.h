@@ -20,6 +20,7 @@
 #ifdef __cplusplus
 
 #include <array>
+#include <cstdint>
 
 constexpr int OCTET16_LEN = 16;
 typedef std::array<uint8_t, OCTET16_LEN> Octet16;

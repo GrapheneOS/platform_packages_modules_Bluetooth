@@ -24,6 +24,8 @@
 #ifndef PORT_API_H
 #define PORT_API_H
 
+#include <cstdint>
+
 #include "bt_target.h"
 #include "types/raw_address.h"
 

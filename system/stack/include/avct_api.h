@@ -25,6 +25,8 @@
 #ifndef AVCT_API_H
 #define AVCT_API_H
 
+#include <cstdint>
+
 #include "bt_target.h"
 #include "stack/include/bt_hdr.h"
 #include "types/raw_address.h"

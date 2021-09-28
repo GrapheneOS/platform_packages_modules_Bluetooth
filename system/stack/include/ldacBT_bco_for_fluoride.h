@@ -19,6 +19,7 @@
 #include <stdint.h>
 
 #ifdef __cplusplus
+#include <cstdint>
 extern "C" {
 #endif /* __cplusplus */
 
