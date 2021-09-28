@@ -25,6 +25,7 @@
 #ifndef SDP_DEFS_H
 #define SDP_DEFS_H
 
+#include <cstdint>
 /* Define the service attribute IDs.
 */
 #define ATTR_ID_SERVICE_RECORD_HDL 0x0000

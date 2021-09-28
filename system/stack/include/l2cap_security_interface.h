@@ -16,6 +16,8 @@
  */
 
 #pragma once
+#include <cstdint>
+
 #include "types/raw_address.h"
 
 // This header contains functions for Security Module to invoke

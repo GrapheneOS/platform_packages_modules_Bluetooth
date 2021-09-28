@@ -17,6 +17,8 @@
 
 #pragma once
 
+#include <cstdint>
+
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "types/raw_address.h"
 
