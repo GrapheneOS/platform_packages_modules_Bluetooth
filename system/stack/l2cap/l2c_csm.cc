@@ -694,7 +694,12 @@ static void l2c_csm_w4_l2cap_connect_rsp(tL2C_CCB* p_ccb, tL2CEVT event,
                            L2CAP_CHNL_DISCONNECT_TIMEOUT_MS,
                            l2c_ccb_timer_timeout, p_ccb);
       } else {
+        tL2CA_DISCONNECT_CFM_CB* disconnect_cfm =
+            p_ccb->p_rcb->api.pL2CA_DisconnectCfm_Cb;
         l2cu_release_ccb(p_ccb);
+        if (disconnect_cfm != nullptr) {
+          (*disconnect_cfm)(local_cid, L2CAP_CONN_NO_LINK);
+        }
       }
       break;
 
@@ -1343,23 +1348,37 @@ static void l2c_csm_open(tL2C_CCB* p_ccb, tL2CEVT event, void* p_data) {
  ******************************************************************************/
 static void l2c_csm_w4_l2cap_disconnect_rsp(tL2C_CCB* p_ccb, tL2CEVT event,
                                             void* p_data) {
+  tL2CA_DISCONNECT_CFM_CB* disconnect_cfm =
+      p_ccb->p_rcb->api.pL2CA_DisconnectCfm_Cb;
+  uint16_t local_cid = p_ccb->local_cid;
+
   LOG_DEBUG("LCID: 0x%04x  st: W4_L2CAP_DISC_RSP  evt: %s", p_ccb->local_cid,
             l2c_csm_get_event_name(event));
 
   switch (event) {
     case L2CEVT_L2CAP_DISCONNECT_RSP: /* Peer disconnect response */
       l2cu_release_ccb(p_ccb);
+      if (disconnect_cfm != nullptr) {
+        (*disconnect_cfm)(local_cid, L2CAP_DISC_OK);
+      }
       break;
 
     case L2CEVT_L2CAP_DISCONNECT_REQ: /* Peer disconnect request  */
       l2cu_send_peer_disc_rsp(p_ccb->p_lcb, p_ccb->remote_id, p_ccb->local_cid,
                               p_ccb->remote_cid);
       l2cu_release_ccb(p_ccb);
+      if (disconnect_cfm != nullptr) {
+        (*disconnect_cfm)(local_cid, L2CAP_DISC_OK);
+      }
       break;
 
     case L2CEVT_LP_DISCONNECT_IND: /* Link was disconnected */
     case L2CEVT_TIMEOUT:           /* Timeout */
       l2cu_release_ccb(p_ccb);
+      if (disconnect_cfm != nullptr) {
+        (*disconnect_cfm)(local_cid, L2CAP_DISC_TIMEOUT);
+      }
+
       break;
 
     case L2CEVT_L2CAP_DATA:      /* Peer data packet rcvd    */
