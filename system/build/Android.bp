@@ -109,7 +109,7 @@ fluoride_defaults {
     ],
     target: {
         darwin: {
-            // libstatslog -> libbinder doesn't build on mac
+            // libstatslog_bt -> libbinder doesn't build on mac
             enabled: false,
         },
         android: {
@@ -120,7 +120,7 @@ fluoride_defaults {
                 "libgrpc++",
                 "libgrpc_wrap",
                 "libhidlbase",
-                "libstatslog",
+                "libstatslog_bt",
                 "libutils",
             ],
             cflags: [
