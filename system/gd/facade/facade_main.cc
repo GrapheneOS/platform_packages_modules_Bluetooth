@@ -51,10 +51,16 @@ extern "C" const char* __asan_default_options() {
 namespace {
 ::bluetooth::facade::GrpcRootServer grpc_root_server;
 
+bool interrupted = false;
 struct sigaction old_act = {};
 void interrupt_handler(int signal_number) {
-  LOG_INFO("Stopping gRPC root server due to signal: %s[%d]", strsignal(signal_number), signal_number);
-  grpc_root_server.StopServer();
+  if (!interrupted) {
+    interrupted = true;
+    LOG_INFO("Stopping gRPC root server due to signal: %s[%d]", strsignal(signal_number), signal_number);
+    grpc_root_server.StopServer();
+  } else {
+    LOG_WARN("Already interrupted by signal: %s[%d]", strsignal(signal_number), signal_number);
+  }
   if (old_act.sa_handler != nullptr && old_act.sa_handler != SIG_IGN && old_act.sa_handler != SIG_DFL) {
     LOG_INFO("Calling saved signal handler");
     old_act.sa_handler(signal_number);
