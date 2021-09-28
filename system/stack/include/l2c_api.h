@@ -26,6 +26,7 @@
 
 #include <stdbool.h>
 
+#include <cstdint>
 #include <vector>
 
 #include "bt_target.h"

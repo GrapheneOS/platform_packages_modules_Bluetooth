@@ -19,6 +19,7 @@
 #ifndef L2CDEFS_H
 #define L2CDEFS_H
 
+#include <cstdint>
 /* L2CAP command codes
 */
 #define L2CAP_CMD_REJECT 0x01
