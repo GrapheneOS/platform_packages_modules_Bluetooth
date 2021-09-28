@@ -1736,60 +1736,9 @@ static void btif_dm_upstreams_evt(uint16_t event, char* p_param) {
       btif_dm_ble_auth_cmpl_evt(&p_data->auth_cmpl);
       break;
 
-    case BTA_DM_LE_FEATURES_READ: {
-      tBTM_BLE_VSC_CB cmn_vsc_cb;
-      bt_local_le_features_t local_le_features;
-      bt_property_t prop;
-      prop.type = BT_PROPERTY_LOCAL_LE_FEATURES;
-      prop.val = (void*)&local_le_features;
-      prop.len = sizeof(bt_local_le_features_t);
-
-      /* LE features are not stored in storage. Should be retrived from stack */
-      BTM_BleGetVendorCapabilities(&cmn_vsc_cb);
-      local_le_features.local_privacy_enabled = BTM_BleLocalPrivacyEnabled();
-
-      if (cmn_vsc_cb.filter_support == 1)
-        local_le_features.max_adv_filter_supported = cmn_vsc_cb.max_filter;
-      else
-        local_le_features.max_adv_filter_supported = 0;
-      local_le_features.max_adv_instance = cmn_vsc_cb.adv_inst_max;
-      local_le_features.max_irk_list_size = cmn_vsc_cb.max_irk_list_sz;
-      local_le_features.rpa_offload_supported = cmn_vsc_cb.rpa_offloading;
-      local_le_features.activity_energy_info_supported =
-          cmn_vsc_cb.energy_support;
-      local_le_features.scan_result_storage_size =
-          cmn_vsc_cb.tot_scan_results_strg;
-      local_le_features.version_supported = cmn_vsc_cb.version_supported;
-      local_le_features.total_trackable_advertisers =
-          cmn_vsc_cb.total_trackable_advertisers;
-
-      local_le_features.extended_scan_support =
-          cmn_vsc_cb.extended_scan_support > 0;
-      local_le_features.debug_logging_supported =
-          cmn_vsc_cb.debug_logging_supported > 0;
-
-      const controller_t* controller = controller_get_interface();
-
-      local_le_features.le_2m_phy_supported = controller->supports_ble_2m_phy();
-      local_le_features.le_coded_phy_supported =
-          controller->supports_ble_coded_phy();
-      local_le_features.le_extended_advertising_supported =
-          controller->supports_ble_extended_advertising();
-      local_le_features.le_periodic_advertising_supported =
-          controller->supports_ble_periodic_advertising();
-      local_le_features.le_maximum_advertising_data_length =
-          controller->get_ble_maximum_advertising_data_length();
-
-      local_le_features.dynamic_audio_buffer_supported =
-          cmn_vsc_cb.dynamic_audio_buffer_support;
-
-      local_le_features.le_periodic_advertising_sync_transfer_sender_supported =
-          controller->supports_ble_periodic_advertising_sync_transfer_sender();
-      local_le_features.le_connected_isochronous_stream_central_supported =
-          controller->supports_ble_connected_isochronous_stream_central();
-      invoke_adapter_properties_cb(BT_STATUS_SUCCESS, 1, &prop);
+    case BTA_DM_LE_FEATURES_READ:
+      btif_get_adapter_property(BT_PROPERTY_LOCAL_LE_FEATURES);
       break;
-    }
 
     default:
       BTIF_TRACE_WARNING("%s: unhandled event (%d)", __func__, event);
