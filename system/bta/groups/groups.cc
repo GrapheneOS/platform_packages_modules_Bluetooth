@@ -224,6 +224,10 @@ class DeviceGroupsImpl : public DeviceGroups {
         auto* group =
             get_or_create_group_with_id(id, Uuid::From128BitLE(uuid128));
         if (group) add_to_group(addr, group);
+
+        for (auto c : callbacks_) {
+          c->onGroupAddFromStorage(addr, Uuid::From128BitLE(uuid128), id);
+        }
       }
     }
   }
