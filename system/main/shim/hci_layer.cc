@@ -168,11 +168,9 @@ static bool event_already_registered_in_hci_layer(
     case bluetooth::hci::EventCode::PAGE_SCAN_REPETITION_MODE_CHANGE:
     case bluetooth::hci::EventCode::MAX_SLOTS_CHANGE:
     case bluetooth::hci::EventCode::LE_META_EVENT:
-      return true;
     case bluetooth::hci::EventCode::DISCONNECTION_COMPLETE:
     case bluetooth::hci::EventCode::READ_REMOTE_VERSION_INFORMATION_COMPLETE:
-      return bluetooth::shim::is_gd_acl_enabled() ||
-             bluetooth::shim::is_gd_l2cap_enabled();
+      return true;
     default:
       return false;
   }
@@ -182,8 +180,7 @@ static bool event_already_registered_in_controller_layer(
     bluetooth::hci::EventCode event_code) {
   switch (event_code) {
     case bluetooth::hci::EventCode::NUMBER_OF_COMPLETED_PACKETS:
-      return bluetooth::shim::is_gd_acl_enabled() ||
-             bluetooth::shim::is_gd_l2cap_enabled();
+      return true;
     default:
       return false;
   }
@@ -193,8 +190,7 @@ static bool event_already_registered_in_acl_layer(
     bluetooth::hci::EventCode event_code) {
   for (auto event : bluetooth::hci::AclConnectionEvents) {
     if (event == event_code) {
-      return bluetooth::shim::is_gd_acl_enabled() ||
-             bluetooth::shim::is_gd_l2cap_enabled();
+      return true;
     }
   }
   return false;
@@ -209,15 +205,9 @@ static bool subevent_already_registered_in_le_hci_layer(
     case bluetooth::hci::SubeventCode::ENHANCED_CONNECTION_COMPLETE:
     case bluetooth::hci::SubeventCode::PHY_UPDATE_COMPLETE:
     case bluetooth::hci::SubeventCode::REMOTE_CONNECTION_PARAMETER_REQUEST:
-      return bluetooth::shim::is_gd_acl_enabled() ||
-             bluetooth::shim::is_gd_l2cap_enabled() ||
-             bluetooth::shim::is_gd_advertising_enabled() ||
-             bluetooth::shim::is_gd_scanning_enabled();
     case bluetooth::hci::SubeventCode::ADVERTISING_SET_TERMINATED:
     case bluetooth::hci::SubeventCode::SCAN_REQUEST_RECEIVED:
-      return bluetooth::shim::is_gd_acl_enabled() ||
-             bluetooth::shim::is_gd_l2cap_enabled() ||
-             bluetooth::shim::is_gd_advertising_enabled();
+      return true;
     case bluetooth::hci::SubeventCode::SCAN_TIMEOUT:
     case bluetooth::hci::SubeventCode::ADVERTISING_REPORT:
     case bluetooth::hci::SubeventCode::DIRECTED_ADVERTISING_REPORT:
@@ -470,23 +460,6 @@ static void register_le_event(bluetooth::hci::SubeventCode subevent_code) {
       subevent_code, handler->Bind(subevent_callback));
 }
 
-static void acl_data_callback() {
-  if (hci_queue_end == nullptr) {
-    return;
-  }
-  auto packet = hci_queue_end->TryDequeue();
-  ASSERT(packet != nullptr);
-  if (!packet->IsValid()) {
-    LOG_INFO("Dropping invalid packet of size %zu", packet->size());
-    return;
-  }
-  if (!send_data_upwards) {
-    return;
-  }
-  auto data = WrapPacketAndCopy(MSG_HC_TO_STACK_HCI_ACL, packet.get());
-  packet_fragmenter->reassemble_and_dispatch(data);
-}
-
 static void sco_data_callback() {
   if (hci_sco_queue_end == nullptr) {
     return;
@@ -519,22 +492,6 @@ static void iso_data_callback() {
   }
   auto data = WrapPacketAndCopy(MSG_HC_TO_STACK_HCI_ISO, packet.get());
   packet_fragmenter->reassemble_and_dispatch(data);
-}
-
-static void register_for_acl() {
-  hci_queue_end = bluetooth::shim::GetHciLayer()->GetAclQueueEnd();
-
-  // if gd advertising/scanning enabled, hci_queue_end will be register in
-  // AclManager::impl::Start
-  if (!bluetooth::shim::is_gd_advertising_enabled() &&
-      !bluetooth::shim::is_gd_scanning_enabled() &&
-      !bluetooth::shim::is_gd_l2cap_enabled()) {
-    hci_queue_end->RegisterDequeue(bluetooth::shim::GetGdShimHandler(),
-                                   bluetooth::common::Bind(acl_data_callback));
-  }
-
-  pending_data = new bluetooth::os::EnqueueBuffer<bluetooth::hci::AclBuilder>(
-      hci_queue_end);
 }
 
 static void register_for_sco() {
@@ -627,14 +584,6 @@ static BT_HDR* WrapRustPacketAndCopy(uint16_t event,
   packet->event = event;
   std::copy(data->data(), data->data() + data->length(), packet->data);
   return packet;
-}
-
-static void on_acl(::rust::Slice<const uint8_t> data) {
-  if (!send_data_upwards) {
-    return;
-  }
-  auto legacy_data = WrapRustPacketAndCopy(MSG_HC_TO_STACK_HCI_ACL, &data);
-  packet_fragmenter->reassemble_and_dispatch(legacy_data);
 }
 
 static void on_sco(::rust::Slice<const uint8_t> data) {
@@ -746,12 +695,6 @@ static void hci_on_reset_complete() {
   bluetooth::shim::rust::hci_set_le_evt_callback(
       **bluetooth::shim::Stack::GetInstance()->GetRustHci(),
       std::make_unique<u8SliceCallback>(Bind(rust::on_event)));
-}
-
-static void register_for_acl() {
-  bluetooth::shim::rust::hci_set_acl_callback(
-      **bluetooth::shim::Stack::GetInstance()->GetRustHci(),
-      std::make_unique<u8SliceCallback>(Bind(rust::on_acl)));
 }
 
 static void register_for_sco() {
@@ -950,16 +893,6 @@ void bluetooth::shim::hci_on_reset_complete() {
     ::rust::register_for_iso();
   } else {
     cpp::register_for_iso();
-  }
-
-  if (bluetooth::shim::is_gd_acl_enabled()) {
-    return;
-  }
-
-  if (bluetooth::common::init_flags::gd_rust_is_enabled()) {
-    ::rust::register_for_acl();
-  } else {
-    cpp::register_for_acl();
   }
 }
 

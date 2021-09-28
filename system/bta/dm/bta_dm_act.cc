@@ -505,10 +505,8 @@ static void bta_dm_wait_for_acl_to_drain_cback(void* data) {
     }
   } else {
     // No ACL links were up or is second pass at ACL closure
-    if (bluetooth::shim::is_gd_acl_enabled()) {
-      LOG_INFO("Ensuring all ACL connections have been properly flushed");
-      bluetooth::shim::ACL_Shutdown();
-    }
+    LOG_INFO("Ensuring all ACL connections have been properly flushed");
+    bluetooth::shim::ACL_Shutdown();
 
     bta_dm_cb.disabling = false;
 
