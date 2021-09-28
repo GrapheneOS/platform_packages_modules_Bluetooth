@@ -92,6 +92,7 @@ import android.text.TextUtils;
 import android.util.Base64;
 import android.util.Log;
 import android.util.SparseArray;
+
 import com.android.bluetooth.BluetoothMetricsProto;
 import com.android.bluetooth.BluetoothStatsLog;
 import com.android.bluetooth.Utils;
@@ -1242,7 +1243,10 @@ public class AdapterService extends Service {
 
         @Override
         public String getAddress() {
-            return getAddressWithAttribution(Utils.getCallingAttributionSource());
+            if (mService == null) {
+                return null;
+            }
+            return getAddressWithAttribution(Utils.getCallingAttributionSource(mService));
         }
 
         @Override
@@ -1670,7 +1674,11 @@ public class AdapterService extends Service {
 
         @Override
         public int getConnectionState(BluetoothDevice device) {
-            return getConnectionStateWithAttribution(device, Utils.getCallingAttributionSource());
+            if (mService == null) {
+                return BluetoothProfile.STATE_DISCONNECTED;
+            }
+            return getConnectionStateWithAttribution(device,
+                        Utils.getCallingAttributionSource(mService));
         }
 
         @Override
@@ -1680,7 +1688,7 @@ public class AdapterService extends Service {
             AdapterService service = getService();
             if (service == null || !Utils.checkConnectPermissionForDataDelivery(
                     service, attributionSource, "AdapterService getConnectionState")) {
-                return 0;
+                return BluetoothProfile.STATE_DISCONNECTED;
             }
 
             return service.getConnectionState(device);
@@ -1795,12 +1803,17 @@ public class AdapterService extends Service {
             }
 
             DeviceProperties deviceProp = service.mRemoteDevices.getDeviceProperties(device);
-            return deviceProp != null ? deviceProp.getDeviceType() : BluetoothDevice.DEVICE_TYPE_UNKNOWN;
+            return deviceProp != null
+                    ? deviceProp.getDeviceType() : BluetoothDevice.DEVICE_TYPE_UNKNOWN;
         }
 
         @Override
         public String getRemoteAlias(BluetoothDevice device) {
-            return getRemoteAliasWithAttribution(device, Utils.getCallingAttributionSource());
+            if (mService == null) {
+                return null;
+            }
+            return getRemoteAliasWithAttribution(device,
+                    Utils.getCallingAttributionSource(mService));
         }
 
         @Override
@@ -1883,8 +1896,11 @@ public class AdapterService extends Service {
 
         @Override
         public boolean fetchRemoteUuids(BluetoothDevice device) {
+            if (mService == null) {
+                return false;
+            }
             return fetchRemoteUuidsWithAttribution(device, TRANSPORT_AUTO,
-                    Utils.getCallingAttributionSource());
+                    Utils.getCallingAttributionSource(mService));
         }
 
         @Override
