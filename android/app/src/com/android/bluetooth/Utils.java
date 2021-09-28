@@ -33,7 +33,6 @@ import android.annotation.NonNull;
 import android.annotation.Nullable;
 import android.annotation.RequiresPermission;
 import android.annotation.SuppressLint;
-import android.app.AppGlobals;
 import android.app.AppOpsManager;
 import android.app.BroadcastOptions;
 import android.bluetooth.BluetoothAdapter;
@@ -54,7 +53,6 @@ import android.os.Bundle;
 import android.os.ParcelUuid;
 import android.os.PowerExemptionManager;
 import android.os.Process;
-import android.os.RemoteException;
 import android.os.SystemProperties;
 import android.os.UserHandle;
 import android.os.UserManager;
@@ -414,17 +412,15 @@ public final class Utils {
                 "Need DUMP permission");
     }
 
-    public static AttributionSource getCallingAttributionSource() {
+    /**
+     */
+    public static AttributionSource getCallingAttributionSource(Context context) {
         int callingUid = Binder.getCallingUid();
         if (callingUid == android.os.Process.ROOT_UID) {
             callingUid = android.os.Process.SYSTEM_UID;
         }
-        try {
-            return new AttributionSource(callingUid,
-                    AppGlobals.getPackageManager().getPackagesForUid(callingUid)[0], null);
-        } catch (RemoteException e) {
-            throw new IllegalStateException("Failed to resolve AttributionSource", e);
-        }
+        return new AttributionSource(callingUid,
+                context.getPackageManager().getPackagesForUid(callingUid)[0], null);
     }
 
     @SuppressLint("AndroidFrameworkRequiresPermission")

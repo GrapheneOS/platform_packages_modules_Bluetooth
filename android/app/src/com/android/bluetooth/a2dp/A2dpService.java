@@ -1236,7 +1236,11 @@ public class A2dpService extends ProfileService {
 
         @Override
         public boolean connect(BluetoothDevice device) {
-            return connectWithAttribution(device, Utils.getCallingAttributionSource());
+            if (mService == null) {
+                return false;
+            }
+            return connectWithAttribution(device,
+                        Utils.getCallingAttributionSource(mService));
         }
 
         @Override
@@ -1251,7 +1255,11 @@ public class A2dpService extends ProfileService {
 
         @Override
         public boolean disconnect(BluetoothDevice device) {
-            return disconnectWithAttribution(device, Utils.getCallingAttributionSource());
+            if (mService == null) {
+                return false;
+            }
+            return disconnectWithAttribution(device,
+                        Utils.getCallingAttributionSource(mService));
         }
 
         @Override
@@ -1266,7 +1274,11 @@ public class A2dpService extends ProfileService {
 
         @Override
         public List<BluetoothDevice> getConnectedDevices() {
-            return getConnectedDevicesWithAttribution(Utils.getCallingAttributionSource());
+            if (mService == null) {
+                return new ArrayList<>(0);
+            }
+            return getConnectedDevicesWithAttribution(
+                        Utils.getCallingAttributionSource(mService));
         }
 
         @Override
@@ -1280,8 +1292,11 @@ public class A2dpService extends ProfileService {
 
         @Override
         public List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
+            if (mService == null) {
+                return new ArrayList<>(0);
+            }
             return getDevicesMatchingConnectionStatesWithAttribution(states,
-                    Utils.getCallingAttributionSource());
+                    Utils.getCallingAttributionSource(mService));
         }
 
         @Override
@@ -1296,7 +1311,11 @@ public class A2dpService extends ProfileService {
 
         @Override
         public int getConnectionState(BluetoothDevice device) {
-            return getConnectionStateWithAttribution(device, Utils.getCallingAttributionSource());
+            if (mService == null) {
+                return BluetoothProfile.STATE_DISCONNECTED;
+            }
+            return getConnectionStateWithAttribution(device,
+                        Utils.getCallingAttributionSource(mService));
         }
 
         @Override
