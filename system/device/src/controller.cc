@@ -79,7 +79,7 @@ static uint16_t ble_supported_max_tx_time;
 static uint16_t ble_supported_max_rx_octets;
 static uint16_t ble_supported_max_rx_time;
 
-static uint16_t ble_maxium_advertising_data_length;
+static uint16_t ble_maximum_advertising_data_length;
 static uint8_t ble_number_of_supported_advertising_sets;
 static uint8_t ble_periodic_advertiser_list_size;
 static uint8_t local_supported_codecs[MAX_LOCAL_SUPPORTED_CODECS_SIZE];
@@ -258,7 +258,7 @@ static future_t* start_up(void) {
       response = AWAIT_COMMAND(
           packet_factory->make_ble_read_maximum_advertising_data_length());
       packet_parser->parse_ble_read_maximum_advertising_data_length(
-          response, &ble_maxium_advertising_data_length);
+          response, &ble_maximum_advertising_data_length);
 
       response = AWAIT_COMMAND(
           packet_factory->make_ble_read_number_of_supported_advertising_sets());
@@ -266,7 +266,7 @@ static future_t* start_up(void) {
           response, &ble_number_of_supported_advertising_sets);
     } else {
       /* If LE Excended Advertising is not supported, use the default value */
-      ble_maxium_advertising_data_length = 31;
+      ble_maximum_advertising_data_length = 31;
     }
 
     if (HCI_LE_PERIODIC_ADVERTISING_SUPPORTED(features_ble.as_array)) {
@@ -666,10 +666,10 @@ static uint16_t get_ble_maximum_tx_time(void) {
   return ble_supported_max_tx_time;
 }
 
-static uint16_t get_ble_maxium_advertising_data_length(void) {
+static uint16_t get_ble_maximum_advertising_data_length(void) {
   CHECK(readable);
   CHECK(ble_supported);
-  return ble_maxium_advertising_data_length;
+  return ble_maximum_advertising_data_length;
 }
 
 static uint8_t get_ble_number_of_supported_advertising_sets(void) {
@@ -801,7 +801,7 @@ static const controller_t interface = {
     get_ble_suggested_default_data_length,
     get_ble_maximum_tx_data_length,
     get_ble_maximum_tx_time,
-    get_ble_maxium_advertising_data_length,
+    get_ble_maximum_advertising_data_length,
     get_ble_number_of_supported_advertising_sets,
     get_ble_periodic_advertiser_list_size,
 
