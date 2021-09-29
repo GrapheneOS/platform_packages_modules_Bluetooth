@@ -445,7 +445,7 @@ public class AvrcpControllerService extends ProfileService {
     // Called by JNI when a device has connected or disconnected.
     private synchronized void onConnectionStateChanged(boolean remoteControlConnected,
             boolean browsingConnected, byte[] address) {
-        BluetoothDevice device = getAnonymousDevice(address);
+        BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
         if (DBG) {
             Log.d(TAG, "onConnectionStateChanged " + remoteControlConnected + " "
                     + browsingConnected + device);
@@ -479,7 +479,7 @@ public class AvrcpControllerService extends ProfileService {
 
     // Called by JNI to notify Avrcp of a remote device's Cover Art PSM
     private void getRcPsm(byte[] address, int psm) {
-        BluetoothDevice device = getAnonymousDevice(address);
+        BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
         if (DBG) Log.d(TAG, "getRcPsm(device=" + device + ", psm=" + psm + ")");
         AvrcpControllerStateMachine stateMachine = getOrCreateStateMachine(device);
         if (stateMachine != null) {
@@ -498,7 +498,7 @@ public class AvrcpControllerService extends ProfileService {
         if (DBG) {
             Log.d(TAG, "handleRegisterNotificationAbsVol");
         }
-        BluetoothDevice device = getAnonymousDevice(address);
+        BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
         AvrcpControllerStateMachine stateMachine = getStateMachine(device);
         if (stateMachine != null) {
             stateMachine.sendMessage(
@@ -511,7 +511,7 @@ public class AvrcpControllerService extends ProfileService {
         if (DBG) {
             Log.d(TAG, "handleSetAbsVolume ");
         }
-        BluetoothDevice device = getAnonymousDevice(address);
+        BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
         AvrcpControllerStateMachine stateMachine = getStateMachine(device);
         if (stateMachine != null) {
             stateMachine.sendMessage(AvrcpControllerStateMachine.MESSAGE_PROCESS_SET_ABS_VOL_CMD,
@@ -526,7 +526,7 @@ public class AvrcpControllerService extends ProfileService {
             Log.d(TAG, "onTrackChanged");
         }
 
-        BluetoothDevice device = getAnonymousDevice(address);
+        BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
         AvrcpControllerStateMachine stateMachine = getStateMachine(device);
         if (stateMachine != null) {
             AvrcpItem.Builder aib = new AvrcpItem.Builder();
@@ -552,7 +552,7 @@ public class AvrcpControllerService extends ProfileService {
         if (DBG) {
             Log.d(TAG, "onPlayPositionChanged pos " + currSongPosition);
         }
-        BluetoothDevice device = getAnonymousDevice(address);
+        BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
         AvrcpControllerStateMachine stateMachine = getStateMachine(device);
         if (stateMachine != null) {
             stateMachine.sendMessage(
@@ -566,7 +566,7 @@ public class AvrcpControllerService extends ProfileService {
         if (DBG) {
             Log.d(TAG, "onPlayStatusChanged " + playStatus);
         }
-        BluetoothDevice device = getAnonymousDevice(address);
+        BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
         AvrcpControllerStateMachine stateMachine = getStateMachine(device);
         if (stateMachine != null) {
             stateMachine.sendMessage(
@@ -581,7 +581,7 @@ public class AvrcpControllerService extends ProfileService {
         if (DBG) {
             Log.d(TAG, "handlePlayerAppSetting rspLen = " + rspLen);
         }
-        BluetoothDevice device = getAnonymousDevice(address);
+        BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
         AvrcpControllerStateMachine stateMachine = getStateMachine(device);
         if (stateMachine != null) {
             PlayerApplicationSettings supportedSettings =
@@ -597,7 +597,7 @@ public class AvrcpControllerService extends ProfileService {
         if (DBG) {
             Log.d(TAG, "onPlayerAppSettingChanged ");
         }
-        BluetoothDevice device = getAnonymousDevice(address);
+        BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
         AvrcpControllerStateMachine stateMachine = getStateMachine(device);
         if (stateMachine != null) {
 
@@ -613,7 +613,7 @@ public class AvrcpControllerService extends ProfileService {
         if (DBG) {
             Log.d(TAG," onAvailablePlayerChanged");
         }
-        BluetoothDevice device = getAnonymousDevice(address);
+        BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
 
         AvrcpControllerStateMachine stateMachine = getStateMachine(device);
         if (stateMachine != null) {
@@ -628,7 +628,7 @@ public class AvrcpControllerService extends ProfileService {
                     + items.length + " items.");
         }
 
-        BluetoothDevice device = getAnonymousDevice(address);
+        BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
         List<AvrcpItem> itemsList = new ArrayList<>();
         for (AvrcpItem item : items) {
             if (VDBG) Log.d(TAG, item.toString());
@@ -659,7 +659,7 @@ public class AvrcpControllerService extends ProfileService {
             itemsList.add(item);
         }
 
-        BluetoothDevice device = getAnonymousDevice(address);
+        BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
         AvrcpControllerStateMachine stateMachine = getStateMachine(device);
         if (stateMachine != null) {
             stateMachine.sendMessage(AvrcpControllerStateMachine.MESSAGE_PROCESS_GET_PLAYER_ITEMS,
@@ -675,7 +675,7 @@ public class AvrcpControllerService extends ProfileService {
                     + " attrids: " + attrIds + " attrVals: " + attrVals);
         }
 
-        BluetoothDevice device = getAnonymousDevice(address);
+        BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
         AvrcpItem.Builder aib = new AvrcpItem.Builder().fromAvrcpAttributeArray(attrIds, attrVals);
         aib.setDevice(device);
         aib.setItemType(AvrcpItem.TYPE_MEDIA);
@@ -694,7 +694,7 @@ public class AvrcpControllerService extends ProfileService {
                     + name + " playable " + playable);
         }
 
-        BluetoothDevice device = getAnonymousDevice(address);
+        BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
         AvrcpItem.Builder aib = new AvrcpItem.Builder();
         aib.setDevice(device);
         aib.setItemType(AvrcpItem.TYPE_FOLDER);
@@ -715,7 +715,7 @@ public class AvrcpControllerService extends ProfileService {
                             + transportFlags + " play status " + playStatus + " player type "
                             + playerType);
         }
-        BluetoothDevice device = getAnonymousDevice(address);
+        BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
         AvrcpPlayer.Builder apb = new AvrcpPlayer.Builder();
         apb.setDevice(device);
         apb.setPlayerId(id);
@@ -730,7 +730,7 @@ public class AvrcpControllerService extends ProfileService {
         if (DBG) {
             Log.d(TAG, "handleChangeFolderRsp count: " + count);
         }
-        BluetoothDevice device = getAnonymousDevice(address);
+        BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
         AvrcpControllerStateMachine stateMachine = getStateMachine(device);
         if (stateMachine != null) {
             stateMachine.sendMessage(AvrcpControllerStateMachine.MESSAGE_PROCESS_FOLDER_PATH,
@@ -742,7 +742,7 @@ public class AvrcpControllerService extends ProfileService {
         if (DBG) {
             Log.d(TAG, "handleSetBrowsedPlayerRsp depth: " + depth);
         }
-        BluetoothDevice device = getAnonymousDevice(address);
+        BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
 
         AvrcpControllerStateMachine stateMachine = getStateMachine(device);
         if (stateMachine != null) {
@@ -755,7 +755,7 @@ public class AvrcpControllerService extends ProfileService {
         if (DBG) {
             Log.d(TAG, "handleSetAddressedPlayerRsp status: " + status);
         }
-        BluetoothDevice device = getAnonymousDevice(address);
+        BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
 
         AvrcpControllerStateMachine stateMachine = getStateMachine(device);
         if (stateMachine != null) {
@@ -768,7 +768,7 @@ public class AvrcpControllerService extends ProfileService {
         if (DBG) {
             Log.d(TAG, "handleAddressedPlayerChanged id: " + id);
         }
-        BluetoothDevice device = getAnonymousDevice(address);
+        BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
 
         AvrcpControllerStateMachine stateMachine = getStateMachine(device);
         if (stateMachine != null) {
@@ -781,7 +781,7 @@ public class AvrcpControllerService extends ProfileService {
         if (DBG) {
             Log.d(TAG, "handleNowPlayingContentChanged");
         }
-        BluetoothDevice device = getAnonymousDevice(address);
+        BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
 
         AvrcpControllerStateMachine stateMachine = getStateMachine(device);
         if (stateMachine != null) {
