@@ -22,7 +22,6 @@ import android.annotation.SuppressLint;
 import android.app.ActivityManager;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -335,31 +334,5 @@ public abstract class ProfileService extends Service {
             mUserSwitchedReceiver = null;
         }
         stopSelf();
-    }
-
-    /**
-     * Returns a {@link BluetoothDevice} instance for the given address, but
-     * with any {@link AttributionSource} details removed, making it "anonymous"
-     * and not suitable for local use within this process.
-     * <p>
-     * The returned object is intended to be returned to a remote caller for
-     * actual use, where {@link Attributable#setAttributionSource} will populate
-     * it accurately.
-     */
-    protected BluetoothDevice getAnonymousDevice(String address) {
-        return BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
-    }
-
-    /**
-     * Returns a {@link BluetoothDevice} instance for the given address, but
-     * with any {@link AttributionSource} details removed, making it "anonymous"
-     * and not suitable for local use within this process.
-     * <p>
-     * The returned object is intended to be returned to a remote caller for
-     * actual use, where {@link Attributable#setAttributionSource} will populate
-     * it accurately.
-     */
-    protected BluetoothDevice getAnonymousDevice(byte[] address) {
-        return BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
     }
 }

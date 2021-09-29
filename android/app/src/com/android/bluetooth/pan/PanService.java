@@ -20,6 +20,7 @@ import static android.Manifest.permission.BLUETOOTH_CONNECT;
 import static android.Manifest.permission.TETHER_PRIVILEGED;
 
 import android.annotation.RequiresPermission;
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothPan;
 import android.bluetooth.BluetoothPan.LocalPanRole;
@@ -210,7 +211,8 @@ public class PanService extends ProfileService {
                 break;
                 case MESSAGE_CONNECT_STATE_CHANGED: {
                     ConnectState cs = (ConnectState) msg.obj;
-                    final BluetoothDevice device = getAnonymousDevice(cs.addr);
+                    final BluetoothDevice device = BluetoothAdapter.getDefaultAdapter()
+                            .getRemoteDevice(cs.addr);
                     // TBD get iface from the msg
                     if (DBG) {
                         Log.d(TAG,
