@@ -29,14 +29,14 @@ impl From<bindings::bt_state_t> for BtState {
 #[derive(Clone, Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
 #[repr(u32)]
 pub enum BtTransport {
-    Invalid = 0,
+    Auto = 0,
     Bredr,
     Le,
 }
 
 impl From<i32> for BtTransport {
     fn from(item: i32) -> Self {
-        BtTransport::from_i32(item).unwrap_or_else(|| BtTransport::Invalid)
+        BtTransport::from_i32(item).unwrap_or_else(|| BtTransport::Auto)
     }
 }
 
@@ -174,7 +174,7 @@ pub enum BtStatus {
     Unknown = 0xff,
 }
 
-fn ascii_to_string(data: &[u8], length: usize) -> String {
+pub fn ascii_to_string(data: &[u8], length: usize) -> String {
     // We need to reslice data because from_utf8 tries to interpret the
     // whole slice and not just what is before the null terminated portion
     let ascii = data
@@ -264,6 +264,7 @@ pub type BtLocalLeFeatures = bindings::bt_local_le_features_t;
 pub type BtPinCode = bindings::bt_pin_code_t;
 pub type BtRemoteVersion = bindings::bt_remote_version_t;
 pub type Uuid = bindings::bluetooth::Uuid;
+pub type Uuid128Bit = bindings::bluetooth::Uuid_UUID128Bit;
 
 /// All supported Bluetooth properties after conversion.
 #[derive(Debug, Clone)]
@@ -522,6 +523,7 @@ pub enum SupportedProfiles {
     HidHost,
     A2dp,
     Gatt,
+    Sdp,
 }
 
 impl From<SupportedProfiles> for Vec<u8> {
@@ -530,6 +532,7 @@ impl From<SupportedProfiles> for Vec<u8> {
             SupportedProfiles::HidHost => "hidhost",
             SupportedProfiles::A2dp => "a2dp",
             SupportedProfiles::Gatt => "gatt",
+            SupportedProfiles::Sdp => "sdp",
         }
         .bytes()
         .chain("\0".bytes())
@@ -628,6 +631,13 @@ impl RawAddress {
 macro_rules! deref_ffi_address {
     ($ffi_addr:ident) => {
         *($ffi_addr as *mut RawAddress)
+    };
+}
+
+#[macro_export]
+macro_rules! deref_const_ffi_address {
+    ($ffi_addr:ident) => {
+        *($ffi_addr as *const RawAddress)
     };
 }
 
@@ -843,6 +853,11 @@ impl BluetoothInterface {
         let prop_pair: (Box<[u8]>, bindings::bt_property_t) = prop.into();
         let ffi_addr = cast_to_ffi_address!(addr as *const RawAddress);
         ccall!(self, set_remote_device_property, ffi_addr, &prop_pair.1)
+    }
+
+    pub fn get_remote_services(&self, addr: &mut RawAddress, transport: BtTransport) -> i32 {
+        let ffi_addr = cast_to_ffi_address!(addr as *const RawAddress);
+        ccall!(self, get_remote_services, ffi_addr, transport.to_i32().unwrap())
     }
 
     pub fn start_discovery(&self) -> i32 {

@@ -1,9 +1,9 @@
-use bt_topshim::profiles::gatt::GattStatus;
+use bt_topshim::{btif::Uuid128Bit, profiles::gatt::GattStatus};
 
 use btstack::bluetooth_gatt::{
     BluetoothGattCharacteristic, BluetoothGattDescriptor, BluetoothGattService,
     GattWriteRequestStatus, GattWriteType, IBluetoothGatt, IBluetoothGattCallback,
-    IScannerCallback, LePhy, RSSISettings, ScanFilter, ScanSettings, ScanType, Uuid128Bit,
+    IScannerCallback, LePhy, RSSISettings, ScanFilter, ScanSettings, ScanType,
 };
 use btstack::RPCProxy;
 
