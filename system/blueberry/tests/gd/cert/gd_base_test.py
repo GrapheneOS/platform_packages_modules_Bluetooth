@@ -126,22 +126,23 @@ class GdBaseTestClass(base_test.BaseTestClass):
         self.cert.wait_channel_ready()
 
     def teardown_test(self):
+        stack = ""
         try:
+            stack = "CERT"
             self.cert.rootservice.StopStack(facade_rootservice.StopStackRequest())
-        except RpcError as rpc_error:
-            asserts.fail("Failed to stop CERT stack, RpcError={!r}".format(rpc_error))
-        try:
+            stack = "DUT"
             self.dut.rootservice.StopStack(facade_rootservice.StopStackRequest())
         except RpcError as rpc_error:
-            asserts.fail("Failed to stop DUT stack, RpcError={!r}".format(rpc_error))
-        # Destroy GD device objects
-        self._controller_manager.unregister_controllers()
-        teardown_rootcanal(
-            rootcanal_running=self.rootcanal_running,
-            rootcanal_process=self.rootcanal_process,
-            rootcanal_logger=self.rootcanal_logger,
-            subprocess_wait_timeout_seconds=self.SUBPROCESS_WAIT_TIMEOUT_SECONDS)
-        pop_test_context()
+            asserts.fail("Failed to stop {} stack, RpcError={!r}".format(stack, rpc_error))
+        finally:
+            # Destroy GD device objects
+            self._controller_manager.unregister_controllers()
+            teardown_rootcanal(
+                rootcanal_running=self.rootcanal_running,
+                rootcanal_process=self.rootcanal_process,
+                rootcanal_logger=self.rootcanal_logger,
+                subprocess_wait_timeout_seconds=self.SUBPROCESS_WAIT_TIMEOUT_SECONDS)
+            pop_test_context()
 
     @staticmethod
     def get_module_reference_name(a_module):
