@@ -18,7 +18,7 @@ import inspect
 
 from mobly import asserts
 
-from acts.test_decorators import test_info
+from blueberry.tests.gd.cert.test_decorators import test_info
 
 
 def _fail_decorator(msg):
