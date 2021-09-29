@@ -1516,7 +1516,7 @@ public class BluetoothMapContent {
             if (c != null) {
                 if (c.moveToFirst()) {
                     addr = c.getString(colIndex);
-                    if (addr.equals(INSERT_ADDRES_TOKEN)) {
+                    if (INSERT_ADDRES_TOKEN.equals(addr)) {
                         addr = "";
                     }
                 }
