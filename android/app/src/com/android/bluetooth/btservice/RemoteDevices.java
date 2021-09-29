@@ -19,7 +19,6 @@ package com.android.bluetooth.btservice;
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
 import static android.Manifest.permission.BLUETOOTH_SCAN;
 
-import android.app.ActivityThread;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothAssignedNumbers;
 import android.bluetooth.BluetoothClass;
@@ -27,7 +26,6 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadset;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.IBluetoothConnectionCallback;
-import android.content.Attributable;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -88,8 +86,6 @@ final class RemoteDevices {
             switch (msg.what) {
                 case MESSAGE_UUID_INTENT:
                     BluetoothDevice device = (BluetoothDevice) msg.obj;
-                    Attributable.setAttributionSource(device,
-                            ActivityThread.currentAttributionSource());
                     if (device != null) {
                         DeviceProperties prop = getDeviceProperties(device);
                         sendUuidIntent(device, prop);

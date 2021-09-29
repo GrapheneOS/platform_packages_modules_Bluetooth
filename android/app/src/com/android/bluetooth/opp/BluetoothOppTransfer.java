@@ -32,14 +32,12 @@
 
 package com.android.bluetooth.opp;
 
-import android.app.ActivityThread;
 import android.app.NotificationManager;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.bluetooth.BluetoothUuid;
 import android.bluetooth.SdpOppOpsRecord;
-import android.content.Attributable;
 import android.content.BroadcastReceiver;
 import android.content.ContentValues;
 import android.content.Context;
@@ -208,8 +206,6 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
             switch (msg.what) {
                 case SOCKET_ERROR_RETRY:
                     BluetoothDevice device = (BluetoothDevice) msg.obj;
-                    Attributable.setAttributionSource(device,
-                            ActivityThread.currentAttributionSource());
                     mConnectThread = new SocketConnectThread(device, true);
 
                     mConnectThread.start();

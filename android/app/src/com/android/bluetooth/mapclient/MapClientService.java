@@ -25,7 +25,6 @@ import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUuid;
 import android.bluetooth.IBluetoothMapClient;
 import android.bluetooth.SdpMasRecord;
-import android.content.Attributable;
 import android.content.AttributionSource;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -480,7 +479,6 @@ public class MapClientService extends ProfileService {
             if (VDBG) {
                 Log.v(TAG, "isConnected()");
             }
-            Attributable.setAttributionSource(device, source);
             MapClientService service = getService(source);
             if (service == null) {
                 return false;
@@ -493,7 +491,6 @@ public class MapClientService extends ProfileService {
             if (VDBG) {
                 Log.v(TAG, "connect()");
             }
-            Attributable.setAttributionSource(device, source);
             MapClientService service = getService(source);
             if (service == null) {
                 return false;
@@ -506,7 +503,6 @@ public class MapClientService extends ProfileService {
             if (VDBG) {
                 Log.v(TAG, "disconnect()");
             }
-            Attributable.setAttributionSource(device, source);
             MapClientService service = getService(source);
             if (service == null) {
                 return false;
@@ -544,7 +540,6 @@ public class MapClientService extends ProfileService {
             if (VDBG) {
                 Log.v(TAG, "getConnectionState()");
             }
-            Attributable.setAttributionSource(device, source);
             MapClientService service = getService(source);
             if (service == null) {
                 return BluetoothProfile.STATE_DISCONNECTED;
@@ -555,7 +550,6 @@ public class MapClientService extends ProfileService {
         @Override
         public boolean setConnectionPolicy(BluetoothDevice device, int connectionPolicy,
                 AttributionSource source) {
-            Attributable.setAttributionSource(device, source);
             MapClientService service = getService(source);
             if (service == null) {
                 return false;
@@ -565,7 +559,6 @@ public class MapClientService extends ProfileService {
 
         @Override
         public int getConnectionPolicy(BluetoothDevice device, AttributionSource source) {
-            Attributable.setAttributionSource(device, source);
             MapClientService service = getService(source);
             if (service == null) {
                 return BluetoothProfile.CONNECTION_POLICY_UNKNOWN;
@@ -576,7 +569,6 @@ public class MapClientService extends ProfileService {
         @Override
         public boolean sendMessage(BluetoothDevice device, Uri[] contacts, String message,
                 PendingIntent sentIntent, PendingIntent deliveredIntent, AttributionSource source) {
-            Attributable.setAttributionSource(device, source);
             MapClientService service = getService(source);
             if (service == null) {
                 return false;
@@ -590,7 +582,6 @@ public class MapClientService extends ProfileService {
 
         @Override
         public boolean getUnreadMessages(BluetoothDevice device, AttributionSource source) {
-            Attributable.setAttributionSource(device, source);
             MapClientService service = getService(source);
             if (service == null) {
                 return false;
@@ -602,7 +593,6 @@ public class MapClientService extends ProfileService {
 
         @Override
         public int getSupportedFeatures(BluetoothDevice device, AttributionSource source) {
-            Attributable.setAttributionSource(device, source);
             MapClientService service = getService(source);
             if (service == null) {
                 if (DBG) {
@@ -617,7 +607,6 @@ public class MapClientService extends ProfileService {
         @Override
         public boolean setMessageStatus(BluetoothDevice device, String handle, int status,
                 AttributionSource source) {
-            Attributable.setAttributionSource(device, source);
             MapClientService service = getService(source);
             if (service == null) {
                 return false;
