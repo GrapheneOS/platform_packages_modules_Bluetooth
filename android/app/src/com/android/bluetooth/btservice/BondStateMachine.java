@@ -20,14 +20,12 @@ import static android.Manifest.permission.BLUETOOTH_CONNECT;
 
 import android.annotation.RequiresPermission;
 import android.app.Activity;
-import android.app.ActivityThread;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothProtoEnums;
 import android.bluetooth.OobData;
-import android.content.Attributable;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Message;
@@ -133,8 +131,6 @@ final class BondStateMachine extends StateMachine {
         public synchronized boolean processMessage(Message msg) {
 
             BluetoothDevice dev = (BluetoothDevice) msg.obj;
-            Attributable.setAttributionSource(dev,
-                    ActivityThread.currentAttributionSource());
 
             switch (msg.what) {
 
@@ -188,8 +184,6 @@ final class BondStateMachine extends StateMachine {
         @Override
         public synchronized boolean processMessage(Message msg) {
             BluetoothDevice dev = (BluetoothDevice) msg.obj;
-            Attributable.setAttributionSource(dev,
-                    ActivityThread.currentAttributionSource());
 
             DeviceProperties devProp = mRemoteDevices.getDeviceProperties(dev);
             boolean result = false;
