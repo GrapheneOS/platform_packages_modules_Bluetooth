@@ -204,6 +204,7 @@ DualModeController::DualModeController(const std::string& properties_filename, u
   SET_SUPPORTED(REMOTE_NAME_REQUEST, RemoteNameRequest);
   SET_SUPPORTED(LE_SET_EVENT_MASK, LeSetEventMask);
   SET_SUPPORTED(LE_READ_BUFFER_SIZE_V1, LeReadBufferSize);
+  SET_SUPPORTED(LE_READ_BUFFER_SIZE_V2, LeReadBufferSizeV2);
   SET_SUPPORTED(LE_READ_LOCAL_SUPPORTED_FEATURES, LeReadLocalSupportedFeatures);
   SET_SUPPORTED(LE_SET_RANDOM_ADDRESS, LeSetRandomAddress);
   SET_SUPPORTED(LE_SET_ADVERTISING_PARAMETERS, LeSetAdvertisingParameters);
@@ -1587,6 +1588,23 @@ void DualModeController::LeReadBufferSize(CommandView command) {
 
   auto packet = bluetooth::hci::LeReadBufferSizeV1CompleteBuilder::Create(
       kNumCommandPackets, ErrorCode::SUCCESS, le_buffer_size);
+  send_event_(std::move(packet));
+}
+
+void DualModeController::LeReadBufferSizeV2(CommandView command) {
+  auto command_view = gd_hci::LeReadBufferSizeV2View::Create(command);
+  ASSERT(command_view.IsValid());
+
+  bluetooth::hci::LeBufferSize le_buffer_size;
+  le_buffer_size.le_data_packet_length_ = properties_.GetLeDataPacketLength();
+  le_buffer_size.total_num_le_packets_ = properties_.GetTotalNumLeDataPackets();
+  bluetooth::hci::LeBufferSize iso_buffer_size;
+  iso_buffer_size.le_data_packet_length_ = properties_.GetIsoDataPacketLength();
+  iso_buffer_size.total_num_le_packets_ =
+      properties_.GetTotalNumIsoDataPackets();
+
+  auto packet = bluetooth::hci::LeReadBufferSizeV2CompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS, le_buffer_size, iso_buffer_size);
   send_event_(std::move(packet));
 }
 
