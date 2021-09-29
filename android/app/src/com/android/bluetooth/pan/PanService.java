@@ -20,14 +20,12 @@ import static android.Manifest.permission.BLUETOOTH_CONNECT;
 import static android.Manifest.permission.TETHER_PRIVILEGED;
 
 import android.annotation.RequiresPermission;
-import android.app.ActivityThread;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothPan;
 import android.bluetooth.BluetoothPan.LocalPanRole;
 import android.bluetooth.BluetoothPan.RemotePanRole;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.IBluetoothPan;
-import android.content.Attributable;
 import android.content.AttributionSource;
 import android.content.Context;
 import android.content.Intent;
@@ -186,8 +184,6 @@ public class PanService extends ProfileService {
             switch (msg.what) {
                 case MESSAGE_CONNECT: {
                     BluetoothDevice device = (BluetoothDevice) msg.obj;
-                    Attributable.setAttributionSource(device,
-                            ActivityThread.currentAttributionSource());
                     if (!connectPanNative(Utils.getByteAddress(device),
                             BluetoothPan.LOCAL_PANU_ROLE, BluetoothPan.REMOTE_NAP_ROLE)) {
                         handlePanDeviceStateChange(device, null, BluetoothProfile.STATE_CONNECTING,
@@ -201,8 +197,6 @@ public class PanService extends ProfileService {
                 break;
                 case MESSAGE_DISCONNECT: {
                     BluetoothDevice device = (BluetoothDevice) msg.obj;
-                    Attributable.setAttributionSource(device,
-                            ActivityThread.currentAttributionSource());
                     if (!disconnectPanNative(Utils.getByteAddress(device))) {
                         handlePanDeviceStateChange(device, mPanIfName,
                                 BluetoothProfile.STATE_DISCONNECTING, BluetoothPan.LOCAL_PANU_ROLE,
@@ -263,7 +257,6 @@ public class PanService extends ProfileService {
 
         @Override
         public boolean connect(BluetoothDevice device, AttributionSource source) {
-            Attributable.setAttributionSource(device, source);
             PanService service = getService(source);
             if (service == null) {
                 return false;
@@ -273,7 +266,6 @@ public class PanService extends ProfileService {
 
         @Override
         public boolean disconnect(BluetoothDevice device, AttributionSource source) {
-            Attributable.setAttributionSource(device, source);
             PanService service = getService(source);
             if (service == null) {
                 return false;
@@ -284,7 +276,6 @@ public class PanService extends ProfileService {
         @Override
         public boolean setConnectionPolicy(BluetoothDevice device, int connectionPolicy,
                 AttributionSource source) {
-            Attributable.setAttributionSource(device, source);
             PanService service = getService(source);
             if (service == null) {
                 return false;
@@ -294,7 +285,6 @@ public class PanService extends ProfileService {
 
         @Override
         public int getConnectionState(BluetoothDevice device, AttributionSource source) {
-            Attributable.setAttributionSource(device, source);
             PanService service = getService(source);
             if (service == null) {
                 return BluetoothPan.STATE_DISCONNECTED;

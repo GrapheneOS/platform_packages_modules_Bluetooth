@@ -23,7 +23,6 @@ import android.app.ActivityManager;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.content.Attributable;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -348,8 +347,7 @@ public abstract class ProfileService extends Service {
      * it accurately.
      */
     protected BluetoothDevice getAnonymousDevice(String address) {
-        return Attributable.setAttributionSource(
-                BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address), null);
+        return BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
     }
 
     /**
@@ -362,7 +360,6 @@ public abstract class ProfileService extends Service {
      * it accurately.
      */
     protected BluetoothDevice getAnonymousDevice(byte[] address) {
-        return Attributable.setAttributionSource(
-                BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address), null);
+        return BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
     }
 }
