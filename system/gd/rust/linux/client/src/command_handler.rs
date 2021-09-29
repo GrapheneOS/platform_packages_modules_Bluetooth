@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::fmt::{Display, Formatter, Result};
 use std::sync::{Arc, Mutex};
 
 use num_traits::cast::FromPrimitive;
@@ -6,6 +7,7 @@ use num_traits::cast::FromPrimitive;
 use crate::callbacks::BtGattCallback;
 use crate::ClientContext;
 use crate::{console_red, console_yellow, print_error, print_info};
+use bt_topshim::btif::Uuid128Bit;
 use btstack::bluetooth::{BluetoothDevice, BluetoothTransport, IBluetooth};
 use btstack::bluetooth_gatt::IBluetoothGatt;
 use manager_service::iface_bluetooth_manager::IBluetoothManager;
@@ -32,6 +34,33 @@ pub struct CommandOption {
 pub(crate) struct CommandHandler {
     context: Arc<Mutex<ClientContext>>,
     command_options: HashMap<String, CommandOption>,
+}
+
+struct DisplayList<T>(Vec<T>);
+
+impl<T: Display> Display for DisplayList<T> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        let _ = write!(f, "[\n");
+        for item in self.0.iter() {
+            let _ = write!(f, "  {}\n", item);
+        }
+
+        write!(f, "]")
+    }
+}
+
+struct DisplayUuid128Bit(Uuid128Bit);
+
+// UUID128Bit should have a standard output display format
+impl Display for DisplayUuid128Bit {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        write!(f, "{:02x}{:02x}{:02x}{:02x}-{:02x}{:02x}-{:02x}{:02x}-{:02x}{:02x}-{:02X}{:02X}{:02X}{:02X}{:02X}{:02X}",
+            self.0[0], self.0[1], self.0[2], self.0[3],
+            self.0[4], self.0[5],
+            self.0[6], self.0[7],
+            self.0[8], self.0[9],
+            self.0[10], self.0[11], self.0[12], self.0[13], self.0[14], self.0[15])
+    }
 }
 
 fn enforce_arg_len<F>(args: &Vec<String>, min_len: usize, msg: &str, mut action: F)
@@ -81,6 +110,13 @@ fn build_commands() -> HashMap<String, CommandOption> {
         CommandOption {
             description: String::from("Creates a bond with a device."),
             function_pointer: CommandHandler::cmd_bond,
+        },
+    );
+    command_options.insert(
+        String::from("device"),
+        CommandOption {
+            description: String::from("Take action on a remote device. (i.e. info)"),
+            function_pointer: CommandHandler::cmd_device,
         },
     );
     command_options.insert(
@@ -224,8 +260,20 @@ impl CommandHandler {
                     Some(x) => x.clone(),
                     None => String::from(""),
                 };
-                print_info!("State: {}", if enabled { "enabled" } else { "disabled" });
+                let name = self.context.lock().unwrap().adapter_dbus.as_ref().unwrap().get_name();
+                let uuids = self.context.lock().unwrap().adapter_dbus.as_ref().unwrap().get_uuids();
                 print_info!("Address: {}", address);
+                print_info!("Name: {}", name);
+                print_info!("State: {}", if enabled { "enabled" } else { "disabled" });
+                print_info!(
+                    "Uuids: {}",
+                    DisplayList(
+                        uuids
+                            .iter()
+                            .map(|&x| DisplayUuid128Bit(x))
+                            .collect::<Vec<DisplayUuid128Bit>>()
+                    )
+                );
             }
             _ => {
                 println!("Invalid argument '{}'", args[0]);
@@ -281,6 +329,45 @@ impl CommandHandler {
                 .as_ref()
                 .unwrap()
                 .create_bond(device, BluetoothTransport::from_i32(0).unwrap());
+        });
+    }
+
+    fn cmd_device(&mut self, args: &Vec<String>) {
+        if !self.context.lock().unwrap().adapter_ready {
+            self.adapter_not_ready();
+            return;
+        }
+
+        enforce_arg_len(args, 2, "device <info> <address>", || match &args[0][0..] {
+            "info" => {
+                let device = BluetoothDevice {
+                    address: String::from(&args[1]),
+                    name: String::from("Classic Device"),
+                };
+
+                let uuids = self
+                    .context
+                    .lock()
+                    .unwrap()
+                    .adapter_dbus
+                    .as_ref()
+                    .unwrap()
+                    .get_remote_uuids(device.clone());
+
+                print_info!("Address: {}", &device.address);
+                print_info!(
+                    "Uuids: {}",
+                    DisplayList(
+                        uuids
+                            .iter()
+                            .map(|&x| DisplayUuid128Bit(x))
+                            .collect::<Vec<DisplayUuid128Bit>>()
+                    )
+                );
+            }
+            _ => {
+                println!("Invalid argument '{}'", args[0]);
+            }
         });
     }
 

@@ -1,6 +1,6 @@
 extern crate bt_shim;
 
-use bt_topshim::btif::BtSspVariant;
+use bt_topshim::btif::{BtSspVariant, Uuid128Bit};
 
 use btstack::bluetooth::{BluetoothDevice, BluetoothTransport, IBluetooth, IBluetoothCallback};
 use btstack::RPCProxy;
@@ -78,6 +78,21 @@ impl IBluetooth for IBluetoothDBus {
         String::from("")
     }
 
+    #[dbus_method("GetUuids")]
+    fn get_uuids(&self) -> Vec<Uuid128Bit> {
+        vec![]
+    }
+
+    #[dbus_method("GetName")]
+    fn get_name(&self) -> String {
+        String::new()
+    }
+
+    #[dbus_method("SetName")]
+    fn set_name(&self, name: String) -> bool {
+        true
+    }
+
     #[dbus_method("StartDiscovery")]
     fn start_discovery(&self) -> bool {
         true
@@ -86,6 +101,16 @@ impl IBluetooth for IBluetoothDBus {
     #[dbus_method("CancelDiscovery")]
     fn cancel_discovery(&self) -> bool {
         true
+    }
+
+    #[dbus_method("IsDiscovering")]
+    fn is_discovering(&self) -> bool {
+        true
+    }
+
+    #[dbus_method("GetDiscoveryEndMillis")]
+    fn get_discovery_end_millis(&self) -> u64 {
+        0
     }
 
     #[dbus_method("CreateBond")]
@@ -111,5 +136,20 @@ impl IBluetooth for IBluetoothDBus {
     #[dbus_method("GetBondState")]
     fn get_bond_state(&self, _device: BluetoothDevice) -> u32 {
         0
+    }
+
+    #[dbus_method("GetRemoteUuids")]
+    fn get_remote_uuids(&self, _device: BluetoothDevice) -> Vec<Uuid128Bit> {
+        vec![]
+    }
+
+    #[dbus_method("FetchRemoteUuids")]
+    fn fetch_remote_uuids(&self, _device: BluetoothDevice) -> bool {
+        true
+    }
+
+    #[dbus_method("SdpSearch")]
+    fn sdp_search(&self, _device: BluetoothDevice, _uuid: Uuid128Bit) -> bool {
+        true
     }
 }
