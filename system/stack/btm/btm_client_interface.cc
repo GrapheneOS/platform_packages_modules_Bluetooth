@@ -168,6 +168,7 @@ struct btm_client_interface_s btm_client_interface = {
         {
             .BTM_GetEirSupportedServices = BTM_GetEirSupportedServices,
             .BTM_GetEirUuidList = BTM_GetEirUuidList,
+            .BTM_AddEirService = BTM_AddEirService,
             .BTM_RemoveEirService = BTM_RemoveEirService,
             .BTM_WriteEIR = BTM_WriteEIR,
         },
