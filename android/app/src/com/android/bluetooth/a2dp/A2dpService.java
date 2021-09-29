@@ -199,9 +199,11 @@ public class A2dpService extends ProfileService {
             }
             mStateMachines.clear();
         }
-        mStateMachinesThread.quitSafely();
-        mStateMachinesThread = null;
 
+        if (mStateMachinesThread != null) {
+            mStateMachinesThread.quitSafely();
+            mStateMachinesThread = null;
+        }
         // Step 2: Reset maximum number of connected audio devices
         mMaxConnectedAudioDevices = 1;
 
