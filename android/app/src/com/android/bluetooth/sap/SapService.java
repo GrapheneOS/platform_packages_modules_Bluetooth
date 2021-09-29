@@ -14,7 +14,6 @@ import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.bluetooth.BluetoothUuid;
 import android.bluetooth.IBluetoothSap;
-import android.content.Attributable;
 import android.content.AttributionSource;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -964,7 +963,6 @@ public class SapService extends ProfileService {
         @Override
         public boolean isConnected(BluetoothDevice device, AttributionSource source) {
             Log.v(TAG, "isConnected()");
-            Attributable.setAttributionSource(device, source);
             SapService service = getService(source);
             if (service == null) {
                 return false;
@@ -976,7 +974,6 @@ public class SapService extends ProfileService {
         @Override
         public boolean connect(BluetoothDevice device, AttributionSource source) {
             Log.v(TAG, "connect()");
-            Attributable.setAttributionSource(device, source);
             SapService service = getService(source);
             if (service == null) {
                 return false;
@@ -987,7 +984,6 @@ public class SapService extends ProfileService {
         @Override
         public boolean disconnect(BluetoothDevice device, AttributionSource source) {
             Log.v(TAG, "disconnect()");
-            Attributable.setAttributionSource(device, source);
             SapService service = getService(source);
             if (service == null) {
                 return false;
@@ -1019,7 +1015,6 @@ public class SapService extends ProfileService {
         @Override
         public int getConnectionState(BluetoothDevice device, AttributionSource source) {
             Log.v(TAG, "getConnectionState()");
-            Attributable.setAttributionSource(device, source);
             SapService service = getService(source);
             if (service == null) {
                 return BluetoothProfile.STATE_DISCONNECTED;
@@ -1030,7 +1025,6 @@ public class SapService extends ProfileService {
         @Override
         public boolean setConnectionPolicy(BluetoothDevice device, int connectionPolicy,
                 AttributionSource source) {
-            Attributable.setAttributionSource(device, source);
             SapService service = getService(source);
             if (service == null) {
                 return false;
@@ -1040,7 +1034,6 @@ public class SapService extends ProfileService {
 
         @Override
         public int getConnectionPolicy(BluetoothDevice device, AttributionSource source) {
-            Attributable.setAttributionSource(device, source);
             SapService service = getService(source);
             if (service == null) {
                 return BluetoothProfile.CONNECTION_POLICY_UNKNOWN;
