@@ -21,6 +21,7 @@ import static android.Manifest.permission.BLUETOOTH_CONNECT;
 import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermission;
 
 import android.annotation.RequiresPermission;
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHidHost;
 import android.bluetooth.BluetoothProfile;
@@ -177,7 +178,8 @@ public class HidHostService extends ProfileService {
                 }
                 break;
                 case MESSAGE_CONNECT_STATE_CHANGED: {
-                    BluetoothDevice device = getAnonymousDevice((byte[]) msg.obj);
+                    BluetoothDevice device = BluetoothAdapter.getDefaultAdapter()
+                            .getRemoteDevice((byte[]) msg.obj);
                     int halState = msg.arg1;
                     Integer prevStateInteger = mInputDevices.get(device);
                     int prevState =
@@ -216,7 +218,8 @@ public class HidHostService extends ProfileService {
                 break;
 
                 case MESSAGE_ON_GET_PROTOCOL_MODE: {
-                    BluetoothDevice device = getAnonymousDevice((byte[]) msg.obj);
+                    BluetoothDevice device = BluetoothAdapter.getDefaultAdapter()
+                            .getRemoteDevice((byte[]) msg.obj);
                     int protocolMode = msg.arg1;
                     broadcastProtocolMode(device, protocolMode);
                 }
@@ -250,7 +253,8 @@ public class HidHostService extends ProfileService {
                 }
                 break;
                 case MESSAGE_ON_GET_REPORT: {
-                    BluetoothDevice device = getAnonymousDevice((byte[]) msg.obj);
+                    BluetoothDevice device = BluetoothAdapter.getDefaultAdapter()
+                            .getRemoteDevice((byte[]) msg.obj);
                     Bundle data = msg.getData();
                     byte[] report = data.getByteArray(BluetoothHidHost.EXTRA_REPORT);
                     int bufferSize = data.getInt(BluetoothHidHost.EXTRA_REPORT_BUFFER_SIZE);
@@ -258,7 +262,8 @@ public class HidHostService extends ProfileService {
                 }
                 break;
                 case MESSAGE_ON_HANDSHAKE: {
-                    BluetoothDevice device = getAnonymousDevice((byte[]) msg.obj);
+                    BluetoothDevice device = BluetoothAdapter.getDefaultAdapter()
+                            .getRemoteDevice((byte[]) msg.obj);
                     int status = msg.arg1;
                     broadcastHandshake(device, status);
                 }
@@ -274,7 +279,8 @@ public class HidHostService extends ProfileService {
                 }
                 break;
                 case MESSAGE_ON_VIRTUAL_UNPLUG: {
-                    BluetoothDevice device = getAnonymousDevice((byte[]) msg.obj);
+                    BluetoothDevice device = BluetoothAdapter.getDefaultAdapter()
+                            .getRemoteDevice((byte[]) msg.obj);
                     int status = msg.arg1;
                     broadcastVirtualUnplugStatus(device, status);
                 }
@@ -287,7 +293,8 @@ public class HidHostService extends ProfileService {
                 }
                 break;
                 case MESSAGE_ON_GET_IDLE_TIME: {
-                    BluetoothDevice device = getAnonymousDevice((byte[]) msg.obj);
+                    BluetoothDevice device = BluetoothAdapter.getDefaultAdapter()
+                            .getRemoteDevice((byte[]) msg.obj);
                     int idleTime = msg.arg1;
                     broadcastIdleTime(device, idleTime);
                 }

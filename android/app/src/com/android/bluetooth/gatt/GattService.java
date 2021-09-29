@@ -1175,7 +1175,7 @@ public class GattService extends ProfileService {
                 continue;
             }
 
-            BluetoothDevice device = getAnonymousDevice(address);
+            BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
 
             ScanSettings settings = client.settings;
             byte[] scanRecordData;
@@ -1971,7 +1971,7 @@ public class GattService extends ProfileService {
                     extractBytes(batchRecord, i * TRUNCATED_RESULT_SIZE, TRUNCATED_RESULT_SIZE);
             byte[] address = extractBytes(record, 0, 6);
             reverse(address);
-            BluetoothDevice device = getAnonymousDevice(address);
+            BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
             int rssi = record[8];
             long timestampNanos = now - parseTimestampNanos(extractBytes(record, 9, 2));
             results.add(new ScanResult(device, ScanRecord.parseFromBytes(new byte[0]), rssi,
@@ -1998,7 +1998,7 @@ public class GattService extends ProfileService {
             byte[] address = extractBytes(batchRecord, position, 6);
             // TODO: remove temp hack.
             reverse(address);
-            BluetoothDevice device = getAnonymousDevice(address);
+            BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
             position += 6;
             // Skip address type.
             position++;
@@ -2076,7 +2076,8 @@ public class GattService extends ProfileService {
             return;
         }
 
-        BluetoothDevice device = getAnonymousDevice(trackingInfo.getAddress());
+        BluetoothDevice device = BluetoothAdapter.getDefaultAdapter()
+                .getRemoteDevice(trackingInfo.getAddress());
         int advertiserState = trackingInfo.getAdvState();
         ScanResult result =
                 new ScanResult(device, ScanRecord.parseFromBytes(trackingInfo.getResult()),
@@ -2208,7 +2209,7 @@ public class GattService extends ProfileService {
         connectedDevices.addAll(mServerMap.getConnectedDevices());
 
         for (String address : connectedDevices) {
-            BluetoothDevice device = getAnonymousDevice(address);
+            BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
             if (device != null) {
                 deviceStates.put(device, BluetoothProfile.STATE_CONNECTED);
             }
