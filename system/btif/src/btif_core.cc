@@ -600,6 +600,10 @@ void btif_get_adapter_property(bt_property_type_t type) {
         cmn_vsc_cb.debug_logging_supported > 0;
     const controller_t* controller = controller_get_interface();
 
+    if (controller->supports_ble_extended_advertising()) {
+      local_le_features.max_adv_instance =
+          controller->get_ble_number_of_supported_advertising_sets();
+    }
     local_le_features.le_2m_phy_supported = controller->supports_ble_2m_phy();
     local_le_features.le_coded_phy_supported =
         controller->supports_ble_coded_phy();
