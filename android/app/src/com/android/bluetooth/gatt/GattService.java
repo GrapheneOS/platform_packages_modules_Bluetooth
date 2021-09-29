@@ -168,8 +168,8 @@ public class GattService extends ProfileService {
 
     private final PendingIntent.CancelListener mScanIntentCancelListener =
             new PendingIntent.CancelListener(){
-                public void onCancelled(PendingIntent intent) {
-                    Log.d(TAG, "scanning PendingIntent cancelled");
+                public void onCanceled(PendingIntent intent) {
+                    Log.d(TAG, "scanning PendingIntent canceled");
                     stopScan(intent, getAttributionSource());
                 }
             };
