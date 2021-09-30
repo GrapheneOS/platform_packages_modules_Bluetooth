@@ -279,9 +279,10 @@ class CsisDevice : public GattServiceDevice {
  */
 class CsisGroup {
  public:
-  CsisGroup(int group_id)
+  CsisGroup(int group_id, const bluetooth::Uuid& uuid)
       : group_id_(group_id),
         size_(kDefaultCsisSetSize),
+        uuid_(uuid),
         member_discovery_state_(CsisDiscoveryState::CSIS_DISCOVERY_IDLE),
         lock_state_(CsisLockState::CSIS_STATE_UNSET),
         target_lock_state_(CsisLockState::CSIS_STATE_UNSET),
@@ -303,6 +304,8 @@ class CsisGroup {
   }
 
   int GetCurrentSize(void) const { return devices_.size(); }
+  bluetooth::Uuid GetUuid() const { return uuid_; }
+  void SetUuid(const bluetooth::Uuid& uuid) { uuid_ = uuid; }
   int GetGroupId(void) const { return group_id_; }
   int GetDesiredSize(void) const { return size_; }
   void SetDesiredSize(int size) { size_ = size; }
@@ -455,6 +458,7 @@ class CsisGroup {
   Octet16 sirk_ = {0};
   bool sirk_available_ = false;
   int size_;
+  bluetooth::Uuid uuid_;
 
   std::vector<std::shared_ptr<CsisDevice>> devices_;
   CsisDiscoveryState member_discovery_state_;
