@@ -22,6 +22,8 @@
 #define A2DP_SBC_H
 
 #include <bt_target.h>
+#include <stddef.h>
+#include <stdint.h>
 
 #include "a2dp_codec_api.h"
 #include "a2dp_sbc_constants.h"

@@ -22,6 +22,8 @@
 #define A2DP_VENDOR_APTX_HD_H
 
 #include <bt_target.h>
+#include <stddef.h>
+#include <stdint.h>
 
 #include "a2dp_codec_api.h"
 #include "a2dp_vendor_aptx_hd_constants.h"
