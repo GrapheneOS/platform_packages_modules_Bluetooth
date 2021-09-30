@@ -18,12 +18,13 @@
 
 #define LOG_TAG "BluetoothMetrics"
 
-#include <statslog.h>
+#include "os/metrics.h"
+
+#include <statslog_bt.h>
 
 #include "common/metric_id_manager.h"
 #include "common/strings.h"
 #include "os/log.h"
-#include "os/metrics.h"
 
 namespace bluetooth {
 
@@ -35,7 +36,7 @@ using bluetooth::hci::Address;
 /**
  * nullptr and size 0 represent missing value for obfuscated_id
  */
-static const android::util::BytesField byteField(nullptr, 0);
+static const BytesField byteField(nullptr, 0);
 
 void LogMetricLinkLayerConnectionEvent(
     const Address* address,
@@ -51,8 +52,8 @@ void LogMetricLinkLayerConnectionEvent(
   if (address != nullptr) {
     metric_id = MetricIdManager::GetInstance().AllocateId(*address);
   }
-  int ret = android::util::stats_write(
-      android::util::BLUETOOTH_LINK_LAYER_CONNECTION_EVENT,
+  int ret = stats_write(
+      BLUETOOTH_LINK_LAYER_CONNECTION_EVENT,
       byteField,
       connection_handle,
       direction,
@@ -80,7 +81,7 @@ void LogMetricLinkLayerConnectionEvent(
 }
 
 void LogMetricHciTimeoutEvent(uint32_t hci_cmd) {
-  int ret = android::util::stats_write(android::util::BLUETOOTH_HCI_TIMEOUT_REPORTED, static_cast<int64_t>(hci_cmd));
+  int ret = stats_write(BLUETOOTH_HCI_TIMEOUT_REPORTED, static_cast<int64_t>(hci_cmd));
   if (ret < 0) {
     LOG_WARN("Failed for opcode %s, error %d", common::ToHexString(hci_cmd).c_str(), ret);
   }
@@ -88,8 +89,7 @@ void LogMetricHciTimeoutEvent(uint32_t hci_cmd) {
 
 void LogMetricRemoteVersionInfo(
     uint16_t handle, uint8_t status, uint8_t version, uint16_t manufacturer_name, uint16_t subversion) {
-  int ret = android::util::stats_write(
-      android::util::BLUETOOTH_REMOTE_VERSION_INFO_REPORTED, handle, status, version, manufacturer_name, subversion);
+  int ret = stats_write(BLUETOOTH_REMOTE_VERSION_INFO_REPORTED, handle, status, version, manufacturer_name, subversion);
   if (ret < 0) {
     LOG_WARN(
         "Failed for handle %d, status %s, version %s, manufacturer_name %s, subversion %s, error %d",
@@ -109,12 +109,8 @@ void LogMetricA2dpAudioUnderrunEvent(
     metric_id = MetricIdManager::GetInstance().AllocateId(address);
   }
   int64_t encoding_interval_nanos = encoding_interval_millis * 1000000;
-  int ret = android::util::stats_write(
-      android::util::BLUETOOTH_A2DP_AUDIO_UNDERRUN_REPORTED,
-      byteField,
-      encoding_interval_nanos,
-      num_missing_pcm_bytes,
-      metric_id);
+  int ret = stats_write(
+      BLUETOOTH_A2DP_AUDIO_UNDERRUN_REPORTED, byteField, encoding_interval_nanos, num_missing_pcm_bytes, metric_id);
   if (ret < 0) {
     LOG_WARN(
         "Failed for %s, encoding_interval_nanos %s, num_missing_pcm_bytes %d, error %d",
@@ -137,8 +133,8 @@ void LogMetricA2dpAudioOverrunEvent(
   }
 
   int64_t encoding_interval_nanos = encoding_interval_millis * 1000000;
-  int ret = android::util::stats_write(
-      android::util::BLUETOOTH_A2DP_AUDIO_OVERRUN_REPORTED,
+  int ret = stats_write(
+      BLUETOOTH_A2DP_AUDIO_OVERRUN_REPORTED,
       byteField,
       encoding_interval_nanos,
       num_dropped_buffers,
@@ -164,8 +160,7 @@ void LogMetricA2dpPlaybackEvent(const Address& address, int playback_state, int 
     metric_id = MetricIdManager::GetInstance().AllocateId(address);
   }
 
-  int ret = android::util::stats_write(
-      android::util::BLUETOOTH_A2DP_PLAYBACK_STATE_CHANGED, byteField, playback_state, audio_coding_mode, metric_id);
+  int ret = stats_write(BLUETOOTH_A2DP_PLAYBACK_STATE_CHANGED, byteField, playback_state, audio_coding_mode, metric_id);
   if (ret < 0) {
     LOG_WARN(
         "Failed to log for %s, playback_state %d, audio_coding_mode %d,error %d",
@@ -181,8 +176,7 @@ void LogMetricReadRssiResult(const Address& address, uint16_t handle, uint32_t c
   if (!address.IsEmpty()) {
     metric_id = MetricIdManager::GetInstance().AllocateId(address);
   }
-  int ret = android::util::stats_write(
-      android::util::BLUETOOTH_DEVICE_RSSI_REPORTED, byteField, handle, cmd_status, rssi, metric_id);
+  int ret = stats_write(BLUETOOTH_DEVICE_RSSI_REPORTED, byteField, handle, cmd_status, rssi, metric_id);
   if (ret < 0) {
     LOG_WARN(
         "Failed for %s, handle %d, status %s, rssi %d dBm, error %d",
@@ -200,8 +194,8 @@ void LogMetricReadFailedContactCounterResult(
   if (!address.IsEmpty()) {
     metric_id = MetricIdManager::GetInstance().AllocateId(address);
   }
-  int ret = android::util::stats_write(
-      android::util::BLUETOOTH_DEVICE_FAILED_CONTACT_COUNTER_REPORTED,
+  int ret = stats_write(
+      BLUETOOTH_DEVICE_FAILED_CONTACT_COUNTER_REPORTED,
       byteField,
       handle,
       cmd_status,
@@ -224,13 +218,8 @@ void LogMetricReadTxPowerLevelResult(
   if (!address.IsEmpty()) {
     metric_id = MetricIdManager::GetInstance().AllocateId(address);
   }
-  int ret = android::util::stats_write(
-      android::util::BLUETOOTH_DEVICE_TX_POWER_LEVEL_REPORTED,
-      byteField,
-      handle,
-      cmd_status,
-      transmit_power_level,
-      metric_id);
+  int ret = stats_write(
+      BLUETOOTH_DEVICE_TX_POWER_LEVEL_REPORTED, byteField, handle, cmd_status, transmit_power_level, metric_id);
   if (ret < 0) {
     LOG_WARN(
         "Failed for %s, handle %d, status %s, transmit_power_level %d packets, error %d",
@@ -248,8 +237,8 @@ void LogMetricSmpPairingEvent(
   if (!address.IsEmpty()) {
     metric_id = MetricIdManager::GetInstance().AllocateId(address);
   }
-  int ret = android::util::stats_write(
-      android::util::BLUETOOTH_SMP_PAIRING_EVENT_REPORTED, byteField, smp_cmd, direction, smp_fail_reason, metric_id);
+  int ret =
+      stats_write(BLUETOOTH_SMP_PAIRING_EVENT_REPORTED, byteField, smp_cmd, direction, smp_fail_reason, metric_id);
   if (ret < 0) {
     LOG_WARN(
         "Failed for %s, smp_cmd %s, direction %d, smp_fail_reason %s, error %d",
@@ -273,8 +262,8 @@ void LogMetricClassicPairingEvent(
   if (!address.IsEmpty()) {
     metric_id = MetricIdManager::GetInstance().AllocateId(address);
   }
-  int ret = android::util::stats_write(
-      android::util::BLUETOOTH_CLASSIC_PAIRING_EVENT_REPORTED,
+  int ret = stats_write(
+      BLUETOOTH_CLASSIC_PAIRING_EVENT_REPORTED,
       byteField,
       handle,
       hci_cmd,
@@ -308,14 +297,9 @@ void LogMetricSdpAttribute(
   if (!address.IsEmpty()) {
     metric_id = MetricIdManager::GetInstance().AllocateId(address);
   }
-  android::util::BytesField attribute_field(attribute_value, attribute_size);
-  int ret = android::util::stats_write(
-      android::util::BLUETOOTH_SDP_ATTRIBUTE_REPORTED,
-      byteField,
-      protocol_uuid,
-      attribute_id,
-      attribute_field,
-      metric_id);
+  BytesField attribute_field(attribute_value, attribute_size);
+  int ret =
+      stats_write(BLUETOOTH_SDP_ATTRIBUTE_REPORTED, byteField, protocol_uuid, attribute_id, attribute_field, metric_id);
   if (ret < 0) {
     LOG_WARN(
         "Failed for %s, protocol_uuid %s, attribute_id %s, error %d",
@@ -340,8 +324,8 @@ void LogMetricSocketConnectionState(
   if (!address.IsEmpty()) {
     metric_id = MetricIdManager::GetInstance().AllocateId(address);
   }
-  int ret = android::util::stats_write(
-      android::util::BLUETOOTH_SOCKET_CONNECTION_STATE_CHANGED,
+  int ret = stats_write(
+      BLUETOOTH_SOCKET_CONNECTION_STATE_CHANGED,
       byteField,
       port,
       type,
@@ -381,8 +365,8 @@ void LogMetricManufacturerInfo(
   if (!address.IsEmpty()) {
     metric_id = MetricIdManager::GetInstance().AllocateId(address);
   }
-  int ret = android::util::stats_write(
-      android::util::BLUETOOTH_DEVICE_INFO_REPORTED,
+  int ret = stats_write(
+      BLUETOOTH_DEVICE_INFO_REPORTED,
       byteField,
       source_type,
       source_name.c_str(),
@@ -410,12 +394,8 @@ void LogMetricBluetoothHalCrashReason(
     const Address& address,
     uint32_t error_code,
     uint32_t vendor_error_code) {
-  int ret = android::util::stats_write(
-      android::util::BLUETOOTH_HAL_CRASH_REASON_REPORTED,
-      0 /* metric_id */,
-      byteField,
-      error_code,
-      vendor_error_code);
+  int ret =
+      stats_write(BLUETOOTH_HAL_CRASH_REASON_REPORTED, 0 /* metric_id */, byteField, error_code, vendor_error_code);
   if (ret < 0) {
     LOG_WARN(
         "Failed for %s, error_code %s, vendor_error_code %s, error %d",
