@@ -1040,13 +1040,13 @@ public class AdapterService extends Service {
      * (those with {@link BluetoothProfile.CONNECTION_POLICY_ALLOWED})
      *
      * @param device is the device with which we are connecting the profiles
-     * @return true
+     * @return {@link BluetoothStatusCodes#SUCCESS}
      */
     @RequiresPermission(allOf = {
             android.Manifest.permission.BLUETOOTH_PRIVILEGED,
             android.Manifest.permission.MODIFY_PHONE_STATE,
     })
-    private boolean connectEnabledProfiles(BluetoothDevice device) {
+    private int connectEnabledProfiles(BluetoothDevice device) {
         ParcelUuid[] remoteDeviceUuids = getRemoteUuids(device);
         ParcelUuid[] localDeviceUuids = mAdapterProperties.getUuids();
 
@@ -1124,7 +1124,7 @@ public class AdapterService extends Service {
             mCsipSetCoordinatorService.connect(device);
         }
 
-        return true;
+        return BluetoothStatusCodes.SUCCESS;
     }
 
     /**
@@ -1725,13 +1725,23 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public boolean connectAllEnabledProfiles(BluetoothDevice device,
+        public int connectAllEnabledProfiles(BluetoothDevice device,
                 AttributionSource source) {
             AdapterService service = getService();
-            if (service == null
-                    || !Utils.checkCallerIsSystemOrActiveUser(TAG)
-                    || !Utils.checkConnectPermissionForDataDelivery(service, source, TAG)) {
-                return false;
+            if (service == null) {
+                return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED;
+            }
+            if (!callerIsSystemOrActiveUser(TAG, "connectAllEnabledProfiles")) {
+                return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ALLOWED;
+            }
+            if (device == null) {
+                throw new IllegalArgumentException("device cannot be null");
+            }
+            if (!BluetoothAdapter.checkBluetoothAddress(device.getAddress())) {
+                throw new IllegalArgumentException("device cannot have an invalid address");
+            }
+            if (!Utils.checkConnectPermissionForDataDelivery(service, source, TAG)) {
+                return BluetoothStatusCodes.ERROR_MISSING_BLUETOOTH_CONNECT_PERMISSION;
             }
 
             enforceBluetoothPrivilegedPermission(service);
@@ -1746,13 +1756,23 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public boolean disconnectAllEnabledProfiles(BluetoothDevice device,
+        public int disconnectAllEnabledProfiles(BluetoothDevice device,
                 AttributionSource source) {
             AdapterService service = getService();
-            if (service == null
-                    || !Utils.checkCallerIsSystemOrActiveUser(TAG)
-                    || !Utils.checkConnectPermissionForDataDelivery(service, source, TAG)) {
-                return false;
+            if (service == null) {
+                return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED;
+            }
+            if (!callerIsSystemOrActiveUser(TAG, "disconnectAllEnabledProfiles")) {
+                return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ALLOWED;
+            }
+            if (device == null) {
+                throw new IllegalArgumentException("device cannot be null");
+            }
+            if (!BluetoothAdapter.checkBluetoothAddress(device.getAddress())) {
+                throw new IllegalArgumentException("device cannot have an invalid address");
+            }
+            if (!Utils.checkConnectPermissionForDataDelivery(service, source, TAG)) {
+                return BluetoothStatusCodes.ERROR_MISSING_BLUETOOTH_CONNECT_PERMISSION;
             }
 
             enforceBluetoothPrivilegedPermission(service);
@@ -2828,19 +2848,21 @@ public class AdapterService extends Service {
     }
 
     /**
-     * Connects all enabled and supported bluetooth profiles between the local and remote device
+     * Attempts connection to all enabled and supported bluetooth profiles between the local and
+     * remote device
      *
-     * @param device is the remote device with which to connect these profiles
-     * @return true if all profiles successfully connected, false if an error occurred
+     * @param  device is the remote device with which to connect these profiles
+     * @return {@link BluetoothStatusCodes#SUCCESS} if all profiles connections are attempted, false
+     *         if an error occurred
      */
     @RequiresPermission(allOf = {
             android.Manifest.permission.BLUETOOTH_PRIVILEGED,
             android.Manifest.permission.MODIFY_PHONE_STATE,
     })
-    public boolean connectAllEnabledProfiles(BluetoothDevice device) {
+    public int connectAllEnabledProfiles(BluetoothDevice device) {
         if (!profileServicesRunning()) {
             Log.e(TAG, "connectAllEnabledProfiles: Not all profile services running");
-            return false;
+            return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED;
         }
 
         // Checks if any profiles are enabled and if so, only connect enabled profiles
@@ -2932,7 +2954,7 @@ public class AdapterService extends Service {
         Log.i(TAG, "connectAllEnabledProfiles: Number of Profiles Connected: "
                 + numProfilesConnected);
 
-        return true;
+        return BluetoothStatusCodes.SUCCESS;
     }
 
     /**
@@ -2942,10 +2964,10 @@ public class AdapterService extends Service {
      * @return true if all profiles successfully disconnected, false if an error occurred
      */
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
-    public boolean disconnectAllEnabledProfiles(BluetoothDevice device) {
+    public int disconnectAllEnabledProfiles(BluetoothDevice device) {
         if (!profileServicesRunning()) {
             Log.e(TAG, "disconnectAllEnabledProfiles: Not all profile services bound");
-            return false;
+            return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED;
         }
 
         if (mA2dpService != null && mA2dpService.getConnectionState(device)
@@ -3026,7 +3048,7 @@ public class AdapterService extends Service {
             mCsipSetCoordinatorService.disconnect(device);
         }
 
-        return true;
+        return BluetoothStatusCodes.SUCCESS;
     }
 
     /**
