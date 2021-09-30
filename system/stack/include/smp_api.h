@@ -24,6 +24,8 @@
 #ifndef SMP_API_H
 #define SMP_API_H
 
+#include <cstdint>
+
 #include "bt_target.h"
 #include "smp_api_types.h"
 #include "types/bt_transport.h"

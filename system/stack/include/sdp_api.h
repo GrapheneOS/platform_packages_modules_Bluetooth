@@ -18,6 +18,8 @@
 #ifndef SDP_API_H
 #define SDP_API_H
 
+#include <cstdint>
+
 #include "bt_target.h"
 #include "sdpdefs.h"
 #include "types/bluetooth/uuid.h"

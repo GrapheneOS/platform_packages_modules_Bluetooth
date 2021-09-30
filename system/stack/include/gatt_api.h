@@ -20,6 +20,7 @@
 
 #include <base/strings/stringprintf.h>
 
+#include <cstdint>
 #include <string>
 
 #include "bt_target.h"

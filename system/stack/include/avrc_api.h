@@ -26,6 +26,8 @@
 
 #include <base/callback.h>
 
+#include <cstdint>
+
 #include "bt_target.h"
 #include "stack/include/avct_api.h"
 #include "stack/include/avrc_defs.h"

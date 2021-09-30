@@ -28,6 +28,7 @@
 #include <base/callback_forward.h>
 #include <hardware/bt_common_types.h>
 
+#include <cstdint>
 #include <memory>
 
 #include "btm_api.h"

@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+#pragma once
+
+#include <cstdint>
+
 /*
  *  Definitions for HCI Event Parameter Minimum Length
  */
