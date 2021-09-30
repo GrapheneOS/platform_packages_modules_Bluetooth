@@ -106,7 +106,7 @@ cc_fuzz {
         "libcutils",
         "libevent",
         "liblog",
-        "libstatslog",
+        "libstatslog_bt",
     ],
     header_libs: ["libbluetooth_headers"],
     corpus: [

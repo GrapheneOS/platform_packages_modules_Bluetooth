@@ -244,7 +244,7 @@ class GdAndroidDevice(GdDeviceBase):
         self.push_or_die(os.path.join(get_gd_root(), "target", "libgrpc++_unsecure.so"), "system/lib64")
         self.push_or_die(os.path.join(get_gd_root(), "target", "libgrpc++.so"), "system/lib64")
         self.push_or_die(os.path.join(get_gd_root(), "target", "libgrpc_wrap.so"), "system/lib64")
-        self.push_or_die(os.path.join(get_gd_root(), "target", "libstatslog.so"), "system/lib64")
+        self.push_or_die(os.path.join(get_gd_root(), "target", "libstatslog_bt.so"), "system/lib64")
 
         try:
             self.adb.shell("rm /data/misc/bluetooth/logs/btsnoop_hci.log")
