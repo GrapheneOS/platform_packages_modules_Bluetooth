@@ -1,13 +1,13 @@
 //! D-Bus proxy implementations of the APIs.
 
-use bt_topshim::btif::BtSspVariant;
+use bt_topshim::btif::{BtSspVariant, Uuid128Bit};
 use bt_topshim::profiles::gatt::GattStatus;
 
 use btstack::bluetooth::{BluetoothDevice, BluetoothTransport, IBluetooth, IBluetoothCallback};
 use btstack::bluetooth_gatt::{
     BluetoothGattCharacteristic, BluetoothGattDescriptor, BluetoothGattService,
     GattWriteRequestStatus, GattWriteType, IBluetoothGatt, IBluetoothGattCallback,
-    IScannerCallback, LePhy, ScanFilter, ScanSettings, Uuid128Bit,
+    IScannerCallback, LePhy, ScanFilter, ScanSettings,
 };
 
 use dbus::arg::{AppendAll, RefArg};
@@ -196,7 +196,7 @@ impl BluetoothDBus {
     }
 }
 
-// TODO: These are boilerplate codes, consider creating a macro to generate.
+// TODO(b/200732080): These are boilerplate codes, consider creating a macro to generate.
 impl IBluetooth for BluetoothDBus {
     fn register_callback(&mut self, callback: Box<dyn IBluetoothCallback + Send>) {
         let path_string = callback.get_object_id();
@@ -226,12 +226,33 @@ impl IBluetooth for BluetoothDBus {
         self.client_proxy.method("GetAddress", ())
     }
 
+    fn get_uuids(&self) -> Vec<Uuid128Bit> {
+        let result: Vec<Vec<u8>> = self.client_proxy.method("GetUuids", ());
+        <Vec<Uuid128Bit> as DBusArg>::from_dbus(result, None, None, None).unwrap()
+    }
+
+    fn get_name(&self) -> String {
+        self.client_proxy.method("GetName", ())
+    }
+
+    fn set_name(&self, name: String) -> bool {
+        self.client_proxy.method("SetName", (name,))
+    }
+
     fn start_discovery(&self) -> bool {
         self.client_proxy.method("StartDiscovery", ())
     }
 
     fn cancel_discovery(&self) -> bool {
         self.client_proxy.method("CancelDiscovery", ())
+    }
+
+    fn is_discovering(&self) -> bool {
+        self.client_proxy.method("IsDiscovering", ())
+    }
+
+    fn get_discovery_end_millis(&self) -> u64 {
+        self.client_proxy.method("GetDiscoveryEndMillis", ())
     }
 
     fn create_bond(&self, device: BluetoothDevice, transport: BluetoothTransport) -> bool {
@@ -259,6 +280,24 @@ impl IBluetooth for BluetoothDBus {
 
     fn get_bond_state(&self, device: BluetoothDevice) -> u32 {
         self.client_proxy.method("GetBondState", (BluetoothDevice::to_dbus(device).unwrap(),))
+    }
+
+    fn get_remote_uuids(&self, device: BluetoothDevice) -> Vec<Uuid128Bit> {
+        let result: Vec<Vec<u8>> = self
+            .client_proxy
+            .method("GetRemoteUuids", (BluetoothDevice::to_dbus(device).unwrap(),));
+        <Vec<Uuid128Bit> as DBusArg>::from_dbus(result, None, None, None).unwrap()
+    }
+
+    fn fetch_remote_uuids(&self, device: BluetoothDevice) -> bool {
+        self.client_proxy.method("FetchRemoteUuids", (BluetoothDevice::to_dbus(device).unwrap(),))
+    }
+
+    fn sdp_search(&self, device: BluetoothDevice, uuid: Uuid128Bit) -> bool {
+        self.client_proxy.method(
+            "SdpSearch",
+            (BluetoothDevice::to_dbus(device).unwrap(), Uuid128Bit::to_dbus(uuid).unwrap()),
+        )
     }
 }
 

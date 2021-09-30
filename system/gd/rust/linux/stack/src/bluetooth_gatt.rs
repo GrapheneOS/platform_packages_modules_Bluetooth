@@ -3,7 +3,7 @@
 use btif_macros::{btif_callback, btif_callbacks_dispatcher};
 
 use bt_topshim::bindings::root::bluetooth::Uuid;
-use bt_topshim::btif::{BluetoothInterface, RawAddress};
+use bt_topshim::btif::{BluetoothInterface, RawAddress, Uuid128Bit};
 use bt_topshim::profiles::gatt::{
     BtGattDbElement, BtGattNotifyParams, BtGattReadParams, Gatt, GattClientCallbacks,
     GattClientCallbacksDispatcher, GattServerCallbacksDispatcher, GattStatus,
@@ -476,8 +476,6 @@ pub struct ScanSettings {
 /// Represents a scan filter to be passed to `IBluetoothGatt::start_scan`.
 #[derive(Debug, Default)]
 pub struct ScanFilter {}
-
-pub type Uuid128Bit = [u8; 16];
 
 /// Implementation of the GATT API (IBluetoothGatt).
 pub struct BluetoothGatt {

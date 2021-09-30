@@ -10,20 +10,21 @@ pub mod bluetooth;
 pub mod bluetooth_gatt;
 pub mod bluetooth_media;
 
-use bt_topshim::btif::BaseCallbacks;
-use bt_topshim::profiles::a2dp::A2dpCallbacks;
-use bt_topshim::profiles::avrcp::AvrcpCallbacks;
-use bt_topshim::profiles::gatt::GattClientCallbacks;
-use bt_topshim::profiles::gatt::GattServerCallbacks;
-
+use log::debug;
 use std::sync::{Arc, Mutex};
-
 use tokio::sync::mpsc::channel;
 use tokio::sync::mpsc::{Receiver, Sender};
 
 use crate::bluetooth::Bluetooth;
 use crate::bluetooth_gatt::BluetoothGatt;
 use crate::bluetooth_media::BluetoothMedia;
+use bt_topshim::{
+    btif::BaseCallbacks,
+    profiles::{
+        a2dp::A2dpCallbacks, avrcp::AvrcpCallbacks, gatt::GattClientCallbacks,
+        gatt::GattServerCallbacks, hid_host::HHCallbacks, sdp::SdpCallbacks,
+    },
+};
 
 /// Represents a Bluetooth address.
 // TODO: Add support for LE random addresses.
@@ -35,6 +36,8 @@ pub enum Message {
     Base(BaseCallbacks),
     GattClient(GattClientCallbacks),
     GattServer(GattServerCallbacks),
+    HidHost(HHCallbacks),
+    Sdp(SdpCallbacks),
     BluetoothCallbackDisconnected(u32),
 }
 
@@ -81,7 +84,16 @@ impl Stack {
 
                 Message::GattServer(m) => {
                     // TODO(b/193685149): dispatch GATT server callbacks.
-                    println!("Unhandled Message::GattServer: {:?}", m);
+                    debug!("Unhandled Message::GattServer: {:?}", m);
+                }
+
+                Message::HidHost(_h) => {
+                    // TODO(abps) - Handle hid host callbacks
+                    debug!("Received HH callback");
+                }
+
+                Message::Sdp(s) => {
+                    bluetooth.lock().unwrap().dispatch_sdp_callbacks(s);
                 }
 
                 Message::BluetoothCallbackDisconnected(id) => {
