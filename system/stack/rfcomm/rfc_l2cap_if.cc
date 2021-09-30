@@ -320,7 +320,7 @@ void RFCOMM_BufDataInd(uint16_t lcid, BT_HDR* p_buf) {
     RFCOMM_TRACE_DEBUG("%s: Handling UIH event, buf_len=%u, credit=%u",
                        __func__, p_buf->len, rfc_cb.rfc.rx_frame.credit);
     if (p_buf->len > 0) {
-      rfc_port_sm_execute(p_port, event, p_buf);
+      rfc_port_sm_execute(p_port, static_cast<tRFC_PORT_EVENT>(event), p_buf);
     } else {
       osi_free(p_buf);
     }
@@ -331,7 +331,7 @@ void RFCOMM_BufDataInd(uint16_t lcid, BT_HDR* p_buf) {
 
     return;
   }
-  rfc_port_sm_execute(p_port, event, nullptr);
+  rfc_port_sm_execute(p_port, static_cast<tRFC_PORT_EVENT>(event), nullptr);
   osi_free(p_buf);
 }
 
