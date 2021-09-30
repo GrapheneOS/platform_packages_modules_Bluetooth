@@ -65,6 +65,10 @@ class MockGroupsCallbacks : public DeviceGroupsCallbacks {
               (const bluetooth::Uuid& uuid, int group_id), (override));
   MOCK_METHOD((void), OnGroupMemberRemoved,
               (const RawAddress& address, int group_id), (override));
+  MOCK_METHOD((void), onGroupAddFromStorage,
+              (const RawAddress& address, const bluetooth::Uuid& uuid,
+               int group_id),
+              (override));
 
  private:
   DISALLOW_COPY_AND_ASSIGN(MockGroupsCallbacks);
