@@ -22,6 +22,7 @@
 #include <base/bind.h>
 #include <base/memory/weak_ptr.h>
 
+#include <cstdint>
 #include <vector>
 
 #include "btm_ble_api.h"

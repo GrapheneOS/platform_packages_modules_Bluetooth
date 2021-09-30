@@ -19,6 +19,8 @@
 #ifndef SRVC_DIS_API_H
 #define SRVC_DIS_API_H
 
+#include <cstdint>
+
 #include "bt_target.h"
 #include "gatt_api.h"
 #include "gattdefs.h"
