@@ -270,6 +270,11 @@ impl Bluetooth {
         }
     }
 
+    fn get_next_id(&mut self) -> u32 {
+        self.callbacks_last_id += 1;
+        self.callbacks_last_id
+    }
+
     pub(crate) fn callback_disconnected(&mut self, id: u32) {
         self.callbacks.retain(|x| x.0 != id);
     }
@@ -556,17 +561,17 @@ impl BtifBluetoothCallbacks for Bluetooth {
 impl IBluetooth for Bluetooth {
     fn register_callback(&mut self, mut callback: Box<dyn IBluetoothCallback + Send>) {
         let tx = self.tx.clone();
+        let id = self.get_next_id();
 
-        // TODO: Refactor into a separate wrap-around id generator.
-        self.callbacks_last_id += 1;
-        let id = self.callbacks_last_id;
-
-        callback.register_disconnect(Box::new(move || {
-            let tx = tx.clone();
-            tokio::spawn(async move {
-                let _result = tx.send(Message::BluetoothCallbackDisconnected(id)).await;
-            });
-        }));
+        callback.register_disconnect(
+            id,
+            Box::new(move |cb_id| {
+                let tx = tx.clone();
+                tokio::spawn(async move {
+                    let _result = tx.send(Message::BluetoothCallbackDisconnected(cb_id)).await;
+                });
+            }),
+        );
 
         self.callbacks.push((id, callback))
     }

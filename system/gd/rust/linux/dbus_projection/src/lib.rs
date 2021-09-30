@@ -55,7 +55,7 @@ use std::sync::{Arc, Mutex};
 
 /// A D-Bus "NameOwnerChanged" handler that continuously monitors client disconnects.
 pub struct DisconnectWatcher {
-    callbacks: Arc<Mutex<HashMap<BusName<'static>, Vec<Box<dyn Fn() + Send>>>>>,
+    callbacks: Arc<Mutex<HashMap<BusName<'static>, Vec<(u32, Box<dyn Fn(u32) + Send>)>>>>,
 }
 
 impl DisconnectWatcher {
@@ -67,12 +67,12 @@ impl DisconnectWatcher {
 
 impl DisconnectWatcher {
     /// Adds a client address to be monitored for disconnect events.
-    pub fn add(&mut self, address: BusName<'static>, callback: Box<dyn Fn() + Send>) {
+    pub fn add(&mut self, address: BusName<'static>, id: u32, callback: Box<dyn Fn(u32) + Send>) {
         if !self.callbacks.lock().unwrap().contains_key(&address) {
             self.callbacks.lock().unwrap().insert(address.clone(), vec![]);
         }
 
-        (*self.callbacks.lock().unwrap().get_mut(&address).unwrap()).push(callback);
+        (*self.callbacks.lock().unwrap().get_mut(&address).unwrap()).push((id, callback));
     }
 
     /// Sets up the D-Bus handler that monitors client disconnects.
@@ -104,8 +104,8 @@ impl DisconnectWatcher {
                     return true;
                 }
 
-                for callback in &callbacks_map.lock().unwrap()[&addr] {
-                    callback();
+                for (id, callback) in &callbacks_map.lock().unwrap()[&addr] {
+                    callback(*id);
                 }
 
                 callbacks_map.lock().unwrap().remove(&addr);
@@ -113,6 +113,24 @@ impl DisconnectWatcher {
                 true
             }),
         );
+    }
+
+    /// Removes callback by id if owned by the specific busname.
+    pub fn remove(&mut self, address: BusName<'static>, target_id: u32) -> bool {
+        if !self.callbacks.lock().unwrap().contains_key(&address) {
+            return false;
+        }
+
+        match self.callbacks.lock().unwrap()[&address].iter().position(|x| x.0 == target_id) {
+            Some(index) => {
+                let (id, callback) = &self.callbacks.lock().unwrap()[&address][index];
+                callback(*id);
+                let _ =
+                    self.callbacks.lock().unwrap().get_mut(&address).unwrap().swap_remove(index);
+                true
+            }
+            None => false,
+        }
     }
 }
 
