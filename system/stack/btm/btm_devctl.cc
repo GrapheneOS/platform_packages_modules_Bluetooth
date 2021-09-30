@@ -32,7 +32,6 @@
 #include "bta/sys/bta_sys.h"
 #include "btcore/include/module.h"
 #include "btif/include/btif_bqr.h"
-#include "btm_int.h"
 #include "common/message_loop_thread.h"
 #include "hci/include/hci_layer.h"
 #include "hci/include/hci_packet_factory.h"

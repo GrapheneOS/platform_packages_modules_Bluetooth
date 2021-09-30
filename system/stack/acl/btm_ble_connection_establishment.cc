@@ -21,7 +21,6 @@
 
 #include <bitset>
 
-#include "btm_int.h"
 #include "common/metrics.h"
 #include "device/include/controller.h"
 #include "main/shim/shim.h"
