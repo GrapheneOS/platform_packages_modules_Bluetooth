@@ -212,8 +212,6 @@ public class MediaControlProfile implements MediaControlServiceCallbacks {
         } else {
             mMediaPlayerList = new MediaPlayerList(Looper.myLooper(), mContext);
         }
-
-        mMediaPlayerList.init(new ListCallback());
     }
 
     @Override
@@ -651,6 +649,7 @@ public class MediaControlProfile implements MediaControlServiceCallbacks {
 
     public void init() {
         mCurrentData = new MediaData(null, null, null);
+        mMediaPlayerList.init(new ListCallback());
 
         String appToken = mContext.getPackageName();
         synchronized (mServiceMap) {

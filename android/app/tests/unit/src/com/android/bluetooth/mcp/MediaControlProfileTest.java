@@ -133,10 +133,11 @@ public class MediaControlProfileTest {
         mMediaControlProfile.onServiceInstanceRegistered(ServiceStatus.OK, mMockGMcsService);
         mMcpServiceCallbacks = mMediaControlProfile;
 
+        // Make sure callbacks are not called before it's fully initialized
+        verify(mMockMediaPlayerList, times(0)).init(any());
         mMediaControlProfile.init();
-
-
         verify(mMockMediaPlayerList).init(listCallbackCaptor.capture());
+
         listCallback = listCallbackCaptor.getValue();
         listCallback.run(mMockMediaData);
         // Give some time to verify if post function finishes on update player state method call
