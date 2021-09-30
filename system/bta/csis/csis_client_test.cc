@@ -741,14 +741,14 @@ TEST_F(CsisClientTest, test_get_group_id) {
 
 TEST_F(CsisClientTest, test_is_group_empty) {
   std::list<std::shared_ptr<CsisGroup>> csis_groups_;
-  auto g_1 = std::make_shared<CsisGroup>(666);
+  auto g_1 = std::make_shared<CsisGroup>(666, bluetooth::Uuid::kEmpty);
   csis_groups_.push_back(g_1);
 
   ASSERT_TRUE(g_1->IsEmpty());
 }
 
 TEST_F(CsisClientTest, test_add_device_to_group) {
-  auto g_1 = std::make_shared<CsisGroup>(666);
+  auto g_1 = std::make_shared<CsisGroup>(666, bluetooth::Uuid::kEmpty);
   auto d_1 = std::make_shared<CsisDevice>();
 
   ASSERT_TRUE(g_1->IsEmpty());
@@ -757,19 +757,19 @@ TEST_F(CsisClientTest, test_add_device_to_group) {
 }
 
 TEST_F(CsisClientTest, test_set_desired_size) {
-  auto g_1 = std::make_shared<CsisGroup>(666);
+  auto g_1 = std::make_shared<CsisGroup>(666, bluetooth::Uuid::kEmpty);
   g_1->SetDesiredSize(10);
   ASSERT_EQ((int)sizeof(g_1), 16);
 }
 
 TEST_F(CsisClientTest, test_get_desired_size) {
-  auto g_1 = std::make_shared<CsisGroup>(666);
+  auto g_1 = std::make_shared<CsisGroup>(666, bluetooth::Uuid::kEmpty);
   g_1->SetDesiredSize(10);
   ASSERT_EQ(g_1->GetDesiredSize(), 10);
 }
 
 TEST_F(CsisClientTest, test_is_device_in_the_group) {
-  auto g_1 = std::make_shared<CsisGroup>(666);
+  auto g_1 = std::make_shared<CsisGroup>(666, bluetooth::Uuid::kEmpty);
   auto d_1 = std::make_shared<CsisDevice>();
   g_1->AddDevice(d_1);
   g_1->IsDeviceInTheGroup(d_1);
@@ -779,7 +779,7 @@ TEST_F(CsisClientTest, test_get_current_size) {
   const RawAddress test_address_1 = GetTestAddress(0);
   const RawAddress test_address_2 = GetTestAddress(1);
   const RawAddress test_address_3 = GetTestAddress(2);
-  auto g_1 = std::make_shared<CsisGroup>(666);
+  auto g_1 = std::make_shared<CsisGroup>(666, bluetooth::Uuid::kEmpty);
   auto d_1 = std::make_shared<CsisDevice>(test_address_1, true);
   auto d_2 = std::make_shared<CsisDevice>(test_address_2, true);
   auto d_3 = std::make_shared<CsisDevice>(test_address_3, true);
@@ -790,25 +790,25 @@ TEST_F(CsisClientTest, test_get_current_size) {
 }
 
 TEST_F(CsisClientTest, test_set_current_lock_state_unset) {
-  auto g_1 = std::make_shared<CsisGroup>(666);
+  auto g_1 = std::make_shared<CsisGroup>(666, bluetooth::Uuid::kEmpty);
   g_1->SetCurrentLockState(CsisLockState::CSIS_STATE_UNSET);
   ASSERT_EQ(g_1->GetCurrentLockState(), CsisLockState::CSIS_STATE_UNSET);
 }
 
 TEST_F(CsisClientTest, test_set_current_lock_state_locked) {
-  auto g_1 = std::make_shared<CsisGroup>(666);
+  auto g_1 = std::make_shared<CsisGroup>(666, bluetooth::Uuid::kEmpty);
   g_1->SetCurrentLockState(CsisLockState::CSIS_STATE_LOCKED);
   ASSERT_EQ(g_1->GetCurrentLockState(), CsisLockState::CSIS_STATE_LOCKED);
 }
 
 TEST_F(CsisClientTest, test_set_current_lock_state_unlocked) {
-  auto g_1 = std::make_shared<CsisGroup>(666);
+  auto g_1 = std::make_shared<CsisGroup>(666, bluetooth::Uuid::kEmpty);
   g_1->SetCurrentLockState(CsisLockState::CSIS_STATE_UNLOCKED);
   ASSERT_EQ(g_1->GetCurrentLockState(), CsisLockState::CSIS_STATE_UNLOCKED);
 }
 
 TEST_F(CsisClientTest, test_set_various_lock_states) {
-  auto g_1 = std::make_shared<CsisGroup>(666);
+  auto g_1 = std::make_shared<CsisGroup>(666, bluetooth::Uuid::kEmpty);
   g_1->SetCurrentLockState(CsisLockState::CSIS_STATE_UNLOCKED);
   ASSERT_EQ(g_1->GetCurrentLockState(), CsisLockState::CSIS_STATE_UNLOCKED);
   g_1->SetCurrentLockState(CsisLockState::CSIS_STATE_LOCKED);
@@ -818,27 +818,27 @@ TEST_F(CsisClientTest, test_set_various_lock_states) {
 }
 
 TEST_F(CsisClientTest, test_set_discovery_state_completed) {
-  auto g_1 = std::make_shared<CsisGroup>(666);
+  auto g_1 = std::make_shared<CsisGroup>(666, bluetooth::Uuid::kEmpty);
   g_1->SetDiscoveryState(CsisDiscoveryState::CSIS_DISCOVERY_COMPLETED);
   ASSERT_EQ(g_1->GetDiscoveryState(),
             CsisDiscoveryState::CSIS_DISCOVERY_COMPLETED);
 }
 
 TEST_F(CsisClientTest, test_set_discovery_state_idle) {
-  auto g_1 = std::make_shared<CsisGroup>(666);
+  auto g_1 = std::make_shared<CsisGroup>(666, bluetooth::Uuid::kEmpty);
   g_1->SetDiscoveryState(CsisDiscoveryState::CSIS_DISCOVERY_IDLE);
   ASSERT_EQ(g_1->GetDiscoveryState(), CsisDiscoveryState::CSIS_DISCOVERY_IDLE);
 }
 
 TEST_F(CsisClientTest, test_set_discovery_state_ongoing) {
-  auto g_1 = std::make_shared<CsisGroup>(666);
+  auto g_1 = std::make_shared<CsisGroup>(666, bluetooth::Uuid::kEmpty);
   g_1->SetDiscoveryState(CsisDiscoveryState::CSIS_DISCOVERY_ONGOING);
   ASSERT_EQ(g_1->GetDiscoveryState(),
             CsisDiscoveryState::CSIS_DISCOVERY_ONGOING);
 }
 
 TEST_F(CsisClientTest, test_set_various_discovery_states) {
-  auto g_1 = std::make_shared<CsisGroup>(666);
+  auto g_1 = std::make_shared<CsisGroup>(666, bluetooth::Uuid::kEmpty);
   g_1->SetDiscoveryState(CsisDiscoveryState::CSIS_DISCOVERY_COMPLETED);
   ASSERT_EQ(g_1->GetDiscoveryState(),
             CsisDiscoveryState::CSIS_DISCOVERY_COMPLETED);
@@ -853,7 +853,7 @@ TEST_F(CsisClientTest, test_get_first_last_device) {
   const RawAddress test_address_3 = GetTestAddress(3);
   const RawAddress test_address_4 = GetTestAddress(4);
   const RawAddress test_address_5 = GetTestAddress(5);
-  auto g_1 = std::make_shared<CsisGroup>(666);
+  auto g_1 = std::make_shared<CsisGroup>(666, bluetooth::Uuid::kEmpty);
   auto d_1 = std::make_shared<CsisDevice>(test_address_3, true);
   auto d_2 = std::make_shared<CsisDevice>(test_address_4, true);
   auto d_3 = std::make_shared<CsisDevice>(test_address_5, true);
@@ -865,7 +865,7 @@ TEST_F(CsisClientTest, test_get_first_last_device) {
 }
 
 TEST_F(CsisClientTest, test_get_set_sirk) {
-  auto g_1 = std::make_shared<CsisGroup>(666);
+  auto g_1 = std::make_shared<CsisGroup>(666, bluetooth::Uuid::kEmpty);
   Octet16 sirk = {1};
   g_1->SetSirk(sirk);
   ASSERT_EQ(g_1->GetSirk(), sirk);
