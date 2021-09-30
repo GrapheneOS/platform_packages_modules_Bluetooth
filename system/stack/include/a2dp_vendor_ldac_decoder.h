@@ -21,6 +21,9 @@
 #ifndef A2DP_VENDOR_LDAC_DECODER_H
 #define A2DP_VENDOR_LDAC_DECODER_H
 
+#include <stddef.h>
+#include <stdint.h>
+
 #include "a2dp_codec_api.h"
 #include "stack/include/bt_hdr.h"
 
