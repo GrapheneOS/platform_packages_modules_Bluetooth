@@ -49,6 +49,11 @@ class DeviceGroupsCallbacks {
   /* Callback with group status update */
   virtual void OnGroupMemberRemoved(const RawAddress& address,
                                     int group_id) = 0;
+
+  /* Callback with group information added from storage */
+  virtual void onGroupAddFromStorage(const RawAddress& address,
+                                     const bluetooth::Uuid& group_uuid,
+                                     int group_id) = 0;
 };
 
 class DeviceGroups {

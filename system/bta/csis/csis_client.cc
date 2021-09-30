@@ -101,7 +101,8 @@ class CsisClientImpl : public CsisClient {
       sizeof(CSIS_STORAGE_CURRENT_LAYOUT_MAGIC) +
       sizeof(uint8_t); /* num_of_sets */
   static constexpr size_t CSIS_STORAGE_ENTRY_SZ =
-      sizeof(uint8_t) /* set_id */ + Octet16().size();
+      sizeof(uint8_t) /* set_id */ + sizeof(uint8_t) /* desired_size */ +
+      Octet16().size();
 
  public:
   CsisClientImpl(bluetooth::csis::CsisClientCallbacks* callbacks,
@@ -135,12 +136,12 @@ class CsisClientImpl : public CsisClient {
 
   std::shared_ptr<bluetooth::csis::CsisGroup> AssignCsisGroup(
       const RawAddress& address, int group_id,
-      bool create_group_if_non_existing) {
+      bool create_group_if_non_existing, const bluetooth::Uuid& uuid) {
     auto csis_group = FindCsisGroup(group_id);
     if (!csis_group) {
       if (create_group_if_non_existing) {
         /* Let's create a group */
-        auto g = std::make_shared<CsisGroup>(group_id);
+        auto g = std::make_shared<CsisGroup>(group_id, uuid);
         csis_groups_.push_back(g);
         csis_group = FindCsisGroup(group_id);
       } else {
@@ -166,14 +167,14 @@ class CsisClientImpl : public CsisClient {
     DLOG(INFO) << __func__ << " address: " << address << " uuid: " << uuid
                << " group_id: " << group_id;
 
-    AssignCsisGroup(address, group_id, true);
+    AssignCsisGroup(address, group_id, true, uuid);
   }
 
   void OnGroupMemberAddedCb(const RawAddress& address, int group_id) {
     DLOG(INFO) << __func__ << " address: " << address
                << " group_id: " << group_id;
 
-    AssignCsisGroup(address, group_id, false);
+    AssignCsisGroup(address, group_id, false, Uuid::kEmpty);
   }
 
   void OnGroupRemovedCb(const bluetooth::Uuid& uuid, int group_id) {
@@ -185,6 +186,32 @@ class CsisClientImpl : public CsisClient {
 
     auto device = FindDeviceByAddress(address);
     if (device) RemoveCsisDevice(device, group_id);
+  }
+
+  void onGroupAddFromStorageCb(const RawAddress& address,
+                               const bluetooth::Uuid& uuid, int group_id) {
+    auto device = FindDeviceByAddress(address);
+    if (device == nullptr) return;
+
+    auto csis_group = FindCsisGroup(group_id);
+    if (csis_group == nullptr) {
+      LOG(ERROR) << __func__ << "the csis group (id: " << group_id
+                 << ") does not exist";
+      return;
+    }
+
+    if (!csis_group->IsDeviceInTheGroup(device)) {
+      LOG(ERROR) << __func__ << "the csis group (id: " << group_id
+                 << ") does contain the device: " << address;
+      return;
+    }
+
+    if (csis_group->GetUuid() == Uuid::kEmpty) {
+      csis_group->SetUuid(uuid);
+    }
+
+    callbacks_->OnDeviceAvailable(device->addr, csis_group->GetGroupId(),
+                                  csis_group->GetDesiredSize(), uuid);
   }
 
   void Connect(const RawAddress& address) override {
@@ -495,6 +522,7 @@ class CsisClientImpl : public CsisClient {
           }
 
           UINT8_TO_STREAM(ptr, gid);
+          UINT8_TO_STREAM(ptr, csis_group->GetDesiredSize());
           Octet16 sirk = csis_group->GetSirk();
           memcpy(ptr, sirk.data(), sirk.size());
           ptr += sirk.size();
@@ -524,12 +552,15 @@ class CsisClientImpl : public CsisClient {
       while (num_sets--) {
         uint8_t gid;
         Octet16 sirk;
+        uint8_t size;
 
         STREAM_TO_UINT8(gid, ptr);
+        STREAM_TO_UINT8(size, ptr);
         STREAM_TO_ARRAY(sirk.data(), ptr, (int)sirk.size());
 
         // Set grouping and SIRK
-        auto csis_group = AssignCsisGroup(addr, gid, true);
+        auto csis_group = AssignCsisGroup(addr, gid, true, Uuid::kEmpty);
+        csis_group->SetDesiredSize(size);
         csis_group->SetSirk(sirk);
       }
     }
@@ -539,15 +570,25 @@ class CsisClientImpl : public CsisClient {
                       bool autoconnect) {
     DeserializeSets(addr, in);
 
-    if (!autoconnect) return;
-
     auto device = FindDeviceByAddress(addr);
     if (device == nullptr) {
       auto dev = std::make_shared<CsisDevice>(addr, false);
       devices_.push_back(dev);
     }
 
-    BTA_GATTC_Open(gatt_if_, addr, false, false);
+    for (const auto& csis_group : csis_groups_) {
+      if (!csis_group->IsDeviceInTheGroup(device)) continue;
+
+      if (csis_group->GetUuid() != Uuid::kEmpty) {
+        callbacks_->OnDeviceAvailable(device->addr, csis_group->GetGroupId(),
+                                      csis_group->GetDesiredSize(),
+                                      csis_group->GetUuid());
+      }
+    }
+
+    if (autoconnect) {
+        BTA_GATTC_Open(gatt_if_, addr, false, false);
+    }
   }
 
   void CleanUp() {
@@ -1221,7 +1262,8 @@ class CsisClientImpl : public CsisClient {
         LOG_ASSERT(group_id != -1);
 
         /* Create new group */
-        auto g = std::make_shared<CsisGroup>(group_id);
+        auto g =
+            std::make_shared<CsisGroup>(group_id, csis_instance->GetUuid());
         csis_groups_.push_back(g);
       } else {
         dev_groups_->AddDevice(device->addr, csis_instance->GetUuid(),
@@ -1762,6 +1804,12 @@ class DeviceGroupsCallbacksImpl : public DeviceGroupsCallbacks {
 
   void OnGroupMemberRemoved(const RawAddress& address, int group_id) override {
     if (instance) instance->OnGroupMemberRemovedCb(address, group_id);
+  }
+
+  void onGroupAddFromStorage(const RawAddress& address,
+                             const bluetooth::Uuid& uuid,
+                             int group_id) override {
+    if (instance) instance->onGroupAddFromStorageCb(address, uuid, group_id);
   }
 };
 
