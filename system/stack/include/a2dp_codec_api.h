@@ -23,6 +23,7 @@
 
 #include <hardware/bt_av.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <string.h>
 
 #include <functional>
