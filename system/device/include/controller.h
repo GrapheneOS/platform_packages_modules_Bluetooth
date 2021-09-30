@@ -18,13 +18,11 @@
 
 #pragma once
 
-#include <stdbool.h>
-#include <stdint.h>
+#include <cstddef>
+#include <cstdint>
 
-#include "btcore/include/device_features.h"
-#include "hci/include/hci_layer.h"
-#include "hci/include/hci_packet_factory.h"
-#include "hci/include/hci_packet_parser.h"
+#include "btcore/include/version.h"
+#include "types/raw_address.h"
 
 static const char CONTROLLER_MODULE[] = "controller_module";
 
