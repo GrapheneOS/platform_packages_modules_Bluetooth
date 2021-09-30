@@ -598,6 +598,29 @@ void btif_get_adapter_property(bt_property_type_t type) {
         cmn_vsc_cb.extended_scan_support > 0;
     local_le_features.debug_logging_supported =
         cmn_vsc_cb.debug_logging_supported > 0;
+    const controller_t* controller = controller_get_interface();
+
+    if (controller->supports_ble_extended_advertising()) {
+      local_le_features.max_adv_instance =
+          controller->get_ble_number_of_supported_advertising_sets();
+    }
+    local_le_features.le_2m_phy_supported = controller->supports_ble_2m_phy();
+    local_le_features.le_coded_phy_supported =
+        controller->supports_ble_coded_phy();
+    local_le_features.le_extended_advertising_supported =
+        controller->supports_ble_extended_advertising();
+    local_le_features.le_periodic_advertising_supported =
+        controller->supports_ble_periodic_advertising();
+    local_le_features.le_maximum_advertising_data_length =
+        controller->get_ble_maximum_advertising_data_length();
+
+    local_le_features.dynamic_audio_buffer_supported =
+        cmn_vsc_cb.dynamic_audio_buffer_support;
+
+    local_le_features.le_periodic_advertising_sync_transfer_sender_supported =
+        controller->supports_ble_periodic_advertising_sync_transfer_sender();
+    local_le_features.le_connected_isochronous_stream_central_supported =
+        controller->supports_ble_connected_isochronous_stream_central();
     memcpy(prop.val, &local_le_features, prop.len);
   } else if (prop.type == BT_PROPERTY_DYNAMIC_AUDIO_BUFFER) {
     tBTM_BLE_VSC_CB cmn_vsc_cb;
