@@ -31,6 +31,7 @@
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_octets.h"
 #include "stack/include/btm_api_types.h"
+#include "stack/include/btm_log_history.h"
 #include "stack/include/btm_status.h"
 #include "stack/include/sco_client_callbacks.h"
 #include "stack/include/sdp_api.h"
@@ -951,15 +952,6 @@ uint16_t BTM_GetMaxPacketSize(const RawAddress& addr);
 
 extern tBTM_STATUS BTM_BT_Quality_Report_VSE_Register(
     bool is_register, tBTM_BT_QUALITY_REPORT_RECEIVER* p_bqr_report_receiver);
-
-void BTM_LogHistory(const std::string& tag, const RawAddress& addr,
-                    const std::string& msg);
-void BTM_LogHistory(const std::string& tag, const RawAddress& addr,
-                    const std::string& msg, const std::string& extra);
-void BTM_LogHistory(const std::string& tag, const tBLE_BD_ADDR& addr,
-                    const std::string& msg);
-void BTM_LogHistory(const std::string& tag, const tBLE_BD_ADDR& addr,
-                    const std::string& msg, const std::string& extra);
 
 uint8_t btm_ble_read_sec_key_size(const RawAddress& bd_addr);
 
