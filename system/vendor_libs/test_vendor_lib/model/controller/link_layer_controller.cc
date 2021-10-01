@@ -1467,53 +1467,47 @@ void LinkLayerController::IncomingLeScanResponsePacket(
   auto adv_type = scan_response.GetAdvertisementType();
   auto address_type =
       static_cast<LeAdvertisement::AddressType>(scan_response.GetAddressType());
+  LOG_INFO("Scan response with %s",
+           bluetooth::hci::OpCodeText(le_scan_enable_).c_str());
   if (le_scan_enable_ == bluetooth::hci::OpCode::LE_SET_SCAN_ENABLE) {
     if (adv_type != model::packets::AdvertisementType::SCAN_RESPONSE) {
       return;
     }
-    std::unique_ptr<bluetooth::packet::RawBuilder> raw_builder_ptr =
-        std::make_unique<bluetooth::packet::RawBuilder>();
-    raw_builder_ptr->AddOctets1(
-        static_cast<uint8_t>(bluetooth::hci::SubeventCode::ADVERTISING_REPORT));
-    raw_builder_ptr->AddOctets1(0x01);  // num reports
-    raw_builder_ptr->AddOctets1(static_cast<uint8_t>(
-        bluetooth::hci::AdvertisingEventType::SCAN_RESPONSE));
-    raw_builder_ptr->AddOctets1(static_cast<uint8_t>(address_type));
-    raw_builder_ptr->AddAddress(incoming.GetSourceAddress());
-    raw_builder_ptr->AddOctets1(ad.size());
-    raw_builder_ptr->AddOctets(ad);
-    raw_builder_ptr->AddOctets1(GetRssi());
-    auto packet = bluetooth::hci::EventBuilder::Create(
-        bluetooth::hci::EventCode::LE_META_EVENT, std::move(raw_builder_ptr));
-    if (properties_.IsUnmasked(EventCode::LE_META_EVENT)) {
-      send_event_(std::move(packet));
+    bluetooth::hci::LeAdvertisingReportRaw report;
+    report.event_type_ = bluetooth::hci::AdvertisingEventType::SCAN_RESPONSE;
+    report.address_ = incoming.GetSourceAddress();
+    report.address_type_ =
+        static_cast<bluetooth::hci::AddressType>(address_type);
+    report.advertising_data_ = scan_response.GetData();
+    report.rssi_ = GetRssi();
+
+    if (properties_.IsUnmasked(EventCode::LE_META_EVENT) &&
+        properties_.GetLeEventSupported(
+            bluetooth::hci::SubeventCode::ADVERTISING_REPORT)) {
+      send_event_(
+          bluetooth::hci::LeAdvertisingReportRawBuilder::Create({report}));
     }
   }
 
-  if (le_scan_enable_ == bluetooth::hci::OpCode::LE_SET_EXTENDED_SCAN_ENABLE) {
-    std::unique_ptr<bluetooth::packet::RawBuilder> raw_builder_ptr =
-        std::make_unique<bluetooth::packet::RawBuilder>();
-    raw_builder_ptr->AddOctets1(static_cast<uint8_t>(
-        bluetooth::hci::SubeventCode::EXTENDED_ADVERTISING_REPORT));
-    raw_builder_ptr->AddOctets1(0x01);  // num reports
-    raw_builder_ptr->AddOctets2(0x001a);  // TODO: 0x001b for ADV_SCAN_IND
-    raw_builder_ptr->AddOctets1(static_cast<uint8_t>(address_type));
-    raw_builder_ptr->AddAddress(incoming.GetSourceAddress());
-    raw_builder_ptr->AddOctets1(1);     // Primary_PHY
-    raw_builder_ptr->AddOctets1(0);     // Secondary_PHY
-    raw_builder_ptr->AddOctets1(0xFF);  // Advertising_SID - not provided
-    raw_builder_ptr->AddOctets1(0x7F);  // Tx_Power - Not available
-    raw_builder_ptr->AddOctets1(GetRssi());
-    raw_builder_ptr->AddOctets1(0);  // Periodic_Advertising_Interval - None
-    raw_builder_ptr->AddOctets1(0);  // Direct_Address_Type - PUBLIC
-    raw_builder_ptr->AddAddress(Address::kEmpty);  // Direct_Address
-    raw_builder_ptr->AddOctets1(ad.size());
-    raw_builder_ptr->AddOctets(ad);
-    auto packet = bluetooth::hci::EventBuilder::Create(
-        bluetooth::hci::EventCode::LE_META_EVENT, std::move(raw_builder_ptr));
-    if (properties_.IsUnmasked(EventCode::LE_META_EVENT)) {
-      send_event_(std::move(packet));
-    }
+  if (le_scan_enable_ == bluetooth::hci::OpCode::LE_SET_EXTENDED_SCAN_ENABLE &&
+      properties_.IsUnmasked(EventCode::LE_META_EVENT) &&
+      properties_.GetLeEventSupported(
+          bluetooth::hci::SubeventCode::EXTENDED_ADVERTISING_REPORT)) {
+    bluetooth::hci::LeExtendedAdvertisingReport report{};
+    report.address_ = incoming.GetSourceAddress();
+    report.address_type_ =
+        static_cast<bluetooth::hci::DirectAdvertisingAddressType>(address_type);
+    report.legacy_ = true;
+    report.scannable_ = true;
+    report.connectable_ = true;  // TODO: false if ADV_SCAN_IND
+    report.scan_response_ = true;
+    report.primary_phy_ = bluetooth::hci::PrimaryPhyType::LE_1M;
+    report.advertising_sid_ = 0xFF;
+    report.tx_power_ = 0x7F;
+    report.advertising_data_ = ad;
+    report.rssi_ = GetRssi();
+    send_event_(
+        bluetooth::hci::LeExtendedAdvertisingReportBuilder::Create({report}));
   }
 }
 
