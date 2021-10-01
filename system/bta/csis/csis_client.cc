@@ -699,7 +699,7 @@ class CsisClientImpl : public CsisClient {
 
       int group_id = csis_group->GetGroupId();
       auto csis_instance = device->GetCsisInstanceByGroupId(group_id);
-      LOG(ERROR) << __func__ << " group id " << group_id;
+      DLOG(INFO) << __func__ << " group id " << group_id;
 
       if (!csis_instance) {
         /* This can happen when some other user added device to group in the

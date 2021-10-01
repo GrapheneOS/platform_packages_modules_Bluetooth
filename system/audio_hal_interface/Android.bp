@@ -46,6 +46,7 @@ cc_library_static {
             srcs: [
                 "a2dp_encoding_host.cc",
                 "hearing_aid_software_encoding_host.cc",
+                "le_audio_software_host.cc",
             ],
         },
     },
