@@ -51,7 +51,7 @@ class DeviceGroupsCallbacks {
                                     int group_id) = 0;
 
   /* Callback with group information added from storage */
-  virtual void onGroupAddFromStorage(const RawAddress& address,
+  virtual void OnGroupAddFromStorage(const RawAddress& address,
                                      const bluetooth::Uuid& group_uuid,
                                      int group_id) = 0;
 };
