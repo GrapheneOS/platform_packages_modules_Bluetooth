@@ -17,7 +17,6 @@ package com.android.bluetooth.hfpclient.connserv;
 
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadsetClientCall;
-import android.bluetooth.hfpclient.connserv.BluetoothHeadsetClientProxy;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
@@ -28,6 +27,7 @@ import android.telecom.TelecomManager;
 import android.util.Log;
 
 import com.android.bluetooth.hfpclient.HeadsetClientService;
+import com.android.internal.annotations.VisibleForTesting;
 
 import java.util.HashMap;
 import java.util.List;
@@ -360,5 +360,31 @@ public class HfpClientDeviceBlock {
         bundle.putInt(KEY_SCO_STATE, headsetClientService.getAudioState(device));
 
         return bundle;
+    }
+
+    /**
+     * Factory class for {@link HfpClientDeviceBlock}
+     */
+    public static class Factory {
+        private static Factory sInstance = new Factory();
+
+        @VisibleForTesting
+        static void setInstance(Factory instance) {
+            sInstance = instance;
+        }
+
+        /**
+         * Returns an instance of {@link HfpClientDeviceBlock}
+         */
+        public static HfpClientDeviceBlock build(HfpClientConnectionService connServ,
+                BluetoothDevice device, BluetoothHeadsetClientProxy profileProxy) {
+            return sInstance.buildInternal(connServ, device, profileProxy);
+        }
+
+        protected HfpClientDeviceBlock buildInternal(HfpClientConnectionService connServ,
+                BluetoothDevice device, BluetoothHeadsetClientProxy profileProxy) {
+            return new HfpClientDeviceBlock(connServ, device, profileProxy);
+        }
+
     }
 }
