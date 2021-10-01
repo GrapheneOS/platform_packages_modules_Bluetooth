@@ -1136,6 +1136,34 @@ public class HeadsetService extends ProfileService {
     }
 
     /**
+     * Remove the active device
+     */
+    private void removeActiveDevice() {
+        synchronized (mStateMachines) {
+            // Clear the active device
+            if (mVoiceRecognitionStarted) {
+                if (!stopVoiceRecognition(mActiveDevice)) {
+                    Log.w(TAG, "removeActiveDevice: fail to stopVoiceRecognition from "
+                            + mActiveDevice);
+                }
+            }
+            if (mVirtualCallStarted) {
+                if (!stopScoUsingVirtualVoiceCall()) {
+                    Log.w(TAG, "removeActiveDevice: fail to stopScoUsingVirtualVoiceCall from "
+                            + mActiveDevice);
+                }
+            }
+            if (getAudioState(mActiveDevice) != BluetoothHeadset.STATE_AUDIO_DISCONNECTED) {
+                if (!disconnectAudio(mActiveDevice)) {
+                    Log.w(TAG, "removeActiveDevice: disconnectAudio failed on " + mActiveDevice);
+                }
+            }
+            mActiveDevice = null;
+            broadcastActiveDevice(null);
+        }
+    }
+
+    /**
      * Set the active device.
      *
      * @param device the active device
@@ -1146,26 +1174,7 @@ public class HeadsetService extends ProfileService {
         Log.i(TAG, "setActiveDevice: device=" + device + ", " + Utils.getUidPidString());
         synchronized (mStateMachines) {
             if (device == null) {
-                // Clear the active device
-                if (mVoiceRecognitionStarted) {
-                    if (!stopVoiceRecognition(mActiveDevice)) {
-                        Log.w(TAG, "setActiveDevice: fail to stopVoiceRecognition from "
-                                + mActiveDevice);
-                    }
-                }
-                if (mVirtualCallStarted) {
-                    if (!stopScoUsingVirtualVoiceCall()) {
-                        Log.w(TAG, "setActiveDevice: fail to stopScoUsingVirtualVoiceCall from "
-                                + mActiveDevice);
-                    }
-                }
-                if (getAudioState(mActiveDevice) != BluetoothHeadset.STATE_AUDIO_DISCONNECTED) {
-                    if (!disconnectAudio(mActiveDevice)) {
-                        Log.w(TAG, "setActiveDevice: disconnectAudio failed on " + mActiveDevice);
-                    }
-                }
-                mActiveDevice = null;
-                broadcastActiveDevice(null);
+                removeActiveDevice();
                 return true;
             }
             if (device.equals(mActiveDevice)) {
@@ -1187,8 +1196,12 @@ public class HeadsetService extends ProfileService {
                 if (!disconnectAudio(previousActiveDevice)) {
                     Log.e(TAG, "setActiveDevice: fail to disconnectAudio from "
                             + previousActiveDevice);
-                    mActiveDevice = previousActiveDevice;
-                    mNativeInterface.setActiveDevice(previousActiveDevice);
+                    if (previousActiveDevice == null) {
+                        removeActiveDevice();
+                    } else {
+                        mActiveDevice = previousActiveDevice;
+                        mNativeInterface.setActiveDevice(previousActiveDevice);
+                    }
                     return false;
                 }
                 broadcastActiveDevice(mActiveDevice);
@@ -1196,8 +1209,12 @@ public class HeadsetService extends ProfileService {
                 broadcastActiveDevice(mActiveDevice);
                 if (!connectAudio(mActiveDevice)) {
                     Log.e(TAG, "setActiveDevice: fail to connectAudio to " + mActiveDevice);
-                    mActiveDevice = previousActiveDevice;
-                    mNativeInterface.setActiveDevice(previousActiveDevice);
+                    if (previousActiveDevice == null) {
+                        removeActiveDevice();
+                    } else {
+                        mActiveDevice = previousActiveDevice;
+                        mNativeInterface.setActiveDevice(previousActiveDevice);
+                    }
                     return false;
                 }
             } else {

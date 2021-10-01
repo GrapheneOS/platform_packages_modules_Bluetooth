@@ -900,6 +900,31 @@ public class HeadsetServiceTest {
         Assert.assertEquals(mCurrentDevice, mHeadsetService.getActiveDevice());
     }
 
+    /**
+     * Test that whether active device been removed after enable silence mode
+     */
+    @Test
+    public void testSetActiveDevice_AudioNotAllowed() {
+        when(mDatabaseManager.getProfileConnectionPolicy(any(BluetoothDevice.class),
+                eq(BluetoothProfile.HEADSET)))
+                .thenReturn(BluetoothProfile.CONNECTION_POLICY_UNKNOWN);
+        mCurrentDevice = TestUtils.getTestDevice(mAdapter, 0);
+        mHeadsetService.setForceScoAudio(false);
+
+        Assert.assertTrue(mHeadsetService.connect(mCurrentDevice));
+        when(mStateMachines.get(mCurrentDevice).getDevice()).thenReturn(mCurrentDevice);
+        when(mStateMachines.get(mCurrentDevice).getConnectionState()).thenReturn(
+                BluetoothProfile.STATE_CONNECTED);
+
+        Assert.assertTrue(mHeadsetService.setActiveDevice(null));
+        when(mSystemInterface.isInCall()).thenReturn(true);
+        mHeadsetService.setAudioRouteAllowed(false);
+
+        // Test that active device should not be changed if audio is not allowed
+        Assert.assertFalse(mHeadsetService.setActiveDevice(mCurrentDevice));
+        Assert.assertEquals(null, mHeadsetService.getActiveDevice());
+    }
+
     /*
      *  Helper function to test okToAcceptConnection() method
      *
