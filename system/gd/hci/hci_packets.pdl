@@ -5298,6 +5298,20 @@ packet LeAdvertisingReport : LeMetaEvent (subevent_code = ADVERTISING_REPORT) {
   advertising_reports : LeAdvertisingReport[],
 }
 
+struct LeAdvertisingReportRaw {
+  event_type : AdvertisingEventType,
+  address_type : AddressType,
+  address : Address,
+  _size_(advertising_data) : 8,
+  advertising_data : 8[],
+  rssi : 8,
+}
+
+packet LeAdvertisingReportRaw : LeMetaEvent (subevent_code = ADVERTISING_REPORT) {
+  _count_(advertising_reports) : 8,
+  advertising_reports : LeAdvertisingReportRaw[],
+}
+
 packet LeConnectionUpdateComplete : LeMetaEvent (subevent_code = CONNECTION_UPDATE_COMPLETE) {
   status : ErrorCode,
   connection_handle : 12,
