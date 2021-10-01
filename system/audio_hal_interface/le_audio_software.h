@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <hardware/audio.h>
+
 #include <functional>
 
 #include "common/message_loop_thread.h"
@@ -24,9 +26,24 @@ namespace bluetooth {
 namespace audio {
 namespace le_audio {
 
+constexpr uint8_t kChannelNumberMono = 1;
+constexpr uint8_t kChannelNumberStereo = 2;
+
+constexpr uint32_t kSampleRate48000 = 48000;
+constexpr uint32_t kSampleRate44100 = 44100;
+constexpr uint32_t kSampleRate32000 = 32000;
+constexpr uint32_t kSampleRate24000 = 24000;
+constexpr uint32_t kSampleRate16000 = 16000;
+constexpr uint32_t kSampleRate8000 = 8000;
+
+constexpr uint8_t kBitsPerSample16 = 16;
+constexpr uint8_t kBitsPerSample24 = 24;
+constexpr uint8_t kBitsPerSample32 = 32;
+
 struct StreamCallbacks {
   std::function<bool(bool start_media_task)> on_resume_;
   std::function<bool(void)> on_suspend_;
+  std::function<bool(audio_usage_t, audio_content_type_t)> on_metadata_update_;
 };
 
 class LeAudioClientInterface {
@@ -47,6 +64,8 @@ class LeAudioClientInterface {
     virtual void SetRemoteDelay(uint16_t delay_report_ms) = 0;
     virtual void StartSession() = 0;
     virtual void StopSession() = 0;
+    virtual void ConfirmStreamingRequest() = 0;
+    virtual void CancelStreamingRequest() = 0;
   };
 
  public:
@@ -59,6 +78,8 @@ class LeAudioClientInterface {
     void SetRemoteDelay(uint16_t delay_report_ms) override;
     void StartSession() override;
     void StopSession() override;
+    void ConfirmStreamingRequest() override;
+    void CancelStreamingRequest() override;
 
     // Read the stream of bytes sinked to us by the upper layers
     size_t Read(uint8_t* p_buf, uint32_t len);
@@ -72,6 +93,8 @@ class LeAudioClientInterface {
     void SetRemoteDelay(uint16_t delay_report_ms) override;
     void StartSession() override;
     void StopSession() override;
+    void ConfirmStreamingRequest() override;
+    void CancelStreamingRequest() override;
 
     // Source the given stream of bytes to be sinked into the upper layers
     size_t Write(const uint8_t* p_buf, uint32_t len);

@@ -46,7 +46,7 @@ using ::android::hardware::bluetooth::audio::V2_0::SbcChannelMode;
 using ::android::hardware::bluetooth::audio::V2_0::SbcNumSubbands;
 using ::android::hardware::bluetooth::audio::V2_0::SbcParameters;
 
-// capabilities from BluetoothAudioClientInterface::GetAudioCapabilities()
+// capabilities from BluetoothAudioSinkClientInterface::GetAudioCapabilities()
 std::vector<AudioCapabilities> audio_hal_capabilities(0);
 // capabilities that audio HAL supports and frameworks / Bluetooth SoC / runtime
 // preference would like to use.
@@ -472,8 +472,9 @@ bool A2dpLdacToHalConfig(CodecConfiguration* codec_config,
 
 bool UpdateOffloadingCapabilities(
     const std::vector<btav_a2dp_codec_config_t>& framework_preference) {
-  audio_hal_capabilities = BluetoothAudioClientInterface::GetAudioCapabilities(
-      SessionType::A2DP_HARDWARE_OFFLOAD_DATAPATH);
+  audio_hal_capabilities =
+      BluetoothAudioSinkClientInterface::GetAudioCapabilities(
+          SessionType::A2DP_HARDWARE_OFFLOAD_DATAPATH);
   uint32_t codec_type_masks = static_cast<uint32_t>(CodecType::UNKNOWN);
   for (auto preference : framework_preference) {
     switch (preference.codec_type) {
