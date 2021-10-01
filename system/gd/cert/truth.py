@@ -57,7 +57,7 @@ class ObjectSubject(object):
             raise signals.TestFailure("Expected \"%s\" to not be None" % self._value, extras=None)
 
 
-DEFAULT_TIMEOUT = timedelta(seconds=3)
+DEFAULT_TIMEOUT = timedelta(seconds=10)
 
 
 class EventStreamSubject(ObjectSubject):
@@ -74,7 +74,7 @@ class EventStreamSubject(ObjectSubject):
         else:
             return MultiMatchStreamSubject(self._value, match_fns, timeout)
 
-    def emitsNone(self, *match_fns, timeout=DEFAULT_TIMEOUT):
+    def emitsNone(self, *match_fns, timeout):
         if len(match_fns) == 0:
             NOT_FOR_YOU_assert_none(self._value, timeout=timeout)
             return EventStreamContinuationSubject(self._value)
@@ -115,7 +115,7 @@ class EventStreamContinuationSubject(ObjectSubject):
         else:
             return MultiMatchStreamSubject(self._value, match_fns, timeout)
 
-    def thenNone(self, *match_fns, timeout=DEFAULT_TIMEOUT):
+    def thenNone(self, *match_fns, timeout):
         if len(match_fns) == 0:
             NOT_FOR_YOU_assert_none(self._value, timeout=timeout)
             return EventStreamContinuationSubject(self._value)
