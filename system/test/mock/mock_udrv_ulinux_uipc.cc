@@ -19,32 +19,13 @@
  *   Functions generated:12
  */
 
+#include <cstdint>
 #include <map>
 #include <string>
 
 extern std::map<std::string, int> mock_function_count_map;
 
-#include <errno.h>
-#include <fcntl.h>
-#include <poll.h>
-#include <signal.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/mman.h>
-#include <sys/prctl.h>
-#include <sys/select.h>
-#include <sys/socket.h>
-#include <sys/stat.h>
-#include <sys/un.h>
-#include <unistd.h>
-#include <mutex>
-#include <set>
-#include "audio_a2dp_hw/include/audio_a2dp_hw.h"
-#include "bt_utils.h"
-#include "osi/include/osi.h"
-#include "osi/include/socket_utils/sockets.h"
-#include "uipc.h"
+#include "udrv/include/uipc.h"
 
 #ifndef UNUSED_ATTR
 #define UNUSED_ATTR
