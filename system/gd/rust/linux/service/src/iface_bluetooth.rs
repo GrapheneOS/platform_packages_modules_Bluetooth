@@ -2,7 +2,10 @@ extern crate bt_shim;
 
 use bt_topshim::btif::{BtSspVariant, Uuid128Bit};
 
-use btstack::bluetooth::{BluetoothDevice, BluetoothTransport, IBluetooth, IBluetoothCallback};
+use btstack::bluetooth::{
+    BluetoothDevice, BluetoothTransport, IBluetooth, IBluetoothCallback,
+    IBluetoothConnectionCallback,
+};
 use btstack::RPCProxy;
 
 use dbus::arg::RefArg;
@@ -55,12 +58,37 @@ impl_dbus_arg_enum!(BluetoothTransport);
 impl_dbus_arg_enum!(BtSspVariant);
 
 #[allow(dead_code)]
+struct BluetoothConnectionCallbackDBus {}
+
+#[dbus_proxy_obj(BluetoothConnectionCallback, "org.chromium.bluetooth.BluetoothConnectionCallback")]
+impl IBluetoothConnectionCallback for BluetoothConnectionCallbackDBus {
+    #[dbus_method("OnDeviceConnected")]
+    fn on_device_connected(&self, remote_device: BluetoothDevice) {}
+
+    #[dbus_method("OnDeviceDisconencted")]
+    fn on_device_disconnected(&self, remote_device: BluetoothDevice) {}
+}
+
+#[allow(dead_code)]
 struct IBluetoothDBus {}
 
 #[generate_dbus_exporter(export_bluetooth_dbus_obj, "org.chromium.bluetooth.Bluetooth")]
 impl IBluetooth for IBluetoothDBus {
     #[dbus_method("RegisterCallback")]
     fn register_callback(&mut self, callback: Box<dyn IBluetoothCallback + Send>) {}
+
+    #[dbus_method("RegisterConnectionCallback")]
+    fn register_connection_callback(
+        &mut self,
+        callback: Box<dyn IBluetoothConnectionCallback + Send>,
+    ) -> u32 {
+        0
+    }
+
+    #[dbus_method("UnregisterConnectionCallback")]
+    fn unregister_connection_callback(&mut self, id: u32) -> bool {
+        false
+    }
 
     // Not exposed over D-Bus. The stack is automatically enabled when the daemon starts.
     fn enable(&mut self) -> bool {

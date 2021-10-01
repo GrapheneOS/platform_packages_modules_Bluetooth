@@ -29,6 +29,12 @@ use bt_topshim::{
 /// Represents a Bluetooth address.
 // TODO: Add support for LE random addresses.
 
+#[derive(Clone, Debug)]
+pub enum BluetoothCallbackType {
+    Adapter,
+    Connection,
+}
+
 /// Message types that are sent to the stack main dispatch loop.
 pub enum Message {
     A2dp(A2dpCallbacks),
@@ -38,7 +44,7 @@ pub enum Message {
     GattServer(GattServerCallbacks),
     HidHost(HHCallbacks),
     Sdp(SdpCallbacks),
-    BluetoothCallbackDisconnected(u32),
+    BluetoothCallbackDisconnected(u32, BluetoothCallbackType),
 }
 
 /// Umbrella class for the Bluetooth stack.
@@ -96,8 +102,8 @@ impl Stack {
                     bluetooth.lock().unwrap().dispatch_sdp_callbacks(s);
                 }
 
-                Message::BluetoothCallbackDisconnected(id) => {
-                    bluetooth.lock().unwrap().callback_disconnected(id);
+                Message::BluetoothCallbackDisconnected(id, cb_type) => {
+                    bluetooth.lock().unwrap().callback_disconnected(id, cb_type);
                 }
             }
         }

@@ -665,7 +665,7 @@ pub enum BaseCallbacks {
     PinRequest(RawAddress, String, u32, bool),
     SspRequest(RawAddress, String, u32, BtSspVariant, u32),
     BondState(BtStatus, RawAddress, BtBondState, i32),
-    AclState(BtStatus, RawAddress, BtAclState, i32, BtHciErrorCode),
+    AclState(BtStatus, RawAddress, BtAclState, BtTransport, BtHciErrorCode),
     // Unimplemented so far:
     // thread_evt_cb
     // dut_mode_recv_cb
@@ -712,7 +712,7 @@ u32 -> BtStatus, *mut FfiAddress, bindings::bt_bond_state_t -> BtBondState, i32,
     let _1 = unsafe { *(_1 as *const RawAddress) };
 });
 cb_variant!(BaseCb, acl_state_cb -> BaseCallbacks::AclState,
-u32 -> BtStatus, *mut FfiAddress, bindings::bt_acl_state_t -> BtAclState, i32, bindings::bt_hci_error_code_t -> BtHciErrorCode, {
+u32 -> BtStatus, *mut FfiAddress, bindings::bt_acl_state_t -> BtAclState, i32 -> BtTransport, bindings::bt_hci_error_code_t -> BtHciErrorCode, {
     let _1 = unsafe { *(_1 as *const RawAddress) };
 });
 

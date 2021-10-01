@@ -3,7 +3,10 @@
 use bt_topshim::btif::{BtSspVariant, Uuid128Bit};
 use bt_topshim::profiles::gatt::GattStatus;
 
-use btstack::bluetooth::{BluetoothDevice, BluetoothTransport, IBluetooth, IBluetoothCallback};
+use btstack::bluetooth::{
+    BluetoothDevice, BluetoothTransport, IBluetooth, IBluetoothCallback,
+    IBluetoothConnectionCallback,
+};
 use btstack::bluetooth_gatt::{
     BluetoothGattCharacteristic, BluetoothGattDescriptor, BluetoothGattService,
     GattWriteRequestStatus, GattWriteType, IBluetoothGatt, IBluetoothGattCallback,
@@ -177,6 +180,32 @@ impl IBluetoothCallback for IBluetoothCallbackDBus {
     fn on_bond_state_changed(&self, status: u32, address: String, state: u32) {}
 }
 
+#[allow(dead_code)]
+struct IBluetoothConnectionCallbackDBus {}
+
+impl btstack::RPCProxy for IBluetoothConnectionCallbackDBus {
+    // Dummy implementations just to satisfy impl RPCProxy requirements.
+    fn register_disconnect(&mut self, _id: u32, _f: Box<dyn Fn(u32) + Send>) {}
+    fn get_object_id(&self) -> String {
+        String::from("")
+    }
+    fn unregister(&mut self, _id: u32) -> bool {
+        false
+    }
+}
+
+#[generate_dbus_exporter(
+    export_bluetooth_connection_callback_dbus_obj,
+    "org.chromium.bluetooth.BluetoothConnectionCallback"
+)]
+impl IBluetoothConnectionCallback for IBluetoothConnectionCallbackDBus {
+    #[dbus_method("OnDeviceConnected")]
+    fn on_device_connected(&self, remote_device: BluetoothDevice) {}
+
+    #[dbus_method("OnDeviceDisconencted")]
+    fn on_device_disconnected(&self, remote_device: BluetoothDevice) {}
+}
+
 pub(crate) struct BluetoothDBus {
     client_proxy: ClientDBusProxy,
 }
@@ -213,6 +242,27 @@ impl IBluetooth for BluetoothDBus {
         );
 
         self.client_proxy.method_noreturn("RegisterCallback", (path,))
+    }
+
+    fn register_connection_callback(
+        &mut self,
+        callback: Box<dyn IBluetoothConnectionCallback + Send>,
+    ) -> u32 {
+        let path_string = callback.get_object_id();
+        let path = dbus::Path::new(path_string.clone()).unwrap();
+        export_bluetooth_connection_callback_dbus_obj(
+            path_string,
+            self.client_proxy.conn.clone(),
+            &mut self.client_proxy.cr.lock().unwrap(),
+            Arc::new(Mutex::new(callback)),
+            Arc::new(Mutex::new(DisconnectWatcher::new())),
+        );
+
+        self.client_proxy.method("RegisterConnectionCallback", (path,))
+    }
+
+    fn unregister_connection_callback(&mut self, id: u32) -> bool {
+        self.client_proxy.method("UnregisterConnectionCallback", (id,))
     }
 
     fn enable(&mut self) -> bool {

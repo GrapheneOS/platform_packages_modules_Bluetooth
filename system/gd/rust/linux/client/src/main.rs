@@ -7,7 +7,7 @@ use dbus::nonblock::SyncConnection;
 use dbus_crossroads::Crossroads;
 use tokio::sync::mpsc;
 
-use crate::callbacks::{BtCallback, BtManagerCallback};
+use crate::callbacks::{BtCallback, BtConnectionCallback, BtManagerCallback};
 use crate::command_handler::CommandHandler;
 use crate::dbus_iface::{BluetoothDBus, BluetoothGattDBus, BluetoothManagerDBus};
 use crate::editor::AsyncEditor;
@@ -134,8 +134,8 @@ impl ClientContext {
         // Trigger callback registration in the foreground
         let fg = self.fg.clone();
         tokio::spawn(async move {
-            let objpath = String::from("/org/chromium/bluetooth/client/bluetooth_callback");
-            let _ = fg.send(ForegroundActions::RegisterAdapterCallback(objpath)).await;
+            let adapter = String::from(format!("adapter{}", idx));
+            let _ = fg.send(ForegroundActions::RegisterAdapterCallback(adapter)).await;
         });
     }
 
@@ -151,7 +151,7 @@ impl ClientContext {
 /// Actions to take on the foreground loop. This allows us to queue actions in
 /// callbacks that get run in the foreground context.
 enum ForegroundActions {
-    RegisterAdapterCallback(String), // Register callbacks with this objpath
+    RegisterAdapterCallback(String), // Register callbacks for this adapter
     Readline(rustyline::Result<String>), // Readline result from rustyline
 }
 
@@ -260,14 +260,29 @@ async fn start_interactive_shell(
 
         match m.unwrap() {
             // Once adapter is ready, register callbacks, get the address and mark it as ready
-            ForegroundActions::RegisterAdapterCallback(objpath) => {
+            ForegroundActions::RegisterAdapterCallback(adapter) => {
+                let cb_objpath: String =
+                    format!("/org/chromium/bluetooth/client/{}/bluetooth_callback", adapter);
+                let conn_cb_objpath: String =
+                    format!("/org/chromium/bluetooth/client/{}/bluetooth_conn_callback", adapter);
+
                 context
                     .lock()
                     .unwrap()
                     .adapter_dbus
                     .as_mut()
                     .unwrap()
-                    .register_callback(Box::new(BtCallback::new(objpath, context.clone())));
+                    .register_callback(Box::new(BtCallback::new(cb_objpath, context.clone())));
+                context
+                    .lock()
+                    .unwrap()
+                    .adapter_dbus
+                    .as_mut()
+                    .unwrap()
+                    .register_connection_callback(Box::new(BtConnectionCallback::new(
+                        conn_cb_objpath,
+                        context.clone(),
+                    )));
                 context.lock().unwrap().adapter_ready = true;
                 let adapter_address = context.lock().unwrap().update_adapter_address();
                 print_info!("Adapter {} is ready", adapter_address);

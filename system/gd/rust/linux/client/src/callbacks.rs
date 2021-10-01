@@ -2,7 +2,7 @@ use crate::ClientContext;
 use crate::{console_yellow, print_info};
 use bt_topshim::btif::BtSspVariant;
 use bt_topshim::profiles::gatt::GattStatus;
-use btstack::bluetooth::{BluetoothDevice, IBluetoothCallback};
+use btstack::bluetooth::{BluetoothDevice, IBluetoothCallback, IBluetoothConnectionCallback};
 use btstack::bluetooth_gatt::{BluetoothGattService, IBluetoothGattCallback, LePhy};
 use btstack::RPCProxy;
 use manager_service::iface_bluetooth_manager::IBluetoothManagerCallback;
@@ -113,6 +113,39 @@ impl IBluetoothCallback for BtCallback {
 }
 
 impl RPCProxy for BtCallback {
+    fn register_disconnect(&mut self, _id: u32, _f: Box<dyn Fn(u32) + Send>) {}
+
+    fn get_object_id(&self) -> String {
+        self.objpath.clone()
+    }
+
+    fn unregister(&mut self, _id: u32) -> bool {
+        false
+    }
+}
+
+pub(crate) struct BtConnectionCallback {
+    objpath: String,
+    _context: Arc<Mutex<ClientContext>>,
+}
+
+impl BtConnectionCallback {
+    pub(crate) fn new(objpath: String, _context: Arc<Mutex<ClientContext>>) -> Self {
+        Self { objpath, _context }
+    }
+}
+
+impl IBluetoothConnectionCallback for BtConnectionCallback {
+    fn on_device_connected(&self, remote_device: BluetoothDevice) {
+        print_info!("Connected: [{}]: {}", remote_device.address, remote_device.name);
+    }
+
+    fn on_device_disconnected(&self, remote_device: BluetoothDevice) {
+        print_info!("Disconnected: [{}]: {}", remote_device.address, remote_device.name);
+    }
+}
+
+impl RPCProxy for BtConnectionCallback {
     fn register_disconnect(&mut self, _id: u32, _f: Box<dyn Fn(u32) + Send>) {}
 
     fn get_object_id(&self) -> String {

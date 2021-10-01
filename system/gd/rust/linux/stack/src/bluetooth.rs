@@ -1,9 +1,9 @@
 //! Anything related to the adapter API (IBluetooth).
 
 use bt_topshim::btif::{
-    BaseCallbacks, BaseCallbacksDispatcher, BluetoothInterface, BluetoothProperty, BtBondState,
-    BtDiscoveryState, BtPropertyType, BtSspVariant, BtState, BtStatus, BtTransport, RawAddress,
-    Uuid, Uuid128Bit,
+    BaseCallbacks, BaseCallbacksDispatcher, BluetoothInterface, BluetoothProperty, BtAclState,
+    BtBondState, BtDiscoveryState, BtHciErrorCode, BtPropertyType, BtSspVariant, BtState, BtStatus,
+    BtTransport, RawAddress, Uuid, Uuid128Bit,
 };
 use bt_topshim::{
     profiles::hid_host::{HHCallbacksDispatcher, HidHost},
@@ -22,12 +22,21 @@ use std::time::Instant;
 use tokio::sync::mpsc::Sender;
 
 use crate::bluetooth_media::{BluetoothMedia, IBluetoothMedia};
-use crate::{Message, RPCProxy};
+use crate::{BluetoothCallbackType, Message, RPCProxy};
 
 /// Defines the adapter API.
 pub trait IBluetooth {
     /// Adds a callback from a client who wishes to observe adapter events.
     fn register_callback(&mut self, callback: Box<dyn IBluetoothCallback + Send>);
+
+    /// Adds a callback from a client who wishes to observe connection events.
+    fn register_connection_callback(
+        &mut self,
+        callback: Box<dyn IBluetoothConnectionCallback + Send>,
+    ) -> u32;
+
+    /// Removes registered callback.
+    fn unregister_connection_callback(&mut self, callback_id: u32) -> bool;
 
     /// Enables the adapter.
     ///
@@ -131,6 +140,7 @@ impl BluetoothDevice {
 /// Internal data structure that keeps a map of cached properties for a remote device.
 struct BluetoothDeviceContext {
     pub bond_state: BtBondState,
+    pub acl_state: BtAclState,
     pub info: BluetoothDevice,
     pub properties: HashMap<BtPropertyType, BluetoothProperty>,
 }
@@ -138,11 +148,12 @@ struct BluetoothDeviceContext {
 impl BluetoothDeviceContext {
     pub(crate) fn new(
         bond_state: BtBondState,
+        acl_state: BtAclState,
         info: BluetoothDevice,
         properties: Vec<BluetoothProperty>,
     ) -> BluetoothDeviceContext {
-        let bond_state = BtBondState::NotBonded;
-        let mut device = BluetoothDeviceContext { bond_state, info, properties: HashMap::new() };
+        let mut device =
+            BluetoothDeviceContext { bond_state, acl_state, info, properties: HashMap::new() };
         device.update_properties(properties);
         device
     }
@@ -188,6 +199,14 @@ pub trait IBluetoothCallback: RPCProxy {
     fn on_bond_state_changed(&self, status: u32, device_address: String, state: u32);
 }
 
+pub trait IBluetoothConnectionCallback: RPCProxy {
+    /// Notification sent when a remote device completes HCI connection.
+    fn on_device_connected(&self, remote_device: BluetoothDevice);
+
+    /// Notification sent when a remote device completes HCI disconnection.
+    fn on_device_disconnected(&self, remote_device: BluetoothDevice);
+}
+
 /// Implementation of the adapter API.
 pub struct Bluetooth {
     intf: Arc<Mutex<BluetoothInterface>>,
@@ -196,6 +215,7 @@ pub struct Bluetooth {
     bluetooth_media: Arc<Mutex<Box<BluetoothMedia>>>,
     callbacks: Vec<(u32, Box<dyn IBluetoothCallback + Send>)>,
     callbacks_last_id: u32,
+    connection_callbacks: Vec<(u32, Box<dyn IBluetoothConnectionCallback + Send>)>,
     discovering_started: Instant,
     hh: Option<HidHost>,
     is_discovering: bool,
@@ -218,6 +238,7 @@ impl Bluetooth {
             bonded_devices: HashMap::new(),
             callbacks: vec![],
             callbacks_last_id: 0,
+            connection_callbacks: vec![],
             hh: None,
             bluetooth_media,
             discovering_started: Instant::now(),
@@ -270,13 +291,25 @@ impl Bluetooth {
         }
     }
 
+    fn for_all_connection_callbacks<F: Fn(&Box<dyn IBluetoothConnectionCallback + Send>)>(
+        &self,
+        f: F,
+    ) {
+        for callback in &self.connection_callbacks {
+            f(&callback.1);
+        }
+    }
+
     fn get_next_id(&mut self) -> u32 {
         self.callbacks_last_id += 1;
         self.callbacks_last_id
     }
 
-    pub(crate) fn callback_disconnected(&mut self, id: u32) {
-        self.callbacks.retain(|x| x.0 != id);
+    pub(crate) fn callback_disconnected(&mut self, id: u32, cb_type: BluetoothCallbackType) {
+        match cb_type {
+            BluetoothCallbackType::Adapter => self.callbacks.retain(|x| x.0 != id),
+            BluetoothCallbackType::Connection => self.connection_callbacks.retain(|x| x.0 != id),
+        }
     }
 }
 
@@ -325,6 +358,16 @@ pub(crate) trait BtifBluetoothCallbacks {
         addr: RawAddress,
         num_properties: i32,
         properties: Vec<BluetoothProperty>,
+    );
+
+    #[btif_callback(AclState)]
+    fn acl_state(
+        &mut self,
+        status: BtStatus,
+        addr: RawAddress,
+        state: BtAclState,
+        link_type: BtTransport,
+        hci_reason: BtHciErrorCode,
     );
 }
 
@@ -402,6 +445,7 @@ impl BtifBluetoothCallbacks for Bluetooth {
                             .and_modify(|d| d.bond_state = BtBondState::Bonded)
                             .or_insert(BluetoothDeviceContext::new(
                                 BtBondState::Bonded,
+                                BtAclState::Disconnected,
                                 BluetoothDevice::new(address.clone(), "".to_string()),
                                 vec![],
                             ));
@@ -421,8 +465,12 @@ impl BtifBluetoothCallbacks for Bluetooth {
         if let Some(existing) = self.found_devices.get_mut(&address) {
             existing.update_properties(properties);
         } else {
-            let device_with_props =
-                BluetoothDeviceContext::new(BtBondState::NotBonded, device, properties);
+            let device_with_props = BluetoothDeviceContext::new(
+                BtBondState::NotBonded,
+                BtAclState::Disconnected,
+                device,
+                properties,
+            );
             self.found_devices.insert(address.clone(), device_with_props);
         }
 
@@ -504,6 +552,7 @@ impl BtifBluetoothCallbacks for Bluetooth {
                 }
                 None => BluetoothDeviceContext::new(
                     bond_state.clone(),
+                    BtAclState::Disconnected,
                     BluetoothDevice::new(address.clone(), "".to_string()),
                     vec![],
                 ),
@@ -545,6 +594,7 @@ impl BtifBluetoothCallbacks for Bluetooth {
                 address.clone(),
                 BluetoothDeviceContext::new(
                     BtBondState::NotBonded,
+                    BtAclState::Disconnected,
                     BluetoothDevice::new(address.clone(), String::from("")),
                     vec![],
                 ),
@@ -554,6 +604,60 @@ impl BtifBluetoothCallbacks for Bluetooth {
         };
 
         device.unwrap().update_properties(properties);
+    }
+
+    fn acl_state(
+        &mut self,
+        status: BtStatus,
+        addr: RawAddress,
+        state: BtAclState,
+        _link_type: BtTransport,
+        _hci_reason: BtHciErrorCode,
+    ) {
+        if status != BtStatus::Success {
+            warn!("Connection to [{}] failed. Status: {:?}", addr.to_string(), status);
+            return;
+        }
+
+        let address = addr.to_string();
+
+        let found = if self.bonded_devices.contains_key(&address) {
+            self.bonded_devices.get_mut(&address)
+        } else if self.found_devices.contains_key(&address) {
+            self.found_devices.get_mut(&address)
+        } else {
+            self.found_devices.insert(
+                address.clone(),
+                BluetoothDeviceContext::new(
+                    BtBondState::NotBonded,
+                    BtAclState::Disconnected,
+                    BluetoothDevice::new(address.clone(), String::from("")),
+                    vec![],
+                ),
+            );
+
+            self.found_devices.get_mut(&address)
+        };
+
+        // Only notify if there's been a change in state
+        let prev_state = &found.as_ref().unwrap().acl_state;
+        if prev_state != &state {
+            let device = found.as_ref().unwrap().info.clone();
+            found.unwrap().acl_state = state.clone();
+
+            match state {
+                BtAclState::Connected => {
+                    self.for_all_connection_callbacks(|callback| {
+                        callback.on_device_connected(device.clone());
+                    });
+                }
+                BtAclState::Disconnected => {
+                    self.for_all_connection_callbacks(|callback| {
+                        callback.on_device_disconnected(device.clone());
+                    });
+                }
+            };
+        }
     }
 }
 
@@ -568,12 +672,51 @@ impl IBluetooth for Bluetooth {
             Box::new(move |cb_id| {
                 let tx = tx.clone();
                 tokio::spawn(async move {
-                    let _result = tx.send(Message::BluetoothCallbackDisconnected(cb_id)).await;
+                    let _result = tx
+                        .send(Message::BluetoothCallbackDisconnected(
+                            cb_id,
+                            BluetoothCallbackType::Adapter,
+                        ))
+                        .await;
                 });
             }),
         );
 
         self.callbacks.push((id, callback))
+    }
+
+    fn register_connection_callback(
+        &mut self,
+        mut callback: Box<dyn IBluetoothConnectionCallback + Send>,
+    ) -> u32 {
+        let tx = self.tx.clone();
+        let id = self.get_next_id();
+
+        callback.register_disconnect(
+            id,
+            Box::new(move |cb_id| {
+                let tx = tx.clone();
+                tokio::spawn(async move {
+                    let _ = tx
+                        .send(Message::BluetoothCallbackDisconnected(
+                            cb_id,
+                            BluetoothCallbackType::Connection,
+                        ))
+                        .await;
+                });
+            }),
+        );
+
+        self.connection_callbacks.push((id, callback));
+
+        id
+    }
+
+    fn unregister_connection_callback(&mut self, callback_id: u32) -> bool {
+        match self.connection_callbacks.iter().position(|x| x.0 == callback_id) {
+            Some(index) => self.connection_callbacks[index].1.unregister(callback_id),
+            None => false,
+        }
     }
 
     fn enable(&mut self) -> bool {
