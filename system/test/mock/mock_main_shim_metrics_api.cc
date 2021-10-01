@@ -35,9 +35,7 @@ extern std::map<std::string, int> mock_function_count_map;
 //       for this effort.  This compilation unit may compile as-is, or
 //       may need attention to prune the inclusion set.
 #include "gd/hci/address.h"
-#include "gd/os/metrics.h"
 #include "main/shim/helpers.h"
-#include "main/shim/metrics_api.h"
 #include "types/raw_address.h"
 
 // Mock include file to share data between tests and mock

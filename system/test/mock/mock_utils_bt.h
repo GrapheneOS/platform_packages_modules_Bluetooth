@@ -34,21 +34,8 @@ extern std::map<std::string, int> mock_function_count_map;
 //       still applies, but crafting proper inclusion is out of scope
 //       for this effort.  This compilation unit may compile as-is, or
 //       may need attention to prune from (or add to ) the inclusion set.
-#include <errno.h>
-#include <processgroup/sched_policy.h>
-#include <pthread.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/resource.h>
-#include <unistd.h>
 
-#include <mutex>
-
-#include "bt_utils.h"
-#include "btcore/include/module.h"
-#include "osi/include/compat.h"
-#include "osi/include/log.h"
-#include "osi/include/properties.h"
+#include "utils/include/bt_utils.h"
 
 // Mocked compile conditionals, if any
 
