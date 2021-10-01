@@ -95,9 +95,13 @@ class LeScanningManagerTestBase():
         gap_name.data_type = hci_packets.GapDataType.COMPLETE_LOCAL_NAME
         gap_name.data = list(bytes(b'Im_The_CERT!'))
         gap_data = le_advertising_facade.GapDataMsg(data=bytes(gap_name.Serialize()))
+        gap_scan_name = hci_packets.GapData()
+        gap_scan_name.data_type = hci_packets.GapDataType.SHORTENED_LOCAL_NAME
+        gap_scan_name.data = list(bytes(b'CERT!'))
+        gap_scan_data = le_advertising_facade.GapDataMsg(data=bytes(gap_scan_name.Serialize()))
         config = le_advertising_facade.AdvertisingConfig(
             advertisement=[gap_data],
-            scan_response=[gap_data],
+            scan_response=[gap_scan_data],
             interval_min=512,
             interval_max=768,
             advertising_type=le_advertising_facade.AdvertisingEventType.ADV_IND,
