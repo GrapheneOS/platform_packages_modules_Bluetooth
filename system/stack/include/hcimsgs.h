@@ -527,10 +527,6 @@ extern void btsnd_hcic_vendor_spec_cmd(void* buffer, uint16_t opcode,
 #define HCIC_PARAM_SIZE_BLE_SET_PHY 7
 
 /* ULP HCI command */
-extern void btsnd_hcic_ble_read_buffer_size(void);
-
-extern void btsnd_hcic_ble_read_local_spt_feat(void);
-
 extern void btsnd_hcic_ble_set_local_used_feat(uint8_t feat_set[8]);
 
 extern void btsnd_hcic_ble_set_random_addr(const RawAddress& random_addr);
