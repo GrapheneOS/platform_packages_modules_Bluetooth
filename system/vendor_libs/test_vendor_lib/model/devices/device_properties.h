@@ -327,6 +327,14 @@ class DeviceProperties {
     return num_le_data_packets_;
   }
 
+  uint16_t GetIsoDataPacketLength() const {
+    return iso_data_packet_length_;
+  }
+
+  uint8_t GetTotalNumIsoDataPackets() const {
+    return num_iso_data_packets_;
+  }
+
   // Specification Version 4.2, Volume 2, Part E, Section 7.8.3
   uint64_t GetLeSupportedFeatures() const {
     return le_supported_features_;
@@ -417,6 +425,10 @@ class DeviceProperties {
   uint8_t le_advertisement_type_{};
   std::vector<uint8_t> le_advertisement_;
   std::vector<uint8_t> le_scan_response_;
+
+  // ISO
+  uint16_t iso_data_packet_length_{1021};
+  uint8_t num_iso_data_packets_{12};
 };
 
 }  // namespace test_vendor_lib
