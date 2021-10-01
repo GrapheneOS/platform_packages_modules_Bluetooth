@@ -58,13 +58,25 @@ class LeAudioTransport {
         remote_delay_report_ms_(0),
         total_bytes_processed_(0),
         data_position_({}),
-        pcm_config_(std::move(pcm_config)){};
+        pcm_config_(std::move(pcm_config)),
+        is_pending_start_request_(false){};
 
   BluetoothAudioCtrlAck StartRequest() {
     LOG(INFO) << __func__;
+
+    /*
+     * Set successful state as initial, it may be overwritten with cancelation
+     * during on_resume handling
+     */
+    pending_start_request_state_ = BluetoothAudioCtrlAck::PENDING;
+
     if (stream_cb_.on_resume_(true)) {
-      return BluetoothAudioCtrlAck::SUCCESS_FINISHED;
+      if (pending_start_request_state_ == BluetoothAudioCtrlAck::PENDING)
+        is_pending_start_request_ = true;
+
+      return pending_start_request_state_;
     }
+
     return BluetoothAudioCtrlAck::FAILURE;
   }
 
@@ -106,6 +118,22 @@ class LeAudioTransport {
     auto track_count = source_metadata.track_count;
     auto tracks = source_metadata.tracks;
     LOG(INFO) << __func__ << ": " << track_count << " track(s) received";
+
+    if (track_count == 0) {
+      LOG(WARNING) << ", invalid number of metadata changed tracks";
+      return;
+    }
+
+    audio_usage_t usage = tracks->usage;
+    audio_content_type_t content_type = tracks->content_type;
+
+    /* TODO what stack should do with more than one track ? */
+    if (track_count > 1) {
+      LOG(WARNING) << __func__ << ", can't handle multiple tracks metadata, "
+                   << "count: " << track_count << " track(s) received";
+      return;
+    }
+
     while (track_count) {
       VLOG(1) << __func__ << ": usage=" << tracks->usage
               << ", content_type=" << tracks->content_type
@@ -113,6 +141,8 @@ class LeAudioTransport {
       --track_count;
       ++tracks;
     }
+
+    stream_cb_.on_metadata_update_(usage, content_type);
   }
 
   void ResetPresentationPosition() {
@@ -146,6 +176,15 @@ class LeAudioTransport {
     pcm_config_.dataIntervalUs = data_interval;
   }
 
+  bool SetAudioCtrlAckStateAndResetPendingStartStreamFlag(
+      BluetoothAudioCtrlAck state) {
+    bool ret = is_pending_start_request_;
+    is_pending_start_request_ = false;
+    pending_start_request_state_ = state;
+
+    return ret;
+  }
+
  private:
   void (*flush_)(void);
   StreamCallbacks stream_cb_;
@@ -153,6 +192,8 @@ class LeAudioTransport {
   uint64_t total_bytes_processed_;
   timespec data_position_;
   PcmParameters pcm_config_;
+  bool is_pending_start_request_;
+  BluetoothAudioCtrlAck pending_start_request_state_;
 };
 
 static void flush_sink() {
@@ -219,6 +260,12 @@ class LeAudioSinkTransport
                                       uint32_t data_interval) {
     transport_->LeAudioSetSelectedHalPcmConfig(sample_rate, bit_rate,
                                                channel_mode, data_interval);
+  }
+
+  bool SetAudioCtrlAckStateAndResetPendingStartStreamFlag(
+      BluetoothAudioCtrlAck state = BluetoothAudioCtrlAck::PENDING) {
+    return transport_->SetAudioCtrlAckStateAndResetPendingStartStreamFlag(
+        state);
   }
 
  private:
@@ -288,6 +335,12 @@ class LeAudioSourceTransport
                                       uint32_t data_interval) {
     transport_->LeAudioSetSelectedHalPcmConfig(sample_rate, bit_rate,
                                                channel_mode, data_interval);
+  }
+
+  bool SetAudioCtrlAckStateAndResetPendingStartStreamFlag(
+      BluetoothAudioCtrlAck state = BluetoothAudioCtrlAck::PENDING) {
+    return transport_->SetAudioCtrlAckStateAndResetPendingStartStreamFlag(
+        state);
   }
 
  private:
@@ -365,7 +418,7 @@ static ChannelMode le_audio_channel_mode2audio_hal(uint8_t channels_count) {
 }
 
 void LeAudioClientInterface::Sink::Cleanup() {
-  LOG(INFO) << __func__;
+  LOG(INFO) << __func__ << " sink";
   StopSession();
   delete le_audio_sink_hal_clientinterface;
   le_audio_sink_hal_clientinterface = nullptr;
@@ -399,8 +452,32 @@ void LeAudioClientInterface::Sink::StartSession() {
   le_audio_sink_hal_clientinterface->StartSession_2_1();
 }
 
-void LeAudioClientInterface::Sink::StopSession() {
+void LeAudioClientInterface::Sink::ConfirmStreamingRequest() {
   LOG(INFO) << __func__;
+  if (!le_audio_sink->SetAudioCtrlAckStateAndResetPendingStartStreamFlag()) {
+    LOG(WARNING) << ", no pending start stream request";
+    return;
+  }
+
+  le_audio_sink_hal_clientinterface->StreamStarted(
+      BluetoothAudioCtrlAck::SUCCESS_FINISHED);
+}
+
+void LeAudioClientInterface::Sink::CancelStreamingRequest() {
+  LOG(INFO) << __func__;
+  if (!le_audio_sink->SetAudioCtrlAckStateAndResetPendingStartStreamFlag(
+          BluetoothAudioCtrlAck::FAILURE)) {
+    LOG(WARNING) << ", no pending start stream request";
+    return;
+  }
+
+  le_audio_sink_hal_clientinterface->StreamStarted(
+      BluetoothAudioCtrlAck::FAILURE);
+}
+
+void LeAudioClientInterface::Sink::StopSession() {
+  LOG(INFO) << __func__ << " sink";
+  le_audio_sink->SetAudioCtrlAckStateAndResetPendingStartStreamFlag();
   le_audio_sink_hal_clientinterface->EndSession();
 }
 
@@ -409,7 +486,7 @@ size_t LeAudioClientInterface::Sink::Read(uint8_t* p_buf, uint32_t len) {
 }
 
 void LeAudioClientInterface::Source::Cleanup() {
-  LOG(INFO) << __func__;
+  LOG(INFO) << __func__ << " source";
   StopSession();
   delete le_audio_source_hal_clientinterface;
   le_audio_source_hal_clientinterface = nullptr;
@@ -444,8 +521,32 @@ void LeAudioClientInterface::Source::StartSession() {
   le_audio_source_hal_clientinterface->StartSession_2_1();
 }
 
-void LeAudioClientInterface::Source::StopSession() {
+void LeAudioClientInterface::Source::ConfirmStreamingRequest() {
   LOG(INFO) << __func__;
+  if (!le_audio_source->SetAudioCtrlAckStateAndResetPendingStartStreamFlag()) {
+    LOG(WARNING) << ", no pending start stream request";
+    return;
+  }
+
+  le_audio_source_hal_clientinterface->StreamStarted(
+      BluetoothAudioCtrlAck::SUCCESS_FINISHED);
+}
+
+void LeAudioClientInterface::Source::CancelStreamingRequest() {
+  LOG(INFO) << __func__;
+  if (!le_audio_source->SetAudioCtrlAckStateAndResetPendingStartStreamFlag(
+          BluetoothAudioCtrlAck::FAILURE)) {
+    LOG(WARNING) << ", no pending start stream request";
+    return;
+  }
+
+  le_audio_source_hal_clientinterface->StreamStarted(
+      BluetoothAudioCtrlAck::FAILURE);
+}
+
+void LeAudioClientInterface::Source::StopSession() {
+  LOG(INFO) << __func__ << " source";
+  le_audio_source->SetAudioCtrlAckStateAndResetPendingStartStreamFlag();
   le_audio_source_hal_clientinterface->EndSession();
 }
 
