@@ -35,7 +35,7 @@ using bluetooth::le_audio::LeAudioClientInterface;
 
 namespace {
 class LeAudioClientInterfaceImpl;
-std::unique_ptr<LeAudioClientInterface> lEAudioInstance;
+std::unique_ptr<LeAudioClientInterface> leAudioInstance;
 
 class LeAudioClientInterfaceImpl : public LeAudioClientInterface,
                                    public LeAudioClientCallbacks {
@@ -93,9 +93,9 @@ class LeAudioClientInterfaceImpl : public LeAudioClientInterface,
 } /* namespace */
 
 LeAudioClientInterface* btif_le_audio_get_interface() {
-  if (!lEAudioInstance) {
-    lEAudioInstance.reset(new LeAudioClientInterfaceImpl());
+  if (!leAudioInstance) {
+    leAudioInstance.reset(new LeAudioClientInterfaceImpl());
   }
 
-  return lEAudioInstance.get();
+  return leAudioInstance.get();
 }
