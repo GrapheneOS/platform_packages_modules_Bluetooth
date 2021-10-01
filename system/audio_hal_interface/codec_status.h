@@ -16,9 +16,9 @@
 
 #pragma once
 
-#include <vector>
+#include <android/hardware/bluetooth/audio/2.1/types.h>
 
-#include <android/hardware/bluetooth/audio/2.0/types.h>
+#include <vector>
 
 #include "a2dp_codec_api.h"
 
