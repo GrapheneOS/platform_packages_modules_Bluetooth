@@ -350,7 +350,7 @@ class DeviceProperties {
   }
 
   bool GetLeEventSupported(bluetooth::hci::SubeventCode subevent_code) const {
-    return le_event_mask_ & (1u << static_cast<uint64_t>(subevent_code));
+    return le_event_mask_ & (1u << (static_cast<uint64_t>(subevent_code) - 1));
   }
 
   uint64_t GetLeEventMask() const { return le_event_mask_; }
