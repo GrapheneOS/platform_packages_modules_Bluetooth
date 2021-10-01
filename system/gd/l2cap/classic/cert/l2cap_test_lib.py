@@ -221,7 +221,8 @@ class L2capTestBase(GeneralL2capTestBase):
 
         (dut_channel, cert_channel) = self._open_unconfigured_channel_from_cert()
 
-        assertThat(self.cert_l2cap.get_control_channel()).emitsNone(L2capMatchers.ConfigurationResponse())
+        assertThat(self.cert_l2cap.get_control_channel()).emitsNone(
+            L2capMatchers.ConfigurationResponse(), timeout=timedelta(seconds=3))
         # TODO: Verify that IUT sends disconnect request (not mandated)
 
     @metadata(pts_test_id="L2CAP/COS/CED/BV-09-C", pts_test_name="Receive Multi-Command Packet")
@@ -711,7 +712,7 @@ class L2capTestBase(GeneralL2capTestBase):
         dut_channel.send(b'def')
 
         assertThat(cert_channel).emits(L2capMatchers.IFrame(tx_seq=0, payload=b'abc'))
-        assertThat(cert_channel).emitsNone(L2capMatchers.IFrame(tx_seq=1, payload=b'def'))
+        assertThat(cert_channel).emitsNone(L2capMatchers.IFrame(tx_seq=1, payload=b'def'), timeout=timedelta(seconds=3))
 
         cert_channel.send_s_frame(req_seq=1, f=Final.POLL_RESPONSE)
         assertThat(cert_channel).emits(L2capMatchers.IFrame(tx_seq=1))
@@ -1011,7 +1012,7 @@ class L2capTestBase(GeneralL2capTestBase):
         assertThat(cert_channel).emits(L2capMatchers.SFrame(p=l2cap_packets.Poll.POLL))
 
         cert_channel.send_s_frame(req_seq=0, s=SupervisoryFunction.RECEIVER_NOT_READY, f=Final.POLL_RESPONSE)
-        assertThat(cert_channel).emitsNone(L2capMatchers.IFrame(tx_seq=0))
+        assertThat(cert_channel).emitsNone(L2capMatchers.IFrame(tx_seq=0), timeout=timedelta(seconds=3))
 
     @metadata(pts_test_id="L2CAP/ERM/BV-22-C", pts_test_name="Exit Local Busy Condition")
     def test_exit_local_busy_condition(self):
@@ -1232,7 +1233,8 @@ class L2capTestBase(GeneralL2capTestBase):
         self.cert_l2cap.claim_ertm_unsupported()
         dut_channel_future = self.dut_l2cap.connect_dynamic_channel_to_cert(
             psm=0x33, mode=RetransmissionFlowControlMode.ERTM)
-        assertThat(self.cert_l2cap.get_control_channel()).emitsNone(L2capMatchers.ConnectionRequest(0x33))
+        assertThat(self.cert_l2cap.get_control_channel()).emitsNone(
+            L2capMatchers.ConnectionRequest(0x33), timeout=timedelta(seconds=3))
 
     @metadata(
         pts_test_id="L2CAP/CMC/BI-01-C",

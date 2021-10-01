@@ -266,7 +266,7 @@ def NOT_FOR_YOU_assert_all_events_occur(istream,
         asserts.assert_true(correct_order, "Events not received in correct order %s %s" % (match_fns, matched_order))
 
 
-def NOT_FOR_YOU_assert_none_matching(istream, match_fn, timeout=timedelta(seconds=DEFAULT_TIMEOUT_SECONDS)):
+def NOT_FOR_YOU_assert_none_matching(istream, match_fn, timeout):
     logging.debug("assert_none_matching %fs" % (timeout.total_seconds()))
     event = None
     end_time = datetime.now() + timeout
@@ -285,7 +285,7 @@ def NOT_FOR_YOU_assert_none_matching(istream, match_fn, timeout=timedelta(second
     asserts.assert_true(event is None, msg='Expected None matching, but got {}'.format(pretty_print(event)))
 
 
-def NOT_FOR_YOU_assert_none(istream, timeout=timedelta(seconds=DEFAULT_TIMEOUT_SECONDS)):
+def NOT_FOR_YOU_assert_none(istream, timeout):
     logging.debug("assert_none %fs" % (timeout.total_seconds()))
     try:
         event = istream.get_event_queue().get(timeout=timeout.total_seconds())
