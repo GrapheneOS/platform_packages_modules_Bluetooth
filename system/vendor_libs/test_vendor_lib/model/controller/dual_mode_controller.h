@@ -531,6 +531,9 @@ class DualModeController : public Device {
   // 7.8.77
   void LeSetPrivacyMode(CommandView args);
 
+  // 7.8.93 (moved to 7.8.2)
+  void LeReadBufferSizeV2(CommandView args);
+
   // 7.8.96 - 7.8.110
   void LeReadIsoTxSync(CommandView packet_view);
   void LeSetCigParameters(CommandView packet_view);
