@@ -26,7 +26,6 @@ from bluetooth_packets_python3 import hci_packets
 from bluetooth_packets_python3 import l2cap_packets
 from cert.event_stream import EventStream, FilteringEventStream
 from cert.truth import assertThat
-from cert.metadata import metadata
 from cert.behavior import when, wait_until
 from cert.behavior import IHasBehaviors
 from cert.behavior import anything
