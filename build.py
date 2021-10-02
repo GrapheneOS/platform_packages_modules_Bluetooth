@@ -34,6 +34,7 @@ import shutil
 import six
 import subprocess
 import sys
+import time
 
 # Use flags required by common-mk (find -type f | grep -nE 'use[.]' {})
 COMMON_MK_USES = [
