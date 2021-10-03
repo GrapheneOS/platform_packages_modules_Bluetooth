@@ -39,7 +39,7 @@ PosixAsyncSocketConnector::ConnectToRemoteServer(
     const std::chrono::milliseconds timeout) {
   LOG_INFO("Connecting to %s:%d in %d ms", server.c_str(), port,
            (int)timeout.count());
-  int socket_fd = socket(AF_INET, SOCK_STREAM, 0);
+  int socket_fd = socket(AF_INET, SOCK_STREAM | SOCK_CLOEXEC, 0);
   std::shared_ptr<PosixAsyncSocket> pas =
       std::make_shared<PosixAsyncSocket>(socket_fd, am_);
 
