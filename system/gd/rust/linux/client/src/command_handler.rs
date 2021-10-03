@@ -127,6 +127,13 @@ fn build_commands() -> HashMap<String, CommandOption> {
         },
     );
     command_options.insert(
+        String::from("floss"),
+        CommandOption {
+            description: String::from("Enable or disable Floss for dogfood."),
+            function_pointer: CommandHandler::cmd_floss,
+        },
+    );
+    command_options.insert(
         String::from("gatt"),
         CommandOption {
             description: String::from("GATT tools"),
@@ -255,6 +262,11 @@ impl CommandHandler {
                 self.context.lock().unwrap().manager_dbus.stop(default_adapter);
             }
             "show" => {
+                if !self.context.lock().unwrap().manager_dbus.get_floss_enabled() {
+                    println!("Floss is not enabled. First run, `floss enable`");
+                    return;
+                }
+
                 let enabled = self.context.lock().unwrap().enabled;
                 let address = match self.context.lock().unwrap().adapter_address.as_ref() {
                     Some(x) => x.clone(),
@@ -363,6 +375,26 @@ impl CommandHandler {
                             .map(|&x| DisplayUuid128Bit(x))
                             .collect::<Vec<DisplayUuid128Bit>>()
                     )
+                );
+            }
+            _ => {
+                println!("Invalid argument '{}'", args[0]);
+            }
+        });
+    }
+
+    fn cmd_floss(&mut self, args: &Vec<String>) {
+        enforce_arg_len(args, 1, "floss <enable|disable>", || match &args[0][0..] {
+            "enable" => {
+                self.context.lock().unwrap().manager_dbus.set_floss_enabled(true);
+            }
+            "disable" => {
+                self.context.lock().unwrap().manager_dbus.set_floss_enabled(false);
+            }
+            "show" => {
+                print_info!(
+                    "Floss enabled: {}",
+                    self.context.lock().unwrap().manager_dbus.get_floss_enabled()
                 );
             }
             _ => {
