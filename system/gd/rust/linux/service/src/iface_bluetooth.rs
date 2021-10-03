@@ -166,6 +166,11 @@ impl IBluetooth for IBluetoothDBus {
         0
     }
 
+    #[dbus_method("GetConnectionState")]
+    fn get_connection_state(&self, _device: BluetoothDevice) -> u32 {
+        0
+    }
+
     #[dbus_method("GetRemoteUuids")]
     fn get_remote_uuids(&self, _device: BluetoothDevice) -> Vec<Uuid128Bit> {
         vec![]

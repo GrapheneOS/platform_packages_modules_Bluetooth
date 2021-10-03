@@ -83,6 +83,27 @@ impl From<bindings::bt_bond_state_t> for BtBondState {
 
 #[derive(Clone, Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
 #[repr(u32)]
+pub enum BtConnectionState {
+    NotConnected = 0,
+    ConnectedOnly = 1,
+    EncryptedBredr = 3,
+    EncryptedLe = 5,
+}
+
+impl From<i32> for BtConnectionState {
+    fn from(item: i32) -> Self {
+        let fallback = if item > 0 {
+            BtConnectionState::ConnectedOnly
+        } else {
+            BtConnectionState::NotConnected
+        };
+
+        BtConnectionState::from_i32(item).unwrap_or(fallback)
+    }
+}
+
+#[derive(Clone, Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
+#[repr(u32)]
 pub enum BtAclState {
     Connected = 0,
     Disconnected,
@@ -884,9 +905,9 @@ impl BluetoothInterface {
         ccall!(self, cancel_bond, ffi_addr)
     }
 
-    pub fn get_connection_state(&self, addr: &RawAddress) -> i32 {
+    pub fn get_connection_state(&self, addr: &RawAddress) -> u32 {
         let ffi_addr = cast_to_const_ffi_address!(addr as *const RawAddress);
-        ccall!(self, get_connection_state, ffi_addr)
+        ccall!(self, get_connection_state, ffi_addr).to_u32().unwrap()
     }
 
     pub fn pin_reply(

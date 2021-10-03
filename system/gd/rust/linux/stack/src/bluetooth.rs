@@ -2,8 +2,8 @@
 
 use bt_topshim::btif::{
     BaseCallbacks, BaseCallbacksDispatcher, BluetoothInterface, BluetoothProperty, BtAclState,
-    BtBondState, BtDiscoveryState, BtHciErrorCode, BtPropertyType, BtSspVariant, BtState, BtStatus,
-    BtTransport, RawAddress, Uuid, Uuid128Bit,
+    BtBondState, BtConnectionState, BtDiscoveryState, BtHciErrorCode, BtPropertyType, BtSspVariant,
+    BtState, BtStatus, BtTransport, RawAddress, Uuid, Uuid128Bit,
 };
 use bt_topshim::{
     profiles::hid_host::{HHCallbacksDispatcher, HidHost},
@@ -86,6 +86,9 @@ pub trait IBluetooth {
 
     /// Gets the bond state of a single device.
     fn get_bond_state(&self, device: BluetoothDevice) -> u32;
+
+    /// Gets the connection state of a single device.
+    fn get_connection_state(&self, device: BluetoothDevice) -> u32;
 
     /// Returns the cached UUIDs of a remote device.
     fn get_remote_uuids(&self, device: BluetoothDevice) -> Vec<Uuid128Bit>;
@@ -849,6 +852,17 @@ impl IBluetooth for Bluetooth {
             Some(device) => device.bond_state.to_u32().unwrap(),
             None => BtBondState::NotBonded.to_u32().unwrap(),
         }
+    }
+
+    fn get_connection_state(&self, device: BluetoothDevice) -> u32 {
+        let addr = RawAddress::from_string(device.address.clone());
+
+        if addr.is_none() {
+            warn!("Can't check connection state. Address {} is not valid.", device.address);
+            return 0;
+        }
+
+        self.intf.lock().unwrap().get_connection_state(&addr.unwrap())
     }
 
     fn get_remote_uuids(&self, device: BluetoothDevice) -> Vec<Uuid128Bit> {

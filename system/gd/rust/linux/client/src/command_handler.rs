@@ -357,16 +357,20 @@ impl CommandHandler {
                     name: String::from("Classic Device"),
                 };
 
-                let uuids = self
-                    .context
-                    .lock()
-                    .unwrap()
-                    .adapter_dbus
-                    .as_ref()
-                    .unwrap()
-                    .get_remote_uuids(device.clone());
+                let (bonded, connected, uuids) = {
+                    let ctx = self.context.lock().unwrap();
+                    let adapter = ctx.adapter_dbus.as_ref().unwrap();
+
+                    let bonded = adapter.get_bond_state(device.clone());
+                    let connected = adapter.get_connection_state(device.clone());
+                    let uuids = adapter.get_remote_uuids(device.clone());
+
+                    (bonded, connected, uuids)
+                };
 
                 print_info!("Address: {}", &device.address);
+                print_info!("Bonded: {}", bonded);
+                print_info!("Connected: {}", connected);
                 print_info!(
                     "Uuids: {}",
                     DisplayList(
