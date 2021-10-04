@@ -125,7 +125,7 @@ LeAdvertiser::GetAdvertisement(std::chrono::steady_clock::time_point now) {
 std::unique_ptr<model::packets::LeScanResponseBuilder>
 LeAdvertiser::GetScanResponse(bluetooth::hci::Address scanned,
                               bluetooth::hci::Address scanner) {
-  if (scanned != address_.GetAddress() || !enabled_ || scan_response_.empty()) {
+  if (scanned != address_.GetAddress() || !enabled_) {
     return nullptr;
   }
   switch (filter_policy_) {
