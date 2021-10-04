@@ -271,24 +271,6 @@ static bool event_already_registered_in_le_scanning_manager(
   return false;
 }
 
-class OsiObject {
- public:
-  OsiObject(void* ptr) : ptr_(ptr) {}
-  ~OsiObject() {
-    if (ptr_ != nullptr) {
-      osi_free(ptr_);
-    }
-  }
-  void* Release() {
-    void* ptr = ptr_;
-    ptr_ = nullptr;
-    return ptr;
-  }
-
- private:
-  void* ptr_;
-};
-
 }  // namespace
 
 namespace cpp {
