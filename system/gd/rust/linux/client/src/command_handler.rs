@@ -328,19 +328,46 @@ impl CommandHandler {
             return;
         }
 
-        enforce_arg_len(args, 1, "bond <address>", || {
-            let device = BluetoothDevice {
-                address: String::from(&args[0]),
-                name: String::from("Classic Device"),
-            };
+        enforce_arg_len(args, 2, "bond <add|remove|cancel> <address>", || match &args[0][0..] {
+            "add" => {
+                let device = BluetoothDevice {
+                    address: String::from(&args[1]),
+                    name: String::from("Classic Device"),
+                };
 
-            self.context
-                .lock()
-                .unwrap()
-                .adapter_dbus
-                .as_ref()
-                .unwrap()
-                .create_bond(device, BluetoothTransport::from_i32(0).unwrap());
+                self.context
+                    .lock()
+                    .unwrap()
+                    .adapter_dbus
+                    .as_ref()
+                    .unwrap()
+                    .create_bond(device, BluetoothTransport::from_i32(0).unwrap());
+            }
+            "remove" => {
+                let device = BluetoothDevice {
+                    address: String::from(&args[1]),
+                    name: String::from("Classic Device"),
+                };
+
+                self.context.lock().unwrap().adapter_dbus.as_ref().unwrap().remove_bond(device);
+            }
+            "cancel" => {
+                let device = BluetoothDevice {
+                    address: String::from(&args[1]),
+                    name: String::from("Classic Device"),
+                };
+
+                self.context
+                    .lock()
+                    .unwrap()
+                    .adapter_dbus
+                    .as_ref()
+                    .unwrap()
+                    .cancel_bond_process(device);
+            }
+            _ => {
+                println!("Invalid argument '{}'", args[0]);
+            }
         });
     }
 
