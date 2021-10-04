@@ -47,6 +47,9 @@ class BtmInterface {
   virtual bool SecIsSecurityPending(const RawAddress& bd_addr) = 0;
   virtual void RequestPeerSCA(RawAddress const& bd_addr,
                               tBT_TRANSPORT transport) = 0;
+  virtual uint16_t GetHCIConnHandle(RawAddress const& bd_addr,
+                                    tBT_TRANSPORT transport) = 0;
+  virtual void AclDisconnectFromHandle(uint16_t handle, tHCI_STATUS reason) = 0;
   virtual ~BtmInterface() = default;
 };
 
@@ -79,6 +82,10 @@ class MockBtmInterface : public BtmInterface {
               (override));
   MOCK_METHOD((void), RequestPeerSCA,
               (RawAddress const& bd_addr, tBT_TRANSPORT transport), (override));
+  MOCK_METHOD((uint16_t), GetHCIConnHandle,
+              (RawAddress const& bd_addr, tBT_TRANSPORT transport), (override));
+  MOCK_METHOD((void), AclDisconnectFromHandle,
+              (uint16_t handle, tHCI_STATUS reason), (override));
 };
 
 /**
