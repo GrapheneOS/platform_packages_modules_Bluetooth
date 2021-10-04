@@ -48,6 +48,7 @@ cc_test {
         "libbtif",
         "libflatbuffers-cpp",
         "libg722codec",
+        "liblc3codec",
         "libosi",
         "libprotobuf-cpp-lite",
         "libudrv-uipc",

@@ -269,6 +269,7 @@ cc_test {
         "libbt-hci",
         "libbtdevice",
         "libg722codec",
+        "liblc3codec",
         "libosi",
         "libudrv-uipc",
         "libbt-protos-lite",
