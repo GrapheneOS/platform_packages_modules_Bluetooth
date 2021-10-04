@@ -188,7 +188,7 @@ class CsisClientImpl : public CsisClient {
     if (device) RemoveCsisDevice(device, group_id);
   }
 
-  void onGroupAddFromStorageCb(const RawAddress& address,
+  void OnGroupAddFromStorageCb(const RawAddress& address,
                                const bluetooth::Uuid& uuid, int group_id) {
     auto device = FindDeviceByAddress(address);
     if (device == nullptr) return;
@@ -1806,10 +1806,10 @@ class DeviceGroupsCallbacksImpl : public DeviceGroupsCallbacks {
     if (instance) instance->OnGroupMemberRemovedCb(address, group_id);
   }
 
-  void onGroupAddFromStorage(const RawAddress& address,
+  void OnGroupAddFromStorage(const RawAddress& address,
                              const bluetooth::Uuid& uuid,
                              int group_id) override {
-    if (instance) instance->onGroupAddFromStorageCb(address, uuid, group_id);
+    if (instance) instance->OnGroupAddFromStorageCb(address, uuid, group_id);
   }
 };
 
