@@ -80,8 +80,8 @@ impl ClientContext {
         dbus_crossroads: Arc<Mutex<Crossroads>>,
         tx: mpsc::Sender<ForegroundActions>,
     ) -> ClientContext {
-        // Manager interface is always available but adapter interface requires
-        // that the specific adapter is enabled.
+        // Manager interface is almost always available but adapter interface
+        // requires that the specific adapter is enabled.
         let manager_dbus =
             BluetoothManagerDBus::new(dbus_connection.clone(), dbus_crossroads.clone());
 
@@ -213,6 +213,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         // Create the context needed for handling commands
         let context = Arc::new(Mutex::new(ClientContext::new(conn, cr, tx.clone())));
+
+        // Check if manager interface is valid. We only print some help text before failing on the
+        // first actual access to the interface (so we can also capture the actual reason the
+        // interface isn't valid).
+        if !context.lock().unwrap().manager_dbus.is_valid() {
+            println!("Bluetooth manager doesn't seem to be working correctly.");
+            println!("Check if service is running.");
+            println!("...");
+        }
 
         // TODO: Registering the callback should be done when btmanagerd is ready (detect with
         // ObjectManager).

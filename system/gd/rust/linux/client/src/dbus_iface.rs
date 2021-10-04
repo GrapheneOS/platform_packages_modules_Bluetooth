@@ -112,28 +112,34 @@ impl ClientDBusProxy {
         )
     }
 
+    /// Calls a method and returns the dbus result.
+    fn method_withresult<A: AppendAll, T: 'static + dbus::arg::Arg + for<'z> dbus::arg::Get<'z>>(
+        &self,
+        member: &str,
+        args: A,
+    ) -> Result<(T,), dbus::Error> {
+        let proxy = self.create_proxy();
+        // We know that all APIs return immediately, so we can block on it for simplicity.
+        return futures::executor::block_on(async {
+            proxy.method_call(self.interface.clone(), member, args).await
+        });
+    }
+
     fn method<A: AppendAll, T: 'static + dbus::arg::Arg + for<'z> dbus::arg::Get<'z>>(
         &self,
         member: &str,
         args: A,
     ) -> T {
-        let proxy = self.create_proxy();
-        // We know that all APIs return immediately, so we can block on it for simplicity.
-        let (ret,): (T,) = futures::executor::block_on(async {
-            proxy.method_call(self.interface.clone(), member, args).await
-        })
-        .unwrap();
-
+        let (ret,): (T,) = self.method_withresult(member, args).unwrap();
         return ret;
     }
 
     fn method_noreturn<A: AppendAll>(&self, member: &str, args: A) {
-        let proxy = self.create_proxy();
-        // We know that all APIs return immediately, so we can block on it for simplicity.
-        let _: () = futures::executor::block_on(async {
-            proxy.method_call(self.interface.clone(), member, args).await
-        })
-        .unwrap();
+        // The real type should be Result<((),), _> since there is no return value. However, to
+        // meet trait constraints, we just use bool and never unwrap the result. This calls the
+        // method, waits for the response but doesn't actually attempt to parse the result (on
+        // unwrap).
+        let _: Result<(bool,), _> = self.method_withresult(member, args);
     }
 }
 
@@ -409,6 +415,11 @@ impl BluetoothManagerDBus {
                 interface: String::from("org.chromium.bluetooth.Manager"),
             },
         }
+    }
+
+    pub(crate) fn is_valid(&self) -> bool {
+        let result: Result<(bool,), _> = self.client_proxy.method_withresult("GetFlossEnabled", ());
+        return result.is_ok();
     }
 }
 
