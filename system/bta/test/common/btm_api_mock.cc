@@ -77,3 +77,14 @@ void BTM_RequestPeerSCA(RawAddress const& bd_addr, tBT_TRANSPORT transport) {
   LOG_ASSERT(btm_interface) << "Mock btm interface not set!";
   btm_interface->RequestPeerSCA(bd_addr, transport);
 }
+
+uint16_t BTM_GetHCIConnHandle(RawAddress const& bd_addr,
+                              tBT_TRANSPORT transport) {
+  LOG_ASSERT(btm_interface) << "Mock btm interface not set!";
+  return btm_interface->GetHCIConnHandle(bd_addr, transport);
+}
+
+void acl_disconnect_from_handle(uint16_t handle, tHCI_STATUS reason) {
+  LOG_ASSERT(btm_interface) << "Mock btm interface not set!";
+  return btm_interface->AclDisconnectFromHandle(handle, reason);
+}
