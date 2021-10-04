@@ -1155,7 +1155,8 @@ static void btif_dm_search_devices_evt(tBTA_DM_SEARCH_EVT event,
       /* inquiry result */
       bt_bdname_t bdname;
       uint8_t remote_name_len;
-      tBTA_SERVICE_MASK services = 0;
+      uint8_t num_uuids = 0, max_num_uuid = 32;
+      uint8_t uuid_list[32 * Uuid::kNumBytes16];
 
       p_search_data->inq_res.remt_name_not_required =
           check_eir_remote_name(p_search_data, NULL, NULL);
@@ -1169,18 +1170,15 @@ static void btif_dm_search_devices_evt(tBTA_DM_SEARCH_EVT event,
       if (!check_eir_remote_name(p_search_data, bdname.name, &remote_name_len))
         check_cached_remote_name(p_search_data, bdname.name, &remote_name_len);
 
-      /* Check EIR for remote name and services */
+      /* Check EIR for services */
       if (p_search_data->inq_res.p_eir) {
-        BTA_GetEirService(p_search_data->inq_res.p_eir,
-                          p_search_data->inq_res.eir_len, &services);
-        BTIF_TRACE_DEBUG("%s()EIR BTA services = %08X", __func__,
-                         (uint32_t)services);
-        /* TODO:  Get the service list and check to see which uuids we got and
-         * send it back to the client. */
+        BTM_GetEirUuidList(p_search_data->inq_res.p_eir,
+                           p_search_data->inq_res.eir_len, Uuid::kNumBytes16,
+                           &num_uuids, uuid_list, max_num_uuid);
       }
 
       {
-        bt_property_t properties[6];
+        bt_property_t properties[7];
         bt_device_type_t dev_type;
         uint32_t num_properties = 0;
         bt_status_t status;
@@ -1243,6 +1241,21 @@ static void btif_dm_search_devices_evt(tBTA_DM_SEARCH_EVT event,
                                    sizeof(bool),
                                    &(p_search_data->inq_res.include_rsi));
         num_properties++;
+
+        /* EIR queried services */
+        std::vector<Uuid> uuid128_list;
+        if (num_uuids > 0) {
+          uint16_t* p_uuid16 = (uint16_t*)uuid_list;
+          for (int i = 0; i < num_uuids; ++i) {
+            Uuid uuid = Uuid::From16Bit(p_uuid16[i]);
+            uuid128_list.push_back(uuid);
+          }
+
+          BTIF_STORAGE_FILL_PROPERTY(
+              &properties[num_properties], BT_PROPERTY_UUIDS,
+              num_uuids * Uuid::kNumBytes128, uuid128_list.data());
+          num_properties++;
+        }
 
         status =
             btif_storage_add_remote_device(&bdaddr, num_properties, properties);
