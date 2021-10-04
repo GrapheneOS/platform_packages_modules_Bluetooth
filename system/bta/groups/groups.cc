@@ -226,7 +226,7 @@ class DeviceGroupsImpl : public DeviceGroups {
         if (group) add_to_group(addr, group);
 
         for (auto c : callbacks_) {
-          c->onGroupAddFromStorage(addr, Uuid::From128BitLE(uuid128), id);
+          c->OnGroupAddFromStorage(addr, Uuid::From128BitLE(uuid128), id);
         }
       }
     }
