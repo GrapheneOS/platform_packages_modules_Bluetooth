@@ -42,6 +42,7 @@ import android.app.admin.DevicePolicyManager;
 import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothActivityEnergyInfo;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothAdapter.ActiveDeviceProfile;
 import android.bluetooth.BluetoothAdapter.ActiveDeviceUse;
 import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
@@ -1721,7 +1722,25 @@ public class AdapterService extends Service {
                     || !Utils.checkConnectPermissionForDataDelivery(service, source, TAG)) {
                 return false;
             }
+
+            enforceBluetoothPrivilegedPermission(service);
+
             return service.setActiveDevice(device, profiles);
+        }
+
+        @Override
+        public List<BluetoothDevice> getActiveDevices(@ActiveDeviceProfile int profile,
+                AttributionSource source) {
+            AdapterService service = getService();
+            if (service == null
+                    || !Utils.checkCallerIsSystemOrActiveUser(TAG)
+                    || !Utils.checkConnectPermissionForDataDelivery(service, source, TAG)) {
+                return new ArrayList<>();
+            }
+
+            enforceBluetoothPrivilegedPermission(service);
+
+            return service.getActiveDevices(profile);
         }
 
         @Override
@@ -2801,9 +2820,6 @@ public class AdapterService extends Service {
             android.Manifest.permission.MODIFY_PHONE_STATE,
     })
     public boolean setActiveDevice(BluetoothDevice device, @ActiveDeviceUse int profiles) {
-        enforceCallingOrSelfPermission(
-                BLUETOOTH_PRIVILEGED, "Need BLUETOOTH_PRIVILEGED permission");
-
         boolean setA2dp = false;
         boolean setHeadset = false;
 
@@ -2848,10 +2864,56 @@ public class AdapterService extends Service {
     }
 
     /**
+     * Get the active devices for the BluetoothProfile specified
+     *
+     * @param profile is the profile from which we want the active devices.
+     *                Possible values are:
+     *                {@link BluetoothProfile#HEADSET},
+     *                {@link BluetoothProfile#A2DP},
+     *                {@link BluetoothProfile#HEARING_AID}
+     * @return A list of active bluetooth devices
+     */
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
+    public List<BluetoothDevice> getActiveDevices(@ActiveDeviceProfile int profile) {
+        List<BluetoothDevice> activeDevices = new ArrayList<>();
+
+        switch (profile) {
+            case BluetoothProfile.HEADSET:
+                if (mHeadsetService == null) {
+                    Log.e(TAG, "getActiveDevices: HeadsetService is null");
+                } else {
+                    activeDevices.add(mHeadsetService.getActiveDevice());
+                    Log.i(TAG, "getActiveDevices: Headset device: " + activeDevices.get(0));
+                }
+                break;
+            case BluetoothProfile.A2DP:
+                if (mA2dpService == null) {
+                    Log.e(TAG, "getActiveDevices: A2dpService is null");
+                } else {
+                    activeDevices.add(mA2dpService.getActiveDevice());
+                    Log.i(TAG, "getActiveDevices: A2dp device: " + activeDevices.get(0));
+                }
+                break;
+            case BluetoothProfile.HEARING_AID:
+                if (mHearingAidService == null) {
+                    Log.e(TAG, "getActiveDevices: HearingAidService is null");
+                } else {
+                    activeDevices = mHearingAidService.getActiveDevices();
+                    Log.i(TAG, "getActiveDevices: Hearing Aid devices: Left["
+                            + activeDevices.get(0) + "] - Right[" + activeDevices.get(1) + "]");
+                }
+                break;
+            default:
+                Log.e(TAG, "getActiveDevices: profile value is not valid");
+        }
+        return activeDevices;
+    }
+
+    /**
      * Attempts connection to all enabled and supported bluetooth profiles between the local and
      * remote device
      *
-     * @param  device is the remote device with which to connect these profiles
+     * @param device is the remote device with which to connect these profiles
      * @return {@link BluetoothStatusCodes#SUCCESS} if all profiles connections are attempted, false
      *         if an error occurred
      */
