@@ -419,8 +419,9 @@ public final class Utils {
         if (callingUid == android.os.Process.ROOT_UID) {
             callingUid = android.os.Process.SYSTEM_UID;
         }
-        return new AttributionSource(callingUid,
-                context.getPackageManager().getPackagesForUid(callingUid)[0], null);
+        return new AttributionSource.Builder(callingUid)
+            .setPackageName(context.getPackageManager().getPackagesForUid(callingUid)[0])
+            .build();
     }
 
     @SuppressLint("AndroidFrameworkRequiresPermission")
@@ -445,9 +446,12 @@ public final class Utils {
             AttributionSource attributionSource, String message) {
         // STOPSHIP(b/188391719): enable this security enforcement
         // attributionSource.enforceCallingUid();
+        AttributionSource currentAttribution = new AttributionSource
+                .Builder(context.getAttributionSource())
+                .setNext(attributionSource)
+                .build();
         final int result = PermissionChecker.checkPermissionForDataDeliveryFromDataSource(
-                context, permission, PID_UNKNOWN,
-                new AttributionSource(context.getAttributionSource(), attributionSource), message);
+                context, permission, PID_UNKNOWN, currentAttribution, message);
         if (result == PERMISSION_GRANTED) {
             return true;
         }
@@ -686,12 +690,14 @@ public final class Utils {
             Log.e(TAG, "Permission denial: Location is off.");
             return false;
         }
-
+        AttributionSource currentAttribution = new AttributionSource
+                .Builder(context.getAttributionSource())
+                .setNext(attributionSource)
+                .build();
         // STOPSHIP(b/188391719): enable this security enforcement
         // attributionSource.enforceCallingUid();
         if (PermissionChecker.checkPermissionForDataDeliveryFromDataSource(
-                context, ACCESS_COARSE_LOCATION, PID_UNKNOWN,
-                new AttributionSource(context.getAttributionSource(), attributionSource),
+                context, ACCESS_COARSE_LOCATION, PID_UNKNOWN, currentAttribution,
                 "Bluetooth location check") == PERMISSION_GRANTED) {
             return true;
         }
@@ -715,18 +721,20 @@ public final class Utils {
             return false;
         }
 
+        final AttributionSource currentAttribution = new AttributionSource
+                .Builder(context.getAttributionSource())
+                .setNext(attributionSource)
+                .build();
         // STOPSHIP(b/188391719): enable this security enforcement
         // attributionSource.enforceCallingUid();
         if (PermissionChecker.checkPermissionForDataDeliveryFromDataSource(
-                context, ACCESS_FINE_LOCATION, PID_UNKNOWN,
-                new AttributionSource(context.getAttributionSource(), attributionSource),
+                context, ACCESS_FINE_LOCATION, PID_UNKNOWN, currentAttribution,
                 "Bluetooth location check") == PERMISSION_GRANTED) {
             return true;
         }
 
         if (PermissionChecker.checkPermissionForDataDeliveryFromDataSource(
-                context, ACCESS_COARSE_LOCATION, PID_UNKNOWN,
-                new AttributionSource(context.getAttributionSource(), attributionSource),
+                context, ACCESS_COARSE_LOCATION, PID_UNKNOWN, currentAttribution,
                 "Bluetooth location check") == PERMISSION_GRANTED) {
             return true;
         }
@@ -749,11 +757,14 @@ public final class Utils {
             return false;
         }
 
+        AttributionSource currentAttribution = new AttributionSource
+                .Builder(context.getAttributionSource())
+                .setNext(attributionSource)
+                .build();
         // STOPSHIP(b/188391719): enable this security enforcement
         // attributionSource.enforceCallingUid();
         if (PermissionChecker.checkPermissionForDataDeliveryFromDataSource(
-                context, ACCESS_FINE_LOCATION, PID_UNKNOWN,
-                new AttributionSource(context.getAttributionSource(), attributionSource),
+                context, ACCESS_FINE_LOCATION, PID_UNKNOWN, currentAttribution,
                 "Bluetooth location check") == PERMISSION_GRANTED) {
             return true;
         }
