@@ -2339,9 +2339,14 @@ ErrorCode LinkLayerController::Disconnect(uint16_t handle, uint8_t reason) {
   }
 
   const AddressWithType remote = connections_.GetAddress(handle);
-  auto packet = model::packets::DisconnectBuilder::Create(
-      properties_.GetAddress(), remote.GetAddress(), reason);
-  SendLinkLayerPacket(std::move(packet));
+  if (connections_.GetPhyType(handle) == Phy::Type::BR_EDR) {
+    SendLinkLayerPacket(model::packets::DisconnectBuilder::Create(
+        properties_.GetAddress(), remote.GetAddress(), reason));
+  } else {
+    SendLeLinkLayerPacket(model::packets::DisconnectBuilder::Create(
+        connections_.GetOwnAddress(handle).GetAddress(), remote.GetAddress(),
+        reason));
+  }
   ASSERT_LOG(connections_.Disconnect(handle), "Disconnecting %hx", handle);
 
   ScheduleTask(milliseconds(20), [this, handle]() {
