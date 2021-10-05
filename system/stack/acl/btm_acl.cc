@@ -2341,23 +2341,11 @@ void BTM_ReadConnectionAddr(const RawAddress& remote_bda,
     bluetooth::shim::L2CA_ReadConnectionAddr(remote_bda, local_conn_addr,
                                              p_addr_type);
     return;
-  } else if (bluetooth::shim::is_gd_scanning_enabled()) {
+  } else {
     bluetooth::shim::ACL_ReadConnectionAddress(remote_bda, local_conn_addr,
                                                p_addr_type);
     return;
   }
-
-  tACL_CONN* p_acl = internal_.btm_bda_to_acl(remote_bda, BT_TRANSPORT_LE);
-
-  if (p_acl == NULL) {
-    LOG_WARN("Unable to find active acl");
-    return;
-  }
-  local_conn_addr = p_acl->conn_addr;
-  *p_addr_type = p_acl->conn_addr_type;
-
-  LOG_DEBUG("BTM_ReadConnectionAddr address type: %d addr: 0x%02x",
-            p_acl->conn_addr_type, p_acl->conn_addr.address[0]);
 }
 
 /*******************************************************************************
