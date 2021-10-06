@@ -71,6 +71,12 @@ impl IBluetoothManager for BluetoothManager {
         if !config_util::modify_hci_n_enabled(hci_interface, true) {
             error!("Config is not successfully modified");
         }
+
+        // Ignore the request if adapter is already enabled.
+        if self.cached_devices.get(&hci_interface).unwrap_or(false) {
+            return;
+        }
+
         self.manager_context.proxy.start_bluetooth(hci_interface);
     }
 
@@ -79,6 +85,12 @@ impl IBluetoothManager for BluetoothManager {
         if !config_util::modify_hci_n_enabled(hci_interface, false) {
             error!("Config is not successfully modified");
         }
+
+        // Ignore the request if adapter is already disabled.
+        if !self.cached_devices.get(&hci_interface).unwrap_or(false) {
+            return;
+        }
+
         self.manager_context.proxy.stop_bluetooth(hci_interface);
     }
 
