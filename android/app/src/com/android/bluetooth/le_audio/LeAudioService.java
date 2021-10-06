@@ -176,6 +176,20 @@ public class LeAudioService extends ProfileService {
             return true;
         }
 
+        setActiveDevice(null);
+        //Don't wait for async call with INACTIVE group status, clean active
+        //device for active group.
+        for (Map.Entry<Integer, LeAudioGroupDescriptor> entry : mGroupDescriptors.entrySet()) {
+            LeAudioGroupDescriptor descriptor = entry.getValue();
+            Integer group_id = entry.getKey();
+            if (descriptor.mIsActive) {
+                descriptor.mIsActive = false;
+                updateActiveDevices(group_id, descriptor.mActiveContexts,
+                        ACTIVE_CONTEXTS_NONE, descriptor.mIsActive);
+                break;
+            }
+        }
+
         // Cleanup native interfaces
         mLeAudioNativeInterface.cleanup();
         mLeAudioNativeInterface = null;
