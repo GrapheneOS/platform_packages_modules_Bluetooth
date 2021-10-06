@@ -276,7 +276,7 @@ public class LeAudioService extends ProfileService {
                 Log.e(TAG, "Ignored connect request for " + device + " : no state machine");
                 return false;
             }
-            sm.sendMessage(LeAudioStateMachine.CONNECT, groupId);
+            sm.sendMessage(LeAudioStateMachine.CONNECT);
         }
 
         // Connect other devices from this group
@@ -289,16 +289,17 @@ public class LeAudioService extends ProfileService {
                     continue;
                 }
                 synchronized (mStateMachines) {
-                    LeAudioStateMachine sm = getOrCreateStateMachine(storedDevice);
-                    if (sm == null) {
-                        Log.e(TAG, "Ignored connect request for " + storedDevice
-                                + " : no state machine");
-                        continue;
-                    }
-                    sm.sendMessage(LeAudioStateMachine.CONNECT, groupId);
-                }
-            }
-        }
+                     LeAudioStateMachine sm = getOrCreateStateMachine(storedDevice);
+                     if (sm == null) {
+                         Log.e(TAG, "Ignored connect request for " + storedDevice
+                                 + " : no state machine");
+                         continue;
+                     }
+                     sm.sendMessage(LeAudioStateMachine.CONNECT);
+                 }
+             }
+         }
+
         return true;
     }
 
