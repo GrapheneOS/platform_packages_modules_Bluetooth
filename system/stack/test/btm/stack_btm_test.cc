@@ -19,6 +19,8 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <iomanip>
+#include <iostream>
 #include <map>
 #include <vector>
 
@@ -33,6 +35,7 @@
 #include "stack/include/acl_api.h"
 #include "stack/include/acl_hci_link_interface.h"
 #include "stack/include/btm_client_interface.h"
+#include "stack/include/hcidefs.h"
 #include "stack/l2cap/l2c_int.h"
 #include "test/mock/mock_hcic_hcicmds.h"
 #include "types/raw_address.h"
@@ -94,6 +97,12 @@ using testing::SaveArgPointee;
 using testing::StrEq;
 using testing::StrictMock;
 using testing::Test;
+
+std::string Hex16(int n) {
+  std::ostringstream oss;
+  oss << "0x" << std::hex << std::setw(4) << std::setfill('0') << n;
+  return oss.str();
+}
 
 class StackBtmTest : public Test {
  public:
@@ -168,20 +177,21 @@ TEST_F(StackBtmTest, change_packet_type) {
   btm_set_packet_types_from_address(bda, pkt_types);
   ASSERT_EQ(++cnt, mock_function_count_map["btsnd_hcic_change_conn_type"]);
   ASSERT_EQ(0x123, mock::btsnd_hcic_change_conn_type.handle);
-  ASSERT_EQ(0x4400, mock::btsnd_hcic_change_conn_type.packet_types);
+  ASSERT_EQ(Hex16(0x4400 | HCI_PKT_TYPES_MASK_DM1),
+            Hex16(mock::btsnd_hcic_change_conn_type.packet_types));
 
   mock::btsnd_hcic_change_conn_type = {};
   btm_set_packet_types_from_address(bda, 0xffff);
   ASSERT_EQ(++cnt, mock_function_count_map["btsnd_hcic_change_conn_type"]);
   ASSERT_EQ(0x123, mock::btsnd_hcic_change_conn_type.handle);
-  ASSERT_EQ(0xcc00, mock::btsnd_hcic_change_conn_type.packet_types);
+  ASSERT_EQ(Hex16(0xcc00 | HCI_PKT_TYPES_MASK_DM1 | HCI_PKT_TYPES_MASK_DH1),
+            Hex16(mock::btsnd_hcic_change_conn_type.packet_types));
 
   mock::btsnd_hcic_change_conn_type = {};
   btm_set_packet_types_from_address(bda, 0x0);
   // NOTE: The call should not be executed with no bits set
   ASSERT_EQ(0x0, mock::btsnd_hcic_change_conn_type.handle);
-  ASSERT_EQ(0x0, mock::btsnd_hcic_change_conn_type.packet_types);
-
+  ASSERT_EQ(Hex16(0x0), Hex16(mock::btsnd_hcic_change_conn_type.packet_types));
   get_btm_client_interface().lifecycle.btm_free();
 }
 
