@@ -73,7 +73,7 @@ impl IBluetoothManager for BluetoothManager {
         }
 
         // Ignore the request if adapter is already enabled.
-        if self.cached_devices.get(&hci_interface).unwrap_or(false) {
+        if *self.cached_devices.get(&hci_interface).unwrap_or(&false) {
             return;
         }
 
@@ -87,7 +87,7 @@ impl IBluetoothManager for BluetoothManager {
         }
 
         // Ignore the request if adapter is already disabled.
-        if !self.cached_devices.get(&hci_interface).unwrap_or(false) {
+        if !*self.cached_devices.get(&hci_interface).unwrap_or(&false) {
             return;
         }
 
