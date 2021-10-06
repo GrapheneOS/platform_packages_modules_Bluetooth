@@ -192,8 +192,7 @@ struct Interface {
   void (*SetControllerToHostFlowControl)();
   void (*HostBufferSize)();
   void (*HostNumCompletedPackets)();
-  void (*ReadLinkSupervisionTimeout)(uint8_t local_controller_id,
-                                     uint16_t handle, uint16_t timeout);
+  void (*ReadLinkSupervisionTimeout)(uint16_t handle, uint16_t timeout);
   void (*WriteLinkSupervisionTimeout)();
   void (*ReadNumberOfSupportedIac)();
   void (*ReadCurrentIacLap)();
@@ -467,8 +466,7 @@ extern void btsnd_hcic_host_num_xmitted_pkts(
     uint16_t* num_pkts); /* Set Host Buffer Size */
 
 /* Write Link Supervision Timeout */
-extern void btsnd_hcic_write_link_super_tout(uint8_t local_controller_id,
-                                             uint16_t handle, uint16_t timeout);
+extern void btsnd_hcic_write_link_super_tout(uint16_t handle, uint16_t timeout);
 /* Write Link Supervision Timeout */
 
 extern void btsnd_hcic_write_cur_iac_lap(
