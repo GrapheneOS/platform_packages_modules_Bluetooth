@@ -264,6 +264,16 @@ bool btif_storage_get_hearing_aid_prop(
     const RawAddress& address, uint8_t* capabilities, uint64_t* hi_sync_id,
     uint16_t* render_delay, uint16_t* preparation_delay, uint16_t* codecs);
 
+/** Store Le Audio device autoconnect flag */
+void btif_storage_set_leaudio_autoconnect(const RawAddress& addr,
+                                          bool autoconnect);
+
+/** Remove Le Audio device from the storage */
+void btif_storage_remove_leaudio(const RawAddress& address);
+
+/** Load bonded Le Audio devices */
+void btif_storage_load_bonded_leaudio(void);
+
 /*******************************************************************************
  *
  * Function         btif_storage_is_retricted_device

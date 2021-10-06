@@ -103,7 +103,7 @@ cc_library_shared {
         "libbt-sbc-encoder",
         "libFraunhoferAAC",
         "libg722codec",
-	"liblc3codec",
+        "liblc3codec",
         "libudrv-uipc",
         "libprotobuf-cpp-lite",
         "libbluetooth_gd", // Gabeldorsche

@@ -97,6 +97,13 @@ filegroup {
 }
 
 filegroup {
+    name: "TestMockBtaLeAudio",
+    srcs: [
+      "mock/mock_bta_leaudio*.cc",
+    ],
+}
+
+filegroup {
     name: "TestMockBtaPan",
     srcs: [
       "mock/mock_bta_pan_*.cc",
@@ -139,6 +146,7 @@ filegroup {
       ":TestMockBtaHf",
       ":TestMockBtaHh",
       ":TestMockBtaJv",
+      ":TestMockBtaLeAudio",
       ":TestMockBtaPan",
       ":TestMockBtaSdp",
       ":TestMockBtaSys",

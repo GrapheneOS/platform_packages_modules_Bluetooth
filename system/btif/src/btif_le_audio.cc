@@ -20,10 +20,11 @@
 
 #include <vector>
 
+#include "audio_hal_interface/hal_version_manager.h"
+#include "bta_le_audio_api.h"
 #include "btif_common.h"
 #include "btif_storage.h"
-#include "hardware/bt_le_audio.h"
-#include "types/raw_address.h"
+#include "stack/include/btu.h"
 
 using base::Bind;
 using base::Unretained;
@@ -70,21 +71,69 @@ class LeAudioClientInterfaceImpl : public LeAudioClientInterface,
 
   void Initialize(LeAudioClientCallbacks* callbacks) override {
     this->callbacks = callbacks;
+    do_in_main_thread(
+        FROM_HERE,
+        Bind(&LeAudioClient::Initialize, this,
+             jni_thread_wrapper(FROM_HERE,
+                                Bind(&btif_storage_load_bonded_leaudio)),
+             base::Bind([]() -> bool {
+               return bluetooth::audio::HalVersionManager::GetHalVersion() ==
+                      bluetooth::audio::BluetoothAudioHalVersion::VERSION_2_1;
+             })));
   }
 
-  void Cleanup(void) override {}
+  void Cleanup(void) override {
+    DVLOG(2) << __func__;
+    do_in_main_thread(FROM_HERE, Bind(&LeAudioClient::Cleanup));
+  }
 
-  void RemoveDevice(const RawAddress& address) override {}
+  void RemoveDevice(const RawAddress& address) override {
+    DVLOG(2) << __func__ << " address: " << address;
+    do_in_main_thread(FROM_HERE,
+                      Bind(&LeAudioClient::RemoveDevice,
+                           Unretained(LeAudioClient::Get()), address));
 
-  void Connect(const RawAddress& address) override {}
+    do_in_jni_thread(FROM_HERE, Bind(&btif_storage_remove_leaudio, address));
+  }
 
-  void GroupAddNode(const int group_id, const RawAddress& addr) override {}
+  void Connect(const RawAddress& address) override {
+    DVLOG(2) << __func__ << " address: " << address;
+    do_in_main_thread(FROM_HERE,
+                      Bind(&LeAudioClient::Connect,
+                           Unretained(LeAudioClient::Get()), address));
+  }
 
-  void Disconnect(const RawAddress& address) override {}
+  void Disconnect(const RawAddress& address) override {
+    DVLOG(2) << __func__ << " address: " << address;
+    do_in_main_thread(FROM_HERE,
+                      Bind(&LeAudioClient::Disconnect,
+                           Unretained(LeAudioClient::Get()), address));
+    do_in_jni_thread(
+        FROM_HERE, Bind(&btif_storage_set_leaudio_autoconnect, address, false));
+  }
 
-  void GroupRemoveNode(const int group_id, const RawAddress& addr) override {}
+  void GroupAddNode(const int group_id, const RawAddress& address) override {
+    DVLOG(2) << __func__ << " group_id: " << group_id
+             << " address: " << address;
+    do_in_main_thread(
+        FROM_HERE, Bind(&LeAudioClient::GroupAddNode,
+                        Unretained(LeAudioClient::Get()), group_id, address));
+  }
 
-  void GroupSetActive(const int group_id) override {}
+  void GroupRemoveNode(const int group_id, const RawAddress& address) override {
+    DVLOG(2) << __func__ << " group_id: " << group_id
+             << " address: " << address;
+    do_in_main_thread(
+        FROM_HERE, Bind(&LeAudioClient::GroupRemoveNode,
+                        Unretained(LeAudioClient::Get()), group_id, address));
+  }
+
+  void GroupSetActive(const int group_id) override {
+    DVLOG(2) << __func__ << " group_id: " << group_id;
+    do_in_main_thread(FROM_HERE,
+                      Bind(&LeAudioClient::GroupSetActive,
+                           Unretained(LeAudioClient::Get()), group_id));
+  }
 
  private:
   LeAudioClientCallbacks* callbacks;
