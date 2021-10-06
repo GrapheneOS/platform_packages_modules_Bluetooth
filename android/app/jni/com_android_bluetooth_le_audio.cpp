@@ -68,8 +68,7 @@ class LeAudioClientCallbacksImpl : public LeAudioClientCallbacks {
                                  (jint)state, addr.get());
   }
 
-  void OnGroupStatus(uint8_t group_id, GroupStatus group_status,
-                     uint8_t group_flags) override {
+  void OnGroupStatus(int group_id, GroupStatus group_status) override {
     LOG(INFO) << __func__;
 
     std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
@@ -77,8 +76,7 @@ class LeAudioClientCallbacksImpl : public LeAudioClientCallbacks {
     if (!sCallbackEnv.valid() || mCallbacksObj == nullptr) return;
 
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onGroupStatus,
-                                 (jint)group_id, (jint)group_status,
-                                 (jint)group_flags);
+                                 (jint)group_id, (jint)group_status);
   }
 
   void OnAudioConf(uint8_t direction, int group_id,
@@ -100,7 +98,7 @@ class LeAudioClientCallbacksImpl : public LeAudioClientCallbacks {
 static LeAudioClientCallbacksImpl sLeAudioClientCallbacks;
 
 static void classInitNative(JNIEnv* env, jclass clazz) {
-  method_onGroupStatus = env->GetMethodID(clazz, "onGroupStatus", "(III)V");
+  method_onGroupStatus = env->GetMethodID(clazz, "onGroupStatus", "(II)V");
   method_onAudioConf = env->GetMethodID(clazz, "onAudioConf", "(IIIII)V");
   method_onConnectionStateChanged =
       env->GetMethodID(clazz, "onConnectionStateChanged", "(I[B)V");

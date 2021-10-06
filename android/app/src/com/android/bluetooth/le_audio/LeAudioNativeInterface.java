@@ -99,13 +99,11 @@ public class LeAudioNativeInterface {
         sendMessageToService(event);
     }
 
-    private void onGroupStatus(int groupId, int groupStatus, int groupFlags) {
+    private void onGroupStatus(int groupId, int groupStatus) {
         LeAudioStackEvent event =
                 new LeAudioStackEvent(LeAudioStackEvent.EVENT_TYPE_GROUP_STATUS_CHANGED);
         event.valueInt1 = groupId;
         event.valueInt2 = groupStatus;
-        event.valueInt3 = groupFlags;
-        event.device = null;
 
         if (DBG) {
             Log.d(TAG, "onGroupStatus: " + event);
