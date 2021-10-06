@@ -64,8 +64,7 @@
  * really wanted to make sure, that no other code or build impact is generated
  * by the options in this file.
  */
-//TODO: pick a FFT implementation library
-//#define USE_KISSFFT
+#define USE_OWN_FFT
 
 #if defined USE_FFTW || defined USE_FFTW_FOR_FFT
 #include <fftw3.h>
@@ -116,6 +115,8 @@ class KissfftConfig {
   kissfft<double>* fft;
 };
 
+#elif defined USE_OWN_FFT
+#include "fft.h"
 #endif
 
 DctIVDbl::DctIVDbl(uint16_t NF_)
@@ -134,6 +135,8 @@ DctIVDbl::DctIVDbl(uint16_t NF_)
 #elif defined USE_KISSFFT
   dctIVconfig = new KissfftConfig(NF / 2);
 
+#elif defined USE_OWN_FFT
+// setup is not needed
 #endif
 
   for (uint16_t n = 0; n < NF; n++) {
@@ -155,6 +158,8 @@ DctIVDbl::~DctIVDbl() {
     delete kissfftConfig;
   }
 
+#elif defined USE_OWN_FFT
+// cleanup is not needed
 #endif
   if (nullptr != in) {
     delete[] in;
@@ -230,6 +235,31 @@ void DctIVDbl::run() {
         kissfftConfig->twiddle[n] * kissfftConfig->outbuf[n];
     out[2 * n] = complexOut.real() * 2;
     out[NF - 2 * n - 1] = -complexOut.imag() * 2;
+  }
+
+#elif defined USE_OWN_FFT
+
+  fft_complex inbuf[NF / 2];
+  fft_complex outbuf[NF / 2];
+
+  // assume NF being 4 times an integer
+  for (uint16_t n = 1; n < NF / 2; n += 2) {
+    double buffer;
+    buffer = in[n];
+    in[n] = in[NF - n];
+    in[NF - n] = buffer;
+  }
+
+  for (uint16_t n = 0; n < NF / 2; n++) {
+    inbuf[n].re = in[2 * n];
+    inbuf[n].im = in[2 * n + 1];
+  }
+
+  fft_complex* actal_output = fft(false, inbuf, NF / 2, inbuf, outbuf);
+
+  for (uint16_t n = 0; n < NF / 2; n++) {
+    out[2 * n] = actal_output[n].re;
+    out[NF - 2 * n - 1] = actal_output[n].im;
   }
 
 #else

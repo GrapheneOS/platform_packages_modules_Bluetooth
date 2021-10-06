@@ -18,6 +18,7 @@ cc_library_static {
     defaults: ["fluoride_defaults"],
     srcs: [
         "Common/*.cpp",
+        "Common/fft/*.c",
         "Common/Tables/*.cpp",
         "Encoder/*.cpp",
         "Decoder/*.cpp",
@@ -46,6 +47,7 @@ cc_library_static {
     export_include_dirs: [
         "Api",
         "Common",
+        "Common/fft",
         "Common/Tables",
         "TestSupport",
     ],
