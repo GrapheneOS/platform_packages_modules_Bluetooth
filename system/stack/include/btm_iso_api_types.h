@@ -25,6 +25,19 @@
 
 namespace bluetooth {
 namespace hci {
+constexpr uint8_t kIsoCodingFormatLc3 = 0x06;
+constexpr uint8_t kIsoCodingFormatVendorSpecific = 0xFF;
+
+constexpr uint8_t kIsoCigPackingSequential = 0x00;
+constexpr uint8_t kIsoCigPackingInterleaved = 0x01;
+
+constexpr uint8_t kIsoCigFramingUnframed = 0x00;
+constexpr uint8_t kIsoCigFramingFramed = 0x01;
+
+constexpr uint8_t kIsoCigPhy1M = 0x01;
+constexpr uint8_t kIsoCigPhy2M = 0x02;
+constexpr uint8_t kIsoCigPhyC = 0x04;
+
 namespace iso_manager {
 
 constexpr uint8_t kIsoDataPathDirectionIn = 0x00;
