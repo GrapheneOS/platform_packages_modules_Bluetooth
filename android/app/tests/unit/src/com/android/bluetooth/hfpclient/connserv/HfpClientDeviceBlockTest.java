@@ -25,7 +25,6 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadsetClient;
 import android.bluetooth.BluetoothHeadsetClientCall;
-import android.bluetooth.hfpclient.connserv.BluetoothHeadsetClientProxy;
 import android.content.Context;
 import android.content.res.Resources;
 import android.net.Uri;
