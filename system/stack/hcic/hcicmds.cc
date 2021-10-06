@@ -1353,8 +1353,7 @@ void btsnd_hcic_host_num_xmitted_pkts(uint8_t num_handles, uint16_t* handle,
   btu_hcif_send_cmd(LOCAL_BR_EDR_CONTROLLER_ID, p);
 }
 
-void btsnd_hcic_write_link_super_tout(uint8_t local_controller_id,
-                                      uint16_t handle, uint16_t timeout) {
+void btsnd_hcic_write_link_super_tout(uint16_t handle, uint16_t timeout) {
   BT_HDR* p = (BT_HDR*)osi_malloc(HCI_CMD_BUF_SIZE);
   uint8_t* pp = (uint8_t*)(p + 1);
 
@@ -1367,7 +1366,7 @@ void btsnd_hcic_write_link_super_tout(uint8_t local_controller_id,
   UINT16_TO_STREAM(pp, handle);
   UINT16_TO_STREAM(pp, timeout);
 
-  btu_hcif_send_cmd(local_controller_id, p);
+  btu_hcif_send_cmd(LOCAL_BR_EDR_CONTROLLER_ID, p);
 }
 
 void btsnd_hcic_write_cur_iac_lap(uint8_t num_cur_iac, LAP* const iac_lap) {
