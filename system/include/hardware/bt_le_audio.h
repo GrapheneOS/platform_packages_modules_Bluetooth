@@ -62,10 +62,6 @@ class LeAudioClientCallbacks {
                            uint32_t snk_audio_location,
                            uint32_t src_audio_location,
                            uint16_t avail_cont) = 0;
-
-  /* Callback for available set member  */
-  virtual void OnSetMemberAvailable(const RawAddress& address,
-                                    uint8_t group_id) = 0;
 };
 
 class LeAudioClientInterface {
