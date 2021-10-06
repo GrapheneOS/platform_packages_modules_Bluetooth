@@ -141,6 +141,12 @@ uint16_t AVRC_FindService(uint16_t service_uuid, const RawAddress& bd_addr,
     /* perform service search */
     result =
         SDP_ServiceSearchAttributeRequest(bd_addr, p_db->p_db, avrc_sdp_cback);
+
+    if (!result) {
+      AVRC_TRACE_ERROR("%s: Failed to init SDP for peer %s", __func__,
+                       bd_addr.ToString().c_str());
+      avrc_sdp_cback(SDP_GENERIC_ERROR);
+    }
   }
 
   return (result ? AVRC_SUCCESS : AVRC_FAIL);
