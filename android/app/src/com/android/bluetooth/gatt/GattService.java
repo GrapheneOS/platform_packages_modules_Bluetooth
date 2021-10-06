@@ -137,6 +137,15 @@ public class GattService extends ProfileService {
     private static final UUID FIDO_SERVICE_UUID =
             UUID.fromString("0000FFFD-0000-1000-8000-00805F9B34FB"); // U2F
 
+    private static final UUID[] LE_AUDIO_SERVICE_UUIDS = {
+            UUID.fromString("00001844-0000-1000-8000-00805F9B34FB"), // VCS
+            UUID.fromString("00001845-0000-1000-8000-00805F9B34FB"), // VOCS
+            UUID.fromString("00001843-0000-1000-8000-00805F9B34FB"), // AICS
+            UUID.fromString("00001850-0000-1000-8000-00805F9B34FB"), // PACS
+            UUID.fromString("0000184E-0000-1000-8000-00805F9B34FB"), // ASCS
+            UUID.fromString("0000184F-0000-1000-8000-00805F9B34FB"), // BASS
+    };
+
     /**
      * Example raw beacons captured from a Blue Charm BC011
      */
@@ -1589,8 +1598,7 @@ public class GattService extends ProfileService {
 
                     currSrvc = new BluetoothGattService(el.uuid, el.id, el.type);
                     dbOut.add(currSrvc);
-                    isRestrictedSrvc =
-                            isFidoSrvcUuid(el.uuid) || isAndroidTvRemoteSrvcUuid(el.uuid);
+                    isRestrictedSrvc = isRestrictedSrvcUuid(el.uuid);
                     isHidSrvc = isHidSrvcUuid(el.uuid);
                     if (isRestrictedSrvc) {
                         restrictedIds.add(el.id);
@@ -3698,6 +3706,16 @@ public class GattService extends ProfileService {
 
     private boolean isFidoSrvcUuid(final UUID uuid) {
         return FIDO_SERVICE_UUID.equals(uuid);
+    }
+
+    private boolean isLeAudioSrvcUuid(final UUID uuid) {
+        return LE_AUDIO_SERVICE_UUIDS.equals(uuid);
+    }
+
+    private boolean isRestrictedSrvcUuid(final UUID uuid) {
+        return isLeAudioSrvcUuid(uuid) ||
+               isAndroidTvRemoteSrvcUuid(uuid) ||
+               isLeAudioSrvcUuid(uuid);
     }
 
     private int getDeviceType(BluetoothDevice device) {
