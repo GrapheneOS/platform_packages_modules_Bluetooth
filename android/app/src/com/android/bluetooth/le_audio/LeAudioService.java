@@ -251,7 +251,7 @@ public class LeAudioService extends ProfileService {
         //TODO: disconnect active device if it's not in groupId
 
         if (DBG) {
-            Log.d(TAG, "connect(): " + device + "group id: " + groupId);
+            Log.d(TAG, "connect(): " + device + " group id: " + groupId);
         }
 
         synchronized (mStateMachines) {
