@@ -38,6 +38,9 @@ interface IBluetoothLeAudio {
 
     const int LE_AUDIO_GROUP_ID_INVALID = -1;
 
+    const int GROUP_STATUS_INACTIVE = 0;
+    const int GROUP_STATUS_ACTIVE = 1;
+
     /**
      * Get device group id. Devices with same group id belong to same group (i.e left and right
      * earbud)
