@@ -1144,8 +1144,7 @@ public class LeAudioService extends ProfileService {
         if (device == null) {
             return LE_AUDIO_GROUP_ID_INVALID;
         }
-        //TODO: implement
-        return LE_AUDIO_GROUP_ID_INVALID;
+        return mDeviceGroupIdMap.getOrDefault(device, LE_AUDIO_GROUP_ID_INVALID);
     }
 
     /**
