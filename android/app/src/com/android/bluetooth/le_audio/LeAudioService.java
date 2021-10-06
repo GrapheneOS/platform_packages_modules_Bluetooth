@@ -821,12 +821,6 @@ public class LeAudioService extends ProfileService {
             int group_status = stackEvent.valueInt2;
 
             switch (group_status) {
-                case LeAudioStackEvent.GROUP_STATUS_IDLE:
-                case LeAudioStackEvent.GROUP_STATUS_RECONFIGURED:
-                case LeAudioStackEvent.GROUP_STATUS_DESTROYED:
-                case LeAudioStackEvent.GROUP_STATUS_SUSPENDED:
-                case LeAudioStackEvent.GROUP_STATUS_STREAMING:
-                    break;
                 case LeAudioStackEvent.GROUP_STATUS_ACTIVE: {
                     LeAudioGroupDescriptor descriptor = mGroupDescriptors.get(group_id);
                     if (descriptor != null) {

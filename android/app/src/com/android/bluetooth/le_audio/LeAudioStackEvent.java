@@ -40,13 +40,8 @@ public class LeAudioStackEvent {
     static final int CONNECTION_STATE_CONNECTED = 2;
     static final int CONNECTION_STATE_DISCONNECTING = 3;
 
-    static final int GROUP_STATUS_IDLE = 0;
+    static final int GROUP_STATUS_INACTIVE = 0;
     static final int GROUP_STATUS_ACTIVE = 1;
-    static final int GROUP_STATUS_INACTIVE = 2;
-    static final int GROUP_STATUS_STREAMING = 3;
-    static final int GROUP_STATUS_SUSPENDED = 4;
-    static final int GROUP_STATUS_RECONFIGURED = 5;
-    static final int GROUP_STATUS_DESTROYED = 6;
 
     static final int GROUP_NODE_ADDED = 1;
     static final int GROUP_NODE_REMOVED = 2;
@@ -127,20 +122,10 @@ public class LeAudioStackEvent {
         switch (type) {
             case EVENT_TYPE_GROUP_STATUS_CHANGED:
                 switch (value) {
-                    case GROUP_STATUS_IDLE:
-                        return "GROUP_STATUS_IDLE";
                     case GROUP_STATUS_ACTIVE:
                         return "GROUP_STATUS_ACTIVE";
                     case GROUP_STATUS_INACTIVE:
                         return "GROUP_STATUS_INACTIVE";
-                    case GROUP_STATUS_STREAMING:
-                        return "GROUP_STATUS_STREAMING";
-                    case GROUP_STATUS_SUSPENDED:
-                        return "GROUP_STATUS_SUSPENDED";
-                    case GROUP_STATUS_RECONFIGURED:
-                        return "GROUP_STATUS_RECONFIGURED";
-                    case GROUP_STATUS_DESTROYED:
-                        return "GROUP_STATUS_DESTROYED";
                     default:
                         break;
                 }
