@@ -287,8 +287,7 @@ void btsnd_hcic_write_inqscan_type(uint8_t type) {
 void btsnd_hcic_write_inquiry_mode(uint8_t mode) {
   mock_function_count_map[__func__]++;
 }
-void btsnd_hcic_write_link_super_tout(uint8_t local_controller_id,
-                                      uint16_t handle, uint16_t timeout) {
+void btsnd_hcic_write_link_super_tout(uint16_t handle, uint16_t timeout) {
   mock_function_count_map[__func__]++;
 }
 void btsnd_hcic_write_page_tout(uint16_t timeout) {
