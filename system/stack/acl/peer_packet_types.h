@@ -43,7 +43,7 @@ class PeerPacketTypes {
   struct {
     uint16_t supported{0};
     uint16_t unsupported{0};
-  } acl, sco;
+  } acl{.supported = (HCI_PKT_TYPES_MASK_DM1 | HCI_PKT_TYPES_MASK_DH1)}, sco{};
 
   PeerPacketTypes(const BD_FEATURES& features) {
     /* 3 and 5 slot packets? */
