@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package android.bluetooth.hfpclient.connserv;
+package com.android.bluetooth.hfpclient.connserv;
 
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadsetClient;
 import android.bluetooth.BluetoothHeadsetClientCall;
 import android.os.Bundle;
+
+import com.android.internal.annotations.VisibleForTesting;
 
 import java.util.List;
 
@@ -32,7 +34,7 @@ public class BluetoothHeadsetClientProxy {
 
     private final BluetoothHeadsetClient mBluetoothHeadsetClient;
 
-    public BluetoothHeadsetClientProxy(BluetoothHeadsetClient bluetoothHeadsetClient) {
+    private BluetoothHeadsetClientProxy(BluetoothHeadsetClient bluetoothHeadsetClient) {
         mBluetoothHeadsetClient = bluetoothHeadsetClient;
     }
 
@@ -98,5 +100,29 @@ public class BluetoothHeadsetClientProxy {
     /** @see BluetoothHeadsetClient#getCurrentCalls(BluetoothDevice) */
     public List<BluetoothHeadsetClientCall> getCurrentCalls(BluetoothDevice device) {
         return mBluetoothHeadsetClient.getCurrentCalls(device);
+    }
+
+    /**
+     * Factory class for {@link BluetoothHeadsetClientProxy}
+     */
+    public static class Factory {
+        private static Factory sInstance = new Factory();
+
+        @VisibleForTesting
+        static void setInstance(Factory instance) {
+            sInstance = instance;
+        }
+
+        /**
+         * Returns an instance of {@link BluetoothHeadsetClientProxy}
+         */
+        public static BluetoothHeadsetClientProxy build(BluetoothHeadsetClient proxy) {
+            return sInstance.buildInternal(proxy);
+        }
+
+        protected BluetoothHeadsetClientProxy buildInternal(BluetoothHeadsetClient proxy) {
+            return  new BluetoothHeadsetClientProxy(proxy);
+        }
+
     }
 }
