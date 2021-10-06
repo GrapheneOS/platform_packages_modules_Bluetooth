@@ -78,7 +78,6 @@ target(lib_type, "bluetooth") {
     "//bt/brcm/include",
     "//bt/embdrv/sbc/encoder/include",
     "//bt/embdrv/sbc/decoder/include",
-    "//bt/embdrv/lc3/Api",
     "//bt/utils/include",
     "//bt/test/suite",
   ]
@@ -91,7 +90,6 @@ target(lib_type, "bluetooth") {
     "//bt/device",
     "//bt/embdrv/g722",
     "//bt/embdrv/sbc",
-    "//bt/embdrv/lc3",
     "//bt/gd:libbluetooth_gd",
     "//bt/hci",
     "//bt/main/shim:LibBluetoothShimSources",
