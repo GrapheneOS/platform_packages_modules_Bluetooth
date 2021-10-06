@@ -541,7 +541,6 @@ class BtifAvSource {
   std::set<RawAddress> silenced_peers_;
   RawAddress active_peer_;
   std::map<uint8_t, tBTA_AV_HNDL> peer_id2bta_handle_;
-  std::mutex mutex_;
 };
 
 class BtifAvSink {
@@ -660,7 +659,6 @@ class BtifAvSink {
   std::map<RawAddress, BtifAvPeer*> peers_;
   RawAddress active_peer_;
   std::map<uint8_t, tBTA_AV_HNDL> peer_id2bta_handle_;
-  std::mutex mutex_;
 };
 
 /*****************************************************************************
@@ -1048,7 +1046,6 @@ BtifAvPeer* BtifAvSource::FindPeerByPeerId(uint8_t peer_id) {
 
 BtifAvPeer* BtifAvSource::FindOrCreatePeer(const RawAddress& peer_address,
                                            tBTA_AV_HNDL bta_handle) {
-  std::unique_lock<std::mutex> lock(mutex_);
   BTIF_TRACE_DEBUG("%s: peer_address=%s bta_handle=0x%x", __PRETTY_FUNCTION__,
                    peer_address.ToString().c_str(), bta_handle);
 
@@ -1153,7 +1150,6 @@ void BtifAvSource::RegisterAllBtaHandles() {
 }
 
 void BtifAvSource::DeregisterAllBtaHandles() {
-  std::unique_lock<std::mutex> lock(mutex_);
   for (auto it : peer_id2bta_handle_) {
     tBTA_AV_HNDL bta_handle = it.second;
     BTA_AvDeregister(bta_handle);
@@ -1163,7 +1159,6 @@ void BtifAvSource::DeregisterAllBtaHandles() {
 
 void BtifAvSource::BtaHandleRegistered(uint8_t peer_id,
                                        tBTA_AV_HNDL bta_handle) {
-  std::unique_lock<std::mutex> lock(mutex_);
   peer_id2bta_handle_.insert(std::make_pair(peer_id, bta_handle));
 
   // Set the BTA Handle for the Peer (if exists)
@@ -1256,7 +1251,6 @@ BtifAvPeer* BtifAvSink::FindPeerByPeerId(uint8_t peer_id) {
 
 BtifAvPeer* BtifAvSink::FindOrCreatePeer(const RawAddress& peer_address,
                                          tBTA_AV_HNDL bta_handle) {
-  std::unique_lock<std::mutex> lock(mutex_);
   BTIF_TRACE_DEBUG("%s: peer_address=%s bta_handle=0x%x", __PRETTY_FUNCTION__,
                    peer_address.ToString().c_str(), bta_handle);
 
@@ -1364,7 +1358,6 @@ void BtifAvSink::RegisterAllBtaHandles() {
 }
 
 void BtifAvSink::DeregisterAllBtaHandles() {
-  std::unique_lock<std::mutex> lock(mutex_);
   for (auto it : peer_id2bta_handle_) {
     tBTA_AV_HNDL bta_handle = it.second;
     BTA_AvDeregister(bta_handle);
@@ -1373,7 +1366,6 @@ void BtifAvSink::DeregisterAllBtaHandles() {
 }
 
 void BtifAvSink::BtaHandleRegistered(uint8_t peer_id, tBTA_AV_HNDL bta_handle) {
-  std::unique_lock<std::mutex> lock(mutex_);
   peer_id2bta_handle_.insert(std::make_pair(peer_id, bta_handle));
 
   // Set the BTA Handle for the Peer (if exists)

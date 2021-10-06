@@ -1774,8 +1774,9 @@ void btm_ble_process_ext_adv_pkt(uint8_t data_len, uint8_t* data) {
   /* Extract the number of reports in this event. */
   STREAM_TO_UINT8(num_reports, p);
 
+  constexpr int extended_report_header_size = 24;
   while (num_reports--) {
-    if (p > data + data_len) {
+    if (p + extended_report_header_size > data + data_len) {
       // TODO(jpawlowski): we should crash the stack here
       BTM_TRACE_ERROR(
           "Malformed LE Extended Advertising Report Event from controller - "
@@ -1836,8 +1837,9 @@ void btm_ble_process_adv_pkt(uint8_t data_len, uint8_t* data) {
   /* Extract the number of reports in this event. */
   STREAM_TO_UINT8(num_reports, p);
 
+  constexpr int report_header_size = 10;
   while (num_reports--) {
-    if (p > data + data_len) {
+    if (p + report_header_size > data + data_len) {
       // TODO(jpawlowski): we should crash the stack here
       BTM_TRACE_ERROR("Malformed LE Advertising Report Event from controller");
       return;
