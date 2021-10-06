@@ -214,8 +214,7 @@ void hci_btm_set_link_supervision_timeout(tACL_CONN& link, uint16_t timeout) {
   LOG_DEBUG("Setting link supervision timeout:%.2fs peer:%s",
             double(timeout) * 0.01, PRIVATE_ADDRESS(link.RemoteAddress()));
   link.link_super_tout = timeout;
-  btsnd_hcic_write_link_super_tout(LOCAL_BR_EDR_CONTROLLER_ID, link.Handle(),
-                                   timeout);
+  btsnd_hcic_write_link_super_tout(link.Handle(), timeout);
 }
 
 /* 3 seconds timeout waiting for responses */
@@ -1175,8 +1174,7 @@ tBTM_STATUS BTM_SetLinkSuperTout(const RawAddress& remote_bda,
   /* Only send if current role is Central; 2.0 spec requires this */
   if (p_acl->link_role == HCI_ROLE_CENTRAL) {
     p_acl->link_super_tout = timeout;
-    btsnd_hcic_write_link_super_tout(LOCAL_BR_EDR_CONTROLLER_ID,
-                                     p_acl->hci_handle, timeout);
+    btsnd_hcic_write_link_super_tout(p_acl->hci_handle, timeout);
     LOG_DEBUG("Set supervision timeout:%.2fms bd_addr:%s",
               supervision_timeout_to_seconds(timeout),
               PRIVATE_ADDRESS(remote_bda));
