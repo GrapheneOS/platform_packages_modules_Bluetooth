@@ -18,7 +18,7 @@ use tokio::sync::mpsc::{Receiver, Sender};
 
 use crate::bluetooth::Bluetooth;
 use crate::bluetooth_gatt::BluetoothGatt;
-use crate::bluetooth_media::BluetoothMedia;
+use crate::bluetooth_media::{BluetoothMedia, MediaActions};
 use bt_topshim::{
     btif::BaseCallbacks,
     profiles::{
@@ -38,6 +38,7 @@ pub enum BluetoothCallbackType {
 
 /// Message types that are sent to the stack main dispatch loop.
 pub enum Message {
+    // Callbacks from libbluetooth
     A2dp(A2dpCallbacks),
     Avrcp(AvrcpCallbacks),
     Base(BaseCallbacks),
@@ -45,6 +46,11 @@ pub enum Message {
     GattServer(GattServerCallbacks),
     HidHost(HHCallbacks),
     Sdp(SdpCallbacks),
+
+    // Actions within the stack
+    Media(MediaActions),
+
+    // Client callback disconnections
     BluetoothCallbackDisconnected(u32, BluetoothCallbackType),
 }
 
@@ -101,6 +107,10 @@ impl Stack {
 
                 Message::Sdp(s) => {
                     bluetooth.lock().unwrap().dispatch_sdp_callbacks(s);
+                }
+
+                Message::Media(action) => {
+                    bluetooth_media.lock().unwrap().dispatch_media_actions(action);
                 }
 
                 Message::BluetoothCallbackDisconnected(id, cb_type) => {

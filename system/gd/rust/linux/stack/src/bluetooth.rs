@@ -21,7 +21,7 @@ use std::sync::Mutex;
 use std::time::Instant;
 use tokio::sync::mpsc::Sender;
 
-use crate::bluetooth_media::{BluetoothMedia, IBluetoothMedia};
+use crate::bluetooth_media::{BluetoothMedia, IBluetoothMedia, MediaActions};
 use crate::uuid::{Profile, UuidHelper};
 use crate::{BluetoothCallbackType, Message, RPCProxy};
 
@@ -954,6 +954,15 @@ impl IBluetooth for Bluetooth {
                                 self.hh.as_ref().unwrap().connect(&mut addr.unwrap());
                             }
 
+                            Profile::A2dpSink | Profile::A2dpSource => {
+                                let txl = self.tx.clone();
+                                let address = device.address.clone();
+                                topstack::get_runtime().spawn(async move {
+                                    let _ = txl
+                                        .send(Message::Media(MediaActions::Connect(address)))
+                                        .await;
+                                });
+                            }
                             // We don't connect most profiles
                             _ => (),
                         }
@@ -985,6 +994,16 @@ impl IBluetooth for Bluetooth {
                         match p {
                             Profile::Hid | Profile::Hogp => {
                                 self.hh.as_ref().unwrap().disconnect(&mut addr.unwrap());
+                            }
+
+                            Profile::A2dpSink | Profile::A2dpSource => {
+                                let txl = self.tx.clone();
+                                let address = device.address.clone();
+                                topstack::get_runtime().spawn(async move {
+                                    let _ = txl
+                                        .send(Message::Media(MediaActions::Disconnect(address)))
+                                        .await;
+                                });
                             }
 
                             // We don't connect most profiles
