@@ -20,7 +20,6 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadsetClient;
 import android.bluetooth.BluetoothHeadsetClientCall;
 import android.bluetooth.BluetoothProfile;
-import android.bluetooth.hfpclient.connserv.BluetoothHeadsetClientProxy;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -288,7 +287,8 @@ public class HfpClientConnectionService extends ConnectionService {
             if (DBG) {
                 Log.d(TAG, "onServiceConnected");
             }
-            mHeadsetProfile = new BluetoothHeadsetClientProxy((BluetoothHeadsetClient) proxy);
+            mHeadsetProfile =
+                    BluetoothHeadsetClientProxy.Factory.build((BluetoothHeadsetClient) proxy);
 
             List<BluetoothDevice> devices = mHeadsetProfile.getConnectedDevices();
             if (devices == null) {
@@ -324,7 +324,8 @@ public class HfpClientConnectionService extends ConnectionService {
             return null;
         }
 
-        HfpClientDeviceBlock block = new HfpClientDeviceBlock(this, device, mHeadsetProfile);
+        HfpClientDeviceBlock block =
+                HfpClientDeviceBlock.Factory.build(this, device, mHeadsetProfile);
         mDeviceBlocks.put(device, block);
         return block;
     }
