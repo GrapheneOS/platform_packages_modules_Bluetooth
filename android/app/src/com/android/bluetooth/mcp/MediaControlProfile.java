@@ -187,7 +187,9 @@ public class MediaControlProfile implements MediaControlServiceCallbacks {
         // If any of these were previously requested, just clean-up the requests
         removePendingStateRequests(state_map.keySet());
 
-        mGMcsService.updatePlayerState(state_map);
+        if (mGMcsService != null) {
+            mGMcsService.updatePlayerState(state_map);
+        }
     }
 
     private void removePendingStateRequests(Set<PlayerStateField> fields) {
@@ -288,7 +290,9 @@ public class MediaControlProfile implements MediaControlServiceCallbacks {
             Map<PlayerStateField, Object> state_map = new HashMap<>();
             state_map.put(PlayerStateField.TRACK_POSITION, getLatestTrackPosition());
 
-            mGMcsService.updatePlayerState(state_map);
+            if (mGMcsService != null) {
+              mGMcsService.updatePlayerState(state_map);
+            }
         }
     }
 
@@ -578,7 +582,9 @@ public class MediaControlProfile implements MediaControlServiceCallbacks {
 
         if (!handled_request_map.isEmpty()) {
             removePendingStateRequests(handled_request_map.keySet());
-            mGMcsService.updatePlayerState(handled_request_map);
+            if (mGMcsService != null) {
+              mGMcsService.updatePlayerState(handled_request_map);
+            }
         }
 
         if (DBG) {
