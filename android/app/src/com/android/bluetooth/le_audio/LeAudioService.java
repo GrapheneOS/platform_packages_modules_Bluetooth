@@ -796,6 +796,11 @@ public class LeAudioService extends ProfileService {
             intent = new Intent(BluetoothLeAudio.ACTION_LE_AUDIO_GROUP_STATUS_CHANGED);
             intent.putExtra(BluetoothLeAudio.EXTRA_LE_AUDIO_GROUP_ID, group_id);
             intent.putExtra(BluetoothLeAudio.EXTRA_LE_AUDIO_GROUP_STATUS, group_status);
+
+        }
+
+        if (intent != null) {
+            sendBroadcast(intent, BLUETOOTH_CONNECT);
         }
     }
 
