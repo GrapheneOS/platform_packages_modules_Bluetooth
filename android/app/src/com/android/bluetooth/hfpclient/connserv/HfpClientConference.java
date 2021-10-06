@@ -17,7 +17,6 @@ package com.android.bluetooth.hfpclient.connserv;
 
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadsetClient;
-import android.bluetooth.hfpclient.connserv.BluetoothHeadsetClientProxy;
 import android.telecom.Conference;
 import android.telecom.Connection;
 import android.telecom.PhoneAccountHandle;
