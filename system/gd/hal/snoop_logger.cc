@@ -258,16 +258,13 @@ void SnoopLogger::Capture(const HciPacket& packet, Direction direction, PacketTy
       flags.set(1, true);
       break;
     case PacketType::ACL:
+    case PacketType::ISO:
     case PacketType::SCO:
       flags.set(0, direction == Direction::INCOMING);
       flags.set(1, false);
       break;
     case PacketType::EVT:
       flags.set(0, true);
-      flags.set(1, true);
-      break;
-    case PacketType::ISO:
-      flags.set(0, direction == Direction::INCOMING);
       flags.set(1, true);
       break;
   }
