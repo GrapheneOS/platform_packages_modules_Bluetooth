@@ -22,6 +22,7 @@ use std::time::Instant;
 use tokio::sync::mpsc::Sender;
 
 use crate::bluetooth_media::{BluetoothMedia, IBluetoothMedia};
+use crate::uuid::{Profile, UuidHelper};
 use crate::{BluetoothCallbackType, Message, RPCProxy};
 
 /// Defines the adapter API.
@@ -98,6 +99,12 @@ pub trait IBluetooth {
 
     /// Triggers SDP and searches for a specific UUID on a remote device.
     fn sdp_search(&self, device: BluetoothDevice, uuid: Uuid128Bit) -> bool;
+
+    /// Connect all profiles supported by device and enabled on adapter.
+    fn connect_all_enabled_profiles(&self, device: BluetoothDevice) -> bool;
+
+    /// Disconnect all profiles supported by device and enabled on adapter.
+    fn disconnect_all_enabled_profiles(&self, device: BluetoothDevice) -> bool;
 }
 
 #[derive(Debug, FromPrimitive, ToPrimitive)]
@@ -224,10 +231,12 @@ pub struct Bluetooth {
     is_discovering: bool,
     local_address: Option<RawAddress>,
     properties: HashMap<BtPropertyType, BluetoothProperty>,
+    profiles_ready: bool,
     found_devices: HashMap<String, BluetoothDeviceContext>,
     sdp: Option<Sdp>,
     state: BtState,
     tx: Sender<Message>,
+    uuid_helper: UuidHelper,
 }
 
 impl Bluetooth {
@@ -249,10 +258,12 @@ impl Bluetooth {
             is_discovering: false,
             local_address: None,
             properties: HashMap::new(),
+            profiles_ready: false,
             found_devices: HashMap::new(),
             sdp: None,
             state: BtState::Off,
             tx,
+            uuid_helper: UuidHelper::new(),
         }
     }
 
@@ -278,6 +289,9 @@ impl Bluetooth {
                 });
             }),
         });
+
+        // Mark profiles as ready
+        self.profiles_ready = true;
     }
 
     fn update_local_address(&mut self, addr: &RawAddress) {
@@ -531,12 +545,6 @@ impl BtifBluetoothCallbacks for Bluetooth {
         bond_state: BtBondState,
         _fail_reason: i32,
     ) {
-        if &bond_state == &BtBondState::Bonded {
-            // We are assuming that peer is a HID device and automatically connect to that profile.
-            // TODO: Only connect to enabled profiles on that device.
-            self.hh.as_ref().unwrap().connect(&mut addr);
-        }
-
         let address = addr.to_string();
 
         // Easy case of not bonded -- we remove the device from the bonded list
@@ -921,6 +929,74 @@ impl IBluetooth for Bluetooth {
 
         let uu = Uuid { uu: uuid };
         self.sdp.as_ref().unwrap().sdp_search(&mut addr.unwrap(), &uu) == BtStatus::Success
+    }
+
+    fn connect_all_enabled_profiles(&self, device: BluetoothDevice) -> bool {
+        // Profile init must be complete before this api is callable
+        if !self.profiles_ready {
+            return false;
+        }
+
+        let addr = RawAddress::from_string(device.address.clone());
+        if addr.is_none() {
+            warn!("Can't connect profiles on invalid address [{}]", &device.address);
+            return false;
+        }
+
+        // Check all remote uuids to see if they match enabled profiles and connect them.
+        let uuids = self.get_remote_uuids(device.clone());
+        for uuid in uuids.iter() {
+            match self.uuid_helper.is_known_profile(uuid) {
+                Some(p) => {
+                    if self.uuid_helper.is_profile_enabled(&p) {
+                        match p {
+                            Profile::Hid | Profile::Hogp => {
+                                self.hh.as_ref().unwrap().connect(&mut addr.unwrap());
+                            }
+
+                            // We don't connect most profiles
+                            _ => (),
+                        }
+                    }
+                }
+                _ => {}
+            }
+        }
+
+        return true;
+    }
+
+    fn disconnect_all_enabled_profiles(&self, device: BluetoothDevice) -> bool {
+        if !self.profiles_ready {
+            return false;
+        }
+
+        let addr = RawAddress::from_string(device.address.clone());
+        if addr.is_none() {
+            warn!("Can't connect profiles on invalid address [{}]", &device.address);
+            return false;
+        }
+
+        let uuids = self.get_remote_uuids(device.clone());
+        for uuid in uuids.iter() {
+            match self.uuid_helper.is_known_profile(uuid) {
+                Some(p) => {
+                    if self.uuid_helper.is_profile_enabled(&p) {
+                        match p {
+                            Profile::Hid | Profile::Hogp => {
+                                self.hh.as_ref().unwrap().disconnect(&mut addr.unwrap());
+                            }
+
+                            // We don't connect most profiles
+                            _ => (),
+                        }
+                    }
+                }
+                _ => {}
+            }
+        }
+
+        return true;
     }
 }
 

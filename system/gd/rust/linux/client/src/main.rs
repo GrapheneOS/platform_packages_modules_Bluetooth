@@ -146,13 +146,21 @@ impl ClientContext {
 
         address
     }
+
+    fn connect_all_enabled_profiles(&mut self, device: BluetoothDevice) {
+        let fg = self.fg.clone();
+        tokio::spawn(async move {
+            let _ = fg.send(ForegroundActions::ConnectAllEnabledProfiles(device)).await;
+        });
+    }
 }
 
 /// Actions to take on the foreground loop. This allows us to queue actions in
 /// callbacks that get run in the foreground context.
 enum ForegroundActions {
-    RegisterAdapterCallback(String), // Register callbacks for this adapter
-    Readline(rustyline::Result<String>), // Readline result from rustyline
+    ConnectAllEnabledProfiles(BluetoothDevice), // Connect all enabled profiles for this device
+    RegisterAdapterCallback(String),            // Register callbacks for this adapter
+    Readline(rustyline::Result<String>),        // Readline result from rustyline
 }
 
 /// Runs a command line program that interacts with a Bluetooth stack.
@@ -259,6 +267,19 @@ async fn start_interactive_shell(
         }
 
         match m.unwrap() {
+            ForegroundActions::ConnectAllEnabledProfiles(device) => {
+                if context.lock().unwrap().adapter_ready {
+                    context
+                        .lock()
+                        .unwrap()
+                        .adapter_dbus
+                        .as_mut()
+                        .unwrap()
+                        .connect_all_enabled_profiles(device);
+                } else {
+                    println!("Adapter isn't ready to connect profiles.");
+                }
+            }
             // Once adapter is ready, register callbacks, get the address and mark it as ready
             ForegroundActions::RegisterAdapterCallback(adapter) => {
                 let cb_objpath: String =

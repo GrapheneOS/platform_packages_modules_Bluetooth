@@ -9,6 +9,7 @@ extern crate num_derive;
 pub mod bluetooth;
 pub mod bluetooth_gatt;
 pub mod bluetooth_media;
+pub mod uuid;
 
 use log::debug;
 use std::sync::{Arc, Mutex};

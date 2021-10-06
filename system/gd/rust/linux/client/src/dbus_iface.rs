@@ -356,6 +356,16 @@ impl IBluetooth for BluetoothDBus {
             (BluetoothDevice::to_dbus(device).unwrap(), Uuid128Bit::to_dbus(uuid).unwrap()),
         )
     }
+
+    fn connect_all_enabled_profiles(&self, device: BluetoothDevice) -> bool {
+        self.client_proxy
+            .method("ConnectAllEnabledProfiles", (BluetoothDevice::to_dbus(device).unwrap(),))
+    }
+
+    fn disconnect_all_enabled_profiles(&self, device: BluetoothDevice) -> bool {
+        self.client_proxy
+            .method("DisconnectAllEnabledProfiles", (BluetoothDevice::to_dbus(device).unwrap(),))
+    }
 }
 
 #[dbus_propmap(AdapterWithEnabled)]

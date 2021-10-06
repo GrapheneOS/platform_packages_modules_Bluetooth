@@ -185,4 +185,14 @@ impl IBluetooth for IBluetoothDBus {
     fn sdp_search(&self, _device: BluetoothDevice, _uuid: Uuid128Bit) -> bool {
         true
     }
+
+    #[dbus_method("ConnectAllEnabledProfiles")]
+    fn connect_all_enabled_profiles(&self, _device: BluetoothDevice) -> bool {
+        true
+    }
+
+    #[dbus_method("DisconnectAllEnabledProfiles")]
+    fn disconnect_all_enabled_profiles(&self, _device: BluetoothDevice) -> bool {
+        true
+    }
 }

@@ -1,6 +1,6 @@
 use crate::ClientContext;
 use crate::{console_yellow, print_info};
-use bt_topshim::btif::BtSspVariant;
+use bt_topshim::btif::{BtBondState, BtSspVariant};
 use bt_topshim::profiles::gatt::GattStatus;
 use btstack::bluetooth::{BluetoothDevice, IBluetoothCallback, IBluetoothConnectionCallback};
 use btstack::bluetooth_gatt::{BluetoothGattService, IBluetoothGattCallback, LePhy};
@@ -109,6 +109,14 @@ impl IBluetoothCallback for BtCallback {
 
     fn on_bond_state_changed(&self, status: u32, address: String, state: u32) {
         print_info!("Bonding state changed: [{}] state: {}, Status = {}", address, state, status);
+
+        // If bonded, we should also automatically connect all enabled profiles
+        if BtBondState::Bonded == state.into() {
+            self.context.lock().unwrap().connect_all_enabled_profiles(BluetoothDevice {
+                address,
+                name: String::from("Classic device"),
+            });
+        }
     }
 }
 
