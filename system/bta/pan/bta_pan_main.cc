@@ -25,8 +25,6 @@
 
 #include "bt_target.h"  // Must be first to define build configuration
 
-#if (BTA_PAN_INCLUDED == TRUE)
-
 #include "bta/pan/bta_pan_int.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/include/bt_hdr.h"
@@ -352,4 +350,3 @@ bool bta_pan_hdl_event(BT_HDR_RIGID* p_msg) {
   }
   return freebuf;
 }
-#endif /* BTA_PAN_INCLUDED */
