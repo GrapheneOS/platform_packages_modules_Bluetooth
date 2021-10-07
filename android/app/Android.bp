@@ -77,6 +77,7 @@ cc_library_shared {
 
 android_app {
     name: "Bluetooth",
+    defaults: ["platform_app_defaults"],
 
     srcs: [
         "src/**/*.java",
@@ -106,6 +107,7 @@ android_app {
         "android.hardware.radio-V1.0-java",
         "mmslib",
         "modules-utils-backgroundthread",
+        "modules-utils-bytesmatcher",
     ],
 
     plugins: [
@@ -123,6 +125,11 @@ android_app {
         "//apex_available:platform",
         "com.android.bluetooth.updatable",
     ],
+    errorprone: {
+        javacflags: [
+            // "-Xep:AndroidFrameworkRequiresPermission:ERROR",
+        ],
+    },
 }
 
 genrule {

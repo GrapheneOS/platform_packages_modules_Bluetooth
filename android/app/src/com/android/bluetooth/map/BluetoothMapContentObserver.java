@@ -26,7 +26,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.IntentFilter.MalformedMimeTypeException;
-import android.content.pm.PackageManager;
 import android.database.ContentObserver;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteException;
@@ -2856,6 +2855,8 @@ public class BluetoothMapContentObserver {
                 sentIntent.putExtra(EXTRA_MESSAGE_SENT_TRANSPARENT, transparent);
                 sentIntent.putExtra(EXTRA_MESSAGE_SENT_RETRY, retry);
                 //sentIntent.setDataAndNormalize(btMmsUri);
+                // TODO(b/171825892) Please replace FLAG_MUTABLE_UNAUDITED below
+                // with either FLAG_IMMUTABLE (recommended) or FLAG_MUTABLE.
                 PendingIntent pendingSendIntent =
                         PendingIntent.getBroadcast(mContext, 0, sentIntent,
                                 PendingIntent.FLAG_IMMUTABLE);
@@ -3206,10 +3207,11 @@ public class BluetoothMapContentObserver {
                         "message/" + Long.toString(msgInfo.id) + msgInfo.timestamp + i);
                 intentDelivery.putExtra(EXTRA_MESSAGE_SENT_HANDLE, msgInfo.id);
                 intentDelivery.putExtra(EXTRA_MESSAGE_SENT_TIMESTAMP, msgInfo.timestamp);
+                // TODO(b/171825892) Please replace FLAG_MUTABLE_UNAUDITED below
+                // with either FLAG_IMMUTABLE (recommended) or FLAG_MUTABLE.
                 PendingIntent pendingIntentDelivery =
                         PendingIntent.getBroadcast(mContext, 0, intentDelivery,
                                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-
                 intentSent = new Intent(ACTION_MESSAGE_SENT, null);
                 /* Add msgId and part number to ensure the intents are different, and we
                  * thereby get an intent for each msg part.
@@ -3221,10 +3223,11 @@ public class BluetoothMapContentObserver {
                 intentSent.putExtra(EXTRA_MESSAGE_SENT_RETRY, msgInfo.retry);
                 intentSent.putExtra(EXTRA_MESSAGE_SENT_TRANSPARENT, msgInfo.transparent);
 
+                // TODO(b/171825892) Please replace FLAG_MUTABLE_UNAUDITED below
+                // with either FLAG_IMMUTABLE (recommended) or FLAG_MUTABLE.
                 PendingIntent pendingIntentSent =
                         PendingIntent.getBroadcast(mContext, 0, intentSent,
                                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-
                 // We use the same pending intent for all parts, but do not set the one shot flag.
                 deliveryIntents.add(pendingIntentDelivery);
                 sentIntents.add(pendingIntentSent);
@@ -3544,9 +3547,8 @@ public class BluetoothMapContentObserver {
 
     public static void actionSmsSentDisconnected(Context context, Intent intent, int result) {
         /* Check permission for message deletion. */
-        if ((Binder.getCallingPid() != Process.myPid()) || (
-                context.checkCallingOrSelfPermission("android.Manifest.permission.WRITE_SMS")
-                        != PackageManager.PERMISSION_GRANTED)) {
+        if ((Binder.getCallingPid() != Process.myPid())
+                || !Utils.checkCallerHasWriteSmsPermission(context)) {
             Log.w(TAG, "actionSmsSentDisconnected: Not allowed to delete SMS/MMS messages");
             return;
         }

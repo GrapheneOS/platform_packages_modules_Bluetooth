@@ -17,13 +17,17 @@
 
 package com.android.bluetooth.vc;
 
+import static android.Manifest.permission.BLUETOOTH_CONNECT;
+
 import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermission;
 
+import android.annotation.RequiresPermission;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUuid;
 import android.bluetooth.BluetoothVolumeControl;
 import android.bluetooth.IBluetoothVolumeControl;
+import android.content.AttributionSource;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -202,6 +206,7 @@ public class VolumeControlService extends ProfileService {
         sVolumeControlService = instance;
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
     public boolean connect(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED,
                 "Need BLUETOOTH_PRIVILEGED permission");
@@ -234,6 +239,7 @@ public class VolumeControlService extends ProfileService {
         return true;
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
     public boolean disconnect(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED,
                 "Need BLUETOOTH_PRIVILEGED permission");
@@ -253,6 +259,7 @@ public class VolumeControlService extends ProfileService {
         return true;
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
     List<BluetoothDevice> getConnectedDevices() {
         enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED,
                 "Need BLUETOOTH_PRIVILEGED permission");
@@ -298,6 +305,7 @@ public class VolumeControlService extends ProfileService {
         return true;
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
     List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
         enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED,
                 "Need BLUETOOTH_PRIVILEGED permission");
@@ -347,6 +355,7 @@ public class VolumeControlService extends ProfileService {
         }
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
     public int getConnectionState(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED,
                 "Need BLUETOOTH_PRIVILEGED permission");
@@ -374,6 +383,7 @@ public class VolumeControlService extends ProfileService {
      * @param connectionPolicy is the connection policy to set to for this profile
      * @return true on success, otherwise false
      */
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
     public boolean setConnectionPolicy(BluetoothDevice device, int connectionPolicy) {
         enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED,
                 "Need BLUETOOTH_PRIVILEGED permission");
@@ -391,6 +401,7 @@ public class VolumeControlService extends ProfileService {
         return true;
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
     public int getConnectionPolicy(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED,
                 "Need BLUETOOTH_PRIVILEGED permission");
@@ -427,7 +438,7 @@ public class VolumeControlService extends ProfileService {
         if (intent != null) {
             intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT
                     | Intent.FLAG_RECEIVER_INCLUDE_BACKGROUND);
-            sendBroadcast(intent, ProfileService.BLUETOOTH_PERM);
+            sendBroadcast(intent, BLUETOOTH_CONNECT);
             return;
         }
 
@@ -584,9 +595,11 @@ public class VolumeControlService extends ProfileService {
             implements IProfileServiceBinder {
         private VolumeControlService mService;
 
-        private VolumeControlService getService() {
-            if (!Utils.checkCaller()) {
-                Log.w(TAG, "VolumeControl call not allowed for non-active user");
+        @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
+        private VolumeControlService getService(AttributionSource source) {
+            if (!Utils.checkCallerIsSystemOrActiveUser(TAG)
+                    || !Utils.checkServiceAvailable(mService, TAG)
+                    || !Utils.checkConnectPermissionForDataDelivery(mService, source, TAG)) {
                 return null;
             }
             return mService;
@@ -602,8 +615,8 @@ public class VolumeControlService extends ProfileService {
         }
 
         @Override
-        public boolean connect(BluetoothDevice device) {
-            VolumeControlService service = getService();
+        public boolean connect(BluetoothDevice device, AttributionSource source) {
+            VolumeControlService service = getService(source);
             if (service == null) {
                 return false;
             }
@@ -611,8 +624,8 @@ public class VolumeControlService extends ProfileService {
         }
 
         @Override
-        public boolean disconnect(BluetoothDevice device) {
-            VolumeControlService service = getService();
+        public boolean disconnect(BluetoothDevice device, AttributionSource source) {
+            VolumeControlService service = getService(source);
             if (service == null) {
                 return false;
             }
@@ -620,8 +633,8 @@ public class VolumeControlService extends ProfileService {
         }
 
         @Override
-        public List<BluetoothDevice> getConnectedDevices() {
-            VolumeControlService service = getService();
+        public List<BluetoothDevice> getConnectedDevices(AttributionSource source) {
+            VolumeControlService service = getService(source);
             if (service == null) {
                 return new ArrayList<>();
             }
@@ -630,8 +643,9 @@ public class VolumeControlService extends ProfileService {
         }
 
         @Override
-        public List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
-            VolumeControlService service = getService();
+        public List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states,
+                AttributionSource source) {
+            VolumeControlService service = getService(source);
             if (service == null) {
                 return new ArrayList<>();
             }
@@ -639,8 +653,8 @@ public class VolumeControlService extends ProfileService {
         }
 
         @Override
-        public int getConnectionState(BluetoothDevice device) {
-            VolumeControlService service = getService();
+        public int getConnectionState(BluetoothDevice device, AttributionSource source) {
+            VolumeControlService service = getService(source);
             if (service == null) {
                 return BluetoothProfile.STATE_DISCONNECTED;
             }
@@ -648,8 +662,9 @@ public class VolumeControlService extends ProfileService {
         }
 
         @Override
-        public boolean setConnectionPolicy(BluetoothDevice device, int connectionPolicy) {
-            VolumeControlService service = getService();
+        public boolean setConnectionPolicy(BluetoothDevice device, int connectionPolicy,
+                AttributionSource source) {
+            VolumeControlService service = getService(source);
             if (service == null) {
                 return false;
             }
@@ -657,8 +672,8 @@ public class VolumeControlService extends ProfileService {
         }
 
         @Override
-        public int getConnectionPolicy(BluetoothDevice device) {
-            VolumeControlService service = getService();
+        public int getConnectionPolicy(BluetoothDevice device, AttributionSource source) {
+            VolumeControlService service = getService(source);
             if (service == null) {
                 return BluetoothProfile.CONNECTION_POLICY_UNKNOWN;
             }
@@ -666,8 +681,8 @@ public class VolumeControlService extends ProfileService {
         }
 
         @Override
-        public void setVolume(BluetoothDevice device, int volume) {
-            VolumeControlService service = getService();
+        public void setVolume(BluetoothDevice device, int volume, AttributionSource source) {
+            VolumeControlService service = getService(source);
             if (service == null) {
                 return;
             }
@@ -675,8 +690,8 @@ public class VolumeControlService extends ProfileService {
         }
 
         @Override
-        public void setVolumeGroup(int groupId, int volume) {
-            VolumeControlService service = getService();
+        public void setVolumeGroup(int groupId, int volume, AttributionSource source) {
+            VolumeControlService service = getService(source);
             if (service == null) {
                 return;
             }

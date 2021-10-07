@@ -194,8 +194,7 @@ public class BluetoothOppLauncherActivity extends Activity {
                 Log.v(TAG, "Get ACTION_OPEN intent: Uri = " + uri);
             }
 
-            Intent intent1 = new Intent();
-            intent1.setAction(action);
+            Intent intent1 = new Intent(Constants.ACTION_OPEN);
             intent1.setClassName(Constants.THIS_PACKAGE_NAME, BluetoothOppReceiver.class.getName());
             intent1.setDataAndNormalize(uri);
             this.sendBroadcast(intent1);
