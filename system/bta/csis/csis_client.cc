@@ -572,8 +572,8 @@ class CsisClientImpl : public CsisClient {
 
     auto device = FindDeviceByAddress(addr);
     if (device == nullptr) {
-      auto dev = std::make_shared<CsisDevice>(addr, false);
-      devices_.push_back(dev);
+      device = std::make_shared<CsisDevice>(addr, false);
+      devices_.push_back(device);
     }
 
     for (const auto& csis_group : csis_groups_) {
