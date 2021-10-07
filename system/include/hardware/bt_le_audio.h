@@ -33,6 +33,11 @@ enum class ConnectionState {
 };
 
 enum class GroupStatus {
+  INACTIVE = 0,
+  ACTIVE,
+};
+
+enum class GroupStreamStatus {
   IDLE = 0,
   STREAMING,
   SUSPENDED,
