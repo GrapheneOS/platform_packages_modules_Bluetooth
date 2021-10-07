@@ -25,6 +25,7 @@
 #define LOG_TAG "bt_btm_ble"
 
 #include <base/bind.h>
+#include <base/logging.h>
 #include <base/strings/string_number_conversions.h>
 
 #include <cstdint>

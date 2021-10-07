@@ -37,6 +37,8 @@
 #include "stack/include/bt_types.h"
 #include "types/raw_address.h"
 
+#include <base/logging.h>
+
 struct packet {
   struct packet *next, *prev;
   uint32_t len;

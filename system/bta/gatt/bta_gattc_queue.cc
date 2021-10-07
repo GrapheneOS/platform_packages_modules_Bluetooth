@@ -22,6 +22,8 @@
 
 #include "osi/include/allocator.h"
 
+#include <base/logging.h>
+
 using gatt_operation = BtaGattQueue::gatt_operation;
 
 constexpr uint8_t GATT_READ_CHAR = 1;
