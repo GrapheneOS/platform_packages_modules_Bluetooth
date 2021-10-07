@@ -1055,8 +1055,9 @@ TEST_F(CsisClientTest, test_storage_content) {
   // Two devices in one set
   SetSampleDatabaseCsis(1, 1);
   SetSampleDatabaseCsis(2, 2);
-  // One device in the other set
+  // Devices in the other set
   SetSampleDatabaseCsis(3, 1, 2);
+  SetSampleDatabaseCsis(4, 1, 2);
 
   TestAppRegister();
   TestConnect(GetTestAddress(1));
@@ -1109,6 +1110,12 @@ TEST_F(CsisClientTest, test_storage_content) {
   TestAddFromStorage(GetTestAddress(3), 3, dev3_storage);
   ASSERT_EQ(2, CsisClient::Get()->GetGroupId(
                    GetTestAddress(3), bluetooth::Uuid::From16Bit(0x0000)));
+
+  // Restore not inerrogated dev4 - empty buffer but valid sirk for group 2
+  std::vector<uint8_t> no_set_info;
+  TestAddFromStorage(GetTestAddress(4), 4, no_set_info);
+  ASSERT_EQ(2, CsisClient::Get()->GetGroupId(
+                   GetTestAddress(4), bluetooth::Uuid::From16Bit(0x0000)));
 
   TestAppUnregister();
 }
