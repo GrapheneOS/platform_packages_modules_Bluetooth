@@ -393,12 +393,16 @@ void pan_data_buf_ind_cb(uint16_t handle, const RawAddress& src,
   if (pcb->con_state != PAN_STATE_CONNECTED) {
     PAN_TRACE_ERROR("PAN Data indication in wrong state %d for handle %d",
                     pcb->con_state, handle);
+    pcb->read.drops++;
     osi_free(p_buf);
     return;
   }
 
   p_data = (uint8_t*)(p_buf + 1) + p_buf->offset;
   len = p_buf->len;
+
+  pcb->read.octets += len;
+  pcb->read.packets++;
 
   PAN_TRACE_EVENT(
       "pan_data_buf_ind_cb - for handle %d, protocol 0x%x, length %d, ext %d",
@@ -447,6 +451,7 @@ void pan_data_buf_ind_cb(uint16_t handle, const RawAddress& src,
       if (result != BNEP_SUCCESS && result != BNEP_IGNORE_CMD)
         PAN_TRACE_ERROR("Failed to write data for PAN connection handle %d",
                         dst_pcb->handle);
+      pcb->read.errors++;
       osi_free(p_buf);
       return;
     }
