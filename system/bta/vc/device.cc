@@ -25,6 +25,8 @@
 #include "stack/btm/btm_sec.h"
 #include "types/bluetooth/uuid.h"
 
+#include <base/logging.h>
+
 using namespace bluetooth::vc::internal;
 
 void VolumeControlDevice::Disconnect(tGATT_IF gatt_if) {

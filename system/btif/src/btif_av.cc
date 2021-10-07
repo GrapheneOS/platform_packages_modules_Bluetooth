@@ -21,6 +21,7 @@
 #include "btif/include/btif_av.h"
 
 #include <base/bind.h>
+#include <base/logging.h>
 #include <base/strings/stringprintf.h>
 #include <frameworks/proto_logging/stats/enums/bluetooth/a2dp/enums.pb.h>
 

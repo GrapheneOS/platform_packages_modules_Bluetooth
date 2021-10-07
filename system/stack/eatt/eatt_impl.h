@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+#include <base/logging.h>
+
 #include <map>
 #include <queue>
 

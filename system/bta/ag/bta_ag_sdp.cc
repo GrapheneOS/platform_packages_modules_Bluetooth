@@ -25,6 +25,7 @@
 
 #include <base/bind.h>
 #include <base/location.h>
+#include <base/logging.h>
 
 #include "bt_target.h"  // Legacy stack config
 #include "bt_trace.h"   // Legacy trace logging

@@ -23,6 +23,7 @@
  ******************************************************************************/
 
 #include <base/bind.h>
+#include <base/logging.h>
 #include <cstdint>
 #include <unordered_map>
 

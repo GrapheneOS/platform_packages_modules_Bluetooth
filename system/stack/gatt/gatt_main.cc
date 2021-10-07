@@ -39,6 +39,8 @@
 #include "stack/include/l2cap_acl_interface.h"
 #include "types/raw_address.h"
 
+#include <base/logging.h>
+
 using base::StringPrintf;
 using bluetooth::eatt::EattExtension;
 

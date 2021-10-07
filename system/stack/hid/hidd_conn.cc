@@ -33,6 +33,8 @@
 #include "stack/include/bt_types.h"
 #include "types/raw_address.h"
 
+#include <base/logging.h>
+
 static void hidd_l2cif_connect_ind(const RawAddress& bd_addr, uint16_t cid,
                                    uint16_t psm, uint8_t id);
 static void hidd_l2cif_connect_cfm(uint16_t cid, uint16_t result);

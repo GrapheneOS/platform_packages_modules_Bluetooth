@@ -20,6 +20,8 @@
 
 #include "os/rand.h"
 
+#include <base/logging.h>
+
 using bluetooth::os::GenerateRandom;
 
 namespace bluetooth {

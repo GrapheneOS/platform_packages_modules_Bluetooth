@@ -41,6 +41,8 @@
 #include "stack/include/hci_error_code.h"
 #include "types/raw_address.h"
 
+#include <base/logging.h>
+
 tL2C_CCB* l2cu_get_next_channel_in_rr(tL2C_LCB* p_lcb); // TODO Move
 
 /*******************************************************************************

@@ -39,6 +39,8 @@
 #include "stack/include/stack_metrics_logging.h"
 #include "types/raw_address.h"
 
+#include <base/logging.h>
+
 #define SMP_PAIRING_REQ_SIZE 7
 #define SMP_CONFIRM_CMD_SIZE (OCTET16_LEN + 1)
 #define SMP_RAND_CMD_SIZE (OCTET16_LEN + 1)

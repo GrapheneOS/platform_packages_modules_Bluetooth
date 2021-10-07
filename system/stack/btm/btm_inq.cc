@@ -51,6 +51,8 @@
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
+#include <base/logging.h>
+
 extern tBTM_CB btm_cb;
 
 extern void btm_inq_remote_name_timer_timeout(void* data);
