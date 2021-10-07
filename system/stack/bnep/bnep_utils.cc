@@ -36,6 +36,8 @@
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
+#include <base/logging.h>
+
 using bluetooth::Uuid;
 
 /******************************************************************************/

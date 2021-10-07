@@ -35,6 +35,8 @@
 #include "types/hci_role.h"
 #include "types/raw_address.h"
 
+#include <base/logging.h>
+
 static uint8_t ble_acceptlist_size() {
   const controller_t* controller = controller_get_interface();
   if (!controller->supports_ble()) {

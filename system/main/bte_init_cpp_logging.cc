@@ -16,6 +16,7 @@
  *
  ******************************************************************************/
 #include <base/command_line.h>
+#include <base/logging.h>
 #include "main_int.h"
 
 void init_cpp_logging(config_t* config) {

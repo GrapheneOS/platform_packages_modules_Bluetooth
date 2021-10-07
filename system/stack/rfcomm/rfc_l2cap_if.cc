@@ -36,6 +36,8 @@
 #include "stack/rfcomm/rfc_int.h"
 #include "types/raw_address.h"
 
+#include <base/logging.h>
+
 /*
  * Define Callback functions to be called by L2CAP
 */

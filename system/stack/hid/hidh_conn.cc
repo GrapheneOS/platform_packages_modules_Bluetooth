@@ -22,6 +22,7 @@
  *
  ******************************************************************************/
 
+#include <base/logging.h>
 #include <base/strings/stringprintf.h>
 #include <string.h>
 

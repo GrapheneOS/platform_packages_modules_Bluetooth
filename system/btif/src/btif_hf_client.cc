@@ -58,6 +58,8 @@
 #include "osi/include/properties.h"
 #include "types/raw_address.h"
 
+#include <base/logging.h>
+
 /*******************************************************************************
  *  Constants & Macros
  ******************************************************************************/

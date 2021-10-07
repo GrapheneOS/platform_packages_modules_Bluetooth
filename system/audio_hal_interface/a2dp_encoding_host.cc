@@ -33,6 +33,8 @@
 #include "types/raw_address.h"
 #include "udrv/include/uipc.h"
 
+#include <base/logging.h>
+
 #define A2DP_DATA_READ_POLL_MS 10
 #define A2DP_HOST_DATA_PATH "/var/run/bluetooth/audio/.a2dp_data"
 // TODO(b/198260375): Make A2DP data owner group configurable.

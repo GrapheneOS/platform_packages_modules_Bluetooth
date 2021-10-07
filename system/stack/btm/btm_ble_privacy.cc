@@ -32,6 +32,8 @@
 #include "types/raw_address.h"
 #include "vendor_hcidefs.h"
 
+#include <base/logging.h>
+
 extern tBTM_CB btm_cb;
 
 /* RPA offload VSC specifics */

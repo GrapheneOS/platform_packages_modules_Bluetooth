@@ -37,6 +37,8 @@
 #include "stack/include/bt_hdr.h"
 #include "types/bluetooth/uuid.h"
 
+#include <base/logging.h>
+
 using base::StringPrintf;
 using bluetooth::Uuid;
 

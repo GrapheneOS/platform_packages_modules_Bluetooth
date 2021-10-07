@@ -31,6 +31,8 @@
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/include/port_api.h"
 
+#include <base/logging.h>
+
 /*****************************************************************************
  *  Constants
  ****************************************************************************/

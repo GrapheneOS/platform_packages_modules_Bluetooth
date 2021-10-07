@@ -38,6 +38,8 @@
 #include "stack/rfcomm/port_int.h"
 #include "stack/rfcomm/rfc_int.h"
 
+#include <base/logging.h>
+
 static const std::set<uint16_t> uuid_logging_acceptlist = {
     UUID_SERVCLASS_HEADSET_AUDIO_GATEWAY,
     UUID_SERVCLASS_AG_HANDSFREE,

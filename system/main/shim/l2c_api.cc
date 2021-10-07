@@ -44,6 +44,8 @@
 #include "stack/include/sco_hci_link_interface.h"
 #include "types/raw_address.h"
 
+#include <base/logging.h>
+
 extern void gatt_notify_conn_update(const RawAddress& remote, uint16_t interval,
                                     uint16_t latency, uint16_t timeout,
                                     tHCI_STATUS status);

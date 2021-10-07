@@ -19,6 +19,7 @@
 #include "main/shim/btm_api.h"
 
 #include <base/callback.h>
+#include <base/logging.h>
 
 #include <mutex>
 

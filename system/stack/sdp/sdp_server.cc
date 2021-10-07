@@ -35,6 +35,8 @@
 #include "stack/include/sdp_api.h"
 #include "stack/sdp/sdpint.h"
 
+#include <base/logging.h>
+
 /* Maximum number of bytes to reserve out of SDP MTU for response data */
 #define SDP_MAX_SERVICE_RSPHDR_LEN 12
 #define SDP_MAX_SERVATTR_RSPHDR_LEN 10

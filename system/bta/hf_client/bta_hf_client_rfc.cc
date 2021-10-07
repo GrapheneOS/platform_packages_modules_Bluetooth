@@ -33,6 +33,8 @@
 #include "stack/include/sdp_api.h"
 #include "types/raw_address.h"
 
+#include <base/logging.h>
+
 /*******************************************************************************
  *
  * Function         bta_hf_client_port_cback
