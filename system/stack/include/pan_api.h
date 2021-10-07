@@ -50,6 +50,7 @@
 /* Bit map for PAN roles */
 #define PAN_ROLE_CLIENT 0x01     /* PANU role */
 #define PAN_ROLE_NAP_SERVER 0x04 /* NAP role */
+typedef uint8_t tPAN_ROLE;
 
 /* Bitmap to indicate the usage of the Data */
 #define PAN_DATA_TO_HOST 0x01
