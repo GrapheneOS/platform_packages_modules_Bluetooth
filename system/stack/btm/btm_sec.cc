@@ -878,7 +878,13 @@ tBTM_STATUS BTM_SecBond(const RawAddress& bd_addr, tBLE_ADDR_TYPE addr_type,
   }
 
   if (transport == BT_TRANSPORT_AUTO) {
-    transport = BTM_UseLeLink(bd_addr) ? BT_TRANSPORT_LE : BT_TRANSPORT_BR_EDR;
+    if (addr_type == BLE_ADDR_PUBLIC) {
+      transport =
+          BTM_UseLeLink(bd_addr) ? BT_TRANSPORT_LE : BT_TRANSPORT_BR_EDR;
+    } else {
+      LOG_INFO("Forcing transport LE (was auto) because of the address type");
+      transport = BT_TRANSPORT_LE;
+    }
   }
   tBT_DEVICE_TYPE dev_type;
 
