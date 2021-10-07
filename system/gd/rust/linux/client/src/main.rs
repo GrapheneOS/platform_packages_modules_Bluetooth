@@ -41,6 +41,10 @@ pub(crate) struct ClientContext {
     /// Current adapter address if known.
     pub(crate) adapter_address: Option<String>,
 
+    /// Currently active bonding attempt. If it is not none, we are currently attempting to bond
+    /// this device.
+    pub(crate) bonding_attempt: Option<BluetoothDevice>,
+
     /// Is adapter discovering?
     pub(crate) discovering_state: bool,
 
@@ -87,6 +91,7 @@ impl ClientContext {
             enabled: false,
             adapter_ready: false,
             adapter_address: None,
+            bonding_attempt: None,
             discovering_state: false,
             found_devices: HashMap::new(),
             gatt_client_id: None,
@@ -153,12 +158,20 @@ impl ClientContext {
             let _ = fg.send(ForegroundActions::ConnectAllEnabledProfiles(device)).await;
         });
     }
+
+    fn run_callback(&mut self, callback: Box<dyn Fn(Arc<Mutex<ClientContext>>) + Send>) {
+        let fg = self.fg.clone();
+        tokio::spawn(async move {
+            let _ = fg.send(ForegroundActions::RunCallback(callback)).await;
+        });
+    }
 }
 
 /// Actions to take on the foreground loop. This allows us to queue actions in
 /// callbacks that get run in the foreground context.
 enum ForegroundActions {
     ConnectAllEnabledProfiles(BluetoothDevice), // Connect all enabled profiles for this device
+    RunCallback(Box<dyn Fn(Arc<Mutex<ClientContext>>) + Send>), // Run callback in foreground
     RegisterAdapterCallback(String),            // Register callbacks for this adapter
     Readline(rustyline::Result<String>),        // Readline result from rustyline
 }
@@ -279,6 +292,9 @@ async fn start_interactive_shell(
                 } else {
                     println!("Adapter isn't ready to connect profiles.");
                 }
+            }
+            ForegroundActions::RunCallback(callback) => {
+                callback(context.clone());
             }
             // Once adapter is ready, register callbacks, get the address and mark it as ready
             ForegroundActions::RegisterAdapterCallback(adapter) => {

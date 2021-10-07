@@ -2,12 +2,11 @@ use std::collections::HashMap;
 use std::fmt::{Display, Formatter, Result};
 use std::sync::{Arc, Mutex};
 
-use num_traits::cast::FromPrimitive;
-
 use crate::callbacks::BtGattCallback;
 use crate::ClientContext;
 use crate::{console_red, console_yellow, print_error, print_info};
-use btstack::bluetooth::{BluetoothDevice, BluetoothTransport, IBluetooth};
+use bt_topshim::btif::BtTransport;
+use btstack::bluetooth::{BluetoothDevice, IBluetooth};
 use btstack::bluetooth_gatt::IBluetoothGatt;
 use btstack::uuid::UuidHelper;
 use manager_service::iface_bluetooth_manager::IBluetoothManager;
@@ -318,13 +317,29 @@ impl CommandHandler {
                     name: String::from("Classic Device"),
                 };
 
-                self.context
+                let bonding_attempt =
+                    &self.context.lock().unwrap().bonding_attempt.as_ref().cloned();
+
+                if bonding_attempt.is_some() {
+                    print_info!(
+                        "Already bonding [{}]. Cancel bonding first.",
+                        bonding_attempt.as_ref().unwrap().address,
+                    );
+                    return;
+                }
+
+                let success = self
+                    .context
                     .lock()
                     .unwrap()
                     .adapter_dbus
                     .as_ref()
                     .unwrap()
-                    .create_bond(device, BluetoothTransport::from_i32(0).unwrap());
+                    .create_bond(device.clone(), BtTransport::Auto);
+
+                if success {
+                    self.context.lock().unwrap().bonding_attempt = Some(device);
+                }
             }
             "remove" => {
                 let device = BluetoothDevice {

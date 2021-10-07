@@ -1,11 +1,10 @@
 //! D-Bus proxy implementations of the APIs.
 
-use bt_topshim::btif::{BtSspVariant, Uuid128Bit};
+use bt_topshim::btif::{BtSspVariant, BtTransport, Uuid128Bit};
 use bt_topshim::profiles::gatt::GattStatus;
 
 use btstack::bluetooth::{
-    BluetoothDevice, BluetoothTransport, IBluetooth, IBluetoothCallback,
-    IBluetoothConnectionCallback,
+    BluetoothDevice, IBluetooth, IBluetoothCallback, IBluetoothConnectionCallback,
 };
 use btstack::bluetooth_gatt::{
     BluetoothGattCharacteristic, BluetoothGattDescriptor, BluetoothGattService,
@@ -37,7 +36,7 @@ fn make_object_path(idx: i32, name: &str) -> dbus::Path {
     dbus::Path::new(format!("/org/chromium/bluetooth/hci{}/{}", idx, name)).unwrap()
 }
 
-impl_dbus_arg_enum!(BluetoothTransport);
+impl_dbus_arg_enum!(BtTransport);
 impl_dbus_arg_enum!(BtSspVariant);
 impl_dbus_arg_enum!(GattStatus);
 impl_dbus_arg_enum!(GattWriteType);
@@ -308,13 +307,10 @@ impl IBluetooth for BluetoothDBus {
         self.client_proxy.method("GetDiscoveryEndMillis", ())
     }
 
-    fn create_bond(&self, device: BluetoothDevice, transport: BluetoothTransport) -> bool {
+    fn create_bond(&self, device: BluetoothDevice, transport: BtTransport) -> bool {
         self.client_proxy.method(
             "CreateBond",
-            (
-                BluetoothDevice::to_dbus(device).unwrap(),
-                BluetoothTransport::to_dbus(transport).unwrap(),
-            ),
+            (BluetoothDevice::to_dbus(device).unwrap(), BtTransport::to_dbus(transport).unwrap()),
         )
     }
 
@@ -333,6 +329,27 @@ impl IBluetooth for BluetoothDBus {
 
     fn get_bond_state(&self, device: BluetoothDevice) -> u32 {
         self.client_proxy.method("GetBondState", (BluetoothDevice::to_dbus(device).unwrap(),))
+    }
+
+    fn set_pin(&self, device: BluetoothDevice, accept: bool, len: u32, pin_code: Vec<u8>) -> bool {
+        self.client_proxy
+            .method("SetPin", (BluetoothDevice::to_dbus(device).unwrap(), accept, len, pin_code))
+    }
+
+    fn set_passkey(
+        &self,
+        device: BluetoothDevice,
+        accept: bool,
+        len: u32,
+        passkey: Vec<u8>,
+    ) -> bool {
+        self.client_proxy
+            .method("SetPasskey", (BluetoothDevice::to_dbus(device).unwrap(), accept, len, passkey))
+    }
+
+    fn set_pairing_confirmation(&self, device: BluetoothDevice, accept: bool) -> bool {
+        self.client_proxy
+            .method("SetPairingConfirmation", (BluetoothDevice::to_dbus(device).unwrap(), accept))
     }
 
     fn get_connection_state(&self, device: BluetoothDevice) -> u32 {

@@ -1,10 +1,9 @@
 extern crate bt_shim;
 
-use bt_topshim::btif::{BtSspVariant, Uuid128Bit};
+use bt_topshim::btif::{BtSspVariant, BtTransport, Uuid128Bit};
 
 use btstack::bluetooth::{
-    BluetoothDevice, BluetoothTransport, IBluetooth, IBluetoothCallback,
-    IBluetoothConnectionCallback,
+    BluetoothDevice, IBluetooth, IBluetoothCallback, IBluetoothConnectionCallback,
 };
 use btstack::RPCProxy;
 
@@ -54,7 +53,7 @@ impl IBluetoothCallback for BluetoothCallbackDBus {
     fn on_bond_state_changed(&self, status: u32, address: String, state: u32) {}
 }
 
-impl_dbus_arg_enum!(BluetoothTransport);
+impl_dbus_arg_enum!(BtTransport);
 impl_dbus_arg_enum!(BtSspVariant);
 
 #[allow(dead_code)]
@@ -142,7 +141,7 @@ impl IBluetooth for IBluetoothDBus {
     }
 
     #[dbus_method("CreateBond")]
-    fn create_bond(&self, _device: BluetoothDevice, _transport: BluetoothTransport) -> bool {
+    fn create_bond(&self, _device: BluetoothDevice, _transport: BtTransport) -> bool {
         true
     }
 
@@ -164,6 +163,33 @@ impl IBluetooth for IBluetoothDBus {
     #[dbus_method("GetBondState")]
     fn get_bond_state(&self, _device: BluetoothDevice) -> u32 {
         0
+    }
+
+    #[dbus_method("SetPin")]
+    fn set_pin(
+        &self,
+        _device: BluetoothDevice,
+        _accept: bool,
+        _len: u32,
+        _pin_code: Vec<u8>,
+    ) -> bool {
+        false
+    }
+
+    #[dbus_method("SetPasskey")]
+    fn set_passkey(
+        &self,
+        _device: BluetoothDevice,
+        _accept: bool,
+        _len: u32,
+        _passkey: Vec<u8>,
+    ) -> bool {
+        false
+    }
+
+    #[dbus_method("SetPairingConfirmation")]
+    fn set_pairing_confirmation(&self, _device: BluetoothDevice, _accept: bool) -> bool {
+        false
     }
 
     #[dbus_method("GetConnectionState")]

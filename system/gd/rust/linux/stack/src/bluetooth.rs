@@ -2,7 +2,7 @@
 
 use bt_topshim::btif::{
     BaseCallbacks, BaseCallbacksDispatcher, BluetoothInterface, BluetoothProperty, BtAclState,
-    BtBondState, BtConnectionState, BtDiscoveryState, BtHciErrorCode, BtPropertyType, BtSspVariant,
+    BtBondState, BtDiscoveryState, BtHciErrorCode, BtPinCode, BtPropertyType, BtSspVariant,
     BtState, BtStatus, BtTransport, RawAddress, Uuid, Uuid128Bit,
 };
 use bt_topshim::{
@@ -74,7 +74,7 @@ pub trait IBluetooth {
     fn get_discovery_end_millis(&self) -> u64;
 
     /// Initiates pairing to a remote device. Triggers connection if not already started.
-    fn create_bond(&self, device: BluetoothDevice, transport: BluetoothTransport) -> bool;
+    fn create_bond(&self, device: BluetoothDevice, transport: BtTransport) -> bool;
 
     /// Cancels any pending bond attempt on given device.
     fn cancel_bond_process(&self, device: BluetoothDevice) -> bool;
@@ -87,6 +87,21 @@ pub trait IBluetooth {
 
     /// Gets the bond state of a single device.
     fn get_bond_state(&self, device: BluetoothDevice) -> u32;
+
+    /// Set pin on bonding device.
+    fn set_pin(&self, device: BluetoothDevice, accept: bool, len: u32, pin_code: Vec<u8>) -> bool;
+
+    /// Set passkey on bonding device.
+    fn set_passkey(
+        &self,
+        device: BluetoothDevice,
+        accept: bool,
+        len: u32,
+        passkey: Vec<u8>,
+    ) -> bool;
+
+    /// Confirm that a pairing should be completed on a bonding device.
+    fn set_pairing_confirmation(&self, device: BluetoothDevice, accept: bool) -> bool;
 
     /// Gets the connection state of a single device.
     fn get_connection_state(&self, device: BluetoothDevice) -> u32;
@@ -105,14 +120,6 @@ pub trait IBluetooth {
 
     /// Disconnect all profiles supported by device and enabled on adapter.
     fn disconnect_all_enabled_profiles(&self, device: BluetoothDevice) -> bool;
-}
-
-#[derive(Debug, FromPrimitive, ToPrimitive)]
-#[repr(i32)]
-pub enum BluetoothTransport {
-    Auto = 0,
-    Bredr = 1,
-    Le = 2,
 }
 
 /// Serializable device used in various apis.
@@ -533,23 +540,24 @@ impl BtifBluetoothCallbacks for Bluetooth {
                 passkey,
             );
         });
-        // Immediately accept the pairing.
-        // TODO: Delegate the pairing confirmation to agent.
-        self.intf.lock().unwrap().ssp_reply(&remote_addr, variant, 1, passkey);
     }
 
     fn bond_state(
         &mut self,
         status: BtStatus,
-        mut addr: RawAddress,
+        addr: RawAddress,
         bond_state: BtBondState,
         _fail_reason: i32,
     ) {
         let address = addr.to_string();
 
-        // Easy case of not bonded -- we remove the device from the bonded list
+        // Easy case of not bonded -- we remove the device from the bonded list and change the bond
+        // state in the found list (in case it was previously bonding).
         if &bond_state == &BtBondState::NotBonded {
             self.bonded_devices.remove(&address);
+            self.found_devices
+                .entry(address.clone())
+                .and_modify(|d| d.bond_state = bond_state.clone());
         }
         // We will only insert into the bonded list after bonding is complete
         else if &bond_state == &BtBondState::Bonded && !self.bonded_devices.contains_key(&address)
@@ -571,7 +579,8 @@ impl BtifBluetoothCallbacks for Bluetooth {
 
             self.bonded_devices.insert(address.clone(), device);
         } else {
-            self.bonded_devices
+            // If we're bonding, we need to update the found devices list
+            self.found_devices
                 .entry(address.clone())
                 .and_modify(|d| d.bond_state = bond_state.clone());
         }
@@ -805,7 +814,7 @@ impl IBluetooth for Bluetooth {
         }
     }
 
-    fn create_bond(&self, device: BluetoothDevice, transport: BluetoothTransport) -> bool {
+    fn create_bond(&self, device: BluetoothDevice, transport: BtTransport) -> bool {
         let addr = RawAddress::from_string(device.address.clone());
 
         if addr.is_none() {
@@ -814,11 +823,7 @@ impl IBluetooth for Bluetooth {
         }
 
         let address = addr.unwrap();
-        self.intf
-            .lock()
-            .unwrap()
-            .create_bond(&address, BtTransport::from(transport.to_i32().unwrap()))
-            == 0
+        self.intf.lock().unwrap().create_bond(&address, transport) == 0
     }
 
     fn cancel_bond_process(&self, device: BluetoothDevice) -> bool {
@@ -860,6 +865,104 @@ impl IBluetooth for Bluetooth {
             Some(device) => device.bond_state.to_u32().unwrap(),
             None => BtBondState::NotBonded.to_u32().unwrap(),
         }
+    }
+
+    fn set_pin(&self, device: BluetoothDevice, accept: bool, len: u32, pin_code: Vec<u8>) -> bool {
+        let addr = RawAddress::from_string(device.address.clone());
+
+        if addr.is_none() {
+            warn!("Can't set pin. Address {} is not valid.", device.address);
+            return false;
+        }
+
+        if len as usize != pin_code.len() || len > 16 {
+            warn!("Invalid pin code length: {}", len);
+            return false;
+        }
+
+        let is_bonding = match self.found_devices.get(&device.address) {
+            Some(d) => d.bond_state == BtBondState::Bonding,
+            None => false,
+        };
+
+        if !is_bonding {
+            warn!("Can't set pin. Device {} isn't bonding.", device.address);
+            return false;
+        }
+
+        let mut btpin: BtPinCode = BtPinCode { pin: [0; 16] };
+        btpin.pin.copy_from_slice(pin_code.as_slice());
+
+        self.intf.lock().unwrap().pin_reply(&addr.unwrap(), accept as u8, len as u8, &mut btpin)
+            == 0
+    }
+
+    /// Set passkey on bonding device.
+    fn set_passkey(
+        &self,
+        device: BluetoothDevice,
+        accept: bool,
+        len: u32,
+        passkey: Vec<u8>,
+    ) -> bool {
+        let addr = RawAddress::from_string(device.address.clone());
+
+        if addr.is_none() {
+            warn!("Can't set passkey. Address {} is not valid.", device.address);
+            return false;
+        }
+
+        let is_bonding = match self.found_devices.get(&device.address) {
+            Some(d) => d.bond_state == BtBondState::Bonding,
+            None => false,
+        };
+
+        if !is_bonding {
+            warn!("Can't set passkey. Device {} isn't bonding.", device.address);
+            return false;
+        }
+
+        if len as usize != passkey.len() || len != 4 {
+            warn!("Invalid passkey length: {}", len);
+            return false;
+        }
+
+        let mut tmp: [u8; 4] = [0; 4];
+        tmp.copy_from_slice(passkey.as_slice());
+        let passkey = u32::from_ne_bytes(tmp);
+
+        self.intf.lock().unwrap().ssp_reply(
+            &addr.unwrap(),
+            BtSspVariant::PasskeyEntry,
+            accept as u8,
+            passkey,
+        ) == 0
+    }
+
+    fn set_pairing_confirmation(&self, device: BluetoothDevice, accept: bool) -> bool {
+        let addr = RawAddress::from_string(device.address.clone());
+
+        if addr.is_none() {
+            warn!("Can't set pairing confirmation. Address {} is not valid.", device.address);
+            return false;
+        }
+
+        let is_bonding = match self.found_devices.get(&device.address) {
+            Some(d) => d.bond_state == BtBondState::Bonding,
+            None => false,
+        };
+
+        if !is_bonding {
+            warn!("Can't set pairing confirmation. Device {} isn't bonding.", device.address);
+            return false;
+        }
+
+        self.intf.lock().unwrap().ssp_reply(
+            &addr.unwrap(),
+            BtSspVariant::PasskeyConfirmation,
+            accept as u8,
+            0,
+        ) == 0
     }
 
     fn get_connection_state(&self, device: BluetoothDevice) -> u32 {
