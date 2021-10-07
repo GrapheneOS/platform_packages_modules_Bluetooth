@@ -22,6 +22,7 @@ import com.android.bluetooth.hearingaid.HearingAidService;
 import com.android.bluetooth.hfp.HeadsetService;
 import com.android.bluetooth.hid.HidDeviceService;
 import com.android.bluetooth.hid.HidHostService;
+import com.android.bluetooth.le_audio.LeAudioService;
 import com.android.bluetooth.mcp.McpService;
 import com.android.bluetooth.pan.PanService;
 
@@ -49,6 +50,10 @@ public class ServiceFactory {
 
     public HearingAidService getHearingAidService() {
         return HearingAidService.getHearingAidService();
+    }
+
+    public LeAudioService getLeAudioService() {
+        return LeAudioService.getLeAudioService();
     }
 
     public AvrcpTargetService getAvrcpTargetService() {
