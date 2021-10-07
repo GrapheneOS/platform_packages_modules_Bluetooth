@@ -36,6 +36,8 @@
 #include "stack/include/bt_hdr.h"
 #include "types/raw_address.h"
 
+#include <base/logging.h>
+
 using base::StringPrintf;
 
 /*******************************************************************************

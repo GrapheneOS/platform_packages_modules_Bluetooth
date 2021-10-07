@@ -20,6 +20,7 @@
 #define LOG_TAG "bt_btif_a2dp_source"
 #define ATRACE_TAG ATRACE_TAG_AUDIO
 
+#include <base/logging.h>
 #include <base/run_loop.h>
 #ifndef OS_GENERIC
 #include <cutils/trace.h>

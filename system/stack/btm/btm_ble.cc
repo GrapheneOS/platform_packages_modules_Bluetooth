@@ -47,6 +47,8 @@
 #include "stack/include/smp_api.h"
 #include "types/raw_address.h"
 
+#include <base/logging.h>
+
 extern tBTM_CB btm_cb;
 
 extern bool btm_ble_init_pseudo_addr(tBTM_SEC_DEV_REC* p_dev_rec,

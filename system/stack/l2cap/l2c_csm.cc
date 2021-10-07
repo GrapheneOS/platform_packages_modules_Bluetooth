@@ -35,6 +35,8 @@
 #include "stack/include/acl_api.h"
 #include "stack/include/bt_hdr.h"
 
+#include <base/logging.h>
+
 /******************************************************************************/
 /*            L O C A L    F U N C T I O N     P R O T O T Y P E S            */
 /******************************************************************************/

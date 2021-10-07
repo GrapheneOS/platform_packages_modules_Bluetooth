@@ -34,6 +34,8 @@
 #include "stack/include/gatt_api.h"
 #include "types/raw_address.h"
 
+#include <base/logging.h>
+
 static void bta_gatts_nv_save_cback(bool is_saved,
                                     tGATTS_HNDL_RANGE* p_hndl_range);
 static bool bta_gatts_nv_srv_chg_cback(tGATTS_SRV_CHG_CMD cmd,

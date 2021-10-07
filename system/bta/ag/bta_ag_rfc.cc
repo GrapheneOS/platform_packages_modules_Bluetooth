@@ -24,6 +24,7 @@
  ******************************************************************************/
 
 #include <base/bind.h>
+#include <base/logging.h>
 
 #include <cstring>
 

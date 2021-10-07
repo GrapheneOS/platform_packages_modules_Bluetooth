@@ -40,6 +40,8 @@
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
+#include <base/logging.h>
+
 // Macro to retrieve the number of elements in a statically allocated array
 #define BTA_AV_CO_NUM_ELEMENTS(__a) (sizeof(__a) / sizeof((__a)[0]))
 

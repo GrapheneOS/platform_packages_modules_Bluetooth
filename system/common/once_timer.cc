@@ -19,6 +19,8 @@
 #include "message_loop_thread.h"
 #include "time_util.h"
 
+#include <base/logging.h>
+
 namespace bluetooth {
 
 namespace common {

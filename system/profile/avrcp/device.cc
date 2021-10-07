@@ -26,6 +26,8 @@
 #include "stack_config.h"
 #include "types/raw_address.h"
 
+#include <base/logging.h>
+
 namespace bluetooth {
 namespace avrcp {
 

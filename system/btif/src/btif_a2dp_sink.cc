@@ -22,6 +22,7 @@
 #include "btif/include/btif_a2dp_sink.h"
 
 #include <base/bind.h>
+#include <base/logging.h>
 
 #include <atomic>
 #include <mutex>

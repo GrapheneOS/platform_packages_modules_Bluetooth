@@ -20,6 +20,8 @@
 #include "stack/l2cap/l2c_int.h"
 #include "types/raw_address.h"
 
+#include <base/logging.h>
+
 using bluetooth::eatt::eatt_impl;
 
 namespace bluetooth {
