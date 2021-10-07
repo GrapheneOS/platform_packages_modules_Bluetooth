@@ -110,6 +110,7 @@ import com.android.bluetooth.hfp.HeadsetService;
 import com.android.bluetooth.hfpclient.HeadsetClientService;
 import com.android.bluetooth.hid.HidDeviceService;
 import com.android.bluetooth.hid.HidHostService;
+import com.android.bluetooth.le_audio.LeAudioService;
 import com.android.bluetooth.map.BluetoothMapService;
 import com.android.bluetooth.mapclient.MapClientService;
 import com.android.bluetooth.pan.PanService;
@@ -298,6 +299,7 @@ public class AdapterService extends Service {
     private SapService mSapService;
     private VolumeControlService mVolumeControlService;
     private CsipSetCoordinatorService mCsipSetCoordinatorService;
+    private LeAudioService mLeAudioService;
 
     private BinderCallsStats.SettingsObserver mBinderCallsSettingsObserver;
 
@@ -974,6 +976,9 @@ public class AdapterService extends Service {
         if (profile == BluetoothProfile.CSIP_SET_COORDINATOR) {
             return Utils.arrayContains(remoteDeviceUuids, BluetoothUuid.COORDINATED_SET);
         }
+        if (profile == BluetoothProfile.LE_AUDIO) {
+            return Utils.arrayContains(remoteDeviceUuids, BluetoothUuid.LE_AUDIO);
+        }
 
         Log.e(TAG, "isSupported: Unexpected profile passed in to function: " + profile);
         return false;
@@ -1031,6 +1036,10 @@ public class AdapterService extends Service {
         if (mCsipSetCoordinatorService != null
                 && mCsipSetCoordinatorService.getConnectionPolicy(device)
                         > BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
+            return true;
+        }
+        if (mLeAudioService != null && mLeAudioService.getConnectionPolicy(device)
+                > BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
             return true;
         }
         return false;
@@ -1124,7 +1133,13 @@ public class AdapterService extends Service {
             Log.i(TAG, "connectEnabledProfiles: Connecting Coordinated Set Profile");
             mCsipSetCoordinatorService.connect(device);
         }
-
+        if (mLeAudioService != null && isSupported(localDeviceUuids, remoteDeviceUuids,
+                BluetoothProfile.LE_AUDIO, device)
+                && mLeAudioService.getConnectionPolicy(device)
+                > BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
+            Log.i(TAG, "connectEnabledProfiles: Connecting LeAudio profile (BAP)");
+            mLeAudioService.connect(device);
+        }
         return BluetoothStatusCodes.SUCCESS;
     }
 
@@ -1163,6 +1178,7 @@ public class AdapterService extends Service {
         mSapService = SapService.getSapService();
         mVolumeControlService = VolumeControlService.getVolumeControlService();
         mCsipSetCoordinatorService = CsipSetCoordinatorService.getCsipSetCoordinatorService();
+        mLeAudioService = LeAudioService.getLeAudioService();
     }
 
     private boolean isAvailable() {
@@ -2839,6 +2855,13 @@ public class AdapterService extends Service {
                 return false;
         }
 
+        if (mLeAudioService != null && (device == null
+                || mLeAudioService.getConnectionPolicy(device)
+                == BluetoothProfile.CONNECTION_POLICY_ALLOWED)) {
+            Log.i(TAG, "setActiveDevice: Setting active Le Audio device " + device);
+            mLeAudioService.setActiveDevice(device);
+        }
+
         if (setA2dp && mA2dpService != null && (device == null
                 || mA2dpService.getConnectionPolicy(device)
                 == BluetoothProfile.CONNECTION_POLICY_ALLOWED)) {
@@ -3012,6 +3035,13 @@ public class AdapterService extends Service {
                     device, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
             numProfilesConnected++;
         }
+        if (mLeAudioService != null && isSupported(localDeviceUuids, remoteDeviceUuids,
+                BluetoothProfile.LE_AUDIO, device)) {
+            Log.i(TAG, "connectAllEnabledProfiles: Connecting LeAudio profile (BAP)");
+            mLeAudioService.setConnectionPolicy(device,
+                    BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+            numProfilesConnected++;
+        }
 
         Log.i(TAG, "connectAllEnabledProfiles: Number of Profiles Connected: "
                 + numProfilesConnected);
@@ -3108,6 +3138,11 @@ public class AdapterService extends Service {
                         == BluetoothProfile.STATE_CONNECTED) {
             Log.i(TAG, "disconnectAllEnabledProfiles: Disconnecting Coordinater Set Profile");
             mCsipSetCoordinatorService.disconnect(device);
+        }
+        if (mLeAudioService != null && mLeAudioService.getConnectionState(device)
+                == BluetoothProfile.STATE_CONNECTED) {
+            Log.i(TAG, "disconnectAllEnabledProfiles: Disconnecting LeAudio profile (BAP)");
+            mLeAudioService.disconnect(device);
         }
 
         return BluetoothStatusCodes.SUCCESS;
