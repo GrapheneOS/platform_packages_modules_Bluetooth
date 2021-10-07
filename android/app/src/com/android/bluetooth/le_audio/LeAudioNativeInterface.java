@@ -192,39 +192,10 @@ public class LeAudioNativeInterface {
         return disconnectLeAudioNative(getByteAddress(device));
     }
 
-    /**
-     * Enable content streaming.
-     * @param groupId group identifier
-     * @param contentType type of content to stream
-     */
-    public void groupStream(int groupId, int contentType) {
-        groupStreamNative(groupId, contentType);
-    }
-
-    /**
-     * Suspend content streaming.
-     * @param groupId  group identifier
-     */
-    public void groupSuspend(int groupId) {
-        groupSuspendNative(groupId);
-    }
-
-    /**
-     * Stop all content streaming.
-     * @param groupId  group identifier
-     * TODO: Maybe we should use also pass the content type argument
-     */
-    public void groupStop(int groupId) {
-        groupStopNative(groupId);
-    }
-
     // Native methods that call into the JNI interface
     private static native void classInitNative();
     private native void initNative();
     private native void cleanupNative();
     private native boolean connectLeAudioNative(byte[] address);
     private native boolean disconnectLeAudioNative(byte[] address);
-    private native void groupStreamNative(int groupId, int contentType);
-    private native void groupSuspendNative(int groupId);
-    private native void groupStopNative(int groupId);
 }
