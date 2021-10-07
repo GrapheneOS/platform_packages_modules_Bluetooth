@@ -193,36 +193,6 @@ BT_HDR* bta_pan_ci_readbuf(uint16_t handle, RawAddress& src, RawAddress& dst,
   return p_buf;
 }
 
-/*******************************************************************************
- *
- * Function         bta_pan_ci_set_mfilters
- *
- * Description      This function is called to set multicast filters
- *
- *
- * Returns          void
- *
- ******************************************************************************/
-void bta_pan_ci_set_mfilters(uint16_t handle, uint16_t num_mcast_filters,
-                             uint8_t* p_start_array, uint8_t* p_end_array) {
-  PAN_SetMulticastFilters(handle, num_mcast_filters, p_start_array,
-                          p_end_array);
-}
-
-/*******************************************************************************
- *
- * Function         bta_pan_ci_set_mfilters
- *
- * Description      This function is called to set protocol filters
- *
- *
- * Returns          void
- *
- ******************************************************************************/
-void bta_pan_ci_set_pfilters(uint16_t handle, uint16_t num_filters,
-                             uint16_t* p_start_array, uint16_t* p_end_array) {
-  PAN_SetProtocolFilters(handle, num_filters, p_start_array, p_end_array);
-}
 #else
 #include "osi/include/osi.h"  // UNUSED_ATTR
 
