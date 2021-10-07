@@ -44,6 +44,8 @@
 #include "stack/include/btm_api.h"
 #include "types/raw_address.h"
 
+#include <base/logging.h>
+
 namespace {
 constexpr char kBtmLogTag[] = "HFP";
 }

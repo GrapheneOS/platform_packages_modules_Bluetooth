@@ -56,6 +56,8 @@
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
+#include <base/logging.h>
+
 #if (GAP_INCLUDED == TRUE)
 #include "gap_api.h"
 #endif

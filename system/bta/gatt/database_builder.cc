@@ -30,6 +30,8 @@
 #include "stack/include/gattdefs.h"
 #include "types/bluetooth/uuid.h"
 
+#include <base/logging.h>
+
 using bluetooth::Uuid;
 
 namespace gatt {

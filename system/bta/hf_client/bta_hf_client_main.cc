@@ -28,6 +28,8 @@
 #include "stack/include/btm_api.h"
 #include "types/raw_address.h"
 
+#include <base/logging.h>
+
 static const char* bta_hf_client_evt_str(uint16_t event);
 static const char* bta_hf_client_state_str(uint8_t state);
 void bta_hf_client_cb_init(tBTA_HF_CLIENT_CB* client_cb, uint16_t handle);

@@ -22,6 +22,7 @@
 #include <hardware/bt_gatt.h>
 
 #include <base/bind.h>
+#include <base/logging.h>
 #include <vector>
 
 #include "ble_advertiser.h"

@@ -26,6 +26,8 @@
 #include "bta/gatt/bta_gatts_int.h"
 #include "stack/include/bt_hdr.h"
 
+#include <base/logging.h>
+
 /* GATTS control block */
 tBTA_GATTS_CB bta_gatts_cb;
 

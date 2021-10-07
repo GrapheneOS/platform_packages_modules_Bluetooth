@@ -18,6 +18,7 @@
 #include "ble_scanner_hci_interface.h"
 
 #include <base/bind.h>
+#include <base/logging.h>
 
 #include "acl_api.h"
 #include "btm_api.h"

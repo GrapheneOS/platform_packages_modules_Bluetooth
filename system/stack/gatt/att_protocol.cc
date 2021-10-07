@@ -31,6 +31,8 @@
 #include "stack/include/bt_types.h"
 #include "types/bluetooth/uuid.h"
 
+#include <base/logging.h>
+
 #define GATT_HDR_FIND_TYPE_VALUE_LEN 21
 #define GATT_OP_CODE_SIZE 1
 #define GATT_START_END_HANDLE_SIZE 4

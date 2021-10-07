@@ -37,6 +37,8 @@
 #include "stack/include/bt_types.h"
 #include "types/bluetooth/uuid.h"
 
+#include <base/logging.h>
+
 #define GATT_WRITE_LONG_HDR_SIZE 5 /* 1 opcode + 2 handle + 2 offset */
 #define GATT_READ_CHAR_VALUE_HDL (GATT_READ_CHAR_VALUE | 0x80)
 #define GATT_READ_INC_SRV_UUID128 (GATT_DISC_INC_SRVC | 0x90)

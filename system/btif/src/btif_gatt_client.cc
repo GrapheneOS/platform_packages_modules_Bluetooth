@@ -28,6 +28,7 @@
 
 #include <base/at_exit.h>
 #include <base/bind.h>
+#include <base/logging.h>
 #include <base/threading/thread.h>
 #include <errno.h>
 #include <hardware/bluetooth.h>
