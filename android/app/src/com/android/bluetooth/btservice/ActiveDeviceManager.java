@@ -21,6 +21,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadset;
 import android.bluetooth.BluetoothHearingAid;
+import android.bluetooth.BluetoothLeAudio;
 import android.bluetooth.BluetoothProfile;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -38,6 +39,7 @@ import android.util.Log;
 import com.android.bluetooth.a2dp.A2dpService;
 import com.android.bluetooth.hearingaid.HearingAidService;
 import com.android.bluetooth.hfp.HeadsetService;
+import com.android.bluetooth.le_audio.LeAudioService;
 import com.android.internal.annotations.VisibleForTesting;
 
 import java.util.LinkedList;
@@ -110,6 +112,7 @@ class ActiveDeviceManager {
     private static final int MESSAGE_HFP_ACTION_CONNECTION_STATE_CHANGED = 4;
     private static final int MESSAGE_HFP_ACTION_ACTIVE_DEVICE_CHANGED = 5;
     private static final int MESSAGE_HEARING_AID_ACTION_ACTIVE_DEVICE_CHANGED = 6;
+    private static final int MESSAGE_LE_AUDIO_ACTION_ACTIVE_DEVICE_CHANGED = 7;
 
     private final AdapterService mAdapterService;
     private final ServiceFactory mFactory;
@@ -123,6 +126,7 @@ class ActiveDeviceManager {
     private BluetoothDevice mA2dpActiveDevice = null;
     private BluetoothDevice mHfpActiveDevice = null;
     private BluetoothDevice mHearingAidActiveDevice = null;
+    private BluetoothDevice mLeAudioActiveDevice = null;
 
     // Broadcast receiver for all changes
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
@@ -156,6 +160,10 @@ class ActiveDeviceManager {
                     break;
                 case BluetoothHearingAid.ACTION_ACTIVE_DEVICE_CHANGED:
                     mHandler.obtainMessage(MESSAGE_HEARING_AID_ACTION_ACTIVE_DEVICE_CHANGED,
+                            intent).sendToTarget();
+                    break;
+                case BluetoothLeAudio.ACTION_LE_AUDIO_ACTIVE_DEVICE_CHANGED:
+                    mHandler.obtainMessage(MESSAGE_LE_AUDIO_ACTION_ACTIVE_DEVICE_CHANGED,
                             intent).sendToTarget();
                     break;
                 default:
@@ -239,6 +247,7 @@ class ActiveDeviceManager {
                     }
                     if (device != null && !Objects.equals(mA2dpActiveDevice, device)) {
                         setHearingAidActiveDevice(null);
+                        setLeAudioActiveDevice(null);
                     }
                     // Just assign locally the new value
                     mA2dpActiveDevice = device;
@@ -298,6 +307,7 @@ class ActiveDeviceManager {
                     }
                     if (device != null && !Objects.equals(mHfpActiveDevice, device)) {
                         setHearingAidActiveDevice(null);
+                        setLeAudioActiveDevice(null);
                     }
                     // Just assign locally the new value
                     mHfpActiveDevice = device;
@@ -317,7 +327,26 @@ class ActiveDeviceManager {
                     if (device != null) {
                         setA2dpActiveDevice(null);
                         setHfpActiveDevice(null);
+                        setLeAudioActiveDevice(null);
                     }
+                }
+                break;
+
+                case MESSAGE_LE_AUDIO_ACTION_ACTIVE_DEVICE_CHANGED: {
+                    Intent intent = (Intent) msg.obj;
+                    BluetoothDevice device =
+                            intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                    if (DBG) {
+                        Log.d(TAG, "handleMessage(MESSAGE_LE_AUDIO_ACTION_ACTIVE_DEVICE_CHANGED): "
+                                + "device= " + device);
+                    }
+                    // Just assign locally the new value
+                    if (device != null && !Objects.equals(mLeAudioActiveDevice, device)) {
+                        setA2dpActiveDevice(null);
+                        setHfpActiveDevice(null);
+                        setHearingAidActiveDevice(null);
+                    }
+                    mLeAudioActiveDevice = device;
                 }
                 break;
             }
@@ -387,6 +416,7 @@ class ActiveDeviceManager {
         filter.addAction(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED);
         filter.addAction(BluetoothHeadset.ACTION_ACTIVE_DEVICE_CHANGED);
         filter.addAction(BluetoothHearingAid.ACTION_ACTIVE_DEVICE_CHANGED);
+        filter.addAction(BluetoothLeAudio.ACTION_LE_AUDIO_ACTIVE_DEVICE_CHANGED);
         mAdapterService.registerReceiver(mReceiver, filter);
 
         mAudioManager.registerAudioDeviceCallback(mAudioManagerAudioDeviceCallback, mHandler);
@@ -462,6 +492,20 @@ class ActiveDeviceManager {
         mHearingAidActiveDevice = device;
     }
 
+    private void setLeAudioActiveDevice(BluetoothDevice device) {
+        if (DBG) {
+            Log.d(TAG, "setLeAudioActiveDevice(" + device + ")");
+        }
+        final LeAudioService leAudioService = mFactory.getLeAudioService();
+        if (leAudioService == null) {
+            return;
+        }
+        if (!leAudioService.setActiveDevice(device)) {
+            return;
+        }
+        mLeAudioActiveDevice = device;
+    }
+
     private void resetState() {
         mA2dpConnectedDevices.clear();
         mA2dpActiveDevice = null;
@@ -470,6 +514,7 @@ class ActiveDeviceManager {
         mHfpActiveDevice = null;
 
         mHearingAidActiveDevice = null;
+        mLeAudioActiveDevice = null;
     }
 
     @VisibleForTesting
@@ -492,6 +537,11 @@ class ActiveDeviceManager {
         return mHearingAidActiveDevice;
     }
 
+    @VisibleForTesting
+    BluetoothDevice getLeAudioActiveDevice() {
+        return mLeAudioActiveDevice;
+    }
+
     /**
      * Called when a wired audio device is connected.
      * It might be called multiple times each time a wired audio device is connected.
@@ -504,5 +554,6 @@ class ActiveDeviceManager {
         setA2dpActiveDevice(null);
         setHfpActiveDevice(null);
         setHearingAidActiveDevice(null);
+        setLeAudioActiveDevice(null);
     }
 }
