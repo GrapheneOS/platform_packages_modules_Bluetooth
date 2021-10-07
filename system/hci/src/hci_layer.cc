@@ -576,6 +576,8 @@ static bool filter_incoming_event(BT_HDR* packet) {
     goto intercepted;
   } else if (event_code == HCI_COMMAND_STATUS_EVT) {
     if (length < (sizeof(uint8_t) + sizeof(uint8_t) + sizeof(uint16_t))) {
+      LOG_WARN("%s Unexpected hci command status event length:%hhd", __func__,
+               length);
       goto intercepted;
     }
     uint8_t status;

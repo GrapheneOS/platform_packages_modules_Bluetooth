@@ -760,6 +760,9 @@ cc_test {
     name: "net_test_stack_btm",
     test_suites: ["device-tests"],
     host_supported: true,
+    test_options: {
+        unit_test: true,
+    },
     defaults: ["fluoride_defaults"],
     local_include_dirs: [
         "include",

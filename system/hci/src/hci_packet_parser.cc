@@ -193,8 +193,9 @@ static void parse_ble_read_resolving_list_size_response(
     BT_HDR* response, uint8_t* resolving_list_size_ptr) {
   uint8_t* stream = read_command_complete_header(
       response, HCI_BLE_READ_RESOLVING_LIST_SIZE, 1 /* bytes after */);
-  STREAM_TO_UINT8(*resolving_list_size_ptr, stream);
-
+  if (stream) {
+    STREAM_TO_UINT8(*resolving_list_size_ptr, stream);
+  }
   buffer_allocator->free(response);
 }
 
@@ -202,8 +203,9 @@ static void parse_ble_read_suggested_default_data_length_response(
     BT_HDR* response, uint16_t* ble_default_packet_length_ptr) {
   uint8_t* stream = read_command_complete_header(
       response, HCI_BLE_READ_DEFAULT_DATA_LENGTH, 2 /* bytes after */);
-  STREAM_TO_UINT16(*ble_default_packet_length_ptr, stream);
-
+  if (stream) {
+    STREAM_TO_UINT16(*ble_default_packet_length_ptr, stream);
+  }
   buffer_allocator->free(response);
 }
 
@@ -213,11 +215,12 @@ static void parse_ble_read_maximum_data_length_response(
     uint16_t* ble_supported_max_rx_time) {
   uint8_t* stream = read_command_complete_header(
       response, HCI_BLE_READ_MAXIMUM_DATA_LENGTH, 8 /* bytes after */);
-  STREAM_TO_UINT16(*ble_supported_max_tx_octets, stream);
-  STREAM_TO_UINT16(*ble_supported_max_tx_time, stream);
-  STREAM_TO_UINT16(*ble_supported_max_rx_octets, stream);
-  STREAM_TO_UINT16(*ble_supported_max_rx_time, stream);
-
+  if (stream) {
+    STREAM_TO_UINT16(*ble_supported_max_tx_octets, stream);
+    STREAM_TO_UINT16(*ble_supported_max_tx_time, stream);
+    STREAM_TO_UINT16(*ble_supported_max_rx_octets, stream);
+    STREAM_TO_UINT16(*ble_supported_max_rx_time, stream);
+  }
   buffer_allocator->free(response);
 }
 
@@ -226,8 +229,9 @@ static void parse_ble_read_maximum_advertising_data_length(
   uint8_t* stream = read_command_complete_header(
       response, HCI_LE_READ_MAXIMUM_ADVERTISING_DATA_LENGTH,
       2 /* bytes after */);
-  STREAM_TO_UINT16(*ble_maximum_advertising_data_length_ptr, stream);
-
+  if (stream) {
+    STREAM_TO_UINT16(*ble_maximum_advertising_data_length_ptr, stream);
+  }
   buffer_allocator->free(response);
 }
 
@@ -236,8 +240,9 @@ static void parse_ble_read_number_of_supported_advertising_sets(
   uint8_t* stream = read_command_complete_header(
       response, HCI_LE_READ_NUMBER_OF_SUPPORTED_ADVERTISING_SETS,
       1 /* bytes after */);
-  STREAM_TO_UINT8(*ble_number_of_supported_advertising_sets_ptr, stream);
-
+  if (stream) {
+    STREAM_TO_UINT8(*ble_number_of_supported_advertising_sets_ptr, stream);
+  }
   buffer_allocator->free(response);
 }
 
@@ -246,8 +251,9 @@ static void parse_ble_read_size_of_advertiser_list(
   uint8_t* stream = read_command_complete_header(
       response, HCI_BLE_READ_PERIODIC_ADVERTISER_LIST_SIZE,
       1 /* bytes after */);
-  STREAM_TO_UINT8(*ble_size_of_advertiser_list_ptr, stream);
-
+  if (stream) {
+    STREAM_TO_UINT8(*ble_size_of_advertiser_list_ptr, stream);
+  }
   buffer_allocator->free(response);
 }
 
