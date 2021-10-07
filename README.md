@@ -28,7 +28,8 @@ sudo apt-get install repo git-core gnupg flex bison gperf build-essential \
   libflatbuffers-dev libtinyxml2-dev \
   libglib2.0-dev libevent-dev libnss3-dev libdbus-1-dev \
   libprotobuf-dev ninja-build generate-ninja protobuf-compiler \
-  libre2-9 debmake
+  libre2-9 debmake \
+  llvm libc++abi-dev
 ```
 
 You will also need a recent-ish version of Rust and Cargo. Please follow the
@@ -78,13 +79,13 @@ mkdir -p outdir/{modp_b64,libchrome}
 pushd modp_b64
 ./gen-src-pkg.sh $(readlink -f ../outdir/modp_b64)
 popd
-sudo dpkg -i outdir/modp_b64/*.dpkg
+sudo dpkg -i outdir/modp_b64/*.deb
 
 # Build and install libchrome
 pushd libchrome
 ./gen-src-pkg.sh $(readlink -f ../outdir/libchrome)
 popd
-sudo dpkg -i outdir/libchrome/*.dpkg
+sudo dpkg -i outdir/libchrome/*.deb
 ```
 
 The googletest packages provided by Debian/Ubuntu (libgmock-dev and
