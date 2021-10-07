@@ -36,6 +36,8 @@
 #include "stack/include/btm_api.h"
 #include "types/raw_address.h"
 
+#include <base/logging.h>
+
 using bluetooth::hci::Address;
 using bluetooth::hci::AddressType;
 using bluetooth::hci::ErrorCode;

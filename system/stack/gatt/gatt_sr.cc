@@ -34,6 +34,8 @@
 #include "stack/include/bt_types.h"
 #include "stack/l2cap/l2c_int.h"
 #include "types/bluetooth/uuid.h"
+#include <base/logging.h>
+
 #define GATT_MTU_REQ_MIN_LEN 2
 #define L2CAP_PKT_OVERHEAD 4
 

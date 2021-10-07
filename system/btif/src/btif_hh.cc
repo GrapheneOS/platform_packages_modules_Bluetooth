@@ -43,6 +43,8 @@
 #include "stack/include/l2c_api.h"
 #include "types/raw_address.h"
 
+#include <base/logging.h>
+
 #define COD_HID_KEYBOARD 0x0540
 #define COD_HID_POINTING 0x0580
 #define COD_HID_COMBO 0x05C0

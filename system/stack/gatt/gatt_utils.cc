@@ -21,6 +21,7 @@
  *  this file contains GATT utility functions
  *
  ******************************************************************************/
+#include <base/logging.h>
 #include <base/strings/stringprintf.h>
 
 #include <cstdint>

@@ -33,6 +33,8 @@
 #include "osi/include/osi.h"
 #include "types/raw_address.h"
 
+#include <base/logging.h>
+
 /*****************************************************************************
  * state machine constants and types
  ****************************************************************************/

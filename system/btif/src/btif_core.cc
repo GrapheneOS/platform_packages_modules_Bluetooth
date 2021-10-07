@@ -30,6 +30,7 @@
 
 #include <base/at_exit.h>
 #include <base/bind.h>
+#include <base/logging.h>
 #include <base/threading/platform_thread.h>
 #include <signal.h>
 #include <sys/types.h>

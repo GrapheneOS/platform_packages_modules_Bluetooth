@@ -26,6 +26,7 @@
 #define LOG_TAG "bt_bta_gattc"
 
 #include <base/bind.h>
+#include <base/logging.h>
 #include <base/strings/stringprintf.h>
 
 #include "bt_target.h"  // Must be first to define build configuration

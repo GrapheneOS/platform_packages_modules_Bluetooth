@@ -20,6 +20,7 @@
 #include <unistd.h>
 #include <thread>
 
+#include <base/logging.h>
 #include <base/strings/stringprintf.h>
 
 #include "gd/common/init_flags.h"
