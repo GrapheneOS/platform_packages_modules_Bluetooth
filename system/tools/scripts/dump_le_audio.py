@@ -27,14 +27,15 @@
 # ./dump_le_audio.py BTSNOOP.cfa
 #
 # -v, --verbose to enable the verbose log
-# --header, Add the header for LC3.TS.
+# --header, Add the header for LC3 Conformance Interoperability Test Software V.1.0.3 from LC3 test specification.
 #
 # NOTE:
 # Please make sure you HCI Snoop data file includes the following frames:
 # GATT service discovery for "ASE Control Point" chracteristic
 # GATT config codec via ASE Control Point
 # HCI create CIS to point out the "Start stream", and the data frames.
-# HCI remove ISO data path to trigger dump audio data
+# HCI remove ISO data path would trigger dump audio data once
+# After all hci packet parse finished, would dump all remain audio data as well
 #
 # Correspondsing Spec.
 # ASCS_1.0
@@ -492,7 +493,10 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("btsnoop_file", help="btsnoop file contains LE audio start procedure")
     parser.add_argument("-v", "--verbose", help="Enable verbose log.", action="store_true")
-    parser.add_argument("--header", help="Add the header for LC3.TS.", action="store_true")
+    parser.add_argument(
+        "--header",
+        help="Add the header for LC3 Conformance Interoperability Test Software V.1.0.3.",
+        action="store_true")
 
     argv = parser.parse_args()
     BTSNOOP_FILE_NAME = argv.btsnoop_file
