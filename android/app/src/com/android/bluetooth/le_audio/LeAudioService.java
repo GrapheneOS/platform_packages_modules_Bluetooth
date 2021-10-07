@@ -132,7 +132,8 @@ public class LeAudioService extends ProfileService {
         mLeAudioNativeInterface = Objects.requireNonNull(LeAudioNativeInterface.getInstance(),
                 "LeAudioNativeInterface cannot be null when LeAudioService starts");
         mDatabaseManager = Objects.requireNonNull(mAdapterService.getDatabase(),
-                "DatabaseManager cannot be null when A2dpService starts");
+                "DatabaseManager cannot be null when LeAudioService starts");
+
         mAudioManager = getSystemService(AudioManager.class);
         Objects.requireNonNull(mAudioManager,
                 "AudioManager cannot be null when LeAudioService starts");
