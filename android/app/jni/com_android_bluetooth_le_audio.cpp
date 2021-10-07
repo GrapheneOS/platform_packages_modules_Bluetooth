@@ -219,49 +219,12 @@ static jboolean disconnectLeAudioNative(JNIEnv* env, jobject object,
   return JNI_TRUE;
 }
 
-static void groupStreamNative(JNIEnv* env, jobject object, jint group_id,
-                              jint content_type) {
-  LOG(INFO) << __func__;
-
-  if (!sLeAudioClientInterface) {
-    LOG(ERROR) << __func__ << ": Failed to get the Bluetooth LeAudio Interface";
-    return;
-  }
-
-  sLeAudioClientInterface->GroupStream(group_id, content_type);
-}
-
-static void groupSuspendNative(JNIEnv* env, jobject object, jint group_id) {
-  LOG(INFO) << __func__;
-
-  if (!sLeAudioClientInterface) {
-    LOG(ERROR) << __func__ << ": Failed to get the Bluetooth LeAudio Interface";
-    return;
-  }
-
-  sLeAudioClientInterface->GroupSuspend(group_id);
-}
-
-static void groupStopNative(JNIEnv* env, jobject object, jint group_id) {
-  LOG(INFO) << __func__;
-
-  if (!sLeAudioClientInterface) {
-    LOG(ERROR) << __func__ << ": Failed to get the Bluetooth LeAudio Interface";
-    return;
-  }
-
-  sLeAudioClientInterface->GroupStop(group_id);
-}
-
 static JNINativeMethod sMethods[] = {
     {"classInitNative", "()V", (void*)classInitNative},
     {"initNative", "()V", (void*)initNative},
     {"cleanupNative", "()V", (void*)cleanupNative},
     {"connectLeAudioNative", "([B)Z", (void*)connectLeAudioNative},
     {"disconnectLeAudioNative", "([B)Z", (void*)disconnectLeAudioNative},
-    {"groupStreamNative", "(II)V", (void*)groupStreamNative},
-    {"groupSuspendNative", "(I)V", (void*)groupSuspendNative},
-    {"groupStopNative", "(I)V", (void*)groupStopNative},
 };
 
 int register_com_android_bluetooth_le_audio(JNIEnv* env) {
