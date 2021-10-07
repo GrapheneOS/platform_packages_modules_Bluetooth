@@ -1830,8 +1830,9 @@ void btif_storage_load_bonded_csis_devices(void) {
       btif_config_get_bin(name, BTIF_STORAGE_CSIS_SET_INFO_BIN, in.data(),
                           &buffer_size);
 
-    do_in_main_thread(FROM_HERE, Bind(&CsisClient::AddFromStorage, bd_addr,
-                                      std::move(in), autoconnect));
+    if (buffer_size != 0 || autoconnect)
+      do_in_main_thread(FROM_HERE, Bind(&CsisClient::AddFromStorage, bd_addr,
+                                        std::move(in), autoconnect));
   }
 }
 
