@@ -18,6 +18,7 @@ package android.bluetooth;
 
 import static android.view.WindowManager.LayoutParams.SYSTEM_FLAG_HIDE_NON_SYSTEM_OVERLAY_WINDOWS;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -33,6 +34,7 @@ import android.view.accessibility.AccessibilityEvent;
  * @see #mAlert
  * @see #setupAlert()
  */
+@SuppressLint("AndroidFrameworkBluetoothPermission")
 public abstract class AlertActivity extends Activity implements DialogInterface.OnDismissListener,
         DialogInterface.OnCancelListener {
 

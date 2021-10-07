@@ -16,6 +16,9 @@
 
 package com.android.bluetooth.hfp;
 
+import static android.Manifest.permission.BLUETOOTH_CONNECT;
+
+import android.annotation.RequiresPermission;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothAssignedNumbers;
 import android.bluetooth.BluetoothDevice;
@@ -304,7 +307,7 @@ public class HeadsetStateMachine extends StateMachine {
             intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
             intent.addFlags(Intent.FLAG_RECEIVER_INCLUDE_BACKGROUND);
             mHeadsetService.sendBroadcastAsUser(intent, UserHandle.ALL,
-                    HeadsetService.BLUETOOTH_PERM);
+                    BLUETOOTH_CONNECT, Utils.getTempAllowlistBroadcastOptions());
         }
 
         // Should not be called from enter() method
@@ -323,7 +326,7 @@ public class HeadsetStateMachine extends StateMachine {
             intent.putExtra(BluetoothProfile.EXTRA_STATE, toState);
             intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
             mHeadsetService.sendBroadcastAsUser(intent, UserHandle.ALL,
-                    HeadsetService.BLUETOOTH_PERM);
+                    BLUETOOTH_CONNECT, Utils.getTempAllowlistBroadcastOptions());
         }
 
         /**
@@ -1500,7 +1503,8 @@ public class HeadsetStateMachine extends StateMachine {
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         intent.addCategory(BluetoothHeadset.VENDOR_SPECIFIC_HEADSET_EVENT_COMPANY_ID_CATEGORY + "."
                 + Integer.toString(companyId));
-        mHeadsetService.sendBroadcastAsUser(intent, UserHandle.ALL, HeadsetService.BLUETOOTH_PERM);
+        mHeadsetService.sendBroadcastAsUser(intent, UserHandle.ALL, BLUETOOTH_CONNECT,
+                Utils.getTempAllowlistBroadcastOptions());
     }
 
     private void setAudioParameters() {
@@ -1555,6 +1559,7 @@ public class HeadsetStateMachine extends StateMachine {
         return commandType;
     }
 
+    @RequiresPermission(android.Manifest.permission.MODIFY_PHONE_STATE)
     private void processDialCall(String number) {
         String dialNumber;
         if (mHeadsetService.hasDeviceInitiatedDialingOut()) {
@@ -1599,6 +1604,7 @@ public class HeadsetStateMachine extends StateMachine {
         mNeedDialingOutReply = true;
     }
 
+    @RequiresPermission(android.Manifest.permission.MODIFY_PHONE_STATE)
     private void processVrEvent(int state) {
         if (state == HeadsetHalConstants.VR_STATE_STARTED) {
             if (!mHeadsetService.startVoiceRecognitionByHeadset(mDevice)) {
@@ -1667,6 +1673,7 @@ public class HeadsetStateMachine extends StateMachine {
                 HEADSET_WBS));
     }
 
+    @RequiresPermission(android.Manifest.permission.MODIFY_PHONE_STATE)
     private void processAtChld(int chld, BluetoothDevice device) {
         if (mSystemInterface.processChld(chld)) {
             mNativeInterface.atResponseCode(device, HeadsetHalConstants.AT_RESPONSE_OK, 0);
@@ -1675,6 +1682,7 @@ public class HeadsetStateMachine extends StateMachine {
         }
     }
 
+    @RequiresPermission(android.Manifest.permission.MODIFY_PHONE_STATE)
     private void processSubscriberNumberRequest(BluetoothDevice device) {
         String number = mSystemInterface.getSubscriberNumber();
         if (number != null) {
@@ -1709,6 +1717,7 @@ public class HeadsetStateMachine extends StateMachine {
                 phoneState.getCindBatteryCharge());
     }
 
+    @RequiresPermission(android.Manifest.permission.MODIFY_PHONE_STATE)
     private void processAtCops(BluetoothDevice device) {
         // Get operator name suggested by Telephony
         String operatorName = null;
@@ -1729,6 +1738,7 @@ public class HeadsetStateMachine extends StateMachine {
         mNativeInterface.copsResponse(device, operatorName);
     }
 
+    @RequiresPermission(android.Manifest.permission.MODIFY_PHONE_STATE)
     private void processAtClcc(BluetoothDevice device) {
         if (mHeadsetService.isVirtualCallStarted()) {
             // In virtual call, send our phone number instead of remote phone number
@@ -1915,6 +1925,7 @@ public class HeadsetStateMachine extends StateMachine {
     }
 
     // HSP +CKPD command
+    @RequiresPermission(android.Manifest.permission.MODIFY_PHONE_STATE)
     private void processKeyPressed(BluetoothDevice device) {
         if (mSystemInterface.isRinging()) {
             mSystemInterface.answerCall(device);
@@ -1962,7 +1973,8 @@ public class HeadsetStateMachine extends StateMachine {
         intent.putExtra(BluetoothHeadset.EXTRA_HF_INDICATORS_IND_ID, indId);
         intent.putExtra(BluetoothHeadset.EXTRA_HF_INDICATORS_IND_VALUE, indValue);
 
-        mHeadsetService.sendBroadcast(intent, HeadsetService.BLUETOOTH_PERM);
+        mHeadsetService.sendBroadcast(intent, BLUETOOTH_CONNECT,
+                Utils.getTempAllowlistBroadcastOptions());
     }
 
     private void processAtBind(String atString, BluetoothDevice device) {

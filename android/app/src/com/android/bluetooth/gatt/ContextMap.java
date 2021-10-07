@@ -107,6 +107,9 @@ import java.util.UUID;
         /** Whether the calling app has the network setup wizard permission */
         boolean mHasScanWithoutLocationPermission;
 
+        /** Whether the calling app has disavowed the use of bluetooth for location */
+        boolean mHasDisavowedLocation;
+
         boolean mEligibleForSanitizedExposureNotification;
 
         public List<String> mAssociatedDevices;

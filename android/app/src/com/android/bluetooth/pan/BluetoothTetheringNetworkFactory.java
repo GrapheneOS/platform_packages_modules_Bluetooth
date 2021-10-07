@@ -28,6 +28,7 @@ import android.net.ip.IIpClient;
 import android.net.ip.IpClientUtil;
 import android.net.ip.IpClientUtil.WaitForProvisioningCallbacks;
 import android.net.shared.ProvisioningConfiguration;
+import android.os.Binder;
 import android.os.Looper;
 import android.os.RemoteException;
 import android.text.TextUtils;
@@ -202,8 +203,13 @@ public class BluetoothTetheringNetworkFactory extends NetworkFactory {
             mNetworkAgent.unregister();
             mNetworkAgent = null;
         }
-        for (BluetoothDevice device : mPanService.getConnectedDevices()) {
-            mPanService.disconnect(device);
+        final long token = Binder.clearCallingIdentity();
+        try {
+            for (BluetoothDevice device : mPanService.getConnectedDevices()) {
+                mPanService.disconnect(device);
+            }
+        } finally {
+            Binder.restoreCallingIdentity(token);
         }
     }
 

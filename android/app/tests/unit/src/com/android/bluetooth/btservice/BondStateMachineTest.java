@@ -15,11 +15,14 @@
  */
 package com.android.bluetooth.btservice;
 
+import static android.Manifest.permission.BLUETOOTH_CONNECT;
+
 import static org.mockito.Mockito.*;
 
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.os.HandlerThread;
 import android.os.Message;
 import android.os.ParcelUuid;
@@ -283,12 +286,12 @@ public class BondStateMachineTest {
         if (shouldBroadcast) {
             verify(mAdapterService, times(++mVerifyCount)).sendBroadcastAsUser(
                     intentArgument.capture(), eq(UserHandle.ALL),
-                    eq(AdapterService.BLUETOOTH_PERM));
+                    eq(BLUETOOTH_CONNECT), any(Bundle.class));
             verifyBondStateChangeIntent(broadcastOldState, broadcastNewState,
                     intentArgument.getValue());
         } else {
             verify(mAdapterService, times(mVerifyCount)).sendBroadcastAsUser(any(Intent.class),
-                    any(UserHandle.class), anyString());
+                    any(UserHandle.class), anyString(), any(Bundle.class));
         }
     }
 

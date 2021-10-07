@@ -40,6 +40,9 @@
  */
 package com.android.bluetooth.mapclient;
 
+import static android.Manifest.permission.BLUETOOTH_CONNECT;
+import static android.Manifest.permission.RECEIVE_SMS;
+
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.bluetooth.BluetoothDevice;
@@ -236,7 +239,7 @@ class MceStateMachine extends StateMachine {
         intent.putExtra(BluetoothProfile.EXTRA_STATE, state);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mDevice);
         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
-        mService.sendBroadcast(intent, ProfileService.BLUETOOTH_PERM);
+        mService.sendBroadcast(intent, BLUETOOTH_CONNECT, Utils.getTempAllowlistBroadcastOptions());
     }
 
     public synchronized int getState() {
@@ -418,7 +421,7 @@ class MceStateMachine extends StateMachine {
 
     public void dump(StringBuilder sb) {
         ProfileService.println(sb, "mCurrentDevice: " + mDevice.getAddress() + "("
-                + mDevice.getName() + ") " + this.toString());
+                + Utils.getName(mDevice) + ") " + this.toString());
     }
 
     class Disconnected extends State {
@@ -466,7 +469,7 @@ class MceStateMachine extends StateMachine {
                         SdpMasRecord record = (SdpMasRecord) message.obj;
                         if (record == null) {
                             Log.e(TAG, "Unexpected: SDP record is null for device "
-                                    + mDevice.getName());
+                                    + Utils.getName(mDevice));
                             return NOT_HANDLED;
                         }
                         mMasClient = new MasClient(mDevice, MceStateMachine.this, record);
@@ -743,28 +746,32 @@ class MceStateMachine extends StateMachine {
                 Log.e(TAG, "Set message status failed");
                 result = BluetoothMapClient.RESULT_FAILURE;
             }
-            Intent intent;
             RequestSetMessageStatus.StatusIndicator status = request.getStatusIndicator();
             switch (status) {
-                case READ:
-                    intent = new Intent(BluetoothMapClient.ACTION_MESSAGE_READ_STATUS_CHANGED);
+                case READ: {
+                    Intent intent = new Intent(
+                            BluetoothMapClient.ACTION_MESSAGE_READ_STATUS_CHANGED);
                     intent.putExtra(BluetoothMapClient.EXTRA_MESSAGE_READ_STATUS,
                             request.getValue() == RequestSetMessageStatus.STATUS_YES ? true : false);
+                    intent.putExtra(BluetoothMapClient.EXTRA_MESSAGE_HANDLE, request.getHandle());
+                    intent.putExtra(BluetoothMapClient.EXTRA_RESULT_CODE, result);
+                    mService.sendBroadcast(intent, BLUETOOTH_CONNECT);
                     break;
-
-                case DELETED:
-                    intent = new Intent(BluetoothMapClient.ACTION_MESSAGE_DELETED_STATUS_CHANGED);
+                }
+                case DELETED: {
+                    Intent intent = new Intent(
+                            BluetoothMapClient.ACTION_MESSAGE_DELETED_STATUS_CHANGED);
                     intent.putExtra(BluetoothMapClient.EXTRA_MESSAGE_DELETED_STATUS,
                             request.getValue() == RequestSetMessageStatus.STATUS_YES ? true : false);
+                    intent.putExtra(BluetoothMapClient.EXTRA_MESSAGE_HANDLE, request.getHandle());
+                    intent.putExtra(BluetoothMapClient.EXTRA_RESULT_CODE, result);
+                    mService.sendBroadcast(intent, BLUETOOTH_CONNECT);
                     break;
-
+                }
                 default:
                     Log.e(TAG, "Unknown status indicator " + status);
                     return;
             }
-            intent.putExtra(BluetoothMapClient.EXTRA_MESSAGE_HANDLE, request.getHandle());
-            intent.putExtra(BluetoothMapClient.EXTRA_RESULT_CODE, result);
-            mService.sendBroadcast(intent);
         }
 
         /**
@@ -854,7 +861,7 @@ class MceStateMachine extends StateMachine {
                     if (defaultMessagingPackage != null) {
                         intent.setPackage(defaultMessagingPackage);
                     }
-                    mService.sendBroadcast(intent, android.Manifest.permission.RECEIVE_SMS);
+                    mService.sendBroadcast(intent, RECEIVE_SMS);
                     break;
                 case EMAIL:
                 default:
