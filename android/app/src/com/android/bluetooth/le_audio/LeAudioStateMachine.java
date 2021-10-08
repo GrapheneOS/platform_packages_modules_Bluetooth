@@ -80,6 +80,7 @@ final class LeAudioStateMachine extends StateMachine {
     private Connecting mConnecting;
     private Disconnecting mDisconnecting;
     private Connected mConnected;
+    private int mConnectionState = BluetoothProfile.STATE_DISCONNECTED;
 
     private int mLastConnectionState = -1;
 
@@ -131,6 +132,7 @@ final class LeAudioStateMachine extends StateMachine {
         public void enter() {
             Log.i(TAG, "Enter Disconnected(" + mDevice + "): " + messageWhatToString(
                     getCurrentMessage().what));
+            mConnectionState = BluetoothProfile.STATE_DISCONNECTED;
 
             removeDeferredMessages(DISCONNECT);
 
@@ -239,6 +241,7 @@ final class LeAudioStateMachine extends StateMachine {
             Log.i(TAG, "Enter Connecting(" + mDevice + "): "
                     + messageWhatToString(getCurrentMessage().what));
             sendMessageDelayed(CONNECT_TIMEOUT, sConnectTimeoutMs);
+            mConnectionState = BluetoothProfile.STATE_CONNECTING;
             broadcastConnectionState(BluetoothProfile.STATE_CONNECTING, mLastConnectionState);
         }
 
@@ -325,6 +328,7 @@ final class LeAudioStateMachine extends StateMachine {
             Log.i(TAG, "Enter Disconnecting(" + mDevice + "): "
                     + messageWhatToString(getCurrentMessage().what));
             sendMessageDelayed(CONNECT_TIMEOUT, sConnectTimeoutMs);
+            mConnectionState = BluetoothProfile.STATE_DISCONNECTING;
             broadcastConnectionState(BluetoothProfile.STATE_DISCONNECTING, mLastConnectionState);
         }
 
@@ -422,6 +426,7 @@ final class LeAudioStateMachine extends StateMachine {
         public void enter() {
             Log.i(TAG, "Enter Connected(" + mDevice + "): "
                     + messageWhatToString(getCurrentMessage().what));
+            mConnectionState = BluetoothProfile.STATE_CONNECTED;
             removeDeferredMessages(CONNECT);
             broadcastConnectionState(BluetoothProfile.STATE_CONNECTED, mLastConnectionState);
         }
@@ -492,20 +497,7 @@ final class LeAudioStateMachine extends StateMachine {
     }
 
     int getConnectionState() {
-        String currentState = getCurrentState().getName();
-        switch (currentState) {
-            case "Disconnected":
-                return BluetoothProfile.STATE_DISCONNECTED;
-            case "Connecting":
-                return BluetoothProfile.STATE_CONNECTING;
-            case "Connected":
-                return BluetoothProfile.STATE_CONNECTED;
-            case "Disconnecting":
-                return BluetoothProfile.STATE_DISCONNECTING;
-            default:
-                Log.e(TAG, "Bad currentState: " + currentState);
-                return BluetoothProfile.STATE_DISCONNECTED;
-        }
+        return mConnectionState;
     }
 
     BluetoothDevice getDevice() {
@@ -513,7 +505,7 @@ final class LeAudioStateMachine extends StateMachine {
     }
 
     synchronized boolean isConnected() {
-        return getCurrentState() == mConnected;
+        return (getConnectionState() == BluetoothProfile.STATE_CONNECTED);
     }
 
     // This method does not check for error condition (newState == prevState)
