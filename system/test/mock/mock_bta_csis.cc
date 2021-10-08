@@ -22,6 +22,7 @@ extern std::map<std::string, int> mock_function_count_map;
 
 #include <base/bind.h>
 #include <hardware/bt_csis.h>
+
 #include "bta/include/bta_csis_api.h"
 #include "btif/include/btif_storage.h"
 
@@ -51,7 +52,8 @@ bool CsisClient::IsCsisClientRunning() {
   mock_function_count_map[__func__]++;
   return false;
 }
-void CsisClient::Initialize(CsisClientCallbacks* callbacks, base::Closure initCb) {
+void CsisClient::Initialize(CsisClientCallbacks* callbacks,
+                            base::Closure initCb) {
   mock_function_count_map[__func__]++;
 }
 void CsisClient::DebugDump(int fd) { mock_function_count_map[__func__]++; }
