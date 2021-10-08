@@ -36,7 +36,6 @@ namespace android {
 static jmethodID method_onConnectionStateChanged;
 static jmethodID method_onGroupStatus;
 static jmethodID method_onAudioConf;
-static jmethodID method_onSetMemberAvailable;
 
 static LeAudioClientInterface* sLeAudioClientInterface = nullptr;
 static std::shared_timed_mutex interface_mutex;
@@ -96,27 +95,6 @@ class LeAudioClientCallbacksImpl : public LeAudioClientCallbacks {
                                  (jint)sink_audio_location,
                                  (jint)source_audio_location, (jint)avail_cont);
   }
-
-  void OnSetMemberAvailable(const RawAddress& bd_addr,
-                            uint8_t group_id) override {
-    LOG(INFO) << __func__ << ", group id:" << int(group_id);
-
-    std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
-    CallbackEnv sCallbackEnv(__func__);
-    if (!sCallbackEnv.valid() || mCallbacksObj == nullptr) return;
-
-    ScopedLocalRef<jbyteArray> addr(
-        sCallbackEnv.get(), sCallbackEnv->NewByteArray(sizeof(RawAddress)));
-    if (!addr.get()) {
-      LOG(ERROR) << "Failed to new jbyteArray bd addr for connection state";
-      return;
-    }
-
-    sCallbackEnv->SetByteArrayRegion(addr.get(), 0, sizeof(RawAddress),
-                                     (jbyte*)&bd_addr);
-    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onSetMemberAvailable,
-                                 addr.get(), (jint)group_id);
-  }
 };
 
 static LeAudioClientCallbacksImpl sLeAudioClientCallbacks;
@@ -126,8 +104,6 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
   method_onAudioConf = env->GetMethodID(clazz, "onAudioConf", "(IIIII)V");
   method_onConnectionStateChanged =
       env->GetMethodID(clazz, "onConnectionStateChanged", "(I[B)V");
-  method_onSetMemberAvailable =
-      env->GetMethodID(clazz, "onSetMemberAvailable", "([BI)V");
 }
 
 static void initNative(JNIEnv* env, jobject object) {
