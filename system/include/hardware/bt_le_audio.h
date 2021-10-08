@@ -54,8 +54,7 @@ class LeAudioClientCallbacks {
                                  const RawAddress& address) = 0;
 
   /* Callback with group status update */
-  virtual void OnGroupStatus(uint8_t group_id, GroupStatus group_status,
-                             uint8_t group_flags) = 0;
+  virtual void OnGroupStatus(int group_id, GroupStatus group_status) = 0;
 
   /* Callback for newly recognized or reconfigured existing le audio group */
   virtual void OnAudioConf(uint8_t direction, int group_id,
