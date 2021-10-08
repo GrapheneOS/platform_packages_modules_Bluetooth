@@ -86,15 +86,6 @@ class LeAudioClientInterface {
 
   /* Cleanup the LeAudio */
   virtual void Cleanup(void) = 0;
-
-  /* Request to stream audio */
-  virtual void GroupStream(uint8_t group_id, uint16_t content_type) = 0;
-
-  /* Request to suspend audio */
-  virtual void GroupSuspend(uint8_t group_id) = 0;
-
-  /* Request to stop streaming audio */
-  virtual void GroupStop(uint8_t group_id) = 0;
 };
 
 static constexpr uint8_t INSTANCE_ID_UNDEFINED = 0xFF;
