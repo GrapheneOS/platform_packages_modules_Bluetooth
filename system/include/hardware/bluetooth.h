@@ -345,7 +345,7 @@ typedef struct {
 } bt_property_t;
 
 /** Represents the actual Out of Band data itself */
-typedef struct {
+typedef struct bt_oob_data_s {
   // Both
   bool is_valid = false; /* Default to invalid data; force caller to verify */
   uint8_t address[7]; /* Bluetooth Device Address (6) plus Address Type (1) */
