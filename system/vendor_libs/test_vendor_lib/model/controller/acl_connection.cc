@@ -16,8 +16,6 @@
 
 #include "acl_connection.h"
 
-using std::shared_ptr;
-
 namespace test_vendor_lib {
 AclConnection::AclConnection(AddressWithType addr, AddressWithType own_addr,
                              Phy::Type phy_type)
