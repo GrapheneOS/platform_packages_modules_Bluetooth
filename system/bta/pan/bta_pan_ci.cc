@@ -26,7 +26,11 @@
 #include "bta/pan/bta_pan_int.h"
 #include "osi/include/allocator.h"
 #include "stack/include/bt_hdr.h"
+#include "stack/include/btu.h"
 #include "types/raw_address.h"
+
+void bta_pan_sm_execute(tBTA_PAN_SCB* p_scb, uint16_t event,
+                        tBTA_PAN_DATA* p_data);
 
 /*******************************************************************************
  *
