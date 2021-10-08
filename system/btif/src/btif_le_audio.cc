@@ -28,7 +28,7 @@
 using base::Bind;
 using base::Unretained;
 using bluetooth::le_audio::ConnectionState;
-
+using bluetooth::le_audio::GroupNodeStatus;
 using bluetooth::le_audio::GroupStatus;
 using bluetooth::le_audio::LeAudioClientCallbacks;
 using bluetooth::le_audio::LeAudioClientInterface;
@@ -51,6 +51,13 @@ class LeAudioClientInterfaceImpl : public LeAudioClientInterface,
     do_in_jni_thread(FROM_HERE,
                      Bind(&LeAudioClientCallbacks::OnGroupStatus,
                           Unretained(callbacks), group_id, group_status));
+  }
+
+  void OnGroupNodeStatus(const RawAddress& addr, int group_id,
+                         GroupNodeStatus node_status) override {
+    do_in_jni_thread(FROM_HERE,
+                     Bind(&LeAudioClientCallbacks::OnGroupNodeStatus,
+                          Unretained(callbacks), addr, group_id, node_status));
   }
 
   void OnAudioConf(uint8_t direction, int group_id, uint32_t snk_audio_location,
