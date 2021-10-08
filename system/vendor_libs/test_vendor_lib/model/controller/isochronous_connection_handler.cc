@@ -20,8 +20,6 @@
 
 #include "hci/address.h"
 
-using std::shared_ptr;
-
 namespace test_vendor_lib {
 
 using bluetooth::hci::ErrorCode;
