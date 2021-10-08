@@ -28,6 +28,7 @@
 #include "hardware/bt_le_audio.h"
 
 using bluetooth::le_audio::ConnectionState;
+using bluetooth::le_audio::GroupNodeStatus;
 using bluetooth::le_audio::GroupStatus;
 using bluetooth::le_audio::LeAudioClientCallbacks;
 using bluetooth::le_audio::LeAudioClientInterface;
@@ -35,6 +36,7 @@ using bluetooth::le_audio::LeAudioClientInterface;
 namespace android {
 static jmethodID method_onConnectionStateChanged;
 static jmethodID method_onGroupStatus;
+static jmethodID method_onGroupNodeStatus;
 static jmethodID method_onAudioConf;
 
 static LeAudioClientInterface* sLeAudioClientInterface = nullptr;
@@ -79,6 +81,27 @@ class LeAudioClientCallbacksImpl : public LeAudioClientCallbacks {
                                  (jint)group_id, (jint)group_status);
   }
 
+  void OnGroupNodeStatus(const RawAddress& bd_addr, int group_id,
+                         GroupNodeStatus node_status) override {
+    LOG(INFO) << __func__;
+
+    std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid() || mCallbacksObj == nullptr) return;
+
+    ScopedLocalRef<jbyteArray> addr(
+        sCallbackEnv.get(), sCallbackEnv->NewByteArray(sizeof(RawAddress)));
+    if (!addr.get()) {
+      LOG(ERROR) << "Failed to new jbyteArray bd addr for group status";
+      return;
+    }
+
+    sCallbackEnv->SetByteArrayRegion(addr.get(), 0, sizeof(RawAddress),
+                                     (jbyte*)&bd_addr);
+    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onGroupNodeStatus,
+                                 addr.get(), (jint)group_id, (jint)node_status);
+  }
+
   void OnAudioConf(uint8_t direction, int group_id,
                    uint32_t sink_audio_location, uint32_t source_audio_location,
                    uint16_t avail_cont) override {
@@ -99,6 +122,8 @@ static LeAudioClientCallbacksImpl sLeAudioClientCallbacks;
 
 static void classInitNative(JNIEnv* env, jclass clazz) {
   method_onGroupStatus = env->GetMethodID(clazz, "onGroupStatus", "(II)V");
+  method_onGroupNodeStatus =
+      env->GetMethodID(clazz, "onGroupNodeStatus", "([BII)V");
   method_onAudioConf = env->GetMethodID(clazz, "onAudioConf", "(IIIII)V");
   method_onConnectionStateChanged =
       env->GetMethodID(clazz, "onConnectionStateChanged", "(I[B)V");
