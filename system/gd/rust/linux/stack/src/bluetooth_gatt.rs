@@ -443,7 +443,7 @@ pub enum LePhy {
 }
 
 #[derive(Debug, FromPrimitive, ToPrimitive)]
-#[repr(i32)]
+#[repr(u32)]
 /// Scan type configuration.
 pub enum ScanType {
     Active = 0,
