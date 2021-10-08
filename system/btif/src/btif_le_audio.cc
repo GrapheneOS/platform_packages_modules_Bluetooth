@@ -47,11 +47,10 @@ class LeAudioClientInterfaceImpl : public LeAudioClientInterface,
                                      Unretained(callbacks), state, address));
   }
 
-  void OnGroupStatus(uint8_t group_id, GroupStatus group_status,
-                     uint8_t group_flags) override {
-    do_in_jni_thread(FROM_HERE, Bind(&LeAudioClientCallbacks::OnGroupStatus,
-                                     Unretained(callbacks), group_id,
-                                     group_status, group_flags));
+  void OnGroupStatus(int group_id, GroupStatus group_status) override {
+    do_in_jni_thread(FROM_HERE,
+                     Bind(&LeAudioClientCallbacks::OnGroupStatus,
+                          Unretained(callbacks), group_id, group_status));
   }
 
   void OnAudioConf(uint8_t direction, int group_id, uint32_t snk_audio_location,
