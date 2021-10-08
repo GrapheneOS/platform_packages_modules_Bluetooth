@@ -587,7 +587,7 @@ class CsisClientImpl : public CsisClient {
     }
 
     if (autoconnect) {
-        BTA_GATTC_Open(gatt_if_, addr, false, false);
+      BTA_GATTC_Open(gatt_if_, addr, false, false);
     }
   }
 
