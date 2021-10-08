@@ -99,20 +99,6 @@ public class LeAudioNativeInterface {
         sendMessageToService(event);
     }
 
-    // Callbacks from the native stack back into the Java framework.
-    // All callbacks are routed via the Service which will disambiguate which
-    // state machine the message should be routed to.
-    private void onSetMemberAvailable(byte[] address, int groupId) {
-        LeAudioStackEvent event =
-                new LeAudioStackEvent(LeAudioStackEvent.EVENT_TYPE_SET_MEMBER_AVAILABLE);
-        event.device = getDevice(address);
-        event.valueInt1 = groupId;
-        if (DBG) {
-            Log.d(TAG, "onSetMemberAvailable: " + event);
-        }
-        sendMessageToService(event);
-    }
-
     private void onGroupStatus(int groupId, int groupStatus, int groupFlags) {
         LeAudioStackEvent event =
                 new LeAudioStackEvent(LeAudioStackEvent.EVENT_TYPE_GROUP_STATUS_CHANGED);
