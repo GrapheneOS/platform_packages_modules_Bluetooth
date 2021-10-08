@@ -33,10 +33,9 @@
 /*****************************************************************************
  *  Constants and data types
  ****************************************************************************/
-#define BTA_PAN_SUCCESS 0
-#define BTA_PAN_FAIL 1
-
-typedef uint8_t tBTA_PAN_STATUS;
+constexpr bool BTA_PAN_SUCCESS = true;
+constexpr bool BTA_PAN_FAIL = false;
+typedef bool tBTA_PAN_STATUS;
 
 /* PAN Callback events */
 #define BTA_PAN_ENABLE_EVT 0   /* PAN service is enabled. */
