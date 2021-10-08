@@ -45,6 +45,11 @@ enum class GroupStreamStatus {
   DESTROYED,
 };
 
+enum class GroupNodeStatus {
+  ADDED = 1,
+  REMOVED,
+};
+
 class LeAudioClientCallbacks {
  public:
   virtual ~LeAudioClientCallbacks() = default;
@@ -56,6 +61,9 @@ class LeAudioClientCallbacks {
   /* Callback with group status update */
   virtual void OnGroupStatus(int group_id, GroupStatus group_status) = 0;
 
+  /* Callback with node status update */
+  virtual void OnGroupNodeStatus(const RawAddress& bd_addr, int group_id,
+                                 GroupNodeStatus node_status) = 0;
   /* Callback for newly recognized or reconfigured existing le audio group */
   virtual void OnAudioConf(uint8_t direction, int group_id,
                            uint32_t snk_audio_location,
