@@ -54,3 +54,4 @@ bool CsisClient::IsCsisClientRunning() {
 void CsisClient::Initialize(CsisClientCallbacks* callbacks, base::Closure initCb) {
   mock_function_count_map[__func__]++;
 }
+void CsisClient::DebugDump(int fd) { mock_function_count_map[__func__]++; }
