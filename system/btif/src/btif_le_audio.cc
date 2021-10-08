@@ -54,13 +54,6 @@ class LeAudioClientInterfaceImpl : public LeAudioClientInterface,
                                      group_status, group_flags));
   }
 
-  void OnSetMemberAvailable(const RawAddress& address,
-                            uint8_t group_id) override {
-    do_in_jni_thread(FROM_HERE,
-                     Bind(&LeAudioClientCallbacks::OnSetMemberAvailable,
-                          Unretained(callbacks), address, group_id));
-  }
-
   void OnAudioConf(uint8_t direction, int group_id, uint32_t snk_audio_location,
                    uint32_t src_audio_location, uint16_t avail_cont) override {
     do_in_jni_thread(FROM_HERE,
