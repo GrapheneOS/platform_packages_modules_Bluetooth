@@ -23,7 +23,6 @@ using std::vector;
 
 namespace test_vendor_lib {
 
-using model::packets::LinkLayerPacketBuilder;
 using model::packets::LinkLayerPacketView;
 using model::packets::PageResponseBuilder;
 
