@@ -51,3 +51,14 @@ void osi_free_and_reset(void** p_ptr);
 // descriptor.
 // The information is in user-readable text format. The |fd| must be valid.
 void osi_allocator_debug_dump(int fd);
+
+class OsiObject {
+ public:
+  OsiObject(void* ptr);
+  OsiObject(const void* ptr);
+  ~OsiObject();
+  void* Release();
+
+ private:
+  void* ptr_;
+};

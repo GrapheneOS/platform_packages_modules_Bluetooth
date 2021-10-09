@@ -83,3 +83,19 @@ void osi_free_and_reset(void** p_ptr) {
 const allocator_t allocator_calloc = {osi_calloc, osi_free};
 
 const allocator_t allocator_malloc = {osi_malloc, osi_free};
+
+OsiObject::OsiObject(void* ptr) : ptr_(ptr) {}
+
+OsiObject::OsiObject(const void* ptr) : ptr_(const_cast<void*>(ptr)) {}
+
+OsiObject::~OsiObject() {
+  if (ptr_ != nullptr) {
+    osi_free(ptr_);
+  }
+}
+
+void* OsiObject::Release() {
+  void* ptr = ptr_;
+  ptr_ = nullptr;
+  return ptr;
+}
