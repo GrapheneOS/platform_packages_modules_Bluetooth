@@ -154,7 +154,7 @@ class AsyncManager::AsyncFdWatcher {
     }
     // set up the communication channel
     int pipe_fds[2];
-    if (pipe2(pipe_fds, O_NONBLOCK | O_CLOEXEC)) {
+    if (pipe2(pipe_fds, O_NONBLOCK)) {
       LOG_ERROR(
           "%s:Unable to establish a communication channel to the reading "
           "thread",
