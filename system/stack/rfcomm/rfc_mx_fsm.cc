@@ -58,7 +58,6 @@ static void rfc_mx_sm_state_connected(tRFC_MCB* p_mcb, tRFC_MX_EVENT event,
 static void rfc_mx_sm_state_disc_wait_ua(tRFC_MCB* p_mcb, tRFC_MX_EVENT event,
                                          void* p_data);
 
-static void rfc_mx_send_config_req(tRFC_MCB* p_mcb);
 static void rfc_mx_conf_ind(tRFC_MCB* p_mcb, tL2CAP_CFG_INFO* p_cfg);
 static void rfc_mx_conf_cnf(tRFC_MCB* p_mcb, uint16_t result);
 
@@ -153,8 +152,6 @@ void rfc_mx_sm_state_idle(tRFC_MCB* p_mcb, tRFC_MX_EVENT event, void* p_data) {
 
       rfc_timer_start(p_mcb, RFCOMM_CONN_TIMEOUT);
 
-      rfc_mx_send_config_req(p_mcb);
-
       p_mcb->state = RFC_MX_STATE_CONFIGURE;
       return;
 
@@ -214,7 +211,6 @@ void rfc_mx_sm_state_wait_conn_cnf(tRFC_MCB* p_mcb, tRFC_MX_EVENT event,
         return;
       }
       p_mcb->state = RFC_MX_STATE_CONFIGURE;
-      rfc_mx_send_config_req(p_mcb);
       return;
 
     case RFC_MX_EVENT_DISC_IND:
@@ -569,18 +565,6 @@ void rfc_mx_sm_state_disc_wait_ua(tRFC_MCB* p_mcb, tRFC_MX_EVENT event,
   }
   RFCOMM_TRACE_EVENT("RFCOMM MX ignored - evt:%d in state:%d", event,
                      p_mcb->state);
-}
-
-/*******************************************************************************
- *
- * Function         rfc_mx_send_config_req
- *
- * Description      This function handles L2CA_ConnectInd message from the
- *                  L2CAP.  Accept connection.
- *
- ******************************************************************************/
-static void rfc_mx_send_config_req(tRFC_MCB* p_mcb) {
-  // Not needed. L2CAP sends config req for us
 }
 
 void rfc_on_l2cap_error(uint16_t lcid, uint16_t result) {
