@@ -161,7 +161,7 @@ typedef void(tPAN_TX_DATA_FLOW_CB)(uint16_t handle, tPAN_RESULT event);
  *                      next two bytes will be ending of the range.
 */
 typedef void(tPAN_FILTER_IND_CB)(uint16_t handle, bool indication,
-                                 tBNEP_RESULT result, uint16_t num_filters,
+                                 tPAN_RESULT result, uint16_t num_filters,
                                  uint8_t* p_filters);
 
 /* Multicast Filters received indication callback prototype. Parameters are
@@ -177,7 +177,7 @@ typedef void(tPAN_FILTER_IND_CB)(uint16_t handle, bool indication,
  *                      next six bytes will be ending of the range.
 */
 typedef void(tPAN_MFILTER_IND_CB)(uint16_t handle, bool indication,
-                                  tBNEP_RESULT result, uint16_t num_mfilters,
+                                  tPAN_RESULT result, uint16_t num_mfilters,
                                   uint8_t* p_mfilters);
 
 /* This structure is used to register with PAN profile
@@ -392,10 +392,10 @@ extern tPAN_RESULT PAN_SetProtocolFilters(uint16_t handle, uint16_t num_filters,
  *                  PAN_FAILURE     if connection not found or error in setting
  *
  ******************************************************************************/
-extern tBNEP_RESULT PAN_SetMulticastFilters(uint16_t handle,
-                                            uint16_t num_mcast_filters,
-                                            uint8_t* p_start_array,
-                                            uint8_t* p_end_array);
+extern tPAN_RESULT PAN_SetMulticastFilters(uint16_t handle,
+                                           uint16_t num_mcast_filters,
+                                           uint8_t* p_start_array,
+                                           uint8_t* p_end_array);
 
 /*******************************************************************************
  *
