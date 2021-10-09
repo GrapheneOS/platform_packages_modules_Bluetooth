@@ -94,7 +94,7 @@ int main(int argc, char** argv) {
   uint16_t link_ble_server_port = kLinkBleServerPort;
 
   for (int arg = 0; arg < argc; arg++) {
-    int port = atoi(argv[arg]);
+    int port = (int)strtol(argv[arg], nullptr, 0);
     LOG_INFO("%d: %s (%d)", arg, argv[arg], port);
     if (port < 0 || port > 0xffff) {
       LOG_WARN("%s out of range", argv[arg]);
