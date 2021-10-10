@@ -1009,6 +1009,16 @@ public class LeAudioService extends ProfileService {
     }
 
     /**
+     * Set volume for streaming devices
+     * @param volume volume to set
+     */
+    public void setVolume(int volume) {
+        if (DBG) {
+            Log.d(TAG, "SetVolume " + volume);
+        }
+    }
+
+    /**
      * Binder object: must be a static class or memory leak may occur
      */
     @VisibleForTesting
@@ -1126,6 +1136,16 @@ public class LeAudioService extends ProfileService {
             }
 
             return service.getGroupId(device);
+        }
+
+        @Override
+        public void setVolume(int volume, AttributionSource source) {
+            LeAudioService service = getService(source);
+            if (service == null) {
+                return;
+            }
+
+            service.setVolume(volume);
         }
     }
 
