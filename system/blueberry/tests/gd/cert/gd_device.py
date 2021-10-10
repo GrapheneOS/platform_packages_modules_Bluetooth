@@ -45,12 +45,17 @@ from cert.os_utils import is_subprocess_alive
 from cert.os_utils import make_ports_available
 from cert.os_utils import TerminalColor
 
+from blueberry.tests.gd.cert import asserts
+from blueberry.tests.gd.cert.adb import BlueberryAdbProxy
+from blueberry.tests.gd.cert.adb import UTF_8
 from blueberry.tests.gd.cert.context import get_current_context
 
-from mobly import asserts
 from mobly import utils
-from mobly.controllers.android_device_lib.adb import AdbProxy
 from mobly.controllers.android_device_lib.adb import AdbError
+
+ADB_FILE_NOT_EXIST_ERROR = "No such file or directory"
+PORT_FORWARDING_ERROR_MSG_PREFIX = "During port forwarding cleanup: "
+PULL_LOG_FILE_ERROR_MSG_PREFIX = "While trying to pull log files"
 
 
 def create(configs):
@@ -220,7 +225,7 @@ class GdAndroidDevice(GdDeviceBase):
         super().__init__(grpc_port, grpc_root_server_port, signal_port, cmd, label, type_identifier, name, verbose_mode)
         asserts.assert_true(serial_number, "serial_number must not be None nor empty")
         self.serial_number = serial_number
-        self.adb = AdbProxy(serial_number)
+        self.adb = BlueberryAdbProxy(serial_number)
 
     def setup(self):
         logging.info("Setting up device %s %s" % (self.label, self.serial_number))
@@ -249,22 +254,26 @@ class GdAndroidDevice(GdDeviceBase):
         try:
             self.adb.shell("rm /data/misc/bluetooth/logs/btsnoop_hci.log")
         except AdbError as error:
-            logging.error("Error during setup: " + str(error))
+            if ADB_FILE_NOT_EXIST_ERROR not in str(error):
+                logging.error("Error during setup: " + str(error))
 
         try:
             self.adb.shell("rm /data/misc/bluetooth/logs/btsnooz_hci.log")
         except AdbError as error:
-            logging.error("Error during setup: " + str(error))
+            if ADB_FILE_NOT_EXIST_ERROR not in str(error):
+                logging.error("Error during setup: " + str(error))
 
         try:
             self.adb.shell("rm /data/misc/bluedroid/bt_config.conf")
         except AdbError as error:
-            logging.error("Error during setup: " + str(error))
+            if ADB_FILE_NOT_EXIST_ERROR not in str(error):
+                logging.error("Error during setup: " + str(error))
 
         try:
             self.adb.shell("rm /data/misc/bluedroid/bt_config.bak")
         except AdbError as error:
-            logging.error("Error during setup: " + str(error))
+            if ADB_FILE_NOT_EXIST_ERROR not in str(error):
+                logging.error("Error during setup: " + str(error))
 
         self.ensure_no_output(self.adb.shell("svc bluetooth disable"))
 
@@ -309,28 +318,55 @@ class GdAndroidDevice(GdDeviceBase):
             logging.error("logcat_process %s_%s stopped with code: %d" % (self.label, self.serial_number, return_code))
         self.logcat_logger.stop()
         self.cleanup_port_forwarding()
-        self.adb.pull("/data/misc/bluetooth/logs/btsnoop_hci.log %s" % os.path.join(self.log_path_base,
-                                                                                    "%s_btsnoop_hci.log" % self.label))
-        self.adb.pull("/data/misc/bluedroid/bt_config.conf %s" % os.path.join(self.log_path_base,
-                                                                              "%s_bt_config.conf" % self.label))
-        self.adb.pull(
-            "/data/misc/bluedroid/bt_config.bak %s" % os.path.join(self.log_path_base, "%s_bt_config.bak" % self.label))
+        try:
+            self.adb.pull("/data/misc/bluetooth/logs/btsnoop_hci.log %s" % os.path.join(
+                self.log_path_base, "%s_btsnoop_hci.log" % self.label))
+        except AdbError as error:
+            # Some tests have no snoop logs, and that's OK
+            if ADB_FILE_NOT_EXIST_ERROR not in str(error):
+                logging.error(PULL_LOG_FILE_ERROR_MSG_PREFIX + str(error))
+        try:
+            self.adb.pull("/data/misc/bluedroid/bt_config.conf %s" % os.path.join(self.log_path_base,
+                                                                                  "%s_bt_config.conf" % self.label))
+        except AdbError as error:
+            # Some tests have no config file, and that's OK
+            if ADB_FILE_NOT_EXIST_ERROR not in str(error):
+                logging.error(PULL_LOG_FILE_ERROR_MSG_PREFIX + str(error))
+        try:
+            self.adb.pull("/data/misc/bluedroid/bt_config.bak %s" % os.path.join(self.log_path_base,
+                                                                                 "%s_bt_config.bak" % self.label))
+        except AdbError as error:
+            # Some tests have no config.bak file, and that's OK
+            if ADB_FILE_NOT_EXIST_ERROR not in str(error):
+                logging.error(PULL_LOG_FILE_ERROR_MSG_PREFIX + str(error))
 
     def cleanup_port_forwarding(self):
         try:
             self.adb.remove_tcp_forward(self.grpc_port)
         except AdbError as error:
-            logging.error("Error during port forwarding cleanup: " + str(error))
+            msg = PORT_FORWARDING_ERROR_MSG_PREFIX + str(error)
+            if "not found" in msg:
+                logging.info(msg)
+            else:
+                logging.error(msg)
 
         try:
             self.adb.remove_tcp_forward(self.grpc_root_server_port)
         except AdbError as error:
-            logging.error("Error during port forwarding cleanup: " + str(error))
+            msg = PORT_FORWARDING_ERROR_MSG_PREFIX + str(error)
+            if "not found" in msg:
+                logging.info(msg)
+            else:
+                logging.error(msg)
 
         try:
-            self.adb.reverse("--remove tcp:%d" % self.signal_port)
+            self.adb.reverse(["--remove", "tcp:%d" % self.signal_port])
         except AdbError as error:
-            logging.error("Error during port forwarding cleanup: " + str(error))
+            msg = PORT_FORWARDING_ERROR_MSG_PREFIX + str(error)
+            if "not found" in msg:
+                logging.info(msg)
+            else:
+                logging.error(msg)
 
     @staticmethod
     def ensure_no_output(result):
@@ -343,7 +379,7 @@ class GdAndroidDevice(GdDeviceBase):
     def sync_device_time(self):
         self.adb.shell("settings put global auto_time 0")
         self.adb.shell("settings put global auto_time_zone 0")
-        device_tz = self.adb.shell("date +%z")
+        device_tz = self.adb.shell("date +%z").decode(UTF_8).rstrip()
         asserts.assert_true(device_tz, "date +%z must return device timezone, "
                             "but returned {} instead".format(device_tz))
         host_tz = time.strftime("%z")
@@ -361,7 +397,8 @@ class GdAndroidDevice(GdDeviceBase):
         self.adb.shell("date %s" % time.strftime("%m%d%H%M%Y.%S"))
         datetime_format = "%Y-%m-%dT%H:%M:%S%z"
         try:
-            device_time = datetime.strptime(self.adb.shell("date +'%s'" % datetime_format), datetime_format)
+            device_time = datetime.strptime(
+                self.adb.shell("date +'%s'" % datetime_format).decode(UTF_8).rstrip(), datetime_format)
         except ValueError:
             asserts.fail("Failed to get time after sync")
             return
@@ -383,7 +420,7 @@ class GdAndroidDevice(GdDeviceBase):
             dst_file_path: The destination of the file.
             push_timeout: How long to wait for the push to finish in seconds
         """
-        out = self.adb.push('%s %s' % (src_file_path, dst_file_path), timeout=push_timeout)
+        out = self.adb.push([src_file_path, dst_file_path], timeout=push_timeout).decode(UTF_8).rstrip()
         if 'error' in out:
             asserts.fail('Unable to push file %s to %s due to %s' % (src_file_path, dst_file_path, out))
 
@@ -421,7 +458,7 @@ class GdAndroidDevice(GdDeviceBase):
         :param num_retry: number of times to reboot and retry this before dying
         :return: device port int
         """
-        error_or_port = self.adb.reverse("tcp:%d tcp:%d" % (device_port, host_port))
+        error_or_port = self.adb.reverse(["tcp:%d" % device_port, "tcp:%d" % host_port])
         if not error_or_port:
             logging.debug("device port %d was already reversed" % device_port)
             return device_port
@@ -482,7 +519,7 @@ class GdAndroidDevice(GdDeviceBase):
                 break
         minutes_left = timeout_minutes - (time.time() - timeout_start) / 60.0
         self.wait_for_boot_completion(timeout_minutes=minutes_left)
-        asserts.assert_true(self.adb.ensure_root(), "device %s cannot run as root after reboot", self.serial_number)
+        asserts.assert_true(self.adb.ensure_root(), "device %s cannot run as root after reboot" % self.serial_number)
 
     def wait_for_boot_completion(self, timeout_minutes=15.0):
         """
