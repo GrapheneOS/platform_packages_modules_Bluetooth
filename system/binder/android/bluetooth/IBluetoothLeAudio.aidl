@@ -60,4 +60,6 @@ interface IBluetoothLeAudio {
      */
     @JavaPassthrough(annotation="@android.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)")
     int getGroupId(in BluetoothDevice device, in AttributionSource attributionSource);
+    @JavaPassthrough(annotation="@android.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)")
+    void setVolume(int volume, in AttributionSource attributionSource);
 }
