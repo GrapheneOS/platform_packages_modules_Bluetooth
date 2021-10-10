@@ -19,13 +19,13 @@ from hci.cert.le_scanning_manager_test_lib import LeScanningManagerTestBase
 from mobly import test_runner
 
 
-class LeScanningManagerTestBb(gd_base_test.GdBaseTestClass, LeScanningManagerTestBase):
+class LeExtendedScanningManagerTest(gd_base_test.GdBaseTestClass, LeScanningManagerTestBase):
 
     def setup_class(self):
         gd_base_test.GdBaseTestClass.setup_class(self, dut_module='HCI_INTERFACES', cert_module='HCI_INTERFACES')
 
     def setup_test(self):
-        gd_base_test.GdBaseTestClass.set_controller_properties_path(self, 'hci/cert/le_legacy_config.json')
+        gd_base_test.GdBaseTestClass.set_controller_properties_path(self, 'hci/cert/le_extended_config.json')
         gd_base_test.GdBaseTestClass.setup_test(self)
         LeScanningManagerTestBase.setup_test(self, self.cert)
 

@@ -16,6 +16,7 @@
 
 import importlib
 import logging
+import os
 import traceback
 
 from functools import wraps
@@ -57,6 +58,10 @@ class GdBaseTestClass(base_test.BaseTestClass):
             generate_coverage_report_for_host(self.cert_coverage_info)
             self.cert_coverage_info = None
 
+    def set_controller_properties_path(self, path):
+        GD_DIR = os.path.join(os.getcwd(), os.pardir)
+        self.controller_properties_file = os.path.join(GD_DIR, path)
+
     def setup_test(self):
         append_test_context(test_class_name=self.TAG, test_name=self.current_test_info.name)
         self.log_path_base = get_current_context().get_full_output_path()
@@ -64,12 +69,18 @@ class GdBaseTestClass(base_test.BaseTestClass):
         for config in self.controller_configs[CONTROLLER_CONFIG_NAME]:
             config['verbose_mode'] = self.verbose_mode
 
+        try:
+            controller_properties_file = self.controller_properties_file
+        except AttributeError:
+            controller_properties_file = ''
+
         self.info = setup_rootcanal(
             dut_module=self.dut_module,
             cert_module=self.cert_module,
             verbose_mode=self.verbose_mode,
             log_path_base=self.log_path_base,
-            controller_configs=self.controller_configs)
+            controller_configs=self.controller_configs,
+            controller_properties_file=controller_properties_file)
         self.rootcanal_running = self.info['rootcanal_running']
         self.rootcanal_logpath = self.info['rootcanal_logpath']
         self.rootcanal_process = self.info['rootcanal_process']

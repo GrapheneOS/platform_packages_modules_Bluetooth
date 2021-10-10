@@ -4,7 +4,9 @@ LOCAL_PATH := $(call my-dir)
 LOCAL_cert_test_sources := \
 	$(call all-named-files-under,*.py,.) \
 	cert/all_cert_testcases \
-	cert/real_device_testcases
+	cert/real_device_testcases \
+	hci/cert/le_extended_config.json \
+	hci/cert/le_legacy_config.json
 LOCAL_cert_test_sources := \
 	$(filter-out gd_cert_venv% venv%, $(LOCAL_cert_test_sources))
 LOCAL_cert_test_sources := \
