@@ -113,7 +113,7 @@ public class LeAudioStackEvent {
             case EVENT_TYPE_GROUP_NODE_STATUS_CHANGED:
                 // same as EVENT_TYPE_GROUP_STATUS_CHANGED
             case EVENT_TYPE_GROUP_STATUS_CHANGED:
-                // same as EVENT_TYPE_GROUP_STATUS_CHANGED
+                return "{group_id:" + Integer.toString(value) + "}";
             case EVENT_TYPE_AUDIO_CONF_CHANGED:
                 // FIXME: It should have proper direction names here
                 return "{direction:" + value + "}";
