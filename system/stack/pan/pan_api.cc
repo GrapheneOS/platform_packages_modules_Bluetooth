@@ -29,6 +29,7 @@
 #include <base/strings/stringprintf.h>
 
 #include <cstdint>
+#include <cstring>
 
 #include "bta/sys/bta_sys.h"
 #include "main/shim/dumpsys.h"
@@ -47,6 +48,10 @@ using bluetooth::Uuid;
 namespace {
 constexpr char kBtmLogTag[] = "PAN";
 }
+
+extern std::string user_service_name; /* Service name for PANU role */
+extern std::string gn_service_name;   /* Service name for GN role */
+extern std::string nap_service_name;  /* Service name for NAP role */
 
 /*******************************************************************************
  *
@@ -101,7 +106,7 @@ void PAN_Deregister(void) {
   pan_cb.pan_pfilt_ind_cb = NULL;
   pan_cb.pan_mfilt_ind_cb = NULL;
 
-  PAN_SetRole(PAN_ROLE_INACTIVE, NULL, NULL);
+  PAN_SetRole(PAN_ROLE_INACTIVE, std::string(), std::string());
   BNEP_Deregister();
 
   BTM_LogHistory(kBtmLogTag, RawAddress::kEmpty, "Unregistered");
@@ -126,12 +131,14 @@ void PAN_Deregister(void) {
  *                  PAN_FAILURE     - if the role is not valid
  *
  ******************************************************************************/
-tPAN_RESULT PAN_SetRole(uint8_t role, const char* p_user_name,
-                        const char* p_nap_name) {
+tPAN_RESULT PAN_SetRole(uint8_t role, std::string p_user_name,
+                        std::string p_nap_name) {
   /* Check if it is a shutdown request */
   if (role == PAN_ROLE_INACTIVE) {
     pan_close_all_connections();
     pan_cb.role = role;
+    user_service_name.clear();
+    nap_service_name.clear();
     return PAN_SUCCESS;
   }
 
@@ -154,8 +161,8 @@ tPAN_RESULT PAN_SetRole(uint8_t role, const char* p_user_name,
   PAN_TRACE_API("PAN_SetRole() called with role 0x%x", role);
   if (role & PAN_ROLE_NAP_SERVER) {
     /* Check the service name */
-    if ((p_nap_name == NULL) || (*p_nap_name == 0))
-      p_nap_name = PAN_NAP_DEFAULT_SERVICE_NAME;
+    if (p_nap_name.empty())
+      p_nap_name = std::string(PAN_NAP_DEFAULT_SERVICE_NAME);
 
     /* Registering for NAP service with SDP */
     p_desc = PAN_NAP_DEFAULT_DESCRIPTION;
@@ -164,8 +171,9 @@ tPAN_RESULT PAN_SetRole(uint8_t role, const char* p_user_name,
       SDP_DeleteRecord(pan_cb.pan_nap_sdp_handle);
 
     pan_cb.pan_nap_sdp_handle =
-        pan_register_with_sdp(UUID_SERVCLASS_NAP, p_nap_name, p_desc);
+        pan_register_with_sdp(UUID_SERVCLASS_NAP, p_nap_name.c_str(), p_desc);
     bta_sys_add_uuid(UUID_SERVCLASS_NAP);
+    nap_service_name = p_nap_name;
   }
   /* If the NAP role is already active and now being cleared delete the record
    */
@@ -174,13 +182,13 @@ tPAN_RESULT PAN_SetRole(uint8_t role, const char* p_user_name,
       SDP_DeleteRecord(pan_cb.pan_nap_sdp_handle);
       pan_cb.pan_nap_sdp_handle = 0;
       bta_sys_remove_uuid(UUID_SERVCLASS_NAP);
+      nap_service_name.clear();
     }
   }
 
   if (role & PAN_ROLE_CLIENT) {
     /* Check the service name */
-    if ((p_user_name == NULL) || (*p_user_name == 0))
-      p_user_name = PAN_PANU_DEFAULT_SERVICE_NAME;
+    if (p_user_name.empty()) p_user_name = PAN_PANU_DEFAULT_SERVICE_NAME;
 
     /* Registering for PANU service with SDP */
     p_desc = PAN_PANU_DEFAULT_DESCRIPTION;
@@ -188,8 +196,9 @@ tPAN_RESULT PAN_SetRole(uint8_t role, const char* p_user_name,
       SDP_DeleteRecord(pan_cb.pan_user_sdp_handle);
 
     pan_cb.pan_user_sdp_handle =
-        pan_register_with_sdp(UUID_SERVCLASS_PANU, p_user_name, p_desc);
+        pan_register_with_sdp(UUID_SERVCLASS_PANU, p_user_name.c_str(), p_desc);
     bta_sys_add_uuid(UUID_SERVCLASS_PANU);
+    user_service_name = p_user_name;
   }
   /* If the PANU role is already active and now being cleared delete the record
    */
@@ -198,6 +207,7 @@ tPAN_RESULT PAN_SetRole(uint8_t role, const char* p_user_name,
       SDP_DeleteRecord(pan_cb.pan_user_sdp_handle);
       pan_cb.pan_user_sdp_handle = 0;
       bta_sys_remove_uuid(UUID_SERVCLASS_PANU);
+      user_service_name.clear();
     }
   }
 
@@ -678,6 +688,14 @@ void PAN_Dumpsys(int fd) {
               pan_cb.num_conns, pan_role_to_text(pan_cb.role).c_str(),
               pan_role_to_text(pan_cb.active_role).c_str(),
               pan_role_to_text(pan_cb.prv_active_role).c_str());
+
+  if (!user_service_name.empty())
+    LOG_DUMPSYS(fd, "service_name_user:\"%s\"", user_service_name.c_str());
+  if (!gn_service_name.empty())
+    LOG_DUMPSYS(fd, "service_name_gn:\"%s\"", gn_service_name.c_str());
+  if (!nap_service_name.empty())
+    LOG_DUMPSYS(fd, "service_name_nap:\"%s\"", nap_service_name.c_str());
+
   const tPAN_CONN* pcb = &pan_cb.pcb[0];
   for (int i = 0; i < MAX_PAN_CONNS; i++, pcb++) {
     if (pcb->con_state == PAN_STATE_IDLE) continue;

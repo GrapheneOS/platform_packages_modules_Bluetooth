@@ -43,7 +43,7 @@ void BTA_PanOpen(const RawAddress& bd_addr, tBTA_PAN_ROLE local_role,
                  tBTA_PAN_ROLE peer_role) {
   mock_function_count_map[__func__]++;
 }
-void BTA_PanSetRole(tBTA_PAN_ROLE role, tBTA_PAN_ROLE_INFO* p_user_info,
-                    tBTA_PAN_ROLE_INFO* p_nap_info) {
+void BTA_PanSetRole(tBTA_PAN_ROLE role, const tBTA_PAN_ROLE_INFO p_user_info,
+                    const tBTA_PAN_ROLE_INFO p_nap_info) {
   mock_function_count_map[__func__]++;
 }
