@@ -74,6 +74,8 @@ class LeAudioClientInterfaceImpl : public LeAudioClientInterface,
 
   void Cleanup(void) override {}
 
+  void RemoveDevice(const RawAddress& address) override {}
+
   void Connect(const RawAddress& address) override {}
 
   void Disconnect(const RawAddress& address) override {}
