@@ -86,6 +86,9 @@ class LeAudioClientInterface {
 
   /* Cleanup the LeAudio */
   virtual void Cleanup(void) = 0;
+
+  /* Set active le audio group */
+  virtual void GroupSetActive(int group_id) = 0;
 };
 
 static constexpr uint8_t INSTANCE_ID_UNDEFINED = 0xFF;
