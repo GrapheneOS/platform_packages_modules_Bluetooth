@@ -230,9 +230,8 @@ pub struct Bluetooth {
 
     bonded_devices: HashMap<String, BluetoothDeviceContext>,
     bluetooth_media: Arc<Mutex<Box<BluetoothMedia>>>,
-    callbacks: Vec<(u32, Box<dyn IBluetoothCallback + Send>)>,
-    callbacks_last_id: u32,
-    connection_callbacks: Vec<(u32, Box<dyn IBluetoothConnectionCallback + Send>)>,
+    callbacks: HashMap<u32, Box<dyn IBluetoothCallback + Send>>,
+    connection_callbacks: HashMap<u32, Box<dyn IBluetoothConnectionCallback + Send>>,
     discovering_started: Instant,
     hh: Option<HidHost>,
     is_discovering: bool,
@@ -255,9 +254,8 @@ impl Bluetooth {
     ) -> Bluetooth {
         Bluetooth {
             bonded_devices: HashMap::new(),
-            callbacks: vec![],
-            callbacks_last_id: 0,
-            connection_callbacks: vec![],
+            callbacks: HashMap::new(),
+            connection_callbacks: HashMap::new(),
             hh: None,
             bluetooth_media,
             discovering_started: Instant::now(),
@@ -310,8 +308,8 @@ impl Bluetooth {
     }
 
     fn for_all_callbacks<F: Fn(&Box<dyn IBluetoothCallback + Send>)>(&self, f: F) {
-        for callback in &self.callbacks {
-            f(&callback.1);
+        for (_, callback) in self.callbacks.iter() {
+            f(&callback);
         }
     }
 
@@ -319,21 +317,20 @@ impl Bluetooth {
         &self,
         f: F,
     ) {
-        for callback in &self.connection_callbacks {
-            f(&callback.1);
+        for (_, callback) in self.connection_callbacks.iter() {
+            f(&callback);
         }
-    }
-
-    fn get_next_id(&mut self) -> u32 {
-        self.callbacks_last_id += 1;
-        self.callbacks_last_id
     }
 
     pub(crate) fn callback_disconnected(&mut self, id: u32, cb_type: BluetoothCallbackType) {
         match cb_type {
-            BluetoothCallbackType::Adapter => self.callbacks.retain(|x| x.0 != id),
-            BluetoothCallbackType::Connection => self.connection_callbacks.retain(|x| x.0 != id),
-        }
+            BluetoothCallbackType::Adapter => {
+                self.callbacks.remove(&id);
+            }
+            BluetoothCallbackType::Connection => {
+                self.connection_callbacks.remove(&id);
+            }
+        };
     }
 }
 
@@ -685,24 +682,20 @@ impl BtifBluetoothCallbacks for Bluetooth {
 impl IBluetooth for Bluetooth {
     fn register_callback(&mut self, mut callback: Box<dyn IBluetoothCallback + Send>) {
         let tx = self.tx.clone();
-        let id = self.get_next_id();
 
-        callback.register_disconnect(
-            id,
-            Box::new(move |cb_id| {
-                let tx = tx.clone();
-                tokio::spawn(async move {
-                    let _result = tx
-                        .send(Message::BluetoothCallbackDisconnected(
-                            cb_id,
-                            BluetoothCallbackType::Adapter,
-                        ))
-                        .await;
-                });
-            }),
-        );
+        let id = callback.register_disconnect(Box::new(move |cb_id| {
+            let tx = tx.clone();
+            tokio::spawn(async move {
+                let _result = tx
+                    .send(Message::BluetoothCallbackDisconnected(
+                        cb_id,
+                        BluetoothCallbackType::Adapter,
+                    ))
+                    .await;
+            });
+        }));
 
-        self.callbacks.push((id, callback))
+        self.callbacks.insert(id, callback);
     }
 
     fn register_connection_callback(
@@ -710,31 +703,27 @@ impl IBluetooth for Bluetooth {
         mut callback: Box<dyn IBluetoothConnectionCallback + Send>,
     ) -> u32 {
         let tx = self.tx.clone();
-        let id = self.get_next_id();
 
-        callback.register_disconnect(
-            id,
-            Box::new(move |cb_id| {
-                let tx = tx.clone();
-                tokio::spawn(async move {
-                    let _ = tx
-                        .send(Message::BluetoothCallbackDisconnected(
-                            cb_id,
-                            BluetoothCallbackType::Connection,
-                        ))
-                        .await;
-                });
-            }),
-        );
+        let id = callback.register_disconnect(Box::new(move |cb_id| {
+            let tx = tx.clone();
+            tokio::spawn(async move {
+                let _ = tx
+                    .send(Message::BluetoothCallbackDisconnected(
+                        cb_id,
+                        BluetoothCallbackType::Connection,
+                    ))
+                    .await;
+            });
+        }));
 
-        self.connection_callbacks.push((id, callback));
+        self.connection_callbacks.insert(id, callback);
 
         id
     }
 
     fn unregister_connection_callback(&mut self, callback_id: u32) -> bool {
-        match self.connection_callbacks.iter().position(|x| x.0 == callback_id) {
-            Some(index) => self.connection_callbacks[index].1.unregister(callback_id),
+        match self.connection_callbacks.get_mut(&callback_id) {
+            Some(cb) => cb.unregister(callback_id),
             None => false,
         }
     }

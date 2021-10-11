@@ -148,7 +148,9 @@ struct IBluetoothCallbackDBus {}
 
 impl btstack::RPCProxy for IBluetoothCallbackDBus {
     // Dummy implementations just to satisfy impl RPCProxy requirements.
-    fn register_disconnect(&mut self, _id: u32, _f: Box<dyn Fn(u32) + Send>) {}
+    fn register_disconnect(&mut self, _f: Box<dyn Fn(u32) + Send>) -> u32 {
+        0
+    }
     fn get_object_id(&self) -> String {
         String::from("")
     }
@@ -190,7 +192,9 @@ struct IBluetoothConnectionCallbackDBus {}
 
 impl btstack::RPCProxy for IBluetoothConnectionCallbackDBus {
     // Dummy implementations just to satisfy impl RPCProxy requirements.
-    fn register_disconnect(&mut self, _id: u32, _f: Box<dyn Fn(u32) + Send>) {}
+    fn register_disconnect(&mut self, _f: Box<dyn Fn(u32) + Send>) -> u32 {
+        0
+    }
     fn get_object_id(&self) -> String {
         String::from("")
     }
@@ -470,7 +474,9 @@ struct IBluetoothManagerCallbackDBus {}
 
 impl manager_service::RPCProxy for IBluetoothManagerCallbackDBus {
     // Placeholder implementations just to satisfy impl RPCProxy requirements.
-    fn register_disconnect(&mut self, _id: u32, _f: Box<dyn Fn(u32) + Send>) {}
+    fn register_disconnect(&mut self, _f: Box<dyn Fn(u32) + Send>) -> u32 {
+        0
+    }
     fn get_object_id(&self) -> String {
         String::from("")
     }
@@ -698,7 +704,9 @@ struct IBluetoothGattCallbackDBus {}
 
 impl btstack::RPCProxy for IBluetoothGattCallbackDBus {
     // Placeholder implementations just to satisfy impl RPCProxy requirements.
-    fn register_disconnect(&mut self, _id: u32, _f: Box<dyn Fn(u32) + Send>) {}
+    fn register_disconnect(&mut self, _f: Box<dyn Fn(u32) + Send>) -> u32 {
+        0
+    }
     fn get_object_id(&self) -> String {
         String::from("")
     }
