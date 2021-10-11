@@ -177,6 +177,24 @@ public class LeAudioNativeInterface {
     }
 
     /**
+     * Add new Node into a group.
+     * @param groupId group identifier
+     * @param device remote device
+     */
+     public boolean groupAddNode(int groupId, BluetoothDevice device) {
+        return groupAddNodeNative(groupId, getByteAddress(device));
+    }
+
+    /**
+     * Add new Node into a group.
+     * @param groupId group identifier
+     * @param device remote device
+     */
+    public boolean groupRemoveNode(int groupId, BluetoothDevice device) {
+        return groupRemoveNodeNative(groupId, getByteAddress(device));
+    }
+
+    /**
      * Set active group.
      * @param groupId group ID to set as active
      */
@@ -190,5 +208,7 @@ public class LeAudioNativeInterface {
     private native void cleanupNative();
     private native boolean connectLeAudioNative(byte[] address);
     private native boolean disconnectLeAudioNative(byte[] address);
+    private native boolean groupAddNodeNative(int groupId, byte[] address);
+    private native boolean groupRemoveNodeNative(int groupId, byte[] address);
     private native void groupSetActiveNative(int groupId);
 }
