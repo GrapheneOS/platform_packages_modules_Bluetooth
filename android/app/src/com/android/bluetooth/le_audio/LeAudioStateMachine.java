@@ -157,8 +157,7 @@ final class LeAudioStateMachine extends StateMachine {
 
             switch (message.what) {
                 case CONNECT:
-                    int groupId = message.arg1;
-                    log("Connecting to " + mDevice + " group " + groupId);
+                    log("Connecting to " + mDevice);
                     if (!mNativeInterface.connectLeAudio(mDevice)) {
                         Log.e(TAG, "Disconnected: error connecting to " + mDevice);
                         break;
@@ -184,7 +183,7 @@ final class LeAudioStateMachine extends StateMachine {
                     }
                     switch (event.type) {
                         case LeAudioStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED:
-                            processConnectionEvent(event.valueInt1, event.valueInt2);
+                            processConnectionEvent(event.valueInt1);
                             break;
                         default:
                             Log.e(TAG, "Disconnected: ignoring stack event: " + event);
@@ -198,7 +197,7 @@ final class LeAudioStateMachine extends StateMachine {
         }
 
         // in Disconnected state
-        private void processConnectionEvent(int state, int groupId) {
+        private void processConnectionEvent(int state) {
             switch (state) {
                 case LeAudioStackEvent.CONNECTION_STATE_DISCONNECTED:
                     Log.w(TAG, "Ignore LeAudio DISCONNECTED event: " + mDevice);
@@ -285,7 +284,7 @@ final class LeAudioStateMachine extends StateMachine {
                     }
                     switch (event.type) {
                         case LeAudioStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED:
-                            processConnectionEvent(event.valueInt1, event.valueInt2);
+                            processConnectionEvent(event.valueInt1);
                             break;
                         default:
                             Log.e(TAG, "Connecting: ignoring stack event: " + event);
@@ -299,7 +298,7 @@ final class LeAudioStateMachine extends StateMachine {
         }
 
         // in Connecting state
-        private void processConnectionEvent(int state, int groupId) {
+        private void processConnectionEvent(int state) {
             switch (state) {
                 case LeAudioStackEvent.CONNECTION_STATE_DISCONNECTED:
                     Log.w(TAG, "Connecting device disconnected: " + mDevice);
@@ -371,7 +370,7 @@ final class LeAudioStateMachine extends StateMachine {
                     }
                     switch (event.type) {
                         case LeAudioStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED:
-                            processConnectionEvent(event.valueInt1, event.valueInt2);
+                            processConnectionEvent(event.valueInt1);
                             break;
                         default:
                             Log.e(TAG, "Disconnecting: ignoring stack event: " + event);
@@ -385,7 +384,7 @@ final class LeAudioStateMachine extends StateMachine {
         }
 
         // in Disconnecting state
-        private void processConnectionEvent(int state, int groupId) {
+        private void processConnectionEvent(int state) {
             switch (state) {
                 case LeAudioStackEvent.CONNECTION_STATE_DISCONNECTED:
                     Log.i(TAG, "Disconnected: " + mDevice);
@@ -465,7 +464,7 @@ final class LeAudioStateMachine extends StateMachine {
                     }
                     switch (event.type) {
                         case LeAudioStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED:
-                            processConnectionEvent(event.valueInt1, event.valueInt2);
+                            processConnectionEvent(event.valueInt1);
                             break;
                         default:
                             Log.e(TAG, "Connected: ignoring stack event: " + event);
@@ -479,7 +478,7 @@ final class LeAudioStateMachine extends StateMachine {
         }
 
         // in Connected state
-        private void processConnectionEvent(int state, int groupId) {
+        private void processConnectionEvent(int state) {
             switch (state) {
                 case LeAudioStackEvent.CONNECTION_STATE_DISCONNECTED:
                     Log.i(TAG, "Disconnected from " + mDevice);
