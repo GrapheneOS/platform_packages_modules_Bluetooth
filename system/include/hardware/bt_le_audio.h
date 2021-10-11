@@ -87,6 +87,9 @@ class LeAudioClientInterface {
   /* Cleanup the LeAudio */
   virtual void Cleanup(void) = 0;
 
+  /* Called when LeAudio is unbonded. */
+  virtual void RemoveDevice(const RawAddress& address) = 0;
+
   /* Set active le audio group */
   virtual void GroupSetActive(int group_id) = 0;
 };
