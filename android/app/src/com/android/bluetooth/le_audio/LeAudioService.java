@@ -449,6 +449,35 @@ public class LeAudioService extends ProfileService {
     }
 
     /**
+     * Checks if given group exists.
+     * @param group_id group Id to verify
+     * @return true given group exists, otherwise false
+     */
+    public boolean isValidDeviceGroup(int group_id) {
+        return (group_id != LE_AUDIO_GROUP_ID_INVALID) ?
+                mDeviceGroupIdMap.containsValue(group_id) :
+                false;
+    }
+
+    /**
+     * Get all the devices within a given group.
+     * @param group_id group Id to verify
+     * @return all devices within a given group or empty list
+     */
+    public List<BluetoothDevice> getGroupDevices(int group_id) {
+        List<BluetoothDevice> result = new ArrayList<>();
+
+        if (group_id != LE_AUDIO_GROUP_ID_INVALID) {
+            for (BluetoothDevice storedDevice : mDeviceGroupIdMap.keySet()) {
+                if (getGroupId(storedDevice) == group_id) {
+                    result.add(storedDevice);
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
      * Get supported group audio direction from available context.
      *
      * @param activeContext bitset of active context to be matched with possible audio direction
