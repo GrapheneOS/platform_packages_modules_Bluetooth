@@ -332,6 +332,8 @@ public class LeAudioService extends ProfileService {
             }
         }
 
+        mGroupDescriptors.remove(groupId);
+
         return true;
     }
 
@@ -650,16 +652,11 @@ public class LeAudioService extends ProfileService {
             switch (node_status) {
                 case LeAudioStackEvent.GROUP_NODE_ADDED:
                     mDeviceGroupIdMap.put(device, group_id);
-                    LeAudioGroupDescriptor descriptor = mGroupDescriptors.get(group_id);
-                    if (descriptor == null) {
-                        mGroupDescriptors.put(group_id, new LeAudioGroupDescriptor());
-                    }
+                    mGroupDescriptors.put(group_id, new LeAudioGroupDescriptor());
                     break;
                 case LeAudioStackEvent.GROUP_NODE_REMOVED:
                     mDeviceGroupIdMap.remove(device);
-                    if (mDeviceGroupIdMap.containsKey(group_id) == false) {
-                        mGroupDescriptors.remove(group_id);
-                    }
+                    mGroupDescriptors.remove(group_id);
                     break;
                 default:
                     break;
