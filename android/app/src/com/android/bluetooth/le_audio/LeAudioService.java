@@ -414,6 +414,26 @@ public class LeAudioService extends ProfileService {
     }
 
     /**
+     * Add device to the given group.
+     * @param groupId group ID the device is being added to
+     * @param device the active device
+     * @return true on success, otherwise false
+     */
+    public boolean groupAddNode(int groupId, BluetoothDevice device) {
+        return mLeAudioNativeInterface.groupAddNode(groupId, device);
+    }
+
+    /**
+     * Remove device from a given group.
+     * @param groupId group ID the device is being removed from
+     * @param device the active device
+     * @return true on success, otherwise false
+     */
+    public boolean groupRemoveNode(int groupId, BluetoothDevice device) {
+        return mLeAudioNativeInterface.groupRemoveNode(groupId, device);
+    }
+
+    /**
      * Get supported group audio direction from available context.
      *
      * @param activeContext bitset of active context to be matched with possible audio direction
@@ -1218,6 +1238,26 @@ public class LeAudioService extends ProfileService {
             }
 
             return service.getGroupId(device);
+        }
+
+        @Override
+        public boolean groupAddNode(int group_id, BluetoothDevice device,
+                                    AttributionSource source) {
+            LeAudioService service = getService(source);
+            if (service == null) {
+                return false;
+            }
+            return service.groupAddNode(group_id, device);
+        }
+
+        @Override
+        public boolean groupRemoveNode(int groupId, BluetoothDevice device,
+                                       AttributionSource source) {
+            LeAudioService service = getService(source);
+            if (service == null) {
+                return false;
+            }
+            return service.groupRemoveNode(groupId, device);
         }
 
         @Override
