@@ -78,7 +78,11 @@ class LeAudioClientInterfaceImpl : public LeAudioClientInterface,
 
   void Connect(const RawAddress& address) override {}
 
+  void GroupAddNode(const int group_id, const RawAddress& addr) override {}
+
   void Disconnect(const RawAddress& address) override {}
+
+  void GroupRemoveNode(const int group_id, const RawAddress& addr) override {}
 
   void GroupSetActive(const int group_id) override {}
 

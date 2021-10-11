@@ -90,6 +90,12 @@ class LeAudioClientInterface {
   /* Called when LeAudio is unbonded. */
   virtual void RemoveDevice(const RawAddress& address) = 0;
 
+  /* Attach le audio node to group */
+  virtual void GroupAddNode(int group_id, const RawAddress& addr) = 0;
+
+  /* Detach le audio node from a group */
+  virtual void GroupRemoveNode(int group_id, const RawAddress& addr) = 0;
+
   /* Set active le audio group */
   virtual void GroupSetActive(int group_id) = 0;
 };
