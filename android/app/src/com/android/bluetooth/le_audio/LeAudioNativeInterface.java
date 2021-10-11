@@ -176,10 +176,19 @@ public class LeAudioNativeInterface {
         return disconnectLeAudioNative(getByteAddress(device));
     }
 
+    /**
+     * Set active group.
+     * @param groupId group ID to set as active
+     */
+    public void groupSetActive(int groupId) {
+        groupSetActiveNative(groupId);
+    }
+
     // Native methods that call into the JNI interface
     private static native void classInitNative();
     private native void initNative();
     private native void cleanupNative();
     private native boolean connectLeAudioNative(byte[] address);
     private native boolean disconnectLeAudioNative(byte[] address);
+    private native void groupSetActiveNative(int groupId);
 }

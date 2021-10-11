@@ -218,12 +218,24 @@ static jboolean disconnectLeAudioNative(JNIEnv* env, jobject object,
   return JNI_TRUE;
 }
 
+static void groupSetActiveNative(JNIEnv* env, jobject object, jint group_id) {
+  LOG(INFO) << __func__;
+
+  if (!sLeAudioClientInterface) {
+    LOG(ERROR) << __func__ << ": Failed to get the Bluetooth LeAudio Interface";
+    return;
+  }
+
+  sLeAudioClientInterface->GroupSetActive(group_id);
+}
+
 static JNINativeMethod sMethods[] = {
     {"classInitNative", "()V", (void*)classInitNative},
     {"initNative", "()V", (void*)initNative},
     {"cleanupNative", "()V", (void*)cleanupNative},
     {"connectLeAudioNative", "([B)Z", (void*)connectLeAudioNative},
     {"disconnectLeAudioNative", "([B)Z", (void*)disconnectLeAudioNative},
+    {"groupSetActiveNative", "(I)V", (void*)groupSetActiveNative},
 };
 
 int register_com_android_bluetooth_le_audio(JNIEnv* env) {
