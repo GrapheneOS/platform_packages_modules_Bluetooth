@@ -78,6 +78,8 @@ class LeAudioClientInterfaceImpl : public LeAudioClientInterface,
 
   void Disconnect(const RawAddress& address) override {}
 
+  void GroupSetActive(const int group_id) override {}
+
  private:
   LeAudioClientCallbacks* callbacks;
 };
