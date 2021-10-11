@@ -176,6 +176,20 @@ public class LeAudioService extends ProfileService {
             return true;
         }
 
+        setActiveDevice(null);
+        //Don't wait for async call with INACTIVE group status, clean active
+        //device for active group.
+        for (Map.Entry<Integer, LeAudioGroupDescriptor> entry : mGroupDescriptors.entrySet()) {
+            LeAudioGroupDescriptor descriptor = entry.getValue();
+            Integer group_id = entry.getKey();
+            if (descriptor.mIsActive) {
+                descriptor.mIsActive = false;
+                updateActiveDevices(group_id, descriptor.mActiveContexts,
+                        ACTIVE_CONTEXTS_NONE, descriptor.mIsActive);
+                break;
+            }
+        }
+
         // Cleanup native interfaces
         mLeAudioNativeInterface.cleanup();
         mLeAudioNativeInterface = null;
@@ -262,7 +276,7 @@ public class LeAudioService extends ProfileService {
                 Log.e(TAG, "Ignored connect request for " + device + " : no state machine");
                 return false;
             }
-            sm.sendMessage(LeAudioStateMachine.CONNECT, groupId);
+            sm.sendMessage(LeAudioStateMachine.CONNECT);
         }
 
         // Connect other devices from this group
@@ -275,16 +289,17 @@ public class LeAudioService extends ProfileService {
                     continue;
                 }
                 synchronized (mStateMachines) {
-                    LeAudioStateMachine sm = getOrCreateStateMachine(storedDevice);
-                    if (sm == null) {
-                        Log.e(TAG, "Ignored connect request for " + storedDevice
-                                + " : no state machine");
-                        continue;
-                    }
-                    sm.sendMessage(LeAudioStateMachine.CONNECT, groupId);
-                }
-            }
-        }
+                     LeAudioStateMachine sm = getOrCreateStateMachine(storedDevice);
+                     if (sm == null) {
+                         Log.e(TAG, "Ignored connect request for " + storedDevice
+                                 + " : no state machine");
+                         continue;
+                     }
+                     sm.sendMessage(LeAudioStateMachine.CONNECT);
+                 }
+             }
+         }
+
         return true;
     }
 
@@ -411,6 +426,26 @@ public class LeAudioService extends ProfileService {
             }
             return sm.getConnectionState();
         }
+    }
+
+    /**
+     * Add device to the given group.
+     * @param groupId group ID the device is being added to
+     * @param device the active device
+     * @return true on success, otherwise false
+     */
+    public boolean groupAddNode(int groupId, BluetoothDevice device) {
+        return mLeAudioNativeInterface.groupAddNode(groupId, device);
+    }
+
+    /**
+     * Remove device from a given group.
+     * @param groupId group ID the device is being removed from
+     * @param device the active device
+     * @return true on success, otherwise false
+     */
+    public boolean groupRemoveNode(int groupId, BluetoothDevice device) {
+        return mLeAudioNativeInterface.groupRemoveNode(groupId, device);
     }
 
     /**
@@ -1218,6 +1253,26 @@ public class LeAudioService extends ProfileService {
             }
 
             return service.getGroupId(device);
+        }
+
+        @Override
+        public boolean groupAddNode(int group_id, BluetoothDevice device,
+                                    AttributionSource source) {
+            LeAudioService service = getService(source);
+            if (service == null) {
+                return false;
+            }
+            return service.groupAddNode(group_id, device);
+        }
+
+        @Override
+        public boolean groupRemoveNode(int groupId, BluetoothDevice device,
+                                       AttributionSource source) {
+            LeAudioService service = getService(source);
+            if (service == null) {
+                return false;
+            }
+            return service.groupRemoveNode(groupId, device);
         }
 
         @Override
