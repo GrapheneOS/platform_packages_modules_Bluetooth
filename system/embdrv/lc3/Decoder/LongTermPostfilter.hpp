@@ -30,7 +30,7 @@ namespace Lc3Dec {
 class LongTermPostfilter {
  public:
   LongTermPostfilter(const Lc3Config& lc3Config_, uint16_t nbits);
-  virtual ~LongTermPostfilter();
+  ~LongTermPostfilter();
 
   void registerDatapoints(DatapointContainer* datapoints);
 
