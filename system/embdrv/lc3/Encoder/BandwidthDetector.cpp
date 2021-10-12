@@ -63,15 +63,17 @@ BandwidthDetector::BandwidthDetector(const Lc3Config& lc3Config_)
     : lc3Config(lc3Config_),
       N_bw(calc_N_bw(lc3Config.Fs_ind)),
       nbits_bw(nbits_bw_table[calc_N_bw(lc3Config.Fs_ind)]),
-      P_bw(0),
-      I_bw_start((lc3Config.N_ms == Lc3Config::FrameDuration::d10ms)
+      P_bw(0) {
+  if (N_bw != 0) {
+    I_bw_start = (lc3Config.N_ms == Lc3Config::FrameDuration::d10ms)
                      ? I_bw_start_table[N_bw - 1]
-                     : I_bw_start_table_7p5ms[N_bw - 1]),
-      I_bw_stop((lc3Config.N_ms == Lc3Config::FrameDuration::d10ms)
+                     : I_bw_start_table_7p5ms[N_bw - 1];
+    I_bw_stop = (lc3Config.N_ms == Lc3Config::FrameDuration::d10ms)
                     ? I_bw_stop_table[N_bw - 1]
-                    : I_bw_stop_table_7p5ms[N_bw - 1]),
-      L((lc3Config.N_ms == Lc3Config::FrameDuration::d10ms) ? L_10ms
-                                                            : L_7p5ms) {}
+                    : I_bw_stop_table_7p5ms[N_bw - 1];
+  }
+  L = (lc3Config.N_ms == Lc3Config::FrameDuration::d10ms) ? L_10ms : L_7p5ms;
+}
 
 BandwidthDetector::~BandwidthDetector() {}
 
