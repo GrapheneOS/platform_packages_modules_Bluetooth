@@ -52,3 +52,27 @@ cc_library_static {
         "TestSupport",
     ],
 }
+
+cc_fuzz {
+  name: "liblc3codec_encoder_fuzzer",
+
+  srcs: [
+    "fuzzer/liblc3codec_encoder_fuzzer.cpp",
+  ],
+
+  static_libs: [
+    "liblc3codec",
+  ],
+}
+
+cc_fuzz {
+  name: "liblc3codec_decoder_fuzzer",
+
+  srcs: [
+    "fuzzer/liblc3codec_decoder_fuzzer.cpp",
+  ],
+
+  static_libs: [
+    "liblc3codec",
+  ],
+}

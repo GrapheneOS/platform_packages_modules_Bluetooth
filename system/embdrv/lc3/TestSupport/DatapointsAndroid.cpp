@@ -58,7 +58,8 @@ void DatapointContainer::log(const char* label, const void* pData,
     vStream << std::right << std::setw(2) << std::setfill('0') << std::hex
             << static_cast<int>(pByteData[byteNr]);
   }
-  LOG(INFO) << label << "[" << sizeInBytes << "]:" << vStream.str();
+  // TODO: uncomment for testing
+  //  LOG(INFO) << label << "[" << sizeInBytes << "]:" << vStream.str();
 }
 
 uint16_t DatapointContainer::getDatapointSize(const char* label) { return 0; }
