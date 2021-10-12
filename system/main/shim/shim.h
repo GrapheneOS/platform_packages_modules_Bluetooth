@@ -50,7 +50,6 @@ bool is_gd_scanning_enabled();
 bool is_gd_security_enabled();
 bool is_gd_acl_enabled();
 bool is_gd_link_policy_enabled();
-bool is_gd_controller_enabled();
 bool is_gd_l2cap_enabled();
 bool is_gd_shim_enabled();
 bool is_gd_btaa_enabled();

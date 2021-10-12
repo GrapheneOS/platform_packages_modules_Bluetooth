@@ -299,11 +299,7 @@ static void event_start_up_stack(UNUSED_ATTR void* context) {
 
   bta_set_forward_hw_failures(true);
   btm_acl_device_down();
-  if (bluetooth::shim::is_gd_controller_enabled()) {
-    CHECK(module_start_up(get_local_module(GD_CONTROLLER_MODULE)));
-  } else {
-    CHECK(module_start_up(get_local_module(CONTROLLER_MODULE)));
-  }
+  CHECK(module_start_up(get_local_module(GD_CONTROLLER_MODULE)));
   BTM_reset_complete();
 
   BTA_dm_on_hw_on();
