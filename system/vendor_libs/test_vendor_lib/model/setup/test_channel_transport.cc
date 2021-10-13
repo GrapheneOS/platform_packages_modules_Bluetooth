@@ -20,6 +20,7 @@
 #include <stddef.h>  // for size_t
 
 #include <cstdint>      // for uint8_t
+#include <cstring>      // for strerror
 #include <type_traits>  // for remove_extent_t
 
 #include "net/async_data_channel.h"  // for AsyncDataChannel
