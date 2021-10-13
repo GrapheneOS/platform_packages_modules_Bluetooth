@@ -56,15 +56,20 @@ struct {
   uint16_t conn_id;
   tGATT_STATUS status;
   uint16_t handle;
+  uint16_t len;
+  const uint8_t* value;
   void* data;
 } bta_gatt_write_complete_callback;
 }  // namespace param
 
 void bta_gatt_write_complete_callback(uint16_t conn_id, tGATT_STATUS status,
-                                      uint16_t handle, void* data) {
+                                      uint16_t handle, uint16_t len,
+                                      const uint8_t* value, void* data) {
   param::bta_gatt_write_complete_callback.conn_id = conn_id;
   param::bta_gatt_write_complete_callback.status = status;
   param::bta_gatt_write_complete_callback.handle = handle;
+  param::bta_gatt_write_complete_callback.len = len;
+  param::bta_gatt_write_complete_callback.value = value;
   param::bta_gatt_write_complete_callback.data = data;
 }
 

@@ -403,7 +403,8 @@ class VolumeControlImpl : public VolumeControl {
   }
 
   void OnGattWriteCcc(uint16_t connection_id, tGATT_STATUS status,
-                      uint16_t handle, void* /*data*/) {
+                      uint16_t handle, uint16_t len, const uint8_t* value,
+                      void* /*data*/) {
     VolumeControlDevice* device =
         volume_control_devices_.FindByConnId(connection_id);
     if (!device) {
@@ -428,13 +429,14 @@ class VolumeControlImpl : public VolumeControl {
   }
 
   static void OnGattWriteCccStatic(uint16_t connection_id, tGATT_STATUS status,
-                                   uint16_t handle, void* data) {
+                                   uint16_t handle, uint16_t len,
+                                   const uint8_t* value, void* data) {
     if (!instance) {
       LOG(ERROR) << __func__ << "No instance=" << handle;
       return;
     }
 
-    instance->OnGattWriteCcc(connection_id, status, handle, data);
+    instance->OnGattWriteCcc(connection_id, status, handle, len, value, data);
   }
 
   void Dump(int fd) { volume_control_devices_.DebugDump(fd); }
@@ -701,7 +703,7 @@ class VolumeControlImpl : public VolumeControl {
     volume_control_devices_.ControlPointOperation(
         devices, opcode, arg,
         [](uint16_t connection_id, tGATT_STATUS status, uint16_t handle,
-           void* data) {
+           uint16_t len, const uint8_t* value, void* data) {
           if (instance)
             instance->OnWriteControlResponse(connection_id, status, handle,
                                              data);
