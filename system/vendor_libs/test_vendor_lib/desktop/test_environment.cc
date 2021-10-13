@@ -31,7 +31,7 @@ using test_vendor_lib::AsyncTaskId;
 using test_vendor_lib::TaskCallback;
 
 void TestEnvironment::initialize(std::promise<void> barrier) {
-  LOG_INFO();
+  LOG_INFO("Initialized barrier");
 
   barrier_ = std::move(barrier);
 
