@@ -54,25 +54,41 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
 /// A D-Bus "NameOwnerChanged" handler that continuously monitors client disconnects.
+///
+/// When the watched bus address disconnects, all the callbacks associated with it are called with
+/// their associated ids.
 pub struct DisconnectWatcher {
-    callbacks: Arc<Mutex<HashMap<BusName<'static>, Vec<Box<dyn Fn() + Send>>>>>,
+    /// Global counter to provide a unique id every time `get_next_id` is called.
+    next_id: u32,
+
+    /// Map of disconnect callbacks by bus address and callback id.
+    callbacks: Arc<Mutex<HashMap<BusName<'static>, HashMap<u32, Box<dyn Fn(u32) + Send>>>>>,
 }
 
 impl DisconnectWatcher {
     /// Creates a new DisconnectWatcher with empty callbacks.
     pub fn new() -> DisconnectWatcher {
-        DisconnectWatcher { callbacks: Arc::new(Mutex::new(HashMap::new())) }
+        DisconnectWatcher { next_id: 0, callbacks: Arc::new(Mutex::new(HashMap::new())) }
+    }
+
+    /// Get the next unique id for this watcher.
+    fn get_next_id(&mut self) -> u32 {
+        self.next_id = self.next_id + 1;
+        self.next_id
     }
 }
 
 impl DisconnectWatcher {
     /// Adds a client address to be monitored for disconnect events.
-    pub fn add(&mut self, address: BusName<'static>, callback: Box<dyn Fn() + Send>) {
+    pub fn add(&mut self, address: BusName<'static>, callback: Box<dyn Fn(u32) + Send>) -> u32 {
         if !self.callbacks.lock().unwrap().contains_key(&address) {
-            self.callbacks.lock().unwrap().insert(address.clone(), vec![]);
+            self.callbacks.lock().unwrap().insert(address.clone(), HashMap::new());
         }
 
-        (*self.callbacks.lock().unwrap().get_mut(&address).unwrap()).push(callback);
+        let id = self.get_next_id();
+        (*self.callbacks.lock().unwrap().get_mut(&address).unwrap()).insert(id, callback);
+
+        return id;
     }
 
     /// Sets up the D-Bus handler that monitors client disconnects.
@@ -104,8 +120,8 @@ impl DisconnectWatcher {
                     return true;
                 }
 
-                for callback in &callbacks_map.lock().unwrap()[&addr] {
-                    callback();
+                for (id, callback) in callbacks_map.lock().unwrap()[&addr].iter() {
+                    callback(*id);
                 }
 
                 callbacks_map.lock().unwrap().remove(&addr);
@@ -113,6 +129,29 @@ impl DisconnectWatcher {
                 true
             }),
         );
+    }
+
+    /// Removes callback by id if owned by the specific busname.
+    ///
+    /// If the callback can be removed, the callback will be called before being removed.
+    pub fn remove(&mut self, address: BusName<'static>, target_id: u32) -> bool {
+        if !self.callbacks.lock().unwrap().contains_key(&address) {
+            return false;
+        }
+
+        match self.callbacks.lock().unwrap().get(&address).and_then(|m| m.get(&target_id)) {
+            Some(cb) => {
+                cb(target_id);
+                let _ = self
+                    .callbacks
+                    .lock()
+                    .unwrap()
+                    .get_mut(&address)
+                    .and_then(|m| m.remove(&target_id));
+                true
+            }
+            None => false,
+        }
     }
 }
 

@@ -1,9 +1,11 @@
 //! D-Bus proxy implementations of the APIs.
 
-use bt_topshim::btif::{BtSspVariant, Uuid128Bit};
+use bt_topshim::btif::{BtSspVariant, BtTransport, Uuid128Bit};
 use bt_topshim::profiles::gatt::GattStatus;
 
-use btstack::bluetooth::{BluetoothDevice, BluetoothTransport, IBluetooth, IBluetoothCallback};
+use btstack::bluetooth::{
+    BluetoothDevice, IBluetooth, IBluetoothCallback, IBluetoothConnectionCallback,
+};
 use btstack::bluetooth_gatt::{
     BluetoothGattCharacteristic, BluetoothGattDescriptor, BluetoothGattService,
     GattWriteRequestStatus, GattWriteType, IBluetoothGatt, IBluetoothGattCallback,
@@ -34,7 +36,7 @@ fn make_object_path(idx: i32, name: &str) -> dbus::Path {
     dbus::Path::new(format!("/org/chromium/bluetooth/hci{}/{}", idx, name)).unwrap()
 }
 
-impl_dbus_arg_enum!(BluetoothTransport);
+impl_dbus_arg_enum!(BtTransport);
 impl_dbus_arg_enum!(BtSspVariant);
 impl_dbus_arg_enum!(GattStatus);
 impl_dbus_arg_enum!(GattWriteType);
@@ -110,28 +112,34 @@ impl ClientDBusProxy {
         )
     }
 
+    /// Calls a method and returns the dbus result.
+    fn method_withresult<A: AppendAll, T: 'static + dbus::arg::Arg + for<'z> dbus::arg::Get<'z>>(
+        &self,
+        member: &str,
+        args: A,
+    ) -> Result<(T,), dbus::Error> {
+        let proxy = self.create_proxy();
+        // We know that all APIs return immediately, so we can block on it for simplicity.
+        return futures::executor::block_on(async {
+            proxy.method_call(self.interface.clone(), member, args).await
+        });
+    }
+
     fn method<A: AppendAll, T: 'static + dbus::arg::Arg + for<'z> dbus::arg::Get<'z>>(
         &self,
         member: &str,
         args: A,
     ) -> T {
-        let proxy = self.create_proxy();
-        // We know that all APIs return immediately, so we can block on it for simplicity.
-        let (ret,): (T,) = futures::executor::block_on(async {
-            proxy.method_call(self.interface.clone(), member, args).await
-        })
-        .unwrap();
-
+        let (ret,): (T,) = self.method_withresult(member, args).unwrap();
         return ret;
     }
 
     fn method_noreturn<A: AppendAll>(&self, member: &str, args: A) {
-        let proxy = self.create_proxy();
-        // We know that all APIs return immediately, so we can block on it for simplicity.
-        let _: () = futures::executor::block_on(async {
-            proxy.method_call(self.interface.clone(), member, args).await
-        })
-        .unwrap();
+        // The real type should be Result<((),), _> since there is no return value. However, to
+        // meet trait constraints, we just use bool and never unwrap the result. This calls the
+        // method, waits for the response but doesn't actually attempt to parse the result (on
+        // unwrap).
+        let _: Result<(bool,), _> = self.method_withresult(member, args);
     }
 }
 
@@ -140,9 +148,14 @@ struct IBluetoothCallbackDBus {}
 
 impl btstack::RPCProxy for IBluetoothCallbackDBus {
     // Dummy implementations just to satisfy impl RPCProxy requirements.
-    fn register_disconnect(&mut self, _f: Box<dyn Fn() + Send>) {}
+    fn register_disconnect(&mut self, _f: Box<dyn Fn(u32) + Send>) -> u32 {
+        0
+    }
     fn get_object_id(&self) -> String {
         String::from("")
+    }
+    fn unregister(&mut self, _id: u32) -> bool {
+        false
     }
 }
 
@@ -172,6 +185,34 @@ impl IBluetoothCallback for IBluetoothCallbackDBus {
 
     #[dbus_method("OnBondStateChanged")]
     fn on_bond_state_changed(&self, status: u32, address: String, state: u32) {}
+}
+
+#[allow(dead_code)]
+struct IBluetoothConnectionCallbackDBus {}
+
+impl btstack::RPCProxy for IBluetoothConnectionCallbackDBus {
+    // Dummy implementations just to satisfy impl RPCProxy requirements.
+    fn register_disconnect(&mut self, _f: Box<dyn Fn(u32) + Send>) -> u32 {
+        0
+    }
+    fn get_object_id(&self) -> String {
+        String::from("")
+    }
+    fn unregister(&mut self, _id: u32) -> bool {
+        false
+    }
+}
+
+#[generate_dbus_exporter(
+    export_bluetooth_connection_callback_dbus_obj,
+    "org.chromium.bluetooth.BluetoothConnectionCallback"
+)]
+impl IBluetoothConnectionCallback for IBluetoothConnectionCallbackDBus {
+    #[dbus_method("OnDeviceConnected")]
+    fn on_device_connected(&self, remote_device: BluetoothDevice) {}
+
+    #[dbus_method("OnDeviceDisconencted")]
+    fn on_device_disconnected(&self, remote_device: BluetoothDevice) {}
 }
 
 pub(crate) struct BluetoothDBus {
@@ -210,6 +251,27 @@ impl IBluetooth for BluetoothDBus {
         );
 
         self.client_proxy.method_noreturn("RegisterCallback", (path,))
+    }
+
+    fn register_connection_callback(
+        &mut self,
+        callback: Box<dyn IBluetoothConnectionCallback + Send>,
+    ) -> u32 {
+        let path_string = callback.get_object_id();
+        let path = dbus::Path::new(path_string.clone()).unwrap();
+        export_bluetooth_connection_callback_dbus_obj(
+            path_string,
+            self.client_proxy.conn.clone(),
+            &mut self.client_proxy.cr.lock().unwrap(),
+            Arc::new(Mutex::new(callback)),
+            Arc::new(Mutex::new(DisconnectWatcher::new())),
+        );
+
+        self.client_proxy.method("RegisterConnectionCallback", (path,))
+    }
+
+    fn unregister_connection_callback(&mut self, id: u32) -> bool {
+        self.client_proxy.method("UnregisterConnectionCallback", (id,))
     }
 
     fn enable(&mut self) -> bool {
@@ -255,13 +317,10 @@ impl IBluetooth for BluetoothDBus {
         self.client_proxy.method("GetDiscoveryEndMillis", ())
     }
 
-    fn create_bond(&self, device: BluetoothDevice, transport: BluetoothTransport) -> bool {
+    fn create_bond(&self, device: BluetoothDevice, transport: BtTransport) -> bool {
         self.client_proxy.method(
             "CreateBond",
-            (
-                BluetoothDevice::to_dbus(device).unwrap(),
-                BluetoothTransport::to_dbus(transport).unwrap(),
-            ),
+            (BluetoothDevice::to_dbus(device).unwrap(), BtTransport::to_dbus(transport).unwrap()),
         )
     }
 
@@ -282,6 +341,31 @@ impl IBluetooth for BluetoothDBus {
         self.client_proxy.method("GetBondState", (BluetoothDevice::to_dbus(device).unwrap(),))
     }
 
+    fn set_pin(&self, device: BluetoothDevice, accept: bool, len: u32, pin_code: Vec<u8>) -> bool {
+        self.client_proxy
+            .method("SetPin", (BluetoothDevice::to_dbus(device).unwrap(), accept, len, pin_code))
+    }
+
+    fn set_passkey(
+        &self,
+        device: BluetoothDevice,
+        accept: bool,
+        len: u32,
+        passkey: Vec<u8>,
+    ) -> bool {
+        self.client_proxy
+            .method("SetPasskey", (BluetoothDevice::to_dbus(device).unwrap(), accept, len, passkey))
+    }
+
+    fn set_pairing_confirmation(&self, device: BluetoothDevice, accept: bool) -> bool {
+        self.client_proxy
+            .method("SetPairingConfirmation", (BluetoothDevice::to_dbus(device).unwrap(), accept))
+    }
+
+    fn get_connection_state(&self, device: BluetoothDevice) -> u32 {
+        self.client_proxy.method("GetConnectionState", (BluetoothDevice::to_dbus(device).unwrap(),))
+    }
+
     fn get_remote_uuids(&self, device: BluetoothDevice) -> Vec<Uuid128Bit> {
         let result: Vec<Vec<u8>> = self
             .client_proxy
@@ -298,6 +382,16 @@ impl IBluetooth for BluetoothDBus {
             "SdpSearch",
             (BluetoothDevice::to_dbus(device).unwrap(), Uuid128Bit::to_dbus(uuid).unwrap()),
         )
+    }
+
+    fn connect_all_enabled_profiles(&self, device: BluetoothDevice) -> bool {
+        self.client_proxy
+            .method("ConnectAllEnabledProfiles", (BluetoothDevice::to_dbus(device).unwrap(),))
+    }
+
+    fn disconnect_all_enabled_profiles(&self, device: BluetoothDevice) -> bool {
+        self.client_proxy
+            .method("DisconnectAllEnabledProfiles", (BluetoothDevice::to_dbus(device).unwrap(),))
     }
 }
 
@@ -325,6 +419,11 @@ impl BluetoothManagerDBus {
                 interface: String::from("org.chromium.bluetooth.Manager"),
             },
         }
+    }
+
+    pub(crate) fn is_valid(&self) -> bool {
+        let result: Result<(bool,), _> = self.client_proxy.method_withresult("GetFlossEnabled", ());
+        return result.is_ok();
     }
 }
 
@@ -375,9 +474,14 @@ struct IBluetoothManagerCallbackDBus {}
 
 impl manager_service::RPCProxy for IBluetoothManagerCallbackDBus {
     // Placeholder implementations just to satisfy impl RPCProxy requirements.
-    fn register_disconnect(&mut self, _f: Box<dyn Fn() + Send>) {}
+    fn register_disconnect(&mut self, _f: Box<dyn Fn(u32) + Send>) -> u32 {
+        0
+    }
     fn get_object_id(&self) -> String {
         String::from("")
+    }
+    fn unregister(&mut self, _id: u32) -> bool {
+        false
     }
 }
 
@@ -600,9 +704,14 @@ struct IBluetoothGattCallbackDBus {}
 
 impl btstack::RPCProxy for IBluetoothGattCallbackDBus {
     // Placeholder implementations just to satisfy impl RPCProxy requirements.
-    fn register_disconnect(&mut self, _f: Box<dyn Fn() + Send>) {}
+    fn register_disconnect(&mut self, _f: Box<dyn Fn(u32) + Send>) -> u32 {
+        0
+    }
     fn get_object_id(&self) -> String {
         String::from("")
+    }
+    fn unregister(&mut self, _id: u32) -> bool {
+        false
     }
 }
 

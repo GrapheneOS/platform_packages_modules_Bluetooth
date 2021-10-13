@@ -1,8 +1,10 @@
 extern crate bt_shim;
 
-use bt_topshim::btif::{BtSspVariant, Uuid128Bit};
+use bt_topshim::btif::{BtSspVariant, BtTransport, Uuid128Bit};
 
-use btstack::bluetooth::{BluetoothDevice, BluetoothTransport, IBluetooth, IBluetoothCallback};
+use btstack::bluetooth::{
+    BluetoothDevice, IBluetooth, IBluetoothCallback, IBluetoothConnectionCallback,
+};
 use btstack::RPCProxy;
 
 use dbus::arg::RefArg;
@@ -51,8 +53,20 @@ impl IBluetoothCallback for BluetoothCallbackDBus {
     fn on_bond_state_changed(&self, status: u32, address: String, state: u32) {}
 }
 
-impl_dbus_arg_enum!(BluetoothTransport);
+impl_dbus_arg_enum!(BtTransport);
 impl_dbus_arg_enum!(BtSspVariant);
+
+#[allow(dead_code)]
+struct BluetoothConnectionCallbackDBus {}
+
+#[dbus_proxy_obj(BluetoothConnectionCallback, "org.chromium.bluetooth.BluetoothConnectionCallback")]
+impl IBluetoothConnectionCallback for BluetoothConnectionCallbackDBus {
+    #[dbus_method("OnDeviceConnected")]
+    fn on_device_connected(&self, remote_device: BluetoothDevice) {}
+
+    #[dbus_method("OnDeviceDisconencted")]
+    fn on_device_disconnected(&self, remote_device: BluetoothDevice) {}
+}
 
 #[allow(dead_code)]
 struct IBluetoothDBus {}
@@ -61,6 +75,19 @@ struct IBluetoothDBus {}
 impl IBluetooth for IBluetoothDBus {
     #[dbus_method("RegisterCallback")]
     fn register_callback(&mut self, callback: Box<dyn IBluetoothCallback + Send>) {}
+
+    #[dbus_method("RegisterConnectionCallback")]
+    fn register_connection_callback(
+        &mut self,
+        callback: Box<dyn IBluetoothConnectionCallback + Send>,
+    ) -> u32 {
+        0
+    }
+
+    #[dbus_method("UnregisterConnectionCallback")]
+    fn unregister_connection_callback(&mut self, id: u32) -> bool {
+        false
+    }
 
     // Not exposed over D-Bus. The stack is automatically enabled when the daemon starts.
     fn enable(&mut self) -> bool {
@@ -114,7 +141,7 @@ impl IBluetooth for IBluetoothDBus {
     }
 
     #[dbus_method("CreateBond")]
-    fn create_bond(&self, _device: BluetoothDevice, _transport: BluetoothTransport) -> bool {
+    fn create_bond(&self, _device: BluetoothDevice, _transport: BtTransport) -> bool {
         true
     }
 
@@ -138,6 +165,38 @@ impl IBluetooth for IBluetoothDBus {
         0
     }
 
+    #[dbus_method("SetPin")]
+    fn set_pin(
+        &self,
+        _device: BluetoothDevice,
+        _accept: bool,
+        _len: u32,
+        _pin_code: Vec<u8>,
+    ) -> bool {
+        false
+    }
+
+    #[dbus_method("SetPasskey")]
+    fn set_passkey(
+        &self,
+        _device: BluetoothDevice,
+        _accept: bool,
+        _len: u32,
+        _passkey: Vec<u8>,
+    ) -> bool {
+        false
+    }
+
+    #[dbus_method("SetPairingConfirmation")]
+    fn set_pairing_confirmation(&self, _device: BluetoothDevice, _accept: bool) -> bool {
+        false
+    }
+
+    #[dbus_method("GetConnectionState")]
+    fn get_connection_state(&self, _device: BluetoothDevice) -> u32 {
+        0
+    }
+
     #[dbus_method("GetRemoteUuids")]
     fn get_remote_uuids(&self, _device: BluetoothDevice) -> Vec<Uuid128Bit> {
         vec![]
@@ -150,6 +209,16 @@ impl IBluetooth for IBluetoothDBus {
 
     #[dbus_method("SdpSearch")]
     fn sdp_search(&self, _device: BluetoothDevice, _uuid: Uuid128Bit) -> bool {
+        true
+    }
+
+    #[dbus_method("ConnectAllEnabledProfiles")]
+    fn connect_all_enabled_profiles(&self, _device: BluetoothDevice) -> bool {
+        true
+    }
+
+    #[dbus_method("DisconnectAllEnabledProfiles")]
+    fn disconnect_all_enabled_profiles(&self, _device: BluetoothDevice) -> bool {
         true
     }
 }
