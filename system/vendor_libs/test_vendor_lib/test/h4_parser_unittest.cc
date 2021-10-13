@@ -107,7 +107,7 @@ TEST_F(H4ParserTest, RejectNoData) {
 TEST_F(H4ParserTest, TooMuchIsDeath) {
   PacketData bad_bit({0xfd});
   ASSERT_DEATH(parser_.Consume(bad_bit.data(), parser_.BytesRequested() + 1),
-               "More bytes read (.*) than expected (.*)!");
+               "More bytes read .* than expected .*!");
 }
 
 TEST_F(H4ParserTest, WrongTypeIsDeath) {
