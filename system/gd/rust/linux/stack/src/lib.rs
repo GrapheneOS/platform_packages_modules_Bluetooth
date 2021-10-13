@@ -9,6 +9,7 @@ extern crate num_derive;
 pub mod bluetooth;
 pub mod bluetooth_gatt;
 pub mod bluetooth_media;
+pub mod uuid;
 
 use log::debug;
 use std::sync::{Arc, Mutex};
@@ -17,7 +18,7 @@ use tokio::sync::mpsc::{Receiver, Sender};
 
 use crate::bluetooth::Bluetooth;
 use crate::bluetooth_gatt::BluetoothGatt;
-use crate::bluetooth_media::BluetoothMedia;
+use crate::bluetooth_media::{BluetoothMedia, MediaActions};
 use bt_topshim::{
     btif::BaseCallbacks,
     profiles::{
@@ -29,8 +30,15 @@ use bt_topshim::{
 /// Represents a Bluetooth address.
 // TODO: Add support for LE random addresses.
 
+#[derive(Clone, Debug)]
+pub enum BluetoothCallbackType {
+    Adapter,
+    Connection,
+}
+
 /// Message types that are sent to the stack main dispatch loop.
 pub enum Message {
+    // Callbacks from libbluetooth
     A2dp(A2dpCallbacks),
     Avrcp(AvrcpCallbacks),
     Base(BaseCallbacks),
@@ -38,7 +46,12 @@ pub enum Message {
     GattServer(GattServerCallbacks),
     HidHost(HHCallbacks),
     Sdp(SdpCallbacks),
-    BluetoothCallbackDisconnected(u32),
+
+    // Actions within the stack
+    Media(MediaActions),
+
+    // Client callback disconnections
+    BluetoothCallbackDisconnected(u32, BluetoothCallbackType),
 }
 
 /// Umbrella class for the Bluetooth stack.
@@ -96,8 +109,12 @@ impl Stack {
                     bluetooth.lock().unwrap().dispatch_sdp_callbacks(s);
                 }
 
-                Message::BluetoothCallbackDisconnected(id) => {
-                    bluetooth.lock().unwrap().callback_disconnected(id);
+                Message::Media(action) => {
+                    bluetooth_media.lock().unwrap().dispatch_media_actions(action);
+                }
+
+                Message::BluetoothCallbackDisconnected(id, cb_type) => {
+                    bluetooth.lock().unwrap().callback_disconnected(id, cb_type);
                 }
             }
         }
@@ -111,8 +128,11 @@ impl Stack {
 /// `register_disconnect` to let others observe the disconnection event.
 pub trait RPCProxy {
     /// Registers disconnect observer that will be notified when the remote object is disconnected.
-    fn register_disconnect(&mut self, f: Box<dyn Fn() + Send>);
+    fn register_disconnect(&mut self, f: Box<dyn Fn(u32) + Send>) -> u32;
 
     /// Returns the ID of the object. For example this would be an object path in D-Bus RPC.
     fn get_object_id(&self) -> String;
+
+    /// Unregisters callback with this id.
+    fn unregister(&mut self, id: u32) -> bool;
 }
