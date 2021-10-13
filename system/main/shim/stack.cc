@@ -114,10 +114,8 @@ void Stack::StartEverything() {
     rust::stack_start(**rust_stack_);
 
     rust_hci_ = new ::rust::Box<rust::Hci>(rust::get_hci(**rust_stack_));
-    if (common::init_flags::gd_controller_is_enabled()) {
-      rust_controller_ = new ::rust::Box<rust::Controller>(
-          rust::get_controller(**rust_stack_));
-    }
+    rust_controller_ =
+        new ::rust::Box<rust::Controller>(rust::get_controller(**rust_stack_));
     bluetooth::shim::hci_on_reset_complete();
 
     // Create pid since we're up and running
@@ -136,9 +134,7 @@ void Stack::StartEverything() {
   modules.add<shim::Dumpsys>();
   modules.add<hci::VendorSpecificEventManager>();
 
-  if (common::init_flags::gd_controller_is_enabled()) {
-    modules.add<hci::Controller>();
-  }
+  modules.add<hci::Controller>();
   if (common::init_flags::gd_acl_is_enabled()) {
     modules.add<hci::AclManager>();
   }
