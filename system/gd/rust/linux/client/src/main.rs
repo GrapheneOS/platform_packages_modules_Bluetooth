@@ -7,7 +7,7 @@ use dbus::nonblock::SyncConnection;
 use dbus_crossroads::Crossroads;
 use tokio::sync::mpsc;
 
-use crate::callbacks::{BtCallback, BtManagerCallback};
+use crate::callbacks::{BtCallback, BtConnectionCallback, BtManagerCallback};
 use crate::command_handler::CommandHandler;
 use crate::dbus_iface::{BluetoothDBus, BluetoothGattDBus, BluetoothManagerDBus};
 use crate::editor::AsyncEditor;
@@ -40,6 +40,10 @@ pub(crate) struct ClientContext {
 
     /// Current adapter address if known.
     pub(crate) adapter_address: Option<String>,
+
+    /// Currently active bonding attempt. If it is not none, we are currently attempting to bond
+    /// this device.
+    pub(crate) bonding_attempt: Option<BluetoothDevice>,
 
     /// Is adapter discovering?
     pub(crate) discovering_state: bool,
@@ -76,8 +80,8 @@ impl ClientContext {
         dbus_crossroads: Arc<Mutex<Crossroads>>,
         tx: mpsc::Sender<ForegroundActions>,
     ) -> ClientContext {
-        // Manager interface is always available but adapter interface requires
-        // that the specific adapter is enabled.
+        // Manager interface is almost always available but adapter interface
+        // requires that the specific adapter is enabled.
         let manager_dbus =
             BluetoothManagerDBus::new(dbus_connection.clone(), dbus_crossroads.clone());
 
@@ -87,6 +91,7 @@ impl ClientContext {
             enabled: false,
             adapter_ready: false,
             adapter_address: None,
+            bonding_attempt: None,
             discovering_state: false,
             found_devices: HashMap::new(),
             gatt_client_id: None,
@@ -134,8 +139,8 @@ impl ClientContext {
         // Trigger callback registration in the foreground
         let fg = self.fg.clone();
         tokio::spawn(async move {
-            let objpath = String::from("/org/chromium/bluetooth/client/bluetooth_callback");
-            let _ = fg.send(ForegroundActions::RegisterAdapterCallback(objpath)).await;
+            let adapter = String::from(format!("adapter{}", idx));
+            let _ = fg.send(ForegroundActions::RegisterAdapterCallback(adapter)).await;
         });
     }
 
@@ -146,13 +151,29 @@ impl ClientContext {
 
         address
     }
+
+    fn connect_all_enabled_profiles(&mut self, device: BluetoothDevice) {
+        let fg = self.fg.clone();
+        tokio::spawn(async move {
+            let _ = fg.send(ForegroundActions::ConnectAllEnabledProfiles(device)).await;
+        });
+    }
+
+    fn run_callback(&mut self, callback: Box<dyn Fn(Arc<Mutex<ClientContext>>) + Send>) {
+        let fg = self.fg.clone();
+        tokio::spawn(async move {
+            let _ = fg.send(ForegroundActions::RunCallback(callback)).await;
+        });
+    }
 }
 
 /// Actions to take on the foreground loop. This allows us to queue actions in
 /// callbacks that get run in the foreground context.
 enum ForegroundActions {
-    RegisterAdapterCallback(String), // Register callbacks with this objpath
-    Readline(rustyline::Result<String>), // Readline result from rustyline
+    ConnectAllEnabledProfiles(BluetoothDevice), // Connect all enabled profiles for this device
+    RunCallback(Box<dyn Fn(Arc<Mutex<ClientContext>>) + Send>), // Run callback in foreground
+    RegisterAdapterCallback(String),            // Register callbacks for this adapter
+    Readline(rustyline::Result<String>),        // Readline result from rustyline
 }
 
 /// Runs a command line program that interacts with a Bluetooth stack.
@@ -192,6 +213,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         // Create the context needed for handling commands
         let context = Arc::new(Mutex::new(ClientContext::new(conn, cr, tx.clone())));
+
+        // Check if manager interface is valid. We only print some help text before failing on the
+        // first actual access to the interface (so we can also capture the actual reason the
+        // interface isn't valid).
+        if !context.lock().unwrap().manager_dbus.is_valid() {
+            println!("Bluetooth manager doesn't seem to be working correctly.");
+            println!("Check if service is running.");
+            println!("...");
+        }
 
         // TODO: Registering the callback should be done when btmanagerd is ready (detect with
         // ObjectManager).
@@ -259,15 +289,46 @@ async fn start_interactive_shell(
         }
 
         match m.unwrap() {
+            ForegroundActions::ConnectAllEnabledProfiles(device) => {
+                if context.lock().unwrap().adapter_ready {
+                    context
+                        .lock()
+                        .unwrap()
+                        .adapter_dbus
+                        .as_mut()
+                        .unwrap()
+                        .connect_all_enabled_profiles(device);
+                } else {
+                    println!("Adapter isn't ready to connect profiles.");
+                }
+            }
+            ForegroundActions::RunCallback(callback) => {
+                callback(context.clone());
+            }
             // Once adapter is ready, register callbacks, get the address and mark it as ready
-            ForegroundActions::RegisterAdapterCallback(objpath) => {
+            ForegroundActions::RegisterAdapterCallback(adapter) => {
+                let cb_objpath: String =
+                    format!("/org/chromium/bluetooth/client/{}/bluetooth_callback", adapter);
+                let conn_cb_objpath: String =
+                    format!("/org/chromium/bluetooth/client/{}/bluetooth_conn_callback", adapter);
+
                 context
                     .lock()
                     .unwrap()
                     .adapter_dbus
                     .as_mut()
                     .unwrap()
-                    .register_callback(Box::new(BtCallback::new(objpath, context.clone())));
+                    .register_callback(Box::new(BtCallback::new(cb_objpath, context.clone())));
+                context
+                    .lock()
+                    .unwrap()
+                    .adapter_dbus
+                    .as_mut()
+                    .unwrap()
+                    .register_connection_callback(Box::new(BtConnectionCallback::new(
+                        conn_cb_objpath,
+                        context.clone(),
+                    )));
                 context.lock().unwrap().adapter_ready = true;
                 let adapter_address = context.lock().unwrap().update_adapter_address();
                 print_info!("Adapter {} is ready", adapter_address);

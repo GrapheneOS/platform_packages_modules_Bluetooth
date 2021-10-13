@@ -15,8 +15,7 @@ const BLUEZ_INIT_TARGET: &str = "bluetoothd";
 /// Implementation of IBluetoothManager.
 pub struct BluetoothManager {
     manager_context: ManagerContext,
-    callbacks: Vec<(u32, Box<dyn IBluetoothManagerCallback + Send>)>,
-    callbacks_last_id: u32,
+    callbacks: HashMap<u32, Box<dyn IBluetoothManagerCallback + Send>>,
     cached_devices: HashMap<i32, bool>,
 }
 
@@ -24,8 +23,7 @@ impl BluetoothManager {
     pub(crate) fn new(manager_context: ManagerContext) -> BluetoothManager {
         BluetoothManager {
             manager_context,
-            callbacks: vec![],
-            callbacks_last_id: 0,
+            callbacks: HashMap::new(),
             cached_devices: HashMap::new(),
         }
     }
@@ -61,7 +59,7 @@ impl BluetoothManager {
     }
 
     pub(crate) fn callback_disconnected(&mut self, id: u32) {
-        self.callbacks.retain(|x| x.0 != id);
+        self.callbacks.remove(&id);
     }
 }
 
@@ -106,17 +104,14 @@ impl IBluetoothManager for BluetoothManager {
     fn register_callback(&mut self, mut callback: Box<dyn IBluetoothManagerCallback + Send>) {
         let tx = self.manager_context.proxy.get_tx();
 
-        self.callbacks_last_id += 1;
-        let id = self.callbacks_last_id;
-
-        callback.register_disconnect(Box::new(move || {
+        let id = callback.register_disconnect(Box::new(move |cb_id| {
             let tx = tx.clone();
             tokio::spawn(async move {
-                let _result = tx.send(state_machine::Message::CallbackDisconnected(id)).await;
+                let _result = tx.send(state_machine::Message::CallbackDisconnected(cb_id)).await;
             });
         }));
 
-        self.callbacks.push((id, callback));
+        self.callbacks.insert(id, callback);
     }
 
     fn get_floss_enabled(&mut self) -> bool {
