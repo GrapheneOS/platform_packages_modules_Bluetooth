@@ -592,6 +592,10 @@ public class CsipSetCoordinatorService extends ProfileService {
         }
 
         ParcelUuid uuid = mGroupIdToUuidMap.get(groupId);
+        if (mCallbacks.get(uuid) == null) {
+            Log.e(TAG, " There is no clients for uuid: " + uuid);
+            return;
+        }
 
         for (Map.Entry<Executor, IBluetoothCsipSetCoordinatorCallback> entry :
                 mCallbacks.get(uuid).entrySet()) {
