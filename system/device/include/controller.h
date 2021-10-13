@@ -24,8 +24,6 @@
 #include "btcore/include/version.h"
 #include "types/raw_address.h"
 
-static const char CONTROLLER_MODULE[] = "controller_module";
-
 typedef struct controller_t {
   bool (*get_is_ready)(void);
 
