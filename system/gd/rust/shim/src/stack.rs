@@ -67,7 +67,6 @@ pub fn get_hci(stack: &mut Stack) -> Box<Hci> {
 
 pub fn get_controller(stack: &mut Stack) -> Box<Controller> {
     assert!(init_flags::gd_rust_is_enabled());
-    assert!(init_flags::gd_controller_is_enabled());
 
     Box::new(Controller(stack.get_blocking::<Arc<ControllerExports>>()))
 }
