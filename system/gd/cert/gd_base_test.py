@@ -30,6 +30,7 @@ from cert.gd_base_test_lib import setup_rootcanal
 from cert.gd_base_test_lib import teardown_rootcanal
 from cert.gd_base_test_lib import dump_crashes_core
 from cert.gd_device_lib import generate_coverage_report_for_host
+from cert.os_utils import get_gd_root
 
 from facade import rootservice_pb2 as facade_rootservice
 
@@ -55,8 +56,11 @@ class GdBaseTestClass(BaseTestClass):
             self.cert_coverage_info = None
 
     def set_controller_properties_path(self, path):
-        GD_DIR = os.path.join(os.getcwd(), os.pardir)
-        self.controller_properties_file = os.path.join(GD_DIR, path)
+        absolute_path = os.path.join(get_gd_root(), path)
+        if os.path.isfile(absolute_path):
+            self.controller_properties_file = absolute_path
+        else:
+            print(absolute_path + " not exist!")
 
     def setup_test(self):
         self.log_path_base = get_current_context().get_full_output_path()
