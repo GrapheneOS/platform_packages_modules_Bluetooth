@@ -2,14 +2,13 @@ use std::collections::HashMap;
 use std::fmt::{Display, Formatter, Result};
 use std::sync::{Arc, Mutex};
 
-use num_traits::cast::FromPrimitive;
-
 use crate::callbacks::BtGattCallback;
 use crate::ClientContext;
 use crate::{console_red, console_yellow, print_error, print_info};
-use bt_topshim::btif::Uuid128Bit;
-use btstack::bluetooth::{BluetoothDevice, BluetoothTransport, IBluetooth};
+use bt_topshim::btif::BtTransport;
+use btstack::bluetooth::{BluetoothDevice, IBluetooth};
 use btstack::bluetooth_gatt::IBluetoothGatt;
+use btstack::uuid::UuidHelper;
 use manager_service::iface_bluetooth_manager::IBluetoothManager;
 
 const INDENT_CHAR: &str = " ";
@@ -46,20 +45,6 @@ impl<T: Display> Display for DisplayList<T> {
         }
 
         write!(f, "]")
-    }
-}
-
-struct DisplayUuid128Bit(Uuid128Bit);
-
-// UUID128Bit should have a standard output display format
-impl Display for DisplayUuid128Bit {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(f, "{:02x}{:02x}{:02x}{:02x}-{:02x}{:02x}-{:02x}{:02x}-{:02x}{:02x}-{:02X}{:02X}{:02X}{:02X}{:02X}{:02X}",
-            self.0[0], self.0[1], self.0[2], self.0[3],
-            self.0[4], self.0[5],
-            self.0[6], self.0[7],
-            self.0[8], self.0[9],
-            self.0[10], self.0[11], self.0[12], self.0[13], self.0[14], self.0[15])
     }
 }
 
@@ -124,6 +109,13 @@ fn build_commands() -> HashMap<String, CommandOption> {
         CommandOption {
             description: String::from("Start and stop device discovery. (e.g. discovery start)"),
             function_pointer: CommandHandler::cmd_discovery,
+        },
+    );
+    command_options.insert(
+        String::from("floss"),
+        CommandOption {
+            description: String::from("Enable or disable Floss for dogfood."),
+            function_pointer: CommandHandler::cmd_floss,
         },
     );
     command_options.insert(
@@ -255,6 +247,11 @@ impl CommandHandler {
                 self.context.lock().unwrap().manager_dbus.stop(default_adapter);
             }
             "show" => {
+                if !self.context.lock().unwrap().manager_dbus.get_floss_enabled() {
+                    println!("Floss is not enabled. First run, `floss enable`");
+                    return;
+                }
+
                 let enabled = self.context.lock().unwrap().enabled;
                 let address = match self.context.lock().unwrap().adapter_address.as_ref() {
                     Some(x) => x.clone(),
@@ -268,10 +265,7 @@ impl CommandHandler {
                 print_info!(
                     "Uuids: {}",
                     DisplayList(
-                        uuids
-                            .iter()
-                            .map(|&x| DisplayUuid128Bit(x))
-                            .collect::<Vec<DisplayUuid128Bit>>()
+                        uuids.iter().map(|&x| UuidHelper::to_string(&x)).collect::<Vec<String>>()
                     )
                 );
             }
@@ -316,19 +310,62 @@ impl CommandHandler {
             return;
         }
 
-        enforce_arg_len(args, 1, "bond <address>", || {
-            let device = BluetoothDevice {
-                address: String::from(&args[0]),
-                name: String::from("Classic Device"),
-            };
+        enforce_arg_len(args, 2, "bond <add|remove|cancel> <address>", || match &args[0][0..] {
+            "add" => {
+                let device = BluetoothDevice {
+                    address: String::from(&args[1]),
+                    name: String::from("Classic Device"),
+                };
 
-            self.context
-                .lock()
-                .unwrap()
-                .adapter_dbus
-                .as_ref()
-                .unwrap()
-                .create_bond(device, BluetoothTransport::from_i32(0).unwrap());
+                let bonding_attempt =
+                    &self.context.lock().unwrap().bonding_attempt.as_ref().cloned();
+
+                if bonding_attempt.is_some() {
+                    print_info!(
+                        "Already bonding [{}]. Cancel bonding first.",
+                        bonding_attempt.as_ref().unwrap().address,
+                    );
+                    return;
+                }
+
+                let success = self
+                    .context
+                    .lock()
+                    .unwrap()
+                    .adapter_dbus
+                    .as_ref()
+                    .unwrap()
+                    .create_bond(device.clone(), BtTransport::Auto);
+
+                if success {
+                    self.context.lock().unwrap().bonding_attempt = Some(device);
+                }
+            }
+            "remove" => {
+                let device = BluetoothDevice {
+                    address: String::from(&args[1]),
+                    name: String::from("Classic Device"),
+                };
+
+                self.context.lock().unwrap().adapter_dbus.as_ref().unwrap().remove_bond(device);
+            }
+            "cancel" => {
+                let device = BluetoothDevice {
+                    address: String::from(&args[1]),
+                    name: String::from("Classic Device"),
+                };
+
+                self.context
+                    .lock()
+                    .unwrap()
+                    .adapter_dbus
+                    .as_ref()
+                    .unwrap()
+                    .cancel_bond_process(device);
+            }
+            _ => {
+                println!("Invalid argument '{}'", args[0]);
+            }
         });
     }
 
@@ -338,31 +375,99 @@ impl CommandHandler {
             return;
         }
 
-        enforce_arg_len(args, 2, "device <info> <address>", || match &args[0][0..] {
-            "info" => {
-                let device = BluetoothDevice {
-                    address: String::from(&args[1]),
-                    name: String::from("Classic Device"),
-                };
+        enforce_arg_len(args, 2, "device <connect|disconnect|info> <address>", || {
+            match &args[0][0..] {
+                "connect" => {
+                    let device = BluetoothDevice {
+                        address: String::from(&args[1]),
+                        name: String::from("Classic Device"),
+                    };
 
-                let uuids = self
-                    .context
-                    .lock()
-                    .unwrap()
-                    .adapter_dbus
-                    .as_ref()
-                    .unwrap()
-                    .get_remote_uuids(device.clone());
+                    let success = self
+                        .context
+                        .lock()
+                        .unwrap()
+                        .adapter_dbus
+                        .as_ref()
+                        .unwrap()
+                        .connect_all_enabled_profiles(device.clone());
 
-                print_info!("Address: {}", &device.address);
+                    if success {
+                        println!("Connecting to {}", &device.address);
+                    } else {
+                        println!("Can't connect to {}", &device.address);
+                    }
+                }
+                "disconnect" => {
+                    let device = BluetoothDevice {
+                        address: String::from(&args[1]),
+                        name: String::from("Classic Device"),
+                    };
+
+                    let success = self
+                        .context
+                        .lock()
+                        .unwrap()
+                        .adapter_dbus
+                        .as_ref()
+                        .unwrap()
+                        .disconnect_all_enabled_profiles(device.clone());
+
+                    if success {
+                        println!("Disconnecting from {}", &device.address);
+                    } else {
+                        println!("Can't disconnect from {}", &device.address);
+                    }
+                }
+                "info" => {
+                    let device = BluetoothDevice {
+                        address: String::from(&args[1]),
+                        name: String::from("Classic Device"),
+                    };
+
+                    let (bonded, connected, uuids) = {
+                        let ctx = self.context.lock().unwrap();
+                        let adapter = ctx.adapter_dbus.as_ref().unwrap();
+
+                        let bonded = adapter.get_bond_state(device.clone());
+                        let connected = adapter.get_connection_state(device.clone());
+                        let uuids = adapter.get_remote_uuids(device.clone());
+
+                        (bonded, connected, uuids)
+                    };
+
+                    print_info!("Address: {}", &device.address);
+                    print_info!("Bonded: {}", bonded);
+                    print_info!("Connected: {}", connected);
+                    print_info!(
+                        "Uuids: {}",
+                        DisplayList(
+                            uuids
+                                .iter()
+                                .map(|&x| UuidHelper::to_string(&x))
+                                .collect::<Vec<String>>()
+                        )
+                    );
+                }
+                _ => {
+                    println!("Invalid argument '{}'", args[0]);
+                }
+            }
+        });
+    }
+
+    fn cmd_floss(&mut self, args: &Vec<String>) {
+        enforce_arg_len(args, 1, "floss <enable|disable>", || match &args[0][0..] {
+            "enable" => {
+                self.context.lock().unwrap().manager_dbus.set_floss_enabled(true);
+            }
+            "disable" => {
+                self.context.lock().unwrap().manager_dbus.set_floss_enabled(false);
+            }
+            "show" => {
                 print_info!(
-                    "Uuids: {}",
-                    DisplayList(
-                        uuids
-                            .iter()
-                            .map(|&x| DisplayUuid128Bit(x))
-                            .collect::<Vec<DisplayUuid128Bit>>()
-                    )
+                    "Floss enabled: {}",
+                    self.context.lock().unwrap().manager_dbus.get_floss_enabled()
                 );
             }
             _ => {

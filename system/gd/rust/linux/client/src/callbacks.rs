@@ -1,8 +1,10 @@
 use crate::ClientContext;
 use crate::{console_yellow, print_info};
-use bt_topshim::btif::BtSspVariant;
+use bt_topshim::btif::{BtBondState, BtSspVariant};
 use bt_topshim::profiles::gatt::GattStatus;
-use btstack::bluetooth::{BluetoothDevice, IBluetoothCallback};
+use btstack::bluetooth::{
+    BluetoothDevice, IBluetooth, IBluetoothCallback, IBluetoothConnectionCallback,
+};
 use btstack::bluetooth_gatt::{BluetoothGattService, IBluetoothGattCallback, LePhy};
 use btstack::RPCProxy;
 use manager_service::iface_bluetooth_manager::IBluetoothManagerCallback;
@@ -37,10 +39,16 @@ impl IBluetoothManagerCallback for BtManagerCallback {
 }
 
 impl manager_service::RPCProxy for BtManagerCallback {
-    fn register_disconnect(&mut self, _f: Box<dyn Fn() + Send>) {}
+    fn register_disconnect(&mut self, _f: Box<dyn Fn(u32) + Send>) -> u32 {
+        0
+    }
 
     fn get_object_id(&self) -> String {
         self.objpath.clone()
+    }
+
+    fn unregister(&mut self, _id: u32) -> bool {
+        false
     }
 }
 
@@ -89,30 +97,122 @@ impl IBluetoothCallback for BtCallback {
         variant: BtSspVariant,
         passkey: u32,
     ) {
-        if variant == BtSspVariant::PasskeyNotification {
-            print_info!(
-                "device {}{} would like to pair, enter passkey on remote device: {:06}",
-                remote_device.address.to_string(),
-                if remote_device.name.len() > 0 {
-                    format!(" ({})", remote_device.name)
-                } else {
-                    String::from("")
-                },
-                passkey
-            );
+        match variant {
+            BtSspVariant::PasskeyNotification => {
+                print_info!(
+                    "Device [{}: {}] would like to pair, enter passkey on remote device: {:06}",
+                    &remote_device.address,
+                    &remote_device.name,
+                    passkey
+                );
+            }
+            BtSspVariant::Consent => {
+                let rd = remote_device.clone();
+                self.context.lock().unwrap().run_callback(Box::new(move |context| {
+                    // Auto-confirm bonding attempts that were locally initiated.
+                    // Ignore all other bonding attempts.
+                    let bonding_device = context.lock().unwrap().bonding_attempt.as_ref().cloned();
+                    match bonding_device {
+                        Some(bd) => {
+                            if bd.address == rd.address {
+                                context
+                                    .lock()
+                                    .unwrap()
+                                    .adapter_dbus
+                                    .as_ref()
+                                    .unwrap()
+                                    .set_pairing_confirmation(rd.clone(), true);
+                            }
+                        }
+                        None => (),
+                    }
+                }));
+            }
+            BtSspVariant::PasskeyEntry => {
+                println!("Got PasskeyEntry but it is not supported...");
+            }
+            BtSspVariant::PasskeyConfirmation => {
+                println!("Got PasskeyConfirmation but there's nothing to do...");
+            }
         }
     }
 
     fn on_bond_state_changed(&self, status: u32, address: String, state: u32) {
         print_info!("Bonding state changed: [{}] state: {}, Status = {}", address, state, status);
+
+        // Clear bonding attempt if bonding fails or succeeds
+        match BtBondState::from(state) {
+            BtBondState::NotBonded | BtBondState::Bonded => {
+                let bonding_attempt =
+                    self.context.lock().unwrap().bonding_attempt.as_ref().cloned();
+                match bonding_attempt {
+                    Some(bd) => {
+                        if &address == &bd.address {
+                            self.context.lock().unwrap().bonding_attempt = None;
+                        }
+                    }
+                    None => (),
+                }
+            }
+            BtBondState::Bonding => (),
+        }
+
+        // If bonded, we should also automatically connect all enabled profiles
+        if BtBondState::Bonded == state.into() {
+            self.context.lock().unwrap().connect_all_enabled_profiles(BluetoothDevice {
+                address,
+                name: String::from("Classic device"),
+            });
+        }
     }
 }
 
 impl RPCProxy for BtCallback {
-    fn register_disconnect(&mut self, _f: Box<dyn Fn() + Send>) {}
+    fn register_disconnect(&mut self, _f: Box<dyn Fn(u32) + Send>) -> u32 {
+        0
+    }
 
     fn get_object_id(&self) -> String {
         self.objpath.clone()
+    }
+
+    fn unregister(&mut self, _id: u32) -> bool {
+        false
+    }
+}
+
+pub(crate) struct BtConnectionCallback {
+    objpath: String,
+    _context: Arc<Mutex<ClientContext>>,
+}
+
+impl BtConnectionCallback {
+    pub(crate) fn new(objpath: String, _context: Arc<Mutex<ClientContext>>) -> Self {
+        Self { objpath, _context }
+    }
+}
+
+impl IBluetoothConnectionCallback for BtConnectionCallback {
+    fn on_device_connected(&self, remote_device: BluetoothDevice) {
+        print_info!("Connected: [{}]: {}", remote_device.address, remote_device.name);
+    }
+
+    fn on_device_disconnected(&self, remote_device: BluetoothDevice) {
+        print_info!("Disconnected: [{}]: {}", remote_device.address, remote_device.name);
+    }
+}
+
+impl RPCProxy for BtConnectionCallback {
+    fn register_disconnect(&mut self, _f: Box<dyn Fn(u32) + Send>) -> u32 {
+        0
+    }
+
+    fn get_object_id(&self) -> String {
+        self.objpath.clone()
+    }
+
+    fn unregister(&mut self, _id: u32) -> bool {
+        false
     }
 }
 
@@ -256,9 +356,15 @@ impl IBluetoothGattCallback for BtGattCallback {
 }
 
 impl RPCProxy for BtGattCallback {
-    fn register_disconnect(&mut self, _f: Box<dyn Fn() + Send>) {}
+    fn register_disconnect(&mut self, _f: Box<dyn Fn(u32) + Send>) -> u32 {
+        0
+    }
 
     fn get_object_id(&self) -> String {
         self.objpath.clone()
+    }
+
+    fn unregister(&mut self, _id: u32) -> bool {
+        false
     }
 }

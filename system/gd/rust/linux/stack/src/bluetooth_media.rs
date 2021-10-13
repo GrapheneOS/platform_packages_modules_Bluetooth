@@ -63,6 +63,12 @@ pub trait IBluetoothMediaCallback {
     fn on_absolute_volume_changed(&self, volume: i32);
 }
 
+/// Actions that `BluetoothMedia` can take on behalf of the stack.
+pub enum MediaActions {
+    Connect(String),
+    Disconnect(String),
+}
+
 pub struct BluetoothMedia {
     intf: Arc<Mutex<BluetoothInterface>>,
     initialized: bool,
@@ -149,6 +155,13 @@ impl BluetoothMedia {
                     callback.on_absolute_volume_changed(i32::from(volume));
                 });
             }
+        }
+    }
+
+    pub fn dispatch_media_actions(&mut self, action: MediaActions) {
+        match action {
+            MediaActions::Connect(address) => self.connect(address),
+            MediaActions::Disconnect(address) => self.disconnect(address),
         }
     }
 
