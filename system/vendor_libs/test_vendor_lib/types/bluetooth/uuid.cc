@@ -19,6 +19,7 @@
 #include "uuid.h"
 
 #include <algorithm>
+#include <cstring>
 #include <random>
 
 namespace bluetooth {

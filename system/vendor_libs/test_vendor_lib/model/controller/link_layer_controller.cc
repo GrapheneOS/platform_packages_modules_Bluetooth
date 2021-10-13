@@ -602,7 +602,7 @@ void LinkLayerController::IncomingDisconnectPacket(
 
 void LinkLayerController::IncomingEncryptConnection(
     model::packets::LinkLayerPacketView incoming) {
-  LOG_INFO();
+  LOG_INFO("IncomingEncryptConnection");
 
   // TODO: Check keys
   Address peer = incoming.GetSourceAddress();
@@ -630,7 +630,7 @@ void LinkLayerController::IncomingEncryptConnection(
 
 void LinkLayerController::IncomingEncryptConnectionResponse(
     model::packets::LinkLayerPacketView incoming) {
-  LOG_INFO();
+  LOG_INFO("IncomingEncryptConnectionResponse");
   // TODO: Check keys
   uint16_t handle =
       connections_.GetHandleOnlyAddress(incoming.GetSourceAddress());
@@ -1353,7 +1353,7 @@ void LinkLayerController::IncomingLeConnectCompletePacket(
 
 void LinkLayerController::IncomingLeEncryptConnection(
     model::packets::LinkLayerPacketView incoming) {
-  LOG_INFO();
+  LOG_INFO("IncomingLeEncryptConnection");
 
   Address peer = incoming.GetSourceAddress();
   uint16_t handle = connections_.GetHandleOnlyAddress(peer);
@@ -1376,7 +1376,7 @@ void LinkLayerController::IncomingLeEncryptConnection(
 
 void LinkLayerController::IncomingLeEncryptConnectionResponse(
     model::packets::LinkLayerPacketView incoming) {
-  LOG_INFO();
+  LOG_INFO("IncomingLeEncryptConnectionResponse");
   // TODO: Check keys
   uint16_t handle =
       connections_.GetHandleOnlyAddress(incoming.GetSourceAddress());
