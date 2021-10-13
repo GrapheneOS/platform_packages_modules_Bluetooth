@@ -357,7 +357,8 @@ TEST_F(VolumeControlDeviceTest, test_enqueue_initial_requests) {
   auto chrc_read_cb = [](uint16_t conn_id, tGATT_STATUS status, uint16_t handle,
                          uint16_t len, uint8_t* value, void* data) {};
   auto cccd_write_cb = [](uint16_t conn_id, tGATT_STATUS status,
-                          uint16_t handle, void* data) {};
+                          uint16_t handle, uint16_t len, const uint8_t* value,
+                          void* data) {};
   ASSERT_EQ(true, device->EnqueueInitialRequests(gatt_if, chrc_read_cb,
                                                  cccd_write_cb));
 };
@@ -383,7 +384,8 @@ TEST_F(VolumeControlDeviceTest, test_device_ready) {
   auto chrc_read_cb = [](uint16_t conn_id, tGATT_STATUS status, uint16_t handle,
                          uint16_t len, uint8_t* value, void* data) {};
   auto cccd_write_cb = [](uint16_t conn_id, tGATT_STATUS status,
-                          uint16_t handle, void* data) {};
+                          uint16_t handle, uint16_t len, const uint8_t* value,
+                          void* data) {};
   ASSERT_EQ(true, device->EnqueueInitialRequests(0x0001, chrc_read_cb,
                                                  cccd_write_cb));
   ASSERT_NE((size_t)0, requested_handles.size());
@@ -425,7 +427,8 @@ TEST_F(VolumeControlDeviceTest, test_enqueue_remaining_requests) {
   auto chrc_read_cb = [](uint16_t conn_id, tGATT_STATUS status, uint16_t handle,
                          uint16_t len, uint8_t* value, void* data) {};
   auto cccd_write_cb = [](uint16_t conn_id, tGATT_STATUS status,
-                          uint16_t handle, void* data) {};
+                          uint16_t handle, uint16_t len, const uint8_t* value,
+                          void* data) {};
   device->EnqueueRemainingRequests(gatt_if, chrc_read_cb, cccd_write_cb);
 }
 
@@ -441,7 +444,8 @@ TEST_F(VolumeControlDeviceTest, test_check_link_encrypted) {
 
 TEST_F(VolumeControlDeviceTest, test_control_point_operation) {
   GATT_WRITE_OP_CB write_cb = [](uint16_t conn_id, tGATT_STATUS status,
-                                 uint16_t handle, void* data) {};
+                                 uint16_t handle, uint16_t len,
+                                 const uint8_t* value, void* data) {};
   SetSampleDatabase1();
   device->change_counter = 0x01;
   std::vector<uint8_t> expected_data({0x03, 0x01});
@@ -452,7 +456,8 @@ TEST_F(VolumeControlDeviceTest, test_control_point_operation) {
 
 TEST_F(VolumeControlDeviceTest, test_control_point_operation_arg) {
   GATT_WRITE_OP_CB write_cb = [](uint16_t conn_id, tGATT_STATUS status,
-                                 uint16_t handle, void* data) {};
+                                 uint16_t handle, uint16_t len,
+                                 const uint8_t* value, void* data) {};
   SetSampleDatabase1();
   device->change_counter = 0x55;
   std::vector<uint8_t> expected_data({0x01, 0x55, 0x02, 0x03});

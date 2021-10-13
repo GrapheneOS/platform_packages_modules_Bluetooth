@@ -370,13 +370,16 @@ class UnicastTestNoInit : public Test {
                       std::vector<uint8_t> value, tGATT_WRITE_TYPE write_type,
                       GATT_WRITE_OP_CB cb, void* cb_data) -> void {
               if (cb)
-                do_in_main_thread(
-                    FROM_HERE, base::BindOnce(
-                                   [](GATT_WRITE_OP_CB cb, uint16_t conn_id,
-                                      uint16_t handle, void* cb_data) {
-                                     cb(conn_id, GATT_SUCCESS, handle, cb_data);
-                                   },
-                                   cb, conn_id, handle, cb_data));
+                do_in_main_thread(FROM_HERE,
+                                  base::BindOnce(
+                                      [](GATT_WRITE_OP_CB cb, uint16_t conn_id,
+                                         uint16_t handle, uint16_t len,
+                                         uint8_t* value, void* cb_data) {
+                                        cb(conn_id, GATT_SUCCESS, handle, len,
+                                           value, cb_data);
+                                      },
+                                      cb, conn_id, handle, value.size(),
+                                      value.data(), cb_data));
             }));
 
     global_conn_id = 1;
