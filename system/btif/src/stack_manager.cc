@@ -175,7 +175,6 @@ const struct module_lookup module_table[] = {
     {BTIF_CONFIG_MODULE, &btif_config_module},
     {BTSNOOP_MODULE, &btsnoop_module},
     {BT_UTILS_MODULE, &bt_utils_module},
-    {CONTROLLER_MODULE, &controller_module},
     {GD_IDLE_MODULE, &gd_idle_module},
     {GD_SHIM_MODULE, &gd_shim_module},
     {INTEROP_MODULE, &interop_module},
@@ -365,11 +364,6 @@ static void event_shut_down_stack(UNUSED_ATTR void* context) {
   } else {
     module_shut_down(get_local_module(BTSNOOP_MODULE));
   }
-
-  module_shut_down(
-      get_local_module(CONTROLLER_MODULE));  // Doesn't do any work, just
-                                             // puts it in a restartable
-                                             // state
 
   hack_future = future_new();
   do_in_jni_thread(FROM_HERE, base::Bind(event_signal_stack_down, nullptr));
