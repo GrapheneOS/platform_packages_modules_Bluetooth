@@ -1325,7 +1325,7 @@ static void btif_a2dp_source_update_metrics(void) {
     metrics.buffer_underruns_average = 0;
     if (metrics.buffer_underruns_count > 0) {
       metrics.buffer_underruns_average =
-          stats.media_read_total_underflow_bytes /
+          (float)stats.media_read_total_underflow_bytes /
           metrics.buffer_underruns_count;
     }
   }
