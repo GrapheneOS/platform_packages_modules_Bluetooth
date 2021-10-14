@@ -44,6 +44,7 @@
 #include "bta_hd_api.h"
 #include "bta_hearing_aid_api.h"
 #include "bta_hh_api.h"
+#include "bta_le_audio_api.h"
 #include "btif_api.h"
 #include "btif_config.h"
 #include "btif_hd.h"
@@ -94,6 +95,7 @@ using bluetooth::groups::DeviceGroups;
 #define BTIF_STORAGE_DEVICE_GROUP_BIN "DeviceGroupBin"
 #define BTIF_STORAGE_CSIS_AUTOCONNECT "CsisAutoconnect"
 #define BTIF_STORAGE_CSIS_SET_INFO_BIN "CsisSetInfoBin"
+#define BTIF_STORAGE_LEAUDIO_AUTOCONNECT "LeAudioAutoconnect"
 
 /* This is a local property to add a device found */
 #define BT_PROPERTY_REMOTE_DEVICE_TIMESTAMP 0xFF
@@ -1733,6 +1735,64 @@ uint8_t btif_storage_get_sr_supp_feat(const RawAddress& bd_addr) {
                    name.c_str(), value);
 
   return value;
+}
+
+/** Set autoconnect information for LeAudio device */
+void btif_storage_set_leaudio_autoconnect(const RawAddress& addr,
+                                          bool autoconnect) {
+  do_in_jni_thread(FROM_HERE, Bind(
+                                  [](const RawAddress& addr, bool autoconnect) {
+                                    std::string bdstr = addr.ToString();
+                                    VLOG(2)
+                                        << "saving le audio device: " << bdstr;
+                                    btif_config_set_int(
+                                        bdstr, BTIF_STORAGE_LEAUDIO_AUTOCONNECT,
+                                        autoconnect);
+                                    btif_config_save();
+                                  },
+                                  addr, autoconnect));
+}
+
+/** Loads information about bonded Le Audio devices */
+void btif_storage_load_bonded_leaudio() {
+  for (const auto& bd_addr : btif_config_get_paired_devices()) {
+    auto name = bd_addr.ToString();
+
+    int size = STORAGE_UUID_STRING_SIZE * BT_MAX_NUM_UUIDS;
+    char uuid_str[size];
+    bool isLeAudioDevice = false;
+    if (btif_config_get_str(name, BTIF_STORAGE_PATH_REMOTE_SERVICE, uuid_str,
+                            &size)) {
+      Uuid p_uuid[BT_MAX_NUM_UUIDS];
+      size_t num_uuids =
+          btif_split_uuids_string(uuid_str, p_uuid, BT_MAX_NUM_UUIDS);
+      for (size_t i = 0; i < num_uuids; i++) {
+        if (p_uuid[i] == Uuid::FromString("184E")) {
+          isLeAudioDevice = true;
+          break;
+        }
+      }
+    }
+    if (!isLeAudioDevice) {
+      continue;
+    }
+
+    BTIF_TRACE_DEBUG("Remote device:%s", name.c_str());
+
+    int value;
+    bool autoconnect = false;
+    if (btif_config_get_int(name, BTIF_STORAGE_LEAUDIO_AUTOCONNECT, &value))
+      autoconnect = !!value;
+
+    do_in_main_thread(
+        FROM_HERE, Bind(&LeAudioClient::AddFromStorage, bd_addr, autoconnect));
+  }
+}
+
+/** Remove the Le Audio device from storage */
+void btif_storage_remove_leaudio(const RawAddress& address) {
+  std::string addrstr = address.ToString();
+  btif_config_set_int(addrstr, BTIF_STORAGE_LEAUDIO_AUTOCONNECT, false);
 }
 
 /** Adds the bonded Le Audio device grouping info into the NVRAM */
