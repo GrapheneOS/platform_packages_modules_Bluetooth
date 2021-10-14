@@ -197,7 +197,7 @@ extern tCONN_CB* sdp_conn_originate(const RawAddress& p_bd_addr);
 extern void sdpu_log_attribute_metrics(const RawAddress& bda,
                                        tSDP_DISCOVERY_DB* p_db);
 extern tCONN_CB* sdpu_find_ccb_by_cid(uint16_t cid);
-extern tCONN_CB* sdpu_find_ccb_by_db(tSDP_DISCOVERY_DB* p_db);
+extern tCONN_CB* sdpu_find_ccb_by_db(const tSDP_DISCOVERY_DB* p_db);
 extern tCONN_CB* sdpu_allocate_ccb(void);
 extern void sdpu_release_ccb(tCONN_CB* p_ccb);
 
