@@ -193,7 +193,7 @@ bool SDP_ServiceSearchAttributeRequest(const RawAddress& p_bd_addr,
 bool SDP_ServiceSearchAttributeRequest2(const RawAddress& p_bd_addr,
                                         tSDP_DISCOVERY_DB* p_db,
                                         tSDP_DISC_CMPL_CB2* p_cb2,
-                                        void* user_data) {
+                                        const void* user_data) {
   tCONN_CB* p_ccb;
 
   /* Specific BD address */
