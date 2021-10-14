@@ -160,12 +160,10 @@ typedef struct {
   uint16_t num_attr_filters; /* Number of attribute filters  */
   uint16_t attr_filters[SDP_MAX_ATTR_FILTERS]; /* Attributes to filter */
   uint8_t* p_free_mem; /* Pointer to free memory       */
-#if (SDP_RAW_DATA_INCLUDED == TRUE)
   uint8_t*
       raw_data; /* Received record from server. allocated/released by client  */
   uint32_t raw_size; /* size of raw_data */
   uint32_t raw_used; /* length of raw_data used */
-#endif
 } tSDP_DISCOVERY_DB;
 
 /* This structure is used to add protocol lists and find protocol elements */

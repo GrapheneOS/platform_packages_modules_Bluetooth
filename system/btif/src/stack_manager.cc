@@ -84,6 +84,14 @@
 #error "*** Conditional Compilation Directive error"
 #endif
 
+#if SDP_RAW_DATA_INCLUDED != TRUE
+// Once SDP_RAW_DATA_INCLUDED is no longer exposed via bt_target.h
+// this check and error statement may be removed.
+#warning \
+    "#define SDP_RAW_DATA_INCLUDED preprocessor compilation flag is unsupported"
+#error "*** Conditional Compilation Directive error"
+#endif
+
 void main_thread_shut_down();
 void main_thread_start_up();
 void BTA_dm_on_hw_on();
