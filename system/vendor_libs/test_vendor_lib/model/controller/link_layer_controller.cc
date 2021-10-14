@@ -216,13 +216,20 @@ void LinkLayerController::IncomingPacket(
   }
 
   // Check connection addresses
-  if (connections_.GetHandleOnlyAddress(destination_address) !=
-      kReservedHandle) {
-    address_matches = true;
+  auto source_address = incoming.GetSourceAddress();
+  auto handle = connections_.GetHandleOnlyAddress(source_address);
+  if (handle != kReservedHandle) {
+    if (connections_.GetOwnAddress(handle).GetAddress() ==
+        destination_address) {
+      address_matches = true;
+    }
   }
 
   // Drop packets not addressed to me
   if (!address_matches) {
+    LOG_INFO("Dropping packet not addressed to me %s->%s",
+             source_address.ToString().c_str(),
+             destination_address.ToString().c_str());
     return;
   }
 
