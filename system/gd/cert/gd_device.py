@@ -429,23 +429,32 @@ class GdAndroidDevice(GdDeviceBase):
         :param num_retry: number of times to reboot and retry this before dying
         :return: host port int
         """
-        error_or_port = self.adb.tcp_forward(host_port, device_port)
-        if not error_or_port:
-            logging.debug("host port %d was already forwarded" % host_port)
-            return host_port
-        if not isinstance(error_or_port, int):
-            if num_retry > 0:
-                # If requested, reboot an retry
-                num_retry -= 1
-                logging.warning(
-                    "[%s] Failed to TCP forward host port %d to "
-                    "device port %d, num_retries left is %d" % (self.label, host_port, device_port, num_retry))
-                self.reboot()
-                self.adb.remount()
-                return self.tcp_forward_or_die(host_port, device_port, num_retry=num_retry)
-            asserts.fail(
-                'Unable to forward host port %d to device port %d, error %s' % (host_port, device_port, error_or_port))
-        return error_or_port
+        try:
+            error_or_port = self.adb.tcp_forward(host_port, device_port)
+            if not error_or_port:
+                logging.debug("host port %d was already forwarded" % host_port)
+                return host_port
+            if not isinstance(error_or_port, int):
+                if num_retry > 0:
+                    # If requested, reboot an retry
+                    num_retry -= 1
+                    logging.warning(
+                        "[%s] Failed to TCP forward host port %d to "
+                        "device port %d, num_retries left is %d" % (self.label, host_port, device_port, num_retry))
+                    self.reboot()
+                    self.adb.remount()
+                    return self.tcp_forward_or_die(host_port, device_port, num_retry=num_retry)
+                asserts.fail('Unable to forward host port %d to device port %d, error %s' % (host_port, device_port,
+                                                                                             error_or_port))
+            return error_or_port
+        except AdbError:
+            logging.warning(
+                "[%s] Failed to TCP forward host port %d to device port %d" % (self.label, host_port, device_port))
+            forward_list = self.adb.forward("--list")
+            logging.warning("[%s] forward port list: %s" % (self.label, forward_list))
+            port_status_cmd = "netstat -ntlp | grep %s" % device_port
+            port_status = subprocess.Popen(port_status_cmd, shell=True, stdout=subprocess.PIPE).stdout.read()
+            logging.warning("port %s status: %s" % (device_port, port_status))
 
     def tcp_reverse_or_die(self, device_port, host_port, num_retry=1):
         """
@@ -455,12 +464,20 @@ class GdAndroidDevice(GdDeviceBase):
         :param num_retry: number of times to reboot and retry this before dying
         :return: device port int
         """
-        error_or_port = self.adb.reverse("tcp:%d tcp:%d" % (device_port, host_port))
-        if not error_or_port:
-            logging.debug("device port %d was already reversed" % device_port)
-            return device_port
         try:
+            error_or_port = self.adb.reverse("tcp:%d tcp:%d" % (device_port, host_port))
+            if not error_or_port:
+                logging.debug("device port %d was already reversed" % device_port)
+                return device_port
             error_or_port = int(error_or_port)
+        except AdbError:
+            logging.warning(
+                "[%s] Failed to TCP reverse device port %d to host port %d" % (self.label, device_port, host_port))
+            reverse_list = self.adb.reverse("--list")
+            logging.warning("[%s] reverse port list: %s" % (self.label, reverse_list))
+            port_status_cmd = "netstat -ntlp | grep %s" % device_port
+            port_status = subprocess.Popen(port_status_cmd, shell=True, stdout=subprocess.PIPE).stdout.read()
+            logging.warning("port %s status: %s" % (device_port, port_status))
         except ValueError:
             if num_retry > 0:
                 # If requested, reboot an retry
