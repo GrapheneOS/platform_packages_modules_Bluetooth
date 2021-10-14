@@ -33,13 +33,17 @@ cc_library_static {
         "-Wno-self-assign",
         "-Wno-implicit-fallthrough",
     ],
-    sanitize: {
-        misc_undefined:[
-           "unsigned-integer-overflow",
-           "signed-integer-overflow",
-           "bounds",
-        ],
-        cfi: true,
+    target: {
+       android: {
+            sanitize: {
+                misc_undefined:[
+                   "unsigned-integer-overflow",
+                   "signed-integer-overflow",
+                   "bounds",
+                ],
+                cfi: true,
+            },
+       },
     },
     shared_libs: [
         "liblog",

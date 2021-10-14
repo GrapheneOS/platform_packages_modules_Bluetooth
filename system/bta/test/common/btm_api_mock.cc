@@ -34,6 +34,11 @@ bool BTM_GetSecurityFlagsByTransport(const RawAddress& bd_addr,
                                                     transport);
 }
 
+bool BTM_IsLinkKeyKnown(const RawAddress& bd_addr, tBT_TRANSPORT transport) {
+  LOG_ASSERT(btm_interface) << "Mock btm interface not set!";
+  return btm_interface->IsLinkKeyKnown(bd_addr, transport);
+}
+
 bool BTM_IsEncrypted(const RawAddress& bd_addr, tBT_TRANSPORT transport) {
   return btm_interface->BTM_IsEncrypted(bd_addr, transport);
 }

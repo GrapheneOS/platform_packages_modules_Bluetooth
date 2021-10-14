@@ -178,7 +178,10 @@ cc_library_static {
             srcs: ["src/btif_avrcp_audio_track.cc"],
         },
         host: {
-            srcs: ["src/btif_avrcp_audio_track_linux.cc"],
+            srcs: [
+                     "src/btif_avrcp_audio_track_linux.cc",
+                     "src/btif_leaudio_hal_version_host.cc",
+                  ],
         },
     },
     whole_static_libs: [
@@ -228,6 +231,7 @@ cc_test {
         "libbt-utils",
         "libFraunhoferAAC",
         "libg722codec",
+        "liblc3codec",
         "libbtdevice",
         "libbt-hci",
         "libudrv-uipc",
@@ -405,6 +409,7 @@ cc_test {
           ":TestMockBtaHf",
           ":TestMockBtaHh",
           ":TestMockBtaJv",
+          ":TestMockBtaLeAudio",
           ":TestMockBtaPan",
           ":TestMockBtaSdp",
           ":TestMockBtaSys",
