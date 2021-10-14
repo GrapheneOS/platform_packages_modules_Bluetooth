@@ -57,16 +57,16 @@ typedef struct _bluetooth_sdp_hdr_overlay {
   bluetooth_sdp_types type;
   bluetooth::Uuid uuid;
   uint32_t service_name_length;
-  char* service_name;
+  const char* service_name;
   int32_t rfcomm_channel_number;
   int32_t l2cap_psm;
   int32_t profile_version;
 
   // User pointers, only used for some signals - see bluetooth_sdp_ops_record
   int user1_ptr_len;
-  uint8_t* user1_ptr;
+  const uint8_t* user1_ptr;
   int user2_ptr_len;
-  uint8_t* user2_ptr;
+  const uint8_t* user2_ptr;
 } bluetooth_sdp_hdr_overlay;
 
 typedef struct _bluetooth_sdp_mas_record {

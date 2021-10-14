@@ -114,8 +114,8 @@ typedef struct {
   uint16_t next_attr_index;    /* attr index for next continuation response */
   uint16_t next_attr_start_id; /* attr id to start with for the attr index in
                                   next cont. response */
-  tSDP_RECORD* prev_sdp_rec; /* last sdp record that was completely sent in the
-                                response */
+  const tSDP_RECORD* prev_sdp_rec; /* last sdp record that was completely sent
+                                in the response */
   bool last_attr_seq_desc_sent; /* whether attr seq length has been sent
                                    previously */
   uint16_t attr_offset; /* offset within the attr to keep trak of partial
@@ -203,7 +203,8 @@ extern void sdpu_release_ccb(tCONN_CB* p_ccb);
 
 extern uint8_t* sdpu_build_attrib_seq(uint8_t* p_out, uint16_t* p_attr,
                                       uint16_t num_attrs);
-extern uint8_t* sdpu_build_attrib_entry(uint8_t* p_out, tSDP_ATTRIBUTE* p_attr);
+extern uint8_t* sdpu_build_attrib_entry(uint8_t* p_out,
+                                        const tSDP_ATTRIBUTE* p_attr);
 extern void sdpu_build_n_send_error(tCONN_CB* p_ccb, uint16_t trans_num,
                                     uint16_t error_code, char* p_error_text);
 
@@ -223,22 +224,23 @@ extern bool sdpu_compare_uuid_with_attr(const bluetooth::Uuid& uuid,
 extern void sdpu_sort_attr_list(uint16_t num_attr, tSDP_DISCOVERY_DB* p_db);
 extern uint16_t sdpu_get_list_len(tSDP_UUID_SEQ* uid_seq,
                                   tSDP_ATTR_SEQ* attr_seq);
-extern uint16_t sdpu_get_attrib_seq_len(tSDP_RECORD* p_rec,
+extern uint16_t sdpu_get_attrib_seq_len(const tSDP_RECORD* p_rec,
                                         tSDP_ATTR_SEQ* attr_seq);
-extern uint16_t sdpu_get_attrib_entry_len(tSDP_ATTRIBUTE* p_attr);
+extern uint16_t sdpu_get_attrib_entry_len(const tSDP_ATTRIBUTE* p_attr);
 extern uint8_t* sdpu_build_partial_attrib_entry(uint8_t* p_out,
-                                                tSDP_ATTRIBUTE* p_attr,
+                                                const tSDP_ATTRIBUTE* p_attr,
                                                 uint16_t len, uint16_t* offset);
-extern uint16_t sdpu_is_avrcp_profile_description_list(tSDP_ATTRIBUTE* p_attr);
+extern uint16_t sdpu_is_avrcp_profile_description_list(
+    const tSDP_ATTRIBUTE* p_attr);
 
 /* Functions provided by sdp_db.cc
  */
-extern tSDP_RECORD* sdp_db_service_search(tSDP_RECORD* p_rec,
-                                          tSDP_UUID_SEQ* p_seq);
+extern const tSDP_RECORD* sdp_db_service_search(const tSDP_RECORD* p_rec,
+                                                tSDP_UUID_SEQ* p_seq);
 extern tSDP_RECORD* sdp_db_find_record(uint32_t handle);
-extern tSDP_ATTRIBUTE* sdp_db_find_attr_in_rec(tSDP_RECORD* p_rec,
-                                               uint16_t start_attr,
-                                               uint16_t end_attr);
+extern const tSDP_ATTRIBUTE* sdp_db_find_attr_in_rec(const tSDP_RECORD* p_rec,
+                                                     uint16_t start_attr,
+                                                     uint16_t end_attr);
 
 /* Functions provided by sdp_server.cc
  */
