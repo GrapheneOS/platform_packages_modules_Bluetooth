@@ -51,6 +51,7 @@
 #include "bta/include/bta_csis_api.h"
 #include "bta/include/bta_hearing_aid_api.h"
 #include "bta/include/bta_hf_client_api.h"
+#include "bta/include/bta_le_audio_api.h"
 #include "btif/avrcp/avrcp_service.h"
 #include "btif/include/stack_manager.h"
 #include "btif_a2dp.h"
@@ -403,6 +404,7 @@ static void dump(int fd, const char** arguments) {
   alarm_debug_dump(fd);
   bluetooth::csis::CsisClient::DebugDump(fd);
   HearingAid::DebugDump(fd);
+  LeAudioClient::DebugDump(fd);
   connection_manager::dump(fd);
   bluetooth::bqr::DebugDump(fd);
   if (bluetooth::shim::is_any_gd_enabled()) {

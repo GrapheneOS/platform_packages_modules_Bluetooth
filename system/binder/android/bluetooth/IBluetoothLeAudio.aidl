@@ -46,6 +46,7 @@ interface IBluetoothLeAudio {
     @JavaPassthrough(annotation="@android.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)")
     int getConnectionPolicy(in BluetoothDevice device, in AttributionSource attributionSource);
 
+    /* Same value as bluetooth::groups::kGroupUnknown */
     const int LE_AUDIO_GROUP_ID_INVALID = -1;
 
     const int GROUP_STATUS_INACTIVE = 0;
