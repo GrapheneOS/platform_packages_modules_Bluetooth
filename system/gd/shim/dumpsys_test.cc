@@ -62,7 +62,6 @@ bool SimpleJsonValidator(int fd, int* dumpsys_byte_cnt) {
 
 }  // namespace
 
-// TODO(cmanton) maybe create in build
 // To create dumpsys_test_header_bin.h:
 // make bluetooth_flatbuffer_bundler
 // ${ANDROID_BUILD_TOP}/out/host/linux-x86/bin/bluetooth_flatbuffer_bundler -w -m bluetooth.DumpsysData -f
