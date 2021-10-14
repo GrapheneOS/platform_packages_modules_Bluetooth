@@ -188,7 +188,7 @@ static void process_service_search(tCONN_CB* p_ccb, uint16_t trans_num,
   uint8_t *p_rsp, *p_rsp_start, *p_rsp_param_len;
   uint16_t rsp_param_len, num_rsp_handles, xx;
   uint32_t rsp_handles[SDP_MAX_RECORDS] = {0};
-  tSDP_RECORD* p_rec = NULL;
+  const tSDP_RECORD* p_rec = NULL;
   bool is_cont = false;
 
   p_req = sdpu_extract_uid_seq(p_req, param_len, &uid_seq);
@@ -317,8 +317,8 @@ static void process_service_attr_req(tCONN_CB* p_ccb, uint16_t trans_num,
   uint8_t *p_rsp, *p_rsp_start, *p_rsp_param_len;
   uint16_t rsp_param_len, xx;
   uint32_t rec_handle;
-  tSDP_RECORD* p_rec;
-  tSDP_ATTRIBUTE* p_attr;
+  const tSDP_RECORD* p_rec;
+  const tSDP_ATTRIBUTE* p_attr;
   bool is_cont = false;
   uint16_t attr_len;
 
@@ -551,9 +551,9 @@ static void process_service_search_attr_req(tCONN_CB* p_ccb, uint16_t trans_num,
   tSDP_UUID_SEQ uid_seq;
   uint8_t *p_rsp, *p_rsp_start, *p_rsp_param_len;
   uint16_t rsp_param_len, xx;
-  tSDP_RECORD* p_rec;
+  const tSDP_RECORD* p_rec;
   tSDP_ATTR_SEQ attr_seq, attr_seq_sav;
-  tSDP_ATTRIBUTE* p_attr;
+  const tSDP_ATTRIBUTE* p_attr;
   tSDP_ATTRIBUTE attr_sav;
   bool maxxed_out = false, is_cont = false;
   uint8_t* p_seq_start;

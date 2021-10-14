@@ -448,7 +448,7 @@ uint8_t* sdpu_build_attrib_seq(uint8_t* p_out, uint16_t* p_attr,
  * Returns          Pointer to next byte in the output buffer.
  *
  ******************************************************************************/
-uint8_t* sdpu_build_attrib_entry(uint8_t* p_out, tSDP_ATTRIBUTE* p_attr) {
+uint8_t* sdpu_build_attrib_entry(uint8_t* p_out, const tSDP_ATTRIBUTE* p_attr) {
   /* First, store the attribute ID. Goes as a UINT */
   UINT8_TO_BE_STREAM(p_out, (UINT_DESC_TYPE << 3) | SIZE_TWO_BYTES);
   UINT16_TO_BE_STREAM(p_out, p_attr->id);
@@ -1004,7 +1004,7 @@ void sdpu_sort_attr_list(uint16_t num_attr, tSDP_DISCOVERY_DB* p_db) {
  *
  ******************************************************************************/
 uint16_t sdpu_get_list_len(tSDP_UUID_SEQ* uid_seq, tSDP_ATTR_SEQ* attr_seq) {
-  tSDP_RECORD* p_rec;
+  const tSDP_RECORD* p_rec;
   uint16_t len = 0;
   uint16_t len1;
 
@@ -1032,8 +1032,9 @@ uint16_t sdpu_get_list_len(tSDP_UUID_SEQ* uid_seq, tSDP_ATTR_SEQ* attr_seq) {
  * Returns          void
  *
  ******************************************************************************/
-uint16_t sdpu_get_attrib_seq_len(tSDP_RECORD* p_rec, tSDP_ATTR_SEQ* attr_seq) {
-  tSDP_ATTRIBUTE* p_attr;
+uint16_t sdpu_get_attrib_seq_len(const tSDP_RECORD* p_rec,
+                                 tSDP_ATTR_SEQ* attr_seq) {
+  const tSDP_ATTRIBUTE* p_attr;
   uint16_t len1 = 0;
   uint16_t xx;
   bool is_range = false;
@@ -1071,7 +1072,7 @@ uint16_t sdpu_get_attrib_seq_len(tSDP_RECORD* p_rec, tSDP_ATTR_SEQ* attr_seq) {
  * Returns          void
  *
  ******************************************************************************/
-uint16_t sdpu_get_attrib_entry_len(tSDP_ATTRIBUTE* p_attr) {
+uint16_t sdpu_get_attrib_entry_len(const tSDP_ATTRIBUTE* p_attr) {
   uint16_t len = 3;
 
   /* the attribute is in the db record.
@@ -1133,7 +1134,8 @@ uint16_t sdpu_get_attrib_entry_len(tSDP_ATTRIBUTE* p_attr) {
  *                  offset is also updated
  *
  ******************************************************************************/
-uint8_t* sdpu_build_partial_attrib_entry(uint8_t* p_out, tSDP_ATTRIBUTE* p_attr,
+uint8_t* sdpu_build_partial_attrib_entry(uint8_t* p_out,
+                                         const tSDP_ATTRIBUTE* p_attr,
                                          uint16_t len, uint16_t* offset) {
   uint8_t* p_attr_buff =
       (uint8_t*)osi_malloc(sizeof(uint8_t) * SDP_MAX_ATTR_LEN);
@@ -1168,7 +1170,7 @@ uint8_t* sdpu_build_partial_attrib_entry(uint8_t* p_out, tSDP_ATTRIBUTE* p_attr,
  * Returns          AVRCP profile version if matched, else 0
  *
  ******************************************************************************/
-uint16_t sdpu_is_avrcp_profile_description_list(tSDP_ATTRIBUTE* p_attr) {
+uint16_t sdpu_is_avrcp_profile_description_list(const tSDP_ATTRIBUTE* p_attr) {
   if (p_attr->id != ATTR_ID_BT_PROFILE_DESC_LIST || p_attr->len != 8) {
     return 0;
   }
