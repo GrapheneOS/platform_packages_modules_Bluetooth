@@ -69,6 +69,10 @@ class LeAdvertiser {
 
   bool IsEnabled() const;
 
+  bool IsExtended() const;
+
+  uint8_t GetNumAdvertisingEvents() const;
+
   bluetooth::hci::AddressWithType GetAddress() const;
 
  private:
@@ -81,6 +85,8 @@ class LeAdvertiser {
   std::vector<uint8_t> scan_response_;
   std::chrono::steady_clock::duration interval_{};
   std::chrono::steady_clock::time_point ending_time_{};
+  uint8_t num_events_{0};
+  bool extended_{false};
   bool enabled_{false};
   std::chrono::steady_clock::time_point last_le_advertisement_;
 };

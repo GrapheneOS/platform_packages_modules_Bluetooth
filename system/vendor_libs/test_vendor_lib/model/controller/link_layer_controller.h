@@ -162,10 +162,10 @@ class LinkLayerController {
   ErrorCode LeConnectionUpdate(
       bluetooth::hci::LeConnectionUpdateView connection_update_view);
 
-  void HandleLeConnection(AddressWithType addr, AddressWithType own_addr,
-                          uint8_t role, uint16_t connection_interval,
-                          uint16_t connection_latency,
-                          uint16_t supervision_timeout);
+  uint16_t HandleLeConnection(AddressWithType addr, AddressWithType own_addr,
+                              uint8_t role, uint16_t connection_interval,
+                              uint16_t connection_latency,
+                              uint16_t supervision_timeout);
 
   bool ConnectListBusy();
   ErrorCode LeConnectListClear();
