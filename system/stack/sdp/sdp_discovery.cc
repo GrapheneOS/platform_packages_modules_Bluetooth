@@ -334,7 +334,6 @@ static void process_service_search_rsp(tCONN_CB* p_ccb, uint8_t* p_reply,
  *                          false if not copied
  *
  ******************************************************************************/
-#if (SDP_RAW_DATA_INCLUDED == TRUE)
 static bool sdp_copy_raw_data(tCONN_CB* p_ccb, bool offset) {
   unsigned int cpy_len, rem_len;
   uint32_t list_len;
@@ -376,7 +375,6 @@ static bool sdp_copy_raw_data(tCONN_CB* p_ccb, bool offset) {
   }
   return true;
 }
-#endif
 
 /*******************************************************************************
  *
@@ -426,15 +424,12 @@ static void process_service_attr_rsp(tCONN_CB* p_ccb, uint8_t* p_reply,
       }
       cont_request_needed = true;
     } else {
-#if (SDP_RAW_DATA_INCLUDED == TRUE)
       SDP_TRACE_WARNING("process_service_attr_rsp");
       if (!sdp_copy_raw_data(p_ccb, false)) {
         SDP_TRACE_ERROR("sdp_copy_raw_data failed");
         sdp_disconnect(p_ccb, SDP_ILLEGAL_PARAMETER);
         return;
       }
-
-#endif
 
       /* Save the response in the database. Stop on any error */
       if (!save_attr_seq(p_ccb, &p_ccb->rsp_list[0],
@@ -628,13 +623,11 @@ static void process_service_search_attr_rsp(tCONN_CB* p_ccb, uint8_t* p_reply,
 /* We now have the full response, which is a sequence of sequences */
 /*******************************************************************/
 
-#if (SDP_RAW_DATA_INCLUDED == TRUE)
   if (!sdp_copy_raw_data(p_ccb, true)) {
     LOG_ERROR("sdp_copy_raw_data failed");
     sdp_disconnect(p_ccb, SDP_ILLEGAL_PARAMETER);
     return;
   }
-#endif
 
   p = &p_ccb->rsp_list[0];
 
