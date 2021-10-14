@@ -42,7 +42,7 @@ extern std::map<std::string, int> mock_function_count_map;
 #endif
 
 void BTM_BleAdvFilterParamSetup(
-    int action, tBTM_BLE_PF_FILT_INDEX filt_index,
+    tBTM_BLE_SCAN_COND_OP action, tBTM_BLE_PF_FILT_INDEX filt_index,
     std::unique_ptr<btgatt_filt_param_setup_t> p_filt_params,
     tBTM_BLE_PF_PARAM_CB cb) {
   mock_function_count_map[__func__]++;

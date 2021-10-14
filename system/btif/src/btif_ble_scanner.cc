@@ -252,10 +252,11 @@ class BleScannerInterfaceImpl : public BleScannerInterface {
                                 client_if));
     }
 
-    do_in_main_thread(
-        FROM_HERE, base::Bind(&BTM_BleAdvFilterParamSetup, action, filt_index,
-                              base::Passed(&filt_param),
-                              jni_thread_wrapper(FROM_HERE, std::move(cb))));
+    do_in_main_thread(FROM_HERE,
+                      base::Bind(&BTM_BleAdvFilterParamSetup,
+                                 static_cast<tBTM_BLE_SCAN_COND_OP>(action),
+                                 filt_index, base::Passed(&filt_param),
+                                 jni_thread_wrapper(FROM_HERE, std::move(cb))));
   }
 
   void ScanFilterAdd(int filter_index, std::vector<ApcfCommand> filters,
