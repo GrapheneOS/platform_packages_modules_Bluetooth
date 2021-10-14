@@ -159,7 +159,7 @@ static void btm_flt_update_cb(uint8_t expected_ocf, tBTM_BLE_PF_CFG_CBACK cb,
   tBTM_STATUS btm_status = (status == 0) ? BTM_SUCCESS : BTM_ERR_PROCESSING;
 
   if (op_subcode == BTM_BLE_META_PF_FEAT_SEL) {
-    cb.Run(num_avail, action, btm_status);
+    cb.Run(num_avail, static_cast<tBTM_BLE_SCAN_COND_OP>(action), btm_status);
     return;
   }
 
@@ -168,16 +168,18 @@ static void btm_flt_update_cb(uint8_t expected_ocf, tBTM_BLE_PF_CFG_CBACK cb,
                   expected_ocf, action, status, num_avail);
   if (HCI_SUCCESS == status) {
     if (btm_ble_adv_filt_cb.cur_filter_target.bda.IsEmpty())
-      btm_ble_cs_update_pf_counter(action, cond_type, NULL, num_avail);
+      btm_ble_cs_update_pf_counter(static_cast<tBTM_BLE_SCAN_COND_OP>(action),
+                                   cond_type, NULL, num_avail);
     else
       btm_ble_cs_update_pf_counter(
-          action, cond_type, &btm_ble_adv_filt_cb.cur_filter_target, num_avail);
+          static_cast<tBTM_BLE_SCAN_COND_OP>(action), cond_type,
+          &btm_ble_adv_filt_cb.cur_filter_target, num_avail);
   }
 
   /* send ADV PF operation complete */
   btm_ble_adv_filt_cb.op_type = 0;
 
-  cb.Run(num_avail, action, btm_status);
+  cb.Run(num_avail, static_cast<tBTM_BLE_SCAN_COND_OP>(action), btm_status);
 }
 
 /*******************************************************************************
@@ -591,7 +593,7 @@ void BTM_LE_PF_set(tBTM_BLE_PF_FILT_INDEX filt_index,
     return;
   }
 
-  int action = BTM_BLE_SCAN_COND_ADD;
+  tBTM_BLE_SCAN_COND_OP action = BTM_BLE_SCAN_COND_ADD;
   for (const ApcfCommand& cmd : commands) {
     /* If data is passed, both mask and data have to be the same length */
     if (cmd.data.size() != cmd.data_mask.size() && cmd.data.size() != 0 &&
@@ -774,7 +776,7 @@ void BTM_LE_PF_clear(tBTM_BLE_PF_FILT_INDEX filt_index,
  *
  ******************************************************************************/
 void BTM_BleAdvFilterParamSetup(
-    int action, tBTM_BLE_PF_FILT_INDEX filt_index,
+    tBTM_BLE_SCAN_COND_OP action, tBTM_BLE_PF_FILT_INDEX filt_index,
     std::unique_ptr<btgatt_filt_param_setup_t> p_filt_params,
     tBTM_BLE_PF_PARAM_CB cb) {
   tBTM_BLE_PF_COUNT* p_bda_filter = NULL;

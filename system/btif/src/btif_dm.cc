@@ -226,8 +226,9 @@ static void btif_dm_ble_key_nc_req_evt(tBTA_DM_SP_KEY_NOTIF* p_notif_req);
 static void btif_dm_ble_oob_req_evt(tBTA_DM_SP_RMT_OOB* req_oob_type);
 static void btif_dm_ble_sc_oob_req_evt(tBTA_DM_SP_RMT_OOB* req_oob_type);
 
-static void bte_scan_filt_param_cfg_evt(uint8_t action_type, uint8_t avbl_space,
-                                        uint8_t ref_value, uint8_t btm_status);
+static void bte_scan_filt_param_cfg_evt(tBTM_BLE_SCAN_COND_OP action_type,
+                                        uint8_t avbl_space, uint8_t ref_value,
+                                        uint8_t btm_status);
 
 static char* btif_get_default_local_name();
 
