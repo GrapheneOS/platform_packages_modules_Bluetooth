@@ -93,7 +93,8 @@ tSDP_RECORD* sdp_db_find_record(uint32_t handle) {
   mock_function_count_map[__func__]++;
   return nullptr;
 }
-tSDP_RECORD* sdp_db_service_search(tSDP_RECORD* p_rec, tSDP_UUID_SEQ* p_seq) {
+const tSDP_RECORD* sdp_db_service_search(const tSDP_RECORD* p_rec,
+                                         tSDP_UUID_SEQ* p_seq) {
   mock_function_count_map[__func__]++;
   return nullptr;
 }
