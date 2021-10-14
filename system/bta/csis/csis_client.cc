@@ -1144,7 +1144,7 @@ class CsisClientImpl : public CsisClient {
     if ((csis_group->GetDiscoveryState() !=
          CsisDiscoveryState::CSIS_DISCOVERY_IDLE)) {
       LOG(ERROR) << __func__
-                 << " Incorrect ase group: " << loghex(csis_group->GetGroupId())
+                 << " Incorrect ase group: " << csis_group->GetGroupId()
                  << " state "
                  << loghex(static_cast<int>(csis_group->GetDiscoveryState()));
       return;
