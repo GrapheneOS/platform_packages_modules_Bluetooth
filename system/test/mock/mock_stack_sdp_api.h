@@ -57,20 +57,20 @@ namespace stack_sdp_api {
 // Params: tSDP_DISCOVERY_DB* p_db
 // Returns: bool
 struct SDP_CancelServiceSearch {
-  std::function<bool(tSDP_DISCOVERY_DB* p_db)> body{
-      [](tSDP_DISCOVERY_DB* p_db) { return false; }};
-  bool operator()(tSDP_DISCOVERY_DB* p_db) { return body(p_db); };
+  std::function<bool(const tSDP_DISCOVERY_DB* p_db)> body{
+      [](const tSDP_DISCOVERY_DB* p_db) { return false; }};
+  bool operator()(const tSDP_DISCOVERY_DB* p_db) { return body(p_db); };
 };
 extern struct SDP_CancelServiceSearch SDP_CancelServiceSearch;
 // Name: SDP_FindProfileVersionInRec
 // Params: tSDP_DISC_REC* p_rec, uint16_t profile_uuid, uint16_t* p_version
 // Returns: bool
 struct SDP_FindProfileVersionInRec {
-  std::function<bool(tSDP_DISC_REC* p_rec, uint16_t profile_uuid,
+  std::function<bool(const tSDP_DISC_REC* p_rec, uint16_t profile_uuid,
                      uint16_t* p_version)>
-      body{[](tSDP_DISC_REC* p_rec, uint16_t profile_uuid,
+      body{[](const tSDP_DISC_REC* p_rec, uint16_t profile_uuid,
               uint16_t* p_version) { return false; }};
-  bool operator()(tSDP_DISC_REC* p_rec, uint16_t profile_uuid,
+  bool operator()(const tSDP_DISC_REC* p_rec, uint16_t profile_uuid,
                   uint16_t* p_version) {
     return body(p_rec, profile_uuid, p_version);
   };
@@ -80,11 +80,11 @@ extern struct SDP_FindProfileVersionInRec SDP_FindProfileVersionInRec;
 // Params: tSDP_DISC_REC* p_rec, uint16_t layer_uuid, tSDP_PROTOCOL_ELEM* p_elem
 // Returns: bool
 struct SDP_FindProtocolListElemInRec {
-  std::function<bool(tSDP_DISC_REC* p_rec, uint16_t layer_uuid,
+  std::function<bool(const tSDP_DISC_REC* p_rec, uint16_t layer_uuid,
                      tSDP_PROTOCOL_ELEM* p_elem)>
-      body{[](tSDP_DISC_REC* p_rec, uint16_t layer_uuid,
+      body{[](const tSDP_DISC_REC* p_rec, uint16_t layer_uuid,
               tSDP_PROTOCOL_ELEM* p_elem) { return false; }};
-  bool operator()(tSDP_DISC_REC* p_rec, uint16_t layer_uuid,
+  bool operator()(const tSDP_DISC_REC* p_rec, uint16_t layer_uuid,
                   tSDP_PROTOCOL_ELEM* p_elem) {
     return body(p_rec, layer_uuid, p_elem);
   };
@@ -94,9 +94,11 @@ extern struct SDP_FindProtocolListElemInRec SDP_FindProtocolListElemInRec;
 // Params: tSDP_DISC_REC* p_rec, bluetooth::Uuid* p_uuid
 // Returns: bool
 struct SDP_FindServiceUUIDInRec {
-  std::function<bool(tSDP_DISC_REC* p_rec, bluetooth::Uuid* p_uuid)> body{
-      [](tSDP_DISC_REC* p_rec, bluetooth::Uuid* p_uuid) { return false; }};
-  bool operator()(tSDP_DISC_REC* p_rec, bluetooth::Uuid* p_uuid) {
+  std::function<bool(const tSDP_DISC_REC* p_rec, bluetooth::Uuid* p_uuid)> body{
+      [](const tSDP_DISC_REC* p_rec, bluetooth::Uuid* p_uuid) {
+        return false;
+      }};
+  bool operator()(const tSDP_DISC_REC* p_rec, bluetooth::Uuid* p_uuid) {
     return body(p_rec, p_uuid);
   };
 };
@@ -105,9 +107,11 @@ extern struct SDP_FindServiceUUIDInRec SDP_FindServiceUUIDInRec;
 // Params: tSDP_DISC_REC* p_rec, bluetooth::Uuid* p_uuid
 // Returns: bool
 struct SDP_FindServiceUUIDInRec_128bit {
-  std::function<bool(tSDP_DISC_REC* p_rec, bluetooth::Uuid* p_uuid)> body{
-      [](tSDP_DISC_REC* p_rec, bluetooth::Uuid* p_uuid) { return false; }};
-  bool operator()(tSDP_DISC_REC* p_rec, bluetooth::Uuid* p_uuid) {
+  std::function<bool(const tSDP_DISC_REC* p_rec, bluetooth::Uuid* p_uuid)> body{
+      [](const tSDP_DISC_REC* p_rec, bluetooth::Uuid* p_uuid) {
+        return false;
+      }};
+  bool operator()(const tSDP_DISC_REC* p_rec, bluetooth::Uuid* p_uuid) {
     return body(p_rec, p_uuid);
   };
 };
@@ -119,13 +123,13 @@ extern struct SDP_FindServiceUUIDInRec_128bit SDP_FindServiceUUIDInRec_128bit;
 struct SDP_InitDiscoveryDb {
   std::function<bool(tSDP_DISCOVERY_DB* p_db, uint32_t len, uint16_t num_uuid,
                      const bluetooth::Uuid* p_uuid_list, uint16_t num_attr,
-                     uint16_t* p_attr_list)>
+                     const uint16_t* p_attr_list)>
       body{[](tSDP_DISCOVERY_DB* p_db, uint32_t len, uint16_t num_uuid,
               const bluetooth::Uuid* p_uuid_list, uint16_t num_attr,
-              uint16_t* p_attr_list) { return false; }};
+              const uint16_t* p_attr_list) { return false; }};
   bool operator()(tSDP_DISCOVERY_DB* p_db, uint32_t len, uint16_t num_uuid,
                   const bluetooth::Uuid* p_uuid_list, uint16_t num_attr,
-                  uint16_t* p_attr_list) {
+                  const uint16_t* p_attr_list) {
     return body(p_db, len, num_uuid, p_uuid_list, num_attr, p_attr_list);
   };
 };
@@ -178,9 +182,10 @@ extern struct SDP_ServiceSearchRequest SDP_ServiceSearchRequest;
 // Params: tSDP_DISC_REC* p_rec, uint16_t attr_id
 // Returns: tSDP_DISC_ATTR*
 struct SDP_FindAttributeInRec {
-  std::function<tSDP_DISC_ATTR*(tSDP_DISC_REC* p_rec, uint16_t attr_id)> body{
-      [](tSDP_DISC_REC* p_rec, uint16_t attr_id) { return nullptr; }};
-  tSDP_DISC_ATTR* operator()(tSDP_DISC_REC* p_rec, uint16_t attr_id) {
+  std::function<tSDP_DISC_ATTR*(const tSDP_DISC_REC* p_rec, uint16_t attr_id)>
+      body{
+          [](const tSDP_DISC_REC* p_rec, uint16_t attr_id) { return nullptr; }};
+  tSDP_DISC_ATTR* operator()(const tSDP_DISC_REC* p_rec, uint16_t attr_id) {
     return body(p_rec, attr_id);
   };
 };
@@ -189,12 +194,13 @@ extern struct SDP_FindAttributeInRec SDP_FindAttributeInRec;
 // Params: tSDP_DISCOVERY_DB* p_db, uint16_t service_uuid, tSDP_DISC_REC*
 // p_start_rec Returns: tSDP_DISC_REC*
 struct SDP_FindServiceInDb {
-  std::function<tSDP_DISC_REC*(tSDP_DISCOVERY_DB* p_db, uint16_t service_uuid,
+  std::function<tSDP_DISC_REC*(const tSDP_DISCOVERY_DB* p_db,
+                               uint16_t service_uuid,
                                tSDP_DISC_REC* p_start_rec)>
-      body{[](tSDP_DISCOVERY_DB* p_db, uint16_t service_uuid,
+      body{[](const tSDP_DISCOVERY_DB* p_db, uint16_t service_uuid,
               tSDP_DISC_REC* p_start_rec) { return nullptr; }};
-  tSDP_DISC_REC* operator()(tSDP_DISCOVERY_DB* p_db, uint16_t service_uuid,
-                            tSDP_DISC_REC* p_start_rec) {
+  tSDP_DISC_REC* operator()(const tSDP_DISCOVERY_DB* p_db,
+                            uint16_t service_uuid, tSDP_DISC_REC* p_start_rec) {
     return body(p_db, service_uuid, p_start_rec);
   };
 };
@@ -203,12 +209,12 @@ extern struct SDP_FindServiceInDb SDP_FindServiceInDb;
 // Params: tSDP_DISCOVERY_DB* p_db, tSDP_DISC_REC* p_start_rec
 // Returns: tSDP_DISC_REC*
 struct SDP_FindServiceInDb_128bit {
-  std::function<tSDP_DISC_REC*(tSDP_DISCOVERY_DB* p_db,
+  std::function<tSDP_DISC_REC*(const tSDP_DISCOVERY_DB* p_db,
                                tSDP_DISC_REC* p_start_rec)>
-      body{[](tSDP_DISCOVERY_DB* p_db, tSDP_DISC_REC* p_start_rec) {
+      body{[](const tSDP_DISCOVERY_DB* p_db, tSDP_DISC_REC* p_start_rec) {
         return nullptr;
       }};
-  tSDP_DISC_REC* operator()(tSDP_DISCOVERY_DB* p_db,
+  tSDP_DISC_REC* operator()(const tSDP_DISCOVERY_DB* p_db,
                             tSDP_DISC_REC* p_start_rec) {
     return body(p_db, p_start_rec);
   };
@@ -218,12 +224,12 @@ extern struct SDP_FindServiceInDb_128bit SDP_FindServiceInDb_128bit;
 // Params: tSDP_DISCOVERY_DB* p_db, const bluetooth::Uuid& uuid, tSDP_DISC_REC*
 // p_start_rec Returns: tSDP_DISC_REC*
 struct SDP_FindServiceUUIDInDb {
-  std::function<tSDP_DISC_REC*(tSDP_DISCOVERY_DB* p_db,
+  std::function<tSDP_DISC_REC*(const tSDP_DISCOVERY_DB* p_db,
                                const bluetooth::Uuid& uuid,
                                tSDP_DISC_REC* p_start_rec)>
-      body{[](tSDP_DISCOVERY_DB* p_db, const bluetooth::Uuid& uuid,
+      body{[](const tSDP_DISCOVERY_DB* p_db, const bluetooth::Uuid& uuid,
               tSDP_DISC_REC* p_start_rec) { return nullptr; }};
-  tSDP_DISC_REC* operator()(tSDP_DISCOVERY_DB* p_db,
+  tSDP_DISC_REC* operator()(const tSDP_DISCOVERY_DB* p_db,
                             const bluetooth::Uuid& uuid,
                             tSDP_DISC_REC* p_start_rec) {
     return body(p_db, uuid, p_start_rec);
@@ -252,12 +258,12 @@ extern struct SDP_DiDiscover SDP_DiDiscover;
 struct SDP_GetDiRecord {
   std::function<uint16_t(uint8_t get_record_index,
                          tSDP_DI_GET_RECORD* p_device_info,
-                         tSDP_DISCOVERY_DB* p_db)>
+                         const tSDP_DISCOVERY_DB* p_db)>
       body{[](uint8_t get_record_index, tSDP_DI_GET_RECORD* p_device_info,
-              tSDP_DISCOVERY_DB* p_db) { return 0; }};
+              const tSDP_DISCOVERY_DB* p_db) { return 0; }};
   uint16_t operator()(uint8_t get_record_index,
                       tSDP_DI_GET_RECORD* p_device_info,
-                      tSDP_DISCOVERY_DB* p_db) {
+                      const tSDP_DISCOVERY_DB* p_db) {
     return body(get_record_index, p_device_info, p_db);
   };
 };
@@ -266,9 +272,12 @@ extern struct SDP_GetDiRecord SDP_GetDiRecord;
 // Params: tSDP_DI_RECORD* p_device_info, uint32_t* p_handle
 // Returns: uint16_t
 struct SDP_SetLocalDiRecord {
-  std::function<uint16_t(tSDP_DI_RECORD* p_device_info, uint32_t* p_handle)>
-      body{[](tSDP_DI_RECORD* p_device_info, uint32_t* p_handle) { return 0; }};
-  uint16_t operator()(tSDP_DI_RECORD* p_device_info, uint32_t* p_handle) {
+  std::function<uint16_t(const tSDP_DI_RECORD* p_device_info,
+                         uint32_t* p_handle)>
+      body{[](const tSDP_DI_RECORD* p_device_info, uint32_t* p_handle) {
+        return 0;
+      }};
+  uint16_t operator()(const tSDP_DI_RECORD* p_device_info, uint32_t* p_handle) {
     return body(p_device_info, p_handle);
   };
 };
@@ -277,9 +286,9 @@ extern struct SDP_SetLocalDiRecord SDP_SetLocalDiRecord;
 // Params: tSDP_DISCOVERY_DB* p_db
 // Returns: uint8_t
 struct SDP_GetNumDiRecords {
-  std::function<uint8_t(tSDP_DISCOVERY_DB* p_db)> body{
-      [](tSDP_DISCOVERY_DB* p_db) { return 0; }};
-  uint8_t operator()(tSDP_DISCOVERY_DB* p_db) { return body(p_db); };
+  std::function<uint8_t(const tSDP_DISCOVERY_DB* p_db)> body{
+      [](const tSDP_DISCOVERY_DB* p_db) { return 0; }};
+  uint8_t operator()(const tSDP_DISCOVERY_DB* p_db) { return body(p_db); };
 };
 extern struct SDP_GetNumDiRecords SDP_GetNumDiRecords;
 // Name: SDP_SetTraceLevel
