@@ -271,7 +271,7 @@ descriptor_discovery_done:
 }
 
 /* Process the discovery result from sdp */
-void bta_gattc_sdp_callback(tSDP_STATUS sdp_status, void* user_data) {
+void bta_gattc_sdp_callback(tSDP_STATUS sdp_status, const void* user_data) {
   tBTA_GATTC_CB_DATA* cb_data = (tBTA_GATTC_CB_DATA*)user_data;
   tBTA_GATTC_SERV* p_srvc_cb = bta_gattc_find_scb_by_cid(cb_data->sdp_conn_id);
 
@@ -357,9 +357,9 @@ static tGATT_STATUS bta_gattc_sdp_service_disc(uint16_t conn_id,
   SDP_InitDiscoveryDb(cb_data->p_sdp_db, BTA_GATT_SDP_DB_SIZE, 1, &uuid,
                       num_attrs, attr_list);
 
-  if (!SDP_ServiceSearchAttributeRequest2(p_server_cb->server_bda,
-                                          cb_data->p_sdp_db,
-                                          &bta_gattc_sdp_callback, cb_data)) {
+  if (!SDP_ServiceSearchAttributeRequest2(
+          p_server_cb->server_bda, cb_data->p_sdp_db, &bta_gattc_sdp_callback,
+          const_cast<const void*>(static_cast<void*>(cb_data)))) {
     osi_free(cb_data);
     return GATT_ERROR;
   }
