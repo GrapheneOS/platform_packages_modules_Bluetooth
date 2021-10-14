@@ -105,7 +105,7 @@ inline std::string sdp_status_text(const tSDP_STATUS& status) {
 
 /* Define a callback function for when discovery is complete. */
 typedef void(tSDP_DISC_CMPL_CB)(tSDP_RESULT result);
-typedef void(tSDP_DISC_CMPL_CB2)(tSDP_RESULT result, void* user_data);
+typedef void(tSDP_DISC_CMPL_CB2)(tSDP_RESULT result, const void* user_data);
 
 typedef struct {
   RawAddress peer_addr;
@@ -273,7 +273,7 @@ bool SDP_ServiceSearchAttributeRequest(const RawAddress& p_bd_addr,
 bool SDP_ServiceSearchAttributeRequest2(const RawAddress& p_bd_addr,
                                         tSDP_DISCOVERY_DB* p_db,
                                         tSDP_DISC_CMPL_CB2* p_cb,
-                                        void* user_data);
+                                        const void* user_data);
 
 /* API of utilities to find data in the local discovery database */
 

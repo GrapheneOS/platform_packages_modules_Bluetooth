@@ -32,8 +32,9 @@
 using namespace bluetooth::test::headless;
 
 static void bta_jv_start_discovery_callback(tSDP_STATUS result,
-                                            void* user_data) {
-  auto promise = static_cast<std::promise<uint16_t>*>(user_data);
+                                            const void* user_data) {
+  auto promise =
+      static_cast<std::promise<uint16_t>*>(const_cast<void*>(user_data));
   promise->set_value(result);
 }
 

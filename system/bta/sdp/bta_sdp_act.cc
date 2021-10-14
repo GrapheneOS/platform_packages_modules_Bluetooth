@@ -367,7 +367,7 @@ static void bta_create_raw_sdp_record(bluetooth_sdp_record* record,
 }
 
 /** Callback from btm after search is completed */
-static void bta_sdp_search_cback(tSDP_RESULT result, void* user_data) {
+static void bta_sdp_search_cback(tSDP_RESULT result, const void* user_data) {
   tBTA_SDP_STATUS status = BTA_SDP_FAILURE;
   int count = 0;
   APPL_TRACE_DEBUG("%s() -  res: 0x%x", __func__, result);
@@ -376,7 +376,7 @@ static void bta_sdp_search_cback(tSDP_RESULT result, void* user_data) {
 
   if (bta_sdp_cb.p_dm_cback == NULL) return;
 
-  Uuid& uuid = *(reinterpret_cast<Uuid*>(user_data));
+  Uuid& uuid = *(reinterpret_cast<Uuid*>(const_cast<void*>(user_data)));
 
   tBTA_SDP_SEARCH_COMP evt_data;
   memset(&evt_data, 0, sizeof(evt_data));
@@ -435,7 +435,8 @@ static void bta_sdp_search_cback(tSDP_RESULT result, void* user_data) {
   tBTA_SDP bta_sdp;
   bta_sdp.sdp_search_comp = evt_data;
   bta_sdp_cb.p_dm_cback(BTA_SDP_SEARCH_COMP_EVT, &bta_sdp, (void*)&uuid);
-  osi_free(user_data);  // We no longer need the user data to track the search
+  osi_free(const_cast<void*>(
+      user_data));  // We no longer need the user data to track the search
 }
 
 /*******************************************************************************
