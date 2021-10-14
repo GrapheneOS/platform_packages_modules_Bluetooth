@@ -23,18 +23,27 @@ import static android.bluetooth.IBluetoothLeAudio.LE_AUDIO_GROUP_ID_INVALID;
 import android.annotation.RequiresPermission;
 import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothCsipSetCoordinator;
 import android.bluetooth.BluetoothLeAudio;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUuid;
+import android.bluetooth.BluetoothVolumeControl;
+import android.bluetooth.IBluetoothCsipSetCoordinator;
+import android.bluetooth.IBluetoothCsipSetCoordinatorCallback;
 import android.bluetooth.IBluetoothLeAudio;
 import android.content.AttributionSource;
+import android.bluetooth.IBluetoothVolumeControl;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.media.AudioManager;
 import android.os.HandlerThread;
+import android.os.IBinder;
 import android.os.ParcelUuid;
+import android.os.RemoteException;
 import android.util.Log;
 
 import com.android.bluetooth.Utils;
@@ -42,7 +51,9 @@ import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.btservice.ServiceFactory;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
+import com.android.bluetooth.csip.CsipSetCoordinatorService;
 import com.android.bluetooth.mcp.McpService;
+import com.android.bluetooth.vc.VolumeControlService;
 import com.android.internal.annotations.VisibleForTesting;
 
 import java.util.ArrayList;
@@ -105,14 +116,100 @@ public class LeAudioService extends ProfileService {
     private final Map<BluetoothDevice, LeAudioStateMachine> mStateMachines = new HashMap<>();
 
     private final Map<BluetoothDevice, Integer> mDeviceGroupIdMap = new ConcurrentHashMap<>();
+    private final Map<BluetoothDevice, Integer> mSetMemberAvailable = new ConcurrentHashMap<>();
     private int mActiveDeviceGroupId = LE_AUDIO_GROUP_ID_INVALID;
     private final int mContextSupportingInputAudio =
-            BluetoothLeAudio.CONTEXT_TYPE_COMMUNICATION;
+            BluetoothLeAudio.CONTEXT_TYPE_COMMUNICATION |
+            BluetoothLeAudio.CONTEXT_TYPE_MAN_MACHINE;
+
     private final int mContextSupportingOutputAudio = BluetoothLeAudio.CONTEXT_TYPE_COMMUNICATION |
-            BluetoothLeAudio.CONTEXT_TYPE_MEDIA;
+            BluetoothLeAudio.CONTEXT_TYPE_MEDIA |
+            BluetoothLeAudio.CONTEXT_TYPE_INSTRUCTIONAL |
+            BluetoothLeAudio.CONTEXT_TYPE_ATTENTION_SEEKING |
+            BluetoothLeAudio.CONTEXT_TYPE_IMMEDIATE_ALERT |
+            BluetoothLeAudio.CONTEXT_TYPE_MAN_MACHINE |
+            BluetoothLeAudio.CONTEXT_TYPE_EMERGENCY_ALERT |
+            BluetoothLeAudio.CONTEXT_TYPE_RINGTONE |
+            BluetoothLeAudio.CONTEXT_TYPE_TV |
+            BluetoothLeAudio.CONTEXT_TYPE_LIVE |
+            BluetoothLeAudio.CONTEXT_TYPE_GAME;
 
     private BroadcastReceiver mBondStateChangedReceiver;
     private BroadcastReceiver mConnectionStateChangedReceiver;
+
+    class MyCsipSetCoordinatorCallbacks extends IBluetoothCsipSetCoordinatorCallback.Stub {
+        @Override
+        public void onCsisSetMemberAvailable(BluetoothDevice device, int groupId) {
+            synchronized (LeAudioService.this) {
+                LeAudioService.this.setMemberAvailable(device, groupId);
+            }
+        }
+    };
+
+    private volatile MyCsipSetCoordinatorCallbacks mCsipSetCoordinatorCallback =
+                                                            new MyCsipSetCoordinatorCallbacks();
+    private volatile IBluetoothCsipSetCoordinator mCsipSetCoordinatorProxy;
+    private final ServiceConnection mCsipSetCoordinatorProxyConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            if (DBG) {
+                Log.d(TAG, "CsisClientProxy connected");
+            }
+            synchronized (LeAudioService.this) {
+                mCsipSetCoordinatorProxy = IBluetoothCsipSetCoordinator.Stub.asInterface(service);
+                CsipSetCoordinatorService mCsipSetCoordinatorService =
+                    CsipSetCoordinatorService.getCsipSetCoordinatorService();
+                if (mCsipSetCoordinatorService == null) {
+                    Log.e(TAG, "CsisClientService is null on LeAudioService starts");
+                    return;
+                }
+                mCsipSetCoordinatorService.registerCsisMemberObserver(
+                                                    LeAudioService.this.getMainExecutor(),
+                                                    BluetoothUuid.CAP,
+                                                    mCsipSetCoordinatorCallback);
+            }
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName className) {
+            if (DBG) {
+                Log.d(TAG, "CsisClientProxy disconnected");
+            }
+            synchronized (LeAudioService.this) {
+                mCsipSetCoordinatorProxy = null;
+            }
+        }
+    };
+
+    private volatile IBluetoothVolumeControl mVolumeControlProxy;
+    VolumeControlService mVolumeControlService = null;
+    private final ServiceConnection mVolumeControlProxyConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            if (DBG) {
+                Log.d(TAG, "mVolumeControlProxyConnection connected");
+            }
+            synchronized (LeAudioService.this) {
+
+                mVolumeControlProxy = IBluetoothVolumeControl.Stub.asInterface(service);
+                mVolumeControlService =
+                    VolumeControlService.getVolumeControlService();
+                if (mVolumeControlService == null) {
+                    Log.e(TAG, "VolumeControlService is null when LeAudioService starts");
+                }
+            }
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName className) {
+            if (DBG) {
+                Log.d(TAG, "mVolumeControlProxy disconnected");
+            }
+            synchronized (LeAudioService.this) {
+                mVolumeControlProxy = null;
+            }
+        }
+    };
 
     @Override
     protected IProfileServiceBinder initBinder() {
@@ -148,6 +245,7 @@ public class LeAudioService extends ProfileService {
         mStateMachinesThread.start();
 
         mDeviceGroupIdMap.clear();
+        mSetMemberAvailable.clear();
         mGroupDescriptors.clear();
 
         // Setup broadcast receivers
@@ -159,6 +257,12 @@ public class LeAudioService extends ProfileService {
         filter.addAction(BluetoothLeAudio.ACTION_LE_AUDIO_CONNECTION_STATE_CHANGED);
         mConnectionStateChangedReceiver = new ConnectionStateChangedReceiver();
         registerReceiver(mConnectionStateChangedReceiver, filter);
+
+        /* Bind Csis Service */
+        bindCsisClientService();
+
+        /* Bind Volume control service */
+        bindVolumeControlService();
 
         // Mark service as started
         setLeAudioService(this);
@@ -213,6 +317,7 @@ public class LeAudioService extends ProfileService {
         }
 
         mDeviceGroupIdMap.clear();
+        mSetMemberAvailable.clear();
         mGroupDescriptors.clear();
 
         if (mStateMachinesThread != null) {
@@ -222,6 +327,10 @@ public class LeAudioService extends ProfileService {
 
         mAudioManager = null;
         mAdapterService = null;
+        mAudioManager = null;
+
+        unbindCsisClientService();
+        unbindVolumeControlService();
         return true;
     }
 
@@ -247,6 +356,54 @@ public class LeAudioService extends ProfileService {
             Log.d(TAG, "setLeAudioService(): set to: " + instance);
         }
         sLeAudioService = instance;
+    }
+
+    private void bindVolumeControlService() {
+        synchronized (mVolumeControlProxyConnection) {
+            Intent intent = new Intent(IBluetoothVolumeControl.class.getName());
+            ComponentName comp = intent.resolveSystemService(getPackageManager(), 0);
+            intent.setComponent(comp);
+            if (comp == null || !bindService(intent, mVolumeControlProxyConnection, 0)) {
+                Log.wtf(TAG, "Could not bind to IBluetoothVolumeControl Service with " +
+                        intent);
+            }
+        }
+    }
+    private void unbindVolumeControlService() {
+        synchronized (mVolumeControlProxyConnection) {
+            if (mVolumeControlProxy != null) {
+                if (DBG) {
+                    Log.d(TAG, "Unbinding mVolumeControlProxyConnection");
+                }
+                mVolumeControlProxy = null;
+                // Synchronization should make sure unbind can be successful
+                unbindService(mVolumeControlProxyConnection);
+            }
+        }
+    }
+
+    private void bindCsisClientService() {
+        synchronized (mCsipSetCoordinatorProxyConnection) {
+            Intent intent = new Intent(IBluetoothCsipSetCoordinator.class.getName());
+            ComponentName comp = intent.resolveSystemService(getPackageManager(), 0);
+            intent.setComponent(comp);
+            if (comp == null || !bindService(intent, mCsipSetCoordinatorProxyConnection, 0)) {
+                Log.wtf(TAG, "Could not bind to IBluetoothCsisClient Service with " +
+                        intent);
+            }
+        }
+    }
+    private void unbindCsisClientService() {
+        synchronized (mCsipSetCoordinatorProxyConnection) {
+            if (mCsipSetCoordinatorProxy != null) {
+                if (DBG) {
+                    Log.d(TAG, "Unbinding CsisClientProxyConnection");
+                }
+                mCsipSetCoordinatorProxy = null;
+                // Synchronization should make sure unbind can be successful
+                unbindService(mCsipSetCoordinatorProxyConnection);
+            }
+        }
     }
 
     public boolean connect(BluetoothDevice device) {
@@ -921,6 +1078,18 @@ public class LeAudioService extends ProfileService {
         if (bondState != BluetoothDevice.BOND_NONE) {
             return;
         }
+
+        /* Remove bonded set member from outstanding list */
+        if (mSetMemberAvailable.containsKey(device)) {
+            mSetMemberAvailable.remove(device);
+        }
+
+        int groupId = getGroupId(device);
+        if (groupId != LE_AUDIO_GROUP_ID_INVALID) {
+            /* In case device is still in the group, let's remove it */
+            mLeAudioNativeInterface.groupRemoveNode(groupId, device);
+        }
+
         mDeviceGroupIdMap.remove(device);
         synchronized (mStateMachines) {
             LeAudioStateMachine sm = mStateMachines.get(device);
@@ -1052,6 +1221,22 @@ public class LeAudioService extends ProfileService {
         }
     }
 
+    synchronized void setMemberAvailable(BluetoothDevice device, int groupId) {
+        if (device == null) {
+            Log.e(TAG, "unexpected invocation. device=" + device);
+            return;
+        }
+
+        if (mSetMemberAvailable.containsKey(device)) {
+            if (DBG) {
+                Log.d(TAG, "Device " + device + " is already notified- drop it");
+            }
+            return;
+        }
+
+        mSetMemberAvailable.put(device, groupId);
+    }
+
    /**
      * Check whether can connect to a peer device.
      * The check considers a number of factors during the evaluation.
@@ -1154,6 +1339,23 @@ public class LeAudioService extends ProfileService {
     public void setVolume(int volume) {
         if (DBG) {
             Log.d(TAG, "SetVolume " + volume);
+        }
+
+        if (mActiveDeviceGroupId == LE_AUDIO_GROUP_ID_INVALID) {
+            Log.e(TAG, "There is no active group ");
+            return;
+        }
+
+        if (mVolumeControlService == null) {
+            Log.e(TAG, "VolumeControl no available ");
+            return;
+        }
+
+        try {
+            mVolumeControlProxy.setVolumeGroup(mActiveDeviceGroupId, volume,
+                                               this.getAttributionSource());
+        } catch (RemoteException e) {
+            Log.e(TAG, "Set Volume failed: " + e);
         }
     }
 
