@@ -65,7 +65,7 @@ using bluetooth::Uuid;
  ******************************************************************************/
 bool SDP_InitDiscoveryDb(tSDP_DISCOVERY_DB* p_db, uint32_t len,
                          uint16_t num_uuid, const Uuid* p_uuid_list,
-                         uint16_t num_attr, uint16_t* p_attr_list) {
+                         uint16_t num_attr, const uint16_t* p_attr_list) {
   uint16_t xx;
 
   /* verify the parameters */
@@ -109,7 +109,7 @@ bool SDP_InitDiscoveryDb(tSDP_DISCOVERY_DB* p_db, uint32_t len,
  *                  not found.
  *
  ******************************************************************************/
-bool SDP_CancelServiceSearch(tSDP_DISCOVERY_DB* p_db) {
+bool SDP_CancelServiceSearch(const tSDP_DISCOVERY_DB* p_db) {
   tCONN_CB* p_ccb = sdpu_find_ccb_by_db(p_db);
   if (!p_ccb) return (false);
 
@@ -221,7 +221,8 @@ bool SDP_ServiceSearchAttributeRequest2(const RawAddress& p_bd_addr,
  * Returns          Pointer to matching attribute entry, or NULL
  *
  ******************************************************************************/
-tSDP_DISC_ATTR* SDP_FindAttributeInRec(tSDP_DISC_REC* p_rec, uint16_t attr_id) {
+tSDP_DISC_ATTR* SDP_FindAttributeInRec(const tSDP_DISC_REC* p_rec,
+                                       uint16_t attr_id) {
   tSDP_DISC_ATTR* p_attr;
 
   p_attr = p_rec->p_first_attr;
@@ -248,7 +249,7 @@ tSDP_DISC_ATTR* SDP_FindAttributeInRec(tSDP_DISC_REC* p_rec, uint16_t attr_id) {
  * Returns          true if found, otherwise false.
  *
  ******************************************************************************/
-bool SDP_FindServiceUUIDInRec(tSDP_DISC_REC* p_rec, Uuid* p_uuid) {
+bool SDP_FindServiceUUIDInRec(const tSDP_DISC_REC* p_rec, Uuid* p_uuid) {
   tSDP_DISC_ATTR *p_attr, *p_sattr, *p_extra_sattr;
 
   p_attr = p_rec->p_first_attr;
@@ -321,7 +322,7 @@ bool SDP_FindServiceUUIDInRec(tSDP_DISC_REC* p_rec, Uuid* p_uuid) {
  * Returns          true if found, otherwise false.
  *
  ******************************************************************************/
-bool SDP_FindServiceUUIDInRec_128bit(tSDP_DISC_REC* p_rec, Uuid* p_uuid) {
+bool SDP_FindServiceUUIDInRec_128bit(const tSDP_DISC_REC* p_rec, Uuid* p_uuid) {
   tSDP_DISC_ATTR* p_attr = p_rec->p_first_attr;
   while (p_attr) {
     if ((p_attr->attr_id == ATTR_ID_SERVICE_CLASS_ID_LIST) &&
@@ -364,7 +365,7 @@ bool SDP_FindServiceUUIDInRec_128bit(tSDP_DISC_REC* p_rec, Uuid* p_uuid) {
  * Returns          Pointer to record containing service class, or NULL
  *
  ******************************************************************************/
-tSDP_DISC_REC* SDP_FindServiceInDb(tSDP_DISCOVERY_DB* p_db,
+tSDP_DISC_REC* SDP_FindServiceInDb(const tSDP_DISCOVERY_DB* p_db,
                                    uint16_t service_uuid,
                                    tSDP_DISC_REC* p_start_rec) {
   tSDP_DISC_REC* p_rec;
@@ -467,7 +468,7 @@ tSDP_DISC_REC* SDP_FindServiceInDb(tSDP_DISCOVERY_DB* p_db,
  * Returns          Pointer to record containing service class, or NULL
  *
  ******************************************************************************/
-tSDP_DISC_REC* SDP_FindServiceInDb_128bit(tSDP_DISCOVERY_DB* p_db,
+tSDP_DISC_REC* SDP_FindServiceInDb_128bit(const tSDP_DISCOVERY_DB* p_db,
                                           tSDP_DISC_REC* p_start_rec) {
   tSDP_DISC_REC* p_rec;
   tSDP_DISC_ATTR *p_attr, *p_sattr;
@@ -525,7 +526,7 @@ tSDP_DISC_REC* SDP_FindServiceInDb_128bit(tSDP_DISCOVERY_DB* p_db,
  * Returns          Pointer to record containing service class, or NULL
  *
  ******************************************************************************/
-tSDP_DISC_REC* SDP_FindServiceUUIDInDb(tSDP_DISCOVERY_DB* p_db,
+tSDP_DISC_REC* SDP_FindServiceUUIDInDb(const tSDP_DISCOVERY_DB* p_db,
                                        const Uuid& uuid,
                                        tSDP_DISC_REC* p_start_rec) {
   tSDP_DISC_REC* p_rec;
@@ -577,7 +578,8 @@ tSDP_DISC_REC* SDP_FindServiceUUIDInDb(tSDP_DISCOVERY_DB* p_db,
  *                  If found, the passed protocol list element is filled in.
  *
  ******************************************************************************/
-static bool sdp_fill_proto_elem(tSDP_DISC_ATTR* p_attr, uint16_t layer_uuid,
+static bool sdp_fill_proto_elem(const tSDP_DISC_ATTR* p_attr,
+                                uint16_t layer_uuid,
                                 tSDP_PROTOCOL_ELEM* p_elem) {
   tSDP_DISC_ATTR* p_sattr;
 
@@ -633,7 +635,8 @@ static bool sdp_fill_proto_elem(tSDP_DISC_ATTR* p_attr, uint16_t layer_uuid,
  *                  If found, the passed protocol list element is filled in.
  *
  ******************************************************************************/
-bool SDP_FindProtocolListElemInRec(tSDP_DISC_REC* p_rec, uint16_t layer_uuid,
+bool SDP_FindProtocolListElemInRec(const tSDP_DISC_REC* p_rec,
+                                   uint16_t layer_uuid,
                                    tSDP_PROTOCOL_ELEM* p_elem) {
   tSDP_DISC_ATTR* p_attr;
 
@@ -664,8 +667,8 @@ bool SDP_FindProtocolListElemInRec(tSDP_DISC_REC* p_rec, uint16_t layer_uuid,
  *                  passed in are filled in.
  *
  ******************************************************************************/
-bool SDP_FindProfileVersionInRec(tSDP_DISC_REC* p_rec, uint16_t profile_uuid,
-                                 uint16_t* p_version) {
+bool SDP_FindProfileVersionInRec(const tSDP_DISC_REC* p_rec,
+                                 uint16_t profile_uuid, uint16_t* p_version) {
   tSDP_DISC_ATTR *p_attr, *p_sattr;
 
   p_attr = p_rec->p_first_attr;
@@ -756,7 +759,7 @@ tSDP_STATUS SDP_DiDiscover(const RawAddress& remote_device,
  * Returns          number of DI records found
  *
  ******************************************************************************/
-uint8_t SDP_GetNumDiRecords(tSDP_DISCOVERY_DB* p_db) {
+uint8_t SDP_GetNumDiRecords(const tSDP_DISCOVERY_DB* p_db) {
   uint8_t num_records = 0;
   tSDP_DISC_REC* p_curr_record = NULL;
 
@@ -779,7 +782,7 @@ uint8_t SDP_GetNumDiRecords(tSDP_DISCOVERY_DB* p_db) {
  * Returns          none
  *
  ******************************************************************************/
-static void SDP_AttrStringCopy(char* dst, tSDP_DISC_ATTR* p_attr,
+static void SDP_AttrStringCopy(char* dst, const tSDP_DISC_ATTR* p_attr,
                                uint16_t dst_size) {
   if (dst == NULL) return;
   if (p_attr) {
@@ -787,7 +790,7 @@ static void SDP_AttrStringCopy(char* dst, tSDP_DISC_ATTR* p_attr,
     if (len > dst_size - 1) {
       len = dst_size - 1;
     }
-    memcpy(dst, (char*)p_attr->attr_value.v.array, len);
+    memcpy(dst, (const void*)p_attr->attr_value.v.array, len);
     dst[len] = '\0';
   } else {
     dst[0] = '\0';
@@ -806,7 +809,7 @@ static void SDP_AttrStringCopy(char* dst, tSDP_DISC_ATTR* p_attr,
  ******************************************************************************/
 uint16_t SDP_GetDiRecord(uint8_t get_record_index,
                          tSDP_DI_GET_RECORD* p_device_info,
-                         tSDP_DISCOVERY_DB* p_db) {
+                         const tSDP_DISCOVERY_DB* p_db) {
   uint16_t result = SDP_NO_DI_RECORD_FOUND;
   uint8_t curr_record_index = 1;
 
@@ -903,7 +906,7 @@ uint16_t SDP_GetDiRecord(uint8_t get_record_index,
  * Returns          Returns SDP_SUCCESS if record added successfully, else error
  *
  ******************************************************************************/
-uint16_t SDP_SetLocalDiRecord(tSDP_DI_RECORD* p_device_info,
+uint16_t SDP_SetLocalDiRecord(const tSDP_DI_RECORD* p_device_info,
                               uint32_t* p_handle) {
   uint16_t result = SDP_SUCCESS;
   uint32_t handle;
