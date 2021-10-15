@@ -40,6 +40,7 @@
 #include "gd/hci/acl_manager/connection_management_callbacks.h"
 #include "gd/hci/acl_manager/le_acl_connection.h"
 #include "gd/hci/acl_manager/le_connection_management_callbacks.h"
+#include "gd/hci/acl_manager/le_impl.h"
 #include "gd/hci/address.h"
 #include "gd/hci/class_of_device.h"
 #include "gd/hci/controller.h"
