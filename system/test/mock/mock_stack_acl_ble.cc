@@ -66,6 +66,7 @@ void acl_ble_enhanced_connection_complete_from_shim(
     uint8_t peer_addr_type) {
   mock_function_count_map[__func__]++;
 }
+
 void gatt_notify_conn_update(const RawAddress& remote, uint16_t interval,
                              uint16_t latency, uint16_t timeout,
                              tHCI_STATUS status);
