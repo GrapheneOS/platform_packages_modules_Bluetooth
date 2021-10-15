@@ -80,12 +80,6 @@ public class HeadsetStateMachine extends StateMachine {
     private static final String TAG = "HeadsetStateMachine";
     private static final boolean DBG = false;
 
-    private static final String HEADSET_NAME = "bt_headset_name";
-    private static final String HEADSET_NREC = "bt_headset_nrec";
-    private static final String HEADSET_WBS = "bt_wbs";
-    private static final String HEADSET_AUDIO_FEATURE_ON = "on";
-    private static final String HEADSET_AUDIO_FEATURE_OFF = "off";
-
     static final int CONNECT = 1;
     static final int DISCONNECT = 2;
     static final int CONNECT_AUDIO = 3;
@@ -143,8 +137,9 @@ public class HeadsetStateMachine extends StateMachine {
     private HeadsetAgIndicatorEnableState mAgIndicatorEnableState;
     // The timestamp when the device entered connecting/connected state
     private long mConnectingTimestampMs = Long.MIN_VALUE;
-    // Audio Parameters like NREC
-    private final HashMap<String, String> mAudioParams = new HashMap<>();
+    // Audio Parameters
+    private boolean mHasNrecEnabled = false;
+    private boolean mHasWbsEnabled = false;
     // AT Phone book keeps a group of states used by AT+CPBR commands
     private final AtPhonebook mPhonebook;
     // HSP specific
@@ -221,7 +216,8 @@ public class HeadsetStateMachine extends StateMachine {
         if (mPhonebook != null) {
             mPhonebook.cleanup();
         }
-        mAudioParams.clear();
+        mHasWbsEnabled = false;
+        mHasNrecEnabled = false;
     }
 
     public void dump(StringBuilder sb) {
@@ -316,8 +312,7 @@ public class HeadsetStateMachine extends StateMachine {
             BluetoothStatsLog.write(BluetoothStatsLog.BLUETOOTH_SCO_CONNECTION_STATE_CHANGED,
                     mAdapterService.obfuscateAddress(device),
                     getConnectionStateFromAudioState(toState),
-                    TextUtils.equals(mAudioParams.get(HEADSET_WBS), HEADSET_AUDIO_FEATURE_ON)
-                            ? BluetoothHfpProtoEnums.SCO_CODEC_MSBC
+                    mHasWbsEnabled ? BluetoothHfpProtoEnums.SCO_CODEC_MSBC
                             : BluetoothHfpProtoEnums.SCO_CODEC_CVSD,
                     mAdapterService.getMetricId(device));
             mHeadsetService.onAudioStateChangedFromStateMachine(device, fromState, toState);
@@ -450,7 +445,8 @@ public class HeadsetStateMachine extends StateMachine {
             mPhonebook.resetAtState();
             updateAgIndicatorEnableState(null);
             mNeedDialingOutReply = false;
-            mAudioParams.clear();
+            mHasWbsEnabled = false;
+            mHasNrecEnabled = false;
             broadcastStateTransitions();
             // Remove the state machine for unbonded devices
             if (mPrevState != null
@@ -1073,9 +1069,9 @@ public class HeadsetStateMachine extends StateMachine {
                 break;
                 case CONNECT_AUDIO:
                     stateLogD("CONNECT_AUDIO, device=" + mDevice);
-                    mSystemInterface.getAudioManager().setParameters("A2dpSuspended=true");
+                    mSystemInterface.getAudioManager().setA2dpSuspended(true);
                     if (!mNativeInterface.connectAudio(mDevice)) {
-                        mSystemInterface.getAudioManager().setParameters("A2dpSuspended=false");
+                        mSystemInterface.getAudioManager().setA2dpSuspended(false);
                         stateLogE("Failed to connect SCO audio for " + mDevice);
                         // No state change involved, fire broadcast immediately
                         broadcastAudioState(mDevice, BluetoothHeadset.STATE_AUDIO_DISCONNECTED,
@@ -1508,15 +1504,12 @@ public class HeadsetStateMachine extends StateMachine {
     }
 
     private void setAudioParameters() {
-        String keyValuePairs = String.join(";", new String[]{
-                HEADSET_NAME + "=" + getCurrentDeviceName(),
-                HEADSET_NREC + "=" + mAudioParams.getOrDefault(HEADSET_NREC,
-                        HEADSET_AUDIO_FEATURE_OFF),
-                HEADSET_WBS + "=" + mAudioParams.getOrDefault(HEADSET_WBS,
-                        HEADSET_AUDIO_FEATURE_OFF)
-        });
-        Log.i(TAG, "setAudioParameters for " + mDevice + ": " + keyValuePairs);
-        mSystemInterface.getAudioManager().setParameters(keyValuePairs);
+        AudioManager am = mSystemInterface.getAudioManager();
+        Log.i(TAG, "setAudioParameters for " + mDevice + ":"
+                + " Name=" + getCurrentDeviceName()
+                + " hasNrecEnabled=" + mHasNrecEnabled
+                + " hasWbsEnabled=" + mHasWbsEnabled);
+        am.setBluetoothHeadsetProperties(getCurrentDeviceName(), mHasNrecEnabled, mHasWbsEnabled);
     }
 
     private String parseUnknownAt(String atString) {
@@ -1645,32 +1638,28 @@ public class HeadsetStateMachine extends StateMachine {
     }
 
     private void processNoiseReductionEvent(boolean enable) {
-        String prevNrec = mAudioParams.getOrDefault(HEADSET_NREC, HEADSET_AUDIO_FEATURE_OFF);
-        String newNrec = enable ? HEADSET_AUDIO_FEATURE_ON : HEADSET_AUDIO_FEATURE_OFF;
-        mAudioParams.put(HEADSET_NREC, newNrec);
-        log("processNoiseReductionEvent: " + HEADSET_NREC + " change " + prevNrec + " -> "
-                + newNrec);
+        log("processNoiseReductionEvent: " + mHasNrecEnabled + " -> " + enable);
+        mHasNrecEnabled = enable;
         if (getAudioState() == BluetoothHeadset.STATE_AUDIO_CONNECTED) {
             setAudioParameters();
         }
     }
 
     private void processWBSEvent(int wbsConfig) {
-        String prevWbs = mAudioParams.getOrDefault(HEADSET_WBS, HEADSET_AUDIO_FEATURE_OFF);
+        boolean prevWbs = mHasWbsEnabled;
         switch (wbsConfig) {
             case HeadsetHalConstants.BTHF_WBS_YES:
-                mAudioParams.put(HEADSET_WBS, HEADSET_AUDIO_FEATURE_ON);
+                mHasWbsEnabled = true;
                 break;
             case HeadsetHalConstants.BTHF_WBS_NO:
             case HeadsetHalConstants.BTHF_WBS_NONE:
-                mAudioParams.put(HEADSET_WBS, HEADSET_AUDIO_FEATURE_OFF);
+                mHasWbsEnabled = false;
                 break;
             default:
                 Log.e(TAG, "processWBSEvent: unknown wbsConfig " + wbsConfig);
                 return;
         }
-        log("processWBSEvent: " + HEADSET_NREC + " change " + prevWbs + " -> " + mAudioParams.get(
-                HEADSET_WBS));
+        log("processWBSEvent: " + prevWbs + " -> " + mHasWbsEnabled);
     }
 
     @RequiresPermission(android.Manifest.permission.MODIFY_PHONE_STATE)
