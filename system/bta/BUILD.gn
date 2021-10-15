@@ -74,6 +74,8 @@ static_library("bta") {
     "jv/bta_jv_act.cc",
     "jv/bta_jv_api.cc",
     "jv/bta_jv_cfg.cc",
+    "le_audio/client_linux.cc",
+    "le_audio/hal_verifier_linux.cc",
     "pan/bta_pan_act.cc",
     "pan/bta_pan_api.cc",
     "pan/bta_pan_ci.cc",
