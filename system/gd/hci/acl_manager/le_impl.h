@@ -22,7 +22,6 @@
 #include "hci/acl_manager/round_robin_scheduler.h"
 #include "hci/le_address_manager.h"
 #include "os/alarm.h"
-#include "os/rand.h"
 
 using bluetooth::crypto_toolbox::Octet16;
 
@@ -549,6 +548,11 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
       create_connection_timeout_alarms_.at(address_with_type).Cancel();
       create_connection_timeout_alarms_.erase(address_with_type);
       cancel_connect(address_with_type);
+      le_client_handler_->Post(common::BindOnce(
+          &LeConnectionCallbacks::OnLeConnectFail,
+          common::Unretained(le_client_callbacks_),
+          address_with_type,
+          ErrorCode::CONNECTION_ACCEPT_TIMEOUT));
     }
   }
 
