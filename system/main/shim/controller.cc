@@ -401,3 +401,7 @@ const controller_t* bluetooth::shim::controller_get_interface() {
   }
   return &interface;
 }
+
+void bluetooth::shim::controller_clear_event_mask() {
+  bluetooth::shim::GetController()->SetEventMask(0);
+}
