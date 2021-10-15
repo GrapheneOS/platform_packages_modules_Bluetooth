@@ -155,6 +155,8 @@ void acl_ble_connection_fail(const tBLE_BD_ADDR& address_with_type,
     btm_cb.ble_ctr_cb.set_connection_state_idle();
     btm_ble_clear_topology_mask(BTM_BLE_STATE_INIT_BIT);
     btm_ble_disable_resolving_list(BTM_BLE_RL_INIT, true);
+    connection_manager::on_connection_timed_out_from_shim(
+        address_with_type.bda);
   } else {
     btm_cb.ble_ctr_cb.inq_var.adv_mode = BTM_BLE_ADV_DISABLE;
     btm_ble_disable_resolving_list(BTM_BLE_RL_ADV, true);

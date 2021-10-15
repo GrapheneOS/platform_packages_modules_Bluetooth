@@ -88,6 +88,12 @@ void connection_manager::on_app_deregistered(uint8_t app_id) {
 void connection_manager::on_connection_complete(const RawAddress& address) {
   mock_function_count_map[__func__]++;
 }
+
+void connection_manager::on_connection_timed_out_from_shim(
+    const RawAddress& address) {
+  mock_function_count_map[__func__]++;
+}
+
 void connection_manager::reset(bool after_reset) {
   mock_function_count_map[__func__]++;
 }

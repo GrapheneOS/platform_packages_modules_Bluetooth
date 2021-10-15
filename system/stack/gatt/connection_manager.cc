@@ -200,6 +200,10 @@ void on_connection_complete(const RawAddress& address) {
   remove_all_clients_with_pending_connections(address);
 }
 
+void on_connection_timed_out_from_shim(const RawAddress& address) {
+  on_connection_timed_out(0x00, address);
+}
+
 /** Reset bg device list. If called after controller reset, set |after_reset| to
  * true, as there is no need to wipe controller acceptlist in this case. */
 void reset(bool after_reset) {
