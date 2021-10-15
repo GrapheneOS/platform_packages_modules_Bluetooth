@@ -24,6 +24,8 @@
 
 #define LOG_TAG "bluetooth"
 
+#include <base/logging.h>
+
 #include <cstdint>
 #include <unordered_set>
 
@@ -38,10 +40,9 @@
 #include "stack/include/bt_hdr.h"
 #include "stack/include/gap_api.h"
 #include "stack/include/port_api.h"
+#include "stack/include/sdp_api.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
-
-#include <base/logging.h>
 
 using bluetooth::Uuid;
 
@@ -55,6 +56,34 @@ static void bta_jv_pm_conn_busy(tBTA_JV_PM_CB* p_cb);
 static void bta_jv_pm_conn_idle(tBTA_JV_PM_CB* p_cb);
 static void bta_jv_pm_state_change(tBTA_JV_PM_CB* p_cb,
                                    const tBTA_JV_CONN_STATE state);
+
+#ifndef BTA_JV_SDP_DB_SIZE
+#define BTA_JV_SDP_DB_SIZE 4500
+#endif
+
+#ifndef BTA_JV_SDP_RAW_DATA_SIZE
+#define BTA_JV_SDP_RAW_DATA_SIZE 1800
+#endif
+
+static uint8_t bta_jv_sdp_raw_data[BTA_JV_SDP_RAW_DATA_SIZE];
+static tSDP_DISCOVERY_DB
+    bta_jv_sdp_db_data[BTA_JV_SDP_DB_SIZE / sizeof(tSDP_DISCOVERY_DB)];
+
+/* JV configuration structure */
+struct tBTA_JV_CFG {
+  uint16_t sdp_raw_size;       /* The size of p_sdp_raw_data */
+  uint16_t sdp_db_size;        /* The size of p_sdp_db */
+  uint8_t* p_sdp_raw_data;     /* The data buffer to keep raw data */
+  tSDP_DISCOVERY_DB* p_sdp_db; /* The data buffer to keep SDP database */
+} bta_jv_cfg = {
+    BTA_JV_SDP_RAW_DATA_SIZE, /* The size of p_sdp_raw_data */
+    (BTA_JV_SDP_DB_SIZE / sizeof(tSDP_DISCOVERY_DB)) *
+        sizeof(tSDP_DISCOVERY_DB), /* The size of p_sdp_db_data */
+    bta_jv_sdp_raw_data,           /* The data buffer to keep raw data */
+    bta_jv_sdp_db_data             /* The data buffer to keep SDP database */
+};
+
+tBTA_JV_CFG* p_bta_jv_cfg = &bta_jv_cfg;
 
 /*******************************************************************************
  *

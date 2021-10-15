@@ -366,14 +366,6 @@ typedef uint32_t(tBTA_JV_RFCOMM_CBACK)(tBTA_JV_EVT event, tBTA_JV* p_data,
 typedef void(tBTA_JV_L2CAP_CBACK)(tBTA_JV_EVT event, tBTA_JV* p_data,
                                   uint32_t l2cap_socket_id);
 
-/* JV configuration structure */
-typedef struct {
-  uint16_t sdp_raw_size;       /* The size of p_sdp_raw_data */
-  uint16_t sdp_db_size;        /* The size of p_sdp_db */
-  uint8_t* p_sdp_raw_data;     /* The data buffer to keep raw data */
-  tSDP_DISCOVERY_DB* p_sdp_db; /* The data buffer to keep SDP database */
-} tBTA_JV_CFG;
-
 /*******************************************************************************
  *
  * Function         BTA_JvEnable
