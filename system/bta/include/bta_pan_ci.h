@@ -116,32 +116,4 @@ extern BT_HDR* bta_pan_ci_readbuf(uint16_t handle, RawAddress& src,
                                   RawAddress& dst, uint16_t* p_protocol,
                                   bool* p_ext, bool* p_forward);
 
-/*******************************************************************************
- *
- * Function         bta_pan_ci_set_pfilters
- *
- * Description      This function is called to set protocol filters
- *
- *
- * Returns          void
- *
- ******************************************************************************/
-extern void bta_pan_ci_set_pfilters(uint16_t handle, uint16_t num_filters,
-                                    uint16_t* p_start_array,
-                                    uint16_t* p_end_array);
-
-/*******************************************************************************
- *
- * Function         bta_pan_ci_set_mfilters
- *
- * Description      This function is called to set multicast filters
- *
- *
- * Returns          void
- *
- ******************************************************************************/
-extern void bta_pan_ci_set_mfilters(uint16_t handle, uint16_t num_mcast_filters,
-                                    uint8_t* p_start_array,
-                                    uint8_t* p_end_array);
-
 #endif /* BTA_PAN_CI_H */
