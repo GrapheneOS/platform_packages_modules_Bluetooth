@@ -465,6 +465,12 @@ class DualModeController : public Device {
   // 7.8.27
   void LeReadSupportedStates(CommandView args);
 
+  // 7.8.31
+  void LeRemoteConnectionParameterRequestReply(CommandView args);
+
+  // 7.8.32
+  void LeRemoteConnectionParameterRequestNegativeReply(CommandView args);
+
   // 7.8.34
   void LeReadSuggestedDefaultDataLength(CommandView args);
 
