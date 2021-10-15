@@ -141,9 +141,6 @@ extern tBTA_JV_CB bta_jv_cb;
 
 extern std::unordered_set<uint16_t> used_l2cap_classic_dynamic_psm;
 
-/* config struct */
-extern tBTA_JV_CFG* p_bta_jv_cfg;
-
 extern void bta_jv_enable(tBTA_JV_DM_CBACK* p_cback);
 extern void bta_jv_disable();
 extern void bta_jv_get_channel_id(int32_t type, int32_t channel,
