@@ -256,7 +256,7 @@ static JNINativeMethod sMethods[] = {
 
 int register_com_android_bluetooth_a2dp_sink(JNIEnv* env) {
   return jniRegisterNativeMethods(
-      env, "com/android/bluetooth/a2dpsink/A2dpSinkService", sMethods,
+      env, "com/android/bluetooth/a2dpsink/A2dpSinkNativeInterface", sMethods,
       NELEM(sMethods));
 }
 }
