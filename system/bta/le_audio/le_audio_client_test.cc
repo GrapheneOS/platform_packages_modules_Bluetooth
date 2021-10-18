@@ -59,6 +59,8 @@ using bluetooth::Uuid;
 
 using namespace bluetooth::le_audio;
 
+std::map<std::string, int> mock_function_count_map;
+
 // Disables most likely false-positives from base::SplitString()
 extern "C" const char* __asan_default_options() {
   return "detect_container_overflow=0";

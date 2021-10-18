@@ -93,6 +93,7 @@ cc_library_static {
         "vc/vc.cc",
         "le_audio/client.cc",
         "le_audio/devices.cc",
+        "le_audio/hal_verifier.cc",
         "le_audio/state_machine.cc",
         "le_audio/client_parser.cc",
         "le_audio/client_audio.cc",
@@ -133,6 +134,10 @@ cc_library_static {
     static_libs: [
         "avrcp-target-service",
         "lib-bt-packets",
+    ],
+    shared_libs: [
+        "android.hardware.bluetooth.audio@2.0",
+        "android.hardware.bluetooth.audio@2.1",
     ],
     host_supported: true,
 }
@@ -468,6 +473,7 @@ cc_test {
         "packages/modules/Bluetooth/system/stack/include",
     ],
     srcs : [
+        ":TestMockBtaLeAudioHalVerifier",
         "gatt/database.cc",
         "gatt/database_builder.cc",
         "le_audio/client.cc",
@@ -487,6 +493,8 @@ cc_test {
         "test/common/mock_device_groups.cc",
     ],
     shared_libs: [
+        "android.hardware.bluetooth.audio@2.0",
+        "android.hardware.bluetooth.audio@2.1",
         "libprotobuf-cpp-lite",
         "libcrypto",
         "liblog",
