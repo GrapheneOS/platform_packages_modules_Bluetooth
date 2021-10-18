@@ -20,7 +20,6 @@
 
 #include <vector>
 
-#include "audio_hal_interface/hal_version_manager.h"
 #include "bta_le_audio_api.h"
 #include "btif_common.h"
 #include "btif_storage.h"
@@ -72,14 +71,12 @@ class LeAudioClientInterfaceImpl : public LeAudioClientInterface,
   void Initialize(LeAudioClientCallbacks* callbacks) override {
     this->callbacks = callbacks;
     do_in_main_thread(
-        FROM_HERE,
-        Bind(&LeAudioClient::Initialize, this,
-             jni_thread_wrapper(FROM_HERE,
-                                Bind(&btif_storage_load_bonded_leaudio)),
-             base::Bind([]() -> bool {
-               return bluetooth::audio::HalVersionManager::GetHalVersion() ==
-                      bluetooth::audio::BluetoothAudioHalVersion::VERSION_2_1;
-             })));
+        FROM_HERE, Bind(&LeAudioClient::Initialize, this,
+                        jni_thread_wrapper(
+                            FROM_HERE, Bind(&btif_storage_load_bonded_leaudio)),
+                        base::Bind([]() -> bool {
+                          return LeAudioHalVerifier::SupportsLeAudio();
+                        })));
   }
 
   void Cleanup(void) override {
