@@ -352,18 +352,24 @@ public class BluetoothPbapVcardManager {
                     mContext.getString(android.R.string.unknownName), contactCursor);
 
             if (contactCursor != null) {
-                if (!composer.initWithCallback(contactCursor,
-                        new EnterpriseRawContactEntitlesInfoCallback())) {
+                if (!composer.init(contactCursor)) {
                     return nameList;
+                }
+                int idColumn = contactCursor.getColumnIndex(Data.CONTACT_ID);
+                if (idColumn < 0) {
+                    idColumn = contactCursor.getColumnIndex(Contacts._ID);
                 }
 
                 int i = 0;
                 contactCursor.moveToFirst();
-                while (!composer.isAfterLast()) {
-                    String vcard = composer.createOneEntry();
+                while (!contactCursor.isAfterLast()) {
+                    String vcard = composer.buildVCard(RawContactsEntity.queryRawContactEntity(
+                                mContext, contactCursor.getLong(idColumn)));
+                    if (!contactCursor.moveToNext()) {
+                        Log.e(TAG, "Cursor#moveToNext() returned false");
+                    }
                     if (vcard == null) {
-                        Log.e(TAG, "Failed to read a contact. Error reason: "
-                                + composer.getErrorReason());
+                        Log.e(TAG, "Failed to read a contact.");
                         return nameList;
                     } else if (vcard.isEmpty()) {
                         Log.i(TAG, "Contact may have been deleted during operation");
@@ -689,23 +695,6 @@ public class BluetoothPbapVcardManager {
         }
     }
 
-    /**
-     * Handler enterprise contact id in VCardComposer
-     */
-    private static class EnterpriseRawContactEntitlesInfoCallback
-            implements VCardComposer.RawContactEntitlesInfoCallback {
-        @Override
-        public VCardComposer.RawContactEntitlesInfo getRawContactEntitlesInfo(long contactId) {
-            if (Contacts.isEnterpriseContactId(contactId)) {
-                return new VCardComposer.RawContactEntitlesInfo(RawContactsEntity.CORP_CONTENT_URI,
-                        contactId - Contacts.ENTERPRISE_CONTACT_ID_BASE);
-            } else {
-                return new VCardComposer.RawContactEntitlesInfo(RawContactsEntity.CONTENT_URI,
-                        contactId);
-            }
-        }
-    }
-
     private int composeContactsAndSendVCards(Operation op, final Cursor contactIdCursor,
             final boolean vcardType21, String ownerVCard, boolean ignorefilter, byte[] filter) {
         long timestamp = 0;
@@ -754,21 +743,27 @@ public class BluetoothPbapVcardManager {
             });
             buffer = new HandlerForStringBuffer(op, ownerVCard);
             Log.v(TAG, "contactIdCursor size: " + contactIdCursor.getCount());
-            if (!composer.initWithCallback(contactIdCursor,
-                    new EnterpriseRawContactEntitlesInfoCallback()) || !buffer.onInit(mContext)) {
+            if (!composer.init(contactIdCursor) || !buffer.onInit(mContext)) {
                 return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
             }
+            int idColumn = contactIdCursor.getColumnIndex(Data.CONTACT_ID);
+            if (idColumn < 0) {
+                idColumn = contactIdCursor.getColumnIndex(Contacts._ID);
+            }
 
-            while (!composer.isAfterLast()) {
+            while (!contactIdCursor.isAfterLast()) {
                 if (BluetoothPbapObexServer.sIsAborted) {
                     ((ServerOperation) op).isAborted = true;
                     BluetoothPbapObexServer.sIsAborted = false;
                     break;
                 }
-                String vcard = composer.createOneEntry();
+                String vcard = composer.buildVCard(RawContactsEntity.queryRawContactEntity(
+                            mContext, contactIdCursor.getLong(idColumn)));
+                if (!contactIdCursor.moveToNext()) {
+                    Log.e(TAG, "Cursor#moveToNext() returned false");
+                }
                 if (vcard == null) {
-                    Log.e(TAG,
-                            "Failed to read a contact. Error reason: " + composer.getErrorReason());
+                    Log.e(TAG, "Failed to read a contact.");
                     return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
                 } else if (vcard.isEmpty()) {
                     Log.i(TAG, "Contact may have been deleted during operation");
@@ -853,21 +848,27 @@ public class BluetoothPbapVcardManager {
             });
             buffer = new HandlerForStringBuffer(op, ownerVCard);
             Log.v(TAG, "contactIdCursor size: " + contactIdCursor.getCount());
-            if (!composer.initWithCallback(contactIdCursor,
-                    new EnterpriseRawContactEntitlesInfoCallback()) || !buffer.onInit(mContext)) {
+            if (!composer.init(contactIdCursor) || !buffer.onInit(mContext)) {
                 return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
             }
+            int idColumn = contactIdCursor.getColumnIndex(Data.CONTACT_ID);
+            if (idColumn < 0) {
+                idColumn = contactIdCursor.getColumnIndex(Contacts._ID);
+            }
 
-            while (!composer.isAfterLast()) {
+            while (!contactIdCursor.isAfterLast()) {
                 if (BluetoothPbapObexServer.sIsAborted) {
                     ((ServerOperation) op).isAborted = true;
                     BluetoothPbapObexServer.sIsAborted = false;
                     break;
                 }
-                String vcard = composer.createOneEntry();
+                String vcard = composer.buildVCard(RawContactsEntity.queryRawContactEntity(
+                            mContext, contactIdCursor.getLong(idColumn)));
+                if (!contactIdCursor.moveToNext()) {
+                    Log.e(TAG, "Cursor#moveToNext() returned false");
+                }
                 if (vcard == null) {
-                    Log.e(TAG,
-                            "Failed to read a contact. Error reason: " + composer.getErrorReason());
+                    Log.e(TAG, "Failed to read a contact.");
                     return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
                 } else if (vcard.isEmpty()) {
                     Log.i(TAG, "Contact may have been deleted during operation");
