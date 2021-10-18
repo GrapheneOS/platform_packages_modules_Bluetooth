@@ -17,8 +17,17 @@
 
 #pragma once
 
+#include <base/bind.h>
+#include <base/callback.h>
 #include <base/callback_forward.h>
 #include <hardware/bt_le_audio.h>
+
+#include <vector>
+
+class LeAudioHalVerifier {
+ public:
+  static bool SupportsLeAudio();
+};
 
 /* Interface class */
 class LeAudioClient {
