@@ -410,6 +410,7 @@ cc_test {
           ":TestMockBtaHh",
           ":TestMockBtaJv",
           ":TestMockBtaLeAudio",
+          ":TestMockBtaLeAudioHalVerifier",
           ":TestMockBtaPan",
           ":TestMockBtaSdp",
           ":TestMockBtaSys",
