@@ -47,16 +47,24 @@ final class StackEvent {
 
     @Override
     public String toString() {
+        String s = "StackEvent<device=" + mDevice + ", type =";
         switch (mType) {
             case EVENT_TYPE_CONNECTION_STATE_CHANGED:
-                return "EVENT_TYPE_CONNECTION_STATE_CHANGED " + mState;
+                s += "EVENT_TYPE_CONNECTION_STATE_CHANGED, state=" + mState;
+                break;
             case EVENT_TYPE_AUDIO_STATE_CHANGED:
-                return "EVENT_TYPE_AUDIO_STATE_CHANGED " + mState;
+                s += "EVENT_TYPE_AUDIO_STATE_CHANGED, state=" + mState;
+                break;
             case EVENT_TYPE_AUDIO_CONFIG_CHANGED:
-                return "EVENT_TYPE_AUDIO_CONFIG_CHANGED " + mSampleRate + ":" + mChannelCount;
+                s += "EVENT_TYPE_AUDIO_CONFIG_CHANGED, sampleRate=" + mSampleRate
+                        + ", channelCount=" + mChannelCount;
+                break;
             default:
-                return "Unknown";
+                s += "Unknown";
+                break;
         }
+        s += ">";
+        return s;
     }
 
     static StackEvent connectionStateChanged(BluetoothDevice device, int state) {
