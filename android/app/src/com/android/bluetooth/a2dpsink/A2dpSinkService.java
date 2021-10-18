@@ -49,7 +49,7 @@ public class A2dpSinkService extends ProfileService {
 
     private AdapterService mAdapterService;
     private DatabaseManager mDatabaseManager;
-    protected Map<BluetoothDevice, A2dpSinkStateMachine> mDeviceStateMap =
+    private Map<BluetoothDevice, A2dpSinkStateMachine> mDeviceStateMap =
             new ConcurrentHashMap<>(1);
 
     private final Object mStreamHandlerLock = new Object();
@@ -60,9 +60,7 @@ public class A2dpSinkService extends ProfileService {
     private A2dpSinkStreamHandler mA2dpSinkStreamHandler;
     private static A2dpSinkService sService;
 
-    static {
-        classInitNative();
-    }
+    A2dpSinkNativeInterface mNativeInterface;
 
     @Override
     protected boolean start() {
@@ -70,12 +68,15 @@ public class A2dpSinkService extends ProfileService {
                 "AdapterService cannot be null when A2dpSinkService starts");
         mDatabaseManager = Objects.requireNonNull(AdapterService.getAdapterService().getDatabase(),
                 "DatabaseManager cannot be null when A2dpSinkService starts");
+        mNativeInterface = A2dpSinkNativeInterface.getInstance();
+
+        mMaxConnectedAudioDevices = mAdapterService.getMaxConnectedAudioDevices();
+        mNativeInterface.init(mMaxConnectedAudioDevices);
 
         synchronized (mStreamHandlerLock) {
-            mA2dpSinkStreamHandler = new A2dpSinkStreamHandler(this, this);
+            mA2dpSinkStreamHandler = new A2dpSinkStreamHandler(this, mNativeInterface);
         }
-        mMaxConnectedAudioDevices = mAdapterService.getMaxConnectedAudioDevices();
-        initNative(mMaxConnectedAudioDevices);
+
         setA2dpSinkService(this);
         return true;
     }
@@ -83,7 +84,7 @@ public class A2dpSinkService extends ProfileService {
     @Override
     protected boolean stop() {
         setA2dpSinkService(null);
-        cleanupNative();
+        mNativeInterface.cleanup();
         for (A2dpSinkStateMachine stateMachine : mDeviceStateMap.values()) {
             stateMachine.quitNow();
         }
@@ -117,16 +118,8 @@ public class A2dpSinkService extends ProfileService {
      * Set the device that should be allowed to actively stream
      */
     public boolean setActiveDevice(BluetoothDevice device) {
-        // Translate to byte address for JNI. Use an all 0 MAC for no active device
-        byte[] address = null;
-        if (device != null) {
-            address = Utils.getByteAddress(device);
-        } else {
-            address = Utils.getBytesFromAddress("00:00:00:00:00:00");
-        }
-
         synchronized (mActiveDeviceLock) {
-            if (setActiveDeviceNative(address)) {
+            if (mNativeInterface.setActiveDevice(device)) {
                 mActiveDevice = device;
                 return true;
             }
@@ -340,6 +333,10 @@ public class A2dpSinkService extends ProfileService {
                     + ", InstanceMap start state: " + sb.toString());
         }
 
+        if (device == null) {
+            throw new IllegalArgumentException("Null device");
+        }
+
         A2dpSinkStateMachine stateMachine = mDeviceStateMap.get(device);
         // a state machine instance doesn't exist. maybe it is already gone?
         if (stateMachine == null) {
@@ -365,7 +362,8 @@ public class A2dpSinkService extends ProfileService {
     }
 
     protected A2dpSinkStateMachine getOrCreateStateMachine(BluetoothDevice device) {
-        A2dpSinkStateMachine newStateMachine = new A2dpSinkStateMachine(device, this);
+        A2dpSinkStateMachine newStateMachine =
+                new A2dpSinkStateMachine(device, this, mNativeInterface);
         A2dpSinkStateMachine existingStateMachine =
                 mDeviceStateMap.putIfAbsent(device, newStateMachine);
         // Given null is not a valid value in our map, ConcurrentHashMap will return null if the
@@ -375,6 +373,11 @@ public class A2dpSinkService extends ProfileService {
             return newStateMachine;
         }
         return existingStateMachine;
+    }
+
+    @VisibleForTesting
+    protected A2dpSinkStateMachine getStateMachineForDevice(BluetoothDevice device) {
+        return mDeviceStateMap.get(device);
     }
 
     List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
@@ -406,6 +409,7 @@ public class A2dpSinkService extends ProfileService {
      * {@link BluetoothProfile#STATE_DISCONNECTING} if this profile is being disconnected
      */
     public int getConnectionState(BluetoothDevice device) {
+        if (device == null) return BluetoothProfile.STATE_DISCONNECTED;
         A2dpSinkStateMachine stateMachine = mDeviceStateMap.get(device);
         return (stateMachine == null) ? BluetoothProfile.STATE_DISCONNECTED
                 : stateMachine.getState();
@@ -475,6 +479,7 @@ public class A2dpSinkService extends ProfileService {
     }
 
     BluetoothAudioConfig getAudioConfig(BluetoothDevice device) {
+        if (device == null) return null;
         A2dpSinkStateMachine stateMachine = mDeviceStateMap.get(device);
         // a state machine instance doesn't exist. maybe it is already gone?
         if (stateMachine == null) {
@@ -483,53 +488,37 @@ public class A2dpSinkService extends ProfileService {
         return stateMachine.getAudioConfig();
     }
 
-    /* JNI interfaces*/
-
-    private static native void classInitNative();
-
-    private native void initNative(int maxConnectedAudioDevices);
-
-    private native void cleanupNative();
-
-    native boolean connectA2dpNative(byte[] address);
-
-    native boolean disconnectA2dpNative(byte[] address);
-
     /**
-     * set A2DP state machine as the active device
-     * the active device is the only one that will receive passthrough commands and the only one
-     * that will have its audio decoded
-     *
-     * @hide
-     * @param address
-     * @return active device request has been scheduled
+     * Receive and route a stack event from the JNI
      */
-    public native boolean setActiveDeviceNative(byte[] address);
+    protected void messageFromNative(StackEvent event) {
+        switch (event.mType) {
+            case StackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED:
+                onConnectionStateChanged(event);
+                return;
+            case StackEvent.EVENT_TYPE_AUDIO_STATE_CHANGED:
+                onAudioStateChanged(event);
+                return;
+            case StackEvent.EVENT_TYPE_AUDIO_CONFIG_CHANGED:
+                onAudioConfigChanged(event);
+                return;
+            default:
+                Log.e(TAG, "Received unknown stack event of type " + event.mType);
+                return;
+        }
+    }
 
-    /**
-     * inform A2DP decoder of the current audio focus
-     *
-     * @param focusGranted
-     */
-    @VisibleForTesting
-    public native void informAudioFocusStateNative(int focusGranted);
-
-    /**
-     * inform A2DP decoder the desired audio gain
-     *
-     * @param gain
-     */
-    @VisibleForTesting
-    public native void informAudioTrackGainNative(float gain);
-
-    private void onConnectionStateChanged(byte[] address, int state) {
-        StackEvent event = StackEvent.connectionStateChanged(
-                BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address), state);
-        A2dpSinkStateMachine stateMachine = getOrCreateStateMachine(event.mDevice);
+    private void onConnectionStateChanged(StackEvent event) {
+        BluetoothDevice device = event.mDevice;
+        if (device == null) {
+            return;
+        }
+        A2dpSinkStateMachine stateMachine = getOrCreateStateMachine(device);
         stateMachine.sendMessage(A2dpSinkStateMachine.STACK_EVENT, event);
     }
 
-    private void onAudioStateChanged(byte[] address, int state) {
+    private void onAudioStateChanged(StackEvent event) {
+        int state = event.mState;
         synchronized (mStreamHandlerLock) {
             if (mA2dpSinkStreamHandler == null) {
                 Log.e(TAG, "Received audio state change before we've been started");
@@ -541,15 +530,18 @@ public class A2dpSinkService extends ProfileService {
                     || state == StackEvent.AUDIO_STATE_REMOTE_SUSPEND) {
                 mA2dpSinkStreamHandler.obtainMessage(
                         A2dpSinkStreamHandler.SRC_STR_STOP).sendToTarget();
+            } else {
+                Log.w(TAG, "Unhandled audio state change, state=" + state);
             }
         }
     }
 
-    private void onAudioConfigChanged(byte[] address, int sampleRate, int channelCount) {
-        StackEvent event = StackEvent.audioConfigChanged(
-                BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address), sampleRate,
-                channelCount);
-        A2dpSinkStateMachine stateMachine = getOrCreateStateMachine(event.mDevice);
+    private void onAudioConfigChanged(StackEvent event) {
+        BluetoothDevice device = event.mDevice;
+        if (device == null) {
+            return;
+        }
+        A2dpSinkStateMachine stateMachine = getOrCreateStateMachine(device);
         stateMachine.sendMessage(A2dpSinkStateMachine.STACK_EVENT, event);
     }
 }
