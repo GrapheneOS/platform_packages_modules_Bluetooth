@@ -226,8 +226,7 @@ tBNEP_RESULT BNEP_ConnectResp(uint16_t handle, tBNEP_RESULT resp) {
       (!(p_bcb->con_flags & BNEP_FLAGS_SETUP_RCVD)))
     return (BNEP_WRONG_STATE);
 
-  BNEP_TRACE_API("BNEP_ConnectResp()  for handle %d, responce %d", handle,
-                 resp);
+  LOG_DEBUG("handle %d, responce %d", handle, resp);
 
   /* Form appropriate responce based on profile responce */
   if (resp == BNEP_CONN_FAILED_SRC_UUID)
