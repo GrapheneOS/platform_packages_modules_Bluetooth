@@ -1099,11 +1099,13 @@ class CsisClientImpl : public CsisClient {
       DLOG(INFO) << "Found set member " << result->bd_addr;
       callbacks_->OnSetMemberAvailable(result->bd_addr,
                                        csis_group->GetGroupId());
-    }
 
-    /* Switch back to the opportunistic observer mode */
-    CsisActiveObserverSet(false);
-    csis_group->SetDiscoveryState(CsisDiscoveryState::CSIS_DISCOVERY_IDLE);
+      /* Switch back to the opportunistic observer mode.
+       * When second device will pair, csis will restart active scan
+       * to search more members if needed */
+      CsisActiveObserverSet(false);
+      csis_group->SetDiscoveryState(CsisDiscoveryState::CSIS_DISCOVERY_IDLE);
+    }
   }
 
   void CsisActiveObserverSet(bool enable) {
