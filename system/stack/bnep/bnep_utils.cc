@@ -223,8 +223,7 @@ void bnep_send_conn_responce(tBNEP_CONN* p_bcb, uint16_t resp_code) {
   BT_HDR* p_buf = (BT_HDR*)osi_malloc(BNEP_BUF_SIZE);
   uint8_t* p;
 
-  BNEP_TRACE_EVENT("BNEP - bnep_send_conn_responce for CID: 0x%x",
-                   p_bcb->l2cap_cid);
+  LOG_DEBUG("BNEP - bnep_send_conn_responce for CID: 0x%x", p_bcb->l2cap_cid);
 
   p_buf->offset = L2CAP_MIN_OFFSET;
   p = (uint8_t*)(p_buf + 1) + L2CAP_MIN_OFFSET;
@@ -404,12 +403,10 @@ void bnep_send_command_not_understood(tBNEP_CONN* p_bcb, uint8_t cmd_code) {
  *
  ******************************************************************************/
 void bnepu_check_send_packet(tBNEP_CONN* p_bcb, BT_HDR* p_buf) {
-  BNEP_TRACE_EVENT("BNEP - bnepu_check_send_packet for CID: 0x%x",
-                   p_bcb->l2cap_cid);
+  LOG_DEBUG("BNEP - bnepu_check_send_packet for CID: 0x%x", p_bcb->l2cap_cid);
   if (p_bcb->con_flags & BNEP_FLAGS_L2CAP_CONGESTED) {
     if (fixed_queue_length(p_bcb->xmit_q) >= BNEP_MAX_XMITQ_DEPTH) {
-      BNEP_TRACE_EVENT("BNEP - congested, dropping buf, CID: 0x%x",
-                       p_bcb->l2cap_cid);
+      LOG_WARN("BNEP - congested, dropping buf, CID: 0x%x", p_bcb->l2cap_cid);
 
       osi_free(p_buf);
     } else {
@@ -534,12 +531,12 @@ static uint8_t* bnepu_init_hdr(BT_HDR* p_buf, uint16_t hdr_len,
  ******************************************************************************/
 void bnep_process_setup_conn_req(tBNEP_CONN* p_bcb, uint8_t* p_setup,
                                  uint8_t len) {
-  BNEP_TRACE_EVENT("BNEP - %s for CID: 0x%x", __func__, p_bcb->l2cap_cid);
+  LOG_DEBUG("BNEP - for CID: 0x%x", p_bcb->l2cap_cid);
 
   if (p_bcb->con_state != BNEP_STATE_CONN_SETUP &&
       p_bcb->con_state != BNEP_STATE_SEC_CHECKING &&
       p_bcb->con_state != BNEP_STATE_CONNECTED) {
-    BNEP_TRACE_ERROR("BNEP - setup request in bad state %d", p_bcb->con_state);
+    LOG_ERROR("BNEP - setup request in bad state %d", p_bcb->con_state);
     bnep_send_conn_responce(p_bcb, BNEP_SETUP_CONN_NOT_ALLOWED);
     return;
   }
@@ -547,7 +544,7 @@ void bnep_process_setup_conn_req(tBNEP_CONN* p_bcb, uint8_t* p_setup,
   /* Check if we already initiated security check or if waiting for user
    * responce */
   if (p_bcb->con_flags & BNEP_FLAGS_SETUP_RCVD) {
-    BNEP_TRACE_EVENT(
+    LOG_WARN(
         "BNEP - Duplicate Setup message received while doing security check");
     return;
   }
@@ -556,8 +553,8 @@ void bnep_process_setup_conn_req(tBNEP_CONN* p_bcb, uint8_t* p_setup,
   if (p_bcb->con_state != BNEP_STATE_CONNECTED &&
       (!(p_bcb->con_flags & BNEP_FLAGS_SETUP_RCVD)) &&
       (p_bcb->con_flags & BNEP_FLAGS_IS_ORIG)) {
-    BNEP_TRACE_ERROR("BNEP - setup request when we are originator",
-                     p_bcb->con_state);
+    LOG_ERROR("BNEP - setup request when we are originator state:%hu",
+              p_bcb->con_state);
     bnep_send_conn_responce(p_bcb, BNEP_SETUP_CONN_NOT_ALLOWED);
     return;
   }
@@ -599,7 +596,7 @@ void bnep_process_setup_conn_req(tBNEP_CONN* p_bcb, uint8_t* p_setup,
     p_bcb->dst_uuid = Uuid::From128BitBE(p_setup);
     p_setup += len;
   } else {
-    BNEP_TRACE_ERROR("BNEP - Bad UID len %d in ConnReq", len);
+    LOG_ERROR("BNEP - Bad UID len %d in ConnReq", len);
     bnep_send_conn_responce(p_bcb, BNEP_SETUP_INVALID_UUID_SIZE);
     return;
   }
@@ -607,9 +604,8 @@ void bnep_process_setup_conn_req(tBNEP_CONN* p_bcb, uint8_t* p_setup,
   p_bcb->con_state = BNEP_STATE_SEC_CHECKING;
   p_bcb->con_flags |= BNEP_FLAGS_SETUP_RCVD;
 
-  BNEP_TRACE_EVENT(
-      "BNEP initiating security check for incoming call for uuid %s",
-      p_bcb->src_uuid.ToString().c_str());
+  LOG_DEBUG("BNEP initiating security check for incoming call for uuid %s",
+            p_bcb->src_uuid.ToString().c_str());
   bnep_sec_check_complete(&p_bcb->rem_bda, BT_TRANSPORT_BR_EDR, p_bcb);
 }
 
