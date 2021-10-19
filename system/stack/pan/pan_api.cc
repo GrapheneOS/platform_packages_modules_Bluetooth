@@ -323,13 +323,14 @@ tPAN_RESULT PAN_Connect(const RawAddress& rem_bda, uint8_t src_role,
                    Uuid::From16Bit(dst_uuid), &(pcb->handle), mx_chan_id);
   if (ret != BNEP_SUCCESS) {
     pan_release_pcb(pcb);
-    return ret;
+    return (tPAN_RESULT)ret;
   }
 
   PAN_TRACE_DEBUG("PAN_Connect() current active role set to %d", src_role);
   pan_cb.prv_active_role = pan_cb.active_role;
   pan_cb.active_role = src_role;
   *handle = pcb->handle;
+
   return PAN_SUCCESS;
 }
 
@@ -494,10 +495,10 @@ tPAN_RESULT PAN_WriteBuf(uint16_t handle, const RawAddress& dst,
         BNEP_WriteBuf(pan_cb.pcb[i].handle, dst, p_buf, protocol, &src, ext);
     if (result == BNEP_IGNORE_CMD) {
       PAN_TRACE_DEBUG("PAN ignored data write for PANU connection");
-      return result;
+      return (tPAN_RESULT)result;
     } else if (result != BNEP_SUCCESS) {
       PAN_TRACE_ERROR("PAN failed to write data for the PANU connection");
-      return result;
+      return (tPAN_RESULT)result;
     }
 
     PAN_TRACE_DEBUG("PAN successfully wrote data for the PANU connection");
@@ -521,10 +522,10 @@ tPAN_RESULT PAN_WriteBuf(uint16_t handle, const RawAddress& dst,
   result = BNEP_WriteBuf(pcb->handle, dst, p_buf, protocol, &src, ext);
   if (result == BNEP_IGNORE_CMD) {
     PAN_TRACE_DEBUG("PAN ignored data buf write to PANU");
-    return result;
+    return (tPAN_RESULT)result;
   } else if (result != BNEP_SUCCESS) {
     PAN_TRACE_ERROR("PAN failed to send data buf to the PANU");
-    return result;
+    return (tPAN_RESULT)result;
   }
 
   PAN_TRACE_DEBUG("PAN successfully sent data buf to the PANU");
@@ -551,7 +552,6 @@ tPAN_RESULT PAN_SetProtocolFilters(uint16_t handle, uint16_t num_filters,
                                    uint16_t* p_start_array,
                                    uint16_t* p_end_array) {
   tPAN_CONN* pcb;
-  tPAN_RESULT result;
 
   /* Check if the connection exists */
   pcb = pan_get_pcb_by_handle(handle);
@@ -560,11 +560,11 @@ tPAN_RESULT PAN_SetProtocolFilters(uint16_t handle, uint16_t num_filters,
     return PAN_FAILURE;
   }
 
-  result = BNEP_SetProtocolFilters(pcb->handle, num_filters, p_start_array,
-                                   p_end_array);
+  tBNEP_RESULT result = BNEP_SetProtocolFilters(pcb->handle, num_filters,
+                                                p_start_array, p_end_array);
   if (result != BNEP_SUCCESS) {
     PAN_TRACE_ERROR("PAN failed to set protocol filters for handle %d", handle);
-    return result;
+    return (tPAN_RESULT)result;
   }
 
   PAN_TRACE_API("PAN successfully sent protocol filters for handle %d", handle);
@@ -587,12 +587,10 @@ tPAN_RESULT PAN_SetProtocolFilters(uint16_t handle, uint16_t num_filters,
  *                  PAN_FAILURE    if connection not found or error in setting
  *
  ******************************************************************************/
-tBNEP_RESULT PAN_SetMulticastFilters(uint16_t handle,
-                                     uint16_t num_mcast_filters,
-                                     uint8_t* p_start_array,
-                                     uint8_t* p_end_array) {
+tPAN_RESULT PAN_SetMulticastFilters(uint16_t handle, uint16_t num_mcast_filters,
+                                    uint8_t* p_start_array,
+                                    uint8_t* p_end_array) {
   tPAN_CONN* pcb;
-  tPAN_RESULT result;
 
   /* Check if the connection exists */
   pcb = pan_get_pcb_by_handle(handle);
@@ -601,12 +599,12 @@ tBNEP_RESULT PAN_SetMulticastFilters(uint16_t handle,
     return PAN_FAILURE;
   }
 
-  result = BNEP_SetMulticastFilters(pcb->handle, num_mcast_filters,
-                                    p_start_array, p_end_array);
+  tBNEP_RESULT result = BNEP_SetMulticastFilters(pcb->handle, num_mcast_filters,
+                                                 p_start_array, p_end_array);
   if (result != BNEP_SUCCESS) {
     PAN_TRACE_ERROR("PAN failed to set multicast filters for handle %d",
                     handle);
-    return result;
+    return (tPAN_RESULT)result;
   }
 
   PAN_TRACE_API("PAN successfully sent multicast filters for handle %d",
