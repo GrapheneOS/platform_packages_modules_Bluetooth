@@ -91,6 +91,7 @@ class LeAudioDevice {
         encrypted_(false),
         group_id_(group_id),
         csis_member_(false),
+        audio_directions_(0),
         link_quality_timer(nullptr) {}
   ~LeAudioDevice(void);
 
@@ -186,15 +187,16 @@ class LeAudioDeviceGroup {
   types::AudioLocations snk_audio_locations_;
   types::AudioLocations src_audio_locations_;
 
-  /* The below is used only for Coordinate sets */
-  types::CsisDiscoveryState csis_discovery_state_;
   explicit LeAudioDeviceGroup(const int group_id)
       : group_id_(group_id),
         cig_created_(false),
+        audio_directions_(0),
         transport_latency_mtos_(0),
         transport_latency_stom_(0),
+        active_context_type_(types::LeAudioContextType::UNINITIALIZED),
         target_state_(types::AseState::BTA_LE_AUDIO_ASE_STATE_IDLE),
-        current_state_(types::AseState::BTA_LE_AUDIO_ASE_STATE_IDLE) {
+        current_state_(types::AseState::BTA_LE_AUDIO_ASE_STATE_IDLE),
+        context_type_(types::LeAudioContextType::UNINITIALIZED) {
     stream_conf.valid = false;
     stream_conf.conf = nullptr;
     stream_conf.sink_num_of_devices = 0;
