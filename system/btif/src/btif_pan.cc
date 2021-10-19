@@ -568,9 +568,8 @@ static void bta_pan_callback_transfer(uint16_t event, char* p_param) {
       break;
     case BTA_PAN_SET_ROLE_EVT: {
       int btpan_role = bta_role_to_btpan(p_data->set_role.role);
-      bt_status_t status = p_data->set_role.status == BTA_PAN_SUCCESS
-                               ? BT_STATUS_SUCCESS
-                               : BT_STATUS_FAIL;
+      bt_status_t status =
+          (p_data->set_role.status) ? BT_STATUS_SUCCESS : BT_STATUS_FAIL;
       btpan_control_state_t state =
           btpan_role == 0 ? BTPAN_STATE_DISABLED : BTPAN_STATE_ENABLED;
       callback.control_state_cb(state, btpan_role, status, TAP_IF_NAME);
@@ -602,7 +601,7 @@ static void bta_pan_callback_transfer(uint16_t event, char* p_param) {
 
       LOG_VERBOSE("%s pan connection open status: %d", __func__,
                   p_data->open.status);
-      if (p_data->open.status == BTA_PAN_SUCCESS) {
+      if (p_data->open.status) {
         state = BTPAN_STATE_CONNECTED;
         status = BT_STATUS_SUCCESS;
         btpan_open_conn(conn, p_data);
