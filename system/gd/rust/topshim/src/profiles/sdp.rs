@@ -1,4 +1,5 @@
 use num_traits::cast::{FromPrimitive, ToPrimitive};
+use std::os::raw::c_char;
 use std::sync::{Arc, Mutex};
 use std::vec::Vec;
 
@@ -255,7 +256,7 @@ impl BtSdpRecord {
             type_: hdr.hdr.sdp_type.to_u32().unwrap(),
             uuid: hdr.hdr.uuid,
             service_name_length: hdr.hdr.service_name_length,
-            service_name: hdr.hdr.service_name.as_mut_ptr() as *mut i8,
+            service_name: hdr.hdr.service_name.as_mut_ptr() as *mut c_char,
             rfcomm_channel_number: hdr.hdr.rfcomm_channel_number,
             l2cap_psm: hdr.hdr.l2cap_psm,
             profile_version: hdr.hdr.profile_version,
