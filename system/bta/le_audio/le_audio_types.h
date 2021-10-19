@@ -327,6 +327,7 @@ enum class AudioStreamDataPathState {
 
 /* Context Types */
 enum class LeAudioContextType : uint16_t {
+  UNINITIALIZED = 0x0000,
   UNSPECIFIED = 0x0001,
   CONVERSATIONAL = 0x0002,
   MEDIA = 0x0004,

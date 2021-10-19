@@ -125,6 +125,7 @@ class LeAudioClientImpl : public LeAudioClient {
       : gatt_if_(0),
         callbacks_(callbacks_),
         active_group_id_(bluetooth::groups::kGroupUnknown),
+        stream_request_started_(false),
         current_context_type_(LeAudioContextType::MEDIA),
         audio_sink_ready_to_receive(false),
         audio_source_ready_to_send(false),
