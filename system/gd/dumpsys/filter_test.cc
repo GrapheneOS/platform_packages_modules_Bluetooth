@@ -28,8 +28,6 @@
 #include "test_data/qux.h"
 #include "test_data/root.h"
 
-// TODO(cmanton) fix bundler to split header/code
-//#include "generated_dumpsys_bundled_test_schema.h"
 namespace testing {
 extern const unsigned char* data;
 extern const size_t data_size;
