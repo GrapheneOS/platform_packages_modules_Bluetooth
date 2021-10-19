@@ -353,7 +353,15 @@ public class A2dpSinkService extends ProfileService {
         return true;
     }
 
-    void removeStateMachine(A2dpSinkStateMachine stateMachine) {
+    /**
+     * Remove a device's state machine.
+     *
+     * Called by the state machines when they disconnect.
+     *
+     * Visible for testing so it can be mocked and verified on.
+     */
+    @VisibleForTesting
+    public void removeStateMachine(A2dpSinkStateMachine stateMachine) {
         mDeviceStateMap.remove(stateMachine.getDevice());
     }
 

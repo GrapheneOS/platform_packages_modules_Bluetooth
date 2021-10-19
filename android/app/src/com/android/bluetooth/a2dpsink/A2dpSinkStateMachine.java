@@ -86,10 +86,6 @@ public class A2dpSinkStateMachine extends StateMachine {
         setInitialState(mDisconnected);
     }
 
-    protected String getConnectionStateChangedIntent() {
-        return BluetoothA2dpSink.ACTION_CONNECTION_STATE_CHANGED;
-    }
-
     /**
      * Get the current connection state
      *
