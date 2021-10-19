@@ -38,13 +38,13 @@ constexpr bool BTA_PAN_FAIL = false;
 typedef bool tBTA_PAN_STATUS;
 
 /* PAN Callback events */
-#define BTA_PAN_ENABLE_EVT 0   /* PAN service is enabled. */
-#define BTA_PAN_SET_ROLE_EVT 1 /* PAN roles registered */
-#define BTA_PAN_OPENING_EVT 2  /* Connection is being opened. */
-#define BTA_PAN_OPEN_EVT 3     /* Connection has been opened. */
-#define BTA_PAN_CLOSE_EVT 4    /* Connection has been closed. */
-
-typedef uint8_t tBTA_PAN_EVT;
+typedef enum : uint8_t {
+  BTA_PAN_ENABLE_EVT = 0,   /* PAN service is enabled. */
+  BTA_PAN_SET_ROLE_EVT = 1, /* PAN roles registered */
+  BTA_PAN_OPENING_EVT = 2,  /* Connection is being opened. */
+  BTA_PAN_OPEN_EVT = 3,     /* Connection has been opened. */
+  BTA_PAN_CLOSE_EVT = 4,    /* Connection has been closed. */
+} tBTA_PAN_EVT;
 
 /* pan roles */
 #define BTA_PAN_ROLE_PANU PAN_ROLE_CLIENT
