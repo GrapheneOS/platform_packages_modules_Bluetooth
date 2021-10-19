@@ -20,6 +20,9 @@ namespace bluetooth {
 namespace hci {
 namespace acl_manager {
 
+constexpr size_t kMaxQueuedPacketsPerConnection = 10;
+constexpr size_t kL2capBasicFrameHeaderSize = 4;
+
 namespace {
 class PacketViewForRecombination : public packet::PacketView<kLittleEndian> {
  public:
@@ -28,9 +31,6 @@ class PacketViewForRecombination : public packet::PacketView<kLittleEndian> {
     Append(to_append);
   }
 };
-
-constexpr size_t kMaxQueuedPacketsPerConnection = 10;
-constexpr int kL2capBasicFrameHeaderSize = 4;
 
 // Per spec 5.1 Vol 2 Part B 5.3, ACL link shall carry L2CAP data. Therefore, an ACL packet shall contain L2CAP PDU.
 // This function returns the PDU size of the L2CAP data if it's a starting packet. Returns 0 if it's invalid.
