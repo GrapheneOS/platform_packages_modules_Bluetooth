@@ -9,6 +9,7 @@ use num_traits::cast::{FromPrimitive, ToPrimitive};
 use std::cmp;
 use std::fmt::{Debug, Formatter, Result};
 use std::mem;
+use std::os::raw::c_char;
 use std::sync::{Arc, Mutex};
 use std::vec::Vec;
 use topshim_macros::cb_variant;
@@ -408,7 +409,7 @@ impl BluetoothProperty {
                 record.channel = sr.channel;
                 let name_len = len - mem::size_of::<BtServiceRecord>();
                 record.name.copy_from_slice(
-                    &(sr.name.as_bytes().iter().map(|x| *x as i8).collect::<Vec<i8>>())
+                    &(sr.name.as_bytes().iter().map(|x| *x as c_char).collect::<Vec<c_char>>())
                         [0..name_len],
                 );
             }
