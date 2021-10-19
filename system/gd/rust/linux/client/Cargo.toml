@@ -27,3 +27,4 @@ pkg-config = "0.3.19"
 [[bin]]
 name = "btclient"
 path = "src/main.rs"
+build = "build.rs"
