@@ -30,7 +30,6 @@
 #include "gd/neighbor/page.h"
 #include "gd/os/handler.h"
 #include "gd/security/security_module.h"
-#include "gd/shim/dumpsys.h"
 #include "gd/storage/storage_module.h"
 #include "main/shim/entry.h"
 #include "main/shim/stack.h"
@@ -45,6 +44,8 @@ os::Handler* mock_gd_shim_handler_{nullptr};
 
 }  // namespace testing
 }  // namespace hci
+
+class Dumpsys;
 
 namespace shim {
 
