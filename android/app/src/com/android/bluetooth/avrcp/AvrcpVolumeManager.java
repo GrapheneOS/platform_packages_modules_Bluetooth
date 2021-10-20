@@ -22,6 +22,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.media.AudioDeviceAttributes;
 import android.media.AudioDeviceCallback;
 import android.media.AudioDeviceInfo;
 import android.media.AudioManager;
@@ -76,7 +77,11 @@ class AvrcpVolumeManager extends AudioDeviceCallback {
     private void switchVolumeDevice(@NonNull BluetoothDevice device) {
         // Inform the audio manager that the device has changed
         d("switchVolumeDevice: Set Absolute volume support to " + mDeviceMap.get(device));
-        mAudioManager.avrcpSupportsAbsoluteVolume(device.getAddress(), mDeviceMap.get(device));
+        mAudioManager.setDeviceVolumeBehavior(new AudioDeviceAttributes(
+                    AudioDeviceAttributes.ROLE_OUTPUT, AudioDeviceInfo.TYPE_BLUETOOTH_A2DP,
+                    device.getAddress()),
+                 mDeviceMap.get(device) ? AudioManager.DEVICE_VOLUME_BEHAVIOR_ABSOLUTE
+                 : AudioManager.DEVICE_VOLUME_BEHAVIOR_VARIABLE);
 
         // Get the current system volume and try to get the preference volume
         int savedVolume = getVolume(device, sNewDeviceVolume);
