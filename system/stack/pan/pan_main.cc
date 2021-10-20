@@ -295,9 +295,9 @@ void pan_connect_state_cb(uint16_t handle,
   if (result != BNEP_SUCCESS) {
     /* Inform the application that connection is down */
     if (pan_cb.pan_conn_state_cb)
-      (*pan_cb.pan_conn_state_cb)(pcb->handle, pcb->rem_bda, result,
-                                  is_role_change, PAN_ROLE_INACTIVE,
-                                  PAN_ROLE_INACTIVE);
+      (*pan_cb.pan_conn_state_cb)(pcb->handle, pcb->rem_bda,
+                                  (tPAN_RESULT)result, is_role_change,
+                                  PAN_ROLE_INACTIVE, PAN_ROLE_INACTIVE);
 
     /* Check if this failure is for role change only */
     if (pcb->con_state != PAN_STATE_CONNECTED &&
@@ -476,8 +476,9 @@ void pan_data_buf_ind_cb(uint16_t handle, const RawAddress& src,
  * Returns          none
  *
  ******************************************************************************/
-void pan_tx_data_flow_cb(uint16_t handle, tBNEP_RESULT event) {
-  if (pan_cb.pan_tx_data_flow_cb) (*pan_cb.pan_tx_data_flow_cb)(handle, event);
+void pan_tx_data_flow_cb(uint16_t handle, tBNEP_RESULT result) {
+  if (pan_cb.pan_tx_data_flow_cb)
+    (*pan_cb.pan_tx_data_flow_cb)(handle, (tPAN_RESULT)result);
 
   return;
 }
@@ -512,8 +513,8 @@ void pan_proto_filt_ind_cb(uint16_t handle, bool indication,
       handle, indication, result, num_filters);
 
   if (pan_cb.pan_pfilt_ind_cb)
-    (*pan_cb.pan_pfilt_ind_cb)(handle, indication, result, num_filters,
-                               p_filters);
+    (*pan_cb.pan_pfilt_ind_cb)(handle, indication, (tPAN_RESULT)result,
+                               num_filters, p_filters);
 }
 
 /*******************************************************************************
@@ -546,6 +547,6 @@ void pan_mcast_filt_ind_cb(uint16_t handle, bool indication,
       handle, indication, result, num_filters);
 
   if (pan_cb.pan_mfilt_ind_cb)
-    (*pan_cb.pan_mfilt_ind_cb)(handle, indication, result, num_filters,
-                               p_filters);
+    (*pan_cb.pan_mfilt_ind_cb)(handle, indication, (tPAN_RESULT)result,
+                               num_filters, p_filters);
 }
