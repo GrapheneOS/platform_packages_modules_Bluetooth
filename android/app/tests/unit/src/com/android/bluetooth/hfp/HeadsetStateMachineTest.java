@@ -17,6 +17,7 @@
 package com.android.bluetooth.hfp;
 
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
+
 import static org.mockito.Mockito.*;
 
 import android.bluetooth.BluetoothAdapter;
@@ -69,6 +70,7 @@ public class HeadsetStateMachineTest {
     private static final int CONNECT_TIMEOUT_TEST_WAIT_MILLIS = CONNECT_TIMEOUT_TEST_MILLIS * 3 / 2;
     private static final int ASYNC_CALL_TIMEOUT_MILLIS = 250;
     private static final String TEST_PHONE_NUMBER = "1234567890";
+    private static final int MAX_RETRY_DISCONNECT_AUDIO = 3;
     private Context mTargetContext;
     private BluetoothAdapter mAdapter;
     private HandlerThread mHandlerThread;
@@ -742,23 +744,50 @@ public class HeadsetStateMachineTest {
     }
 
     /**
-     * Test state transition from AudioDisconnecting to Connected state via
-     * CONNECT_TIMEOUT message
+     * Test state transition from AudioDisconnecting to AudioOn state via CONNECT_TIMEOUT message
+     * until retry count is reached, then test transition to Disconnecting state.
      */
     @Test
-    public void testStateTransition_AudioDisconnectingToConnected_Timeout() {
+    public void testStateTransition_AudioDisconnectingToAudioOnAndDisconnecting_Timeout() {
         int numBroadcastsSent = setUpAudioDisconnectingState();
         // Wait for connection to timeout
         numBroadcastsSent++;
-        verify(mHeadsetService, timeout(CONNECT_TIMEOUT_TEST_WAIT_MILLIS).times(
-                numBroadcastsSent)).sendBroadcastAsUser(mIntentArgument.capture(),
-                eq(UserHandle.ALL), eq(BLUETOOTH_CONNECT),
-                any(Bundle.class));
-        HeadsetTestUtils.verifyAudioStateBroadcast(mTestDevice,
-                BluetoothHeadset.STATE_AUDIO_DISCONNECTED, BluetoothHeadset.STATE_AUDIO_CONNECTED,
-                mIntentArgument.getValue());
-        Assert.assertThat(mHeadsetStateMachine.getCurrentState(),
-                IsInstanceOf.instanceOf(HeadsetStateMachine.Connected.class));
+        for (int i = 0; i <= MAX_RETRY_DISCONNECT_AUDIO; i++) {
+            if (i > 0) { // Skip first AUDIO_DISCONNECTING init as it was setup before the loop
+                mHeadsetStateMachine.sendMessage(HeadsetStateMachine.DISCONNECT_AUDIO, mTestDevice);
+                // No new broadcast due to lack of AUDIO_DISCONNECTING intent variable
+                verify(mHeadsetService, after(ASYNC_CALL_TIMEOUT_MILLIS)
+                        .times(numBroadcastsSent)).sendBroadcastAsUser(
+                        any(Intent.class), eq(UserHandle.ALL), eq(BLUETOOTH_CONNECT),
+                        any(Bundle.class));
+                Assert.assertThat(mHeadsetStateMachine.getCurrentState(),
+                        IsInstanceOf.instanceOf(HeadsetStateMachine.AudioDisconnecting.class));
+                if (i == MAX_RETRY_DISCONNECT_AUDIO) {
+                    // Increment twice numBroadcastsSent as DISCONNECT message is added on max retry
+                    numBroadcastsSent += 2;
+                } else {
+                    numBroadcastsSent++;
+                }
+            }
+            verify(mHeadsetService, timeout(CONNECT_TIMEOUT_TEST_WAIT_MILLIS).times(
+                    numBroadcastsSent)).sendBroadcastAsUser(mIntentArgument.capture(),
+                    eq(UserHandle.ALL), eq(BLUETOOTH_CONNECT), any(Bundle.class));
+            if (i < MAX_RETRY_DISCONNECT_AUDIO) { // Test if state is AudioOn before max retry
+                HeadsetTestUtils.verifyAudioStateBroadcast(mTestDevice,
+                        BluetoothHeadset.STATE_AUDIO_CONNECTED,
+                        BluetoothHeadset.STATE_AUDIO_CONNECTED,
+                        mIntentArgument.getValue());
+                Assert.assertThat(mHeadsetStateMachine.getCurrentState(),
+                        IsInstanceOf.instanceOf(HeadsetStateMachine.AudioOn.class));
+            } else { // Max retry count reached, test Disconnecting state
+                HeadsetTestUtils.verifyConnectionStateBroadcast(mTestDevice,
+                        BluetoothHeadset.STATE_DISCONNECTING,
+                        BluetoothHeadset.STATE_CONNECTED,
+                        mIntentArgument.getValue());
+                Assert.assertThat(mHeadsetStateMachine.getCurrentState(),
+                        IsInstanceOf.instanceOf(HeadsetStateMachine.Disconnecting.class));
+            }
+        }
     }
 
     /**
