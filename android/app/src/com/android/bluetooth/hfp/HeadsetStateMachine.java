@@ -114,6 +114,10 @@ public class HeadsetStateMachine extends StateMachine {
     // NOTE: the value is not "final" - it is modified in the unit tests
     @VisibleForTesting static int sConnectTimeoutMs = 30000;
 
+    // Number of times we should retry disconnecting audio before
+    // disconnecting the device.
+    private static final int MAX_RETRY_DISCONNECT_AUDIO = 3;
+
     private static final HeadsetAgIndicatorEnableState DEFAULT_AG_INDICATOR_ENABLE_STATE =
             new HeadsetAgIndicatorEnableState(true, true, true, true);
 
@@ -149,6 +153,8 @@ public class HeadsetStateMachine extends StateMachine {
     private final AtPhonebook mPhonebook;
     // HSP specific
     private boolean mNeedDialingOutReply;
+    // Audio disconnect timeout retry count
+    private int mAudioDisconnectRetry = 0;
 
     // Keys are AT commands, and values are the company IDs.
     private static final Map<String, Integer> VENDOR_SPECIFIC_AT_COMMAND_COMPANY_ID;
@@ -1042,6 +1048,10 @@ public class HeadsetStateMachine extends StateMachine {
                 // state. This is to prevent auto connect attempts from disconnecting
                 // devices that previously successfully connected.
                 removeDeferredMessages(CONNECT);
+            } else if (mPrevState == mAudioDisconnecting) {
+                // Reset audio disconnecting retry count. Either the disconnection was successful
+                // or the retry count reached MAX_RETRY_DISCONNECT_AUDIO.
+                mAudioDisconnectRetry = 0;
             }
             broadcastStateTransitions();
         }
@@ -1283,7 +1293,7 @@ public class HeadsetStateMachine extends StateMachine {
                         stateLogW("CONNECT_AUDIO device is not connected " + device);
                         break;
                     }
-                    stateLogW("CONNECT_AUDIO device auido is already connected " + device);
+                    stateLogW("CONNECT_AUDIO device audio is already connected " + device);
                     break;
                 }
                 case DISCONNECT_AUDIO: {
@@ -1385,8 +1395,18 @@ public class HeadsetStateMachine extends StateMachine {
                         stateLogW("CONNECT_TIMEOUT for unknown device " + device);
                         break;
                     }
-                    stateLogW("CONNECT_TIMEOUT");
-                    transitionTo(mConnected);
+                    if (mAudioDisconnectRetry == MAX_RETRY_DISCONNECT_AUDIO) {
+                        stateLogW("CONNECT_TIMEOUT: Disconnecting device");
+                        // Restoring state to Connected with message DISCONNECT
+                        deferMessage(obtainMessage(DISCONNECT, mDevice));
+                        transitionTo(mConnected);
+                    } else {
+                        mAudioDisconnectRetry += 1;
+                        stateLogW("CONNECT_TIMEOUT: retrying "
+                                + (MAX_RETRY_DISCONNECT_AUDIO - mAudioDisconnectRetry)
+                                + " more time(s)");
+                        transitionTo(mAudioOn);
+                    }
                     break;
                 }
                 default:
@@ -1407,6 +1427,8 @@ public class HeadsetStateMachine extends StateMachine {
                     break;
                 case HeadsetHalConstants.AUDIO_STATE_CONNECTED:
                     stateLogW("processAudioEvent: audio disconnection failed");
+                    // Audio connected, resetting disconnect retry.
+                    mAudioDisconnectRetry = 0;
                     transitionTo(mAudioOn);
                     break;
                 case HeadsetHalConstants.AUDIO_STATE_CONNECTING:
