@@ -1513,7 +1513,7 @@ void DualModeController::LinkKeyRequestReply(CommandView command) {
   auto key = command_view.GetLinkKey();
   auto status = link_layer_controller_.LinkKeyRequestReply(addr, key);
   auto packet = bluetooth::hci::LinkKeyRequestReplyCompleteBuilder::Create(
-      kNumCommandPackets, status);
+      kNumCommandPackets, status, addr);
   send_event_(std::move(packet));
 }
 
