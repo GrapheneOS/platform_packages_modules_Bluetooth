@@ -35,7 +35,7 @@ using ::bluetooth::hci::OpCode;
 
 class LinkLayerController {
  public:
-  static constexpr size_t kIrk_size = 16;
+  static constexpr size_t kIrkSize = 16;
 
   LinkLayerController(const DeviceProperties& properties) : properties_(properties) {}
   ErrorCode SendCommandToRemoteByAddress(
@@ -176,8 +176,8 @@ class LinkLayerController {
   bool ResolvingListBusy();
   ErrorCode LeResolvingListClear();
   ErrorCode LeResolvingListAddDevice(Address addr, uint8_t addr_type,
-                                     std::array<uint8_t, kIrk_size> peerIrk,
-                                     std::array<uint8_t, kIrk_size> localIrk);
+                                     std::array<uint8_t, kIrkSize> peerIrk,
+                                     std::array<uint8_t, kIrkSize> localIrk);
   ErrorCode LeResolvingListRemoveDevice(Address addr, uint8_t addr_type);
   bool LeResolvingListContainsDevice(Address addr, uint8_t addr_type);
   bool LeResolvingListFull();
@@ -445,9 +445,13 @@ class LinkLayerController {
   std::vector<uint8_t> le_event_mask_;
 
   std::vector<std::tuple<Address, uint8_t>> le_connect_list_;
-  std::vector<std::tuple<Address, uint8_t, std::array<uint8_t, kIrk_size>,
-                         std::array<uint8_t, kIrk_size>>>
-      le_resolving_list_;
+  struct ResolvingListEntry {
+    Address address;
+    uint8_t address_type;
+    std::array<uint8_t, kIrkSize> peer_irk;
+    std::array<uint8_t, kIrkSize> local_irk;
+  };
+  std::vector<ResolvingListEntry> le_resolving_list_;
 
   std::array<LeAdvertiser, 7> advertisers_;
 
