@@ -364,7 +364,7 @@ public class BluetoothPbapVcardManager {
                 contactCursor.moveToFirst();
                 while (!contactCursor.isAfterLast()) {
                     String vcard = composer.buildVCard(RawContactsEntity.queryRawContactEntity(
-                                mContext, contactCursor.getLong(idColumn)));
+                                mResolver, contactCursor.getLong(idColumn)));
                     if (!contactCursor.moveToNext()) {
                         Log.e(TAG, "Cursor#moveToNext() returned false");
                     }
@@ -758,7 +758,7 @@ public class BluetoothPbapVcardManager {
                     break;
                 }
                 String vcard = composer.buildVCard(RawContactsEntity.queryRawContactEntity(
-                            mContext, contactIdCursor.getLong(idColumn)));
+                            mResolver, contactIdCursor.getLong(idColumn)));
                 if (!contactIdCursor.moveToNext()) {
                     Log.e(TAG, "Cursor#moveToNext() returned false");
                 }
@@ -863,7 +863,7 @@ public class BluetoothPbapVcardManager {
                     break;
                 }
                 String vcard = composer.buildVCard(RawContactsEntity.queryRawContactEntity(
-                            mContext, contactIdCursor.getLong(idColumn)));
+                            mResolver, contactIdCursor.getLong(idColumn)));
                 if (!contactIdCursor.moveToNext()) {
                     Log.e(TAG, "Cursor#moveToNext() returned false");
                 }
