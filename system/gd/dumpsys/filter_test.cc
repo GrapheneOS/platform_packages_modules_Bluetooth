@@ -14,25 +14,20 @@
  * limitations under the License.
  */
 
-#include <list>
-#include <queue>
-
 #include "dumpsys/filter.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <list>
+#include <queue>
+
+#include "dumpsys/dumpsys_test_data.h"
 #include "test_data/bar.h"
 #include "test_data/baz.h"
 #include "test_data/foo.h"
 #include "test_data/qux.h"
 #include "test_data/root.h"
-
-namespace testing {
-extern const unsigned char* data;
-extern const size_t data_size;
-const std::string& GetBundledSchemaData();
-}  // namespace testing
 
 namespace testing {
 
