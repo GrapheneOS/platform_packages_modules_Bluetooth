@@ -46,6 +46,7 @@ class CsisClient {
       const RawAddress& addr,
       bluetooth::Uuid uuid = bluetooth::groups::kGenericContextUuid) = 0;
   virtual void LockGroup(int group_id, bool lock, CsisLockCb cb) = 0;
+  virtual std::vector<RawAddress> GetDeviceList(int group_id) = 0;
 };
 }  // namespace csis
 }  // namespace bluetooth
