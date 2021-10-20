@@ -165,7 +165,7 @@ extern const module_t bte_logmsg_module;
 extern const module_t btif_config_module;
 extern const module_t btsnoop_module;
 extern const module_t bt_utils_module;
-extern const module_t controller_module;
+extern const module_t gd_controller_module;
 extern const module_t gd_idle_module;
 extern const module_t gd_shim_module;
 extern const module_t hci_module;
@@ -183,6 +183,7 @@ const struct module_lookup module_table[] = {
     {BTIF_CONFIG_MODULE, &btif_config_module},
     {BTSNOOP_MODULE, &btsnoop_module},
     {BT_UTILS_MODULE, &bt_utils_module},
+    {GD_CONTROLLER_MODULE, &gd_controller_module},
     {GD_IDLE_MODULE, &gd_idle_module},
     {GD_SHIM_MODULE, &gd_shim_module},
     {INTEROP_MODULE, &interop_module},
@@ -200,7 +201,7 @@ inline const module_t* get_local_module(const char* name) {
     }
   }
 
-  abort();
+  LOG_ALWAYS_FATAL("Cannot find module %s, aborting", name);
   return nullptr;
 }
 #else
