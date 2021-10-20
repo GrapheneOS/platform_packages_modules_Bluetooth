@@ -543,6 +543,7 @@ std::optional<AudioContexts> LeAudioDeviceGroup::UpdateActiveContextsMap(
         active_contexts_has_been_modified = true;
       } else {
         /* Configuration is the same */
+        contexts |= type_set;
         continue;
       }
     }

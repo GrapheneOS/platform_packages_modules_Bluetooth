@@ -927,9 +927,20 @@ class UnicastTestNoInit : public Test {
 
   void UpdateMetadata(audio_usage_t usage, audio_content_type_t content_type) {
     std::promise<void> do_metadata_update_promise;
+
+    struct playback_track_metadata tracks_[2] = {
+        {AUDIO_USAGE_UNKNOWN, AUDIO_CONTENT_TYPE_UNKNOWN, 0},
+        {AUDIO_USAGE_UNKNOWN, AUDIO_CONTENT_TYPE_UNKNOWN, 0}};
+
+    source_metadata_t source_metadata = {.track_count = 1,
+                                         .tracks = &tracks_[0]};
+
+    tracks_[0].usage = usage;
+    tracks_[0].content_type = content_type;
+
     auto do_metadata_update_future = do_metadata_update_promise.get_future();
     audio_sink_receiver_->OnAudioMetadataUpdate(
-        std::move(do_metadata_update_promise), usage, content_type);
+        std::move(do_metadata_update_promise), source_metadata);
     do_metadata_update_future.wait();
   }
 

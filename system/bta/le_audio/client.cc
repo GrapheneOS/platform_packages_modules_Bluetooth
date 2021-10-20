@@ -2308,51 +2308,73 @@ class LeAudioClientImpl : public LeAudioClient {
     }
   }
 
-  void OnAudioMetadataUpdate(audio_usage_t usage,
-                             audio_content_type_t content_type) {
+  void OnAudioMetadataUpdate(const source_metadata_t& source_metadata) {
+    auto tracks = source_metadata.tracks;
+    auto track_count = source_metadata.track_count;
+
+    audio_usage_t usage = tracks->usage;
+    audio_content_type_t content_type = tracks->content_type;
+
+    LeAudioContextType new_context = LeAudioContextType::RFU;
+
+    while (track_count) {
+      DLOG(INFO) << __func__ << ": usage=" << tracks->usage
+                 << ", content_type=" << tracks->content_type
+                 << ", gain=" << tracks->gain;
+
+      if (tracks->content_type == AUDIO_CONTENT_TYPE_SPEECH ||
+          tracks->usage == AUDIO_USAGE_VOICE_COMMUNICATION) {
+        new_context = LeAudioContextType::CONVERSATIONAL;
+        break;
+      }
+
+      --track_count;
+      ++tracks;
+    }
+
     LOG(INFO) << __func__ << ", content_type = "
               << audio_content_type_to_string(content_type)
               << ", usage = " << audio_usage_to_string(usage);
 
-    LeAudioContextType new_context = LeAudioContextType::RFU;
-
-    switch (content_type) {
-      case AUDIO_CONTENT_TYPE_SPEECH:
-        new_context = LeAudioContextType::CONVERSATIONAL;
-        break;
-      case AUDIO_CONTENT_TYPE_MUSIC:
-      case AUDIO_CONTENT_TYPE_MOVIE:
-      case AUDIO_CONTENT_TYPE_SONIFICATION:
-        new_context = LeAudioContextType::MEDIA;
-        break;
-      default:
-        break;
-    }
-
-    /* Context is not clear, consider also usage of stream */
     if (new_context == LeAudioContextType::RFU) {
-      switch (usage) {
-        case AUDIO_USAGE_VOICE_COMMUNICATION:
+      switch (content_type) {
+        case AUDIO_CONTENT_TYPE_SPEECH:
           new_context = LeAudioContextType::CONVERSATIONAL;
           break;
-        case AUDIO_USAGE_GAME:
-          new_context = LeAudioContextType::GAME;
-          break;
-        case AUDIO_USAGE_NOTIFICATION:
-          new_context = LeAudioContextType::NOTIFICATIONS;
-          break;
-        case AUDIO_USAGE_NOTIFICATION_TELEPHONY_RINGTONE:
-          new_context = LeAudioContextType::RINGTONE;
-          break;
-        case AUDIO_USAGE_ALARM:
-          new_context = LeAudioContextType::ALERTS;
-          break;
-        case AUDIO_USAGE_EMERGENCY:
-          new_context = LeAudioContextType::EMERGENCYALARM;
-          break;
-        default:
+        case AUDIO_CONTENT_TYPE_MUSIC:
+        case AUDIO_CONTENT_TYPE_MOVIE:
+        case AUDIO_CONTENT_TYPE_SONIFICATION:
           new_context = LeAudioContextType::MEDIA;
           break;
+        default:
+          break;
+      }
+
+      /* Context is not clear, consider also usage of stream */
+      if (new_context == LeAudioContextType::RFU) {
+        switch (usage) {
+          case AUDIO_USAGE_VOICE_COMMUNICATION:
+            new_context = LeAudioContextType::CONVERSATIONAL;
+            break;
+          case AUDIO_USAGE_GAME:
+            new_context = LeAudioContextType::GAME;
+            break;
+          case AUDIO_USAGE_NOTIFICATION:
+            new_context = LeAudioContextType::NOTIFICATIONS;
+            break;
+          case AUDIO_USAGE_NOTIFICATION_TELEPHONY_RINGTONE:
+            new_context = LeAudioContextType::RINGTONE;
+            break;
+          case AUDIO_USAGE_ALARM:
+            new_context = LeAudioContextType::ALERTS;
+            break;
+          case AUDIO_USAGE_EMERGENCY:
+            new_context = LeAudioContextType::EMERGENCYALARM;
+            break;
+          default:
+            new_context = LeAudioContextType::MEDIA;
+            break;
+        }
       }
     }
 
@@ -2711,10 +2733,10 @@ class LeAudioClientAudioSinkReceiverImpl
     do_resume_promise.set_value();
   }
 
-  void OnAudioMetadataUpdate(std::promise<void> do_metadata_update_promise,
-                             audio_usage_t usage,
-                             audio_content_type_t content_type) override {
-    if (instance) instance->OnAudioMetadataUpdate(usage, content_type);
+  void OnAudioMetadataUpdate(
+      std::promise<void> do_metadata_update_promise,
+      const source_metadata_t& source_metadata) override {
+    if (instance) instance->OnAudioMetadataUpdate(source_metadata);
     do_metadata_update_promise.set_value();
   }
 };
