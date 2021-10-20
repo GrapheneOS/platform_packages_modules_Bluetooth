@@ -31,6 +31,8 @@ class MockCsisClient : public bluetooth::csis::CsisClient {
   MOCK_METHOD((void), LockGroup,
               (const int group_id, bool lock, bluetooth::csis::CsisLockCb cb),
               (override));
+  MOCK_METHOD((std::vector<RawAddress>), GetDeviceList, (int group_id),
+              (override));
 
   /* Called from static methods */
   MOCK_METHOD((void), Initialize,
