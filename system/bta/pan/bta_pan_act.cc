@@ -214,13 +214,11 @@ static void bta_pan_data_buf_ind_cback(uint16_t handle, const RawAddress& src,
  *
  ******************************************************************************/
 static void bta_pan_pfilt_ind_cback(uint16_t handle, bool indication,
-                                    tBNEP_RESULT result, uint16_t num_filters,
+                                    tPAN_RESULT result, uint16_t num_filters,
                                     uint8_t* p_filters) {
-  bta_pan_co_pfilt_ind(
-      handle, indication,
-      (tBTA_PAN_STATUS)((result == BNEP_SUCCESS) ? BTA_PAN_SUCCESS
-                                                 : BTA_PAN_FAIL),
-      num_filters, p_filters);
+  bta_pan_co_pfilt_ind(handle, indication,
+                       (result == PAN_SUCCESS) ? BTA_PAN_SUCCESS : BTA_PAN_FAIL,
+                       num_filters, p_filters);
 }
 
 /*******************************************************************************
@@ -234,13 +232,11 @@ static void bta_pan_pfilt_ind_cback(uint16_t handle, bool indication,
  *
  ******************************************************************************/
 static void bta_pan_mfilt_ind_cback(uint16_t handle, bool indication,
-                                    tBNEP_RESULT result, uint16_t num_mfilters,
+                                    tPAN_RESULT result, uint16_t num_mfilters,
                                     uint8_t* p_mfilters) {
-  bta_pan_co_mfilt_ind(
-      handle, indication,
-      (tBTA_PAN_STATUS)((result == BNEP_SUCCESS) ? BTA_PAN_SUCCESS
-                                                 : BTA_PAN_FAIL),
-      num_mfilters, p_mfilters);
+  bta_pan_co_mfilt_ind(handle, indication,
+                       (result == PAN_SUCCESS) ? BTA_PAN_SUCCESS : BTA_PAN_FAIL,
+                       num_mfilters, p_mfilters);
 }
 
 /*******************************************************************************

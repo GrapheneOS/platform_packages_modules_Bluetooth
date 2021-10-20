@@ -42,44 +42,43 @@ extern std::map<std::string, int> mock_function_count_map;
 #define UNUSED_ATTR
 #endif
 
-tBNEP_RESULT PAN_SetMulticastFilters(uint16_t handle,
-                                     uint16_t num_mcast_filters,
-                                     uint8_t* p_start_array,
-                                     uint8_t* p_end_array) {
+tPAN_RESULT PAN_SetMulticastFilters(uint16_t handle, uint16_t num_mcast_filters,
+                                    uint8_t* p_start_array,
+                                    uint8_t* p_end_array) {
   mock_function_count_map[__func__]++;
-  return 0;
+  return PAN_SUCCESS;
 }
 tPAN_RESULT PAN_Connect(const RawAddress& rem_bda, uint8_t src_role,
                         uint8_t dst_role, uint16_t* handle) {
   mock_function_count_map[__func__]++;
-  return 0;
+  return PAN_SUCCESS;
 }
 tPAN_RESULT PAN_Disconnect(uint16_t handle) {
   mock_function_count_map[__func__]++;
-  return 0;
+  return PAN_SUCCESS;
 }
 tPAN_RESULT PAN_SetProtocolFilters(uint16_t handle, uint16_t num_filters,
                                    uint16_t* p_start_array,
                                    uint16_t* p_end_array) {
   mock_function_count_map[__func__]++;
-  return 0;
+  return PAN_SUCCESS;
 }
 tPAN_RESULT PAN_SetRole(uint8_t role, const char* p_user_name,
                         const char* p_nap_name) {
   mock_function_count_map[__func__]++;
-  return 0;
+  return PAN_SUCCESS;
 }
 tPAN_RESULT PAN_Write(uint16_t handle, const RawAddress& dst,
                       const RawAddress& src, uint16_t protocol, uint8_t* p_data,
                       uint16_t len, bool ext) {
   mock_function_count_map[__func__]++;
-  return 0;
+  return PAN_SUCCESS;
 }
 tPAN_RESULT PAN_WriteBuf(uint16_t handle, const RawAddress& dst,
                          const RawAddress& src, uint16_t protocol,
                          BT_HDR* p_buf, bool ext) {
   mock_function_count_map[__func__]++;
-  return 0;
+  return PAN_SUCCESS;
 }
 uint8_t PAN_SetTraceLevel(uint8_t new_level) {
   mock_function_count_map[__func__]++;
