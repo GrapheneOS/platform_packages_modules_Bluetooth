@@ -15,8 +15,10 @@
  */
 
 #include "dumpsys/reflection_schema.h"
+
 #include <string>
-#include "bundler_generated.h"
+
+#include "bundler_schema_generated.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 #include "os/log.h"

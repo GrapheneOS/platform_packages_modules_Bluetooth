@@ -15,11 +15,12 @@
  */
 #define LOG_TAG "bt_gd_shim"
 
+#include "dumpsys/dumpsys.h"
+
 #include <future>
 #include <string>
 
 #include "dumpsys/filter.h"
-#include "generated_dumpsys_bundled_schema.h"
 #include "module.h"
 #include "os/log.h"
 #include "os/system_properties.h"

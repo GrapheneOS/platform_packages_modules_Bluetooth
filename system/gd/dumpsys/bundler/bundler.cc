@@ -13,17 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "bundler.h"
+
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+
 #include <cassert>
 #include <list>
 #include <map>
 #include <vector>
 
-#include "bundler.h"
-#include "bundler_generated.h"
+#include "bundler_schema_generated.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
 
@@ -145,24 +147,11 @@ void WriteHeaderFile(FILE* fp, const uint8_t* data, size_t data_len) {
   fprintf(
       fp,
       "// Generated file by bluetooth_flatbuffer bundler\n"
-      "#pragma once\n"
-      "#include <sys/types.h>\n"
       "#include <string>\n");
   for_each(
       namespaces.begin(), namespaces.end(), [fp](const std::string& s) { fprintf(fp, "namespace %s {\n", s.c_str()); });
-  fprintf(
-      fp,
-      "extern const unsigned char* data;\n"
-      "extern const size_t data_size;\n"
-      "const std::string& GetBundledSchemaData();\n");
-  for_each(namespaces.crbegin(), namespaces.crend(), [fp](const std::string& s) {
-    fprintf(fp, "}  // namespace %s\n", s.c_str());
-  });
-  fprintf(
-      fp,
-      "namespace {\n"
-      "const unsigned char %sdata_[] = {\n",
-      namespace_prefix.c_str());
+  fprintf(fp, "extern const std::string& GetBundledSchemaData();\n");
+  fprintf(fp, "const unsigned char %sdata_[%zu] = {\n", namespace_prefix.c_str(), data_len);
 
   for (auto i = 0; i < data_len; i++) {
     fprintf(fp, " 0x%02x", data[i]);
@@ -181,14 +170,11 @@ void WriteHeaderFile(FILE* fp, const uint8_t* data, size_t data_len) {
       namespace_prefix.c_str(),
       namespace_prefix.c_str(),
       namespace_prefix.c_str());
-  fprintf(fp, "}  // namespace\n");
-  fprintf(fp, "const unsigned char* %s::data = %sdata_;\n", opts.ns_name, namespace_prefix.c_str());
-  fprintf(fp, "const size_t %s::data_size = %zu;\n", opts.ns_name, data_len);
-  fprintf(
-      fp,
-      "const std::string& %s::GetBundledSchemaData() { return %sstring_data_; }\n",
-      opts.ns_name,
-      namespace_prefix.c_str());
+  fprintf(fp, "const std::string& GetBundledSchemaData() { return %sstring_data_; }\n", namespace_prefix.c_str());
+
+  for_each(namespaces.crbegin(), namespaces.crend(), [fp](const std::string& s) {
+    fprintf(fp, "}  // namespace %s\n", s.c_str());
+  });
 }
 
 int ReadBundledSchema() {
@@ -264,7 +250,7 @@ int WriteBundledSchema() {
   }
 
   std::string header(opts.gen);
-  header += ("/" + std::string(opts.filename) + ".h");
+  header += ("/" + std::string(opts.filename) + ".cc");
   FILE* fp = fopen(header.c_str(), "w+");
   if (fp == nullptr) {
     fprintf(stdout, "Unable to open for writing header file:%s\n", header.c_str());
