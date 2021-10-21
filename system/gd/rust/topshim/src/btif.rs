@@ -161,7 +161,7 @@ impl From<BtPropertyType> for u32 {
 }
 
 #[derive(Clone, Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
-#[repr(i32)]
+#[repr(u32)]
 pub enum BtDiscoveryState {
     Stopped = 0x0,
     Started,
