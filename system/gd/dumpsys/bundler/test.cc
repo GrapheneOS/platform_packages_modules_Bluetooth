@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 #include <gtest/gtest.h>
+
 #include <list>
 #include <vector>
 
 #include "bundler.h"
-#include "bundler_generated.h"
+#include "bundler_schema_generated.h"
 #include "flatbuffers/flatbuffers.h"
 
 // Must be run from the same directory as the test data 'test.bfbs'.
