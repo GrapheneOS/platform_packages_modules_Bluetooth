@@ -14,7 +14,7 @@ use tokio::sync::mpsc;
 pub const PID_DIR: &str = "/var/run/bluetooth";
 
 #[derive(Debug, PartialEq, Copy, Clone)]
-#[repr(i32)]
+#[repr(u32)]
 pub enum State {
     Off = 0,        // Bluetooth is not running
     TurningOn = 1,  // We are not notified that the Bluetooth is running
