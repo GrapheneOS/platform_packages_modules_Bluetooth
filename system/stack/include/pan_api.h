@@ -62,10 +62,6 @@ inline const std::string pan_role_to_text(const tPAN_ROLE& role) {
                             (role & PAN_ROLE_NAP_SERVER) ? 'N' : '.', role);
 }
 
-/* Bitmap to indicate the usage of the Data */
-#define PAN_DATA_TO_HOST 0x01
-#define PAN_DATA_TO_LAN 0x02
-
 /*****************************************************************************
  *  Type Definitions
  ****************************************************************************/
