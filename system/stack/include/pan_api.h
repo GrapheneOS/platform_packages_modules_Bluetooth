@@ -24,6 +24,8 @@
 #ifndef PAN_API_H
 #define PAN_API_H
 
+#include <base/strings/stringprintf.h>
+
 #include <cstdint>
 
 #include "bnep_api.h"
@@ -49,8 +51,16 @@
 
 /* Bit map for PAN roles */
 #define PAN_ROLE_CLIENT 0x01     /* PANU role */
+#define PAN_ROLE_GROUP 0x02      /* Adhoc network group role */
 #define PAN_ROLE_NAP_SERVER 0x04 /* NAP role */
 typedef uint8_t tPAN_ROLE;
+
+inline const std::string pan_role_to_text(const tPAN_ROLE& role) {
+  return base::StringPrintf("%c%c%c[0x%x]",
+                            (role & PAN_ROLE_CLIENT) ? 'C' : '.',
+                            (role & PAN_ROLE_GROUP) ? 'G' : '.',
+                            (role & PAN_ROLE_NAP_SERVER) ? 'N' : '.', role);
+}
 
 /* Bitmap to indicate the usage of the Data */
 #define PAN_DATA_TO_HOST 0x01
