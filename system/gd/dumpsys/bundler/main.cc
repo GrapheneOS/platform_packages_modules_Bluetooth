@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 #include "bundler.h"
-#include "bundler_generated.h"
+#include "bundler_schema_generated.h"
 
 int main(int argc, char** argv) {
   ParseArgs(argc, argv);
