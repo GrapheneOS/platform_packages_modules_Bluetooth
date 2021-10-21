@@ -1,0 +1,10 @@
+// AIDL interface between libbluetooth-binder and framework.jar
+filegroup {
+    name: "libbluetooth-binder-aidl-adva",
+    srcs: [
+        "android/bluetooth/IBluetoothSyncHelper.aidl",
+        "android/bluetooth/IBleBroadcastAudioScanAssistCallback.aidl",
+        "android/bluetooth/IBluetoothBroadcast.aidl",
+    ],
+}
+

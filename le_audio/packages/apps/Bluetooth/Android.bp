@@ -1,0 +1,12 @@
+filegroup {
+    name: "bluetooth-apps-adva-srcs",
+    srcs: ["src/com/android/bluetooth/groupclient/*.java",
+           "src/com/android/bluetooth/bassclient/*.java",
+           "src/com/android/bluetooth/broadcast/*.java",
+           "src/com/android/bluetooth/acm/*.java",
+           "src/com/android/bluetooth/pacsclient/*.java",
+           "src/com/android/bluetooth/apm/*.java",
+           "src/com/android/bluetooth/vcp/*.java",
+           "src/com/android/bluetooth/mcp/*.java",
+           "src/com/android/bluetooth/cc/*.java"],
+}

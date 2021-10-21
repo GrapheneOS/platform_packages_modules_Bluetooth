@@ -1,0 +1,4 @@
+filegroup {
+    name: "settings-bluetooth-adva-srcs",
+    srcs: ["src/**/*.java"],
+}

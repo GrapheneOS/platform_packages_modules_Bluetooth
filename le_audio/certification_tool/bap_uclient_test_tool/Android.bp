@@ -1,0 +1,28 @@
+cc_binary {
+    name: "bap_uclient_test",
+    system_ext_specific: true,
+    enabled: false,
+    srcs: ["bap_uclient_test.cpp"],
+
+    include_dirs: [
+        ".",
+        "packages/modules/Bluetooth/system/include",
+        "packages/modules/Bluetooth/system/types",
+        "vendor/qcom/opensource/commonsys/packages/modules/Bluetooth/system/stack/l2cap",
+        "vendor/qcom/opensource/commonsys/packages/modules/Bluetooth/system/utils/include",
+        "vendor/qcom/opensource/commonsys/packages/modules/Bluetooth/system",
+        "vendor/qcom/opensource/commonsys/bluetooth_lea/vhal/include",
+        "external/libchrome",
+    ],
+
+    cflags: ["-DHAS_NO_BDROID_BUILDCFG"],
+
+    shared_libs: [
+        "libcutils",
+        "libchrome",
+        "libutils",
+    ],
+
+    static_libs: ["libbluetooth-types-qti"],
+
+}

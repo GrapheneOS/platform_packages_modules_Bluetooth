@@ -1,0 +1,17 @@
+
+cc_library_static {
+    name: "libbluetooth-types-qti",
+    vendor_available: true,
+    enabled: false,
+    defaults: ["fluoride_types_defaults"],
+    cflags: [
+        /* we export all classes, so change default visibility, instead of having EXPORT_SYMBOL on each class*/
+        "-fvisibility=default",
+    ],
+    host_supported: true,
+    srcs: [
+        "class_of_device.cc",
+        "raw_address.cc",
+        "bluetooth/uuid.cc",
+    ],
+}

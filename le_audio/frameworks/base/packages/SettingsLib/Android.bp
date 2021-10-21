@@ -1,0 +1,4 @@
+filegroup {
+    name: "framework-settingslib-adva-srcs",
+    srcs: ["src/**/*.java"],
+}
