@@ -154,7 +154,6 @@ cc_library_static {
         "src/stack_manager.cc",
     ],
     generated_headers: [
-        "BluetoothGeneratedBundlerSchema_h_bfbs",
         "BluetoothGeneratedDumpsysDataSchema_h",
         "BluetoothGeneratedPackets_h",
     ],
@@ -241,6 +240,7 @@ cc_test {
    ],
     whole_static_libs: [
         "libbtif",
+        "libbluetooth-dumpsys",
         "libbluetooth-for-tests",
     ],
     cflags: ["-DBUILDCFG"],
@@ -261,7 +261,6 @@ cc_test {
     ],
     header_libs: ["libbluetooth_headers"],
     generated_headers: [
-        "BluetoothGeneratedBundlerSchema_h_bfbs",
         "BluetoothGeneratedDumpsysDataSchema_h",
         "BluetoothGeneratedPackets_h",
     ],
@@ -428,9 +427,7 @@ cc_test {
           "test/btif_core_test.cc",
       ],
       generated_headers: [
-        "BluetoothGeneratedBundlerSchema_h_bfbs",
         "BluetoothGeneratedDumpsysDataSchema_h",
-        "BluetoothGeneratedDumpsysTestData_h",
         "BluetoothGeneratedPackets_h",
       ],
       header_libs: ["libbluetooth_headers"],
