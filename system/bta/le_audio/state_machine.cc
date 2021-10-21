@@ -348,6 +348,13 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     }
   }
 
+  void FreeLinkQualityReports(LeAudioDevice* leAudioDevice) {
+    if (leAudioDevice->link_quality_timer == nullptr) return;
+
+    alarm_free(leAudioDevice->link_quality_timer);
+    leAudioDevice->link_quality_timer = nullptr;
+  }
+
   void ProcessHciNotifOnCigRemove(uint8_t status,
                                   LeAudioDeviceGroup* group) override {
     if (status) {
@@ -363,8 +370,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     if (!leAudioDevice) return;
 
     do {
-      alarm_free(leAudioDevice->link_quality_timer);
-      leAudioDevice->link_quality_timer = nullptr;
+      FreeLinkQualityReports(leAudioDevice);
 
       for (auto& ase : leAudioDevice->ases_) {
         ase.data_path_state = AudioStreamDataPathState::IDLE;
@@ -474,11 +480,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
 
   void ProcessHciNotifAclDisconnected(LeAudioDeviceGroup* group,
                                       LeAudioDevice* leAudioDevice) {
-    if (leAudioDevice->link_quality_timer) {
-      alarm_free(leAudioDevice->link_quality_timer);
-      leAudioDevice->link_quality_timer = nullptr;
-    }
-
+    FreeLinkQualityReports(leAudioDevice);
     leAudioDevice->conn_id_ = GATT_INVALID_CONN_ID;
 
     if (!group) {
@@ -600,12 +602,15 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
       ases_pair.source->data_path_state =
           AudioStreamDataPathState::CIS_ESTABLISHED;
 
-    leAudioDevice->link_quality_timer =
-        alarm_new_periodic("le_audio_cis_link_quality");
-    leAudioDevice->link_quality_timer_data = event->cis_conn_hdl;
-    alarm_set_on_mloop(leAudioDevice->link_quality_timer,
-                       linkQualityCheckInterval, link_quality_cb,
-                       &leAudioDevice->link_quality_timer_data);
+    if (osi_property_get_bool("persist.bluetooth.iso_link_quality_report",
+                              false)) {
+      leAudioDevice->link_quality_timer =
+          alarm_new_periodic("le_audio_cis_link_quality");
+      leAudioDevice->link_quality_timer_data = event->cis_conn_hdl;
+      alarm_set_on_mloop(leAudioDevice->link_quality_timer,
+                         linkQualityCheckInterval, link_quality_cb,
+                         &leAudioDevice->link_quality_timer_data);
+    }
 
     if (!leAudioDevice->HaveAllActiveAsesCisEst()) {
       /* More cis established event has to come */
@@ -650,8 +655,8 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
       const bluetooth::hci::iso_manager::cis_disconnected_evt* event) override {
     /* Reset the disconnected CIS states */
 
-    alarm_free(leAudioDevice->link_quality_timer);
-    leAudioDevice->link_quality_timer = nullptr;
+    FreeLinkQualityReports(leAudioDevice);
+
     auto ases_pair = leAudioDevice->GetAsesByCisConnHdl(event->cis_conn_hdl);
     if (ases_pair.sink) {
       ases_pair.sink->data_path_state = AudioStreamDataPathState::CIS_ASSIGNED;
