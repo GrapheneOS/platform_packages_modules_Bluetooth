@@ -17,6 +17,7 @@
 #pragma once
 
 #include <array>
+#include <optional>
 
 #include "packet/bit_inserter.h"
 #include "packet/iterator.h"
