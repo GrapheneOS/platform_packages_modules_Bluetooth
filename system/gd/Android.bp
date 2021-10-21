@@ -178,7 +178,6 @@ cc_defaults {
     generated_headers: [
         "BluetoothGeneratedBundlerSchema_h_bfbs",
         "BluetoothGeneratedDumpsysDataSchema_h",
-        "BluetoothGeneratedDumpsysBundledSchema_h",
         "BluetoothGeneratedPackets_h",
     ],
     shared_libs: [
@@ -189,6 +188,7 @@ cc_defaults {
         "libgrpc_wrap",
     ],
     static_libs: [
+        "libbluetooth-dumpsys",
         "libbluetooth-protos",
         "libbluetooth_rust_interop",
         "libbt-platform-protos-lite",
@@ -250,6 +250,7 @@ cc_binary {
     ],
     static_libs: [
         "breakpad_client",
+        "libbluetooth-dumpsys",
         "libbluetooth-protos",
         "libbluetooth_gd",
         "libflatbuffers-cpp",
@@ -347,13 +348,14 @@ cc_test {
     ],
     generated_headers: [
         "BluetoothGeneratedBundlerSchema_h_bfbs",
-        "BluetoothGeneratedDumpsysBundledSchema_h",
-        "BluetoothGeneratedDumpsysBundledTestSchema_h",
         "BluetoothGeneratedDumpsysDataSchema_h",
         "BluetoothGeneratedDumpsysTestData_h",
         "BluetoothGeneratedPackets_h",
     ],
     static_libs: [
+        "libbluetooth-dumpsys",
+        "libbluetooth-dumpsys-test",
+        "libbluetooth-dumpsys-unittest",
         "libbluetooth-protos",
         "libbluetooth_gd",
         "libc++fs",

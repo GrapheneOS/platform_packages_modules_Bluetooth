@@ -47,6 +47,7 @@ rust_binary_host {
         "libudrv-uipc",
         "libbluetooth_gd", // Gabeldorsche
         "libbluetooth_rust_interop",
+        "libbluetooth-dumpsys",
         "libflatbuffers-cpp",
     ],
     shared_libs: [
