@@ -22,8 +22,8 @@
     </target_preparer>
     <target_preparer class="com.android.tradefed.targetprep.RunCommandTargetPreparer">
         <option name="run-command" value="settings put global ble_scan_always_enabled 0" />
-        <option name="run-command" value="svc bluetooth disable" />
-        <option name="teardown-command" value="svc bluetooth enable" />
+        <option name="run-command" value="su u$(am get-current-user)_system svc bluetooth disable" />
+        <option name="teardown-command" value="su u$(am get-current-user)_system svc bluetooth enable" />
         <option name="teardown-command" value="settings put global ble_scan_always_enabled 1" />
     </target_preparer>
     <target_preparer class="com.android.tradefed.targetprep.FolderSaver">
