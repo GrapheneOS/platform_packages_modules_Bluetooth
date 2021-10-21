@@ -1252,6 +1252,9 @@ class LeAudioClientImpl : public LeAudioClient {
     const gatt::Service* pac_svc = nullptr;
     const gatt::Service* ase_svc = nullptr;
 
+    std::vector<uint16_t> csis_primary_handles;
+    uint16_t cas_csis_included_handle = 0;
+
     for (const gatt::Service& tmp : *services) {
       if (tmp.uuid == le_audio::uuid::kPublishedAudioCapabilityServiceUuid) {
         LOG(INFO) << "Found Audio Capability service, handle: "
@@ -1261,6 +1264,10 @@ class LeAudioClientImpl : public LeAudioClient {
         LOG(INFO) << "Found Audio Stream Endpoint service, handle: "
                   << loghex(tmp.handle);
         ase_svc = &tmp;
+      } else if (tmp.uuid == bluetooth::csis::kCsisServiceUuid) {
+        LOG(INFO) << "Found CSIS service, handle: " << loghex(tmp.handle)
+                  << " is primary? " << tmp.is_primary;
+        if (tmp.is_primary) csis_primary_handles.push_back(tmp.handle);
       } else if (tmp.uuid == le_audio::uuid::kCapServiceUuid) {
         LOG(INFO) << "Found CAP Service, handle: " << loghex(tmp.handle);
 
@@ -1269,12 +1276,21 @@ class LeAudioClientImpl : public LeAudioClient {
           if (included_srvc.uuid == bluetooth::csis::kCsisServiceUuid) {
             LOG(INFO) << __func__ << " CSIS included into CAS";
             if (bluetooth::csis::CsisClient::IsCsisClientRunning())
-              leAudioDevice->csis_member_ = true;
+              cas_csis_included_handle = included_srvc.start_handle;
 
             break;
           }
         }
       }
+    }
+
+    /* Check if CAS includes primary CSIS service */
+    if (!csis_primary_handles.empty() && cas_csis_included_handle) {
+      auto iter =
+          std::find(csis_primary_handles.begin(), csis_primary_handles.end(),
+                    cas_csis_included_handle);
+      if (iter != csis_primary_handles.end())
+        leAudioDevice->csis_member_ = true;
     }
 
     if (!pac_svc || !ase_svc) {
