@@ -1,4 +1,4 @@
-%{
+%code requires {
   #include <iostream>
   #include <vector>
   #include <list>
@@ -6,10 +6,11 @@
 
   #include "declarations.h"
   #include "logging.h"
-  #include "language_y.h"
   #include "field_list.h"
   #include "fields/all_fields.h"
-
+}
+%{
+  #include "language_y.h"
   extern int yylex(yy::parser::semantic_type*, yy::parser::location_type*, void *);
 
   ParseLocation toParseLocation(yy::parser::location_type loc) {
