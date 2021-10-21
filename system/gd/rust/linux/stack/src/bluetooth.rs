@@ -594,7 +594,7 @@ impl BtifBluetoothCallbacks for Bluetooth {
 
     fn remote_device_properties_changed(
         &mut self,
-        status: BtStatus,
+        _status: BtStatus,
         addr: RawAddress,
         _num_properties: i32,
         properties: Vec<BluetoothProperty>,
