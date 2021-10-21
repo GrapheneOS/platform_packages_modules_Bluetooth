@@ -116,6 +116,8 @@ class KissfftConfig {
 };
 
 #elif defined USE_OWN_FFT
+#include <complex>
+
 #include "fft.h"
 #endif
 
@@ -136,7 +138,17 @@ DctIVDbl::DctIVDbl(uint16_t NF_)
   dctIVconfig = new KissfftConfig(NF / 2);
 
 #elif defined USE_OWN_FFT
-// setup is not needed
+
+  int N = NF / 2;
+  std::complex<double>* twiddle = new std::complex<double>[N];
+  dctIVconfig = twiddle;
+  const double pi = std::acos(-1);
+  for (uint16_t n = 0; n < N; n++) {
+    twiddle[n] =
+        std::complex<double>(std::cos(-pi * (8 * n + 1) / (8.0 * N * 2)),
+                             std::sin(-pi * (8 * n + 1) / (8.0 * N * 2)));
+  }
+
 #endif
 
   for (uint16_t n = 0; n < NF; n++) {
@@ -159,7 +171,9 @@ DctIVDbl::~DctIVDbl() {
   }
 
 #elif defined USE_OWN_FFT
-// cleanup is not needed
+  std::complex<double>* twiddle = (std::complex<double>*)dctIVconfig;
+  delete[] twiddle;
+
 #endif
   if (nullptr != in) {
     delete[] in;
@@ -250,6 +264,14 @@ void DctIVDbl::run() {
     in[NF - n] = buffer;
   }
 
+  std::complex<double>* twiddle = (std::complex<double>*)dctIVconfig;
+  for (uint16_t n = 0; n < NF / 2; n++) {
+    double real = in[2 * n + 0];
+    double imag = in[2 * n + 1];
+    in[2 * n + 0] = real * twiddle[n].real() - imag * twiddle[n].imag();
+    in[2 * n + 1] = real * twiddle[n].imag() + imag * twiddle[n].real();
+  }
+
   for (uint16_t n = 0; n < NF / 2; n++) {
     inbuf[n].re = in[2 * n];
     inbuf[n].im = in[2 * n + 1];
@@ -258,8 +280,17 @@ void DctIVDbl::run() {
   fft_complex* actal_output = fft(false, inbuf, NF / 2, inbuf, outbuf);
 
   for (uint16_t n = 0; n < NF / 2; n++) {
-    out[2 * n] = actal_output[n].re;
-    out[NF - 2 * n - 1] = actal_output[n].im;
+    double real = actal_output[n].re;
+    double imag = actal_output[n].im;
+    out[2 * n + 0] = 2 * (real * twiddle[n].real() - imag * twiddle[n].imag());
+    out[2 * n + 1] = 2 * (real * twiddle[n].imag() + imag * twiddle[n].real());
+  }
+
+  for (uint16_t n = 1; n < NF / 2; n += 2) {
+    double buffer;
+    buffer = out[n];
+    out[n] = -out[NF - n];
+    out[NF - n] = -buffer;
   }
 
 #else
