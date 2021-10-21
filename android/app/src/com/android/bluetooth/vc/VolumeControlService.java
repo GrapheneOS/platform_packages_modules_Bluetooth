@@ -426,14 +426,17 @@ public class VolumeControlService extends ProfileService {
     }
 
     void messageFromNative(VolumeControlStackEvent stackEvent) {
+
+        if (stackEvent.type == VolumeControlStackEvent.EVENT_TYPE_VOLUME_STATE_CHANGED) {
+            handleVolumeControlChanged(stackEvent.device, stackEvent.valueInt1,
+                                       stackEvent.valueInt2, stackEvent.valueBool1);
+          return;
+        }
+
         Objects.requireNonNull(stackEvent.device,
                 "Device should never be null, event: " + stackEvent);
 
         Intent intent = null;
-        if (stackEvent.type == VolumeControlStackEvent.EVENT_TYPE_VOLUME_STATE_CHANGED) {
-            handleVolumeControlChanged(stackEvent.device, stackEvent.valueInt1,
-                                       stackEvent.valueInt2, stackEvent.valueBool1);
-        }
 
         if (intent != null) {
             intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT
