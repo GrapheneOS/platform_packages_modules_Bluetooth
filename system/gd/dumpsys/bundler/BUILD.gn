@@ -17,7 +17,7 @@ import("//bt/gd/dumpsys/bundler/bundler.gni")
 import("//common-mk/flatbuffer.gni")
 
 bt_flatc_binary_schema("BluetoothGeneratedBundlerSchema_h_bfbs") {
-  sources = [ "bundler.fbs" ]
+  sources = [ "bundler_schema.fbs" ]
   include_dir = "bt/gd"
   gen_header = true
 }

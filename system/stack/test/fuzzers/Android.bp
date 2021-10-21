@@ -38,6 +38,7 @@ cc_defaults {
         "libosi",
         "libudrv-uipc",
         "libbt-protos-lite",
+        "libbluetooth-dumpsys",
         "libbluetooth_gd",
     ],
     shared_libs: [

@@ -37,6 +37,7 @@ cc_test {
         "libbluetooth_gd",
         "libbt-bta",
         "libbt-common",
+        "libbluetooth-dumpsys",
         "libbt-hci",
         "libbt-protos-lite",
         "libbt-sbc-decoder",
