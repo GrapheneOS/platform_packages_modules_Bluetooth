@@ -28,16 +28,17 @@ filegroup {
 
 genrule {
     name: "BluetoothGeneratedDumpsysTestData_h",
+    visibility: ["//visibility:public"],
     tools: [
         "flatc",
     ],
     cmd: "$(location flatc) -I packages/modules/Bluetooth/system/gd -b --schema -o $(genDir) --cpp $(in) ",
     srcs: [
-            "test_data/root.fbs",
-            "test_data/bar.fbs",
-            "test_data/baz.fbs",
-            "test_data/foo.fbs",
-            "test_data/qux.fbs",
+        "test_data/root.fbs",
+        "test_data/bar.fbs",
+        "test_data/baz.fbs",
+        "test_data/foo.fbs",
+        "test_data/qux.fbs",
     ],
     out: [
         "root_generated.h",
@@ -50,16 +51,17 @@ genrule {
 
 genrule {
     name: "BluetoothGeneratedDumpsysTestData_bfbs",
+    visibility: ["//visibility:private"],
     tools: [
         "flatc",
     ],
     cmd: "$(location flatc) -I packages/modules/Bluetooth/system/gd -b --schema -o $(genDir) --cpp $(in) ",
     srcs: [
-            "test_data/root.fbs",
-            "test_data/bar.fbs",
-            "test_data/baz.fbs",
-            "test_data/foo.fbs",
-            "test_data/qux.fbs",
+        "test_data/root.fbs",
+        "test_data/bar.fbs",
+        "test_data/baz.fbs",
+        "test_data/foo.fbs",
+        "test_data/qux.fbs",
     ],
     out: [
         "root.bfbs",
@@ -71,7 +73,8 @@ genrule {
 }
 
 genrule {
-    name: "BluetoothGeneratedDumpsysTestSchema_h",
+    name: "BluetoothGeneratedDumpsysTestSchema_cc",
+    visibility: ["//visibility:private"],
     tools: [
         "bluetooth_flatbuffer_bundler",
     ],
@@ -80,12 +83,13 @@ genrule {
         ":BluetoothGeneratedDumpsysBinarySchema_bfbs",
     ],
     out: [
-         "dumpsys_module_schema_data.h",
+         "dumpsys_module_schema_data.cc",
     ],
 }
 
 genrule {
-    name: "BluetoothGeneratedDumpsysBundledSchema_h",
+    name: "BluetoothGeneratedDumpsysBundledSchema_cc",
+    visibility: ["//visibility:private"],
     tools: [
             "bluetooth_flatbuffer_bundler",
     ],
@@ -94,12 +98,13 @@ genrule {
         ":BluetoothGeneratedDumpsysBinarySchema_bfbs",
     ],
     out: [
-         "generated_dumpsys_bundled_schema.h",
+         "generated_dumpsys_bundled_schema.cc",
     ],
 }
 
 genrule {
-    name: "BluetoothGeneratedDumpsysBundledTestSchema_h",
+    name: "BluetoothGeneratedDumpsysBundledTestSchema_cc",
+    visibility: ["//visibility:private"],
     tools: [
             "bluetooth_flatbuffer_bundler",
     ],
@@ -108,7 +113,7 @@ genrule {
         ":BluetoothGeneratedDumpsysTestData_bfbs",
     ],
     out: [
-         "generated_dumpsys_bundled_test_schema.h",
+         "generated_dumpsys_bundled_test_schema.cc",
     ],
 }
 
@@ -124,6 +129,45 @@ genrule {
     out: [
         "bluetooth_flatbuffer_test_generated.h", "bluetooth_flatbuffer_test.bfbs",
     ],
+}
+
+cc_library {
+    name: "libbluetooth-dumpsys",
+    host_supported: true,
+    defaults: [
+        "gd_defaults",
+        "gd_clang_file_coverage",
+        "gd_clang_tidy",
+    ],
+    generated_sources: [
+        "BluetoothGeneratedDumpsysBundledSchema_cc",
+    ],
+}
+
+cc_library {
+    name: "libbluetooth-dumpsys-test",
+    host_supported: true,
+    defaults: [
+        "gd_defaults",
+        "gd_clang_file_coverage",
+        "gd_clang_tidy",
+    ],
+    generated_sources: [
+        "BluetoothGeneratedDumpsysBundledTestSchema_cc",
+   ],
+}
+
+cc_library {
+    name: "libbluetooth-dumpsys-unittest",
+    host_supported: true,
+    defaults: [
+        "gd_defaults",
+        "gd_clang_file_coverage",
+        "gd_clang_tidy",
+    ],
+    generated_headers: [
+        "BluetoothGeneratedDumpsysTestSchema_cc",
+   ],
 }
 
 cc_test {

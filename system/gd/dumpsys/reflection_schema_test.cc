@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
+#include "dumpsys/reflection_schema.h"
+
 #include <gtest/gtest.h>
 
-#include "dumpsys/reflection_schema.h"
-#include "generated_dumpsys_bundled_test_schema.h"
+#include "dumpsys/dumpsys_test_data.h"
 
-// TODO(cmanton) fix bundler to split header/code
-// #include "generated_dumpsys_bundled_schema.h"
 namespace bluetooth {
 namespace dumpsys {
 extern const unsigned char* data;

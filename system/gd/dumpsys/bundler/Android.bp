@@ -9,6 +9,7 @@ package {
 
 filegroup {
     name: "BluetoothFlatbufferBundlerSources",
+    visibility: ["//visibility:private"],
     srcs: [
         "bundler.cc",
         "main.cc",
@@ -17,23 +18,29 @@ filegroup {
 
 filegroup {
     name: "BluetoothFlatbufferBundlerTestSources",
+    visibility: ["//visibility:private"],
     srcs: [
         "bundler.cc",
         "test.cc",
     ],
 }
 
+// Flatbuffer bundler schema that wraps the bundled binary module schema
 genrule {
     name: "BluetoothGeneratedBundlerSchema_h_bfbs",
+    visibility: [
+        "//packages/modules/Bluetooth/system/gd",
+        "//packages/modules/Bluetooth/system/main",
+    ],
     tools: [
         "flatc",
     ],
     cmd: "$(location flatc) -I packages/modules/Bluetooth/system/gd -b --schema -o $(genDir) --cpp $(in) ",
     srcs: [
-        "bundler.fbs",
+        "bundler_schema.fbs",
     ],
     out: [
-        "bundler_generated.h", "bundler.bfbs",
+        "bundler_schema_generated.h", "bundler_schema.bfbs",
     ],
 }
 
