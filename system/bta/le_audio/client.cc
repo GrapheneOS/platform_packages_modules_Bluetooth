@@ -2266,12 +2266,24 @@ class LeAudioClientImpl : public LeAudioClient {
     }
 
     if (audio_sink_ready_to_receive) {
+      LOG(INFO) << __func__ << " audio_sink_ready_to_receive";
       audio_source_ready_to_send = true;
       /* If signalling part is completed trigger start reveivin audio here,
        * otherwise it'll be called on group streaming state callback
        */
       if (group->GetState() == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING)
         StartSendingAudio(active_group_id_);
+    } else {
+      /* Ask framework to come back later */
+      DLOG(INFO) << __func__ << " active_group_id: " << active_group_id_ << "\n"
+                 << " audio_sink_ready_to_receive: "
+                 << audio_sink_ready_to_receive << "\n"
+                 << " audio_source_ready_to_send:" << audio_source_ready_to_send
+                 << "\n"
+                 << " current_context_type_: "
+                 << static_cast<int>(current_context_type_) << "\n"
+                 << " group exist? " << (group ? " yes " : " no ") << "\n";
+      CancelStreamingRequest();
     }
   }
 
@@ -2324,75 +2336,76 @@ class LeAudioClientImpl : public LeAudioClient {
     }
   }
 
+  LeAudioContextType AudioContentToLeAudioContext(
+      audio_content_type_t content_type, audio_usage_t usage) {
+    switch (content_type) {
+      case AUDIO_CONTENT_TYPE_SPEECH:
+        return LeAudioContextType::CONVERSATIONAL;
+      case AUDIO_CONTENT_TYPE_MUSIC:
+      case AUDIO_CONTENT_TYPE_MOVIE:
+      case AUDIO_CONTENT_TYPE_SONIFICATION:
+        return LeAudioContextType::MEDIA;
+      default:
+        break;
+    }
+
+    /* Context is not clear, consider also usage of stream */
+    switch (usage) {
+      case AUDIO_USAGE_VOICE_COMMUNICATION:
+        return LeAudioContextType::CONVERSATIONAL;
+      case AUDIO_USAGE_GAME:
+        return LeAudioContextType::GAME;
+      case AUDIO_USAGE_NOTIFICATION:
+        return LeAudioContextType::NOTIFICATIONS;
+      case AUDIO_USAGE_NOTIFICATION_TELEPHONY_RINGTONE:
+        return LeAudioContextType::RINGTONE;
+      case AUDIO_USAGE_ALARM:
+        return LeAudioContextType::ALERTS;
+      case AUDIO_USAGE_EMERGENCY:
+        return LeAudioContextType::EMERGENCYALARM;
+      default:
+        break;
+    }
+
+    return LeAudioContextType::MEDIA;
+  }
+
+  LeAudioContextType ChooseContextType(
+      std::vector<LeAudioContextType>& available_contents) {
+    /* Mini policy. Voice is prio 1, media is prio 2 */
+    auto iter = find(available_contents.begin(), available_contents.end(),
+                     LeAudioContextType::CONVERSATIONAL);
+    if (iter != available_contents.end())
+      return LeAudioContextType::CONVERSATIONAL;
+
+    iter = find(available_contents.begin(), available_contents.end(),
+                LeAudioContextType::MEDIA);
+    if (iter != available_contents.end()) return LeAudioContextType::MEDIA;
+
+    /*TODO do something smarter here */
+    return available_contents[0];
+  }
+
   void OnAudioMetadataUpdate(const source_metadata_t& source_metadata) {
     auto tracks = source_metadata.tracks;
     auto track_count = source_metadata.track_count;
 
-    audio_usage_t usage = tracks->usage;
-    audio_content_type_t content_type = tracks->content_type;
-
-    LeAudioContextType new_context = LeAudioContextType::RFU;
+    std::vector<LeAudioContextType> contexts;
 
     while (track_count) {
       DLOG(INFO) << __func__ << ": usage=" << tracks->usage
                  << ", content_type=" << tracks->content_type
                  << ", gain=" << tracks->gain;
 
-      if (tracks->content_type == AUDIO_CONTENT_TYPE_SPEECH ||
-          tracks->usage == AUDIO_USAGE_VOICE_COMMUNICATION) {
-        new_context = LeAudioContextType::CONVERSATIONAL;
-        break;
-      }
+      auto new_context =
+          AudioContentToLeAudioContext(tracks->content_type, tracks->usage);
+      contexts.push_back(new_context);
 
       --track_count;
       ++tracks;
     }
 
-    LOG(INFO) << __func__ << ", content_type = "
-              << audio_content_type_to_string(content_type)
-              << ", usage = " << audio_usage_to_string(usage);
-
-    if (new_context == LeAudioContextType::RFU) {
-      switch (content_type) {
-        case AUDIO_CONTENT_TYPE_SPEECH:
-          new_context = LeAudioContextType::CONVERSATIONAL;
-          break;
-        case AUDIO_CONTENT_TYPE_MUSIC:
-        case AUDIO_CONTENT_TYPE_MOVIE:
-        case AUDIO_CONTENT_TYPE_SONIFICATION:
-          new_context = LeAudioContextType::MEDIA;
-          break;
-        default:
-          break;
-      }
-
-      /* Context is not clear, consider also usage of stream */
-      if (new_context == LeAudioContextType::RFU) {
-        switch (usage) {
-          case AUDIO_USAGE_VOICE_COMMUNICATION:
-            new_context = LeAudioContextType::CONVERSATIONAL;
-            break;
-          case AUDIO_USAGE_GAME:
-            new_context = LeAudioContextType::GAME;
-            break;
-          case AUDIO_USAGE_NOTIFICATION:
-            new_context = LeAudioContextType::NOTIFICATIONS;
-            break;
-          case AUDIO_USAGE_NOTIFICATION_TELEPHONY_RINGTONE:
-            new_context = LeAudioContextType::RINGTONE;
-            break;
-          case AUDIO_USAGE_ALARM:
-            new_context = LeAudioContextType::ALERTS;
-            break;
-          case AUDIO_USAGE_EMERGENCY:
-            new_context = LeAudioContextType::EMERGENCYALARM;
-            break;
-          default:
-            new_context = LeAudioContextType::MEDIA;
-            break;
-        }
-      }
-    }
+    auto new_context = ChooseContextType(contexts);
 
     auto group = aseGroups_.FindById(active_group_id_);
     if (!group) {
@@ -2410,17 +2423,24 @@ class LeAudioClientImpl : public LeAudioClient {
 
       std::optional<LeAudioCodecConfiguration> source_configuration =
           group->GetCodecConfigurationByDirection(
-              current_context_type_, le_audio::types::kLeAudioDirectionSink);
+              new_context, le_audio::types::kLeAudioDirectionSink);
+
       std::optional<LeAudioCodecConfiguration> sink_configuration =
           group->GetCodecConfigurationByDirection(
-              current_context_type_, le_audio::types::kLeAudioDirectionSource);
+              new_context, le_audio::types::kLeAudioDirectionSource);
 
-      if (source_configuration &&
-          (*source_configuration != current_source_codec_config))
+      if ((source_configuration &&
+           (*source_configuration != current_source_codec_config)) ||
+          (sink_configuration &&
+           (*sink_configuration != current_sink_codec_config))) {
+        do_in_main_thread(
+            FROM_HERE, base::Bind(&LeAudioClientImpl::UpdateCurrentHalSessions,
+                                  base::Unretained(instance), group->group_id_,
+                                  new_context));
+        current_context_type_ = new_context;
+        GroupStop(group->group_id_);
         return;
-      if (sink_configuration &&
-          (*sink_configuration != current_sink_codec_config))
-        return;
+      }
 
       /* Configuration is the same for new context, just will do update
        * metadata of stream
