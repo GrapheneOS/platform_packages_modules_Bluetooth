@@ -44,6 +44,7 @@ import android.os.SystemProperties;
 import android.os.UserHandle;
 import android.os.UserManager;
 import android.permission.PermissionCheckerManager;
+import android.permission.PermissionManager;
 import android.test.mock.MockContentResolver;
 import android.util.Log;
 
@@ -115,6 +116,7 @@ public class AdapterServiceTest {
 
     private PowerManager mPowerManager;
     private PermissionCheckerManager mPermissionCheckerManager;
+    private PermissionManager mPermissionManager;
     private PackageManager mMockPackageManager;
     private MockContentResolver mMockContentResolver;
     private HashMap<String, HashMap<String, String>> mAdapterConfig;
@@ -163,6 +165,9 @@ public class AdapterServiceTest {
         mPermissionCheckerManager = InstrumentationRegistry.getTargetContext()
                 .getSystemService(PermissionCheckerManager.class);
 
+        mPermissionManager = InstrumentationRegistry.getTargetContext()
+                .getSystemService(PermissionManager.class);
+
         when(mMockContext.getApplicationInfo()).thenReturn(mMockApplicationInfo);
         when(mMockContext.getContentResolver()).thenReturn(mMockContentResolver);
         when(mMockContext.getApplicationContext()).thenReturn(mMockContext);
@@ -184,6 +189,10 @@ public class AdapterServiceTest {
                 .thenReturn(Context.PERMISSION_CHECKER_SERVICE);
         when(mMockContext.getSystemService(Context.PERMISSION_CHECKER_SERVICE))
                 .thenReturn(mPermissionCheckerManager);
+        when(mMockContext.getSystemServiceName(PermissionManager.class))
+                .thenReturn(Context.PERMISSION_SERVICE);
+        when(mMockContext.getSystemService(Context.PERMISSION_SERVICE))
+                .thenReturn(mPermissionManager);
         when(mMockContext.getSystemService(Context.ALARM_SERVICE)).thenReturn(mMockAlarmManager);
         when(mMockContext.getSystemServiceName(AlarmManager.class))
                 .thenReturn(Context.ALARM_SERVICE);

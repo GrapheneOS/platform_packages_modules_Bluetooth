@@ -23,7 +23,6 @@ import static android.Manifest.permission.BLUETOOTH_CONNECT;
 import static android.Manifest.permission.BLUETOOTH_SCAN;
 import static android.Manifest.permission.RENOUNCE_PERMISSIONS;
 import static android.content.PermissionChecker.PERMISSION_HARD_DENIED;
-import static android.content.PermissionChecker.PID_UNKNOWN;
 import static android.content.pm.PackageManager.GET_PERMISSIONS;
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 import static android.os.PowerExemptionManager.TEMPORARY_ALLOW_LIST_TYPE_FOREGROUND_SERVICE_ALLOWED;
@@ -42,7 +41,6 @@ import android.companion.CompanionDeviceManager;
 import android.content.AttributionSource;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.PermissionChecker;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
@@ -56,6 +54,7 @@ import android.os.Process;
 import android.os.SystemProperties;
 import android.os.UserHandle;
 import android.os.UserManager;
+import android.permission.PermissionManager;
 import android.provider.DeviceConfig;
 import android.provider.Telephony;
 import android.util.Log;
@@ -426,8 +425,12 @@ public final class Utils {
 
     @SuppressLint("AndroidFrameworkRequiresPermission")
     private static boolean checkPermissionForPreflight(Context context, String permission) {
-        final int result = PermissionChecker.checkCallingOrSelfPermissionForPreflight(
-                context, permission);
+        PermissionManager pm = context.getSystemService(PermissionManager.class);
+        if (pm == null) {
+            return false;
+        }
+        final int result = pm.checkPermissionForPreflight(permission,
+                context.getAttributionSource());
         if (result == PERMISSION_GRANTED) {
             return true;
         }
@@ -450,8 +453,12 @@ public final class Utils {
                 .Builder(context.getAttributionSource())
                 .setNext(attributionSource)
                 .build();
-        final int result = PermissionChecker.checkPermissionForDataDeliveryFromDataSource(
-                context, permission, PID_UNKNOWN, currentAttribution, message);
+        PermissionManager pm = context.getSystemService(PermissionManager.class);
+        if (pm == null) {
+            return false;
+        }
+        final int result = pm.checkPermissionForDataDeliveryFromDataSource(permission,
+                    currentAttribution, message);
         if (result == PERMISSION_GRANTED) {
             return true;
         }
@@ -696,9 +703,12 @@ public final class Utils {
                 .build();
         // STOPSHIP(b/188391719): enable this security enforcement
         // attributionSource.enforceCallingUid();
-        if (PermissionChecker.checkPermissionForDataDeliveryFromDataSource(
-                context, ACCESS_COARSE_LOCATION, PID_UNKNOWN, currentAttribution,
-                "Bluetooth location check") == PERMISSION_GRANTED) {
+        PermissionManager pm = context.getSystemService(PermissionManager.class);
+        if (pm == null) {
+            return false;
+        }
+        if (pm.checkPermissionForDataDeliveryFromDataSource(ACCESS_COARSE_LOCATION,
+                        currentAttribution, "Bluetooth location check") == PERMISSION_GRANTED) {
             return true;
         }
 
@@ -727,15 +737,17 @@ public final class Utils {
                 .build();
         // STOPSHIP(b/188391719): enable this security enforcement
         // attributionSource.enforceCallingUid();
-        if (PermissionChecker.checkPermissionForDataDeliveryFromDataSource(
-                context, ACCESS_FINE_LOCATION, PID_UNKNOWN, currentAttribution,
-                "Bluetooth location check") == PERMISSION_GRANTED) {
+        PermissionManager pm = context.getSystemService(PermissionManager.class);
+        if (pm == null) {
+            return false;
+        }
+        if (pm.checkPermissionForDataDeliveryFromDataSource(ACCESS_FINE_LOCATION,
+                        currentAttribution, "Bluetooth location check") == PERMISSION_GRANTED) {
             return true;
         }
 
-        if (PermissionChecker.checkPermissionForDataDeliveryFromDataSource(
-                context, ACCESS_COARSE_LOCATION, PID_UNKNOWN, currentAttribution,
-                "Bluetooth location check") == PERMISSION_GRANTED) {
+        if (pm.checkPermissionForDataDeliveryFromDataSource(ACCESS_COARSE_LOCATION,
+                        currentAttribution, "Bluetooth location check") == PERMISSION_GRANTED) {
             return true;
         }
 
@@ -763,9 +775,12 @@ public final class Utils {
                 .build();
         // STOPSHIP(b/188391719): enable this security enforcement
         // attributionSource.enforceCallingUid();
-        if (PermissionChecker.checkPermissionForDataDeliveryFromDataSource(
-                context, ACCESS_FINE_LOCATION, PID_UNKNOWN, currentAttribution,
-                "Bluetooth location check") == PERMISSION_GRANTED) {
+        PermissionManager pm = context.getSystemService(PermissionManager.class);
+        if (pm == null) {
+            return false;
+        }
+        if (pm.checkPermissionForDataDeliveryFromDataSource(ACCESS_FINE_LOCATION,
+                        currentAttribution, "Bluetooth location check") == PERMISSION_GRANTED) {
             return true;
         }
 
