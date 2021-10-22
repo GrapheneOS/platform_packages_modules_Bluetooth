@@ -67,7 +67,7 @@ inline const std::string pan_role_to_text(const tPAN_ROLE& role) {
  ****************************************************************************/
 
 /* Define the result codes from PAN */
-enum {
+typedef enum : uint8_t {
   PAN_SUCCESS, /* Success                           */
   PAN_DISCONNECTED = BNEP_CONN_DISCONNECTED, /* Connection terminated   */
   PAN_CONN_FAILED = BNEP_CONN_FAILED,   /* Connection failed                 */
@@ -93,10 +93,9 @@ enum {
   PAN_IGNORE_CMD = BNEP_IGNORE_CMD,       /* To ignore the rcvd command */
   PAN_TX_FLOW_ON = BNEP_TX_FLOW_ON,       /* tx data flow enabled */
   PAN_TX_FLOW_OFF = BNEP_TX_FLOW_OFF,     /* tx data flow disabled */
-  PAN_FAILURE                             /* Failure                      */
-
-};
-typedef uint8_t tPAN_RESULT;
+  PAN_FAILURE = 19,                       /* Failure                      */
+  PAN_HOTSPOT_DISABLED = 20,              /* Hotspot disabled             */
+} tPAN_RESULT;
 
 /*****************************************************************
  *       Callback Function Prototypes
