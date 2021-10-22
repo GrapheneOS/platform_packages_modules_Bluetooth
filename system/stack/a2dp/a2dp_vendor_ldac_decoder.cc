@@ -218,10 +218,8 @@ bool a2dp_vendor_ldac_decoder_decode_packet(BT_HDR* p_buf) {
     return false;
   }
 
-  LDACBT_SMPL_FMT_T fmt;
   int bs_bytes, frame_number;
 
-  fmt = LDACBT_SMPL_FMT_S32;
   frame_number = (int)pBuffer[0];
   bs_bytes = (int)bytesValid;
   bytesValid -= 1;
