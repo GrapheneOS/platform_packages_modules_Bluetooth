@@ -26,7 +26,6 @@
 #include <cstdint>
 
 #include "bt_target.h"  // Must be first to define build configuration
-#if (BTA_PAN_INCLUDED == TRUE)
 
 #include "bta/pan/bta_pan_int.h"
 #include "osi/include/allocator.h"
@@ -165,23 +164,3 @@ void BTA_PanClose(uint16_t handle) {
 
   bta_sys_sendmsg(p_buf);
 }
-#else
-#include "bta/pan/bta_pan_int.h"
-#include "osi/include/osi.h"  // UNUSED_ATTR
-
-void BTA_PanEnable(UNUSED_ATTR tBTA_PAN_CBACK p_cback) {}
-
-void BTA_PanDisable(void) {}
-
-void BTA_PanSetRole(UNUSED_ATTR tBTA_PAN_ROLE role,
-                    UNUSED_ATTR tBTA_PAN_ROLE_INFO* p_user_info,
-                    UNUSED_ATTR tBTA_PAN_ROLE_INFO* p_gn_info,
-                    UNUSED_ATTR tBTA_PAN_ROLE_INFO* p_nap_info) {}
-
-void BTA_PanOpen(UNUSED_ATTR const RawAddress& bd_addr,
-                 UNUSED_ATTR tBTA_PAN_ROLE local_role,
-                 UNUSED_ATTR tBTA_PAN_ROLE peer_role) {}
-
-void BTA_PanClose(UNUSED_ATTR uint16_t handle) {}
-
-#endif /* BTA_PAN_INCLUDED */
