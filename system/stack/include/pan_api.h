@@ -97,6 +97,40 @@ typedef enum : uint8_t {
   PAN_HOTSPOT_DISABLED = 20,              /* Hotspot disabled             */
 } tPAN_RESULT;
 
+#define CASE_RETURN_TEXT(code) \
+  case code:                   \
+    return #code
+
+inline const std::string pan_result_text(const tPAN_RESULT& result) {
+  switch (result) {
+    CASE_RETURN_TEXT(PAN_SUCCESS);
+    CASE_RETURN_TEXT(PAN_DISCONNECTED);
+    CASE_RETURN_TEXT(PAN_CONN_FAILED);
+    CASE_RETURN_TEXT(PAN_NO_RESOURCES);
+    CASE_RETURN_TEXT(PAN_MTU_EXCEDED);
+    CASE_RETURN_TEXT(PAN_INVALID_OFFSET);
+    CASE_RETURN_TEXT(PAN_CONN_FAILED_CFG);
+    CASE_RETURN_TEXT(PAN_INVALID_SRC_ROLE);
+    CASE_RETURN_TEXT(PAN_INVALID_DST_ROLE);
+    CASE_RETURN_TEXT(PAN_CONN_FAILED_UUID_SIZE);
+    CASE_RETURN_TEXT(PAN_Q_SIZE_EXCEEDED);
+    CASE_RETURN_TEXT(PAN_TOO_MANY_FILTERS);
+    CASE_RETURN_TEXT(PAN_SET_FILTER_FAIL);
+    CASE_RETURN_TEXT(PAN_WRONG_HANDLE);
+    CASE_RETURN_TEXT(PAN_WRONG_STATE);
+    CASE_RETURN_TEXT(PAN_SECURITY_FAIL);
+    CASE_RETURN_TEXT(PAN_IGNORE_CMD);
+    CASE_RETURN_TEXT(PAN_TX_FLOW_ON);
+    CASE_RETURN_TEXT(PAN_TX_FLOW_OFF);
+    CASE_RETURN_TEXT(PAN_FAILURE);
+    CASE_RETURN_TEXT(PAN_HOTSPOT_DISABLED);
+    default:
+      return base::StringPrintf("UNKNOWN[%hhu]", result);
+  }
+}
+
+#undef CASE_RETURN_TEXT
+
 /*****************************************************************
  *       Callback Function Prototypes
  ****************************************************************/
