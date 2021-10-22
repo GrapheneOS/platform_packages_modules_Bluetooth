@@ -35,3 +35,7 @@ const controller_t* bluetooth::shim::controller_get_interface() {
   mock_function_count_map[__func__]++;
   return nullptr;
 }
+
+void bluetooth::shim::controller_clear_event_mask() {
+  mock_function_count_map[__func__]++;
+}
