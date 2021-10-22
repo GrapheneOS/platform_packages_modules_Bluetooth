@@ -42,7 +42,18 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Connect to the D-Bus system bus (this is blocking, unfortunately).
     let (resource, conn) = connection::new_system_sync()?;
 
-    let context = state_machine::start_new_state_machine_context();
+    // Determine whether to use upstart or systemd
+    let args: Vec<String> = std::env::args().collect();
+    let invoker = if args.len() > 1 {
+        match &args[1][0..] {
+            "--systemd" | "-s" => state_machine::Invoker::SystemdInvoker,
+            _ => state_machine::Invoker::UpstartInvoker,
+        }
+    } else {
+        state_machine::Invoker::UpstartInvoker
+    };
+
+    let context = state_machine::start_new_state_machine_context(invoker);
     let proxy = context.get_proxy();
     let manager_context = ManagerContext {
         proxy: proxy,
