@@ -49,17 +49,14 @@ pub enum Message {
     CommandTimeout(),
 }
 
-pub struct StateMachineContext<PM> {
+pub struct StateMachineContext {
     tx: mpsc::Sender<Message>,
     rx: mpsc::Receiver<Message>,
-    state_machine: ManagerStateMachine<PM>,
+    state_machine: ManagerStateMachine,
 }
 
-impl<PM> StateMachineContext<PM> {
-    fn new(state_machine: ManagerStateMachine<PM>) -> StateMachineContext<PM>
-    where
-        PM: ProcessManager + Send,
-    {
+impl StateMachineContext {
+    fn new(state_machine: ManagerStateMachine) -> StateMachineContext {
         let (tx, rx) = mpsc::channel::<Message>(10);
         StateMachineContext { tx: tx, rx: rx, state_machine: state_machine }
     }
@@ -69,8 +66,12 @@ impl<PM> StateMachineContext<PM> {
     }
 }
 
-pub fn start_new_state_machine_context() -> StateMachineContext<UpstartInvoker> {
-    StateMachineContext::new(ManagerStateMachine::new_upstart())
+pub fn start_new_state_machine_context(invoker: Invoker) -> StateMachineContext {
+    match invoker {
+        Invoker::NativeInvoker => StateMachineContext::new(ManagerStateMachine::new_native()),
+        Invoker::SystemdInvoker => StateMachineContext::new(ManagerStateMachine::new_systemd()),
+        Invoker::UpstartInvoker => StateMachineContext::new(ManagerStateMachine::new_upstart()),
+    }
 }
 
 #[derive(Clone)]
@@ -165,12 +166,10 @@ fn event_name_to_string(name: Option<&std::ffi::OsStr>) -> Option<String> {
     return None;
 }
 
-pub async fn mainloop<PM>(
-    mut context: StateMachineContext<PM>,
+pub async fn mainloop(
+    mut context: StateMachineContext,
     bluetooth_manager: Arc<std::sync::Mutex<Box<BluetoothManager>>>,
-) where
-    PM: ProcessManager + Send,
-{
+) {
     // Set up a command timeout listener to emit timeout messages
     let command_timeout = Arc::new(Alarm::new());
     let timeout_clone = command_timeout.clone();
@@ -445,18 +444,24 @@ pub trait ProcessManager {
     fn stop(&mut self, hci_interface: String);
 }
 
-pub struct NativeSubprocess {
+pub enum Invoker {
+    NativeInvoker,
+    SystemdInvoker,
+    UpstartInvoker,
+}
+
+pub struct NativeInvoker {
     process_container: Option<Child>,
     bluetooth_pid: u32,
 }
 
-impl NativeSubprocess {
-    pub fn new() -> NativeSubprocess {
-        NativeSubprocess { process_container: None, bluetooth_pid: 0 }
+impl NativeInvoker {
+    pub fn new() -> NativeInvoker {
+        NativeInvoker { process_container: None, bluetooth_pid: 0 }
     }
 }
 
-impl ProcessManager for NativeSubprocess {
+impl ProcessManager for NativeInvoker {
     fn start(&mut self, hci_interface: String) {
         let new_process = Command::new("/usr/bin/btadapterd")
             .arg(format!("HCI={}", hci_interface))
@@ -503,25 +508,48 @@ impl ProcessManager for UpstartInvoker {
     }
 }
 
-struct ManagerStateMachine<PM> {
+pub struct SystemdInvoker {}
+
+impl SystemdInvoker {
+    pub fn new() -> SystemdInvoker {
+        SystemdInvoker {}
+    }
+}
+
+impl ProcessManager for SystemdInvoker {
+    fn start(&mut self, hci_interface: String) {
+        Command::new("systemctl")
+            .args(&["restart", format!("btadapterd@{}.service", hci_interface).as_str()])
+            .output()
+            .expect("failed to start bluetooth");
+    }
+
+    fn stop(&mut self, hci_interface: String) {
+        Command::new("systemctl")
+            .args(&["stop", format!("btadapterd@{}.service", hci_interface).as_str()])
+            .output()
+            .expect("failed to stop bluetooth");
+    }
+}
+
+struct ManagerStateMachine {
     state: Arc<std::sync::Mutex<State>>,
-    process_manager: PM,
+    process_manager: Box<dyn ProcessManager + Send>,
     hci_interface: i32,
     bluetooth_pid: i32,
 }
 
-impl ManagerStateMachine<NativeSubprocess> {
-    // NativeSubprocess is not used but is still useful for testing in Linux without upstart.
-    // Don't remove just yet.
-    #[allow(dead_code)]
-    pub fn new_native() -> ManagerStateMachine<NativeSubprocess> {
-        ManagerStateMachine::new(NativeSubprocess::new())
+impl ManagerStateMachine {
+    pub fn new_upstart() -> ManagerStateMachine {
+        ManagerStateMachine::new(Box::new(UpstartInvoker::new()))
     }
-}
 
-impl ManagerStateMachine<UpstartInvoker> {
-    pub fn new_upstart() -> ManagerStateMachine<UpstartInvoker> {
-        ManagerStateMachine::new(UpstartInvoker::new())
+    pub fn new_systemd() -> ManagerStateMachine {
+        ManagerStateMachine::new(Box::new(SystemdInvoker::new()))
+    }
+
+    pub fn new_native() -> ManagerStateMachine {
+        ManagerStateMachine::new(Box::new(NativeInvoker::new()))
     }
 }
 
@@ -532,11 +560,8 @@ enum StateMachineTimeoutActions {
     Noop,
 }
 
-impl<PM> ManagerStateMachine<PM>
-where
-    PM: ProcessManager + Send,
-{
-    pub fn new(process_manager: PM) -> ManagerStateMachine<PM> {
+impl ManagerStateMachine {
+    pub fn new(process_manager: Box<dyn ProcessManager + Send>) -> ManagerStateMachine {
         ManagerStateMachine {
             state: Arc::new(std::sync::Mutex::new(State::Off)),
             process_manager: process_manager,
@@ -702,7 +727,7 @@ mod tests {
     fn initial_state_is_off() {
         tokio::runtime::Runtime::new().unwrap().block_on(async {
             let process_manager = MockProcessManager::new();
-            let state_machine = ManagerStateMachine::new(process_manager);
+            let state_machine = ManagerStateMachine::new(Box::new(process_manager));
             assert_eq!(*state_machine.state.lock().unwrap(), State::Off);
         })
     }
@@ -711,7 +736,7 @@ mod tests {
     fn off_turnoff_should_noop() {
         tokio::runtime::Runtime::new().unwrap().block_on(async {
             let process_manager = MockProcessManager::new();
-            let mut state_machine = ManagerStateMachine::new(process_manager);
+            let mut state_machine = ManagerStateMachine::new(Box::new(process_manager));
             state_machine.action_stop_bluetooth(0);
             assert_eq!(*state_machine.state.lock().unwrap(), State::Off);
         })
@@ -723,7 +748,7 @@ mod tests {
             let mut process_manager = MockProcessManager::new();
             // Expect to send start command
             process_manager.expect_start();
-            let mut state_machine = ManagerStateMachine::new(process_manager);
+            let mut state_machine = ManagerStateMachine::new(Box::new(process_manager));
             state_machine.action_start_bluetooth(0);
             assert_eq!(*state_machine.state.lock().unwrap(), State::TurningOn);
         })
@@ -735,7 +760,7 @@ mod tests {
             let mut process_manager = MockProcessManager::new();
             // Expect to send start command just once
             process_manager.expect_start();
-            let mut state_machine = ManagerStateMachine::new(process_manager);
+            let mut state_machine = ManagerStateMachine::new(Box::new(process_manager));
             state_machine.action_start_bluetooth(0);
             assert_eq!(state_machine.action_start_bluetooth(0), false);
         })
@@ -746,9 +771,21 @@ mod tests {
         tokio::runtime::Runtime::new().unwrap().block_on(async {
             let mut process_manager = MockProcessManager::new();
             process_manager.expect_start();
-            let mut state_machine = ManagerStateMachine::new(process_manager);
+            let mut state_machine = ManagerStateMachine::new(Box::new(process_manager));
             state_machine.action_start_bluetooth(0);
             state_machine.action_on_bluetooth_started(0, 0);
+            assert_eq!(*state_machine.state.lock().unwrap(), State::On);
+        })
+    }
+
+    #[test]
+    fn turningon_bluetooth_different_hci_started() {
+        tokio::runtime::Runtime::new().unwrap().block_on(async {
+            let mut process_manager = MockProcessManager::new();
+            process_manager.expect_start();
+            let mut state_machine = ManagerStateMachine::new(Box::new(process_manager));
+            state_machine.action_start_bluetooth(1);
+            state_machine.action_on_bluetooth_started(1, 1);
             assert_eq!(*state_machine.state.lock().unwrap(), State::On);
         })
     }
@@ -760,7 +797,7 @@ mod tests {
             process_manager.expect_start();
             process_manager.expect_stop();
             process_manager.expect_start(); // start bluetooth again
-            let mut state_machine = ManagerStateMachine::new(process_manager);
+            let mut state_machine = ManagerStateMachine::new(Box::new(process_manager));
             state_machine.action_start_bluetooth(0);
             assert_eq!(
                 state_machine.action_on_command_timeout(),
@@ -777,7 +814,7 @@ mod tests {
             process_manager.expect_start();
             // Expect to send stop command
             process_manager.expect_stop();
-            let mut state_machine = ManagerStateMachine::new(process_manager);
+            let mut state_machine = ManagerStateMachine::new(Box::new(process_manager));
             state_machine.action_start_bluetooth(0);
             state_machine.action_stop_bluetooth(0);
             assert_eq!(*state_machine.state.lock().unwrap(), State::Off);
@@ -791,7 +828,7 @@ mod tests {
             process_manager.expect_start();
             // Expect to send stop command
             process_manager.expect_stop();
-            let mut state_machine = ManagerStateMachine::new(process_manager);
+            let mut state_machine = ManagerStateMachine::new(Box::new(process_manager));
             state_machine.action_start_bluetooth(0);
             state_machine.action_on_bluetooth_started(0, 0);
             state_machine.action_stop_bluetooth(0);
@@ -806,7 +843,7 @@ mod tests {
             process_manager.expect_start();
             // Expect to start again
             process_manager.expect_start();
-            let mut state_machine = ManagerStateMachine::new(process_manager);
+            let mut state_machine = ManagerStateMachine::new(Box::new(process_manager));
             state_machine.action_start_bluetooth(0);
             state_machine.action_on_bluetooth_started(0, 0);
             assert_eq!(state_machine.action_on_bluetooth_stopped(), false);
@@ -820,7 +857,7 @@ mod tests {
             let mut process_manager = MockProcessManager::new();
             process_manager.expect_start();
             process_manager.expect_stop();
-            let mut state_machine = ManagerStateMachine::new(process_manager);
+            let mut state_machine = ManagerStateMachine::new(Box::new(process_manager));
             state_machine.action_start_bluetooth(0);
             state_machine.action_on_bluetooth_started(0, 0);
             state_machine.action_stop_bluetooth(0);
@@ -836,7 +873,7 @@ mod tests {
             process_manager.expect_start();
             process_manager.expect_stop();
             process_manager.expect_start();
-            let mut state_machine = ManagerStateMachine::new(process_manager);
+            let mut state_machine = ManagerStateMachine::new(Box::new(process_manager));
             state_machine.action_start_bluetooth(0);
             state_machine.action_on_bluetooth_started(0, 0);
             state_machine.action_stop_bluetooth(0);
