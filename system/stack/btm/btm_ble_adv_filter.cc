@@ -479,12 +479,13 @@ static void BTM_LE_PF_addr_filter(tBTM_BLE_SCAN_COND_OP action,
   UINT8_TO_STREAM(p, filt_index);
 
   if (action != BTM_BLE_SCAN_COND_CLEAR) {
-    if (addr.type == BLE_ADDR_PUBLIC_ID) {
+    if (addr.type == 2 /* DEVICE_TYPE_ALL in ScanFilterQueue.java */) {
       LOG(INFO) << __func__ << " Filter address " << addr.bda
-                << " has type PUBLIC_ID, try to get identity address";
+                << " has DEVICE_TYPE_ALL, try to get identity address";
       /* If no matching identity address is found for the input address,
        * this call will have no effect. */
-      btm_random_pseudo_to_identity_addr(&addr.bda, &addr.type);
+      uint8_t dummy_addr_type;
+      btm_random_pseudo_to_identity_addr(&addr.bda, &dummy_addr_type);
     }
 
     LOG(INFO) << __func__
