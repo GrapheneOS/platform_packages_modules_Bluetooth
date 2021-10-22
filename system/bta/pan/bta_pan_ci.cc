@@ -28,8 +28,6 @@
 #include "stack/include/bt_hdr.h"
 #include "types/raw_address.h"
 
-#if (BTA_PAN_INCLUDED == TRUE)
-
 /*******************************************************************************
  *
  * Function         bta_pan_ci_tx_ready
@@ -192,39 +190,3 @@ BT_HDR* bta_pan_ci_readbuf(uint16_t handle, RawAddress& src, RawAddress& dst,
 
   return p_buf;
 }
-
-#else
-#include "osi/include/osi.h"  // UNUSED_ATTR
-
-void bta_pan_ci_tx_ready(UNUSED_ATTR uint16_t handle) {}
-
-void bta_pan_ci_rx_ready(UNUSED_ATTR uint16_t handle) {}
-
-void bta_pan_ci_tx_flow(UNUSED_ATTR uint16_t handle, UNUSED_ATTR bool enable) {}
-
-void bta_pan_ci_rx_writebuf(UNUSED_ATTR uint16_t handle,
-                            UNUSED_ATTR const RawAddress& src,
-                            UNUSED_ATTR const RawAddress& dst,
-                            UNUSED_ATTR uint16_t protocol,
-                            UNUSED_ATTR BT_HDR* p_buf, UNUSED_ATTR bool ext) {}
-
-BT_HDR* bta_pan_ci_readbuf(UNUSED_ATTR uint16_t handle,
-                           UNUSED_ATTR RawAddress& src,
-                           UNUSED_ATTR RawAddress& dst,
-                           UNUSED_ATTR uint16_t* p_protocol,
-                           UNUSED_ATTR bool* p_ext,
-                           UNUSED_ATTR bool* p_forward) {
-  return NULL;
-}
-
-void bta_pan_ci_set_pfilters(UNUSED_ATTR uint16_t handle,
-                             UNUSED_ATTR uint16_t num_filters,
-                             UNUSED_ATTR uint16_t* p_start_array,
-                             UNUSED_ATTR uint16_t* p_end_array) {}
-
-void bta_pan_ci_set_mfilters(UNUSED_ATTR uint16_t handle,
-                             UNUSED_ATTR uint16_t num_mcast_filters,
-                             UNUSED_ATTR uint8_t* p_start_array,
-                             UNUSED_ATTR uint8_t* p_end_array) {}
-
-#endif /* BTA_PAN_API */
