@@ -92,6 +92,14 @@
 #error "*** Conditional Compilation Directive error"
 #endif
 
+// Once BTA_PAN_INCLUDED is no longer exposed via bt_target.h
+// this check and error statement may be removed.
+static_assert(
+    BTA_PAN_INCLUDED,
+    "#define BTA_PAN_INCLUDED preprocessor compilation flag is unsupported"
+    "  Pan profile is always included in the bluetooth stack"
+    "*** Conditional Compilation Directive error");
+
 void main_thread_shut_down();
 void main_thread_start_up();
 void BTA_dm_on_hw_on();
