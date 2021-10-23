@@ -13,6 +13,7 @@ cc_library_static {
     defaults: [
         "gd_defaults",
         "gd_clang_tidy",
+        "gd_clang_tidy_ignore_android",
     ],
     host_supported: true,
     proprietary: true,
