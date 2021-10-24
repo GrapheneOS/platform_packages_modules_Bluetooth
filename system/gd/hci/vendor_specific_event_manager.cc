@@ -101,7 +101,7 @@ VendorSpecificEventManager::VendorSpecificEventManager() {
   pimpl_ = std::make_unique<impl>(this);
 }
 
-void VendorSpecificEventManager::ListDependencies(ModuleList* list) {
+void VendorSpecificEventManager::ListDependencies(ModuleList* list) const {
   list->add<hci::HciLayer>();
   list->add<hci::Controller>();
 }

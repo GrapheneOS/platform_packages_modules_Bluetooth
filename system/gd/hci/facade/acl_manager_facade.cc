@@ -557,7 +557,7 @@ class AclManagerFacadeService : public AclManagerFacade::Service, public Connect
   uint32_t current_connection_request_{0};
 };
 
-void AclManagerFacadeModule::ListDependencies(ModuleList* list) {
+void AclManagerFacadeModule::ListDependencies(ModuleList* list) const {
   ::bluetooth::grpc::GrpcFacadeModule::ListDependencies(list);
   list->add<AclManager>();
 }

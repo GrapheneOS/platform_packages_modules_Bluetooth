@@ -41,7 +41,7 @@ struct IsoModule::impl {
   internal::IsoManagerImpl iso_manager_impl{iso_handler_, hci_layer_, controller_};
 };
 
-void IsoModule::ListDependencies(ModuleList* list) {
+void IsoModule::ListDependencies(ModuleList* list) const {
   list->add<hci::HciLayer>();
   list->add<hci::Controller>();
 }

@@ -147,7 +147,7 @@ void neighbor::NameDbModule::impl::Stop() {}
 /**
  * Module methods here
  */
-void neighbor::NameDbModule::ListDependencies(ModuleList* list) {
+void neighbor::NameDbModule::ListDependencies(ModuleList* list) const {
   list->add<neighbor::NameModule>();
 }
 

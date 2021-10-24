@@ -104,7 +104,7 @@ class TestHciLayer : public HciLayer {
     command_complete_callbacks.pop_front();
   }
 
-  void ListDependencies(ModuleList* list) override {}
+  void ListDependencies(ModuleList* list) const {}
   void Start() override {}
   void Stop() override {}
 

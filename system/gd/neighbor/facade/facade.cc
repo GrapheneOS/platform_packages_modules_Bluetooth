@@ -212,7 +212,7 @@ class NeighborFacadeService : public NeighborFacade::Service {
   ::bluetooth::grpc::GrpcEventQueue<RemoteNameResponseMsg> pending_remote_names_{"RemoteNameResponses"};
 };
 
-void NeighborFacadeModule::ListDependencies(ModuleList* list) {
+void NeighborFacadeModule::ListDependencies(ModuleList* list) const {
   ::bluetooth::grpc::GrpcFacadeModule::ListDependencies(list);
   list->add<ConnectabilityModule>();
   list->add<DiscoverabilityModule>();

@@ -179,7 +179,7 @@ bool neighbor::DiscoverabilityModule::IsLimitedDiscoverabilityEnabled() const {
 /**
  * Module stuff
  */
-void neighbor::DiscoverabilityModule::ListDependencies(ModuleList* list) {
+void neighbor::DiscoverabilityModule::ListDependencies(ModuleList* list) const {
   list->add<hci::HciLayer>();
   list->add<neighbor::ScanModule>();
 }

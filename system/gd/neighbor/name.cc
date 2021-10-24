@@ -231,7 +231,7 @@ void neighbor::NameModule::CancelRemoteNameRequest(
 /**
  * Module methods here
  */
-void neighbor::NameModule::ListDependencies(ModuleList* list) {
+void neighbor::NameModule::ListDependencies(ModuleList* list) const {
   list->add<hci::HciLayer>();
 }
 
