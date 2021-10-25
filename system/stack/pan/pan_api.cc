@@ -145,7 +145,6 @@ tPAN_RESULT PAN_SetRole(uint8_t role, const char* p_user_name,
 
   /* Register all the roles with SDP */
   PAN_TRACE_API("PAN_SetRole() called with role 0x%x", role);
-#if (PAN_SUPPORTS_ROLE_NAP == TRUE)
   if (role & PAN_ROLE_NAP_SERVER) {
     /* Check the service name */
     if ((p_nap_name == NULL) || (*p_nap_name == 0))
@@ -170,7 +169,6 @@ tPAN_RESULT PAN_SetRole(uint8_t role, const char* p_user_name,
       bta_sys_remove_uuid(UUID_SERVCLASS_NAP);
     }
   }
-#endif
 
 #if (PAN_SUPPORTS_ROLE_PANU == TRUE)
   if (role & PAN_ROLE_CLIENT) {
