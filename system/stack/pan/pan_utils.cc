@@ -104,7 +104,6 @@ uint32_t pan_register_with_sdp(uint16_t uuid, const char* p_name,
   SDP_AddAttribute(sdp_handle, ATTR_ID_SECURITY_DESCRIPTION, UINT_DESC_TYPE, 2,
                    (uint8_t*)&security);
 
-#if (PAN_SUPPORTS_ROLE_NAP == TRUE)
   if (uuid == UUID_SERVCLASS_NAP) {
     uint16_t NetAccessType = 0x0005;      /* Ethernet */
     uint32_t NetAccessRate = 0x0001312D0; /* 10Mb/sec */
@@ -122,7 +121,6 @@ uint32_t pan_register_with_sdp(uint16_t uuid, const char* p_name,
     SDP_AddAttribute(sdp_handle, ATTR_ID_MAX_NET_ACCESS_RATE, UINT_DESC_TYPE, 4,
                      array);
   }
-#endif
 
   /* Make the service browsable */
   SDP_AddUuidSequence(sdp_handle, ATTR_ID_BROWSE_GROUP_LIST, 1, &browse_list);
