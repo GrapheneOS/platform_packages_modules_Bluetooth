@@ -139,7 +139,7 @@ class HciHalFacadeService : public HciHalFacade::Service, public ::bluetooth::ha
   ::bluetooth::grpc::GrpcEventQueue<::bluetooth::facade::Data> pending_iso_events_{"StreamIso"};
 };
 
-void HciHalFacadeModule::ListDependencies(ModuleList* list) {
+void HciHalFacadeModule::ListDependencies(ModuleList* list) const {
   ::bluetooth::grpc::GrpcFacadeModule::ListDependencies(list);
   list->add<HciHal>();
 }

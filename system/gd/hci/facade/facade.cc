@@ -223,7 +223,7 @@ class HciFacadeService : public HciFacade::Service {
   bool completed_packets_callback_registered_{false};
 };
 
-void HciFacadeModule::ListDependencies(ModuleList* list) {
+void HciFacadeModule::ListDependencies(ModuleList* list) const {
   ::bluetooth::grpc::GrpcFacadeModule::ListDependencies(list);
   list->add<HciLayer>();
   list->add<Controller>();

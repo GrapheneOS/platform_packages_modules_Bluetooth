@@ -205,7 +205,7 @@ class IsoModuleFacadeService : public IsoModuleFacade::Service {
   ::bluetooth::os::Handler* iso_handler_;
 };
 
-void IsoModuleFacadeModule::ListDependencies(ModuleList* list) {
+void IsoModuleFacadeModule::ListDependencies(ModuleList* list) const {
   ::bluetooth::grpc::GrpcFacadeModule::ListDependencies(list);
   list->add<IsoModule>();
   list->add<AclManager>();

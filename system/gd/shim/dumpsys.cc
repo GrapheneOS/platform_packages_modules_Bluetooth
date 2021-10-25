@@ -167,7 +167,7 @@ os::Handler* Dumpsys::GetGdShimHandler() {
 /**
  * Module methods
  */
-void Dumpsys::ListDependencies(ModuleList* list) {}
+void Dumpsys::ListDependencies(ModuleList* list) const {}
 
 void Dumpsys::Start() {
   pimpl_ = std::make_unique<impl>(*this, reflection_schema_);

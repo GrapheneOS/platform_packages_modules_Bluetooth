@@ -115,7 +115,7 @@ class TestController : public Controller {
  protected:
   void Start() override {}
   void Stop() override {}
-  void ListDependencies(ModuleList* list) override {}
+  void ListDependencies(ModuleList* list) const {}
 };
 
 class TestHciLayer : public HciLayer {
@@ -284,7 +284,7 @@ class TestHciLayer : public HciLayer {
     return acl_queue_.GetUpEnd();
   }
 
-  void ListDependencies(ModuleList* list) override {}
+  void ListDependencies(ModuleList* list) const {}
   void Start() override {
     RegisterEventHandler(EventCode::COMMAND_COMPLETE,
                          GetHandler()->BindOn(this, &TestHciLayer::CommandCompleteCallback));

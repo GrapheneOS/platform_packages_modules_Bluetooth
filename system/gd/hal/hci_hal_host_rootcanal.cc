@@ -156,7 +156,7 @@ class HciHalHost : public HciHal {
   }
 
  protected:
-  void ListDependencies(ModuleList* list) override {
+  void ListDependencies(ModuleList* list) const {
     list->add<SnoopLogger>();
   }
 
