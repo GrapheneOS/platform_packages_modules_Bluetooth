@@ -159,6 +159,10 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
     if (status == ErrorCode::UNKNOWN_CONNECTION && pause_connection) {
       // connection canceled by LeAddressManager.OnPause(), will auto reconnect by LeAddressManager.OnResume()
       return;
+    } else if (status == ErrorCode::UNKNOWN_CONNECTION && remote_address.GetAddress() == Address::kEmpty) {
+      // direct connect canceled due to connection timeout, start background connect
+      create_le_connection(remote_address, false, false);
+      return;
     } else {
       canceled_connections_.erase(remote_address);
       ready_to_unregister = true;
@@ -216,6 +220,10 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
     on_common_le_connection_complete(remote_address);
     if (status == ErrorCode::UNKNOWN_CONNECTION && pause_connection) {
       // connection canceled by LeAddressManager.OnPause(), will auto reconnect by LeAddressManager.OnResume()
+      return;
+    } else if (status == ErrorCode::UNKNOWN_CONNECTION && remote_address.GetAddress() == Address::kEmpty) {
+      // direct connect canceled due to connection timeout, start background connect
+      create_le_connection(remote_address, false, false);
       return;
     } else {
       canceled_connections_.erase(remote_address);
@@ -547,7 +555,14 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
     if (create_connection_timeout_alarms_.find(address_with_type) != create_connection_timeout_alarms_.end()) {
       create_connection_timeout_alarms_.at(address_with_type).Cancel();
       create_connection_timeout_alarms_.erase(address_with_type);
-      cancel_connect(address_with_type);
+      if (background_connections_.find(address_with_type) != background_connections_.end()) {
+        direct_connections_.erase(address_with_type);
+        le_acl_connection_interface_->EnqueueCommand(
+            LeCreateConnectionCancelBuilder::Create(),
+            handler_->BindOnce(&le_impl::on_create_connection_cancel_complete, common::Unretained(this)));
+      } else {
+        cancel_connect(address_with_type);
+      }
       le_client_handler_->Post(common::BindOnce(
           &LeConnectionCallbacks::OnLeConnectFail,
           common::Unretained(le_client_callbacks_),
@@ -667,6 +682,14 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
     return true;
   }
 
+  void add_device_to_background_connection_list(AddressWithType address_with_type) {
+    background_connections_.insert(address_with_type);
+  }
+
+  void remove_device_from_background_connection_list(AddressWithType address_with_type) {
+    background_connections_.erase(address_with_type);
+  }
+
   void OnPause() override {
     pause_connection = true;
     if (connecting_le_.empty()) {
@@ -743,6 +766,8 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
   std::set<AddressWithType> connecting_le_;
   std::set<AddressWithType> canceled_connections_;
   std::set<AddressWithType> direct_connections_;
+  // Set of devices that will not be removed from connect list after direct connect timeout
+  std::set<AddressWithType> background_connections_;
   bool address_manager_registered = false;
   bool ready_to_unregister = false;
   bool pause_connection = false;
