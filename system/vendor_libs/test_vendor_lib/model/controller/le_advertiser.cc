@@ -79,6 +79,7 @@ void LeAdvertiser::SetScanResponse(const std::vector<uint8_t>& data) {
 void LeAdvertiser::Enable() {
   enabled_ = true;
   last_le_advertisement_ = std::chrono::steady_clock::now() - interval_;
+  num_events_ = 0;
   LOG_INFO("%s -> %s type = %hhx ad length %zu, scan length %zu",
            address_.ToString().c_str(), peer_address_.ToString().c_str(), type_,
            advertisement_.size(), scan_response_.size());
@@ -86,11 +87,11 @@ void LeAdvertiser::Enable() {
 
 void LeAdvertiser::EnableExtended(
     std::chrono::steady_clock::duration duration) {
-  last_le_advertisement_ = std::chrono::steady_clock::now();
+  Enable();
   if (duration != std::chrono::milliseconds(0)) {
     ending_time_ = std::chrono::steady_clock::now() + duration;
   }
-  enabled_ = true;
+  extended_ = true;
   LOG_INFO("%s -> %s type = %hhx ad length %zu, scan length %zu",
            address_.ToString().c_str(), peer_address_.ToString().c_str(), type_,
            advertisement_.size(), scan_response_.size());
@@ -99,6 +100,10 @@ void LeAdvertiser::EnableExtended(
 void LeAdvertiser::Disable() { enabled_ = false; }
 
 bool LeAdvertiser::IsEnabled() const { return enabled_; }
+
+bool LeAdvertiser::IsExtended() const { return extended_; }
+
+uint8_t LeAdvertiser::GetNumAdvertisingEvents() const { return num_events_; }
 
 std::unique_ptr<model::packets::LeAdvertisementBuilder>
 LeAdvertiser::GetAdvertisement(std::chrono::steady_clock::time_point now) {
@@ -116,6 +121,7 @@ LeAdvertiser::GetAdvertisement(std::chrono::steady_clock::time_point now) {
   }
 
   last_le_advertisement_ = now;
+  num_events_ += (num_events_ < 255 ? 1 : 0);
   return model::packets::LeAdvertisementBuilder::Create(
       address_.GetAddress(), peer_address_.GetAddress(),
       static_cast<model::packets::AddressType>(address_.GetAddressType()),
