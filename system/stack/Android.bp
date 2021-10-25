@@ -423,6 +423,9 @@ cc_test {
         "test/ble_advertiser_test.cc",
     ],
     shared_libs: [
+        "android.system.suspend.control-V1-ndk",
+        "libbinder_ndk",
+        "libcrypto",
         "libcutils",
     ],
     static_libs: [
