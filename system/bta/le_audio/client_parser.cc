@@ -216,6 +216,8 @@ bool ParseAseStatusTransientStateParams(struct ase_transient_state_params& rsp,
     return false;
   }
 
+  STREAM_TO_UINT8(rsp.cig_id, value);
+  STREAM_TO_UINT8(rsp.cis_id, value);
   STREAM_TO_UINT8(metadata_len, value);
   len -= kAseStatusTransMinLen;
 
@@ -227,7 +229,9 @@ bool ParseAseStatusTransientStateParams(struct ase_transient_state_params& rsp,
   if (metadata_len > 0)
     rsp.metadata = std::vector<uint8_t>(value, value + metadata_len);
 
-  LOG(INFO) << __func__ << ", Status enabling/streaming/disabling metadata:"
+  LOG(INFO) << __func__ << ", Status enabling/streaming/disabling"
+            << "\n\tCIG: " << loghex(rsp.cig_id)
+            << "\n\tCIS: " << loghex(rsp.cis_id) << "\n\tMetadata: "
             << base::HexEncode(rsp.metadata.data(), rsp.metadata.size());
 
   return true;

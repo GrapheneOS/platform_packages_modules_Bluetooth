@@ -212,8 +212,8 @@ bool le_audio_source_on_suspend_req() {
   return false;
 }
 
-bool le_audio_sink_on_metadata_update_req(audio_usage_t usage,
-                                          audio_content_type_t content_type) {
+bool le_audio_sink_on_metadata_update_req(
+    const source_metadata_t& source_metadata) {
   if (localAudioSinkReceiver == nullptr) {
     LOG(ERROR) << __func__ << ", audio receiver not started";
     return false;
@@ -227,8 +227,7 @@ bool le_audio_sink_on_metadata_update_req(audio_usage_t usage,
       FROM_HERE,
       base::BindOnce(&LeAudioClientAudioSinkReceiver::OnAudioMetadataUpdate,
                      base::Unretained(localAudioSinkReceiver),
-                     std::move(do_update_metadata_promise), usage,
-                     content_type));
+                     std::move(do_update_metadata_promise), source_metadata));
 
   if (status == BT_STATUS_SUCCESS) {
     do_update_metadata_future.wait();

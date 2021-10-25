@@ -380,10 +380,12 @@ cc_test {
         "packages/modules/Bluetooth/system/stack/include",
     ],
     srcs : [
+        ":TestMockOsi",
         "gatt/database.cc",
         "gatt/database_builder.cc",
         "test/common/bta_gatt_api_mock.cc",
         "test/common/bta_gatt_queue_mock.cc",
+        "test/common/mock_csis_client.cc",
         "test/common/btm_api_mock.cc",
         "vc/devices_test.cc",
         "vc/device.cc",
@@ -399,6 +401,7 @@ cc_test {
         "libgmock",
         "libbt-common",
         "libbt-protos-lite",
+        "libosi"
     ],
     sanitize: {
         cfi: false,
