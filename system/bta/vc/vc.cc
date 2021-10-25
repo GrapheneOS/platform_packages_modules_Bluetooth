@@ -24,16 +24,20 @@
 #include <vector>
 
 #include "bind_helpers.h"
+#include "bta/le_audio/le_audio_types.h"
+#include "bta_csis_api.h"
 #include "bta_gatt_api.h"
 #include "bta_gatt_queue.h"
 #include "bta_vc_api.h"
 #include "btif_storage.h"
 #include "devices.h"
+#include "osi/include/osi.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
 using base::Closure;
 using bluetooth::Uuid;
+using bluetooth::csis::CsisClient;
 using bluetooth::vc::ConnectionState;
 using namespace bluetooth::vc::internal;
 
@@ -64,7 +68,7 @@ class VolumeControlImpl : public VolumeControl {
   ~VolumeControlImpl() override = default;
 
   VolumeControlImpl(bluetooth::vc::VolumeControlCallbacks* callbacks)
-      : gatt_if_(0), callbacks_(callbacks) {
+      : gatt_if_(0), callbacks_(callbacks), latest_operation_id_(0) {
     BTA_GATTC_AppRegister(
         gattc_callback_static,
         base::Bind([](uint8_t client_id, uint8_t status) {
@@ -226,7 +230,8 @@ class VolumeControlImpl : public VolumeControl {
 
   void OnCharacteristicValueChanged(uint16_t conn_id, tGATT_STATUS status,
                                     uint16_t handle, uint16_t len,
-                                    uint8_t* value, void* /* data */) {
+                                    uint8_t* value, void* data,
+                                    bool is_notification) {
     VolumeControlDevice* device = volume_control_devices_.FindByConnId(conn_id);
     if (!device) {
       LOG(INFO) << __func__ << ": unknown conn_id=" << loghex(conn_id);
@@ -239,7 +244,7 @@ class VolumeControlImpl : public VolumeControl {
     }
 
     if (handle == device->volume_state_handle) {
-      OnVolumeControlStateChanged(device, len, value);
+      OnVolumeControlStateReadOrNotified(device, len, value, is_notification);
       verify_device_ready(device, handle);
       return;
     }
@@ -256,7 +261,7 @@ class VolumeControlImpl : public VolumeControl {
                            uint8_t* value) {
     LOG(INFO) << __func__ << ": handle=" << loghex(handle);
     OnCharacteristicValueChanged(conn_id, GATT_SUCCESS, handle, len, value,
-                                 nullptr);
+                                 nullptr, true);
   }
 
   void VolumeControlReadCommon(uint16_t conn_id, uint16_t handle) {
@@ -264,17 +269,81 @@ class VolumeControlImpl : public VolumeControl {
                                      nullptr);
   }
 
-  void OnVolumeControlStateChanged(VolumeControlDevice* device, uint16_t len,
-                                   uint8_t* value) {
+  void HandleAutonomusVolumeChange(VolumeControlDevice* device,
+                                   bool is_volume_change, bool is_mute_change) {
+    DLOG(INFO) << __func__ << device->address
+               << " is volume change: " << is_volume_change
+               << " is mute change: " << is_mute_change;
+
+    if (!is_volume_change && !is_mute_change) {
+      LOG(ERROR) << __func__
+                 << "Autonomous change but volume and mute did not changed.";
+      return;
+    }
+
+    auto csis_api = CsisClient::Get();
+    if (!csis_api) {
+      DLOG(INFO) << __func__ << " Csis is not available";
+      callbacks_->OnVolumeStateChanged(device->address, device->volume,
+                                       device->mute);
+      return;
+    }
+
+    auto group_id =
+        csis_api->GetGroupId(device->address, le_audio::uuid::kCapServiceUuid);
+    if (group_id == bluetooth::groups::kGroupUnknown) {
+      DLOG(INFO) << __func__ << " No group for device " << device->address;
+      callbacks_->OnVolumeStateChanged(device->address, device->volume,
+                                       device->mute);
+      return;
+    }
+
+    auto devices = csis_api->GetDeviceList(group_id);
+    for (auto it = devices.begin(); it != devices.end();) {
+      auto dev = volume_control_devices_.FindByAddress(*it);
+      if (!dev || !dev->IsConnected() || (dev->address == device->address)) {
+        it = devices.erase(it);
+      } else {
+        it++;
+      }
+    }
+
+    if (is_volume_change) {
+      std::vector<uint8_t> arg({device->volume});
+      PrepareVolumeControlOperation(devices, group_id,
+                                    kControlPointOpcodeSetAbsoluteVolume, arg);
+    }
+
+    if (is_mute_change) {
+      std::vector<uint8_t> arg;
+      uint8_t opcode =
+          device->mute ? kControlPointOpcodeMute : kControlPointOpcodeUnmute;
+      PrepareVolumeControlOperation(devices, group_id, opcode, arg);
+    }
+
+    StartQueueOperation();
+  }
+
+  void OnVolumeControlStateReadOrNotified(VolumeControlDevice* device,
+                                          uint16_t len, uint8_t* value,
+                                          bool is_notification) {
     if (len != 3) {
       LOG(INFO) << __func__ << ": malformed len=" << loghex(len);
       return;
     }
 
+    uint8_t vol;
+    uint8_t mute;
     uint8_t* pp = value;
-    STREAM_TO_UINT8(device->volume, pp);
-    STREAM_TO_UINT8(device->mute, pp);
+    STREAM_TO_UINT8(vol, pp);
+    STREAM_TO_UINT8(mute, pp);
     STREAM_TO_UINT8(device->change_counter, pp);
+
+    bool is_volume_change = (device->volume != vol);
+    device->volume = vol;
+
+    bool is_mute_change = (device->mute != mute);
+    device->mute = mute;
 
     LOG(INFO) << __func__ << " volume " << loghex(device->volume) << " mute "
               << loghex(device->mute) << " change_counter "
@@ -282,8 +351,48 @@ class VolumeControlImpl : public VolumeControl {
 
     if (!device->device_ready) return;
 
-    callbacks_->OnVolumeStateChanged(device->address, device->volume,
-                                     device->mute);
+    /* This is just a read, send single notification */
+    if (!is_notification) {
+      callbacks_->OnVolumeStateChanged(device->address, device->volume,
+                                       device->mute);
+      return;
+    }
+
+    auto addr = device->address;
+    auto op = find_if(ongoing_operations_.begin(), ongoing_operations_.end(),
+                      [addr](auto& operation) {
+                        auto it = find(operation.devices_.begin(),
+                                       operation.devices_.end(), addr);
+                        return it != operation.devices_.end();
+                      });
+    if (op == ongoing_operations_.end()) {
+      DLOG(INFO) << __func__ << " Could not find operation id for device: "
+                 << device->address << ". Autonomus change";
+      HandleAutonomusVolumeChange(device, is_volume_change, is_mute_change);
+      return;
+    }
+
+    DLOG(INFO) << __func__ << " operation found: " << op->operation_id_
+               << " for group id: " << op->group_id_;
+
+    /* Received notification from the device we do expect */
+    auto it = find(op->devices_.begin(), op->devices_.end(), device->address);
+    op->devices_.erase(it);
+    if (!op->devices_.empty()) {
+      DLOG(INFO) << __func__ << " wait for more responses for operation_id: "
+                 << op->operation_id_;
+      return;
+    }
+
+    if (op->IsGroupOperation())
+      callbacks_->OnGroupVolumeStateChanged(op->group_id_, device->volume,
+                                            device->mute);
+    else
+      callbacks_->OnVolumeStateChanged(device->address, device->volume,
+                                       device->mute);
+
+    ongoing_operations_.erase(op);
+    StartQueueOperation();
   }
 
   void OnVolumeControlFlagsChanged(VolumeControlDevice* device, uint16_t len,
@@ -367,8 +476,31 @@ class VolumeControlImpl : public VolumeControl {
     }
   }
 
+  void RemoveDeviceFromOperationList(const RawAddress& addr, int operation_id) {
+    auto op = find_if(ongoing_operations_.begin(), ongoing_operations_.end(),
+                      [operation_id](auto& operation) {
+                        return operation.operation_id_ == operation_id;
+                      });
+
+    if (op == ongoing_operations_.end()) {
+      LOG(ERROR) << __func__
+                 << " Could not find operation id: " << operation_id;
+      return;
+    }
+
+    auto it = find(op->devices_.begin(), op->devices_.end(), addr);
+    if (it != op->devices_.end()) {
+      op->devices_.erase(it);
+      if (op->devices_.empty()) {
+        ongoing_operations_.erase(op);
+        StartQueueOperation();
+      }
+      return;
+    }
+  }
+
   void OnWriteControlResponse(uint16_t connection_id, tGATT_STATUS status,
-                              uint16_t handle, void* /*data*/) {
+                              uint16_t handle, void* data) {
     VolumeControlDevice* device =
         volume_control_devices_.FindByConnId(connection_id);
     if (!device) {
@@ -380,28 +512,144 @@ class VolumeControlImpl : public VolumeControl {
 
     LOG(INFO) << "Write response handle: " << loghex(handle)
               << " status: " << loghex((int)(status));
+
+    if (status == GATT_SUCCESS) return;
+
+    /* In case of error, remove device from the tracking operation list */
+    RemoveDeviceFromOperationList(device->address, PTR_TO_INT(data));
+  }
+
+  static void operation_callback(void* data) {
+    instance->CancelVolumeOperation(PTR_TO_INT(data));
+  }
+
+  void StartQueueOperation(void) {
+    LOG(INFO) << __func__;
+    if (ongoing_operations_.empty()) {
+      return;
+    };
+
+    auto op = &ongoing_operations_.front();
+
+    LOG(INFO) << __func__ << " operation_id: " << op->operation_id_;
+
+    if (op->IsStarted()) {
+      LOG(INFO) << __func__ << " wait until operation " << op->operation_id_
+                << " is complete";
+      return;
+    }
+
+    op->Start();
+
+    alarm_set_on_mloop(op->operation_timeout_, 3000, operation_callback,
+                       INT_TO_PTR(op->operation_id_));
+    devices_control_point_helper(
+        op->devices_, op->opcode_,
+        op->arguments_.size() == 0 ? nullptr : &(op->arguments_));
+  }
+
+  void CancelVolumeOperation(int operation_id) {
+    LOG(INFO) << __func__ << " canceling operation_id: " << operation_id;
+
+    auto op = find_if(
+        ongoing_operations_.begin(), ongoing_operations_.end(),
+        [operation_id](auto& it) { return it.operation_id_ == operation_id; });
+
+    if (op == ongoing_operations_.end()) {
+      LOG(ERROR) << __func__
+                 << " Could not find operation_id: " << operation_id;
+      return;
+    }
+
+    /* Possibly close GATT operations */
+    ongoing_operations_.erase(op);
+    StartQueueOperation();
+  }
+
+  void ProceedVolumeOperation(int operation_id) {
+    auto op = find_if(ongoing_operations_.begin(), ongoing_operations_.end(),
+                      [operation_id](auto& operation) {
+                        return operation.operation_id_ == operation_id;
+                      });
+
+    DLOG(INFO) << __func__ << " operation_id: " << operation_id;
+
+    if (op == ongoing_operations_.end()) {
+      LOG(ERROR) << __func__
+                 << " Could not find operation_id: " << operation_id;
+      return;
+    }
+
+    DLOG(INFO) << __func__ << " procedure continued for operation_id: "
+               << op->operation_id_;
+
+    alarm_set_on_mloop(op->operation_timeout_, 3000, operation_callback,
+                       INT_TO_PTR(op->operation_id_));
+    devices_control_point_helper(op->devices_, op->opcode_, &(op->arguments_));
+  }
+
+  void PrepareVolumeControlOperation(std::vector<RawAddress>& devices,
+                                     int group_id, uint8_t opcode,
+                                     std::vector<uint8_t>& arguments) {
+    DLOG(INFO) << __func__ << " num of devices: " << devices.size()
+               << " group_id: " << group_id << " opcode: " << +opcode
+               << " arg size: " << arguments.size();
+
+    ongoing_operations_.emplace_back(latest_operation_id_++, group_id, opcode,
+                                     arguments, devices);
   }
 
   void SetVolume(std::variant<RawAddress, int> addr_or_group_id,
                  uint8_t volume) override {
-    LOG(INFO) << __func__ << " vol: " << +volume;
+    DLOG(INFO) << __func__ << " vol: " << +volume;
+
+    std::vector<uint8_t> arg({volume});
+    uint8_t opcode = kControlPointOpcodeSetAbsoluteVolume;
 
     if (std::holds_alternative<RawAddress>(addr_or_group_id)) {
+      DLOG(INFO) << __func__ << " " << std::get<RawAddress>(addr_or_group_id);
       std::vector<RawAddress> devices = {
           std::get<RawAddress>(addr_or_group_id)};
-      std::vector<uint8_t> arg({volume});
-      devices_control_point_helper(devices,
-                                   kControlPointOpcodeSetAbsoluteVolume, &arg);
-      return;
+
+      PrepareVolumeControlOperation(devices, bluetooth::groups::kGroupUnknown,
+                                    opcode, arg);
+    } else {
+      /* Handle group change */
+      auto group_id = std::get<int>(addr_or_group_id);
+      DLOG(INFO) << __func__ << " group: " << group_id;
+      auto csis_api = CsisClient::Get();
+      if (!csis_api) {
+        LOG(ERROR) << __func__ << " Csis is not there";
+        return;
+      }
+
+      auto devices = csis_api->GetDeviceList(group_id);
+      for (auto it = devices.begin(); it != devices.end();) {
+        auto dev = volume_control_devices_.FindByAddress(*it);
+        if (!dev || !dev->IsConnected()) {
+          it = devices.erase(it);
+        } else {
+          it++;
+        }
+      }
+
+      if (devices.empty()) {
+        LOG(ERROR) << __func__ << " group id : " << group_id
+                   << " is not connected? ";
+        return;
+      }
+
+      PrepareVolumeControlOperation(devices, group_id, opcode, arg);
     }
 
-    /* TODO implement handling group request */
+    StartQueueOperation();
   }
 
   void CleanUp() {
     LOG(INFO) << __func__;
     volume_control_devices_.Disconnect(gatt_if_);
     volume_control_devices_.Clear();
+    ongoing_operations_.clear();
     BTA_GATTC_AppDeregister(gatt_if_);
   }
 
@@ -409,6 +657,10 @@ class VolumeControlImpl : public VolumeControl {
   tGATT_IF gatt_if_;
   bluetooth::vc::VolumeControlCallbacks* callbacks_;
   VolumeControlDevices volume_control_devices_;
+
+  /* Used to track volume control operations */
+  std::list<VolumeOperation> ongoing_operations_;
+  int latest_operation_id_;
 
   void verify_device_ready(VolumeControlDevice* device, uint16_t handle) {
     if (device->device_ready) return;
@@ -444,7 +696,8 @@ class VolumeControlImpl : public VolumeControl {
 
   void devices_control_point_helper(std::vector<RawAddress>& devices,
                                     uint8_t opcode,
-                                    const std::vector<uint8_t>* arg) {
+                                    const std::vector<uint8_t>* arg,
+                                    int operation_id = -1) {
     volume_control_devices_.ControlPointOperation(
         devices, opcode, arg,
         [](uint16_t connection_id, tGATT_STATUS status, uint16_t handle,
@@ -453,7 +706,7 @@ class VolumeControlImpl : public VolumeControl {
             instance->OnWriteControlResponse(connection_id, status, handle,
                                              data);
         },
-        nullptr);
+        INT_TO_PTR(operation_id));
   }
 
   void gattc_callback(tBTA_GATTC_EVT event, tBTA_GATTC* p_data) {
@@ -520,7 +773,7 @@ class VolumeControlImpl : public VolumeControl {
                                         uint8_t* value, void* data) {
     if (instance)
       instance->OnCharacteristicValueChanged(conn_id, status, handle, len,
-                                             value, data);
+                                             value, data, false);
   }
 };
 }  // namespace

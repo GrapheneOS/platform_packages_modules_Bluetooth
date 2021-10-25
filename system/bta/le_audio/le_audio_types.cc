@@ -31,13 +31,14 @@
 #include "client_parser.h"
 
 namespace le_audio {
+using types::LeAudioContextType;
+
 namespace set_configurations {
 using set_configurations::CodecCapabilitySetting;
 using types::acs_ac_record;
 using types::kLeAudioCodingFormatLC3;
 using types::kLeAudioDirectionSink;
 using types::kLeAudioDirectionSource;
-using types::LeAudioContextType;
 using types::LeAudioLc3Config;
 
 static uint8_t min_req_devices_cnt(
@@ -384,6 +385,61 @@ std::string LeAudioLtvMap::ToString() const {
 }
 
 }  // namespace types
+
+void AppendMetadataLtvEntryForCcidList(std::vector<uint8_t>& metadata,
+                                       LeAudioContextType context_type) {
+  std::vector<uint8_t> ccid_ltv_entry;
+  /* TODO: Get CCID values from Service */
+  std::vector<uint8_t> ccid_conversational = {0x12};
+  std::vector<uint8_t> ccid_media = {0x56};
+
+  std::vector<uint8_t>* ccid_value = nullptr;
+
+  /* CCID list */
+  switch (context_type) {
+    case LeAudioContextType::CONVERSATIONAL:
+      ccid_value = &ccid_conversational;
+      break;
+    case LeAudioContextType::MEDIA:
+      ccid_value = &ccid_media;
+      break;
+    default:
+      break;
+  }
+
+  if (!ccid_value) return;
+
+  ccid_ltv_entry.push_back(static_cast<uint8_t>(types::kLeAudioMetadataTypeLen +
+                                                ccid_value->size()));
+  ccid_ltv_entry.push_back(
+      static_cast<uint8_t>(types::kLeAudioMetadataTypeCcidList));
+  ccid_ltv_entry.insert(ccid_ltv_entry.end(), ccid_value->begin(),
+                        ccid_value->end());
+
+  metadata.insert(metadata.end(), ccid_ltv_entry.begin(), ccid_ltv_entry.end());
+}
+
+void AppendMetadataLtvEntryForStreamingContext(
+    std::vector<uint8_t>& metadata, LeAudioContextType context_type) {
+  std::vector<uint8_t> streaming_context_ltv_entry;
+
+  streaming_context_ltv_entry.resize(
+      types::kLeAudioMetadataTypeLen + types::kLeAudioMetadataLenLen +
+      types::kLeAudioMetadataStreamingAudioContextLen);
+  uint8_t* streaming_context_ltv_entry_buf = streaming_context_ltv_entry.data();
+
+  UINT8_TO_STREAM(streaming_context_ltv_entry_buf,
+                  types::kLeAudioMetadataTypeLen +
+                      types::kLeAudioMetadataStreamingAudioContextLen);
+  UINT8_TO_STREAM(streaming_context_ltv_entry_buf,
+                  types::kLeAudioMetadataTypeStreamingAudioContext);
+  UINT16_TO_STREAM(streaming_context_ltv_entry_buf,
+                   static_cast<uint16_t>(context_type));
+
+  metadata.insert(metadata.end(), streaming_context_ltv_entry.begin(),
+                  streaming_context_ltv_entry.end());
+}
+
 }  // namespace le_audio
 
 std::ostream& operator<<(std::ostream& os,
