@@ -48,7 +48,7 @@ class NameModule : public bluetooth::Module {
   ~NameModule();
 
  protected:
-  void ListDependencies(ModuleList* list) override;
+  void ListDependencies(ModuleList* list) const override;
   void Start() override;
   void Stop() override;
   std::string ToString() const override {

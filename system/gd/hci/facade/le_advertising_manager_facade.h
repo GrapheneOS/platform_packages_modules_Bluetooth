@@ -29,7 +29,7 @@ class LeAdvertisingManagerFacadeModule : public ::bluetooth::grpc::GrpcFacadeMod
  public:
   static const ModuleFactory Factory;
 
-  void ListDependencies(ModuleList* list) override;
+  void ListDependencies(ModuleList* list) const override;
   void Start() override;
   void Stop() override;
 

@@ -1142,7 +1142,7 @@ bool Controller::IsSupported(bluetooth::hci::OpCode op_code) const {
 
 const ModuleFactory Controller::Factory = ModuleFactory([]() { return new Controller(); });
 
-void Controller::ListDependencies(ModuleList* list) {
+void Controller::ListDependencies(ModuleList* list) const {
   list->add<hci::HciLayer>();
 }
 

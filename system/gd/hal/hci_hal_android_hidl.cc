@@ -192,7 +192,7 @@ class HciHalHidl : public HciHal {
   }
 
  protected:
-  void ListDependencies(ModuleList* list) override {
+  void ListDependencies(ModuleList* list) const {
     list->add<SnoopLogger>();
     if (common::init_flags::btaa_hci_is_enabled()) {
       list->add<activity_attribution::ActivityAttribution>();

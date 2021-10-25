@@ -53,8 +53,7 @@ class TestModuleNoDependency : public Module {
   static const ModuleFactory Factory;
 
  protected:
-  void ListDependencies(ModuleList* list) override {
-  }
+  void ListDependencies(ModuleList* list) const {}
 
   void Start() override {
     // A module is not considered started until Start() finishes
@@ -83,7 +82,7 @@ class TestModuleOneDependency : public Module {
   static const ModuleFactory Factory;
 
  protected:
-  void ListDependencies(ModuleList* list) override {
+  void ListDependencies(ModuleList* list) const {
     list->add<TestModuleNoDependency>();
   }
 
@@ -117,8 +116,7 @@ class TestModuleNoDependencyTwo : public Module {
   static const ModuleFactory Factory;
 
  protected:
-  void ListDependencies(ModuleList* list) override {
-  }
+  void ListDependencies(ModuleList* list) const {}
 
   void Start() override {
     // A module is not considered started until Start() finishes
@@ -144,7 +142,7 @@ class TestModuleTwoDependencies : public Module {
   static const ModuleFactory Factory;
 
  protected:
-  void ListDependencies(ModuleList* list) override {
+  void ListDependencies(ModuleList* list) const {
     list->add<TestModuleOneDependency>();
     list->add<TestModuleNoDependencyTwo>();
   }
@@ -183,7 +181,7 @@ class TestModuleDumpState : public Module {
   std::string test_string_{"Initial Test String"};
 
  protected:
-  void ListDependencies(ModuleList* list) override {
+  void ListDependencies(ModuleList* list) const {
     list->add<TestModuleNoDependency>();
   }
 

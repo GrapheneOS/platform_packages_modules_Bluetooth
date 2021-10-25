@@ -1314,7 +1314,7 @@ LeScanningManager::LeScanningManager() {
   pimpl_ = std::make_unique<impl>(this);
 }
 
-void LeScanningManager::ListDependencies(ModuleList* list) {
+void LeScanningManager::ListDependencies(ModuleList* list) const {
   list->add<hci::HciLayer>();
   list->add<hci::VendorSpecificEventManager>();
   list->add<hci::Controller>();

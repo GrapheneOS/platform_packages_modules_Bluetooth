@@ -62,7 +62,7 @@ class ActivityAttribution : public bluetooth::Module {
 
  protected:
   std::string ToString() const override;
-  void ListDependencies(ModuleList* list) override;
+  void ListDependencies(ModuleList* list) const override;
   void Start() override;
   void Stop() override;
   DumpsysDataFinisher GetDumpsysData(flatbuffers::FlatBufferBuilder* builder) const override;  // Module

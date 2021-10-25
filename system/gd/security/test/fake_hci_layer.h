@@ -100,7 +100,7 @@ class FakeHciLayer : public HciLayer {
     registered_events_[event_code].Invoke(event);
   }
 
-  void ListDependencies(ModuleList* list) override {}
+  void ListDependencies(ModuleList* list) const override {}
   void Start() override {}
   void Stop() override {}
 

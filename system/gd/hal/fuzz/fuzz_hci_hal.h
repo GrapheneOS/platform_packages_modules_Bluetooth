@@ -43,7 +43,7 @@ class FuzzHciHal : public HciHal {
   static const ModuleFactory Factory;
 
  protected:
-  void ListDependencies(ModuleList* list) override {}
+  void ListDependencies(ModuleList* list) const override {}
   void Start() override {}
   void Stop() override {}
 

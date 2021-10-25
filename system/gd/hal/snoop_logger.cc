@@ -351,7 +351,7 @@ void SnoopLogger::DumpSnoozLogToFile(const std::vector<std::string>& data) const
   }
 }
 
-void SnoopLogger::ListDependencies(ModuleList* list) {
+void SnoopLogger::ListDependencies(ModuleList* list) const {
   // We have no dependencies
 }
 
