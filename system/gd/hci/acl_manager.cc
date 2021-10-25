@@ -160,6 +160,9 @@ void AclManager::CreateConnection(Address address) {
 }
 
 void AclManager::CreateLeConnection(AddressWithType address_with_type, bool is_direct) {
+  if (!is_direct) {
+    CallOn(pimpl_->le_impl_, &le_impl::add_device_to_background_connection_list, address_with_type);
+  }
   CallOn(pimpl_->le_impl_, &le_impl::create_le_connection, address_with_type, true, is_direct);
 }
 
@@ -209,6 +212,7 @@ void AclManager::CancelConnect(Address address) {
 }
 
 void AclManager::CancelLeConnect(AddressWithType address_with_type) {
+  CallOn(pimpl_->le_impl_, &le_impl::remove_device_from_background_connection_list, address_with_type);
   CallOn(pimpl_->le_impl_, &le_impl::cancel_connect, address_with_type);
 }
 
