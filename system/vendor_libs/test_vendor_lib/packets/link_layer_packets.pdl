@@ -50,6 +50,8 @@ enum PacketType : 8 {
     PIN_RESPONSE = 0x2B,
     LE_READ_REMOTE_FEATURES = 0x2C,
     LE_READ_REMOTE_FEATURES_RESPONSE = 0x2D,
+    LE_CONNECTION_PARAMETER_REQUEST = 0x2E,
+    LE_CONNECTION_PARAMETER_UPDATE = 0x2F,
 }
 
 packet LinkLayerPacket {
@@ -360,4 +362,18 @@ packet LeReadRemoteFeatures : LinkLayerPacket (type = LE_READ_REMOTE_FEATURES) {
 packet LeReadRemoteFeaturesResponse : LinkLayerPacket (type = LE_READ_REMOTE_FEATURES_RESPONSE) {
   features : 64,
   status : 8,
+}
+
+packet LeConnectionParameterRequest : LinkLayerPacket (type = LE_CONNECTION_PARAMETER_REQUEST) {
+  interval_min : 16,
+  interval_max : 16,
+  latency : 16,
+  timeout : 16,
+}
+
+packet LeConnectionParameterUpdate : LinkLayerPacket (type = LE_CONNECTION_PARAMETER_UPDATE) {
+  status : 8,
+  interval : 16,
+  latency : 16,
+  timeout : 16,
 }

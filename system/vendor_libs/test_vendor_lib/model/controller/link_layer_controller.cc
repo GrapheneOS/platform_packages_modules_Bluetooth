@@ -287,6 +287,12 @@ void LinkLayerController::IncomingPacket(
     case model::packets::PacketType::LE_CONNECT_COMPLETE:
       IncomingLeConnectCompletePacket(incoming);
       break;
+    case model::packets::PacketType::LE_CONNECTION_PARAMETER_REQUEST:
+      IncomingLeConnectionParameterRequest(incoming);
+      break;
+    case model::packets::PacketType::LE_CONNECTION_PARAMETER_UPDATE:
+      IncomingLeConnectionParameterUpdate(incoming);
+      break;
     case model::packets::PacketType::LE_ENCRYPT_CONNECTION:
       IncomingLeEncryptConnection(incoming);
       break;
@@ -1397,6 +1403,51 @@ void LinkLayerController::IncomingLeConnectCompletePacket(
       static_cast<uint8_t>(bluetooth::hci::Role::CENTRAL),
       complete.GetLeConnectionInterval(), complete.GetLeConnectionLatency(),
       complete.GetLeConnectionSupervisionTimeout());
+}
+
+void LinkLayerController::IncomingLeConnectionParameterRequest(
+    model::packets::LinkLayerPacketView incoming) {
+  auto request =
+      model::packets::LeConnectionParameterRequestView::Create(incoming);
+  ASSERT(request.IsValid());
+  Address peer = incoming.GetSourceAddress();
+  uint16_t handle = connections_.GetHandleOnlyAddress(peer);
+  if (handle == kReservedHandle) {
+    LOG_INFO("@%s: Unknown connection @%s",
+             incoming.GetDestinationAddress().ToString().c_str(),
+             peer.ToString().c_str());
+    return;
+  }
+  if (properties_.IsUnmasked(EventCode::LE_META_EVENT) &&
+      properties_.GetLeEventSupported(
+          bluetooth::hci::SubeventCode::CONNECTION_UPDATE_COMPLETE)) {
+    send_event_(
+        bluetooth::hci::LeRemoteConnectionParameterRequestBuilder::Create(
+            handle, request.GetIntervalMin(), request.GetIntervalMax(),
+            request.GetLatency(), request.GetTimeout()));
+  }
+}
+
+void LinkLayerController::IncomingLeConnectionParameterUpdate(
+    model::packets::LinkLayerPacketView incoming) {
+  auto update =
+      model::packets::LeConnectionParameterUpdateView::Create(incoming);
+  ASSERT(update.IsValid());
+  Address peer = incoming.GetSourceAddress();
+  uint16_t handle = connections_.GetHandleOnlyAddress(peer);
+  if (handle == kReservedHandle) {
+    LOG_INFO("@%s: Unknown connection @%s",
+             incoming.GetDestinationAddress().ToString().c_str(),
+             peer.ToString().c_str());
+    return;
+  }
+  if (properties_.IsUnmasked(EventCode::LE_META_EVENT) &&
+      properties_.GetLeEventSupported(
+          bluetooth::hci::SubeventCode::CONNECTION_UPDATE_COMPLETE)) {
+    send_event_(bluetooth::hci::LeConnectionUpdateCompleteBuilder::Create(
+        static_cast<ErrorCode>(update.GetStatus()), handle,
+        update.GetInterval(), update.GetLatency(), update.GetTimeout()));
+  }
 }
 
 void LinkLayerController::IncomingLeEncryptConnection(
@@ -2735,16 +2786,12 @@ ErrorCode LinkLayerController::LeClearAdvertisingSets() {
 }
 
 void LinkLayerController::LeConnectionUpdateComplete(
-    bluetooth::hci::LeConnectionUpdateView connection_update) {
-  uint16_t handle = connection_update.GetConnectionHandle();
+    uint16_t handle, uint16_t interval_min, uint16_t interval_max,
+    uint16_t latency, uint16_t supervision_timeout) {
   ErrorCode status = ErrorCode::SUCCESS;
   if (!connections_.HasHandle(handle)) {
     status = ErrorCode::UNKNOWN_CONNECTION;
   }
-  uint16_t interval_min = connection_update.GetConnIntervalMin();
-  uint16_t interval_max = connection_update.GetConnIntervalMax();
-  uint16_t latency = connection_update.GetConnLatency();
-  uint16_t supervision_timeout = connection_update.GetSupervisionTimeout();
 
   if (interval_min < 6 || interval_max > 0xC80 || interval_min > interval_max ||
       interval_max < interval_min || latency > 0x1F3 ||
@@ -2755,24 +2802,70 @@ void LinkLayerController::LeConnectionUpdateComplete(
     status = ErrorCode::INVALID_HCI_COMMAND_PARAMETERS;
   }
   uint16_t interval = (interval_min + interval_max) / 2;
-  if (properties_.IsUnmasked(EventCode::LE_META_EVENT)) {
+
+  SendLeLinkLayerPacket(LeConnectionParameterUpdateBuilder::Create(
+      connections_.GetOwnAddress(handle).GetAddress(),
+      connections_.GetAddress(handle).GetAddress(),
+      static_cast<uint8_t>(ErrorCode::SUCCESS), interval, latency,
+      supervision_timeout));
+
+  if (properties_.IsUnmasked(EventCode::LE_META_EVENT) &&
+      properties_.GetLeEventSupported(
+          bluetooth::hci::SubeventCode::CONNECTION_UPDATE_COMPLETE)) {
     send_event_(bluetooth::hci::LeConnectionUpdateCompleteBuilder::Create(
         status, handle, interval, latency, supervision_timeout));
   }
 }
 
 ErrorCode LinkLayerController::LeConnectionUpdate(
-    bluetooth::hci::LeConnectionUpdateView connection_update) {
-  uint16_t handle = connection_update.GetConnectionHandle();
+    uint16_t handle, uint16_t interval_min, uint16_t interval_max,
+    uint16_t latency, uint16_t supervision_timeout) {
   if (!connections_.HasHandle(handle)) {
     return ErrorCode::UNKNOWN_CONNECTION;
   }
 
-  // This could negotiate with the remote device in the future
-  ScheduleTask(milliseconds(25), [this, connection_update]() {
-    LeConnectionUpdateComplete(connection_update);
-  });
+  SendLeLinkLayerPacket(LeConnectionParameterRequestBuilder::Create(
+      connections_.GetOwnAddress(handle).GetAddress(),
+      connections_.GetAddress(handle).GetAddress(), interval_min, interval_max,
+      latency, supervision_timeout));
 
+  return ErrorCode::SUCCESS;
+}
+
+ErrorCode LinkLayerController::LeRemoteConnectionParameterRequestReply(
+    uint16_t connection_handle, uint16_t interval_min, uint16_t interval_max,
+    uint16_t timeout, uint16_t latency, uint16_t minimum_ce_length,
+    uint16_t maximum_ce_length) {
+  if (!connections_.HasHandle(connection_handle)) {
+    return ErrorCode::UNKNOWN_CONNECTION;
+  }
+
+  if ((interval_min > interval_max) ||
+      (minimum_ce_length > maximum_ce_length)) {
+    return ErrorCode::INVALID_HCI_COMMAND_PARAMETERS;
+  }
+
+  ScheduleTask(milliseconds(25), [this, connection_handle, interval_min,
+                                  interval_max, latency, timeout]() {
+    LeConnectionUpdateComplete(connection_handle, interval_min, interval_max,
+                               latency, timeout);
+  });
+  return ErrorCode::SUCCESS;
+}
+
+ErrorCode LinkLayerController::LeRemoteConnectionParameterRequestNegativeReply(
+    uint16_t connection_handle, bluetooth::hci::ErrorCode reason) {
+  if (!connections_.HasHandle(connection_handle)) {
+    return ErrorCode::UNKNOWN_CONNECTION;
+  }
+
+  uint16_t interval = 0;
+  uint16_t latency = 0;
+  uint16_t timeout = 0;
+  SendLeLinkLayerPacket(LeConnectionParameterUpdateBuilder::Create(
+      connections_.GetOwnAddress(connection_handle).GetAddress(),
+      connections_.GetAddress(connection_handle).GetAddress(),
+      static_cast<uint8_t>(reason), interval, latency, timeout));
   return ErrorCode::SUCCESS;
 }
 
