@@ -283,7 +283,7 @@ void AclManager::HACK_SetAclTxPriority(uint8_t handle, bool high_priority) {
   CallOn(pimpl_->round_robin_scheduler_, &RoundRobinScheduler::SetLinkPriority, handle, high_priority);
 }
 
-void AclManager::ListDependencies(ModuleList* list) {
+void AclManager::ListDependencies(ModuleList* list) const {
   list->add<HciLayer>();
   list->add<Controller>();
   list->add<storage::StorageModule>();

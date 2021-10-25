@@ -35,7 +35,7 @@ class FuzzL2capClassicModule : public l2cap::classic::L2capClassicModule {
     return std::make_unique<FuzzDynamicChannelManager>(*impl_);
   }
 
-  void ListDependencies(ModuleList*) override {}
+  void ListDependencies(ModuleList*) const override {}
   void Start() override;
   void Stop() override;
 

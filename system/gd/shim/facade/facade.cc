@@ -55,7 +55,7 @@ class ShimFacadeService : public ShimFacade::Service {
   [[maybe_unused]] ::bluetooth::os::Handler* facade_handler_{nullptr};
 };
 
-void ShimFacadeModule::ListDependencies(ModuleList* list) {
+void ShimFacadeModule::ListDependencies(ModuleList* list) const {
   ::bluetooth::grpc::GrpcFacadeModule::ListDependencies(list);
   list->add<Dumpsys>();
 }

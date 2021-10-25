@@ -551,7 +551,7 @@ LeIsoInterface* HciLayer::GetLeIsoInterface(ContextualCallback<void(LeMetaEventV
 
 const ModuleFactory HciLayer::Factory = ModuleFactory([]() { return new HciLayer(); });
 
-void HciLayer::ListDependencies(ModuleList* list) {
+void HciLayer::ListDependencies(ModuleList* list) const {
   list->add<hal::HciHal>();
   list->add<storage::StorageModule>();
 }

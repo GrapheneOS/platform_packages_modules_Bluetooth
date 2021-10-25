@@ -73,7 +73,7 @@ class L2capClassicModule : public bluetooth::Module {
   virtual void SetLinkPropertyListener(os::Handler* handler, LinkPropertyListener* listener);
 
  protected:
-  void ListDependencies(ModuleList* list) override;
+  void ListDependencies(ModuleList* list) const override;
 
   void Start() override;
 

@@ -35,7 +35,7 @@ std::string ActivityAttribution::ToString() const {
   return "Btaa Module";
 }
 
-void ActivityAttribution::ListDependencies(ModuleList* list) {}
+void ActivityAttribution::ListDependencies(ModuleList* list) const {}
 
 void ActivityAttribution::Start() {}
 

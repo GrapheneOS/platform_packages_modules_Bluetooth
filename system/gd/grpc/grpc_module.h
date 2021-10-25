@@ -43,7 +43,7 @@ class GrpcModule : public ::bluetooth::Module {
   void RunGrpcLoop();
 
  protected:
-  void ListDependencies(ModuleList* list) override;
+  void ListDependencies(ModuleList* list) const override;
 
   void Start() override;
 
@@ -62,7 +62,7 @@ class GrpcFacadeModule : public ::bluetooth::Module {
   friend GrpcModule;
 
  protected:
-  void ListDependencies(ModuleList* list) override;
+  void ListDependencies(ModuleList* list) const override;
 
   void Start() override;
 

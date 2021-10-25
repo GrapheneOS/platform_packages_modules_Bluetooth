@@ -538,7 +538,7 @@ class SecurityModuleFacadeService : public SecurityModuleFacade::Service, public
   std::map<uint32_t, common::OnceCallback<void(uint32_t)>> user_passkey_callbacks_;
 };
 
-void SecurityModuleFacadeModule::ListDependencies(ModuleList* list) {
+void SecurityModuleFacadeModule::ListDependencies(ModuleList* list) const {
   ::bluetooth::grpc::GrpcFacadeModule::ListDependencies(list);
   list->add<SecurityModule>();
   list->add<L2capLeModule>();

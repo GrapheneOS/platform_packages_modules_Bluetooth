@@ -183,7 +183,7 @@ class Controller : public Module {
   static constexpr uint64_t kDefaultLeEventMask = 0x0000000041021e7f;
 
  protected:
-  void ListDependencies(ModuleList* list) override;
+  void ListDependencies(ModuleList* list) const override;
 
   void Start() override;
 

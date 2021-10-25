@@ -90,7 +90,7 @@ struct SecurityModule::impl {
   }
 };
 
-void SecurityModule::ListDependencies(ModuleList* list) {
+void SecurityModule::ListDependencies(ModuleList* list) const {
   list->add<l2cap::le::L2capLeModule>();
   list->add<l2cap::classic::L2capClassicModule>();
   list->add<hci::HciLayer>();
