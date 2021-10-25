@@ -69,7 +69,7 @@ struct L2capLeModule::impl {
 L2capLeModule::L2capLeModule() {}
 L2capLeModule::~L2capLeModule() {}
 
-void L2capLeModule::ListDependencies(ModuleList* list) {
+void L2capLeModule::ListDependencies(ModuleList* list) const {
   list->add<hci::AclManager>();
 }
 

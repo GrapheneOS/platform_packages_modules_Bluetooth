@@ -196,7 +196,7 @@ void neighbor::PageModule::SetTimeout(PageTimeout timeout) {
 /**
  * Module methods here
  */
-void neighbor::PageModule::ListDependencies(ModuleList* list) {
+void neighbor::PageModule::ListDependencies(ModuleList* list) const {
   list->add<hci::HciLayer>();
 }
 

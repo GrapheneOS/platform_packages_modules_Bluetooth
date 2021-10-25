@@ -89,7 +89,7 @@ bool neighbor::ConnectabilityModule::IsConnectable() const {
 /**
  * Module stuff
  */
-void neighbor::ConnectabilityModule::ListDependencies(ModuleList* list) {
+void neighbor::ConnectabilityModule::ListDependencies(ModuleList* list) const {
   list->add<neighbor::ScanModule>();
 }
 

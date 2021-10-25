@@ -37,7 +37,7 @@ class ReadOnlyPropertyService : public ReadOnlyProperty::Service {
   hci::Controller* controller_;
 };
 
-void ReadOnlyPropertyServerModule::ListDependencies(ModuleList* list) {
+void ReadOnlyPropertyServerModule::ListDependencies(ModuleList* list) const {
   GrpcFacadeModule::ListDependencies(list);
   list->add<hci::Controller>();
 }

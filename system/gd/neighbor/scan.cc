@@ -189,7 +189,7 @@ bool neighbor::ScanModule::IsPageEnabled() const {
   return pimpl_->IsPageEnabled();
 }
 
-void neighbor::ScanModule::ListDependencies(ModuleList* list) {
+void neighbor::ScanModule::ListDependencies(ModuleList* list) const {
   list->add<hci::HciLayer>();
 }
 

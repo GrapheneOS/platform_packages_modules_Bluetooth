@@ -89,7 +89,7 @@ L2capClassicModule::L2capClassicModule() {}
 
 L2capClassicModule::~L2capClassicModule() {}
 
-void L2capClassicModule::ListDependencies(ModuleList* list) {
+void L2capClassicModule::ListDependencies(ModuleList* list) const {
   list->add<hci::AclManager>();
 }
 

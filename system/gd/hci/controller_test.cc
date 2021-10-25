@@ -249,7 +249,7 @@ class TestHciLayer : public HciLayer {
     return command;
   }
 
-  void ListDependencies(ModuleList* list) override {}
+  void ListDependencies(ModuleList* list) const {}
   void Start() override {}
   void Stop() override {}
 
