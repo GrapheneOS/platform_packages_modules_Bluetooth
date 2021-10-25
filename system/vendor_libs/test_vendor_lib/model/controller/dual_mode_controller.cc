@@ -226,6 +226,10 @@ DualModeController::DualModeController(const std::string& properties_filename, u
   SET_SUPPORTED(LE_RAND, LeRand);
   SET_SUPPORTED(LE_READ_SUPPORTED_STATES, LeReadSupportedStates);
   SET_HANDLER(LE_GET_VENDOR_CAPABILITIES, LeVendorCap);
+  SET_HANDLER(LE_REMOTE_CONNECTION_PARAMETER_REQUEST_REPLY,
+              LeRemoteConnectionParameterRequestReply);
+  SET_HANDLER(LE_REMOTE_CONNECTION_PARAMETER_REQUEST_NEGATIVE_REPLY,
+              LeRemoteConnectionParameterRequestNegativeReply);
   SET_HANDLER(LE_MULTI_ADVT, LeVendorMultiAdv);
   SET_HANDLER(LE_ADV_FILTER, LeAdvertisingFilter);
   SET_HANDLER(LE_ENERGY_INFO, LeEnergyInfo);
@@ -1794,11 +1798,13 @@ void DualModeController::LeConnectionUpdate(CommandView command) {
       gd_hci::LeConnectionManagementCommandView::Create(
           gd_hci::AclCommandView::Create(command)));
   ASSERT(command_view.IsValid());
-  ErrorCode status = link_layer_controller_.LeConnectionUpdate(command_view);
+  ErrorCode status = link_layer_controller_.LeConnectionUpdate(
+      command_view.GetConnectionHandle(), command_view.GetConnIntervalMin(),
+      command_view.GetConnIntervalMax(), command_view.GetConnLatency(),
+      command_view.GetSupervisionTimeout());
 
-  auto status_packet = bluetooth::hci::LeConnectionUpdateStatusBuilder::Create(
-      status, kNumCommandPackets);
-  send_event_(std::move(status_packet));
+  send_event_(bluetooth::hci::LeConnectionUpdateStatusBuilder::Create(
+      status, kNumCommandPackets));
 }
 
 void DualModeController::CreateConnection(CommandView command) {
@@ -2318,6 +2324,39 @@ void DualModeController::LeReadSupportedStates(CommandView command) {
       kNumCommandPackets, ErrorCode::SUCCESS,
       properties_.GetLeSupportedStates());
   send_event_(std::move(packet));
+}
+
+void DualModeController::LeRemoteConnectionParameterRequestReply(
+    CommandView command) {
+  auto command_view =
+      gd_hci::LeRemoteConnectionParameterRequestReplyView::Create(
+          gd_hci::LeConnectionManagementCommandView::Create(
+              gd_hci::AclCommandView::Create(command)));
+  ASSERT(command_view.IsValid());
+  auto status = link_layer_controller_.LeRemoteConnectionParameterRequestReply(
+      command_view.GetConnectionHandle(), command_view.GetIntervalMin(),
+      command_view.GetIntervalMax(), command_view.GetTimeout(),
+      command_view.GetLatency(), command_view.GetMinimumCeLength(),
+      command_view.GetMaximumCeLength());
+  send_event_(
+      gd_hci::LeRemoteConnectionParameterRequestReplyCompleteBuilder::Create(
+          kNumCommandPackets, status, command_view.GetConnectionHandle()));
+}
+
+void DualModeController::LeRemoteConnectionParameterRequestNegativeReply(
+    CommandView command) {
+  auto command_view =
+      gd_hci::LeRemoteConnectionParameterRequestNegativeReplyView::Create(
+          gd_hci::LeConnectionManagementCommandView::Create(
+              gd_hci::AclCommandView::Create(command)));
+  ASSERT(command_view.IsValid());
+  auto status =
+      link_layer_controller_.LeRemoteConnectionParameterRequestNegativeReply(
+          command_view.GetConnectionHandle(), command_view.GetReason());
+  send_event_(
+      gd_hci::LeRemoteConnectionParameterRequestNegativeReplyCompleteBuilder::
+          Create(kNumCommandPackets, status,
+                 command_view.GetConnectionHandle()));
 }
 
 void DualModeController::LeVendorCap(CommandView command) {
