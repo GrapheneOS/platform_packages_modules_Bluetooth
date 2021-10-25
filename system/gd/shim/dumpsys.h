@@ -41,7 +41,7 @@ class Dumpsys : public bluetooth::Module {
   static const ModuleFactory Factory;
 
  protected:
-  void ListDependencies(ModuleList* list) override;  // Module
+  void ListDependencies(ModuleList* list) const override;  // Module
   void Start() override;                             // Module
   void Stop() override;                              // Module
   std::string ToString() const override;             // Module

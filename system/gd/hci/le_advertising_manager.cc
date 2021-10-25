@@ -1172,7 +1172,7 @@ LeAdvertisingManager::LeAdvertisingManager() {
   pimpl_ = std::make_unique<impl>(this);
 }
 
-void LeAdvertisingManager::ListDependencies(ModuleList* list) {
+void LeAdvertisingManager::ListDependencies(ModuleList* list) const {
   list->add<hci::HciLayer>();
   list->add<hci::Controller>();
   list->add<hci::AclManager>();

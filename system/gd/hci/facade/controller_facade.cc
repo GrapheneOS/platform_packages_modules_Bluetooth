@@ -151,7 +151,7 @@ class ControllerFacadeService : public ControllerFacade::Service {
   Controller* controller_;
 };
 
-void ControllerFacadeModule::ListDependencies(ModuleList* list) {
+void ControllerFacadeModule::ListDependencies(ModuleList* list) const {
   ::bluetooth::grpc::GrpcFacadeModule::ListDependencies(list);
   list->add<Controller>();
 }

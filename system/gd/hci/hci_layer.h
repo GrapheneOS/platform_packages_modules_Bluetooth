@@ -103,7 +103,7 @@ class HciLayer : public Module, public CommandInterface<CommandBuilder> {
 
  protected:
   // LINT.ThenChange(fuzz/fuzz_hci_layer.h)
-  void ListDependencies(ModuleList* list) override;
+  void ListDependencies(ModuleList* list) const override;
 
   void Start() override;
 

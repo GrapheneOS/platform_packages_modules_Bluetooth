@@ -101,7 +101,7 @@ class LeInitiatorAddressFacadeService : public LeInitiatorAddressFacade::Service
   ::bluetooth::os::Handler* facade_handler_;
 };
 
-void LeInitiatorAddressFacadeModule::ListDependencies(ModuleList* list) {
+void LeInitiatorAddressFacadeModule::ListDependencies(ModuleList* list) const {
   ::bluetooth::grpc::GrpcFacadeModule::ListDependencies(list);
   list->add<AclManager>();
 }

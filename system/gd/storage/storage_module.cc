@@ -136,7 +136,7 @@ void StorageModule::SaveImmediately() {
   ASSERT(LegacyConfigFile::FromPath(config_backup_path_).Write(pimpl_->cache_));
 }
 
-void StorageModule::ListDependencies(ModuleList* list) {
+void StorageModule::ListDependencies(ModuleList* list) const {
   // No dependencies
 }
 

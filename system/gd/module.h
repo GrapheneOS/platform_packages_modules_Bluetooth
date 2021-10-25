@@ -80,7 +80,7 @@ class Module {
   virtual ~Module() = default;
  protected:
   // Populate the provided list with modules that must start before yours
-  virtual void ListDependencies(ModuleList* list) = 0;
+  virtual void ListDependencies(ModuleList* list) const = 0;
 
   // You can grab your started dependencies during or after this call
   // using GetDependency(), or access the module registry via GetModuleRegistry()
