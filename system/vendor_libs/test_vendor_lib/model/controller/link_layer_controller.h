@@ -157,11 +157,18 @@ class LinkLayerController {
       bluetooth::hci::AdvertisingFilterPolicy filter_policy);
   ErrorCode LeRemoveAdvertisingSet(uint8_t set);
   ErrorCode LeClearAdvertisingSets();
-  void LeConnectionUpdateComplete(
-      bluetooth::hci::LeConnectionUpdateView connection_update_view);
-  ErrorCode LeConnectionUpdate(
-      bluetooth::hci::LeConnectionUpdateView connection_update_view);
-
+  void LeConnectionUpdateComplete(uint16_t handle, uint16_t interval_min,
+                                  uint16_t interval_max, uint16_t latency,
+                                  uint16_t supervision_timeout);
+  ErrorCode LeConnectionUpdate(uint16_t handle, uint16_t interval_min,
+                               uint16_t interval_max, uint16_t latency,
+                               uint16_t supervision_timeout);
+  ErrorCode LeRemoteConnectionParameterRequestReply(
+      uint16_t connection_handle, uint16_t interval_min, uint16_t interval_max,
+      uint16_t timeout, uint16_t latency, uint16_t minimum_ce_length,
+      uint16_t maximum_ce_length);
+  ErrorCode LeRemoteConnectionParameterRequestNegativeReply(
+      uint16_t connection_handle, bluetooth::hci::ErrorCode reason);
   uint16_t HandleLeConnection(AddressWithType addr, AddressWithType own_addr,
                               uint8_t role, uint16_t connection_interval,
                               uint16_t connection_latency,
@@ -370,6 +377,10 @@ class LinkLayerController {
       model::packets::LinkLayerPacketView packet);
   void IncomingLeConnectPacket(model::packets::LinkLayerPacketView packet);
   void IncomingLeConnectCompletePacket(
+      model::packets::LinkLayerPacketView packet);
+  void IncomingLeConnectionParameterRequest(
+      model::packets::LinkLayerPacketView packet);
+  void IncomingLeConnectionParameterUpdate(
       model::packets::LinkLayerPacketView packet);
   void IncomingLeEncryptConnection(model::packets::LinkLayerPacketView packet);
   void IncomingLeEncryptConnectionResponse(
