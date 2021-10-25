@@ -1009,6 +1009,7 @@ packet LinkKeyRequestReply : SecurityCommand (op_code = LINK_KEY_REQUEST_REPLY) 
 
 packet LinkKeyRequestReplyComplete : CommandComplete (command_op_code = LINK_KEY_REQUEST_REPLY) {
   status : ErrorCode,
+  bd_addr : Address,
 }
 
 packet LinkKeyRequestNegativeReply : SecurityCommand (op_code = LINK_KEY_REQUEST_NEGATIVE_REPLY) {
