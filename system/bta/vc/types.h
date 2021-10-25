@@ -20,6 +20,8 @@
 #include <queue>
 #include <vector>
 
+#include "bta/include/bta_groups.h"
+#include "osi/include/alarm.h"
 #include "raw_address.h"
 #include "types/bluetooth/uuid.h"
 
@@ -42,6 +44,47 @@ static const Uuid kVolumeControlStateUuid             = Uuid::From16Bit(0x2B7D);
 static const Uuid kVolumeControlPointUuid             = Uuid::From16Bit(0x2B7E);
 static const Uuid kVolumeFlagsUuid                    = Uuid::From16Bit(0x2B7F);
 /* clang-format on */
+
+struct VolumeOperation {
+  int operation_id_;
+  int group_id_;
+
+  bool started_;
+
+  uint8_t opcode_;
+  std::vector<uint8_t> arguments_;
+
+  std::vector<RawAddress> devices_;
+  alarm_t* operation_timeout_;
+
+  VolumeOperation(int operation_id, int group_id, uint8_t opcode,
+                  std::vector<uint8_t> arguments,
+                  std::vector<RawAddress> devices)
+      : operation_id_(operation_id),
+        group_id_(group_id),
+        opcode_(opcode),
+        arguments_(arguments),
+        devices_(devices) {
+    auto name = "operation_timeout_" + std::to_string(operation_id);
+    operation_timeout_ = alarm_new(name.c_str());
+    started_ = false;
+  };
+
+  ~VolumeOperation() {
+    if (alarm_is_scheduled(operation_timeout_))
+      alarm_cancel(operation_timeout_);
+
+    alarm_free(operation_timeout_);
+    operation_timeout_ = nullptr;
+  }
+
+  bool IsGroupOperation(void) {
+    return (group_id_ != bluetooth::groups::kGroupUnknown);
+  }
+
+  bool IsStarted(void) { return started_; };
+  void Start(void) { started_ = true; }
+};
 
 }  // namespace internal
 }  // namespace vc

@@ -26,10 +26,12 @@
 #include "btm_api_mock.h"
 #include "gatt/database_builder.h"
 #include "hardware/bt_gatt_types.h"
+#include "mock_csis_client.h"
 #include "types.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
+std::map<std::string, int> mock_function_count_map;
 void btif_storage_add_volume_control(const RawAddress& addr, bool auto_conn) {}
 
 namespace bluetooth {
@@ -163,6 +165,7 @@ class VolumeControlTest : public ::testing::Test {
  protected:
   void SetUp(void) override {
     bluetooth::manager::SetMockBtmInterface(&btm_interface);
+    MockCsisClient::SetMockInstanceForTesting(&mock_csis_client_module_);
     gatt::SetMockBtaGattInterface(&gatt_interface);
     gatt::SetMockBtaGattQueue(&gatt_queue);
     callbacks.reset(new MockVolumeControlCallbacks());
@@ -392,6 +395,7 @@ class VolumeControlTest : public ::testing::Test {
 
   std::unique_ptr<MockVolumeControlCallbacks> callbacks;
   bluetooth::manager::MockBtmInterface btm_interface;
+  MockCsisClient mock_csis_client_module_;
   gatt::MockBtaGattInterface gatt_interface;
   gatt::MockBtaGattQueue gatt_queue;
   tBTA_GATTC_CBACK* gatt_callback;
@@ -625,6 +629,19 @@ class VolumeControlValueSetTest : public VolumeControlTest {
     GetSearchCompleteEvent(conn_id);
   }
 
+  void GetNotificationEvent(uint16_t handle, std::vector<uint8_t>& value) {
+    tBTA_GATTC_NOTIFY event_data = {
+        .conn_id = conn_id,
+        .bda = test_address,
+        .handle = handle,
+        .len = (uint8_t)value.size(),
+        .is_notify = true,
+    };
+
+    std::copy(value.begin(), value.end(), event_data.value);
+    gatt_callback(BTA_GATTC_NOTIF_EVT, (tBTA_GATTC*)&event_data);
+  }
+
   void TearDown(void) override {
     TestAppUnregister();
     VolumeControlTest::TearDown();
@@ -636,6 +653,91 @@ TEST_F(VolumeControlValueSetTest, test_set_volume) {
   EXPECT_CALL(gatt_queue, WriteCharacteristic(conn_id, 0x0024, expected_data,
                                               GATT_WRITE, _, _));
   VolumeControl::Get()->SetVolume(test_address, 0x10);
+}
+
+class VolumeControlCsis : public VolumeControlTest {
+ protected:
+  const RawAddress test_address_1 = GetTestAddress(0);
+  const RawAddress test_address_2 = GetTestAddress(1);
+  std::vector<RawAddress> csis_group = {test_address_1, test_address_2};
+
+  uint16_t conn_id_1 = 22;
+  uint16_t conn_id_2 = 33;
+  int group_id = 5;
+
+  void SetUp(void) override {
+    VolumeControlTest::SetUp();
+
+    ON_CALL(mock_csis_client_module_, Get())
+        .WillByDefault(Return(&mock_csis_client_module_));
+
+    // Report working CSIS
+    ON_CALL(mock_csis_client_module_, IsCsisClientRunning())
+        .WillByDefault(Return(true));
+
+    ON_CALL(mock_csis_client_module_, GetDeviceList(_))
+        .WillByDefault(Return(csis_group));
+
+    ON_CALL(mock_csis_client_module_, GetGroupId(_, _))
+        .WillByDefault(Return(group_id));
+
+    SetSampleDatabase(conn_id_1);
+    SetSampleDatabase(conn_id_2);
+
+    TestAppRegister();
+
+    TestConnect(test_address_1);
+    GetConnectedEvent(test_address_1, conn_id_1);
+    GetSearchCompleteEvent(conn_id_1);
+    TestConnect(test_address_2);
+    GetConnectedEvent(test_address_2, conn_id_2);
+    GetSearchCompleteEvent(conn_id_2);
+  }
+
+  void TearDown(void) override {
+    TestAppUnregister();
+    VolumeControlTest::TearDown();
+  }
+
+  void GetNotificationEvent(uint16_t conn_id, const RawAddress& test_address,
+                            uint16_t handle, std::vector<uint8_t>& value) {
+    tBTA_GATTC_NOTIFY event_data = {
+        .conn_id = conn_id,
+        .bda = test_address,
+        .handle = handle,
+        .len = (uint8_t)value.size(),
+        .is_notify = true,
+    };
+
+    std::copy(value.begin(), value.end(), event_data.value);
+    gatt_callback(BTA_GATTC_NOTIF_EVT, (tBTA_GATTC*)&event_data);
+  }
+};
+
+TEST_F(VolumeControlCsis, test_set_volume) {
+  /* Set value for the group */
+  EXPECT_CALL(gatt_queue,
+              WriteCharacteristic(conn_id_1, 0x0024, _, GATT_WRITE, _, _));
+  EXPECT_CALL(gatt_queue,
+              WriteCharacteristic(conn_id_2, 0x0024, _, GATT_WRITE, _, _));
+
+  VolumeControl::Get()->SetVolume(group_id, 10);
+
+  /* Now inject notification and make sure callback is sent up to Java layer */
+  EXPECT_CALL(*callbacks, OnGroupVolumeStateChanged(group_id, 0x03, true));
+
+  std::vector<uint8_t> value({0x03, 0x01, 0x02});
+  GetNotificationEvent(conn_id_1, test_address_1, 0x0021, value);
+  GetNotificationEvent(conn_id_2, test_address_2, 0x0021, value);
+}
+
+TEST_F(VolumeControlCsis, autonomus_test_set_volume) {
+  /* Now inject notification and make sure callback is sent up to Java layer */
+  EXPECT_CALL(*callbacks, OnGroupVolumeStateChanged(group_id, 0x03, false));
+
+  std::vector<uint8_t> value({0x03, 0x00, 0x02});
+  GetNotificationEvent(conn_id_1, test_address_1, 0x0021, value);
+  GetNotificationEvent(conn_id_2, test_address_2, 0x0021, value);
 }
 }  // namespace
 }  // namespace internal
