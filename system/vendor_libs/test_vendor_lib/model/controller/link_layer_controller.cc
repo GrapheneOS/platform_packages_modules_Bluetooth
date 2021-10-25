@@ -1298,27 +1298,28 @@ void LinkLayerController::IncomingLeAdvertisementPacket(
   }
 }
 
-void LinkLayerController::HandleLeConnection(AddressWithType address,
-                                             AddressWithType own_address,
-                                             uint8_t role,
-                                             uint16_t connection_interval,
-                                             uint16_t connection_latency,
-                                             uint16_t supervision_timeout) {
+uint16_t LinkLayerController::HandleLeConnection(AddressWithType address,
+                                                 AddressWithType own_address,
+                                                 uint8_t role,
+                                                 uint16_t connection_interval,
+                                                 uint16_t connection_latency,
+                                                 uint16_t supervision_timeout) {
   // TODO: Choose between LeConnectionComplete and LeEnhancedConnectionComplete
   uint16_t handle = connections_.CreateLeConnection(address, own_address);
   if (handle == kReservedHandle) {
     LOG_WARN("No pending connection for connection from %s",
              address.ToString().c_str());
-    return;
+    return kReservedHandle;
   }
-  auto packet = bluetooth::hci::LeConnectionCompleteBuilder::Create(
-      ErrorCode::SUCCESS, handle, static_cast<bluetooth::hci::Role>(role),
-      address.GetAddressType(), address.GetAddress(), connection_interval,
-      connection_latency, supervision_timeout,
-      static_cast<bluetooth::hci::ClockAccuracy>(0x00));
   if (properties_.IsUnmasked(EventCode::LE_META_EVENT)) {
+    auto packet = bluetooth::hci::LeConnectionCompleteBuilder::Create(
+        ErrorCode::SUCCESS, handle, static_cast<bluetooth::hci::Role>(role),
+        address.GetAddressType(), address.GetAddress(), connection_interval,
+        connection_latency, supervision_timeout,
+        static_cast<bluetooth::hci::ClockAccuracy>(0x00));
     send_event_(std::move(packet));
   }
+  return handle;
 }
 
 void LinkLayerController::IncomingLeConnectPacket(
@@ -1340,11 +1341,13 @@ void LinkLayerController::IncomingLeConnectPacket(
   }
   bluetooth::hci::AddressWithType my_address{};
   bool matched_advertiser = false;
-  for (auto advertiser : advertisers_) {
-    AddressWithType advertiser_address = advertiser.GetAddress();
+  size_t set = 0;
+  for (size_t i = 0; i < advertisers_.size(); i++) {
+    AddressWithType advertiser_address = advertisers_[i].GetAddress();
     if (incoming.GetDestinationAddress() == advertiser_address.GetAddress()) {
       my_address = advertiser_address;
       matched_advertiser = true;
+      set = i;
     }
   }
 
@@ -1354,7 +1357,7 @@ void LinkLayerController::IncomingLeConnectPacket(
     return;
   }
 
-  HandleLeConnection(
+  uint16_t handle = HandleLeConnection(
       AddressWithType(
           incoming.GetSourceAddress(),
           static_cast<bluetooth::hci::AddressType>(connect.GetAddressType())),
@@ -1368,6 +1371,16 @@ void LinkLayerController::IncomingLeConnectPacket(
       connect.GetLeConnectionSupervisionTimeout(),
       static_cast<uint8_t>(my_address.GetAddressType()));
   SendLeLinkLayerPacket(std::move(to_send));
+
+  if (advertisers_[set].IsExtended()) {
+    uint8_t num_advertisements = advertisers_[set].GetNumAdvertisingEvents();
+    advertisers_[set].Disable();
+    if (properties_.GetLeEventSupported(
+            bluetooth::hci::SubeventCode::ADVERTISING_SET_TERMINATED)) {
+      send_event_(bluetooth::hci::LeAdvertisingSetTerminatedBuilder::Create(
+          ErrorCode::SUCCESS, set, handle, num_advertisements));
+    }
+  }
 }
 
 void LinkLayerController::IncomingLeConnectCompletePacket(
