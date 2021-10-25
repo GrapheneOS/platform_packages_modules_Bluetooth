@@ -2157,15 +2157,23 @@ class LeAudioClientImpl : public LeAudioClient {
             context_type, le_audio::types::kLeAudioDirectionSource);
 
     if (source_configuration) {
+      bool send_active = false;
       /* Stream configuration differs from previous one */
       if (!current_source_codec_config.IsInvalid() &&
-          (*source_configuration != current_source_codec_config))
+          (*source_configuration != current_source_codec_config)) {
+        callbacks_->OnGroupStatus(group_id, GroupStatus::INACTIVE);
+        send_active = true;
         LeAudioClientAudioSource::Stop();
+      }
 
       current_source_codec_config = *source_configuration;
 
       LeAudioClientAudioSource::Start(current_source_codec_config,
                                       audioSinkReceiver);
+      if (send_active) {
+        callbacks_->OnGroupStatus(group_id, GroupStatus::ACTIVE);
+      }
+
     } else {
       if (!current_source_codec_config.IsInvalid()) {
         LeAudioClientAudioSource::Stop();
@@ -2179,15 +2187,22 @@ class LeAudioClientImpl : public LeAudioClient {
     }
 
     if (sink_configuration) {
+      bool send_active = false;
       /* Stream configuration differs from previous one */
       if (!current_sink_codec_config.IsInvalid() &&
-          (*sink_configuration != current_sink_codec_config))
+          (*sink_configuration != current_sink_codec_config)) {
+        callbacks_->OnGroupStatus(group_id, GroupStatus::INACTIVE);
+        send_active = true;
         LeAudioClientAudioSink::Stop();
+      }
 
       current_sink_codec_config = *sink_configuration;
 
       LeAudioClientAudioSink::Start(current_sink_codec_config,
                                     audioSourceReceiver);
+      if (send_active) {
+        callbacks_->OnGroupStatus(group_id, GroupStatus::ACTIVE);
+      }
     } else {
       if (!current_sink_codec_config.IsInvalid()) {
         LeAudioClientAudioSink::Stop();
