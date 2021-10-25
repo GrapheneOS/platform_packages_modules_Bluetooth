@@ -100,6 +100,14 @@ static_assert(
     "  Pan profile is always included in the bluetooth stack"
     "*** Conditional Compilation Directive error");
 
+// Once PAN_SUPPORTS_ROLE_NAP is no longer exposed via bt_target.h
+// this check and error statement may be removed.
+static_assert(
+    PAN_SUPPORTS_ROLE_NAP,
+    "#define PAN_SUPPORTS_ROLE_NAP preprocessor compilation flag is unsupported"
+    "  Pan profile always supports network access point in the bluetooth stack"
+    "*** Conditional Compilation Directive error");
+
 void main_thread_shut_down();
 void main_thread_start_up();
 void BTA_dm_on_hw_on();
