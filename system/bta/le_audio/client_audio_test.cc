@@ -189,7 +189,7 @@ class MockLeAudioClientAudioSinkEventReceiver
               (override));
   MOCK_METHOD((void), OnAudioMetadataUpdate,
               (std::promise<void> do_update_metadata_promise,
-               audio_usage_t usage, audio_content_type_t content_type),
+               const source_metadata_t& source_metadata),
               (override));
 };
 

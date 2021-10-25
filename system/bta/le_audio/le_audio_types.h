@@ -267,6 +267,12 @@ constexpr uint16_t kLeAudioVendorCodecIdUndefined = 0x00;
 /* Metadata types from Assigned Numbers */
 constexpr uint8_t kLeAudioMetadataTypePreferredAudioContext = 0x01;
 constexpr uint8_t kLeAudioMetadataTypeStreamingAudioContext = 0x02;
+constexpr uint8_t kLeAudioMetadataTypeCcidList = 0x03;
+
+constexpr uint8_t kLeAudioMetadataTypeLen = 1;
+constexpr uint8_t kLeAudioMetadataLenLen = 1;
+
+constexpr uint8_t kLeAudioMetadataStreamingAudioContextLen = 2;
 
 /* CSIS Types */
 constexpr uint8_t kDefaultScanDurationS = 5;
@@ -943,6 +949,11 @@ struct stream_configuration {
   /* cis_handle, audio location*/
   std::vector<std::pair<uint16_t, uint32_t>> source_streams;
 };
+
+void AppendMetadataLtvEntryForCcidList(std::vector<uint8_t>& metadata,
+                                       types::LeAudioContextType context_type);
+void AppendMetadataLtvEntryForStreamingContext(
+    std::vector<uint8_t>& metadata, types::LeAudioContextType context_type);
 
 }  // namespace le_audio
 

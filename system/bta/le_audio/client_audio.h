@@ -28,8 +28,8 @@ class LeAudioClientAudioSinkReceiver {
   virtual void OnAudioSuspend(std::promise<void> do_suspend_promise) = 0;
   virtual void OnAudioResume(std::promise<void> do_resume_promise) = 0;
   virtual void OnAudioMetadataUpdate(
-      std::promise<void> do_update_metadata_promise, audio_usage_t usage,
-      audio_content_type_t content_type) = 0;
+      std::promise<void> do_update_metadata_promise,
+      const source_metadata_t& source_metadata) = 0;
 };
 class LeAudioClientAudioSourceReceiver {
  public:

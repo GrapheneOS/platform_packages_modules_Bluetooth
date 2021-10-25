@@ -116,33 +116,13 @@ class LeAudioTransport {
 
   void MetadataChanged(const source_metadata_t& source_metadata) {
     auto track_count = source_metadata.track_count;
-    auto tracks = source_metadata.tracks;
-    LOG(INFO) << __func__ << ": " << track_count << " track(s) received";
 
     if (track_count == 0) {
       LOG(WARNING) << ", invalid number of metadata changed tracks";
       return;
     }
 
-    audio_usage_t usage = tracks->usage;
-    audio_content_type_t content_type = tracks->content_type;
-
-    /* TODO what stack should do with more than one track ? */
-    if (track_count > 1) {
-      LOG(WARNING) << __func__ << ", can't handle multiple tracks metadata, "
-                   << "count: " << track_count << " track(s) received";
-      return;
-    }
-
-    while (track_count) {
-      VLOG(1) << __func__ << ": usage=" << tracks->usage
-              << ", content_type=" << tracks->content_type
-              << ", gain=" << tracks->gain;
-      --track_count;
-      ++tracks;
-    }
-
-    stream_cb_.on_metadata_update_(usage, content_type);
+    stream_cb_.on_metadata_update_(source_metadata);
   }
 
   void ResetPresentationPosition() {

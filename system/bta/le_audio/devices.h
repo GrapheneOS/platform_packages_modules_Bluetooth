@@ -140,6 +140,8 @@ class LeAudioDevice {
                                             types::AudioContexts src_cont_val);
   void DeactivateAllAses(void);
   void Dump(int fd);
+  std::vector<uint8_t> GetMetadata(types::LeAudioContextType context_type);
+  bool IsMetadataChanged(types::LeAudioContextType context_type);
 
  private:
   types::AudioContexts avail_snk_contexts_;
@@ -250,6 +252,7 @@ class LeAudioDeviceGroup {
   types::AudioContexts GetActiveContexts(void);
   std::optional<LeAudioCodecConfiguration> GetCodecConfigurationByDirection(
       types::LeAudioContextType group_context_type, uint8_t direction);
+  bool IsMetadataChanged(types::LeAudioContextType group_context_type);
 
   inline types::AseState GetState(void) const { return current_state_; }
   void SetState(types::AseState state) {
