@@ -115,8 +115,10 @@ struct ase_qos_configured_state_params {
   uint32_t pres_delay;
 };
 
-constexpr uint16_t kAseStatusTransMinLen = 1;
+constexpr uint16_t kAseStatusTransMinLen = 3;
 struct ase_transient_state_params {
+  uint8_t cig_id;
+  uint8_t cis_id;
   std::vector<uint8_t> metadata;
 };
 

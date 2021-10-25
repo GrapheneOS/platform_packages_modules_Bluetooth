@@ -543,6 +543,7 @@ std::optional<AudioContexts> LeAudioDeviceGroup::UpdateActiveContextsMap(
         active_contexts_has_been_modified = true;
       } else {
         /* Configuration is the same */
+        contexts |= type_set;
         continue;
       }
     }
@@ -951,17 +952,7 @@ bool LeAudioDevice::ConfigureAses(
     ase->max_sdu_size = codec_spec_caps::GetAudioChannelCounts(
                             ase->codec_config.audio_channel_allocation) *
                         ase->codec_config.octets_per_codec_frame;
-
-    /* Append additional metadata */
-    std::vector<uint8_t> metadata;
-    metadata.resize(3 + 1);
-    uint8_t* metadata_buf = metadata.data();
-    UINT8_TO_STREAM(metadata_buf, 3);
-    UINT8_TO_STREAM(metadata_buf,
-                    types::kLeAudioMetadataTypeStreamingAudioContext);
-    UINT16_TO_STREAM(metadata_buf, static_cast<uint16_t>(context_type));
-
-    ase->metadata = std::move(metadata);
+    ase->metadata = GetMetadata(context_type);
 
     DLOG(INFO) << __func__ << " device=" << address_
                << ", activated ASE id=" << +ase->id
@@ -1098,6 +1089,16 @@ LeAudioDeviceGroup::GetCodecConfigurationByDirection(
   if (group_config.IsInvalid()) return std::nullopt;
 
   return group_config;
+}
+
+bool LeAudioDeviceGroup::IsMetadataChanged(
+    types::LeAudioContextType context_type) {
+  for (auto* leAudioDevice = GetFirstActiveDevice(); leAudioDevice;
+       leAudioDevice = GetNextActiveDevice(leAudioDevice)) {
+    if (leAudioDevice->IsMetadataChanged(context_type)) return true;
+  }
+
+  return false;
 }
 
 types::LeAudioContextType LeAudioDeviceGroup::GetCurrentContextType(void) {
@@ -1616,6 +1617,25 @@ void LeAudioDevice::DeactivateAllAses(void) {
       ase.active = false;
     }
   }
+}
+
+std::vector<uint8_t> LeAudioDevice::GetMetadata(
+    LeAudioContextType context_type) {
+  std::vector<uint8_t> metadata;
+
+  AppendMetadataLtvEntryForStreamingContext(metadata, context_type);
+  AppendMetadataLtvEntryForCcidList(metadata, context_type);
+
+  return std::move(metadata);
+}
+
+bool LeAudioDevice::IsMetadataChanged(types::LeAudioContextType context_type) {
+  for (auto* ase = this->GetFirstActiveAse(); ase;
+       ase = this->GetNextActiveAse(ase)) {
+    if (this->GetMetadata(context_type) != ase->metadata) return true;
+  }
+
+  return false;
 }
 
 LeAudioDeviceGroup* LeAudioDeviceGroups::Add(int group_id) {
