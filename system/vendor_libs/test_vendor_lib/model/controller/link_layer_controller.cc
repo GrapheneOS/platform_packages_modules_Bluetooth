@@ -18,6 +18,7 @@
 
 #include <hci/hci_packets.h>
 
+#include "crypto_toolbox/crypto_toolbox.h"
 #include "include/le_advertisement.h"
 #include "os/log.h"
 #include "packet/raw_builder.h"
@@ -1143,6 +1144,19 @@ void LinkLayerController::IncomingKeypressNotificationPacket(
   }
 }
 
+static bool rpa_matches_irk(
+    Address rpa, std::array<uint8_t, LinkLayerController::kIrkSize> irk) {
+  // 1.3.2.3 Private device address resolution
+  uint8_t hash[3] = {rpa.address[0], rpa.address[1], rpa.address[2]};
+  uint8_t prand[3] = {rpa.address[3], rpa.address[4], rpa.address[5]};
+
+  // generate X = E irk(R0, R1, R2) and R is random address 3 LSO
+  auto x = bluetooth::crypto_toolbox::aes_128(irk, &prand[0], 3);
+
+  // If the hashes match, this is the IRK
+  return (memcmp(x.data(), &hash[0], 3) == 0);
+}
+
 void LinkLayerController::IncomingLeAdvertisementPacket(
     model::packets::LinkLayerPacketView incoming) {
   // TODO: Handle multiple advertisements per packet.
@@ -1226,13 +1240,27 @@ void LinkLayerController::IncomingLeAdvertisementPacket(
     SendLeLinkLayerPacket(std::move(to_send));
   }
 
+  Address resolved_address = address;
+  uint8_t resolved_address_type = static_cast<uint8_t>(address_type);
+  bool resolved = false;
+  for (const auto& entry : le_resolving_list_) {
+    if (rpa_matches_irk(address, entry.peer_irk)) {
+      resolved = true;
+      resolved_address = entry.address;
+      resolved_address_type = entry.address_type;
+    }
+  }
+
   // Connect
   if ((le_connect_ && le_peer_address_ == address &&
        le_peer_address_type_ == static_cast<uint8_t>(address_type) &&
        (adv_type == model::packets::AdvertisementType::ADV_IND ||
         adv_type == model::packets::AdvertisementType::ADV_DIRECT_IND)) ||
       (LeConnectListContainsDevice(address,
-                                   static_cast<uint8_t>(address_type)))) {
+                                   static_cast<uint8_t>(address_type))) ||
+      (resolved &&
+       LeConnectListContainsDevice(
+           resolved_address, static_cast<uint8_t>(resolved_address_type)))) {
     if (!connections_.CreatePendingLeConnection(AddressWithType(
             address, static_cast<bluetooth::hci::AddressType>(address_type)))) {
       LOG_WARN(
@@ -2772,25 +2800,16 @@ ErrorCode LinkLayerController::LeConnectListAddDevice(Address addr,
 }
 
 ErrorCode LinkLayerController::LeResolvingListAddDevice(
-    Address addr, uint8_t addr_type, std::array<uint8_t, kIrk_size> peerIrk,
-    std::array<uint8_t, kIrk_size> localIrk) {
+    Address addr, uint8_t addr_type, std::array<uint8_t, kIrkSize> peerIrk,
+    std::array<uint8_t, kIrkSize> localIrk) {
   if (ResolvingListBusy()) {
     return ErrorCode::COMMAND_DISALLOWED;
-  }
-  std::tuple<Address, uint8_t, std::array<uint8_t, kIrk_size>,
-             std::array<uint8_t, kIrk_size>>
-      new_tuple = std::make_tuple(addr, addr_type, peerIrk, localIrk);
-  for (size_t i = 0; i < le_connect_list_.size(); i++) {
-    auto curr = le_connect_list_[i];
-    if (std::get<0>(curr) == addr && std::get<1>(curr) == addr_type) {
-      le_resolving_list_[i] = new_tuple;
-      return ErrorCode::SUCCESS;
-    }
   }
   if (LeResolvingListFull()) {
     return ErrorCode::MEMORY_CAPACITY_EXCEEDED;
   }
-  le_resolving_list_.emplace_back(new_tuple);
+  le_resolving_list_.emplace_back(
+      ResolvingListEntry{addr, addr_type, peerIrk, localIrk});
   return ErrorCode::SUCCESS;
 }
 

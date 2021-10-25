@@ -1998,16 +1998,13 @@ void DualModeController::LeAddDeviceToResolvingList(CommandView command) {
       gd_hci::LeSecurityCommandView::Create(command));
   ASSERT(command_view.IsValid());
 
-  uint8_t addr_type =
+  auto addr_type =
       static_cast<uint8_t>(command_view.GetPeerIdentityAddressType());
   Address address = command_view.GetPeerIdentityAddress();
-  std::array<uint8_t, LinkLayerController::kIrk_size> peerIrk =
-      command_view.GetPeerIrk();
-  std::array<uint8_t, LinkLayerController::kIrk_size> localIrk =
-      command_view.GetLocalIrk();
 
   auto status = link_layer_controller_.LeResolvingListAddDevice(
-      address, addr_type, peerIrk, localIrk);
+      address, addr_type, command_view.GetPeerIrk(),
+      command_view.GetLocalIrk());
   auto packet =
       bluetooth::hci::LeAddDeviceToResolvingListCompleteBuilder::Create(
           kNumCommandPackets, status);
