@@ -40,7 +40,7 @@ class HciLayerFuzzClient : public Module {
 
   void injectArbitrary(FuzzedDataProvider& fdp);
 
-  void ListDependencies(ModuleList* list) override {
+  void ListDependencies(ModuleList* list) const override {
     list->add<hci::HciLayer>();
   }
 

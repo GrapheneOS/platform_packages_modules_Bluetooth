@@ -312,7 +312,7 @@ class LeAclManagerFacadeService : public LeAclManagerFacade::Service, public LeC
   uint32_t current_connection_request_{0};
 };
 
-void LeAclManagerFacadeModule::ListDependencies(ModuleList* list) {
+void LeAclManagerFacadeModule::ListDependencies(ModuleList* list) const {
   ::bluetooth::grpc::GrpcFacadeModule::ListDependencies(list);
   list->add<AclManager>();
 }

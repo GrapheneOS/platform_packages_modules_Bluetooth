@@ -413,7 +413,7 @@ class L2capClassicModuleFacadeService : public L2capClassicModuleFacade::Service
   std::set<hci::Address> outgoing_pairing_remote_devices_;
 };
 
-void L2capClassicModuleFacadeModule::ListDependencies(ModuleList* list) {
+void L2capClassicModuleFacadeModule::ListDependencies(ModuleList* list) const {
   ::bluetooth::grpc::GrpcFacadeModule::ListDependencies(list);
   list->add<l2cap::classic::L2capClassicModule>();
 }

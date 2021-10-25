@@ -443,7 +443,7 @@ class LeAdvertisingManagerFacadeService : public LeAdvertisingManagerFacade::Ser
   ::bluetooth::grpc::GrpcEventQueue<AddressMsg> address_events_{"address events"};
 };
 
-void LeAdvertisingManagerFacadeModule::ListDependencies(ModuleList* list) {
+void LeAdvertisingManagerFacadeModule::ListDependencies(ModuleList* list) const {
   ::bluetooth::grpc::GrpcFacadeModule::ListDependencies(list);
   list->add<hci::LeAdvertisingManager>();
 }

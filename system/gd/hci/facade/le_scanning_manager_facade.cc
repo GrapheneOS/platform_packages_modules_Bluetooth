@@ -152,7 +152,7 @@ class LeScanningManagerFacadeService : public LeScanningManagerFacade::Service, 
   ::bluetooth::grpc::GrpcEventQueue<ScanningCallbackMsg> callback_events_{"callback events"};
 };
 
-void LeScanningManagerFacadeModule::ListDependencies(ModuleList* list) {
+void LeScanningManagerFacadeModule::ListDependencies(ModuleList* list) const {
   ::bluetooth::grpc::GrpcFacadeModule::ListDependencies(list);
   list->add<hci::LeScanningManager>();
 }

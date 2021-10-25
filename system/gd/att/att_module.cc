@@ -67,7 +67,7 @@ struct AttModule::impl {
   l2cap::classic::L2capClassicModule* l2cap_classic_module_;
 };
 
-void AttModule::ListDependencies(ModuleList* list) {
+void AttModule::ListDependencies(ModuleList* list) const {
   list->add<l2cap::le::L2capLeModule>();
   list->add<l2cap::classic::L2capClassicModule>();
 }

@@ -487,7 +487,7 @@ void neighbor::InquiryModule::SetExtendedInquiryResultMode() {
 /**
  * Module methods here
  */
-void neighbor::InquiryModule::ListDependencies(ModuleList* list) {
+void neighbor::InquiryModule::ListDependencies(ModuleList* list) const {
   list->add<hci::HciLayer>();
 }
 

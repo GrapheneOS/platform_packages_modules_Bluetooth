@@ -420,7 +420,7 @@ class L2capLeModuleFacadeService : public L2capLeModuleFacade::Service {
   ::bluetooth::grpc::GrpcEventQueue<L2capPacket> pending_l2cap_data_{"FetchL2capData"};
 };
 
-void L2capLeModuleFacadeModule::ListDependencies(ModuleList* list) {
+void L2capLeModuleFacadeModule::ListDependencies(ModuleList* list) const {
   ::bluetooth::grpc::GrpcFacadeModule::ListDependencies(list);
   list->add<l2cap::le::L2capLeModule>();
 }

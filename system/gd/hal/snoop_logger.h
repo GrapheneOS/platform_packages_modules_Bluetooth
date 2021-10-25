@@ -83,7 +83,7 @@ class SnoopLogger : public ::bluetooth::Module {
   void Capture(const HciPacket& packet, Direction direction, PacketType type);
 
  protected:
-  void ListDependencies(ModuleList* list) override;
+  void ListDependencies(ModuleList* list) const override;
   void Start() override;
   void Stop() override;
   DumpsysDataFinisher GetDumpsysData(flatbuffers::FlatBufferBuilder* builder) const override;
