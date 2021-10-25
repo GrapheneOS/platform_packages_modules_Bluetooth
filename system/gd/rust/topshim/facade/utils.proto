@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package blueberry;
+
+message Empty {}
+
+message BluetoothAddress {
+  bytes address = 1;
+}
+
+service ReadOnlyProperty {
+  rpc ReadLocalAddress(Empty) returns (BluetoothAddress) {}
+}
