@@ -3394,12 +3394,12 @@ public class AdapterService extends Service {
             }
 
             // Copy the traffic objects whose byte counts are > 0
-            final UidTraffic[] result = arrayLen > 0 ? new UidTraffic[arrayLen] : null;
+            final List<UidTraffic> result = new ArrayList<>();
             int putIdx = 0;
             for (int i = 0; i < mUidTraffic.size(); i++) {
                 final UidTraffic traffic = mUidTraffic.valueAt(i);
                 if (traffic.getTxBytes() != 0 || traffic.getRxBytes() != 0) {
-                    result[putIdx++] = traffic.clone();
+                    result.add(traffic.clone());
                 }
             }
 
