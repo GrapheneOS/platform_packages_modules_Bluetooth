@@ -170,7 +170,6 @@ tPAN_RESULT PAN_SetRole(uint8_t role, const char* p_user_name,
     }
   }
 
-#if (PAN_SUPPORTS_ROLE_PANU == TRUE)
   if (role & PAN_ROLE_CLIENT) {
     /* Check the service name */
     if ((p_user_name == NULL) || (*p_user_name == 0))
@@ -194,7 +193,6 @@ tPAN_RESULT PAN_SetRole(uint8_t role, const char* p_user_name,
       bta_sys_remove_uuid(UUID_SERVCLASS_PANU);
     }
   }
-#endif
 
   pan_cb.role = role;
   PAN_TRACE_EVENT("PAN role set to: %d", role);
