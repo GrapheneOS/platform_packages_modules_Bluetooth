@@ -53,6 +53,7 @@ cc_library_static {
         "net/posix/posix_async_socket_server.cc",
         ":BluetoothPacketSources",
         ":BluetoothHciClassSources",
+        ":BluetoothCryptoToolboxSources",
     ],
     cflags: [
         "-Wall",
