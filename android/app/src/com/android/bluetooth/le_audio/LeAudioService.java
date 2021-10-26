@@ -1513,6 +1513,8 @@ public class LeAudioService extends ProfileService {
     @Override
     public void dump(StringBuilder sb) {
         super.dump(sb);
-        // TODO: Dump all state machines
+        for (LeAudioStateMachine sm : mStateMachines.values()) {
+            sm.dump(sb);
+        }
     }
 }
