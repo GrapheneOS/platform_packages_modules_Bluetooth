@@ -284,7 +284,7 @@ public class CsipSetCoordinatorService extends ProfileService {
         return true;
     }
 
-    List<BluetoothDevice> getConnectedDevices() {
+    public List<BluetoothDevice> getConnectedDevices() {
         enforceCallingOrSelfPermission(BLUETOOTH_CONNECT, "Need BLUETOOTH_CONNECT permission");
         synchronized (mStateMachines) {
             List<BluetoothDevice> devices = new ArrayList<>();
