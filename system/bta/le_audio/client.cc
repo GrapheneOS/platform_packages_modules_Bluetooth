@@ -718,7 +718,9 @@ class LeAudioClientImpl : public LeAudioClient {
       group_add_node(group_id, address);
     }
 
-    if (autoconnect) Connect(address);
+    if (autoconnect) {
+      BTA_GATTC_Open(gatt_if_, address, false, false);
+    }
   }
 
   void Disconnect(const RawAddress& address) override {
