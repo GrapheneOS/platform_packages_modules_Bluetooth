@@ -78,6 +78,16 @@ TEST(StringsTest, to_hex_string_from_number) {
   ASSERT_EQ(ToHexString('a'), "0x61");
 }
 
+TEST(StringsTest, to_hex_string_from_number_unsigned_int) {
+  ASSERT_EQ(ToHexString(0U), "0x00000000");
+  ASSERT_EQ(ToHexString(1U), "0x00000001");
+  ASSERT_EQ(ToHexString(3U), "0x00000003");
+  ASSERT_EQ(ToHexString(25U), "0x00000019");
+  ASSERT_EQ(ToHexString(UINT_MAX), "0xffffffff");
+  ASSERT_EQ(ToHexString(1U + UINT_MAX), "0x00000000");  // Rolled over
+  ASSERT_EQ(ToHexString(2U + UINT_MAX), "0x00000001");  // Rolled over
+}
+
 TEST(StringsTest, trim_string_test) {
   ASSERT_EQ(StringTrim("  aa bb"), "aa bb");
   ASSERT_EQ(StringTrim("aa bb "), "aa bb");
