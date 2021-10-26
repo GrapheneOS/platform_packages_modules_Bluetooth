@@ -92,8 +92,8 @@ DeviceProperties::DeviceProperties(const std::string& file_name)
 
   std::string errs;
   if (!Json::parseFromStream(builder, file, &root, &errs)) {
-    LOG_ERROR("Error reading controller properties from file: %s",
-              errs.c_str());
+    LOG_ERROR("Error reading controller properties from file: %s error: %s",
+              file_name.c_str(), errs.c_str());
     return;
   }
 
