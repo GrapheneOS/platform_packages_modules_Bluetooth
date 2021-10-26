@@ -24,6 +24,7 @@
 
 #include <stdint.h>
 
+#include <bitset>
 #include <map>
 #include <optional>
 #include <string>
