@@ -731,8 +731,10 @@ class LeAudioClientImpl : public LeAudioClient {
     }
 
     /* cancel pending direct connect */
-    if (leAudioDevice->connecting_actively_)
+    if (leAudioDevice->connecting_actively_) {
       BTA_GATTC_CancelOpen(gatt_if_, address, true);
+      leAudioDevice->connecting_actively_ = false;
+    }
 
     /* Removes all registrations for connection */
     BTA_GATTC_CancelOpen(0, address, false);
