@@ -723,6 +723,27 @@ class LeAudioClientImpl : public LeAudioClient {
     }
   }
 
+  void BackgroundConnectIfGroupConnected(LeAudioDevice* leAudioDevice) {
+    DLOG(INFO) << __func__ << leAudioDevice->address_ ;
+    auto group = aseGroups_.FindById(leAudioDevice->group_id_);
+    if (!group) {
+      DLOG(INFO) << __func__ << " Device is not yet part of the group. ";
+      return;
+    }
+
+    if (!group->IsAnyDeviceConnected()) {
+      DLOG(INFO) << __func__ << " group: " << leAudioDevice->group_id_
+                 << " is not connected";
+      return;
+    }
+
+    DLOG(INFO) << __func__ << "Add " << leAudioDevice->address_
+               << " to background connect to connected group: "
+               << leAudioDevice->group_id_;
+
+    BTA_GATTC_Open(gatt_if_, leAudioDevice->address_, false, false);
+  }
+
   void Disconnect(const RawAddress& address) override {
     LeAudioDevice* leAudioDevice = leAudioDevices_.FindByAddress(address);
 
@@ -741,13 +762,15 @@ class LeAudioClientImpl : public LeAudioClient {
     /* Removes all registrations for connection */
     BTA_GATTC_CancelOpen(0, address, false);
 
-    if (leAudioDevice->conn_id_ == GATT_INVALID_CONN_ID) {
-      LOG(ERROR) << __func__ << ", leAudioDevice not connected (" << address
-                 << ")";
+    if (leAudioDevice->conn_id_ != GATT_INVALID_CONN_ID) {
+      DisconnectDevice(leAudioDevice);
       return;
     }
 
-    DisconnectDevice(leAudioDevice);
+    /* If this is a device which is a part of the group which is connected,
+     * lets start backgroup connect
+     */
+    BackgroundConnectIfGroupConnected(leAudioDevice);
   }
 
   void DisconnectDevice(LeAudioDevice* leAudioDevice,
