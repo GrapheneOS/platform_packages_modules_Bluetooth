@@ -49,13 +49,21 @@ std::string ToHexString(T x) {
 }
 
 template <>
-inline std::string ToHexString<signed long>(signed long x) {
+inline std::string ToHexString<>(signed long x) {
   if (x < 0) {
     if (x == LONG_MIN) return "LONG_MIN";
     return "-" + ToHexString<signed long>(-x);
   }
   std::stringstream tmp;
   tmp << "0x" << std::internal << std::hex << std::setfill('0') << std::setw(sizeof(signed long) * 2)
+      << (unsigned long)x;
+  return tmp.str();
+}
+
+template <>
+inline std::string ToHexString<>(unsigned int x) {
+  std::stringstream tmp;
+  tmp << "0x" << std::internal << std::hex << std::setfill('0') << std::setw(sizeof(unsigned int) * 2)
       << (unsigned long)x;
   return tmp.str();
 }
