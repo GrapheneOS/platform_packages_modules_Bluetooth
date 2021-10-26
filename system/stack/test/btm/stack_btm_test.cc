@@ -48,9 +48,6 @@ uint8_t appl_trace_level = BT_TRACE_LEVEL_VERBOSE;
 btif_hh_cb_t btif_hh_cb;
 tL2C_CB l2cb;
 
-const hci_packet_factory_t* hci_packet_factory_get_interface() {
-  return nullptr;
-}
 const hci_t* hci_layer_get_interface() { return nullptr; }
 
 void LogMsg(uint32_t trace_set_mask, const char* fmt_str, ...) {}
