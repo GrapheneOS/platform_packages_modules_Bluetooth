@@ -505,6 +505,12 @@ static void l2c_csm_term_w4_sec_comp(tL2C_CCB* p_ccb, tL2CEVT event,
         ** stack version   : 05.04.11.20060119
         */
 
+        /* Cancel ccb timer as security complete. waiting for w4_info_rsp
+        ** once info rsp received, connection rsp timer will be started
+        ** while sending connection ind to profiles
+        */
+        alarm_cancel(p_ccb->l2c_ccb_timer);
+
         /* Waiting for the info resp, tell the peer to set a longer timer */
         LOG_DEBUG("Waiting for info response, sending connect pending");
         l2cu_send_peer_connect_rsp(p_ccb, L2CAP_CONN_PENDING, 0);
