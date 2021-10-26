@@ -63,6 +63,11 @@ import com.android.internal.annotations.VisibleForTesting;
 import com.android.internal.util.State;
 import com.android.internal.util.StateMachine;
 
+import java.io.FileDescriptor;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.Scanner;
+
 final class LeAudioStateMachine extends StateMachine {
     private static final boolean DBG = false;
     private static final String TAG = "LeAudioStateMachine";
@@ -551,6 +556,24 @@ final class LeAudioStateMachine extends StateMachine {
                 break;
         }
         return Integer.toString(state);
+    }
+
+    public void dump(StringBuilder sb) {
+        ProfileService.println(sb, "mDevice: " + mDevice);
+        ProfileService.println(sb, "  StateMachine: " + this);
+        // Dump the state machine logs
+        StringWriter stringWriter = new StringWriter();
+        PrintWriter printWriter = new PrintWriter(stringWriter);
+        super.dump(new FileDescriptor(), printWriter, new String[]{});
+        printWriter.flush();
+        stringWriter.flush();
+        ProfileService.println(sb, "  StateMachineLog:");
+        Scanner scanner = new Scanner(stringWriter.toString());
+        while (scanner.hasNextLine()) {
+            String line = scanner.nextLine();
+            ProfileService.println(sb, "    " + line);
+        }
+        scanner.close();
     }
 
     @Override
