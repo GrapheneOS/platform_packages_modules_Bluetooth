@@ -406,7 +406,8 @@ static void transmit_fragment(const uint8_t* stream, size_t length) {
       handle_with_flags >> 12 & 0b11);
   auto bc_flag =
       static_cast<bluetooth::hci::BroadcastFlag>(handle_with_flags >> 14);
-  uint16_t handle = handle_with_flags & 0xEFF;
+  uint16_t handle = handle_with_flags & 0xFFF;
+  ASSERT_LOG(handle <= 0xEFF, "Require handle <= 0xEFF, but is 0x%X", handle);
   length -= 2;
   // skip data total length
   stream += 2;
@@ -421,7 +422,8 @@ static void transmit_fragment(const uint8_t* stream, size_t length) {
 static void transmit_sco_fragment(const uint8_t* stream, size_t length) {
   uint16_t handle_with_flags;
   STREAM_TO_UINT16(handle_with_flags, stream);
-  uint16_t handle = handle_with_flags & 0xEFF;
+  uint16_t handle = handle_with_flags & 0xFFF;
+  ASSERT_LOG(handle <= 0xEFF, "Require handle <= 0xEFF, but is 0x%X", handle);
   length -= 2;
   // skip data total length
   stream += 1;
@@ -442,7 +444,8 @@ static void transmit_iso_fragment(const uint8_t* stream, size_t length) {
       handle_with_flags >> 12 & 0b11);
   auto ts_flag =
       static_cast<bluetooth::hci::TimeStampFlag>(handle_with_flags >> 14);
-  uint16_t handle = handle_with_flags & 0xEFF;
+  uint16_t handle = handle_with_flags & 0xFFF;
+  ASSERT_LOG(handle <= 0xEFF, "Require handle <= 0xEFF, but is 0x%X", handle);
   length -= 2;
   // skip data total length
   stream += 2;

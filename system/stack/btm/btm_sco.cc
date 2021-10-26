@@ -198,7 +198,8 @@ void btm_route_sco_data(BT_HDR* p_msg) {
     return;
   }
   LOG_INFO("Received SCO packet from HCI. Dropping it since no handler so far");
-  uint16_t handle = handle_with_flags & 0xeff;
+  uint16_t handle = handle_with_flags & 0xFFF;
+  ASSERT_LOG(handle <= 0xEFF, "Require handle <= 0xEFF, but is 0x%X", handle);
   auto* active_sco = btm_get_active_sco();
   if (active_sco != nullptr && active_sco->hci_handle == handle) {
     // TODO: For MSBC, we need to decode here
