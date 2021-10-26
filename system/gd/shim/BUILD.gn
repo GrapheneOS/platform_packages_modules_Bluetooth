@@ -20,7 +20,7 @@ source_set("BluetoothShimSources") {
   ]
 
   deps = [
-    "//bt/gd/dumpsys:BluetoothGeneratedDumpsysBundledSchema_cc",
+    "//bt/gd/dumpsys:libbluetooth-dumpsys",
     "//bt/gd/dumpsys/bundler:BluetoothGeneratedBundlerSchema_h_bfbs",
   ]
 
