@@ -48,7 +48,7 @@ group("gd_default_deps") {
   deps = [
     "//bt/gd:BluetoothGeneratedDumpsysDataSchema_h",
     "//bt/gd:BluetoothGeneratedPackets_h",
-    "//bt/gd/dumpsys:BluetoothGeneratedDumpsysBundledSchema_cc",
+    "//bt/gd/dumpsys:libbluetooth-dumpsys",
     "//bt/gd/rust/shim:init_flags_bridge_header",
   ]
 }

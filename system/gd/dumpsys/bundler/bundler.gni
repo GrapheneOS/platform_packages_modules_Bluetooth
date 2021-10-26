@@ -144,7 +144,7 @@ template("bt_flatc_bundler") {
     ]
 
     outputs = [
-      "${target_gen_dir}/${invoker.filename}.h",
+      "${target_gen_dir}/${invoker.filename}.cc",
       "${target_gen_dir}/${invoker.filename}",
     ]
 
@@ -158,20 +158,12 @@ template("bt_flatc_bundler") {
     include_dirs = [ "${target_gen_dir}" ]
   }
 
-  generated_file(target_name) {
-    outputs = [ "${target_gen_dir}/${target_name}.files" ]
-    output_conversion = "list lines"
-    data_keys = [ "all_outputs" ]
+  source_set(target_name) {
+    sources = [
+      "${target_gen_dir}/${invoker.filename}.cc",
+    ]
 
-    all_dependent_configs = [ ":${all_dependent_config_name}" ]
-    if (defined(invoker.all_dependent_configs)) {
-      all_dependent_configs += invoker.all_dependent_configs
-    }
-
-    deps = [ ":${action_name}" ]
-    if (defined(invoker.deps)) {
-      deps += invoker.deps
-    }
+    public_deps = [ ":$action_name" ]
 
     if (defined(invoker.configs)) {
       configs += invoker.configs
