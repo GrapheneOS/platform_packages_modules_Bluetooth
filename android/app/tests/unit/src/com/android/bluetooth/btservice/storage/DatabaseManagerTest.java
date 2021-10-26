@@ -1070,7 +1070,7 @@ public final class DatabaseManagerTest {
         device.put("migrated", false);
         assertThat(db.insert("metadata", SQLiteDatabase.CONFLICT_IGNORE, device),
                 CoreMatchers.not(-1));
-        // Migrate database from 106 to 107
+        // Migrate database from 107 to 108
         db.close();
         db = testHelper.runMigrationsAndValidate(DB_NAME, 108, true,
                 MetadataDatabase.MIGRATION_107_108);

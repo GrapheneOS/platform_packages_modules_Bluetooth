@@ -149,8 +149,6 @@ public class LeAudioStackEvent {
 
     private static String eventTypeValue3ToString(int type, int value) {
         switch (type) {
-            case EVENT_TYPE_GROUP_STATUS_CHANGED:
-                return "{group_flags:" + Integer.toString(value) + "}";
             case EVENT_TYPE_AUDIO_CONF_CHANGED:
                 // FIXME: It should have proper location names here
                 return "{snk_audio_loc:" + value + "}";
