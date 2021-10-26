@@ -12,3 +12,11 @@ prebuilt_etc_host {
     src: "controller_properties.json",
     sub_dir: "rootcanal/data",
 }
+
+prebuilt_etc {
+    name: "bt_controller_properties",
+    src: "controller_properties.json",
+    vendor: true,
+    filename_from_src: true,
+    sub_dir: "bluetooth",
+}
