@@ -29,9 +29,10 @@ source_set("BluetoothDumpsysSources") {
   deps = [ "//bt/gd:gd_default_deps" ]
 }
 
-bt_flatc_bundler("BluetoothGeneratedDumpsysBundledSchema_cc") {
+bt_flatc_bundler("libbluetooth-dumpsys") {
   root_name = "bluetooth.DumpsysData"
   filename = "generated_dumpsys_bundled_schema"
   namespace = "bluetooth::dumpsys"
   deps = [ "//bt/gd:BluetoothGeneratedDumpsysBinarySchema_bfbs" ]
+  configs = [ "//bt/gd:gd_defaults" ]
 }
