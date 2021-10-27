@@ -18,11 +18,16 @@
 
 #include <memory>
 
+#include "gd/rust/topshim/btav_sink/btav_sink_shim.h"
 #include "include/hardware/bt_av.h"
+#include "rust/cxx.h"
+#include "types/raw_address.h"
 
 namespace bluetooth {
 namespace topshim {
 namespace rust {
+
+struct RustRawAddress;
 
 class A2dpSinkIntf {
  public:
@@ -30,8 +35,10 @@ class A2dpSinkIntf {
   ~A2dpSinkIntf();
 
   // interface for Settings
-  int init();
-  void cleanup();
+  int init() const;
+  int connect(RustRawAddress bt_addr) const;
+  int set_active_device(RustRawAddress bt_addr) const;
+  void cleanup() const;
 
  private:
   const btav_sink_interface_t* intf_;
