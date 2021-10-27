@@ -18,9 +18,9 @@ package com.android.bluetooth.btservice;
 
 import android.bluetooth.BluetoothAdapter;
 import android.os.Message;
+import android.os.SystemProperties;
 import android.util.Log;
 
-import com.android.bluetooth.R;
 import com.android.bluetooth.telephony.BluetoothInCallService;
 import com.android.internal.util.State;
 import com.android.internal.util.StateMachine;
@@ -71,6 +71,11 @@ final class AdapterState extends StateMachine {
     static final int BREDR_STOP_TIMEOUT = 10;
     static final int BLE_STOP_TIMEOUT = 11;
     static final int BLE_START_TIMEOUT = 12;
+
+    static final String BLE_START_TIMEOUT_DELAY_PROPERTY =
+            "ro.bluetooth.ble_start_timeout_delay";
+    static final String BLE_STOP_TIMEOUT_DELAY_PROPERTY =
+            "ro.bluetooth.ble_stop_timeout_delay";
 
     static final int BLE_START_TIMEOUT_DELAY = 4000;
     static final int BLE_STOP_TIMEOUT_DELAY = 1000;
@@ -264,7 +269,10 @@ final class AdapterState extends StateMachine {
         @Override
         public void enter() {
             super.enter();
-            sendMessageDelayed(BLE_START_TIMEOUT, BLE_START_TIMEOUT_DELAY);
+            final int timeoutDelay = SystemProperties.getInt(
+                    BLE_START_TIMEOUT_DELAY_PROPERTY, BLE_START_TIMEOUT_DELAY);
+            Log.d(TAG, "Start Timeout Delay: " + timeoutDelay);
+            sendMessageDelayed(BLE_START_TIMEOUT, timeoutDelay);
             mAdapterService.bringUpBle();
         }
 
@@ -385,7 +393,10 @@ final class AdapterState extends StateMachine {
         public void enter() {
             super.enter();
             mAdapterService.enableBluetoothInCallService(false);
-            sendMessageDelayed(BLE_STOP_TIMEOUT, BLE_STOP_TIMEOUT_DELAY);
+            final int timeoutDelay = SystemProperties.getInt(
+                    BLE_STOP_TIMEOUT_DELAY_PROPERTY, BLE_STOP_TIMEOUT_DELAY);
+            Log.d(TAG, "Stop Timeout Delay: " + timeoutDelay);
+            sendMessageDelayed(BLE_STOP_TIMEOUT, timeoutDelay);
             mAdapterService.bringDownBle();
         }
 
