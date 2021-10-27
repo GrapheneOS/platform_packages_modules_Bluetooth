@@ -2132,6 +2132,17 @@ void bta_hf_client_send_at_bia(tBTA_HF_CLIENT_CB* client_cb) {
   for (i = 0; i < BTA_HF_CLIENT_AT_INDICATOR_COUNT; i++) {
     int sup = client_cb->at_cb.indicator_lookup[i] == -1 ? 0 : 1;
 
+/* If this value matches the position of SIGNAL in the indicators array,
+ * then hardcode disable signal strength indicators.
+ * indicator_lookup[i] points to the position in the bta_hf_client_indicators
+ * array defined at the top of this file */
+#ifdef BTA_HF_CLIENT_INDICATOR_SIGNAL_POS
+    if (client_cb->at_cb.indicator_lookup[i] ==
+        BTA_HF_CLIENT_INDICATOR_SIGNAL_POS) {
+      sup = 0;
+    }
+#endif
+
     at_len += snprintf(buf + at_len, sizeof(buf) - at_len, "%u,", sup);
   }
 
