@@ -83,6 +83,8 @@ public class HeadsetClientStateMachineTest {
                 mAudioManager);
         when(mHeadsetClientService.getResources()).thenReturn(mMockHfpResources);
         when(mMockHfpResources.getBoolean(R.bool.hfp_clcc_poll_during_call)).thenReturn(true);
+        when(mMockHfpResources.getInteger(R.integer.hfp_clcc_poll_interval_during_call))
+                .thenReturn(2000);
         mNativeInterface = spy(NativeInterface.getInstance());
 
         // This line must be called to make sure relevant objects are initialized properly
