@@ -3321,6 +3321,11 @@ void btm_sec_encrypt_change(uint16_t handle, tHCI_STATUS status,
                       __func__, p_dev_rec, p_dev_rec->p_callback);
       p_dev_rec->p_callback = NULL;
       l2cu_resubmit_pending_sec_req(&p_dev_rec->bd_addr);
+#ifdef BTM_DISABLE_CONCURRENT_PEER_AUTH
+    } else if (BTM_DISABLE_CONCURRENT_PEER_AUTH &&
+               p_dev_rec->sec_state == BTM_SEC_STATE_AUTHENTICATING) {
+      p_dev_rec->sec_state = BTM_SEC_STATE_IDLE;
+#endif
     }
     return;
   }
@@ -3924,6 +3929,10 @@ void btm_sec_link_key_request(uint8_t* p_event) {
   tBTM_SEC_DEV_REC* p_dev_rec = btm_find_or_alloc_dev(bda);
 
   VLOG(2) << __func__ << " bda: " << bda;
+#if (defined(BTM_DISABLE_CONCURRENT_PEER_AUTH) && \
+     (BTM_DISABLE_CONCURRENT_PEER_AUTH == TRUE))
+  p_dev_rec->sec_state = BTM_SEC_STATE_AUTHENTICATING;
+#endif
 
   if ((btm_cb.pairing_state == BTM_PAIR_STATE_WAIT_PIN_REQ) &&
       (btm_cb.collision_start_time != 0) &&
