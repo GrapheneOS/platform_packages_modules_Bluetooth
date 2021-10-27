@@ -89,7 +89,8 @@ extern void HACK_acl_check_sm4(tBTM_SEC_DEV_REC& p_dev_rec);
 tBTM_SEC_SERV_REC* btm_sec_find_first_serv(bool is_originator, uint16_t psm);
 
 static bool btm_sec_start_get_name(tBTM_SEC_DEV_REC* p_dev_rec);
-static void btm_sec_start_authentication(tBTM_SEC_DEV_REC* p_dev_rec);
+static void btm_sec_wait_and_start_authentication(tBTM_SEC_DEV_REC* p_dev_rec);
+static void btm_sec_auth_timer_timeout(void* data);
 static void btm_sec_collision_timeout(void* data);
 static void btm_restore_mode(void);
 static void btm_sec_pairing_timeout(void* data);
@@ -808,7 +809,7 @@ tBTM_STATUS btm_sec_bond_by_transport(const RawAddress& bd_addr,
 
   /* If connection already exists... */
   if (BTM_IsAclConnectionUpAndHandleValid(bd_addr, transport)) {
-    btm_sec_start_authentication(p_dev_rec);
+    btm_sec_wait_and_start_authentication(p_dev_rec);
 
     btm_sec_change_pairing_state(BTM_PAIR_STATE_WAIT_PIN_REQ);
 
@@ -4315,7 +4316,7 @@ tBTM_STATUS btm_sec_execute_procedure(tBTM_SEC_DEV_REC* p_dev_rec) {
             BTM_SEC_AUTHENTICATED);
     }
 
-    btm_sec_start_authentication(p_dev_rec);
+    btm_sec_wait_and_start_authentication(p_dev_rec);
     return (BTM_CMD_STARTED);
   } else {
     LOG_DEBUG("Authentication not required");
@@ -4378,12 +4379,30 @@ static bool btm_sec_start_get_name(tBTM_SEC_DEV_REC* p_dev_rec) {
 
 /*******************************************************************************
  *
- * Function         btm_sec_start_authentication
+ * Function         btm_sec_wait_and_start_authentication
  *
- * Description      This function is called to start authentication
+ * Description      This function is called to add an alarm to wait and start
+ *                  authentication
  *
  ******************************************************************************/
-static void btm_sec_start_authentication(tBTM_SEC_DEV_REC* p_dev_rec) {
+static void btm_sec_wait_and_start_authentication(tBTM_SEC_DEV_REC* p_dev_rec) {
+  if (alarm_is_scheduled(btm_cb.execution_wait_timer)) {
+    BTM_TRACE_EVENT("%s: alarm already scheduled", __func__);
+    return;
+  }
+  alarm_set(btm_cb.execution_wait_timer, BTM_DELAY_AUTH_MS,
+            btm_sec_auth_timer_timeout, p_dev_rec);
+}
+
+/*******************************************************************************
+ *
+ * Function         btm_sec_auth_timer_timeout
+ *
+ * Description      called after wait timeout to request authentication
+ *
+ ******************************************************************************/
+static void btm_sec_auth_timer_timeout(void* data) {
+  tBTM_SEC_DEV_REC* p_dev_rec = (tBTM_SEC_DEV_REC*)data;
   p_dev_rec->sec_state = BTM_SEC_STATE_AUTHENTICATING;
   btsnd_hcic_auth_request(p_dev_rec->hci_handle);
 }
