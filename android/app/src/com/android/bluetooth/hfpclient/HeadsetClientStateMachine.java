@@ -483,7 +483,9 @@ public class HeadsetClientStateMachine extends StateMachine {
 
         if (mCalls.size() > 0) {
             if (mService.getResources().getBoolean(R.bool.hfp_clcc_poll_during_call)) {
-                sendMessageDelayed(QUERY_CURRENT_CALLS, QUERY_CURRENT_CALLS_WAIT_MILLIS);
+                sendMessageDelayed(QUERY_CURRENT_CALLS,
+                        mService.getResources().getInteger(
+                        R.integer.hfp_clcc_poll_interval_during_call));
             } else {
                 if (getCall(BluetoothHeadsetClientCall.CALL_STATE_INCOMING) != null) {
                     logD("Still have incoming call; polling");
@@ -1330,9 +1332,16 @@ public class HeadsetClientStateMachine extends StateMachine {
                     break;
                 case QUERY_CURRENT_CALLS:
                     removeMessages(QUERY_CURRENT_CALLS);
-                    if (mCalls.size() > 0) {
-                        // If there are ongoing calls periodically check their status.
-                        sendMessageDelayed(QUERY_CURRENT_CALLS, QUERY_CURRENT_CALLS_WAIT_MILLIS);
+                    // If there are ongoing calls periodically check their status.
+                    if (mCalls.size() > 1
+                            && mService.getResources().getBoolean(
+                            R.bool.hfp_clcc_poll_during_call)) {
+                        sendMessageDelayed(QUERY_CURRENT_CALLS,
+                                mService.getResources().getInteger(
+                                R.integer.hfp_clcc_poll_interval_during_call));
+                    } else if (mCalls.size() > 0) {
+                        sendMessageDelayed(QUERY_CURRENT_CALLS,
+                                QUERY_CURRENT_CALLS_WAIT_MILLIS);
                     }
                     queryCallsStart();
                     break;
