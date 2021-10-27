@@ -1049,4 +1049,8 @@
 
 #include "bt_trace.h"
 
+#ifndef BTM_DELAY_AUTH_MS
+#define BTM_DELAY_AUTH_MS 0
+#endif
+
 #endif /* BT_TARGET_H */
