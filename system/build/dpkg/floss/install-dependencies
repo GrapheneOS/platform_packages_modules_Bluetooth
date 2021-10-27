@@ -1,0 +1,95 @@
+#!/bin/bash
+
+DRY_RUN=""
+if [ $# -gt 0 ]; then
+    if [ "$1" == "--dry-run" ]; then
+        DRY_RUN="echo "
+    fi
+fi
+
+echo "Checking for dependencies..."
+
+REQUIRED="git cargo"
+
+for name in $(echo ${REQUIRED});
+do
+    type -P "$name" &>/dev/null || { echo "Install '$name'" >&2; exit 1;}
+done
+
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PARENT_DIR="$(echo ${SCRIPT_DIR} | rev | cut -d '/' -f 2- | rev )"
+
+TMP_DIR=$(mktemp -d)
+OUT_DIR="${TMP_DIR}/out"
+
+trap ctrl_c INT
+
+function ctrl_c() {
+    rm -rf "${TMP_DIR}"
+    exit 1
+}
+
+# Check dependencies
+# libchrome requires modp_b64
+APT_REQUIRED="flatbuffers-compiler flex g++-multilib gcc-multilib generate-ninja \
+gnupg gperf libc++-dev libdbus-1-dev libevent-dev libevent-dev libflatbuffers-dev libflatbuffers1 \
+libgl1-mesa-dev libglib2.0-dev liblz4-tool libncurses5 libnss3-dev libprotobuf-dev libre2-9 \
+libssl-dev libtinyxml2-dev libx11-dev libxml2-utils ninja-build openssl protobuf-compiler unzip \
+x11proto-core-dev xsltproc zip zlib1g-dev debmake ninja-build modp-b64 libchrome"
+
+APT_MISSING=()
+for name in $(echo ${APT_REQUIRED});
+do
+    R="$(apt -qq list "${name}" 2>/dev/null | grep "installed")"
+    if [ "${R}" == "" ]; then
+        echo "Need to install '${name}'" >&2;
+        if [ "${name}" == "modp-b64" ]; then
+            echo "${name} source is available to build in this repository"
+            # dir name is different than package name :'(
+            ${DRY_RUN} pushd "${PARENT_DIR}/modp_b64/"
+            ${DRY_RUN} ./gen-src-pkg.sh "${OUT_DIR}"
+            ${DRY_RUN} sudo dpkg -i "${OUT_DIR}"/${name}*.deb || ctrl_c
+            ${DRY_RUN} popd
+        elif [ "${name}" == "libchrome" ]; then
+            echo "${name} source is available to build in this repository"
+            ${DRY_RUN} pushd "${PARENT_DIR}/${name}/"
+            ${DRY_RUN} ./gen-src-pkg.sh "${OUT_DIR}"
+            ${DRY_RUN} sudo dpkg -i "${OUT_DIR}"/${name}*.deb || ctrl_c
+            ${DRY_RUN} popd
+        else
+            APT_MISSING+=("${name}")
+        fi
+    fi
+done
+
+APT_MISSING_LEN="${#APT_MISSING[@]}"
+
+if [ $APT_MISSING_LEN -gt 0 ]; then
+    echo "Missing Packages:"
+    echo "    ${APT_MISSING[*]}"
+    ${DRY_RUN} sudo apt install "${APT_MISSING[*]}" || ctrl_c
+else
+    rm -rf "${TMP_DIR}"
+    exit 0
+fi
+
+echo Generating missing packages in "${TMP_DIR}"
+
+# Check cargo for cxxbridge-cmd
+HAS_CXX="$(cargo install --list | grep cxxbridge-cmd)"
+if [ "$HAS_CXX" == "" ]; then
+    echo "Missing cxxbridge-cmd cargo package"
+    echo "Installing 'cxxbridge-cmd'" >&2
+    ${DRY_RUN} cargo install cxxbridge-cmd || ctrl_c
+fi
+
+HAS_CXX="$(cargo install --list | grep cargo-proc-macro)"
+if [ "$HAS_CXX" == "" ]; then
+    echo "Missing cargo-proc-macro cargo package"
+    echo "Installing 'cxxbridge-cmd'" >&2
+    ${DRY_RUN} cargo install cargo-proc-macro || ctrl_c
+fi
+
+rm -rf "${TMP_DIR}"
+echo "DONE"
