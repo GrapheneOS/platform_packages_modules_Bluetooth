@@ -749,7 +749,7 @@ public class LeAudioService extends ProfileService {
         if (device != null && mPreviousAudioOutDevice != null) {
             int previousGroupId = getGroupId(mPreviousAudioOutDevice);
             if (previousGroupId == groupId) {
-                /* This is thes same group as aleady notified to the system.
+                /* This is the same group as already notified to the system.
                 * Therefore do not change the device we have connected to the group,
                 * unless, previous one is disconnected now
                 */
