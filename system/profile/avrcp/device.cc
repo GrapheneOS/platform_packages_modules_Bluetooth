@@ -440,7 +440,6 @@ void Device::TrackChangedNotificationResponse(uint8_t label, bool interim,
                                               std::string curr_song_id,
                                               std::vector<SongInfo> song_list) {
   DEVICE_VLOG(1) << __func__;
-  uint64_t uid = 0;
 
   if (interim) {
     track_changed_ = Notification(true, label);
@@ -449,9 +448,32 @@ void Device::TrackChangedNotificationResponse(uint8_t label, bool interim,
     return;
   }
 
+  if (!interim) {
+    if (curr_song_id.empty()) {
+      // CHANGED response is only defined when there is media selected
+      // for playing.
+      return;
+    }
+    active_labels_.erase(label);
+    track_changed_ = Notification(false, 0);
+  }
+
+  // Case for browsing not supported;
+  // PTS BV-04-C and BV-5-C assume browsing not supported
+  if (stack_config_get_interface()->get_pts_avrcp_test()) {
+    DEVICE_LOG(WARNING) << __func__ << ": pts test mode";
+    uint64_t uid = curr_song_id.empty() ? 0xffffffffffffffff : 0;
+    auto response =
+        RegisterNotificationResponseBuilder::MakeTrackChangedBuilder(interim,
+                                                                     uid);
+    send_message_cb_.Run(label, false, std::move(response));
+    return;
+  }
+
   // Anytime we use the now playing list, update our map so that its always
   // current
   now_playing_ids_.clear();
+  uint64_t uid = 0;
   for (const SongInfo& song : song_list) {
     now_playing_ids_.insert(song.media_id);
     if (curr_song_id == song.media_id) {
@@ -461,22 +483,14 @@ void Device::TrackChangedNotificationResponse(uint8_t label, bool interim,
     }
   }
 
-  if (curr_song_id == "") {
-    DEVICE_LOG(WARNING) << "Empty media ID";
-    uid = 0;
-    if (stack_config_get_interface()->get_pts_avrcp_test()) {
-      DEVICE_LOG(WARNING) << __func__ << ": pts test mode";
-      uid = 0xffffffffffffffff;
-    }
+  if (uid == 0) {
+    // uid 0 is not valid here when browsing is supported
+    DEVICE_LOG(ERROR) << "No match for media ID found";
   }
 
   auto response = RegisterNotificationResponseBuilder::MakeTrackChangedBuilder(
       interim, uid);
   send_message_cb_.Run(label, false, std::move(response));
-  if (!interim) {
-    active_labels_.erase(label);
-    track_changed_ = Notification(false, 0);
-  }
 }
 
 void Device::PlaybackStatusNotificationResponse(uint8_t label, bool interim,
