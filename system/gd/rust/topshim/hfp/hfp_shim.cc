@@ -17,7 +17,14 @@
 #include "gd/rust/topshim/hfp/hfp_shim.h"
 
 #include "btif/include/btif_hf.h"
+#include "include/hardware/bt_hf.h"
+#include "src/profiles/hfp.rs.h"
 #include "types/raw_address.h"
+
+namespace rusty = ::bluetooth::topshim::rust;
+namespace bluetooth::topshim::rust::internal {
+static void connection_state_cb(bluetooth::headset::bthf_connection_state_t state, RawAddress* addr);
+}  // namespace bluetooth::topshim::rust::internal
 
 namespace bluetooth::headset {
 class DBusHeadsetCallbacks : public Callbacks {
@@ -27,8 +34,9 @@ class DBusHeadsetCallbacks : public Callbacks {
     return instance;
   }
 
-  void ConnectionStateCallback(
-      [[maybe_unused]] bthf_connection_state_t state, [[maybe_unused]] RawAddress* bd_addr) override {}
+  void ConnectionStateCallback(bthf_connection_state_t state, RawAddress* bd_addr) override {
+    topshim::rust::internal::connection_state_cb(state, bd_addr);
+  }
 
   void AudioStateCallback([[maybe_unused]] bthf_audio_state_t state, [[maybe_unused]] RawAddress* bd_addr) override {}
 
@@ -88,10 +96,38 @@ namespace rust {
 namespace internal {
 static HfpIntf* g_hfpif;
 
+// TODO (b/204488136): Refactor to have a2dp, gatt and hfp share these helpers.
+static RustRawAddress to_rust_address(const RawAddress& addr) {
+  RustRawAddress raddr;
+  std::copy(std::begin(addr.address), std::end(addr.address), std::begin(raddr.address));
+  return raddr;
+}
+
+static RawAddress from_rust_address(const RustRawAddress& raddr) {
+  RawAddress addr;
+  addr.FromOctets(raddr.address.data());
+  return addr;
+}
+
+static void connection_state_cb(bluetooth::headset::bthf_connection_state_t state, RawAddress* addr) {
+  RustRawAddress raddr = to_rust_address(*addr);
+  rusty::hfp_connection_state_callback(state, raddr);
+}
+
 }  // namespace internal
 
 int HfpIntf::init() {
   return intf_->Init(headset::DBusHeadsetCallbacks::GetInstance(), 1, false);
+}
+
+int HfpIntf::connect(RustRawAddress bt_addr) {
+  RawAddress addr = internal::from_rust_address(bt_addr);
+  return intf_->Connect(&addr);
+}
+
+int HfpIntf::disconnect(RustRawAddress bt_addr) {
+  RawAddress addr = internal::from_rust_address(bt_addr);
+  return intf_->Disconnect(&addr);
 }
 
 void HfpIntf::cleanup() {}

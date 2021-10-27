@@ -27,6 +27,7 @@ topshim_macros = { path = "macros" }
 
 cxx = "*"
 lazy_static = "*"
+log = "*"
 proc-macro2 = "*"
 num-derive = "*"
 num-traits = "*"
