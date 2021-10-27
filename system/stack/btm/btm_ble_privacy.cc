@@ -280,6 +280,7 @@ void btm_ble_add_resolving_list_entry_complete(uint8_t* p, uint16_t evt_len) {
   }
 
   if (status == HCI_SUCCESS) {
+    btm_ble_update_resolving_list(pseudo_bda, true);
     /* privacy 1.2 command complete does not have these extra byte */
     if (evt_len > 2) {
       /* VSC complete has one extra byte for op code, skip it here */
@@ -740,7 +741,6 @@ bool btm_ble_resolving_list_load_dev(tBTM_SEC_DEV_REC* p_dev_rec) {
     return false;
   }
 
-  btm_ble_update_resolving_list(p_dev_rec->bd_addr, true);
   if (controller_get_interface()->supports_ble_privacy()) {
     const Octet16& peer_irk = p_dev_rec->ble.keys.irk;
     const Octet16& local_irk = btm_cb.devcb.id_keys.irk;
