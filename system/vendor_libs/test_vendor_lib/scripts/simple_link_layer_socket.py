@@ -45,7 +45,7 @@ send 18000000 09 010203040506 4de24c67454b    00      04        050954465446
 
 """
 
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import binascii
 import cmd
