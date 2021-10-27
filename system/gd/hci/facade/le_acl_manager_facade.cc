@@ -75,6 +75,25 @@ class LeAclManagerFacadeService : public LeAclManagerFacade::Service, public LeC
     return per_connection_events_[current_connection_request_]->RunLoop(context, writer);
   }
 
+  ::grpc::Status CreateBackgroundAndDirectConnection(
+      ::grpc::ServerContext* context,
+      const ::bluetooth::facade::BluetoothAddressWithType* request,
+      ::grpc::ServerWriter<LeConnectionEvent>* writer) override {
+    Address peer_address;
+    ASSERT(Address::FromString(request->address().address(), peer_address));
+    AddressWithType peer(peer_address, static_cast<AddressType>(request->type()));
+    // Create background connection first
+    acl_manager_->CreateLeConnection(peer, /* is_direct */ false);
+    acl_manager_->CreateLeConnection(peer, /* is_direct */ true);
+    wait_for_background_connection_complete = true;
+    if (per_connection_events_.size() > current_connection_request_) {
+      return ::grpc::Status(::grpc::StatusCode::RESOURCE_EXHAUSTED, "Only one outstanding request is supported");
+    }
+    per_connection_events_.emplace_back(std::make_unique<::bluetooth::grpc::GrpcEventQueue<LeConnectionEvent>>(
+        std::string("connection attempt ") + std::to_string(current_connection_request_)));
+    return per_connection_events_[current_connection_request_]->RunLoop(context, writer);
+  }
+
   ::grpc::Status CancelConnection(
       ::grpc::ServerContext* context,
       const ::bluetooth::facade::BluetoothAddressWithType* request,
@@ -243,6 +262,7 @@ class LeAclManagerFacadeService : public LeAclManagerFacade::Service, public LeC
       success.set_payload(builder_to_string(std::move(builder)));
       per_connection_events_[current_connection_request_]->OnIncomingEvent(success);
     }
+    wait_for_background_connection_complete = false;
     current_connection_request_++;
   }
 
@@ -252,7 +272,9 @@ class LeAclManagerFacadeService : public LeAclManagerFacade::Service, public LeC
     LeConnectionEvent fail;
     fail.set_payload(builder_to_string(std::move(builder)));
     per_connection_events_[current_connection_request_]->OnIncomingEvent(fail);
-    current_connection_request_++;
+    if (!wait_for_background_connection_complete) {
+      current_connection_request_++;
+    }
   }
 
   class Connection : public LeConnectionManagementCallbacks {
@@ -310,6 +332,7 @@ class LeAclManagerFacadeService : public LeAclManagerFacade::Service, public LeC
   std::vector<std::shared_ptr<::bluetooth::grpc::GrpcEventQueue<LeConnectionEvent>>> per_connection_events_;
   std::map<uint16_t, Connection> acl_connections_;
   uint32_t current_connection_request_{0};
+  bool wait_for_background_connection_complete = false;
 };
 
 void LeAclManagerFacadeModule::ListDependencies(ModuleList* list) const {

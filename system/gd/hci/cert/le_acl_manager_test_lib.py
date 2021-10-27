@@ -285,3 +285,66 @@ class LeAclManagerTestBase():
                               hci_packets.BroadcastFlag.POINT_TO_POINT, bytes(b'!'))
 
         assertThat(self.dut_le_acl).emits(lambda packet: b'Hello!' in packet.payload)
+
+    def test_background_connection(self):
+        self.register_for_le_event(hci_packets.SubeventCode.CONNECTION_COMPLETE)
+        self.register_for_le_event(hci_packets.SubeventCode.ENHANCED_CONNECTION_COMPLETE)
+        self.set_privacy_policy_static()
+
+        # Start background and direct connection
+        token = self.dut_le_acl_manager.initiate_background_and_direct_connection(
+            remote_addr=common.BluetoothAddressWithType(
+                address=common.BluetoothAddress(address=bytes('0C:05:04:03:02:01', 'utf8')),
+                type=int(hci_packets.AddressType.RANDOM_DEVICE_ADDRESS)))
+
+        # Wait for direct connection timeout
+        self.dut_le_acl_manager.wait_for_connection_fail(token)
+
+        # Cert Advertises
+        advertising_handle = 0
+        self.enqueue_hci_command(
+            hci_packets.LeSetExtendedAdvertisingLegacyParametersBuilder(
+                advertising_handle,
+                hci_packets.LegacyAdvertisingProperties.ADV_IND,
+                400,
+                450,
+                7,
+                hci_packets.OwnAddressType.RANDOM_DEVICE_ADDRESS,
+                hci_packets.PeerAddressType.PUBLIC_DEVICE_OR_IDENTITY_ADDRESS,
+                '00:00:00:00:00:00',
+                hci_packets.AdvertisingFilterPolicy.ALL_DEVICES,
+                0xF8,
+                1,  #SID
+                hci_packets.Enable.DISABLED  # Scan request notification
+            ))
+
+        self.enqueue_hci_command(
+            hci_packets.LeSetExtendedAdvertisingRandomAddressBuilder(advertising_handle, '0C:05:04:03:02:01'))
+
+        gap_name = hci_packets.GapData()
+        gap_name.data_type = hci_packets.GapDataType.COMPLETE_LOCAL_NAME
+        gap_name.data = list(bytes(b'Im_A_Cert'))
+
+        self.enqueue_hci_command(
+            hci_packets.LeSetExtendedAdvertisingDataBuilder(
+                advertising_handle, hci_packets.Operation.COMPLETE_ADVERTISEMENT,
+                hci_packets.FragmentPreference.CONTROLLER_SHOULD_NOT, [gap_name]))
+
+        gap_short_name = hci_packets.GapData()
+        gap_short_name.data_type = hci_packets.GapDataType.SHORTENED_LOCAL_NAME
+        gap_short_name.data = list(bytes(b'Im_A_C'))
+
+        self.enqueue_hci_command(
+            hci_packets.LeSetExtendedAdvertisingScanResponseBuilder(
+                advertising_handle, hci_packets.Operation.COMPLETE_ADVERTISEMENT,
+                hci_packets.FragmentPreference.CONTROLLER_SHOULD_NOT, [gap_short_name]))
+
+        enabled_set = hci_packets.EnabledSet()
+        enabled_set.advertising_handle = advertising_handle
+        enabled_set.duration = 0
+        enabled_set.max_extended_advertising_events = 0
+        self.enqueue_hci_command(
+            hci_packets.LeSetExtendedAdvertisingEnableBuilder(hci_packets.Enable.ENABLED, [enabled_set]))
+
+        # Check background connection complete
+        self.dut_le_acl_manager.complete_outgoing_connection(token)
