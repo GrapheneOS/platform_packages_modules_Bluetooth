@@ -275,6 +275,7 @@ typedef struct tBTM_CB {
   uint8_t pairing_flags{0};         /* The current pairing flags    */
   RawAddress pairing_bda;           /* The device currently pairing */
   alarm_t* pairing_timer{nullptr};  /* Timer for pairing process    */
+  alarm_t* execution_wait_timer{nullptr}; /* To avoid concurrent auth request */
   uint16_t disc_handle{0};          /* for legacy devices */
   uint8_t disc_reason{0};           /* for legacy devices */
   tBTM_SEC_SERV_REC sec_serv_rec[BTM_SEC_MAX_SERVICE_RECORDS];
@@ -332,6 +333,7 @@ typedef struct tBTM_CB {
     sec_pending_q = fixed_queue_new(SIZE_MAX);
     sec_collision_timer = alarm_new("btm.sec_collision_timer");
     pairing_timer = alarm_new("btm.pairing_timer");
+    execution_wait_timer = alarm_new("btm.execution_wait_timer");
 
 #if defined(BTM_INITIAL_TRACE_LEVEL)
     trace_level = BTM_INITIAL_TRACE_LEVEL;
@@ -373,6 +375,9 @@ typedef struct tBTM_CB {
 
     alarm_free(pairing_timer);
     pairing_timer = nullptr;
+
+    alarm_free(execution_wait_timer);
+    execution_wait_timer = nullptr;
   }
 
  private:
