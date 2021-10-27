@@ -335,6 +335,17 @@ impl A2dp {
     }
 }
 
+#[derive(Debug)]
+pub enum A2dpSinkCallbacks {
+    ConnectionState(RawAddress, BtavConnectionState),
+}
+
+pub struct A2dpSinkCallbacksDispatcher {
+    pub dispatch: Box<dyn Fn(A2dpSinkCallbacks) + Send>,
+}
+
+type A2dpSinkCb = Arc<Mutex<A2dpSinkCallbacksDispatcher>>;
+
 pub struct A2dpSink {
     internal: cxx::UniquePtr<ffi::A2dpSinkIntf>,
     _is_init: bool,
@@ -353,7 +364,10 @@ impl A2dpSink {
         A2dpSink { internal: a2dp_sink, _is_init: false }
     }
 
-    pub fn initialize(&mut self) -> bool {
+    pub fn initialize(&mut self, callbacks: A2dpSinkCallbacksDispatcher) -> bool {
+        if get_dispatchers().lock().unwrap().set::<A2dpSinkCb>(Arc::new(Mutex::new(callbacks))) {
+            panic!("Tried to set dispatcher for A2dp Sink Callbacks while it already exists");
+        }
         self.internal.pin_mut().init();
         true
     }

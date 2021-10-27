@@ -1,7 +1,9 @@
 //! Media service facade
 
 use bt_topshim::btif::BluetoothInterface;
-use bt_topshim::profiles::a2dp::{A2dp, A2dpCallbacksDispatcher, A2dpSink};
+use bt_topshim::profiles::a2dp::{
+    A2dp, A2dpCallbacksDispatcher, A2dpSink, A2dpSinkCallbacksDispatcher,
+};
 use bt_topshim::profiles::avrcp::{Avrcp, AvrcpCallbacksDispatcher};
 use bt_topshim_facade_protobuf::facade::{
     A2dpSourceConnectRequest, A2dpSourceConnectResponse, StartA2dpRequest, StartA2dpResponse,
@@ -15,6 +17,10 @@ use tokio::runtime::Runtime;
 
 fn get_a2dp_dispatcher() -> A2dpCallbacksDispatcher {
     A2dpCallbacksDispatcher { dispatch: Box::new(move |_cb| {}) }
+}
+
+fn get_a2dp_sink_dispatcher() -> A2dpSinkCallbacksDispatcher {
+    A2dpSinkCallbacksDispatcher { dispatch: Box::new(move |_cb| {}) }
 }
 
 fn get_avrcp_dispatcher() -> AvrcpCallbacksDispatcher {
@@ -60,7 +66,7 @@ impl MediaService for MediaServiceImpl {
                 sink.success(StartA2dpResponse::default()).await.unwrap();
             })
         } else if req.start_a2dp_sink {
-            self.btif_a2dp_sink.lock().unwrap().initialize();
+            self.btif_a2dp_sink.lock().unwrap().initialize(get_a2dp_sink_dispatcher());
             ctx.spawn(async move {
                 sink.success(StartA2dpResponse::default()).await.unwrap();
             })
