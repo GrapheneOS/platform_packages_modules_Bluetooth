@@ -23,6 +23,7 @@ from cert.closable import Closable
 from cert.closable import safeClose
 from bluetooth_packets_python3 import hci_packets
 from cert.truth import assertThat
+from datetime import timedelta
 from hci.facade import le_acl_manager_facade_pb2 as le_acl_manager_facade
 
 
@@ -98,6 +99,14 @@ class PyLeAclManager(Closable):
         self.listen_for_incoming_connections()
         return self.complete_incoming_connection()
 
+    def wait_for_connection_fail(self, token):
+        assertThat(self.outgoing_connection_event_streams[token]).isNotNone()
+        event_stream = self.outgoing_connection_event_streams[token][0]
+        connection_fail = HciCaptures.LeConnectionCompleteCapture()
+        assertThat(event_stream).emits(connection_fail, timeout=timedelta(seconds=35))
+        complete = connection_fail.get()
+        assertThat(complete.GetStatus() == hci_packets.ErrorCode.CONNECTION_ACCEPT_TIMEOUT).isTrue()
+
     def cancel_connection(self, token):
         assertThat(token in self.outgoing_connection_event_streams).isTrue()
         pair = self.outgoing_connection_event_streams.pop(token)
@@ -108,6 +117,14 @@ class PyLeAclManager(Closable):
         assertThat(self.next_token in self.outgoing_connection_event_streams).isFalse()
         self.outgoing_connection_event_streams[self.next_token] = EventStream(
             self.le_acl_manager.CreateConnection(remote_addr)), remote_addr
+        token = self.next_token
+        self.next_token += 1
+        return token
+
+    def initiate_background_and_direct_connection(self, remote_addr):
+        assertThat(self.next_token in self.outgoing_connection_event_streams).isFalse()
+        self.outgoing_connection_event_streams[self.next_token] = EventStream(
+            self.le_acl_manager.CreateBackgroundAndDirectConnection(remote_addr)), remote_addr
         token = self.next_token
         self.next_token += 1
         return token
