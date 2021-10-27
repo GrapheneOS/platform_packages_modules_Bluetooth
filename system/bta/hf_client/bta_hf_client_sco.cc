@@ -332,7 +332,6 @@ static void bta_hf_client_sco_event(tBTA_HF_CLIENT_CB* client_cb,
           break;
 
         case BTA_HF_CLIENT_SCO_SHUTDOWN_E:
-        case BTA_HF_CLIENT_SCO_CLOSE_E:
           /* remove listening connection */
           bta_hf_client_sco_remove(client_cb);
 
