@@ -625,6 +625,10 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
     }
   }
 
+  void clear_resolving_list() {
+    le_address_manager_->ClearResolvingList();
+  }
+
   void set_privacy_policy_for_initiator_address(
       LeAddressManager::AddressPolicy address_policy,
       AddressWithType fixed_address,
