@@ -70,6 +70,10 @@ int A2dpSinkIntf::connect(RustRawAddress bt_addr) const {
   return intf_->connect(internal::from_rust_address(bt_addr));
 }
 
+int A2dpSinkIntf::disconnect(RustRawAddress bt_addr) const {
+  return intf_->disconnect(internal::from_rust_address(bt_addr));
+}
+
 int A2dpSinkIntf::set_active_device(RustRawAddress bt_addr) const {
   return intf_->set_active_device(internal::from_rust_address(bt_addr));
 }

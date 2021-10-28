@@ -37,6 +37,7 @@ class A2dpSinkIntf {
   // interface for Settings
   int init() const;
   int connect(RustRawAddress bt_addr) const;
+  int disconnect(RustRawAddress bt_addr) const;
   int set_active_device(RustRawAddress bt_addr) const;
   void cleanup() const;
 

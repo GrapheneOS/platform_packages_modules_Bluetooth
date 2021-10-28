@@ -184,6 +184,7 @@ pub mod ffi {
 
         fn init(self: &A2dpSinkIntf) -> i32;
         fn connect(self: &A2dpSinkIntf, bt_addr: RustRawAddress) -> i32;
+        fn disconnect(self: &A2dpSinkIntf, bt_addr: RustRawAddress) -> i32;
         fn set_active_device(self: &A2dpSinkIntf, bt_addr: RustRawAddress) -> i32;
         fn cleanup(self: &A2dpSinkIntf);
     }
@@ -376,6 +377,10 @@ impl A2dpSink {
 
     pub fn connect(&mut self, bt_addr: RawAddress) {
         self.internal.connect(bt_addr.into());
+    }
+
+    pub fn disconnect(&mut self, bt_addr: RawAddress) {
+        self.internal.disconnect(bt_addr.into());
     }
 
     pub fn set_active_device(&mut self, bt_addr: RawAddress) {
