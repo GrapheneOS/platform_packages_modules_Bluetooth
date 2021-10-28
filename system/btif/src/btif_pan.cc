@@ -165,44 +165,39 @@ static void btpan_jni_cleanup() {
   jni_initialized = false;
 }
 
-static inline int bta_role_to_btpan(int bta_pan_role) {
+static inline int bta_role_to_btpan(tBTA_PAN_ROLE bta_pan_role) {
   int btpan_role = 0;
-  BTIF_TRACE_DEBUG("bta_pan_role:0x%x", bta_pan_role);
   if (bta_pan_role & PAN_ROLE_NAP_SERVER) btpan_role |= BTPAN_ROLE_PANNAP;
   if (bta_pan_role & PAN_ROLE_CLIENT) btpan_role |= BTPAN_ROLE_PANU;
   return btpan_role;
 }
 
-static inline int btpan_role_to_bta(int btpan_role) {
-  int bta_pan_role = PAN_ROLE_INACTIVE;
-  BTIF_TRACE_DEBUG("btpan_role:0x%x", btpan_role);
+static inline tBTA_PAN_ROLE btpan_role_to_bta(int btpan_role) {
+  tBTA_PAN_ROLE bta_pan_role = PAN_ROLE_INACTIVE;
   if (btpan_role & BTPAN_ROLE_PANNAP) bta_pan_role |= PAN_ROLE_NAP_SERVER;
   if (btpan_role & BTPAN_ROLE_PANU) bta_pan_role |= PAN_ROLE_CLIENT;
   return bta_pan_role;
 }
 
-static volatile int btpan_dev_local_role;
+static tBTA_PAN_ROLE btpan_dev_local_role;
 static tBTA_PAN_ROLE_INFO bta_panu_info = {PANU_SERVICE_NAME, 0};
 static tBTA_PAN_ROLE_INFO bta_pan_nap_info = {PAN_NAP_SERVICE_NAME, 1};
 
 static bt_status_t btpan_enable(int local_role) {
-  BTIF_TRACE_DEBUG("%s - local_role: %d", __func__, local_role);
-  int bta_pan_role = btpan_role_to_bta(local_role);
+  const tBTA_PAN_ROLE bta_pan_role = btpan_role_to_bta(local_role);
   BTA_PanSetRole(bta_pan_role, &bta_panu_info, &bta_pan_nap_info);
   btpan_dev_local_role = local_role;
   return BT_STATUS_SUCCESS;
 }
 
 static int btpan_get_local_role() {
-  BTIF_TRACE_DEBUG("btpan_dev_local_role:%d", btpan_dev_local_role);
-  return btpan_dev_local_role;
+  return static_cast<int>(btpan_dev_local_role);
 }
 
 static bt_status_t btpan_connect(const RawAddress* bd_addr, int local_role,
                                  int remote_role) {
-  BTIF_TRACE_DEBUG("local_role:%d, remote_role:%d", local_role, remote_role);
-  int bta_local_role = btpan_role_to_bta(local_role);
-  int bta_remote_role = btpan_role_to_bta(remote_role);
+  tBTA_PAN_ROLE bta_local_role = btpan_role_to_bta(local_role);
+  tBTA_PAN_ROLE bta_remote_role = btpan_role_to_bta(remote_role);
   btpan_new_conn(-1, *bd_addr, bta_local_role, bta_remote_role);
   BTA_PanOpen(*bd_addr, bta_local_role, bta_remote_role);
   return BT_STATUS_SUCCESS;
@@ -492,14 +487,15 @@ static void btpan_cleanup_conn(btpan_conn_t* conn) {
   }
 }
 
-btpan_conn_t* btpan_new_conn(int handle, const RawAddress& addr, int local_role,
-                             int remote_role) {
+btpan_conn_t* btpan_new_conn(int handle, const RawAddress& addr,
+                             tBTA_PAN_ROLE local_role,
+                             tBTA_PAN_ROLE remote_role) {
   for (int i = 0; i < MAX_PAN_CONNS; i++) {
-    BTIF_TRACE_DEBUG("conns[%d]:%d", i, btpan_cb.conns[i].handle);
     if (btpan_cb.conns[i].handle == -1) {
-      BTIF_TRACE_DEBUG("handle:%d, local_role:%d, remote_role:%d", handle,
-                       local_role, remote_role);
-
+      LOG_DEBUG(
+          "Allocated new pan connection handle:%d local_role:%hhu"
+          " remote_role:%hhu",
+          handle, local_role, remote_role);
       btpan_cb.conns[i].handle = handle;
       btpan_cb.conns[i].peer = addr;
       btpan_cb.conns[i].local_role = local_role;
@@ -507,9 +503,8 @@ btpan_conn_t* btpan_new_conn(int handle, const RawAddress& addr, int local_role,
       return &btpan_cb.conns[i];
     }
   }
-  BTIF_TRACE_DEBUG("MAX_PAN_CONNS:%d exceeded, return NULL as failed",
-                   MAX_PAN_CONNS);
-  return NULL;
+  LOG_WARN("Unable to create new pan connection max:%d", MAX_PAN_CONNS);
+  return nullptr;
 }
 
 void btpan_close_handle(btpan_conn_t* p) {
