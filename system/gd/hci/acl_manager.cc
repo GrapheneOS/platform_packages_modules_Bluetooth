@@ -220,6 +220,10 @@ void AclManager::AddDeviceToConnectList(AddressWithType address_with_type) {
   CallOn(pimpl_->le_impl_, &le_impl::add_device_to_connect_list, address_with_type);
 }
 
+void AclManager::RemoveDeviceFromConnectList(AddressWithType address_with_type) {
+  CallOn(pimpl_->le_impl_, &le_impl::remove_device_from_connect_list, address_with_type);
+}
+
 void AclManager::AddDeviceToResolvingList(
     AddressWithType address_with_type,
     const std::array<uint8_t, 16>& peer_irk,
@@ -227,12 +231,12 @@ void AclManager::AddDeviceToResolvingList(
   CallOn(pimpl_->le_impl_, &le_impl::add_device_to_resolving_list, address_with_type, peer_irk, local_irk);
 }
 
-void AclManager::RemoveDeviceFromConnectList(AddressWithType address_with_type) {
-  CallOn(pimpl_->le_impl_, &le_impl::remove_device_from_connect_list, address_with_type);
-}
-
 void AclManager::RemoveDeviceFromResolvingList(AddressWithType address_with_type) {
   CallOn(pimpl_->le_impl_, &le_impl::remove_device_from_resolving_list, address_with_type);
+}
+
+void AclManager::ClearResolvingList() {
+  CallOn(pimpl_->le_impl_, &le_impl::clear_resolving_list);
 }
 
 void AclManager::CentralLinkKey(KeyFlag key_flag) {
