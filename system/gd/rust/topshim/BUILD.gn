@@ -53,6 +53,7 @@ source_set("btif_cxx_bridge_code") {
     "btav_sink/btav_sink_shim.cc",
     "gatt/gatt_shim.cc",
     "controller/controller_shim.cc",
+    "btm_sec/btm_sec_shim.cc",
   ]
 
   deps = [":btif_bridge_header", "//bt/gd:BluetoothGeneratedPackets_h"]
