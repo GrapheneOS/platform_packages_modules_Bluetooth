@@ -2376,6 +2376,34 @@ public class AdapterService extends Service {
         }
 
         @Override
+        public int isCisCentralSupported() {
+            AdapterService service = getService();
+            if (service == null) {
+                return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED;
+            }
+
+            if (service.mAdapterProperties.isLeConnectedIsochronousStreamCentralSupported()) {
+                return BluetoothStatusCodes.SUCCESS;
+            }
+
+            return BluetoothStatusCodes.ERROR_FEATURE_NOT_SUPPORTED;
+        }
+
+        @Override
+        public int isLePeriodicAdvertisingSyncTransferSenderSupported() {
+            AdapterService service = getService();
+            if (service == null) {
+                return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED;
+            }
+
+            if (service.mAdapterProperties.isLePeriodicAdvertisingSyncTransferSenderSupported()) {
+                return BluetoothStatusCodes.SUCCESS;
+            }
+
+            return BluetoothStatusCodes.ERROR_FEATURE_NOT_SUPPORTED;
+        }
+
+        @Override
         public int getLeMaximumAdvertisingDataLength() {
             AdapterService service = getService();
             if (service == null) {
