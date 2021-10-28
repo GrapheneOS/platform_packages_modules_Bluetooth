@@ -418,6 +418,7 @@ class AvdtpScb {
         media_seq(0),
         allocated(false),
         in_use(false),
+        need_open(false),
         role(0),
         remove(false),
         state(0),
@@ -467,6 +468,7 @@ class AvdtpScb {
     media_seq = 0;
     allocated = false;
     in_use = false;
+    need_open = false;
     role = 0;
     remove = false;
     state = 0;
@@ -491,6 +493,7 @@ class AvdtpScb {
   uint16_t media_seq;                // Media packet sequence number
   bool allocated;                    // True if the SCB is allocated
   bool in_use;                       // True if used by peer
+  bool need_open;      // True if need open after receiving delay report (AVDT 1_3)
   uint8_t role;        // Initiator/acceptor role in current procedure
   bool remove;         // True if the SCB is marked for removal
   uint8_t state;       // State machine state
