@@ -1847,7 +1847,7 @@ TEST_F(UnicastTestNoInit, LoadStoredEarbudsCsisGrouped) {
       .Times(1);
   ON_CALL(mock_btm_interface_, BTM_IsEncrypted(test_address0, _))
       .WillByDefault(DoAll(Return(true)));
-  EXPECT_CALL(mock_gatt_interface_, Open(gatt_if, test_address0, true, _))
+  EXPECT_CALL(mock_gatt_interface_, Open(gatt_if, test_address0, false, _))
       .Times(1);
 
   // Expect stored device1 to connect automatically
@@ -1856,7 +1856,7 @@ TEST_F(UnicastTestNoInit, LoadStoredEarbudsCsisGrouped) {
       .Times(1);
   ON_CALL(mock_btm_interface_, BTM_IsEncrypted(test_address1, _))
       .WillByDefault(DoAll(Return(true)));
-  EXPECT_CALL(mock_gatt_interface_, Open(gatt_if, test_address1, true, _))
+  EXPECT_CALL(mock_gatt_interface_, Open(gatt_if, test_address1, false, _))
       .Times(1);
 
   ON_CALL(mock_groups_module_, GetGroupId(_, _))
@@ -1942,7 +1942,7 @@ TEST_F(UnicastTestNoInit, LoadStoredEarbudsCsisGroupedDifferently) {
       .Times(1);
   ON_CALL(mock_btm_interface_, BTM_IsEncrypted(test_address0, _))
       .WillByDefault(DoAll(Return(true)));
-  EXPECT_CALL(mock_gatt_interface_, Open(gatt_if, test_address0, true, _))
+  EXPECT_CALL(mock_gatt_interface_, Open(gatt_if, test_address0, false, _))
       .Times(1);
 
   // Expect stored device1 to NOT connect automatically
@@ -1951,7 +1951,7 @@ TEST_F(UnicastTestNoInit, LoadStoredEarbudsCsisGroupedDifferently) {
       .Times(0);
   ON_CALL(mock_btm_interface_, BTM_IsEncrypted(test_address1, _))
       .WillByDefault(DoAll(Return(true)));
-  EXPECT_CALL(mock_gatt_interface_, Open(gatt_if, test_address1, true, _))
+  EXPECT_CALL(mock_gatt_interface_, Open(gatt_if, test_address1, false, _))
       .Times(0);
 
   // Initialize
