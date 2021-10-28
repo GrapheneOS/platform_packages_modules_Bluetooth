@@ -118,6 +118,18 @@ cc_defaults {
     ],
 }
 
+// Clang is targeted for android core libraries but other base libraries
+// may not support clang tidy recommendations (e.g. MacOS)
+cc_defaults {
+    name: "gd_clang_tidy_ignore_android",
+    tidy: true,
+    tidy_checks: [
+        "-android-cloexec-pipe2", //  warning: 'pipe2' should use O_CLOEXEC where possible
+        "-android-cloexec-accept", // warning: prefer accept4() to accept() because accept4() allows SOCK_CLOEXEC
+        "-android-cloexec-socket",  // warning: 'pipe2' should use O_CLOEXEC where possible
+    ],
+}
+
 cc_defaults {
     name: "libbluetooth_gd_defaults",
     defaults: [
