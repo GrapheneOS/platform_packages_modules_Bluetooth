@@ -159,7 +159,7 @@ class VolumeControlImpl : public VolumeControl {
       return;
     }
 
-    LOG(INFO) << __func__ << " " << address << " status: " << success;
+    LOG(INFO) << __func__ << " " << address << " status: " << +success;
 
     if (device->HasHandles()) {
       device->EnqueueInitialRequests(gatt_if_, chrc_read_callback_static,
@@ -743,7 +743,7 @@ class VolumeControlImpl : public VolumeControl {
       } break;
 
       case BTA_GATTC_ENC_CMPL_CB_EVT:
-        OnEncryptionComplete(p_data->enc_cmpl.remote_bda, true);
+        OnEncryptionComplete(p_data->enc_cmpl.remote_bda, BTM_SUCCESS);
         break;
 
       case BTA_GATTC_SRVC_CHG_EVT:
