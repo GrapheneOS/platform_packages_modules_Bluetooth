@@ -319,22 +319,28 @@ class GdAndroidDevice(GdDeviceBase):
         self.logcat_logger.stop()
         self.cleanup_port_forwarding()
         try:
-            self.adb.pull("/data/misc/bluetooth/logs/btsnoop_hci.log %s" % os.path.join(
-                self.log_path_base, "%s_btsnoop_hci.log" % self.label))
+            self.adb.pull([
+                "/data/misc/bluetooth/logs/btsnoop_hci.log",
+                str(os.path.join(self.log_path_base, "%s_btsnoop_hci.log" % self.label))
+            ])
         except AdbError as error:
             # Some tests have no snoop logs, and that's OK
             if ADB_FILE_NOT_EXIST_ERROR not in str(error):
                 logging.error(PULL_LOG_FILE_ERROR_MSG_PREFIX + str(error))
         try:
-            self.adb.pull("/data/misc/bluedroid/bt_config.conf %s" % os.path.join(self.log_path_base,
-                                                                                  "%s_bt_config.conf" % self.label))
+            self.adb.pull([
+                "/data/misc/bluedroid/bt_config.conf",
+                str(os.path.join(self.log_path_base, "%s_bt_config.conf" % self.label))
+            ])
         except AdbError as error:
             # Some tests have no config file, and that's OK
             if ADB_FILE_NOT_EXIST_ERROR not in str(error):
                 logging.error(PULL_LOG_FILE_ERROR_MSG_PREFIX + str(error))
         try:
-            self.adb.pull("/data/misc/bluedroid/bt_config.bak %s" % os.path.join(self.log_path_base,
-                                                                                 "%s_bt_config.bak" % self.label))
+            self.adb.pull([
+                "/data/misc/bluedroid/bt_config.bak",
+                str(os.path.join(self.log_path_base, "%s_bt_config.bak" % self.label))
+            ])
         except AdbError as error:
             # Some tests have no config.bak file, and that's OK
             if ADB_FILE_NOT_EXIST_ERROR not in str(error):
