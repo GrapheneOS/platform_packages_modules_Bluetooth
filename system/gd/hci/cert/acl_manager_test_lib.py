@@ -15,6 +15,7 @@
 #   limitations under the License.
 
 from cert.truth import assertThat
+from datetime import timedelta
 from neighbor.facade import facade_pb2 as neighbor_facade
 from bluetooth_packets_python3 import hci_packets
 from cert.py_hci import PyHci
@@ -58,6 +59,25 @@ class AclManagerTestBase():
             cert_acl.send_first(b'\x26\x00\x07\x00This is just SomeAclData from the Cert')
 
             assertThat(cert_acl).emits(lambda packet: b'SomeMoreAclData' in packet.payload)
+            assertThat(dut_acl).emits(lambda packet: b'SomeAclData' in packet.payload)
+
+    def test_reject_broadcast(self):
+        dut_address = self.dut.hci_controller.GetMacAddressSimple()
+        self.dut.neighbor.EnablePageScan(neighbor_facade.EnableMsg(enabled=True))
+
+        self.dut_acl_manager.listen_for_an_incoming_connection()
+        self.cert_hci.initiate_connection(dut_address)
+        with self.dut_acl_manager.complete_incoming_connection() as dut_acl:
+            cert_acl = self.cert_hci.complete_connection()
+
+            cert_acl.send(hci_packets.PacketBoundaryFlag.FIRST_AUTOMATICALLY_FLUSHABLE,
+                          hci_packets.BroadcastFlag.ACTIVE_PERIPHERAL_BROADCAST,
+                          b'\x26\x00\x07\x00This is a Broadcast from the Cert')
+            assertThat(dut_acl).emitsNone(timeout=timedelta(seconds=0.5))
+
+            cert_acl.send(hci_packets.PacketBoundaryFlag.FIRST_AUTOMATICALLY_FLUSHABLE,
+                          hci_packets.BroadcastFlag.POINT_TO_POINT,
+                          b'\x26\x00\x07\x00This is just SomeAclData from the Cert')
             assertThat(dut_acl).emits(lambda packet: b'SomeAclData' in packet.payload)
 
     def test_cert_connects_disconnects(self):
