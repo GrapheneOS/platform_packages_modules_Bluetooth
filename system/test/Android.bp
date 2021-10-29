@@ -399,3 +399,10 @@ filegroup {
       "common/init_flags.cc",
   ],
 }
+
+filegroup {
+  name: "TestMockBluetoothInterface",
+  srcs: [
+      "mock/mock_bluetooth_interface.cc",
+  ],
+}
