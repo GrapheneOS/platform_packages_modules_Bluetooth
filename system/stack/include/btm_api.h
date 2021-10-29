@@ -922,9 +922,9 @@ uint8_t BTM_GetEirSupportedServices(uint32_t* p_eir_uuid, uint8_t** p,
  *                  HCI_EIR_MORE_128BITS_UUID_TYPE
  *
  ******************************************************************************/
-uint8_t BTM_GetEirUuidList(uint8_t* p_eir, size_t eir_len, uint8_t uuid_size,
-                           uint8_t* p_num_uuid, uint8_t* p_uuid_list,
-                           uint8_t max_num_uuid);
+uint8_t BTM_GetEirUuidList(const uint8_t* p_eir, size_t eir_len,
+                           uint8_t uuid_size, uint8_t* p_num_uuid,
+                           uint8_t* p_uuid_list, uint8_t max_num_uuid);
 
 /*******************************************************************************
  *
