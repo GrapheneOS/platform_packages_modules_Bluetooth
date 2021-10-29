@@ -17,6 +17,7 @@
 #pragma once
 
 #include "btif/include/btif_hf.h"
+#include "include/hardware/bluetooth_headset_callbacks.h"
 
 namespace bluetooth {
 namespace topshim {
@@ -24,15 +25,16 @@ namespace rust {
 
 class HfpIntf {
  public:
-  // interface for Settings
+  HfpIntf(headset::Interface* intf) : intf_(intf){};
+
   int init();
   void cleanup();
 
  private:
-  bluetooth::headset::Interface* intf_ = nullptr;
+  headset::Interface* intf_;
 };
 
-std::unique_ptr<HfpIntf> GetHfpProfile();
+std::unique_ptr<HfpIntf> GetHfpProfile(const unsigned char* btif);
 
 }  // namespace rust
 }  // namespace topshim
