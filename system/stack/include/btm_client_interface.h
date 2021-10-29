@@ -216,7 +216,7 @@ struct btm_client_interface_s {
     uint8_t (*BTM_GetEirSupportedServices)(uint32_t* p_eir_uuid, uint8_t** p,
                                            uint8_t max_num_uuid16,
                                            uint8_t* p_num_uuid16);
-    uint8_t (*BTM_GetEirUuidList)(uint8_t* p_eir, size_t eir_len,
+    uint8_t (*BTM_GetEirUuidList)(const uint8_t* p_eir, size_t eir_len,
                                   uint8_t uuid_size, uint8_t* p_num_uuid,
                                   uint8_t* p_uuid_list, uint8_t max_num_uuid);
     void (*BTM_AddEirService)(uint32_t* p_eir_uuid, uint16_t uuid16);
