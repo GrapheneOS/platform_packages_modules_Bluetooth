@@ -223,7 +223,7 @@ void BTA_EnableTestMode(void) {
   mock_function_count_map[__func__]++;
   test::mock::bta_dm_api::BTA_EnableTestMode();
 }
-void BTA_GetEirService(uint8_t* p_eir, size_t eir_len,
+void BTA_GetEirService(const uint8_t* p_eir, size_t eir_len,
                        tBTA_SERVICE_MASK* p_services) {
   mock_function_count_map[__func__]++;
   test::mock::bta_dm_api::BTA_GetEirService(p_eir, eir_len, p_services);

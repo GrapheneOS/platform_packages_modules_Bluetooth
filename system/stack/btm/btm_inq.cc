@@ -145,8 +145,8 @@ static tBTM_STATUS btm_initiate_rem_name(const RawAddress& remote_bda,
 
 static uint8_t btm_convert_uuid_to_eir_service(uint16_t uuid16);
 void btm_set_eir_uuid(uint8_t* p_eir, tBTM_INQ_RESULTS* p_results);
-static const uint8_t* btm_eir_get_uuid_list(uint8_t* p_eir, size_t eir_len,
-                                            uint8_t uuid_size,
+static const uint8_t* btm_eir_get_uuid_list(const uint8_t* p_eir,
+                                            size_t eir_len, uint8_t uuid_size,
                                             uint8_t* p_num_uuid,
                                             uint8_t* p_uuid_list_type);
 
@@ -1683,9 +1683,9 @@ uint8_t BTM_GetEirSupportedServices(uint32_t* p_eir_uuid, uint8_t** p,
  *                  HCI_EIR_MORE_128BITS_UUID_TYPE
  *
  ******************************************************************************/
-uint8_t BTM_GetEirUuidList(uint8_t* p_eir, size_t eir_len, uint8_t uuid_size,
-                           uint8_t* p_num_uuid, uint8_t* p_uuid_list,
-                           uint8_t max_num_uuid) {
+uint8_t BTM_GetEirUuidList(const uint8_t* p_eir, size_t eir_len,
+                           uint8_t uuid_size, uint8_t* p_num_uuid,
+                           uint8_t* p_uuid_list, uint8_t max_num_uuid) {
   const uint8_t* p_uuid_data;
   uint8_t type;
   uint8_t yy, xx;
@@ -1747,8 +1747,8 @@ uint8_t BTM_GetEirUuidList(uint8_t* p_eir, size_t eir_len, uint8_t uuid_size,
  *                  beginning of UUID list in EIR - otherwise
  *
  ******************************************************************************/
-static const uint8_t* btm_eir_get_uuid_list(uint8_t* p_eir, size_t eir_len,
-                                            uint8_t uuid_size,
+static const uint8_t* btm_eir_get_uuid_list(const uint8_t* p_eir,
+                                            size_t eir_len, uint8_t uuid_size,
                                             uint8_t* p_num_uuid,
                                             uint8_t* p_uuid_list_type) {
   const uint8_t* p_uuid_data;

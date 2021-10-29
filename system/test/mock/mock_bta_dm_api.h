@@ -433,11 +433,11 @@ extern struct BTA_EnableTestMode BTA_EnableTestMode;
 // Params: uint8_t* p_eir, size_t eir_len, tBTA_SERVICE_MASK* p_services
 // Return: void
 struct BTA_GetEirService {
-  std::function<void(uint8_t* p_eir, size_t eir_len,
+  std::function<void(const uint8_t* p_eir, size_t eir_len,
                      tBTA_SERVICE_MASK* p_services)>
-      body{
-          [](uint8_t* p_eir, size_t eir_len, tBTA_SERVICE_MASK* p_services) {}};
-  void operator()(uint8_t* p_eir, size_t eir_len,
+      body{[](const uint8_t* p_eir, size_t eir_len,
+              tBTA_SERVICE_MASK* p_services) {}};
+  void operator()(const uint8_t* p_eir, size_t eir_len,
                   tBTA_SERVICE_MASK* p_services) {
     body(p_eir, eir_len, p_services);
   };
