@@ -17,6 +17,7 @@
 package com.android.bluetooth.hfpclient.connserv;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assertWithMessage;
 
 import static org.junit.Assume.assumeTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -270,7 +271,16 @@ public class HfpClientConnectionServiceTest {
         mServiceRule.startService(createServiceIntent());
         InstrumentationRegistry.getTargetContext().sendBroadcast(
                 createDeviceConnectedIntent(device));
-        assertThat(buildLatch.await(TIMEOUT_MS, TimeUnit.MILLISECONDS)).isTrue();
+
+        buildLatch.await(TIMEOUT_MS, TimeUnit.MILLISECONDS);
+        long startTime = System.currentTimeMillis();
+        while (mHfpClientConnectionService.findBlockForDevice(device) == null) {
+            if (System.currentTimeMillis() - startTime > TIMEOUT_MS) {
+                assertWithMessage(
+                        "Timeout waiting for block to be added to HfpClientConnectionService")
+                        .fail();
+            }
+        }
     }
 
     private HfpClientDeviceBlock.Factory createDeviceBlockFactoryForTest(
