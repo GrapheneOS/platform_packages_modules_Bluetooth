@@ -936,18 +936,6 @@ uint8_t bluetooth::shim::BTM_GetEirSupportedServices(uint32_t* p_eir_uuid,
   return BTM_NO_RESOURCES;
 }
 
-uint8_t bluetooth::shim::BTM_GetEirUuidList(uint8_t* p_eir, size_t eir_len,
-                                            uint8_t uuid_size,
-                                            uint8_t* p_num_uuid,
-                                            uint8_t* p_uuid_list,
-                                            uint8_t max_num_uuid) {
-  LOG_INFO("UNIMPLEMENTED %s", __func__);
-  CHECK(p_eir != nullptr);
-  CHECK(p_num_uuid != nullptr);
-  CHECK(p_uuid_list != nullptr);
-  return 0;
-}
-
 void bluetooth::shim::BTM_SecAddBleDevice(const RawAddress& bd_addr,
                                           tBT_DEVICE_TYPE dev_type,
                                           tBLE_ADDR_TYPE addr_type) {
