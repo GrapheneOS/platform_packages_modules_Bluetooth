@@ -42,7 +42,7 @@ class Acl : public hci::acl_manager::ConnectionCallbacks,
             public LinkPolicyInterface {
  public:
   Acl(os::Handler* handler, const acl_interface_t& acl_interface,
-      uint8_t max_acceptlist_size);
+      uint8_t max_acceptlist_size, uint8_t max_address_resolution_size);
   ~Acl();
 
   // hci::acl_manager::ConnectionCallbacks
@@ -74,6 +74,14 @@ class Acl : public hci::acl_manager::ConnectionCallbacks,
       const hci::AddressWithType& address_with_type) override;
   void DisconnectClassic(uint16_t handle, tHCI_REASON reason) override;
   void DisconnectLe(uint16_t handle, tHCI_REASON reason) override;
+
+  // Address Resolution List
+  void AddToAddressResolution(const hci::AddressWithType& address_with_type,
+                              const std::array<uint8_t, 16>& peer_irk,
+                              const std::array<uint8_t, 16>& local_irk);
+  void RemoveFromAddressResolution(
+      const hci::AddressWithType& address_with_type);
+  void ClearAddressResolution();
 
   // LinkPolicyInterface
   bool HoldMode(uint16_t hci_handle, uint16_t max_interval,
