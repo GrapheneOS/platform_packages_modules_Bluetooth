@@ -88,6 +88,12 @@ inline void BDADDR_TO_STREAM(uint8_t*& p, const RawAddress& a) {
     *(p)++ = (uint8_t)(a.address)[BD_ADDR_LEN - 1 - ijk];
 }
 
+inline void STREAM_TO_BDADDR(RawAddress& a, const uint8_t*& p) {
+  uint8_t* pbda = (uint8_t*)(a.address) + BD_ADDR_LEN - 1;
+  for (int ijk = 0; ijk < BD_ADDR_LEN; ijk++) *pbda-- = *(p)++;
+}
+
+// DEPRECATED
 inline void STREAM_TO_BDADDR(RawAddress& a, uint8_t*& p) {
   uint8_t* pbda = (uint8_t*)(a.address) + BD_ADDR_LEN - 1;
   for (int ijk = 0; ijk < BD_ADDR_LEN; ijk++) *pbda-- = *(p)++;
