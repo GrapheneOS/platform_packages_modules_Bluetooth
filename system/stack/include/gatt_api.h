@@ -758,18 +758,6 @@ typedef struct {
 /******************************************************************************/
 /* GATT Profile Server Functions */
 /******************************************************************************/
-/*******************************************************************************
- *
- * Function         GATTS_AddHandleRange
- *
- * Description      This function add the allocated handles range for the
- *                  specified application UUID, service UUID and service
- *                  instance
- *
- * Parameter        p_hndl_range:   pointer to allocated handles information
- ******************************************************************************/
-
-extern void GATTS_AddHandleRange(tGATTS_HNDL_RANGE* p_hndl_range);
 
 /*******************************************************************************
  *
