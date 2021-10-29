@@ -33,6 +33,7 @@
 #include "stack/btm/btm_sec.h"
 #include "stack/include/bt_octets.h"
 #include "stack/include/btm_api.h"
+#include "stack/include/btm_client_interface.h"
 #include "stack/include/btu.h"  // do_in_main_thread
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
@@ -287,8 +288,8 @@ void BTA_GetEirService(uint8_t* p_eir, size_t eir_len,
   uint16_t* p_uuid16 = (uint16_t*)uuid_list;
   tBTA_SERVICE_MASK mask;
 
-  BTM_GetEirUuidList(p_eir, eir_len, Uuid::kNumBytes16, &num_uuid, uuid_list,
-                     max_num_uuid);
+  get_btm_client_interface().eir.BTM_GetEirUuidList(
+      p_eir, eir_len, Uuid::kNumBytes16, &num_uuid, uuid_list, max_num_uuid);
   for (xx = 0; xx < num_uuid; xx++) {
     mask = 1;
     for (yy = 0; yy < BTA_MAX_SERVICE_ID; yy++) {
