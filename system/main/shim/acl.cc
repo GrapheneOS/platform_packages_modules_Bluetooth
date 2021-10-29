@@ -61,6 +61,7 @@
 #include "stack/include/btm_status.h"
 #include "stack/include/sec_hci_link_interface.h"
 #include "stack/l2cap/l2c_int.h"
+#include "types/ble_address_with_type.h"
 #include "types/raw_address.h"
 
 extern tBTM_CB btm_cb;
@@ -126,6 +127,51 @@ class ShadowAcceptlist {
  private:
   uint8_t max_acceptlist_size_{0};
   std::unordered_set<hci::AddressWithType> acceptlist_set_;
+};
+
+class ShadowAddressResolutionList {
+ public:
+  ShadowAddressResolutionList(uint8_t max_address_resolution_size)
+      : max_address_resolution_size_(max_address_resolution_size) {}
+
+  bool Add(const hci::AddressWithType& address_with_type) {
+    if (address_resolution_set_.size() == max_address_resolution_size_) {
+      LOG_ERROR("Address Resolution is full size:%zu",
+                address_resolution_set_.size());
+      return false;
+    }
+    if (!address_resolution_set_.insert(address_with_type).second) {
+      LOG_WARN("Attempted to add duplicate le address to address_resolution:%s",
+               PRIVATE_ADDRESS(address_with_type));
+    }
+    return true;
+  }
+
+  bool Remove(const hci::AddressWithType& address_with_type) {
+    auto iter = address_resolution_set_.find(address_with_type);
+    if (iter == address_resolution_set_.end()) {
+      LOG_WARN("Unknown device being removed from address_resolution:%s",
+               PRIVATE_ADDRESS(address_with_type));
+      return false;
+    }
+    address_resolution_set_.erase(iter);
+    return true;
+  }
+
+  std::unordered_set<hci::AddressWithType> GetCopy() const {
+    return address_resolution_set_;
+  }
+
+  bool IsFull() const {
+    return address_resolution_set_.size() ==
+           static_cast<size_t>(max_address_resolution_size_);
+  }
+
+  void Clear() { address_resolution_set_.clear(); }
+
+ private:
+  uint8_t max_address_resolution_size_{0};
+  std::unordered_set<hci::AddressWithType> address_resolution_set_;
 };
 
 struct ConnectionDescriptor {
@@ -676,8 +722,10 @@ class LeShimAclConnection
 };
 
 struct shim::legacy::Acl::impl {
-  impl(uint8_t max_acceptlist_size)
-      : shadow_acceptlist_(ShadowAcceptlist(max_acceptlist_size)) {}
+  impl(uint8_t max_acceptlist_size, uint8_t max_address_resolution_size)
+      : shadow_acceptlist_(ShadowAcceptlist(max_acceptlist_size)),
+        shadow_address_resolution_list_(
+            ShadowAddressResolutionList(max_address_resolution_size)) {}
 
   std::map<HciHandle, std::unique_ptr<ClassicShimAclConnection>>
       handle_to_classic_connection_map_;
@@ -688,6 +736,7 @@ struct shim::legacy::Acl::impl {
       FixedQueue<std::unique_ptr<ConnectionDescriptor>>(kConnectionHistorySize);
 
   ShadowAcceptlist shadow_acceptlist_;
+  ShadowAddressResolutionList shadow_address_resolution_list_;
 
   bool IsClassicAcl(HciHandle handle) {
     return handle_to_classic_connection_map_.find(handle) !=
@@ -858,6 +907,35 @@ struct shim::legacy::Acl::impl {
     LOG_DEBUG("Cleared entire Le address acceptlist count:%zu", count);
   }
 
+  void AddToAddressResolution(const hci::AddressWithType& address_with_type,
+                              const std::array<uint8_t, 16>& peer_irk,
+                              const std::array<uint8_t, 16>& local_irk) {
+    if (shadow_address_resolution_list_.IsFull()) {
+      LOG_WARN("Le Address Resolution list is full");
+      return;
+    }
+    // TODO This should really be added upon successful completion
+    shadow_address_resolution_list_.Add(address_with_type);
+    GetAclManager()->AddDeviceToResolvingList(address_with_type, peer_irk,
+                                              local_irk);
+  }
+
+  void RemoveFromAddressResolution(
+      const hci::AddressWithType& address_with_type) {
+    // TODO This should really be removed upon successful removal
+    if (!shadow_address_resolution_list_.Remove(address_with_type)) {
+      LOG_WARN("Unable to remove from Le Address Resolution list device:%s",
+               PRIVATE_ADDRESS(address_with_type));
+    }
+    GetAclManager()->RemoveDeviceFromResolvingList(address_with_type);
+  }
+
+  void ClearResolvingList() {
+    GetAclManager()->ClearResolvingList();
+    // TODO This should really be cleared after successful clear status
+    shadow_address_resolution_list_.Clear();
+  }
+
   void DumpConnectionHistory() const {
     std::vector<std::string> history =
         connection_history_.ReadElementsAsString();
@@ -882,12 +960,23 @@ struct shim::legacy::Acl::impl {
     }
     auto acceptlist = shadow_acceptlist_.GetCopy();
     LOG_DUMPSYS(fd,
-                "Shadow le accept list  size:%-3zu controller_max_size:%hhu",
+                "Shadow le accept list              size:%-3zu "
+                "controller_max_size:%hhu",
                 acceptlist.size(),
                 controller_get_interface()->get_ble_acceptlist_size());
     unsigned cnt = 0;
     for (auto& entry : acceptlist) {
-      LOG_DUMPSYS(fd, "%03u le acceptlist:%s", ++cnt, entry.ToString().c_str());
+      LOG_DUMPSYS(fd, "  %03u %s", ++cnt, entry.ToString().c_str());
+    }
+    auto address_resolution_list = shadow_address_resolution_list_.GetCopy();
+    LOG_DUMPSYS(fd,
+                "Shadow le address resolution list  size:%-3zu "
+                "controller_max_size:%hhu",
+                address_resolution_list.size(),
+                controller_get_interface()->get_ble_resolving_list_max_size());
+    cnt = 0;
+    for (auto& entry : address_resolution_list) {
+      LOG_DUMPSYS(fd, "  %03u %s", ++cnt, entry.ToString().c_str());
     }
   }
 #undef DUMPSYS_TAG
@@ -1046,11 +1135,13 @@ void shim::legacy::Acl::Dump(int fd) const {
 
 shim::legacy::Acl::Acl(os::Handler* handler,
                        const acl_interface_t& acl_interface,
-                       uint8_t max_acceptlist_size)
+                       uint8_t max_acceptlist_size,
+                       uint8_t max_address_resolution_size)
     : handler_(handler), acl_interface_(acl_interface) {
   ASSERT(handler_ != nullptr);
   ValidateAclInterface(acl_interface_);
-  pimpl_ = std::make_unique<Acl::impl>(max_acceptlist_size);
+  pimpl_ = std::make_unique<Acl::impl>(max_acceptlist_size,
+                                       max_address_resolution_size);
   GetAclManager()->RegisterCallbacks(this, handler_);
   GetAclManager()->RegisterLeCallbacks(this, handler_);
   GetController()->RegisterCompletedMonitorAclPacketsCallback(
@@ -1450,4 +1541,22 @@ void shim::legacy::Acl::FinalShutdown() {
 
 void shim::legacy::Acl::ClearAcceptList() {
   handler_->CallOn(pimpl_.get(), &Acl::impl::clear_acceptlist);
+}
+
+void shim::legacy::Acl::AddToAddressResolution(
+    const hci::AddressWithType& address_with_type,
+    const std::array<uint8_t, 16>& peer_irk,
+    const std::array<uint8_t, 16>& local_irk) {
+  handler_->CallOn(pimpl_.get(), &Acl::impl::AddToAddressResolution,
+                   address_with_type, peer_irk, local_irk);
+}
+
+void shim::legacy::Acl::RemoveFromAddressResolution(
+    const hci::AddressWithType& address_with_type) {
+  handler_->CallOn(pimpl_.get(), &Acl::impl::RemoveFromAddressResolution,
+                   address_with_type);
+}
+
+void shim::legacy::Acl::ClearAddressResolution() {
+  handler_->CallOn(pimpl_.get(), &Acl::impl::ClearResolvingList);
 }

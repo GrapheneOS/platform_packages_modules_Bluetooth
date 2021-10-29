@@ -179,7 +179,8 @@ void Stack::StartEverything() {
     if (!common::init_flags::gd_core_is_enabled()) {
       acl_ = new legacy::Acl(
           stack_handler_, legacy::GetAclInterface(),
-          controller_get_interface()->get_ble_acceptlist_size());
+          controller_get_interface()->get_ble_acceptlist_size(),
+          controller_get_interface()->get_ble_resolving_list_max_size());
     }
   }
   if (!common::init_flags::gd_core_is_enabled()) {
