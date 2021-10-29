@@ -39,6 +39,9 @@ class AclManagerTestBb(gd_base_test.GdBaseTestClass, AclManagerTestBase):
     def test_cert_connects(self):
         AclManagerTestBase.test_cert_connects(self)
 
+    def test_reject_broadcast(self):
+        AclManagerTestBase.test_reject_broadcast(self)
+
     def test_cert_connects_disconnects(self):
         AclManagerTestBase.test_cert_connects_disconnects(self)
 
