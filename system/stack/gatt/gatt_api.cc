@@ -67,22 +67,6 @@ tGATT_HDL_LIST_ELEM& gatt_add_an_item_to_list(uint16_t s_handle) {
  *****************************************************************************/
 /*******************************************************************************
  *
- * Function         GATTS_AddHandleRange
- *
- * Description      This function add the allocated handles range for the
- *                  specified application UUID, service UUID and service
- *                  instance
- *
- * Parameter        p_hndl_range:   pointer to allocated handles information
- *
- **/
-
-void GATTS_AddHandleRange(tGATTS_HNDL_RANGE* p_hndl_range) {
-  gatt_add_an_item_to_list(p_hndl_range->s_handle);
-}
-
-/*******************************************************************************
- *
  * Function         GATTS_NVRegister
  *
  * Description      Application manager calls this function to register for
