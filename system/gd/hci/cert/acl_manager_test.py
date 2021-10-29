@@ -15,6 +15,8 @@
 #   limitations under the License.
 
 from cert.gd_base_test import GdBaseTestClass
+from cert.truth import assertThat
+from datetime import timedelta
 from hci.cert.acl_manager_test_lib import AclManagerTestBase
 
 
@@ -50,7 +52,7 @@ class AclManagerTest(GdBaseTestClass, AclManagerTestBase):
             cert_acl.send(hci_packets.PacketBoundaryFlag.FIRST_AUTOMATICALLY_FLUSHABLE,
                           hci_packets.BroadcastFlag.ACTIVE_PERIPHERAL_BROADCAST,
                           b'\x26\x00\x07\x00This is a Broadcast from the Cert')
-            assertThat(dut_acl).emitsNone()
+            assertThat(dut_acl).emitsNone(timeout=timedelta(seconds=1))
 
             cert_acl.send(hci_packets.PacketBoundaryFlag.FIRST_AUTOMATICALLY_FLUSHABLE,
                           hci_packets.BroadcastFlag.POINT_TO_POINT,
