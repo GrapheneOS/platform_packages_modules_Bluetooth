@@ -1047,10 +1047,12 @@ void DumpsysAcl(int fd) {
                   common::ToString(link.peer_le_features_valid).c_str(),
                   bd_features_text(link.peer_le_features).c_str());
 
-      LOG_DUMPSYS(fd, "    [le] active_remote_addr:%s",
-                  link.active_remote_addr.ToString().c_str());
-      LOG_DUMPSYS(fd, "    [le] conn_addr:%s",
-                  link.conn_addr.ToString().c_str());
+      LOG_DUMPSYS(fd, "    [le] active_remote_addr:%s[%s]",
+                  link.active_remote_addr.ToString().c_str(),
+                  AddressTypeText(link.active_remote_addr_type).c_str());
+      LOG_DUMPSYS(fd, "    [le] conn_addr:%s[%s]",
+                  link.conn_addr.ToString().c_str(),
+                  AddressTypeText(link.conn_addr_type).c_str());
     }
   }
 }
