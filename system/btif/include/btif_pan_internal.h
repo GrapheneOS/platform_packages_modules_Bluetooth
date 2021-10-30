@@ -60,8 +60,8 @@ typedef struct {
   int state;
   uint16_t protocol;
   RawAddress peer;
-  int local_role;
-  int remote_role;
+  tBTA_PAN_ROLE local_role;
+  tBTA_PAN_ROLE remote_role;
   RawAddress eth_addr;
 } btpan_conn_t;
 
@@ -82,8 +82,8 @@ typedef struct {
  ******************************************************************************/
 
 extern btpan_cb_t btpan_cb;
-btpan_conn_t* btpan_new_conn(int handle, const RawAddress& addr, int local_role,
-                             int peer_role);
+btpan_conn_t* btpan_new_conn(int handle, const RawAddress& addr,
+                             tBTA_PAN_ROLE local_role, tBTA_PAN_ROLE peer_role);
 btpan_conn_t* btpan_find_conn_addr(const RawAddress& addr);
 btpan_conn_t* btpan_find_conn_handle(uint16_t handle);
 void btpan_set_flow_control(bool enable);
