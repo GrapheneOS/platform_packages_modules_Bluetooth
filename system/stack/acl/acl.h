@@ -176,7 +176,10 @@ struct tACL_CONN {
   bool peer_lmp_feature_valid[HCI_EXT_FEATURES_PAGE_MAX + 1];
 
   RawAddress active_remote_addr;
+  tBLE_ADDR_TYPE active_remote_addr_type;
   RawAddress conn_addr;
+  tBLE_ADDR_TYPE conn_addr_type;
+
   RawAddress remote_addr;
   bool in_use{false};
 
@@ -200,8 +203,6 @@ struct tACL_CONN {
   uint16_t Handle() const { return hci_handle; }
   uint16_t link_super_tout;
   uint16_t pkt_types_mask;
-  tBLE_ADDR_TYPE active_remote_addr_type;
-  tBLE_ADDR_TYPE conn_addr_type;
   uint8_t disconnect_reason;
 
  private:
