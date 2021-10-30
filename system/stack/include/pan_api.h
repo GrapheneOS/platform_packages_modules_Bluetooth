@@ -322,8 +322,8 @@ extern tPAN_RESULT PAN_SetRole(uint8_t role, const char* p_user_name,
  *                                     allowed at that point of time
  *
  ******************************************************************************/
-extern tPAN_RESULT PAN_Connect(const RawAddress& rem_bda, uint8_t src_role,
-                               uint8_t dst_role, uint16_t* handle);
+extern tPAN_RESULT PAN_Connect(const RawAddress& rem_bda, tPAN_ROLE src_role,
+                               tPAN_ROLE dst_role, uint16_t* handle);
 
 /*******************************************************************************
  *
