@@ -48,12 +48,14 @@ void LeAddressManager::SetPrivacyPolicyForInitiatorAddress(
     AddressPolicy address_policy,
     AddressWithType fixed_address,
     crypto_toolbox::Octet16 rotation_irk,
+    bool supports_ble_privacy,
     std::chrono::milliseconds minimum_rotation_time,
     std::chrono::milliseconds maximum_rotation_time) {
   ASSERT(address_policy_ == AddressPolicy::POLICY_NOT_SET);
   ASSERT(address_policy != AddressPolicy::POLICY_NOT_SET);
   ASSERT_LOG(registered_clients_.empty(), "Policy must be set before clients are registered.");
   address_policy_ = address_policy;
+  supports_ble_privacy_ = supports_ble_privacy;
   LOG_INFO("SetPrivacyPolicyForInitiatorAddress with policy %d", address_policy);
 
   switch (address_policy_) {
@@ -390,6 +392,13 @@ void LeAddressManager::AddDeviceToResolvingList(
       peer_identity_address_type, peer_identity_address, peer_irk, local_irk);
   Command command = {CommandType::ADD_DEVICE_TO_RESOLVING_LIST, std::move(packet_builder)};
   cached_commands_.push(std::move(command));
+
+  if (supports_ble_privacy_) {
+    auto packet_builder =
+        hci::LeSetPrivacyModeBuilder::Create(peer_identity_address_type, peer_identity_address, PrivacyMode::DEVICE);
+    Command command = {CommandType::LE_SET_PRIVACY_MODE, std::move(packet_builder)};
+    cached_commands_.push(std::move(command));
+  }
 
   // Enable Address resolution
   auto enable_builder = hci::LeSetAddressResolutionEnableBuilder::Create(hci::Enable::ENABLED);
