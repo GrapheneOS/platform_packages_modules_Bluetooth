@@ -924,6 +924,7 @@ typedef struct {
 
 } tBTM_DELETE_STORED_LINK_KEY_COMPLETE;
 
+#define BTM_CONTRL_UNKNOWN 0
 /* ACL link on, SCO link ongoing, sniff mode */
 #define BTM_CONTRL_ACTIVE 1
 /* Scan state - paging/inquiry/trying to connect*/

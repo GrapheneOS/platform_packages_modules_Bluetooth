@@ -1800,7 +1800,7 @@ static void bta_energy_info_cb(tBTM_BLE_TX_TIME_MS tx_time,
                                tBTM_BLE_RX_TIME_MS rx_time,
                                tBTM_BLE_IDLE_TIME_MS idle_time,
                                tBTM_BLE_ENERGY_USED energy_used,
-                               tBTA_DM_CONTRL_STATE ctrl_state,
+                               tBTM_CONTRL_STATE ctrl_state,
                                tBTA_STATUS status) {
   BTIF_TRACE_DEBUG(
       "energy_info_cb-Status:%d,state=%d,tx_t=%ld, rx_t=%ld, "
