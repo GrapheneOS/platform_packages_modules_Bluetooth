@@ -107,3 +107,22 @@ void bluetooth::shim::ACL_ReadConnectionAddress(const RawAddress& pseudo_addr,
   conn_addr = ToRawAddress(local_address.GetAddress());
   *p_addr_type = static_cast<uint8_t>(local_address.GetAddressType());
 }
+
+void bluetooth::shim::ACL_AddToAddressResolution(
+    const tBLE_BD_ADDR& legacy_address_with_type, const Octet16& peer_irk,
+    const Octet16& local_irk) {
+  Stack::GetInstance()->GetAcl()->AddToAddressResolution(
+      ToAddressWithType(legacy_address_with_type.bda,
+                        legacy_address_with_type.type),
+      peer_irk, local_irk);
+}
+
+void bluetooth::shim::ACL_RemoveFromAddressResolution(
+    const tBLE_BD_ADDR& legacy_address_with_type) {
+  Stack::GetInstance()->GetAcl()->RemoveFromAddressResolution(ToAddressWithType(
+      legacy_address_with_type.bda, legacy_address_with_type.type));
+}
+
+void bluetooth::shim::ACL_ClearAddressResolution() {
+  Stack::GetInstance()->GetAcl()->ClearAddressResolution();
+}
