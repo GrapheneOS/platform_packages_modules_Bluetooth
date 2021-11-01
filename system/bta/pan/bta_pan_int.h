@@ -103,6 +103,17 @@ typedef struct {
 
 } tBTA_PAN_CONN;
 
+/* pan data param */
+typedef struct {
+  BT_HDR_RIGID hdr;
+  RawAddress src;
+  RawAddress dst;
+  uint16_t protocol;
+  bool ext;
+  bool forward;
+
+} tBTA_PAN_DATA_PARAMS;
+
 /* union of all data types */
 typedef union {
   BT_HDR_RIGID hdr;
@@ -111,6 +122,7 @@ typedef union {
   tBTA_PAN_API_OPEN api_open;
   tBTA_PAN_CI_TX_FLOW ci_tx_flow;
   tBTA_PAN_CONN conn;
+  tBTA_PAN_DATA_PARAMS params;
 } tBTA_PAN_DATA;
 
 /* state machine control block */
@@ -139,17 +151,6 @@ typedef struct {
   uint8_t q_level; /* queue level set by application for TX data */
 
 } tBTA_PAN_CB;
-
-/* pan data param */
-typedef struct {
-  BT_HDR_RIGID hdr;
-  RawAddress src;
-  RawAddress dst;
-  uint16_t protocol;
-  bool ext;
-  bool forward;
-
-} tBTA_PAN_DATA_PARAMS;
 
 /*****************************************************************************
  *  Global data
