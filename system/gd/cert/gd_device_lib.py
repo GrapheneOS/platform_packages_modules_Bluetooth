@@ -243,7 +243,7 @@ class GdDeviceBaseCore(ABC):
 
 
 def get_coverage_profdata_path_for_host(test_runner_base_path, type_identifier, label) -> pathlib.Path:
-    return pathlib.Path(test_runner_base_path).parent.joinpath(
+    return pathlib.Path(test_runner_base_path).parent.parent.joinpath(
         "%s_%s_backing_process_coverage.profdata" % (type_identifier, label))
 
 
@@ -294,7 +294,7 @@ def generate_coverage_report_for_host(coverage_info):
         logging.info("[%s] Skip coverage report as llvm-cov is not found at %s" % (label, str(llvm_cov)))
         return
     logging.info("[%s] Generating coverage report in JSON" % label)
-    coverage_result_path = pathlib.Path(test_runner_base_path).parent.joinpath(
+    coverage_result_path = pathlib.Path(test_runner_base_path).parent.parent.joinpath(
         "%s_%s_backing_process_coverage.json" % (type_identifier, label))
     with coverage_result_path.open("w") as coverage_result_file:
         llvm_cov_export_cmd = [
@@ -310,7 +310,7 @@ def generate_coverage_report_for_host(coverage_info):
         coverage_result_path.unlink(missing_ok=True)
         return
     logging.info("[%s] Generating coverage summary in text" % label)
-    coverage_summary_path = pathlib.Path(test_runner_base_path).parent.joinpath(
+    coverage_summary_path = pathlib.Path(test_runner_base_path).parent.parent.joinpath(
         "%s_%s_backing_process_coverage_summary.txt" % (type_identifier, label))
     with coverage_summary_path.open("w") as coverage_summary_file:
         llvm_cov_report_cmd = [
