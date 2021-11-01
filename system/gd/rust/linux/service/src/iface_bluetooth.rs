@@ -64,7 +64,7 @@ impl IBluetoothConnectionCallback for BluetoothConnectionCallbackDBus {
     #[dbus_method("OnDeviceConnected")]
     fn on_device_connected(&self, remote_device: BluetoothDevice) {}
 
-    #[dbus_method("OnDeviceDisconencted")]
+    #[dbus_method("OnDeviceDisconnected")]
     fn on_device_disconnected(&self, remote_device: BluetoothDevice) {}
 }
 
