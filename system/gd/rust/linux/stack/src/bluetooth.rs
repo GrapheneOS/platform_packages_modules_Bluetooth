@@ -886,7 +886,6 @@ impl IBluetooth for Bluetooth {
             == 0
     }
 
-    /// Set passkey on bonding device.
     fn set_passkey(
         &self,
         device: BluetoothDevice,
