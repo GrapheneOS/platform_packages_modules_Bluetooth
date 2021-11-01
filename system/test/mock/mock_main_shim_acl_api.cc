@@ -29,6 +29,7 @@ extern std::map<std::string, int> mock_function_count_map;
 
 #include "main/shim/acl_api.h"
 #include "stack/include/bt_hdr.h"
+#include "stack/include/bt_octets.h"
 #include "types/ble_address_with_type.h"
 #include "types/raw_address.h"
 
@@ -69,5 +70,19 @@ void bluetooth::shim::ACL_IgnoreAllLeConnections() {
 void bluetooth::shim::ACL_ReadConnectionAddress(const RawAddress& pseudo_addr,
                                                 RawAddress& conn_addr,
                                                 uint8_t* p_addr_type) {
+  mock_function_count_map[__func__]++;
+}
+
+void bluetooth::shim::ACL_AddToAddressResolution(
+    const tBLE_BD_ADDR& legacy_address_with_type, const Octet16& peer_irk,
+    const Octet16& local_irk) {
+  mock_function_count_map[__func__]++;
+}
+
+void bluetooth::shim::ACL_RemoveFromAddressResolution(
+    const tBLE_BD_ADDR& legacy_address_with_type) {
+  mock_function_count_map[__func__]++;
+}
+void bluetooth::shim::ACL_ClearAddressResolution() {
   mock_function_count_map[__func__]++;
 }
