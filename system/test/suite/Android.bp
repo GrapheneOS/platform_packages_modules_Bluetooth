@@ -12,8 +12,16 @@ cc_test {
     name: "net_test_bluetooth",
     test_suites: ["device-tests"],
     defaults: ["fluoride_defaults"],
-    include_dirs: ["packages/modules/Bluetooth/system"],
+    include_dirs: [
+        "packages/modules/Bluetooth/system",
+        "packages/modules/Bluetooth/system/gd",
+        "packages/modules/Bluetooth/system/include",
+        "packages/modules/Bluetooth/system/stack/include",
+    ],
     srcs: [
+        ":TestCommonMockFunctions",
+        ":TestMockBluetoothInterface",
+        ":TestMockDevice",
         "adapter/adapter_unittest.cc",
         "adapter/bluetooth_test.cc",
         "gatt/gatt_test.cc",
@@ -39,8 +47,16 @@ cc_test {
 cc_test {
     name: "net_test_rfcomm_suite",
     defaults: ["fluoride_defaults"],
-    include_dirs: ["packages/modules/Bluetooth/system"],
+    include_dirs: [
+        "packages/modules/Bluetooth/system",
+        "packages/modules/Bluetooth/system/gd",
+        "packages/modules/Bluetooth/system/include",
+        "packages/modules/Bluetooth/system/stack/include",
+    ],
     srcs: [
+        ":TestMockBluetoothInterface",
+        ":TestMockDevice",
+        ":TestCommonMockFunctions",
         "adapter/bluetooth_test.cc",
         "rfcomm/rfcomm_test.cc",
         "rfcomm/rfcomm_unittest.cc",

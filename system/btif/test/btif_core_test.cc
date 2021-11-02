@@ -20,6 +20,7 @@
 #include <map>
 
 #include "bta/include/bta_ag_api.h"
+#include "btcore/include/module.h"
 #include "btif/include/btif_api.h"
 #include "btif/include/btif_common.h"
 #include "types/raw_address.h"
@@ -31,6 +32,12 @@ uint8_t btif_trace_level = BT_TRACE_LEVEL_DEBUG;
 uint8_t btu_trace_level = BT_TRACE_LEVEL_DEBUG;
 
 const tBTA_AG_RES_DATA tBTA_AG_RES_DATA::kEmpty = {};
+
+module_t bt_utils_module;
+module_t gd_controller_module;
+module_t gd_idle_module;
+module_t gd_shim_module;
+module_t osi_module;
 
 namespace {
 
