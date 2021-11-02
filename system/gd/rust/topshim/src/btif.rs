@@ -543,6 +543,7 @@ impl From<BluetoothProperty> for (Box<[u8]>, bindings::bt_property_t) {
 
 pub enum SupportedProfiles {
     HidHost,
+    Hfp,
     A2dp,
     Gatt,
     Sdp,
@@ -552,6 +553,7 @@ impl From<SupportedProfiles> for Vec<u8> {
     fn from(item: SupportedProfiles) -> Self {
         match item {
             SupportedProfiles::HidHost => "hidhost",
+            SupportedProfiles::Hfp => "hfp",
             SupportedProfiles::A2dp => "a2dp",
             SupportedProfiles::Gatt => "gatt",
             SupportedProfiles::Sdp => "sdp",
