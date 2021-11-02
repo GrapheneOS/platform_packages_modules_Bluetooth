@@ -40,7 +40,8 @@ typedef uint8_t(tBTM_AUTHORIZE_CALLBACK)(uint8_t service_id);
  *              Flag indicating the minimum pin code length to be 16 digits
  */
 typedef uint8_t(tBTM_PIN_CALLBACK)(const RawAddress& bd_addr,
-                                   DEV_CLASS dev_class, tBTM_BD_NAME bd_name,
+                                   DEV_CLASS dev_class,
+                                   const tBTM_BD_NAME bd_name,
                                    bool min_16_digit);
 
 /* New Link Key for the connection.  Parameters are
