@@ -192,7 +192,6 @@ public class BluetoothKeystoreService {
             debugLog("cleanup() called before start()");
             return;
         }
-
         // Mark service as stopped
         setBluetoothKeystoreService(null);
 
@@ -213,7 +212,6 @@ public class BluetoothKeystoreService {
     @VisibleForTesting
     public void cleanupForCommonCriteriaModeEnable() {
         try {
-            Thread.sleep(100);
             setEncryptKeyOrRemoveKey(CONFIG_FILE_PREFIX, CONFIG_FILE_HASH);
         } catch (InterruptedException e) {
             reportBluetoothKeystoreException(e, "Interrupted while operating.");
@@ -362,16 +360,10 @@ public class BluetoothKeystoreService {
             if (decryptedString.isEmpty()) {
                 cleanupAll();
             } else if (decryptedString.equals(CONFIG_FILE_HASH)) {
-                backupConfigEncryptionFile();
                 readHashFile(CONFIG_FILE_PATH, CONFIG_FILE_PREFIX);
-                //save Map
-                if (mNameDecryptKey.containsKey(CONFIG_FILE_PREFIX)
-                        && mNameDecryptKey.get(CONFIG_FILE_PREFIX).equals(
-                        mNameDecryptKey.get(CONFIG_BACKUP_PREFIX))) {
-                    infoLog("Since the hash is same with previous, don't need encrypt again.");
-                } else {
-                    mPendingEncryptKey.put(prefixString);
-                }
+                mPendingEncryptKey.put(CONFIG_FILE_PREFIX);
+                readHashFile(CONFIG_BACKUP_PATH, CONFIG_BACKUP_PREFIX);
+                mPendingEncryptKey.put(CONFIG_BACKUP_PREFIX);
                 saveEncryptedKey();
             }
             return;
@@ -474,6 +466,7 @@ public class BluetoothKeystoreService {
             }
             if (!keyEncryptedLines.isEmpty()) {
                 Files.write(Paths.get(CONFIG_FILE_ENCRYPTION_PATH), keyEncryptedLines);
+                Files.write(Paths.get(CONFIG_BACKUP_ENCRYPTION_PATH), keyEncryptedLines);
             }
         } catch (IOException e) {
             throw new RuntimeException("write encryption file fail");
@@ -501,20 +494,6 @@ public class BluetoothKeystoreService {
     @VisibleForTesting
     public Map<String, String> getNameDecryptKey() {
         return mNameDecryptKey;
-    }
-
-    private void backupConfigEncryptionFile() throws IOException {
-        if (Files.exists(Paths.get(CONFIG_FILE_ENCRYPTION_PATH))) {
-            Files.move(Paths.get(CONFIG_FILE_ENCRYPTION_PATH),
-                    Paths.get(CONFIG_BACKUP_ENCRYPTION_PATH),
-                    StandardCopyOption.REPLACE_EXISTING);
-        }
-        if (mNameEncryptKey.containsKey(CONFIG_FILE_PREFIX)) {
-            mNameEncryptKey.put(CONFIG_BACKUP_PREFIX, mNameEncryptKey.get(CONFIG_FILE_PREFIX));
-        }
-        if (mNameDecryptKey.containsKey(CONFIG_FILE_PREFIX)) {
-            mNameDecryptKey.put(CONFIG_BACKUP_PREFIX, mNameDecryptKey.get(CONFIG_FILE_PREFIX));
-        }
     }
 
     private boolean doesComparePass(int item) {
