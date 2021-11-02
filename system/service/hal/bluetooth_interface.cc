@@ -18,6 +18,7 @@
 
 #include <base/logging.h>
 #include <base/observer_list.h>
+#include <dlfcn.h>
 
 #include <mutex>
 #include <shared_mutex>
@@ -235,6 +236,43 @@ bt_os_callouts_t bt_os_callouts = {sizeof(bt_os_callouts_t),
                                    SetWakeAlarmCallout, AcquireWakeLockCallout,
                                    ReleaseWakeLockCallout};
 
+constexpr char kLibbluetooth[] = "libbluetooth.so";
+constexpr char kBluetoothInterfaceSym[] = "bluetoothInterface";
+
+int hal_util_load_bt_library_from_dlib(const bt_interface_t** interface) {
+  bt_interface_t* itf{nullptr};
+
+  // Always try to load the default Bluetooth stack on GN builds.
+  void* handle = dlopen(kLibbluetooth, RTLD_NOW);
+  if (!handle) {
+    const char* err_str = dlerror();
+    LOG(ERROR) << __func__ << ": failed to load bluetooth library, error="
+               << (err_str ? err_str : "error unknown");
+    goto error;
+  }
+
+  // Get the address of the bt_interface_t.
+  itf = (bt_interface_t*)dlsym(handle, kBluetoothInterfaceSym);
+  if (!itf) {
+    LOG(ERROR) << __func__ << ": failed to load symbol from Bluetooth library "
+               << kBluetoothInterfaceSym;
+    goto error;
+  }
+
+  // Success.
+  LOG(INFO) << __func__ << " loaded HAL path=" << kLibbluetooth
+            << " btinterface=" << itf << " handle=" << handle;
+
+  *interface = itf;
+  return 0;
+
+error:
+  *interface = NULL;
+  if (handle) dlclose(handle);
+
+  return -EINVAL;
+}
+
 }  // namespace
 
 // BluetoothInterface implementation for production.
@@ -266,7 +304,7 @@ class BluetoothInterfaceImpl : public BluetoothInterface {
   bool Initialize() {
     // Load the Bluetooth shared library module.
     const bt_interface_t* interface;
-    int status = hal_util_load_bt_library(&interface);
+    int status = hal_util_load_bt_library_from_dlib(&interface);
     if (status) {
       LOG(ERROR) << "Failed to open the Bluetooth module";
       return false;
