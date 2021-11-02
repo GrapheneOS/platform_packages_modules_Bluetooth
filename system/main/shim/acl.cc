@@ -59,6 +59,7 @@
 #include "stack/include/bt_hdr.h"
 #include "stack/include/btm_api.h"
 #include "stack/include/btm_status.h"
+#include "stack/include/pan_api.h"
 #include "stack/include/sec_hci_link_interface.h"
 #include "stack/l2cap/l2c_int.h"
 #include "types/ble_address_with_type.h"
@@ -1128,6 +1129,7 @@ void DumpsysRecord(int fd) {
 #undef DUMPSYS_TAG
 
 void shim::legacy::Acl::Dump(int fd) const {
+  PAN_Dumpsys(fd);
   DumpsysHid(fd);
   DumpsysRecord(fd);
   DumpsysAcl(fd);
