@@ -26,13 +26,16 @@
 #include "stack/include/pan_api.h"
 
 #include <base/logging.h>
+#include <base/strings/stringprintf.h>
 
 #include <cstdint>
 
 #include "bta/sys/bta_sys.h"
+#include "main/shim/dumpsys.h"
 #include "osi/include/allocator.h"
 #include "stack/include/bnep_api.h"
 #include "stack/include/bt_hdr.h"
+#include "stack/include/btm_log_history.h"
 #include "stack/include/sdp_api.h"
 #include "stack/include/sdpdefs.h"
 #include "stack/pan/pan_int.h"
@@ -40,6 +43,10 @@
 #include "types/raw_address.h"
 
 using bluetooth::Uuid;
+
+namespace {
+constexpr char kBtmLogTag[] = "PAN";
+}
 
 /*******************************************************************************
  *
@@ -56,9 +63,9 @@ using bluetooth::Uuid;
  *
  ******************************************************************************/
 void PAN_Register(tPAN_REGISTER* p_register) {
-  pan_register_with_bnep();
-
   if (!p_register) return;
+
+  pan_register_with_bnep();
 
   pan_cb.pan_conn_state_cb = p_register->pan_conn_state_cb;
   pan_cb.pan_bridge_req_cb = p_register->pan_bridge_req_cb;
@@ -68,7 +75,7 @@ void PAN_Register(tPAN_REGISTER* p_register) {
   pan_cb.pan_mfilt_ind_cb = p_register->pan_mfilt_ind_cb;
   pan_cb.pan_tx_data_flow_cb = p_register->pan_tx_data_flow_cb;
 
-  return;
+  BTM_LogHistory(kBtmLogTag, RawAddress::kEmpty, "Registered");
 }
 
 /*******************************************************************************
@@ -97,7 +104,7 @@ void PAN_Deregister(void) {
   PAN_SetRole(PAN_ROLE_INACTIVE, NULL, NULL);
   BNEP_Deregister();
 
-  return;
+  BTM_LogHistory(kBtmLogTag, RawAddress::kEmpty, "Unregistered");
 }
 
 /*******************************************************************************
@@ -196,6 +203,9 @@ tPAN_RESULT PAN_SetRole(uint8_t role, const char* p_user_name,
 
   pan_cb.role = role;
   PAN_TRACE_EVENT("PAN role set to: %d", role);
+
+  BTM_LogHistory(kBtmLogTag, RawAddress::kEmpty, "Role change",
+                 base::StringPrintf("role:0x%x", role));
   return PAN_SUCCESS;
 }
 
@@ -360,6 +370,8 @@ tPAN_RESULT PAN_Disconnect(uint16_t handle) {
   if (pan_cb.pan_bridge_req_cb && pcb->src_uuid == UUID_SERVCLASS_NAP)
     (*pan_cb.pan_bridge_req_cb)(pcb->rem_bda, false);
 
+  BTM_LogHistory(kBtmLogTag, pcb->rem_bda, "Disconnect");
+
   pan_release_pcb(pcb);
 
   if (result != BNEP_SUCCESS) {
@@ -497,6 +509,9 @@ tPAN_RESULT PAN_WriteBuf(uint16_t handle, const RawAddress& dst,
       return (tPAN_RESULT)result;
     }
 
+    pan_cb.pcb[i].write.octets += p_buf->len;
+    pan_cb.pcb[i].write.packets++;
+
     PAN_TRACE_DEBUG("PAN successfully wrote data for the PANU connection");
     return PAN_SUCCESS;
   }
@@ -511,6 +526,7 @@ tPAN_RESULT PAN_WriteBuf(uint16_t handle, const RawAddress& dst,
 
   if (pcb->con_state != PAN_STATE_CONNECTED) {
     PAN_TRACE_ERROR("PAN Buf write when conn is not active");
+    pcb->write.drops++;
     osi_free(p_buf);
     return PAN_FAILURE;
   }
@@ -518,13 +534,19 @@ tPAN_RESULT PAN_WriteBuf(uint16_t handle, const RawAddress& dst,
   result = BNEP_WriteBuf(pcb->handle, dst, p_buf, protocol, &src, ext);
   if (result == BNEP_IGNORE_CMD) {
     PAN_TRACE_DEBUG("PAN ignored data buf write to PANU");
-    return (tPAN_RESULT)result;
+    pcb->write.errors++;
+    return PAN_IGNORE_CMD;
   } else if (result != BNEP_SUCCESS) {
     PAN_TRACE_ERROR("PAN failed to send data buf to the PANU");
+    pcb->write.errors++;
     return (tPAN_RESULT)result;
   }
 
+  pcb->write.octets += p_buf->len;
+  pcb->write.packets++;
+
   PAN_TRACE_DEBUG("PAN successfully sent data buf to the PANU");
+
   return PAN_SUCCESS;
 }
 
@@ -647,3 +669,34 @@ void PAN_Init(void) {
   pan_cb.trace_level = BT_TRACE_LEVEL_NONE; /* No traces */
 #endif
 }
+
+#define DUMPSYS_TAG "shim::legacy::pan"
+void PAN_Dumpsys(int fd) {
+  LOG_DUMPSYS_TITLE(fd, DUMPSYS_TAG);
+
+  LOG_DUMPSYS(fd, "Connections:%hhu roles configured:%s current:%s previous:%s",
+              pan_cb.num_conns, pan_role_to_text(pan_cb.role).c_str(),
+              pan_role_to_text(pan_cb.active_role).c_str(),
+              pan_role_to_text(pan_cb.prv_active_role).c_str());
+  const tPAN_CONN* pcb = &pan_cb.pcb[0];
+  for (int i = 0; i < MAX_PAN_CONNS; i++, pcb++) {
+    if (pcb->con_state == PAN_STATE_IDLE) continue;
+    LOG_DUMPSYS(fd, "  Id:%d peer:%s", i, PRIVATE_ADDRESS(pcb->rem_bda));
+    LOG_DUMPSYS(
+        fd,
+        "    rx_packets:%-5lu rx_octets:%-8lu rx_errors:%-5lu rx_drops:%-5lu",
+        (unsigned long)pcb->read.packets, (unsigned long)pcb->read.octets,
+        (unsigned long)pcb->read.errors, (unsigned long)pcb->read.drops);
+    LOG_DUMPSYS(
+        fd,
+        "    tx_packets:%-5lu tx_octets:%-8lu tx_errors:%-5lu tx_drops:%-5lu",
+        (unsigned long)pcb->write.packets, (unsigned long)pcb->write.octets,
+        (unsigned long)pcb->write.errors, (unsigned long)pcb->write.drops);
+    LOG_DUMPSYS(fd,
+                "    src_uuid:0x%04x[prev:0x%04x] dst_uuid:0x%04x[prev:0x%04x] "
+                "bad_pkts:%hu",
+                pcb->src_uuid, pcb->dst_uuid, pcb->prv_src_uuid,
+                pcb->prv_dst_uuid, pcb->bad_pkts_rcvd);
+  }
+}
+#undef DUMPSYS_TAG

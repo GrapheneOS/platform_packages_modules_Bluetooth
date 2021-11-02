@@ -89,3 +89,4 @@ void PAN_Init(void) { mock_function_count_map[__func__]++; }
 void PAN_Register(tPAN_REGISTER* p_register) {
   mock_function_count_map[__func__]++;
 }
+void PAN_Dumpsys(int fd) { mock_function_count_map[__func__]++; }
