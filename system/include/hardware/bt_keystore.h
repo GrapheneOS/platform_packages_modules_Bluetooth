@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+#pragma once
+
+#include "string"
+
 namespace bluetooth {
 namespace bluetooth_keystore {
 
@@ -36,8 +40,11 @@ class BluetoothKeystoreInterface {
   /** Register the bluetooth keystore callbacks */
   virtual void init(BluetoothKeystoreCallbacks* callbacks) = 0;
 
+  /** Get bonded devices number to get all bonded devices key */
+  virtual void ConvertEncryptOrDecryptKeyIfNeeded() = 0;
+
   /** Interface for key encrypt or remove key */
-  virtual void set_encrypt_key_or_remove_key(std::string prefix,
+  virtual bool set_encrypt_key_or_remove_key(std::string prefix,
                                              std::string encryptedString) = 0;
 
   /** Interface for get key. */
