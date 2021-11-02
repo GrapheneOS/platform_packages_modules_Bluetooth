@@ -461,4 +461,6 @@ extern uint8_t PAN_SetTraceLevel(uint8_t new_level);
  ******************************************************************************/
 extern void PAN_Init(void);
 
+extern void PAN_Dumpsys(int fd);
+
 #endif /* PAN_API_H */
