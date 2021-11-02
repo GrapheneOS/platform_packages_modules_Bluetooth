@@ -18,6 +18,8 @@
 
 #include <string>
 
+#include "os/bt_keystore.h"
+
 namespace bluetooth {
 namespace os {
 
@@ -37,6 +39,18 @@ class ParameterProvider {
   static std::string SnoozLogFilePath();
 
   static void OverrideSnoozLogFilePath(const std::string& path);
+
+  static bluetooth_keystore::BluetoothKeystoreInterface* GetBtKeystoreInterface();
+
+  static void SetBtKeystoreInterface(bluetooth_keystore::BluetoothKeystoreInterface* bt_keystore);
+
+  static bool IsCommonCriteriaMode();
+
+  static void SetCommonCriteriaMode(bool enable);
+
+  static int GetCommonCriteriaConfigCompareResult();
+
+  static void SetCommonCriteriaConfigCompareResult(int result);
 };
 
 }  // namespace os
