@@ -65,6 +65,13 @@ typedef struct {
   uint16_t ip_addr_known;
   uint32_t ip_addr;
 
+  struct {
+    size_t octets{0};
+    size_t packets{0};
+    size_t errors{0};
+    size_t drops{0};
+  } write, read;
+
 } tPAN_CONN;
 
 /*  The main PAN control block
