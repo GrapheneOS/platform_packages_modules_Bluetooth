@@ -96,5 +96,23 @@ void ParameterProvider::OverrideSnoozLogFilePath(const std::string& path) {
   snooz_log_file_path = path;
 }
 
+bluetooth_keystore::BluetoothKeystoreInterface* ParameterProvider::GetBtKeystoreInterface() {
+  return nullptr;
+}
+
+void ParameterProvider::SetBtKeystoreInterface(bluetooth_keystore::BluetoothKeystoreInterface* bt_keystore) {}
+
+bool ParameterProvider::IsCommonCriteriaMode() {
+  return false;
+}
+
+void ParameterProvider::SetCommonCriteriaMode(bool enable) {}
+
+int ParameterProvider::GetCommonCriteriaConfigCompareResult() {
+  return 0b11;
+}
+
+void ParameterProvider::SetCommonCriteriaConfigCompareResult(int result) {}
+
 }  // namespace os
 }  // namespace bluetooth

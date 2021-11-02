@@ -49,6 +49,11 @@ static const std::chrono::milliseconds kDefaultConfigSaveDelay = std::chrono::mi
 // The config saving delay must be bigger than this value to avoid overwhelming the disk
 static const std::chrono::milliseconds kMinConfigSaveDelay = std::chrono::milliseconds(20);
 
+const int kConfigFileComparePass = 1;
+const int kConfigBackupComparePass = 2;
+const std::string kConfigFilePrefix = "bt_config-origin";
+const std::string kConfigFileHash = "hash";
+
 const std::string StorageModule::kInfoSection = "Info";
 const std::string StorageModule::kFileSourceProperty = "FileSource";
 const std::string StorageModule::kTimeCreatedProperty = "TimeCreated";
@@ -134,6 +139,12 @@ void StorageModule::SaveImmediately() {
   ASSERT(LegacyConfigFile::FromPath(config_file_path_).Write(pimpl_->cache_));
   // 3. now write back up to disk as well
   ASSERT(LegacyConfigFile::FromPath(config_backup_path_).Write(pimpl_->cache_));
+  // 4. save checksum if it is running in common criteria mode
+  if (bluetooth::os::ParameterProvider::GetBtKeystoreInterface() != nullptr &&
+      bluetooth::os::ParameterProvider::IsCommonCriteriaMode()) {
+    bluetooth::os::ParameterProvider::GetBtKeystoreInterface()->set_encrypt_key_or_remove_key(
+        kConfigFilePrefix, kConfigFileHash);
+  }
 }
 
 void StorageModule::ListDependencies(ModuleList* list) const {
@@ -145,6 +156,12 @@ void StorageModule::Start() {
   std::string file_source;
   if (os::GetSystemProperty(kFactoryResetProperty) == "true") {
     LegacyConfigFile::FromPath(config_file_path_).Delete();
+    LegacyConfigFile::FromPath(config_backup_path_).Delete();
+  }
+  if (!is_config_checksum_pass(kConfigFileComparePass)) {
+    LegacyConfigFile::FromPath(config_file_path_).Delete();
+  }
+  if (!is_config_checksum_pass(kConfigBackupComparePass)) {
     LegacyConfigFile::FromPath(config_backup_path_).Delete();
   }
   auto config = LegacyConfigFile::FromPath(config_file_path_).Read(temp_devices_capacity_);
@@ -179,11 +196,17 @@ void StorageModule::Start() {
   // TODO (b/158035889) Migrate metrics module to GD
   pimpl_ = std::make_unique<impl>(GetHandler(), std::move(config.value()), temp_devices_capacity_);
   SaveDelayed();
+  if (bluetooth::os::ParameterProvider::GetBtKeystoreInterface() != nullptr) {
+    bluetooth::os::ParameterProvider::GetBtKeystoreInterface()->ConvertEncryptOrDecryptKeyIfNeeded();
+  }
 }
 
 void StorageModule::Stop() {
   std::lock_guard<std::recursive_mutex> lock(mutex_);
   SaveImmediately();
+  if (bluetooth::os::ParameterProvider::GetBtKeystoreInterface() != nullptr) {
+    bluetooth::os::ParameterProvider::GetBtKeystoreInterface()->clear_map();
+  }
   pimpl_.reset();
 }
 
@@ -232,6 +255,10 @@ std::vector<Device> StorageModule::GetBondedDevices() {
     result.emplace_back(&pimpl_->cache_, &pimpl_->memory_only_cache_, section);
   }
   return result;
+}
+
+bool StorageModule::is_config_checksum_pass(int check_bit) {
+  return ((os::ParameterProvider::GetCommonCriteriaConfigCompareResult() & check_bit) == check_bit);
 }
 
 }  // namespace storage
