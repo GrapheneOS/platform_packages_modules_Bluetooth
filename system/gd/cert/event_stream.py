@@ -197,7 +197,8 @@ class EventStream(IEventStream, Closable):
             except Empty:
                 continue
         logging.debug("Done waiting, got %d events" % len(event_list))
-        asserts.assert_true(
+        assert_true(
+            self,
             len(event_list) <= at_most_times,
             msg=("Expected at most %d events, but got %d" % (at_most_times, len(event_list))))
 
@@ -207,6 +208,12 @@ def static_remaining_time_delta(end_time):
     if remaining < timedelta(milliseconds=0):
         remaining = timedelta(milliseconds=0)
     return remaining
+
+
+def assert_true(istream, expr, msg, extras=None):
+    if not expr:
+        istream.close()
+        asserts.fail(msg, extras)
 
 
 def NOT_FOR_YOU_assert_event_occurs(istream,
@@ -227,7 +234,9 @@ def NOT_FOR_YOU_assert_event_occurs(istream,
         except Empty:
             continue
     logging.debug("Done waiting for event, received %d", len(event_list))
-    asserts.assert_true(
+
+    assert_true(
+        istream,
         len(event_list) >= at_least_times,
         msg=("Expected at least %d events, but got %d" % (at_least_times, len(event_list))))
 
@@ -252,7 +261,8 @@ def NOT_FOR_YOU_assert_all_events_occur(istream,
         except Empty:
             continue
     logging.debug("Done waiting for event")
-    asserts.assert_true(
+    assert_true(
+        istream,
         len(matched_order) == len(match_fns),
         msg=("Expected at least %d events, but got %d" % (len(match_fns), len(matched_order))))
     if order_matters:
@@ -263,7 +273,7 @@ def NOT_FOR_YOU_assert_all_events_occur(istream,
                 correct_order = False
                 break
             i += 1
-        asserts.assert_true(correct_order, "Events not received in correct order %s %s" % (match_fns, matched_order))
+        assert_true(istream, correct_order, "Events not received in correct order %s %s" % (match_fns, matched_order))
 
 
 def NOT_FOR_YOU_assert_none_matching(istream, match_fn, timeout):
@@ -282,13 +292,13 @@ def NOT_FOR_YOU_assert_none_matching(istream, match_fn, timeout):
     logging.debug("Done waiting for an event")
     if event is None:
         return  # Avoid an assert in MessageToString(None, ...)
-    asserts.assert_true(event is None, msg='Expected None matching, but got {}'.format(pretty_print(event)))
+    assert_true(istream, event is None, msg='Expected None matching, but got {}'.format(pretty_print(event)))
 
 
 def NOT_FOR_YOU_assert_none(istream, timeout):
     logging.debug("assert_none %fs" % (timeout.total_seconds()))
     try:
         event = istream.get_event_queue().get(timeout=timeout.total_seconds())
-        asserts.assert_true(event is None, msg='Expected None, but got {}'.format(pretty_print(event)))
+        assert_true(istream, event is None, msg='Expected None, but got {}'.format(pretty_print(event)))
     except Empty:
         return
