@@ -18,16 +18,21 @@
 
 #include "btif/include/btif_hf.h"
 #include "include/hardware/bluetooth_headset_callbacks.h"
+#include "types/raw_address.h"
 
 namespace bluetooth {
 namespace topshim {
 namespace rust {
+
+struct RustRawAddress;
 
 class HfpIntf {
  public:
   HfpIntf(headset::Interface* intf) : intf_(intf){};
 
   int init();
+  int connect(RustRawAddress bt_addr);
+  int disconnect(RustRawAddress bt_addr);
   void cleanup();
 
  private:
