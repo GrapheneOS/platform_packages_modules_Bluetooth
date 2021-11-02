@@ -1080,9 +1080,8 @@ class CsisClientImpl : public CsisClient {
                 p_service_data + service_data_len,
                 (remaining_data_len -= service_data_len), BTM_BLE_AD_TYPE_RSI,
                 &service_data_len))) {
-      uint8_t* p = (uint8_t*)(p_service_data);
       RawAddress bda;
-      STREAM_TO_BDADDR(bda, p);
+      STREAM_TO_BDADDR(bda, p_service_data);
       devices.push_back(std::move(bda));
     }
 
