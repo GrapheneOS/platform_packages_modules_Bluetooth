@@ -29,44 +29,6 @@
 
 using base::StringPrintf;
 
-#define BLUETOOTH_LIBRARY_NAME "libbluetooth.so"
-
-#if !defined(STATIC_LIBBLUETOOTH)
-int hal_util_load_bt_library(const bt_interface_t** interface) {
-  const char* sym = BLUETOOTH_INTERFACE_STRING;
-  bt_interface_t* itf = nullptr;
-
-  // Always try to load the default Bluetooth stack on GN builds.
-  void* handle = dlopen(BLUETOOTH_LIBRARY_NAME, RTLD_NOW);
-  if (!handle) {
-    const char* err_str = dlerror();
-    LOG(ERROR) << __func__ << ": failed to load bluetooth library, error="
-               << (err_str ? err_str : "error unknown");
-    goto error;
-  }
-
-  // Get the address of the bt_interface_t.
-  itf = (bt_interface_t*)dlsym(handle, sym);
-  if (!itf) {
-    LOG(ERROR) << __func__ << ": failed to load symbol from Bluetooth library "
-               << sym;
-    goto error;
-  }
-
-  // Success.
-  LOG(INFO) << __func__ << " loaded HAL path=" << BLUETOOTH_LIBRARY_NAME
-            << " btinterface=" << itf << " handle=" << handle;
-
-  *interface = itf;
-  return 0;
-
-error:
-  *interface = NULL;
-  if (handle) dlclose(handle);
-
-  return -EINVAL;
-}
-#else
 extern bt_interface_t bluetoothInterface;
 
 int hal_util_load_bt_library(const bt_interface_t** interface) {
@@ -74,4 +36,3 @@ int hal_util_load_bt_library(const bt_interface_t** interface) {
 
   return 0;
 }
-#endif
