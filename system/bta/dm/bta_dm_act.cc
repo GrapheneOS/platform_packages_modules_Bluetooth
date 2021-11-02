@@ -68,7 +68,7 @@ void BTIF_dm_disable();
 void BTIF_dm_enable();
 void btm_ble_adv_init(void);
 
-static void bta_dm_inq_results_cb(tBTM_INQ_RESULTS* p_inq, uint8_t* p_eir,
+static void bta_dm_inq_results_cb(tBTM_INQ_RESULTS* p_inq, const uint8_t* p_eir,
                                   uint16_t eir_len);
 static void bta_dm_inq_cmpl_cb(void* p_result);
 static void bta_dm_service_search_remname_cback(const RawAddress& bd_addr,
@@ -196,8 +196,8 @@ WaitForAllAclConnectionsToDrain::FromAlarmCallbackData(void* data) {
 
 static void bta_dm_reset_sec_dev_pending(const RawAddress& remote_bd_addr);
 static void bta_dm_remove_sec_dev_entry(const RawAddress& remote_bd_addr);
-static void bta_dm_observe_results_cb(tBTM_INQ_RESULTS* p_inq, uint8_t* p_eir,
-                                      uint16_t eir_len);
+static void bta_dm_observe_results_cb(tBTM_INQ_RESULTS* p_inq,
+                                      const uint8_t* p_eir, uint16_t eir_len);
 static void bta_dm_observe_cmpl_cb(void* p_result);
 static void bta_dm_delay_role_switch_cback(void* data);
 static void bta_dm_wait_for_acl_to_drain_cback(void* data);
@@ -1812,7 +1812,7 @@ static void bta_dm_sdp_callback(tSDP_STATUS sdp_status) {
  * Returns          void
  *
  ******************************************************************************/
-static void bta_dm_inq_results_cb(tBTM_INQ_RESULTS* p_inq, uint8_t* p_eir,
+static void bta_dm_inq_results_cb(tBTM_INQ_RESULTS* p_inq, const uint8_t* p_eir,
                                   uint16_t eir_len) {
   tBTA_DM_SEARCH result;
   tBTM_INQ_INFO* p_inq_info;
@@ -1832,7 +1832,7 @@ static void bta_dm_inq_results_cb(tBTM_INQ_RESULTS* p_inq, uint8_t* p_eir,
   result.inq_res.include_rsi = p_inq->include_rsi;
 
   /* application will parse EIR to find out remote device name */
-  result.inq_res.p_eir = p_eir;
+  result.inq_res.p_eir = const_cast<uint8_t*>(p_eir);
   result.inq_res.eir_len = eir_len;
 
   p_inq_info = BTM_InqDbRead(p_inq->remote_bd_addr);
@@ -3314,8 +3314,8 @@ bool bta_dm_check_if_only_hd_connected(const RawAddress& peer_addr) {
  * Returns          void
  *
  ******************************************************************************/
-static void bta_dm_observe_results_cb(tBTM_INQ_RESULTS* p_inq, uint8_t* p_eir,
-                                      uint16_t eir_len) {
+static void bta_dm_observe_results_cb(tBTM_INQ_RESULTS* p_inq,
+                                      const uint8_t* p_eir, uint16_t eir_len) {
   tBTA_DM_SEARCH result;
   tBTM_INQ_INFO* p_inq_info;
   APPL_TRACE_DEBUG("bta_dm_observe_results_cb");
@@ -3334,7 +3334,7 @@ static void bta_dm_observe_results_cb(tBTM_INQ_RESULTS* p_inq, uint8_t* p_eir,
   result.inq_res.ble_periodic_adv_int = p_inq->ble_periodic_adv_int;
 
   /* application will parse EIR to find out remote device name */
-  result.inq_res.p_eir = p_eir;
+  result.inq_res.p_eir = const_cast<uint8_t*>(p_eir);
   result.inq_res.eir_len = eir_len;
 
   p_inq_info = BTM_InqDbRead(p_inq->remote_bd_addr);
@@ -3366,7 +3366,7 @@ static void bta_dm_observe_results_cb(tBTM_INQ_RESULTS* p_inq, uint8_t* p_eir,
  *
  ******************************************************************************/
 static void bta_dm_opportunistic_observe_results_cb(tBTM_INQ_RESULTS* p_inq,
-                                                    uint8_t* p_eir,
+                                                    const uint8_t* p_eir,
                                                     uint16_t eir_len) {
   tBTA_DM_SEARCH result;
   tBTM_INQ_INFO* p_inq_info;
@@ -3385,7 +3385,7 @@ static void bta_dm_opportunistic_observe_results_cb(tBTM_INQ_RESULTS* p_inq,
   result.inq_res.ble_periodic_adv_int = p_inq->ble_periodic_adv_int;
 
   /* application will parse EIR to find out remote device name */
-  result.inq_res.p_eir = p_eir;
+  result.inq_res.p_eir = const_cast<uint8_t*>(p_eir);
   result.inq_res.eir_len = eir_len;
 
   p_inq_info = BTM_InqDbRead(p_inq->remote_bd_addr);
