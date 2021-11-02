@@ -78,7 +78,7 @@ static void bta_dm_find_services(const RawAddress& bd_addr);
 static void bta_dm_discover_next_device(void);
 static void bta_dm_sdp_callback(tSDP_STATUS sdp_status);
 static uint8_t bta_dm_pin_cback(const RawAddress& bd_addr, DEV_CLASS dev_class,
-                                BD_NAME bd_name, bool min_16_digit);
+                                const BD_NAME bd_name, bool min_16_digit);
 static uint8_t bta_dm_new_link_key_cback(const RawAddress& bd_addr,
                                          DEV_CLASS dev_class, BD_NAME bd_name,
                                          const LinkKey& key, uint8_t key_type);
@@ -2028,7 +2028,7 @@ static void bta_dm_pinname_cback(void* p_data) {
  *
  ******************************************************************************/
 static uint8_t bta_dm_pin_cback(const RawAddress& bd_addr, DEV_CLASS dev_class,
-                                BD_NAME bd_name, bool min_16_digit) {
+                                const BD_NAME bd_name, bool min_16_digit) {
   if (!bta_dm_cb.p_sec_cback) return BTM_NOT_AUTHORIZED;
 
   /* If the device name is not known, save bdaddr and devclass and initiate a
