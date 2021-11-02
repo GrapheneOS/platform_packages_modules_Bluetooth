@@ -57,6 +57,7 @@ class LeAddressManager {
       AddressPolicy address_policy,
       AddressWithType fixed_address,
       crypto_toolbox::Octet16 rotation_irk,
+      bool supports_ble_privacy,
       std::chrono::milliseconds minimum_rotation_time,
       std::chrono::milliseconds maximum_rotation_time);
   // TODO(jpawlowski): remove once we have config file abstraction in cert tests
@@ -105,7 +106,8 @@ class LeAddressManager {
     ADD_DEVICE_TO_RESOLVING_LIST,
     REMOVE_DEVICE_FROM_RESOLVING_LIST,
     CLEAR_RESOLVING_LIST,
-    SET_ADDRESS_RESOLUTION_ENABLE
+    SET_ADDRESS_RESOLUTION_ENABLE,
+    LE_SET_PRIVACY_MODE
   };
 
   struct Command {
@@ -144,6 +146,7 @@ class LeAddressManager {
   uint8_t connect_list_size_;
   uint8_t resolving_list_size_;
   std::queue<Command> cached_commands_;
+  bool supports_ble_privacy_{false};
 };
 
 }  // namespace hci
