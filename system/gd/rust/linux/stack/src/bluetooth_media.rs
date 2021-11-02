@@ -7,7 +7,11 @@ use bt_topshim::profiles::a2dp::{
     PresentationPosition,
 };
 use bt_topshim::profiles::avrcp::{Avrcp, AvrcpCallbacks, AvrcpCallbacksDispatcher};
+use bt_topshim::profiles::hfp::{BthfConnectionState, Hfp, HfpCallbacks, HfpCallbacksDispatcher};
+
 use bt_topshim::topstack;
+
+use log::warn;
 
 use std::collections::HashMap;
 use std::convert::TryFrom;
@@ -28,6 +32,7 @@ pub trait IBluetoothMedia {
     /// clean up media stack
     fn cleanup(&mut self) -> bool;
 
+    // TODO (b/204488289): Accept and validate RawAddress instead.
     fn connect(&mut self, device: String);
     fn set_active_device(&mut self, device: String);
     fn disconnect(&mut self, device: String);
@@ -78,6 +83,8 @@ pub struct BluetoothMedia {
     a2dp: Option<A2dp>,
     avrcp: Option<Avrcp>,
     a2dp_states: HashMap<RawAddress, BtavConnectionState>,
+    hfp: Option<Hfp>,
+    hfp_states: HashMap<RawAddress, BthfConnectionState>,
     selectable_caps: HashMap<RawAddress, Vec<A2dpCodecConfig>>,
 }
 
@@ -92,6 +99,8 @@ impl BluetoothMedia {
             a2dp: None,
             avrcp: None,
             a2dp_states: HashMap::new(),
+            hfp: None,
+            hfp_states: HashMap::new(),
             selectable_caps: HashMap::new(),
         }
     }
@@ -165,6 +174,28 @@ impl BluetoothMedia {
         }
     }
 
+    pub fn dispatch_hfp_callbacks(&mut self, cb: HfpCallbacks) {
+        match cb {
+            HfpCallbacks::ConnectionState(state, addr) => {
+                if !self.hfp_states.get(&addr).is_none()
+                    && state == *self.hfp_states.get(&addr).unwrap()
+                {
+                    return;
+                }
+                match state {
+                    BthfConnectionState::Connected => {
+                        // TODO: Integrate with A2dp
+                    }
+                    BthfConnectionState::Connecting => {}
+                    BthfConnectionState::Disconnected => {}
+                    BthfConnectionState::Disconnecting => {
+                        // TODO: Integrate with A2dp
+                    }
+                }
+            }
+        }
+    }
+
     fn for_all_callbacks<F: Fn(&Box<dyn IBluetoothMediaCallback + Send>)>(&self, f: F) {
         for callback in &self.callbacks {
             f(&callback.1);
@@ -194,6 +225,17 @@ fn get_avrcp_dispatcher(tx: Sender<Message>) -> AvrcpCallbacksDispatcher {
     }
 }
 
+fn get_hfp_dispatcher(tx: Sender<Message>) -> HfpCallbacksDispatcher {
+    HfpCallbacksDispatcher {
+        dispatch: Box::new(move |cb| {
+            let txl = tx.clone();
+            topstack::get_runtime().spawn(async move {
+                let _ = txl.send(Message::Hfp(cb)).await;
+            });
+        }),
+    }
+}
+
 impl IBluetoothMedia for BluetoothMedia {
     fn register_callback(&mut self, callback: Box<dyn IBluetoothMediaCallback + Send>) -> bool {
         self.callback_last_id += 1;
@@ -216,11 +258,24 @@ impl IBluetoothMedia for BluetoothMedia {
         let avrcp_dispatcher = get_avrcp_dispatcher(self.tx.clone());
         self.avrcp = Some(Avrcp::new(&self.intf.lock().unwrap()));
         self.avrcp.as_mut().unwrap().initialize(avrcp_dispatcher);
+
+        // HFP
+        let hfp_dispatcher = get_hfp_dispatcher(self.tx.clone());
+        self.hfp = Some(Hfp::new(&self.intf.lock().unwrap()));
+        self.hfp.as_mut().unwrap().initialize(hfp_dispatcher);
+
         true
     }
 
     fn connect(&mut self, device: String) {
+        let addr = RawAddress::from_string(device.clone());
+        if addr.is_none() {
+            warn!("Invalid device string {}", device);
+            return;
+        }
+
         self.a2dp.as_mut().unwrap().connect(device);
+        self.hfp.as_mut().unwrap().connect(addr.unwrap());
     }
 
     fn cleanup(&mut self) -> bool {
@@ -232,7 +287,14 @@ impl IBluetoothMedia for BluetoothMedia {
     }
 
     fn disconnect(&mut self, device: String) {
+        let addr = RawAddress::from_string(device.clone());
+        if addr.is_none() {
+            warn!("Invalid device string {}", device);
+            return;
+        }
+
         self.a2dp.as_mut().unwrap().disconnect(device);
+        self.hfp.as_mut().unwrap().disconnect(addr.unwrap());
     }
 
     fn set_audio_config(
