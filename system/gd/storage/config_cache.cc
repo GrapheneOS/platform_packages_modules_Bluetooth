@@ -21,9 +21,13 @@
 #include <utility>
 
 #include "hci/enum_helper.h"
+#include "os/parameter_provider.h"
 #include "storage/mutation.h"
 
 namespace {
+
+const std::unordered_set<std::string_view> kEncryptKeyNameList = {
+    "LinkKey", "LE_KEY_PENC", "LE_KEY_PID", "LE_KEY_LID", "LE_KEY_PCSRK", "LE_KEY_LENC", "LE_KEY_LCSRK"};
 
 bool TrimAfterNewLine(std::string& value) {
   std::string value_no_newline;
@@ -33,6 +37,10 @@ bool TrimAfterNewLine(std::string& value) {
     return true;
   }
   return false;
+}
+
+bool InEncryptKeyNameList(std::string key) {
+  return kEncryptKeyNameList.find(key) != kEncryptKeyNameList.end();
 }
 
 }  // namespace
@@ -47,6 +55,8 @@ const std::unordered_set<std::string_view> kClassicPropertyNames = {
     "LinkKey", "SdpDiMaufacturer", "SdpDiModel", "SdpDiHardwareVersion", "SdpDiVendorSource"};
 
 const std::string ConfigCache::kDefaultSectionName = "Global";
+
+std::string kEncryptedStr = "encrypted";
 
 ConfigCache::ConfigCache(size_t temp_device_capacity, std::unordered_set<std::string_view> persistent_property_names)
     : persistent_property_names_(std::move(persistent_property_names)),
@@ -147,7 +157,11 @@ std::optional<std::string> ConfigCache::GetProperty(const std::string& section, 
   if (section_iter != persistent_devices_.end()) {
     auto property_iter = section_iter->second.find(property);
     if (property_iter != section_iter->second.end()) {
-      return property_iter->second;
+      std::string value = property_iter->second;
+      if (os::ParameterProvider::GetBtKeystoreInterface() != nullptr && value == kEncryptedStr) {
+        return os::ParameterProvider::GetBtKeystoreInterface()->get_key(section + "-" + property);
+      }
+      return value;
     }
   }
   section_iter = temporary_devices_.find(section);
@@ -187,6 +201,14 @@ void ConfigCache::SetProperty(std::string section, std::string property, std::st
     }
   }
   if (section_iter != persistent_devices_.end()) {
+    bool is_encrypted = value == kEncryptedStr;
+    if ((!value.empty()) && os::ParameterProvider::GetBtKeystoreInterface() != nullptr &&
+        os::ParameterProvider::IsCommonCriteriaMode() && InEncryptKeyNameList(property) && !is_encrypted) {
+      if (os::ParameterProvider::GetBtKeystoreInterface()->set_encrypt_key_or_remove_key(
+              section + "-" + property, value)) {
+        value = kEncryptedStr;
+      }
+    }
     section_iter->second.insert_or_assign(property, std::move(value));
     PersistentConfigChangedCallback();
     return;
@@ -239,6 +261,10 @@ bool ConfigCache::RemoveProperty(const std::string& section, const std::string& 
     }
     if (value.has_value()) {
       PersistentConfigChangedCallback();
+      if (os::ParameterProvider::GetBtKeystoreInterface() != nullptr && os::ParameterProvider::IsCommonCriteriaMode() &&
+          InEncryptKeyNameList(property)) {
+        os::ParameterProvider::GetBtKeystoreInterface()->set_encrypt_key_or_remove_key(section + "-" + property, "");
+      }
       return true;
     } else {
       return false;
@@ -253,6 +279,35 @@ bool ConfigCache::RemoveProperty(const std::string& section, const std::string& 
     return value.has_value();
   }
   return false;
+}
+
+void ConfigCache::ConvertEncryptOrDecryptKeyIfNeeded() {
+  std::lock_guard<std::recursive_mutex> lock(mutex_);
+  LOG_INFO("%s", __func__);
+  auto persistent_sections = GetPersistentSections();
+  for (const auto& section : persistent_sections) {
+    auto section_iter = persistent_devices_.find(section);
+    for (const auto& property : kEncryptKeyNameList) {
+      auto property_iter = section_iter->second.find(std::string(property));
+      if (property_iter != section_iter->second.end()) {
+        bool is_encrypted = property_iter->second == kEncryptedStr;
+        if ((!property_iter->second.empty()) && os::ParameterProvider::GetBtKeystoreInterface() != nullptr &&
+            os::ParameterProvider::IsCommonCriteriaMode() && !is_encrypted) {
+          if (os::ParameterProvider::GetBtKeystoreInterface()->set_encrypt_key_or_remove_key(
+                  section + "-" + std::string(property), property_iter->second)) {
+            SetProperty(section, std::string(property), kEncryptedStr);
+          }
+        }
+        if (os::ParameterProvider::GetBtKeystoreInterface() != nullptr && is_encrypted) {
+          std::string value_str =
+              os::ParameterProvider::GetBtKeystoreInterface()->get_key(section + "-" + std::string(property));
+          if (!os::ParameterProvider::IsCommonCriteriaMode()) {
+            SetProperty(section, std::string(property), value_str);
+          }
+        }
+      }
+    }
+  }
 }
 
 bool ConfigCache::IsDeviceSection(const std::string& section) {

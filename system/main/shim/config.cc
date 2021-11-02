@@ -156,6 +156,10 @@ std::vector<std::string> BtifConfigInterface::GetPersistentDevices() {
   return GetStorage()->GetConfigCache()->GetPersistentSections();
 }
 
+void BtifConfigInterface::ConvertEncryptOrDecryptKeyIfNeeded() {
+  GetStorage()->GetConfigCache()->ConvertEncryptOrDecryptKeyIfNeeded();
+}
+
 void BtifConfigInterface::Save() { GetStorage()->SaveDelayed(); }
 
 void BtifConfigInterface::Flush() { GetStorage()->SaveImmediately(); }

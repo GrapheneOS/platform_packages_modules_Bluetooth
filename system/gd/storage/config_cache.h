@@ -100,6 +100,7 @@ class ConfigCache {
   virtual void SetProperty(std::string section, std::string property, std::string value);
   virtual bool RemoveSection(const std::string& section);
   virtual bool RemoveProperty(const std::string& section, const std::string& property);
+  virtual void ConvertEncryptOrDecryptKeyIfNeeded();
   // TODO: have a systematic way of doing this instead of specialized methods
   // Remove sections with |property| set
   virtual void RemoveSectionWithProperty(const std::string& property);

@@ -16,15 +16,20 @@
 
 /* BluetoothKeystore Interface */
 
-#include <btif_common.h>
-#include <btif_keystore.h>
-#include "btif_storage.h"
+#include "btif_keystore.h"
 
 #include <base/bind.h>
 #include <base/location.h>
 #include <base/logging.h>
 #include <hardware/bluetooth.h>
+
 #include <map>
+
+#include "btif_common.h"
+#include "btif_storage.h"
+#include "gd/os/parameter_provider.h"
+#include "main/shim/config.h"
+#include "main/shim/shim.h"
 
 using base::Bind;
 using base::Unretained;
@@ -35,27 +40,45 @@ namespace bluetooth {
 namespace bluetooth_keystore {
 class BluetoothKeystoreInterfaceImpl;
 std::unique_ptr<BluetoothKeystoreInterface> bluetoothKeystoreInstance;
+const int CONFIG_COMPARE_ALL_PASS = 0b11;
 
 class BluetoothKeystoreInterfaceImpl
-    : public bluetooth::bluetooth_keystore::BluetoothKeystoreInterface,
-      public bluetooth::bluetooth_keystore::BluetoothKeystoreCallbacks {
+    : public bluetooth::bluetooth_keystore::BluetoothKeystoreInterface {
   ~BluetoothKeystoreInterfaceImpl() override = default;
 
   void init(BluetoothKeystoreCallbacks* callbacks) override {
     VLOG(2) << __func__;
     this->callbacks = callbacks;
-    // Get bonded devices number to get all bonded devices key.
+
+    bluetooth::os::ParameterProvider::SetCommonCriteriaConfigCompareResult(
+        CONFIG_COMPARE_ALL_PASS);
+    ConvertEncryptOrDecryptKeyIfNeeded();
+  }
+
+  void ConvertEncryptOrDecryptKeyIfNeeded() {
+    VLOG(2) << __func__;
+    if (!callbacks) {
+      LOG(INFO) << __func__ << " callback isn't ready.";
+      return;
+    }
+    if (bluetooth::shim::is_any_gd_enabled()) {
+      do_in_jni_thread(
+          FROM_HERE, base::Bind([]() {
+            shim::BtifConfigInterface::ConvertEncryptOrDecryptKeyIfNeeded();
+          }));
+      return;
+    }
     do_in_jni_thread(
         FROM_HERE, base::Bind([]() { btif_storage_get_num_bonded_devices(); }));
   }
 
-  void set_encrypt_key_or_remove_key(std::string prefix,
+  bool set_encrypt_key_or_remove_key(std::string prefix,
                                      std::string decryptedString) override {
     VLOG(2) << __func__ << " prefix: " << prefix;
 
     if (!callbacks) {
       LOG(WARNING) << __func__ << " callback isn't ready. prefix: " << prefix;
-      return;
+      return false;
     }
 
     // Save the value into a map.
@@ -65,6 +88,7 @@ class BluetoothKeystoreInterfaceImpl
         base::Bind(&bluetooth::bluetooth_keystore::BluetoothKeystoreCallbacks::
                        set_encrypt_key_or_remove_key,
                    base::Unretained(callbacks), prefix, decryptedString));
+    return true;
   }
 
   std::string get_key(std::string prefix) override {
