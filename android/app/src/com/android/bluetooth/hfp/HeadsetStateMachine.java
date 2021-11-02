@@ -864,6 +864,11 @@ public class HeadsetStateMachine extends StateMachine {
                     break;
                 }
                 case DEVICE_STATE_CHANGED:
+                    if (mDeviceSilenced) {
+                        stateLogW("DEVICE_STATE_CHANGED: " + mDevice
+                                + " is silenced, skip notify state changed.");
+                        break;
+                    }
                     mNativeInterface.notifyDeviceStatus(mDevice, (HeadsetDeviceState) message.obj);
                     break;
                 case SEND_CCLC_RESPONSE:
