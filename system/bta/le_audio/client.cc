@@ -414,6 +414,12 @@ class LeAudioClientImpl : public LeAudioClient {
                                    group_id);
   }
 
+  void remove_group_if_possible(LeAudioDeviceGroup* group) {
+    if (group && group->IsEmpty() && !group->cig_created_) {
+      aseGroups_.Remove(group->group_id_);
+    }
+  }
+
   void group_remove_node(LeAudioDeviceGroup* group, const RawAddress& address,
                          bool update_group_module = false) {
     int group_id = group->group_id_;
@@ -431,8 +437,7 @@ class LeAudioClientImpl : public LeAudioClient {
 
     /* Remove group if this was the last leAudioDevice in this group */
     if (group->IsEmpty()) {
-      aseGroups_.Remove(group_id);
-
+      remove_group_if_possible(group);
       return;
     }
 
@@ -657,6 +662,12 @@ class LeAudioClientImpl : public LeAudioClient {
       return;
     }
 
+    if (leAudioDevice->conn_id_ != GATT_INVALID_CONN_ID) {
+      Disconnect(address);
+      leAudioDevice->removing_device_ = true;
+      return;
+    }
+
     /* Remove the group assignment if not yet removed. It might happen that the
      * group module has already called the appropriate callback and we have
      * already removed the group assignment.
@@ -664,12 +675,6 @@ class LeAudioClientImpl : public LeAudioClient {
     if (leAudioDevice->group_id_ != bluetooth::groups::kGroupUnknown) {
       auto group = aseGroups_.FindById(leAudioDevice->group_id_);
       group_remove_node(group, address, true);
-    }
-
-    if (leAudioDevice->conn_id_ != GATT_INVALID_CONN_ID) {
-      Disconnect(address);
-      leAudioDevice->removing_device_ = true;
-      return;
     }
 
     leAudioDevices_.Remove(address);
@@ -1181,7 +1186,13 @@ class LeAudioClientImpl : public LeAudioClient {
     leAudioDevice->conn_id_ = GATT_INVALID_CONN_ID;
     leAudioDevice->encrypted_ = false;
 
-    if (leAudioDevice->removing_device_) leAudioDevices_.Remove(address);
+    if (leAudioDevice->removing_device_) {
+      if (leAudioDevice->group_id_ != bluetooth::groups::kGroupUnknown) {
+        auto group = aseGroups_.FindById(leAudioDevice->group_id_);
+        group_remove_node(group, address, true);
+      }
+      leAudioDevices_.Remove(address);
+    }
   }
 
   bool subscribe_for_indications(uint16_t conn_id, const RawAddress& address,
@@ -2524,6 +2535,7 @@ class LeAudioClientImpl : public LeAudioClient {
         auto* evt = static_cast<cig_remove_cmpl_evt*>(data);
         LeAudioDeviceGroup* group = aseGroups_.FindById(evt->cig_id);
         groupStateMachine_->ProcessHciNotifOnCigRemove(evt->status, group);
+        remove_group_if_possible(group);
       } break;
       default:
         LOG(ERROR) << __func__ << " Invalid event " << int{event_type};
