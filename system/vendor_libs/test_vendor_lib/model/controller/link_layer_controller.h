@@ -181,6 +181,7 @@ class LinkLayerController {
   bool LeConnectListContainsDevice(Address addr, uint8_t addr_type);
   bool LeConnectListFull();
   bool ResolvingListBusy();
+  ErrorCode LeSetAddressResolutionEnable(bool enable);
   ErrorCode LeResolvingListClear();
   ErrorCode LeResolvingListAddDevice(Address addr, uint8_t addr_type,
                                      std::array<uint8_t, kIrkSize> peerIrk,
@@ -463,6 +464,7 @@ class LinkLayerController {
     std::array<uint8_t, kIrkSize> local_irk;
   };
   std::vector<ResolvingListEntry> le_resolving_list_;
+  bool le_resolving_list_enabled_{false};
 
   std::array<LeAdvertiser, 7> advertisers_;
 

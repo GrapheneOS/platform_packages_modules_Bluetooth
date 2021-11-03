@@ -1611,12 +1611,16 @@ void DualModeController::LeReadBufferSizeV2(CommandView command) {
 }
 
 void DualModeController::LeSetAddressResolutionEnable(CommandView command) {
-    // NOP
-    auto payload =
-      std::make_unique<bluetooth::packet::RawBuilder>(std::vector<uint8_t>(
-          {static_cast<uint8_t>(bluetooth::hci::ErrorCode::SUCCESS)}));
-  send_event_(bluetooth::hci::CommandCompleteBuilder::Create(
-      kNumCommandPackets, command.GetOpCode(), std::move(payload)));
+  auto command_view = gd_hci::LeSetAddressResolutionEnableView::Create(
+      gd_hci::LeSecurityCommandView::Create(
+          gd_hci::SecurityCommandView::Create(command)));
+  ASSERT(command_view.IsValid());
+  auto status = link_layer_controller_.LeSetAddressResolutionEnable(
+      command_view.GetAddressResolutionEnable() ==
+      bluetooth::hci::Enable::ENABLED);
+  send_event_(
+      bluetooth::hci::LeSetAddressResolutionEnableCompleteBuilder::Create(
+          kNumCommandPackets, status));
 }
 
 void DualModeController::LeSetResovalablePrivateAddressTimeout(CommandView command) {
