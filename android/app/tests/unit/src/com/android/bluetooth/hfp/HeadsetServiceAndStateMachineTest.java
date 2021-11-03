@@ -954,8 +954,7 @@ public class HeadsetServiceAndStateMachineTest {
         mHeadsetService.startVoiceRecognition(deviceA);
         verify(mNativeInterface, timeout(ASYNC_CALL_TIMEOUT_MILLIS)).atResponseCode(deviceA,
                 HeadsetHalConstants.AT_RESPONSE_OK, 0);
-        verify(mAudioManager, timeout(ASYNC_CALL_TIMEOUT_MILLIS))
-                .setParameters("A2dpSuspended=true");
+        verify(mAudioManager, timeout(ASYNC_CALL_TIMEOUT_MILLIS)).setA2dpSuspended(true);
         verify(mNativeInterface, timeout(ASYNC_CALL_TIMEOUT_MILLIS)).connectAudio(deviceA);
         verifyNoMoreInteractions(mNativeInterface);
     }
@@ -1008,8 +1007,7 @@ public class HeadsetServiceAndStateMachineTest {
         // We still continue on the initiating HF
         verify(mNativeInterface, timeout(ASYNC_CALL_TIMEOUT_MILLIS)).atResponseCode(deviceA,
                 HeadsetHalConstants.AT_RESPONSE_OK, 0);
-        verify(mAudioManager, timeout(ASYNC_CALL_TIMEOUT_MILLIS))
-                .setParameters("A2dpSuspended=true");
+        verify(mAudioManager, timeout(ASYNC_CALL_TIMEOUT_MILLIS)).setA2dpSuspended(true);
         verify(mNativeInterface, timeout(ASYNC_CALL_TIMEOUT_MILLIS)).connectAudio(deviceA);
         verifyNoMoreInteractions(mNativeInterface);
     }
@@ -1084,8 +1082,7 @@ public class HeadsetServiceAndStateMachineTest {
         verify(mNativeInterface).setActiveDevice(deviceA);
         Assert.assertEquals(deviceA, mHeadsetService.getActiveDevice());
         verify(mNativeInterface, timeout(ASYNC_CALL_TIMEOUT_MILLIS)).startVoiceRecognition(deviceA);
-        verify(mAudioManager, timeout(ASYNC_CALL_TIMEOUT_MILLIS))
-                .setParameters("A2dpSuspended=true");
+        verify(mAudioManager, timeout(ASYNC_CALL_TIMEOUT_MILLIS)).setA2dpSuspended(true);
         verify(mNativeInterface, timeout(ASYNC_CALL_TIMEOUT_MILLIS)).connectAudio(deviceA);
         waitAndVerifyAudioStateIntent(ASYNC_CALL_TIMEOUT_MILLIS, deviceA,
                 BluetoothHeadset.STATE_AUDIO_CONNECTING, BluetoothHeadset.STATE_AUDIO_DISCONNECTED);
@@ -1133,8 +1130,7 @@ public class HeadsetServiceAndStateMachineTest {
         Assert.assertTrue(mHeadsetService.startVoiceRecognition(device));
         verify(mNativeInterface, timeout(ASYNC_CALL_TIMEOUT_MILLIS)).atResponseCode(device,
                 HeadsetHalConstants.AT_RESPONSE_OK, 0);
-        verify(mAudioManager, timeout(ASYNC_CALL_TIMEOUT_MILLIS))
-                .setParameters("A2dpSuspended=true");
+        verify(mAudioManager, timeout(ASYNC_CALL_TIMEOUT_MILLIS)).setA2dpSuspended(true);
         verify(mNativeInterface, timeout(ASYNC_CALL_TIMEOUT_MILLIS)).connectAudio(device);
         waitAndVerifyAudioStateIntent(ASYNC_CALL_TIMEOUT_MILLIS, device,
                 BluetoothHeadset.STATE_AUDIO_CONNECTING, BluetoothHeadset.STATE_AUDIO_DISCONNECTED);
@@ -1151,8 +1147,7 @@ public class HeadsetServiceAndStateMachineTest {
         Assert.assertNotNull(device);
         Assert.assertTrue(mHeadsetService.startVoiceRecognition(device));
         verify(mNativeInterface, timeout(ASYNC_CALL_TIMEOUT_MILLIS)).startVoiceRecognition(device);
-        verify(mAudioManager, timeout(ASYNC_CALL_TIMEOUT_MILLIS))
-                .setParameters("A2dpSuspended=true");
+        verify(mAudioManager, timeout(ASYNC_CALL_TIMEOUT_MILLIS)).setA2dpSuspended(true);
         verify(mNativeInterface, timeout(ASYNC_CALL_TIMEOUT_MILLIS)).connectAudio(device);
         waitAndVerifyAudioStateIntent(ASYNC_CALL_TIMEOUT_MILLIS, device,
                 BluetoothHeadset.STATE_AUDIO_CONNECTING, BluetoothHeadset.STATE_AUDIO_DISCONNECTED);
