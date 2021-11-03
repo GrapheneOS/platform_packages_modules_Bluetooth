@@ -111,7 +111,7 @@ public class HeadsetClientService extends ProfileService {
                 Log.e(TAG, "AudioManager service doesn't exist?");
             } else {
                 // start AudioManager in a known state
-                mAudioManager.setParameters("hfp_enable=false");
+                mAudioManager.setHfpEnabled(false);
             }
 
             mSmFactory = new HeadsetClientStateMachineFactory();
@@ -200,7 +200,7 @@ public class HeadsetClientService extends ProfileService {
                                 "Setting volume to audio manager: " + streamValue + " hands free: "
                                         + hfVol);
                     }
-                    mAudioManager.setParameters("hfp_volume=" + hfVol);
+                    mAudioManager.setHfpVolume(hfVol);
                     synchronized (mStateMachineMap) {
                         for (HeadsetClientStateMachine sm : mStateMachineMap.values()) {
                             if (sm != null) {
