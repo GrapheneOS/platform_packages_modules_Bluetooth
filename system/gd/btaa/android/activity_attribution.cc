@@ -46,41 +46,62 @@ static const std::string kBtWakelockName("hal_bluetooth_lock");
 static const std::string kBtWakeupReason("hs_uart_wakeup");
 static const size_t kHciAclHeaderSize = 4;
 
+static std::mutex g_module_mutex;
+static ActivityAttribution* g_module = nullptr;
+static bool is_wakeup_callback_registered = false;
+static bool is_wakelock_callback_registered = false;
+
 struct wakelock_callback : public BnWakelockCallback {
-  wakelock_callback(ActivityAttribution* module) : module_(module) {}
+  wakelock_callback() {}
 
   Status notifyAcquired() override {
-    module_->OnWakelockAcquired();
+    std::lock_guard<std::mutex> guard(g_module_mutex);
+    if (g_module != nullptr) {
+      g_module->OnWakelockAcquired();
+    }
     return Status::ok();
   }
   Status notifyReleased() override {
-    module_->OnWakelockReleased();
+    std::lock_guard<std::mutex> guard(g_module_mutex);
+    if (g_module != nullptr) {
+      g_module->OnWakelockReleased();
+    }
     return Status::ok();
   }
-
-  ActivityAttribution* module_;
 };
 
+static std::shared_ptr<wakelock_callback> g_wakelock_callback = nullptr;
+
 struct wakeup_callback : public BnSuspendCallback {
-  wakeup_callback(ActivityAttribution* module) : module_(module) {}
+  wakeup_callback() {}
 
   Status notifyWakeup(bool success, const std::vector<std::string>& wakeup_reasons) override {
     for (auto& wakeup_reason : wakeup_reasons) {
       if (wakeup_reason.find(kBtWakeupReason) != std::string::npos) {
-        module_->OnWakeup();
+        std::lock_guard<std::mutex> guard(g_module_mutex);
+        if (g_module != nullptr) {
+          g_module->OnWakeup();
+        }
         break;
       }
     }
     return Status::ok();
   }
-
-  ActivityAttribution* module_;
 };
+
+static std::shared_ptr<wakeup_callback> g_wakeup_callback = nullptr;
 
 struct ActivityAttribution::impl {
   impl(ActivityAttribution* module) {
-    bool is_registered = false;
+    std::lock_guard<std::mutex> guard(g_module_mutex);
+    g_module = module;
+    if (is_wakeup_callback_registered && is_wakelock_callback_registered) {
+      LOG_ERROR("Wakeup and wakelock callbacks are already registered");
+      return;
+    }
 
+    Status register_callback_status;
+    bool is_register_successful = false;
     auto control_service =
         ISuspendControlService::fromBinder(SpAIBinder(AServiceManager_getService("suspend_control")));
     if (!control_service) {
@@ -88,19 +109,31 @@ struct ActivityAttribution::impl {
       return;
     }
 
-    Status register_callback_status =
-        control_service->registerCallback(SharedRefBase::make<wakeup_callback>(module), &is_registered);
-    if (!is_registered || !register_callback_status.isOk()) {
-      LOG_ERROR("Fail to register wakeup callback");
-      return;
+    if (!is_wakeup_callback_registered) {
+      g_wakeup_callback = SharedRefBase::make<wakeup_callback>();
+      register_callback_status = control_service->registerCallback(g_wakeup_callback, &is_register_successful);
+      if (!is_register_successful || !register_callback_status.isOk()) {
+        LOG_ERROR("Fail to register wakeup callback");
+        return;
+      }
+      is_wakeup_callback_registered = true;
     }
 
-    register_callback_status = control_service->registerWakelockCallback(
-        SharedRefBase::make<wakelock_callback>(module), kBtWakelockName, &is_registered);
-    if (!is_registered || !register_callback_status.isOk()) {
-      LOG_ERROR("Fail to register wakelock callback");
-      return;
+    if (!is_wakelock_callback_registered) {
+      g_wakelock_callback = SharedRefBase::make<wakelock_callback>();
+      register_callback_status =
+          control_service->registerWakelockCallback(g_wakelock_callback, kBtWakelockName, &is_register_successful);
+      if (!is_register_successful || !register_callback_status.isOk()) {
+        LOG_ERROR("Fail to register wakelock callback");
+        return;
+      }
+      is_wakelock_callback_registered = true;
     }
+  }
+
+  ~impl() {
+    std::lock_guard<std::mutex> guard(g_module_mutex);
+    g_module = nullptr;
   }
 
   void on_hci_packet(hal::HciPacket packet, hal::SnoopLogger::PacketType type, uint16_t length) {
