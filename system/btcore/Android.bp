@@ -8,8 +8,8 @@ package {
     default_applicable_licenses: ["system_bt_license"],
 }
 
-cc_library_static {
-    name: "libbtcore",
+cc_defaults {
+    name: "libbtcore_defaults",
     defaults: ["fluoride_defaults"],
     local_include_dirs: ["include"],
     include_dirs: [
@@ -33,6 +33,17 @@ cc_library_static {
             cflags: ["-D_GNU_SOURCE"],
         },
     },
+}
+
+cc_library_static {
+    name: "libbtcore",
+    defaults: ["libbtcore_defaults"],
+}
+
+cc_library_static {
+    name: "libbtcore-static",
+    defaults: ["libbtcore_defaults"],
+    cflags: ["-DSTATIC_LIBBLUETOOTH"],
 }
 
 cc_library_headers {

@@ -29,6 +29,7 @@ cxxbridge_header("btif_bridge_header") {
     "src/profiles/avrcp.rs",
     "src/profiles/hfp.rs",
     "src/profiles/gatt.rs",
+    "src/controller.rs",
   ]
   all_dependent_configs = [ ":rust_topshim_config" ]
   deps = [":cxxlibheader"]
@@ -41,8 +42,9 @@ cxxbridge_cc("btif_bridge_code") {
     "src/profiles/avrcp.rs",
     "src/profiles/hfp.rs",
     "src/profiles/gatt.rs",
+    "src/controller.rs",
   ]
-  deps = [":btif_bridge_header"]
+  deps = [":btif_bridge_header", "//bt/gd:BluetoothGeneratedPackets_h"]
   configs = [ "//bt/gd:gd_defaults" ]
 }
 
@@ -53,9 +55,10 @@ source_set("btif_cxx_bridge_code") {
     "btav_sink/btav_sink_shim.cc",
     "hfp/hfp_shim.cc",
     "gatt/gatt_shim.cc",
+    "controller/controller_shim.cc",
   ]
 
-  deps = [":btif_bridge_header"]
+  deps = [":btif_bridge_header", "//bt/gd:BluetoothGeneratedPackets_h"]
   configs += ["//bt/gd:gd_defaults"]
 }
 
