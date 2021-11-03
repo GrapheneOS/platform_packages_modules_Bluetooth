@@ -182,8 +182,11 @@ pub mod ffi {
 
         unsafe fn GetA2dpSinkProfile(btif: *const u8) -> UniquePtr<A2dpSinkIntf>;
 
-        fn init(self: Pin<&mut A2dpSinkIntf>) -> i32;
-        fn cleanup(self: Pin<&mut A2dpSinkIntf>);
+        fn init(self: &A2dpSinkIntf) -> i32;
+        fn connect(self: &A2dpSinkIntf, bt_addr: RustRawAddress) -> i32;
+        fn disconnect(self: &A2dpSinkIntf, bt_addr: RustRawAddress) -> i32;
+        fn set_active_device(self: &A2dpSinkIntf, bt_addr: RustRawAddress) -> i32;
+        fn cleanup(self: &A2dpSinkIntf);
     }
     extern "Rust" {
         fn connection_state_callback(addr: RustRawAddress, state: u32);
@@ -368,8 +371,20 @@ impl A2dpSink {
         if get_dispatchers().lock().unwrap().set::<A2dpSinkCb>(Arc::new(Mutex::new(callbacks))) {
             panic!("Tried to set dispatcher for A2dp Sink Callbacks while it already exists");
         }
-        self.internal.pin_mut().init();
+        self.internal.init();
         true
+    }
+
+    pub fn connect(&mut self, bt_addr: RawAddress) {
+        self.internal.connect(bt_addr.into());
+    }
+
+    pub fn disconnect(&mut self, bt_addr: RawAddress) {
+        self.internal.disconnect(bt_addr.into());
+    }
+
+    pub fn set_active_device(&mut self, bt_addr: RawAddress) {
+        self.internal.set_active_device(bt_addr.into());
     }
 
     pub fn cleanup(&mut self) {}

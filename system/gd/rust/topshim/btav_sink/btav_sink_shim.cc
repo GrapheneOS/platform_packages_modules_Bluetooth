@@ -19,6 +19,8 @@
 #include <memory>
 
 #include "include/hardware/bluetooth.h"
+#include "rust/cxx.h"
+#include "src/profiles/a2dp.rs.h"
 #include "types/raw_address.h"
 
 namespace bluetooth {
@@ -37,6 +39,12 @@ btav_sink_callbacks_t g_a2dp_sink_callbacks = {
     audio_state_cb,
     audio_config_cb,
 };
+
+static RawAddress from_rust_address(const RustRawAddress& raddr) {
+  RawAddress addr;
+  addr.FromOctets(raddr.address.data());
+  return addr;
+}
 }  // namespace internal
 
 A2dpSinkIntf::~A2dpSinkIntf() {
@@ -54,11 +62,23 @@ std::unique_ptr<A2dpSinkIntf> GetA2dpSinkProfile(const unsigned char* btif) {
   return a2dp_sink;
 }
 
-int A2dpSinkIntf::init() {
+int A2dpSinkIntf::init() const {
   return intf_->init(&internal::g_a2dp_sink_callbacks, 1);
 }
 
-void A2dpSinkIntf::cleanup() {
+int A2dpSinkIntf::connect(RustRawAddress bt_addr) const {
+  return intf_->connect(internal::from_rust_address(bt_addr));
+}
+
+int A2dpSinkIntf::disconnect(RustRawAddress bt_addr) const {
+  return intf_->disconnect(internal::from_rust_address(bt_addr));
+}
+
+int A2dpSinkIntf::set_active_device(RustRawAddress bt_addr) const {
+  return intf_->set_active_device(internal::from_rust_address(bt_addr));
+}
+
+void A2dpSinkIntf::cleanup() const {
   // TODO: Implement.
 }
 
