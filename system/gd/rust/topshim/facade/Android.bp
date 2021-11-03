@@ -12,6 +12,7 @@ rust_binary_host {
     defaults: ["gd_rust_defaults"],
     crate_name: "bt_topshim_facade",
     srcs: ["src/main.rs"],
+    ld_flags: ["-fsanitize=undefined", "-fsanitize-minimal-runtime"],
     rustlibs: [
         "libbluetooth_rs",
         "libbt_common",
@@ -25,17 +26,18 @@ rust_binary_host {
         "libbt_facade_helpers",
         "libbt_topshim",
         "libbt_topshim_facade_protobuf",
+        "libbt_shim",
     ],
     static_libs: [
         "libbt_topshim_cxx",
         "libbt-bta",
         "libbt-common",
         "libbtdevice",
-        "libbtif",
+        "libbtif-static",
         "libbt-hci",
         "libbt-stack",
         "libbt-utils",
-        "libbtcore",
+        "libbtcore-static",
         "libosi",
         "libbt-protos-lite",
         "libbte",
@@ -46,18 +48,19 @@ rust_binary_host {
         "liblc3codec",
         "libudrv-uipc",
         "libbluetooth_gd", // Gabeldorsche
-        "libbluetooth_rust_interop",
         "libbluetooth-dumpsys",
+        "libbluetooth-types",
         "libflatbuffers-cpp",
+        "libbt_shim_bridge",
     ],
     shared_libs: [
         "libcrypto",
-        "libbluetooth",
         "libchrome",
+        "liblog",
+        "libcutils",
+        "libgrpc++",
+        "libgrpc_wrap"
     ],
-    sanitize: {
-        never: true,
-    },
     proc_macros: [
         "libpaste",
     ],

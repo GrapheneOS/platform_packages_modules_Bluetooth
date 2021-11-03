@@ -88,8 +88,8 @@ genrule {
 }
 
 // libbtif static library for target
-cc_library_static {
-    name: "libbtif",
+cc_defaults {
+    name: "libbtif_defaults",
     defaults: ["fluoride_defaults"],
     include_dirs: btifCommonIncludes,
     srcs: [
@@ -193,6 +193,17 @@ cc_library_static {
         "-DBUILDCFG",
     ],
     host_supported: true,
+}
+
+cc_library_static {
+    name: "libbtif",
+    defaults: ["libbtif_defaults"],
+}
+
+cc_library_static {
+    name: "libbtif-static",
+    defaults: ["libbtif_defaults"],
+    cflags: ["-DSTATIC_LIBBLUETOOTH"],
 }
 
 // btif unit tests for target

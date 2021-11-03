@@ -26,8 +26,8 @@ cc_defaults {
     },
 }
 
-rust_ffi_static {
-    name: "libbt_shim_ffi",
+rust_defaults {
+    name: "libbt_shim_defaults",
     defaults: ["gd_rust_defaults"],
     crate_name: "bt_shim",
     srcs: ["src/lib.rs"],
@@ -51,8 +51,18 @@ rust_ffi_static {
     ],
 }
 
+rust_library_rlib {
+    name: "libbt_shim",
+    defaults: ["libbt_shim_defaults"],
+}
+
+rust_ffi_static {
+    name: "libbt_shim_ffi",
+    defaults: ["libbt_shim_defaults"],
+}
+
 cc_library_static {
-    name: "libbluetooth_rust_interop",
+    name: "libbt_shim_bridge",
     defaults: ["gd_ffi_defaults"],
     generated_headers: [
         "libbt_init_flags_bridge_header",
@@ -87,9 +97,16 @@ cc_library_static {
     shared_libs: [
         "libchrome",
     ],
+}
+
+cc_library_static {
+    name: "libbluetooth_rust_interop",
+    defaults: ["gd_ffi_defaults"],
     whole_static_libs: [
+        "libbt_shim_bridge",
         "libbt_shim_ffi",
     ],
+    host_supported: true,
 }
 
 cc_library_static {
