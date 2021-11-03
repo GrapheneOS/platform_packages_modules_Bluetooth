@@ -21,6 +21,18 @@ use tokio::runtime::Runtime;
 mod adapter_service;
 mod media_service;
 
+// This is needed for linking, libbt_shim_bridge needs symbols defined by
+// bt_shim, however bt_shim depends on rust crates (future, tokio) that
+// we use too, if we build and link them separately we ends with duplicate
+// symbols. To solve that we build bt_shim with bt_topshim_facade so the rust
+// compiler share the transitive dependencies.
+//
+// The `::*` is here to circuvent the single_component_path_imports from
+// clippy that is denied on the rust command line so we can't just allow it.
+// This is fine for now since bt_shim doesn't export anything
+#[allow(unused)]
+use bt_shim::*;
+
 fn main() {
     let sigint = install_sigint();
     bt_common::init_logging();
