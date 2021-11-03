@@ -120,7 +120,9 @@ extern bool btm_ble_read_resolving_list_entry(tBTM_SEC_DEV_REC* p_dev_rec);
 extern bool btm_ble_addr_resolvable(const RawAddress& rpa,
                                     tBTM_SEC_DEV_REC* p_dev_rec);
 
-extern bool btm_ble_resolving_list_load_dev(tBTM_SEC_DEV_REC* p_dev_rec);
+extern void btm_ble_resolving_list_load_dev(tBTM_SEC_DEV_REC& p_dev_rec);
+extern bool btm_ble_resolving_list_load_dev(
+    tBTM_SEC_DEV_REC* p_dev_rec);  // DEPRECATED
 extern void btm_ble_resolving_list_remove_dev(tBTM_SEC_DEV_REC* p_dev_rec);
 extern void btm_ble_enable_resolving_list(uint8_t);
 extern bool btm_ble_disable_resolving_list(uint8_t rl_mask, bool to_resume);
