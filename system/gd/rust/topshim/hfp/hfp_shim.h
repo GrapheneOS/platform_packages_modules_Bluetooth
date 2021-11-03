@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <memory>
+
 #include "btif/include/btif_hf.h"
 #include "include/hardware/bluetooth_headset_callbacks.h"
 #include "types/raw_address.h"
