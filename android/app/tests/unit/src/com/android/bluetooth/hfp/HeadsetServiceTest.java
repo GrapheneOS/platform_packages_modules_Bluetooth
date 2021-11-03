@@ -706,7 +706,7 @@ public class HeadsetServiceTest {
                 headsetCallState.mType, headsetCallState.mName, mAdapter.getAttributionSource());
         TestUtils.waitForLooperToFinishScheduledTask(
                 mHeadsetService.getStateMachinesThreadLooper());
-        verify(mAudioManager, never()).setParameters("A2dpSuspended=true");
+        verify(mAudioManager, never()).setA2dpSuspended(true);
         HeadsetTestUtils.verifyPhoneStateChangeSetters(mPhoneState, headsetCallState,
                 ASYNC_CALL_TIMEOUT_MILLIS);
     }
@@ -765,7 +765,7 @@ public class HeadsetServiceTest {
                 mHeadsetService.getStateMachinesThreadLooper());
 
         // Should not ask Audio HAL to suspend A2DP without active device
-        verify(mAudioManager, never()).setParameters("A2dpSuspended=true");
+        verify(mAudioManager, never()).setA2dpSuspended(true);
         // Make sure we notify device about this change
         verify(mStateMachines.get(mCurrentDevice)).sendMessage(
                 HeadsetStateMachine.CALL_STATE_CHANGED, headsetCallState);
@@ -783,7 +783,7 @@ public class HeadsetServiceTest {
         TestUtils.waitForLooperToFinishScheduledTask(
                 mHeadsetService.getStateMachinesThreadLooper());
         // Ask Audio HAL to suspend A2DP
-        verify(mAudioManager).setParameters("A2dpSuspended=true");
+        verify(mAudioManager).setA2dpSuspended(true);
         // Make sure state is updated
         verify(mStateMachines.get(mCurrentDevice)).sendMessage(
                 HeadsetStateMachine.CALL_STATE_CHANGED, headsetCallState);
@@ -847,8 +847,7 @@ public class HeadsetServiceTest {
                 headsetCallState.mNumHeld, headsetCallState.mCallState, headsetCallState.mNumber,
                 headsetCallState.mType, headsetCallState.mName, mAdapter.getAttributionSource());
         // Ask Audio HAL to suspend A2DP
-        verify(mAudioManager, timeout(ASYNC_CALL_TIMEOUT_MILLIS))
-                .setParameters("A2dpSuspended=true");
+        verify(mAudioManager, timeout(ASYNC_CALL_TIMEOUT_MILLIS)).setA2dpSuspended(true);
         // Make sure we notify devices about this change
         for (BluetoothDevice device : connectedDevices) {
             verify(mStateMachines.get(device)).sendMessage(HeadsetStateMachine.CALL_STATE_CHANGED,
