@@ -102,6 +102,7 @@ static_library("btif") {
     "//bt/device/include",
     "//bt/embdrv/sbc/encoder/include",
     "//bt/embdrv/sbc/decoder/include",
+    "//bt/gd",
     "//bt/hci/include",
     "//bt/stack/a2dp",
     "//bt/stack/btm",
