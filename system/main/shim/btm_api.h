@@ -366,26 +366,6 @@ void BTM_RemoveEirService(uint32_t* p_eir_uuid, uint16_t uuid16);
 
 /*******************************************************************************
  *
- * Function         BTM_GetEirSupportedServices
- *
- * Description      This function is called to get UUID list from bit map UUID
- *                  list.
- *
- * Parameters       p_eir_uuid - bit mask of UUID list for EIR
- *                  p - reference of current pointer of EIR
- *                  max_num_uuid16 - max number of UUID can be written in EIR
- *                  num_uuid16 - number of UUID have been written in EIR
- *
- * Returns          HCI_EIR_MORE_16BITS_UUID_TYPE, if it has more than max
- *                  HCI_EIR_COMPLETE_16BITS_UUID_TYPE, otherwise
- *
- ******************************************************************************/
-uint8_t BTM_GetEirSupportedServices(uint32_t* p_eir_uuid, uint8_t** p,
-                                    uint8_t max_num_uuid16,
-                                    uint8_t* p_num_uuid16);
-
-/*******************************************************************************
- *
  * Function         BTM_SecAddBleDevice
  *
  * Description      Add/modify device.  This function will be normally called
