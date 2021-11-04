@@ -8,6 +8,7 @@ extern crate bitflags;
 
 pub mod bindings;
 pub mod btif;
+pub mod btm_sec;
 pub mod controller;
 pub mod profiles;
 pub mod topstack;
