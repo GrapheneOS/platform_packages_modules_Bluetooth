@@ -485,16 +485,21 @@ void BTM_ReadDevInfo(const RawAddress& remote_bda, tBT_DEVICE_TYPE* p_dev_type,
       p_dev_rec->device_type = p_inq_info->results.device_type;
       p_dev_rec->ble.ble_addr_type = p_inq_info->results.ble_addr_type;
     }
-    if (p_dev_rec->bd_addr == remote_bda && p_dev_rec->device_type != 0) {
+
+    if (p_dev_rec->bd_addr == remote_bda &&
+        p_dev_rec->ble.pseudo_addr == remote_bda) {
       *p_dev_type = p_dev_rec->device_type;
       *p_addr_type = p_dev_rec->ble.ble_addr_type;
     } else if (p_dev_rec->ble.pseudo_addr == remote_bda) {
       *p_dev_type = BT_DEVICE_TYPE_BLE;
       *p_addr_type = p_dev_rec->ble.ble_addr_type;
-    } else /* matching static adddress only */
-    {
-      LOG(ERROR) << __func__ << " device_type not set; assuming BR/EDR";
-      *p_dev_type = BT_DEVICE_TYPE_BREDR;
+    } else /* matching static adddress only */ {
+      if (p_dev_rec->device_type != BT_DEVICE_TYPE_UNKNOWN) {
+        *p_dev_type = p_dev_rec->device_type;
+      } else {
+        LOG_WARN("device_type not set; assuming BR/EDR");
+        *p_dev_type = BT_DEVICE_TYPE_BREDR;
+      }
       *p_addr_type = BLE_ADDR_PUBLIC;
     }
   }
