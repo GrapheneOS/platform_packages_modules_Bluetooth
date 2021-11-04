@@ -18,6 +18,6 @@
 #include "bta_le_audio_api.h"
 
 bool LeAudioHalVerifier::SupportsLeAudio() {
-  return bluetooth::audio::HalVersionManager::GetHalVersion() ==
+  return bluetooth::audio::HalVersionManager::GetHalVersion() >=
          bluetooth::audio::BluetoothAudioHalVersion::VERSION_2_1;
 }
