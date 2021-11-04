@@ -31,7 +31,7 @@ public class PlayStatus {
     static final byte REV_SEEK = 4;
     static final byte ERROR = -1;
 
-    public long position = 0xFFFFFFFFFFFFFFFFL;
+    public long position = 0;
     public long duration = 0x00L;
     public byte state = STOPPED;
 
@@ -41,7 +41,7 @@ public class PlayStatus {
         if (state == null) return ret;
 
         ret.state = playbackStateToAvrcpState(state.getState());
-        ret.position = state.getPosition();
+        ret.position = (state.getPosition() > 0) ? state.getPosition() : 0;
         ret.duration = duration;
         return ret;
     }
