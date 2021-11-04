@@ -60,7 +60,7 @@ namespace uuid {
  * Place holder
  */
 static const bluetooth::Uuid kCapServiceUuid =
-    bluetooth::Uuid::From16Bit(0xEEEE);
+    bluetooth::Uuid::From16Bit(0x8FE0);
 
 /* Assigned numbers for attributes */
 static const bluetooth::Uuid kPublishedAudioCapabilityServiceUuid =
