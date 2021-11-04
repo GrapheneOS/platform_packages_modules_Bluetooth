@@ -52,7 +52,6 @@ cc_library_static {
         "gatt/gatt_shim.cc",
         "hfp/hfp_shim.cc",
         "controller/controller_shim.cc",
-        "btm_sec/btm_sec_shim.cc",
     ],
     generated_headers: ["libbt_topshim_bridge_header", "cxx-bridge-header"],
     generated_sources: ["libbt_topshim_bridge_code"],
@@ -62,12 +61,9 @@ cc_library_static {
     include_dirs: [
         "packages/modules/Bluetooth/system",
         "packages/modules/Bluetooth/system/gd/rust/topshim",
-        "packages/modules/Bluetooth/system/internal_include",
         "packages/modules/Bluetooth/system/include",
         "packages/modules/Bluetooth/system/types",
-        "packages/modules/Bluetooth/system/stack/include",
     ],
-    cflags: ["-DHAS_NO_BDROID_BUILDCFG"],
     host_supported: true,
 }
 
@@ -82,7 +78,6 @@ gensrcs {
         "src/profiles/hfp.rs",
         "src/profiles/gatt.rs",
         "src/controller.rs",
-        "src/btm_sec.rs",
     ],
     output_extension: "rs.h",
     export_include_dirs: ["."],
@@ -99,7 +94,6 @@ gensrcs {
         "src/profiles/hfp.rs",
         "src/profiles/gatt.rs",
         "src/controller.rs",
-        "src/btm_sec.rs",
     ],
     output_extension: "cc",
     export_include_dirs: ["."],
