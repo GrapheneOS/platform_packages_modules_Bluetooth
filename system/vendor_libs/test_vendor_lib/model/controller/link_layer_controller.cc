@@ -1566,8 +1566,6 @@ void LinkLayerController::IncomingLeScanResponsePacket(
   auto adv_type = scan_response.GetAdvertisementType();
   auto address_type =
       static_cast<LeAdvertisement::AddressType>(scan_response.GetAddressType());
-  LOG_INFO("Scan response with %s",
-           bluetooth::hci::OpCodeText(le_scan_enable_).c_str());
   if (le_scan_enable_ == bluetooth::hci::OpCode::LE_SET_SCAN_ENABLE) {
     if (adv_type != model::packets::AdvertisementType::SCAN_RESPONSE) {
       return;
