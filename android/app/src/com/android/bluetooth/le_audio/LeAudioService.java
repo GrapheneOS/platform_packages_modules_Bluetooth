@@ -749,7 +749,7 @@ public class LeAudioService extends ProfileService {
         if (device != null && mPreviousAudioOutDevice != null) {
             int previousGroupId = getGroupId(mPreviousAudioOutDevice);
             if (previousGroupId == groupId) {
-                /* This is thes same group as aleady notified to the system.
+                /* This is the same group as already notified to the system.
                 * Therefore do not change the device we have connected to the group,
                 * unless, previous one is disconnected now
                 */
@@ -976,6 +976,7 @@ public class LeAudioService extends ProfileService {
         } else if (stackEvent.type == LeAudioStackEvent.EVENT_TYPE_GROUP_STATUS_CHANGED) {
             int group_id = stackEvent.valueInt1;
             int group_status = stackEvent.valueInt2;
+            boolean send_intent = false;
 
             switch (group_status) {
                 case LeAudioStackEvent.GROUP_STATUS_ACTIVE: {
@@ -985,6 +986,7 @@ public class LeAudioService extends ProfileService {
                             descriptor.mIsActive = true;
                             updateActiveDevices(group_id, ACTIVE_CONTEXTS_NONE,
                                                 descriptor.mActiveContexts, descriptor.mIsActive);
+                            send_intent = true;
                         }
                     } else {
                         Log.e(TAG, "no descriptors for group: " + group_id);
@@ -998,6 +1000,7 @@ public class LeAudioService extends ProfileService {
                             descriptor.mIsActive = false;
                             updateActiveDevices(group_id, descriptor.mActiveContexts,
                                     ACTIVE_CONTEXTS_NONE, descriptor.mIsActive);
+                            send_intent = true;
                         }
                     } else {
                         Log.e(TAG, "no descriptors for group: " + group_id);
@@ -1008,10 +1011,11 @@ public class LeAudioService extends ProfileService {
                     break;
             }
 
-            intent = new Intent(BluetoothLeAudio.ACTION_LE_AUDIO_GROUP_STATUS_CHANGED);
-            intent.putExtra(BluetoothLeAudio.EXTRA_LE_AUDIO_GROUP_ID, group_id);
-            intent.putExtra(BluetoothLeAudio.EXTRA_LE_AUDIO_GROUP_STATUS, group_status);
-
+            if (send_intent) {
+                intent = new Intent(BluetoothLeAudio.ACTION_LE_AUDIO_GROUP_STATUS_CHANGED);
+                intent.putExtra(BluetoothLeAudio.EXTRA_LE_AUDIO_GROUP_ID, group_id);
+                intent.putExtra(BluetoothLeAudio.EXTRA_LE_AUDIO_GROUP_STATUS, group_status);
+            }
         }
 
         if (intent != null) {
