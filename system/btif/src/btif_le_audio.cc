@@ -28,6 +28,7 @@
 
 using base::Bind;
 using base::Unretained;
+using bluetooth::le_audio::btle_audio_codec_config_t;
 using bluetooth::le_audio::ConnectionState;
 using bluetooth::le_audio::GroupNodeStatus;
 using bluetooth::le_audio::GroupStatus;
@@ -69,8 +70,15 @@ class LeAudioClientInterfaceImpl : public LeAudioClientInterface,
                           snk_audio_location, src_audio_location, avail_cont));
   }
 
-  void Initialize(LeAudioClientCallbacks* callbacks) override {
+  void Initialize(LeAudioClientCallbacks* callbacks,
+                  const std::vector<btle_audio_codec_config_t>&
+                      offloading_preference) override {
     this->callbacks = callbacks;
+
+    for (auto codec : offloading_preference) {
+      LOG_INFO("supported codec: %s", codec.ToString().c_str());
+    }
+
     do_in_main_thread(
         FROM_HERE, Bind(&LeAudioClient::Initialize, this,
                         jni_thread_wrapper(
