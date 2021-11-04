@@ -456,8 +456,6 @@ public class AdapterService extends Service {
         mJniCallbacks = new JniCallbacks(this, mAdapterProperties);
         mBluetoothKeystoreService = new BluetoothKeystoreService(isCommonCriteriaMode());
         mBluetoothKeystoreService.start();
-        mActivityAttributionService = new ActivityAttributionService();
-        mActivityAttributionService.start();
         int configCompareResult = mBluetoothKeystoreService.getCompareResult();
 
         // Start tracking Binder latency for the bluetooth process.
@@ -511,6 +509,9 @@ public class AdapterService extends Service {
         mSilenceDeviceManager.start();
 
         mBluetoothSocketManagerBinder = new BluetoothSocketManagerBinder(this);
+
+        mActivityAttributionService = new ActivityAttributionService();
+        mActivityAttributionService.start();
 
         setAdapterService(this);
 
@@ -3817,7 +3818,7 @@ public class AdapterService extends Service {
             initFlags.add(String.format("%s=%s", LOGGING_DEBUG_DISABLED_FOR_TAGS_FLAG,
                     debugLoggingDisabledTags));
         }
-        if (DeviceConfig.getBoolean(DeviceConfig.NAMESPACE_BLUETOOTH, BTAA_HCI_LOG_FLAG, false)) {
+        if (DeviceConfig.getBoolean(DeviceConfig.NAMESPACE_BLUETOOTH, BTAA_HCI_LOG_FLAG, true)) {
             initFlags.add(String.format("%s=%s", BTAA_HCI_LOG_FLAG, "true"));
         }
         return initFlags.toArray(new String[0]);
