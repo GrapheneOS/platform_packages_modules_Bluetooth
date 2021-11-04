@@ -2876,6 +2876,15 @@ ErrorCode LinkLayerController::LeConnectListClear() {
   return ErrorCode::SUCCESS;
 }
 
+ErrorCode LinkLayerController::LeSetAddressResolutionEnable(bool enable) {
+  if (ResolvingListBusy()) {
+    return ErrorCode::COMMAND_DISALLOWED;
+  }
+
+  le_resolving_list_enabled_ = enable;
+  return ErrorCode::SUCCESS;
+}
+
 ErrorCode LinkLayerController::LeResolvingListClear() {
   if (ResolvingListBusy()) {
     return ErrorCode::COMMAND_DISALLOWED;
