@@ -2909,8 +2909,8 @@ static void bta_dm_set_eir(char* local_name) {
     num_uuid = p_bta_dm_eir_cfg->bta_dm_eir_uuid16_len / Uuid::kNumBytes16;
 #else   // BTA_EIR_CANNED_UUID_LIST
     max_num_uuid = (free_eir_length - 2) / Uuid::kNumBytes16;
-    data_type = BTM_GetEirSupportedServices(bta_dm_cb.eir_uuid, &p,
-                                            max_num_uuid, &num_uuid);
+    data_type = get_btm_client_interface().eir.BTM_GetEirSupportedServices(
+        bta_dm_cb.eir_uuid, &p, max_num_uuid, &num_uuid);
     p = (uint8_t*)p_buf + BTM_HCI_EIR_OFFSET; /* reset p */
 #endif  // BTA_EIR_CANNED_UUID_LIST
 
@@ -2967,8 +2967,8 @@ static void bta_dm_set_eir(char* local_name) {
     num_uuid = 0;
 
     max_num_uuid = (free_eir_length - 2) / Uuid::kNumBytes16;
-    data_type = BTM_GetEirSupportedServices(bta_dm_cb.eir_uuid, &p,
-                                            max_num_uuid, &num_uuid);
+    data_type = get_btm_client_interface().eir.BTM_GetEirSupportedServices(
+        bta_dm_cb.eir_uuid, &p, max_num_uuid, &num_uuid);
 
     if (data_type == HCI_EIR_MORE_16BITS_UUID_TYPE) {
       APPL_TRACE_WARNING("BTA EIR: UUID 16-bit list is truncated");

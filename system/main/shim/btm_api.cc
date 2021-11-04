@@ -924,18 +924,6 @@ void bluetooth::shim::BTM_RemoveEirService(uint32_t* p_eir_uuid,
   CHECK(p_eir_uuid != nullptr);
 }
 
-uint8_t bluetooth::shim::BTM_GetEirSupportedServices(uint32_t* p_eir_uuid,
-                                                     uint8_t** p,
-                                                     uint8_t max_num_uuid16,
-                                                     uint8_t* p_num_uuid16) {
-  LOG_INFO("UNIMPLEMENTED %s", __func__);
-  CHECK(p_eir_uuid != nullptr);
-  CHECK(p != nullptr);
-  CHECK(*p != nullptr);
-  CHECK(p_num_uuid16 != nullptr);
-  return BTM_NO_RESOURCES;
-}
-
 void bluetooth::shim::BTM_SecAddBleDevice(const RawAddress& bd_addr,
                                           tBT_DEVICE_TYPE dev_type,
                                           tBLE_ADDR_TYPE addr_type) {
