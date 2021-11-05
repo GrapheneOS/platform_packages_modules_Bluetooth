@@ -30,10 +30,10 @@ oneway interface IBluetoothGattCallback {
     void onPhyRead(in String address, in int txPhy, in int rxPhy, in int status);
     void onSearchComplete(in String address, in List<BluetoothGattService> services, in int status);
     void onCharacteristicRead(in String address, in int status, in int handle, in byte[] value);
-    void onCharacteristicWrite(in String address, in int status, in int handle);
+    void onCharacteristicWrite(in String address, in int status, in int handle, in byte[] value);
     void onExecuteWrite(in String address, in int status);
     void onDescriptorRead(in String address, in int status, in int handle, in byte[] value);
-    void onDescriptorWrite(in String address, in int status, in int handle);
+    void onDescriptorWrite(in String address, in int status, in int handle, in byte[] value);
     void onNotify(in String address, in int handle, in byte[] value);
     void onReadRemoteRssi(in String address, in int rssi, in int status);
     void onConfigureMTU(in String address, in int mtu, in int status);

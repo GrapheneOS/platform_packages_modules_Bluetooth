@@ -222,7 +222,9 @@ class VolumeControlTest : public ::testing::Test {
             Invoke([](uint16_t conn_id, uint16_t handle,
                       std::vector<uint8_t> value, tGATT_WRITE_TYPE write_type,
                       GATT_WRITE_OP_CB cb, void* cb_data) -> void {
-              if (cb) cb(conn_id, GATT_SUCCESS, handle, cb_data);
+              if (cb)
+                cb(conn_id, GATT_SUCCESS, handle, value.size(), value.data(),
+                   cb_data);
             }));
   }
 

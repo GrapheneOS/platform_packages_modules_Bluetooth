@@ -165,24 +165,26 @@ void NotifyCallback(int conn_id, const btgatt_notify_params_t& p_data) {
   FOR_EACH_CLIENT_OBSERVER(NotifyCallback(g_interface, conn_id, p_data));
 }
 
-void WriteCharacteristicCallback(int conn_id, int status, uint16_t handle) {
+void WriteCharacteristicCallback(int conn_id, int status, uint16_t handle,
+                                 uint16_t len, const uint8_t* value) {
   shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VERIFY_INTERFACE_OR_RETURN();
 
   VLOG(2) << __func__ << " - conn_id: " << conn_id << " - status: " << status;
 
-  FOR_EACH_CLIENT_OBSERVER(
-      WriteCharacteristicCallback(g_interface, conn_id, status, handle));
+  FOR_EACH_CLIENT_OBSERVER(WriteCharacteristicCallback(
+      g_interface, conn_id, status, handle, len, value));
 }
 
-void WriteDescriptorCallback(int conn_id, int status, uint16_t handle) {
+void WriteDescriptorCallback(int conn_id, int status, uint16_t handle,
+                             uint16_t len, const uint8_t* value) {
   shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VERIFY_INTERFACE_OR_RETURN();
 
   VLOG(2) << __func__ << " - conn_id: " << conn_id << " - status: " << status;
 
-  FOR_EACH_CLIENT_OBSERVER(
-      WriteDescriptorCallback(g_interface, conn_id, status, handle));
+  FOR_EACH_CLIENT_OBSERVER(WriteDescriptorCallback(g_interface, conn_id, status,
+                                                   handle, len, value));
 }
 
 void MtuChangedCallback(int conn_id, int status, int mtu) {
@@ -610,13 +612,15 @@ void BluetoothGattInterface::ClientObserver::NotifyCallback(
 
 void BluetoothGattInterface::ClientObserver::WriteCharacteristicCallback(
     BluetoothGattInterface* /* gatt_iface */, int /* conn_id */,
-    int /* status */, uint16_t /* handle */) {
+    int /* status */, uint16_t /* handle */, uint16_t /* len */,
+    const uint8_t* /* value */) {
   // Do nothing
 }
 
 void BluetoothGattInterface::ClientObserver::WriteDescriptorCallback(
     BluetoothGattInterface* /* gatt_iface */, int /* conn_id */,
-    int /* status */, uint16_t /* handle */) {
+    int /* status */, uint16_t /* handle */, uint16_t /* len */,
+    const uint8_t* /* value */) {
   // Do nothing
 }
 

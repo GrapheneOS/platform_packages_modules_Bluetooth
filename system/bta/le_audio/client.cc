@@ -1213,7 +1213,8 @@ class LeAudioClientImpl : public LeAudioClient {
 
     BtaGattQueue::WriteDescriptor(
         conn_id, ccc_handle, std::move(value), GATT_WRITE,
-        [](uint16_t conn_id, tGATT_STATUS status, uint16_t handle, void* data) {
+        [](uint16_t conn_id, tGATT_STATUS status, uint16_t handle, uint16_t len,
+           const uint8_t* value, void* data) {
           if (instance) instance->OnGattWriteCcc(conn_id, status, handle, data);
         },
         nullptr);
