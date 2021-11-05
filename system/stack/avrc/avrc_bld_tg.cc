@@ -963,27 +963,31 @@ static tAVRC_STS avrc_bld_get_folder_items_rsp(tAVRC_GET_ITEMS_RSP* p_rsp,
     p_item_len = p_data;
     p_data += 2;
     item_len = 0;
-    len_left -= 3; /* item_type(1) + item len(2) */
+    const uint16_t item_header_len = 3; /* item_type(1) + item len(2) */
+    uint16_t item_len_left = len_left - item_header_len;
     switch (p_item_list[xx].item_type) {
       case AVRC_ITEM_PLAYER:
         /* min len required: 2 + 1 + 4 + 1 + 16 + 2 + 2 = 30 + str_len */
         p_player = &p_item_list[xx].u.player;
         item_len = AVRC_FEATURE_MASK_SIZE + p_player->name.str_len + 12;
 
-        if ((len_left <= item_len) || !AVRC_ITEM_PLAYER_IS_VALID(p_player)) {
+        if ((item_len_left < item_len) ||
+            !AVRC_ITEM_PLAYER_IS_VALID(p_player)) {
+          if (item_len_left < item_len && item_count > 0) {
+            multi_items_add_fail = true;
+          }
           p_data = p_item_start;
-        } else {
-          UINT16_TO_BE_STREAM(p_data, p_player->player_id);
-          UINT8_TO_BE_STREAM(p_data, p_player->major_type);
-          UINT32_TO_BE_STREAM(p_data, p_player->sub_type);
-          UINT8_TO_BE_STREAM(p_data, p_player->play_status);
-          ARRAY_TO_BE_STREAM(p_data, p_player->features,
-                             AVRC_FEATURE_MASK_SIZE);
-          UINT16_TO_BE_STREAM(p_data, p_player->name.charset_id);
-          UINT16_TO_BE_STREAM(p_data, p_player->name.str_len);
-          ARRAY_TO_BE_STREAM(p_data, p_player->name.p_str,
-                             p_player->name.str_len);
+          break;
         }
+        UINT16_TO_BE_STREAM(p_data, p_player->player_id);
+        UINT8_TO_BE_STREAM(p_data, p_player->major_type);
+        UINT32_TO_BE_STREAM(p_data, p_player->sub_type);
+        UINT8_TO_BE_STREAM(p_data, p_player->play_status);
+        ARRAY_TO_BE_STREAM(p_data, p_player->features, AVRC_FEATURE_MASK_SIZE);
+        UINT16_TO_BE_STREAM(p_data, p_player->name.charset_id);
+        UINT16_TO_BE_STREAM(p_data, p_player->name.str_len);
+        ARRAY_TO_BE_STREAM(p_data, p_player->name.p_str,
+                           p_player->name.str_len);
         break;
 
       case AVRC_ITEM_FOLDER:
@@ -991,18 +995,21 @@ static tAVRC_STS avrc_bld_get_folder_items_rsp(tAVRC_GET_ITEMS_RSP* p_rsp,
         p_folder = &p_item_list[xx].u.folder;
         item_len = AVRC_UID_SIZE + p_folder->name.str_len + 6;
 
-        if ((len_left > item_len) && p_folder->name.p_str &&
-            p_folder->type <= AVRC_FOLDER_TYPE_YEARS) {
-          ARRAY_TO_BE_STREAM(p_data, p_folder->uid, AVRC_UID_SIZE);
-          UINT8_TO_BE_STREAM(p_data, p_folder->type);
-          UINT8_TO_BE_STREAM(p_data, p_folder->playable);
-          UINT16_TO_BE_STREAM(p_data, p_folder->name.charset_id);
-          UINT16_TO_BE_STREAM(p_data, p_folder->name.str_len);
-          ARRAY_TO_BE_STREAM(p_data, p_folder->name.p_str,
-                             p_folder->name.str_len);
-        } else {
+        if ((item_len_left < item_len) || !p_folder->name.p_str ||
+            p_folder->type > AVRC_FOLDER_TYPE_YEARS) {
+          if (item_len_left < item_len && item_count > 0) {
+            multi_items_add_fail = true;
+          }
           p_data = p_item_start;
+          break;
         }
+        ARRAY_TO_BE_STREAM(p_data, p_folder->uid, AVRC_UID_SIZE);
+        UINT8_TO_BE_STREAM(p_data, p_folder->type);
+        UINT8_TO_BE_STREAM(p_data, p_folder->playable);
+        UINT16_TO_BE_STREAM(p_data, p_folder->name.charset_id);
+        UINT16_TO_BE_STREAM(p_data, p_folder->name.str_len);
+        ARRAY_TO_BE_STREAM(p_data, p_folder->name.p_str,
+                           p_folder->name.str_len);
         break;
 
       case AVRC_ITEM_MEDIA:
@@ -1010,43 +1017,43 @@ static tAVRC_STS avrc_bld_get_folder_items_rsp(tAVRC_GET_ITEMS_RSP* p_rsp,
         p_media = &p_item_list[xx].u.media;
         item_len = AVRC_UID_SIZE + p_media->name.str_len + 6;
 
-        if ((len_left >= item_len) && p_media->name.p_str &&
-            p_media->type <= AVRC_MEDIA_TYPE_VIDEO) {
-          ARRAY_TO_BE_STREAM(p_data, p_media->uid, AVRC_UID_SIZE);
-          UINT8_TO_BE_STREAM(p_data, p_media->type);
-          UINT16_TO_BE_STREAM(p_data, p_media->name.charset_id);
-          UINT16_TO_BE_STREAM(p_data, p_media->name.str_len);
-          ARRAY_TO_BE_STREAM(p_data, p_media->name.p_str,
-                             p_media->name.str_len);
-          p_attr_count = p_data++;
-          *p_attr_count = 0;
-          len_left -= item_len;
-          if (p_media->attr_count > 0) {
-            p_attr = p_media->p_attr_list;
-            for (yy = 0; yy < p_media->attr_count; yy++) {
-              if (p_attr[yy].name.p_str &&
-                  AVRC_IS_VALID_MEDIA_ATTRIBUTE(p_attr[yy].attr_id) &&
-                  (len_left >= (p_attr[yy].name.str_len + 8))) {
-                (*p_attr_count)++;
-                UINT32_TO_BE_STREAM(p_data, p_attr[yy].attr_id);
-                UINT16_TO_BE_STREAM(p_data, p_attr[yy].name.charset_id);
-                UINT16_TO_BE_STREAM(p_data, p_attr[yy].name.str_len);
-                ARRAY_TO_BE_STREAM(p_data, p_attr[yy].name.p_str,
-                                   p_attr[yy].name.str_len);
-                item_len += (p_attr[yy].name.str_len + 8);
-                len_left -= (p_attr[yy].name.str_len + 8);
-              } else if ((len_left < (p_attr[yy].name.str_len + 8)) &&
-                         item_count > 0) {
-                p_data = p_item_start;
-                multi_items_add_fail = TRUE;
-                break;
-              }
-            }
+        if ((item_len_left < item_len) || !p_media->name.p_str ||
+            p_media->type > AVRC_MEDIA_TYPE_VIDEO) {
+          if (item_len_left < item_len && item_count > 0) {
+            multi_items_add_fail = true;
           }
-        } else {
-          if (len_left < item_len && item_count > 0)
-            multi_items_add_fail = TRUE;
           p_data = p_item_start;
+          break;
+        }
+        ARRAY_TO_BE_STREAM(p_data, p_media->uid, AVRC_UID_SIZE);
+        UINT8_TO_BE_STREAM(p_data, p_media->type);
+        UINT16_TO_BE_STREAM(p_data, p_media->name.charset_id);
+        UINT16_TO_BE_STREAM(p_data, p_media->name.str_len);
+        ARRAY_TO_BE_STREAM(p_data, p_media->name.p_str, p_media->name.str_len);
+        p_attr_count = p_data++;
+        *p_attr_count = 0;
+        uint16_t attribute_len_left = item_len_left - item_len;
+        p_attr = p_media->p_attr_list;
+        for (yy = 0; yy < p_media->attr_count; yy++) {
+          /* len required: 4 + 2 + 2 + str_len */
+          const uint16_t attribute_len = p_attr[yy].name.str_len + 8;
+          if (item_len_left < attribute_len || !p_attr[yy].name.p_str ||
+              AVRC_IS_VALID_MEDIA_ATTRIBUTE(p_attr[yy].attr_id)) {
+            if (attribute_len_left < attribute_len && item_count > 0) {
+              multi_items_add_fail = true;
+              p_data = p_item_start;
+              break;
+            }
+            continue;
+          }
+          (*p_attr_count)++;
+          UINT32_TO_BE_STREAM(p_data, p_attr[yy].attr_id);
+          UINT16_TO_BE_STREAM(p_data, p_attr[yy].name.charset_id);
+          UINT16_TO_BE_STREAM(p_data, p_attr[yy].name.str_len);
+          ARRAY_TO_BE_STREAM(p_data, p_attr[yy].name.p_str,
+                             p_attr[yy].name.str_len);
+          item_len += attribute_len;
+          attribute_len_left -= attribute_len;
         }
         break;
     } /* switch item_type */
@@ -1056,18 +1063,15 @@ static tAVRC_STS avrc_bld_get_folder_items_rsp(tAVRC_GET_ITEMS_RSP* p_rsp,
       item_count++;
       /* fill in variable item lenth */
       UINT16_TO_BE_STREAM(p_item_len, item_len);
-    } else {
-      if (!multi_items_add_fail) {
-        /* some item is not added properly - set an error status */
-        if (len_left < item_len)
-          status = AVRC_STS_INTERNAL_ERR;
-        else
-          status = AVRC_STS_BAD_PARAM;
-      }
-    }
-    if (!multi_items_add_fail) {
-      len += item_len;
-      len += 3; /* the item_type(1) and item_len(2) */
+      len_left -= item_len + item_header_len;
+      len += item_len + item_header_len;
+    } else if (!multi_items_add_fail) {
+      /* some item is not added properly - set an error status */
+      if (item_len_left < item_len)
+        status = AVRC_STS_INTERNAL_ERR;
+      else
+        status = AVRC_STS_BAD_PARAM;
+      break;
     }
     AVRC_TRACE_DEBUG("len:%d, len_left:%d, num:%d, item_len:%d", len, len_left,
                      item_count, item_len);
