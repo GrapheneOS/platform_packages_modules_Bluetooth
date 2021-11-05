@@ -302,12 +302,22 @@ void btgattc_read_characteristic_cb(int conn_id, int status,
                                conn_id, status, p_data->handle, jb.get());
 }
 
-void btgattc_write_characteristic_cb(int conn_id, int status, uint16_t handle) {
+void btgattc_write_characteristic_cb(int conn_id, int status, uint16_t handle,
+                                     uint16_t len, const uint8_t* value) {
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
+  ScopedLocalRef<jbyteArray> jb(sCallbackEnv.get(), NULL);
+  if (status == 0) {  // Success
+    jb.reset(sCallbackEnv->NewByteArray(len));
+    sCallbackEnv->SetByteArrayRegion(jb.get(), 0, len, (jbyte*)value);
+  } else {
+    uint8_t value = 0;
+    jb.reset(sCallbackEnv->NewByteArray(1));
+    sCallbackEnv->SetByteArrayRegion(jb.get(), 0, 1, (jbyte*)&value);
+  }
   sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onWriteCharacteristic,
-                               conn_id, status, handle);
+                               conn_id, status, handle, jb.get());
 }
 
 void btgattc_execute_write_cb(int conn_id, int status) {
@@ -336,12 +346,22 @@ void btgattc_read_descriptor_cb(int conn_id, int status,
                                status, p_data.handle, jb.get());
 }
 
-void btgattc_write_descriptor_cb(int conn_id, int status, uint16_t handle) {
+void btgattc_write_descriptor_cb(int conn_id, int status, uint16_t handle,
+                                 uint16_t len, const uint8_t* value) {
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
+  ScopedLocalRef<jbyteArray> jb(sCallbackEnv.get(), NULL);
+  if (status == 0) {  // Success
+    jb.reset(sCallbackEnv->NewByteArray(len));
+    sCallbackEnv->SetByteArrayRegion(jb.get(), 0, len, (jbyte*)value);
+  } else {
+    uint8_t value = 0;
+    jb.reset(sCallbackEnv->NewByteArray(1));
+    sCallbackEnv->SetByteArrayRegion(jb.get(), 0, 1, (jbyte*)&value);
+  }
   sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onWriteDescriptor, conn_id,
-                               status, handle);
+                               status, handle, jb.get());
 }
 
 void btgattc_remote_rssi_cb(int client_if, const RawAddress& bda, int rssi,
@@ -983,7 +1003,7 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
   method_onReadCharacteristic =
       env->GetMethodID(clazz, "onReadCharacteristic", "(III[B)V");
   method_onWriteCharacteristic =
-      env->GetMethodID(clazz, "onWriteCharacteristic", "(III)V");
+      env->GetMethodID(clazz, "onWriteCharacteristic", "(III[B)V");
   method_onExecuteCompleted =
       env->GetMethodID(clazz, "onExecuteCompleted", "(II)V");
   method_onSearchCompleted =
@@ -991,7 +1011,7 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
   method_onReadDescriptor =
       env->GetMethodID(clazz, "onReadDescriptor", "(III[B)V");
   method_onWriteDescriptor =
-      env->GetMethodID(clazz, "onWriteDescriptor", "(III)V");
+      env->GetMethodID(clazz, "onWriteDescriptor", "(III[B)V");
   method_onNotify =
       env->GetMethodID(clazz, "onNotify", "(ILjava/lang/String;IZ[B)V");
   method_onRegisterForNotifications =
