@@ -600,6 +600,9 @@ final class RemoteDevices {
                             if (sAdapterService.getState() == BluetoothAdapter.STATE_ON) {
                                 sAdapterService.deviceUuidUpdated(bdDevice);
                                 sendUuidIntent(bdDevice, device);
+                            } else if (sAdapterService.getState()
+                                    == BluetoothAdapter.STATE_BLE_ON) {
+                                sAdapterService.deviceUuidUpdated(bdDevice);
                             }
                             break;
                         case AbstractionLayer.BT_PROPERTY_TYPE_OF_DEVICE:
