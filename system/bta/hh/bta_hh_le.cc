@@ -672,7 +672,8 @@ static bool bta_hh_le_write_ccc(tBTA_HH_DEV_CB* p_cb, uint16_t char_handle,
 static bool bta_hh_le_write_rpt_clt_cfg(tBTA_HH_DEV_CB* p_cb);
 
 static void write_rpt_ctl_cfg_cb(uint16_t conn_id, tGATT_STATUS status,
-                                 uint16_t handle, void* data) {
+                                 uint16_t handle, uint16_t len,
+                                 const uint8_t* value, void* data) {
   uint8_t srvc_inst_id;
 
   tBTA_HH_DEV_CB* p_dev_cb = (tBTA_HH_DEV_CB*)data;
@@ -735,7 +736,8 @@ static bool bta_hh_le_write_rpt_clt_cfg(tBTA_HH_DEV_CB* p_cb) {
 }
 
 static void write_proto_mode_cb(uint16_t conn_id, tGATT_STATUS status,
-                                uint16_t handle, void* data) {
+                                uint16_t handle, uint16_t len,
+                                const uint8_t* value, void* data) {
   tBTA_HH_DEV_CB* p_dev_cb = (tBTA_HH_DEV_CB*)data;
 
   if (p_dev_cb->state == BTA_HH_CONN_ST) {
@@ -1820,7 +1822,8 @@ static void bta_hh_le_get_rpt(tBTA_HH_DEV_CB* p_cb, tBTA_HH_RPT_TYPE r_type,
 }
 
 static void write_report_cb(uint16_t conn_id, tGATT_STATUS status,
-                            uint16_t handle, void* data) {
+                            uint16_t handle, uint16_t len, const uint8_t* value,
+                            void* data) {
   tBTA_HH_CBDATA cback_data;
   tBTA_HH_DEV_CB* p_dev_cb = (tBTA_HH_DEV_CB*)data;
   uint16_t cb_evt = p_dev_cb->w4_evt;

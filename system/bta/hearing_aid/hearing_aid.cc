@@ -209,10 +209,12 @@ class HearingDevices {
 };
 
 static void write_rpt_ctl_cfg_cb(uint16_t conn_id, tGATT_STATUS status,
-                                 uint16_t handle, void* data) {
+                                 uint16_t handle, uint16_t len,
+                                 const uint8_t* value, void* data) {
   if (status != GATT_SUCCESS) {
     LOG(ERROR) << __func__ << ": handle=" << handle << ", conn_id=" << conn_id
-               << ", status=" << loghex(static_cast<uint8_t>(status));
+               << ", status=" << loghex(static_cast<uint8_t>(status))
+               << ", length=" << len;
   }
 }
 
