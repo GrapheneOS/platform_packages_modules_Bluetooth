@@ -3205,12 +3205,6 @@ void btm_sec_auth_complete(uint16_t handle, tHCI_STATUS status) {
 void btm_sec_encrypt_change(uint16_t handle, tHCI_STATUS status,
                             uint8_t encr_enable) {
   tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev_by_handle(handle);
-  BTM_TRACE_EVENT(
-      "Security Manager: encrypt_change status:%d State:%d, encr_enable = %d",
-      status, (p_dev_rec) ? p_dev_rec->sec_state : 0, encr_enable);
-  BTM_TRACE_DEBUG("before update p_dev_rec->sec_flags=0x%x",
-                  (p_dev_rec) ? p_dev_rec->sec_flags : 0);
-
   /* For transaction collision we need to wait and repeat.  There is no need */
   /* for random timeout because only peripheral should receive the result */
   if ((status == HCI_ERR_LMP_ERR_TRANS_COLLISION) ||
@@ -3221,6 +3215,14 @@ void btm_sec_encrypt_change(uint16_t handle, tHCI_STATUS status,
   btm_cb.collision_start_time = 0;
 
   if (!p_dev_rec) return;
+
+  LOG_DEBUG(
+      "Security Manager encryption change request hci_status:%s"
+      " request:%s state:%s sec_flags:0x%x",
+      hci_status_code_text(status).c_str(),
+      (encr_enable) ? "encrypt" : "unencrypt",
+      (p_dev_rec->sec_state) ? "encrypted" : "unencrypted",
+      p_dev_rec->sec_flags);
 
   if ((status == HCI_SUCCESS) && encr_enable) {
     if (p_dev_rec->hci_handle == handle) {
