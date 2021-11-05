@@ -73,7 +73,8 @@ class BtaGattQueue {
                                     uint16_t handle, uint16_t len,
                                     uint8_t* value, void* data);
   static void gatt_write_op_finished(uint16_t conn_id, tGATT_STATUS status,
-                                     uint16_t handle, void* data);
+                                     uint16_t handle, uint16_t len,
+                                     const uint8_t* value, void* data);
   static void gatt_configure_mtu_op_finished(uint16_t conn_id,
                                              tGATT_STATUS status, void* data);
 

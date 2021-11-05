@@ -69,7 +69,8 @@ struct gatt_write_op_data {
 };
 
 void BtaGattQueue::gatt_write_op_finished(uint16_t conn_id, tGATT_STATUS status,
-                                          uint16_t handle, void* data) {
+                                          uint16_t handle, uint16_t len,
+                                          const uint8_t* value, void* data) {
   gatt_write_op_data* tmp = (gatt_write_op_data*)data;
   GATT_WRITE_OP_CB tmp_cb = tmp->cb;
   void* tmp_cb_data = tmp->cb_data;
@@ -80,7 +81,7 @@ void BtaGattQueue::gatt_write_op_finished(uint16_t conn_id, tGATT_STATUS status,
   gatt_execute_next_op(conn_id);
 
   if (tmp_cb) {
-    tmp_cb(conn_id, status, handle, tmp_cb_data);
+    tmp_cb(conn_id, status, handle, len, value, tmp_cb_data);
     return;
   }
 }
