@@ -114,9 +114,9 @@ pub enum GattClientCallbacks {
     RegisterForNotification(i32, i32, i32, u16),
     Notify(i32, BtGattNotifyParams),
     ReadCharacteristic(i32, i32, BtGattReadParams),
-    WriteCharacteristic(i32, i32, u16),
+    WriteCharacteristic(i32, i32, u16, u16, *const u8),
     ReadDescriptor(i32, i32, BtGattReadParams),
-    WriteDescriptor(i32, i32, u16),
+    WriteDescriptor(i32, i32, u16, u16, *const u8),
     ExecuteWrite(i32, i32),
     ReadRemoteRssi(i32, RawAddress, i32, i32),
     ConfigureMtu(i32, i32, i32),
@@ -214,7 +214,7 @@ cb_variant!(
 cb_variant!(
     GattClientCb,
     gc_write_characteristic_cb -> GattClientCallbacks::WriteCharacteristic,
-    i32, i32, u16, {}
+    i32, i32, u16, u16, *const u8, {}
 );
 
 cb_variant!(
@@ -228,7 +228,7 @@ cb_variant!(
 cb_variant!(
     GattClientCb,
     gc_write_descriptor_cb -> GattClientCallbacks::WriteDescriptor,
-    i32, i32, u16, {}
+    i32, i32, u16, u16, *const u8, {}
 );
 
 cb_variant!(
