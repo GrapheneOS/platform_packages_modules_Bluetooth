@@ -17,6 +17,7 @@
 package com.android.bluetooth.btservice;
 
 import android.bluetooth.BluetoothProfile;
+import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.res.Resources;
@@ -221,6 +222,11 @@ public class Config {
         if (systemConfigManager == null) {
             return null;
         }
-        return systemConfigManager.getEnabledComponentOverrides(ctx.getPackageName());
+        List<String> enabledComponent = new ArrayList<>();
+        for (ComponentName comp :
+                systemConfigManager.getEnabledComponentOverrides(ctx.getPackageName())) {
+            enabledComponent.add(comp.getClassName());
+        }
+        return enabledComponent;
     }
 }
