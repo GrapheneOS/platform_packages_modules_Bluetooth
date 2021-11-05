@@ -300,6 +300,7 @@ typedef struct {
   bool wait_for_authorization_complete;
   tSMP_STATUS cert_failure; /*failure case for certification */
   alarm_t* delayed_auth_timer_ent;
+  tBLE_BD_ADDR pairing_ble_bd_addr;
 } tSMP_CB;
 
 /* Server Action functions are of this type */

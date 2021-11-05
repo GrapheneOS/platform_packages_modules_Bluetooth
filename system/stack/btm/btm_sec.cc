@@ -707,6 +707,7 @@ void BTM_PINCodeReply(const RawAddress& bd_addr, tBTM_STATUS res,
  *  Note: After 2.1 parameters are not used and preserved here not to change API
  ******************************************************************************/
 tBTM_STATUS btm_sec_bond_by_transport(const RawAddress& bd_addr,
+                                      tBLE_ADDR_TYPE addr_type,
                                       tBT_TRANSPORT transport, uint8_t pin_len,
                                       uint8_t* p_pin) {
   tBTM_SEC_DEV_REC* p_dev_rec;
@@ -771,7 +772,7 @@ tBTM_STATUS btm_sec_bond_by_transport(const RawAddress& bd_addr,
     btm_ble_init_pseudo_addr(p_dev_rec, bd_addr);
     p_dev_rec->sec_flags &= ~BTM_SEC_LE_MASK;
 
-    if (SMP_Pair(bd_addr) == SMP_STARTED) {
+    if (SMP_Pair(bd_addr, addr_type) == SMP_STARTED) {
       btm_cb.pairing_flags |= BTM_PAIR_FLAGS_LE_ACTIVE;
       p_dev_rec->sec_state = BTM_SEC_STATE_AUTHENTICATING;
       btm_sec_change_pairing_state(BTM_PAIR_STATE_WAIT_AUTH_COMPLETE);
@@ -897,7 +898,8 @@ tBTM_STATUS BTM_SecBond(const RawAddress& bd_addr, tBLE_ADDR_TYPE addr_type,
        (dev_type & BT_DEVICE_TYPE_BREDR) == 0)) {
     return BTM_ILLEGAL_ACTION;
   }
-  return btm_sec_bond_by_transport(bd_addr, transport, pin_len, p_pin);
+  return btm_sec_bond_by_transport(bd_addr, addr_type, transport, pin_len,
+                                   p_pin);
 }
 
 /*******************************************************************************
