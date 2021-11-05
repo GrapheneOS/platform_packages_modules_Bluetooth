@@ -26,16 +26,38 @@ class CallbackInfo {
     public String address;
     public int status;
     public int handle;
+    public byte[] value;
 
-    CallbackInfo(String address, int status, int handle) {
+    static class Builder {
+        private String mAddress;
+        private int mStatus;
+        private int mHandle;
+        private byte[] mValue;
+
+        Builder(String address, int status) {
+            mAddress = address;
+            mStatus = status;
+        }
+
+        Builder setHandle(int handle) {
+            mHandle = handle;
+            return this;
+        }
+
+        Builder setValue(byte[] value) {
+            mValue = value;
+            return this;
+        }
+
+        CallbackInfo build() {
+            return new CallbackInfo(mAddress, mStatus, mHandle, mValue);
+        }
+    }
+
+    private CallbackInfo(String address, int status, int handle, byte[] value) {
         this.address = address;
         this.status = status;
         this.handle = handle;
-    }
-
-    CallbackInfo(String address, int status) {
-        this.address = address;
-        this.status = status;
     }
 }
 
