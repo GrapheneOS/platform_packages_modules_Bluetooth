@@ -5,7 +5,7 @@ use serde_json::{Map, Value};
 pub const HCI_DEVICES_DIR: &str = "/sys/class/bluetooth";
 
 // File to store the Bluetooth daemon to use (bluez or floss)
-const BLUETOOTH_DAEMON_CURRENT: &str = "/var/lib/misc/bluetooth-daemon.current";
+const BLUETOOTH_DAEMON_CURRENT: &str = "/var/lib/bluetooth/bluetooth-daemon.current";
 
 // File to store the config for BluetoothManager
 const BTMANAGERD_CONF: &str = "/var/lib/bluetooth/btmanagerd.json";
