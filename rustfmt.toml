@@ -1,1 +1,1 @@
-../../build/soong/scripts/rustfmt.toml
+../../../build/soong/scripts/rustfmt.toml
