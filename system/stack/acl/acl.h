@@ -243,7 +243,7 @@ struct tACL_CONN {
   friend tBTM_STATUS btm_remove_acl(const RawAddress& bd_addr,
                                     tBT_TRANSPORT transport);
   friend void acl_disconnect_after_role_switch(uint16_t conn_handle,
-                                               tHCI_STATUS reason);
+                                               tHCI_STATUS reason, std::string);
   friend void bluetooth::shim::btm_pm_on_mode_change(tHCI_STATUS status,
                                                      uint16_t handle,
                                                      tHCI_MODE hci_mode,

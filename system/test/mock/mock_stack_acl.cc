@@ -448,14 +448,16 @@ void acl_accept_connection_request(const RawAddress& bd_addr, uint8_t role) {
   mock_function_count_map[__func__]++;
   test::mock::stack_acl::acl_accept_connection_request(bd_addr, role);
 }
-void acl_disconnect_after_role_switch(uint16_t conn_handle,
-                                      tHCI_STATUS reason) {
+void acl_disconnect_after_role_switch(uint16_t conn_handle, tHCI_STATUS reason,
+                                      std::string comment) {
   mock_function_count_map[__func__]++;
-  test::mock::stack_acl::acl_disconnect_after_role_switch(conn_handle, reason);
+  test::mock::stack_acl::acl_disconnect_after_role_switch(conn_handle, reason,
+                                                          comment);
 }
-void acl_disconnect_from_handle(uint16_t handle, tHCI_STATUS reason) {
+void acl_disconnect_from_handle(uint16_t handle, tHCI_STATUS reason,
+                                std::string comment) {
   mock_function_count_map[__func__]++;
-  test::mock::stack_acl::acl_disconnect_from_handle(handle, reason);
+  test::mock::stack_acl::acl_disconnect_from_handle(handle, reason, comment);
 }
 void acl_link_segments_xmitted(BT_HDR* p_msg) {
   mock_function_count_map[__func__]++;

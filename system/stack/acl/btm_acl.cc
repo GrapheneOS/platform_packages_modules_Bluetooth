@@ -181,14 +181,15 @@ void NotifyAclFeaturesReadComplete(tACL_CONN& p_acl,
 
 }  // namespace
 
-static void hci_btsnd_hcic_disconnect(tACL_CONN& p_acl, tHCI_STATUS reason) {
-  LOG_INFO("Disconnecting peer:%s reason:%s",
+static void hci_btsnd_hcic_disconnect(tACL_CONN& p_acl, tHCI_STATUS reason,
+                                      std::string comment) {
+  LOG_INFO("Disconnecting peer:%s reason:%s comment:%s",
            PRIVATE_ADDRESS(p_acl.remote_addr),
-           hci_error_code_text(reason).c_str());
+           hci_error_code_text(reason).c_str(), comment.c_str());
   p_acl.disconnect_reason = reason;
 
-  return bluetooth::shim::ACL_Disconnect(p_acl.hci_handle,
-                                         p_acl.is_transport_br_edr(), reason);
+  return bluetooth::shim::ACL_Disconnect(
+      p_acl.hci_handle, p_acl.is_transport_br_edr(), reason, comment);
 }
 
 void StackAclBtmAcl::hci_start_role_switch_to_central(tACL_CONN& p_acl) {
@@ -630,7 +631,9 @@ void btm_acl_encrypt_change(uint16_t handle, uint8_t status,
     /* If a disconnect is pending, issue it now that role switch has completed
      */
     if (p->rs_disc_pending == BTM_SEC_DISC_PENDING) {
-      hci_btsnd_hcic_disconnect(*p, HCI_ERR_PEER_USER);
+      hci_btsnd_hcic_disconnect(
+          *p, HCI_ERR_PEER_USER,
+          "stack::acl::btm_acl::encrypt after role switch");
     }
     p->rs_disc_pending = BTM_SEC_RS_NOT_PENDING; /* reset flag */
   }
@@ -1450,7 +1453,8 @@ void StackAclBtmAcl::btm_acl_role_changed(tHCI_STATUS hci_status,
 
   /* If a disconnect is pending, issue it now that role switch has completed */
   if (p_acl->rs_disc_pending == BTM_SEC_DISC_PENDING) {
-    hci_btsnd_hcic_disconnect(*p_acl, HCI_ERR_PEER_USER);
+    hci_btsnd_hcic_disconnect(*p_acl, HCI_ERR_PEER_USER,
+                              "stack::acl::btm_acl::role after role switch");
   }
   p_acl->rs_disc_pending = BTM_SEC_RS_NOT_PENDING; /* reset flag */
 }
@@ -2099,7 +2103,8 @@ tBTM_STATUS btm_remove_acl(const RawAddress& bd_addr, tBT_TRANSPORT transport) {
     return BTM_SUCCESS;
   }
 
-  hci_btsnd_hcic_disconnect(*p_acl, HCI_ERR_PEER_USER);
+  hci_btsnd_hcic_disconnect(*p_acl, HCI_ERR_PEER_USER,
+                            "stack::acl::btm_acl::btm_remove_acl");
   return BTM_SUCCESS;
 }
 
@@ -2628,7 +2633,8 @@ void btm_acl_disconnected(tHCI_STATUS status, uint16_t handle,
   }
 
   /* Notify security manager */
-  btm_sec_disconnected(handle, reason);
+  btm_sec_disconnected(handle, reason,
+                       "stack::acl::btm_acl::btm_acl_disconnected");
 }
 
 void acl_create_classic_connection(const RawAddress& bd_addr,
@@ -2650,12 +2656,13 @@ void acl_reject_connection_request(const RawAddress& bd_addr, uint8_t reason) {
   btsnd_hcic_reject_conn(bd_addr, reason);
 }
 
-void acl_disconnect_from_handle(uint16_t handle, tHCI_STATUS reason) {
-  acl_disconnect_after_role_switch(handle, reason);
+void acl_disconnect_from_handle(uint16_t handle, tHCI_STATUS reason,
+                                std::string comment) {
+  acl_disconnect_after_role_switch(handle, reason, comment);
 }
 
-void acl_disconnect_after_role_switch(uint16_t conn_handle,
-                                      tHCI_STATUS reason) {
+void acl_disconnect_after_role_switch(uint16_t conn_handle, tHCI_STATUS reason,
+                                      std::string comment) {
   tACL_CONN* p_acl = internal_.acl_get_connection_from_handle(conn_handle);
   if (p_acl == nullptr) {
     LOG_ERROR("Sending disconnect for unknown acl:%hu PLEASE FIX", conn_handle);
@@ -2674,7 +2681,7 @@ void acl_disconnect_after_role_switch(uint16_t conn_handle,
   } else {
     LOG_DEBUG("Sending acl disconnect reason:%s [%hu]",
               hci_error_code_text(reason).c_str(), reason);
-    hci_btsnd_hcic_disconnect(*p_acl, reason);
+    hci_btsnd_hcic_disconnect(*p_acl, reason, comment);
   }
 }
 

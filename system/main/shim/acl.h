@@ -72,8 +72,10 @@ class Acl : public hci::acl_manager::ConnectionCallbacks,
                               std::promise<bool> promise) override;
   void IgnoreLeConnectionFrom(
       const hci::AddressWithType& address_with_type) override;
-  void DisconnectClassic(uint16_t handle, tHCI_REASON reason) override;
-  void DisconnectLe(uint16_t handle, tHCI_REASON reason) override;
+  void DisconnectClassic(uint16_t handle, tHCI_REASON reason,
+                         std::string comment) override;
+  void DisconnectLe(uint16_t handle, tHCI_REASON reason,
+                    std::string comment) override;
 
   // Address Resolution List
   void AddToAddressResolution(const hci::AddressWithType& address_with_type,

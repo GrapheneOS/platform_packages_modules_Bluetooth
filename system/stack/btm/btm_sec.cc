@@ -111,7 +111,8 @@ static bool btm_sec_check_prefetch_pin(tBTM_SEC_DEV_REC* p_dev_rec);
 
 static tBTM_STATUS btm_sec_send_hci_disconnect(tBTM_SEC_DEV_REC* p_dev_rec,
                                                tHCI_STATUS reason,
-                                               uint16_t conn_handle);
+                                               uint16_t conn_handle,
+                                               std::string comment);
 tBTM_SEC_DEV_REC* btm_sec_find_dev_by_sec_state(uint8_t state);
 
 static bool btm_dev_authenticated(tBTM_SEC_DEV_REC* p_dev_rec);
@@ -959,8 +960,9 @@ tBTM_STATUS BTM_SecBondCancel(const RawAddress& bd_addr) {
 
       /* If the HCI link was set up by Bonding process */
       if (btm_cb.pairing_flags & BTM_PAIR_FLAGS_DISC_WHEN_DONE)
-        return btm_sec_send_hci_disconnect(p_dev_rec, HCI_ERR_PEER_USER,
-                                           p_dev_rec->hci_handle);
+        return btm_sec_send_hci_disconnect(
+            p_dev_rec, HCI_ERR_PEER_USER, p_dev_rec->hci_handle,
+            "stack::btm::btm_sec::BTM_SecBondCancel");
       else
         l2cu_update_lcb_4_bonding(bd_addr, false);
 
@@ -1136,7 +1138,8 @@ bool BTM_SecIsSecurityPending(const RawAddress& bd_addr) {
  ******************************************************************************/
 static tBTM_STATUS btm_sec_send_hci_disconnect(tBTM_SEC_DEV_REC* p_dev_rec,
                                                tHCI_STATUS reason,
-                                               uint16_t conn_handle) {
+                                               uint16_t conn_handle,
+                                               std::string comment) {
   const tSECURITY_STATE old_state =
       static_cast<tSECURITY_STATE>(p_dev_rec->sec_state);
   const tBTM_STATUS status = BTM_CMD_STARTED;
@@ -1175,7 +1178,7 @@ static tBTM_STATUS btm_sec_send_hci_disconnect(tBTM_SEC_DEV_REC* p_dev_rec,
 
   LOG_DEBUG("Send hci disconnect handle:0x%04x reason:%s", conn_handle,
             hci_reason_code_text(reason).c_str());
-  acl_disconnect_after_role_switch(conn_handle, reason);
+  acl_disconnect_after_role_switch(conn_handle, reason, comment);
 
   return status;
 }
@@ -1251,8 +1254,9 @@ void BTM_PasskeyReqReply(tBTM_STATUS res, const RawAddress& bd_addr,
       acl_set_disconnect_reason(HCI_ERR_HOST_REJECT_SECURITY);
 
       if (p_dev_rec->hci_handle != HCI_INVALID_HANDLE)
-        btm_sec_send_hci_disconnect(p_dev_rec, HCI_ERR_AUTH_FAILURE,
-                                    p_dev_rec->hci_handle);
+        btm_sec_send_hci_disconnect(
+            p_dev_rec, HCI_ERR_AUTH_FAILURE, p_dev_rec->hci_handle,
+            "stack::btm::btm_sec::BTM_PasskeyReqReply Invalid handle");
       else
         BTM_SecBondCancel(bd_addr);
 
@@ -2808,7 +2812,9 @@ void btm_proc_sp_req_evt(tBTM_SP_EVT event, uint8_t* p) {
     BTW (PC) is another story.  */
     p_dev_rec = btm_find_dev(p_bda);
     if (p_dev_rec != NULL) {
-      btm_sec_disconnect(p_dev_rec->hci_handle, HCI_ERR_AUTH_FAILURE);
+      btm_sec_disconnect(
+          p_dev_rec->hci_handle, HCI_ERR_AUTH_FAILURE,
+          "stack::btm::btm_sec::btm_proc_sp_req_evt Security failure");
     }
   } else if (btm_cb.devcb.loc_io_caps != BTM_IO_CAP_NONE) {
     btsnd_hcic_user_passkey_neg_reply(p_bda);
@@ -2871,8 +2877,9 @@ void btm_simple_pair_complete(uint8_t* p) {
     /* Avoid sending disconnect on HCI_ERR_PEER_USER */
     if ((status != HCI_ERR_PEER_USER) &&
         (status != HCI_ERR_CONN_CAUSE_LOCAL_HOST)) {
-      btm_sec_send_hci_disconnect(p_dev_rec, HCI_ERR_AUTH_FAILURE,
-                                  p_dev_rec->hci_handle);
+      btm_sec_send_hci_disconnect(
+          p_dev_rec, HCI_ERR_AUTH_FAILURE, p_dev_rec->hci_handle,
+          "stack::btm::btm_sec::btm_simple_pair_complete Auth fail");
     }
   }
 }
@@ -3130,8 +3137,9 @@ void btm_sec_auth_complete(uint16_t handle, tHCI_STATUS status) {
     if (status != HCI_SUCCESS) {
       if (((status != HCI_ERR_PEER_USER) &&
            (status != HCI_ERR_CONN_CAUSE_LOCAL_HOST)))
-        btm_sec_send_hci_disconnect(p_dev_rec, HCI_ERR_PEER_USER,
-                                    p_dev_rec->hci_handle);
+        btm_sec_send_hci_disconnect(
+            p_dev_rec, HCI_ERR_PEER_USER, p_dev_rec->hci_handle,
+            "stack::btm::btm_sec::btm_sec_auth_retry Auth fail while bonding");
     } else {
       BTM_LogHistory(kBtmLogTag, p_dev_rec->bd_addr, "Bonding completed",
                      hci_error_code_text(status));
@@ -3173,8 +3181,9 @@ void btm_sec_auth_complete(uint16_t handle, tHCI_STATUS status) {
     btm_sec_dev_rec_cback_event(p_dev_rec, BTM_ERR_PROCESSING, false);
 
     if (btm_cb.pairing_flags & BTM_PAIR_FLAGS_DISC_WHEN_DONE) {
-      btm_sec_send_hci_disconnect(p_dev_rec, HCI_ERR_AUTH_FAILURE,
-                                  p_dev_rec->hci_handle);
+      btm_sec_send_hci_disconnect(
+          p_dev_rec, HCI_ERR_AUTH_FAILURE, p_dev_rec->hci_handle,
+          "stack::btm::btm_sec::btm_sec_auth_retry Auth failed");
     }
     return;
   }
@@ -3661,12 +3670,15 @@ void btm_sec_connected(const RawAddress& bda, uint16_t handle,
   return;
 }
 
-tBTM_STATUS btm_sec_disconnect(uint16_t handle, tHCI_STATUS reason) {
+tBTM_STATUS btm_sec_disconnect(uint16_t handle, tHCI_STATUS reason,
+                               std::string comment) {
   tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev_by_handle(handle);
 
   /* In some weird race condition we may not have a record */
   if (!p_dev_rec) {
-    acl_disconnect_from_handle(handle, reason);
+    acl_disconnect_from_handle(
+        handle, reason,
+        "stack::btm::btm_sec::btm_sec_disconnect No security record");
     return (BTM_SUCCESS);
   }
 
@@ -3680,14 +3692,15 @@ tBTM_STATUS btm_sec_disconnect(uint16_t handle, tHCI_STATUS reason) {
     return (BTM_BUSY);
   }
 
-  return (btm_sec_send_hci_disconnect(p_dev_rec, reason, handle));
+  return btm_sec_send_hci_disconnect(p_dev_rec, reason, handle, comment);
 }
 
-void btm_sec_disconnected(uint16_t handle, tHCI_REASON reason) {
+void btm_sec_disconnected(uint16_t handle, tHCI_REASON reason,
+                          std::string comment) {
   if ((reason != HCI_ERR_CONN_CAUSE_LOCAL_HOST) &&
       (reason != HCI_ERR_PEER_USER)) {
-    LOG_WARN("Got uncommon disconnection reason:%s handle:0x%04x",
-             hci_error_code_text(reason).c_str(), handle);
+    LOG_WARN("Got uncommon disconnection reason:%s handle:0x%04x comment:%s",
+             hci_error_code_text(reason).c_str(), handle, comment.c_str());
   }
 
   btm_acl_resubmit_page();
@@ -4042,8 +4055,9 @@ static void btm_sec_pairing_timeout(UNUSED_ATTR void* data) {
                    << p_cb->pairing_bda;
         break;
       }
-      btm_sec_send_hci_disconnect(p_dev_rec, HCI_ERR_AUTH_FAILURE,
-                                  p_dev_rec->hci_handle);
+      btm_sec_send_hci_disconnect(
+          p_dev_rec, HCI_ERR_AUTH_FAILURE, p_dev_rec->hci_handle,
+          "stack::btm::btm_sec::btm_sec_pairing_timeout");
       btm_sec_change_pairing_state(BTM_PAIR_STATE_IDLE);
       break;
 
