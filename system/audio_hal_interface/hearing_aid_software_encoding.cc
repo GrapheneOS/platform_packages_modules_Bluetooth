@@ -42,7 +42,8 @@ class HearingAidTransport
  public:
   HearingAidTransport(StreamCallbacks stream_cb)
       : IBluetoothSinkTransportInstance(
-            SessionType::HEARING_AID_SOFTWARE_ENCODING_DATAPATH, {}),
+            SessionType::HEARING_AID_SOFTWARE_ENCODING_DATAPATH,
+            (AudioConfiguration){}),
         stream_cb_(std::move(stream_cb)),
         remote_delay_report_ms_(0),
         total_bytes_read_(0),
