@@ -271,11 +271,7 @@ void BluetoothAudioPort::SessionChangedHandler() {
   BluetoothStreamState previous_state = state_;
   LOG(INFO) << "session_changed_cb: session_type=" << toString(session_type_)
             << ", cookie=" << StringPrintf("%#hx", cookie_) << ", previous_state=" << previous_state;
-  if (previous_state != BluetoothStreamState::DISABLED) {
-    state_ = BluetoothStreamState::DISABLED;
-  } else {
-    state_ = BluetoothStreamState::STANDBY;
-  }
+  state_ = BluetoothStreamState::DISABLED;
   port_lock.unlock();
   internal_cv_.notify_all();
 }
