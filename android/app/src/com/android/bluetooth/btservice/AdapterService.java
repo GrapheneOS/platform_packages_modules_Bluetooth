@@ -1462,40 +1462,43 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public boolean setScanMode(int mode, int duration, AttributionSource attributionSource) {
+        public int setScanMode(int mode, AttributionSource attributionSource) {
             AdapterService service = getService();
             if (service == null || !callerIsSystemOrActiveUser(TAG, "setScanMode")
                     || !Utils.checkScanPermissionForDataDelivery(
                             service, attributionSource, "AdapterService setScanMode")) {
-                return false;
+                return BluetoothStatusCodes.ERROR_MISSING_BLUETOOTH_SCAN_PERMISSION;
             }
+            enforceBluetoothPrivilegedPermission(service);
 
-            service.mAdapterProperties.setDiscoverableTimeout(duration);
-            return service.mAdapterProperties.setScanMode(convertScanModeToHal(mode));
+            return service.mAdapterProperties.setScanMode(convertScanModeToHal(mode))
+                    ? BluetoothStatusCodes.SUCCESS : BluetoothStatusCodes.ERROR_UNKNOWN;
         }
 
         @Override
-        public int getDiscoverableTimeout(AttributionSource attributionSource) {
+        public long getDiscoverableTimeout(AttributionSource attributionSource) {
             AdapterService service = getService();
             if (service == null || !callerIsSystemOrActiveUser(TAG, "getDiscoverableTimeout")
                     || !Utils.checkScanPermissionForDataDelivery(
                             service, attributionSource, "AdapterService getDiscoverableTimeout")) {
-                return 0;
+                return -1;
             }
 
             return service.mAdapterProperties.getDiscoverableTimeout();
         }
 
         @Override
-        public boolean setDiscoverableTimeout(int timeout, AttributionSource attributionSource) {
+        public int setDiscoverableTimeout(long timeout, AttributionSource attributionSource) {
             AdapterService service = getService();
             if (service == null || !callerIsSystemOrActiveUser(TAG, "setDiscoverableTimeout")
                     || !Utils.checkScanPermissionForDataDelivery(
                             service, attributionSource, "AdapterService setDiscoverableTimeout")) {
-                return false;
+                return BluetoothStatusCodes.ERROR_MISSING_BLUETOOTH_SCAN_PERMISSION;
             }
+            enforceBluetoothPrivilegedPermission(service);
 
-            return service.mAdapterProperties.setDiscoverableTimeout(timeout);
+            return service.mAdapterProperties.setDiscoverableTimeout((int) timeout)
+                    ? BluetoothStatusCodes.SUCCESS : BluetoothStatusCodes.ERROR_UNKNOWN;
         }
 
         @Override
