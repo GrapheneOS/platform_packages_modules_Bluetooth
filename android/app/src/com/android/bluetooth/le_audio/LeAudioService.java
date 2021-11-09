@@ -507,7 +507,7 @@ public class LeAudioService extends ProfileService {
         return true;
     }
 
-    List<BluetoothDevice> getConnectedDevices() {
+    public List<BluetoothDevice> getConnectedDevices() {
         synchronized (mStateMachines) {
             List<BluetoothDevice> devices = new ArrayList<>();
             for (LeAudioStateMachine sm : mStateMachines.values()) {
@@ -705,7 +705,7 @@ public class LeAudioService extends ProfileService {
          * - If device stops supporting input
          */
         boolean inActiveDeviceReplace = (device != mPreviousAudioInDevice);
-        if (mPreviousAudioInDevice != null) {
+        if (inActiveDeviceReplace && (mPreviousAudioInDevice != null)) {
             mAudioManager.setBluetoothLeAudioInDeviceConnectionState(
                     mPreviousAudioInDevice, BluetoothProfile.STATE_DISCONNECTED);
         }
@@ -763,7 +763,7 @@ public class LeAudioService extends ProfileService {
          * - If device stops supporting output
          */
         boolean outActiveDeviceReplace = (device != mPreviousAudioOutDevice);
-        if (mPreviousAudioOutDevice != null) {
+        if (outActiveDeviceReplace && (mPreviousAudioOutDevice != null)) {
             boolean suppressNoisyIntent =
                     (getConnectionState(mPreviousAudioOutDevice) ==
                     BluetoothProfile.STATE_CONNECTED);
