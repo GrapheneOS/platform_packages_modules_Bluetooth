@@ -421,12 +421,6 @@ public class LeAudioService extends ProfileService {
             return false;
         }
 
-        int groupId = getGroupId(device);
-
-        if (DBG) {
-            Log.d(TAG, "connect(): " + device + " group id: " + groupId);
-        }
-
         synchronized (mStateMachines) {
             LeAudioStateMachine sm = getOrCreateStateMachine(device);
             if (sm == null) {
@@ -437,25 +431,7 @@ public class LeAudioService extends ProfileService {
         }
 
         // Connect other devices from this group
-        if (groupId != LE_AUDIO_GROUP_ID_INVALID) {
-            for (BluetoothDevice storedDevice : mDeviceGroupIdMap.keySet()) {
-                if (device.equals(storedDevice)) {
-                    continue;
-                }
-                if (getGroupId(storedDevice) != groupId) {
-                    continue;
-                }
-                synchronized (mStateMachines) {
-                     LeAudioStateMachine sm = getOrCreateStateMachine(storedDevice);
-                     if (sm == null) {
-                         Log.e(TAG, "Ignored connect request for " + storedDevice
-                                 + " : no state machine");
-                         continue;
-                     }
-                     sm.sendMessage(LeAudioStateMachine.CONNECT);
-                 }
-             }
-         }
+        connectSet(device);
 
         return true;
     }
@@ -889,6 +865,42 @@ public class LeAudioService extends ProfileService {
         return activeDevices;
     }
 
+    void connectSet(BluetoothDevice device) {
+        int groupId = getGroupId(device);
+        if (groupId == LE_AUDIO_GROUP_ID_INVALID) {
+            return;
+        }
+
+        if (DBG) {
+            Log.d(TAG, "connect() others from group id: " + groupId);
+        }
+
+        for (BluetoothDevice storedDevice : mDeviceGroupIdMap.keySet()) {
+            if (device.equals(storedDevice)) {
+                continue;
+            }
+
+            if (getGroupId(storedDevice) != groupId) {
+                continue;
+            }
+
+            if (DBG) {
+                Log.d(TAG, "connect(): " + device);
+            }
+
+            synchronized (mStateMachines) {
+                 LeAudioStateMachine sm = getOrCreateStateMachine(storedDevice);
+                 if (sm == null) {
+                     Log.e(TAG, "Ignored connect request for " + storedDevice
+                             + " : no state machine");
+                     continue;
+                 }
+                 sm.sendMessage(LeAudioStateMachine.CONNECT);
+             }
+         }
+
+    }
+
     // Suppressed since this is part of a local process
     @SuppressLint("AndroidFrameworkRequiresPermission")
     void messageFromNative(LeAudioStackEvent stackEvent) {
@@ -905,6 +917,8 @@ public class LeAudioService extends ProfileService {
                         case LeAudioStackEvent.CONNECTION_STATE_CONNECTED:
                         case LeAudioStackEvent.CONNECTION_STATE_CONNECTING:
                             sm = getOrCreateStateMachine(device);
+                            /* Incoming connection try to connect other devices from the group */
+                            connectSet(device);
                             break;
                         default:
                             break;
