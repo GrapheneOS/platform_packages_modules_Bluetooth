@@ -449,6 +449,11 @@ cc_test {
     srcs: [
         "test/ad_parser_unittest.cc",
     ],
+    shared_libs: [
+        "android.system.suspend.control-V1-ndk",
+        "libbinder_ndk",
+        "libcrypto",
+    ],
     static_libs: [
         "libbluetooth-types",
         "liblog",
