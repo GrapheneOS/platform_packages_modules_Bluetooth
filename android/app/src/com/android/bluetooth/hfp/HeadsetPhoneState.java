@@ -22,7 +22,6 @@ import android.os.Handler;
 import android.telephony.PhoneStateListener;
 import android.telephony.ServiceState;
 import android.telephony.SignalStrength;
-import android.telephony.SignalStrengthUpdateRequest;
 import android.telephony.SubscriptionManager;
 import android.telephony.SubscriptionManager.OnSubscriptionsChangedListener;
 import android.telephony.TelephonyManager;
@@ -71,7 +70,8 @@ public class HeadsetPhoneState {
     private final HashMap<BluetoothDevice, Integer> mDeviceEventMap = new HashMap<>();
     private PhoneStateListener mPhoneStateListener;
     private final OnSubscriptionsChangedListener mOnSubscriptionsChangedListener;
-    private SignalStrengthUpdateRequest mSignalStrengthUpdateRequest;
+    // TODO(b/205585585): Re-enable SignalStrengthUpdateRequest to support "always report signal
+    // strength" when the crash is fixed.
 
     HeadsetPhoneState(HeadsetService headsetService) {
         Objects.requireNonNull(headsetService, "headsetService is null");
@@ -87,9 +87,6 @@ public class HeadsetPhoneState {
         mOnSubscriptionsChangedListener = new HeadsetPhoneStateOnSubscriptionChangedListener();
         mSubscriptionManager.addOnSubscriptionsChangedListener(command -> mHandler.post(command),
                 mOnSubscriptionsChangedListener);
-        mSignalStrengthUpdateRequest = new SignalStrengthUpdateRequest.Builder()
-                .setSystemThresholdReportingRequestedWhileIdle(true)
-                .build();
     }
 
     /**
@@ -161,9 +158,6 @@ public class HeadsetPhoneState {
         Log.i(TAG, "startListenForPhoneState(), subId=" + subId + ", enabled_events=" + events);
         mPhoneStateListener = new HeadsetPhoneStateListener(command -> mHandler.post(command));
         mTelephonyManager.listen(mPhoneStateListener, events);
-        if ((events & PhoneStateListener.LISTEN_SIGNAL_STRENGTHS) != 0) {
-            mTelephonyManager.setSignalStrengthUpdateRequest(mSignalStrengthUpdateRequest);
-        }
     }
 
     private void stopListenForPhoneState() {
@@ -175,7 +169,6 @@ public class HeadsetPhoneState {
                 + getTelephonyEventsToListen());
         mTelephonyManager.listen(mPhoneStateListener, PhoneStateListener.LISTEN_NONE);
         mPhoneStateListener = null;
-        mTelephonyManager.clearSignalStrengthUpdateRequest(mSignalStrengthUpdateRequest);
     }
 
     int getCindService() {
