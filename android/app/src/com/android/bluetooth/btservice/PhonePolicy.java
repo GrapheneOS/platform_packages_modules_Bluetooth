@@ -19,12 +19,14 @@ package com.android.bluetooth.btservice;
 import android.annotation.RequiresPermission;
 import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothCsipSetCoordinator;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadset;
 import android.bluetooth.BluetoothHearingAid;
 import android.bluetooth.BluetoothLeAudio;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUuid;
+import android.bluetooth.BluetoothVolumeControl;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -39,10 +41,13 @@ import android.util.Log;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.a2dp.A2dpService;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
+import com.android.bluetooth.csip.CsipSetCoordinatorService;
 import com.android.bluetooth.hearingaid.HearingAidService;
 import com.android.bluetooth.hfp.HeadsetService;
 import com.android.bluetooth.hid.HidHostService;
+import com.android.bluetooth.le_audio.LeAudioService;
 import com.android.bluetooth.pan.PanService;
+import com.android.bluetooth.vc.VolumeControlService;
 import com.android.internal.R;
 import com.android.internal.annotations.VisibleForTesting;
 
@@ -118,9 +123,19 @@ class PhonePolicy {
                             BluetoothProfile.A2DP, -1, // No-op argument
                             intent).sendToTarget();
                     break;
+                case BluetoothCsipSetCoordinator.ACTION_CSIS_CONNECTION_STATE_CHANGED:
+                    mHandler.obtainMessage(MESSAGE_PROFILE_CONNECTION_STATE_CHANGED,
+                            BluetoothProfile.CSIP_SET_COORDINATOR, -1, // No-op argument
+                            intent).sendToTarget();
+                    break;
                 case BluetoothLeAudio.ACTION_LE_AUDIO_CONNECTION_STATE_CHANGED:
                     mHandler.obtainMessage(MESSAGE_PROFILE_CONNECTION_STATE_CHANGED,
                             BluetoothProfile.LE_AUDIO, -1, // No-op argument
+                            intent).sendToTarget();
+                    break;
+                case BluetoothVolumeControl.ACTION_CONNECTION_STATE_CHANGED:
+                    mHandler.obtainMessage(MESSAGE_PROFILE_CONNECTION_STATE_CHANGED,
+                            BluetoothProfile.VOLUME_CONTROL, -1, // No-op argument
                             intent).sendToTarget();
                     break;
                 case BluetoothA2dp.ACTION_ACTIVE_DEVICE_CHANGED:
@@ -242,6 +257,8 @@ class PhonePolicy {
         filter.addAction(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED);
         filter.addAction(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED);
         filter.addAction(BluetoothLeAudio.ACTION_LE_AUDIO_CONNECTION_STATE_CHANGED);
+        filter.addAction(BluetoothCsipSetCoordinator.ACTION_CSIS_CONNECTION_STATE_CHANGED);
+        filter.addAction(BluetoothVolumeControl.ACTION_CONNECTION_STATE_CHANGED);
         filter.addAction(BluetoothDevice.ACTION_ACL_CONNECTED);
         filter.addAction(BluetoothDevice.ACTION_UUID);
         filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
@@ -274,6 +291,11 @@ class PhonePolicy {
         HeadsetService headsetService = mFactory.getHeadsetService();
         PanService panService = mFactory.getPanService();
         HearingAidService hearingAidService = mFactory.getHearingAidService();
+        LeAudioService leAudioService = mFactory.getLeAudioService();
+        CsipSetCoordinatorService csipSetCooridnatorService =
+             mFactory.getCsipSetCoordinatorService();
+        VolumeControlService volumeControlService =
+             mFactory.getVolumeControlService();
 
         // Set profile priorities only for the profiles discovered on the remote device.
         // This avoids needless auto-connect attempts to profiles non-existent on the remote device
@@ -302,6 +324,14 @@ class PhonePolicy {
                     BluetoothProfile.A2DP, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
         }
 
+        if ((csipSetCooridnatorService != null)
+                && (Utils.arrayContains(uuids, BluetoothUuid.COORDINATED_SET))
+                && (csipSetCooridnatorService.getConnectionPolicy(device)
+                        == BluetoothProfile.CONNECTION_POLICY_UNKNOWN)) {
+            mAdapterService.getDatabase().setProfileConnectionPolicy(device,
+                    BluetoothProfile.CSIP_SET_COORDINATOR, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+        }
+
         if ((panService != null) && (Utils.arrayContains(uuids, BluetoothUuid.PANU) && (
                 panService.getConnectionPolicy(device)
                         == BluetoothProfile.CONNECTION_POLICY_UNKNOWN)
@@ -311,12 +341,28 @@ class PhonePolicy {
                     BluetoothProfile.PAN, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
         }
 
+        if ((leAudioService != null) && Utils.arrayContains(uuids,
+                BluetoothUuid.LE_AUDIO) && (leAudioService.getConnectionPolicy(device)
+                == BluetoothProfile.CONNECTION_POLICY_UNKNOWN)) {
+            debugLog("setting le audio profile priority for device " + device);
+            mAdapterService.getDatabase().setProfileConnectionPolicy(device,
+                    BluetoothProfile.LE_AUDIO, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+        }
+
         if ((hearingAidService != null) && Utils.arrayContains(uuids,
                 BluetoothUuid.HEARING_AID) && (hearingAidService.getConnectionPolicy(device)
                 == BluetoothProfile.CONNECTION_POLICY_UNKNOWN)) {
             debugLog("setting hearing aid profile priority for device " + device);
             mAdapterService.getDatabase().setProfileConnectionPolicy(device,
                     BluetoothProfile.HEARING_AID, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+        }
+
+        if ((volumeControlService != null) && Utils.arrayContains(uuids,
+                BluetoothUuid.VOLUME_CONTROL) && (volumeControlService.getConnectionPolicy(device)
+                == BluetoothProfile.CONNECTION_POLICY_UNKNOWN)) {
+            debugLog("setting volume control profile priority for device " + device);
+            mAdapterService.getDatabase().setProfileConnectionPolicy(device,
+                    BluetoothProfile.VOLUME_CONTROL, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
         }
     }
 
@@ -326,7 +372,9 @@ class PhonePolicy {
         debugLog("processProfileStateChanged, device=" + device + ", profile=" + profileId + ", "
                 + prevState + " -> " + nextState);
         if (((profileId == BluetoothProfile.A2DP) || (profileId == BluetoothProfile.HEADSET)
-                || (profileId == BluetoothProfile.LE_AUDIO))) {
+                || (profileId == BluetoothProfile.LE_AUDIO)
+                || (profileId == BluetoothProfile.CSIP_SET_COORDINATOR)
+                || (profileId == BluetoothProfile.VOLUME_CONTROL))) {
             if (nextState == BluetoothProfile.STATE_CONNECTED) {
                 switch (profileId) {
                     case BluetoothProfile.A2DP:
@@ -373,6 +421,9 @@ class PhonePolicy {
         HeadsetService hsService = mFactory.getHeadsetService();
         A2dpService a2dpService = mFactory.getA2dpService();
         PanService panService = mFactory.getPanService();
+        LeAudioService leAudioService = mFactory.getLeAudioService();
+        CsipSetCoordinatorService csipSetCooridnatorService =
+        mFactory.getCsipSetCoordinatorService();
 
         if (hsService != null) {
             List<BluetoothDevice> hsConnDevList = hsService.getConnectedDevices();
@@ -384,10 +435,20 @@ class PhonePolicy {
             allProfilesEmpty &= a2dpConnDevList.isEmpty();
             atLeastOneProfileConnectedForDevice |= a2dpConnDevList.contains(device);
         }
+        if (csipSetCooridnatorService != null) {
+            List<BluetoothDevice> csipConnDevList = csipSetCooridnatorService.getConnectedDevices();
+            allProfilesEmpty &= csipConnDevList.isEmpty();
+            atLeastOneProfileConnectedForDevice |= csipConnDevList.contains(device);
+        }
         if (panService != null) {
             List<BluetoothDevice> panConnDevList = panService.getConnectedDevices();
             allProfilesEmpty &= panConnDevList.isEmpty();
             atLeastOneProfileConnectedForDevice |= panConnDevList.contains(device);
+        }
+        if (leAudioService != null) {
+            List<BluetoothDevice> leAudioConnDevList = leAudioService.getConnectedDevices();
+            allProfilesEmpty &= leAudioConnDevList.isEmpty();
+            atLeastOneProfileConnectedForDevice |= leAudioConnDevList.contains(device);
         }
 
         if (!atLeastOneProfileConnectedForDevice) {
@@ -505,6 +566,11 @@ class PhonePolicy {
         HeadsetService hsService = mFactory.getHeadsetService();
         A2dpService a2dpService = mFactory.getA2dpService();
         PanService panService = mFactory.getPanService();
+        LeAudioService leAudioService = mFactory.getLeAudioService();
+        CsipSetCoordinatorService csipSetCooridnatorService =
+            mFactory.getCsipSetCoordinatorService();
+        VolumeControlService volumeControlService =
+            mFactory.getVolumeControlService();
 
         if (hsService != null) {
             if (!mHeadsetRetrySet.contains(device) && (hsService.getConnectionPolicy(device)
@@ -536,6 +602,36 @@ class PhonePolicy {
                     == BluetoothProfile.STATE_DISCONNECTED)) {
                 debugLog("Retrying connection to PAN with device " + device);
                 panService.connect(device);
+            }
+        }
+        if (leAudioService != null) {
+            List<BluetoothDevice> leAudioConnDevList = leAudioService.getConnectedDevices();
+            if (!leAudioConnDevList.contains(device) && (leAudioService.getConnectionPolicy(device)
+                    == BluetoothProfile.CONNECTION_POLICY_ALLOWED)
+                    && (leAudioService.getConnectionState(device)
+                    == BluetoothProfile.STATE_DISCONNECTED)) {
+                debugLog("Retrying connection to LEAudio with device " + device);
+                leAudioService.connect(device);
+            }
+        }
+        if (csipSetCooridnatorService != null) {
+            List<BluetoothDevice> csipConnDevList = csipSetCooridnatorService.getConnectedDevices();
+            if (!csipConnDevList.contains(device) && (csipSetCooridnatorService.getConnectionPolicy(device)
+                    == BluetoothProfile.CONNECTION_POLICY_ALLOWED)
+                    && (csipSetCooridnatorService.getConnectionState(device)
+                    == BluetoothProfile.STATE_DISCONNECTED)) {
+                debugLog("Retrying connection to CSIP with device " + device);
+                csipSetCooridnatorService.connect(device);
+            }
+        }
+        if (volumeControlService != null) {
+            List<BluetoothDevice> vcConnDevList = volumeControlService.getConnectedDevices();
+            if (!vcConnDevList.contains(device) && (volumeControlService.getConnectionPolicy(device)
+                    == BluetoothProfile.CONNECTION_POLICY_ALLOWED)
+                    && (volumeControlService.getConnectionState(device)
+                    == BluetoothProfile.STATE_DISCONNECTED)) {
+                debugLog("Retrying connection to CSIP with device " + device);
+                volumeControlService.connect(device);
             }
         }
     }
