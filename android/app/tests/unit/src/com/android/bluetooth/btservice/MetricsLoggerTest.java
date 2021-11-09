@@ -15,9 +15,13 @@
  */
 package com.android.bluetooth.btservice;
 
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doReturn;
+
 import androidx.test.filters.MediumTest;
 import androidx.test.runner.AndroidJUnit4;
 
+import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.BluetoothMetricsProto.BluetoothLog;
 import com.android.bluetooth.BluetoothMetricsProto.ProfileConnectionStats;
 import com.android.bluetooth.BluetoothMetricsProto.ProfileId;
@@ -27,6 +31,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import java.util.HashMap;
 import java.util.List;
@@ -37,17 +43,42 @@ import java.util.List;
 @MediumTest
 @RunWith(AndroidJUnit4.class)
 public class MetricsLoggerTest {
+    private TestableMetricsLogger mTestableMetricsLogger;
+    @Mock
+    private AdapterService mMockAdapterService;
+
+    public class TestableMetricsLogger extends MetricsLogger {
+        public HashMap<Integer, Long> mTestableCounters = new HashMap<>();
+
+        @Override
+        protected void writeCounter(int key, long count) {
+            mTestableCounters.put(key, count);
+        }
+
+        @Override
+        protected void scheduleDrains() {
+        }
+
+        @Override
+        protected void cancelPendingDrain() {
+        }
+    }
 
     @Before
     public void setUp() {
+        MockitoAnnotations.initMocks(this);
         // Dump metrics to clean up internal states
         MetricsLogger.dumpProto(BluetoothLog.newBuilder());
+        mTestableMetricsLogger = new TestableMetricsLogger();
+        doReturn(null)
+                .when(mMockAdapterService).registerReceiver(any(), any());
     }
 
     @After
     public void tearDown() {
         // Dump metrics to clean up internal states
         MetricsLogger.dumpProto(BluetoothLog.newBuilder());
+        mTestableMetricsLogger.close();
     }
 
     /**
@@ -104,4 +135,75 @@ public class MetricsLoggerTest {
         return profileUsageStatsMap;
     }
 
+    /**
+     * Test add counters and send them to westworld
+     */
+    @Test
+    public void testAddAndSendCountersNormalCases() {
+        mTestableMetricsLogger.init(mMockAdapterService);
+        mTestableMetricsLogger.count(1, 10);
+        mTestableMetricsLogger.count(1, 10);
+        mTestableMetricsLogger.count(2, 5);
+        mTestableMetricsLogger.drainBufferedCounters();
+
+        Assert.assertEquals(20L, mTestableMetricsLogger.mTestableCounters.get(1).longValue());
+        Assert.assertEquals(5L, mTestableMetricsLogger.mTestableCounters.get(2).longValue());
+
+        mTestableMetricsLogger.count(1, 3);
+        mTestableMetricsLogger.count(2, 5);
+        mTestableMetricsLogger.count(2, 5);
+        mTestableMetricsLogger.count(3, 1);
+        mTestableMetricsLogger.drainBufferedCounters();
+        Assert.assertEquals(
+                3L, mTestableMetricsLogger.mTestableCounters.get(1).longValue());
+        Assert.assertEquals(
+                10L, mTestableMetricsLogger.mTestableCounters.get(2).longValue());
+        Assert.assertEquals(
+                1L, mTestableMetricsLogger.mTestableCounters.get(3).longValue());
+    }
+
+    @Test
+    public void testAddAndSendCountersCornerCases() {
+        mTestableMetricsLogger.init(mMockAdapterService);
+        Assert.assertTrue(mTestableMetricsLogger.isInitialized());
+        mTestableMetricsLogger.count(1, -1);
+        mTestableMetricsLogger.count(3, 0);
+        mTestableMetricsLogger.count(2, 10);
+        mTestableMetricsLogger.count(2, Long.MAX_VALUE - 8L);
+        mTestableMetricsLogger.drainBufferedCounters();
+
+        Assert.assertFalse(mTestableMetricsLogger.mTestableCounters.containsKey(1));
+        Assert.assertFalse(mTestableMetricsLogger.mTestableCounters.containsKey(3));
+        Assert.assertEquals(
+                Long.MAX_VALUE, mTestableMetricsLogger.mTestableCounters.get(2).longValue());
+    }
+
+    @Test
+    public void testMetricsLoggerClose() {
+        mTestableMetricsLogger.init(mMockAdapterService);
+        mTestableMetricsLogger.count(1, 1);
+        mTestableMetricsLogger.count(2, 10);
+        mTestableMetricsLogger.count(2, Long.MAX_VALUE);
+        mTestableMetricsLogger.close();
+
+        Assert.assertEquals(
+                1, mTestableMetricsLogger.mTestableCounters.get(1).longValue());
+        Assert.assertEquals(
+                Long.MAX_VALUE, mTestableMetricsLogger.mTestableCounters.get(2).longValue());
+    }
+
+    @Test
+    public void testMetricsLoggerNotInit() {
+        Assert.assertFalse(mTestableMetricsLogger.count(1, 1));
+        mTestableMetricsLogger.drainBufferedCounters();
+        Assert.assertFalse(mTestableMetricsLogger.mTestableCounters.containsKey(1));
+        Assert.assertFalse(mTestableMetricsLogger.close());
+    }
+
+    @Test
+    public void testAddAndSendCountersDoubleInit() {
+        Assert.assertTrue(mTestableMetricsLogger.init(mMockAdapterService));
+        Assert.assertTrue(mTestableMetricsLogger.isInitialized());
+        Assert.assertFalse(mTestableMetricsLogger.init(mMockAdapterService));
+    }
 }
