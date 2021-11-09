@@ -98,6 +98,7 @@ import com.android.bluetooth.BluetoothStatsLog;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.a2dp.A2dpService;
 import com.android.bluetooth.a2dpsink.A2dpSinkService;
+import com.android.bluetooth.btservice.MetricsLogger;
 import com.android.bluetooth.btservice.RemoteDevices.DeviceProperties;
 import com.android.bluetooth.btservice.activityattribution.ActivityAttributionService;
 import com.android.bluetooth.btservice.bluetoothkeystore.BluetoothKeystoreService;
@@ -305,6 +306,8 @@ public class AdapterService extends Service {
 
     private volatile boolean mTestModeEnabled = false;
 
+    private MetricsLogger mMetricsLogger;
+
     /**
      * Register a {@link ProfileService} with AdapterService.
      *
@@ -445,6 +448,7 @@ public class AdapterService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        initMetricsLogger();
         debugLog("onCreate()");
         mDeviceConfigListener.start();
         mRemoteDevices = new RemoteDevices(this, Looper.getMainLooper());
@@ -582,6 +586,27 @@ public class AdapterService extends Service {
             }
         }
     };
+
+    private boolean initMetricsLogger() {
+        if (mMetricsLogger != null) {
+            return false;
+        }
+        mMetricsLogger = MetricsLogger.getInstance();
+        return mMetricsLogger.init(this);
+    }
+
+    private boolean closeMetricsLogger() {
+        if (mMetricsLogger == null) {
+            return false;
+        }
+        boolean result = mMetricsLogger.close();
+        mMetricsLogger = null;
+        return result;
+    }
+
+    public void setMetricsLogger(MetricsLogger metricsLogger) {
+        mMetricsLogger = metricsLogger;
+    }
 
     void bringUpBle() {
         debugLog("bleOnProcessStart()");
@@ -776,6 +801,8 @@ public class AdapterService extends Service {
             errorLog("cleanup() - Service already starting to cleanup, ignoring request...");
             return;
         }
+
+        closeMetricsLogger();
 
         clearAdapterService(this);
 
