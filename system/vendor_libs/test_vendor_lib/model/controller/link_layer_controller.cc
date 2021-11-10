@@ -208,6 +208,11 @@ void LinkLayerController::IncomingPacket(
     address_matches = true;
   }
 
+  // Check current connection address
+  if (destination_address == le_connecting_rpa_) {
+    address_matches = true;
+  }
+
   // Check advertising addresses
   for (const auto& advertiser : advertisers_) {
     if (advertiser.IsEnabled() &&
@@ -1163,6 +1168,40 @@ static bool rpa_matches_irk(
   return (memcmp(x.data(), &hash[0], 3) == 0);
 }
 
+static Address generate_rpa(
+    std::array<uint8_t, LinkLayerController::kIrkSize> irk) {
+  // most significant bit, bit7, bit6 is 01 to be resolvable random
+  // Bits of the random part of prand shall not be all 1 or all 0
+  std::array<uint8_t, 3> prand;
+  prand[0] = std::rand();
+  prand[1] = std::rand();
+  prand[2] = std::rand();
+
+  constexpr uint8_t BLE_RESOLVE_ADDR_MSB = 0x40;
+  prand[2] &= ~0xC0;  // BLE Address mask
+  if ((prand[0] == 0x00 && prand[1] == 0x00 && prand[2] == 0x00) ||
+      (prand[0] == 0xFF && prand[1] == 0xFF && prand[2] == 0x3F)) {
+    prand[0] = (uint8_t)(std::rand() % 0xFE + 1);
+  }
+  prand[2] |= BLE_RESOLVE_ADDR_MSB;
+
+  Address rpa;
+  rpa.address[3] = prand[0];
+  rpa.address[4] = prand[1];
+  rpa.address[5] = prand[2];
+
+  /* encrypt with IRK */
+  bluetooth::crypto_toolbox::Octet16 p =
+      bluetooth::crypto_toolbox::aes_128(irk, prand.data(), 3);
+
+  /* set hash to be LSB of rpAddress */
+  rpa.address[0] = p[0];
+  rpa.address[1] = p[1];
+  rpa.address[2] = p[2];
+  LOG_INFO("RPA %s", rpa.ToString().c_str());
+  return rpa;
+}
+
 void LinkLayerController::IncomingLeAdvertisementPacket(
     model::packets::LinkLayerPacketView incoming) {
   // TODO: Handle multiple advertisements per packet.
@@ -1249,11 +1288,17 @@ void LinkLayerController::IncomingLeAdvertisementPacket(
   Address resolved_address = address;
   uint8_t resolved_address_type = static_cast<uint8_t>(address_type);
   bool resolved = false;
-  for (const auto& entry : le_resolving_list_) {
-    if (rpa_matches_irk(address, entry.peer_irk)) {
-      resolved = true;
-      resolved_address = entry.address;
-      resolved_address_type = entry.address_type;
+  Address rpa;
+  if (le_resolving_list_enabled_) {
+    for (const auto& entry : le_resolving_list_) {
+      if (rpa_matches_irk(address, entry.peer_irk)) {
+        LOG_INFO("Matched against IRK for %s",
+                 entry.address.ToString().c_str());
+        resolved = true;
+        resolved_address = entry.address;
+        resolved_address_type = entry.address_type;
+        rpa = generate_rpa(entry.local_irk);
+      }
     }
   }
 
@@ -1283,10 +1328,22 @@ void LinkLayerController::IncomingLeAdvertisementPacket(
       case bluetooth::hci::OwnAddressType::RANDOM_DEVICE_ADDRESS:
         own_address = properties_.GetLeAddress();
         break;
-      default:
-        LOG_ALWAYS_FATAL(
-            "Unhandled connection address type %s",
-            bluetooth::hci::OwnAddressTypeText(own_address_type).c_str());
+      case bluetooth::hci::OwnAddressType::RESOLVABLE_OR_PUBLIC_ADDRESS:
+        if (resolved) {
+          own_address = rpa;
+          le_connecting_rpa_ = rpa;
+        } else {
+          own_address = properties_.GetAddress();
+        }
+        break;
+      case bluetooth::hci::OwnAddressType::RESOLVABLE_OR_RANDOM_ADDRESS:
+        if (resolved) {
+          own_address = rpa;
+          le_connecting_rpa_ = rpa;
+        } else {
+          own_address = properties_.GetLeAddress();
+        }
+        break;
     }
     LOG_INFO("Connecting to %s (type %hhx) own_address %s (type %hhx)",
              incoming.GetSourceAddress().ToString().c_str(), address_type,
@@ -1324,6 +1381,9 @@ uint16_t LinkLayerController::HandleLeConnection(AddressWithType address,
         connection_latency, supervision_timeout,
         static_cast<bluetooth::hci::ClockAccuracy>(0x00));
     send_event_(std::move(packet));
+  }
+  if (own_address.GetAddress() == le_connecting_rpa_) {
+    le_connecting_rpa_ = Address::kEmpty;
   }
   return handle;
 }
