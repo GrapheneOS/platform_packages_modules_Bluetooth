@@ -140,7 +140,7 @@ bool SMP_Register(tSMP_CALLBACK* p_cback) {
  * Returns          None
  *
  ******************************************************************************/
-tSMP_STATUS SMP_Pair(const RawAddress& bd_addr) {
+tSMP_STATUS SMP_Pair(const RawAddress& bd_addr, tBLE_ADDR_TYPE addr_type) {
   LOG_ASSERT(!bluetooth::shim::is_gd_shim_enabled())
       << "Legacy SMP API should not be invoked when GD Security is used";
   tSMP_CB* p_cb = &smp_cb;
@@ -157,6 +157,10 @@ tSMP_STATUS SMP_Pair(const RawAddress& bd_addr) {
     p_cb->flags = SMP_PAIR_FLAGS_WE_STARTED_DD;
     p_cb->pairing_bda = bd_addr;
 
+    p_cb->pairing_ble_bd_addr = {
+        .type = addr_type,
+        .bda = bd_addr,
+    };
     if (!L2CA_ConnectFixedChnl(L2CAP_SMP_CID, bd_addr)) {
       tSMP_INT_DATA smp_int_data;
       smp_int_data.status = SMP_PAIR_INTERNAL_ERR;
@@ -168,6 +172,10 @@ tSMP_STATUS SMP_Pair(const RawAddress& bd_addr) {
 
     return SMP_STARTED;
   }
+}
+
+tSMP_STATUS SMP_Pair(const RawAddress& bd_addr) {
+  return SMP_Pair(bd_addr, BLE_ADDR_PUBLIC);
 }
 
 /*******************************************************************************
