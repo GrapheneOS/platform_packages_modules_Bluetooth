@@ -80,6 +80,8 @@ extern bool SMP_Register(tSMP_CALLBACK* p_cback);
  *
  ******************************************************************************/
 extern tSMP_STATUS SMP_Pair(const RawAddress& bd_addr);
+extern tSMP_STATUS SMP_Pair(const RawAddress& bd_addr,
+                            tBLE_ADDR_TYPE addr_type);
 
 /*******************************************************************************
  *
