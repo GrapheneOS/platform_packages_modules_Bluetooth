@@ -87,6 +87,12 @@ using OnDisconnect = std::function<void(HciHandle, hci::ErrorCode reason)>;
 
 constexpr char kConnectionDescriptorTimeFormat[] = "%Y-%m-%d %H:%M:%S";
 
+inline bool IsRpa(const hci::AddressWithType address_with_type) {
+  return address_with_type.GetAddressType() ==
+             hci::AddressType::RANDOM_DEVICE_ADDRESS &&
+         ((address_with_type.GetAddress().address.data()[5] & 0xc0) == 0x40);
+}
+
 class ShadowAcceptlist {
  public:
   ShadowAcceptlist(uint8_t max_acceptlist_size)
@@ -553,9 +559,9 @@ class ClassicShimAclConnection
         ToRawAddress(connection_->GetAddress()), ToLegacyRole(new_role));
     BTM_LogHistory(kBtmLogTag, ToRawAddress(connection_->GetAddress()),
                    "Role change",
-                   base::StringPrintf("classic  status:%s new_role:%s",
-                                      hci::ErrorCodeText(hci_status).c_str(),
-                                      hci::RoleText(new_role).c_str()));
+                   base::StringPrintf("classic New_role:%s status:%s",
+                                      hci::RoleText(new_role).c_str(),
+                                      hci::ErrorCodeText(hci_status).c_str()));
   }
 
   void OnDisconnection(hci::ErrorCode reason) override {
@@ -847,7 +853,9 @@ struct shim::legacy::Acl::impl {
       LOG_DEBUG("Disconnection initiated classic remote:%s handle:%hu",
                 PRIVATE_ADDRESS(remote_address), handle);
       BTM_LogHistory(kBtmLogTag, ToRawAddress(remote_address),
-                     "Disconnection initiated", "classic");
+                     "Disconnection initiated",
+                     base::StringPrintf("classic reason:%s",
+                                        hci_status_code_text(reason).c_str()));
     } else {
       LOG_WARN("Unable to disconnect unknown classic connection handle:0x%04x",
                handle);
@@ -865,7 +873,9 @@ struct shim::legacy::Acl::impl {
                 PRIVATE_ADDRESS(remote_address_with_type), handle);
       BTM_LogHistory(kBtmLogTag,
                      ToLegacyAddressWithType(remote_address_with_type),
-                     "Disconnection initiated", "Le");
+                     "Disconnection initiated",
+                     base::StringPrintf("Le reason:%s",
+                                        hci_status_code_text(reason).c_str()));
     } else {
       LOG_WARN("Unable to disconnect unknown le connection handle:0x%04x",
                handle);
@@ -1029,6 +1039,7 @@ void DumpsysAcl(int fd) {
 
     if (link.is_transport_br_edr()) {
       for (int j = 0; j < HCI_EXT_FEATURES_PAGE_MAX + 1; j++) {
+        if (!link.peer_lmp_feature_valid[j]) continue;
         LOG_DUMPSYS(fd, "    peer_lmp_features[%d] valid:%s data:%s", j,
                     common::ToString(link.peer_lmp_feature_valid[j]).c_str(),
                     bd_features_text(link.peer_lmp_feature_pages[j]).c_str());
@@ -1353,7 +1364,8 @@ void shim::legacy::Acl::OnConnectSuccess(
             (locally_initiated) ? "local" : "remote");
   BTM_LogHistory(kBtmLogTag, ToRawAddress(remote_address),
                  "Connection successful",
-                 (locally_initiated) ? "Local initiated" : "Remote initiated");
+                 (locally_initiated) ? "classic Local initiated"
+                                     : "classic Remote initiated");
 }
 
 void shim::legacy::Acl::OnConnectFail(hci::Address address,
@@ -1399,6 +1411,10 @@ void shim::legacy::Acl::OnLeConnectSuccess(
   ASSERT(connection != nullptr);
   auto handle = connection->GetHandle();
 
+  // Save the peer address, if any
+  hci::AddressWithType peer_address_with_type =
+      connection->peer_address_with_type_;
+
   hci::Role connection_role = connection->GetRole();
   bool locally_initiated = connection->locally_initiated_;
 
@@ -1427,7 +1443,16 @@ void shim::legacy::Acl::OnLeConnectSuccess(
 
   // Once an le connection has successfully been established
   // the device address is removed from the controller accept list.
-  pimpl_->shadow_acceptlist_.Remove(address_with_type);
+  if (IsRpa(address_with_type)) {
+    LOG_DEBUG("Connection address is rpa:%s identity_addr:%s",
+              PRIVATE_ADDRESS(address_with_type),
+              PRIVATE_ADDRESS(peer_address_with_type));
+    pimpl_->shadow_acceptlist_.Remove(peer_address_with_type);
+  } else {
+    LOG_DEBUG("Connection address is not rpa addr:%s",
+              PRIVATE_ADDRESS(address_with_type));
+    pimpl_->shadow_acceptlist_.Remove(address_with_type);
+  }
 
   TRY_POSTING_ON_MAIN(
       acl_interface_.connection.le.on_connected, legacy_address_with_type,
