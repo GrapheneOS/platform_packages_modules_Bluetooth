@@ -233,7 +233,7 @@ public class PhonePolicyTest {
         verify(mDatabaseManager, never()).setConnection(eq(connectionOrder.get(2)), anyBoolean());
         verify(mDatabaseManager, never()).setConnection(eq(connectionOrder.get(3)), anyBoolean());
 
-        // Disconnect a2dp for the device
+        // Disconnect a2dp for the device from previous STATE_CONNECTED
         when(mHeadsetService.getConnectionState(connectionOrder.get(1))).thenReturn(
                 BluetoothProfile.STATE_DISCONNECTED);
         intent = new Intent(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED);
@@ -241,6 +241,18 @@ public class PhonePolicyTest {
         intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, BluetoothProfile.STATE_CONNECTED);
         intent.putExtra(BluetoothProfile.EXTRA_STATE, BluetoothProfile.STATE_DISCONNECTED);
         intent.addFlags(Intent.FLAG_RECEIVER_INCLUDE_BACKGROUND);
+        mPhonePolicy.getBroadcastReceiver().onReceive(null /* context */, intent);
+        waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
+
+        // Verify that we do not call setConnection, nor setDisconnection on disconnect
+        // from previous STATE_CONNECTED
+        verify(mDatabaseManager, timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1)).setConnection(
+                connectionOrder.get(1), true);
+        verify(mDatabaseManager, never()).setDisconnection(connectionOrder.get(1));
+
+        // Disconnect a2dp for the device from previous STATE_DISCONNECTING
+        intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE,
+                BluetoothProfile.STATE_DISCONNECTING);
         mPhonePolicy.getBroadcastReceiver().onReceive(null /* context */, intent);
         waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
 
