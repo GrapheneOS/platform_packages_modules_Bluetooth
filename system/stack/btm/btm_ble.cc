@@ -123,9 +123,7 @@ void BTM_SecAddBleKey(const RawAddress& bd_addr, tBTM_LE_KEY_VALUE* p_le_key,
     return bluetooth::shim::BTM_SecAddBleKey(bd_addr, p_le_key, key_type);
   }
 
-  tBTM_SEC_DEV_REC* p_dev_rec;
-  BTM_TRACE_DEBUG("BTM_SecAddBleKey");
-  p_dev_rec = btm_find_dev(bd_addr);
+  tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(bd_addr);
   if (!p_dev_rec || !p_le_key ||
       (key_type != BTM_LE_KEY_PENC && key_type != BTM_LE_KEY_PID &&
        key_type != BTM_LE_KEY_PCSRK && key_type != BTM_LE_KEY_LENC &&
@@ -136,7 +134,8 @@ void BTM_SecAddBleKey(const RawAddress& bd_addr, tBTM_LE_KEY_VALUE* p_le_key,
     return;
   }
 
-  VLOG(1) << __func__ << " BDA: " << bd_addr << ", Type: " << key_type;
+  LOG_DEBUG("Adding BLE key device:%s key_type:%hhu", PRIVATE_ADDRESS(bd_addr),
+            key_type);
 
   btm_sec_save_le_key(bd_addr, key_type, p_le_key, false);
 
