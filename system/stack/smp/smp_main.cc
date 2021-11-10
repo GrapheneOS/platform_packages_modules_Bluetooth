@@ -25,6 +25,12 @@
 
 #include "osi/include/log.h"
 
+namespace {
+
+constexpr char kBtmLogTag[] = "SMP";
+
+}
+
 const char* const smp_state_name[] = {
     "SMP_STATE_IDLE",
     "SMP_STATE_WAIT_APP_RSP",
@@ -937,6 +943,12 @@ void smp_set_state(tSMP_STATE state) {
     SMP_TRACE_DEBUG("State change: %s(%d) ==> %s(%d)",
                     smp_get_state_name(smp_cb.state), smp_cb.state,
                     smp_get_state_name(state), state);
+    if (smp_cb.state != state) {
+      BTM_LogHistory(
+          kBtmLogTag, smp_cb.pairing_ble_bd_addr, "Security state changed",
+          base::StringPrintf("%s => %s", smp_get_state_name(smp_cb.state),
+                             smp_get_state_name(state)));
+    }
     smp_cb.state = state;
   } else {
     SMP_TRACE_DEBUG("smp_set_state invalid state =%d", state);
