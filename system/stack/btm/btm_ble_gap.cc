@@ -808,6 +808,13 @@ static uint8_t btm_set_conn_mode_adv_init_addr(
   }
 
   if (evt_type == BTM_BLE_CONNECT_EVT) {
+    CHECK(p_peer_addr_type != nullptr);
+    const tBLE_BD_ADDR ble_bd_addr = {
+        .bda = p_peer_addr_ptr,
+        .type = *p_peer_addr_type,
+    };
+    LOG_DEBUG("Received BLE connect event %s", PRIVATE_ADDRESS(ble_bd_addr));
+
     evt_type = p_cb->directed_conn;
 
     if (p_cb->directed_conn == BTM_BLE_CONNECT_DIR_EVT ||
