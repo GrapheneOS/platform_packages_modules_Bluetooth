@@ -3811,7 +3811,8 @@ void btm_sec_link_key_notification(const RawAddress& p_bda,
   bool we_are_bonding = false;
   bool ltk_derived_lk = false;
 
-  VLOG(2) << __func__ << " BDA: " << p_bda << ", TYPE: " << +key_type;
+  LOG_DEBUG("New link key generated device:%s key_type:%hhu",
+            PRIVATE_ADDRESS(p_bda), key_type);
 
   if ((key_type >= BTM_LTK_DERIVED_LKEY_OFFSET + BTM_LKEY_TYPE_COMBINATION) &&
       (key_type <=
@@ -4084,8 +4085,8 @@ void btm_sec_pin_code_request(uint8_t* p_event) {
   /* it may need to stretch timeouts                */
   l2c_pin_code_request(p_bda);
 
-  VLOG(2) << __func__ << " BDA: " << p_bda
-          << " state: " << btm_pair_state_descr(btm_cb.pairing_state);
+  LOG_DEBUG("Controller requests PIN code device:%s state:%s",
+            PRIVATE_ADDRESS(p_bda), btm_pair_state_descr(btm_cb.pairing_state));
 
   RawAddress local_bd_addr = *controller_get_interface()->get_address();
   if (p_bda == local_bd_addr) {
