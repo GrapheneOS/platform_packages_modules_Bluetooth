@@ -180,12 +180,13 @@ static inline tBTA_PAN_ROLE btpan_role_to_bta(int btpan_role) {
 }
 
 static tBTA_PAN_ROLE btpan_dev_local_role;
-static tBTA_PAN_ROLE_INFO bta_panu_info = {PANU_SERVICE_NAME, 0};
-static tBTA_PAN_ROLE_INFO bta_pan_nap_info = {PAN_NAP_SERVICE_NAME, 1};
+static tBTA_PAN_ROLE_INFO bta_panu_info = {std::string(PANU_SERVICE_NAME), 0};
+static tBTA_PAN_ROLE_INFO bta_pan_nap_info = {std::string(PAN_NAP_SERVICE_NAME),
+                                              1};
 
 static bt_status_t btpan_enable(int local_role) {
   const tBTA_PAN_ROLE bta_pan_role = btpan_role_to_bta(local_role);
-  BTA_PanSetRole(bta_pan_role, &bta_panu_info, &bta_pan_nap_info);
+  BTA_PanSetRole(bta_pan_role, bta_panu_info, bta_pan_nap_info);
   btpan_dev_local_role = local_role;
   return BT_STATUS_SUCCESS;
 }
