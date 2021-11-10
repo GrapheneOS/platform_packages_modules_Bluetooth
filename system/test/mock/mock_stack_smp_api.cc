@@ -53,6 +53,10 @@ tSMP_STATUS SMP_BR_PairWith(const RawAddress& bd_addr) {
   mock_function_count_map[__func__]++;
   return SMP_SUCCESS;
 }
+tSMP_STATUS SMP_Pair(const RawAddress& bd_addr, tBLE_ADDR_TYPE addr_type) {
+  mock_function_count_map[__func__]++;
+  return SMP_SUCCESS;
+}
 tSMP_STATUS SMP_Pair(const RawAddress& bd_addr) {
   mock_function_count_map[__func__]++;
   return SMP_SUCCESS;
