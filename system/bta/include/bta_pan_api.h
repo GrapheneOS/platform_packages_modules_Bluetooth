@@ -53,10 +53,10 @@ typedef enum : uint8_t {
 typedef uint8_t tBTA_PAN_ROLE;
 
 /*  information regarding PAN roles */
-typedef struct {
-  const char* p_srv_name; /* service name for the PAN role */
-  uint8_t app_id;         /* application id */
-} tBTA_PAN_ROLE_INFO;
+struct tBTA_PAN_ROLE_INFO {
+  const std::string p_srv_name; /* service name for the PAN role */
+  const uint8_t app_id;         /* application id */
+};
 
 /* Event associated with BTA_PAN_SET_ROLE_EVT */
 typedef struct {
@@ -142,8 +142,8 @@ extern void BTA_PanDisable(void);
  * Returns          void
  *
  ******************************************************************************/
-void BTA_PanSetRole(tBTA_PAN_ROLE role, tBTA_PAN_ROLE_INFO* p_user_info,
-                    tBTA_PAN_ROLE_INFO* p_nap_info);
+void BTA_PanSetRole(tBTA_PAN_ROLE role, const tBTA_PAN_ROLE_INFO p_user_info,
+                    const tBTA_PAN_ROLE_INFO p_nap_info);
 
 /*******************************************************************************
  *
