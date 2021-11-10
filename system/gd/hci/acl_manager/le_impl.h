@@ -200,6 +200,7 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
     round_robin_scheduler_->Register(RoundRobinScheduler::ConnectionType::LE, handle, queue);
     std::unique_ptr<LeAclConnection> connection(new LeAclConnection(
         std::move(queue), le_acl_connection_interface_, handle, local_address, remote_address, role));
+    connection->peer_address_with_type_ = AddressWithType(address, peer_address_type);
     connection_proxy.le_connection_management_callbacks_ = connection->GetEventCallbacks();
     le_client_handler_->Post(common::BindOnce(&LeConnectionCallbacks::OnLeConnectSuccess,
                                               common::Unretained(le_client_callbacks_), remote_address,
@@ -270,6 +271,7 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
     round_robin_scheduler_->Register(RoundRobinScheduler::ConnectionType::LE, handle, queue);
     std::unique_ptr<LeAclConnection> connection(new LeAclConnection(
         std::move(queue), le_acl_connection_interface_, handle, local_address, remote_address, role));
+    connection->peer_address_with_type_ = AddressWithType(address, peer_address_type);
     connection_proxy.le_connection_management_callbacks_ = connection->GetEventCallbacks();
     le_client_handler_->Post(common::BindOnce(&LeConnectionCallbacks::OnLeConnectSuccess,
                                               common::Unretained(le_client_callbacks_), remote_address,
