@@ -21,18 +21,18 @@
  *  This file contains functions for BLE controller based privacy.
  *
  ******************************************************************************/
+#include <base/logging.h>
 #include <string.h>
 
 #include "ble_advertiser.h"
 #include "bt_target.h"
 #include "btm_int.h"
 #include "device/include/controller.h"
+#include "main/shim/acl_api.h"
 #include "stack/btm/btm_dev.h"
 #include "stack/include/bt_octets.h"
 #include "types/raw_address.h"
 #include "vendor_hcidefs.h"
-
-#include <base/logging.h>
 
 extern tBTM_CB btm_cb;
 
@@ -421,9 +421,8 @@ tBTM_STATUS btm_ble_remove_resolving_list_entry(tBTM_SEC_DEV_REC* p_dev_rec) {
     return BTM_WRONG_MODE;
 
   if (controller_get_interface()->supports_ble_privacy()) {
-    btsnd_hcic_ble_rm_device_resolving_list(
-        p_dev_rec->ble.identity_address_with_type.type,
-        p_dev_rec->ble.identity_address_with_type.bda);
+    bluetooth::shim::ACL_RemoveFromAddressResolution(
+        p_dev_rec->ble.identity_address_with_type);
   } else {
     uint8_t param[20] = {0};
     uint8_t* p = param;
@@ -453,7 +452,7 @@ tBTM_STATUS btm_ble_remove_resolving_list_entry(tBTM_SEC_DEV_REC* p_dev_rec) {
  ******************************************************************************/
 void btm_ble_clear_resolving_list(void) {
   if (controller_get_interface()->supports_ble_privacy()) {
-    btsnd_hcic_ble_clear_resolving_list();
+    bluetooth::shim::ACL_ClearAddressResolution();
   } else {
     uint8_t param[20] = {0};
     uint8_t* p = param;
@@ -506,154 +505,6 @@ bool btm_ble_read_resolving_list_entry(tBTM_SEC_DEV_REC* p_dev_rec) {
 
 /*******************************************************************************
  *
- * Function         btm_ble_suspend_resolving_list_activity
- *
- * Description      This function suspends all resolving list activity,
- *                  including scanning, initiating, and advertising, if
- *                  resolving list is being enabled.
- *
- * Parameters
- *
- * Returns          true if suspended; false otherwise
- *
- ******************************************************************************/
-static bool btm_ble_suspend_resolving_list_activity(void) {
-  tBTM_BLE_CB* p_ble_cb = &btm_cb.ble_ctr_cb;
-
-  /* if resolving list is not enabled, do not need to terminate any activity */
-  /* if asking for stop all activity */
-  /* if already suspended */
-  if (p_ble_cb->suspended_rl_state != BTM_BLE_RL_IDLE) return true;
-
-  p_ble_cb->suspended_rl_state = BTM_BLE_RL_IDLE;
-
-  if (p_ble_cb->inq_var.adv_mode == BTM_BLE_ADV_ENABLE) {
-    btm_ble_stop_adv();
-    p_ble_cb->suspended_rl_state |= BTM_BLE_RL_ADV;
-  }
-
-  // If it's non-VSC implementation, suspend
-  if (BleAdvertisingManager::IsInitialized() &&
-      (controller_get_interface()->supports_ble_extended_advertising() ||
-       BTM_BleMaxMultiAdvInstanceCount() == 0)) {
-    BleAdvertisingManager::Get()->Suspend();
-  }
-
-  if (p_ble_cb->is_ble_scan_active()) {
-    btm_ble_stop_scan();
-    p_ble_cb->suspended_rl_state |= BTM_BLE_RL_SCAN;
-  }
-
-  if (btm_ble_suspend_bg_conn())
-    p_ble_cb->suspended_rl_state |= BTM_BLE_RL_INIT;
-
-  return true;
-}
-
-/*******************************************************************************
- *
- * Function         btm_ble_resume_resolving_list_activity
- *
- * Description      This function resumes the resolving list activity, including
- *                  scanning, initiating, and advertising, if any of these
- *                  activities has been suspended earlier.
- *
- * Returns          none
- *
- ******************************************************************************/
-static void btm_ble_resume_resolving_list_activity(void) {
-  tBTM_BLE_CB* p_ble_cb = &btm_cb.ble_ctr_cb;
-
-  if (p_ble_cb->suspended_rl_state & BTM_BLE_RL_ADV) {
-    btm_ble_start_adv();
-    LOG_DEBUG("Started ble advertising");
-  }
-
-  // If it's non-VSC implementation, resume
-  if (BleAdvertisingManager::IsInitialized() &&
-      (controller_get_interface()->supports_ble_extended_advertising() ||
-       BTM_BleMaxMultiAdvInstanceCount() == 0)) {
-    BleAdvertisingManager::Get()->Resume();
-    LOG_DEBUG("Resumed ble advertising manager");
-  }
-
-  if (p_ble_cb->suspended_rl_state & BTM_BLE_RL_SCAN) {
-    btm_ble_start_scan();
-    LOG_DEBUG("Started resolving list scan");
-  }
-
-  if (p_ble_cb->suspended_rl_state & BTM_BLE_RL_INIT) {
-    btm_ble_resume_bg_conn();
-    LOG_DEBUG("Resumed background connections");
-  }
-
-  p_ble_cb->suspended_rl_state = BTM_BLE_RL_IDLE;
-}
-
-/*******************************************************************************
- *
- * Function         btm_ble_vendor_enable_irk_feature
- *
- * Description      This function is called to enable or disable the RRA
- *                  offloading feature.
- *
- * Parameters       enable: enable or disable the RRA offloading feature
- *
- ******************************************************************************/
-static void btm_ble_vendor_enable_irk_feature(bool enable) {
-  uint8_t param[20], *p;
-
-  p = param;
-  memset(param, 0, 20);
-
-  /* select feature based on control block settings */
-  UINT8_TO_STREAM(p, BTM_BLE_META_IRK_ENABLE);
-  UINT8_TO_STREAM(p, enable ? 0x01 : 0x00);
-
-  BTM_VendorSpecificCommand(HCI_VENDOR_BLE_RPA_VSC, BTM_BLE_IRK_ENABLE_LEN,
-                            param, btm_ble_resolving_list_vsc_op_cmpl);
-}
-
-/*******************************************************************************
- *
- * Function         btm_ble_exe_disable_resolving_list
- *
- * Description      execute resolving list disable
- *
- * Returns          none
- *
- ******************************************************************************/
-static bool btm_ble_exe_disable_resolving_list(void) {
-  if (!btm_ble_suspend_resolving_list_activity()) return false;
-
-  if (!controller_get_interface()->supports_ble_privacy())
-    btm_ble_vendor_enable_irk_feature(false);
-  else
-    btsnd_hcic_ble_set_addr_resolution_enable(false);
-
-  return true;
-}
-
-/*******************************************************************************
- *
- * Function         btm_ble_exe_enable_resolving_list
- *
- * Description      enable LE resolve address list
- *
- * Returns          none
- *
- ******************************************************************************/
-static void btm_ble_exe_enable_resolving_list(void) {
-  if (!btm_ble_suspend_resolving_list_activity()) return;
-
-  if (!controller_get_interface()->supports_ble_privacy())
-    btm_ble_vendor_enable_irk_feature(true);
-  else
-    btsnd_hcic_ble_set_addr_resolution_enable(true);
-}
-
-/*******************************************************************************
- *
  * Function         btm_ble_disable_resolving_list
  *
  * Description      Disable LE Address resolution
@@ -662,24 +513,7 @@ static void btm_ble_exe_enable_resolving_list(void) {
  *
  ******************************************************************************/
 bool btm_ble_disable_resolving_list(uint8_t rl_mask, bool to_resume) {
-  uint8_t rl_state = btm_cb.ble_ctr_cb.rl_state;
-
-  /* if controller does not support RPA offloading or privacy 1.2, skip */
-  if (controller_get_interface()->get_ble_resolving_list_max_size() == 0)
-    return false;
-
-  btm_cb.ble_ctr_cb.rl_state &= ~rl_mask;
-
-  if (rl_state != BTM_BLE_RL_IDLE &&
-      btm_cb.ble_ctr_cb.rl_state == BTM_BLE_RL_IDLE) {
-    if (btm_ble_exe_disable_resolving_list()) {
-      if (to_resume) btm_ble_resume_resolving_list_activity();
-
-      return true;
-    } else
-      return false;
-  }
-
+  LOG_DEBUG("GD automatically disables Address Resolution list");
   return true;
 }
 
@@ -696,6 +530,9 @@ bool btm_ble_disable_resolving_list(uint8_t rl_mask, bool to_resume) {
  *
  ******************************************************************************/
 bool btm_ble_resolving_list_load_dev(tBTM_SEC_DEV_REC* p_dev_rec) {
+  ASSERT_LOG(false,
+             "API is disabled...use signature <void(tBTM_SEC_DEV_REC&)>");
+
   const uint8_t rl_state = btm_cb.ble_ctr_cb.rl_state;
 
   if (controller_get_interface()->get_ble_resolving_list_max_size() == 0) {
@@ -791,6 +628,72 @@ bool btm_ble_resolving_list_load_dev(tBTM_SEC_DEV_REC* p_dev_rec) {
   return true;
 }
 
+static void btm_ble_ble_unsupported_resolving_list_load_dev(
+    tBTM_SEC_DEV_REC* p_dev_rec) {
+  LOG_INFO("Controller does not support BLE privacy");
+  uint8_t param[40] = {0};
+  uint8_t* p = param;
+
+  UINT8_TO_STREAM(p, BTM_BLE_META_ADD_IRK_ENTRY);
+  ARRAY_TO_STREAM(p, p_dev_rec->ble.keys.irk, OCTET16_LEN);
+  UINT8_TO_STREAM(p, p_dev_rec->ble.identity_address_with_type.type);
+  BDADDR_TO_STREAM(p, p_dev_rec->ble.identity_address_with_type.bda);
+
+  BTM_VendorSpecificCommand(HCI_VENDOR_BLE_RPA_VSC, BTM_BLE_META_ADD_IRK_LEN,
+                            param, btm_ble_resolving_list_vsc_op_cmpl);
+
+  btm_ble_enq_resolving_list_pending(p_dev_rec->bd_addr,
+                                     BTM_BLE_META_ADD_IRK_ENTRY);
+  return;
+}
+
+static bool is_local_identity_key_valid(const tBTM_SEC_DEV_REC& dev_rec) {
+  return dev_rec.ble.key_type & BTM_LE_KEY_LID;
+}
+
+static bool is_peer_identity_key_valid(const tBTM_SEC_DEV_REC& dev_rec) {
+  return dev_rec.ble.key_type & BTM_LE_KEY_PID;
+}
+
+static Octet16 get_local_irk() { return btm_cb.devcb.id_keys.irk; }
+
+void btm_ble_resolving_list_load_dev(tBTM_SEC_DEV_REC& dev_rec) {
+  if (!controller_get_interface()->supports_ble_privacy()) {
+    return btm_ble_ble_unsupported_resolving_list_load_dev(&dev_rec);
+  }
+
+  if (!is_local_identity_key_valid(dev_rec) &&
+      !is_peer_identity_key_valid(dev_rec)) {
+    LOG_INFO("Peer is not an RPA enabled device:%s",
+             PRIVATE_ADDRESS(dev_rec.ble.identity_address_with_type));
+    return;
+  }
+
+  if (dev_rec.ble.in_controller_list & BTM_RESOLVING_LIST_BIT) {
+    LOG_WARN("Already in Address Resolving list device:%s",
+             PRIVATE_ADDRESS(dev_rec.ble.identity_address_with_type));
+    return;
+  }
+
+  const Octet16& peer_irk = dev_rec.ble.keys.irk;
+  const Octet16& local_irk = get_local_irk();
+
+  if (dev_rec.ble.identity_address_with_type.bda.IsEmpty()) {
+    dev_rec.ble.identity_address_with_type = {
+        .bda = dev_rec.bd_addr,
+        .type = dev_rec.ble.ble_addr_type,
+    };
+  }
+
+  bluetooth::shim::ACL_AddToAddressResolution(
+      dev_rec.ble.identity_address_with_type, peer_irk, local_irk);
+
+  LOG_DEBUG("Added to Address Resolving list device:%s",
+            PRIVATE_ADDRESS(dev_rec.ble.identity_address_with_type));
+
+  dev_rec.ble.in_controller_list |= BTM_RESOLVING_LIST_BIT;
+}
+
 /*******************************************************************************
  *
  * Function         btm_ble_resolving_list_remove_dev
@@ -833,15 +736,7 @@ void btm_ble_resolving_list_remove_dev(tBTM_SEC_DEV_REC* p_dev_rec) {
  *
  ******************************************************************************/
 void btm_ble_enable_resolving_list(uint8_t rl_mask) {
-  uint8_t rl_state = btm_cb.ble_ctr_cb.rl_state;
-
-  btm_cb.ble_ctr_cb.rl_state |= rl_mask;
-  if (rl_state == BTM_BLE_RL_IDLE &&
-      btm_cb.ble_ctr_cb.rl_state != BTM_BLE_RL_IDLE &&
-      controller_get_interface()->get_ble_resolving_list_max_size() != 0) {
-    btm_ble_exe_enable_resolving_list();
-    btm_ble_resume_resolving_list_activity();
-  }
+  LOG_DEBUG("GD automatically enables Address Resolution list");
 }
 
 static bool is_on_resolving_list(void* data, void* context) {
@@ -902,12 +797,15 @@ void btm_ble_resolving_list_init(uint8_t max_irk_list_sz) {
       (max_irk_list_sz % 8) ? (max_irk_list_sz / 8 + 1) : (max_irk_list_sz / 8);
 
   if (max_irk_list_sz > 0) {
+    // NOTE: This memory is never freed
     p_q->resolve_q_random_pseudo =
         (RawAddress*)osi_malloc(sizeof(RawAddress) * max_irk_list_sz);
+    // NOTE: This memory is never freed
     p_q->resolve_q_action = (uint8_t*)osi_malloc(max_irk_list_sz);
 
     /* RPA offloading feature */
     if (btm_cb.ble_ctr_cb.irk_list_mask == NULL)
+      // NOTE: This memory is never freed
       btm_cb.ble_ctr_cb.irk_list_mask = (uint8_t*)osi_malloc(irk_mask_size);
 
     BTM_TRACE_DEBUG("%s max_irk_list_sz = %d", __func__, max_irk_list_sz);

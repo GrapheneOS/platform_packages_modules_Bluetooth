@@ -141,7 +141,7 @@ void BTM_SecAddBleKey(const RawAddress& bd_addr, tBTM_LE_KEY_VALUE* p_le_key,
   btm_sec_save_le_key(bd_addr, key_type, p_le_key, false);
 
   if (key_type == BTM_LE_KEY_PID || key_type == BTM_LE_KEY_LID) {
-    btm_ble_resolving_list_load_dev(p_dev_rec);
+    btm_ble_resolving_list_load_dev(*p_dev_rec);
   }
 }
 
@@ -1845,7 +1845,7 @@ tBTM_STATUS btm_proc_smp_cback(tSMP_EVT event, const RawAddress& bd_addr,
           if (res == BTM_SUCCESS) {
             p_dev_rec->sec_state = BTM_SEC_STATE_IDLE;
             /* add all bonded device into resolving list if IRK is available*/
-            btm_ble_resolving_list_load_dev(p_dev_rec);
+            btm_ble_resolving_list_load_dev(*p_dev_rec);
           }
 
           btm_sec_dev_rec_cback_event(p_dev_rec, res, true);
