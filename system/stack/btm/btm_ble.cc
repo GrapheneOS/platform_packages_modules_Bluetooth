@@ -503,9 +503,9 @@ void BTM_ReadDevInfo(const RawAddress& remote_bda, tBT_DEVICE_TYPE* p_dev_type,
       *p_addr_type = BLE_ADDR_PUBLIC;
     }
   }
-
-  BTM_TRACE_DEBUG("btm_find_dev_type - device_type = %d addr_type = %d",
-                  *p_dev_type, *p_addr_type);
+  LOG_DEBUG("Determining device_type:%s addr_type:%s",
+            DeviceTypeText(*p_dev_type).c_str(),
+            AddressTypeText(*p_addr_type).c_str());
 }
 
 /*******************************************************************************
