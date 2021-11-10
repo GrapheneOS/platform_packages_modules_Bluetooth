@@ -154,6 +154,7 @@ tBTM_STATUS BTM_SetEncryption(const RawAddress& bd_addr,
   return BTM_SUCCESS;
 }
 tBTM_STATUS btm_sec_bond_by_transport(const RawAddress& bd_addr,
+                                      tBLE_ADDR_TYPE addr_type,
                                       tBT_TRANSPORT transport, uint8_t pin_len,
                                       uint8_t* p_pin) {
   mock_function_count_map[__func__]++;
