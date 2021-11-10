@@ -53,6 +53,10 @@
 
 #include <base/logging.h>
 
+namespace {
+constexpr char kBtmLogTag[] = "SCAN";
+}
+
 extern tBTM_CB btm_cb;
 
 extern void btm_inq_remote_name_timer_timeout(void* data);
@@ -432,7 +436,7 @@ void BTM_CancelInquiry(void) {
     return;
   }
 
-  btm_cb.history_->Push("%-32s", "Inquiry scan stopped");
+  BTM_LogHistory(kBtmLogTag, RawAddress::kEmpty, "Classic inquiry stopped");
 
   tBTM_INQUIRY_VAR_ST* p_inq = &btm_cb.btm_inq_vars;
   BTM_TRACE_API("BTM_CancelInquiry called");
@@ -514,7 +518,7 @@ tBTM_STATUS BTM_StartInquiry(tBTM_INQ_RESULTS_CB* p_results_cb,
     return BTM_WRONG_MODE;
   }
 
-  btm_cb.history_->Push("%-32s", "Inquiry scan started");
+  BTM_LogHistory(kBtmLogTag, RawAddress::kEmpty, "Classic inquiry started");
 
   /* Save the inquiry parameters to be used upon the completion of
    * setting/clearing the inquiry filter */
