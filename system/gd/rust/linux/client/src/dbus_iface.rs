@@ -341,20 +341,14 @@ impl IBluetooth for BluetoothDBus {
         self.client_proxy.method("GetBondState", (BluetoothDevice::to_dbus(device).unwrap(),))
     }
 
-    fn set_pin(&self, device: BluetoothDevice, accept: bool, len: u32, pin_code: Vec<u8>) -> bool {
+    fn set_pin(&self, device: BluetoothDevice, accept: bool, pin_code: Vec<u8>) -> bool {
         self.client_proxy
-            .method("SetPin", (BluetoothDevice::to_dbus(device).unwrap(), accept, len, pin_code))
+            .method("SetPin", (BluetoothDevice::to_dbus(device).unwrap(), accept, pin_code))
     }
 
-    fn set_passkey(
-        &self,
-        device: BluetoothDevice,
-        accept: bool,
-        len: u32,
-        passkey: Vec<u8>,
-    ) -> bool {
+    fn set_passkey(&self, device: BluetoothDevice, accept: bool, passkey: Vec<u8>) -> bool {
         self.client_proxy
-            .method("SetPasskey", (BluetoothDevice::to_dbus(device).unwrap(), accept, len, passkey))
+            .method("SetPasskey", (BluetoothDevice::to_dbus(device).unwrap(), accept, passkey))
     }
 
     fn set_pairing_confirmation(&self, device: BluetoothDevice, accept: bool) -> bool {
