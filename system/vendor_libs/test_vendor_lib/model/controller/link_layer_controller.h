@@ -466,6 +466,8 @@ class LinkLayerController {
   std::vector<ResolvingListEntry> le_resolving_list_;
   bool le_resolving_list_enabled_{false};
 
+  Address le_connecting_rpa_;
+
   std::array<LeAdvertiser, 7> advertisers_;
 
   bluetooth::hci::OpCode le_scan_enable_{bluetooth::hci::OpCode::NONE};
