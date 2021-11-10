@@ -321,18 +321,23 @@ void bta_pan_enable(tBTA_PAN_DATA* p_data) {
  *
  ******************************************************************************/
 void bta_pan_set_role(tBTA_PAN_DATA* p_data) {
-  tPAN_RESULT status;
-  tBTA_PAN bta_pan;
-
   bta_pan_cb.app_id[0] = p_data->api_set_role.user_app_id;
   bta_pan_cb.app_id[2] = p_data->api_set_role.nap_app_id;
 
   /* set security correctly in api and here */
-  status =
-      PAN_SetRole(p_data->api_set_role.role, p_data->api_set_role.user_name,
-                  p_data->api_set_role.nap_name);
+  tPAN_RESULT status = PAN_SetRole(p_data->api_set_role.role,
+                                   std::string(p_data->api_set_role.user_name),
+                                   std::string(p_data->api_set_role.nap_name));
 
-  bta_pan.set_role.role = p_data->api_set_role.role;
+  tBTA_PAN bta_pan = {
+      .set_role =
+          {
+              .role = p_data->api_set_role.role,
+              .status =
+                  (status == PAN_SUCCESS) ? BTA_PAN_SUCCESS : BTA_PAN_FAIL,
+          },
+  };
+
   if (status == PAN_SUCCESS) {
     if (p_data->api_set_role.role & PAN_ROLE_NAP_SERVER)
       bta_sys_add_uuid(UUID_SERVCLASS_NAP);
@@ -343,16 +348,13 @@ void bta_pan_set_role(tBTA_PAN_DATA* p_data) {
       bta_sys_add_uuid(UUID_SERVCLASS_PANU);
     else
       bta_sys_remove_uuid(UUID_SERVCLASS_PANU);
-
-    bta_pan.set_role.status = BTA_PAN_SUCCESS;
   }
   /* if status is not success clear everything */
   else {
-    PAN_SetRole(0, NULL, NULL);
+    PAN_SetRole(0, std::string(), std::string());
     bta_sys_remove_uuid(UUID_SERVCLASS_NAP);
     bta_sys_remove_uuid(UUID_SERVCLASS_GN);
     bta_sys_remove_uuid(UUID_SERVCLASS_PANU);
-    bta_pan.set_role.status = BTA_PAN_FAIL;
   }
   bta_pan_cb.p_cback(BTA_PAN_SET_ROLE_EVT, &bta_pan);
 }
@@ -374,7 +376,7 @@ void bta_pan_disable(void) {
   uint8_t i;
 
   /* close all connections */
-  PAN_SetRole(0, NULL, NULL);
+  PAN_SetRole(0, std::string(), std::string());
 
 #if (BTA_EIR_CANNED_UUID_LIST != TRUE)
   bta_sys_remove_uuid(UUID_SERVCLASS_NAP);
