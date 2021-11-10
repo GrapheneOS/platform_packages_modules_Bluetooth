@@ -239,6 +239,7 @@ struct tBTM_SEC_DEV_REC {
                                             const Octet16& link_key,
                                             uint8_t key_type);
   friend tBTM_STATUS btm_sec_bond_by_transport(const RawAddress& bd_addr,
+                                               tBLE_ADDR_TYPE addr_type,
                                                tBT_TRANSPORT transport,
                                                uint8_t pin_len, uint8_t* p_pin);
   uint8_t pin_code_length; /* Length of the pin_code used for paring */
