@@ -233,10 +233,6 @@ typedef struct {
   tPAN_MFILTER_IND_CB*
       pan_mfilt_ind_cb; /* multicast filter indication callback */
   tPAN_TX_DATA_FLOW_CB* pan_tx_data_flow_cb; /* data flow callback */
-  char* user_service_name;                   /* Service name for PANU role */
-  char* gn_service_name;                     /* Service name for GN role */
-  char* nap_service_name;                    /* Service name for NAP role */
-
 } tPAN_REGISTER;
 
 /*****************************************************************************
@@ -297,8 +293,8 @@ extern void PAN_Deregister(void);
  *                  PAN_FAILURE     - if the role is not valid
  *
  ******************************************************************************/
-extern tPAN_RESULT PAN_SetRole(uint8_t role, const char* p_user_name,
-                               const char* p_nap_name);
+extern tPAN_RESULT PAN_SetRole(uint8_t role, std::string user_name,
+                               std::string nap_name);
 
 /*******************************************************************************
  *
