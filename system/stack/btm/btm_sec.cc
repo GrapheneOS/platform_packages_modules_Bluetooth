@@ -1764,6 +1764,8 @@ tBTM_STATUS btm_sec_mx_access_request(const RawAddress& bd_addr,
         bd_addr, is_originator, security_required, p_callback, p_ref_data);
   }
 
+  LOG_DEBUG("Multiplex access request device:%s", PRIVATE_ADDRESS(bd_addr));
+
   /* Find or get oldest record */
   p_dev_rec = btm_find_or_alloc_dev(bd_addr);
 
