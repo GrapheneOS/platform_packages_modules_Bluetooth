@@ -157,8 +157,8 @@ tBTA_PAN_SCB* bta_pan_scb_alloc(void) {
  * Returns          void
  *
  ******************************************************************************/
-static void bta_pan_sm_execute(tBTA_PAN_SCB* p_scb, uint16_t event,
-                               tBTA_PAN_DATA* p_data) {
+void bta_pan_sm_execute(tBTA_PAN_SCB* p_scb, uint16_t event,
+                        tBTA_PAN_DATA* p_data) {
   tBTA_PAN_ST_TBL state_table;
   uint8_t action;
   int i;
@@ -193,7 +193,7 @@ static void bta_pan_sm_execute(tBTA_PAN_SCB* p_scb, uint16_t event,
  * Returns          void
  *
  ******************************************************************************/
-static void bta_pan_api_enable(tBTA_PAN_DATA* p_data) {
+void bta_pan_api_enable(tBTA_PAN_DATA* p_data) {
   /* initialize control block */
   memset(&bta_pan_cb, 0, sizeof(bta_pan_cb));
 
@@ -212,7 +212,7 @@ static void bta_pan_api_enable(tBTA_PAN_DATA* p_data) {
  * Returns          void
  *
  ******************************************************************************/
-static void bta_pan_api_disable(UNUSED_ATTR tBTA_PAN_DATA* p_data) {
+void bta_pan_api_disable(UNUSED_ATTR tBTA_PAN_DATA* p_data) {
   bta_pan_disable();
 }
 
@@ -226,7 +226,7 @@ static void bta_pan_api_disable(UNUSED_ATTR tBTA_PAN_DATA* p_data) {
  * Returns          void
  *
  ******************************************************************************/
-static void bta_pan_api_open(tBTA_PAN_DATA* p_data) {
+void bta_pan_api_open(tBTA_PAN_DATA* p_data) {
   tBTA_PAN_SCB* p_scb;
   tBTA_PAN bta_pan;
 
