@@ -4554,10 +4554,12 @@ static void btm_sec_change_pairing_state(tBTM_PAIRING_STATE new_state) {
             btm_pair_state_descr(btm_cb.pairing_state),
             btm_pair_state_descr(new_state), btm_cb.pairing_flags);
 
-  BTM_LogHistory(
-      kBtmLogTag, btm_cb.pairing_bda, "Pairing state changed",
-      base::StringPrintf("%s => %s", btm_pair_state_descr(btm_cb.pairing_state),
-                         btm_pair_state_descr(new_state)));
+  if (btm_cb.pairing_state != new_state) {
+    BTM_LogHistory(kBtmLogTag, btm_cb.pairing_bda, "Pairing state changed",
+                   base::StringPrintf(
+                       "%s => %s", btm_pair_state_descr(btm_cb.pairing_state),
+                       btm_pair_state_descr(new_state)));
+  }
   btm_cb.pairing_state = new_state;
 
   if (new_state == BTM_PAIR_STATE_IDLE) {
