@@ -89,16 +89,10 @@ pub trait IBluetooth {
     fn get_bond_state(&self, device: BluetoothDevice) -> u32;
 
     /// Set pin on bonding device.
-    fn set_pin(&self, device: BluetoothDevice, accept: bool, len: u32, pin_code: Vec<u8>) -> bool;
+    fn set_pin(&self, device: BluetoothDevice, accept: bool, pin_code: Vec<u8>) -> bool;
 
     /// Set passkey on bonding device.
-    fn set_passkey(
-        &self,
-        device: BluetoothDevice,
-        accept: bool,
-        len: u32,
-        passkey: Vec<u8>,
-    ) -> bool;
+    fn set_passkey(&self, device: BluetoothDevice, accept: bool, passkey: Vec<u8>) -> bool;
 
     /// Confirm that a pairing should be completed on a bonding device.
     fn set_pairing_confirmation(&self, device: BluetoothDevice, accept: bool) -> bool;
@@ -856,16 +850,11 @@ impl IBluetooth for Bluetooth {
         }
     }
 
-    fn set_pin(&self, device: BluetoothDevice, accept: bool, len: u32, pin_code: Vec<u8>) -> bool {
+    fn set_pin(&self, device: BluetoothDevice, accept: bool, pin_code: Vec<u8>) -> bool {
         let addr = RawAddress::from_string(device.address.clone());
 
         if addr.is_none() {
             warn!("Can't set pin. Address {} is not valid.", device.address);
-            return false;
-        }
-
-        if len as usize != pin_code.len() || len > 16 {
-            warn!("Invalid pin code length: {}", len);
             return false;
         }
 
@@ -882,17 +871,15 @@ impl IBluetooth for Bluetooth {
         let mut btpin: BtPinCode = BtPinCode { pin: [0; 16] };
         btpin.pin.copy_from_slice(pin_code.as_slice());
 
-        self.intf.lock().unwrap().pin_reply(&addr.unwrap(), accept as u8, len as u8, &mut btpin)
-            == 0
+        self.intf.lock().unwrap().pin_reply(
+            &addr.unwrap(),
+            accept as u8,
+            pin_code.len() as u8,
+            &mut btpin,
+        ) == 0
     }
 
-    fn set_passkey(
-        &self,
-        device: BluetoothDevice,
-        accept: bool,
-        len: u32,
-        passkey: Vec<u8>,
-    ) -> bool {
+    fn set_passkey(&self, device: BluetoothDevice, accept: bool, passkey: Vec<u8>) -> bool {
         let addr = RawAddress::from_string(device.address.clone());
 
         if addr.is_none() {
@@ -907,11 +894,6 @@ impl IBluetooth for Bluetooth {
 
         if !is_bonding {
             warn!("Can't set passkey. Device {} isn't bonding.", device.address);
-            return false;
-        }
-
-        if len as usize != passkey.len() || len != 4 {
-            warn!("Invalid passkey length: {}", len);
             return false;
         }
 

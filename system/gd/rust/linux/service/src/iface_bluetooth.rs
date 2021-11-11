@@ -166,24 +166,12 @@ impl IBluetooth for IBluetoothDBus {
     }
 
     #[dbus_method("SetPin")]
-    fn set_pin(
-        &self,
-        _device: BluetoothDevice,
-        _accept: bool,
-        _len: u32,
-        _pin_code: Vec<u8>,
-    ) -> bool {
+    fn set_pin(&self, _device: BluetoothDevice, _accept: bool, _pin_code: Vec<u8>) -> bool {
         false
     }
 
     #[dbus_method("SetPasskey")]
-    fn set_passkey(
-        &self,
-        _device: BluetoothDevice,
-        _accept: bool,
-        _len: u32,
-        _passkey: Vec<u8>,
-    ) -> bool {
+    fn set_passkey(&self, _device: BluetoothDevice, _accept: bool, _passkey: Vec<u8>) -> bool {
         false
     }
 
