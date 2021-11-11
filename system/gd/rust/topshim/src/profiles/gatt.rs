@@ -433,6 +433,7 @@ unsafe impl Send for RawBleScannerWrapper {}
 unsafe impl Send for RawBleAdvertiserWrapper {}
 unsafe impl Send for btgatt_callbacks_t {}
 unsafe impl Send for GattClient {}
+unsafe impl Send for GattClientCallbacks {}
 
 pub struct GattClient {
     internal: RawGattClientWrapper,
