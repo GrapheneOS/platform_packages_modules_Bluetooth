@@ -117,6 +117,9 @@ bool btm_ble_resolving_list_load_dev(tBTM_SEC_DEV_REC* p_dev_rec) {
   return test::mock::stack_btm_ble_privacy::btm_ble_resolving_list_load_dev(
       p_dev_rec);
 }
+void btm_ble_resolving_list_load_dev(tBTM_SEC_DEV_REC& p_dev_rec) {
+  mock_function_count_map[__func__]++;
+}
 void btm_ble_resolving_list_remove_dev(tBTM_SEC_DEV_REC* p_dev_rec) {
   mock_function_count_map[__func__]++;
   test::mock::stack_btm_ble_privacy::btm_ble_resolving_list_remove_dev(
