@@ -707,6 +707,7 @@ void BTM_PINCodeReply(const RawAddress& bd_addr, tBTM_STATUS res,
  *  Note: After 2.1 parameters are not used and preserved here not to change API
  ******************************************************************************/
 tBTM_STATUS btm_sec_bond_by_transport(const RawAddress& bd_addr,
+                                      tBLE_ADDR_TYPE addr_type,
                                       tBT_TRANSPORT transport, uint8_t pin_len,
                                       uint8_t* p_pin) {
   tBTM_SEC_DEV_REC* p_dev_rec;
@@ -771,7 +772,7 @@ tBTM_STATUS btm_sec_bond_by_transport(const RawAddress& bd_addr,
     btm_ble_init_pseudo_addr(p_dev_rec, bd_addr);
     p_dev_rec->sec_flags &= ~BTM_SEC_LE_MASK;
 
-    if (SMP_Pair(bd_addr) == SMP_STARTED) {
+    if (SMP_Pair(bd_addr, addr_type) == SMP_STARTED) {
       btm_cb.pairing_flags |= BTM_PAIR_FLAGS_LE_ACTIVE;
       p_dev_rec->sec_state = BTM_SEC_STATE_AUTHENTICATING;
       btm_sec_change_pairing_state(BTM_PAIR_STATE_WAIT_AUTH_COMPLETE);
@@ -897,7 +898,8 @@ tBTM_STATUS BTM_SecBond(const RawAddress& bd_addr, tBLE_ADDR_TYPE addr_type,
        (dev_type & BT_DEVICE_TYPE_BREDR) == 0)) {
     return BTM_ILLEGAL_ACTION;
   }
-  return btm_sec_bond_by_transport(bd_addr, transport, pin_len, p_pin);
+  return btm_sec_bond_by_transport(bd_addr, addr_type, transport, pin_len,
+                                   p_pin);
 }
 
 /*******************************************************************************
@@ -1761,6 +1763,8 @@ tBTM_STATUS btm_sec_mx_access_request(const RawAddress& bd_addr,
     return bluetooth::shim::btm_sec_mx_access_request(
         bd_addr, is_originator, security_required, p_callback, p_ref_data);
   }
+
+  LOG_DEBUG("Multiplex access request device:%s", PRIVATE_ADDRESS(bd_addr));
 
   /* Find or get oldest record */
   p_dev_rec = btm_find_or_alloc_dev(bd_addr);
@@ -3205,12 +3209,6 @@ void btm_sec_auth_complete(uint16_t handle, tHCI_STATUS status) {
 void btm_sec_encrypt_change(uint16_t handle, tHCI_STATUS status,
                             uint8_t encr_enable) {
   tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev_by_handle(handle);
-  BTM_TRACE_EVENT(
-      "Security Manager: encrypt_change status:%d State:%d, encr_enable = %d",
-      status, (p_dev_rec) ? p_dev_rec->sec_state : 0, encr_enable);
-  BTM_TRACE_DEBUG("before update p_dev_rec->sec_flags=0x%x",
-                  (p_dev_rec) ? p_dev_rec->sec_flags : 0);
-
   /* For transaction collision we need to wait and repeat.  There is no need */
   /* for random timeout because only peripheral should receive the result */
   if ((status == HCI_ERR_LMP_ERR_TRANS_COLLISION) ||
@@ -3221,6 +3219,14 @@ void btm_sec_encrypt_change(uint16_t handle, tHCI_STATUS status,
   btm_cb.collision_start_time = 0;
 
   if (!p_dev_rec) return;
+
+  LOG_DEBUG(
+      "Security Manager encryption change request hci_status:%s"
+      " request:%s state:%s sec_flags:0x%x",
+      hci_status_code_text(status).c_str(),
+      (encr_enable) ? "encrypt" : "unencrypt",
+      (p_dev_rec->sec_state) ? "encrypted" : "unencrypted",
+      p_dev_rec->sec_flags);
 
   if ((status == HCI_SUCCESS) && encr_enable) {
     if (p_dev_rec->hci_handle == handle) {
@@ -3384,7 +3390,6 @@ static void btm_sec_connect_after_reject_timeout(UNUSED_ATTR void* data) {
 void btm_sec_connected(const RawAddress& bda, uint16_t handle,
                        tHCI_STATUS status, uint8_t enc_mode,
                        tHCI_ROLE assigned_role) {
-  tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(bda);
   tBTM_STATUS res;
   bool is_pairing_device = false;
   bool addr_matched;
@@ -3392,6 +3397,7 @@ void btm_sec_connected(const RawAddress& bda, uint16_t handle,
 
   btm_acl_resubmit_page();
 
+  tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(bda);
   if (!p_dev_rec) {
     LOG_DEBUG(
         "Connected to new device state:%s handle:0x%04x status:%s "
@@ -3811,7 +3817,8 @@ void btm_sec_link_key_notification(const RawAddress& p_bda,
   bool we_are_bonding = false;
   bool ltk_derived_lk = false;
 
-  VLOG(2) << __func__ << " BDA: " << p_bda << ", TYPE: " << +key_type;
+  LOG_DEBUG("New link key generated device:%s key_type:%hhu",
+            PRIVATE_ADDRESS(p_bda), key_type);
 
   if ((key_type >= BTM_LTK_DERIVED_LKEY_OFFSET + BTM_LKEY_TYPE_COMBINATION) &&
       (key_type <=
@@ -4084,8 +4091,8 @@ void btm_sec_pin_code_request(uint8_t* p_event) {
   /* it may need to stretch timeouts                */
   l2c_pin_code_request(p_bda);
 
-  VLOG(2) << __func__ << " BDA: " << p_bda
-          << " state: " << btm_pair_state_descr(btm_cb.pairing_state);
+  LOG_DEBUG("Controller requests PIN code device:%s state:%s",
+            PRIVATE_ADDRESS(p_bda), btm_pair_state_descr(btm_cb.pairing_state));
 
   RawAddress local_bd_addr = *controller_get_interface()->get_address();
   if (p_bda == local_bd_addr) {
@@ -4547,10 +4554,12 @@ static void btm_sec_change_pairing_state(tBTM_PAIRING_STATE new_state) {
             btm_pair_state_descr(btm_cb.pairing_state),
             btm_pair_state_descr(new_state), btm_cb.pairing_flags);
 
-  BTM_LogHistory(
-      kBtmLogTag, btm_cb.pairing_bda, "Pairing state changed",
-      base::StringPrintf("%s => %s", btm_pair_state_descr(btm_cb.pairing_state),
-                         btm_pair_state_descr(new_state)));
+  if (btm_cb.pairing_state != new_state) {
+    BTM_LogHistory(kBtmLogTag, btm_cb.pairing_bda, "Pairing state changed",
+                   base::StringPrintf(
+                       "%s => %s", btm_pair_state_descr(btm_cb.pairing_state),
+                       btm_pair_state_descr(new_state)));
+  }
   btm_cb.pairing_state = new_state;
 
   if (new_state == BTM_PAIR_STATE_IDLE) {

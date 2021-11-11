@@ -24,16 +24,21 @@
  ******************************************************************************/
 
 #include <cstdint>
+#include <cstring>
 
 #include "bt_target.h"  // Must be first to define build configuration
-
 #include "bta/pan/bta_pan_int.h"
 #include "osi/include/allocator.h"
 #include "osi/include/compat.h"
 #include "stack/include/bt_hdr.h"
+#include "stack/include/btu.h"
 #include "types/raw_address.h"
 
 static const tBTA_SYS_REG bta_pan_reg = {bta_pan_hdl_event, BTA_PanDisable};
+
+std::string user_service_name; /* Service name for PANU role */
+std::string gn_service_name;   /* Service name for GN role */
+std::string nap_service_name;  /* Service name for NAP role */
 
 #ifndef PAN_SECURITY
 #define PAN_SECURITY                                                         \
@@ -96,29 +101,36 @@ void BTA_PanDisable(void) {
  * Returns          void
  *
  ******************************************************************************/
-void BTA_PanSetRole(tBTA_PAN_ROLE role, tBTA_PAN_ROLE_INFO* p_user_info,
-                    tBTA_PAN_ROLE_INFO* p_nap_info) {
-  tBTA_PAN_API_SET_ROLE* p_buf =
-      (tBTA_PAN_API_SET_ROLE*)osi_calloc(sizeof(tBTA_PAN_API_SET_ROLE));
+void BTA_PanSetRole(tBTA_PAN_ROLE role, const tBTA_PAN_ROLE_INFO user_info,
+                    const tBTA_PAN_ROLE_INFO nap_info) {
+  post_on_bt_main([=]() {
+    tBTA_PAN_DATA data = {
+        .api_set_role =
+            {
+                .hdr =
+                    {
+                        .event = BTA_PAN_API_SET_ROLE_EVT,
+                    },
+                .role = role,
+                .user_name = {},
+                .nap_name = {},
+            },
+    };
+    if (role & BTA_PAN_ROLE_PANU) {
+      if (!user_info.p_srv_name.empty())
+        strncpy(data.api_set_role.user_name, user_info.p_srv_name.data(),
+                BTA_SERVICE_NAME_LEN);
+      data.api_set_role.user_app_id = user_info.app_id;
+    }
 
-  p_buf->hdr.event = BTA_PAN_API_SET_ROLE_EVT;
-  p_buf->role = role;
-
-  if (role & BTA_PAN_ROLE_PANU) {
-    if (p_user_info->p_srv_name)
-      strlcpy(p_buf->user_name, p_user_info->p_srv_name, BTA_SERVICE_NAME_LEN);
-
-    p_buf->user_app_id = p_user_info->app_id;
-  }
-
-  if (role & BTA_PAN_ROLE_NAP) {
-    if (p_nap_info->p_srv_name)
-      strlcpy(p_buf->nap_name, p_nap_info->p_srv_name, BTA_SERVICE_NAME_LEN);
-
-    p_buf->nap_app_id = p_nap_info->app_id;
-  }
-
-  bta_sys_sendmsg(p_buf);
+    if (role & BTA_PAN_ROLE_NAP) {
+      if (!nap_info.p_srv_name.empty())
+        strncpy(data.api_set_role.nap_name, nap_info.p_srv_name.data(),
+                BTA_SERVICE_NAME_LEN);
+      data.api_set_role.nap_app_id = nap_info.app_id;
+    }
+    bta_pan_set_role(&data);
+  });
 }
 
 /*******************************************************************************
