@@ -908,13 +908,27 @@ pub(crate) trait BtifGattClientCallbacks {
     fn read_characteristic_cb(&mut self, conn_id: i32, status: i32, data: BtGattReadParams);
 
     #[btif_callback(WriteCharacteristic)]
-    fn write_characteristic_cb(&mut self, conn_id: i32, status: i32, handle: u16);
+    fn write_characteristic_cb(
+        &mut self,
+        conn_id: i32,
+        status: i32,
+        handle: u16,
+        len: u16,
+        value: *const u8,
+    );
 
     #[btif_callback(ReadDescriptor)]
     fn read_descriptor_cb(&mut self, conn_id: i32, status: i32, data: BtGattReadParams);
 
     #[btif_callback(WriteDescriptor)]
-    fn write_descriptor_cb(&mut self, conn_id: i32, status: i32, handle: u16);
+    fn write_descriptor_cb(
+        &mut self,
+        conn_id: i32,
+        status: i32,
+        handle: u16,
+        len: u16,
+        value: *const u8,
+    );
 
     #[btif_callback(ExecuteWrite)]
     fn execute_write_cb(&mut self, conn_id: i32, status: i32);
@@ -1051,7 +1065,14 @@ impl BtifGattClientCallbacks for BluetoothGatt {
         );
     }
 
-    fn write_characteristic_cb(&mut self, conn_id: i32, mut status: i32, handle: u16) {
+    fn write_characteristic_cb(
+        &mut self,
+        conn_id: i32,
+        mut status: i32,
+        handle: u16,
+        _len: u16,
+        _value: *const u8,
+    ) {
         let address = self.context_map.get_address_by_conn_id(conn_id);
         if address.is_none() {
             return;
@@ -1102,7 +1123,14 @@ impl BtifGattClientCallbacks for BluetoothGatt {
         );
     }
 
-    fn write_descriptor_cb(&mut self, conn_id: i32, status: i32, handle: u16) {
+    fn write_descriptor_cb(
+        &mut self,
+        conn_id: i32,
+        status: i32,
+        handle: u16,
+        _len: u16,
+        _value: *const u8,
+    ) {
         let address = self.context_map.get_address_by_conn_id(conn_id);
         if address.is_none() {
             return;
