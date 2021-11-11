@@ -28,6 +28,7 @@ LOCAL_host_libraries := \
 	$(HOST_OUT_SHARED_LIBRARIES)/libc++.so \
 	$(HOST_OUT_SHARED_LIBRARIES)/libchrome.so \
 	$(HOST_OUT_SHARED_LIBRARIES)/libcrypto-host.so \
+	$(HOST_OUT_SHARED_LIBRARIES)/libcutils.so \
 	$(HOST_OUT_SHARED_LIBRARIES)/libevent-host.so \
 	$(HOST_OUT_SHARED_LIBRARIES)/libflatbuffers-cpp.so \
 	$(HOST_OUT_SHARED_LIBRARIES)/libgrpc++_unsecure.so \

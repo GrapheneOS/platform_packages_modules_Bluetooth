@@ -80,7 +80,7 @@ OUT_TARGET="${ANDROID_BUILD_TOP}/out/target"
 TEST_CONFIG="${ANDROID_BUILD_TOP}/packages/modules/Bluetooth/system/gd/cert/host_config.json"
 TEST_FILTER="-tf ${ANDROID_BUILD_TOP}/packages/modules/Bluetooth/system/gd/cert/all_cert_testcases"
 CPP_BUILD_TARGET="bluetooth_stack_with_facade root-canal bluetooth_packets_python3"
-RUST_BUILD_TARGET="bluetooth_with_facades root-canal bluetooth_packets_python3"
+RUST_BUILD_TARGET="bluetooth_with_facades root-canal bluetooth_packets_python3 bt_topshim_facade"
 BUILD_TARGET=$CPP_BUILD_TARGET
 
 CLEAN_VENV=false
@@ -313,6 +313,7 @@ function incremental_venv {
     DEST_LIB_DIR="${DEST_DIR}/lib64"
     cp {$HOST_BIN,$DEST_DIR}/bluetooth_stack_with_facade
     cp {$HOST_BIN,$DEST_DIR}/bluetooth_with_facades
+    cp {$HOST_BIN,$DEST_DIR}/bt_topshim_facade
     cp {$HOST_BIN,$DEST_DIR}/root-canal
 
     cp {$HOST_LIB,$DEST_DIR}/bluetooth_packets_python3.so
