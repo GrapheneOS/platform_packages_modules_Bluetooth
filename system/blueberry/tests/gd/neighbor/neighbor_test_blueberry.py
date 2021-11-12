@@ -14,23 +14,89 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+from datetime import timedelta
+
+from blueberry.tests.gd.cert.matchers import HciMatchers, NeighborMatchers
+from blueberry.tests.gd.cert.py_hci import PyHci
+from blueberry.tests.gd.cert.truth import assertThat
+from blueberry.tests.gd.cert.py_neighbor import PyNeighbor
+from neighbor.facade import facade_pb2 as neighbor_facade
+from bluetooth_packets_python3 import hci_packets
+from bluetooth_packets_python3.hci_packets import OpCode
 from blueberry.tests.gd.cert import gd_base_test
-from neighbor.cert.neighbor_test_lib import NeighborTestBase
 from mobly import test_runner
 
 
-class NeighborTestBb(gd_base_test.GdBaseTestClass, NeighborTestBase):
+class NeighborTestBb(gd_base_test.GdBaseTestClass):
 
     def setup_class(self):
         gd_base_test.GdBaseTestClass.setup_class(self, dut_module='HCI_INTERFACES', cert_module='HCI')
 
     def setup_test(self):
         gd_base_test.GdBaseTestClass.setup_test(self)
-        NeighborTestBase.setup_test(self, self.dut, self.cert)
+        self.cert_hci = PyHci(self.cert, acl_streaming=True)
+        self.cert_hci.send_command(hci_packets.WriteScanEnableBuilder(hci_packets.ScanEnable.INQUIRY_AND_PAGE_SCAN))
+        self.cert_name = b'Im_A_Cert'
+        self.cert_address = self.cert_hci.read_own_address()
+        self.cert_name += b'@' + self.cert_address.encode('utf8')
+        self.dut_neighbor = PyNeighbor(self.dut)
 
     def teardown_test(self):
-        NeighborTestBase.teardown_test(self)
+        self.cert_hci.close()
         gd_base_test.GdBaseTestClass.teardown_test(self)
+
+    def _set_name(self):
+        padded_name = self.cert_name
+        while len(padded_name) < 248:
+            padded_name = padded_name + b'\0'
+        self.cert_hci.send_command(hci_packets.WriteLocalNameBuilder(padded_name))
+
+        assertThat(self.cert_hci.get_event_stream()).emits(HciMatchers.CommandComplete(OpCode.WRITE_LOCAL_NAME))
+
+    def test_inquiry_from_dut(self):
+        inquiry_msg = neighbor_facade.InquiryMsg(
+            inquiry_mode=neighbor_facade.DiscoverabilityMode.GENERAL,
+            result_mode=neighbor_facade.ResultMode.STANDARD,
+            length_1_28s=3,
+            max_results=0)
+        session = self.dut_neighbor.set_inquiry_mode(inquiry_msg)
+        self.cert_hci.send_command(hci_packets.WriteScanEnableBuilder(hci_packets.ScanEnable.INQUIRY_AND_PAGE_SCAN))
+        assertThat(session).emits(NeighborMatchers.InquiryResult(self.cert_address), timeout=timedelta(seconds=10))
+
+    def test_inquiry_rssi_from_dut(self):
+        inquiry_msg = neighbor_facade.InquiryMsg(
+            inquiry_mode=neighbor_facade.DiscoverabilityMode.GENERAL,
+            result_mode=neighbor_facade.ResultMode.RSSI,
+            length_1_28s=6,
+            max_results=0)
+        session = self.dut_neighbor.set_inquiry_mode(inquiry_msg)
+        self.cert_hci.send_command(hci_packets.WriteScanEnableBuilder(hci_packets.ScanEnable.INQUIRY_AND_PAGE_SCAN))
+        assertThat(session).emits(
+            NeighborMatchers.InquiryResultwithRssi(self.cert_address), timeout=timedelta(seconds=10))
+
+    def test_inquiry_extended_from_dut(self):
+        self._set_name()
+        gap_name = hci_packets.GapData()
+        gap_name.data_type = hci_packets.GapDataType.COMPLETE_LOCAL_NAME
+        gap_name.data = list(bytes(self.cert_name))
+        gap_data = list([gap_name])
+
+        self.cert_hci.send_command(
+            hci_packets.WriteExtendedInquiryResponseBuilder(hci_packets.FecRequired.NOT_REQUIRED, gap_data))
+        inquiry_msg = neighbor_facade.InquiryMsg(
+            inquiry_mode=neighbor_facade.DiscoverabilityMode.GENERAL,
+            result_mode=neighbor_facade.ResultMode.EXTENDED,
+            length_1_28s=8,
+            max_results=0)
+        session = self.dut_neighbor.set_inquiry_mode(inquiry_msg)
+        self.cert_hci.send_command(hci_packets.WriteScanEnableBuilder(hci_packets.ScanEnable.INQUIRY_AND_PAGE_SCAN))
+        assertThat(session).emits(
+            NeighborMatchers.ExtendedInquiryResult(self.cert_address), timeout=timedelta(seconds=10))
+
+    def test_remote_name(self):
+        self._set_name()
+        session = self.dut_neighbor.get_remote_name(self.cert_address)
+        session.verify_name(self.cert_name)
 
 
 if __name__ == '__main__':
