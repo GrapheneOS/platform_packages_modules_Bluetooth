@@ -33,15 +33,21 @@
 #include "gd/storage/device.h"
 #include "gd/storage/le_device.h"
 #include "gd/storage/storage_module.h"
+#include "main/shim/dumpsys.h"
 #include "main/shim/entry.h"
 #include "main/shim/helpers.h"
 #include "main/shim/shim.h"
 #include "stack/btm/btm_int_types.h"
+#include "stack/include/btm_log_history.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
 using bluetooth::ToRawAddress;
 using bluetooth::ToGdAddress;
+
+namespace {
+constexpr char kBtmLogTag[] = "SCAN";
+}
 
 extern void btm_ble_process_adv_pkt_cont_for_inquiry(
     uint16_t event_type, uint8_t address_type, const RawAddress& raw_address,
@@ -83,6 +89,9 @@ class BleScannerInterfaceImpl : public BleScannerInterface,
   void Scan(bool start) {
     LOG(INFO) << __func__ << " in shim layer";
     bluetooth::shim::GetScanning()->Scan(start);
+    BTM_LogHistory(
+        kBtmLogTag, RawAddress::kEmpty,
+        base::StringPrintf("Le scan %s", (start) ? "started" : "stopped"));
     init_address_cache();
   }
 
