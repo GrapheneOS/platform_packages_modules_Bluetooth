@@ -4276,11 +4276,6 @@ tBTM_STATUS btm_sec_execute_procedure(tBTM_SEC_DEV_REC* p_dev_rec) {
     return (BTM_CMD_STARTED);
   }
 
-  if (!bluetooth::shim::is_gd_acl_enabled()) {
-    // Load the SM4 values  //
-    HACK_acl_check_sm4(*p_dev_rec);
-  }
-
   /* If any security is required, get the name first */
   if (!(p_dev_rec->sec_flags & BTM_SEC_NAME_KNOWN) &&
       (p_dev_rec->hci_handle != HCI_INVALID_HANDLE)) {

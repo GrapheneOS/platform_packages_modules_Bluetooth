@@ -730,10 +730,7 @@ bool BTM_BleConfigPrivacy(bool privacy_mode) {
 
   GAP_BleAttrDBUpdate(GATT_UUID_GAP_CENTRAL_ADDR_RESOL, &gap_ble_attr_value);
 
-  if (bluetooth::shim::is_gd_acl_enabled() ||
-      bluetooth::shim::is_gd_l2cap_enabled()) {
     bluetooth::shim::ACL_ConfigureLePrivacy(privacy_mode);
-  }
   return true;
 }
 
@@ -2578,12 +2575,7 @@ void btm_ble_update_mode_operation(uint8_t link_role, const RawAddress* bd_addr,
   /* in case of disconnected, we must cancel bgconn and restart
      in order to add back device to acceptlist in order to reconnect */
   if (bd_addr != nullptr) {
-    const RawAddress bda(*bd_addr);
-    if (bluetooth::shim::is_gd_acl_enabled()) {
       LOG_DEBUG("gd_acl enabled so skip background connection logic");
-    } else {
-      btm_ble_bgconn_cancel_if_disconnected(bda);
-    }
   }
 
   /* when no connection is attempted, and controller is not rejecting last

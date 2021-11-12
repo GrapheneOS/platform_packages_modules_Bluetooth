@@ -80,8 +80,6 @@ const stack_config_t* stack_config_get_interface(void) {
 
 std::map<std::string, int> mock_function_count_map;
 
-extern bool MOCK_bluetooth_shim_is_gd_acl_enabled_;
-
 namespace {
 
 using testing::_;
@@ -119,8 +117,6 @@ TEST_F(StackBtmTest, DynamicLifecycle) {
 }
 
 TEST_F(StackBtmTest, InformClientOnConnectionSuccess) {
-  MOCK_bluetooth_shim_is_gd_acl_enabled_ = true;
-
   get_btm_client_interface().lifecycle.btm_init();
 
   RawAddress bda({0x11, 0x22, 0x33, 0x44, 0x55, 0x66});
@@ -133,8 +129,6 @@ TEST_F(StackBtmTest, InformClientOnConnectionSuccess) {
 }
 
 TEST_F(StackBtmTest, NoInformClientOnConnectionFail) {
-  MOCK_bluetooth_shim_is_gd_acl_enabled_ = true;
-
   get_btm_client_interface().lifecycle.btm_init();
 
   RawAddress bda({0x11, 0x22, 0x33, 0x44, 0x55, 0x66});
