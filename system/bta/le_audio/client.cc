@@ -33,9 +33,11 @@
 #include "devices.h"
 #include "embdrv/lc3/Api/Lc3Decoder.hpp"
 #include "embdrv/lc3/Api/Lc3Encoder.hpp"
+#include "embdrv/lc3_enc/include/lc3.h"
 #include "gatt/bta_gattc_int.h"
 #include "le_audio_types.h"
 #include "osi/include/osi.h"
+#include "osi/include/properties.h"
 #include "stack/btm/btm_dev.h"
 #include "stack/btm/btm_sec.h"
 #include "stack/include/btu.h"  // do_in_main_thread
@@ -84,6 +86,8 @@ CigCallbacks* stateMachineHciCallbacks;
 LeAudioGroupStateMachine::Callbacks* stateMachineCallbacks;
 DeviceGroupsCallbacks* device_group_callbacks;
 
+bool use_new_encoder = true;
+
 /*
  * Coordinatet Set Identification Profile (CSIP) based on CSIP 1.0
  * and Coordinatet Set Identification Service (CSIS) 1.0
@@ -131,6 +135,8 @@ class LeAudioClientImpl : public LeAudioClient {
         audio_source_ready_to_send(false),
         current_source_codec_config({0, 0, 0, 0}),
         current_sink_codec_config({0, 0, 0, 0}),
+        lc3_encoder_left_mem(nullptr),
+        lc3_encoder_right_mem(nullptr),
         lc3_encoder(nullptr),
         lc3_decoder(nullptr),
         audio_source_instance_(nullptr),
@@ -1738,7 +1744,15 @@ class LeAudioClientImpl : public LeAudioClient {
                                  std::vector<int16_t>& chan_left,
                                  std::vector<int16_t>& chan_right,
                                  bool prepare_mono = false) {
-    uint16_t num_of_frames_per_ch = lc3_encoder->lc3Config.NF;
+    uint16_t num_of_frames_per_ch;
+
+    if (use_new_encoder) {
+      int dt_us = current_source_codec_config.data_interval_us;
+      int sr_hz = current_source_codec_config.sample_rate;
+      num_of_frames_per_ch = lc3_frame_samples(dt_us, sr_hz);
+    } else {
+      num_of_frames_per_ch = lc3_encoder->lc3Config.NF;
+    }
 
     chan_left.reserve(num_of_frames_per_ch);
     chan_right.reserve(num_of_frames_per_ch);
@@ -1767,7 +1781,15 @@ class LeAudioClientImpl : public LeAudioClient {
     uint16_t byte_count = stream_conf->sink_octets_per_codec_frame;
     uint16_t left_cis_handle = 0;
     uint16_t right_cis_handle = 0;
-    uint16_t number_of_required_samples_per_channel = lc3_encoder->lc3Config.NF;
+    uint16_t number_of_required_samples_per_channel;
+
+    if (use_new_encoder) {
+      int dt_us = current_source_codec_config.data_interval_us;
+      int sr_hz = current_source_codec_config.sample_rate;
+      number_of_required_samples_per_channel = lc3_frame_samples(dt_us, sr_hz);
+    } else {
+      number_of_required_samples_per_channel = lc3_encoder->lc3Config.NF;
+    }
 
     for (auto [cis_handle, audio_location] : stream_conf->sink_streams) {
       if (audio_location & le_audio::codec_spec_conf::kLeAudioLocationAnyLeft)
@@ -1782,27 +1804,49 @@ class LeAudioClientImpl : public LeAudioClient {
       return;
     }
 
-    bool mono = (left_cis_handle == 0) || (right_cis_handle == 0);
-    std::vector<int16_t> chan_left;
-    std::vector<int16_t> chan_right;
-    get_left_and_right_stream(data, chan_left, chan_right, mono);
-
     std::vector<uint8_t> chan_left_enc(byte_count, 0);
     std::vector<uint8_t> chan_right_enc(byte_count, 0);
 
-    uint8_t err = 0;
-    if (left_cis_handle)
-      err |= lc3_encoder->run((const int16_t*)chan_left.data(),
-                              chan_left_enc.size(), chan_left_enc.data(), 0);
-    if (right_cis_handle)
-      err |= lc3_encoder->run((const int16_t*)chan_right.data(),
-                              chan_right_enc.size(), chan_right_enc.data(), 1);
+    bool mono = (left_cis_handle == 0) || (right_cis_handle == 0);
 
-    if (err != Lc3Encoder::ERROR_FREE) {
-      LOG(ERROR) << " error while encoding; error code: "
-                 << "\t encoded samples: " << chan_left_enc.size()
-                 << "\t err: " << static_cast<uint8_t>(err);
-      return;
+    if (!mono && use_new_encoder) {
+      lc3_encode(lc3_encoder_left, (const int16_t*)data.data(), 2,
+                 chan_left_enc.data(), chan_left_enc.size());
+      lc3_encode(lc3_encoder_right, ((const int16_t*)data.data()) + 1, 2,
+                 chan_right_enc.data(), chan_right_enc.size());
+    } else {
+      std::vector<int16_t> chan_left;
+      std::vector<int16_t> chan_right;
+      get_left_and_right_stream(data, chan_left, chan_right, mono);
+
+      uint8_t err = 0;
+      if (left_cis_handle) {
+        if (use_new_encoder) {
+          lc3_encode(lc3_encoder_left, (const int16_t*)chan_left.data(), 1,
+                     chan_left_enc.data(), chan_left_enc.size());
+        } else {
+          err |= lc3_encoder->run((const int16_t*)chan_left.data(),
+                                  chan_left_enc.size(), chan_left_enc.data(), 0);
+        }
+      }
+
+      if (right_cis_handle) {
+        if (use_new_encoder) {
+          lc3_encode(lc3_encoder_right, (const int16_t*)chan_right.data(), 1,
+                     chan_right_enc.data(), chan_right_enc.size());
+
+        } else {
+          err |= lc3_encoder->run((const int16_t*)chan_right.data(),
+                                  chan_right_enc.size(), chan_right_enc.data(), 1);
+        }
+      }
+
+      if (err != Lc3Encoder::ERROR_FREE) {
+        LOG(ERROR) << " error while encoding; error code: "
+                   << "\t encoded samples: " << chan_left_enc.size()
+                   << "\t err: " << static_cast<uint8_t>(err);
+        return;
+      }
     }
 
     /* Send data to the controller */
@@ -1818,33 +1862,54 @@ class LeAudioClientImpl : public LeAudioClient {
   void PrepareAndSendToSingleDevice(
       const std::vector<uint8_t>& data,
       struct le_audio::stream_configuration* stream_conf) {
-    int num_channels = lc3_encoder->lc3Config.Nc;
+    int num_channels = current_source_codec_config.num_channels;
     uint16_t byte_count = stream_conf->sink_octets_per_codec_frame;
     auto cis_handle = stream_conf->sink_streams.front().first;
-    uint16_t number_of_required_samples_per_channel = lc3_encoder->lc3Config.NF;
+    uint16_t number_of_required_samples_per_channel;
+
+    if (use_new_encoder) {
+      int dt_us = current_source_codec_config.data_interval_us;
+      int sr_hz = current_source_codec_config.sample_rate;
+      number_of_required_samples_per_channel = lc3_frame_samples(dt_us, sr_hz);
+    } else {
+      number_of_required_samples_per_channel = lc3_encoder->lc3Config.NF;
+    }
 
     if ((int)data.size() < (2 /* bytes per sample */ * num_channels *
                             number_of_required_samples_per_channel)) {
       LOG(ERROR) << __func__ << "Missing samples";
       return;
     }
-
     std::vector<uint8_t> chan_encoded(num_channels * byte_count, 0);
     uint8_t err = 0;
     if (num_channels == 1) {
-      err = lc3_encoder->run((const int16_t*)data.data(), byte_count,
-                             chan_encoded.data(), 0);
-
+      if (use_new_encoder) {
+        lc3_encode(lc3_encoder_left, (const int16_t*)data.data(), 1,
+                   chan_encoded.data(), byte_count);
+      } else {
+        err = lc3_encoder->run((const int16_t*)data.data(), byte_count,
+                               chan_encoded.data(), 0);
+      }
     } else {
       std::vector<int16_t> chan_left;
       std::vector<int16_t> chan_right;
       get_left_and_right_stream(data, chan_left, chan_right, false);
 
-      err |= lc3_encoder->run((const int16_t*)chan_left.data(), byte_count,
-                              chan_encoded.data(), 0);
+      if (use_new_encoder) {
+        lc3_encode(lc3_encoder_left, (const int16_t*)chan_left.data(), 1,
+                   chan_encoded.data(), byte_count);
+      } else {
+        err |= lc3_encoder->run((const int16_t*)chan_left.data(), byte_count,
+                                chan_encoded.data(), 0);
+      }
 
-      err |= lc3_encoder->run((const int16_t*)chan_right.data(), byte_count,
-                              chan_encoded.data() + byte_count, 1);
+      if (use_new_encoder) {
+        lc3_encode(lc3_encoder_right, (const int16_t*)chan_right.data(), 1,
+                   chan_encoded.data() + byte_count, byte_count);
+      } else {
+        err |= lc3_encoder->run((const int16_t*)chan_right.data(), byte_count,
+                                chan_encoded.data() + byte_count, 1);
+      }
     }
 
     if (err != Lc3Encoder::ERROR_FREE) {
@@ -2023,18 +2088,39 @@ class LeAudioClientImpl : public LeAudioClient {
       return false;
     }
 
-    if (lc3_encoder) {
-      LOG(WARNING)
-          << " The encoder instance should have been already released.";
-      delete lc3_encoder;
-      lc3_encoder = nullptr;
-    }
+    if (use_new_encoder) {
+      if (lc3_encoder_left_mem) {
+        LOG(WARNING)
+            << " The encoder instance should have been already released.";
+        free(lc3_encoder_left_mem);
+        lc3_encoder_left_mem = nullptr;
+        free(lc3_encoder_right_mem);
+        lc3_encoder_right_mem = nullptr;
+      }
+      int dt_us = current_source_codec_config.data_interval_us;
+      int sr_hz = current_source_codec_config.sample_rate;
+      unsigned enc_size = lc3_encoder_size(dt_us, sr_hz);
 
-    /* One or multiple audio channels encoder */
-    lc3_encoder = new Lc3Encoder(Lc3Config(
-        current_source_codec_config.sample_rate,
-        Lc3ConfigFrameDuration(current_source_codec_config.data_interval_us),
-        current_source_codec_config.num_channels));
+      lc3_encoder_left_mem = malloc(enc_size);
+      lc3_encoder_right_mem = malloc(enc_size);
+
+      lc3_encoder_left = lc3_setup_encoder(dt_us, sr_hz, lc3_encoder_left_mem);
+      lc3_encoder_right = lc3_setup_encoder(dt_us, sr_hz, lc3_encoder_right_mem);
+
+    } else {
+      if (lc3_encoder) {
+        LOG(WARNING)
+            << " The encoder instance should have been already released.";
+        delete lc3_encoder;
+        lc3_encoder = nullptr;
+      }
+
+      /* One or multiple audio channels encoder */
+      lc3_encoder = new Lc3Encoder(Lc3Config(
+          current_source_codec_config.sample_rate,
+          Lc3ConfigFrameDuration(current_source_codec_config.data_interval_us),
+          current_source_codec_config.num_channels));
+    }
 
     uint16_t remote_delay_ms =
         group->GetRemoteDelay(le_audio::types::kLeAudioDirectionSink);
@@ -2115,6 +2201,13 @@ class LeAudioClientImpl : public LeAudioClient {
   void SuspendAudio(void) {
     audio_sink_ready_to_receive = false;
     audio_source_ready_to_send = false;
+
+    if (lc3_encoder_left_mem) {
+      free(lc3_encoder_left_mem);
+      lc3_encoder_left_mem = nullptr;
+      free(lc3_encoder_right_mem);
+      lc3_encoder_right_mem = nullptr;
+    }
 
     if (lc3_encoder) {
       delete lc3_encoder;
@@ -2682,6 +2775,13 @@ class LeAudioClientImpl : public LeAudioClient {
 
   LeAudioCodecConfiguration current_source_codec_config;
   LeAudioCodecConfiguration current_sink_codec_config;
+
+  void* lc3_encoder_left_mem;
+  void* lc3_encoder_right_mem;
+
+  lc3_encoder_t lc3_encoder_left;
+  lc3_encoder_t lc3_encoder_right;
+
   Lc3Encoder* lc3_encoder;
   Lc3Decoder* lc3_decoder;
   std::vector<uint8_t> encoded_data;
@@ -2913,6 +3013,9 @@ void LeAudioClient::Initialize(
       << __func__
       << ", LE Audio Client requires Bluetooth Audio HAL V2.1 at least. Either "
          "disable LE Audio Profile, or update your HAL";
+
+  use_new_encoder = osi_property_get_bool("persist.bluetooth.use_new_lc3", true);
+  LOG(INFO) << "use_new_encoder = " << +use_new_encoder;
 
   IsoManager::GetInstance()->Start();
 

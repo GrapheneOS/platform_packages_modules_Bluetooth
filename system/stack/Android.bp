@@ -272,6 +272,7 @@ cc_test {
         "libbtdevice",
         "libg722codec",
         "liblc3codec",
+        "liblc3encoder",
         "libosi",
         "libudrv-uipc",
         "libbt-protos-lite",
