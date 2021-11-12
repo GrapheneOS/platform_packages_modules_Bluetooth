@@ -16,14 +16,14 @@
 
 config("service_config") {
   include_dirs = [
-    "//bt/",
-    "//bt/linux_include",
-    "//bt/include",
-    "//bt/service",
-    "//bt/service/common",
+    "//bt/system/",
+    "//bt/system/linux_include",
+    "//bt/system/include",
+    "//bt/system/service",
+    "//bt/system/service/common",
   ]
 
-  configs = [ "//bt:target_defaults" ]
+  configs = [ "//bt/system:target_defaults" ]
 }
 
 source_set("service_daemon_src") {
@@ -51,9 +51,9 @@ source_set("service_daemon_src") {
   ]
 
   deps = [
-    "//bt/gd/rust/shim:init_flags_bridge_header",
-    "//bt/osi",
-    "//bt/types",
+    "//bt/system/gd/rust/shim:init_flags_bridge_header",
+    "//bt/system/osi",
+    "//bt/system/types",
   ]
 
   configs += [ ":service_config" ]
@@ -68,9 +68,9 @@ source_set("service_linux_src") {
   ]
 
   deps = [
-    "//bt/gd/rust/shim:init_flags_bridge_header",
-    "//bt/osi",
-    "//bt/types",
+    "//bt/system/gd/rust/shim:init_flags_bridge_header",
+    "//bt/system/osi",
+    "//bt/system/types",
   ]
 
   configs += [ ":service_config" ]
@@ -98,9 +98,9 @@ static_library("service") {
   deps = [
     ":service_daemon_src",
     ":service_linux_src",
-    "//bt/gd/rust/shim:init_flags_bridge_header",
-    "//bt/osi",
-    "//bt/types",
+    "//bt/system/gd/rust/shim:init_flags_bridge_header",
+    "//bt/system/osi",
+    "//bt/system/types",
   ]
 
   configs += [ ":service_config" ]
@@ -111,8 +111,8 @@ executable("bluetoothtbd") {
 
   deps = [
     ":service",
-    "//bt/btcore",
-    "//bt/main:bluetooth",
+    "//bt/system/btcore",
+    "//bt/system/main:bluetooth",
   ]
 
   configs += [ ":service_config" ]
@@ -160,11 +160,11 @@ if (use.test) {
       ":service_base_test_src",
       ":service_daemon_src",
       ":service_linux_src",
-      "//bt/service/common:libbluetooth_common",
+      "//bt/system/service/common:libbluetooth_common",
     ]
 
     configs += [
-      "//bt:external_gmock_main",
+      "//bt/system:external_gmock_main",
       ":service_config",
     ]
   }

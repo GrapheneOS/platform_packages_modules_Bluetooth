@@ -18,7 +18,7 @@ import("//common-mk/cxxbridge.gni")
 
 config("rust_topshim_config") {
   include_dirs = [
-    "//bt/gd/rust/topshim"
+    "//bt/system/gd/rust/topshim"
   ]
 }
 
@@ -44,8 +44,8 @@ cxxbridge_cc("btif_bridge_code") {
     "src/profiles/gatt.rs",
     "src/controller.rs",
   ]
-  deps = [":btif_bridge_header", "//bt/gd:BluetoothGeneratedPackets_h"]
-  configs = [ "//bt/gd:gd_defaults" ]
+  deps = [":btif_bridge_header", "//bt/system/gd:BluetoothGeneratedPackets_h"]
+  configs = [ "//bt/system/gd:gd_defaults" ]
 }
 
 source_set("btif_cxx_bridge_code") {
@@ -58,8 +58,8 @@ source_set("btif_cxx_bridge_code") {
     "controller/controller_shim.cc",
   ]
 
-  deps = [":btif_bridge_header", "//bt/gd:BluetoothGeneratedPackets_h"]
-  configs += ["//bt/gd:gd_defaults"]
+  deps = [":btif_bridge_header", "//bt/system/gd:BluetoothGeneratedPackets_h"]
+  configs += ["//bt/system/gd:gd_defaults"]
 }
 
 cxxbridge_libheader("cxxlibheader") {

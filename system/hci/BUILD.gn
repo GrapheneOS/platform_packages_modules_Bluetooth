@@ -28,48 +28,48 @@ static_library("hci") {
 
   include_dirs = [
     "include",
-    "//bt/",
-    "//bt/internal_include",
-    "//bt/bta/include",
-    "//bt/btcore/include",
-    "//bt/stack/include",
+    "//bt/system/",
+    "//bt/system/internal_include",
+    "//bt/system/bta/include",
+    "//bt/system/btcore/include",
+    "//bt/system/stack/include",
   ]
 
   deps = [
-    "//bt/common",
+    "//bt/system/common",
   ]
 
   configs += [
-    "//bt:target_defaults",
+    "//bt/system:target_defaults",
   ]
 }
 
 if (use.test) {
   executable("net_test_hci") {
     sources = [
-      "//bt/osi/test/AllocationTestHarness.cc",
-      "//bt/osi/test/AlarmTestHarness.cc",
+      "//bt/system/osi/test/AllocationTestHarness.cc",
+      "//bt/system/osi/test/AlarmTestHarness.cc",
       "test/packet_fragmenter_test.cc",
     ]
 
     include_dirs = [
-      "//bt/",
-      "//bt/internal_include",
-      "//bt/btcore/include",
-      "//bt/hci/include",
-      "//bt/osi/test",
-      "//bt/stack/include",
+      "//bt/system/",
+      "//bt/system/internal_include",
+      "//bt/system/btcore/include",
+      "//bt/system/hci/include",
+      "//bt/system/osi/test",
+      "//bt/system/stack/include",
     ]
 
     deps = [
-      "//bt/hci",
-      "//bt/osi",
-      "//bt/btcore",
+      "//bt/system/hci",
+      "//bt/system/osi",
+      "//bt/system/btcore",
     ]
 
     configs += [
-      "//bt:target_defaults",
-      "//bt:external_gtest_main",
+      "//bt/system:target_defaults",
+      "//bt/system:external_gtest_main",
     ]
 
     libs = [
