@@ -137,8 +137,8 @@ class TestSinkTransport
   TestSinkTransport(SessionType session_type)
       : bluetooth::audio::IBluetoothSinkTransportInstance(session_type, {}){};
   TestSinkTransport(SessionType_2_1 session_type_2_1)
-      : bluetooth::audio::IBluetoothSinkTransportInstance(session_type_2_1,
-                                                          {}){};
+      : bluetooth::audio::IBluetoothSinkTransportInstance(
+            session_type_2_1, (AudioConfiguration_2_1){}){};
   bluetooth::audio::BluetoothAudioCtrlAck StartRequest() override {
     return bluetooth::audio::BluetoothAudioCtrlAck::SUCCESS_FINISHED;
   }
@@ -175,8 +175,8 @@ class TestSourceTransport
   TestSourceTransport(SessionType session_type)
       : bluetooth::audio::IBluetoothSourceTransportInstance(session_type, {}){};
   TestSourceTransport(SessionType_2_1 session_type_2_1)
-      : bluetooth::audio::IBluetoothSourceTransportInstance(session_type_2_1,
-                                                            {}){};
+      : bluetooth::audio::IBluetoothSourceTransportInstance(
+            session_type_2_1, (AudioConfiguration_2_1){}){};
   bluetooth::audio::BluetoothAudioCtrlAck StartRequest() override {
     return bluetooth::audio::BluetoothAudioCtrlAck::SUCCESS_FINISHED;
   }
