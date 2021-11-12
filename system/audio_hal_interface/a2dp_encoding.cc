@@ -56,7 +56,7 @@ class A2dpTransport
     : public ::bluetooth::audio::IBluetoothSinkTransportInstance {
  public:
   A2dpTransport(SessionType sessionType)
-      : IBluetoothSinkTransportInstance(sessionType, {}),
+      : IBluetoothSinkTransportInstance(sessionType, (AudioConfiguration){}),
         total_bytes_read_(0),
         data_position_({}) {
     a2dp_pending_cmd_ = A2DP_CTRL_CMD_NONE;

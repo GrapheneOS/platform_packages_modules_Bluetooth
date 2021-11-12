@@ -23,6 +23,7 @@ cc_library_shared {
     shared_libs: [
         "android.hardware.bluetooth.audio@2.0",
         "android.hardware.bluetooth.audio@2.1",
+        "android.hardware.bluetooth.audio@2.2",
         "libaudioutils",
         "libbase",
         "libbluetooth_audio_session",
