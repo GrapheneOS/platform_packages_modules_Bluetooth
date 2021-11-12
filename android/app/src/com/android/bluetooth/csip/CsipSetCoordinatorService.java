@@ -599,7 +599,9 @@ public class CsipSetCoordinatorService extends ProfileService {
 
         for (Map.Entry<Executor, IBluetoothCsipSetCoordinatorCallback> entry :
                 mCallbacks.get(uuid).entrySet()) {
-            Log.e(TAG, " executing " + uuid + " " + entry.getKey());
+            if (DBG) {
+                Log.d(TAG, " executing " + uuid + " " + entry.getKey());
+            }
             try {
                 executeCallback(entry.getKey(), entry.getValue(), device, groupId);
             } catch (RemoteException e) {
