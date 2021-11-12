@@ -1606,7 +1606,7 @@ void bta_hh_le_open_fail(tBTA_HH_DEV_CB* p_cb, const tBTA_HH_DATA* p_data) {
     bta_hh_clear_service_cache(p_cb);
   }
 
-  if (bluetooth::shim::is_gd_acl_enabled() && p_cb->is_le_device) {
+  if (p_cb->is_le_device) {
     LOG_DEBUG("gd_acl: Re-adding HID device to acceptlist");
     // gd removes from bg list after failed connection
     // Correct the cached state to allow re-add to acceptlist.
@@ -1666,7 +1666,7 @@ void bta_hh_gatt_close(tBTA_HH_DEV_CB* p_cb, const tBTA_HH_DATA* p_data) {
   /* if no connection is active and HH disable is signaled, disable service */
   if (bta_hh_cb.cnt_num == 0 && bta_hh_cb.w4_disable) {
     bta_hh_disc_cmpl();
-  } else if (bluetooth::shim::is_gd_acl_enabled()) {
+  } else {
     switch (le_close->reason) {
       case GATT_CONN_FAILED_ESTABLISHMENT:
       case GATT_CONN_TERMINATE_PEER_USER:
@@ -1694,8 +1694,6 @@ void bta_hh_gatt_close(tBTA_HH_DEV_CB* p_cb, const tBTA_HH_DATA* p_data) {
             gatt_disconnection_reason_text(le_close->reason).c_str());
         break;
     }
-  } else if (kBTA_HH_LE_RECONN && le_close->reason == GATT_CONN_TIMEOUT) {
-    bta_hh_le_add_dev_bg_conn(p_cb, false);
   }
 }
 
@@ -2007,14 +2005,11 @@ static void bta_hh_le_add_dev_bg_conn(tBTA_HH_DEV_CB* p_cb, bool check_bond) {
     /* add device into BG connection to accept remote initiated connection */
     BTA_GATTC_Open(bta_hh_cb.gatt_if, p_cb->addr, false, false);
     p_cb->in_bg_conn = true;
-  } else if (bluetooth::shim::is_gd_acl_enabled()) {
+  } else {
     // Let the lower layers manage acceptlist and do not cache
     // at the higher layer
     p_cb->in_bg_conn = true;
     BTA_GATTC_Open(bta_hh_cb.gatt_if, p_cb->addr, false, false);
-  } else {
-    LOG_WARN("Unable to add device into bg in_bg_conn:%u to_add:%u",
-             p_cb->in_bg_conn, to_add);
   }
 }
 
