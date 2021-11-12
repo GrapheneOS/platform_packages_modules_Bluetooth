@@ -49,7 +49,18 @@ class BluetoothPbapUtils {
     private static final String TAG = "BluetoothPbapUtils";
     private static final boolean V = BluetoothPbapService.VERBOSE;
 
+    // Filter constants from Bluetooth PBAP specification
     private static final int FILTER_PHOTO = 3;
+    private static final int FILTER_BDAY = 4;
+    private static final int FILTER_ADDRESS = 5;
+    private static final int FILTER_LABEL = 6;
+    private static final int FILTER_EMAIL = 8;
+    private static final int FILTER_MAILER = 9;
+    private static final int FILTER_ORG = 16;
+    private static final int FILTER_NOTE = 17;
+    private static final int FILTER_SOUND = 19;
+    private static final int FILTER_URL = 20;
+    private static final int FILTER_NICKNAME = 23;
 
     private static final long QUERY_CONTACT_RETRY_INTERVAL = 4000;
 
@@ -121,6 +132,40 @@ class BluetoothPbapUtils {
                 Log.v(TAG, "Excluding images from VCardComposer...");
             }
             vType |= VCardConfig.FLAG_REFRAIN_IMAGE_EXPORT;
+        }
+        if (hasFilter(filter)) {
+            if (!isFilterBitSet(filter, FILTER_ADDRESS) && !isFilterBitSet(filter, FILTER_LABEL)) {
+                Log.i(TAG, "Excluding addresses from VCardComposer...");
+                vType |= VCardConfig.FLAG_REFRAIN_ADDRESS_EXPORT;
+            }
+            if (!isFilterBitSet(filter, FILTER_EMAIL) && !isFilterBitSet(filter, FILTER_MAILER)) {
+                Log.i(TAG, "Excluding email addresses from VCardComposer...");
+                vType |= VCardConfig.FLAG_REFRAIN_EMAIL_EXPORT;
+            }
+            if (!isFilterBitSet(filter, FILTER_ORG)) {
+                Log.i(TAG, "Excluding organization from VCardComposer...");
+                vType |= VCardConfig.FLAG_REFRAIN_ORGANIZATION_EXPORT;
+            }
+            if (!isFilterBitSet(filter, FILTER_URL)) {
+                Log.i(TAG, "Excluding URLS from VCardComposer...");
+                vType |= VCardConfig.FLAG_REFRAIN_WEBSITES_EXPORT;
+            }
+            if (!isFilterBitSet(filter, FILTER_NOTE)) {
+                Log.i(TAG, "Excluding notes from VCardComposer...");
+                vType |= VCardConfig.FLAG_REFRAIN_NOTES_EXPORT;
+            }
+            if (!isFilterBitSet(filter, FILTER_NICKNAME)) {
+                Log.i(TAG, "Excluding nickname from VCardComposer...");
+                vType |= VCardConfig.FLAG_REFRAIN_NICKNAME_EXPORT;
+            }
+            if (!isFilterBitSet(filter, FILTER_SOUND)) {
+                Log.i(TAG, "Excluding phonetic name from VCardComposer...");
+                vType |= VCardConfig.FLAG_REFRAIN_PHONETIC_NAME_EXPORT;
+            }
+            if (!isFilterBitSet(filter, FILTER_BDAY)) {
+                Log.i(TAG, "Excluding birthday from VCardComposer...");
+                vType |= VCardConfig.FLAG_REFRAIN_EVENTS_EXPORT;
+            }
         }
         return new VCardComposer(ctx, vType, true);
     }
