@@ -25,7 +25,6 @@
 #include <base/bind.h>
 #include <base/callback.h>
 #include <base/logging.h>
-#include "stack/btm/btm_int.h"
 #include "device/include/controller.h"
 
 #include <vector>
