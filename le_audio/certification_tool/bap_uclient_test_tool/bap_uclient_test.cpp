@@ -656,6 +656,9 @@ remote_bd_addr, bt_bond_state_t state)
     g_PairState = state;
 }
 
+static void address_consolidate_cb(RawAddress* main_bd_addr,
+                                   RawAddress* secondary_bd_addr) {}
+
 static void acl_state_changed(bt_status_t status, RawAddress* remote_bd_addr,
 bt_acl_state_t state,
                               bt_hci_error_code_t hci_reason)
@@ -723,17 +726,18 @@ static bt_callbacks_t bt_callbacks = {
     sizeof(bt_callbacks_t),
     adapter_state_changed,
     adapter_properties_changed, /*adapter_properties_cb */
-    NULL, /* remote_device_properties_cb */
-    NULL, /* device_found_cb */
-    discovery_state_changed, /* discovery_state_changed_cb */
-    pin_request_cb, /* pin_request_cb  */
-    ssp_request_cb, /* ssp_request_cb  */
-    bond_state_changed_cb, /*bond_state_changed_cb */
-    acl_state_changed, /* acl_state_changed_cb */
-    NULL, /* thread_evt_cb */
-    dut_mode_recv, /*dut_mode_recv_cb */
-    le_test_mode, /* le_test_mode_cb */
-    NULL      /*energy_info_cb*/
+    NULL,                       /* remote_device_properties_cb */
+    NULL,                       /* device_found_cb */
+    discovery_state_changed,    /* discovery_state_changed_cb */
+    pin_request_cb,             /* pin_request_cb  */
+    ssp_request_cb,             /* ssp_request_cb  */
+    bond_state_changed_cb,      /* bond_state_changed_cb */
+    address_consolidate_cb,     /* address_consolidate_cb */
+    acl_state_changed,          /* acl_state_changed_cb */
+    NULL,                       /* thread_evt_cb */
+    dut_mode_recv,              /*dut_mode_recv_cb */
+    le_test_mode,               /* le_test_mode_cb */
+    NULL                        /*energy_info_cb*/
 };
 
 static bt_os_callouts_t bt_os_callbacks = {
