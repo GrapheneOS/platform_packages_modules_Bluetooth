@@ -174,8 +174,6 @@ void NotifyAclRoleSwitchComplete(const RawAddress& bda, tHCI_ROLE new_role,
 
 void NotifyAclFeaturesReadComplete(tACL_CONN& p_acl,
                                    UNUSED_ATTR uint8_t max_page_number) {
-  ASSERT_LOG(bluetooth::shim::is_gd_acl_enabled(),
-             "For right now only called with gd_acl support");
   btm_process_remote_ext_features(&p_acl, max_page_number);
   btm_set_link_policy(&p_acl, btm_cb.acl_cb_.DefaultLinkPolicy());
   BTA_dm_notify_remote_features_complete(p_acl.remote_addr);
@@ -189,13 +187,8 @@ static void hci_btsnd_hcic_disconnect(tACL_CONN& p_acl, tHCI_STATUS reason) {
            hci_error_code_text(reason).c_str());
   p_acl.disconnect_reason = reason;
 
-  if (bluetooth::shim::is_gd_acl_enabled()) {
-    return bluetooth::shim::ACL_Disconnect(p_acl.hci_handle,
-                                           p_acl.is_transport_br_edr(), reason);
-  } else {
-    GetLegacyHciInterface().Disconnect(p_acl.hci_handle,
-                                       static_cast<uint16_t>(reason));
-  }
+  return bluetooth::shim::ACL_Disconnect(p_acl.hci_handle,
+                                         p_acl.is_transport_br_edr(), reason);
 }
 
 void StackAclBtmAcl::hci_start_role_switch_to_central(tACL_CONN& p_acl) {
@@ -416,11 +409,6 @@ void btm_acl_created(const RawAddress& bda, uint16_t hci_handle,
   /* if BR/EDR do something more */
   if (transport == BT_TRANSPORT_BR_EDR) {
     btsnd_hcic_read_rmt_clk_offset(hci_handle);
-    if (!bluetooth::shim::is_gd_l2cap_enabled() &&
-        !bluetooth::shim::is_gd_acl_enabled()) {
-      // GD L2cap and GD Acl read this automatically
-      btsnd_hcic_rmt_ver_req(hci_handle);
-    }
   }
 
   if (transport == BT_TRANSPORT_LE) {
@@ -784,11 +772,6 @@ static void maybe_chain_more_commands_after_read_remote_version_complete(
        * read commands.  Skip when gd_acl is enabled because that
        * module handles all remote read functionality.
        */
-      if (!bluetooth::shim::is_gd_acl_enabled()) {
-        if (status == HCI_SUCCESS) {
-          internal_.btm_read_remote_features(p_acl_cb->hci_handle);
-        }
-      }
       break;
     default:
       LOG_ERROR("Unable to determine transport:%s device:%s",
@@ -835,8 +818,7 @@ void btm_read_remote_version_complete_raw(uint8_t* p) {
   STREAM_TO_UINT16(manufacturer, p);
   STREAM_TO_UINT16(lmp_subversion, p);
 
-  ASSERT_LOG(!bluetooth::shim::is_gd_acl_enabled(),
-             "gd acl layer should be receiving this completion");
+  ASSERT_LOG(false, "gd acl layer should be receiving this completion");
   btm_read_remote_version_complete(static_cast<tHCI_STATUS>(status), handle,
                                    lmp_version, manufacturer, lmp_version);
 }
@@ -2593,9 +2575,7 @@ void on_acl_br_edr_connected(const RawAddress& bda, uint16_t handle,
    * The GD code path has ownership of the read_remote_ commands
    * and thus may inform the upper layers about the connection.
    */
-  if (bluetooth::shim::is_gd_acl_enabled()) {
-    NotifyAclLinkUp(*p_acl);
-  }
+  NotifyAclLinkUp(*p_acl);
 }
 
 void on_acl_br_edr_failed(const RawAddress& bda, tHCI_STATUS status) {
@@ -2651,46 +2631,10 @@ void btm_acl_disconnected(tHCI_STATUS status, uint16_t handle,
   btm_sec_disconnected(handle, reason);
 }
 
-constexpr uint16_t kDefaultPacketTypes =
-    HCI_PKT_TYPES_MASK_DM1 | HCI_PKT_TYPES_MASK_DH1 | HCI_PKT_TYPES_MASK_DM3 |
-    HCI_PKT_TYPES_MASK_DH3 | HCI_PKT_TYPES_MASK_DM5 | HCI_PKT_TYPES_MASK_DH5;
-
 void acl_create_classic_connection(const RawAddress& bd_addr,
                                    bool there_are_high_priority_channels,
                                    bool is_bonding) {
-  if (bluetooth::shim::is_gd_acl_enabled()) {
-    return bluetooth::shim::ACL_CreateClassicConnection(bd_addr);
-  }
-
-  const bool controller_supports_role_switch =
-      controller_get_interface()->supports_role_switch();
-  const bool acl_allows_role_switch = acl_is_role_switch_allowed();
-
-  /* FW team says that we can participant in 4 piconets
-   * typically 3 piconet + 1 for scanning.
-   * We can enhance the code to count the number of piconets later. */
-  uint8_t allow_role_switch = HCI_CR_CONN_NOT_ALLOW_SWITCH;
-  if (((acl_allows_role_switch && (BTM_GetNumAclLinks() < 3)) ||
-       (is_bonding && !there_are_high_priority_channels &&
-        controller_supports_role_switch)))
-    allow_role_switch = HCI_CR_CONN_ALLOW_SWITCH;
-
-  /* Check with the BT manager if details about remote device are known */
-  uint8_t page_scan_rep_mode{HCI_PAGE_SCAN_REP_MODE_R1};
-  uint8_t page_scan_mode{HCI_MANDATARY_PAGE_SCAN_MODE};
-  uint16_t clock_offset = BTM_GetClockOffset(bd_addr);
-
-  tBTM_INQ_INFO* p_inq_info = BTM_InqDbRead(bd_addr);
-  if (p_inq_info != nullptr &&
-      (p_inq_info->results.inq_result_type & BTM_INQ_RESULT_BR)) {
-    page_scan_rep_mode = p_inq_info->results.page_scan_rep_mode;
-    page_scan_mode = p_inq_info->results.page_scan_mode;
-    clock_offset = p_inq_info->results.clock_offset;
-  }
-
-  btsnd_hcic_create_conn(bd_addr, kDefaultPacketTypes, page_scan_rep_mode,
-                         page_scan_mode, clock_offset, allow_role_switch);
-  btm_acl_set_paging(true);
+  return bluetooth::shim::ACL_CreateClassicConnection(bd_addr);
 }
 
 void btm_acl_connection_request(const RawAddress& bda, uint8_t* dc) {
@@ -2734,12 +2678,7 @@ void acl_disconnect_after_role_switch(uint16_t conn_handle,
   }
 }
 
-constexpr uint16_t kDataPacketEventBrEdr = (BT_EVT_TO_LM_HCI_ACL);
-constexpr uint16_t kDataPacketEventBle =
-    (BT_EVT_TO_LM_HCI_ACL | LOCAL_BLE_CONTROLLER_ID);
-
 void acl_send_data_packet_br_edr(const RawAddress& bd_addr, BT_HDR* p_buf) {
-  if (bluetooth::shim::is_gd_acl_enabled()) {
     tACL_CONN* p_acl = internal_.btm_bda_to_acl(bd_addr, BT_TRANSPORT_BR_EDR);
     if (p_acl == nullptr) {
       LOG_WARN("Acl br_edr data write for unknown device:%s",
@@ -2748,12 +2687,9 @@ void acl_send_data_packet_br_edr(const RawAddress& bd_addr, BT_HDR* p_buf) {
       return;
     }
     return bluetooth::shim::ACL_WriteData(p_acl->hci_handle, p_buf);
-  }
-  bte_main_hci_send(p_buf, kDataPacketEventBrEdr);
 }
 
 void acl_send_data_packet_ble(const RawAddress& bd_addr, BT_HDR* p_buf) {
-  if (bluetooth::shim::is_gd_acl_enabled()) {
     tACL_CONN* p_acl = internal_.btm_bda_to_acl(bd_addr, BT_TRANSPORT_LE);
     if (p_acl == nullptr) {
       LOG_WARN("Acl le data write for unknown device:%s",
@@ -2762,8 +2698,6 @@ void acl_send_data_packet_ble(const RawAddress& bd_addr, BT_HDR* p_buf) {
       return;
     }
     return bluetooth::shim::ACL_WriteData(p_acl->hci_handle, p_buf);
-  }
-  bte_main_hci_send(p_buf, kDataPacketEventBle);
 }
 
 void acl_write_automatic_flush_timeout(const RawAddress& bd_addr,
@@ -2785,7 +2719,6 @@ void acl_write_automatic_flush_timeout(const RawAddress& bd_addr,
 }
 
 bool acl_create_le_connection_with_id(uint8_t id, const RawAddress& bd_addr) {
-  if (bluetooth::shim::is_gd_acl_enabled()) {
     tBLE_BD_ADDR address_with_type{
         .bda = bd_addr,
         .type = BLE_ADDR_RANDOM,
@@ -2796,8 +2729,6 @@ bool acl_create_le_connection_with_id(uint8_t id, const RawAddress& bd_addr) {
     bluetooth::shim::ACL_AcceptLeConnectionFrom(address_with_type,
                                                 /* is_direct */ true);
     return true;
-  }
-  return connection_manager::direct_connect_add(id, bd_addr);
 }
 
 bool acl_create_le_connection(const RawAddress& bd_addr) {
@@ -2860,18 +2791,11 @@ static void acl_parse_num_completed_pkts(uint8_t* p, uint8_t evt_len) {
 }
 
 void acl_process_num_completed_pkts(uint8_t* p, uint8_t evt_len) {
-  if (bluetooth::shim::is_gd_acl_enabled()) {
-    acl_parse_num_completed_pkts(p, evt_len);
-  } else {
-    l2c_link_process_num_completed_pkts(p, evt_len);
-  }
+  acl_parse_num_completed_pkts(p, evt_len);
   bluetooth::hci::IsoManager::GetInstance()->HandleNumComplDataPkts(p, evt_len);
 }
 
 void acl_process_supported_features(uint16_t handle, uint64_t features) {
-  ASSERT_LOG(bluetooth::shim::is_gd_acl_enabled(),
-             "Should only be called when gd_acl enabled");
-
   tACL_CONN* p_acl = internal_.acl_get_connection_from_handle(handle);
   if (p_acl == nullptr) {
     LOG_WARN("Unable to find active acl");
@@ -2902,9 +2826,6 @@ void acl_process_supported_features(uint16_t handle, uint64_t features) {
 
 void acl_process_extended_features(uint16_t handle, uint8_t current_page_number,
                                    uint8_t max_page_number, uint64_t features) {
-  ASSERT_LOG(bluetooth::shim::is_gd_acl_enabled(),
-             "Should only be called when gd_acl enabled");
-
   if (current_page_number > HCI_EXT_FEATURES_PAGE_MAX) {
     LOG_WARN("Unable to process current_page_number:%hhu", current_page_number);
     return;
