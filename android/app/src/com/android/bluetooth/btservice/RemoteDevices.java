@@ -667,6 +667,19 @@ final class RemoteDevices {
         }
     }
 
+    void addressConsolidateCallback(byte[] mainAddress, byte[] secondaryAddress) {
+        BluetoothDevice device = getDevice(mainAddress);
+        if (device == null) {
+            errorLog("addressConsolidateCallback: device is NULL, address="
+                    + Utils.getAddressStringFromByte(mainAddress) + ", secondaryAddress="
+                            + Utils.getAddressStringFromByte(secondaryAddress));
+            return;
+        }
+        Log.d(TAG, "addressConsolidateCallback device: " + device + ", secondaryAddress:"
+                + Utils.getAddressStringFromByte(secondaryAddress));
+        // TODO
+    }
+
     void aclStateChangeCallback(int status, byte[] address, int newState,
                                 int transportLinkType, int hciReason) {
         BluetoothDevice device = getDevice(address);
