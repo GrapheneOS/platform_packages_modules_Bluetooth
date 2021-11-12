@@ -63,6 +63,8 @@ void ssp_request_callback(RawAddress* remote_bd_addr, bt_bdname_t* bd_name,
                           uint32_t pass_key) {}
 void bond_state_changed_callback(bt_status_t status, RawAddress* remote_bd_addr,
                                  bt_bond_state_t state, int fail_reason) {}
+void address_consolidate_callback(RawAddress* main_bd_addr,
+                                  RawAddress* secondary_bd_addr) {}
 void acl_state_changed_callback(bt_status_t status, RawAddress* remote_bd_addr,
                                 bt_acl_state_t state, int transport_link_type,
                                 bt_hci_error_code_t hci_reason) {}
@@ -89,6 +91,7 @@ bt_callbacks_t callbacks = {
     .pin_request_cb = pin_request_callback,
     .ssp_request_cb = ssp_request_callback,
     .bond_state_changed_cb = bond_state_changed_callback,
+    .address_consolidate_cb = address_consolidate_callback,
     .acl_state_changed_cb = acl_state_changed_callback,
     .thread_evt_cb = callback_thread_event,
     .dut_mode_recv_cb = dut_mode_recv_callback,
