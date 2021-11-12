@@ -7,7 +7,9 @@ fn main() {
     // These includes all the symbols built via C++ but doesn't include other
     // links (i.e. pkg-config)
     println!("cargo:rustc-link-lib=static=bluetooth-static");
-    println!("cargo:rustc-link-search=native={}", target_dir.into_string().unwrap());
+    println!("cargo:rustc-link-search=native={}", target_dir.clone().into_string().unwrap());
+    // Also re-run the build if anything in the C++ build changes
+    println!("cargo:rerun-if-changed={}", target_dir.into_string().unwrap());
 
     // A few dynamic links
     println!("cargo:rustc-link-lib=dylib=flatbuffers");
