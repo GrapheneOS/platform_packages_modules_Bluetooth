@@ -651,9 +651,9 @@ public class LeAudioService extends ProfileService {
         return null;
     }
 
-    private void updateActiveInDevice(BluetoothDevice device, Integer groupId, Integer oldActiveContexts,
-    Integer newActiveContexts) {
-
+    private boolean updateActiveInDevice(BluetoothDevice device, Integer groupId,
+                                            Integer oldActiveContexts,
+                                            Integer newActiveContexts) {
         Integer oldSupportedAudioDirections =
                 getAudioDirectionsFromActiveContextsMap(oldActiveContexts);
         Integer newSupportedAudioDirections =
@@ -690,13 +690,13 @@ public class LeAudioService extends ProfileService {
 
         if (device == null) {
             Log.d(TAG,  " device is null.");
-            return;
+            return inActiveDeviceReplace;
         }
 
         if (inActiveDeviceReplace == false ||
              (oldSupportedByDeviceInput == newSupportedByDeviceInput)) {
             Log.d(TAG,  " Nothing to do.");
-            return;
+            return inActiveDeviceReplace;
         }
 
         /* Connect input:
@@ -706,9 +706,10 @@ public class LeAudioService extends ProfileService {
         mAudioManager.setBluetoothLeAudioInDeviceConnectionState(
                    device, BluetoothProfile.STATE_CONNECTED);
 
+        return inActiveDeviceReplace;
     }
 
-    private void updateActiveOutDevice(BluetoothDevice device, Integer groupId,
+    private boolean updateActiveOutDevice(BluetoothDevice device, Integer groupId,
                                        Integer oldActiveContexts,
                                        Integer newActiveContexts) {
         Integer oldSupportedAudioDirections =
@@ -752,13 +753,13 @@ public class LeAudioService extends ProfileService {
 
         if (device == null) {
             Log.d(TAG,  " device is null.");
-            return;
+            return outActiveDeviceReplace;
         }
 
         if (outActiveDeviceReplace == false ||
             (oldSupportedByDeviceOutput == newSupportedByDeviceOutput)) {
             Log.d(TAG,  " Nothing to do.");
-            return;
+            return outActiveDeviceReplace;
         }
 
         /* Connect output:
@@ -767,6 +768,7 @@ public class LeAudioService extends ProfileService {
          */
          mAudioManager.setBluetoothLeAudioOutDeviceConnectionState(
                     device, BluetoothProfile.STATE_CONNECTED, true);
+        return outActiveDeviceReplace;
     }
 
     /**
@@ -782,14 +784,19 @@ public class LeAudioService extends ProfileService {
         if (isActive)
             device = getFirstDeviceFromGroup(groupId);
 
-        updateActiveOutDevice(device, groupId, oldActiveContexts, newActiveContexts);
-        updateActiveInDevice(device, groupId, oldActiveContexts, newActiveContexts);
+        boolean outReplaced =
+            updateActiveOutDevice(device, groupId, oldActiveContexts, newActiveContexts);
 
-        Intent intent = new Intent(BluetoothLeAudio.ACTION_LE_AUDIO_ACTIVE_DEVICE_CHANGED);
-        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mPreviousAudioOutDevice);
-        intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT
-                | Intent.FLAG_RECEIVER_INCLUDE_BACKGROUND);
-        sendBroadcast(intent, BLUETOOTH_CONNECT);
+        boolean inReplaced =
+            updateActiveInDevice(device, groupId, oldActiveContexts, newActiveContexts);
+
+        if (outReplaced || inReplaced) {
+            Intent intent = new Intent(BluetoothLeAudio.ACTION_LE_AUDIO_ACTIVE_DEVICE_CHANGED);
+            intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mPreviousAudioOutDevice);
+            intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT
+                    | Intent.FLAG_RECEIVER_INCLUDE_BACKGROUND);
+            sendBroadcast(intent, BLUETOOTH_CONNECT);
+        }
     }
 
     /**
