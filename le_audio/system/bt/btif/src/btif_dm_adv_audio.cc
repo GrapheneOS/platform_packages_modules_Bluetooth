@@ -63,7 +63,6 @@
 #include "osi/include/metrics.h"
 #include "osi/include/osi.h"
 #include "osi/include/properties.h"
-#include "stack/btm/btm_int.h"
 #include "stack_config.h"
 #include "stack/sdp/sdpint.h"
 #include "btif_tws_plus.h"

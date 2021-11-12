@@ -18,7 +18,6 @@
 
 
 #include "bta_bap_uclient_api.h"
-#include "btm_int.h"
 #include <list>
 #include "state_machine.h"
 #include "stack/include/btm_ble_api_types.h"
