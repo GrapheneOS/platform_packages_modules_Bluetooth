@@ -28,7 +28,7 @@
 #include "types/bt_transport.h"
 #include "types/raw_address.h"
 
-struct btm_client_interface_s btm_client_interface = {
+struct btm_client_interface_t btm_client_interface = {
     .lifecycle =
         {
             .BTM_GetHCIConnHandle = BTM_GetHCIConnHandle,
@@ -181,6 +181,6 @@ struct btm_client_interface_s btm_client_interface = {
         },
 };
 
-struct btm_client_interface_s& get_btm_client_interface() {
+struct btm_client_interface_t& get_btm_client_interface() {
   return btm_client_interface;
 }
