@@ -174,6 +174,8 @@ class ShadowAddressResolutionList {
            static_cast<size_t>(max_address_resolution_size_);
   }
 
+  size_t Size() const { return address_resolution_set_.size(); }
+
   void Clear() { address_resolution_set_.clear(); }
 
  private:
@@ -925,7 +927,8 @@ struct shim::legacy::Acl::impl {
                               const std::array<uint8_t, 16>& peer_irk,
                               const std::array<uint8_t, 16>& local_irk) {
     if (shadow_address_resolution_list_.IsFull()) {
-      LOG_WARN("Le Address Resolution list is full");
+      LOG_WARN("Le Address Resolution list is full size:%zu",
+               shadow_address_resolution_list_.Size());
       return;
     }
     // TODO This should really be added upon successful completion
