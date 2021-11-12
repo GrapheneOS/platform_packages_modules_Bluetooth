@@ -20,8 +20,8 @@
 #include <mutex>
 #include <vector>
 
-#include <android/hardware/bluetooth/audio/2.1/IBluetoothAudioProvider.h>
-#include <android/hardware/bluetooth/audio/2.1/types.h>
+#include <android/hardware/bluetooth/audio/2.2/IBluetoothAudioProvider.h>
+#include <android/hardware/bluetooth/audio/2.2/types.h>
 #include <fmq/MessageQueue.h>
 #include <hardware/audio.h>
 
@@ -41,12 +41,16 @@ using AudioConfiguration =
     ::android::hardware::bluetooth::audio::V2_0::AudioConfiguration;
 using AudioConfiguration_2_1 =
     ::android::hardware::bluetooth::audio::V2_1::AudioConfiguration;
+using AudioConfiguration_2_2 =
+    ::android::hardware::bluetooth::audio::V2_2::AudioConfiguration;
 using ::android::hardware::bluetooth::audio::V2_0::BitsPerSample;
 using ::android::hardware::bluetooth::audio::V2_0::ChannelMode;
 using IBluetoothAudioProvider =
     ::android::hardware::bluetooth::audio::V2_0::IBluetoothAudioProvider;
 using IBluetoothAudioProvider_2_1 =
     ::android::hardware::bluetooth::audio::V2_1::IBluetoothAudioProvider;
+using IBluetoothAudioProvider_2_2 =
+    ::android::hardware::bluetooth::audio::V2_2::IBluetoothAudioProvider;
 using PcmParameters =
     ::android::hardware::bluetooth::audio::V2_0::PcmParameters;
 using PcmParameters_2_1 =
@@ -99,13 +103,22 @@ class IBluetoothTransportInstance {
       : session_type_(sessionType),
         session_type_2_1_(SessionType_2_1::UNKNOWN),
         audio_config_(std::move(audioConfig)),
-        audio_config_2_1_({}){};
+        audio_config_2_1_({}),
+        audio_config_2_2_({}){};
   IBluetoothTransportInstance(SessionType_2_1 sessionType_2_1,
                               AudioConfiguration_2_1 audioConfig_2_1)
       : session_type_(SessionType::UNKNOWN),
         session_type_2_1_(sessionType_2_1),
         audio_config_({}),
-        audio_config_2_1_(std::move(audioConfig_2_1)){};
+        audio_config_2_1_(std::move(audioConfig_2_1)),
+        audio_config_2_2_({}){};
+  IBluetoothTransportInstance(SessionType_2_1 sessionType_2_1,
+                              AudioConfiguration_2_2 audioConfig_2_2)
+      : session_type_(SessionType::UNKNOWN),
+        session_type_2_1_(sessionType_2_1),
+        audio_config_({}),
+        audio_config_2_1_({}),
+        audio_config_2_2_(std::move(audioConfig_2_2)){};
   virtual ~IBluetoothTransportInstance() = default;
 
   SessionType GetSessionType() const { return session_type_; }
@@ -115,6 +128,9 @@ class IBluetoothTransportInstance {
   AudioConfiguration_2_1 GetAudioConfiguration_2_1() const {
     return audio_config_2_1_;
   }
+  AudioConfiguration_2_2 GetAudioConfiguration_2_2() const {
+    return audio_config_2_2_;
+  }
 
   void UpdateAudioConfiguration(const AudioConfiguration& audio_config) {
     audio_config_ = audio_config;
@@ -122,6 +138,10 @@ class IBluetoothTransportInstance {
   void UpdateAudioConfiguration_2_1(
       const AudioConfiguration_2_1& audio_config_2_1) {
     audio_config_2_1_ = audio_config_2_1;
+  }
+  void UpdateAudioConfiguration_2_2(
+      const AudioConfiguration_2_2& audio_config_2_2) {
+    audio_config_2_2_ = audio_config_2_2;
   }
 
   virtual BluetoothAudioCtrlAck StartRequest() = 0;
@@ -144,6 +164,7 @@ class IBluetoothTransportInstance {
   const SessionType_2_1 session_type_2_1_;
   AudioConfiguration audio_config_;
   AudioConfiguration_2_1 audio_config_2_1_;
+  AudioConfiguration_2_2 audio_config_2_2_;
 };
 
 // An IBluetoothSinkTransportInstance needs to be implemented by a Bluetooth
@@ -151,6 +172,9 @@ class IBluetoothTransportInstance {
 // from Audio HAL.
 class IBluetoothSinkTransportInstance : public IBluetoothTransportInstance {
  public:
+  IBluetoothSinkTransportInstance(SessionType_2_1 sessionType_2_1,
+                                  AudioConfiguration_2_2 audioConfig_2_2)
+      : IBluetoothTransportInstance{sessionType_2_1, audioConfig_2_2} {}
   IBluetoothSinkTransportInstance(SessionType_2_1 sessionType_2_1,
                                   AudioConfiguration_2_1 audioConfig_2_1)
       : IBluetoothTransportInstance{sessionType_2_1, audioConfig_2_1} {}
@@ -171,6 +195,9 @@ class IBluetoothSourceTransportInstance : public IBluetoothTransportInstance {
   IBluetoothSourceTransportInstance(SessionType_2_1 sessionType_2_1,
                                     AudioConfiguration_2_1 audioConfig_2_1)
       : IBluetoothTransportInstance{sessionType_2_1, audioConfig_2_1} {}
+  IBluetoothSourceTransportInstance(SessionType_2_1 sessionType_2_1,
+                                    AudioConfiguration_2_2 audioConfig_2_2)
+      : IBluetoothTransportInstance{sessionType_2_1, audioConfig_2_2} {}
   virtual ~IBluetoothSourceTransportInstance() = default;
 
   // Invoked when the transport is requested to log bytes written
@@ -191,7 +218,8 @@ class BluetoothAudioClientInterface {
   virtual ~BluetoothAudioClientInterface() = default;
 
   bool IsValid() const {
-    return provider_ != nullptr || provider_2_1_ != nullptr;
+    return provider_ != nullptr || provider_2_1_ != nullptr ||
+           provider_2_2_ != nullptr;
   }
 
   std::vector<AudioCapabilities> GetAudioCapabilities() const;
@@ -200,6 +228,8 @@ class BluetoothAudioClientInterface {
       SessionType session_type);
   static std::vector<AudioCapabilities_2_1> GetAudioCapabilities_2_1(
       SessionType_2_1 session_type_2_1);
+  static std::vector<AudioCapabilities_2_1> GetAudioCapabilities_2_2(
+      SessionType_2_1 session_type_2_1);
 
   void StreamStarted(const BluetoothAudioCtrlAck& ack);
 
@@ -207,6 +237,7 @@ class BluetoothAudioClientInterface {
 
   int StartSession();
   int StartSession_2_1();
+  int StartSession_2_2();
 
   // Renew the connection and usually is used when HIDL restarted
   void RenewAudioProviderAndSession();
@@ -215,6 +246,7 @@ class BluetoothAudioClientInterface {
 
   bool UpdateAudioConfig(const AudioConfiguration& audioConfig);
   bool UpdateAudioConfig_2_1(const AudioConfiguration_2_1& audioConfig_2_1);
+  bool UpdateAudioConfig_2_2(const AudioConfiguration_2_2& audioConfig_2_2);
 
   void FlushAudioData();
 
@@ -229,9 +261,12 @@ class BluetoothAudioClientInterface {
   void FetchAudioProvider();
   // Helper function to connect to an IBluetoothAudioProvider 2.1
   void FetchAudioProvider_2_1();
+  // Helper function to connect to an IBluetoothAudioProvider 2.2
+  void FetchAudioProvider_2_2();
 
   android::sp<IBluetoothAudioProvider> provider_;
   android::sp<IBluetoothAudioProvider_2_1> provider_2_1_;
+  android::sp<IBluetoothAudioProvider_2_2> provider_2_2_;
   bool session_started_;
   std::unique_ptr<::android::hardware::MessageQueue<
       uint8_t, ::android::hardware::kSynchronizedReadWrite>>
