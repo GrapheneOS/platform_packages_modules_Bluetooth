@@ -69,7 +69,7 @@ extern tINQ_DB_ENT* btm_inq_db_new(const RawAddress& p_bda);
 extern void btm_acl_update_inquiry_status(uint8_t status);
 extern void btm_clear_all_pending_le_entry(void);
 extern void btm_clr_inq_result_flt(void);
-extern void btm_set_eir_uuid(uint8_t* p_eir, tBTM_INQ_RESULTS* p_results);
+extern void btm_set_eir_uuid(const uint8_t* p_eir, tBTM_INQ_RESULTS* p_results);
 extern void btm_sort_inq_result(void);
 extern void btm_process_inq_complete(uint8_t status, uint8_t result_type);
 
