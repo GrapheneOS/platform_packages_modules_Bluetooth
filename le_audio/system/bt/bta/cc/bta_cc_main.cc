@@ -26,7 +26,6 @@
 #include "bt_target.h"
 #include "bta_cc_api.h"
 #include "gatts_ops_queue.h"
-#include "btm_int.h"
 #include "device/include/controller.h"
 
 #include "osi/include/properties.h"

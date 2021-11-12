@@ -23,7 +23,6 @@
 #include "bt_target.h"
 #include "bta_vcp_controller_api.h"
 #include "bta_gatt_api.h"
-#include "btm_int.h"
 #include "device/include/controller.h"
 #include "gap_api.h"
 #include "gatt_api.h"

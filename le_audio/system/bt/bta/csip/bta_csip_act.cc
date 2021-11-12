@@ -44,7 +44,6 @@ Copyright (c) 2020, The Linux Foundation. All rights reserved.
 #include "bta_gatt_queue.h"
 #include "btm_api.h"
 #include "btm_ble_api.h"
-#include "btm_int.h"
 #include "osi/include/osi.h"
 #include "osi/include/properties.h"
 #include "bta_dm_api.h"

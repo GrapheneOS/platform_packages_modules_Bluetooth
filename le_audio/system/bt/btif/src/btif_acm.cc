@@ -61,7 +61,6 @@
 #include "btif/include/btif_acm_source.h"
 #include "l2c_api.h"
 #include "bt_types.h"
-#include "btm_int.h"
 #include <inttypes.h>
 
 /*****************************************************************************
