@@ -421,7 +421,7 @@ typedef struct {
    * request */
   bool is_limited; /* true, if the limited inquiry bit is set in the CoD */
   int8_t rssi;     /* The rssi value */
-  uint8_t* p_eir;  /* received EIR */
+  const uint8_t* p_eir; /* received EIR */
   uint16_t eir_len; /* received EIR length */
   uint8_t inq_result_type;
   tBLE_ADDR_TYPE ble_addr_type;
