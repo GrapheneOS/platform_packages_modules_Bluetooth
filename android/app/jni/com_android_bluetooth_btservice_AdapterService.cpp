@@ -67,6 +67,7 @@ static jmethodID method_deviceFoundCallback;
 static jmethodID method_pinRequestCallback;
 static jmethodID method_sspRequestCallback;
 static jmethodID method_bondStateChangeCallback;
+static jmethodID method_addressConsolidateCallback;
 static jmethodID method_aclStateChangeCallback;
 static jmethodID method_discoveryStateChangeCallback;
 static jmethodID method_linkQualityReportCallback;
@@ -300,6 +301,34 @@ static void bond_state_changed_callback(bt_status_t status, RawAddress* bd_addr,
   sCallbackEnv->CallVoidMethod(sJniCallbacksObj, method_bondStateChangeCallback,
                                (jint)status, addr.get(), (jint)state,
                                (jint)fail_reason);
+}
+
+static void address_consolidate_callback(RawAddress* main_bd_addr,
+                                         RawAddress* secondary_bd_addr) {
+  CallbackEnv sCallbackEnv(__func__);
+
+  ScopedLocalRef<jbyteArray> main_addr(
+      sCallbackEnv.get(), sCallbackEnv->NewByteArray(sizeof(RawAddress)));
+  if (!main_addr.get()) {
+    ALOGE("Address allocation failed in %s", __func__);
+    return;
+  }
+  sCallbackEnv->SetByteArrayRegion(main_addr.get(), 0, sizeof(RawAddress),
+                                   (jbyte*)main_bd_addr);
+
+  ScopedLocalRef<jbyteArray> secondary_addr(
+      sCallbackEnv.get(), sCallbackEnv->NewByteArray(sizeof(RawAddress)));
+  if (!secondary_addr.get()) {
+    ALOGE("Address allocation failed in %s", __func__);
+    return;
+  }
+
+  sCallbackEnv->SetByteArrayRegion(secondary_addr.get(), 0, sizeof(RawAddress),
+                                   (jbyte*)secondary_bd_addr);
+
+  sCallbackEnv->CallVoidMethod(sJniCallbacksObj,
+                               method_addressConsolidateCallback,
+                               main_addr.get(), secondary_addr.get());
 }
 
 static void acl_state_changed_callback(bt_status_t status, RawAddress* bd_addr,
@@ -629,15 +658,23 @@ static void energy_info_recv_callback(bt_activity_energy_info* p_energy_info,
       p_energy_info->idle_time, p_energy_info->energy_used, array.get());
 }
 
-static bt_callbacks_t sBluetoothCallbacks = {
-    sizeof(sBluetoothCallbacks),  adapter_state_change_callback,
-    adapter_properties_callback,  remote_device_properties_callback,
-    device_found_callback,        discovery_state_changed_callback,
-    pin_request_callback,         ssp_request_callback,
-    bond_state_changed_callback,  acl_state_changed_callback,
-    callback_thread_event,        dut_mode_recv_callback,
-    le_test_mode_recv_callback,   energy_info_recv_callback,
-    link_quality_report_callback, generate_local_oob_data_callback};
+static bt_callbacks_t sBluetoothCallbacks = {sizeof(sBluetoothCallbacks),
+                                             adapter_state_change_callback,
+                                             adapter_properties_callback,
+                                             remote_device_properties_callback,
+                                             device_found_callback,
+                                             discovery_state_changed_callback,
+                                             pin_request_callback,
+                                             ssp_request_callback,
+                                             bond_state_changed_callback,
+                                             address_consolidate_callback,
+                                             acl_state_changed_callback,
+                                             callback_thread_event,
+                                             dut_mode_recv_callback,
+                                             le_test_mode_recv_callback,
+                                             energy_info_recv_callback,
+                                             link_quality_report_callback,
+                                             generate_local_oob_data_callback};
 
 // The callback to call when the wake alarm fires.
 static alarm_cb sAlarmCallback;
@@ -846,6 +883,9 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
 
   method_bondStateChangeCallback =
       env->GetMethodID(jniCallbackClass, "bondStateChangeCallback", "(I[BII)V");
+
+  method_addressConsolidateCallback = env->GetMethodID(
+      jniCallbackClass, "addressConsolidateCallback", "([B[B)V");
 
   method_aclStateChangeCallback =
       env->GetMethodID(jniCallbackClass, "aclStateChangeCallback", "(I[BIII)V");
