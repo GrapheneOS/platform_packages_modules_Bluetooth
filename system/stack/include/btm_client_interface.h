@@ -32,7 +32,7 @@
 #include "types/bt_transport.h"
 #include "types/raw_address.h"
 
-struct btm_client_interface_s {
+struct btm_client_interface_t {
   struct {
     tBTM_STATUS (*BTM_PmRegister)(uint8_t mask, uint8_t* p_pm_id,
                                   tBTM_PM_STATUS_CBACK* p_cback);
@@ -231,4 +231,4 @@ struct btm_client_interface_s {
   } db;
 };
 
-struct btm_client_interface_s& get_btm_client_interface();
+struct btm_client_interface_t& get_btm_client_interface();
