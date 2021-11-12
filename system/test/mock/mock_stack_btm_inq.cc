@@ -172,15 +172,15 @@ void btm_process_cancel_complete(uint8_t status, uint8_t mode) {
 void btm_process_inq_complete(uint8_t status, uint8_t mode) {
   mock_function_count_map[__func__]++;
 }
-void btm_process_inq_results(uint8_t* p, uint8_t hci_evt_len,
+void btm_process_inq_results(const uint8_t* p, uint8_t hci_evt_len,
                              uint8_t inq_res_mode) {
   mock_function_count_map[__func__]++;
 }
-void btm_process_remote_name(const RawAddress* bda, BD_NAME bdn,
+void btm_process_remote_name(const RawAddress* bda, const BD_NAME bdn,
                              uint16_t evt_len, uint8_t hci_status) {
   mock_function_count_map[__func__]++;
 }
-void btm_set_eir_uuid(uint8_t* p_eir, tBTM_INQ_RESULTS* p_results) {
+void btm_set_eir_uuid(const uint8_t* p_eir, tBTM_INQ_RESULTS* p_results) {
   mock_function_count_map[__func__]++;
 }
 void btm_sort_inq_result(void) { mock_function_count_map[__func__]++; }
