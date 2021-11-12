@@ -38,7 +38,6 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "stack/btm/btm_ble_int.h"
-#include "stack/btm/btm_int.h"
 #include "stack/btm/btm_int_types.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/bt_hdr.h"
