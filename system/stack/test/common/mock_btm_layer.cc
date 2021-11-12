@@ -53,13 +53,13 @@ uint16_t BTM_GetMaxPacketSize(const RawAddress& addr) {
   return RFCOMM_DEFAULT_MTU;
 }
 
-struct btm_client_interface_s btm_client_interface = {
+struct btm_client_interface_t btm_client_interface = {
     .peer =
         {
             .BTM_GetMaxPacketSize = BTM_GetMaxPacketSize,
         },
 };
 
-struct btm_client_interface_s& get_btm_client_interface() {
+struct btm_client_interface_t& get_btm_client_interface() {
   return btm_client_interface;
 }

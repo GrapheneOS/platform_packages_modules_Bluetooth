@@ -29,7 +29,7 @@
 
 std::map<std::string, int> mock_function_count_map;
 
-extern struct btm_client_interface_s btm_client_interface;
+extern struct btm_client_interface_t btm_client_interface;
 
 void LogMsg(uint32_t trace_set_mask, const char* fmt_str, ...) {}
 
