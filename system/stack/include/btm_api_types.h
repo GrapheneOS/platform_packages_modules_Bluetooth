@@ -935,7 +935,8 @@ typedef struct {
 typedef uint8_t tBTM_CONTRL_STATE;
 
 // Bluetooth Quality Report - Report receiver
-typedef void(tBTM_BT_QUALITY_REPORT_RECEIVER)(uint8_t len, uint8_t* p_stream);
+typedef void(tBTM_BT_QUALITY_REPORT_RECEIVER)(uint8_t len,
+                                              const uint8_t* p_stream);
 
 struct tREMOTE_VERSION_INFO {
   uint8_t lmp_version{0};
