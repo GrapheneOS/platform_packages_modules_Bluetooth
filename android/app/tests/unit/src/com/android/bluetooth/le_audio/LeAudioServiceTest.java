@@ -47,11 +47,13 @@ import androidx.test.filters.MediumTest;
 import androidx.test.rule.ServiceTestRule;
 import androidx.test.runner.AndroidJUnit4;
 
+import com.android.bluetooth.R;
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 
 import org.junit.After;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -98,6 +100,9 @@ public class LeAudioServiceTest {
     @Before
     public void setUp() throws Exception {
         mTargetContext = InstrumentationRegistry.getTargetContext();
+        Assume.assumeTrue("Ignore test when LeAudioService is not enabled",
+        mTargetContext.getResources().getBoolean(R.bool.profile_supported_le_audio));
+
         // Set up mocks and test assets
         MockitoAnnotations.initMocks(this);
 
@@ -149,6 +154,10 @@ public class LeAudioServiceTest {
 
     @After
     public void tearDown() throws Exception {
+        if (!mTargetContext.getResources().getBoolean(R.bool.profile_supported_le_audio)) {
+            return;
+        }
+
         mBondedDevices.clear();
         mGroupIntentQueue.clear();
         stopService();
