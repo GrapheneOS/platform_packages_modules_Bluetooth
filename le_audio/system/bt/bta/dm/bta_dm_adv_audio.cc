@@ -35,7 +35,6 @@
 #include "bta_sys.h"
 #include "btif/include/btif_storage.h"
 #include "btm_api.h"
-#include "btm_int.h"
 #include "btu.h"
 #include "gap_api.h" /* For GAP_BleReadPeerPrefConnParams */
 #include "l2c_api.h"

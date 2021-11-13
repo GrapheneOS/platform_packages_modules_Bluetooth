@@ -41,7 +41,6 @@
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "stack/btm/btm_ble_int.h"
-#include "stack/btm/btm_int.h"
 #include "stack/btm/btm_int_types.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/bt_hdr.h"
@@ -148,7 +147,7 @@ static tBTM_STATUS btm_initiate_rem_name(const RawAddress& remote_bda,
                                          tBTM_CMPL_CB* p_cb);
 
 static uint8_t btm_convert_uuid_to_eir_service(uint16_t uuid16);
-void btm_set_eir_uuid(uint8_t* p_eir, tBTM_INQ_RESULTS* p_results);
+void btm_set_eir_uuid(const uint8_t* p_eir, tBTM_INQ_RESULTS* p_results);
 static const uint8_t* btm_eir_get_uuid_list(const uint8_t* p_eir,
                                             size_t eir_len, uint8_t uuid_size,
                                             uint8_t* p_num_uuid,
@@ -1037,7 +1036,7 @@ tINQ_DB_ENT* btm_inq_db_new(const RawAddress& p_bda) {
  * Returns          void
  *
  ******************************************************************************/
-void btm_process_inq_results(uint8_t* p, uint8_t hci_evt_len,
+void btm_process_inq_results(const uint8_t* p, uint8_t hci_evt_len,
                              uint8_t inq_res_mode) {
   uint8_t num_resp, xx;
   RawAddress bda;
@@ -1054,7 +1053,7 @@ void btm_process_inq_results(uint8_t* p, uint8_t hci_evt_len,
   uint8_t rssi = 0;
   DEV_CLASS dc;
   uint16_t clock_offset;
-  uint8_t* p_eir_data = NULL;
+  const uint8_t* p_eir_data = NULL;
 
 #if (BTM_INQ_DEBUG == TRUE)
   BTM_TRACE_DEBUG("btm_process_inq_results inq_active:0x%x state:%d",
@@ -1401,7 +1400,7 @@ tBTM_STATUS btm_initiate_rem_name(const RawAddress& remote_bda, uint8_t origin,
  * Returns          void
  *
  ******************************************************************************/
-void btm_process_remote_name(const RawAddress* bda, BD_NAME bdn,
+void btm_process_remote_name(const RawAddress* bda, const BD_NAME bdn,
                              uint16_t evt_len, uint8_t hci_status) {
   tBTM_REMOTE_DEV_NAME rem_name;
   tBTM_INQUIRY_VAR_ST* p_inq = &btm_cb.btm_inq_vars;
@@ -1861,7 +1860,7 @@ static uint16_t btm_convert_uuid_to_uuid16(const uint8_t* p_uuid,
  * Returns          None
  *
  ******************************************************************************/
-void btm_set_eir_uuid(uint8_t* p_eir, tBTM_INQ_RESULTS* p_results) {
+void btm_set_eir_uuid(const uint8_t* p_eir, tBTM_INQ_RESULTS* p_results) {
   const uint8_t* p_uuid_data;
   uint8_t num_uuid;
   uint16_t uuid16;
