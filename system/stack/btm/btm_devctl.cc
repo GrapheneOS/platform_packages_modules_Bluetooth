@@ -73,7 +73,8 @@ extern void btm_pm_reset(void);
 /******************************************************************************/
 
 static void decode_controller_support();
-static void BTM_BT_Quality_Report_VSE_CBack(uint8_t length, uint8_t* p_stream);
+static void BTM_BT_Quality_Report_VSE_CBack(uint8_t length,
+                                            const uint8_t* p_stream);
 
 /*******************************************************************************
  *
@@ -549,13 +550,13 @@ tBTM_STATUS BTM_RegisterForVSEvents(tBTM_VS_EVT_CB* p_cb, bool is_register) {
  * Returns          void
  *
  ******************************************************************************/
-void btm_vendor_specific_evt(uint8_t* p, uint8_t evt_len) {
+void btm_vendor_specific_evt(const uint8_t* p, uint8_t evt_len) {
   uint8_t i;
 
   BTM_TRACE_DEBUG("BTM Event: Vendor Specific event from controller");
 
   // Handle BQR events
-  uint8_t* bqr_ptr = p;
+  const uint8_t* bqr_ptr = p;
   uint8_t event_code;
   uint8_t len;
   STREAM_TO_UINT8(event_code, bqr_ptr);
@@ -567,7 +568,7 @@ void btm_vendor_specific_evt(uint8_t* p, uint8_t evt_len) {
     if (sub_event_code == HCI_VSE_SUBCODE_BQR_SUB_EVT) {
       // Excluding the HCI Event packet header and 1 octet sub-event code
       int16_t bqr_parameter_length = evt_len - HCIE_PREAMBLE_SIZE - 1;
-      uint8_t* p_bqr_event = bqr_ptr;
+      const uint8_t* p_bqr_event = bqr_ptr;
       // The stream currently points to the BQR sub-event parameters
       switch (sub_event_code) {
         case bluetooth::bqr::QUALITY_REPORT_ID_LMP_LL_MESSAGE_TRACE:
@@ -754,7 +755,8 @@ void btm_delete_stored_link_key_complete(uint8_t* p) {
  *                    from the Bluetooth controller via Vendor Specific Event.
  *
  ******************************************************************************/
-static void BTM_BT_Quality_Report_VSE_CBack(uint8_t length, uint8_t* p_stream) {
+static void BTM_BT_Quality_Report_VSE_CBack(uint8_t length,
+                                            const uint8_t* p_stream) {
   if (length == 0) {
     LOG(WARNING) << __func__ << ": Lengths of all of the parameters are zero.";
     return;
