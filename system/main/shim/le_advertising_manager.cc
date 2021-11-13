@@ -18,6 +18,7 @@
 
 #include "le_advertising_manager.h"
 
+#include <base/logging.h>
 #include <hardware/bluetooth.h>
 #include <hardware/bt_gatt.h>
 
@@ -34,9 +35,8 @@
 #include "main/shim/helpers.h"
 #include "stack/include/ble_advertiser.h"
 #include "stack/include/btm_api.h"
+#include "stack/include/btm_log_history.h"
 #include "types/raw_address.h"
-
-#include <base/logging.h>
 
 using bluetooth::hci::Address;
 using bluetooth::hci::AddressType;
@@ -44,6 +44,10 @@ using bluetooth::hci::ErrorCode;
 using bluetooth::hci::GapData;
 using bluetooth::hci::OwnAddressType;
 using std::vector;
+
+namespace {
+constexpr char kBtmLogTag[] = "ADV";
+}
 
 class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface,
                                    public bluetooth::hci::AdvertisingCallback {
@@ -63,6 +67,8 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface,
   void Unregister(uint8_t advertiser_id) override {
     LOG(INFO) << __func__ << " in shim layer";
     bluetooth::shim::GetAdvertising()->RemoveAdvertiser(advertiser_id);
+    BTM_LogHistory(kBtmLogTag, RawAddress::kEmpty, "Le advert stopped",
+                   base::StringPrintf("advert_id:%d", advertiser_id));
   }
 
   void GetOwnAddress(uint8_t advertiser_id, GetAddressCallback cb) override {
@@ -187,6 +193,9 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface,
 
     LOG(INFO) << "create advertising set, reg_id:" << reg_id
               << ", id:" << (uint16_t)id;
+
+    BTM_LogHistory(kBtmLogTag, RawAddress::kEmpty, "Le advert started",
+                   base::StringPrintf("advert_id:%d", reg_id));
   }
 
   void SetPeriodicAdvertisingParameters(
