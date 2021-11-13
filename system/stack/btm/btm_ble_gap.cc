@@ -1377,7 +1377,7 @@ void btm_ble_read_remote_name_cmpl(bool status, const RawAddress& bda,
   }
 
   btm_process_remote_name(&bda, bd_name, length + 1, hci_status);
-  btm_sec_rmt_name_request_complete(&bda, (uint8_t*)p_name, hci_status);
+  btm_sec_rmt_name_request_complete(&bda, (const uint8_t*)p_name, hci_status);
 }
 
 /*******************************************************************************
@@ -1797,9 +1797,9 @@ void btm_ble_process_adv_addr(RawAddress& bda, uint8_t* addr_type) {
  * It updates the inquiry database. If the inquiry database is full, the oldest
  * entry is discarded.
  */
-void btm_ble_process_ext_adv_pkt(uint8_t data_len, uint8_t* data) {
+void btm_ble_process_ext_adv_pkt(uint8_t data_len, const uint8_t* data) {
   RawAddress bda, direct_address;
-  uint8_t* p = data;
+  const uint8_t* p = data;
   uint8_t addr_type, num_reports, pkt_data_len, primary_phy, secondary_phy,
       advertising_sid;
   int8_t rssi, tx_power;
@@ -1835,7 +1835,7 @@ void btm_ble_process_ext_adv_pkt(uint8_t data_len, uint8_t* data) {
     STREAM_TO_BDADDR(direct_address, p);
     STREAM_TO_UINT8(pkt_data_len, p);
 
-    uint8_t* pkt_data = p;
+    const uint8_t* pkt_data = p;
     p += pkt_data_len; /* Advance to the the next packet*/
     if (p > data + data_len) {
       LOG(ERROR) << "Invalid pkt_data_len: " << +pkt_data_len;
@@ -1862,9 +1862,9 @@ void btm_ble_process_ext_adv_pkt(uint8_t data_len, uint8_t* data) {
  * the inquiry database. If the inquiry database is full, the oldest entry is
  * discarded.
  */
-void btm_ble_process_adv_pkt(uint8_t data_len, uint8_t* data) {
+void btm_ble_process_adv_pkt(uint8_t data_len, const uint8_t* data) {
   RawAddress bda;
-  uint8_t* p = data;
+  const uint8_t* p = data;
   uint8_t legacy_evt_type, addr_type, num_reports, pkt_data_len;
   int8_t rssi;
 
@@ -1888,7 +1888,7 @@ void btm_ble_process_adv_pkt(uint8_t data_len, uint8_t* data) {
     STREAM_TO_BDADDR(bda, p);
     STREAM_TO_UINT8(pkt_data_len, p);
 
-    uint8_t* pkt_data = p;
+    const uint8_t* pkt_data = p;
     p += pkt_data_len; /* Advance to the the rssi byte */
     if (p > data + data_len - sizeof(rssi)) {
       LOG(ERROR) << "Invalid pkt_data_len: " << +pkt_data_len;
