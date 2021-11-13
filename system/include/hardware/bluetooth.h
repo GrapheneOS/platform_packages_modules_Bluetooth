@@ -448,6 +448,12 @@ typedef void (*bond_state_changed_callback)(bt_status_t status,
                                             bt_bond_state_t state,
                                             int fail_reason);
 
+/** Bluetooth Address consolidate callback */
+/* Callback to inform upper layer that these two addresses come from same
+ * bluetooth device (DUAL mode) */
+typedef void (*address_consolidate_callback)(RawAddress* main_bd_addr,
+                                             RawAddress* secondary_bd_addr);
+
 /** Bluetooth ACL connection state changed callback */
 typedef void (*acl_state_changed_callback)(bt_status_t status,
                                            RawAddress* remote_bd_addr,
@@ -510,6 +516,7 @@ typedef struct {
   pin_request_callback pin_request_cb;
   ssp_request_callback ssp_request_cb;
   bond_state_changed_callback bond_state_changed_cb;
+  address_consolidate_callback address_consolidate_cb;
   acl_state_changed_callback acl_state_changed_cb;
   callback_thread_event thread_evt_cb;
   dut_mode_recv_callback dut_mode_recv_cb;

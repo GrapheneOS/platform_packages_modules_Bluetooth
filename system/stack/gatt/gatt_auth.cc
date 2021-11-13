@@ -31,7 +31,6 @@
 #include "osi/include/osi.h"
 #include "stack/btm/btm_ble_int.h"
 #include "stack/btm/btm_ble_int_types.h"
-#include "stack/btm/btm_int.h"
 #include "stack/btm/btm_sec.h"
 #include "stack/include/bt_hdr.h"
 #include "types/raw_address.h"

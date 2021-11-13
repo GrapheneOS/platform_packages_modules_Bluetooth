@@ -21,7 +21,6 @@
 
 #include <bitset>
 
-#include "btm_int.h"
 #include "common/metrics.h"
 #include "device/include/controller.h"
 #include "main/shim/shim.h"
@@ -50,7 +49,7 @@ void btm_send_hci_create_connection(
     tBLE_ADDR_TYPE addr_type_own, uint16_t conn_int_min, uint16_t conn_int_max,
     uint16_t conn_latency, uint16_t conn_timeout, uint16_t min_ce_len,
     uint16_t max_ce_len, uint8_t initiating_phys) {
-  ASSERT_LOG(!bluetooth::shim::is_gd_acl_enabled(),
+  ASSERT_LOG(false,
              "When gd_acl enabled this code path should not be exercised");
 
   if (controller_get_interface()->supports_ble_extended_advertising()) {
@@ -209,7 +208,7 @@ void btm_ble_conn_complete(uint8_t* p, UNUSED_ATTR uint16_t evt_len,
 }
 
 void btm_ble_create_conn_cancel() {
-  ASSERT_LOG(!bluetooth::shim::is_gd_acl_enabled(),
+  ASSERT_LOG(false,
              "When gd_acl enabled this code path should not be exercised");
 
   btsnd_hcic_ble_create_conn_cancel();

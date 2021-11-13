@@ -104,6 +104,11 @@ void bond_state_changed(bt_status_t status, RawAddress* remote_bd_addr,
   LOG_INFO("%s", __func__);
 }
 
+void address_consolidate(RawAddress* main_bd_addr,
+                         RawAddress* secondary_bd_addr) {
+  LOG_INFO("%s", __func__);
+}
+
 /** Bluetooth ACL connection state changed callback */
 void acl_state_changed(bt_status_t status, RawAddress* remote_bd_addr,
                        bt_acl_state_t state, int transport_link_type,
@@ -157,6 +162,7 @@ bt_callbacks_t bt_callbacks{
     .pin_request_cb = pin_request,
     .ssp_request_cb = ssp_request,
     .bond_state_changed_cb = bond_state_changed,
+    .address_consolidate_cb = address_consolidate,
     .acl_state_changed_cb = acl_state_changed,
     .thread_evt_cb = thread_event,
     .dut_mode_recv_cb = dut_mode_recv,

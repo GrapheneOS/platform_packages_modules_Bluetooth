@@ -23,10 +23,10 @@
 
 #include "types/raw_address.h"
 
-extern void btm_process_remote_name(const RawAddress* bda, BD_NAME name,
+extern void btm_process_remote_name(const RawAddress* bda, const BD_NAME name,
                                     uint16_t evt_len, uint8_t hci_status);
 
-extern void btm_process_inq_results(uint8_t* p, uint8_t hci_evt_len,
+extern void btm_process_inq_results(const uint8_t* p, uint8_t hci_evt_len,
                                     uint8_t inq_res_mode);
 
 extern void btm_process_inq_complete(uint8_t status, uint8_t mode);
