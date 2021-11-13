@@ -40,6 +40,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.media.AudioManager;
+import android.media.BtProfileConnectionInfo;
 import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.ParcelUuid;
@@ -93,8 +94,8 @@ public class LeAudioService extends ProfileService {
     private AdapterService mAdapterService;
     private DatabaseManager mDatabaseManager;
     private HandlerThread mStateMachinesThread;
-    private BluetoothDevice mPreviousAudioOutDevice;
-    private BluetoothDevice mPreviousAudioInDevice;
+    private BluetoothDevice mActiveAudioOutDevice;
+    private BluetoothDevice mActiveAudioInDevice;
     ServiceFactory mServiceFactory = new ServiceFactory();
 
     LeAudioNativeInterface mLeAudioNativeInterface;
@@ -664,49 +665,44 @@ public class LeAudioService extends ProfileService {
         boolean newSupportedByDeviceInput = (newSupportedAudioDirections
                 & AUDIO_DIRECTION_INPUT_BIT) != 0;
 
-        if (device != null && mPreviousAudioInDevice != null) {
-            int previousGroupId = getGroupId(mPreviousAudioInDevice);
+        if (device != null && mActiveAudioInDevice != null) {
+            int previousGroupId = getGroupId(mActiveAudioInDevice);
             if (previousGroupId == groupId) {
                 /* This is thes same group as aleady notified to the system.
                 * Therefore do not change the device we have connected to the group,
                 * unless, previous one is disconnected now
                 */
-                if (mPreviousAudioInDevice.isConnected())
-                    device = mPreviousAudioInDevice;
+                if (mActiveAudioInDevice.isConnected()) {
+                    device = mActiveAudioInDevice;
+                }
             }
         }
 
-        /* Disconnect input:
-         * - If active input device changed (to none or any)
-         * - If device stops supporting input
+        BluetoothDevice previousInDevice = mActiveAudioInDevice;
+
+        /*
+         * Do not update input if neither previous nor current device support input
          */
-        boolean inActiveDeviceReplace = (device != mPreviousAudioInDevice);
-        if (inActiveDeviceReplace && (mPreviousAudioInDevice != null)) {
-            mAudioManager.setBluetoothLeAudioInDeviceConnectionState(
-                    mPreviousAudioInDevice, BluetoothProfile.STATE_DISCONNECTED);
+        if (!oldSupportedByDeviceInput && !newSupportedByDeviceInput) {
+            Log.d(TAG, "updateActiveInDevice: Device does not support input.");
+            return false;
         }
 
-        mPreviousAudioInDevice = device;
-
-        if (device == null) {
-            Log.d(TAG,  " device is null.");
-            return inActiveDeviceReplace;
-        }
-
-        if (inActiveDeviceReplace == false ||
-             (oldSupportedByDeviceInput == newSupportedByDeviceInput)) {
-            Log.d(TAG,  " Nothing to do.");
-            return inActiveDeviceReplace;
-        }
-
-        /* Connect input:
-         * - If active input device changed
-         * - If device starts support input
+        /*
+         * Update input if:
+         * - Device changed
+         *     OR
+         * - Device stops / starts supporting input
          */
-        mAudioManager.setBluetoothLeAudioInDeviceConnectionState(
-                   device, BluetoothProfile.STATE_CONNECTED);
-
-        return inActiveDeviceReplace;
+        if (!Objects.equals(device, previousInDevice)
+                || (oldSupportedByDeviceInput != newSupportedByDeviceInput)) {
+            mActiveAudioInDevice = newSupportedByDeviceInput ? device : null;
+            mAudioManager.handleBluetoothActiveDeviceChanged(mActiveAudioInDevice, previousInDevice,
+                    BtProfileConnectionInfo.leAudio(false, false));
+            return true;
+        }
+        Log.d(TAG, "updateActiveInDevice: Nothing to do.");
+        return false;
     }
 
     private boolean updateActiveOutDevice(BluetoothDevice device, Integer groupId,
@@ -722,53 +718,46 @@ public class LeAudioService extends ProfileService {
         boolean newSupportedByDeviceOutput = (newSupportedAudioDirections
                 & AUDIO_DIRECTION_OUTPUT_BIT) != 0;
 
-
-        if (device != null && mPreviousAudioOutDevice != null) {
-            int previousGroupId = getGroupId(mPreviousAudioOutDevice);
+        if (device != null && mActiveAudioOutDevice != null) {
+            int previousGroupId = getGroupId(mActiveAudioOutDevice);
             if (previousGroupId == groupId) {
                 /* This is the same group as already notified to the system.
                 * Therefore do not change the device we have connected to the group,
                 * unless, previous one is disconnected now
                 */
-             if (mPreviousAudioOutDevice.isConnected())
-                device = mPreviousAudioOutDevice;
+                if (mActiveAudioOutDevice.isConnected()) {
+                    device = mActiveAudioOutDevice;
+                }
             }
         }
 
-         /* Disconnect output:
-         * - If active output device changed (to none or any)
-         * - If device stops supporting output
+        BluetoothDevice previousOutDevice = mActiveAudioOutDevice;
+
+        /*
+         * Do not update output if neither previous nor current device support output
          */
-        boolean outActiveDeviceReplace = (device != mPreviousAudioOutDevice);
-        if (outActiveDeviceReplace && (mPreviousAudioOutDevice != null)) {
-            boolean suppressNoisyIntent =
-                    (getConnectionState(mPreviousAudioOutDevice) ==
-                    BluetoothProfile.STATE_CONNECTED);
-            mAudioManager.setBluetoothLeAudioOutDeviceConnectionState(
-                    mPreviousAudioOutDevice, BluetoothProfile.STATE_DISCONNECTED,
-                    suppressNoisyIntent);
+        if (!oldSupportedByDeviceOutput && !newSupportedByDeviceOutput) {
+            Log.d(TAG, "updateActiveOutDevice: Device does not support output.");
+            return false;
         }
 
-        mPreviousAudioOutDevice = device;
-
-        if (device == null) {
-            Log.d(TAG,  " device is null.");
-            return outActiveDeviceReplace;
-        }
-
-        if (outActiveDeviceReplace == false ||
-            (oldSupportedByDeviceOutput == newSupportedByDeviceOutput)) {
-            Log.d(TAG,  " Nothing to do.");
-            return outActiveDeviceReplace;
-        }
-
-        /* Connect output:
-         * - If active output device changed
-         * - If device starts support output
+        /*
+         * Update output if:
+         * - Device changed
+         *     OR
+         * - Device stops / starts supporting output
          */
-         mAudioManager.setBluetoothLeAudioOutDeviceConnectionState(
-                    device, BluetoothProfile.STATE_CONNECTED, true);
-        return outActiveDeviceReplace;
+        if (!Objects.equals(device, previousOutDevice)
+                || (oldSupportedByDeviceOutput != newSupportedByDeviceOutput)) {
+            mActiveAudioOutDevice = newSupportedByDeviceOutput ? device : null;
+            final boolean suppressNoisyIntent = (mActiveAudioOutDevice != null)
+                    || (getConnectionState(previousOutDevice) == BluetoothProfile.STATE_CONNECTED);
+            mAudioManager.handleBluetoothActiveDeviceChanged(mActiveAudioOutDevice,
+                    previousOutDevice, BtProfileConnectionInfo.leAudio(suppressNoisyIntent, true));
+            return true;
+        }
+        Log.d(TAG, "updateActiveOutDevice: Nothing to do.");
+        return false;
     }
 
     /**
@@ -786,13 +775,12 @@ public class LeAudioService extends ProfileService {
 
         boolean outReplaced =
             updateActiveOutDevice(device, groupId, oldActiveContexts, newActiveContexts);
-
         boolean inReplaced =
             updateActiveInDevice(device, groupId, oldActiveContexts, newActiveContexts);
 
         if (outReplaced || inReplaced) {
             Intent intent = new Intent(BluetoothLeAudio.ACTION_LE_AUDIO_ACTIVE_DEVICE_CHANGED);
-            intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mPreviousAudioOutDevice);
+            intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mActiveAudioOutDevice);
             intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT
                     | Intent.FLAG_RECEIVER_INCLUDE_BACKGROUND);
             sendBroadcast(intent, BLUETOOTH_CONNECT);
