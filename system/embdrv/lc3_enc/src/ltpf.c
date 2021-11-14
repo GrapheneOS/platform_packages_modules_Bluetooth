@@ -321,7 +321,7 @@ static int refine_pitch(struct lc3_ltpf_state *state,
     correlate(x, x - (r0 - 4), n, r, nr + 8);
 
     e = r0 + argmax(r + 4, nr, &rm);
-    const float *re = r + e - (r0 - 4);
+    const float *re = r + (e - (r0 - 4));
 
     float dm = interpolate_4(re, f = 0);
     for (int i = 1; i <= 3; i++) {
