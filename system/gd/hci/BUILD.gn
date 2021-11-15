@@ -34,12 +34,12 @@ source_set("BluetoothHciSources") {
     "vendor_specific_event_manager.cc",
   ]
 
-  include_dirs = [ "//bt/gd" ]
+  include_dirs = [ "//bt/system/gd" ]
 
   deps = [
-    "//bt:libbt-platform-protos-lite",
-    "//bt/gd:gd_default_deps",
+    "//bt/system:libbt-platform-protos-lite",
+    "//bt/system/gd:gd_default_deps",
   ]
 
-  configs += [ "//bt:target_defaults" ]
+  configs += [ "//bt/system:target_defaults" ]
 }

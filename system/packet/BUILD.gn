@@ -16,14 +16,14 @@
 
 config("packet_config") {
   include_dirs = [
-    "//bt/",
-    "//bt/include",
-    "//bt/internal_include",
-    "//bt/stack/include",
-    "//bt/profile/avrcp",
+    "//bt/system/",
+    "//bt/system/include",
+    "//bt/system/internal_include",
+    "//bt/system/stack/include",
+    "//bt/system/profile/avrcp",
   ]
 
-  configs = [ "//bt:target_defaults" ]
+  configs = [ "//bt/system:target_defaults" ]
 }
 
 static_library("packet") {
@@ -81,12 +81,12 @@ if (use.test) {
     ]
 
     include_dirs = [
-      "//bt/packet/avrcp",
-      "//bt/packet/base",
-      "//bt/packet/include",
-      "//bt/packet/tests",
-      "//bt/packet/tests/avrcp",
-      "//bt/packet/tests/base",
+      "//bt/system/packet/avrcp",
+      "//bt/system/packet/base",
+      "//bt/system/packet/include",
+      "//bt/system/packet/tests",
+      "//bt/system/packet/tests/avrcp",
+      "//bt/system/packet/tests/base",
     ]
 
     deps = [
@@ -95,7 +95,7 @@ if (use.test) {
 
     configs += [
       ":packet_config",
-      "//bt:external_gmock_main",
+      "//bt/system:external_gmock_main",
     ]
   }
 }

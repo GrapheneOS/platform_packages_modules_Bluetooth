@@ -22,9 +22,9 @@ source_set("BluetoothCommonSources") {
     "strings.cc",
   ]
 
-  configs += [ "//bt/gd:gd_defaults" ]
+  configs += [ "//bt/system/gd:gd_defaults" ]
   deps = [
-    "//bt/gd:gd_default_deps",
-    "//bt:libbt-platform-protos-lite",
+    "//bt/system/gd:gd_default_deps",
+    "//bt/system:libbt-platform-protos-lite",
   ]
 }

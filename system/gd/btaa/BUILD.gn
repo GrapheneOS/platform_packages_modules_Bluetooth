@@ -17,6 +17,6 @@
 source_set("BluetoothBtaaSources_linux") {
   sources = [ "linux/activity_attribution.cc" ]
 
-  configs += [ "//bt/gd:gd_defaults" ]
-  deps = [ "//bt/gd:gd_default_deps" ]
+  configs += [ "//bt/system/gd:gd_defaults" ]
+  deps = [ "//bt/system/gd:gd_default_deps" ]
 }
