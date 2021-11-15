@@ -37,6 +37,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
+import android.media.BtProfileConnectionInfo;
 import android.os.HandlerThread;
 import android.util.Log;
 
@@ -462,13 +463,10 @@ public class A2dpService extends ProfileService {
             // device, the user has explicitly switched the output to the local device and music
             // should continue playing. Otherwise, the remote device has been indeed disconnected
             // and audio should be suspended before switching the output to the local device.
-            boolean suppressNoisyIntent = !forceStopPlayingAudio
-                    && (getConnectionState(previousActiveDevice)
-                    == BluetoothProfile.STATE_CONNECTED);
-            Log.i(TAG, "removeActiveDevice: suppressNoisyIntent=" + suppressNoisyIntent);
-            mAudioManager.setBluetoothA2dpDeviceConnectionStateSuppressNoisyIntent(
-                    previousActiveDevice, BluetoothProfile.STATE_DISCONNECTED,
-                    BluetoothProfile.A2DP, suppressNoisyIntent, -1);
+            boolean stopAudio = forceStopPlayingAudio || (getConnectionState(previousActiveDevice)
+                        != BluetoothProfile.STATE_CONNECTED);
+            mAudioManager.handleBluetoothActiveDeviceChanged(null, previousActiveDevice,
+                    BtProfileConnectionInfo.a2dpInfo(!stopAudio, -1));
 
             synchronized (mStateMachines) {
                 // Make sure the Active device in native layer is set to null and audio is off
@@ -552,13 +550,6 @@ public class A2dpService extends ProfileService {
             // This needs to happen before we inform the audio manager that the device
             // disconnected. Please see comment in updateAndBroadcastActiveDevice() for why.
             updateAndBroadcastActiveDevice(device);
-            // Make sure the Audio Manager knows the previous Active device is disconnected,
-            // and the new Active device is connected.
-            if (previousActiveDevice != null) {
-                mAudioManager.setBluetoothA2dpDeviceConnectionStateSuppressNoisyIntent(
-                        previousActiveDevice, BluetoothProfile.STATE_DISCONNECTED,
-                        BluetoothProfile.A2DP, true, -1);
-            }
 
             BluetoothDevice newActiveDevice = null;
             synchronized (mStateMachines) {
@@ -583,13 +574,13 @@ public class A2dpService extends ProfileService {
                 rememberedVolume = mFactory.getAvrcpTargetService()
                         .getRememberedVolumeForDevice(newActiveDevice);
             }
-            mAudioManager.setBluetoothA2dpDeviceConnectionStateSuppressNoisyIntent(
-                    newActiveDevice, BluetoothProfile.STATE_CONNECTED, BluetoothProfile.A2DP,
-                    true, rememberedVolume);
-            // Inform the Audio Service about the codec configuration
+            // Make sure the Audio Manager knows the previous Active device is disconnected,
+            // and the new Active device is connected.
+            // And inform the Audio Service about the codec configuration
             // change, so the Audio Service can reset accordingly the audio
             // feeding parameters in the Audio HAL to the Bluetooth stack.
-            mAudioManager.handleBluetoothA2dpDeviceConfigChange(newActiveDevice);
+            mAudioManager.handleBluetoothActiveDeviceChanged(newActiveDevice, previousActiveDevice,
+                    BtProfileConnectionInfo.a2dpInfo(true, rememberedVolume));
         }
         return true;
     }
@@ -972,8 +963,13 @@ public class A2dpService extends ProfileService {
         // Inform the Audio Service about the codec configuration change,
         // so the Audio Service can reset accordingly the audio feeding
         // parameters in the Audio HAL to the Bluetooth stack.
-        if (isActiveDevice(device) && !sameAudioFeedingParameters) {
-            mAudioManager.handleBluetoothA2dpDeviceConfigChange(device);
+        // Until we are able to detect from device_port_proxy if the config has changed or not,
+        // the Bluetooth stack can only disable the audio session and need to ask audioManager to
+        // restart the session even if feeding parameter are the same. (sameAudioFeedingParameters
+        // is left unused until there)
+        if (isActiveDevice(device)) {
+            mAudioManager.handleBluetoothActiveDeviceChanged(device, device,
+                    BtProfileConnectionInfo.a2dpInfo(false, -1));
         }
     }
 
