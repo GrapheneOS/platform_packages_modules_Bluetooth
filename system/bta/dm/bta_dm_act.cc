@@ -1933,11 +1933,13 @@ static void bta_dm_remname_cback(void* p) {
   strlcpy((char*)bta_dm_search_cb.peer_name,
           (char*)p_remote_name->remote_bd_name, BD_NAME_LEN + 1);
 
-  if (bluetooth::shim::is_gd_security_enabled()) {
-    bluetooth::shim::BTM_SecDeleteRmtNameNotifyCallback(
-        &bta_dm_service_search_remname_cback);
-  } else {
-    BTM_SecDeleteRmtNameNotifyCallback(&bta_dm_service_search_remname_cback);
+  if (bta_dm_search_cb.peer_bdaddr == p_remote_name->bd_addr) {
+    if (bluetooth::shim::is_gd_security_enabled()) {
+      bluetooth::shim::BTM_SecDeleteRmtNameNotifyCallback(
+          &bta_dm_service_search_remname_cback);
+    } else {
+      BTM_SecDeleteRmtNameNotifyCallback(&bta_dm_service_search_remname_cback);
+    }
   }
 
   if (bta_dm_search_cb.transport == BT_TRANSPORT_LE) {
