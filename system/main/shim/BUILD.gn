@@ -38,29 +38,29 @@ source_set("LibBluetoothShimSources") {
   ]
 
   include_dirs = [
-    "//bt",
-    "//bt/btif/include",
-    "//bt/gd",
-    "//bt/gd/rust/shim",
-    "//bt/internal_include",
-    "//bt/stack/include",
-    "//bt/types",
+    "//bt/system",
+    "//bt/system/btif/include",
+    "//bt/system/gd",
+    "//bt/system/gd/rust/shim",
+    "//bt/system/internal_include",
+    "//bt/system/stack/include",
+    "//bt/system/types",
   ]
 
   deps = [
-    "//bt/gd:BluetoothGeneratedDumpsysDataSchema_h",
-    "//bt/gd:BluetoothGeneratedPackets_h",
-    "//bt/gd/common:BluetoothCommonSources",
-    "//bt/gd/dumpsys/bundler:BluetoothGeneratedBundlerSchema_h_bfbs",
-    "//bt/gd/hci:BluetoothHciSources",
-    "//bt/gd/os:BluetoothOsSources_linux_generic",
-    "//bt/gd/packet:BluetoothPacketSources",
-    "//bt/gd/rust/shim:libbluetooth_rust_interop",
-    "//bt/gd/rust/topshim:libbluetooth_topshim",
-    "//bt/osi",
-    "//bt/stack",
-    "//bt/types",
+    "//bt/system/gd:BluetoothGeneratedDumpsysDataSchema_h",
+    "//bt/system/gd:BluetoothGeneratedPackets_h",
+    "//bt/system/gd/common:BluetoothCommonSources",
+    "//bt/system/gd/dumpsys/bundler:BluetoothGeneratedBundlerSchema_h_bfbs",
+    "//bt/system/gd/hci:BluetoothHciSources",
+    "//bt/system/gd/os:BluetoothOsSources_linux_generic",
+    "//bt/system/gd/packet:BluetoothPacketSources",
+    "//bt/system/gd/rust/shim:libbluetooth_rust_interop",
+    "//bt/system/gd/rust/topshim:libbluetooth_topshim",
+    "//bt/system/osi",
+    "//bt/system/stack",
+    "//bt/system/types",
   ]
 
-  configs += [ "//bt:target_defaults" ]
+  configs += [ "//bt/system:target_defaults" ]
 }

@@ -18,7 +18,13 @@ fn main() {
         .collect::<Vec<String>>();
 
     let search_root = env::var("CXX_ROOT_PATH").unwrap();
-    let paths = vec!["/", "/btcore", "/include", "/include/hardware", "/types"];
+    let paths = vec![
+        "/system/",
+        "/system/btcore",
+        "/system/include",
+        "/system/include/hardware",
+        "/system/types",
+    ];
 
     let bt_searches =
         paths.iter().map(|tail| format!("-I{}{}", search_root, tail)).collect::<Vec<String>>();

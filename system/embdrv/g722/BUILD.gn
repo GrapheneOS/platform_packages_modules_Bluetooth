@@ -21,5 +21,5 @@ static_library("g722") {
   ]
 
   defines = [ "G722_SUPPORT_MALLOC" ]
-  configs += [ "//bt:target_defaults" ]
+  configs += [ "//bt/system:target_defaults" ]
 }

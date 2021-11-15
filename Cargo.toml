@@ -16,9 +16,9 @@
 [workspace]
 
 members = [
-  "gd/rust/shim",
-  "gd/rust/topshim",
-  "gd/rust/linux/mgmt",
-  "gd/rust/linux/service",
-  "gd/rust/linux/client",
+  "system/gd/rust/shim",
+  "system/gd/rust/topshim",
+  "system/gd/rust/linux/mgmt",
+  "system/gd/rust/linux/service",
+  "system/gd/rust/linux/client",
 ]
