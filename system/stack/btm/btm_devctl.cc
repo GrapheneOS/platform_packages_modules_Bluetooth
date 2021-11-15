@@ -203,6 +203,9 @@ void BTM_reset_complete() {
     /* set the default random private address timeout */
     btsnd_hcic_ble_set_rand_priv_addr_timeout(
         btm_get_next_private_addrress_interval_ms() / 1000);
+  } else {
+    LOG_INFO(
+        "Le Address Resolving list disabled due to lack of controller support");
   }
 
   if (controller->supports_ble()) {
