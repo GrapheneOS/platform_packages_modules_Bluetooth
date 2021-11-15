@@ -51,7 +51,7 @@ void LinkLayerController::SendLeLinkLayerPacket(
     std::unique_ptr<model::packets::LinkLayerPacketBuilder> packet) {
   std::shared_ptr<model::packets::LinkLayerPacketBuilder> shared_packet =
       std::move(packet);
-  ScheduleTask(milliseconds(50), [this, shared_packet]() {
+  ScheduleTask(milliseconds(1), [this, shared_packet]() {
     send_to_remote_(shared_packet, Phy::Type::LOW_ENERGY);
   });
 }
@@ -60,7 +60,7 @@ void LinkLayerController::SendLinkLayerPacket(
     std::unique_ptr<model::packets::LinkLayerPacketBuilder> packet) {
   std::shared_ptr<model::packets::LinkLayerPacketBuilder> shared_packet =
       std::move(packet);
-  ScheduleTask(milliseconds(50), [this, shared_packet]() {
+  ScheduleTask(milliseconds(1), [this, shared_packet]() {
     send_to_remote_(shared_packet, Phy::Type::BR_EDR);
   });
 }
@@ -2903,8 +2903,8 @@ ErrorCode LinkLayerController::LeRemoteConnectionParameterRequestReply(
     return ErrorCode::INVALID_HCI_COMMAND_PARAMETERS;
   }
 
-  ScheduleTask(milliseconds(25), [this, connection_handle, interval_min,
-                                  interval_max, latency, timeout]() {
+  ScheduleTask(milliseconds(5), [this, connection_handle, interval_min,
+                                 interval_max, latency, timeout]() {
     LeConnectionUpdateComplete(connection_handle, interval_min, interval_max,
                                latency, timeout);
   });
