@@ -23,12 +23,12 @@ static_library("bluetooth-static") {
   complete_static_lib = true
 
   sources = [
-    "//bt/service/hal/bluetooth_interface.cc",
-    "//bt/service/logging_helpers.cc",
+    "//bt/system/service/hal/bluetooth_interface.cc",
+    "//bt/system/service/logging_helpers.cc",
   ]
 
   configs += [
-    "//bt:target_defaults"
+    "//bt/system:target_defaults"
   ]
 
   deps = [
@@ -57,53 +57,53 @@ target(lib_type, "bluetooth") {
   public_configs = [ ":libbluetooth_config" ]
 
   include_dirs = [
-    "//bt/",
-    "//bt/bta/include",
-    "//bt/bta/sys",
-    "//bt/bta/dm",
-    "//bt/btcore/include",
-    "//bt/internal_include",
-    "//bt/stack/include",
-    "//bt/stack/l2cap",
-    "//bt/stack/a2dp",
-    "//bt/stack/btm",
-    "//bt/stack/avdt",
-    "//bt/hci",
-    "//bt/hci/include",
-    "//bt/udrv/include",
-    "//bt/btif/include",
-    "//bt/btif/co",
-    "//bt/hci/includ",
-    "//bt/vnd/include",
-    "//bt/brcm/include",
-    "//bt/embdrv/sbc/encoder/include",
-    "//bt/embdrv/sbc/decoder/include",
-    "//bt/utils/include",
-    "//bt/test/suite",
+    "//bt/system/",
+    "//bt/system/bta/include",
+    "//bt/system/bta/sys",
+    "//bt/system/bta/dm",
+    "//bt/system/btcore/include",
+    "//bt/system/internal_include",
+    "//bt/system/stack/include",
+    "//bt/system/stack/l2cap",
+    "//bt/system/stack/a2dp",
+    "//bt/system/stack/btm",
+    "//bt/system/stack/avdt",
+    "//bt/system/hci",
+    "//bt/system/hci/include",
+    "//bt/system/udrv/include",
+    "//bt/system/btif/include",
+    "//bt/system/btif/co",
+    "//bt/system/hci/includ",
+    "//bt/system/vnd/include",
+    "//bt/system/brcm/include",
+    "//bt/system/embdrv/sbc/encoder/include",
+    "//bt/system/embdrv/sbc/decoder/include",
+    "//bt/system/utils/include",
+    "//bt/system/test/suite",
   ]
 
   deps = [
-    "//bt/audio_hal_interface",
-    "//bt/bta",
-    "//bt/btcore",
-    "//bt/btif",
-    "//bt/device",
-    "//bt/embdrv/g722",
-    "//bt/embdrv/sbc",
-    "//bt/gd:libbluetooth_gd",
-    "//bt/hci",
-    "//bt/main/shim:LibBluetoothShimSources",
-    "//bt/osi",
-    "//bt/packet",
-    "//bt/stack",
-    "//bt/udrv",
-    "//bt/utils",
+    "//bt/system/audio_hal_interface",
+    "//bt/system/bta",
+    "//bt/system/btcore",
+    "//bt/system/btif",
+    "//bt/system/device",
+    "//bt/system/embdrv/g722",
+    "//bt/system/embdrv/sbc",
+    "//bt/system/gd:libbluetooth_gd",
+    "//bt/system/hci",
+    "//bt/system/main/shim:LibBluetoothShimSources",
+    "//bt/system/osi",
+    "//bt/system/packet",
+    "//bt/system/stack",
+    "//bt/system/udrv",
+    "//bt/system/utils",
   ]
 
   configs += [
-    "//bt:target_defaults",
-    "//bt:external_tinyxml2",
-    "//bt:external_flatbuffers",
+    "//bt/system:target_defaults",
+    "//bt/system:external_tinyxml2",
+    "//bt/system:external_flatbuffers",
   ]
 
   cflags_c = [
