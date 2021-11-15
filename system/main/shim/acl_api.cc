@@ -85,10 +85,11 @@ void bluetooth::shim::ACL_ConfigureLePrivacy(bool is_le_privacy_enabled) {
 }
 
 void bluetooth::shim::ACL_Disconnect(uint16_t handle, bool is_classic,
-                                     tHCI_STATUS reason) {
+                                     tHCI_STATUS reason, std::string comment) {
   (is_classic)
-      ? Stack::GetInstance()->GetAcl()->DisconnectClassic(handle, reason)
-      : Stack::GetInstance()->GetAcl()->DisconnectLe(handle, reason);
+      ? Stack::GetInstance()->GetAcl()->DisconnectClassic(handle, reason,
+                                                          comment)
+      : Stack::GetInstance()->GetAcl()->DisconnectLe(handle, reason, comment);
 }
 
 void bluetooth::shim::ACL_Shutdown() {

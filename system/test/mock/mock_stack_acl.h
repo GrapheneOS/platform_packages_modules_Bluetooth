@@ -684,10 +684,14 @@ extern struct acl_accept_connection_request acl_accept_connection_request;
 // Params: uint16_t conn_handle, tHCI_STATUS reason
 // Returns: void
 struct acl_disconnect_after_role_switch {
-  std::function<void(uint16_t conn_handle, tHCI_STATUS reason)> body{
-      [](uint16_t conn_handle, tHCI_STATUS reason) { ; }};
-  void operator()(uint16_t conn_handle, tHCI_STATUS reason) {
-    body(conn_handle, reason);
+  std::function<void(uint16_t conn_handle, tHCI_STATUS reason,
+                     std::string comment)>
+      body{[](uint16_t conn_handle, tHCI_STATUS reason, std::string comment) {
+        ;
+      }};
+  void operator()(uint16_t conn_handle, tHCI_STATUS reason,
+                  std::string comment) {
+    body(conn_handle, reason, comment);
   };
 };
 extern struct acl_disconnect_after_role_switch acl_disconnect_after_role_switch;
@@ -695,10 +699,10 @@ extern struct acl_disconnect_after_role_switch acl_disconnect_after_role_switch;
 // Params: uint16_t handle, tHCI_STATUS reason
 // Returns: void
 struct acl_disconnect_from_handle {
-  std::function<void(uint16_t handle, tHCI_STATUS reason)> body{
-      [](uint16_t handle, tHCI_STATUS reason) { ; }};
-  void operator()(uint16_t handle, tHCI_STATUS reason) {
-    body(handle, reason);
+  std::function<void(uint16_t handle, tHCI_STATUS reason, std::string comment)>
+      body{[](uint16_t handle, tHCI_STATUS reason, std::string comment) { ; }};
+  void operator()(uint16_t handle, tHCI_STATUS reason, std::string comment) {
+    body(handle, reason, comment);
   };
 };
 extern struct acl_disconnect_from_handle acl_disconnect_from_handle;

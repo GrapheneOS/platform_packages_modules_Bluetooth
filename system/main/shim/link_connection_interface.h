@@ -40,8 +40,10 @@ class LinkConnectionInterface {
   virtual void IgnoreLeConnectionFrom(
       const bluetooth::hci::AddressWithType& address_with_type) = 0;
 
-  virtual void DisconnectClassic(uint16_t handle, tHCI_REASON reason) = 0;
-  virtual void DisconnectLe(uint16_t handle, tHCI_REASON reason) = 0;
+  virtual void DisconnectClassic(uint16_t handle, tHCI_REASON reason,
+                                 std::string comment) = 0;
+  virtual void DisconnectLe(uint16_t handle, tHCI_REASON reason,
+                            std::string comment) = 0;
 };
 
 }  // namespace shim
