@@ -44,20 +44,20 @@ static_library("osi") {
   ]
 
   include_dirs = [
-    "//bt/",
-    "//bt/linux_include",
-    "//bt/internal_include",
-    "//bt/utils/include",
-    "//bt/stack/include",
+    "//bt/system/",
+    "//bt/system/linux_include",
+    "//bt/system/internal_include",
+    "//bt/system/utils/include",
+    "//bt/system/stack/include",
   ]
 
   deps = [
-    "//bt/common",
-    "//bt/gd/rust/shim:init_flags_bridge_header",
+    "//bt/system/common",
+    "//bt/system/gd/rust/shim:init_flags_bridge_header",
   ]
 
   configs += [
-    "//bt:target_defaults",
+    "//bt/system:target_defaults",
   ]
 }
 
@@ -82,18 +82,18 @@ if (use.test) {
     ]
 
     include_dirs = [
-      "//bt/",
-      "//bt/osi/test",
+      "//bt/system/",
+      "//bt/system/osi/test",
     ]
 
     deps = [
-      "//bt/osi",
+      "//bt/system/osi",
     ]
 
     configs += [
-      "//bt:external_gtest_main",
-      "//bt:external_gmock_main",
-      "//bt:target_defaults",
+      "//bt/system:external_gtest_main",
+      "//bt/system:external_gmock_main",
+      "//bt/system:target_defaults",
     ]
 
     libs = [

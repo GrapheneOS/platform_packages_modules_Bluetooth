@@ -13,8 +13,8 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-import("//bt/gd/dumpsys/bundler/bundler.gni")
-import("//bt/gd/packet/parser/packetgen.gni")
+import("//bt/system/gd/dumpsys/bundler/bundler.gni")
+import("//bt/system/gd/packet/parser/packetgen.gni")
 import("//common-mk/flatbuffer.gni")
 
 config("gd_defaults") {
@@ -36,8 +36,8 @@ config("gd_defaults") {
     "crypto",
   ]
 
-  include_dirs = [ "//bt/gd" ]
-  configs = [ "//bt:target_defaults" ]
+  include_dirs = [ "//bt/system/gd" ]
+  configs = [ "//bt/system:target_defaults" ]
 }
 
 config("rust_defaults") {
@@ -46,10 +46,10 @@ config("rust_defaults") {
 
 group("gd_default_deps") {
   deps = [
-    "//bt/gd:BluetoothGeneratedDumpsysDataSchema_h",
-    "//bt/gd:BluetoothGeneratedPackets_h",
-    "//bt/gd/dumpsys:libbluetooth-dumpsys",
-    "//bt/gd/rust/shim:init_flags_bridge_header",
+    "//bt/system/gd:BluetoothGeneratedDumpsysDataSchema_h",
+    "//bt/system/gd:BluetoothGeneratedPackets_h",
+    "//bt/system/gd/dumpsys:libbluetooth-dumpsys",
+    "//bt/system/gd/rust/shim:init_flags_bridge_header",
   ]
 }
 
@@ -62,21 +62,21 @@ static_library("libbluetooth_gd") {
   include_dirs = [ "." ]
   configs += [ ":gd_defaults" ]
   deps = [
-    "//bt/gd/rust/topshim:libbluetooth_topshim",
-    "//bt/gd/rust/shim:libbluetooth_rust_interop",
-    "//bt/gd:BluetoothGeneratedPackets_h",
-    "//bt/gd/att:BluetoothAttSources",
-    "//bt/gd/common:BluetoothCommonSources",
-    "//bt/gd/crypto_toolbox:BluetoothCryptoToolboxSources",
-    "//bt/gd/dumpsys:BluetoothDumpsysSources",
-    "//bt/gd/btaa:BluetoothBtaaSources_linux",
-    "//bt/gd/hal:BluetoothHalSources",
-    "//bt/gd/hal:BluetoothHalSources_hci_host",
-    "//bt/gd/l2cap:BluetoothL2capSources",
-    "//bt/gd/neighbor:BluetoothNeighborSources",
-    "//bt/gd/security:BluetoothSecuritySources",
-    "//bt/gd/shim:BluetoothShimSources",
-    "//bt/gd/storage:BluetoothStorageSources",
+    "//bt/system/gd/rust/topshim:libbluetooth_topshim",
+    "//bt/system/gd/rust/shim:libbluetooth_rust_interop",
+    "//bt/system/gd:BluetoothGeneratedPackets_h",
+    "//bt/system/gd/att:BluetoothAttSources",
+    "//bt/system/gd/common:BluetoothCommonSources",
+    "//bt/system/gd/crypto_toolbox:BluetoothCryptoToolboxSources",
+    "//bt/system/gd/dumpsys:BluetoothDumpsysSources",
+    "//bt/system/gd/btaa:BluetoothBtaaSources_linux",
+    "//bt/system/gd/hal:BluetoothHalSources",
+    "//bt/system/gd/hal:BluetoothHalSources_hci_host",
+    "//bt/system/gd/l2cap:BluetoothL2capSources",
+    "//bt/system/gd/neighbor:BluetoothNeighborSources",
+    "//bt/system/gd/security:BluetoothSecuritySources",
+    "//bt/system/gd/shim:BluetoothShimSources",
+    "//bt/system/gd/storage:BluetoothStorageSources",
   ]
 }
 
@@ -103,7 +103,7 @@ bt_flatc_binary_schema("BluetoothGeneratedDumpsysBinarySchema_bfbs") {
     "shim/dumpsys.fbs",
   ]
 
-  include_dir = "bt/gd"
+  include_dir = "system/gd"
 }
 
 packetgen_py("BluetoothGeneratedPackets_python3_cc") {
@@ -113,7 +113,7 @@ packetgen_py("BluetoothGeneratedPackets_python3_cc") {
     "security/smp_packets.pdl",
   ]
 
-  include = "bt/gd"
+  include = "system/gd"
   source_root = "../.."
   shards = 10
 }
@@ -125,7 +125,7 @@ packetgen_headers("BluetoothGeneratedPackets_h") {
     "security/smp_packets.pdl",
   ]
 
-  include = "bt/gd"
+  include = "system/gd"
   source_root = "../.."
 }
 

@@ -17,6 +17,6 @@
 source_set("BluetoothAttSources") {
   sources = [ "att_module.cc" ]
 
-  configs += [ "//bt/gd:gd_defaults" ]
-  deps = [ "//bt/gd:gd_default_deps" ]
+  configs += [ "//bt/system/gd:gd_defaults" ]
+  deps = [ "//bt/system/gd:gd_default_deps" ]
 }

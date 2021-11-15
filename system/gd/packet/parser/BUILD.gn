@@ -18,7 +18,7 @@ import("flex.gni")
 import("bison.gni")
 
 config("pktgen_configs") {
-  include_dirs = [ "//bt/gd/packet/parser" ]
+  include_dirs = [ "//bt/system/gd/packet/parser" ]
 
   cflags = [ "-fPIC" ]
 
@@ -67,7 +67,7 @@ executable("bluetooth_packetgen") {
     "struct_parser_generator.cc",
   ]
 
-  include_dirs = [ "//bt/gd/packet/parser" ]
+  include_dirs = [ "//bt/system/gd/packet/parser" ]
 
   deps = [
     ":pktlexer",

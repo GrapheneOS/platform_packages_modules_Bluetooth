@@ -13,7 +13,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-import("//bt/gd/dumpsys/bundler/bundler.gni")
+import("//bt/system/gd/dumpsys/bundler/bundler.gni")
 
 source_set("BluetoothDumpsysSources") {
   sources = [
@@ -25,14 +25,14 @@ source_set("BluetoothDumpsysSources") {
 
   cflags_cc = [ "-Wno-enum-compare-switch" ]
 
-  configs += [ "//bt/gd:gd_defaults" ]
-  deps = [ "//bt/gd:gd_default_deps" ]
+  configs += [ "//bt/system/gd:gd_defaults" ]
+  deps = [ "//bt/system/gd:gd_default_deps" ]
 }
 
 bt_flatc_bundler("libbluetooth-dumpsys") {
   root_name = "bluetooth.DumpsysData"
   filename = "generated_dumpsys_bundled_schema"
   namespace = "bluetooth::dumpsys"
-  deps = [ "//bt/gd:BluetoothGeneratedDumpsysBinarySchema_bfbs" ]
-  configs = [ "//bt/gd:gd_defaults" ]
+  deps = [ "//bt/system/gd:BluetoothGeneratedDumpsysBinarySchema_bfbs" ]
+  configs = [ "//bt/system/gd:gd_defaults" ]
 }

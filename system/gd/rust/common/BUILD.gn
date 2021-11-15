@@ -21,15 +21,15 @@ rust_library("libbt_common") {
   sources = [ "src/lib.rs" ]
 
   configs = [
-    "//bt/gd/rust/shim:rust_libs",
-    "//bt/gd:rust_defaults",
+    "//bt/system/gd/rust/shim:rust_libs",
+    "//bt/system/gd:rust_defaults",
   ]
 }
 
 cxxbridge_cc("libbt_common_sys_prop_bridge_code") {
   sources = [ "src/sys_prop.rs" ]
 
-  configs = [ "//bt/gd:gd_defaults" ]
+  configs = [ "//bt/system/gd:gd_defaults" ]
 }
 
 static_library("libbt_common_sys_prop_cxx") {
@@ -39,5 +39,5 @@ static_library("libbt_common_sys_prop_cxx") {
 
   deps = [ ":libbt_common_sys_prop_bridge_code" ]
 
-  configs += [ "//bt/gd:gd_defaults" ]
+  configs += [ "//bt/system/gd:gd_defaults" ]
 }

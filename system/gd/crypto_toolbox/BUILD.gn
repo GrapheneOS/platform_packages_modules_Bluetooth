@@ -20,5 +20,5 @@ source_set("BluetoothCryptoToolboxSources") {
     "crypto_toolbox.cc",
   ]
 
-  configs += [ "//bt/gd:gd_defaults" ]
+  configs += [ "//bt/system/gd:gd_defaults" ]
 }

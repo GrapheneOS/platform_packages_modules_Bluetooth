@@ -16,17 +16,17 @@
 
 config("avrcp_config") {
   include_dirs = [
-    "//bt/",
-    "//bt/btcore/include",
-    "//bt/internal_include",
-    "//bt/stack/include",
-    "//bt/profile/avrcp",
-    "//bt/packet",
-    "//bt/packet/include",
-    "//bt/include/hardware/avrcp",
+    "//bt/system/",
+    "//bt/system/btcore/include",
+    "//bt/system/internal_include",
+    "//bt/system/stack/include",
+    "//bt/system/profile/avrcp",
+    "//bt/system/packet",
+    "//bt/system/packet/include",
+    "//bt/system/include/hardware/avrcp",
   ]
 
-  configs = ["//bt:target_defaults"]
+  configs = ["//bt/system:target_defaults"]
 }
 
 static_library("profile_avrcp") {
@@ -36,7 +36,7 @@ static_library("profile_avrcp") {
   ]
 
   deps = [
-    "//bt/gd/rust/shim:message_loop_thread_bridge_header",
+    "//bt/system/gd/rust/shim:message_loop_thread_bridge_header",
   ]
 
   configs += [
@@ -53,14 +53,14 @@ if (use.test) {
 
     deps = [
       ":profile_avrcp",
-      "//bt/device:device",
-      "//bt/osi:osi",
-      "//bt/packet:packet",
-      "//bt/types:types",
+      "//bt/system/device:device",
+      "//bt/system/osi:osi",
+      "//bt/system/packet:packet",
+      "//bt/system/types:types",
     ]
 
     configs += [
-      "//bt:external_gmock_main",
+      "//bt/system:external_gmock_main",
       ":avrcp_config",
     ]
   }
