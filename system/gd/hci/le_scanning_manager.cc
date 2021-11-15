@@ -674,7 +674,7 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
                 advertising_filter_parameter.delivery_mode,
                 advertising_filter_parameter.onfound_timeout,
                 advertising_filter_parameter.onfound_timeout_cnt,
-                advertising_filter_parameter.rssi_low_thres,
+                advertising_filter_parameter.rssi_low_thresh,
                 advertising_filter_parameter.onlost_timeout,
                 advertising_filter_parameter.num_of_tracking_entries),
             module_handler_->BindOnceOn(this, &impl::on_advertising_filter_complete));
