@@ -1504,7 +1504,9 @@ bool l2cu_start_post_bond_timer(uint16_t handle) {
     uint64_t timeout_ms = L2CAP_BONDING_TIMEOUT * 1000;
 
     if (p_lcb->idle_timeout == 0) {
-      acl_disconnect_from_handle(p_lcb->Handle(), HCI_ERR_PEER_USER);
+      acl_disconnect_from_handle(
+          p_lcb->Handle(), HCI_ERR_PEER_USER,
+          "stack::l2cap::l2c_utils::l2cu_start_post_bond_timer Idle timeout");
       p_lcb->link_state = LST_DISCONNECTING;
       timeout_ms = L2CAP_LINK_DISCONNECT_TIMEOUT_MS;
     }
@@ -2479,7 +2481,9 @@ void l2cu_no_dynamic_ccbs(tL2C_LCB* p_lcb) {
     L2CAP_TRACE_DEBUG(
         "l2cu_no_dynamic_ccbs() IDLE timer 0, disconnecting link");
 
-    rc = btm_sec_disconnect(p_lcb->Handle(), HCI_ERR_PEER_USER);
+    rc = btm_sec_disconnect(
+        p_lcb->Handle(), HCI_ERR_PEER_USER,
+        "stack::l2cap::l2c_utils::l2cu_no_dynamic_ccbs Idle timer popped");
     if (rc == BTM_CMD_STARTED) {
       l2cu_process_fixed_disc_cback(p_lcb);
       p_lcb->link_state = LST_DISCONNECTING;
@@ -2491,7 +2495,9 @@ void l2cu_no_dynamic_ccbs(tL2C_LCB* p_lcb) {
       p_lcb->link_state = LST_DISCONNECTING;
       start_timeout = false;
     } else if (p_lcb->IsBonding()) {
-      acl_disconnect_from_handle(p_lcb->Handle(), HCI_ERR_PEER_USER);
+      acl_disconnect_from_handle(
+          p_lcb->Handle(), HCI_ERR_PEER_USER,
+          "stack::l2cap::l2c_utils::l2cu_no_dynamic_ccbs Bonding no traffic");
       l2cu_process_fixed_disc_cback(p_lcb);
       p_lcb->link_state = LST_DISCONNECTING;
       timeout_ms = L2CAP_LINK_DISCONNECT_TIMEOUT_MS;

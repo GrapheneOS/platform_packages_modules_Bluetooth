@@ -160,7 +160,8 @@ tBTM_STATUS btm_sec_bond_by_transport(const RawAddress& bd_addr,
   mock_function_count_map[__func__]++;
   return BTM_SUCCESS;
 }
-tBTM_STATUS btm_sec_disconnect(uint16_t handle, tHCI_STATUS reason) {
+tBTM_STATUS btm_sec_disconnect(uint16_t handle, tHCI_STATUS reason,
+                               std::string comment) {
   mock_function_count_map[__func__]++;
   return BTM_SUCCESS;
 }
@@ -262,7 +263,8 @@ void btm_sec_dev_rec_cback_event(tBTM_SEC_DEV_REC* p_dev_rec,
   mock_function_count_map[__func__]++;
 }
 void btm_sec_dev_reset(void) { mock_function_count_map[__func__]++; }
-void btm_sec_disconnected(uint16_t handle, tHCI_REASON reason) {
+void btm_sec_disconnected(uint16_t handle, tHCI_REASON reason,
+                          std::string comment) {
   mock_function_count_map[__func__]++;
 }
 void btm_sec_encrypt_change(uint16_t handle, tHCI_STATUS status,
