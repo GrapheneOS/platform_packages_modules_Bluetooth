@@ -1279,7 +1279,7 @@ static char* bta_hf_client_parse_clcc(tBTA_HF_CLIENT_CB* client_cb,
                                       char* buffer) {
   uint16_t idx, dir, status, mode, mpty;
   char numstr[33]; /* spec forces 32 chars, plus one for \0*/
-  uint16_t type;
+  uint16_t type = 0;
   int res;
   int offset = 0;
 
