@@ -904,6 +904,8 @@ public class HeadsetClientService extends ProfileService {
 
     public void setAudioRouteAllowed(BluetoothDevice device, boolean allowed) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        Log.i(TAG, "setAudioRouteAllowed: device=" + device + ", allowed=" + allowed + ", "
+                + Utils.getUidPidString());
         HeadsetClientStateMachine sm = mStateMachineMap.get(device);
         if (sm != null) {
             sm.setAudioRouteAllowed(allowed);
@@ -920,6 +922,7 @@ public class HeadsetClientService extends ProfileService {
     }
 
     public boolean connectAudio(BluetoothDevice device) {
+        Log.i(TAG, "connectAudio: device=" + device + ", " + Utils.getUidPidString());
         HeadsetClientStateMachine sm = getStateMachine(device);
         if (sm == null) {
             Log.e(TAG, "SM does not exist for device " + device);
