@@ -30,6 +30,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
+import android.media.BtProfileConnectionInfo;
 import android.os.HandlerThread;
 import android.os.ParcelUuid;
 import android.util.Log;
@@ -694,30 +695,15 @@ public class HearingAidService extends ProfileService {
                 | Intent.FLAG_RECEIVER_INCLUDE_BACKGROUND);
         sendBroadcast(intent, BLUETOOTH_CONNECT, Utils.getTempAllowlistBroadcastOptions());
 
-        if (device == null) {
-            if (DBG) {
-                Log.d(TAG, "Set Hearing Aid audio to disconnected");
-            }
-            boolean suppressNoisyIntent =
-                    (getConnectionState(mPreviousAudioDevice) == BluetoothProfile.STATE_CONNECTED);
-            mAudioManager.setBluetoothHearingAidDeviceConnectionState(
-                    mPreviousAudioDevice, BluetoothProfile.STATE_DISCONNECTED,
-                    suppressNoisyIntent, 0);
-            mPreviousAudioDevice = null;
-        } else {
-            if (DBG) {
-                Log.d(TAG, "Set Hearing Aid audio to connected");
-            }
-            if (mPreviousAudioDevice != null) {
-                mAudioManager.setBluetoothHearingAidDeviceConnectionState(
-                        mPreviousAudioDevice, BluetoothProfile.STATE_DISCONNECTED,
-                        true, 0);
-            }
-            mAudioManager.setBluetoothHearingAidDeviceConnectionState(
-                    device, BluetoothProfile.STATE_CONNECTED,
-                    true, 0);
-            mPreviousAudioDevice = device;
+        boolean stopAudio = device == null
+                && (getConnectionState(mPreviousAudioDevice) != BluetoothProfile.STATE_CONNECTED);
+        if (DBG) {
+            Log.d(TAG, "Hearing Aid audio: " + mPreviousAudioDevice + " -> " + device
+                    + ". Stop audio: " + stopAudio);
         }
+        mAudioManager.handleBluetoothActiveDeviceChanged(device, mPreviousAudioDevice,
+                BtProfileConnectionInfo.hearingAidInfo(!stopAudio));
+        mPreviousAudioDevice = device;
     }
 
     // Remove state machine if the bonding for a device is removed
