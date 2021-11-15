@@ -526,7 +526,13 @@ void AvrcpService::DebugDump(int fd) {
     return;
   }
 
-  auto device_list = instance_->connection_handler_->GetListOfDevices();
+  auto handler = instance_->connection_handler_;
+  if (handler == nullptr) {
+    dprintf(fd, "\nAVRCP connection handler is null\n");
+    return;
+  }
+
+  auto device_list = handler->GetListOfDevices();
   dprintf(fd, "\nAVRCP Target Native Service: %zu devices\n",
           device_list.size());
 
