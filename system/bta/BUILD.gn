@@ -98,34 +98,34 @@ static_library("bta") {
     "hd",
     "include",
     "sys",
-    "//bt/",
-    "//bt/linux_include",
-    "//bt/bta",
-    "//bt/internal_include",
-    "//bt/btcore/include",
-    "//bt/hci/include",
-    "//bt/internal_include",
-    "//bt/stack/include",
-    "//bt/stack/btm",
-    "//bt/udrv/include",
-    "//bt/utils/include",
-    "//bt/vnd/include",
-    "//bt/btif/include",
-    "//bt/btif/avrcp",
-    "//bt/include/hardware/avrcp",
-    "//bt/profile/avrcp",
-    "//bt/packet/avrcp",
-    "//bt/packet/base",
+    "//bt/system/",
+    "//bt/system/linux_include",
+    "//bt/system/bta",
+    "//bt/system/internal_include",
+    "//bt/system/btcore/include",
+    "//bt/system/hci/include",
+    "//bt/system/internal_include",
+    "//bt/system/stack/include",
+    "//bt/system/stack/btm",
+    "//bt/system/udrv/include",
+    "//bt/system/utils/include",
+    "//bt/system/vnd/include",
+    "//bt/system/btif/include",
+    "//bt/system/btif/avrcp",
+    "//bt/system/include/hardware/avrcp",
+    "//bt/system/profile/avrcp",
+    "//bt/system/packet/avrcp",
+    "//bt/system/packet/base",
   ]
 
   configs += [
-    "//bt:target_defaults"
+    "//bt/system:target_defaults"
   ]
 
   deps = [
-    "//bt/gd/rust/shim:shim_bridge_header",
-    "//bt/gd/rust/shim:init_flags_bridge_header",
-    "//bt/gd/rust/shim:message_loop_thread_bridge_header",
+    "//bt/system/gd/rust/shim:shim_bridge_header",
+    "//bt/system/gd/rust/shim:init_flags_bridge_header",
+    "//bt/system/gd/rust/shim:message_loop_thread_bridge_header",
   ]
 }
 
@@ -140,22 +140,22 @@ if (use.test) {
 
     include_dirs = [
       "include",
-      "//bt/",
-      "//bt/bta",
-      "//bt/btcore/include",
-      "//bt/hci/include",
-      "//bt/internal_include",
-      "//bt/stack/btm",
+      "//bt/system/",
+      "//bt/system/bta",
+      "//bt/system/btcore/include",
+      "//bt/system/hci/include",
+      "//bt/system/internal_include",
+      "//bt/system/stack/btm",
     ]
 
     deps = [
-      "//bt/bta",
-      "//bt/types",
+      "//bt/system/bta",
+      "//bt/system/types",
     ]
 
     configs += [
-      "//bt:external_gmock_main",
-      "//bt:target_defaults",
+      "//bt/system:external_gmock_main",
+      "//bt/system:target_defaults",
     ]
   }
 }

@@ -20,7 +20,7 @@ rust_library("libbt_facade_helpers") {
   ]
 
   configs = [
-    "//bt/gd/rust/shim:rust_libs",
-    "//bt/gd:rust_defaults",
+    "//bt/system/gd/rust/shim:rust_libs",
+    "//bt/system/gd:rust_defaults",
   ]
 }

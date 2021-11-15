@@ -35,8 +35,8 @@ source_set("libbluetooth_common") {
 
   include_dirs = [
     ".",
-    "//bt",
+    "//bt/system",
   ]
 
-  configs += ["//bt:target_defaults"]
+  configs += ["//bt/system:target_defaults"]
 }

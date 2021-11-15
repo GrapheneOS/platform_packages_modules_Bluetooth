@@ -126,7 +126,7 @@ template("bt_flatc_bundler") {
       files_list += [ "${gen_dir}/${name}.files" ]
     }
 
-    script = "//bt/gd/dumpsys/bundler/extract_files_and_call.py"
+    script = "//bt/system/gd/dumpsys/bundler/extract_files_and_call.py"
     binfile = "${root_out_dir}/bluetooth_flatbuffer_bundler"
     args = files_list
     args += [

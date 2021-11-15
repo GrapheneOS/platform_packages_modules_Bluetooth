@@ -17,13 +17,13 @@
 source_set("BluetoothHalSources") {
   sources = [ "snoop_logger.cc" ]
 
-  configs += [ "//bt/gd:gd_defaults" ]
-  deps = [ "//bt/gd:gd_default_deps" ]
+  configs += [ "//bt/system/gd:gd_defaults" ]
+  deps = [ "//bt/system/gd:gd_default_deps" ]
 }
 
 source_set("BluetoothHalSources_hci_host") {
   sources = [ "hci_hal_host.cc" ]
 
-  configs += [ "//bt/gd:gd_defaults" ]
-  deps = [ "//bt/gd:gd_default_deps" ]
+  configs += [ "//bt/system/gd:gd_defaults" ]
+  deps = [ "//bt/system/gd:gd_default_deps" ]
 }

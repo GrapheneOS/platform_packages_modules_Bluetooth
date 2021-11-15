@@ -34,7 +34,7 @@ source_set("sbc_decoder") {
 
   include_dirs = [ "decoder/include" ]
 
-  configs += [ "//bt:target_defaults" ]
+  configs += [ "//bt/system:target_defaults" ]
 }
 
 source_set("sbc_encoder") {
@@ -51,11 +51,11 @@ source_set("sbc_encoder") {
 
   include_dirs = [
     "encoder/include",
-    "//bt/internal_include",
-    "//bt/stack/include",
+    "//bt/system/internal_include",
+    "//bt/system/stack/include",
   ]
 
-  configs += [ "//bt:target_defaults" ]
+  configs += [ "//bt/system:target_defaults" ]
 }
 
 static_library("sbc") {

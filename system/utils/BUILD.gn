@@ -21,15 +21,15 @@ static_library("utils") {
 
   include_dirs = [
     "include",
-    "//bt/",
-    "//bt/stack/include",
+    "//bt/system/",
+    "//bt/system/stack/include",
   ]
 
   configs += [
-    "//bt:target_defaults",
+    "//bt/system:target_defaults",
   ]
 
   deps = [
-    "//bt/gd/rust/shim:init_flags_bridge_header",
+    "//bt/system/gd/rust/shim:init_flags_bridge_header",
   ]
 }
