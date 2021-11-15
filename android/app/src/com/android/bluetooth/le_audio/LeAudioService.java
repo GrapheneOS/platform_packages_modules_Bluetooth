@@ -23,16 +23,12 @@ import static android.bluetooth.IBluetoothLeAudio.LE_AUDIO_GROUP_ID_INVALID;
 import android.annotation.RequiresPermission;
 import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothCsipSetCoordinator;
 import android.bluetooth.BluetoothLeAudio;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUuid;
-import android.bluetooth.BluetoothVolumeControl;
-import android.bluetooth.IBluetoothCsipSetCoordinator;
-import android.bluetooth.IBluetoothCsipSetCoordinatorCallback;
 import android.bluetooth.IBluetoothLeAudio;
-import android.content.AttributionSource;
 import android.bluetooth.IBluetoothVolumeControl;
+import android.content.AttributionSource;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -52,7 +48,6 @@ import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.btservice.ServiceFactory;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
-import com.android.bluetooth.csip.CsipSetCoordinatorService;
 import com.android.bluetooth.mcp.McpService;
 import com.android.bluetooth.vc.VolumeControlService;
 import com.android.internal.annotations.VisibleForTesting;
@@ -117,7 +112,6 @@ public class LeAudioService extends ProfileService {
     private final Map<BluetoothDevice, LeAudioStateMachine> mStateMachines = new HashMap<>();
 
     private final Map<BluetoothDevice, Integer> mDeviceGroupIdMap = new ConcurrentHashMap<>();
-    private final Map<BluetoothDevice, Integer> mSetMemberAvailable = new ConcurrentHashMap<>();
     private int mActiveDeviceGroupId = LE_AUDIO_GROUP_ID_INVALID;
     private final int mContextSupportingInputAudio =
             BluetoothLeAudio.CONTEXT_TYPE_COMMUNICATION |
@@ -137,50 +131,6 @@ public class LeAudioService extends ProfileService {
 
     private BroadcastReceiver mBondStateChangedReceiver;
     private BroadcastReceiver mConnectionStateChangedReceiver;
-
-    class MyCsipSetCoordinatorCallbacks extends IBluetoothCsipSetCoordinatorCallback.Stub {
-        @Override
-        public void onCsisSetMemberAvailable(BluetoothDevice device, int groupId) {
-            synchronized (LeAudioService.this) {
-                LeAudioService.this.setMemberAvailable(device, groupId);
-            }
-        }
-    };
-
-    private volatile MyCsipSetCoordinatorCallbacks mCsipSetCoordinatorCallback =
-                                                            new MyCsipSetCoordinatorCallbacks();
-    private volatile IBluetoothCsipSetCoordinator mCsipSetCoordinatorProxy;
-    private final ServiceConnection mCsipSetCoordinatorProxyConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName className, IBinder service) {
-            if (DBG) {
-                Log.d(TAG, "CsisClientProxy connected");
-            }
-            synchronized (LeAudioService.this) {
-                mCsipSetCoordinatorProxy = IBluetoothCsipSetCoordinator.Stub.asInterface(service);
-                CsipSetCoordinatorService mCsipSetCoordinatorService =
-                    CsipSetCoordinatorService.getCsipSetCoordinatorService();
-                if (mCsipSetCoordinatorService == null) {
-                    Log.e(TAG, "CsisClientService is null on LeAudioService starts");
-                    return;
-                }
-                mCsipSetCoordinatorService.registerCsisMemberObserver(
-                                                    LeAudioService.this.getMainExecutor(),
-                                                    BluetoothUuid.CAP,
-                                                    mCsipSetCoordinatorCallback);
-            }
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName className) {
-            if (DBG) {
-                Log.d(TAG, "CsisClientProxy disconnected");
-            }
-            synchronized (LeAudioService.this) {
-                mCsipSetCoordinatorProxy = null;
-            }
-        }
-    };
 
     private volatile IBluetoothVolumeControl mVolumeControlProxy;
     VolumeControlService mVolumeControlService = null;
@@ -246,7 +196,6 @@ public class LeAudioService extends ProfileService {
         mStateMachinesThread.start();
 
         mDeviceGroupIdMap.clear();
-        mSetMemberAvailable.clear();
         mGroupDescriptors.clear();
 
         // Setup broadcast receivers
@@ -259,8 +208,6 @@ public class LeAudioService extends ProfileService {
         mConnectionStateChangedReceiver = new ConnectionStateChangedReceiver();
         registerReceiver(mConnectionStateChangedReceiver, filter);
 
-        /* Bind Csis Service */
-        bindCsisClientService();
 
         /* Bind Volume control service */
         bindVolumeControlService();
@@ -318,7 +265,6 @@ public class LeAudioService extends ProfileService {
         }
 
         mDeviceGroupIdMap.clear();
-        mSetMemberAvailable.clear();
         mGroupDescriptors.clear();
 
         if (mStateMachinesThread != null) {
@@ -330,7 +276,6 @@ public class LeAudioService extends ProfileService {
         mAdapterService = null;
         mAudioManager = null;
 
-        unbindCsisClientService();
         unbindVolumeControlService();
         return true;
     }
@@ -379,30 +324,6 @@ public class LeAudioService extends ProfileService {
                 mVolumeControlProxy = null;
                 // Synchronization should make sure unbind can be successful
                 unbindService(mVolumeControlProxyConnection);
-            }
-        }
-    }
-
-    private void bindCsisClientService() {
-        synchronized (mCsipSetCoordinatorProxyConnection) {
-            Intent intent = new Intent(IBluetoothCsipSetCoordinator.class.getName());
-            ComponentName comp = intent.resolveSystemService(getPackageManager(), 0);
-            intent.setComponent(comp);
-            if (comp == null || !bindService(intent, mCsipSetCoordinatorProxyConnection, 0)) {
-                Log.wtf(TAG, "Could not bind to IBluetoothCsisClient Service with " +
-                        intent);
-            }
-        }
-    }
-    private void unbindCsisClientService() {
-        synchronized (mCsipSetCoordinatorProxyConnection) {
-            if (mCsipSetCoordinatorProxy != null) {
-                if (DBG) {
-                    Log.d(TAG, "Unbinding CsisClientProxyConnection");
-                }
-                mCsipSetCoordinatorProxy = null;
-                // Synchronization should make sure unbind can be successful
-                unbindService(mCsipSetCoordinatorProxyConnection);
             }
         }
     }
@@ -1092,11 +1013,6 @@ public class LeAudioService extends ProfileService {
             return;
         }
 
-        /* Remove bonded set member from outstanding list */
-        if (mSetMemberAvailable.containsKey(device)) {
-            mSetMemberAvailable.remove(device);
-        }
-
         int groupId = getGroupId(device);
         if (groupId != LE_AUDIO_GROUP_ID_INVALID) {
             /* In case device is still in the group, let's remove it */
@@ -1232,22 +1148,6 @@ public class LeAudioService extends ProfileService {
             int fromState = intent.getIntExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, -1);
             connectionStateChanged(device, fromState, toState);
         }
-    }
-
-    synchronized void setMemberAvailable(BluetoothDevice device, int groupId) {
-        if (device == null) {
-            Log.e(TAG, "unexpected invocation. device=" + device);
-            return;
-        }
-
-        if (mSetMemberAvailable.containsKey(device)) {
-            if (DBG) {
-                Log.d(TAG, "Device " + device + " is already notified- drop it");
-            }
-            return;
-        }
-
-        mSetMemberAvailable.put(device, groupId);
     }
 
    /**
