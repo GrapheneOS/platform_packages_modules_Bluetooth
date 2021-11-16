@@ -24,7 +24,7 @@ source_set("BluetoothNeighborSources") {
     "scan.cc",
   ]
 
-  deps = [ "//bt/gd:gd_default_deps" ]
+  deps = [ "//bt/system/gd:gd_default_deps" ]
 
-  configs += [ "//bt/gd:gd_defaults" ]
+  configs += [ "//bt/system/gd:gd_defaults" ]
 }

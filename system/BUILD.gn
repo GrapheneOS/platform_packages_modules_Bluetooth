@@ -31,9 +31,9 @@ group("all") {
 # This pulls in main/BUILD.gn and all of its dependencies.
 group("bluetooth") {
   deps = [
-    "//bt/main:bluetooth",
-    "//bt/main:bluetooth-static",
-    #"//bt/service:bluetoothtbd",
+    "//bt/system/main:bluetooth",
+    "//bt/system/main:bluetooth-static",
+    #"//bt/system/service:bluetoothtbd",
   ]
 }
 
@@ -41,14 +41,14 @@ group("bluetooth") {
 #if (use.test) {
   #group("bluetooth_tests") {
     #deps = [
-      #"//bt/btcore:net_test_btcore",
-      #"//bt/common:bluetooth_test_common",
-      #"//bt/profile/avrcp:net_test_avrcp",
-      #"//bt/service:bluetoothtbd_test",
-      #"//bt/stack:net_test_btm_iso",
-      #"//bt/types:net_test_types",
+      #"//bt/system/btcore:net_test_btcore",
+      #"//bt/system/common:bluetooth_test_common",
+      #"//bt/system/profile/avrcp:net_test_avrcp",
+      #"//bt/system/service:bluetoothtbd_test",
+      #"//bt/system/stack:net_test_btm_iso",
+      #"//bt/system/types:net_test_types",
 
-      ##"//bt/packet:net_test_btpackets",
+      ##"//bt/system/packet:net_test_btpackets",
     #]
   #}
 #}
@@ -56,8 +56,8 @@ group("bluetooth") {
 if (host_cpu == target_cpu && host_os == target_os) {
   group("tools") {
     deps = [
-      "//bt/gd/dumpsys/bundler:bluetooth_flatbuffer_bundler",
-      "//bt/gd/packet/parser:bluetooth_packetgen",
+      "//bt/system/gd/dumpsys/bundler:bluetooth_flatbuffer_bundler",
+      "//bt/system/gd/packet/parser:bluetooth_packetgen",
     ]
   }
 }
@@ -65,24 +65,24 @@ if (host_cpu == target_cpu && host_os == target_os) {
 if (defined(use.android) && use.android) {
   group("android_bluetooth_tests") {
     deps = [
-      "//bt/device:net_test_device",
-      "//bt/hci:net_test_hci",
-      "//bt/osi:net_test_osi",
-      "//bt/test/suite:net_test_bluetooth",
+      "//bt/system/device:net_test_device",
+      "//bt/system/hci:net_test_hci",
+      "//bt/system/osi:net_test_osi",
+      "//bt/system/test/suite:net_test_bluetooth",
     ]
   }
 }
 
 config("target_defaults") {
   include_dirs = [
-    "//bt",
-    "//bt/linux_include",
-    "//bt/types",
-    "//bt/include",
+    "//bt/system",
+    "//bt/system/linux_include",
+    "//bt/system/types",
+    "//bt/system/include",
 
     # For flatbuffer generated headers
-    "${root_gen_dir}/bt/gd/",
-    "${root_gen_dir}/bt/gd/dumpsys/bundler",
+    "${root_gen_dir}/bt/system/gd/",
+    "${root_gen_dir}/bt/system/gd/dumpsys/bundler",
   ]
 
   cflags = [

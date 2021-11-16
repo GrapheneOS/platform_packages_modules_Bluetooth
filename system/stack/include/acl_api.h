@@ -289,8 +289,10 @@ void btm_acl_created(const RawAddress& bda, uint16_t hci_handle,
 
 void btm_acl_removed(uint16_t handle);
 
-void acl_disconnect_from_handle(uint16_t handle, tHCI_STATUS reason);
-void acl_disconnect_after_role_switch(uint16_t conn_handle, tHCI_STATUS reason);
+void acl_disconnect_from_handle(uint16_t handle, tHCI_STATUS reason,
+                                std::string comment);
+void acl_disconnect_after_role_switch(uint16_t conn_handle, tHCI_STATUS reason,
+                                      std::string comment);
 
 bool acl_peer_supports_sniff_subrating(const RawAddress& remote_bda);
 

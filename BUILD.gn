@@ -1,5 +1,5 @@
 #
-#  Copyright 2021 Google
+#  Copyright 2020 Google, Inc.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -14,19 +14,16 @@
 #  limitations under the License.
 #
 
-source_set("BluetoothPacketSources") {
-  sources = [
-    "bit_inserter.cc",
-    "byte_inserter.cc",
-    "byte_observer.cc",
-    "fragmenting_inserter.cc",
-    "iterator.cc",
-    "packet_view.cc",
-    "raw_builder.cc",
-    "view.cc",
-  ]
+# This is the root build file for GN. GN will start processing by loading this
+# file, and recursively load all dependencies until all dependencies are either
+# resolved or known not to exist (which will cause the build to fail). So if
+# you add a new build file, there must be some path of dependencies from this
+# file to your new one or GN won't know about it.
 
-  include_dirs = [ "//bt/system/gd" ]
+group("all") {
+  deps = [ "//bt/system:all" ]
+}
 
-  configs += [ "//bt/system:target_defaults" ]
+group("tools") {
+  deps = [ "//bt/system:tools" ]
 }

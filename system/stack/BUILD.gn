@@ -21,9 +21,9 @@ static_library("crypto_toolbox") {
     "crypto_toolbox/crypto_toolbox.cc",
   ]
 
-  include_dirs = [ "//bt/" ]
+  include_dirs = [ "//bt/system/" ]
 
-  configs += [ "//bt:target_defaults" ]
+  configs += [ "//bt/system:target_defaults" ]
 }
 
 source_set("nonstandard_codecs") {
@@ -44,20 +44,20 @@ source_set("nonstandard_codecs") {
     ]
 
     include_dirs = [
-      "//bt",
-      "//bt/bta/include",
-      "//bt/btif/include",
-      "//bt/internal_include",
-      "//bt/stack/include",
-      "//bt/utils/include",
+      "//bt/system",
+      "//bt/system/bta/include",
+      "//bt/system/btif/include",
+      "//bt/system/internal_include",
+      "//bt/system/stack/include",
+      "//bt/system/utils/include",
     ]
 
-    deps = [ "//bt/gd/rust/shim:init_flags_bridge_header" ]
+    deps = [ "//bt/system/gd/rust/shim:init_flags_bridge_header" ]
 
     configs += [
-      "//bt:target_defaults",
-      "//bt:external_libldac",
-      "//bt:external_aac",
+      "//bt/system:target_defaults",
+      "//bt/system:external_libldac",
+      "//bt/system:external_aac",
     ]
   }
 }
@@ -202,34 +202,34 @@ source_set("stack") {
     "sdp",
     "smp",
     "srvc",
-    "//bt/types",
-    "//bt/linux_include",
-    "//bt/internal_include",
-    "//bt/btcore/include",
-    "//bt/vnd/include",
-    "//bt/vnd/ble",
-    "//bt/btif/include",
-    "//bt/hci/include",
-    "//bt/udrv/include",
-    "//bt/rpc/include",
-    "//bt/hcis",
-    "//bt/ctrlr/include",
-    "//bt/bta/include",
-    "//bt/bta/sys",
-    "//bt/utils/include",
-    "//bt/",
+    "//bt/system/types",
+    "//bt/system/linux_include",
+    "//bt/system/internal_include",
+    "//bt/system/btcore/include",
+    "//bt/system/vnd/include",
+    "//bt/system/vnd/ble",
+    "//bt/system/btif/include",
+    "//bt/system/hci/include",
+    "//bt/system/udrv/include",
+    "//bt/system/rpc/include",
+    "//bt/system/hcis",
+    "//bt/system/ctrlr/include",
+    "//bt/system/bta/include",
+    "//bt/system/bta/sys",
+    "//bt/system/utils/include",
+    "//bt/system/",
   ]
 
   deps = [
     ":crypto_toolbox",
     ":nonstandard_codecs",
-    "//bt:libbt-platform-protos-lite",
-    "//bt/gd/rust/shim:init_flags_bridge_header",
-    "//bt/types",
-    "//bt/types",
+    "//bt/system:libbt-platform-protos-lite",
+    "//bt/system/gd/rust/shim:init_flags_bridge_header",
+    "//bt/system/types",
+    "//bt/system/types",
   ]
 
-  configs += [ "//bt:target_defaults" ]
+  configs += [ "//bt/system:target_defaults" ]
 }
 
 if (use.test) {
@@ -246,18 +246,18 @@ if (use.test) {
       "btm",
       "include",
       "test/common",
-      "//bt/internal_include",
-      "//bt/packet/tests",
+      "//bt/system/internal_include",
+      "//bt/system/packet/tests",
     ]
 
     deps = [
-      "//bt/common",
-      "//bt/osi",
+      "//bt/system/common",
+      "//bt/system/osi",
     ]
 
     configs += [
-      "//bt:external_gmock_main",
-      "//bt:target_defaults",
+      "//bt/system:external_gmock_main",
+      "//bt/system:target_defaults",
     ]
   }
 }
@@ -271,20 +271,20 @@ if (defined(use.android) && use.android) {
 
     include_dirs = [
       "include",
-      "//bt/",
-      "//bt/bta/eatt",
-      "//bt/bta/include",
-      "//bt/bta/sys",
-      "//bt/btcore/include",
-      "//bt/embdrv/sbc/encoder/include",
-      "//bt/hci/include",
-      "//bt/internal_include",
-      "//bt/stack/a2dp",
-      "//bt/stack/btm",
-      "//bt/stack/include",
-      "//bt/udrv/include",
-      "//bt/utils/include",
-      "//bt/vnd/include",
+      "//bt/system/",
+      "//bt/system/bta/eatt",
+      "//bt/system/bta/include",
+      "//bt/system/bta/sys",
+      "//bt/system/btcore/include",
+      "//bt/system/embdrv/sbc/encoder/include",
+      "//bt/system/hci/include",
+      "//bt/system/internal_include",
+      "//bt/system/stack/a2dp",
+      "//bt/system/stack/btm",
+      "//bt/system/stack/include",
+      "//bt/system/udrv/include",
+      "//bt/system/utils/include",
+      "//bt/system/vnd/include",
     ]
 
     libs = [
@@ -297,33 +297,33 @@ if (defined(use.android) && use.android) {
 
     deps = [
       ":stack",
-      "//bt/btcore",
-      "//bt/device",
-      "//bt/embdrv/g722",
-      "//bt/embdrv/sbc",
-      "//bt/hci",
-      "//bt/main:bluetooth",
-      "//bt/osi",
-      "//bt/types",
+      "//bt/system/btcore",
+      "//bt/system/device",
+      "//bt/system/embdrv/g722",
+      "//bt/system/embdrv/sbc",
+      "//bt/system/hci",
+      "//bt/system/main:bluetooth",
+      "//bt/system/osi",
+      "//bt/system/types",
     ]
 
     configs += [
-      "//bt:external_tinyxml2",
-      "//bt:external_gmock_main",
-      "//bt:target_defaults",
+      "//bt/system:external_tinyxml2",
+      "//bt/system:external_gmock_main",
+      "//bt/system:target_defaults",
     ]
   }
 
   executable("net_test_stack_crypto_toolbox") {
     sources = [ "test/crypto_toolbox_test.cc" ]
 
-    include_dirs = [ "//bt/" ]
+    include_dirs = [ "//bt/system/" ]
 
     deps = [ ":crypto_toolbox" ]
 
     configs += [
-      "//bt:external_gmock_main",
-      "//bt:target_defaults",
+      "//bt/system:external_gmock_main",
+      "//bt/system:target_defaults",
     ]
   }
 
@@ -340,25 +340,25 @@ if (defined(use.android) && use.android) {
     ]
 
     include_dirs = [
-      "//bt/",
-      "//bt/linux_include",
-      "//bt/internal_include",
-      "//bt/btcore/include",
-      "//bt/hci/include",
-      "//bt/utils/include",
-      "//bt/bta/include",
-      "//bt/bta/sys",
-      "//bt/btcore/include",
-      "//bt/embdrv/sbc/encoder/include",
-      "//bt/hci/include",
-      "//bt/internal_include",
-      "//bt/stack/a2dp",
-      "//bt/stack/l2cap",
-      "//bt/stack/btm",
-      "//bt/stack/include",
-      "//bt/udrv/include",
-      "//bt/utils/include",
-      "//bt/vnd/include",
+      "//bt/system/",
+      "//bt/system/linux_include",
+      "//bt/system/internal_include",
+      "//bt/system/btcore/include",
+      "//bt/system/hci/include",
+      "//bt/system/utils/include",
+      "//bt/system/bta/include",
+      "//bt/system/bta/sys",
+      "//bt/system/btcore/include",
+      "//bt/system/embdrv/sbc/encoder/include",
+      "//bt/system/hci/include",
+      "//bt/system/internal_include",
+      "//bt/system/stack/a2dp",
+      "//bt/system/stack/l2cap",
+      "//bt/system/stack/btm",
+      "//bt/system/stack/include",
+      "//bt/system/udrv/include",
+      "//bt/system/utils/include",
+      "//bt/system/vnd/include",
     ]
 
     libs = [
@@ -371,14 +371,14 @@ if (defined(use.android) && use.android) {
 
     deps = [
       ":crypto_toolbox",
-      "//bt/osi",
-      "//bt/types",
+      "//bt/system/osi",
+      "//bt/system/types",
     ]
 
     configs += [
-      "//bt:external_tinyxml2",
-      "//bt:external_gmock_main",
-      "//bt:target_defaults",
+      "//bt/system:external_tinyxml2",
+      "//bt/system:external_gmock_main",
+      "//bt/system:target_defaults",
     ]
   }
 
@@ -390,11 +390,11 @@ if (defined(use.android) && use.android) {
 
     include_dirs = [
       "include",
-      "//bt/",
-      "//bt/btcore/include",
-      "//bt/hci/include",
-      "//bt/internal_include",
-      "//bt/stack/btm",
+      "//bt/system/",
+      "//bt/system/btcore/include",
+      "//bt/system/hci/include",
+      "//bt/system/internal_include",
+      "//bt/system/stack/btm",
     ]
 
     libs = [
@@ -405,11 +405,11 @@ if (defined(use.android) && use.android) {
       "z",
     ]
 
-    deps = [ "//bt/types" ]
+    deps = [ "//bt/system/types" ]
 
     configs += [
-      "//bt:external_gmock_main",
-      "//bt:target_defaults",
+      "//bt/system:external_gmock_main",
+      "//bt/system:target_defaults",
     ]
   }
 }

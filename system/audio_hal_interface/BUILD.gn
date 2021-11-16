@@ -21,17 +21,17 @@ static_library("audio_hal_interface") {
   ]
 
   include_dirs = [
-    "//bt/bta/include",
-    "//bt/btif/include",
-    "//bt/internal_include",
-    "//bt/stack/include",
-    "//bt/gd/rust/shim",
+    "//bt/system/bta/include",
+    "//bt/system/btif/include",
+    "//bt/system/internal_include",
+    "//bt/system/stack/include",
+    "//bt/system/gd/rust/shim",
   ]
 
-  configs += [ "//bt:target_defaults" ]
+  configs += [ "//bt/system:target_defaults" ]
 
   deps = [
-    "//bt/common",
-    "//bt/osi:osi",
+    "//bt/system/common",
+    "//bt/system/osi:osi",
   ]
 }
