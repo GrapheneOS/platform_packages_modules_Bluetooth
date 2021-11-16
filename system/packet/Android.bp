@@ -61,6 +61,10 @@ cc_test {
         "tests/base/packet_builder_test.cc",
         "tests/base/packet_test.cc",
     ],
+    shared_libs: [
+        "libbinder_ndk",
+        "libcrypto",
+    ],
     static_libs: [
         "libgmock",
         "lib-bt-packets",
@@ -68,4 +72,11 @@ cc_test {
     cflags: [
         "-DBUILDCFG",
     ],
+    target: {
+        android: {
+            shared_libs: [
+                "android.system.suspend.control-V1-ndk",
+            ],
+        },
+    },
 }
