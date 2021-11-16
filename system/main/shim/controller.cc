@@ -298,14 +298,12 @@ FORWARD_GETTER_IF_RUST(
 FORWARD_GETTER_IF_RUST(uint8_t, get_le_connect_list_size,
                        GetController()->GetLeConnectListSize())
 
-static uint8_t ble_resolving_list_max_size = 0;
-
 static void set_ble_resolving_list_max_size(int resolving_list_max_size) {
-  ble_resolving_list_max_size = resolving_list_max_size;
+  LOG_WARN("UNSUPPORTED");
 }
 
 static uint8_t get_le_resolving_list_size(void) {
-  return ble_resolving_list_max_size;
+  return bluetooth::shim::GetController()->GetLeResolvingListSize();
 }
 
 static uint8_t get_le_all_initiating_phys() { return data_.phy; }
