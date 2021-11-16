@@ -351,7 +351,7 @@ TEST_F(MainShimTest, connect_and_disconnect) {
 
   // Specify local disconnect request
   auto tx_disconnect_future = raw_connection->disconnect_promise_.get_future();
-  acl->DisconnectClassic(123, HCI_SUCCESS);
+  acl->DisconnectClassic(123, HCI_SUCCESS, {});
 
   // Wait for disconnect to be received
   uint16_t result = tx_disconnect_future.get();

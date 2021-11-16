@@ -17,8 +17,8 @@
 static_library("btif") {
   sources = [
     # TODO(abps) - Do we need this?
-    "//bt/audio_a2dp_hw/src/audio_a2dp_hw_utils.cc",
-    "//bt/audio_hearing_aid_hw/src/audio_hearing_aid_hw_utils.cc",
+    "//bt/system/audio_a2dp_hw/src/audio_a2dp_hw_utils.cc",
+    "//bt/system/audio_hearing_aid_hw/src/audio_hearing_aid_hw_utils.cc",
 
     # AVRCP Target Service
     "avrcp/avrcp_service.cc",
@@ -91,39 +91,39 @@ static_library("btif") {
 
   include_dirs = [
     "include",
-    "//bt/",
-    "//bt/bta/dm",
-    "//bt/linux_include",
-    "//bt/audio_a2dp_hw/include",
-    "//bt/audio_hearing_aid_hw/include",
-    "//bt/bta/include",
-    "//bt/bta/sys",
-    "//bt/btcore/include",
-    "//bt/device/include",
-    "//bt/embdrv/sbc/encoder/include",
-    "//bt/embdrv/sbc/decoder/include",
-    "//bt/gd",
-    "//bt/hci/include",
-    "//bt/stack/a2dp",
-    "//bt/stack/btm",
-    "//bt/stack/l2cap",
-    "//bt/stack/include",
-    "//bt/internal_include",
-    "//bt/udrv/include",
-    "//bt/utils/include",
-    "//bt/vnd/include",
-    "//bt/profile/avrcp",
+    "//bt/system/",
+    "//bt/system/bta/dm",
+    "//bt/system/linux_include",
+    "//bt/system/audio_a2dp_hw/include",
+    "//bt/system/audio_hearing_aid_hw/include",
+    "//bt/system/bta/include",
+    "//bt/system/bta/sys",
+    "//bt/system/btcore/include",
+    "//bt/system/device/include",
+    "//bt/system/embdrv/sbc/encoder/include",
+    "//bt/system/embdrv/sbc/decoder/include",
+    "//bt/system/gd",
+    "//bt/system/hci/include",
+    "//bt/system/stack/a2dp",
+    "//bt/system/stack/btm",
+    "//bt/system/stack/l2cap",
+    "//bt/system/stack/include",
+    "//bt/system/internal_include",
+    "//bt/system/udrv/include",
+    "//bt/system/utils/include",
+    "//bt/system/vnd/include",
+    "//bt/system/profile/avrcp",
   ]
 
   deps = [
-    "//bt:libbt-platform-protos-lite",
-    "//bt/common",
-    "//bt/gd/rust/shim:init_flags_bridge_header",
-    "//bt/profile/avrcp:profile_avrcp",
+    "//bt/system:libbt-platform-protos-lite",
+    "//bt/system/common",
+    "//bt/system/gd/rust/shim:init_flags_bridge_header",
+    "//bt/system/profile/avrcp:profile_avrcp",
   ]
 
   configs += [
-    "//bt:target_defaults",
-    "//bt:external_tinyxml2",
+    "//bt/system:target_defaults",
+    "//bt/system:external_tinyxml2",
   ]
 }

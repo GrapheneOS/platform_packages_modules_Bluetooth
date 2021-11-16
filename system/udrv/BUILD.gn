@@ -22,17 +22,17 @@ source_set("udrv") {
   include_dirs = [
     "include",
     "uipc",
-    "//bt/",
-    "//bt/internal_include",
-    "//bt/stack/include",
-    "//bt/utils/include",
+    "//bt/system/",
+    "//bt/system/internal_include",
+    "//bt/system/stack/include",
+    "//bt/system/utils/include",
   ]
 
   configs += [
-    "//bt:target_defaults",
+    "//bt/system:target_defaults",
   ]
 
   deps = [
-    "//bt/gd:gd_default_deps"
+    "//bt/system/gd:gd_default_deps"
   ]
 }

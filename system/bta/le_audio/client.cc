@@ -788,7 +788,8 @@ class LeAudioClientImpl : public LeAudioClient {
       uint16_t acl_handle =
           BTM_GetHCIConnHandle(leAudioDevice->address_, BT_TRANSPORT_LE);
       if (acl_handle != HCI_INVALID_HANDLE) {
-        acl_disconnect_from_handle(acl_handle, HCI_ERR_PEER_USER);
+        acl_disconnect_from_handle(acl_handle, HCI_ERR_PEER_USER,
+                                   "bta::le_audio::client disconnect");
         return;
       }
     }

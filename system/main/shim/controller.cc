@@ -298,101 +298,113 @@ FORWARD_GETTER_IF_RUST(
 FORWARD_GETTER_IF_RUST(uint8_t, get_le_connect_list_size,
                        GetController()->GetLeConnectListSize())
 
-static uint8_t ble_resolving_list_max_size = 0;
-
 static void set_ble_resolving_list_max_size(int resolving_list_max_size) {
-  ble_resolving_list_max_size = resolving_list_max_size;
+  LOG_WARN("UNSUPPORTED");
 }
 
 static uint8_t get_le_resolving_list_size(void) {
-  return ble_resolving_list_max_size;
+  return bluetooth::shim::GetController()->GetLeResolvingListSize();
 }
 
 static uint8_t get_le_all_initiating_phys() { return data_.phy; }
 
 static const controller_t interface = {
-    get_is_ready,
+    .get_is_ready = get_is_ready,
 
-    get_address,
-    get_bt_version,
+    .get_address = get_address,
+    .get_bt_version = get_bt_version,
 
-    get_ble_supported_states,
+    .get_ble_supported_states = get_ble_supported_states,
 
-    supports_simple_pairing,
-    supports_secure_connections,
-    supports_simultaneous_le_bredr,
-    supports_reading_remote_extended_features,
-    supports_interlaced_inquiry_scan,
-    supports_rssi_with_inquiry_results,
-    supports_extended_inquiry_response,
-    supports_role_switch,
-    supports_enhanced_setup_synchronous_connection,
-    supports_enhanced_accept_synchronous_connection,
-    supports_three_slot_packets,
-    supports_five_slot_packets,
-    supports_classic_2m_phy,
-    supports_classic_3m_phy,
-    supports_three_slot_edr_packets,
-    supports_five_slot_edr_packets,
-    supports_sco,
-    supports_hv2_packets,
-    supports_hv3_packets,
-    supports_ev3_packets,
-    supports_ev4_packets,
-    supports_ev5_packets,
-    supports_esco_2m_phy,
-    supports_esco_3m_phy,
-    supports_three_slot_esco_edr_packets,
-    supports_role_switch,
-    supports_hold_mode,
-    supports_sniff_mode,
-    supports_park_mode,
-    supports_non_flushable_pb,
-    supports_sniff_subrating,
-    supports_encryption_pause,
+    .supports_simple_pairing = supports_simple_pairing,
+    .supports_secure_connections = supports_secure_connections,
+    .supports_simultaneous_le_bredr = supports_simultaneous_le_bredr,
+    .supports_reading_remote_extended_features =
+        supports_reading_remote_extended_features,
+    .supports_interlaced_inquiry_scan = supports_interlaced_inquiry_scan,
+    .supports_rssi_with_inquiry_results = supports_rssi_with_inquiry_results,
+    .supports_extended_inquiry_response = supports_extended_inquiry_response,
+    .supports_central_peripheral_role_switch = supports_role_switch,
+    .supports_enhanced_setup_synchronous_connection =
+        supports_enhanced_setup_synchronous_connection,
+    .supports_enhanced_accept_synchronous_connection =
+        supports_enhanced_accept_synchronous_connection,
+    .supports_3_slot_packets = supports_three_slot_packets,
+    .supports_5_slot_packets = supports_five_slot_packets,
+    .supports_classic_2m_phy = supports_classic_2m_phy,
+    .supports_classic_3m_phy = supports_classic_3m_phy,
+    .supports_3_slot_edr_packets = supports_three_slot_edr_packets,
+    .supports_5_slot_edr_packets = supports_five_slot_edr_packets,
+    .supports_sco = supports_sco,
+    .supports_hv2_packets = supports_hv2_packets,
+    .supports_hv3_packets = supports_hv3_packets,
+    .supports_ev3_packets = supports_ev3_packets,
+    .supports_ev4_packets = supports_ev4_packets,
+    .supports_ev5_packets = supports_ev5_packets,
+    .supports_esco_2m_phy = supports_esco_2m_phy,
+    .supports_esco_3m_phy = supports_esco_3m_phy,
+    .supports_3_slot_esco_edr_packets = supports_three_slot_esco_edr_packets,
+    .supports_role_switch = supports_role_switch,
+    .supports_hold_mode = supports_hold_mode,
+    .supports_sniff_mode = supports_sniff_mode,
+    .supports_park_mode = supports_park_mode,
+    .supports_non_flushable_pb = supports_non_flushable_pb,
+    .supports_sniff_subrating = supports_sniff_subrating,
+    .supports_encryption_pause = supports_encryption_pause,
 
-    supports_ble,
-    supports_packet_extension,
-    supports_connection_parameters_request,
-    supports_privacy,
-    supports_ble_set_privacy_mode,
-    supports_ble_2m_phy,
-    supports_ble_coded_phy,
-    supports_extended_advertising,
-    supports_periodic_advertising,
-    supports_peripheral_initiated_feature_exchange,
-    supports_connection_parameter_request,
-    supports_periodic_advertising_sync_transfer_sender,
-    supports_periodic_advertising_sync_transfer_recipient,
-    supports_connected_iso_stream_central,
-    supports_connected_iso_stream_peripheral,
-    supports_iso_broadcaster,
-    supports_synchronized_receiver,
+    .supports_ble = supports_ble,
+    .supports_ble_packet_extension = supports_packet_extension,
+    .supports_ble_connection_parameters_request =
+        supports_connection_parameters_request,
+    .supports_ble_privacy = supports_privacy,
+    .supports_ble_set_privacy_mode = supports_ble_set_privacy_mode,
+    .supports_ble_2m_phy = supports_ble_2m_phy,
+    .supports_ble_coded_phy = supports_ble_coded_phy,
+    .supports_ble_extended_advertising = supports_extended_advertising,
+    .supports_ble_periodic_advertising = supports_periodic_advertising,
+    .supports_ble_peripheral_initiated_feature_exchange =
+        supports_peripheral_initiated_feature_exchange,
+    .supports_ble_connection_parameter_request =
+        supports_connection_parameter_request,
+    .supports_ble_periodic_advertising_sync_transfer_sender =
+        supports_periodic_advertising_sync_transfer_sender,
+    .supports_ble_periodic_advertising_sync_transfer_recipient =
+        supports_periodic_advertising_sync_transfer_recipient,
+    .supports_ble_connected_isochronous_stream_central =
+        supports_connected_iso_stream_central,
+    .supports_ble_connected_isochronous_stream_peripheral =
+        supports_connected_iso_stream_peripheral,
+    .supports_ble_isochronous_broadcaster = supports_iso_broadcaster,
+    .supports_ble_synchronized_receiver = supports_synchronized_receiver,
 
-    get_acl_buffer_length,
-    get_le_buffer_length,
-    get_iso_buffer_length,
+    .get_acl_data_size_classic = get_acl_buffer_length,
+    .get_acl_data_size_ble = get_le_buffer_length,
+    .get_iso_data_size = get_iso_buffer_length,
 
-    get_acl_packet_size_classic,
-    get_acl_packet_size_ble,
-    get_iso_packet_size,
-    get_le_suggested_default_data_length,
-    get_le_maximum_tx_data_length,
-    get_le_maximum_tx_time,
-    get_le_max_advertising_data_length,
-    get_le_supported_advertising_sets,
-    get_le_periodic_advertiser_list_size,
+    .get_acl_packet_size_classic = get_acl_packet_size_classic,
+    .get_acl_packet_size_ble = get_acl_packet_size_ble,
+    .get_iso_packet_size = get_iso_packet_size,
 
-    get_acl_buffers,
-    get_le_buffers,
-    get_iso_buffers,
+    .get_ble_default_data_packet_length = get_le_suggested_default_data_length,
+    .get_ble_maximum_tx_data_length = get_le_maximum_tx_data_length,
+    .get_ble_maximum_tx_time = get_le_maximum_tx_time,
+    .get_ble_maximum_advertising_data_length =
+        get_le_max_advertising_data_length,
+    .get_ble_number_of_supported_advertising_sets =
+        get_le_supported_advertising_sets,
+    .get_ble_periodic_advertiser_list_size =
+        get_le_periodic_advertiser_list_size,
 
-    get_le_connect_list_size,
+    .get_acl_buffer_count_classic = get_acl_buffers,
+    .get_acl_buffer_count_ble = get_le_buffers,
+    .get_iso_buffer_count = get_iso_buffers,
 
-    get_le_resolving_list_size,
-    set_ble_resolving_list_max_size,
-    get_local_supported_codecs,
-    get_le_all_initiating_phys};
+    .get_ble_acceptlist_size = get_le_connect_list_size,
+
+    .get_ble_resolving_list_max_size = get_le_resolving_list_size,
+    .set_ble_resolving_list_max_size = set_ble_resolving_list_max_size,
+    .get_local_supported_codecs = get_local_supported_codecs,
+    .get_le_all_initiating_phys = get_le_all_initiating_phys};
 
 const controller_t* bluetooth::shim::controller_get_interface() {
   static bool loaded = false;
