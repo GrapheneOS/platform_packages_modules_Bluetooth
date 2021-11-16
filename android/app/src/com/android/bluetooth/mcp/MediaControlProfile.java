@@ -192,7 +192,7 @@ public class MediaControlProfile implements MediaControlServiceCallbacks {
         }
     }
 
-    private void removePendingStateRequests(Set<PlayerStateField> fields) {
+    private synchronized void removePendingStateRequests(Set<PlayerStateField> fields) {
         if (mPendingStateRequest == null) return;
 
         for (PlayerStateField field : fields) {
@@ -263,7 +263,9 @@ public class MediaControlProfile implements MediaControlServiceCallbacks {
 
     @Override
     public void onPlayerStateRequest(PlayerStateField[] stateFields) {
-        mPendingStateRequest = Stream.of(stateFields).collect(Collectors.toList());
+        synchronized (this) {
+            mPendingStateRequest = Stream.of(stateFields).collect(Collectors.toList());
+        }
         processPendingPlayerStateRequest();
     }
 
@@ -513,70 +515,76 @@ public class MediaControlProfile implements MediaControlServiceCallbacks {
 
         Map<PlayerStateField, Object> handled_request_map = new HashMap<>();
 
-        if (mPendingStateRequest == null) return;
-
-        // Notice: If we are unable to provide the requested field it will stay queued until we are
-        //         able to provide it.
-        for (PlayerStateField settings_field : mPendingStateRequest) {
-            switch (settings_field) {
-                case PLAYBACK_STATE:
-                    if (mCurrentData.state != null) {
-                        handled_request_map.put(settings_field,
-                                playerState2McsState(mCurrentData.state.getState()));
-                    }
-                    break;
-                case TRACK_DURATION:
-                    handled_request_map.put(settings_field, getCurrentTrackDuration());
-                    break;
-                case PLAYBACK_SPEED:
-                    if (mCurrentData.state != null) {
-                        handled_request_map.put(
-                                settings_field, mCurrentData.state.getPlaybackSpeed());
-                    }
-                    break;
-                case SEEKING_SPEED:
-                    float seeking_speed = 1.0f;
-                    if (mCurrentData.state != null) {
-                        if ((mCurrentData.state.getState() == PlaybackState.STATE_FAST_FORWARDING)
-                                || (mCurrentData.state.getState()
-                                        == PlaybackState.STATE_REWINDING)) {
-                            seeking_speed = mCurrentData.state.getPlaybackSpeed();
+        synchronized (this) {
+            if (mPendingStateRequest == null) return;
+            // Notice: If we are unable to provide the requested field it will stay queued until we
+            //         are able to provide it.
+            for (PlayerStateField settings_field : mPendingStateRequest) {
+                switch (settings_field) {
+                    case PLAYBACK_STATE:
+                        if (mCurrentData.state != null) {
+                            handled_request_map.put(settings_field,
+                                    playerState2McsState(mCurrentData.state.getState()));
                         }
-                    }
+                        break;
+                    case TRACK_DURATION:
+                        handled_request_map.put(settings_field, getCurrentTrackDuration());
+                        break;
+                    case PLAYBACK_SPEED:
+                        if (mCurrentData.state != null) {
+                            handled_request_map.put(
+                                    settings_field, mCurrentData.state.getPlaybackSpeed());
+                        }
+                        break;
+                    case SEEKING_SPEED:
+                        float seeking_speed = 1.0f;
+                        if (mCurrentData.state != null) {
+                            if ((mCurrentData.state.getState()
+                                    == PlaybackState.STATE_FAST_FORWARDING)
+                                    || (mCurrentData.state.getState()
+                                            == PlaybackState.STATE_REWINDING)) {
+                                seeking_speed = mCurrentData.state.getPlaybackSpeed();
+                            }
+                        }
 
-                    handled_request_map.put(settings_field, seeking_speed);
-                    break;
-                case PLAYING_ORDER:
-                    handled_request_map.put(settings_field, getCurrentPlayerPlayingOrder());
-                    break;
-                case TRACK_POSITION:
-                    if (mCurrentData.state != null) {
-                        handled_request_map.put(
-                                settings_field, getDriftCorrectedTrackPosition(mCurrentData.state));
-                    }
-                    break;
-                case PLAYER_NAME:
-                    String player_name = getCurrentPlayerName();
-                    if (player_name != null) handled_request_map.put(settings_field, player_name);
-                    break;
-                case ICON_URL:
-                    // Not implemented
-                    break;
-                case ICON_OBJ_ID:
-                    // TODO: Implement once we have Object Transfer Service
-                    break;
-                case PLAYING_ORDER_SUPPORTED:
-                    Integer playing_order = getSupportedPlayingOrder();
-                    if (playing_order != null) {
-                        handled_request_map.put(settings_field, playing_order.intValue());
-                    }
-                    break;
-                case OPCODES_SUPPORTED:
-                    if (mCurrentData.state != null) {
-                        handled_request_map.put(settings_field,
-                                playerActions2McsSupportedOpcodes(mCurrentData.state.getActions()));
-                    }
-                    break;
+                        handled_request_map.put(settings_field, seeking_speed);
+                        break;
+                    case PLAYING_ORDER:
+                        handled_request_map.put(settings_field, getCurrentPlayerPlayingOrder());
+                        break;
+                    case TRACK_POSITION:
+                        if (mCurrentData.state != null) {
+                            handled_request_map.put(
+                                    settings_field, getDriftCorrectedTrackPosition(
+                                            mCurrentData.state));
+                        }
+                        break;
+                    case PLAYER_NAME:
+                        String player_name = getCurrentPlayerName();
+                        if (player_name != null) {
+                            handled_request_map.put(settings_field, player_name);
+                        }
+                        break;
+                    case ICON_URL:
+                        // Not implemented
+                        break;
+                    case ICON_OBJ_ID:
+                        // TODO: Implement once we have Object Transfer Service
+                        break;
+                    case PLAYING_ORDER_SUPPORTED:
+                        Integer playing_order = getSupportedPlayingOrder();
+                        if (playing_order != null) {
+                            handled_request_map.put(settings_field, playing_order.intValue());
+                        }
+                        break;
+                    case OPCODES_SUPPORTED:
+                        if (mCurrentData.state != null) {
+                            handled_request_map.put(settings_field,
+                                    playerActions2McsSupportedOpcodes(
+                                            mCurrentData.state.getActions()));
+                        }
+                        break;
+                }
             }
         }
 
@@ -588,10 +596,12 @@ public class MediaControlProfile implements MediaControlServiceCallbacks {
         }
 
         if (DBG) {
-            if (mPendingStateRequest != null && !mPendingStateRequest.isEmpty()) {
-                Log.w(TAG, "MCS service state fields left unhandled: ");
-                for (PlayerStateField item : mPendingStateRequest) {
-                    Log.w(TAG, "   > " + item);
+            synchronized (this) {
+                if (mPendingStateRequest != null && !mPendingStateRequest.isEmpty()) {
+                    Log.w(TAG, "MCS service state fields left unhandled: ");
+                    for (PlayerStateField item : mPendingStateRequest) {
+                        Log.w(TAG, "   > " + item);
+                    }
                 }
             }
         }
