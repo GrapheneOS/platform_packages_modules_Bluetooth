@@ -165,7 +165,7 @@ interface IBluetoothGatt {
     void sendResponse(in int serverIf, in String address, in int requestId,
                             in int status, in int offset, in byte[] value, in AttributionSource attributionSource);
     @JavaPassthrough(annotation="@android.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)")
-    void sendNotification(in int serverIf, in String address, in int handle,
+    int sendNotification(in int serverIf, in String address, in int handle,
                             in boolean confirm, in byte[] value, in AttributionSource attributionSource);
     @JavaPassthrough(annotation="@android.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)")
     void disconnectAll(in AttributionSource attributionSource);
