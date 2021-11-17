@@ -14,20 +14,28 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from blueberry.tests.gd.cert import gd_base_test
-from google.protobuf import empty_pb2 as empty_proto
-from mobly import test_runner
 
+class Capture(object):
+    """
+    Wrap a match function and use in its place, to capture the value
+    that matched. Specify an optional |capture_fn| to transform the
+    captured value.
+    """
 
-class ShimTestBb(gd_base_test.GdBaseTestClass):
+    def __init__(self, match_fn, capture_fn=None):
+        self._match_fn = match_fn
+        self._capture_fn = capture_fn
+        self._value = None
 
-    def setup_class(self):
-        gd_base_test.GdBaseTestClass.setup_class(self, dut_module='SHIM', cert_module='SHIM')
+    def __call__(self, obj):
+        if self._match_fn(obj) != True:
+            return False
 
-    def test_dumpsys(self):
-        result = self.cert.shim.Dump(empty_proto.Empty())
-        result = self.dut.shim.Dump(empty_proto.Empty())
+        if self._capture_fn is not None:
+            self._value = self._capture_fn(obj)
+        else:
+            self._value = obj
+        return True
 
-
-if __name__ == '__main__':
-    test_runner.main()
+    def get(self):
+        return self._value
