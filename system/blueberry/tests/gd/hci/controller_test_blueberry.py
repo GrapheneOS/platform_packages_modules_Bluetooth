@@ -14,24 +14,45 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+import time
+
 from blueberry.tests.gd.cert import gd_base_test
-from hci.cert.controller_test_lib import ControllerTestBase
+from blueberry.tests.gd.cert.truth import assertThat
+from bluetooth_packets_python3 import hci_packets
+from google.protobuf import empty_pb2 as empty_proto
+from hci.facade import controller_facade_pb2 as controller_facade
 from mobly import test_runner
 
 
-class ControllerTestBb(gd_base_test.GdBaseTestClass, ControllerTestBase):
+class ControllerTestBb(gd_base_test.GdBaseTestClass):
 
     def setup_class(self):
         gd_base_test.GdBaseTestClass.setup_class(self, dut_module='HCI_INTERFACES', cert_module='HCI_INTERFACES')
 
     def test_get_addresses(self):
-        ControllerTestBase.test_get_addresses(self, self.dut, self.cert)
+        cert_address = self.cert.hci_controller.GetMacAddressSimple()
+        dut_address = self.dut.hci_controller.GetMacAddressSimple()
+
+        assertThat(cert_address).isNotEqualTo(dut_address)
+        time.sleep(1)  # This shouldn't be needed b/149120542
 
     def test_write_local_name(self):
-        ControllerTestBase.test_write_local_name(self, self.dut, self.cert)
+        self.dut.hci_controller.WriteLocalName(controller_facade.NameMsg(name=b'ImTheDUT'))
+        self.cert.hci_controller.WriteLocalName(controller_facade.NameMsg(name=b'ImTheCert'))
+        cert_name = self.cert.hci_controller.GetLocalNameSimple()
+        dut_name = self.dut.hci_controller.GetLocalNameSimple()
+
+        assertThat(dut_name).isEqualTo(b'ImTheDUT')
+        assertThat(cert_name).isEqualTo(b'ImTheCert')
 
     def test_extended_advertising_support(self):
-        ControllerTestBase.test_extended_advertising_support(self, self.dut, self.cert)
+        extended_advertising_supported = self.dut.hci_controller.SupportsBleExtendedAdvertising(empty_proto.Empty())
+        if extended_advertising_supported.supported:
+            number_of_sets = self.dut.hci_controller.GetLeNumberOfSupportedAdvertisingSets(empty_proto.Empty())
+            assertThat(number_of_sets.value).isGreaterThan(5)  # Android threshold for CTS
+            supported = self.dut.hci_controller.IsSupportedCommand(
+                controller_facade.OpCodeMsg(op_code=int(hci_packets.OpCode.LE_SET_EXTENDED_ADVERTISING_PARAMETERS)))
+            assertThat(supported.supported).isEqualTo(True)
 
 
 if __name__ == '__main__':
