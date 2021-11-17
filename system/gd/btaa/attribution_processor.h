@@ -55,6 +55,7 @@ class AttributionProcessor {
   void OnBtaaPackets(std::vector<BtaaHciPacket> btaa_packets);
   void OnWakelockReleased(uint32_t duration_ms);
   void OnWakeup();
+  void NotifyActivityAttributionInfo(int uid, const std::string& package_name, const std::string& device_address);
   void Dump(
       std::promise<flatbuffers::Offset<ActivityAttributionData>> promise, flatbuffers::FlatBufferBuilder* fb_builder);
 
