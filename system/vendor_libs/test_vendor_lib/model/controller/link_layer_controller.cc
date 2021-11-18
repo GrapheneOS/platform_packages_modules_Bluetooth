@@ -1285,6 +1285,13 @@ void LinkLayerController::IncomingLeAdvertisementPacket(
     SendLeLinkLayerPacket(std::move(to_send));
   }
 
+  if (!le_connect_) {
+    return;
+  }
+  if (!(adv_type == model::packets::AdvertisementType::ADV_IND ||
+        adv_type == model::packets::AdvertisementType::ADV_DIRECT_IND)) {
+    return;
+  }
   Address resolved_address = address;
   uint8_t resolved_address_type = static_cast<uint8_t>(address_type);
   bool resolved = false;
@@ -1303,10 +1310,8 @@ void LinkLayerController::IncomingLeAdvertisementPacket(
   }
 
   // Connect
-  if ((le_connect_ && le_peer_address_ == address &&
-       le_peer_address_type_ == static_cast<uint8_t>(address_type) &&
-       (adv_type == model::packets::AdvertisementType::ADV_IND ||
-        adv_type == model::packets::AdvertisementType::ADV_DIRECT_IND)) ||
+  if ((le_peer_address_ == address &&
+       le_peer_address_type_ == static_cast<uint8_t>(address_type)) ||
       (LeConnectListContainsDevice(address,
                                    static_cast<uint8_t>(address_type))) ||
       (resolved &&
