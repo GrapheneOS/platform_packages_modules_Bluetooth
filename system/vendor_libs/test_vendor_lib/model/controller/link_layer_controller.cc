@@ -3301,21 +3301,37 @@ ErrorCode LinkLayerController::SetLeExtendedAdvertisingEnable(
   return ErrorCode::SUCCESS;
 }
 
-bool LinkLayerController::ConnectListBusy() {
-  if (le_connect_) LOG_INFO("le_connect_");
-  if (le_scan_enable_ != bluetooth::hci::OpCode::NONE)
-    LOG_INFO("le_scan_enable");
-  for (auto advertiser : advertisers_)
-    if (advertiser.IsEnabled()) {
-      LOG_INFO("Advertising");
+bool LinkLayerController::ListBusy(uint16_t ignore) {
+  if (le_connect_) {
+    LOG_INFO("le_connect_");
+    if (!(ignore & DeviceProperties::kLeListIgnoreConnections)) {
       return true;
     }
-  return le_connect_ || le_scan_enable_ != bluetooth::hci::OpCode::NONE;
+  }
+  if (le_scan_enable_ != bluetooth::hci::OpCode::NONE) {
+    LOG_INFO("le_scan_enable");
+    if (!(ignore & DeviceProperties::kLeListIgnoreScanEnable)) {
+      return true;
+    }
+  }
+  for (auto advertiser : advertisers_) {
+    if (advertiser.IsEnabled()) {
+      LOG_INFO("Advertising");
+      if (!(ignore & DeviceProperties::kLeListIgnoreAdvertising)) {
+        return true;
+      }
+    }
+  }
+  // TODO: Add HCI_LE_Periodic_Advertising_Create_Sync
+  return false;
+}
+
+bool LinkLayerController::ConnectListBusy() {
+  return ListBusy(properties_.GetLeConnectListIgnoreReasons());
 }
 
 bool LinkLayerController::ResolvingListBusy() {
-  return ConnectListBusy();  // TODO: Add
-                             // HCI_LE_Periodic_Advertising_Create_Sync
+  return ListBusy(properties_.GetLeResolvingListIgnoreReasons());
 }
 
 ErrorCode LinkLayerController::LeConnectListRemoveDevice(Address addr,
