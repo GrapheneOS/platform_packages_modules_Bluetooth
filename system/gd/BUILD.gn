@@ -132,6 +132,6 @@ packetgen_headers("BluetoothGeneratedPackets_h") {
 packetgen_rust("BluetoothGeneratedPackets_rust") {
   sources = [ "hci/hci_packets.pdl" ]
 
-  include = "bt/gd"
+  include = "system/gd"
   source_root = "../.."
 }
