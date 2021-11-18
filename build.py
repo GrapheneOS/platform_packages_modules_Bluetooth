@@ -511,19 +511,18 @@ class Bootstrap():
         This will check out all the git repos and symlink everything correctly.
         """
 
-        # If already set up, exit early
+        # Create all directories we will need to use
+        for dirpath in [self.git_dir, self.staging_dir, self.output_dir, self.external_dir]:
+            os.makedirs(dirpath, exist_ok=True)
+
+        # If already set up, only update platform2
         if os.path.isfile(self.dir_setup_complete):
             print('{} already set-up. Updating instead.'.format(self.base_dir))
             self._update_platform2()
-            return
-
-        # Create all directories we will need to use
-        for dirpath in [self.git_dir, self.staging_dir, self.output_dir, self.external_dir]:
-            os.makedirs(dirpath)
-
-        # Check out all repos in git directory
-        for repo in BOOTSTRAP_GIT_REPOS.values():
-            subprocess.check_call(['git', 'clone', repo], cwd=self.git_dir)
+        else:
+            # Check out all repos in git directory
+            for repo in BOOTSTRAP_GIT_REPOS.values():
+                subprocess.check_call(['git', 'clone', repo], cwd=self.git_dir)
 
         # Symlink things
         symlinks = [
@@ -537,6 +536,7 @@ class Bootstrap():
         # Create symlinks
         for pairs in symlinks:
             (src, dst) = pairs
+            os.unlink(dst)
             os.symlink(src, dst)
 
         # Write to setup complete file so we don't repeat this step
