@@ -34,6 +34,7 @@ import shutil
 import six
 import subprocess
 import sys
+import tarfile
 import time
 
 # Use flags required by common-mk (find -type f | grep -nE 'use[.]' {})
@@ -185,6 +186,7 @@ class HostBuild():
         self.platform_dir = os.path.join(self.bootstrap_dir, 'staging')
         self.sysroot = self.args.sysroot
         self.libdir = self.args.libdir
+        self.install_dir = os.path.join(self.output_dir, 'install')
 
         # If default target isn't set, build everything
         self.target = 'all'
@@ -415,10 +417,6 @@ class HostBuild():
         """ Build rust artifacts in an already prepared environment.
         """
         self._rust_build()
-        rust_dir = os.path.join(self._gn_default_output(), 'rust')
-        if os.path.exists(rust_dir):
-            shutil.rmtree(rust_dir)
-        shutil.copytree(os.path.join(self.output_dir, 'debug'), rust_dir)
 
     def _target_main(self):
         """ Build the main GN artifacts in an already prepared environment.
@@ -438,12 +436,70 @@ class HostBuild():
                 cwd=os.path.join(self.output_dir),
                 env=self.env)
 
+    def _target_install(self):
+        """ Installs files required to run Floss to install directory.
+        """
+        # First make the install directory
+        prefix = self.install_dir
+        os.makedirs(prefix, exist_ok=True)
+
+        # Next save the cwd and change to install directory
+        last_cwd = os.getcwd()
+        os.chdir(prefix)
+
+        bindir = os.path.join(self.output_dir, 'debug')
+        srcdir = os.path.dirname(__file__)
+
+        install_map = [
+            {
+                'src': os.path.join(bindir, 'btadapterd'),
+                'dst': 'usr/libexec/bluetooth/btadapterd',
+                'strip': True
+            },
+            {
+                'src': os.path.join(bindir, 'btmanagerd'),
+                'dst': 'usr/libexec/bluetooth/btmanagerd',
+                'strip': True
+            },
+            {
+                'src': os.path.join(bindir, 'btclient'),
+                'dst': 'usr/local/bin/btclient',
+                'strip': True
+            },
+        ]
+
+        for v in install_map:
+            src, partial_dst, strip = (v['src'], v['dst'], v['strip'])
+            dst = os.path.join(prefix, partial_dst)
+
+            # Create dst directory first and copy file there
+            os.makedirs(os.path.dirname(dst), exist_ok=True)
+            print('Installing {}'.format(dst))
+            shutil.copy(src, dst)
+
+            # Binary should be marked for strip and no-strip option shouldn't be
+            # set. No-strip is useful while debugging.
+            if strip and not self.args.no_strip:
+                self.run_command('install', ['llvm-strip', dst])
+
+        # Put all files into a tar.gz for easier installation
+        tar_location = os.path.join(prefix, 'floss.tar.gz')
+        with tarfile.open(tar_location, 'w:gz') as tar:
+            for v in install_map:
+                tar.add(v['dst'])
+
+        print('Tarball created at {}'.format(tar_location))
+
     def _target_clean(self):
         """ Delete the output directory entirely.
         """
         shutil.rmtree(self.output_dir)
+
         # Remove Cargo.lock that may have become generated
-        os.remove(os.path.join(self.platform_dir, 'bt', 'Cargo.lock'))
+        try:
+            os.remove(os.path.join(self.platform_dir, 'bt', 'Cargo.lock'))
+        except FileNotFoundError:
+            pass
 
     def _target_all(self):
         """ Build all common targets (skipping test and clean).
@@ -470,6 +526,8 @@ class HostBuild():
             self._target_test()
         elif self.target == 'clean':
             self._target_clean()
+        elif self.target == 'install':
+            self._target_install()
         elif self.target == 'all':
             self._target_all()
 
@@ -698,6 +756,8 @@ if __name__ == '__main__':
         default=False,
         action='store_true')
     parser.add_argument('--no-clang', help='Use clang compiler.', default=False, action='store_true')
+    parser.add_argument(
+        '--no-strip', help='Skip stripping binaries during install.', default=False, action='store_true')
     parser.add_argument('--use', help='Set a specific use flag.')
     parser.add_argument('--notest', help="Don't compile test code.", default=False, action='store_true')
     parser.add_argument('--target', help='Run specific build target')
