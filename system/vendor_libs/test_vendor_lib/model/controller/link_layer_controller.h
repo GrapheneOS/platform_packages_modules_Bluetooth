@@ -174,6 +174,8 @@ class LinkLayerController {
                               uint16_t connection_latency,
                               uint16_t supervision_timeout);
 
+  bool ListBusy(uint16_t ignore_mask);
+
   bool ConnectListBusy();
   ErrorCode LeConnectListClear();
   ErrorCode LeConnectListAddDevice(Address addr, uint8_t addr_type);
