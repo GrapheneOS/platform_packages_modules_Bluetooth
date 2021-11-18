@@ -368,6 +368,18 @@ class DeviceProperties {
   // Specification Version 4.2, Volume 2, Part E, Section 7.8.41
   uint8_t GetLeResolvingListSize() const { return le_resolving_list_size_; }
 
+  // Workaround for misbehaving stacks
+  static constexpr uint8_t kLeListIgnoreScanEnable = 0x1;
+  static constexpr uint8_t kLeListIgnoreConnections = 0x2;
+  static constexpr uint8_t kLeListIgnoreAdvertising = 0x4;
+
+  uint16_t GetLeResolvingListIgnoreReasons() const {
+    return le_resolving_list_ignore_reasons_;
+  }
+  uint16_t GetLeConnectListIgnoreReasons() const {
+    return le_connect_list_ignore_reasons_;
+  }
+
   // Vendor-specific commands
   const std::vector<uint8_t>& GetLeVendorCap() const {
     return le_vendor_cap_;
@@ -425,6 +437,10 @@ class DeviceProperties {
   uint8_t le_advertisement_type_{};
   std::vector<uint8_t> le_advertisement_;
   std::vector<uint8_t> le_scan_response_;
+
+  // LE Workarounds
+  uint16_t le_connect_list_ignore_reasons_{0};
+  uint16_t le_resolving_list_ignore_reasons_{0};
 
   // ISO
   uint16_t iso_data_packet_length_{1021};
