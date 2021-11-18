@@ -78,22 +78,16 @@ $(bluetooth_cert_src_and_bin_zip): $(SOONG_ZIP) $(LOCAL_cert_test_sources) \
 LOCAL_cert_generated_py_zip := \
 	$(SOONG_OUT_DIR)/.intermediates/packages/modules/Bluetooth/system/gd/BluetoothFacadeAndCertGeneratedStub_py/gen/bluetooth_cert_generated_py.zip
 
-LOCAL_acts_zip := $(HOST_OUT)/acts-dist/acts.zip
-
 bluetooth_cert_tests_py_package_zip := \
 	$(call intermediates-dir-for,PACKAGING,bluetooth_cert_tests_py_package,HOST)/bluetooth_cert_tests.zip
 
 $(bluetooth_cert_tests_py_package_zip): PRIVATE_cert_src_and_bin_zip := $(bluetooth_cert_src_and_bin_zip)
-$(bluetooth_cert_tests_py_package_zip): PRIVATE_acts_zip := $(LOCAL_acts_zip)
 $(bluetooth_cert_tests_py_package_zip): PRIVATE_cert_generated_py_zip := $(LOCAL_cert_generated_py_zip)
-$(bluetooth_cert_tests_py_package_zip): $(SOONG_ZIP) $(LOCAL_acts_zip) \
+$(bluetooth_cert_tests_py_package_zip): $(SOONG_ZIP) \
 		$(bluetooth_cert_src_and_bin_zip) $(bluetooth_cert_generated_py_zip)
 	@echo "Packaging Bluetooth Cert Tests into $@"
 	@rm -rf $(dir $@)bluetooth_cert_tests
-	@rm -rf $(dir $@)acts
 	@mkdir -p $(dir $@)bluetooth_cert_tests
-	@mkdir -p $(dir $@)acts
-	$(hide) unzip -o -q $(PRIVATE_acts_zip) "tools/test/connectivity/acts/framework/*" -d $(dir $@)acts
 	$(hide) unzip -o -q $(PRIVATE_cert_src_and_bin_zip) -d $(dir $@)bluetooth_cert_tests
 	$(hide) unzip -o -q $(PRIVATE_cert_generated_py_zip) -d $(dir $@)bluetooth_cert_tests
 	# Make all subdirectory of gd Python pacakages except lib64 and target
@@ -102,8 +96,6 @@ $(bluetooth_cert_tests_py_package_zip): $(SOONG_ZIP) $(LOCAL_acts_zip) \
 					-not -path "$(dir $@)bluetooth_cert_tests/lib64*"` \
 			; do (touch -a $$f/__init__.py) ; done
 	$(hide) $(SOONG_ZIP) -d -o $@ -C $(dir $@)bluetooth_cert_tests -D $(dir $@)bluetooth_cert_tests \
-		-P acts_framework \
-		-C $(dir $@)acts/tools/test/connectivity/acts/framework -D $(dir $@)acts/tools/test/connectivity/acts/framework \
 		-P blueberry -C packages/modules/Bluetooth/system/blueberry -D packages/modules/Bluetooth/system/blueberry \
 		-P llvm_binutils -C $(LLVM_PREBUILTS_BASE)/linux-x86/$(LLVM_PREBUILTS_VERSION) \
 		-f $(LLVM_PREBUILTS_BASE)/linux-x86/$(LLVM_PREBUILTS_VERSION)/bin/llvm-cov \
