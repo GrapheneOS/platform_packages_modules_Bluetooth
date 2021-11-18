@@ -117,6 +117,10 @@ DeviceProperties::DeviceProperties(const std::string& file_name)
     }
   }
   ParseHex64(root["LeSupportedFeatures"], &le_supported_features_);
+  ParseUint16t(root["LeConnectListIgnoreReasons"],
+               &le_connect_list_ignore_reasons_);
+  ParseUint16t(root["LeResolvingListIgnoreReasons"],
+               &le_resolving_list_ignore_reasons_);
 }
 
 }  // namespace test_vendor_lib
