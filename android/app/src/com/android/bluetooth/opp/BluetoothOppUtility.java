@@ -444,8 +444,31 @@ public class BluetoothOppUtility {
             Log.e(TAG, "Not a file URI: " + uri);
             return false;
         }
-        final File file = new File(uri.getCanonicalUri().getPath());
-        return isSameOrSubDirectory(Environment.getExternalStorageDirectory(), file);
+
+        if ("file".equals(uri.getScheme())) {
+            String canonicalPath;
+            try {
+                canonicalPath = new File(uri.getPath()).getCanonicalPath();
+            } catch (IOException e) {
+                canonicalPath = uri.getPath();
+            }
+            File file = new File(canonicalPath);
+            //if emulated
+            if (Environment.isExternalStorageEmulated()) {
+                //Gets legacy external storage path
+                final String legacyPath = new File(
+                        System.getenv("EXTERNAL_STORAGE")).toString();
+                // Splice in user-specific path when legacy path is found
+                if (canonicalPath.startsWith(legacyPath)) {
+                    file = new File(
+                            Environment.getExternalStorageDirectory().toString(),
+                            canonicalPath.substring(legacyPath.length() + 1));
+                }
+            }
+            return isSameOrSubDirectory(Environment.getExternalStorageDirectory(), file);
+        }
+        return isSameOrSubDirectory(Environment.getExternalStorageDirectory(),
+                new File(uri.getPath()));
     }
 
     static boolean isForbiddenContent(Uri uri) {
