@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-#   Copyright 2020 - The Android Open Source Project
+#   Copyright 2019 - The Android Open Source Project
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -14,20 +14,26 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from blueberry.tests.gd.cert import gd_base_test
-from google.protobuf import empty_pb2 as empty_proto
-from mobly import test_runner
+from abc import ABC, abstractmethod
 
 
-class ShimTestBb(gd_base_test.GdBaseTestClass):
+class Closable(ABC):
 
-    def setup_class(self):
-        gd_base_test.GdBaseTestClass.setup_class(self, dut_module='SHIM', cert_module='SHIM')
+    def __enter__(self):
+        return self
 
-    def test_dumpsys(self):
-        result = self.cert.shim.Dump(empty_proto.Empty())
-        result = self.dut.shim.Dump(empty_proto.Empty())
+    def __exit__(self, type, value, traceback):
+        self.close()
+        return traceback is None
+
+    def __del__(self):
+        self.close()
+
+    @abstractmethod
+    def close(self):
+        pass
 
 
-if __name__ == '__main__':
-    test_runner.main()
+def safeClose(closable):
+    if closable is not None:
+        closable.close()

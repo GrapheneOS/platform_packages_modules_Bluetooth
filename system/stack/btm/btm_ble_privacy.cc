@@ -657,6 +657,11 @@ static bool is_peer_identity_key_valid(const tBTM_SEC_DEV_REC& dev_rec) {
 static Octet16 get_local_irk() { return btm_cb.devcb.id_keys.irk; }
 
 void btm_ble_resolving_list_load_dev(tBTM_SEC_DEV_REC& dev_rec) {
+  if (controller_get_interface()->get_ble_resolving_list_max_size() == 0) {
+    LOG_INFO("Controller does not support RPA offloading or privacy 1.2");
+    return;
+  }
+
   if (!controller_get_interface()->supports_ble_privacy()) {
     return btm_ble_ble_unsupported_resolving_list_load_dev(&dev_rec);
   }

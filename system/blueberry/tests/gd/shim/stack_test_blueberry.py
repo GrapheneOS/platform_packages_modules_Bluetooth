@@ -15,14 +15,16 @@
 #   limitations under the License.
 
 from blueberry.tests.gd.cert import gd_base_test
-from shim.cert.stack_test_lib import StackTestBase
 from mobly import test_runner
 
 
-class StackTestBb(gd_base_test.GdBaseTestClass, StackTestBase):
+class StackTestBb(gd_base_test.GdBaseTestClass):
 
     def setup_class(self):
         super().setup_class(dut_module='SHIM', cert_module='SHIM')
+
+    def test_test(self):
+        return True
 
 
 if __name__ == '__main__':
