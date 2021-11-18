@@ -301,6 +301,14 @@ impl IBluetooth for BluetoothDBus {
         self.client_proxy.method("SetName", (name,))
     }
 
+    fn get_bluetooth_class(&self) -> u32 {
+        self.client_proxy.method("GetBluetoothClass", ())
+    }
+
+    fn set_bluetooth_class(&self, cod: u32) -> bool {
+        self.client_proxy.method("SetBluetoothClass", (cod,))
+    }
+
     fn start_discovery(&self) -> bool {
         self.client_proxy.method("StartDiscovery", ())
     }
