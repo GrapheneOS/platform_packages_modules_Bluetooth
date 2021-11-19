@@ -406,3 +406,17 @@ filegroup {
       "mock/mock_bluetooth_interface.cc",
   ],
 }
+
+filegroup {
+  name: "TestMockStackHcic",
+  srcs: [
+      "mock/mock_stack_hcic*.cc",
+  ],
+}
+
+filegroup {
+  name: "TestMockLegacyHciInterface",
+  srcs: [
+      "mock/mock_legacy_hci_iterface.cc"
+  ],
+}
