@@ -34,6 +34,7 @@
 #include "gd/common/bidi_queue.h"
 #include "gd/common/bind.h"
 #include "gd/common/strings.h"
+#include "gd/common/sync_map_count.h"
 #include "gd/hci/acl_manager.h"
 #include "gd/hci/acl_manager/acl_connection.h"
 #include "gd/hci/acl_manager/classic_acl_connection.h"
@@ -741,6 +742,9 @@ struct shim::legacy::Acl::impl {
   std::map<HciHandle, std::unique_ptr<LeShimAclConnection>>
       handle_to_le_connection_map_;
 
+  SyncMapCount<std::string> classic_acl_disconnect_reason_;
+  SyncMapCount<std::string> le_acl_disconnect_reason_;
+
   FixedQueue<std::unique_ptr<ConnectionDescriptor>> connection_history_ =
       FixedQueue<std::unique_ptr<ConnectionDescriptor>>(kConnectionHistorySize);
 
@@ -860,6 +864,7 @@ struct shim::legacy::Acl::impl {
                      base::StringPrintf("classic reason:%s comment:%s",
                                         hci_status_code_text(reason).c_str(),
                                         comment.c_str()));
+      classic_acl_disconnect_reason_.Put(comment);
     } else {
       LOG_WARN("Unable to disconnect unknown classic connection handle:0x%04x",
                handle);
@@ -881,6 +886,7 @@ struct shim::legacy::Acl::impl {
                      base::StringPrintf("Le reason:%s comment:%s",
                                         hci_status_code_text(reason).c_str(),
                                         comment.c_str()));
+      le_acl_disconnect_reason_.Put(comment);
     } else {
       LOG_WARN("Unable to disconnect unknown le connection handle:0x%04x",
                handle);
@@ -975,6 +981,20 @@ struct shim::legacy::Acl::impl {
     for (auto& entry : history) {
       LOG_DUMPSYS(fd, "%s", entry.c_str());
     }
+    if (classic_acl_disconnect_reason_.Size() > 0) {
+      LOG_DUMPSYS(fd, "Classic sources of initiated disconnects");
+      for (const auto& item :
+           classic_acl_disconnect_reason_.GetSortedHighToLow()) {
+        LOG_DUMPSYS(fd, "  %s:%zu", item.item.c_str(), item.count);
+      }
+    }
+    if (le_acl_disconnect_reason_.Size() > 0) {
+      LOG_DUMPSYS(fd, "Le sources of initiated disconnects");
+      for (const auto& item : le_acl_disconnect_reason_.GetSortedHighToLow()) {
+        LOG_DUMPSYS(fd, "  %s:%zu", item.item.c_str(), item.count);
+      }
+    }
+
     auto acceptlist = shadow_acceptlist_.GetCopy();
     LOG_DUMPSYS(fd,
                 "Shadow le accept list              size:%-3zu "
