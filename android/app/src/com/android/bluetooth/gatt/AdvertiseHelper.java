@@ -18,6 +18,7 @@ package com.android.bluetooth.gatt;
 
 import android.bluetooth.BluetoothUuid;
 import android.bluetooth.le.AdvertiseData;
+import android.bluetooth.le.TransportDiscoveryData;
 import android.os.ParcelUuid;
 import android.util.Log;
 
@@ -41,6 +42,7 @@ class AdvertiseHelper {
     private static final int LIST_32_BIT_SERVICE_SOLICITATION_UUIDS = 0x1F;
     private static final int SERVICE_DATA_32_BIT_UUID = 0X20;
     private static final int SERVICE_DATA_128_BIT_UUID = 0X21;
+    private static final int TRANSPORT_DISCOVERY_DATA = 0X26;
     private static final int MANUFACTURER_SPECIFIC_DATA = 0XFF;
 
     public static byte[] advertiseDataToBytes(AdvertiseData data, String name) {
@@ -204,6 +206,13 @@ class AdvertiseHelper {
                 ret.write(LIST_128_BIT_SERVICE_SOLICITATION_UUIDS);
                 ret.write(serviceUuids128.toByteArray(), 0, serviceUuids128.size());
             }
+        }
+
+        for (TransportDiscoveryData transportDiscoveryData : data.getTransportDiscoveryData()) {
+            ret.write(transportDiscoveryData.totalBytes() + 1);
+            ret.write(TRANSPORT_DISCOVERY_DATA);
+            ret.write(transportDiscoveryData.toByteArray(),
+                    0, transportDiscoveryData.totalBytes());
         }
         return ret.toByteArray();
     }
