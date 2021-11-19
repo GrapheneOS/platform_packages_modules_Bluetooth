@@ -132,7 +132,7 @@ class ObjectWithBehaviors(IHasBehaviors):
         self.unhandled_count += 1
 
 
-class CertSelfTestBb(base_test.BaseTestClass):
+class CertSelfTest(base_test.BaseTestClass):
 
     def setup_test(self):
         return True

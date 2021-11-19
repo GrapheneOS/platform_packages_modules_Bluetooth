@@ -24,7 +24,7 @@ from neighbor.facade import facade_pb2 as neighbor_facade
 from mobly import test_runner
 
 
-class AclManagerTestBb(gd_base_test.GdBaseTestClass):
+class AclManagerTest(gd_base_test.GdBaseTestClass):
 
     def setup_class(self):
         gd_base_test.GdBaseTestClass.setup_class(self, dut_module='HCI_INTERFACES', cert_module='HCI')

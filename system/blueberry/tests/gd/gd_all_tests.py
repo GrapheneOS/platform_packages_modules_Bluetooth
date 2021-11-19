@@ -14,33 +14,32 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from blueberry.tests.gd.cert.cert_self_test_blueberry import CertSelfTestBb
-from blueberry.tests.gd.hal.simple_hal_test_blueberry import SimpleHalTestBb
-from blueberry.tests.gd.hci.acl_manager_test_blueberry import AclManagerTestBb
-from blueberry.tests.gd.hci.controller_test_blueberry import ControllerTestBb
-from blueberry.tests.gd.hci.direct_hci_test_blueberry import DirectHciTestBb
-from blueberry.tests.gd.hci.le_acl_manager_test_blueberry import LeAclManagerTestBb
-from blueberry.tests.gd.hci.le_advertising_manager_test_blueberry import LeAdvertisingManagerTestBb
-from blueberry.tests.gd.hci.le_scanning_manager_test_blueberry import LeScanningManagerTestBb
-from blueberry.tests.gd.hci.le_scanning_with_security_test_blueberry import LeScanningWithSecurityTestBb
-from blueberry.tests.gd.iso.le_iso_test_blueberry import LeIsoTestBb
-from blueberry.tests.gd.l2cap.classic.l2cap_performance_test_blueberry import L2capPerformanceTestBb
-from blueberry.tests.gd.l2cap.classic.l2cap_test_blueberry import L2capTestBb
-from blueberry.tests.gd.l2cap.le.dual_l2cap_test_blueberry import DualL2capTestBb
-from blueberry.tests.gd.l2cap.le.le_l2cap_test_blueberry import LeL2capTestBb
-from blueberry.tests.gd.neighbor.neighbor_test_blueberry import NeighborTestBb
-from blueberry.tests.gd.security.le_security_test_blueberry import LeSecurityTestBb
-from blueberry.tests.gd.security.security_test_blueberry import SecurityTestBb
-from blueberry.tests.gd.shim.shim_test_blueberry import ShimTestBb
-from blueberry.tests.gd.shim.stack_test_blueberry import StackTestBb
+from blueberry.tests.gd.cert.cert_self_test import CertSelfTest
+from blueberry.tests.gd.hal.simple_hal_test import SimpleHalTest
+from blueberry.tests.gd.hci.acl_manager_test import AclManagerTest
+from blueberry.tests.gd.hci.controller_test import ControllerTest
+from blueberry.tests.gd.hci.direct_hci_test import DirectHciTest
+from blueberry.tests.gd.hci.le_acl_manager_test import LeAclManagerTest
+from blueberry.tests.gd.hci.le_advertising_manager_test import LeAdvertisingManagerTest
+from blueberry.tests.gd.hci.le_scanning_manager_test import LeScanningManagerTest
+from blueberry.tests.gd.hci.le_scanning_with_security_test import LeScanningWithSecurityTest
+from blueberry.tests.gd.iso.le_iso_test import LeIsoTest
+from blueberry.tests.gd.l2cap.classic.l2cap_performance_test import L2capPerformanceTest
+from blueberry.tests.gd.l2cap.classic.l2cap_test import L2capTest
+from blueberry.tests.gd.l2cap.le.dual_l2cap_test import DualL2capTest
+from blueberry.tests.gd.l2cap.le.le_l2cap_test import LeL2capTest
+from blueberry.tests.gd.neighbor.neighbor_test import NeighborTest
+from blueberry.tests.gd.security.le_security_test import LeSecurityTest
+from blueberry.tests.gd.security.security_test import SecurityTest
+from blueberry.tests.gd.shim.shim_test import ShimTest
+from blueberry.tests.gd.shim.stack_test import StackTest
 
 from mobly import suite_runner
 
 ALL_TESTS = {
-    CertSelfTestBb, SimpleHalTestBb, AclManagerTestBb, ControllerTestBb, DirectHciTestBb, LeAclManagerTestBb,
-    LeAdvertisingManagerTestBb, LeScanningManagerTestBb, LeScanningWithSecurityTestBb, LeIsoTestBb,
-    L2capPerformanceTestBb, L2capTestBb, DualL2capTestBb, LeL2capTestBb, NeighborTestBb, LeSecurityTestBb,
-    SecurityTestBb, ShimTestBb, StackTestBb
+    CertSelfTest, SimpleHalTest, AclManagerTest, ControllerTest, DirectHciTest, LeAclManagerTest,
+    LeAdvertisingManagerTest, LeScanningManagerTest, LeScanningWithSecurityTest, LeIsoTest, L2capPerformanceTest,
+    L2capTest, DualL2capTest, LeL2capTest, NeighborTest, LeSecurityTest, SecurityTest, ShimTest, StackTest
 }
 
 DISABLED_TESTS = set()

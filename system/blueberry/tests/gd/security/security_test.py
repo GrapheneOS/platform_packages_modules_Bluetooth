@@ -33,7 +33,7 @@ from security.facade_pb2 import UiMsgType
 from mobly import test_runner
 
 
-class SecurityTestBb(gd_base_test.GdBaseTestClass):
+class SecurityTest(gd_base_test.GdBaseTestClass):
     """
         Collection of tests that each sample results from
         different (unique) combinations of io capabilities, authentication requirements, and oob data.

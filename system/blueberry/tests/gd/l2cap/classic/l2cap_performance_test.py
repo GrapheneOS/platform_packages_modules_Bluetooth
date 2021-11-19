@@ -29,7 +29,7 @@ from bluetooth_packets_python3.l2cap_packets import SupervisoryFunction
 from mobly import test_runner
 
 
-class L2capPerformanceTestBb(gd_base_test.GdBaseTestClass, L2capTestBase):
+class L2capPerformanceTest(gd_base_test.GdBaseTestClass, L2capTestBase):
 
     def setup_class(self):
         gd_base_test.GdBaseTestClass.setup_class(self, dut_module='L2CAP', cert_module='HCI_INTERFACES')

@@ -34,7 +34,7 @@ from hci.facade.le_advertising_manager_facade_pb2 import AdvertisingStatus
 from mobly import test_runner
 
 
-class LeAdvertisingManagerTestBb(gd_base_test.GdBaseTestClass):
+class LeAdvertisingManagerTest(gd_base_test.GdBaseTestClass):
 
     def setup_class(self):
         gd_base_test.GdBaseTestClass.setup_class(self, dut_module='HCI_INTERFACES', cert_module='HCI')
