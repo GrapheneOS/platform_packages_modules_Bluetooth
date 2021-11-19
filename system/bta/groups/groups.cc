@@ -57,6 +57,8 @@ class DeviceGroup {
   const Uuid& GetUuid(void) const { return group_uuid_; }
 
  private:
+  friend std::ostream& operator<<(std::ostream& out,
+                                  const bluetooth::groups::DeviceGroup& value);
   int group_id_;
   Uuid group_uuid_;
   std::unordered_set<RawAddress> devices_;
@@ -261,6 +263,18 @@ class DeviceGroupsImpl : public DeviceGroups {
     return true;
   }
 
+  void Dump(int fd) {
+    std::stringstream stream;
+
+    stream << "  Num. registered clients: " << callbacks_.size() << std::endl;
+    stream << "  Groups:\n";
+    for (const auto& kv_pair : groups_) {
+      stream << kv_pair.second << std::endl;
+    }
+
+    dprintf(fd, "%s", stream.str().c_str());
+  }
+
  private:
   DeviceGroup* find_device_group(int group_id) {
     return groups_.count(group_id) ? &groups_.at(group_id) : nullptr;
@@ -350,6 +364,26 @@ void DeviceGroups::CleanUp(DeviceGroupsCallbacks* callbacks) {
     instance = nullptr;
   }
 }
+
+std::ostream& operator<<(std::ostream& out,
+                         bluetooth::groups::DeviceGroup const& group) {
+  out << "    == Group id: " << group.group_id_ << " == \n"
+      << "      Uuid: " << group.group_uuid_ << std::endl;
+  out << "      Devices:\n";
+  for (auto const& addr : group.devices_) {
+    out << "        " << addr << std::endl;
+  }
+  return out;
+}
+
+void DeviceGroups::DebugDump(int fd) {
+  dprintf(fd, "Device Groups Manager:\n");
+  if (instance)
+    instance->Dump(fd);
+  else
+    dprintf(fd, "  Not initialized \n");
+}
+
 DeviceGroups* DeviceGroups::Get() { return instance; }
 
 }  // namespace groups

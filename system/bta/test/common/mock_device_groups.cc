@@ -35,6 +35,8 @@ void bluetooth::groups::DeviceGroups::Initialize(
   mock_groups->Initialize(callbacks);
 };
 
+void bluetooth::groups::DeviceGroups::DebugDump(int) {}
+
 void bluetooth::groups::DeviceGroups::CleanUp(
     bluetooth::groups::DeviceGroupsCallbacks* callbacks) {
   LOG_ASSERT(mock_groups) << "Mock Device Groups not set!";
