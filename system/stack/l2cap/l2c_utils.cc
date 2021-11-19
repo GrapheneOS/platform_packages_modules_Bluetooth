@@ -28,7 +28,6 @@
 
 #include "btm_api.h"
 #include "device/include/controller.h"
-#include "hci/include/btsnoop.h"
 #include "l2c_int.h"
 #include "l2cdefs.h"
 #include "main/shim/l2c_api.h"
@@ -1538,9 +1537,6 @@ void l2cu_release_ccb(tL2C_CCB* p_ccb) {
 
   /* If already released, could be race condition */
   if (!p_ccb->in_use) return;
-
-  btsnoop_get_interface()->clear_l2cap_allowlist(
-      p_lcb->Handle(), p_ccb->local_cid, p_ccb->remote_cid);
 
   if (p_rcb && (p_rcb->psm != p_rcb->real_psm)) {
     BTM_SecClrServiceByPsm(p_rcb->psm);
