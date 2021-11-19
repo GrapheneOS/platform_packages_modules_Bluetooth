@@ -25,6 +25,7 @@
 
 namespace bluetooth {
 namespace hci {
+constexpr uint8_t kIsoCodingFormatTransparent = 0x03;
 constexpr uint8_t kIsoCodingFormatLc3 = 0x06;
 constexpr uint8_t kIsoCodingFormatVendorSpecific = 0xFF;
 
