@@ -178,10 +178,29 @@ struct HciLayer::impl {
                OpCodeText(op_code).c_str());
     ASSERT_LOG(waiting_command_ == op_code, "Waiting for 0x%02hx (%s), got 0x%02hx (%s)", waiting_command_,
                OpCodeText(waiting_command_).c_str(), op_code, OpCodeText(op_code).c_str());
-    ASSERT_LOG(command_queue_.front().waiting_for_status_ == is_status, "0x%02hx (%s) was not expecting %s event",
-               op_code, OpCodeText(op_code).c_str(), logging_id.c_str());
 
-    command_queue_.front().GetCallback<TResponse>()->Invoke(move(response_view));
+    bool is_vendor_specific = static_cast<int>(op_code) & (0x3f << 10);
+    CommandStatusView status_view = CommandStatusView::Create(event);
+    if (is_vendor_specific && (is_status && !command_queue_.front().waiting_for_status_) &&
+        (status_view.IsValid() && status_view.GetStatus() == ErrorCode::UNKNOWN_HCI_COMMAND)) {
+      // If this is a command status of a vendor specific command, and command complete is expected, we can't treat
+      // this as hard failure since we have no way of probing this lack of support at earlier time. Instead we let
+      // the command complete handler handle a empty Command Complete packet, which will be interpreted as invalid
+      // response.
+      CommandCompleteView command_complete_view = CommandCompleteView::Create(
+          EventView::Create(PacketView<kLittleEndian>(std::make_shared<std::vector<uint8_t>>(std::vector<uint8_t>()))));
+      command_queue_.front().GetCallback<CommandCompleteView>()->Invoke(move(command_complete_view));
+    } else {
+      ASSERT_LOG(
+          command_queue_.front().waiting_for_status_ == is_status,
+          "0x%02hx (%s) was not expecting %s event",
+          op_code,
+          OpCodeText(op_code).c_str(),
+          logging_id.c_str());
+
+      command_queue_.front().GetCallback<TResponse>()->Invoke(move(response_view));
+    }
+
     command_queue_.pop_front();
     waiting_command_ = OpCode::NONE;
     if (hci_timeout_alarm_ != nullptr) {
