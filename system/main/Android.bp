@@ -223,6 +223,7 @@ cc_test {
         ":TestMockBta",
         ":TestMockBtif",
         ":TestMockLegacyHciCommands",
+        ":TestMockLegacyHciInterface",
         ":TestMockMainShimEntry",
         ":TestMockStack",
         "shim/acl_api.cc",

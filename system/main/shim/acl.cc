@@ -1481,6 +1481,8 @@ void shim::legacy::Acl::OnLeConnectFail(hci::AddressWithType address_with_type,
   bool enhanced = true; /* TODO logging metrics only */
   tHCI_STATUS status = ToLegacyHciErrorCode(reason);
 
+  pimpl_->shadow_acceptlist_.Remove(address_with_type);
+
   TRY_POSTING_ON_MAIN(acl_interface_.connection.le.on_failed,
                       legacy_address_with_type, handle, enhanced, status);
   LOG_WARN("Connection failed le remote:%s",
