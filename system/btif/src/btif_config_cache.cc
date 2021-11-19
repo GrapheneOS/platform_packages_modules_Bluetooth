@@ -17,6 +17,7 @@
 #include "btif_config_cache.h"
 
 #include <limits>
+#include <vector>
 
 #include "stack/include/bt_octets.h"
 #include "types/raw_address.h"
