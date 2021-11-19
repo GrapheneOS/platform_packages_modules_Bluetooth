@@ -656,10 +656,8 @@ bt_status_t btif_storage_get_adapter_property(bt_property_t* property) {
         "Property:BT_PROPERTY_ADAPTER_BONDED_DEVICES",
         __func__, bonded_devices.num_devices);
 
-    if (bonded_devices.num_devices > 0) {
-      property->len = bonded_devices.num_devices * RawAddress::kLength;
-      memcpy(property->val, bonded_devices.devices, property->len);
-    }
+    property->len = bonded_devices.num_devices * RawAddress::kLength;
+    memcpy(property->val, bonded_devices.devices, property->len);
 
     /* if there are no bonded_devices, then length shall be 0 */
     return BT_STATUS_SUCCESS;
