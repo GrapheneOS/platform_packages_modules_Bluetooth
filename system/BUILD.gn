@@ -53,13 +53,11 @@ group("bluetooth") {
   #}
 #}
 
-if (host_cpu == target_cpu && host_os == target_os) {
-  group("tools") {
-    deps = [
-      "//bt/system/gd/dumpsys/bundler:bluetooth_flatbuffer_bundler",
-      "//bt/system/gd/packet/parser:bluetooth_packetgen",
-    ]
-  }
+group("tools") {
+  deps = [
+    "//bt/system/gd/dumpsys/bundler:bluetooth_flatbuffer_bundler",
+    "//bt/system/gd/packet/parser:bluetooth_packetgen",
+  ]
 }
 
 if (defined(use.android) && use.android) {
