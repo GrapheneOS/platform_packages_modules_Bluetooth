@@ -27,6 +27,7 @@ import sys
 install_requires = [
     'grpcio',
     'psutil',
+    'protobuf>=3.14.0',
 ]
 
 host_executables = [
@@ -35,20 +36,6 @@ host_executables = [
     'bluetooth_with_facades',  # rust
     'bt_topshim_facade',  # topshim
 ]
-
-
-# Need to verify acts is importable in a new Python context
-def is_acts_importable():
-    cmd = [sys.executable, '-c', 'import acts']
-    completed_process = subprocess.run(cmd, cwd=os.getcwd())
-    return completed_process.returncode == 0
-
-
-def setup_acts_for_cmd_or_die(cmd_str):
-    acts_framework_dir = os.path.abspath('acts_framework')
-    acts_setup_bin = os.path.join(acts_framework_dir, 'setup.py')
-    cmd = [sys.executable, acts_setup_bin, cmd_str]
-    subprocess.run(cmd, cwd=acts_framework_dir, check=True)
 
 
 def set_permissions_for_host_executables(outputs):
@@ -62,24 +49,15 @@ def set_permissions_for_host_executables(outputs):
 
 class InstallLocalPackagesForInstallation(install):
 
-    user_options = install.user_options + [
-        ('reuse-acts', None, "Skip ACTS installation if already installed"),
-    ]
-    boolean_options = install.boolean_options + ['reuse-acts']
-
-    def initialize_options(self):
-        install.initialize_options(self)
-        self.reuse_acts = False
-
     def run(self):
-        if self.reuse_acts and is_acts_importable():
-            self.announce('Reusing existing ACTS installation', log.WARN)
-        else:
-            self.announce('Installing ACTS library', log.WARN)
-            setup_acts_for_cmd_or_die("install")
-            self.announce('ACTS installed.', log.WARN)
-        if not is_acts_importable():
-            raise DistutilsModuleError("Cannot import acts after installation")
+        install_args = [sys.executable, '-m', 'pip', 'install']
+        subprocess.check_call(install_args + ['--upgrade', 'pip'])
+
+        for package in install_requires:
+            self.announce('Installing %s...' % package, log.INFO)
+            subprocess.check_call(install_args + ['-v', '--no-cache-dir', package])
+        self.announce('Dependencies installed.')
+
         install.run(self)
         set_permissions_for_host_executables(self.get_outputs())
 
@@ -98,12 +76,10 @@ def main():
         description="""Bluetooth Cert Tests Package""",
         # Include root package so that bluetooth_packets_python3.so can be
         # included as well
-        packages=[''] +
-        find_packages(exclude=['acts_framework', 'acts_framework.*', 'llvm_binutils', 'llvm_binutils.*']),
+        packages=[''] + find_packages(exclude=['llvm_binutils', 'llvm_binutils.*']),
         install_requires=install_requires,
         package_data={
             '': host_executables + ['*.so', 'lib64/*.so', 'target/*', 'llvm_binutils/bin/*', 'llvm_binutils/lib64/*'],
-            'cert': ['all_test_cases'],
         },
         cmdclass={
             'install': InstallLocalPackagesForInstallation,
