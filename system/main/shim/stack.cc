@@ -120,6 +120,12 @@ void Stack::StartEverything() {
 
     // Create pid since we're up and running
     CreatePidFile();
+
+    // Create the acl shim layer
+    acl_ = new legacy::Acl(
+        stack_handler_, legacy::GetAclInterface(),
+        controller_get_interface()->get_ble_acceptlist_size(),
+        controller_get_interface()->get_ble_resolving_list_max_size());
     return;
   }
 
