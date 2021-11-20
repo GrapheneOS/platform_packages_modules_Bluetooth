@@ -50,6 +50,7 @@ cc_test {
         "libflatbuffers-cpp",
         "libg722codec",
         "liblc3codec",
+        "liblc3encoder",
         "libosi",
         "libprotobuf-cpp-lite",
         "libudrv-uipc",

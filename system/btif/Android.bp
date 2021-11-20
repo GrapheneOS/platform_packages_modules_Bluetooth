@@ -244,6 +244,7 @@ cc_test {
         "libFraunhoferAAC",
         "libg722codec",
         "liblc3codec",
+        "liblc3encoder",
         "libbtdevice",
         "libbt-hci",
         "libudrv-uipc",
