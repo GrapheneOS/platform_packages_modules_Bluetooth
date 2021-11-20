@@ -16,6 +16,8 @@
 
 #define LOG_TAG "bt_shim_storage"
 
+#include <unordered_map>
+
 #include "main/shim/dumpsys.h"
 #include "main/shim/entry.h"
 #include "main/shim/shim.h"

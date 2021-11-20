@@ -24,6 +24,9 @@ group("all") {
   deps = [ "//bt/system:all" ]
 }
 
-group("tools") {
-  deps = [ "//bt/system:tools" ]
+# Tools should be built for the host target.
+if (host_cpu == target_cpu && host_os == target_os) {
+  group("tools") {
+    deps = [ "//bt/system:tools" ]
+  }
 }
