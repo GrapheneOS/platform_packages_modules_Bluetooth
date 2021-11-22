@@ -15,16 +15,18 @@
 #   limitations under the License.
 
 from blueberry.tests.gd.cert import gd_base_test
+from google.protobuf import empty_pb2 as empty_proto
 from mobly import test_runner
 
 
-class StackTestBb(gd_base_test.GdBaseTestClass):
+class ShimTest(gd_base_test.GdBaseTestClass):
 
     def setup_class(self):
-        super().setup_class(dut_module='SHIM', cert_module='SHIM')
+        gd_base_test.GdBaseTestClass.setup_class(self, dut_module='SHIM', cert_module='SHIM')
 
-    def test_test(self):
-        return True
+    def test_dumpsys(self):
+        result = self.cert.shim.Dump(empty_proto.Empty())
+        result = self.dut.shim.Dump(empty_proto.Empty())
 
 
 if __name__ == '__main__':

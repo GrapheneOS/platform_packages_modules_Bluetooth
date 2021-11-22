@@ -19,21 +19,21 @@ from blueberry.tests.gd.gd_all_tests import ALL_TESTS
 from mobly import suite_runner
 
 # TODO(b/194723246): Investigate failures to re-activate the test class.
-from blueberry.tests.gd.hci.le_scanning_manager_test_blueberry import LeScanningManagerTestBb
+from blueberry.tests.gd.hci.le_scanning_manager_test_blueberry import LeScanningManagerTest
 
 # TODO(b/194723246): Investigate failures to re-activate the test class.
-from blueberry.tests.gd.l2cap.classic.l2cap_test_blueberry import L2capTestBb
+from blueberry.tests.gd.l2cap.classic.l2cap_test_blueberry import L2capTest
 
 # TODO(b/194723246): Investigate failures to re-activate the test class.
-from blueberry.tests.gd.l2cap.le.le_l2cap_test_blueberry import LeL2capTestBb
+from blueberry.tests.gd.l2cap.le.le_l2cap_test_blueberry import LeL2capTest
 
 # TODO(b/194723246): Investigate failures to re-activate the test class.
-from blueberry.tests.gd.security.le_security_test_blueberry import LeSecurityTestBb
+from blueberry.tests.gd.security.le_security_test_blueberry import LeSecurityTest
 
 # TODO(b/194723246): Investigate failures to re-activate the test class.
-from blueberry.tests.gd.security.security_test_blueberry import SecurityTestBb
+from blueberry.tests.gd.security.security_test_blueberry import SecurityTest
 
-DISABLED_TESTS = {LeScanningManagerTestBb, L2capTestBb, LeL2capTestBb, LeSecurityTestBb, SecurityTestBb}
+DISABLED_TESTS = {LeScanningManagerTest, L2capTest, LeL2capTest, LeSecurityTest, SecurityTest}
 
 ENABLED_TESTS = list(ALL_TESTS - DISABLED_TESTS)
 

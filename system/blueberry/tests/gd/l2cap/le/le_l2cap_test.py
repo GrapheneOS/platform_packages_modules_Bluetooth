@@ -34,7 +34,7 @@ from mobly import test_runner
 SAMPLE_PACKET = bt_packets.RawBuilder([0x19, 0x26, 0x08, 0x17])
 
 
-class LeL2capTestBb(gd_base_test.GdBaseTestClass):
+class LeL2capTest(gd_base_test.GdBaseTestClass):
 
     def setup_class(self):
         gd_base_test.GdBaseTestClass.setup_class(self, dut_module='L2CAP', cert_module='HCI_INTERFACES')
