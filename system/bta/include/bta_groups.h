@@ -65,6 +65,7 @@ class DeviceGroups {
   static bool GetForStorage(const RawAddress& addr, std::vector<uint8_t>& out);
   static void CleanUp(DeviceGroupsCallbacks* callbacks);
   static DeviceGroups* Get();
+  static void DebugDump(int fd);
   /** To add to the existing group, group_id needs to be provided.
    *  Otherwise a new group for the given context uuid will be created.
    */
