@@ -27,7 +27,7 @@ from facade import common_pb2 as common
 from mobly import test_runner
 
 
-class LeScanningWithSecurityTestBb(gd_base_test.GdBaseTestClass):
+class LeScanningWithSecurityTest(gd_base_test.GdBaseTestClass):
 
     def setup_class(self):
         gd_base_test.GdBaseTestClass.setup_class(self, dut_module='SECURITY', cert_module='HCI_INTERFACES')
