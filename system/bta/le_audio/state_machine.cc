@@ -966,14 +966,16 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
   }
 
   static void PrepareDataPath(const struct ase* ase) {
-    /* TODO Handle HW offloading as we handle here only HCI for now */
+    /* TODO Handle HW offloading as we handle here only HCI for now, Need
+     * to set coding_format based on the codec location, force SW encode
+     * for now */
     bluetooth::hci::iso_manager::iso_data_path_params param = {
         .data_path_dir =
             ase->direction == le_audio::types::kLeAudioDirectionSink
                 ? bluetooth::hci::iso_manager::kIsoDataPathDirectionIn
                 : bluetooth::hci::iso_manager::kIsoDataPathDirectionOut,
         .data_path_id = bluetooth::hci::iso_manager::kIsoDataPathHci,
-        .codec_id_format = ase->codec_id.coding_format,
+        .codec_id_format = bluetooth::hci::kIsoCodingFormatTransparent,
         .codec_id_company = ase->codec_id.vendor_company_id,
         .codec_id_vendor = ase->codec_id.vendor_codec_id,
         .controller_delay = 0x00000000,
