@@ -122,7 +122,7 @@ class L2capTestBase():
         return (dut_channel, cert_channel)
 
 
-class L2capTestBb(gd_base_test.GdBaseTestClass, L2capTestBase):
+class L2capTest(gd_base_test.GdBaseTestClass, L2capTestBase):
 
     def setup_class(self):
         gd_base_test.GdBaseTestClass.setup_class(self, dut_module='L2CAP', cert_module='HCI_INTERFACES')
