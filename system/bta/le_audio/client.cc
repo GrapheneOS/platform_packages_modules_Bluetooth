@@ -3030,6 +3030,8 @@ void LeAudioClient::Initialize(
 }
 
 void LeAudioClient::DebugDump(int fd) {
+  DeviceGroups::DebugDump(fd);
+
   dprintf(fd, "LeAudio Manager: \n");
   if (instance)
     instance->Dump(fd);
