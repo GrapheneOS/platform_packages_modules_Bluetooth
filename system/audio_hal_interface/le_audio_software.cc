@@ -507,6 +507,20 @@ void LeAudioClientInterface::Source::SetRemoteDelay(uint16_t delay_report_ms) {
 void LeAudioClientInterface::Source::StartSession() {
   LOG(INFO) << __func__;
   if (!is_source_hal_enabled()) return;
+
+  if (HalVersionManager::GetHalVersion() ==
+      BluetoothAudioHalVersion::VERSION_2_1) {
+    AudioConfiguration_2_1 audio_config;
+    audio_config.pcmConfig(le_audio_source->LeAudioGetSelectedHalPcmConfig());
+    if (!le_audio_source_hal_clientinterface->UpdateAudioConfig_2_1(
+            audio_config)) {
+      LOG(ERROR) << __func__ << ": cannot update audio config to HAL";
+      return;
+    }
+    le_audio_source_hal_clientinterface->StartSession_2_1();
+    return;
+  }
+
   AudioConfiguration_2_2 audio_config;
   audio_config.pcmConfig(le_audio_source->LeAudioGetSelectedHalPcmConfig());
   if (!le_audio_source_hal_clientinterface->UpdateAudioConfig_2_2(
