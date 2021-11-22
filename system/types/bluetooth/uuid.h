@@ -119,12 +119,13 @@ class Uuid final {
   // Network-byte-ordered ID (Big Endian).
   UUID128Bit uu;
 };
-}  // namespace bluetooth
 
 inline std::ostream& operator<<(std::ostream& os, const bluetooth::Uuid& a) {
   os << a.ToString();
   return os;
 }
+
+}  // namespace bluetooth
 
 // Custom std::hash specialization so that bluetooth::UUID can be used as a key
 // in std::unordered_map.
