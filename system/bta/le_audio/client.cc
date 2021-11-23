@@ -2227,8 +2227,35 @@ class LeAudioClientImpl : public LeAudioClient {
     ClientAudioIntefraceRelease();
   }
 
+  void printCurrentStreamConfiguration(int fd) {
+    std::stringstream stream;
+    auto conf = &current_source_codec_config;
+
+    stream << " Speaker codec config "
+           << "\n";
+    if (conf) {
+      stream << "   num_channels " << +conf->num_channels << "\n"
+             << "   sample rate " << +conf->sample_rate << "\n"
+             << "   bits pers sample " << +conf->bits_per_sample << "\n"
+             << "   data_interval_us " << +conf->data_interval_us << "\n";
+    }
+    stream << " Microphone codec config"
+           << "\n";
+    conf = &current_sink_codec_config;
+    if (conf) {
+      stream << "   num_channels " << +conf->num_channels << "\n"
+             << "   sample rate " << +conf->sample_rate << "\n"
+             << "   bits pers sample " << +conf->bits_per_sample << "\n"
+             << "   data_interval_us " << +conf->data_interval_us << "\n";
+    }
+    dprintf(fd, "%s", stream.str().c_str());
+  }
+
   void Dump(int fd) {
     dprintf(fd, "  Active group: %d\n", active_group_id_);
+    dprintf(fd, "    current content type: 0x%08hx\n", current_context_type_);
+    printCurrentStreamConfiguration(fd);
+    dprintf(fd, "  ----------------\n ");
     dprintf(fd, "  LE Audio Groups:\n");
     aseGroups_.Dump(fd);
     dprintf(fd, "  Not grouped devices:\n");
