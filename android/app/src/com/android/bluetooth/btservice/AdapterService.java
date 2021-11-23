@@ -2951,6 +2951,7 @@ public class AdapterService extends Service {
      *                {@link BluetoothProfile#HEADSET},
      *                {@link BluetoothProfile#A2DP},
      *                {@link BluetoothProfile#HEARING_AID}
+     *                {@link BluetoothProfile#LE_AUDIO}
      * @return A list of active bluetooth devices
      */
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
@@ -2981,6 +2982,15 @@ public class AdapterService extends Service {
                     activeDevices = mHearingAidService.getActiveDevices();
                     Log.i(TAG, "getActiveDevices: Hearing Aid devices: Left["
                             + activeDevices.get(0) + "] - Right[" + activeDevices.get(1) + "]");
+                }
+                break;
+            case BluetoothProfile.LE_AUDIO:
+                if (mLeAudioService == null) {
+                Log.e(TAG, "getActiveDevices: LeAudioService is null");
+                } else {
+                    activeDevices = mLeAudioService.getActiveDevices();
+                    Log.i(TAG, "getActiveDevices: LeAudio devices: Out["
+                            + activeDevices.get(0) + "] - In[" + activeDevices.get(1) + "]");
                 }
                 break;
             default:
