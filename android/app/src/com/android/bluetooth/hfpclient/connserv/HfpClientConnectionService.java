@@ -17,15 +17,12 @@ package com.android.bluetooth.hfpclient;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothHeadsetClient;
 import android.bluetooth.BluetoothHeadsetClientCall;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Bundle;
 import android.telecom.Connection;
 import android.telecom.ConnectionRequest;
 import android.telecom.ConnectionService;
@@ -33,8 +30,6 @@ import android.telecom.PhoneAccount;
 import android.telecom.PhoneAccountHandle;
 import android.telecom.TelecomManager;
 import android.util.Log;
-
-import com.android.bluetooth.hfpclient.HeadsetClientService;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -49,11 +44,9 @@ public class HfpClientConnectionService extends ConnectionService {
 
     public static final String HFP_SCHEME = "hfpc";
 
-    private BluetoothAdapter mAdapter;
-
-    // BluetoothHeadset proxy.
-    private BluetoothHeadsetClientProxy mHeadsetProfile;
     private TelecomManager mTelecomManager;
+
+    private HeadsetClientServiceInterface mServiceInterface = new HeadsetClientServiceInterface();
 
     private final Map<BluetoothDevice, HfpClientDeviceBlock> mDeviceBlocks = new HashMap<>();
 
@@ -188,10 +181,15 @@ public class HfpClientConnectionService extends ConnectionService {
         if (DBG) {
             Log.d(TAG, "onCreate");
         }
-        mAdapter = getSystemService(BluetoothManager.class).getAdapter();
         mTelecomManager = getSystemService(TelecomManager.class);
         if (mTelecomManager != null) mTelecomManager.clearPhoneAccounts();
-        mAdapter.getProfileProxy(this, mServiceListener, BluetoothProfile.HEADSET_CLIENT);
+
+        List<BluetoothDevice> devices = mServiceInterface.getConnectedDevices();
+        if (devices != null) {
+            for (BluetoothDevice device : devices) {
+                createBlockForDevice(device);
+            }
+        }
 
         setInstance(this);
     }
@@ -200,11 +198,6 @@ public class HfpClientConnectionService extends ConnectionService {
     public void onDestroy() {
         if (DBG) {
             Log.d(TAG, "onDestroy called");
-        }
-        // Close the profile.
-        if (mHeadsetProfile != null) {
-            mAdapter.closeProfileProxy(BluetoothProfile.HEADSET_CLIENT,
-                    mHeadsetProfile.getProxiedBluetoothHeadsetClient());
         }
 
         // Unregister the phone account. This should ideally happen when disconnection ensues but in
@@ -262,7 +255,6 @@ public class HfpClientConnectionService extends ConnectionService {
         BluetoothHeadsetClientCall call =
                 request.getExtras().getParcelable(TelecomManager.EXTRA_INCOMING_CALL_EXTRAS);
         HfpClientConnection connection = block.onCreateIncomingConnection(call);
-        connection.setHfpClientConnectionService(this);
         return connection;
     }
 
@@ -279,7 +271,6 @@ public class HfpClientConnectionService extends ConnectionService {
             return null;
         }
         HfpClientConnection connection = block.onCreateOutgoingConnection(request.getAddress());
-        connection.setHfpClientConnectionService(this);
         return connection;
     }
 
@@ -302,7 +293,6 @@ public class HfpClientConnectionService extends ConnectionService {
         BluetoothHeadsetClientCall call =
                 request.getExtras().getParcelable(TelecomManager.EXTRA_OUTGOING_CALL_EXTRAS);
         HfpClientConnection connection = block.onCreateUnknownConnection(call);
-        connection.setHfpClientConnectionService(this);
         return connection;
     }
 
@@ -331,48 +321,10 @@ public class HfpClientConnectionService extends ConnectionService {
     //--------------------------------------------------------------------------------------------//
 
     private BluetoothDevice getDevice(PhoneAccountHandle handle) {
+        BluetoothAdapter adapter = getSystemService(BluetoothManager.class).getAdapter();
         PhoneAccount account = mTelecomManager.getPhoneAccount(handle);
         String btAddr = account.getAddress().getSchemeSpecificPart();
-        return mAdapter.getRemoteDevice(btAddr);
-    }
-
-    BluetoothProfile.ServiceListener mServiceListener = new BluetoothProfile.ServiceListener() {
-        @Override
-        public void onServiceConnected(int profile, BluetoothProfile proxy) {
-            if (DBG) {
-                Log.d(TAG, "onServiceConnected");
-            }
-            setBluetoothHeadsetClientProxy(
-                    BluetoothHeadsetClientProxy.Factory.build((BluetoothHeadsetClient) proxy));
-
-            List<BluetoothDevice> devices = mHeadsetProfile.getConnectedDevices();
-            if (devices == null) {
-                Log.w(TAG, "No connected or more than one connected devices found." + devices);
-                return;
-            }
-            for (BluetoothDevice device : devices) {
-                if (DBG) {
-                    Log.d(TAG, "Creating phone account for device " + device);
-                }
-
-                // Creation of the block takes care of initializing the phone account and
-                // calls.
-                HfpClientDeviceBlock block = createBlockForDevice(device);
-            }
-        }
-
-        @Override
-        public void onServiceDisconnected(int profile) {
-            if (DBG) {
-                Log.d(TAG, "onServiceDisconnected " + profile);
-            }
-            setBluetoothHeadsetClientProxy(null);
-            disconnectAll();
-        }
-    };
-
-    void setBluetoothHeadsetClientProxy(BluetoothHeadsetClientProxy proxy) {
-        mHeadsetProfile = proxy;
+        return adapter.getRemoteDevice(btAddr);
     }
 
     // Block management functions
@@ -384,7 +336,7 @@ public class HfpClientConnectionService extends ConnectionService {
         }
 
         HfpClientDeviceBlock block =
-                HfpClientDeviceBlock.Factory.build(this, device, mHeadsetProfile);
+                HfpClientDeviceBlock.Factory.build(device, this, mServiceInterface);
         mDeviceBlocks.put(device, block);
         return block;
     }
@@ -395,22 +347,19 @@ public class HfpClientConnectionService extends ConnectionService {
     }
 
     synchronized HfpClientDeviceBlock findBlockForHandle(PhoneAccountHandle handle) {
-        PhoneAccount account = mTelecomManager.getPhoneAccount(handle);
-        String btAddr = account.getAddress().getSchemeSpecificPart();
-        BluetoothDevice device = mAdapter.getRemoteDevice(btAddr);
-        Log.d(TAG, "Finding block for handle " + handle + " device " + btAddr);
+        BluetoothDevice device = getDevice(handle);
+        Log.d(TAG, "Finding block for handle " + handle + " device " + device);
         return mDeviceBlocks.get(device);
     }
 
-    // Util functions that may be used by various classes
-    public static PhoneAccount createAccount(Context context, BluetoothDevice device) {
+    PhoneAccount createAccount(BluetoothDevice device) {
         Uri addr = Uri.fromParts(HfpClientConnectionService.HFP_SCHEME, device.getAddress(), null);
         PhoneAccountHandle handle =
-                new PhoneAccountHandle(new ComponentName(context, HfpClientConnectionService.class),
+                new PhoneAccountHandle(new ComponentName(this, HfpClientConnectionService.class),
                         device.getAddress());
 
         int capabilities = PhoneAccount.CAPABILITY_CALL_PROVIDER;
-        if (context.getApplicationContext().getResources().getBoolean(
+        if (getApplicationContext().getResources().getBoolean(
                 com.android.bluetooth.R.bool
                 .hfp_client_connection_service_support_emergency_call)) {
             // Need to have an emergency call capability to place emergency call
@@ -426,14 +375,6 @@ public class HfpClientConnectionService extends ConnectionService {
             Log.d(TAG, "phoneaccount: " + account);
         }
         return account;
-    }
-
-    /** Checks if device has Enhanced Call Control (ECC) feature. */
-    public static boolean hasHfpClientEcc(BluetoothHeadsetClientProxy client,
-            BluetoothDevice device) {
-        Bundle features = client.getCurrentAgEvents(device);
-        return features != null && features.getBoolean(BluetoothHeadsetClient.EXTRA_AG_FEATURE_ECC,
-                false);
     }
 
     private Map<BluetoothDevice, HfpClientDeviceBlock> getDeviceBlocks() {

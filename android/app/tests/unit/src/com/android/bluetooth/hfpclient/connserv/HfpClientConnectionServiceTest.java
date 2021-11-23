@@ -26,17 +26,15 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.mockingDetails;
 
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothHeadsetClient;
 import android.bluetooth.BluetoothHeadsetClientCall;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Bundle;
@@ -45,6 +43,7 @@ import android.telecom.ConnectionRequest;
 import android.telecom.PhoneAccount;
 import android.telecom.PhoneAccountHandle;
 import android.telecom.TelecomManager;
+import android.util.Log;
 
 import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.MediumTest;
@@ -80,9 +79,6 @@ public class HfpClientConnectionServiceTest {
     @Mock private HeadsetClientService mMockHeadsetClientService;
     @Mock private TelecomManager mMockTelecomManager;
     @Mock private Resources mMockResources;
-    @Mock private PackageManager mMockPackageManager;
-    @Mock private ApplicationInfo mMockApplicationInfo;
-    @Mock private BluetoothHeadsetClientProxy mBluetoothHeadsetClientProxy;
 
     // @Rule private final ServiceTestRule mConnectionServiceRule = new ServiceTestRule();
     private HfpClientConnectionService mHfpClientConnectionService;
@@ -120,15 +116,11 @@ public class HfpClientConnectionServiceTest {
         doReturn(mMockResources).when(mHfpClientConnectionService).getResources();
         doReturn(true).when(mMockResources)
                 .getBoolean(R.bool.hfp_client_connection_service_support_emergency_call);
-        doReturn(mMockPackageManager).when(mHfpClientConnectionService).getPackageManager();
-        doReturn(mMockApplicationInfo).when(mHfpClientConnectionService).getApplicationInfo();
-        doReturn(PackageManager.PERMISSION_GRANTED).when(mHfpClientConnectionService)
-                .checkSelfPermission(anyString());
 
         doReturn(Context.TELECOM_SERVICE).when(mHfpClientConnectionService)
                 .getSystemServiceName(TelecomManager.class);
         doReturn(mMockTelecomManager).when(mHfpClientConnectionService)
-        .getSystemService(Context.TELECOM_SERVICE);
+                .getSystemService(Context.TELECOM_SERVICE);
         doReturn(getPhoneAccount(TEST_DEVICE)).when(mMockTelecomManager).getPhoneAccount(any());
 
         doReturn(Context.BLUETOOTH_SERVICE).when(mHfpClientConnectionService)
@@ -139,7 +131,6 @@ public class HfpClientConnectionServiceTest {
 
     private void createService() {
         mHfpClientConnectionService.onCreate();
-        mHfpClientConnectionService.setBluetoothHeadsetClientProxy(mBluetoothHeadsetClientProxy);
     }
 
     private PhoneAccountHandle getPhoneAccountHandle(BluetoothDevice device) {
@@ -158,7 +149,7 @@ public class HfpClientConnectionServiceTest {
     }
 
     private void setupDeviceConnection(BluetoothDevice device) throws Exception {
-        HfpClientConnectionService.onConnectionStateChanged(device,
+        mHfpClientConnectionService.onConnectionStateChanged(device,
                 BluetoothProfile.STATE_CONNECTED, BluetoothProfile.STATE_CONNECTING);
         HfpClientDeviceBlock block = mHfpClientConnectionService.findBlockForDevice(TEST_DEVICE);
         assertThat(block).isNotNull();
@@ -167,25 +158,8 @@ public class HfpClientConnectionServiceTest {
 
     @Test
     public void startServiceWithAlreadyConnectedDevice_blockIsCreated() throws Exception {
-        when(mBluetoothHeadsetClientProxy.getConnectedDevices()).thenReturn(List.of(TEST_DEVICE));
-        // Inject our mocked BluetoothHeadsetClient proxy object for this code path
-        BluetoothHeadsetClientProxy.Factory.setInstance(new BluetoothHeadsetClientProxy.Factory() {
-            @Override
-            protected BluetoothHeadsetClientProxy buildInternal(BluetoothHeadsetClient proxy) {
-                return mBluetoothHeadsetClientProxy;
-            }
-        });
-        HfpClientDeviceBlock.Factory.setInstance(new HfpClientDeviceBlock.Factory() {
-            @Override
-            protected HfpClientDeviceBlock buildInternal(HfpClientConnectionService connServ,
-                    BluetoothDevice device, BluetoothHeadsetClientProxy profileProxy) {
-                return new HfpClientDeviceBlock(mHfpClientConnectionService, device,
-                        mBluetoothHeadsetClientProxy);
-            }
-        });
+        when(mMockHeadsetClientService.getConnectedDevices()).thenReturn(List.of(TEST_DEVICE));
         createService();
-        mHfpClientConnectionService.mServiceListener.onServiceConnected(
-                BluetoothProfile.HEADSET_CLIENT, null);
         HfpClientDeviceBlock block = mHfpClientConnectionService.findBlockForDevice(TEST_DEVICE);
         assertThat(block).isNotNull();
         assertThat(block.getDevice()).isEqualTo(TEST_DEVICE);
@@ -268,7 +242,7 @@ public class HfpClientConnectionServiceTest {
                 BluetoothHeadsetClientCall.CALL_STATE_ACTIVE, /* number= */ TEST_NUMBER,
                 /* multiParty= */ false, /* outgoing= */true, /* inBandRing= */true);
 
-        doReturn(call).when(mBluetoothHeadsetClientProxy).dial(TEST_DEVICE, TEST_NUMBER);
+        doReturn(call).when(mMockHeadsetClientService).dial(TEST_DEVICE, TEST_NUMBER);
 
         Bundle extras = new Bundle();
         extras.putParcelable(TelecomManager.EXTRA_OUTGOING_CALL_EXTRAS, call);
