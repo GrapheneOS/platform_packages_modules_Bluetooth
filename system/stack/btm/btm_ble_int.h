@@ -139,6 +139,9 @@ extern bool btm_ble_clear_topology_mask(tBTM_BLE_STATE_MASK request_state);
 extern bool btm_ble_set_topology_mask(tBTM_BLE_STATE_MASK request_state);
 extern void btm_ble_set_random_address(const RawAddress& random_bda);
 
+extern void btm_ble_scanner_init(void);
+extern void btm_ble_scanner_cleanup(void);
+
 #if (BTM_BLE_CONFORMANCE_TESTING == TRUE)
 extern void btm_ble_set_no_disc_if_pair_fail(bool disble_disc);
 extern void btm_ble_set_test_mac_value(bool enable, uint8_t* p_test_mac_val);

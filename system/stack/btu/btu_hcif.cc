@@ -457,6 +457,14 @@ void btu_hcif_process_event(UNUSED_ATTR uint8_t controller_id, BT_HDR* p_msg) {
           IsoManager::GetInstance()->HandleHciEvent(ble_sub_code, p,
                                                     ble_evt_len);
           break;
+
+        case HCI_LE_PERIODIC_ADV_SYNC_TRANSFERE_RECEIVED_EVT:
+          btm_ble_periodic_adv_sync_tx_rcvd(p, hci_evt_len);
+          break;
+
+        case HCI_LE_BIGINFO_ADVERTISING_REPORT_EVT:
+          btm_ble_biginfo_adv_report_rcvd(p, hci_evt_len);
+          break;
       }
       break;
     }

@@ -53,6 +53,16 @@ extern std::map<std::string, int> mock_function_count_map;
 #define UNUSED_ATTR
 #endif
 
+using StartSyncCb = base::Callback<void(
+    uint8_t /*status*/, uint16_t /*sync_handle*/, uint8_t /*advertising_sid*/,
+    uint8_t /*address_type*/, RawAddress /*address*/, uint8_t /*phy*/,
+    uint16_t /*interval*/)>;
+using SyncReportCb = base::Callback<void(
+    uint16_t /*sync_handle*/, int8_t /*tx_power*/, int8_t /*rssi*/,
+    uint8_t /*status*/, std::vector<uint8_t> /*data*/)>;
+using SyncLostCb = base::Callback<void(uint16_t /*sync_handle*/)>;
+using SyncTransferCb = base::Callback<void(uint8_t /*status*/, RawAddress)>;
+
 bool BTM_BleConfigPrivacy(bool privacy_mode) {
   mock_function_count_map[__func__]++;
   return false;
@@ -212,5 +222,36 @@ void btm_clear_all_pending_le_entry(void) {
 void btm_send_hci_set_scan_params(uint8_t scan_type, uint16_t scan_int,
                                   uint16_t scan_win, uint8_t addr_type_own,
                                   uint8_t scan_filter_policy) {
+  mock_function_count_map[__func__]++;
+}
+void BTM_BleStartPeriodicSync(uint8_t adv_sid, RawAddress address,
+                              uint16_t skip, uint16_t timeout,
+                              StartSyncCb syncCb, SyncReportCb reportCb,
+                              SyncLostCb lostCb) {
+  mock_function_count_map[__func__]++;
+}
+void BTM_BleStopPeriodicSync(uint16_t handle) {
+  mock_function_count_map[__func__]++;
+}
+void BTM_BleCancelPeriodicSync(uint8_t adv_sid, RawAddress address) {
+  mock_function_count_map[__func__]++;
+}
+void BTM_BlePeriodicSyncTransfer(RawAddress addr, uint16_t service_data,
+                                 uint16_t sync_handle, SyncTransferCb cb) {
+  mock_function_count_map[__func__]++;
+}
+void BTM_BlePeriodicSyncSetInfo(RawAddress addr, uint16_t service_data,
+                                uint8_t adv_handle, SyncTransferCb cb) {
+  mock_function_count_map[__func__]++;
+}
+void BTM_BlePeriodicSyncTxParameters(RawAddress addr, uint8_t mode,
+                                     uint16_t skip, uint16_t timeout,
+                                     StartSyncCb syncCb) {
+  mock_function_count_map[__func__]++;
+}
+void btm_ble_periodic_adv_sync_tx_rcvd(uint8_t* p, uint16_t param_len) {
+  mock_function_count_map[__func__]++;
+}
+void btm_ble_biginfo_adv_report_rcvd(uint8_t* p, uint16_t param_len) {
   mock_function_count_map[__func__]++;
 }
