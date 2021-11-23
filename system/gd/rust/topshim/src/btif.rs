@@ -211,7 +211,8 @@ pub fn ascii_to_string(data: &[u8], length: usize) -> String {
 
 fn u32_from_bytes(item: &[u8]) -> u32 {
     let mut u: [u8; 4] = [0; 4];
-    u.copy_from_slice(&item[0..4]);
+    let len = std::cmp::min(item.len(), 4);
+    u[0..len].copy_from_slice(&item);
     u32::from_ne_bytes(u)
 }
 
