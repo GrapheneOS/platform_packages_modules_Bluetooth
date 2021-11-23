@@ -95,6 +95,18 @@ public class HfpClientDeviceBlock {
         }
     }
 
+    public BluetoothDevice getDevice() {
+        return mDevice;
+    }
+
+    public int getAudioState() {
+        return mScoState.getInt(KEY_SCO_STATE);
+    }
+
+    /* package */ Map<UUID, HfpClientConnection> getCalls() {
+        return mConnections;
+    }
+
     synchronized HfpClientConnection onCreateIncomingConnection(BluetoothHeadsetClientCall call) {
         HfpClientConnection connection = mConnections.get(call.getUUID());
         if (connection != null) {
@@ -360,6 +372,27 @@ public class HfpClientDeviceBlock {
         bundle.putInt(KEY_SCO_STATE, headsetClientService.getAudioState(device));
 
         return bundle;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("<HfpClientDeviceBlock");
+        sb.append(" device=" + mDevice);
+        sb.append(" account=" + mPhoneAccount);
+        sb.append(" connections=[");
+        boolean first = true;
+        for (HfpClientConnection connection :  mConnections.values()) {
+            if (!first) {
+                sb.append(", ");
+            }
+            sb.append(connection.toString());
+            first = false;
+        }
+        sb.append("]");
+        sb.append(" conference=" + mConference);
+        sb.append(">");
+        return sb.toString();
     }
 
     /**

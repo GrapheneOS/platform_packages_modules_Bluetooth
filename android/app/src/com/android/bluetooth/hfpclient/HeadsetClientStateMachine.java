@@ -356,6 +356,7 @@ public class HeadsetClientStateMachine extends StateMachine {
         intent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND);
         intent.putExtra(BluetoothHeadsetClient.EXTRA_CALL, c);
         mService.sendBroadcast(intent, BLUETOOTH_CONNECT, Utils.getTempAllowlistBroadcastOptions());
+        HfpClientConnectionService.onCallChanged(c.getDevice(), c);
     }
 
     private boolean queryCallsStart() {
@@ -1828,7 +1829,9 @@ public class HeadsetClientStateMachine extends StateMachine {
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         mService.sendBroadcast(intent, BLUETOOTH_CONNECT,
                 Utils.getTempAllowlistBroadcastOptions());
+
         logD("Audio state " + device + ": " + prevState + "->" + newState);
+        HfpClientConnectionService.onAudioStateChanged(device, newState, prevState);
     }
 
     // This method does not check for error condition (newState == prevState)
@@ -1890,6 +1893,8 @@ public class HeadsetClientStateMachine extends StateMachine {
         }
         mService.sendBroadcast(intent, BLUETOOTH_CONNECT,
                 Utils.getTempAllowlistBroadcastOptions());
+
+        HfpClientConnectionService.onConnectionStateChanged(device, newState, prevState);
     }
 
     boolean isConnected() {
