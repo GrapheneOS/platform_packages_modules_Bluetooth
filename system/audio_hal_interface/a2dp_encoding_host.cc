@@ -124,6 +124,11 @@ bool SetAudioConfig(AudioConfig config) {
 
 // Invoked by audio server when it has audio data to stream.
 bool StartRequest() {
+  // Reset total read bytes and timestamp to avoid confusing audio
+  // server at delay calculation.
+  total_bytes_read_ = 0;
+  data_position_ = {0, 0};
+
   // Check if a previous request is not finished
   if (a2dp_pending_cmd_ == A2DP_CTRL_CMD_START) {
     LOG(INFO) << __func__ << ": A2DP_CTRL_CMD_START in progress";
@@ -235,6 +240,9 @@ void start_session() {
 
 void end_session() {
   // TODO: Notify server; or do we handle it during disconnected?
+
+  // Reset remote delay. New value will be set when new session starts.
+  remote_delay_report_ = 0;
 }
 
 void ack_stream_started(const tA2DP_CTRL_ACK& ack) {
@@ -249,10 +257,16 @@ void ack_stream_suspended(const tA2DP_CTRL_ACK& ack) {
 
 // Read from the FMQ of BluetoothAudio HAL
 size_t read(uint8_t* p_buf, uint32_t len) {
+  uint32_t bytes_read = 0;
   if (a2dp_uipc == nullptr) {
     return 0;
   }
-  return UIPC_Read(*a2dp_uipc, UIPC_CH_ID_AV_AUDIO, p_buf, len);
+  bytes_read = UIPC_Read(*a2dp_uipc, UIPC_CH_ID_AV_AUDIO, p_buf, len);
+  total_bytes_read_ += bytes_read;
+  // MONOTONIC_RAW isn't affected by NTP, audio stack rely on this
+  // to get precise delay calculation.
+  clock_gettime(CLOCK_MONOTONIC_RAW, &data_position_);
+  return bytes_read;
 }
 
 }  // namespace a2dp
