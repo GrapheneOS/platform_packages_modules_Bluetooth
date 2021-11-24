@@ -83,14 +83,14 @@ class InternalHciCallbacks : public IBluetoothHciCallbacks {
   }
 
   Return<void> initializationComplete(HidlStatus status) {
-    common::StopWatch(__func__);
+    common::StopWatch stop_watch(__func__);
     ASSERT(status == HidlStatus::SUCCESS);
     init_promise_->set_value();
     return Void();
   }
 
   Return<void> hciEventReceived(const hidl_vec<uint8_t>& event) override {
-    common::StopWatch(GetTimerText(__func__, event));
+    common::StopWatch stop_watch(GetTimerText(__func__, event));
     std::vector<uint8_t> received_hci_packet(event.begin(), event.end());
     btsnoop_logger_->Capture(received_hci_packet, SnoopLogger::Direction::INCOMING, SnoopLogger::PacketType::EVT);
     if (common::init_flags::btaa_hci_is_enabled()) {
@@ -103,7 +103,7 @@ class InternalHciCallbacks : public IBluetoothHciCallbacks {
   }
 
   Return<void> aclDataReceived(const hidl_vec<uint8_t>& data) override {
-    common::StopWatch(GetTimerText(__func__, data));
+    common::StopWatch stop_watch(GetTimerText(__func__, data));
     std::vector<uint8_t> received_hci_packet(data.begin(), data.end());
     btsnoop_logger_->Capture(received_hci_packet, SnoopLogger::Direction::INCOMING, SnoopLogger::PacketType::ACL);
     if (common::init_flags::btaa_hci_is_enabled()) {
@@ -116,7 +116,7 @@ class InternalHciCallbacks : public IBluetoothHciCallbacks {
   }
 
   Return<void> scoDataReceived(const hidl_vec<uint8_t>& data) override {
-    common::StopWatch(GetTimerText(__func__, data));
+    common::StopWatch stop_watch(GetTimerText(__func__, data));
     std::vector<uint8_t> received_hci_packet(data.begin(), data.end());
     btsnoop_logger_->Capture(received_hci_packet, SnoopLogger::Direction::INCOMING, SnoopLogger::PacketType::SCO);
     if (common::init_flags::btaa_hci_is_enabled()) {
@@ -129,7 +129,7 @@ class InternalHciCallbacks : public IBluetoothHciCallbacks {
   }
 
   Return<void> isoDataReceived(const hidl_vec<uint8_t>& data) override {
-    common::StopWatch(GetTimerText(__func__, data));
+    common::StopWatch stop_watch(GetTimerText(__func__, data));
     std::vector<uint8_t> received_hci_packet(data.begin(), data.end());
     btsnoop_logger_->Capture(received_hci_packet, SnoopLogger::Direction::INCOMING, SnoopLogger::PacketType::ISO);
     if (callback_ != nullptr) {
