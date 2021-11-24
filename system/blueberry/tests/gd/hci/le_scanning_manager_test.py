@@ -224,7 +224,7 @@ class LeScanningManagerTestBase():
         self.cert.hci_le_advertising_manager.RemoveAdvertiser(remove_request)
 
 
-class LeScanningManagerTestBb(gd_base_test.GdBaseTestClass, LeScanningManagerTestBase):
+class LeScanningManagerTest(gd_base_test.GdBaseTestClass, LeScanningManagerTestBase):
 
     def setup_class(self):
         gd_base_test.GdBaseTestClass.setup_class(self, dut_module='HCI_INTERFACES', cert_module='HCI_INTERFACES')

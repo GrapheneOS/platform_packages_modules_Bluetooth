@@ -80,7 +80,7 @@ from bluetooth_packets_python3 import RawBuilder
 from mobly import test_runner
 
 
-class DirectHciTestBb(gd_base_test.GdBaseTestClass):
+class DirectHciTest(gd_base_test.GdBaseTestClass):
 
     def setup_class(self):
         gd_base_test.GdBaseTestClass.setup_class(self, dut_module='HCI', cert_module='HAL')

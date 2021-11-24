@@ -813,7 +813,7 @@ genrule {
         "soong_zip",
     ],
     cmd: "mkdir -p $(genDir)/files && " +
-        "$(location aprotoc) -Ipackages/modules/Bluetooth/system/gd -Ipackages/modules/Bluetooth/system/blueberry/tests/gd/cert -Ipackages/modules/Bluetooth/system/blueberry/tests/gd/hci -Ipackages/modules/Bluetooth/system/blueberry/tests/gd/iso -Ipackages/modules/Bluetooth/system/blueberry/tests/gd/l2cap/classic -Ipackages/modules/Bluetooth/system/blueberry/tests/gd/l2cap/le -Ipackages/modules/Bluetooth/system/blueberry/tests/gd/security -Iexternal/protobuf/src --plugin=protoc-gen-grpc=$(location protoc-gen-grpc-python-plugin) $(in) --grpc_out=$(genDir)/files --python_out=$(genDir)/files && " +
+        "$(location aprotoc) -Ipackages/modules/Bluetooth/system/gd -Ipackages/modules/Bluetooth/system/blueberry/tests/gd -Iexternal/protobuf/src --plugin=protoc-gen-grpc=$(location protoc-gen-grpc-python-plugin) $(in) --grpc_out=$(genDir)/files --python_out=$(genDir)/files && " +
         "touch $(genDir)/files/facade/__init__.py && " +
         "touch $(genDir)/files/hal/__init__.py && " +
         "touch $(genDir)/files/hci/__init__.py && " +
@@ -825,6 +825,8 @@ genrule {
         "touch $(genDir)/files/security/__init__.py && " +
         "mkdir -p $(genDir)/files/blueberry/tests/gd/cert && " +
         "touch $(genDir)/files/blueberry/tests/gd/cert/__init__.py && " +
+        "mkdir -p $(genDir)/files/blueberry/tests/gd/hal && " +
+        "touch $(genDir)/files/blueberry/tests/gd/hal/__init__.py && " +
         "mkdir -p $(genDir)/files/blueberry/tests/gd/hci && " +
         "touch $(genDir)/files/blueberry/tests/gd/hci/__init__.py && " +
         "mkdir -p $(genDir)/files/blueberry/tests/gd/iso && " +
@@ -833,8 +835,12 @@ genrule {
         "touch $(genDir)/files/blueberry/tests/gd/l2cap/classic/__init__.py && " +
         "mkdir -p $(genDir)/files/blueberry/tests/gd/l2cap/le && " +
         "touch $(genDir)/files/blueberry/tests/gd/l2cap/le/__init__.py && " +
+        "mkdir -p $(genDir)/files/blueberry/tests/gd/neighbor && " +
+        "touch $(genDir)/files/blueberry/tests/gd/neighbor/__init__.py && " +
         "mkdir -p $(genDir)/files/blueberry/tests/gd/security && " +
         "touch $(genDir)/files/blueberry/tests/gd/security/__init__.py && " +
+        "mkdir -p $(genDir)/files/blueberry/tests/gd/shim && " +
+        "touch $(genDir)/files/blueberry/tests/gd/shim/__init__.py && " +
         // Bundle topshim proto here for now
         "mkdir -p $(genDir)/files/rust/topshim/facade && " +
         "$(location aprotoc) -Ipackages/modules/Bluetooth/system/gd --plugin=protoc-gen-grpc=$(location protoc-gen-grpc-python-plugin) packages/modules/Bluetooth/system/gd/rust/topshim/facade/facade.proto --grpc_out=$(genDir)/files --python_out=$(genDir)/files && " +

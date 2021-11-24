@@ -27,7 +27,7 @@ from blueberry.tests.gd.cert import gd_base_test
 from mobly import test_runner
 
 
-class NeighborTestBb(gd_base_test.GdBaseTestClass):
+class NeighborTest(gd_base_test.GdBaseTestClass):
 
     def setup_class(self):
         gd_base_test.GdBaseTestClass.setup_class(self, dut_module='HCI_INTERFACES', cert_module='HCI')
