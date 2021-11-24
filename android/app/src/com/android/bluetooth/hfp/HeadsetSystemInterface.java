@@ -83,12 +83,12 @@ public class HeadsetSystemInterface {
      * there are no matches.
      */
     private @Nullable ComponentName resolveSystemService(@NonNull PackageManager pm,
-            @PackageManager.ComponentInfoFlags int flags, Intent intent) {
+            int componentInfoFlags, Intent intent) {
         if (intent.getComponent() != null) {
             return intent.getComponent();
         }
 
-        List<ResolveInfo> results = pm.queryIntentServices(intent, flags);
+        List<ResolveInfo> results = pm.queryIntentServices(intent, componentInfoFlags);
         if (results == null) {
             return null;
         }
