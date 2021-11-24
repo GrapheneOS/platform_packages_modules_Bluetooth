@@ -131,9 +131,9 @@ void AttributionProcessor::Dump(
 
   // Dump device-based activity aggregation data
   auto title_device_activity = fb_builder->CreateString("----- Device-based Activity Attribution Dumpsys -----");
-  std::vector<flatbuffers::Offset<DeviceActivityAggregationEntry>> aggregation_entry_offsets;
+  std::vector<flatbuffers::Offset<ActivityAggregationEntry>> aggregation_entry_offsets;
   for (auto& it : btaa_aggregator_) {
-    DeviceActivityAggregationEntryBuilder device_entry_builder(*fb_builder);
+    ActivityAggregationEntryBuilder device_entry_builder(*fb_builder);
     device_entry_builder.add_address(fb_builder->CreateString(it.first.address.ToString()));
     device_entry_builder.add_activity(fb_builder->CreateString((ActivityToString(it.first.activity))));
     device_entry_builder.add_wakeup_count(it.second.wakeup_count);
