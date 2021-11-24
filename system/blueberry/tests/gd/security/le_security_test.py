@@ -54,7 +54,7 @@ OOB_NOT_PRESENT = LeOobDataPresentMessage(data_present=LeOobDataFlag.NOT_PRESENT
 OOB_PRESENT = LeOobDataPresentMessage(data_present=LeOobDataFlag.PRESENT)
 
 
-class LeSecurityTestBb(gd_base_test.GdBaseTestClass):
+class LeSecurityTest(gd_base_test.GdBaseTestClass):
 
     def setup_class(self):
         gd_base_test.GdBaseTestClass.setup_class(self, dut_module='SECURITY', cert_module='SECURITY')
