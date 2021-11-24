@@ -713,6 +713,23 @@ public class AdapterService extends Service {
         BluetoothAdapter.invalidateBluetoothGetStateCache();
     }
 
+    void updateLeAudioProfileServiceState(boolean isCisCentralSupported) {
+        if (isCisCentralSupported) {
+            return;
+        }
+
+        // Remove the Le audio unicast profiles from the supported list
+        // since the controller doesn't support
+        Config.removeLeAudioUnicastProfilesFromSupportedList();
+        HashSet<Class> leAudioUnicastProfiles = Config.geLeAudioUnicastProfiles();
+
+        for (Class profileService : leAudioUnicastProfiles) {
+            if (isStartedProfile(profileService.getSimpleName())){
+                setProfileServiceState(profileService, BluetoothAdapter.STATE_OFF);
+            }
+        }
+    }
+
     void updateAdapterState(int prevState, int newState) {
         mAdapterProperties.setState(newState);
         invalidateBluetoothGetStateCache();
