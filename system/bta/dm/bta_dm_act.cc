@@ -119,7 +119,6 @@ static void bta_dm_ble_id_key_cback(uint8_t key_type,
                                     tBTM_BLE_LOCAL_KEYS* p_key);
 static void bta_dm_gattc_register(void);
 static void btm_dm_start_gatt_discovery(const RawAddress& bd_addr);
-static void bta_dm_cancel_gatt_discovery(const RawAddress& bd_addr);
 static void bta_dm_gattc_callback(tBTA_GATTC_EVT event, tBTA_GATTC* p_data);
 extern tBTM_CONTRL_STATE bta_dm_pm_obtain_controller_state(void);
 #if (BLE_VND_INCLUDED == TRUE)
@@ -889,10 +888,6 @@ void bta_dm_search_cancel() {
   } else {
     bta_dm_inq_cmpl(0);
   }
-
-  if (bta_dm_search_cb.gatt_disc_active) {
-    bta_dm_cancel_gatt_discovery(bta_dm_search_cb.peer_bdaddr);
-  }
 }
 
 /*******************************************************************************
@@ -1540,9 +1535,6 @@ void bta_dm_search_cancel_notify() {
       (bta_dm_search_cb.state == BTA_DM_SEARCH_ACTIVE ||
        bta_dm_search_cb.state == BTA_DM_SEARCH_CANCELLING)) {
     BTM_CancelRemoteDeviceName();
-  }
-  if (bta_dm_search_cb.gatt_disc_active) {
-    bta_dm_cancel_gatt_discovery(bta_dm_search_cb.peer_bdaddr);
   }
 }
 
@@ -3968,23 +3960,6 @@ void btm_dm_start_gatt_discovery(const RawAddress& bd_addr) {
       BTA_GATTC_Open(bta_dm_search_cb.client_if, bd_addr, true, false);
     }
   }
-}
-
-/*******************************************************************************
- *
- * Function         bta_dm_cancel_gatt_discovery
- *
- * Description      This is GATT cancel the GATT service search.
- *
- * Parameters:
- *
- ******************************************************************************/
-static void bta_dm_cancel_gatt_discovery(const RawAddress& bd_addr) {
-  if (bta_dm_search_cb.conn_id == GATT_INVALID_CONN_ID) {
-    BTA_GATTC_CancelOpen(bta_dm_search_cb.client_if, bd_addr, true);
-  }
-
-  bta_dm_gatt_disc_complete(bta_dm_search_cb.conn_id, (tGATT_STATUS)GATT_ERROR);
 }
 
 /*******************************************************************************
