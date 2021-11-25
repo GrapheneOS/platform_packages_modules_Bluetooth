@@ -618,8 +618,14 @@ public class LeAudioService extends ProfileService {
         if (!Objects.equals(device, previousInDevice)
                 || (oldSupportedByDeviceInput != newSupportedByDeviceInput)) {
             mActiveAudioInDevice = newSupportedByDeviceInput ? device : null;
-            mAudioManager.handleBluetoothActiveDeviceChanged(mActiveAudioInDevice, previousInDevice,
+            if (DBG) {
+                Log.d(TAG, " handleBluetoothActiveDeviceChanged  previousInDevice: "
+                            + previousInDevice + ", mActiveAudioInDevice" + mActiveAudioInDevice
+                            + " isLeOutput: false");
+            }
+            mAudioManager.handleBluetoothActiveDeviceChanged(mActiveAudioInDevice,previousInDevice,
                     BtProfileConnectionInfo.leAudio(false, false));
+
             return true;
         }
         Log.d(TAG, "updateActiveInDevice: Nothing to do.");
@@ -673,6 +679,12 @@ public class LeAudioService extends ProfileService {
             mActiveAudioOutDevice = newSupportedByDeviceOutput ? device : null;
             final boolean suppressNoisyIntent = (mActiveAudioOutDevice != null)
                     || (getConnectionState(previousOutDevice) == BluetoothProfile.STATE_CONNECTED);
+
+            if (DBG) {
+                Log.d(TAG, " handleBluetoothActiveDeviceChanged previousOutDevice: "
+                            + previousOutDevice + ", mActiveOutDevice: " + mActiveAudioOutDevice
+                            + " isLeOutput: true");
+            }
             mAudioManager.handleBluetoothActiveDeviceChanged(mActiveAudioOutDevice,
                     previousOutDevice, BtProfileConnectionInfo.leAudio(suppressNoisyIntent, true));
             return true;
@@ -720,7 +732,9 @@ public class LeAudioService extends ProfileService {
         }
 
         if (DBG) {
-            Log.d(TAG, "setActiveDeviceGroup = " + groupId + ", device: " + device);
+            Log.d(TAG, "setActiveDeviceGroup = " + groupId +
+                       ", mActiveDeviceGroupId = " + mActiveDeviceGroupId +
+                       ", device: " + device);
         }
 
         if (groupId == mActiveDeviceGroupId) {
