@@ -760,7 +760,7 @@ public class LeAudioService extends ProfileService {
      *
      * @return the list of active devices.
      */
-    List<BluetoothDevice> getActiveDevices() {
+    public List<BluetoothDevice> getActiveDevices() {
         if (DBG) {
             Log.d(TAG, "getActiveDevices");
         }
