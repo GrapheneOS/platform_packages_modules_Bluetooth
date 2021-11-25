@@ -31,7 +31,7 @@ from bluetooth_packets_python3 import RawBuilder
 from mobly import test_runner
 
 
-class LeAclManagerTestBb(gd_base_test.GdBaseTestClass):
+class LeAclManagerTest(gd_base_test.GdBaseTestClass):
 
     def setup_class(self):
         gd_base_test.GdBaseTestClass.setup_class(self, dut_module='HCI_INTERFACES', cert_module='HCI')
