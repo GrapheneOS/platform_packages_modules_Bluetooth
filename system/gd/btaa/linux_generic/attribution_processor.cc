@@ -23,6 +23,7 @@ namespace bluetooth {
 namespace activity_attribution {
 
 constexpr char kActivityAttributionTimeFormat[] = "%Y-%m-%d %H:%M:%S";
+static const std::string kUnknownPackageInfo = "UNKNOWN";
 // A device-activity aggregation entry expires after two days (172800 seconds)
 static const int kDurationToKeepDeviceActivityEntrySecs = 172800;
 // A transient device-activity aggregation entry is defined as an entry with very few Byte count
@@ -45,7 +46,13 @@ void AttributionProcessor::OnBtaaPackets(std::vector<BtaaHciPacket> btaa_packets
 
     if (wakeup_) {
       wakelock_duration_aggregator_[key].wakeup_count += 1;
-      wakeup_aggregator_.Push(std::move(WakeupDescriptor(btaa_packet.activity, btaa_packet.address)));
+      device_wakeup_aggregator_.Push(std::move(DeviceWakeupDescriptor(btaa_packet.activity, btaa_packet.address)));
+      std::string package_info = kUnknownPackageInfo;
+      std::string address = btaa_packet.address.ToString();
+      if (address_app_map_.find(address) != address_app_map_.end()) {
+        package_info = address_app_map_[address];
+      }
+      app_wakeup_aggregator_.Push(std::move(AppWakeupDescriptor(btaa_packet.activity, package_info)));
     }
   }
   wakeup_ = false;
@@ -53,7 +60,6 @@ void AttributionProcessor::OnBtaaPackets(std::vector<BtaaHciPacket> btaa_packets
 
 void AttributionProcessor::OnWakelockReleased(uint32_t duration_ms) {
   uint32_t total_byte_count = 0;
-  uint32_t ms_per_byte = 0;
 
   for (auto& it : wakelock_duration_aggregator_) {
     total_byte_count += it.second.byte_count;
@@ -63,10 +69,9 @@ void AttributionProcessor::OnWakelockReleased(uint32_t duration_ms) {
     return;
   }
 
-  ms_per_byte = duration_ms / total_byte_count;
   auto cur_time = std::chrono::system_clock::now();
   for (auto& it : wakelock_duration_aggregator_) {
-    it.second.wakelock_duration_ms = ms_per_byte * it.second.byte_count;
+    it.second.wakelock_duration_ms = (uint64_t)duration_ms * it.second.byte_count / total_byte_count;
     if (btaa_aggregator_.find(it.first) == btaa_aggregator_.end()) {
       btaa_aggregator_[it.first] = {};
       btaa_aggregator_[it.first].creation_time = cur_time;
@@ -84,19 +89,61 @@ void AttributionProcessor::OnWakelockReleased(uint32_t duration_ms) {
     btaa_aggregator_[it.first].wakeup_count += it.second.wakeup_count;
     btaa_aggregator_[it.first].byte_count += it.second.byte_count;
     btaa_aggregator_[it.first].wakelock_duration_ms += it.second.wakelock_duration_ms;
+
+    std::string address = it.first.address.ToString();
+    std::string package_info = kUnknownPackageInfo;
+    if (address_app_map_.find(address) != address_app_map_.end()) {
+      package_info = address_app_map_[address];
+    }
+    AppActivityKey key;
+    key.app = package_info;
+    key.activity = it.first.activity;
+
+    if (app_activity_aggregator_.find(key) == app_activity_aggregator_.end()) {
+      app_activity_aggregator_[key] = {};
+      app_activity_aggregator_[key].creation_time = cur_time;
+    }
+
+    elapsed_time_sec =
+        std::chrono::duration_cast<std::chrono::seconds>(cur_time - app_activity_aggregator_[key].creation_time)
+            .count();
+    if (elapsed_time_sec > kDurationToKeepDeviceActivityEntrySecs) {
+      app_activity_aggregator_[key].wakeup_count = 0;
+      app_activity_aggregator_[key].byte_count = 0;
+      app_activity_aggregator_[key].wakelock_duration_ms = 0;
+      app_activity_aggregator_[key].creation_time = cur_time;
+    }
+
+    app_activity_aggregator_[key].wakeup_count += it.second.wakeup_count;
+    app_activity_aggregator_[key].byte_count += it.second.byte_count;
+    app_activity_aggregator_[key].wakelock_duration_ms += it.second.wakelock_duration_ms;
   }
   wakelock_duration_aggregator_.clear();
 
-  if (btaa_aggregator_.size() < kMapSizeTrimDownAggregationEntry) {
+  if (btaa_aggregator_.size() <= kMapSizeTrimDownAggregationEntry &&
+      app_activity_aggregator_.size() <= kMapSizeTrimDownAggregationEntry) {
     return;
   }
   // Trim down the transient entries in the aggregator to avoid that it overgrows
-  for (auto& it : btaa_aggregator_) {
-    auto elapsed_time_sec =
-        std::chrono::duration_cast<std::chrono::seconds>(cur_time - it.second.creation_time).count();
-    if (elapsed_time_sec > kDurationTransientDeviceActivityEntrySecs &&
-        it.second.byte_count < kByteCountTransientDeviceActivityEntry) {
-      btaa_aggregator_.erase(it.first);
+  if (btaa_aggregator_.size() > kMapSizeTrimDownAggregationEntry) {
+    for (auto& it : btaa_aggregator_) {
+      auto elapsed_time_sec =
+          std::chrono::duration_cast<std::chrono::seconds>(cur_time - it.second.creation_time).count();
+      if (elapsed_time_sec > kDurationTransientDeviceActivityEntrySecs &&
+          it.second.byte_count < kByteCountTransientDeviceActivityEntry) {
+        btaa_aggregator_.erase(it.first);
+      }
+    }
+  }
+
+  if (app_activity_aggregator_.size() > kMapSizeTrimDownAggregationEntry) {
+    for (auto& it : app_activity_aggregator_) {
+      auto elapsed_time_sec =
+          std::chrono::duration_cast<std::chrono::seconds>(cur_time - it.second.creation_time).count();
+      if (elapsed_time_sec > kDurationTransientDeviceActivityEntrySecs &&
+          it.second.byte_count < kByteCountTransientDeviceActivityEntry) {
+        app_activity_aggregator_.erase(it.first);
+      }
     }
   }
 }
@@ -109,15 +156,22 @@ void AttributionProcessor::OnWakeup() {
 }
 
 void AttributionProcessor::NotifyActivityAttributionInfo(
-    int uid, const std::string& package_name, const std::string& device_address) {}
+    int uid, const std::string& package_name, const std::string& device_address) {
+  if (address_app_map_.size() > kMapSizeTrimDownAggregationEntry) {
+    LOG_INFO("The map from device address and app info overflows.");
+    return;
+  }
+  address_app_map_[device_address] = package_name + "/" + std::to_string(uid);
+}
 
 void AttributionProcessor::Dump(
     std::promise<flatbuffers::Offset<ActivityAttributionData>> promise, flatbuffers::FlatBufferBuilder* fb_builder) {
   // Dump wakeup attribution data
   auto title_wakeup = fb_builder->CreateString("----- Wakeup Attribution Dumpsys -----");
-  std::vector<common::TimestampedEntry<WakeupDescriptor>> wakeup_aggregator = wakeup_aggregator_.Pull();
+  std::vector<common::TimestampedEntry<DeviceWakeupDescriptor>> device_wakeup_aggregator =
+      device_wakeup_aggregator_.Pull();
   std::vector<flatbuffers::Offset<WakeupEntry>> wakeup_entry_offsets;
-  for (auto& it : wakeup_aggregator) {
+  for (auto& it : device_wakeup_aggregator) {
     WakeupEntryBuilder wakeup_entry_builder(*fb_builder);
     std::chrono::milliseconds duration(it.timestamp);
     std::chrono::time_point<std::chrono::system_clock> wakeup_time(duration);
@@ -148,7 +202,7 @@ void AttributionProcessor::Dump(
 
   ActivityAttributionDataBuilder builder(*fb_builder);
   builder.add_title_wakeup(title_wakeup);
-  builder.add_num_wakeup(wakeup_aggregator.size());
+  builder.add_num_wakeup(device_wakeup_aggregator.size());
   builder.add_wakeup_attribution(wakeup_entries);
   builder.add_title_activity(title_device_activity);
   builder.add_num_device_activity(btaa_aggregator_.size());
