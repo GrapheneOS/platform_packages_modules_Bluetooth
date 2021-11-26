@@ -101,7 +101,7 @@ class AdvertisingFilterParameter {
   DeliveryMode delivery_mode;
   uint16_t onfound_timeout;
   uint8_t onfound_timeout_cnt;
-  uint8_t rssi_low_thres;
+  uint8_t rssi_low_thresh;
   uint16_t onlost_timeout;
   uint16_t num_of_tracking_entries;
 };

@@ -47,6 +47,10 @@ using bluetooth::ToGdAddress;
 
 namespace {
 constexpr char kBtmLogTag[] = "SCAN";
+constexpr uint16_t kAllowAllFilter = 0x00;
+constexpr uint16_t kListLogicOr = 0x01;
+constexpr uint8_t kFilterLogicOr = 0x00;
+constexpr uint8_t kLowestRssiValue = 129;
 }
 
 extern void btm_ble_process_adv_pkt_cont_for_inquiry(
@@ -123,7 +127,7 @@ class BleScannerInterfaceImpl : public BleScannerInterface,
             filt_param->found_timeout;
         advertising_filter_parameter.onfound_timeout_cnt =
             filt_param->found_timeout_cnt;
-        advertising_filter_parameter.rssi_low_thres =
+        advertising_filter_parameter.rssi_low_thresh =
             filt_param->rssi_low_thres;
         advertising_filter_parameter.onlost_timeout = filt_param->lost_timeout;
         advertising_filter_parameter.num_of_tracking_entries =
@@ -538,4 +542,21 @@ BleScannerInterface* bluetooth::shim::get_ble_scanner_instance() {
 
 void bluetooth::shim::init_scanning_manager() {
   bt_le_scanner_instance->Init();
+}
+
+void bluetooth::shim::set_empty_filter(bool enable) {
+  bluetooth::hci::AdvertisingFilterParameter advertising_filter_parameter;
+  bluetooth::shim::GetScanning()->ScanFilterParameterSetup(
+      bluetooth::hci::ApcfAction::DELETE, 0x00, advertising_filter_parameter);
+  if (enable) {
+    /* Add an allow-all filter on index 0 */
+    advertising_filter_parameter.delivery_mode =
+        bluetooth::hci::DeliveryMode::IMMEDIATE;
+    advertising_filter_parameter.feature_selection = kAllowAllFilter;
+    advertising_filter_parameter.list_logic_type = kListLogicOr;
+    advertising_filter_parameter.filter_logic_type = kFilterLogicOr;
+    advertising_filter_parameter.rssi_high_thresh = kLowestRssiValue;
+    bluetooth::shim::GetScanning()->ScanFilterParameterSetup(
+        bluetooth::hci::ApcfAction::ADD, 0x00, advertising_filter_parameter);
+  }
 }
