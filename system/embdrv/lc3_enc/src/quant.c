@@ -53,7 +53,7 @@ static int get_gain_offset(enum lc3_srate sr, unsigned nbytes)
 
 /**
  * Global Gain Estimation (cf. 3.3.10.2)
- * dt, sr, nbytes  Duration, samplerate and size of the frame
+ * dt, sr          Duration and samplerate
  * x               Spectral coefficients
  * nbits_budget    Number of bits available coding the spectrum
  * nbits_off       Offset on the available bits, temporarily smoothed
@@ -62,7 +62,7 @@ static int get_gain_offset(enum lc3_srate sr, unsigned nbytes)
  * return          The quantized gain value
  */
 static int estimate_gain(
-    enum lc3_dt dt, enum lc3_srate sr, unsigned nbytes, const float *x,
+    enum lc3_dt dt, enum lc3_srate sr, const float *x,
     int nbits_budget, float nbits_off, int g_off, bool *reset_off)
 {
     int ne = LC3_NE(dt, sr) >> 2;
@@ -175,13 +175,13 @@ static int adjust_gain(enum lc3_srate sr,
 
 /**
  * Spectral quantization (cf. 3.3.10.3)
- * dt, sr, nbytes  Duration, samplerate and size of the frame
+ * dt, sr          Duration and samplerate
  * g_int           Quantization gain value
  * x               Spectral coefficients, scaled as output
  * xq, nq          Output spectral quantized coefficients, and count
  */
 static void perform_quantization(enum lc3_dt dt, enum lc3_srate sr,
-    unsigned nbytes, int g_int, float *x, int16_t *xq, int *nq)
+    int g_int, float *x, int16_t *xq, int *nq)
 {
     int ne = LC3_NE(dt, sr);
 
@@ -489,12 +489,12 @@ void lc3_quant_perform(enum lc3_dt dt, enum lc3_srate sr,
 
     int g_off = get_gain_offset(sr, nbytes);
 
-    int g_int = estimate_gain(dt, sr, nbytes,
+    int g_int = estimate_gain(dt, sr,
         x, nbits_budget, nbits_off, g_off, &reset_off);
 
     /* --- Quantization --- */
 
-    perform_quantization(dt, sr, nbytes, g_int, x, data->x, &data->n);
+    perform_quantization(dt, sr, g_int, x, data->x, &data->n);
 
     int nbits = compute_nbits(dt, sr, nbytes,
         data->x, &data->n, 0, NULL, NULL);
@@ -507,7 +507,7 @@ void lc3_quant_perform(enum lc3_dt dt, enum lc3_srate sr,
     int g_adj = adjust_gain(sr, g_int + g_off, nbits, nbits_budget);
 
     if (g_adj)
-        perform_quantization(dt, sr, nbytes, g_adj, x, data->x, &data->n);
+        perform_quantization(dt, sr, g_adj, x, data->x, &data->n);
 
     data->g_idx = g_int + g_adj + g_off;
     nbits = compute_nbits(dt, sr, nbytes,
