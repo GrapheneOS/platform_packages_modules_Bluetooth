@@ -30,7 +30,7 @@ enum lc3_bandwidth lc3_bwdet_run(
     struct region { int is : 8; int ie : 8; };
 
     static const struct region bws_table[LC3_NUM_DT]
-            [LC3_NUM_SRATE-1][LC3_NUM_BANDWIDTH-1] = {
+            [LC3_NUM_BANDWIDTH-1][LC3_NUM_BANDWIDTH-1] = {
 
         [LC3_DT_7M5] = {
             { { 51, 63+1 } },
@@ -55,9 +55,13 @@ enum lc3_bandwidth lc3_bwdet_run(
     /* --- Stage 1 ---
      * Determine bw0 candidate */
 
-    const struct region *bwr = bws_table[dt][sr-1];
     enum lc3_bandwidth bw0 = LC3_BANDWIDTH_NB;
     enum lc3_bandwidth bwn = (enum lc3_bandwidth)sr;
+
+    if (bwn <= bw0)
+        return bwn;
+
+    const struct region *bwr = bws_table[dt][bwn-1];
 
     for (enum lc3_bandwidth bw = bw0; bw < bwn; bw++) {
         int i = bwr[bw].is, ie = bwr[bw].ie;
@@ -70,7 +74,6 @@ enum lc3_bandwidth lc3_bwdet_run(
         if (se >= (10 << (bw == LC3_BANDWIDTH_NB)) * n)
             bw0 = bw + 1;
     }
-
 
     /* --- Stage 2 ---
      * Detect drop above cut-off frequency.

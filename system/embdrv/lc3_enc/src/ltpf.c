@@ -303,14 +303,12 @@ static bool detect_pitch(
 
 /**
  * Pitch-lag parameter (3.3.9.7)
- * state           State of the LTPF
  * x, n            [-232..-28] Previous, [0..n-1] Current 12.8KHz samples
  * tc              Pitch-lag estimation
  * pitch           The pitch value, in fixed .4
  * return          The bitstream pitch index value
  */
-static int refine_pitch(struct lc3_ltpf_state *state,
-    const float *x, int n, int tc, int *pitch)
+static int refine_pitch(const float *x, int n, int tc, int *pitch)
 {
     float r[17], rm;
     int e, f;
@@ -385,8 +383,7 @@ bool lc3_ltpf_analyse(enum lc3_dt dt, enum lc3_srate sr,
     if (pitch_present) {
         float u[n_12k8], v[n_12k8];
 
-        data->pitch_index =
-            refine_pitch(state, x_12k8, n_12k8, tc, &pitch);
+        data->pitch_index = refine_pitch(x_12k8, n_12k8, tc, &pitch);
 
         interpolate(x_12k8, n_12k8, 0, u);
         interpolate(x_12k8 - (pitch >> 2), n_12k8, pitch & 3, v);
