@@ -2556,7 +2556,32 @@ class LeAudioClientImpl : public LeAudioClient {
   }
 
   LeAudioContextType AudioContentToLeAudioContext(
+      LeAudioContextType current_context_type,
       audio_content_type_t content_type, audio_usage_t usage) {
+    /* Let's stay on the Conversational context type in case it is already
+     * configured to conversational.
+     */
+    if (current_context_type == LeAudioContextType::CONVERSATIONAL) {
+      switch (content_type) {
+        case AUDIO_CONTENT_TYPE_SONIFICATION:
+        case AUDIO_CONTENT_TYPE_SPEECH:
+          return LeAudioContextType::CONVERSATIONAL;
+        default:
+          break;
+      }
+
+      switch (usage) {
+        case AUDIO_USAGE_NOTIFICATION_TELEPHONY_RINGTONE:
+        case AUDIO_USAGE_NOTIFICATION:
+        case AUDIO_USAGE_ALARM:
+        case AUDIO_USAGE_EMERGENCY:
+        case AUDIO_USAGE_VOICE_COMMUNICATION:
+          return LeAudioContextType::CONVERSATIONAL;
+        default:
+          break;
+      }
+    }
+
     switch (content_type) {
       case AUDIO_CONTENT_TYPE_SPEECH:
         return LeAudioContextType::CONVERSATIONAL;
@@ -2622,8 +2647,8 @@ class LeAudioClientImpl : public LeAudioClient {
                  << ", content_type=" << tracks->content_type
                  << ", gain=" << tracks->gain;
 
-      auto new_context =
-          AudioContentToLeAudioContext(tracks->content_type, tracks->usage);
+      auto new_context = AudioContentToLeAudioContext(
+          current_context_type_, tracks->content_type, tracks->usage);
       contexts.push_back(new_context);
 
       --track_count;
