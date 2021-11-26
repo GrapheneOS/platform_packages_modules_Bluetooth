@@ -295,6 +295,7 @@ cc_test {
     ],
     srcs : [
         ":TestMockBtif",
+        ":TestMockMainShimLeScanning",
         "csis/csis_client.cc",
         "csis/csis_client_test.cc",
         "groups/groups.cc",
