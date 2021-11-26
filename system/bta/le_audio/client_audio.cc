@@ -107,26 +107,16 @@ void stop_audio_ticks() {
 }
 
 bool le_audio_sink_on_resume_req(bool start_media_task) {
-  if (localAudioSinkReceiver != nullptr) {
-    // Call OnAudioResume and block till it returns.
-    std::promise<void> do_resume_promise;
-    std::future<void> do_resume_future = do_resume_promise.get_future();
-    bt_status_t status = do_in_main_thread(
-        FROM_HERE,
-        base::BindOnce(&LeAudioClientAudioSinkReceiver::OnAudioResume,
-                       base::Unretained(localAudioSinkReceiver),
-                       std::move(do_resume_promise)));
-    if (status == BT_STATUS_SUCCESS) {
-      do_resume_future.wait();
-    } else {
-      LOG(ERROR) << __func__
-                 << ": LE_AUDIO_CTRL_CMD_START: do_in_main_thread err="
-                 << status;
-      return false;
-    }
-  } else {
+  if (localAudioSinkReceiver == nullptr) {
+    LOG(ERROR) << __func__ << ": localAudioSinkReceiver is nullptr";
+    return false;
+  }
+  bt_status_t status = do_in_main_thread(
+      FROM_HERE, base::BindOnce(&LeAudioClientAudioSinkReceiver::OnAudioResume,
+                                base::Unretained(localAudioSinkReceiver)));
+  if (status != BT_STATUS_SUCCESS) {
     LOG(ERROR) << __func__
-               << ": LE_AUDIO_CTRL_CMD_START: audio sink receiver not started";
+               << ": LE_AUDIO_CTRL_CMD_START: do_in_main_thread err=" << status;
     return false;
   }
 
@@ -134,27 +124,18 @@ bool le_audio_sink_on_resume_req(bool start_media_task) {
 }
 
 bool le_audio_source_on_resume_req(bool start_media_task) {
-  if (localAudioSourceReceiver != nullptr) {
-    // Call OnAudioResume and block till it returns.
-    std::promise<void> do_resume_promise;
-    std::future<void> do_resume_future = do_resume_promise.get_future();
-    bt_status_t status = do_in_main_thread(
-        FROM_HERE,
-        base::BindOnce(&LeAudioClientAudioSourceReceiver::OnAudioResume,
-                       base::Unretained(localAudioSourceReceiver),
-                       std::move(do_resume_promise)));
-    if (status == BT_STATUS_SUCCESS) {
-      do_resume_future.wait();
-    } else {
-      LOG(ERROR) << __func__
-                 << ": LE_AUDIO_CTRL_CMD_START: do_in_main_thread err="
-                 << status;
-      return false;
-    }
-  } else {
-    LOG(ERROR)
-        << __func__
-        << ": LE_AUDIO_CTRL_CMD_START: audio source receiver not started";
+  if (localAudioSourceReceiver == nullptr) {
+    LOG(ERROR) << __func__ << ": localAudioSourceReceiver is nullptr";
+    return false;
+  }
+
+  bt_status_t status = do_in_main_thread(
+      FROM_HERE,
+      base::BindOnce(&LeAudioClientAudioSourceReceiver::OnAudioResume,
+                     base::Unretained(localAudioSourceReceiver)));
+  if (status != BT_STATUS_SUCCESS) {
+    LOG(ERROR) << __func__
+               << ": LE_AUDIO_CTRL_CMD_START: do_in_main_thread err=" << status;
     return false;
   }
 

@@ -963,37 +963,16 @@ class UnicastTestNoInit : public Test {
     UpdateMetadata(usage, content_type);
 
     EXPECT_CALL(mock_audio_source_, ConfirmStreamingRequest()).Times(1);
-    std::promise<void> do_resume_sink_promise;
-    auto do_resume_sink_future = do_resume_sink_promise.get_future();
-    /* It's enough to call only one suspend even if it'll be bi-directional
-     * streaming. First resume will trigger GroupStream.
-     *
-     * There is no - 'only source receiver' scenario (e.g. single microphone).
-     * If there will be such test oriented scenario, such resume choose logic
-     * should be applied.
-     */
-    audio_sink_receiver_->OnAudioResume(std::move(do_resume_sink_promise));
-    do_resume_sink_future.wait();
+    audio_sink_receiver_->OnAudioResume();
     SyncOnMainLoop();
 
     if (reconfigured_sink) {
-      std::promise<void> do_resume_sink_reconf_promise;
-      auto do_resume_sink_reconf_future =
-          do_resume_sink_reconf_promise.get_future();
-
-      audio_sink_receiver_->OnAudioResume(
-          std::move(do_resume_sink_reconf_promise));
-      do_resume_sink_reconf_future.wait();
+      audio_sink_receiver_->OnAudioResume();
     }
 
     if (usage == AUDIO_USAGE_VOICE_COMMUNICATION) {
       ASSERT_NE(audio_source_receiver_, nullptr);
-
-      std::promise<void> do_resume_source_promise;
-      auto do_resume_source_future = do_resume_source_promise.get_future();
-      audio_source_receiver_->OnAudioResume(
-          std::move(do_resume_source_promise));
-      do_resume_source_future.wait();
+      audio_source_receiver_->OnAudioResume();
     }
   }
 
