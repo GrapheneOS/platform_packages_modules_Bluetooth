@@ -19,6 +19,7 @@
 #include <base/strings/string_number_conversions.h>
 
 #include "advertise_data_parser.h"
+#include "audio_hal_interface/le_audio_software.h"
 #include "bta/csis/csis_types.h"
 #include "bta_api.h"
 #include "bta_gatt_api.h"
@@ -3219,6 +3220,10 @@ void LeAudioClient::Initialize(
       << __func__
       << ", LE Audio Client requires Bluetooth Audio HAL V2.1 at least. Either "
          "disable LE Audio Profile, or update your HAL";
+
+  // TODO: The capability list should pass to the codec manager once it's ready
+  std::vector<::le_audio::set_configurations::AudioSetConfiguration>
+      capabilities = ::bluetooth::audio::le_audio::get_offload_capabilities();
 
   IsoManager::GetInstance()->Start();
 
