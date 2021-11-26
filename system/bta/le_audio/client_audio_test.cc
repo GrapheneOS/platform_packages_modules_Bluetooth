@@ -185,8 +185,7 @@ class MockLeAudioClientAudioSinkEventReceiver
               (override));
   MOCK_METHOD((void), OnAudioSuspend, (std::promise<void> do_suspend_promise),
               (override));
-  MOCK_METHOD((void), OnAudioResume, (std::promise<void> do_resume_promise),
-              (override));
+  MOCK_METHOD((void), OnAudioResume, (), (override));
   MOCK_METHOD((void), OnAudioMetadataUpdate,
               (std::promise<void> do_update_metadata_promise,
                const source_metadata_t& source_metadata),
@@ -198,8 +197,7 @@ class MockLeAudioClientAudioSourceEventReceiver
  public:
   MOCK_METHOD((void), OnAudioSuspend, (std::promise<void> do_suspend_promise),
               (override));
-  MOCK_METHOD((void), OnAudioResume, (std::promise<void> do_resume_promise),
-              (override));
+  MOCK_METHOD((void), OnAudioResume, (), (override));
 };
 
 class LeAudioClientAudioTest : public ::testing::Test {
@@ -419,7 +417,7 @@ TEST_F(LeAudioClientAudioTest, testLeAudioClientAudioSinkResume) {
   /* Expect LeAudio registered event listener to get called when HAL calls the
    * client_audio's internal resume callback.
    */
-  EXPECT_CALL(mock_hal_source_event_receiver_, OnAudioResume(_)).Times(1);
+  EXPECT_CALL(mock_hal_source_event_receiver_, OnAudioResume()).Times(1);
   bool start_media_task = false;
   ASSERT_TRUE(hal_source_stream_cb.on_resume_(start_media_task));
 }
@@ -473,7 +471,7 @@ TEST_F(LeAudioClientAudioTest,
    * client_audio's internal resume callback.
    */
   ASSERT_NE(hal_sink_stream_cb.on_resume_, nullptr);
-  EXPECT_CALL(mock_hal_sink_event_receiver_, OnAudioResume(_)).Times(1);
+  EXPECT_CALL(mock_hal_sink_event_receiver_, OnAudioResume()).Times(1);
   resumed_ts = std::chrono::system_clock::now();
   bool start_media_task = true;
   ASSERT_TRUE(hal_sink_stream_cb.on_resume_(start_media_task));
@@ -513,7 +511,7 @@ TEST_F(LeAudioClientAudioTest, testLeAudioClientAudioSourceResume) {
   /* Expect LeAudio registered event listener to get called when HAL calls the
    * client_audio's internal resume callback.
    */
-  EXPECT_CALL(mock_hal_sink_event_receiver_, OnAudioResume(_)).Times(1);
+  EXPECT_CALL(mock_hal_sink_event_receiver_, OnAudioResume()).Times(1);
   bool start_media_task = false;
   ASSERT_TRUE(hal_sink_stream_cb.on_resume_(start_media_task));
 }
