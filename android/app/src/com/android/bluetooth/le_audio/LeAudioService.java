@@ -770,27 +770,28 @@ public class LeAudioService extends ProfileService {
     }
 
     /**
-     * Get the connected physical LeAudio devices that are active.
+     * Get the active LE audio device.
      *
-     * @return the list of active devices.
+     * Note: When LE audio group is active, one of the Bluetooth device address
+     * which belongs to the group, represents the active LE audio group.
+     * Internally, this address is translated to LE audio group id.
+     *
+     * @return List of two elements. First element is an active output device
+     *         and second element is an active input device.
      */
     public List<BluetoothDevice> getActiveDevices() {
         if (DBG) {
             Log.d(TAG, "getActiveDevices");
         }
         ArrayList<BluetoothDevice> activeDevices = new ArrayList<>();
+        activeDevices.add(null);
+        activeDevices.add(null);
         synchronized (mStateMachines) {
             if (mActiveDeviceGroupId == LE_AUDIO_GROUP_ID_INVALID) {
                 return activeDevices;
             }
-            for (BluetoothDevice device : mDeviceGroupIdMap.keySet()) {
-                if (getConnectionState(device) != BluetoothProfile.STATE_CONNECTED) {
-                    continue;
-                }
-                if (mDeviceGroupIdMap.get(device) == Integer.valueOf(mActiveDeviceGroupId)) {
-                    activeDevices.add(device);
-                }
-            }
+                activeDevices.add(0, mActiveAudioOutDevice);
+                activeDevices.add(1, mActiveAudioInDevice);
         }
         return activeDevices;
     }
