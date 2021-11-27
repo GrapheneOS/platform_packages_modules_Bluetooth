@@ -46,6 +46,7 @@ import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanRecord;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
+import android.companion.AssociationInfo;
 import android.companion.ICompanionDeviceManager;
 import android.content.AttributionSource;
 import android.content.Context;
@@ -2289,11 +2290,14 @@ public class GattService extends ProfileService {
 
     private List<String> getAssociatedDevices(String callingPackage, UserHandle userHandle) {
         if (mCompanionManager == null) {
-            return new ArrayList<String>();
+            return Collections.emptyList();
         }
+
+        List<AssociationInfo> allAssociations = null;
+
         final long identity = Binder.clearCallingIdentity();
         try {
-            return mCompanionManager.getAssociations(
+            allAssociations = mCompanionManager.getAssociations(
                     callingPackage, userHandle.getIdentifier());
         } catch (SecurityException se) {
             // Not an app with associated devices
@@ -2304,7 +2308,21 @@ public class GattService extends ProfileService {
         } finally {
             Binder.restoreCallingIdentity(identity);
         }
-        return new ArrayList<String>();
+
+        if (allAssociations == null) {
+            return Collections.emptyList();
+        }
+
+        final List<String> macAddresses = new ArrayList<>();
+        for (AssociationInfo association : allAssociations) {
+            if (association.isSelfManaged()) {
+                // Skip devices managed by their companion applications (apps manage and report
+                // connectivity state themselves).
+                continue;
+            }
+            macAddresses.add(association.getDeviceMacAddress().toString());
+        }
+        return macAddresses;
     }
 
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_SCAN)
