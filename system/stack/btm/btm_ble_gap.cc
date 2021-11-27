@@ -33,6 +33,7 @@
 #include <memory>
 #include <vector>
 
+#include "bta/include/bta_api.h"
 #include "common/time_util.h"
 #include "device/include/controller.h"
 #include "main/shim/acl_api.h"
@@ -1243,6 +1244,17 @@ void btm_send_hci_set_scan_params(uint8_t scan_type, uint16_t scan_int,
   }
 }
 
+/* Scan filter param config event */
+static void btm_ble_scan_filt_param_cfg_evt(uint8_t avbl_space,
+                                            tBTM_BLE_SCAN_COND_OP action_type,
+                                            tBTM_STATUS btm_status) {
+  if (btm_status != btm_status_value(BTM_SUCCESS)) {
+    BTM_TRACE_ERROR("%s, %d", __func__, btm_status);
+  } else {
+    BTM_TRACE_DEBUG("%s", __func__);
+  }
+}
+
 /*******************************************************************************
  *
  * Function         btm_ble_start_inquiry
@@ -1278,6 +1290,22 @@ tBTM_STATUS btm_ble_start_inquiry(uint8_t duration) {
     BTM_TRACE_ERROR("LE Inquiry is active, can not start inquiry");
     return (BTM_BUSY);
   }
+
+  /* Cleanup anything remaining on index 0 */
+  BTM_BleAdvFilterParamSetup(BTM_BLE_SCAN_COND_DELETE,
+                             static_cast<tBTM_BLE_PF_FILT_INDEX>(0), nullptr,
+                             base::Bind(btm_ble_scan_filt_param_cfg_evt));
+
+  auto adv_filt_param = std::make_unique<btgatt_filt_param_setup_t>();
+  /* Add an allow-all filter on index 0*/
+  adv_filt_param->dely_mode = IMMEDIATE_DELY_MODE;
+  adv_filt_param->feat_seln = ALLOW_ALL_FILTER;
+  adv_filt_param->filt_logic_type = BTA_DM_BLE_PF_FILT_LOGIC_OR;
+  adv_filt_param->list_logic_type = BTA_DM_BLE_PF_LIST_LOGIC_OR;
+  adv_filt_param->rssi_low_thres = LOWEST_RSSI_VALUE;
+  adv_filt_param->rssi_high_thres = LOWEST_RSSI_VALUE;
+  BTM_BleAdvFilterParamSetup(BTM_BLE_SCAN_COND_ADD, static_cast<tBTM_BLE_PF_FILT_INDEX>(0),
+                 std::move(adv_filt_param), base::Bind(btm_ble_scan_filt_param_cfg_evt));
 
   if (!p_ble_cb->is_ble_scan_active()) {
     cache.ClearAll();
@@ -2210,6 +2238,11 @@ void btm_ble_stop_inquiry(void) {
   alarm_cancel(p_ble_cb->inq_var.inquiry_timer);
 
   p_ble_cb->reset_ble_inquiry();
+
+  /* Cleanup anything remaining on index 0 */
+  BTM_BleAdvFilterParamSetup(BTM_BLE_SCAN_COND_DELETE,
+                             static_cast<tBTM_BLE_PF_FILT_INDEX>(0), nullptr,
+                             base::Bind(btm_ble_scan_filt_param_cfg_evt));
 
   /* If no more scan activity, stop LE scan now */
   if (!p_ble_cb->is_ble_scan_active()) {
