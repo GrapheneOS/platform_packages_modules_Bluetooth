@@ -166,11 +166,11 @@ void AttributionProcessor::NotifyActivityAttributionInfo(
 
 void AttributionProcessor::Dump(
     std::promise<flatbuffers::Offset<ActivityAttributionData>> promise, flatbuffers::FlatBufferBuilder* fb_builder) {
-  // Dump wakeup attribution data
-  auto title_wakeup = fb_builder->CreateString("----- Wakeup Attribution Dumpsys -----");
+  // Dump device-based wakeup attribution data
+  auto title_device_wakeup = fb_builder->CreateString("----- Device-based Wakeup Attribution Dumpsys -----");
   std::vector<common::TimestampedEntry<DeviceWakeupDescriptor>> device_wakeup_aggregator =
       device_wakeup_aggregator_.Pull();
-  std::vector<flatbuffers::Offset<WakeupEntry>> wakeup_entry_offsets;
+  std::vector<flatbuffers::Offset<WakeupEntry>> device_wakeup_entry_offsets;
   for (auto& it : device_wakeup_aggregator) {
     WakeupEntryBuilder wakeup_entry_builder(*fb_builder);
     std::chrono::milliseconds duration(it.timestamp);
@@ -179,13 +179,13 @@ void AttributionProcessor::Dump(
         bluetooth::common::StringFormatTimeWithMilliseconds(kActivityAttributionTimeFormat, wakeup_time).c_str()));
     wakeup_entry_builder.add_activity(fb_builder->CreateString((ActivityToString(it.entry.activity_))));
     wakeup_entry_builder.add_address(fb_builder->CreateString(it.entry.address_.ToString()));
-    wakeup_entry_offsets.push_back(wakeup_entry_builder.Finish());
+    device_wakeup_entry_offsets.push_back(wakeup_entry_builder.Finish());
   }
-  auto wakeup_entries = fb_builder->CreateVector(wakeup_entry_offsets);
+  auto device_wakeup_entries = fb_builder->CreateVector(device_wakeup_entry_offsets);
 
   // Dump device-based activity aggregation data
   auto title_device_activity = fb_builder->CreateString("----- Device-based Activity Attribution Dumpsys -----");
-  std::vector<flatbuffers::Offset<ActivityAggregationEntry>> aggregation_entry_offsets;
+  std::vector<flatbuffers::Offset<ActivityAggregationEntry>> device_aggregation_entry_offsets;
   for (auto& it : btaa_aggregator_) {
     ActivityAggregationEntryBuilder device_entry_builder(*fb_builder);
     device_entry_builder.add_address(fb_builder->CreateString(it.first.address.ToString()));
@@ -196,18 +196,59 @@ void AttributionProcessor::Dump(
     device_entry_builder.add_creation_time(fb_builder->CreateString(
         bluetooth::common::StringFormatTimeWithMilliseconds(kActivityAttributionTimeFormat, it.second.creation_time)
             .c_str()));
-    aggregation_entry_offsets.push_back(device_entry_builder.Finish());
+    device_aggregation_entry_offsets.push_back(device_entry_builder.Finish());
   }
-  auto aggregation_entries = fb_builder->CreateVector(aggregation_entry_offsets);
+  auto device_aggregation_entries = fb_builder->CreateVector(device_aggregation_entry_offsets);
+
+  // Dump App-based wakeup attribution data
+  auto title_app_wakeup = fb_builder->CreateString("----- App-based Wakeup Attribution Dumpsys -----");
+  std::vector<common::TimestampedEntry<AppWakeupDescriptor>> app_wakeup_aggregator = app_wakeup_aggregator_.Pull();
+  std::vector<flatbuffers::Offset<WakeupEntry>> app_wakeup_entry_offsets;
+  for (auto& it : app_wakeup_aggregator) {
+    WakeupEntryBuilder wakeup_entry_builder(*fb_builder);
+    std::chrono::milliseconds duration(it.timestamp);
+    std::chrono::time_point<std::chrono::system_clock> wakeup_time(duration);
+    wakeup_entry_builder.add_wakeup_time(fb_builder->CreateString(
+        bluetooth::common::StringFormatTimeWithMilliseconds(kActivityAttributionTimeFormat, wakeup_time).c_str()));
+    wakeup_entry_builder.add_activity(fb_builder->CreateString((ActivityToString(it.entry.activity_))));
+    wakeup_entry_builder.add_package_info(fb_builder->CreateString(it.entry.package_info_));
+    app_wakeup_entry_offsets.push_back(wakeup_entry_builder.Finish());
+  }
+  auto app_wakeup_entries = fb_builder->CreateVector(app_wakeup_entry_offsets);
+
+  // Dump app-based activity aggregation data
+  auto title_app_activity = fb_builder->CreateString("----- App-based Activity Attribution Dumpsys -----");
+  std::vector<flatbuffers::Offset<ActivityAggregationEntry>> app_aggregation_entry_offsets;
+  for (auto& it : app_activity_aggregator_) {
+    ActivityAggregationEntryBuilder app_entry_builder(*fb_builder);
+    app_entry_builder.add_package_info(fb_builder->CreateString(it.first.app));
+    app_entry_builder.add_activity(fb_builder->CreateString((ActivityToString(it.first.activity))));
+    app_entry_builder.add_wakeup_count(it.second.wakeup_count);
+    app_entry_builder.add_byte_count(it.second.byte_count);
+    app_entry_builder.add_wakelock_duration_ms(it.second.wakelock_duration_ms);
+    app_entry_builder.add_creation_time(fb_builder->CreateString(
+        bluetooth::common::StringFormatTimeWithMilliseconds(kActivityAttributionTimeFormat, it.second.creation_time)
+            .c_str()));
+    app_aggregation_entry_offsets.push_back(app_entry_builder.Finish());
+  }
+  auto app_aggregation_entries = fb_builder->CreateVector(app_aggregation_entry_offsets);
 
   ActivityAttributionDataBuilder builder(*fb_builder);
-  builder.add_title_wakeup(title_wakeup);
-  builder.add_num_wakeup(device_wakeup_aggregator.size());
-  builder.add_wakeup_attribution(wakeup_entries);
-  builder.add_title_activity(title_device_activity);
+  builder.add_title_device_wakeup(title_device_wakeup);
+  builder.add_num_device_wakeup(device_wakeup_aggregator.size());
+  builder.add_device_wakeup_attribution(device_wakeup_entries);
+  builder.add_title_device_activity(title_device_activity);
   builder.add_num_device_activity(btaa_aggregator_.size());
-  builder.add_device_activity_aggregation(aggregation_entries);
+  builder.add_device_activity_aggregation(device_aggregation_entries);
   btaa_aggregator_.clear();
+
+  builder.add_title_app_wakeup(title_app_wakeup);
+  builder.add_num_app_wakeup(app_wakeup_aggregator.size());
+  builder.add_app_wakeup_attribution(app_wakeup_entries);
+  builder.add_title_app_activity(title_app_activity);
+  builder.add_num_app_activity(app_activity_aggregator_.size());
+  builder.add_app_activity_aggregation(app_aggregation_entries);
+  app_activity_aggregator_.clear();
 
   flatbuffers::Offset<ActivityAttributionData> dumpsys_data = builder.Finish();
   promise.set_value(dumpsys_data);
