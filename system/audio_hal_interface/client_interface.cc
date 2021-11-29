@@ -74,7 +74,7 @@ class BluetoothAudioPortImpl : public IBluetoothAudioPort {
       : transport_instance_(transport_instance), provider_(provider) {}
 
   Return<void> startStream() override {
-    StopWatchLegacy(__func__);
+    StopWatchLegacy stop_watch(__func__);
     BluetoothAudioCtrlAck ack = transport_instance_->StartRequest();
     if (ack != BluetoothAudioCtrlAck::PENDING) {
       auto hidl_retval =
@@ -88,7 +88,7 @@ class BluetoothAudioPortImpl : public IBluetoothAudioPort {
   }
 
   Return<void> suspendStream() override {
-    StopWatchLegacy(__func__);
+    StopWatchLegacy stop_watch(__func__);
     BluetoothAudioCtrlAck ack = transport_instance_->SuspendRequest();
     if (ack != BluetoothAudioCtrlAck::PENDING) {
       auto hidl_retval =
@@ -102,14 +102,14 @@ class BluetoothAudioPortImpl : public IBluetoothAudioPort {
   }
 
   Return<void> stopStream() override {
-    StopWatchLegacy(__func__);
+    StopWatchLegacy stop_watch(__func__);
     transport_instance_->StopRequest();
     return Void();
   }
 
   Return<void> getPresentationPosition(
       getPresentationPosition_cb _hidl_cb) override {
-    StopWatchLegacy(__func__);
+    StopWatchLegacy stop_watch(__func__);
     uint64_t remote_delay_report_ns;
     uint64_t total_bytes_read;
     timespec data_position;
@@ -136,7 +136,7 @@ class BluetoothAudioPortImpl : public IBluetoothAudioPort {
   }
 
   Return<void> updateMetadata(const SourceMetadata& sourceMetadata) override {
-    StopWatchLegacy(__func__);
+    StopWatchLegacy stop_watch(__func__);
     LOG(INFO) << __func__ << ": " << sourceMetadata.tracks.size()
               << " track(s)";
     // refer to StreamOut.impl.h within Audio HAL (AUDIO_HAL_VERSION_5_0)
