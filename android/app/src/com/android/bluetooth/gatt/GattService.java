@@ -941,13 +941,14 @@ public class GattService extends ProfileService {
         }
 
         @Override
-        public void sendNotification(int serverIf, String address, int handle, boolean confirm,
+        public int sendNotification(int serverIf, String address, int handle, boolean confirm,
                 byte[] value, AttributionSource attributionSource) {
             GattService service = getService();
             if (service == null) {
-                return;
+                return BluetoothStatusCodes.ERROR_PROFILE_SERVICE_NOT_BOUND;
             }
-            service.sendNotification(serverIf, address, handle, confirm, value, attributionSource);
+            return service.sendNotification(serverIf, address, handle, confirm, value,
+                attributionSource);
         }
 
         @Override
@@ -3686,11 +3687,11 @@ public class GattService extends ProfileService {
     }
 
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
-    void sendNotification(int serverIf, String address, int handle, boolean confirm, byte[] value,
+    int sendNotification(int serverIf, String address, int handle, boolean confirm, byte[] value,
             AttributionSource attributionSource) {
         if (!Utils.checkConnectPermissionForDataDelivery(
                 this, attributionSource, "GattService sendNotification")) {
-            return;
+            return BluetoothStatusCodes.ERROR_MISSING_BLUETOOTH_CONNECT_PERMISSION;
         }
 
         if (VDBG) {
@@ -3699,7 +3700,7 @@ public class GattService extends ProfileService {
 
         Integer connId = mServerMap.connIdByAddress(serverIf, address);
         if (connId == null || connId == 0) {
-            return;
+            return BluetoothStatusCodes.ERROR_DEVICE_NOT_CONNECTED;
         }
 
         if (confirm) {
@@ -3707,6 +3708,8 @@ public class GattService extends ProfileService {
         } else {
             gattServerSendNotificationNative(serverIf, handle, connId, value);
         }
+
+        return BluetoothStatusCodes.SUCCESS;
     }
 
 
