@@ -84,10 +84,6 @@ public class BluetoothMapService extends ProfileService {
             "com.android.bluetooth.map.USER_CONFIRM_TIMEOUT";
     private static final int USER_CONFIRM_TIMEOUT_VALUE = 25000;
 
-    // Intent indicating that the email settings activity should be opened
-    static final String ACTION_SHOW_MAPS_SETTINGS =
-            "android.btmap.intent.action.SHOW_MAPS_SETTINGS";
-
     static final int MSG_SERVERSESSION_CLOSE = 5000;
     static final int MSG_SESSION_ESTABLISHED = 5001;
     static final int MSG_SESSION_DISCONNECTED = 5002;
@@ -668,7 +664,6 @@ public class BluetoothMapService extends ProfileService {
         filter.addAction(BluetoothDevice.ACTION_CONNECTION_ACCESS_REPLY);
         filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
         filter.addAction(BluetoothDevice.ACTION_SDP_RECORD);
-        filter.addAction(ACTION_SHOW_MAPS_SETTINGS);
         filter.addAction(USER_CONFIRM_TIMEOUT_ACTION);
 
         // We need two filters, since Type only applies to the ACTION_MESSAGE_SENT
@@ -1143,14 +1138,6 @@ public class BluetoothMapService extends ProfileService {
                         sendConnectMessage(-1); // -1 indicates all MAS instances
                     }
                 }
-            } else if (action.equals(ACTION_SHOW_MAPS_SETTINGS)) {
-                if (VERBOSE) {
-                    Log.v(TAG, "Received ACTION_SHOW_MAPS_SETTINGS.");
-                }
-
-                Intent in = new Intent(context, BluetoothMapSettings.class);
-                in.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                context.startActivity(in);
             } else if (action.equals(BluetoothMapContentObserver.ACTION_MESSAGE_SENT)) {
                 int result = getResultCode();
                 boolean handled = false;
