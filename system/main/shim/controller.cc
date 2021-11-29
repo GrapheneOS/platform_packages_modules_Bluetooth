@@ -299,7 +299,7 @@ FORWARD_GETTER_IF_RUST(uint8_t, get_le_connect_list_size,
                        GetController()->GetLeConnectListSize())
 
 static void set_ble_resolving_list_max_size(int resolving_list_max_size) {
-  LOG_WARN("UNSUPPORTED");
+  LOG_DEBUG("UNSUPPORTED");
 }
 
 static uint8_t get_le_resolving_list_size(void) {
