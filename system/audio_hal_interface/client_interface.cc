@@ -685,18 +685,29 @@ bool BluetoothAudioClientInterface::UpdateAudioConfig_2_2(
            SessionType_2_1::LE_AUDIO_SOFTWARE_ENCODING_DATAPATH ||
        transport_->GetSessionType_2_1() ==
            SessionType_2_1::LE_AUDIO_SOFTWARE_DECODED_DATAPATH);
-  bool is_offload_session = (transport_->GetSessionType_2_1() ==
-                             SessionType_2_1::A2DP_HARDWARE_OFFLOAD_DATAPATH);
+  bool is_a2dp_offload_session =
+      (transport_->GetSessionType_2_1() ==
+       SessionType_2_1::A2DP_HARDWARE_OFFLOAD_DATAPATH);
+  bool is_leaudio_offload_session =
+      (transport_->GetSessionType_2_1() ==
+           SessionType_2_1::LE_AUDIO_HARDWARE_OFFLOAD_ENCODING_DATAPATH ||
+       transport_->GetSessionType_2_1() ==
+           SessionType_2_1::LE_AUDIO_HARDWARE_OFFLOAD_DECODING_DATAPATH);
   auto audio_config_discriminator = audio_config_2_2.getDiscriminator();
   bool is_software_audio_config =
       (is_software_session &&
        audio_config_discriminator ==
            AudioConfiguration_2_2::hidl_discriminator::pcmConfig);
-  bool is_offload_audio_config =
-      (is_offload_session &&
+  bool is_a2dp_offload_audio_config =
+      (is_a2dp_offload_session &&
        audio_config_discriminator ==
            AudioConfiguration_2_2::hidl_discriminator::codecConfig);
-  if (!is_software_audio_config && !is_offload_audio_config) {
+  bool is_leaudio_offload_audio_config =
+      (is_leaudio_offload_session &&
+       audio_config_discriminator ==
+           AudioConfiguration_2_2::hidl_discriminator::leAudioConfig);
+  if (!is_software_audio_config && !is_a2dp_offload_audio_config &&
+      !is_leaudio_offload_audio_config) {
     return false;
   }
 
@@ -865,9 +876,14 @@ int BluetoothAudioClientInterface::StartSession_2_2() {
 
   if (tempDataMQ && tempDataMQ->isValid()) {
     mDataMQ = std::move(tempDataMQ);
-  } else if (transport_->GetSessionType_2_1() ==
-                 SessionType_2_1::A2DP_HARDWARE_OFFLOAD_DATAPATH &&
-             session_status == BluetoothAudioStatus::SUCCESS) {
+  } else if (
+      (transport_->GetSessionType_2_1() ==
+           SessionType_2_1::A2DP_HARDWARE_OFFLOAD_DATAPATH ||
+       transport_->GetSessionType_2_1() ==
+           SessionType_2_1::LE_AUDIO_HARDWARE_OFFLOAD_ENCODING_DATAPATH ||
+       transport_->GetSessionType_2_1() ==
+           SessionType_2_1::LE_AUDIO_HARDWARE_OFFLOAD_DECODING_DATAPATH) &&
+      session_status == BluetoothAudioStatus::SUCCESS) {
     transport_->ResetPresentationPosition();
     session_started_ = true;
     return 0;
