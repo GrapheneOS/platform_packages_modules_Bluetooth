@@ -343,7 +343,10 @@ public final class Utils {
 
         for (AssociationInfo association : cdm.getAllAssociations()) {
             if (association.getPackageName().equals(callingPackage)
-                    && association.isLinkedTo(device.getAddress())) {
+                    && !association.isSelfManaged() && device.getAddress() != null
+                    && association.getDeviceMacAddress() != null
+                    && device.getAddress().equalsIgnoreCase(
+                            association.getDeviceMacAddress().toString())) {
                 return true;
             }
         }
