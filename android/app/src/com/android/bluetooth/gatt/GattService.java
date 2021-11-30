@@ -47,7 +47,7 @@ import android.bluetooth.le.ScanRecord;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.companion.AssociationInfo;
-import android.companion.ICompanionDeviceManager;
+import android.companion.CompanionDeviceManager;
 import android.content.AttributionSource;
 import android.content.Context;
 import android.content.Intent;
@@ -238,7 +238,7 @@ public class GattService extends ProfileService {
     private PeriodicScanManager mPeriodicScanManager;
     private ScanManager mScanManager;
     private AppOpsManager mAppOps;
-    private ICompanionDeviceManager mCompanionManager;
+    private CompanionDeviceManager mCompanionManager;
     private String mExposureNotificationPackage;
     private Handler mTestModeHandler;
     private final Object mTestModeLock = new Object();
@@ -287,8 +287,7 @@ public class GattService extends ProfileService {
 
         initializeNative();
         mAdapterService = AdapterService.getAdapterService();
-        mCompanionManager = ICompanionDeviceManager.Stub.asInterface(
-                ServiceManager.getService(Context.COMPANION_DEVICE_SERVICE));
+        mCompanionManager = getSystemService(CompanionDeviceManager.class);
         mAppOps = getSystemService(AppOpsManager.class);
         mAdvertiseManager = new AdvertiseManager(this, mAdapterService);
         mAdvertiseManager.start();
@@ -941,13 +940,14 @@ public class GattService extends ProfileService {
         }
 
         @Override
-        public void sendNotification(int serverIf, String address, int handle, boolean confirm,
+        public int sendNotification(int serverIf, String address, int handle, boolean confirm,
                 byte[] value, AttributionSource attributionSource) {
             GattService service = getService();
             if (service == null) {
-                return;
+                return BluetoothStatusCodes.ERROR_PROFILE_SERVICE_NOT_BOUND;
             }
-            service.sendNotification(serverIf, address, handle, confirm, value, attributionSource);
+            return service.sendNotification(serverIf, address, handle, confirm, value,
+                attributionSource);
         }
 
         @Override
@@ -2288,39 +2288,26 @@ public class GattService extends ProfileService {
         mScanManager.unregisterScanner(scannerId);
     }
 
-    private List<String> getAssociatedDevices(String callingPackage, UserHandle userHandle) {
+    private List<String> getAssociatedDevices(String callingPackage) {
         if (mCompanionManager == null) {
             return Collections.emptyList();
         }
 
-        List<AssociationInfo> allAssociations = null;
+        List<String> macAddresses = new ArrayList();
 
         final long identity = Binder.clearCallingIdentity();
         try {
-            allAssociations = mCompanionManager.getAssociations(
-                    callingPackage, userHandle.getIdentifier());
+            for (AssociationInfo info : mCompanionManager.getAllAssociations()) {
+                if (info.getPackageName().equals(callingPackage) && !info.isSelfManaged()) {
+                    macAddresses.add(info.getDeviceMacAddress().toString());
+                }
+            }
         } catch (SecurityException se) {
             // Not an app with associated devices
-        } catch (RemoteException re) {
-            Log.e(TAG, "Cannot reach companion device service", re);
         } catch (Exception e) {
             Log.e(TAG, "Cannot check device associations for " + callingPackage, e);
         } finally {
             Binder.restoreCallingIdentity(identity);
-        }
-
-        if (allAssociations == null) {
-            return Collections.emptyList();
-        }
-
-        final List<String> macAddresses = new ArrayList<>();
-        for (AssociationInfo association : allAssociations) {
-            if (association.isSelfManaged()) {
-                // Skip devices managed by their companion applications (apps manage and report
-                // connectivity state themselves).
-                continue;
-            }
-            macAddresses.add(association.getDeviceMacAddress().toString());
         }
         return macAddresses;
     }
@@ -2366,7 +2353,7 @@ public class GattService extends ProfileService {
                 Utils.checkCallerHasNetworkSetupWizardPermission(this);
         scanClient.hasScanWithoutLocationPermission =
                 Utils.checkCallerHasScanWithoutLocationPermission(this);
-        scanClient.associatedDevices = getAssociatedDevices(callingPackage, scanClient.userHandle);
+        scanClient.associatedDevices = getAssociatedDevices(callingPackage);
 
         AppScanStats app = mScannerMap.getAppScanStatsById(scannerId);
         ScannerMap.App cbApp = mScannerMap.getById(scannerId);
@@ -2445,7 +2432,7 @@ public class GattService extends ProfileService {
                 Utils.checkCallerHasNetworkSetupWizardPermission(this);
         app.mHasScanWithoutLocationPermission =
                 Utils.checkCallerHasScanWithoutLocationPermission(this);
-        app.mAssociatedDevices = getAssociatedDevices(callingPackage, app.mUserHandle);
+        app.mAssociatedDevices = getAssociatedDevices(callingPackage);
         mScanManager.registerScanner(uuid);
 
         // If this fails, we should stop the scan immediately.
@@ -3686,11 +3673,11 @@ public class GattService extends ProfileService {
     }
 
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
-    void sendNotification(int serverIf, String address, int handle, boolean confirm, byte[] value,
+    int sendNotification(int serverIf, String address, int handle, boolean confirm, byte[] value,
             AttributionSource attributionSource) {
         if (!Utils.checkConnectPermissionForDataDelivery(
                 this, attributionSource, "GattService sendNotification")) {
-            return;
+            return BluetoothStatusCodes.ERROR_MISSING_BLUETOOTH_CONNECT_PERMISSION;
         }
 
         if (VDBG) {
@@ -3699,7 +3686,7 @@ public class GattService extends ProfileService {
 
         Integer connId = mServerMap.connIdByAddress(serverIf, address);
         if (connId == null || connId == 0) {
-            return;
+            return BluetoothStatusCodes.ERROR_DEVICE_NOT_CONNECTED;
         }
 
         if (confirm) {
@@ -3707,6 +3694,8 @@ public class GattService extends ProfileService {
         } else {
             gattServerSendNotificationNative(serverIf, handle, connId, value);
         }
+
+        return BluetoothStatusCodes.SUCCESS;
     }
 
 

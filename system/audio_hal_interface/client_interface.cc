@@ -74,7 +74,7 @@ class BluetoothAudioPortImpl : public IBluetoothAudioPort {
       : transport_instance_(transport_instance), provider_(provider) {}
 
   Return<void> startStream() override {
-    StopWatchLegacy(__func__);
+    StopWatchLegacy stop_watch(__func__);
     BluetoothAudioCtrlAck ack = transport_instance_->StartRequest();
     if (ack != BluetoothAudioCtrlAck::PENDING) {
       auto hidl_retval =
@@ -88,7 +88,7 @@ class BluetoothAudioPortImpl : public IBluetoothAudioPort {
   }
 
   Return<void> suspendStream() override {
-    StopWatchLegacy(__func__);
+    StopWatchLegacy stop_watch(__func__);
     BluetoothAudioCtrlAck ack = transport_instance_->SuspendRequest();
     if (ack != BluetoothAudioCtrlAck::PENDING) {
       auto hidl_retval =
@@ -102,14 +102,14 @@ class BluetoothAudioPortImpl : public IBluetoothAudioPort {
   }
 
   Return<void> stopStream() override {
-    StopWatchLegacy(__func__);
+    StopWatchLegacy stop_watch(__func__);
     transport_instance_->StopRequest();
     return Void();
   }
 
   Return<void> getPresentationPosition(
       getPresentationPosition_cb _hidl_cb) override {
-    StopWatchLegacy(__func__);
+    StopWatchLegacy stop_watch(__func__);
     uint64_t remote_delay_report_ns;
     uint64_t total_bytes_read;
     timespec data_position;
@@ -136,7 +136,7 @@ class BluetoothAudioPortImpl : public IBluetoothAudioPort {
   }
 
   Return<void> updateMetadata(const SourceMetadata& sourceMetadata) override {
-    StopWatchLegacy(__func__);
+    StopWatchLegacy stop_watch(__func__);
     LOG(INFO) << __func__ << ": " << sourceMetadata.tracks.size()
               << " track(s)";
     // refer to StreamOut.impl.h within Audio HAL (AUDIO_HAL_VERSION_5_0)
@@ -685,18 +685,29 @@ bool BluetoothAudioClientInterface::UpdateAudioConfig_2_2(
            SessionType_2_1::LE_AUDIO_SOFTWARE_ENCODING_DATAPATH ||
        transport_->GetSessionType_2_1() ==
            SessionType_2_1::LE_AUDIO_SOFTWARE_DECODED_DATAPATH);
-  bool is_offload_session = (transport_->GetSessionType_2_1() ==
-                             SessionType_2_1::A2DP_HARDWARE_OFFLOAD_DATAPATH);
+  bool is_a2dp_offload_session =
+      (transport_->GetSessionType_2_1() ==
+       SessionType_2_1::A2DP_HARDWARE_OFFLOAD_DATAPATH);
+  bool is_leaudio_offload_session =
+      (transport_->GetSessionType_2_1() ==
+           SessionType_2_1::LE_AUDIO_HARDWARE_OFFLOAD_ENCODING_DATAPATH ||
+       transport_->GetSessionType_2_1() ==
+           SessionType_2_1::LE_AUDIO_HARDWARE_OFFLOAD_DECODING_DATAPATH);
   auto audio_config_discriminator = audio_config_2_2.getDiscriminator();
   bool is_software_audio_config =
       (is_software_session &&
        audio_config_discriminator ==
            AudioConfiguration_2_2::hidl_discriminator::pcmConfig);
-  bool is_offload_audio_config =
-      (is_offload_session &&
+  bool is_a2dp_offload_audio_config =
+      (is_a2dp_offload_session &&
        audio_config_discriminator ==
            AudioConfiguration_2_2::hidl_discriminator::codecConfig);
-  if (!is_software_audio_config && !is_offload_audio_config) {
+  bool is_leaudio_offload_audio_config =
+      (is_leaudio_offload_session &&
+       audio_config_discriminator ==
+           AudioConfiguration_2_2::hidl_discriminator::leAudioConfig);
+  if (!is_software_audio_config && !is_a2dp_offload_audio_config &&
+      !is_leaudio_offload_audio_config) {
     return false;
   }
 
@@ -865,9 +876,14 @@ int BluetoothAudioClientInterface::StartSession_2_2() {
 
   if (tempDataMQ && tempDataMQ->isValid()) {
     mDataMQ = std::move(tempDataMQ);
-  } else if (transport_->GetSessionType_2_1() ==
-                 SessionType_2_1::A2DP_HARDWARE_OFFLOAD_DATAPATH &&
-             session_status == BluetoothAudioStatus::SUCCESS) {
+  } else if (
+      (transport_->GetSessionType_2_1() ==
+           SessionType_2_1::A2DP_HARDWARE_OFFLOAD_DATAPATH ||
+       transport_->GetSessionType_2_1() ==
+           SessionType_2_1::LE_AUDIO_HARDWARE_OFFLOAD_ENCODING_DATAPATH ||
+       transport_->GetSessionType_2_1() ==
+           SessionType_2_1::LE_AUDIO_HARDWARE_OFFLOAD_DECODING_DATAPATH) &&
+      session_status == BluetoothAudioStatus::SUCCESS) {
     transport_->ResetPresentationPosition();
     session_started_ = true;
     return 0;

@@ -27,6 +27,7 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.os.ServiceManager;
 import android.telephony.PhoneStateListener;
+import android.telephony.SignalStrengthUpdateRequest;
 import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
 
@@ -140,6 +141,8 @@ public class HeadsetPhoneStateTest {
                 | PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
         verify(mTelephonyManager).listen(any(), eq(PhoneStateListener.LISTEN_SERVICE_STATE
                 | PhoneStateListener.LISTEN_SIGNAL_STRENGTHS));
+        verify(mTelephonyManager).setSignalStrengthUpdateRequest(
+                any(SignalStrengthUpdateRequest.class));
     }
 
     /**
@@ -153,9 +156,14 @@ public class HeadsetPhoneStateTest {
                 | PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
         verify(mTelephonyManager).listen(any(), eq(PhoneStateListener.LISTEN_SERVICE_STATE
                 | PhoneStateListener.LISTEN_SIGNAL_STRENGTHS));
+        verify(mTelephonyManager).setSignalStrengthUpdateRequest(
+                any(SignalStrengthUpdateRequest.class));
+
         mHeadsetPhoneState.listenForPhoneState(device1, PhoneStateListener.LISTEN_SERVICE_STATE);
         verify(mTelephonyManager).listen(any(), eq(PhoneStateListener.LISTEN_NONE));
         verify(mTelephonyManager).listen(any(), eq(PhoneStateListener.LISTEN_SERVICE_STATE));
+        verify(mTelephonyManager).clearSignalStrengthUpdateRequest(
+                any(SignalStrengthUpdateRequest.class));
     }
 
     /**
@@ -168,8 +176,13 @@ public class HeadsetPhoneStateTest {
                 | PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
         verify(mTelephonyManager).listen(any(), eq(PhoneStateListener.LISTEN_SERVICE_STATE
                 | PhoneStateListener.LISTEN_SIGNAL_STRENGTHS));
+        verify(mTelephonyManager).setSignalStrengthUpdateRequest(
+                any(SignalStrengthUpdateRequest.class));
+
         mHeadsetPhoneState.listenForPhoneState(device1, PhoneStateListener.LISTEN_NONE);
         verify(mTelephonyManager).listen(any(), eq(PhoneStateListener.LISTEN_NONE));
+        verify(mTelephonyManager).clearSignalStrengthUpdateRequest(
+                any(SignalStrengthUpdateRequest.class));
     }
 
     /**
@@ -186,6 +199,9 @@ public class HeadsetPhoneStateTest {
                 | PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
         verify(mTelephonyManager).listen(any(), eq(PhoneStateListener.LISTEN_SERVICE_STATE
                 | PhoneStateListener.LISTEN_SIGNAL_STRENGTHS));
+        verify(mTelephonyManager).setSignalStrengthUpdateRequest(
+                any(SignalStrengthUpdateRequest.class));
+
         // Enabling updates from second device should not trigger the same subscription
         mHeadsetPhoneState.listenForPhoneState(device2, PhoneStateListener.LISTEN_SERVICE_STATE
                 | PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
@@ -194,6 +210,8 @@ public class HeadsetPhoneStateTest {
         // Disabling updates from second device should cancel subscription
         mHeadsetPhoneState.listenForPhoneState(device2, PhoneStateListener.LISTEN_NONE);
         verify(mTelephonyManager).listen(any(), eq(PhoneStateListener.LISTEN_NONE));
+        verify(mTelephonyManager).clearSignalStrengthUpdateRequest(
+                any(SignalStrengthUpdateRequest.class));
     }
 
     /**
@@ -215,6 +233,9 @@ public class HeadsetPhoneStateTest {
         verify(mTelephonyManager).listen(any(), eq(PhoneStateListener.LISTEN_NONE));
         verify(mTelephonyManager).listen(any(), eq(PhoneStateListener.LISTEN_SERVICE_STATE
                 | PhoneStateListener.LISTEN_SIGNAL_STRENGTHS));
+        verify(mTelephonyManager).setSignalStrengthUpdateRequest(
+                any(SignalStrengthUpdateRequest.class));
+
         // Partially disabling updates from first device should not cancel all subscription
         mHeadsetPhoneState.listenForPhoneState(device1, PhoneStateListener.LISTEN_NONE);
         verify(mTelephonyManager, times(2)).listen(any(), eq(PhoneStateListener.LISTEN_NONE));
@@ -223,5 +244,7 @@ public class HeadsetPhoneStateTest {
         // Partially disabling updates from second device should cancel subscription
         mHeadsetPhoneState.listenForPhoneState(device2, PhoneStateListener.LISTEN_NONE);
         verify(mTelephonyManager, times(3)).listen(any(), eq(PhoneStateListener.LISTEN_NONE));
+        verify(mTelephonyManager, times(3)).clearSignalStrengthUpdateRequest(
+                any(SignalStrengthUpdateRequest.class));
     }
 }
