@@ -7,16 +7,6 @@ if [ $# -gt 0 ]; then
     fi
 fi
 
-echo "Checking for dependencies..."
-
-REQUIRED="git cargo"
-
-for name in $(echo ${REQUIRED});
-do
-    type -P "$name" &>/dev/null || { echo "Install '$name'" >&2; exit 1;}
-done
-
-
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PARENT_DIR="$(echo ${SCRIPT_DIR} | rev | cut -d '/' -f 2- | rev )"
 
@@ -26,70 +16,57 @@ OUT_DIR="${TMP_DIR}/out"
 trap ctrl_c INT
 
 function ctrl_c() {
+    echo -n "Cleaning up..."
     rm -rf "${TMP_DIR}"
+    echo "Done."
     exit 1
 }
 
-# Check dependencies
-# libchrome requires modp_b64
-APT_REQUIRED="flatbuffers-compiler flex g++-multilib gcc-multilib generate-ninja \
-gnupg gperf libc++-dev libdbus-1-dev libevent-dev libevent-dev libflatbuffers-dev libflatbuffers1 \
+# APT dependencies
+APT_REQUIRED="git curl wget flatbuffers-compiler flex g++-multilib gcc-multilib generate-ninja \
+gnupg gperf libc++-dev libdbus-1-dev libevent-dev libflatbuffers-dev libflatbuffers1 \
 libgl1-mesa-dev libglib2.0-dev liblz4-tool libncurses5 libnss3-dev libprotobuf-dev libre2-9 \
 libssl-dev libtinyxml2-dev libx11-dev libxml2-utils ninja-build openssl protobuf-compiler unzip \
-x11proto-core-dev xsltproc zip zlib1g-dev debmake ninja-build modp-b64 libchrome"
+x11proto-core-dev xsltproc zip zlib1g-dev libc++abi-dev cmake debmake ninja-build libgtest-dev \
+libgmock-dev"
 
-APT_MISSING=()
-for name in $(echo ${APT_REQUIRED});
-do
-    R="$(apt -qq list "${name}" 2>/dev/null | grep "installed")"
-    if [ "${R}" == "" ]; then
-        echo "Need to install '${name}'" >&2;
-        if [ "${name}" == "modp-b64" ]; then
-            echo "${name} source is available to build in this repository"
-            # dir name is different than package name :'(
-            ${DRY_RUN} pushd "${PARENT_DIR}/modp_b64/"
-            ${DRY_RUN} ./gen-src-pkg.sh "${OUT_DIR}"
-            ${DRY_RUN} sudo dpkg -i "${OUT_DIR}"/${name}*.deb || ctrl_c
-            ${DRY_RUN} popd
-        elif [ "${name}" == "libchrome" ]; then
-            echo "${name} source is available to build in this repository"
-            ${DRY_RUN} pushd "${PARENT_DIR}/${name}/"
-            ${DRY_RUN} ./gen-src-pkg.sh "${OUT_DIR}"
-            ${DRY_RUN} sudo dpkg -i "${OUT_DIR}"/${name}*.deb || ctrl_c
-            ${DRY_RUN} popd
-        else
-            APT_MISSING+=("${name}")
-        fi
-    fi
-done
+${DRY_RUN} sudo apt install ${APT_REQUIRED}
 
-APT_MISSING_LEN="${#APT_MISSING[@]}"
+# Install rustup
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+${DRY_RUN} rustup update
 
-if [ $APT_MISSING_LEN -gt 0 ]; then
-    echo "Missing Packages:"
-    echo "    ${APT_MISSING[*]}"
-    ${DRY_RUN} sudo apt install "${APT_MISSING[*]}" || ctrl_c
-else
-    rm -rf "${TMP_DIR}"
-    exit 0
+${DRY_RUN} cargo install cxxbridge-cmd || ctrl_c
+${DRY_RUN} cargo install cargo-proc-macro || ctrl_c
+
+echo "Building and installing modp-b64..."
+# dir name is different than package name :'(
+${DRY_RUN} pushd "${PARENT_DIR}/modp_b64/"
+${DRY_RUN} ./gen-src-pkg.sh "${OUT_DIR}" || crtl_c
+${DRY_RUN} sudo dpkg -i "${OUT_DIR}"/modp-b64*.deb || ctrl_c
+${DRY_RUN} popd
+
+echo "Building and installing libchrome..."
+${DRY_RUN} pushd "${PARENT_DIR}/libchrome/"
+${DRY_RUN} ./gen-src-pkg.sh "${OUT_DIR}" || crtl_c
+${DRY_RUN} sudo dpkg -i "${OUT_DIR}"/libchrome*.deb || ctrl_c
+${DRY_RUN} popd
+
+HAS_EXPORT="$(cat \$HOME/.bashrc|grep '.cargo/bin')"
+if [ "${HAS_EXPORT}" == "" ]; then
+    ${DRY_RUN} echo "export PATH=\$PATH:\$HOME/.cargo/bin" >> ~/.bashrc
 fi
 
-echo Generating missing packages in "${TMP_DIR}"
-
-# Check cargo for cxxbridge-cmd
-HAS_CXX="$(cargo install --list | grep cxxbridge-cmd)"
-if [ "$HAS_CXX" == "" ]; then
-    echo "Missing cxxbridge-cmd cargo package"
-    echo "Installing 'cxxbridge-cmd'" >&2
-    ${DRY_RUN} cargo install cxxbridge-cmd || ctrl_c
+HAS_EXPORT="$(cat \$HOME/.bashrc|grep '$HOME/bin')"
+if [ "${HAS_EXPORT}" == "" ]; then
+    ${DRY_RUN} echo "export PATH=\$PATH:\$HOME/bin" >> ~/.bashrc
 fi
 
-HAS_CXX="$(cargo install --list | grep cargo-proc-macro)"
-if [ "$HAS_CXX" == "" ]; then
-    echo "Missing cargo-proc-macro cargo package"
-    echo "Installing 'cxxbridge-cmd'" >&2
-    ${DRY_RUN} cargo install cargo-proc-macro || ctrl_c
-fi
+# Put the GN binary in the bin...it isn't the right spot, but avoids adding a second directory
+# to the environmental PATH
+${DRY_RUN} mkdir -p ~/bin
+${DRY_RUN} wget -O ~/bin/gn wget http://commondatastorage.googleapis.com/chromeos-localmirror/distfiles/gn-3e43fac03281e2f5e5ae5f27c8e9a6bb45966ea9.bin
+${DRY_RUN} chmod +x ~/bin/gn
 
 rm -rf "${TMP_DIR}"
 echo "DONE"
