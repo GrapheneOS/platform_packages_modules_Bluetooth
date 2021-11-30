@@ -1513,6 +1513,10 @@ TEST_F(StateMachineTest, testDisableSingle) {
   EXPECT_CALL(
       mock_callbacks_,
       StatusReportCb(leaudio_group_id,
+                     bluetooth::le_audio::GroupStreamStatus::SUSPENDING));
+  EXPECT_CALL(
+      mock_callbacks_,
+      StatusReportCb(leaudio_group_id,
                      bluetooth::le_audio::GroupStreamStatus::SUSPENDED));
 
   // Suspend the stream
@@ -1569,6 +1573,10 @@ TEST_F(StateMachineTest, testDisableMultiple) {
             types::AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING);
 
   // Validate GroupStreamStatus
+  EXPECT_CALL(
+      mock_callbacks_,
+      StatusReportCb(leaudio_group_id,
+                     bluetooth::le_audio::GroupStreamStatus::SUSPENDING));
   EXPECT_CALL(
       mock_callbacks_,
       StatusReportCb(leaudio_group_id,
@@ -1668,6 +1676,10 @@ TEST_F(StateMachineTest, testReleaseSingle) {
             types::AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING);
 
   // Validate GroupStreamStatus
+  EXPECT_CALL(
+      mock_callbacks_,
+      StatusReportCb(leaudio_group_id,
+                     bluetooth::le_audio::GroupStreamStatus::RELEASING));
   EXPECT_CALL(mock_callbacks_,
               StatusReportCb(leaudio_group_id,
                              bluetooth::le_audio::GroupStreamStatus::IDLE));
@@ -1711,6 +1723,11 @@ TEST_F(StateMachineTest, testReleaseCachingSingle) {
   InjectInitialIdleNotification(group);
 
   // Validate GroupStreamStatus
+  EXPECT_CALL(
+      mock_callbacks_,
+      StatusReportCb(leaudio_group_id,
+                     bluetooth::le_audio::GroupStreamStatus::RELEASING));
+
   EXPECT_CALL(mock_callbacks_,
               StatusReportCb(leaudio_group_id,
                              bluetooth::le_audio::GroupStreamStatus::IDLE));
@@ -1767,6 +1784,11 @@ TEST_F(StateMachineTest, testStreamCachingSingle) {
   InjectInitialIdleNotification(group);
 
   // Validate GroupStreamStatus
+  EXPECT_CALL(
+      mock_callbacks_,
+      StatusReportCb(leaudio_group_id,
+                     bluetooth::le_audio::GroupStreamStatus::RELEASING));
+
   EXPECT_CALL(mock_callbacks_,
               StatusReportCb(leaudio_group_id,
                              bluetooth::le_audio::GroupStreamStatus::IDLE));
@@ -1847,6 +1869,10 @@ TEST_F(StateMachineTest, testReleaseMultiple) {
             types::AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING);
 
   // Validate GroupStreamStatus
+  EXPECT_CALL(
+      mock_callbacks_,
+      StatusReportCb(leaudio_group_id,
+                     bluetooth::le_audio::GroupStreamStatus::RELEASING));
   EXPECT_CALL(mock_callbacks_,
               StatusReportCb(leaudio_group_id,
                              bluetooth::le_audio::GroupStreamStatus::IDLE));
