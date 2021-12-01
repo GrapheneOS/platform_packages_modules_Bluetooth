@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.bluetooth.hfpclient.connserv;
+package com.android.bluetooth.hfpclient;
 
 import static com.google.common.truth.Truth.assertThat;
 

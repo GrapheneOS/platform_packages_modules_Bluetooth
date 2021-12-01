@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.bluetooth.hfpclient.connserv;
+package com.android.bluetooth.hfpclient;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
@@ -105,7 +105,7 @@ public class HfpClientConnectionServiceTest {
         HfpClientDeviceBlock.Factory.setInstance(new HfpClientDeviceBlock.Factory() {
             @Override
             protected HfpClientDeviceBlock buildInternal(
-                    com.android.bluetooth.hfpclient.connserv.HfpClientConnectionService connServ,
+                    com.android.bluetooth.hfpclient.HfpClientConnectionService connServ,
                     BluetoothDevice device, BluetoothHeadsetClientProxy profileProxy) {
                 return mockHfpClientDeviceBlock;
             }
