@@ -2315,6 +2315,7 @@ class LeAudioClientImpl : public LeAudioClient {
       return;
     }
 
+    bool send_active = false;
     std::optional<LeAudioCodecConfiguration> source_configuration =
         group->GetCodecConfigurationByDirection(
             context_type, le_audio::types::kLeAudioDirectionSink);
@@ -2323,7 +2324,6 @@ class LeAudioClientImpl : public LeAudioClient {
             context_type, le_audio::types::kLeAudioDirectionSource);
 
     if (source_configuration) {
-      bool send_active = false;
       /* Stream configuration differs from previous one */
       if (!current_source_codec_config.IsInvalid() &&
           (*source_configuration != current_source_codec_config)) {
@@ -2336,9 +2336,6 @@ class LeAudioClientImpl : public LeAudioClient {
 
       LeAudioClientAudioSource::Start(current_source_codec_config,
                                       audioSinkReceiver);
-      if (send_active) {
-        callbacks_->OnGroupStatus(group_id, GroupStatus::ACTIVE);
-      }
 
     } else {
       if (!current_source_codec_config.IsInvalid()) {
@@ -2353,12 +2350,13 @@ class LeAudioClientImpl : public LeAudioClient {
     }
 
     if (sink_configuration) {
-      bool send_active = false;
       /* Stream configuration differs from previous one */
       if (!current_sink_codec_config.IsInvalid() &&
           (*sink_configuration != current_sink_codec_config)) {
-        callbacks_->OnGroupStatus(group_id, GroupStatus::INACTIVE);
-        send_active = true;
+        if (send_active == false) {
+          callbacks_->OnGroupStatus(group_id, GroupStatus::INACTIVE);
+          send_active = true;
+        }
         LeAudioClientAudioSink::Stop();
       }
 
@@ -2366,9 +2364,6 @@ class LeAudioClientImpl : public LeAudioClient {
 
       LeAudioClientAudioSink::Start(current_sink_codec_config,
                                     audioSourceReceiver);
-      if (send_active) {
-        callbacks_->OnGroupStatus(group_id, GroupStatus::ACTIVE);
-      }
     } else {
       if (!current_sink_codec_config.IsInvalid()) {
         LeAudioClientAudioSink::Stop();
@@ -2379,6 +2374,10 @@ class LeAudioClientImpl : public LeAudioClient {
                 << ", group does not supports sink direction for"
                    " context: "
                 << static_cast<int>(context_type);
+    }
+
+    if (send_active) {
+      callbacks_->OnGroupStatus(group_id, GroupStatus::ACTIVE);
     }
     current_context_type_ = upcoming_context_type_;
   }
