@@ -428,7 +428,6 @@ static void dump(int fd, const char** arguments) {
     bluetooth::shim::Dump(fd, arguments);
   } else {
 #if (BTSNOOP_MEM == TRUE)
-    btif_debug_btsnoop_dump(fd);
 #endif
   }
 }

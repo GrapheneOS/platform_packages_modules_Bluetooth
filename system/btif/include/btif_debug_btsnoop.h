@@ -37,8 +37,3 @@ typedef struct btsnooz_header_t {
   uint8_t type;
 } __attribute__((__packed__)) btsnooz_header_t;
 
-// Initializes btsnoop memory logging and registers
-void btif_debug_btsnoop_init(void);
-
-// Writes btsnoop data base64 encoded to fd
-void btif_debug_btsnoop_dump(int fd);
