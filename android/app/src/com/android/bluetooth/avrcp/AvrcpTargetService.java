@@ -41,6 +41,7 @@ import com.android.bluetooth.audio_util.MediaPlayerWrapper;
 import com.android.bluetooth.audio_util.Metadata;
 import com.android.bluetooth.audio_util.PlayStatus;
 import com.android.bluetooth.audio_util.PlayerInfo;
+import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.MetricsLogger;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.btservice.ServiceFactory;
@@ -244,6 +245,12 @@ public class AvrcpTargetService extends ProfileService {
 
         // Only allow the service to be used once it is initialized
         sInstance = this;
+        BluetoothDevice activeDevice = getA2dpActiveDevice();
+        String deviceAddress = activeDevice != null ?
+                activeDevice.getAddress() :
+                AdapterService.ACTIVITY_ATTRIBUTION_NO_ACTIVE_DEVICE_ADDRESS;
+        AdapterService.getAdapterService().notifyActivityAttributionInfo(
+                getAttributionSource(), deviceAddress);
 
         return true;
     }
@@ -261,6 +268,12 @@ public class AvrcpTargetService extends ProfileService {
             mAvrcpCoverArtService.stop();
         }
         mAvrcpCoverArtService = null;
+        BluetoothDevice activeDevice = getA2dpActiveDevice();
+        String deviceAddress = activeDevice != null ?
+                activeDevice.getAddress() :
+                AdapterService.ACTIVITY_ATTRIBUTION_NO_ACTIVE_DEVICE_ADDRESS;
+        AdapterService.getAdapterService().notifyActivityAttributionInfo(
+                getAttributionSource(), deviceAddress);
 
         sInstance = null;
         unregisterReceiver(mReceiver);

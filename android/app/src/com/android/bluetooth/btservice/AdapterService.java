@@ -199,6 +199,9 @@ public class AdapterService extends Service {
             new ComponentName("com.android.bluetooth",
                     BluetoothInCallService.class.getCanonicalName());
 
+    public static final String ACTIVITY_ATTRIBUTION_NO_ACTIVE_DEVICE_ADDRESS =
+            "no_active_device_address";
+
     // Report ID definition
     public enum BqrQualityReportId {
         QUALITY_REPORT_ID_MONITOR_MODE(0x01),
