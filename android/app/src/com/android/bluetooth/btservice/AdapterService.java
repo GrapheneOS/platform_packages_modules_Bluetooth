@@ -3470,6 +3470,17 @@ public class AdapterService extends Service {
         return mAdapterProperties.getTotalNumOfTrackableAdvertisements();
     }
 
+    /**
+     * Notify the UID and package name of the app, and the address of associated active device
+     *
+     * @param source The attribution source that starts the activity
+     * @param deviceAddress The address of the active device associated with the app
+     */
+    public void notifyActivityAttributionInfo(AttributionSource source, String deviceAddress) {
+        mActivityAttributionService.notifyActivityAttributionInfo(
+                source.getUid(), source.getPackageName(), deviceAddress);
+    }
+
     private static int convertScanModeToHal(int mode) {
         switch (mode) {
             case BluetoothAdapter.SCAN_MODE_NONE:
