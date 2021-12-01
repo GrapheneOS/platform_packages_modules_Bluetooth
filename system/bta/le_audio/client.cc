@@ -676,7 +676,7 @@ class LeAudioClientImpl : public LeAudioClient {
     }
 
     /* Configure audio HAL sessions with most frequent context */
-    UpdateCurrentHalSessions(group_id, LeAudioContextType::MEDIA);
+    UpdateCurrentHalSessions(group_id, current_context_type_);
     if (current_source_codec_config.IsInvalid() &&
         current_sink_codec_config.IsInvalid()) {
       LOG(WARNING) << __func__ << ", unsupported device configurations";
