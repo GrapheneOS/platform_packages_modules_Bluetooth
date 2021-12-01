@@ -128,36 +128,6 @@ static BluetoothKeystoreInterface* get_bluetooth_keystore_interface() {
   return bluetooth::bluetooth_keystore::getBluetoothKeystoreInterface();
 }
 
-// TODO(zachoverflow): Move these two functions out, because they are too
-// specific for this file
-// {grumpy-cat/no, monty-python/you-make-me-sad}
-bool btif_get_device_type(const RawAddress& bda, int* p_device_type) {
-  if (p_device_type == NULL) return false;
-
-  std::string addrstr = bda.ToString();
-  const char* bd_addr_str = addrstr.c_str();
-
-  if (!btif_config_get_int(bd_addr_str, "DevType", p_device_type)) return false;
-
-  LOG_INFO("Device [%s] device type %d", bd_addr_str, *p_device_type);
-  return true;
-}
-
-bool btif_get_address_type(const RawAddress& bda, tBLE_ADDR_TYPE* p_addr_type) {
-  if (p_addr_type == NULL) return false;
-
-  std::string addrstr = bda.ToString();
-  const char* bd_addr_str = addrstr.c_str();
-
-  int val = 0;
-  if (!btif_config_get_int(bd_addr_str, "AddrType", &val)) return false;
-  *p_addr_type = static_cast<tBLE_ADDR_TYPE>(val);
-
-  LOG_DEBUG("Device [%s] address type %s", bd_addr_str,
-            AddressTypeText(*p_addr_type).c_str());
-  return true;
-}
-
 /**
  * Read metrics salt from config file, if salt is invalid or does not exist,
  * generate new one and save it to config

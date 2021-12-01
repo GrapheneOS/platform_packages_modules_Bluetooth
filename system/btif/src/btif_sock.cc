@@ -40,6 +40,10 @@
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
+extern bool btif_get_address_type(const RawAddress& bda,
+                                  tBLE_ADDR_TYPE* p_addr_type);
+extern bool btif_get_device_type(const RawAddress& bda, int* p_device_type);
+
 using bluetooth::Uuid;
 
 static bt_status_t btsock_listen(btsock_type_t type, const char* service_name,

@@ -46,28 +46,6 @@ namespace mock {
 namespace btif_config {
 
 // Shared state between mocked functions and tests
-// Name: btif_get_device_type
-// Params: const RawAddress& bda, int* p_device_type
-// Returns: bool
-struct btif_get_device_type {
-  std::function<bool(const RawAddress& bda, int* p_device_type)> body{
-      [](const RawAddress& bda, int* p_device_type) { return false; }};
-  bool operator()(const RawAddress& bda, int* p_device_type) {
-    return body(bda, p_device_type);
-  };
-};
-extern struct btif_get_device_type btif_get_device_type;
-// Name: btif_get_address_type
-// Params: const RawAddress& bda, tBLE_ADDR_TYPE* p_addr_type
-// Returns: bool
-struct btif_get_address_type {
-  std::function<bool(const RawAddress& bda, tBLE_ADDR_TYPE* p_addr_type)> body{
-      [](const RawAddress& bda, tBLE_ADDR_TYPE* p_addr_type) { return false; }};
-  bool operator()(const RawAddress& bda, tBLE_ADDR_TYPE* p_addr_type) {
-    return body(bda, p_addr_type);
-  };
-};
-extern struct btif_get_address_type btif_get_address_type;
 // Name: btif_config_exist
 // Params: const std::string& section, const std::string& key
 // Returns: bool
