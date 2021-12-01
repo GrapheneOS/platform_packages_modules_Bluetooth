@@ -51,8 +51,6 @@ namespace mock {
 namespace btif_config {
 
 // Function state capture and return values, if needed
-struct btif_get_device_type btif_get_device_type;
-struct btif_get_address_type btif_get_address_type;
 struct btif_config_exist btif_config_exist;
 struct btif_config_get_int btif_config_get_int;
 struct btif_config_set_int btif_config_set_int;
@@ -75,14 +73,6 @@ struct btif_debug_config_dump btif_debug_config_dump;
 }  // namespace test
 
 // Mocked functions, if any
-bool btif_get_device_type(const RawAddress& bda, int* p_device_type) {
-  mock_function_count_map[__func__]++;
-  return test::mock::btif_config::btif_get_device_type(bda, p_device_type);
-}
-bool btif_get_address_type(const RawAddress& bda, tBLE_ADDR_TYPE* p_addr_type) {
-  mock_function_count_map[__func__]++;
-  return test::mock::btif_config::btif_get_address_type(bda, p_addr_type);
-}
 bool btif_config_exist(const std::string& section, const std::string& key) {
   mock_function_count_map[__func__]++;
   return test::mock::btif_config::btif_config_exist(section, key);
