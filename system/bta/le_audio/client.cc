@@ -29,6 +29,7 @@
 #include "btm_iso_api.h"
 #include "client_audio.h"
 #include "client_parser.h"
+#include "common/time_util.h"
 #include "device/include/controller.h"
 #include "devices.h"
 #include "embdrv/lc3/Api/Lc3Decoder.hpp"
@@ -164,6 +165,8 @@ class LeAudioClientImpl : public LeAudioClient {
         active_group_id_(bluetooth::groups::kGroupUnknown),
         current_context_type_(LeAudioContextType::MEDIA),
         upcoming_context_type_(LeAudioContextType::MEDIA),
+        stream_setup_start_timestamp_(0),
+        stream_setup_end_timestamp_(0),
         audio_receiver_state_(AudioState::IDLE),
         audio_sender_state_(AudioState::IDLE),
         current_source_codec_config({0, 0, 0, 0}),
@@ -555,8 +558,13 @@ class LeAudioClientImpl : public LeAudioClient {
       return false;
     }
 
-    return groupStateMachine_->StartStream(
+    bool result = groupStateMachine_->StartStream(
         group, static_cast<LeAudioContextType>(final_context_type));
+    if (result)
+      stream_setup_start_timestamp_ =
+          bluetooth::common::time_get_os_boottime_us();
+
+    return result;
   }
 
   void GroupStream(const int group_id, const uint16_t context_type) override {
@@ -2293,6 +2301,10 @@ class LeAudioClientImpl : public LeAudioClient {
     dprintf(fd, "  Active group: %d\n", active_group_id_);
     dprintf(fd, "    current content type: 0x%08hx\n", current_context_type_);
     dprintf(fd, "    upcoming content type: 0x%08hx\n", upcoming_context_type_);
+    dprintf(
+        fd, "    stream setup time if started: %d ms\n",
+        (int)((stream_setup_end_timestamp_ - stream_setup_start_timestamp_) /
+              1000));
     printCurrentStreamConfiguration(fd);
     dprintf(fd, "  ----------------\n ");
     dprintf(fd, "  LE Audio Groups:\n");
@@ -2956,12 +2968,17 @@ class LeAudioClientImpl : public LeAudioClient {
           StartSendingAudio(active_group_id_);
         if (audio_receiver_state_ == AudioState::READY_TO_START)
           StartReceivingAudio(active_group_id_);
+
+        stream_setup_end_timestamp_ =
+            bluetooth::common::time_get_os_boottime_us();
         break;
       case GroupStreamStatus::SUSPENDED:
         /** Stop Audio but don't release all the Audio resources */
         SuspendAudio();
         break;
       case GroupStreamStatus::IDLE:
+        stream_setup_end_timestamp_ = 0;
+        stream_setup_start_timestamp_ = 0;
         CancelStreamingRequest();
         break;
       case GroupStreamStatus::RELEASING:
@@ -2983,6 +3000,8 @@ class LeAudioClientImpl : public LeAudioClient {
   int active_group_id_;
   LeAudioContextType current_context_type_;
   LeAudioContextType upcoming_context_type_;
+  uint64_t stream_setup_start_timestamp_;
+  uint64_t stream_setup_end_timestamp_;
 
   /* Microphone (s) */
   AudioState audio_receiver_state_;
