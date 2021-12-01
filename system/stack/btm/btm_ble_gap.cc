@@ -701,7 +701,7 @@ void BTM_BleReadControllerFeatures(
 bool BTM_BleConfigPrivacy(bool privacy_mode) {
   tBTM_BLE_CB* p_cb = &btm_cb.ble_ctr_cb;
 
-  BTM_TRACE_EVENT("%s", __func__);
+  BTM_TRACE_WARNING("%s %d", __func__, (int)privacy_mode);
 
   /* if LE is not supported, return error */
   if (!controller_get_interface()->supports_ble()) return false;
@@ -727,6 +727,8 @@ bool BTM_BleConfigPrivacy(bool privacy_mode) {
     } else /* 4.1/4.0 controller */
       p_cb->privacy_mode = BTM_PRIVACY_1_1;
   }
+  VLOG(2) << __func__ << " privacy_mode: " << p_cb->privacy_mode
+          << " own_addr_type: " << p_cb->addr_mgnt_cb.own_addr_type;
 
   GAP_BleAttrDBUpdate(GATT_UUID_GAP_CENTRAL_ADDR_RESOL, &gap_ble_attr_value);
 
