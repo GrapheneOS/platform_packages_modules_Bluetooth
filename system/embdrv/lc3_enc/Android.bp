@@ -46,3 +46,15 @@ cc_library_static {
         "include",
     ],
 }
+
+cc_fuzz {
+  name: "liblc3encoder_fuzzer",
+
+  srcs: [
+    "fuzzer/liblc3encoder_fuzzer.cpp",
+  ],
+
+  static_libs: [
+    "liblc3encoder",
+  ],
+}
