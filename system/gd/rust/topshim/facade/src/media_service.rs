@@ -30,6 +30,7 @@ fn get_avrcp_dispatcher() -> AvrcpCallbacksDispatcher {
 /// Main object for Media facade service
 #[derive(Clone)]
 pub struct MediaServiceImpl {
+    #[allow(dead_code)]
     rt: Arc<Runtime>,
     pub btif_a2dp: Arc<Mutex<A2dp>>,
     btif_a2dp_sink: Arc<Mutex<A2dpSink>>,
