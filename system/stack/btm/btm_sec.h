@@ -647,6 +647,19 @@ tBTM_STATUS btm_sec_disconnect(uint16_t handle, tHCI_STATUS reason,
 void btm_sec_disconnected(uint16_t handle, tHCI_STATUS reason,
                           std::string comment);
 
+/*******************************************************************************
+ *
+ * Function         btm_sec_role_changed
+ *
+ * Description      This function is called when receiving an HCI role change
+ *                  event
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+void btm_sec_role_changed(tHCI_STATUS hci_status, const RawAddress& bd_addr,
+                          tHCI_ROLE new_role);
+
 /** This function is called when a new connection link key is generated */
 void btm_sec_link_key_notification(const RawAddress& p_bda,
                                    const Octet16& link_key, uint8_t key_type);
