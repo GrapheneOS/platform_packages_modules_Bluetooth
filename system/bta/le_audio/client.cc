@@ -1826,7 +1826,9 @@ class LeAudioClientImpl : public LeAudioClient {
 
     if (data.size() < 2 /* bytes per sample */ * 2 /* channels */ *
                           number_of_required_samples_per_channel) {
-      LOG(ERROR) << __func__ << "Missing samples";
+      LOG(ERROR) << __func__ << " Missing samples. Data size: " << +data.size()
+                 << " expected: "
+                 << 2 * 2 * number_of_required_samples_per_channel;
       return;
     }
 
