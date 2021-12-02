@@ -37,6 +37,7 @@
 #include "gap_api.h"
 #include "gatt_api.h"
 #include "main/shim/le_scanning_manager.h"
+#include "main/shim/shim.h"
 #include "osi/include/osi.h"
 #include "osi/include/properties.h"
 #include "stack/btm/btm_dev.h"
@@ -1127,7 +1128,9 @@ class CsisClientImpl : public CsisClient {
   void CsisActiveObserverSet(bool enable) {
     LOG(INFO) << __func__ << " CSIS Discovery SET: " << enable;
 
-    bluetooth::shim::set_empty_filter(enable);
+    if (bluetooth::shim::is_gd_scanning_enabled()) {
+      bluetooth::shim::set_empty_filter(enable);
+    }
 
     BTA_DmBleCsisObserve(
         enable, [](tBTA_DM_SEARCH_EVT event, tBTA_DM_SEARCH* p_data) {
