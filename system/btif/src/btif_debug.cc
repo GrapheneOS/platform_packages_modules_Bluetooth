@@ -24,7 +24,4 @@
 #include "internal_include/bt_target.h"
 
 void btif_debug_init(void) {
-#if (BTSNOOP_MEM == TRUE)
-  btif_debug_btsnoop_init();
-#endif
 }
