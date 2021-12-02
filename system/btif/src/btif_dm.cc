@@ -71,6 +71,7 @@
 #include "device/include/controller.h"
 #include "device/include/interop.h"
 #include "internal_include/stack_config.h"
+#include "main/shim/dumpsys.h"
 #include "main/shim/shim.h"
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
@@ -3197,8 +3198,10 @@ bool btif_get_device_type(const RawAddress& bda, int* p_device_type) {
   const char* bd_addr_str = addrstr.c_str();
 
   if (!btif_config_get_int(bd_addr_str, "DevType", p_device_type)) return false;
+  tBT_DEVICE_TYPE device_type = static_cast<tBT_DEVICE_TYPE>(*p_device_type);
+  LOG_DEBUG(" bd_addr:%s device_type:%s", PRIVATE_ADDRESS(bda),
+            DeviceTypeText(device_type).c_str());
 
-  LOG_INFO("Device [%s] device type %d", bd_addr_str, *p_device_type);
   return true;
 }
 
@@ -3212,7 +3215,7 @@ bool btif_get_address_type(const RawAddress& bda, tBLE_ADDR_TYPE* p_addr_type) {
   if (!btif_config_get_int(bd_addr_str, "AddrType", &val)) return false;
   *p_addr_type = static_cast<tBLE_ADDR_TYPE>(val);
 
-  LOG_DEBUG("Device [%s] address type %s", bd_addr_str,
+  LOG_DEBUG(" bd_addr:%s[%s]", PRIVATE_ADDRESS(bda),
             AddressTypeText(*p_addr_type).c_str());
   return true;
 }
