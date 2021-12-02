@@ -678,9 +678,8 @@ static void out_update_source_metadata(
   out->bluetooth_output_.UpdateMetadata(source_metadata);
 }
 
-static size_t samples_per_ticks(size_t milliseconds, uint32_t sample_rate,
-                                size_t channel_count) {
-  return milliseconds * sample_rate * channel_count / 1000;
+static size_t frame_count(size_t microseconds, uint32_t sample_rate) {
+  return (microseconds * sample_rate) / 1000000;
 }
 
 int adev_open_output_stream(struct audio_hw_device* dev,
@@ -734,8 +733,19 @@ int adev_open_output_stream(struct audio_hw_device* dev,
   out->channel_mask_ = config->channel_mask;
   out->format_ = config->format;
   // frame is number of samples per channel
+
+  size_t preferred_data_interval_us = kBluetoothDefaultOutputBufferMs * 1000;
+  if (out->bluetooth_output_.GetPreferredDataIntervalUs(
+          &preferred_data_interval_us) &&
+      preferred_data_interval_us != 0) {
+    out->preferred_data_interval_us = preferred_data_interval_us;
+  } else {
+    out->preferred_data_interval_us = kBluetoothDefaultOutputBufferMs * 1000;
+  }
+
   out->frames_count_ =
-      samples_per_ticks(kBluetoothDefaultOutputBufferMs, out->sample_rate_, 1);
+      frame_count(out->preferred_data_interval_us, out->sample_rate_);
+
   out->frames_rendered_ = 0;
   out->frames_presented_ = 0;
 
@@ -1188,7 +1198,7 @@ int adev_open_input_stream(struct audio_hw_device* dev,
   in->format_ = config->format;
   // frame is number of samples per channel
   in->frames_count_ =
-      samples_per_ticks(kBluetoothDefaultInputBufferMs, in->sample_rate_, 1);
+      frame_count(kBluetoothDefaultInputBufferMs, in->sample_rate_);
   in->frames_presented_ = 0;
 
   *stream_in = &in->stream_in_;

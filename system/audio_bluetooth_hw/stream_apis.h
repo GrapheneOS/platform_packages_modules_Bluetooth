@@ -56,6 +56,7 @@ struct BluetoothStreamOut {
   uint32_t sample_rate_;
   audio_channel_mask_t channel_mask_;
   audio_format_t format_;
+  size_t preferred_data_interval_us;
   // frame is the number of samples per channel
   // frames count per tick
   size_t frames_count_;
