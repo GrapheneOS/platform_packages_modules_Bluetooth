@@ -397,6 +397,15 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
     }
   }
 
+  void clear_connect_list() {
+    if (!address_manager_registered) {
+      le_address_manager_->Register(this);
+      address_manager_registered = true;
+    }
+    pause_connection = true;
+    le_address_manager_->ClearConnectList();
+  }
+
   void add_device_to_resolving_list(
       AddressWithType address_with_type,
       const std::array<uint8_t, 16>& peer_irk,

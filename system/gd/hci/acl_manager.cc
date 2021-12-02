@@ -224,6 +224,10 @@ void AclManager::RemoveDeviceFromConnectList(AddressWithType address_with_type) 
   CallOn(pimpl_->le_impl_, &le_impl::remove_device_from_connect_list, address_with_type);
 }
 
+void AclManager::ClearConnectList() {
+  CallOn(pimpl_->le_impl_, &le_impl::clear_connect_list);
+}
+
 void AclManager::AddDeviceToResolvingList(
     AddressWithType address_with_type,
     const std::array<uint8_t, 16>& peer_irk,
