@@ -119,6 +119,7 @@ class BluetoothAudioPortOut : public BluetoothAudioPort {
   // The audio data path to the Bluetooth stack (Software encoding)
   size_t WriteData(const void* buffer, size_t bytes) const;
   bool LoadAudioConfig(audio_config_t* audio_cfg) const;
+  bool GetPreferredDataIntervalUs(size_t* interval_us) const;
 };
 
 class BluetoothAudioPortIn : public BluetoothAudioPort {
