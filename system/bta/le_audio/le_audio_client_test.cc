@@ -962,13 +962,15 @@ class UnicastTestNoInit : public Test {
 
     UpdateMetadata(usage, content_type);
 
-    EXPECT_CALL(mock_audio_source_, ConfirmStreamingRequest()).Times(1);
-    audio_sink_receiver_->OnAudioResume();
-    SyncOnMainLoop();
-
     if (reconfigured_sink) {
       audio_sink_receiver_->OnAudioResume();
+      SyncOnMainLoop();
     }
+
+    EXPECT_CALL(mock_audio_source_, ConfirmStreamingRequest()).Times(1);
+    audio_sink_receiver_->OnAudioResume();
+    state_machine_callbacks_->StatusReportCb(
+              group_id, GroupStreamStatus::STREAMING);
 
     if (usage == AUDIO_USAGE_VOICE_COMMUNICATION) {
       ASSERT_NE(audio_source_receiver_, nullptr);

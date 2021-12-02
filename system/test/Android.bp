@@ -264,6 +264,7 @@ filegroup {
     name: "TestMockMainShimLeScanning",
     srcs: [
       "mock/mock_main_shim_le_scanning_manager.cc",
+      "mock/mock_main_shim.cc",
     ],
 }
 
