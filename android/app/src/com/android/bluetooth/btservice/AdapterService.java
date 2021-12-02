@@ -2710,6 +2710,23 @@ public class AdapterService extends Service {
         return mDatabaseManager;
     }
 
+    public byte[] getByteIdentityAddress(BluetoothDevice device) {
+        DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
+        if (deviceProp.isConsolidated()) {
+            return Utils.getBytesFromAddress(deviceProp.getIdentityAddress());
+        } else {
+            return Utils.getByteAddress(device);
+        }
+    }
+
+    public BluetoothDevice getDeviceFromByte(byte[] address) {
+        BluetoothDevice device = mRemoteDevices.getDevice(address);
+        if (device == null) {
+            device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
+        }
+        return device;
+    }
+
     private class CallerInfo {
         public String callerPackageName;
         public UserHandle user;

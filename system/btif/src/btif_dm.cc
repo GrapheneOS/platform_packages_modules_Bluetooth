@@ -948,6 +948,7 @@ static void btif_dm_auth_cmpl_evt(tBTA_DM_AUTH_CMPL* p_auth_cmpl) {
   bt_status_t status = BT_STATUS_FAIL;
   bt_bond_state_t state = BT_BOND_STATE_NONE;
   bool skip_sdp = false;
+  bool enable_address_consolidate = false;  // TODO remove
 
   BTIF_TRACE_DEBUG("%s: bond state=%d, success=%d, key_present=%d", __func__,
                    pairing_cb.state, p_auth_cmpl->success,
@@ -1011,8 +1012,19 @@ static void btif_dm_auth_cmpl_evt(tBTA_DM_AUTH_CMPL* p_auth_cmpl) {
     } else {
       dev_type = p_auth_cmpl->dev_type;
     }
-    btif_update_remote_properties(p_auth_cmpl->bd_addr, p_auth_cmpl->bd_name,
-                                  NULL, dev_type);
+
+    bool is_crosskey = false;
+    if (pairing_cb.state == BT_BOND_STATE_BONDING &&
+        p_auth_cmpl->bd_addr != pairing_cb.bd_addr) {
+      LOG_INFO("bonding initiated due to cross key pairing");
+      is_crosskey = true;
+    }
+
+    if (!is_crosskey || !enable_address_consolidate) {
+      btif_update_remote_properties(p_auth_cmpl->bd_addr, p_auth_cmpl->bd_name,
+                                    NULL, dev_type);
+    }
+
     pairing_cb.timeout_retries = 0;
     status = BT_STATUS_SUCCESS;
     state = BT_BOND_STATE_BONDED;
@@ -1035,7 +1047,6 @@ static void btif_dm_auth_cmpl_evt(tBTA_DM_AUTH_CMPL* p_auth_cmpl) {
 
       invoke_remote_device_properties_cb(BT_STATUS_SUCCESS, bd_addr, 1, &prop);
     } else {
-      bool is_crosskey = false;
       /* If bonded due to cross-key, save the static address too*/
       if (pairing_cb.state == BT_BOND_STATE_BONDING &&
           p_auth_cmpl->bd_addr != pairing_cb.bd_addr) {
@@ -1043,7 +1054,6 @@ static void btif_dm_auth_cmpl_evt(tBTA_DM_AUTH_CMPL* p_auth_cmpl) {
             "%s: bonding initiated due to cross key, adding static address",
             __func__);
         pairing_cb.static_bdaddr = bd_addr;
-        is_crosskey = true;
       }
       if (!is_crosskey ||
           !(stack_config_get_interface()->get_pts_crosskey_sdp_disable())) {
@@ -1053,15 +1063,17 @@ static void btif_dm_auth_cmpl_evt(tBTA_DM_AUTH_CMPL* p_auth_cmpl) {
         /* Trigger SDP on the device */
         pairing_cb.sdp_attempts = 1;
 
-        if (is_crosskey) {
-          // If bonding occurred due to cross-key pairing, send bonding callback
-          // for static address now
-          LOG_INFO("%s: send bonding state update for static address %s",
-                   __func__, bd_addr.ToString().c_str());
+        if (is_crosskey && enable_address_consolidate) {
+          // If bonding occurred due to cross-key pairing, send address
+          // consolidate callback
+          invoke_address_consolidate_cb(pairing_cb.bd_addr, bd_addr);
+        } else if (is_crosskey && !enable_address_consolidate) {
+          // TODO remove
           bond_state_changed(BT_STATUS_SUCCESS, bd_addr, BT_BOND_STATE_BONDING);
+          bond_state_changed(BT_STATUS_SUCCESS, bd_addr, BT_BOND_STATE_BONDED);
+        } else {
+          bond_state_changed(BT_STATUS_SUCCESS, bd_addr, BT_BOND_STATE_BONDED);
         }
-        bond_state_changed(BT_STATUS_SUCCESS, bd_addr, BT_BOND_STATE_BONDED);
-
         btif_dm_get_remote_services(bd_addr, BT_TRANSPORT_AUTO);
       }
     }
