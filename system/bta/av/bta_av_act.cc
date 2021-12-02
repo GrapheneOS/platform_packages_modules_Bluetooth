@@ -223,7 +223,7 @@ static void bta_av_rc_ctrl_cback(uint8_t handle, uint8_t event,
         (tBTA_AV_RC_CONN_CHG*)osi_malloc(sizeof(tBTA_AV_RC_CONN_CHG));
     p_msg->hdr.event = msg_event;
     p_msg->handle = handle;
-    if (peer_addr) p_msg->peer_addr = *peer_addr;
+    p_msg->peer_addr = (peer_addr) ? (*peer_addr) : RawAddress::kEmpty;
     bta_sys_sendmsg(p_msg);
   }
 }
