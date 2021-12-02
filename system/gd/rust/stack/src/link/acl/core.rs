@@ -30,7 +30,9 @@ module! {
 pub struct Connection {
     pub rx: Option<Receiver<Bytes>>,
     pub tx: Option<Sender<Bytes>>,
+    #[allow(dead_code)]
     handle: u16,
+    #[allow(dead_code)]
     requests: Sender<Request>,
     pub evt_rx: Receiver<EventPacket>,
     pub evt_tx: Sender<EventPacket>,
