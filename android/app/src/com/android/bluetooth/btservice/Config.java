@@ -51,6 +51,9 @@ import com.android.bluetooth.sap.SapService;
 import com.android.bluetooth.vc.VolumeControlService;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 
 public class Config {
@@ -67,6 +70,15 @@ public class Config {
             mMask = mask;
         }
     }
+
+    /**
+     * List of profile services related to LE audio
+     */
+    private static final HashSet<Class> mLeAudioUnicastProfiles = new HashSet<Class>(
+            Arrays.asList(LeAudioService.class,
+                        VolumeControlService.class,
+                        McpService.class,
+                        CsipSetCoordinatorService.class));
 
     /**
      * List of profile services with the profile-supported resource flag and bit mask.
@@ -155,6 +167,29 @@ public class Config {
         }
         sSupportedProfiles = profiles.toArray(new Class[profiles.size()]);
         sIsGdEnabledUptoScanningLayer = resources.getBoolean(R.bool.enable_gd_up_to_scanning_layer);
+    }
+
+    /**
+     * Remove LE audio unicast related profiles from the supported list.
+     */
+    static void removeLeAudioUnicastProfilesFromSupportedList() {
+        ArrayList<Class> profilesList = new ArrayList<Class>(Arrays.asList(sSupportedProfiles));
+        Iterator<Class> iter = profilesList.iterator();
+
+        while (iter.hasNext()) {
+            Class profileClass = iter.next();
+
+            if (mLeAudioUnicastProfiles.contains(profileClass)) {
+                iter.remove();
+                Log.v(TAG, "Remove " + profileClass.getSimpleName() + " from supported list.");
+            }
+        }
+
+        sSupportedProfiles = profilesList.toArray(new Class[profilesList.size()]);
+    }
+
+    static HashSet<Class> geLeAudioUnicastProfiles() {
+        return mLeAudioUnicastProfiles;
     }
 
     static Class[] getSupportedProfiles() {
