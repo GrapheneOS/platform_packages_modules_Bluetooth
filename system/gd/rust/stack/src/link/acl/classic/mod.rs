@@ -54,11 +54,16 @@ pub enum Event {
 /// A classic ACL connection
 #[derive(Debug)]
 pub struct Connection {
+    #[allow(dead_code)]
     addr: Address,
+    #[allow(dead_code)]
     rx: Receiver<Bytes>,
+    #[allow(dead_code)]
     tx: Sender<Bytes>,
+    #[allow(dead_code)]
     shared: Arc<Mutex<ConnectionShared>>,
     requests: Sender<ConnectionRequest>,
+    #[allow(dead_code)]
     evt_rx: Receiver<ConnectionEvent>,
 }
 
@@ -94,6 +99,7 @@ struct ConnectionInternal {
 
 #[derive(Debug)]
 struct ConnectionShared {
+    #[allow(dead_code)]
     role: Role,
 }
 
