@@ -102,6 +102,8 @@ public:
  virtual void CancelLeConnect(AddressWithType address_with_type);
  virtual void AddDeviceToConnectList(AddressWithType address_with_type);
  virtual void RemoveDeviceFromConnectList(AddressWithType address_with_type);
+ virtual void ClearConnectList();
+
  virtual void AddDeviceToResolvingList(
      AddressWithType address_with_type,
      const std::array<uint8_t, 16>& peer_irk,
