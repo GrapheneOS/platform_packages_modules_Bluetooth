@@ -127,3 +127,7 @@ void bluetooth::shim::ACL_RemoveFromAddressResolution(
 void bluetooth::shim::ACL_ClearAddressResolution() {
   Stack::GetInstance()->GetAcl()->ClearAddressResolution();
 }
+
+void bluetooth::shim::ACL_ClearAcceptList() {
+  Stack::GetInstance()->GetAcl()->ClearAcceptList();
+}
