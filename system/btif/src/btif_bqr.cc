@@ -41,7 +41,7 @@ static std::unique_ptr<LeakyBondedQueue<BqrVseSubEvt>> kpBqrEventQueue(
     new LeakyBondedQueue<BqrVseSubEvt>(kBqrEventQueueSize));
 
 void BqrVseSubEvt::ParseBqrLinkQualityEvt(uint8_t length,
-                                          uint8_t* p_param_buf) {
+                                          const uint8_t* p_param_buf) {
   if (length < kLinkQualityParamTotalLen) {
     LOG(FATAL) << __func__
                << ": Parameter total length: " << std::to_string(length)
@@ -344,7 +344,7 @@ void ConfigureBqrCmpl(uint32_t current_evt_mask) {
   }
 }
 
-void CategorizeBqrEvent(uint8_t length, uint8_t* p_bqr_event) {
+void CategorizeBqrEvent(uint8_t length, const uint8_t* p_bqr_event) {
   if (length == 0) {
     LOG(WARNING) << __func__ << ": Lengths of all of the parameters are zero.";
     return;
@@ -383,7 +383,8 @@ void CategorizeBqrEvent(uint8_t length, uint8_t* p_bqr_event) {
   }
 }
 
-void AddLinkQualityEventToQueue(uint8_t length, uint8_t* p_link_quality_event) {
+void AddLinkQualityEventToQueue(uint8_t length,
+                                const uint8_t* p_link_quality_event) {
   std::unique_ptr<BqrVseSubEvt> p_bqr_event = std::make_unique<BqrVseSubEvt>();
   p_bqr_event->ParseBqrLinkQualityEvt(length, p_link_quality_event);
 
