@@ -30,6 +30,7 @@
 
 #include "hal/hci_hal.h"
 #include "hal/snoop_logger.h"
+#include "metrics/counter_metrics.h"
 #include "os/log.h"
 #include "os/reactor.h"
 #include "os/thread.h"
@@ -262,6 +263,7 @@ class HciHalHost : public HciHal {
 
  protected:
   void ListDependencies(ModuleList* list) const {
+    list->add<metrics::CounterMetrics>();
     list->add<SnoopLogger>();
   }
 
