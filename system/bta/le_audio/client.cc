@@ -1703,9 +1703,10 @@ class LeAudioClientImpl : public LeAudioClient {
     auto* stream_conf = &group->stream_conf;
 
     if (!stream_conf->valid) {
-      LOG(ERROR) << __func__
-                 << " Configuration not valid. (btw not sure we need this "
-                    "flag)";
+      LOG(INFO) << __func__
+                 << " Device not streaming but active. Lets update audio "
+                    "session to match needed channel number";
+      UpdateCurrentHalSessions(active_group_id_, current_context_type_);
       return;
     }
 
