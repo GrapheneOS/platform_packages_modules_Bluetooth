@@ -263,6 +263,8 @@ void LogMetricBluetoothHalCrashReason(
     const hci::Address& address,
     uint32_t error_code,
     uint32_t vendor_error_code);
+
+void LogMetricBluetoothCodePathCounterMetrics(int32_t key, int64_t count);
 }  // namespace os
 
 }  // namespace bluetooth
