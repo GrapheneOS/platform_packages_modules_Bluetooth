@@ -73,6 +73,7 @@ static_library("libbluetooth_gd") {
     "//bt/system/gd/hal:BluetoothHalSources",
     "//bt/system/gd/hal:BluetoothHalSources_hci_host",
     "//bt/system/gd/l2cap:BluetoothL2capSources",
+    "//bt/system/gd/metrics:BluetoothMetricsSources",
     "//bt/system/gd/neighbor:BluetoothNeighborSources",
     "//bt/system/gd/security:BluetoothSecuritySources",
     "//bt/system/gd/shim:BluetoothShimSources",
