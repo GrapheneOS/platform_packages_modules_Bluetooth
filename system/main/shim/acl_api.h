@@ -47,6 +47,7 @@ void ACL_AddToAddressResolution(const tBLE_BD_ADDR& legacy_address_with_type,
 void ACL_RemoveFromAddressResolution(
     const tBLE_BD_ADDR& legacy_address_with_type);
 void ACL_ClearAddressResolution();
+void ACL_ClearAcceptList();
 
 }  // namespace shim
 }  // namespace bluetooth

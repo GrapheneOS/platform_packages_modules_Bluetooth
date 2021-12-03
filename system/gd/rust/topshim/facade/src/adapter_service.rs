@@ -40,9 +40,11 @@ fn get_bt_dispatcher(
 /// Main object for Adapter facade service
 #[derive(Clone)]
 pub struct AdapterServiceImpl {
+    #[allow(dead_code)]
     rt: Arc<Runtime>,
     btif_intf: Arc<Mutex<BluetoothInterface>>,
     event_rx: Arc<TokioMutex<mpsc::Receiver<BaseCallbacks>>>,
+    #[allow(dead_code)]
     event_tx: mpsc::Sender<BaseCallbacks>,
 }
 
