@@ -172,8 +172,8 @@ typedef uint16_t tBTM_BLE_STATE_MASK;
   (BTM_BLE_STATE_CENTRAL_BIT | BTM_BLE_STATE_PERIPHERAL_BIT)
 
 typedef struct {
-  RawAddress* resolve_q_random_pseudo;
-  uint8_t* resolve_q_action;
+  RawAddress* resolve_q_random_pseudo{nullptr};
+  uint8_t* resolve_q_action{nullptr};
   uint8_t q_next;
   uint8_t q_pending;
 } tBTM_BLE_RESOLVE_Q;
@@ -269,7 +269,8 @@ typedef struct {
   uint8_t resolving_list_avail_size; /* resolving list available size */
   tBTM_BLE_RESOLVE_Q resolving_list_pend_q; /* Resolving list queue */
   tBTM_BLE_RL_STATE suspended_rl_state;     /* Suspended resolving list state */
-  uint8_t* irk_list_mask; /* IRK list availability mask, up to max entry bits */
+  /* IRK list availability mask, up to max entry bits */
+  uint8_t* irk_list_mask{nullptr};
   tBTM_BLE_RL_STATE rl_state; /* Resolving list state */
 
   /* current BLE link state */
