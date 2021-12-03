@@ -511,12 +511,20 @@ AclConnectionInterface* HciLayer::GetAclConnectionInterface(
     ContextualCallback<
         void(hci::ErrorCode hci_status, uint16_t, uint8_t version, uint16_t manufacturer_name, uint16_t sub_version)>
         on_read_remote_version) {
+  disconnect_handlers_.push_back(on_disconnect);
+  read_remote_version_handlers_.push_back(on_read_remote_version);
   for (const auto event : AclConnectionEvents) {
     RegisterEventHandler(event, event_handler);
   }
-  disconnect_handlers_.push_back(on_disconnect);
-  read_remote_version_handlers_.push_back(on_read_remote_version);
   return &acl_connection_manager_interface_;
+}
+
+void HciLayer::PutAclConnectionInterface() {
+  for (const auto event : AclConnectionEvents) {
+    UnregisterEventHandler(event);
+  }
+  disconnect_handlers_.clear();
+  read_remote_version_handlers_.clear();
 }
 
 LeAclConnectionInterface* HciLayer::GetLeAclConnectionInterface(
@@ -525,12 +533,20 @@ LeAclConnectionInterface* HciLayer::GetLeAclConnectionInterface(
     ContextualCallback<
         void(hci::ErrorCode hci_status, uint16_t, uint8_t version, uint16_t manufacturer_name, uint16_t sub_version)>
         on_read_remote_version) {
+  disconnect_handlers_.push_back(on_disconnect);
+  read_remote_version_handlers_.push_back(on_read_remote_version);
   for (const auto event : LeConnectionManagementEvents) {
     RegisterLeEventHandler(event, event_handler);
   }
-  disconnect_handlers_.push_back(on_disconnect);
-  read_remote_version_handlers_.push_back(on_read_remote_version);
   return &le_acl_connection_manager_interface_;
+}
+
+void HciLayer::PutLeAclConnectionInterface() {
+  for (const auto event : LeConnectionManagementEvents) {
+    UnregisterLeEventHandler(event);
+  }
+  disconnect_handlers_.clear();
+  read_remote_version_handlers_.clear();
 }
 
 SecurityInterface* HciLayer::GetSecurityInterface(ContextualCallback<void(EventView)> event_handler) {

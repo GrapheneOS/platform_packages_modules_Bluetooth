@@ -59,9 +59,7 @@ struct classic_impl : public security::ISecurityManagerListener {
   }
 
   ~classic_impl() {
-    for (auto event_code : AclConnectionEvents) {
-      hci_layer_->UnregisterEventHandler(event_code);
-    }
+    hci_layer_->PutAclConnectionInterface();
     acl_connections_.clear();
     security_manager_.reset();
   }

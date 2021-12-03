@@ -79,13 +79,11 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
   }
 
   ~le_impl() {
-    for (auto subevent_code : LeConnectionManagementEvents) {
-      hci_layer_->UnregisterLeEventHandler(subevent_code);
-    }
     if (address_manager_registered) {
       le_address_manager_->Unregister(this);
     }
     delete le_address_manager_;
+    hci_layer_->PutLeAclConnectionInterface();
     le_acl_connections_.clear();
   }
 
