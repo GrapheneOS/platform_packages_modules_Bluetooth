@@ -216,7 +216,7 @@ void Stack::Start(ModuleList* modules) {
   LOG_INFO("%s Starting Gd stack", __func__);
 
   stack_thread_ =
-      new os::Thread("gd_stack_thread", os::Thread::Priority::NORMAL);
+      new os::Thread("gd_stack_thread", os::Thread::Priority::REAL_TIME);
   stack_manager_.StartUp(modules, stack_thread_);
 
   stack_handler_ = new os::Handler(stack_thread_);
