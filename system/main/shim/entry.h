@@ -63,6 +63,10 @@ class L2capLeModule;
 }  // namespace le
 }  // namespace l2cap
 
+namespace metrics {
+class CounterMetrics;
+}
+
 namespace security {
 class SecurityModule;
 }
@@ -93,6 +97,7 @@ storage::StorageModule* GetStorage();
 hci::AclManager* GetAclManager();
 hci::VendorSpecificEventManager* GetVendorSpecificEventManager();
 activity_attribution::ActivityAttribution* GetActivityAttribution();
+metrics::CounterMetrics* GetCounterMetrics();
 
 }  // namespace shim
 }  // namespace bluetooth

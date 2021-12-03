@@ -16,7 +16,9 @@
 
 #include "main/shim/metrics_api.h"
 #include "gd/hci/address.h"
+#include "gd/metrics/counter_metrics.h"
 #include "gd/os/metrics.h"
+#include "main/shim/entry.h"
 #include "main/shim/helpers.h"
 #include "types/raw_address.h"
 
@@ -134,6 +136,14 @@ void LogMetricManufacturerInfo(
   bluetooth::os::LogMetricManufacturerInfo(address, source_type, source_name,
                                            manufacturer, model,
                                            hardware_version, software_version);
+}
+
+bool CountCounterMetrics(int32_t key, int64_t count) {
+  auto counter_metrics = GetCounterMetrics();
+  if (counter_metrics == nullptr) {
+    return false;
+  }
+  return counter_metrics->Count(key, count);
 }
 }  // namespace shim
 }  // namespace bluetooth
