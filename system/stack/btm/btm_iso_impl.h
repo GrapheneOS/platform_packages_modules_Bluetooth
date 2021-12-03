@@ -43,9 +43,10 @@ static constexpr uint8_t kIsoHeaderWithTsLen = 12;
 static constexpr uint8_t kIsoHeaderWithoutTsLen = 8;
 
 static constexpr uint8_t kStateFlagsNone = 0x00;
-static constexpr uint8_t kStateFlagIsConnected = 0x01;
-static constexpr uint8_t kStateFlagHasDataPathSet = 0x02;
-static constexpr uint8_t kStateFlagIsBroadcast = 0x04;
+static constexpr uint8_t kStateFlagIsConnecting = 0x01;
+static constexpr uint8_t kStateFlagIsConnected = 0x02;
+static constexpr uint8_t kStateFlagHasDataPathSet = 0x04;
+static constexpr uint8_t kStateFlagIsBroadcast = 0x10;
 
 struct iso_sync_info {
   uint32_t first_sync_ts;
@@ -194,18 +195,20 @@ struct iso_impl {
     LOG_ASSERT(len == 2) << "Invalid packet length: " << len;
 
     STREAM_TO_UINT16(status, stream);
-    if (status == HCI_SUCCESS) {
-      /* Wait for connection established event */
-      return;
-    }
 
-    for (auto cis : conn_params.conn_pairs) {
+    for (auto cis_param : conn_params.conn_pairs) {
       cis_establish_cmpl_evt evt;
 
-      evt.status = status;
-      evt.cis_conn_hdl = cis.cis_conn_handle;
-      evt.cig_id = 0xFF;
-      cig_callbacks_->OnCisEvent(kIsoEventCisEstablishCmpl, &evt);
+      if (status == HCI_SUCCESS) {
+        /* Set connecting flag and wait for connection established event */
+        auto cis = GetCisIfKnown(cis_param.cis_conn_handle);
+        cis->state_flags |= kStateFlagIsConnecting;
+      } else {
+        evt.status = status;
+        evt.cis_conn_hdl = cis_param.cis_conn_handle;
+        evt.cig_id = 0xFF;
+        cig_callbacks_->OnCisEvent(kIsoEventCisEstablishCmpl, &evt);
+      }
     }
   }
 
@@ -225,7 +228,9 @@ struct iso_impl {
   void disconnect_cis(uint16_t cis_handle, uint8_t reason) {
     auto cis = GetCisIfKnown(cis_handle);
     LOG_ASSERT(cis) << "No such cis";
-    LOG_ASSERT(cis->state_flags & kStateFlagIsConnected) << "Not connected";
+    LOG_ASSERT(cis->state_flags & kStateFlagIsConnected ||
+               cis->state_flags & kStateFlagIsConnecting)
+        << "Not connected";
     bluetooth::legacy::hci::GetInterface().Disconnect(
         cis_handle, static_cast<tHCI_STATUS>(reason));
   }
@@ -464,6 +469,8 @@ struct iso_impl {
     STREAM_TO_UINT16(evt.iso_itv, data);
 
     if (evt.status == HCI_SUCCESS) cis->state_flags |= kStateFlagIsConnected;
+
+    cis->state_flags &= ~kStateFlagIsConnecting;
 
     evt.cig_id = cis->cig_id;
     cig_callbacks_->OnCisEvent(kIsoEventCisEstablishCmpl, &evt);

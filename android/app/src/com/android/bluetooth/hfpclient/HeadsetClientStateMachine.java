@@ -472,13 +472,19 @@ public class HeadsetClientStateMachine extends StateMachine {
             BluetoothHeadsetClientCall cOrig = mCalls.get(idx);
             BluetoothHeadsetClientCall cUpdate = mCallsUpdate.get(idx);
 
-            // Update the necessary fields.
-            cOrig.setNumber(cUpdate.getNumber());
-            cOrig.setState(cUpdate.getState());
-            cOrig.setMultiParty(cUpdate.isMultiParty());
+            // If any of the fields differs, update and send intent
+            if (!cOrig.getNumber().equals(cUpdate.getNumber())
+                    || cOrig.getState() != cUpdate.getState()
+                    || cOrig.isMultiParty() != cUpdate.isMultiParty()) {
 
-            // Send update with original object (UUID, idx).
-            sendCallChangedIntent(cOrig);
+                // Update the necessary fields.
+                cOrig.setNumber(cUpdate.getNumber());
+                cOrig.setState(cUpdate.getState());
+                cOrig.setMultiParty(cUpdate.isMultiParty());
+
+                // Send update with original object (UUID, idx).
+                sendCallChangedIntent(cOrig);
+            }
         }
 
         if (mCalls.size() > 0) {

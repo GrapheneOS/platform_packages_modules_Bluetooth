@@ -156,6 +156,7 @@ class LeAudioClientImpl : public LeAudioClient {
         active_group_id_(bluetooth::groups::kGroupUnknown),
         stream_request_started_(false),
         current_context_type_(LeAudioContextType::MEDIA),
+        upcoming_context_type_(LeAudioContextType::MEDIA),
         audio_receiver_state_(AudioState::IDLE),
         audio_sender_state_(AudioState::IDLE),
         current_source_codec_config({0, 0, 0, 0}),
@@ -2283,6 +2284,7 @@ class LeAudioClientImpl : public LeAudioClient {
   void Dump(int fd) {
     dprintf(fd, "  Active group: %d\n", active_group_id_);
     dprintf(fd, "    current content type: 0x%08hx\n", current_context_type_);
+    dprintf(fd, "    upcoming content type: 0x%08hx\n", upcoming_context_type_);
     printCurrentStreamConfiguration(fd);
     dprintf(fd, "  ----------------\n ");
     dprintf(fd, "  LE Audio Groups:\n");
@@ -2376,6 +2378,7 @@ class LeAudioClientImpl : public LeAudioClient {
                    " context: "
                 << static_cast<int>(context_type);
     }
+    current_context_type_ = upcoming_context_type_;
   }
 
   void OnAudioResume() {
@@ -2391,33 +2394,13 @@ class LeAudioClientImpl : public LeAudioClient {
       return;
     }
 
-    std::optional<LeAudioCodecConfiguration> source_configuration =
-        group->GetCodecConfigurationByDirection(
-            current_context_type_, le_audio::types::kLeAudioDirectionSink);
-    std::optional<LeAudioCodecConfiguration> sink_configuration =
-        group->GetCodecConfigurationByDirection(
-            current_context_type_, le_audio::types::kLeAudioDirectionSource);
-
-    /* Check if Bluetooth audio HAL session requires reconfiguration */
-    bool sessions_requires_update =
-        (((source_configuration &&
-           (*source_configuration != current_source_codec_config)) ||
-          (!source_configuration &&
-           !current_source_codec_config.IsInvalid()))) ||
-        ((sink_configuration &&
-          (*sink_configuration != current_sink_codec_config)) ||
-         (!sink_configuration && !current_sink_codec_config.IsInvalid()));
-    if (sessions_requires_update) {
+    if (upcoming_context_type_ != current_context_type_) {
+      /* Wait until session is updated */
       CancelStreamingRequest();
-      do_in_main_thread(FROM_HERE,
-                        base::Bind(&LeAudioClientImpl::UpdateCurrentHalSessions,
-                                   base::Unretained(instance), active_group_id_,
-                                   current_context_type_));
       return;
     }
 
     /* TODO check if group already started streaming */
-
     GroupStream(active_group_id_, static_cast<uint16_t>(current_context_type_));
   }
 
@@ -2661,6 +2644,8 @@ class LeAudioClientImpl : public LeAudioClient {
     }
 
     auto new_context = ChooseContextType(contexts);
+    DLOG(INFO) << __func__
+               << " new_context_type: " << static_cast<int>(new_context);
 
     auto group = aseGroups_.FindById(active_group_id_);
     if (!group) {
@@ -2669,41 +2654,49 @@ class LeAudioClientImpl : public LeAudioClient {
       return;
     }
 
-    if ((new_context != current_context_type_) &&
-        (group->GetState() == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING)) {
-      if (active_group_id_ == bluetooth::groups::kGroupUnknown) {
-        LOG(WARNING) << ", cannot start straming if no active group set";
-        return;
-      }
+    if (new_context == current_context_type_) {
+      LOG(INFO) << __func__ << " Context did not changed.";
+      return;
+    }
 
-      std::optional<LeAudioCodecConfiguration> source_configuration =
-          group->GetCodecConfigurationByDirection(
-              new_context, le_audio::types::kLeAudioDirectionSink);
+    if (active_group_id_ == bluetooth::groups::kGroupUnknown) {
+      LOG(WARNING) << ", cannot start streaming if no active group set";
+      return;
+    }
 
-      std::optional<LeAudioCodecConfiguration> sink_configuration =
-          group->GetCodecConfigurationByDirection(
-              new_context, le_audio::types::kLeAudioDirectionSource);
+    std::optional<LeAudioCodecConfiguration> source_configuration =
+        group->GetCodecConfigurationByDirection(
+            new_context, le_audio::types::kLeAudioDirectionSink);
 
-      if ((source_configuration &&
-           (*source_configuration != current_source_codec_config)) ||
-          (sink_configuration &&
-           (*sink_configuration != current_sink_codec_config))) {
-        do_in_main_thread(
-            FROM_HERE, base::Bind(&LeAudioClientImpl::UpdateCurrentHalSessions,
-                                  base::Unretained(instance), group->group_id_,
-                                  new_context));
-        current_context_type_ = new_context;
+    std::optional<LeAudioCodecConfiguration> sink_configuration =
+        group->GetCodecConfigurationByDirection(
+            new_context, le_audio::types::kLeAudioDirectionSource);
+
+    if ((source_configuration &&
+         (*source_configuration != current_source_codec_config)) ||
+        (sink_configuration &&
+         (*sink_configuration != current_sink_codec_config))) {
+      DLOG(INFO) << __func__ << " Will UpdateCurrentHalSessions group"
+                 << group->group_id_ << "for context type: "
+                 << static_cast<int>(upcoming_context_type_);
+
+      if (group->GetState() == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
         GroupStop(group->group_id_);
-        return;
       }
 
+      upcoming_context_type_ = new_context;
+      /* Schedule HAL Session update */
+      do_in_main_thread(FROM_HERE,
+                        base::Bind(&LeAudioClientImpl::UpdateCurrentHalSessions,
+                                   base::Unretained(instance), group->group_id_,
+                                   upcoming_context_type_));
+
+    } else {
       /* Configuration is the same for new context, just will do update
        * metadata of stream
        */
       GroupStream(active_group_id_, static_cast<uint16_t>(new_context));
     }
-
-    current_context_type_ = new_context;
   }
 
   static void OnGattReadRspStatic(uint16_t conn_id, tGATT_STATUS status,
@@ -2881,6 +2874,7 @@ class LeAudioClientImpl : public LeAudioClient {
   int active_group_id_;
   bool stream_request_started_;
   LeAudioContextType current_context_type_;
+  LeAudioContextType upcoming_context_type_;
 
   /* Microphone (s) */
   AudioState audio_receiver_state_;

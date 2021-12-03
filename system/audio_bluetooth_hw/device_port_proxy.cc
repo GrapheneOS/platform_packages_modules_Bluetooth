@@ -319,6 +319,27 @@ bool BluetoothAudioPortOut::LoadAudioConfig(audio_config_t* audio_cfg) const {
   return true;
 }
 
+bool BluetoothAudioPortOut::GetPreferredDataIntervalUs(
+    size_t* interval_us) const {
+  if (!in_use()) {
+    return false;
+  }
+
+  const ::android::hardware::bluetooth::audio::V2_2::AudioConfiguration&
+      hal_audio_cfg =
+          BluetoothAudioSessionControl_2_2::GetAudioConfig(session_type_);
+  if (hal_audio_cfg.getDiscriminator() !=
+      ::android::hardware::bluetooth::audio::V2_2::AudioConfiguration::
+          hidl_discriminator::pcmConfig) {
+    return false;
+  }
+
+  const ::android::hardware::bluetooth::audio::V2_1::PcmParameters& pcm_cfg =
+      hal_audio_cfg.pcmConfig();
+  *interval_us = pcm_cfg.dataIntervalUs;
+  return true;
+}
+
 bool BluetoothAudioPortIn::LoadAudioConfig(audio_config_t* audio_cfg) const {
   if (!in_use()) {
     LOG(ERROR) << __func__ << ": BluetoothAudioPortIn is not in use";

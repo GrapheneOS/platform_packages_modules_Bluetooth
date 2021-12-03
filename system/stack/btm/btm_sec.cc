@@ -3807,6 +3807,20 @@ void btm_sec_disconnected(uint16_t handle, tHCI_REASON reason,
   }
 }
 
+void btm_sec_role_changed(tHCI_STATUS hci_status, const RawAddress& bd_addr,
+                          tHCI_ROLE new_role) {
+  tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(bd_addr);
+
+  if (p_dev_rec == nullptr || hci_status != HCI_SUCCESS) {
+    return;
+  }
+  if (new_role == HCI_ROLE_CENTRAL && btm_dev_authenticated(p_dev_rec) &&
+      !btm_dev_encrypted(p_dev_rec)) {
+    BTM_SetEncryption(p_dev_rec->bd_addr, BT_TRANSPORT_BR_EDR, NULL, NULL,
+                      BTM_BLE_SEC_NONE);
+  }
+}
+
 /** This function is called when a new connection link key is generated */
 void btm_sec_link_key_notification(const RawAddress& p_bda,
                                    const Octet16& link_key, uint8_t key_type) {
