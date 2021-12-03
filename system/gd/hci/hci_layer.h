@@ -78,12 +78,14 @@ class HciLayer : public Module, public CommandInterface<CommandBuilder> {
       common::ContextualCallback<void(uint16_t, hci::ErrorCode)> on_disconnect,
       common::ContextualCallback<void(hci::ErrorCode, uint16_t, uint8_t, uint16_t, uint16_t)>
           on_read_remote_version_complete);
+  virtual void PutAclConnectionInterface();
 
   virtual LeAclConnectionInterface* GetLeAclConnectionInterface(
       common::ContextualCallback<void(LeMetaEventView)> event_handler,
       common::ContextualCallback<void(uint16_t, hci::ErrorCode)> on_disconnect,
       common::ContextualCallback<void(hci::ErrorCode, uint16_t, uint8_t, uint16_t, uint16_t)>
           on_read_remote_version_complete);
+  virtual void PutLeAclConnectionInterface();
 
   virtual LeAdvertisingInterface* GetLeAdvertisingInterface(
       common::ContextualCallback<void(LeMetaEventView)> event_handler);
