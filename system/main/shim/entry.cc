@@ -20,6 +20,7 @@
 #include "gd/hci/le_advertising_manager.h"
 #include "gd/hci/le_scanning_manager.h"
 #include "gd/hci/vendor_specific_event_manager.h"
+#include "gd/metrics/counter_metrics.h"
 #include "gd/neighbor/connectability.h"
 #include "gd/neighbor/discoverability.h"
 #include "gd/neighbor/inquiry.h"
@@ -136,6 +137,12 @@ activity_attribution::ActivityAttribution* GetActivityAttribution() {
   return Stack::GetInstance()
       ->GetStackManager()
       ->GetInstance<activity_attribution::ActivityAttribution>();
+}
+
+metrics::CounterMetrics* GetCounterMetrics() {
+  return Stack::GetInstance()
+      ->GetStackManager()
+      ->GetInstance<metrics::CounterMetrics>();
 }
 
 }  // namespace shim

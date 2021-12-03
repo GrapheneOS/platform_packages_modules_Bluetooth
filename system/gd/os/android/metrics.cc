@@ -406,5 +406,14 @@ void LogMetricBluetoothHalCrashReason(
   }
 }
 
+void LogMetricBluetoothCodePathCounterMetrics(int32_t key, int64_t count) {
+  int ret = stats_write(BLUETOOTH_CODE_PATH_COUNTER, key, count);
+  if (ret < 0) {
+    LOG_WARN(
+        "Failed counter metrics for %d, count %s, error %d",
+        key, std::to_string(count).c_str(), ret);
+  }
+}
+
 }  // namespace os
 }  // namespace bluetooth
