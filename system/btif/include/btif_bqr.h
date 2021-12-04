@@ -263,7 +263,7 @@ class BqrVseSubEvt {
   //
   // @param length Total length of all parameters contained in the sub-event.
   // @param p_param_buf A pointer to the parameters contained in the sub-event.
-  void ParseBqrLinkQualityEvt(uint8_t length, uint8_t* p_param_buf);
+  void ParseBqrLinkQualityEvt(uint8_t length, const uint8_t* p_param_buf);
   // Write the LMP/LL message trace to the log file.
   //
   // @param fd The File Descriptor of the log file.
@@ -343,13 +343,14 @@ void ConfigureBqrCmpl(uint32_t current_evt_mask);
 //   controller.
 // @param p_bqr_event A pointer to the BQR VSE sub-event which is sent from the
 //   Bluetooth controller.
-void CategorizeBqrEvent(uint8_t length, uint8_t* p_bqr_event);
+void CategorizeBqrEvent(uint8_t length, const uint8_t* p_bqr_event);
 
 // Record a new incoming Link Quality related BQR event in quality event queue.
 //
 // @param length Lengths of the Link Quality related BQR event.
 // @param p_link_quality_event A pointer to the Link Quality related BQR event.
-void AddLinkQualityEventToQueue(uint8_t length, uint8_t* p_link_quality_event);
+void AddLinkQualityEventToQueue(uint8_t length,
+                                const uint8_t* p_link_quality_event);
 
 // Dump the LMP/LL message handshaking with the remote device to a log file.
 //

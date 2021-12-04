@@ -280,6 +280,26 @@ bool BluetoothAudioPort::in_use() const {
   return (cookie_ != android::bluetooth::audio::kObserversCookieUndefined);
 }
 
+bool BluetoothAudioPort::GetPreferredDataIntervalUs(size_t* interval_us) const {
+  if (!in_use()) {
+    return false;
+  }
+
+  const ::android::hardware::bluetooth::audio::V2_2::AudioConfiguration&
+      hal_audio_cfg =
+          BluetoothAudioSessionControl_2_2::GetAudioConfig(session_type_);
+  if (hal_audio_cfg.getDiscriminator() !=
+      ::android::hardware::bluetooth::audio::V2_2::AudioConfiguration::
+          hidl_discriminator::pcmConfig) {
+    return false;
+  }
+
+  const ::android::hardware::bluetooth::audio::V2_1::PcmParameters& pcm_cfg =
+      hal_audio_cfg.pcmConfig();
+  *interval_us = pcm_cfg.dataIntervalUs;
+  return true;
+}
+
 bool BluetoothAudioPortOut::LoadAudioConfig(audio_config_t* audio_cfg) const {
   if (!in_use()) {
     LOG(ERROR) << __func__ << ": BluetoothAudioPortOut is not in use";
@@ -316,27 +336,6 @@ bool BluetoothAudioPortOut::LoadAudioConfig(audio_config_t* audio_cfg) const {
            ? AUDIO_CHANNEL_OUT_STEREO
            : OutputChannelModeToAudioFormat(pcm_cfg.channelMode));
   audio_cfg->format = BitsPerSampleToAudioFormat(pcm_cfg.bitsPerSample);
-  return true;
-}
-
-bool BluetoothAudioPortOut::GetPreferredDataIntervalUs(
-    size_t* interval_us) const {
-  if (!in_use()) {
-    return false;
-  }
-
-  const ::android::hardware::bluetooth::audio::V2_2::AudioConfiguration&
-      hal_audio_cfg =
-          BluetoothAudioSessionControl_2_2::GetAudioConfig(session_type_);
-  if (hal_audio_cfg.getDiscriminator() !=
-      ::android::hardware::bluetooth::audio::V2_2::AudioConfiguration::
-          hidl_discriminator::pcmConfig) {
-    return false;
-  }
-
-  const ::android::hardware::bluetooth::audio::V2_1::PcmParameters& pcm_cfg =
-      hal_audio_cfg.pcmConfig();
-  *interval_us = pcm_cfg.dataIntervalUs;
   return true;
 }
 

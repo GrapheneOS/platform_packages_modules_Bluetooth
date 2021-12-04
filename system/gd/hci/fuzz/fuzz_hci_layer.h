@@ -112,12 +112,14 @@ class FuzzHciLayer : public HciLayer {
       common::ContextualCallback<void(uint16_t, hci::ErrorCode)> on_disconnect,
       common::ContextualCallback<void(hci::ErrorCode hci_status, uint16_t, uint8_t, uint16_t, uint16_t)>
           on_read_remote_version) override;
+  void PutAclConnectionInterface() override {}
 
   hci::LeAclConnectionInterface* GetLeAclConnectionInterface(
       common::ContextualCallback<void(hci::LeMetaEventView)> event_handler,
       common::ContextualCallback<void(uint16_t, hci::ErrorCode)> on_disconnect,
       common::ContextualCallback<void(hci::ErrorCode hci_status, uint16_t, uint8_t, uint16_t, uint16_t)>
           on_read_remote_version) override;
+  void PutLeAclConnectionInterface() override {}
 
   hci::LeAdvertisingInterface* GetLeAdvertisingInterface(
       common::ContextualCallback<void(hci::LeMetaEventView)> event_handler) override;

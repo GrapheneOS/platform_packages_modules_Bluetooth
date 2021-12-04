@@ -676,7 +676,7 @@ class LeAudioClientImpl : public LeAudioClient {
     }
 
     /* Configure audio HAL sessions with most frequent context */
-    UpdateCurrentHalSessions(group_id, LeAudioContextType::MEDIA);
+    UpdateCurrentHalSessions(group_id, current_context_type_);
     if (current_source_codec_config.IsInvalid() &&
         current_sink_codec_config.IsInvalid()) {
       LOG(WARNING) << __func__ << ", unsupported device configurations";
@@ -1826,7 +1826,9 @@ class LeAudioClientImpl : public LeAudioClient {
 
     if (data.size() < 2 /* bytes per sample */ * 2 /* channels */ *
                           number_of_required_samples_per_channel) {
-      LOG(ERROR) << __func__ << "Missing samples";
+      LOG(ERROR) << __func__ << " Missing samples. Data size: " << +data.size()
+                 << " expected: "
+                 << 2 * 2 * number_of_required_samples_per_channel;
       return;
     }
 
@@ -2313,6 +2315,7 @@ class LeAudioClientImpl : public LeAudioClient {
       return;
     }
 
+    bool send_active = false;
     std::optional<LeAudioCodecConfiguration> source_configuration =
         group->GetCodecConfigurationByDirection(
             context_type, le_audio::types::kLeAudioDirectionSink);
@@ -2321,7 +2324,6 @@ class LeAudioClientImpl : public LeAudioClient {
             context_type, le_audio::types::kLeAudioDirectionSource);
 
     if (source_configuration) {
-      bool send_active = false;
       /* Stream configuration differs from previous one */
       if (!current_source_codec_config.IsInvalid() &&
           (*source_configuration != current_source_codec_config)) {
@@ -2334,9 +2336,6 @@ class LeAudioClientImpl : public LeAudioClient {
 
       LeAudioClientAudioSource::Start(current_source_codec_config,
                                       audioSinkReceiver);
-      if (send_active) {
-        callbacks_->OnGroupStatus(group_id, GroupStatus::ACTIVE);
-      }
 
     } else {
       if (!current_source_codec_config.IsInvalid()) {
@@ -2351,12 +2350,13 @@ class LeAudioClientImpl : public LeAudioClient {
     }
 
     if (sink_configuration) {
-      bool send_active = false;
       /* Stream configuration differs from previous one */
       if (!current_sink_codec_config.IsInvalid() &&
           (*sink_configuration != current_sink_codec_config)) {
-        callbacks_->OnGroupStatus(group_id, GroupStatus::INACTIVE);
-        send_active = true;
+        if (send_active == false) {
+          callbacks_->OnGroupStatus(group_id, GroupStatus::INACTIVE);
+          send_active = true;
+        }
         LeAudioClientAudioSink::Stop();
       }
 
@@ -2364,9 +2364,6 @@ class LeAudioClientImpl : public LeAudioClient {
 
       LeAudioClientAudioSink::Start(current_sink_codec_config,
                                     audioSourceReceiver);
-      if (send_active) {
-        callbacks_->OnGroupStatus(group_id, GroupStatus::ACTIVE);
-      }
     } else {
       if (!current_sink_codec_config.IsInvalid()) {
         LeAudioClientAudioSink::Stop();
@@ -2377,6 +2374,10 @@ class LeAudioClientImpl : public LeAudioClient {
                 << ", group does not supports sink direction for"
                    " context: "
                 << static_cast<int>(context_type);
+    }
+
+    if (send_active) {
+      callbacks_->OnGroupStatus(group_id, GroupStatus::ACTIVE);
     }
     current_context_type_ = upcoming_context_type_;
   }

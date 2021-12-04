@@ -43,6 +43,7 @@
 #include "gd/hci/acl_manager/le_connection_management_callbacks.h"
 #include "gd/hci/acl_manager/le_impl.h"
 #include "gd/hci/address.h"
+#include "gd/hci/address_with_type.h"
 #include "gd/hci/class_of_device.h"
 #include "gd/hci/controller.h"
 #include "gd/os/handler.h"
@@ -72,6 +73,46 @@ bt_status_t do_in_main_thread(const base::Location& from_here,
                               base::OnceClosure task);
 
 using namespace bluetooth;
+
+class ConnectAddressWithType {
+ public:
+  explicit ConnectAddressWithType(hci::AddressWithType address_with_type)
+      : address_(address_with_type.GetAddress()),
+        type_(address_with_type.ToConnectListAddressType()) {}
+
+  std::string const ToString() const {
+    std::stringstream ss;
+    ss << address_ << "[" << ConnectListAddressTypeText(type_) << "]";
+    return ss.str();
+  }
+
+  bool operator==(const ConnectAddressWithType& rhs) const {
+    return address_ == rhs.address_ && type_ == rhs.type_;
+  }
+
+ private:
+  friend std::hash<ConnectAddressWithType>;
+  hci::Address address_;
+  hci::ConnectListAddressType type_;
+};
+
+namespace std {
+template <>
+struct hash<ConnectAddressWithType> {
+  std::size_t operator()(const ConnectAddressWithType& val) const {
+    static_assert(sizeof(uint64_t) >=
+                  (bluetooth::hci::Address::kLength +
+                   sizeof(bluetooth::hci::ConnectListAddressType)));
+    uint64_t int_addr = 0;
+    memcpy(reinterpret_cast<uint8_t*>(&int_addr), val.address_.data(),
+           bluetooth::hci::Address::kLength);
+    memcpy(reinterpret_cast<uint8_t*>(&int_addr) +
+               bluetooth::hci::Address::kLength,
+           &val.type_, sizeof(bluetooth::hci::ConnectListAddressType));
+    return std::hash<uint64_t>{}(int_addr);
+  }
+};
+}  // namespace std
 
 namespace {
 
@@ -104,7 +145,8 @@ class ShadowAcceptlist {
       LOG_ERROR("Acceptlist is full size:%zu", acceptlist_set_.size());
       return false;
     }
-    if (!acceptlist_set_.insert(address_with_type).second) {
+    if (!acceptlist_set_.insert(ConnectAddressWithType(address_with_type))
+             .second) {
       LOG_WARN("Attempted to add duplicate le address to acceptlist:%s",
                PRIVATE_ADDRESS(address_with_type));
     }
@@ -112,17 +154,17 @@ class ShadowAcceptlist {
   }
 
   bool Remove(const hci::AddressWithType& address_with_type) {
-    auto iter = acceptlist_set_.find(address_with_type);
+    auto iter = acceptlist_set_.find(ConnectAddressWithType(address_with_type));
     if (iter == acceptlist_set_.end()) {
       LOG_WARN("Unknown device being removed from acceptlist:%s",
                PRIVATE_ADDRESS(address_with_type));
       return false;
     }
-    acceptlist_set_.erase(iter);
+    acceptlist_set_.erase(ConnectAddressWithType(*iter));
     return true;
   }
 
-  std::unordered_set<hci::AddressWithType> GetCopy() const {
+  std::unordered_set<ConnectAddressWithType> GetCopy() const {
     return acceptlist_set_;
   }
 
@@ -134,7 +176,7 @@ class ShadowAcceptlist {
 
  private:
   uint8_t max_acceptlist_size_{0};
-  std::unordered_set<hci::AddressWithType> acceptlist_set_;
+  std::unordered_set<ConnectAddressWithType> acceptlist_set_;
 };
 
 class ShadowAddressResolutionList {
@@ -922,9 +964,7 @@ struct shim::legacy::Acl::impl {
   void clear_acceptlist() {
     auto shadow_acceptlist = shadow_acceptlist_.GetCopy();
     size_t count = shadow_acceptlist.size();
-    for (auto address_with_type : shadow_acceptlist) {
-      ignore_le_connection_from(address_with_type);
-    }
+    GetAclManager()->ClearConnectList();
     shadow_acceptlist_.Clear();
     LOG_DEBUG("Cleared entire Le address acceptlist count:%zu", count);
   }
