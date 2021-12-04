@@ -755,8 +755,11 @@ int adev_open_output_stream(struct audio_hw_device* dev,
     bluetooth_device->opened_stream_outs_.push_back(out);
   }
   *stream_out = &out->stream_out_;
-  LOG(INFO) << __func__ << ": state=" << out->bluetooth_output_.GetState() << ", sample_rate=" << out->sample_rate_
-            << ", channels=" << StringPrintf("%#x", out->channel_mask_) << ", format=" << out->format_
+  LOG(INFO) << __func__ << ": state=" << out->bluetooth_output_.GetState()
+            << ", sample_rate=" << out->sample_rate_
+            << ", channels=" << StringPrintf("%#x", out->channel_mask_)
+            << ", format=" << out->format_
+            << ", preferred_data_interval_us=" << out->preferred_data_interval_us
             << ", frames=" << out->frames_count_;
   return 0;
 }
@@ -1197,15 +1200,27 @@ int adev_open_input_stream(struct audio_hw_device* dev,
   in->channel_mask_ = config->channel_mask;
   in->format_ = config->format;
   // frame is number of samples per channel
+
+  size_t preferred_data_interval_us = kBluetoothDefaultOutputBufferMs * 1000;
+  if (in->bluetooth_input_.GetPreferredDataIntervalUs(
+          &preferred_data_interval_us) &&
+      preferred_data_interval_us != 0) {
+    in->preferred_data_interval_us = preferred_data_interval_us;
+  } else {
+    in->preferred_data_interval_us = kBluetoothDefaultOutputBufferMs * 1000;
+  }
+
   in->frames_count_ =
-      frame_count(kBluetoothDefaultInputBufferMs, in->sample_rate_);
+      frame_count(in->preferred_data_interval_us, in->sample_rate_);
   in->frames_presented_ = 0;
 
   *stream_in = &in->stream_in_;
   LOG(INFO) << __func__ << ": state=" << in->bluetooth_input_.GetState()
             << ", sample_rate=" << in->sample_rate_
             << ", channels=" << StringPrintf("%#x", in->channel_mask_)
-            << ", format=" << in->format_ << ", frames=" << in->frames_count_;
+            << ", format=" << in->format_
+            << ", preferred_data_interval_us=" << in->preferred_data_interval_us
+            << ", frames=" << in->frames_count_;
 
   return 0;
 }

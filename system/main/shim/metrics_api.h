@@ -208,5 +208,6 @@ void LogMetricManufacturerInfo(
     const std::string& model, const std::string& hardware_version,
     const std::string& software_version);
 
+bool CountCounterMetrics(int32_t key, int64_t count);
 }  // namespace shim
 }  // namespace bluetooth

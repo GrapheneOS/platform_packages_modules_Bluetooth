@@ -800,7 +800,7 @@ void btm_ble_resolving_list_init(uint8_t max_irk_list_sz) {
   uint8_t irk_mask_size =
       (max_irk_list_sz % 8) ? (max_irk_list_sz / 8 + 1) : (max_irk_list_sz / 8);
 
-  if (max_irk_list_sz > 0) {
+  if (max_irk_list_sz > 0 && p_q->resolve_q_random_pseudo == nullptr) {
     // NOTE: This memory is never freed
     p_q->resolve_q_random_pseudo =
         (RawAddress*)osi_malloc(sizeof(RawAddress) * max_irk_list_sz);

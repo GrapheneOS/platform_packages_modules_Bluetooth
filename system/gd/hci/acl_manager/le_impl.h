@@ -79,13 +79,11 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
   }
 
   ~le_impl() {
-    for (auto subevent_code : LeConnectionManagementEvents) {
-      hci_layer_->UnregisterLeEventHandler(subevent_code);
-    }
     if (address_manager_registered) {
       le_address_manager_->Unregister(this);
     }
     delete le_address_manager_;
+    hci_layer_->PutLeAclConnectionInterface();
     le_acl_connections_.clear();
   }
 
@@ -723,6 +721,16 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
     le_address_manager_->AckPause(this);
   }
 
+  void OnResume() override {
+    pause_connection = false;
+    if (!canceled_connections_.empty()) {
+      create_le_connection(*canceled_connections_.begin(), false, false);
+    }
+    canceled_connections_.clear();
+    le_address_manager_->AckResume(this);
+    check_for_unregister();
+  }
+
   void on_create_connection_cancel_complete(CommandCompleteView view) {
     auto complete_view = LeCreateConnectionCancelCompleteView::Create(view);
     ASSERT(complete_view.IsValid());
@@ -741,16 +749,6 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
       pause_connection = false;
       ready_to_unregister = false;
     }
-  }
-
-  void OnResume() override {
-    pause_connection = false;
-    if (!canceled_connections_.empty()) {
-      create_le_connection(*canceled_connections_.begin(), false, false);
-    }
-    canceled_connections_.clear();
-    le_address_manager_->AckResume(this);
-    check_for_unregister();
   }
 
   uint16_t HACK_get_handle(Address address) {

@@ -36,6 +36,7 @@
 #include "gd/hci/vendor_specific_event_manager.h"
 #include "gd/l2cap/classic/l2cap_classic_module.h"
 #include "gd/l2cap/le/l2cap_le_module.h"
+#include "gd/metrics/counter_metrics.h"
 #include "gd/neighbor/connectability.h"
 #include "gd/neighbor/discoverability.h"
 #include "gd/neighbor/inquiry.h"
@@ -99,6 +100,7 @@ void Stack::StartIdleMode() {
   ASSERT_LOG(!is_running_, "%s Gd stack already running", __func__);
   LOG_INFO("%s Starting Gd stack", __func__);
   ModuleList modules;
+  modules.add<metrics::CounterMetrics>();
   modules.add<storage::StorageModule>();
   Start(&modules);
   // Make sure the leaf modules are started
@@ -134,6 +136,7 @@ void Stack::StartEverything() {
   LOG_INFO("%s Starting Gd stack", __func__);
   ModuleList modules;
 
+  modules.add<metrics::CounterMetrics>();
   modules.add<hal::HciHal>();
   modules.add<hci::HciLayer>();
   modules.add<storage::StorageModule>();
@@ -216,7 +219,7 @@ void Stack::Start(ModuleList* modules) {
   LOG_INFO("%s Starting Gd stack", __func__);
 
   stack_thread_ =
-      new os::Thread("gd_stack_thread", os::Thread::Priority::NORMAL);
+      new os::Thread("gd_stack_thread", os::Thread::Priority::REAL_TIME);
   stack_manager_.StartUp(modules, stack_thread_);
 
   stack_handler_ = new os::Handler(stack_thread_);
