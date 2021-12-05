@@ -429,6 +429,11 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
   }
 
   void create_le_connection(AddressWithType address_with_type, bool add_to_connect_list, bool is_direct) {
+    if (le_client_callbacks_ == nullptr) {
+      LOG_ERROR("No callbacks to call");
+      return;
+    }
+
     // TODO: Configure default LE connection parameters?
     if (add_to_connect_list) {
       add_device_to_connect_list(address_with_type);
@@ -460,10 +465,6 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
 
     if (pause_connection) {
       canceled_connections_.insert(address_with_type);
-      return;
-    }
-    if (le_client_callbacks_ == nullptr) {
-      LOG_ERROR("No callbacks to call");
       return;
     }
 
