@@ -23,6 +23,7 @@ namespace bluetooth {
 namespace hci {
 void log_hci_event(
     std::unique_ptr<CommandView>& command_view, EventView packet, storage::StorageModule* storage_module);
+void log_link_layer_connection_command(std::unique_ptr<CommandView>& command_view);
 void log_link_layer_connection_command_status(std::unique_ptr<CommandView>& command_view, ErrorCode status);
 void log_link_layer_connection_command_complete(EventView event, std::unique_ptr<CommandView>& command_view);
 void log_link_layer_connection_event_le_meta(LeMetaEventView le_meta_event_view);
