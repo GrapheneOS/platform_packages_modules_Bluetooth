@@ -32,7 +32,6 @@ pub trait IBluetoothMedia {
     /// clean up media stack
     fn cleanup(&mut self) -> bool;
 
-    // TODO (b/204488289): Accept and validate RawAddress instead.
     fn connect(&mut self, device: String);
     fn set_active_device(&mut self, device: String);
     fn disconnect(&mut self, device: String);
@@ -268,14 +267,12 @@ impl IBluetoothMedia for BluetoothMedia {
     }
 
     fn connect(&mut self, device: String) {
-        let addr = RawAddress::from_string(device.clone());
-        if addr.is_none() {
+        if let Some(addr) = RawAddress::from_string(device.clone()) {
+            self.a2dp.as_mut().unwrap().connect(addr);
+            self.hfp.as_mut().unwrap().connect(addr);
+        } else {
             warn!("Invalid device string {}", device);
-            return;
         }
-
-        self.a2dp.as_mut().unwrap().connect(device);
-        self.hfp.as_mut().unwrap().connect(addr.unwrap());
     }
 
     fn cleanup(&mut self) -> bool {
@@ -283,18 +280,20 @@ impl IBluetoothMedia for BluetoothMedia {
     }
 
     fn set_active_device(&mut self, device: String) {
-        self.a2dp.as_mut().unwrap().set_active_device(device);
+        if let Some(addr) = RawAddress::from_string(device.clone()) {
+            self.a2dp.as_mut().unwrap().set_active_device(addr);
+        } else {
+            warn!("Invalid device string {}", device);
+        }
     }
 
     fn disconnect(&mut self, device: String) {
-        let addr = RawAddress::from_string(device.clone());
-        if addr.is_none() {
+        if let Some(addr) = RawAddress::from_string(device.clone()) {
+            self.a2dp.as_mut().unwrap().disconnect(addr);
+            self.hfp.as_mut().unwrap().disconnect(addr);
+        } else {
             warn!("Invalid device string {}", device);
-            return;
         }
-
-        self.a2dp.as_mut().unwrap().disconnect(device);
-        self.hfp.as_mut().unwrap().disconnect(addr.unwrap());
     }
 
     fn set_audio_config(
