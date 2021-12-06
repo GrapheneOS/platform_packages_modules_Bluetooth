@@ -761,7 +761,7 @@ class LeAudioClientImpl : public LeAudioClient {
   }
 
   void BackgroundConnectIfGroupConnected(LeAudioDevice* leAudioDevice) {
-    DLOG(INFO) << __func__ << leAudioDevice->address_ ;
+    DLOG(INFO) << __func__ << leAudioDevice->address_;
     auto group = aseGroups_.FindById(leAudioDevice->group_id_);
     if (!group) {
       DLOG(INFO) << __func__ << " Device is not yet part of the group. ";
@@ -1853,8 +1853,9 @@ class LeAudioClientImpl : public LeAudioClient {
           lc3_encode(lc3_encoder_left, (const int16_t*)chan_left.data(), 1,
                      chan_left_enc.data(), chan_left_enc.size());
         } else {
-          err |= lc3_encoder->run((const int16_t*)chan_left.data(),
-                                  chan_left_enc.size(), chan_left_enc.data(), 0);
+          err |=
+              lc3_encoder->run((const int16_t*)chan_left.data(),
+                               chan_left_enc.size(), chan_left_enc.data(), 0);
         }
       }
 
@@ -1864,8 +1865,9 @@ class LeAudioClientImpl : public LeAudioClient {
                      chan_right_enc.data(), chan_right_enc.size());
 
         } else {
-          err |= lc3_encoder->run((const int16_t*)chan_right.data(),
-                                  chan_right_enc.size(), chan_right_enc.data(), 1);
+          err |=
+              lc3_encoder->run((const int16_t*)chan_right.data(),
+                               chan_right_enc.size(), chan_right_enc.data(), 1);
         }
       }
 
@@ -2133,7 +2135,8 @@ class LeAudioClientImpl : public LeAudioClient {
       lc3_encoder_right_mem = malloc(enc_size);
 
       lc3_encoder_left = lc3_setup_encoder(dt_us, sr_hz, lc3_encoder_left_mem);
-      lc3_encoder_right = lc3_setup_encoder(dt_us, sr_hz, lc3_encoder_right_mem);
+      lc3_encoder_right =
+          lc3_setup_encoder(dt_us, sr_hz, lc3_encoder_right_mem);
 
     } else {
       if (lc3_encoder) {
@@ -3121,7 +3124,8 @@ void LeAudioClient::Initialize(
       << ", LE Audio Client requires Bluetooth Audio HAL V2.1 at least. Either "
          "disable LE Audio Profile, or update your HAL";
 
-  use_new_encoder = osi_property_get_bool("persist.bluetooth.use_new_lc3", true);
+  use_new_encoder =
+      osi_property_get_bool("persist.bluetooth.use_new_lc3", true);
   LOG(INFO) << "use_new_encoder = " << +use_new_encoder;
 
   IsoManager::GetInstance()->Start();
