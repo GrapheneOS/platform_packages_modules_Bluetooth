@@ -677,11 +677,19 @@ public class BroadcastService extends ProfileService {
         //if (isMono.isEmpty() || isMono.equals("mono")) {
         //    ch_mode = BluetoothCodecConfig.CHANNEL_MODE_MONO;
         //}
-        BluetoothCodecConfig cc = new BluetoothCodecConfig(BluetoothCodecConfig.SOURCE_CODEC_TYPE_LC3,
-                                      BluetoothCodecConfig.CODEC_PRIORITY_DEFAULT,
-                                      sr, BluetoothCodecConfig.BITS_PER_SAMPLE_24,
-                                      channel, codecspecific1, codecspecific2, 0, 0);
-        return cc;
+            BluetoothCodecConfig cc =
+                new BluetoothCodecConfig.Builder()
+                    .setCodecType(BluetoothCodecConfig.SOURCE_CODEC_TYPE_LC3)
+                    .setCodecPriority(BluetoothCodecConfig.CODEC_PRIORITY_DEFAULT)
+                    .setSampleRate(sr)
+                    .setBitsPerSample(BluetoothCodecConfig.BITS_PER_SAMPLE_24)
+                    .setChannelMode(channel)
+                    .setCodecSpecific1(codecspecific1)
+                    .setCodecSpecific2(codecspecific2)
+                    .setCodecSpecific3(0)
+                    .setCodecSpecific4(0)
+                    .build();
+            return cc;
     }
     private static synchronized void setBroadcastService(BroadcastService instance) {
         if (DBG) {
@@ -1856,18 +1864,29 @@ public class BroadcastService extends ProfileService {
                     break;
 
             }
-            mCodecConfig = new BluetoothCodecConfig(BluetoothCodecConfig.SOURCE_CODEC_TYPE_LC3,
-                                                    BluetoothCodecConfig.CODEC_PRIORITY_DEFAULT,
-                                                    sr, BluetoothCodecConfig.BITS_PER_SAMPLE_24,
-                                                    ch_mode, codecspecific1, 1, 0, 0);
+            mCodecConfig = new BluetoothCodecConfig.Builder()
+                               .setCodecType(BluetoothCodecConfig.SOURCE_CODEC_TYPE_LC3)
+                               .setCodecPriority(BluetoothCodecConfig.CODEC_PRIORITY_DEFAULT)
+                               .setSampleRate(sr)
+                               .setBitsPerSample(BluetoothCodecConfig.BITS_PER_SAMPLE_24)
+                               .setChannelMode(ch_mode)
+                               .setCodecSpecific1(codecspecific1)
+                               .setCodecSpecific2(1)
+                               .setCodecSpecific3(0)
+                               .setCodecSpecific4(0)
+                               .build();
             if (mPartialSimulcast) {
-                mHapCodecConfig = new BluetoothCodecConfig(BluetoothCodecConfig.SOURCE_CODEC_TYPE_LC3,
-                                                        BluetoothCodecConfig.CODEC_PRIORITY_DEFAULT,
-                                                        BluetoothCodecConfig.SAMPLE_RATE_16000,
-                                                        BluetoothCodecConfig.BITS_PER_SAMPLE_24,
-                                                        BluetoothCodecConfig.CHANNEL_MODE_STEREO,
-                                                        1000, 1, 0, 0);
-
+              mHapCodecConfig = new BluetoothCodecConfig.Builder()
+                                    .setCodecType(BluetoothCodecConfig.SOURCE_CODEC_TYPE_LC3)
+                                    .setCodecPriority(BluetoothCodecConfig.CODEC_PRIORITY_DEFAULT)
+                                    .setSampleRate(BluetoothCodecConfig.SAMPLE_RATE_16000)
+                                    .setBitsPerSample(BluetoothCodecConfig.BITS_PER_SAMPLE_24)
+                                    .setChannelMode(BluetoothCodecConfig.CHANNEL_MODE_STEREO)
+                                    .setCodecSpecific1(1000)
+                                    .setCodecSpecific2(1)
+                                    .setCodecSpecific3(0)
+                                    .setCodecSpecific4(0)
+                                    .build();
             }
         }
         public void updateBroadcastCodecConfig(BluetoothCodecConfig newConfig) {
