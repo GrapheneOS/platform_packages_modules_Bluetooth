@@ -128,11 +128,17 @@ class AcmCodecConfig {
         codecConfigArray =
                 new BluetoothCodecConfig[BluetoothCodecConfig.SOURCE_QVA_CODEC_TYPE_MAX];
 
-        codecConfig = new BluetoothCodecConfig(BluetoothCodecConfig.SOURCE_CODEC_TYPE_LC3,
-                mAcmSourceCodecPriorityLC3, BluetoothCodecConfig.SAMPLE_RATE_NONE,
-                BluetoothCodecConfig.BITS_PER_SAMPLE_NONE, BluetoothCodecConfig
-                .CHANNEL_MODE_NONE, 0 /* codecSpecific1 */,
-                0 /* codecSpecific2 */, 0 /* codecSpecific3 */, 0 /* codecSpecific4 */);
+        codecConfig = new BluetoothCodecConfig.Builder()
+                          .setCodecType(BluetoothCodecConfig.SOURCE_CODEC_TYPE_LC3)
+                          .setCodecPriority(mAcmSourceCodecPriorityLC3)
+                          .setSampleRate(BluetoothCodecConfig.SAMPLE_RATE_NONE)
+                          .setBitsPerSample(luetoothCodecConfig.BITS_PER_SAMPLE_NONE)
+                          .setChannelMode(BluetoothCodecConfig.CHANNEL_MODE_NONE)
+                          .setCodecSpecific1(0)
+                          .setCodecSpecific2(0)
+                          .setCodecSpecific3(0)
+                          .setCodecSpecific4(0)
+                          .build();
         codecConfigArray[codecCount++] = codecConfig;
         assigned_codec_length = codecCount;
         return codecConfigArray;

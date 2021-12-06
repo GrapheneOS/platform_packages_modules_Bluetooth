@@ -2186,14 +2186,19 @@ final class AcmStateMachine extends StateMachine {
             BluetoothCodecConfig mCodecConfig = newCodecStatus.getCodecConfig();
             long cs3 = mCodecConfig.getCodecSpecific3();
             cs3 |= LE_AUDIO_AVAILABLE_LICENSED;
-            BluetoothCodecConfig mCodecConfigLc3 = new BluetoothCodecConfig(
-                                                       mCodecConfig.getCodecType(),
-                                                       mCodecConfig.getCodecPriority(),
-                                                       mCodecConfig.getSampleRate(),
-                                                       mCodecConfig.getBitsPerSample(),
-                                                       mCodecConfig.getChannelMode(),
-                                                       mCodecConfig.getCodecSpecific1(), mCodecConfig.getCodecSpecific2(),
-                                                       cs3, mCodecConfig.getCodecSpecific4());
+            BluetoothCodecConfig mCodecConfigLc3 =
+                new BluetoothCodecConfig.Builder()
+                    .setCodecType(mCodecConfig.getCodecType())
+                    .setCodecPriority(mCodecConfig.getCodecPriority())
+                    .setSampleRate(mCodecConfig.getSampleRate())
+                    .setBitsPerSample(mCodecConfig.getBitsPerSample())
+                    .setChannelMode(mCodecConfig.getChannelMode())
+                    .setCodecSpecific1(mCodecConfig.getCodecSpecific1())
+                    .setCodecSpecific2(mCodecConfig.getCodecSpecific2())
+                    .setCodecSpecific3(cs3)
+                    .setCodecSpecific4(mCodecConfig.getCodecSpecific4())
+                    .build();
+
             mMusicCodecStatus = new BluetoothCodecStatus(mCodecConfigLc3,
                                                          newCodecStatus.getCodecsLocalCapabilities(),
                                                          newCodecStatus.getCodecsSelectableCapabilities());
