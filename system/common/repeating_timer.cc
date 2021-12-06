@@ -19,6 +19,7 @@
 #include "message_loop_thread.h"
 #include "time_util.h"
 
+#include <base/callback.h>
 #include <base/logging.h>
 
 namespace bluetooth {
@@ -110,7 +111,11 @@ void RepeatingTimer::CancelHelper(std::promise<void> promise) {
 void RepeatingTimer::CancelClosure(std::promise<void> promise) {
   message_loop_thread_ = nullptr;
   task_wrapper_.Cancel();
+#if BASE_VER < 927031
   task_ = {};
+#else
+  task_ = base::NullCallback();
+#endif
   period_ = base::TimeDelta();
   expected_time_next_task_us_ = 0;
   promise.set_value();
