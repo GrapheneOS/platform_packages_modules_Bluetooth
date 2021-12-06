@@ -91,6 +91,7 @@ public class PanService extends ProfileService {
     private BluetoothTetheringNetworkFactory mNetworkFactory;
     private boolean mStarted = false;
 
+    private AdapterService mAdapterService;
 
     static {
         classInitNative();
@@ -122,6 +123,8 @@ public class PanService extends ProfileService {
 
     @Override
     protected boolean start() {
+        mAdapterService = Objects.requireNonNull(AdapterService.getAdapterService(),
+                "AdapterService cannot be null when HeadsetService starts");
         mDatabaseManager = Objects.requireNonNull(AdapterService.getAdapterService().getDatabase(),
                 "DatabaseManager cannot be null when PanService starts");
 
@@ -146,6 +149,7 @@ public class PanService extends ProfileService {
 
     @Override
     protected boolean stop() {
+        mAdapterService = null;
         mHandler.removeCallbacksAndMessages(null);
         return true;
     }
@@ -185,7 +189,7 @@ public class PanService extends ProfileService {
             switch (msg.what) {
                 case MESSAGE_CONNECT: {
                     BluetoothDevice device = (BluetoothDevice) msg.obj;
-                    if (!connectPanNative(Utils.getByteAddress(device),
+                    if (!connectPanNative(mAdapterService.getByteIdentityAddress(device),
                             BluetoothPan.LOCAL_PANU_ROLE, BluetoothPan.REMOTE_NAP_ROLE)) {
                         handlePanDeviceStateChange(device, null, BluetoothProfile.STATE_CONNECTING,
                                 BluetoothPan.LOCAL_PANU_ROLE, BluetoothPan.REMOTE_NAP_ROLE);
@@ -198,7 +202,7 @@ public class PanService extends ProfileService {
                 break;
                 case MESSAGE_DISCONNECT: {
                     BluetoothDevice device = (BluetoothDevice) msg.obj;
-                    if (!disconnectPanNative(Utils.getByteAddress(device))) {
+                    if (!disconnectPanNative(mAdapterService.getByteIdentityAddress(device))) {
                         handlePanDeviceStateChange(device, mPanIfName,
                                 BluetoothProfile.STATE_DISCONNECTING, BluetoothPan.LOCAL_PANU_ROLE,
                                 BluetoothPan.REMOTE_NAP_ROLE);
@@ -211,8 +215,7 @@ public class PanService extends ProfileService {
                 break;
                 case MESSAGE_CONNECT_STATE_CHANGED: {
                     ConnectState cs = (ConnectState) msg.obj;
-                    final BluetoothDevice device = BluetoothAdapter.getDefaultAdapter()
-                            .getRemoteDevice(cs.addr);
+                    final BluetoothDevice device = mAdapterService.getDeviceFromByte(cs.addr);
                     // TBD get iface from the msg
                     if (DBG) {
                         Log.d(TAG,
