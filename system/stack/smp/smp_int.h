@@ -407,6 +407,7 @@ extern void smp_br_process_link_key(tSMP_CB* p_cb, tSMP_INT_DATA* p_data);
 extern void smp_key_distribution_by_transport(tSMP_CB* p_cb,
                                               tSMP_INT_DATA* p_data);
 extern void smp_br_pairing_complete(tSMP_CB* p_cb, tSMP_INT_DATA* p_data);
+extern void smp_update_key_mask(tSMP_CB* p_cb, uint8_t key_type, bool recv);
 
 /* smp_l2c */
 extern void smp_l2cap_if_init(void);
