@@ -289,6 +289,12 @@ class DualModeController : public Device {
   // 7.3.28
   void WriteVoiceSetting(CommandView args);
 
+  // 7.3.36
+  void ReadSynchronousFlowControlEnable(CommandView args);
+
+  // 7.3.37
+  void WriteSynchronousFlowControlEnable(CommandView args);
+
   // 7.3.39
   void HostBufferSize(CommandView args);
 

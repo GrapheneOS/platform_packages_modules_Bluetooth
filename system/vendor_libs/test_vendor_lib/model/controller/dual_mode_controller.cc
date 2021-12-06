@@ -294,6 +294,9 @@ DualModeController::DualModeController(const std::string& properties_filename, u
   SET_SUPPORTED(WRITE_CONNECTION_ACCEPT_TIMEOUT, WriteConnectionAcceptTimeout);
   SET_SUPPORTED(LE_SET_ADDRESS_RESOLUTION_ENABLE, LeSetAddressResolutionEnable);
   SET_SUPPORTED(LE_SET_RESOLVABLE_PRIVATE_ADDRESS_TIMEOUT, LeSetResovalablePrivateAddressTimeout);
+  SET_SUPPORTED(READ_SYNCHRONOUS_FLOW_CONTROL_ENABLE, ReadSynchronousFlowControlEnable);
+  SET_SUPPORTED(WRITE_SYNCHRONOUS_FLOW_CONTROL_ENABLE, WriteSynchronousFlowControlEnable);
+
 #undef SET_HANDLER
 #undef SET_SUPPORTED
   properties_.SetSupportedCommands(supported_commands);
@@ -337,10 +340,8 @@ void DualModeController::HandleAcl(std::shared_ptr<std::vector<uint8_t>> packet)
     cp.connection_handle_ = handle;
     cp.host_num_of_completed_packets_ = kNumCommandPackets;
     completed_packets.push_back(cp);
-    if (properties_.IsUnmasked(EventCode::NUMBER_OF_COMPLETED_PACKETS)) {
-      send_event_(bluetooth::hci::NumberOfCompletedPacketsBuilder::Create(
-          completed_packets));
-    }
+    send_event_(bluetooth::hci::NumberOfCompletedPacketsBuilder::Create(
+        completed_packets));
     return;
   }
 
@@ -360,7 +361,7 @@ void DualModeController::HandleSco(std::shared_ptr<std::vector<uint8_t>> packet)
     cp.connection_handle_ = handle;
     cp.host_num_of_completed_packets_ = kNumCommandPackets;
     completed_packets.push_back(cp);
-    if (properties_.IsUnmasked(EventCode::NUMBER_OF_COMPLETED_PACKETS)) {
+    if (properties_.GetSynchronousFlowControl()) {
       send_event_(bluetooth::hci::NumberOfCompletedPacketsBuilder::Create(
           completed_packets));
     }
@@ -1445,6 +1446,30 @@ void DualModeController::WriteScanEnable(CommandView command) {
           gd_hci::ScanEnable::INQUIRY_AND_PAGE_SCAN ||
       command_view.GetScanEnable() == gd_hci::ScanEnable::PAGE_SCAN_ONLY);
   auto packet = bluetooth::hci::WriteScanEnableCompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS);
+  send_event_(std::move(packet));
+}
+
+void DualModeController::ReadSynchronousFlowControlEnable(CommandView command) {
+  auto command_view = gd_hci::ReadSynchronousFlowControlEnableView::Create(
+      gd_hci::DiscoveryCommandView::Create(command));
+  ASSERT(command_view.IsValid());
+  auto enabled = bluetooth::hci::Enable::DISABLED;
+  if (properties_.GetSynchronousFlowControl()) {
+    enabled = bluetooth::hci::Enable::ENABLED;
+  }
+  auto packet = bluetooth::hci::ReadSynchronousFlowControlEnableCompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS, enabled);
+  send_event_(std::move(packet));
+}
+
+void DualModeController::WriteSynchronousFlowControlEnable(CommandView command) {
+  auto command_view = gd_hci::WriteSynchronousFlowControlEnableView::Create(
+      gd_hci::DiscoveryCommandView::Create(command));
+  ASSERT(command_view.IsValid());
+  auto enabled = command_view.GetEnable() == bluetooth::hci::Enable::ENABLED;
+  properties_.SetSynchronousFlowControl(enabled);
+  auto packet = bluetooth::hci::WriteSynchronousFlowControlEnableCompleteBuilder::Create(
       kNumCommandPackets, ErrorCode::SUCCESS);
   send_event_(std::move(packet));
 }
