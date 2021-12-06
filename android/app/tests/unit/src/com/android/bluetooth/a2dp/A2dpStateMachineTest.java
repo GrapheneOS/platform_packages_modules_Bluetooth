@@ -48,6 +48,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.Arrays;
+
 @MediumTest
 @RunWith(AndroidJUnit4.class)
 public class A2dpStateMachineTest {
@@ -80,20 +82,28 @@ public class A2dpStateMachineTest {
         mTestDevice = mAdapter.getRemoteDevice("00:01:02:03:04:05");
 
         // Set up sample codec config
-        mCodecConfigSbc = new BluetoothCodecConfig(
-            BluetoothCodecConfig.SOURCE_CODEC_TYPE_SBC,
-            BluetoothCodecConfig.CODEC_PRIORITY_DEFAULT,
-            BluetoothCodecConfig.SAMPLE_RATE_44100,
-            BluetoothCodecConfig.BITS_PER_SAMPLE_16,
-            BluetoothCodecConfig.CHANNEL_MODE_STEREO,
-            0, 0, 0, 0);       // Codec-specific fields
-        mCodecConfigAac = new BluetoothCodecConfig(
-            BluetoothCodecConfig.SOURCE_CODEC_TYPE_AAC,
-            BluetoothCodecConfig.CODEC_PRIORITY_DEFAULT,
-            BluetoothCodecConfig.SAMPLE_RATE_48000,
-            BluetoothCodecConfig.BITS_PER_SAMPLE_16,
-            BluetoothCodecConfig.CHANNEL_MODE_STEREO,
-            0, 0, 0, 0);       // Codec-specific fields
+        mCodecConfigSbc = new BluetoothCodecConfig.Builder()
+                    .setCodecType(BluetoothCodecConfig.SOURCE_CODEC_TYPE_SBC)
+                    .setCodecPriority(BluetoothCodecConfig.CODEC_PRIORITY_DEFAULT)
+                    .setSampleRate(BluetoothCodecConfig.SAMPLE_RATE_44100)
+                    .setBitsPerSample(BluetoothCodecConfig.BITS_PER_SAMPLE_16)
+                    .setChannelMode(BluetoothCodecConfig.CHANNEL_MODE_STEREO)
+                    .setCodecSpecific1(0)
+                    .setCodecSpecific2(0)
+                    .setCodecSpecific3(0)
+                    .setCodecSpecific4(0)
+                    .build();
+        mCodecConfigAac = new BluetoothCodecConfig.Builder()
+                    .setCodecType(BluetoothCodecConfig.SOURCE_CODEC_TYPE_AAC)
+                    .setCodecPriority(BluetoothCodecConfig.CODEC_PRIORITY_DEFAULT)
+                    .setSampleRate(BluetoothCodecConfig.SAMPLE_RATE_48000)
+                    .setBitsPerSample(BluetoothCodecConfig.BITS_PER_SAMPLE_16)
+                    .setChannelMode(BluetoothCodecConfig.CHANNEL_MODE_STEREO)
+                    .setCodecSpecific1(0)
+                    .setCodecSpecific2(0)
+                    .setCodecSpecific3(0)
+                    .setCodecSpecific4(0)
+                    .build();
 
         // Set up thread and looper
         mHandlerThread = new HandlerThread("A2dpStateMachineTestHandlerThread");
@@ -321,11 +331,11 @@ public class A2dpStateMachineTest {
         codecsSelectableSbcAac[1] = mCodecConfigAac;
 
         BluetoothCodecStatus codecStatusSbcAndSbc = new BluetoothCodecStatus(mCodecConfigSbc,
-                codecsSelectableSbcAac, codecsSelectableSbc);
+                Arrays.asList(codecsSelectableSbcAac), Arrays.asList(codecsSelectableSbc));
         BluetoothCodecStatus codecStatusSbcAndSbcAac = new BluetoothCodecStatus(mCodecConfigSbc,
-                codecsSelectableSbcAac, codecsSelectableSbcAac);
+                Arrays.asList(codecsSelectableSbcAac), Arrays.asList(codecsSelectableSbcAac));
         BluetoothCodecStatus codecStatusAacAndSbcAac = new BluetoothCodecStatus(mCodecConfigAac,
-                codecsSelectableSbcAac, codecsSelectableSbcAac);
+                Arrays.asList(codecsSelectableSbcAac), Arrays.asList(codecsSelectableSbcAac));
 
         // Set default codec status when device disconnected
         // Selected codec = SBC, selectable codec = SBC

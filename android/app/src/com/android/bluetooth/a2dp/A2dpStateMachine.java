@@ -66,6 +66,7 @@ import com.android.internal.util.StateMachine;
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.List;
 import java.util.Objects;
 import java.util.Scanner;
 
@@ -716,12 +717,21 @@ final class A2dpStateMachine extends StateMachine {
 
     private static boolean sameSelectableCodec(BluetoothCodecStatus prevCodecStatus,
             BluetoothCodecStatus newCodecStatus) {
-        if (prevCodecStatus == null) {
+        if (prevCodecStatus == null || newCodecStatus == null) {
             return false;
         }
-        return BluetoothCodecStatus.sameCapabilities(
-                prevCodecStatus.getCodecsSelectableCapabilities(),
-                newCodecStatus.getCodecsSelectableCapabilities());
+        List<BluetoothCodecConfig> c1 = prevCodecStatus.getCodecsSelectableCapabilities();
+        List<BluetoothCodecConfig> c2 = newCodecStatus.getCodecsSelectableCapabilities();
+        if (c1 == null) {
+            return (c2 == null);
+        }
+        if (c2 == null) {
+            return false;
+        }
+        if (c1.size() != c2.size()) {
+            return false;
+        }
+        return c1.containsAll(c2);
     }
 
     private static String messageWhatToString(int what) {
