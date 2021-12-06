@@ -293,31 +293,16 @@ impl A2dp {
         true
     }
 
-    pub fn connect(&mut self, device: String) {
-        let addr = RawAddress::from_string(device.clone());
-        if addr.is_none() {
-            eprintln!("Invalid device string {}", device);
-            return;
-        }
-        self.internal.connect(addr.unwrap().into());
+    pub fn connect(&mut self, addr: RawAddress) {
+        self.internal.connect(addr.into());
     }
 
-    pub fn set_active_device(&mut self, device: String) {
-        let addr = RawAddress::from_string(device.clone());
-        if addr.is_none() {
-            eprintln!("Invalid device string {}", device);
-            return;
-        }
-        self.internal.set_active_device(addr.unwrap().into());
+    pub fn set_active_device(&mut self, addr: RawAddress) {
+        self.internal.set_active_device(addr.into());
     }
 
-    pub fn disconnect(&mut self, device: String) {
-        let addr = RawAddress::from_string(device.clone());
-        if addr.is_none() {
-            eprintln!("Invalid device string {}", device);
-            return;
-        }
-        self.internal.disconnect(addr.unwrap().into());
+    pub fn disconnect(&mut self, addr: RawAddress) {
+        self.internal.disconnect(addr.into());
     }
 
     pub fn set_audio_config(&self, sample_rate: i32, bits_per_sample: i32, channel_mode: i32) {
