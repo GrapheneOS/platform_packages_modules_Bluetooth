@@ -133,6 +133,14 @@ class DeviceProperties {
     return num_sco_data_packets_;
   }
 
+  bool GetSynchronousFlowControl() const {
+    return sco_flow_control_;
+  }
+
+  void SetSynchronousFlowControl(bool sco_flow_control) {
+    sco_flow_control_ = sco_flow_control;
+  }
+
   const Address& GetAddress() const {
     return address_;
   }
@@ -391,6 +399,7 @@ class DeviceProperties {
   uint8_t sco_data_packet_size_;
   uint16_t num_acl_data_packets_;
   uint16_t num_sco_data_packets_;
+  bool sco_flow_control_{false};
   uint8_t version_;
   uint16_t revision_;
   uint8_t lmp_pal_version_;
