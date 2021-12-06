@@ -948,7 +948,8 @@ public class A2dpService extends ProfileService {
                 codecConfig.getBitsPerSample(), codecConfig.getChannelMode(),
                 codecConfig.getCodecSpecific1(), codecConfig.getCodecSpecific2(),
                 codecConfig.getCodecSpecific3(), codecConfig.getCodecSpecific4(), metricId);
-        BluetoothCodecConfig[] codecCapabilities = codecStatus.getCodecsSelectableCapabilities();
+        List<BluetoothCodecConfig> codecCapabilities =
+                codecStatus.getCodecsSelectableCapabilities();
         for (BluetoothCodecConfig codecCapability : codecCapabilities) {
             BluetoothStatsLog.write(BluetoothStatsLog.BLUETOOTH_A2DP_CODEC_CAPABILITY_CHANGED,
                     mAdapterService.obfuscateAddress(device), codecCapability.getCodecType(),

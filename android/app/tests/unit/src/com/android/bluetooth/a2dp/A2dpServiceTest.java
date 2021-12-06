@@ -52,6 +52,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -567,7 +568,7 @@ public class A2dpServiceTest {
     public void testProcessAudioStateChangedCodecConfigChangedEvents() {
         A2dpStackEvent stackEvent;
         BluetoothCodecConfig codecConfigSbc =
-                new BluetoothCodecConfig(
+                buildBluetoothCodecConfig(
                         BluetoothCodecConfig.SOURCE_CODEC_TYPE_SBC,
                         BluetoothCodecConfig.CODEC_PRIORITY_DEFAULT,
                         BluetoothCodecConfig.SAMPLE_RATE_44100,
@@ -580,8 +581,8 @@ public class A2dpServiceTest {
         codecsLocalCapabilities[0] = codecConfigSbc;
         codecsSelectableCapabilities[0] = codecConfigSbc;
         BluetoothCodecStatus codecStatus = new BluetoothCodecStatus(codecConfig,
-                                                                    codecsLocalCapabilities,
-                                                                    codecsSelectableCapabilities);
+                                                    Arrays.asList(codecsLocalCapabilities),
+                                                    Arrays.asList(codecsSelectableCapabilities));
 
         // Update the device priority so okToConnect() returns true
         when(mDatabaseManager.getProfileConnectionPolicy(mTestDevice, BluetoothProfile.A2DP))
@@ -1030,7 +1031,7 @@ public class A2dpServiceTest {
         doReturn(true).when(mA2dpNativeInterface).setActiveDevice(any(BluetoothDevice.class));
 
         BluetoothCodecConfig codecConfigSbc =
-                new BluetoothCodecConfig(
+                buildBluetoothCodecConfig(
                         BluetoothCodecConfig.SOURCE_CODEC_TYPE_SBC,
                         BluetoothCodecConfig.CODEC_PRIORITY_DEFAULT,
                         BluetoothCodecConfig.SAMPLE_RATE_44100,
@@ -1038,7 +1039,7 @@ public class A2dpServiceTest {
                         BluetoothCodecConfig.CHANNEL_MODE_STEREO,
                         0, 0, 0, 0);       // Codec-specific fields
         BluetoothCodecConfig codecConfigAac =
-                new BluetoothCodecConfig(
+                buildBluetoothCodecConfig(
                         BluetoothCodecConfig.SOURCE_CODEC_TYPE_AAC,
                         BluetoothCodecConfig.CODEC_PRIORITY_DEFAULT,
                         BluetoothCodecConfig.SAMPLE_RATE_44100,
@@ -1066,9 +1067,11 @@ public class A2dpServiceTest {
         badCodecsSelectableCapabilities[0] = codecConfigAac;
 
         BluetoothCodecStatus codecStatus = new BluetoothCodecStatus(codecConfigSbc,
-                codecsLocalCapabilities, codecsSelectableCapabilities);
+                Arrays.asList(codecsLocalCapabilities),
+                Arrays.asList(codecsSelectableCapabilities));
         BluetoothCodecStatus badCodecStatus = new BluetoothCodecStatus(codecConfigAac,
-                codecsLocalCapabilities, badCodecsSelectableCapabilities);
+                Arrays.asList(codecsLocalCapabilities),
+                Arrays.asList(badCodecsSelectableCapabilities));
 
         when(mDatabaseManager.getA2dpSupportsOptionalCodecs(mTestDevice))
                 .thenReturn(previousSupport);
@@ -1092,5 +1095,21 @@ public class A2dpServiceTest {
                 mTestDevice, BluetoothA2dp.OPTIONAL_CODECS_SUPPORTED);
         verify(mDatabaseManager, times(verifyEnabledTime)).setA2dpOptionalCodecsEnabled(
                 mTestDevice, BluetoothA2dp.OPTIONAL_CODECS_PREF_ENABLED);
+    }
+
+    private BluetoothCodecConfig buildBluetoothCodecConfig(int sourceCodecType,
+            int codecPriority, int sampleRate, int bitsPerSample, int channelMode,
+            long codecSpecific1, long codecSpecific2, long codecSpecific3, long codecSpecific4) {
+        return new BluetoothCodecConfig.Builder()
+                    .setCodecType(sourceCodecType)
+                    .setCodecPriority(codecPriority)
+                    .setSampleRate(sampleRate)
+                    .setBitsPerSample(bitsPerSample)
+                    .setChannelMode(channelMode)
+                    .setCodecSpecific1(codecSpecific1)
+                    .setCodecSpecific2(codecSpecific2)
+                    .setCodecSpecific3(codecSpecific3)
+                    .setCodecSpecific4(codecSpecific4)
+                    .build();
     }
 }
