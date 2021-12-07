@@ -1025,7 +1025,7 @@ void smp_proc_id_info(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
 
 /** process identity address from peer device */
 void smp_proc_id_addr(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
-  uint8_t* p = p_data->p_data;
+  const uint8_t* p = p_data->p_data;
 
   SMP_TRACE_DEBUG("%s", __func__);
 
