@@ -103,6 +103,11 @@ bool LeAdvertiser::IsEnabled() const { return enabled_; }
 
 bool LeAdvertiser::IsExtended() const { return extended_; }
 
+bool LeAdvertiser::IsConnectable() const {
+  return type_ != model::packets::AdvertisementType::ADV_NONCONN_IND &&
+         type_ != model::packets::AdvertisementType::ADV_SCAN_IND;
+}
+
 uint8_t LeAdvertiser::GetNumAdvertisingEvents() const { return num_events_; }
 
 std::unique_ptr<model::packets::LeAdvertisementBuilder>

@@ -1430,6 +1430,13 @@ void LinkLayerController::IncomingLeConnectPacket(
     return;
   }
 
+  if (!advertisers_[set].IsConnectable()) {
+    LOG_INFO(
+        "Rejecting connection request from %s to non-connectable advertiser",
+        incoming.GetSourceAddress().ToString().c_str());
+    return;
+  }
+
   uint16_t handle = HandleLeConnection(
       AddressWithType(
           incoming.GetSourceAddress(),
@@ -1445,9 +1452,10 @@ void LinkLayerController::IncomingLeConnectPacket(
       static_cast<uint8_t>(my_address.GetAddressType()));
   SendLeLinkLayerPacket(std::move(to_send));
 
+  advertisers_[set].Disable();
+
   if (advertisers_[set].IsExtended()) {
     uint8_t num_advertisements = advertisers_[set].GetNumAdvertisingEvents();
-    advertisers_[set].Disable();
     if (properties_.GetLeEventSupported(
             bluetooth::hci::SubeventCode::ADVERTISING_SET_TERMINATED)) {
       send_event_(bluetooth::hci::LeAdvertisingSetTerminatedBuilder::Create(
