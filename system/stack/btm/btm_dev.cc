@@ -33,6 +33,7 @@
 #include "device/include/controller.h"
 #include "l2c_api.h"
 #include "main/shim/btm_api.h"
+#include "main/shim/dumpsys.h"
 #include "main/shim/shim.h"
 #include "osi/include/allocator.h"
 #include "osi/include/compat.h"
@@ -151,8 +152,8 @@ bool BTM_SecDeleteDevice(const RawAddress& bd_addr) {
 
   if (BTM_IsAclConnectionUp(bd_addr, BT_TRANSPORT_LE) ||
       BTM_IsAclConnectionUp(bd_addr, BT_TRANSPORT_BR_EDR)) {
-    BTM_TRACE_WARNING("%s FAILED: Cannot Delete when connection is active",
-                      __func__);
+    LOG_WARN("%s FAILED: Cannot Delete when connection to %s is active",
+             __func__, PRIVATE_ADDRESS(bd_addr));
     return false;
   }
 
@@ -165,6 +166,10 @@ bool BTM_SecDeleteDevice(const RawAddress& bd_addr) {
     wipe_secrets_and_remove(p_dev_rec);
     /* Tell controller to get rid of the link key, if it has one stored */
     BTM_DeleteStoredLinkKey(&bda, NULL);
+    LOG_INFO("%s %s complete", __func__, PRIVATE_ADDRESS(bd_addr));
+  } else {
+    LOG_WARN("%s Unable to delete link key for unknown device %s", __func__,
+             PRIVATE_ADDRESS(bd_addr));
   }
 
   return true;

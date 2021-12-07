@@ -21,7 +21,6 @@
  */
 package com.android.bluetooth.a2dp;
 
-import android.annotation.RequiresPermission;
 import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothCodecConfig;
@@ -32,6 +31,8 @@ import android.util.Log;
 import com.android.bluetooth.Utils;
 import com.android.internal.annotations.GuardedBy;
 import com.android.internal.annotations.VisibleForTesting;
+
+import java.util.Arrays;
 
 /**
  * A2DP Native Interface to/from JNI.
@@ -197,8 +198,8 @@ public class A2dpNativeInterface {
         A2dpStackEvent event = new A2dpStackEvent(A2dpStackEvent.EVENT_TYPE_CODEC_CONFIG_CHANGED);
         event.device = getDevice(address);
         event.codecStatus = new BluetoothCodecStatus(newCodecConfig,
-                                                     codecsLocalCapabilities,
-                                                     codecsSelectableCapabilities);
+                                                     Arrays.asList(codecsLocalCapabilities),
+                                                     Arrays.asList(codecsSelectableCapabilities));
         if (DBG) {
             Log.d(TAG, "onCodecConfigChanged: " + event);
         }
