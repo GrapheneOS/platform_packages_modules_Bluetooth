@@ -349,11 +349,11 @@ uint16_t LeAudioDeviceGroup::GetMaxTransportLatencyMtos(void) {
   return find_max_transport_latency(this, types::kLeAudioDirectionSink);
 }
 
-uint16_t LeAudioDeviceGroup::GetTransportLatency(uint8_t direction) {
+uint32_t LeAudioDeviceGroup::GetTransportLatencyUs(uint8_t direction) {
   if (direction == types::kLeAudioDirectionSink) {
-    return transport_latency_mtos_;
+    return transport_latency_mtos_us_;
   } else if (direction == types::kLeAudioDirectionSource) {
-    return transport_latency_stom_;
+    return transport_latency_stom_us_ ;
   } else {
     LOG(ERROR) << __func__ << ", invalid direction";
     return 0;
@@ -361,33 +361,33 @@ uint16_t LeAudioDeviceGroup::GetTransportLatency(uint8_t direction) {
 }
 
 void LeAudioDeviceGroup::SetTransportLatency(uint8_t direction,
-                                             uint16_t new_transport_latency) {
-  uint16_t* transport_latency;
+                                             uint32_t new_transport_latency_us) {
+  uint32_t* transport_latency_us;
 
   if (direction == types::kLeAudioDirectionSink) {
-    transport_latency = &transport_latency_mtos_;
+    transport_latency_us = &transport_latency_mtos_us_;
   } else if (direction == types::kLeAudioDirectionSource) {
-    transport_latency = &transport_latency_stom_;
+    transport_latency_us = &transport_latency_stom_us_;
   } else {
     LOG(ERROR) << __func__ << ", invalid direction";
     return;
   }
 
-  if (*transport_latency == new_transport_latency) return;
+  if (*transport_latency_us == new_transport_latency_us) return;
 
-  if ((*transport_latency != 0) &&
-      (*transport_latency != new_transport_latency)) {
+  if ((*transport_latency_us != 0) &&
+      (*transport_latency_us != new_transport_latency_us)) {
     LOG(WARNING) << __func__ << ", Different transport latency for group: "
-                 << " old: " << static_cast<int>(*transport_latency)
-                 << " [ms], new: " << static_cast<int>(new_transport_latency)
-                 << " [ms]";
+                 << " old: " << static_cast<int>(*transport_latency_us)
+                 << " [us], new: " << static_cast<int>(new_transport_latency_us)
+                 << " [us]";
     return;
   }
 
   LOG(INFO) << __func__ << ", updated group " << static_cast<int>(group_id_)
-            << " transport latency: " << static_cast<int>(new_transport_latency)
-            << " [ms]";
-  *transport_latency = new_transport_latency;
+            << " transport latency: " << static_cast<int>(new_transport_latency_us)
+            << " [us]";
+  *transport_latency_us = new_transport_latency_us;
 }
 
 uint8_t LeAudioDeviceGroup::GetPhyBitmask(uint8_t direction) {
@@ -487,7 +487,7 @@ uint16_t LeAudioDeviceGroup::GetRemoteDelay(uint8_t direction) {
 
   /* us to ms */
   remote_delay_ms = presentation_delay / 1000;
-  remote_delay_ms += GetTransportLatency(direction) / 1000;
+  remote_delay_ms += GetTransportLatencyUs(direction) / 1000;
 
   return remote_delay_ms;
 }
