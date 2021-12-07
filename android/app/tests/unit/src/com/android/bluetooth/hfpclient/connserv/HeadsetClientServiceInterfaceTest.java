@@ -23,7 +23,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothHeadsetClientCall;
 import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.os.Bundle;
@@ -51,9 +50,8 @@ public class HeadsetClientServiceInterfaceTest {
     private static final String TEST_NUMBER = "000-111-2222";
     private static final byte TEST_CODE = 0;
     private static final int TEST_CALL_INDEX = 0;
-    private static final BluetoothHeadsetClientCall TEST_CALL = new BluetoothHeadsetClientCall(
-            TEST_DEVICE, /* id= */ 0,
-            BluetoothHeadsetClientCall.CALL_STATE_ACTIVE, /* number= */ TEST_NUMBER,
+    private static final HfpClientCall TEST_CALL = new HfpClientCall(TEST_DEVICE, /* id= */ 0,
+            HfpClientCall.CALL_STATE_ACTIVE, /* number= */ TEST_NUMBER,
             /* multiParty= */ false, /* outgoing= */false, /* inBandRing= */true);
     private static final int TEST_FLAGS = 0;
     private static final Bundle TEST_BUNDLE = new Bundle();
@@ -218,7 +216,7 @@ public class HeadsetClientServiceInterfaceTest {
         assertThat(mServiceInterface.getCurrentCalls(TEST_DEVICE)).isNull();
         makeHeadsetClientServiceAvailable();
 
-        List<BluetoothHeadsetClientCall> calls = List.of(TEST_CALL);
+        List<HfpClientCall> calls = List.of(TEST_CALL);
         doReturn(calls).when(mMockHeadsetClientService).getCurrentCalls(TEST_DEVICE);
         assertThat(mServiceInterface.getCurrentCalls(TEST_DEVICE)).isEqualTo(calls);
     }

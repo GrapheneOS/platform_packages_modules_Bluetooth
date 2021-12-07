@@ -17,7 +17,6 @@
 package com.android.bluetooth.a2dpsink;
 
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothHeadsetClientCall;
 import android.content.pm.PackageManager;
 import android.media.AudioAttributes;
 import android.media.AudioFocusRequest;
@@ -32,6 +31,7 @@ import android.util.Log;
 import com.android.bluetooth.R;
 import com.android.bluetooth.avrcpcontroller.BluetoothMediaBrowserService;
 import com.android.bluetooth.hfpclient.HeadsetClientService;
+import com.android.bluetooth.hfpclient.HfpClientCall;
 
 import java.util.List;
 
@@ -372,7 +372,7 @@ public class A2dpSinkStreamHandler extends Handler {
         }
         HeadsetClientService headsetClientService = HeadsetClientService.getHeadsetClientService();
         if (targetDevice != null && headsetClientService != null) {
-            List<BluetoothHeadsetClientCall> currentCalls =
+            List<HfpClientCall> currentCalls =
                     headsetClientService.getCurrentCalls(targetDevice);
             if (currentCalls == null) return false;
             return currentCalls.size() > 0;

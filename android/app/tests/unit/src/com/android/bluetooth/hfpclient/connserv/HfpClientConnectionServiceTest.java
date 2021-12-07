@@ -29,7 +29,6 @@ import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.mockingDetails;
 
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothHeadsetClientCall;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
 import android.content.ComponentName;
@@ -38,6 +37,7 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.ParcelUuid;
 import android.telecom.Connection;
 import android.telecom.ConnectionRequest;
 import android.telecom.PhoneAccount;
@@ -184,8 +184,8 @@ public class HfpClientConnectionServiceTest {
     public void callChanged_callAdded() throws Exception {
         createService();
         setupDeviceConnection(TEST_DEVICE);
-        BluetoothHeadsetClientCall call = new BluetoothHeadsetClientCall(TEST_DEVICE, /* id= */0,
-                BluetoothHeadsetClientCall.CALL_STATE_ACTIVE, /* number= */ TEST_NUMBER,
+        HfpClientCall call = new HfpClientCall(TEST_DEVICE, /* id= */0,
+                HfpClientCall.CALL_STATE_ACTIVE, /* number= */ TEST_NUMBER,
                 /* multiParty= */ false, /* outgoing= */false, /* inBandRing= */true);
         HfpClientConnectionService.onCallChanged(TEST_DEVICE, call);
         HfpClientDeviceBlock block = mHfpClientConnectionService.findBlockForDevice(TEST_DEVICE);
@@ -213,12 +213,13 @@ public class HfpClientConnectionServiceTest {
         createService();
         setupDeviceConnection(TEST_DEVICE);
 
-        BluetoothHeadsetClientCall call = new BluetoothHeadsetClientCall(TEST_DEVICE, /* id= */0,
-                BluetoothHeadsetClientCall.CALL_STATE_ACTIVE, /* number= */ TEST_NUMBER,
+        HfpClientCall call = new HfpClientCall(TEST_DEVICE, /* id= */0,
+                HfpClientCall.CALL_STATE_ACTIVE, /* number= */ TEST_NUMBER,
                 /* multiParty= */ false, /* outgoing= */false, /* inBandRing= */true);
 
         Bundle extras = new Bundle();
-        extras.putParcelable(TelecomManager.EXTRA_INCOMING_CALL_EXTRAS, call);
+        extras.putParcelable(TelecomManager.EXTRA_INCOMING_CALL_EXTRAS,
+                new ParcelUuid(call.getUUID()));
         ConnectionRequest connectionRequest = new ConnectionRequest.Builder().setExtras(
                 extras).build();
 
@@ -238,14 +239,15 @@ public class HfpClientConnectionServiceTest {
         createService();
         setupDeviceConnection(TEST_DEVICE);
 
-        BluetoothHeadsetClientCall call = new BluetoothHeadsetClientCall(TEST_DEVICE, /* id= */0,
-                BluetoothHeadsetClientCall.CALL_STATE_ACTIVE, /* number= */ TEST_NUMBER,
+        HfpClientCall call = new HfpClientCall(TEST_DEVICE, /* id= */0,
+                HfpClientCall.CALL_STATE_ACTIVE, /* number= */ TEST_NUMBER,
                 /* multiParty= */ false, /* outgoing= */true, /* inBandRing= */true);
 
         doReturn(call).when(mMockHeadsetClientService).dial(TEST_DEVICE, TEST_NUMBER);
 
         Bundle extras = new Bundle();
-        extras.putParcelable(TelecomManager.EXTRA_OUTGOING_CALL_EXTRAS, call);
+        extras.putParcelable(TelecomManager.EXTRA_OUTGOING_CALL_EXTRAS,
+                new ParcelUuid(call.getUUID()));
         ConnectionRequest connectionRequest = new ConnectionRequest.Builder().setExtras(
                 extras).setAddress(Uri.fromParts(
                 PhoneAccount.SCHEME_TEL, TEST_NUMBER, null)).build();
@@ -264,12 +266,13 @@ public class HfpClientConnectionServiceTest {
         createService();
         setupDeviceConnection(TEST_DEVICE);
 
-        BluetoothHeadsetClientCall call = new BluetoothHeadsetClientCall(TEST_DEVICE, /* id= */0,
-                BluetoothHeadsetClientCall.CALL_STATE_ACTIVE, /* number= */ TEST_NUMBER,
+        HfpClientCall call = new HfpClientCall(TEST_DEVICE, /* id= */0,
+                HfpClientCall.CALL_STATE_ACTIVE, /* number= */ TEST_NUMBER,
                 /* multiParty= */ false, /* outgoing= */true, /* inBandRing= */true);
 
         Bundle extras = new Bundle();
-        extras.putParcelable(TelecomManager.EXTRA_OUTGOING_CALL_EXTRAS, call);
+        extras.putParcelable(TelecomManager.EXTRA_OUTGOING_CALL_EXTRAS,
+                new ParcelUuid(call.getUUID()));
         ConnectionRequest connectionRequest = new ConnectionRequest.Builder().setExtras(
                 extras).setAddress(Uri.fromParts(
                 PhoneAccount.SCHEME_TEL, TEST_NUMBER, null)).build();

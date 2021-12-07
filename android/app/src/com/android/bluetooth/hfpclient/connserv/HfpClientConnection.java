@@ -16,7 +16,6 @@
 package com.android.bluetooth.hfpclient;
 
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothHeadsetClientCall;
 import android.net.Uri;
 import android.os.Bundle;
 import android.telecom.Connection;
@@ -37,7 +36,7 @@ public class HfpClientConnection extends Connection {
              "com.android.bluetooth.hfpclient.SCO_DISCONNECT";
 
     private final BluetoothDevice mDevice;
-    private BluetoothHeadsetClientCall mCurrentCall;
+    private HfpClientCall mCurrentCall;
     private final HfpClientConnectionService mConnServ;
     private final HeadsetClientServiceInterface mServiceInterface;
 
@@ -50,7 +49,7 @@ public class HfpClientConnection extends Connection {
 
     // Constructor to be used when there's an existing call (such as that created on the AG or
     // when connection happens and we see calls for the first time).
-    public HfpClientConnection(BluetoothDevice device, BluetoothHeadsetClientCall call,
+    public HfpClientConnection(BluetoothDevice device, HfpClientCall call,
             HfpClientConnectionService connServ, HeadsetClientServiceInterface serviceInterface) {
         mDevice = device;
         mConnServ = connServ;
@@ -104,7 +103,7 @@ public class HfpClientConnection extends Connection {
         mAdded = true;
     }
 
-    public BluetoothHeadsetClientCall getCall() {
+    public HfpClientCall getCall() {
         return mCurrentCall;
     }
 
@@ -118,7 +117,7 @@ public class HfpClientConnection extends Connection {
         setActive();
     }
 
-    public void updateCall(BluetoothHeadsetClientCall call) {
+    public void updateCall(HfpClientCall call) {
         if (call == null) {
             Log.e(TAG, "Updating call to a null value.");
             return;
@@ -134,30 +133,30 @@ public class HfpClientConnection extends Connection {
             Log.d(TAG, "Got call state change to " + state);
         }
         switch (state) {
-            case BluetoothHeadsetClientCall.CALL_STATE_ACTIVE:
+            case HfpClientCall.CALL_STATE_ACTIVE:
                 setActive();
                 if (conference != null) {
                     conference.setActive();
                 }
                 break;
-            case BluetoothHeadsetClientCall.CALL_STATE_HELD_BY_RESPONSE_AND_HOLD:
-            case BluetoothHeadsetClientCall.CALL_STATE_HELD:
+            case HfpClientCall.CALL_STATE_HELD_BY_RESPONSE_AND_HOLD:
+            case HfpClientCall.CALL_STATE_HELD:
                 setOnHold();
                 if (conference != null) {
                     conference.setOnHold();
                 }
                 break;
-            case BluetoothHeadsetClientCall.CALL_STATE_DIALING:
-            case BluetoothHeadsetClientCall.CALL_STATE_ALERTING:
+            case HfpClientCall.CALL_STATE_DIALING:
+            case HfpClientCall.CALL_STATE_ALERTING:
                 setDialing();
                 break;
-            case BluetoothHeadsetClientCall.CALL_STATE_INCOMING:
-            case BluetoothHeadsetClientCall.CALL_STATE_WAITING:
+            case HfpClientCall.CALL_STATE_INCOMING:
+            case HfpClientCall.CALL_STATE_WAITING:
                 setRinging();
                 break;
-            case BluetoothHeadsetClientCall.CALL_STATE_TERMINATED:
-                if (mPreviousCallState == BluetoothHeadsetClientCall.CALL_STATE_INCOMING
-                        || mPreviousCallState == BluetoothHeadsetClientCall.CALL_STATE_WAITING) {
+            case HfpClientCall.CALL_STATE_TERMINATED:
+                if (mPreviousCallState == HfpClientCall.CALL_STATE_INCOMING
+                        || mPreviousCallState == HfpClientCall.CALL_STATE_WAITING) {
                     close(DisconnectCause.MISSED);
                 } else if (mLocalDisconnect) {
                     close(DisconnectCause.LOCAL);
