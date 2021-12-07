@@ -621,7 +621,9 @@ static void btm_ble_vendor_capability_vsc_cmpl_cback(
   if (btm_cb.cmn_ble_vsc_cb.max_filter > 0) btm_ble_adv_filter_init();
 
   /* VS capability included and non-4.2 device */
-  if (btm_cb.cmn_ble_vsc_cb.max_irk_list_sz > 0 &&
+  if (controller_get_interface()->supports_ble() && 
+      controller_get_interface()->supports_ble_privacy() &&
+      btm_cb.cmn_ble_vsc_cb.max_irk_list_sz > 0 &&
       controller_get_interface()->get_ble_resolving_list_max_size() == 0)
     btm_ble_resolving_list_init(btm_cb.cmn_ble_vsc_cb.max_irk_list_sz);
 
