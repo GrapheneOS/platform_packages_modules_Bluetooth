@@ -29,7 +29,8 @@ sudo apt-get install repo git-core gnupg flex bison gperf build-essential \
   libglib2.0-dev libevent-dev libnss3-dev libdbus-1-dev \
   libprotobuf-dev ninja-build generate-ninja protobuf-compiler \
   libre2-9 debmake \
-  llvm libc++abi-dev
+  llvm libc++abi-dev \
+  libre2-dev libdouble-conversion-dev
 ```
 
 You will also need a recent-ish version of Rust and Cargo. Please follow the
@@ -40,7 +41,7 @@ instructions on [Rustup](https://rustup.rs/) to install a recent version.
 ```sh
 mkdir ~/fluoride
 cd ~/fluoride
-git clone https://android.googlesource.com/platform/packages/modules/Bluetooth/system
+git clone https://android.googlesource.com/platform/packages/modules/Bluetooth
 ```
 
 ### Using --run-bootstrap on build.py
@@ -72,7 +73,7 @@ We provide a script to produce debian packages for those components. Please
 see the instructions in build/dpkg/README.txt for more details.
 
 ```sh
-cd build/dpkg
+cd system/build/dpkg
 mkdir -p outdir/{modp_b64,libchrome}
 
 # Build and install modp_b64
