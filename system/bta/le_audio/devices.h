@@ -193,8 +193,8 @@ class LeAudioDeviceGroup {
       : group_id_(group_id),
         cig_created_(false),
         audio_directions_(0),
-        transport_latency_mtos_(0),
-        transport_latency_stom_(0),
+        transport_latency_mtos_us_(0),
+        transport_latency_stom_us_(0),
         active_context_type_(types::LeAudioContextType::UNINITIALIZED),
         target_state_(types::AseState::BTA_LE_AUDIO_ASE_STATE_IDLE),
         current_state_(types::AseState::BTA_LE_AUDIO_ASE_STATE_IDLE),
@@ -238,7 +238,7 @@ class LeAudioDeviceGroup {
   uint8_t GetTargetLatency(void);
   uint16_t GetMaxTransportLatencyStom(void);
   uint16_t GetMaxTransportLatencyMtos(void);
-  void SetTransportLatency(uint8_t direction, uint16_t transport_latency);
+  void SetTransportLatency(uint8_t direction, uint32_t transport_latency_us);
   uint8_t GetPhyBitmask(uint8_t direction);
   uint8_t GetTargetPhy(uint8_t direction);
   bool GetPresentationDelay(uint32_t* delay, uint8_t direction);
@@ -273,8 +273,8 @@ class LeAudioDeviceGroup {
   void Dump(int fd);
 
  private:
-  uint16_t transport_latency_mtos_;
-  uint16_t transport_latency_stom_;
+  uint32_t transport_latency_mtos_us_;
+  uint32_t transport_latency_stom_us_;
 
   const set_configurations::AudioSetConfiguration*
   FindFirstSupportedConfiguration(types::LeAudioContextType context_type);
@@ -284,7 +284,7 @@ class LeAudioDeviceGroup {
   bool IsConfigurationSupported(
       const set_configurations::AudioSetConfiguration* audio_set_configuration,
       types::LeAudioContextType context_type);
-  uint16_t GetTransportLatency(uint8_t direction);
+  uint32_t GetTransportLatencyUs(uint8_t direction);
 
   /* Mask and table of currently supported contexts */
   types::LeAudioContextType active_context_type_;
