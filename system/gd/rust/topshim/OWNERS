@@ -1,1 +1,1 @@
-include platform/packages/modules/Bluetooth/system:/OWNERS_chromeos
+include platform/packages/modules/Bluetooth:/OWNERS_chromeos
