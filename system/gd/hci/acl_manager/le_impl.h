@@ -450,6 +450,27 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
     }
   }
 
+  void remove_device_from_resolving_list(AddressWithType address_with_type) {
+    AddressType address_type = address_with_type.GetAddressType();
+    if (!address_manager_registered) {
+      le_address_manager_->Register(this);
+      address_manager_registered = true;
+    }
+    pause_connection = true;
+    switch (address_type) {
+      case AddressType::PUBLIC_DEVICE_ADDRESS:
+      case AddressType::PUBLIC_IDENTITY_ADDRESS: {
+        le_address_manager_->RemoveDeviceFromResolvingList(
+            PeerAddressType::PUBLIC_DEVICE_OR_IDENTITY_ADDRESS, address_with_type.GetAddress());
+      } break;
+      case AddressType::RANDOM_DEVICE_ADDRESS:
+      case AddressType::RANDOM_IDENTITY_ADDRESS: {
+        le_address_manager_->RemoveDeviceFromResolvingList(
+            PeerAddressType::RANDOM_DEVICE_OR_IDENTITY_ADDRESS, address_with_type.GetAddress());
+      }
+    }
+  }
+
   void create_le_connection(AddressWithType address_with_type, bool add_to_connect_list, bool is_direct) {
     if (le_client_callbacks_ == nullptr) {
       LOG_ERROR("No callbacks to call");
@@ -612,27 +633,6 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
     auto packet = LeWriteSuggestedDefaultDataLengthBuilder::Create(length, time);
     le_acl_connection_interface_->EnqueueCommand(
         std::move(packet), handler_->BindOnce([](CommandCompleteView complete) {}));
-  }
-
-  void remove_device_from_resolving_list(AddressWithType address_with_type) {
-    AddressType address_type = address_with_type.GetAddressType();
-    if (!address_manager_registered) {
-      le_address_manager_->Register(this);
-      address_manager_registered = true;
-    }
-    pause_connection = true;
-    switch (address_type) {
-      case AddressType::PUBLIC_DEVICE_ADDRESS:
-      case AddressType::PUBLIC_IDENTITY_ADDRESS: {
-        le_address_manager_->RemoveDeviceFromResolvingList(
-            PeerAddressType::PUBLIC_DEVICE_OR_IDENTITY_ADDRESS, address_with_type.GetAddress());
-      } break;
-      case AddressType::RANDOM_DEVICE_ADDRESS:
-      case AddressType::RANDOM_IDENTITY_ADDRESS: {
-        le_address_manager_->RemoveDeviceFromResolvingList(
-            PeerAddressType::RANDOM_DEVICE_OR_IDENTITY_ADDRESS, address_with_type.GetAddress());
-      }
-    }
   }
 
   void clear_resolving_list() {

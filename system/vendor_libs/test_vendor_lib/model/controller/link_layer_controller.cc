@@ -164,9 +164,7 @@ ErrorCode LinkLayerController::SendAclToRemote(
     completed_packets.push_back(cp);
     auto packet = bluetooth::hci::NumberOfCompletedPacketsBuilder::Create(
         completed_packets);
-    if (properties_.IsUnmasked(EventCode::NUMBER_OF_COMPLETED_PACKETS)) {
-      send_event_(std::move(packet));
-    }
+    send_event_(std::move(packet));
   });
 
   auto acl_payload = acl_packet.GetPayload();
