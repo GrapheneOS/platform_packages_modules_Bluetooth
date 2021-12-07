@@ -61,6 +61,12 @@ pub trait IBluetooth {
     /// Sets the local adapter name.
     fn set_name(&self, name: String) -> bool;
 
+    /// Gets the bluetooth class.
+    fn get_bluetooth_class(&self) -> u32;
+
+    /// Sets the bluetooth class.
+    fn set_bluetooth_class(&self, cod: u32) -> bool;
+
     /// Starts BREDR Inquiry.
     fn start_discovery(&self) -> bool;
 
@@ -429,6 +435,9 @@ impl BtifBluetoothCallbacks for Bluetooth {
         } else {
             // Trigger properties update
             self.intf.lock().unwrap().get_adapter_properties();
+
+            // Also need to manually request some properties
+            self.intf.lock().unwrap().get_adapter_property(BtPropertyType::ClassOfDevice);
         }
     }
 
@@ -761,6 +770,20 @@ impl IBluetooth for Bluetooth {
 
     fn set_name(&self, name: String) -> bool {
         self.intf.lock().unwrap().set_adapter_property(BluetoothProperty::BdName(name)) == 0
+    }
+
+    fn get_bluetooth_class(&self) -> u32 {
+        match self.properties.get(&BtPropertyType::ClassOfDevice) {
+            Some(prop) => match prop {
+                BluetoothProperty::ClassOfDevice(cod) => cod.clone(),
+                _ => 0,
+            },
+            _ => 0,
+        }
+    }
+
+    fn set_bluetooth_class(&self, cod: u32) -> bool {
+        self.intf.lock().unwrap().set_adapter_property(BluetoothProperty::ClassOfDevice(cod)) == 0
     }
 
     fn start_discovery(&self) -> bool {

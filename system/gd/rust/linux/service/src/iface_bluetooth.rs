@@ -120,6 +120,16 @@ impl IBluetooth for IBluetoothDBus {
         true
     }
 
+    #[dbus_method("GetBluetoothClass")]
+    fn get_bluetooth_class(&self) -> u32 {
+        0
+    }
+
+    #[dbus_method("SetBluetoothClass")]
+    fn set_bluetooth_class(&self, cod: u32) -> bool {
+        true
+    }
+
     #[dbus_method("StartDiscovery")]
     fn start_discovery(&self) -> bool {
         true
