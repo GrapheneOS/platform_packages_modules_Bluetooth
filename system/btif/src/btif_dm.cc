@@ -95,6 +95,7 @@ const Uuid UUID_VC = Uuid::FromString("1844");
 const Uuid UUID_CSIS = Uuid::FromString("1846");
 const Uuid UUID_LE_AUDIO = Uuid::FromString("184E");
 const Uuid UUID_LE_MIDI = Uuid::FromString("03B80E5A-EDE8-4B33-A751-6CE34EC4C700");
+const bool enable_address_consolidate = false;  // TODO remove
 
 #define COD_MASK 0x07FF
 
@@ -945,7 +946,6 @@ static void btif_dm_auth_cmpl_evt(tBTA_DM_AUTH_CMPL* p_auth_cmpl) {
   bt_status_t status = BT_STATUS_FAIL;
   bt_bond_state_t state = BT_BOND_STATE_NONE;
   bool skip_sdp = false;
-  bool enable_address_consolidate = false;  // TODO remove
 
   BTIF_TRACE_DEBUG("%s: bond state=%d, success=%d, key_present=%d", __func__,
                    pairing_cb.state, p_auth_cmpl->success,
@@ -1541,6 +1541,10 @@ void BTIF_dm_enable() {
   /* clear control blocks */
   memset(&pairing_cb, 0, sizeof(btif_dm_pairing_cb_t));
   pairing_cb.bond_type = tBTM_SEC_DEV_REC::BOND_TYPE_PERSISTENT;
+  if (enable_address_consolidate) {
+    LOG_INFO("enable address consolidate");
+    btif_storage_load_consolidate_devices();
+  }
 
   /* This function will also trigger the adapter_properties_cb
   ** and bonded_devices_info_cb
