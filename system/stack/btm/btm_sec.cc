@@ -3143,33 +3143,23 @@ void btm_sec_auth_complete(uint16_t handle, tHCI_STATUS status) {
     } else {
       BTM_LogHistory(kBtmLogTag, p_dev_rec->bd_addr, "Bonding completed",
                      hci_error_code_text(status));
-      BTM_TRACE_DEBUG("TRYING TO DECIDE IF CAN USE SMP_BR_CHNL");
-      if (p_dev_rec->new_encryption_key_is_p256 &&
-          (btm_sec_use_smp_br_chnl(p_dev_rec))
-          /* no LE keys are available, do deriving */
-          && (!(p_dev_rec->sec_flags & BTM_SEC_LE_LINK_KEY_KNOWN) ||
-              /* or BR key is higher security than existing LE keys */
-              (!(p_dev_rec->sec_flags & BTM_SEC_LE_LINK_KEY_AUTHED) &&
-               (p_dev_rec->sec_flags & BTM_SEC_LINK_KEY_AUTHED)))) {
-        BTM_TRACE_DEBUG(
-            "link encrypted afer dedic bonding can use SMP_BR_CHNL");
 
-        tHCI_ROLE role = HCI_ROLE_UNKNOWN;
-        BTM_GetRole(p_dev_rec->bd_addr, &role);
-        if (role == HCI_ROLE_CENTRAL) {
-          // Encryption is required to start SM over BR/EDR
-          // indicate that this is encryption after authentication
-          BTM_SetEncryption(p_dev_rec->bd_addr, BT_TRANSPORT_BR_EDR, NULL, NULL,
-                            BTM_BLE_SEC_NONE);
-        } else if (p_dev_rec->IsLocallyInitiated()) {
-          // Encryption will be set in role_changed callback
-          BTM_TRACE_DEBUG(
-              "%s auth completed in role=peripheral, try to switch role and "
-              "encrypt",
-              __func__);
-          BTM_SwitchRoleToCentral(p_dev_rec->RemoteAddress());
-        }
+      tHCI_ROLE role = HCI_ROLE_UNKNOWN;
+      BTM_GetRole(p_dev_rec->bd_addr, &role);
+      if (role == HCI_ROLE_CENTRAL) {
+        // Encryption is required to start SM over BR/EDR
+        // indicate that this is encryption after authentication
+        BTM_SetEncryption(p_dev_rec->bd_addr, BT_TRANSPORT_BR_EDR, NULL, NULL,
+                          BTM_BLE_SEC_NONE);
+      } else if (p_dev_rec->IsLocallyInitiated()) {
+        // Encryption will be set in role_changed callback
+        LOG_INFO(
+            "%s auth completed in role=peripheral, try to switch role and "
+            "encrypt",
+            __func__);
+        BTM_SwitchRoleToCentral(p_dev_rec->RemoteAddress());
       }
+
       l2cu_start_post_bond_timer(p_dev_rec->hci_handle);
     }
 
