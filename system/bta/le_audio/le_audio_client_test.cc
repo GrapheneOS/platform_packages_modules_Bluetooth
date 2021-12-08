@@ -963,14 +963,15 @@ class UnicastTestNoInit : public Test {
     UpdateMetadata(usage, content_type);
 
     if (reconfigured_sink) {
+      EXPECT_CALL(mock_audio_source_, CancelStreamingRequest()).Times(1);
       audio_sink_receiver_->OnAudioResume();
-      SyncOnMainLoop();
     }
+    SyncOnMainLoop();
+    audio_sink_receiver_->OnAudioResume();
 
     EXPECT_CALL(mock_audio_source_, ConfirmStreamingRequest()).Times(1);
-    audio_sink_receiver_->OnAudioResume();
-    state_machine_callbacks_->StatusReportCb(
-              group_id, GroupStreamStatus::STREAMING);
+    state_machine_callbacks_->StatusReportCb(group_id,
+                                             GroupStreamStatus::STREAMING);
 
     if (usage == AUDIO_USAGE_VOICE_COMMUNICATION) {
       ASSERT_NE(audio_source_receiver_, nullptr);
@@ -2432,7 +2433,6 @@ TEST_F(UnicastTest, TwoEarbudsStreaming) {
 
   // Start streaming with reconfiguration from default media stream setup
   EXPECT_CALL(mock_audio_source_, Start(_, _)).Times(1);
-  EXPECT_CALL(mock_audio_source_, CancelStreamingRequest()).Times(1);
   EXPECT_CALL(mock_audio_source_, Stop()).Times(1);
   EXPECT_CALL(mock_audio_sink_, Start(_, _)).Times(1);
 
@@ -2519,7 +2519,6 @@ TEST_F(UnicastTest, TwoEarbudsStreamingContextSwitchSimple) {
       StartStream(_, le_audio::types::LeAudioContextType::NOTIFICATIONS))
       .Times(1);
   EXPECT_CALL(mock_audio_source_, Start(_, _)).Times(1);
-  EXPECT_CALL(mock_audio_source_, CancelStreamingRequest()).Times(1);
   EXPECT_CALL(mock_audio_source_, Stop()).Times(1);
 
   StartStreaming(AUDIO_USAGE_NOTIFICATION, AUDIO_CONTENT_TYPE_UNKNOWN, group_id,
@@ -2600,7 +2599,6 @@ TEST_F(UnicastTest, TwoEarbudsStreamingContextSwitchReconfigure) {
 
   // Start streaming
   EXPECT_CALL(mock_audio_source_, Start(_, _)).Times(1);
-  EXPECT_CALL(mock_audio_source_, CancelStreamingRequest()).Times(1);
   EXPECT_CALL(mock_audio_source_, Stop()).Times(1);
   EXPECT_CALL(mock_audio_sink_, Start(_, _)).Times(1);
   LeAudioClient::Get()->GroupSetActive(group_id);
