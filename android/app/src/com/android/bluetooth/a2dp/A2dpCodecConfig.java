@@ -64,7 +64,8 @@ class A2dpCodecConfig {
           Log.w(TAG, "Can't obtain the codec offloading prefernece from null AudioManager");
           return;
         }
-        mCodecConfigOffloading = audioManager.getHwOffloadEncodingFormatsSupportedForA2DP()
+        mCodecConfigOffloading = audioManager.getHwOffloadFormatsSupportedForBluetoothMedia(
+                                                    AudioManager.DEVICE_OUT_BLUETOOTH_A2DP)
                                              .toArray(mCodecConfigOffloading);
     }
 
