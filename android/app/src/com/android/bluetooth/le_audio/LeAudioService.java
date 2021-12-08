@@ -91,6 +91,7 @@ public class LeAudioService extends ProfileService {
     private HandlerThread mStateMachinesThread;
     private BluetoothDevice mActiveAudioOutDevice;
     private BluetoothDevice mActiveAudioInDevice;
+    private LeAudioCodecConfig mLeAudioCodecConfig;
     ServiceFactory mServiceFactory = new ServiceFactory();
 
     LeAudioNativeInterface mLeAudioNativeInterface;
@@ -215,7 +216,10 @@ public class LeAudioService extends ProfileService {
         // Mark service as started
         setLeAudioService(this);
 
-        mLeAudioNativeInterface.init();
+        // Setup codec config
+        mLeAudioCodecConfig = new LeAudioCodecConfig(this);
+
+        mLeAudioNativeInterface.init(mLeAudioCodecConfig.getCodecConfigOffloading());
 
         return true;
     }
