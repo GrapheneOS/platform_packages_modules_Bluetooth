@@ -71,6 +71,8 @@ class LeAdvertiser {
 
   bool IsExtended() const;
 
+  bool IsConnectable() const;
+
   uint8_t GetNumAdvertisingEvents() const;
 
   bluetooth::hci::AddressWithType GetAddress() const;

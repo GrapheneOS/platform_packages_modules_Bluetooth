@@ -238,6 +238,11 @@ impl CommandHandler {
     }
 
     fn cmd_adapter(&mut self, args: &Vec<String>) {
+        if !self.context.lock().unwrap().manager_dbus.get_floss_enabled() {
+            println!("Floss is not enabled. First run, `floss enable`");
+            return;
+        }
+
         let default_adapter = self.context.lock().unwrap().default_adapter;
         enforce_arg_len(args, 1, "adapter <enable|disable|show>", || match &args[0][0..] {
             "enable" => {
@@ -247,8 +252,8 @@ impl CommandHandler {
                 self.context.lock().unwrap().manager_dbus.stop(default_adapter);
             }
             "show" => {
-                if !self.context.lock().unwrap().manager_dbus.get_floss_enabled() {
-                    println!("Floss is not enabled. First run, `floss enable`");
+                if !self.context.lock().unwrap().adapter_ready {
+                    self.adapter_not_ready();
                     return;
                 }
 
@@ -259,9 +264,18 @@ impl CommandHandler {
                 };
                 let name = self.context.lock().unwrap().adapter_dbus.as_ref().unwrap().get_name();
                 let uuids = self.context.lock().unwrap().adapter_dbus.as_ref().unwrap().get_uuids();
+                let cod = self
+                    .context
+                    .lock()
+                    .unwrap()
+                    .adapter_dbus
+                    .as_ref()
+                    .unwrap()
+                    .get_bluetooth_class();
                 print_info!("Address: {}", address);
                 print_info!("Name: {}", name);
                 print_info!("State: {}", if enabled { "enabled" } else { "disabled" });
+                print_info!("Class: {:#06x}", cod);
                 print_info!(
                     "Uuids: {}",
                     DisplayList(
