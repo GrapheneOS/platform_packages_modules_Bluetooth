@@ -400,4 +400,71 @@ StreamParameters AclConnectionHandler::GetStreamParameters(
   return isochronous_connection_handler_.GetStreamParameters(handle);
 }
 
+void AclConnectionHandler::CreatePendingScoConnection(
+  bluetooth::hci::Address addr, ScoConnectionParameters const &parameters) {
+
+  uint16_t sco_handle = GetUnusedHandle();
+  sco_connections_.emplace(
+    sco_handle, ScoConnection(addr, parameters));
+}
+
+bool AclConnectionHandler::HasPendingScoConnection(bluetooth::hci::Address addr) const {
+  for (auto pair : sco_connections_) {
+    if (std::get<ScoConnection>(pair).GetAddress() == addr) {
+      return true;
+    }
+  }
+  return false;
+}
+
+void AclConnectionHandler::CancelPendingScoConnection(bluetooth::hci::Address addr) {
+  for (auto it = sco_connections_.begin(); it != sco_connections_.end(); it++) {
+    if (std::get<ScoConnection>(*it).GetAddress() == addr) {
+      sco_connections_.erase(it);
+      return;
+    }
+  }
+}
+
+bool AclConnectionHandler::AcceptPendingScoConnection(bluetooth::hci::Address addr,
+  ScoLinkParameters const &parameters) {
+
+  for (auto pair : sco_connections_) {
+    if (std::get<ScoConnection>(pair).GetAddress() == addr) {
+      std::get<ScoConnection>(pair).SetLinkParameters(parameters);
+      return true;
+    }
+  }
+  return false;
+}
+
+bool AclConnectionHandler::AcceptPendingScoConnection(bluetooth::hci::Address addr,
+  ScoConnectionParameters const &parameters) {
+
+  for (auto pair : sco_connections_) {
+    if (std::get<ScoConnection>(pair).GetAddress() == addr) {
+      return std::get<ScoConnection>(pair).NegotiateLinkParameters(parameters);
+    }
+  }
+  return false;
+}
+
+uint16_t AclConnectionHandler::GetScoHandle(bluetooth::hci::Address addr) const {
+  for (auto pair : sco_connections_) {
+    if (std::get<ScoConnection>(pair).GetAddress() == addr) {
+      return std::get<0>(pair);
+    }
+  }
+  return 0;
+}
+
+ScoLinkParameters AclConnectionHandler::GetScoLinkParameters(bluetooth::hci::Address addr) const {
+  for (auto pair : sco_connections_) {
+    if (std::get<ScoConnection>(pair).GetAddress() == addr) {
+      return std::get<ScoConnection>(pair).GetLinkParameters();
+    }
+  }
+  return {};
+}
+
 }  // namespace test_vendor_lib
