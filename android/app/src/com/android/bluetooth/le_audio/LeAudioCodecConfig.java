@@ -55,7 +55,7 @@ class LeAudioCodecConfig {
         }
     }
 
-    BluetoothLeAudioCodecConfig[] codecConfigOffloading() {
+    BluetoothLeAudioCodecConfig[] getCodecConfigOffloading() {
         return mCodecConfigOffloading;
     }
 }
