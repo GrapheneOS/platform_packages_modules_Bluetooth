@@ -40,6 +40,8 @@ enum class GroupStatus {
 enum class GroupStreamStatus {
   IDLE = 0,
   STREAMING,
+  RELEASING,
+  SUSPENDING,
   SUSPENDED,
   RECONFIGURED,
   DESTROYED,
