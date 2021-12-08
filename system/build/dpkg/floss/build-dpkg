@@ -24,7 +24,7 @@ URL_PROTO_LOGGING_GIT="https://android.googlesource.com/platform/frameworks/prot
 CHROMIUM_BRANCH="release-R92-13982.B"
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-PARENT_DIR="$(echo ${SCRIPT_DIR} | rev | cut -d '/' -f 2- | rev )"
+PARENT_DIR="$(readlink -f ${SCRIPT_DIR}/../)"
 TMP_DIR=$(mktemp -d)
 
 trap ctrl_c INT
@@ -121,7 +121,7 @@ GIT_DIR_PLATFORM2_COMMON_MK="${GIT_DIR_PLATFORM2}/common-mk"
 GIT_DIR_PLATFORM2_GN="${GIT_DIR_PLATFORM2}/.gn"
 GIT_DIR_RUST_CRATES="${GIT_DIR}/rust_crates"
 GIT_DIR_PROTO_LOGGING="${GIT_DIR}/proto_logging"
-GIT_DIR_BT="$(echo "${PARENT_DIR}" | rev | cut -d '/' -f 3- | rev)"
+GIT_DIR_BT="$(readlink -f $PARENT_DIR/../../../)"
 
 # Staging
 STAGING_DIR="${OUT_DIR}/staging"
@@ -170,10 +170,15 @@ BTADAPTERD_BIN="${BIN_OUTPUT}/btadapterd"
 
 ${DRY_RUN} cp -r "${PKG_DIR}" "${OUT_DIR}/"
 
+${DRY_RUN} mkdir -p "${OUT_PKG_USR_DIR}/bin"
 ${DRY_RUN} cp "${BTCLIENT_BIN}" "${OUT_PKG_USR_DIR}/bin/"
+
+${DRY_RUN} mkdir -p "${OUT_PKG_USR_DIR}/libexec/bluetooth"
 ${DRY_RUN} cp "${BTMANAGERD_BIN}" "${OUT_PKG_USR_DIR}/libexec/bluetooth/"
 ${DRY_RUN} cp "${BTADAPTERD_BIN}" "${OUT_PKG_USR_DIR}/libexec/bluetooth/"
 
+# Directory with control file needs the right permissions
+${DRY_RUN} chmod -R 0755 "${TMP_DIR}"
 ${DRY_RUN} dpkg-deb --build "${OUT_PKG_DIR}" "${FIRST_DIR}/floss.deb"
 
 ${DRY_RUN} rm -rf ${TMP_DIR}
