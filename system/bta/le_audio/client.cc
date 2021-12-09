@@ -2342,6 +2342,20 @@ class LeAudioClientImpl : public LeAudioClient {
         group->GetCodecConfigurationByDirection(
             context_type, le_audio::types::kLeAudioDirectionSource);
 
+    if (!sink_configuration) {
+      /* Let's check if le_audio group supports conversational, if so,
+       * expose DECODED session to the system
+       */
+      sink_configuration = group->GetCodecConfigurationByDirection(
+          LeAudioContextType::CONVERSATIONAL,
+          le_audio::types::kLeAudioDirectionSource);
+      if (sink_configuration) {
+        LOG(INFO) << __func__
+                  << " exposing DECODED session to the system even context: "
+                  << static_cast<int>(context_type) << " does not use it";
+      }
+    }
+
     if (source_configuration) {
       /* Stream configuration differs from previous one */
       if (!current_source_codec_config.IsInvalid() &&
@@ -2734,6 +2748,20 @@ class LeAudioClientImpl : public LeAudioClient {
     std::optional<LeAudioCodecConfiguration> sink_configuration =
         group->GetCodecConfigurationByDirection(
             new_context_type, le_audio::types::kLeAudioDirectionSource);
+
+    if (!sink_configuration) {
+      /* Let's check if le_audio group supports conversational, if so,
+       * expose DECODED session to the system
+       */
+      sink_configuration = group->GetCodecConfigurationByDirection(
+          LeAudioContextType::CONVERSATIONAL,
+          le_audio::types::kLeAudioDirectionSource);
+      if (sink_configuration) {
+        DLOG(INFO) << __func__
+                   << " exposing DECODED session to the system even context: "
+                   << static_cast<int>(new_context_type) << " does not use it";
+      }
+    }
 
     if ((source_configuration &&
          (*source_configuration != current_source_codec_config)) ||
