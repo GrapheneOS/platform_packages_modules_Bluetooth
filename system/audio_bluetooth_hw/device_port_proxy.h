@@ -78,6 +78,8 @@ class BluetoothAudioPort {
   // source has been changed.
   void UpdateMetadata(const source_metadata* source_metadata) const;
 
+  void UpdateSinkMetadata(const sink_metadata* sink_metadata) const;
+
   // Return the current BluetoothStreamState
   BluetoothStreamState GetState() const;
 
