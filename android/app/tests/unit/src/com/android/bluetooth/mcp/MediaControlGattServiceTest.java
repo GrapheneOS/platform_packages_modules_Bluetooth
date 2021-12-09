@@ -1137,4 +1137,25 @@ public class MediaControlGattServiceTest {
                 .sendResponse(eq(mCurrentDevice), eq(1),
                         eq(BluetoothGatt.GATT_INSUFFICIENT_AUTHORIZATION), eq(0), any());
     }
+
+    @Test
+    public void testUpdatePlayerNameFromNull() {
+        BluetoothGattService service = initAllFeaturesGattService();
+
+        BluetoothGattCharacteristic characteristic =
+                service.getCharacteristic(MediaControlGattService.UUID_PLAYER_NAME);
+        Assert.assertNotNull(characteristic);
+        byte[] nullname = null;
+        characteristic.setValue(nullname);
+
+        prepareConnectedDevice();
+        doReturn(BluetoothDevice.ACCESS_ALLOWED)
+                .when(mMockMcpService)
+                .getDeviceAuthorization(any(BluetoothDevice.class));
+
+        Map<PlayerStateField, Object> state_map = new HashMap<>();
+        String player_name = "TestPlayerName";
+        state_map.put(PlayerStateField.PLAYER_NAME, player_name);
+        mMcpService.updatePlayerState(state_map);
+    }
 }
