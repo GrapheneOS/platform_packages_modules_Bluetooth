@@ -568,6 +568,7 @@ void DualModeController::ReadLocalSupportedCommands(CommandView command) {
 void DualModeController::ReadLocalSupportedFeatures(CommandView command) {
   auto command_view = gd_hci::ReadLocalSupportedFeaturesView::Create(command);
   ASSERT(command_view.IsValid());
+
   auto packet =
       bluetooth::hci::ReadLocalSupportedFeaturesCompleteBuilder::Create(
           kNumCommandPackets, ErrorCode::SUCCESS,

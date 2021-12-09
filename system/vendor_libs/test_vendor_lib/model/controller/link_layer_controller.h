@@ -95,7 +95,7 @@ class LinkLayerController {
   ErrorCode Disconnect(uint16_t handle, uint8_t reason);
 
  private:
-  void DisconnectCleanup(uint16_t handle, uint8_t reason);
+  void SendDisconnectionCompleteEvent(uint16_t handle, uint8_t reason);
 
  public:
   void IncomingPacket(model::packets::LinkLayerPacketView incoming);
@@ -446,6 +446,7 @@ class LinkLayerController {
       model::packets::LinkLayerPacketView packet);
   void IncomingEScoConnectionResponse(
       model::packets::LinkLayerPacketView packet);
+  void IncomingEScoDisconnect(model::packets::LinkLayerPacketView packet);
 
  private:
   const DeviceProperties& properties_;
