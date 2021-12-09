@@ -172,6 +172,15 @@ class DualModeController : public Device {
   // 7.1.24
   void ReadClockOffset(CommandView args);
 
+  // 7.1.26
+  void SetupSynchronousConnection(CommandView command);
+
+  // 7.1.27
+  void AcceptSynchronousConnection(CommandView command);
+
+  // 7.1.28
+  void RejectSynchronousConnection(CommandView command);
+
   // 7.1.29
   void IoCapabilityRequestReply(CommandView args);
 
