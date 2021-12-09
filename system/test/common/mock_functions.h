@@ -20,3 +20,4 @@
 
 extern std::map<std::string, int> mock_function_count_map;
 void dump_mock_function_count_map();
+void reset_mock_function_count_map();
