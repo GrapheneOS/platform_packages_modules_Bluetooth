@@ -32,14 +32,19 @@
 
 #include "bta/include/bta_pan_co.h"
 #include "bta/pan/bta_pan_int.h"
+#include "main/shim/dumpsys.h"
 #include "osi/include/allocator.h"
 #include "osi/include/fixed_queue.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_types.h"
+#include "stack/include/btu.h"
 #include "stack/include/pan_api.h"
 #include "types/raw_address.h"
+
+void bta_pan_sm_execute(tBTA_PAN_SCB* p_scb, uint16_t event,
+                        tBTA_PAN_DATA* p_data);
 
 /* RX and TX data flow mask */
 #define BTA_PAN_RX_MASK 0x0F
