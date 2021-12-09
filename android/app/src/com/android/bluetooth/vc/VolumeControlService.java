@@ -413,7 +413,10 @@ public class VolumeControlService extends ProfileService {
         mVolumeControlNativeInterface.setVolume(device, volume);
     }
 
-    void setVolumeGroup(int groupId, int volume) {
+    /**
+     * {@hide}
+     */
+    public void setVolumeGroup(int groupId, int volume) {
         mVolumeControlNativeInterface.setVolumeGroup(groupId, volume);
     }
 
