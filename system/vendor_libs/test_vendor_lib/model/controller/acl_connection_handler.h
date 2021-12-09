@@ -25,6 +25,7 @@
 #include "hci/address_with_type.h"
 #include "isochronous_connection_handler.h"
 #include "phy.h"
+#include "sco_connection.h"
 
 namespace test_vendor_lib {
 static constexpr uint16_t kReservedHandle = 0xF00;
@@ -40,6 +41,17 @@ class AclConnectionHandler {
   bool HasPendingConnection(bluetooth::hci::Address addr) const;
   bool CancelPendingConnection(bluetooth::hci::Address addr);
   bool AuthenticatePendingConnection() const;
+
+  bool HasPendingScoConnection(bluetooth::hci::Address addr) const;
+  void CreatePendingScoConnection(bluetooth::hci::Address addr,
+    ScoConnectionParameters const &parameters);
+  void CancelPendingScoConnection(bluetooth::hci::Address addr);
+  bool AcceptPendingScoConnection(bluetooth::hci::Address addr,
+    ScoLinkParameters const &parameters);
+  bool AcceptPendingScoConnection(bluetooth::hci::Address addr,
+    ScoConnectionParameters const &parameters);
+  uint16_t GetScoHandle(bluetooth::hci::Address addr) const;
+  ScoLinkParameters GetScoLinkParameters(bluetooth::hci::Address addr) const;
 
   bool CreatePendingLeConnection(bluetooth::hci::AddressWithType addr);
   bool HasPendingLeConnection(bluetooth::hci::AddressWithType addr) const;
@@ -104,6 +116,8 @@ class AclConnectionHandler {
 
  private:
   std::unordered_map<uint16_t, AclConnection> acl_connections_;
+  std::unordered_map<uint16_t, ScoConnection> sco_connections_;
+
   bool classic_connection_pending_{false};
   bluetooth::hci::Address pending_connection_address_{
       bluetooth::hci::Address::kEmpty};
