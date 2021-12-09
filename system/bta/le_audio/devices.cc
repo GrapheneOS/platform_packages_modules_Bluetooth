@@ -1562,20 +1562,19 @@ void LeAudioDevice::SetSupportedContexts(AudioContexts snk_contexts,
 
 void LeAudioDevice::Dump(int fd) {
   std::stringstream stream;
-  stream << "        address: " << address_ << "\n"
-         << (conn_id_ == GATT_INVALID_CONN_ID ? "          Not connected "
-                                              : "          Connected conn_id =")
+  stream << std::boolalpha;
+  stream << "\taddress: " << address_
+         << (conn_id_ == GATT_INVALID_CONN_ID ? "\n\t  Not connected "
+                                              : "\n\t  Connected conn_id =")
          << (conn_id_ == GATT_INVALID_CONN_ID ? "" : std::to_string(conn_id_))
-         << "\n"
-         << "          set member: " << (csis_member_ ? " Yes" : " No") << "\n"
-         << "          known_service_handles_: " << known_service_handles_
-         << "\n"
-         << "          notify_connected_after_read_: "
-         << notify_connected_after_read_ << "\n"
-         << "          removing_device_: " << removing_device_ << "\n"
-         << "          first_connection_: " << first_connection_ << "\n"
-         << "          encrypted_: " << encrypted_ << "\n"
-         << "          connecting_actively_: " << connecting_actively_ << "\n";
+         << "\n\t  set member: " << csis_member_
+         << "\n\t  known_service_handles_: " << known_service_handles_
+         << "\n\t  notify_connected_after_read_: " << notify_connected_after_read_
+         << "\n\t  removing_device_: " << removing_device_
+         << "\n\t  first_connection_: " << first_connection_
+         << "\n\t  encrypted_: " << encrypted_
+         << "\n\t  connecting_actively_: " << connecting_actively_
+         << "\n";
 
   dprintf(fd, "%s", stream.str().c_str());
 }
