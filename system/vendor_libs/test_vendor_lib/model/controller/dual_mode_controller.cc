@@ -122,6 +122,9 @@ DualModeController::DualModeController(const std::string& properties_filename, u
   SET_SUPPORTED(SWITCH_ROLE, SwitchRole);
   SET_SUPPORTED(READ_REMOTE_SUPPORTED_FEATURES, ReadRemoteSupportedFeatures);
   SET_SUPPORTED(READ_CLOCK_OFFSET, ReadClockOffset);
+  SET_SUPPORTED(SETUP_SYNCHRONOUS_CONNECTION, SetupSynchronousConnection);
+  SET_SUPPORTED(ACCEPT_SYNCHRONOUS_CONNECTION, AcceptSynchronousConnection);
+  SET_SUPPORTED(REJECT_SYNCHRONOUS_CONNECTION, RejectSynchronousConnection);
   SET_SUPPORTED(IO_CAPABILITY_REQUEST_REPLY, IoCapabilityRequestReply);
   SET_SUPPORTED(USER_CONFIRMATION_REQUEST_REPLY, UserConfirmationRequestReply);
   SET_SUPPORTED(USER_CONFIRMATION_REQUEST_NEGATIVE_REPLY,
@@ -653,6 +656,54 @@ void DualModeController::ReadClockOffset(CommandView command) {
       OpCode::READ_CLOCK_OFFSET, command_view.GetPayload(), handle);
 
   auto packet = bluetooth::hci::ReadClockOffsetStatusBuilder::Create(
+      status, kNumCommandPackets);
+  send_event_(std::move(packet));
+}
+
+void DualModeController::SetupSynchronousConnection(CommandView command) {
+  auto command_view = gd_hci::SetupSynchronousConnectionView::Create(
+    gd_hci::ScoConnectionCommandView::Create(
+      gd_hci::AclCommandView::Create(command)));
+  ASSERT(command_view.IsValid());
+
+  auto status = link_layer_controller_.SetupSynchronousConnection(
+    command_view.GetConnectionHandle(), command_view.GetTransmitBandwidth(),
+    command_view.GetReceiveBandwidth(), command_view.GetMaxLatency(),
+    command_view.GetVoiceSetting(), command_view.GetRetransmissionEffort(),
+    command_view.GetPacketType());
+
+  auto packet = bluetooth::hci::SetupSynchronousConnectionStatusBuilder::Create(
+      status, kNumCommandPackets);
+  send_event_(std::move(packet));
+}
+
+void DualModeController::AcceptSynchronousConnection(CommandView command) {
+  auto command_view = gd_hci::AcceptSynchronousConnectionView::Create(
+    gd_hci::ScoConnectionCommandView::Create(
+      gd_hci::AclCommandView::Create(command)));
+  ASSERT(command_view.IsValid());
+
+  auto status = link_layer_controller_.AcceptSynchronousConnection(
+    command_view.GetBdAddr(), command_view.GetTransmitBandwidth(),
+    command_view.GetReceiveBandwidth(), command_view.GetMaxLatency(),
+    command_view.GetVoiceSetting(), command_view.GetRetransmissionEffort(),
+    command_view.GetPacketType());
+
+  auto packet = bluetooth::hci::AcceptSynchronousConnectionStatusBuilder::Create(
+      status, kNumCommandPackets);
+  send_event_(std::move(packet));
+}
+
+void DualModeController::RejectSynchronousConnection(CommandView command) {
+  auto command_view = gd_hci::RejectSynchronousConnectionView::Create(
+    gd_hci::ScoConnectionCommandView::Create(
+      gd_hci::AclCommandView::Create(command)));
+  ASSERT(command_view.IsValid());
+
+  auto status = link_layer_controller_.RejectSynchronousConnection(
+    command_view.GetBdAddr(), (uint16_t)command_view.GetReason());
+
+  auto packet = bluetooth::hci::RejectSynchronousConnectionStatusBuilder::Create(
       status, kNumCommandPackets);
   send_event_(std::move(packet));
 }
