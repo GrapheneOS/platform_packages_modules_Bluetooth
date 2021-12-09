@@ -202,6 +202,8 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     /* All ASEs should aim to achieve target state */
     SetTargetState(group, AseState::BTA_LE_AUDIO_ASE_STATE_QOS_CONFIGURED);
     PrepareAndSendDisable(leAudioDevice);
+    state_machine_callbacks_->StatusReportCb(group->group_id_,
+                                             GroupStreamStatus::SUSPENDING);
   }
 
   void StopStream(LeAudioDeviceGroup* group) override {
@@ -214,12 +216,16 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     if (leAudioDevice == nullptr) {
       LOG(ERROR) << __func__
                  << " Shouldn't be called without an active device.";
+      state_machine_callbacks_->StatusReportCb(group->group_id_,
+                                               GroupStreamStatus::IDLE);
       return;
     }
 
     /* All Ases should aim to achieve target state */
     SetTargetState(group, AseState::BTA_LE_AUDIO_ASE_STATE_IDLE);
     PrepareAndSendRelease(leAudioDevice);
+    state_machine_callbacks_->StatusReportCb(group->group_id_,
+                                             GroupStreamStatus::RELEASING);
   }
 
   void ProcessGattNotifEvent(uint8_t* value, uint16_t len, struct ase* ase,
