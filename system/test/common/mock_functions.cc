@@ -21,6 +21,8 @@
 
 std::map<std::string, int> mock_function_count_map;
 
+void reset_mock_function_count_map() { mock_function_count_map.clear(); }
+
 void dump_mock_function_count_map() {
   LOG_INFO("Mock function count map size:%zu", mock_function_count_map.size());
 
