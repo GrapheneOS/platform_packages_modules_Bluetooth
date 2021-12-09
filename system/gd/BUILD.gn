@@ -46,6 +46,7 @@ config("rust_defaults") {
 
 group("gd_default_deps") {
   deps = [
+    "//bt/system:libbt-platform-protos-lite",
     "//bt/system/gd:BluetoothGeneratedDumpsysDataSchema_h",
     "//bt/system/gd:BluetoothGeneratedPackets_h",
     "//bt/system/gd/dumpsys:libbluetooth-dumpsys",
