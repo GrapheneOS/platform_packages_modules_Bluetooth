@@ -31,8 +31,8 @@ bytes = "1.0"
 cxx = { version = "=1.0.42", features = ["c++17"] }
 env_logger = "0.8"
 futures = "0.3"
-grpcio = { version = "0.8", features = ["protobuf", "protobuf-codec", "openssl"] }
-grpcio-sys = { version = "*", features = ["openssl"] }
+grpcio = { version = "0.9", features = ["protobuf", "protobuf-codec", "openssl"] }
+grpcio-sys = { version = "0.9", features = ["openssl"] }
 lazy_static = "1.4"
 log = "0.4"
 nix = "0.19"
