@@ -52,6 +52,9 @@ enum PacketType : 8 {
     LE_READ_REMOTE_FEATURES_RESPONSE = 0x2D,
     LE_CONNECTION_PARAMETER_REQUEST = 0x2E,
     LE_CONNECTION_PARAMETER_UPDATE = 0x2F,
+
+    ESCO_CONNECTION_REQUEST = 0x30,
+    ESCO_CONNECTION_RESPONSE = 0x31,
 }
 
 packet LinkLayerPacket {
@@ -376,4 +379,23 @@ packet LeConnectionParameterUpdate : LinkLayerPacket (type = LE_CONNECTION_PARAM
   interval : 16,
   latency : 16,
   timeout : 16,
+}
+
+packet EScoConnectionRequest : LinkLayerPacket (type = ESCO_CONNECTION_REQUEST) {
+  transmit_bandwidth : 32,
+  receive_bandwidth : 32,
+  max_latency : 16,
+  voice_setting : 10,
+  _reserved_ : 6,
+  retransmission_effort : 8,
+  packet_type : 16,
+}
+
+packet EScoConnectionResponse : LinkLayerPacket (type = ESCO_CONNECTION_RESPONSE) {
+  status : 8,
+  transmission_interval : 8,
+  retransmission_window : 8,
+  rx_packet_length : 16,
+  tx_packet_length : 16,
+  air_mode : 8,
 }
