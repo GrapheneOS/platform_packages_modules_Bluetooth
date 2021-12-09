@@ -32,7 +32,7 @@
 namespace bluetooth {
 namespace audio {
 
-using ::android::hardware::bluetooth::audio::V2_0::IBluetoothAudioPort;
+using ::android::hardware::bluetooth::audio::V2_2::IBluetoothAudioPort;
 using AudioCapabilities =
     ::android::hardware::bluetooth::audio::V2_0::AudioCapabilities;
 using AudioCapabilities_2_1 =
