@@ -351,8 +351,8 @@ class PublishedAudioCapabilitiesBuilder {
 
     const LeAudioLc3Config config = std::get<LeAudioLc3Config>(setting.config);
 
-    Add(setting.id, config.sampling_frequency, config.frame_duration,
-        audio_channel_counts, config.octets_per_codec_frame);
+    Add(setting.id, *config.sampling_frequency, *config.frame_duration,
+        audio_channel_counts, *config.octets_per_codec_frame);
   }
 
   void Reset() { pac_records_.clear(); }
@@ -445,10 +445,10 @@ class LeAudioAseConfigurationTest : public Test {
          ase = data.device->GetNextActiveAse(ase)) {
       if (ase->direction == kLeAudioDirectionSink)
         active_channel_num_snk +=
-            GetAudioChannelCounts(ase->codec_config.audio_channel_allocation);
+            GetAudioChannelCounts(*ase->codec_config.audio_channel_allocation);
       else
         active_channel_num_src +=
-            GetAudioChannelCounts(ase->codec_config.audio_channel_allocation);
+            GetAudioChannelCounts(*ase->codec_config.audio_channel_allocation);
     }
 
     ASSERT_EQ(data.active_channel_num_snk, active_channel_num_snk);
@@ -867,9 +867,9 @@ TEST_F(LeAudioAseConfigurationTest, test_reconnection_media) {
   uint8_t number_of_active_ases = 1;  // Right one
   auto* ase = right->GetFirstActiveAseByDirection(kLeAudioDirectionSink);
   ::le_audio::types::AudioLocations group_snk_audio_location =
-      ase->codec_config.audio_channel_allocation;
+      *ase->codec_config.audio_channel_allocation;
   ::le_audio::types::AudioLocations group_src_audio_location =
-      ase->codec_config.audio_channel_allocation;
+      *ase->codec_config.audio_channel_allocation;
 
   /* Get known requirement*/
   auto* configuration = &kDualDev_OneChanStereoSnk_48_4;

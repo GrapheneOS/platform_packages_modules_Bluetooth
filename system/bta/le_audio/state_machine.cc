@@ -1633,11 +1633,13 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
           /* We are here because of the reconnection of the single device. */
           auto* stream_conf = &group->stream_conf;
           if (ase->direction == le_audio::types::kLeAudioDirectionSource) {
-            stream_conf->source_streams.emplace_back(std::make_pair(
-                ase->cis_conn_hdl, ase->codec_config.audio_channel_allocation));
+            stream_conf->source_streams.emplace_back(
+                std::make_pair(ase->cis_conn_hdl,
+                               *ase->codec_config.audio_channel_allocation));
           } else {
-            stream_conf->sink_streams.emplace_back(std::make_pair(
-                ase->cis_conn_hdl, ase->codec_config.audio_channel_allocation));
+            stream_conf->sink_streams.emplace_back(
+                std::make_pair(ase->cis_conn_hdl,
+                               *ase->codec_config.audio_channel_allocation));
           }
         }
 

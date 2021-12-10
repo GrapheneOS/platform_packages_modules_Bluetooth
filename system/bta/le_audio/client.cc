@@ -1992,7 +1992,7 @@ class LeAudioClientImpl : public LeAudioClient {
       for (; ase != nullptr;
            ase = device->GetNextActiveAseWithSameDirection(ase)) {
         streams.emplace_back(std::make_pair(
-            ase->cis_conn_hdl, ase->codec_config.audio_channel_allocation));
+            ase->cis_conn_hdl, *ase->codec_config.audio_channel_allocation));
         num_of_channels += ase->codec_config.channel_count;
         if (sample_freq_hz == 0) {
           sample_freq_hz = ase->codec_config.GetSamplingFrequencyHz();
@@ -2013,17 +2013,17 @@ class LeAudioClientImpl : public LeAudioClient {
         }
 
         if (octets_per_frame == 0) {
-          octets_per_frame = ase->codec_config.octets_per_codec_frame;
+          octets_per_frame = *ase->codec_config.octets_per_codec_frame;
         } else {
           LOG_ASSERT(octets_per_frame ==
                      ase->codec_config.octets_per_codec_frame)
               << __func__ << " octets per frame mismatch: " << +octets_per_frame
-              << " != " << ase->codec_config.octets_per_codec_frame;
+              << " != " << *ase->codec_config.octets_per_codec_frame;
         }
 
         LOG(INFO) << __func__ << " Added CIS: " << +ase->cis_conn_hdl
                   << " to stream. Allocation: "
-                  << +ase->codec_config.audio_channel_allocation
+                  << +(*ase->codec_config.audio_channel_allocation)
                   << " sample_freq: " << +sample_freq_hz
                   << " frame_duration: " << +frame_duration_us
                   << " octects per frame: " << +octets_per_frame;
@@ -2191,7 +2191,7 @@ class LeAudioClientImpl : public LeAudioClient {
     std::vector<std::pair<uint16_t, uint32_t>> streams;
 
     stream_conf->source_streams.emplace_back(std::make_pair(
-        ase->cis_conn_hdl, ase->codec_config.audio_channel_allocation));
+        ase->cis_conn_hdl, *ase->codec_config.audio_channel_allocation));
 
     stream_conf->source_num_of_devices = 1;
     stream_conf->source_num_of_channels = 1;
@@ -2200,12 +2200,12 @@ class LeAudioClientImpl : public LeAudioClient {
     stream_conf->source_frame_duration_us =
         ase->codec_config.GetFrameDurationUs();
     stream_conf->source_octets_per_codec_frame =
-        ase->codec_config.octets_per_codec_frame;
+        *ase->codec_config.octets_per_codec_frame;
     stream_conf->valid = true;
 
     LOG(INFO) << __func__ << " Added CIS: " << +ase->cis_conn_hdl
               << " to stream. Allocation: "
-              << +ase->codec_config.audio_channel_allocation
+              << +(*ase->codec_config.audio_channel_allocation)
               << " sample_freq: " << +stream_conf->source_sample_frequency_hz
               << " frame_duration: " << +stream_conf->source_frame_duration_us
               << " octects per frame: "
