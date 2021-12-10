@@ -2039,7 +2039,6 @@ class LeAudioClientImpl : public LeAudioClient {
     stream_conf->sink_frame_duration_us = frame_duration_us;
     stream_conf->sink_octets_per_codec_frame = octets_per_frame;
     stream_conf->valid = true;
-    stream_conf->conf = group->GetActiveConfiguration();
 
     LOG(INFO) << __func__ << " configuration: " << stream_conf->conf->name;
 
@@ -2203,8 +2202,6 @@ class LeAudioClientImpl : public LeAudioClient {
     stream_conf->source_octets_per_codec_frame =
         ase->codec_config.octets_per_codec_frame;
     stream_conf->valid = true;
-
-    stream_conf->conf = group->GetActiveConfiguration();
 
     LOG(INFO) << __func__ << " Added CIS: " << +ase->cis_conn_hdl
               << " to stream. Allocation: "
