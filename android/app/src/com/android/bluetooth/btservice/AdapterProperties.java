@@ -612,6 +612,7 @@ class AdapterProperties {
             if (prop == null) {
                 prop = mRemoteDevices.addDeviceProperties(addrByte);
             }
+            device = prop.getDevice();
             prop.setBondState(state);
 
             if (state == BluetoothDevice.BOND_BONDED) {

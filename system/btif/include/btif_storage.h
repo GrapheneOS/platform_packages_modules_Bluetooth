@@ -171,12 +171,27 @@ bt_status_t btif_storage_remove_bonded_device(const RawAddress* remote_bd_addr);
 
 /*******************************************************************************
  *
- * Function         btif_storage_remove_bonded_device
+ * Function         btif_storage_load_consolidate_devices
  *
- * Description      BTIF storage API - Deletes the bonded device from NVRAM
+ * Description      BTIF storage API - Load the consolidate devices from NVRAM
+ *                  Additionally, this API also invokes the adaper_properties_cb
+ *                  and invoke_address_consolidate_cb for each of the
+ *                  consolidate devices.
  *
- * Returns          BT_STATUS_SUCCESS if the deletion was successful,
- *                  BT_STATUS_FAIL otherwise
+ ******************************************************************************/
+void btif_storage_load_consolidate_devices(void);
+
+/*******************************************************************************
+ *
+ * Function         btif_storage_load_bonded_devices
+ *
+ * Description      BTIF storage API - Loads all the bonded devices from NVRAM
+ *                  and adds to the BTA.
+ *                  Additionally, this API also invokes the adaper_properties_cb
+ *                  and remote_device_properties_cb for each of the bonded
+ *                  devices.
+ *
+ * Returns          BT_STATUS_SUCCESS if successful, BT_STATUS_FAIL otherwise
  *
  ******************************************************************************/
 bt_status_t btif_storage_load_bonded_devices(void);
