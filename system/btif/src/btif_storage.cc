@@ -39,6 +39,8 @@
 #include <string.h>
 #include <time.h>
 
+#include <vector>
+
 #include "bta_csis_api.h"
 #include "bta_groups.h"
 #include "bta_hd_api.h"
@@ -921,6 +923,58 @@ static void remove_devices_with_sample_ltk() {
                << ": removing bond to device using test TLK: " << address;
 
     btif_storage_remove_bonded_device(&address);
+  }
+}
+
+/*******************************************************************************
+ *
+ * Function         btif_storage_load_consolidate_devices
+ *
+ * Description      BTIF storage API - Load the consolidate devices from NVRAM
+ *                  Additionally, this API also invokes the adaper_properties_cb
+ *                  and invoke_address_consolidate_cb for each of the
+ *                  consolidate devices.
+ *
+ ******************************************************************************/
+void btif_storage_load_consolidate_devices(void) {
+  btif_bonded_devices_t bonded_devices;
+  btif_in_fetch_bonded_devices(&bonded_devices, 1);
+
+  std::vector<std::pair<RawAddress, RawAddress>> consolidated_devices;
+  for (uint16_t i = 0; i < bonded_devices.num_devices; i++) {
+    // RawAddress* p_remote_addr;
+    tBTA_LE_KEY_VALUE key = {};
+    if (btif_storage_get_ble_bonding_key(
+            bonded_devices.devices[i], BTM_LE_KEY_PID, (uint8_t*)&key,
+            sizeof(tBTM_LE_PID_KEYS)) == BT_STATUS_SUCCESS) {
+      if (bonded_devices.devices[i] != key.pid_key.identity_addr) {
+        LOG_INFO("found consolidated device %s %s",
+                 bonded_devices.devices[i].ToString().c_str(),
+                 key.pid_key.identity_addr.ToString().c_str());
+        consolidated_devices.emplace_back(bonded_devices.devices[i],
+                                          key.pid_key.identity_addr);
+      }
+    }
+  }
+
+  bt_property_t adapter_prop = {};
+  /* Send the adapter_properties_cb with bonded consolidated device */
+  {
+    /* BONDED_DEVICES */
+    auto devices_list =
+        std::make_unique<RawAddress[]>(consolidated_devices.size());
+    adapter_prop.type = BT_PROPERTY_ADAPTER_BONDED_DEVICES;
+    adapter_prop.len = consolidated_devices.size() * sizeof(RawAddress);
+    adapter_prop.val = devices_list.get();
+    for (uint16_t i = 0; i < consolidated_devices.size(); i++) {
+      devices_list[i] = consolidated_devices[i].first;
+    }
+    btif_adapter_properties_evt(BT_STATUS_SUCCESS, /* num_props */ 1,
+                                &adapter_prop);
+  }
+
+  for (const auto& device : consolidated_devices) {
+    invoke_address_consolidate_cb(device.first, device.second);
   }
 }
 
