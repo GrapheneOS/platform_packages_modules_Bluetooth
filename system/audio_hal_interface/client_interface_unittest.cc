@@ -162,6 +162,8 @@ class TestSinkTransport
   }
   void MetadataChanged(
       const source_metadata_t& source_metadata __unused) override {}
+  void SinkMetadataChanged(
+      const sink_metadata_t& sink_metadata __unused) override {}
   void ResetPresentationPosition() override{};
   void LogBytesRead(size_t bytes_readed __unused) override{};
 };
@@ -200,6 +202,8 @@ class TestSourceTransport
   }
   void MetadataChanged(
       const source_metadata_t& source_metadata __unused) override {}
+  void SinkMetadataChanged(
+      const sink_metadata_t& sink_metadata __unused) override {}
   void ResetPresentationPosition() override{};
   void LogBytesWritten(size_t bytes_written __unused) override{};
 };

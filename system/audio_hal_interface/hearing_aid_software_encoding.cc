@@ -106,6 +106,8 @@ class HearingAidTransport
     }
   }
 
+  void SinkMetadataChanged(const sink_metadata_t&) override {}
+
   void ResetPresentationPosition() override {
     VLOG(2) << __func__ << ": called.";
     remote_delay_report_ms_ = 0;
