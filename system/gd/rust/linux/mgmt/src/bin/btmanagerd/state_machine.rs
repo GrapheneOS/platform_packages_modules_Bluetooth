@@ -445,6 +445,7 @@ pub trait ProcessManager {
 }
 
 pub enum Invoker {
+    #[allow(dead_code)]
     NativeInvoker,
     SystemdInvoker,
     UpstartInvoker,
