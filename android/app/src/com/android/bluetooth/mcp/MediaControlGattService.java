@@ -1119,7 +1119,7 @@ public class MediaControlGattService implements MediaControlGattServiceInterface
 
         if (stateFields.containsKey(PlayerStateField.PLAYER_NAME)) {
             String name = (String) stateFields.get(PlayerStateField.PLAYER_NAME);
-            if (name.compareTo(getPlayerNameChar()) != 0) {
+            if ((getPlayerNameChar() != null) && (name.compareTo(getPlayerNameChar()) != 0)) {
                 updatePlayerNameChar(name, doNotifyValueChange);
 
                 // Most likely the player has changed - request critical info fields
