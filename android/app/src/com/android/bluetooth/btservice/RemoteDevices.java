@@ -198,7 +198,14 @@ final class RemoteDevices {
 
     DeviceProperties getDeviceProperties(BluetoothDevice device) {
         synchronized (mDevices) {
-            return mDevices.get(device.getAddress());
+            DeviceProperties prop = mDevices.get(device.getAddress());
+            if (prop == null) {
+                String mainAddress = mDualDevicesMap.get(device.getAddress());
+                if (mainAddress != null && mDevices.get(mainAddress) != null) {
+                    prop = mDevices.get(mainAddress);
+                }
+            }
+            return prop;
         }
     }
 

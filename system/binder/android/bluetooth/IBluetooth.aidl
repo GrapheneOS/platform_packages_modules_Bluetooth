@@ -196,7 +196,7 @@ interface IBluetooth
     @JavaPassthrough(annotation="@android.annotation.RequiresNoPermission")
     boolean isLePeriodicAdvertisingSupported();
     @JavaPassthrough(annotation="@android.annotation.RequiresNoPermission")
-    int isCisCentralSupported();
+    int isLeAudioSupported();
     @JavaPassthrough(annotation="@android.annotation.RequiresNoPermission")
     int isLePeriodicAdvertisingSyncTransferSenderSupported();
     @JavaPassthrough(annotation="@android.annotation.RequiresNoPermission")

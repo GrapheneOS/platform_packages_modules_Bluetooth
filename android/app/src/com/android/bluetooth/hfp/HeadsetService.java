@@ -516,6 +516,16 @@ public class HeadsetService extends ProfileService {
         }
 
         @Override
+        public boolean setPriority(BluetoothDevice device, int connectionPolicy,
+                AttributionSource source) {
+            HeadsetService service = getService(source);
+            if (service == null) {
+                return false;
+            }
+            return service.setConnectionPolicy(device, connectionPolicy);
+        }
+
+        @Override
         public boolean setConnectionPolicy(BluetoothDevice device, int connectionPolicy,
                 AttributionSource source) {
             HeadsetService service = getService(source);

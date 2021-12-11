@@ -17,14 +17,15 @@
 #define LOG_TAG "BTAudioClientIf"
 
 #include "client_interface.h"
-#include "hal_version_manager.h"
 
-#include <android/hardware/bluetooth/audio/2.0/IBluetoothAudioPort.h>
+#include <android/hardware/bluetooth/audio/2.2/IBluetoothAudioPort.h>
 #include <base/logging.h>
 #include <hidl/MQDescriptor.h>
+
 #include <future>
 
 #include "common/stop_watch_legacy.h"
+#include "hal_version_manager.h"
 #include "osi/include/log.h"
 
 namespace bluetooth {
@@ -33,8 +34,9 @@ namespace audio {
 using ::android::hardware::hidl_vec;
 using ::android::hardware::Return;
 using ::android::hardware::Void;
+using ::android::hardware::audio::common::V5_0::SinkMetadata;
 using ::android::hardware::audio::common::V5_0::SourceMetadata;
-using ::android::hardware::bluetooth::audio::V2_0::IBluetoothAudioPort;
+using ::android::hardware::bluetooth::audio::V2_2::IBluetoothAudioPort;
 using ::bluetooth::common::StopWatchLegacy;
 
 using DataMQ = ::android::hardware::MessageQueue<
@@ -153,6 +155,13 @@ class BluetoothAudioPortImpl : public IBluetoothAudioPort {
     const source_metadata_t source_metadata = {
         .track_count = metadata_vec.size(), .tracks = metadata_vec.data()};
     transport_instance_->MetadataChanged(source_metadata);
+    return Void();
+  }
+
+  Return<void> updateSinkMetadata(const SinkMetadata& sinkMetadata) override {
+    StopWatchLegacy stop_watch(__func__);
+    LOG(INFO) << __func__ << ": " << sinkMetadata.tracks.size() << " track(s)";
+    // TODO: pass the metadata up to transport_instance and LE Audio
     return Void();
   }
 
