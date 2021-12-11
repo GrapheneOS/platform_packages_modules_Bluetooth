@@ -43,7 +43,7 @@ public class MetricsLogger {
      * Intent indicating Bluetooth counter metrics should send logs to BluetoothStatsLog
      */
     public static final String BLUETOOTH_COUNTER_METRICS_ACTION =
-            "com.android.bluetooth.map.BLUETOOTH_COUNTER_METRICS_ACTION";
+            "com.android.bluetooth.btservice.BLUETOOTH_COUNTER_METRICS_ACTION";
     // 6 hours timeout for counter metrics
     private static final long BLUETOOTH_COUNTER_METRICS_ACTION_DURATION_MILLIS = 6L * 3600L * 1000L;
 
@@ -205,6 +205,7 @@ public class MetricsLogger {
 
     private PendingIntent getDrainIntent() {
         Intent counterMetricsIntent = new Intent(BLUETOOTH_COUNTER_METRICS_ACTION);
+        counterMetricsIntent.setPackage("com.android.bluetooth");
         return PendingIntent.getBroadcast(
                 mContext, 0, counterMetricsIntent, PendingIntent.FLAG_IMMUTABLE);
     }
