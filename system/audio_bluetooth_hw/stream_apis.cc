@@ -1143,9 +1143,16 @@ static int in_set_microphone_field_dimension(
 
 static void in_update_sink_metadata(struct audio_stream_in* stream,
                                     const struct sink_metadata* sink_metadata) {
+  LOG(INFO) << __func__;
+  if (sink_metadata == nullptr || sink_metadata->track_count == 0) {
+    return;
+  }
+
   const auto* in = reinterpret_cast<const BluetoothStreamIn*>(stream);
-  LOG(VERBOSE) << __func__
-               << ": NOT HANDLED! state=" << in->bluetooth_input_.GetState();
+  LOG(INFO) << __func__ << ": state=" << in->bluetooth_input_.GetState() << ", "
+            << sink_metadata->track_count << " track(s)";
+
+  in->bluetooth_input_.UpdateSinkMetadata(sink_metadata);
 }
 
 int adev_open_input_stream(struct audio_hw_device* dev,

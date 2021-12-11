@@ -535,6 +535,21 @@ void BluetoothAudioPort::UpdateMetadata(
                                                          source_metadata);
 }
 
+void BluetoothAudioPort::UpdateSinkMetadata(
+    const sink_metadata* sink_metadata) const {
+  if (!in_use()) {
+    LOG(ERROR) << __func__ << ": BluetoothAudioPort is not in use";
+    return;
+  }
+  LOG(DEBUG) << __func__ << ": session_type=" << toString(session_type_)
+             << ", cookie=" << StringPrintf("%#hx", cookie_)
+             << ", state=" << state_ << ", " << sink_metadata->track_count
+             << " track(s)";
+  if (sink_metadata->track_count == 0) return;
+  BluetoothAudioSessionControl_2_2::UpdateSinkMetadata(session_type_,
+                                                       sink_metadata);
+}
+
 BluetoothStreamState BluetoothAudioPort::GetState() const { return state_; }
 
 void BluetoothAudioPort::SetState(BluetoothStreamState state) {
