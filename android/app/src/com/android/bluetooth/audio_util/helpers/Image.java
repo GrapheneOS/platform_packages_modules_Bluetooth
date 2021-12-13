@@ -56,12 +56,18 @@ public class Image {
     public Image(Context context, MediaMetadata metadata) {
         mContext = context;
 
-        String uri_art = metadata.getString(MediaMetadata.METADATA_KEY_ART_URI);
-        String uri_album_art = metadata.getString(MediaMetadata.METADATA_KEY_ALBUM_ART_URI);
-        String uri_icon = metadata.getString(MediaMetadata.METADATA_KEY_DISPLAY_ICON_URI);
+        String uri_art = null;
+        String uri_album_art = null;
+        String uri_icon = null;
         Bitmap bmp_art = metadata.getBitmap(MediaMetadata.METADATA_KEY_ART);
         Bitmap bmp_album_art = metadata.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART);
         Bitmap bmp_icon = metadata.getBitmap(MediaMetadata.METADATA_KEY_DISPLAY_ICON);
+
+        if (mContext != null && Util.areUriImagesSupported(mContext)) {
+            uri_art = metadata.getString(MediaMetadata.METADATA_KEY_ART_URI);
+            uri_album_art = metadata.getString(MediaMetadata.METADATA_KEY_ALBUM_ART_URI);
+            uri_icon = metadata.getString(MediaMetadata.METADATA_KEY_DISPLAY_ICON_URI);
+        }
 
         if (bmp_art != null) {
             setImage(bmp_art);
@@ -84,12 +90,18 @@ public class Image {
     public Image(Context context, Bundle bundle) {
         mContext = context;
 
-        String uri_art = bundle.getString(MediaMetadata.METADATA_KEY_ART_URI);
-        String uri_album_art = bundle.getString(MediaMetadata.METADATA_KEY_ALBUM_ART_URI);
-        String uri_icon = bundle.getString(MediaMetadata.METADATA_KEY_DISPLAY_ICON_URI);
+        String uri_art = null;
+        String uri_album_art = null;
+        String uri_icon = null;
         Bitmap bmp_art = bundle.getParcelable(MediaMetadata.METADATA_KEY_ART);
         Bitmap bmp_album_art = bundle.getParcelable(MediaMetadata.METADATA_KEY_ALBUM_ART);
         Bitmap bmp_icon = bundle.getParcelable(MediaMetadata.METADATA_KEY_DISPLAY_ICON);
+
+        if (mContext != null && Util.areUriImagesSupported(mContext)) {
+            uri_art = bundle.getString(MediaMetadata.METADATA_KEY_ART_URI);
+            uri_album_art = bundle.getString(MediaMetadata.METADATA_KEY_ALBUM_ART_URI);
+            uri_icon = bundle.getString(MediaMetadata.METADATA_KEY_DISPLAY_ICON_URI);
+        }
 
         if (bmp_art != null) {
             setImage(bmp_art);

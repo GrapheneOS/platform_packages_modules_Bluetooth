@@ -38,6 +38,8 @@ import android.test.mock.MockContentResolver;
 import androidx.test.InstrumentationRegistry;
 import androidx.test.runner.AndroidJUnit4;
 
+import com.android.bluetooth.R;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -52,6 +54,7 @@ public class ImageTest {
     private Context mTargetContext;
 
     private @Mock Context mMockContext;
+    private @Mock Resources mMockResources;
     private Resources mTestResources;
     private MockContentResolver mTestContentResolver;
 
@@ -104,6 +107,8 @@ public class ImageTest {
         });
 
         when(mMockContext.getContentResolver()).thenReturn(mTestContentResolver);
+        when(mMockContext.getResources()).thenReturn(mMockResources);
+        when(mMockResources.getBoolean(R.bool.avrcp_target_cover_art_uri_images)).thenReturn(true);
     }
 
     @After
@@ -270,6 +275,55 @@ public class ImageTest {
     }
 
     /**
+     * Make sure no image is set when you create an Image from a MediaMetadata object that contains
+     * cover artwork as an Art Uri and Bluetooth is not configured to support URI images.
+     */
+    @Test
+    public void testCreateImageFromMediaMetadataWithArtUriDisabled() {
+        when(mMockResources.getBoolean(R.bool.avrcp_target_cover_art_uri_images))
+                .thenReturn(false);
+        MediaMetadata metadata =
+                getMediaMetadataWithUri(MediaMetadata.METADATA_KEY_ART_URI, IMAGE_STRING_1);
+        Image artwork = new Image(mMockContext, metadata);
+        assertThat(artwork.getImage()).isNull();
+        assertThat(artwork.getSource()).isEqualTo(Image.SOURCE_NONE);
+        assertThat(artwork.getImageHandle()).isNull();
+    }
+
+    /**
+     * Make sure no image is set when you create an Image from a MediaMetadata object that contains
+     * cover artwork as an Album Art Uri and Bluetooth is not configured to support URI images.
+     */
+    @Test
+    public void testCreateImageFromMediaMetadataWithAlbumArtUriDisabled() {
+        when(mMockResources.getBoolean(R.bool.avrcp_target_cover_art_uri_images))
+                .thenReturn(false);
+        MediaMetadata metadata =
+                getMediaMetadataWithUri(MediaMetadata.METADATA_KEY_ALBUM_ART_URI, IMAGE_STRING_1);
+        Image artwork = new Image(mMockContext, metadata);
+        assertThat(artwork.getImage()).isNull();
+        assertThat(artwork.getSource()).isEqualTo(Image.SOURCE_NONE);
+        assertThat(artwork.getImageHandle()).isNull();
+    }
+
+    /**
+     * Make sure no image is set when you create an Image from a MediaMetadata object that contains
+     * cover artwork as a Display Icon Uri and Bluetooth is not configured to support URI images.
+     */
+    @Test
+    public void testCreateImageFromMediaMetadataWithDisplayIconUriDisabled() {
+        when(mMockResources.getBoolean(R.bool.avrcp_target_cover_art_uri_images))
+                .thenReturn(false);
+        MediaMetadata metadata =
+                getMediaMetadataWithUri(MediaMetadata.METADATA_KEY_DISPLAY_ICON_URI,
+                        IMAGE_STRING_1);
+        Image artwork = new Image(mMockContext, metadata);
+        assertThat(artwork.getImage()).isNull();
+        assertThat(artwork.getSource()).isEqualTo(Image.SOURCE_NONE);
+        assertThat(artwork.getImageHandle()).isNull();
+    }
+
+    /**
      * Make sure you can create an Image from a MediaMetadata object that contains no cover artwork
      */
     @Test
@@ -394,6 +448,52 @@ public class ImageTest {
         Image artwork = new Image(mMockContext, bundle);
         assertThat(mTestBitmap.sameAs(artwork.getImage())).isTrue();
         assertThat(artwork.getSource()).isEqualTo(Image.SOURCE_URI);
+        assertThat(artwork.getImageHandle()).isNull();
+    }
+
+    /**
+     * Make sure no image is set when you create an Image from a Bundle that contains cover artwork
+     * as an Art Uri and Bluetooth is not configured to support URI images.
+     */
+    @Test
+    public void testCreateImageFromBundleWithArtUriDisabled() {
+        when(mMockResources.getBoolean(R.bool.avrcp_target_cover_art_uri_images))
+                .thenReturn(false);
+        Bundle bundle = getBundleWithUri(MediaMetadata.METADATA_KEY_ART_URI, IMAGE_STRING_1);
+        Image artwork = new Image(mMockContext, bundle);
+        assertThat(artwork.getImage()).isNull();
+        assertThat(artwork.getSource()).isEqualTo(Image.SOURCE_NONE);
+        assertThat(artwork.getImageHandle()).isNull();
+    }
+
+    /**
+     * Make sure no image is set when you create an Image from a Bundle that contains cover artwork
+     * as an Album Art Uri and Bluetooth is not configured to support URI images.
+     */
+    @Test
+    public void testCreateImageFromBundleWithAlbumArtUriDisabled() {
+        when(mMockResources.getBoolean(R.bool.avrcp_target_cover_art_uri_images))
+                .thenReturn(false);
+        Bundle bundle = getBundleWithUri(MediaMetadata.METADATA_KEY_ALBUM_ART_URI, IMAGE_STRING_1);
+        Image artwork = new Image(mMockContext, bundle);
+        assertThat(artwork.getImage()).isNull();
+        assertThat(artwork.getSource()).isEqualTo(Image.SOURCE_NONE);
+        assertThat(artwork.getImageHandle()).isNull();
+    }
+
+    /**
+     * Make sure no image is set when you create an Image from a Bundle that contains cover artwork
+     * as a Display Icon Uri and Bluetooth is not configured to support URI images.
+     */
+    @Test
+    public void testCreateImageFromBundleWithDisplayIconUriDisabled() {
+        when(mMockResources.getBoolean(R.bool.avrcp_target_cover_art_uri_images))
+                .thenReturn(false);
+        Bundle bundle =
+                getBundleWithUri(MediaMetadata.METADATA_KEY_DISPLAY_ICON_URI, IMAGE_STRING_1);
+        Image artwork = new Image(mMockContext, bundle);
+        assertThat(artwork.getImage()).isNull();
+        assertThat(artwork.getSource()).isEqualTo(Image.SOURCE_NONE);
         assertThat(artwork.getImageHandle()).isNull();
     }
 
