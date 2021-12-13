@@ -46,6 +46,13 @@ class ActivityAttributionInterfaceImpl
 
   void Cleanup(void) override{};
 
+  void NotifyActivityAttributionInfo(
+      int uid, const std::string& package_name,
+      const std::string& device_address) override {
+    bluetooth::shim::GetActivityAttribution()->NotifyActivityAttributionInfo(
+        uid, package_name, device_address);
+  }
+
   void OnWakeup(const Activity activity,
                 const bluetooth::hci::Address& address) override {
     do_in_jni_thread(

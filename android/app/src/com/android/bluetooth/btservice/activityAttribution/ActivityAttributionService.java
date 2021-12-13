@@ -95,6 +95,16 @@ public class ActivityAttributionService {
         mActivityAttributionNativeInterface.init();
     }
 
+    /** Notify the UID and package name of the app, and the address of associated active device */
+    public void notifyActivityAttributionInfo(int uid, String packageName, String deviceAddress) {
+        Log.d(TAG, "notifyActivityAttributionInfo"
+                + " UID=" + uid
+                + " packageName=" + packageName
+                + " deviceAddress=" + deviceAddress);
+        mActivityAttributionNativeInterface.notifyActivityAttributionInfo(
+                uid, packageName, deviceAddress);
+    }
+
     private boolean isAvailable() {
         return !mCleaningUp;
     }
