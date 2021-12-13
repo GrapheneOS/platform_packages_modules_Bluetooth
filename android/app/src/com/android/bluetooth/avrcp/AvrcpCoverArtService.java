@@ -35,14 +35,20 @@ import javax.obex.ServerSession;
 /**
  * The AVRCP Cover Art Service
  *
- * This service handles allocation of image handles and storage of images. It also owns the BIP OBEX
- * server that handles requests to get AVRCP cover artwork.
+ * This service handles allocation of image handles and storage of images. It also owns the
+ * BIP OBEX server that handles requests to get AVRCP cover artwork.
  */
 public class AvrcpCoverArtService {
     private static final String TAG = "AvrcpCoverArtService";
     private static final boolean DEBUG = Log.isLoggable(TAG, Log.DEBUG);
 
     private static final int COVER_ART_STORAGE_MAX_ITEMS = 32;
+
+    /**
+     * Limiting transmit packet size because some carkits are disconnected if
+     * AVRCP Cover Art OBEX packet size exceed 1024 bytes.
+     */
+    private static final int MAX_TRANSMIT_PACKET_SIZE = 1024;
 
     private final Context mContext;
 
@@ -207,7 +213,10 @@ public class AvrcpCoverArtService {
                     disconnect(device);
                 }
             });
-            BluetoothObexTransport transport = new BluetoothObexTransport(socket);
+            BluetoothObexTransport transport = new BluetoothObexTransport(socket,
+                    MAX_TRANSMIT_PACKET_SIZE,
+                    BluetoothObexTransport.PACKET_SIZE_UNSPECIFIED);
+            transport.setConnectionForCoverArt(true);
             try {
                 ServerSession session = new ServerSession(transport, s, null);
                 mClients.put(device, session);
