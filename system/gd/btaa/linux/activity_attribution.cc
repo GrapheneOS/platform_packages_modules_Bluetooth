@@ -34,6 +34,9 @@ void ActivityAttribution::Capture(const hal::HciPacket& packet, hal::SnoopLogger
 
 void ActivityAttribution::RegisterActivityAttributionCallback(ActivityAttributionCallback* callback) {}
 
+void ActivityAttribution::NotifyActivityAttributionInfo(
+    int uid, const std::string& package_name, const std::string& device_address) {}
+
 std::string ActivityAttribution::ToString() const {
   return "Btaa Module";
 }

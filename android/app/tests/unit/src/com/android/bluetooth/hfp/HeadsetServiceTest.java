@@ -145,6 +145,7 @@ public class HeadsetServiceTest {
         TestUtils.startService(mServiceRule, HeadsetService.class);
         mHeadsetService = HeadsetService.getHeadsetService();
         Assert.assertNotNull(mHeadsetService);
+        verify(mAdapterService).notifyActivityAttributionInfo(any(), any());
         verify(mObjectsFactory).makeSystemInterface(mHeadsetService);
         verify(mObjectsFactory).getNativeInterface();
         mHeadsetServiceBinder = (IBluetoothHeadset.Stub) mHeadsetService.initBinder();
