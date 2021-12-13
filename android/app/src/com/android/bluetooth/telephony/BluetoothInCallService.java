@@ -170,6 +170,8 @@ public class BluetoothInCallService extends InCallService {
                 Log.d(TAG, "Bluetooth Adapter state: " + state);
                 if (state == BluetoothAdapter.STATE_ON) {
                     queryPhoneState();
+                } else if (state == BluetoothAdapter.STATE_TURNING_OFF) {
+                    clear();
                 }
             }
         }
@@ -620,6 +622,12 @@ public class BluetoothInCallService extends InCallService {
     @Override
     public void onDestroy() {
         Log.d(TAG, "onDestroy");
+        clear();
+        super.onDestroy();
+    }
+
+    private void clear() {
+        Log.d(TAG, "clear");
         if (mBluetoothOnModeChangedListener != null) {
             mAudioManager.removeOnModeChangedListener(mBluetoothOnModeChangedListener);
             mBluetoothOnModeChangedListener = null;
@@ -628,8 +636,15 @@ public class BluetoothInCallService extends InCallService {
             unregisterReceiver(mBluetoothAdapterReceiver);
             mBluetoothAdapterReceiver = null;
         }
+        if (mBluetoothHeadset != null) {
+            mBluetoothHeadset.closeBluetoothHeadsetProxy(this);
+            mBluetoothHeadset = null;
+        }
+        mProfileListener = null;
         sInstance = null;
-        super.onDestroy();
+        mCallbacks.clear();
+        mBluetoothCallHashMap.clear();
+        mClccIndexMap.clear();
     }
 
     private void sendListOfCalls(boolean shouldLog) {
