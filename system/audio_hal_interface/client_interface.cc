@@ -161,7 +161,18 @@ class BluetoothAudioPortImpl : public IBluetoothAudioPort {
   Return<void> updateSinkMetadata(const SinkMetadata& sinkMetadata) override {
     StopWatchLegacy stop_watch(__func__);
     LOG(INFO) << __func__ << ": " << sinkMetadata.tracks.size() << " track(s)";
-    // TODO: pass the metadata up to transport_instance and LE Audio
+    // refer to StreamIn.impl.h within Audio HAL (AUDIO_HAL_VERSION_5_0)
+    std::vector<record_track_metadata> metadata_vec;
+    metadata_vec.reserve(sinkMetadata.tracks.size());
+    for (const auto& metadata : sinkMetadata.tracks) {
+      metadata_vec.push_back({
+          .source = static_cast<audio_source_t>(metadata.source),
+          .gain = metadata.gain,
+      });
+    }
+    const sink_metadata_t sink_metadata = {.track_count = metadata_vec.size(),
+                                           .tracks = metadata_vec.data()};
+    transport_instance_->SinkMetadataChanged(sink_metadata);
     return Void();
   }
 
