@@ -817,6 +817,10 @@ struct Controller::impl {
       OP_CODE_MAPPING(CONFIGURE_DATA_PATH)
       OP_CODE_MAPPING(ENHANCED_FLUSH)
 
+      // deprecated
+      case OpCode::ADD_SCO_CONNECTION:
+        return false;
+
       // vendor specific
       case OpCode::LE_GET_VENDOR_CAPABILITIES:
         return vendor_capabilities_.is_supported_ == 0x01;
