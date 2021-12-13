@@ -37,6 +37,7 @@ public final class ActivityAttributionServiceTest {
     public void setUp() {
         Assume.assumeTrue("Ignore test when the user is not primary.", isPrimaryUser());
         mActivityAttributionService = new ActivityAttributionService();
+        mActivityAttributionService.start();
         assertThat(mActivityAttributionService).isNotNull();
     }
 
@@ -55,4 +56,9 @@ public final class ActivityAttributionServiceTest {
 
     @Test
     public void testSetUpAndTearDown() {}
+
+    @Test
+    public void testNotifyActivityAttributionInfo() {
+        mActivityAttributionService.notifyActivityAttributionInfo(1, "myApp", "address1");
+    }
 }

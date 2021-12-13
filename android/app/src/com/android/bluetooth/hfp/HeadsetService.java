@@ -175,6 +175,11 @@ public class HeadsetService extends ProfileService {
         // Step 7: Mark service as started
         setHeadsetService(this);
         mStarted = true;
+        BluetoothDevice activeDevice = getActiveDevice();
+        String deviceAddress = activeDevice != null ?
+                activeDevice.getAddress() :
+                AdapterService.ACTIVITY_ATTRIBUTION_NO_ACTIVE_DEVICE_ADDRESS;
+        mAdapterService.notifyActivityAttributionInfo(getAttributionSource(), deviceAddress);
         return true;
     }
 
@@ -188,6 +193,11 @@ public class HeadsetService extends ProfileService {
             return true;
         }
         // Step 7: Mark service as stopped
+        BluetoothDevice activeDevice = getActiveDevice();
+        String deviceAddress = activeDevice != null ?
+                activeDevice.getAddress() :
+                AdapterService.ACTIVITY_ATTRIBUTION_NO_ACTIVE_DEVICE_ADDRESS;
+        mAdapterService.notifyActivityAttributionInfo(getAttributionSource(), deviceAddress);
         mStarted = false;
         setHeadsetService(null);
         // Step 6: Tear down broadcast receivers

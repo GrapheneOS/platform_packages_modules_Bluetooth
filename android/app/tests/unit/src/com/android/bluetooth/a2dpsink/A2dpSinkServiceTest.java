@@ -102,6 +102,7 @@ public class A2dpSinkServiceTest {
         TestUtils.startService(mServiceRule, A2dpSinkService.class);
         mService = A2dpSinkService.getA2dpSinkService();
         assertThat(mService).isNotNull();
+        verify(mAdapterService).notifyActivityAttributionInfo(any(), any());
 
         mService.mNativeInterface = mNativeInterface;
         doReturn(true).when(mNativeInterface).setActiveDevice(any());
