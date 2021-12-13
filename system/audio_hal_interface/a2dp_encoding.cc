@@ -163,6 +163,8 @@ class A2dpTransport
     }
   }
 
+  void SinkMetadataChanged(const sink_metadata_t&) override {}
+
   tA2DP_CTRL_CMD GetPendingCmd() const { return a2dp_pending_cmd_; }
 
   void ResetPendingCmd() { a2dp_pending_cmd_ = A2DP_CTRL_CMD_NONE; }

@@ -119,6 +119,18 @@ class LeAudioTransport {
     stream_cb_.on_metadata_update_(source_metadata);
   }
 
+  void SinkMetadataChanged(const sink_metadata_t& sink_metadata) {
+    auto track_count = sink_metadata.track_count;
+
+    if (track_count == 0) {
+      LOG(WARNING) << ", invalid number of metadata changed tracks";
+      return;
+    }
+
+    if (stream_cb_.on_sink_metadata_update_)
+      stream_cb_.on_sink_metadata_update_(sink_metadata);
+  }
+
   void ResetPresentationPosition() {
     VLOG(2) << __func__ << ": called.";
     remote_delay_report_ms_ = 0;
@@ -206,6 +218,10 @@ class LeAudioSinkTransport
     transport_->MetadataChanged(source_metadata);
   }
 
+  void SinkMetadataChanged(const sink_metadata_t& sink_metadata) override {
+    transport_->SinkMetadataChanged(sink_metadata);
+  }
+
   void ResetPresentationPosition() override {
     transport_->ResetPresentationPosition();
   }
@@ -277,6 +293,10 @@ class LeAudioSourceTransport
 
   void MetadataChanged(const source_metadata_t& source_metadata) override {
     transport_->MetadataChanged(source_metadata);
+  }
+
+  void SinkMetadataChanged(const sink_metadata_t& sink_metadata) override {
+    transport_->SinkMetadataChanged(sink_metadata);
   }
 
   void ResetPresentationPosition() override {
