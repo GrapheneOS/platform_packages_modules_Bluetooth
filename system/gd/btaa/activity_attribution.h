@@ -57,6 +57,7 @@ class ActivityAttribution : public bluetooth::Module {
   void OnWakelockReleased();
   void OnWakeup();
   void RegisterActivityAttributionCallback(ActivityAttributionCallback* callback);
+  void NotifyActivityAttributionInfo(int uid, const std::string& package_name, const std::string& device_address);
 
   static const ModuleFactory Factory;
 
