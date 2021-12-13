@@ -44,6 +44,7 @@ struct StreamCallbacks {
   std::function<bool(bool start_media_task)> on_resume_;
   std::function<bool(void)> on_suspend_;
   std::function<bool(const source_metadata_t&)> on_metadata_update_;
+  std::function<bool(const sink_metadata_t&)> on_sink_metadata_update_;
 };
 
 class LeAudioClientInterface {
