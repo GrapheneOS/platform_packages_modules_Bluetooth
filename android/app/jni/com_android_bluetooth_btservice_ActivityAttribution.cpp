@@ -157,10 +157,41 @@ static void cleanupNative(JNIEnv* env, jobject object) {
   }
 }
 
+static void notifyActivityAttributionInfoNative(JNIEnv* env, jobject object,
+                                                jint uid, jstring packageName,
+                                                jstring deviceAddress) {
+  const bt_interface_t* btInf = getBluetoothInterface();
+  if (btInf == nullptr) {
+    LOG(ERROR) << "Bluetooth module is not loaded";
+    return;
+  }
+  sActivityAttributionInterface =
+      (ActivityAttributionInterface*)btInf->get_profile_interface(
+          BT_ACTIVITY_ATTRIBUTION_ID);
+  if (sActivityAttributionInterface == nullptr) {
+    LOG(ERROR) << "Failed to get ActivityAttribution Interface";
+    return;
+  }
+
+  if (packageName == nullptr || deviceAddress == nullptr) {
+    LOG(ERROR) << "Failed to get package name or device address";
+    return;
+  }
+  const char* nativeName = env->GetStringUTFChars(packageName, nullptr);
+  const char* nativeAddress = env->GetStringUTFChars(deviceAddress, nullptr);
+  sActivityAttributionInterface->NotifyActivityAttributionInfo(uid, nativeName,
+                                                               nativeAddress);
+  env->ReleaseStringUTFChars(packageName, nativeName);
+  env->ReleaseStringUTFChars(deviceAddress, nativeAddress);
+}
+
 static JNINativeMethod sMethods[] = {
     {"classInitNative", "()V", (void*)classInitNative},
     {"initNative", "()V", (void*)initNative},
     {"cleanupNative", "()V", (void*)cleanupNative},
+    {"notifyActivityAttributionInfoNative",
+     "(ILjava/lang/String;Ljava/lang/String;)V",
+     (void*)notifyActivityAttributionInfoNative},
 };
 
 int register_com_android_bluetooth_btservice_activity_attribution(JNIEnv* env) {

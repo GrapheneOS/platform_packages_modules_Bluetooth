@@ -232,6 +232,9 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
         mNotifier.updateNotification();
         updateFromProvider();
         setBluetoothOppService(this);
+        mAdapterService.notifyActivityAttributionInfo(
+                getAttributionSource(),
+                AdapterService.ACTIVITY_ATTRIBUTION_NO_ACTIVE_DEVICE_ADDRESS);
         return true;
     }
 
@@ -241,6 +244,9 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
             Log.w(TAG, "stop() called before start()");
             return true;
         }
+        mAdapterService.notifyActivityAttributionInfo(
+                getAttributionSource(),
+                AdapterService.ACTIVITY_ATTRIBUTION_NO_ACTIVE_DEVICE_ADDRESS);
         setBluetoothOppService(null);
         mHandler.sendMessage(mHandler.obtainMessage(STOP_LISTENER));
         return true;
