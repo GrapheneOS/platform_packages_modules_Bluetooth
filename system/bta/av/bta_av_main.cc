@@ -166,8 +166,8 @@ static void bta_av_api_enable(tBTA_AV_DATA* p_data) {
   /* store parameters */
   bta_av_cb.p_cback = p_data->api_enable.p_cback;
   bta_av_cb.features = p_data->api_enable.features;
-  bta_av_cb.offload_start_pending_hndl = 0;
-  bta_av_cb.offload_started_hndl = 0;
+  bta_av_cb.offload_start_pending_hndl = BTA_AV_INVALID_HANDLE;
+  bta_av_cb.offload_started_hndl = BTA_AV_INVALID_HANDLE;
 
   tBTA_AV_ENABLE enable;
   enable.features = bta_av_cb.features;
