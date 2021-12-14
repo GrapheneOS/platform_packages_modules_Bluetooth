@@ -15,7 +15,9 @@ Example MH testbed config for Hostside:
   dimensions:
     device: GrpcBtSyncStub
 """
+
 import subprocess
+from typing import Any, Dict, Optional, Tuple
 
 from absl import flags
 from absl import logging
@@ -25,6 +27,7 @@ import grpc
 from blueberry.grpc.proto import blueberry_device_controller_pb2
 from blueberry.grpc.proto import blueberry_device_controller_pb2_grpc
 
+
 FLAGS = flags.FLAGS
 flags.DEFINE_string('server', 'dns:///[::1]:10000', 'server address')
 
@@ -32,19 +35,22 @@ flags.DEFINE_string('server', 'dns:///[::1]:10000', 'server address')
 class GrpcBtSyncMock(object):
   """Generic GRPC device controller."""
 
-  def __init__(self, config):
+  def __init__(self, config: Dict[str, str]) -> None:
     """Initialize GRPC object."""
     super(GrpcBtSyncMock, self).__init__()
+    self.config = config
     self.mac_address = config['mac_address']
 
-  def __del__(self):
+  def __del__(self) -> None:
+    # pytype: disable=attribute-error
     self.server_proc.terminate()
     del self.channel_creds
     del self.channel
     del self.stub
 
-  def setup(self):
+  def setup(self) -> None:
     """Setup the gRPC server that the sync mock will respond to."""
+    # pytype: disable=attribute-error
     server_path = self.get_user_params()['mh_files']['grpc_server'][0]
     logging.info('Start gRPC server: %s', server_path)
     self.server_proc = subprocess.Popen([server_path],
@@ -60,17 +66,19 @@ class GrpcBtSyncMock(object):
     self.stub = blueberry_device_controller_pb2_grpc.BlueberryDeviceControllerStub(
         self.channel)
 
-  def init_setup(self):
+  def init_setup(self) -> None:
     logging.info('init setup TO BE IMPLEMENTED')
 
-  def set_target(self, bt_device):
+  def set_target(self, bt_device: Any) -> None:
     self._target_device = bt_device
 
-  def pair_and_connect_bluetooth(self, target_mac_address):
+  def pair_and_connect_bluetooth(
+      self, target_mac_address: str) -> Optional[Tuple[float, float]]:
     """Pair and connect to a peripheral Bluetooth device."""
     request = blueberry_device_controller_pb2.TargetMacAddress(
         mac_address=target_mac_address)
     try:
+      # pytype: disable=attribute-error
       response = self.stub.PairAndConnectBluetooth(request)
       logging.info('pair and connect bluetooth response: %s', response)
       if response.error:
