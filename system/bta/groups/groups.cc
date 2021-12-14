@@ -15,17 +15,17 @@
  * limitations under the License.
  */
 
+#include <base/logging.h>
+
 #include <algorithm>
+#include <limits>
 #include <map>
 #include <unordered_set>
 
-#include "base/logging.h"
 #include "bta_groups.h"
 #include "btif_storage.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
-
-#include <base/logging.h>
 
 using bluetooth::Uuid;
 
