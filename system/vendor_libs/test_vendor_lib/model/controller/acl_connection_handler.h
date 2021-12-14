@@ -63,10 +63,12 @@ class AclConnectionHandler {
                               bluetooth::hci::AddressWithType own_addr);
   bool Disconnect(uint16_t handle);
   bool HasHandle(uint16_t handle) const;
+  bool HasScoHandle(uint16_t handle) const;
 
   uint16_t GetHandle(bluetooth::hci::AddressWithType addr) const;
   uint16_t GetHandleOnlyAddress(bluetooth::hci::Address addr) const;
   bluetooth::hci::AddressWithType GetAddress(uint16_t handle) const;
+  bluetooth::hci::Address GetScoAddress(uint16_t handle) const;
   bluetooth::hci::AddressWithType GetOwnAddress(uint16_t handle) const;
 
   void Encrypt(uint16_t handle);
