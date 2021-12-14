@@ -87,6 +87,7 @@ typedef uint8_t tBTA_AV_CHNL;
 typedef uint8_t tBTA_AV_HNDL;
 /* handle index to mask */
 #define BTA_AV_HNDL_TO_MSK(h) ((uint8_t)(1 << (h)))
+#define BTA_AV_INVALID_HANDLE 0x00
 
 /* maximum number of streams created */
 #ifndef BTA_AV_NUM_STRS
