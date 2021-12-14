@@ -40,6 +40,8 @@ public class BluetoothObexTransport implements ObexTransport {
     private int mMaxTransmitPacketSize = PACKET_SIZE_UNSPECIFIED;
     private int mMaxReceivePacketSize = PACKET_SIZE_UNSPECIFIED;
 
+    private boolean mIsCoverArt = false;
+
     public BluetoothObexTransport(BluetoothSocket socket) {
         this.mSocket = socket;
     }
@@ -97,7 +99,9 @@ public class BluetoothObexTransport implements ObexTransport {
 
     @Override
     public int getMaxTransmitPacketSize() {
-        if (mSocket.getConnectionType() != BluetoothSocket.TYPE_L2CAP) {
+        if (mSocket.getConnectionType() != BluetoothSocket.TYPE_L2CAP
+            || (mIsCoverArt
+                && mMaxTransmitPacketSize != PACKET_SIZE_UNSPECIFIED)) {
             return mMaxTransmitPacketSize;
         }
         return mSocket.getMaxTransmitPacketSize();
@@ -124,5 +128,9 @@ public class BluetoothObexTransport implements ObexTransport {
             return true;
         }
         return false;
+    }
+
+    public void setConnectionForCoverArt(boolean isCoverArt) {
+        mIsCoverArt = isCoverArt;
     }
 }
