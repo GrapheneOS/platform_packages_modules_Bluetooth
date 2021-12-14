@@ -245,6 +245,12 @@ bool le_audio_sink_on_metadata_update_req(
   return false;
 }
 
+bool le_audio_source_on_metadata_update_req(
+    const sink_metadata_t& sink_metadata) {
+  // TODO: update microphone configuration based on sink metadata
+  return true;
+}
+
 }  // namespace
 
 bool LeAudioClientAudioSource::Start(
@@ -331,6 +337,7 @@ const void* LeAudioClientAudioSource::Acquire() {
       .on_resume_ = le_audio_sink_on_resume_req,
       .on_suspend_ = le_audio_sink_on_suspend_req,
       .on_metadata_update_ = le_audio_sink_on_metadata_update_req,
+      .on_sink_metadata_update_ = le_audio_source_on_metadata_update_req,
   };
 
   sinkClientInterface =
@@ -492,6 +499,7 @@ const void* LeAudioClientAudioSink::Acquire() {
   auto source_stream_cb = bluetooth::audio::le_audio::StreamCallbacks{
       .on_resume_ = le_audio_source_on_resume_req,
       .on_suspend_ = le_audio_source_on_suspend_req,
+      .on_sink_metadata_update_ = le_audio_source_on_metadata_update_req,
   };
 
   sourceClientInterface =
