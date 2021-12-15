@@ -1139,6 +1139,8 @@ public final class BluetoothDevice implements Parcelable, Attributable {
             ADDRESS_TYPE_PUBLIC,
             /** Address is either resolvable, non-resolvable or static.*/
             ADDRESS_TYPE_RANDOM,
+            /** Address type is unknown or unavailable **/
+            ADDRESS_TYPE_UNKNOWN,
         }
     )
     public @interface AddressType {}
@@ -1147,6 +1149,8 @@ public final class BluetoothDevice implements Parcelable, Attributable {
     public static final int ADDRESS_TYPE_PUBLIC = 0;
     /** Address is either resolvable, non-resolvable or static. */
     public static final int ADDRESS_TYPE_RANDOM = 1;
+    /** Address type is unknown or unavailable **/
+    public static final int ADDRESS_TYPE_UNKNOWN = 0xFFFF;
 
     private static final String NULL_MAC_ADDRESS = "00:00:00:00:00:00";
 
