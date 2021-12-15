@@ -59,6 +59,11 @@ public class ActivityAttributionNativeInterface {
         cleanupNative();
     }
 
+    /** Notify the UID and package name of the app, and the address of associated active device */
+    public void notifyActivityAttributionInfo(int uid, String packageName, String deviceAddress) {
+        notifyActivityAttributionInfoNative(uid, packageName, deviceAddress);
+    }
+
     // Callbacks from the native stack back into the Java framework.
     // All callbacks are routed via the Service which will disambiguate which
     // state machine the message should be routed to.
@@ -77,4 +82,7 @@ public class ActivityAttributionNativeInterface {
     private native void initNative();
 
     private native void cleanupNative();
+
+    private native void notifyActivityAttributionInfoNative(
+        int uid, String packageName, String deviceAddress);
 }

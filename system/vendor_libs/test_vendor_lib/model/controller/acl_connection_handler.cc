@@ -31,8 +31,12 @@ bool AclConnectionHandler::HasHandle(uint16_t handle) const {
   return acl_connections_.count(handle) != 0;
 }
 
+bool AclConnectionHandler::HasScoHandle(uint16_t handle) const {
+  return sco_connections_.count(handle) != 0;
+}
+
 uint16_t AclConnectionHandler::GetUnusedHandle() {
-  while (HasHandle(last_handle_) ||
+  while (HasHandle(last_handle_) || HasScoHandle(last_handle_) ||
          isochronous_connection_handler_.HasHandle(last_handle_)) {
     last_handle_ = (last_handle_ + 1) % kReservedHandle;
   }
@@ -131,7 +135,18 @@ uint16_t AclConnectionHandler::CreateLeConnection(AddressWithType addr,
 }
 
 bool AclConnectionHandler::Disconnect(uint16_t handle) {
-  return acl_connections_.erase(handle) > 0;
+  if (HasScoHandle(handle)) {
+    sco_connections_.erase(handle);
+    return true;
+  }
+  if (HasHandle(handle)) {
+    // It is the responsibility of the caller to remove SCO connections
+    // with connected peer first.
+    ASSERT(GetScoHandle(GetAddress(handle).GetAddress()) == 0);
+    acl_connections_.erase(handle);
+    return true;
+  }
+  return false;
 }
 
 uint16_t AclConnectionHandler::GetHandle(AddressWithType addr) const {
@@ -154,12 +169,17 @@ uint16_t AclConnectionHandler::GetHandleOnlyAddress(
 }
 
 AddressWithType AclConnectionHandler::GetAddress(uint16_t handle) const {
-  ASSERT_LOG(HasHandle(handle), "Handle unknown %hd", handle);
+  ASSERT_LOG(HasHandle(handle), "Unknown handle %hd", handle);
   return acl_connections_.at(handle).GetAddress();
 }
 
+Address AclConnectionHandler::GetScoAddress(uint16_t handle) const {
+  ASSERT_LOG(HasScoHandle(handle), "Unknown SCO handle %hd", handle);
+  return sco_connections_.at(handle).GetAddress();
+}
+
 AddressWithType AclConnectionHandler::GetOwnAddress(uint16_t handle) const {
-  ASSERT_LOG(HasHandle(handle), "Handle unknown %hd", handle);
+  ASSERT_LOG(HasHandle(handle), "Unknown handle %hd", handle);
   return acl_connections_.at(handle).GetOwnAddress();
 }
 

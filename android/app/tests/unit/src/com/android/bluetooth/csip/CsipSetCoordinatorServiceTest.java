@@ -145,6 +145,7 @@ public class CsipSetCoordinatorServiceTest {
         TestUtils.startService(mServiceRule, CsipSetCoordinatorService.class);
         mService = CsipSetCoordinatorService.getCsipSetCoordinatorService();
         Assert.assertNotNull(mService);
+        verify(mAdapterService).notifyActivityAttributionInfo(any(), any());
     }
 
     private void stopService() throws TimeoutException {

@@ -139,6 +139,7 @@ public class A2dpServiceTest {
         TestUtils.startService(mServiceRule, A2dpService.class);
         mA2dpService = A2dpService.getA2dpService();
         Assert.assertNotNull(mA2dpService);
+        verify(mAdapterService).notifyActivityAttributionInfo(any(), any());
     }
 
     private void stopService() throws TimeoutException {

@@ -31,7 +31,6 @@
 #include "btif_api.h"
 #include "btif_common.h"
 #include "common/message_loop_thread.h"
-#include "hci/include/btsnoop.h"
 #include "main/shim/shim.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
@@ -71,6 +70,10 @@
 #include "device/include/interop.h"
 #include "internal_include/stack_config.h"
 #include "main/shim/controller.h"
+
+#ifndef BT_STACK_CLEANUP_WAIT_MS
+#define BT_STACK_CLEANUP_WAIT_MS 1000
+#endif
 
 // Validate or respond to various conditional compilation flags
 
@@ -135,7 +138,7 @@ static bool stack_is_running;
 static void event_init_stack(void* context);
 static void event_start_up_stack(void* context);
 static void event_shut_down_stack(void* context);
-static void event_clean_up_stack(void* context);
+static void event_clean_up_stack(std::promise<void> promise);
 
 static void event_signal_stack_up(void* context);
 static void event_signal_stack_down(void* context);
@@ -172,12 +175,18 @@ static void shut_down_stack_async() {
 static void clean_up_stack() {
   // This is a synchronous process. Post it to the thread though, so
   // state modification only happens there.
-  semaphore_t* semaphore = semaphore_new(0);
-  management_thread.DoInThread(FROM_HERE,
-                               base::Bind(event_clean_up_stack, semaphore));
-  semaphore_wait(semaphore);
-  semaphore_free(semaphore);
-  management_thread.ShutDown();
+  std::promise<void> promise;
+  auto future = promise.get_future();
+  management_thread.DoInThread(
+      FROM_HERE, base::BindOnce(event_clean_up_stack, std::move(promise)));
+
+  auto status =
+      future.wait_for(std::chrono::milliseconds(BT_STACK_CLEANUP_WAIT_MS));
+  if (status == std::future_status::ready) {
+    management_thread.ShutDown();
+  } else {
+    LOG_ERROR("cleanup could not be completed in time, abandon it");
+  }
 }
 
 static bool get_stack_is_running() { return stack_is_running; }
@@ -206,7 +215,6 @@ struct module_lookup {
 const struct module_lookup module_table[] = {
     {BTE_LOGMSG_MODULE, &bte_logmsg_module},
     {BTIF_CONFIG_MODULE, &btif_config_module},
-    {BTSNOOP_MODULE, &btsnoop_module},
     {BT_UTILS_MODULE, &bt_utils_module},
     {GD_CONTROLLER_MODULE, &gd_controller_module},
     {GD_IDLE_MODULE, &gd_idle_module},
@@ -296,7 +304,6 @@ static void event_start_up_stack(UNUSED_ATTR void* context) {
     module_start_up(get_local_module(BTIF_CONFIG_MODULE));
   } else {
     module_start_up(get_local_module(BTIF_CONFIG_MODULE));
-    module_start_up(get_local_module(BTSNOOP_MODULE));
   }
 
   get_btm_client_interface().lifecycle.btm_init();
@@ -395,8 +402,6 @@ static void event_shut_down_stack(UNUSED_ATTR void* context) {
     LOG_INFO("%s Gd shim module disabled", __func__);
     module_shut_down(get_local_module(GD_SHIM_MODULE));
     module_start_up(get_local_module(GD_IDLE_MODULE));
-  } else {
-    module_shut_down(get_local_module(BTSNOOP_MODULE));
   }
 
   hack_future = future_new();
@@ -414,7 +419,7 @@ static void ensure_stack_is_not_running() {
 }
 
 // Synchronous function to clean up the stack
-static void event_clean_up_stack(void* context) {
+static void event_clean_up_stack(std::promise<void> promise) {
   if (!stack_is_initialized) {
     LOG_INFO("%s found the stack already in a clean state", __func__);
     goto cleanup;
@@ -438,8 +443,7 @@ static void event_clean_up_stack(void* context) {
   LOG_INFO("%s finished", __func__);
 
 cleanup:;
-  semaphore_t* semaphore = (semaphore_t*)context;
-  if (semaphore) semaphore_post(semaphore);
+  promise.set_value();
 }
 
 static void event_signal_stack_up(UNUSED_ATTR void* context) {

@@ -68,6 +68,12 @@ class ActivityAttributionInterface {
 
   /** Closes the interface. */
   virtual void Cleanup(void) = 0;
+
+  /** Notify the UID and package name of the app, and the address of associated
+   * active device */
+  virtual void NotifyActivityAttributionInfo(
+      int uid, const std::string& package_name,
+      const std::string& device_address) = 0;
 };
 
 }  // namespace activity_attribution

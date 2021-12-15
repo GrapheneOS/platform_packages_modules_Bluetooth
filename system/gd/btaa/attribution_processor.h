@@ -43,11 +43,34 @@ struct AddressActivityKeyHasher {
   }
 };
 
-struct WakeupDescriptor {
+struct AppActivityKey {
+  std::string app;
+  Activity activity;
+
+  bool operator==(const AppActivityKey& other) const {
+    return (app == other.app && activity == other.activity);
+  }
+};
+
+struct AppActivityKeyHasher {
+  std::size_t operator()(const AppActivityKey& key) const {
+    return (
+        (std::hash<std::string>()(key.app) ^ (std::hash<unsigned char>()(static_cast<unsigned char>(key.activity)))));
+  }
+};
+
+struct DeviceWakeupDescriptor {
   Activity activity_;
   const hci::Address address_;
-  WakeupDescriptor(Activity activity, const hci::Address address) : activity_(activity), address_(address) {}
-  virtual ~WakeupDescriptor() {}
+  DeviceWakeupDescriptor(Activity activity, const hci::Address address) : activity_(activity), address_(address) {}
+  virtual ~DeviceWakeupDescriptor() {}
+};
+
+struct AppWakeupDescriptor {
+  Activity activity_;
+  std::string package_info_;
+  AppWakeupDescriptor(Activity activity, std::string package_info) : activity_(activity), package_info_(package_info) {}
+  virtual ~AppWakeupDescriptor() {}
 };
 
 class AttributionProcessor {
@@ -55,6 +78,7 @@ class AttributionProcessor {
   void OnBtaaPackets(std::vector<BtaaHciPacket> btaa_packets);
   void OnWakelockReleased(uint32_t duration_ms);
   void OnWakeup();
+  void NotifyActivityAttributionInfo(int uid, const std::string& package_name, const std::string& device_address);
   void Dump(
       std::promise<flatbuffers::Offset<ActivityAttributionData>> promise, flatbuffers::FlatBufferBuilder* fb_builder);
 
@@ -62,8 +86,12 @@ class AttributionProcessor {
   bool wakeup_ = false;
   std::unordered_map<AddressActivityKey, BtaaAggregationEntry, AddressActivityKeyHasher> btaa_aggregator_;
   std::unordered_map<AddressActivityKey, BtaaAggregationEntry, AddressActivityKeyHasher> wakelock_duration_aggregator_;
-  common::TimestampedCircularBuffer<WakeupDescriptor> wakeup_aggregator_ =
-      common::TimestampedCircularBuffer<WakeupDescriptor>(kWakeupAggregatorSize);
+  std::unordered_map<std::string, std::string> address_app_map_;
+  std::unordered_map<AppActivityKey, BtaaAggregationEntry, AppActivityKeyHasher> app_activity_aggregator_;
+  common::TimestampedCircularBuffer<DeviceWakeupDescriptor> device_wakeup_aggregator_ =
+      common::TimestampedCircularBuffer<DeviceWakeupDescriptor>(kWakeupAggregatorSize);
+  common::TimestampedCircularBuffer<AppWakeupDescriptor> app_wakeup_aggregator_ =
+      common::TimestampedCircularBuffer<AppWakeupDescriptor>(kWakeupAggregatorSize);
   const char* ActivityToString(Activity activity);
 };
 

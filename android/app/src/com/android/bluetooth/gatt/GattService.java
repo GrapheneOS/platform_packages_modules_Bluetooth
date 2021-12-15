@@ -2369,6 +2369,8 @@ public class GattService extends ProfileService {
         }
 
         mScanManager.startScan(scanClient);
+        mAdapterService.notifyActivityAttributionInfo(getAttributionSource(),
+                AdapterService.ACTIVITY_ATTRIBUTION_NO_ACTIVE_DEVICE_ADDRESS);
     }
 
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_SCAN)
@@ -2500,6 +2502,8 @@ public class GattService extends ProfileService {
         }
 
         mScanManager.stopScan(scannerId);
+        mAdapterService.notifyActivityAttributionInfo(getAttributionSource(),
+                AdapterService.ACTIVITY_ATTRIBUTION_NO_ACTIVE_DEVICE_ADDRESS);
     }
 
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_SCAN)

@@ -192,6 +192,7 @@ class LeAudioDeviceGroup {
   explicit LeAudioDeviceGroup(const int group_id)
       : group_id_(group_id),
         cig_created_(false),
+        stream_conf({}),
         audio_directions_(0),
         transport_latency_mtos_us_(0),
         transport_latency_stom_us_(0),
@@ -199,10 +200,6 @@ class LeAudioDeviceGroup {
         target_state_(types::AseState::BTA_LE_AUDIO_ASE_STATE_IDLE),
         current_state_(types::AseState::BTA_LE_AUDIO_ASE_STATE_IDLE),
         context_type_(types::LeAudioContextType::UNINITIALIZED) {
-    stream_conf.valid = false;
-    stream_conf.conf = nullptr;
-    stream_conf.sink_num_of_devices = 0;
-    stream_conf.source_num_of_devices = 0;
   }
   ~LeAudioDeviceGroup(void);
 
