@@ -287,7 +287,7 @@ class BleAdvertiserVscHciInterfaceImpl : public BleAdvertiserHciInterface {
   }
 
  public:
-  static void VendorSpecificEventCback(uint8_t length, uint8_t* p) {
+  static void VendorSpecificEventCback(uint8_t length, const uint8_t* p) {
     VLOG(1) << __func__;
 
     LOG_ASSERT(p);

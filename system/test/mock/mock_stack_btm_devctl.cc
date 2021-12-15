@@ -113,7 +113,7 @@ void btm_dev_init() { mock_function_count_map[__func__]++; }
 void btm_read_local_name_complete(uint8_t* p, UNUSED_ATTR uint16_t evt_len) {
   mock_function_count_map[__func__]++;
 }
-void btm_vendor_specific_evt(uint8_t* p, uint8_t evt_len) {
+void btm_vendor_specific_evt(const uint8_t* p, uint8_t evt_len) {
   mock_function_count_map[__func__]++;
 }
 void btm_vsc_complete(uint8_t* p, uint16_t opcode, uint16_t evt_len,
