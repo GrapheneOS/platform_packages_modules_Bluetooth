@@ -51,7 +51,7 @@ typedef struct {
  * array of returned parameter bytes are included. This asynchronous event
  * is enabled/disabled by calling BTM_RegisterForVSEvents().
 */
-typedef void(tBTM_VS_EVT_CB)(uint8_t len, uint8_t* p);
+typedef void(tBTM_VS_EVT_CB)(uint8_t len, const uint8_t* p);
 
 /* General callback function for notifying an application that a synchronous
  * BTM function is complete. The pointer contains the address of any returned

@@ -28,11 +28,11 @@ extern std::map<std::string, int> mock_function_count_map;
 namespace bluetooth {
 namespace bqr {
 
-void DumpLmpLlMessage(uint8_t length, uint8_t* p_event) {
+void DumpLmpLlMessage(uint8_t length, const uint8_t* p_event) {
   mock_function_count_map[__func__]++;
 }
 
-void DumpBtScheduling(uint8_t length, uint8_t* p_event) {
+void DumpBtScheduling(uint8_t length, const uint8_t* p_event) {
   mock_function_count_map[__func__]++;
 }
 
