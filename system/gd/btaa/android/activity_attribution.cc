@@ -161,6 +161,10 @@ struct ActivityAttribution::impl {
     callback_ = callback;
   }
 
+  void notify_activity_attribution_info(int uid, const std::string& package_name, const std::string& device_address) {
+    attribution_processor_.NotifyActivityAttributionInfo(uid, package_name, device_address);
+  }
+
   void Dump(
       std::promise<flatbuffers::Offset<ActivityAttributionData>> promise, flatbuffers::FlatBufferBuilder* fb_builder) {
     attribution_processor_.Dump(std::move(promise), fb_builder);
@@ -210,6 +214,11 @@ void ActivityAttribution::OnWakeup() {
 
 void ActivityAttribution::RegisterActivityAttributionCallback(ActivityAttributionCallback* callback) {
   CallOn(pimpl_.get(), &impl::register_callback, callback);
+}
+
+void ActivityAttribution::NotifyActivityAttributionInfo(
+    int uid, const std::string& package_name, const std::string& device_address) {
+  CallOn(pimpl_.get(), &impl::notify_activity_attribution_info, uid, package_name, device_address);
 }
 
 std::string ActivityAttribution::ToString() const {

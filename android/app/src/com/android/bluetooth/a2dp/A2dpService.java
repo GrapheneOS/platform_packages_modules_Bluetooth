@@ -161,6 +161,11 @@ public class A2dpService extends ProfileService {
 
         // Step 8: Mark service as started
         setA2dpService(this);
+        BluetoothDevice activeDevice = getActiveDevice();
+        String deviceAddress = activeDevice != null ?
+                activeDevice.getAddress() :
+                AdapterService.ACTIVITY_ATTRIBUTION_NO_ACTIVE_DEVICE_ADDRESS;
+        mAdapterService.notifyActivityAttributionInfo(getAttributionSource(), deviceAddress);
 
         // Step 9: Clear active device
         setActiveDevice(null);
@@ -180,6 +185,11 @@ public class A2dpService extends ProfileService {
         removeActiveDevice(true);
 
         // Step 8: Mark service as stopped
+        BluetoothDevice activeDevice = getActiveDevice();
+        String deviceAddress = activeDevice != null ?
+                activeDevice.getAddress() :
+                AdapterService.ACTIVITY_ATTRIBUTION_NO_ACTIVE_DEVICE_ADDRESS;
+        mAdapterService.notifyActivityAttributionInfo(getAttributionSource(), deviceAddress);
         setA2dpService(null);
 
         // Step 7: Unregister broadcast receivers

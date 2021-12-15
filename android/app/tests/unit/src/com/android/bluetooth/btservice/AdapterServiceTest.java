@@ -45,6 +45,7 @@ import android.os.UserHandle;
 import android.os.UserManager;
 import android.permission.PermissionCheckerManager;
 import android.permission.PermissionManager;
+import android.sysprop.BluetoothProperties;
 import android.test.mock.MockContentResolver;
 import android.util.Log;
 
@@ -543,18 +544,19 @@ public class AdapterServiceTest {
      */
     @Test
     public void testSnoopLoggingChange() {
-        String snoopSetting =
-                SystemProperties.get(AdapterService.BLUETOOTH_BTSNOOP_LOG_MODE_PROPERTY, "");
-        SystemProperties.set(AdapterService.BLUETOOTH_BTSNOOP_LOG_MODE_PROPERTY, "false");
+        BluetoothProperties.snoop_log_mode_values snoopSetting =
+                BluetoothProperties.snoop_log_mode()
+                .orElse(BluetoothProperties.snoop_log_mode_values.EMPTY);
+        BluetoothProperties.snoop_log_mode(BluetoothProperties.snoop_log_mode_values.DISABLED);
         doEnable(0, false);
 
         Assert.assertTrue(mAdapterService.getState() == BluetoothAdapter.STATE_ON);
 
         Assert.assertFalse(
                 SystemProperties.get(AdapterService.BLUETOOTH_BTSNOOP_LOG_MODE_PROPERTY,
-                        "true").equals("true"));
+                        "full").equals("full"));
 
-        SystemProperties.set(AdapterService.BLUETOOTH_BTSNOOP_LOG_MODE_PROPERTY, "true");
+        BluetoothProperties.snoop_log_mode(BluetoothProperties.snoop_log_mode_values.FULL);
 
         mAdapterService.disable();
 
@@ -584,7 +586,7 @@ public class AdapterServiceTest {
         Assert.assertFalse(mAdapterService.getState() == BluetoothAdapter.STATE_ON);
 
         // Restore earlier setting
-        SystemProperties.set(AdapterService.BLUETOOTH_BTSNOOP_LOG_MODE_PROPERTY, snoopSetting);
+        BluetoothProperties.snoop_log_mode(snoopSetting);
     }
 
 

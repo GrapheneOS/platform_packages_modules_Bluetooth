@@ -1893,11 +1893,11 @@ void bta_av_str_stopped(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
   if (p_scb->co_started) {
     if (bta_av_cb.offload_started_hndl == p_scb->hndl) {
       bta_av_vendor_offload_stop();
-      bta_av_cb.offload_started_hndl = 0;
+      bta_av_cb.offload_started_hndl = BTA_AV_INVALID_HANDLE;
     } else if (bta_av_cb.offload_start_pending_hndl == p_scb->hndl) {
       APPL_TRACE_WARNING("%s: Stop pending offload start command", __func__);
       bta_av_vendor_offload_stop();
-      bta_av_cb.offload_start_pending_hndl = 0;
+      bta_av_cb.offload_start_pending_hndl = BTA_AV_INVALID_HANDLE;
     }
 
     bta_av_stream_chg(p_scb, false);
@@ -2521,11 +2521,11 @@ void bta_av_suspend_cfm(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
   if (p_scb->co_started) {
     if (bta_av_cb.offload_started_hndl == p_scb->hndl) {
       bta_av_vendor_offload_stop();
-      bta_av_cb.offload_started_hndl = 0;
+      bta_av_cb.offload_started_hndl = BTA_AV_INVALID_HANDLE;
     } else if (bta_av_cb.offload_start_pending_hndl == p_scb->hndl) {
       APPL_TRACE_WARNING("%s: Stop pending offload start command", __func__);
       bta_av_vendor_offload_stop();
-      bta_av_cb.offload_start_pending_hndl = 0;
+      bta_av_cb.offload_start_pending_hndl = BTA_AV_INVALID_HANDLE;
     }
     bta_av_stream_chg(p_scb, false);
 
@@ -3019,7 +3019,7 @@ void offload_vendor_callback(tBTM_VSC_CMPL* param) {
         if (bta_av_cb.offload_start_pending_hndl) {
           APPL_TRACE_DEBUG("%s: VS_HCI_START_A2DP_MEDIA successful", __func__);
           bta_av_cb.offload_started_hndl = bta_av_cb.offload_start_pending_hndl;
-          bta_av_cb.offload_start_pending_hndl = 0;
+          bta_av_cb.offload_start_pending_hndl = BTA_AV_INVALID_HANDLE;
         } else {
           LOG_INFO("%s: No pending start command due to AVDTP suspend immediately", __func__);
         }
@@ -3032,7 +3032,7 @@ void offload_vendor_callback(tBTM_VSC_CMPL* param) {
     APPL_TRACE_DEBUG("%s: Offload failed for subopcode= %d", __func__,
                      sub_opcode);
     if (param->opcode != VS_HCI_A2DP_OFFLOAD_STOP) {
-      bta_av_cb.offload_start_pending_hndl = 0;
+      bta_av_cb.offload_start_pending_hndl = BTA_AV_INVALID_HANDLE;
       (*bta_av_cb.p_cback)(BTA_AV_OFFLOAD_START_RSP_EVT, &value);
     }
   }
@@ -3172,7 +3172,7 @@ void bta_av_offload_rsp(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
     status = BTA_AV_FAIL_STREAM;
   }
 
-  bta_av_cb.offload_start_pending_hndl = 0;
+  bta_av_cb.offload_start_pending_hndl = BTA_AV_INVALID_HANDLE;
   tBTA_AV bta_av_data;
   bta_av_data.status = status;
   (*bta_av_cb.p_cback)(BTA_AV_OFFLOAD_START_RSP_EVT, &bta_av_data);

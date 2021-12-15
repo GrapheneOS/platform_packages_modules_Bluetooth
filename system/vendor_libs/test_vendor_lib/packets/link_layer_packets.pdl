@@ -55,6 +55,7 @@ enum PacketType : 8 {
 
     ESCO_CONNECTION_REQUEST = 0x30,
     ESCO_CONNECTION_RESPONSE = 0x31,
+    ESCO_DISCONNECT = 0x32,
 }
 
 packet LinkLayerPacket {
@@ -398,4 +399,8 @@ packet EScoConnectionResponse : LinkLayerPacket (type = ESCO_CONNECTION_RESPONSE
   rx_packet_length : 16,
   tx_packet_length : 16,
   air_mode : 8,
+}
+
+packet EScoDisconnect : LinkLayerPacket (type = ESCO_DISCONNECT) {
+  reason : 8,
 }

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include <cinttypes>
 #include <vector>
 
 #include <hci/hci_packets.h>
@@ -68,20 +69,23 @@ std::optional<ScoLinkParameters> ScoConnectionParameters::GetLinkParameters() {
     if (tx.length == 0)
       continue;
 
-    unsigned tx_count = (transmit_bandwidth + tx.length - 1) / tx.length;
-    unsigned tx_max_interval = 1600 / tx_count;
+    unsigned tx_max_interval = (1600 * tx.length) / transmit_bandwidth;
 
     for (auto rx : accepted_packets) {
       if (rx.length == 0)
         continue;
 
-      unsigned rx_count = (receive_bandwidth + rx.length - 1) / rx.length;
-      unsigned rx_max_interval = 1600 / rx_count;
+      LOG_INFO("Testing combination %u/%u : %u/%u",
+               tx.length, tx.slots, rx.length, rx.slots);
+
+      unsigned rx_max_interval = (1600 * rx.length) / receive_bandwidth;
 
       // Choose the best interval satisfying both.
       unsigned transmission_interval = std::min(tx_max_interval, rx_max_interval);
       transmission_interval -= transmission_interval % 2;
       transmission_interval = std::min(transmission_interval, 254u);
+
+      LOG_INFO("Transmission interval: %u slots", transmission_interval);
 
       // Compute retransmission window.
       unsigned retransmission_window =
@@ -90,6 +94,8 @@ std::optional<ScoLinkParameters> ScoConnectionParameters::GetLinkParameters() {
             rx.slots + tx.slots :
         retransmission_effort == (uint8_t)RetransmissionEffort::OPTIMIZED_FOR_LINK_QUALITY ?
             rx.slots + tx.slots : 0;
+
+      LOG_INFO("Retransmission window: %u slots", retransmission_window);
 
       // Compute transmission window and validate latency.
       unsigned transmission_window = tx.slots + rx.slots +
@@ -102,7 +108,10 @@ std::optional<ScoLinkParameters> ScoConnectionParameters::GetLinkParameters() {
 
       // Compute and validate latency.
       unsigned latency = (transmission_window * 1250) / 2;
-      if (latency > max_latency)
+
+      LOG_INFO("Latency: %u us (max %u us)", latency, max_latency * 1000u);
+
+      if (latency > (1000 * max_latency))
         // Oops
         continue;
 
@@ -112,17 +121,28 @@ std::optional<ScoLinkParameters> ScoConnectionParameters::GetLinkParameters() {
         (double)transmission_window / (double)transmission_interval;
 
       if (bandwidth_usage < best_bandwidth_usage) {
+        LOG_INFO("Valid combination!");
+
         uint16_t tx_packet_length =
             (transmit_bandwidth * transmission_interval + 1600 - 1) / 1600;
         uint16_t rx_packet_length =
             (receive_bandwidth * transmission_interval + 1600 - 1) / 1600;
-        uint8_t air_mode = voice_setting & 0x3;
+
+        uint8_t air_coding = voice_setting & 0x3;
+        uint8_t air_coding_to_air_mode[] = {
+          0x02, // CVSD
+          0x00, // u-law
+          0x01, // A-law
+          0x03, // transparent data
+        };
 
         best_bandwidth_usage = bandwidth_usage;
         best_parameters = {
             (uint8_t)transmission_interval,
             (uint8_t)retransmission_window,
-            rx_packet_length, tx_packet_length, air_mode };
+            rx_packet_length, tx_packet_length,
+            air_coding_to_air_mode[air_coding]
+        };
       }
     }
   }
@@ -134,26 +154,28 @@ bool ScoConnection::NegotiateLinkParameters(ScoConnectionParameters const &peer)
 
   if (peer.transmit_bandwidth != 0xffff &&
       peer.transmit_bandwidth != parameters_.receive_bandwidth) {
-    LOG_WARN("transmit bandwidth requirements cannot be met");
+    LOG_WARN("Transmit bandwidth requirements cannot be met");
     return false;
   }
 
   if (peer.receive_bandwidth != 0xffff &&
       peer.receive_bandwidth != parameters_.transmit_bandwidth) {
-    LOG_WARN("receive bandwidth requirements cannot be met");
+    LOG_WARN("Receive bandwidth requirements cannot be met");
     return false;
   }
 
   if (peer.voice_setting != parameters_.voice_setting) {
-    LOG_WARN("voice setting requirements cannot be met");
+    LOG_WARN("Voice setting requirements cannot be met");
     return false;
   }
 
-  uint16_t packet_type = peer.packet_type & parameters_.packet_type & 0x3f;
-  packet_type |= ~peer.packet_type & ~parameters_.packet_type & 0x3c0;
+  uint16_t packet_type = (peer.packet_type & parameters_.packet_type) & 0x3f;
+  packet_type |= (peer.packet_type | parameters_.packet_type) & 0x3c0;
 
   if (packet_type == 0) {
-    LOG_WARN("packet type requirements cannot be met");
+    LOG_WARN("Packet type requirements cannot be met");
+    LOG_WARN("Remote packet type: %" PRIx16, parameters_.packet_type);
+    LOG_WARN("Local packet type: %" PRIx16, peer.packet_type);
     return false;
   }
 
@@ -170,7 +192,7 @@ bool ScoConnection::NegotiateLinkParameters(ScoConnectionParameters const &peer)
     retransmission_effort = peer.retransmission_effort;
   else if (peer.retransmission_effort == (uint8_t)RetransmissionEffort::NO_RETRANSMISSION ||
            parameters_.retransmission_effort == (uint8_t)RetransmissionEffort::NO_RETRANSMISSION) {
-    LOG_WARN("retransmission effort requirements cannot be met");
+    LOG_WARN("Retransmission effort requirements cannot be met");
     return false;
   } else {
     retransmission_effort = (uint8_t)RetransmissionEffort::OPTIMIZED_FOR_POWER;
@@ -182,7 +204,20 @@ bool ScoConnection::NegotiateLinkParameters(ScoConnectionParameters const &peer)
   };
 
   auto link_parameters = negotiated_parameters.GetLinkParameters();
-  if (link_parameters.has_value())
+  if (link_parameters.has_value()) {
     link_parameters_ = link_parameters.value();
+    LOG_INFO("Negotiated link parameters for eSCO connection:");
+    LOG_INFO("  Transmission interval: %" PRIu8 " slots",
+             link_parameters_.transmission_interval);
+    LOG_INFO("  Retransmission window: %" PRIu8 " slots",
+             link_parameters_.retransmission_window);
+    LOG_INFO("  RX packet length: %" PRIu16 " bytes",
+             link_parameters_.rx_packet_length);
+    LOG_INFO("  TX packet length: %" PRIu16 " bytes",
+             link_parameters_.tx_packet_length);
+    LOG_INFO("  Air mode: %" PRIu8, link_parameters_.air_mode);
+  } else {
+    LOG_WARN("Failed to derive link parameters");
+  }
   return link_parameters.has_value();
 }
