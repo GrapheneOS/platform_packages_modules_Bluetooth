@@ -88,6 +88,7 @@ import android.os.UserHandle;
 import android.os.UserManager;
 import android.provider.DeviceConfig;
 import android.provider.Settings;
+import android.sysprop.BluetoothProperties;
 import android.text.TextUtils;
 import android.util.Base64;
 import android.util.Log;
@@ -754,8 +755,14 @@ public class AdapterService extends Service {
             mDefaultSnoopLogSettingAtEnable =
                     Settings.Global.getString(getContentResolver(),
                             Settings.Global.BLUETOOTH_BTSNOOP_DEFAULT_MODE);
-            SystemProperties.set(BLUETOOTH_BTSNOOP_DEFAULT_MODE_PROPERTY,
-                    mDefaultSnoopLogSettingAtEnable);
+            BluetoothProperties.snoop_default_mode(
+                    BluetoothProperties.snoop_default_mode_values.DISABLED);
+            for (BluetoothProperties.snoop_default_mode_values value :
+                    BluetoothProperties.snoop_default_mode_values.values()) {
+                if (value.getPropValue().equals(mDefaultSnoopLogSettingAtEnable)) {
+                    BluetoothProperties.snoop_default_mode(value);
+                }
+            }
         } else if (newState == BluetoothAdapter.STATE_BLE_ON
                    && prevState != BluetoothAdapter.STATE_OFF) {
             String snoopLogSetting =
