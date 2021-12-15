@@ -58,7 +58,8 @@ bool can_do_batch_scan() {
 }
 
 /* VSE callback for batch scan, filter, and tracking events */
-void btm_ble_batchscan_filter_track_adv_vse_cback(uint8_t len, uint8_t* p) {
+void btm_ble_batchscan_filter_track_adv_vse_cback(uint8_t len,
+                                                  const uint8_t* p) {
   tBTM_BLE_TRACK_ADV_DATA adv_data;
 
   uint8_t sub_event = 0;
