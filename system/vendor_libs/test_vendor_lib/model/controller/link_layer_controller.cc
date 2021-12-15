@@ -37,7 +37,7 @@ namespace test_vendor_lib {
 
 constexpr uint16_t kNumCommandPackets = 0x01;
 
-constexpr milliseconds kNoDelayMs(1);
+constexpr milliseconds kNoDelayMs(0);
 constexpr milliseconds kShortDelayMs(5);
 constexpr milliseconds kLongDelayMs(200);
 
@@ -2047,6 +2047,12 @@ void LinkLayerController::IncomingPageResponsePacket(
 void LinkLayerController::TimerTick() {
   if (inquiry_timer_task_id_ != kInvalidTaskId) Inquiry();
   LeAdvertising();
+}
+
+void LinkLayerController::Close() {
+  for (auto handle : connections_.GetAclHandles()) {
+    Disconnect(handle, static_cast<uint8_t>(ErrorCode::CONNECTION_TIMEOUT));
+  }
 }
 
 void LinkLayerController::LeAdvertising() {

@@ -118,6 +118,8 @@ class AclConnectionHandler {
   StreamParameters GetStreamParameters(uint16_t handle) const;
   GroupParameters GetGroupParameters(uint8_t id) const;
 
+  std::vector<uint16_t> GetAclHandles() const;
+
  private:
   std::unordered_map<uint16_t, AclConnection> acl_connections_;
   std::unordered_map<uint16_t, ScoConnection> sco_connections_;
