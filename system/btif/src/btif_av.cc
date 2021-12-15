@@ -2020,7 +2020,7 @@ bool BtifAvStateMachine::StateOpened::ProcessEvent(uint32_t event,
     } break;
 
     case BTIF_AV_OFFLOAD_START_REQ_EVT:
-      BTIF_TRACE_ERROR("%s: Peer %s : event=%s: stream is not Opened",
+      BTIF_TRACE_ERROR("%s: Peer %s : event=%s: stream is not Started",
                        __PRETTY_FUNCTION__,
                        peer_.PeerAddress().ToString().c_str(),
                        BtifAvEvent::EventName(event).c_str());
@@ -2224,6 +2224,16 @@ bool BtifAvStateMachine::StateStarted::ProcessEvent(uint32_t event,
       break;
 
     case BTIF_AV_OFFLOAD_START_REQ_EVT:
+      if (peer_.CheckFlags(BtifAvPeer::kFlagLocalSuspendPending |
+                           BtifAvPeer::kFlagRemoteSuspend |
+                           BtifAvPeer::kFlagPendingStop)) {
+        LOG_WARN("%s: Peer %s : event=%s flags=%s: stream is Suspending",
+                 __PRETTY_FUNCTION__, peer_.PeerAddress().ToString().c_str(),
+                 BtifAvEvent::EventName(event).c_str(),
+                 peer_.FlagsToString().c_str());
+        btif_a2dp_on_offload_started(peer_.PeerAddress(), BTA_AV_FAIL);
+        break;
+      }
       BTA_AvOffloadStart(peer_.BtaHandle());
       break;
 
