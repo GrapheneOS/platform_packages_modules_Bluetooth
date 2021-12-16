@@ -313,8 +313,8 @@ class LeAclManagerTest(gd_base_test.GdBaseTestClass):
             hci_packets.LeSetExtendedAdvertisingLegacyParametersBuilder(
                 advertising_handle,
                 hci_packets.LegacyAdvertisingProperties.ADV_IND,
-                400,
-                450,
+                155,  # 100ms = 160 * .625ms "LOW_LATENCY"
+                165,
                 7,
                 hci_packets.OwnAddressType.RANDOM_DEVICE_ADDRESS,
                 hci_packets.PeerAddressType.PUBLIC_DEVICE_OR_IDENTITY_ADDRESS,
