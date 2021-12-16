@@ -474,7 +474,6 @@ static void reschedule_root_alarm(void) {
     if (!timer_set) {
       if (!wakelock_acquire()) {
         LOG_ERROR("%s unable to acquire wake lock", __func__);
-        goto done;
       }
     }
 
