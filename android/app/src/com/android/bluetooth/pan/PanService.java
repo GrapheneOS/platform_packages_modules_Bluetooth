@@ -124,7 +124,7 @@ public class PanService extends ProfileService {
     @Override
     protected boolean start() {
         mAdapterService = Objects.requireNonNull(AdapterService.getAdapterService(),
-                "AdapterService cannot be null when HeadsetService starts");
+                "AdapterService cannot be null when PanService starts");
         mDatabaseManager = Objects.requireNonNull(AdapterService.getAdapterService().getDatabase(),
                 "DatabaseManager cannot be null when PanService starts");
 
