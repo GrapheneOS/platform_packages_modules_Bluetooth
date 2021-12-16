@@ -21,12 +21,15 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.util.Log;
 
+import com.android.bluetooth.Utils;
 import com.android.bluetooth.audio_util.ListItem;
 import com.android.bluetooth.audio_util.Metadata;
 import com.android.bluetooth.audio_util.PlayStatus;
 import com.android.bluetooth.audio_util.PlayerInfo;
+import com.android.bluetooth.btservice.AdapterService;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Native Interface to communicate with the JNI layer. This class should never be passed null
@@ -38,9 +41,15 @@ public class AvrcpNativeInterface {
 
     private static AvrcpNativeInterface sInstance;
     private AvrcpTargetService mAvrcpService;
+    private AdapterService mAdapterService;
 
     static {
         classInitNative();
+    }
+
+    private AvrcpNativeInterface() {
+        mAdapterService = Objects.requireNonNull(AdapterService.getAdapterService(),
+                "AdapterService cannot be null when AvrcpNativeInterface init");
     }
 
     static AvrcpNativeInterface getInterface() {
@@ -74,7 +83,8 @@ public class AvrcpNativeInterface {
     }
 
     void setBipClientStatus(String bdaddr, boolean connected) {
-        setBipClientStatusNative(bdaddr, connected);
+        String identityAddress = mAdapterService.getIdentityAddress(bdaddr);
+        setBipClientStatusNative(identityAddress, connected);
     }
 
     Metadata getCurrentSongInfo() {
@@ -198,25 +208,25 @@ public class AvrcpNativeInterface {
     }
 
     boolean connectDevice(String bdaddr) {
-        d("connectDevice: bdaddr=" + bdaddr);
-        return connectDeviceNative(bdaddr);
+        String identityAddress = mAdapterService.getIdentityAddress(bdaddr);
+        d("connectDevice: identityAddress=" + identityAddress);
+        return connectDeviceNative(identityAddress);
     }
 
     boolean disconnectDevice(String bdaddr) {
-        d("disconnectDevice: bdaddr=" + bdaddr);
-        return disconnectDeviceNative(bdaddr);
+        String identityAddress = mAdapterService.getIdentityAddress(bdaddr);
+        d("disconnectDevice: identityAddress=" + identityAddress);
+        return disconnectDeviceNative(identityAddress);
     }
 
     void setActiveDevice(String bdaddr) {
-        BluetoothDevice device =
-                BluetoothAdapter.getDefaultAdapter().getRemoteDevice(bdaddr.toUpperCase());
+        BluetoothDevice device = mAdapterService.getDeviceFromByte(Utils.getBytesFromAddress(bdaddr));
         d("setActiveDevice: device=" + device);
         mAvrcpService.setActiveDevice(device);
     }
 
     void deviceConnected(String bdaddr, boolean absoluteVolume) {
-        BluetoothDevice device =
-                BluetoothAdapter.getDefaultAdapter().getRemoteDevice(bdaddr.toUpperCase());
+        BluetoothDevice device = mAdapterService.getDeviceFromByte(Utils.getBytesFromAddress(bdaddr));
         d("deviceConnected: device=" + device + " absoluteVolume=" + absoluteVolume);
         if (mAvrcpService == null) {
             Log.w(TAG, "deviceConnected: AvrcpTargetService is null");
@@ -227,8 +237,7 @@ public class AvrcpNativeInterface {
     }
 
     void deviceDisconnected(String bdaddr) {
-        BluetoothDevice device =
-                BluetoothAdapter.getDefaultAdapter().getRemoteDevice(bdaddr.toUpperCase());
+        BluetoothDevice device = mAdapterService.getDeviceFromByte(Utils.getBytesFromAddress(bdaddr));
         d("deviceDisconnected: device=" + device);
         if (mAvrcpService == null) {
             Log.w(TAG, "deviceDisconnected: AvrcpTargetService is null");
@@ -240,7 +249,8 @@ public class AvrcpNativeInterface {
 
     void sendVolumeChanged(String bdaddr, int volume) {
         d("sendVolumeChanged: volume=" + volume);
-        sendVolumeChangedNative(bdaddr, volume);
+        String identityAddress = mAdapterService.getIdentityAddress(bdaddr);
+        sendVolumeChangedNative(identityAddress, volume);
     }
 
     void setVolume(int volume) {
