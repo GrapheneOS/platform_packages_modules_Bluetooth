@@ -124,7 +124,7 @@ android_app {
     required: ["libbluetooth"],
     apex_available: [
         "//apex_available:platform",
-        "com.android.bluetooth.updatable",
+        "com.android.bluetooth",
     ],
     errorprone: {
         javacflags: [
