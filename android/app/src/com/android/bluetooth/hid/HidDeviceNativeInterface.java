@@ -26,9 +26,10 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.util.Log;
 
-import com.android.bluetooth.Utils;
+import com.android.bluetooth.btservice.AdapterService;
 import com.android.internal.annotations.GuardedBy;
 import com.android.internal.annotations.VisibleForTesting;
+import java.util.Objects;
 
 /**
  * HID Device Native Interface to/from JNI.
@@ -36,6 +37,7 @@ import com.android.internal.annotations.VisibleForTesting;
 public class HidDeviceNativeInterface {
     private static final String TAG = "HidDeviceNativeInterface";
     private BluetoothAdapter mAdapter;
+    private AdapterService mAdapterService;
 
     @GuardedBy("INSTANCE_LOCK")
     private static HidDeviceNativeInterface sInstance;
@@ -51,6 +53,8 @@ public class HidDeviceNativeInterface {
         if (mAdapter == null) {
             Log.wtf(TAG, "No Bluetooth Adapter Available");
         }
+        mAdapterService = Objects.requireNonNull(AdapterService.getAdapterService(),
+                "AdapterService cannot be null when HidDeviceNativeInterface init");
     }
 
     /**
@@ -249,11 +253,11 @@ public class HidDeviceNativeInterface {
         if (address == null) {
             return null;
         }
-        return mAdapter.getRemoteDevice(address);
+        return mAdapterService.getDeviceFromByte(address);
     }
 
     private byte[] getByteAddress(BluetoothDevice device) {
-        return Utils.getBytesFromAddress(device.getAddress());
+        return mAdapterService.getByteIdentityAddress(device);
     }
 
     private static native void classInitNative();
