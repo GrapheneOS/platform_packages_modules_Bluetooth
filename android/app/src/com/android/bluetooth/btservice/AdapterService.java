@@ -2761,6 +2761,16 @@ public class AdapterService extends Service {
         return device;
     }
 
+    public String getIdentityAddress(String address) {
+        BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address.toUpperCase());
+        DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
+        if (deviceProp.isConsolidated()) {
+            return deviceProp.getIdentityAddress();
+        } else {
+            return address;
+        }
+    }
+
     private class CallerInfo {
         public String callerPackageName;
         public UserHandle user;
