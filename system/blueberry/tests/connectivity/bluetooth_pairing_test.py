@@ -6,6 +6,8 @@ from __future__ import print_function
 import logging
 
 from mobly import test_runner
+from mobly import signals
+from blueberry.utils import asserts
 from blueberry.utils import blueberry_base_test
 
 
@@ -34,6 +36,7 @@ class BluetoothPairingTest(blueberry_base_test.BlueberryBaseTest):
         # secondary phone as a derived_bt_device in order for the generic script
         # to work with this android phone properly.
         self.derived_bt_device = self.android_devices[1]
+        self.derived_bt_devices.append(self.derived_bt_device)
         self.derived_bt_device.init_setup()
         self.derived_bt_device.sl4a_setup()
       else:
@@ -69,7 +72,8 @@ class BluetoothPairingTest(blueberry_base_test.BlueberryBaseTest):
       receiver.activate_pairing_mode()
       # initiate pairing from initiator
       initiator.set_target(receiver)
-      initiator.pair_and_connect_bluetooth(mac_address)
+      with asserts.assert_not_raises(signals.ControllerError):
+        initiator.pair_and_connect_bluetooth(mac_address)
       if self.allow_pairing_reverse and initiator != self.derived_bt_device:
         logging.info('===== Reversing Pairing =====')
         # Resets Bluetooth status for two sides.

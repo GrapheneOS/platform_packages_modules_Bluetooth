@@ -3,6 +3,8 @@
 import time
 
 from mobly import test_runner
+from mobly import signals
+from blueberry.utils import asserts
 from blueberry.utils import blueberry_base_test
 
 # Connection state change sleep time in seconds.
@@ -32,33 +34,34 @@ class BluetoothConnectionTest(blueberry_base_test.BlueberryBaseTest):
   def setup_test(self):
     super().setup_test()
     # Checks if A2DP and HSP profiles are connected.
-    self.wait_for_a2dp_and_hsp_connection_state(connected=True)
+    self.assert_a2dp_and_hsp_connection_state(connected=True)
     # Buffer between tests.
     time.sleep(CONNECTION_STATE_CHANGE_SLEEP_SEC)
 
-  def wait_for_a2dp_and_hsp_connection_state(self, connected):
+  def assert_a2dp_and_hsp_connection_state(self, connected):
     """Asserts that A2DP and HSP connections are in the expected state.
 
     Args:
       connected: bool, True if the expected state is connected else False.
     """
-    self.primary_device.wait_for_a2dp_connection_state(self.mac_address,
-                                                       connected)
-    self.primary_device.wait_for_hsp_connection_state(self.mac_address,
-                                                      connected)
+    with asserts.assert_not_raises(signals.TestError):
+      self.primary_device.wait_for_a2dp_connection_state(self.mac_address,
+                                                         connected)
+      self.primary_device.wait_for_hsp_connection_state(self.mac_address,
+                                                        connected)
 
   def test_disconnect_and_connect(self):
     """Test for DUT disconnecting and then connecting to the remote device."""
     self.primary_device.log.info('Disconnecting the device "%s"...' %
                                  self.mac_address)
     self.primary_device.disconnect_bluetooth(self.mac_address)
-    self.wait_for_a2dp_and_hsp_connection_state(connected=False)
+    self.assert_a2dp_and_hsp_connection_state(connected=False)
     # Buffer time for connection state change.
     time.sleep(CONNECTION_STATE_CHANGE_SLEEP_SEC)
     self.primary_device.log.info('Connecting the device "%s"...' %
                                  self.mac_address)
     self.primary_device.connect_bluetooth(self.mac_address)
-    self.wait_for_a2dp_and_hsp_connection_state(connected=True)
+    self.assert_a2dp_and_hsp_connection_state(connected=True)
 
   def test_reconnect_when_enabling_bluetooth(self):
     """Test for DUT reconnecting to the remote device when Bluetooth enabled."""
@@ -71,7 +74,7 @@ class BluetoothConnectionTest(blueberry_base_test.BlueberryBaseTest):
     self.primary_device.sl4a.bluetoothToggleState(True)
     self.primary_device.wait_for_bluetooth_toggle_state(enabled=True)
     self.primary_device.wait_for_connection_success(self.mac_address)
-    self.wait_for_a2dp_and_hsp_connection_state(connected=True)
+    self.assert_a2dp_and_hsp_connection_state(connected=True)
 
   def test_reconnect_when_connected_device_powered_on(self):
     """Test for the remote device reconnecting to DUT.
@@ -83,13 +86,13 @@ class BluetoothConnectionTest(blueberry_base_test.BlueberryBaseTest):
         'The connected device "%s" is being powered off...' % self.mac_address)
     self.derived_bt_device.power_off()
     self.primary_device.wait_for_disconnection_success(self.mac_address)
-    self.wait_for_a2dp_and_hsp_connection_state(connected=False)
+    self.assert_a2dp_and_hsp_connection_state(connected=False)
     time.sleep(CONNECTION_STATE_CHANGE_SLEEP_SEC)
     self.derived_bt_device.power_on()
     self.primary_device.log.info(
         'The connected device "%s" is being powered on...' % self.mac_address)
     self.primary_device.wait_for_connection_success(self.mac_address)
-    self.wait_for_a2dp_and_hsp_connection_state(connected=True)
+    self.assert_a2dp_and_hsp_connection_state(connected=True)
 
 
 if __name__ == '__main__':
