@@ -365,19 +365,21 @@ public class HeadsetClientService extends ProfileService {
         public void setAudioRouteAllowed(BluetoothDevice device, boolean allowed,
                 AttributionSource source) {
             HeadsetClientService service = getService(source);
-            if (service == null) {
-                return;
+            if (service != null) {
+                service.setAudioRouteAllowed(device, allowed);
+            } else {
+                Log.w(TAG, "Service handle is null for setAudioRouteAllowed!");
             }
-            Log.e(TAG, "setAudioRouteAllowed API not supported");
         }
 
         @Override
         public boolean getAudioRouteAllowed(BluetoothDevice device, AttributionSource source) {
             HeadsetClientService service = getService(source);
-            if (service == null) {
-                return false;
+            if (service != null) {
+                return service.getAudioRouteAllowed(device);
+            } else {
+                Log.w(TAG, "Service handle is null for getAudioRouteAllowed!");
             }
-            Log.e(TAG, "getAudioRouteAllowed API not supported");
             return false;
         }
 
@@ -729,6 +731,23 @@ public class HeadsetClientService extends ProfileService {
         }
 
         return sm.getAudioState(device);
+    }
+
+    public void setAudioRouteAllowed(BluetoothDevice device, boolean allowed) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        HeadsetClientStateMachine sm = mStateMachineMap.get(device);
+        if (sm != null) {
+            sm.setAudioRouteAllowed(allowed);
+        }
+    }
+
+    public boolean getAudioRouteAllowed(BluetoothDevice device) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        HeadsetClientStateMachine sm = mStateMachineMap.get(device);
+        if (sm != null) {
+            return sm.getAudioRouteAllowed();
+        }
+        return false;
     }
 
     boolean connectAudio(BluetoothDevice device) {
