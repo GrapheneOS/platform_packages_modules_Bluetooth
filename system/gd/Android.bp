@@ -197,8 +197,6 @@ cc_defaults {
         "libchrome",
         "libcrypto",
         "libflatbuffers-cpp",
-        "libgrpc++",
-        "libgrpc_wrap",
     ],
     static_libs: [
         "libbluetooth-dumpsys",
