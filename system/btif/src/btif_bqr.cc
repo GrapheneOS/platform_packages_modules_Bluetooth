@@ -78,7 +78,7 @@ void BqrVseSubEvt::ParseBqrLinkQualityEvt(uint8_t length,
 }
 
 void BqrVseSubEvt::WriteLmpLlTraceLogFile(int fd, uint8_t length,
-                                          uint8_t* p_param_buf) {
+                                          const uint8_t* p_param_buf) {
   const auto now = system_clock::to_time_t(system_clock::now());
   localtime_r(&now, &tm_timestamp_);
 
@@ -100,7 +100,7 @@ void BqrVseSubEvt::WriteLmpLlTraceLogFile(int fd, uint8_t length,
 }
 
 void BqrVseSubEvt::WriteBtSchedulingTraceLogFile(int fd, uint8_t length,
-                                                 uint8_t* p_param_buf) {
+                                                 const uint8_t* p_param_buf) {
   const auto now = system_clock::to_time_t(system_clock::now());
   localtime_r(&now, &tm_timestamp_);
 
@@ -430,7 +430,7 @@ void AddLinkQualityEventToQueue(uint8_t length,
   kpBqrEventQueue->Enqueue(p_bqr_event.release());
 }
 
-void DumpLmpLlMessage(uint8_t length, uint8_t* p_lmp_ll_message_event) {
+void DumpLmpLlMessage(uint8_t length, const uint8_t* p_lmp_ll_message_event) {
   std::unique_ptr<BqrVseSubEvt> p_bqr_event = std::make_unique<BqrVseSubEvt>();
 
   if (LmpLlMessageTraceLogFd == INVALID_FD ||
@@ -465,7 +465,7 @@ int OpenLmpLlTraceLogFile() {
   return logfile_fd;
 }
 
-void DumpBtScheduling(uint8_t length, uint8_t* p_bt_scheduling_event) {
+void DumpBtScheduling(uint8_t length, const uint8_t* p_bt_scheduling_event) {
   std::unique_ptr<BqrVseSubEvt> p_bqr_event = std::make_unique<BqrVseSubEvt>();
 
   if (BtSchedulingTraceLogFd == INVALID_FD ||
