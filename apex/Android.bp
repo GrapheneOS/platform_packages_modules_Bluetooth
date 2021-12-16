@@ -8,7 +8,7 @@ package {
 }
 
 apex {
-    name: "com.android.bluetooth.updatable",
+    name: "com.android.bluetooth",
     enabled: false,
 
     manifest: "apex_manifest.json",
@@ -21,17 +21,17 @@ apex {
 
     compile_multilib: "both",
 
-    key: "com.android.bluetooth.updatable.key",
-    certificate: ":com.android.bluetooth.updatable.certificate",
+    key: "com.android.bluetooth.key",
+    certificate: ":com.android.bluetooth.certificate",
 }
 
 apex_key {
-    name: "com.android.bluetooth.updatable.key",
-    public_key: "com.android.bluetooth.updatable.avbpubkey",
-    private_key: "com.android.bluetooth.updatable.pem",
+    name: "com.android.bluetooth.key",
+    public_key: "com.android.bluetooth.avbpubkey",
+    private_key: "com.android.bluetooth.pem",
 }
 
 android_app_certificate {
-    name: "com.android.bluetooth.updatable.certificate",
-    certificate: "com.android.bluetooth.updatable",
+    name: "com.android.bluetooth.certificate",
+    certificate: "com.android.bluetooth",
 }
