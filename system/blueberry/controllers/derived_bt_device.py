@@ -27,15 +27,18 @@ from __future__ import print_function
 
 import importlib
 import logging
+from typing import Any, Dict, List, Sequence
+
 import yaml
 
-MOBLY_CONTROLLER_CONFIG_NAME = "DerivedBtDevice"
-MOBLY_CONTROLLER_CONFIG_MODULE_KEY = "ModuleName"
-MOBLY_CONTROLLER_CONFIG_CLASS_KEY = "ClassName"
-MOBLY_CONTROLLER_CONFIG_PARAMS_KEY = "Params"
+
+MOBLY_CONTROLLER_CONFIG_NAME = 'DerivedBtDevice'
+MOBLY_CONTROLLER_CONFIG_MODULE_KEY = 'ModuleName'
+MOBLY_CONTROLLER_CONFIG_CLASS_KEY = 'ClassName'
+MOBLY_CONTROLLER_CONFIG_PARAMS_KEY = 'Params'
 
 
-def create(configs):
+def create(configs: List[Dict[str, Any]]) -> List[Any]:
   """Creates DerivedBtDevice controller objects.
 
   For each config dict in configs:
@@ -55,25 +58,24 @@ def create(configs):
   return [_create_bt_device_class(config) for config in configs]
 
 
-def _create_bt_device_class(config):
+def _create_bt_device_class(config: Dict[str, Any]) -> Any:
   """Created new device class from associated device controller from config."""
   module = importlib.import_module(
-      "blueberry.controllers.%s" %
+      'blueberry.controllers.%s' %
       config[MOBLY_CONTROLLER_CONFIG_MODULE_KEY])
-  logging.info("Creating DerivedBtDevice from %r", config)
+  logging.info('Creating DerivedBtDevice from %r', config)
   cls = getattr(module, config[MOBLY_CONTROLLER_CONFIG_CLASS_KEY])
-  params = yaml.safe_load("%s" %
+  params = yaml.safe_load('%s' %
                           config.get(MOBLY_CONTROLLER_CONFIG_PARAMS_KEY, {}))
   new_class = type(MOBLY_CONTROLLER_CONFIG_NAME, (cls, BtDevice), params)
-  new_class_inst = new_class(**params)
-  return new_class_inst
+  return new_class(**params)
 
 
-def destroy(derived_bt_devices):
+def destroy(derived_bt_devices: Sequence[Any])-> None:
   """Cleans up DerivedBtDevice objects."""
   for device in derived_bt_devices:
     # Execute cleanup if the controller class has the method "clean_up".
-    if hasattr(device, "clean_up"):
+    if hasattr(device, 'clean_up'):
       device.clean_up()
   del derived_bt_devices
 
@@ -84,14 +86,14 @@ class BtDevice(object):
   Provides additional necessary functionality for use within blueberry.
   """
 
-  def __init__(self):
+  def __init__(self) -> None:
     """Initializes a derived bt base class."""
     self._user_params = {}
 
-  def setup(self):
+  def setup(self) -> None:
     """For devices that need extra setup."""
 
-  def set_user_params(self, params):
+  def set_user_params(self, params: Dict[str, str]) -> None:
     """Intended for passing mobly user_params into a derived device class.
 
     Args:
@@ -99,7 +101,7 @@ class BtDevice(object):
     """
     self._user_params = params
 
-  def get_user_params(self):
+  def get_user_params(self) -> Dict[str, str]:
     """Return saved user_params.
 
     Returns:
@@ -114,3 +116,7 @@ class BtDevice(object):
   def activate_pairing_mode(self) -> None:
     """Activates pairing mode on an AndroidDevice."""
     raise NotImplementedError
+
+  def get_bluetooth_mac_address(self) -> None:
+    """Get bluetooth mac address of an BT Device."""
+    pass

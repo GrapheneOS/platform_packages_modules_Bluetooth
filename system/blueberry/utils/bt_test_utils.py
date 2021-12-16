@@ -13,6 +13,7 @@ import os
 import random
 import string
 import time
+from typing import Optional
 import wave
 
 
@@ -31,9 +32,9 @@ def convert_pcm_to_wav(pcm_file_path, wave_file_path, audio_params):
 
 def create_vcf_from_vcard(output_path: str,
                           num_of_contacts: int,
-                          first_name: str = None,
-                          last_name: str = None,
-                          phone_number: int = None) -> str:
+                          first_name: Optional[str] = None,
+                          last_name: Optional[str] = None,
+                          phone_number: Optional[int] = None) -> str:
   """Creates a vcf file from vCard.
 
   Args:

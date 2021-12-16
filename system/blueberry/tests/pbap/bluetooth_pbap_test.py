@@ -11,7 +11,7 @@ from mobly import utils
 
 from mobly.controllers import android_device
 
-from blueberry.utils import blueberry_base_test
+from blueberry.utils import blueberry_ui_base_test
 from blueberry.utils import bt_constants
 from blueberry.utils import bt_test_utils
 
@@ -34,8 +34,14 @@ PERMISSION_LIST = [
 ]
 
 
-class BluetoothPbapTest(blueberry_base_test.BlueberryBaseTest):
+class BluetoothPbapTest(blueberry_ui_base_test.BlueberryUiBaseTest):
   """Test Class for Bluetooth PBAP Test."""
+
+  def __init__(self, configs):
+    super().__init__(configs)
+    self.derived_bt_device = None
+    self.pri_phone = None
+    self.pse_mac_address = None
 
   def setup_class(self):
     """Standard Mobly setup class."""
@@ -372,26 +378,19 @@ class BluetoothPbapTest(blueberry_base_test.BlueberryBaseTest):
           f'the incoming call from device "{secondary_phone.serial}".')
     try:
       self.derived_bt_device.aud.open_notification()
-      target_node_match_dict = {
-          'resource_id': 'android:id/line1',
-          'child': {
-              'resource_id': 'android:id/title'
-          }
-      }
       hfp_address = primary_phone.get_bluetooth_mac_address()
-      target_node = self.derived_bt_device.aud(
-          sibling=target_node_match_dict,
-          text=f'Incoming call via HFP {hfp_address}')
-      caller_name = target_node.get_attribute_value('text')
-      message = (f'Caller name is incorrect. Actual: {caller_name}, '
-                 f'Correct: {full_name}')
+      if not self.derived_bt_device.aud(
+          text=f'Incoming call via HFP {hfp_address}').exists():
+        raise signals.TestError('The incoming call was not received from '
+                                'the Handsfree device side.')
       # Asserts that caller name of the incoming phone call is correct in the
       # notification bar.
-      asserts.assert_equal(
-          first=caller_name,
-          second=full_name,
-          msg=message)
+      asserts.assert_true(
+          self.derived_bt_device.aud(text=full_name).exists(),
+          f'Caller name is incorrect. Expectation: "{full_name}"')
     finally:
+      # Takes a screenshot for debugging.
+      self.derived_bt_device.take_screenshot(self.derived_bt_device.log_path)
       # Recovery actions.
       self.derived_bt_device.aud.close_notification()
       secondary_phone.sl4a.telecomEndCall()
