@@ -424,12 +424,7 @@ static void dump(int fd, const char** arguments) {
   LeAudioClient::DebugDump(fd);
   connection_manager::dump(fd);
   bluetooth::bqr::DebugDump(fd);
-  if (bluetooth::shim::is_any_gd_enabled()) {
-    bluetooth::shim::Dump(fd, arguments);
-  } else {
-#if (BTSNOOP_MEM == TRUE)
-#endif
-  }
+  bluetooth::shim::Dump(fd, arguments);
 }
 
 static void dumpMetrics(std::string* output) {
