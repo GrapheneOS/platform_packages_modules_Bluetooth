@@ -2,12 +2,19 @@
 """Utils for bluetooth audio testing."""
 
 import logging as log
+import math
 import os
+from typing import Optional
 import numpy as np
 from scipy import signal as scipy_signal
 from scipy.io import wavfile
 # Internal import
 # Internal import
+
+# Dict keys of the THD+N analysis result
+_THDN_KEY = 'thd+n'
+_START_TIME_KEY = 'start_time'
+_END_TIME_KEY = 'end_time'
 
 
 def generate_sine_wave_to_device(
@@ -129,7 +136,7 @@ def measure_audio_thdn_per_window(
     thdn_threshold,
     step_size,
     window_size,
-    q,
+    q=1.0,
     frequency=None):
   """Measures Total Harmonic Distortion + Noise (THD+N) of an audio file.
 
@@ -170,12 +177,16 @@ def measure_audio_thdn_per_window(
     raise ValueError('window_size shall be greater than 0.')
   sample_rate, wave_data = wavfile.read(audio_file)
   wave_data = wave_data.astype('float64')
+  if len(wave_data.shape) == 1:
+    channel_signals = (wave_data,)
+  else:
+    channel_signals = wave_data.transpose()
   # Collects the result for each channels.
   results = []
-  for signal in wave_data.transpose():
+  for signal in channel_signals:
     current_position = 0
     channel_result = []
-    while current_position + window_size < len(signal):
+    while current_position + window_size <= len(signal):
       window = signal[current_position:current_position + window_size]
       thdn = measure_thdn(
           signal=window,
@@ -186,13 +197,63 @@ def measure_audio_thdn_per_window(
       end_time = (current_position + window_size) / sample_rate
       if thdn > thdn_threshold:
         channel_result.append({
-            'thd+n': thdn,
-            'start_time': start_time,
-            'end_time': end_time
+            _THDN_KEY: thdn,
+            _START_TIME_KEY: start_time,
+            _END_TIME_KEY: end_time
         })
       current_position += step_size
     results.append(channel_result)
   return results
+
+
+def get_audio_maximum_thdn(
+    audio_file: str,
+    step_size: int,
+    window_size: int,
+    q: float = 1.0,
+    frequency: Optional[float] = None) -> float:
+  """Gets maximum THD+N from each audio sample with specified window size.
+
+  Args:
+    audio_file: A .wav file to be measured.
+    step_size: Number of samples to move the window by for each analysis.
+    window_size: Number of samples to analyze each time.
+    q: Quality factor for the notch filter.
+    frequency: Fundamental frequency of the signal. All other frequencies
+        are noise. If not specified, will be calculated using FFT.
+
+  Returns:
+    Float representing the maximum THD+N for the audio file.
+  """
+  # Gets all analysis results.
+  total_results = measure_audio_thdn_per_window(
+      audio_file=audio_file,
+      thdn_threshold=-1.0,
+      step_size=step_size,
+      window_size=window_size,
+      q=q,
+      frequency=frequency)
+
+  max_thdn_result = {_THDN_KEY: -1.0, _START_TIME_KEY: -1, _END_TIME_KEY: -1}
+  for channel_results in total_results:
+    for result in channel_results:
+      if result[_THDN_KEY] > max_thdn_result[_THDN_KEY]:
+        max_thdn_result = result
+
+  log.info('Maximum THD+N result: %s', max_thdn_result)
+  return max_thdn_result[_THDN_KEY]
+
+
+def convert_thdn_percent_to_decibels(thdn_percent: float) -> float:
+  """Converts THD+N percentage to decibels (dB).
+
+  Args:
+    thdn_percent: THD+N in percent. E.g. 0.001.
+
+  Returns:
+    THD+N in decibels.
+  """
+  return math.log(thdn_percent / 100, 10) * 20
 
 
 def trim_audio(audio_file: str,
