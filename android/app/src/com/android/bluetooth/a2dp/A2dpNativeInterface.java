@@ -29,10 +29,12 @@ import android.bluetooth.BluetoothDevice;
 import android.util.Log;
 
 import com.android.bluetooth.Utils;
+import com.android.bluetooth.btservice.AdapterService;
 import com.android.internal.annotations.GuardedBy;
 import com.android.internal.annotations.VisibleForTesting;
 
 import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * A2DP Native Interface to/from JNI.
@@ -41,6 +43,7 @@ public class A2dpNativeInterface {
     private static final String TAG = "A2dpNativeInterface";
     private static final boolean DBG = true;
     private BluetoothAdapter mAdapter;
+    private AdapterService mAdapterService;
 
     @GuardedBy("INSTANCE_LOCK")
     private static A2dpNativeInterface sInstance;
@@ -56,6 +59,8 @@ public class A2dpNativeInterface {
         if (mAdapter == null) {
             Log.wtf(TAG, "No Bluetooth Adapter Available");
         }
+        mAdapterService = Objects.requireNonNull(AdapterService.getAdapterService(),
+                "AdapterService cannot be null when A2dpNativeInterface init");
     }
 
     /**
@@ -145,14 +150,14 @@ public class A2dpNativeInterface {
     }
 
     private BluetoothDevice getDevice(byte[] address) {
-        return mAdapter.getRemoteDevice(address);
+        return mAdapterService.getDeviceFromByte(address);
     }
 
     private byte[] getByteAddress(BluetoothDevice device) {
         if (device == null) {
             return Utils.getBytesFromAddress("00:00:00:00:00:00");
         }
-        return Utils.getBytesFromAddress(device.getAddress());
+        return mAdapterService.getByteIdentityAddress(device);
     }
 
     private void sendMessageToService(A2dpStackEvent event) {

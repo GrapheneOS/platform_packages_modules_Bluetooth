@@ -495,17 +495,21 @@ impl UpstartInvoker {
 
 impl ProcessManager for UpstartInvoker {
     fn start(&mut self, hci_interface: String) {
-        Command::new("initctl")
+        if let Err(e) = Command::new("initctl")
             .args(&["start", "btadapterd", format!("HCI={}", hci_interface).as_str()])
             .output()
-            .expect("failed to start bluetooth");
+        {
+            error!("Failed to start btadapterd: {}", e);
+        }
     }
 
     fn stop(&mut self, hci_interface: String) {
-        Command::new("initctl")
+        if let Err(e) = Command::new("initctl")
             .args(&["stop", "btadapterd", format!("HCI={}", hci_interface).as_str()])
             .output()
-            .expect("failed to stop bluetooth");
+        {
+            error!("Failed to stop btadapterd: {}", e);
+        }
     }
 }
 

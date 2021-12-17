@@ -32,6 +32,13 @@ class BluetoothAvrcpTest(blueberry_base_test.BlueberryBaseTest):
     4. track_next()
   """
 
+  def __init__(self, configs):
+    super().__init__(configs)
+    self.derived_bt_device = None
+    self.pri_device = None
+    self.is_android_bt_target_device = None
+    self.tracks = None
+
   def setup_class(self):
     """Standard Mobly setup class."""
     super(BluetoothAvrcpTest, self).setup_class()
@@ -45,6 +52,7 @@ class BluetoothAvrcpTest(blueberry_base_test.BlueberryBaseTest):
 
     if len(self.android_devices) > 1 and not self.derived_bt_devices:
       self.derived_bt_device = self.android_devices[1]
+      self.derived_bt_devices.append(self.derived_bt_device)
     else:
       self.derived_bt_device = self.derived_bt_devices[0]
 
@@ -114,9 +122,14 @@ class BluetoothAvrcpTest(blueberry_base_test.BlueberryBaseTest):
   def teardown_test(self):
     """Teardown test for bluetooth avrcp media play test."""
     super(BluetoothAvrcpTest, self).teardown_test()
+    # Adds 1 second waiting time to fix the NullPointerException when executing
+    # the following sl4a.bluetoothMediaHandleMediaCommandOnPhone method.
+    time.sleep(1)
     # Sets Playback state to Paused after a test method finishes.
     self.pri_device.sl4a.bluetoothMediaHandleMediaCommandOnPhone(
         bt_constants.CMD_MEDIA_PAUSE)
+    # Buffer between tests.
+    time.sleep(1)
 
   def wait_for_media_info_sync(self):
     """Waits for sync Media information between two sides.

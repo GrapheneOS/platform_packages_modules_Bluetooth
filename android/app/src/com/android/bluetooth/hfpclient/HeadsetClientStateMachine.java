@@ -168,6 +168,8 @@ public class HeadsetClientStateMachine extends StateMachine {
     private Pair<Integer, Object> mPendingAction;
 
     private int mAudioState;
+    // Indicates whether audio can be routed to the device
+    private boolean mAudioRouteAllowed;
     private boolean mAudioWbs;
     private int mVoiceRecognitionActive;
     private final BluetoothAdapter mAdapter;
@@ -210,6 +212,7 @@ public class HeadsetClientStateMachine extends StateMachine {
         ProfileService.println(sb, "  mIndicatorBatteryLevel: " + mIndicatorBatteryLevel);
         ProfileService.println(sb, "  mOperatorName: " + mOperatorName);
         ProfileService.println(sb, "  mSubscriberInfo: " + mSubscriberInfo);
+        ProfileService.println(sb, "  mAudioRouteAllowed: " + mAudioRouteAllowed);
 
         ProfileService.println(sb, "  mCalls:");
         if (mCalls != null) {
@@ -774,6 +777,9 @@ public class HeadsetClientStateMachine extends StateMachine {
         mAudioState = BluetoothHeadsetClient.STATE_AUDIO_DISCONNECTED;
         mAudioWbs = false;
         mVoiceRecognitionActive = HeadsetClientHalConstants.VR_STATE_STOPPED;
+
+        mAudioRouteAllowed = context.getResources().getBoolean(
+            R.bool.headset_client_initial_audio_route_allowed);
 
         mIndicatorNetworkState = HeadsetClientHalConstants.NETWORK_STATE_NOT_AVAILABLE;
         mIndicatorNetworkType = HeadsetClientHalConstants.SERVICE_TYPE_HOME;
@@ -1593,6 +1599,14 @@ public class HeadsetClientStateMachine extends StateMachine {
                     mAudioWbs = true;
                     // fall through
                 case HeadsetClientHalConstants.AUDIO_STATE_CONNECTED:
+                    if (DBG) {
+                        Log.d(TAG, "mAudioRouteAllowed=" + mAudioRouteAllowed);
+                    }
+                    if (!mAudioRouteAllowed) {
+                        sendMessage(HeadsetClientStateMachine.DISCONNECT_AUDIO);
+                        break;
+                    }
+
                     // Audio state is split in two parts, the audio focus is maintained by the
                     // entity exercising this service (typically the Telecom stack) and audio
                     // routing is handled by the bluetooth stack itself. The only reason to do so is
@@ -1980,5 +1994,13 @@ public class HeadsetClientStateMachine extends StateMachine {
         if (DBG) {
             Log.d(TAG, message);
         }
+    }
+
+    public void setAudioRouteAllowed(boolean allowed) {
+        mAudioRouteAllowed = allowed;
+    }
+
+    public boolean getAudioRouteAllowed() {
+        return mAudioRouteAllowed;
     }
 }

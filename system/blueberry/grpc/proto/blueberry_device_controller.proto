@@ -3,7 +3,6 @@ syntax = "proto3";
 package wearables.qa.blueberry.grpc;
 
 option java_multiple_files = true;
-option jspb_use_correct_proto2_semantics = true;
 
 message DiscoverableMode {
   bool mode = 1;  // True to set discoverable on, False to set discoverable off.
