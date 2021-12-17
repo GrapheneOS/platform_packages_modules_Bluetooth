@@ -93,7 +93,6 @@ public class HeadsetServiceAndStateMachineTest {
 
     private Context mTargetContext;
     private HeadsetService mHeadsetService;
-    private IBluetoothHeadset.Stub mHeadsetServiceBinder;
     private BluetoothAdapter mAdapter;
     private HeadsetNativeInterface mNativeInterface;
     private ArgumentCaptor<HeadsetStateMachine> mStateMachineArgument =
@@ -222,8 +221,6 @@ public class HeadsetServiceAndStateMachineTest {
         verify(mObjectsFactory).makeSystemInterface(mHeadsetService);
         verify(mObjectsFactory).getNativeInterface();
         verify(mNativeInterface).init(MAX_HEADSET_CONNECTIONS + 1, true /* inband ringtone */);
-        mHeadsetServiceBinder = (IBluetoothHeadset.Stub) mHeadsetService.initBinder();
-        Assert.assertNotNull(mHeadsetServiceBinder);
 
         // Set up the Connection State Changed receiver
         IntentFilter filter = new IntentFilter();
@@ -426,30 +423,26 @@ public class HeadsetServiceAndStateMachineTest {
         for (int i = 0; i < MAX_HEADSET_CONNECTIONS; ++i) {
             BluetoothDevice device = TestUtils.getTestDevice(mAdapter, i);
             connectTestDevice(device);
-            Assert.assertThat(mHeadsetServiceBinder.getConnectedDevices(),
+            Assert.assertThat(mHeadsetService.getConnectedDevices(),
                     Matchers.containsInAnyOrder(mBondedDevices.toArray()));
-            Assert.assertThat(mHeadsetServiceBinder.getDevicesMatchingConnectionStates(
-                    new int[]{BluetoothProfile.STATE_CONNECTED}, mAdapter.getAttributionSource()),
+            Assert.assertThat(mHeadsetService.getDevicesMatchingConnectionStates(
+                    new int[]{BluetoothProfile.STATE_CONNECTED}),
                     Matchers.containsInAnyOrder(mBondedDevices.toArray()));
         }
-        List<BluetoothDevice> connectedDevices = mHeadsetServiceBinder.getConnectedDevices();
+        List<BluetoothDevice> connectedDevices = mHeadsetService.getConnectedDevices();
         Assert.assertThat(connectedDevices, Matchers.containsInAnyOrder(mBondedDevices.toArray()));
         Assert.assertFalse(mHeadsetService.isVirtualCallStarted());
         BluetoothDevice activeDevice = connectedDevices.get(MAX_HEADSET_CONNECTIONS / 2);
-        Assert.assertTrue(mHeadsetServiceBinder.setActiveDevice(activeDevice,
-                mAdapter.getAttributionSource()));
+        Assert.assertTrue(mHeadsetService.setActiveDevice(activeDevice));
         verify(mNativeInterface).setActiveDevice(activeDevice);
         waitAndVerifyActiveDeviceChangedIntent(ASYNC_CALL_TIMEOUT_MILLIS, activeDevice);
-        Assert.assertEquals(activeDevice,
-                mHeadsetServiceBinder.getActiveDevice(mAdapter.getAttributionSource()));
+        Assert.assertEquals(activeDevice, mHeadsetService.getActiveDevice());
         // Start virtual call
-        Assert.assertTrue(mHeadsetServiceBinder
-                .startScoUsingVirtualVoiceCall(mAdapter.getAttributionSource()));
+        Assert.assertTrue(mHeadsetService.startScoUsingVirtualVoiceCall());
         Assert.assertTrue(mHeadsetService.isVirtualCallStarted());
         verifyVirtualCallStartSequenceInvocations(connectedDevices);
         // End virtual call
-        Assert.assertTrue(mHeadsetServiceBinder
-                .stopScoUsingVirtualVoiceCall(mAdapter.getAttributionSource()));
+        Assert.assertTrue(mHeadsetService.stopScoUsingVirtualVoiceCall());
         Assert.assertFalse(mHeadsetService.isVirtualCallStarted());
         verifyVirtualCallStopSequenceInvocations(connectedDevices);
     }
@@ -466,30 +459,27 @@ public class HeadsetServiceAndStateMachineTest {
         for (int i = 0; i < MAX_HEADSET_CONNECTIONS; ++i) {
             BluetoothDevice device = TestUtils.getTestDevice(mAdapter, i);
             connectTestDevice(device);
-            Assert.assertThat(mHeadsetServiceBinder.getConnectedDevices(),
+            Assert.assertThat(mHeadsetService.getConnectedDevices(),
                     Matchers.containsInAnyOrder(mBondedDevices.toArray()));
-            Assert.assertThat(mHeadsetServiceBinder.getDevicesMatchingConnectionStates(
-                    new int[]{BluetoothProfile.STATE_CONNECTED}, mAdapter.getAttributionSource()),
+            Assert.assertThat(mHeadsetService.getDevicesMatchingConnectionStates(
+                    new int[]{BluetoothProfile.STATE_CONNECTED}),
                     Matchers.containsInAnyOrder(mBondedDevices.toArray()));
         }
-        List<BluetoothDevice> connectedDevices = mHeadsetServiceBinder.getConnectedDevices();
+        List<BluetoothDevice> connectedDevices = mHeadsetService.getConnectedDevices();
         Assert.assertThat(connectedDevices, Matchers.containsInAnyOrder(mBondedDevices.toArray()));
         Assert.assertFalse(mHeadsetService.isVirtualCallStarted());
         BluetoothDevice activeDevice = connectedDevices.get(MAX_HEADSET_CONNECTIONS / 2);
-        Assert.assertTrue(mHeadsetServiceBinder.setActiveDevice(activeDevice,
-                mAdapter.getAttributionSource()));
+        Assert.assertTrue(mHeadsetService.setActiveDevice(activeDevice));
         verify(mNativeInterface).setActiveDevice(activeDevice);
         waitAndVerifyActiveDeviceChangedIntent(ASYNC_CALL_TIMEOUT_MILLIS, activeDevice);
-        Assert.assertEquals(activeDevice,
-                mHeadsetServiceBinder.getActiveDevice(mAdapter.getAttributionSource()));
+        Assert.assertEquals(activeDevice, mHeadsetService.getActiveDevice());
         // Start virtual call
-        Assert.assertTrue(mHeadsetServiceBinder
-                .startScoUsingVirtualVoiceCall(mAdapter.getAttributionSource()));
+        Assert.assertTrue(mHeadsetService.startScoUsingVirtualVoiceCall());
         Assert.assertTrue(mHeadsetService.isVirtualCallStarted());
         verifyVirtualCallStartSequenceInvocations(connectedDevices);
         // Virtual call should be preempted by telecom call
-        mHeadsetServiceBinder.phoneStateChanged(0, 0, HeadsetHalConstants.CALL_STATE_INCOMING,
-                TEST_PHONE_NUMBER, 128, "", mAdapter.getAttributionSource());
+        mHeadsetService.phoneStateChanged(0, 0, HeadsetHalConstants.CALL_STATE_INCOMING,
+                TEST_PHONE_NUMBER, 128, "", false);
         Assert.assertFalse(mHeadsetService.isVirtualCallStarted());
         verifyVirtualCallStopSequenceInvocations(connectedDevices);
         verifyCallStateToNativeInvocation(
@@ -509,26 +499,24 @@ public class HeadsetServiceAndStateMachineTest {
         for (int i = 0; i < MAX_HEADSET_CONNECTIONS; ++i) {
             BluetoothDevice device = TestUtils.getTestDevice(mAdapter, i);
             connectTestDevice(device);
-            Assert.assertThat(mHeadsetServiceBinder.getConnectedDevices(),
+            Assert.assertThat(mHeadsetService.getConnectedDevices(),
                     Matchers.containsInAnyOrder(mBondedDevices.toArray()));
-            Assert.assertThat(mHeadsetServiceBinder.getDevicesMatchingConnectionStates(
-                    new int[]{BluetoothProfile.STATE_CONNECTED}, mAdapter.getAttributionSource()),
+            Assert.assertThat(mHeadsetService.getDevicesMatchingConnectionStates(
+                    new int[]{BluetoothProfile.STATE_CONNECTED}),
                     Matchers.containsInAnyOrder(mBondedDevices.toArray()));
         }
-        List<BluetoothDevice> connectedDevices = mHeadsetServiceBinder.getConnectedDevices();
+        List<BluetoothDevice> connectedDevices = mHeadsetService.getConnectedDevices();
         Assert.assertThat(connectedDevices, Matchers.containsInAnyOrder(mBondedDevices.toArray()));
         Assert.assertFalse(mHeadsetService.isVirtualCallStarted());
         BluetoothDevice activeDevice = connectedDevices.get(MAX_HEADSET_CONNECTIONS / 2);
-        Assert.assertTrue(mHeadsetServiceBinder.setActiveDevice(activeDevice,
-                mAdapter.getAttributionSource()));
+        Assert.assertTrue(mHeadsetService.setActiveDevice(activeDevice));
         verify(mNativeInterface).setActiveDevice(activeDevice);
         waitAndVerifyActiveDeviceChangedIntent(ASYNC_CALL_TIMEOUT_MILLIS, activeDevice);
         Assert.assertEquals(activeDevice,
-                mHeadsetServiceBinder.getActiveDevice(mAdapter.getAttributionSource()));
+                mHeadsetService.getActiveDevice());
         // Reject virtual call setup if call state is not idle
         when(mSystemInterface.isCallIdle()).thenReturn(false);
-        Assert.assertFalse(mHeadsetServiceBinder
-                .startScoUsingVirtualVoiceCall(mAdapter.getAttributionSource()));
+        Assert.assertFalse(mHeadsetService.startScoUsingVirtualVoiceCall());
         Assert.assertFalse(mHeadsetService.isVirtualCallStarted());
     }
 
@@ -540,22 +528,20 @@ public class HeadsetServiceAndStateMachineTest {
         for (int i = 0; i < MAX_HEADSET_CONNECTIONS; ++i) {
             BluetoothDevice device = TestUtils.getTestDevice(mAdapter, i);
             connectTestDevice(device);
-            Assert.assertThat(mHeadsetServiceBinder.getConnectedDevices(),
+            Assert.assertThat(mHeadsetService.getConnectedDevices(),
                     Matchers.containsInAnyOrder(mBondedDevices.toArray()));
-            Assert.assertThat(mHeadsetServiceBinder.getDevicesMatchingConnectionStates(
-                    new int[]{BluetoothProfile.STATE_CONNECTED}, mAdapter.getAttributionSource()),
+            Assert.assertThat(mHeadsetService.getDevicesMatchingConnectionStates(
+                    new int[]{BluetoothProfile.STATE_CONNECTED}),
                     Matchers.containsInAnyOrder(mBondedDevices.toArray()));
         }
-        List<BluetoothDevice> connectedDevices = mHeadsetServiceBinder.getConnectedDevices();
+        List<BluetoothDevice> connectedDevices = mHeadsetService.getConnectedDevices();
         Assert.assertThat(connectedDevices, Matchers.containsInAnyOrder(mBondedDevices.toArray()));
         Assert.assertFalse(mHeadsetService.isVirtualCallStarted());
         BluetoothDevice activeDevice = connectedDevices.get(0);
-        Assert.assertTrue(mHeadsetServiceBinder.setActiveDevice(activeDevice,
-                mAdapter.getAttributionSource()));
+        Assert.assertTrue(mHeadsetService.setActiveDevice(activeDevice));
         verify(mNativeInterface).setActiveDevice(activeDevice);
         waitAndVerifyActiveDeviceChangedIntent(ASYNC_CALL_TIMEOUT_MILLIS, activeDevice);
-        Assert.assertEquals(activeDevice,
-                mHeadsetServiceBinder.getActiveDevice(mAdapter.getAttributionSource()));
+        Assert.assertEquals(activeDevice, mHeadsetService.getActiveDevice());
         // Try dialing out from the a non active Headset
         BluetoothDevice dialingOutDevice = connectedDevices.get(1);
         HeadsetStackEvent dialingOutEvent =
@@ -590,14 +576,13 @@ public class HeadsetServiceAndStateMachineTest {
         verify(mNativeInterface).atResponseCode(activeDevice, HeadsetHalConstants.AT_RESPONSE_ERROR,
                 0);
         TestUtils.waitForNoIntent(ASYNC_CALL_TIMEOUT_MILLIS, mActiveDeviceChangedQueue);
-        Assert.assertEquals(dialingOutDevice,
-                mHeadsetServiceBinder.getActiveDevice(mAdapter.getAttributionSource()));
+        Assert.assertEquals(dialingOutDevice, mHeadsetService.getActiveDevice());
         // Make sure only one intent is fired
         Intents.intended(allOf(IntentMatchers.hasAction(Intent.ACTION_CALL_PRIVILEGED),
                 IntentMatchers.hasData(dialOutUri)), Intents.times(1));
         // Verify that phone state update confirms the dial out event
-        mHeadsetServiceBinder.phoneStateChanged(0, 0, HeadsetHalConstants.CALL_STATE_DIALING,
-                TEST_PHONE_NUMBER, 128, "", mAdapter.getAttributionSource());
+        mHeadsetService.phoneStateChanged(0, 0, HeadsetHalConstants.CALL_STATE_DIALING,
+                TEST_PHONE_NUMBER, 128, "", false);
         HeadsetCallState dialingCallState =
                 new HeadsetCallState(0, 0, HeadsetHalConstants.CALL_STATE_DIALING,
                         TEST_PHONE_NUMBER, 128, "");
@@ -605,8 +590,8 @@ public class HeadsetServiceAndStateMachineTest {
         verify(mNativeInterface).atResponseCode(dialingOutDevice,
                 HeadsetHalConstants.AT_RESPONSE_OK, 0);
         // Verify that IDLE phone state clears the dialing out flag
-        mHeadsetServiceBinder.phoneStateChanged(1, 0, HeadsetHalConstants.CALL_STATE_IDLE,
-                TEST_PHONE_NUMBER, 128, "", mAdapter.getAttributionSource());
+        mHeadsetService.phoneStateChanged(1, 0, HeadsetHalConstants.CALL_STATE_IDLE,
+                TEST_PHONE_NUMBER, 128, "", false);
         HeadsetCallState activeCallState =
                 new HeadsetCallState(0, 0, HeadsetHalConstants.CALL_STATE_DIALING,
                         TEST_PHONE_NUMBER, 128, "");
@@ -622,25 +607,22 @@ public class HeadsetServiceAndStateMachineTest {
         for (int i = 0; i < MAX_HEADSET_CONNECTIONS; ++i) {
             BluetoothDevice device = TestUtils.getTestDevice(mAdapter, i);
             connectTestDevice(device);
-            Assert.assertThat(mHeadsetServiceBinder.getConnectedDevices(),
+            Assert.assertThat(mHeadsetService.getConnectedDevices(),
                     Matchers.containsInAnyOrder(mBondedDevices.toArray()));
-            Assert.assertThat(mHeadsetServiceBinder.getDevicesMatchingConnectionStates(
-                    new int[]{BluetoothProfile.STATE_CONNECTED}, mAdapter.getAttributionSource()),
+            Assert.assertThat(mHeadsetService.getDevicesMatchingConnectionStates(
+                    new int[]{BluetoothProfile.STATE_CONNECTED}),
                     Matchers.containsInAnyOrder(mBondedDevices.toArray()));
         }
-        List<BluetoothDevice> connectedDevices = mHeadsetServiceBinder.getConnectedDevices();
+        List<BluetoothDevice> connectedDevices = mHeadsetService.getConnectedDevices();
         Assert.assertThat(connectedDevices, Matchers.containsInAnyOrder(mBondedDevices.toArray()));
         Assert.assertFalse(mHeadsetService.isVirtualCallStarted());
         BluetoothDevice activeDevice = connectedDevices.get(0);
-        Assert.assertTrue(mHeadsetServiceBinder.setActiveDevice(activeDevice,
-                mAdapter.getAttributionSource()));
+        Assert.assertTrue(mHeadsetService.setActiveDevice(activeDevice));
         verify(mNativeInterface).setActiveDevice(activeDevice);
         waitAndVerifyActiveDeviceChangedIntent(ASYNC_CALL_TIMEOUT_MILLIS, activeDevice);
-        Assert.assertEquals(activeDevice,
-                mHeadsetServiceBinder.getActiveDevice(mAdapter.getAttributionSource()));
+        Assert.assertEquals(activeDevice, mHeadsetService.getActiveDevice());
         // Start virtual call
-        Assert.assertTrue(mHeadsetServiceBinder
-                .startScoUsingVirtualVoiceCall(mAdapter.getAttributionSource()));
+        Assert.assertTrue(mHeadsetService.startScoUsingVirtualVoiceCall());
         Assert.assertTrue(mHeadsetService.isVirtualCallStarted());
         verifyVirtualCallStartSequenceInvocations(connectedDevices);
         // Try dialing out from the a non active Headset
@@ -1104,17 +1086,17 @@ public class HeadsetServiceAndStateMachineTest {
         for (int i = 0; i < MAX_HEADSET_CONNECTIONS; ++i) {
             BluetoothDevice device = TestUtils.getTestDevice(mAdapter, i);
             connectTestDevice(device);
-            Assert.assertThat(mHeadsetServiceBinder.getConnectedDevices(),
+            Assert.assertThat(mHeadsetService.getConnectedDevices(),
                     Matchers.containsInAnyOrder(mBondedDevices.toArray()));
-            Assert.assertThat(mHeadsetServiceBinder.getDevicesMatchingConnectionStates(
-                    new int[]{BluetoothProfile.STATE_CONNECTED}, mAdapter.getAttributionSource()),
+            Assert.assertThat(mHeadsetService.getDevicesMatchingConnectionStates(
+                    new int[]{BluetoothProfile.STATE_CONNECTED}),
                     Matchers.containsInAnyOrder(mBondedDevices.toArray()));
         }
-        List<BluetoothDevice> connectedDevices = mHeadsetServiceBinder.getConnectedDevices();
+        List<BluetoothDevice> connectedDevices = mHeadsetService.getConnectedDevices();
         Assert.assertThat(connectedDevices, Matchers.containsInAnyOrder(mBondedDevices.toArray()));
         // Incoming call update by telecom
-        mHeadsetServiceBinder.phoneStateChanged(0, 0, HeadsetHalConstants.CALL_STATE_INCOMING,
-                TEST_PHONE_NUMBER, 128, TEST_CALLER_ID, mAdapter.getAttributionSource());
+        mHeadsetService.phoneStateChanged(0, 0, HeadsetHalConstants.CALL_STATE_INCOMING,
+                TEST_PHONE_NUMBER, 128, TEST_CALLER_ID, false);
         HeadsetCallState incomingCallState = new HeadsetCallState(0, 0,
                 HeadsetHalConstants.CALL_STATE_INCOMING, TEST_PHONE_NUMBER, 128, TEST_CALLER_ID);
         verifyCallStateToNativeInvocation(incomingCallState, connectedDevices);
