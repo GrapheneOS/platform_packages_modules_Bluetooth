@@ -1156,6 +1156,11 @@ bool LeAudioDeviceGroup::Configure(LeAudioContextType context_type) {
                << ", is in mismatch with cached active contexts";
     return false;
   }
+
+  /* Store selected configuration at once it is chosen.
+   * It might happen it will get unavailable in some point of time
+   */
+  stream_conf.conf = conf;
   return true;
 }
 

@@ -185,6 +185,7 @@ public class AdapterService extends Service {
 
     public static final String BLUETOOTH_PRIVILEGED =
             android.Manifest.permission.BLUETOOTH_PRIVILEGED;
+    static final String BLUETOOTH_PERM = android.Manifest.permission.BLUETOOTH;
     static final String LOCAL_MAC_ADDRESS_PERM = android.Manifest.permission.LOCAL_MAC_ADDRESS;
     static final String RECEIVE_MAP_PERM = android.Manifest.permission.RECEIVE_BLUETOOTH_MAP;
 
@@ -2759,6 +2760,16 @@ public class AdapterService extends Service {
             device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
         }
         return device;
+    }
+
+    public String getIdentityAddress(String address) {
+        BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address.toUpperCase());
+        DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
+        if (deviceProp.isConsolidated()) {
+            return deviceProp.getIdentityAddress();
+        } else {
+            return address;
+        }
     }
 
     private class CallerInfo {

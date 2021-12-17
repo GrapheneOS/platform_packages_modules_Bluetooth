@@ -227,6 +227,7 @@ cc_test {
         "test/bta_pan_test.cc",
     ],
     shared_libs: [
+        "libbase",
         "libcrypto",
         "libflatbuffers-cpp",
         "liblog",

@@ -24,6 +24,13 @@ _TEXT_COUNT = 5
 class BluetoothMapTest(blueberry_base_test.BlueberryBaseTest):
   """Test Class for Bluetooth MAP Test."""
 
+  def __init__(self, configs):
+    super().__init__(configs)
+    self.derived_bt_device = None
+    self.pri_phone = None
+    self.pri_number = None
+    self.sec_phone = None
+
   def setup_class(self):
     """Standard Mobly setup class."""
     super().setup_class()

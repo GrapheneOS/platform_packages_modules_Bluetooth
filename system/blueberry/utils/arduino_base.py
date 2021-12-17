@@ -7,6 +7,7 @@ Internal link
 """
 
 import time
+from typing import Dict
 from mobly.signals import ControllerError
 import serial
 
@@ -15,13 +16,15 @@ class ArduinoBase(object):
   """Implements an Arduino base class.
 
   Attributes:
+    config: A device configuration.
     serial: serial object, a serial object which is used to communicate with
       Arduino board.
   """
 
-  def __init__(self, config):
+  def __init__(self, config: Dict[str, str]):
     """Initializes an Arduino base class."""
     self._verify_config(config)
+    self.config = config
     self.serial = serial.Serial(config['arduino_port'], 9600)
     self.serial.timeout = 30
     # Buffer between calling serial.Serial() and serial.Serial.write().
