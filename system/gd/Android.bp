@@ -197,8 +197,6 @@ cc_defaults {
         "libchrome",
         "libcrypto",
         "libflatbuffers-cpp",
-        "libgrpc++",
-        "libgrpc_wrap",
     ],
     static_libs: [
         "libbluetooth-dumpsys",
@@ -815,7 +813,7 @@ genrule {
         "soong_zip",
     ],
     cmd: "mkdir -p $(genDir)/files && " +
-        "$(location aprotoc) -Ipackages/modules/Bluetooth/system/gd -Ipackages/modules/Bluetooth/system/blueberry/tests/gd -Iexternal/protobuf/src --plugin=protoc-gen-grpc=$(location protoc-gen-grpc-python-plugin) $(in) --grpc_out=$(genDir)/files --python_out=$(genDir)/files && " +
+        "$(location aprotoc) -Ipackages/modules/Bluetooth/system/gd -Ipackages/modules/Bluetooth/system/blueberry/ -Iexternal/protobuf/src --plugin=protoc-gen-grpc=$(location protoc-gen-grpc-python-plugin) $(in) --grpc_out=$(genDir)/files --python_out=$(genDir)/files && " +
         "touch $(genDir)/files/facade/__init__.py && " +
         "touch $(genDir)/files/hal/__init__.py && " +
         "touch $(genDir)/files/hci/__init__.py && " +
@@ -825,6 +823,14 @@ genrule {
         "touch $(genDir)/files/l2cap/le/__init__.py && " +
         "touch $(genDir)/files/neighbor/facade/__init__.py && " +
         "touch $(genDir)/files/security/__init__.py && " +
+        "mkdir -p $(genDir)/files/blueberry/controllers && " +
+        "touch $(genDir)/files/blueberry/controllers/__init__.py && " +
+        "mkdir -p $(genDir)/files/blueberry/decorators && " +
+        "touch $(genDir)/files/blueberry/decorators/__init__.py && " +
+        "mkdir -p $(genDir)/files/blueberry/grpc && " +
+        "touch $(genDir)/files/blueberry/grpc/__init__.py && " +
+        "mkdir -p $(genDir)/files/blueberry/utils && " +
+        "touch $(genDir)/files/blueberry/utils/__init__.py && " +
         "mkdir -p $(genDir)/files/blueberry/tests/gd/cert && " +
         "touch $(genDir)/files/blueberry/tests/gd/cert/__init__.py && " +
         "mkdir -p $(genDir)/files/blueberry/tests/gd/hal && " +

@@ -192,10 +192,9 @@ public class MapClientTest {
     public void testConnectViaBinder() {
         BluetoothDevice device = makeBluetoothDevice("11:11:11:11:11:11");
         mockDevicePriority(device, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
-        IBluetoothMapClient.Stub mapClientBinder = (IBluetoothMapClient.Stub) mService.initBinder();
         try {
             Utils.setForegroundUserId(UserHandle.getCallingUserId());
-            Assert.assertTrue(mapClientBinder.connect(device, mAdapter.getAttributionSource()));
+            Assert.assertTrue(mService.connect(device));
         } catch (Exception e) {
             Assert.fail(e.toString());
         }
