@@ -16,12 +16,14 @@
 
 package com.android.bluetooth.a2dpsink;
 
-import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.util.Log;
 
 import com.android.bluetooth.Utils;
+import com.android.bluetooth.btservice.AdapterService;
 import com.android.internal.annotations.GuardedBy;
+
+import java.util.Objects;
 
 /**
  * A2DP Sink Native Interface to/from JNI.
@@ -29,7 +31,7 @@ import com.android.internal.annotations.GuardedBy;
 public class A2dpSinkNativeInterface {
     private static final String TAG = "A2dpSinkNativeInterface";
     private static final boolean DBG = Log.isLoggable(TAG, Log.DEBUG);
-    private BluetoothAdapter mAdapter;
+    private AdapterService mAdapterService;
 
     @GuardedBy("INSTANCE_LOCK")
     private static A2dpSinkNativeInterface sInstance;
@@ -40,10 +42,8 @@ public class A2dpSinkNativeInterface {
     }
 
     private A2dpSinkNativeInterface() {
-        mAdapter = BluetoothAdapter.getDefaultAdapter();
-        if (mAdapter == null) {
-            Log.wtf(TAG, "No Bluetooth Adapter Available");
-        }
+        mAdapterService = Objects.requireNonNull(AdapterService.getAdapterService(),
+                "AdapterService cannot be null when A2dpSinkNativeInterface init");
     }
 
     /**
@@ -74,6 +74,14 @@ public class A2dpSinkNativeInterface {
         cleanupNative();
     }
 
+    private BluetoothDevice getDevice(byte[] address) {
+        return mAdapterService.getDeviceFromByte(address);
+    }
+
+    private byte[] getByteAddress(BluetoothDevice device) {
+        return mAdapterService.getByteIdentityAddress(device);
+    }
+
     /**
      * Initiates an A2DP connection to a remote device.
      *
@@ -81,7 +89,7 @@ public class A2dpSinkNativeInterface {
      * @return true on success, otherwise false.
      */
     public boolean connectA2dpSink(BluetoothDevice device) {
-        return connectA2dpNative(Utils.getByteAddress(device));
+        return connectA2dpNative(getByteAddress(device));
     }
 
     /**
@@ -91,7 +99,7 @@ public class A2dpSinkNativeInterface {
      * @return true on success, otherwise false.
      */
     public boolean disconnectA2dpSink(BluetoothDevice device) {
-        return disconnectA2dpNative(Utils.getByteAddress(device));
+        return disconnectA2dpNative(getByteAddress(device));
     }
 
     /**
@@ -109,7 +117,7 @@ public class A2dpSinkNativeInterface {
         // Translate to byte address for JNI. Use an all 0 MAC for no active device
         byte[] address = null;
         if (device != null) {
-            address = Utils.getByteAddress(device);
+            address = getByteAddress(device);
         } else {
             address = Utils.getBytesFromAddress("00:00:00:00:00:00");
         }
@@ -151,7 +159,7 @@ public class A2dpSinkNativeInterface {
      */
     public void onConnectionStateChanged(byte[] address, int state) {
         StackEvent event =
-                StackEvent.connectionStateChanged(mAdapter.getRemoteDevice(address), state);
+                StackEvent.connectionStateChanged(getDevice(address), state);
         if (DBG) {
             Log.d(TAG, "onConnectionStateChanged: " + event);
         }
@@ -162,7 +170,7 @@ public class A2dpSinkNativeInterface {
      * For the JNI to send messages about audio stream state changes
      */
     public void onAudioStateChanged(byte[] address, int state) {
-        StackEvent event = StackEvent.audioStateChanged(mAdapter.getRemoteDevice(address), state);
+        StackEvent event = StackEvent.audioStateChanged(getDevice(address), state);
         if (DBG) {
             Log.d(TAG, "onAudioStateChanged: " + event);
         }
@@ -174,7 +182,7 @@ public class A2dpSinkNativeInterface {
      */
     public void onAudioConfigChanged(byte[] address, int sampleRate, int channelCount) {
         StackEvent event = StackEvent.audioConfigChanged(
-                mAdapter.getRemoteDevice(address), sampleRate, channelCount);
+                getDevice(address), sampleRate, channelCount);
         if (DBG) {
             Log.d(TAG, "onAudioConfigChanged: " + event);
         }
