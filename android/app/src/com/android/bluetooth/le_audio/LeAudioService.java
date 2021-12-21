@@ -363,6 +363,15 @@ public class LeAudioService extends ProfileService {
         }
     }
 
+    public List<BluetoothDevice> getConnectedGroupLeadDevices() {
+        List<BluetoothDevice> devices = new ArrayList<>();
+        for (Map.Entry<Integer, LeAudioGroupDescriptor> entry : mGroupDescriptors.entrySet()) {
+            Integer groupId = entry.getKey();
+            devices.add(getFirstDeviceFromGroup(groupId));
+        }
+        return devices;
+    }
+
     List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
         ArrayList<BluetoothDevice> devices = new ArrayList<>();
         if (states == null) {
@@ -1303,6 +1312,21 @@ public class LeAudioService extends ProfileService {
                 List<BluetoothDevice> defaultValue = new ArrayList<>(0);
                 if (service != null) {
                     defaultValue = service.getConnectedDevices();
+                }
+                receiver.send(defaultValue);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
+            }
+        }
+
+        @Override
+        public void getConnectedGroupLeadDevices(AttributionSource source,
+                SynchronousResultReceiver receiver) {
+            try {
+                LeAudioService service = getService(source);
+                List<BluetoothDevice> defaultValue = new ArrayList<>(0);
+                if (service != null) {
+                    defaultValue = service.getConnectedGroupLeadDevices();
                 }
                 receiver.send(defaultValue);
             } catch (RuntimeException e) {
