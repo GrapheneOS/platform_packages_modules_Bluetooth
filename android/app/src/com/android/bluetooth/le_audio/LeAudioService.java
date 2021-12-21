@@ -114,7 +114,7 @@ public class LeAudioService extends ProfileService {
     private final Map<BluetoothDevice, LeAudioStateMachine> mStateMachines = new LinkedHashMap<>();
 
     private final Map<BluetoothDevice, Integer> mDeviceGroupIdMap = new ConcurrentHashMap<>();
-    private int mActiveDeviceGroupId = LE_AUDIO_GROUP_ID_INVALID;
+
     private final int mContextSupportingInputAudio =
             BluetoothLeAudio.CONTEXT_TYPE_COMMUNICATION |
             BluetoothLeAudio.CONTEXT_TYPE_MAN_MACHINE;
@@ -500,6 +500,16 @@ public class LeAudioService extends ProfileService {
         return supportedAudioDirections;
     }
 
+    private Integer getActiveGroupId() {
+        for (Map.Entry<Integer, LeAudioGroupDescriptor> entry : mGroupDescriptors.entrySet()) {
+            LeAudioGroupDescriptor descriptor = entry.getValue();
+            if (descriptor.mIsActive) {
+                return entry.getKey();
+            }
+        }
+        return LE_AUDIO_GROUP_ID_INVALID;
+    }
+
     private BluetoothDevice getFirstDeviceFromGroup(Integer groupId) {
         if (groupId != LE_AUDIO_GROUP_ID_INVALID) {
             for(Map.Entry<BluetoothDevice, Integer> entry : mDeviceGroupIdMap.entrySet()) {
@@ -677,19 +687,19 @@ public class LeAudioService extends ProfileService {
             groupId = mDeviceGroupIdMap.getOrDefault(device, LE_AUDIO_GROUP_ID_INVALID);
         }
 
+        int currentlyActiveGroupId = getActiveGroupId();
         if (DBG) {
             Log.d(TAG, "setActiveDeviceGroup = " + groupId +
-                       ", mActiveDeviceGroupId = " + mActiveDeviceGroupId +
+                       ", currentlyActiveGroupId = " + currentlyActiveGroupId +
                        ", device: " + device);
         }
 
-        if (groupId == mActiveDeviceGroupId) {
+        if (groupId == currentlyActiveGroupId) {
             Log.w(TAG, "group is already active");
             return;
         }
 
         mLeAudioNativeInterface.groupSetActive(groupId);
-        mActiveDeviceGroupId = groupId;
     }
 
     /**
@@ -733,7 +743,8 @@ public class LeAudioService extends ProfileService {
         activeDevices.add(null);
         activeDevices.add(null);
         synchronized (mStateMachines) {
-            if (mActiveDeviceGroupId == LE_AUDIO_GROUP_ID_INVALID) {
+            int currentlyActiveGroupId = getActiveGroupId();
+            if (currentlyActiveGroupId == LE_AUDIO_GROUP_ID_INVALID) {
                 return activeDevices;
             }
                 activeDevices.add(0, mActiveAudioOutDevice);
@@ -1215,14 +1226,15 @@ public class LeAudioService extends ProfileService {
             Log.d(TAG, "SetVolume " + volume);
         }
 
-        if (mActiveDeviceGroupId == LE_AUDIO_GROUP_ID_INVALID) {
+        int currentlyActiveGroupId = getActiveGroupId();
+        if (currentlyActiveGroupId == LE_AUDIO_GROUP_ID_INVALID) {
             Log.e(TAG, "There is no active group ");
             return;
         }
 
         VolumeControlService service = mServiceFactory.getVolumeControlService();
         if (service != null) {
-            service.setVolumeGroup(mActiveDeviceGroupId, volume);
+            service.setVolumeGroup(currentlyActiveGroupId, volume);
         }
     }
 
