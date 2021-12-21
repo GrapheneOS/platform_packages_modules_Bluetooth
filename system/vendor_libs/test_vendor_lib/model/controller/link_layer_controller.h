@@ -348,6 +348,9 @@ class LinkLayerController {
   void ReadLocalOobData();
   void ReadLocalOobExtendedData();
 
+  ErrorCode AddScoConnection(
+      uint16_t connection_handle,
+      uint16_t packet_type);
   ErrorCode SetupSynchronousConnection(
       uint16_t connection_handle,
       uint32_t transmit_bandwidth,
@@ -442,11 +445,11 @@ class LinkLayerController {
   void IncomingRemoteNameRequestResponse(
       model::packets::LinkLayerPacketView packet);
 
-  void IncomingEScoConnectionRequest(
+  void IncomingScoConnectionRequest(
       model::packets::LinkLayerPacketView packet);
-  void IncomingEScoConnectionResponse(
+  void IncomingScoConnectionResponse(
       model::packets::LinkLayerPacketView packet);
-  void IncomingEScoDisconnect(model::packets::LinkLayerPacketView packet);
+  void IncomingScoDisconnect(model::packets::LinkLayerPacketView packet);
 
  private:
   const DeviceProperties& properties_;
