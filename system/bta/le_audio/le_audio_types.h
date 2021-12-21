@@ -952,9 +952,12 @@ bool IsCodecCapabilitySettingSupported(
     const types::acs_ac_record& pac_record,
     const CodecCapabilitySetting& codec_capability_setting);
 const AudioSetConfigurations* get_confs_by_type(types::LeAudioContextType type);
+uint8_t get_num_of_devices_in_configuration(
+    const AudioSetConfiguration* audio_set_configuration);
 }  // namespace set_configurations
 
 struct stream_configuration {
+  bool reconfiguration_ongoing;
 
   types::LeAudioCodecId id;
 
