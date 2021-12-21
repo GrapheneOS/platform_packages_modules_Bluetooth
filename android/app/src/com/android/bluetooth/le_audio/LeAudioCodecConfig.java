@@ -41,8 +41,7 @@ class LeAudioCodecConfig {
             return;
         }
 
-        mCodecConfigOffloading = audioManager.getHwOffloadFormatsSupportedForBluetoothMedia(
-                                                    AudioManager.DEVICE_OUT_BLE_HEADSET)
+        mCodecConfigOffloading = audioManager.getHwOffloadFormatsSupportedForLeAudio()
                                              .toArray(mCodecConfigOffloading);
 
         if (DBG) {
