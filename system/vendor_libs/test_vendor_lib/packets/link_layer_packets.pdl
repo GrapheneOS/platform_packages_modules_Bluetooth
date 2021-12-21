@@ -239,7 +239,7 @@ packet RemoteNameRequestResponse : LinkLayerPacket (type = REMOTE_NAME_REQUEST_R
   name : 8[248],
 }
 
-packet ScoPacket : LinkLayerPacket (type = SCO) {
+packet Sco : LinkLayerPacket (type = SCO) {
   _payload_,
 }
 
