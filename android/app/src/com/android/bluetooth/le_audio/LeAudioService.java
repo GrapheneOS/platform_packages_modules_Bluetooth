@@ -1487,8 +1487,23 @@ public class LeAudioService extends ProfileService {
     @Override
     public void dump(StringBuilder sb) {
         super.dump(sb);
+        ProfileService.println(sb, "State machines: ");
         for (LeAudioStateMachine sm : mStateMachines.values()) {
             sm.dump(sb);
+        }
+        ProfileService.println(sb, "Active Groups information: ");
+        ProfileService.println(sb, "  currentlyActiveGroupId: " + getActiveGroupId());
+        ProfileService.println(sb, "  mActiveAudioOutDevice: " + mActiveAudioOutDevice);
+        ProfileService.println(sb, "  mActiveAudioInDevice: " + mActiveAudioInDevice);
+
+        for (Map.Entry<Integer, LeAudioGroupDescriptor> entry : mGroupDescriptors.entrySet()) {
+            LeAudioGroupDescriptor descriptor = entry.getValue();
+            Integer groupId = entry.getKey();
+            ProfileService.println(sb, "  Group: " + groupId);
+            ProfileService.println(sb, "    isActive: " + descriptor.mIsActive);
+            ProfileService.println(sb, "    isConnected: " + descriptor.mIsConnected);
+            ProfileService.println(sb, "    mActiveContexts: " + descriptor.mActiveContexts);
+            ProfileService.println(sb, "    group lead: " + getFirstDeviceFromGroup(groupId));
         }
     }
 }
