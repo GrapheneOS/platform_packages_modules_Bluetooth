@@ -112,7 +112,7 @@ class VendorCommandResponseProcessor {
             return false;
         }
 
-        if (!mNativeInterface.sendATCmd(Utils.getBytesFromAddress(device.getAddress()),
+        if (!mNativeInterface.sendATCmd(device,
                                         HeadsetClientHalConstants
                                         .HANDSFREECLIENT_AT_CMD_VENDOR_SPECIFIC_CMD,
                                         0, 0, atCommand)) {
