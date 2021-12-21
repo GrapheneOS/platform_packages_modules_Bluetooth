@@ -43,8 +43,10 @@ class AclConnectionHandler {
   bool AuthenticatePendingConnection() const;
 
   bool HasPendingScoConnection(bluetooth::hci::Address addr) const;
-  void CreatePendingScoConnection(bluetooth::hci::Address addr,
-    ScoConnectionParameters const &parameters);
+  ScoState GetScoConnectionState(bluetooth::hci::Address addr) const;
+  bool IsLegacyScoConnection(bluetooth::hci::Address addr) const;
+  void CreateScoConnection(bluetooth::hci::Address addr,
+    ScoConnectionParameters const &parameters, ScoState state, bool legacy = false);
   void CancelPendingScoConnection(bluetooth::hci::Address addr);
   bool AcceptPendingScoConnection(bluetooth::hci::Address addr,
     ScoLinkParameters const &parameters);
