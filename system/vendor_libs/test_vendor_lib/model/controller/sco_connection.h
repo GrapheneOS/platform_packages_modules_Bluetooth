@@ -28,9 +28,12 @@ using ::bluetooth::hci::Address;
 /*
  * Notes about SCO / eSCO connection establishment:
  *
- * - Connections will always be established as eSCO connections. The LMP
- * parameter negotiation is skipped, instead the required parameters
+ * - Connections will always be established if possible as eSCO connections.
+ * The LMP parameter negotiation is skipped, instead the required parameters
  * are directly sent to the peer.
+ *
+ * - If an synchronous connection setup fails with eSCO parameter negotiation,
+ * it is _not_ retried with SCO parameter negotiation.
  *
  * - If the parameters are compatible with the values returned from
  * HCI Accept Synchronous Connection Request on the peer,
@@ -44,6 +47,7 @@ struct ScoLinkParameters {
   uint16_t rx_packet_length;
   uint16_t tx_packet_length;
   uint8_t air_mode;
+  bool extended;
 };
 
 struct ScoConnectionParameters {
@@ -54,19 +58,35 @@ struct ScoConnectionParameters {
   uint8_t retransmission_effort;
   uint16_t packet_type;
 
+  // Return true if packet_type enables extended SCO packets.
+  bool IsExtended();
+
   // Return the link parameters for these connection parameters, if the
   // parameters are coherent, none otherwise.
   std::optional<ScoLinkParameters> GetLinkParameters();
 };
 
+enum ScoState {
+  SCO_STATE_CLOSED = 0,
+  SCO_STATE_PENDING,
+  SCO_STATE_SENT_ESCO_CONNECTION_REQUEST,
+  SCO_STATE_SENT_SCO_CONNECTION_REQUEST,
+  SCO_STATE_OPENED,
+};
+
 class ScoConnection {
  public:
-  ScoConnection(Address address, ScoConnectionParameters const &parameters)
-    : address_(address), parameters_(parameters), link_parameters_() {}
+  ScoConnection(Address address, ScoConnectionParameters const &parameters,
+                ScoState state, bool legacy = false)
+    : address_(address), parameters_(parameters), link_parameters_(),
+      state_(state), legacy_(legacy) {}
 
   virtual ~ScoConnection() = default;
 
+  bool IsLegacy() const { return legacy_; }
   Address GetAddress() const { return address_; }
+  ScoState GetState() const { return state_; }
+  void SetState(ScoState state) { state_ = state; }
 
   ScoConnectionParameters GetConnectionParameters() const {
     return parameters_;
@@ -87,6 +107,12 @@ class ScoConnection {
   Address address_;
   ScoConnectionParameters parameters_;
   ScoLinkParameters link_parameters_;
+  ScoState state_;
+
+  // Mark connections opened with the HCI command Add SCO Connection.
+  // The connection status is reported with HCI Connection Complete event
+  // rather than HCI Synchronous Connection Complete event.
+  bool legacy_;
 };
 
 }  // namespace test_vendor_lib
