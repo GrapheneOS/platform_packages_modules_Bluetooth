@@ -195,6 +195,26 @@ ErrorCode LinkLayerController::SendAclToRemote(
   return ErrorCode::SUCCESS;
 }
 
+ErrorCode LinkLayerController::SendScoToRemote(
+    bluetooth::hci::ScoView sco_packet) {
+
+  uint16_t handle = sco_packet.GetHandle();
+  if (!connections_.HasScoHandle(handle)) {
+    return ErrorCode::UNKNOWN_CONNECTION;
+  }
+
+  // TODO: SCO flow control
+  Address source = properties_.GetAddress();
+  Address destination = connections_.GetScoAddress(handle);
+
+  auto sco_data = sco_packet.GetData();
+  std::vector<uint8_t> sco_data_bytes(sco_data.begin(), sco_data.end());
+
+  SendLinkLayerPacket(model::packets::ScoBuilder::Create(
+      source, destination, std::make_unique<bluetooth::packet::RawBuilder>(sco_data_bytes)));
+  return ErrorCode::SUCCESS;
+}
+
 void LinkLayerController::IncomingPacket(
     model::packets::LinkLayerPacketView incoming) {
   ASSERT(incoming.IsValid());
@@ -243,6 +263,9 @@ void LinkLayerController::IncomingPacket(
   switch (incoming.GetType()) {
     case model::packets::PacketType::ACL:
       IncomingAclPacket(incoming);
+      break;
+    case model::packets::PacketType::SCO:
+      IncomingScoPacket(incoming);
       break;
     case model::packets::PacketType::DISCONNECT:
       IncomingDisconnectPacket(incoming);
@@ -380,10 +403,6 @@ void LinkLayerController::IncomingPacket(
     case (model::packets::PacketType::READ_CLOCK_OFFSET_RESPONSE):
       IncomingReadClockOffsetResponse(incoming);
       break;
-
-    case model::packets::PacketType::SCO:
-      LOG_WARN("ignoring SCO packet");
-      break;
     case model::packets::PacketType::SCO_CONNECTION_REQUEST:
       IncomingScoConnectionRequest(incoming);
       break;
@@ -402,9 +421,6 @@ void LinkLayerController::IncomingPacket(
 
 void LinkLayerController::IncomingAclPacket(
     model::packets::LinkLayerPacketView incoming) {
-  LOG_INFO("Acl Packet %s -> %s",
-           incoming.GetSourceAddress().ToString().c_str(),
-           incoming.GetDestinationAddress().ToString().c_str());
 
   auto acl = model::packets::AclView::Create(incoming);
   ASSERT(acl.IsValid());
@@ -412,16 +428,18 @@ void LinkLayerController::IncomingAclPacket(
   std::shared_ptr<std::vector<uint8_t>> payload_bytes =
       std::make_shared<std::vector<uint8_t>>(payload.begin(), payload.end());
 
+  LOG_INFO("Acl Packet [%d] %s -> %s",
+           static_cast<int>(payload_bytes->size()),
+           incoming.GetSourceAddress().ToString().c_str(),
+           incoming.GetDestinationAddress().ToString().c_str());
+
   bluetooth::hci::PacketView<bluetooth::hci::kLittleEndian> raw_packet(
       payload_bytes);
   auto acl_view = bluetooth::hci::AclView::Create(raw_packet);
   ASSERT(acl_view.IsValid());
 
-  LOG_INFO("Remote handle 0x%x size %d", acl_view.GetHandle(),
-           static_cast<int>(acl_view.size()));
   uint16_t local_handle =
       connections_.GetHandleOnlyAddress(incoming.GetSourceAddress());
-  LOG_INFO("Local handle 0x%x", local_handle);
 
   std::vector<uint8_t> payload_data(acl_view.GetPayload().begin(),
                                     acl_view.GetPayload().end());
@@ -451,6 +469,32 @@ void LinkLayerController::IncomingAclPacket(
 
     send_acl_(std::move(acl_packet));
   }
+}
+
+void LinkLayerController::IncomingScoPacket(
+    model::packets::LinkLayerPacketView incoming) {
+
+
+  Address source = incoming.GetSourceAddress();
+  uint16_t sco_handle = connections_.GetScoHandle(source);
+  if (!connections_.HasScoHandle(sco_handle)) {
+      LOG_INFO("Spurious SCO packet from %s", source.ToString().c_str());
+      return;
+  }
+
+  auto sco = model::packets::ScoView::Create(incoming);
+  ASSERT(sco.IsValid());
+  auto sco_data = sco.GetPayload();
+  std::vector<uint8_t> sco_data_bytes(sco_data.begin(), sco_data.end());
+
+  LOG_INFO("Sco Packet [%d] %s -> %s",
+           static_cast<int>(sco_data_bytes.size()),
+           incoming.GetSourceAddress().ToString().c_str(),
+           incoming.GetDestinationAddress().ToString().c_str());
+
+  send_sco_(bluetooth::hci::ScoBuilder::Create(
+      sco_handle, bluetooth::hci::PacketStatusFlag::CORRECTLY_RECEIVED,
+      sco_data_bytes));
 }
 
 void LinkLayerController::IncomingRemoteNameRequest(

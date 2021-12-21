@@ -379,6 +379,7 @@ class LinkLayerController {
   void SendLinkLayerPacket(
       std::unique_ptr<model::packets::LinkLayerPacketBuilder> packet);
   void IncomingAclPacket(model::packets::LinkLayerPacketView packet);
+  void IncomingScoPacket(model::packets::LinkLayerPacketView packet);
   void IncomingDisconnectPacket(model::packets::LinkLayerPacketView packet);
   void IncomingEncryptConnection(model::packets::LinkLayerPacketView packet);
   void IncomingEncryptConnectionResponse(
@@ -460,7 +461,6 @@ class LinkLayerController {
 
   // Timing related state
   std::vector<AsyncTaskId> controller_events_;
-  AsyncTaskId timer_tick_task_{};
   std::chrono::milliseconds timer_period_ = std::chrono::milliseconds(100);
 
   // Callbacks to schedule tasks.
