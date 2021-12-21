@@ -54,7 +54,7 @@ import com.android.internal.annotations.VisibleForTesting;
 import com.android.modules.utils.SynchronousResultReceiver;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -110,8 +110,8 @@ public class LeAudioService extends ProfileService {
         public Integer mActiveContexts;
     }
 
-    private final Map<Integer, LeAudioGroupDescriptor> mGroupDescriptors = new HashMap<>();
-    private final Map<BluetoothDevice, LeAudioStateMachine> mStateMachines = new HashMap<>();
+    private final Map<Integer, LeAudioGroupDescriptor> mGroupDescriptors = new LinkedHashMap<>();
+    private final Map<BluetoothDevice, LeAudioStateMachine> mStateMachines = new LinkedHashMap<>();
 
     private final Map<BluetoothDevice, Integer> mDeviceGroupIdMap = new ConcurrentHashMap<>();
     private int mActiveDeviceGroupId = LE_AUDIO_GROUP_ID_INVALID;
