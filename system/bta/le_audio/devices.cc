@@ -1187,7 +1187,6 @@ void LeAudioDeviceGroup::Dump(int fd) {
          << "      active stream configuration name: "
          << (active_conf ? active_conf->name : " not set") << "\n"
          << "    Last used stream configuration: \n"
-         << "      valid: " << (stream_conf.valid ? " Yes " : " No") << "\n"
          << "      codec id : " << +(stream_conf.id.coding_format) << "\n"
          << "      name: "
          << (stream_conf.conf != nullptr ? stream_conf.conf->name : " null ")

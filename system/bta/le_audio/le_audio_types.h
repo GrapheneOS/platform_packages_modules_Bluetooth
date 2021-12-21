@@ -950,7 +950,6 @@ const AudioSetConfigurations* get_confs_by_type(types::LeAudioContextType type);
 }  // namespace set_configurations
 
 struct stream_configuration {
-  bool valid;
 
   types::LeAudioCodecId id;
 
