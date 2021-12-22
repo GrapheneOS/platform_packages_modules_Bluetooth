@@ -20,11 +20,13 @@
  */
 package com.android.bluetooth.hfpclient;
 
-import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.util.Log;
 
+import com.android.bluetooth.btservice.AdapterService;
 import com.android.internal.annotations.VisibleForTesting;
+
+import java.util.Objects;
 
 /**
  * Defines native calls that are used by state machine/service to either send or receive
@@ -34,12 +36,16 @@ import com.android.internal.annotations.VisibleForTesting;
 public class NativeInterface {
     private static final String TAG = "NativeInterface";
     private static final boolean DBG = false;
+    private AdapterService mAdapterService;
 
     static {
         classInitNative();
     }
 
-    private NativeInterface() {}
+    private NativeInterface() {
+        mAdapterService = Objects.requireNonNull(AdapterService.getAdapterService(),
+                "AdapterService cannot be null when NativeInterface init");
+    }
     private static NativeInterface sInterface;
     private static final Object INSTANCE_LOCK = new Object();
 
@@ -81,8 +87,8 @@ public class NativeInterface {
      * @return True on success, False on failure
      */
     @VisibleForTesting
-    public boolean connect(byte[] address) {
-        return connectNative(address);
+    public boolean connect(BluetoothDevice device) {
+        return connectNative(getByteAddress(device));
     }
 
     /**
@@ -92,8 +98,8 @@ public class NativeInterface {
      * @return True on success, False on failure
      */
     @VisibleForTesting
-    public boolean disconnect(byte[] address) {
-        return disconnectNative(address);
+    public boolean disconnect(BluetoothDevice device) {
+        return disconnectNative(getByteAddress(device));
     }
 
     /**
@@ -103,8 +109,8 @@ public class NativeInterface {
      * @return True on success, False on failure
      */
     @VisibleForTesting
-    public boolean connectAudio(byte[] address) {
-        return connectAudioNative(address);
+    public boolean connectAudio(BluetoothDevice device) {
+        return connectAudioNative(getByteAddress(device));
     }
 
     /**
@@ -113,8 +119,8 @@ public class NativeInterface {
      * @param address target device's address
      * @return True on success, False on failure
      */
-    public boolean disconnectAudio(byte[] address) {
-        return disconnectAudioNative(address);
+    public boolean disconnectAudio(BluetoothDevice device) {
+        return disconnectAudioNative(getByteAddress(device));
     }
 
     /**
@@ -124,8 +130,8 @@ public class NativeInterface {
      * @return True on success, False on failure
      */
     @VisibleForTesting
-    public boolean startVoiceRecognition(byte[] address) {
-        return startVoiceRecognitionNative(address);
+    public boolean startVoiceRecognition(BluetoothDevice device) {
+        return startVoiceRecognitionNative(getByteAddress(device));
     }
 
     /**
@@ -135,8 +141,8 @@ public class NativeInterface {
      * @return True on success, False on failure
      */
     @VisibleForTesting
-    public boolean stopVoiceRecognition(byte[] address) {
-        return stopVoiceRecognitionNative(address);
+    public boolean stopVoiceRecognition(BluetoothDevice device) {
+        return stopVoiceRecognitionNative(getByteAddress(device));
     }
 
     /**
@@ -149,8 +155,8 @@ public class NativeInterface {
      * @return True on success, False on failure
      */
     @VisibleForTesting
-    public boolean setVolume(byte[] address, int volumeType, int volume) {
-        return setVolumeNative(address, volumeType, volume);
+    public boolean setVolume(BluetoothDevice device, int volumeType, int volume) {
+        return setVolumeNative(getByteAddress(device), volumeType, volume);
     }
 
     /**
@@ -161,8 +167,8 @@ public class NativeInterface {
      * @return True on success, False on failure
      */
     @VisibleForTesting
-    public boolean dial(byte[] address, String number) {
-        return dialNative(address, number);
+    public boolean dial(BluetoothDevice device, String number) {
+        return dialNative(getByteAddress(device), number);
     }
 
     /**
@@ -173,8 +179,8 @@ public class NativeInterface {
      * @return True on success, False on failure
      */
     @VisibleForTesting
-    public boolean dialMemory(byte[] address, int location) {
-        return dialMemoryNative(address, location);
+    public boolean dialMemory(BluetoothDevice device, int location) {
+        return dialMemoryNative(getByteAddress(device), location);
     }
 
     /**
@@ -186,8 +192,8 @@ public class NativeInterface {
      * @return True on success, False on failure
      */
     @VisibleForTesting
-    public boolean handleCallAction(byte[] address, int action, int index) {
-        return handleCallActionNative(address, action, index);
+    public boolean handleCallAction(BluetoothDevice device, int action, int index) {
+        return handleCallActionNative(getByteAddress(device), action, index);
     }
 
     /**
@@ -197,8 +203,8 @@ public class NativeInterface {
      * @return True on success, False on failure
      */
     @VisibleForTesting
-    public boolean queryCurrentCalls(byte[] address) {
-        return queryCurrentCallsNative(address);
+    public boolean queryCurrentCalls(BluetoothDevice device) {
+        return queryCurrentCallsNative(getByteAddress(device));
     }
 
     /**
@@ -208,8 +214,8 @@ public class NativeInterface {
      * @return True on success, False on failure
      */
     @VisibleForTesting
-    public boolean queryCurrentOperatorName(byte[] address) {
-        return queryCurrentOperatorNameNative(address);
+    public boolean queryCurrentOperatorName(BluetoothDevice device) {
+        return queryCurrentOperatorNameNative(getByteAddress(device));
     }
 
     /**
@@ -219,8 +225,8 @@ public class NativeInterface {
      * @return True on success, False on failure
      */
     @VisibleForTesting
-    public  boolean retrieveSubscriberInfo(byte[] address) {
-        return retrieveSubscriberInfoNative(address);
+    public  boolean retrieveSubscriberInfo(BluetoothDevice device) {
+        return retrieveSubscriberInfoNative(getByteAddress(device));
     }
 
     /**
@@ -231,8 +237,8 @@ public class NativeInterface {
      * @return True on success, False on failure
      */
     @VisibleForTesting
-    public boolean sendDtmf(byte[] address, byte code) {
-        return sendDtmfNative(address, code);
+    public boolean sendDtmf(BluetoothDevice device, byte code) {
+        return sendDtmfNative(getByteAddress(device), code);
     }
 
     /**
@@ -242,8 +248,8 @@ public class NativeInterface {
      * @return True on success, False on failure
      */
     @VisibleForTesting
-    public boolean requestLastVoiceTagNumber(byte[] address) {
-        return requestLastVoiceTagNumberNative(address);
+    public boolean requestLastVoiceTagNumber(BluetoothDevice device) {
+        return requestLastVoiceTagNumberNative(getByteAddress(device));
     }
 
     /**
@@ -256,8 +262,8 @@ public class NativeInterface {
      * @return True on success, False on failure
      */
     @VisibleForTesting
-    public boolean sendATCmd(byte[] address, int atCmd, int val1, int val2, String arg) {
-        return sendATCmdNative(address, atCmd, val1, val2, arg);
+    public boolean sendATCmd(BluetoothDevice device, int atCmd, int val1, int val2, String arg) {
+        return sendATCmdNative(getByteAddress(device), atCmd, val1, val2, arg);
     }
 
     // Native methods that call into the JNI interface
@@ -301,7 +307,11 @@ public class NativeInterface {
             String arg);
 
     private BluetoothDevice getDevice(byte[] address) {
-        return BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
+        return mAdapterService.getDeviceFromByte(address);
+    }
+
+    private byte[] getByteAddress(BluetoothDevice device) {
+        return mAdapterService.getByteIdentityAddress(device);
     }
 
     // Callbacks from the native back into the java framework. All callbacks are routed via the
