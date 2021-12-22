@@ -148,7 +148,7 @@ public class PanService extends ProfileService {
         mPanDevices = new HashMap<BluetoothDevice, BluetoothPanDevice>();
         try {
             mMaxPanDevices = getResources().getInteger(
-                    com.android.internal.R.integer.config_max_pan_devices);
+                    com.android.bluetooth.R.integer.config_max_pan_devices);
         } catch (NotFoundException e) {
             mMaxPanDevices = BLUETOOTH_MAX_PAN_CONNECTIONS;
         }

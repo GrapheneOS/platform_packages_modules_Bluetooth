@@ -38,6 +38,7 @@ import android.os.ParcelUuid;
 import android.os.Parcelable;
 import android.util.Log;
 
+import com.android.bluetooth.R;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.a2dp.A2dpService;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
@@ -48,7 +49,6 @@ import com.android.bluetooth.hid.HidHostService;
 import com.android.bluetooth.le_audio.LeAudioService;
 import com.android.bluetooth.pan.PanService;
 import com.android.bluetooth.vc.VolumeControlService;
-import com.android.internal.R;
 import com.android.internal.annotations.VisibleForTesting;
 
 import java.util.HashSet;

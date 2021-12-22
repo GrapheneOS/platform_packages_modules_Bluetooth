@@ -20,8 +20,6 @@ import android.content.res.Resources;
 import android.util.Log;
 import android.util.SparseIntArray;
 
-import com.android.internal.R;
-
 /**
  * This class implements the character set mapping between
  * the GSM SMS 7-bit alphabet specified in TS 23.038 6.2.1
@@ -316,8 +314,10 @@ public class GsmAlphabet {
     private static void enableCountrySpecificEncodings() {
         Resources r = Resources.getSystem();
         // See comments in frameworks/base/core/res/res/values/config.xml for allowed values
-        sEnabledSingleShiftTables = r.getIntArray(R.array.config_sms_enabled_single_shift_tables);
-        sEnabledLockingShiftTables = r.getIntArray(R.array.config_sms_enabled_locking_shift_tables);
+        sEnabledSingleShiftTables = r.getIntArray(r.getIdentifier(
+                "config_sms_enabled_single_shift_tables", "array", "android"));
+        sEnabledLockingShiftTables = r.getIntArray(r.getIdentifier(
+                "config_sms_enabled_locking_shift_tables", "array", "android"));
 
         if (sEnabledSingleShiftTables.length > 0) {
             sHighestEnabledSingleShiftCode =
