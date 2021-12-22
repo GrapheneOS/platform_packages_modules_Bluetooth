@@ -410,39 +410,68 @@ struct LeAudioLc3Config {
   static const std::map<uint8_t, uint32_t> sampling_freq_map;
   static const std::map<uint8_t, uint32_t> frame_duration_map;
 
-  uint8_t sampling_frequency;
-  uint8_t frame_duration;
-  uint16_t octets_per_codec_frame;
-  uint32_t audio_channel_allocation;
+  std::optional<uint8_t> sampling_frequency;
+  std::optional<uint8_t> frame_duration;
+  std::optional<uint32_t> audio_channel_allocation;
+  std::optional<uint16_t> octets_per_codec_frame;
+  std::optional<uint8_t> codec_frames_blocks_per_sdu;
+
   uint8_t channel_count;
 
   /** Returns the sampling frequency representation in Hz */
   uint32_t GetSamplingFrequencyHz() const {
-    return sampling_freq_map.count(sampling_frequency)
-               ? sampling_freq_map.at(sampling_frequency)
-               : 0;
+    if (sampling_frequency)
+      return sampling_freq_map.count(*sampling_frequency)
+                 ? sampling_freq_map.at(*sampling_frequency)
+                 : 0;
+    return 0;
   }
 
   /** Returns the frame duration representation in us */
   uint32_t GetFrameDurationUs() const {
-    return frame_duration_map.count(frame_duration)
-               ? frame_duration_map.at(frame_duration)
-               : 0;
+    if (frame_duration)
+      return frame_duration_map.count(*frame_duration)
+                 ? frame_duration_map.at(*frame_duration)
+                 : 0;
+
+    return 0;
   }
 
-  uint8_t GetChannelCount(void) const { return channel_count; }
+  uint8_t GetChannelCount(void) const {
+    if (channel_count) return channel_count;
+
+    return 0;
+  }
 
   LeAudioLtvMap GetAsLtvMap() const {
-    return LeAudioLtvMap({
-        {codec_spec_conf::kLeAudioCodecLC3TypeSamplingFreq,
-         UINT8_TO_VEC_UINT8(sampling_frequency)},
-        {codec_spec_conf::kLeAudioCodecLC3TypeFrameDuration,
-         UINT8_TO_VEC_UINT8(frame_duration)},
-        {codec_spec_conf::kLeAudioCodecLC3TypeAudioChannelAllocation,
-         UINT32_TO_VEC_UINT8(audio_channel_allocation)},
-        {codec_spec_conf::kLeAudioCodecLC3TypeOctetPerFrame,
-         UINT16_TO_VEC_UINT8(octets_per_codec_frame)},
-    });
+    std::map<uint8_t, std::vector<uint8_t>> values;
+
+    if (sampling_frequency) {
+      values[codec_spec_conf::kLeAudioCodecLC3TypeSamplingFreq] =
+          UINT8_TO_VEC_UINT8(*sampling_frequency);
+    }
+
+    if (frame_duration) {
+      values[codec_spec_conf::kLeAudioCodecLC3TypeFrameDuration] =
+          UINT8_TO_VEC_UINT8(*frame_duration);
+    }
+
+    if (audio_channel_allocation) {
+      values[codec_spec_conf::kLeAudioCodecLC3TypeAudioChannelAllocation] =
+          UINT32_TO_VEC_UINT8(*audio_channel_allocation);
+    }
+
+    if (octets_per_codec_frame) {
+      values[codec_spec_conf::kLeAudioCodecLC3TypeOctetPerFrame] =
+          UINT16_TO_VEC_UINT8(*octets_per_codec_frame);
+    }
+
+    if (codec_frames_blocks_per_sdu) {
+      values[codec_spec_conf::kLeAudioCodecLC3TypeCodecFrameBlocksPerSdu] =
+          UINT8_TO_VEC_UINT8(*codec_frames_blocks_per_sdu);
+    }
+
+    return LeAudioLtvMap(values);
   }
 };
 
@@ -955,6 +984,7 @@ void AppendMetadataLtvEntryForCcidList(std::vector<uint8_t>& metadata,
                                        types::LeAudioContextType context_type);
 void AppendMetadataLtvEntryForStreamingContext(
     std::vector<uint8_t>& metadata, types::LeAudioContextType context_type);
+uint8_t GetMaxCodecFramesPerSduFromPac(const types::acs_ac_record* pac_record);
 
 }  // namespace le_audio
 
