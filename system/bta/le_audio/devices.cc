@@ -726,7 +726,7 @@ bool LeAudioDeviceGroup::IsConfigurationSupported(
 
       if (device->ases_.empty()) continue;
 
-      if (!device->IsCodecConfigurationSupported(ent.direction, ent.codec))
+      if (!device->GetCodecConfigurationSupportedPac(ent.direction, ent.codec))
         continue;
 
       int needed_ase = std::min(static_cast<int>(max_required_ase_per_dev),
@@ -915,9 +915,8 @@ bool LeAudioDevice::ConfigureAses(
       ent.ase_cnt / ent.device_cnt + (ent.ase_cnt % ent.device_cnt);
   le_audio::types::LeAudioConfigurationStrategy strategy = ent.strategy;
 
-  bool is_codec_supported =
-      IsCodecConfigurationSupported(ent.direction, ent.codec);
-  if (!is_codec_supported) return false;
+  auto pac = GetCodecConfigurationSupportedPac(ent.direction, ent.codec);
+  if (!pac) return false;
 
   int needed_ase = std::min((int)(max_required_ase_per_dev),
                             (int)(ent.ase_cnt - active_ases));
@@ -948,9 +947,16 @@ bool LeAudioDevice::ConfigureAses(
     ase->codec_config.audio_channel_allocation =
         PickAudioLocation(strategy, audio_locations, group_audio_locations);
 
+    /* Get default value if no requirement for specific frame blocks per sdu */
+    if (!ase->codec_config.codec_frames_blocks_per_sdu) {
+      ase->codec_config.codec_frames_blocks_per_sdu =
+          GetMaxCodecFramesPerSduFromPac(pac);
+    }
     ase->max_sdu_size = codec_spec_caps::GetAudioChannelCounts(
-                            ase->codec_config.audio_channel_allocation) *
-                        ase->codec_config.octets_per_codec_frame;
+                            *ase->codec_config.audio_channel_allocation) *
+                        *ase->codec_config.octets_per_codec_frame *
+                        *ase->codec_config.codec_frames_blocks_per_sdu;
+
     ase->metadata = GetMetadata(context_type);
 
     DLOG(INFO) << __func__ << " device=" << address_
@@ -1519,14 +1525,15 @@ uint8_t LeAudioDevice::GetLc3SupportedChannelCount(uint8_t direction) {
   return 0;
 }
 
-bool LeAudioDevice::IsCodecConfigurationSupported(
+const struct types::acs_ac_record*
+LeAudioDevice::GetCodecConfigurationSupportedPac(
     uint8_t direction, const CodecCapabilitySetting& codec_capability_setting) {
   auto& pacs =
       direction == types::kLeAudioDirectionSink ? snk_pacs_ : src_pacs_;
 
   if (pacs.size() == 0) {
     LOG(ERROR) << __func__ << " missing PAC for direction " << +direction;
-    return false;
+    return nullptr;
   }
 
   /* TODO: Validate channel locations */
@@ -1535,16 +1542,16 @@ bool LeAudioDevice::IsCodecConfigurationSupported(
     /* Get PAC records from tuple as second element from tuple */
     auto& pac_recs = std::get<1>(pac_tuple);
 
-    for (const auto pac : pac_recs) {
+    for (const auto& pac : pac_recs) {
       if (!IsCodecCapabilitySettingSupported(pac, codec_capability_setting))
         continue;
 
-      return true;
+      return &pac;
     };
   }
 
   /* Doesn't match required configuration with any PAC */
-  return false;
+  return nullptr;
 }
 
 /**

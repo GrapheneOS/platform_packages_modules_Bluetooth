@@ -122,7 +122,7 @@ class LeAudioDevice {
   bool HaveAllAsesCisDisc(void);
   bool HasCisId(uint8_t id);
   uint8_t GetMatchingBidirectionCisId(const struct types::ase* base_ase);
-  bool IsCodecConfigurationSupported(
+  const struct types::acs_ac_record* GetCodecConfigurationSupportedPac(
       uint8_t direction, const set_configurations::CodecCapabilitySetting&
                              codec_capability_setting);
   uint8_t GetLc3SupportedChannelCount(uint8_t direction);
