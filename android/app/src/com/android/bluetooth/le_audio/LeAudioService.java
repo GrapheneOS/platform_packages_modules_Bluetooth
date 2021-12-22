@@ -1094,7 +1094,7 @@ public class LeAudioService extends ProfileService {
                 return;
             }
 
-            if (getConnectedDevices().isEmpty()){
+            if (getConnectedPeerDevices(myGroupId).isEmpty()){
                 descriptor.mIsConnected = false;
                 if (descriptor.mIsActive) {
                     /* Notify Native layer */
