@@ -31,11 +31,11 @@
 #include "client_parser.h"
 
 namespace le_audio {
+using types::acs_ac_record;
 using types::LeAudioContextType;
 
 namespace set_configurations {
 using set_configurations::CodecCapabilitySetting;
-using types::acs_ac_record;
 using types::kLeAudioCodingFormatLC3;
 using types::kLeAudioDirectionSink;
 using types::kLeAudioDirectionSource;
@@ -440,14 +440,24 @@ void AppendMetadataLtvEntryForStreamingContext(
                   streaming_context_ltv_entry.end());
 }
 
+uint8_t GetMaxCodecFramesPerSduFromPac(const acs_ac_record* pac) {
+  auto tlv_ent = pac->codec_spec_caps.Find(
+      codec_spec_caps::kLeAudioCodecLC3TypeMaxCodecFramesPerSdu);
+
+  if (tlv_ent) return VEC_UINT8_TO_UINT8(tlv_ent.value());
+
+  return 1;
+}
+
 }  // namespace le_audio
 
 std::ostream& operator<<(std::ostream& os,
                          const le_audio::types::LeAudioLc3Config& config) {
-  os << " LeAudioLc3Config(SamplFreq=" << loghex(config.sampling_frequency)
-     << ", FrameDur=" << loghex(config.frame_duration)
-     << ", OctetsPerFrame=" << int(config.octets_per_codec_frame)
-     << ", AudioChanLoc=" << loghex(config.audio_channel_allocation) << ")";
+  os << " LeAudioLc3Config(SamplFreq=" << loghex(*config.sampling_frequency)
+     << ", FrameDur=" << loghex(*config.frame_duration)
+     << ", OctetsPerFrame=" << int(*config.octets_per_codec_frame)
+     << ", CodecFramesBlocksPerSDU=" << int(*config.codec_frames_blocks_per_sdu)
+     << ", AudioChanLoc=" << loghex(*config.audio_channel_allocation) << ")";
   return os;
 }
 
