@@ -441,7 +441,7 @@ bool LeAudioClientAudioSink::Start(
   }
 
   LOG(INFO) << __func__ << ": Le Audio Sink Open, bit rate: "
-            << codec_configuration.bits_per_sample
+            << int{codec_configuration.bits_per_sample}
             << ", num channels: " << int{codec_configuration.num_channels}
             << ", sample rate: " << codec_configuration.sample_rate
             << ", data interval: " << codec_configuration.data_interval_us;
