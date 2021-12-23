@@ -118,6 +118,9 @@ class DualModeController : public Device {
   // 7.1.6
   void Disconnect(CommandView args);
 
+  // Deprecated
+  void AddScoConnection(CommandView args);
+
   // 7.1.7
   void CreateConnectionCancel(CommandView args);
 

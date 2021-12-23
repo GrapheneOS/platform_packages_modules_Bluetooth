@@ -122,6 +122,7 @@ DualModeController::DualModeController(const std::string& properties_filename, u
   SET_SUPPORTED(SWITCH_ROLE, SwitchRole);
   SET_SUPPORTED(READ_REMOTE_SUPPORTED_FEATURES, ReadRemoteSupportedFeatures);
   SET_SUPPORTED(READ_CLOCK_OFFSET, ReadClockOffset);
+  SET_HANDLER(ADD_SCO_CONNECTION, AddScoConnection);
   SET_SUPPORTED(SETUP_SYNCHRONOUS_CONNECTION, SetupSynchronousConnection);
   SET_SUPPORTED(ACCEPT_SYNCHRONOUS_CONNECTION, AcceptSynchronousConnection);
   SET_SUPPORTED(REJECT_SYNCHRONOUS_CONNECTION, RejectSynchronousConnection);
@@ -354,8 +355,10 @@ void DualModeController::HandleAcl(std::shared_ptr<std::vector<uint8_t>> packet)
 void DualModeController::HandleSco(std::shared_ptr<std::vector<uint8_t>> packet) {
   bluetooth::hci::PacketView<bluetooth::hci::kLittleEndian> raw_packet(packet);
   auto sco_packet = bluetooth::hci::ScoView::Create(raw_packet);
+  ASSERT(sco_packet.IsValid());
   if (loopback_mode_ == LoopbackMode::ENABLE_LOCAL) {
     uint16_t handle = sco_packet.GetHandle();
+
     auto sco_builder = bluetooth::hci::ScoBuilder::Create(
         handle, sco_packet.GetPacketStatusFlag(), sco_packet.GetData());
     send_sco_(std::move(sco_builder));
@@ -370,6 +373,8 @@ void DualModeController::HandleSco(std::shared_ptr<std::vector<uint8_t>> packet)
     }
     return;
   }
+
+  link_layer_controller_.SendScoToRemote(sco_packet);
 }
 
 void DualModeController::HandleIso(
@@ -657,6 +662,22 @@ void DualModeController::ReadClockOffset(CommandView command) {
       OpCode::READ_CLOCK_OFFSET, command_view.GetPayload(), handle);
 
   auto packet = bluetooth::hci::ReadClockOffsetStatusBuilder::Create(
+      status, kNumCommandPackets);
+  send_event_(std::move(packet));
+}
+
+// Deprecated command, removed in v4.2.
+// Support is provided to satisfy PTS tester requirements.
+void DualModeController::AddScoConnection(CommandView command) {
+  auto command_view = gd_hci::AddScoConnectionView::Create(
+      gd_hci::ConnectionManagementCommandView::Create(
+          gd_hci::AclCommandView::Create(command)));
+  ASSERT(command_view.IsValid());
+
+  auto status = link_layer_controller_.AddScoConnection(
+      command_view.GetConnectionHandle(), command_view.GetPacketType());
+
+  auto packet = bluetooth::hci::AddScoConnectionStatusBuilder::Create(
       status, kNumCommandPackets);
   send_event_(std::move(packet));
 }

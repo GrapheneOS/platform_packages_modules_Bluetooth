@@ -42,7 +42,7 @@ struct Controller::impl {
 
     le_set_event_mask(kDefaultLeEventMask);
     set_event_mask(kDefaultEventMask);
-    write_le_host_support(Enable::ENABLED);
+    write_le_host_support(Enable::ENABLED, Enable::DISABLED);
     hci_->EnqueueCommand(ReadLocalNameBuilder::Create(),
                          handler->BindOnceOn(this, &Controller::impl::read_local_name_complete_handler));
     hci_->EnqueueCommand(ReadLocalVersionInformationBuilder::Create(),
@@ -490,10 +490,12 @@ struct Controller::impl {
                                                 this, &Controller::impl::check_status<SetEventMaskCompleteView>));
   }
 
-  void write_le_host_support(Enable enable) {
-    // Since Bluetooth Core Spec 4.1, this bit should be 0, but some controllers still require it
-    Enable simultaneous_le_host = Enable::ENABLED;
-    std::unique_ptr<WriteLeHostSupportBuilder> packet = WriteLeHostSupportBuilder::Create(enable, simultaneous_le_host);
+  void write_le_host_support(Enable enable, Enable deprecated_host_bit) {
+    if (deprecated_host_bit == Enable::ENABLED) {
+      // Since Bluetooth Core Spec 4.1, this bit should be 0
+      LOG_WARN("Setting deprecated Simultaneous LE BR/EDR Host bit");
+    }
+    std::unique_ptr<WriteLeHostSupportBuilder> packet = WriteLeHostSupportBuilder::Create(enable, deprecated_host_bit);
     hci_->EnqueueCommand(
         std::move(packet),
         module_.GetHandler()->BindOnceOn(this, &Controller::impl::check_status<WriteLeHostSupportCompleteView>));
@@ -816,6 +818,10 @@ struct Controller::impl {
       OP_CODE_MAPPING(READ_LOCAL_SUPPORTED_CONTROLLER_DELAY)
       OP_CODE_MAPPING(CONFIGURE_DATA_PATH)
       OP_CODE_MAPPING(ENHANCED_FLUSH)
+
+      // deprecated
+      case OpCode::ADD_SCO_CONNECTION:
+        return false;
 
       // vendor specific
       case OpCode::LE_GET_VENDOR_CAPABILITIES:

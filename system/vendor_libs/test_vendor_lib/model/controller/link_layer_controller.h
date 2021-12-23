@@ -348,6 +348,9 @@ class LinkLayerController {
   void ReadLocalOobData();
   void ReadLocalOobExtendedData();
 
+  ErrorCode AddScoConnection(
+      uint16_t connection_handle,
+      uint16_t packet_type);
   ErrorCode SetupSynchronousConnection(
       uint16_t connection_handle,
       uint32_t transmit_bandwidth,
@@ -376,6 +379,7 @@ class LinkLayerController {
   void SendLinkLayerPacket(
       std::unique_ptr<model::packets::LinkLayerPacketBuilder> packet);
   void IncomingAclPacket(model::packets::LinkLayerPacketView packet);
+  void IncomingScoPacket(model::packets::LinkLayerPacketView packet);
   void IncomingDisconnectPacket(model::packets::LinkLayerPacketView packet);
   void IncomingEncryptConnection(model::packets::LinkLayerPacketView packet);
   void IncomingEncryptConnectionResponse(
@@ -442,11 +446,11 @@ class LinkLayerController {
   void IncomingRemoteNameRequestResponse(
       model::packets::LinkLayerPacketView packet);
 
-  void IncomingEScoConnectionRequest(
+  void IncomingScoConnectionRequest(
       model::packets::LinkLayerPacketView packet);
-  void IncomingEScoConnectionResponse(
+  void IncomingScoConnectionResponse(
       model::packets::LinkLayerPacketView packet);
-  void IncomingEScoDisconnect(model::packets::LinkLayerPacketView packet);
+  void IncomingScoDisconnect(model::packets::LinkLayerPacketView packet);
 
  private:
   const DeviceProperties& properties_;
@@ -457,7 +461,6 @@ class LinkLayerController {
 
   // Timing related state
   std::vector<AsyncTaskId> controller_events_;
-  AsyncTaskId timer_tick_task_{};
   std::chrono::milliseconds timer_period_ = std::chrono::milliseconds(100);
 
   // Callbacks to schedule tasks.
