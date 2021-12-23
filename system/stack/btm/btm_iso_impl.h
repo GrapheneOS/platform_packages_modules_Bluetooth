@@ -731,7 +731,7 @@ struct iso_impl {
   std::map<uint16_t, std::unique_ptr<iso_cis>> conn_hdl_to_cis_map_;
   std::map<uint16_t, std::unique_ptr<iso_bis>> conn_hdl_to_bis_map_;
 
-  uint16_t iso_credits_;
+  std::atomic_uint16_t iso_credits_;
   uint16_t iso_buffer_size_;
   uint32_t last_big_create_req_sdu_itv_;
 
