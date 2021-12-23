@@ -2082,7 +2082,7 @@ void btm_read_link_quality_complete(uint8_t* p) {
  * Description      This function is called to disconnect an ACL connection
  *
  * Returns          BTM_SUCCESS if successfully initiated, otherwise
- *                  BTM_NO_RESOURCES.
+ *                  BTM_UNKNOWN_ADDR.
  *
  ******************************************************************************/
 tBTM_STATUS btm_remove_acl(const RawAddress& bd_addr, tBT_TRANSPORT transport) {
