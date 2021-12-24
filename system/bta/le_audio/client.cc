@@ -2223,30 +2223,37 @@ class LeAudioClientImpl : public LeAudioClient {
     ClientAudioIntefraceRelease();
   }
 
-  void printCurrentStreamConfiguration(int fd) {
+  void printSingleConfiguration(int fd, LeAudioCodecConfiguration* conf,
+                                bool print_audio_state, bool sender = false) {
     std::stringstream stream;
-    auto conf = &current_source_codec_config;
-
-    stream << " Speaker codec config "
-           << "\n";
-    if (conf) {
-      stream << "   audio sender state: " << audio_sender_state_ << "\n"
-             << "   num_channels " << +conf->num_channels << "\n"
-             << "   sample rate " << +conf->sample_rate << "\n"
-             << "   bits pers sample " << +conf->bits_per_sample << "\n"
-             << "   data_interval_us " << +conf->data_interval_us << "\n";
+    if (print_audio_state) {
+      if (sender) {
+        stream << "   audio sender state: " << audio_sender_state_ << "\n";
+      } else {
+        stream << "   audio receiver state: " << audio_receiver_state_ << "\n";
+      }
     }
-    stream << " Microphone codec config"
-           << "\n";
+
+    stream << "   num_channels: " << +conf->num_channels << "\n"
+           << "   sample rate: " << +conf->sample_rate << "\n"
+           << "   bits pers sample: " << +conf->bits_per_sample << "\n"
+           << "   data_interval_us: " << +conf->data_interval_us << "\n";
+
+    dprintf(fd, "%s", stream.str().c_str());
+  }
+
+  void printCurrentStreamConfiguration(int fd) {
+    auto conf = &current_source_codec_config;
+    dprintf(fd, " Speaker codec config \n");
+    if (conf) {
+      printSingleConfiguration(fd, conf, false);
+    }
+
+    dprintf(fd, " Microphone codec config \n");
     conf = &current_sink_codec_config;
     if (conf) {
-      stream << "   audio receiver state: " << audio_receiver_state_ << "\n"
-             << "   num_channels " << +conf->num_channels << "\n"
-             << "   sample rate " << +conf->sample_rate << "\n"
-             << "   bits pers sample " << +conf->bits_per_sample << "\n"
-             << "   data_interval_us " << +conf->data_interval_us << "\n";
+      printSingleConfiguration(fd, conf, true, false);
     }
-    dprintf(fd, "%s", stream.str().c_str());
   }
 
   void Dump(int fd) {
