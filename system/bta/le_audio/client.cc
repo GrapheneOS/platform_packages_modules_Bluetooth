@@ -152,7 +152,10 @@ DeviceGroupsCallbacks* device_group_callbacks;
  */
 class LeAudioClientImpl : public LeAudioClient {
  public:
-  virtual ~LeAudioClientImpl() = default;
+  ~LeAudioClientImpl() {
+    alarm_free(suspend_timeout_);
+    suspend_timeout_ = nullptr;
+  };
 
   LeAudioClientImpl(
       bluetooth::le_audio::LeAudioClientCallbacks* callbacks_,
@@ -173,7 +176,8 @@ class LeAudioClientImpl : public LeAudioClient {
         lc3_encoder_right_mem(nullptr),
         lc3_decoder(nullptr),
         audio_source_instance_(nullptr),
-        audio_sink_instance_(nullptr) {
+        audio_sink_instance_(nullptr),
+        suspend_timeout_(alarm_new("LeAudioSuspendTimeout")) {
     LeAudioGroupStateMachine::Initialize(state_machine_callbacks_);
     groupStateMachine_ = LeAudioGroupStateMachine::Get();
 
@@ -644,6 +648,8 @@ class LeAudioClientImpl : public LeAudioClient {
         /* Nothing to do */
         return;
       }
+
+      if (alarm_is_scheduled(suspend_timeout_)) alarm_cancel(suspend_timeout_);
 
       StopAudio();
       GroupStop(active_group_id_);
@@ -2260,6 +2266,7 @@ class LeAudioClientImpl : public LeAudioClient {
   }
 
   void Cleanup(void) {
+    if (alarm_is_scheduled(suspend_timeout_)) alarm_cancel(suspend_timeout_);
     leAudioDevices_.Cleanup();
     aseGroups_.Cleanup();
     StopAudio();
@@ -2382,7 +2389,21 @@ class LeAudioClientImpl : public LeAudioClient {
       return;
     }
 
-    GroupStop(active_group_id_);
+    /* Group should tie in time to get requested status */
+    uint64_t timeoutMs = kAudioSuspentKeepIsoAliveTimeoutMs;
+    timeoutMs = osi_property_get_int32(kAudioSuspentKeepIsoAliveTimeoutMsProp,
+                                       timeoutMs);
+
+    DLOG(INFO) << __func__
+               << " Stream suspend_timeout_ started: " << suspend_timeout_;
+    if (alarm_is_scheduled(suspend_timeout_)) alarm_cancel(suspend_timeout_);
+
+    alarm_set_on_mloop(
+        suspend_timeout_, timeoutMs,
+        [](void* data) {
+          if (instance) instance->GroupStop(PTR_TO_INT(data));
+        },
+        INT_TO_PTR(active_group_id_));
   }
 
   void OnAudioSinkSuspend() {
@@ -2482,13 +2503,20 @@ class LeAudioClientImpl : public LeAudioClient {
                      << " audio_sender_state: " << audio_sender_state_ << "\n";
         break;
       case AudioState::READY_TO_RELEASE:
-        if (audio_receiver_state_ == AudioState::STARTED) {
-          /* Stream is up just restore it */
-          audio_sender_state_ = AudioState::STARTED;
-          LeAudioClientAudioSource::ConfirmStreamingRequest();
-          return;
+        switch (audio_receiver_state_) {
+          case AudioState::STARTED:
+          case AudioState::IDLE:
+          case AudioState::READY_TO_RELEASE:
+            /* Stream is up just restore it */
+            audio_sender_state_ = AudioState::STARTED;
+            if (alarm_is_scheduled(suspend_timeout_))
+              alarm_cancel(suspend_timeout_);
+            LeAudioClientAudioSource::ConfirmStreamingRequest();
+            break;
+          case AudioState::RELEASING:
+          default:
+            LeAudioClientAudioSource::CancelStreamingRequest();
         }
-        LeAudioClientAudioSource::CancelStreamingRequest();
         break;
       case AudioState::RELEASING:
         /* Keep wainting */
@@ -2594,14 +2622,21 @@ class LeAudioClientImpl : public LeAudioClient {
                      << " audio_sender_state: " << audio_sender_state_ << "\n";
         break;
       case AudioState::READY_TO_RELEASE:
-        if (audio_sender_state_ == AudioState::STARTED) {
-          /* Just return to started */
-          audio_receiver_state_ = AudioState::STARTED;
-          LeAudioClientAudioSink::ConfirmStreamingRequest();
-          return;
+        switch (audio_sender_state_) {
+          case AudioState::STARTED:
+          case AudioState::IDLE:
+          case AudioState::READY_TO_RELEASE:
+            /* Stream is up just restore it */
+            audio_receiver_state_ = AudioState::STARTED;
+            if (alarm_is_scheduled(suspend_timeout_))
+              alarm_cancel(suspend_timeout_);
+            LeAudioClientAudioSink::ConfirmStreamingRequest();
+            break;
+          case AudioState::RELEASING:
+          default:
+            LeAudioClientAudioSink::CancelStreamingRequest();
         }
 
-        LeAudioClientAudioSink::CancelStreamingRequest();
         break;
       case AudioState::RELEASING:
         LeAudioClientAudioSink::CancelStreamingRequest();
@@ -2717,6 +2752,9 @@ class LeAudioClientImpl : public LeAudioClient {
                 << "for context type: " << static_cast<int>(new_context_type);
 
       if (group->GetState() == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
+        if (alarm_is_scheduled(suspend_timeout_))
+          alarm_cancel(suspend_timeout_);
+
         GroupStop(group->group_id_);
       }
 
@@ -2995,6 +3033,10 @@ class LeAudioClientImpl : public LeAudioClient {
   std::vector<uint8_t> encoded_data;
   const void* audio_source_instance_;
   const void* audio_sink_instance_;
+  static constexpr uint64_t kAudioSuspentKeepIsoAliveTimeoutMs = 5000;
+  static constexpr char kAudioSuspentKeepIsoAliveTimeoutMsProp[] =
+      "persist.bluetooth.leaudio.audio.suspend.timeoutms";
+  alarm_t* suspend_timeout_;
 
   void ClientAudioIntefraceRelease() {
     if (audio_source_instance_) {
