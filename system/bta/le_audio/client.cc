@@ -1705,8 +1705,9 @@ class LeAudioClientImpl : public LeAudioClient {
     LeAudioDeviceGroup* group = aseGroups_.FindById(active_group_id_);
     auto* stream_conf = &group->stream_conf;
 
-    if (!stream_conf->valid) {
-      LOG(INFO) << __func__
+    if (audio_sender_state_ == AudioState::IDLE &&
+        audio_receiver_state_ == AudioState::IDLE) {
+      DLOG(INFO) << __func__
                  << " Device not streaming but active. Lets update audio "
                     "session to match needed channel number";
       UpdateCurrentHalSessions(active_group_id_, current_context_type_);
@@ -2014,7 +2015,6 @@ class LeAudioClientImpl : public LeAudioClient {
     stream_conf->sink_sample_frequency_hz = sample_freq_hz;
     stream_conf->sink_frame_duration_us = frame_duration_us;
     stream_conf->sink_octets_per_codec_frame = octets_per_frame;
-    stream_conf->valid = true;
 
     LOG(INFO) << __func__ << " configuration: " << stream_conf->conf->name;
 
@@ -2033,7 +2033,9 @@ class LeAudioClientImpl : public LeAudioClient {
     }
 
     auto stream_conf = group->stream_conf;
-    if (!stream_conf.valid || (stream_conf.sink_num_of_devices > 2)) {
+    if ((stream_conf.sink_num_of_devices > 2) ||
+        (stream_conf.sink_num_of_devices == 0) ||
+        stream_conf.sink_streams.empty()) {
       LOG(ERROR) << __func__ << " Stream configufation is not valid.";
       return;
     }
@@ -2160,7 +2162,6 @@ class LeAudioClientImpl : public LeAudioClient {
         ase->codec_config.GetFrameDurationUs();
     stream_conf->source_octets_per_codec_frame =
         *ase->codec_config.octets_per_codec_frame;
-    stream_conf->valid = true;
 
     LOG(INFO) << __func__ << " Added CIS: " << +ase->cis_conn_hdl
               << " to stream. Allocation: "
