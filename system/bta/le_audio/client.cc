@@ -2486,22 +2486,33 @@ class LeAudioClientImpl : public LeAudioClient {
         LeAudioClientAudioSource::ConfirmStreamingRequest();
         break;
       case AudioState::IDLE:
-        if (audio_receiver_state_ == AudioState::IDLE) {
-          /* Stream is not started. Try to do it.*/
-          if (OnAudioResume(group)) {
+        switch (audio_receiver_state_) {
+          case AudioState::IDLE:
+            /* Stream is not started. Try to do it.*/
+            if (OnAudioResume(group)) {
+              audio_sender_state_ = AudioState::READY_TO_START;
+            } else {
+              LeAudioClientAudioSource::CancelStreamingRequest();
+            }
+            break;
+          case AudioState::READY_TO_START:
+          case AudioState::STARTED:
             audio_sender_state_ = AudioState::READY_TO_START;
-          } else {
-            LeAudioClientAudioSource::CancelStreamingRequest();
-          }
-        } else {
-          /* Stream has been started by the Source. */
-          audio_sender_state_ = AudioState::READY_TO_START;
-          if (group->GetState() == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
-            StartSendingAudio(active_group_id_);
-          } else {
-            LeAudioClientAudioSource::CancelStreamingRequest();
-          }
+            /* If signalling part is completed trigger start reveivin audio
+             * here, otherwise it'll be called on group streaming state callback
+             */
+            if (group->GetState() ==
+                AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
+              StartSendingAudio(active_group_id_);
+            }
+            break;
+          case AudioState::RELEASING:
+          case AudioState::READY_TO_RELEASE:
+          default:
+            LeAudioClientAudioSink::CancelStreamingRequest();
+            break;
         }
+
         break;
       case AudioState::READY_TO_START:
         LOG(WARNING) << __func__
@@ -2604,22 +2615,30 @@ class LeAudioClientImpl : public LeAudioClient {
         LeAudioClientAudioSink::ConfirmStreamingRequest();
         break;
       case AudioState::IDLE:
-        if (audio_sender_state_ == AudioState::IDLE) {
-          if (OnAudioResume(group)) {
+        switch (audio_sender_state_) {
+          case AudioState::IDLE:
+            if (OnAudioResume(group)) {
+              audio_receiver_state_ = AudioState::READY_TO_START;
+            } else {
+              LeAudioClientAudioSink::CancelStreamingRequest();
+            }
+            break;
+          case AudioState::READY_TO_START:
+          case AudioState::STARTED:
             audio_receiver_state_ = AudioState::READY_TO_START;
-          } else {
+            /* If signalling part is completed trigger start reveivin audio
+             * here, otherwise it'll be called on group streaming state callback
+             */
+            if (group->GetState() ==
+                AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
+              StartReceivingAudio(active_group_id_);
+            }
+            break;
+          case AudioState::RELEASING:
+          case AudioState::READY_TO_RELEASE:
+          default:
             LeAudioClientAudioSink::CancelStreamingRequest();
-          }
-        } else {
-          audio_receiver_state_ = AudioState::READY_TO_START;
-          /* If signalling part is completed trigger start reveivin audio here,
-           * otherwise it'll be called on group streaming state callback
-           */
-          if (group->GetState() == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
-            StartReceivingAudio(active_group_id_);
-          } else {
-            LeAudioClientAudioSink::CancelStreamingRequest();
-          }
+            break;
         }
         break;
       case AudioState::READY_TO_START:
