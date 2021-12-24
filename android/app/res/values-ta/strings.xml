@@ -72,7 +72,7 @@
     <string name="upload_fail_cancel" msgid="1632528037932779727">"மூடு"</string>
     <string name="bt_error_btn_ok" msgid="2802751202009957372">"சரி"</string>
     <string name="unknown_file" msgid="3719981572107052685">"அறியப்படாத ஃபைல்"</string>
-    <string name="unknown_file_desc" msgid="9185609398960437760">"இந்த வகையான கோப்பைக் கையாள எந்தப் பயன்பாடும் இல்லை. \n"</string>
+    <string name="unknown_file_desc" msgid="9185609398960437760">"இந்த வகையான ஃபைலைக் கையாள எந்தப் பயன்பாடும் இல்லை. \n"</string>
     <string name="not_exist_file" msgid="5097565588949092486">"ஃபைல் இல்லை"</string>
     <string name="not_exist_file_desc" msgid="250802392160941265">"ஃபைல் இல்லை. \n"</string>
     <string name="enabling_progress_title" msgid="5262637688863903594">"காத்திருக்கவும்…"</string>
