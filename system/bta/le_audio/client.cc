@@ -152,7 +152,10 @@ DeviceGroupsCallbacks* device_group_callbacks;
  */
 class LeAudioClientImpl : public LeAudioClient {
  public:
-  virtual ~LeAudioClientImpl() = default;
+  ~LeAudioClientImpl() {
+    alarm_free(suspend_timeout_);
+    suspend_timeout_ = nullptr;
+  };
 
   LeAudioClientImpl(
       bluetooth::le_audio::LeAudioClientCallbacks* callbacks_,
@@ -173,7 +176,8 @@ class LeAudioClientImpl : public LeAudioClient {
         lc3_encoder_right_mem(nullptr),
         lc3_decoder(nullptr),
         audio_source_instance_(nullptr),
-        audio_sink_instance_(nullptr) {
+        audio_sink_instance_(nullptr),
+        suspend_timeout_(alarm_new("LeAudioSuspendTimeout")) {
     LeAudioGroupStateMachine::Initialize(state_machine_callbacks_);
     groupStateMachine_ = LeAudioGroupStateMachine::Get();
 
@@ -644,6 +648,8 @@ class LeAudioClientImpl : public LeAudioClient {
         /* Nothing to do */
         return;
       }
+
+      if (alarm_is_scheduled(suspend_timeout_)) alarm_cancel(suspend_timeout_);
 
       StopAudio();
       GroupStop(active_group_id_);
@@ -1699,8 +1705,9 @@ class LeAudioClientImpl : public LeAudioClient {
     LeAudioDeviceGroup* group = aseGroups_.FindById(active_group_id_);
     auto* stream_conf = &group->stream_conf;
 
-    if (!stream_conf->valid) {
-      LOG(INFO) << __func__
+    if (audio_sender_state_ == AudioState::IDLE &&
+        audio_receiver_state_ == AudioState::IDLE) {
+      DLOG(INFO) << __func__
                  << " Device not streaming but active. Lets update audio "
                     "session to match needed channel number";
       UpdateCurrentHalSessions(active_group_id_, current_context_type_);
@@ -2008,7 +2015,6 @@ class LeAudioClientImpl : public LeAudioClient {
     stream_conf->sink_sample_frequency_hz = sample_freq_hz;
     stream_conf->sink_frame_duration_us = frame_duration_us;
     stream_conf->sink_octets_per_codec_frame = octets_per_frame;
-    stream_conf->valid = true;
 
     LOG(INFO) << __func__ << " configuration: " << stream_conf->conf->name;
 
@@ -2027,7 +2033,9 @@ class LeAudioClientImpl : public LeAudioClient {
     }
 
     auto stream_conf = group->stream_conf;
-    if (!stream_conf.valid || (stream_conf.sink_num_of_devices > 2)) {
+    if ((stream_conf.sink_num_of_devices > 2) ||
+        (stream_conf.sink_num_of_devices == 0) ||
+        stream_conf.sink_streams.empty()) {
       LOG(ERROR) << __func__ << " Stream configufation is not valid.";
       return;
     }
@@ -2154,7 +2162,6 @@ class LeAudioClientImpl : public LeAudioClient {
         ase->codec_config.GetFrameDurationUs();
     stream_conf->source_octets_per_codec_frame =
         *ase->codec_config.octets_per_codec_frame;
-    stream_conf->valid = true;
 
     LOG(INFO) << __func__ << " Added CIS: " << +ase->cis_conn_hdl
               << " to stream. Allocation: "
@@ -2217,30 +2224,37 @@ class LeAudioClientImpl : public LeAudioClient {
     ClientAudioIntefraceRelease();
   }
 
-  void printCurrentStreamConfiguration(int fd) {
+  void printSingleConfiguration(int fd, LeAudioCodecConfiguration* conf,
+                                bool print_audio_state, bool sender = false) {
     std::stringstream stream;
-    auto conf = &current_source_codec_config;
-
-    stream << " Speaker codec config "
-           << "\n";
-    if (conf) {
-      stream << "   audio sender state: " << audio_sender_state_ << "\n"
-             << "   num_channels " << +conf->num_channels << "\n"
-             << "   sample rate " << +conf->sample_rate << "\n"
-             << "   bits pers sample " << +conf->bits_per_sample << "\n"
-             << "   data_interval_us " << +conf->data_interval_us << "\n";
+    if (print_audio_state) {
+      if (sender) {
+        stream << "   audio sender state: " << audio_sender_state_ << "\n";
+      } else {
+        stream << "   audio receiver state: " << audio_receiver_state_ << "\n";
+      }
     }
-    stream << " Microphone codec config"
-           << "\n";
+
+    stream << "   num_channels: " << +conf->num_channels << "\n"
+           << "   sample rate: " << +conf->sample_rate << "\n"
+           << "   bits pers sample: " << +conf->bits_per_sample << "\n"
+           << "   data_interval_us: " << +conf->data_interval_us << "\n";
+
+    dprintf(fd, "%s", stream.str().c_str());
+  }
+
+  void printCurrentStreamConfiguration(int fd) {
+    auto conf = &current_source_codec_config;
+    dprintf(fd, " Speaker codec config \n");
+    if (conf) {
+      printSingleConfiguration(fd, conf, false);
+    }
+
+    dprintf(fd, " Microphone codec config \n");
     conf = &current_sink_codec_config;
     if (conf) {
-      stream << "   audio receiver state: " << audio_receiver_state_ << "\n"
-             << "   num_channels " << +conf->num_channels << "\n"
-             << "   sample rate " << +conf->sample_rate << "\n"
-             << "   bits pers sample " << +conf->bits_per_sample << "\n"
-             << "   data_interval_us " << +conf->data_interval_us << "\n";
+      printSingleConfiguration(fd, conf, true, false);
     }
-    dprintf(fd, "%s", stream.str().c_str());
   }
 
   void Dump(int fd) {
@@ -2260,6 +2274,7 @@ class LeAudioClientImpl : public LeAudioClient {
   }
 
   void Cleanup(void) {
+    if (alarm_is_scheduled(suspend_timeout_)) alarm_cancel(suspend_timeout_);
     leAudioDevices_.Cleanup();
     aseGroups_.Cleanup();
     StopAudio();
@@ -2382,7 +2397,21 @@ class LeAudioClientImpl : public LeAudioClient {
       return;
     }
 
-    GroupStop(active_group_id_);
+    /* Group should tie in time to get requested status */
+    uint64_t timeoutMs = kAudioSuspentKeepIsoAliveTimeoutMs;
+    timeoutMs = osi_property_get_int32(kAudioSuspentKeepIsoAliveTimeoutMsProp,
+                                       timeoutMs);
+
+    DLOG(INFO) << __func__
+               << " Stream suspend_timeout_ started: " << suspend_timeout_;
+    if (alarm_is_scheduled(suspend_timeout_)) alarm_cancel(suspend_timeout_);
+
+    alarm_set_on_mloop(
+        suspend_timeout_, timeoutMs,
+        [](void* data) {
+          if (instance) instance->GroupStop(PTR_TO_INT(data));
+        },
+        INT_TO_PTR(active_group_id_));
   }
 
   void OnAudioSinkSuspend() {
@@ -2458,22 +2487,33 @@ class LeAudioClientImpl : public LeAudioClient {
         LeAudioClientAudioSource::ConfirmStreamingRequest();
         break;
       case AudioState::IDLE:
-        if (audio_receiver_state_ == AudioState::IDLE) {
-          /* Stream is not started. Try to do it.*/
-          if (OnAudioResume(group)) {
+        switch (audio_receiver_state_) {
+          case AudioState::IDLE:
+            /* Stream is not started. Try to do it.*/
+            if (OnAudioResume(group)) {
+              audio_sender_state_ = AudioState::READY_TO_START;
+            } else {
+              LeAudioClientAudioSource::CancelStreamingRequest();
+            }
+            break;
+          case AudioState::READY_TO_START:
+          case AudioState::STARTED:
             audio_sender_state_ = AudioState::READY_TO_START;
-          } else {
-            LeAudioClientAudioSource::CancelStreamingRequest();
-          }
-        } else {
-          /* Stream has been started by the Source. */
-          audio_sender_state_ = AudioState::READY_TO_START;
-          if (group->GetState() == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
-            StartSendingAudio(active_group_id_);
-          } else {
-            LeAudioClientAudioSource::CancelStreamingRequest();
-          }
+            /* If signalling part is completed trigger start reveivin audio
+             * here, otherwise it'll be called on group streaming state callback
+             */
+            if (group->GetState() ==
+                AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
+              StartSendingAudio(active_group_id_);
+            }
+            break;
+          case AudioState::RELEASING:
+          case AudioState::READY_TO_RELEASE:
+          default:
+            LeAudioClientAudioSink::CancelStreamingRequest();
+            break;
         }
+
         break;
       case AudioState::READY_TO_START:
         LOG(WARNING) << __func__
@@ -2482,13 +2522,20 @@ class LeAudioClientImpl : public LeAudioClient {
                      << " audio_sender_state: " << audio_sender_state_ << "\n";
         break;
       case AudioState::READY_TO_RELEASE:
-        if (audio_receiver_state_ == AudioState::STARTED) {
-          /* Stream is up just restore it */
-          audio_sender_state_ = AudioState::STARTED;
-          LeAudioClientAudioSource::ConfirmStreamingRequest();
-          return;
+        switch (audio_receiver_state_) {
+          case AudioState::STARTED:
+          case AudioState::IDLE:
+          case AudioState::READY_TO_RELEASE:
+            /* Stream is up just restore it */
+            audio_sender_state_ = AudioState::STARTED;
+            if (alarm_is_scheduled(suspend_timeout_))
+              alarm_cancel(suspend_timeout_);
+            LeAudioClientAudioSource::ConfirmStreamingRequest();
+            break;
+          case AudioState::RELEASING:
+          default:
+            LeAudioClientAudioSource::CancelStreamingRequest();
         }
-        LeAudioClientAudioSource::CancelStreamingRequest();
         break;
       case AudioState::RELEASING:
         /* Keep wainting */
@@ -2569,22 +2616,30 @@ class LeAudioClientImpl : public LeAudioClient {
         LeAudioClientAudioSink::ConfirmStreamingRequest();
         break;
       case AudioState::IDLE:
-        if (audio_sender_state_ == AudioState::IDLE) {
-          if (OnAudioResume(group)) {
+        switch (audio_sender_state_) {
+          case AudioState::IDLE:
+            if (OnAudioResume(group)) {
+              audio_receiver_state_ = AudioState::READY_TO_START;
+            } else {
+              LeAudioClientAudioSink::CancelStreamingRequest();
+            }
+            break;
+          case AudioState::READY_TO_START:
+          case AudioState::STARTED:
             audio_receiver_state_ = AudioState::READY_TO_START;
-          } else {
+            /* If signalling part is completed trigger start reveivin audio
+             * here, otherwise it'll be called on group streaming state callback
+             */
+            if (group->GetState() ==
+                AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
+              StartReceivingAudio(active_group_id_);
+            }
+            break;
+          case AudioState::RELEASING:
+          case AudioState::READY_TO_RELEASE:
+          default:
             LeAudioClientAudioSink::CancelStreamingRequest();
-          }
-        } else {
-          audio_receiver_state_ = AudioState::READY_TO_START;
-          /* If signalling part is completed trigger start reveivin audio here,
-           * otherwise it'll be called on group streaming state callback
-           */
-          if (group->GetState() == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
-            StartReceivingAudio(active_group_id_);
-          } else {
-            LeAudioClientAudioSink::CancelStreamingRequest();
-          }
+            break;
         }
         break;
       case AudioState::READY_TO_START:
@@ -2594,14 +2649,21 @@ class LeAudioClientImpl : public LeAudioClient {
                      << " audio_sender_state: " << audio_sender_state_ << "\n";
         break;
       case AudioState::READY_TO_RELEASE:
-        if (audio_sender_state_ == AudioState::STARTED) {
-          /* Just return to started */
-          audio_receiver_state_ = AudioState::STARTED;
-          LeAudioClientAudioSink::ConfirmStreamingRequest();
-          return;
+        switch (audio_sender_state_) {
+          case AudioState::STARTED:
+          case AudioState::IDLE:
+          case AudioState::READY_TO_RELEASE:
+            /* Stream is up just restore it */
+            audio_receiver_state_ = AudioState::STARTED;
+            if (alarm_is_scheduled(suspend_timeout_))
+              alarm_cancel(suspend_timeout_);
+            LeAudioClientAudioSink::ConfirmStreamingRequest();
+            break;
+          case AudioState::RELEASING:
+          default:
+            LeAudioClientAudioSink::CancelStreamingRequest();
         }
 
-        LeAudioClientAudioSink::CancelStreamingRequest();
         break;
       case AudioState::RELEASING:
         LeAudioClientAudioSink::CancelStreamingRequest();
@@ -2717,6 +2779,9 @@ class LeAudioClientImpl : public LeAudioClient {
                 << "for context type: " << static_cast<int>(new_context_type);
 
       if (group->GetState() == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
+        if (alarm_is_scheduled(suspend_timeout_))
+          alarm_cancel(suspend_timeout_);
+
         GroupStop(group->group_id_);
       }
 
@@ -2995,6 +3060,10 @@ class LeAudioClientImpl : public LeAudioClient {
   std::vector<uint8_t> encoded_data;
   const void* audio_source_instance_;
   const void* audio_sink_instance_;
+  static constexpr uint64_t kAudioSuspentKeepIsoAliveTimeoutMs = 5000;
+  static constexpr char kAudioSuspentKeepIsoAliveTimeoutMsProp[] =
+      "persist.bluetooth.leaudio.audio.suspend.timeoutms";
+  alarm_t* suspend_timeout_;
 
   void ClientAudioIntefraceRelease() {
     if (audio_source_instance_) {

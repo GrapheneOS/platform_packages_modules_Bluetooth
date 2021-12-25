@@ -497,7 +497,8 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     }
 
     auto* stream_conf = &group->stream_conf;
-    if (stream_conf->valid) {
+    if (!stream_conf->sink_streams.empty() ||
+        !stream_conf->source_streams.empty()) {
       stream_conf->sink_streams.erase(
           std::remove_if(stream_conf->sink_streams.begin(),
                          stream_conf->sink_streams.end(),
@@ -517,12 +518,6 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
                            return ases.source;
                          }),
           stream_conf->source_streams.end());
-
-      if (stream_conf->sink_streams.empty() &&
-          stream_conf->source_streams.empty()) {
-        LOG(INFO) << __func__ << " stream stopped ";
-        stream_conf->valid = false;
-      }
     }
 
     /* mark ASEs as not used. */
@@ -674,7 +669,8 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
 
     /* Invalidate stream configuration if needed */
     auto* stream_conf = &group->stream_conf;
-    if (stream_conf->valid) {
+    if (!stream_conf->sink_streams.empty() ||
+        !stream_conf->source_streams.empty()) {
       if (ases_pair.sink) {
         stream_conf->sink_streams.erase(
             std::remove_if(stream_conf->sink_streams.begin(),
@@ -693,12 +689,6 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
                              return event->cis_conn_hdl == pair.first;
                            }),
             stream_conf->source_streams.end());
-      }
-
-      if (stream_conf->sink_streams.empty() &&
-          stream_conf->source_streams.empty()) {
-        LOG(INFO) << __func__ << " stream stopped ";
-        stream_conf->valid = false;
       }
     }
 
