@@ -19,7 +19,11 @@
 
 #include "le_audio_software.h"
 
+#include <unordered_map>
+#include <vector>
+
 #include "client_interface.h"
+#include "codec_status.h"
 #include "hal_version_manager.h"
 #include "osi/include/log.h"
 #include "osi/include/properties.h"
@@ -28,8 +32,11 @@ namespace {
 
 using ::android::hardware::bluetooth::audio::V2_0::BitsPerSample;
 using ::android::hardware::bluetooth::audio::V2_0::ChannelMode;
-using ::android::hardware::bluetooth::audio::V2_0::CodecType;
+using ::android::hardware::bluetooth::audio::V2_1::CodecType;
+using ::android::hardware::bluetooth::audio::V2_1::Lc3FrameDuration;
+using ::android::hardware::bluetooth::audio::V2_1::Lc3Parameters;
 using ::android::hardware::bluetooth::audio::V2_1::PcmParameters;
+using ::android::hardware::bluetooth::audio::V2_2::AudioLocation;
 using ::bluetooth::audio::AudioConfiguration_2_2;
 using ::bluetooth::audio::BluetoothAudioCtrlAck;
 using ::bluetooth::audio::SampleRate_2_1;
@@ -37,6 +44,14 @@ using ::bluetooth::audio::SessionType;
 using ::bluetooth::audio::SessionType_2_1;
 using ::bluetooth::audio::le_audio::LeAudioClientInterface;
 using ::bluetooth::audio::le_audio::StreamCallbacks;
+using AudioCapabilities_2_2 =
+    ::android::hardware::bluetooth::audio::V2_2::AudioCapabilities;
+using android::hardware::bluetooth::audio::V2_2::LeAudioCodecCapability;
+
+using ::le_audio::set_configurations::AudioSetConfiguration;
+using ::le_audio::set_configurations::CodecCapabilitySetting;
+using ::le_audio::set_configurations::SetConfiguration;
+using ::le_audio::types::LeAudioLc3Config;
 
 bluetooth::audio::BluetoothAudioSinkClientInterface*
     le_audio_sink_hal_clientinterface = nullptr;
@@ -338,6 +353,139 @@ LeAudioSourceTransport* le_audio_source = nullptr;
 namespace bluetooth {
 namespace audio {
 namespace le_audio {
+
+std::unordered_map<SampleRate_2_1, uint8_t> sampling_freq_map{
+    {SampleRate_2_1::RATE_8000,
+     ::le_audio::codec_spec_conf::kLeAudioSamplingFreq8000Hz},
+    {SampleRate_2_1::RATE_16000,
+     ::le_audio::codec_spec_conf::kLeAudioSamplingFreq16000Hz},
+    {SampleRate_2_1::RATE_24000,
+     ::le_audio::codec_spec_conf::kLeAudioSamplingFreq24000Hz},
+    {SampleRate_2_1::RATE_32000,
+     ::le_audio::codec_spec_conf::kLeAudioSamplingFreq32000Hz},
+    {SampleRate_2_1::RATE_44100,
+     ::le_audio::codec_spec_conf::kLeAudioSamplingFreq44100Hz},
+    {SampleRate_2_1::RATE_48000,
+     ::le_audio::codec_spec_conf::kLeAudioSamplingFreq48000Hz},
+    {SampleRate_2_1::RATE_88200,
+     ::le_audio::codec_spec_conf::kLeAudioSamplingFreq88200Hz},
+    {SampleRate_2_1::RATE_96000,
+     ::le_audio::codec_spec_conf::kLeAudioSamplingFreq96000Hz},
+    {SampleRate_2_1::RATE_176400,
+     ::le_audio::codec_spec_conf::kLeAudioSamplingFreq176400Hz},
+    {SampleRate_2_1::RATE_192000,
+     ::le_audio::codec_spec_conf::kLeAudioSamplingFreq192000Hz}};
+
+std::unordered_map<Lc3FrameDuration, uint8_t> frame_duration_map{
+    {Lc3FrameDuration::DURATION_7500US,
+     ::le_audio::codec_spec_conf::kLeAudioCodecLC3FrameDur7500us},
+    {Lc3FrameDuration::DURATION_10000US,
+     ::le_audio::codec_spec_conf::kLeAudioCodecLC3FrameDur10000us}};
+
+std::unordered_map<uint32_t, uint16_t> octets_per_frame_map{
+    {30, ::le_audio::codec_spec_conf::kLeAudioCodecLC3FrameLen30},
+    {40, ::le_audio::codec_spec_conf::kLeAudioCodecLC3FrameLen40},
+    {120, ::le_audio::codec_spec_conf::kLeAudioCodecLC3FrameLen120}};
+
+std::unordered_map<AudioLocation, uint32_t> audio_location_map{
+    {AudioLocation::UNKNOWN,
+     ::le_audio::codec_spec_conf::kLeAudioLocationMonoUnspecified},
+    {AudioLocation::FRONT_LEFT,
+     ::le_audio::codec_spec_conf::kLeAudioLocationFrontLeft},
+    {AudioLocation::FRONT_RIGHT,
+     ::le_audio::codec_spec_conf::kLeAudioLocationFrontRight},
+    {static_cast<AudioLocation>(AudioLocation::FRONT_LEFT |
+                                AudioLocation::FRONT_RIGHT),
+     ::le_audio::codec_spec_conf::kLeAudioLocationFrontLeft |
+         ::le_audio::codec_spec_conf::kLeAudioLocationFrontRight}};
+
+bool halConfigToCodecCapabilitySetting(
+    LeAudioCodecCapability halConfig, CodecCapabilitySetting& codecCapability) {
+  if (halConfig.codecType != CodecType::LC3) {
+    LOG(WARNING) << "Unsupported codecType: " << toString(halConfig.codecType);
+    return false;
+  }
+
+  Lc3Parameters halLc3Config = halConfig.capabilities;
+  AudioLocation supportedChannel = halConfig.supportedChannel;
+
+  if (sampling_freq_map.find(halLc3Config.samplingFrequency) ==
+          sampling_freq_map.end() ||
+      frame_duration_map.find(halLc3Config.frameDuration) ==
+          frame_duration_map.end() ||
+      octets_per_frame_map.find(halLc3Config.octetsPerFrame) ==
+          octets_per_frame_map.end() ||
+      audio_location_map.find(supportedChannel) == audio_location_map.end()) {
+    LOG(ERROR) << __func__ << ": Failed to convert HAL format to stack format"
+               << "\nsample rate = " << (uint8_t)halLc3Config.samplingFrequency
+               << "\nframe duration = " << (uint8_t)halLc3Config.frameDuration
+               << "\noctets per frame= " << halLc3Config.octetsPerFrame
+               << "\naudio location = " << (uint8_t)supportedChannel;
+
+    return false;
+  }
+
+  codecCapability = {
+      .id = ::le_audio::set_configurations::LeAudioCodecIdLc3,
+      .config = LeAudioLc3Config(
+          {.sampling_frequency =
+               sampling_freq_map[halLc3Config.samplingFrequency],
+           .frame_duration = frame_duration_map[halLc3Config.frameDuration],
+           .octets_per_codec_frame =
+               octets_per_frame_map[halLc3Config.octetsPerFrame],
+           .audio_channel_allocation = audio_location_map[supportedChannel]})};
+
+  return true;
+}
+
+std::vector<AudioSetConfiguration> get_offload_capabilities() {
+  LOG(INFO) << __func__;
+  std::vector<AudioSetConfiguration> offload_capabilities;
+  std::vector<AudioCapabilities_2_2> le_audio_hal_capabilities =
+      audio::BluetoothAudioSinkClientInterface::GetAudioCapabilities_2_2(
+          SessionType_2_1::LE_AUDIO_HARDWARE_OFFLOAD_ENCODING_DATAPATH);
+  std::string strCapabilityLog;
+
+  for (auto halCapability : le_audio_hal_capabilities) {
+    CodecCapabilitySetting encodeCapability;
+    CodecCapabilitySetting decodeCapability;
+    LeAudioCodecCapability halEncodeConfig =
+        halCapability.leAudioCapabilities().encodeCapability;
+    LeAudioCodecCapability halDecodeConfig =
+        halCapability.leAudioCapabilities().decodeCapability;
+    AudioSetConfiguration audioSetConfig = {.name = "offload capability"};
+    strCapabilityLog.clear();
+
+    if (halConfigToCodecCapabilitySetting(halEncodeConfig, encodeCapability)) {
+      audioSetConfig.confs.push_back(SetConfiguration(
+          ::le_audio::types::kLeAudioDirectionSink, halEncodeConfig.deviceCount,
+          halEncodeConfig.deviceCount * halEncodeConfig.channelCountPerDevice,
+          encodeCapability));
+      strCapabilityLog = " Encode Capability: " + toString(halEncodeConfig);
+    }
+
+    if (halConfigToCodecCapabilitySetting(halDecodeConfig, decodeCapability)) {
+      audioSetConfig.confs.push_back(SetConfiguration(
+          ::le_audio::types::kLeAudioDirectionSource,
+          halDecodeConfig.deviceCount,
+          halDecodeConfig.deviceCount * halDecodeConfig.channelCountPerDevice,
+          decodeCapability));
+      strCapabilityLog += " Decode Capability: " + toString(halDecodeConfig);
+    }
+
+    if (!audioSetConfig.confs.empty()) {
+      offload_capabilities.push_back(audioSetConfig);
+      LOG(INFO) << __func__
+                << ": Supported codec capability =" << strCapabilityLog;
+
+    } else {
+      LOG(INFO) << __func__
+                << ": Unknown codec capability =" << toString(halCapability);
+    }
+  }
+
+  return offload_capabilities;
+}
 
 LeAudioClientInterface* LeAudioClientInterface::interface = nullptr;
 LeAudioClientInterface* LeAudioClientInterface::Get() {
