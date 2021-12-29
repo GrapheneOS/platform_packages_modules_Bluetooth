@@ -1158,4 +1158,25 @@ public class MediaControlGattServiceTest {
         state_map.put(PlayerStateField.PLAYER_NAME, player_name);
         mMcpService.updatePlayerState(state_map);
     }
+
+    @Test
+    public void testUpdatePlayerStateFromNullStateChar() {
+        BluetoothGattService service = initAllFeaturesGattService();
+
+        BluetoothGattCharacteristic characteristic =
+                service.getCharacteristic(MediaControlGattService.UUID_MEDIA_STATE);
+        Assert.assertNotNull(characteristic);
+        byte[] nullBytes = null;
+        characteristic.setValue(nullBytes);
+
+        prepareConnectedDevice();
+        doReturn(BluetoothDevice.ACCESS_ALLOWED)
+                .when(mMockMcpService)
+                .getDeviceAuthorization(any(BluetoothDevice.class));
+
+        Map<PlayerStateField, Object> state_map = new HashMap<>();
+        MediaState playback_state = MediaState.SEEKING;
+        state_map.put(PlayerStateField.PLAYBACK_STATE, playback_state);
+        mMcpService.updatePlayerState(state_map);
+    }
 }
