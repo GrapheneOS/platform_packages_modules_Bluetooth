@@ -27,20 +27,17 @@ import android.bluetooth.BluetoothLeAudio;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUuid;
 import android.bluetooth.IBluetoothLeAudio;
-import android.bluetooth.IBluetoothVolumeControl;
 import android.content.AttributionSource;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.ServiceConnection;
 import android.media.AudioManager;
 import android.media.BtProfileConnectionInfo;
+import android.os.Handler;
 import android.os.HandlerThread;
-import android.os.IBinder;
+import android.os.Looper;
 import android.os.ParcelUuid;
-import android.os.RemoteException;
 import android.util.Log;
 
 import com.android.bluetooth.Utils;
@@ -133,6 +130,7 @@ public class LeAudioService extends ProfileService {
 
     private BroadcastReceiver mBondStateChangedReceiver;
     private BroadcastReceiver mConnectionStateChangedReceiver;
+    private Handler mHandler = new Handler(Looper.getMainLooper());
 
     @Override
     protected IProfileServiceBinder initBinder() {
@@ -186,7 +184,10 @@ public class LeAudioService extends ProfileService {
         // Setup codec config
         mLeAudioCodecConfig = new LeAudioCodecConfig(this);
 
-        mLeAudioNativeInterface.init(mLeAudioCodecConfig.getCodecConfigOffloading());
+        // Delay the call to init by posting it. This ensures TBS and MCS are fully initialized
+        // before we start accepting connections
+        mHandler.post(() ->
+                mLeAudioNativeInterface.init(mLeAudioCodecConfig.getCodecConfigOffloading()));
 
         return true;
     }
