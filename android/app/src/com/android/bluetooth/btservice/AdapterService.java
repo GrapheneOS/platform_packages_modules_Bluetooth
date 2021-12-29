@@ -20,13 +20,13 @@ import static android.bluetooth.BluetoothDevice.TRANSPORT_AUTO;
 import static android.text.format.DateUtils.MINUTE_IN_MILLIS;
 import static android.text.format.DateUtils.SECOND_IN_MILLIS;
 
-import static com.android.bluetooth.Utils.addressToBytes;
 import static com.android.bluetooth.Utils.callerIsSystemOrActiveOrManagedUser;
 import static com.android.bluetooth.Utils.callerIsSystemOrActiveUser;
 import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermission;
 import static com.android.bluetooth.Utils.enforceCdmAssociation;
 import static com.android.bluetooth.Utils.enforceDumpPermission;
 import static com.android.bluetooth.Utils.enforceLocalMacAddressPermission;
+import static com.android.bluetooth.Utils.getBytesFromAddress;
 import static com.android.bluetooth.Utils.hasBluetoothPrivilegedPermission;
 import static com.android.bluetooth.Utils.isPackageNameAccurate;
 
@@ -1667,7 +1667,7 @@ public class AdapterService extends Service {
                 deviceProp.setBondingInitiatedLocally(false);
             }
 
-            return service.cancelBondNative(addressToBytes(device.getAddress()));
+            return service.cancelBondNative(getBytesFromAddress(device.getAddress()));
         }
 
         @Override
@@ -2038,8 +2038,10 @@ public class AdapterService extends Service {
                         "PIN code length mismatch");
                 return false;
             }
-            service.logUserBondResponse(device, accept, BluetoothProtoEnums.BOND_SUB_STATE_LOCAL_PIN_REPLIED);
-            return service.pinReplyNative(addressToBytes(device.getAddress()), accept, len, pinCode);
+            service.logUserBondResponse(device, accept,
+                    BluetoothProtoEnums.BOND_SUB_STATE_LOCAL_PIN_REPLIED);
+            return service.pinReplyNative(
+                    getBytesFromAddress(device.getAddress()), accept, len, pinCode);
         }
 
         @Override
@@ -2063,7 +2065,7 @@ public class AdapterService extends Service {
             }
             service.logUserBondResponse(device, accept, BluetoothProtoEnums.BOND_SUB_STATE_LOCAL_SSP_REPLIED);
             return service.sspReplyNative(
-                    addressToBytes(device.getAddress()),
+                    getBytesFromAddress(device.getAddress()),
                     AbstractionLayer.BT_SSP_VARIANT_PASSKEY_ENTRY,
                     accept,
                     Utils.byteArrayToInt(passkey));
@@ -2087,7 +2089,7 @@ public class AdapterService extends Service {
             }
             service.logUserBondResponse(device, accept, BluetoothProtoEnums.BOND_SUB_STATE_LOCAL_SSP_REPLIED);
             return service.sspReplyNative(
-                    addressToBytes(device.getAddress()),
+                    getBytesFromAddress(device.getAddress()),
                     AbstractionLayer.BT_SSP_VARIANT_PASSKEY_CONFIRMATION,
                     accept,
                     0);
@@ -2915,7 +2917,7 @@ public class AdapterService extends Service {
     }
 
     int getConnectionState(BluetoothDevice device) {
-        return getConnectionStateNative(addressToBytes(device.getAddress()));
+        return getConnectionStateNative(getBytesFromAddress(device.getAddress()));
     }
 
     /**
