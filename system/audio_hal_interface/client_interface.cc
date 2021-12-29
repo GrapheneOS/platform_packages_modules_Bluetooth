@@ -302,35 +302,35 @@ BluetoothAudioClientInterface::GetAudioCapabilities_2_1(
   return capabilities_2_1;
 }
 
-std::vector<AudioCapabilities_2_1>
+std::vector<AudioCapabilities_2_2>
 BluetoothAudioClientInterface::GetAudioCapabilities_2_2(
     SessionType_2_1 session_type_2_1) {
-  if (HalVersionManager::GetHalVersion() ==
-      BluetoothAudioHalVersion::VERSION_2_1) {
-    return GetAudioCapabilities_2_1(session_type_2_1);
+  std::vector<AudioCapabilities_2_2> capabilities_2_2(0);
+  if (HalVersionManager::GetHalVersion() !=
+      BluetoothAudioHalVersion::VERSION_2_2) {
+    LOG(ERROR) << __func__ << ", can't get capability for HAL 2.2";
+    return capabilities_2_2;
   }
 
-  std::vector<AudioCapabilities_2_1> capabilities_2_1(0);
   android::sp<IBluetoothAudioProvidersFactory_2_2> providersFactory =
       HalVersionManager::GetProvidersFactory_2_2();
   CHECK(providersFactory != nullptr)
       << "IBluetoothAudioProvidersFactory::getService() failed";
-
   auto getProviderCapabilities_cb =
-      [&capabilities_2_1](
-          const hidl_vec<AudioCapabilities_2_1>& audioCapabilities_2_1) {
-        for (auto capability_2_1 : audioCapabilities_2_1) {
-          capabilities_2_1.push_back(capability_2_1);
+      [&capabilities_2_2](
+          const hidl_vec<AudioCapabilities_2_2>& audioCapabilities_2_2) {
+        for (auto capability_2_2 : audioCapabilities_2_2) {
+          capabilities_2_2.push_back(capability_2_2);
         }
       };
-  auto hidl_retval = providersFactory->getProviderCapabilities_2_1(
+  auto hidl_retval = providersFactory->getProviderCapabilities_2_2(
       session_type_2_1, getProviderCapabilities_cb);
   if (!hidl_retval.isOk()) {
     LOG(FATAL) << __func__
                << ": BluetoothAudioHal::getProviderCapabilities failure: "
                << hidl_retval.description();
   }
-  return capabilities_2_1;
+  return capabilities_2_2;
 }
 
 void BluetoothAudioClientInterface::FetchAudioProvider() {
