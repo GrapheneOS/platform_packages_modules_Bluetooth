@@ -919,6 +919,21 @@ struct btsnd_hcic_write_voice_settings {
 };
 extern struct btsnd_hcic_write_voice_settings btsnd_hcic_write_voice_settings;
 
+// Name: btsnd_hcic_configure_data_path
+// Params: uint8_t data_path_direction, uint8_t data_path_id,
+// std::vector<uint8_t> vendor_config Return: void
+struct btsnd_hcic_configure_data_path {
+  std::function<void(uint8_t data_path_direction, uint8_t data_path_id,
+                     std::vector<uint8_t> vendor_config)>
+      body{[](uint8_t data_path_direction, uint8_t data_path_id,
+              std::vector<uint8_t> vendor_config) {}};
+  void operator()(uint8_t data_path_direction, uint8_t data_path_id,
+                  std::vector<uint8_t> vendor_config) {
+    body(data_path_direction, data_path_id, vendor_config);
+  };
+};
+extern struct btsnd_hcic_configure_data_path btsnd_hcic_configure_data_path;
+
 }  // namespace stack_hcic_hcicmds
 }  // namespace mock
 }  // namespace test

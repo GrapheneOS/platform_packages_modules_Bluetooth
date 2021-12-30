@@ -92,6 +92,7 @@ cc_library_static {
         "vc/device.cc",
         "vc/vc.cc",
         "le_audio/client.cc",
+        "le_audio/codec_manager.cc",
         "le_audio/devices.cc",
         "le_audio/hal_verifier.cc",
         "le_audio/state_machine.cc",
@@ -435,6 +436,7 @@ cc_test {
     ],
     srcs : [
         ":TestStubOsi",
+        ":TestMockBtaLeAudioHalVerifier",
         "test/common/bta_gatt_api_mock.cc",
         "test/common/bta_gatt_queue_mock.cc",
         "test/common/btm_api_mock.cc",
@@ -449,7 +451,8 @@ cc_test {
         "le_audio/mock_iso_manager.cc",
         "test/common/mock_controller.cc",
         "le_audio/state_machine.cc",
-        "le_audio/state_machine_test.cc"
+        "le_audio/state_machine_test.cc",
+        "le_audio/mock_codec_manager.cc",
     ],
     shared_libs: [
         "libprotobuf-cpp-lite",
@@ -500,6 +503,7 @@ cc_test {
         "test/common/mock_csis_client.cc",
         "test/common/mock_controller.cc",
         "test/common/mock_device_groups.cc",
+        "le_audio/mock_codec_manager.cc",
     ],
     shared_libs: [
         "android.hardware.bluetooth.audio@2.0",

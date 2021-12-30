@@ -105,7 +105,8 @@ opcode_getters! {
     reading_remote_extended_features => OpCode::ReadRemoteSupportedFeatures,
     enhanced_setup_synchronous_connection => OpCode::EnhancedSetupSynchronousConnection,
     enhanced_accept_synchronous_connection => OpCode::EnhancedAcceptSynchronousConnection,
-    ble_set_privacy_mode => OpCode::LeSetPrivacyMode
+    ble_set_privacy_mode => OpCode::LeSetPrivacyMode,
+    configure_data_path => OpCode::ConfigureDataPath
 }
 
 macro_rules! field_getters {
