@@ -732,6 +732,20 @@ bool BluetoothAudioClientInterface::UpdateAudioConfig_2_2(
   }
 
   transport_->UpdateAudioConfiguration_2_2(audio_config_2_2);
+
+  if (provider_2_2_ == nullptr) {
+    LOG(INFO) << __func__
+              << ": BluetoothAudioHal nullptr, update it as session started";
+    return true;
+  }
+
+  ::android::hardware::Return<void> hidl_retval;
+  hidl_retval = provider_2_2_->updateAudioConfiguration(audio_config_2_2);
+
+  if (!hidl_retval.isOk()) {
+    LOG(ERROR) << __func__
+               << ": BluetoothAudioHal failure: " << hidl_retval.description();
+  }
   return true;
 }
 

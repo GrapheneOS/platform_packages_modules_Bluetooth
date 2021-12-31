@@ -20,6 +20,16 @@
 
 namespace le_audio {
 
+struct offload_config {
+  std::vector<std::pair<uint16_t, uint32_t>> stream_map;
+  uint8_t bits_per_sample;
+  uint32_t sampling_rate;
+  uint32_t frame_duration;
+  uint16_t octets_per_frame;
+  uint8_t blocks_per_sdu;
+  uint16_t peer_delay;
+};
+
 class CodecManager {
  public:
   CodecManager();
@@ -31,6 +41,8 @@ class CodecManager {
   void Start(void);
   void Stop(void);
   virtual types::CodecLocation GetCodecLocation(void) const;
+  virtual void UpdateActiveAudioConfig(const stream_configuration& stream_conf,
+                                       uint16_t delay);
 
  private:
   struct impl;
