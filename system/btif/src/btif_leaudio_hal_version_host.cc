@@ -16,8 +16,6 @@
 
 #include <memory>
 
-#include "embdrv/lc3/Api/Lc3Encoder.hpp"
-
 namespace bluetooth {
 namespace audio {
 class HalVersionManager {
