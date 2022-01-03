@@ -516,7 +516,7 @@ cc_test {
         "libbt-protos-lite",
         "libosi",
         "liblc3codec",
-        "liblc3encoder",
+        "liblc3",
     ],
     sanitize: {
         cfi: true,
