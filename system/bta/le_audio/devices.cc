@@ -1198,8 +1198,26 @@ void LeAudioDeviceGroup::Dump(int fd) {
          << "      number of sources in the configuration "
          << stream_conf.source_num_of_devices << "\n"
          << "      number of source_streams connected: "
-         << stream_conf.source_streams.size() << "\n"
-         << "      === devices: ===\n";
+         << stream_conf.source_streams.size() << "\n";
+
+  if (GetFirstActiveDevice() != nullptr) {
+    uint32_t sink_delay;
+    stream << "      presentation_delay for sink (speaker): ";
+    if (GetPresentationDelay(&sink_delay, le_audio::types::kLeAudioDirectionSink)) {
+      stream << sink_delay << " us";
+    }
+    stream << "\n      presentation_delay for source (microphone): ";
+    uint32_t source_delay;
+    if (GetPresentationDelay(&source_delay, le_audio::types::kLeAudioDirectionSource)) {
+      stream << source_delay << " us";
+    }
+    stream << "\n";
+  } else {
+    stream << "      presentation_delay for sink (speaker):\n"
+           << "      presentation_delay for source (microphone): \n";
+  }
+
+  stream << "      === devices: ===\n";
 
   dprintf(fd, "%s", stream.str().c_str());
 
