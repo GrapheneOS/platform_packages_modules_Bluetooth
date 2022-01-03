@@ -67,10 +67,10 @@ extern const int32_t lc3_sns_mpvq_offsets[][11];
  * TNS Arithmetic Coding
  */
 
-extern const struct lc3_ac_symbol lc3_tns_order_symbol[][8];
+extern const struct lc3_ac_model lc3_tns_order_models[];
 extern const uint16_t lc3_tns_order_bits[][8];
 
-extern const struct lc3_ac_symbol lc3_tns_coeffs_symbol[][17];
+extern const struct lc3_ac_model lc3_tns_coeffs_models[];
 extern const uint16_t lc3_tns_coeffs_bits[][17];
 
 
@@ -80,13 +80,16 @@ extern const uint16_t lc3_tns_coeffs_bits[][17];
 
 extern const float lc3_ltpf_h12k8[240];
 
+extern const float *lc3_ltpf_cnum[LC3_NUM_SRATE][4];
+extern const float *lc3_ltpf_cden[LC3_NUM_SRATE][4];
+
 
 /**
  * Spectral Data Arithmetic Coding
  */
 
 extern const uint8_t lc3_spectrum_lookup[2][2][256][4];
-extern const struct lc3_ac_symbol lc3_spectrum_symbol[][17];
+extern const struct lc3_ac_model lc3_spectrum_models[];
 extern const uint16_t lc3_spectrum_bits[][17];
 
 

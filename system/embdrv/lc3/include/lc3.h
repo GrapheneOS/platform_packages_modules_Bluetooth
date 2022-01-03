@@ -24,7 +24,7 @@
  *   Bluetooth Specification v1.0
  *
  *
- * The LC3 is an efficient, low latency, audio codec.
+ * The LC3 is an efficient low latency audio codec.
  *
  * - Unlike most other codecs, the LC3 codec is focused on audio streaming
  *   in constrained (on packet sizes and interval) tranport layer.
@@ -35,8 +35,8 @@
  *       the user (or transport layer).
  *
  *   However, the bitrate (bytes budget for encoding a frame) can be
- *   freely changed at any time. BUT it does never rely on signal
- *   complexity, it can follow a temporary bandwidth increase or reduction.
+ *   freely changed at any time. But will not rely on signal complexity,
+ *   it can follow a temporary bandwidth increase or reduction.
  *
  * - Unlike classic codecs, the LC3 codecs does not run on fixed amount
  *   of samples as input. It operate only on fixed frame duration, for
@@ -54,8 +54,8 @@
  *   1. The frame size will not be 7.5 ms or 10 ms, but is scaled
  *      by 'supported samplerate' / 'input samplerate'
  *
- *   2. The bandwith will be hard limited (to 20 KHz) if you select 48 KHz.
- *      The encoded bandwith will also be affected by the above inverse
+ *   2. The bandwidth will be hard limited (to 20 KHz) if you select 48 KHz.
+ *      The encoded bandwidth will also be affected by the above inverse
  *      factor of 20 KHz.
  *
  * Applied to 44.1 KHz, we get :
@@ -63,23 +63,23 @@
  *   1. About  8.16 ms frame duration, instead of 7.5 ms
  *      About 10.88 ms frame duration, instead of  10 ms
  *
- *   2. The bandwith becomes limited to 18.375 KHz
+ *   2. The bandwidth becomes limited to 18.375 KHz
  *
  *
- * --- How to encode ---
+ * --- How to encode / decode ---
  *
- * An encoder context need to be setup. This context keep states on
- * the current stream to encode, and samples that overlapped accross
+ * An encoder / decoder context need to be setup. This context keep states
+ * on the current stream to proceed, and samples that overlapped across
  * frames.
  *
- * You have two ways to setup the encoder :
+ * You have two ways to setup the encoder / decoder :
  *
  * - Using static memory allocation (this module does not rely on
- *   any dynamic memory allocation). The types `lc3_encoder_mem_16k_t`,
- *   and `lc3_encoder_mem_48k_t` have size of the memory needed for
+ *   any dynamic memory allocation). The types `lc3_xxcoder_mem_16k_t`,
+ *   and `lc3_xxcoder_mem_48k_t` have size of the memory needed for
  *   encoding up to 16 KHz or 48 KHz.
  *
- * - Using dynamic memory allocation. The `lc3_encoder_size()` procedure
+ * - Using dynamic memory allocation. The `lc3_xxcoder_size()` procedure
  *   returns the needed memory size, for a given configuration. The memory
  *   space must be aligned to a pointer size. As an example, you can setup
  *   encoder like this :
@@ -149,6 +149,7 @@ extern "C" {
  */
 
 typedef struct lc3_encoder *lc3_encoder_t;
+typedef struct lc3_decoder *lc3_decoder_t;
 
 
 /**
@@ -156,18 +157,22 @@ typedef struct lc3_encoder *lc3_encoder_t;
  *
  * Propose types suitable for static memory allocation, supporting
  * any frame duration, and maximum samplerates 16k and 48k respectively
- * You can customize your type using the `LC3_ENCODER_MEM_T` macro.
+ * You can customize your type using the `LC3_ENCODER_MEM_T` or
+ * `LC3_DECODER_MEM_T` macro.
  */
 
 typedef LC3_ENCODER_MEM_T(10000, 16000) lc3_encoder_mem_16k_t;
 typedef LC3_ENCODER_MEM_T(10000, 48000) lc3_encoder_mem_48k_t;
+
+typedef LC3_DECODER_MEM_T(10000, 16000) lc3_decoder_mem_16k_t;
+typedef LC3_DECODER_MEM_T(10000, 48000) lc3_decoder_mem_48k_t;
 
 
 /**
  * Return the number of PCM samples in a frame
  * dt_us           Frame duration in us, 7500 or 10000
  * sr_hz           Samplerate in Hz, 8000, 16000, 24000, 32000 or 48000
- * return          Number of PCM samples, 0 on bad parameter
+ * return          Number of PCM samples, -1 on bad parameters
  */
 int lc3_frame_samples(int dt_us, int sr_hz);
 
@@ -175,7 +180,7 @@ int lc3_frame_samples(int dt_us, int sr_hz);
  * Return the size of frames, from bitrate
  * dt_us           Frame duration in us, 7500 or 10000
  * bitrate         Target bitrate in bit per seconds
- * return          The floor size in bytes of the frames
+ * return          The floor size in bytes of the frames, -1 on bad parameters
  */
 int lc3_frame_bytes(int dt_us, int bitrate);
 
@@ -183,9 +188,17 @@ int lc3_frame_bytes(int dt_us, int bitrate);
  * Resolve the bitrate, from the size of frames
  * dt_us           Frame duration in us, 7500 or 10000
  * nbytes          Size in bytes of the frames
- * return          The according bitrate in bps
+ * return          The according bitrate in bps, -1 on bad parameters
  */
 int lc3_resolve_bitrate(int dt_us, int nbytes);
+
+/**
+ * Return algorithmic delay, as a number of samples
+ * dt_us           Frame duration in us, 7500 or 10000
+ * sr_hz           Samplerate in Hz, 8000, 16000, 24000, 32000 or 48000
+ * return          Number of algorithmic delay samples, -1 on bad parameters
+ */
+int lc3_delay_samples(int dt_us, int sr_hz);
 
 /**
  * Return size needed for an encoder
@@ -208,11 +221,39 @@ lc3_encoder_t lc3_setup_encoder(int dt_us, int sr_hz, void *mem);
  * Encode a frame
  * encoder         Handle of the encoder
  * pcm, pitch      Input PCM samples, and count between two consecutives
- * out, nbytes     Output buffer, and size in bytes (20 to 400)
+ * nbytes          Target size, in bytes, of the frame (20 to 400)
+ * out             Output buffer of `nbytes` size
  * return          0: On success  -1: Wrong parameters
  */
 int lc3_encode(lc3_encoder_t encoder,
-    const int16_t *pcm, int pitch, void *out, int nbytes);
+    const int16_t *pcm, int pitch, int nbytes, void *out);
+
+/**
+ * Return size needed for an decoder
+ * dt_us           Frame duration in us, 7500 or 10000
+ * sr_hz           Samplerate in Hz, 8000, 16000, 24000, 32000 or 48000
+ * return          Size of then decoder in bytes, 0 on bad parameters
+ */
+unsigned lc3_decoder_size(int dt_us, int sr_hz);
+
+/**
+ * Setup decoder
+ * dt_us           Frame duration in us, 7500 or 10000
+ * sr_hz           Samplerate in Hz, 8000, 16000, 24000, 32000 or 48000
+ * mem             Decoder memory space, aligned to pointer type
+ * return          Decoder as an handle, NULL on bad parameters
+ */
+lc3_decoder_t lc3_setup_decoder(int dt_us, int sr_hz, void *mem);
+
+/**
+ * Decode a frame
+ * decoder         Handle of the decoder
+ * in, nbytes      Input bitstream, and size in bytes, NULL performs PLC
+ * pcm, pitch      Output PCM samples, and count between two consecutives
+ * return          0: On success  1: PLC operated  -1: Wrong parameters
+ */
+int lc3_decode(lc3_decoder_t decoder,
+    const void *in, int nbytes, int16_t *pcm, int pitch);
 
 
 #ifdef __cplusplus

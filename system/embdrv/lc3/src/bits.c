@@ -20,68 +20,12 @@
 #include "common.h"
 
 
-/**
- * Flush the bits accumulator
- * accu            Bitstream accumulator
- * buffer          Bitstream buffer
- */
-static void accu_flush(struct lc3_bits_accu *accu,
-    struct lc3_bits_buffer *buffer)
-{
-    unsigned nbytes = LC3_MIN(accu->n >> 3, buffer->nleft);
+/* ----------------------------------------------------------------------------
+ *  Common
+ * -------------------------------------------------------------------------- */
 
-    accu->n -= 8 * nbytes;
-    buffer->nleft -= nbytes;
-
-    for ( ; nbytes; accu->v >>= 8, nbytes--)
-        *(--buffer->p_bw) = accu->v & 0xff;
-
-    if (accu->n >= 8)
-        accu->n = 0;
-}
-
-/**
- * Arithmetic coder put byte
- * buffer          Bitstream buffer
- * byte            Byte to output
- */
-static void ac_put(struct lc3_bits_buffer *buffer, unsigned byte)
-{
-    buffer->overflow |= (buffer->nleft_fw <= 0);
-    if (buffer->overflow)
-        return;
-
-    *(buffer->p_fw++) = byte;
-    buffer->nleft_fw--;
-    buffer->nleft--;
-}
-
-/**
- * Arithmetic coder range shift
- * ac              Arithmetic coder
- * buffer          Bitstream buffer
- */
-static void ac_shift(struct lc3_bits_ac *ac,
-    struct lc3_bits_buffer *buffer)
-{
-    if (ac->low < 0xff0000 || ac->carry)
-    {
-        if (ac->cache >= 0)
-            ac_put(buffer, ac->cache + ac->carry);
-
-        for ( ; ac->carry_count > 0; ac->carry_count--)
-            ac_put(buffer, ac->carry ? 0x00 : 0xff);
-
-         ac->cache = ac->low >> 16;
-         ac->carry = 0;
-    }
-    else
-    {
-         ac->carry_count++;
-    }
-
-    ac->low = (ac->low << 8) & 0xffffff;
-}
+static inline int ac_get(struct lc3_bits_buffer *);
+static inline void accu_load(struct lc3_bits_accu *, struct lc3_bits_buffer *);
 
 /**
  * Arithmetic coder return range bits
@@ -106,6 +50,139 @@ static int ac_get_pending_bits(const struct lc3_bits_ac *ac)
 {
     return 26 - ac_get_range_bits(ac) +
         ((ac->cache >= 0) + ac->carry_count) * 8;
+}
+
+/**
+ * Return number of bits left in the bitstream
+ * bits            Bitstream context
+ * return          >= 0: Number of bits left  < 0: Overflow
+ */
+static int get_bits_left(const struct lc3_bits *bits)
+{
+    const struct lc3_bits_buffer *buffer = &bits->buffer;
+    const struct lc3_bits_accu *accu = &bits->accu;
+    const struct lc3_bits_ac *ac = &bits->ac;
+
+    uintptr_t end = (uintptr_t)buffer->p_bw +
+        (bits->mode == LC3_BITS_MODE_READ ? LC3_ACCU_BITS/8 : 0);
+
+    uintptr_t start = (uintptr_t)buffer->p_fw -
+        (bits->mode == LC3_BITS_MODE_READ ? LC3_AC_BITS/8 : 0);
+
+    return 8 * (end - start) -
+        (accu->n + accu->nover + ac_get_pending_bits(ac));
+}
+
+/**
+ * Setup bitstream writing
+ */
+void lc3_setup_bits(struct lc3_bits *bits,
+    enum lc3_bits_mode mode, void *buffer, int len)
+{
+    *bits = (struct lc3_bits){
+        .mode = mode,
+        .accu = {
+            .n = mode == LC3_BITS_MODE_READ ? LC3_ACCU_BITS : 0,
+        },
+        .ac = {
+            .range = 0xffffff,
+            .cache = -1
+        },
+        .buffer = {
+            .start = (uint8_t *)buffer, .end  = (uint8_t *)buffer + len,
+            .p_fw  = (uint8_t *)buffer, .p_bw = (uint8_t *)buffer + len,
+        }
+    };
+
+    if (mode == LC3_BITS_MODE_READ) {
+        struct lc3_bits_ac *ac = &bits->ac;
+        struct lc3_bits_accu *accu = &bits->accu;
+        struct lc3_bits_buffer *buffer = &bits->buffer;
+
+        ac->low  = ac_get(buffer) << 16;
+        ac->low |= ac_get(buffer) <<  8;
+        ac->low |= ac_get(buffer);
+
+        accu_load(accu, buffer);
+    }
+}
+
+/**
+ * Return number of bits left in the bitstream
+ */
+int lc3_get_bits_left(const struct lc3_bits *bits)
+{
+    return LC3_MAX(get_bits_left(bits), 0);
+}
+
+/**
+ * Return number of bits left in the bitstream
+ */
+int lc3_check_bits(const struct lc3_bits *bits)
+{
+    const struct lc3_bits_ac *ac = &bits->ac;
+
+    return -(get_bits_left(bits) < 0 || ac->error);
+}
+
+
+/* ----------------------------------------------------------------------------
+ *  Writing
+ * -------------------------------------------------------------------------- */
+
+/**
+ * Flush the bits accumulator
+ * accu            Bitstream accumulator
+ * buffer          Bitstream buffer
+ */
+static inline void accu_flush(
+    struct lc3_bits_accu *accu, struct lc3_bits_buffer *buffer)
+{
+    int nbytes = LC3_MIN(accu->n >> 3, buffer->p_bw - buffer->p_fw);
+
+    accu->n -= 8 * nbytes;
+
+    for ( ; nbytes; accu->v >>= 8, nbytes--)
+        *(--buffer->p_bw) = accu->v & 0xff;
+
+    if (accu->n >= 8)
+        accu->n = 0;
+}
+
+/**
+ * Arithmetic coder put byte
+ * buffer          Bitstream buffer
+ * byte            Byte to output
+ */
+static inline void ac_put(struct lc3_bits_buffer *buffer, int byte)
+{
+    if (buffer->p_fw < buffer->end)
+        *(buffer->p_fw++) = byte;
+}
+
+/**
+ * Arithmetic coder range shift
+ * ac              Arithmetic coder
+ * buffer          Bitstream buffer
+ */
+static inline void ac_shift(
+    struct lc3_bits_ac *ac, struct lc3_bits_buffer *buffer)
+{
+    if (ac->low < 0xff0000 || ac->carry)
+    {
+        if (ac->cache >= 0)
+            ac_put(buffer, ac->cache + ac->carry);
+
+        for ( ; ac->carry_count > 0; ac->carry_count--)
+            ac_put(buffer, ac->carry ? 0x00 : 0xff);
+
+         ac->cache = ac->low >> 16;
+         ac->carry = 0;
+    }
+    else
+         ac->carry_count++;
+
+    ac->low = (ac->low << 8) & 0xffffff;
 }
 
 /**
@@ -155,42 +232,10 @@ static void ac_terminate(struct lc3_bits_ac *ac,
         end_val = nbits < 8 ? 0 : 0xff;
     }
 
-    if (buffer->nleft_fw > 0) {
+    if (buffer->p_fw < buffer->end) {
         *buffer->p_fw &= 0xff >> nbits;
         *buffer->p_fw |= end_val << (8 - nbits);
     }
-}
-
-/**
- * Setup bitstream writing
- */
-void lc3_setup_bits(struct lc3_bits *bits, void *buffer, unsigned len)
-{
-    *bits = (struct lc3_bits){
-
-        .ac = {
-            .range = 0xffffff,
-            .cache = -1
-        },
-
-        .buffer = {
-            .p_fw  = (uint8_t *)buffer,
-            .p_bw  = (uint8_t *)buffer + len,
-            .nleft_fw = len, .nleft = len
-        }
-    };
-}
-
-/**
- * Return number of bits left in the bitstream
- */
-int lc3_get_bits_left(const struct lc3_bits *bits)
-{
-    int nbits_left = 8 * bits->buffer.nleft;
-    nbits_left -= LC3_MIN(bits->accu.n, nbits_left);
-    nbits_left -= LC3_MIN(ac_get_pending_bits(&bits->ac), nbits_left);
-
-    return nbits_left;
 }
 
 /**
@@ -202,7 +247,8 @@ void lc3_flush_bits(struct lc3_bits *bits)
     struct lc3_bits_accu *accu = &bits->accu;
     struct lc3_bits_buffer *buffer = &bits->buffer;
 
-    for (int n = 8 * buffer->nleft - accu->n; n > 0; n -= 32)
+    int nleft = buffer->p_bw - buffer->p_fw;
+    for (int n = 8 * nleft - accu->n; n > 0; n -= 32)
         lc3_put_bits(bits, 0, LC3_MIN(n, 32));
 
     accu_flush(accu, buffer);
@@ -211,19 +257,19 @@ void lc3_flush_bits(struct lc3_bits *bits)
 }
 
 /**
- * Write from 0 to 32 bits,
+ * Write from 1 to 32 bits,
  * exceeding the capacity of the accumulator
  */
-void __lc3_put_bits_over(struct lc3_bits *bits, unsigned v, int n)
+void lc3_put_bits_generic(struct lc3_bits *bits, unsigned v, int n)
 {
     struct lc3_bits_accu *accu = &bits->accu;
 
-    /* --- Fullfill accumulator and flush -- */
+    /* --- Fulfill accumulator and flush -- */
 
-    int n1 = LC3_MIN(ACCU_BITS - accu->n, n);
+    int n1 = LC3_MIN(LC3_ACCU_BITS - accu->n, n);
     if (n1) {
         accu->v |= v << accu->n;
-        accu->n = ACCU_BITS;
+        accu->n = LC3_ACCU_BITS;
     }
 
     accu_flush(accu, &bits->buffer);
@@ -237,10 +283,91 @@ void __lc3_put_bits_over(struct lc3_bits *bits, unsigned v, int n)
 /**
  * Arithmetic coder renormalization
  */
-void __lc3_renorm_ac(struct lc3_bits *bits)
+void lc3_ac_write_renorm(struct lc3_bits *bits)
 {
     struct lc3_bits_ac *ac = &bits->ac;
 
     for ( ; ac->range < 0x10000; ac->range <<= 8)
         ac_shift(ac, &bits->buffer);
+}
+
+
+/* ----------------------------------------------------------------------------
+ *  Reading
+ * -------------------------------------------------------------------------- */
+
+/**
+ * Arithmetic coder get byte
+ * buffer          Bitstream buffer
+ * return          Byte read, 0 on overflow
+ */
+static inline int ac_get(struct lc3_bits_buffer *buffer)
+{
+    return buffer->p_fw < buffer->end ? *(buffer->p_fw++) : 0;
+}
+
+/**
+ * Load the accumulator
+ * accu            Bitstream accumulator
+ * buffer          Bitstream buffer
+ */
+static inline void accu_load(struct lc3_bits_accu *accu,
+    struct lc3_bits_buffer *buffer)
+{
+    int nbytes = LC3_MIN(accu->n >> 3, buffer->p_bw - buffer->start);
+
+    accu->n -= 8 * nbytes;
+
+    for ( ; nbytes; nbytes--) {
+        accu->v >>= 8;
+        accu->v |= *(--buffer->p_bw) << (LC3_ACCU_BITS - 8);
+    }
+
+    if (accu->n >= 8) {
+        accu->nover = LC3_MIN(accu->nover + accu->n, LC3_ACCU_BITS);
+        accu->v >>= accu->n;
+        accu->n = 0;
+    }
+}
+
+/**
+ * Read from 1 to 32 bits,
+ * exceeding the capacity of the accumulator
+ */
+unsigned lc3_get_bits_generic(struct lc3_bits *bits, int n)
+{
+    struct lc3_bits_accu *accu = &bits->accu;
+    struct lc3_bits_buffer *buffer = &bits->buffer;
+
+    /* --- Fulfill accumulator and read -- */
+
+    accu_load(accu, buffer);
+
+    int n1 = LC3_MIN(LC3_ACCU_BITS - accu->n, n);
+    unsigned v = (accu->v >> accu->n) & ((1u << n1) - 1);
+    accu->n += n1;
+
+    /* --- Second round --- */
+
+    int n2 = n - n1;
+
+    if (n2) {
+        accu_load(accu, buffer);
+
+        v |= ((accu->v >> accu->n) & ((1u << n2) - 1)) << n1;
+        accu->n += n2;
+    }
+
+    return v;
+}
+
+/**
+ * Arithmetic coder renormalization
+ */
+void lc3_ac_read_renorm(struct lc3_bits *bits)
+{
+    struct lc3_bits_ac *ac = &bits->ac;
+
+    for ( ; ac->range < 0x10000; ac->range <<= 8)
+        ac->low = ((ac->low << 8) | ac_get(&bits->buffer)) & 0xffffff;
 }
