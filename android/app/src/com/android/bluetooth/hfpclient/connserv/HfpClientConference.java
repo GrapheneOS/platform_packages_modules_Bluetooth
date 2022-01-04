@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.bluetooth.hfpclient.connserv;
+package com.android.bluetooth.hfpclient;
 
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothHeadsetClient;
 import android.telecom.Conference;
 import android.telecom.Connection;
 import android.telecom.PhoneAccountHandle;
@@ -25,15 +24,15 @@ import android.util.Log;
 public class HfpClientConference extends Conference {
     private static final String TAG = "HfpClientConference";
 
-    private BluetoothDevice mDevice;
-    private BluetoothHeadsetClientProxy mHeadsetProfile;
+    private final BluetoothDevice mDevice;
+    private final HeadsetClientServiceInterface mServiceInterface;
 
-    public HfpClientConference(PhoneAccountHandle handle, BluetoothDevice device,
-            BluetoothHeadsetClientProxy client) {
+    public HfpClientConference(BluetoothDevice device, PhoneAccountHandle handle,
+            HeadsetClientServiceInterface serviceInterface) {
         super(handle);
         mDevice = device;
-        mHeadsetProfile = client;
-        boolean manage = HfpClientConnectionService.hasHfpClientEcc(client, device);
+        mServiceInterface = serviceInterface;
+        boolean manage = mServiceInterface.hasHfpClientEcc(device);
         setConnectionCapabilities(
                 Connection.CAPABILITY_SUPPORT_HOLD | Connection.CAPABILITY_HOLD | (manage
                         ? Connection.CAPABILITY_MANAGE_CONFERENCE : 0));
@@ -43,7 +42,7 @@ public class HfpClientConference extends Conference {
     @Override
     public void onDisconnect() {
         Log.d(TAG, "onDisconnect");
-        mHeadsetProfile.terminateCall(mDevice, null);
+        mServiceInterface.terminateCall(mDevice, null);
     }
 
     @Override
@@ -62,21 +61,19 @@ public class HfpClientConference extends Conference {
     @Override
     public void onHold() {
         Log.d(TAG, "onHold");
-        mHeadsetProfile.holdCall(mDevice);
+        mServiceInterface.holdCall(mDevice);
     }
 
     @Override
     public void onUnhold() {
         Log.d(TAG, "onUnhold");
-        mHeadsetProfile.acceptCall(mDevice, BluetoothHeadsetClient.CALL_ACCEPT_HOLD);
+        mServiceInterface.acceptCall(mDevice, HeadsetClientServiceInterface.CALL_ACCEPT_HOLD);
     }
 
     @Override
     public void onPlayDtmfTone(char c) {
         Log.d(TAG, "onPlayDtmfTone " + c);
-        if (mHeadsetProfile != null) {
-            mHeadsetProfile.sendDTMF(mDevice, (byte) c);
-        }
+        mServiceInterface.sendDTMF(mDevice, (byte) c);
     }
 
     @Override
@@ -87,7 +84,7 @@ public class HfpClientConference extends Conference {
             connection.onAnswer();
         } else if (connection.getState() == Connection.STATE_ACTIVE
                 && getState() == Connection.STATE_HOLDING) {
-            mHeadsetProfile.acceptCall(mDevice, BluetoothHeadsetClient.CALL_ACCEPT_NONE);
+            mServiceInterface.acceptCall(mDevice, HeadsetClientServiceInterface.CALL_ACCEPT_NONE);
         }
     }
 }

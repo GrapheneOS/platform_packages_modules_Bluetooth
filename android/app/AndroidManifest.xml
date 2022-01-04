@@ -400,7 +400,7 @@
             </intent-filter>
         </service>
         <service android:process="@string/process"
-             android:name=".hfpclient.connserv.HfpClientConnectionService"
+             android:name=".hfpclient.HfpClientConnectionService"
              android:permission="android.permission.BIND_CONNECTION_SERVICE"
              android:enabled="@bool/hfp_client_connection_service_enabled"
              android:exported="true">
