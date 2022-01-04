@@ -53,6 +53,8 @@ class AclConnectionHandler {
   bool AcceptPendingScoConnection(bluetooth::hci::Address addr,
     ScoConnectionParameters const &parameters);
   uint16_t GetScoHandle(bluetooth::hci::Address addr) const;
+  ScoConnectionParameters GetScoConnectionParameters(
+      bluetooth::hci::Address addr) const;
   ScoLinkParameters GetScoLinkParameters(bluetooth::hci::Address addr) const;
 
   bool CreatePendingLeConnection(bluetooth::hci::AddressWithType addr);
