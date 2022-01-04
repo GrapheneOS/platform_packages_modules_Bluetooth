@@ -22,6 +22,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "bta/le_audio/codec_manager.h"
 #include "client_interface.h"
 #include "codec_status.h"
 #include "hal_version_manager.h"
@@ -37,6 +38,7 @@ using ::android::hardware::bluetooth::audio::V2_1::Lc3FrameDuration;
 using ::android::hardware::bluetooth::audio::V2_1::Lc3Parameters;
 using ::android::hardware::bluetooth::audio::V2_1::PcmParameters;
 using ::android::hardware::bluetooth::audio::V2_2::AudioLocation;
+using ::android::hardware::bluetooth::audio::V2_2::LeAudioConfiguration;
 using ::bluetooth::audio::AudioConfiguration_2_2;
 using ::bluetooth::audio::BluetoothAudioCtrlAck;
 using ::bluetooth::audio::SampleRate_2_1;
@@ -48,9 +50,11 @@ using AudioCapabilities_2_2 =
     ::android::hardware::bluetooth::audio::V2_2::AudioCapabilities;
 using android::hardware::bluetooth::audio::V2_2::LeAudioCodecCapability;
 
+using ::le_audio::CodecManager;
 using ::le_audio::set_configurations::AudioSetConfiguration;
 using ::le_audio::set_configurations::CodecCapabilitySetting;
 using ::le_audio::set_configurations::SetConfiguration;
+using ::le_audio::types::CodecLocation;
 using ::le_audio::types::LeAudioLc3Config;
 
 bluetooth::audio::BluetoothAudioSinkClientInterface*
@@ -200,10 +204,9 @@ static void flush_sink() {
 class LeAudioSinkTransport
     : public bluetooth::audio::IBluetoothSinkTransportInstance {
  public:
-  LeAudioSinkTransport(StreamCallbacks stream_cb)
-      : IBluetoothSinkTransportInstance(
-            SessionType_2_1::LE_AUDIO_SOFTWARE_ENCODING_DATAPATH,
-            (AudioConfiguration_2_2){}) {
+  LeAudioSinkTransport(SessionType_2_1 session_type, StreamCallbacks stream_cb)
+      : IBluetoothSinkTransportInstance(session_type,
+                                        (AudioConfiguration_2_2){}) {
     transport_ =
         new LeAudioTransport(flush_sink, std::move(stream_cb),
                              {SampleRate_2_1::RATE_16000, ChannelMode::STEREO,
@@ -587,7 +590,14 @@ void LeAudioClientInterface::Sink::StartSession() {
     return;
   }
   AudioConfiguration_2_2 audio_config;
-  audio_config.pcmConfig(le_audio_sink->LeAudioGetSelectedHalPcmConfig());
+  if (le_audio_sink_hal_clientinterface->GetTransportInstance()
+          ->GetSessionType_2_1() ==
+      SessionType_2_1::LE_AUDIO_HARDWARE_OFFLOAD_ENCODING_DATAPATH) {
+    LeAudioConfiguration le_audio_config = {};
+    audio_config.leAudioConfig(le_audio_config);
+  } else {
+    audio_config.pcmConfig(le_audio_sink->LeAudioGetSelectedHalPcmConfig());
+  }
   if (!le_audio_sink_hal_clientinterface->UpdateAudioConfig_2_2(audio_config)) {
     LOG(ERROR) << __func__ << ": cannot update audio config to HAL";
     return;
@@ -726,7 +736,13 @@ LeAudioClientInterface::Sink* LeAudioClientInterface::GetSink(
 
   LOG(INFO) << __func__;
 
-  le_audio_sink = new LeAudioSinkTransport(std::move(stream_cb));
+  SessionType_2_1 session_type =
+      SessionType_2_1::LE_AUDIO_SOFTWARE_ENCODING_DATAPATH;
+  if (CodecManager::GetInstance()->GetCodecLocation() != CodecLocation::HOST) {
+    session_type = SessionType_2_1::LE_AUDIO_HARDWARE_OFFLOAD_ENCODING_DATAPATH;
+  }
+
+  le_audio_sink = new LeAudioSinkTransport(session_type, std::move(stream_cb));
   le_audio_sink_hal_clientinterface =
       new bluetooth::audio::BluetoothAudioSinkClientInterface(le_audio_sink,
                                                               message_loop);

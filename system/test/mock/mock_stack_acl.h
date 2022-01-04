@@ -972,6 +972,20 @@ struct btm_acl_update_conn_addr {
   };
 };
 extern struct btm_acl_update_conn_addr btm_acl_update_conn_addr;
+// Name: btm_configure_data_path
+// Params: uint8_t direction, uint8_t path_id, std::vector<uint8_t>
+// vendor_config Returns: void
+struct btm_configure_data_path {
+  std::function<void(uint8_t direction, uint8_t path_id,
+                     std::vector<uint8_t> vendor_config)>
+      body{[](uint8_t direction, uint8_t path_id,
+              std::vector<uint8_t> vendor_config) { ; }};
+  void operator()(uint8_t direction, uint8_t path_id,
+                  std::vector<uint8_t> vendor_config) {
+    body(direction, path_id, vendor_config);
+  };
+};
+extern struct btm_configure_data_path btm_configure_data_path;
 // Name: btm_acl_update_inquiry_status
 // Params: uint8_t status
 // Returns: void

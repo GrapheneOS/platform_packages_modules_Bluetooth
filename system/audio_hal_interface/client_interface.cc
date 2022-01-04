@@ -1005,6 +1005,10 @@ int BluetoothAudioClientInterface::EndSession() {
 }
 
 void BluetoothAudioClientInterface::FlushAudioData() {
+  if (transport_->GetSessionType_2_1() ==
+      SessionType_2_1::LE_AUDIO_HARDWARE_OFFLOAD_ENCODING_DATAPATH)
+    return;
+
   if (mDataMQ == nullptr || !mDataMQ->isValid()) {
     LOG(WARNING) << __func__ << ", mDataMQ invalid";
     return;
