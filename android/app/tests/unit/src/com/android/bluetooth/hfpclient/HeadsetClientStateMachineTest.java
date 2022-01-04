@@ -10,7 +10,6 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothAssignedNumbers;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadsetClient;
-import android.bluetooth.BluetoothHeadsetClientCall;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.content.Intent;
@@ -335,7 +334,7 @@ public class HeadsetClientStateMachineTest {
                 anyString(), any(Bundle.class));
         // Verify that the new call is being registered with the inBandRing flag set.
         Assert.assertEquals(true,
-                ((BluetoothHeadsetClientCall) intentArgument.getValue().getParcelableExtra(
+                ((HfpClientCall) intentArgument.getValue().getParcelableExtra(
                         BluetoothHeadsetClient.EXTRA_CALL)).isInBandRing());
 
         // Disable In Band Ring and verify state gets propagated.

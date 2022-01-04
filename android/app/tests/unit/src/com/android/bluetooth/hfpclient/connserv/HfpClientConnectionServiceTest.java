@@ -14,33 +14,36 @@
  * limitations under the License.
  */
 
-package com.android.bluetooth.hfpclient.connserv;
+package com.android.bluetooth.hfpclient;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth.assertWithMessage;
 
 import static org.junit.Assume.assumeTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.mockingDetails;
 
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothHeadsetClient;
-import android.bluetooth.BluetoothHeadsetClientCall;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.ParcelUuid;
 import android.telecom.Connection;
 import android.telecom.ConnectionRequest;
 import android.telecom.PhoneAccount;
 import android.telecom.PhoneAccountHandle;
 import android.telecom.TelecomManager;
+import android.util.Log;
 
 import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.MediumTest;
@@ -54,9 +57,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -64,297 +69,222 @@ import java.util.concurrent.TimeUnit;
 @MediumTest
 @RunWith(AndroidJUnit4.class)
 public class HfpClientConnectionServiceTest {
+    private static final String TEST_DEVICE_ADDRESS = "00:11:22:33:44:55";
     private static final BluetoothDevice TEST_DEVICE =
             ((BluetoothManager) InstrumentationRegistry.getTargetContext()
                     .getSystemService(Context.BLUETOOTH_SERVICE))
-            .getAdapter().getRemoteDevice("00:11:22:33:44:55");
-    private static final long TIMEOUT_MS = 1000;
+            .getAdapter().getRemoteDevice(TEST_DEVICE_ADDRESS);
+    private static final String TEST_NUMBER = "000-111-2222";
 
-    @Rule
-    public final MockitoRule mockito = MockitoJUnit.rule();
-    @Rule
-    public final ServiceTestRule mServiceRule = new ServiceTestRule();
+    @Mock private HeadsetClientService mMockHeadsetClientService;
+    @Mock private TelecomManager mMockTelecomManager;
+    @Mock private Resources mMockResources;
 
-    @Mock
-    private BluetoothHeadsetClientProxy mBluetoothHeadsetClientProxy;
-
-    private BlockingHfpClientDeviceBlock mHfpClientDeviceBlock;
+    // @Rule private final ServiceTestRule mConnectionServiceRule = new ServiceTestRule();
     private HfpClientConnectionService mHfpClientConnectionService;
-    private PhoneAccountHandle mPhoneAccountHandle;
 
     @Before
     public void setUp() {
+        MockitoAnnotations.initMocks(this);
+
+        Context targetContext = InstrumentationRegistry.getTargetContext();
+
         // HfpClientConnectionService is only enabled for some form factors, and the tests should
         // only be run if the service is enabled.
-        assumeTrue(
-                InstrumentationRegistry.getTargetContext()
-                        .getResources().getBoolean(R.bool.hfp_client_connection_service_enabled));
+        assumeTrue(targetContext.getResources()
+                .getBoolean(R.bool.hfp_client_connection_service_enabled));
+
+        // Setup a mock TelecomManager so our calls don't start a real instance of this service
+        doNothing().when(mMockTelecomManager).addNewIncomingCall(any(), any());
+        doNothing().when(mMockTelecomManager).addNewUnknownCall(any(), any());
+
+        // Set a mocked HeadsetClientService for testing so we can insure the right functions were
+        // called through the service interface
+        when(mMockHeadsetClientService.isAvailable()).thenReturn(true);
+        HeadsetClientService.setHeadsetClientService(mMockHeadsetClientService);
+
+        // Spy the connection service under test so we can mock some of the system services and keep
+        // them from impacting the actual system. Note: Another way to do this would be to extend
+        // the class under test with a constructor taking a mock context that we inject using
+        // attachBaseContext, but until we need a full context this is simpler.
+        mHfpClientConnectionService = spy(new HfpClientConnectionService());
+
+        doReturn("com.android.bluetooth.hfpclient").when(mHfpClientConnectionService)
+                .getPackageName();
+        doReturn(mHfpClientConnectionService).when(mHfpClientConnectionService)
+                .getApplicationContext();
+        doReturn(mMockResources).when(mHfpClientConnectionService).getResources();
+        doReturn(true).when(mMockResources)
+                .getBoolean(R.bool.hfp_client_connection_service_support_emergency_call);
+
+        doReturn(Context.TELECOM_SERVICE).when(mHfpClientConnectionService)
+                .getSystemServiceName(TelecomManager.class);
+        doReturn(mMockTelecomManager).when(mHfpClientConnectionService)
+                .getSystemService(Context.TELECOM_SERVICE);
+        doReturn(getPhoneAccount(TEST_DEVICE)).when(mMockTelecomManager).getPhoneAccount(any());
+
+        doReturn(Context.BLUETOOTH_SERVICE).when(mHfpClientConnectionService)
+                .getSystemServiceName(BluetoothManager.class);
+        doReturn(targetContext.getSystemService(BluetoothManager.class))
+                .when(mHfpClientConnectionService).getSystemService(Context.BLUETOOTH_SERVICE);
+    }
+
+    private void createService() {
+        mHfpClientConnectionService.onCreate();
+    }
+
+    private PhoneAccountHandle getPhoneAccountHandle(BluetoothDevice device) {
+        return new PhoneAccountHandle(new ComponentName(mHfpClientConnectionService,
+                HfpClientConnectionService.class), device.getAddress());
+    }
+
+    private PhoneAccount getPhoneAccount(BluetoothDevice device) {
+        PhoneAccountHandle handle = getPhoneAccountHandle(device);
+        Uri uri = Uri.fromParts(HfpClientConnectionService.HFP_SCHEME, device.getAddress(), null);
+        return new PhoneAccount.Builder(handle, "HFP " + device.toString())
+                .setAddress(uri)
+                .setSupportedUriSchemes(Arrays.asList(PhoneAccount.SCHEME_TEL))
+                .setCapabilities(PhoneAccount.CAPABILITY_CALL_PROVIDER)
+                .build();
+    }
+
+    private void setupDeviceConnection(BluetoothDevice device) throws Exception {
+        mHfpClientConnectionService.onConnectionStateChanged(device,
+                BluetoothProfile.STATE_CONNECTED, BluetoothProfile.STATE_CONNECTING);
+        HfpClientDeviceBlock block = mHfpClientConnectionService.findBlockForDevice(TEST_DEVICE);
+        assertThat(block).isNotNull();
+        assertThat(block.getDevice()).isEqualTo(TEST_DEVICE);
     }
 
     @Test
-    public void serviceConnectedWithAlreadyConnectedDevice_blockIsCreated() throws Exception {
-        when(mBluetoothHeadsetClientProxy.getConnectedDevices()).thenReturn(
-                List.of(TEST_DEVICE));
-        BluetoothHeadsetClientProxy.Factory.setInstance(new BluetoothHeadsetClientProxy.Factory() {
-            @Override
-            protected BluetoothHeadsetClientProxy buildInternal(BluetoothHeadsetClient proxy) {
-                return mBluetoothHeadsetClientProxy;
-            }
-        });
-        HfpClientDeviceBlock mockHfpClientDeviceBlock = mock(HfpClientDeviceBlock.class);
-        HfpClientDeviceBlock.Factory.setInstance(new HfpClientDeviceBlock.Factory() {
-            @Override
-            protected HfpClientDeviceBlock buildInternal(
-                    com.android.bluetooth.hfpclient.connserv.HfpClientConnectionService connServ,
-                    BluetoothDevice device, BluetoothHeadsetClientProxy profileProxy) {
-                return mockHfpClientDeviceBlock;
-            }
-        });
-
-        mHfpClientConnectionService = new HfpClientConnectionService();
-        // Call onServiceConnected with a null proxy, because it isn't used by the test Factory
-        // to create the mock BluetoothHeadsetClientProxy
-        mHfpClientConnectionService.mServiceListener.onServiceConnected(
-                BluetoothProfile.HEADSET_CLIENT,
-                /* proxy= */ null);
-
-        assertThat(mHfpClientConnectionService.findBlockForDevice(TEST_DEVICE)).isEqualTo(
-                mockHfpClientDeviceBlock);
+    public void startServiceWithAlreadyConnectedDevice_blockIsCreated() throws Exception {
+        when(mMockHeadsetClientService.getConnectedDevices()).thenReturn(List.of(TEST_DEVICE));
+        createService();
+        HfpClientDeviceBlock block = mHfpClientConnectionService.findBlockForDevice(TEST_DEVICE);
+        assertThat(block).isNotNull();
+        assertThat(block.getDevice()).isEqualTo(TEST_DEVICE);
     }
 
     @Test
-    public void startServiceAndConnectDevice_blockIsCreated() throws Exception {
-        startServiceAndConnectDevice(TEST_DEVICE);
-
-        assertThat(mHfpClientConnectionService.findBlockForDevice(TEST_DEVICE)).isEqualTo(
-                mHfpClientDeviceBlock);
+    public void ConnectDevice_blockIsCreated() throws Exception {
+        createService();
+        setupDeviceConnection(TEST_DEVICE);
     }
 
     @Test
     public void disconnectDevice_blockIsRemoved() throws Exception {
-        startServiceAndConnectDevice(TEST_DEVICE);
-
-        InstrumentationRegistry.getTargetContext().sendBroadcast(
-                createDeviceDisconnectedIntent(TEST_DEVICE));
-
-        assertThat(mHfpClientDeviceBlock.blockIsCleanedUp()).isTrue();
+        createService();
+        setupDeviceConnection(TEST_DEVICE);
+        HfpClientConnectionService.onConnectionStateChanged(TEST_DEVICE,
+                BluetoothProfile.STATE_DISCONNECTED, BluetoothProfile.STATE_CONNECTED);
         assertThat(mHfpClientConnectionService.findBlockForDevice(TEST_DEVICE)).isNull();
     }
 
     @Test
-    public void callChanged_handleCall() throws Exception {
-        startServiceAndConnectDevice(TEST_DEVICE);
-        BluetoothHeadsetClientCall call = new BluetoothHeadsetClientCall(TEST_DEVICE, /* id= */0,
-                BluetoothHeadsetClientCall.CALL_STATE_ACTIVE, /* number= */ "000-111-2222",
+    public void callChanged_callAdded() throws Exception {
+        createService();
+        setupDeviceConnection(TEST_DEVICE);
+        HfpClientCall call = new HfpClientCall(TEST_DEVICE, /* id= */0,
+                HfpClientCall.CALL_STATE_ACTIVE, /* number= */ TEST_NUMBER,
                 /* multiParty= */ false, /* outgoing= */false, /* inBandRing= */true);
-
-        InstrumentationRegistry.getTargetContext().sendBroadcast(createCallChangedIntent(call));
-        assertThat(mHfpClientDeviceBlock.callIsHandled()).isTrue();
+        HfpClientConnectionService.onCallChanged(TEST_DEVICE, call);
+        HfpClientDeviceBlock block = mHfpClientConnectionService.findBlockForDevice(TEST_DEVICE);
+        assertThat(block).isNotNull();
+        assertThat(block.getDevice()).isEqualTo(TEST_DEVICE);
+        assertThat(block.getCalls().containsKey(call.getUUID())).isTrue();
     }
 
     @Test
-    public void audioStateChanged_onAudioStateChanged() throws Exception {
-        startServiceAndConnectDevice(TEST_DEVICE);
-
-        InstrumentationRegistry.getTargetContext().sendBroadcast(
-                createAudioStateChangedIntent(TEST_DEVICE));
-        assertThat(mHfpClientDeviceBlock.audioStateIsChanged()).isTrue();
+    public void audioStateChanged_scoStateChanged() throws Exception {
+        createService();
+        setupDeviceConnection(TEST_DEVICE);
+        HfpClientConnectionService.onAudioStateChanged(TEST_DEVICE,
+                HeadsetClientHalConstants.AUDIO_STATE_CONNECTED,
+                HeadsetClientHalConstants.AUDIO_STATE_CONNECTING);
+        HfpClientDeviceBlock block = mHfpClientConnectionService.findBlockForDevice(TEST_DEVICE);
+        assertThat(block).isNotNull();
+        assertThat(block.getDevice()).isEqualTo(TEST_DEVICE);
+        assertThat(block.getAudioState())
+                .isEqualTo(HeadsetClientHalConstants.AUDIO_STATE_CONNECTED);
     }
 
     @Test
     public void onCreateIncomingConnection() throws Exception {
-        startServiceAndConnectDevice(TEST_DEVICE);
+        createService();
+        setupDeviceConnection(TEST_DEVICE);
 
-        BluetoothHeadsetClientCall call = new BluetoothHeadsetClientCall(TEST_DEVICE, /* id= */0,
-                BluetoothHeadsetClientCall.CALL_STATE_ACTIVE, /* number= */ "000-111-2222",
+        HfpClientCall call = new HfpClientCall(TEST_DEVICE, /* id= */0,
+                HfpClientCall.CALL_STATE_ACTIVE, /* number= */ TEST_NUMBER,
                 /* multiParty= */ false, /* outgoing= */false, /* inBandRing= */true);
-        mHfpClientDeviceBlock.handleCall(call);
 
         Bundle extras = new Bundle();
-        extras.putParcelable(TelecomManager.EXTRA_INCOMING_CALL_EXTRAS, call);
+        extras.putParcelable(TelecomManager.EXTRA_INCOMING_CALL_EXTRAS,
+                new ParcelUuid(call.getUUID()));
         ConnectionRequest connectionRequest = new ConnectionRequest.Builder().setExtras(
                 extras).build();
 
+        HfpClientConnectionService.onCallChanged(TEST_DEVICE, call);
+
         Connection connection = mHfpClientConnectionService.onCreateIncomingConnection(
-                mPhoneAccountHandle,
+                getPhoneAccountHandle(TEST_DEVICE),
                 connectionRequest);
 
         assertThat(connection).isNotNull();
-        assertThat(((HfpClientConnection) connection).getHfpClientConnectionService())
-                .isEqualTo(mHfpClientConnectionService);
+        assertThat(((HfpClientConnection) connection).getDevice()).isEqualTo(TEST_DEVICE);
+        assertThat(((HfpClientConnection) connection).getUUID()).isEqualTo(call.getUUID());
     }
 
     @Test
     public void onCreateOutgoingConnection() throws Exception {
-        startServiceAndConnectDevice(TEST_DEVICE);
+        createService();
+        setupDeviceConnection(TEST_DEVICE);
 
-        BluetoothHeadsetClientCall call = new BluetoothHeadsetClientCall(TEST_DEVICE, /* id= */0,
-                BluetoothHeadsetClientCall.CALL_STATE_ACTIVE, /* number= */ "000-111-2222",
+        HfpClientCall call = new HfpClientCall(TEST_DEVICE, /* id= */0,
+                HfpClientCall.CALL_STATE_ACTIVE, /* number= */ TEST_NUMBER,
                 /* multiParty= */ false, /* outgoing= */true, /* inBandRing= */true);
 
+        doReturn(call).when(mMockHeadsetClientService).dial(TEST_DEVICE, TEST_NUMBER);
+
         Bundle extras = new Bundle();
-        extras.putParcelable(TelecomManager.EXTRA_OUTGOING_CALL_EXTRAS, call);
+        extras.putParcelable(TelecomManager.EXTRA_OUTGOING_CALL_EXTRAS,
+                new ParcelUuid(call.getUUID()));
         ConnectionRequest connectionRequest = new ConnectionRequest.Builder().setExtras(
                 extras).setAddress(Uri.fromParts(
-                PhoneAccount.SCHEME_TEL, "000-111-2222", null)).build();
+                PhoneAccount.SCHEME_TEL, TEST_NUMBER, null)).build();
 
         Connection connection = mHfpClientConnectionService.onCreateOutgoingConnection(
-                mPhoneAccountHandle,
+                getPhoneAccountHandle(TEST_DEVICE),
                 connectionRequest);
 
         assertThat(connection).isNotNull();
-        assertThat(((HfpClientConnection) connection).getHfpClientConnectionService())
-                .isEqualTo(mHfpClientConnectionService);
+        assertThat(((HfpClientConnection) connection).getDevice()).isEqualTo(TEST_DEVICE);
+        assertThat(((HfpClientConnection) connection).getUUID()).isEqualTo(call.getUUID());
     }
 
     @Test
     public void onCreateUnknownConnection() throws Exception {
-        startServiceAndConnectDevice(TEST_DEVICE);
+        createService();
+        setupDeviceConnection(TEST_DEVICE);
 
-        BluetoothHeadsetClientCall call = new BluetoothHeadsetClientCall(TEST_DEVICE, /* id= */0,
-                BluetoothHeadsetClientCall.CALL_STATE_ACTIVE, /* number= */ "000-111-2222",
+        HfpClientCall call = new HfpClientCall(TEST_DEVICE, /* id= */0,
+                HfpClientCall.CALL_STATE_ACTIVE, /* number= */ TEST_NUMBER,
                 /* multiParty= */ false, /* outgoing= */true, /* inBandRing= */true);
-        mHfpClientDeviceBlock.handleCall(call);
 
         Bundle extras = new Bundle();
-        extras.putParcelable(TelecomManager.EXTRA_OUTGOING_CALL_EXTRAS, call);
+        extras.putParcelable(TelecomManager.EXTRA_OUTGOING_CALL_EXTRAS,
+                new ParcelUuid(call.getUUID()));
         ConnectionRequest connectionRequest = new ConnectionRequest.Builder().setExtras(
                 extras).setAddress(Uri.fromParts(
-                PhoneAccount.SCHEME_TEL, "000-111-2222", null)).build();
+                PhoneAccount.SCHEME_TEL, TEST_NUMBER, null)).build();
+
+        HfpClientConnectionService.onCallChanged(TEST_DEVICE, call);
 
         Connection connection = mHfpClientConnectionService.onCreateUnknownConnection(
-                mPhoneAccountHandle,
+                getPhoneAccountHandle(TEST_DEVICE),
                 connectionRequest);
 
         assertThat(connection).isNotNull();
-        assertThat(((HfpClientConnection) connection).getHfpClientConnectionService())
-                .isEqualTo(mHfpClientConnectionService);
-    }
-
-    private static Intent createDeviceConnectedIntent(BluetoothDevice device) {
-        Intent intent = new Intent(BluetoothHeadsetClient.ACTION_CONNECTION_STATE_CHANGED);
-        intent.putExtra(BluetoothProfile.EXTRA_STATE, BluetoothProfile.STATE_CONNECTED);
-        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
-        return intent;
-    }
-
-    private static Intent createDeviceDisconnectedIntent(BluetoothDevice device) {
-        Intent intent = new Intent(BluetoothHeadsetClient.ACTION_CONNECTION_STATE_CHANGED);
-        intent.putExtra(BluetoothProfile.EXTRA_STATE, BluetoothProfile.STATE_DISCONNECTED);
-        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
-        return intent;
-    }
-
-    private static Intent createCallChangedIntent(BluetoothHeadsetClientCall call) {
-        Intent intent = new Intent(BluetoothHeadsetClient.ACTION_CALL_CHANGED);
-        intent.putExtra(BluetoothHeadsetClient.EXTRA_CALL, call);
-        return intent;
-    }
-
-    private static Intent createAudioStateChangedIntent(BluetoothDevice device) {
-        Intent intent = new Intent(BluetoothHeadsetClient.ACTION_AUDIO_STATE_CHANGED);
-        intent.putExtra(BluetoothProfile.EXTRA_STATE, BluetoothProfile.STATE_CONNECTING);
-        intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, BluetoothProfile.STATE_DISCONNECTED);
-        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
-        return intent;
-    }
-
-    private static Intent createServiceIntent() {
-        return new Intent(InstrumentationRegistry.getTargetContext(),
-                HfpClientConnectionService.class);
-    }
-
-    private void startServiceAndConnectDevice(BluetoothDevice device) throws Exception {
-        CountDownLatch buildLatch = new CountDownLatch(1);
-        HfpClientDeviceBlock.Factory.setInstance(createDeviceBlockFactoryForTest(buildLatch));
-
-        mServiceRule.startService(createServiceIntent());
-        InstrumentationRegistry.getTargetContext().sendBroadcast(
-                createDeviceConnectedIntent(device));
-
-        buildLatch.await(TIMEOUT_MS, TimeUnit.MILLISECONDS);
-        long startTime = System.currentTimeMillis();
-        while (mHfpClientConnectionService.findBlockForDevice(device) == null) {
-            if (System.currentTimeMillis() - startTime > TIMEOUT_MS) {
-                assertWithMessage(
-                        "Timeout waiting for block to be added to HfpClientConnectionService")
-                        .fail();
-            }
-        }
-    }
-
-    private HfpClientDeviceBlock.Factory createDeviceBlockFactoryForTest(
-            CountDownLatch blockCreationLatch) {
-        return new HfpClientDeviceBlock.Factory() {
-            @Override
-            protected HfpClientDeviceBlock buildInternal(HfpClientConnectionService connServ,
-                    BluetoothDevice device,
-                    BluetoothHeadsetClientProxy profileProxy) {
-
-                // Inject spyTelecomManager so that calls to HfpClientDeviceBlock#handleCall do
-                // not start HfpClientConnectionService
-                TelecomManager spyTelecomManager = spy(TelecomManager.class);
-                doNothing().when(spyTelecomManager).addNewIncomingCall(any(), any());
-                doNothing().when(spyTelecomManager).addNewUnknownCall(any(), any());
-                HfpClientConnectionService spyConnServ = spy(connServ);
-                when(spyConnServ.getSystemService(TelecomManager.class)).thenReturn(
-                        spyTelecomManager);
-
-                mPhoneAccountHandle = new PhoneAccountHandle(
-                        new ComponentName(connServ,
-                                HfpClientConnectionService.class),
-                        TEST_DEVICE.getAddress());
-                BlockingHfpClientDeviceBlock block = new BlockingHfpClientDeviceBlock(spyConnServ,
-                        device,
-                        mBluetoothHeadsetClientProxy);
-                mHfpClientConnectionService = spyConnServ;
-                mHfpClientDeviceBlock = block;
-
-                blockCreationLatch.countDown();
-
-                return block;
-            }
-        };
-    }
-
-    static class BlockingHfpClientDeviceBlock extends HfpClientDeviceBlock {
-        private final CountDownLatch mAudioStateChangeCountDownLatch = new CountDownLatch(1);
-        private final CountDownLatch mCleanupCountDownLatch = new CountDownLatch(1);
-        private final CountDownLatch mHandleCallCountDownLatch = new CountDownLatch(1);
-
-        BlockingHfpClientDeviceBlock(HfpClientConnectionService connServ, BluetoothDevice device,
-                BluetoothHeadsetClientProxy headsetProfile) {
-            super(connServ, device, headsetProfile);
-        }
-
-        @Override
-        synchronized void onAudioStateChange(int newState, int oldState) {
-            super.onAudioStateChange(newState, oldState);
-            mAudioStateChangeCountDownLatch.countDown();
-        }
-
-        @Override
-        synchronized void cleanup() {
-            super.cleanup();
-            mCleanupCountDownLatch.countDown();
-        }
-
-        @Override
-        synchronized void handleCall(BluetoothHeadsetClientCall call) {
-            super.handleCall(call);
-            mHandleCallCountDownLatch.countDown();
-        }
-
-        boolean audioStateIsChanged() throws InterruptedException {
-            return mAudioStateChangeCountDownLatch.await(TIMEOUT_MS, TimeUnit.MILLISECONDS);
-        }
-
-        boolean blockIsCleanedUp() throws InterruptedException {
-            return mCleanupCountDownLatch.await(TIMEOUT_MS, TimeUnit.MILLISECONDS);
-        }
-
-        boolean callIsHandled() throws InterruptedException {
-            return mHandleCallCountDownLatch.await(TIMEOUT_MS, TimeUnit.MILLISECONDS);
-        }
+        assertThat(((HfpClientConnection) connection).getDevice()).isEqualTo(TEST_DEVICE);
+        assertThat(((HfpClientConnection) connection).getUUID()).isEqualTo(call.getUUID());
     }
 }
