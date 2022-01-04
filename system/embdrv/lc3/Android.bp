@@ -8,7 +8,7 @@ package {
 }
 
 cc_library_static {
-    name: "liblc3encoder",
+    name: "liblc3",
     host_supported: true,
     apex_available: [
 
@@ -48,13 +48,13 @@ cc_library_static {
 }
 
 cc_fuzz {
-  name: "liblc3encoder_fuzzer",
+  name: "liblc3_fuzzer",
 
   srcs: [
     "fuzzer/liblc3encoder_fuzzer.cpp",
   ],
 
   static_libs: [
-    "liblc3encoder",
+    "liblc3",
   ],
 }
