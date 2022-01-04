@@ -39,22 +39,19 @@
  *   nd: `ns` * 23/30 for 7.5ms frame duration
  *   nd: `ns` *  5/ 8 for  10ms frame duration
  */
-void lc3_mdct_forward(
-    enum lc3_dt dt, enum lc3_srate sr, const float *x, float *y);
-
+void lc3_mdct_forward(enum lc3_dt dt, enum lc3_srate sr,
+    const float *x, float *y);
 
 /**
  * Inverse MDCT transformation
  * dt, sr          Duration and samplerate (size of the transform)
- * x, xd           Coefficients and delayed buffes
- * y, yd           Output samples and delayed ones
+ * x, d            Frequency coefficients and delayed buffer
+ * y, d            Output `ns` samples and `nd` delayed ones
  *
- * `x`  and `y`  can be the same buffer
- * `xd` and `yd` can be the same buffer
+ * `x` and `y` can be the same buffer
  */
-/* TODO: Interface will be changed (reducing scratch memory) */
-void lc3_imdct(enum lc3_dt dt, enum lc3_srate sr,
-    const float *x, const float *xd, float *y, float *yd);
+void lc3_mdct_inverse(enum lc3_dt dt, enum lc3_srate sr,
+    const float *x, float *d, float *y);
 
 
 #endif /* __LC3_MDCT_H */

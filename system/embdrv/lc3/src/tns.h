@@ -31,46 +31,69 @@
 
 
 /**
- * TNS data
+ * Bitstream data
  */
 
 typedef struct lc3_tns_data {
     int nfilters;
-    bool lpc_weighting[2];
+    bool lpc_weighting;
     int rc_order[2];
     int rc[2][8];
 } lc3_tns_data_t;
 
 
+/* ----------------------------------------------------------------------------
+ *  Encoding
+ * -------------------------------------------------------------------------- */
+
 /**
- * TNS encoding process
- * dt, bw          Duration and bandwith of the frame
+ * TNS analysis
+ * dt, bw          Duration and bandwidth of the frame
  * nn_flag         True when high energy detected near Nyquist frequency
- * data            Return TNS data
  * nbytes          Size in bytes of the frame
+ * data            Return bitstream data
  * x               Spectral coefficients, filtered as output
  */
-void lc3_tns_encode(enum lc3_dt dt, enum lc3_bandwidth bw,
-    bool nn_flag, unsigned nbytes, lc3_tns_data_t *data, float *x);
+void lc3_tns_analyze(enum lc3_dt dt, enum lc3_bandwidth bw,
+    bool nn_flag, int nbytes, lc3_tns_data_t *data, float *x);
 
 /**
- * TNS decoding process
- */
-void lc3_tns_decode();
-
-/**
- * Return number of bits coding the bitstream data
+ * Return number of bits coding the data
  * data            Bitstream data
  * return          Bit consumption
  */
 int lc3_tns_get_nbits(const lc3_tns_data_t *data);
 
 /**
- * Put TNS data
+ * Put bitstream data
  * bits            Bitstream context
- * data            TNS data
+ * data            Bitstream data
  */
 void lc3_tns_put_data(lc3_bits_t *bits, const lc3_tns_data_t *data);
+
+
+/* ----------------------------------------------------------------------------
+ *  Decoding
+ * -------------------------------------------------------------------------- */
+
+/**
+ * Get bitstream data
+ * bits            Bitstream context
+ * dt, bw          Duration and bandwidth of the frame
+ * nbytes          Size in bytes of the frame
+ * data            Bitstream data
+ */
+void lc3_tns_get_data(lc3_bits_t *bits,
+    enum lc3_dt dt, enum lc3_bandwidth bw, int nbytes, lc3_tns_data_t *data);
+
+/**
+ * TNS synthesis
+ * dt, bw          Duration and bandwidth of the frame
+ * data            Bitstream data
+ * x               Spectral coefficients, filtered as output
+ */
+void lc3_tns_synthesize(enum lc3_dt dt, enum lc3_bandwidth bw,
+    const lc3_tns_data_t *data, float *x);
 
 
 #endif /* __LC3_TNS_H */

@@ -23,11 +23,11 @@
  * Time domain attack detector
  */
 bool lc3_attdet_run(enum lc3_dt dt, enum lc3_srate sr,
-    unsigned nbytes, struct lc3_attdet_state *state, const float *x)
+    int nbytes, struct lc3_attdet_analysis *attdet, const float *x)
 {
     /* --- Check enabling --- */
 
-    const unsigned nbytes_ranges[LC3_NUM_DT][LC3_NUM_SRATE - LC3_SRATE_32K][2] = {
+    const int nbytes_ranges[LC3_NUM_DT][LC3_NUM_SRATE - LC3_SRATE_32K][2] = {
             [LC3_DT_7M5] = { { 61,     149 }, {  75,     149 } },
             [LC3_DT_10M] = { { 81, INT_MAX }, { 100, INT_MAX } },
     };
@@ -78,15 +78,15 @@ bool lc3_attdet_run(enum lc3_dt dt, enum lc3_srate sr,
     float a[4];
 
     for (int i = 0; i < nblk; i++) {
-        a[i] = fmaxf(0.25 * state->an1, state->en1);
-        state->en1 = e[i], state->an1 = a[i];
+        a[i] = fmaxf(0.25 * attdet->an1, attdet->en1);
+        attdet->en1 = e[i], attdet->an1 = a[i];
 
         if (e[i] > 8.5 * a[i])
             p_att = i + 1;
     }
 
-    int att = state->p_att >= 1 + (nblk >> 1) || p_att > 0;
-    state->p_att = p_att;
+    int att = attdet->p_att >= 1 + (nblk >> 1) || p_att > 0;
+    attdet->p_att = p_att;
 
     return att;
 }

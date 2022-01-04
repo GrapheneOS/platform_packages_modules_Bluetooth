@@ -20,6 +20,20 @@
 #include "tables.h"
 
 
+/* ----------------------------------------------------------------------------
+ *  Filter Coefficients
+ * -------------------------------------------------------------------------- */
+
+/**
+ * Resolve LPC Weighting indication according bitrate
+ * dt, nbytes      Duration and size of the frame
+ * return          True when LPC Weighting enabled
+ */
+static bool resolve_lpc_weighting(enum lc3_dt dt, int nbytes)
+{
+    return nbytes < (dt == LC3_DT_7M5 ? 360/8 : 480/8);
+}
+
 /**
  * Return dot product of 2 vectors
  * a, b, n         The 2 vectors of size `n`
@@ -36,15 +50,13 @@ static inline float dot(const float *a, const float *b, int n)
 }
 
 /**
- * LPC Coefficients (cf. 3.3.8.2)
- * dt, bw          Duration and bandwith of the frame
+ * LPC Coefficients
+ * dt, bw          Duration and bandwidth of the frame
  * x               Spectral coefficients
  * gain, a         Output the prediction gains and LPC coefficients
- * lim             Return limits of the 1 or 2 filters
- * return          Number of filters
  */
-static int compute_lpc_coeffs(enum lc3_dt dt, enum lc3_bandwidth bw,
-    const float *x, float *gain, float (*a)[9], int *lim)
+static void compute_lpc_coeffs(enum lc3_dt dt, enum lc3_bandwidth bw,
+    const float *x, float *gain, float (*a)[9])
 {
     static const int sub_7m5_nb[]   = {  9, 26,  43,  60 };
     static const int sub_7m5_wb[]   = {  9, 46,  83, 120 };
@@ -57,6 +69,8 @@ static int compute_lpc_coeffs(enum lc3_dt dt, enum lc3_bandwidth bw,
     static const int sub_10m_sswb[] = { 12, 88, 164, 240 };
     static const int sub_10m_swb[]  = { 12, 61, 110, 160, 213, 266, 320 };
     static const int sub_10m_fb[]   = { 12, 74, 137, 200, 266, 333, 400 };
+
+    /* --- Normalized autocorrelation --- */
 
     static const float lag_window[] = {
         1.00000000e+00, 9.98028026e-01, 9.92135406e-01, 9.82391584e-01,
@@ -71,15 +85,11 @@ static int compute_lpc_coeffs(enum lc3_dt dt, enum lc3_bandwidth bw,
 
     int nfilters = 1 + (bw >= LC3_BANDWIDTH_SWB);
 
-    /* --- Normalized autocorrelation --- */
-
     const float *xs, *xe = x + *sub;
     float r[2][9];
 
     for (int f = 0; f < nfilters; f++) {
         float c[9][3];
-
-        lim[f] = *sub;
 
         for (int s = 0; s < 3; s++) {
             xs = xe, xe = x + *(++sub);
@@ -95,8 +105,6 @@ static int compute_lpc_coeffs(enum lc3_dt dt, enum lc3_bandwidth bw,
             r[f][k] = e0 == 0 || e1 == 0 || e2 == 0 ? 0 :
                 (c[k][0]/e0 + c[k][1]/e1 + c[k][2]/e2) * lag_window[k];
     }
-
-    lim[nfilters] = *sub;
 
     /* --- Levinson-Durbin recursion --- */
 
@@ -134,15 +142,13 @@ static int compute_lpc_coeffs(enum lc3_dt dt, enum lc3_bandwidth bw,
 
         gain[f] /= err;
     }
-
-    return nfilters;
 }
 
 /**
- * LPC Weighting (cf. 3.3.8.2)
+ * LPC Weighting
  * gain, a         Prediction gain and LPC coefficients, weighted as output
  */
-static void do_lpc_weighting(float pred_gain, float *a)
+static void lpc_weighting(float pred_gain, float *a)
 {
     float gamma = 1. - (1. - 0.85) * (2. - pred_gain) / (2. - 1.5), g = 1;
     for (int i = 1; i < 9; i++)
@@ -150,11 +156,11 @@ static void do_lpc_weighting(float pred_gain, float *a)
 }
 
 /**
- * LPC reflection (cf. 3.3.8.2)
+ * LPC reflection
  * a               LPC coefficients
  * rc              Output refelection coefficients
  */
-static void do_lpc_reflection(const float *a, float *rc)
+static void lpc_reflection(const float *a, float *rc)
 {
     float e, b[2][7], *b0, *b1;
 
@@ -179,22 +185,44 @@ static void do_lpc_reflection(const float *a, float *rc)
 }
 
 /**
- * Quantization (cf. 3.3.8.3)
+ * Quantization of RC coefficients
  * rc              Refelection coefficients
  * rc_order        Return order of coefficients
- * rc_i, rc_q      Return quantized indexes and values
+ * rc_i            Return quantized coefficients
  */
-static void do_quantization(
-    const float *rc, int *rc_order, int *rc_i, float *rc_q)
+static void quantize_rc(const float *rc, int *rc_order, int *rc_q)
 {
-    /* Qauntization tables :
-     *   Q_THR = sin(delta * (i + 0.5)) , delta = Pi / 17
-     *   Q_INV = sin(delta * (i       )   i = [0..7]      */
+    /* Quantization table, sin(delta * (i + 0.5)), delta = Pi / 17 */
 
     static float q_thr[] = {
         9.22683595e-02, 2.73662990e-01, 4.45738356e-01, 6.02634636e-01,
         7.39008917e-01, 8.50217136e-01, 9.32472229e-01, 9.82973100e-01
     };
+
+    *rc_order = 8;
+
+    for (int i = 0; i < 8; i++) {
+        float rc_m = fabsf(rc[i]);
+
+        rc_q[i] = 4 * (rc_m >= q_thr[4]);
+        for (int j = 0; j < 4 && rc_m >= q_thr[rc_q[i]]; j++, rc_q[i]++);
+
+        if (rc[i] < 0)
+            rc_q[i] = -rc_q[i];
+
+        *rc_order = rc_q[i] != 0 ? 8 : *rc_order - 1;
+    }
+}
+
+/**
+ * Unquantization of RC coefficients
+ * rc_q            Quantized coefficients
+ * rc_order        Order of coefficients
+ * rc              Return refelection coefficients
+ */
+static void unquantize_rc(const int *rc_q, int rc_order, float rc[8])
+{
+    /* Quantization table, sin(delta * i), delta = Pi / 17 */
 
     static float q_inv[] = {
         0.00000000e+00, 1.83749517e-01, 3.61241664e-01, 5.26432173e-01,
@@ -202,109 +230,111 @@ static void do_quantization(
         9.95734176e-01
     };
 
-    /* --- Resolve quantized value and order --- */
+    int i;
 
-    *rc_order = 8;
+    for (i = 0; i < rc_order; i++) {
+        float rc_m = q_inv[LC3_ABS(rc_q[i])];
+        rc[i] = rc_q[i] < 0 ? -rc_m : rc_m;
+    }
+}
 
-    for (int i = 0; i < 8; i++) {
-        bool neg = rc[i] < 0;
-        float rc_m = fabsf(rc[i]);
 
-        rc_i[i] = 4 * (rc_m >= q_thr[4]);
-        for (int j = 0; j < 4 && rc_m >= q_thr[rc_i[i]]; j++, rc_i[i]++);
+/* ----------------------------------------------------------------------------
+ *  Filtering
+ * -------------------------------------------------------------------------- */
 
-        rc_q[i] = q_inv[rc_i[i]];
+/**
+ * Forward filtering
+ * dt, bw          Duration and bandwidth of the frame
+ * rc_order, rc    Order of coefficients, and coefficients
+ * x               Spectral coefficients, filtered as output
+ */
+static void forward_filtering(
+    enum lc3_dt dt, enum lc3_bandwidth bw,
+    const int rc_order[2], const float rc[2][8], float *x)
+{
+    int nfilters = 1 + (bw >= LC3_BANDWIDTH_SWB);
+    int nf = LC3_NE(dt, bw) >> (nfilters - 1);
+    int i0, ie = 3*(3 + dt);
 
-        if (neg) {
-            rc_i[i] = -rc_i[i];
-            rc_q[i] = -rc_q[i];
+    float s[8] = { 0 };
+
+    for (int f = 0; f < nfilters; f++) {
+
+        i0 = ie;
+        ie = nf * (1 + f);
+
+        if (!rc_order[f])
+            continue;
+
+        for (int i = i0; i < ie; i++) {
+            float xi = x[i];
+            float s0, s1 = xi;
+
+            for (int k = 0; k < rc_order[f]; k++) {
+                s0 = s[k];
+                s[k] = s1;
+
+                s1  = rc[f][k] * xi + s0;
+                xi += rc[f][k] * s0;
+            }
+
+            x[i] = xi;
         }
-
-        *rc_order = rc_i[i] != 0 ? 8 : *rc_order - 1;
     }
 }
 
 /**
- * Filtering (cf. 3.3.8.4) Template
- * st              State of filter, as 8 values initialized to 0
- * rc_order, rc    Order of coefficients, and quantized coefficients
- * rc              Quantized coefficients for each filters
- * x, n            Spectral coefficients and count, filtered as output
+ * Inverse filtering
+ * dt, bw          Duration and bandwidth of the frame
+ * rc_order, rc    Order of coefficients, and unquantized coefficients
+ * x               Spectral coefficients, filtered as output
  */
-static inline void do_filtering_template(float *st,
-    const int rc_order, const float *rc, float *x, int n)
+static void inverse_filtering(
+    enum lc3_dt dt, enum lc3_bandwidth bw,
+    const int rc_order[2], const float rc[2][8], float *x)
 {
-    for (const float *xe = x + n; x < xe; ) {
-        float xi = *x;
-        float s0, s1 = xi;
+    int nfilters = 1 + (bw >= LC3_BANDWIDTH_SWB);
+    int nf = LC3_NE(dt, bw) >> (nfilters - 1);
+    int i0, ie = 3*(3 + dt);
 
-        for (int k = 0; k < rc_order; k++) {
-            s0 = st[k];
-            st[k] = s1;
+    float s[8] = { 0 };
 
-            s1  = rc[k] * xi + s0;
-            xi += rc[k] * s0;
+    for (int f = 0; f < nfilters; f++) {
+
+        i0 = ie;
+        ie = nf * (1 + f);
+
+        if (!rc_order[f])
+            continue;
+
+        for (int i = i0; i < ie; i++) {
+            float xi = x[i];
+
+            xi -= s[7] * rc[f][7];
+            for (int k = 6; k >= 0; k--) {
+                xi -= s[k] * rc[f][k];
+                s[k+1] = s[k] + rc[f][k] * xi;
+            }
+            s[0] = xi;
+            x[i] = xi;
         }
 
-        *(x++) = xi;
+        for (int k = 7; k >= rc_order[f]; k--)
+            s[k] = 0;
     }
 }
 
-/**
- * Filtering implementations for filter orders
- */
 
-static void do_filtering_o1(float *st, const float *rc, float *x, int n)
-{
-    do_filtering_template(st, 1, rc, x, n);
-}
-
-static void do_filtering_o2(float *st, const float *rc, float *x, int n)
-{
-    do_filtering_template(st, 2, rc, x, n);
-}
-
-static void do_filtering_o3(float *st, const float *rc, float *x, int n)
-{
-    do_filtering_template(st, 3, rc, x, n);
-}
-
-static void do_filtering_o4(float *st, const float *rc, float *x, int n)
-{
-    do_filtering_template(st, 4, rc, x, n);
-}
-
-static void do_filtering_o5(float *st, const float *rc, float *x, int n)
-{
-    do_filtering_template(st, 5, rc, x, n);
-}
-
-static void do_filtering_o6(float *st, const float *rc, float *x, int n)
-{
-    do_filtering_template(st, 6, rc, x, n);
-}
-
-static void do_filtering_o7(float *st, const float *rc, float *x, int n)
-{
-    do_filtering_template(st, 7, rc, x, n);
-}
-
-static void do_filtering_o8(float *st, const float *rc, float *x, int n)
-{
-    do_filtering_template(st, 8, rc, x, n);
-}
-
-static void (* const do_filtering[])(float *, const float *, float *, int) =
-{
-    do_filtering_o1, do_filtering_o2, do_filtering_o3, do_filtering_o4,
-    do_filtering_o5, do_filtering_o6, do_filtering_o7, do_filtering_o8
-};
+/* ----------------------------------------------------------------------------
+ *  Interface
+ * -------------------------------------------------------------------------- */
 
 /**
- * TNS encoding processing
+ * TNS analysis
  */
-void lc3_tns_encode(enum lc3_dt dt, enum lc3_bandwidth bw,
-    bool nn_flag, unsigned nbytes, struct lc3_tns_data *data, float *x)
+void lc3_tns_analyze(enum lc3_dt dt, enum lc3_bandwidth bw,
+    bool nn_flag, int nbytes, struct lc3_tns_data *data, float *x)
 {
     /* Processing steps :
      * - Determine the LPC (Linear Predictive Coding) Coefficients
@@ -314,31 +344,44 @@ void lc3_tns_encode(enum lc3_dt dt, enum lc3_bandwidth bw,
      * - Finally filter the spectral coefficients */
 
     float pred_gain[2], a[2][9];
-    float f_state[8] = { 0 };
-    int f_lim[3];
+    float rc[2][8];
 
-    data->nfilters = compute_lpc_coeffs(dt, bw, x, pred_gain, a, f_lim);
+    data->nfilters = 1 + (bw >= LC3_BANDWIDTH_SWB);
+    data->lpc_weighting = resolve_lpc_weighting(dt, nbytes);
+
+    compute_lpc_coeffs(dt, bw, x, pred_gain, a);
 
     for (int f = 0; f < data->nfilters; f++) {
-        float rc[8];
 
         data->rc_order[f] = 0;
         if (nn_flag || pred_gain[f] <= 1.5)
             continue;
 
-        data->lpc_weighting[f] = nbytes < (dt == LC3_DT_7M5 ? 360/8 : 480/8);
-        if (data->lpc_weighting[f] && pred_gain[f] < 2)
-            do_lpc_weighting(pred_gain[f], a[f]);
+        if (data->lpc_weighting && pred_gain[f] < 2)
+            lpc_weighting(pred_gain[f], a[f]);
 
-        do_lpc_reflection(a[f], rc);
+        lpc_reflection(a[f], rc[f]);
 
-        do_quantization(rc, &data->rc_order[f], data->rc[f], rc);
-        if (!data->rc_order[f])
-            continue;
-
-        do_filtering[data->rc_order[f]-1](
-            f_state, rc, x + f_lim[f], f_lim[f+1] - f_lim[f]);
+        quantize_rc(rc[f], &data->rc_order[f], data->rc[f]);
+        unquantize_rc(data->rc[f], data->rc_order[f], rc[f]);
     }
+
+    forward_filtering(dt, bw, data->rc_order, rc, x);
+}
+
+/**
+ * TNS synthesis
+ */
+void lc3_tns_synthesize(enum lc3_dt dt, enum lc3_bandwidth bw,
+    const struct lc3_tns_data *data, float *x)
+{
+    float rc[2][8] = { 0 };
+
+    for (int f = 0; f < data->nfilters; f++)
+        if (data->rc_order[f])
+            unquantize_rc(data->rc[f], data->rc_order[f], rc[f]);
+
+    inverse_filtering(dt, bw, data->rc_order, rc, x);
 }
 
 /**
@@ -354,7 +397,7 @@ int lc3_tns_get_nbits(const struct lc3_tns_data *data)
         int rc_order = data->rc_order[f];
 
         nbits_2048 += rc_order > 0 ? lc3_tns_order_bits
-            [data->lpc_weighting[f]][rc_order-1] : 0;
+            [data->lpc_weighting][rc_order-1] : 0;
 
         for (int i = 0; i < rc_order; i++)
             nbits_2048 += lc3_tns_coeffs_bits[i][8 + data->rc[f][i]];
@@ -366,9 +409,7 @@ int lc3_tns_get_nbits(const struct lc3_tns_data *data)
 }
 
 /**
- * Put TNS data
- * bits            Bitstream context
- * data            TNS data
+ * Put bitstream data
  */
 void lc3_tns_put_data(lc3_bits_t *bits, const struct lc3_tns_data *data)
 {
@@ -380,9 +421,34 @@ void lc3_tns_put_data(lc3_bits_t *bits, const struct lc3_tns_data *data)
             continue;
 
         lc3_put_symbol(bits,
-            lc3_tns_order_symbol[data->lpc_weighting[f]][rc_order-1]);
+            lc3_tns_order_models + data->lpc_weighting, rc_order-1);
 
         for (int i = 0; i < rc_order; i++)
-            lc3_put_symbol(bits, lc3_tns_coeffs_symbol[i][8 + data->rc[f][i]]);
+            lc3_put_symbol(bits,
+                lc3_tns_coeffs_models + i, 8 + data->rc[f][i]);
+    }
+}
+
+/**
+ * Get bitstream data
+ */
+void lc3_tns_get_data(lc3_bits_t *bits,
+    enum lc3_dt dt, enum lc3_bandwidth bw, int nbytes, lc3_tns_data_t *data)
+{
+    data->nfilters = 1 + (bw >= LC3_BANDWIDTH_SWB);
+    data->lpc_weighting = resolve_lpc_weighting(dt, nbytes);
+
+    for (int f = 0; f < data->nfilters; f++) {
+
+        data->rc_order[f] = lc3_get_bit(bits);
+        if (!data->rc_order[f])
+            continue;
+
+        data->rc_order[f] += lc3_get_symbol(bits,
+            lc3_tns_order_models + data->lpc_weighting);
+
+        for (int i = 0; i < data->rc_order[f]; i++)
+            data->rc[f][i] = lc3_get_symbol(bits,
+                lc3_tns_coeffs_models + i) - 8;
     }
 }

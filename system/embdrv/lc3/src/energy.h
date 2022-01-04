@@ -17,36 +17,27 @@
  ******************************************************************************/
 
 /**
- * LC3 - Noise level estimation
+ * LC3 - Energy estimation per band
  *
  * Reference : Low Complexity Communication Codec (LC3)
  *             Bluetooth Specification v1.0
  */
 
-#ifndef __LC3_NOISE_H
-#define __LC3_NOISE_H
+#ifndef __LC3_ENERGY_H
+#define __LC3_ENERGY_H
 
 #include "common.h"
-#include "quant.h"
-#include "bits.h"
 
 
 /**
- * Noise level estimation
- * dt, bw          Duration and bandwith of the frame
- * quant           Quantized spectral coefficients
- * x               Quantization scaled spectrum coefficients
- * noise_factor    Return the quantized noise factor (0 to 7)
+ * Energy estimation per band
+ * dt, sr          Duration and samplerate of the frame
+ * x               Input MDCT coefficient
+ * e               Energy estimation per bands
+ * return          True when high energy detected near Nyquist frequency
  */
-void lc3_noise_estimate(enum lc3_dt dt, enum lc3_bandwidth bw,
-    const struct lc3_quant_data *quant, const float *x, int *noise_factor);
-
-/**
- * Put noise factor
- * bits            Bitstream context
- * noise_factor    Noise factor value
- */
-void lc3_noise_put_factor(lc3_bits_t *bits, int noise_factor);
+bool lc3_energy_compute(
+    enum lc3_dt dt, enum lc3_srate sr, const float *x, float *e);
 
 
-#endif /* __LC3_NOISE_H */
+#endif /* __LC3_ENERGY_H */
