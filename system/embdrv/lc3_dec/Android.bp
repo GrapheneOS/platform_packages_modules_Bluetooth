@@ -20,7 +20,6 @@ cc_library_static {
         "Common/*.cpp",
         "Common/fft/*.c",
         "Common/Tables/*.cpp",
-        "Encoder/*.cpp",
         "Decoder/*.cpp",
         "TestSupport/DatapointsAndroid.cpp",
     ],
@@ -55,18 +54,6 @@ cc_library_static {
         "Common/Tables",
         "TestSupport",
     ],
-}
-
-cc_fuzz {
-  name: "liblc3codec_encoder_fuzzer",
-
-  srcs: [
-    "fuzzer/liblc3codec_encoder_fuzzer.cpp",
-  ],
-
-  static_libs: [
-    "liblc3codec",
-  ],
 }
 
 cc_fuzz {
