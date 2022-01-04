@@ -478,14 +478,36 @@ static void BTM_LE_PF_addr_filter(tBTM_BLE_SCAN_COND_OP action,
   UINT8_TO_STREAM(p, filt_index);
 
   if (action != BTM_BLE_SCAN_COND_CLEAR) {
-    if (addr.type == 2 /* DEVICE_TYPE_ALL in ScanFilterQueue.java */) {
-      LOG(INFO) << __func__ << " Filter address " << addr.bda
-                << " has DEVICE_TYPE_ALL, try to get identity address";
-      /* If no matching identity address is found for the input address,
-       * this call will have no effect. */
-      uint8_t dummy_addr_type;
-      btm_random_pseudo_to_identity_addr(&addr.bda, &dummy_addr_type);
-    }
+    LOG(INFO) << __func__ << " Filter address " << addr.bda
+              << " has DEVICE_TYPE_ALL, try to get identity address";
+    /*
+     * Always do the pseudo to id address check!
+     *
+     * In the happy path case this should be checking only random types.
+     *
+     * However, the Java layer only knows PUBLIC and RANDOM which leaves us with
+     * 0 and 1 respectively.
+     *
+     * In the native host stack we have 4 values.
+     * ￼    -  Public = 0
+     * ￼    -  Random = 1
+     * ￼    -  Public ID = 2
+     * ￼    -  Random ID = 3
+     *
+     * So we should really only need to do it for Random = 1.
+     *
+     * The app layer won't know the ID address since it didn't see it when it
+     * was scanning.
+     *
+     * Two possible CUJ:
+     *  1. app scans, finds RPA, bonds.  App will only know RPA (pseudo address)
+     *  2. app knows the (preshared) ID address (e.g. DCK+OOB+IRK)
+     *
+     * We cannot lock it to RANDOM here otherwise we break CUJ #1.
+     *
+     * Thus, we must always try to do the conversion.
+     */
+    btm_random_pseudo_to_identity_addr(&addr.bda, &addr.type);
 
     LOG(INFO) << __func__
               << " Adding scan filter with peer address: " << addr.bda;
