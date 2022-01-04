@@ -55,6 +55,9 @@ template("flex_source") {
     all_dependent_configs = [ ":${all_dependent_config_name}" ]
     deps = [ ":${action_name}" ]
 
+    if (defined(invoker.deps)) {
+      deps += invoker.deps
+    }
     if (defined(invoker.configs)) {
       configs += invoker.configs
     }
