@@ -263,6 +263,9 @@ void btm_acl_notif_conn_collision(const RawAddress& bda);
 
 void btm_acl_update_conn_addr(uint16_t conn_handle, const RawAddress& address);
 
+void btm_configure_data_path(uint8_t direction, uint8_t path_id,
+                             std::vector<uint8_t> vendor_config);
+
 /*******************************************************************************
  *
  * Function         BTM_ReadPowerMode

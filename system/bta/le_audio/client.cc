@@ -30,6 +30,7 @@
 #include "btm_iso_api.h"
 #include "client_audio.h"
 #include "client_parser.h"
+#include "codec_manager.h"
 #include "common/time_util.h"
 #include "device/include/controller.h"
 #include "devices.h"
@@ -56,6 +57,7 @@ using bluetooth::le_audio::ConnectionState;
 using bluetooth::le_audio::GroupNodeStatus;
 using bluetooth::le_audio::GroupStatus;
 using bluetooth::le_audio::GroupStreamStatus;
+using le_audio::CodecManager;
 using le_audio::LeAudioDevice;
 using le_audio::LeAudioDeviceGroup;
 using le_audio::LeAudioDeviceGroups;
@@ -3303,6 +3305,7 @@ void LeAudioClient::Initialize(
   instance = new LeAudioClientImpl(callbacks_, stateMachineCallbacks, initCb);
 
   IsoManager::GetInstance()->RegisterCigCallbacks(stateMachineHciCallbacks);
+  CodecManager::GetInstance()->Start();
 }
 
 void LeAudioClient::DebugDump(int fd) {
@@ -3330,6 +3333,7 @@ void LeAudioClient::Cleanup(void) {
   ptr->Cleanup();
   delete ptr;
 
+  CodecManager::GetInstance()->Stop();
   LeAudioGroupStateMachine::Cleanup();
   IsoManager::GetInstance()->Stop();
 }

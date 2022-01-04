@@ -435,6 +435,17 @@ void btm_acl_update_conn_addr(uint16_t handle, const RawAddress& address) {
   p_acl->conn_addr = address;
 }
 
+void btm_configure_data_path(uint8_t direction, uint8_t path_id,
+                             std::vector<uint8_t> vendor_config) {
+  if (direction != btm_data_direction::CONTROLLER_TO_HOST &&
+      direction != btm_data_direction::HOST_TO_CONTROLLER) {
+    LOG_WARN("Unknown data direction");
+    return;
+  }
+
+  btsnd_hcic_configure_data_path(direction, path_id, vendor_config);
+}
+
 /*******************************************************************************
  *
  * Function         btm_acl_removed
