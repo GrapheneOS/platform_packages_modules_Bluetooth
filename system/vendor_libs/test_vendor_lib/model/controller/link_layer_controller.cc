@@ -1505,9 +1505,11 @@ void LinkLayerController::IncomingScoConnectionResponse(
           bluetooth::hci::LinkType::SCO,
           bluetooth::hci::Enable::DISABLED));
     } else {
+      ScoConnectionParameters connection_parameters =
+          connections_.GetScoConnectionParameters(address);
       send_event_(bluetooth::hci::SynchronousConnectionCompleteBuilder::Create(
           status, 0, address,
-          response.GetExtended() ?
+          connection_parameters.IsExtended() ?
             bluetooth::hci::ScoLinkType::ESCO :
             bluetooth::hci::ScoLinkType::SCO,
           0, 0, 0, 0, bluetooth::hci::ScoAirMode::TRANSPARENT));
@@ -2571,20 +2573,59 @@ ErrorCode LinkLayerController::SetConnectionEncryption(
   return ErrorCode::SUCCESS;
 }
 
-ErrorCode LinkLayerController::AcceptConnectionRequest(const Address& addr,
+ErrorCode LinkLayerController::AcceptConnectionRequest(const Address& bd_addr,
                                                        bool try_role_switch) {
-  if (!connections_.HasPendingConnection(addr)) {
-    LOG_INFO("No pending connection for %s", addr.ToString().c_str());
-    return ErrorCode::UNKNOWN_CONNECTION;
+  if (connections_.HasPendingConnection(bd_addr)) {
+    LOG_INFO("Accepting connection request from %s",
+             bd_addr.ToString().c_str());
+    ScheduleTask(kLongDelayMs, [this, bd_addr, try_role_switch]() {
+      LOG_INFO("Accepted connection from %s", bd_addr.ToString().c_str());
+      MakePeripheralConnection(bd_addr, try_role_switch);
+    });
+
+    return ErrorCode::SUCCESS;
   }
 
-  LOG_INFO("Accept in 200ms");
-  ScheduleTask(kLongDelayMs, [this, addr, try_role_switch]() {
-    LOG_INFO("Accepted");
-    MakePeripheralConnection(addr, try_role_switch);
-  });
+  // The HCI command Accept Connection may be used to accept incoming SCO
+  // connection requests.
+  if (connections_.HasPendingScoConnection(bd_addr)) {
+    ErrorCode status = ErrorCode::SUCCESS;
+    uint16_t sco_handle = 0;
+    ScoLinkParameters link_parameters = {};
+    ScoConnectionParameters connection_parameters =
+        connections_.GetScoConnectionParameters(bd_addr);
 
-  return ErrorCode::SUCCESS;
+    if (!connections_.AcceptPendingScoConnection(
+          bd_addr, connection_parameters)) {
+      connections_.CancelPendingScoConnection(bd_addr);
+      status = ErrorCode::SCO_INTERVAL_REJECTED;  // TODO: proper status code
+    } else {
+      sco_handle = connections_.GetScoHandle(bd_addr);
+      link_parameters = connections_.GetScoLinkParameters(bd_addr);
+    }
+
+    // Send eSCO connection response to peer.
+    SendLinkLayerPacket(model::packets::ScoConnectionResponseBuilder::Create(
+        properties_.GetAddress(), bd_addr, (uint8_t)status,
+        link_parameters.transmission_interval,
+        link_parameters.retransmission_window,
+        link_parameters.rx_packet_length,
+        link_parameters.tx_packet_length,
+        link_parameters.air_mode,
+        link_parameters.extended));
+
+    // Schedule HCI Connection Complete event.
+    ScheduleTask(kShortDelayMs, [this, status, sco_handle, bd_addr]() {
+      send_event_(bluetooth::hci::ConnectionCompleteBuilder::Create(
+          ErrorCode(status), sco_handle, bd_addr, bluetooth::hci::LinkType::SCO,
+          bluetooth::hci::Enable::DISABLED));
+    });
+
+    return ErrorCode::SUCCESS;
+  }
+
+  LOG_INFO("No pending connection for %s", bd_addr.ToString().c_str());
+  return ErrorCode::UNKNOWN_CONNECTION;
 }
 
 void LinkLayerController::MakePeripheralConnection(const Address& addr,
@@ -3658,9 +3699,14 @@ ErrorCode LinkLayerController::AddScoConnection(
 
   // Save connection parameters.
   ScoConnectionParameters connection_parameters = {
-    8000, 8000, 0xffff, 0x60 /* 16bit CVSD */,
-    (uint8_t)bluetooth::hci::RetransmissionEffort::NO_RETRANSMISSION,
-    (uint16_t)((packet_type >> 5) & 0x7u)
+      8000, 8000, 0xffff, 0x60 /* 16bit CVSD */,
+      (uint8_t)bluetooth::hci::RetransmissionEffort::NO_RETRANSMISSION,
+      (uint16_t)(
+        (uint16_t)((packet_type >> 5) & 0x7u) |
+        (uint16_t)bluetooth::hci::SynchronousPacketTypeBits::NO_2_EV3_ALLOWED |
+        (uint16_t)bluetooth::hci::SynchronousPacketTypeBits::NO_3_EV3_ALLOWED |
+        (uint16_t)bluetooth::hci::SynchronousPacketTypeBits::NO_2_EV5_ALLOWED |
+        (uint16_t)bluetooth::hci::SynchronousPacketTypeBits::NO_3_EV5_ALLOWED)
   };
   connections_.CreateScoConnection(
       connections_.GetAddress(connection_handle).GetAddress(),
@@ -3746,7 +3792,7 @@ ErrorCode LinkLayerController::AcceptSynchronousConnection(
 
   if (!connections_.AcceptPendingScoConnection(bd_addr, connection_parameters)) {
     connections_.CancelPendingScoConnection(bd_addr);
-    status = ErrorCode::SCO_INTERVAL_REJECTED; // TODO: proper status code
+    status = ErrorCode::STATUS_UNKNOWN;  // TODO: proper status code
   } else {
     sco_handle = connections_.GetScoHandle(bd_addr);
     link_parameters = connections_.GetScoLinkParameters(bd_addr);

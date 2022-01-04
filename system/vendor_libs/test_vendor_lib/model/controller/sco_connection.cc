@@ -29,7 +29,12 @@ bool ScoConnectionParameters::IsExtended() {
     (uint16_t)SynchronousPacketTypeBits::HV1_ALLOWED |
     (uint16_t)SynchronousPacketTypeBits::HV2_ALLOWED |
     (uint16_t)SynchronousPacketTypeBits::HV3_ALLOWED;
-  return (packet_type & ~legacy) != 0;
+  uint16_t edr =
+    (uint16_t)SynchronousPacketTypeBits::NO_2_EV3_ALLOWED |
+    (uint16_t)SynchronousPacketTypeBits::NO_3_EV3_ALLOWED |
+    (uint16_t)SynchronousPacketTypeBits::NO_2_EV5_ALLOWED |
+    (uint16_t)SynchronousPacketTypeBits::NO_3_EV5_ALLOWED;
+  return ((packet_type ^ edr) & ~legacy) != 0;
 }
 
 std::optional<ScoLinkParameters> ScoConnectionParameters::GetLinkParameters() {
@@ -165,6 +170,7 @@ std::optional<ScoLinkParameters> ScoConnectionParameters::GetLinkParameters() {
 
   if (retransmission_effort == (uint8_t)RetransmissionEffort::OPTIMIZED_FOR_POWER ||
       retransmission_effort == (uint8_t)RetransmissionEffort::OPTIMIZED_FOR_LINK_QUALITY) {
+    LOG_WARN("SCO Retransmission effort must be None or Don't care");
     return {};
   }
 
@@ -174,6 +180,7 @@ std::optional<ScoLinkParameters> ScoConnectionParameters::GetLinkParameters() {
   uint8_t air_coding = voice_setting & 0x3;
 
   if (max_latency != 0xffff && max_latency < latency) {
+    LOG_WARN("SCO Max latency must be less than 1250 us");
     return {};
   }
 
@@ -183,10 +190,11 @@ std::optional<ScoLinkParameters> ScoConnectionParameters::GetLinkParameters() {
   } else if (packet_type & (uint16_t)SynchronousPacketTypeBits::HV2_ALLOWED) {
     transmission_interval = 4;
     packet_length = 20;
-  } else if (packet_type & (uint16_t)SynchronousPacketTypeBits::HV3_ALLOWED) {
+  } else if (packet_type & (uint16_t)SynchronousPacketTypeBits::HV1_ALLOWED) {
     transmission_interval = 2;
     packet_length = 10;
   } else {
+    LOG_WARN("No SCO packet type enabled");
     return {};
   }
 
@@ -225,7 +233,7 @@ bool ScoConnection::NegotiateLinkParameters(ScoConnectionParameters const &peer)
   uint16_t packet_type = (peer.packet_type & parameters_.packet_type) & 0x3f;
   packet_type |= (peer.packet_type | parameters_.packet_type) & 0x3c0;
 
-  if (packet_type == 0) {
+  if (packet_type == 0x3c0) {
     LOG_WARN("Packet type requirements cannot be met");
     LOG_WARN("Remote packet type: 0x%04x",
              static_cast<unsigned>(parameters_.packet_type));
