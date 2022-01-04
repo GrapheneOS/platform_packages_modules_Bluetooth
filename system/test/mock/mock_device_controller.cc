@@ -233,6 +233,10 @@ bool supports_encryption_pause(void) {
   return HCI_ATOMIC_ENCRYPT_SUPPORTED(features_classic[0].as_array);
 }
 
+bool supports_configure_data_path(void) {
+  return HCI_CONFIGURE_DATA_PATH_SUPPORTED(supported_commands);
+}
+
 bool supports_ble(void) { return ble_supported; }
 
 bool supports_ble_privacy(void) {
@@ -403,6 +407,7 @@ const controller_t interface = {
     supports_non_flushable_pb,
     supports_sniff_subrating,
     supports_encryption_pause,
+    supports_configure_data_path,
 
     supports_ble,
     supports_ble_packet_extension,

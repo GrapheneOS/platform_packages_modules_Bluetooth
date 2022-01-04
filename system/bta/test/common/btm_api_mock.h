@@ -52,6 +52,8 @@ class BtmInterface {
   virtual uint16_t GetHCIConnHandle(RawAddress const& bd_addr,
                                     tBT_TRANSPORT transport) = 0;
   virtual void AclDisconnectFromHandle(uint16_t handle, tHCI_STATUS reason) = 0;
+  virtual void ConfigureDataPath(uint8_t direction, uint8_t path_id,
+                                 std::vector<uint8_t> vendor_config) = 0;
   virtual ~BtmInterface() = default;
 };
 
@@ -90,6 +92,10 @@ class MockBtmInterface : public BtmInterface {
               (RawAddress const& bd_addr, tBT_TRANSPORT transport), (override));
   MOCK_METHOD((void), AclDisconnectFromHandle,
               (uint16_t handle, tHCI_STATUS reason), (override));
+  MOCK_METHOD((void), ConfigureDataPath,
+              (uint8_t direction, uint8_t path_id,
+               std::vector<uint8_t> vendor_config),
+              (override));
 };
 
 /**

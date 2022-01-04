@@ -136,6 +136,7 @@ struct btm_acl_resubmit_page btm_acl_resubmit_page;
 struct btm_acl_role_changed btm_acl_role_changed;
 struct btm_acl_set_paging btm_acl_set_paging;
 struct btm_acl_update_conn_addr btm_acl_update_conn_addr;
+struct btm_configure_data_path btm_configure_data_path;
 struct btm_acl_update_inquiry_status btm_acl_update_inquiry_status;
 struct btm_ble_refresh_local_resolvable_private_addr
     btm_ble_refresh_local_resolvable_private_addr;
@@ -571,6 +572,12 @@ void btm_acl_set_paging(bool value) {
 void btm_acl_update_conn_addr(uint16_t handle, const RawAddress& address) {
   mock_function_count_map[__func__]++;
   test::mock::stack_acl::btm_acl_update_conn_addr(handle, address);
+}
+void btm_configure_data_path(uint8_t direction, uint8_t path_id,
+                             std::vector<uint8_t> vendor_config) {
+  mock_function_count_map[__func__]++;
+  test::mock::stack_acl::btm_configure_data_path(direction, path_id,
+                                                 vendor_config);
 }
 void btm_acl_update_inquiry_status(uint8_t status) {
   mock_function_count_map[__func__]++;

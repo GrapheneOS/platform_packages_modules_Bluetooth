@@ -1,9 +1,9 @@
 /*
- * Copyright 2021 The Android Open Source Project
+ * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * You may obtain a copy of the License at:
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -13,19 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <map>
-#include <string>
 
-extern std::map<std::string, int> mock_function_count_map;
+#pragma once
 
-#include "bta/include/bta_le_audio_api.h"
+#include <gmock/gmock.h>
 
-bool LeAudioHalVerifier::SupportsLeAudio() {
-  mock_function_count_map[__func__]++;
-  return true;
-}
+#include "codec_manager.h"
 
-bool LeAudioHalVerifier::SupportsLeAudioHardwareOffload() {
-  mock_function_count_map[__func__]++;
-  return true;
-}
+class MockCodecManager {
+ public:
+  static MockCodecManager* GetInstance();
+
+  MockCodecManager() = default;
+  virtual ~MockCodecManager() = default;
+
+  MOCK_METHOD((le_audio::types::CodecLocation), GetCodecLocation, (), (const));
+
+  MOCK_METHOD((void), Start, ());
+  MOCK_METHOD((void), Stop, ());
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(MockCodecManager);
+};

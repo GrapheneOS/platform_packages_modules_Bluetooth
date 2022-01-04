@@ -818,4 +818,8 @@ btsnd_hcic_ble_set_default_periodic_advertising_sync_transfer_params(
     uint16_t conn_handle, uint8_t mode, uint16_t skip, uint16_t sync_timeout,
     uint8_t cte_type, base::OnceCallback<void(uint8_t*, uint16_t)> cb);
 
+extern void btsnd_hcic_configure_data_path(uint8_t data_path_direction,
+                                           uint8_t data_path_id,
+                                           std::vector<uint8_t> vendor_config);
+
 #endif
