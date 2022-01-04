@@ -20,12 +20,15 @@
 #include "client_audio.h"
 
 #include "audio_hal_interface/le_audio_software.h"
+#include "bta/le_audio/codec_manager.h"
 #include "btu.h"
 #include "common/repeating_timer.h"
 #include "common/time_util.h"
 #include "osi/include/wakelock.h"
 
 using bluetooth::audio::le_audio::LeAudioClientInterface;
+using ::le_audio::CodecManager;
+using ::le_audio::types::CodecLocation;
 
 namespace {
 LeAudioCodecConfiguration source_codec_config;
@@ -167,7 +170,9 @@ bool le_audio_source_on_resume_req(bool start_media_task) {
 
 bool le_audio_sink_on_suspend_req() {
   std::lock_guard<std::mutex> guard(sinkInterfaceMutex);
-  stop_audio_ticks();
+  if (CodecManager::GetInstance()->GetCodecLocation() == CodecLocation::HOST) {
+    stop_audio_ticks();
+  }
   if (localAudioSinkReceiver != nullptr) {
     // Call OnAudioSuspend and block till it returns.
     std::promise<void> do_suspend_promise;
@@ -313,7 +318,9 @@ void LeAudioClientAudioSource::Stop() {
   std::lock_guard<std::mutex> guard(sinkInterfaceMutex);
   localAudioSinkReceiver = nullptr;
 
-  stop_audio_ticks();
+  if (CodecManager::GetInstance()->GetCodecLocation() == CodecLocation::HOST) {
+    stop_audio_ticks();
+  }
 }
 
 const void* LeAudioClientAudioSource::Acquire() {
@@ -382,6 +389,9 @@ void LeAudioClientAudioSource::ConfirmStreamingRequest() {
   }
 
   sinkClientInterface->ConfirmStreamingRequest();
+  if (CodecManager::GetInstance()->GetCodecLocation() != CodecLocation::HOST)
+    return;
+
   LOG(INFO) << __func__ << ", start_audio_ticks";
   start_audio_ticks();
 }

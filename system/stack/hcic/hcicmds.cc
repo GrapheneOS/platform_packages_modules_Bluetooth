@@ -1874,6 +1874,27 @@ void btsnd_hcic_vendor_spec_cmd(void* buffer, uint16_t opcode, uint8_t len,
   btu_hcif_send_cmd(LOCAL_BR_EDR_CONTROLLER_ID, p);
 }
 
+void btsnd_hcic_configure_data_path(uint8_t data_path_direction,
+                                    uint8_t data_path_id,
+                                    std::vector<uint8_t> vendor_config) {
+  BT_HDR* p = (BT_HDR*)osi_malloc(HCI_CMD_BUF_SIZE);
+  uint8_t* pp = (uint8_t*)(p + 1);
+  uint8_t size = static_cast<uint8_t>(vendor_config.size());
+  p->len = HCIC_PREAMBLE_SIZE + 3 + size;
+  p->offset = 0;
+
+  UINT16_TO_STREAM(pp, HCI_CONFIGURE_DATA_PATH);
+  UINT8_TO_STREAM(pp, p->len);
+  UINT8_TO_STREAM(pp, data_path_direction);
+  UINT8_TO_STREAM(pp, data_path_id);
+  UINT8_TO_STREAM(pp, vendor_config.size());
+  if (size != 0) {
+    ARRAY_TO_STREAM(pp, vendor_config.data(), size);
+  }
+
+  btu_hcif_send_cmd(LOCAL_BR_EDR_CONTROLLER_ID, p);
+}
+
 bluetooth::legacy::hci::Interface interface_ = {
     // LINK_CONTROL
     .StartInquiry = btsnd_hcic_inquiry,                   // OCF 0x0401

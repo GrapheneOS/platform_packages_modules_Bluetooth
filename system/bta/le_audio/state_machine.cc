@@ -27,6 +27,7 @@
 #include "bta_le_audio_api.h"
 #include "btm_iso_api.h"
 #include "client_parser.h"
+#include "codec_manager.h"
 #include "devices.h"
 #include "hcimsgs.h"
 #include "le_audio_types.h"
@@ -87,6 +88,7 @@
 
 using bluetooth::hci::IsoManager;
 using bluetooth::le_audio::GroupStreamStatus;
+using le_audio::CodecManager;
 using le_audio::LeAudioDevice;
 using le_audio::LeAudioDeviceGroup;
 using le_audio::LeAudioGroupStateMachine;
@@ -94,6 +96,7 @@ using le_audio::LeAudioGroupStateMachine;
 using le_audio::types::ase;
 using le_audio::types::AseState;
 using le_audio::types::AudioStreamDataPathState;
+using le_audio::types::CodecLocation;
 
 namespace {
 
@@ -962,15 +965,22 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
   }
 
   static void PrepareDataPath(const struct ase* ase) {
-    /* TODO Handle HW offloading as we handle here only HCI for now, Need
-     * to set coding_format based on the codec location, force SW encode
-     * for now */
+    /* TODO: Handle HW offloading decode as we handle here, force to use SW
+     * decode for now */
+    auto data_path_id = bluetooth::hci::iso_manager::kIsoDataPathHci;
+    if (CodecManager::GetInstance()->GetCodecLocation() !=
+            CodecLocation::HOST &&
+        ase->direction == le_audio::types::kLeAudioDirectionSink) {
+      data_path_id = bluetooth::hci::iso_manager::kIsoDataPathPlatformDefault;
+    }
+    /* TODO: Need to set coding_format when we support the codec location inside
+     * the controller, force to use transparent for now */
     bluetooth::hci::iso_manager::iso_data_path_params param = {
         .data_path_dir =
             ase->direction == le_audio::types::kLeAudioDirectionSink
                 ? bluetooth::hci::iso_manager::kIsoDataPathDirectionIn
                 : bluetooth::hci::iso_manager::kIsoDataPathDirectionOut,
-        .data_path_id = bluetooth::hci::iso_manager::kIsoDataPathHci,
+        .data_path_id = data_path_id,
         .codec_id_format = bluetooth::hci::kIsoCodingFormatTransparent,
         .codec_id_company = ase->codec_id.vendor_company_id,
         .codec_id_vendor = ase->codec_id.vendor_codec_id,
