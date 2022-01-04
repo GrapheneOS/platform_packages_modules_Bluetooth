@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.bluetooth.hfpclient.connserv;
+package com.android.bluetooth.hfpclient;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -23,8 +23,6 @@ import static org.mockito.Mockito.when;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothHeadsetClient;
-import android.bluetooth.BluetoothHeadsetClientCall;
 import android.content.Context;
 import android.content.res.Resources;
 import android.net.Uri;
@@ -56,7 +54,7 @@ public class HfpClientDeviceBlockTest {
     @Mock
     private HfpClientConnectionService mConnServ;
     @Mock
-    private BluetoothHeadsetClientProxy mHeadsetProfile;
+    private HeadsetClientServiceInterface mMockServiceInterface;
     @Mock
     private Context mApplicationContext;
     @Mock
@@ -92,42 +90,42 @@ public class HfpClientDeviceBlockTest {
 
     @Test
     public void testCreateOutgoingConnection_scoStateIsSet() {
-        setUpCall(new BluetoothHeadsetClientCall(mBluetoothDevice, /* id= */0,
-                        BluetoothHeadsetClientCall.CALL_STATE_ACTIVE, TEST_NUMBER,
+        setUpCall(new HfpClientCall(mBluetoothDevice, /* id= */0,
+                        HfpClientCall.CALL_STATE_ACTIVE, TEST_NUMBER,
                 /* multiParty= */false, /* outgoing= */false, /* inBandRing= */true));
-        HfpClientConnection connection =
-                createOutgoingConnectionWithScoState(BluetoothHeadsetClient.STATE_AUDIO_CONNECTED);
+        HfpClientConnection connection = createOutgoingConnectionWithScoState(
+                HeadsetClientHalConstants.AUDIO_STATE_CONNECTED);
 
         assertThat(connection.getExtras().getInt(KEY_SCO_STATE))
-                .isEqualTo(BluetoothHeadsetClient.STATE_AUDIO_CONNECTED);
+                .isEqualTo(HeadsetClientHalConstants.AUDIO_STATE_CONNECTED);
     }
 
     @Test
     public void testOnAudioStateChanged() {
-        setUpCall(new BluetoothHeadsetClientCall(mBluetoothDevice, /* id= */0,
-                BluetoothHeadsetClientCall.CALL_STATE_ACTIVE, TEST_NUMBER,
+        setUpCall(new HfpClientCall(mBluetoothDevice, /* id= */0,
+                HfpClientCall.CALL_STATE_ACTIVE, TEST_NUMBER,
                 /* multiParty= */false, /* outgoing= */false, /* inBandRing= */true));
-        HfpClientConnection connection =
-                createOutgoingConnectionWithScoState(BluetoothHeadsetClient.STATE_AUDIO_CONNECTED);
+        HfpClientConnection connection = createOutgoingConnectionWithScoState(
+                HeadsetClientHalConstants.AUDIO_STATE_CONNECTED);
         assertThat(connection.getExtras().getInt(KEY_SCO_STATE))
-                .isEqualTo(BluetoothHeadsetClient.STATE_AUDIO_CONNECTED);
+                .isEqualTo(HeadsetClientHalConstants.AUDIO_STATE_CONNECTED);
 
-        mHfpClientDeviceBlock.onAudioStateChange(BluetoothHeadsetClient.STATE_AUDIO_DISCONNECTED,
-                BluetoothHeadsetClient.STATE_AUDIO_CONNECTED);
+        mHfpClientDeviceBlock.onAudioStateChange(HeadsetClientHalConstants.AUDIO_STATE_DISCONNECTED,
+                HeadsetClientHalConstants.AUDIO_STATE_CONNECTED);
 
         assertThat(connection.getExtras().getInt(KEY_SCO_STATE))
-                .isEqualTo(BluetoothHeadsetClient.STATE_AUDIO_DISCONNECTED);
+                .isEqualTo(HeadsetClientHalConstants.AUDIO_STATE_DISCONNECTED);
     }
 
     @Test
     @Ignore("b/191783947")
     public void testHandleMultiPartyCall_scoStateIsSetOnConference() {
-        BluetoothHeadsetClientCall call =
-                new BluetoothHeadsetClientCall(mBluetoothDevice, /* id= */0,
-                BluetoothHeadsetClientCall.CALL_STATE_ACTIVE, TEST_NUMBER, /* multiParty= */
+        HfpClientCall call =
+                new HfpClientCall(mBluetoothDevice, /* id= */0,
+                HfpClientCall.CALL_STATE_ACTIVE, TEST_NUMBER, /* multiParty= */
                 true, /* outgoing= */false, /* inBandRing= */true);
         setUpCall(call);
-        createOutgoingConnectionWithScoState(BluetoothHeadsetClient.STATE_AUDIO_CONNECTING);
+        createOutgoingConnectionWithScoState(HeadsetClientHalConstants.AUDIO_STATE_CONNECTING);
 
         mHfpClientDeviceBlock.handleCall(call);
 
@@ -138,17 +136,17 @@ public class HfpClientDeviceBlockTest {
 
         HfpClientConference conference = conferenceCaptor.getValue();
         assertThat(conference.getExtras().getInt(KEY_SCO_STATE))
-                .isEqualTo(BluetoothHeadsetClient.STATE_AUDIO_CONNECTING);
+                .isEqualTo(HeadsetClientHalConstants.AUDIO_STATE_CONNECTING);
     }
 
-    private void setUpCall(BluetoothHeadsetClientCall call) {
-        when(mHeadsetProfile.dial(mBluetoothDevice, TEST_NUMBER)).thenReturn(call);
+    private void setUpCall(HfpClientCall call) {
+        when(mMockServiceInterface.dial(mBluetoothDevice, TEST_NUMBER)).thenReturn(call);
     }
 
     private HfpClientConnection createOutgoingConnectionWithScoState(int scoState) {
         when(mHeadsetClientService.getAudioState(mBluetoothDevice)).thenReturn(scoState);
         mHfpClientDeviceBlock =
-                new HfpClientDeviceBlock(mConnServ, mBluetoothDevice, mHeadsetProfile);
+                new HfpClientDeviceBlock(mBluetoothDevice, mConnServ, mMockServiceInterface);
         return mHfpClientDeviceBlock.onCreateOutgoingConnection(
                 Uri.fromParts(PhoneAccount.SCHEME_TEL, TEST_NUMBER, /* fragment= */ null));
     }
