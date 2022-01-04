@@ -17,28 +17,41 @@
  ******************************************************************************/
 
 /**
- * LC3 - Time domain attack detector
+ * LC3 - Packet Loss Concealment
  *
  * Reference : Low Complexity Communication Codec (LC3)
  *             Bluetooth Specification v1.0
  */
 
-#ifndef __LC3_ATTDET_H
-#define __LC3_ATTDET_H
+#ifndef __LC3_PLC_H
+#define __LC3_PLC_H
 
 #include "common.h"
 
 
 /**
- * Time domain attack detector
- * dt, sr          Duration and samplerate of the frame
- * nbytes          Size in bytes of the frame
- * attdet          Context of the Attack Detector
- * x               [-6..-1] Previous, [0..ns-1] Current samples
- * return          1: Attack detected  0: Otherwise
+ * Reset PLC state
+ * plc             PLC State to reset
  */
-bool lc3_attdet_run(enum lc3_dt dt, enum lc3_srate sr,
-    int nbytes, lc3_attdet_analysis_t *attdet, const float *x);
+void lc3_plc_reset(lc3_plc_state_t *plc);
+
+/**
+ * Suspend PLC synthesis (Error-free frame decoded)
+ * plc             PLC State
+ */
+void lc3_plc_suspend(lc3_plc_state_t *plc);
+
+/**
+ * Synthesis of a PLC frame
+ * dt, sr          Duration and samplerate of the frame
+ * plc             PLC State
+ * x               Last good spectral coefficients
+ * y               Return emulated ones
+ *
+ * `x` and `y` can be the same buffer
+ */
+void lc3_plc_synthesize(enum lc3_dt dt, enum lc3_srate sr,
+    lc3_plc_state_t *plc, const float *x, float *y);
 
 
-#endif /* __LC3_ATTDET_H */
+#endif /* __LC3_PLC_H */

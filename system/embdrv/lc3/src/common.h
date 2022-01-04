@@ -32,7 +32,7 @@
 
 /**
  * Macros
- * MIN/MAX  Minimum and maximum betwen 2 values
+ * MIN/MAX  Minimum and maximum between 2 values
  * CLIP     Clip a value between low and high limits
  * ABS      Return the absolute value
  */
@@ -57,7 +57,8 @@
 
 /**
  * Return number of samples, delayed samples and
- * encoded spectrum coefficients  within a frame
+ * encoded spectrum coefficients within a frame
+ * For decoding, add number of samples of 18 ms history
  */
 
 #define LC3_NS(dt, sr) \
@@ -71,6 +72,9 @@
 
 #define LC3_MAX_NE \
     LC3_NE(LC3_DT_10M, LC3_SRATE_48K)
+
+#define LC3_NH(sr) \
+    (18 * LC3_SRATE_KHZ(sr))
 
 
 /**

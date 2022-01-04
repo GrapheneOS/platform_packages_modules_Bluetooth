@@ -40,29 +40,28 @@ typedef struct lc3_ltpf_data {
 } lc3_ltpf_data_t;
 
 
+/* ----------------------------------------------------------------------------
+ *  Encoding
+ * -------------------------------------------------------------------------- */
+
 /**
- * Long Term Postfilter analysis
+ * LTPF analysis
  * dt, sr          Duration and samplerate of the frame
- * state           State of the LTPF
+ * ltpf            Context of analysis
  * allowed         True when activation of LTPF is allowed
  * x               [-d..-1] Previous, [0..ns-1] Current samples
- * data            Return LTPF data
+ * data            Return bitstream data
  * return          True when pitch present, False otherwise
  *
  * The number of previous samples `d` accessed on `x` is :
  *   d: { 10, 20, 30, 40, 60 } - 1 for samplerates from 8KHz to 48KHz
  */
 bool lc3_ltpf_analyse(enum lc3_dt dt, enum lc3_srate sr,
-    lc3_ltpf_state_t *state, const float *x, lc3_ltpf_data_t *data);
+    lc3_ltpf_analysis_t *ltpf, const float *x, lc3_ltpf_data_t *data);
 
 /**
- * Long Term Postfilter synthesis
- */
-void lc3_ltpf_synthsize();
-
-/**
- * Long Term Postfilter disable
- * data            LTPF data, diabled activation on return
+ * LTPF disable
+ * data            LTPF data, disabled activation on return
  */
 void lc3_ltpf_disable(lc3_ltpf_data_t *data);
 
@@ -74,12 +73,35 @@ void lc3_ltpf_disable(lc3_ltpf_data_t *data);
 int lc3_ltpf_get_nbits(bool pitch);
 
 /**
- * Put LTPF data
+ * Put bitstream data
  * bits            Bitstream context
  * data            LTPF data
  */
-void lc3_ltpf_put_data(lc3_bits_t *bits,
-    const struct lc3_ltpf_data *data);
+void lc3_ltpf_put_data(lc3_bits_t *bits, const lc3_ltpf_data_t *data);
+
+
+/* ----------------------------------------------------------------------------
+ *  Decoding
+ * -------------------------------------------------------------------------- */
+/**
+ * Get bitstream data
+ * bits            Bitstream context
+ * data            Return bitstream data
+ */
+void lc3_ltpf_get_data(lc3_bits_t *bits, lc3_ltpf_data_t *data);
+
+/**
+ * LTPF synthesis
+ * dt, sr          Duration and samplerate of the frame
+ * nbytes          Size in bytes of the frame
+ * ltpf            Context of synthesis
+ * data            Bitstream data, NULL when pitch not present
+ * x               [-d..-1] Previous, [0..ns-1] Current, filtered as output
+ *
+ * The number of previous samples `d` accessed on `x` is about 18 ms
+ */
+void lc3_ltpf_synthesize(enum lc3_dt dt, enum lc3_srate sr, int nbytes,
+    lc3_ltpf_synthesis_t *ltpf, const lc3_ltpf_data_t *data, float *x);
 
 
 #endif /* __LC3_LTPF_H */

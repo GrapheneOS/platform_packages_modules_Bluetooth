@@ -42,21 +42,24 @@ typedef struct lc3_sns_data {
 } lc3_sns_data_t;
 
 
+/* ----------------------------------------------------------------------------
+ *  Encoding
+ * -------------------------------------------------------------------------- */
+
 /**
- * SNS encoding process
+ * SNS analysis
  * dt, sr          Duration and samplerate of the frame
  * eb              Energy estimation per bands, and count of bands
  * att             1: Attack detected  0: Otherwise
  * data            Return bitstream data
- * x               Spectral coefficients, shapped as output
+ * x               Spectral coefficients
+ * y               Return shapped coefficients
+ *
+ * `x` and `y` can be the same buffer
  */
-void lc3_sns_encode(enum lc3_dt dt, enum lc3_srate sr,
-    const float *eb, bool att, lc3_sns_data_t *data, float *x);
-
-/**
- * SNS decoding process
- */
-void lc3_sns_decode();
+void lc3_sns_analyze(enum lc3_dt dt, enum lc3_srate sr,
+    const float *eb, bool att, lc3_sns_data_t *data,
+    const float *x, float *y);
 
 /**
  * Return number of bits coding the bitstream data
@@ -65,11 +68,36 @@ void lc3_sns_decode();
 int lc3_sns_get_nbits(void);
 
 /**
- * Put SNS data
+ * Put bitstream data
  * bits            Bitstream context
- * data            SNS data
+ * data            Bitstream data
  */
 void lc3_sns_put_data(lc3_bits_t *bits, const lc3_sns_data_t *data);
+
+
+/* ----------------------------------------------------------------------------
+ *  Decoding
+ * -------------------------------------------------------------------------- */
+
+/**
+ * Get bitstream data
+ * bits            Bitstream context
+ * data            Return SNS data
+ * return          0: Ok  -1: Invalid SNS data
+ */
+int lc3_sns_get_data(lc3_bits_t *bits, lc3_sns_data_t *data);
+
+/**
+ * SNS synthesis
+ * dt, sr          Duration and samplerate of the frame
+ * data            Bitstream data
+ * x               Spectral coefficients
+ * y               Return shapped coefficients
+ *
+ * `x` and `y` can be the same buffer
+ */
+void lc3_sns_synthesize(enum lc3_dt dt, enum lc3_srate sr,
+    const lc3_sns_data_t *data, const float *x, float *y);
 
 
 #endif /* __LC3_SNS_H */

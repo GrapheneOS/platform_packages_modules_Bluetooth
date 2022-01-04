@@ -20,6 +20,10 @@
 #include "tables.h"
 
 
+/* ----------------------------------------------------------------------------
+ *  DCT-16
+ * -------------------------------------------------------------------------- */
+
 /**
  * Matrix of DCT-16 coefficients
  *
@@ -116,7 +120,7 @@ static const float dct16_m[16][16] = {
  * Forward DCT-16 transformation
  * x, y            Input and output 16 values
  */
-static void do_dct16_forward(const float *x, float *y)
+static void dct16_forward(const float *x, float *y)
 {
     for (int i = 0, j; i < 16; i++)
         for (y[i] = 0, j = 0; j < 16; j++)
@@ -127,15 +131,20 @@ static void do_dct16_forward(const float *x, float *y)
  * Inverse DCT-16 transformation
  * x, y            Input and output 16 values
  */
-static void do_dct16_inverse(const float *x, float *y)
+static void dct16_inverse(const float *x, float *y)
 {
     for (int i = 0, j; i < 16; i++)
         for (y[i] = 0, j = 0; j < 16; j++)
             y[i] += x[j] * dct16_m[i][j];
 }
 
+
+/* ----------------------------------------------------------------------------
+ *  Scale factors
+ * -------------------------------------------------------------------------- */
+
 /**
- * Scale factors (cf. 3.3.7.2.1)
+ * Scale factors
  * dt, sr          Duration and samplerate of the frame
  * eb              Energy estimation per bands
  * att             1: Attack detected  0: Otherwise
@@ -330,7 +339,7 @@ static void compute_scale_factors(enum lc3_dt dt, enum lc3_srate sr,
 }
 
 /**
- * Codebooks (cf. 3.3.7.3.2)
+ * Codebooks
  * scf             Input 16 scale factors
  * lf/hfcb_idx     Output the low and high frequency codebooks index
  */
@@ -358,8 +367,25 @@ static void resolve_codebooks(const float *scf, int *lfcb_idx, int *hfcb_idx)
 }
 
 /**
+ * Unit energy normalize pulse configuration
+ * c               Pulse configuration
+ * cn              Normalized pulse configuration
+ */
+static void normalize(const int *c, float *cn)
+{
+    int c2_sum = 0;
+    for (int i = 0; i < 16; i++)
+        c2_sum += c[i] * c[i];
+
+    float c_norm = 1.f / sqrtf(c2_sum);
+
+    for (int i = 0; i < 16; i++)
+        cn[i] = c[i] * c_norm;
+}
+
+/**
  * Sub-procedure of `quantize()`, add unit pulse
- * x, y, n         Tranformed residual, and vector of pulses with length
+ * x, y, n         Transformed residual, and vector of pulses with length
  * start, end      Current number of pulses, limit to reach
  * corr, energy    Correlation (x,y) and y energy, updated at output
  */
@@ -386,17 +412,14 @@ static void add_pulse(const float *x, int *y, int n,
 }
 
 /**
- * Quantization of codebooks residual (cf. 3.3.7.3.3)
+ * Quantization of codebooks residual
  * scf             Input 16 scale factors, output quantized version
  * lf/hfcb_idx     Codebooks index
- * y               Output table of 4 pulse configurations candidates
+ * c, cn           Output 4 pulse configurations candidates, normalized
  * shape/gain_idx  Output selected shape/gain indexes
- * scf_q           Return quantized scale factors
- *
- * `scf` and `scf_q` can be the same buffer
  */
-static void do_quantization(const float *scf, int lfcb_idx, int hfcb_idx,
-    int (*y)[16], int *shape_idx, int *gain_idx, float *scf_q)
+static void quantize(const float *scf, int lfcb_idx, int hfcb_idx,
+    int (*c)[16], float (*cn)[16], int *shape_idx, int *gain_idx)
 {
     /* --- Residual --- */
 
@@ -409,7 +432,7 @@ static void do_quantization(const float *scf, int lfcb_idx, int hfcb_idx,
         r[8+i] = scf[8+i] - hfcb[i];
     }
 
-    do_dct16_forward(r, x);
+    dct16_forward(r, x);
 
     /* --- Shape 3 candidate ---
      * Project to or below pyramid N = 16, K = 6,
@@ -428,21 +451,21 @@ static void do_quantization(const float *scf, int lfcb_idx, int hfcb_idx,
     int npulses = 0;
 
     for (int i = 0; i < 16; i++) {
-        y[3][i] = floorf(xm[i] * proj_factor);
-        npulses += y[3][i];
-        corr    += y[3][i] * xm[i];
-        energy  += y[3][i] * y[3][i];
+        c[3][i] = floorf(xm[i] * proj_factor);
+        npulses += c[3][i];
+        corr    += c[3][i] * xm[i];
+        energy  += c[3][i] * c[3][i];
     }
 
-    add_pulse(xm, y[3], 16, npulses, 6, &corr, &energy);
+    add_pulse(xm, c[3], 16, npulses, 6, &corr, &energy);
     npulses = 6;
 
     /* --- Shape 2 candidate ---
      * Add unit pulses until you reach K = 8 on shape 3 */
 
-    memcpy(y[2], y[3], sizeof(y[2]));
+    memcpy(c[2], c[3], sizeof(c[2]));
 
-    add_pulse(xm, y[2], 16, npulses, 8, &corr, &energy);
+    add_pulse(xm, c[2], 16, npulses, 8, &corr, &energy);
     npulses = 8;
 
     /* --- Shape 1 candidate ---
@@ -450,45 +473,33 @@ static void do_quantization(const float *scf, int lfcb_idx, int hfcb_idx,
      * Update energy and correlation terms accordingly
      * Add unit pulses until you reach K = 10, over N = 10 */
 
-    memcpy(y[1], y[2], sizeof(y[1]));
+    memcpy(c[1], c[2], sizeof(c[1]));
 
     for (int i = 10; i < 16; i++) {
-        y[1][i] = 0;
-        npulses -= y[2][i];
-        corr    -= y[2][i] * xm[i];
-        energy  -= y[2][i] * y[2][i];
+        c[1][i] = 0;
+        npulses -= c[2][i];
+        corr    -= c[2][i] * xm[i];
+        energy  -= c[2][i] * c[2][i];
     }
 
-
-    add_pulse(xm, y[1], 10, npulses, 10, &corr, &energy);
+    add_pulse(xm, c[1], 10, npulses, 10, &corr, &energy);
     npulses = 10;
 
     /* --- Shape 0 candidate ---
      * Add unit pulses until you reach K = 1, on shape 1 */
 
-    memcpy(y[0], y[1], sizeof(y[0]));
+    memcpy(c[0], c[1], sizeof(c[0]));
 
-    add_pulse(xm + 10, y[0] + 10, 6, 0, 1, &corr, &energy);
+    add_pulse(xm + 10, c[0] + 10, 6, 0, 1, &corr, &energy);
 
     /* --- Add sign and unit energy normalize --- */
 
-    float xq[4][16];
+    for (int j = 0; j < 16; j++)
+        for (int i = 0; i < 4; i++)
+            c[i][j] = x[j] < 0 ? -c[i][j] : c[i][j];
 
-    for (int ic = 0; ic < 4; ic++) {
-        int *yc = y[ic];
-
-        float yc_norm = 0;
-        for (int i = 0; i < 16; i++) {
-            yc_norm += yc[i] * yc[i];
-            if (x[i] < 0)
-                yc[i] = -yc[i];
-        }
-        yc_norm = 1 / sqrtf(yc_norm);
-
-        for (int i = 0; i < 16; i++)
-            xq[ic][i] = yc_norm * yc[i];
-    }
-
+    for (int i = 0; i < 4; i++)
+        normalize(c[i], cn[i]);
 
     /* --- Determe shape & gain index ---
      * Search the Mean Square Error, within (shape, gain) combinations */
@@ -506,7 +517,7 @@ static void do_quantization(const float *scf, int lfcb_idx, int hfcb_idx,
 
             float mse = 0;
             for (int i = 0; i < 16; i++)
-                mse += (x[i] - g * xq[ic][i]) * (x[i] - g * xq[ic][i]);
+                mse += (x[i] - g * cn[ic][i]) * (x[i] - g * cn[ic][i]);
 
             if (mse < cmse_min) {
                 cgain_idx = ig,
@@ -519,44 +530,54 @@ static void do_quantization(const float *scf, int lfcb_idx, int hfcb_idx,
             mse_min = cmse_min;
         }
     }
-
-    /* --- Synthesis of the Quantized scale factors --- */
-
-    float g = lc3_sns_vq_gains[*shape_idx].v[*gain_idx];
-
-    do_dct16_inverse(xq[*shape_idx], scf_q);
-
-    for (int i = 0; i < 8; i++)
-        scf_q[i] = lfcb[i] + g * scf_q[i];
-
-    for (int i = 8; i < 16; i++)
-        scf_q[i] = hfcb[i-8] + g * scf_q[i];
 }
 
 /**
- * Sub-procedure of `sns_enumeration()`, enumeration of a vector
- * y, n            Table of pulse configuration, and count
+ * Unquantization of codebooks residual
+ * lf/hfcb_idx     Low and high frequency codebooks index
+ * c               Table of normalized pulse configuration
+ * shape/gain      Selected shape/gain indexes
+ * scf             Return unquantized scale factors
+ */
+static void unquantize(int lfcb_idx, int hfcb_idx,
+    const float *c, int shape, int gain, float *scf)
+{
+    const float *lfcb = lc3_sns_lfcb[lfcb_idx];
+    const float *hfcb = lc3_sns_hfcb[hfcb_idx];
+    float g = lc3_sns_vq_gains[shape].v[gain];
+
+    dct16_inverse(c, scf);
+
+    for (int i = 0; i < 8; i++)
+        scf[i] = lfcb[i] + g * scf[i];
+
+    for (int i = 8; i < 16; i++)
+        scf[i] = hfcb[i-8] + g * scf[i];
+}
+
+/**
+ * Sub-procedure of `sns_enumerate()`, enumeration of a vector
+ * c, n            Table of pulse configuration, and length
  * idx, ls         Return enumeration set
  */
-static void enum_mvpq(const int *y, int n, int *idx, bool *ls)
+static void enum_mvpq(const int *c, int n, int *idx, bool *ls)
 {
-    int yi, i, j;
+    int ci, i, j;
 
     /* --- Scan for 1st significant coeff --- */
 
-    for (i = 0, y += n; (yi = *(--y)) == 0 ; i++);
+    for (i = 0, c += n; (ci = *(--c)) == 0 ; i++);
 
     *idx = 0;
-    *ls = yi < 0;
+    *ls = ci < 0;
 
     /* --- Scan remaining coefficients --- */
 
-    for (i++, j  = yi < 0 ? -yi : yi; i < n;
-         i++, j += yi < 0 ? -yi : yi        ) {
+    for (i++, j = LC3_ABS(ci); i < n; i++, j += LC3_ABS(ci)) {
 
-        if ((yi = *(--y)) != 0) {
+        if ((ci = *(--c)) != 0) {
             *idx = (*idx << 1) | *ls;
-            *ls = yi < 0;
+            *ls = ci < 0;
         }
 
         *idx += lc3_sns_mpvq_offsets[i][j];
@@ -564,38 +585,105 @@ static void enum_mvpq(const int *y, int n, int *idx, bool *ls)
 }
 
 /**
- * SNS Enumeration of PVQ configuration (cf. 3.3.7.3.3.8)
- * shape           Selected shape index
- * y               Selected pulse configuration
- * idx_a, ls_a     Return enumeration set A
- * idx_b, ls_b     Return enumeration set B (shape = 0)
+ * Sub-procedure of `sns_deenumerate()`, deenumeration of a vector
+ * idx, ls         Enumeration set
+ * npulses         Number of pulses in the set
+ * c, n            Table of pulses configuration, and length
  */
-static void do_enumeration(int shape, const int *y,
-    int *idx_a, bool *ls_a, int *idx_b, bool *ls_b)
+static void deenum_mvpq(int idx, bool ls, int npulses, int *c, int n)
 {
-    enum_mvpq(y, shape < 2 ? 10 : 16, idx_a, ls_a);
+    int i;
 
-    if (shape == 0)
-        enum_mvpq(y + 10, 6, idx_b, ls_b);
+    /* --- Scan for coefficients --- */
+
+    for (i = n-1; i >= 0 && idx; i--) {
+
+        int ci = 0;
+
+        for (ci = 0; idx < lc3_sns_mpvq_offsets[i][npulses - ci]; ci++);
+        idx -= lc3_sns_mpvq_offsets[i][npulses - ci];
+
+        *(c++) = ls ? -ci : ci;
+        npulses -= ci;
+        if (ci > 0) {
+            ls = idx & 1;
+            idx >>= 1;
+        }
+    }
+
+    /* --- Set last significant --- */
+
+    int ci = npulses;
+
+    if (i-- >= 0)
+        *(c++) = ls ? -ci : ci;
+
+    while (i-- >= 0)
+        *(c++) = 0;
 }
 
 /**
- * SNS Spectral shaping (cf. 3.3.7.4/5)
+ * SNS Enumeration of PVQ configuration
+ * shape           Selected shape index
+ * c               Selected pulse configuration
+ * idx_a, ls_a     Return enumeration set A
+ * idx_b, ls_b     Return enumeration set B (shape = 0)
+ */
+static void enumerate(int shape, const int *c,
+    int *idx_a, bool *ls_a, int *idx_b, bool *ls_b)
+{
+    enum_mvpq(c, shape < 2 ? 10 : 16, idx_a, ls_a);
+
+    if (shape == 0)
+        enum_mvpq(c + 10, 6, idx_b, ls_b);
+}
+
+/**
+ * SNS Deenumeration of PVQ configuration
+ * shape           Selected shape index
+ * idx_a, ls_a     enumeration set A
+ * idx_b, ls_b     enumeration set B (shape = 0)
+ * c               Return pulse configuration
+ */
+static void deenumerate(int shape,
+    int idx_a, bool ls_a, int idx_b, bool ls_b, int *c)
+{
+    int npulses_a = (const int []){ 10, 10, 8, 6 }[shape];
+
+    deenum_mvpq(idx_a, ls_a, npulses_a, c, shape < 2 ? 10 : 16);
+
+    if (shape == 0)
+        deenum_mvpq(idx_b, ls_b, 1, c + 10, 6);
+    else if (shape == 1)
+        memset(c + 10, 0, 6 * sizeof(*c));
+}
+
+
+/* ----------------------------------------------------------------------------
+ *  Filtering
+ * -------------------------------------------------------------------------- */
+
+/**
+ * Spectral shaping
  * dt, sr          Duration and samplerate of the frame
  * scf_q           Quantized scale factors
- * x               Spectral coefficients, shapped as output
+ * inv             True on inverse shaping, False otherwise
+ * x               Spectral coefficients
+ * y               Return shapped coefficients
+ *
+ * `x` and `y` can be the same buffer
  */
-static void do_spectral_shaping(
-    enum lc3_dt dt, enum lc3_srate sr, const float *scf_q, float *x)
+static void spectral_shaping(enum lc3_dt dt, enum lc3_srate sr,
+    const float *scf_q, bool inv, const float *x, float *y)
 {
     /* --- Interpolate scale factors --- */
 
     float scf[LC3_NUM_BANDS];
-    float s0, s1 = scf_q[0];
+    float s0, s1 = inv ? -scf_q[0] : scf_q[0];
 
     scf[0] = scf[1] = s1;
     for (int i = 0; i < 15; i++) {
-        s0 = s1, s1 = scf_q[i+1];
+        s0 = s1, s1 = inv ? -scf_q[i+1] : scf_q[i+1];
         scf[4*i+2] = s0 + 0.125 * (s1 - s0);
         scf[4*i+3] = s0 + 0.375 * (s1 - s0);
         scf[4*i+4] = s0 + 0.625 * (s1 - s0);
@@ -621,37 +709,65 @@ static void do_spectral_shaping(
         float g_sns = powf(2, -scf[ib]);
 
         for ( ; i < lim[ib+1]; i++)
-            x[i] *= g_sns;
+            y[i] = x[i] * g_sns;
     }
 }
 
+
+/* ----------------------------------------------------------------------------
+ *  Interface
+ * -------------------------------------------------------------------------- */
+
 /**
- * SNS encoding process
+ * SNS analysis
  */
-void lc3_sns_encode(enum lc3_dt dt, enum lc3_srate sr,
-    const float *eb, bool att, struct lc3_sns_data *data, float *x)
+void lc3_sns_analyze(enum lc3_dt dt, enum lc3_srate sr,
+    const float *eb, bool att, struct lc3_sns_data *data,
+    const float *x, float *y)
 {
     /* Processing steps :
      * - Determine 16 scale factors from bands energy estimation
      * - Get codebooks indexes that match thoses scale factors
      * - Quantize the residual with the selected codebook
-     * - The pulse configuration `y[]` is enumerated
+     * - The pulse configuration `c[]` is enumerated
      * - Finally shape the spectrum coefficients accordingly */
 
-    float scf[16];
-    int y[4][16];
+    float scf[16], cn[4][16];
+    int c[4][16];
 
     compute_scale_factors(dt, sr, eb, att, scf);
 
     resolve_codebooks(scf, &data->lfcb, &data->hfcb);
 
-    do_quantization(scf, data->lfcb, data->hfcb,
-        y, &data->shape, &data->gain, scf);
+    quantize(scf, data->lfcb, data->hfcb,
+        c, cn, &data->shape, &data->gain);
 
-    do_enumeration(data->shape, y[data->shape],
+    unquantize(data->lfcb, data->hfcb,
+        cn[data->shape], data->shape, data->gain, scf);
+
+    enumerate(data->shape, c[data->shape],
         &data->idx_a, &data->ls_a, &data->idx_b, &data->ls_b);
 
-    do_spectral_shaping(dt, sr, scf, x);
+    spectral_shaping(dt, sr, scf, false, x, y);
+}
+
+/**
+ * SNS synthesis
+ */
+void lc3_sns_synthesize(enum lc3_dt dt, enum lc3_srate sr,
+    const lc3_sns_data_t *data, const float *x, float *y)
+{
+    float scf[16], cn[16];
+    int c[16];
+
+    deenumerate(data->shape,
+        data->idx_a, data->ls_a, data->idx_b, data->ls_b, c);
+
+    normalize(c, cn);
+
+    unquantize(data->lfcb, data->hfcb, cn, data->shape, data->gain, scf);
+
+    spectral_shaping(dt, sr, scf, true, x, y);
 }
 
 /**
@@ -663,7 +779,7 @@ int lc3_sns_get_nbits(void)
 }
 
 /**
- * Put SNS data
+ * Put bitstream data
  */
 void lc3_sns_put_data(lc3_bits_t *bits, const struct lc3_sns_data *data)
 {
@@ -676,29 +792,87 @@ void lc3_sns_put_data(lc3_bits_t *bits, const struct lc3_sns_data *data)
      * Write MSB bit of shape index, next LSB bits of shape and gain,
      * and MVPQ vectors indexes are muxed */
 
-    lc3_put_bits(bits, data->shape >> 1, 1);
+    int shape_msb = data->shape >> 1;
+    lc3_put_bit(bits, shape_msb);
 
-    if ((data->shape >> 1) == 0) {
-        const int size_a0 = 2390004;
+    if (shape_msb == 0) {
+        const int size_a = 2390004;
         int submode = data->shape & 1;
 
         int mux_high = submode == 0 ?
             2 * (data->idx_b + 1) + data->ls_b : data->gain & 1;
-        int mux_code = mux_high * size_a0 + data->idx_a;
+        int mux_code = mux_high * size_a + data->idx_a;
 
         lc3_put_bits(bits, data->gain >> submode, 1);
         lc3_put_bits(bits, data->ls_a, 1);
         lc3_put_bits(bits, mux_code, 25);
 
     } else {
-        const int size_a2 = 15158272;
+        const int size_a = 15158272;
         int submode = data->shape & 1;
 
         int mux_code = submode == 0 ?
-            data->idx_a : size_a2 + 2 * data->idx_a + (data->gain & 1);
+            data->idx_a : size_a + 2 * data->idx_a + (data->gain & 1);
 
         lc3_put_bits(bits, data->gain >> submode, 2);
         lc3_put_bits(bits, data->ls_a, 1);
         lc3_put_bits(bits, mux_code, 24);
     }
+}
+
+/**
+ * Get bitstream data
+ */
+int lc3_sns_get_data(lc3_bits_t *bits, struct lc3_sns_data *data)
+{
+    /* --- Codebooks --- */
+
+    *data = (struct lc3_sns_data){
+        .lfcb = lc3_get_bits(bits, 5),
+        .hfcb = lc3_get_bits(bits, 5)
+    };
+
+    /* --- Shape, gain and vectors --- */
+
+    int shape_msb = lc3_get_bit(bits);
+    data->gain = lc3_get_bits(bits, 1 + shape_msb);
+    data->ls_a = lc3_get_bit(bits);
+
+    int mux_code = lc3_get_bits(bits, 25 - shape_msb);
+
+    if (shape_msb == 0) {
+        const int size_a = 2390004;
+
+        if (mux_code >= size_a * 14)
+            return -1;
+
+        data->idx_a = mux_code % size_a;
+        mux_code = mux_code / size_a;
+
+        data->shape = (mux_code < 2);
+
+        if (data->shape == 0) {
+            data->idx_b = (mux_code - 2) / 2;
+            data->ls_b  = (mux_code - 2) % 2;
+        } else {
+            data->gain = (data->gain << 1) + (mux_code % 2);
+        }
+
+    } else {
+        const int size_a = 15158272;
+
+        if (mux_code >= size_a + 1549824)
+            return -1;
+
+        data->shape = 2 + (mux_code >= size_a);
+        if (data->shape == 2) {
+            data->idx_a = mux_code;
+        } else {
+            mux_code -= size_a;
+            data->idx_a = mux_code / 2;
+            data->gain = (data->gain << 1) + (mux_code % 2);
+        }
+    }
+
+    return 0;
 }
