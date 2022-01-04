@@ -24,6 +24,7 @@
 
 namespace bluetooth {
 namespace audio {
+namespace hidl {
 namespace codec {
 
 using ::android::hardware::bluetooth::audio::V2_0::BitsPerSample;
@@ -56,5 +57,6 @@ bool UpdateOffloadingCapabilities(
 bool IsCodecOffloadingEnabled(const CodecConfiguration& codec_config);
 
 }  // namespace codec
+}  // namespace hidl
 }  // namespace audio
 }  // namespace bluetooth
