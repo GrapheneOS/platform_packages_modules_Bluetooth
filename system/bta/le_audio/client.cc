@@ -34,7 +34,7 @@
 #include "device/include/controller.h"
 #include "devices.h"
 #include "embdrv/lc3_dec/Api/Lc3Decoder.hpp"
-#include "embdrv/lc3_enc/include/lc3.h"
+#include "embdrv/lc3/include/lc3.h"
 #include "gatt/bta_gattc_int.h"
 #include "le_audio_types.h"
 #include "osi/include/osi.h"
