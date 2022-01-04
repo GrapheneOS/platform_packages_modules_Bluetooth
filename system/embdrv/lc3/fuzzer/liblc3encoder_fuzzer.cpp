@@ -41,7 +41,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 
   std::vector<uint8_t> output(output_byte_count);
   lc3_encode(lc3_encoder, (const int16_t*)input_frames.data(), 1,
-                     output.data(), output.size());
+                     output.size(), output.data());
 
   free(lc3_encoder_mem);
   lc3_encoder_mem = nullptr;
