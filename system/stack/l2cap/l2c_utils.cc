@@ -1574,6 +1574,9 @@ void l2cu_release_ccb(tL2C_CCB* p_ccb) {
 
   /* Flag as not in use */
   p_ccb->in_use = false;
+  // Clear Remote CID and Local Id
+  p_ccb->remote_cid = 0;
+  p_ccb->local_id = 0;
 
   /* If no channels on the connection, start idle timeout */
   if ((p_lcb) && p_lcb->in_use) {
