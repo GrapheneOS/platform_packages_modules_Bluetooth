@@ -102,6 +102,8 @@ class LinkLayerController {
 
   void TimerTick();
 
+  void Close();
+
   AsyncTaskId ScheduleTask(std::chrono::milliseconds delay_ms, const TaskCallback& task);
 
   void CancelScheduledTask(AsyncTaskId task);

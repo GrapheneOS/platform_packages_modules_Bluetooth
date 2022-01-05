@@ -69,6 +69,8 @@ class DualModeController : public Device {
 
   virtual void TimerTick() override;
 
+  virtual void Close() override;
+
   // Route commands and data from the stack.
   void HandleAcl(std::shared_ptr<std::vector<uint8_t>> acl_packet);
   void HandleCommand(std::shared_ptr<std::vector<uint8_t>> command_packet);
