@@ -435,11 +435,13 @@ void btu_hcif_process_event(UNUSED_ATTR uint8_t controller_id, BT_HDR* p_msg) {
           break;
 
         case HCI_BLE_PERIODIC_ADV_SYNC_EST_EVT:
-          btm_ble_process_periodic_adv_sync_est_evt(ble_evt_len, p);
+          btm_ble_process_periodic_adv_sync_est_evt(
+              ble_evt_len, const_cast<const uint8_t*>(p));
           break;
 
         case HCI_BLE_PERIODIC_ADV_REPORT_EVT:
-          btm_ble_process_periodic_adv_pkt(ble_evt_len, p);
+          btm_ble_process_periodic_adv_pkt(ble_evt_len,
+                                           const_cast<const uint8_t*>(p));
           break;
 
         case HCI_BLE_PERIODIC_ADV_SYNC_LOST_EVT:

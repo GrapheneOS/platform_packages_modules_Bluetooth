@@ -49,9 +49,11 @@ namespace stack_btm_ble_scanner_hci_interface {
 // Params: uint8_t data_len, uint8_t* data
 // Returns: void
 struct btm_ble_process_periodic_adv_sync_est_evt {
-  std::function<void(uint8_t data_len, uint8_t* data)> body{
-      [](uint8_t data_len, uint8_t* data) {}};
-  void operator()(uint8_t data_len, uint8_t* data) { body(data_len, data); };
+  std::function<void(uint8_t data_len, const uint8_t* data)> body{
+      [](uint8_t data_len, const uint8_t* data) {}};
+  void operator()(uint8_t data_len, const uint8_t* data) {
+    body(data_len, data);
+  };
 };
 extern struct btm_ble_process_periodic_adv_sync_est_evt
     btm_ble_process_periodic_adv_sync_est_evt;
@@ -59,9 +61,11 @@ extern struct btm_ble_process_periodic_adv_sync_est_evt
 // Params: uint8_t data_len, uint8_t* data
 // Returns: void
 struct btm_ble_process_periodic_adv_pkt {
-  std::function<void(uint8_t data_len, uint8_t* data)> body{
-      [](uint8_t data_len, uint8_t* data) {}};
-  void operator()(uint8_t data_len, uint8_t* data) { body(data_len, data); };
+  std::function<void(uint8_t data_len, const uint8_t* data)> body{
+      [](uint8_t data_len, const uint8_t* data) {}};
+  void operator()(uint8_t data_len, const uint8_t* data) {
+    body(data_len, data);
+  };
 };
 extern struct btm_ble_process_periodic_adv_pkt btm_ble_process_periodic_adv_pkt;
 // Name: btm_ble_process_periodic_adv_sync_lost_evt
