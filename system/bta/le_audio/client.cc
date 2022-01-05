@@ -2109,26 +2109,33 @@ class LeAudioClientImpl : public LeAudioClient {
       return false;
     }
 
-    if (lc3_encoder_left_mem) {
-      LOG(WARNING)
-          << " The encoder instance should have been already released.";
-      free(lc3_encoder_left_mem);
-      lc3_encoder_left_mem = nullptr;
-      free(lc3_encoder_right_mem);
-      lc3_encoder_right_mem = nullptr;
-    }
-    int dt_us = current_source_codec_config.data_interval_us;
-    int sr_hz = current_source_codec_config.sample_rate;
-    unsigned enc_size = lc3_encoder_size(dt_us, sr_hz);
-
-    lc3_encoder_left_mem = malloc(enc_size);
-    lc3_encoder_right_mem = malloc(enc_size);
-
-    lc3_encoder_left = lc3_setup_encoder(dt_us, sr_hz, lc3_encoder_left_mem);
-    lc3_encoder_right = lc3_setup_encoder(dt_us, sr_hz, lc3_encoder_right_mem);
-
     uint16_t remote_delay_ms =
         group->GetRemoteDelay(le_audio::types::kLeAudioDirectionSink);
+    if (CodecManager::GetInstance()->GetCodecLocation() ==
+        le_audio::types::CodecLocation::HOST) {
+      if (lc3_encoder_left_mem) {
+        LOG(WARNING)
+            << " The encoder instance should have been already released.";
+        free(lc3_encoder_left_mem);
+        lc3_encoder_left_mem = nullptr;
+        free(lc3_encoder_right_mem);
+        lc3_encoder_right_mem = nullptr;
+      }
+      int dt_us = current_source_codec_config.data_interval_us;
+      int sr_hz = current_source_codec_config.sample_rate;
+      unsigned enc_size = lc3_encoder_size(dt_us, sr_hz);
+
+      lc3_encoder_left_mem = malloc(enc_size);
+      lc3_encoder_right_mem = malloc(enc_size);
+
+      lc3_encoder_left = lc3_setup_encoder(dt_us, sr_hz, lc3_encoder_left_mem);
+      lc3_encoder_right =
+          lc3_setup_encoder(dt_us, sr_hz, lc3_encoder_right_mem);
+    } else if (CodecManager::GetInstance()->GetCodecLocation() ==
+               le_audio::types::CodecLocation::ADSP) {
+      CodecManager::GetInstance()->UpdateActiveAudioConfig(*stream_conf,
+                                                           remote_delay_ms);
+    }
 
     LeAudioClientAudioSource::UpdateRemoteDelay(remote_delay_ms);
     LeAudioClientAudioSource::ConfirmStreamingRequest();

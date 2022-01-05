@@ -37,6 +37,11 @@ types::CodecLocation CodecManager::GetCodecLocation() const {
   return pimpl_->GetCodecLocation();
 }
 
+void CodecManager::UpdateActiveAudioConfig(
+    const stream_configuration& stream_conf, uint16_t delay) {
+  if (pimpl_) return pimpl_->UpdateActiveAudioConfig(stream_conf, delay);
+}
+
 void CodecManager::Start() {
   // It is needed here as CodecManager which is a singleton creates it, but in
   // this mock we want to destroy and recreate the mock on each test case.

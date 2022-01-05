@@ -39,6 +39,9 @@ using ::android::hardware::bluetooth::audio::V2_1::Lc3Parameters;
 using ::android::hardware::bluetooth::audio::V2_1::PcmParameters;
 using ::android::hardware::bluetooth::audio::V2_2::AudioLocation;
 using ::android::hardware::bluetooth::audio::V2_2::LeAudioConfiguration;
+using ::android::hardware::bluetooth::audio::V2_2::LeAudioMode;
+using ::android::hardware::bluetooth::audio::V2_2::UnicastConfig;
+using ::android::hardware::bluetooth::audio::V2_2::UnicastStreamMap;
 using ::bluetooth::audio::AudioConfiguration_2_2;
 using ::bluetooth::audio::BluetoothAudioCtrlAck;
 using ::bluetooth::audio::SampleRate_2_1;
@@ -529,7 +532,8 @@ static SampleRate_2_1 le_audio_sample_rate2audio_hal(uint32_t sample_rate_2_1) {
   return SampleRate_2_1::RATE_UNKNOWN;
 }
 
-static BitsPerSample le_audio_bit_rate2audio_hal(uint8_t bits_per_sample) {
+static BitsPerSample le_audio_bits_per_sample2audio_hal(
+    uint8_t bits_per_sample) {
   switch (bits_per_sample) {
     case 16:
       return BitsPerSample::BITS_16;
@@ -551,6 +555,18 @@ static ChannelMode le_audio_channel_mode2audio_hal(uint8_t channels_count) {
   return ChannelMode::UNKNOWN;
 }
 
+static Lc3FrameDuration le_audio_frame_duration2audio_hal(
+    uint8_t frame_duration) {
+  switch (frame_duration) {
+    case 10000:
+      return Lc3FrameDuration::DURATION_10000US;
+    case 7500:
+      return Lc3FrameDuration::DURATION_7500US;
+  }
+  // TODO: handle error in the aidl version
+  return Lc3FrameDuration::DURATION_10000US;
+}
+
 void LeAudioClientInterface::Sink::Cleanup() {
   LOG(INFO) << __func__ << " sink";
   StopSession();
@@ -564,7 +580,7 @@ void LeAudioClientInterface::Sink::SetPcmParameters(
     const PcmParameters& params) {
   le_audio_sink->LeAudioSetSelectedHalPcmConfig(
       le_audio_sample_rate2audio_hal(params.sample_rate),
-      le_audio_bit_rate2audio_hal(params.bits_per_sample),
+      le_audio_bits_per_sample2audio_hal(params.bits_per_sample),
       le_audio_channel_mode2audio_hal(params.channels_count),
       params.data_interval_us);
 }
@@ -635,6 +651,41 @@ void LeAudioClientInterface::Sink::StopSession() {
   le_audio_sink_hal_clientinterface->EndSession();
 }
 
+void LeAudioClientInterface::Sink::UpdateAudioConfigToHal(
+    const ::le_audio::offload_config& offload_config) {
+  if (le_audio_sink_hal_clientinterface->GetTransportInstance()
+          ->GetSessionType_2_1() !=
+      SessionType_2_1::LE_AUDIO_HARDWARE_OFFLOAD_ENCODING_DATAPATH) {
+    return;
+  }
+
+  AudioConfiguration_2_2 audio_config;
+  std::vector<UnicastStreamMap> unicast_map;
+  for (auto& [handle, location] : offload_config.stream_map) {
+    UnicastStreamMap stream = {.streamHandle = handle,
+                               .audioChannelAllocation = location};
+    unicast_map.emplace_back(stream);
+  }
+  hidl_vec<UnicastStreamMap> hal_map;
+  hal_map.setToExternal(unicast_map.data(), unicast_map.size());
+  LeAudioConfiguration le_audio_config;
+  le_audio_config.mode = LeAudioMode::UNICAST;
+  le_audio_config.config.unicastConfig() = {
+      .streamMap = std::move(hal_map),
+      .peerDelay = offload_config.peer_delay,
+      .lc3Config = {.pcmBitDepth = le_audio_bits_per_sample2audio_hal(
+                        offload_config.bits_per_sample),
+                    .samplingFrequency = le_audio_sample_rate2audio_hal(
+                        offload_config.sampling_rate),
+                    .frameDuration = le_audio_frame_duration2audio_hal(
+                        offload_config.frame_duration),
+                    .octetsPerFrame = offload_config.octets_per_frame,
+                    .blocksPerSdu = offload_config.blocks_per_sdu}};
+  audio_config.leAudioConfig(le_audio_config);
+
+  le_audio_sink_hal_clientinterface->UpdateAudioConfig_2_2(audio_config);
+}
+
 size_t LeAudioClientInterface::Sink::Read(uint8_t* p_buf, uint32_t len) {
   return le_audio_sink_hal_clientinterface->ReadAudioData(p_buf, len);
 }
@@ -652,7 +703,7 @@ void LeAudioClientInterface::Source::SetPcmParameters(
     const PcmParameters& params) {
   le_audio_source->LeAudioSetSelectedHalPcmConfig(
       le_audio_sample_rate2audio_hal(params.sample_rate),
-      le_audio_bit_rate2audio_hal(params.bits_per_sample),
+      le_audio_bits_per_sample2audio_hal(params.bits_per_sample),
       le_audio_channel_mode2audio_hal(params.channels_count),
       params.data_interval_us);
 }
@@ -717,6 +768,12 @@ void LeAudioClientInterface::Source::StopSession() {
   LOG(INFO) << __func__ << " source";
   le_audio_source->ClearPendingStartStream();
   le_audio_source_hal_clientinterface->EndSession();
+}
+
+void LeAudioClientInterface::Source::UpdateAudioConfigToHal(
+    const ::le_audio::offload_config& config) {
+  LOG(INFO) << __func__ << " source: not handle now";
+  return;
 }
 
 size_t LeAudioClientInterface::Source::Write(const uint8_t* p_buf,
