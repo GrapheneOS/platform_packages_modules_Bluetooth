@@ -211,7 +211,7 @@ class BleScannerImplBase : public BleScannerHciInterface {
 
   void OnPeriodicScanResult(uint16_t sync_handle, uint8_t tx_power, int8_t rssi,
                             uint8_t cte_type, uint8_t pkt_data_status,
-                            uint8_t pkt_data_len, uint8_t* p_pkt_data) {
+                            uint8_t pkt_data_len, const uint8_t* p_pkt_data) {
     // The observer should handle the caching and reassembly of the fragmented
     // packet.
     if (scan_event_observer) {
@@ -351,7 +351,7 @@ void BleScannerHciInterface::CleanUp() {
 }
 
 void btm_ble_process_periodic_adv_sync_est_evt(uint8_t data_len,
-                                               uint8_t* data) {
+                                               const uint8_t* data) {
   uint16_t sync_handle, adv_interval;
   uint8_t status, adv_sid, adv_addr_type, adv_phy, adv_clock_accuracy;
   RawAddress adv_addr;
@@ -378,8 +378,8 @@ void btm_ble_process_periodic_adv_sync_est_evt(uint8_t data_len,
   }
 }
 
-void btm_ble_process_periodic_adv_pkt(uint8_t data_len, uint8_t* data) {
-  uint8_t* p = data;
+void btm_ble_process_periodic_adv_pkt(uint8_t data_len, const uint8_t* data) {
+  const uint8_t* p = data;
   uint16_t sync_handle;
   uint8_t tx_power, cte_type, pkt_data_status, pkt_data_len;
   int8_t rssi;
@@ -394,7 +394,7 @@ void btm_ble_process_periodic_adv_pkt(uint8_t data_len, uint8_t* data) {
   STREAM_TO_UINT8(pkt_data_status, p);
   STREAM_TO_UINT8(pkt_data_len, p);
 
-  uint8_t* pkt_data = p;
+  const uint8_t* pkt_data = p;
   p += pkt_data_len;
 
   if (p > data + data_len) {
