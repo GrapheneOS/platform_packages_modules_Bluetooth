@@ -436,6 +436,18 @@ void LeAudioClientAudioSource::DebugDump(int fd) {
   dprintf(fd, "%s", stream.str().c_str());
 }
 
+void LeAudioClientAudioSource::UpdateAudioConfigToHal(
+    const ::le_audio::offload_config& config) {
+  LOG(INFO) << __func__;
+  if ((sinkClientInterface == nullptr) ||
+      (le_audio_sink_hal_state != HAL_STARTED)) {
+    LOG(ERROR) << "LE audio device HAL was not started!";
+    return;
+  }
+
+  sinkClientInterface->UpdateAudioConfigToHal(config);
+}
+
 bool LeAudioClientAudioSink::Start(
     const LeAudioCodecConfiguration& codec_configuration,
     LeAudioClientAudioSourceReceiver* audioReceiver) {
@@ -598,4 +610,16 @@ void LeAudioClientAudioSink::UpdateRemoteDelay(uint16_t remote_delay_ms) {
 
 void LeAudioClientAudioSink::DebugDump(int fd) {
   /* TODO: Add some statistic for source client interface */
+}
+
+void LeAudioClientAudioSink::UpdateAudioConfigToHal(
+    const ::le_audio::offload_config& config) {
+  LOG(INFO) << __func__;
+  if ((sourceClientInterface == nullptr) ||
+      (le_audio_source_hal_state != HAL_STARTED)) {
+    LOG(ERROR) << "LE audio device HAL was not started!";
+    return;
+  }
+
+  sourceClientInterface->UpdateAudioConfigToHal(config);
 }

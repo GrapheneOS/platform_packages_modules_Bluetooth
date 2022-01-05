@@ -34,6 +34,8 @@ class MockLeAudioClientAudioSource {
   MOCK_METHOD((void), CancelStreamingRequest, ());
   MOCK_METHOD((void), UpdateRemoteDelay, (uint16_t delay));
   MOCK_METHOD((void), DebugDump, (int fd));
+  MOCK_METHOD((void), UpdateAudioConfigToHal,
+              (const ::le_audio::offload_config&));
 };
 
 class MockLeAudioClientAudioSink {
@@ -50,4 +52,6 @@ class MockLeAudioClientAudioSink {
   MOCK_METHOD((void), CancelStreamingRequest, ());
   MOCK_METHOD((void), UpdateRemoteDelay, (uint16_t delay));
   MOCK_METHOD((void), DebugDump, (int fd));
+  MOCK_METHOD((void), UpdateAudioConfigToHal,
+              (const ::le_audio::offload_config&));
 };
