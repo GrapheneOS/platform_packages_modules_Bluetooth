@@ -44,6 +44,7 @@ import androidx.test.rule.ServiceTestRule;
 import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.hfp.BluetoothHeadsetProxy;
+import com.android.bluetooth.tbs.BluetoothLeCallControlProxy;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -94,6 +95,7 @@ public class BluetoothInCallServiceTest {
             = ServiceTestRule.withTimeout(1, TimeUnit.SECONDS);
 
     @Mock private BluetoothHeadsetProxy mMockBluetoothHeadset;
+    @Mock private BluetoothLeCallControlProxy mMockBluetoothLeCallControl;
     @Mock private BluetoothInCallService.CallInfo mMockCallInfo;
     @Mock private TelephonyManager mMockTelephonyManager;
 
@@ -136,6 +138,7 @@ public class BluetoothInCallServiceTest {
 
         mBluetoothInCallService = new TestableBluetoothInCallService();
         mBluetoothInCallService.setBluetoothHeadset(mMockBluetoothHeadset);
+        mBluetoothInCallService.setBluetoothLeCallControl(mMockBluetoothLeCallControl);
         mBluetoothInCallService.mCallInfo = mMockCallInfo;
     }
 
