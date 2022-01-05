@@ -16,6 +16,7 @@
 
 #include "codec_manager.h"
 
+#include "client_audio.h"
 #include "device/include/controller.h"
 #include "osi/include/log.h"
 #include "osi/include/properties.h"
@@ -67,6 +68,24 @@ struct codec_manager_impl {
   }
   CodecLocation GetCodecLocation(void) const { return codec_location_; }
 
+  void UpdateActiveAudioConfig(
+      const le_audio::stream_configuration& stream_conf, uint16_t delay) {
+    if (!stream_conf.sink_streams.empty()) {
+      sink_config.stream_map = std::move(stream_conf.sink_streams);
+      // TODO: set the default value 16 for now, would change it if we support
+      // mode bits_per_sample
+      sink_config.bits_per_sample = 16;
+      sink_config.sampling_rate = stream_conf.sink_sample_frequency_hz;
+      sink_config.frame_duration = stream_conf.sink_frame_duration_us;
+      sink_config.octets_per_frame = stream_conf.sink_octets_per_codec_frame;
+      // TODO: set the default value 1 for now, would change it if we need more
+      // configuration
+      sink_config.blocks_per_sdu = 1;
+      sink_config.peer_delay = delay;
+      LeAudioClientAudioSource::UpdateAudioConfigToHal(sink_config);
+    }
+  }
+
  private:
   void SetCodecLocation(CodecLocation location) {
     if (offload_enable_ == false) return;
@@ -74,6 +93,7 @@ struct codec_manager_impl {
   }
   CodecLocation codec_location_ = CodecLocation::HOST;
   bool offload_enable_ = false;
+  le_audio::offload_config sink_config;
 };
 
 struct CodecManager::impl {
@@ -111,6 +131,12 @@ types::CodecLocation CodecManager::GetCodecLocation(void) const {
   }
 
   return pimpl_->codec_manager_impl_->GetCodecLocation();
+}
+
+void CodecManager::UpdateActiveAudioConfig(
+    const stream_configuration& stream_conf, uint16_t delay) {
+  if (pimpl_->IsRunning())
+    pimpl_->codec_manager_impl_->UpdateActiveAudioConfig(stream_conf, delay);
 }
 
 }  // namespace le_audio
