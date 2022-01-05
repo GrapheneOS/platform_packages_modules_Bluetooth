@@ -833,6 +833,8 @@ void l2c_pin_code_request(const RawAddress& bd_addr) {
 static bool l2c_link_check_power_mode(tL2C_LCB* p_lcb) {
   bool need_to_active = false;
 
+  // Return false as LM modes are applicable for BREDR transport
+  if (p_lcb->is_transport_ble()) return false;
   /*
    * We only switch park to active only if we have unsent packets
    */
@@ -849,7 +851,7 @@ static bool l2c_link_check_power_mode(tL2C_LCB* p_lcb) {
   }
 
   /* if we have packets to send */
-  if (need_to_active && !p_lcb->is_transport_ble()) {
+  if (need_to_active) {
     /* check power mode */
     tBTM_PM_MODE mode;
     if (BTM_ReadPowerMode(p_lcb->remote_bd_addr, &mode)) {
