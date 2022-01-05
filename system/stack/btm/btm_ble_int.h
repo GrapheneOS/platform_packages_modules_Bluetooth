@@ -34,8 +34,9 @@
 #include "stack/include/hci_error_code.h"
 #include "types/raw_address.h"
 
-extern void btm_ble_process_periodic_adv_sync_est_evt(uint8_t len, uint8_t* p);
-extern void btm_ble_process_periodic_adv_pkt(uint8_t len, uint8_t* p);
+extern void btm_ble_process_periodic_adv_sync_est_evt(uint8_t len,
+                                                      const uint8_t* p);
+extern void btm_ble_process_periodic_adv_pkt(uint8_t len, const uint8_t* p);
 extern void btm_ble_process_periodic_adv_sync_lost_evt(uint8_t len, uint8_t* p);
 extern void btm_send_hci_set_scan_params(uint8_t scan_type, uint16_t scan_int,
                                          uint16_t scan_win,
