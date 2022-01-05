@@ -331,6 +331,12 @@ enum class AudioStreamDataPathState {
   DATA_PATH_ESTABLISHED,
 };
 
+enum class CodecLocation {
+  HOST,
+  ADSP,
+  CONTROLLER,
+};
+
 /* Context Types */
 enum class LeAudioContextType : uint16_t {
   UNINITIALIZED = 0x0000,
