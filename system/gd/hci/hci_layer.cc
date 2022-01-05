@@ -328,6 +328,11 @@ struct HciLayer::impl {
   void on_hci_event(EventView event) {
     ASSERT(event.IsValid());
     if (command_queue_.empty()) {
+      auto event_code = event.GetEventCode();
+      ASSERT_LOG(
+          event_code != EventCode::COMMAND_COMPLETE && event_code != EventCode::COMMAND_STATUS,
+          "Received %s without a waiting command (is the HAL sending commands, but not handling the events?)",
+          EventCodeText(event_code).c_str());
       std::unique_ptr<CommandView> no_waiting_command{nullptr};
       log_hci_event(no_waiting_command, event, module_.GetDependency<storage::StorageModule>());
     } else {
