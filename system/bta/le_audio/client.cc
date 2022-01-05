@@ -30,11 +30,12 @@
 #include "btm_iso_api.h"
 #include "client_audio.h"
 #include "client_parser.h"
+#include "codec_manager.h"
 #include "common/time_util.h"
 #include "device/include/controller.h"
 #include "devices.h"
 #include "embdrv/lc3_dec/Api/Lc3Decoder.hpp"
-#include "embdrv/lc3_enc/include/lc3.h"
+#include "embdrv/lc3/include/lc3.h"
 #include "gatt/bta_gattc_int.h"
 #include "le_audio_types.h"
 #include "osi/include/osi.h"
@@ -56,6 +57,7 @@ using bluetooth::le_audio::ConnectionState;
 using bluetooth::le_audio::GroupNodeStatus;
 using bluetooth::le_audio::GroupStatus;
 using bluetooth::le_audio::GroupStreamStatus;
+using le_audio::CodecManager;
 using le_audio::LeAudioDevice;
 using le_audio::LeAudioDeviceGroup;
 using le_audio::LeAudioDeviceGroups;
@@ -1869,9 +1871,9 @@ class LeAudioClientImpl : public LeAudioClient {
     bool mono = (left_cis_handle == 0) || (right_cis_handle == 0);
     if (!mono) {
       lc3_encode(lc3_encoder_left, (const int16_t*)data.data(), 2,
-                 chan_left_enc.data(), chan_left_enc.size());
+                 chan_left_enc.size(), chan_left_enc.data());
       lc3_encode(lc3_encoder_right, ((const int16_t*)data.data()) + 1, 2,
-                 chan_right_enc.data(), chan_right_enc.size());
+                 chan_right_enc.size(), chan_right_enc.data());
     } else {
       std::vector<int16_t> chan_left;
       std::vector<int16_t> chan_right;
@@ -1879,12 +1881,12 @@ class LeAudioClientImpl : public LeAudioClient {
 
       if (left_cis_handle) {
         lc3_encode(lc3_encoder_left, (const int16_t*)chan_left.data(), 1,
-                   chan_left_enc.data(), chan_left_enc.size());
+                   chan_left_enc.size(), chan_left_enc.data());
       }
 
       if (right_cis_handle) {
         lc3_encode(lc3_encoder_right, (const int16_t*)chan_right.data(), 1,
-                   chan_right_enc.data(), chan_right_enc.size());
+                   chan_right_enc.size(), chan_right_enc.data());
       }
     }
 
@@ -1924,7 +1926,7 @@ class LeAudioClientImpl : public LeAudioClient {
       get_mono_stream(data, chan_mono);
 
       lc3_encode(lc3_encoder_left, (const int16_t*)chan_mono.data(), 1,
-                 chan_encoded.data(), byte_count);
+                 byte_count, chan_encoded.data());
 
     } else {
       std::vector<int16_t> chan_left;
@@ -1932,9 +1934,9 @@ class LeAudioClientImpl : public LeAudioClient {
       get_left_and_right_stream(data, chan_left, chan_right, false);
 
       lc3_encode(lc3_encoder_left, (const int16_t*)chan_left.data(), 1,
-                 chan_encoded.data(), byte_count);
+                 byte_count, chan_encoded.data());
       lc3_encode(lc3_encoder_right, (const int16_t*)chan_right.data(), 1,
-                 chan_encoded.data() + byte_count, byte_count);
+                 byte_count, chan_encoded.data() + byte_count);
     }
 
     /* Send data to the controller */
@@ -3303,6 +3305,7 @@ void LeAudioClient::Initialize(
   instance = new LeAudioClientImpl(callbacks_, stateMachineCallbacks, initCb);
 
   IsoManager::GetInstance()->RegisterCigCallbacks(stateMachineHciCallbacks);
+  CodecManager::GetInstance()->Start();
 }
 
 void LeAudioClient::DebugDump(int fd) {
@@ -3330,6 +3333,7 @@ void LeAudioClient::Cleanup(void) {
   ptr->Cleanup();
   delete ptr;
 
+  CodecManager::GetInstance()->Stop();
   LeAudioGroupStateMachine::Cleanup();
   IsoManager::GetInstance()->Stop();
 }

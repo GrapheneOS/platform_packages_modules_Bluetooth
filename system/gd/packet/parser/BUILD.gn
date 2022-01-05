@@ -78,6 +78,10 @@ executable("bluetooth_packetgen") {
 
 flex_source("pktlexer") {
   sources = [ "language_l.ll" ]
+
+  deps = [
+    ":pktparser",
+  ]
   configs = [ ":pktgen_configs" ]
 }
 

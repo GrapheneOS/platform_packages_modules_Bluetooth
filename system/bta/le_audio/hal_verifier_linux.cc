@@ -17,3 +17,4 @@
 #include "bta_le_audio_api.h"
 
 bool LeAudioHalVerifier::SupportsLeAudio() { return false; }
+bool LeAudioHalVerifier::SupportsLeAudioHardwareOffload() { return false; }
