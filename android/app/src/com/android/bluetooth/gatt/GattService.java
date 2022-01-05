@@ -356,7 +356,8 @@ public class GattService extends ProfileService {
                             }
                             for (String test : TEST_MODE_BEACONS) {
                                 onScanResultInternal(0x1b, 0x1, "DD:34:02:05:5C:4D", 1, 0, 0xff,
-                                        127, -54, 0x0, HexEncoding.decode(test));
+                                        127, -54, 0x0, HexEncoding.decode(test),
+                                        "DD:34:02:05:5C:4E");
                             }
                             sendEmptyMessageDelayed(0, DateUtils.SECOND_IN_MILLIS);
                         }
@@ -1160,23 +1161,24 @@ public class GattService extends ProfileService {
 
     void onScanResult(int eventType, int addressType, String address, int primaryPhy,
             int secondaryPhy, int advertisingSid, int txPower, int rssi, int periodicAdvInt,
-            byte[] advData) {
+            byte[] advData, String originalAddress) {
         // When in testing mode, ignore all real-world events
         if (isTestModeEnabled()) return;
 
         onScanResultInternal(eventType, addressType, address, primaryPhy, secondaryPhy,
-                advertisingSid, txPower, rssi, periodicAdvInt, advData);
+                advertisingSid, txPower, rssi, periodicAdvInt, advData, originalAddress);
     }
 
     void onScanResultInternal(int eventType, int addressType, String address, int primaryPhy,
             int secondaryPhy, int advertisingSid, int txPower, int rssi, int periodicAdvInt,
-            byte[] advData) {
+            byte[] advData, String originalAddress) {
         if (VDBG) {
             Log.d(TAG, "onScanResult() - eventType=0x" + Integer.toHexString(eventType)
                     + ", addressType=" + addressType + ", address=" + address + ", primaryPhy="
                     + primaryPhy + ", secondaryPhy=" + secondaryPhy + ", advertisingSid=0x"
                     + Integer.toHexString(advertisingSid) + ", txPower=" + txPower + ", rssi="
-                    + rssi + ", periodicAdvInt=0x" + Integer.toHexString(periodicAdvInt));
+                    + rssi + ", periodicAdvInt=0x" + Integer.toHexString(periodicAdvInt)
+                    + ", originalAddress=" + originalAddress);
         }
 
         byte[] legacyAdvData = Arrays.copyOfRange(advData, 0, 62);
