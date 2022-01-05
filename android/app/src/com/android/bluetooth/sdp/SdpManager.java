@@ -183,6 +183,7 @@ public class SdpManager {
 
         SdpSearchInstance getSearchInstance(byte[] address, byte[] uuidBytes) {
             String addressString = Utils.getAddressStringFromByte(address);
+            addressString = sAdapterService.getIdentityAddress(addressString);
             ParcelUuid uuid = Utils.byteArrayToUuid(uuidBytes)[0];
             for (SdpSearchInstance inst : mList) {
                 if (inst.getDevice().getAddress().equals(addressString) && inst.getUuid()
@@ -208,8 +209,6 @@ public class SdpManager {
 
     private SdpManager(AdapterService adapterService) {
         sSdpSearchTracker = new SdpSearchTracker();
-
-        /* This is only needed until intents are no longer used */
         sAdapterService = adapterService;
         initializeNative();
         sNativeAvailable = true;
@@ -464,7 +463,7 @@ public class SdpManager {
 
             inst.startSearch(); // Trigger timeout message
 
-            sdpSearchNative(Utils.getBytesFromAddress(inst.getDevice().getAddress()),
+            sdpSearchNative(sAdapterService.getByteIdentityAddress(inst.getDevice()),
                     Utils.uuidToByteArray(inst.getUuid()));
         } else { // Else queue is empty.
             if (D) {
