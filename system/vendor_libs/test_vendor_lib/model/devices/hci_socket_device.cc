@@ -137,7 +137,7 @@ void HciSocketDevice::Close()  {
   if (socket_) {
     socket_->Close();
   }
-  Device::Close();
+  DualModeController::Close();
 }
 
 
