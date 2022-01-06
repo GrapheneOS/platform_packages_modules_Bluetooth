@@ -23,6 +23,7 @@ impl IBluetoothMediaCallback for BluetoothMediaCallbackDBus {
         sample_rate: i32,
         bits_per_sample: i32,
         channel_mode: i32,
+        hfp_cap: i32,
     ) {
     }
 

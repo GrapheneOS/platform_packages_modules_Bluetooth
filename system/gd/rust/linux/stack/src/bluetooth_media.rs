@@ -7,7 +7,9 @@ use bt_topshim::profiles::a2dp::{
     PresentationPosition,
 };
 use bt_topshim::profiles::avrcp::{Avrcp, AvrcpCallbacks, AvrcpCallbacksDispatcher};
-use bt_topshim::profiles::hfp::{BthfConnectionState, Hfp, HfpCallbacks, HfpCallbacksDispatcher};
+use bt_topshim::profiles::hfp::{
+    BthfConnectionState, Hfp, HfpCallbacks, HfpCallbacksDispatcher, HfpCodecCapability,
+};
 
 use bt_topshim::topstack;
 
@@ -49,13 +51,17 @@ pub trait IBluetoothMedia {
 }
 
 pub trait IBluetoothMediaCallback {
-    ///
+    /// Triggered when a Bluetooth audio device is ready to be used. This should
+    /// only be triggered once for a device and send an event to clients. If the
+    ///  device supports both HFP and A2DP, both should be ready when this is
+    /// triggered.
     fn on_bluetooth_audio_device_added(
         &self,
         addr: String,
         sample_rate: i32,
         bits_per_sample: i32,
         channel_mode: i32,
+        hfp_cap: i32,
     );
 
     ///
@@ -128,6 +134,7 @@ impl BluetoothMedia {
                                         cap.sample_rate,
                                         cap.bits_per_sample,
                                         cap.channel_mode,
+                                        HfpCodecCapability::UNSUPPORTED.bits(),
                                     );
                                 });
                                 return;
