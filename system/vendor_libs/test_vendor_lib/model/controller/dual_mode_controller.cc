@@ -61,6 +61,11 @@ void DualModeController::TimerTick() {
   link_layer_controller_.TimerTick();
 }
 
+void DualModeController::Close() {
+  link_layer_controller_.Close();
+  Device::Close();
+}
+
 void DualModeController::SendCommandCompleteUnknownOpCodeEvent(uint16_t command_opcode) const {
   std::unique_ptr<bluetooth::packet::RawBuilder> raw_builder_ptr =
       std::make_unique<bluetooth::packet::RawBuilder>();

@@ -256,9 +256,7 @@ static void event_init_stack(void* context) {
 
     module_init(get_local_module(OSI_MODULE));
     module_init(get_local_module(BT_UTILS_MODULE));
-    if (bluetooth::shim::is_any_gd_enabled()) {
-      module_start_up(get_local_module(GD_IDLE_MODULE));
-    }
+    module_start_up(get_local_module(GD_IDLE_MODULE));
     module_init(get_local_module(BTIF_CONFIG_MODULE));
     btif_init_bluetooth();
 
@@ -297,14 +295,10 @@ static void event_start_up_stack(UNUSED_ATTR void* context) {
   future_t* local_hack_future = future_new();
   hack_future = local_hack_future;
 
-  if (bluetooth::shim::is_any_gd_enabled()) {
-    LOG_INFO("%s Gd shim module enabled", __func__);
-    module_shut_down(get_local_module(GD_IDLE_MODULE));
-    module_start_up(get_local_module(GD_SHIM_MODULE));
-    module_start_up(get_local_module(BTIF_CONFIG_MODULE));
-  } else {
-    module_start_up(get_local_module(BTIF_CONFIG_MODULE));
-  }
+  LOG_INFO("%s Gd shim module enabled", __func__);
+  module_shut_down(get_local_module(GD_IDLE_MODULE));
+  module_start_up(get_local_module(GD_SHIM_MODULE));
+  module_start_up(get_local_module(BTIF_CONFIG_MODULE));
 
   get_btm_client_interface().lifecycle.btm_init();
   l2c_init();
@@ -398,11 +392,9 @@ static void event_shut_down_stack(UNUSED_ATTR void* context) {
   get_btm_client_interface().lifecycle.btm_ble_free();
   get_btm_client_interface().lifecycle.btm_free();
 
-  if (bluetooth::shim::is_any_gd_enabled()) {
-    LOG_INFO("%s Gd shim module disabled", __func__);
-    module_shut_down(get_local_module(GD_SHIM_MODULE));
-    module_start_up(get_local_module(GD_IDLE_MODULE));
-  }
+  LOG_INFO("%s Gd shim module disabled", __func__);
+  module_shut_down(get_local_module(GD_SHIM_MODULE));
+  module_start_up(get_local_module(GD_IDLE_MODULE));
 
   hack_future = future_new();
   do_in_jni_thread(FROM_HERE, base::Bind(event_signal_stack_down, nullptr));
