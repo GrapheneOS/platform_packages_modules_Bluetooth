@@ -47,4 +47,9 @@ void LeAudioClientAudioSource::CancelStreamingRequest() {
   instance->CancelStreamingRequest();
 }
 
+void LeAudioClientAudioSource::UpdateAudioConfigToHal(
+    const ::le_audio::offload_config& config) {
+  instance->UpdateAudioConfigToHal(config);
+}
+
 void LeAudioClientAudioSource::DebugDump(int fd) { instance->DebugDump(fd); }
