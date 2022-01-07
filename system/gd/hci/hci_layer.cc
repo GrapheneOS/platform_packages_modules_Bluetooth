@@ -603,13 +603,10 @@ void HciLayer::Start() {
   RegisterEventHandler(EventCode::COMMAND_COMPLETE, handler->BindOn(impl_, &impl::on_command_complete));
   RegisterEventHandler(EventCode::COMMAND_STATUS, handler->BindOn(impl_, &impl::on_command_status));
   RegisterLeMetaEventHandler(handler->BindOn(impl_, &impl::on_le_meta_event));
-  if (bluetooth::common::init_flags::gd_acl_is_enabled() || bluetooth::common::init_flags::gd_l2cap_is_enabled()) {
-    RegisterEventHandler(
-        EventCode::DISCONNECTION_COMPLETE, handler->BindOn(this, &HciLayer::on_disconnection_complete));
-    RegisterEventHandler(
-        EventCode::READ_REMOTE_VERSION_INFORMATION_COMPLETE,
-        handler->BindOn(this, &HciLayer::on_read_remote_version_complete));
-  }
+  RegisterEventHandler(EventCode::DISCONNECTION_COMPLETE, handler->BindOn(this, &HciLayer::on_disconnection_complete));
+  RegisterEventHandler(
+      EventCode::READ_REMOTE_VERSION_INFORMATION_COMPLETE,
+      handler->BindOn(this, &HciLayer::on_read_remote_version_complete));
   auto drop_packet = handler->BindOn(impl_, &impl::drop);
   RegisterEventHandler(EventCode::PAGE_SCAN_REPETITION_MODE_CHANGE, drop_packet);
   RegisterEventHandler(EventCode::MAX_SLOTS_CHANGE, drop_packet);
