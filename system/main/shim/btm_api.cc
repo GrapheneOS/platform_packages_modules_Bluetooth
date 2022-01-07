@@ -465,19 +465,10 @@ class ShimBondListener : public bluetooth::security::ISecurityManagerListener {
             bluetooth::ToRawAddress(device.GetAddress()), 0, name, HCI_SUCCESS);
       }
     }
-    bool is_gd_enabled = bluetooth::shim::is_any_gd_enabled();
-    if (is_gd_enabled) {
-      bluetooth::shim::AllocateIdFromMetricIdAllocator(
-          bluetooth::ToRawAddress(device.GetAddress()));
-    } else {
-      MetricIdAllocator::GetInstance().AllocateId(
-          bluetooth::ToRawAddress(device.GetAddress()));
-    }
-    bool is_saving_successful =
-        is_gd_enabled ? bluetooth::shim::SaveDeviceOnMetricIdAllocator(
-                            bluetooth::ToRawAddress(device.GetAddress()))
-                      : MetricIdAllocator::GetInstance().SaveDevice(
-                            bluetooth::ToRawAddress(device.GetAddress()));
+    bluetooth::shim::AllocateIdFromMetricIdAllocator(
+        bluetooth::ToRawAddress(device.GetAddress()));
+    bool is_saving_successful = bluetooth::shim::SaveDeviceOnMetricIdAllocator(
+        bluetooth::ToRawAddress(device.GetAddress()));
     if (!is_saving_successful) {
       LOG(FATAL) << __func__ << ": Fail to save metric id for device "
                  << bluetooth::ToRawAddress(device.GetAddress());
@@ -488,13 +479,8 @@ class ShimBondListener : public bluetooth::security::ISecurityManagerListener {
     if (bta_callbacks_->p_bond_cancel_cmpl_callback) {
       (*bta_callbacks_->p_bond_cancel_cmpl_callback)(BTM_SUCCESS);
     }
-    if (bluetooth::shim::is_any_gd_enabled()) {
-      bluetooth::shim::ForgetDeviceFromMetricIdAllocator(
-          bluetooth::ToRawAddress(device.GetAddress()));
-    } else {
-      MetricIdAllocator::GetInstance().ForgetDevice(
-          bluetooth::ToRawAddress(device.GetAddress()));
-    }
+    bluetooth::shim::ForgetDeviceFromMetricIdAllocator(
+        bluetooth::ToRawAddress(device.GetAddress()));
   }
 
   void OnDeviceBondFailed(bluetooth::hci::AddressWithType device,
