@@ -290,9 +290,6 @@ struct lc3_encoder *lc3_setup_encoder(int dt_us, int sr_hz, void *mem)
 int lc3_encode(struct lc3_encoder *encoder,
     const int16_t *pcm, int pitch, int nbytes, void *out)
 {
-    struct side_data side;
-    int16_t xq[LC3_NE(encoder->dt, encoder->sr)];
-
     /* --- Check parameters --- */
 
     if (!encoder || nbytes < LC3_MIN_FRAME_BYTES
@@ -300,6 +297,9 @@ int lc3_encode(struct lc3_encoder *encoder,
         return -1;
 
     /* --- Processing --- */
+
+    struct side_data side;
+    int16_t xq[LC3_NE(encoder->dt, encoder->sr)];
 
     load_s16(encoder, pcm, pitch);
 
