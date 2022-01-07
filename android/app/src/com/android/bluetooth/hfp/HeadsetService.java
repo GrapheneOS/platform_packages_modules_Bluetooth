@@ -744,6 +744,7 @@ public class HeadsetService extends ProfileService {
             try {
                 HeadsetService service = getService(source);
                 if (service != null) {
+                    enforceBluetoothPrivilegedPermission(service);
                     service.setAudioRouteAllowed(allowed);
                 }
                 receiver.send(null);
@@ -759,6 +760,7 @@ public class HeadsetService extends ProfileService {
                 HeadsetService service = getService(source);
                 boolean defaultValue = false;
                 if (service != null) {
+                    enforceBluetoothPrivilegedPermission(service);
                     defaultValue = service.getAudioRouteAllowed();
                 }
                 receiver.send(defaultValue);
