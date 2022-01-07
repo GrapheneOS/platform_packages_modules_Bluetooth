@@ -446,7 +446,7 @@ inline std::string security_mode_text(const tSECURITY_MODE& security_mode) {
     case BTM_SEC_MODE_SC:
       return std::string("secure connections only");
     default:
-      return std::string("UNKNOWN[%hhu]", security_mode);
+      return base::StringPrintf("UNKNOWN[%hhu]", security_mode);
   }
 }
 

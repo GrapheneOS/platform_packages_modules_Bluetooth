@@ -19,6 +19,7 @@
 #ifndef BTIF_HH_H
 #define BTIF_HH_H
 
+#include <base/strings/stringprintf.h>
 #include <hardware/bluetooth.h>
 #include <hardware/bt_hh.h>
 #include <pthread.h>
@@ -72,7 +73,7 @@ inline std::string btif_hh_status_text(const BTIF_HH_STATUS& status) {
     CASE_RETURN_TEXT(BTIF_HH_DEV_CONNECTED);
     CASE_RETURN_TEXT(BTIF_HH_DEV_DISCONNECTED);
     default:
-      return std::string("UNKNOWN[%hhu]", status);
+      return base::StringPrintf("UNKNOWN[%u]", status);
   }
 }
 #undef CASE_RETURN_TEXT
