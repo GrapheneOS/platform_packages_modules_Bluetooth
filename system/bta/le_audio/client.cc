@@ -3339,7 +3339,7 @@ void LeAudioClient::Initialize(
   instance = new LeAudioClientImpl(callbacks_, stateMachineCallbacks, initCb);
 
   IsoManager::GetInstance()->RegisterCigCallbacks(stateMachineHciCallbacks);
-  CodecManager::GetInstance()->Start();
+  CodecManager::GetInstance()->Start(offloading_preference, capabilities);
 }
 
 void LeAudioClient::DebugDump(int fd) {
