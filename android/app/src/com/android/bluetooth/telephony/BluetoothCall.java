@@ -16,12 +16,10 @@
 
 package com.android.bluetooth.telephony;
 
-import android.bluetooth.BluetoothLeCallControl;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.telecom.Call;
-import android.telecom.DisconnectCause;
 import android.telecom.GatewayInfo;
 import android.telecom.InCallService;
 import android.telecom.PhoneAccountHandle;
@@ -30,7 +28,6 @@ import com.android.internal.annotations.VisibleForTesting;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * A proxy class of android.telecom.Call that
@@ -46,7 +43,6 @@ import java.util.UUID;
 public class BluetoothCall {
 
     private Call mCall;
-    private UUID mCallId;
 
     public Call getCall() {
         return mCall;
@@ -62,20 +58,6 @@ public class BluetoothCall {
 
     public BluetoothCall(Call call) {
         mCall = call;
-        mCallId = UUID.randomUUID();
-    }
-
-    public BluetoothCall(Call call, UUID callId) {
-        mCall = call;
-        mCallId = callId;
-    }
-
-    public UUID getTbsCallId() {
-        return mCallId;
-    }
-
-    public void setTbsCallId(UUID callId) {
-        mCallId = callId;
     }
 
     public String getRemainingPostDialSequence() {
@@ -313,10 +295,6 @@ public class BluetoothCall {
     public boolean wasConferencePreviouslyMerged() {
         return can(Call.Details.CAPABILITY_SWAP_CONFERENCE) &&
                 !can(Call.Details.CAPABILITY_MERGE_CONFERENCE);
-    }
-
-    public DisconnectCause getDisconnectCause() {
-        return getDetails().getDisconnectCause();
     }
 
     /**
