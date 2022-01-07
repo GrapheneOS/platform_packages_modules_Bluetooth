@@ -73,7 +73,11 @@ TEST(ParcelableTest, DefaultAdvertiseSettings) {
 
 TEST(ParcelableTest, NonEmptyAdvertiseSettings) {
   AdvertiseSettings settings(
+#if BASE_VER < 931007
       AdvertiseSettings::MODE_BALANCED, base::TimeDelta::FromMilliseconds(150),
+#else
+      AdvertiseSettings::MODE_BALANCED, base::Milliseconds(150),
+#endif
       AdvertiseSettings::TX_POWER_LEVEL_HIGH, false /* connectable */);
 
   bool result =
@@ -95,7 +99,11 @@ TEST(ParcelableTest, ScanSettings) {
   ScanSettings settings1(
       ScanSettings::MODE_BALANCED, ScanSettings::CALLBACK_TYPE_FIRST_MATCH,
       ScanSettings::RESULT_TYPE_ABBREVIATED,
+#if BASE_VER < 931007
       base::TimeDelta::FromMilliseconds(150), ScanSettings::MATCH_MODE_STICKY,
+#else
+      base::Milliseconds(150), ScanSettings::MATCH_MODE_STICKY,
+#endif
       ScanSettings::MATCH_COUNT_FEW_ADVERTISEMENTS);
 
   bool result =
