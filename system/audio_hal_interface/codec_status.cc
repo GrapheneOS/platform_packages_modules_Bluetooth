@@ -17,7 +17,6 @@
 #define LOG_TAG "bluetooth"
 
 #include "codec_status.h"
-#include "client_interface.h"
 
 #include "a2dp_aac_constants.h"
 #include "a2dp_sbc_constants.h"
@@ -25,6 +24,7 @@
 #include "a2dp_vendor_aptx_hd_constants.h"
 #include "a2dp_vendor_ldac_constants.h"
 #include "bta/av/bta_av_int.h"
+#include "client_interface.h"
 
 namespace {
 

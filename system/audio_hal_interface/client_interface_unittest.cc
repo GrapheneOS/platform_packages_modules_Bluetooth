@@ -16,9 +16,10 @@
 
 #define LOG_TAG "bluetooth"
 
+#include "client_interface.h"
+
 #include <gtest/gtest.h>
 
-#include "client_interface.h"
 #include "codec_status.h"
 
 namespace {

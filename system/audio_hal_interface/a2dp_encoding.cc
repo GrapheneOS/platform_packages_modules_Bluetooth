@@ -318,7 +318,8 @@ bool a2dp_get_selected_hal_pcm_config(PcmParameters* pcm_config) {
 // Checking if new bluetooth_audio is supported
 bool is_hal_2_0_force_disabled() {
   if (!is_configured) {
-    btaudio_a2dp_disabled = osi_property_get_bool(BLUETOOTH_AUDIO_HAL_PROP_DISABLED, false);
+    btaudio_a2dp_disabled =
+        osi_property_get_bool(BLUETOOTH_AUDIO_HAL_PROP_DISABLED, false);
     is_configured = true;
   }
   return btaudio_a2dp_disabled;
