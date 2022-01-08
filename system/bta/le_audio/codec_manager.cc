@@ -58,11 +58,15 @@ struct codec_manager_impl {
     LOG_INFO("LeAudioCodecManagerImpl: configure_data_path for encode");
     btm_configure_data_path(btm_data_direction::HOST_TO_CONTROLLER,
                             kIsoDataPathPlatformDefault, {});
+    btm_configure_data_path(btm_data_direction::CONTROLLER_TO_HOST,
+                            kIsoDataPathPlatformDefault, {});
     SetCodecLocation(CodecLocation::ADSP);
   }
   ~codec_manager_impl() {
     if (GetCodecLocation() != CodecLocation::HOST) {
       btm_configure_data_path(btm_data_direction::HOST_TO_CONTROLLER,
+                              kIsoDataPathHci, {});
+      btm_configure_data_path(btm_data_direction::CONTROLLER_TO_HOST,
                               kIsoDataPathHci, {});
     }
   }
