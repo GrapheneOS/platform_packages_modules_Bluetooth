@@ -177,8 +177,8 @@ public class MapClientStateMachineTest {
         // to MapClientService to change
         // state from STATE_CONNECTING to STATE_DISCONNECTED
         verify(mMockMapClientService,
-                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(2)).sendBroadcast(
-                mIntentArgument.capture(), eq(BLUETOOTH_CONNECT),
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(2)).sendBroadcastMultiplePermissions(
+                mIntentArgument.capture(), any(String[].class),
                 any(Bundle.class));
         Assert.assertEquals(BluetoothProfile.STATE_DISCONNECTED, mMceStateMachine.getState());
     }
@@ -198,8 +198,8 @@ public class MapClientStateMachineTest {
         // to MapClientService to change
         // state from STATE_CONNECTING to STATE_CONNECTED
         verify(mMockMapClientService,
-                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(2)).sendBroadcast(
-                mIntentArgument.capture(), eq(BLUETOOTH_CONNECT),
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(2)).sendBroadcastMultiplePermissions(
+                mIntentArgument.capture(), any(String[].class),
                 any(Bundle.class));
         Assert.assertEquals(BluetoothProfile.STATE_CONNECTED, mMceStateMachine.getState());
     }
@@ -220,16 +220,16 @@ public class MapClientStateMachineTest {
         // to MapClientService to change
         // state from STATE_CONNECTING to STATE_CONNECTED
         verify(mMockMapClientService,
-                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(2)).sendBroadcast(
-                mIntentArgument.capture(), eq(BLUETOOTH_CONNECT),
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(2)).sendBroadcastMultiplePermissions(
+                mIntentArgument.capture(), any(String[].class),
                 any(Bundle.class));
         Assert.assertEquals(BluetoothProfile.STATE_CONNECTED, mMceStateMachine.getState());
 
         msg = Message.obtain(mHandler, MceStateMachine.MSG_MAS_DISCONNECTED);
         mMceStateMachine.sendMessage(msg);
         verify(mMockMapClientService,
-                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(4)).sendBroadcast(
-                mIntentArgument.capture(), eq(BLUETOOTH_CONNECT),
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(4)).sendBroadcastMultiplePermissions(
+                mIntentArgument.capture(), any(String[].class),
                 any(Bundle.class));
 
         Assert.assertEquals(BluetoothProfile.STATE_DISCONNECTED, mMceStateMachine.getState());
@@ -249,8 +249,8 @@ public class MapClientStateMachineTest {
         // to MapClientService to change
         // state from STATE_CONNECTING to STATE_CONNECTED
         verify(mMockMapClientService,
-                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(2)).sendBroadcast(
-                mIntentArgument.capture(), eq(BLUETOOTH_CONNECT),
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(2)).sendBroadcastMultiplePermissions(
+                mIntentArgument.capture(), any(String[].class),
                 any(Bundle.class));
         Assert.assertEquals(BluetoothProfile.STATE_CONNECTED, mMceStateMachine.getState());
 
@@ -273,8 +273,8 @@ public class MapClientStateMachineTest {
         // to MapClientService to change
         // state from STATE_CONNECTING to STATE_CONNECTED
         verify(mMockMapClientService,
-                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(2)).sendBroadcast(
-                mIntentArgument.capture(), eq(BLUETOOTH_CONNECT),
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(2)).sendBroadcastMultiplePermissions(
+                mIntentArgument.capture(), any(String[].class),
                 any(Bundle.class));
         Assert.assertEquals(BluetoothProfile.STATE_CONNECTED, mMceStateMachine.getState());
         Assert.assertTrue(
@@ -299,15 +299,15 @@ public class MapClientStateMachineTest {
         // to MapClientService to change
         // state from STATE_CONNECTING to STATE_CONNECTED
         verify(mMockMapClientService,
-                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(2)).sendBroadcast(
-                mIntentArgument.capture(), eq(BLUETOOTH_CONNECT),
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(2)).sendBroadcastMultiplePermissions(
+                mIntentArgument.capture(), any(String[].class),
                 any(Bundle.class));
         Assert.assertEquals(BluetoothProfile.STATE_CONNECTED, mMceStateMachine.getState());
 
         mMceStateMachine.disconnect();
         verify(mMockMapClientService,
-                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(4)).sendBroadcast(
-                mIntentArgument.capture(), eq(BLUETOOTH_CONNECT),
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(4)).sendBroadcastMultiplePermissions(
+                mIntentArgument.capture(), any(String[].class),
                 any(Bundle.class));
         Assert.assertEquals(BluetoothProfile.STATE_DISCONNECTED, mMceStateMachine.getState());
     }
@@ -325,21 +325,21 @@ public class MapClientStateMachineTest {
         // to MapClientService to change
         // state from STATE_CONNECTING to STATE_CONNECTED
         verify(mMockMapClientService,
-                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(2)).sendBroadcast(
-                mIntentArgument.capture(), eq(BLUETOOTH_CONNECT),
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(2)).sendBroadcastMultiplePermissions(
+                mIntentArgument.capture(), any(String[].class),
                 any(Bundle.class));
         Assert.assertEquals(BluetoothProfile.STATE_CONNECTED, mMceStateMachine.getState());
 
         mMceStateMachine.disconnect();
         verify(mMockMapClientService,
-                after(DISCONNECT_TIMEOUT / 2).times(3)).sendBroadcast(
-                mIntentArgument.capture(), eq(BLUETOOTH_CONNECT),
+                after(DISCONNECT_TIMEOUT / 2).times(3)).sendBroadcastMultiplePermissions(
+                mIntentArgument.capture(), any(String[].class),
                 any(Bundle.class));
         Assert.assertEquals(BluetoothProfile.STATE_DISCONNECTING, mMceStateMachine.getState());
 
         verify(mMockMapClientService,
-                timeout(DISCONNECT_TIMEOUT).times(4)).sendBroadcast(
-                mIntentArgument.capture(), eq(BLUETOOTH_CONNECT),
+                timeout(DISCONNECT_TIMEOUT).times(4)).sendBroadcastMultiplePermissions(
+                mIntentArgument.capture(), any(String[].class),
                 any(Bundle.class));
         Assert.assertEquals(BluetoothProfile.STATE_DISCONNECTED, mMceStateMachine.getState());
     }
@@ -400,8 +400,8 @@ public class MapClientStateMachineTest {
     private void setupSdpRecordReceipt() {
         // Perform first part of MAP connection logic.
         verify(mMockMapClientService,
-                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1)).sendBroadcast(
-                mIntentArgument.capture(), eq(BLUETOOTH_CONNECT),
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1)).sendBroadcastMultiplePermissions(
+                mIntentArgument.capture(), any(String[].class),
                 any(Bundle.class));
         Assert.assertEquals(BluetoothProfile.STATE_CONNECTING, mMceStateMachine.getState());
 
