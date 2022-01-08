@@ -318,9 +318,19 @@ void LeAudioClientInterface::Source::StopSession() {
 }
 
 void LeAudioClientInterface::Source::UpdateAudioConfigToHal(
-    const ::le_audio::offload_config& config) {
-  LOG(INFO) << __func__ << " source: not handle now";
-  return;
+    const ::le_audio::offload_config& offload_config) {
+  if (HalVersionManager::GetHalTransport() ==
+      BluetoothAudioHalTransport::HIDL) {
+    if (hidl::le_audio::LeAudioSourceTransport::
+            interface->GetTransportInstance()
+                ->GetSessionType_2_1() !=
+        hidl::SessionType_2_1::LE_AUDIO_HARDWARE_OFFLOAD_DECODING_DATAPATH) {
+      return;
+    }
+    hidl::le_audio::LeAudioSourceTransport::interface->UpdateAudioConfig_2_2(
+        hidl::le_audio::offload_config_to_hal_audio_config(offload_config));
+    return;
+  }
 }
 
 size_t LeAudioClientInterface::Source::Write(const uint8_t* p_buf,
