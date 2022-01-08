@@ -328,6 +328,11 @@ struct HciLayer::impl {
   void on_hci_event(EventView event) {
     ASSERT(event.IsValid());
     if (command_queue_.empty()) {
+      auto event_code = event.GetEventCode();
+      ASSERT_LOG(
+          event_code != EventCode::COMMAND_COMPLETE && event_code != EventCode::COMMAND_STATUS,
+          "Received %s without a waiting command (is the HAL sending commands, but not handling the events?)",
+          EventCodeText(event_code).c_str());
       std::unique_ptr<CommandView> no_waiting_command{nullptr};
       log_hci_event(no_waiting_command, event, module_.GetDependency<storage::StorageModule>());
     } else {
@@ -603,13 +608,10 @@ void HciLayer::Start() {
   RegisterEventHandler(EventCode::COMMAND_COMPLETE, handler->BindOn(impl_, &impl::on_command_complete));
   RegisterEventHandler(EventCode::COMMAND_STATUS, handler->BindOn(impl_, &impl::on_command_status));
   RegisterLeMetaEventHandler(handler->BindOn(impl_, &impl::on_le_meta_event));
-  if (bluetooth::common::init_flags::gd_acl_is_enabled() || bluetooth::common::init_flags::gd_l2cap_is_enabled()) {
-    RegisterEventHandler(
-        EventCode::DISCONNECTION_COMPLETE, handler->BindOn(this, &HciLayer::on_disconnection_complete));
-    RegisterEventHandler(
-        EventCode::READ_REMOTE_VERSION_INFORMATION_COMPLETE,
-        handler->BindOn(this, &HciLayer::on_read_remote_version_complete));
-  }
+  RegisterEventHandler(EventCode::DISCONNECTION_COMPLETE, handler->BindOn(this, &HciLayer::on_disconnection_complete));
+  RegisterEventHandler(
+      EventCode::READ_REMOTE_VERSION_INFORMATION_COMPLETE,
+      handler->BindOn(this, &HciLayer::on_read_remote_version_complete));
   auto drop_packet = handler->BindOn(impl_, &impl::drop);
   RegisterEventHandler(EventCode::PAGE_SCAN_REPETITION_MODE_CHANGE, drop_packet);
   RegisterEventHandler(EventCode::MAX_SLOTS_CHANGE, drop_packet);

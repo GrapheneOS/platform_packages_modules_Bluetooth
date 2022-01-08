@@ -51,7 +51,7 @@ using ::bluetooth::audio::le_audio::LeAudioClientInterface;
 using ::bluetooth::audio::le_audio::StreamCallbacks;
 using AudioCapabilities_2_2 =
     ::android::hardware::bluetooth::audio::V2_2::AudioCapabilities;
-using android::hardware::bluetooth::audio::V2_2::LeAudioCodecCapability;
+using android::hardware::bluetooth::audio::V2_2::UnicastCapability;
 
 using ::le_audio::CodecManager;
 using ::le_audio::set_configurations::AudioSetConfiguration;
@@ -406,7 +406,7 @@ std::unordered_map<AudioLocation, uint32_t> audio_location_map{
          ::le_audio::codec_spec_conf::kLeAudioLocationFrontRight}};
 
 bool halConfigToCodecCapabilitySetting(
-    LeAudioCodecCapability halConfig, CodecCapabilitySetting& codecCapability) {
+    UnicastCapability halConfig, CodecCapabilitySetting& codecCapability) {
   if (halConfig.codecType != CodecType::LC3) {
     LOG(WARNING) << "Unsupported codecType: " << toString(halConfig.codecType);
     return false;
@@ -455,10 +455,10 @@ std::vector<AudioSetConfiguration> get_offload_capabilities() {
   for (auto halCapability : le_audio_hal_capabilities) {
     CodecCapabilitySetting encodeCapability;
     CodecCapabilitySetting decodeCapability;
-    LeAudioCodecCapability halEncodeConfig =
-        halCapability.leAudioCapabilities().encodeCapability;
-    LeAudioCodecCapability halDecodeConfig =
-        halCapability.leAudioCapabilities().decodeCapability;
+    UnicastCapability halEncodeConfig =
+        halCapability.leAudioCapabilities().unicastEncodeCapability;
+    UnicastCapability halDecodeConfig =
+        halCapability.leAudioCapabilities().unicastDecodeCapability;
     AudioSetConfiguration audioSetConfig = {.name = "offload capability"};
     strCapabilityLog.clear();
 

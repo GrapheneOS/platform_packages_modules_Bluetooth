@@ -35,10 +35,8 @@ struct Controller::impl {
   void Start(hci::HciLayer* hci) {
     hci_ = hci;
     Handler* handler = module_.GetHandler();
-    if (common::init_flags::gd_acl_is_enabled() || common::init_flags::gd_l2cap_is_enabled()) {
-      hci_->RegisterEventHandler(
-          EventCode::NUMBER_OF_COMPLETED_PACKETS, handler->BindOn(this, &Controller::impl::NumberOfCompletedPackets));
-    }
+    hci_->RegisterEventHandler(
+        EventCode::NUMBER_OF_COMPLETED_PACKETS, handler->BindOn(this, &Controller::impl::NumberOfCompletedPackets));
 
     le_set_event_mask(kDefaultLeEventMask);
     set_event_mask(kDefaultEventMask);
