@@ -313,7 +313,7 @@ struct tBTM_SEC_DEV_REC {
   tBTM_BD_NAME sec_bd_name; /* User friendly name of the device. (may be
                                truncated to save space in dev_rec table) */
 
-  uint8_t sec_state;          /* Operating state                    */
+  tSECURITY_STATE sec_state; /* Operating state                    */
   bool is_security_state_idle() const {
     return sec_state == BTM_SEC_STATE_IDLE;
   }

@@ -2988,7 +2988,7 @@ static void btm_sec_auth_collision(uint16_t handle) {
       /* We will restart authentication after timeout */
       if (p_dev_rec->sec_state == BTM_SEC_STATE_AUTHENTICATING ||
           p_dev_rec->sec_state == BTM_SEC_STATE_ENCRYPTING)
-        p_dev_rec->sec_state = 0;
+        p_dev_rec->sec_state = BTM_SEC_STATE_IDLE;
 
       btm_cb.p_collided_dev_rec = p_dev_rec;
       alarm_set_on_mloop(btm_cb.sec_collision_timer, BT_1SEC_TIMEOUT_MS,
