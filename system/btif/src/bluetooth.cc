@@ -180,21 +180,16 @@ static int init(bt_callbacks_t* callbacks, bool start_restricted,
 
   restricted_mode = start_restricted;
 
-  if (bluetooth::shim::is_any_gd_enabled()) {
-    bluetooth::os::ParameterProvider::SetBtKeystoreInterface(
-        bluetooth::bluetooth_keystore::getBluetoothKeystoreInterface());
-    bluetooth::os::ParameterProvider::SetCommonCriteriaMode(
-        is_common_criteria_mode);
-    if (is_bluetooth_uid() && is_common_criteria_mode) {
-      bluetooth::os::ParameterProvider::SetCommonCriteriaConfigCompareResult(
-          config_compare_result);
-    } else {
-      bluetooth::os::ParameterProvider::SetCommonCriteriaConfigCompareResult(
-          CONFIG_COMPARE_ALL_PASS);
-    }
+  bluetooth::os::ParameterProvider::SetBtKeystoreInterface(
+      bluetooth::bluetooth_keystore::getBluetoothKeystoreInterface());
+  bluetooth::os::ParameterProvider::SetCommonCriteriaMode(
+      is_common_criteria_mode);
+  if (is_bluetooth_uid() && is_common_criteria_mode) {
+    bluetooth::os::ParameterProvider::SetCommonCriteriaConfigCompareResult(
+        config_compare_result);
   } else {
-    common_criteria_mode = is_common_criteria_mode;
-    common_criteria_config_compare_result = config_compare_result;
+    bluetooth::os::ParameterProvider::SetCommonCriteriaConfigCompareResult(
+        CONFIG_COMPARE_ALL_PASS);
   }
 
   is_local_device_atv = is_atv;

@@ -66,10 +66,6 @@ bool bluetooth::shim::is_gd_security_enabled() {
   return bluetooth::common::init_flags::gd_security_is_enabled();
 }
 
-bool bluetooth::shim::is_gd_acl_enabled() {
-  return bluetooth::common::init_flags::gd_acl_is_enabled();
-}
-
 bool bluetooth::shim::is_gd_link_policy_enabled() {
   return bluetooth::common::init_flags::gd_link_policy_is_enabled();
 }
@@ -81,8 +77,6 @@ bool bluetooth::shim::is_gd_l2cap_enabled() {
 bool bluetooth::shim::is_gd_shim_enabled() {
   return bluetooth::common::init_flags::gd_core_is_enabled();
 }
-
-bool bluetooth::shim::is_any_gd_enabled() { return true; }
 
 bool bluetooth::shim::is_gd_stack_started_up() {
   return bluetooth::shim::Stack::GetInstance()->IsRunning();
