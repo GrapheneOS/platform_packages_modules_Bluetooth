@@ -176,7 +176,7 @@ class AvrcpVolumeManager extends AudioDeviceCallback {
 
     void setVolume(@NonNull BluetoothDevice device, int avrcpVolume) {
         int deviceVolume =
-                (int) Math.floor((double) avrcpVolume * sDeviceMaxVolume / AVRCP_MAX_VOL);
+                (int) Math.round((double) avrcpVolume * sDeviceMaxVolume / AVRCP_MAX_VOL);
         mVolumeEventLogger.logd(DEBUG, TAG, "setVolume:"
                         + " device=" + device
                         + " avrcpVolume=" + avrcpVolume
@@ -194,7 +194,7 @@ class AvrcpVolumeManager extends AudioDeviceCallback {
             return;
         }
         int avrcpVolume =
-                (int) Math.floor((double) deviceVolume * AVRCP_MAX_VOL / sDeviceMaxVolume);
+                (int) Math.round((double) deviceVolume * AVRCP_MAX_VOL / sDeviceMaxVolume);
         if (avrcpVolume > 127) avrcpVolume = 127;
         mVolumeEventLogger.logd(DEBUG, TAG, "sendVolumeChanged:"
                         + " device=" + device
