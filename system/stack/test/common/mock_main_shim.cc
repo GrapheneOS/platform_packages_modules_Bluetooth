@@ -33,10 +33,6 @@ extern std::map<std::string, int> mock_function_count_map;
 #define UNUSED_ATTR
 #endif
 
-bool bluetooth::shim::is_any_gd_enabled() {
-  mock_function_count_map[__func__]++;
-  return false;
-}
 bool bluetooth::shim::is_gd_advertising_enabled() {
   mock_function_count_map[__func__]++;
   return false;
