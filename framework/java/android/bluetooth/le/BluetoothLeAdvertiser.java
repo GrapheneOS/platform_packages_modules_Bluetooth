@@ -16,6 +16,8 @@
 
 package android.bluetooth.le;
 
+import static android.bluetooth.le.BluetoothLeUtils.getSyncTimeout;
+
 import android.annotation.RequiresNoPermission;
 import android.annotation.RequiresPermission;
 import android.annotation.SuppressLint;
@@ -33,10 +35,13 @@ import android.os.ParcelUuid;
 import android.os.RemoteException;
 import android.util.Log;
 
+import com.android.modules.utils.SynchronousResultReceiver;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeoutException;
 
 /**
  * This class provides a way to perform Bluetooth LE advertise operations, such as starting and
@@ -458,10 +463,12 @@ public final class BluetoothLeAdvertiser {
         }
 
         try {
+            final SynchronousResultReceiver recv = new SynchronousResultReceiver();
             gatt.startAdvertisingSet(parameters, advertiseData, scanResponse, periodicParameters,
                     periodicData, duration, maxExtendedAdvertisingEvents, wrapped,
-                    mAttributionSource);
-        } catch (RemoteException e) {
+                    mAttributionSource, recv);
+            recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
+        } catch (TimeoutException | RemoteException e) {
             Log.e(TAG, "Failed to start advertising set - ", e);
             postStartSetFailure(handler, callback,
                     AdvertiseCallback.ADVERTISE_FAILED_INTERNAL_ERROR);
@@ -489,8 +496,10 @@ public final class BluetoothLeAdvertiser {
         IBluetoothGatt gatt;
         try {
             gatt = mBluetoothManager.getBluetoothGatt();
-            gatt.stopAdvertisingSet(wrapped, mAttributionSource);
-        } catch (RemoteException e) {
+            final SynchronousResultReceiver recv = new SynchronousResultReceiver();
+            gatt.stopAdvertisingSet(wrapped, mAttributionSource, recv);
+            recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
+        } catch (TimeoutException | RemoteException e) {
             Log.e(TAG, "Failed to stop advertising - ", e);
         }
     }
