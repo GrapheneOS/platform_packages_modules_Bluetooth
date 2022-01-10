@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package bluetooth.topshim;
+package blueberry.facade.topshim;
 
 service AdapterService {
   rpc FetchEvents(FetchEventsRequest) returns (stream FetchEventsResponse) {}

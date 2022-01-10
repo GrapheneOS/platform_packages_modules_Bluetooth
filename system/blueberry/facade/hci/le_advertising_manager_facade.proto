@@ -1,9 +1,9 @@
 syntax = "proto3";
 
-package bluetooth.hci.facade;
+package blueberry.facade.hci;
 
 import "google/protobuf/empty.proto";
-import "facade/common.proto";
+import "blueberry/facade/common.proto";
 
 service LeAdvertisingManagerFacade {
   rpc CreateAdvertiser(CreateAdvertiserRequest) returns (CreateAdvertiserResponse) {}
@@ -62,9 +62,9 @@ message AdvertisingConfig {
   // Unit: number of Bluetooth slots in 0.125 ms increment
   int32 interval_max = 5;
   AdvertisingEventType advertising_type = 6;
-  bluetooth.facade.BluetoothOwnAddressTypeEnum own_address_type = 7;
-  bluetooth.facade.BluetoothPeerAddressTypeEnum peer_address_type = 8;
-  bluetooth.facade.BluetoothAddress peer_address = 9;
+  blueberry.facade.BluetoothOwnAddressTypeEnum own_address_type = 7;
+  blueberry.facade.BluetoothPeerAddressTypeEnum peer_address_type = 8;
+  blueberry.facade.BluetoothAddress peer_address = 9;
   int32 channel_map = 10;
   AdvertisingFilterPolicy filter_policy = 11;
   int32 tx_power = 12;
@@ -175,5 +175,5 @@ message AdvertisingCallbackMsg {
 message AddressMsg {
   AdvertisingCallbackMsgType message_type = 1;
   uint32 advertiser_id = 2;
-  bluetooth.facade.BluetoothAddressWithType address = 3;
+  blueberry.facade.BluetoothAddressWithType address = 3;
 }

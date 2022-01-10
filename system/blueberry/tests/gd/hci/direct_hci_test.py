@@ -22,7 +22,7 @@ from blueberry.tests.gd.cert.py_hal import PyHal
 from blueberry.tests.gd.cert.py_hci import PyHci
 from blueberry.tests.gd.cert.truth import assertThat
 from blueberry.tests.gd.cert import gd_base_test
-from facade import common_pb2 as common
+from blueberry.facade import common_pb2 as common
 from bluetooth_packets_python3.hci_packets import EventCode
 from bluetooth_packets_python3.hci_packets import LoopbackMode
 from bluetooth_packets_python3.hci_packets import WriteLoopbackModeBuilder

@@ -43,21 +43,21 @@ from blueberry.tests.gd.cert.os_utils import is_subprocess_alive
 from blueberry.tests.gd.cert.os_utils import make_ports_available
 from blueberry.tests.gd.cert.os_utils import TerminalColor
 
-from facade import rootservice_pb2_grpc as facade_rootservice_pb2_grpc
-from hal import hal_facade_pb2_grpc
-from hci.facade import hci_facade_pb2_grpc
-from hci.facade import acl_manager_facade_pb2_grpc
-from hci.facade import controller_facade_pb2_grpc
-from hci.facade import le_acl_manager_facade_pb2_grpc
-from hci.facade import le_advertising_manager_facade_pb2_grpc
-from hci.facade import le_initiator_address_facade_pb2_grpc
-from hci.facade import le_scanning_manager_facade_pb2_grpc
-from l2cap.classic import facade_pb2_grpc as l2cap_facade_pb2_grpc
-from l2cap.le import facade_pb2_grpc as l2cap_le_facade_pb2_grpc
-from iso import facade_pb2_grpc as iso_facade_pb2_grpc
-from neighbor.facade import facade_pb2_grpc as neighbor_facade_pb2_grpc
-from security import facade_pb2_grpc as security_facade_pb2_grpc
-from shim.facade import facade_pb2_grpc as shim_facade_pb2_grpc
+from blueberry.facade import rootservice_pb2_grpc as facade_rootservice_pb2_grpc
+from blueberry.facade.hal import hal_facade_pb2_grpc
+from blueberry.facade.hci import hci_facade_pb2_grpc
+from blueberry.facade.hci import acl_manager_facade_pb2_grpc
+from blueberry.facade.hci import controller_facade_pb2_grpc
+from blueberry.facade.hci import le_acl_manager_facade_pb2_grpc
+from blueberry.facade.hci import le_advertising_manager_facade_pb2_grpc
+from blueberry.facade.hci import le_initiator_address_facade_pb2_grpc
+from blueberry.facade.hci import le_scanning_manager_facade_pb2_grpc
+from blueberry.facade.l2cap.classic import facade_pb2_grpc as l2cap_facade_pb2_grpc
+from blueberry.facade.l2cap.le import facade_pb2_grpc as l2cap_le_facade_pb2_grpc
+from blueberry.facade.iso import facade_pb2_grpc as iso_facade_pb2_grpc
+from blueberry.facade.neighbor import facade_pb2_grpc as neighbor_facade_pb2_grpc
+from blueberry.facade.security import facade_pb2_grpc as security_facade_pb2_grpc
+from blueberry.facade.shim import facade_pb2_grpc as shim_facade_pb2_grpc
 
 from mobly import utils
 from mobly.controllers.android_device_lib.adb import AdbError
@@ -453,15 +453,18 @@ class GdAndroidDevice(GdDeviceBase):
         logging.info("Setting up device %s %s" % (self.label, self.serial_number))
         asserts.assert_true(self.adb.ensure_root(), "device %s cannot run as root", self.serial_number)
         self.ensure_verity_disabled()
+        logging.info("Confirmed that verity is disabled on device %s %s" % (self.label, self.serial_number))
 
         # Try freeing ports and ignore results
         self.cleanup_port_forwarding()
         self.sync_device_time()
+        logging.info("Ports cleaned up and clock is set for device %s %s" % (self.label, self.serial_number))
 
         # Set up port forwarding or reverse or die
         self.tcp_forward_or_die(self.grpc_port, self.grpc_port)
         self.tcp_forward_or_die(self.grpc_root_server_port, self.grpc_root_server_port)
         self.tcp_reverse_or_die(self.signal_port, self.signal_port)
+        logging.info("Port forwarding done on device %s %s" % (self.label, self.serial_number))
 
         # Push test binaries
         self.push_or_die(os.path.join(get_gd_root(), "target", "bluetooth_stack_with_facade"), "system/bin")
@@ -472,6 +475,7 @@ class GdAndroidDevice(GdDeviceBase):
         self.push_or_die(os.path.join(get_gd_root(), "target", "libgrpc++.so"), "system/lib64")
         self.push_or_die(os.path.join(get_gd_root(), "target", "libgrpc_wrap.so"), "system/lib64")
         self.push_or_die(os.path.join(get_gd_root(), "target", "libstatslog_bt.so"), "system/lib64")
+        logging.info("Binaries pushed to device %s %s" % (self.label, self.serial_number))
 
         try:
             self.adb.shell("rm /data/misc/bluetooth/logs/btsnoop_hci.log")
@@ -496,8 +500,12 @@ class GdAndroidDevice(GdDeviceBase):
         except AdbError as error:
             if ADB_FILE_NOT_EXIST_ERROR not in str(error):
                 logging.error("Error during setup: " + str(error))
+        logging.info("Old logs removed from device %s %s" % (self.label, self.serial_number))
 
+        # Ensure Bluetooth is disabled
+        self.ensure_no_output(self.adb.shell("settings put global ble_scan_always_enabled 0"))
         self.ensure_no_output(self.adb.shell("svc bluetooth disable"))
+        logging.info("Bluetooth disabled on device %s %s" % (self.label, self.serial_number))
 
         # Start logcat logging
         self.logcat_output_path = os.path.join(
@@ -574,7 +582,7 @@ class GdAndroidDevice(GdDeviceBase):
         except AdbError as error:
             msg = PORT_FORWARDING_ERROR_MSG_PREFIX + str(error)
             if "not found" in msg:
-                logging.info(msg)
+                logging.debug(msg)
             else:
                 logging.error(msg)
 
@@ -583,7 +591,7 @@ class GdAndroidDevice(GdDeviceBase):
         except AdbError as error:
             msg = PORT_FORWARDING_ERROR_MSG_PREFIX + str(error)
             if "not found" in msg:
-                logging.info(msg)
+                logging.debug(msg)
             else:
                 logging.error(msg)
 
@@ -592,7 +600,7 @@ class GdAndroidDevice(GdDeviceBase):
         except AdbError as error:
             msg = PORT_FORWARDING_ERROR_MSG_PREFIX + str(error)
             if "not found" in msg:
-                logging.info(msg)
+                logging.debug(msg)
             else:
                 logging.error(msg)
 

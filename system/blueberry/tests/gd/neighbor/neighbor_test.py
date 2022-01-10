@@ -18,7 +18,7 @@ from blueberry.tests.gd.cert.matchers import HciMatchers, NeighborMatchers
 from blueberry.tests.gd.cert.py_hci import PyHci
 from blueberry.tests.gd.cert.truth import assertThat
 from blueberry.tests.gd.cert.py_neighbor import PyNeighbor
-from neighbor.facade import facade_pb2 as neighbor_facade
+from blueberry.facade.neighbor import facade_pb2 as neighbor_facade
 from bluetooth_packets_python3 import hci_packets
 from bluetooth_packets_python3.hci_packets import OpCode
 from blueberry.tests.gd.cert import gd_base_test

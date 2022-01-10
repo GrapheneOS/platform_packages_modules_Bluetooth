@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
+#include "hci/facade/le_advertising_manager_facade.h"
+
 #include <cstdint>
 #include <unordered_map>
 #include <utility>
 
+#include "blueberry/facade/hci/le_advertising_manager_facade.grpc.pb.h"
+#include "blueberry/facade/hci/le_advertising_manager_facade.pb.h"
 #include "common/bidi_queue.h"
 #include "common/bind.h"
 #include "grpc/grpc_event_queue.h"
 #include "hci/address.h"
 #include "hci/address_with_type.h"
-#include "hci/facade/le_advertising_manager_facade.grpc.pb.h"
-#include "hci/facade/le_advertising_manager_facade.h"
-#include "hci/facade/le_advertising_manager_facade.pb.h"
 #include "hci/le_advertising_manager.h"
 #include "os/log.h"
 
@@ -39,8 +40,12 @@ using ::grpc::ServerContext;
 using ::grpc::ServerWriter;
 using ::grpc::Status;
 
-using ::bluetooth::facade::BluetoothAddress;
-using ::bluetooth::facade::BluetoothAddressTypeEnum;
+using ::blueberry::facade::BluetoothAddress;
+using ::blueberry::facade::BluetoothAddressTypeEnum;
+using ::blueberry::facade::hci::AdvertisingConfig;
+using ::blueberry::facade::hci::ExtendedAdvertisingConfig;
+using ::blueberry::facade::hci::GapDataMsg;
+using ::blueberry::facade::hci::PeriodicAdvertisingParameters;
 
 hci::GapData GapDataFromProto(const GapDataMsg& gap_data_proto) {
   hci::GapData gap_data;
@@ -182,6 +187,25 @@ class LeAdvertiser {
   hci::AdvertiserId id_ = LeAdvertisingManager::kInvalidId;
   hci::AdvertisingConfig config_;
 };
+
+using ::blueberry::facade::hci::AddressMsg;
+using ::blueberry::facade::hci::AdvertisingCallbackMsg;
+using ::blueberry::facade::hci::AdvertisingCallbackMsgType;
+using ::blueberry::facade::hci::AdvertisingStatus;
+using ::blueberry::facade::hci::CreateAdvertiserRequest;
+using ::blueberry::facade::hci::CreateAdvertiserResponse;
+using ::blueberry::facade::hci::EnableAdvertiserRequest;
+using ::blueberry::facade::hci::EnablePeriodicAdvertisingRequest;
+using ::blueberry::facade::hci::ExtendedCreateAdvertiserRequest;
+using ::blueberry::facade::hci::ExtendedCreateAdvertiserResponse;
+using ::blueberry::facade::hci::GetNumberOfAdvertisingInstancesResponse;
+using ::blueberry::facade::hci::GetOwnAddressRequest;
+using ::blueberry::facade::hci::LeAdvertisingManagerFacade;
+using ::blueberry::facade::hci::RemoveAdvertiserRequest;
+using ::blueberry::facade::hci::SetDataRequest;
+using ::blueberry::facade::hci::SetParametersRequest;
+using ::blueberry::facade::hci::SetPeriodicDataRequest;
+using ::blueberry::facade::hci::SetPeriodicParametersRequest;
 
 class LeAdvertisingManagerFacadeService : public LeAdvertisingManagerFacade::Service, AdvertisingCallback {
  public:
@@ -429,7 +453,7 @@ class LeAdvertisingManagerFacadeService : public LeAdvertisingManagerFacade::Ser
     AddressMsg msg;
     msg.set_message_type(AdvertisingCallbackMsgType::OWN_ADDRESS_READ);
     msg.set_advertiser_id(advertiser_id);
-    bluetooth::facade::BluetoothAddressWithType facade_address;
+    blueberry::facade::BluetoothAddressWithType facade_address;
     facade_address.mutable_address()->set_address(address.ToString());
     facade_address.set_type(static_cast<facade::BluetoothAddressTypeEnum>(address_type));
     *msg.mutable_address() = facade_address;

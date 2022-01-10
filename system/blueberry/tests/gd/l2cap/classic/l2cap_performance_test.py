@@ -21,7 +21,7 @@ from blueberry.tests.gd.cert.performance_test_logger import PerformanceTestLogge
 from blueberry.tests.gd.cert import gd_base_test
 from blueberry.tests.gd.l2cap.classic.cert_l2cap import CertL2cap
 from blueberry.tests.gd.l2cap.classic.l2cap_test import L2capTestBase
-from l2cap.classic.facade_pb2 import RetransmissionFlowControlMode
+from blueberry.facade.l2cap.classic.facade_pb2 import RetransmissionFlowControlMode
 from bluetooth_packets_python3 import RawBuilder
 from bluetooth_packets_python3.l2cap_packets import FcsType
 from bluetooth_packets_python3.l2cap_packets import SupervisoryFunction

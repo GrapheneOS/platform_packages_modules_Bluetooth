@@ -1,11 +1,12 @@
 syntax = "proto3";
 
-package bluetooth.hci;
+package blueberry.facade.hci;
 
 import "google/protobuf/empty.proto";
+import "blueberry/facade/common.proto";
 
 service ControllerFacade {
-  rpc GetMacAddress(google.protobuf.Empty) returns (AddressMsg) {}
+  rpc GetMacAddress(google.protobuf.Empty) returns (blueberry.facade.BluetoothAddress) {}
   rpc WriteLocalName(NameMsg) returns (google.protobuf.Empty) {}
   rpc GetLocalName(google.protobuf.Empty) returns (NameMsg) {}
   rpc IsSupportedCommand(OpCodeMsg) returns (SupportedMsg) {}
@@ -75,10 +76,6 @@ service ControllerFacade {
   rpc SupportsBlePowerControlRequest(google.protobuf.Empty) returns (SupportedMsg) {}
   rpc SupportsBlePowerChangeIndication(google.protobuf.Empty) returns (SupportedMsg) {}
   rpc SupportsBlePathLossMonitoring(google.protobuf.Empty) returns (SupportedMsg) {}
-}
-
-message AddressMsg {
-  bytes address = 1;
 }
 
 message NameMsg {

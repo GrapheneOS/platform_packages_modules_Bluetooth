@@ -20,7 +20,7 @@ from blueberry.tests.gd.cert import gd_base_test
 from blueberry.tests.gd.cert.truth import assertThat
 from bluetooth_packets_python3 import hci_packets
 from google.protobuf import empty_pb2 as empty_proto
-from hci.facade import controller_facade_pb2 as controller_facade
+from blueberry.facade.hci import controller_facade_pb2 as controller_facade
 from mobly import test_runner
 
 

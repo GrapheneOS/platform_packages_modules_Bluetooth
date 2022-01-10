@@ -13,16 +13,17 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
+
 from datetime import timedelta
 import time
 
 from blueberry.tests.gd.cert.pts_base_test import PTSBaseTestClass
 from blueberry.tests.gd.cert.event_stream import EventStream
-from facade import common_pb2
-from facade import rootservice_pb2 as facade_rootservice_pb2
-from l2cap.classic import facade_pb2 as l2cap_facade_pb2
+from blueberry.facade import common_pb2
+from blueberry.facade import rootservice_pb2 as facade_rootservice_pb2
+from blueberry.facade.l2cap.classic import facade_pb2 as l2cap_facade_pb2
 from google.protobuf import empty_pb2
-from neighbor.facade import facade_pb2 as neighbor_facade
+from blueberry.facade.neighbor import facade_pb2 as neighbor_facade
 
 
 class PTSL2capTest(PTSBaseTestClass):

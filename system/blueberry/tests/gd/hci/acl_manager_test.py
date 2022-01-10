@@ -20,7 +20,7 @@ from blueberry.tests.gd.cert.py_acl_manager import PyAclManager
 from blueberry.tests.gd.cert.truth import assertThat
 from bluetooth_packets_python3 import hci_packets
 from datetime import timedelta
-from neighbor.facade import facade_pb2 as neighbor_facade
+from blueberry.facade.neighbor import facade_pb2 as neighbor_facade
 from mobly import test_runner
 
 

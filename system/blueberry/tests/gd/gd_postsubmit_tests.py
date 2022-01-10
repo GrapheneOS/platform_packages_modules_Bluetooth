@@ -20,7 +20,7 @@ from mobly import suite_runner
 
 DISABLED_TESTS = set()
 
-ENABLED_TESTS = list(ALL_TESTS - DISABLED_TESTS)
+POSTSUBMIT_TESTS = list(ALL_TESTS - DISABLED_TESTS)
 
 if __name__ == '__main__':
-    suite_runner.run_suite(ENABLED_TESTS)
+    suite_runner.run_suite(POSTSUBMIT_TESTS)

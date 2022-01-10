@@ -17,10 +17,7 @@
 import logging
 
 from blueberry.tests.gd.cert.closable import Closable
-from blueberry.tests.gd.cert.closable import safeClose
 from blueberry.tests.gd.cert.py_le_iso import PyLeIso
-import bluetooth_packets_python3 as bt_packets
-from bluetooth_packets_python3 import l2cap_packets
 
 
 class CertLeIso(Closable):
