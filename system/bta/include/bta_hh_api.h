@@ -163,7 +163,7 @@ inline std::string bta_hh_status_text(const tBTA_HH_STATUS& status) {
     CASE_RETURN_TEXT(BTA_HH_ERR_HDL);
     CASE_RETURN_TEXT(BTA_HH_ERR_SEC);
     default:
-      return std::string("UNKNOWN[%hhu]", status);
+      return base::StringPrintf("UNKNOWN[%hhu]", status);
   }
 }
 
