@@ -244,6 +244,7 @@ cc_test {
         "shim/metrics_api.cc",
         "shim/shim.cc",
         "shim/stack.cc",
+        "test/common_stack_test.cc",
         "test/main_shim_test.cc",
     ],
     static_libs: [
