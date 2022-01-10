@@ -19,6 +19,8 @@
 #ifndef SMP_API_TYPES_H
 #define SMP_API_TYPES_H
 
+#include <base/strings/stringprintf.h>
+
 #include <cstdint>
 
 #include "bt_target.h"  // Must be first to define build configuration
@@ -71,7 +73,7 @@ inline std::string smp_opcode_text(const tSMP_OPCODE& opcode) {
     CASE_RETURN_TEXT(SMP_OPCODE_PAIR_KEYPR_NOTIF);
     CASE_RETURN_TEXT(SMP_OPCODE_PAIR_COMMITM);
     default:
-      return std::string("UNKNOWN:%hhu", opcode);
+      return base::StringPrintf("UNKNOWN[%hhu]", opcode);
   }
 }
 #undef CASE_RETURN_TEXT

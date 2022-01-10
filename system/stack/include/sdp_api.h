@@ -18,6 +18,8 @@
 #ifndef SDP_API_H
 #define SDP_API_H
 
+#include <base/strings/stringprintf.h>
+
 #include <cstdint>
 
 #include "bt_target.h"
@@ -86,7 +88,7 @@ inline std::string sdp_status_text(const tSDP_STATUS& status) {
     CASE_RETURN_TEXT(SDP_DB_FULL);
     CASE_RETURN_TEXT(SDP_CANCEL);
     default:
-      return std::string("UNKNOWN[%hhu]", status);
+      return base::StringPrintf("UNKNOWN[%hu]", status);
   }
 }
 #undef CASE_RETURN_TEXT

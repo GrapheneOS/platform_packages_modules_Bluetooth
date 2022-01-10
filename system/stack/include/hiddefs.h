@@ -25,6 +25,8 @@
 #ifndef HIDDEFS_H
 #define HIDDEFS_H
 
+#include <base/strings/stringprintf.h>
+
 #include <cstring>
 
 #include "stack/include/sdp_api.h"
@@ -81,7 +83,7 @@ inline std::string hid_status_text(const tHID_STATUS& status) {
     CASE_RETURN_TEXT(HID_ERR_GATT);
     CASE_RETURN_TEXT(HID_ERR_INVALID);
     default:
-      return std::string("UNKNOWN[%hhu]", status);
+      return base::StringPrintf("UNKNOWN[%hhu]", status);
   }
 }
 #undef CASE_RETURN_TEXT
