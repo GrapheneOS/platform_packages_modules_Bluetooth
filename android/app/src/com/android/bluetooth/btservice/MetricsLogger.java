@@ -92,7 +92,7 @@ public class MetricsLogger {
         mContext = context;
         IntentFilter filter = new IntentFilter();
         filter.addAction(BLUETOOTH_COUNTER_METRICS_ACTION);
-        mContext.registerReceiver(mDrainReceiver, filter);
+        mContext.registerReceiver(mDrainReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
         scheduleDrains();
         return true;
     }
