@@ -203,10 +203,10 @@ bool update_codec_offloading_capabilities(
 }
 
 // Checking if new bluetooth_audio is enabled
-bool is_hal_2_0_enabled() { return true; }
+bool is_hal_enabled() { return true; }
 
 // Check if new bluetooth_audio is running with offloading encoders
-bool is_hal_2_0_offloading() { return false; }
+bool is_hal_offloading() { return false; }
 
 // Initialize BluetoothAudio HAL: openProvider
 bool init(bluetooth::common::MessageLoopThread* message_loop) {

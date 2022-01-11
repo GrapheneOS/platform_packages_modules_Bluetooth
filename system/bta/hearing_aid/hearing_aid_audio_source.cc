@@ -91,7 +91,7 @@ void send_audio_data() {
   uint8_t p_buf[bytes_per_tick];
 
   uint32_t bytes_read;
-  if (bluetooth::audio::hearing_aid::is_hal_2_0_enabled()) {
+  if (bluetooth::audio::hearing_aid::is_hal_enabled()) {
     bytes_read = bluetooth::audio::hearing_aid::read(p_buf, bytes_per_tick);
   } else {
     bytes_read = UIPC_Read(*uipc_hearing_aid, UIPC_CH_ID_AV_AUDIO, p_buf,
@@ -392,7 +392,7 @@ void HearingAidAudioSource::Start(const CodecConfiguration& codecConfiguration,
 
   stats.Reset();
 
-  if (bluetooth::audio::hearing_aid::is_hal_2_0_enabled()) {
+  if (bluetooth::audio::hearing_aid::is_hal_enabled()) {
     bluetooth::audio::hearing_aid::start_session();
     bluetooth::audio::hearing_aid::set_remote_delay(remote_delay_ms);
   }
@@ -403,7 +403,7 @@ void HearingAidAudioSource::Stop() {
   LOG(INFO) << __func__ << ": Hearing Aid Source Close";
 
   localAudioReceiver = nullptr;
-  if (bluetooth::audio::hearing_aid::is_hal_2_0_enabled()) {
+  if (bluetooth::audio::hearing_aid::is_hal_enabled()) {
     bluetooth::audio::hearing_aid::end_session();
   }
 
@@ -423,7 +423,7 @@ void HearingAidAudioSource::Initialize() {
 }
 
 void HearingAidAudioSource::CleanUp() {
-  if (bluetooth::audio::hearing_aid::is_hal_2_0_enabled()) {
+  if (bluetooth::audio::hearing_aid::is_hal_enabled()) {
     bluetooth::audio::hearing_aid::cleanup();
   } else {
     UIPC_Close(*uipc_hearing_aid, UIPC_CH_ID_ALL);

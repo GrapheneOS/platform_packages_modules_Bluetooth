@@ -36,11 +36,15 @@ cc_library_static {
                 "libfmq",
             ],
             srcs: [
+                "hidl/a2dp_encoding_hidl.cc",
+                "hidl/client_interface_hidl.cc",
+                "hidl/codec_status_hidl.cc",
+                "hidl/hearing_aid_software_encoding_hidl.cc",
+                "hidl/le_audio_software_hidl.cc",
                 "a2dp_encoding.cc",
-                "client_interface.cc",
-                "codec_status.cc",
                 "hearing_aid_software_encoding.cc",
                 "le_audio_software.cc",
+                "hal_version_manager.cc",
             ],
         },
         host: {
@@ -48,6 +52,7 @@ cc_library_static {
                 "a2dp_encoding_host.cc",
                 "hearing_aid_software_encoding_host.cc",
                 "le_audio_software_host.cc",
+                "hal_version_manager_host.cc",
             ],
         },
     },
@@ -67,7 +72,7 @@ cc_test {
         "packages/modules/Bluetooth/system/stack/include",
     ],
     srcs: [
-        "client_interface_unittest.cc",
+        "hidl/client_interface_hidl_unittest.cc",
     ],
     shared_libs: [
         "android.hardware.bluetooth.audio@2.0",
