@@ -469,9 +469,7 @@ void bta_dm_disable() {
  * Description      Called if the disable timer expires
  *                  Used to close ACL connections which are still active
  *
- *
- *
- * Returns          void
+ * Returns          true if there is a device being forcefully disconnected
  *
  ******************************************************************************/
 static bool force_disconnect_all_acl_connections() {
