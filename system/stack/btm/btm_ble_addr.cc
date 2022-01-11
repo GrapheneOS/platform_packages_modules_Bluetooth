@@ -62,39 +62,12 @@ static RawAddress generate_rpa_from_irk_and_rand(const Octet16& irk,
   return address;
 }
 
-static void btm_ble_refresh_raddr_timer_timeout(UNUSED_ATTR void* data) {
-  if (btm_cb.ble_ctr_cb.addr_mgnt_cb.own_addr_type == BLE_ADDR_RANDOM) {
-    /* refresh the random addr */
-    btm_gen_resolvable_private_addr(base::Bind(&btm_gen_resolve_paddr_low));
-  }
-}
-
 /** This function is called when random address for local controller was
  * generated */
 void btm_gen_resolve_paddr_low(const RawAddress& address) {
   /* when GD advertising and scanning modules are enabled, set random address
    * via address manager in GD */
-  if (bluetooth::shim::is_gd_advertising_enabled() &&
-      bluetooth::shim::is_gd_scanning_enabled()) {
-    LOG_INFO("GD advertising and scanning modules are enabled, skip");
-    return;
-  }
-
-  tBTM_LE_RANDOM_CB* p_cb = &btm_cb.ble_ctr_cb.addr_mgnt_cb;
-  p_cb->private_addr = address;
-
-  /* set it to controller */
-  btm_ble_set_random_address(p_cb->private_addr);
-
-  p_cb->own_addr_type = BLE_ADDR_RANDOM;
-
-  /* start a periodical timer to refresh random addr */
-  uint64_t interval_ms = btm_get_next_private_addrress_interval_ms();
-#if (BTM_BLE_CONFORMANCE_TESTING == TRUE)
-  interval_ms = btm_cb.ble_ctr_cb.rpa_tout * 1000;
-#endif
-  alarm_set_on_mloop(p_cb->refresh_raddr_timer, interval_ms,
-                     btm_ble_refresh_raddr_timer_timeout, NULL);
+  LOG_INFO("GD advertising and scanning modules are enabled, skip");
 }
 
 /** This function generate a resolvable private address using local IRK */

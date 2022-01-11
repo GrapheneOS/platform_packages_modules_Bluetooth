@@ -260,17 +260,9 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface {
   }
 };
 
-BleAdvertiserInterface* btLeAdvertiserInstance = nullptr;
-
 }  // namespace
 
 BleAdvertiserInterface* get_ble_advertiser_instance() {
-  if (bluetooth::shim::is_gd_advertising_enabled()) {
-    LOG(INFO) << __func__ << " use gd le advertiser";
-    return bluetooth::shim::get_ble_advertiser_instance();
-  } else if (btLeAdvertiserInstance == nullptr) {
-    btLeAdvertiserInstance = new BleAdvertiserInterfaceImpl();
-  }
-
-  return btLeAdvertiserInstance;
+  LOG(INFO) << __func__ << " use gd le advertiser";
+  return bluetooth::shim::get_ble_advertiser_instance();
 }
