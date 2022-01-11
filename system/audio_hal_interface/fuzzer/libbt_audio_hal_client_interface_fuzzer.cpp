@@ -20,9 +20,9 @@
 #include <fuzzer/FuzzedDataProvider.h>
 
 #include "audio_hal_interface/a2dp_encoding.h"
-#include "audio_hal_interface/client_interface.h"
-#include "audio_hal_interface/codec_status.h"
 #include "audio_hal_interface/hal_version_manager.h"
+#include "audio_hal_interface/hidl/client_interface_hidl.h"
+#include "audio_hal_interface/hidl/codec_status_hidl.h"
 #include "audio_hal_interface/le_audio_software.h"
 #include "include/btif_av_co.h"
 #include "osi/include/properties.h"
@@ -40,29 +40,29 @@ using ::android::hardware::bluetooth::audio::V2_0::SbcBlockLength;
 using ::android::hardware::bluetooth::audio::V2_0::SbcChannelMode;
 using ::android::hardware::bluetooth::audio::V2_0::SbcNumSubbands;
 using ::android::hardware::bluetooth::audio::V2_0::SbcParameters;
-using ::bluetooth::audio::AudioConfiguration;
-using ::bluetooth::audio::AudioConfiguration_2_1;
-using ::bluetooth::audio::BluetoothAudioSinkClientInterface;
-using ::bluetooth::audio::BluetoothAudioSourceClientInterface;
-using ::bluetooth::audio::PcmParameters;
-using ::bluetooth::audio::PcmParameters_2_1;
-using ::bluetooth::audio::SampleRate;
-using ::bluetooth::audio::SampleRate_2_1;
-using ::bluetooth::audio::SessionType;
-using ::bluetooth::audio::SessionType_2_1;
 using ::bluetooth::audio::a2dp::update_codec_offloading_capabilities;
-using ::bluetooth::audio::codec::A2dpAacToHalConfig;
-using ::bluetooth::audio::codec::A2dpAptxToHalConfig;
-using ::bluetooth::audio::codec::A2dpCodecToHalBitsPerSample;
-using ::bluetooth::audio::codec::A2dpCodecToHalChannelMode;
-using ::bluetooth::audio::codec::A2dpCodecToHalSampleRate;
-using ::bluetooth::audio::codec::A2dpLdacToHalConfig;
-using ::bluetooth::audio::codec::A2dpSbcToHalConfig;
-using ::bluetooth::audio::codec::BitsPerSample;
-using ::bluetooth::audio::codec::ChannelMode;
-using ::bluetooth::audio::codec::CodecConfiguration;
-using ::bluetooth::audio::codec::IsCodecOffloadingEnabled;
-using ::bluetooth::audio::codec::UpdateOffloadingCapabilities;
+using ::bluetooth::audio::hidl::AudioConfiguration;
+using ::bluetooth::audio::hidl::AudioConfiguration_2_1;
+using ::bluetooth::audio::hidl::BluetoothAudioSinkClientInterface;
+using ::bluetooth::audio::hidl::BluetoothAudioSourceClientInterface;
+using ::bluetooth::audio::hidl::PcmParameters;
+using ::bluetooth::audio::hidl::PcmParameters_2_1;
+using ::bluetooth::audio::hidl::SampleRate;
+using ::bluetooth::audio::hidl::SampleRate_2_1;
+using ::bluetooth::audio::hidl::SessionType;
+using ::bluetooth::audio::hidl::SessionType_2_1;
+using ::bluetooth::audio::hidl::codec::A2dpAacToHalConfig;
+using ::bluetooth::audio::hidl::codec::A2dpAptxToHalConfig;
+using ::bluetooth::audio::hidl::codec::A2dpCodecToHalBitsPerSample;
+using ::bluetooth::audio::hidl::codec::A2dpCodecToHalChannelMode;
+using ::bluetooth::audio::hidl::codec::A2dpCodecToHalSampleRate;
+using ::bluetooth::audio::hidl::codec::A2dpLdacToHalConfig;
+using ::bluetooth::audio::hidl::codec::A2dpSbcToHalConfig;
+using ::bluetooth::audio::hidl::codec::BitsPerSample;
+using ::bluetooth::audio::hidl::codec::ChannelMode;
+using ::bluetooth::audio::hidl::codec::CodecConfiguration;
+using ::bluetooth::audio::hidl::codec::IsCodecOffloadingEnabled;
+using ::bluetooth::audio::hidl::codec::UpdateOffloadingCapabilities;
 
 extern "C" {
 struct android_namespace_t* android_get_exported_namespace(const char*) {
@@ -77,13 +77,14 @@ constexpr SessionType kSessionTypes[] = {
     SessionType::HEARING_AID_SOFTWARE_ENCODING_DATAPATH,
 };
 
-constexpr bluetooth::audio::BluetoothAudioCtrlAck kBluetoothAudioCtrlAcks[] = {
-    bluetooth::audio::BluetoothAudioCtrlAck::SUCCESS_FINISHED,
-    bluetooth::audio::BluetoothAudioCtrlAck::PENDING,
-    bluetooth::audio::BluetoothAudioCtrlAck::FAILURE_UNSUPPORTED,
-    bluetooth::audio::BluetoothAudioCtrlAck::FAILURE_BUSY,
-    bluetooth::audio::BluetoothAudioCtrlAck::FAILURE_DISCONNECTING,
-    bluetooth::audio::BluetoothAudioCtrlAck::FAILURE};
+constexpr bluetooth::audio::hidl::BluetoothAudioCtrlAck
+    kBluetoothAudioCtrlAcks[] = {
+        bluetooth::audio::hidl::BluetoothAudioCtrlAck::SUCCESS_FINISHED,
+        bluetooth::audio::hidl::BluetoothAudioCtrlAck::PENDING,
+        bluetooth::audio::hidl::BluetoothAudioCtrlAck::FAILURE_UNSUPPORTED,
+        bluetooth::audio::hidl::BluetoothAudioCtrlAck::FAILURE_BUSY,
+        bluetooth::audio::hidl::BluetoothAudioCtrlAck::FAILURE_DISCONNECTING,
+        bluetooth::audio::hidl::BluetoothAudioCtrlAck::FAILURE};
 
 constexpr SessionType_2_1 kSessionTypes_2_1[] = {
     SessionType_2_1::UNKNOWN,
@@ -138,22 +139,23 @@ constexpr btav_a2dp_codec_index_t kCodecIndices[] = {
     BTAV_A2DP_CODEC_INDEX_SINK_AAC,    BTAV_A2DP_CODEC_INDEX_SINK_LDAC};
 
 class TestSinkTransport
-    : public bluetooth::audio::IBluetoothSinkTransportInstance {
+    : public bluetooth::audio::hidl::IBluetoothSinkTransportInstance {
  private:
  public:
   TestSinkTransport(SessionType session_type)
-      : bluetooth::audio::IBluetoothSinkTransportInstance(session_type, {}){};
+      : bluetooth::audio::hidl::IBluetoothSinkTransportInstance(session_type,
+                                                                {}){};
 
   TestSinkTransport(SessionType_2_1 session_type_2_1)
-      : bluetooth::audio::IBluetoothSinkTransportInstance(
+      : bluetooth::audio::hidl::IBluetoothSinkTransportInstance(
             session_type_2_1, (AudioConfiguration_2_1){}){};
 
-  bluetooth::audio::BluetoothAudioCtrlAck StartRequest() override {
-    return bluetooth::audio::BluetoothAudioCtrlAck::SUCCESS_FINISHED;
+  bluetooth::audio::hidl::BluetoothAudioCtrlAck StartRequest() override {
+    return bluetooth::audio::hidl::BluetoothAudioCtrlAck::SUCCESS_FINISHED;
   }
 
-  bluetooth::audio::BluetoothAudioCtrlAck SuspendRequest() override {
-    return bluetooth::audio::BluetoothAudioCtrlAck::SUCCESS_FINISHED;
+  bluetooth::audio::hidl::BluetoothAudioCtrlAck SuspendRequest() override {
+    return bluetooth::audio::hidl::BluetoothAudioCtrlAck::SUCCESS_FINISHED;
   }
 
   void StopRequest() override {}
@@ -172,22 +174,23 @@ class TestSinkTransport
 };
 
 class TestSourceTransport
-    : public bluetooth::audio::IBluetoothSourceTransportInstance {
+    : public bluetooth::audio::hidl::IBluetoothSourceTransportInstance {
  private:
  public:
   TestSourceTransport(SessionType session_type)
-      : bluetooth::audio::IBluetoothSourceTransportInstance(session_type, {}){};
+      : bluetooth::audio::hidl::IBluetoothSourceTransportInstance(session_type,
+                                                                  {}){};
 
   TestSourceTransport(SessionType_2_1 session_type_2_1)
-      : bluetooth::audio::IBluetoothSourceTransportInstance(
+      : bluetooth::audio::hidl::IBluetoothSourceTransportInstance(
             session_type_2_1, (AudioConfiguration_2_1){}){};
 
-  bluetooth::audio::BluetoothAudioCtrlAck StartRequest() override {
-    return bluetooth::audio::BluetoothAudioCtrlAck::SUCCESS_FINISHED;
+  bluetooth::audio::hidl::BluetoothAudioCtrlAck StartRequest() override {
+    return bluetooth::audio::hidl::BluetoothAudioCtrlAck::SUCCESS_FINISHED;
   }
 
-  bluetooth::audio::BluetoothAudioCtrlAck SuspendRequest() override {
-    return bluetooth::audio::BluetoothAudioCtrlAck::SUCCESS_FINISHED;
+  bluetooth::audio::hidl::BluetoothAudioCtrlAck SuspendRequest() override {
+    return bluetooth::audio::hidl::BluetoothAudioCtrlAck::SUCCESS_FINISHED;
   }
 
   void StopRequest() override {}

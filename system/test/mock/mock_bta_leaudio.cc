@@ -39,9 +39,12 @@ extern std::map<std::string, int> mock_function_count_map;
 /* Empty class to satisfy compiler */
 namespace bluetooth {
 namespace audio {
+
 class HalVersionManager {
-  static std::unique_ptr<HalVersionManager> instance_ptr;
+  static inline std::unique_ptr<HalVersionManager> instance_ptr =
+      std::make_unique<HalVersionManager>();
 };
+
 }  // namespace audio
 }  // namespace bluetooth
 
