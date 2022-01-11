@@ -315,12 +315,13 @@ void LeAudioClientAudioSource::Stop() {
 
   sinkClientInterface->StopSession();
   le_audio_sink_hal_state = HAL_STOPPED;
-  std::lock_guard<std::mutex> guard(sinkInterfaceMutex);
-  localAudioSinkReceiver = nullptr;
 
   if (CodecManager::GetInstance()->GetCodecLocation() == CodecLocation::HOST) {
     stop_audio_ticks();
   }
+
+  std::lock_guard<std::mutex> guard(sinkInterfaceMutex);
+  localAudioSinkReceiver = nullptr;
 }
 
 const void* LeAudioClientAudioSource::Acquire() {
