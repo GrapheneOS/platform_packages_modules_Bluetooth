@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <base/strings/stringprintf.h>
+
 #include <string>
 
 #define BT_TRANSPORT_AUTO 0
@@ -33,8 +35,7 @@ inline std::string bt_transport_text(const tBT_TRANSPORT& transport) {
     CASE_RETURN_TEXT(BT_TRANSPORT_BR_EDR);
     CASE_RETURN_TEXT(BT_TRANSPORT_LE);
     default:
-      return std::string("UNKNOWN[") + std::to_string(transport) +
-             std::string("]");
+      return base::StringPrintf("UNKNOWN[%hhu]", transport);
   }
 }
 #undef CASE_RETURN_TEXT

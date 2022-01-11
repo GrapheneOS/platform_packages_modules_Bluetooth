@@ -69,7 +69,7 @@ inline std::string gatt_security_action_text(const tGATT_SEC_ACTION& action) {
     CASE_RETURN_TEXT(GATT_SEC_ENCRYPT_MITM);
     CASE_RETURN_TEXT(GATT_SEC_ENC_PENDING);
     default:
-      return std::string("UNKNOWN[%hhu]", action);
+      return base::StringPrintf("UNKNOWN[%hhu]", action);
   }
 }
 
@@ -253,7 +253,7 @@ inline std::string gatt_channel_state_text(const tGATT_CH_STATE& state) {
     CASE_RETURN_TEXT(GATT_CH_CFG);
     CASE_RETURN_TEXT(GATT_CH_OPEN);
     default:
-      return std::string("UNKNOWN[%hhu]", state);
+      return base::StringPrintf("UNKNOWN[%hhu]", state);
   }
 }
 #undef CASE_RETURN_TEXT

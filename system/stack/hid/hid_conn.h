@@ -25,6 +25,8 @@
 #ifndef HID_CONN_H
 #define HID_CONN_H
 
+#include <base/strings/stringprintf.h>
+
 #include "osi/include/alarm.h"
 
 typedef enum : uint8_t {
@@ -56,7 +58,7 @@ typedef struct hid_conn {
       CASE_RETURN_TEXT(HID_CONN_STATE_DISCONNECTING);
       CASE_RETURN_TEXT(HID_CONN_STATE_SECURITY);
       default:
-        return std::string("UNKNOWN[%hhu]", state);
+        return base::StringPrintf("UNKNOWN[%hhu]", state);
     }
   }
 #undef CASE_RETURN_TEXT
