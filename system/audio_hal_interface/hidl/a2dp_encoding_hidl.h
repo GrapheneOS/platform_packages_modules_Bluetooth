@@ -23,16 +23,17 @@
 
 namespace bluetooth {
 namespace audio {
+namespace hidl {
 namespace a2dp {
 
 bool update_codec_offloading_capabilities(
     const std::vector<btav_a2dp_codec_config_t>& framework_preference);
 
 // Check if new bluetooth_audio is enabled
-bool is_hal_enabled();
+bool is_hal_2_0_enabled();
 
 // Check if new bluetooth_audio is running with offloading encoders
-bool is_hal_offloading();
+bool is_hal_2_0_offloading();
 
 // Initialize BluetoothAudio HAL: openProvider
 bool init(bluetooth::common::MessageLoopThread* message_loop);
@@ -57,5 +58,6 @@ size_t read(uint8_t* p_buf, uint32_t len);
 void set_remote_delay(uint16_t delay_report);
 
 }  // namespace a2dp
+}  // namespace hidl
 }  // namespace audio
 }  // namespace bluetooth
