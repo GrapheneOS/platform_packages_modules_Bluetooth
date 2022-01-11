@@ -17,6 +17,7 @@
 #pragma once
 
 #include <functional>
+
 #include "common/message_loop_thread.h"
 
 namespace bluetooth {
