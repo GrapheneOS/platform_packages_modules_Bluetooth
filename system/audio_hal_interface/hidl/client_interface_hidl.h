@@ -32,6 +32,7 @@
 
 namespace bluetooth {
 namespace audio {
+namespace hidl {
 
 using ::android::hardware::bluetooth::audio::V2_2::IBluetoothAudioPort;
 using AudioCapabilities =
@@ -326,5 +327,6 @@ class BluetoothAudioSourceClientInterface
   IBluetoothSourceTransportInstance* source_;
 };
 
+}  // namespace hidl
 }  // namespace audio
 }  // namespace bluetooth
