@@ -16,6 +16,7 @@
 
 #include "a2dp_encoding_host.h"
 
+#include <base/logging.h>
 #include <errno.h>
 #include <grp.h>
 #include <sys/stat.h>
@@ -32,8 +33,6 @@
 #include "osi/include/properties.h"
 #include "types/raw_address.h"
 #include "udrv/include/uipc.h"
-
-#include <base/logging.h>
 
 #define A2DP_DATA_READ_POLL_MS 10
 #define A2DP_HOST_DATA_PATH "/var/run/bluetooth/audio/.a2dp_data"
