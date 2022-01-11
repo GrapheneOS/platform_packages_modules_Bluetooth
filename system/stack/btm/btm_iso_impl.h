@@ -690,6 +690,7 @@ struct iso_impl {
 
     evt.p_msg = p_msg;
     evt.cig_id = iso->cig_id;
+    evt.seq_nb = seq_nb;
     cig_callbacks_->OnCisEvent(kIsoEventCisDataAvailable, &evt);
   }
 
