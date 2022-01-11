@@ -17,9 +17,9 @@
 #define LOG_TAG "BTAudioClientHearingAid"
 
 #include "hearing_aid_software_encoding.h"
-#include "client_interface.h"
 
 #include "audio_hearing_aid_hw/include/audio_hearing_aid_hw.h"
+#include "client_interface.h"
 #include "osi/include/log.h"
 #include "osi/include/properties.h"
 
@@ -157,7 +157,8 @@ uint16_t remote_delay_ms = 0;
 
 bool is_hal_2_0_force_disabled() {
   if (!is_configured) {
-    btaudio_hearing_aid_disabled = osi_property_get_bool(BLUETOOTH_AUDIO_HAL_PROP_DISABLED, false);
+    btaudio_hearing_aid_disabled =
+        osi_property_get_bool(BLUETOOTH_AUDIO_HAL_PROP_DISABLED, false);
     is_configured = true;
   }
   return btaudio_hearing_aid_disabled;
@@ -185,7 +186,8 @@ bool init(StreamCallbacks stream_cb,
       new bluetooth::audio::BluetoothAudioSinkClientInterface(hearing_aid_sink,
                                                               message_loop);
   if (!hearing_aid_hal_clientinterface->IsValid()) {
-    LOG(WARNING) << __func__ << ": BluetoothAudio HAL for Hearing Aid is invalid?!";
+    LOG(WARNING) << __func__
+                 << ": BluetoothAudio HAL for Hearing Aid is invalid?!";
     delete hearing_aid_hal_clientinterface;
     hearing_aid_hal_clientinterface = nullptr;
     delete hearing_aid_sink;
