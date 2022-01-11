@@ -343,16 +343,9 @@ class BleScannerInterfaceImpl : public BleScannerInterface {
   }
 };
 
-BleScannerInterface* btLeScannerInstance = nullptr;
-
 }  // namespace
 
 BleScannerInterface* get_ble_scanner_instance() {
-  if (bluetooth::shim::is_gd_scanning_enabled()) {
-    LOG_INFO("Use gd le scanner");
-    return bluetooth::shim::get_ble_scanner_instance();
-  } else if (btLeScannerInstance == nullptr) {
-    btLeScannerInstance = new BleScannerInterfaceImpl();
-  }
-  return btLeScannerInstance;
+  LOG_INFO("Use gd le scanner");
+  return bluetooth::shim::get_ble_scanner_instance();
 }

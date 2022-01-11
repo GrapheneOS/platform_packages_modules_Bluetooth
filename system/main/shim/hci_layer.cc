@@ -207,7 +207,6 @@ static bool subevent_already_registered_in_le_hci_layer(
     case bluetooth::hci::SubeventCode::REMOTE_CONNECTION_PARAMETER_REQUEST:
     case bluetooth::hci::SubeventCode::ADVERTISING_SET_TERMINATED:
     case bluetooth::hci::SubeventCode::SCAN_REQUEST_RECEIVED:
-      return true;
     case bluetooth::hci::SubeventCode::SCAN_TIMEOUT:
     case bluetooth::hci::SubeventCode::ADVERTISING_REPORT:
     case bluetooth::hci::SubeventCode::DIRECTED_ADVERTISING_REPORT:
@@ -215,7 +214,7 @@ static bool subevent_already_registered_in_le_hci_layer(
     case bluetooth::hci::SubeventCode::PERIODIC_ADVERTISING_REPORT:
     case bluetooth::hci::SubeventCode::PERIODIC_ADVERTISING_SYNC_ESTABLISHED:
     case bluetooth::hci::SubeventCode::PERIODIC_ADVERTISING_SYNC_LOST:
-      return bluetooth::shim::is_gd_scanning_enabled();
+      return true;
     case bluetooth::hci::SubeventCode::READ_REMOTE_FEATURES_COMPLETE:
     case bluetooth::hci::SubeventCode::READ_LOCAL_P256_PUBLIC_KEY_COMPLETE:
     case bluetooth::hci::SubeventCode::GENERATE_DHKEY_COMPLETE:
@@ -245,7 +244,7 @@ static bool event_already_registered_in_le_advertising_manager(
     bluetooth::hci::EventCode event_code) {
   for (auto event : bluetooth::hci::AclConnectionEvents) {
     if (event == event_code) {
-      return bluetooth::shim::is_gd_advertising_enabled();
+      return true;
     }
   }
   return false;
@@ -255,7 +254,7 @@ static bool event_already_registered_in_le_scanning_manager(
     bluetooth::hci::EventCode event_code) {
   for (auto event : bluetooth::hci::AclConnectionEvents) {
     if (event == event_code) {
-      return bluetooth::shim::is_gd_scanning_enabled();
+      return true;
     }
   }
   return false;
@@ -531,10 +530,6 @@ static void on_shutting_down() {
     pending_iso_data = nullptr;
   }
   if (hci_queue_end != nullptr) {
-    if (!bluetooth::shim::is_gd_advertising_enabled() &&
-        !bluetooth::shim::is_gd_l2cap_enabled()) {
-      hci_queue_end->UnregisterDequeue();
-    }
     for (uint16_t event_code_raw = 0; event_code_raw < 0x100;
          event_code_raw++) {
       auto event_code = static_cast<bluetooth::hci::EventCode>(event_code_raw);
