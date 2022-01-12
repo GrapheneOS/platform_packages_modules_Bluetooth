@@ -65,9 +65,11 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
       bool crash_on_unknown_handle)
       : hci_layer_(hci_layer),
         controller_(controller),
-        handler_(handler),
         round_robin_scheduler_(round_robin_scheduler),
         crash_on_unknown_handle_(crash_on_unknown_handle) {
+    hci_layer_ = hci_layer;
+    controller_ = controller;
+    handler_ = handler;
     le_acl_connection_interface_ = hci_layer_->GetLeAclConnectionInterface(
         handler_->BindOn(this, &le_impl::on_le_event),
         handler_->BindOn(this, &le_impl::on_le_disconnect),
