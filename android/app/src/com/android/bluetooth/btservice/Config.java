@@ -49,6 +49,7 @@ import com.android.bluetooth.pbap.BluetoothPbapService;
 import com.android.bluetooth.pbapclient.PbapClientService;
 import com.android.bluetooth.sap.SapService;
 import com.android.bluetooth.vc.VolumeControlService;
+import com.android.bluetooth.tbs.TbsService;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -121,6 +122,8 @@ public class Config {
                     (1 << BluetoothProfile.VOLUME_CONTROL)),
             new ProfileConfig(McpService.class, R.bool.profile_supported_mcp_server,
                     (1 << BluetoothProfile.MCP_SERVER)),
+            new ProfileConfig(TbsService.class, R.bool.profile_supported_le_call_control,
+                    (1 << BluetoothProfile.LE_CALL_CONTROL)),
             new ProfileConfig(HearingAidService.class,
                     com.android.internal.R.bool.config_hearing_aid_profile_supported,
                     (1 << BluetoothProfile.HEARING_AID)),
