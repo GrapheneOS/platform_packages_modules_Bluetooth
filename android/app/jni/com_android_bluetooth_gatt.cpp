@@ -1973,6 +1973,8 @@ static AdvertiseParameters parseParams(JNIEnv* env, jobject i) {
   uint32_t interval = env->CallIntMethod(i, methodId);
   methodId = env->GetMethodID(clazz, "getTxPowerLevel", "()I");
   int8_t txPowerLevel = env->CallIntMethod(i, methodId);
+  methodId = env->GetMethodID(clazz, "getOwnAddressType", "()I");
+  int8_t ownAddressType = env->CallIntMethod(i, methodId);
 
   uint16_t props = 0;
   if (isConnectable) props |= 0x01;
@@ -1993,6 +1995,7 @@ static AdvertiseParameters parseParams(JNIEnv* env, jobject i) {
   p.primary_advertising_phy = primaryPhy;
   p.secondary_advertising_phy = secondaryPhy;
   p.scan_request_notification_enable = false;
+  p.own_address_type = ownAddressType;
   return p;
 }
 
