@@ -36,6 +36,7 @@
     <bool name="profile_supported_vc">true</bool>
     <bool name="profile_supported_mcp_server">true</bool>
     <bool name="profile_supported_csip_set_coordinator">true</bool>
+    <bool name="profile_supported_le_call_control">true</bool>
 
     <!-- If true, we will require location to be enabled on the device to
          fire Bluetooth LE scan result callbacks in addition to having one

@@ -451,6 +451,15 @@
                 <action android:name="android.bluetooth.IBluetoothCsipSetCoordinator" />
             </intent-filter>
         </service>
+        <service
+            android:process="@string/process"
+            android:name = ".tbs.TbsService"
+            android:enabled="@bool/profile_supported_le_call_control"
+            android:exported = "true">
+            <intent-filter>
+                <action android:name="android.bluetooth.IBluetoothLeCallControl" />
+            </intent-filter>
+        </service>
         <!-- Authenticator for PBAP account. -->
         <service android:process="@string/process"
              android:name=".pbapclient.AuthenticationService"
