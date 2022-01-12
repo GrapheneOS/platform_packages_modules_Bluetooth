@@ -57,7 +57,7 @@ class ObjectSubject(object):
             raise signals.TestFailure("Expected \"%s\" to not be None" % self._value, extras=None)
 
 
-DEFAULT_TIMEOUT = timedelta(seconds=10)
+DEFAULT_TIMEOUT = timedelta(seconds=30)
 
 
 class EventStreamSubject(ObjectSubject):
