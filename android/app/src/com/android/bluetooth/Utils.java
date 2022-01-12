@@ -142,10 +142,6 @@ public final class Utils {
         return getBytesFromAddress(device.getAddress());
     }
 
-    public static byte[] addressToBytes(String address) {
-        return getBytesFromAddress(address);
-    }
-
     public static byte[] getBytesFromAddress(String address) {
         int i, j = 0;
         byte[] output = new byte[BD_ADDR_LEN];

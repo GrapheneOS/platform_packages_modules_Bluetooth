@@ -174,7 +174,7 @@ static inline std::string security_state_text(const tSECURITY_STATE& state) {
     CASE_RETURN_TEXT(BTM_SEC_STATE_DISCONNECTING_BLE);
     CASE_RETURN_TEXT(BTM_SEC_STATE_DISCONNECTING_BOTH);
     default:
-      return std::string("UNKNOWN[%hhu]", state);
+      return base::StringPrintf("UNKNOWN[%hhu]", state);
   }
 }
 

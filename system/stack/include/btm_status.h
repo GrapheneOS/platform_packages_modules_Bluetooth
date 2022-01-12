@@ -87,7 +87,7 @@ inline std::string btm_status_text(const tBTM_STATUS& status) {
     CASE_RETURN_TEXT(BTM_MODE4_LEVEL4_NOT_SUPPORTED);
     CASE_RETURN_TEXT(BTM_DEV_RESTRICT_LISTED);
     default:
-      return std::string("UNKNOWN[%hhu]", status);
+      return base::StringPrintf("UNKNOWN[%hhu]", status);
   }
 }
 

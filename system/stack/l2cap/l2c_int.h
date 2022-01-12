@@ -24,6 +24,7 @@
 #ifndef L2C_INT_H
 #define L2C_INT_H
 
+#include <base/strings/stringprintf.h>
 #include <stdbool.h>
 
 #include <string>
@@ -99,7 +100,7 @@ inline std::string channel_state_text(const tL2C_CHNL_STATE& state) {
     CASE_RETURN_TEXT(CST_W4_L2CAP_DISCONNECT_RSP);
     CASE_RETURN_TEXT(CST_W4_L2CA_DISCONNECT_RSP);
     default:
-      return std::string("UNKNOWN[%hhu]", state);
+      return base::StringPrintf("UNKNOWN[%d]", state);
   }
 }
 #undef CASE_RETURN_TEXT
