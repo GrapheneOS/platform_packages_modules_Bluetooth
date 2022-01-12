@@ -25,8 +25,8 @@
 // This header contains functions for HCI-ble to invoke
 void btm_ble_conn_complete(uint8_t* p, UNUSED_ATTR uint16_t evt_len,
                            bool enhanced);
-void btm_ble_process_adv_pkt(uint8_t len, uint8_t* p);
-void btm_ble_process_ext_adv_pkt(uint8_t len, uint8_t* p);
+void btm_ble_process_adv_pkt(uint8_t len, const uint8_t* p);
+void btm_ble_process_ext_adv_pkt(uint8_t len, const uint8_t* p);
 void btm_ble_process_phy_update_pkt(uint8_t len, uint8_t* p);
 void btm_ble_read_remote_features_complete(uint8_t* p);
 void btm_le_on_advertising_set_terminated(uint8_t* p, uint16_t length);
