@@ -153,12 +153,8 @@ void Stack::StartEverything() {
   if (common::init_flags::gd_security_is_enabled()) {
     modules.add<security::SecurityModule>();
   }
-  if (common::init_flags::gd_advertising_is_enabled()) {
-    modules.add<hci::LeAdvertisingManager>();
-  }
-  if (common::init_flags::gd_scanning_is_enabled()) {
-    modules.add<hci::LeScanningManager>();
-  }
+  modules.add<hci::LeAdvertisingManager>();
+  modules.add<hci::LeScanningManager>();
   if (common::init_flags::btaa_hci_is_enabled()) {
     modules.add<activity_attribution::ActivityAttribution>();
   }
@@ -192,12 +188,9 @@ void Stack::StartEverything() {
     bluetooth::shim::hci_on_reset_complete();
   }
 
-  if (common::init_flags::gd_advertising_is_enabled()) {
-    bluetooth::shim::init_advertising_manager();
-  }
-  if (common::init_flags::gd_scanning_is_enabled()) {
-    bluetooth::shim::init_scanning_manager();
-  }
+  bluetooth::shim::init_advertising_manager();
+  bluetooth::shim::init_scanning_manager();
+
   if (common::init_flags::gd_l2cap_is_enabled() &&
       !common::init_flags::gd_core_is_enabled()) {
     L2CA_UseLegacySecurityModule();

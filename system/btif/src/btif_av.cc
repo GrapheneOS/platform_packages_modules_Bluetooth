@@ -3480,12 +3480,10 @@ bool btif_av_is_a2dp_offload_running() {
   if (!btif_av_is_a2dp_offload_enabled()) {
     return false;
   }
-  if (!bluetooth::audio::a2dp::is_hal_2_0_enabled()) {
-    // since android::hardware::bluetooth::a2dp::V1_0 deprecated, offloading
-    // is supported by Bluetooth Audio HAL 2.0 only.
+  if (!bluetooth::audio::a2dp::is_hal_enabled()) {
     return false;
   }
-  return bluetooth::audio::a2dp::is_hal_2_0_offloading();
+  return bluetooth::audio::a2dp::is_hal_offloading();
 }
 
 bool btif_av_is_peer_silenced(const RawAddress& peer_address) {

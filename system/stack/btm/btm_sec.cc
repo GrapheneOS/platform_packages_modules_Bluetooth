@@ -2004,7 +2004,7 @@ static void btm_sec_bond_cancel_complete(void) {
  * Returns          void
  *
  ******************************************************************************/
-void btm_create_conn_cancel_complete(uint8_t* p) {
+void btm_create_conn_cancel_complete(const uint8_t* p) {
   uint8_t status;
   STREAM_TO_UINT8(status, p);
   RawAddress bd_addr;
@@ -2185,7 +2185,8 @@ bool is_state_getting_name(void* data, void* context) {
  *
  ******************************************************************************/
 void btm_sec_rmt_name_request_complete(const RawAddress* p_bd_addr,
-                                       uint8_t* p_bd_name, tHCI_STATUS status) {
+                                       const uint8_t* p_bd_name,
+                                       tHCI_STATUS status) {
   tBTM_SEC_DEV_REC* p_dev_rec;
   int i;
   DEV_CLASS dev_class;
@@ -2215,7 +2216,7 @@ void btm_sec_rmt_name_request_complete(const RawAddress* p_bd_addr,
 
   /* Commenting out trace due to obf/compilation problems.
    */
-  if (!p_bd_name) p_bd_name = (uint8_t*)"";
+  if (!p_bd_name) p_bd_name = (const uint8_t*)"";
 
   if (p_dev_rec) {
     BTM_TRACE_EVENT(
@@ -2232,7 +2233,7 @@ void btm_sec_rmt_name_request_complete(const RawAddress* p_bd_addr,
   if (p_dev_rec) {
     old_sec_state = p_dev_rec->sec_state;
     if (status == HCI_SUCCESS) {
-      strlcpy((char*)p_dev_rec->sec_bd_name, (char*)p_bd_name,
+      strlcpy((char*)p_dev_rec->sec_bd_name, (const char*)p_bd_name,
               BTM_MAX_REM_BD_NAME_LEN + 1);
       p_dev_rec->sec_flags |= BTM_SEC_NAME_KNOWN;
       BTM_TRACE_EVENT("setting BTM_SEC_NAME_KNOWN sec_flags:0x%x",
@@ -2414,7 +2415,7 @@ void btm_sec_rmt_name_request_complete(const RawAddress* p_bd_addr,
  * Returns          void
  *
  ******************************************************************************/
-void btm_sec_rmt_host_support_feat_evt(uint8_t* p) {
+void btm_sec_rmt_host_support_feat_evt(const uint8_t* p) {
   tBTM_SEC_DEV_REC* p_dev_rec;
   RawAddress bd_addr; /* peer address */
   BD_FEATURES features;
@@ -2630,7 +2631,7 @@ void btm_io_capabilities_req(const RawAddress& p) {
  * Returns          void
  *
  ******************************************************************************/
-void btm_io_capabilities_rsp(uint8_t* p) {
+void btm_io_capabilities_rsp(const uint8_t* p) {
   tBTM_SEC_DEV_REC* p_dev_rec;
   tBTM_SP_IO_RSP evt_data;
 
@@ -2691,7 +2692,7 @@ void btm_io_capabilities_rsp(uint8_t* p) {
  * Returns          void
  *
  ******************************************************************************/
-void btm_proc_sp_req_evt(tBTM_SP_EVT event, uint8_t* p) {
+void btm_proc_sp_req_evt(tBTM_SP_EVT event, const uint8_t* p) {
   tBTM_STATUS status = BTM_ERR_PROCESSING;
   tBTM_SP_EVT_DATA evt_data;
   RawAddress& p_bda = evt_data.cfm_req.bd_addr;
@@ -2831,7 +2832,7 @@ void btm_proc_sp_req_evt(tBTM_SP_EVT event, uint8_t* p) {
  * Returns          void
  *
  ******************************************************************************/
-void btm_simple_pair_complete(uint8_t* p) {
+void btm_simple_pair_complete(const uint8_t* p) {
   RawAddress bd_addr;
   tBTM_SEC_DEV_REC* p_dev_rec;
   uint8_t status;
@@ -2894,7 +2895,7 @@ void btm_simple_pair_complete(uint8_t* p) {
  * Returns          void
  *
  ******************************************************************************/
-void btm_rem_oob_req(uint8_t* p) {
+void btm_rem_oob_req(const uint8_t* p) {
   tBTM_SP_RMT_OOB evt_data;
   tBTM_SEC_DEV_REC* p_dev_rec;
   Octet16 c;
@@ -3930,7 +3931,7 @@ void btm_sec_link_key_notification(const RawAddress& p_bda,
  * Returns          Pointer to the record or NULL
  *
  ******************************************************************************/
-void btm_sec_link_key_request(uint8_t* p_event) {
+void btm_sec_link_key_request(const uint8_t* p_event) {
   RawAddress bda;
 
   STREAM_TO_BDADDR(bda, p_event);
@@ -4082,7 +4083,7 @@ static void btm_sec_pairing_timeout(UNUSED_ATTR void* data) {
  * Returns          Pointer to the record or NULL
  *
  ******************************************************************************/
-void btm_sec_pin_code_request(uint8_t* p_event) {
+void btm_sec_pin_code_request(const uint8_t* p_event) {
   tBTM_SEC_DEV_REC* p_dev_rec;
   tBTM_CB* p_cb = &btm_cb;
   RawAddress p_bda;

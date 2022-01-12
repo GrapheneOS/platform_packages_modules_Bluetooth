@@ -25,6 +25,8 @@
 #ifndef BTA_API_H
 #define BTA_API_H
 
+#include <base/strings/stringprintf.h>
+
 #include <cstdint>
 #include <vector>
 
@@ -151,7 +153,7 @@ inline std::string preferred_role_text(const tBTA_PREF_ROLES& role) {
     CASE_RETURN_TEXT(BTA_CENTRAL_ROLE_ONLY);
     CASE_RETURN_TEXT(BTA_PERIPHERAL_ROLE_ONLY);
     default:
-      return std::string("UNKNOWN:%hhu", role);
+      return base::StringPrintf("UNKNOWN[%hhu]", role);
   }
 }
 #undef CASE_RETURN_TEXT

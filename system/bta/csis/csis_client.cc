@@ -1128,10 +1128,7 @@ class CsisClientImpl : public CsisClient {
   void CsisActiveObserverSet(bool enable) {
     LOG(INFO) << __func__ << " CSIS Discovery SET: " << enable;
 
-    if (bluetooth::shim::is_gd_scanning_enabled()) {
-      bluetooth::shim::set_empty_filter(enable);
-    }
-
+    bluetooth::shim::set_empty_filter(enable);
     BTA_DmBleCsisObserve(
         enable, [](tBTA_DM_SEARCH_EVT event, tBTA_DM_SEARCH* p_data) {
           /* If there's no instance we are most likely shutting

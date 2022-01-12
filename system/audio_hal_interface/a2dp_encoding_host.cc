@@ -16,6 +16,7 @@
 
 #include "a2dp_encoding_host.h"
 
+#include <base/logging.h>
 #include <errno.h>
 #include <grp.h>
 #include <sys/stat.h>
@@ -32,8 +33,6 @@
 #include "osi/include/properties.h"
 #include "types/raw_address.h"
 #include "udrv/include/uipc.h"
-
-#include <base/logging.h>
 
 #define A2DP_DATA_READ_POLL_MS 10
 #define A2DP_HOST_DATA_PATH "/var/run/bluetooth/audio/.a2dp_data"
@@ -204,10 +203,10 @@ bool update_codec_offloading_capabilities(
 }
 
 // Checking if new bluetooth_audio is enabled
-bool is_hal_2_0_enabled() { return true; }
+bool is_hal_enabled() { return true; }
 
 // Check if new bluetooth_audio is running with offloading encoders
-bool is_hal_2_0_offloading() { return false; }
+bool is_hal_offloading() { return false; }
 
 // Initialize BluetoothAudio HAL: openProvider
 bool init(bluetooth::common::MessageLoopThread* message_loop) {
