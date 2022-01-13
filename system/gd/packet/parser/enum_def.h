@@ -30,14 +30,14 @@ class EnumDef : public TypeDef {
 
   virtual PacketField* GetNewField(const std::string& name, ParseLocation loc) const;
 
-  void AddEntry(std::string name, uint32_t value);
+  void AddEntry(std::string name, uint64_t value);
 
   bool HasEntry(std::string name) const;
 
   virtual Type GetDefinitionType() const override;
 
   // data
-  std::map<uint32_t, std::string> constants_;
+  std::map<uint64_t, std::string> constants_;
   std::set<std::string> entries_;
 
   EnumDef* try_from_enum_ = nullptr;
