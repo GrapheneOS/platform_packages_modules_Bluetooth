@@ -918,7 +918,7 @@ TEST_F(IsoManagerDeathTest, ConnectSameCisTwice) {
   ASSERT_EXIT(
       IsoManager::GetInstance()->IsoManager::GetInstance()->EstablishCis(
           params),
-      ::testing::KilledBySignal(SIGABRT), "Already connected");
+      ::testing::KilledBySignal(SIGABRT), "Already connected or connecting");
 }
 
 TEST_F(IsoManagerDeathTest, EstablishCisInvalidResponsePacket) {
