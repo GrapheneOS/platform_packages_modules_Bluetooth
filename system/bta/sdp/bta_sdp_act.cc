@@ -20,12 +20,15 @@
  *  This file contains action functions for SDP search.
  ******************************************************************************/
 
+#include <frameworks/proto_logging/stats/enums/bluetooth/enums.pb.h>
 #include <hardware/bt_sdp.h>
+
 #include <cstdint>
 
 #include "bta/include/bta_sdp_api.h"
 #include "bta/sdp/bta_sdp_int.h"
 #include "btif/include/btif_sock_sdp.h"
+#include "main/shim/metrics_api.h"
 #include "osi/include/allocator.h"
 #include "stack/include/sdp_api.h"
 #include "types/bluetooth/uuid.h"
@@ -435,6 +438,8 @@ static void bta_sdp_search_cback(tSDP_RESULT result, const void* user_data) {
   tBTA_SDP bta_sdp;
   bta_sdp.sdp_search_comp = evt_data;
   bta_sdp_cb.p_dm_cback(BTA_SDP_SEARCH_COMP_EVT, &bta_sdp, (void*)&uuid);
+  bluetooth::shim::CountCounterMetrics(
+      android::bluetooth::CodePathCounterKeyEnum::SDP_SUCCESS, 1);
   osi_free(const_cast<void*>(
       user_data));  // We no longer need the user data to track the search
 }
@@ -513,6 +518,8 @@ void bta_sdp_search(const RawAddress bd_addr, const bluetooth::Uuid uuid) {
       tBTA_SDP bta_sdp;
       bta_sdp.sdp_search_comp = result;
       bta_sdp_cb.p_dm_cback(BTA_SDP_SEARCH_COMP_EVT, &bta_sdp, NULL);
+      bluetooth::shim::CountCounterMetrics(
+          android::bluetooth::CodePathCounterKeyEnum::SDP_FAILURE, 1);
     }
   }
   /*
