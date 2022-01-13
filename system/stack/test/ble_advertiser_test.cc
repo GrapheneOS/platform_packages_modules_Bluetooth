@@ -192,6 +192,8 @@ class BleAdvertisingManagerTest : public testing::Test {
     start_advertising_set_tx_power = tx_power;
     start_advertising_set_status = status;
   }
+
+  void StartAdvertisingSetWithSpecificAddressType(int8_t own_address_type);
 };
 
 TEST_F(BleAdvertisingManagerTest, test_registration) {
@@ -436,10 +438,12 @@ TEST_F(BleAdvertisingManagerTest, test_reenabling_disabled_instance) {
 
 /* This test verifies that the only flow that is currently used on Android, is
  * working correctly in happy case scenario. */
-TEST_F(BleAdvertisingManagerTest, test_start_advertising_set) {
+void BleAdvertisingManagerTest::StartAdvertisingSetWithSpecificAddressType(
+    int8_t own_address_type) {
   std::vector<uint8_t> adv_data;
   std::vector<uint8_t> scan_resp;
   tBTM_BLE_ADV_PARAMS params;
+  params.own_address_type = own_address_type;
   tBLE_PERIODIC_ADV_PARAMS periodic_params;
   periodic_params.enable = false;
   std::vector<uint8_t> periodic_data;
@@ -453,9 +457,11 @@ TEST_F(BleAdvertisingManagerTest, test_start_advertising_set) {
   EXPECT_CALL(*hci_mock, SetParameters2(_, _, _, _, _, _, _, _))
       .Times(1)
       .WillOnce(SaveArg<7>(&set_params_cb));
-  EXPECT_CALL(*hci_mock, SetRandomAddress(_, _, _))
-      .Times(1)
-      .WillOnce(SaveArg<2>(&set_address_cb));
+  if (own_address_type != BLE_ADDR_PUBLIC) {
+    EXPECT_CALL(*hci_mock, SetRandomAddress(_, _, _))
+        .Times(1)
+        .WillOnce(SaveArg<2>(&set_address_cb));
+  }
   EXPECT_CALL(*hci_mock, SetAdvertisingData(_, _, _, _, _, _))
       .Times(1)
       .WillOnce(SaveArg<5>(&set_data_cb));
@@ -475,7 +481,9 @@ TEST_F(BleAdvertisingManagerTest, test_start_advertising_set) {
   // we are a truly gracious fake controller, let the commands succeed!
   int selected_tx_power = -15;
   set_params_cb.Run(0, selected_tx_power);
-  set_address_cb.Run(0);
+  if (own_address_type != BLE_ADDR_PUBLIC) {
+    set_address_cb.Run(0);
+  }
   set_data_cb.Run(0);
   set_scan_resp_data_cb.Run(0);
   enable_cb.Run(0);
@@ -504,6 +512,21 @@ TEST_F(BleAdvertisingManagerTest, test_start_advertising_set) {
 
   disable_cb.Run(0);
   remove_cb.Run(0);
+}
+
+TEST_F(BleAdvertisingManagerTest,
+       test_start_advertising_set_default_address_type) {
+  StartAdvertisingSetWithSpecificAddressType(BLE_ADDR_ANONYMOUS);
+}
+
+TEST_F(BleAdvertisingManagerTest,
+       test_start_advertising_set_public_address_type) {
+  StartAdvertisingSetWithSpecificAddressType(BLE_ADDR_PUBLIC);
+}
+
+TEST_F(BleAdvertisingManagerTest,
+       test_start_advertising_set_random_address_type) {
+  StartAdvertisingSetWithSpecificAddressType(BLE_ADDR_RANDOM);
 }
 
 TEST_F(BleAdvertisingManagerTest, test_start_advertising_set_params_failed) {
@@ -680,6 +703,7 @@ TEST_F(BleAdvertisingManagerTest,
   std::vector<uint8_t> adv_data;
   std::vector<uint8_t> scan_resp;
   tBTM_BLE_ADV_PARAMS params;
+  params.own_address_type = BLE_ADDR_ANONYMOUS;
   params.advertising_event_properties = 0x1 /* connectable */;
   tBLE_PERIODIC_ADV_PARAMS periodic_params;
   periodic_params.enable = false;
@@ -794,6 +818,7 @@ TEST_F(BleAdvertisingManagerTest, test_periodic_adv_disable_on_unregister) {
   std::vector<uint8_t> adv_data;
   std::vector<uint8_t> scan_resp;
   tBTM_BLE_ADV_PARAMS params;
+  params.own_address_type = BLE_ADDR_ANONYMOUS;
   params.advertising_event_properties = 0x1 /* connectable */;
   tBLE_PERIODIC_ADV_PARAMS periodic_params;
   periodic_params.enable = true;  // enable periodic advertising
@@ -954,6 +979,7 @@ TEST_F(BleAdvertisingManagerTest, test_duration_update_during_timeout) {
   std::vector<uint8_t> adv_data;
   std::vector<uint8_t> scan_resp;
   tBTM_BLE_ADV_PARAMS params;
+  params.own_address_type = BLE_ADDR_ANONYMOUS;
   params.advertising_event_properties = 0x1 /* connectable */;
   params.adv_int_min = params.adv_int_max = 0xA0 /* 100ms */;
   tBLE_PERIODIC_ADV_PARAMS periodic_params;
@@ -1063,6 +1089,7 @@ TEST_F(BleAdvertisingManagerTest, test_cleanup_during_execution) {
   std::vector<uint8_t> adv_data;
   std::vector<uint8_t> scan_resp;
   tBTM_BLE_ADV_PARAMS params;
+  params.own_address_type = BLE_ADDR_ANONYMOUS;
   tBLE_PERIODIC_ADV_PARAMS periodic_params;
   periodic_params.enable = false;
   std::vector<uint8_t> periodic_data;

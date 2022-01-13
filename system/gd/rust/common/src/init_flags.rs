@@ -2,15 +2,6 @@ use log::{error, info};
 use paste::paste;
 use std::sync::Mutex;
 
-/// Deprecated immutable flag
-pub fn gd_advertising_is_enabled() -> bool {
-    true
-}
-/// Deprecated immutable flag
-pub fn gd_scanning_is_enabled() -> bool {
-    true
-}
-
 macro_rules! init_flags {
     (flags: { $($flag:ident),* }, dependencies: { $($parent:ident => $child:ident),* }) => {
         #[derive(Default)]
