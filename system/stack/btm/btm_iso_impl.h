@@ -199,14 +199,14 @@ struct iso_impl {
     for (auto cis_param : conn_params.conn_pairs) {
       cis_establish_cmpl_evt evt;
 
-      if (status == HCI_SUCCESS) {
-        /* Set connecting flag and wait for connection established event */
+      if (status != HCI_SUCCESS) {
         auto cis = GetCisIfKnown(cis_param.cis_conn_handle);
-        cis->state_flags |= kStateFlagIsConnecting;
-      } else {
+        LOG_ASSERT(cis != nullptr) << "No such cis";
+
         evt.status = status;
         evt.cis_conn_hdl = cis_param.cis_conn_handle;
         evt.cig_id = 0xFF;
+        cis->state_flags &= ~kStateFlagIsConnecting;
         cig_callbacks_->OnCisEvent(kIsoEventCisEstablishCmpl, &evt);
       }
     }
@@ -216,8 +216,10 @@ struct iso_impl {
     for (auto& el : conn_params.conn_pairs) {
       auto cis = GetCisIfKnown(el.cis_conn_handle);
       LOG_ASSERT(cis) << "No such cis";
-      LOG_ASSERT(!(cis->state_flags & kStateFlagIsConnected))
-          << "Already connected";
+      LOG_ASSERT(!(cis->state_flags &
+                   (kStateFlagIsConnected | kStateFlagIsConnecting)))
+          << "Already connected or connecting";
+      cis->state_flags |= kStateFlagIsConnecting;
     }
     btsnd_hcic_create_cis(conn_params.conn_pairs.size(),
                           conn_params.conn_pairs.data(),
