@@ -148,14 +148,15 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
     auto status = connection_complete.GetStatus();
     auto address = connection_complete.GetPeerAddress();
     auto peer_address_type = connection_complete.GetPeerAddressType();
+    if (status == ErrorCode::UNKNOWN_CONNECTION && pause_connection) {
+      // connection canceled by LeAddressManager.OnPause(), will auto reconnect by LeAddressManager.OnResume()
+      return;
+    }
     // TODO: find out which address and type was used to initiate the connection
     AddressWithType remote_address(address, peer_address_type);
     AddressWithType local_address = le_address_manager_->GetCurrentAddress();
     on_common_le_connection_complete(remote_address);
-    if (status == ErrorCode::UNKNOWN_CONNECTION && pause_connection) {
-      // connection canceled by LeAddressManager.OnPause(), will auto reconnect by LeAddressManager.OnResume()
-      return;
-    } else if (status == ErrorCode::UNKNOWN_CONNECTION && remote_address.GetAddress() == Address::kEmpty) {
+    if (status == ErrorCode::UNKNOWN_CONNECTION && remote_address.GetAddress() == Address::kEmpty) {
       // direct connect canceled due to connection timeout, start background connect
       create_le_connection(remote_address, false, false);
       return;
@@ -210,15 +211,16 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
     auto address = connection_complete.GetPeerAddress();
     auto peer_address_type = connection_complete.GetPeerAddressType();
     auto peer_resolvable_address = connection_complete.GetPeerResolvablePrivateAddress();
+    if (status == ErrorCode::UNKNOWN_CONNECTION && pause_connection) {
+      // connection canceled by LeAddressManager.OnPause(), will auto reconnect by LeAddressManager.OnResume()
+      return;
+    }
     AddressWithType remote_address(address, peer_address_type);
     if (!peer_resolvable_address.IsEmpty()) {
       remote_address = AddressWithType(peer_resolvable_address, AddressType::RANDOM_DEVICE_ADDRESS);
     }
     on_common_le_connection_complete(remote_address);
-    if (status == ErrorCode::UNKNOWN_CONNECTION && pause_connection) {
-      // connection canceled by LeAddressManager.OnPause(), will auto reconnect by LeAddressManager.OnResume()
-      return;
-    } else if (status == ErrorCode::UNKNOWN_CONNECTION && remote_address.GetAddress() == Address::kEmpty) {
+    if (status == ErrorCode::UNKNOWN_CONNECTION && remote_address.GetAddress() == Address::kEmpty) {
       // direct connect canceled due to connection timeout, start background connect
       create_le_connection(remote_address, false, false);
       return;
