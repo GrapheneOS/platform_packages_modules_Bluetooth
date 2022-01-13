@@ -20,6 +20,14 @@ impl From<u32> for BthfConnectionState {
     }
 }
 
+bitflags! {
+    pub struct HfpCodecCapability: i32 {
+        const UNSUPPORTED = 0b00;
+        const CVSD = 0b01;
+        const MSBC = 0b10;
+    }
+}
+
 #[cxx::bridge(namespace = bluetooth::topshim::rust)]
 pub mod ffi {
     #[derive(Debug, Copy, Clone)]
