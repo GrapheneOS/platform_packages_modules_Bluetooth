@@ -135,6 +135,7 @@ cc_library_static {
     static_libs: [
         "avrcp-target-service",
         "lib-bt-packets",
+        "libbt-platform-protos-lite",
     ],
     shared_libs: [
         "android.hardware.bluetooth.audio@2.0",
