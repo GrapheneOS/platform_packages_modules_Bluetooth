@@ -2587,6 +2587,9 @@ public class GattService extends ProfileService {
                 this, attributionSource, "GattService startAdvertisingSet")) {
             return;
         }
+        if (parameters.getOwnAddressType() != AdvertisingSetParameters.ADDRESS_TYPE_DEFAULT) {
+            Utils.enforceBluetoothPrivilegedPermission(this);
+        }
         mAdvertiseManager.startAdvertisingSet(parameters, advertiseData, scanResponse,
                 periodicParameters, periodicData, duration, maxExtAdvEvents, callback);
     }
