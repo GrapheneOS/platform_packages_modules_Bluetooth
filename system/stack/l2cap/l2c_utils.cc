@@ -2947,7 +2947,7 @@ void l2cu_reject_ble_connection(tL2C_CCB* p_ccb, uint8_t rem_id,
                                 uint16_t result) {
   if (p_ccb->ecoc)
     l2cu_reject_credit_based_conn_req(
-        p_ccb->p_lcb, rem_id, p_ccb->p_lcb->pending_ecoc_reconfig_cnt, result);
+        p_ccb->p_lcb, rem_id, p_ccb->p_lcb->pending_ecoc_conn_cnt, result);
   else
     l2cu_reject_ble_coc_connection(p_ccb->p_lcb, rem_id, result);
 }
