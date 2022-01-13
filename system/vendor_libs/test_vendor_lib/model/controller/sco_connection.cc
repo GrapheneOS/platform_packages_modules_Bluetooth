@@ -113,7 +113,7 @@ std::optional<ScoLinkParameters> ScoConnectionParameters::GetLinkParameters() {
         retransmission_effort == (uint8_t)RetransmissionEffort::OPTIMIZED_FOR_POWER ?
             rx.slots + tx.slots :
         retransmission_effort == (uint8_t)RetransmissionEffort::OPTIMIZED_FOR_LINK_QUALITY ?
-            rx.slots + tx.slots : 0;
+            2 * (rx.slots + tx.slots) : 0;
 
       LOG_INFO("Retransmission window: %u slots", retransmission_window);
 
