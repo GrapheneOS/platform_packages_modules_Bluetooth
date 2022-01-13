@@ -28,6 +28,7 @@
 #include "common/strings.h"
 #include "hal/hci_hal.h"
 #include "hal/snoop_logger.h"
+#include "os/alarm.h"
 #include "os/log.h"
 
 using ::android::hardware::hidl_vec;
@@ -37,6 +38,7 @@ using ::android::hardware::bluetooth::V1_1::IBluetoothHci;
 using ::android::hardware::bluetooth::V1_1::IBluetoothHciCallbacks;
 using HidlStatus = ::android::hardware::bluetooth::V1_0::Status;
 using IBluetoothHci_1_0 = ::android::hardware::bluetooth::V1_0::IBluetoothHci;
+using bluetooth::common::BindOnce;
 
 namespace bluetooth {
 namespace hal {
@@ -205,6 +207,13 @@ class HciHalHidl : public HciHal {
     }
     btsnoop_logger_ = GetDependency<SnoopLogger>();
 
+    auto get_service_alarm = new os::Alarm(GetHandler());
+    get_service_alarm->Schedule(
+        BindOnce([] {
+          LOG_ALWAYS_FATAL("Unable to get a Bluetooth service after 500ms, start the HAL before starting Bluetooth");
+        }),
+        std::chrono::milliseconds(500));
+
     bt_hci_1_1_ = IBluetoothHci::getService();
 
     if (bt_hci_1_1_ != nullptr) {
@@ -212,6 +221,9 @@ class HciHalHidl : public HciHal {
     } else {
       bt_hci_ = IBluetoothHci_1_0::getService();
     }
+
+    get_service_alarm->Cancel();
+    delete get_service_alarm;
 
     ASSERT(bt_hci_ != nullptr);
     auto death_link = bt_hci_->linkToDeath(hci_death_recipient_, 0);
