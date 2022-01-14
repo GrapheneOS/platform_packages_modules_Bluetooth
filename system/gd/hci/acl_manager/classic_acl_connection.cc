@@ -336,6 +336,7 @@ struct ClassicAclConnection::impl {
   bool callbacks_given_{false};
   AclConnectionTracker tracker;
   std::shared_ptr<Queue> queue_;
+  std::shared_ptr<std::atomic<bool>> is_callback_valid_;
 };
 
 ClassicAclConnection::ClassicAclConnection()
@@ -349,10 +350,13 @@ ClassicAclConnection::ClassicAclConnection(std::shared_ptr<Queue> queue,
 }
 
 ClassicAclConnection::~ClassicAclConnection() {
+  if (pimpl_->is_callback_valid_) *pimpl_->is_callback_valid_ = false;
   delete pimpl_;
 }
 
-ConnectionManagementCallbacks* ClassicAclConnection::GetEventCallbacks() {
+ConnectionManagementCallbacks* ClassicAclConnection::GetEventCallbacks(
+    std::shared_ptr<std::atomic<bool>> is_callback_valid) {
+  pimpl_->is_callback_valid_ = is_callback_valid;
   return pimpl_->GetEventCallbacks();
 }
 
