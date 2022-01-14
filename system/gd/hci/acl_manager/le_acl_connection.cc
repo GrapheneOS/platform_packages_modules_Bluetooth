@@ -94,6 +94,7 @@ struct LeAclConnection::impl {
   bool callbacks_given_{false};
   std::shared_ptr<Queue> queue_;
   LeAclConnectionTracker tracker;
+  std::shared_ptr<std::atomic<bool>> is_callback_valid_;
 };
 
 LeAclConnection::LeAclConnection()
@@ -115,6 +116,7 @@ LeAclConnection::LeAclConnection(
 }
 
 LeAclConnection::~LeAclConnection() {
+  if (pimpl_->is_callback_valid_) *pimpl_->is_callback_valid_ = false;
   delete pimpl_;
 }
 
@@ -137,7 +139,9 @@ void LeAclConnection::Disconnect(DisconnectReason reason) {
       }));
 }
 
-LeConnectionManagementCallbacks* LeAclConnection::GetEventCallbacks() {
+LeConnectionManagementCallbacks* LeAclConnection::GetEventCallbacks(
+    std::shared_ptr<std::atomic<bool>> is_callback_valid) {
+  pimpl_->is_callback_valid_ = is_callback_valid;
   return pimpl_->GetEventCallbacks();
 }
 

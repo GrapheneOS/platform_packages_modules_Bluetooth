@@ -16,6 +16,9 @@
 
 #pragma once
 
+#include <atomic>
+#include <memory>
+
 #include "common/bind.h"
 #include "crypto_toolbox/crypto_toolbox.h"
 #include "hci/acl_manager/assembler.h"
@@ -50,6 +53,7 @@ struct le_acl_connection {
   struct acl_manager::assembler assembler_;
   AddressWithType remote_address_;
   LeConnectionManagementCallbacks* le_connection_management_callbacks_ = nullptr;
+  std::shared_ptr<std::atomic<bool>> is_callback_valid_ = std::make_shared<std::atomic<bool>>(true);
 };
 
 struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
@@ -116,7 +120,7 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
     if (connection == le_acl_connections_.end()) {
       return nullptr;
     }
-    return connection->second.le_connection_management_callbacks_;
+    return (connection->second.is_callback_valid_) ? connection->second.le_connection_management_callbacks_ : nullptr;
   }
 
   void on_le_disconnect(uint16_t handle, ErrorCode reason) {
@@ -198,7 +202,8 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
     std::unique_ptr<LeAclConnection> connection(new LeAclConnection(
         std::move(queue), le_acl_connection_interface_, handle, local_address, remote_address, role));
     connection->peer_address_with_type_ = AddressWithType(address, peer_address_type);
-    connection_proxy.le_connection_management_callbacks_ = connection->GetEventCallbacks();
+    connection_proxy.le_connection_management_callbacks_ =
+        connection->GetEventCallbacks(connection_proxy.is_callback_valid_);
     le_client_handler_->Post(common::BindOnce(&LeConnectionCallbacks::OnLeConnectSuccess,
                                               common::Unretained(le_client_callbacks_), remote_address,
                                               std::move(connection)));
@@ -270,7 +275,8 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
     std::unique_ptr<LeAclConnection> connection(new LeAclConnection(
         std::move(queue), le_acl_connection_interface_, handle, local_address, remote_address, role));
     connection->peer_address_with_type_ = AddressWithType(address, peer_address_type);
-    connection_proxy.le_connection_management_callbacks_ = connection->GetEventCallbacks();
+    connection_proxy.le_connection_management_callbacks_ =
+        connection->GetEventCallbacks(connection_proxy.is_callback_valid_);
     le_client_handler_->Post(common::BindOnce(&LeConnectionCallbacks::OnLeConnectSuccess,
                                               common::Unretained(le_client_callbacks_), remote_address,
                                               std::move(connection)));
