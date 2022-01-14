@@ -1485,12 +1485,20 @@ public class HeadsetService extends ProfileService {
     }
 
     int disconnectAudio() {
+        int disconnectResult = BluetoothStatusCodes.ERROR_NO_ACTIVE_DEVICES;
         synchronized (mStateMachines) {
-            List<BluetoothDevice> activeAudioDevices = getNonIdleAudioDevices();
-            BluetoothDevice activeAudioDevice =
-                    activeAudioDevices.get(activeAudioDevices.size() - 1);
-            return disconnectAudio(activeAudioDevice);
+            for (BluetoothDevice device : getNonIdleAudioDevices()) {
+                disconnectResult = disconnectAudio(device);
+                if (disconnectResult == BluetoothStatusCodes.SUCCESS) {
+                    return disconnectResult;
+                } else {
+                    Log.e(TAG, "disconnectAudio() from " + device + " failed with status code "
+                            + disconnectResult);
+                }
+            }
         }
+        logD("disconnectAudio() no active audio connection");
+        return disconnectResult;
     }
 
     int disconnectAudio(BluetoothDevice device) {
