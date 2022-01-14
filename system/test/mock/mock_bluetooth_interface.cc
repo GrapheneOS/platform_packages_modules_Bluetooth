@@ -145,6 +145,10 @@ static int get_metric_id(const RawAddress& address) { return 0; }
 
 static int set_dynamic_audio_buffer_size(int codec, int size) { return 0; }
 
+static bool allow_low_latency_audio(bool allowed, const RawAddress& address) {
+  return true;
+}
+
 EXPORT_SYMBOL bt_interface_t bluetoothInterface = {
     sizeof(bluetoothInterface),
     init,
@@ -183,7 +187,8 @@ EXPORT_SYMBOL bt_interface_t bluetoothInterface = {
     obfuscate_address,
     get_metric_id,
     set_dynamic_audio_buffer_size,
-    generate_local_oob_data};
+    generate_local_oob_data,
+    allow_low_latency_audio};
 
 // callback reporting helpers
 
