@@ -352,10 +352,10 @@ void flush_source() {
   LeAudioSourceTransport::interface->FlushAudioData();
 }
 
-LeAudioSourceTransport::LeAudioSourceTransport(StreamCallbacks stream_cb)
-    : IBluetoothSourceTransportInstance(
-          SessionType_2_1::LE_AUDIO_SOFTWARE_DECODED_DATAPATH,
-          (AudioConfiguration_2_2){}) {
+LeAudioSourceTransport::LeAudioSourceTransport(SessionType_2_1 session_type,
+                                               StreamCallbacks stream_cb)
+    : IBluetoothSourceTransportInstance(session_type,
+                                        (AudioConfiguration_2_2){}) {
   transport_ =
       new LeAudioTransport(flush_source, std::move(stream_cb),
                            {SampleRate_2_1::RATE_16000, ChannelMode::MONO,

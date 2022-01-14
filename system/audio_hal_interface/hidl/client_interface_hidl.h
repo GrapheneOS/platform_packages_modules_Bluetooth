@@ -320,6 +320,10 @@ class BluetoothAudioSourceClientInterface
       bluetooth::common::MessageLoopThread* message_loop);
   virtual ~BluetoothAudioSourceClientInterface();
 
+  IBluetoothSourceTransportInstance* GetTransportInstance() const {
+    return source_;
+  }
+
   // Write data to audio HAL through fmq
   size_t WriteAudioData(const uint8_t* p_buf, uint32_t len);
 

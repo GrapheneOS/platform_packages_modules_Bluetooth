@@ -1016,7 +1016,9 @@ int BluetoothAudioClientInterface::EndSession() {
 
 void BluetoothAudioClientInterface::FlushAudioData() {
   if (transport_->GetSessionType_2_1() ==
-      SessionType_2_1::LE_AUDIO_HARDWARE_OFFLOAD_ENCODING_DATAPATH)
+          SessionType_2_1::LE_AUDIO_HARDWARE_OFFLOAD_ENCODING_DATAPATH ||
+      transport_->GetSessionType_2_1() ==
+          SessionType_2_1::LE_AUDIO_HARDWARE_OFFLOAD_DECODING_DATAPATH)
     return;
 
   if (mDataMQ == nullptr || !mDataMQ->isValid()) {
