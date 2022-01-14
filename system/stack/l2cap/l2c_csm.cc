@@ -23,19 +23,21 @@
  ******************************************************************************/
 #define LOG_TAG "l2c_csm"
 
+#include <base/logging.h>
+#include <frameworks/proto_logging/stats/enums/bluetooth/enums.pb.h>
+
 #include <string>
 
 #include "bt_target.h"
 #include "common/time_util.h"
 #include "l2c_int.h"
 #include "l2cdefs.h"
+#include "main/shim/metrics_api.h"
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "stack/btm/btm_sec.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/bt_hdr.h"
-
-#include <base/logging.h>
 
 /******************************************************************************/
 /*            L O C A L    F U N C T I O N     P R O T O T Y P E S            */
@@ -218,6 +220,10 @@ static void l2c_csm_closed(tL2C_CCB* p_ccb, tL2CEVT event, void* p_data) {
       } else {
         l2cu_release_ccb(p_ccb);
         (*p_ccb->p_rcb->api.pL2CA_Error_Cb)(local_cid, L2CAP_CONN_OTHER_ERROR);
+        bluetooth::shim::CountCounterMetrics(
+            android::bluetooth::CodePathCounterKeyEnum::
+                L2CAP_CONNECT_CONFIRM_NEG,
+            1);
       }
       break;
 
@@ -252,6 +258,10 @@ static void l2c_csm_closed(tL2C_CCB* p_ccb, tL2CEVT event, void* p_data) {
           l2cu_release_ccb(p_ccb);
           (*p_ccb->p_rcb->api.pL2CA_Error_Cb)(local_cid,
                                               L2CAP_CONN_OTHER_ERROR);
+          bluetooth::shim::CountCounterMetrics(
+              android::bluetooth::CodePathCounterKeyEnum::
+                  L2CAP_NO_COMPATIBLE_CHANNEL_AT_CSM_CLOSED,
+              1);
         } else {
           l2cu_send_peer_connect_req(p_ccb);
           alarm_set_on_mloop(p_ccb->l2c_ccb_timer,
@@ -264,6 +274,10 @@ static void l2c_csm_closed(tL2C_CCB* p_ccb, tL2CEVT event, void* p_data) {
     case L2CEVT_SEC_COMP_NEG: /* something is really bad with security */
       l2cu_release_ccb(p_ccb);
       (*p_ccb->p_rcb->api.pL2CA_Error_Cb)(local_cid, L2CAP_CONN_OTHER_ERROR);
+      bluetooth::shim::CountCounterMetrics(
+          android::bluetooth::CodePathCounterKeyEnum::
+              L2CAP_SECURITY_NEG_AT_CSM_CLOSED,
+          1);
       break;
 
     case L2CEVT_L2CAP_CREDIT_BASED_CONNECT_REQ: /* Peer connect request */
@@ -316,6 +330,10 @@ static void l2c_csm_closed(tL2C_CCB* p_ccb, tL2CEVT event, void* p_data) {
     case L2CEVT_TIMEOUT:
       l2cu_release_ccb(p_ccb);
       (*p_ccb->p_rcb->api.pL2CA_Error_Cb)(local_cid, L2CAP_CONN_OTHER_ERROR);
+      bluetooth::shim::CountCounterMetrics(
+          android::bluetooth::CodePathCounterKeyEnum::
+              L2CAP_TIMEOUT_AT_CSM_CLOSED,
+          1);
       break;
 
     case L2CEVT_L2CAP_DATA:      /* Peer data packet rcvd    */
@@ -392,6 +410,10 @@ static void l2c_csm_orig_w4_sec_comp(tL2C_CCB* p_ccb, tL2CEVT event,
             l2cu_release_ccb(p_ccb);
             (*p_ccb->p_rcb->api.pL2CA_Error_Cb)(local_cid,
                                                 L2CAP_CONN_OTHER_ERROR);
+            bluetooth::shim::CountCounterMetrics(
+                android::bluetooth::CodePathCounterKeyEnum::
+                    L2CAP_NO_COMPATIBLE_CHANNEL_AT_W4_SEC,
+                1);
           } else {
             alarm_set_on_mloop(p_ccb->l2c_ccb_timer,
                                L2CAP_CHNL_CONNECT_TIMEOUT_MS,
@@ -412,6 +434,10 @@ static void l2c_csm_orig_w4_sec_comp(tL2C_CCB* p_ccb, tL2CEVT event,
 
       l2cu_release_ccb(p_ccb);
       (*p_ccb->p_rcb->api.pL2CA_Error_Cb)(local_cid, L2CAP_CONN_OTHER_ERROR);
+      bluetooth::shim::CountCounterMetrics(
+          android::bluetooth::CodePathCounterKeyEnum::
+              L2CAP_SECURITY_NEG_AT_W4_SEC,
+          1);
       break;
 
     case L2CEVT_L2CA_DATA_WRITE: /* Upper layer data to send */
@@ -660,6 +686,10 @@ static void l2c_csm_w4_l2cap_connect_rsp(tL2C_CCB* p_ccb, tL2CEVT event,
           "cid %d, result 0x%04x",
           local_cid, p_ci->l2cap_result);
       (*p_ccb->p_rcb->api.pL2CA_Error_Cb)(local_cid, p_ci->l2cap_result);
+      bluetooth::shim::CountCounterMetrics(
+          android::bluetooth::CodePathCounterKeyEnum::
+              L2CAP_CREDIT_BASED_CONNECT_RSP_NEG,
+          1);
 
       l2cu_release_ccb(p_ccb);
       break;
@@ -670,6 +700,8 @@ static void l2c_csm_w4_l2cap_connect_rsp(tL2C_CCB* p_ccb, tL2CEVT event,
                    << ", reason=" << loghex(p_ci->l2cap_result);
       l2cu_release_ccb(p_ccb);
       (*p_ccb->p_rcb->api.pL2CA_Error_Cb)(local_cid, L2CAP_CONN_OTHER_ERROR);
+      bluetooth::shim::CountCounterMetrics(
+          android::bluetooth::CodePathCounterKeyEnum::L2CAP_CONNECT_RSP_NEG, 1);
       break;
 
     case L2CEVT_TIMEOUT:
@@ -682,6 +714,10 @@ static void l2c_csm_w4_l2cap_connect_rsp(tL2C_CCB* p_ccb, tL2CEVT event,
           LOG(WARNING) << __func__ << ": lcid= " << loghex(cid);
           (*p_ccb->p_rcb->api.pL2CA_Error_Cb)(p_ccb->local_cid,
                                               L2CAP_CONN_TIMEOUT);
+          bluetooth::shim::CountCounterMetrics(
+              android::bluetooth::CodePathCounterKeyEnum::
+                  L2CAP_TIMEOUT_AT_CONNECT_RSP,
+              1);
           l2cu_release_ccb(temp_p_ccb);
         }
         p_lcb->pending_ecoc_conn_cnt = 0;
@@ -692,6 +728,10 @@ static void l2c_csm_w4_l2cap_connect_rsp(tL2C_CCB* p_ccb, tL2CEVT event,
         LOG(WARNING) << __func__ << ": lcid= " << loghex(p_ccb->local_cid);
         l2cu_release_ccb(p_ccb);
         (*p_ccb->p_rcb->api.pL2CA_Error_Cb)(local_cid, L2CAP_CONN_OTHER_ERROR);
+        bluetooth::shim::CountCounterMetrics(
+            android::bluetooth::CodePathCounterKeyEnum::
+                L2CAP_CONN_OTHER_ERROR_AT_CONNECT_RSP,
+            1);
       }
       break;
 
@@ -723,6 +763,10 @@ static void l2c_csm_w4_l2cap_connect_rsp(tL2C_CCB* p_ccb, tL2CEVT event,
       if (!l2c_fcr_chk_chan_modes(p_ccb)) {
         l2cu_release_ccb(p_ccb);
         (*p_ccb->p_rcb->api.pL2CA_Error_Cb)(local_cid, L2CAP_CONN_OTHER_ERROR);
+        bluetooth::shim::CountCounterMetrics(
+            android::bluetooth::CodePathCounterKeyEnum::
+                L2CAP_INFO_NO_COMPATIBLE_CHANNEL_AT_RSP,
+            1);
       } else {
         /* We have feature info, so now send peer connect request */
         alarm_set_on_mloop(p_ccb->l2c_ccb_timer, L2CAP_CHNL_CONNECT_TIMEOUT_MS,
@@ -944,6 +988,10 @@ static void l2c_csm_config(tL2C_CCB* p_ccb, tL2CEVT event, void* p_data) {
             if (p_ccb->connection_initiator == L2CAP_INITIATOR_LOCAL) {
               (*p_ccb->p_rcb->api.pL2CA_Error_Cb)(p_ccb->local_cid,
                                                   L2CAP_CFG_FAILED_NO_REASON);
+              bluetooth::shim::CountCounterMetrics(
+                  android::bluetooth::CodePathCounterKeyEnum::
+                      L2CAP_CONFIG_REQ_FAILURE,
+                  1);
             }
           }
         }
@@ -1038,6 +1086,9 @@ static void l2c_csm_config(tL2C_CCB* p_ccb, tL2CEVT event, void* p_data) {
         if (p_ccb->connection_initiator == L2CAP_INITIATOR_LOCAL) {
           (*p_ccb->p_rcb->api.pL2CA_Error_Cb)(p_ccb->local_cid,
                                               L2CAP_CFG_FAILED_NO_REASON);
+          bluetooth::shim::CountCounterMetrics(
+              android::bluetooth::CodePathCounterKeyEnum::L2CAP_CONFIG_RSP_NEG,
+              1);
         }
       }
       break;
