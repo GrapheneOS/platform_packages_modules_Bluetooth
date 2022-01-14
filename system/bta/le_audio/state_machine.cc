@@ -969,8 +969,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
      * decode for now */
     auto data_path_id = bluetooth::hci::iso_manager::kIsoDataPathHci;
     if (CodecManager::GetInstance()->GetCodecLocation() !=
-            CodecLocation::HOST &&
-        ase->direction == le_audio::types::kLeAudioDirectionSink) {
+        CodecLocation::HOST) {
       data_path_id = bluetooth::hci::iso_manager::kIsoDataPathPlatformDefault;
     }
     /* TODO: Need to set coding_format when we support the codec location inside
