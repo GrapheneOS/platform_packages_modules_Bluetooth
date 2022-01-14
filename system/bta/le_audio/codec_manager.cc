@@ -58,32 +58,54 @@ struct codec_manager_impl {
     LOG_INFO("LeAudioCodecManagerImpl: configure_data_path for encode");
     btm_configure_data_path(btm_data_direction::HOST_TO_CONTROLLER,
                             kIsoDataPathPlatformDefault, {});
+    btm_configure_data_path(btm_data_direction::CONTROLLER_TO_HOST,
+                            kIsoDataPathPlatformDefault, {});
     SetCodecLocation(CodecLocation::ADSP);
   }
   ~codec_manager_impl() {
     if (GetCodecLocation() != CodecLocation::HOST) {
       btm_configure_data_path(btm_data_direction::HOST_TO_CONTROLLER,
                               kIsoDataPathHci, {});
+      btm_configure_data_path(btm_data_direction::CONTROLLER_TO_HOST,
+                              kIsoDataPathHci, {});
     }
   }
   CodecLocation GetCodecLocation(void) const { return codec_location_; }
 
-  void UpdateActiveAudioConfig(
+  void UpdateActiveSourceAudioConfig(
       const le_audio::stream_configuration& stream_conf, uint16_t delay) {
-    if (!stream_conf.sink_streams.empty()) {
-      sink_config.stream_map = std::move(stream_conf.sink_streams);
-      // TODO: set the default value 16 for now, would change it if we support
-      // mode bits_per_sample
-      sink_config.bits_per_sample = 16;
-      sink_config.sampling_rate = stream_conf.sink_sample_frequency_hz;
-      sink_config.frame_duration = stream_conf.sink_frame_duration_us;
-      sink_config.octets_per_frame = stream_conf.sink_octets_per_codec_frame;
-      // TODO: set the default value 1 for now, would change it if we need more
-      // configuration
-      sink_config.blocks_per_sdu = 1;
-      sink_config.peer_delay = delay;
-      LeAudioClientAudioSource::UpdateAudioConfigToHal(sink_config);
-    }
+    if (stream_conf.sink_streams.empty()) return;
+
+    sink_config.stream_map = std::move(stream_conf.sink_streams);
+    // TODO: set the default value 16 for now, would change it if we support
+    // mode bits_per_sample
+    sink_config.bits_per_sample = 16;
+    sink_config.sampling_rate = stream_conf.sink_sample_frequency_hz;
+    sink_config.frame_duration = stream_conf.sink_frame_duration_us;
+    sink_config.octets_per_frame = stream_conf.sink_octets_per_codec_frame;
+    // TODO: set the default value 1 for now, would change it if we need more
+    // configuration
+    sink_config.blocks_per_sdu = 1;
+    sink_config.peer_delay = delay;
+    LeAudioClientAudioSource::UpdateAudioConfigToHal(sink_config);
+  }
+
+  void UpdateActiveSinkAudioConfig(
+      const le_audio::stream_configuration& stream_conf, uint16_t delay) {
+    if (stream_conf.source_streams.empty()) return;
+
+    source_config.stream_map = std::move(stream_conf.source_streams);
+    // TODO: set the default value 16 for now, would change it if we support
+    // mode bits_per_sample
+    source_config.bits_per_sample = 16;
+    source_config.sampling_rate = stream_conf.source_sample_frequency_hz;
+    source_config.frame_duration = stream_conf.source_frame_duration_us;
+    source_config.octets_per_frame = stream_conf.source_octets_per_codec_frame;
+    // TODO: set the default value 1 for now, would change it if we need more
+    // configuration
+    source_config.blocks_per_sdu = 1;
+    source_config.peer_delay = delay;
+    LeAudioClientAudioSink::UpdateAudioConfigToHal(source_config);
   }
 
  private:
@@ -94,6 +116,7 @@ struct codec_manager_impl {
   CodecLocation codec_location_ = CodecLocation::HOST;
   bool offload_enable_ = false;
   le_audio::offload_config sink_config;
+  le_audio::offload_config source_config;
 };
 
 struct CodecManager::impl {
@@ -133,10 +156,18 @@ types::CodecLocation CodecManager::GetCodecLocation(void) const {
   return pimpl_->codec_manager_impl_->GetCodecLocation();
 }
 
-void CodecManager::UpdateActiveAudioConfig(
+void CodecManager::UpdateActiveSourceAudioConfig(
     const stream_configuration& stream_conf, uint16_t delay) {
   if (pimpl_->IsRunning())
-    pimpl_->codec_manager_impl_->UpdateActiveAudioConfig(stream_conf, delay);
+    pimpl_->codec_manager_impl_->UpdateActiveSourceAudioConfig(stream_conf,
+                                                               delay);
+}
+
+void CodecManager::UpdateActiveSinkAudioConfig(
+    const stream_configuration& stream_conf, uint16_t delay) {
+  if (pimpl_->IsRunning())
+    pimpl_->codec_manager_impl_->UpdateActiveSinkAudioConfig(stream_conf,
+                                                             delay);
 }
 
 }  // namespace le_audio

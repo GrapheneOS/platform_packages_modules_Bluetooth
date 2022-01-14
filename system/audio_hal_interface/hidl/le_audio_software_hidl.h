@@ -152,7 +152,8 @@ class LeAudioSinkTransport
 class LeAudioSourceTransport
     : public ::bluetooth::audio::hidl::IBluetoothSourceTransportInstance {
  public:
-  LeAudioSourceTransport(StreamCallbacks stream_cb);
+  LeAudioSourceTransport(SessionType_2_1 session_type,
+                         StreamCallbacks stream_cb);
 
   ~LeAudioSourceTransport();
 
