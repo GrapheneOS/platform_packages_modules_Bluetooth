@@ -2336,7 +2336,11 @@ class LeAudioClientImpl : public LeAudioClient {
 
       current_source_codec_config = *source_configuration;
 
-      LeAudioClientAudioSource::Start(current_source_codec_config,
+      /*Let's always request 2 channels from the framework */
+      auto audio_framework_configuration = current_source_codec_config;
+      audio_framework_configuration.num_channels = 2;
+
+      LeAudioClientAudioSource::Start(audio_framework_configuration,
                                       audioSinkReceiver);
 
     } else {

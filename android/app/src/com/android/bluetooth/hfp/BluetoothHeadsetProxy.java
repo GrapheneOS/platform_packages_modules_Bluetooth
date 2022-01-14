@@ -16,7 +16,6 @@
 
 package com.android.bluetooth.hfp;
 
-import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadset;
 import android.bluetooth.BluetoothManager;
@@ -73,7 +72,12 @@ public class BluetoothHeadsetProxy {
         return mBluetoothHeadset.getAudioState(device);
     }
 
-    public boolean connectAudio() {
+    /**
+     * Proxy function that calls {@link BluetoothHeadset#connectAudio()}.
+     *
+     * @return whether the connection request was successful
+     */
+    public int connectAudio() {
         return mBluetoothHeadset.connectAudio();
     }
 
@@ -85,11 +89,12 @@ public class BluetoothHeadsetProxy {
         return mBluetoothHeadset.getActiveDevice();
     }
 
-    public boolean isAudioOn() {
-        return mBluetoothHeadset.isAudioOn();
-    }
-
-    public boolean disconnectAudio() {
+    /**
+     * Proxy function that calls {@link BluetoothHeadset#disconnectAudio()}.
+     *
+     * @return whether the disconnection request was successful
+     */
+    public int disconnectAudio() {
         return mBluetoothHeadset.disconnectAudio();
     }
 
