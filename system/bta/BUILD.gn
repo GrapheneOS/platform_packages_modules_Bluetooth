@@ -123,6 +123,7 @@ static_library("bta") {
   ]
 
   deps = [
+    "//bt/system:libbt-platform-protos-lite",
     "//bt/system/gd/rust/shim:shim_bridge_header",
     "//bt/system/gd/rust/shim:init_flags_bridge_header",
     "//bt/system/gd/rust/shim:message_loop_thread_bridge_header",
