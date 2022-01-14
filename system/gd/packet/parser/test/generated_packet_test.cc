@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-#define PACKET_TESTING
-#include "packet/parser/test/big_endian_test_packets.h"
-#include "packet/parser/test/test_packets.h"
-
 #include <gtest/gtest.h>
 #include <forward_list>
 #include <memory>
 
+#define PACKET_TESTING
 #include "os/log.h"
 #include "packet/bit_inserter.h"
+#include "packet/parser/test/big_endian_test_packets.h"
 #include "packet/parser/test/six_bytes.h"
+#include "packet/parser/test/test_packets.h"
 #include "packet/raw_builder.h"
 
 using ::bluetooth::packet::BitInserter;
