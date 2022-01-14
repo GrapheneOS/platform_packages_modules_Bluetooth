@@ -24,7 +24,7 @@
 
 EnumDef::EnumDef(std::string name, int size) : TypeDef(name, size) {}
 
-void EnumDef::AddEntry(std::string name, uint32_t value) {
+void EnumDef::AddEntry(std::string name, uint64_t value) {
   if (!util::IsEnumCase(name)) {
     ERROR() << __func__ << ": Enum " << name << "(" << value << ") should be all uppercase with underscores";
   }
