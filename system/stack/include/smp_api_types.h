@@ -310,6 +310,6 @@ typedef struct {
 /* Security Manager events - Called by the stack when Security Manager related
  * events occur.*/
 typedef tBTM_STATUS(tSMP_CALLBACK)(tSMP_EVT event, const RawAddress& bd_addr,
-                                   tSMP_EVT_DATA* p_data);
+                                   const tSMP_EVT_DATA* p_data);
 
 #endif  // SMP_API_TYPES_H
