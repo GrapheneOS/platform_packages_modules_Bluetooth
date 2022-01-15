@@ -667,18 +667,6 @@ extern bool btm_sec_is_a_bonded_dev(const RawAddress& bda);
 extern tBT_DEVICE_TYPE BTM_GetPeerDeviceTypeFromFeatures(
     const RawAddress& bd_addr);
 
-/*******************************************************************************
- *
- * Function         BTM_SecReadDevName
- *
- * Description      Looks for the device name in the security database for the
- *                  specified BD address.
- *
- * Returns          Pointer to the name or NULL
- *
- ******************************************************************************/
-char* BTM_SecReadDevName(const RawAddress& bd_addr);
-
 /*****************************************************************************
  *  POWER MANAGEMENT FUNCTIONS
  ****************************************************************************/

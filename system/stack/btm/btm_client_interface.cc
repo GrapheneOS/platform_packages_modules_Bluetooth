@@ -19,6 +19,7 @@
 #include <cstdint>
 
 #include "main/shim/btm_api.h"
+#include "stack/btm/btm_dev.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/btm_api.h"
 #include "stack/include/btm_ble_api.h"
