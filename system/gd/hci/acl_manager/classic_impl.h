@@ -16,6 +16,9 @@
 
 #pragma once
 
+#include <atomic>
+#include <memory>
+
 #include "common/bind.h"
 #include "hci/acl_manager/assembler.h"
 #include "hci/acl_manager/event_checkers.h"
@@ -35,6 +38,7 @@ struct acl_connection {
   struct acl_manager::assembler assembler_;
   AddressWithType address_with_type_;
   ConnectionManagementCallbacks* connection_management_callbacks_ = nullptr;
+  std::shared_ptr<std::atomic<bool>> is_callback_valid_ = std::make_shared<std::atomic<bool>>(true);
 };
 
 struct classic_impl : public security::ISecurityManagerListener {
@@ -65,12 +69,11 @@ struct classic_impl : public security::ISecurityManagerListener {
   }
 
   ConnectionManagementCallbacks* get_callbacks(uint16_t handle) {
-    auto conn = acl_connections_.find(handle);
-    if (conn == acl_connections_.end()) {
+    auto connection = acl_connections_.find(handle);
+    if (connection == acl_connections_.end()) {
       return nullptr;
-    } else {
-      return conn->second.connection_management_callbacks_;
     }
+    return (connection->second.is_callback_valid_) ? connection->second.connection_management_callbacks_ : nullptr;
   }
 
   void on_classic_event(EventView event_packet) {
@@ -274,7 +277,8 @@ struct classic_impl : public security::ISecurityManagerListener {
         new ClassicAclConnection(std::move(queue), acl_connection_interface_, handle, address));
     connection->locally_initiated_ = locally_initiated;
     auto& connection_proxy = conn_pair.first->second;
-    connection_proxy.connection_management_callbacks_ = connection->GetEventCallbacks();
+    connection_proxy.connection_management_callbacks_ =
+        connection->GetEventCallbacks(connection_proxy.is_callback_valid_);
     if (delayed_role_change_ != nullptr) {
       if (delayed_role_change_->GetBdAddr() == address) {
         LOG_INFO("Sending delayed role change for %s", delayed_role_change_->GetBdAddr().ToString().c_str());

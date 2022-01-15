@@ -2133,8 +2133,8 @@ class LeAudioClientImpl : public LeAudioClient {
           lc3_setup_encoder(dt_us, sr_hz, lc3_encoder_right_mem);
     } else if (CodecManager::GetInstance()->GetCodecLocation() ==
                le_audio::types::CodecLocation::ADSP) {
-      CodecManager::GetInstance()->UpdateActiveAudioConfig(*stream_conf,
-                                                           remote_delay_ms);
+      CodecManager::GetInstance()->UpdateActiveSourceAudioConfig(
+          *stream_conf, remote_delay_ms);
     }
 
     LeAudioClientAudioSource::UpdateRemoteDelay(remote_delay_ms);
@@ -2195,14 +2195,22 @@ class LeAudioClientImpl : public LeAudioClient {
       return;
     }
 
-    Lc3Config lc3Config(
-        current_sink_codec_config.sample_rate,
-        Lc3ConfigFrameDuration(current_sink_codec_config.data_interval_us), 1);
-
-    lc3_decoder = new Lc3Decoder(lc3Config);
-
     uint16_t remote_delay_ms =
         group->GetRemoteDelay(le_audio::types::kLeAudioDirectionSource);
+
+    if (CodecManager::GetInstance()->GetCodecLocation() ==
+        le_audio::types::CodecLocation::HOST) {
+      Lc3Config lc3Config(
+          current_sink_codec_config.sample_rate,
+          Lc3ConfigFrameDuration(current_sink_codec_config.data_interval_us),
+          1);
+
+      lc3_decoder = new Lc3Decoder(lc3Config);
+    } else if (CodecManager::GetInstance()->GetCodecLocation() ==
+               le_audio::types::CodecLocation::ADSP) {
+      CodecManager::GetInstance()->UpdateActiveSinkAudioConfig(*stream_conf,
+                                                               remote_delay_ms);
+    }
 
     LeAudioClientAudioSink::UpdateRemoteDelay(remote_delay_ms);
     LeAudioClientAudioSink::ConfirmStreamingRequest();

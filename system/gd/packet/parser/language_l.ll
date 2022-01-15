@@ -101,12 +101,12 @@ string_literal \".*\"
                         }
 
 {intvalue}              {
-                          yylval->integer = std::stoi(std::string(yytext), nullptr, 10);
+                          yylval->integer = std::stoull(std::string(yytext), nullptr, 10);
                           return token::INTEGER;
                         }
 
 {hexvalue}              {
-                          yylval->integer = std::stoi(std::string(yytext), nullptr, 16);
+                          yylval->integer = std::stoull(std::string(yytext), nullptr, 16);
                           return token::INTEGER;
                         }
 

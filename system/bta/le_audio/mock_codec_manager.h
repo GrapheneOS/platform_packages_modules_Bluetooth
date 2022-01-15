@@ -28,7 +28,10 @@ class MockCodecManager {
   virtual ~MockCodecManager() = default;
 
   MOCK_METHOD((le_audio::types::CodecLocation), GetCodecLocation, (), (const));
-  MOCK_METHOD((void), UpdateActiveAudioConfig,
+  MOCK_METHOD((void), UpdateActiveSourceAudioConfig,
+              (const le_audio::stream_configuration& stream_conf,
+               uint16_t delay));
+  MOCK_METHOD((void), UpdateActiveSinkAudioConfig,
               (const le_audio::stream_configuration& stream_conf,
                uint16_t delay));
 
