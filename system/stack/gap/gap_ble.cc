@@ -138,7 +138,7 @@ tGATT_STATUS read_attr_value(uint16_t handle, tGATT_VALUE* p_value,
 
       switch (db_attr.uuid) {
         case GATT_UUID_GAP_DEVICE_NAME:
-          BTM_ReadLocalDeviceName((char**)&p_dev_name);
+          BTM_ReadLocalDeviceName((const char**)&p_dev_name);
           if (strlen((char*)p_dev_name) > GATT_MAX_ATTR_LEN)
             p_value->len = GATT_MAX_ATTR_LEN;
           else
