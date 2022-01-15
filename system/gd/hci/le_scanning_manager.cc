@@ -555,6 +555,7 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
       if (address_manager_registered_) {
         le_address_manager_->Unregister(this);
         address_manager_registered_ = false;
+        paused_ = false;
       }
       stop_scan();
     }

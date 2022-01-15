@@ -41,8 +41,10 @@ class CodecManager {
   void Start(void);
   void Stop(void);
   virtual types::CodecLocation GetCodecLocation(void) const;
-  virtual void UpdateActiveAudioConfig(const stream_configuration& stream_conf,
-                                       uint16_t delay);
+  virtual void UpdateActiveSourceAudioConfig(
+      const stream_configuration& stream_conf, uint16_t delay);
+  virtual void UpdateActiveSinkAudioConfig(
+      const stream_configuration& stream_conf, uint16_t delay);
 
  private:
   struct impl;

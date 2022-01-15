@@ -2070,11 +2070,10 @@ static uint8_t bta_dm_new_link_key_cback(const RawAddress& bd_addr,
                                          uint8_t key_type) {
   tBTA_DM_SEC sec_event;
   tBTA_DM_AUTH_CMPL* p_auth_cmpl;
-  uint8_t event;
+  tBTA_DM_SEC_EVT event = BTA_DM_AUTH_CMPL_EVT;
 
   memset(&sec_event, 0, sizeof(tBTA_DM_SEC));
 
-  event = BTA_DM_AUTH_CMPL_EVT;
   p_auth_cmpl = &sec_event.auth_cmpl;
 
   p_auth_cmpl->bd_addr = bd_addr;
@@ -3641,9 +3640,9 @@ static void bta_dm_ble_id_key_cback(uint8_t key_type,
         };
         memcpy(&dm_key.ble_id_keys, p_key, sizeof(tBTM_BLE_LOCAL_KEYS));
 
-        uint8_t evt = (key_type == BTM_BLE_KEY_TYPE_ID)
-                          ? BTA_DM_BLE_LOCAL_IR_EVT
-                          : BTA_DM_BLE_LOCAL_ER_EVT;
+        tBTA_DM_SEC_EVT evt = (key_type == BTM_BLE_KEY_TYPE_ID)
+                                  ? BTA_DM_BLE_LOCAL_IR_EVT
+                                  : BTA_DM_BLE_LOCAL_ER_EVT;
         bta_dm_cb.p_sec_cback(evt, &dm_key);
       }
       break;

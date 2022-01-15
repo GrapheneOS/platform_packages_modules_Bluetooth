@@ -16,6 +16,9 @@
 
 #pragma once
 
+#include <atomic>
+#include <memory>
+
 #include "hci/acl_manager/acl_connection.h"
 #include "hci/acl_manager/le_connection_management_callbacks.h"
 #include "hci/address_with_type.h"
@@ -68,7 +71,7 @@ class LeAclConnection : public AclConnection {
   // TODO implement LeRemoteConnectionParameterRequestReply, LeRemoteConnectionParameterRequestNegativeReply
 
   // Called once before passing the connection to the client
-  virtual LeConnectionManagementCallbacks* GetEventCallbacks();
+  virtual LeConnectionManagementCallbacks* GetEventCallbacks(std::shared_ptr<std::atomic<bool>> is_callback_valid);
 
  private:
   virtual bool check_connection_parameters(
