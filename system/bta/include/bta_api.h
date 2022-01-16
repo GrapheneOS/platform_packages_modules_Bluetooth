@@ -675,7 +675,7 @@ extern void BTA_EnableTestMode(void);
  * Returns          void
  *
  ******************************************************************************/
-extern void BTA_DmSetDeviceName(char* p_name);
+extern void BTA_DmSetDeviceName(const char* p_name);
 
 /*******************************************************************************
  *
