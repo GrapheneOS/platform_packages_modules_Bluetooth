@@ -202,7 +202,7 @@ void BTA_DmSetBlePrefConnParams(const RawAddress& bd_addr,
       bd_addr, min_conn_int, max_conn_int, peripheral_latency,
       supervision_tout);
 }
-void BTA_DmSetDeviceName(char* p_name) {
+void BTA_DmSetDeviceName(const char* p_name) {
   mock_function_count_map[__func__]++;
   test::mock::bta_dm_api::BTA_DmSetDeviceName(p_name);
 }
