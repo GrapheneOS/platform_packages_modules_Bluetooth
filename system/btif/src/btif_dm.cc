@@ -233,7 +233,7 @@ static void btif_dm_ble_key_nc_req_evt(tBTA_DM_SP_KEY_NOTIF* p_notif_req);
 static void btif_dm_ble_oob_req_evt(tBTA_DM_SP_RMT_OOB* req_oob_type);
 static void btif_dm_ble_sc_oob_req_evt(tBTA_DM_SP_RMT_OOB* req_oob_type);
 
-static char* btif_get_default_local_name();
+static const char* btif_get_default_local_name();
 
 static void btif_stats_add_bond_event(const RawAddress& bd_addr,
                                       bt_bond_function_t function,
@@ -1519,7 +1519,7 @@ void BTIF_dm_enable() {
   status = btif_storage_get_adapter_property(&prop);
   if (status == BT_STATUS_SUCCESS) {
     /* A name exists in the storage. Make this the device name */
-    BTA_DmSetDeviceName((char*)prop.val);
+    BTA_DmSetDeviceName((const char*)prop.val);
   } else {
     /* Storage does not have a name yet.
      * Use the default name and write it to the chip
@@ -3053,7 +3053,7 @@ void btif_dm_on_disable() {
  ******************************************************************************/
 void btif_dm_read_energy_info() { BTA_DmBleGetEnergyInfo(bta_energy_info_cb); }
 
-static char* btif_get_default_local_name() {
+static const char* btif_get_default_local_name() {
   if (btif_default_local_name[0] == '\0') {
     int max_len = sizeof(btif_default_local_name) - 1;
     if (BTM_DEF_LOCAL_NAME[0] != '\0') {

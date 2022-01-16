@@ -384,8 +384,8 @@ extern struct BTA_DmSetBlePrefConnParams BTA_DmSetBlePrefConnParams;
 // Params: char* p_name
 // Return: void
 struct BTA_DmSetDeviceName {
-  std::function<void(char* p_name)> body{[](char* p_name) {}};
-  void operator()(char* p_name) { body(p_name); };
+  std::function<void(const char* p_name)> body{[](const char* p_name) {}};
+  void operator()(const char* p_name) { body(p_name); };
 };
 extern struct BTA_DmSetDeviceName BTA_DmSetDeviceName;
 
