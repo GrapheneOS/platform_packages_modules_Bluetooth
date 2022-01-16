@@ -25,6 +25,8 @@
 
 #define LOG_TAG "bt_bta_dm"
 
+#include <base/logging.h>
+
 #include <cstdint>
 
 #include "bta/dm/bta_dm_int.h"
@@ -44,6 +46,7 @@
 #include "osi/include/fixed_queue.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
+#include "stack/btm/btm_ble_int.h"
 #include "stack/btm/btm_sec.h"
 #include "stack/btm/neighbor_inquiry.h"
 #include "stack/gatt/connection_manager.h"
@@ -55,8 +58,6 @@
 #include "stack/include/btu.h"  // do_in_main_thread
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
-
-#include <base/logging.h>
 
 #if (GAP_INCLUDED == TRUE)
 #include "gap_api.h"
