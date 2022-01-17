@@ -95,6 +95,7 @@ struct cis_data_evt {
   uint16_t cis_conn_hdl;
   uint32_t ts;
   uint16_t evt_lost;
+  uint16_t seq_nb;
   BT_HDR* p_msg;
 };
 
