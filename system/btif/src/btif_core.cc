@@ -703,7 +703,7 @@ void btif_set_adapter_property(bt_property_t* property) {
 
       BTIF_TRACE_EVENT("set property name : %s", (char*)bd_name);
 
-      BTA_DmSetDeviceName((char*)bd_name);
+      BTA_DmSetDeviceName((const char*)bd_name);
 
       btif_core_storage_adapter_write(property);
     } break;
