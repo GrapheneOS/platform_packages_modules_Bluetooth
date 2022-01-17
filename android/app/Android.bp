@@ -117,7 +117,7 @@ android_app {
     ],
 
     // Add in path to Bluetooth directory because local path does not exist
-    javacflags: ["-Aroom.schemaLocation=packages/apps/Bluetooth/tests/unit/src/com/android/bluetooth/btservice/storage/schemas"],
+    javacflags: ["-Aroom.schemaLocation=packages/modules/Bluetooth/android/app/tests/unit/src/com/android/bluetooth/btservice/storage/schemas"],
 
     optimize: {
         enabled: false,
