@@ -212,10 +212,11 @@ enum : uint8_t {
 
 typedef uint8_t tSMP_AUTH_REQ;
 
-#define SMP_SEC_NONE 0
-#define SMP_SEC_UNAUTHENTICATE (1 << 0)
-#define SMP_SEC_AUTHENTICATED (1 << 2)
-typedef uint8_t tSMP_SEC_LEVEL;
+typedef enum : uint8_t {
+  SMP_SEC_NONE = 0,
+  SMP_SEC_UNAUTHENTICATE = 1,
+  SMP_SEC_AUTHENTICATED = 2,
+} tSMP_SEC_LEVEL;
 
 /* Maximum Encryption Key Size range */
 #define SMP_ENCR_KEY_SIZE_MIN 7
