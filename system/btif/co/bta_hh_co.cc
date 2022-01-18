@@ -166,29 +166,40 @@ static int uhid_read_event(btif_hh_device_t* p_dev) {
                          ev.u.feature.rtype);
       break;
 #ifdef OS_ANDROID  // Host kernel does not support UHID_SET_REPORT
-    case UHID_SET_REPORT:
+    case UHID_SET_REPORT: {
+      bool sent = true;
+
       if (ret < (ssize_t)(sizeof(ev.type) + sizeof(ev.u.set_report))) {
-          APPL_TRACE_ERROR("%s: Invalid size read from uhid-dev: %zd < %zu",
-                           __func__, ret, sizeof(ev.type) + sizeof(ev.u.set_report));
-            return -EFAULT;
-        }
+        LOG_ERROR("Invalid size read from uhid-dev: %zd < %zu", ret,
+                  sizeof(ev.type) + sizeof(ev.u.set_report));
+        return -EFAULT;
+      }
 
-        APPL_TRACE_DEBUG("UHID_SET_REPORT: Report type = %d, report_size = %d"
-                          , ev.u.set_report.rtype, ev.u.set_report.size);
+      LOG_DEBUG("UHID_SET_REPORT: Report type = %d, report_size = %d",
+                ev.u.set_report.rtype, ev.u.set_report.size);
 
-        if (ev.u.set_report.rtype == UHID_FEATURE_REPORT)
-            btif_hh_setreport(p_dev, BTHH_FEATURE_REPORT,
-                              ev.u.set_report.size, ev.u.set_report.data);
-        else if (ev.u.set_report.rtype == UHID_OUTPUT_REPORT)
-            btif_hh_setreport(p_dev, BTHH_OUTPUT_REPORT,
-                              ev.u.set_report.size, ev.u.set_report.data);
-        else if(ev.u.set_report.rtype == UHID_INPUT_REPORT)
-            btif_hh_setreport(p_dev, BTHH_INPUT_REPORT,
-                              ev.u.set_report.size, ev.u.set_report.data);
-        else
-            APPL_TRACE_ERROR("%s:UHID_SET_REPORT: Invalid Report type = %d"
-                          , __func__, ev.u.set_report.rtype);
-        break;
+      if (ev.u.set_report.rtype == UHID_FEATURE_REPORT) {
+        btif_hh_setreport(p_dev, BTHH_FEATURE_REPORT, ev.u.set_report.size,
+                          ev.u.set_report.data);
+      } else if (ev.u.set_report.rtype == UHID_OUTPUT_REPORT) {
+        btif_hh_setreport(p_dev, BTHH_OUTPUT_REPORT, ev.u.set_report.size,
+                          ev.u.set_report.data);
+      } else if (ev.u.set_report.rtype == UHID_INPUT_REPORT) {
+        btif_hh_setreport(p_dev, BTHH_INPUT_REPORT, ev.u.set_report.size,
+                          ev.u.set_report.data);
+      } else {
+        LOG_ERROR("UHID_SET_REPORT: Invalid Report type = %d",
+                  ev.u.set_report.rtype);
+        sent = false;
+      }
+
+      if (sent && p_dev->set_rpt_id_queue) {
+        uint32_t* set_rpt_id = (uint32_t*)osi_malloc(sizeof(uint32_t));
+        *set_rpt_id = ev.u.set_report.id;
+        fixed_queue_enqueue(p_dev->set_rpt_id_queue, (void*)set_rpt_id);
+      }
+      break;
+    }
 #endif  // ifdef OS_ANDROID
     default:
       APPL_TRACE_DEBUG("Invalid event from uhid-dev: %u\n", ev.type);
@@ -396,6 +407,10 @@ void bta_hh_co_open(uint8_t dev_handle, uint8_t sub_class,
   p_dev->dev_status = BTHH_CONN_STATE_CONNECTED;
   p_dev->get_rpt_id_queue = fixed_queue_new(SIZE_MAX);
   CHECK(p_dev->get_rpt_id_queue);
+#ifdef OS_ANDROID  // Host kernel does not support UHID_SET_REPORT
+  p_dev->set_rpt_id_queue = fixed_queue_new(SIZE_MAX);
+  CHECK(p_dev->set_rpt_id_queue);
+#endif  // OS_ANDROID
 
   APPL_TRACE_DEBUG("%s: Return device status %d", __func__, p_dev->dev_status);
 }
@@ -429,6 +444,11 @@ void bta_hh_co_close(uint8_t dev_handle, uint8_t app_id) {
     fixed_queue_flush(p_dev->get_rpt_id_queue, osi_free);
     fixed_queue_free(p_dev->get_rpt_id_queue, NULL);
     p_dev->get_rpt_id_queue = NULL;
+#ifdef OS_ANDROID  // Host kernel does not support UHID_SET_REPORT
+    fixed_queue_flush(p_dev->set_rpt_id_queue, osi_free);
+    fixed_queue_free(p_dev->set_rpt_id_queue, nullptr);
+    p_dev->set_rpt_id_queue = nullptr;
+#endif  // S_ANDROID
     if (p_dev->dev_status != BTHH_CONN_STATE_UNKNOWN &&
         p_dev->dev_handle == dev_handle) {
       APPL_TRACE_WARNING(
@@ -567,7 +587,34 @@ void bta_hh_co_send_hid_info(btif_hh_device_t* p_dev, const char* dev_name,
  *
  ******************************************************************************/
 void bta_hh_co_set_rpt_rsp(uint8_t dev_handle, uint8_t status) {
-  APPL_TRACE_ERROR("%s: Error: UHID_SET_REPORT_REPLY not supported", __func__);
+#ifdef OS_ANDROID  // Host kernel does not support UHID_SET_REPORT
+  LOG_VERBOSE("dev_handle = %d", dev_handle);
+
+  btif_hh_device_t* p_dev = btif_hh_find_connected_dev_by_handle(dev_handle);
+  if (p_dev == nullptr) {
+    LOG_WARN("Error: unknown HID device handle %d", dev_handle);
+    return;
+  }
+
+  if (!p_dev->set_rpt_id_queue) {
+    LOG_WARN("Error: missing UHID_SET_REPORT id queue");
+    return;
+  }
+
+  // Send the HID set report reply to the kernel.
+  if (p_dev->fd >= 0) {
+    struct uhid_event ev = {};
+    uint32_t* set_rpt_id =
+        (uint32_t*)fixed_queue_dequeue(p_dev->set_rpt_id_queue);
+    ev.type = UHID_SET_REPORT_REPLY;
+    ev.u.set_report_reply.id = *set_rpt_id;
+    ev.u.set_report_reply.err = status;
+    osi_free(set_rpt_id);
+    uhid_write(p_dev->fd, &ev);
+  }
+#else
+  LOG_ERROR("Error: UHID_SET_REPORT_REPLY not supported");
+#endif  // OS_ANDROID
 }
 
 /*******************************************************************************
