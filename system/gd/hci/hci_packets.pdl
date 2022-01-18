@@ -825,7 +825,9 @@ enum ErrorCode: 8 {
   ENCRYPTION_MODE_NOT_ACCEPTABLE = 0x25,
   ROLE_SWITCH_FAILED = 0x35,
   CONTROLLER_BUSY = 0x3A,
+  ADVERTISING_TIMEOUT = 0x3C,
   CONNECTION_FAILED_ESTABLISHMENT = 0x3E,
+  LIMIT_REACHED = 0x43,
 }
 
 // Events that are defined with their respective commands
