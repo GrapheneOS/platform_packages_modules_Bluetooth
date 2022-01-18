@@ -93,6 +93,9 @@ typedef struct {
   uint8_t hh_keep_polling;
   alarm_t* vup_timer;
   fixed_queue_t* get_rpt_id_queue;
+#ifdef OS_ANDROID
+  fixed_queue_t* set_rpt_id_queue;
+#endif  // OS_ANDROID
   uint8_t get_rpt_snt;
   bool local_vup;  // Indicated locally initiated VUP
 } btif_hh_device_t;
