@@ -1737,7 +1737,7 @@ void btm_ble_connected_from_address_with_type(
  *
  *****************************************************************************/
 tBTM_STATUS btm_proc_smp_cback(tSMP_EVT event, const RawAddress& bd_addr,
-                               tSMP_EVT_DATA* p_data) {
+                               const tSMP_EVT_DATA* p_data) {
   tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(bd_addr);
   tBTM_STATUS res = BTM_SUCCESS;
 

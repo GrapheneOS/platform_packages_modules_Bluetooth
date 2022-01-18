@@ -212,10 +212,11 @@ enum : uint8_t {
 
 typedef uint8_t tSMP_AUTH_REQ;
 
-#define SMP_SEC_NONE 0
-#define SMP_SEC_UNAUTHENTICATE (1 << 0)
-#define SMP_SEC_AUTHENTICATED (1 << 2)
-typedef uint8_t tSMP_SEC_LEVEL;
+typedef enum : uint8_t {
+  SMP_SEC_NONE = 0,
+  SMP_SEC_UNAUTHENTICATE = 1,
+  SMP_SEC_AUTHENTICATED = 2,
+} tSMP_SEC_LEVEL;
 
 /* Maximum Encryption Key Size range */
 #define SMP_ENCR_KEY_SIZE_MIN 7
@@ -309,6 +310,6 @@ typedef struct {
 /* Security Manager events - Called by the stack when Security Manager related
  * events occur.*/
 typedef tBTM_STATUS(tSMP_CALLBACK)(tSMP_EVT event, const RawAddress& bd_addr,
-                                   tSMP_EVT_DATA* p_data);
+                                   const tSMP_EVT_DATA* p_data);
 
 #endif  // SMP_API_TYPES_H
