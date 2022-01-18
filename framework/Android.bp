@@ -1,0 +1,13 @@
+package {
+    default_applicable_licenses: ["Android-Apache-2.0"],
+}
+
+filegroup {
+    name: "framework-bluetooth-sources",
+    srcs: [
+        "java/**/*.java",
+        "java/**/*.aidl",
+    ],
+    path: "java",
+    visibility: ["//frameworks/base"],
+}
