@@ -167,9 +167,19 @@ int HfpIntf::connect(RustRawAddress bt_addr) {
   return intf_->Connect(&addr);
 }
 
+int HfpIntf::connect_audio(RustRawAddress bt_addr) {
+  RawAddress addr = internal::from_rust_address(bt_addr);
+  return intf_->ConnectAudio(&addr);
+}
+
 int HfpIntf::disconnect(RustRawAddress bt_addr) {
   RawAddress addr = internal::from_rust_address(bt_addr);
   return intf_->Disconnect(&addr);
+}
+
+int HfpIntf::disconnect_audio(RustRawAddress bt_addr) {
+  RawAddress addr = internal::from_rust_address(bt_addr);
+  return intf_->DisconnectAudio(&addr);
 }
 
 void HfpIntf::cleanup() {}
