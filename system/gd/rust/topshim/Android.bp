@@ -53,13 +53,18 @@ cc_library_static {
         "hfp/hfp_shim.cc",
         "controller/controller_shim.cc",
     ],
-    generated_headers: ["libbt_topshim_bridge_header", "cxx-bridge-header"],
+    generated_headers: [
+        "libbt_init_flags_bridge_header",
+        "libbt_topshim_bridge_header",
+        "cxx-bridge-header"
+    ],
     generated_sources: ["libbt_topshim_bridge_code"],
     shared_libs: [
         "libchrome",
     ],
     include_dirs: [
         "packages/modules/Bluetooth/system",
+        "packages/modules/Bluetooth/system/gd",
         "packages/modules/Bluetooth/system/gd/rust/topshim",
         "packages/modules/Bluetooth/system/include",
         "packages/modules/Bluetooth/system/types",
