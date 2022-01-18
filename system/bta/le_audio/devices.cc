@@ -28,6 +28,7 @@
 #include "btm_iso_api_types.h"
 #include "client_audio.h"
 #include "device/include/controller.h"
+#include "le_audio_set_configuration_provider.h"
 
 using bluetooth::hci::kIsoCigFramingFramed;
 using bluetooth::hci::kIsoCigFramingUnframed;
@@ -35,6 +36,7 @@ using bluetooth::hci::kIsoCigPackingSequential;
 using bluetooth::hci::kIsoCigPhy1M;
 using bluetooth::hci::kIsoCigPhy2M;
 using bluetooth::hci::iso_manager::kIsoSca0To20Ppm;
+using le_audio::AudioSetConfigurationProvider;
 using le_audio::set_configurations::CodecCapabilitySetting;
 using le_audio::types::ase;
 using le_audio::types::AseState;
@@ -1114,7 +1116,7 @@ const set_configurations::AudioSetConfiguration*
 LeAudioDeviceGroup::FindFirstSupportedConfiguration(
     LeAudioContextType context_type) {
   const set_configurations::AudioSetConfigurations* confs =
-      set_configurations::get_confs_by_type(context_type);
+      AudioSetConfigurationProvider::Get()->GetConfigurations(context_type);
 
   DLOG(INFO) << __func__ << " context type: " << (int)context_type
              << " number of connected devices: " << NumOfConnected();

@@ -27,6 +27,7 @@
 #include "btm_api_mock.h"
 #include "client_parser.h"
 #include "fake_osi.h"
+#include "le_audio_set_configuration_provider.h"
 #include "mock_codec_manager.h"
 #include "mock_controller.h"
 #include "mock_iso_manager.h"
@@ -156,6 +157,7 @@ class StateMachineTest : public Test {
     gatt::SetMockBtaGattQueue(&gatt_queue);
 
     ase_id_last_assigned = types::ase::kAseIdInvalid;
+    ::le_audio::AudioSetConfigurationProvider::Initialize();
     LeAudioGroupStateMachine::Initialize(&mock_callbacks_);
 
     // Support 2M Phy
@@ -412,6 +414,7 @@ class StateMachineTest : public Test {
     le_audio_devices_.clear();
     cached_codec_configuration_map_.clear();
     LeAudioGroupStateMachine::Cleanup();
+    ::le_audio::AudioSetConfigurationProvider::Cleanup();
   }
 
   std::shared_ptr<LeAudioDevice> PrepareConnectedDevice(uint8_t id,
