@@ -207,6 +207,8 @@ typedef struct {
   uint32_t dynamic_audio_buffer_supported;
   bool le_periodic_advertising_sync_transfer_sender_supported;
   bool le_connected_isochronous_stream_central_supported;
+  bool le_isochronous_broadcast_supported;
+  bool le_periodic_advertising_sync_transfer_recipient_supported;
 } bt_local_le_features_t;
 
 /* Stored the default/maximum/minimum buffer time for dynamic audio buffer.
