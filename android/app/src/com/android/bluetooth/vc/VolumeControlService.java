@@ -410,8 +410,8 @@ public class VolumeControlService extends ProfileService {
                 .getProfileConnectionPolicy(device, BluetoothProfile.VOLUME_CONTROL);
     }
 
-    void setVolume(BluetoothDevice device, int volume) {
-        mVolumeControlNativeInterface.setVolume(device, volume);
+    void setVolumeOffset(BluetoothDevice device, int volumeOffset) {
+        // TODO Implement
     }
 
     /**
@@ -728,12 +728,12 @@ public class VolumeControlService extends ProfileService {
         }
 
         @Override
-        public void setVolume(BluetoothDevice device, int volume, AttributionSource source,
-                SynchronousResultReceiver receiver) {
+        public void setVolumeOffset(BluetoothDevice device, int volumeOffset,
+                AttributionSource source, SynchronousResultReceiver receiver) {
             try {
                 VolumeControlService service = getService(source);
                 if (service != null) {
-                    service.setVolume(device, volume);
+                    service.setVolumeOffset(device, volumeOffset);
                 }
                 receiver.send(null);
             } catch (RuntimeException e) {
