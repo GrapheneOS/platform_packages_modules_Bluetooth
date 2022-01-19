@@ -127,7 +127,9 @@ class AdapterProperties {
     private int mDynamicAudioBufferSizeSupportedCodecsGroup2;
 
     private boolean mIsLePeriodicAdvertisingSyncTransferSenderSupported;
+    private boolean mIsLePeriodicAdvertisingSyncTransferRecipientSupported;
     private boolean mIsLeConnectedIsochronousStreamCentralSupported;
+    private boolean mIsLeIsochronousBroadcasterSupported;
 
     private List<BufferConstraint> mBufferConstraintList;
 
@@ -514,10 +516,24 @@ class AdapterProperties {
     }
 
     /**
+     * @return the mIsLePeriodicAdvertisingSyncTransferRecipientSupported
+     */
+    boolean isLePeriodicAdvertisingSyncTransferRecipientSupported() {
+        return mIsLePeriodicAdvertisingSyncTransferRecipientSupported;
+    }
+
+    /**
      * @return the mIsLeConnectedIsochronousStreamCentralSupported
      */
     boolean isLeConnectedIsochronousStreamCentralSupported() {
         return mIsLeConnectedIsochronousStreamCentralSupported;
+    }
+
+    /**
+     * @return the mIsLeIsochronousBroadcasterSupported
+     */
+    boolean isLeIsochronousBroadcasterSupported() {
+        return mIsLeIsochronousBroadcasterSupported;
     }
 
     /**
@@ -982,6 +998,8 @@ class AdapterProperties {
                 ((0xFF & ((int) val[23])) << 8) + (0xFF & ((int) val[22]));
         mIsLePeriodicAdvertisingSyncTransferSenderSupported = ((0xFF & ((int) val[24])) != 0);
         mIsLeConnectedIsochronousStreamCentralSupported = ((0xFF & ((int) val[25])) != 0);
+        mIsLeIsochronousBroadcasterSupported = ((0xFF & ((int) val[26])) != 0);
+        mIsLePeriodicAdvertisingSyncTransferRecipientSupported = ((0xFF & ((int) val[27])) != 0);
 
         Log.d(TAG, "BT_PROPERTY_LOCAL_LE_FEATURES: update from BT controller"
                 + " mNumOfAdvertisementInstancesSupported = "
@@ -1005,7 +1023,11 @@ class AdapterProperties {
                 + " mIsLePeriodicAdvertisingSyncTransferSenderSupported = "
                 + mIsLePeriodicAdvertisingSyncTransferSenderSupported
                 + " mIsLeConnectedIsochronousStreamCentralSupported = "
-                + mIsLeConnectedIsochronousStreamCentralSupported);
+                + mIsLeConnectedIsochronousStreamCentralSupported
+                + " mIsLeIsochronousBroadcasterSupported = "
+                + mIsLeIsochronousBroadcasterSupported
+                + " mIsLePeriodicAdvertisingSyncTransferRecipientSupported = "
+                + mIsLePeriodicAdvertisingSyncTransferRecipientSupported);
         //invalidateIsOffloadedFilteringSupportedCache();
     }
 

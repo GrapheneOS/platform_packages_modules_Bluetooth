@@ -622,6 +622,11 @@ void btif_get_adapter_property(bt_property_type_t type) {
         controller->supports_ble_periodic_advertising_sync_transfer_sender();
     local_le_features.le_connected_isochronous_stream_central_supported =
         controller->supports_ble_connected_isochronous_stream_central();
+    local_le_features.le_isochronous_broadcast_supported =
+        controller->supports_ble_isochronous_broadcaster();
+    local_le_features
+        .le_periodic_advertising_sync_transfer_recipient_supported =
+        controller->supports_ble_periodic_advertising_sync_transfer_recipient();
     memcpy(prop.val, &local_le_features, prop.len);
   } else if (prop.type == BT_PROPERTY_DYNAMIC_AUDIO_BUFFER) {
     tBTM_BLE_VSC_CB cmn_vsc_cb;
