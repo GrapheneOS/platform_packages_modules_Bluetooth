@@ -93,6 +93,12 @@ impl IBluetoothMedia for IBluetoothMediaDBus {
     #[dbus_method("StopAudioRequest")]
     fn stop_audio_request(&mut self) {}
 
+    #[dbus_method("StartScoCall")]
+    fn start_sco_call(&mut self, device: String) {}
+
+    #[dbus_method("StopScoCall")]
+    fn stop_sco_call(&mut self, device: String) {}
+
     #[dbus_method("GetPresentationPosition")]
     fn get_presentation_position(&mut self) -> PresentationPosition {
         PresentationPosition {

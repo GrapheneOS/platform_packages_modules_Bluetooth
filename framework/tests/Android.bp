@@ -1,0 +1,19 @@
+package {
+    default_applicable_licenses: ["Android-Apache-2.0"],
+}
+
+android_test {
+    name: "BluetoothTests",
+    // Include all test java files.
+    srcs: ["src/**/*.java"],
+    libs: [
+        "android.test.runner",
+        "android.test.base",
+    ],
+    static_libs: [
+        "junit",
+        "modules-utils-bytesmatcher",
+    ],
+    platform_apis: true,
+    certificate: "platform",
+}
