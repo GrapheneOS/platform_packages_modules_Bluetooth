@@ -145,4 +145,10 @@
      -->
     <bool name="enable_gd_up_to_scanning_layer">true</bool>
 
+    <!-- Package of fastpair service -->
+    <string name="peripheral_link_package">com.google.android.gms</string>
+    <!-- Service name of fastpair-->
+    <string name="peripheral_link_service">.nearby.discovery.service.DiscoveryService</string>
+
+
 </resources>
