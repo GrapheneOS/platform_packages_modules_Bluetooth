@@ -24,6 +24,8 @@ import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattServerCallback;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothLeCall;
+import android.os.Handler;
+import android.os.Looper;
 import android.content.Context;
 import android.util.Log;
 
@@ -133,6 +135,7 @@ public class TbsGatt {
     private final GattCharacteristic mIncomingCallCharacteristic;
     private final GattCharacteristic mCallFriendlyNameCharacteristic;
     private BluetoothGattServerProxy mBluetoothGattServer;
+    private Handler mHandler;
     private Callback mCallback;
 
     public static abstract class Callback {
@@ -210,6 +213,7 @@ public class TbsGatt {
         setCallControlPointOptionalOpcodes(isLocalHoldOpcodeSupported, isJoinOpcodeSupported);
         mStatusFlagsCharacteristic.setValue(0, BluetoothGattCharacteristic.FORMAT_UINT16, 0);
         mCallback = callback;
+        mHandler = new Handler(Looper.getMainLooper());
 
         if (mBluetoothGattServer == null) {
             mBluetoothGattServer = new BluetoothGattServerProxy(mContext);
@@ -416,7 +420,7 @@ public class TbsGatt {
             super.setValueNoNotify(value);
 
             // to avoid sending control point notification before write response
-            mContext.getMainThreadHandler().post(() -> mNotifier.notify(device, this));
+            mHandler.post(() -> mNotifier.notify(device, this));
         }
     }
 
