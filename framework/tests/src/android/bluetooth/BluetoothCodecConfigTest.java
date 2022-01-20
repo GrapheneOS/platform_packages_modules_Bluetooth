@@ -27,56 +27,77 @@ import junit.framework.TestCase;
  * runtest --path core/tests/bluetoothtests/src/android/bluetooth/BluetoothCodecConfigTest.java
  */
 public class BluetoothCodecConfigTest extends TestCase {
-    private static final int[] kCodecTypeArray = new int[] {
-        BluetoothCodecConfig.SOURCE_CODEC_TYPE_SBC,
-        BluetoothCodecConfig.SOURCE_CODEC_TYPE_AAC,
-        BluetoothCodecConfig.SOURCE_CODEC_TYPE_APTX,
-        BluetoothCodecConfig.SOURCE_CODEC_TYPE_APTX_HD,
-        BluetoothCodecConfig.SOURCE_CODEC_TYPE_LDAC,
-        BluetoothCodecConfig.SOURCE_CODEC_TYPE_INVALID,
-    };
-    private static final int[] kCodecPriorityArray = new int[] {
-        BluetoothCodecConfig.CODEC_PRIORITY_DISABLED,
-        BluetoothCodecConfig.CODEC_PRIORITY_DEFAULT,
-        BluetoothCodecConfig.CODEC_PRIORITY_HIGHEST,
-    };
-    private static final int[] kSampleRateArray = new int[] {
-        BluetoothCodecConfig.SAMPLE_RATE_NONE,
-        BluetoothCodecConfig.SAMPLE_RATE_44100,
-        BluetoothCodecConfig.SAMPLE_RATE_48000,
-        BluetoothCodecConfig.SAMPLE_RATE_88200,
-        BluetoothCodecConfig.SAMPLE_RATE_96000,
-        BluetoothCodecConfig.SAMPLE_RATE_176400,
-        BluetoothCodecConfig.SAMPLE_RATE_192000,
-    };
-    private static final int[] kBitsPerSampleArray = new int[] {
-        BluetoothCodecConfig.BITS_PER_SAMPLE_NONE,
-        BluetoothCodecConfig.BITS_PER_SAMPLE_16,
-        BluetoothCodecConfig.BITS_PER_SAMPLE_24,
-        BluetoothCodecConfig.BITS_PER_SAMPLE_32,
-    };
-    private static final int[] kChannelModeArray = new int[] {
-        BluetoothCodecConfig.CHANNEL_MODE_NONE,
-        BluetoothCodecConfig.CHANNEL_MODE_MONO,
-        BluetoothCodecConfig.CHANNEL_MODE_STEREO,
-    };
-    private static final long[] kCodecSpecific1Array = new long[] { 1000, 1001, 1002, 1003, };
-    private static final long[] kCodecSpecific2Array = new long[] { 2000, 2001, 2002, 2003, };
-    private static final long[] kCodecSpecific3Array = new long[] { 3000, 3001, 3002, 3003, };
-    private static final long[] kCodecSpecific4Array = new long[] { 4000, 4001, 4002, 4003, };
+  private static final int[] kCodecTypeArray = new int[] {
+      BluetoothCodecConfig.SOURCE_CODEC_TYPE_SBC,
+      BluetoothCodecConfig.SOURCE_CODEC_TYPE_AAC,
+      BluetoothCodecConfig.SOURCE_CODEC_TYPE_APTX,
+      BluetoothCodecConfig.SOURCE_CODEC_TYPE_APTX_HD,
+      BluetoothCodecConfig.SOURCE_CODEC_TYPE_LDAC,
+      BluetoothCodecConfig.SOURCE_CODEC_TYPE_LC3,
+      BluetoothCodecConfig.SOURCE_CODEC_TYPE_INVALID,
+  };
+  private static final int[] kCodecPriorityArray = new int[] {
+      BluetoothCodecConfig.CODEC_PRIORITY_DISABLED,
+      BluetoothCodecConfig.CODEC_PRIORITY_DEFAULT,
+      BluetoothCodecConfig.CODEC_PRIORITY_HIGHEST,
+  };
+  private static final int[] kSampleRateArray = new int[] {
+      BluetoothCodecConfig.SAMPLE_RATE_NONE,
+      BluetoothCodecConfig.SAMPLE_RATE_44100,
+      BluetoothCodecConfig.SAMPLE_RATE_48000,
+      BluetoothCodecConfig.SAMPLE_RATE_88200,
+      BluetoothCodecConfig.SAMPLE_RATE_96000,
+      BluetoothCodecConfig.SAMPLE_RATE_176400,
+      BluetoothCodecConfig.SAMPLE_RATE_192000,
+  };
+  private static final int[] kBitsPerSampleArray = new int[] {
+      BluetoothCodecConfig.BITS_PER_SAMPLE_NONE,
+      BluetoothCodecConfig.BITS_PER_SAMPLE_16,
+      BluetoothCodecConfig.BITS_PER_SAMPLE_24,
+      BluetoothCodecConfig.BITS_PER_SAMPLE_32,
+  };
+  private static final int[] kChannelModeArray = new int[] {
+      BluetoothCodecConfig.CHANNEL_MODE_NONE,
+      BluetoothCodecConfig.CHANNEL_MODE_MONO,
+      BluetoothCodecConfig.CHANNEL_MODE_STEREO,
+  };
+  private static final long[] kCodecSpecific1Array = new long[] {
+      1000,
+      1001,
+      1002,
+      1003,
+  };
+  private static final long[] kCodecSpecific2Array = new long[] {
+      2000,
+      2001,
+      2002,
+      2003,
+  };
+  private static final long[] kCodecSpecific3Array = new long[] {
+      3000,
+      3001,
+      3002,
+      3003,
+  };
+  private static final long[] kCodecSpecific4Array = new long[] {
+      4000,
+      4001,
+      4002,
+      4003,
+  };
 
-    private static final int kTotalConfigs = kCodecTypeArray.length * kCodecPriorityArray.length *
-        kSampleRateArray.length * kBitsPerSampleArray.length * kChannelModeArray.length *
-        kCodecSpecific1Array.length * kCodecSpecific2Array.length * kCodecSpecific3Array.length *
-        kCodecSpecific4Array.length;
+  private static final int kTotalConfigs = kCodecTypeArray.length * kCodecPriorityArray.length
+      * kSampleRateArray.length * kBitsPerSampleArray.length * kChannelModeArray.length
+      * kCodecSpecific1Array.length * kCodecSpecific2Array.length * kCodecSpecific3Array.length
+      * kCodecSpecific4Array.length;
 
-    private int selectCodecType(int configId) {
-        int left = kCodecTypeArray.length;
-        int right = kTotalConfigs / left;
-        int index = configId / right;
-        index = index % kCodecTypeArray.length;
-        return kCodecTypeArray[index];
-    }
+  private int selectCodecType(int configId) {
+    int left = kCodecTypeArray.length;
+    int right = kTotalConfigs / left;
+    int index = configId / right;
+    index = index % kCodecTypeArray.length;
+    return kCodecTypeArray[index];
+  }
 
     private int selectCodecPriority(int configId) {
         int left = kCodecTypeArray.length * kCodecPriorityArray.length;
@@ -192,6 +213,9 @@ public class BluetoothCodecConfigTest extends TestCase {
             }
             if (codec_type == BluetoothCodecConfig.SOURCE_CODEC_TYPE_LDAC) {
                 assertEquals("LDAC", bcc.getCodecName());
+            }
+            if (codec_type == BluetoothCodecConfig.SOURCE_CODEC_TYPE_LC3) {
+              assertEquals("LC3", bcc.getCodecName());
             }
             if (codec_type == BluetoothCodecConfig.SOURCE_CODEC_TYPE_INVALID) {
                 assertEquals("INVALID CODEC", bcc.getCodecName());
