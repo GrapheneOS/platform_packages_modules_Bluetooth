@@ -71,7 +71,7 @@ class LeAclConnection : public AclConnection {
   // TODO implement LeRemoteConnectionParameterRequestReply, LeRemoteConnectionParameterRequestNegativeReply
 
   // Called once before passing the connection to the client
-  virtual LeConnectionManagementCallbacks* GetEventCallbacks(std::shared_ptr<std::atomic<bool>> is_callback_valid);
+  virtual LeConnectionManagementCallbacks* GetEventCallbacks(std::function<void(uint16_t)> invalidate_callbacks);
 
  private:
   virtual bool check_connection_parameters(
