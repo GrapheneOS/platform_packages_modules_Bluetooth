@@ -123,7 +123,8 @@ public final class BluetoothAdapter {
 
     /**
      * Default MAC address reported to a client that does not have the
-     * android.permission.LOCAL_MAC_ADDRESS permission.
+     * {@link android.Manifest.permission#LOCAL_MAC_ADDRESS} permission.
+     *
      *
      * @hide
      */
@@ -1274,13 +1275,12 @@ public final class BluetoothAdapter {
      * <p>For example, "00:11:22:AA:BB:CC".
      *
      * @return Bluetooth hardware address as string
+     *
+     * Requires {@code android.Manifest.permission#LOCAL_MAC_ADDRESS} and
+     * {@link android.Manifest.permission#BLUETOOTH_CONNECT}.
      */
     @RequiresLegacyBluetoothPermission
     @RequiresBluetoothConnectPermission
-    @RequiresPermission(allOf = {
-            android.Manifest.permission.BLUETOOTH_CONNECT,
-            android.Manifest.permission.LOCAL_MAC_ADDRESS,
-    })
     public String getAddress() {
         try {
             return mManagerService.getAddress(mAttributionSource);
@@ -3604,6 +3604,7 @@ public final class BluetoothAdapter {
         return Collections.unmodifiableSet(deviceSet);
     }
 
+    @SuppressLint("GenericException")
     protected void finalize() throws Throwable {
         try {
             removeServiceStateCallback(mManagerCallback);
