@@ -21,27 +21,6 @@
 #include "stack/include/bt_octets.h"
 #include "types/raw_address.h"
 
-/*******************************************************************************
- *
- * Function         BTM_SecAddDevice
- *
- * Description      Add/modify device.  This function will be normally called
- *                  during host startup to restore all required information
- *                  stored in the NVRAM.
- *
- * Parameters:      bd_addr          - BD address of the peer
- *                  dev_class        - Device Class
- *                  bd_name          - Name of the peer device. NULL if unknown.
- *                  features         - Remote device's features (up to 3 pages).
- *                                     NULL if not known
- *                  link_key         - Connection link key. NULL if unknown.
- *
- * Returns          true if added OK, else false
- *
- ******************************************************************************/
-bool BTM_SecAddDevice(const RawAddress& bd_addr, DEV_CLASS dev_class,
-                      BD_NAME bd_name, uint8_t* features, LinkKey* p_link_key,
-                      uint8_t key_type, uint8_t pin_length);
 void wipe_secrets_and_remove(tBTM_SEC_DEV_REC* p_dev_rec);
 
 /** Free resources associated with the device associated with |bd_addr| address.

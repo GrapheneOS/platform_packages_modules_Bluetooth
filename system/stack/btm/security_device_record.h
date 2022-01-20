@@ -224,7 +224,7 @@ struct tBTM_SEC_DEV_REC {
 
  private:
   friend bool BTM_SecAddDevice(const RawAddress& bd_addr, DEV_CLASS dev_class,
-                               BD_NAME bd_name, uint8_t* features,
+                               const BD_NAME& bd_name, uint8_t* features,
                                LinkKey* p_link_key, uint8_t key_type,
                                uint8_t pin_length);
   friend void BTM_PINCodeReply(const RawAddress& bd_addr, tBTM_STATUS res,
