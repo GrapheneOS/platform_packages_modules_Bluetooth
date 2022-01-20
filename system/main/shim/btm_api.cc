@@ -1227,7 +1227,8 @@ tBTM_STATUS bluetooth::shim::BTM_SecBondCancel(const RawAddress& bd_addr) {
 }
 
 bool bluetooth::shim::BTM_SecAddDevice(const RawAddress& bd_addr,
-                                       DEV_CLASS dev_class, BD_NAME bd_name,
+                                       DEV_CLASS dev_class,
+                                       const BD_NAME& bd_name,
                                        uint8_t* features, LinkKey* link_key,
                                        uint8_t key_type, uint8_t pin_length) {
   // Check if GD has a security record for the device

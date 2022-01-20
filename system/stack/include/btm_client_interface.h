@@ -120,7 +120,7 @@ struct btm_client_interface_t {
 
   struct {
     bool (*BTM_SecAddDevice)(const RawAddress& bd_addr, DEV_CLASS dev_class,
-                             BD_NAME bd_name, uint8_t* features,
+                             const BD_NAME& bd_name, uint8_t* features,
                              LinkKey* link_key, uint8_t key_type,
                              uint8_t pin_length);
     bool (*BTM_SecAddRmtNameNotifyCallback)(tBTM_RMT_NAME_CALLBACK* p_callback);
