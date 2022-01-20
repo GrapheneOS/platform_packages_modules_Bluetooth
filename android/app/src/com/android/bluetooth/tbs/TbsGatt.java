@@ -355,6 +355,10 @@ public class TbsGatt {
             return success;
         }
 
+        public boolean setValueNoNotify(byte[] value) {
+            return super.setValue(value);
+        }
+
         public boolean clearValue(boolean notify) {
             boolean success = super.setValue(new byte[0]);
             if (success && notify && isNotifiable()) {
@@ -409,7 +413,7 @@ public class TbsGatt {
             value[1] = (byte) (callIndex);
             value[2] = (byte) (requestResult);
 
-            super.setValue(value);
+            super.setValueNoNotify(value);
 
             // to avoid sending control point notification before write response
             mContext.getMainThreadHandler().post(() -> mNotifier.notify(device, this));
