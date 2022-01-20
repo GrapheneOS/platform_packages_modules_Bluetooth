@@ -77,12 +77,28 @@ public abstract class BluetoothLeBroadcastAssistantCallback {
     public static final int BASS_STATUS_NO_EMPTY_SLOT = 0x09;
     public static final int BASS_STATUS_INVALID_GROUP_OP = 0x10;
 
+    /** @hide */
+    @Retention(RetentionPolicy.SOURCE)
+    @IntDef(value = {
+            BluetoothProfile.STATE_CONNECTED,
+            BluetoothProfile.STATE_CONNECTING,
+            BluetoothProfile.STATE_DISCONNECTED,
+            BluetoothProfile.STATE_DISCONNECTING
+    })
+    public @interface ConnectionStateValues {}
+
+    /**
+     * Callback invoked when the connection state for an LE Audio Broadcast Sink changes
+     */
+    public void onConnectionStateChange(@ConnectionStateValues int prevState,
+            @ConnectionStateValues int newState) {}
+
     /**
      * Callback invoked when a new LE Audio Broadcast Source is found.
      *
      * @param result {@link ScanResult} scan result representing a Broadcast Source
      */
-    public void onBluetoothLeBroadcastSourceFound(@NonNull ScanResult result) {}
+    public void onSourceFound(@NonNull ScanResult result) {}
 
     /**
      * Callback invoked when the Broadcast Assistant synchronizes with Periodic Advertisements (PAs)
@@ -90,7 +106,7 @@ public abstract class BluetoothLeBroadcastAssistantCallback {
      *
      * @param source the selected Broadcast Source
      */
-    public void onBluetoothLeBroadcastSourceSelected(
+    public void onSourceSelected(
             @NonNull BluetoothLeBroadcastSourceInfo source, @BassStatus int status) {}
 
     /**
@@ -99,7 +115,7 @@ public abstract class BluetoothLeBroadcastAssistantCallback {
      *
      * @param source the Broadcast Source with which synchronization was lost
      */
-    public void onBluetoothLeBroadcastSourceLost(
+    public void onSourceLost(
             @NonNull BluetoothLeBroadcastSourceInfo source, @BassStatus int status) {}
 
     /**
@@ -109,7 +125,7 @@ public abstract class BluetoothLeBroadcastAssistantCallback {
      * @param sink Scan Delegator device on which a new Broadcast Source has been added
      * @param source the added Broadcast Source
      */
-    public void onBluetoothLeBroadcastSourceAdded(
+    public void onSourceAdded(
             @NonNull BluetoothDevice sink,
             @NonNull BluetoothLeBroadcastSourceInfo source,
             @BassStatus int status) {}
@@ -121,7 +137,7 @@ public abstract class BluetoothLeBroadcastAssistantCallback {
      * @param sink Scan Delegator device on which a Broadcast Source has been updated
      * @param source the updated Broadcast Source
      */
-    public void onBluetoothLeBroadcastSourceUpdated(
+    public void onSourceUpdated(
             @NonNull BluetoothDevice sink,
             @NonNull BluetoothLeBroadcastSourceInfo source,
             @BassStatus int status) {}
@@ -133,7 +149,7 @@ public abstract class BluetoothLeBroadcastAssistantCallback {
      * @param sink Scan Delegator device from which a Broadcast Source has been removed
      * @param source the removed Broadcast Source
      */
-    public void onBluetoothLeBroadcastSourceRemoved(
+    public void onSourceRemoved(
             @NonNull BluetoothDevice sink,
             @NonNull BluetoothLeBroadcastSourceInfo source,
             @BassStatus int status) {}
