@@ -2059,6 +2059,46 @@ TEST_F(IsoManagerTest, SendIsoDataCreditsReturned) {
   }
 }
 
+TEST_F(IsoManagerTest, SendIsoDataCreditsReturnedByDisconnection) {
+  uint8_t num_buffers = controller_interface_.GetIsoBufferCount();
+  std::vector<uint8_t> data_vec(108, 0);
+
+  // Check on CIG
+  IsoManager::GetInstance()->CreateCig(
+      volatile_test_cig_create_cmpl_evt_.cig_id, kDefaultCigParams);
+
+  bluetooth::hci::iso_manager::cis_establish_params params;
+  for (auto& handle : volatile_test_cig_create_cmpl_evt_.conn_handles) {
+    params.conn_pairs.push_back({handle, 1});
+  }
+  IsoManager::GetInstance()->EstablishCis(params);
+
+  for (auto& handle : volatile_test_cig_create_cmpl_evt_.conn_handles) {
+    IsoManager::GetInstance()->SetupIsoDataPath(handle,
+                                                kDefaultIsoDataPathParams);
+  }
+
+  /* Sending lot of ISO data to first ISO and getting all the credits */
+  EXPECT_CALL(bte_interface_, HciSend).Times(num_buffers).RetiresOnSaturation();
+  for (uint8_t i = 0; i < num_buffers; i++) {
+    IsoManager::GetInstance()->SendIsoData(
+        volatile_test_cig_create_cmpl_evt_.conn_handles[0], data_vec.data(),
+        data_vec.size());
+  }
+
+  /* Return all credits by disconnecting CIS */
+  IsoManager::GetInstance()->HandleDisconnect(
+      volatile_test_cig_create_cmpl_evt_.conn_handles[0], 16);
+
+  /* Try to send ISO data on the second ISO. Expect credits being available.*/
+  EXPECT_CALL(bte_interface_, HciSend).Times(num_buffers).RetiresOnSaturation();
+  for (uint8_t i = 0; i < num_buffers; i++) {
+    IsoManager::GetInstance()->SendIsoData(
+        volatile_test_cig_create_cmpl_evt_.conn_handles[1], data_vec.data(),
+        data_vec.size());
+  }
+}
+
 TEST_F(IsoManagerDeathTest, SendIsoDataWithNoDataPath) {
   std::vector<uint8_t> data_vec(108, 0);
 
