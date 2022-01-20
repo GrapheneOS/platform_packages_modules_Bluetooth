@@ -62,8 +62,9 @@ extern tBTM_CB btm_cb;
  *
  ******************************************************************************/
 bool BTM_SecAddDevice(const RawAddress& bd_addr, DEV_CLASS dev_class,
-                      BD_NAME bd_name, uint8_t* features, LinkKey* p_link_key,
-                      uint8_t key_type, uint8_t pin_length) {
+                      const BD_NAME& bd_name, uint8_t* features,
+                      LinkKey* p_link_key, uint8_t key_type,
+                      uint8_t pin_length) {
   tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(bd_addr);
   if (!p_dev_rec) {
     p_dev_rec = btm_sec_allocate_dev_rec();

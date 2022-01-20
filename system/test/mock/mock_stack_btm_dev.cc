@@ -44,8 +44,9 @@ extern std::map<std::string, int> mock_function_count_map;
 #endif
 
 bool BTM_SecAddDevice(const RawAddress& bd_addr, DEV_CLASS dev_class,
-                      BD_NAME bd_name, uint8_t* features, LinkKey* p_link_key,
-                      uint8_t key_type, uint8_t pin_length) {
+                      const BD_NAME& bd_name, uint8_t* features,
+                      LinkKey* p_link_key, uint8_t key_type,
+                      uint8_t pin_length) {
   mock_function_count_map[__func__]++;
   return false;
 }
