@@ -327,16 +327,19 @@ struct ClassicAclConnection::impl {
       const Address& address,
       uint16_t connection_handle)
       : tracker(acl_connection_interface, address, connection_handle), queue_(std::move(queue)) {}
-  ConnectionManagementCallbacks* GetEventCallbacks() {
-    ASSERT(!callbacks_given_);
-    callbacks_given_ = true;
+  ConnectionManagementCallbacks* GetEventCallbacks(std::function<void(uint16_t)> invalidate_callbacks) {
+    ASSERT_LOG(!invalidate_callbacks_, "Already returned event callbacks for this connection");
+    invalidate_callbacks_ = std::move(invalidate_callbacks);
     return &tracker;
   }
+  void PutEventCallbacks() {
+    if (invalidate_callbacks_) invalidate_callbacks_(tracker.connection_handle_);
+    invalidate_callbacks_ = {};
+  }
 
-  bool callbacks_given_{false};
   AclConnectionTracker tracker;
   std::shared_ptr<Queue> queue_;
-  std::shared_ptr<std::atomic<bool>> is_callback_valid_;
+  std::function<void(uint16_t)> invalidate_callbacks_;
 };
 
 ClassicAclConnection::ClassicAclConnection()
@@ -350,14 +353,13 @@ ClassicAclConnection::ClassicAclConnection(std::shared_ptr<Queue> queue,
 }
 
 ClassicAclConnection::~ClassicAclConnection() {
-  if (pimpl_->is_callback_valid_) *pimpl_->is_callback_valid_ = false;
+  pimpl_->PutEventCallbacks();
   delete pimpl_;
 }
 
 ConnectionManagementCallbacks* ClassicAclConnection::GetEventCallbacks(
-    std::shared_ptr<std::atomic<bool>> is_callback_valid) {
-  pimpl_->is_callback_valid_ = is_callback_valid;
-  return pimpl_->GetEventCallbacks();
+    std::function<void(uint16_t)> invalidate_callbacks) {
+  return pimpl_->GetEventCallbacks(std::move(invalidate_callbacks));
 }
 
 void ClassicAclConnection::RegisterCallbacks(ConnectionManagementCallbacks* callbacks, os::Handler* handler) {
