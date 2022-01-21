@@ -56,7 +56,8 @@ public class A2dpCodecConfigTest {
             BluetoothCodecConfig.SOURCE_CODEC_TYPE_AAC,
             BluetoothCodecConfig.SOURCE_CODEC_TYPE_APTX,
             BluetoothCodecConfig.SOURCE_CODEC_TYPE_APTX_HD,
-            BluetoothCodecConfig.SOURCE_CODEC_TYPE_LDAC
+            BluetoothCodecConfig.SOURCE_CODEC_TYPE_LDAC,
+            BluetoothCodecConfig.SOURCE_CODEC_TYPE_LC3
     };
 
     // Not use the default value to make sure it reads from config
@@ -65,6 +66,7 @@ public class A2dpCodecConfigTest {
     private static final int APTX_PRIORITY_DEFAULT = 5001;
     private static final int APTX_HD_PRIORITY_DEFAULT = 7001;
     private static final int LDAC_PRIORITY_DEFAULT = 9001;
+    private static final int LC3_PRIORITY_DEFAULT = 11001;
     private static final int PRIORITY_HIGH = 1000000;
 
     private static final BluetoothCodecConfig[] sCodecCapabilities = new BluetoothCodecConfig[] {
@@ -105,6 +107,14 @@ public class A2dpCodecConfigTest {
                                      | BluetoothCodecConfig.BITS_PER_SAMPLE_24
                                      | BluetoothCodecConfig.BITS_PER_SAMPLE_32,
                                      BluetoothCodecConfig.CHANNEL_MODE_STEREO,
+                                     0, 0, 0, 0),       // Codec-specific fields
+            buildBluetoothCodecConfig(BluetoothCodecConfig.SOURCE_CODEC_TYPE_LC3,
+                                     LC3_PRIORITY_DEFAULT,
+                                     BluetoothCodecConfig.SAMPLE_RATE_44100
+                                     | BluetoothCodecConfig.SAMPLE_RATE_48000,
+                                     BluetoothCodecConfig.BITS_PER_SAMPLE_16,
+                                     BluetoothCodecConfig.CHANNEL_MODE_MONO
+                                     | BluetoothCodecConfig.CHANNEL_MODE_STEREO,
                                      0, 0, 0, 0)        // Codec-specific fields
     };
 
@@ -138,6 +148,12 @@ public class A2dpCodecConfigTest {
                                      BluetoothCodecConfig.SAMPLE_RATE_96000,
                                      BluetoothCodecConfig.BITS_PER_SAMPLE_32,
                                      BluetoothCodecConfig.CHANNEL_MODE_STEREO,
+                                     0, 0, 0, 0),       // Codec-specific fields
+            buildBluetoothCodecConfig(BluetoothCodecConfig.SOURCE_CODEC_TYPE_LC3,
+                                     LC3_PRIORITY_DEFAULT,
+                                     BluetoothCodecConfig.SAMPLE_RATE_48000,
+                                     BluetoothCodecConfig.BITS_PER_SAMPLE_16,
+                                     BluetoothCodecConfig.CHANNEL_MODE_STEREO,
                                      0, 0, 0, 0)        // Codec-specific fields
     };
 
@@ -158,6 +174,8 @@ public class A2dpCodecConfigTest {
                 .thenReturn(APTX_HD_PRIORITY_DEFAULT);
         when(mMockResources.getInteger(R.integer.a2dp_source_codec_priority_ldac))
                 .thenReturn(LDAC_PRIORITY_DEFAULT);
+        when(mMockResources.getInteger(R.integer.a2dp_source_codec_priority_lc3))
+                .thenReturn(LC3_PRIORITY_DEFAULT);
 
         mA2dpCodecConfig = new A2dpCodecConfig(mMockContext, mA2dpNativeInterface);
         mTestDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice("00:01:02:03:04:05");
@@ -191,6 +209,9 @@ public class A2dpCodecConfigTest {
                 case BluetoothCodecConfig.SOURCE_CODEC_TYPE_LDAC:
                     Assert.assertEquals(config.getCodecPriority(), LDAC_PRIORITY_DEFAULT);
                     break;
+                case BluetoothCodecConfig.SOURCE_CODEC_TYPE_LC3:
+                    Assert.assertEquals(config.getCodecPriority(), LC3_PRIORITY_DEFAULT);
+                    break;
             }
         }
     }
@@ -219,6 +240,10 @@ public class A2dpCodecConfigTest {
         testCodecPriorityChangeHelper(
                 BluetoothCodecConfig.SOURCE_CODEC_TYPE_LDAC, LDAC_PRIORITY_DEFAULT,
                 BluetoothCodecConfig.SOURCE_CODEC_TYPE_LDAC, PRIORITY_HIGH,
+                true);
+        testCodecPriorityChangeHelper(
+                BluetoothCodecConfig.SOURCE_CODEC_TYPE_LC3, LC3_PRIORITY_DEFAULT,
+                BluetoothCodecConfig.SOURCE_CODEC_TYPE_LC3, PRIORITY_HIGH,
                 false);
     }
 
@@ -230,23 +255,27 @@ public class A2dpCodecConfigTest {
     public void testSetCodecPreference_priorityDefaultToRaiseHigh() {
         testCodecPriorityChangeHelper(
                 BluetoothCodecConfig.SOURCE_CODEC_TYPE_SBC, PRIORITY_HIGH,
-                BluetoothCodecConfig.SOURCE_CODEC_TYPE_LDAC, LDAC_PRIORITY_DEFAULT,
+                BluetoothCodecConfig.SOURCE_CODEC_TYPE_LC3, LC3_PRIORITY_DEFAULT,
                 true);
         testCodecPriorityChangeHelper(
                 BluetoothCodecConfig.SOURCE_CODEC_TYPE_AAC, PRIORITY_HIGH,
-                BluetoothCodecConfig.SOURCE_CODEC_TYPE_LDAC, LDAC_PRIORITY_DEFAULT,
+                BluetoothCodecConfig.SOURCE_CODEC_TYPE_LC3, LC3_PRIORITY_DEFAULT,
                 true);
         testCodecPriorityChangeHelper(
                 BluetoothCodecConfig.SOURCE_CODEC_TYPE_APTX, PRIORITY_HIGH,
-                BluetoothCodecConfig.SOURCE_CODEC_TYPE_LDAC, LDAC_PRIORITY_DEFAULT,
+                BluetoothCodecConfig.SOURCE_CODEC_TYPE_LC3, LC3_PRIORITY_DEFAULT,
                 true);
         testCodecPriorityChangeHelper(
                 BluetoothCodecConfig.SOURCE_CODEC_TYPE_APTX_HD, PRIORITY_HIGH,
-                BluetoothCodecConfig.SOURCE_CODEC_TYPE_LDAC, LDAC_PRIORITY_DEFAULT,
+                BluetoothCodecConfig.SOURCE_CODEC_TYPE_LC3, LC3_PRIORITY_DEFAULT,
                 true);
         testCodecPriorityChangeHelper(
                 BluetoothCodecConfig.SOURCE_CODEC_TYPE_LDAC, PRIORITY_HIGH,
-                BluetoothCodecConfig.SOURCE_CODEC_TYPE_LDAC, LDAC_PRIORITY_DEFAULT,
+                BluetoothCodecConfig.SOURCE_CODEC_TYPE_LC3, LC3_PRIORITY_DEFAULT,
+                true);
+        testCodecPriorityChangeHelper(
+                BluetoothCodecConfig.SOURCE_CODEC_TYPE_LC3, PRIORITY_HIGH,
+                BluetoothCodecConfig.SOURCE_CODEC_TYPE_LC3, LC3_PRIORITY_DEFAULT,
                 false);
     }
 
@@ -272,6 +301,10 @@ public class A2dpCodecConfigTest {
                 BluetoothCodecConfig.SOURCE_CODEC_TYPE_LDAC, PRIORITY_HIGH,
                 BluetoothCodecConfig.SOURCE_CODEC_TYPE_SBC, PRIORITY_HIGH,
                 true);
+        testCodecPriorityChangeHelper(
+                BluetoothCodecConfig.SOURCE_CODEC_TYPE_LC3, PRIORITY_HIGH,
+                BluetoothCodecConfig.SOURCE_CODEC_TYPE_SBC, PRIORITY_HIGH,
+                true);
     }
 
     @Test
@@ -294,6 +327,10 @@ public class A2dpCodecConfigTest {
                 true);
         testCodecPriorityChangeHelper(
                 BluetoothCodecConfig.SOURCE_CODEC_TYPE_LDAC, PRIORITY_HIGH,
+                BluetoothCodecConfig.SOURCE_CODEC_TYPE_AAC, PRIORITY_HIGH,
+                true);
+        testCodecPriorityChangeHelper(
+                BluetoothCodecConfig.SOURCE_CODEC_TYPE_LC3, PRIORITY_HIGH,
                 BluetoothCodecConfig.SOURCE_CODEC_TYPE_AAC, PRIORITY_HIGH,
                 true);
     }
