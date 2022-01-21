@@ -28,6 +28,7 @@ import android.bluetooth.BluetoothLeCallControl;
 import android.bluetooth.BluetoothLeCall;
 import android.bluetooth.IBluetoothLeCallControl;
 import android.bluetooth.IBluetoothLeCallControlCallback;
+import android.content.AttributionSource;
 import android.content.Context;
 import android.os.ParcelUuid;
 import android.os.RemoteException;
@@ -142,8 +143,10 @@ public class TbsService extends ProfileService {
     static class TbsServerBinder extends IBluetoothLeCallControl.Stub implements IProfileServiceBinder {
         private TbsService mService;
 
-        private TbsService getService() {
-            if (!Utils.checkCallerIsSystemOrActiveUser(TAG)) {
+        private TbsService getService(AttributionSource source) {
+            if (!Utils.checkCallerIsSystemOrActiveUser(TAG)
+                || !Utils.checkServiceAvailable(mService, TAG)
+                || !Utils.checkConnectPermissionForDataDelivery(mService, source, TAG)) {
                 Log.w(TAG, "TbsService call not allowed for non-active user");
                 return null;
             }
@@ -171,8 +174,9 @@ public class TbsService extends ProfileService {
 
         @Override
         public void registerBearer(String token, IBluetoothLeCallControlCallback callback, String uci,
-                List<String> uriSchemes, int capabilities, String providerName, int technology) {
-            TbsService service = getService();
+                List<String> uriSchemes, int capabilities, String providerName, int technology,
+                AttributionSource source) {
+            TbsService service = getService(source);
             if (service != null) {
                 service.registerBearer(token, callback, uci, uriSchemes, capabilities, providerName,
                         technology);
@@ -182,8 +186,9 @@ public class TbsService extends ProfileService {
         }
 
         @Override
-        public void unregisterBearer(String token) {
-            TbsService service = getService();
+        public void unregisterBearer(String token,
+                AttributionSource source) {
+            TbsService service = getService(source);
             if (service != null) {
                 service.unregisterBearer(token);
             } else {
@@ -192,8 +197,9 @@ public class TbsService extends ProfileService {
         }
 
         @Override
-        public void requestResult(int ccid, int requestId, int result) {
-            TbsService service = getService();
+        public void requestResult(int ccid, int requestId, int result,
+                AttributionSource source) {
+            TbsService service = getService(source);
             if (service != null) {
                 service.requestResult(ccid, requestId, result);
             } else {
@@ -202,8 +208,9 @@ public class TbsService extends ProfileService {
         }
 
         @Override
-        public void callAdded(int ccid, BluetoothLeCall call) {
-            TbsService service = getService();
+        public void callAdded(int ccid, BluetoothLeCall call,
+                AttributionSource source) {
+            TbsService service = getService(source);
             if (service != null) {
                 service.callAdded(ccid, call);
             } else {
@@ -212,8 +219,9 @@ public class TbsService extends ProfileService {
         }
 
         @Override
-        public void callRemoved(int ccid, ParcelUuid callId, int reason) {
-            TbsService service = getService();
+        public void callRemoved(int ccid, ParcelUuid callId, int reason,
+                AttributionSource source) {
+            TbsService service = getService(source);
             if (service != null) {
                 service.callRemoved(ccid, callId.getUuid(), reason);
             } else {
@@ -222,8 +230,9 @@ public class TbsService extends ProfileService {
         }
 
         @Override
-        public void callStateChanged(int ccid, ParcelUuid callId, int state) {
-            TbsService service = getService();
+        public void callStateChanged(int ccid, ParcelUuid callId, int state,
+                AttributionSource source) {
+            TbsService service = getService(source);
             if (service != null) {
                 service.callStateChanged(ccid, callId.getUuid(), state);
             } else {
@@ -232,8 +241,9 @@ public class TbsService extends ProfileService {
         }
 
         @Override
-        public void currentCallsList(int ccid, List<BluetoothLeCall> calls) {
-            TbsService service = getService();
+        public void currentCallsList(int ccid, List<BluetoothLeCall> calls,
+                AttributionSource source) {
+            TbsService service = getService(source);
             if (service != null) {
                 service.currentCallsList(ccid, calls);
             } else {
@@ -242,8 +252,9 @@ public class TbsService extends ProfileService {
         }
 
         @Override
-        public void networkStateChanged(int ccid, String providerName, int technology) {
-            TbsService service = getService();
+        public void networkStateChanged(int ccid, String providerName, int technology,
+                AttributionSource source) {
+            TbsService service = getService(source);
             if (service != null) {
                 service.networkStateChanged(ccid, providerName, technology);
             } else {

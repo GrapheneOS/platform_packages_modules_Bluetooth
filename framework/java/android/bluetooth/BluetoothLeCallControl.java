@@ -24,6 +24,7 @@ import android.annotation.Nullable;
 import android.annotation.RequiresPermission;
 import android.bluetooth.annotations.RequiresBluetoothConnectPermission;
 import android.content.ComponentName;
+import android.content.AttributionSource;
 import android.content.Context;
 import android.os.Binder;
 import android.os.Handler;
@@ -390,6 +391,7 @@ public final class BluetoothLeCallControl implements BluetoothProfile {
     private ServiceListener mServiceListener;
     private volatile IBluetoothLeCallControl mService;
     private BluetoothAdapter mAdapter;
+    private final AttributionSource mAttributionSource;
     private int mCcid = 0;
     private String mToken;
     private Callback mCallback = null;
@@ -414,6 +416,7 @@ public final class BluetoothLeCallControl implements BluetoothProfile {
     /* package */ BluetoothLeCallControl(Context context, ServiceListener listener) {
         mContext = context;
         mAdapter = BluetoothAdapter.getDefaultAdapter();
+        mAttributionSource = mAdapter.getAttributionSource();
         mServiceListener = listener;
 
         IBluetoothManager mgr = mAdapter.getBluetoothManager();
@@ -568,36 +571,34 @@ public final class BluetoothLeCallControl implements BluetoothProfile {
         mToken = uci;
 
         final IBluetoothLeCallControl service = getService();
-        if (service != null) {
-            if (mCallback != null) {
-                Log.e(TAG, "Bearer can be opened only once");
-                return false;
-            }
-
-            mCallback = callback;
-            try {
-                CallbackWrapper callbackWrapper = new CallbackWrapper(executor, callback);
-                service.registerBearer(mToken, callbackWrapper, uci, uriSchemes, capabilities,
-                                        provider, technology);
-            } catch (RemoteException e) {
-                Log.e(TAG, "", e);
-                mCallback = null;
-                return false;
-            }
-
-            if (mCcid == 0) {
-                mCallback = null;
-                return false;
-            }
-
-            return true;
-        }
-
         if (service == null) {
             Log.w(TAG, "Proxy not attached to service");
+            return false;
         }
 
-        return false;
+        if (mCallback != null) {
+            Log.e(TAG, "Bearer can be opened only once");
+            return false;
+        }
+
+        mCallback = callback;
+        try {
+            CallbackWrapper callbackWrapper = new CallbackWrapper(executor, callback);
+            service.registerBearer(mToken, callbackWrapper, uci, uriSchemes, capabilities,
+                                    provider, technology, mAttributionSource);
+
+        } catch (RemoteException e) {
+            Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+            mCallback = null;
+            return false;
+        }
+
+        if (mCcid == 0) {
+            mCallback = null;
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -614,20 +615,20 @@ public final class BluetoothLeCallControl implements BluetoothProfile {
             return;
         }
 
+        final IBluetoothLeCallControl service = getService();
+        if (service == null) {
+            Log.w(TAG, "Proxy not attached to service");
+            return;
+        }
+
         int ccid = mCcid;
         mCcid = 0;
         mCallback = null;
 
-        final IBluetoothLeCallControl service = getService();
-        if (service != null) {
-            try {
-                service.unregisterBearer(mToken);
-            } catch (RemoteException e) {
-                Log.e(TAG, "", e);
-            }
-        }
-        if (service == null) {
-            Log.w(TAG, "Proxy not attached to service");
+        try {
+            service.unregisterBearer(mToken, mAttributionSource);
+        } catch (RemoteException e) {
+            Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
         }
     }
 
@@ -664,15 +665,15 @@ public final class BluetoothLeCallControl implements BluetoothProfile {
         }
 
         final IBluetoothLeCallControl service = getService();
-        if (service != null) {
-            try {
-                service.callAdded(mCcid, call);
-            } catch (RemoteException e) {
-                Log.e(TAG, "", e);
-            }
-        }
         if (service == null) {
             Log.w(TAG, "Proxy not attached to service");
+            return;
+        }
+
+        try {
+            service.callAdded(mCcid, call, mAttributionSource);
+        } catch (RemoteException e) {
+            Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
         }
     }
 
@@ -699,16 +700,16 @@ public final class BluetoothLeCallControl implements BluetoothProfile {
         }
 
         final IBluetoothLeCallControl service = getService();
-        if (service != null) {
-            try {
-                service.callRemoved(mCcid, new ParcelUuid(callId), reason);
-            } catch (RemoteException e) {
-                Log.e(TAG, "", e);
-            }
-        }
         if (service == null) {
             Log.w(TAG, "Proxy not attached to service");
+            return;
         }
+        try {
+            service.callRemoved(mCcid, new ParcelUuid(callId), reason, mAttributionSource);
+        } catch (RemoteException e) {
+            Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+        }
+
     }
 
     /**
@@ -735,15 +736,16 @@ public final class BluetoothLeCallControl implements BluetoothProfile {
         }
 
         final IBluetoothLeCallControl service = getService();
-        if (service != null) {
-            try {
-                service.callStateChanged(mCcid, new ParcelUuid(callId), state);
-            } catch (RemoteException e) {
-                Log.e(TAG, "", e);
-            }
-        }
         if (service == null) {
             Log.w(TAG, "Proxy not attached to service");
+            return;
+        }
+
+        try {
+            service.callStateChanged(mCcid, new ParcelUuid(callId), state,
+                mAttributionSource);
+        } catch (RemoteException e) {
+            Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
         }
     }
 
@@ -760,13 +762,17 @@ public final class BluetoothLeCallControl implements BluetoothProfile {
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
      public void currentCallsList(@NonNull List<BluetoothLeCall> calls) {
         final IBluetoothLeCallControl service = getService();
-        if (service != null) {
-            try {
-                service.currentCallsList(mCcid, calls);
-            } catch (RemoteException e) {
-                Log.e(TAG, "", e);
-            }
+        if (service == null) {
+            Log.w(TAG, "Proxy not attached to service");
+            return;
         }
+
+        try {
+            service.currentCallsList(mCcid, calls, mAttributionSource);
+        } catch (RemoteException e) {
+            Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+        }
+
     }
 
     /**
@@ -796,15 +802,15 @@ public final class BluetoothLeCallControl implements BluetoothProfile {
         }
 
         final IBluetoothLeCallControl service = getService();
-        if (service != null) {
-            try {
-                service.networkStateChanged(mCcid, provider, technology);
-            } catch (RemoteException e) {
-                Log.e(TAG, "", e);
-            }
-        }
         if (service == null) {
             Log.w(TAG, "Proxy not attached to service");
+            return;
+        }
+
+        try {
+            service.networkStateChanged(mCcid, provider, technology, mAttributionSource);
+        } catch (RemoteException e) {
+            Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
         }
     }
 
@@ -837,12 +843,15 @@ public final class BluetoothLeCallControl implements BluetoothProfile {
         }
 
         final IBluetoothLeCallControl service = getService();
-        if (service != null) {
-            try {
-                service.requestResult(mCcid, requestId, result);
-            } catch (RemoteException e) {
-                Log.e(TAG, "", e);
-            }
+        if (service == null) {
+            Log.w(TAG, "Proxy not attached to service");
+            return;
+        }
+
+        try {
+            service.requestResult(mCcid, requestId, result, mAttributionSource);
+        } catch (RemoteException e) {
+            Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
         }
     }
 
@@ -862,7 +871,7 @@ public final class BluetoothLeCallControl implements BluetoothProfile {
             if (DBG) {
                 Log.d(TAG, "Proxy object connected");
             }
-            mService = IBluetoothLeCallControl.Stub.asInterface(Binder.allowBlocking(service));
+            mService = IBluetoothLeCallControl.Stub.asInterface(service);
             mHandler.sendMessage(mHandler.obtainMessage(MESSAGE_TBS_SERVICE_CONNECTED));
         }
 
