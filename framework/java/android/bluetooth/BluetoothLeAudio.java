@@ -459,6 +459,45 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
     }
 
     /**
+     * Get lead device for a group.
+     *
+     * Lead device is the device that can be used as an active device in the system.
+     * Active devices points to the Audio Device for the Le Audio group.
+     * This method returns a list of Lead devices for all the connected LE Audio
+     * groups and those devices should be used in the setActiveDevice() method by other parts
+     * of the system, which wants to setActive a particular Le Audio Group.
+     *
+     * Note: getActiveDevice() returns the Lead device for the currently active LE Audio group.
+     * Note: When lead device gets disconnected, there will be new lead device for the group.
+     *
+     * @param groupId The group id.
+     * @return group lead device.
+     */
+    @RequiresBluetoothConnectPermission
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
+    public @Nullable BluetoothDevice getConnectedGroupLeadDevice(int groupId) {
+        if (VDBG) log("getConnectedGroupLeadDevice()");
+        final IBluetoothLeAudio service = getService();
+        final BluetoothDevice defaultValue = null;
+        if (service == null) {
+            Log.w(TAG, "Proxy not attached to service");
+            if (DBG) log(Log.getStackTraceString(new Throwable()));
+        } else if (mAdapter.isEnabled()) {
+            try {
+                final SynchronousResultReceiver<BluetoothDevice> recv =
+                        new SynchronousResultReceiver();
+                service.getConnectedGroupLeadDevice(groupId, mAttributionSource, recv);
+                return Attributable.setAttributionSource(
+                        recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue),
+                        mAttributionSource);
+            } catch (RemoteException | TimeoutException e) {
+                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+            }
+        }
+        return defaultValue;
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override
