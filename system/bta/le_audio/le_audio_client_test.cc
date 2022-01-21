@@ -30,6 +30,7 @@
 #include "btm_iso_api.h"
 #include "common/message_loop_thread.h"
 #include "device/include/controller.h"
+#include "fake_osi.h"
 #include "gatt/database_builder.h"
 #include "hardware/bt_gatt_types.h"
 #include "le_audio_types.h"
@@ -58,6 +59,8 @@ using testing::WithArg;
 using bluetooth::Uuid;
 
 using namespace bluetooth::le_audio;
+
+extern struct fake_osi_alarm_set_on_mloop fake_osi_alarm_set_on_mloop_;
 
 namespace bluetooth {
 namespace audio {
@@ -949,7 +952,8 @@ class UnicastTestNoInit : public Test {
     ConnectLeAudio(addr);
   }
 
-  void UpdateMetadata(audio_usage_t usage, audio_content_type_t content_type) {
+  void UpdateMetadata(audio_usage_t usage, audio_content_type_t content_type,
+                      bool reconfigure_existing_stream = false) {
     std::promise<void> do_metadata_update_promise;
 
     struct playback_track_metadata tracks_[2] = {
@@ -962,6 +966,10 @@ class UnicastTestNoInit : public Test {
     tracks_[0].usage = usage;
     tracks_[0].content_type = content_type;
 
+    if (reconfigure_existing_stream) {
+      EXPECT_CALL(mock_audio_source_, ConfirmStreamingRequest()).Times(1);
+    }
+
     auto do_metadata_update_future = do_metadata_update_promise.get_future();
     audio_sink_receiver_->OnAudioMetadataUpdate(
         std::move(do_metadata_update_promise), source_metadata);
@@ -969,20 +977,33 @@ class UnicastTestNoInit : public Test {
   }
 
   void StartStreaming(audio_usage_t usage, audio_content_type_t content_type,
-                      int group_id, bool reconfigured_sink = false) {
+                      int group_id, bool reconfigure_existing_stream = false) {
     ASSERT_NE(audio_sink_receiver_, nullptr);
 
-    UpdateMetadata(usage, content_type);
+    UpdateMetadata(usage, content_type, reconfigure_existing_stream);
+
+    /* Stream has been automatically restarted on UpdateMetadata */
+    if (reconfigure_existing_stream) return;
 
     EXPECT_CALL(mock_audio_source_, ConfirmStreamingRequest()).Times(1);
-    audio_sink_receiver_->OnAudioResume();
+    do_in_main_thread(FROM_HERE,
+                      base::BindOnce(
+                          [](LeAudioClientAudioSinkReceiver* sink_receiver) {
+                            sink_receiver->OnAudioResume();
+                          },
+                          audio_sink_receiver_));
 
     SyncOnMainLoop();
     Mock::VerifyAndClearExpectations(&mock_audio_source_);
 
     if (usage == AUDIO_USAGE_VOICE_COMMUNICATION) {
       ASSERT_NE(audio_source_receiver_, nullptr);
-      audio_source_receiver_->OnAudioResume();
+      do_in_main_thread(
+          FROM_HERE, base::BindOnce(
+                         [](LeAudioClientAudioSourceReceiver* source_receiver) {
+                           source_receiver->OnAudioResume();
+                         },
+                         audio_source_receiver_));
     }
   }
 
@@ -2600,6 +2621,8 @@ TEST_F(UnicastTest, TwoEarbudsStreamingContextSwitchReconfigure) {
 
   // Stop
   StopStreaming(group_id);
+  // simulate suspend timeout passed, alarm executing
+  fake_osi_alarm_set_on_mloop_.cb(fake_osi_alarm_set_on_mloop_.data);
   Mock::VerifyAndClearExpectations(&mock_client_callbacks_);
 
   StartStreaming(AUDIO_USAGE_VOICE_COMMUNICATION, AUDIO_CONTENT_TYPE_SPEECH,
