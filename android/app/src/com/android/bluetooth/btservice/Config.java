@@ -34,6 +34,7 @@ import com.android.bluetooth.avrcp.AvrcpTargetService;
 import com.android.bluetooth.avrcpcontroller.AvrcpControllerService;
 import com.android.bluetooth.csip.CsipSetCoordinatorService;
 import com.android.bluetooth.gatt.GattService;
+import com.android.bluetooth.hap.HapClientService;
 import com.android.bluetooth.hearingaid.HearingAidService;
 import com.android.bluetooth.hfp.HeadsetService;
 import com.android.bluetooth.hfpclient.HeadsetClientService;
@@ -132,6 +133,8 @@ public class Config {
             new ProfileConfig(CsipSetCoordinatorService.class,
                     R.bool.profile_supported_csip_set_coordinator,
                     (1 << BluetoothProfile.CSIP_SET_COORDINATOR)),
+            new ProfileConfig(HapClientService.class, R.bool.profile_supported_hap_client,
+                    (1 << BluetoothProfile.HAP_CLIENT)),
     };
 
     private static Class[] sSupportedProfiles = new Class[0];
