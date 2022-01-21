@@ -2828,4 +2828,34 @@ public final class BluetoothDevice implements Parcelable, Attributable {
     public static @MetadataKey int getMaxMetadataKey() {
         return METADATA_UNTETHERED_CASE_LOW_BATTERY_THRESHOLD;
     }
+
+    /**
+     * Enable or disable audio low latency for this {@link BluetoothDevice}.
+     *
+     * @param allowed true if low latency is allowed, false if low latency is disallowed.
+     * @return true if the value is successfully set,
+     * false if there is a error when setting the value.
+     * @hide
+     */
+    @SystemApi
+    @RequiresBluetoothConnectPermission
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
+    public boolean setLowLatencyAudioAllowed(boolean allowed) {
+        final IBluetooth service = sService;
+        Log.i(TAG, "Allowing bluetooth audio low latency: " + allowed);
+        if (service == null) {
+            Log.e(TAG, "Bluetooth is not enabled. Cannot allow low latency");
+            return false;
+        }
+        try {
+            service.allowLowLatencyAudio(allowed, this);
+        } catch (RemoteException e) {
+            Log.e(TAG, "allowLowLatencyAudio fail ", e);
+            e.rethrowFromSystemServer();
+        }
+        return true;
+    }
 }
