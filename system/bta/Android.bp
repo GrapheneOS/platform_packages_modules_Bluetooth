@@ -486,6 +486,7 @@ cc_test {
         "packages/modules/Bluetooth/system/stack/include",
     ],
     srcs : [
+        ":TestStubOsi",
         ":TestMockBtaLeAudioHalVerifier",
         "gatt/database.cc",
         "gatt/database_builder.cc",
