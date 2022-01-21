@@ -198,7 +198,9 @@ interface IBluetooth
     @JavaPassthrough(annotation="@android.annotation.RequiresNoPermission")
     int isLeAudioSupported();
     @JavaPassthrough(annotation="@android.annotation.RequiresNoPermission")
-    int isLePeriodicAdvertisingSyncTransferSenderSupported();
+    int isLeAudioBroadcastSourceSupported();
+    @JavaPassthrough(annotation="@android.annotation.RequiresNoPermission")
+    int isLeAudioBroadcastAssistantSupported();
     @JavaPassthrough(annotation="@android.annotation.RequiresNoPermission")
     int getLeMaximumAdvertisingDataLength();
 
