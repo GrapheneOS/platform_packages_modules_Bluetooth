@@ -584,9 +584,17 @@ public class TbsGatt {
         if (DBG) {
             Log.d(TAG, "setIncomingCall: callIndex=" + callIndex + " uri=" + uri);
         }
-        byte[] value = new byte[uri.length() + 1];
+        int uri_len = 0;
+        if (uri != null) {
+            uri_len = uri.length();
+        }
+
+        byte[] value = new byte[uri_len + 1];
         value[0] = (byte) (callIndex & 0xff);
-        System.arraycopy(uri.getBytes(), 0, value, 1, uri.length());
+
+        if (uri_len > 0) {
+            System.arraycopy(uri.getBytes(), 0, value, 1, uri_len);
+        }
 
         return mIncomingCallCharacteristic.setValue(value);
     }
