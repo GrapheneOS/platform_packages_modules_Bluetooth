@@ -263,8 +263,6 @@ void LeAudioClientInterface::Source::StartSession() {
                                  ->LeAudioGetSelectedHalPcmConfig());
     }
 
-    audio_config.pcmConfig(hidl::le_audio::LeAudioSourceTransport::instance
-                               ->LeAudioGetSelectedHalPcmConfig());
     if (!hidl::le_audio::LeAudioSourceTransport::
              interface->UpdateAudioConfig_2_2(audio_config)) {
       LOG(ERROR) << __func__ << ": cannot update audio config to HAL";

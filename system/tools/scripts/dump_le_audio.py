@@ -117,6 +117,7 @@ AUDIO_LOCATION_CENTER = 0x04
 packet_number = 0
 debug_enable = False
 add_header = False
+ase_handle = 0xFFFF
 
 
 class Connection:
@@ -231,6 +232,10 @@ def parse_att_read_by_type_rsp(packet, connection_handle):
 
 def parse_att_write_cmd(packet, connection_handle, timestamp):
     attribute_handle, packet = unpack_data(packet, 2, False)
+    global ase_handle
+    if ase_handle != 0xFFFF:
+       connection_map[connection_handle].ase_handle = ase_handle
+
     if connection_map[connection_handle].ase_handle == attribute_handle:
         if debug_enable:
             debug_print("Action with ASE Control point")
@@ -497,17 +502,25 @@ def main():
         "--header",
         help="Add the header for LC3 Conformance Interoperability Test Software V.1.0.3.",
         action="store_true")
+    parser.add_argument(
+        "--ase_handle",
+        help="Set the ASE handle manually.",
+        type=int)
 
     argv = parser.parse_args()
     BTSNOOP_FILE_NAME = argv.btsnoop_file
 
     global debug_enable
     global add_header
+    global ase_handle
     if argv.verbose:
         debug_enable = True
 
     if argv.header:
         add_header = True
+
+    if argv.ase_handle:
+        ase_handle = int(argv.ase_handle)
 
     with open(BTSNOOP_FILE_NAME, "rb") as btsnoop_file:
         if btsnoop_file.read(16) != BTSNOOP_HEADER:
