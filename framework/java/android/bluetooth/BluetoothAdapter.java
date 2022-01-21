@@ -31,6 +31,7 @@ import android.annotation.SuppressLint;
 import android.annotation.SystemApi; //import android.app.PropertyInvalidatedCache;
 import android.bluetooth.BluetoothDevice.Transport;
 import android.bluetooth.BluetoothFrameworkInitializer;
+import android.bluetooth.BluetoothDevice.AddressType;
 import android.bluetooth.BluetoothProfile.ConnectionPolicy;
 import android.bluetooth.annotations.RequiresBluetoothAdvertisePermission;
 import android.bluetooth.annotations.RequiresBluetoothConnectPermission;
@@ -845,6 +846,27 @@ public final class BluetoothAdapter {
     @RequiresNoPermission
     public BluetoothDevice getRemoteDevice(String address) {
         final BluetoothDevice res = new BluetoothDevice(address);
+        res.setAttributionSource(mAttributionSource);
+        return res;
+    }
+
+    /**
+     * Get a {@link BluetoothDevice} object for the given Bluetooth hardware
+     * address and addressType.
+     * <p>Valid Bluetooth hardware addresses must be upper case, in a format
+     * such as "00:11:22:33:AA:BB". The helper {@link #checkBluetoothAddress} is
+     * available to validate a Bluetooth address.
+     * <p>A {@link BluetoothDevice} will always be returned for a valid
+     * hardware address and type, even if this adapter has never seen that device.
+     *
+     * @param address valid Bluetooth MAC address
+     * @param addressType Bluetooth address type
+     * @throws IllegalArgumentException if address is invalid
+     */
+    @RequiresNoPermission
+    public @NonNull BluetoothDevice getRemoteLeDevice(@NonNull String address,
+            @AddressType int addressType) {
+        final BluetoothDevice res = new BluetoothDevice(address, addressType);
         res.setAttributionSource(mAttributionSource);
         return res;
     }
