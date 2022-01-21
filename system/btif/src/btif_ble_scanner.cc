@@ -110,7 +110,7 @@ void bta_scan_results_cb_impl(RawAddress bd_addr, tBT_DEVICE_TYPE device_type,
                               uint8_t ble_secondary_phy,
                               uint8_t ble_advertising_sid, int8_t ble_tx_power,
                               uint16_t ble_periodic_adv_int,
-                              vector<uint8_t> value) {
+                              vector<uint8_t> value, RawAddress original_bda) {
   uint8_t remote_name_len;
   bt_device_type_t dev_type;
   bt_property_t properties;
@@ -156,7 +156,8 @@ void bta_scan_results_cb_impl(RawAddress bd_addr, tBT_DEVICE_TYPE device_type,
   btif_storage_set_remote_addr_type(&bd_addr, addr_type);
   HAL_CBACK(bt_gatt_callbacks, scanner->scan_result_cb, ble_evt_type, addr_type,
             &bd_addr, ble_primary_phy, ble_secondary_phy, ble_advertising_sid,
-            ble_tx_power, rssi, ble_periodic_adv_int, std::move(value));
+            ble_tx_power, rssi, ble_periodic_adv_int, std::move(value),
+            &original_bda);
 }
 
 void bta_scan_results_cb(tBTA_DM_SEARCH_EVT event, tBTA_DM_SEARCH* p_data) {
@@ -185,11 +186,11 @@ void bta_scan_results_cb(tBTA_DM_SEARCH_EVT event, tBTA_DM_SEARCH* p_data) {
   }
 
   tBTA_DM_INQ_RES* r = &p_data->inq_res;
-  do_in_jni_thread(Bind(bta_scan_results_cb_impl, r->bd_addr, r->device_type,
-                        r->rssi, r->ble_addr_type, r->ble_evt_type,
-                        r->ble_primary_phy, r->ble_secondary_phy,
-                        r->ble_advertising_sid, r->ble_tx_power,
-                        r->ble_periodic_adv_int, std::move(value)));
+  do_in_jni_thread(
+      Bind(bta_scan_results_cb_impl, r->bd_addr, r->device_type, r->rssi,
+           r->ble_addr_type, r->ble_evt_type, r->ble_primary_phy,
+           r->ble_secondary_phy, r->ble_advertising_sid, r->ble_tx_power,
+           r->ble_periodic_adv_int, std::move(value), r->original_bda));
 }
 
 void bta_track_adv_event_cb(tBTM_BLE_TRACK_ADV_DATA* p_track_adv_data) {
