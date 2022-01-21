@@ -2457,13 +2457,27 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public int isLePeriodicAdvertisingSyncTransferSenderSupported() {
+        public int isLeAudioBroadcastSourceSupported() {
             AdapterService service = getService();
             if (service == null) {
                 return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED;
             }
 
-            if (service.mAdapterProperties.isLePeriodicAdvertisingSyncTransferSenderSupported()) {
+            if (service.isLeAudioBroadcastSourceSupported()) {
+                return BluetoothStatusCodes.SUCCESS;
+            }
+
+            return BluetoothStatusCodes.ERROR_FEATURE_NOT_SUPPORTED;
+        }
+
+        @Override
+        public int isLeAudioBroadcastAssistantSupported() {
+            AdapterService service = getService();
+            if (service == null) {
+                return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED;
+            }
+
+            if (service.isLeAudioBroadcastAssistantSupported()) {
                 return BluetoothStatusCodes.SUCCESS;
             }
 
@@ -3474,16 +3488,33 @@ public class AdapterService extends Service {
         return mAdapterProperties.isLePeriodicAdvertisingSupported();
     }
 
+    /**
+     * Check if the LE audio broadcast source feature is supported.
+     *
+     * @return true, if the LE audio broadcast source is supported
+     */
+    public boolean isLeAudioBroadcastSourceSupported() {
+        //TODO: check the profile support status as well after we have the implementation
+        return mAdapterProperties.isLePeriodicAdvertisingSupported()
+                && mAdapterProperties.isLeExtendedAdvertisingSupported()
+                && mAdapterProperties.isLeIsochronousBroadcasterSupported();
+    }
+
+    /**
+     * Check if the LE audio broadcast assistant feature is supported.
+     *
+     * @return true, if the LE audio broadcast assistant is supported
+     */
+    public boolean isLeAudioBroadcastAssistantSupported() {
+        //TODO: check the profile support status as well after we have the implementation
+        return mAdapterProperties.isLePeriodicAdvertisingSupported()
+            && mAdapterProperties.isLeExtendedAdvertisingSupported()
+            && (mAdapterProperties.isLePeriodicAdvertisingSyncTransferSenderSupported()
+                || mAdapterProperties.isLePeriodicAdvertisingSyncTransferRecipientSupported());
+    }
+
     public int getLeMaximumAdvertisingDataLength() {
         return mAdapterProperties.getLeMaximumAdvertisingDataLength();
-    }
-
-    public boolean isLePeriodicAdvertisingSyncTransferSenderSupported() {
-        return mAdapterProperties.isLePeriodicAdvertisingSyncTransferSenderSupported();
-    }
-
-    public boolean isLeConnectedIsochronousStreamCentralSupported() {
-        return mAdapterProperties.isLeConnectedIsochronousStreamCentralSupported();
     }
 
     /**
