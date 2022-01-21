@@ -384,7 +384,6 @@ class HearingAidImpl : public HearingAid {
       return;
     }
 
-    hearingDevice->connecting_actively = false;
     hearingDevice->conn_id = conn_id;
 
     /* We must update connection parameters one at a time, otherwise anchor
@@ -962,6 +961,7 @@ class HearingAidImpl : public HearingAid {
       send_state_change_to_other_side(hearingDevice, inform_conn_state);
     }
 
+    hearingDevice->connecting_actively = false;
     hearingDevice->accepting_audio = true;
     LOG(INFO) << __func__ << ": address=" << address
               << ", hi_sync_id=" << loghex(hearingDevice->hi_sync_id)
@@ -1327,15 +1327,12 @@ class HearingAidImpl : public HearingAid {
         break;
       }
 
-      // TODO: handle properly!
       case GAP_EVT_CONN_CLOSED:
         LOG(INFO) << __func__
                   << ": GAP_EVT_CONN_CLOSED: " << hearingDevice->address
                   << ", playback_started=" << hearingDevice->playback_started;
-        hearingDevice->accepting_audio = false;
-        hearingDevice->gap_handle = 0;
-        hearingDevice->playback_started = false;
-        hearingDevice->command_acked = false;
+        /* Disconnect profile when data channel is not available */
+        Disconnect(hearingDevice->address);
         break;
       case GAP_EVT_CONN_DATA_AVAIL: {
         DVLOG(2) << "GAP_EVT_CONN_DATA_AVAIL";
@@ -1460,6 +1457,7 @@ class HearingAidImpl : public HearingAid {
     VLOG(2) << __func__ << ": " << address;
 
     bool connected = hearingDevice->accepting_audio;
+    bool connecting_by_user = hearingDevice->connecting_actively;
 
     LOG(INFO) << "GAP_EVT_CONN_CLOSED: " << hearingDevice->address
               << ", playback_started=" << hearingDevice->playback_started
@@ -1483,6 +1481,10 @@ class HearingAidImpl : public HearingAid {
     hearingDevices.Remove(address);
 
     if (!connected) {
+      /* In case user wanted to connect, sent DISCONNECTED state */
+      if (connecting_by_user)
+        callbacks->OnConnectionState(ConnectionState::DISCONNECTED, address);
+
       return;
     }
 
