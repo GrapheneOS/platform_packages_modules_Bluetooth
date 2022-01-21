@@ -118,6 +118,7 @@ typedef struct {
   uint16_t ble_periodic_adv_int;
   uint8_t flag;
   bool include_rsi;
+  RawAddress original_bda;
 } tBTM_INQ_RESULTS;
 
 /****************************************
