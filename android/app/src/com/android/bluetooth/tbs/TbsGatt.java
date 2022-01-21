@@ -501,12 +501,24 @@ public class TbsGatt {
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         for (Map.Entry<Integer, TbsCall> entry : callsList.entrySet()) {
             TbsCall call = entry.getValue();
-            int listItemLength = Math.min(listItemLengthMax, 3 + call.getUri().getBytes().length);
+            if (call == null) {
+                Log.w(TAG, "setBearerListCurrentCalls: call is null");
+                continue;
+            }
+
+            int uri_len = 0;
+            if (call.getUri() != null) {
+                uri_len =  call.getUri().getBytes().length;
+            }
+
+            int listItemLength = Math.min(listItemLengthMax, 3 + uri_len);
             stream.write((byte) (listItemLength & 0xff));
             stream.write((byte) (entry.getKey() & 0xff));
             stream.write((byte) (call.getState() & 0xff));
             stream.write((byte) (call.getFlags() & 0xff));
-            stream.write(call.getUri().getBytes(), 0, listItemLength - 3);
+            if (uri_len > 0) {
+                stream.write(call.getUri().getBytes(), 0, listItemLength - 3);
+            }
         }
 
         return mBearerListCurrentCallsCharacteristic.setValue(stream.toByteArray());
