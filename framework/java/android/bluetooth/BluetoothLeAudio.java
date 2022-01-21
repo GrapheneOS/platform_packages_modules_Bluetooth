@@ -25,6 +25,7 @@ import android.annotation.Nullable;
 import android.annotation.RequiresPermission;
 import android.annotation.SdkConstant;
 import android.annotation.SdkConstant.SdkConstantType;
+import android.annotation.SystemApi;
 import android.bluetooth.annotations.RequiresBluetoothConnectPermission;
 import android.bluetooth.annotations.RequiresLegacyBluetoothPermission;
 import android.content.AttributionSource;
@@ -241,6 +242,13 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
      * @hide
      */
     public static final int GROUP_ID_INVALID = IBluetoothLeAudio.LE_AUDIO_GROUP_ID_INVALID;
+
+    /**
+     * This represents an invalid audio location.
+     *
+     * @hide
+     */
+    public static final int AUDIO_LOCATION_INVALID = -1;
 
     /**
      * Contains group id.
@@ -720,6 +728,39 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
             }
         }
         return defaultValue;
+    }
+
+    /**
+     * Get the audio location for the device. The return value is a bit field. The bit definition
+     * is included in Bluetooth SIG Assigned Numbers - Generic Audio - Audio Location Definitions.
+     * ex. Front Left: 0x00000001
+     *     Front Right: 0x00000002
+     *     Front Left | Front Right: 0x00000003
+     *
+     * @param device the bluetooth device
+     * @return The bit field of audio location for the device, if bluetooth is off, return
+     * AUDIO_LOCATION_INVALID.
+     *
+     * @hide
+     */
+    @RequiresBluetoothConnectPermission
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED
+    })
+    @SystemApi
+    public int getAudioLocation(@NonNull BluetoothDevice device) {
+        if (VDBG) log("getAudioLocation()");
+        final IBluetoothLeAudio service = getService();
+        final int defaultLocation = AUDIO_LOCATION_INVALID;
+        if (service == null) {
+            Log.w(TAG, "Proxy not attached to service");
+            if (DBG) log(Log.getStackTraceString(new Throwable()));
+        } else if (mAdapter.isEnabled()) {
+            //TODO: add the implementation.
+            if (VDBG) log("getAudioLocation() from LE audio service");
+        }
+        return defaultLocation;
     }
 
     /**
