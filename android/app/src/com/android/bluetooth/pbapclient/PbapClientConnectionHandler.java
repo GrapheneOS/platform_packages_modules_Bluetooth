@@ -32,15 +32,14 @@ import android.util.Log;
 
 import com.android.bluetooth.BluetoothObexTransport;
 import com.android.bluetooth.R;
+import com.android.bluetooth.obex.ClientSession;
+import com.android.bluetooth.obex.HeaderSet;
+import com.android.bluetooth.obex.ResponseCodes;
 import com.android.vcard.VCardEntry;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-
-import javax.obex.ClientSession;
-import javax.obex.HeaderSet;
-import javax.obex.ResponseCodes;
 
 /* Bluetooth/pbapclient/PbapClientConnectionHandler is responsible
  * for connecting, disconnecting and downloading contacts from the

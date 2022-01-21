@@ -20,10 +20,10 @@ import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.util.Log;
 
-import java.io.IOException;
+import com.android.bluetooth.obex.ResponseCodes;
+import com.android.bluetooth.obex.ServerSession;
 
-import javax.obex.ResponseCodes;
-import javax.obex.ServerSession;
+import java.io.IOException;
 
 /**
  * Wraps multiple BluetoothServerSocket objects to make it possible to accept connections on

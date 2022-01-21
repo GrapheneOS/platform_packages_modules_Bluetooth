@@ -59,6 +59,7 @@ import com.android.bluetooth.IObexConnectionHandler;
 import com.android.bluetooth.ObexServerSockets;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
+import com.android.bluetooth.obex.ObexTransport;
 import com.android.bluetooth.sdp.SdpManager;
 import com.android.internal.annotations.VisibleForTesting;
 
@@ -67,8 +68,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
-
-import javax.obex.ObexTransport;
 
 /**
  * Performs the background Bluetooth OPP transfer. It also starts thread to
