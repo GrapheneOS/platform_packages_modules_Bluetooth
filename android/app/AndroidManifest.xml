@@ -424,6 +424,14 @@
                 <action android:name="android.bluetooth.IBluetoothHearingAid"/>
             </intent-filter>
         </service>
+        <service android:process="@string/process"
+             android:name=".hap.HapClientService"
+             android:enabled="@bool/profile_supported_hap_client"
+             android:exported="true">
+            <intent-filter>
+                <action android:name="android.bluetooth.IBluetoothHapClient"/>
+            </intent-filter>
+        </service>
         <service
             android:process="@string/process"
             android:name=".vc.VolumeControlService"
