@@ -39,8 +39,26 @@ from mobly import asserts, signals
 from mobly import base_test
 
 
+class Timeout:
+
+    def __init__(self, seconds=1, error_message='Timeout'):
+        self.seconds = seconds
+        self.error_message = error_message
+
+    def handle_timeout(self, signum, frame):
+        raise TimeoutError(self.error_message)
+
+    def __enter__(self):
+        signal.signal(signal.SIGALRM, self.handle_timeout)
+        signal.alarm(self.seconds)
+
+    def __exit__(self, type, value, traceback):
+        signal.alarm(0)
+
+
 class GdBaseTestClass(base_test.BaseTestClass):
 
+    FUNCTION_CALL_TIMEOUT_SECONDS = 5
     SUBPROCESS_WAIT_TIMEOUT_SECONDS = 10
 
     def setup_class(self, dut_module, cert_module):
@@ -117,12 +135,15 @@ class GdBaseTestClass(base_test.BaseTestClass):
     def teardown_test(self):
         stack = ""
         try:
-            stack = "CERT"
-            self.cert.rootservice.StopStack(facade_rootservice.StopStackRequest())
-            stack = "DUT"
-            self.dut.rootservice.StopStack(facade_rootservice.StopStackRequest())
+            with Timeout(seconds=self.FUNCTION_CALL_TIMEOUT_SECONDS):
+                stack = "CERT"
+                self.cert.rootservice.StopStack(facade_rootservice.StopStackRequest())
+                stack = "DUT"
+                self.dut.rootservice.StopStack(facade_rootservice.StopStackRequest())
         except RpcError as rpc_error:
             asserts.fail("Failed to stop {} stack, RpcError={!r}".format(stack, rpc_error))
+        except TimeoutError:
+            logging.error("Failed to stop {} stack in {} s".format(stack, self.FUNCTION_CALL_TIMEOUT_SECONDS))
         finally:
             # Destroy GD device objects
             self._controller_manager.unregister_controllers()
