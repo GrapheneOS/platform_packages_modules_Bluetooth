@@ -210,7 +210,8 @@ void btgattc_scan_result_cb(uint16_t event_type, uint8_t addr_type,
                             uint8_t secondary_phy, uint8_t advertising_sid,
                             int8_t tx_power, int8_t rssi,
                             uint16_t periodic_adv_int,
-                            std::vector<uint8_t> adv_data) {
+                            std::vector<uint8_t> adv_data,
+                            RawAddress* original_bda) {
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
@@ -221,10 +222,13 @@ void btgattc_scan_result_cb(uint16_t event_type, uint8_t addr_type,
   sCallbackEnv->SetByteArrayRegion(jb.get(), 0, adv_data.size(),
                                    (jbyte*)adv_data.data());
 
-  sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onScanResult, event_type,
-                               addr_type, address.get(), primary_phy,
-                               secondary_phy, advertising_sid, tx_power, rssi,
-                               periodic_adv_int, jb.get());
+  ScopedLocalRef<jstring> original_address(
+      sCallbackEnv.get(), bdaddr2newjstr(sCallbackEnv.get(), original_bda));
+
+  sCallbackEnv->CallVoidMethod(
+      mCallbacksObj, method_onScanResult, event_type, addr_type, address.get(),
+      primary_phy, secondary_phy, advertising_sid, tx_power, rssi,
+      periodic_adv_int, jb.get(), original_address.get());
 }
 
 void btgattc_open_cb(int conn_id, int status, int clientIf,
@@ -916,10 +920,18 @@ class JniScanningCallbacks : ScanningCallbacks {
     sCallbackEnv->SetByteArrayRegion(jb.get(), 0, adv_data.size(),
                                      (jbyte*)adv_data.data());
 
-    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onScanResult, event_type,
-                                 addr_type, address.get(), primary_phy,
-                                 secondary_phy, advertising_sid, tx_power, rssi,
-                                 periodic_adv_int, jb.get());
+    // TODO(optedoblivion): Figure out original address for here, use empty
+    // for now
+
+    // length of data + '\0'
+    char empty_address[18] = "00:00:00:00:00:00";
+    ScopedLocalRef<jstring> fake_address(
+        sCallbackEnv.get(), sCallbackEnv->NewStringUTF(empty_address));
+
+    sCallbackEnv->CallVoidMethod(
+        mCallbacksObj, method_onScanResult, event_type, addr_type,
+        address.get(), primary_phy, secondary_phy, advertising_sid, tx_power,
+        rssi, periodic_adv_int, jb.get(), fake_address.get());
   }
 
   void OnTrackAdvFoundLost(AdvertisingTrackInfo track_info) {
@@ -994,8 +1006,9 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
       env->GetMethodID(clazz, "onClientRegistered", "(IIJJ)V");
   method_onScannerRegistered =
       env->GetMethodID(clazz, "onScannerRegistered", "(IIJJ)V");
-  method_onScanResult = env->GetMethodID(clazz, "onScanResult",
-                                         "(IILjava/lang/String;IIIIII[B)V");
+  method_onScanResult =
+      env->GetMethodID(clazz, "onScanResult",
+                       "(IILjava/lang/String;IIIIII[BLjava/lang/String;)V");
   method_onConnected =
       env->GetMethodID(clazz, "onConnected", "(IIILjava/lang/String;)V");
   method_onDisconnected =

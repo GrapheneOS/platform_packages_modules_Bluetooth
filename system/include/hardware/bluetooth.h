@@ -207,6 +207,8 @@ typedef struct {
   uint32_t dynamic_audio_buffer_supported;
   bool le_periodic_advertising_sync_transfer_sender_supported;
   bool le_connected_isochronous_stream_central_supported;
+  bool le_isochronous_broadcast_supported;
+  bool le_periodic_advertising_sync_transfer_recipient_supported;
 } bt_local_le_features_t;
 
 /* Stored the default/maximum/minimum buffer time for dynamic audio buffer.
@@ -754,6 +756,15 @@ typedef struct {
    * Fetches the local Out of Band data.
    */
   int (*generate_local_oob_data)(tBT_TRANSPORT transport);
+
+  /**
+   * Allow or disallow audio low latency
+   *
+   * @param allowed true if allowing audio low latency
+   * @param address Bluetooth MAC address of Bluetooth device
+   * @return true if audio low latency is successfully allowed or disallowed
+   */
+  bool (*allow_low_latency_audio)(bool allowed, const RawAddress& address);
 } bt_interface_t;
 
 #define BLUETOOTH_INTERFACE_STRING "bluetoothInterface"

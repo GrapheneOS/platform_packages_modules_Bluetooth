@@ -143,6 +143,7 @@ class HciLayer : public Module, public CommandInterface<CommandBuilder> {
   std::list<common::ContextualCallback<void(uint16_t, ErrorCode)>> disconnect_handlers_;
   std::list<common::ContextualCallback<void(hci::ErrorCode, uint16_t, uint8_t, uint16_t, uint16_t)>>
       read_remote_version_handlers_;
+  std::mutex callback_handlers_guard_;
   void on_disconnection_complete(EventView event_view);
   void on_read_remote_version_complete(EventView event_view);
 

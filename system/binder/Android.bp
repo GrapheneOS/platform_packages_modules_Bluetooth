@@ -24,6 +24,7 @@ filegroup {
         "android/bluetooth/IBluetoothProfileServiceConnection.aidl",
         "android/bluetooth/IBluetoothHeadset.aidl",
         "android/bluetooth/IBluetoothHearingAid.aidl",
+        "android/bluetooth/IBluetoothHapClient.aidl",
         "android/bluetooth/IBluetoothVolumeControl.aidl",
         "android/bluetooth/IBluetoothHidHost.aidl",
         "android/bluetooth/IBluetoothLeAudio.aidl",
