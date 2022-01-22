@@ -88,7 +88,8 @@ void btm_ble_remove_resolving_list_entry_complete(uint8_t* p,
   test::mock::stack_btm_ble_privacy::
       btm_ble_remove_resolving_list_entry_complete(p, evt_len);
 }
-void btm_ble_read_resolving_list_entry_complete(uint8_t* p, uint16_t evt_len) {
+void btm_ble_read_resolving_list_entry_complete(const uint8_t* p,
+                                                uint16_t evt_len) {
   mock_function_count_map[__func__]++;
   test::mock::stack_btm_ble_privacy::btm_ble_read_resolving_list_entry_complete(
       p, evt_len);
