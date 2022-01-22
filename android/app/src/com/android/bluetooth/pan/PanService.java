@@ -26,14 +26,14 @@ import android.bluetooth.BluetoothPan.LocalPanRole;
 import android.bluetooth.BluetoothPan.RemotePanRole;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.IBluetoothPan;
+import android.bluetooth.IBluetoothPanCallback;
 import android.content.AttributionSource;
 import android.content.Intent;
 import android.content.res.Resources.NotFoundException;
-import android.net.ITetheredInterfaceCallback;
 import android.net.TetheringInterface;
 import android.net.TetheringManager;
 import android.os.Handler;
-import android.os.HandlerExecutor;
+import android.os.Looper;
 import android.os.Message;
 import android.os.RemoteException;
 import android.os.UserManager;
@@ -46,7 +46,7 @@ import com.android.bluetooth.btservice.MetricsLogger;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 import com.android.internal.annotations.VisibleForTesting;
-import com.android.internal.os.BackgroundThread;
+import com.android.modules.utils.HandlerExecutor;
 import com.android.modules.utils.SynchronousResultReceiver;
 
 import java.util.ArrayList;
@@ -74,7 +74,7 @@ public class PanService extends ProfileService {
     private String mPanIfName;
     private boolean mIsTethering = false;
     private boolean mNativeAvailable;
-    private List<ITetheredInterfaceCallback> mBluetoothTetheringCallbacks;
+    private HashMap<String, IBluetoothPanCallback> mBluetoothTetheringCallbacks;
 
     private TetheringManager mTetheringManager;
     private DatabaseManager mDatabaseManager;
@@ -144,7 +144,7 @@ public class PanService extends ProfileService {
         mDatabaseManager = Objects.requireNonNull(AdapterService.getAdapterService().getDatabase(),
                 "DatabaseManager cannot be null when PanService starts");
 
-        mBluetoothTetheringCallbacks = new ArrayList<>();
+        mBluetoothTetheringCallbacks = new HashMap<>();
         mPanDevices = new HashMap<BluetoothDevice, BluetoothPanDevice>();
         try {
             mMaxPanDevices = getResources().getInteger(
@@ -159,7 +159,7 @@ public class PanService extends ProfileService {
 
         mTetheringManager = getSystemService(TetheringManager.class);
         mTetheringManager.registerTetheringEventCallback(
-                new HandlerExecutor(BackgroundThread.getHandler()), mTetheringCallback);
+                new HandlerExecutor(new Handler(Looper.getMainLooper())), mTetheringCallback);
         setPanService(this);
         mStarted = true;
 
@@ -356,7 +356,7 @@ public class PanService extends ProfileService {
         }
 
         @Override
-        public void setBluetoothTethering(ITetheredInterfaceCallback callback,
+        public void setBluetoothTethering(IBluetoothPanCallback callback, int id,
                 boolean value, AttributionSource source,
                 SynchronousResultReceiver receiver) {
             try {
@@ -365,8 +365,7 @@ public class PanService extends ProfileService {
                     Log.d(TAG, "setBluetoothTethering: " + value
                             + ", pkgName: " + source.getPackageName()
                             + ", mTetherOn: " + service.mTetherOn);
-                    service.setBluetoothTethering(callback, value, source.getPackageName(),
-                            source.getAttributionTag());
+                    service.setBluetoothTethering(callback, id, source.getUid(), value);
                 }
                 receiver.send(null);
             } catch (RuntimeException e) {
@@ -446,8 +445,8 @@ public class PanService extends ProfileService {
             android.Manifest.permission.BLUETOOTH_PRIVILEGED,
             android.Manifest.permission.TETHER_PRIVILEGED,
     })
-    void setBluetoothTethering(ITetheredInterfaceCallback callback, boolean value,
-            final String pkgName, final String callingAttributionTag) {
+    void setBluetoothTethering(IBluetoothPanCallback callback, int id, int callerUid,
+            boolean value) {
         if (DBG) {
             Log.d(TAG, "setBluetoothTethering: " + value + ", mTetherOn: " + mTetherOn);
         }
@@ -460,11 +459,23 @@ public class PanService extends ProfileService {
         if (um.hasUserRestriction(UserManager.DISALLOW_CONFIG_TETHERING) && value) {
             throw new SecurityException("DISALLOW_CONFIG_TETHERING is enabled for this user.");
         }
+        final String key = id + "/" + callerUid;
         if (callback != null) {
+            boolean keyExists = mBluetoothTetheringCallbacks.containsKey(key);
             if (value) {
-                mBluetoothTetheringCallbacks.add(callback);
+                if (!keyExists) {
+                    mBluetoothTetheringCallbacks.put(key, callback);
+                } else {
+                    Log.e(TAG, "setBluetoothTethering Error: Callback already registered.");
+                    return;
+                }
             } else {
-                mBluetoothTetheringCallbacks.remove(callback);
+                if (keyExists) {
+                    mBluetoothTetheringCallbacks.remove(key);
+                } else {
+                    Log.e(TAG, "setBluetoothTethering Error: Callback not registered.");
+                    return;
+                }
             }
         } else if (mBluetoothTetheringCallbacks.isEmpty()) {
             Log.e(TAG, "setBluetoothTethering: " + value + ", Error: no callbacks registered.");
@@ -668,7 +679,7 @@ public class PanService extends ProfileService {
                 if (!mIsTethering) {
                     mIsTethering = true;
                     try {
-                        for (ITetheredInterfaceCallback cb : mBluetoothTetheringCallbacks) {
+                        for (IBluetoothPanCallback cb : mBluetoothTetheringCallbacks.values()) {
                             cb.onAvailable(iface);
                         }
                     } catch (RemoteException e) {
@@ -681,7 +692,7 @@ public class PanService extends ProfileService {
                         + mPanDevices.size());
                 if (mIsTethering && mPanDevices.size() == 0) {
                     try {
-                        for (ITetheredInterfaceCallback cb : mBluetoothTetheringCallbacks) {
+                        for (IBluetoothPanCallback cb : mBluetoothTetheringCallbacks.values()) {
                             cb.onUnavailable();
                         }
                     } catch (RemoteException e) {
