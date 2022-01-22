@@ -25,6 +25,7 @@ import android.annotation.Nullable;
 import android.annotation.RequiresPermission;
 import android.annotation.SdkConstant;
 import android.annotation.SdkConstant.SdkConstantType;
+import android.annotation.SystemApi;
 import android.bluetooth.annotations.RequiresBluetoothConnectPermission;
 import android.bluetooth.annotations.RequiresLegacyBluetoothPermission;
 import android.content.AttributionSource;
@@ -243,6 +244,13 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
     public static final int GROUP_ID_INVALID = IBluetoothLeAudio.LE_AUDIO_GROUP_ID_INVALID;
 
     /**
+     * This represents an invalid audio location.
+     *
+     * @hide
+     */
+    public static final int AUDIO_LOCATION_INVALID = -1;
+
+    /**
      * Contains group id.
      * @hide
      */
@@ -443,6 +451,45 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
                 final SynchronousResultReceiver<Boolean> recv = new SynchronousResultReceiver();
                 service.disconnect(device, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
+            } catch (RemoteException | TimeoutException e) {
+                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+            }
+        }
+        return defaultValue;
+    }
+
+    /**
+     * Get lead device for a group.
+     *
+     * Lead device is the device that can be used as an active device in the system.
+     * Active devices points to the Audio Device for the Le Audio group.
+     * This method returns a list of Lead devices for all the connected LE Audio
+     * groups and those devices should be used in the setActiveDevice() method by other parts
+     * of the system, which wants to setActive a particular Le Audio Group.
+     *
+     * Note: getActiveDevice() returns the Lead device for the currently active LE Audio group.
+     * Note: When lead device gets disconnected, there will be new lead device for the group.
+     *
+     * @param groupId The group id.
+     * @return group lead device.
+     */
+    @RequiresBluetoothConnectPermission
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
+    public @Nullable BluetoothDevice getConnectedGroupLeadDevice(int groupId) {
+        if (VDBG) log("getConnectedGroupLeadDevice()");
+        final IBluetoothLeAudio service = getService();
+        final BluetoothDevice defaultValue = null;
+        if (service == null) {
+            Log.w(TAG, "Proxy not attached to service");
+            if (DBG) log(Log.getStackTraceString(new Throwable()));
+        } else if (mAdapter.isEnabled()) {
+            try {
+                final SynchronousResultReceiver<BluetoothDevice> recv =
+                        new SynchronousResultReceiver();
+                service.getConnectedGroupLeadDevice(groupId, mAttributionSource, recv);
+                return Attributable.setAttributionSource(
+                        recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue),
+                        mAttributionSource);
             } catch (RemoteException | TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             }
@@ -720,6 +767,39 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
             }
         }
         return defaultValue;
+    }
+
+    /**
+     * Get the audio location for the device. The return value is a bit field. The bit definition
+     * is included in Bluetooth SIG Assigned Numbers - Generic Audio - Audio Location Definitions.
+     * ex. Front Left: 0x00000001
+     *     Front Right: 0x00000002
+     *     Front Left | Front Right: 0x00000003
+     *
+     * @param device the bluetooth device
+     * @return The bit field of audio location for the device, if bluetooth is off, return
+     * AUDIO_LOCATION_INVALID.
+     *
+     * @hide
+     */
+    @RequiresBluetoothConnectPermission
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED
+    })
+    @SystemApi
+    public int getAudioLocation(@NonNull BluetoothDevice device) {
+        if (VDBG) log("getAudioLocation()");
+        final IBluetoothLeAudio service = getService();
+        final int defaultLocation = AUDIO_LOCATION_INVALID;
+        if (service == null) {
+            Log.w(TAG, "Proxy not attached to service");
+            if (DBG) log(Log.getStackTraceString(new Throwable()));
+        } else if (mAdapter.isEnabled()) {
+            //TODO: add the implementation.
+            if (VDBG) log("getAudioLocation() from LE audio service");
+        }
+        return defaultLocation;
     }
 
     /**

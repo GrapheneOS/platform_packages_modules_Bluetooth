@@ -24,6 +24,8 @@ import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattServerCallback;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothLeCall;
+import android.os.Handler;
+import android.os.Looper;
 import android.content.Context;
 import android.util.Log;
 
@@ -133,6 +135,7 @@ public class TbsGatt {
     private final GattCharacteristic mIncomingCallCharacteristic;
     private final GattCharacteristic mCallFriendlyNameCharacteristic;
     private BluetoothGattServerProxy mBluetoothGattServer;
+    private Handler mHandler;
     private Callback mCallback;
 
     public static abstract class Callback {
@@ -210,6 +213,7 @@ public class TbsGatt {
         setCallControlPointOptionalOpcodes(isLocalHoldOpcodeSupported, isJoinOpcodeSupported);
         mStatusFlagsCharacteristic.setValue(0, BluetoothGattCharacteristic.FORMAT_UINT16, 0);
         mCallback = callback;
+        mHandler = new Handler(Looper.getMainLooper());
 
         if (mBluetoothGattServer == null) {
             mBluetoothGattServer = new BluetoothGattServerProxy(mContext);
@@ -355,6 +359,10 @@ public class TbsGatt {
             return success;
         }
 
+        public boolean setValueNoNotify(byte[] value) {
+            return super.setValue(value);
+        }
+
         public boolean clearValue(boolean notify) {
             boolean success = super.setValue(new byte[0]);
             if (success && notify && isNotifiable()) {
@@ -409,10 +417,10 @@ public class TbsGatt {
             value[1] = (byte) (callIndex);
             value[2] = (byte) (requestResult);
 
-            super.setValue(value);
+            super.setValueNoNotify(value);
 
             // to avoid sending control point notification before write response
-            mContext.getMainThreadHandler().post(() -> mNotifier.notify(device, this));
+            mHandler.post(() -> mNotifier.notify(device, this));
         }
     }
 
@@ -493,12 +501,24 @@ public class TbsGatt {
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         for (Map.Entry<Integer, TbsCall> entry : callsList.entrySet()) {
             TbsCall call = entry.getValue();
-            int listItemLength = Math.min(listItemLengthMax, 3 + call.getUri().getBytes().length);
+            if (call == null) {
+                Log.w(TAG, "setBearerListCurrentCalls: call is null");
+                continue;
+            }
+
+            int uri_len = 0;
+            if (call.getUri() != null) {
+                uri_len =  call.getUri().getBytes().length;
+            }
+
+            int listItemLength = Math.min(listItemLengthMax, 3 + uri_len);
             stream.write((byte) (listItemLength & 0xff));
             stream.write((byte) (entry.getKey() & 0xff));
             stream.write((byte) (call.getState() & 0xff));
             stream.write((byte) (call.getFlags() & 0xff));
-            stream.write(call.getUri().getBytes(), 0, listItemLength - 3);
+            if (uri_len > 0) {
+                stream.write(call.getUri().getBytes(), 0, listItemLength - 3);
+            }
         }
 
         return mBearerListCurrentCallsCharacteristic.setValue(stream.toByteArray());
@@ -576,9 +596,17 @@ public class TbsGatt {
         if (DBG) {
             Log.d(TAG, "setIncomingCall: callIndex=" + callIndex + " uri=" + uri);
         }
-        byte[] value = new byte[uri.length() + 1];
+        int uri_len = 0;
+        if (uri != null) {
+            uri_len = uri.length();
+        }
+
+        byte[] value = new byte[uri_len + 1];
         value[0] = (byte) (callIndex & 0xff);
-        System.arraycopy(uri.getBytes(), 0, value, 1, uri.length());
+
+        if (uri_len > 0) {
+            System.arraycopy(uri.getBytes(), 0, value, 1, uri_len);
+        }
 
         return mIncomingCallCharacteristic.setValue(value);
     }

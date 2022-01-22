@@ -75,7 +75,7 @@ class ClassicAclConnection : public AclConnection {
   virtual bool ReadRemoteExtendedFeatures(uint8_t page_number);
 
   // Called once before passing the connection to the client
-  virtual ConnectionManagementCallbacks* GetEventCallbacks(std::shared_ptr<std::atomic<bool>> is_callback_valid);
+  virtual ConnectionManagementCallbacks* GetEventCallbacks(std::function<void(uint16_t)> invalidate_callbacks);
 
  private:
   AclConnectionInterface* acl_connection_interface_;

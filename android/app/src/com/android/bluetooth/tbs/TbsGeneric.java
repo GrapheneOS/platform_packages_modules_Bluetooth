@@ -444,6 +444,11 @@ public class TbsGeneric {
         }
 
         Integer callIndex = bearer.callIdIndexMap.remove(callId);
+        if (callIndex == null) {
+            Log.e(TAG, "callIndex: is null for callId" + callId);
+            return;
+        }
+
         TbsCall tbsCall = mCurrentCallsList.remove(callIndex);
         if (tbsCall == null) {
             Log.e(TAG, "callRemoved: no such call");

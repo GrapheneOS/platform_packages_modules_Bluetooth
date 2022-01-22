@@ -2459,13 +2459,27 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public int isLePeriodicAdvertisingSyncTransferSenderSupported() {
+        public int isLeAudioBroadcastSourceSupported() {
             AdapterService service = getService();
             if (service == null) {
                 return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED;
             }
 
-            if (service.mAdapterProperties.isLePeriodicAdvertisingSyncTransferSenderSupported()) {
+            if (service.isLeAudioBroadcastSourceSupported()) {
+                return BluetoothStatusCodes.FEATURE_SUPPORTED;
+            }
+
+            return BluetoothStatusCodes.FEATURE_NOT_SUPPORTED;
+        }
+
+        @Override
+        public int isLeAudioBroadcastAssistantSupported() {
+            AdapterService service = getService();
+            if (service == null) {
+                return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED;
+            }
+
+            if (service.isLeAudioBroadcastAssistantSupported()) {
                 return BluetoothStatusCodes.FEATURE_SUPPORTED;
             }
 
@@ -2634,6 +2648,16 @@ public class AdapterService extends Service {
 
             service.dump(fd, writer, args);
             writer.close();
+        }
+
+        @Override
+        public boolean allowLowLatencyAudio(boolean allowed, BluetoothDevice device) {
+            AdapterService service = getService();
+            if (service == null) {
+                return false;
+            }
+            enforceBluetoothPrivilegedPermission(service);
+            return service.allowLowLatencyAudio(allowed, device);
         }
     }
 
@@ -3466,16 +3490,33 @@ public class AdapterService extends Service {
         return mAdapterProperties.isLePeriodicAdvertisingSupported();
     }
 
+    /**
+     * Check if the LE audio broadcast source feature is supported.
+     *
+     * @return true, if the LE audio broadcast source is supported
+     */
+    public boolean isLeAudioBroadcastSourceSupported() {
+        //TODO: check the profile support status as well after we have the implementation
+        return mAdapterProperties.isLePeriodicAdvertisingSupported()
+                && mAdapterProperties.isLeExtendedAdvertisingSupported()
+                && mAdapterProperties.isLeIsochronousBroadcasterSupported();
+    }
+
+    /**
+     * Check if the LE audio broadcast assistant feature is supported.
+     *
+     * @return true, if the LE audio broadcast assistant is supported
+     */
+    public boolean isLeAudioBroadcastAssistantSupported() {
+        //TODO: check the profile support status as well after we have the implementation
+        return mAdapterProperties.isLePeriodicAdvertisingSupported()
+            && mAdapterProperties.isLeExtendedAdvertisingSupported()
+            && (mAdapterProperties.isLePeriodicAdvertisingSyncTransferSenderSupported()
+                || mAdapterProperties.isLePeriodicAdvertisingSyncTransferRecipientSupported());
+    }
+
     public int getLeMaximumAdvertisingDataLength() {
         return mAdapterProperties.getLeMaximumAdvertisingDataLength();
-    }
-
-    public boolean isLePeriodicAdvertisingSyncTransferSenderSupported() {
-        return mAdapterProperties.isLePeriodicAdvertisingSyncTransferSenderSupported();
-    }
-
-    public boolean isLeConnectedIsochronousStreamCentralSupported() {
-        return mAdapterProperties.isLeConnectedIsochronousStreamCentralSupported();
     }
 
     /**
@@ -3738,6 +3779,11 @@ public class AdapterService extends Service {
 
     private double getOperatingVolt() {
         return getResources().getInteger(R.integer.config_bluetooth_operating_voltage_mv) / 1000.0;
+    }
+
+    @VisibleForTesting
+    protected RemoteDevices getRemoteDevices() {
+        return mRemoteDevices;
     }
 
     @Override
@@ -4128,6 +4174,17 @@ public class AdapterService extends Service {
         return getMetricIdNative(Utils.getByteAddress(device));
     }
 
+    /**
+     *  Allow audio low latency
+     *
+     *  @param allowed true if audio low latency is being allowed
+     *  @param device device whose audio low latency will be allowed or disallowed
+     *  @return boolean true if audio low latency is successfully allowed or disallowed
+     */
+    public boolean allowLowLatencyAudio(boolean allowed, BluetoothDevice device) {
+        return allowLowLatencyAudioNative(allowed, Utils.getByteAddress(device));
+    }
+
     static native void classInitNative();
 
     native boolean initNative(boolean startRestricted, boolean isCommonCriteriaMode,
@@ -4219,6 +4276,8 @@ public class AdapterService extends Service {
             int type, String serviceName, byte[] uuid, int port, int flag, int callingUid);
 
     /*package*/ native void requestMaximumTxDataLengthNative(byte[] address);
+
+    private native boolean allowLowLatencyAudioNative(boolean allowed, byte[] address);
 
     // Returns if this is a mock object. This is currently used in testing so that we may not call
     // System.exit() while finalizing the object. Otherwise GC of mock objects unfortunately ends up
