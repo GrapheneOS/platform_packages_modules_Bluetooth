@@ -42,6 +42,7 @@
 package com.android.bluetooth.pbapclient;
 
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
+import static android.Manifest.permission.BLUETOOTH_PRIVILEGED;
 
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothPbapClient;
@@ -346,7 +347,9 @@ final class PbapClientStateMachine extends StateMachine {
         intent.putExtra(BluetoothProfile.EXTRA_STATE, state);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
-        mService.sendBroadcast(intent, BLUETOOTH_CONNECT, Utils.getTempAllowlistBroadcastOptions());
+        mService.sendBroadcastMultiplePermissions(intent,
+                new String[] {BLUETOOTH_CONNECT, BLUETOOTH_PRIVILEGED},
+                Utils.getTempAllowlistBroadcastOptions());
     }
 
     public void disconnect(BluetoothDevice device) {
