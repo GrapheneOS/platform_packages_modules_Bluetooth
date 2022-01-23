@@ -21,6 +21,7 @@
  *  This file contains functions for the SMP L2CAP utility functions
  *
  ******************************************************************************/
+#include <base/logging.h>
 #include <ctype.h>
 #include <string.h>
 
@@ -36,10 +37,9 @@
 #include "stack/include/acl_api.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_octets.h"
+#include "stack/include/btm_log_history.h"
 #include "stack/include/stack_metrics_logging.h"
 #include "types/raw_address.h"
-
-#include <base/logging.h>
 
 #define SMP_PAIRING_REQ_SIZE 7
 #define SMP_CONFIRM_CMD_SIZE (OCTET16_LEN + 1)
@@ -58,6 +58,10 @@
   (1 /* opcode */ + OCTET16_LEN /*DHKey \
                                                                    Check*/)
 #define SMP_PAIR_KEYPR_NOTIF_SIZE (1 /* opcode */ + 1 /*Notif Type*/)
+
+namespace {
+constexpr char kBtmLogTag[] = "SMP";
+}
 
 /* SMP command sizes per spec */
 static const uint8_t smp_cmd_size_per_spec[] = {
@@ -943,24 +947,36 @@ void smp_reset_control_value(tSMP_CB* p_cb) {
  *
  ******************************************************************************/
 void smp_proc_pairing_cmpl(tSMP_CB* p_cb) {
-  tSMP_EVT_DATA evt_data = {0};
   tSMP_CALLBACK* p_callback = p_cb->p_callback;
+  const RawAddress pairing_bda = p_cb->pairing_bda;
 
-  evt_data.cmplt.reason = p_cb->status;
-  evt_data.cmplt.smp_over_br = p_cb->smp_over_br;
+  const tSMP_EVT_DATA evt_data = {
+      .cmplt =
+          {
+              .reason = p_cb->status,
+              .sec_level = (p_cb->status == SMP_SUCCESS) ? p_cb->sec_level
+                                                         : SMP_SEC_NONE,
+              .is_pair_cancel = p_cb->is_pair_cancel,
+              .smp_over_br = p_cb->smp_over_br,
+          },
+  };
 
-  LOG_DEBUG(
-      "Pairing process has completed to remote:%s reason:0x%0x sec_level=0x%0x",
-      PRIVATE_ADDRESS(p_cb->pairing_bda), evt_data.cmplt.reason,
-      evt_data.cmplt.sec_level);
-
-  if (p_cb->status == SMP_SUCCESS) evt_data.cmplt.sec_level = p_cb->sec_level;
-
-  evt_data.cmplt.is_pair_cancel = false;
-
-  if (p_cb->is_pair_cancel) evt_data.cmplt.is_pair_cancel = true;
-
-  RawAddress pairing_bda = p_cb->pairing_bda;
+  if (p_cb->status == SMP_SUCCESS) {
+    LOG_DEBUG(
+        "Pairing process has completed successfully remote:%s sec_level:0x%0x",
+        PRIVATE_ADDRESS(p_cb->pairing_bda), evt_data.cmplt.sec_level);
+    BTM_LogHistory(kBtmLogTag, pairing_bda, "Pairing success");
+  } else {
+    LOG_WARN(
+        "Pairing process has failed to remote:%s smp_reason:%s sec_level:0x%0x",
+        PRIVATE_ADDRESS(p_cb->pairing_bda),
+        smp_status_text(evt_data.cmplt.reason).c_str(),
+        evt_data.cmplt.sec_level);
+    BTM_LogHistory(
+        kBtmLogTag, pairing_bda, "Pairing failed",
+        base::StringPrintf("reason:%s",
+                           smp_status_text(evt_data.cmplt.reason).c_str()));
+  }
 
   smp_reset_control_value(p_cb);
 
