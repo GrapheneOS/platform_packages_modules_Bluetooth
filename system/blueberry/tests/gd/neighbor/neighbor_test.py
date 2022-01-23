@@ -57,22 +57,22 @@ class NeighborTest(gd_base_test.GdBaseTestClass):
         inquiry_msg = neighbor_facade.InquiryMsg(
             inquiry_mode=neighbor_facade.DiscoverabilityMode.GENERAL,
             result_mode=neighbor_facade.ResultMode.STANDARD,
-            length_1_28s=3,
+            length_1_28s=30,
             max_results=0)
         session = self.dut_neighbor.set_inquiry_mode(inquiry_msg)
         self.cert_hci.send_command(hci_packets.WriteScanEnableBuilder(hci_packets.ScanEnable.INQUIRY_AND_PAGE_SCAN))
-        assertThat(session).emits(NeighborMatchers.InquiryResult(self.cert_address), timeout=timedelta(seconds=10))
+        assertThat(session).emits(NeighborMatchers.InquiryResult(self.cert_address), timeout=timedelta(seconds=20))
 
     def test_inquiry_rssi_from_dut(self):
         inquiry_msg = neighbor_facade.InquiryMsg(
             inquiry_mode=neighbor_facade.DiscoverabilityMode.GENERAL,
             result_mode=neighbor_facade.ResultMode.RSSI,
-            length_1_28s=6,
+            length_1_28s=60,
             max_results=0)
         session = self.dut_neighbor.set_inquiry_mode(inquiry_msg)
         self.cert_hci.send_command(hci_packets.WriteScanEnableBuilder(hci_packets.ScanEnable.INQUIRY_AND_PAGE_SCAN))
         assertThat(session).emits(
-            NeighborMatchers.InquiryResultwithRssi(self.cert_address), timeout=timedelta(seconds=10))
+            NeighborMatchers.InquiryResultwithRssi(self.cert_address), timeout=timedelta(seconds=20))
 
     def test_inquiry_extended_from_dut(self):
         self._set_name()
@@ -86,12 +86,12 @@ class NeighborTest(gd_base_test.GdBaseTestClass):
         inquiry_msg = neighbor_facade.InquiryMsg(
             inquiry_mode=neighbor_facade.DiscoverabilityMode.GENERAL,
             result_mode=neighbor_facade.ResultMode.EXTENDED,
-            length_1_28s=8,
+            length_1_28s=80,
             max_results=0)
         session = self.dut_neighbor.set_inquiry_mode(inquiry_msg)
         self.cert_hci.send_command(hci_packets.WriteScanEnableBuilder(hci_packets.ScanEnable.INQUIRY_AND_PAGE_SCAN))
         assertThat(session).emits(
-            NeighborMatchers.ExtendedInquiryResult(self.cert_address), timeout=timedelta(seconds=10))
+            NeighborMatchers.ExtendedInquiryResult(self.cert_address), timeout=timedelta(seconds=20))
 
     def test_remote_name(self):
         self._set_name()

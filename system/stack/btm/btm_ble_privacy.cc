@@ -339,7 +339,8 @@ void btm_ble_remove_resolving_list_entry_complete(uint8_t* p,
  * Returns          void
  *
  ******************************************************************************/
-void btm_ble_read_resolving_list_entry_complete(uint8_t* p, uint16_t evt_len) {
+void btm_ble_read_resolving_list_entry_complete(const uint8_t* p,
+                                                uint16_t evt_len) {
   uint8_t status;
   RawAddress rra, pseudo_bda;
 
