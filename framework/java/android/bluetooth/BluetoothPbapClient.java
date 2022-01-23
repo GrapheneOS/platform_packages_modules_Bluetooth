@@ -18,16 +18,18 @@ package android.bluetooth;
 
 import static android.bluetooth.BluetoothUtils.getSyncTimeout;
 
-import android.Manifest;
 import android.annotation.NonNull;
 import android.annotation.RequiresPermission;
 import android.annotation.SdkConstant;
 import android.annotation.SdkConstant.SdkConstantType;
+import android.annotation.SuppressLint;
+import android.annotation.SystemApi;
 import android.bluetooth.annotations.RequiresBluetoothConnectPermission;
 import android.content.AttributionSource;
 import android.content.Context;
 import android.os.IBinder;
 import android.os.RemoteException;
+import android.util.CloseGuard;
 import android.util.Log;
 
 import com.android.modules.utils.SynchronousResultReceiver;
@@ -41,24 +43,52 @@ import java.util.concurrent.TimeoutException;
  *
  * @hide
  */
-public final class BluetoothPbapClient implements BluetoothProfile {
+@SystemApi
+public final class BluetoothPbapClient implements BluetoothProfile, AutoCloseable {
 
     private static final String TAG = "BluetoothPbapClient";
     private static final boolean DBG = false;
     private static final boolean VDBG = false;
 
+    private final CloseGuard mCloseGuard;
+
+    /**
+     * Intent used to broadcast the change in connection state of the PBAP Client profile.
+     *
+     * <p>This intent will have 3 extras:
+     * <ul>
+     * <li> {@link #EXTRA_STATE} - The current state of the profile. </li>
+     * <li> {@link #EXTRA_PREVIOUS_STATE}- The previous state of the profile.</li>
+     * <li> {@link BluetoothDevice#EXTRA_DEVICE} - The remote device. </li>
+     * </ul>
+     *
+     * <p>{@link #EXTRA_STATE} or {@link #EXTRA_PREVIOUS_STATE} can be any of
+     * {@link #STATE_DISCONNECTED}, {@link #STATE_CONNECTING},
+     * {@link #STATE_CONNECTED}, {@link #STATE_DISCONNECTING}.
+     *
+     * @hide
+     */
+    @SystemApi
+    @SuppressLint("ActionValue")
     @RequiresBluetoothConnectPermission
-    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
     @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
     public static final String ACTION_CONNECTION_STATE_CHANGED =
             "android.bluetooth.pbapclient.profile.action.CONNECTION_STATE_CHANGED";
 
     /** There was an error trying to obtain the state */
+    /** @hide */
     public static final int STATE_ERROR = -1;
 
+    /** @hide */
     public static final int RESULT_FAILURE = 0;
+    /** @hide */
     public static final int RESULT_SUCCESS = 1;
     /** Connection canceled before completion. */
+    /** @hide */
     public static final int RESULT_CANCELED = 2;
 
     private final BluetoothAdapter mAdapter;
@@ -74,6 +104,8 @@ public final class BluetoothPbapClient implements BluetoothProfile {
 
     /**
      * Create a BluetoothPbapClient proxy object.
+     *
+     * @hide
      */
     BluetoothPbapClient(Context context, ServiceListener listener, BluetoothAdapter adapter) {
         if (DBG) {
@@ -82,14 +114,16 @@ public final class BluetoothPbapClient implements BluetoothProfile {
         mAdapter = adapter;
         mAttributionSource = adapter.getAttributionSource();
         mProfileConnector.connect(context, listener);
+        mCloseGuard = new CloseGuard();
+        mCloseGuard.open("close");
     }
 
-    protected void finalize() throws Throwable {
-        try {
-            close();
-        } finally {
-            super.finalize();
+    /** @hide */
+    protected void finalize() {
+        if (mCloseGuard != null) {
+            mCloseGuard.warnIfOpen();
         }
+        close();
     }
 
     /**
@@ -97,9 +131,14 @@ public final class BluetoothPbapClient implements BluetoothProfile {
      * Other public functions of BluetoothPbapClient will return default error
      * results once close() has been called. Multiple invocations of close()
      * are ok.
+     *
+     * @hide
      */
     public synchronized void close() {
         mProfileConnector.disconnect();
+        if (mCloseGuard != null) {
+            mCloseGuard.close();
+        }
     }
 
     private IBluetoothPbapClient getService() {
@@ -183,11 +222,17 @@ public final class BluetoothPbapClient implements BluetoothProfile {
      * Currently at most one.
      *
      * @return list of connected devices
+     *
+     * @hide
      */
+    @SystemApi
     @Override
     @RequiresBluetoothConnectPermission
-    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
-    public List<BluetoothDevice> getConnectedDevices() {
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
+    public @NonNull List<BluetoothDevice> getConnectedDevices() {
         if (DBG) {
             log("getConnectedDevices()");
         }
@@ -204,7 +249,10 @@ public final class BluetoothPbapClient implements BluetoothProfile {
                 return Attributable.setAttributionSource(
                         recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue),
                         mAttributionSource);
-            } catch (RemoteException | TimeoutException e) {
+            } catch (RemoteException e) {
+                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+                throw e.rethrowFromSystemServer();
+            } catch (TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             }
         }
@@ -214,12 +262,20 @@ public final class BluetoothPbapClient implements BluetoothProfile {
     /**
      * Get the list of devices matching specified states. Currently at most one.
      *
+     * @param states The connection states to match for.
      * @return list of matching devices
+     *
+     * @hide
      */
+    @SystemApi
     @Override
     @RequiresBluetoothConnectPermission
-    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
-    public List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
+    public
+    @NonNull List<BluetoothDevice> getDevicesMatchingConnectionStates(@NonNull int[] states) {
         if (DBG) {
             log("getDevicesMatchingStates()");
         }
@@ -236,7 +292,10 @@ public final class BluetoothPbapClient implements BluetoothProfile {
                 return Attributable.setAttributionSource(
                         recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue),
                         mAttributionSource);
-            } catch (RemoteException | TimeoutException e) {
+            } catch (RemoteException e) {
+                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+                throw e.rethrowFromSystemServer();
+            } catch (TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             }
         }
@@ -246,12 +305,19 @@ public final class BluetoothPbapClient implements BluetoothProfile {
     /**
      * Get connection state of device
      *
+     * @param device The remote device whose connection state is to be ascertained.
      * @return device connection state
+     *
+     * @hide
      */
+    @SystemApi
     @Override
     @RequiresBluetoothConnectPermission
-    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
-    public int getConnectionState(BluetoothDevice device) {
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
+    public @BtProfileState int getConnectionState(@NonNull BluetoothDevice device) {
         if (DBG) {
             log("getConnectionState(" + device + ")");
         }
@@ -265,7 +331,10 @@ public final class BluetoothPbapClient implements BluetoothProfile {
                 final SynchronousResultReceiver<Integer> recv = new SynchronousResultReceiver();
                 service.getConnectionState(device, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
-            } catch (RemoteException | TimeoutException e) {
+            } catch (RemoteException e) {
+                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+                throw e.rethrowFromSystemServer();
+            } catch (TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             }
         }
@@ -317,6 +386,7 @@ public final class BluetoothPbapClient implements BluetoothProfile {
      * @return true if connectionPolicy is set, false on error
      * @hide
      */
+    @SystemApi
     @RequiresBluetoothConnectPermission
     @RequiresPermission(allOf = {
             android.Manifest.permission.BLUETOOTH_CONNECT,
@@ -339,7 +409,10 @@ public final class BluetoothPbapClient implements BluetoothProfile {
                 final SynchronousResultReceiver<Boolean> recv = new SynchronousResultReceiver();
                 service.setConnectionPolicy(device, connectionPolicy, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
-            } catch (RemoteException | TimeoutException e) {
+            } catch (RemoteException e) {
+                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+                throw e.rethrowFromSystemServer();
+            } catch (TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             }
         }
@@ -377,6 +450,7 @@ public final class BluetoothPbapClient implements BluetoothProfile {
      * @return connection policy of the device
      * @hide
      */
+    @SystemApi
     @RequiresBluetoothConnectPermission
     @RequiresPermission(allOf = {
             android.Manifest.permission.BLUETOOTH_CONNECT,
@@ -396,7 +470,10 @@ public final class BluetoothPbapClient implements BluetoothProfile {
                 final SynchronousResultReceiver<Integer> recv = new SynchronousResultReceiver();
                 service.getConnectionPolicy(device, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
-            } catch (RemoteException | TimeoutException e) {
+            } catch (RemoteException e) {
+                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+                throw e.rethrowFromSystemServer();
+            } catch (TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             }
         }

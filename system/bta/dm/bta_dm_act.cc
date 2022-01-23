@@ -48,6 +48,7 @@
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "stack/btm/btm_ble_int.h"
+#include "stack/btm/btm_dev.h"
 #include "stack/btm/btm_sec.h"
 #include "stack/btm/neighbor_inquiry.h"
 #include "stack/gatt/connection_manager.h"
