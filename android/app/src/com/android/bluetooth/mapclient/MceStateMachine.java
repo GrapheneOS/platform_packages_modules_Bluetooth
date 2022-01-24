@@ -41,6 +41,7 @@
 package com.android.bluetooth.mapclient;
 
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
+import static android.Manifest.permission.BLUETOOTH_PRIVILEGED;
 import static android.Manifest.permission.RECEIVE_SMS;
 
 import android.app.Activity;
@@ -239,7 +240,9 @@ class MceStateMachine extends StateMachine {
         intent.putExtra(BluetoothProfile.EXTRA_STATE, state);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mDevice);
         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
-        mService.sendBroadcast(intent, BLUETOOTH_CONNECT, Utils.getTempAllowlistBroadcastOptions());
+        mService.sendBroadcastMultiplePermissions(intent,
+                new String[] {BLUETOOTH_CONNECT, BLUETOOTH_PRIVILEGED},
+                Utils.getTempAllowlistBroadcastOptions());
     }
 
     public synchronized int getState() {
