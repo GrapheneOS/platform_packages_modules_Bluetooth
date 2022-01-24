@@ -38,10 +38,10 @@ import android.content.Intent;
 import android.net.Uri;
 import android.util.Log;
 
+import com.android.bluetooth.obex.HeaderSet;
+
 import java.io.IOException;
 import java.util.regex.Pattern;
-
-import javax.obex.HeaderSet;
 
 /**
  * Bluetooth OPP internal constant definitions

@@ -16,12 +16,12 @@
 
 package com.android.bluetooth.mapclient;
 
+import com.android.bluetooth.obex.HeaderSet;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
-
-import javax.obex.HeaderSet;
 
 public final class ObexAppParameters {
 

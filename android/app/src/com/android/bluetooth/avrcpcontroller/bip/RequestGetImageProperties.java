@@ -16,11 +16,11 @@
 
 package com.android.bluetooth.avrcpcontroller;
 
+import com.android.bluetooth.obex.ClientSession;
+import com.android.bluetooth.obex.HeaderSet;
+
 import java.io.IOException;
 import java.io.InputStream;
-
-import javax.obex.ClientSession;
-import javax.obex.HeaderSet;
 
 /**
  * This implements a GetImageProperties request, allowing a user to retrieve information regarding

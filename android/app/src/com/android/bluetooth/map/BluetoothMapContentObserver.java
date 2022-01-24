@@ -58,6 +58,7 @@ import com.android.bluetooth.map.BluetoothMapUtils.TYPE;
 import com.android.bluetooth.map.BluetoothMapbMessageMime.MimePart;
 import com.android.bluetooth.mapapi.BluetoothMapContract;
 import com.android.bluetooth.mapapi.BluetoothMapContract.MessageColumns;
+import com.android.bluetooth.obex.ResponseCodes;
 
 import com.google.android.mms.pdu.PduHeaders;
 
@@ -78,8 +79,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-
-import javax.obex.ResponseCodes;
 
 @TargetApi(19)
 public class BluetoothMapContentObserver {
