@@ -17,14 +17,13 @@
 package com.android.bluetooth.mapclient;
 
 import com.android.bluetooth.mapclient.MasClient.CharsetType;
+import com.android.bluetooth.obex.ClientSession;
+import com.android.bluetooth.obex.HeaderSet;
+import com.android.bluetooth.obex.ResponseCodes;
 import com.android.internal.annotations.VisibleForTesting;
 
 import java.io.IOException;
 import java.math.BigInteger;
-
-import javax.obex.ClientSession;
-import javax.obex.HeaderSet;
-import javax.obex.ResponseCodes;
 
 /* Place a message into current directory on MSE. */
 @VisibleForTesting

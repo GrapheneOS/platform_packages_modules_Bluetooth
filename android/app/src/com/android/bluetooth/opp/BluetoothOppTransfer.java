@@ -54,10 +54,9 @@ import android.util.Log;
 
 import com.android.bluetooth.BluetoothObexTransport;
 import com.android.bluetooth.Utils;
+import com.android.bluetooth.obex.ObexTransport;
 
 import java.io.IOException;
-
-import javax.obex.ObexTransport;
 
 /**
  * This class run an actual Opp transfer session (from connect target device to

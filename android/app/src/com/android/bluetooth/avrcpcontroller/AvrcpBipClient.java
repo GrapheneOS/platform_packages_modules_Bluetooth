@@ -26,13 +26,12 @@ import android.os.Message;
 import android.util.Log;
 
 import com.android.bluetooth.BluetoothObexTransport;
+import com.android.bluetooth.obex.ClientSession;
+import com.android.bluetooth.obex.HeaderSet;
+import com.android.bluetooth.obex.ResponseCodes;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
-
-import javax.obex.ClientSession;
-import javax.obex.HeaderSet;
-import javax.obex.ResponseCodes;
 
 /**
  * A client to a remote device's BIP Image Pull Server, as defined by a PSM passed in at

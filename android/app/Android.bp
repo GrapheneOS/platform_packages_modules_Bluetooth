@@ -88,7 +88,6 @@ android_app {
 
     jni_libs: ["libbluetooth_jni"],
     libs: [
-        "javax.obex",
         "services.net",
     ],
     static_libs: [
@@ -98,6 +97,7 @@ android_app {
         "androidx.lifecycle_lifecycle-livedata",
         "androidx.room_room-runtime",
         "bluetooth.mapsapi",
+        "bluetooth.obex",
         "bluetooth-protos-lite",
         "com.android.vcard",
         "guava",
