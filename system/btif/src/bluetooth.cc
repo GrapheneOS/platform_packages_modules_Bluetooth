@@ -60,7 +60,6 @@
 #include "btif_av.h"
 #include "btif_bqr.h"
 #include "btif_config.h"
-#include "btif_debug.h"
 #include "btif_debug_btsnoop.h"
 #include "btif_debug_conn.h"
 #include "btif_hf.h"
@@ -195,7 +194,6 @@ static int init(bt_callbacks_t* callbacks, bool start_restricted,
   is_local_device_atv = is_atv;
 
   stack_manager_get_interface()->init_stack();
-  btif_debug_init();
   return BT_STATUS_SUCCESS;
 }
 
