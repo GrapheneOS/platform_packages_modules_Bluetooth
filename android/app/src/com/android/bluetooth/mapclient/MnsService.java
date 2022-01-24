@@ -27,11 +27,10 @@ import com.android.bluetooth.BluetoothObexTransport;
 import com.android.bluetooth.IObexConnectionHandler;
 import com.android.bluetooth.ObexServerSockets;
 import com.android.bluetooth.Utils;
+import com.android.bluetooth.obex.ServerSession;
 import com.android.bluetooth.sdp.SdpManager;
 
 import java.io.IOException;
-
-import javax.obex.ServerSession;
 
 /**
  * Message Notification Server implementation

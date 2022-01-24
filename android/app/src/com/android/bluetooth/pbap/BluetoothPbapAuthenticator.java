@@ -34,8 +34,8 @@ package com.android.bluetooth.pbap;
 
 import android.util.Log;
 
-import javax.obex.Authenticator;
-import javax.obex.PasswordAuthentication;
+import com.android.bluetooth.obex.Authenticator;
+import com.android.bluetooth.obex.PasswordAuthentication;
 
 /**
  * BluetoothPbapAuthenticator is a used by BluetoothObexServer for obex

@@ -26,14 +26,13 @@ import android.os.Message;
 import android.util.Log;
 
 import com.android.bluetooth.BluetoothObexTransport;
+import com.android.bluetooth.obex.ClientSession;
+import com.android.bluetooth.obex.HeaderSet;
+import com.android.bluetooth.obex.ResponseCodes;
 import com.android.internal.util.StateMachine;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
-
-import javax.obex.ClientSession;
-import javax.obex.HeaderSet;
-import javax.obex.ResponseCodes;
 
 /* MasClient is a one time use connection to a server defined by the SDP record passed in at
  * construction.  After use shutdown() must be called to properly clean up.

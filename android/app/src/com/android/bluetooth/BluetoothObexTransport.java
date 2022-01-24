@@ -17,13 +17,13 @@ package com.android.bluetooth;
 
 import android.bluetooth.BluetoothSocket;
 
+import com.android.bluetooth.obex.ObexTransport;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-
-import javax.obex.ObexTransport;
 
 /**
  * Generic Obex Transport class, to be used in OBEX based Bluetooth

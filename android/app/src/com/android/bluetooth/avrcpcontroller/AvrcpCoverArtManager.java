@@ -23,12 +23,12 @@ import android.net.Uri;
 import android.os.SystemProperties;
 import android.util.Log;
 
+import com.android.bluetooth.obex.ResponseCodes;
+
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-
-import javax.obex.ResponseCodes;
 
 /**
  * Manager of all AVRCP Controller connections to remote devices' BIP servers for retrieving cover
