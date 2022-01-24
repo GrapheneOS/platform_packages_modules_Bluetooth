@@ -17,8 +17,8 @@
 package android.bluetooth;
 
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.IBluetoothPanCallback;
 import android.content.AttributionSource;
-import android.net.ITetheredInterfaceCallback;
 
 import com.android.modules.utils.SynchronousResultReceiver;
 
@@ -32,7 +32,7 @@ oneway interface IBluetoothPan {
     @JavaPassthrough(annotation="@android.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)")
     void isTetheringOn(in AttributionSource attributionSource, in SynchronousResultReceiver receiver);
     @JavaPassthrough(annotation="@android.annotation.RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT,android.Manifest.permission.BLUETOOTH_PRIVILEGED,android.Manifest.permission.TETHER_PRIVILEGED})")
-    void setBluetoothTethering(ITetheredInterfaceCallback callback, boolean value, in AttributionSource attributionSource, in SynchronousResultReceiver receiver);
+    void setBluetoothTethering(IBluetoothPanCallback callback, int id, boolean value, in AttributionSource attributionSource, in SynchronousResultReceiver receiver);
     @JavaPassthrough(annotation="@android.annotation.RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT,android.Manifest.permission.BLUETOOTH_PRIVILEGED})")
     void connect(in BluetoothDevice device, in AttributionSource attributionSource, in SynchronousResultReceiver receiver);
     @JavaPassthrough(annotation="@android.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)")

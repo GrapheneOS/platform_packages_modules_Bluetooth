@@ -32,7 +32,6 @@ import android.bluetooth.annotations.RequiresLegacyBluetoothPermission;
 import android.compat.annotation.UnsupportedAppUsage;
 import android.content.AttributionSource;
 import android.content.Context;
-import android.net.ITetheredInterfaceCallback;
 import android.net.TetheringManager.TetheredInterfaceCallback;
 import android.net.TetheringManager.TetheredInterfaceRequest;
 import android.os.Build;
@@ -198,12 +197,14 @@ public final class BluetoothPan implements BluetoothProfile {
      */
     public class BluetoothTetheredInterfaceRequest implements TetheredInterfaceRequest {
         private IBluetoothPan mService;
-        private ITetheredInterfaceCallback mCb;
+        private final IBluetoothPanCallback mPanCallback;
+        private final int mId;
 
         private BluetoothTetheredInterfaceRequest(@NonNull IBluetoothPan service,
-                @NonNull ITetheredInterfaceCallback cb) {
+                @NonNull IBluetoothPanCallback panCallback, int id) {
             this.mService = service;
-            this.mCb = cb;
+            this.mPanCallback = panCallback;
+            this.mId = id;
         }
 
         /**
@@ -216,19 +217,18 @@ public final class BluetoothPan implements BluetoothProfile {
         })
         @Override
         public void release() {
-            if (mService == null || mCb == null) {
+            if (mService == null) {
                 throw new IllegalStateException(
                         "The tethered interface has already been released.");
             }
             try {
                 final SynchronousResultReceiver recv = new SynchronousResultReceiver();
-                mService.setBluetoothTethering(mCb, false, mAttributionSource, recv);
+                mService.setBluetoothTethering(mPanCallback, mId, false, mAttributionSource, recv);
                 recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
             } catch (RemoteException | TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             } finally {
                 mService = null;
-                mCb = null;
             }
         }
     }
@@ -526,7 +526,7 @@ public final class BluetoothPan implements BluetoothProfile {
         } else if (isEnabled()) {
             try {
                 final SynchronousResultReceiver recv = new SynchronousResultReceiver();
-                service.setBluetoothTethering(null, value, mAttributionSource, recv);
+                service.setBluetoothTethering(null, 0, value, mAttributionSource, recv);
                 recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
             } catch (RemoteException | TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
@@ -571,7 +571,7 @@ public final class BluetoothPan implements BluetoothProfile {
             Log.w(TAG, "Proxy not attached to service");
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else if (isEnabled()) {
-            final ITetheredInterfaceCallback cbInternal = new ITetheredInterfaceCallback.Stub() {
+            final IBluetoothPanCallback panCallback = new IBluetoothPanCallback.Stub() {
                 @Override
                 public void onAvailable(String iface) {
                     executor.execute(() -> callback.onAvailable(iface));
@@ -584,9 +584,11 @@ public final class BluetoothPan implements BluetoothProfile {
             };
             try {
                 final SynchronousResultReceiver recv = new SynchronousResultReceiver();
-                service.setBluetoothTethering(cbInternal, true, mAttributionSource, recv);
+                service.setBluetoothTethering(panCallback, callback.hashCode(), true,
+                        mAttributionSource, recv);
                 recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
-                return new BluetoothTetheredInterfaceRequest(service, cbInternal);
+                return new BluetoothTetheredInterfaceRequest(service, panCallback,
+                        callback.hashCode());
             } catch (RemoteException | TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             }
