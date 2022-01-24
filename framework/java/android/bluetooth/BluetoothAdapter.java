@@ -30,6 +30,7 @@ import android.annotation.SdkConstant.SdkConstantType;
 import android.annotation.SuppressLint;
 import android.annotation.SystemApi; //import android.app.PropertyInvalidatedCache;
 import android.bluetooth.BluetoothDevice.Transport;
+import android.bluetooth.BluetoothFrameworkInitializer;
 import android.bluetooth.BluetoothProfile.ConnectionPolicy;
 import android.bluetooth.annotations.RequiresBluetoothAdvertisePermission;
 import android.bluetooth.annotations.RequiresBluetoothConnectPermission;
@@ -804,14 +805,16 @@ public final class BluetoothAdapter {
 
     /** {@hide} */
     public static BluetoothAdapter createAdapter(AttributionSource attributionSource) {
-        IBinder binder = ServiceManager.getService(BLUETOOTH_MANAGER_SERVICE);
-        if (binder != null) {
-            return new BluetoothAdapter(IBluetoothManager.Stub.asInterface(binder),
-                    attributionSource);
-        } else {
-            Log.e(TAG, "Bluetooth binder is null");
-            return null;
-        }
+      IBluetoothManager service = IBluetoothManager.Stub.asInterface(
+          BluetoothFrameworkInitializer.getBluetoothServiceManager()
+              .getBluetoothManagerServiceRegisterer()
+              .get());
+      if (service != null) {
+        return new BluetoothAdapter(service, attributionSource);
+      } else {
+        Log.e(TAG, "Bluetooth service is null");
+        return null;
+      }
     }
 
     /**
