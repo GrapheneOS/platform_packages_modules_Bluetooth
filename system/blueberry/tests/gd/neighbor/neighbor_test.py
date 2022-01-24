@@ -67,7 +67,7 @@ class NeighborTest(gd_base_test.GdBaseTestClass):
         inquiry_msg = neighbor_facade.InquiryMsg(
             inquiry_mode=neighbor_facade.DiscoverabilityMode.GENERAL,
             result_mode=neighbor_facade.ResultMode.RSSI,
-            length_1_28s=60,
+            length_1_28s=31,
             max_results=0)
         session = self.dut_neighbor.set_inquiry_mode(inquiry_msg)
         self.cert_hci.send_command(hci_packets.WriteScanEnableBuilder(hci_packets.ScanEnable.INQUIRY_AND_PAGE_SCAN))
@@ -86,7 +86,7 @@ class NeighborTest(gd_base_test.GdBaseTestClass):
         inquiry_msg = neighbor_facade.InquiryMsg(
             inquiry_mode=neighbor_facade.DiscoverabilityMode.GENERAL,
             result_mode=neighbor_facade.ResultMode.EXTENDED,
-            length_1_28s=80,
+            length_1_28s=32,
             max_results=0)
         session = self.dut_neighbor.set_inquiry_mode(inquiry_msg)
         self.cert_hci.send_command(hci_packets.WriteScanEnableBuilder(hci_packets.ScanEnable.INQUIRY_AND_PAGE_SCAN))
