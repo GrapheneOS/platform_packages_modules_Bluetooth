@@ -36,10 +36,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 
-import javax.obex.ClientSession;
-import javax.obex.HeaderSet;
-import javax.obex.Operation;
-import javax.obex.ResponseCodes;
+import com.android.bluetooth.obex.ClientSession;
+import com.android.bluetooth.obex.HeaderSet;
+import com.android.bluetooth.obex.Operation;
+import com.android.bluetooth.obex.ResponseCodes;
 
 @MediumTest
 @RunWith(AndroidJUnit4.class)

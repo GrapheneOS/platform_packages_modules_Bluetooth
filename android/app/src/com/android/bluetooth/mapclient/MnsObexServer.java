@@ -19,15 +19,14 @@ package com.android.bluetooth.mapclient;
 import android.util.Log;
 
 import com.android.bluetooth.ObexServerSockets;
+import com.android.bluetooth.obex.HeaderSet;
+import com.android.bluetooth.obex.Operation;
+import com.android.bluetooth.obex.ResponseCodes;
+import com.android.bluetooth.obex.ServerRequestHandler;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.Arrays;
-
-import javax.obex.HeaderSet;
-import javax.obex.Operation;
-import javax.obex.ResponseCodes;
-import javax.obex.ServerRequestHandler;
 
 class MnsObexServer extends ServerRequestHandler {
 
