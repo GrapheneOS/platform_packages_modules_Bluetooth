@@ -29,7 +29,6 @@ import android.annotation.NonNull;
 import android.annotation.RequiresPermission;
 import android.annotation.SuppressLint;
 import android.app.ActivityManager;
-import android.app.AppGlobals;
 import android.app.AppOpsManager;
 import android.app.BroadcastOptions;
 import android.bluetooth.BluetoothA2dp;
@@ -58,7 +57,6 @@ import android.content.IntentFilter;
 import android.content.PermissionChecker;
 import android.content.ServiceConnection;
 import android.content.pm.ApplicationInfo;
-import android.content.pm.IPackageManager;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManagerInternal;
 import android.content.pm.UserInfo;
@@ -2764,9 +2762,10 @@ class BluetoothManagerService extends IBluetoothManager.Stub {
                 bluetoothSharingDisallowed ? PackageManager.COMPONENT_ENABLED_STATE_DISABLED
                         : PackageManager.COMPONENT_ENABLED_STATE_DEFAULT;
         try {
-            final IPackageManager imp = AppGlobals.getPackageManager();
-            imp.setComponentEnabledSetting(oppLauncherComponent, newState,
-                    PackageManager.DONT_KILL_APP, userHandle.getIdentifier());
+            mContext.createContextAsUser(userHandle, 0)
+                .getPackageManager()
+                .setComponentEnabledSetting(oppLauncherComponent, newState,
+                        PackageManager.DONT_KILL_APP);
         } catch (Exception e) {
             // The component was not found, do nothing.
         }
