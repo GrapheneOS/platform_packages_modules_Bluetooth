@@ -24,17 +24,17 @@
 #
 #
 # Usage:
-# ./dump_le_audio.py BTSNOOP.cfa
+# ./dump_le_audio.py BTSNOOP.cfa [-v] [--header] [--ase_handle ASE_HANDLE]
 #
-# -v, --verbose to enable the verbose log
-# --header, Add the header for LC3 Conformance Interoperability Test Software V.1.0.3 from LC3 test specification.
+# -v, --verbose: to enable the verbose log
+# --header: Add the header for LC3 Conformance Interoperability Test Software V.1.0.3 from LC3 test specification.
+#  --ase_handle ASE_HANDLE: Set the ASE handle manually.
 #
 # NOTE:
 # Please make sure you HCI Snoop data file includes the following frames:
-# GATT service discovery for "ASE Control Point" chracteristic
-# GATT config codec via ASE Control Point
-# HCI create CIS to point out the "Start stream", and the data frames.
-# HCI remove ISO data path would trigger dump audio data once
+# 1. GATT service discovery for "ASE Control Point" chracteristic (if you give the ase_handle via command, the flow could be skipped)
+# 2. GATT config codec via ASE Control Point
+# 3. HCI create CIS to point out the "Start stream", and the data frames.
 # After all hci packet parse finished, would dump all remain audio data as well
 #
 # Correspondsing Spec.
@@ -447,7 +447,9 @@ def parse_iso_packet(packet, flags):
     # Ignore timestamp, sequence number
     packet = unpack_data(packet, 6, True)
     iso_sdu_length, packet = unpack_data(packet, 2, False)
-    if iso_sdu_length != len(packet):
+    if len(packet) == 0:
+       debug_print("The iso data is empty")
+    elif iso_sdu_length != len(packet):
         debug_print("Invalid iso sdu length")
         return
 
@@ -503,8 +505,7 @@ def main():
         help="Add the header for LC3 Conformance Interoperability Test Software V.1.0.3.",
         action="store_true")
     parser.add_argument(
-        "--ase_handle",
-        help="Set the ASE handle manually.",
+        "--ase_handle", help="Set the ASE handle manually.",
         type=int)
 
     argv = parser.parse_args()
