@@ -80,7 +80,6 @@ static constexpr uint64_t Page0LmpFeatures() {
       LMPFeaturesPage0Bits::SIMULTANEOUS_LE_AND_BR_CONTROLLER,
       LMPFeaturesPage0Bits::SECURE_SIMPLE_PAIRING_CONTROLLER,
       LMPFeaturesPage0Bits::ENCAPSULATED_PDU,
-      LMPFeaturesPage0Bits::NON_FLUSHABLE_PACKET_BOUNDARY_FLAG,
       LMPFeaturesPage0Bits::HCI_LINK_SUPERVISION_TIMEOUT_CHANGED_EVENT,
       LMPFeaturesPage0Bits::VARIABLE_INQUIRY_TX_POWER_LEVEL,
       LMPFeaturesPage0Bits::ENHANCED_POWER_CONTROL,
@@ -92,9 +91,6 @@ static constexpr uint64_t Page0LmpFeatures() {
   return value;
 }
 
-static_assert(Page0LmpFeatures() == 0x875bffdbfe8ffeff,
-              "Invalid page 0 features");
-
 static constexpr uint64_t Page1LmpFeatures() {
   LMPFeaturesPage1Bits features[] = {
       LMPFeaturesPage1Bits::SIMULTANEOUS_LE_AND_BR_HOST,
@@ -105,8 +101,6 @@ static constexpr uint64_t Page1LmpFeatures() {
     value |= static_cast<uint64_t>(features[i]);
   return value;
 }
-
-static_assert(Page1LmpFeatures() == 0x04, "Invalid page 1 features");
 
 class DeviceProperties {
  public:
