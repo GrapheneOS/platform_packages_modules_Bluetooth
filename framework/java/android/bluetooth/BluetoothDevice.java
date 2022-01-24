@@ -1118,7 +1118,6 @@ public final class BluetoothDevice implements Parcelable, Attributable {
     private AttributionSource mAttributionSource;
 
     /*package*/
-    @UnsupportedAppUsage
     static IBluetooth getService() {
         synchronized (BluetoothDevice.class) {
             if (sService == null) {
