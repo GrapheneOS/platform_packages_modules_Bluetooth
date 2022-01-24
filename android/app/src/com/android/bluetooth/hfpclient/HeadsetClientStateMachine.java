@@ -34,6 +34,7 @@
 package com.android.bluetooth.hfpclient;
 
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
+import static android.Manifest.permission.BLUETOOTH_PRIVILEGED;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -1930,7 +1931,9 @@ public class HeadsetClientStateMachine extends StateMachine {
                 intent.putExtra(BluetoothHeadsetClient.EXTRA_AG_FEATURE_MERGE_AND_DETACH, true);
             }
         }
-        mService.sendBroadcast(intent, BLUETOOTH_CONNECT,
+
+        mService.sendBroadcastMultiplePermissions(intent,
+                new String[] {BLUETOOTH_CONNECT, BLUETOOTH_PRIVILEGED},
                 Utils.getTempAllowlistBroadcastOptions());
 
         HfpClientConnectionService.onConnectionStateChanged(device, newState, prevState);
