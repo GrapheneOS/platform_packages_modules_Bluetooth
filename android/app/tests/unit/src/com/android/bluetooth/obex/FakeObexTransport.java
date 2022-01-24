@@ -24,7 +24,7 @@ import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 
-import javax.obex.ObexTransport;
+import com.android.bluetooth.obex.ObexTransport;
 
 /**
  * A fake obex transport used for testing Client/Server connections.

@@ -16,8 +16,6 @@
 
 package com.android.bluetooth.avrcp;
 
-import android.annotation.RequiresPermission;
-import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.util.Log;
 
