@@ -895,3 +895,15 @@ void invoke_link_quality_report_cb(
           timestamp, report_id, rssi, snr, retransmission_count,
           packets_not_receive_count, negative_acknowledgement_count));
 }
+
+void invoke_switch_buffer_size_cb(RawAddress remote_addr,
+                                  bool is_low_latency_buffer_size) {
+  do_in_jni_thread(
+      FROM_HERE,
+      base::BindOnce(
+          [](RawAddress remote_addr, bool is_low_latency_buffer_size) {
+            HAL_CBACK(bt_hal_cbacks, switch_buffer_size_cb, &remote_addr,
+                      is_low_latency_buffer_size);
+          },
+          remote_addr, is_low_latency_buffer_size));
+}
