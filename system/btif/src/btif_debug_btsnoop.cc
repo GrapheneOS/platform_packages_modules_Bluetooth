@@ -22,7 +22,6 @@
 #include <resolv.h>
 #include <zlib.h>
 
-#include "btif/include/btif_debug.h"
 #include "btif/include/btif_debug_btsnoop.h"
 #include "hci/include/btsnoop_mem.h"
 #include "internal_include/bt_target.h"

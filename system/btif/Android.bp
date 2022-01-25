@@ -118,7 +118,6 @@ cc_defaults {
         "src/btif_config_transcode.cc",
         "src/btif_core.cc",
         "src/btif_csis_client.cc",
-        "src/btif_debug.cc",
         "src/btif_debug_btsnoop.cc",
         "src/btif_debug_conn.cc",
         "src/btif_dm.cc",
