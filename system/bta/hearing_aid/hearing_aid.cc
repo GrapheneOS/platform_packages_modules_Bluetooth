@@ -868,7 +868,9 @@ class HearingAidImpl : public HearingAid {
     uint16_t psm = *((uint16_t*)value);
     VLOG(2) << "read psm:" << loghex(psm);
 
-    ConnectSocket(hearingDevice, psm);
+    if (hearingDevice->gap_handle == GAP_INVALID_HANDLE) {
+      ConnectSocket(hearingDevice, psm);
+    }
   }
 
   void ConnectSocket(HearingDevice* hearingDevice, uint16_t psm) {
