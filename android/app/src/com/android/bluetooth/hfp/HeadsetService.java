@@ -1847,7 +1847,9 @@ public class HeadsetService extends ProfileService {
     }
 
     boolean isInbandRingingEnabled() {
-        return BluetoothHeadset.isInbandRingingSupported(this) && !SystemProperties.getBoolean(
+        boolean isInbandRingingSupported = getResources().getBoolean(
+                com.android.bluetooth.R.bool.config_bluetooth_hfp_inband_ringing_support);
+        return isInbandRingingSupported && !SystemProperties.getBoolean(
                 DISABLE_INBAND_RINGING_PROPERTY, false) && !mInbandRingingRuntimeDisable;
     }
 
@@ -2080,6 +2082,8 @@ public class HeadsetService extends ProfileService {
     @Override
     public void dump(StringBuilder sb) {
         boolean isScoOn = mSystemInterface.getAudioManager().isBluetoothScoOn();
+        boolean isInbandRingingSupported = getResources().getBoolean(
+                com.android.bluetooth.R.bool.config_bluetooth_hfp_inband_ringing_support);
         synchronized (mStateMachines) {
             super.dump(sb);
             ProfileService.println(sb, "mMaxHeadsetConnections: " + mMaxHeadsetConnections);
@@ -2088,7 +2092,7 @@ public class HeadsetService extends ProfileService {
             ProfileService.println(sb, "mActiveDevice: " + mActiveDevice);
             ProfileService.println(sb, "isInbandRingingEnabled: " + isInbandRingingEnabled());
             ProfileService.println(sb,
-                    "isInbandRingingSupported: " + BluetoothHeadset.isInbandRingingSupported(this));
+                    "isInbandRingingSupported: " + isInbandRingingSupported);
             ProfileService.println(sb,
                     "mInbandRingingRuntimeDisable: " + mInbandRingingRuntimeDisable);
             ProfileService.println(sb, "mAudioRouteAllowed: " + mAudioRouteAllowed);

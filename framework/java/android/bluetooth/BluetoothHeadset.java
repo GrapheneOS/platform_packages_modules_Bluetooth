@@ -911,16 +911,6 @@ public final class BluetoothHeadset implements BluetoothProfile {
         return defaultValue;
     }
 
-    /**
-     * Indicates if current platform supports voice dialing over bluetooth SCO.
-     *
-     * @return true if voice dialing over bluetooth is supported, false otherwise.
-     * @hide
-     */
-    public static boolean isBluetoothVoiceDialingEnabled(Context context) {
-        return context.getResources().getBoolean(
-                com.android.internal.R.bool.config_bluetooth_sco_off_call);
-    }
 
     /**
      * Get the current audio state of the Headset.
@@ -1431,17 +1421,6 @@ public final class BluetoothHeadset implements BluetoothProfile {
             }
         }
         return defaultValue;
-    }
-
-    /**
-     * Check if in-band ringing is supported for this platform.
-     *
-     * @return true if in-band ringing is supported, false if in-band ringing is not supported
-     * @hide
-     */
-    public static boolean isInbandRingingSupported(Context context) {
-        return context.getResources().getBoolean(
-                com.android.internal.R.bool.config_bluetooth_hfp_inband_ringing_support);
     }
 
     @SuppressLint("AndroidFrameworkBluetoothPermission")
