@@ -136,6 +136,12 @@ void link_quality_report(uint64_t timestamp, int report_id, int rssi, int snr,
   LOG_INFO("%s", __func__);
 }
 
+/** Switch buffer size callback */
+void switch_buffer_size(RawAddress* remote_addr,
+                        bool is_low_latency_buffer_size) {
+  LOG_INFO("%s", __func__);
+}
+
 void thread_event(bt_cb_thread_evt evt) { LOG_INFO("%s", __func__); }
 
 void dut_mode_recv(uint16_t opcode, uint8_t* buf, uint8_t len) {
@@ -169,6 +175,7 @@ bt_callbacks_t bt_callbacks{
     .le_test_mode_cb = le_test_mode,
     .energy_info_cb = energy_info,
     .link_quality_report_cb = link_quality_report,
+    .switch_buffer_size_cb = switch_buffer_size,
 };
 // HAL HARDWARE CALLBACKS
 

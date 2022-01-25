@@ -469,6 +469,10 @@ typedef void (*link_quality_report_callback)(
     int retransmission_count, int packets_not_receive_count,
     int negative_acknowledgement_count);
 
+/** Switch the buffer size callback */
+typedef void (*switch_buffer_size_callback)(RawAddress* remote_addr,
+                                            bool is_low_latency_buffer_size);
+
 typedef enum { ASSOCIATE_JVM, DISASSOCIATE_JVM } bt_cb_thread_evt;
 
 /** Thread Associate/Disassociate JVM Callback */
@@ -526,6 +530,7 @@ typedef struct {
   energy_info_callback energy_info_cb;
   link_quality_report_callback link_quality_report_cb;
   generate_local_oob_data_callback generate_local_oob_data_cb;
+  switch_buffer_size_callback switch_buffer_size_cb;
 } bt_callbacks_t;
 
 typedef void (*alarm_cb)(void* data);
