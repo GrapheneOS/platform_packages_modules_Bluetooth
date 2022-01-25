@@ -217,6 +217,16 @@ void LinkQualityReportCallback(uint64_t timestamp, int report_id, int rssi,
       packets_not_receive_count, negative_acknowledgement_count));
 }
 
+void SwitchBufferSizeCallback(RawAddress* remote_addr,
+                              bool is_low_latency_buffer_size) {
+  shared_lock<shared_mutex_impl> lock(g_instance_lock);
+  VERIFY_INTERFACE_OR_RETURN();
+  LOG(WARNING) << __func__ << " - is_low_latency_buffer_size: "
+               << is_low_latency_buffer_size;
+  FOR_EACH_BLUETOOTH_OBSERVER(
+      SwitchBufferSizeCallback(remote_addr, is_low_latency_buffer_size));
+}
+
 // The HAL Bluetooth DM callbacks.
 bt_callbacks_t bt_callbacks = {
     sizeof(bt_callbacks_t),
@@ -235,7 +245,8 @@ bt_callbacks_t bt_callbacks = {
     nullptr, /* le_test_mode_cb */
     nullptr, /* energy_info_cb */
     LinkQualityReportCallback,
-    nullptr /* generate_local_oob_data_cb */
+    nullptr /* generate_local_oob_data_cb */,
+    SwitchBufferSizeCallback
 };
 
 bt_os_callouts_t bt_os_callouts = {sizeof(bt_os_callouts_t),
@@ -422,6 +433,11 @@ void BluetoothInterface::Observer::LinkQualityReportCallback(
     int /* snr */, int /* retransmission_count */,
     int /* packets_not_receive_count */,
     int /* negative_acknowledgement_count */) {
+  // Do nothing.
+}
+
+void BluetoothInterface::Observer::SwitchBufferSizeCallback(
+    RawAddress* /* remote_addr */, bool /* is_low_latency_buffer_size */) {
   // Do nothing.
 }
 
