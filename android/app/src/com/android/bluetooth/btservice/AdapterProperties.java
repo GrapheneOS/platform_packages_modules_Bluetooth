@@ -207,9 +207,9 @@ class AdapterProperties {
         mProfileConnectionState.clear();
         mRemoteDevices = remoteDevices;
 
-        // Get default max connected audio devices from config.xml in frameworks/base/core
+        // Get default max connected audio devices from config.xml
         int configDefaultMaxConnectedAudioDevices = mService.getResources().getInteger(
-                com.android.internal.R.integer.config_bluetooth_max_connected_audio_devices);
+                com.android.bluetooth.R.integer.config_bluetooth_max_connected_audio_devices);
         // Override max connected audio devices if MAX_CONNECTED_AUDIO_DEVICES_PROPERTY is set
         int propertyOverlayedMaxConnectedAudioDevices =
                 SystemProperties.getInt(MAX_CONNECTED_AUDIO_DEVICES_PROPERTY,
