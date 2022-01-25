@@ -119,7 +119,7 @@ public class AdapterServiceTest {
             Process.myUid()).build();
 
     private final boolean hearingAidSupported =
-            BluetoothProperties.audioStreamingForHearingAidSupported().orElse(false);
+            BluetoothProperties.isProfileAshaCentralEnabled().orElse(false);
 
     private PowerManager mPowerManager;
     private PermissionCheckerManager mPermissionCheckerManager;
