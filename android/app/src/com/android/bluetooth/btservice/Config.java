@@ -24,6 +24,7 @@ import android.content.res.Resources;
 import android.os.SystemConfigManager;
 import android.os.SystemProperties;
 import android.provider.Settings;
+import android.sysprop.BluetoothProperties;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -49,8 +50,8 @@ import com.android.bluetooth.pan.PanService;
 import com.android.bluetooth.pbap.BluetoothPbapService;
 import com.android.bluetooth.pbapclient.PbapClientService;
 import com.android.bluetooth.sap.SapService;
-import com.android.bluetooth.vc.VolumeControlService;
 import com.android.bluetooth.tbs.TbsService;
+import com.android.bluetooth.vc.VolumeControlService;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -126,7 +127,7 @@ public class Config {
             new ProfileConfig(TbsService.class, R.bool.profile_supported_le_call_control,
                     (1 << BluetoothProfile.LE_CALL_CONTROL)),
             new ProfileConfig(HearingAidService.class,
-                    com.android.internal.R.bool.config_hearing_aid_profile_supported,
+                    -1,
                     (1 << BluetoothProfile.HEARING_AID)),
             new ProfileConfig(LeAudioService.class, R.bool.profile_supported_le_audio,
                     (1 << BluetoothProfile.LE_AUDIO)),
@@ -153,7 +154,13 @@ public class Config {
 
         ArrayList<Class> profiles = new ArrayList<>(PROFILE_SERVICES_AND_FLAGS.length);
         for (ProfileConfig config : PROFILE_SERVICES_AND_FLAGS) {
-            boolean supported = resources.getBoolean(config.mSupported);
+            boolean supported = false;
+            if (config.mClass == HearingAidService.class) {
+                supported =
+                        BluetoothProperties.audioStreamingForHearingAidSupported().orElse(false);
+            } else {
+                supported = resources.getBoolean(config.mSupported);
+            }
 
             if (!supported && (config.mClass == HearingAidService.class) && isHearingAidSettingsEnabled(ctx)) {
                 Log.v(TAG, "Feature Flag enables support for HearingAidService");

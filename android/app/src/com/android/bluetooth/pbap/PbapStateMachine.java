@@ -396,7 +396,7 @@ class PbapStateMachine extends StateMachine {
                             .setTicker(mService.getString(R.string.auth_notif_ticker))
                             .setColor(mService.getResources()
                                     .getColor(
-                                            com.android.internal.R.color
+                                            android.R.color
                                                     .system_notification_accent_color,
                                             mService.getTheme()))
                             .setFlag(Notification.FLAG_AUTO_CANCEL, true)

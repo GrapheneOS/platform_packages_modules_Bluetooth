@@ -39,7 +39,6 @@ import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentat
 
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AdapterService;
-import com.android.internal.R;
 import com.google.common.primitives.Bytes;
 
 import org.junit.After;

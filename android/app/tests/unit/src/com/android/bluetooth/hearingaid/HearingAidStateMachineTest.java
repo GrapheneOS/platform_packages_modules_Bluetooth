@@ -25,14 +25,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.HandlerThread;
+import android.sysprop.BluetoothProperties;
 
 import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.MediumTest;
 import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.TestUtils;
+import com.android.bluetooth.R;
 import com.android.bluetooth.btservice.AdapterService;
-import com.android.internal.R;
 
 import org.hamcrest.core.IsInstanceOf;
 import org.junit.After;
@@ -63,8 +64,7 @@ public class HearingAidStateMachineTest {
     public void setUp() throws Exception {
         mTargetContext = InstrumentationRegistry.getTargetContext();
         Assume.assumeTrue("Ignore test when HearingAidService is not enabled",
-                mTargetContext.getResources().getBoolean(
-                    R.bool.config_hearing_aid_profile_supported));
+                BluetoothProperties.audioStreamingForHearingAidSupported().orElse(false));
         // Set up mocks and test assets
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
@@ -86,8 +86,7 @@ public class HearingAidStateMachineTest {
 
     @After
     public void tearDown() throws Exception {
-        if (!mTargetContext.getResources().getBoolean(
-                            R.bool.config_hearing_aid_profile_supported)) {
+        if (!BluetoothProperties.audioStreamingForHearingAidSupported().orElse(false)) {
             return;
         }
         mHearingAidStateMachine.doQuit();

@@ -358,7 +358,7 @@ class BluetoothOppNotification {
             Notification.Builder b = new Notification.Builder(mContext, OPP_NOTIFICATION_CHANNEL);
             b.setOnlyAlertOnce(true);
             b.setColor(mContext.getResources()
-                    .getColor(com.android.internal.R.color.system_notification_accent_color,
+                    .getColor(android.R.color.system_notification_accent_color,
                             mContext.getTheme()));
             b.setContentTitle(item.description);
             b.setSubText(
@@ -456,7 +456,7 @@ class BluetoothOppNotification {
                             .setSmallIcon(android.R.drawable.stat_sys_upload_done)
                             .setColor(mContext.getResources()
                                     .getColor(
-                                            com.android.internal.R.color
+                                            android.R.color
                                                     .system_notification_accent_color,
                                             mContext.getTheme()))
                             // TODO(b/171825892) Please replace FLAG_MUTABLE_UNAUDITED below
@@ -526,7 +526,7 @@ class BluetoothOppNotification {
                             .setSmallIcon(android.R.drawable.stat_sys_download_done)
                             .setColor(mContext.getResources()
                                     .getColor(
-                                            com.android.internal.R.color
+                                            android.R.color
                                                     .system_notification_accent_color,
                                             mContext.getTheme()))
 
@@ -602,7 +602,7 @@ class BluetoothOppNotification {
                                     PendingIntent.FLAG_IMMUTABLE))
                             .setColor(mContext.getResources()
                                     .getColor(
-                                            com.android.internal.R.color
+                                            android.R.color
                                                     .system_notification_accent_color,
                                             mContext.getTheme()))
                             .setContentTitle(mContext.getText(
@@ -631,7 +631,7 @@ class BluetoothOppNotification {
                                     PendingIntent.FLAG_IMMUTABLE))
                             .setColor(mContext.getResources()
                                     .getColor(
-                                            com.android.internal.R.color
+                                            android.R.color
                                                     .system_notification_accent_color,
                                             mContext.getTheme()))
                             .setContentTitle(mContext.getText(
