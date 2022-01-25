@@ -33,7 +33,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
-import android.media.BtProfileConnectionInfo;
+import android.media.BluetoothProfileConnectionInfo;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
@@ -688,7 +688,7 @@ public class LeAudioService extends ProfileService {
                             + " isLeOutput: false");
             }
             mAudioManager.handleBluetoothActiveDeviceChanged(mActiveAudioInDevice,previousInDevice,
-                    BtProfileConnectionInfo.leAudio(false, false));
+                    BluetoothProfileConnectionInfo.createLeAudioInfo(false, false));
 
             return true;
         }
@@ -750,7 +750,8 @@ public class LeAudioService extends ProfileService {
                             + " isLeOutput: true");
             }
             mAudioManager.handleBluetoothActiveDeviceChanged(mActiveAudioOutDevice,
-                    previousOutDevice, BtProfileConnectionInfo.leAudio(suppressNoisyIntent, true));
+                    previousOutDevice,
+                    BluetoothProfileConnectionInfo.createLeAudioInfo(suppressNoisyIntent, true));
             return true;
         }
         Log.d(TAG, "updateActiveOutDevice: Nothing to do.");
@@ -1042,7 +1043,8 @@ public class LeAudioService extends ProfileService {
                         BluetoothDevice previousDevice = mActiveAudioOutDevice;
                         mActiveAudioOutDevice = device;
                         mAudioManager.handleBluetoothActiveDeviceChanged(mActiveAudioOutDevice,
-                                previousDevice, BtProfileConnectionInfo.leAudio(false, true));
+                                previousDevice,
+                                BluetoothProfileConnectionInfo.createLeAudioInfo(false, true));
                     }
                 }
             } else {
@@ -1052,7 +1054,8 @@ public class LeAudioService extends ProfileService {
                         BluetoothDevice previousDevice = mActiveAudioOutDevice;
                         mActiveAudioOutDevice = null;
                         mAudioManager.handleBluetoothActiveDeviceChanged(mActiveAudioOutDevice,
-                                previousDevice, BtProfileConnectionInfo.leAudio(true, true));
+                                previousDevice,
+                                BluetoothProfileConnectionInfo.createLeAudioInfo(true, true));
                     }
                 }
             }
