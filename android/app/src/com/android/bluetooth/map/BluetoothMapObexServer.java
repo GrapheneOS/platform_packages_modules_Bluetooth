@@ -32,6 +32,10 @@ import android.util.Log;
 import com.android.bluetooth.SignedLongLong;
 import com.android.bluetooth.map.BluetoothMapUtils.TYPE;
 import com.android.bluetooth.mapapi.BluetoothMapContract;
+import com.android.bluetooth.obex.HeaderSet;
+import com.android.bluetooth.obex.Operation;
+import com.android.bluetooth.obex.ResponseCodes;
+import com.android.bluetooth.obex.ServerRequestHandler;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -39,11 +43,6 @@ import java.io.OutputStream;
 import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Calendar;
-
-import javax.obex.HeaderSet;
-import javax.obex.Operation;
-import javax.obex.ResponseCodes;
-import javax.obex.ServerRequestHandler;
 
 
 public class BluetoothMapObexServer extends ServerRequestHandler {

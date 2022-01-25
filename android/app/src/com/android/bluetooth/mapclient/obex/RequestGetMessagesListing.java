@@ -16,13 +16,13 @@
 
 package com.android.bluetooth.mapclient;
 
+import com.android.bluetooth.obex.ClientSession;
+import com.android.bluetooth.obex.HeaderSet;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
-
-import javax.obex.ClientSession;
-import javax.obex.HeaderSet;
 
 /* Get a listing of messages in directory. */
 final class RequestGetMessagesListing extends Request {

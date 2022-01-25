@@ -1475,10 +1475,16 @@ void DualModeController::Inquiry(CommandView command) {
   auto command_view = gd_hci::InquiryView::Create(
       gd_hci::DiscoveryCommandView::Create(command));
   ASSERT(command_view.IsValid());
+  auto max_responses = command_view.GetNumResponses();
+  auto length = command_view.GetInquiryLength();
+  if (max_responses > 0xff || length < 1 || length > 0x30) {
+    send_event_(bluetooth::hci::InquiryStatusBuilder::Create(
+        ErrorCode::INVALID_HCI_COMMAND_PARAMETERS, kNumCommandPackets));
+    return;
+  }
   link_layer_controller_.SetInquiryLAP(command_view.GetLap().lap_);
-  link_layer_controller_.SetInquiryMaxResponses(command_view.GetNumResponses());
-  link_layer_controller_.StartInquiry(
-      std::chrono::milliseconds(command_view.GetInquiryLength() * 1280));
+  link_layer_controller_.SetInquiryMaxResponses(max_responses);
+  link_layer_controller_.StartInquiry(std::chrono::milliseconds(length * 1280));
 
   send_event_(bluetooth::hci::InquiryStatusBuilder::Create(
       ErrorCode::SUCCESS, kNumCommandPackets));

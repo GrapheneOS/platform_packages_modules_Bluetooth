@@ -26,15 +26,14 @@ import android.util.Log;
 import android.util.SparseBooleanArray;
 
 import com.android.bluetooth.BluetoothObexTransport;
+import com.android.bluetooth.obex.ClientOperation;
+import com.android.bluetooth.obex.ClientSession;
+import com.android.bluetooth.obex.HeaderSet;
+import com.android.bluetooth.obex.ObexTransport;
+import com.android.bluetooth.obex.ResponseCodes;
 
 import java.io.IOException;
 import java.io.OutputStream;
-
-import javax.obex.ClientOperation;
-import javax.obex.ClientSession;
-import javax.obex.HeaderSet;
-import javax.obex.ObexTransport;
-import javax.obex.ResponseCodes;
 
 /**
  * The Message Notification Service class runs its own message handler thread,

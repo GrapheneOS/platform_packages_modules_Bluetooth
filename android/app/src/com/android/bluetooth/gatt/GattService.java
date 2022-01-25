@@ -3783,13 +3783,18 @@ public class GattService extends ProfileService {
     }
 
     private boolean isLeAudioSrvcUuid(final UUID uuid) {
-        return LE_AUDIO_SERVICE_UUIDS.equals(uuid);
+        for (UUID leAudioUuid : LE_AUDIO_SERVICE_UUIDS) {
+            if (leAudioUuid.equals(uuid)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean isRestrictedSrvcUuid(final UUID uuid) {
-        return isLeAudioSrvcUuid(uuid) ||
-               isAndroidTvRemoteSrvcUuid(uuid) ||
-               isLeAudioSrvcUuid(uuid);
+        return isFidoSrvcUuid(uuid)
+                || isAndroidTvRemoteSrvcUuid(uuid)
+                || isLeAudioSrvcUuid(uuid);
     }
 
     private int getDeviceType(BluetoothDevice device) {
