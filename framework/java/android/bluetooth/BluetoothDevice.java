@@ -135,7 +135,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
     /**
      * Broadcast Action: Indicates a low level (ACL) connection has been
      * established with a remote device.
-     * <p>Always contains the extra field {@link #EXTRA_DEVICE}.
+     * <p>Always contains the extra fields {@link #EXTRA_DEVICE} and {@link #EXTRA_TRANSPORT}.
      * <p>ACL connections are managed automatically by the Android Bluetooth
      * stack.
      */
@@ -164,7 +164,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
     /**
      * Broadcast Action: Indicates a low level (ACL) disconnection from a
      * remote device.
-     * <p>Always contains the extra field {@link #EXTRA_DEVICE}.
+     * <p>Always contains the extra fields {@link #EXTRA_DEVICE} and {@link #EXTRA_TRANSPORT}.
      * <p>ACL connections are managed automatically by the Android Bluetooth
      * stack.
      */
@@ -1020,12 +1020,12 @@ public final class BluetoothDevice implements Parcelable, Attributable {
     public static final int TRANSPORT_AUTO = 0;
 
     /**
-     * Prefer BR/EDR transport for GATT connections to remote dual-mode devices
+     * Constant representing the BR/EDR transport.
      */
     public static final int TRANSPORT_BREDR = 1;
 
     /**
-     * Prefer LE transport for GATT connections to remote dual-mode devices
+     * Constant representing the Bluetooth Low Energy (BLE) Transport.
      */
     public static final int TRANSPORT_LE = 2;
 
@@ -1084,6 +1084,14 @@ public final class BluetoothDevice implements Parcelable, Attributable {
     /** @hide */
     public static final String EXTRA_MAS_INSTANCE =
             "android.bluetooth.device.extra.MAS_INSTANCE";
+
+    /**
+     * Used as an int extra field in {@link #ACTION_ACL_CONNECTED} and
+     * {@link #ACTION_ACL_DISCONNECTED} intents to indicate which transport is connected.
+     * Possible values are: {@link #TRANSPORT_BREDR} and {@link #TRANSPORT_LE}.
+     */
+    @SuppressLint("ActionValue")
+    public static final String EXTRA_TRANSPORT = "android.bluetooth.device.extra.TRANSPORT";
 
     /** @hide */
     @Retention(RetentionPolicy.SOURCE)
