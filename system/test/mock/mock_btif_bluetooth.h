@@ -63,7 +63,6 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "btif/include/btif_av.h"
 #include "btif/include/btif_bqr.h"
 #include "btif/include/btif_config.h"
-#include "btif/include/btif_debug.h"
 #include "btif/include/btif_debug_conn.h"
 #include "btif/include/btif_hf.h"
 #include "btif/include/btif_keystore.h"
