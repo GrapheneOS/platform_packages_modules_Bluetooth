@@ -30,6 +30,77 @@ namespace test_vendor_lib {
 using ::bluetooth::hci::Address;
 using ::bluetooth::hci::ClassOfDevice;
 using ::bluetooth::hci::EventCode;
+using ::bluetooth::hci::LMPFeaturesPage0Bits;
+using ::bluetooth::hci::LMPFeaturesPage1Bits;
+
+static constexpr uint64_t Page0LmpFeatures() {
+  LMPFeaturesPage0Bits features[] = {
+      LMPFeaturesPage0Bits::LMP_3_SLOT_PACKETS,
+      LMPFeaturesPage0Bits::LMP_5_SLOT_PACKETS,
+      LMPFeaturesPage0Bits::ENCRYPTION,
+      LMPFeaturesPage0Bits::SLOT_OFFSET,
+      LMPFeaturesPage0Bits::TIMING_ACCURACY,
+      LMPFeaturesPage0Bits::ROLE_SWITCH,
+      LMPFeaturesPage0Bits::HOLD_MODE,
+      LMPFeaturesPage0Bits::SNIFF_MODE,
+      LMPFeaturesPage0Bits::POWER_CONTROL_REQUESTS,
+      LMPFeaturesPage0Bits::CHANNEL_QUALITY_DRIVEN_DATA_RATE,
+      LMPFeaturesPage0Bits::SCO_LINK,
+      LMPFeaturesPage0Bits::HV2_PACKETS,
+      LMPFeaturesPage0Bits::HV3_PACKETS,
+      LMPFeaturesPage0Bits::M_LAW_LOG_SYNCHRONOUS_DATA,
+      LMPFeaturesPage0Bits::A_LAW_LOG_SYNCHRONOUS_DATA,
+      LMPFeaturesPage0Bits::CVSD_SYNCHRONOUS_DATA,
+      LMPFeaturesPage0Bits::PAGING_PARAMETER_NEGOTIATION,
+      LMPFeaturesPage0Bits::POWER_CONTROL,
+      LMPFeaturesPage0Bits::TRANSPARENT_SYNCHRONOUS_DATA,
+      LMPFeaturesPage0Bits::BROADCAST_ENCRYPTION,
+      LMPFeaturesPage0Bits::ENHANCED_DATA_RATE_ACL_2_MB_S_MODE,
+      LMPFeaturesPage0Bits::ENHANCED_DATA_RATE_ACL_3_MB_S_MODE,
+      LMPFeaturesPage0Bits::ENHANCED_INQUIRY_SCAN,
+      LMPFeaturesPage0Bits::INTERLACED_INQUIRY_SCAN,
+      LMPFeaturesPage0Bits::INTERLACED_PAGE_SCAN,
+      LMPFeaturesPage0Bits::RSSI_WITH_INQUIRY_RESULTS,
+      LMPFeaturesPage0Bits::EXTENDED_SCO_LINK,
+      LMPFeaturesPage0Bits::EV4_PACKETS,
+      LMPFeaturesPage0Bits::EV5_PACKETS,
+      LMPFeaturesPage0Bits::AFH_CAPABLE_PERIPHERAL,
+      LMPFeaturesPage0Bits::AFH_CLASSIFICATION_PERIPHERAL,
+      LMPFeaturesPage0Bits::LE_SUPPORTED_CONTROLLER,
+      LMPFeaturesPage0Bits::LMP_3_SLOT_ENHANCED_DATA_RATE_ACL_PACKETS,
+      LMPFeaturesPage0Bits::LMP_5_SLOT_ENHANCED_DATA_RATE_ACL_PACKETS,
+      LMPFeaturesPage0Bits::SNIFF_SUBRATING,
+      LMPFeaturesPage0Bits::PAUSE_ENCRYPTION,
+      LMPFeaturesPage0Bits::AFH_CAPABLE_CENTRAL,
+      LMPFeaturesPage0Bits::AFH_CLASSIFICATION_CENTRAL,
+      LMPFeaturesPage0Bits::ENHANCED_DATA_RATE_ESCO_2_MB_S_MODE,
+      LMPFeaturesPage0Bits::ENHANCED_DATA_RATE_ESCO_3_MB_S_MODE,
+      LMPFeaturesPage0Bits::LMP_3_SLOT_ENHANCED_DATA_RATE_ESCO_PACKETS,
+      LMPFeaturesPage0Bits::EXTENDED_INQUIRY_RESPONSE,
+      LMPFeaturesPage0Bits::SIMULTANEOUS_LE_AND_BR_CONTROLLER,
+      LMPFeaturesPage0Bits::SECURE_SIMPLE_PAIRING_CONTROLLER,
+      LMPFeaturesPage0Bits::ENCAPSULATED_PDU,
+      LMPFeaturesPage0Bits::HCI_LINK_SUPERVISION_TIMEOUT_CHANGED_EVENT,
+      LMPFeaturesPage0Bits::VARIABLE_INQUIRY_TX_POWER_LEVEL,
+      LMPFeaturesPage0Bits::ENHANCED_POWER_CONTROL,
+      LMPFeaturesPage0Bits::EXTENDED_FEATURES};
+
+  uint64_t value = 0;
+  for (unsigned i = 0; i < sizeof(features) / sizeof(*features); i++)
+    value |= static_cast<uint64_t>(features[i]);
+  return value;
+}
+
+static constexpr uint64_t Page1LmpFeatures() {
+  LMPFeaturesPage1Bits features[] = {
+      LMPFeaturesPage1Bits::SIMULTANEOUS_LE_AND_BR_HOST,
+  };
+
+  uint64_t value = 0;
+  for (unsigned i = 0; i < sizeof(features) / sizeof(*features); i++)
+    value |= static_cast<uint64_t>(features[i]);
+  return value;
+}
 
 class DeviceProperties {
  public:
@@ -410,7 +481,8 @@ class DeviceProperties {
   std::vector<uint8_t> supported_codecs_;
   std::vector<uint32_t> vendor_specific_codecs_;
   std::array<uint8_t, 64> supported_commands_;
-  std::vector<uint64_t> extended_features_{{0x875bffdbfe8ffeff, 0x04}};
+  std::array<uint64_t, 2> extended_features_{
+      {Page0LmpFeatures(), Page1LmpFeatures()}};
   ClassOfDevice class_of_device_{{0, 0, 0}};
   std::vector<uint8_t> extended_inquiry_data_;
   std::array<uint8_t, 248> name_{};

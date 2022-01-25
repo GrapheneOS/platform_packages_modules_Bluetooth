@@ -18,14 +18,14 @@ package com.android.bluetooth.avrcpcontroller;
 
 import android.util.Log;
 
+import com.android.bluetooth.obex.ClientOperation;
+import com.android.bluetooth.obex.ClientSession;
+import com.android.bluetooth.obex.HeaderSet;
+import com.android.bluetooth.obex.ResponseCodes;
+
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-
-import javax.obex.ClientOperation;
-import javax.obex.ClientSession;
-import javax.obex.HeaderSet;
-import javax.obex.ResponseCodes;
 
 /**
  * This is a base class for implementing AVRCP Controller Basic Image Profile (BIP) requests

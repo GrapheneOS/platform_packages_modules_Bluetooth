@@ -253,7 +253,8 @@ void avct_bcb_close_ind(tAVCT_BCB* p_bcb, UNUSED_ATTR tAVCT_LCB_EVT* p_data) {
                                   &p_lcb->peer_addr);
       } else {
         (*p_ccb->cc.p_ctrl_cback)(avct_ccb_to_idx(p_ccb),
-                                  AVCT_BROWSE_DISCONN_IND_EVT, 0, NULL);
+                                  AVCT_BROWSE_DISCONN_IND_EVT, 0,
+                                  &p_lcb->peer_addr);
       }
       p_ccb->p_bcb = NULL;
     }

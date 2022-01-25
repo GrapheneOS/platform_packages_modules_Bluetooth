@@ -29,6 +29,7 @@ import com.android.bluetooth.IObexConnectionHandler;
 import com.android.bluetooth.ObexServerSockets;
 import com.android.bluetooth.map.BluetoothMapContentObserver.Msg;
 import com.android.bluetooth.map.BluetoothMapUtils.TYPE;
+import com.android.bluetooth.obex.ServerSession;
 import com.android.bluetooth.sdp.SdpManager;
 
 import java.io.IOException;
@@ -36,8 +37,6 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
-
-import javax.obex.ServerSession;
 
 public class BluetoothMapMasInstance implements IObexConnectionHandler {
     private final String mTag;

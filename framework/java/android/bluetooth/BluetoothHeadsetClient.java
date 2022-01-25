@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package android.bluetooth;
-
 import static android.bluetooth.BluetoothUtils.getSyncTimeout;
-
 import android.annotation.NonNull;
 import android.annotation.RequiresPermission;
 import android.annotation.SdkConstant;
 import android.annotation.SdkConstant.SdkConstantType;
+import android.annotation.SuppressLint;
+import android.annotation.SystemApi;
 import android.bluetooth.annotations.RequiresBluetoothConnectPermission;
 import android.bluetooth.annotations.RequiresLegacyBluetoothPermission;
 import android.compat.annotation.UnsupportedAppUsage;
@@ -31,60 +30,53 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
+import android.util.CloseGuard;
 import android.util.Log;
-
 import com.android.modules.utils.SynchronousResultReceiver;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
-
 /**
- * Public API to control Hands Free Profile (HFP role only).
- * <p>
- * This class defines methods that shall be used by application to manage profile
- * connection, calls states and calls actions.
- * <p>
+ * This class provides the System APIs to interact with the Hands-Free Client profile.
+ *
+ * <p>BluetoothHeadsetClient is a proxy object for controlling the Bluetooth HFP Client
+ * Service via IPC. Use {@link BluetoothAdapter#getProfileProxy} to get
+ * the BluetoothHeadsetClient proxy object.
  *
  * @hide
  */
-public final class BluetoothHeadsetClient implements BluetoothProfile {
+@SystemApi
+public final class BluetoothHeadsetClient implements BluetoothProfile, AutoCloseable {
     private static final String TAG = "BluetoothHeadsetClient";
     private static final boolean DBG = true;
     private static final boolean VDBG = false;
-
+    private final CloseGuard mCloseGuard;
     /**
-     * Intent sent whenever connection to remote changes.
+     * Intent used to broadcast the change in connection state of the HFP Client profile.
      *
-     * <p>It includes two extras:
-     * <code>BluetoothProfile.EXTRA_PREVIOUS_STATE</code>
-     * and <code>BluetoothProfile.EXTRA_STATE</code>, which
-     * are mandatory.
-     * <p>There are also non mandatory feature extras:
-     * {@link #EXTRA_AG_FEATURE_3WAY_CALLING},
-     * {@link #EXTRA_AG_FEATURE_VOICE_RECOGNITION},
-     * {@link #EXTRA_AG_FEATURE_ATTACH_NUMBER_TO_VT},
-     * {@link #EXTRA_AG_FEATURE_REJECT_CALL},
-     * {@link #EXTRA_AG_FEATURE_ECC},
-     * {@link #EXTRA_AG_FEATURE_RESPONSE_AND_HOLD},
-     * {@link #EXTRA_AG_FEATURE_ACCEPT_HELD_OR_WAITING_CALL},
-     * {@link #EXTRA_AG_FEATURE_RELEASE_HELD_OR_WAITING_CALL},
-     * {@link #EXTRA_AG_FEATURE_RELEASE_AND_ACCEPT},
-     * {@link #EXTRA_AG_FEATURE_MERGE},
-     * {@link #EXTRA_AG_FEATURE_MERGE_AND_DETACH},
-     * sent as boolean values only when <code>EXTRA_STATE</code>
-     * is set to <code>STATE_CONNECTED</code>.</p>
+     * <p>This intent will have 3 extras:
+     * <ul>
+     * <li> {@link #EXTRA_STATE} - The current state of the profile. </li>
+     * <li> {@link #EXTRA_PREVIOUS_STATE}- The previous state of the profile.</li>
+     * <li> {@link BluetoothDevice#EXTRA_DEVICE} - The remote device. </li>
+     * </ul>
      *
-     * <p>Note that features supported by AG are being sent as
-     * booleans with value <code>true</code>,
-     * and not supported ones are <strong>not</strong> being sent at all.</p>
+     * <p>{@link #EXTRA_STATE} or {@link #EXTRA_PREVIOUS_STATE} can be any of
+     * {@link #STATE_DISCONNECTED}, {@link #STATE_CONNECTING},
+     * {@link #STATE_CONNECTED}, {@link #STATE_DISCONNECTING}.
+     *
+     * @hide
      */
+    @SuppressLint("ActionValue")
+    @SystemApi
     @RequiresBluetoothConnectPermission
-    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
     @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
     public static final String ACTION_CONNECTION_STATE_CHANGED =
-            "android.bluetooth.headsetclient.profile.action.CONNECTION_STATE_CHANGED";
-
+            "android.bluetooth.headsetprofile.action.CONNECTION_STATE_CHANGED";
     /**
      * Intent sent whenever audio state changes.
      *
@@ -99,13 +91,14 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
      * to </code>STATE_AUDIO_CONNECTED</code>,
      * it also includes {@link #EXTRA_AUDIO_WBS}
      * indicating wide band speech support.</p>
+     *
+     * @hide
      */
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
     public static final String ACTION_AUDIO_STATE_CHANGED =
             "android.bluetooth.headsetclient.profile.action.AUDIO_STATE_CHANGED";
-
     /**
      * Intent sending updates of the Audio Gateway state.
      * Each extra is being sent only when value it
@@ -118,13 +111,14 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
      * {@link #EXTRA_OPERATOR_NAME},
      * {@link #EXTRA_VOICE_RECOGNITION},
      * {@link #EXTRA_IN_BAND_RING}</p>
+     *
+     * @hide
      */
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
     public static final String ACTION_AG_EVENT =
             "android.bluetooth.headsetclient.profile.action.AG_EVENT";
-
     /**
      * Intent sent whenever state of a call changes.
      *
@@ -132,26 +126,28 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
      * {@link #EXTRA_CALL},
      * with value of {@link BluetoothHeadsetClientCall} instance,
      * representing actual call state.</p>
+     *
+     * @hide
      */
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
     public static final String ACTION_CALL_CHANGED =
             "android.bluetooth.headsetclient.profile.action.AG_CALL_CHANGED";
-
     /**
      * Intent that notifies about the result of the last issued action.
      * Please note that not every action results in explicit action result code being sent.
      * Instead other notifications about new Audio Gateway state might be sent,
      * like <code>ACTION_AG_EVENT</code> with <code>EXTRA_VOICE_RECOGNITION</code> value
      * when for example user started voice recognition from HF unit.
+     *
+     * @hide
      */
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
     public static final String ACTION_RESULT =
             "android.bluetooth.headsetclient.profile.action.RESULT";
-
     /**
      * Intent that notifies about vendor specific event arrival. Events not defined in
      * HFP spec will be matched with supported vendor event list and this intent will
@@ -159,13 +155,13 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
      * of "+eventCode" or "+eventCode=xxxx" or "+eventCode:=xxxx".
      * Vendor event can be a response to an vendor specific command or unsolicited.
      *
+     * @hide
      */
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
     public static final String ACTION_VENDOR_SPECIFIC_HEADSETCLIENT_EVENT =
             "android.bluetooth.headsetclient.profile.action.VENDOR_SPECIFIC_EVENT";
-
     /**
      * Intent that notifies about the number attached to the last voice tag
      * recorded on AG.
@@ -173,35 +169,49 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
      * <p>It contains:
      * {@link #EXTRA_NUMBER},
      * with a <code>String</code> value representing phone number.</p>
+     *
+     * @hide
      */
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
     public static final String ACTION_LAST_VTAG =
             "android.bluetooth.headsetclient.profile.action.LAST_VTAG";
-
+    /**
+     * @hide
+     */
     public static final int STATE_AUDIO_DISCONNECTED = 0;
+    /**
+     * @hide
+     */
     public static final int STATE_AUDIO_CONNECTING = 1;
+    /**
+     * @hide
+     */
     public static final int STATE_AUDIO_CONNECTED = 2;
-
     /**
      * Extra with information if connected audio is WBS.
      * <p>Possible values: <code>true</code>,
      * <code>false</code>.</p>
+     *
+     * @hide
      */
     public static final String EXTRA_AUDIO_WBS =
             "android.bluetooth.headsetclient.extra.AUDIO_WBS";
-
     /**
      * Extra for AG_EVENT indicates network status.
      * <p>Value: 0 - network unavailable,
      * 1 - network available </p>
+     *
+     * @hide
      */
     public static final String EXTRA_NETWORK_STATUS =
             "android.bluetooth.headsetclient.extra.NETWORK_STATUS";
     /**
      * Extra for AG_EVENT intent indicates network signal strength.
      * <p>Value: <code>Integer</code> representing signal strength.</p>
+     *
+     * @hide
      */
     public static final String EXTRA_NETWORK_SIGNAL_STRENGTH =
             "android.bluetooth.headsetclient.extra.NETWORK_SIGNAL_STRENGTH";
@@ -209,18 +219,24 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
      * Extra for AG_EVENT intent indicates roaming state.
      * <p>Value: 0 - no roaming
      * 1 - active roaming</p>
+     *
+     * @hide
      */
     public static final String EXTRA_NETWORK_ROAMING =
             "android.bluetooth.headsetclient.extra.NETWORK_ROAMING";
     /**
      * Extra for AG_EVENT intent indicates the battery level.
      * <p>Value: <code>Integer</code> representing signal strength.</p>
+     *
+     * @hide
      */
     public static final String EXTRA_BATTERY_LEVEL =
             "android.bluetooth.headsetclient.extra.BATTERY_LEVEL";
     /**
      * Extra for AG_EVENT intent indicates operator name.
      * <p>Value: <code>String</code> representing operator name.</p>
+     *
+     * @hide
      */
     public static final String EXTRA_OPERATOR_NAME =
             "android.bluetooth.headsetclient.extra.OPERATOR_NAME";
@@ -229,6 +245,8 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
      * <p>Value:
      * 0 - voice recognition stopped,
      * 1 - voice recognition started.</p>
+     *
+     * @hide
      */
     public static final String EXTRA_VOICE_RECOGNITION =
             "android.bluetooth.headsetclient.extra.VOICE_RECOGNITION";
@@ -237,32 +255,36 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
      * <p>Value:
      * 0 - in band ring tone not supported, or
      * 1 - in band ring tone supported.</p>
+     *
+     * @hide
      */
     public static final String EXTRA_IN_BAND_RING =
             "android.bluetooth.headsetclient.extra.IN_BAND_RING";
-
     /**
      * Extra for AG_EVENT intent indicates subscriber info.
      * <p>Value: <code>String</code> containing subscriber information.</p>
+     *
+     * @hide
      */
     public static final String EXTRA_SUBSCRIBER_INFO =
             "android.bluetooth.headsetclient.extra.SUBSCRIBER_INFO";
-
     /**
      * Extra for AG_CALL_CHANGED intent indicates the
      * {@link BluetoothHeadsetClientCall} object that has changed.
+     *
+     * @hide
      */
     public static final String EXTRA_CALL =
             "android.bluetooth.headsetclient.extra.CALL";
-
     /**
      * Extra for ACTION_LAST_VTAG intent.
      * <p>Value: <code>String</code> representing phone number
      * corresponding to last voice tag recorded on AG</p>
+     *
+     * @hide
      */
     public static final String EXTRA_NUMBER =
             "android.bluetooth.headsetclient.extra.NUMBER";
-
     /**
      * Extra for ACTION_RESULT intent that shows the result code of
      * last issued action.
@@ -275,90 +297,114 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
      * {@link #ACTION_RESULT_ERROR_DELAYED},
      * {@link #ACTION_RESULT_ERROR_BLACKLISTED},
      * {@link #ACTION_RESULT_ERROR_CME}</p>
+     *
+     * @hide
      */
     public static final String EXTRA_RESULT_CODE =
             "android.bluetooth.headsetclient.extra.RESULT_CODE";
-
     /**
      * Extra for ACTION_RESULT intent that shows the extended result code of
      * last issued action.
      * <p>Value: <code>Integer</code> - error code.</p>
+     *
+     * @hide
      */
     public static final String EXTRA_CME_CODE =
             "android.bluetooth.headsetclient.extra.CME_CODE";
-
     /**
      * Extra for VENDOR_SPECIFIC_HEADSETCLIENT_EVENT intent that
      * indicates vendor ID.
+     *
+     * @hide
      */
     public static final String EXTRA_VENDOR_ID =
             "android.bluetooth.headsetclient.extra.VENDOR_ID";
-
      /**
      * Extra for VENDOR_SPECIFIC_HEADSETCLIENT_EVENT intent that
      * indicates vendor event code.
+     *
+     * @hide
      */
     public static final String EXTRA_VENDOR_EVENT_CODE =
             "android.bluetooth.headsetclient.extra.VENDOR_EVENT_CODE";
-
      /**
      * Extra for VENDOR_SPECIFIC_HEADSETCLIENT_EVENT intent that
      * contains full vendor event including event code and full arguments.
+     *
+     * @hide
      */
     public static final String EXTRA_VENDOR_EVENT_FULL_ARGS =
             "android.bluetooth.headsetclient.extra.VENDOR_EVENT_FULL_ARGS";
-
-
     /* Extras for AG_FEATURES, extras type is boolean */
     // TODO verify if all of those are actually useful
     /**
      * AG feature: three way calling.
+     *
+     * @hide
      */
     public static final String EXTRA_AG_FEATURE_3WAY_CALLING =
             "android.bluetooth.headsetclient.extra.EXTRA_AG_FEATURE_3WAY_CALLING";
     /**
      * AG feature: voice recognition.
+     *
+     * @hide
      */
     public static final String EXTRA_AG_FEATURE_VOICE_RECOGNITION =
             "android.bluetooth.headsetclient.extra.EXTRA_AG_FEATURE_VOICE_RECOGNITION";
     /**
      * AG feature: fetching phone number for voice tagging procedure.
+     *
+     * @hide
      */
     public static final String EXTRA_AG_FEATURE_ATTACH_NUMBER_TO_VT =
             "android.bluetooth.headsetclient.extra.EXTRA_AG_FEATURE_ATTACH_NUMBER_TO_VT";
     /**
      * AG feature: ability to reject incoming call.
+     *
+     * @hide
      */
     public static final String EXTRA_AG_FEATURE_REJECT_CALL =
             "android.bluetooth.headsetclient.extra.EXTRA_AG_FEATURE_REJECT_CALL";
     /**
      * AG feature: enhanced call handling (terminate specific call, private consultation).
+     *
+     * @hide
      */
     public static final String EXTRA_AG_FEATURE_ECC =
             "android.bluetooth.headsetclient.extra.EXTRA_AG_FEATURE_ECC";
     /**
      * AG feature: response and hold.
+     *
+     * @hide
      */
     public static final String EXTRA_AG_FEATURE_RESPONSE_AND_HOLD =
             "android.bluetooth.headsetclient.extra.EXTRA_AG_FEATURE_RESPONSE_AND_HOLD";
     /**
      * AG call handling feature: accept held or waiting call in three way calling scenarios.
+     *
+     * @hide
      */
     public static final String EXTRA_AG_FEATURE_ACCEPT_HELD_OR_WAITING_CALL =
             "android.bluetooth.headsetclient.extra.EXTRA_AG_FEATURE_ACCEPT_HELD_OR_WAITING_CALL";
     /**
      * AG call handling feature: release held or waiting call in three way calling scenarios.
+     *
+     * @hide
      */
     public static final String EXTRA_AG_FEATURE_RELEASE_HELD_OR_WAITING_CALL =
             "android.bluetooth.headsetclient.extra.EXTRA_AG_FEATURE_RELEASE_HELD_OR_WAITING_CALL";
     /**
      * AG call handling feature: release active call and accept held or waiting call in three way
      * calling scenarios.
+     *
+     * @hide
      */
     public static final String EXTRA_AG_FEATURE_RELEASE_AND_ACCEPT =
             "android.bluetooth.headsetclient.extra.EXTRA_AG_FEATURE_RELEASE_AND_ACCEPT";
     /**
      * AG call handling feature: merge two calls, held and active - multi party conference mode.
+     *
+     * @hide
      */
     public static final String EXTRA_AG_FEATURE_MERGE =
             "android.bluetooth.headsetclient.extra.EXTRA_AG_FEATURE_MERGE";
@@ -367,68 +413,222 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
      * conversation leaving peers connected to each other.
      * Note that this feature needs to be supported by mobile network operator
      * as it requires connection and billing transfer.
+     *
+     * @hide
      */
     public static final String EXTRA_AG_FEATURE_MERGE_AND_DETACH =
             "android.bluetooth.headsetclient.extra.EXTRA_AG_FEATURE_MERGE_AND_DETACH";
-
     /* Action result codes */
+    /**
+     * @hide
+     */
     public static final int ACTION_RESULT_OK = 0;
+    /**
+     * @hide
+     */
     public static final int ACTION_RESULT_ERROR = 1;
+    /**
+     * @hide
+     */
     public static final int ACTION_RESULT_ERROR_NO_CARRIER = 2;
+    /**
+     * @hide
+     */
     public static final int ACTION_RESULT_ERROR_BUSY = 3;
+    /**
+     * @hide
+     */
     public static final int ACTION_RESULT_ERROR_NO_ANSWER = 4;
+    /**
+     * @hide
+     */
     public static final int ACTION_RESULT_ERROR_DELAYED = 5;
+    /**
+     * @hide
+     */
     public static final int ACTION_RESULT_ERROR_BLACKLISTED = 6;
+    /**
+     * @hide
+     */
     public static final int ACTION_RESULT_ERROR_CME = 7;
-
     /* Detailed CME error codes */
+    /**
+     * @hide
+     */
     public static final int CME_PHONE_FAILURE = 0;
+    /**
+     * @hide
+     */
     public static final int CME_NO_CONNECTION_TO_PHONE = 1;
+    /**
+     * @hide
+     */
     public static final int CME_OPERATION_NOT_ALLOWED = 3;
+    /**
+     * @hide
+     */
     public static final int CME_OPERATION_NOT_SUPPORTED = 4;
+    /**
+     * @hide
+     */
     public static final int CME_PHSIM_PIN_REQUIRED = 5;
+    /**
+     * @hide
+     */
     public static final int CME_PHFSIM_PIN_REQUIRED = 6;
+    /**
+     * @hide
+     */
     public static final int CME_PHFSIM_PUK_REQUIRED = 7;
+    /**
+     * @hide
+     */
     public static final int CME_SIM_NOT_INSERTED = 10;
+    /**
+     * @hide
+     */
     public static final int CME_SIM_PIN_REQUIRED = 11;
+    /**
+     * @hide
+     */
     public static final int CME_SIM_PUK_REQUIRED = 12;
+    /**
+     * @hide
+     */
     public static final int CME_SIM_FAILURE = 13;
+    /**
+     * @hide
+     */
     public static final int CME_SIM_BUSY = 14;
+    /**
+     * @hide
+     */
     public static final int CME_SIM_WRONG = 15;
+    /**
+     * @hide
+     */
     public static final int CME_INCORRECT_PASSWORD = 16;
+    /**
+     * @hide
+     */
     public static final int CME_SIM_PIN2_REQUIRED = 17;
+    /**
+     * @hide
+     */
     public static final int CME_SIM_PUK2_REQUIRED = 18;
+    /**
+     * @hide
+     */
     public static final int CME_MEMORY_FULL = 20;
+    /**
+     * @hide
+     */
     public static final int CME_INVALID_INDEX = 21;
+    /**
+     * @hide
+     */
     public static final int CME_NOT_FOUND = 22;
+    /**
+     * @hide
+     */
     public static final int CME_MEMORY_FAILURE = 23;
+    /**
+     * @hide
+     */
     public static final int CME_TEXT_STRING_TOO_LONG = 24;
+    /**
+     * @hide
+     */
     public static final int CME_INVALID_CHARACTER_IN_TEXT_STRING = 25;
+    /**
+     * @hide
+     */
     public static final int CME_DIAL_STRING_TOO_LONG = 26;
+    /**
+     * @hide
+     */
     public static final int CME_INVALID_CHARACTER_IN_DIAL_STRING = 27;
+    /**
+     * @hide
+     */
     public static final int CME_NO_NETWORK_SERVICE = 30;
+    /**
+     * @hide
+     */
     public static final int CME_NETWORK_TIMEOUT = 31;
+    /**
+     * @hide
+     */
     public static final int CME_EMERGENCY_SERVICE_ONLY = 32;
+    /**
+     * @hide
+     */
     public static final int CME_NO_SIMULTANOUS_VOIP_CS_CALLS = 33;
+    /**
+     * @hide
+     */
     public static final int CME_NOT_SUPPORTED_FOR_VOIP = 34;
+    /**
+     * @hide
+     */
     public static final int CME_SIP_RESPONSE_CODE = 35;
+    /**
+     * @hide
+     */
     public static final int CME_NETWORK_PERSONALIZATION_PIN_REQUIRED = 40;
+    /**
+     * @hide
+     */
     public static final int CME_NETWORK_PERSONALIZATION_PUK_REQUIRED = 41;
+    /**
+     * @hide
+     */
     public static final int CME_NETWORK_SUBSET_PERSONALIZATION_PIN_REQUIRED = 42;
+    /**
+     * @hide
+     */
     public static final int CME_NETWORK_SUBSET_PERSONALIZATION_PUK_REQUIRED = 43;
+    /**
+     * @hide
+     */
     public static final int CME_SERVICE_PROVIDER_PERSONALIZATION_PIN_REQUIRED = 44;
+    /**
+     * @hide
+     */
     public static final int CME_SERVICE_PROVIDER_PERSONALIZATION_PUK_REQUIRED = 45;
+    /**
+     * @hide
+     */
     public static final int CME_CORPORATE_PERSONALIZATION_PIN_REQUIRED = 46;
+    /**
+     * @hide
+     */
     public static final int CME_CORPORATE_PERSONALIZATION_PUK_REQUIRED = 47;
+    /**
+     * @hide
+     */
     public static final int CME_HIDDEN_KEY_REQUIRED = 48;
+    /**
+     * @hide
+     */
     public static final int CME_EAP_NOT_SUPPORTED = 49;
+    /**
+     * @hide
+     */
     public static final int CME_INCORRECT_PARAMETERS = 50;
-
     /* Action policy for other calls when accepting call */
+    /**
+     * @hide
+     */
     public static final int CALL_ACCEPT_NONE = 0;
+    /**
+     * @hide
+     */
     public static final int CALL_ACCEPT_HOLD = 1;
+    /**
+     * @hide
+     */
     public static final int CALL_ACCEPT_TERMINATE = 2;
-
     private final BluetoothAdapter mAdapter;
     private final AttributionSource mAttributionSource;
     private final BluetoothProfileConnector<IBluetoothHeadsetClient> mProfileConnector =
@@ -439,32 +639,42 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
                     return IBluetoothHeadsetClient.Stub.asInterface(service);
                 }
     };
-
     /**
      * Create a BluetoothHeadsetClient proxy object.
      */
-    /* package */ BluetoothHeadsetClient(Context context, ServiceListener listener,
+    BluetoothHeadsetClient(Context context, ServiceListener listener,
             BluetoothAdapter adapter) {
         mAdapter = adapter;
         mAttributionSource = adapter.getAttributionSource();
         mProfileConnector.connect(context, listener);
+        mCloseGuard = new CloseGuard();
+        mCloseGuard.open("close");
     }
-
     /**
      * Close the connection to the backing service.
      * Other public functions of BluetoothHeadsetClient will return default error
      * results once close() has been called. Multiple invocations of close()
      * are ok.
+     *
+     * @hide
      */
-    /*package*/ void close() {
+    public void close() {
         if (VDBG) log("close()");
         mProfileConnector.disconnect();
+        if (mCloseGuard != null) {
+            mCloseGuard.close();
+        }
     }
-
     private IBluetoothHeadsetClient getService() {
         return mProfileConnector.getService();
     }
-
+    /** @hide */
+    protected void finalize() {
+        if (mCloseGuard != null) {
+            mCloseGuard.warnIfOpen();
+        }
+        close();
+    }
     /**
      * Connects to remote device.
      *
@@ -499,7 +709,6 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
         }
         return defaultValue;
     }
-
     /**
      * Disconnects remote device
      *
@@ -530,16 +739,21 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
         }
         return defaultValue;
     }
-
     /**
      * Return the list of connected remote devices
      *
      * @return list of connected devices; empty list if nothing is connected.
+     *
+     * @hide
      */
+    @SystemApi
     @Override
     @RequiresBluetoothConnectPermission
-    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
-    public List<BluetoothDevice> getConnectedDevices() {
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
+    public @NonNull List<BluetoothDevice> getConnectedDevices() {
         if (VDBG) log("getConnectedDevices()");
         final IBluetoothHeadsetClient service = getService();
         final List<BluetoothDevice> defaultValue = new ArrayList<BluetoothDevice>();
@@ -554,24 +768,33 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
                 return Attributable.setAttributionSource(
                         recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue),
                         mAttributionSource);
-            } catch (RemoteException | TimeoutException e) {
+            } catch (RemoteException e) {
+                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+                throw e.rethrowFromSystemServer();
+            } catch (TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             }
         }
         return defaultValue;
     }
-
     /**
      * Returns list of remote devices in a particular state
      *
      * @param states collection of states
      * @return list of devices that state matches the states listed in <code>states</code>; empty
      * list if nothing matches the <code>states</code>
+     *
+     * @hide
      */
+    @SystemApi
     @Override
     @RequiresBluetoothConnectPermission
-    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
-    public List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
+    public @NonNull List<BluetoothDevice> getDevicesMatchingConnectionStates(
+            @NonNull int[] states) {
         if (VDBG) log("getDevicesMatchingStates()");
         final IBluetoothHeadsetClient service = getService();
         final List<BluetoothDevice> defaultValue = new ArrayList<BluetoothDevice>();
@@ -586,23 +809,31 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
                 return Attributable.setAttributionSource(
                         recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue),
                         mAttributionSource);
-            } catch (RemoteException | TimeoutException e) {
+            } catch (RemoteException e) {
+                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+                throw e.rethrowFromSystemServer();
+            } catch (TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             }
         }
         return defaultValue;
     }
-
     /**
      * Returns state of the <code>device</code>
      *
      * @param device a remote device
      * @return the state of connection of the device
+     *
+     * @hide
      */
+    @SystemApi
     @Override
     @RequiresBluetoothConnectPermission
-    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
-    public int getConnectionState(BluetoothDevice device) {
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
+    public @BtProfileState int getConnectionState(@NonNull BluetoothDevice device) {
         if (VDBG) log("getConnectionState(" + device + ")");
         final IBluetoothHeadsetClient service = getService();
         final int defaultValue = BluetoothProfile.STATE_DISCONNECTED;
@@ -614,13 +845,15 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
                 final SynchronousResultReceiver<Integer> recv = new SynchronousResultReceiver();
                 service.getConnectionState(device, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
-            } catch (RemoteException | TimeoutException e) {
+            } catch (RemoteException e) {
+                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+                throw e.rethrowFromSystemServer();
+            } catch (TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             }
         }
         return defaultValue;
     }
-
     /**
      * Set priority of the profile
      *
@@ -638,7 +871,6 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
         if (DBG) log("setPriority(" + device + ", " + priority + ")");
         return setConnectionPolicy(device, BluetoothAdapter.priorityToConnectionPolicy(priority));
     }
-
     /**
      * Set connection policy of the profile
      *
@@ -651,8 +883,12 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
      * @return true if connectionPolicy is set, false on error
      * @hide
      */
+    @SystemApi
     @RequiresBluetoothConnectPermission
-    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
     public boolean setConnectionPolicy(@NonNull BluetoothDevice device,
             @ConnectionPolicy int connectionPolicy) {
         if (DBG) log("setConnectionPolicy(" + device + ", " + connectionPolicy + ")");
@@ -668,13 +904,15 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
                 final SynchronousResultReceiver<Boolean> recv = new SynchronousResultReceiver();
                 service.setConnectionPolicy(device, connectionPolicy, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
-            } catch (RemoteException | TimeoutException e) {
+            } catch (RemoteException e) {
+                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+                throw e.rethrowFromSystemServer();
+            } catch (TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             }
         }
         return defaultValue;
     }
-
     /**
      * Get the priority of the profile.
      *
@@ -692,7 +930,6 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
         if (VDBG) log("getPriority(" + device + ")");
         return BluetoothAdapter.connectionPolicyToPriority(getConnectionPolicy(device));
     }
-
     /**
      * Get the connection policy of the profile.
      *
@@ -704,9 +941,13 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
      * @return connection policy of the device
      * @hide
      */
+    @SystemApi
     @RequiresLegacyBluetoothPermission
     @RequiresBluetoothConnectPermission
-    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
     public @ConnectionPolicy int getConnectionPolicy(@NonNull BluetoothDevice device) {
         if (VDBG) log("getConnectionPolicy(" + device + ")");
         final IBluetoothHeadsetClient service = getService();
@@ -719,13 +960,15 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
                 final SynchronousResultReceiver<Integer> recv = new SynchronousResultReceiver();
                 service.getConnectionPolicy(device, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
-            } catch (RemoteException | TimeoutException e) {
+            } catch (RemoteException e) {
+                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+                throw e.rethrowFromSystemServer();
+            } catch (TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             }
         }
         return defaultValue;
     }
-
     /**
      * Starts voice recognition.
      *
@@ -736,6 +979,8 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
      * <p>Feature required for successful execution is being reported by: {@link
      * #EXTRA_AG_FEATURE_VOICE_RECOGNITION}. This method invocation will fail silently when feature
      * is not supported.</p>
+     *
+     * @hide
      */
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
@@ -757,7 +1002,6 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
         }
         return defaultValue;
     }
-
     /**
      * Send vendor specific AT command.
      *
@@ -766,6 +1010,8 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
      * @param atCommand command to be sent. It start with + prefix and only one command at one time.
      * @return <code>true</code> if command has been issued successfully; <code>false</code>
      * otherwise.
+     *
+     * @hide
      */
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
@@ -787,7 +1033,6 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
         }
         return defaultValue;
     }
-
     /**
      * Stops voice recognition.
      *
@@ -798,6 +1043,8 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
      * <p>Feature required for successful execution is being reported by: {@link
      * #EXTRA_AG_FEATURE_VOICE_RECOGNITION}. This method invocation will fail silently when feature
      * is not supported.</p>
+     *
+     * @hide
      */
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
@@ -819,12 +1066,13 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
         }
         return defaultValue;
     }
-
     /**
      * Returns list of all calls in any state.
      *
      * @param device remote device
      * @return list of calls; empty list if none call exists
+     *
+     * @hide
      */
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
@@ -849,12 +1097,13 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
         }
         return defaultValue;
     }
-
     /**
      * Returns list of current values of AG indicators.
      *
      * @param device remote device
      * @return bundle of AG  indicators; null if device is not in CONNECTED state
+     *
+     * @hide
      */
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
@@ -876,7 +1125,6 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
         }
         return defaultValue;
     }
-
     /**
      * Accepts a call
      *
@@ -885,6 +1133,8 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
      * {@link #CALL_ACCEPT_HOLD}, {@link #CALL_ACCEPT_TERMINATE}
      * @return <code>true</code> if command has been issued successfully; <code>false</code>
      * otherwise; upon completion HFP sends {@link #ACTION_CALL_CHANGED} intent.
+     *
+     * @hide
      */
     @UnsupportedAppUsage(maxTargetSdk = Build.VERSION_CODES.R, trackingBug = 170729553)
     @RequiresBluetoothConnectPermission
@@ -907,13 +1157,14 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
         }
         return defaultValue;
     }
-
     /**
      * Holds a call.
      *
      * @param device remote device
      * @return <code>true</code> if command has been issued successfully; <code>false</code>
      * otherwise; upon completion HFP sends {@link #ACTION_CALL_CHANGED} intent.
+     *
+     * @hide
      */
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
@@ -935,7 +1186,6 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
         }
         return defaultValue;
     }
-
     /**
      * Rejects a call.
      *
@@ -946,6 +1196,8 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
      * <p>Feature required for successful execution is being reported by: {@link
      * #EXTRA_AG_FEATURE_REJECT_CALL}. This method invocation will fail silently when feature is not
      * supported.</p>
+     *
+     * @hide
      */
     @UnsupportedAppUsage(maxTargetSdk = Build.VERSION_CODES.R, trackingBug = 170729553)
     @RequiresBluetoothConnectPermission
@@ -968,7 +1220,6 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
         }
         return defaultValue;
     }
-
     /**
      * Terminates a specified call.
      *
@@ -984,6 +1235,8 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
      * <p>Feature required for successful execution is being reported by: {@link
      * #EXTRA_AG_FEATURE_ECC}. This method invocation will fail silently when feature is not
      * supported.</p>
+     *
+     * @hide
      */
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
@@ -1005,7 +1258,6 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
         }
         return defaultValue;
     }
-
     /**
      * Enters private mode with a specified call.
      *
@@ -1019,6 +1271,8 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
      * <p>Feature required for successful execution is being reported by: {@link
      * #EXTRA_AG_FEATURE_ECC}. This method invocation will fail silently when feature is not
      * supported.</p>
+     *
+     * @hide
      */
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
@@ -1040,7 +1294,6 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
         }
         return defaultValue;
     }
-
     /**
      * Performs explicit call transfer.
      *
@@ -1053,6 +1306,8 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
      * <p>Feature required for successful execution is being reported by: {@link
      * #EXTRA_AG_FEATURE_MERGE_AND_DETACH}. This method invocation will fail silently when feature
      * is not supported.</p>
+     *
+     * @hide
      */
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
@@ -1074,7 +1329,6 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
         }
         return defaultValue;
     }
-
     /**
      * Places a call with specified number.
      *
@@ -1083,6 +1337,8 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
      * @return <code>{@link BluetoothHeadsetClientCall} call</code> if command has been issued
      * successfully; <code>{@link null}</code> otherwise; upon completion HFP sends {@link
      * #ACTION_CALL_CHANGED} intent in case of success; {@link #ACTION_RESULT} is sent otherwise;
+     *
+     * @hide
      */
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
@@ -1107,7 +1363,6 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
         }
         return defaultValue;
     }
-
     /**
      * Sends DTMF code.
      *
@@ -1117,6 +1372,8 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
      * @param code ASCII code
      * @return <code>true</code> if command has been issued successfully; <code>false</code>
      * otherwise; upon completion HFP sends {@link #ACTION_RESULT} intent;
+     *
+     * @hide
      */
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
@@ -1138,7 +1395,6 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
         }
         return defaultValue;
     }
-
     /**
      * Get a number corresponding to last voice tag recorded on AG.
      *
@@ -1150,6 +1406,8 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
      * <p>Feature required for successful execution is being reported by: {@link
      * #EXTRA_AG_FEATURE_ATTACH_NUMBER_TO_VT}. This method invocation will fail silently when
      * feature is not supported.</p>
+     *
+     * @hide
      */
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
@@ -1171,11 +1429,12 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
         }
         return defaultValue;
     }
-
     /**
      * Returns current audio state of Audio Gateway.
      *
      * Note: This is an internal function and shouldn't be exposed
+     *
+     * @hide
      */
     @UnsupportedAppUsage(maxTargetSdk = Build.VERSION_CODES.R, trackingBug = 170729553)
     @RequiresBluetoothConnectPermission
@@ -1200,13 +1459,14 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
         }
         return BluetoothHeadsetClient.STATE_AUDIO_DISCONNECTED;
     }
-
     /**
      * Sets whether audio routing is allowed.
      *
      * @param device remote device
      * @param allowed if routing is allowed to the device Note: This is an internal function and
      * shouldn't be exposed
+     *
+     * @hide
      */
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
@@ -1226,13 +1486,14 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
             }
         }
     }
-
     /**
      * Returns whether audio routing is allowed.
      *
      * @param device remote device
      * @return whether the command succeeded Note: This is an internal function and shouldn't be
      * exposed
+     *
+     * @hide
      */
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
@@ -1254,7 +1515,6 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
         }
         return defaultValue;
     }
-
     /**
      * Initiates a connection of audio channel.
      *
@@ -1263,6 +1523,8 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
      * @param device remote device
      * @return <code>true</code> if command has been issued successfully; <code>false</code>
      * otherwise; upon completion HFP sends {@link #ACTION_AUDIO_STATE_CHANGED} intent;
+     *
+     * @hide
      */
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
@@ -1284,7 +1546,6 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
         }
         return defaultValue;
     }
-
     /**
      * Disconnects audio channel.
      *
@@ -1293,6 +1554,8 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
      * @param device remote device
      * @return <code>true</code> if command has been issued successfully; <code>false</code>
      * otherwise; upon completion HFP sends {@link #ACTION_AUDIO_STATE_CHANGED} intent;
+     *
+     * @hide
      */
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
@@ -1314,12 +1577,13 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
         }
         return defaultValue;
     }
-
     /**
      * Get Audio Gateway features
      *
      * @param device remote device
      * @return bundle of AG features; null if no service or AG not connected
+     *
+     * @hide
      */
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
@@ -1341,15 +1605,12 @@ public final class BluetoothHeadsetClient implements BluetoothProfile {
         }
         return defaultValue;
     }
-
     private boolean isEnabled() {
         return mAdapter.getState() == BluetoothAdapter.STATE_ON;
     }
-
     private static boolean isValidDevice(BluetoothDevice device) {
         return device != null && BluetoothAdapter.checkBluetoothAddress(device.getAddress());
     }
-
     private static void log(String msg) {
         Log.d(TAG, msg);
     }
