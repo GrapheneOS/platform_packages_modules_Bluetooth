@@ -142,6 +142,13 @@ cc_library_static {
         "android.hardware.bluetooth.audio@2.1",
         "android.hardware.bluetooth.audio@2.2",
     ],
+    target: {
+        android: {
+            shared_libs: [
+                "android.hardware.bluetooth.audio-V1-ndk",
+            ],
+        },
+    },
     host_supported: true,
 }
 
@@ -524,6 +531,14 @@ cc_test {
         "liblc3codec",
         "liblc3",
     ],
+    target: {
+        android: {
+            shared_libs: [
+                "libbinder_ndk",
+                "android.hardware.bluetooth.audio-V1-ndk",
+            ],
+        },
+    },
     sanitize: {
         cfi: true,
         scs: true,
