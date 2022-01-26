@@ -54,6 +54,8 @@ import java.util.Objects;
     static final int BALANCED_WEIGHT = 25;
     static final int LOW_LATENCY_WEIGHT = 100;
 
+    static final int LARGE_SCAN_TIME_GAP_MS = 24000;
+
     // ContextMap here is needed to grab Apps and Connections
     ContextMap mContextMap;
 
@@ -117,6 +119,11 @@ import java.util.Objects;
     // Maximum msec before scan gets downgraded to opportunistic
     static long getScanTimeoutMillis() {
         return AdapterService.getScanTimeoutMillis();
+    }
+
+    // Scan mode upgrade duration after scanStart()
+    static long getScanUpgradeDurationMillis() {
+        return AdapterService.getAdapterService().getScanUpgradeDurationMillis();
     }
 
     public String appName;
@@ -361,6 +368,15 @@ import java.util.Objects;
             return false;
         }
         return (SystemClock.elapsedRealtime() - mScanStartTime) > getScanTimeoutMillis();
+    }
+
+    synchronized boolean hasRecentScan() {
+        if (!isScanning() || mLastScans.isEmpty()) {
+            return false;
+        }
+        LastScan lastScan = mLastScans.get(mLastScans.size() - 1);
+        return ((SystemClock.elapsedRealtime() - lastScan.duration - lastScan.timestamp)
+                < LARGE_SCAN_TIME_GAP_MS);
     }
 
     // This function truncates the app name for privacy reasons. Apps with

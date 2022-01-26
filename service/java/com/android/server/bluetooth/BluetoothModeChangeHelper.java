@@ -28,7 +28,6 @@ import android.content.res.Resources;
 import android.provider.Settings;
 import android.widget.Toast;
 
-import com.android.internal.R;
 import com.android.internal.annotations.VisibleForTesting;
 
 /**
@@ -131,8 +130,8 @@ public class BluetoothModeChangeHelper {
     @VisibleForTesting
     public void showToastMessage() {
         Resources r = mContext.getResources();
-        final CharSequence text = r.getString(
-                R.string.bluetooth_airplane_mode_toast, 0);
+        final CharSequence text = r.getString(Resources.getSystem().getIdentifier(
+                "bluetooth_airplane_mode_toast", "string", "android"));
         Toast.makeText(mContext, text, Toast.LENGTH_LONG).show();
     }
 

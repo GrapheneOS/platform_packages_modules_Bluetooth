@@ -31,6 +31,7 @@ import android.media.AudioManager;
 import android.media.BtProfileConnectionInfo;
 import android.os.Looper;
 import android.os.ParcelUuid;
+import android.sysprop.BluetoothProperties;
 
 import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.MediumTest;
@@ -38,9 +39,10 @@ import androidx.test.rule.ServiceTestRule;
 import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.TestUtils;
+import com.android.bluetooth.R;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
-import com.android.internal.R;
+
 
 import org.junit.After;
 import org.junit.Assert;
@@ -82,8 +84,7 @@ public class HearingAidServiceTest {
     public void setUp() throws Exception {
         mTargetContext = InstrumentationRegistry.getTargetContext();
         Assume.assumeTrue("Ignore test when HearingAidService is not enabled",
-                mTargetContext.getResources().getBoolean(
-                    R.bool.config_hearing_aid_profile_supported));
+                BluetoothProperties.audioStreamingForHearingAidSupported().orElse(false));
         // Set up mocks and test assets
         MockitoAnnotations.initMocks(this);
 
@@ -126,8 +127,7 @@ public class HearingAidServiceTest {
 
     @After
     public void tearDown() throws Exception {
-        if (!mTargetContext.getResources().getBoolean(
-                            R.bool.config_hearing_aid_profile_supported)) {
+        if (!BluetoothProperties.audioStreamingForHearingAidSupported().orElse(false)) {
             return;
         }
         stopService();

@@ -92,7 +92,7 @@
     <bool name="hfp_client_connection_service_support_emergency_call">false</bool>
 
     <!-- Enabling autoconnect over pan -->
-    <bool name="config_bluetooth_pan_enable_autoconnect">true</bool>
+    <bool name="config_bluetooth_pan_enable_autoconnect">false</bool>
 
     <!-- Enabling the phone policy -->
     <bool name="enable_phone_policy">true</bool>
@@ -145,4 +145,27 @@
      -->
     <bool name="enable_gd_up_to_scanning_layer">true</bool>
 
+    <!-- Package of fastpair service -->
+    <string name="peripheral_link_package">com.google.android.gms</string>
+    <!-- Service name of fastpair-->
+    <string name="peripheral_link_service">.nearby.discovery.service.DiscoveryService</string>
+
+    <!-- Max number of Bluetooth tethering connections allowed. If this is
+         updated config_tether_dhcp_range has to be updated appropriately. -->
+    <integer translatable="false" name="config_max_pan_devices">5</integer>
+
+    <!-- Whether supported profiles should be reloaded upon enabling bluetooth -->
+    <bool name="config_bluetooth_reload_supported_profiles_when_enabled">false</bool>
+
+    <!-- Max number of connected audio devices supported by Bluetooth stack -->
+    <integer name="config_bluetooth_max_connected_audio_devices">5</integer>
+
+    <bool name="config_supportBluetoothPersistedState">true</bool>
+
+    <!-- Boolean indicating if current platform need do one-time bluetooth address
+    re-validation -->
+    <bool name="config_bluetooth_address_validation">false</bool>
+
+    <!-- Boolean indicating if current platform supports HFP inband ringing -->
+    <bool name="config_bluetooth_hfp_inband_ringing_support">true</bool>
 </resources>

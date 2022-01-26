@@ -887,16 +887,6 @@ public final class BluetoothHeadset implements BluetoothProfile {
         return defaultValue;
     }
 
-    /**
-     * Indicates if current platform supports voice dialing over bluetooth SCO.
-     *
-     * @return true if voice dialing over bluetooth is supported, false otherwise.
-     * @hide
-     */
-    public static boolean isBluetoothVoiceDialingEnabled(Context context) {
-        return context.getResources().getBoolean(
-                com.android.internal.R.bool.config_bluetooth_sco_off_call);
-    }
 
     /** @hide */
     @Retention(RetentionPolicy.SOURCE)
@@ -1038,6 +1028,7 @@ public final class BluetoothHeadset implements BluetoothProfile {
             BluetoothStatusCodes.ERROR_UNKNOWN,
             BluetoothStatusCodes.ERROR_PROFILE_SERVICE_NOT_BOUND,
             BluetoothStatusCodes.ERROR_TIMEOUT,
+            BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED,
             BluetoothStatusCodes.ERROR_AUDIO_DEVICE_ALREADY_CONNECTED,
             BluetoothStatusCodes.ERROR_NO_ACTIVE_DEVICES,
             BluetoothStatusCodes.ERROR_NOT_ACTIVE_DEVICE,
@@ -1050,13 +1041,13 @@ public final class BluetoothHeadset implements BluetoothProfile {
     /**
      * Initiates a connection of SCO audio to the current active HFP device. The active HFP device
      * can be identified with {@link BluetoothAdapter#getActiveDevices(int)}.
- * <p>
+     * <p>
      * If this function returns {@link BluetoothStatusCodes#SUCCESS}, the intent
-     * {@link #ACTION_AUDIO_STATE_CHANGED} will be broadcasted twice. First with {@link #EXTRA_STATE}
-     * set to {@link #STATE_AUDIO_CONNECTING}. This will be followed by a broadcast with
-     * {@link #EXTRA_STATE} set to either {@link #STATE_AUDIO_CONNECTED} if the audio connection is
-     * established or {@link #STATE_AUDIO_DISCONNECTED} if there was a failure in establishing the
-     * audio connection.
+     * {@link #ACTION_AUDIO_STATE_CHANGED} will be broadcasted twice. First with
+     * {@link #EXTRA_STATE} set to {@link #STATE_AUDIO_CONNECTING}. This will be followed by a
+     * broadcast with {@link #EXTRA_STATE} set to either {@link #STATE_AUDIO_CONNECTED} if the audio
+     * connection is established or {@link #STATE_AUDIO_DISCONNECTED} if there was a failure in
+     * establishing the audio connection.
      *
      * @return whether the connection was successfully initiated or an error code on failure
      * @hide
@@ -1074,6 +1065,7 @@ public final class BluetoothHeadset implements BluetoothProfile {
         if (service == null) {
             Log.w(TAG, "Proxy not attached to service");
             if (DBG) log(Log.getStackTraceString(new Throwable()));
+            return BluetoothStatusCodes.ERROR_PROFILE_SERVICE_NOT_BOUND;
         } else if (isEnabled()) {
             try {
                 final SynchronousResultReceiver<Integer> recv = new SynchronousResultReceiver();
@@ -1086,8 +1078,9 @@ public final class BluetoothHeadset implements BluetoothProfile {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
                 return BluetoothStatusCodes.ERROR_TIMEOUT;
             }
+        } else {
+            return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED;
         }
-        return defaultValue;
     }
 
     /** @hide */
@@ -1097,6 +1090,7 @@ public final class BluetoothHeadset implements BluetoothProfile {
             BluetoothStatusCodes.ERROR_UNKNOWN,
             BluetoothStatusCodes.ERROR_PROFILE_SERVICE_NOT_BOUND,
             BluetoothStatusCodes.ERROR_TIMEOUT,
+            BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED,
             BluetoothStatusCodes.ERROR_PROFILE_NOT_CONNECTED,
             BluetoothStatusCodes.ERROR_AUDIO_DEVICE_ALREADY_DISCONNECTED
     })
@@ -1126,6 +1120,7 @@ public final class BluetoothHeadset implements BluetoothProfile {
         if (service == null) {
             Log.w(TAG, "Proxy not attached to service");
             if (DBG) log(Log.getStackTraceString(new Throwable()));
+            return BluetoothStatusCodes.ERROR_PROFILE_SERVICE_NOT_BOUND;
         } else if (isEnabled()) {
             try {
                 final SynchronousResultReceiver<Integer> recv = new SynchronousResultReceiver();
@@ -1138,8 +1133,9 @@ public final class BluetoothHeadset implements BluetoothProfile {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
                 return BluetoothStatusCodes.ERROR_TIMEOUT;
             }
+        } else {
+            return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED;
         }
-        return defaultValue;
     }
 
     /**
@@ -1442,17 +1438,6 @@ public final class BluetoothHeadset implements BluetoothProfile {
             }
         }
         return defaultValue;
-    }
-
-    /**
-     * Check if in-band ringing is supported for this platform.
-     *
-     * @return true if in-band ringing is supported, false if in-band ringing is not supported
-     * @hide
-     */
-    public static boolean isInbandRingingSupported(Context context) {
-        return context.getResources().getBoolean(
-                com.android.internal.R.bool.config_bluetooth_hfp_inband_ringing_support);
     }
 
     @SuppressLint("AndroidFrameworkBluetoothPermission")

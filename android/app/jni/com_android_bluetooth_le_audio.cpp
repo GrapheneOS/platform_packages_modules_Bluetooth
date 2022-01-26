@@ -131,8 +131,8 @@ static LeAudioClientCallbacksImpl sLeAudioClientCallbacks;
 static void classInitNative(JNIEnv* env, jclass clazz) {
   jclass jniBluetoothLeAudioCodecConfigClass =
       env->FindClass("android/bluetooth/BluetoothLeAudioCodecConfig");
-  android_bluetooth_BluetoothLeAudioCodecConfig.constructor =
-      env->GetMethodID(jniBluetoothLeAudioCodecConfigClass, "<init>", "(I)V");
+  android_bluetooth_BluetoothLeAudioCodecConfig.constructor = env->GetMethodID(
+      jniBluetoothLeAudioCodecConfigClass, "<init>", "(IIIIIII)V");
   android_bluetooth_BluetoothLeAudioCodecConfig.getCodecType = env->GetMethodID(
       jniBluetoothLeAudioCodecConfigClass, "getCodecType", "()I");
 

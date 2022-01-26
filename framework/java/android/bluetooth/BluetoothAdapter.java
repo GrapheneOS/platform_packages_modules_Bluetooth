@@ -2397,10 +2397,10 @@ public final class BluetoothAdapter {
     }
 
     /**
-     * Get the maximum number of connected audio devices.
+     * Get the maximum number of connected devices per audio profile for this device.
      *
-     * @return the maximum number of connected audio devices
-     * @hide
+     * @return the number of allowed simultaneous connected devices for each audio profile
+     *         for this device, or -1 if the Bluetooth service can't be reached
      */
     @RequiresLegacyBluetoothPermission
     @RequiresBluetoothConnectPermission
@@ -2416,7 +2416,7 @@ public final class BluetoothAdapter {
         } finally {
             mServiceLock.readLock().unlock();
         }
-        return 1;
+        return -1;
     }
 
     /**
