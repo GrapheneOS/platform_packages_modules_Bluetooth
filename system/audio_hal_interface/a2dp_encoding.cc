@@ -16,6 +16,7 @@
 
 #include "a2dp_encoding.h"
 
+#include "aidl/a2dp_encoding.h"
 #include "hal_version_manager.h"
 #include "hidl/a2dp_encoding_hidl.h"
 
@@ -30,7 +31,7 @@ bool update_codec_offloading_capabilities(
     return hidl::a2dp::update_codec_offloading_capabilities(
         framework_preference);
   }
-  return false;
+  return aidl::a2dp::update_codec_offloading_capabilities(framework_preference);
 }
 
 // Check if new bluetooth_audio is enabled
@@ -39,7 +40,7 @@ bool is_hal_enabled() {
       BluetoothAudioHalTransport::HIDL) {
     return hidl::a2dp::is_hal_2_0_enabled();
   }
-  return false;
+  return aidl::a2dp::is_hal_enabled();
 }
 
 // Check if new bluetooth_audio is running with offloading encoders
@@ -48,7 +49,7 @@ bool is_hal_offloading() {
       BluetoothAudioHalTransport::HIDL) {
     return hidl::a2dp::is_hal_2_0_offloading();
   }
-  return false;
+  return aidl::a2dp::is_hal_offloading();
 }
 
 // Initialize BluetoothAudio HAL: openProvider
@@ -57,7 +58,7 @@ bool init(bluetooth::common::MessageLoopThread* message_loop) {
       BluetoothAudioHalTransport::HIDL) {
     return hidl::a2dp::init(message_loop);
   }
-  return false;
+  return aidl::a2dp::init(message_loop);
 }
 
 // Clean up BluetoothAudio HAL
@@ -67,6 +68,7 @@ void cleanup() {
     hidl::a2dp::cleanup();
     return;
   }
+  aidl::a2dp::cleanup();
 }
 
 // Set up the codec into BluetoothAudio HAL
@@ -75,7 +77,7 @@ bool setup_codec() {
       BluetoothAudioHalTransport::HIDL) {
     return hidl::a2dp::setup_codec();
   }
-  return false;
+  return aidl::a2dp::setup_codec();
 }
 
 // Send command to the BluetoothAudio HAL: StartSession, EndSession,
@@ -86,8 +88,13 @@ void start_session() {
     hidl::a2dp::start_session();
     return;
   }
+  aidl::a2dp::start_session();
 }
 void end_session() {
+  if (HalVersionManager::GetHalTransport() ==
+      BluetoothAudioHalTransport::AIDL) {
+    return aidl::a2dp::end_session();
+  }
   if (HalVersionManager::GetHalTransport() ==
       BluetoothAudioHalTransport::HIDL) {
     hidl::a2dp::end_session();
@@ -100,6 +107,7 @@ void ack_stream_started(const tA2DP_CTRL_ACK& status) {
     hidl::a2dp::ack_stream_started(status);
     return;
   }
+  return aidl::a2dp::ack_stream_started(status);
 }
 void ack_stream_suspended(const tA2DP_CTRL_ACK& status) {
   if (HalVersionManager::GetHalTransport() ==
@@ -107,6 +115,7 @@ void ack_stream_suspended(const tA2DP_CTRL_ACK& status) {
     hidl::a2dp::ack_stream_suspended(status);
     return;
   }
+  aidl::a2dp::ack_stream_suspended(status);
 }
 
 // Read from the FMQ of BluetoothAudio HAL
@@ -115,7 +124,7 @@ size_t read(uint8_t* p_buf, uint32_t len) {
       BluetoothAudioHalTransport::HIDL) {
     return hidl::a2dp::read(p_buf, len);
   }
-  return 0;
+  return aidl::a2dp::read(p_buf, len);
 }
 
 // Update A2DP delay report to BluetoothAudio HAL
@@ -125,6 +134,7 @@ void set_remote_delay(uint16_t delay_report) {
     hidl::a2dp::set_remote_delay(delay_report);
     return;
   }
+  aidl::a2dp::set_remote_delay(delay_report);
 }
 
 }  // namespace a2dp

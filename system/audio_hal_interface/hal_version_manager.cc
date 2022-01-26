@@ -16,14 +16,23 @@
 
 #include "hal_version_manager.h"
 
+#include <android/binder_manager.h>
 #include <android/hidl/manager/1.2/IServiceManager.h>
 #include <base/logging.h>
 #include <hidl/ServiceManagement.h>
 
 #include <memory>
 
+#include "aidl/audio_aidl_interfaces.h"
+
 namespace bluetooth {
 namespace audio {
+
+using ::aidl::android::hardware::bluetooth::audio::
+    IBluetoothAudioProviderFactory;
+
+static const std::string kDefaultAudioProviderFactoryInterface =
+    std::string() + IBluetoothAudioProviderFactory::descriptor + "/default";
 
 std::unique_ptr<HalVersionManager> HalVersionManager::instance_ptr =
     std::make_unique<HalVersionManager>();
@@ -100,6 +109,12 @@ HalVersionManager::GetProvidersFactory_2_0() {
 }
 
 HalVersionManager::HalVersionManager() {
+  if (AServiceManager_checkService(
+          kDefaultAudioProviderFactoryInterface.c_str()) != nullptr) {
+    hal_version_ = BluetoothAudioHalVersion::VERSION_AIDL_V1;
+    return;
+  }
+
   auto service_manager = android::hardware::defaultServiceManager1_2();
   CHECK(service_manager != nullptr);
   size_t instance_count = 0;
