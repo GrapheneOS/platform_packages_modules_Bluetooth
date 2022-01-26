@@ -50,6 +50,7 @@ filegroup {
         "android/bluetooth/IBluetoothOobDataCallback.aidl",
         "android/bluetooth/IBluetoothLeCallControl.aidl",
         "android/bluetooth/IBluetoothLeCallControlCallback.aidl",
+        "android/bluetooth/IncomingRfcommSocketInfo.aidl",
         "android/bluetooth/le/IAdvertisingSetCallback.aidl",
         "android/bluetooth/le/IPeriodicAdvertisingCallback.aidl",
         "android/bluetooth/le/IScannerCallback.aidl",
