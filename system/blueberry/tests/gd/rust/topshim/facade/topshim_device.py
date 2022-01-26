@@ -57,9 +57,8 @@ def get_instances_with_configs(configs):
             logging.debug(arg)
             resolved_cmd.append(replace_vars_for_topshim(arg, config))
         verbose_mode = bool(config.get('verbose_mode', False))
-        device = GdHostOnlyDevice(config["grpc_port"], config["grpc_root_server_port"], config["signal_port"],
-                                  resolved_cmd, config["label"], MOBLY_CONTROLLER_CONFIG_NAME, config["name"],
-                                  verbose_mode)
+        device = GdHostOnlyDevice(config["grpc_port"], "-1", config["signal_port"], resolved_cmd, config["label"],
+                                  MOBLY_CONTROLLER_CONFIG_NAME, config["name"], verbose_mode)
         device.setup()
         devices.append(device)
     return devices
