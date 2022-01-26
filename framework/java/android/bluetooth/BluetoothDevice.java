@@ -232,6 +232,25 @@ public final class BluetoothDevice implements Parcelable, Attributable {
             "android.bluetooth.device.action.BATTERY_LEVEL_CHANGED";
 
     /**
+     * Broadcast Action: Indicates the audio buffer size should be switched
+     * between a low latency buffer size and a higher and larger latency buffer size.
+     * <p>Always contains the extra fields {@link #EXTRA_DEVICE} and {@link
+     * #EXTRA_LOW_LATENCY_BUFFER_SIZE}.
+     *
+     * @hide
+     */
+    @SuppressLint("ActionValue")
+    @RequiresBluetoothConnectPermission
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
+    @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
+    @SystemApi
+    public static final String ACTION_SWITCH_BUFFER_SIZE =
+            "android.bluetooth.device.action.SWITCH_BUFFER_SIZE";
+
+    /**
      * Used as an Integer extra field in {@link #ACTION_BATTERY_LEVEL_CHANGED}
      * intent. It contains the most recently retrieved battery level information
      * ranging from 0% to 100% for a remote device, {@link #BATTERY_LEVEL_UNKNOWN}
@@ -310,6 +329,17 @@ public final class BluetoothDevice implements Parcelable, Attributable {
      */
     public static final String EXTRA_PREVIOUS_BOND_STATE =
             "android.bluetooth.device.extra.PREVIOUS_BOND_STATE";
+
+    /**
+     * Used as a boolean extra field to indicate if audio buffer size is low latency or not
+     *
+     * @hide
+     */
+    @SuppressLint("ActionValue")
+    @SystemApi
+    public static final String EXTRA_LOW_LATENCY_BUFFER_SIZE =
+            "android.bluetooth.device.extra.LOW_LATENCY_BUFFER_SIZE";
+
     /**
      * Indicates the remote device is not bonded (paired).
      * <p>There is no shared link key with the remote device, so communication
@@ -1118,7 +1148,6 @@ public final class BluetoothDevice implements Parcelable, Attributable {
     private AttributionSource mAttributionSource;
 
     /*package*/
-    @UnsupportedAppUsage
     static IBluetooth getService() {
         synchronized (BluetoothDevice.class) {
             if (sService == null) {

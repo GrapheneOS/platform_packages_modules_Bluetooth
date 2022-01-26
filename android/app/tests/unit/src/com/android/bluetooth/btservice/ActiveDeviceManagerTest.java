@@ -27,6 +27,7 @@ import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
+import android.sysprop.BluetoothProperties;
 
 import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.MediumTest;
@@ -219,8 +220,7 @@ public class ActiveDeviceManagerTest {
     @Test
     public void hearingAidActive_clearA2dpAndHeadsetActive() {
         Assume.assumeTrue("Ignore test when HearingAidService is not enabled",
-                mContext.getResources().getBoolean(
-                    com.android.internal.R.bool.config_hearing_aid_profile_supported));
+                BluetoothProperties.audioStreamingForHearingAidSupported().orElse(false));
 
         a2dpConnected(mA2dpHeadsetDevice);
         headsetConnected(mA2dpHeadsetDevice);
@@ -238,8 +238,7 @@ public class ActiveDeviceManagerTest {
     @Test
     public void hearingAidActive_dontSetA2dpAndHeadsetActive() {
         Assume.assumeTrue("Ignore test when HearingAidService is not enabled",
-                mContext.getResources().getBoolean(
-                    com.android.internal.R.bool.config_hearing_aid_profile_supported));
+                BluetoothProperties.audioStreamingForHearingAidSupported().orElse(false));
 
         hearingAidActiveDeviceChanged(mHearingAidDevice);
         a2dpConnected(mA2dpHeadsetDevice);
@@ -256,8 +255,7 @@ public class ActiveDeviceManagerTest {
     @Test
     public void hearingAidActive_setA2dpActiveExplicitly() {
         Assume.assumeTrue("Ignore test when HearingAidService is not enabled",
-                mContext.getResources().getBoolean(
-                    com.android.internal.R.bool.config_hearing_aid_profile_supported));
+                BluetoothProperties.audioStreamingForHearingAidSupported().orElse(false));
 
         hearingAidActiveDeviceChanged(mHearingAidDevice);
         a2dpConnected(mA2dpHeadsetDevice);
@@ -277,8 +275,7 @@ public class ActiveDeviceManagerTest {
     @Test
     public void hearingAidActive_setHeadsetActiveExplicitly() {
         Assume.assumeTrue("Ignore test when HearingAidService is not enabled",
-                mContext.getResources().getBoolean(
-                    com.android.internal.R.bool.config_hearing_aid_profile_supported));
+                BluetoothProperties.audioStreamingForHearingAidSupported().orElse(false));
 
         hearingAidActiveDeviceChanged(mHearingAidDevice);
         headsetConnected(mA2dpHeadsetDevice);
