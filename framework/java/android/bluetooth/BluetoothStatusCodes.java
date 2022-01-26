@@ -371,6 +371,57 @@ public final class BluetoothStatusCodes {
     public static final int ERROR_CALL_ACTIVE = 1119;
 
     /**
+     * Indicates that the RFCOMM listener could not be started due to the requested UUID already
+     * being in use.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int RFCOMM_LISTENER_START_FAILED_UUID_IN_USE = 2000;
+
+    /**
+     * Indicates that the operation could not be competed because the service record on which the
+     * operation was requested on does not exist.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int RFCOMM_LISTENER_OPERATION_FAILED_NO_MATCHING_SERVICE_RECORD = 2001;
+
+    /**
+     * Indicates that the operation could not be completed because the application requesting the
+     * operation on the RFCOMM listener was not the one which registered it.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int RFCOMM_LISTENER_OPERATION_FAILED_DIFFERENT_APP = 2002;
+
+    /**
+     * Indicates that the creation of the underlying BluetoothServerSocket failed.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int RFCOMM_LISTENER_FAILED_TO_CREATE_SERVER_SOCKET = 2003;
+
+    /**
+     * Indicates that closing the underlying BluetoothServerSocket failed.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int RFCOMM_LISTENER_FAILED_TO_CLOSE_SERVER_SOCKET = 2004;
+
+    /**
+     * Indicates that there is no socket available to retrieve from the given listener.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int RFCOMM_LISTENER_NO_SOCKET_AVAILABLE = 2005;
+
+    /**
      * Indicates that an unknown error has occurred has occurred.
      */
     public static final int ERROR_UNKNOWN = Integer.MAX_VALUE;
