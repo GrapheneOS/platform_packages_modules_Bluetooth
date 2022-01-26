@@ -1752,11 +1752,14 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public long getSupportedProfiles() {
+        public long getSupportedProfiles(AttributionSource source) {
             AdapterService service = getService();
-            if (service == null) {
+            if (service == null
+                    || !Utils.checkConnectPermissionForDataDelivery(service, source, TAG)) {
                 return 0;
             }
+            enforceBluetoothPrivilegedPermission(service);
+
             return Config.getSupportedProfilesBitMask();
         }
 
