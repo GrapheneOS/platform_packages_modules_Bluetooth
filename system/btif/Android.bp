@@ -170,7 +170,9 @@ cc_defaults {
     target: {
         android: {
             shared_libs: [
+                "android.hardware.bluetooth.audio-V1-ndk",
                 "libaaudio",
+                "libbinder_ndk",
                 "libfmq",
                 "libstatslog_bt",
             ],
@@ -256,6 +258,14 @@ cc_test {
         "libbluetooth-dumpsys",
         "libbluetooth-for-tests",
     ],
+    target: {
+        android: {
+            shared_libs: [
+                "libbinder_ndk",
+                "android.hardware.bluetooth.audio-V1-ndk",
+            ],
+        },
+    },
     cflags: ["-DBUILDCFG"],
     sanitize: {
         integer_overflow: true,
@@ -475,6 +485,14 @@ cc_test {
           "libosi",
       ],
       cflags: ["-DBUILDCFG"],
+      target: {
+          android: {
+              shared_libs: [
+                  "libbinder_ndk",
+                  "android.hardware.bluetooth.audio-V1-ndk",
+              ],
+          },
+      },
       sanitize: {
         address: true,
         cfi: true,
