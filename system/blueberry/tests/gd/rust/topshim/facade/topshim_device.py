@@ -17,19 +17,16 @@
 import logging
 
 from blueberry.tests.gd.cert.gd_device import GdHostOnlyDevice
-from cert.gd_device_lib import create_core
-from cert.gd_device_lib import destroy_core
-from cert.gd_device_lib import MOBLY_CONTROLLER_CONFIG_NAME
-from cert.os_utils import get_gd_root
+from blueberry.tests.gd.cert.gd_device import MOBLY_CONTROLLER_CONFIG_NAME
+from blueberry.tests.gd.cert.os_utils import get_gd_root
 
 
 def create(configs):
-    create_core(configs)
     return get_instances_with_configs(configs)
 
 
 def destroy(devices):
-    destroy_core(devices)
+    pass
 
 
 def replace_vars_for_topshim(string, config):

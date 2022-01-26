@@ -850,11 +850,11 @@ genrule {
         "mkdir -p $(genDir)/files/blueberry/tests/gd/shim && " +
         "touch $(genDir)/files/blueberry/tests/gd/shim/__init__.py && " +
         // Bundle topshim proto here for now
-        "mkdir -p $(genDir)/files/rust/topshim/facade && " +
+        "mkdir -p $(genDir)/files/blueberry/tests/gd/rust/topshim/facade && " +
         "$(location aprotoc) -Ipackages/modules/Bluetooth/system/gd --plugin=protoc-gen-grpc=$(location protoc-gen-grpc-python-plugin) packages/modules/Bluetooth/system/gd/rust/topshim/facade/facade.proto --grpc_out=$(genDir)/files --python_out=$(genDir)/files && " +
-        "touch $(genDir)/files/rust/__init__.py && " +
-        "touch $(genDir)/files/rust/topshim/__init__.py && " +
-        "touch $(genDir)/files/rust/topshim/facade/__init__.py && " +
+        "touch $(genDir)/files/blueberry/tests/gd/rust/__init__.py && " +
+        "touch $(genDir)/files/blueberry/tests/gd/rust/topshim/__init__.py && " +
+        "touch $(genDir)/files/blueberry/tests/gd/rust/topshim/facade/__init__.py && " +
         "$(location soong_zip) -C $(genDir)/files -D $(genDir)/files -o $(out)",
     srcs: [
         ":BluetoothFacadeProto",
