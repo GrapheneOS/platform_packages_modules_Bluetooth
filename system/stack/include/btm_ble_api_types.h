@@ -297,6 +297,7 @@ typedef void(tBTM_RAND_ENC_CB)(tBTM_RAND_ENC* p1);
 #define BTM_BLE_AD_TYPE_16SRV_CMPL          \
   HCI_EIR_COMPLETE_16BITS_UUID_TYPE /* 0x03 \
                                        */
+#define BTM_BLE_AD_TYPE_SERVICE_DATA_TYPE HCI_EIR_SERVICE_DATA_TYPE /* 0x16 */
 #define BTM_BLE_AD_TYPE_APPEARANCE 0x19
 #define BTM_BLE_AD_TYPE_RSI HCI_EIR_RSI_TYPE /* 0x2E */
 
