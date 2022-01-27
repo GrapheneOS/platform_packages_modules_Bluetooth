@@ -2,6 +2,12 @@ package {
     default_applicable_licenses: ["Android-Apache-2.0"],
 }
 
+java_defaults {
+    name: "bluetooth-module-sdk-version-defaults",
+    min_sdk_version: "current",
+    target_sdk_version: "current",
+}
+
 filegroup {
     name: "framework-bluetooth-sources",
     srcs: [
@@ -10,4 +16,78 @@ filegroup {
     ],
     path: "java",
     visibility: ["//frameworks/base"],
+}
+
+// defaults shared between `framework-bluetooth` & `framework-bluetooth-pre-jarjar`
+// java_sdk_library `framework-bluetooth` needs sources to generate stubs, so it cannot reuse
+// `framework-bluetooth-pre-jarjar`
+java_defaults {
+    name: "framework-bluetooth-defaults",
+    defaults: ["bluetooth-module-sdk-version-defaults"],
+    static_libs: [
+        "modules-utils-synchronous-result-receiver",
+        "PlatformProperties",
+    ],
+    libs: [
+        "framework-tethering.stubs.module_lib",
+        "unsupportedappusage", // for android.compat.annotation.UnsupportedAppUsage
+    ],
+    stub_only_libs: ["framework-tethering.stubs.module_lib"],
+    srcs: [
+        ":framework-bluetooth-sources",
+        ":libbluetooth-binder-aidl",
+    ],
+}
+
+// post-jarjar version of framework-bluetooth
+java_sdk_library {
+    name: "framework-bluetooth",
+    defaults: [
+        "framework-module-defaults",
+        "framework-bluetooth-defaults",
+    ],
+
+    jarjar_rules: ":bluetooth-jarjar-rules",
+    api_only: true,
+    installable: true,
+    optimize: {
+        enabled: false
+    },
+    hostdex: true, // for hiddenapi check
+
+    impl_library_visibility: ["//visibility:public"],
+
+    apex_available: [
+        "com.android.bluetooth",
+    ],
+
+    permitted_packages: [
+        "android.bluetooth",
+        // Created by jarjar rules.
+        "com.android.bluetooth.x",
+    ],
+    lint: {
+        strict_updatability_linting: true,
+    },
+}
+
+// defaults for CTS tests that need to build against framework-bluetooths's @hide APIs
+java_defaults {
+    name: "framework-bluetooth-cts-defaults",
+    sdk_version: "core_current",
+    libs: [
+        // order matters: classes in framework-bluetooth are resolved before framework, meaning
+        // @hide APIs in framework-bluetooth are resolved before @SystemApi stubs in framework
+        "framework-bluetooth.impl",
+        "framework",
+
+        // if sdk_version="" this gets automatically included, but here we need to add manually.
+        "framework-res",
+    ],
+    defaults_visibility: ["//visibility:public"],
+}
+
+filegroup {
+    name: "bluetooth-jarjar-rules",
+    srcs: ["jarjar-rules.txt"],
 }
