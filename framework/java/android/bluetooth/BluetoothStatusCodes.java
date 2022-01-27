@@ -96,6 +96,14 @@ public final class BluetoothStatusCodes {
     public static final int ERROR_FEATURE_NOT_SUPPORTED = 10;
 
     /**
+     * Error code indicating that the requested operation timed out.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int ERROR_TIMEOUT = 15;
+
+    /**
      * A GATT writeCharacteristic request is not permitted on the remote device.
      */
     public static final int ERROR_GATT_WRITE_NOT_ALLOWED = 101;
@@ -104,6 +112,22 @@ public final class BluetoothStatusCodes {
      * A GATT writeCharacteristic request is issued to a busy remote device.
      */
     public static final int ERROR_GATT_WRITE_REQUEST_BUSY = 102;
+
+    /**
+     * Indicates that the operation is allowed.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int ALLOWED = 400;
+
+    /**
+     * Indicates that the operation is not allowed.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int NOT_ALLOWED = 401;
 
     /**
      * If another application has already requested {@link OobData} then another fetch will be
