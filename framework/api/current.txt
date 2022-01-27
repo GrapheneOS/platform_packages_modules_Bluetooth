@@ -756,15 +756,6 @@ package android.bluetooth {
     field protected java.util.List<android.bluetooth.BluetoothGattService> mIncludedServices;
   }
 
-  public final class BluetoothHapClient implements java.lang.AutoCloseable android.bluetooth.BluetoothProfile {
-    method public void close();
-    method protected void finalize();
-    method @NonNull @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public java.util.List<android.bluetooth.BluetoothDevice> getConnectedDevices();
-    method @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public int getConnectionState(@NonNull android.bluetooth.BluetoothDevice);
-    method @NonNull @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public java.util.List<android.bluetooth.BluetoothDevice> getDevicesMatchingConnectionStates(@NonNull int[]);
-    field @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public static final String ACTION_HAP_CONNECTION_STATE_CHANGED = "android.bluetooth.action.HAP_CONNECTION_STATE_CHANGED";
-  }
-
   public final class BluetoothHeadset implements android.bluetooth.BluetoothProfile {
     method @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public java.util.List<android.bluetooth.BluetoothDevice> getConnectedDevices();
     method @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public int getConnectionState(android.bluetooth.BluetoothDevice);
@@ -923,6 +914,7 @@ package android.bluetooth {
     method @NonNull @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public java.util.List<android.bluetooth.BluetoothDevice> getDevicesMatchingConnectionStates(@NonNull int[]);
     method @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public int getGroupId(@NonNull android.bluetooth.BluetoothDevice);
     field @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public static final String ACTION_LE_AUDIO_CONNECTION_STATE_CHANGED = "android.bluetooth.action.LE_AUDIO_CONNECTION_STATE_CHANGED";
+    field public static final int GROUP_ID_INVALID = -1; // 0xffffffff
   }
 
   public final class BluetoothLeAudioCodecConfig implements android.os.Parcelable {
