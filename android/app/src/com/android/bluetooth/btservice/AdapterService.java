@@ -111,6 +111,7 @@ import com.android.bluetooth.btservice.storage.DatabaseManager;
 import com.android.bluetooth.btservice.storage.MetadataDatabase;
 import com.android.bluetooth.csip.CsipSetCoordinatorService;
 import com.android.bluetooth.gatt.GattService;
+import com.android.bluetooth.hap.HapClientService;
 import com.android.bluetooth.hearingaid.HearingAidService;
 import com.android.bluetooth.hfp.HeadsetService;
 import com.android.bluetooth.hfpclient.HeadsetClientService;
@@ -317,6 +318,7 @@ public class AdapterService extends Service {
     private BluetoothPbapService mPbapService;
     private PbapClientService mPbapClientService;
     private HearingAidService mHearingAidService;
+    private HapClientService mHapClientService;
     private SapService mSapService;
     private VolumeControlService mVolumeControlService;
     private CsipSetCoordinatorService mCsipSetCoordinatorService;
@@ -1072,6 +1074,9 @@ public class AdapterService extends Service {
         if (profile == BluetoothProfile.LE_AUDIO) {
             return Utils.arrayContains(remoteDeviceUuids, BluetoothUuid.LE_AUDIO);
         }
+        if (profile == BluetoothProfile.HAP_CLIENT) {
+            return Utils.arrayContains(remoteDeviceUuids, BluetoothUuid.HAS);
+        }
 
         Log.e(TAG, "isSupported: Unexpected profile passed in to function: " + profile);
         return false;
@@ -1119,6 +1124,10 @@ public class AdapterService extends Service {
             return true;
         }
         if (mHearingAidService != null && mHearingAidService.getConnectionPolicy(device)
+                > BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
+            return true;
+        }
+        if (mHapClientService != null && mHapClientService.getConnectionPolicy(device)
                 > BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
             return true;
         }
@@ -1211,6 +1220,13 @@ public class AdapterService extends Service {
             Log.i(TAG, "connectEnabledProfiles: Connecting Hearing Aid Profile");
             mHearingAidService.connect(device);
         }
+        if (mHapClientService != null && isSupported(localDeviceUuids, remoteDeviceUuids,
+                BluetoothProfile.HAP_CLIENT, device)
+                && mHapClientService.getConnectionPolicy(device)
+                > BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
+            Log.i(TAG, "connectEnabledProfiles: Connecting HAS Profile");
+            mHapClientService.connect(device);
+        }
         if (mVolumeControlService != null && isSupported(localDeviceUuids, remoteDeviceUuids,
                 BluetoothProfile.VOLUME_CONTROL, device)
                 && mVolumeControlService.getConnectionPolicy(device)
@@ -1268,6 +1284,7 @@ public class AdapterService extends Service {
         mPbapService = BluetoothPbapService.getBluetoothPbapService();
         mPbapClientService = PbapClientService.getPbapClientService();
         mHearingAidService = HearingAidService.getHearingAidService();
+        mHapClientService = HapClientService.getHapClientService();
         mSapService = SapService.getSapService();
         mVolumeControlService = VolumeControlService.getVolumeControlService();
         mCsipSetCoordinatorService = CsipSetCoordinatorService.getCsipSetCoordinatorService();
@@ -3460,6 +3477,13 @@ public class AdapterService extends Service {
                     BluetoothProfile.CONNECTION_POLICY_ALLOWED);
             numProfilesConnected++;
         }
+        if (mHapClientService != null && isSupported(localDeviceUuids, remoteDeviceUuids,
+                BluetoothProfile.HAP_CLIENT, device)) {
+            Log.i(TAG, "connectAllEnabledProfiles: Connecting Hearing Access Client Profile");
+            mHapClientService.setConnectionPolicy(device,
+                    BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+            numProfilesConnected++;
+        }
         if (mVolumeControlService != null && isSupported(localDeviceUuids, remoteDeviceUuids,
                 BluetoothProfile.VOLUME_CONTROL, device)) {
             Log.i(TAG, "connectAllEnabledProfiles: Connecting Volume Control Profile");
@@ -3562,6 +3586,11 @@ public class AdapterService extends Service {
                 == BluetoothProfile.STATE_CONNECTED) {
             Log.i(TAG, "disconnectAllEnabledProfiles: Disconnecting Hearing Aid Profile");
             mHearingAidService.disconnect(device);
+        }
+        if (mHapClientService != null && mHapClientService.getConnectionState(device)
+                == BluetoothProfile.STATE_CONNECTED) {
+            Log.i(TAG, "disconnectAllEnabledProfiles: Disconnecting Hearing Access Profile Client");
+            mHapClientService.disconnect(device);
         }
         if (mVolumeControlService != null && mVolumeControlService.getConnectionState(device)
                 == BluetoothProfile.STATE_CONNECTED) {

@@ -3298,6 +3298,9 @@ public final class BluetoothAdapter {
         } else if (profile == BluetoothProfile.HID_DEVICE) {
             BluetoothHidDevice hidDevice = new BluetoothHidDevice(context, listener, this);
             return true;
+        } else if (profile == BluetoothProfile.HAP_CLIENT) {
+            BluetoothHapClient HapClient = new BluetoothHapClient(context, listener);
+            return true;
         } else if (profile == BluetoothProfile.HEARING_AID) {
             if (isHearingAidProfileSupported()) {
                 BluetoothHearingAid hearingAid = new BluetoothHearingAid(context, listener, this);
@@ -3401,6 +3404,10 @@ public final class BluetoothAdapter {
             case BluetoothProfile.HID_DEVICE:
                 BluetoothHidDevice hidDevice = (BluetoothHidDevice) proxy;
                 hidDevice.close();
+                break;
+            case BluetoothProfile.HAP_CLIENT:
+                BluetoothHapClient HapClient = (BluetoothHapClient) proxy;
+                HapClient.close();
                 break;
             case BluetoothProfile.HEARING_AID:
                 BluetoothHearingAid hearingAid = (BluetoothHearingAid) proxy;
