@@ -22,6 +22,8 @@ import android.app.SystemServiceRegistry;
 import android.content.Context;
 import android.os.BluetoothServiceManager;
 
+import java.util.function.Consumer;
+
 /**
  * Class for performing registration for Bluetooth service.
  *
@@ -32,6 +34,7 @@ public class BluetoothFrameworkInitializer {
   private BluetoothFrameworkInitializer() {}
 
   private static volatile BluetoothServiceManager sBluetoothServiceManager;
+  private static volatile Consumer<Context> sBinderCallsStatsInitializer;
 
   /**
    * Sets an instance of {@link BluetoothServiceManager} that allows
@@ -48,7 +51,7 @@ public class BluetoothFrameworkInitializer {
     }
 
     if (bluetoothServiceManager == null) {
-      throw new NullPointerException("bluetoothServiceManager is null");
+      throw new IllegalArgumentException("bluetoothServiceManager must not be null");
     }
 
     sBluetoothServiceManager = bluetoothServiceManager;
@@ -57,6 +60,34 @@ public class BluetoothFrameworkInitializer {
   /** @hide */
   public static BluetoothServiceManager getBluetoothServiceManager() {
     return sBluetoothServiceManager;
+  }
+
+  /**
+   * Called by {@link ActivityThread}'s static initializer to set the callback enabling Bluetooth
+   * {@link BinderCallsStats} registeration.
+   *
+   * @param binderCallsStatsConsumer called by bluetooth service to create a new binder calls
+   *        stats observer
+   */
+  public static void setBinderCallsStatsInitializer(
+      @NonNull Consumer<Context> binderCallsStatsConsumer) {
+    if (sBinderCallsStatsInitializer != null) {
+      throw new IllegalStateException("setBinderCallsStatsInitializer called twice!");
+    }
+
+    if (binderCallsStatsConsumer == null) {
+      throw new IllegalArgumentException("binderCallsStatsConsumer must not be null");
+    }
+
+    sBinderCallsStatsInitializer = binderCallsStatsConsumer;
+  }
+
+  /** @hide */
+  public static void initializeBinderCallsStats(Context context) {
+    if (sBinderCallsStatsInitializer == null) {
+      throw new IllegalStateException("sBinderCallsStatsInitializer has not been set");
+    }
+    sBinderCallsStatsInitializer.accept(context);
   }
 
   /**
