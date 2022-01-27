@@ -964,6 +964,18 @@ package android.bluetooth {
     method @NonNull public android.bluetooth.BluetoothLeAudioCodecConfig.Builder setSampleRate(int);
   }
 
+  public final class BluetoothLeAudioCodecStatus implements android.os.Parcelable {
+    ctor public BluetoothLeAudioCodecStatus(@Nullable android.bluetooth.BluetoothLeAudioCodecConfig, @Nullable java.util.List<android.bluetooth.BluetoothLeAudioCodecConfig>, @Nullable java.util.List<android.bluetooth.BluetoothLeAudioCodecConfig>);
+    method public int describeContents();
+    method @Nullable public android.bluetooth.BluetoothLeAudioCodecConfig getCodecConfig();
+    method @NonNull public java.util.List<android.bluetooth.BluetoothLeAudioCodecConfig> getCodecsLocalCapabilities();
+    method @NonNull public java.util.List<android.bluetooth.BluetoothLeAudioCodecConfig> getCodecsSelectableCapabilities();
+    method public boolean isCodecConfigSelectable(@Nullable android.bluetooth.BluetoothLeAudioCodecConfig);
+    method public void writeToParcel(@NonNull android.os.Parcel, int);
+    field @NonNull public static final android.os.Parcelable.Creator<android.bluetooth.BluetoothLeAudioCodecStatus> CREATOR;
+    field public static final String EXTRA_LE_AUDIO_CODEC_STATUS = "android.bluetooth.extra.LE_AUDIO_CODEC_STATUS";
+  }
+
   public final class BluetoothManager {
     method public android.bluetooth.BluetoothAdapter getAdapter();
     method @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public java.util.List<android.bluetooth.BluetoothDevice> getConnectedDevices(int);
