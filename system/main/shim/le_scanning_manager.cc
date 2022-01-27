@@ -241,6 +241,29 @@ class BleScannerInterfaceImpl : public BleScannerInterface,
     // This function doesn't implement in the old stack
   }
 
+  void CancelCreateSync(uint8_t sid, RawAddress address) {
+    LOG(INFO) << __func__ << " in shim layer";
+    // This function doesn't implement in the old stack
+  }
+
+  void TransferSync(RawAddress address, uint16_t service_data,
+                    uint16_t sync_handle, SyncTransferCb cb) {
+    LOG(INFO) << __func__ << " in shim layer";
+    // This function doesn't implement in the old stack
+  }
+
+  void TransferSetInfo(RawAddress address, uint16_t service_data,
+                       uint8_t adv_handle, SyncTransferCb cb) {
+    LOG(INFO) << __func__ << " in shim layer";
+    // This function doesn't implement in the old stack
+  }
+
+  void SyncTxParameters(RawAddress addr, uint8_t mode, uint16_t skip,
+                        uint16_t timeout, StartSyncCb start_cb) {
+    LOG(INFO) << __func__ << " in shim layer";
+    // This function doesn't implement in the old stack
+  }
+
   void RegisterCallbacks(ScanningCallbacks* callbacks) {
     LOG(INFO) << __func__ << " in shim layer";
     scanning_callbacks_ = callbacks;
