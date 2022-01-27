@@ -490,7 +490,7 @@ class BluetoothManagerService extends IBluetoothManager.Stub {
         mUserManager = mContext.getSystemService(UserManager.class);
 
         mIsHearingAidProfileSupported =
-                BluetoothProperties.audioStreamingForHearingAidSupported().orElse(false);
+                BluetoothProperties.isProfileAshaCentralEnabled().orElse(false);
 
         // TODO: We need a more generic way to initialize the persist keys of FeatureFlagUtils
         String value = SystemProperties.get(FeatureFlagUtils.PERSIST_PREFIX + FeatureFlagUtils.HEARING_AID_SETTINGS);
