@@ -92,9 +92,13 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
      *
      * @hide
      */
+    @SystemApi
     @RequiresLegacyBluetoothPermission
     @RequiresBluetoothConnectPermission
-    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
     @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
     public static final String ACTION_LE_AUDIO_ACTIVE_DEVICE_CHANGED =
             "android.bluetooth.action.LE_AUDIO_ACTIVE_DEVICE_CHANGED";
@@ -112,11 +116,14 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
      *
      * @hide
      */
-    @RequiresPermission(Manifest.permission.BLUETOOTH_PRIVILEGED)
+    @SystemApi
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
     @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
     public static final String ACTION_LE_AUDIO_GROUP_NODE_STATUS_CHANGED =
             "android.bluetooth.action.LE_AUDIO_GROUP_NODE_STATUS_CHANGED";
-
 
     /**
      * Intent used to broadcast group status information.
@@ -256,8 +263,6 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
 
     /**
      * This represents an invalid group ID.
-     *
-     * @hide
      */
     public static final int GROUP_ID_INVALID = IBluetoothLeAudio.LE_AUDIO_GROUP_ID_INVALID;
 
@@ -272,6 +277,7 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
      * Contains group id.
      * @hide
      */
+    @SystemApi
     public static final String EXTRA_LE_AUDIO_GROUP_ID =
             "android.bluetooth.extra.LE_AUDIO_GROUP_ID";
 
@@ -285,6 +291,7 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
      * <p>
      * @hide
      */
+    @SystemApi
     public static final String EXTRA_LE_AUDIO_GROUP_NODE_STATUS =
             "android.bluetooth.extra.LE_AUDIO_GROUP_NODE_STATUS";
 
@@ -348,12 +355,14 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
      * Indicating that node has been added to the group.
      * @hide
      */
+    @SystemApi
     public static final int GROUP_NODE_ADDED = IBluetoothLeAudio.GROUP_NODE_ADDED;
 
     /**
      * Indicating that node has been removed from the group.
      * @hide
      */
+    @SystemApi
     public static final int GROUP_NODE_REMOVED = IBluetoothLeAudio.GROUP_NODE_REMOVED;
 
     private final BluetoothProfileConnector<IBluetoothLeAudio> mProfileConnector =
@@ -675,7 +684,8 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
      * Get device group id. Devices with same group id belong to same group (i.e left and right
      * earbud)
      * @param device LE Audio capable device
-     * @return group id that this device currently belongs to
+     * @return group id that this device currently belongs to, {@link #GROUP_ID_INVALID} when this
+     *         device does not belong to any group
      */
     @RequiresLegacyBluetoothPermission
     @RequiresBluetoothConnectPermission

@@ -260,11 +260,12 @@ public class CsipSetCoordinatorServiceTest {
                 .when(mCsipSetCoordinatorNativeInterface)
                 .onGroupLockChanged(anyInt(), anyBoolean(), anyInt());
         mCsipSetCoordinatorNativeInterface.onGroupLockChanged(
-                group, true, BluetoothCsipSetCoordinator.GROUP_LOCK_SUCCESS);
+                group, true, IBluetoothCsipSetCoordinator.CSIS_GROUP_LOCK_SUCCESS);
 
         try {
             verify(mCsipSetCoordinatorLockCallback, times(1))
-                    .onGroupLockSet(group, BluetoothCsipSetCoordinator.GROUP_LOCK_SUCCESS, true);
+                    .onGroupLockSet(group, BluetoothStatusCodes.SUCCESS,
+                        true);
         } catch (RemoteException e) {
             throw e.rethrowFromSystemServer();
         }
@@ -273,11 +274,12 @@ public class CsipSetCoordinatorServiceTest {
         verify(mCsipSetCoordinatorNativeInterface, times(1)).groupLockSet(eq(group), eq(false));
 
         mCsipSetCoordinatorNativeInterface.onGroupLockChanged(
-                group, false, BluetoothCsipSetCoordinator.GROUP_LOCK_SUCCESS);
+                group, false, IBluetoothCsipSetCoordinator.CSIS_GROUP_LOCK_SUCCESS);
 
         try {
             verify(mCsipSetCoordinatorLockCallback, times(1))
-                    .onGroupLockSet(group, BluetoothCsipSetCoordinator.GROUP_LOCK_SUCCESS, false);
+                    .onGroupLockSet(group, BluetoothStatusCodes.SUCCESS,
+                        false);
         } catch (RemoteException e) {
             throw e.rethrowFromSystemServer();
         }
@@ -305,7 +307,7 @@ public class CsipSetCoordinatorServiceTest {
         try {
             verify(mCsipSetCoordinatorLockCallback, times(1))
                     .onGroupLockSet(group,
-                            BluetoothCsipSetCoordinator.GROUP_LOCK_FAILED_LOCKED_BY_OTHER, true);
+                    BluetoothStatusCodes.ERROR_CSIP_GROUP_LOCKED_BY_OTHER, true);
         } catch (RemoteException e) {
             throw e.rethrowFromSystemServer();
         }
