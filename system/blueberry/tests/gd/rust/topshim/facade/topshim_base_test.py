@@ -22,13 +22,13 @@ import subprocess
 
 from blueberry.tests.gd.cert.context import get_current_context
 from blueberry.tests.gd.cert.tracelogger import TraceLogger
-from cert.async_subprocess_logger import AsyncSubprocessLogger
-from cert.os_utils import get_gd_root
-from cert.os_utils import get_gd_root
-from cert.os_utils import read_crash_snippet_and_log_tail
-from cert.os_utils import is_subprocess_alive
-from cert.os_utils import make_ports_available
-from cert.os_utils import TerminalColor
+from blueberry.tests.gd.cert.async_subprocess_logger import AsyncSubprocessLogger
+from blueberry.tests.gd.cert.os_utils import get_gd_root
+from blueberry.tests.gd.cert.os_utils import get_gd_root
+from blueberry.tests.gd.cert.os_utils import read_crash_snippet_and_log_tail
+from blueberry.tests.gd.cert.os_utils import is_subprocess_alive
+from blueberry.tests.gd.cert.os_utils import make_ports_available
+from blueberry.tests.gd.cert.os_utils import TerminalColor
 from mobly import asserts
 from mobly import base_test
 
@@ -179,7 +179,8 @@ class TopshimBaseTest(base_test.BaseTestClass):
 
         self.controller_configs = self.info['controller_configs']
 
-        controllers = self.register_controller(importlib.import_module('rust.topshim.facade.topshim_device'))
+        controllers = self.register_controller(
+            importlib.import_module('blueberry.tests.gd.rust.topshim.facade.topshim_device'))
         self.cert_port = controllers[0].grpc_port
         self.dut_port = controllers[1].grpc_port
 
