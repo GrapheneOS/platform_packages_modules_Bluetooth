@@ -18,7 +18,6 @@
 #include <string>
 
 extern std::map<std::string, int> mock_function_count_map;
-#define UNUSED_ATTR
 
 #include <base/callback.h>
 #include <stddef.h>
