@@ -57,6 +57,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.content.res.Resources;
 import android.database.ContentObserver;
+import android.os.BatteryStatsManager;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.Handler;
@@ -81,7 +82,6 @@ import android.util.proto.ProtoOutputStream;
 
 import com.android.internal.annotations.GuardedBy;
 import com.android.internal.annotations.VisibleForTesting;
-import com.android.internal.util.FrameworkStatsLog;
 import com.android.modules.utils.SynchronousResultReceiver;
 
 import java.io.FileDescriptor;
@@ -200,6 +200,7 @@ class BluetoothManagerService extends IBluetoothManager.Stub {
     private String mAddress;
     private String mName;
     private final ContentResolver mContentResolver;
+    private final BatteryStatsManager mBatteryStatsManager;
     private final RemoteCallbackList<IBluetoothManagerCallback> mCallbacks;
     private final RemoteCallbackList<IBluetoothStateChangeCallback> mStateChangeCallbacks;
     private IBinder mBluetoothBinder;
@@ -509,6 +510,8 @@ class BluetoothManagerService extends IBluetoothManager.Stub {
         registerForBleScanModeChange();
         mCallbacks = new RemoteCallbackList<IBluetoothManagerCallback>();
         mStateChangeCallbacks = new RemoteCallbackList<IBluetoothStateChangeCallback>();
+
+        mBatteryStatsManager = context.getSystemService(BatteryStatsManager.class);
 
         mUserManager = mContext.getSystemService(UserManager.class);
 
@@ -2774,10 +2777,11 @@ class BluetoothManagerService extends IBluetoothManager.Stub {
                     new ActiveLog(reason, packageName, enable, System.currentTimeMillis()));
         }
 
-        int state = enable ? FrameworkStatsLog.BLUETOOTH_ENABLED_STATE_CHANGED__STATE__ENABLED :
-                             FrameworkStatsLog.BLUETOOTH_ENABLED_STATE_CHANGED__STATE__DISABLED;
-        FrameworkStatsLog.write_non_chained(1,
-                Binder.getCallingUid(), null, state, reason, packageName);
+        if (enable) {
+            mBatteryStatsManager.reportBluetoothOn(Binder.getCallingUid(), reason, packageName);
+        } else {
+            mBatteryStatsManager.reportBluetoothOff(Binder.getCallingUid(), reason, packageName);
+        }
     }
 
     private void addCrashLog() {
