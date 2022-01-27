@@ -506,7 +506,7 @@ static ssize_t out_write(struct audio_stream_out* stream, const void* buffer,
         // drop data for cases of A2dpSuspended=true / closing=true
         totalWritten = bytes;
       }
-      usleep(kBluetoothDefaultOutputBufferMs * 1000);
+      usleep(out->preferred_data_interval_us);
       return totalWritten;
     }
     lock.lock();
@@ -741,6 +741,17 @@ int adev_open_output_stream(struct audio_hw_device* dev,
     out->preferred_data_interval_us = preferred_data_interval_us;
   } else {
     out->preferred_data_interval_us = kBluetoothDefaultOutputBufferMs * 1000;
+  }
+
+  // Ensure minimum buffer duration for spatialized output
+  if (flags == (AUDIO_OUTPUT_FLAG_FAST | AUDIO_OUTPUT_FLAG_DEEP_BUFFER) &&
+      out->preferred_data_interval_us <
+          kBluetoothSpatializerOutputBufferMs * 1000) {
+    out->preferred_data_interval_us =
+        kBluetoothSpatializerOutputBufferMs * 1000;
+    LOG(INFO) << __func__
+              << ": adjusting to minimum buffer duration for spatializer: "
+              << StringPrintf("%zu", out->preferred_data_interval_us);
   }
 
   out->frames_count_ =
@@ -1208,13 +1219,13 @@ int adev_open_input_stream(struct audio_hw_device* dev,
   in->format_ = config->format;
   // frame is number of samples per channel
 
-  size_t preferred_data_interval_us = kBluetoothDefaultOutputBufferMs * 1000;
+  size_t preferred_data_interval_us = kBluetoothDefaultInputBufferMs * 1000;
   if (in->bluetooth_input_.GetPreferredDataIntervalUs(
           &preferred_data_interval_us) &&
       preferred_data_interval_us != 0) {
     in->preferred_data_interval_us = preferred_data_interval_us;
   } else {
-    in->preferred_data_interval_us = kBluetoothDefaultOutputBufferMs * 1000;
+    in->preferred_data_interval_us = kBluetoothDefaultInputBufferMs * 1000;
   }
 
   in->frames_count_ =
