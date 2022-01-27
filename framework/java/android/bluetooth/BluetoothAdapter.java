@@ -55,7 +55,6 @@ import android.os.IBinder;
 import android.os.ParcelUuid;
 import android.os.RemoteException;
 import android.os.ResultReceiver;
-import android.os.ServiceManager;
 import android.sysprop.BluetoothProperties;
 import android.util.Log;
 import android.util.Pair;
@@ -125,7 +124,8 @@ public final class BluetoothAdapter {
 
     /**
      * Default MAC address reported to a client that does not have the
-     * android.permission.LOCAL_MAC_ADDRESS permission.
+     * {@link android.Manifest.permission#LOCAL_MAC_ADDRESS} permission.
+     *
      *
      * @hide
      */
@@ -1288,13 +1288,12 @@ public final class BluetoothAdapter {
      * <p>For example, "00:11:22:AA:BB:CC".
      *
      * @return Bluetooth hardware address as string
+     *
+     * Requires {@code android.Manifest.permission#LOCAL_MAC_ADDRESS} and
+     * {@link android.Manifest.permission#BLUETOOTH_CONNECT}.
      */
     @RequiresLegacyBluetoothPermission
     @RequiresBluetoothConnectPermission
-    @RequiresPermission(allOf = {
-            android.Manifest.permission.BLUETOOTH_CONNECT,
-            android.Manifest.permission.LOCAL_MAC_ADDRESS,
-    })
     public String getAddress() {
         try {
             return mManagerService.getAddress(mAttributionSource);
@@ -2552,14 +2551,20 @@ public final class BluetoothAdapter {
      * BluetoothProfile}.
      * @hide
      */
-    @RequiresNoPermission
+    @SystemApi
+    @RequiresBluetoothConnectPermission
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
     public @NonNull List<Integer> getSupportedProfiles() {
         final ArrayList<Integer> supportedProfiles = new ArrayList<Integer>();
 
         try {
             synchronized (mManagerCallback) {
                 if (mService != null) {
-                    final long supportedProfilesBitMask = mService.getSupportedProfiles();
+                    final long supportedProfilesBitMask =
+                            mService.getSupportedProfiles(mAttributionSource);
 
                     for (int i = 0; i <= BluetoothProfile.MAX_PROFILE_ID; i++) {
                         if ((supportedProfilesBitMask & (1 << i)) != 0) {
@@ -2575,6 +2580,7 @@ public final class BluetoothAdapter {
             }
         } catch (RemoteException e) {
             Log.e(TAG, "getSupportedProfiles:", e);
+            e.rethrowFromSystemServer();
         }
         return supportedProfiles;
     }
@@ -3585,6 +3591,7 @@ public final class BluetoothAdapter {
         return Collections.unmodifiableSet(deviceSet);
     }
 
+    @SuppressLint("GenericException")
     protected void finalize() throws Throwable {
         try {
             removeServiceStateCallback(mManagerCallback);

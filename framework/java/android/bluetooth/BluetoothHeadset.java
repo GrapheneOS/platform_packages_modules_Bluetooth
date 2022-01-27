@@ -939,60 +939,99 @@ public final class BluetoothHeadset implements BluetoothProfile {
         return defaultValue;
     }
 
+    /** @hide */
+    @Retention(RetentionPolicy.SOURCE)
+    @IntDef(value = {
+            BluetoothStatusCodes.SUCCESS,
+            BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED,
+            BluetoothStatusCodes.ERROR_PROFILE_SERVICE_NOT_BOUND,
+            BluetoothStatusCodes.ERROR_TIMEOUT,
+            BluetoothStatusCodes.ALLOWED,
+            BluetoothStatusCodes.NOT_ALLOWED,
+    })
+    public @interface AudioRouteAllowedReturnValues {}
+
     /**
-     * Sets whether audio routing is allowed. When set to {@code false}, the AG will not route any
-     * audio to the HF unless explicitly told to.
-     * This method should be used in cases where the SCO channel is shared between multiple profiles
-     * and must be delegated by a source knowledgeable
-     * Note: This is an internal function and shouldn't be exposed
+     * Sets whether audio routing is allowed. When set to {@code false}, the AG
+     * will not route any audio to the HF unless explicitly told to. This method
+     * should be used in cases where the SCO channel is shared between multiple
+     * profiles and must be delegated by a source knowledgeable.
      *
-     * @param allowed {@code true} if the profile can reroute audio, {@code false} otherwise.
+     * @param allowed {@code true} if the profile can reroute audio,
+     * {@code false} otherwise.
+     * @return {@link BluetoothStatusCodes#SUCCESS} upon successful setting,
+     * otherwise an error code.
+     *
      * @hide
      */
+    @SystemApi
     @RequiresBluetoothConnectPermission
-    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
-    public void setAudioRouteAllowed(boolean allowed) {
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
+    public @AudioRouteAllowedReturnValues int setAudioRouteAllowed(boolean allowed) {
         if (VDBG) log("setAudioRouteAllowed");
         final IBluetoothHeadset service = mService;
         if (service == null) {
             Log.w(TAG, "Proxy not attached to service");
             if (DBG) log(Log.getStackTraceString(new Throwable()));
-        } else if (isEnabled()) {
-            try {
-                final SynchronousResultReceiver recv = new SynchronousResultReceiver();
-                service.setAudioRouteAllowed(allowed, mAttributionSource, recv);
-                recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
-            } catch (RemoteException | TimeoutException e) {
-                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
-            }
+            return BluetoothStatusCodes.ERROR_PROFILE_SERVICE_NOT_BOUND;
+        } else if (!isEnabled()) {
+            return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED;
         }
+        try {
+            final SynchronousResultReceiver recv = new SynchronousResultReceiver();
+            service.setAudioRouteAllowed(allowed, mAttributionSource, recv);
+            recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
+            return BluetoothStatusCodes.SUCCESS;
+        } catch (TimeoutException e) {
+            Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+            return BluetoothStatusCodes.ERROR_TIMEOUT;
+        } catch (RemoteException e) {
+            Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+            e.rethrowFromSystemServer();
+        }
+        return BluetoothStatusCodes.ERROR_UNKNOWN;
     }
 
     /**
-     * Returns whether audio routing is allowed. see {@link #setAudioRouteAllowed(boolean)}.
-     * Note: This is an internal function and shouldn't be exposed
+     * @return {@link BluetoothStatusCodes#ALLOWED} if audio routing is allowed,
+     * {@link BluetoothStatusCodes#NOT_ALLOWED} if audio routing is not allowed, or
+     * an error code if an error occurs.
+     * see {@link #setAudioRouteAllowed(boolean)}.
      *
      * @hide
      */
+    @SystemApi
     @RequiresBluetoothConnectPermission
-    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
-    public boolean getAudioRouteAllowed() {
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
+    public @AudioRouteAllowedReturnValues int getAudioRouteAllowed() {
         if (VDBG) log("getAudioRouteAllowed");
         final IBluetoothHeadset service = mService;
-        final boolean defaultValue = false;
         if (service == null) {
             Log.w(TAG, "Proxy not attached to service");
             if (DBG) log(Log.getStackTraceString(new Throwable()));
-        } else if (isEnabled()) {
-            try {
-                final SynchronousResultReceiver<Boolean> recv = new SynchronousResultReceiver();
-                service.getAudioRouteAllowed(mAttributionSource, recv);
-                return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
-            } catch (RemoteException | TimeoutException e) {
-                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
-            }
+            return BluetoothStatusCodes.ERROR_PROFILE_SERVICE_NOT_BOUND;
+        } else if (!isEnabled()) {
+            return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED;
         }
-        return defaultValue;
+        try {
+            final SynchronousResultReceiver<Boolean> recv = new SynchronousResultReceiver();
+            service.getAudioRouteAllowed(mAttributionSource, recv);
+            return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(false)
+                    ? BluetoothStatusCodes.ALLOWED : BluetoothStatusCodes.NOT_ALLOWED;
+        } catch (TimeoutException e) {
+            Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+            return BluetoothStatusCodes.ERROR_TIMEOUT;
+        } catch (RemoteException e) {
+            Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+            e.rethrowFromSystemServer();
+        }
+        return BluetoothStatusCodes.ERROR_UNKNOWN;
     }
 
     /**

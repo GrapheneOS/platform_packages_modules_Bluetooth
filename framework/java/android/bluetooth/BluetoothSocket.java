@@ -266,7 +266,7 @@ public final class BluetoothSocket implements Closeable {
         }
 
         as.mPfd = ParcelFileDescriptor.dup(fds[0]);
-        as.mSocket = LocalSocket.createConnectedLocalSocket(fds[0]);
+        as.mSocket = new LocalSocket(fds[0]);
         as.mSocketIS = as.mSocket.getInputStream();
         as.mSocketOS = as.mSocket.getOutputStream();
         as.mAddress = remoteAddr;
@@ -407,7 +407,7 @@ public final class BluetoothSocket implements Closeable {
                 if (mSocketState == SocketState.CLOSED) throw new IOException("socket closed");
                 if (mPfd == null) throw new IOException("bt socket connect failed");
                 FileDescriptor fd = mPfd.getFileDescriptor();
-                mSocket = LocalSocket.createConnectedLocalSocket(fd);
+                mSocket = new LocalSocket(fd);
                 mSocketIS = mSocket.getInputStream();
                 mSocketOS = mSocket.getOutputStream();
             }
@@ -466,7 +466,7 @@ public final class BluetoothSocket implements Closeable {
                 }
 
                 if (DBG) Log.d(TAG, "bindListen(), Create LocalSocket");
-                mSocket = LocalSocket.createConnectedLocalSocket(fd);
+                mSocket = new LocalSocket(fd);
                 if (DBG) Log.d(TAG, "bindListen(), new LocalSocket.getInputStream()");
                 mSocketIS = mSocket.getInputStream();
                 mSocketOS = mSocket.getOutputStream();

@@ -62,6 +62,7 @@ cc_test {
         "android.hardware.bluetooth.audio@2.0",
         "android.hardware.bluetooth.audio@2.1",
         "android.hardware.bluetooth.audio@2.2",
+        "android.hardware.bluetooth.audio-V1-ndk",
         "android.hardware.bluetooth@1.0",
         "android.hardware.bluetooth@1.1",
         "android.system.suspend.control-V1-ndk",
