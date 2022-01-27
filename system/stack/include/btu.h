@@ -37,6 +37,7 @@
 #include "common/message_loop_thread.h"
 #include "include/hardware/bluetooth.h"
 #include "osi/include/alarm.h"
+#include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/include/bt_hdr.h"
 
 /* Global BTU data */
@@ -45,8 +46,9 @@ extern uint8_t btu_trace_level;
 /* Functions provided by btu_hcif.cc
  ***********************************
 */
-void btu_hcif_process_event(uint8_t controller_id, BT_HDR* p_buf);
-void btu_hcif_send_cmd(uint8_t controller_id, BT_HDR* p_msg);
+void btu_hcif_process_event(UNUSED_ATTR uint8_t controller_id,
+                            const BT_HDR* p_buf);
+void btu_hcif_send_cmd(UNUSED_ATTR uint8_t controller_id, const BT_HDR* p_msg);
 void btu_hcif_send_cmd_with_cb(const base::Location& posted_from,
                                uint16_t opcode, uint8_t* params,
                                uint8_t params_len,
