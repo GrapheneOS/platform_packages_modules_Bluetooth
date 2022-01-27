@@ -17,7 +17,7 @@
 package com.android.server;
 
 import android.provider.DeviceConfig;
-import android.util.Slog;
+import android.util.Log;
 
 import java.util.ArrayList;
 
@@ -57,7 +57,7 @@ class BluetoothDeviceConfigListener {
                         for (String name : properties.getKeyset()) {
                             flags.add(name + "='" + properties.getString(name, "") + "'");
                         }
-                        Slog.d(TAG, "onPropertiesChanged: " + String.join(",", flags));
+                        Log.d(TAG, "onPropertiesChanged: " + String.join(",", flags));
                     }
                     boolean foundInit = false;
                     for (String name : properties.getKeyset()) {

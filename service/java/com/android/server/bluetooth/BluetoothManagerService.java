@@ -54,6 +54,7 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.content.res.Resources;
 import android.database.ContentObserver;
 import android.os.Binder;
@@ -75,18 +76,18 @@ import android.provider.Settings;
 import android.provider.Settings.SettingNotFoundException;
 import android.sysprop.BluetoothProperties;
 import android.text.TextUtils;
-import android.util.FeatureFlagUtils;
 import android.util.Log;
 import android.util.proto.ProtoOutputStream;
 
 import com.android.internal.annotations.VisibleForTesting;
-import com.android.internal.util.DumpUtils;
 import com.android.internal.util.FrameworkStatsLog;
 
 import java.io.FileDescriptor;
+import java.io.FileOutputStream;
 import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -499,12 +500,11 @@ class BluetoothManagerService extends IBluetoothManager.Stub {
         mIsHearingAidProfileSupported =
                 BluetoothProperties.isProfileAshaCentralEnabled().orElse(false);
 
-        // TODO: We need a more generic way to initialize the persist keys of FeatureFlagUtils
-        String value = SystemProperties.get(FeatureFlagUtils.PERSIST_PREFIX + FeatureFlagUtils.HEARING_AID_SETTINGS);
+        String value = SystemProperties.get(
+                "persist.sys.fflag.override.settings_bluetooth_hearing_aid");
         if (!TextUtils.isEmpty(value)) {
             boolean isHearingAidEnabled = Boolean.parseBoolean(value);
             Log.v(TAG, "set feature flag HEARING_AID_SETTINGS to " + isHearingAidEnabled);
-            FeatureFlagUtils.setEnabled(context, FeatureFlagUtils.HEARING_AID_SETTINGS, isHearingAidEnabled);
             if (isHearingAidEnabled && !mIsHearingAidProfileSupported) {
                 // Overwrite to enable support by FeatureFlag
                 mIsHearingAidProfileSupported = true;
@@ -2456,7 +2456,7 @@ class BluetoothManagerService extends IBluetoothManager.Stub {
     }
 
     boolean doBind(Intent intent, ServiceConnection conn, int flags, UserHandle user) {
-        ComponentName comp = intent.resolveSystemService(mContext.getPackageManager(), 0);
+        ComponentName comp = resolveSystemService(intent, mContext.getPackageManager(), 0);
         intent.setComponent(comp);
         if (comp == null || !mContext.bindServiceAsUser(intent, conn, flags, user)) {
             Log.e(TAG, "Fail to bind to: " + intent);
@@ -2681,7 +2681,7 @@ class BluetoothManagerService extends IBluetoothManager.Stub {
 
         int state = enable ? FrameworkStatsLog.BLUETOOTH_ENABLED_STATE_CHANGED__STATE__ENABLED :
                              FrameworkStatsLog.BLUETOOTH_ENABLED_STATE_CHANGED__STATE__DISABLED;
-        FrameworkStatsLog.write_non_chained(FrameworkStatsLog.BLUETOOTH_ENABLED_STATE_CHANGED,
+        FrameworkStatsLog.write_non_chained(1,
                 Binder.getCallingUid(), null, state, reason, packageName);
     }
 
@@ -2791,7 +2791,8 @@ class BluetoothManagerService extends IBluetoothManager.Stub {
 
     @Override
     public void dump(FileDescriptor fd, PrintWriter writer, String[] args) {
-        if (!DumpUtils.checkDumpPermission(mContext, TAG, writer)) {
+        if ((mContext.checkCallingOrSelfPermission(
+                android.Manifest.permission.DUMP) != PackageManager.PERMISSION_GRANTED)) {
             return;
         }
         if ((args.length > 0) && args[0].startsWith("--proto")) {
@@ -2867,7 +2868,7 @@ class BluetoothManagerService extends IBluetoothManager.Stub {
     }
 
     private void dumpProto(FileDescriptor fd) {
-        final ProtoOutputStream proto = new ProtoOutputStream(fd);
+        final ProtoOutputStream proto = new ProtoOutputStream(new FileOutputStream(fd));
         proto.write(BluetoothManagerServiceDumpProto.ENABLED, isEnabled());
         proto.write(BluetoothManagerServiceDumpProto.STATE, mState);
         proto.write(BluetoothManagerServiceDumpProto.STATE_NAME,
@@ -2976,5 +2977,28 @@ class BluetoothManagerService extends IBluetoothManager.Stub {
                 TEMPORARY_ALLOW_LIST_TYPE_FOREGROUND_SERVICE_ALLOWED,
                 PowerExemptionManager.REASON_BLUETOOTH_BROADCAST, "");
         return bOptions.toBundle();
+    }
+
+    private ComponentName resolveSystemService(@NonNull Intent intent,
+            @NonNull PackageManager pm, int flags) {
+        List<ResolveInfo> results = pm.queryIntentServices(intent, flags);
+        if (results == null) {
+            return null;
+        }
+        ComponentName comp = null;
+        for (int i = 0; i < results.size(); i++) {
+            ResolveInfo ri = results.get(i);
+            if ((ri.serviceInfo.applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) == 0) {
+                continue;
+            }
+            ComponentName foundComp = new ComponentName(ri.serviceInfo.applicationInfo.packageName,
+                    ri.serviceInfo.name);
+            if (comp != null) {
+                throw new IllegalStateException("Multiple system services handle " + intent
+                        + ": " + comp + ", " + foundComp);
+            }
+            comp = foundComp;
+        }
+        return comp;
     }
 }
