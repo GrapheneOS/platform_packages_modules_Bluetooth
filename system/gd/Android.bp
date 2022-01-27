@@ -590,6 +590,36 @@ rust_test_host {
     ],
 }
 
+// Generate and run tests of rust pdl parser for tests packets
+genrule {
+    name: "TestGeneratedPackets_rust",
+    tools: [
+        "bluetooth_packetgen",
+    ],
+    cmd: "$(location bluetooth_packetgen) --include=packages/modules/Bluetooth/system/gd --out=$(genDir) $(in) --rust",
+    srcs: [
+        "packet/parser/test/rust_test_packets.pdl",
+    ],
+    out: [
+        "packet/parser/test/rust_test_packets.rs",
+    ],
+}
+
+rust_test_host {
+    name: "packets_test_rust",
+    defaults: ["gd_rust_defaults"],
+    srcs: ["rust/packets/test_lib.rs", ":TestGeneratedPackets_rust"],
+    test_suites: ["general-tests"],
+    edition: "2018",
+    proc_macros: ["libnum_derive"],
+    rustlibs: [
+        "libbytes",
+        "libnum_traits",
+        "libthiserror",
+        "liblog_rust",
+    ],
+}
+
 // Generates binary schema data to be bundled and source file generated
 genrule {
     name: "BluetoothGeneratedDumpsysBinarySchema_bfbs",
