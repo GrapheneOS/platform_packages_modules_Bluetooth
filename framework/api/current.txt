@@ -1223,6 +1223,9 @@ package android.bluetooth.le {
 
   public final class ScanFilter implements android.os.Parcelable {
     method public int describeContents();
+    method @Nullable public byte[] getAdvertisingData();
+    method @Nullable public byte[] getAdvertisingDataMask();
+    method public int getAdvertisingDataType();
     method @Nullable public String getDeviceAddress();
     method @Nullable public String getDeviceName();
     method @Nullable public byte[] getManufacturerData();
@@ -1243,6 +1246,7 @@ package android.bluetooth.le {
   public static final class ScanFilter.Builder {
     ctor public ScanFilter.Builder();
     method public android.bluetooth.le.ScanFilter build();
+    method @NonNull public android.bluetooth.le.ScanFilter.Builder setAdvertisingDataWithType(int, @Nullable byte[], @Nullable byte[]);
     method public android.bluetooth.le.ScanFilter.Builder setDeviceAddress(String);
     method public android.bluetooth.le.ScanFilter.Builder setDeviceName(String);
     method public android.bluetooth.le.ScanFilter.Builder setManufacturerData(int, byte[]);
@@ -1257,6 +1261,7 @@ package android.bluetooth.le {
 
   public final class ScanRecord {
     method public int getAdvertiseFlags();
+    method @NonNull public java.util.Map<java.lang.Integer,byte[]> getAdvertisingDataMap();
     method public byte[] getBytes();
     method @Nullable public String getDeviceName();
     method public android.util.SparseArray<byte[]> getManufacturerSpecificData();
