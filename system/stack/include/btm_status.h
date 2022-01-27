@@ -44,6 +44,7 @@ enum : uint8_t {
   BTM_MODE4_LEVEL4_NOT_SUPPORTED, /* 20 Secure Connections Only Mode can't be
                                      supported */
   BTM_DEV_RESTRICT_LISTED,        /* 21 The device is restrict listed */
+  BTM_ERR_KEY_MISSING,            /* 22 Handle for Pin or Key Missing */
   BTM_MAX_STATUS_VALUE = BTM_DEV_RESTRICT_LISTED,
   BTM_UNDEFINED = 0xFF,
 };
@@ -86,6 +87,7 @@ inline std::string btm_status_text(const tBTM_STATUS& status) {
     CASE_RETURN_TEXT(BTM_REPEATED_ATTEMPTS);
     CASE_RETURN_TEXT(BTM_MODE4_LEVEL4_NOT_SUPPORTED);
     CASE_RETURN_TEXT(BTM_DEV_RESTRICT_LISTED);
+    CASE_RETURN_TEXT(BTM_ERR_KEY_MISSING);
     default:
       return base::StringPrintf("UNKNOWN[%hhu]", status);
   }
