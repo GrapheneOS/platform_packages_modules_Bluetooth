@@ -271,6 +271,7 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
      *
      * @hide
      */
+    @SystemApi
     public static final int AUDIO_LOCATION_INVALID = -1;
 
     /**
