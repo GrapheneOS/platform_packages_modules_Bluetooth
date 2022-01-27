@@ -138,6 +138,7 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
      *
      * @hide
      */
+    @SystemApi
     @RequiresPermission(Manifest.permission.BLUETOOTH_PRIVILEGED)
     @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
     public static final String ACTION_LE_AUDIO_GROUP_STATUS_CHANGED =
@@ -715,8 +716,12 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
      * @param volume volume to set
      * @hide
      */
+    @SystemApi
     @RequiresBluetoothConnectPermission
-    @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED})
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED
+    })
     public void setVolume(int volume) {
         if (VDBG) log("setVolume(vol: " + volume + " )");
         final IBluetoothLeAudio service = getService();
@@ -842,6 +847,7 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
      * @return true if connectionPolicy is set, false on error
      * @hide
      */
+    @SystemApi
     @RequiresBluetoothConnectPermission
     @RequiresPermission(allOf = {
             android.Manifest.permission.BLUETOOTH_CONNECT,
@@ -880,8 +886,12 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
      * @return connection policy of the device
      * @hide
      */
+    @SystemApi
     @RequiresBluetoothConnectPermission
-    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED
+    })
     public @ConnectionPolicy int getConnectionPolicy(@Nullable BluetoothDevice device) {
         if (VDBG) log("getConnectionPolicy(" + device + ")");
         final IBluetoothLeAudio service = getService();
