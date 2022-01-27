@@ -160,7 +160,7 @@ public class HapClientService extends ProfileService {
         filter = new IntentFilter();
         filter.addAction(BluetoothHapClient.ACTION_HAP_CONNECTION_STATE_CHANGED);
         mConnectionStateChangedReceiver = new ConnectionStateChangedReceiver();
-        registerReceiver(mConnectionStateChangedReceiver, filter);
+        registerReceiver(mConnectionStateChangedReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
 
         // Mark service as started
         setHapClient(this);
