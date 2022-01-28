@@ -80,6 +80,7 @@ static void bta_hh_le_add_dev_bg_conn(tBTA_HH_DEV_CB* p_cb, bool check_bond);
 static void bta_hh_process_cache_rpt(tBTA_HH_DEV_CB* p_cb,
                                      tBTA_HH_RPT_CACHE_ENTRY* p_rpt_cache,
                                      uint8_t num_rpt);
+extern void bta_dm_process_delete_key_RC_to_unpair(const RawAddress& bd_addr);
 
 static const char* bta_hh_le_rpt_name[4] = {"UNKNOWN", "INPUT", "OUTPUT",
                                             "FEATURE"};
@@ -1002,6 +1003,12 @@ void bta_hh_security_cmpl(tBTA_HH_DEV_CB* p_cb,
       APPL_TRACE_DEBUG("%s: Starting service discovery", __func__);
       bta_hh_le_pri_service_discovery(p_cb);
     }
+  }
+  else if(p_cb->btm_status == BTM_ERR_KEY_MISSING) {
+    LOG_ERROR("Received encryption failed status:%s btm_status:%s",
+              bta_hh_status_text(p_cb->status).c_str(),
+              btm_status_text(p_cb->btm_status).c_str());
+    bta_dm_process_delete_key_RC_to_unpair(p_cb->addr);
   } else {
     LOG_ERROR("Encryption failed status:%s btm_status:%s",
               bta_hh_status_text(p_cb->status).c_str(),
@@ -1009,7 +1016,7 @@ void bta_hh_security_cmpl(tBTA_HH_DEV_CB* p_cb,
     if (!(p_cb->status == BTA_HH_ERR_SEC &&
           p_cb->btm_status == BTM_ERR_PROCESSING))
       bta_hh_le_api_disc_act(p_cb);
-  }
+    }
 }
 
 /*******************************************************************************

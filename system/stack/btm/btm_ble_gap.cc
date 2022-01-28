@@ -41,6 +41,7 @@
 #include "main/shim/shim.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
+#include "stack/acl/acl.h"
 #include "stack/btm/btm_ble_int.h"
 #include "stack/btm/btm_ble_int_types.h"
 #include "stack/btm/btm_dev.h"
@@ -48,6 +49,7 @@
 #include "stack/gatt/gatt_int.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/advertise_data_parser.h"
+#include "stack/include/ble_scanner.h"
 #include "stack/include/bt_types.h"
 #include "stack/include/btm_api_types.h"
 #include "stack/include/gap_api.h"
@@ -166,7 +168,77 @@ AdvertisingCache cache;
 #if (BLE_VND_INCLUDED == TRUE)
 static tBTM_BLE_CTRL_FEATURES_CBACK* p_ctrl_le_feature_rd_cmpl_cback = NULL;
 #endif
+/**********PAST & PS *******************/
+using StartSyncCb = base::Callback<void(
+    uint8_t /*status*/, uint16_t /*sync_handle*/, uint8_t /*advertising_sid*/,
+    uint8_t /*address_type*/, RawAddress /*address*/, uint8_t /*phy*/,
+    uint16_t /*interval*/)>;
+using SyncReportCb = base::Callback<void(
+    uint16_t /*sync_handle*/, int8_t /*tx_power*/, int8_t /*rssi*/,
+    uint8_t /*status*/, std::vector<uint8_t> /*data*/)>;
+using SyncLostCb = base::Callback<void(uint16_t /*sync_handle*/)>;
+using SyncTransferCb = base::Callback<void(uint8_t /*status*/, RawAddress)>;
+#define MAX_SYNC_TRANSACTION 16
+#define SYNC_TIMEOUT (30 * 1000)
+#define ADV_SYNC_ESTB_EVT_LEN 16
+#define SYNC_LOST_EVT_LEN 3
+typedef enum {
+  PERIODIC_SYNC_IDLE = 0,
+  PERIODIC_SYNC_PENDING,
+  PERIODIC_SYNC_ESTABLISHED,
+  PERIODIC_SYNC_LOST,
+} tBTM_BLE_PERIODIC_SYNC_STATE;
 
+struct alarm_t* sync_timeout_alarm;
+typedef struct {
+  uint8_t sid;
+  RawAddress remote_bda;
+  tBTM_BLE_PERIODIC_SYNC_STATE sync_state;
+  uint16_t sync_handle;
+  bool in_use;
+  StartSyncCb sync_start_cb;
+  SyncReportCb sync_report_cb;
+  SyncLostCb sync_lost_cb;
+} tBTM_BLE_PERIODIC_SYNC;
+
+typedef struct {
+  bool in_use;
+  int conn_handle;
+  RawAddress addr;
+  SyncTransferCb cb;
+} tBTM_BLE_PERIODIC_SYNC_TRANSFER;
+
+static list_t* sync_queue;
+static std::mutex sync_queue_mutex_;
+
+typedef struct {
+  bool busy;
+  uint8_t sid;
+  RawAddress address;
+  uint16_t skip;
+  uint16_t timeout;
+} sync_node_t;
+typedef struct {
+  uint8_t sid;
+  RawAddress address;
+} remove_sync_node_t;
+typedef enum {
+  BTM_QUEUE_SYNC_REQ_EVT,
+  BTM_QUEUE_SYNC_ADVANCE_EVT,
+  BTM_QUEUE_SYNC_CLEANUP_EVT
+} btif_queue_event_t;
+
+typedef struct {
+  tBTM_BLE_PERIODIC_SYNC p_sync[MAX_SYNC_TRANSACTION];
+  tBTM_BLE_PERIODIC_SYNC_TRANSFER sync_transfer[MAX_SYNC_TRANSACTION];
+} tBTM_BLE_PA_SYNC_TX_CB;
+tBTM_BLE_PA_SYNC_TX_CB btm_ble_pa_sync_cb;
+StartSyncCb sync_rcvd_cb;
+static bool syncRcvdCbRegistered = false;
+static int btm_ble_get_psync_index(uint8_t adv_sid, RawAddress addr);
+static void btm_ble_start_sync_timeout(void* data);
+
+/*****************************/
 /*******************************************************************************
  *  Local functions
  ******************************************************************************/
@@ -782,6 +854,633 @@ static bool is_resolving_list_bit_set(void* data, void* context) {
     return false;
 
   return true;
+}
+
+/*******************************************************************************
+ * PAST and Periodic Sync helper functions
+ ******************************************************************************/
+
+static void sync_queue_add(sync_node_t* p_param) {
+  std::unique_lock<std::mutex> guard(sync_queue_mutex_);
+  if (!sync_queue) {
+    LOG_INFO("%s: allocating sync queue", __func__);
+    sync_queue = list_new(osi_free);
+    CHECK(sync_queue != NULL);
+  }
+
+  // Validity check
+  CHECK(list_length(sync_queue) < MAX_SYNC_TRANSACTION);
+  sync_node_t* p_node = (sync_node_t*)osi_malloc(sizeof(sync_node_t));
+  *p_node = *p_param;
+  list_append(sync_queue, p_node);
+}
+
+static void sync_queue_advance() {
+  LOG_DEBUG("%s", "");
+  std::unique_lock<std::mutex> guard(sync_queue_mutex_);
+
+  if (sync_queue && !list_is_empty(sync_queue)) {
+    sync_node_t* p_head = (sync_node_t*)list_front(sync_queue);
+    LOG_INFO("queue_advance");
+    list_remove(sync_queue, p_head);
+  }
+}
+
+static void sync_queue_cleanup(remove_sync_node_t* p_param) {
+  std::unique_lock<std::mutex> guard(sync_queue_mutex_);
+  if (!sync_queue) {
+    return;
+  }
+
+  sync_node_t* sync_request;
+  const list_node_t* node = list_begin(sync_queue);
+  while (node && node != list_end(sync_queue)) {
+    sync_request = (sync_node_t*)list_node(node);
+    node = list_next(node);
+    if (sync_request->sid == p_param->sid &&
+        sync_request->address == p_param->address) {
+      LOG_INFO("%s: removing connection request SID=%04X, bd_addr=%s, busy=%d",
+               __func__, sync_request->sid,
+               sync_request->address.ToString().c_str(), sync_request->busy);
+      list_remove(sync_queue, sync_request);
+    }
+  }
+}
+
+void btm_ble_start_sync_request(uint8_t sid, RawAddress addr, uint16_t skip,
+                                uint16_t timeout) {
+  uint8_t address_type = BLE_ADDR_RANDOM;
+  tINQ_DB_ENT* p_i = btm_inq_db_find(addr);
+  if (p_i) {
+    address_type = p_i->inq_info.results.ble_addr_type;  // Random
+  }
+  btm_random_pseudo_to_identity_addr(&addr, &address_type);
+  if (address_type & BLE_ADDR_TYPE_ID_BIT) {
+#if (BLE_PRIVACY_SPT == TRUE)
+    LOG_INFO("Enable resolving list");
+    btm_ble_enable_resolving_list(BTM_BLE_RL_SCAN);
+#endif
+  }
+  address_type &= ~BLE_ADDR_TYPE_ID_BIT;
+  uint8_t options = 0;
+  uint8_t cte_type = 7;
+  int index = btm_ble_get_psync_index(sid, addr);
+  tBTM_BLE_PERIODIC_SYNC* p = &btm_ble_pa_sync_cb.p_sync[index];
+  p->sync_state = PERIODIC_SYNC_PENDING;
+
+  if (BleScanningManager::IsInitialized()) {
+    BleScanningManager::Get()->PeriodicScanStart(options, sid, address_type,
+                                                 addr, skip, timeout, cte_type);
+  }
+
+  alarm_set(sync_timeout_alarm, SYNC_TIMEOUT, btm_ble_start_sync_timeout, NULL);
+}
+
+static void btm_queue_sync_next() {
+  if (!sync_queue || list_is_empty(sync_queue)) {
+    LOG_DEBUG("sync_queue empty");
+    return;
+  }
+
+  sync_node_t* p_head = (sync_node_t*)list_front(sync_queue);
+
+  LOG_INFO("%s: executing sync request SID=%04X, bd_addr=%s", __func__,
+           p_head->sid, p_head->address.ToString().c_str());
+  if (p_head->busy) {
+    LOG_DEBUG("BUSY");
+    return;
+  }
+
+  p_head->busy = true;
+  alarm_cancel(sync_timeout_alarm);
+  btm_ble_start_sync_request(p_head->sid, p_head->address, p_head->skip,
+                             p_head->timeout);
+}
+
+static void btm_ble_sync_queue_handle(uint16_t event, char* param) {
+  switch (event) {
+    case BTM_QUEUE_SYNC_REQ_EVT:
+      LOG_DEBUG("BTIF_QUEUE_SYNC_REQ_EVT");
+      sync_queue_add((sync_node_t*)param);
+      break;
+    case BTM_QUEUE_SYNC_ADVANCE_EVT:
+      LOG_DEBUG("BTIF_QUEUE_ADVANCE_EVT");
+      sync_queue_advance();
+      break;
+    case BTM_QUEUE_SYNC_CLEANUP_EVT:
+      sync_queue_cleanup((remove_sync_node_t*)param);
+      return;
+  }
+  btm_queue_sync_next();
+}
+
+void btm_queue_start_sync_req(uint8_t sid, RawAddress address, uint16_t skip,
+                              uint16_t timeout) {
+  LOG_DEBUG("address = %s, sid = %d", address.ToString().c_str(), sid);
+  sync_node_t node = {};
+  node.sid = sid;
+  node.address = address;
+  node.skip = skip;
+  node.timeout = timeout;
+  btm_ble_sync_queue_handle(BTM_QUEUE_SYNC_REQ_EVT, (char*)&node);
+}
+
+static void btm_sync_queue_advance() {
+  LOG_DEBUG("%s", "");
+  btm_ble_sync_queue_handle(BTM_QUEUE_SYNC_ADVANCE_EVT, nullptr);
+}
+
+static void btm_ble_start_sync_timeout(void* data) {
+  LOG_DEBUG("%s", "");
+  sync_node_t* p_head = (sync_node_t*)list_front(sync_queue);
+  uint8_t adv_sid = p_head->sid;
+  RawAddress address = p_head->address;
+
+  int index = btm_ble_get_psync_index(adv_sid, address);
+
+  tBTM_BLE_PERIODIC_SYNC* p = &btm_ble_pa_sync_cb.p_sync[index];
+
+  if (BleScanningManager::IsInitialized()) {
+    BleScanningManager::Get()->PeriodicScanCancelStart();
+  }
+  p->sync_start_cb.Run(0x3C, 0, p->sid, 0, p->remote_bda, 0, 0);
+
+  p->sync_state = PERIODIC_SYNC_IDLE;
+  p->in_use = false;
+  p->remote_bda = RawAddress::kEmpty;
+  p->sid = 0;
+  p->sync_handle = 0;
+  p->in_use = false;
+}
+
+static int btm_ble_get_free_psync_index() {
+  int i;
+  for (i = 0; i < MAX_SYNC_TRANSACTION; i++) {
+    if (btm_ble_pa_sync_cb.p_sync[i].in_use == false) {
+      LOG_DEBUG("found index at %d", i);
+      return i;
+    }
+  }
+  return i;
+}
+
+static int btm_ble_get_psync_index_from_handle(uint16_t handle) {
+  int i;
+  for (i = 0; i < MAX_SYNC_TRANSACTION; i++) {
+    if (btm_ble_pa_sync_cb.p_sync[i].sync_handle == handle &&
+        btm_ble_pa_sync_cb.p_sync[i].sync_state == PERIODIC_SYNC_ESTABLISHED) {
+      LOG_DEBUG("found index at %d", i);
+      return i;
+    }
+  }
+  return i;
+}
+
+static int btm_ble_get_psync_index(uint8_t adv_sid, RawAddress addr) {
+  int i;
+  for (i = 0; i < MAX_SYNC_TRANSACTION; i++) {
+    if (btm_ble_pa_sync_cb.p_sync[i].sid == adv_sid &&
+        btm_ble_pa_sync_cb.p_sync[i].remote_bda == addr) {
+      LOG_DEBUG("found index at %d", i);
+      return i;
+    }
+  }
+  return i;
+}
+
+static int btm_ble_get_free_sync_transfer_index() {
+  int i;
+  for (i = 0; i < MAX_SYNC_TRANSACTION; i++) {
+    if (!btm_ble_pa_sync_cb.sync_transfer[i].in_use) {
+      LOG_DEBUG("found index at %d", i);
+      return i;
+    }
+  }
+  return i;
+}
+
+static int btm_ble_get_sync_transfer_index(uint16_t conn_handle) {
+  int i;
+  for (i = 0; i < MAX_SYNC_TRANSACTION; i++) {
+    if (btm_ble_pa_sync_cb.sync_transfer[i].conn_handle == conn_handle) {
+      LOG_DEBUG("found index at %d", i);
+      return i;
+    }
+  }
+  return i;
+}
+
+/*******************************************************************************
+ *
+ * Function         btm_ble_periodic_adv_sync_established
+ *
+ * Description      Periodic Adv Sync Established callback from controller when
+ &                  sync to PA is established
+ *
+ *
+ ******************************************************************************/
+void btm_ble_periodic_adv_sync_established(uint8_t status, uint16_t sync_handle,
+                                           uint8_t adv_sid,
+                                           uint8_t address_type,
+                                           const RawAddress& addr, uint8_t phy,
+                                           uint16_t interval,
+                                           uint8_t adv_clock_accuracy) {
+  LOG_DEBUG(
+      "[PSync]: status=%d, sync_handle=%d, s_id=%d, "
+      "addr_type=%d, adv_phy=%d,adv_interval=%d, clock_acc=%d",
+      status, sync_handle, adv_sid, address_type, phy, interval,
+      adv_clock_accuracy);
+
+  /*if (param_len != ADV_SYNC_ESTB_EVT_LEN) {
+    BTM_TRACE_ERROR("[PSync]%s: Invalid event length",__func__);
+    STREAM_TO_UINT8(status, param);
+    if (status == BTM_SUCCESS) {
+      STREAM_TO_UINT16(sync_handle, param);
+      //btsnd_hcic_ble_terminate_periodic_sync(sync_handle);
+      if (BleScanningManager::IsInitialized()) {
+        BleScanningManager::Get()->PeriodicScanTerminate(sync_handle);
+      }
+      return;
+    }
+  }*/
+
+  RawAddress bda = addr;
+  alarm_cancel(sync_timeout_alarm);
+  if (address_type & BLE_ADDR_TYPE_ID_BIT) {
+    btm_identity_addr_to_random_pseudo(&bda, &address_type, true);
+#if (BLE_PRIVACY_SPT == TRUE)
+    btm_ble_disable_resolving_list(BTM_BLE_RL_SCAN, true);
+#endif
+  }
+  int index = btm_ble_get_psync_index(adv_sid, bda);
+  if (index == MAX_SYNC_TRANSACTION) {
+    BTM_TRACE_WARNING("[PSync]%s: Invalid index for sync established",
+                      __func__);
+    if (status == BTM_SUCCESS) {
+      BTM_TRACE_WARNING("%s: Terminate sync", __func__);
+      if (BleScanningManager::IsInitialized()) {
+        BleScanningManager::Get()->PeriodicScanTerminate(sync_handle);
+      }
+    }
+    btm_sync_queue_advance();
+    return;
+  }
+  tBTM_BLE_PERIODIC_SYNC* ps = &btm_ble_pa_sync_cb.p_sync[index];
+  ps->sync_handle = sync_handle;
+  ps->sync_state = PERIODIC_SYNC_ESTABLISHED;
+  ps->sync_start_cb.Run(status, sync_handle, adv_sid, address_type, bda, phy,
+                        interval);
+  btm_sync_queue_advance();
+}
+
+/*******************************************************************************
+ *
+ * Function        btm_ble_periodic_adv_report
+ *
+ * Description     This callback is received when controller estalishes sync
+ *                 to a PA requested from host
+ *
+ ******************************************************************************/
+void btm_ble_periodic_adv_report(uint16_t sync_handle, uint8_t tx_power,
+                                 int8_t rssi, uint8_t cte_type,
+                                 uint8_t data_status, uint8_t data_len,
+                                 const uint8_t* periodic_data) {
+  LOG_DEBUG(
+      "[PSync]: sync_handle = %u, tx_power = %d, rssi = %d,"
+      "cte_type = %u, data_status = %u, data_len = %u",
+      sync_handle, tx_power, rssi, cte_type, data_status, data_len);
+
+  std::vector<uint8_t> data;
+  for (int i = 0; i < data_len; i++) {
+    data.push_back(periodic_data[i]);
+  }
+  int index = btm_ble_get_psync_index_from_handle(sync_handle);
+  if (index == MAX_SYNC_TRANSACTION) {
+    LOG_ERROR("[PSync]: index not found for handle %u", sync_handle);
+    return;
+  }
+  tBTM_BLE_PERIODIC_SYNC* ps = &btm_ble_pa_sync_cb.p_sync[index];
+  LOG_DEBUG("%s", "[PSync]: invoking callback");
+  ps->sync_report_cb.Run(sync_handle, tx_power, rssi, data_status, data);
+}
+
+/*******************************************************************************
+ *
+ * Function        btm_ble_periodic_adv_sync_lost
+ *
+ * Description     This callback is received when sync to PA is lost
+ *
+ ******************************************************************************/
+void btm_ble_periodic_adv_sync_lost(uint16_t sync_handle) {
+  LOG_DEBUG("[PSync]: sync_handle = %d", sync_handle);
+
+  int index = btm_ble_get_psync_index_from_handle(sync_handle);
+  tBTM_BLE_PERIODIC_SYNC* ps = &btm_ble_pa_sync_cb.p_sync[index];
+  ps->sync_lost_cb.Run(sync_handle);
+
+  ps->in_use = false;
+  ps->sid = 0;
+  ps->sync_handle = 0;
+  ps->sync_state = PERIODIC_SYNC_IDLE;
+  ps->remote_bda = RawAddress::kEmpty;
+}
+
+/*******************************************************************************
+ *
+ * Function        BTM_BleStartPeriodicSync
+ *
+ * Description     Create sync request to PA associated with address and sid
+ *
+ ******************************************************************************/
+void BTM_BleStartPeriodicSync(uint8_t adv_sid, RawAddress address,
+                              uint16_t skip, uint16_t timeout,
+                              StartSyncCb syncCb, SyncReportCb reportCb,
+                              SyncLostCb lostCb) {
+  LOG_DEBUG("%s", "[PSync]");
+  int index = btm_ble_get_free_psync_index();
+  tBTM_BLE_PERIODIC_SYNC* p = &btm_ble_pa_sync_cb.p_sync[index];
+  if (index == MAX_SYNC_TRANSACTION) {
+    syncCb.Run(BTM_NO_RESOURCES, 0, adv_sid, BLE_ADDR_RANDOM, address, 0, 0);
+    return;
+  }
+  p->in_use = true;
+  p->remote_bda = address;
+  p->sid = adv_sid;
+  p->sync_start_cb = syncCb;
+  p->sync_report_cb = reportCb;
+  p->sync_lost_cb = lostCb;
+  btm_queue_start_sync_req(adv_sid, address, skip, timeout);
+}
+
+/*******************************************************************************
+ *
+ * Function        BTM_BleStopPeriodicSync
+ *
+ * Description     Terminate sync request to PA associated with sync handle
+ *
+ ******************************************************************************/
+void BTM_BleStopPeriodicSync(uint16_t handle) {
+  LOG_DEBUG("[PSync]: handle = %u", handle);
+  int index = btm_ble_get_psync_index_from_handle(handle);
+  if (index == MAX_SYNC_TRANSACTION) {
+    LOG_ERROR("[PSync]: invalid index for handle %u", handle);
+    if (BleScanningManager::IsInitialized()) {
+      BleScanningManager::Get()->PeriodicScanTerminate(handle);
+    }
+    return;
+  }
+  tBTM_BLE_PERIODIC_SYNC* p = &btm_ble_pa_sync_cb.p_sync[index];
+  p->sync_state = PERIODIC_SYNC_IDLE;
+  p->in_use = false;
+  p->remote_bda = RawAddress::kEmpty;
+  p->sid = 0;
+  p->sync_handle = 0;
+  p->in_use = false;
+  if (BleScanningManager::IsInitialized()) {
+    BleScanningManager::Get()->PeriodicScanTerminate(handle);
+  }
+}
+
+/*******************************************************************************
+ *
+ * Function        BTM_BleCancelPeriodicSync
+ *
+ * Description     Cancel create sync request to PA associated with sid and
+ *                 address
+ *
+ ******************************************************************************/
+void BTM_BleCancelPeriodicSync(uint8_t adv_sid, RawAddress address) {
+  LOG_DEBUG("%s", "[PSync]");
+  int index = btm_ble_get_psync_index(adv_sid, address);
+  if (index == MAX_SYNC_TRANSACTION) {
+    LOG_ERROR("[PSync]:Invalid index for sid=%u", adv_sid);
+    return;
+  }
+  tBTM_BLE_PERIODIC_SYNC* p = &btm_ble_pa_sync_cb.p_sync[index];
+  if (p->sync_state == PERIODIC_SYNC_PENDING) {
+    LOG_WARN("[PSync]: Sync state is pending for index %d", index);
+    if (BleScanningManager::IsInitialized()) {
+      BleScanningManager::Get()->PeriodicScanCancelStart();
+    }
+  } else if (p->sync_state == PERIODIC_SYNC_IDLE) {
+    LOG_DEBUG("[PSync]: Removing Sync request from queue for index %d", index);
+    remove_sync_node_t remove_node;
+    remove_node.sid = adv_sid;
+    remove_node.address = address;
+    btm_ble_sync_queue_handle(BTM_QUEUE_SYNC_CLEANUP_EVT, (char*)&remove_node);
+  }
+  p->sync_state = PERIODIC_SYNC_IDLE;
+  p->in_use = false;
+  p->remote_bda = RawAddress::kEmpty;
+  p->sid = 0;
+  p->sync_handle = 0;
+  p->in_use = false;
+}
+
+/*******************************************************************************
+ *
+ * Function        btm_ble_periodic_syc_transfer_cmd_cmpl
+ *
+ * Description     PAST complete callback
+ *
+ ******************************************************************************/
+void btm_ble_periodic_syc_transfer_cmd_cmpl(uint8_t status,
+                                            uint16_t conn_handle) {
+  LOG_DEBUG("[PAST]: status = %d, conn_handle =%d", status, conn_handle);
+
+  int index = btm_ble_get_sync_transfer_index(conn_handle);
+  if (index == MAX_SYNC_TRANSACTION) {
+    LOG_ERROR("[PAST]:Invalid, conn_handle %u not found in DB", conn_handle);
+    return;
+  }
+
+  tBTM_BLE_PERIODIC_SYNC_TRANSFER* p_sync_transfer =
+      &btm_ble_pa_sync_cb.sync_transfer[index];
+  p_sync_transfer->cb.Run(status, p_sync_transfer->addr);
+
+  p_sync_transfer->in_use = false;
+  p_sync_transfer->conn_handle = -1;
+  p_sync_transfer->addr = RawAddress::kEmpty;
+}
+
+void btm_ble_periodic_syc_transfer_param_cmpl(uint8_t status) {
+  LOG_DEBUG("[PAST]: status = %d", status);
+}
+
+/*******************************************************************************
+ *
+ * Function        BTM_BlePeriodicSyncTransfer
+ *
+ * Description     Initiate PAST to connected remote device with sync handle
+ *
+ ******************************************************************************/
+void BTM_BlePeriodicSyncTransfer(RawAddress addr, uint16_t service_data,
+                                 uint16_t sync_handle, SyncTransferCb cb) {
+  uint16_t conn_handle = BTM_GetHCIConnHandle(addr, BT_TRANSPORT_LE);
+  tACL_CONN* p_acl = btm_acl_for_bda(addr, BT_TRANSPORT_LE);
+  BTM_TRACE_DEBUG("[PAST]%s for connection_handle = %x", __func__, conn_handle);
+  if (conn_handle == 0xFFFF || p_acl == NULL) {
+    BTM_TRACE_ERROR("[PAST]%s:Invalid connection handle or no LE ACL link",
+                    __func__);
+    cb.Run(BTM_UNKNOWN_ADDR, addr);
+    return;
+  }
+
+  if (!HCI_LE_PERIODIC_ADVERTISING_SYNC_TRANSFER_RECIPIENT(
+          p_acl->peer_le_features)) {
+    BTM_TRACE_ERROR("[PAST]%s:Remote doesn't support PAST", __func__);
+    cb.Run(BTM_MODE_UNSUPPORTED, addr);
+    return;
+  }
+
+  int index = btm_ble_get_free_sync_transfer_index();
+  tBTM_BLE_PERIODIC_SYNC_TRANSFER* p_sync_transfer =
+      &btm_ble_pa_sync_cb.sync_transfer[index];
+  p_sync_transfer->in_use = true;
+  p_sync_transfer->conn_handle = conn_handle;
+  p_sync_transfer->addr = addr;
+  p_sync_transfer->cb = cb;
+  if (BleScanningManager::IsInitialized()) {
+    BleScanningManager::Get()->PeriodicAdvSyncTransfer(
+        addr, service_data, sync_handle,
+        base::Bind(&btm_ble_periodic_syc_transfer_cmd_cmpl));
+  }
+}
+
+/*******************************************************************************
+ *
+ * Function        BTM_BlePeriodicSyncSetInfo
+ *
+ * Description     Initiate PAST to connected remote device with adv handle
+ *
+ ******************************************************************************/
+void BTM_BlePeriodicSyncSetInfo(RawAddress addr, uint16_t service_data,
+                                uint8_t adv_handle, SyncTransferCb cb) {
+  uint16_t conn_handle = BTM_GetHCIConnHandle(addr, BT_TRANSPORT_LE);
+  tACL_CONN* p_acl = btm_acl_for_bda(addr, BT_TRANSPORT_LE);
+  LOG_DEBUG("[PAST] for connection_handle = %u", conn_handle);
+  if (conn_handle == 0xFFFF || p_acl == nullptr) {
+    LOG_ERROR("[PAST]:Invalid connection handle %u or no LE ACL link",
+              conn_handle);
+    cb.Run(BTM_UNKNOWN_ADDR, addr);
+    return;
+  }
+  if (!HCI_LE_PERIODIC_ADVERTISING_SYNC_TRANSFER_RECIPIENT(
+          p_acl->peer_le_features)) {
+    LOG_ERROR("%s", "[PAST]:Remote doesn't support PAST");
+    cb.Run(BTM_MODE_UNSUPPORTED, addr);
+    return;
+  }
+
+  int index = btm_ble_get_free_sync_transfer_index();
+  tBTM_BLE_PERIODIC_SYNC_TRANSFER* p_sync_transfer =
+      &btm_ble_pa_sync_cb.sync_transfer[index];
+  p_sync_transfer->in_use = true;
+  p_sync_transfer->conn_handle = conn_handle;
+  p_sync_transfer->addr = addr;
+  p_sync_transfer->cb = cb;
+  if (BleScanningManager::IsInitialized()) {
+    BleScanningManager::Get()->PeriodicAdvSetInfoTransfer(
+        addr, service_data, adv_handle,
+        base::Bind(&btm_ble_periodic_syc_transfer_cmd_cmpl));
+  }
+}
+
+/*******************************************************************************
+ *
+ * Function        btm_ble_biginfo_adv_report_rcvd
+ *
+ * Description     Host receives this event when synced PA has BIGInfo
+ *
+ ******************************************************************************/
+void btm_ble_biginfo_adv_report_rcvd(uint8_t* p, uint16_t param_len) {
+  LOG_DEBUG("[PAST]: BIGINFO report received, len=%u", param_len);
+  uint16_t sync_handle, iso_interval, max_pdu, max_sdu;
+  uint8_t num_bises, nse, bn, pto, irc, phy, framing, encryption;
+  uint32_t sdu_interval;
+  STREAM_TO_UINT16(sync_handle, p);
+  STREAM_TO_UINT8(num_bises, p);
+  STREAM_TO_UINT8(nse, p);
+  STREAM_TO_UINT16(iso_interval, p);
+  STREAM_TO_UINT8(bn, p);
+  STREAM_TO_UINT8(pto, p);
+  STREAM_TO_UINT8(irc, p);
+  STREAM_TO_UINT16(max_pdu, p);
+  STREAM_TO_UINT24(sdu_interval, p);
+  STREAM_TO_UINT16(max_sdu, p);
+  STREAM_TO_UINT8(phy, p);
+  STREAM_TO_UINT8(framing, p);
+  STREAM_TO_UINT8(encryption, p);
+  LOG_DEBUG(
+      "[PAST]:sync_handle %u, num_bises = %u, nse = %u,"
+      "iso_interval = %d, bn = %u, pto = %u, irc = %u, max_pdu = %u "
+      "sdu_interval = %d, max_sdu = %u, phy = %u, framing = %u, encryption  = "
+      "%u",
+      sync_handle, num_bises, nse, iso_interval, bn, pto, irc, max_pdu,
+      sdu_interval, max_sdu, phy, framing, encryption);
+}
+
+/*******************************************************************************
+ *
+ * Function        btm_ble_periodic_adv_sync_tx_rcvd
+ *
+ * Description     Host receives this event when the controller receives sync
+ *                 info of PA from the connected remote device and successfully
+ *                 synced to PA associated with sync handle
+ *
+ ******************************************************************************/
+void btm_ble_periodic_adv_sync_tx_rcvd(uint8_t* p, uint16_t param_len) {
+  LOG_DEBUG("[PAST]: PAST received, param_len=%u", param_len);
+  if (param_len == 0) {
+    LOG_ERROR("%s", "Insufficient data");
+    return;
+  }
+  uint8_t status, adv_sid, address_type, adv_phy, clk_acc;
+  uint16_t pa_int, sync_handle, service_data, conn_handle;
+  RawAddress addr;
+  STREAM_TO_UINT8(status, p);
+  STREAM_TO_UINT16(conn_handle, p);
+  STREAM_TO_UINT16(service_data, p);
+  STREAM_TO_UINT16(sync_handle, p);
+  STREAM_TO_UINT8(adv_sid, p);
+  STREAM_TO_UINT8(address_type, p);
+  STREAM_TO_BDADDR(addr, p);
+  STREAM_TO_UINT8(adv_phy, p);
+  STREAM_TO_UINT16(pa_int, p);
+  STREAM_TO_UINT8(clk_acc, p);
+  BTM_TRACE_DEBUG(
+      "[PAST]: status = %u, conn_handle = %u, service_data = %u,"
+      " sync_handle = %u, adv_sid = %u, address_type = %u, addr = %s,"
+      " adv_phy = %u, pa_int = %u, clk_acc = %u",
+      status, conn_handle, service_data, sync_handle, adv_sid, address_type,
+      addr.ToString().c_str(), adv_phy, pa_int, clk_acc);
+  if (syncRcvdCbRegistered) {
+    sync_rcvd_cb.Run(status, sync_handle, adv_sid, address_type, addr, adv_phy,
+                     pa_int);
+  }
+}
+
+/*******************************************************************************
+ *
+ * Function        BTM_BlePeriodicSyncTxParameters
+ *
+ * Description     On receiver side this command is used to specify how BT SoC
+ *                 will process PA sync info received from the remote device
+ *                 identified by the addr.
+ *
+ ******************************************************************************/
+void BTM_BlePeriodicSyncTxParameters(RawAddress addr, uint8_t mode,
+                                     uint16_t skip, uint16_t timeout,
+                                     StartSyncCb syncCb) {
+  LOG_DEBUG("[PAST]: mode=%u, skip=%u, timeout=%u", mode, skip, timeout);
+  uint8_t cte_type = 7;
+  sync_rcvd_cb = syncCb;
+  syncRcvdCbRegistered = true;
+  if (BleScanningManager::IsInitialized()) {
+    BleScanningManager::Get()->SetPeriodicAdvSyncTransferParams(
+        addr, mode, skip, timeout, cte_type, true,
+        base::Bind(&btm_ble_periodic_syc_transfer_param_cmpl));
+  }
 }
 
 /*******************************************************************************
@@ -2681,7 +3380,8 @@ void btm_ble_init(void) {
 
   p_cb->addr_mgnt_cb.refresh_raddr_timer =
       alarm_new("btm_ble_addr.refresh_raddr_timer");
-
+  btm_ble_pa_sync_cb = {};
+  sync_timeout_alarm = alarm_new("btm.sync_start_task");
 #if (BLE_VND_INCLUDED == FALSE)
   btm_ble_adv_filter_init();
 #endif

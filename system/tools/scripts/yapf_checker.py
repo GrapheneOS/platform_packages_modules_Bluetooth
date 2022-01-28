@@ -38,10 +38,6 @@ def main():
         logging.error('Missing PREUPLOAD_COMMIT in environment.')
         exit(1)
 
-    if ANDROID_BUILD_TOP_KEY not in os.environ:
-        logging.error('Missing ANDROID_BUILD_TOP in environment.')
-        exit(1)
-
     # Gather changed Python files
     commit_id = os.environ[COMMIT_ID_ENV_KEY]
     full_git_command = GIT_COMMAND + ['-r', commit_id]
@@ -49,6 +45,10 @@ def main():
     full_files = [os.path.abspath(f) for f in files if f.endswith('.py')]
     if not full_files:
         return
+
+    if ANDROID_BUILD_TOP_KEY not in os.environ:
+        logging.error('Missing ANDROID_BUILD_TOP in environment.')
+        exit(1)
 
     # Find yapf in Android code tree
     yapf_dir = os.path.join(os.environ[ANDROID_BUILD_TOP_KEY], DEFAULT_YAPF_DIR)

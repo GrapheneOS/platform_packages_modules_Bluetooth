@@ -29,8 +29,10 @@ import android.annotation.SdkConstant;
 import android.annotation.SdkConstant.SdkConstantType;
 import android.annotation.SuppressLint;
 import android.annotation.SystemApi; //import android.app.PropertyInvalidatedCache;
+import android.app.PendingIntent;
 import android.bluetooth.BluetoothDevice.Transport;
 import android.bluetooth.BluetoothFrameworkInitializer;
+import android.bluetooth.BluetoothDevice.AddressType;
 import android.bluetooth.BluetoothProfile.ConnectionPolicy;
 import android.bluetooth.annotations.RequiresBluetoothAdvertisePermission;
 import android.bluetooth.annotations.RequiresBluetoothConnectPermission;
@@ -233,6 +235,31 @@ public final class BluetoothAdapter {
      */
     public static final UUID LE_PSM_CHARACTERISTIC_UUID =
             UUID.fromString("2d410339-82b6-42aa-b34e-e2e01df8cc1a");
+
+    /**
+     * Used as an optional extra field for the {@link PendingIntent} provided to {@link
+     * #startRfcommServer(String, UUID, PendingIntent)}. This is useful for when an
+     * application registers multiple RFCOMM listeners, and needs a way to determine which service
+     * record the incoming {@link BluetoothSocket} is using.
+     *
+     * @hide
+     */
+    public static final String EXTRA_RFCOMM_LISTENER_ID =
+            "android.bluetooth.adapter.extra.RFCOMM_LISTENER_ID";
+
+    /** @hide */
+    @IntDef(value = {
+            BluetoothStatusCodes.SUCCESS,
+            BluetoothStatusCodes.ERROR_TIMEOUT,
+            BluetoothStatusCodes.RFCOMM_LISTENER_START_FAILED_UUID_IN_USE,
+            BluetoothStatusCodes.RFCOMM_LISTENER_OPERATION_FAILED_NO_MATCHING_SERVICE_RECORD,
+            BluetoothStatusCodes.RFCOMM_LISTENER_OPERATION_FAILED_DIFFERENT_APP,
+            BluetoothStatusCodes.RFCOMM_LISTENER_FAILED_TO_CREATE_SERVER_SOCKET,
+            BluetoothStatusCodes.RFCOMM_LISTENER_FAILED_TO_CLOSE_SERVER_SOCKET,
+            BluetoothStatusCodes.RFCOMM_LISTENER_NO_SOCKET_AVAILABLE,
+    })
+    @Retention(RetentionPolicy.SOURCE)
+    public @interface RfcommListenerResult {}
 
     /**
      * Human-readable string helper for AdapterState
@@ -845,6 +872,27 @@ public final class BluetoothAdapter {
     @RequiresNoPermission
     public BluetoothDevice getRemoteDevice(String address) {
         final BluetoothDevice res = new BluetoothDevice(address);
+        res.setAttributionSource(mAttributionSource);
+        return res;
+    }
+
+    /**
+     * Get a {@link BluetoothDevice} object for the given Bluetooth hardware
+     * address and addressType.
+     * <p>Valid Bluetooth hardware addresses must be upper case, in a format
+     * such as "00:11:22:33:AA:BB". The helper {@link #checkBluetoothAddress} is
+     * available to validate a Bluetooth address.
+     * <p>A {@link BluetoothDevice} will always be returned for a valid
+     * hardware address and type, even if this adapter has never seen that device.
+     *
+     * @param address valid Bluetooth MAC address
+     * @param addressType Bluetooth address type
+     * @throws IllegalArgumentException if address is invalid
+     */
+    @RequiresNoPermission
+    public @NonNull BluetoothDevice getRemoteLeDevice(@NonNull String address,
+            @AddressType int addressType) {
+        final BluetoothDevice res = new BluetoothDevice(address, addressType);
         res.setAttributionSource(mAttributionSource);
         return res;
     }
@@ -2825,6 +2873,135 @@ public final class BluetoothAdapter {
     }
 
     /**
+     * Requests the framework to start an RFCOMM socket server which listens based on the provided
+     * {@code name} and {@code uuid}.
+     * <p>
+     * Incoming connections will cause the system to start the component described in the {@link
+     * PendingIntent}, {@code pendingIntent}. After the component is started, it should obtain a
+     * {@link BluetoothAdapter} and retrieve the {@link BluetoothSocket} via {@link
+     * #retrieveConnectedRfcommSocket(UUID)}.
+     * <p>
+     * An application may register multiple RFCOMM listeners. It is recommended to set the extra
+     * field {@link #EXTRA_RFCOMM_LISTENER_ID} to help determine which service record the incoming
+     * {@link BluetoothSocket} is using.
+     * <p>
+     * The provided {@link PendingIntent} must be created with the {@link
+     * PendingIntent#FLAG_IMMUTABLE} flag.
+     *
+     * @param name service name for SDP record
+     * @param uuid uuid for SDP record
+     * @param pendingIntent component which is called when a new RFCOMM connection is available
+     * @return a status code from {@link BluetoothStatusCodes}
+     * @throws IllegalArgumentException if {@code pendingIntent} is not created with the {@link
+     *         PendingIntent#FLAG_IMMUTABLE} flag.
+     * @hide
+     */
+    @SystemApi
+    @RequiresBluetoothConnectPermission
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED
+    })
+    @RfcommListenerResult
+    public int startRfcommServer(@NonNull String name, @NonNull UUID uuid,
+            @NonNull PendingIntent pendingIntent) {
+        if (!pendingIntent.isImmutable()) {
+            throw new IllegalArgumentException("The provided PendingIntent is not immutable");
+        }
+        try {
+            return mService.startRfcommListener(
+                    name, new ParcelUuid(uuid), pendingIntent, mAttributionSource);
+        } catch (RemoteException e) {
+            Log.e(TAG, "Failed to transact RFCOMM listener start request", e);
+            return BluetoothStatusCodes.ERROR_TIMEOUT;
+        }
+    }
+
+    /**
+     * Closes the RFCOMM socket server listening on the given SDP record name and UUID. This can be
+     * called by applications after calling {@link #startRfcommServer(String, UUID,
+     * PendingIntent)} to stop listening for incoming RFCOMM connections.
+     *
+     * @param uuid uuid for SDP record
+     * @return a status code from {@link BluetoothStatusCodes}
+     * @hide
+     */
+    @SystemApi
+    @RequiresBluetoothConnectPermission
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
+    @RfcommListenerResult
+    public int closeRfcommServer(@NonNull UUID uuid) {
+        try {
+            return mService.stopRfcommListener(new ParcelUuid(uuid), mAttributionSource);
+        } catch (RemoteException e) {
+            Log.e(TAG, "Failed to transact RFCOMM listener stop request", e);
+            return BluetoothStatusCodes.ERROR_TIMEOUT;
+        }
+    }
+
+    /**
+     * Retrieves a connected {@link BluetoothSocket} for the given service record from a RFCOMM
+     * listener which was registered with {@link #startRfcommServer(String, UUID, PendingIntent)}.
+     * <p>
+     * This method should be called by the component started by the {@link PendingIntent} which was
+     * registered during the call to {@link #startRfcommServer(String, UUID, PendingIntent)} in
+     * order to retrieve the socket.
+     *
+     * @param uuid the same UUID used to register the listener previously
+     * @return a connected {@link BluetoothSocket} or {@code null} if no socket is available
+     * @throws IllegalStateException if the socket could not be retrieved because the application is
+     *         trying to obtain a socket for a listener it did not register (incorrect {@code
+     *         uuid}).
+     * @hide
+     */
+    @SystemApi
+    @RequiresBluetoothConnectPermission
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
+    public @NonNull BluetoothSocket retrieveConnectedRfcommSocket(@NonNull UUID uuid) {
+        IncomingRfcommSocketInfo socketInfo;
+
+        try {
+            socketInfo =
+                    mService.retrievePendingSocketForServiceRecord(
+                            new ParcelUuid(uuid), mAttributionSource);
+        } catch (RemoteException e) {
+            return null;
+        }
+
+        switch (socketInfo.status) {
+            case BluetoothStatusCodes.SUCCESS:
+                try {
+                    return BluetoothSocket.createSocketFromOpenFd(
+                            socketInfo.pfd,
+                            socketInfo.bluetoothDevice,
+                            new ParcelUuid(uuid));
+                } catch (IOException e) {
+                    return null;
+                }
+            case BluetoothStatusCodes.RFCOMM_LISTENER_OPERATION_FAILED_DIFFERENT_APP:
+                throw new IllegalStateException(
+                        String.format(
+                                "RFCOMM listener for UUID %s was not registered by this app",
+                                uuid));
+            case BluetoothStatusCodes.RFCOMM_LISTENER_NO_SOCKET_AVAILABLE:
+                return null;
+            default:
+                Log.e(TAG,
+                        String.format(
+                                "Unexpected result: (%d), from the adapter service while retrieving"
+                                        + " an rfcomm socket",
+                                socketInfo.status));
+                return null;
+        }
+    }
+
+    /**
      * Create a listening, insecure RFCOMM Bluetooth socket with Service Record.
      * <p>The link key is not required to be authenticated, i.e the communication may be
      * vulnerable to Person In the Middle attacks. For Bluetooth 2.1 devices,
@@ -3121,6 +3298,9 @@ public final class BluetoothAdapter {
         } else if (profile == BluetoothProfile.HID_DEVICE) {
             BluetoothHidDevice hidDevice = new BluetoothHidDevice(context, listener, this);
             return true;
+        } else if (profile == BluetoothProfile.HAP_CLIENT) {
+            BluetoothHapClient HapClient = new BluetoothHapClient(context, listener);
+            return true;
         } else if (profile == BluetoothProfile.HEARING_AID) {
             if (isHearingAidProfileSupported()) {
                 BluetoothHearingAid hearingAid = new BluetoothHearingAid(context, listener, this);
@@ -3224,6 +3404,10 @@ public final class BluetoothAdapter {
             case BluetoothProfile.HID_DEVICE:
                 BluetoothHidDevice hidDevice = (BluetoothHidDevice) proxy;
                 hidDevice.close();
+                break;
+            case BluetoothProfile.HAP_CLIENT:
+                BluetoothHapClient HapClient = (BluetoothHapClient) proxy;
+                HapClient.close();
                 break;
             case BluetoothProfile.HEARING_AID:
                 BluetoothHearingAid hearingAid = (BluetoothHearingAid) proxy;

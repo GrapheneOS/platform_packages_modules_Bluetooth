@@ -49,7 +49,6 @@ import android.bluetooth.le.ScanSettings;
 import android.companion.AssociationInfo;
 import android.companion.CompanionDeviceManager;
 import android.content.AttributionSource;
-import android.content.Context;
 import android.content.Intent;
 import android.net.MacAddress;
 import android.os.Binder;
@@ -58,7 +57,6 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.ParcelUuid;
 import android.os.RemoteException;
-import android.os.ServiceManager;
 import android.os.SystemClock;
 import android.os.UserHandle;
 import android.os.WorkSource;
@@ -168,6 +166,8 @@ public class GattService extends ProfileService {
             UUID.fromString("00001850-0000-1000-8000-00805F9B34FB"), // PACS
             UUID.fromString("0000184E-0000-1000-8000-00805F9B34FB"), // ASCS
             UUID.fromString("0000184F-0000-1000-8000-00805F9B34FB"), // BASS
+            /* FIXME: Not known yet, using a placeholder instead. */
+            UUID.fromString("EEEEEEEE-EEEE-EEEE-EEEE-EEEEEEEEEEEE"), // HAP
     };
 
     /**
@@ -1088,8 +1088,28 @@ public class GattService extends ProfileService {
         }
 
         @Override
-        public void unregisterSync(
+        public void transferSync(BluetoothDevice bda, int serviceData , int syncHandle,
+                AttributionSource attributionSource) {
+            GattService service = getService();
+            if (service == null) {
+                return;
+            }
+            service.transferSync(bda, serviceData , syncHandle, attributionSource);
+        }
+
+        @Override
+        public void transferSetInfo(BluetoothDevice bda, int serviceData , int advHandle,
                 IPeriodicAdvertisingCallback callback, AttributionSource attributionSource) {
+            GattService service = getService();
+            if (service == null) {
+                return;
+            }
+            service.transferSetInfo(bda, serviceData , advHandle, callback, attributionSource);
+        }
+
+        @Override
+        public void unregisterSync(IPeriodicAdvertisingCallback callback,
+                AttributionSource attributionSource) {
             GattService service = getService();
             if (service == null) {
                 return;
@@ -2623,6 +2643,25 @@ public class GattService extends ProfileService {
             return;
         }
         mPeriodicScanManager.stopSync(callback);
+    }
+
+    void transferSync(BluetoothDevice bda, int serviceData, int syncHandle,
+            AttributionSource attributionSource) {
+        if (!Utils.checkScanPermissionForDataDelivery(
+                this, attributionSource, "GattService transferSync")) {
+            return;
+        }
+        mPeriodicScanManager.transferSync(bda, serviceData, syncHandle);
+    }
+
+    void transferSetInfo(BluetoothDevice bda, int serviceData,
+                  int advHandle, IPeriodicAdvertisingCallback callback,
+                  AttributionSource attributionSource) {
+        if (!Utils.checkScanPermissionForDataDelivery(
+                this, attributionSource, "GattService transferSetInfo")) {
+            return;
+        }
+        mPeriodicScanManager.transferSetInfo(bda, serviceData, advHandle, callback);
     }
 
     /**************************************************************************

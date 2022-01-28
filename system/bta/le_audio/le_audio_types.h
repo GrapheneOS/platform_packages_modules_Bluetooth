@@ -33,6 +33,7 @@
 
 #include "bta_groups.h"
 #include "bta_le_audio_api.h"
+#include "bta_le_audio_uuids.h"
 #include "btm_iso_api_types.h"
 
 namespace le_audio {
@@ -59,7 +60,7 @@ namespace uuid {
  * CSIS
  */
 static const bluetooth::Uuid kCapServiceUuid =
-    bluetooth::Uuid::From16Bit(0x1853);
+    bluetooth::Uuid::From16Bit(UUID_COMMON_AUDIO_SERVICE);
 
 /* Assigned numbers for attributes */
 static const bluetooth::Uuid kPublishedAudioCapabilityServiceUuid =

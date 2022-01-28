@@ -95,6 +95,8 @@ const Uuid UUID_VC = Uuid::FromString("1844");
 const Uuid UUID_CSIS = Uuid::FromString("1846");
 const Uuid UUID_LE_AUDIO = Uuid::FromString("184E");
 const Uuid UUID_LE_MIDI = Uuid::FromString("03B80E5A-EDE8-4B33-A751-6CE34EC4C700");
+/* FIXME: Not known yet, using a placeholder instead. */
+const Uuid UUID_HAS = Uuid::FromString("EEEEEEEE-EEEE-EEEE-EEEE-EEEEEEEEEEEE");
 const bool enable_address_consolidate = false;  // TODO remove
 
 #define COD_MASK 0x07FF
@@ -1333,8 +1335,8 @@ static void btif_dm_search_devices_evt(tBTA_DM_SEARCH_EVT event,
 /* Returns true if |uuid| should be passed as device property */
 static bool btif_is_interesting_le_service(bluetooth::Uuid uuid) {
   return (uuid.As16Bit() == UUID_SERVCLASS_LE_HID || uuid == UUID_HEARING_AID ||
-          uuid == UUID_VC || uuid == UUID_CSIS || uuid == UUID_LE_AUDIO || 
-          uuid == UUID_LE_MIDI);
+          uuid == UUID_VC || uuid == UUID_CSIS || uuid == UUID_LE_AUDIO ||
+          uuid == UUID_LE_MIDI || uuid == UUID_HAS);
 }
 
 /*******************************************************************************
@@ -1793,7 +1795,14 @@ static void btif_dm_upstreams_evt(uint16_t event, char* p_param) {
     case BTA_DM_LE_FEATURES_READ:
       btif_get_adapter_property(BT_PROPERTY_LOCAL_LE_FEATURES);
       break;
-
+    /* add case for HANDLE_KEY_MISSING */
+    case BTA_DM_REPORT_BONDING_EVT:
+      LOG_WARN("Received encryption failed: Report bonding firstly.");
+      bd_addr = p_data->delete_key_RC_to_unpair.bd_addr;
+      invoke_bond_state_changed_cb(BT_STATUS_SUCCESS, bd_addr, BT_BOND_STATE_BONDING,
+                                   pairing_cb.fail_reason);
+      btif_dm_remove_bond(bd_addr);
+      break;
     default:
       BTIF_TRACE_WARNING("%s: unhandled event (%d)", __func__, event);
       break;
