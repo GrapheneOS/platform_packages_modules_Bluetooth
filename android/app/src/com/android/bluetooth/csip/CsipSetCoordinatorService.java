@@ -18,7 +18,6 @@
 package com.android.bluetooth.csip;
 
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
-import static android.Manifest.permission.BLUETOOTH_PRIVILEGED;
 
 import android.annotation.CallbackExecutor;
 import android.annotation.NonNull;
@@ -26,6 +25,7 @@ import android.annotation.Nullable;
 import android.bluetooth.BluetoothCsipSetCoordinator;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
+import android.bluetooth.BluetoothStatusCodes;
 import android.bluetooth.BluetoothUuid;
 import android.bluetooth.IBluetoothCsipSetCoordinator;
 import android.bluetooth.IBluetoothCsipSetCoordinatorCallback;
@@ -488,7 +488,8 @@ public class CsipSetCoordinatorService extends ProfileService {
             if (mLocks.containsKey(groupId)) {
                 try {
                     callback.onGroupLockSet(groupId,
-                            BluetoothCsipSetCoordinator.GROUP_LOCK_FAILED_LOCKED_BY_OTHER, true);
+                            BluetoothStatusCodes.ERROR_CSIP_GROUP_LOCKED_BY_OTHER,
+                            true);
                 } catch (RemoteException e) {
                     throw e.rethrowFromSystemServer();
                 }
@@ -615,6 +616,25 @@ public class CsipSetCoordinatorService extends ProfileService {
         }
     }
 
+    int getApiStatusCode(int nativeResult) {
+        switch (nativeResult) {
+            case IBluetoothCsipSetCoordinator.CSIS_GROUP_LOCK_SUCCESS:
+                return BluetoothStatusCodes.SUCCESS;
+            case IBluetoothCsipSetCoordinator.CSIS_GROUP_LOCK_FAILED_INVALID_GROUP:
+                return BluetoothStatusCodes.ERROR_CSIP_INVALID_GROUP_ID;
+            case IBluetoothCsipSetCoordinator.CSIS_GROUP_LOCK_FAILED_GROUP_NOT_CONNECTED:
+                return BluetoothStatusCodes.ERROR_DEVICE_NOT_CONNECTED;
+            case IBluetoothCsipSetCoordinator.CSIS_GROUP_LOCK_FAILED_LOCKED_BY_OTHER:
+                return BluetoothStatusCodes.ERROR_CSIP_GROUP_LOCKED_BY_OTHER;
+            case IBluetoothCsipSetCoordinator.CSIS_LOCKED_GROUP_MEMBER_LOST:
+                return BluetoothStatusCodes.ERROR_CSIP_LOCKED_GROUP_MEMBER_LOST;
+            case IBluetoothCsipSetCoordinator.CSIS_GROUP_LOCK_FAILED_OTHER_REASON:
+            default:
+                Log.e(TAG, " Unknown status code: " + nativeResult);
+                return BluetoothStatusCodes.ERROR_UNKNOWN;
+        }
+    }
+
     void handleGroupLockChanged(int groupId, int status, boolean isLocked) {
         synchronized (mLocks) {
             if (!mLocks.containsKey(groupId)) {
@@ -623,7 +643,7 @@ public class CsipSetCoordinatorService extends ProfileService {
 
             IBluetoothCsipSetCoordinatorLockCallback cb = mLocks.get(groupId).second;
             try {
-                cb.onGroupLockSet(groupId, status, isLocked);
+                cb.onGroupLockSet(groupId, getApiStatusCode(status), isLocked);
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();
             }
