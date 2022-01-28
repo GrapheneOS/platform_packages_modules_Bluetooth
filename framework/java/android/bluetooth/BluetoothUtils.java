@@ -16,6 +16,8 @@
 
 package android.bluetooth;
 
+import android.os.UserHandle;
+
 import java.time.Duration;
 
 /**
@@ -38,4 +40,9 @@ public final class BluetoothUtils {
     static Duration getSyncTimeout() {
         return SYNC_CALLS_TIMEOUT;
     }
+
+    /**
+     * Match with UserHandl.NULL but accessible inside bluetooth package
+     */
+    public static final UserHandle USER_HANDLE_NULL = UserHandle.of(-10000);
 }
