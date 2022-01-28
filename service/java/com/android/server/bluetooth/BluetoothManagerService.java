@@ -682,15 +682,18 @@ class BluetoothManagerService extends IBluetoothManager.Stub {
             Log.d(TAG, "Loading stored name and address");
         }
         if (getBluetoothBooleanConfig("config_bluetooth_address_validation", false)
-                && Settings.Secure.getInt(mContentResolver, BLUETOOTH_NAME, 0) == 0) {
+                && Settings.Secure.getIntForUser(mContentResolver, BLUETOOTH_NAME, 0,
+                    UserHandle.SYSTEM.getIdentifier()) == 0) {
             // if the valid flag is not set, don't load the address and name
             if (DBG) {
                 Log.d(TAG, "invalid bluetooth name and address stored");
             }
             return;
         }
-        mName = Settings.Secure.getString(mContentResolver, BLUETOOTH_NAME);
-        mAddress = Settings.Secure.getString(mContentResolver, BLUETOOTH_ADDRESS);
+        mName = Settings.Secure.getStringForUser(mContentResolver, BLUETOOTH_NAME,
+                UserHandle.SYSTEM.getIdentifier());
+        mAddress = Settings.Secure.getStringForUser(mContentResolver, BLUETOOTH_ADDRESS,
+                UserHandle.SYSTEM.getIdentifier());
         if (DBG) {
             Log.d(TAG, "Stored bluetooth Name=" + mName + ",Address=" + mAddress);
         }
@@ -707,8 +710,8 @@ class BluetoothManagerService extends IBluetoothManager.Stub {
             Settings.Secure.putString(mContentResolver, BLUETOOTH_NAME, name);
             mName = name;
             if (DBG) {
-                Log.d(TAG, "Stored Bluetooth name: " + Settings.Secure.getString(
-                        mContentResolver, BLUETOOTH_NAME));
+                Log.d(TAG, "Stored Bluetooth name: " + Settings.Secure.getStringForUser(
+                        mContentResolver, BLUETOOTH_NAME, UserHandle.SYSTEM.getIdentifier()));
             }
         }
 
@@ -717,8 +720,9 @@ class BluetoothManagerService extends IBluetoothManager.Stub {
             mAddress = address;
             if (DBG) {
                 Log.d(TAG,
-                        "Stored Bluetoothaddress: " + Settings.Secure.getString(
-                                mContentResolver, BLUETOOTH_ADDRESS));
+                        "Stored Bluetoothaddress: " + Settings.Secure.getStringForUser(
+                                mContentResolver, BLUETOOTH_ADDRESS,
+                                UserHandle.SYSTEM.getIdentifier()));
             }
         }
 
