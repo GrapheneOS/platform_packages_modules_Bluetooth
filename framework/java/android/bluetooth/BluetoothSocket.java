@@ -16,6 +16,8 @@
 
 package android.bluetooth;
 
+import static android.bluetooth.BluetoothUtils.getSyncTimeout;
+
 import android.annotation.RequiresNoPermission;
 import android.annotation.RequiresPermission;
 import android.bluetooth.annotations.RequiresBluetoothConnectPermission;
@@ -27,6 +29,8 @@ import android.os.ParcelUuid;
 import android.os.RemoteException;
 import android.util.Log;
 
+import com.android.modules.utils.SynchronousResultReceiver;
+
 import java.io.Closeable;
 import java.io.FileDescriptor;
 import java.io.IOException;
@@ -37,6 +41,7 @@ import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.UUID;
+import java.util.concurrent.TimeoutException;
 
 /**
  * A connected or connecting Bluetooth socket.
@@ -427,8 +432,13 @@ public final class BluetoothSocket implements Closeable {
             IBluetooth bluetoothProxy =
                     BluetoothAdapter.getDefaultAdapter().getBluetoothService();
             if (bluetoothProxy == null) throw new IOException("Bluetooth is off");
-            mPfd = bluetoothProxy.getSocketManager().connectSocket(mDevice, mType,
-                    mUuid, mPort, getSecurityFlags());
+            final SynchronousResultReceiver<IBluetoothSocketManager> recv =
+                    new SynchronousResultReceiver();
+            bluetoothProxy.getSocketManager(recv);
+            IBluetoothSocketManager socketManager =
+                    recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
+            if (socketManager == null) throw new IOException("bt get socket manager failed");
+            mPfd = socketManager.connectSocket(mDevice, mType, mUuid, mPort, getSecurityFlags());
             synchronized (this) {
                 if (DBG) Log.d(TAG, "connect(), SocketState: " + mSocketState + ", mPfd: " + mPfd);
                 if (mSocketState == SocketState.CLOSED) throw new IOException("socket closed");
@@ -450,8 +460,8 @@ public final class BluetoothSocket implements Closeable {
                 }
                 mSocketState = SocketState.CONNECTED;
             }
-        } catch (RemoteException e) {
-            Log.e(TAG, Log.getStackTraceString(new Throwable()));
+        } catch (RemoteException | TimeoutException e) {
+            Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             throw new IOException("unable to send RPC: " + e.getMessage());
         }
     }
@@ -471,10 +481,19 @@ public final class BluetoothSocket implements Closeable {
         }
         try {
             if (DBG) Log.d(TAG, "bindListen(): mPort=" + mPort + ", mType=" + mType);
-            mPfd = bluetoothProxy.getSocketManager().createSocketChannel(mType, mServiceName,
-                    mUuid, mPort, getSecurityFlags());
-        } catch (RemoteException e) {
-            Log.e(TAG, Log.getStackTraceString(new Throwable()));
+            final SynchronousResultReceiver<IBluetoothSocketManager> recv =
+                    new SynchronousResultReceiver();
+            bluetoothProxy.getSocketManager(recv);
+            IBluetoothSocketManager socketManager =
+                    recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
+            if (socketManager == null) {
+                Log.e(TAG, "bindListen() bt get socket manager failed");
+                return -1;
+            }
+            mPfd = socketManager
+                .createSocketChannel(mType, mServiceName, mUuid, mPort, getSecurityFlags());
+        } catch (RemoteException | TimeoutException e) {
+            Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             return -1;
         }
 
@@ -738,9 +757,15 @@ public final class BluetoothSocket implements Closeable {
             }
 
             if (DBG) Log.d(TAG, "requestMaximumTxDataLength");
-            bluetoothProxy.getSocketManager().requestMaximumTxDataLength(mDevice);
-        } catch (RemoteException e) {
-            Log.e(TAG, Log.getStackTraceString(new Throwable()));
+            final SynchronousResultReceiver<IBluetoothSocketManager> recv =
+                    new SynchronousResultReceiver();
+            bluetoothProxy.getSocketManager(recv);
+            IBluetoothSocketManager socketManager =
+                    recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
+            if (socketManager == null) throw new IOException("bt get socket manager failed");
+            socketManager.requestMaximumTxDataLength(mDevice);
+        } catch (RemoteException | TimeoutException e) {
+            Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             throw new IOException("unable to send RPC: " + e.getMessage());
         }
     }
