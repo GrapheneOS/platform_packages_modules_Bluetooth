@@ -580,6 +580,7 @@ void bta_gattc_close(tBTA_GATTC_CLCB* p_clcb, const tBTA_GATTC_DATA* p_data) {
 
   if (p_data->hdr.event == BTA_GATTC_API_CLOSE_EVT) {
     GATT_Disconnect(p_data->hdr.layer_specific);
+    cb_data.close.reason = GATT_CONN_TERMINATE_LOCAL_HOST;
     LOG_DEBUG("Local close event client_if:%hu conn_id:%hu reason:%s",
               cb_data.close.client_if, cb_data.close.conn_id,
               gatt_disconnection_reason_text(
