@@ -1132,6 +1132,8 @@ public final class BluetoothDevice implements Parcelable, Attributable {
             ADDRESS_TYPE_PUBLIC,
             /** Address is either resolvable, non-resolvable or static.*/
             ADDRESS_TYPE_RANDOM,
+            /** Address type is unknown or unavailable **/
+            ADDRESS_TYPE_UNKNOWN,
         }
     )
     public @interface AddressType {}
@@ -1140,6 +1142,8 @@ public final class BluetoothDevice implements Parcelable, Attributable {
     public static final int ADDRESS_TYPE_PUBLIC = 0;
     /** Address is either resolvable, non-resolvable or static. */
     public static final int ADDRESS_TYPE_RANDOM = 1;
+    /** Address type is unknown or unavailable **/
+    public static final int ADDRESS_TYPE_UNKNOWN = 0xFFFF;
 
     private static final String NULL_MAC_ADDRESS = "00:00:00:00:00:00";
 
@@ -1194,26 +1198,44 @@ public final class BluetoothDevice implements Parcelable, Attributable {
     };
 
     /**
-     * Create a new BluetoothDevice
+     * Create a new BluetoothDevice.
      * Bluetooth MAC address must be upper case, such as "00:11:22:33:AA:BB",
      * and is validated in this constructor.
      *
      * @param address valid Bluetooth MAC address
-     * @param attributionSource attribution for permission-protected calls
+     * @param addressType valid address type
+     * @throws RuntimeException Bluetooth is not available on this platform
+     * @throws IllegalArgumentException address or addressType is invalid
+     * @hide
+     */
+    /*package*/ BluetoothDevice(String address, int addressType) {
+        getService();  // ensures sService is initialized
+        if (!BluetoothAdapter.checkBluetoothAddress(address)) {
+            throw new IllegalArgumentException(address + " is not a valid Bluetooth address");
+        }
+
+        if (addressType != ADDRESS_TYPE_PUBLIC && addressType != ADDRESS_TYPE_RANDOM) {
+            throw new IllegalArgumentException(addressType + " is not a Bluetooth address type");
+        }
+
+        mAddress = address;
+        mAddressType = addressType;
+        mAttributionSource = AttributionSource.myAttributionSource();
+    }
+
+    /**
+     * Create a new BluetoothDevice.
+     * Bluetooth MAC address must be upper case, such as "00:11:22:33:AA:BB",
+     * and is validated in this constructor.
+     *
+     * @param address valid Bluetooth MAC address
      * @throws RuntimeException Bluetooth is not available on this platform
      * @throws IllegalArgumentException address is invalid
      * @hide
      */
     @UnsupportedAppUsage
     /*package*/ BluetoothDevice(String address) {
-        getService();  // ensures sService is initialized
-        if (!BluetoothAdapter.checkBluetoothAddress(address)) {
-            throw new IllegalArgumentException(address + " is not a valid Bluetooth address");
-        }
-
-        mAddress = address;
-        mAddressType = ADDRESS_TYPE_PUBLIC;
-        mAttributionSource = AttributionSource.myAttributionSource();
+        this(address, ADDRESS_TYPE_PUBLIC);
     }
 
     /** {@hide} */
@@ -1295,6 +1317,33 @@ public final class BluetoothDevice implements Parcelable, Attributable {
      */
     public String getAnonymizedAddress() {
         return "XX:XX:XX" + getAddress().substring(8);
+    }
+
+    /**
+     * Returns the identity address of this BluetoothDevice.
+     * <p> For example, "00:11:22:AA:BB:CC".
+     *
+     * @return Bluetooth identity address as a string
+     * @hide
+     */
+    @SystemApi
+    @RequiresBluetoothConnectPermission
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
+    public @Nullable String getIdentityAddress() {
+        final IBluetooth service = sService;
+        if (service == null) {
+            Log.e(TAG, "BT not enabled. Cannot get identity address");
+            return null;
+        }
+        try {
+            return service.getIdentityAddress(mAddress);
+        } catch (RemoteException e) {
+            Log.e(TAG, "", e);
+        }
+        return null;
     }
 
     /**

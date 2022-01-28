@@ -73,11 +73,12 @@ void acl_disconnect_from_handle(uint16_t handle, tHCI_STATUS reason,
 /******************************************************************************/
 static void btu_hcif_inquiry_comp_evt(uint8_t* p);
 
-static void btu_hcif_connection_comp_evt(uint8_t* p, uint8_t evt_len);
-static void btu_hcif_connection_request_evt(uint8_t* p);
+static void btu_hcif_connection_comp_evt(const uint8_t* p, uint8_t evt_len);
+static void btu_hcif_connection_request_evt(const uint8_t* p);
 static void btu_hcif_disconnection_comp_evt(uint8_t* p);
 static void btu_hcif_authentication_comp_evt(uint8_t* p);
-static void btu_hcif_rmt_name_request_comp_evt(uint8_t* p, uint16_t evt_len);
+static void btu_hcif_rmt_name_request_comp_evt(const uint8_t* p,
+                                               uint16_t evt_len);
 static void btu_hcif_encryption_change_evt(uint8_t* p);
 static void btu_hcif_read_rmt_ext_features_comp_evt(uint8_t* p,
                                                     uint8_t evt_len);
@@ -85,15 +86,15 @@ static void btu_hcif_command_complete_evt(BT_HDR* response, void* context);
 static void btu_hcif_command_status_evt(uint8_t status, BT_HDR* command,
                                         void* context);
 static void btu_hcif_hardware_error_evt(uint8_t* p);
-static void btu_hcif_role_change_evt(uint8_t* p);
+static void btu_hcif_role_change_evt(const uint8_t* p);
 static void btu_hcif_mode_change_evt(uint8_t* p);
-static void btu_hcif_link_key_notification_evt(uint8_t* p);
+static void btu_hcif_link_key_notification_evt(const uint8_t* p);
 static void btu_hcif_read_clock_off_comp_evt(uint8_t* p);
-static void btu_hcif_esco_connection_comp_evt(uint8_t* p);
+static void btu_hcif_esco_connection_comp_evt(const uint8_t* p);
 static void btu_hcif_esco_connection_chg_evt(uint8_t* p);
 
 /* Simple Pairing Events */
-static void btu_hcif_io_cap_request_evt(uint8_t* p);
+static void btu_hcif_io_cap_request_evt(const uint8_t* p);
 
 static void btu_ble_ll_conn_param_upd_evt(uint8_t* p, uint16_t evt_len);
 static void btu_ble_proc_ltk_req(uint8_t* p);
@@ -106,7 +107,7 @@ static void btu_ble_rc_param_req_evt(uint8_t* p);
  * @param evt_code event code
  * @param p_event pointer to event parameter, skipping paremter length
  */
-void btu_hcif_log_event_metrics(uint8_t evt_code, uint8_t* p_event) {
+void btu_hcif_log_event_metrics(uint8_t evt_code, const uint8_t* p_event) {
   uint32_t cmd = android::bluetooth::hci::CMD_UNKNOWN;
   uint16_t status = android::bluetooth::hci::STATUS_UNKNOWN;
   uint16_t reason = android::bluetooth::hci::STATUS_UNKNOWN;
@@ -259,7 +260,8 @@ void btu_hcif_log_event_metrics(uint8_t evt_code, uint8_t* p_event) {
  * Returns          void
  *
  ******************************************************************************/
-void btu_hcif_process_event(UNUSED_ATTR uint8_t controller_id, BT_HDR* p_msg) {
+void btu_hcif_process_event(UNUSED_ATTR uint8_t controller_id,
+                            const BT_HDR* p_msg) {
   uint8_t* p = (uint8_t*)(p_msg + 1) + p_msg->offset;
   uint8_t hci_evt_code, hci_evt_len;
   uint8_t ble_sub_code;
@@ -457,6 +459,14 @@ void btu_hcif_process_event(UNUSED_ATTR uint8_t controller_id, BT_HDR* p_msg) {
           IsoManager::GetInstance()->HandleHciEvent(ble_sub_code, p,
                                                     ble_evt_len);
           break;
+
+        case HCI_LE_PERIODIC_ADV_SYNC_TRANSFERE_RECEIVED_EVT:
+          btm_ble_periodic_adv_sync_tx_rcvd(p, hci_evt_len);
+          break;
+
+        case HCI_LE_BIGINFO_ADVERTISING_REPORT_EVT:
+          btm_ble_biginfo_adv_report_rcvd(p, hci_evt_len);
+          break;
       }
       break;
     }
@@ -467,7 +477,7 @@ void btu_hcif_process_event(UNUSED_ATTR uint8_t controller_id, BT_HDR* p_msg) {
   }
 }
 
-static void btu_hcif_log_command_metrics(uint16_t opcode, uint8_t* p_cmd,
+static void btu_hcif_log_command_metrics(uint16_t opcode, const uint8_t* p_cmd,
                                          uint16_t cmd_status,
                                          bool is_cmd_status) {
   static uint16_t kUnknownBleEvt = android::bluetooth::hci::BLE_EVT_UNKNOWN;
@@ -720,11 +730,11 @@ static void btu_hcif_log_command_metrics(uint16_t opcode, uint8_t* p_cmd,
  * Returns          void
  *
  ******************************************************************************/
-void btu_hcif_send_cmd(UNUSED_ATTR uint8_t controller_id, BT_HDR* p_buf) {
+void btu_hcif_send_cmd(UNUSED_ATTR uint8_t controller_id, const BT_HDR* p_buf) {
   if (!p_buf) return;
 
   uint16_t opcode;
-  uint8_t* stream = p_buf->data + p_buf->offset;
+  const uint8_t* stream = p_buf->data + p_buf->offset;
   void* vsc_callback = NULL;
 
   STREAM_TO_UINT16(opcode, stream);
@@ -770,8 +780,8 @@ void cmd_with_cb_data_cleanup(cmd_with_cb_data* cb_wrapper) {
  * @param p_return_params pointer to returned parameter after parameter length
  *                        field
  */
-static void btu_hcif_log_command_complete_metrics(uint16_t opcode,
-                                                  uint8_t* p_return_params) {
+static void btu_hcif_log_command_complete_metrics(
+    uint16_t opcode, const uint8_t* p_return_params) {
   uint16_t status = android::bluetooth::hci::STATUS_UNKNOWN;
   uint16_t reason = android::bluetooth::hci::STATUS_UNKNOWN;
   uint16_t hci_event = android::bluetooth::hci::EVT_COMMAND_COMPLETE;
@@ -954,7 +964,7 @@ static void btu_hcif_inquiry_comp_evt(uint8_t* p) {
  * Returns          void
  *
  ******************************************************************************/
-static void btu_hcif_connection_comp_evt(uint8_t* p, uint8_t evt_len) {
+static void btu_hcif_connection_comp_evt(const uint8_t* p, uint8_t evt_len) {
   uint8_t status;
   uint16_t handle;
   RawAddress bda;
@@ -1003,7 +1013,7 @@ static void btu_hcif_connection_comp_evt(uint8_t* p, uint8_t evt_len) {
  * Returns          void
  *
  ******************************************************************************/
-static void btu_hcif_connection_request_evt(uint8_t* p) {
+static void btu_hcif_connection_request_evt(const uint8_t* p) {
   RawAddress bda;
   DEV_CLASS dc;
   uint8_t link_type;
@@ -1071,7 +1081,8 @@ static void btu_hcif_authentication_comp_evt(uint8_t* p) {
  * Returns          void
  *
  ******************************************************************************/
-static void btu_hcif_rmt_name_request_comp_evt(uint8_t* p, uint16_t evt_len) {
+static void btu_hcif_rmt_name_request_comp_evt(const uint8_t* p,
+                                               uint16_t evt_len) {
   uint8_t status;
   RawAddress bd_addr;
 
@@ -1191,7 +1202,7 @@ static void btu_hcif_read_rmt_ext_features_comp_evt(uint8_t* p,
  * Returns          void
  *
  ******************************************************************************/
-static void btu_hcif_esco_connection_comp_evt(uint8_t* p) {
+static void btu_hcif_esco_connection_comp_evt(const uint8_t* p) {
   tBTM_ESCO_DATA data;
   uint16_t handle;
   RawAddress bda;
@@ -1399,7 +1410,7 @@ static void btu_hcif_command_complete_evt(BT_HDR* response, void* context) {
  *
  ******************************************************************************/
 static void btu_hcif_hdl_command_status(uint16_t opcode, uint8_t status,
-                                        uint8_t* p_cmd,
+                                        const uint8_t* p_cmd,
                                         void* p_vsc_status_cback) {
   CHECK_NE(p_cmd, nullptr) << "Null command for opcode 0x" << loghex(opcode);
   p_cmd++;  // Skip parameter total length
@@ -1559,7 +1570,7 @@ static void btu_hcif_hardware_error_evt(uint8_t* p) {
  * Returns          void
  *
  ******************************************************************************/
-static void btu_hcif_role_change_evt(uint8_t* p) {
+static void btu_hcif_role_change_evt(const uint8_t* p) {
   uint8_t status;
   RawAddress bda;
   uint8_t role;
@@ -1610,7 +1621,7 @@ static void btu_hcif_mode_change_evt(uint8_t* p) {
  * Returns          void
  *
  ******************************************************************************/
-static void btu_hcif_link_key_notification_evt(uint8_t* p) {
+static void btu_hcif_link_key_notification_evt(const uint8_t* p) {
   RawAddress bda;
   Octet16 key;
   uint8_t key_type;
@@ -1662,7 +1673,7 @@ static void btu_hcif_read_clock_off_comp_evt(uint8_t* p) {
  * Returns          void
  *
  ******************************************************************************/
-static void btu_hcif_io_cap_request_evt(uint8_t* p) {
+static void btu_hcif_io_cap_request_evt(const uint8_t* p) {
   RawAddress bda;
   STREAM_TO_BDADDR(bda, p);
   btm_io_capabilities_req(bda);

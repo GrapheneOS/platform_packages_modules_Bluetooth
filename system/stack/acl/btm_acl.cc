@@ -2909,3 +2909,12 @@ void HACK_acl_check_sm4(tBTM_SEC_DEV_REC& record) {
                    ? BTM_SM4_TRUE
                    : BTM_SM4_KNOWN;
 }
+
+tACL_CONN* btm_acl_for_bda(const RawAddress& bd_addr, tBT_TRANSPORT transport) {
+  tACL_CONN* p_acl = internal_.btm_bda_to_acl(bd_addr, transport);
+  if (p_acl == nullptr) {
+    LOG_WARN("Unable to find active acl");
+    return nullptr;
+  }
+  return p_acl;
+}

@@ -23,6 +23,7 @@ import android.os.Parcelable;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.util.Objects;
 
 /**
  * Represents the codec configuration for a Bluetooth LE Audio source device.
@@ -344,6 +345,31 @@ public final class BluetoothLeAudioCodecConfig implements Parcelable {
      */
     public @ChannelMode int getOctetsPerFrame() {
         return mOctetsPerFrame;
+    }
+
+    @Override
+    public boolean equals(@NonNull Object o) {
+        if (o instanceof BluetoothLeAudioCodecConfig) {
+            BluetoothLeAudioCodecConfig other = (BluetoothLeAudioCodecConfig) o;
+            return (other.getCodecType() == mCodecType
+                    && other.getCodecPriority() == mCodecPriority
+                    && other.getSampleRate() == mSampleRate
+                    && other.getBitsPerSample() == mBitsPerSample
+                    && other.getChannelMode() == mChannelMode
+                    && other.getFrameDuration() == mFrameDuration
+                    && other.getOctetsPerFrame() == mOctetsPerFrame);
+        }
+        return false;
+    }
+
+    /**
+     * Returns a hash representation of this BluetoothLeAudioCodecConfig
+     * based on all the config values.
+     */
+    @Override
+    public int hashCode() {
+        return Objects.hash(mCodecType, mCodecPriority, mSampleRate,
+                mBitsPerSample, mChannelMode, mFrameDuration, mOctetsPerFrame);
     }
 
     /**

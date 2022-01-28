@@ -36,7 +36,7 @@ macro_rules! assert_success {
 
 #[provides]
 async fn provide_controller(mut hci: CommandSender) -> Arc<ControllerExports> {
-    assert_success!(hci.send(LeSetEventMaskBuilder { le_event_mask: 0x0000000041021e7f }));
+    assert_success!(hci.send(LeSetEventMaskBuilder { le_event_mask: 0x000000004d021e7f }));
     assert_success!(hci.send(SetEventMaskBuilder { event_mask: 0x3dbfffffffffffff }));
     assert_success!(
         hci.send(WriteSimplePairingModeBuilder { simple_pairing_mode: Enable::Enabled })

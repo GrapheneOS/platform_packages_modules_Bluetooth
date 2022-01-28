@@ -32,6 +32,7 @@
 #include <hardware/bt_av.h>
 #include <hardware/bt_csis.h>
 #include <hardware/bt_gatt.h>
+#include <hardware/bt_has.h>
 #include <hardware/bt_hd.h>
 #include <hardware/bt_hearing_aid.h>
 #include <hardware/bt_hf_client.h>
@@ -49,9 +50,11 @@
 
 #include "bt_utils.h"
 #include "bta/include/bta_csis_api.h"
+#include "bta/include/bta_has_api.h"
 #include "bta/include/bta_hearing_aid_api.h"
 #include "bta/include/bta_hf_client_api.h"
 #include "bta/include/bta_le_audio_api.h"
+#include "bta/include/bta_le_audio_broadcaster_api.h"
 #include "btif/avrcp/avrcp_service.h"
 #include "btif/include/stack_manager.h"
 #include "btif_a2dp.h"
@@ -88,7 +91,9 @@
 #include "types/raw_address.h"
 
 using bluetooth::csis::CsisClientInterface;
+using bluetooth::has::HasClientInterface;
 using bluetooth::hearing_aid::HearingAidInterface;
+using bluetooth::le_audio::LeAudioBroadcasterInterface;
 using bluetooth::le_audio::LeAudioClientInterface;
 using bluetooth::vc::VolumeControlInterface;
 
@@ -132,8 +137,12 @@ extern const btrc_ctrl_interface_t* btif_rc_ctrl_get_interface();
 extern const btsdp_interface_t* btif_sdp_get_interface();
 /*Hearing Aid client*/
 extern HearingAidInterface* btif_hearing_aid_get_interface();
+/* Hearing Access client */
+extern HasClientInterface* btif_has_client_get_interface();
 /* LeAudio testi client */
 extern LeAudioClientInterface* btif_le_audio_get_interface();
+/* LeAudio Broadcaster */
+extern LeAudioBroadcasterInterface* btif_le_audio_broadcaster_get_interface();
 /* Coordinated Set Service Client */
 extern CsisClientInterface* btif_csis_client_get_interface();
 /* Volume Control client */
@@ -413,8 +422,10 @@ static void dump(int fd, const char** arguments) {
   osi_allocator_debug_dump(fd);
   alarm_debug_dump(fd);
   bluetooth::csis::CsisClient::DebugDump(fd);
+  le_audio::has::HasClient::DebugDump(fd);
   HearingAid::DebugDump(fd);
   LeAudioClient::DebugDump(fd);
+  LeAudioBroadcaster::DebugDump(fd);
   connection_manager::dump(fd);
   bluetooth::bqr::DebugDump(fd);
   bluetooth::shim::Dump(fd, arguments);
@@ -470,6 +481,9 @@ static const void* get_profile_interface(const char* profile_id) {
   if (is_profile(profile_id, BT_PROFILE_HEARING_AID_ID))
     return btif_hearing_aid_get_interface();
 
+  if (is_profile(profile_id, BT_PROFILE_HAP_CLIENT_ID))
+    return btif_has_client_get_interface();
+
   if (is_profile(profile_id, BT_KEYSTORE_ID))
     return bluetooth::bluetooth_keystore::getBluetoothKeystoreInterface();
 
@@ -479,6 +493,9 @@ static const void* get_profile_interface(const char* profile_id) {
 
   if (is_profile(profile_id, BT_PROFILE_LE_AUDIO_ID))
     return btif_le_audio_get_interface();
+
+  if (is_profile(profile_id, BT_PROFILE_LE_AUDIO_BROADCASTER_ID))
+    return btif_le_audio_broadcaster_get_interface();
 
   if (is_profile(profile_id, BT_PROFILE_VC_ID))
     return btif_volume_control_get_interface();

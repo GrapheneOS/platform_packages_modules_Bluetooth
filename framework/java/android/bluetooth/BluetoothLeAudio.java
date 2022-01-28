@@ -159,6 +159,24 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
             "android.bluetooth.action.LE_AUDIO_CONF_CHANGED";
 
     /**
+     * Intent used to broadcast the audio codec config changed information.
+     *
+     * <p>This intent will have 2 extras:
+     * <ul>
+     * <li> {@link BluetoothLeAudioCodecStatus#EXTRA_LE_AUDIO_CODEC_STATUS} - The codec status.
+     * </li>
+     * <li> {@link BluetoothDevice#EXTRA_DEVICE} - The remote device if the device is currently
+     * connected, otherwise it is not included.</li>
+     * </ul>
+     *
+     * @hide
+     */
+    @RequiresPermission(Manifest.permission.BLUETOOTH_PRIVILEGED)
+    @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
+    public static final String ACTION_LE_AUDIO_CODEC_CONFIG_CHANGED =
+            "android.bluetooth.action.LE_AUDIO_CODEC_CONFIG_CHANGED";
+
+    /**
      * Indicates unspecified audio content.
      * @hide
      */
@@ -906,4 +924,53 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
     private static void log(String msg) {
         Log.d(TAG, msg);
     }
+
+    /**
+     * Gets the current codec status (configuration and capability).
+     *
+     * @param device the remote Bluetooth device.
+     * @return the current codec status
+     * @hide
+     */
+    @RequiresBluetoothConnectPermission
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED
+    })
+    public BluetoothLeAudioCodecStatus getCodecStatus(@NonNull BluetoothDevice device) {
+        if (DBG) {
+            Log.d(TAG, "getCodecStatus(" + device + ")");
+        }
+
+        final BluetoothLeAudioCodecStatus defaultValue = null;
+
+        // TODO: Add the implementation to get codec status
+        return defaultValue;
+    }
+
+    /**
+     * Sets the codec configuration preference.
+     *
+     * @param device the remote Bluetooth device.
+     * @param codecConfig the codec configuration preference
+     * @hide
+     */
+    @RequiresBluetoothConnectPermission
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED
+    })
+    public void setCodecConfigPreference(@NonNull BluetoothDevice device,
+                                         @NonNull BluetoothLeAudioCodecConfig codecConfig) {
+        if (DBG) Log.d(TAG, "setCodecConfigPreference(" + device + ")");
+
+        if (codecConfig == null) {
+            Log.e(TAG, "setCodecConfigPreference: Codec config can't be null");
+            throw new IllegalArgumentException("codecConfig cannot be null");
+        }
+
+        // TODO: Add the implementation to set config preference
+        return;
+    }
+
 }

@@ -32,6 +32,7 @@ package android.bluetooth {
     method public boolean getProfileProxy(android.content.Context, android.bluetooth.BluetoothProfile.ServiceListener, int);
     method public android.bluetooth.BluetoothDevice getRemoteDevice(String);
     method public android.bluetooth.BluetoothDevice getRemoteDevice(byte[]);
+    method @NonNull public android.bluetooth.BluetoothDevice getRemoteLeDevice(@NonNull String, int);
     method @RequiresPermission(android.Manifest.permission.BLUETOOTH_SCAN) public int getScanMode();
     method public int getState();
     method @RequiresPermission(android.Manifest.permission.BLUETOOTH_SCAN) public boolean isDiscovering();
@@ -526,6 +527,7 @@ package android.bluetooth {
     field @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public static final String ACTION_UUID = "android.bluetooth.device.action.UUID";
     field public static final int ADDRESS_TYPE_PUBLIC = 0; // 0x0
     field public static final int ADDRESS_TYPE_RANDOM = 1; // 0x1
+    field public static final int ADDRESS_TYPE_UNKNOWN = 65535; // 0xffff
     field public static final int BOND_BONDED = 12; // 0xc
     field public static final int BOND_BONDING = 11; // 0xb
     field public static final int BOND_NONE = 10; // 0xa
@@ -754,6 +756,15 @@ package android.bluetooth {
     field protected java.util.List<android.bluetooth.BluetoothGattService> mIncludedServices;
   }
 
+  public final class BluetoothHapClient implements java.lang.AutoCloseable android.bluetooth.BluetoothProfile {
+    method public void close();
+    method protected void finalize();
+    method @NonNull @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public java.util.List<android.bluetooth.BluetoothDevice> getConnectedDevices();
+    method @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public int getConnectionState(@NonNull android.bluetooth.BluetoothDevice);
+    method @NonNull @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public java.util.List<android.bluetooth.BluetoothDevice> getDevicesMatchingConnectionStates(@NonNull int[]);
+    field @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public static final String ACTION_HAP_CONNECTION_STATE_CHANGED = "android.bluetooth.action.HAP_CONNECTION_STATE_CHANGED";
+  }
+
   public final class BluetoothHeadset implements android.bluetooth.BluetoothProfile {
     method @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public java.util.List<android.bluetooth.BluetoothDevice> getConnectedDevices();
     method @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public int getConnectionState(android.bluetooth.BluetoothDevice);
@@ -962,6 +973,18 @@ package android.bluetooth {
     method @NonNull public android.bluetooth.BluetoothLeAudioCodecConfig.Builder setFrameDuration(int);
     method @NonNull public android.bluetooth.BluetoothLeAudioCodecConfig.Builder setOctetsPerFrame(int);
     method @NonNull public android.bluetooth.BluetoothLeAudioCodecConfig.Builder setSampleRate(int);
+  }
+
+  public final class BluetoothLeAudioCodecStatus implements android.os.Parcelable {
+    ctor public BluetoothLeAudioCodecStatus(@Nullable android.bluetooth.BluetoothLeAudioCodecConfig, @Nullable java.util.List<android.bluetooth.BluetoothLeAudioCodecConfig>, @Nullable java.util.List<android.bluetooth.BluetoothLeAudioCodecConfig>);
+    method public int describeContents();
+    method @Nullable public android.bluetooth.BluetoothLeAudioCodecConfig getCodecConfig();
+    method @NonNull public java.util.List<android.bluetooth.BluetoothLeAudioCodecConfig> getCodecsLocalCapabilities();
+    method @NonNull public java.util.List<android.bluetooth.BluetoothLeAudioCodecConfig> getCodecsSelectableCapabilities();
+    method public boolean isCodecConfigSelectable(@Nullable android.bluetooth.BluetoothLeAudioCodecConfig);
+    method public void writeToParcel(@NonNull android.os.Parcel, int);
+    field @NonNull public static final android.os.Parcelable.Creator<android.bluetooth.BluetoothLeAudioCodecStatus> CREATOR;
+    field public static final String EXTRA_LE_AUDIO_CODEC_STATUS = "android.bluetooth.extra.LE_AUDIO_CODEC_STATUS";
   }
 
   public final class BluetoothManager {
@@ -1223,6 +1246,9 @@ package android.bluetooth.le {
 
   public final class ScanFilter implements android.os.Parcelable {
     method public int describeContents();
+    method @Nullable public byte[] getAdvertisingData();
+    method @Nullable public byte[] getAdvertisingDataMask();
+    method public int getAdvertisingDataType();
     method @Nullable public String getDeviceAddress();
     method @Nullable public String getDeviceName();
     method @Nullable public byte[] getManufacturerData();
@@ -1243,6 +1269,7 @@ package android.bluetooth.le {
   public static final class ScanFilter.Builder {
     ctor public ScanFilter.Builder();
     method public android.bluetooth.le.ScanFilter build();
+    method @NonNull public android.bluetooth.le.ScanFilter.Builder setAdvertisingDataWithType(int, @Nullable byte[], @Nullable byte[]);
     method public android.bluetooth.le.ScanFilter.Builder setDeviceAddress(String);
     method public android.bluetooth.le.ScanFilter.Builder setDeviceName(String);
     method public android.bluetooth.le.ScanFilter.Builder setManufacturerData(int, byte[]);
@@ -1257,6 +1284,7 @@ package android.bluetooth.le {
 
   public final class ScanRecord {
     method public int getAdvertiseFlags();
+    method @NonNull public java.util.Map<java.lang.Integer,byte[]> getAdvertisingDataMap();
     method public byte[] getBytes();
     method @Nullable public String getDeviceName();
     method public android.util.SparseArray<byte[]> getManufacturerSpecificData();
