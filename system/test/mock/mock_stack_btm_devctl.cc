@@ -68,7 +68,7 @@ tBTM_STATUS BTM_EnableTestMode(void) {
   mock_function_count_map[__func__]++;
   return BTM_SUCCESS;
 }
-tBTM_STATUS BTM_ReadLocalDeviceName(char** p_name) {
+tBTM_STATUS BTM_ReadLocalDeviceName(const char** p_name) {
   mock_function_count_map[__func__]++;
   return BTM_SUCCESS;
 }
