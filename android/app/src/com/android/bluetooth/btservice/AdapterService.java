@@ -2969,14 +2969,7 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void getSocketManager(SynchronousResultReceiver receiver) {
-            try {
-                receiver.send(getSocketManager());
-            } catch (RuntimeException e) {
-                receiver.propagateException(e);
-            }
-        }
-        private IBluetoothSocketManager getSocketManager() {
+        public IBluetoothSocketManager getSocketManager() {
             AdapterService service = getService();
             if (service == null) {
                 return null;
