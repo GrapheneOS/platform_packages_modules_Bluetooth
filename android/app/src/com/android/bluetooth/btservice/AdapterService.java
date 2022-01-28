@@ -72,7 +72,6 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
-import android.os.BatteryStats;
 import android.os.BatteryStatsManager;
 import android.os.Binder;
 import android.os.Bundle;
@@ -215,6 +214,8 @@ public class AdapterService extends Service {
 
     public static final String ACTIVITY_ATTRIBUTION_NO_ACTIVE_DEVICE_ADDRESS =
             "no_active_device_address";
+
+    public static final String RESULT_RECEIVER_CONTROLLER_KEY = "controller_activity";
 
     // Report ID definition
     public enum BqrQualityReportId {
@@ -3553,7 +3554,7 @@ public class AdapterService extends Service {
         @Override
         public void requestActivityInfo(ResultReceiver result, AttributionSource source) {
             Bundle bundle = new Bundle();
-            bundle.putParcelable(BatteryStats.RESULT_RECEIVER_CONTROLLER_KEY,
+            bundle.putParcelable(RESULT_RECEIVER_CONTROLLER_KEY,
                     reportActivityInfo(source));
             result.send(0, bundle);
         }
