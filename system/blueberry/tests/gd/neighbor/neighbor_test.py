@@ -14,8 +14,6 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from datetime import timedelta
-
 from blueberry.tests.gd.cert.matchers import HciMatchers, NeighborMatchers
 from blueberry.tests.gd.cert.py_hci import PyHci
 from blueberry.tests.gd.cert.truth import assertThat
@@ -61,7 +59,7 @@ class NeighborTest(gd_base_test.GdBaseTestClass):
             max_results=0)
         session = self.dut_neighbor.set_inquiry_mode(inquiry_msg)
         self.cert_hci.send_command(hci_packets.WriteScanEnableBuilder(hci_packets.ScanEnable.INQUIRY_AND_PAGE_SCAN))
-        assertThat(session).emits(NeighborMatchers.InquiryResult(self.cert_address), timeout=timedelta(seconds=20))
+        assertThat(session).emits(NeighborMatchers.InquiryResult(self.cert_address))
 
     def test_inquiry_rssi_from_dut(self):
         inquiry_msg = neighbor_facade.InquiryMsg(
@@ -71,8 +69,7 @@ class NeighborTest(gd_base_test.GdBaseTestClass):
             max_results=0)
         session = self.dut_neighbor.set_inquiry_mode(inquiry_msg)
         self.cert_hci.send_command(hci_packets.WriteScanEnableBuilder(hci_packets.ScanEnable.INQUIRY_AND_PAGE_SCAN))
-        assertThat(session).emits(
-            NeighborMatchers.InquiryResultwithRssi(self.cert_address), timeout=timedelta(seconds=20))
+        assertThat(session).emits(NeighborMatchers.InquiryResultwithRssi(self.cert_address))
 
     def test_inquiry_extended_from_dut(self):
         self._set_name()
@@ -90,8 +87,7 @@ class NeighborTest(gd_base_test.GdBaseTestClass):
             max_results=0)
         session = self.dut_neighbor.set_inquiry_mode(inquiry_msg)
         self.cert_hci.send_command(hci_packets.WriteScanEnableBuilder(hci_packets.ScanEnable.INQUIRY_AND_PAGE_SCAN))
-        assertThat(session).emits(
-            NeighborMatchers.ExtendedInquiryResult(self.cert_address), timeout=timedelta(seconds=20))
+        assertThat(session).emits(NeighborMatchers.ExtendedInquiryResult(self.cert_address))
 
     def test_remote_name(self):
         self._set_name()
