@@ -46,6 +46,7 @@ import android.bluetooth.BluetoothAdapter.ActiveDeviceProfile;
 import android.bluetooth.BluetoothAdapter.ActiveDeviceUse;
 import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothFrameworkInitializer;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothProtoEnums;
 import android.bluetooth.BluetoothServerSocket;
@@ -128,7 +129,6 @@ import com.android.bluetooth.telephony.BluetoothInCallService;
 import com.android.bluetooth.vc.VolumeControlService;
 import com.android.internal.annotations.GuardedBy;
 import com.android.internal.annotations.VisibleForTesting;
-import com.android.internal.os.BinderCallsStats;
 import com.android.modules.utils.BackgroundThread;
 import com.android.modules.utils.BytesMatcher;
 import com.android.modules.utils.SynchronousResultReceiver;
@@ -326,8 +326,6 @@ public class AdapterService extends Service {
     private CsipSetCoordinatorService mCsipSetCoordinatorService;
     private LeAudioService mLeAudioService;
 
-    private BinderCallsStats.SettingsObserver mBinderCallsSettingsObserver;
-
     private volatile boolean mTestModeEnabled = false;
 
     private MetricsLogger mMetricsLogger;
@@ -488,11 +486,7 @@ public class AdapterService extends Service {
         int configCompareResult = mBluetoothKeystoreService.getCompareResult();
 
         // Start tracking Binder latency for the bluetooth process.
-        mBinderCallsSettingsObserver = new BinderCallsStats.SettingsObserver(
-                getApplicationContext(),
-                new BinderCallsStats(
-                        new BinderCallsStats.Injector(),
-                        com.android.internal.os.BinderLatencyProto.Dims.BLUETOOTH));
+        BluetoothFrameworkInitializer.initializeBinderCallsStats(getApplicationContext());
 
         // Android TV doesn't show consent dialogs for just works and encryption only le pairing
         boolean isAtvDevice = getApplicationContext().getPackageManager().hasSystemFeature(

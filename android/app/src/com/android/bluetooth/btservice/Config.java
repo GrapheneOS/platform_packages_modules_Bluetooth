@@ -240,7 +240,7 @@ public class Config {
     }
 
     private static boolean isHearingAidSettingsEnabled(Context context) {
-        final String flagOverridePrefix = "sys.fflag.override.";
+        final String flagOverridePrefix = "persist.sys.fflag.override.";
         final String hearingAidSettings = "settings_bluetooth_hearing_aid";
 
         // Override precedence:
