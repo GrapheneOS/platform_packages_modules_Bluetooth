@@ -52,6 +52,7 @@ cc_library_static {
         "gatt/gatt_shim.cc",
         "hfp/hfp_shim.cc",
         "controller/controller_shim.cc",
+        "common/utils.cc",
     ],
     generated_headers: [
         "libbt_init_flags_bridge_header",
