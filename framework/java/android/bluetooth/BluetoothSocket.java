@@ -236,6 +236,33 @@ public final class BluetoothSocket implements Closeable {
         mOutputStream = new BluetoothOutputStream(this);
     }
 
+    /**
+     * Creates a BluetoothSocket from a {@link ParcelFileDescriptor}. This is used for when the
+     * underlying mPfd is transferred to a separate process (e.g. over a binder), and the socket
+     * must be reconstructed.
+     * <p>
+     * The socket should already be connected in this case, so {@link #connect()} should not be
+     * called.
+     *
+     * @param pfd is the {@link ParcelFileDescriptor} for an already connected BluetoothSocket
+     * @param device is the remote {@link BluetoothDevice} that this socket is connected to
+     * @param uuid is the service ID that this RFCOMM connection is using
+     * @throws IOException if socket creation fails.
+     */
+    /*package*/ static BluetoothSocket createSocketFromOpenFd(
+            ParcelFileDescriptor pfd, BluetoothDevice device, ParcelUuid uuid) throws IOException {
+        BluetoothSocket bluetoothSocket =
+                new BluetoothSocket(TYPE_RFCOMM, pfd.getFd(), true, true, device, -1, uuid);
+
+        bluetoothSocket.mPfd = pfd;
+        bluetoothSocket.mSocket = new LocalSocket(pfd.getFileDescriptor());
+        bluetoothSocket.mSocketIS = bluetoothSocket.mSocket.getInputStream();
+        bluetoothSocket.mSocketOS = bluetoothSocket.mSocket.getOutputStream();
+        bluetoothSocket.mSocketState = SocketState.CONNECTED;
+
+        return bluetoothSocket;
+    }
+
     private BluetoothSocket(BluetoothSocket s) {
         if (VDBG) Log.d(TAG, "Creating new Private BluetoothSocket of type: " + s.mType);
         mUuid = s.mUuid;
@@ -716,6 +743,11 @@ public final class BluetoothSocket implements Closeable {
             Log.e(TAG, Log.getStackTraceString(new Throwable()));
             throw new IOException("unable to send RPC: " + e.getMessage());
         }
+    }
+
+    /** @hide */
+    public ParcelFileDescriptor getParcelFileDescriptor() {
+        return mPfd;
     }
 
     private String convertAddr(final byte[] addr) {
