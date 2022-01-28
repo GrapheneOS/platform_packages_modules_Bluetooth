@@ -2888,7 +2888,7 @@ static void bta_dm_set_eir(char* local_name) {
 #if (BTA_EIR_CANNED_UUID_LIST != TRUE)
   /* if local name is not provided, get it from controller */
   if (local_name == NULL) {
-    if (BTM_ReadLocalDeviceName(&local_name) != BTM_SUCCESS) {
+    if (BTM_ReadLocalDeviceName((const char**)&local_name) != BTM_SUCCESS) {
       APPL_TRACE_ERROR("Fail to read local device name for EIR");
     }
   }

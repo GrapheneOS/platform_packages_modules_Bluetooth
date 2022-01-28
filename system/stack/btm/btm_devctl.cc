@@ -347,7 +347,7 @@ tBTM_STATUS BTM_SetLocalDeviceName(const char* p_name) {
  *                              is returned and p_name is set to NULL
  *
  ******************************************************************************/
-tBTM_STATUS BTM_ReadLocalDeviceName(char** p_name) {
+tBTM_STATUS BTM_ReadLocalDeviceName(const char** p_name) {
   *p_name = btm_cb.cfg.bd_name;
   return (BTM_SUCCESS);
 }
