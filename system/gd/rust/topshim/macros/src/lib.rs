@@ -11,7 +11,7 @@ use syn::{parse_macro_input, Block, Ident, Path, Stmt, Token, Type};
 struct CbVariant {
     dispatcher: Type,
     fn_pair: (Ident, Path),
-    arg_pairs: Vec<(Type, Type)>,
+    arg_pairs: Vec<(Type, Option<Type>)>,
     stmts: Vec<Stmt>,
 }
 
@@ -26,7 +26,7 @@ impl Parse for CbVariant {
         input.parse::<Token![->]>()?;
         let rpath: Path = input.parse()?;
 
-        let mut arg_pairs: Vec<(Type, Type)> = Vec::new();
+        let mut arg_pairs: Vec<(Type, Option<Type>)> = Vec::new();
         let mut stmts: Vec<Stmt> = Vec::new();
 
         while input.peek(Token![,]) {
@@ -48,11 +48,19 @@ impl Parse for CbVariant {
                 // Discard ->
                 input.parse::<Token![->]>()?;
 
-                let end_type: Type = input.parse()?;
-
-                arg_pairs.push((start_type, end_type))
+                // Try to parse Token![_]. If that works, we will
+                // consume this value and not pass it forward.
+                // Otherwise, try to parse as syn::Type and pass forward for
+                // conversion.
+                if input.peek(Token![_]) {
+                    input.parse::<Token![_]>()?;
+                    arg_pairs.push((start_type, None));
+                } else {
+                    let end_type: Type = input.parse()?;
+                    arg_pairs.push((start_type, Some(end_type)));
+                }
             } else {
-                arg_pairs.push((start_type.clone(), start_type));
+                arg_pairs.push((start_type.clone(), Some(start_type)));
             }
         }
 
@@ -69,6 +77,18 @@ impl Parse for CbVariant {
 ///         // Statements (maybe converting types)
 ///         // Args in order will be _0, _1, etc.
 ///     })
+///
+///     args can do conversions inline as well. In order for conversions to work, the relevant
+///     From<T> trait should also be implemented.
+///
+///     Example:
+///         u32 -> BtStatus (requires impl From<u32> for BtStatus)
+///
+///     To consume a value during conversion, you can use `Type -> _`. This is useful when you want
+///     to convert a pointer + size into a single Vec (i.e. using ptr_to_vec).
+///
+///     Example:
+///         u32 -> _
 pub fn cb_variant(input: TokenStream) -> TokenStream {
     let parsed_cptr = parse_macro_input!(input as CbVariant);
 
@@ -81,11 +101,17 @@ pub fn cb_variant(input: TokenStream) -> TokenStream {
         let ident = format_ident!("_{}", i);
         params.extend(quote! { #ident: #start, });
 
-        // Argument needs an into translation if it doesn't match the start
-        if start != end {
-            args.extend(quote! { #end::from(#ident), });
-        } else {
-            args.extend(quote! {#ident,});
+        match end {
+            Some(v) => {
+                // Argument needs an into translation if it doesn't match the start
+                if start != v {
+                    args.extend(quote! { #end::from(#ident), });
+                } else {
+                    args.extend(quote! {#ident,});
+                }
+            }
+            // If there's no end type, just consume it instead.
+            None => (),
         }
     }
 
