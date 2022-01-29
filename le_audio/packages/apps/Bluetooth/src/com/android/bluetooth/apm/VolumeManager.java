@@ -78,7 +78,7 @@ public class VolumeManager {
 
         mVolumeManagerReceiver = new VolumeManagerReceiver();
         IntentFilter filter = new IntentFilter();
-        filter.addAction(AudioManager.VOLUME_CHANGED_ACTION);
+        filter.addAction(AudioManager.ACTION_VOLUME_CHANGED);
         filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
         filter.addAction(ACTION_SHUTDOWN);
         filter.addAction(ACTION_POWER_OFF);
@@ -731,7 +731,7 @@ public class VolumeManager {
                 return;
 
             switch(action) {
-                case AudioManager.VOLUME_CHANGED_ACTION:
+                case AudioManager.ACTION_VOLUME_CHANGED:
                     int streamType = intent.getIntExtra(AudioManager.EXTRA_VOLUME_STREAM_TYPE, -1);
                     int volumeValue = intent.getIntExtra(AudioManager.EXTRA_VOLUME_STREAM_VALUE, 0);
                     if(streamType == AudioManager.STREAM_BLUETOOTH_SCO) {
