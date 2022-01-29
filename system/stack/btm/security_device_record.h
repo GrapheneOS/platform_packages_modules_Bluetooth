@@ -33,8 +33,6 @@
 #include "types/hci_role.h"
 #include "types/raw_address.h"
 
-typedef char tBTM_LOC_BD_NAME[BTM_MAX_LOC_BD_NAME_LEN + 1];
-
 typedef struct {
   uint16_t min_conn_int;
   uint16_t max_conn_int;
