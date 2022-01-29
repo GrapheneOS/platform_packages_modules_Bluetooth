@@ -16,6 +16,8 @@
 
 package android.bluetooth.le;
 
+import static android.bluetooth.le.BluetoothLeUtils.getSyncTimeout;
+
 import android.annotation.Nullable;
 import android.annotation.RequiresPermission;
 import android.annotation.SuppressLint;
@@ -33,9 +35,12 @@ import android.os.Looper;
 import android.os.RemoteException;
 import android.util.Log;
 
+import com.android.modules.utils.SynchronousResultReceiver;
+
 import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeoutException;
 
 /**
  * This class provides methods to perform periodic advertising related
@@ -172,9 +177,10 @@ public final class PeriodicAdvertisingManager {
         mCallbackWrappers.put(callback, wrapped);
 
         try {
-            gatt.registerSync(
-                    scanResult, skip, timeout, wrapped, mAttributionSource);
-        } catch (RemoteException e) {
+            final SynchronousResultReceiver recv = new SynchronousResultReceiver();
+            gatt.registerSync(scanResult, skip, timeout, wrapped, mAttributionSource, recv);
+            recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
+        } catch (TimeoutException | RemoteException e) {
             Log.e(TAG, "Failed to register sync - ", e);
             return;
         }
@@ -209,8 +215,10 @@ public final class PeriodicAdvertisingManager {
         }
 
         try {
-            gatt.unregisterSync(wrapper, mAttributionSource);
-        } catch (RemoteException e) {
+            final SynchronousResultReceiver recv = new SynchronousResultReceiver();
+            gatt.unregisterSync(wrapper, mAttributionSource, recv);
+            recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
+        } catch (TimeoutException | RemoteException e) {
             Log.e(TAG, "Failed to cancel sync creation - ", e);
             return;
         }
@@ -238,8 +246,10 @@ public final class PeriodicAdvertisingManager {
             return;
         }
         try {
-            gatt.transferSync(bda, serviceData , syncHandle, mAttributionSource);
-        } catch (RemoteException e) {
+            final SynchronousResultReceiver recv = new SynchronousResultReceiver();
+            gatt.transferSync(bda, serviceData , syncHandle, mAttributionSource, recv);
+            recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
+        } catch (TimeoutException | RemoteException e) {
             Log.e(TAG, "Failed to register sync - ", e);
             return;
         }
@@ -281,8 +291,10 @@ public final class PeriodicAdvertisingManager {
             throw new IllegalArgumentException("callback was not properly registered");
         }
         try {
-            gatt.transferSetInfo(bda, serviceData , advHandle, wrapper, mAttributionSource);
-        } catch (RemoteException e) {
+            final SynchronousResultReceiver recv = new SynchronousResultReceiver();
+            gatt.transferSetInfo(bda, serviceData , advHandle, wrapper, mAttributionSource, recv);
+            recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
+        } catch (RemoteException | TimeoutException e) {
             Log.e(TAG, "Failed to register sync - ", e);
             return;
         }

@@ -83,4 +83,12 @@ oneway interface IBluetoothCsipSetCoordinator {
 
   const int CSIS_GROUP_ID_INVALID = -1;
   const int CSIS_GROUP_SIZE_UNKNOWN = 1;
+
+  const int CSIS_GROUP_LOCK_SUCCESS = 0;
+  const int CSIS_GROUP_LOCK_FAILED_INVALID_GROUP = 1;
+  const int CSIS_GROUP_LOCK_FAILED_GROUP_EMPTY = 2;
+  const int CSIS_GROUP_LOCK_FAILED_GROUP_NOT_CONNECTED = 3;
+  const int CSIS_GROUP_LOCK_FAILED_LOCKED_BY_OTHER = 4;
+  const int CSIS_GROUP_LOCK_FAILED_OTHER_REASON = 5;
+  const int CSIS_LOCKED_GROUP_MEMBER_LOST = 6;
 }

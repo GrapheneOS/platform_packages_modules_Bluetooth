@@ -60,12 +60,12 @@ class BluetoothService extends SystemService {
         if (!mInitialized) {
             initialize();
         } else {
-            mBluetoothManagerService.handleOnSwitchUser(to.getUserIdentifier());
+            mBluetoothManagerService.handleOnSwitchUser(to.getUserHandle());
         }
     }
 
     @Override
     public void onUserUnlocking(@NonNull TargetUser user) {
-        mBluetoothManagerService.handleOnUnlockUser(user.getUserIdentifier());
+        mBluetoothManagerService.handleOnUnlockUser(user.getUserHandle());
     }
 }

@@ -16,6 +16,8 @@
 
 package android.bluetooth;
 
+import static android.bluetooth.BluetoothUtils.getSyncTimeout;
+
 import android.annotation.IntDef;
 import android.annotation.NonNull;
 import android.annotation.RequiresNoPermission;
@@ -28,11 +30,14 @@ import android.os.ParcelUuid;
 import android.os.RemoteException;
 import android.util.Log;
 
+import com.android.modules.utils.SynchronousResultReceiver;
+
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Public API for the Bluetooth GATT Profile server role.
@@ -497,9 +502,11 @@ public final class BluetoothGattServer implements BluetoothProfile {
 
             mCallback = callback;
             try {
+                final SynchronousResultReceiver recv = new SynchronousResultReceiver();
                 mService.registerServer(new ParcelUuid(uuid), mBluetoothGattServerCallback,
-                        eatt_support, mAttributionSource);
-            } catch (RemoteException e) {
+                        eatt_support, mAttributionSource, recv);
+                recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
+            } catch (RemoteException | TimeoutException e) {
                 Log.e(TAG, "", e);
                 mCallback = null;
                 return false;
@@ -532,9 +539,11 @@ public final class BluetoothGattServer implements BluetoothProfile {
 
         try {
             mCallback = null;
-            mService.unregisterServer(mServerIf, mAttributionSource);
+            final SynchronousResultReceiver recv = new SynchronousResultReceiver();
+            mService.unregisterServer(mServerIf, mAttributionSource, recv);
+            recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
             mServerIf = 0;
-        } catch (RemoteException e) {
+        } catch (RemoteException | TimeoutException e) {
             Log.e(TAG, "", e);
         }
     }
@@ -586,9 +595,11 @@ public final class BluetoothGattServer implements BluetoothProfile {
 
         try {
             // autoConnect is inverse of "isDirect"
-            mService.serverConnect(
-                    mServerIf, device.getAddress(), !autoConnect, mTransport, mAttributionSource);
-        } catch (RemoteException e) {
+            final SynchronousResultReceiver recv = new SynchronousResultReceiver();
+            mService.serverConnect(mServerIf, device.getAddress(), !autoConnect, mTransport,
+                    mAttributionSource, recv);
+            recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
+        } catch (RemoteException | TimeoutException e) {
             Log.e(TAG, "", e);
             return false;
         }
@@ -610,8 +621,10 @@ public final class BluetoothGattServer implements BluetoothProfile {
         if (mService == null || mServerIf == 0) return;
 
         try {
-            mService.serverDisconnect(mServerIf, device.getAddress(), mAttributionSource);
-        } catch (RemoteException e) {
+            final SynchronousResultReceiver recv = new SynchronousResultReceiver();
+            mService.serverDisconnect(mServerIf, device.getAddress(), mAttributionSource, recv);
+            recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
+        } catch (RemoteException | TimeoutException e) {
             Log.e(TAG, "", e);
         }
     }
@@ -638,9 +651,11 @@ public final class BluetoothGattServer implements BluetoothProfile {
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public void setPreferredPhy(BluetoothDevice device, int txPhy, int rxPhy, int phyOptions) {
         try {
+            final SynchronousResultReceiver recv = new SynchronousResultReceiver();
             mService.serverSetPreferredPhy(mServerIf, device.getAddress(), txPhy, rxPhy,
-                    phyOptions, mAttributionSource);
-        } catch (RemoteException e) {
+                    phyOptions, mAttributionSource, recv);
+            recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
+        } catch (RemoteException | TimeoutException e) {
             Log.e(TAG, "", e);
         }
     }
@@ -655,8 +670,10 @@ public final class BluetoothGattServer implements BluetoothProfile {
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public void readPhy(BluetoothDevice device) {
         try {
-            mService.serverReadPhy(mServerIf, device.getAddress(), mAttributionSource);
-        } catch (RemoteException e) {
+            final SynchronousResultReceiver recv = new SynchronousResultReceiver();
+            mService.serverReadPhy(mServerIf, device.getAddress(), mAttributionSource, recv);
+            recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
+        } catch (RemoteException | TimeoutException e) {
             Log.e(TAG, "", e);
         }
     }
@@ -689,9 +706,11 @@ public final class BluetoothGattServer implements BluetoothProfile {
         if (mService == null || mServerIf == 0) return false;
 
         try {
+            final SynchronousResultReceiver recv = new SynchronousResultReceiver();
             mService.sendResponse(mServerIf, device.getAddress(), requestId,
-                    status, offset, value, mAttributionSource);
-        } catch (RemoteException e) {
+                    status, offset, value, mAttributionSource, recv);
+            recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
+        } catch (RemoteException | TimeoutException e) {
             Log.e(TAG, "", e);
             return false;
         }
@@ -785,9 +804,15 @@ public final class BluetoothGattServer implements BluetoothProfile {
         }
 
         try {
-            return mService.sendNotification(mServerIf, device.getAddress(),
+            final SynchronousResultReceiver<Integer> recv = new SynchronousResultReceiver();
+            mService.sendNotification(mServerIf, device.getAddress(),
                     characteristic.getInstanceId(), confirm,
-                    value, mAttributionSource);
+                    value, mAttributionSource, recv);
+            return recv.awaitResultNoInterrupt(getSyncTimeout())
+                .getValue(BluetoothStatusCodes.ERROR_PROFILE_SERVICE_NOT_BOUND);
+        } catch (TimeoutException e) {
+            Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+            return BluetoothStatusCodes.ERROR_PROFILE_SERVICE_NOT_BOUND;
         } catch (RemoteException e) {
             Log.e(TAG, "", e);
             throw e.rethrowFromSystemServer();
@@ -820,8 +845,10 @@ public final class BluetoothGattServer implements BluetoothProfile {
         mPendingService = service;
 
         try {
-            mService.addService(mServerIf, service, mAttributionSource);
-        } catch (RemoteException e) {
+            final SynchronousResultReceiver recv = new SynchronousResultReceiver();
+            mService.addService(mServerIf, service, mAttributionSource, recv);
+            recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
+        } catch (RemoteException | TimeoutException e) {
             Log.e(TAG, "", e);
             return false;
         }
@@ -847,9 +874,11 @@ public final class BluetoothGattServer implements BluetoothProfile {
         if (intService == null) return false;
 
         try {
-            mService.removeService(mServerIf, service.getInstanceId(), mAttributionSource);
+            final SynchronousResultReceiver recv = new SynchronousResultReceiver();
+            mService.removeService(mServerIf, service.getInstanceId(), mAttributionSource, recv);
+            recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
             mServices.remove(intService);
-        } catch (RemoteException e) {
+        } catch (RemoteException | TimeoutException e) {
             Log.e(TAG, "", e);
             return false;
         }
@@ -868,9 +897,11 @@ public final class BluetoothGattServer implements BluetoothProfile {
         if (mService == null || mServerIf == 0) return;
 
         try {
-            mService.clearServices(mServerIf, mAttributionSource);
+            final SynchronousResultReceiver recv = new SynchronousResultReceiver();
+            mService.clearServices(mServerIf, mAttributionSource, recv);
+            recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
             mServices.clear();
-        } catch (RemoteException e) {
+        } catch (RemoteException | TimeoutException e) {
             Log.e(TAG, "", e);
         }
     }
