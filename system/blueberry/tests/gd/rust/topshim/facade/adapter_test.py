@@ -14,13 +14,26 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from rust.topshim.facade import adapter_test
+import asyncio
 from mobly import test_runner
+from blueberry.tests.gd.rust.topshim.facade import topshim_base_test
+from blueberry.tests.gd.rust.topshim.facade.automation_helper import AdapterAutomationHelper
 
 
-class AdapterTest(adapter_test.AdapterTest):
-    pass
+class AdapterTest(topshim_base_test.TopshimBaseTest):
+
+    async def _test_verify_adapter_started(self):
+        self.dut_adapter = AdapterAutomationHelper(port=self.dut_port)
+        event_loop = asyncio.get_running_loop()
+        self.dut_adapter.fetch_events(event_loop)
+        self.dut_adapter.pending_future = event_loop.create_future()
+        await self.dut_adapter.toggle_stack()
+        await self.dut_adapter.verify_adapter_started()
+        self.dut_adapter.event_handler.cancel()
+
+    def test_verify_adapter_started(self):
+        asyncio.run(self._test_verify_adapter_started())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     test_runner.main()

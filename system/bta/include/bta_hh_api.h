@@ -225,6 +225,7 @@ typedef struct {
 
   uint8_t flag;
   tBTA_HH_DEV_DESCR descriptor;
+  uint8_t hid_handle;
 
   std::string ToString() const {
     return base::StringPrintf("%04x::%04x::%04x", vendor_id, product_id,

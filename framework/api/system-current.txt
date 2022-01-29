@@ -157,6 +157,32 @@ package android.bluetooth {
     field public static final int METADATA_UNTETHERED_RIGHT_LOW_BATTERY_THRESHOLD = 22; // 0x16
   }
 
+  public final class BluetoothHapClient implements java.lang.AutoCloseable android.bluetooth.BluetoothProfile {
+    method @Nullable @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public android.bluetooth.BluetoothHapPresetInfo getActivePresetInfo(@NonNull android.bluetooth.BluetoothDevice);
+    method @NonNull @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public java.util.List<android.bluetooth.BluetoothHapPresetInfo> getAllPresetInfo(@NonNull android.bluetooth.BluetoothDevice);
+    method @NonNull @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public java.util.List<android.bluetooth.BluetoothDevice> getConnectedDevices();
+    method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public int getConnectionPolicy(@Nullable android.bluetooth.BluetoothDevice);
+    method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public int getConnectionState(@NonNull android.bluetooth.BluetoothDevice);
+    method @NonNull @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public java.util.List<android.bluetooth.BluetoothDevice> getDevicesMatchingConnectionStates(@NonNull int[]);
+    method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public void registerCallback(@NonNull java.util.concurrent.Executor, @NonNull android.bluetooth.BluetoothHapClient.Callback);
+    method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public void selectPreset(@NonNull android.bluetooth.BluetoothDevice, int);
+    method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public void selectPresetForGroup(int, int);
+    method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public boolean setConnectionPolicy(@NonNull android.bluetooth.BluetoothDevice, int);
+    method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public void setPresetName(@NonNull android.bluetooth.BluetoothDevice, int, @NonNull String);
+    method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public void setPresetNameForGroup(int, int, @NonNull String);
+    method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public void unregisterCallback(@NonNull android.bluetooth.BluetoothHapClient.Callback);
+    field @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public static final String ACTION_HAP_CONNECTION_STATE_CHANGED = "android.bluetooth.action.HAP_CONNECTION_STATE_CHANGED";
+  }
+
+  public static interface BluetoothHapClient.Callback {
+    method public void onActivePresetChanged(@NonNull android.bluetooth.BluetoothDevice, int);
+    method public void onPresetInfoChanged(@NonNull android.bluetooth.BluetoothDevice, @NonNull java.util.List<android.bluetooth.BluetoothHapPresetInfo>, int);
+    method public void onSelectActivePresetFailed(@NonNull android.bluetooth.BluetoothDevice, int);
+    method public void onSelectActivePresetForGroupFailed(int, int);
+    method public void onSetPresetNameFailed(@NonNull android.bluetooth.BluetoothDevice, int);
+    method public void onSetPresetNameForGroupFailed(int, int);
+  }
+
   public final class BluetoothHapPresetInfo implements android.os.Parcelable {
     method public int getIndex();
     method @NonNull public String getName();
@@ -219,6 +245,12 @@ package android.bluetooth {
 
   public final class BluetoothLeAudio implements java.lang.AutoCloseable android.bluetooth.BluetoothProfile {
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public int getAudioLocation(@NonNull android.bluetooth.BluetoothDevice);
+    field @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public static final String ACTION_LE_AUDIO_ACTIVE_DEVICE_CHANGED = "android.bluetooth.action.LE_AUDIO_ACTIVE_DEVICE_CHANGED";
+    field @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public static final String ACTION_LE_AUDIO_GROUP_NODE_STATUS_CHANGED = "android.bluetooth.action.LE_AUDIO_GROUP_NODE_STATUS_CHANGED";
+    field public static final String EXTRA_LE_AUDIO_GROUP_ID = "android.bluetooth.extra.LE_AUDIO_GROUP_ID";
+    field public static final String EXTRA_LE_AUDIO_GROUP_NODE_STATUS = "android.bluetooth.extra.LE_AUDIO_GROUP_NODE_STATUS";
+    field public static final int GROUP_NODE_ADDED = 1; // 0x1
+    field public static final int GROUP_NODE_REMOVED = 2; // 0x2
   }
 
   public final class BluetoothLeAudioCodecConfigMetadata implements android.os.Parcelable {
@@ -477,6 +509,11 @@ package android.bluetooth {
     field public static final int ERROR_AUDIO_ROUTE_BLOCKED = 1118; // 0x45e
     field public static final int ERROR_BAD_PARAMETERS = 21; // 0x15
     field public static final int ERROR_CALL_ACTIVE = 1119; // 0x45f
+    field public static final int ERROR_CSIP_GROUP_LOCKED_BY_OTHER = 1208; // 0x4b8
+    field public static final int ERROR_CSIP_INVALID_GROUP_ID = 1207; // 0x4b7
+    field public static final int ERROR_CSIP_LOCKED_GROUP_MEMBER_LOST = 1209; // 0x4b9
+    field public static final int ERROR_HAP_INVALID_PRESET_INDEX = 1211; // 0x4bb
+    field public static final int ERROR_HAP_PRESET_NAME_TOO_LONG = 1210; // 0x4ba
     field public static final int ERROR_HARDWARE_GENERIC = 20; // 0x14
     field public static final int ERROR_LE_BROADCAST_ASSISTANT_DUPLICATE_ADDITION = 1203; // 0x4b3
     field public static final int ERROR_LE_BROADCAST_ASSISTANT_INVALID_SOURCE_ID = 1202; // 0x4b2
@@ -491,6 +528,7 @@ package android.bluetooth {
     field public static final int ERROR_PROFILE_NOT_CONNECTED = 14; // 0xe
     field public static final int ERROR_REMOTE_LINK_ERROR = 25; // 0x19
     field public static final int ERROR_REMOTE_NOT_ENOUGH_RESOURCES = 23; // 0x17
+    field public static final int ERROR_REMOTE_OPERATION_NOT_SUPPORTED = 24; // 0x18
     field public static final int ERROR_REMOTE_OPERATION_REJECTED = 24; // 0x18
     field public static final int ERROR_TIMEOUT = 15; // 0xf
     field public static final int NOT_ALLOWED = 401; // 0x191

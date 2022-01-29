@@ -63,7 +63,6 @@
 #include "btif_av.h"
 #include "btif_bqr.h"
 #include "btif_config.h"
-#include "btif_debug_btsnoop.h"
 #include "btif_debug_conn.h"
 #include "btif_hf.h"
 #include "btif_keystore.h"
@@ -783,7 +782,7 @@ void invoke_oob_data_request_cb(tBT_TRANSPORT t, bool valid, Octet16 c,
                                 uint8_t address_type) {
   LOG_INFO("%s", __func__);
   bt_oob_data_t oob_data = {};
-  char* local_name;
+  const char* local_name;
   BTM_ReadLocalDeviceName(&local_name);
   for (int i = 0; i < BTM_MAX_LOC_BD_NAME_LEN; i++) {
     oob_data.device_name[i] = local_name[i];

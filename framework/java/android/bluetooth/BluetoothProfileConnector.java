@@ -51,6 +51,9 @@ public abstract class BluetoothProfileConnector<T> {
     private final String mServiceName;
     private volatile T mService;
 
+    // -3 match with UserHandle.USER_CURRENT_OR_SELF
+    private static final UserHandle USER_HANDLE_CURRENT_OR_SELF = UserHandle.of(-3);
+
     private final IBluetoothStateChangeCallback mBluetoothStateChangeCallback =
             new IBluetoothStateChangeCallback.Stub() {
         public void onBluetoothStateChange(boolean up) {
@@ -131,7 +134,7 @@ public abstract class BluetoothProfileConnector<T> {
                     ComponentName comp = resolveSystemService(intent, mContext.getPackageManager());
                     intent.setComponent(comp);
                     if (comp == null || !mContext.bindServiceAsUser(intent, mConnection, 0,
-                            UserHandle.CURRENT)) {
+                            USER_HANDLE_CURRENT_OR_SELF)) {
                         logError("Could not bind to Bluetooth Service with " + intent);
                         return false;
                     }
