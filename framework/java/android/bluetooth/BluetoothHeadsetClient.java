@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 package android.bluetooth;
+
 import static android.bluetooth.BluetoothUtils.getSyncTimeout;
+
 import android.annotation.NonNull;
 import android.annotation.RequiresPermission;
 import android.annotation.SdkConstant;
@@ -32,7 +34,9 @@ import android.os.IBinder;
 import android.os.RemoteException;
 import android.util.CloseGuard;
 import android.util.Log;
+
 import com.android.modules.utils.SynchronousResultReceiver;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
@@ -76,7 +80,7 @@ public final class BluetoothHeadsetClient implements BluetoothProfile, AutoClose
     })
     @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
     public static final String ACTION_CONNECTION_STATE_CHANGED =
-            "android.bluetooth.headsetprofile.action.CONNECTION_STATE_CHANGED";
+            "android.bluetooth.headsetclient.profile.action.CONNECTION_STATE_CHANGED";
     /**
      * Intent sent whenever audio state changes.
      *
