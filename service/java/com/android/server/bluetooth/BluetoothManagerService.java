@@ -568,19 +568,6 @@ class BluetoothManagerService extends IBluetoothManager.Stub {
         mSystemUiUid = systemUiUid;
     }
 
-    private boolean getBluetoothBooleanConfig(String name, boolean orElse) {
-        try {
-            Resources bluetoothRes = mContext.getPackageManager()
-                    .getResourcesForApplication(BLUETOOTH_PACKAGE_NAME);
-            orElse = bluetoothRes.getBoolean(bluetoothRes.getIdentifier(
-                    name, "bool", BLUETOOTH_PACKAGE_NAME));
-        } catch (PackageManager.NameNotFoundException e) {
-            Log.e(TAG, "Unable to retrieve Bluetooth configuration " + name);
-            e.printStackTrace();
-        }
-        return orElse;
-    }
-
     /**
      *  Returns true if airplane mode is currently on
      */
@@ -591,7 +578,7 @@ class BluetoothManagerService extends IBluetoothManager.Stub {
 
     private boolean supportBluetoothPersistedState() {
         // Set default support to true to copy config default.
-        return getBluetoothBooleanConfig("config_supportBluetoothPersistedState", true);
+        return BluetoothProperties.isSupportPersistedStateEnabled().orElse(true);
     }
 
     /**
@@ -664,7 +651,7 @@ class BluetoothManagerService extends IBluetoothManager.Stub {
         if (DBG) {
             Slog.d(TAG, "Loading stored name and address");
         }
-        if (getBluetoothBooleanConfig("config_bluetooth_address_validation", false)
+        if (BluetoothProperties.isAdapterAddressValidationEnabled().orElse(false)
                 && Settings.Secure.getIntForUser(mContentResolver,
                 SECURE_SETTINGS_BLUETOOTH_ADDR_VALID, 0, mUserId)
                 == 0) {
