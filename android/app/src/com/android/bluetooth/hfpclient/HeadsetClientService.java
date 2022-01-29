@@ -194,8 +194,8 @@ public class HeadsetClientService extends ProfileService {
             // {@link HeadsetClientStateMachine} for details.
             if (action.equals(AudioManager.VOLUME_CHANGED_ACTION)) {
                 if (DBG) {
-                    Log.d(TAG, "Volume changed for stream: " + intent.getExtra(
-                            AudioManager.EXTRA_VOLUME_STREAM_TYPE));
+                    Log.d(TAG, "Volume changed for stream: " + intent.getIntExtra(
+                            AudioManager.EXTRA_VOLUME_STREAM_TYPE, -1));
                 }
                 int streamType = intent.getIntExtra(AudioManager.EXTRA_VOLUME_STREAM_TYPE, -1);
                 if (streamType == AudioManager.STREAM_VOICE_CALL) {
