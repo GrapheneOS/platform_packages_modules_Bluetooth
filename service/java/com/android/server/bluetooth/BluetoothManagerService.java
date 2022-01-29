@@ -60,6 +60,7 @@ import android.database.ContentObserver;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
@@ -267,6 +268,7 @@ class BluetoothManagerService extends IBluetoothManager.Stub {
             new ConcurrentHashMap<IBinder, ClientDeathRecipient>();
 
     private int mState;
+    private final HandlerThread mBluetoothHandlerThread;
     private final BluetoothHandler mHandler;
     private int mErrorRecoveryRetryCounter;
     private final int mSystemUiUid;
@@ -482,7 +484,10 @@ class BluetoothManagerService extends IBluetoothManager.Stub {
     };
 
     BluetoothManagerService(Context context) {
-        mHandler = new BluetoothHandler(IoThread.get().getLooper());
+        mBluetoothHandlerThread = new HandlerThread("BluetoothManagerService");
+        mBluetoothHandlerThread.start();
+
+        mHandler = new BluetoothHandler(mBluetoothHandlerThread.getLooper());
 
         mContext = context;
 
@@ -558,7 +563,7 @@ class BluetoothManagerService extends IBluetoothManager.Stub {
         if (airplaneModeRadios == null || airplaneModeRadios.contains(
                 Settings.Global.RADIO_BLUETOOTH)) {
             mBluetoothAirplaneModeListener = new BluetoothAirplaneModeListener(
-                    this, IoThread.get().getLooper(), context);
+                    this, mBluetoothHandlerThread.getLooper(), context);
         }
 
         int systemUiUid = -1;
