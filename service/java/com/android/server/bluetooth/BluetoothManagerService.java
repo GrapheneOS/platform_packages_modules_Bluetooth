@@ -57,9 +57,11 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.content.res.Resources;
 import android.database.ContentObserver;
+import android.os.BatteryStatsManager;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
@@ -81,7 +83,6 @@ import android.util.proto.ProtoOutputStream;
 
 import com.android.internal.annotations.GuardedBy;
 import com.android.internal.annotations.VisibleForTesting;
-import com.android.internal.util.FrameworkStatsLog;
 import com.android.modules.utils.SynchronousResultReceiver;
 
 import java.io.FileDescriptor;
@@ -200,6 +201,7 @@ class BluetoothManagerService extends IBluetoothManager.Stub {
     private String mAddress;
     private String mName;
     private final ContentResolver mContentResolver;
+    private final BatteryStatsManager mBatteryStatsManager;
     private final RemoteCallbackList<IBluetoothManagerCallback> mCallbacks;
     private final RemoteCallbackList<IBluetoothStateChangeCallback> mStateChangeCallbacks;
     private IBinder mBluetoothBinder;
@@ -267,6 +269,7 @@ class BluetoothManagerService extends IBluetoothManager.Stub {
             new ConcurrentHashMap<IBinder, ClientDeathRecipient>();
 
     private int mState;
+    private final HandlerThread mBluetoothHandlerThread;
     private final BluetoothHandler mHandler;
     private int mErrorRecoveryRetryCounter;
     private final int mSystemUiUid;
@@ -482,7 +485,10 @@ class BluetoothManagerService extends IBluetoothManager.Stub {
     };
 
     BluetoothManagerService(Context context) {
-        mHandler = new BluetoothHandler(IoThread.get().getLooper());
+        mBluetoothHandlerThread = new HandlerThread("BluetoothManagerService");
+        mBluetoothHandlerThread.start();
+
+        mHandler = new BluetoothHandler(mBluetoothHandlerThread.getLooper());
 
         mContext = context;
 
@@ -509,6 +515,8 @@ class BluetoothManagerService extends IBluetoothManager.Stub {
         registerForBleScanModeChange();
         mCallbacks = new RemoteCallbackList<IBluetoothManagerCallback>();
         mStateChangeCallbacks = new RemoteCallbackList<IBluetoothStateChangeCallback>();
+
+        mBatteryStatsManager = context.getSystemService(BatteryStatsManager.class);
 
         mUserManager = mContext.getSystemService(UserManager.class);
 
@@ -558,7 +566,7 @@ class BluetoothManagerService extends IBluetoothManager.Stub {
         if (airplaneModeRadios == null || airplaneModeRadios.contains(
                 Settings.Global.RADIO_BLUETOOTH)) {
             mBluetoothAirplaneModeListener = new BluetoothAirplaneModeListener(
-                    this, IoThread.get().getLooper(), context);
+                    this, mBluetoothHandlerThread.getLooper(), context);
         }
 
         int systemUiUid = -1;
@@ -585,19 +593,6 @@ class BluetoothManagerService extends IBluetoothManager.Stub {
         mSystemUiUid = systemUiUid;
     }
 
-    private boolean getBluetoothBooleanConfig(String name, boolean orElse) {
-        try {
-            Resources bluetoothRes = mContext.getPackageManager()
-                    .getResourcesForApplication(BLUETOOTH_PACKAGE_NAME);
-            orElse = bluetoothRes.getBoolean(bluetoothRes.getIdentifier(
-                    name, "bool", BLUETOOTH_PACKAGE_NAME));
-        } catch (PackageManager.NameNotFoundException e) {
-            Log.e(TAG, "Unable to retrieve Bluetooth configuration " + name);
-            e.printStackTrace();
-        }
-        return orElse;
-    }
-
     /**
      *  Returns true if airplane mode is currently on
      */
@@ -608,7 +603,7 @@ class BluetoothManagerService extends IBluetoothManager.Stub {
 
     private boolean supportBluetoothPersistedState() {
         // Set default support to true to copy config default.
-        return getBluetoothBooleanConfig("config_supportBluetoothPersistedState", true);
+        return BluetoothProperties.isSupportPersistedStateEnabled().orElse(true);
     }
 
     /**
@@ -681,7 +676,7 @@ class BluetoothManagerService extends IBluetoothManager.Stub {
         if (DBG) {
             Log.d(TAG, "Loading stored name and address");
         }
-        if (getBluetoothBooleanConfig("config_bluetooth_address_validation", false)
+        if (BluetoothProperties.isAdapterAddressValidationEnabled().orElse(false)
                 && Settings.Secure.getIntForUser(mContentResolver, BLUETOOTH_NAME, 0,
                     UserHandle.SYSTEM.getIdentifier()) == 0) {
             // if the valid flag is not set, don't load the address and name
@@ -2778,10 +2773,11 @@ class BluetoothManagerService extends IBluetoothManager.Stub {
                     new ActiveLog(reason, packageName, enable, System.currentTimeMillis()));
         }
 
-        int state = enable ? FrameworkStatsLog.BLUETOOTH_ENABLED_STATE_CHANGED__STATE__ENABLED :
-                             FrameworkStatsLog.BLUETOOTH_ENABLED_STATE_CHANGED__STATE__DISABLED;
-        FrameworkStatsLog.write_non_chained(1,
-                Binder.getCallingUid(), null, state, reason, packageName);
+        if (enable) {
+            mBatteryStatsManager.reportBluetoothOn(Binder.getCallingUid(), reason, packageName);
+        } else {
+            mBatteryStatsManager.reportBluetoothOff(Binder.getCallingUid(), reason, packageName);
+        }
     }
 
     private void addCrashLog() {

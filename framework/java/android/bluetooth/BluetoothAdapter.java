@@ -54,6 +54,7 @@ import android.compat.annotation.UnsupportedAppUsage;
 import android.content.AttributionSource;
 import android.content.Context;
 import android.os.Binder;
+import android.os.BluetoothServiceManager;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.ParcelUuid;
@@ -836,16 +837,20 @@ public final class BluetoothAdapter {
 
     /** {@hide} */
     public static BluetoothAdapter createAdapter(AttributionSource attributionSource) {
-      IBluetoothManager service = IBluetoothManager.Stub.asInterface(
-          BluetoothFrameworkInitializer.getBluetoothServiceManager()
-              .getBluetoothManagerServiceRegisterer()
-              .get());
-      if (service != null) {
-        return new BluetoothAdapter(service, attributionSource);
-      } else {
-        Log.e(TAG, "Bluetooth service is null");
-        return null;
-      }
+        BluetoothServiceManager manager =
+                BluetoothFrameworkInitializer.getBluetoothServiceManager();
+        if (manager == null) {
+            Log.e(TAG, "BluetoothServiceManager is null");
+            return null;
+        }
+        IBluetoothManager service = IBluetoothManager.Stub.asInterface(
+                manager.getBluetoothManagerServiceRegisterer().get());
+        if (service != null) {
+            return new BluetoothAdapter(service, attributionSource);
+        } else {
+            Log.e(TAG, "Bluetooth service is null");
+            return null;
+        }
     }
 
     /**
