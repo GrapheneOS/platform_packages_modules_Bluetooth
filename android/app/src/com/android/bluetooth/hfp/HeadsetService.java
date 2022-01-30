@@ -170,7 +170,7 @@ public class HeadsetService extends ProfileService {
         // Step 6: Setup broadcast receivers
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intent.ACTION_BATTERY_CHANGED);
-        filter.addAction(AudioManager.VOLUME_CHANGED_ACTION);
+        filter.addAction(AudioManager.ACTION_VOLUME_CHANGED);
         filter.addAction(BluetoothDevice.ACTION_CONNECTION_ACCESS_REPLY);
         filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
         registerReceiver(mHeadsetReceiver, filter);
@@ -361,7 +361,7 @@ public class HeadsetService extends ProfileService {
                     mSystemInterface.getHeadsetPhoneState().setCindBatteryCharge(cindBatteryLevel);
                     break;
                 }
-                case AudioManager.VOLUME_CHANGED_ACTION: {
+                case AudioManager.ACTION_VOLUME_CHANGED: {
                     int streamType = intent.getIntExtra(AudioManager.EXTRA_VOLUME_STREAM_TYPE, -1);
                     if (streamType == AudioManager.STREAM_BLUETOOTH_SCO) {
                         doForEachConnectedStateMachine(stateMachine -> stateMachine.sendMessage(
