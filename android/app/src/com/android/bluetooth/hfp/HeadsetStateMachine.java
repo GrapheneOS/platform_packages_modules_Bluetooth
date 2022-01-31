@@ -88,7 +88,7 @@ public class HeadsetStateMachine extends StateMachine {
     static final int VOICE_RECOGNITION_START = 5;
     static final int VOICE_RECOGNITION_STOP = 6;
 
-    // message.obj is an intent AudioManager.VOLUME_CHANGED_ACTION
+    // message.obj is an intent AudioManager.ACTION_VOLUME_CHANGED
     // EXTRA_VOLUME_STREAM_TYPE is STREAM_BLUETOOTH_SCO
     static final int INTENT_SCO_VOLUME_CHANGED = 7;
     static final int INTENT_CONNECTION_ACCESS_REPLY = 8;
