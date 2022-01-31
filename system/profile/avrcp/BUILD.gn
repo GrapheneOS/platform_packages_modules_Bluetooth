@@ -17,7 +17,6 @@
 config("avrcp_config") {
   include_dirs = [
     "//bt/system/",
-    "//bt/system/btcore/include",
     "//bt/system/internal_include",
     "//bt/system/stack/include",
     "//bt/system/profile/avrcp",
