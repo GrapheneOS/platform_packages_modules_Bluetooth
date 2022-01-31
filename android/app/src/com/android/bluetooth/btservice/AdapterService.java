@@ -95,7 +95,6 @@ import android.sysprop.BluetoothProperties;
 import android.text.TextUtils;
 import android.util.Base64;
 import android.util.Log;
-import android.util.Slog;
 import android.util.SparseArray;
 
 import com.android.bluetooth.BluetoothMetricsProto;
@@ -1294,10 +1293,8 @@ public class AdapterService extends Service {
             PendingIntent pendingIntent,
             AttributionSource attributionSource) {
         if (mBluetoothServerSockets.containsKey(uuid.getUuid())) {
-            Slog.d(TAG,
-                    String.format(
-                            "Cannot start RFCOMM listener: UUID %s already in use.",
-                            uuid.getUuid()));
+            Log.d(TAG, String.format(
+                        "Cannot start RFCOMM listener: UUID %s already in use.", uuid.getUuid()));
             return BluetoothStatusCodes.RFCOMM_LISTENER_START_FAILED_UUID_IN_USE;
         }
 
@@ -1315,10 +1312,8 @@ public class AdapterService extends Service {
         RfcommListenerData listenerData = mBluetoothServerSockets.get(uuid.getUuid());
 
         if (listenerData == null) {
-            Slog.d(TAG,
-                    String.format(
-                            "Cannot stop RFCOMM listener: UUID %s is not registered.",
-                            uuid.getUuid()));
+            Log.d(TAG, String.format(
+                        "Cannot stop RFCOMM listener: UUID %s is not registered.", uuid.getUuid()));
             return BluetoothStatusCodes.RFCOMM_LISTENER_OPERATION_FAILED_NO_MATCHING_SERVICE_RECORD;
         }
 
@@ -1357,7 +1352,7 @@ public class AdapterService extends Service {
             return socketInfo;
         }
 
-        mHandler.removeCallbacksAndEqualMessages(socket);
+        mHandler.removeCallbacksAndMessages(socket);
 
         socketInfo.bluetoothDevice = socket.getRemoteDevice();
         socketInfo.pfd = socket.getParcelFileDescriptor();
@@ -1376,7 +1371,7 @@ public class AdapterService extends Service {
                 if (mBluetoothServerSockets.containsKey(uuid)) {
                     // The uuid still being in the map indicates that the accept failure is
                     // unexpected. Try and restart the listener.
-                    Slog.e(TAG, "Failed to accept socket on " + listenerData.mServerSocket, e);
+                    Log.e(TAG, "Failed to accept socket on " + listenerData.mServerSocket, e);
                     restartRfcommListener(listenerData, uuid);
                 }
                 return;
@@ -1386,7 +1381,7 @@ public class AdapterService extends Service {
             try {
                 listenerData.mPendingIntent.send();
             } catch (PendingIntent.CanceledException e) {
-                Slog.e(TAG, "PendingIntent for RFCOMM socket notifications cancelled.", e);
+                Log.e(TAG, "PendingIntent for RFCOMM socket notifications cancelled.", e);
                 // The pending intent was cancelled, close the server as there is no longer any way
                 // to notify the app that registered the listener.
                 listenerData.closeServerAndPendingSockets(mHandler);
@@ -1410,7 +1405,7 @@ public class AdapterService extends Service {
                     listenerData.mPendingIntent,
                     listenerData.mAttributionSource);
         } catch (IOException e) {
-            Slog.e(TAG, "Failed to recreate rfcomm server socket", e);
+            Log.e(TAG, "Failed to recreate rfcomm server socket", e);
 
             mBluetoothServerSockets.remove(uuid);
         }
@@ -1423,7 +1418,7 @@ public class AdapterService extends Service {
             try {
                 socket.close();
             } catch (IOException e) {
-                Slog.e(TAG, "Failed to close bt socket", e);
+                Log.e(TAG, "Failed to close bt socket", e);
                 // We don't care if closing the socket failed, just continue on.
             }
         }
@@ -1482,16 +1477,16 @@ public class AdapterService extends Service {
             try {
                 mServerSocket.close();
             } catch (IOException e) {
-                Slog.e(TAG, "Failed to call close on rfcomm server socket", e);
+                Log.e(TAG, "Failed to call close on rfcomm server socket", e);
                 result = BluetoothStatusCodes.RFCOMM_LISTENER_FAILED_TO_CLOSE_SERVER_SOCKET;
             }
             mPendingSockets.forEach(
                     pendingSocket -> {
-                        handler.removeCallbacksAndEqualMessages(pendingSocket);
+                        handler.removeCallbacksAndMessages(pendingSocket);
                         try {
                             pendingSocket.close();
                         } catch (IOException e) {
-                            Slog.e(TAG, "Failed to close socket", e);
+                            Log.e(TAG, "Failed to close socket", e);
                         }
                     });
             mPendingSockets.clear();
