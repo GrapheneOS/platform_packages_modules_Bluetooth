@@ -16,6 +16,7 @@
 
 #include "packet_dependency.h"
 
+#include <algorithm>
 #include <list>
 #include <set>
 
