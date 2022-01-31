@@ -22,6 +22,7 @@ import static android.Manifest.permission.BLUETOOTH_ADVERTISE;
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
 import static android.Manifest.permission.BLUETOOTH_SCAN;
 import static android.Manifest.permission.RENOUNCE_PERMISSIONS;
+import static android.bluetooth.BluetoothUtils.USER_HANDLE_NULL;
 import static android.content.pm.PackageManager.GET_PERMISSIONS;
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 import static android.os.PowerExemptionManager.TEMPORARY_ALLOW_LIST_TYPE_FOREGROUND_SERVICE_ALLOWED;
@@ -315,12 +316,12 @@ public final class Utils {
         }
     }
 
-    static int sSystemUiUid = UserHandle.USER_NULL;
+    static int sSystemUiUid = USER_HANDLE_NULL.getIdentifier();
     public static void setSystemUiUid(int uid) {
         Utils.sSystemUiUid = uid;
     }
 
-    static int sForegroundUserId = UserHandle.USER_NULL;
+    static int sForegroundUserId = USER_HANDLE_NULL.getIdentifier();
     public static void setForegroundUserId(int uid) {
         Utils.sForegroundUserId = uid;
     }
@@ -643,7 +644,7 @@ public final class Utils {
         try {
             UserManager um = context.getSystemService(UserManager.class);
             UserHandle uh = um.getProfileParent(callingUser);
-            int parentUser = (uh != null) ? uh.getIdentifier() : UserHandle.USER_NULL;
+            int parentUser = (uh != null) ? uh.getIdentifier() : USER_HANDLE_NULL.getIdentifier();
 
             // Always allow SystemUI/System access.
             return (sForegroundUserId == callingUser.getIdentifier())
