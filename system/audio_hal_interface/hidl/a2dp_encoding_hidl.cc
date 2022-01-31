@@ -553,6 +553,15 @@ void set_remote_delay(uint16_t delay_report) {
       ->SetRemoteDelay(delay_report);
 }
 
+// Set low latency buffer mode allowed or disallowed
+void set_low_latency_mode_allowed(bool allowed) {
+  if (!is_hal_2_0_enabled()) {
+    LOG(ERROR) << __func__ << ": BluetoothAudio HAL is not enabled";
+    return;
+  }
+  active_hal_interface->SetLowLatencyModeAllowed(allowed);
+}
+
 }  // namespace a2dp
 }  // namespace hidl
 }  // namespace audio

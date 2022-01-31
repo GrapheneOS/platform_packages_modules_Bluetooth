@@ -255,6 +255,8 @@ class BluetoothAudioClientInterface {
 
   void FlushAudioData();
 
+  void SetLowLatencyModeAllowed(bool allowed);
+
   static constexpr PcmParameters kInvalidPcmConfiguration = {
       .sampleRate = SampleRate::RATE_UNKNOWN,
       .channelMode = ChannelMode::UNKNOWN,

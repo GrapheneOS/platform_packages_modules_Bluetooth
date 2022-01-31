@@ -47,6 +47,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "audio_hal_interface/a2dp_encoding.h"
 #include "bt_utils.h"
 #include "bta/include/bta_csis_api.h"
 #include "bta/include/bta_hearing_aid_api.h"
@@ -598,8 +599,7 @@ static int set_dynamic_audio_buffer_size(int codec, int size) {
 
 static bool allow_low_latency_audio(bool allowed, const RawAddress& address) {
   LOG_INFO("%s %s", __func__, allowed ? "true" : "false");
-  // Call HAL here
-  return true;
+  return bluetooth::audio::a2dp::set_audio_low_latency_mode_allowed(allowed);
 }
 
 EXPORT_SYMBOL bt_interface_t bluetoothInterface = {
