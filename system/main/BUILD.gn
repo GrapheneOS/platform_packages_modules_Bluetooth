@@ -61,7 +61,6 @@ target(lib_type, "bluetooth") {
     "//bt/system/bta/include",
     "//bt/system/bta/sys",
     "//bt/system/bta/dm",
-    "//bt/system/btcore/include",
     "//bt/system/internal_include",
     "//bt/system/stack/include",
     "//bt/system/stack/l2cap",
