@@ -137,15 +137,6 @@ constexpr uint8_t PHY_LE_CODED = 0x04;
 constexpr uint8_t NO_ADI_PRESENT = 0xFF;
 constexpr uint8_t TX_POWER_NOT_PRESENT = 0x7F;
 
-typedef struct {
-  uint8_t pcm_intf_rate; /* PCM interface rate: 0: 128kbps, 1: 256 kbps;
-                             2:512 bps; 3: 1024kbps; 4: 2048kbps */
-  uint8_t frame_type;    /* frame type: 0: short; 1: long */
-  uint8_t sync_mode;     /* sync mode: 0: peripheral; 1: central */
-  uint8_t clock_mode;    /* clock mode: 0: peripheral; 1: central */
-
-} tBTM_SCO_PCM_PARAM;
-
 /*****************************************************************************
  *  ACL CHANNEL MANAGEMENT
  ****************************************************************************/
