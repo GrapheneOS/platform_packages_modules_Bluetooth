@@ -1194,4 +1194,15 @@ extern void BTA_DmBleGetEnergyInfo(tBTA_BLE_ENERGY_INFO_CBACK* p_cmpl_cback);
  ******************************************************************************/
 extern void BTA_VendorInit(void);
 
+/*******************************************************************************
+ *
+ * Function         BTA_DmClearEventFilter
+ *
+ * Description      This function clears the event filter
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+extern void BTA_DmClearEventFilter(void);
+
 #endif /* BTA_API_H */
