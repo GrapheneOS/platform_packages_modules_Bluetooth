@@ -178,13 +178,6 @@ typedef uint16_t tBTM_SCO_CODEC_TYPE;
 /*******************
  * SCO Voice Settings
  *******************/
-#define BTM_VOICE_SETTING_CVSD                                         \
-  ((uint16_t)(HCI_INP_CODING_LINEAR | HCI_INP_DATA_FMT_2S_COMPLEMENT | \
-              HCI_INP_SAMPLE_SIZE_16BIT | HCI_AIR_CODING_FORMAT_CVSD))
-
-#define BTM_VOICE_SETTING_TRANS                                        \
-  ((uint16_t)(HCI_INP_CODING_LINEAR | HCI_INP_DATA_FMT_2S_COMPLEMENT | \
-              HCI_INP_SAMPLE_SIZE_16BIT | HCI_AIR_CODING_FORMAT_TRANSPNT))
 
 /*******************
  * SCO Data Status
