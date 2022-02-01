@@ -8,7 +8,7 @@ use crate::profiles::gatt::bindings::{
     BleAdvertiserInterface, BleScannerInterface,
 };
 use crate::topstack::get_dispatchers;
-use crate::{cast_to_ffi_address, ccall, deref_ffi_address};
+use crate::{cast_to_ffi_address, ccall, deref_ffi_address, mutcxxcall};
 
 use num_traits::cast::FromPrimitive;
 
@@ -761,11 +761,12 @@ impl GattClient {
     }
 
     pub fn read_phy(&mut self, client_if: i32, addr: &RawAddress) -> BtStatus {
-        BtStatus::from_i32(
-            self.internal_cxx
-                .pin_mut()
-                .read_phy(client_if, ffi::RustRawAddress { address: addr.val }),
-        )
+        BtStatus::from_i32(mutcxxcall!(
+            self,
+            read_phy,
+            client_if,
+            ffi::RustRawAddress { address: addr.val }
+        ))
         .unwrap()
     }
 
@@ -1053,7 +1054,7 @@ impl Gatt {
         self.gatt_scanner_callbacks = Some(gatt_scanner_callbacks);
 
         // Register callbacks for gatt scanner
-        self.scanner.internal_cxx.pin_mut().RegisterCallbacks();
+        mutcxxcall!(self.scanner, RegisterCallbacks);
 
         return self.is_init;
     }
