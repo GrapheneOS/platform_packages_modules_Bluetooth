@@ -100,7 +100,7 @@ public class BluetoothModeChangeHelper {
         if (adapter == null) {
             return false;
         }
-        return adapter.getLeState() == BluetoothAdapter.STATE_ON;
+        return adapter.isLeEnabled();
     }
 
     @VisibleForTesting
