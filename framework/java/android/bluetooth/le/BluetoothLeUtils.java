@@ -19,6 +19,7 @@ package android.bluetooth.le;
 import android.bluetooth.BluetoothAdapter;
 import android.util.SparseArray;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
@@ -32,6 +33,18 @@ import java.util.UUID;
  * @hide
  */
 public class BluetoothLeUtils {
+
+    /**
+     * Timeout value for synchronous binder call
+     */
+    private static final Duration SYNC_CALLS_TIMEOUT = Duration.ofSeconds(5);
+
+    /**
+     * @return timeout value for synchronous binder call
+     */
+    static Duration getSyncTimeout() {
+        return SYNC_CALLS_TIMEOUT;
+    }
 
     /**
      * Returns a string composed from a {@link SparseArray}.

@@ -427,8 +427,9 @@ public final class BluetoothSocket implements Closeable {
             IBluetooth bluetoothProxy =
                     BluetoothAdapter.getDefaultAdapter().getBluetoothService();
             if (bluetoothProxy == null) throw new IOException("Bluetooth is off");
-            mPfd = bluetoothProxy.getSocketManager().connectSocket(mDevice, mType,
-                    mUuid, mPort, getSecurityFlags());
+            IBluetoothSocketManager socketManager = bluetoothProxy.getSocketManager();
+            if (socketManager == null) throw new IOException("bt get socket manager failed");
+            mPfd = socketManager.connectSocket(mDevice, mType, mUuid, mPort, getSecurityFlags());
             synchronized (this) {
                 if (DBG) Log.d(TAG, "connect(), SocketState: " + mSocketState + ", mPfd: " + mPfd);
                 if (mSocketState == SocketState.CLOSED) throw new IOException("socket closed");
@@ -451,7 +452,7 @@ public final class BluetoothSocket implements Closeable {
                 mSocketState = SocketState.CONNECTED;
             }
         } catch (RemoteException e) {
-            Log.e(TAG, Log.getStackTraceString(new Throwable()));
+            Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             throw new IOException("unable to send RPC: " + e.getMessage());
         }
     }
@@ -471,10 +472,15 @@ public final class BluetoothSocket implements Closeable {
         }
         try {
             if (DBG) Log.d(TAG, "bindListen(): mPort=" + mPort + ", mType=" + mType);
-            mPfd = bluetoothProxy.getSocketManager().createSocketChannel(mType, mServiceName,
-                    mUuid, mPort, getSecurityFlags());
+            IBluetoothSocketManager socketManager = bluetoothProxy.getSocketManager();
+            if (socketManager == null) {
+                Log.e(TAG, "bindListen() bt get socket manager failed");
+                return -1;
+            }
+            mPfd = socketManager
+                .createSocketChannel(mType, mServiceName, mUuid, mPort, getSecurityFlags());
         } catch (RemoteException e) {
-            Log.e(TAG, Log.getStackTraceString(new Throwable()));
+            Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             return -1;
         }
 
@@ -738,9 +744,11 @@ public final class BluetoothSocket implements Closeable {
             }
 
             if (DBG) Log.d(TAG, "requestMaximumTxDataLength");
-            bluetoothProxy.getSocketManager().requestMaximumTxDataLength(mDevice);
+            IBluetoothSocketManager socketManager = bluetoothProxy.getSocketManager();
+            if (socketManager == null) throw new IOException("bt get socket manager failed");
+            socketManager.requestMaximumTxDataLength(mDevice);
         } catch (RemoteException e) {
-            Log.e(TAG, Log.getStackTraceString(new Throwable()));
+            Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             throw new IOException("unable to send RPC: " + e.getMessage());
         }
     }
