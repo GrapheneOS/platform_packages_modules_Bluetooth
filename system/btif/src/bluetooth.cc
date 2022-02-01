@@ -92,8 +92,10 @@
 using bluetooth::csis::CsisClientInterface;
 using bluetooth::has::HasClientInterface;
 using bluetooth::hearing_aid::HearingAidInterface;
+#ifndef TARGET_FLOSS
 using bluetooth::le_audio::LeAudioBroadcasterInterface;
 using bluetooth::le_audio::LeAudioClientInterface;
+#endif
 using bluetooth::vc::VolumeControlInterface;
 
 /*******************************************************************************
@@ -136,12 +138,14 @@ extern const btrc_ctrl_interface_t* btif_rc_ctrl_get_interface();
 extern const btsdp_interface_t* btif_sdp_get_interface();
 /*Hearing Aid client*/
 extern HearingAidInterface* btif_hearing_aid_get_interface();
+#ifndef TARGET_FLOSS
 /* Hearing Access client */
 extern HasClientInterface* btif_has_client_get_interface();
 /* LeAudio testi client */
 extern LeAudioClientInterface* btif_le_audio_get_interface();
 /* LeAudio Broadcaster */
 extern LeAudioBroadcasterInterface* btif_le_audio_broadcaster_get_interface();
+#endif
 /* Coordinated Set Service Client */
 extern CsisClientInterface* btif_csis_client_get_interface();
 /* Volume Control client */
@@ -421,10 +425,14 @@ static void dump(int fd, const char** arguments) {
   osi_allocator_debug_dump(fd);
   alarm_debug_dump(fd);
   bluetooth::csis::CsisClient::DebugDump(fd);
+#ifndef TARGET_FLOSS
   le_audio::has::HasClient::DebugDump(fd);
+#endif
   HearingAid::DebugDump(fd);
+#ifndef TARGET_FLOSS
   LeAudioClient::DebugDump(fd);
   LeAudioBroadcaster::DebugDump(fd);
+#endif
   connection_manager::dump(fd);
   bluetooth::bqr::DebugDump(fd);
   bluetooth::shim::Dump(fd, arguments);
@@ -490,11 +498,13 @@ static const void* get_profile_interface(const char* profile_id) {
     return bluetooth::activity_attribution::get_activity_attribution_instance();
   }
 
+#ifndef TARGET_FLOSS
   if (is_profile(profile_id, BT_PROFILE_LE_AUDIO_ID))
     return btif_le_audio_get_interface();
 
   if (is_profile(profile_id, BT_PROFILE_LE_AUDIO_BROADCASTER_ID))
     return btif_le_audio_broadcaster_get_interface();
+#endif
 
   if (is_profile(profile_id, BT_PROFILE_VC_ID))
     return btif_volume_control_get_interface();
