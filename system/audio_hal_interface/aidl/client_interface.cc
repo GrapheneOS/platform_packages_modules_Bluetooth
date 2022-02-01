@@ -176,7 +176,7 @@ BluetoothAudioSourceClientInterface::~BluetoothAudioSourceClientInterface() {
 void BluetoothAudioClientInterface::binderDiedCallbackAidl(void* ptr) {
   LOG(WARNING) << __func__ << ": restarting connection with new Audio Hal";
   auto client = static_cast<BluetoothAudioClientInterface*>(ptr);
-  if (client != nullptr) {
+  if (client == nullptr) {
     LOG(ERROR) << __func__ << ": null audio HAL died!";
     return;
   }
