@@ -35,6 +35,11 @@ rust_library {
     proc_macros: [
         "libnum_derive",
     ],
+    apex_available: [
+        "//apex_available:platform",
+        "com.android.bluetooth",
+    ],
+    min_sdk_version: "30",
     target: {
         android: {
             whole_static_libs: ["libbt_hidl_hal_cxx"],
@@ -108,5 +113,10 @@ cc_library_static {
         "libhidlbase",
         "libutils",
     ],
+    apex_available: [
+        "//apex_available:platform",
+        "com.android.bluetooth",
+    ],
+    min_sdk_version: "30",
 }
 

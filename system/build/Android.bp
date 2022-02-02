@@ -96,7 +96,11 @@ fluoride_defaults {
         "liblog",
         "libcutils",
     ],
+    shared_libs: [
+        "liblog",
+    ],
     cpp_std: "c++17",
+    min_sdk_version: "current",
 }
 
 fluoride_defaults {
