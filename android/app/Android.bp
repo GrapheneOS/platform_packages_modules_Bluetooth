@@ -82,6 +82,7 @@ android_app {
     srcs: [
         "src/**/*.java",
         ":statslog-bluetooth-java-gen",
+        ":bluetooth-proto-enums-java-gen",
     ],
     platform_apis: true,
     certificate: "platform",
@@ -132,6 +133,32 @@ android_app {
             // "-Xep:AndroidFrameworkRequiresPermission:ERROR",
         ],
     },
+}
+
+gensrcs {
+    name: "bluetooth-proto-enums-java-gen",
+    depfile: true,
+
+    tools: [
+        "aprotoc",
+        "protoc-gen-javastream",
+        "soong_zip",
+    ],
+
+    cmd: "mkdir -p $(genDir)/$(in) " +
+        "&& $(location aprotoc) " +
+        "  --plugin=$(location protoc-gen-javastream) " +
+        "  --dependency_out=$(depfile) " +
+        "  --javastream_out=$(genDir)/$(in) " +
+        "  -Iexternal/protobuf/src " +
+        "  -I . " +
+        "  $(in) " +
+        "&& $(location soong_zip) -jar -o $(out) -C $(genDir)/$(in) -D $(genDir)/$(in)",
+
+    srcs: [
+        ":srcs_bluetooth_protos",
+    ],
+    output_extension: "srcjar",
 }
 
 genrule {

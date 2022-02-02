@@ -39,6 +39,18 @@ java_defaults {
     ],
 }
 
+// bluetooth-service needs pre-jarjared version of framework-bluetooth so it can reference copied utility
+// classes before they are renamed.
+java_library {
+    name: "framework-bluetooth-pre-jarjar",
+    defaults: ["framework-bluetooth-defaults"],
+    sdk_version: "module_current",
+    libs: ["framework-annotations-lib"],
+    // java_api_finder must accompany `srcs` (`srcs` defined in `framework-bluetooth-defaults`)
+    plugins: ["java_api_finder"],
+    installable: false,
+}
+
 // post-jarjar version of framework-bluetooth
 java_sdk_library {
     name: "framework-bluetooth",
@@ -48,7 +60,6 @@ java_sdk_library {
     ],
 
     jarjar_rules: ":bluetooth-jarjar-rules",
-    api_only: true,
     installable: true,
     optimize: {
         enabled: false

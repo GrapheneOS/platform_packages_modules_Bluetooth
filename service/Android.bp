@@ -27,3 +27,103 @@ filegroup {
     ],
 }
 
+java_defaults {
+    name: "service-bluetooth-common-defaults",
+    defaults: ["bluetooth-module-sdk-version-defaults"],
+    errorprone: {
+        javacflags: ["-Xep:CheckReturnValue:ERROR"],
+    },
+    product_variables: {
+        pdk: {
+            enabled: false,
+        },
+    },
+}
+
+// pre-jarjar version of service-uwb that builds against pre-jarjar version of framework-bluetooth
+java_library {
+    name: "service-bluetooth-pre-jarjar",
+    installable: false,
+    defaults: ["service-bluetooth-common-defaults"],
+    srcs: [
+        ":services.bluetooth-sources",
+        ":bluetooth-proto-enums-java-gen",
+        ":bluetooth-manager-service-proto-java-gen",
+    ],
+    // java_api_finder must accompany `srcs`
+    plugins: ["java_api_finder"],
+
+    sdk_version: "system_server_current",
+
+    lint: {
+        strict_updatability_linting: true,
+    },
+    libs: [
+        "framework-annotations-lib",
+        "framework-bluetooth-pre-jarjar",
+    ],
+
+    static_libs: [
+        "androidx.annotation_annotation",
+    ],
+
+    apex_available: [
+        "com.android.bluetooth",
+    ],
+}
+
+// service-bluetooth static library
+// ==============================================================
+java_library {
+    name: "service-bluetooth",
+    defaults: ["service-bluetooth-common-defaults"],
+    installable: true,
+    static_libs: ["service-bluetooth-pre-jarjar"],
+
+    libs: [
+        "framework-bluetooth.impl",
+    ],
+    sdk_version: "system_server_current",
+
+    optimize: {
+        enabled: true,
+        shrink: true,
+        proguard_flags_files: ["proguard.flags"],
+    },
+    dex_preopt: {
+        enabled: false,
+        app_image: false,
+    },
+    visibility: [
+        "//packages/modules/Bluetooth/apex",
+    ],
+    apex_available: [
+        "com.android.bluetooth",
+    ],
+}
+
+gensrcs {
+    name: "bluetooth-manager-service-proto-java-gen",
+    depfile: true,
+
+    tools: [
+        "aprotoc",
+        "protoc-gen-javastream",
+        "soong_zip",
+    ],
+
+    cmd: "mkdir -p $(genDir)/$(in) " +
+        "&& $(location aprotoc) " +
+        "  --plugin=$(location protoc-gen-javastream) " +
+        "  --dependency_out=$(depfile) " +
+        "  --javastream_out=$(genDir)/$(in) " +
+        "  -Iexternal/protobuf/src " +
+        "  -I . " +
+        "  $(in) " +
+        "&& $(location soong_zip) -jar -o $(out) -C $(genDir)/$(in) -D $(genDir)/$(in)",
+
+    srcs: [
+        ":srcs_bluetooth_manager_service_proto",
+    ],
+    output_extension: "srcjar",
+}
