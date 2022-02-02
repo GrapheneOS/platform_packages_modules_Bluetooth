@@ -113,6 +113,16 @@
             </intent-filter>
         </service>
 
+        <!--  Android Audio Support for Hearing Aids (ASHA) central Profile Service -->
+        <service android:process="@string/process"
+             android:name="com.android.bluetooth.hearingaid.HearingAidService"
+             android:enabled="true"
+             android:exported="true">
+            <intent-filter>
+                <action android:name="android.bluetooth.IBluetoothHearingAid"/>
+            </intent-filter>
+        </service>
+
         <!--  Audio/Video Remote Control Profile (AVRCP) target Profile Service  -->
         <service android:process="@string/process"
              android:name="com.android.bluetooth.avrcp.AvrcpTargetService"
@@ -504,13 +514,6 @@
              android:exported="true">
             <intent-filter>
                 <action android:name="android.bluetooth.IBluetoothPbapClient"/>
-            </intent-filter>
-        </service>
-        <service android:process="@string/process"
-             android:name=".hearingaid.HearingAidService"
-             android:exported="true">
-            <intent-filter>
-                <action android:name="android.bluetooth.IBluetoothHearingAid"/>
             </intent-filter>
         </service>
         <!-- Authenticator for PBAP account. -->
