@@ -220,6 +220,26 @@
             </intent-filter>
         </service>
 
+        <!--  Human Interface Device (HID) host Profile Service  -->
+        <service android:process="@string/process"
+             android:name="com.android.bluetooth.hid.HidHostService"
+             android:enabled="true"
+             android:exported="true">
+            <intent-filter>
+                <action android:name="android.bluetooth.IBluetoothHidHost"/>
+            </intent-filter>
+        </service>
+
+        <!--  Human Interface Device (HID) device Profile Service  -->
+        <service android:process="@string/process"
+             android:name="com.android.bluetooth.hid.HidDeviceService"
+             android:enabled="true"
+             android:exported="true">
+            <intent-filter>
+                <action android:name="android.bluetooth.IBluetoothHidDevice"/>
+            </intent-filter>
+        </service>
+
         <!--  Media Control Profile (MCP) server Profile Service  -->
         <service android:process="@string/process"
              android:name="com.android.bluetooth.mcp.McpService"
@@ -449,22 +469,6 @@
              android:exported="true">
             <intent-filter>
                 <action android:name="android.bluetooth.IBluetoothHeadset"/>
-            </intent-filter>
-        </service>
-        <service android:process="@string/process"
-             android:name=".hid.HidHostService"
-             android:enabled="@bool/profile_supported_hid_host"
-             android:exported="true">
-            <intent-filter>
-                <action android:name="android.bluetooth.IBluetoothHidHost"/>
-            </intent-filter>
-        </service>
-        <service android:process="@string/process"
-             android:name="com.android.bluetooth.hid.HidDeviceService"
-             android:enabled="@bool/profile_supported_hid_device"
-             android:exported="true">
-            <intent-filter>
-                <action android:name="android.bluetooth.IBluetoothHidDevice"/>
             </intent-filter>
         </service>
         <service
