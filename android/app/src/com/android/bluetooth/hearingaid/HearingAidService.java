@@ -30,7 +30,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
-import android.media.BtProfileConnectionInfo;
+import android.media.BluetoothProfileConnectionInfo;
 import android.os.HandlerThread;
 import android.os.ParcelUuid;
 import android.util.Log;
@@ -707,7 +707,7 @@ public class HearingAidService extends ProfileService {
                     + ". Stop audio: " + stopAudio);
         }
         mAudioManager.handleBluetoothActiveDeviceChanged(device, mPreviousAudioDevice,
-                BtProfileConnectionInfo.hearingAidInfo(!stopAudio));
+                BluetoothProfileConnectionInfo.createHearingAidInfo(!stopAudio));
         mPreviousAudioDevice = device;
     }
 
