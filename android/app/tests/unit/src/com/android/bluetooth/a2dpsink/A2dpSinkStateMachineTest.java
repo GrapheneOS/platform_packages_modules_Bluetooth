@@ -64,7 +64,7 @@ public class A2dpSinkStateMachineTest {
     public void setUp() throws Exception {
         mTargetContext = InstrumentationRegistry.getTargetContext();
         Assume.assumeTrue("Ignore test when A2dpSinkService is not enabled",
-                mTargetContext.getResources().getBoolean(R.bool.profile_supported_a2dp_sink));
+                A2dpSinkService.isEnabled());
         MockitoAnnotations.initMocks(this);
 
         mAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -82,7 +82,7 @@ public class A2dpSinkStateMachineTest {
 
     @After
     public void tearDown() throws Exception {
-        if (!mTargetContext.getResources().getBoolean(R.bool.profile_supported_a2dp_sink)) {
+        if (!A2dpSinkService.isEnabled()) {
             return;
         }
         mStateMachine = null;

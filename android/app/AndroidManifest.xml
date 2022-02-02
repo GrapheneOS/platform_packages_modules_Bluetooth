@@ -103,6 +103,16 @@
             </intent-filter>
         </service>
 
+        <!--  Advanced Audio Distribution Profile (A2DP) sink Profile Service  -->
+        <service android:process="@string/process"
+             android:name="com.android.bluetooth.a2dpsink.A2dpSinkService"
+             android:enabled="true"
+             android:exported="true">
+            <intent-filter>
+                <action android:name="android.bluetooth.IBluetoothA2dpSink"/>
+            </intent-filter>
+        </service>
+
         <provider android:name=".opp.BluetoothOppProvider"
              android:authorities="com.android.bluetooth.opp"
              android:exported="true"
@@ -307,14 +317,6 @@
              android:exported="true">
             <intent-filter>
                 <action android:name="android.bluetooth.IBluetoothHeadset"/>
-            </intent-filter>
-        </service>
-        <service android:process="@string/process"
-             android:name=".a2dpsink.A2dpSinkService"
-             android:enabled="@bool/profile_supported_a2dp_sink"
-             android:exported="true">
-            <intent-filter>
-                <action android:name="android.bluetooth.IBluetoothA2dpSink"/>
             </intent-filter>
         </service>
         <service android:process="@string/process"
