@@ -6,7 +6,8 @@ use bt_topshim::bindings::root::bluetooth::Uuid;
 use bt_topshim::btif::{BluetoothInterface, RawAddress, Uuid128Bit};
 use bt_topshim::profiles::gatt::{
     BtGattDbElement, BtGattNotifyParams, BtGattReadParams, Gatt, GattClientCallbacks,
-    GattClientCallbacksDispatcher, GattServerCallbacksDispatcher, GattStatus,
+    GattClientCallbacksDispatcher, GattScannerCallbacksDispatcher, GattServerCallbacksDispatcher,
+    GattStatus,
 };
 use bt_topshim::topstack;
 
@@ -512,6 +513,11 @@ impl BluetoothGatt {
                 dispatch: Box::new(move |cb| {
                     // TODO(b/193685149): Implement the callbacks
                     debug!("received Gatt server callback: {:?}", cb);
+                }),
+            },
+            GattScannerCallbacksDispatcher {
+                dispatch: Box::new(move |cb| {
+                    debug!("received Gatt scanner callback: {:?}", cb);
                 }),
             },
         );

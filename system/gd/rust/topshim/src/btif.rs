@@ -567,6 +567,11 @@ impl From<SupportedProfiles> for Vec<u8> {
 
 #[cxx::bridge(namespace = bluetooth::topshim::rust)]
 mod ffi {
+    #[derive(Debug, Copy, Clone)]
+    pub struct RustRawAddress {
+        address: [u8; 6],
+    }
+
     unsafe extern "C++" {
         include!("btif/btif_shim.h");
 

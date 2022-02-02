@@ -18,6 +18,7 @@
 
 #include <memory>
 
+#include "gd/rust/topshim/common/utils.h"
 #include "rust/cxx.h"
 #include "src/controller.rs.h"
 #include "types/raw_address.h"
@@ -27,12 +28,6 @@ namespace topshim {
 namespace rust {
 namespace internal {
 static ControllerIntf* g_controller_intf;
-
-static RustRawAddress to_rust_address(const RawAddress& address) {
-  RustRawAddress raddr;
-  std::copy(std::begin(address.address), std::end(address.address), std::begin(raddr.address));
-  return raddr;
-}
 }  // namespace internal
 
 ControllerIntf::~ControllerIntf() {}
@@ -46,7 +41,7 @@ std::unique_ptr<ControllerIntf> GetControllerInterface() {
 
 RustRawAddress ControllerIntf::read_local_addr() const {
   if (!controller_) std::abort();
-  return internal::to_rust_address(*controller_->get_address());
+  return CopyToRustAddress(*controller_->get_address());
 }
 
 }  // namespace rust

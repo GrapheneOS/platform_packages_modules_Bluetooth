@@ -20,6 +20,7 @@
 #include <memory>
 
 #include "base/callback.h"
+#include "gd/rust/topshim/common/utils.h"
 #include "include/hardware/avrcp/avrcp.h"
 #include "include/hardware/bluetooth.h"
 #include "rust/cxx.h"
@@ -103,18 +104,6 @@ namespace internal {
 static A2dpIntf* g_a2dpif;
 static AvrcpIntf* g_avrcpif;
 
-static RustRawAddress to_rust_address(const RawAddress& address) {
-  RustRawAddress raddr;
-  std::copy(std::begin(address.address), std::end(address.address), std::begin(raddr.address));
-  return raddr;
-}
-
-static RawAddress from_rust_address(const RustRawAddress& raddr) {
-  RawAddress addr;
-  addr.FromOctets(raddr.address.data());
-  return addr;
-}
-
 static A2dpCodecConfig to_rust_codec_config(const btav_a2dp_codec_config_t& config) {
   A2dpCodecConfig rconfig = {.codec_type = static_cast<uint8_t>(config.codec_type),
                              .codec_priority = config.codec_priority,
@@ -153,11 +142,11 @@ static ::rust::Vec<A2dpCodecConfig> to_rust_codec_config_vec(const std::vector<b
 }
 
 static void connection_state_cb(const RawAddress& bd_addr, btav_connection_state_t state) {
-  RustRawAddress addr = to_rust_address(bd_addr);
+  RustRawAddress addr = rusty::CopyToRustAddress(bd_addr);
   rusty::connection_state_callback(addr, state);
 }
 static void audio_state_cb(const RawAddress& bd_addr, btav_audio_state_t state) {
-  RustRawAddress addr = to_rust_address(bd_addr);
+  RustRawAddress addr = rusty::CopyToRustAddress(bd_addr);
   rusty::audio_state_callback(addr, state);
 }
 static void audio_config_cb(
@@ -165,14 +154,14 @@ static void audio_config_cb(
     btav_a2dp_codec_config_t codec_config,
     std::vector<btav_a2dp_codec_config_t> codecs_local_capabilities,
     std::vector<btav_a2dp_codec_config_t> codecs_selectable_capabilities) {
-  RustRawAddress addr = to_rust_address(bd_addr);
+  RustRawAddress addr = rusty::CopyToRustAddress(bd_addr);
   A2dpCodecConfig cfg = to_rust_codec_config(codec_config);
   ::rust::Vec<A2dpCodecConfig> lcaps = to_rust_codec_config_vec(codecs_local_capabilities);
   ::rust::Vec<A2dpCodecConfig> scaps = to_rust_codec_config_vec(codecs_selectable_capabilities);
   rusty::audio_config_callback(addr, cfg, lcaps, scaps);
 }
 static bool mandatory_codec_preferred_cb(const RawAddress& bd_addr) {
-  RustRawAddress addr = to_rust_address(bd_addr);
+  RustRawAddress addr = rusty::CopyToRustAddress(bd_addr);
   rusty::mandatory_codec_preferred_callback(addr);
   return true;
 }
@@ -208,23 +197,23 @@ int A2dpIntf::init() const {
 }
 
 int A2dpIntf::connect(RustRawAddress bt_addr) const {
-  RawAddress addr = internal::from_rust_address(bt_addr);
+  RawAddress addr = rusty::CopyFromRustAddress(bt_addr);
   return intf_->connect(addr);
 }
 int A2dpIntf::disconnect(RustRawAddress bt_addr) const {
-  RawAddress addr = internal::from_rust_address(bt_addr);
+  RawAddress addr = rusty::CopyFromRustAddress(bt_addr);
   return intf_->disconnect(addr);
 }
 int A2dpIntf::set_silence_device(RustRawAddress bt_addr, bool silent) const {
-  RawAddress addr = internal::from_rust_address(bt_addr);
+  RawAddress addr = rusty::CopyFromRustAddress(bt_addr);
   return intf_->set_silence_device(addr, silent);
 }
 int A2dpIntf::set_active_device(RustRawAddress bt_addr) const {
-  RawAddress addr = internal::from_rust_address(bt_addr);
+  RawAddress addr = rusty::CopyFromRustAddress(bt_addr);
   return intf_->set_active_device(addr);
 }
 int A2dpIntf::config_codec(RustRawAddress bt_addr, ::rust::Vec<A2dpCodecConfig> codec_preferences) const {
-  RawAddress addr = internal::from_rust_address(bt_addr);
+  RawAddress addr = rusty::CopyFromRustAddress(bt_addr);
   std::vector<btav_a2dp_codec_config_t> prefs;
   for (int i = 0; i < codec_preferences.size(); ++i) {
     prefs.push_back(internal::from_rust_codec_config(codec_preferences[i]));
@@ -286,11 +275,11 @@ void AvrcpIntf::cleanup() {
 }
 
 int AvrcpIntf::connect(RustRawAddress bt_addr) {
-  RawAddress addr = internal::from_rust_address(bt_addr);
+  RawAddress addr = rusty::CopyFromRustAddress(bt_addr);
   return intf_->ConnectDevice(addr);
 }
 int AvrcpIntf::disconnect(RustRawAddress bt_addr) {
-  RawAddress addr = internal::from_rust_address(bt_addr);
+  RawAddress addr = rusty::CopyFromRustAddress(bt_addr);
   return intf_->DisconnectDevice(addr);
 }
 
