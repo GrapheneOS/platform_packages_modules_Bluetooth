@@ -342,6 +342,26 @@
              android:enabled="false">
         </activity>
 
+        <!--  Phonebook Access Profile (PBAP) client Profile Service and owned Service  -->
+        <service android:process="@string/process"
+             android:name="com.android.bluetooth.pbapclient.PbapClientService"
+             android:enabled="true"
+             android:exported="true">
+            <intent-filter>
+                <action android:name="android.bluetooth.IBluetoothPbapClient"/>
+            </intent-filter>
+        </service>
+        <service android:process="@string/process"
+             android:name="com.android.bluetooth.pbapclient.AuthenticationService"
+             android:enabled="false"
+             android:exported="true">
+            <intent-filter>
+                <action android:name="android.accounts.AccountAuthenticator"/>
+            </intent-filter>
+            <meta-data android:name="android.accounts.AccountAuthenticator"
+                 android:resource="@xml/authenticator"/>
+        </service>
+
         <!--  Telephony Bearer Service (TBS) server Profile Service  -->
         <service
             android:process="@string/process"
@@ -516,25 +536,6 @@
             <intent-filter>
                 <action android:name="android.bluetooth.IBluetoothHeadset"/>
             </intent-filter>
-        </service>
-        <service android:process="@string/process"
-             android:name=".pbapclient.PbapClientService"
-             android:enabled="@bool/profile_supported_pbapclient"
-             android:exported="true">
-            <intent-filter>
-                <action android:name="android.bluetooth.IBluetoothPbapClient"/>
-            </intent-filter>
-        </service>
-        <!-- Authenticator for PBAP account. -->
-        <service android:process="@string/process"
-             android:name="com.android.bluetooth.pbapclient.AuthenticationService"
-             android:exported="true"
-             android:enabled="@bool/profile_supported_pbapclient">
-            <intent-filter>
-                <action android:name="android.accounts.AccountAuthenticator"/>
-            </intent-filter>
-            <meta-data android:name="android.accounts.AccountAuthenticator"
-                 android:resource="@xml/authenticator"/>
         </service>
         <service
             android:name="com.android.bluetooth.telephony.BluetoothInCallService"
