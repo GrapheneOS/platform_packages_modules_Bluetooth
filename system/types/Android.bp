@@ -41,6 +41,7 @@ cc_library_static {
     ],
     header_libs: ["libbluetooth-types-header"],
     export_header_lib_headers: ["libbluetooth-types-header"],
+    min_sdk_version: "29",
 }
 
 cc_test {
