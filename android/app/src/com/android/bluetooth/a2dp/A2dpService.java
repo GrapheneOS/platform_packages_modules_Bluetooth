@@ -37,7 +37,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
-import android.media.BtProfileConnectionInfo;
+import android.media.BluetoothProfileConnectionInfo;
 import android.os.HandlerThread;
 import android.util.Log;
 
@@ -477,7 +477,7 @@ public class A2dpService extends ProfileService {
             boolean stopAudio = forceStopPlayingAudio || (getConnectionState(previousActiveDevice)
                         != BluetoothProfile.STATE_CONNECTED);
             mAudioManager.handleBluetoothActiveDeviceChanged(null, previousActiveDevice,
-                    BtProfileConnectionInfo.a2dpInfo(!stopAudio, -1));
+                    BluetoothProfileConnectionInfo.createA2dpInfo(!stopAudio, -1));
 
             synchronized (mStateMachines) {
                 // Make sure the Active device in native layer is set to null and audio is off
@@ -591,7 +591,7 @@ public class A2dpService extends ProfileService {
             // change, so the Audio Service can reset accordingly the audio
             // feeding parameters in the Audio HAL to the Bluetooth stack.
             mAudioManager.handleBluetoothActiveDeviceChanged(newActiveDevice, previousActiveDevice,
-                    BtProfileConnectionInfo.a2dpInfo(true, rememberedVolume));
+                    BluetoothProfileConnectionInfo.createA2dpInfo(true, rememberedVolume));
         }
         return true;
     }
@@ -981,7 +981,7 @@ public class A2dpService extends ProfileService {
         // is left unused until there)
         if (isActiveDevice(device)) {
             mAudioManager.handleBluetoothActiveDeviceChanged(device, device,
-                    BtProfileConnectionInfo.a2dpInfo(false, -1));
+                    BluetoothProfileConnectionInfo.createA2dpInfo(false, -1));
         }
     }
 
