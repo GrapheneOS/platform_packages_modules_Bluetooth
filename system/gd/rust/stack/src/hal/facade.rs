@@ -1,12 +1,12 @@
 //! BT HCI HAL facade
 
-use crate::hal::{AclHal, ControlHal, IsoHal};
+use crate::hal::{AclHal, ControlHal, IsoHal, ScoHal};
 use bt_common::GrpcFacade;
 use bt_facade_helpers::RxAdapter;
 use bt_facade_proto::common::Data;
 use bt_facade_proto::empty::Empty;
 use bt_facade_proto::hal_facade_grpc::{create_hci_hal_facade, HciHalFacade};
-use bt_packets::hci::{AclPacket, CommandPacket, EventPacket, IsoPacket};
+use bt_packets::hci::{AclPacket, CommandPacket, EventPacket, IsoPacket, ScoPacket};
 use gddi::{module, provides, Stoppable};
 use grpcio::*;
 
@@ -18,14 +18,21 @@ module! {
 }
 
 #[provides]
-async fn provide_facade(control: ControlHal, acl: AclHal, iso: IsoHal) -> HciHalFacadeService {
+async fn provide_facade(
+    control: ControlHal,
+    acl: AclHal,
+    iso: IsoHal,
+    sco: ScoHal,
+) -> HciHalFacadeService {
     HciHalFacadeService {
         evt_rx: RxAdapter::from_arc(control.rx.clone()),
         acl_rx: RxAdapter::from_arc(acl.rx.clone()),
         iso_rx: RxAdapter::from_arc(iso.rx.clone()),
+        sco_rx: RxAdapter::from_arc(sco.rx.clone()),
         control,
         acl,
         iso,
+        sco,
     }
 }
 
@@ -35,9 +42,11 @@ pub struct HciHalFacadeService {
     evt_rx: RxAdapter<EventPacket>,
     acl_rx: RxAdapter<AclPacket>,
     iso_rx: RxAdapter<IsoPacket>,
+    sco_rx: RxAdapter<ScoPacket>,
     control: ControlHal,
     acl: AclHal,
     iso: IsoHal,
+    sco: ScoHal,
 }
 
 impl GrpcFacade for HciHalFacadeService {
@@ -63,8 +72,12 @@ impl HciHalFacade for HciHalFacadeService {
         });
     }
 
-    fn send_sco(&mut self, _ctx: RpcContext<'_>, _sco: Data, _sink: UnarySink<Empty>) {
-        unimplemented!()
+    fn send_sco(&mut self, ctx: RpcContext<'_>, mut data: Data, sink: UnarySink<Empty>) {
+        let sco_tx = self.sco.tx.clone();
+        ctx.spawn(async move {
+            sco_tx.send(ScoPacket::parse(&data.take_payload()).unwrap()).await.unwrap();
+            sink.success(Empty::default()).await.unwrap();
+        });
     }
 
     fn send_iso(&mut self, ctx: RpcContext<'_>, mut data: Data, sink: UnarySink<Empty>) {
@@ -83,8 +96,8 @@ impl HciHalFacade for HciHalFacadeService {
         self.acl_rx.stream_grpc(ctx, sink);
     }
 
-    fn stream_sco(&mut self, _ctx: RpcContext<'_>, _: Empty, _sink: ServerStreamingSink<Data>) {
-        unimplemented!()
+    fn stream_sco(&mut self, ctx: RpcContext<'_>, _: Empty, sink: ServerStreamingSink<Data>) {
+        self.sco_rx.stream_grpc(ctx, sink);
     }
 
     fn stream_iso(&mut self, ctx: RpcContext<'_>, _: Empty, sink: ServerStreamingSink<Data>) {
