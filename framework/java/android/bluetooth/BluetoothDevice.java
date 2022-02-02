@@ -1201,26 +1201,44 @@ public final class BluetoothDevice implements Parcelable, Attributable {
     };
 
     /**
-     * Create a new BluetoothDevice
+     * Create a new BluetoothDevice.
      * Bluetooth MAC address must be upper case, such as "00:11:22:33:AA:BB",
      * and is validated in this constructor.
      *
      * @param address valid Bluetooth MAC address
-     * @param attributionSource attribution for permission-protected calls
+     * @param addressType valid address type
+     * @throws RuntimeException Bluetooth is not available on this platform
+     * @throws IllegalArgumentException address or addressType is invalid
+     * @hide
+     */
+    /*package*/ BluetoothDevice(String address, int addressType) {
+        getService();  // ensures sService is initialized
+        if (!BluetoothAdapter.checkBluetoothAddress(address)) {
+            throw new IllegalArgumentException(address + " is not a valid Bluetooth address");
+        }
+
+        if (addressType != ADDRESS_TYPE_PUBLIC && addressType != ADDRESS_TYPE_RANDOM) {
+            throw new IllegalArgumentException(addressType + " is not a Bluetooth address type");
+        }
+
+        mAddress = address;
+        mAddressType = addressType;
+        mAttributionSource = AttributionSource.myAttributionSource();
+    }
+
+    /**
+     * Create a new BluetoothDevice.
+     * Bluetooth MAC address must be upper case, such as "00:11:22:33:AA:BB",
+     * and is validated in this constructor.
+     *
+     * @param address valid Bluetooth MAC address
      * @throws RuntimeException Bluetooth is not available on this platform
      * @throws IllegalArgumentException address is invalid
      * @hide
      */
     @UnsupportedAppUsage
     /*package*/ BluetoothDevice(String address) {
-        getService();  // ensures sService is initialized
-        if (!BluetoothAdapter.checkBluetoothAddress(address)) {
-            throw new IllegalArgumentException(address + " is not a valid Bluetooth address");
-        }
-
-        mAddress = address;
-        mAddressType = ADDRESS_TYPE_PUBLIC;
-        mAttributionSource = AttributionSource.myAttributionSource();
+        this(address, ADDRESS_TYPE_PUBLIC);
     }
 
     /** {@hide} */
