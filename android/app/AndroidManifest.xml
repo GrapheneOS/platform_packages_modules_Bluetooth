@@ -314,6 +314,17 @@
             </intent-filter>
         </service>
 
+        <!--  Personal Area Network (PAN) Profile Service  -->
+        <service
+             android:process="@string/process"
+             android:name="com.android.bluetooth.pan.PanService"
+             android:enabled="true"
+             android:exported="true">
+            <intent-filter>
+                <action android:name="android.bluetooth.IBluetoothPan"/>
+            </intent-filter>
+        </service>
+
         <!--  Telephony Bearer Service (TBS) server Profile Service  -->
         <service
             android:process="@string/process"
@@ -502,15 +513,6 @@
              android:exported="true">
             <intent-filter>
                 <action android:name="android.bluetooth.IBluetoothHeadset"/>
-            </intent-filter>
-        </service>
-        <service
-             android:process="@string/process"
-             android:name="com.android.bluetooth.pan.PanService"
-             android:enabled="@bool/profile_supported_pan"
-             android:exported="true">
-            <intent-filter>
-                <action android:name="android.bluetooth.IBluetoothPan"/>
             </intent-filter>
         </service>
         <service android:process="@string/process"
