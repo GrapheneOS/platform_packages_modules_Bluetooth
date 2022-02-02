@@ -23,7 +23,6 @@ cc_defaults {
         "packages/modules/Bluetooth/system/btif/avrcp",
         "packages/modules/Bluetooth/system/btif/include",
         "packages/modules/Bluetooth/system/gd",
-        "packages/modules/Bluetooth/system/hci/include",
         "packages/modules/Bluetooth/system/internal_include",
         "packages/modules/Bluetooth/system/stack/include",
         "packages/modules/Bluetooth/system/stack/btm",
