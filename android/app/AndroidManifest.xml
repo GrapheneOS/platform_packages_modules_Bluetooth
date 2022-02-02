@@ -294,6 +294,16 @@
              android:exported="false">
         </provider>
 
+        <!--  Message Access Profile (MAP) client Profile Service  -->
+        <service android:process="@string/process"
+             android:name="com.android.bluetooth.mapclient.MapClientService"
+             android:enabled="true"
+             android:exported="true">
+            <intent-filter>
+                <action android:name="android.bluetooth.IBluetoothMapClient"/>
+            </intent-filter>
+        </service>
+
         <!--  Media Control Profile (MCP) server Profile Service  -->
         <service android:process="@string/process"
              android:name="com.android.bluetooth.mcp.McpService"
@@ -479,15 +489,7 @@
             </intent-filter>
         </service>
         <service android:process="@string/process"
-             android:name=".mapclient.MapClientService"
-             android:enabled="@bool/profile_supported_mapmce"
-             android:exported="true">
-            <intent-filter>
-                <action android:name="android.bluetooth.IBluetoothMapClient"/>
-            </intent-filter>
-        </service>
-        <service android:process="@string/process"
-             android:name="com.android.bluetooth.sap.SapService"
+             android:name=".sap.SapService"
              android:enabled="@bool/profile_supported_sap"
              android:exported="true">
             <intent-filter>
