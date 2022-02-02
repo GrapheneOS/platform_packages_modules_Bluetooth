@@ -21,7 +21,6 @@ import android.os.Message;
 import android.os.SystemProperties;
 import android.util.Log;
 
-import com.android.bluetooth.telephony.BluetoothInCallService;
 import com.android.internal.util.State;
 import com.android.internal.util.StateMachine;
 
@@ -230,21 +229,6 @@ final class AdapterState extends StateMachine {
         }
 
         @Override
-        public void enter() {
-            super.enter();
-            mAdapterService.enableBluetoothInCallService(true);
-        }
-
-        @Override
-        public void exit() {
-            BluetoothInCallService bluetoothInCallService = BluetoothInCallService.getInstance();
-            if (bluetoothInCallService == null) {
-                mAdapterService.enableBluetoothInCallService(false);
-            }
-            super.exit();
-        }
-
-        @Override
         public boolean processMessage(Message msg) {
             switch (msg.what) {
                 case USER_TURN_OFF:
@@ -392,7 +376,6 @@ final class AdapterState extends StateMachine {
         @Override
         public void enter() {
             super.enter();
-            mAdapterService.enableBluetoothInCallService(false);
             final int timeoutDelay = SystemProperties.getInt(
                     BLE_STOP_TIMEOUT_DELAY_PROPERTY, BLE_STOP_TIMEOUT_DELAY);
             Log.d(TAG, "Stop Timeout Delay: " + timeoutDelay);

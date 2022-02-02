@@ -31,6 +31,7 @@ import android.bluetooth.BluetoothUuid;
 import android.bluetooth.IBluetoothHeadset;
 import android.content.AttributionSource;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -43,6 +44,7 @@ import android.os.Looper;
 import android.os.ParcelUuid;
 import android.os.SystemProperties;
 import android.os.UserHandle;
+import android.sysprop.BluetoothProperties;
 import android.telecom.PhoneAccount;
 import android.util.Log;
 
@@ -53,6 +55,7 @@ import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.MetricsLogger;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
+import com.android.bluetooth.telephony.BluetoothInCallService;
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.modules.utils.SynchronousResultReceiver;
 
@@ -93,6 +96,13 @@ import java.util.Objects;
 public class HeadsetService extends ProfileService {
     private static final String TAG = "HeadsetService";
     private static final boolean DBG = false;
+
+    /**
+     * HFP AG owned/managed components
+     */
+    private static final String HFP_AG_IN_CALL_SERVICE =
+            BluetoothInCallService.class.getCanonicalName();
+
     private static final String DISABLE_INBAND_RINGING_PROPERTY =
             "persist.bluetooth.disableinbandringing";
     private static final ParcelUuid[] HEADSET_UUIDS = {BluetoothUuid.HSP, BluetoothUuid.HFP};
@@ -131,6 +141,10 @@ public class HeadsetService extends ProfileService {
     private boolean mCreated;
     private static HeadsetService sHeadsetService;
 
+    public static boolean isEnabled() {
+        return BluetoothProperties.isProfileHfpAgEnabled().orElse(false);
+    }
+
     @Override
     public IProfileServiceBinder initBinder() {
         return new BluetoothHeadsetBinder(this);
@@ -151,6 +165,9 @@ public class HeadsetService extends ProfileService {
         if (mStarted) {
             throw new IllegalStateException("start() called twice");
         }
+
+        setComponentAvailable(HFP_AG_IN_CALL_SERVICE, true);
+
         // Step 1: Get AdapterService and DatabaseManager, should never be null
         mAdapterService = Objects.requireNonNull(AdapterService.getAdapterService(),
                 "AdapterService cannot be null when HeadsetService starts");
@@ -255,6 +272,7 @@ public class HeadsetService extends ProfileService {
         synchronized (mStateMachines) {
             mAdapterService = null;
         }
+        setComponentAvailable(HFP_AG_IN_CALL_SERVICE, false);
         return true;
     }
 

@@ -231,6 +231,28 @@
             </intent-filter>
         </service>
 
+        <!--  Hands-Free Profile (HFP) AG/server Profile Service and owned Service  -->
+        <service android:process="@string/process"
+             android:name="com.android.bluetooth.hfp.HeadsetService"
+             android:enabled="true"
+             android:exported="true">
+            <intent-filter>
+                <action android:name="android.bluetooth.IBluetoothHeadset"/>
+            </intent-filter>
+        </service>
+        <service
+            android:name="com.android.bluetooth.telephony.BluetoothInCallService"
+            android:permission="android.permission.BIND_INCALL_SERVICE"
+            android:process="@string/process"
+            android:enabled="false"
+            android:exported="true">
+            <meta-data android:name="android.telecom.INCLUDE_SELF_MANAGED_CALLS"
+                       android:value="true" />
+            <intent-filter>
+              <action android:name="android.telecom.InCallService"/>
+            </intent-filter>
+         </service>
+
         <!--  Hands-Free HF/Client Profile Service and owned Service  -->
         <service android:process="@string/process"
              android:name="com.android.bluetooth.hfpclient.HeadsetClientService"
@@ -531,25 +553,5 @@
                 <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
         </activity>
-        <service android:process="@string/process"
-             android:name=".hfp.HeadsetService"
-             android:enabled="@bool/profile_supported_hs_hfp"
-             android:exported="true">
-            <intent-filter>
-                <action android:name="android.bluetooth.IBluetoothHeadset"/>
-            </intent-filter>
-        </service>
-        <service
-            android:name=".telephony.BluetoothInCallService"
-            android:permission="android.permission.BIND_INCALL_SERVICE"
-            android:process="@string/process"
-            android:enabled="@bool/profile_supported_hfp_incallservice"
-            android:exported="true">
-            <meta-data android:name="android.telecom.INCLUDE_SELF_MANAGED_CALLS"
-                       android:value="true" />
-            <intent-filter>
-              <action android:name="android.telecom.InCallService"/>
-            </intent-filter>
-         </service>
     </application>
 </manifest>
