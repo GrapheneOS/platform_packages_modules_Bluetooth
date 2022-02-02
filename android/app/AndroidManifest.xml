@@ -123,6 +123,39 @@
             </intent-filter>
         </service>
 
+        <!--  Audio/Video Remote Control Profile (AVRCP) controller Profile Service and owned Services, Providers and Activiies  -->
+        <service android:process="@string/process"
+             android:name="com.android.bluetooth.avrcpcontroller.AvrcpControllerService"
+             android:enabled="true"
+             android:exported="true">
+            <intent-filter>
+                <action android:name="android.bluetooth.IBluetoothAvrcpController"/>
+            </intent-filter>
+        </service>
+        <service android:process="@string/process"
+             android:name="com.android.bluetooth.avrcpcontroller.BluetoothMediaBrowserService"
+             android:enabled="true"
+             android:exported="true"
+             android:label="@string/a2dp_sink_mbs_label">
+            <intent-filter>
+                <action android:name="android.media.browse.MediaBrowserService"/>
+            </intent-filter>
+        </service>
+        <provider android:process="@string/process"
+             android:name="com.android.bluetooth.avrcpcontroller.AvrcpCoverArtProvider"
+             android:authorities="com.android.bluetooth.avrcpcontroller.AvrcpCoverArtProvider"
+             android:enabled="false"
+             android:grantUriPermissions="true"
+             android:exported="true">
+        </provider>
+        <activity android:name="com.android.bluetooth.BluetoothPrefs"
+             android:exported="true"
+             android:enabled="false">
+            <intent-filter>
+                <action android:name="android.intent.action.APPLICATION_PREFERENCES"/>
+            </intent-filter>
+        </activity>
+
         <provider android:name=".opp.BluetoothOppProvider"
              android:authorities="com.android.bluetooth.opp"
              android:exported="true"
@@ -329,38 +362,6 @@
                 <action android:name="android.bluetooth.IBluetoothHeadset"/>
             </intent-filter>
         </service>
-        <service android:process="@string/process"
-             android:name=".avrcpcontroller.BluetoothMediaBrowserService"
-             android:exported="true"
-             android:enabled="@bool/profile_supported_a2dp_sink"
-             android:label="@string/a2dp_sink_mbs_label">
-            <intent-filter>
-                <action android:name="android.media.browse.MediaBrowserService"/>
-            </intent-filter>
-        </service>
-
-        <activity android:name=".BluetoothPrefs"
-             android:exported="@bool/profile_supported_a2dp_sink"
-             android:enabled="@bool/profile_supported_a2dp_sink">
-            <intent-filter>
-                <action android:name="android.intent.action.APPLICATION_PREFERENCES"/>
-            </intent-filter>
-        </activity>
-        <service android:process="@string/process"
-             android:name=".avrcpcontroller.AvrcpControllerService"
-             android:enabled="@bool/profile_supported_avrcp_controller"
-             android:exported="true">
-            <intent-filter>
-                <action android:name="android.bluetooth.IBluetoothAvrcpController"/>
-            </intent-filter>
-        </service>
-        <provider android:process="@string/process"
-             android:name=".avrcpcontroller.AvrcpCoverArtProvider"
-             android:authorities="com.android.bluetooth.avrcpcontroller.AvrcpCoverArtProvider"
-             android:enabled="@bool/avrcp_controller_enable_cover_art"
-             android:grantUriPermissions="true"
-             android:exported="true">
-        </provider>
         <service android:process="@string/process"
              android:name=".hid.HidHostService"
              android:enabled="@bool/profile_supported_hid_host"
