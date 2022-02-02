@@ -33,6 +33,8 @@
 
 #define LOG_TAG "btm_acl"
 
+#include <base/logging.h>
+
 #include <cstdint>
 
 #include "bta/include/bta_dm_acl.h"
@@ -44,6 +46,7 @@
 #include "include/l2cap_hci_link_interface.h"
 #include "main/shim/acl_api.h"
 #include "main/shim/btm_api.h"
+#include "main/shim/controller.h"
 #include "main/shim/dumpsys.h"
 #include "main/shim/l2c_api.h"
 #include "main/shim/shim.h"
@@ -68,8 +71,6 @@
 #include "stack/include/sco_hci_link_interface.h"
 #include "types/hci_role.h"
 #include "types/raw_address.h"
-
-#include <base/logging.h>
 
 void BTM_update_version_info(const RawAddress& bd_addr,
                              const remote_version_info& remote_version_info);
@@ -207,6 +208,15 @@ void hci_btm_set_link_supervision_timeout(tACL_CONN& link, uint16_t timeout) {
     return;
   }
 
+  if (!bluetooth::shim::
+          controller_is_write_link_supervision_timeout_supported()) {
+    LOG_WARN(
+        "UNSUPPORTED by controller write link supervision timeout:%.2fms "
+        "bd_addr:%s",
+        supervision_timeout_to_seconds(timeout),
+        PRIVATE_ADDRESS(link.RemoteAddress()));
+    return;
+  }
   LOG_DEBUG("Setting link supervision timeout:%.2fs peer:%s",
             double(timeout) * 0.01, PRIVATE_ADDRESS(link.RemoteAddress()));
   link.link_super_tout = timeout;
@@ -1176,6 +1186,14 @@ tBTM_STATUS BTM_SetLinkSuperTout(const RawAddress& remote_bda,
 
   /* Only send if current role is Central; 2.0 spec requires this */
   if (p_acl->link_role == HCI_ROLE_CENTRAL) {
+    if (!bluetooth::shim::
+            controller_is_write_link_supervision_timeout_supported()) {
+      LOG_WARN(
+          "UNSUPPORTED by controller write link supervision timeout:%.2fms "
+          "bd_addr:%s",
+          supervision_timeout_to_seconds(timeout), PRIVATE_ADDRESS(remote_bda));
+      return BTM_MODE_UNSUPPORTED;
+    }
     p_acl->link_super_tout = timeout;
     btsnd_hcic_write_link_super_tout(p_acl->hci_handle, timeout);
     LOG_DEBUG("Set supervision timeout:%.2fms bd_addr:%s",

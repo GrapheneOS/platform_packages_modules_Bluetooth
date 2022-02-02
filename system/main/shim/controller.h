@@ -26,6 +26,7 @@ namespace shim {
 const controller_t* controller_get_interface();
 
 void controller_clear_event_mask();
+bool controller_is_write_link_supervision_timeout_supported();
 
 }  // namespace shim
 }  // namespace bluetooth
