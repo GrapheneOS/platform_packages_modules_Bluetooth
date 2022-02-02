@@ -92,6 +92,17 @@
          android:directBootAware="true"
          android:defaultToDeviceProtectedStorage="true"
          android:memtagMode="async">
+
+        <!--  Advanced Audio Distribution Profile (A2DP) source Profile Service  -->
+        <service android:process="@string/process"
+             android:name="com.android.bluetooth.a2dp.A2dpService"
+             android:enabled="true"
+             android:exported="true">
+            <intent-filter>
+                <action android:name="android.bluetooth.IBluetoothA2dp"/>
+            </intent-filter>
+        </service>
+
         <provider android:name=".opp.BluetoothOppProvider"
              android:authorities="com.android.bluetooth.opp"
              android:exported="true"
@@ -296,14 +307,6 @@
              android:exported="true">
             <intent-filter>
                 <action android:name="android.bluetooth.IBluetoothHeadset"/>
-            </intent-filter>
-        </service>
-        <service android:process="@string/process"
-             android:name=".a2dp.A2dpService"
-             android:enabled="@bool/profile_supported_a2dp"
-             android:exported="true">
-            <intent-filter>
-                <action android:name="android.bluetooth.IBluetoothA2dp"/>
             </intent-filter>
         </service>
         <service android:process="@string/process"
