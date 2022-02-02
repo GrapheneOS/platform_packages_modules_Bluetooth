@@ -1934,7 +1934,7 @@ public class HeadsetClientStateMachine extends StateMachine {
 
         mService.sendBroadcastMultiplePermissions(intent,
                 new String[] {BLUETOOTH_CONNECT, BLUETOOTH_PRIVILEGED},
-                Utils.getTempAllowlistBroadcastOptions());
+                Utils.getTempBroadcastOptions());
 
         HfpClientConnectionService.onConnectionStateChanged(device, newState, prevState);
     }

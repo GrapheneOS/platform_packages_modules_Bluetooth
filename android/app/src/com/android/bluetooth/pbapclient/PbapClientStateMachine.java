@@ -349,7 +349,7 @@ final class PbapClientStateMachine extends StateMachine {
         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
         mService.sendBroadcastMultiplePermissions(intent,
                 new String[] {BLUETOOTH_CONNECT, BLUETOOTH_PRIVILEGED},
-                Utils.getTempAllowlistBroadcastOptions());
+                Utils.getTempBroadcastOptions());
     }
 
     public void disconnect(BluetoothDevice device) {

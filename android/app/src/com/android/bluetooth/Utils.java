@@ -984,7 +984,17 @@ public final class Utils {
         return 1 == context.getContentResolver().update(uri, values, null, null);
     }
 
+    /**
+     * Returns bundled broadcast options.
+     */
     public static @NonNull Bundle getTempAllowlistBroadcastOptions() {
+        return getTempBroadcastOptions().toBundle();
+    }
+
+    /**
+     * Returns broadcast options.
+     */
+    public static @NonNull BroadcastOptions getTempBroadcastOptions() {
         // Use the Bluetooth process identity to pass permission check when reading DeviceConfig
         final long ident = Binder.clearCallingIdentity();
         final BroadcastOptions bOptions = BroadcastOptions.makeBasic();
@@ -997,9 +1007,8 @@ public final class Utils {
         } finally {
             Binder.restoreCallingIdentity(ident);
         }
-        return bOptions.toBundle();
+        return bOptions;
     }
-
     /**
      * Checks that value is present as at least one of the elements of the array.
      * @param array the array to check in

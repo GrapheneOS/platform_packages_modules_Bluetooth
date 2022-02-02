@@ -98,7 +98,6 @@ static_library("btif") {
     "//bt/system/audio_hearing_aid_hw/include",
     "//bt/system/bta/include",
     "//bt/system/bta/sys",
-    "//bt/system/btcore/include",
     "//bt/system/device/include",
     "//bt/system/embdrv/sbc/encoder/include",
     "//bt/system/embdrv/sbc/decoder/include",

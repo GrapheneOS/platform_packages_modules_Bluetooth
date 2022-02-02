@@ -714,11 +714,11 @@ final class RemoteDevices {
                 if (pkg.getPermission() != null) {
                     sAdapterService.sendBroadcastMultiplePermissions(intent,
                             new String[] { BLUETOOTH_SCAN, pkg.getPermission() },
-                            Utils.getTempAllowlistBroadcastOptions());
+                            Utils.getTempBroadcastOptions());
                 } else {
                     sAdapterService.sendBroadcastMultiplePermissions(intent,
                             new String[] { BLUETOOTH_SCAN },
-                            Utils.getTempAllowlistBroadcastOptions());
+                            Utils.getTempBroadcastOptions());
                 }
             }
         }
