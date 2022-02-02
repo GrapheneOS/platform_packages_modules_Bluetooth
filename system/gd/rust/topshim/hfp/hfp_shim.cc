@@ -18,6 +18,7 @@
 
 #include "btif/include/btif_hf.h"
 #include "gd/os/log.h"
+#include "gd/rust/topshim/common/utils.h"
 #include "include/hardware/bt_hf.h"
 #include "src/profiles/hfp.rs.h"
 #include "types/raw_address.h"
@@ -30,21 +31,8 @@ namespace rust {
 namespace internal {
 static HfpIntf* g_hfpif;
 
-// TODO (b/204488136): Refactor to have a2dp, gatt and hfp share these helpers.
-static RustRawAddress to_rust_address(const RawAddress& addr) {
-  RustRawAddress raddr;
-  std::copy(std::begin(addr.address), std::end(addr.address), std::begin(raddr.address));
-  return raddr;
-}
-
-static RawAddress from_rust_address(const RustRawAddress& raddr) {
-  RawAddress addr;
-  addr.FromOctets(raddr.address.data());
-  return addr;
-}
-
 static void connection_state_cb(bluetooth::headset::bthf_connection_state_t state, RawAddress* addr) {
-  RustRawAddress raddr = to_rust_address(*addr);
+  RustRawAddress raddr = rusty::CopyToRustAddress(*addr);
   rusty::hfp_connection_state_callback(state, raddr);
 }
 
@@ -163,22 +151,22 @@ int HfpIntf::init() {
 }
 
 int HfpIntf::connect(RustRawAddress bt_addr) {
-  RawAddress addr = internal::from_rust_address(bt_addr);
+  RawAddress addr = rusty::CopyFromRustAddress(bt_addr);
   return intf_->Connect(&addr);
 }
 
 int HfpIntf::connect_audio(RustRawAddress bt_addr) {
-  RawAddress addr = internal::from_rust_address(bt_addr);
+  RawAddress addr = rusty::CopyFromRustAddress(bt_addr);
   return intf_->ConnectAudio(&addr);
 }
 
 int HfpIntf::disconnect(RustRawAddress bt_addr) {
-  RawAddress addr = internal::from_rust_address(bt_addr);
+  RawAddress addr = rusty::CopyFromRustAddress(bt_addr);
   return intf_->Disconnect(&addr);
 }
 
 int HfpIntf::disconnect_audio(RustRawAddress bt_addr) {
-  RawAddress addr = internal::from_rust_address(bt_addr);
+  RawAddress addr = rusty::CopyFromRustAddress(bt_addr);
   return intf_->DisconnectAudio(&addr);
 }
 
