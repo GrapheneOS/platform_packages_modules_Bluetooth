@@ -212,6 +212,7 @@ cc_library {
     defaults: [
         "libbluetooth_gd_defaults",
     ],
+    min_sdk_version: "31",
 }
 
 cc_library {
@@ -573,6 +574,11 @@ rust_library {
         "libthiserror",
         "liblog_rust",
     ],
+    apex_available: [
+        "//apex_available:platform",
+        "com.android.bluetooth",
+    ],
+    min_sdk_version: "30",
 }
 
 rust_test_host {
@@ -995,4 +1001,9 @@ rust_protobuf {
     ],
     source_stem: "facade",
     host_supported: true,
+    apex_available: [
+        "//apex_available:platform",
+        "com.android.bluetooth",
+    ],
+    min_sdk_version: "30",
 }

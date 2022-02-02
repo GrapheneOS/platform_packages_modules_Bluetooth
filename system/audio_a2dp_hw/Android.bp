@@ -28,6 +28,10 @@ cc_library {
         "src/audio_a2dp_hw.cc",
         "src/audio_a2dp_hw_utils.cc",
     ],
+    apex_available: [
+        "//apex_available:platform",
+        "com.android.bluetooth",
+    ],
     shared_libs: [
         "liblog",
         "libcutils",
@@ -42,6 +46,7 @@ cc_library_static {
         "src/audio_a2dp_hw_utils.cc",
     ],
     host_supported: true,
+    min_sdk_version: "29",
 }
 
 // Audio A2DP library unit tests for target and host

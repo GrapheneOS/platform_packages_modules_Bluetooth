@@ -12,4 +12,5 @@ cc_library_headers {
     export_include_dirs: ["./"],
     vendor_available: true,
     host_supported: true,
+    min_sdk_version: "30",
 }
