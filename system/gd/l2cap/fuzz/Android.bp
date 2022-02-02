@@ -25,7 +25,6 @@ cc_fuzz {
         "packages/modules/Bluetooth/system/udrv/include",
         "packages/modules/Bluetooth/system/btif/include",
         "packages/modules/Bluetooth/system/btif/co",
-        "packages/modules/Bluetooth/system/hci/include",
         "packages/modules/Bluetooth/system/vnd/include",
         "packages/modules/Bluetooth/system/embdrv/sbc/encoder/include",
         "packages/modules/Bluetooth/system/embdrv/sbc/decoder/include",

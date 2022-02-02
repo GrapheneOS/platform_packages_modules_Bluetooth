@@ -68,7 +68,6 @@ target(lib_type, "bluetooth") {
     "//bt/system/stack/btm",
     "//bt/system/stack/avdt",
     "//bt/system/hci",
-    "//bt/system/hci/include",
     "//bt/system/udrv/include",
     "//bt/system/btif/include",
     "//bt/system/btif/co",
