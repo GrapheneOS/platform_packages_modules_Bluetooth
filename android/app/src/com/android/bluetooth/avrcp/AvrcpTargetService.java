@@ -29,6 +29,7 @@ import android.os.Looper;
 import android.os.SystemProperties;
 import android.os.UserManager;
 import android.text.TextUtils;
+import android.sysprop.BluetoothProperties;
 import android.util.Log;
 
 import com.android.bluetooth.BluetoothMetricsProto;
@@ -58,7 +59,6 @@ import java.util.Objects;
 public class AvrcpTargetService extends ProfileService {
     private static final String TAG = "AvrcpTargetService";
     private static final boolean DEBUG = Log.isLoggable(TAG, Log.DEBUG);
-    private static final String AVRCP_ENABLE_PROPERTY = "persist.bluetooth.enablenewavrcp";
 
     private static final int AVRCP_MAX_VOL = 127;
     private static final int MEDIA_KEY_EVENT_LOGGER_SIZE = 20;
@@ -82,6 +82,10 @@ public class AvrcpTargetService extends ProfileService {
     private AvrcpCoverArtService mAvrcpCoverArtService = null;
 
     private static AvrcpTargetService sInstance = null;
+
+    public static boolean isEnabled() {
+        return BluetoothProperties.isProfileAvrcpTargetEnabled().orElse(false);
+    }
 
     class ListCallback implements MediaPlayerList.MediaUpdateCallback {
         @Override
@@ -180,12 +184,6 @@ public class AvrcpTargetService extends ProfileService {
     protected void setUserUnlocked(int userId) {
         Log.i(TAG, "User unlocked, initializing the service");
 
-        if (!SystemProperties.getBoolean(AVRCP_ENABLE_PROPERTY, true)) {
-            Log.w(TAG, "Skipping initialization of the new AVRCP Target Player List");
-            sInstance = null;
-            return;
-        }
-
         if (mMediaPlayerList != null) {
             mMediaPlayerList.init(new ListCallback());
         }
@@ -200,12 +198,6 @@ public class AvrcpTargetService extends ProfileService {
 
         Log.i(TAG, "Starting the AVRCP Target Service");
         mCurrentData = new MediaData(null, null, null);
-
-        if (!SystemProperties.getBoolean(AVRCP_ENABLE_PROPERTY, true)) {
-            Log.w(TAG, "Skipping initialization of the new AVRCP Target Service");
-            sInstance = null;
-            return true;
-        }
 
         mAudioManager = getSystemService(AudioManager.class);
         sDeviceMaxVolume = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);

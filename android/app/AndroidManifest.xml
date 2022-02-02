@@ -113,6 +113,16 @@
             </intent-filter>
         </service>
 
+        <!--  Audio/Video Remote Control Profile (AVRCP) target Profile Service  -->
+        <service android:process="@string/process"
+             android:name="com.android.bluetooth.avrcp.AvrcpTargetService"
+             android:enabled="true"
+             android:exported="true">
+            <intent-filter>
+                <action android:name="android.bluetooth.IBluetoothAvrcp"/>
+            </intent-filter>
+        </service>
+
         <provider android:name=".opp.BluetoothOppProvider"
              android:authorities="com.android.bluetooth.opp"
              android:exported="true"
@@ -336,15 +346,6 @@
                 <action android:name="android.intent.action.APPLICATION_PREFERENCES"/>
             </intent-filter>
         </activity>
-
-        <service android:process="@string/process"
-             android:name=".avrcp.AvrcpTargetService"
-             android:enabled="@bool/profile_supported_avrcp_target"
-             android:exported="true">
-            <intent-filter>
-                <action android:name="android.bluetooth.IBluetoothAvrcp"/>
-            </intent-filter>
-        </service>
         <service android:process="@string/process"
              android:name=".avrcpcontroller.AvrcpControllerService"
              android:enabled="@bool/profile_supported_avrcp_controller"
