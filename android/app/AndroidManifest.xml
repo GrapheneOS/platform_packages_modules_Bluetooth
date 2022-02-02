@@ -326,6 +326,23 @@
             </intent-filter>
         </service>
 
+        <!--  Phonebook Access Profile (PBAP) server Profile Service and owned Activiie  -->
+        <service android:process="@string/process"
+             android:permission="android.permission.BLUETOOTH_PRIVILEGED"
+             android:name="com.android.bluetooth.pbap.BluetoothPbapService"
+             android:enabled="true"
+             android:exported="true">
+            <intent-filter>
+                <action android:name="android.bluetooth.IBluetoothPbap"/>
+            </intent-filter>
+        </service>
+        <activity android:name="com.android.bluetooth.pbap.BluetoothPbapActivity"
+             android:process="@string/process"
+             android:excludeFromRecents="true"
+             android:theme="@style/dialog"
+             android:enabled="false">
+        </activity>
+
         <!--  Telephony Bearer Service (TBS) server Profile Service  -->
         <service
             android:process="@string/process"
@@ -484,21 +501,6 @@
                 <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
         </activity>
-        <activity android:name=".pbap.BluetoothPbapActivity"
-             android:process="@string/process"
-             android:excludeFromRecents="true"
-             android:theme="@style/dialog"
-             android:enabled="@bool/profile_supported_pbap">
-        </activity>
-        <service android:process="@string/process"
-             android:permission="android.permission.BLUETOOTH_PRIVILEGED"
-             android:name=".pbap.BluetoothPbapService"
-             android:enabled="@bool/profile_supported_pbap"
-             android:exported="true">
-            <intent-filter>
-                <action android:name="android.bluetooth.IBluetoothPbap"/>
-            </intent-filter>
-        </service>
         <service android:process="@string/process"
              android:name=".sap.SapService"
              android:enabled="@bool/profile_supported_sap"
