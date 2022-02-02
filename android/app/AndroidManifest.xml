@@ -156,6 +156,92 @@
             </intent-filter>
         </activity>
 
+        <!--  Basic Audio Profile (BAP) Profile Service  -->
+        <service
+            android:process="@string/process"
+            android:name="com.android.bluetooth.le_audio.LeAudioService"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.bluetooth.IBluetoothLeAudio" />
+            </intent-filter>
+        </service>
+
+        <!-- Basic Audio Profile (BAP) Broadcast Assistant Profle Service -->
+        <service
+            android:process="@string/process"
+            android:name = "com.android.bluetooth.bass_client.BassClientService"
+            android:enabled="true"
+            android:exported = "true">
+            <intent-filter>
+                <action android:name="android.bluetooth.IBluetoothLeBroadcastAssistant" />
+            </intent-filter>
+        </service>
+
+        <!-- Battery Service (BAS) Client Profle Service -->
+        <service
+            android:process="@string/process"
+            android:name="com.android.bluetooth.bas.BatteryService"
+            android:enabled="true"
+            android:exported = "true">
+            <intent-filter>
+                <action android:name="android.bluetooth.IBluetoothBattery" />
+            </intent-filter>
+        </service>
+
+        <!--  Coordinated Set Identification Profile (CSIP) set coordinator Profile Service  -->
+        <service
+            android:process="@string/process"
+            android:name="com.android.bluetooth.csip.CsipSetCoordinatorService"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.bluetooth.IBluetoothCsipSetCoordinator" />
+            </intent-filter>
+        </service>
+
+        <!--  Hearing Aid Profile (HAP) client Profile Service  -->
+        <service android:process="@string/process"
+             android:name="com.android.bluetooth.hap.HapClientService"
+             android:enabled="true"
+             android:exported="true">
+            <intent-filter>
+                <action android:name="android.bluetooth.IBluetoothHapClient"/>
+            </intent-filter>
+        </service>
+
+        <!--  Media Control Profile (MCP) server Profile Service  -->
+        <service android:process="@string/process"
+             android:name="com.android.bluetooth.mcp.McpService"
+             android:enabled="true"
+             android:exported="true">
+            <intent-filter>
+                <action android:name="android.bluetooth.IBluetoothMcpServiceManager" />
+            </intent-filter>
+        </service>
+
+        <!--  Telephony Bearer Service (TBS) server Profile Service  -->
+        <service
+            android:process="@string/process"
+            android:name="com.android.bluetooth.tbs.TbsService"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.bluetooth.IBluetoothLeCallControl" />
+            </intent-filter>
+        </service>
+
+        <!--  Volume Control Profile (VCP) server Profile Service  -->
+        <service
+            android:process="@string/process"
+            android:name="com.android.bluetooth.vc.VolumeControlService"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.bluetooth.IBluetoothVolumeControl" />
+            </intent-filter>
+        </service>
+
         <provider android:name=".opp.BluetoothOppProvider"
              android:authorities="com.android.bluetooth.opp"
              android:exported="true"
@@ -378,14 +464,6 @@
                 <action android:name="android.bluetooth.IBluetoothHidDevice"/>
             </intent-filter>
         </service>
-        <service android:process="@string/process"
-             android:name=".mcp.McpService"
-             android:exported="true"
-             android:enabled="@bool/profile_supported_mcp_server">
-            <intent-filter>
-                <action android:name="android.bluetooth.IBluetoothMcpServiceManager" />
-            </intent-filter>
-        </service>
         <service
              android:process="@string/process"
              android:name=".pan.PanService"
@@ -428,59 +506,6 @@
                 <action android:name="android.bluetooth.IBluetoothHearingAid"/>
             </intent-filter>
         </service>
-        <service android:process="@string/process"
-             android:name=".hap.HapClientService"
-             android:enabled="@bool/profile_supported_hap_client"
-             android:exported="true">
-            <intent-filter>
-                <action android:name="android.bluetooth.IBluetoothHapClient"/>
-            </intent-filter>
-        </service>
-        <service
-            android:process="@string/process"
-            android:name=".vc.VolumeControlService"
-            android:exported="true"
-            android:enabled="@bool/profile_supported_vc">
-            <intent-filter>
-                <action android:name="android.bluetooth.IBluetoothVolumeControl" />
-            </intent-filter>
-        </service>
-        <service
-            android:process="@string/process"
-            android:name = ".le_audio.LeAudioService"
-            android:enabled="@bool/profile_supported_le_audio"
-            android:exported = "true">
-            <intent-filter>
-                <action android:name="android.bluetooth.IBluetoothLeAudio" />
-            </intent-filter>
-        </service>
-        <service
-            android:process="@string/process"
-            android:name = ".csip.CsipSetCoordinatorService"
-            android:enabled="@bool/profile_supported_csip_set_coordinator"
-            android:exported = "true">
-            <intent-filter>
-                <action android:name="android.bluetooth.IBluetoothCsipSetCoordinator" />
-            </intent-filter>
-        </service>
-        <service
-            android:process="@string/process"
-            android:name = ".tbs.TbsService"
-            android:enabled="@bool/profile_supported_le_call_control"
-            android:exported = "true">
-            <intent-filter>
-                <action android:name="android.bluetooth.IBluetoothLeCallControl" />
-            </intent-filter>
-        </service>
-        <service
-            android:process="@string/process"
-            android:name = ".bass_client.BassClientService"
-            android:enabled="@bool/profile_supported_bass_client"
-            android:exported = "true">
-            <intent-filter>
-                <action android:name="android.bluetooth.IBluetoothLeBroadcastAssistant" />
-            </intent-filter>
-        </service>
         <!-- Authenticator for PBAP account. -->
         <service android:process="@string/process"
              android:name=".pbapclient.AuthenticationService"
@@ -504,14 +529,5 @@
               <action android:name="android.telecom.InCallService"/>
             </intent-filter>
          </service>
-        <service
-            android:process="@string/process"
-            android:name=".bas.BatteryService"
-            android:enabled="@bool/profile_supported_battery"
-            android:exported = "true">
-            <intent-filter>
-                <action android:name="android.bluetooth.IBluetoothBattery" />
-            </intent-filter>
-        </service>
     </application>
 </manifest>
