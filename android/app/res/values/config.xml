@@ -18,7 +18,6 @@
     <bool name="profile_supported_opp">true</bool>
     <bool name="pbap_include_photos_in_vcard">true</bool>
     <bool name="pbap_use_profile_for_owner_vcard">true</bool>
-    <bool name="profile_supported_sap">false</bool>
 
     <!-- If true, we will require location to be enabled on the device to
          fire Bluetooth LE scan result callbacks in addition to having one

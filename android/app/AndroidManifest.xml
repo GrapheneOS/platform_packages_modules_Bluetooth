@@ -363,6 +363,16 @@
                  android:resource="@xml/authenticator"/>
         </service>
 
+        <!--  SIM Access Profile (SAP) server Profile Service -->
+        <service android:process="@string/process"
+             android:name="com.android.bluetooth.sap.SapService"
+             android:enabled="true"
+             android:exported="true">
+            <intent-filter>
+                <action android:name="android.bluetooth.IBluetoothSap"/>
+            </intent-filter>
+        </service>
+
         <!--  Telephony Bearer Service (TBS) server Profile Service  -->
         <service
             android:process="@string/process"
@@ -521,14 +531,6 @@
                 <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
         </activity>
-        <service android:process="@string/process"
-             android:name=".sap.SapService"
-             android:enabled="@bool/profile_supported_sap"
-             android:exported="true">
-            <intent-filter>
-                <action android:name="android.bluetooth.IBluetoothSap"/>
-            </intent-filter>
-        </service>
         <service android:process="@string/process"
              android:name=".hfp.HeadsetService"
              android:enabled="@bool/profile_supported_hs_hfp"

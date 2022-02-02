@@ -24,6 +24,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.ParcelUuid;
 import android.os.PowerManager;
+import android.sysprop.BluetoothProperties;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -102,6 +103,9 @@ public class SapService extends ProfileService {
             BluetoothUuid.SAP,
     };
 
+    public static boolean isEnabled() {
+        return BluetoothProperties.isProfileSapServerEnabled().orElse(false);
+    }
 
     public SapService() {
         mState = BluetoothSap.STATE_DISCONNECTED;
