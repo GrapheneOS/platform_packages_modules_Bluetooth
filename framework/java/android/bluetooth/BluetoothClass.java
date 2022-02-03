@@ -246,18 +246,22 @@ public final class BluetoothClass implements Parcelable {
         /**
          * @hide
          */
+        @SystemApi
         public static final int PERIPHERAL_NON_KEYBOARD_NON_POINTING = 0x0500;
         /**
          * @hide
          */
+        @SystemApi
         public static final int PERIPHERAL_KEYBOARD = 0x0540;
         /**
          * @hide
          */
+        @SystemApi
         public static final int PERIPHERAL_POINTING = 0x0580;
         /**
          * @hide
          */
+        @SystemApi
         public static final int PERIPHERAL_KEYBOARD_POINTING = 0x05C0;
     }
 

@@ -156,6 +156,7 @@ public final class BluetoothCsipSetCoordinator implements BluetoothProfile, Auto
      *
      * @hide
      */
+    @SystemApi
     public static final String EXTRA_CSIS_GROUP_ID = "android.bluetooth.extra.CSIS_GROUP_ID";
 
     /**
@@ -197,6 +198,7 @@ public final class BluetoothCsipSetCoordinator implements BluetoothProfile, Auto
      *
      * @hide
      */
+    @SystemApi
     public static final int GROUP_ID_INVALID = IBluetoothCsipSetCoordinator.CSIS_GROUP_ID_INVALID;
 
     private final BluetoothAdapter mAdapter;

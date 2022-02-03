@@ -42,7 +42,6 @@ cc_library_static {
         "packages/modules/Bluetooth/system/udrv/include",
         "packages/modules/Bluetooth/system/btif/include",
         "packages/modules/Bluetooth/system/btif/co",
-        "packages/modules/Bluetooth/system/hci/include",
         "packages/modules/Bluetooth/system/vnd/include",
         "packages/modules/Bluetooth/system/embdrv/sbc/encoder/include",
         "packages/modules/Bluetooth/system/embdrv/sbc/decoder/include",
@@ -81,7 +80,6 @@ cc_library_shared {
         "packages/modules/Bluetooth/system/udrv/include",
         "packages/modules/Bluetooth/system/btif/include",
         "packages/modules/Bluetooth/system/btif/co",
-        "packages/modules/Bluetooth/system/hci/include",
         "packages/modules/Bluetooth/system/vnd/include",
         "packages/modules/Bluetooth/system/embdrv/sbc/encoder/include",
         "packages/modules/Bluetooth/system/embdrv/sbc/decoder/include",
@@ -165,7 +163,12 @@ cc_library_shared {
     sanitize: {
         never: true,
     },
+    apex_available: [
+        "//apex_available:platform",
+        "com.android.bluetooth",
+    ],
     host_supported: true,
+    min_sdk_version: "30",
 }
 
 cc_library_static {
@@ -183,7 +186,6 @@ cc_library_static {
         "packages/modules/Bluetooth/system/gd/rust/shim",
         "packages/modules/Bluetooth/system/bta/include",
         "packages/modules/Bluetooth/system/btif/include",
-        "packages/modules/Bluetooth/system/hci/include",
         "packages/modules/Bluetooth/system/internal_include",
         "packages/modules/Bluetooth/system/stack/include",
         "packages/modules/Bluetooth/system/utils/include",

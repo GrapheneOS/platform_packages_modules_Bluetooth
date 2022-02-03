@@ -49,7 +49,6 @@ oneway interface IBluetoothHearingAid {
     @JavaPassthrough(annotation="@android.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)")
     void setVolume(int volume, in AttributionSource attributionSource, in SynchronousResultReceiver receiver);
 
-    const int HI_SYNC_ID_INVALID = 0;
     @JavaPassthrough(annotation="@android.annotation.RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT,android.Manifest.permission.BLUETOOTH_PRIVILEGED})")
     void getHiSyncId(in BluetoothDevice device, in AttributionSource attributionSource, in SynchronousResultReceiver receiver);
 

@@ -32,9 +32,8 @@ import android.annotation.SdkConstant.SdkConstantType;
 import android.annotation.SuppressLint;
 import android.annotation.SystemApi; //import android.app.PropertyInvalidatedCache;
 import android.app.PendingIntent;
-import android.bluetooth.BluetoothDevice.Transport;
-import android.bluetooth.BluetoothFrameworkInitializer;
 import android.bluetooth.BluetoothDevice.AddressType;
+import android.bluetooth.BluetoothDevice.Transport;
 import android.bluetooth.BluetoothProfile.ConnectionPolicy;
 import android.bluetooth.annotations.RequiresBluetoothAdvertisePermission;
 import android.bluetooth.annotations.RequiresBluetoothConnectPermission;
@@ -224,6 +223,7 @@ public final class BluetoothAdapter {
      *
      * @hide
      */
+    @SystemApi
     public static final int STATE_BLE_ON = 15;
 
     /**
@@ -271,6 +271,9 @@ public final class BluetoothAdapter {
      *
      * @hide
      */
+    @SystemApi
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
+    @NonNull
     public static String nameForState(@AdapterState int state) {
         switch (state) {
             case STATE_OFF:
@@ -367,10 +370,13 @@ public final class BluetoothAdapter {
      *
      * @hide
      */
+    @SystemApi
     @RequiresLegacyBluetoothPermission
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
-    @SdkConstant(SdkConstantType.ACTIVITY_INTENT_ACTION) public static final String
+    @SdkConstant(SdkConstantType.ACTIVITY_INTENT_ACTION)
+    @SuppressLint("ActionValue")
+    public static final String
             ACTION_REQUEST_DISABLE = "android.bluetooth.adapter.action.REQUEST_DISABLE";
 
     /**
@@ -1410,7 +1416,7 @@ public final class BluetoothAdapter {
      * @return true to indicate that the config file was successfully cleared
      * @hide
      */
-    @UnsupportedAppUsage(maxTargetSdk = Build.VERSION_CODES.R, trackingBug = 170729553)
+    @SystemApi
     @RequiresBluetoothConnectPermission
     @RequiresPermission(allOf = {
             android.Manifest.permission.BLUETOOTH_CONNECT,
@@ -1444,10 +1450,12 @@ public final class BluetoothAdapter {
      * @return the UUIDs supported by the local Bluetooth Adapter.
      * @hide
      */
-    @UnsupportedAppUsage
+    @SystemApi
     @RequiresLegacyBluetoothPermission
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
+    @NonNull
+    @SuppressLint(value = {"ArrayReturn", "NullableCollection"})
     public @Nullable ParcelUuid[] getUuids() {
         if (getState() != STATE_ON) {
             return null;
@@ -2633,12 +2641,14 @@ public final class BluetoothAdapter {
      * @param result The callback to which to send the activity info.
      * @hide
      */
+    @SystemApi
     @RequiresBluetoothConnectPermission
     @RequiresPermission(allOf = {
             android.Manifest.permission.BLUETOOTH_CONNECT,
             android.Manifest.permission.BLUETOOTH_PRIVILEGED,
     })
-    public void requestControllerActivityEnergyInfo(ResultReceiver result) {
+    public void requestControllerActivityEnergyInfo(@NonNull ResultReceiver result) {
+        requireNonNull(result, "ResultReceiver cannot be null");
         try {
             mServiceLock.readLock().lock();
             if (mService != null) {
@@ -2665,9 +2675,13 @@ public final class BluetoothAdapter {
      *
      * @hide
      */
+    @SystemApi
     @RequiresLegacyBluetoothAdminPermission
     @RequiresBluetoothConnectPermission
-    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
     public @NonNull List<BluetoothDevice> getMostRecentlyConnectedDevices() {
         if (getState() != STATE_ON) {
             return new ArrayList<>();
@@ -2825,8 +2839,7 @@ public final class BluetoothAdapter {
      * #STATE_CONNECTING} or {@link #STATE_DISCONNECTED}
      * @hide
      */
-    @UnsupportedAppUsage
-    @RequiresLegacyBluetoothPermission
+    @SystemApi
     @RequiresNoPermission
     public int getConnectionState() {
         if (getState() != STATE_ON) {
@@ -4119,7 +4132,8 @@ public final class BluetoothAdapter {
      *
      * @hide
      */
-    public boolean registerServiceLifecycleCallback(ServiceLifecycleCallback callback) {
+    @SystemApi
+    public boolean registerServiceLifecycleCallback(@NonNull ServiceLifecycleCallback callback) {
         return getBluetoothService(callback.mRemote) != null;
     }
 
@@ -4137,6 +4151,7 @@ public final class BluetoothAdapter {
      *
      * @hide
      */
+    @SystemApi
     public abstract static class ServiceLifecycleCallback {
 
         /** Called when the bluetooth stack is up */
@@ -4612,6 +4627,7 @@ public final class BluetoothAdapter {
      * @throws IllegalArgumentException if the callback is already registered
      * @hide
      */
+    @SystemApi
     @RequiresBluetoothConnectPermission
     @RequiresPermission(allOf = {
             android.Manifest.permission.BLUETOOTH_CONNECT,
@@ -4709,19 +4725,21 @@ public final class BluetoothAdapter {
      *
      * @hide
      */
+    @SystemApi
     public abstract static class BluetoothConnectionCallback {
         /**
          * Callback triggered when a bluetooth device (classic or BLE) is connected
          * @param device is the connected bluetooth device
          */
-        public void onDeviceConnected(BluetoothDevice device) {}
+        public void onDeviceConnected(@NonNull BluetoothDevice device) {}
 
         /**
          * Callback triggered when a bluetooth device (classic or BLE) is disconnected
          * @param device is the disconnected bluetooth device
          * @param reason is the disconnect reason
          */
-        public void onDeviceDisconnected(BluetoothDevice device, @DisconnectReason int reason) {}
+        public void onDeviceDisconnected(@NonNull BluetoothDevice device,
+                @DisconnectReason int reason) {}
 
         /**
          * @hide
@@ -4744,6 +4762,7 @@ public final class BluetoothAdapter {
         /**
          * Returns human-readable strings corresponding to {@link DisconnectReason}.
          */
+        @NonNull
         public static String disconnectReasonText(@DisconnectReason int reason) {
             switch (reason) {
                 case BluetoothStatusCodes.ERROR_UNKNOWN:

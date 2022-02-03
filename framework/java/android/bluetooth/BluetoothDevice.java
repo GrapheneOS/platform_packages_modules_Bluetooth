@@ -231,10 +231,12 @@ public final class BluetoothDevice implements Parcelable, Attributable {
      *
      * @hide
      */
+    @SystemApi
     @RequiresLegacyBluetoothPermission
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
+    @SuppressLint("ActionValue")
     public static final String ACTION_BATTERY_LEVEL_CHANGED =
             "android.bluetooth.device.action.BATTERY_LEVEL_CHANGED";
 
@@ -265,6 +267,8 @@ public final class BluetoothDevice implements Parcelable, Attributable {
      *
      * @hide
      */
+    @SuppressLint("ActionValue")
+    @SystemApi
     public static final String EXTRA_BATTERY_LEVEL =
             "android.bluetooth.device.extra.BATTERY_LEVEL";
 
@@ -273,6 +277,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
      *
      * @hide
      */
+    @SystemApi
     public static final int BATTERY_LEVEL_UNKNOWN = -1;
 
     /**
@@ -280,6 +285,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
      *
      * @hide
      */
+    @SystemApi
     public static final int BATTERY_LEVEL_BLUETOOTH_OFF = -100;
 
     /**
@@ -372,10 +378,21 @@ public final class BluetoothDevice implements Parcelable, Attributable {
     /**
      * Used as an int extra field in {@link #ACTION_PAIRING_REQUEST}
      * intents for unbond reason.
+     * Possible value are :
+     *  - {@link #UNBOND_REASON_AUTH_FAILED}
+     *  - {@link #UNBOND_REASON_AUTH_REJECTED}
+     *  - {@link #UNBOND_REASON_AUTH_CANCELED}
+     *  - {@link #UNBOND_REASON_REMOTE_DEVICE_DOWN}
+     *  - {@link #UNBOND_REASON_DISCOVERY_IN_PROGRESS}
+     *  - {@link #UNBOND_REASON_AUTH_TIMEOUT}
+     *  - {@link #UNBOND_REASON_REPEATED_ATTEMPTS}
+     *  - {@link #UNBOND_REASON_REMOTE_AUTH_CANCELED}
+     *  - {@link #UNBOND_REASON_REMOVED}
      *
-     * @hide
+     * {@hide}
      */
-    @UnsupportedAppUsage
+    @SystemApi
+    @SuppressLint("ActionValue")
     public static final String EXTRA_REASON = "android.bluetooth.device.extra.REASON";
 
     /**
@@ -390,6 +407,8 @@ public final class BluetoothDevice implements Parcelable, Attributable {
     /**
      * Used as an int extra field in {@link #ACTION_PAIRING_REQUEST}
      * intents as the value of passkey.
+     * The Bluetooth Passkey is a 6-digit numerical value represented as integer value
+     * in the range 0x00000000 – 0x000F423F (000000 to 999999).
      */
     public static final String EXTRA_PAIRING_KEY = "android.bluetooth.device.extra.PAIRING_KEY";
 
@@ -398,6 +417,8 @@ public final class BluetoothDevice implements Parcelable, Attributable {
      * intents as the value of passkey.
      * @hide
      */
+    @SystemApi
+    @SuppressLint("ActionValue")
     public static final String EXTRA_PAIRING_INITIATOR =
             "android.bluetooth.device.extra.PAIRING_INITIATOR";
 
@@ -405,12 +426,14 @@ public final class BluetoothDevice implements Parcelable, Attributable {
      * Bluetooth pairing initiator, Foreground App
      * @hide
      */
+    @SystemApi
     public static final int EXTRA_PAIRING_INITIATOR_FOREGROUND = 1;
 
     /**
      * Bluetooth pairing initiator, Background
      * @hide
      */
+    @SystemApi
     public static final int EXTRA_PAIRING_INITIATOR_BACKGROUND = 2;
 
     /**
@@ -748,32 +771,56 @@ public final class BluetoothDevice implements Parcelable, Attributable {
     @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
     public static final String ACTION_PAIRING_REQUEST =
             "android.bluetooth.device.action.PAIRING_REQUEST";
-    /** @hide */
+
+    /**
+     * Broadcast Action: This intent is used to broadcast PAIRING CANCEL
+     *
+     * @hide
+     */
+    @SystemApi
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
-    @UnsupportedAppUsage
+    @SuppressLint("ActionValue")
     public static final String ACTION_PAIRING_CANCEL =
             "android.bluetooth.device.action.PAIRING_CANCEL";
 
-    /** @hide */
+    /**
+     * Broadcast Action: This intent is used to broadcast CONNECTION ACCESS REQUEST
+     *
+     * @hide
+     */
+    @SystemApi
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
+    @SuppressLint("ActionValue")
     public static final String ACTION_CONNECTION_ACCESS_REQUEST =
             "android.bluetooth.device.action.CONNECTION_ACCESS_REQUEST";
 
-    /** @hide */
+    /**
+     * Broadcast Action: This intent is used to broadcast CONNECTION ACCESS REPLY
+     *
+     * @hide
+     */
+    @SystemApi
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
+    @SuppressLint("ActionValue")
     public static final String ACTION_CONNECTION_ACCESS_REPLY =
             "android.bluetooth.device.action.CONNECTION_ACCESS_REPLY";
 
-    /** @hide */
+    /**
+     * Broadcast Action: This intent is used to broadcast CONNECTION ACCESS CANCEL
+     *
+     * @hide
+     */
+    @SystemApi
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
+    @SuppressLint("ActionValue")
     public static final String ACTION_CONNECTION_ACCESS_CANCEL =
             "android.bluetooth.device.action.CONNECTION_ACCESS_CANCEL";
 
@@ -795,19 +842,25 @@ public final class BluetoothDevice implements Parcelable, Attributable {
      *
      * @hide
      */
+    @SystemApi
+    @SuppressLint("ActionValue")
     public static final String EXTRA_ACCESS_REQUEST_TYPE =
             "android.bluetooth.device.extra.ACCESS_REQUEST_TYPE";
 
     /** @hide */
+    @SystemApi
     public static final int REQUEST_TYPE_PROFILE_CONNECTION = 1;
 
     /** @hide */
+    @SystemApi
     public static final int REQUEST_TYPE_PHONEBOOK_ACCESS = 2;
 
     /** @hide */
+    @SystemApi
     public static final int REQUEST_TYPE_MESSAGE_ACCESS = 3;
 
     /** @hide */
+    @SystemApi
     public static final int REQUEST_TYPE_SIM_ACCESS = 4;
 
     /**
@@ -831,13 +884,17 @@ public final class BluetoothDevice implements Parcelable, Attributable {
      *
      * @hide
      */
+    @SystemApi
+    @SuppressLint("ActionValue")
     public static final String EXTRA_CONNECTION_ACCESS_RESULT =
             "android.bluetooth.device.extra.CONNECTION_ACCESS_RESULT";
 
     /** @hide */
+    @SystemApi
     public static final int CONNECTION_ACCESS_YES = 1;
 
     /** @hide */
+    @SystemApi
     public static final int CONNECTION_ACCESS_NO = 2;
 
     /**
@@ -847,6 +904,8 @@ public final class BluetoothDevice implements Parcelable, Attributable {
      *
      * @hide
      */
+    @SystemApi
+    @SuppressLint("ActionValue")
     public static final String EXTRA_ALWAYS_ALLOWED =
             "android.bluetooth.device.extra.ALWAYS_ALLOWED";
 
@@ -863,7 +922,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
      *
      * @hide
      */
-    @UnsupportedAppUsage(maxTargetSdk = Build.VERSION_CODES.R, trackingBug = 170729553)
+    @SystemApi
     public static final int UNBOND_REASON_AUTH_FAILED = 1;
 
     /**
@@ -872,7 +931,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
      *
      * @hide
      */
-    @UnsupportedAppUsage(maxTargetSdk = Build.VERSION_CODES.R, trackingBug = 170729553)
+    @SystemApi
     public static final int UNBOND_REASON_AUTH_REJECTED = 2;
 
     /**
@@ -880,6 +939,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
      *
      * @hide
      */
+    @SystemApi
     public static final int UNBOND_REASON_AUTH_CANCELED = 3;
 
     /**
@@ -887,7 +947,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
      *
      * @hide
      */
-    @UnsupportedAppUsage(maxTargetSdk = Build.VERSION_CODES.R, trackingBug = 170729553)
+    @SystemApi
     public static final int UNBOND_REASON_REMOTE_DEVICE_DOWN = 4;
 
     /**
@@ -895,7 +955,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
      *
      * @hide
      */
-    @UnsupportedAppUsage(maxTargetSdk = Build.VERSION_CODES.R, trackingBug = 170729553)
+    @SystemApi
     public static final int UNBOND_REASON_DISCOVERY_IN_PROGRESS = 5;
 
     /**
@@ -903,7 +963,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
      *
      * @hide
      */
-    @UnsupportedAppUsage(maxTargetSdk = Build.VERSION_CODES.R, trackingBug = 170729553)
+    @SystemApi
     public static final int UNBOND_REASON_AUTH_TIMEOUT = 6;
 
     /**
@@ -911,7 +971,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
      *
      * @hide
      */
-    @UnsupportedAppUsage(maxTargetSdk = Build.VERSION_CODES.R, trackingBug = 170729553)
+    @SystemApi
     public static final int UNBOND_REASON_REPEATED_ATTEMPTS = 7;
 
     /**
@@ -920,7 +980,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
      *
      * @hide
      */
-    @UnsupportedAppUsage(maxTargetSdk = Build.VERSION_CODES.R, trackingBug = 170729553)
+    @SystemApi
     public static final int UNBOND_REASON_REMOTE_AUTH_CANCELED = 8;
 
     /**
@@ -928,6 +988,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
      *
      * @hide
      */
+    @SystemApi
     public static final int UNBOND_REASON_REMOVED = 9;
 
     /**
@@ -941,6 +1002,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
      *
      * @hide
      */
+    @SystemApi
     public static final int PAIRING_VARIANT_PASSKEY = 1;
 
     /**
@@ -954,6 +1016,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
      *
      * @hide
      */
+    @SystemApi
     public static final int PAIRING_VARIANT_CONSENT = 3;
 
     /**
@@ -962,6 +1025,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
      *
      * @hide
      */
+    @SystemApi
     public static final int PAIRING_VARIANT_DISPLAY_PASSKEY = 4;
 
     /**
@@ -970,6 +1034,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
      *
      * @hide
      */
+    @SystemApi
     public static final int PAIRING_VARIANT_DISPLAY_PIN = 5;
 
     /**
@@ -977,6 +1042,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
      *
      * @hide
      */
+    @SystemApi
     public static final int PAIRING_VARIANT_OOB_CONSENT = 6;
 
     /**
@@ -985,6 +1051,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
      *
      * @hide
      */
+    @SystemApi
     public static final int PAIRING_VARIANT_PIN_16_DIGITS = 7;
 
     /**
@@ -1251,6 +1318,8 @@ public final class BluetoothDevice implements Parcelable, Attributable {
     }
 
     /** {@hide} */
+    @SystemApi
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
     public void prepareToEnterProcess(@NonNull AttributionSource attributionSource) {
         setAttributionSource(attributionSource);
     }
@@ -1322,6 +1391,9 @@ public final class BluetoothDevice implements Parcelable, Attributable {
      * @return Anonymized bluetooth hardware address as string
      * @hide
      */
+    @SystemApi
+    @NonNull
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
     public String getAnonymizedAddress() {
         return "XX:XX:XX" + getAddress().substring(8);
     }
@@ -1524,7 +1596,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
      * not have any battery reporting service, or return value is invalid
      * @hide
      */
-    @UnsupportedAppUsage
+    @SystemApi
     @RequiresLegacyBluetoothPermission
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
@@ -1652,7 +1724,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
      *
      * @hide
      */
-    @UnsupportedAppUsage
+    @SystemApi
     @RequiresLegacyBluetoothPermission
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
@@ -2209,7 +2281,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
      * @return true pin has been set false for error
      * @hide
      */
-    @UnsupportedAppUsage(maxTargetSdk = Build.VERSION_CODES.R, trackingBug = 170729553)
+    @SystemApi
     @RequiresLegacyBluetoothAdminPermission
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
@@ -2256,10 +2328,13 @@ public final class BluetoothDevice implements Parcelable, Attributable {
      *
      * @hide
      */
-    @UnsupportedAppUsage
+    @SystemApi
     @RequiresLegacyBluetoothAdminPermission
     @RequiresBluetoothConnectPermission
-    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
     public boolean cancelPairing() {
         if (DBG) log("cancelPairing()");
         final IBluetooth service = sService;
@@ -2295,7 +2370,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
      * #ACCESS_UNKNOWN}, {@link #ACCESS_ALLOWED} or {@link #ACCESS_REJECTED}.
      * @hide
      */
-    @UnsupportedAppUsage
+    @SystemApi
     @RequiresLegacyBluetoothPermission
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
@@ -2432,7 +2507,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
      * @return Whether the message access is allowed to this device.
      * @hide
      */
-    @UnsupportedAppUsage
+    @SystemApi
     @RequiresLegacyBluetoothPermission
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
