@@ -154,6 +154,8 @@ int register_com_android_bluetooth_sdp(JNIEnv* env);
 
 int register_com_android_bluetooth_hearing_aid(JNIEnv* env);
 
+int register_com_android_bluetooth_hap_client(JNIEnv* env);
+
 int register_com_android_bluetooth_btservice_BluetoothKeystore(JNIEnv* env);
 
 int register_com_android_bluetooth_btservice_activity_attribution(JNIEnv* env);

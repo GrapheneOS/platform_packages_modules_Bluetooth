@@ -1139,6 +1139,8 @@ public final class BluetoothDevice implements Parcelable, Attributable {
             ADDRESS_TYPE_PUBLIC,
             /** Address is either resolvable, non-resolvable or static.*/
             ADDRESS_TYPE_RANDOM,
+            /** Address type is unknown or unavailable **/
+            ADDRESS_TYPE_UNKNOWN,
         }
     )
     public @interface AddressType {}
@@ -1147,6 +1149,8 @@ public final class BluetoothDevice implements Parcelable, Attributable {
     public static final int ADDRESS_TYPE_PUBLIC = 0;
     /** Address is either resolvable, non-resolvable or static. */
     public static final int ADDRESS_TYPE_RANDOM = 1;
+    /** Address type is unknown or unavailable **/
+    public static final int ADDRESS_TYPE_UNKNOWN = 0xFFFF;
 
     private static final String NULL_MAC_ADDRESS = "00:00:00:00:00:00";
 
@@ -1320,6 +1324,33 @@ public final class BluetoothDevice implements Parcelable, Attributable {
      */
     public String getAnonymizedAddress() {
         return "XX:XX:XX" + getAddress().substring(8);
+    }
+
+    /**
+     * Returns the identity address of this BluetoothDevice.
+     * <p> For example, "00:11:22:AA:BB:CC".
+     *
+     * @return Bluetooth identity address as a string
+     * @hide
+     */
+    @SystemApi
+    @RequiresBluetoothConnectPermission
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
+    public @Nullable String getIdentityAddress() {
+        final IBluetooth service = sService;
+        if (service == null) {
+            Log.e(TAG, "BT not enabled. Cannot get identity address");
+            return null;
+        }
+        try {
+            return service.getIdentityAddress(mAddress);
+        } catch (RemoteException e) {
+            Log.e(TAG, "", e);
+        }
+        return null;
     }
 
     /**

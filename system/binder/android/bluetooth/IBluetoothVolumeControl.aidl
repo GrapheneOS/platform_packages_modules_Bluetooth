@@ -45,7 +45,7 @@ oneway interface IBluetoothVolumeControl {
     void getConnectionPolicy(in BluetoothDevice device, in AttributionSource attributionSource, in SynchronousResultReceiver receiver);
 
     @JavaPassthrough(annotation="@android.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)")
-    void setVolume(in BluetoothDevice device, int volume, in AttributionSource attributionSource, in SynchronousResultReceiver receiver);
+    void setVolumeOffset(in BluetoothDevice device, int volumeOffset, in AttributionSource attributionSource, in SynchronousResultReceiver receiver);
     @JavaPassthrough(annotation="@android.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)")
     void setVolumeGroup(int group_id, int volume, in AttributionSource attributionSource, in SynchronousResultReceiver receiver);
 }

@@ -100,6 +100,11 @@ cc_library_static {
         "le_audio/client_parser.cc",
         "le_audio/client_audio.cc",
         "le_audio/le_audio_types.cc",
+        "has/has_client.cc",
+        "has/has_ctp.cc",
+        "has/has_journal.cc",
+        "has/has_preset.cc",
+        "has/has_types.cc",
         "hearing_aid/hearing_aid.cc",
         "hearing_aid/hearing_aid_audio_source.cc",
         "hf_client/bta_hf_client_act.cc",
@@ -637,6 +642,58 @@ cc_test {
         "libbt-protos-lite",
         "libosi",
         "liblc3",
+    ],
+    sanitize: {
+        cfi: true,
+        scs: true,
+        address: true,
+        all_undefined: true,
+        integer_overflow: true,
+        diag: {
+            undefined : true
+        },
+    },
+}
+
+cc_test {
+    name: "bluetooth_has_test",
+    test_suites: ["device-tests"],
+    defaults: [
+        "fluoride_bta_defaults",
+        "clang_coverage_bin",
+    ],
+    host_supported: true,
+    include_dirs: [
+        "packages/modules/Bluetooth/system",
+        "packages/modules/Bluetooth/system/bta/include",
+        "packages/modules/Bluetooth/system/bta/test/common",
+        "packages/modules/Bluetooth/system/stack/include",
+    ],
+    srcs : [
+        "gatt/database.cc",
+        "gatt/database_builder.cc",
+        "has/has_client.cc",
+        "has/has_client_test.cc",
+        "has/has_ctp.cc",
+        "has/has_journal.cc",
+        "has/has_preset.cc",
+        "has/has_types.cc",
+        "test/common/bta_gatt_api_mock.cc",
+        "test/common/bta_gatt_queue_mock.cc",
+        "test/common/btif_storage_mock.cc",
+        "test/common/btm_api_mock.cc",
+        "test/common/mock_controller.cc",
+        "test/common/mock_csis_client.cc",
+    ],
+    shared_libs: [
+        "libprotobuf-cpp-lite",
+        "libcrypto",
+    ],
+    static_libs : [
+        "crypto_toolbox_for_tests",
+        "libgmock",
+        "libbt-common",
+        "libbt-protos-lite",
     ],
     sanitize: {
         cfi: true,

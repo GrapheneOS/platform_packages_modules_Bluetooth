@@ -92,9 +92,13 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
      *
      * @hide
      */
+    @SystemApi
     @RequiresLegacyBluetoothPermission
     @RequiresBluetoothConnectPermission
-    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
     @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
     public static final String ACTION_LE_AUDIO_ACTIVE_DEVICE_CHANGED =
             "android.bluetooth.action.LE_AUDIO_ACTIVE_DEVICE_CHANGED";
@@ -112,11 +116,14 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
      *
      * @hide
      */
-    @RequiresPermission(Manifest.permission.BLUETOOTH_PRIVILEGED)
+    @SystemApi
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
     @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
     public static final String ACTION_LE_AUDIO_GROUP_NODE_STATUS_CHANGED =
             "android.bluetooth.action.LE_AUDIO_GROUP_NODE_STATUS_CHANGED";
-
 
     /**
      * Intent used to broadcast group status information.
@@ -157,6 +164,24 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
     @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
     public static final String ACTION_LE_AUDIO_CONF_CHANGED =
             "android.bluetooth.action.LE_AUDIO_CONF_CHANGED";
+
+    /**
+     * Intent used to broadcast the audio codec config changed information.
+     *
+     * <p>This intent will have 2 extras:
+     * <ul>
+     * <li> {@link BluetoothLeAudioCodecStatus#EXTRA_LE_AUDIO_CODEC_STATUS} - The codec status.
+     * </li>
+     * <li> {@link BluetoothDevice#EXTRA_DEVICE} - The remote device if the device is currently
+     * connected, otherwise it is not included.</li>
+     * </ul>
+     *
+     * @hide
+     */
+    @RequiresPermission(Manifest.permission.BLUETOOTH_PRIVILEGED)
+    @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
+    public static final String ACTION_LE_AUDIO_CODEC_CONFIG_CHANGED =
+            "android.bluetooth.action.LE_AUDIO_CODEC_CONFIG_CHANGED";
 
     /**
      * Indicates unspecified audio content.
@@ -238,8 +263,6 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
 
     /**
      * This represents an invalid group ID.
-     *
-     * @hide
      */
     public static final int GROUP_ID_INVALID = IBluetoothLeAudio.LE_AUDIO_GROUP_ID_INVALID;
 
@@ -254,6 +277,7 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
      * Contains group id.
      * @hide
      */
+    @SystemApi
     public static final String EXTRA_LE_AUDIO_GROUP_ID =
             "android.bluetooth.extra.LE_AUDIO_GROUP_ID";
 
@@ -267,6 +291,7 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
      * <p>
      * @hide
      */
+    @SystemApi
     public static final String EXTRA_LE_AUDIO_GROUP_NODE_STATUS =
             "android.bluetooth.extra.LE_AUDIO_GROUP_NODE_STATUS";
 
@@ -330,12 +355,14 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
      * Indicating that node has been added to the group.
      * @hide
      */
+    @SystemApi
     public static final int GROUP_NODE_ADDED = IBluetoothLeAudio.GROUP_NODE_ADDED;
 
     /**
      * Indicating that node has been removed from the group.
      * @hide
      */
+    @SystemApi
     public static final int GROUP_NODE_REMOVED = IBluetoothLeAudio.GROUP_NODE_REMOVED;
 
     private final BluetoothProfileConnector<IBluetoothLeAudio> mProfileConnector =
@@ -657,7 +684,8 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
      * Get device group id. Devices with same group id belong to same group (i.e left and right
      * earbud)
      * @param device LE Audio capable device
-     * @return group id that this device currently belongs to
+     * @return group id that this device currently belongs to, {@link #GROUP_ID_INVALID} when this
+     *         device does not belong to any group
      */
     @RequiresLegacyBluetoothPermission
     @RequiresBluetoothConnectPermission
@@ -906,4 +934,53 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
     private static void log(String msg) {
         Log.d(TAG, msg);
     }
+
+    /**
+     * Gets the current codec status (configuration and capability).
+     *
+     * @param device the remote Bluetooth device.
+     * @return the current codec status
+     * @hide
+     */
+    @RequiresBluetoothConnectPermission
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED
+    })
+    public BluetoothLeAudioCodecStatus getCodecStatus(@NonNull BluetoothDevice device) {
+        if (DBG) {
+            Log.d(TAG, "getCodecStatus(" + device + ")");
+        }
+
+        final BluetoothLeAudioCodecStatus defaultValue = null;
+
+        // TODO: Add the implementation to get codec status
+        return defaultValue;
+    }
+
+    /**
+     * Sets the codec configuration preference.
+     *
+     * @param device the remote Bluetooth device.
+     * @param codecConfig the codec configuration preference
+     * @hide
+     */
+    @RequiresBluetoothConnectPermission
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED
+    })
+    public void setCodecConfigPreference(@NonNull BluetoothDevice device,
+                                         @NonNull BluetoothLeAudioCodecConfig codecConfig) {
+        if (DBG) Log.d(TAG, "setCodecConfigPreference(" + device + ")");
+
+        if (codecConfig == null) {
+            Log.e(TAG, "setCodecConfigPreference: Codec config can't be null");
+            throw new IllegalArgumentException("codecConfig cannot be null");
+        }
+
+        // TODO: Add the implementation to set config preference
+        return;
+    }
+
 }
