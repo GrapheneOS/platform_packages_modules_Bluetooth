@@ -221,6 +221,7 @@ cc_test {
     ],
     srcs: [
         ":TestCommonMainHandler",
+        ":TestCommonMockFunctions",
         ":TestMockBta",
         ":TestMockBtif",
         ":TestMockLegacyHciCommands",
