@@ -237,6 +237,7 @@ public interface BluetoothProfile {
      *
      * @hide
      */
+    @SystemApi
     int LE_AUDIO_BROADCAST = 26;
 
     /**
@@ -253,12 +254,20 @@ public interface BluetoothProfile {
     int HAP_CLIENT = 28;
 
     /**
+     * LE Audio Broadcast Assistant
+     *
+     * @hide
+     */
+    @SystemApi
+    int LE_AUDIO_BROADCAST_ASSISTANT = 29;
+
+    /**
      * Max profile ID. This value should be updated whenever a new profile is added to match
      * the largest value assigned to a profile.
      *
      * @hide
      */
-    int MAX_PROFILE_ID = 28;
+    int MAX_PROFILE_ID = 29;
 
     /**
      * Default priority for devices that we try to auto-connect to and
