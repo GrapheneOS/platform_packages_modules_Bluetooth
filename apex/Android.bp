@@ -7,22 +7,40 @@ package {
     default_applicable_licenses: ["system_bt_license"],
 }
 
-apex {
-    name: "com.android.bluetooth",
-    enabled: false,
-
-    manifest: "apex_manifest.json",
-
-    native_shared_libs: [
-      "libbluetooth_jni",
-      "libbluetooth"
-    ],
+apex_defaults {
+    name: "com.android.bluetooth-defaults",
+    bootclasspath_fragments: ["com.android.bluetooth-bootclasspath-fragment"],
+    systemserverclasspath_fragments: ["com.android.bluetooth-systemserverclasspath-fragment"],
     apps: ["Bluetooth"],
 
-    compile_multilib: "both",
+    multilib: {
+        first: {
+            // Extractor process runs only with the primary ABI.
+            native_shared_libs: [
+                "libbluetooth",
+            ],
+            jni_libs: [
+                "libbluetooth_jni",
+            ],
+        },
+    },
 
     key: "com.android.bluetooth.key",
     certificate: ":com.android.bluetooth.certificate",
+    min_sdk_version: "current",
+
+    updatable: false,
+    future_updatable: true,
+    // Indicates that pre-installed version of this apex can be compressed.
+    // Whether it actually will be compressed is controlled on per-device basis.
+    compressible: true,
+}
+
+//Mainline bluetooth apex module.
+apex {
+    name: "com.android.bluetooth",
+    defaults: ["com.android.bluetooth-defaults"],
+    manifest: "apex_manifest.json",
 }
 
 apex_key {
@@ -34,4 +52,46 @@ apex_key {
 android_app_certificate {
     name: "com.android.bluetooth.certificate",
     certificate: "com.android.bluetooth",
+}
+
+sdk {
+    name: "bluetooth-module-sdk",
+    bootclasspath_fragments: ["com.android.bluetooth-bootclasspath-fragment"],
+    systemserverclasspath_fragments: ["com.android.bluetooth-systemserverclasspath-fragment"],
+}
+
+// Encapsulate the contributions made by the com.android.bluetooth to the bootclasspath.
+bootclasspath_fragment {
+    name: "com.android.bluetooth-bootclasspath-fragment",
+    contents: ["framework-bluetooth"],
+    apex_available: ["com.android.bluetooth"],
+
+    // The bootclasspath_fragments that provide APIs on which this depends.
+    fragments: [
+        {
+            apex: "com.android.art",
+            module: "art-bootclasspath-fragment",
+        },
+    ],
+
+    // Additional stubs libraries that this fragment's contents use which are
+    // not provided by another bootclasspath_fragment.
+    additional_stubs: [
+        "android-non-updatable",
+    ],
+
+    // Additional hidden API flag files to override the defaults. This must only be
+    // modified by the Soong or platform compat team.
+    hidden_api: {
+        max_target_o_low_priority: ["hiddenapi/hiddenapi-max-target-o-low-priority.txt"],
+        max_target_r_low_priority: ["hiddenapi/hiddenapi-max-target-r-low-priority.txt"],
+        unsupported: ["hiddenapi/hiddenapi-unsupported.txt"],
+    },
+
+}
+
+systemserverclasspath_fragment {
+    name: "com.android.bluetooth-systemserverclasspath-fragment",
+    standalone_contents: ["service-bluetooth"],
+    apex_available: ["com.android.bluetooth"],
 }
