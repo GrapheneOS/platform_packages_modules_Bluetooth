@@ -133,7 +133,11 @@ BENCHMARK_DEFINE_F(BM_AlarmTaskTimer, timer_performance_ms)(State& state) {
     auto start_time_point = time_get_os_boottime_us();
     once_timer_->Schedule(message_loop_thread_->GetWeakPtr(), FROM_HERE,
                           base::BindOnce(&TimerFire, nullptr),
+#if BASE_VER < 931007
                           base::TimeDelta::FromMilliseconds(milliseconds));
+#else
+                          base::Milliseconds(milliseconds));
+#endif
     g_promise->get_future().get();
     once_timer_->Cancel();
     auto end_time_point = time_get_os_boottime_us();
@@ -246,7 +250,11 @@ BENCHMARK_DEFINE_F(BM_AlarmTaskPeriodicTimer, periodic_accuracy)
     repeating_timer_->SchedulePeriodic(
         message_loop_thread_->GetWeakPtr(), FROM_HERE,
         base::BindRepeating(&AlarmSleepAndCountDelayedTime, nullptr),
+#if BASE_VER < 931007
         base::TimeDelta::FromMilliseconds(g_task_interval));
+#else
+        base::Milliseconds(g_task_interval));
+#endif
     g_promise->get_future().get();
     repeating_timer_->Cancel();
   }

@@ -53,7 +53,11 @@ bool OnceTimer::Schedule(const base::WeakPtr<MessageLoopThread>& thread,
   uint64_t time_until_next_us = time_next_task_us - time_get_os_boottime_us();
   if (!thread->DoInThreadDelayed(
           from_here, task_wrapper_.callback(),
+#if BASE_VER < 931007
           base::TimeDelta::FromMicroseconds(time_until_next_us))) {
+#else
+          base::Microseconds(time_until_next_us))) {
+#endif
     LOG(ERROR) << __func__
                << ": failed to post task to message loop for thread " << *thread
                << ", from " << from_here.ToString();

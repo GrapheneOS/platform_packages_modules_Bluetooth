@@ -26,7 +26,11 @@ namespace bluetooth {
 
 namespace common {
 
+#if BASE_VER < 931007
 constexpr base::TimeDelta kMinimumPeriod = base::TimeDelta::FromMicroseconds(1);
+#else
+constexpr base::TimeDelta kMinimumPeriod = base::Microseconds(1);
+#endif
 
 // This runs on user thread
 RepeatingTimer::~RepeatingTimer() {
@@ -63,7 +67,11 @@ bool RepeatingTimer::SchedulePeriodic(
   uint64_t time_until_next_us = time_next_task_us - time_get_os_boottime_us();
   if (!thread->DoInThreadDelayed(
           from_here, task_wrapper_.callback(),
+#if BASE_VER < 931007
           base::TimeDelta::FromMicroseconds(time_until_next_us))) {
+#else
+          base::Microseconds(time_until_next_us))) {
+#endif
     LOG(ERROR) << __func__
                << ": failed to post task to message loop for thread " << *thread
                << ", from " << from_here.ToString();
@@ -149,7 +157,11 @@ void RepeatingTimer::RunTask() {
   }
   message_loop_thread_->DoInThreadDelayed(
       FROM_HERE, task_wrapper_.callback(),
+#if BASE_VER < 931007
       base::TimeDelta::FromMicroseconds(remaining_time_us));
+#else
+      base::Microseconds(remaining_time_us));
+#endif
 
   uint64_t time_before_task_us = time_get_os_boottime_us();
   task_.Run();
