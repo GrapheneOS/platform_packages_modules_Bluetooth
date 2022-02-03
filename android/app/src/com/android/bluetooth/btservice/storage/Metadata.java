@@ -110,6 +110,9 @@ class Metadata {
             case BluetoothProfile.HEARING_AID:
                 profileConnectionPolicies.hearing_aid_connection_policy = connectionPolicy;
                 break;
+            case BluetoothProfile.HAP_CLIENT:
+                profileConnectionPolicies.hap_client_connection_policy = connectionPolicy;
+                break;
             case BluetoothProfile.LE_AUDIO:
                 profileConnectionPolicies.le_audio_connection_policy = connectionPolicy;
                 break;
@@ -153,6 +156,8 @@ class Metadata {
                 return profileConnectionPolicies.sap_connection_policy;
             case BluetoothProfile.HEARING_AID:
                 return profileConnectionPolicies.hearing_aid_connection_policy;
+            case BluetoothProfile.HAP_CLIENT:
+                return profileConnectionPolicies.hap_client_connection_policy;
             case BluetoothProfile.LE_AUDIO:
                 return profileConnectionPolicies.le_audio_connection_policy;
             case BluetoothProfile.VOLUME_CONTROL:
