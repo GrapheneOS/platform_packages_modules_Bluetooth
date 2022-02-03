@@ -1092,7 +1092,11 @@ void testRecomputeTimeout1() {
   auto manager = (BleAdvertisingManagerImpl*)BleAdvertisingManager::Get().get();
 
   TimeTicks start = TimeTicks::Now();
+#if BASE_VER < 931007
   TimeTicks end = start + TimeDelta::FromMilliseconds(111);
+#else
+  TimeTicks end = start + base::Milliseconds(111);
+#endif
   AdvertisingInstance test1(0);
   test1.enable_status = true;
   test1.enable_time = start;
@@ -1112,7 +1116,11 @@ void testRecomputeTimeout2() {
   auto manager = (BleAdvertisingManagerImpl*)BleAdvertisingManager::Get().get();
 
   TimeTicks start = TimeTicks::Now();
+#if BASE_VER < 931007
   TimeTicks end = start + TimeDelta::FromMilliseconds(250);
+#else
+  TimeTicks end = start + base::Milliseconds(250);
+#endif
   AdvertisingInstance test1(0);
   test1.enable_status = true;
   test1.enable_time = start;
@@ -1135,7 +1143,11 @@ void testRecomputeTimeout3() {
   auto manager = (BleAdvertisingManagerImpl*)BleAdvertisingManager::Get().get();
 
   TimeTicks start = TimeTicks::Now();
+#if BASE_VER < 931007
   TimeTicks end = start + TimeDelta::FromMilliseconds(495);
+#else
+  TimeTicks end = start + base::Milliseconds(495);
+#endif
   AdvertisingInstance test1(0);
   test1.enable_status = true;
   test1.enable_time = start;
