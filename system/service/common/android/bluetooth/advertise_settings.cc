@@ -55,7 +55,11 @@ status_t AdvertiseSettings::readFromParcel(const Parcel* parcel) {
   status = parcel->readInt32(&value);
   if (status != OK) return status;
 
+#if BASE_VER < 931007
   timeout_ = ::base::TimeDelta::FromMilliseconds(value);
+#else
+  timeout_ = ::base::Milliseconds(value);
+#endif
   return status;
 }
 
