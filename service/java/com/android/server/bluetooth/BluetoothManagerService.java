@@ -177,16 +177,6 @@ class BluetoothManagerService extends IBluetoothManager.Stub {
     private static final int SERVICE_IBLUETOOTH = 1;
     private static final int SERVICE_IBLUETOOTHGATT = 2;
 
-    private static final String BLUETOOTH_PACKAGE_NAME = "com.android.bluetooth";
-
-    //TODO use Settings.Secure var with correct api
-    private static final String BLUETOOTH_NAME = "bluetooth_name";
-    private static final String BLUETOOTH_ADDRESS = "bluetooth_address";
-    private static final String BLUETOOTH_ADDR_VALID = "bluetooth_addr_valid";
-
-    //TODO use Settings.Global var with correct api
-    private static final String BLE_SCAN_ALWAYS_AVAILABLE = "ble_scan_always_enabled";
-
     private final Context mContext;
 
     private final UserManager mUserManager;
@@ -677,18 +667,16 @@ class BluetoothManagerService extends IBluetoothManager.Stub {
             Log.d(TAG, "Loading stored name and address");
         }
         if (BluetoothProperties.isAdapterAddressValidationEnabled().orElse(false)
-                && Settings.Secure.getIntForUser(mContentResolver, BLUETOOTH_NAME, 0,
-                    UserHandle.SYSTEM.getIdentifier()) == 0) {
+                && Settings.Secure.getInt(mContentResolver,
+                    Settings.Secure.BLUETOOTH_ADDR_VALID, 0) == 0) {
             // if the valid flag is not set, don't load the address and name
             if (DBG) {
                 Log.d(TAG, "invalid bluetooth name and address stored");
             }
             return;
         }
-        mName = Settings.Secure.getStringForUser(mContentResolver, BLUETOOTH_NAME,
-                UserHandle.SYSTEM.getIdentifier());
-        mAddress = Settings.Secure.getStringForUser(mContentResolver, BLUETOOTH_ADDRESS,
-                UserHandle.SYSTEM.getIdentifier());
+        mName = Settings.Secure.getString(mContentResolver, Settings.Secure.BLUETOOTH_NAME);
+        mAddress = Settings.Secure.getString(mContentResolver, Settings.Secure.BLUETOOTH_ADDRESS);
         if (DBG) {
             Log.d(TAG, "Stored bluetooth Name=" + mName + ",Address=" + mAddress);
         }
@@ -702,27 +690,25 @@ class BluetoothManagerService extends IBluetoothManager.Stub {
      */
     private void storeNameAndAddress(String name, String address) {
         if (name != null) {
-            Settings.Secure.putString(mContentResolver, BLUETOOTH_NAME, name);
+            Settings.Secure.putString(mContentResolver, Settings.Secure.BLUETOOTH_NAME, name);
             mName = name;
             if (DBG) {
-                Log.d(TAG, "Stored Bluetooth name: " + Settings.Secure.getStringForUser(
-                        mContentResolver, BLUETOOTH_NAME, UserHandle.SYSTEM.getIdentifier()));
+                Log.d(TAG, "Stored Bluetooth name: " + Settings.Secure.getString(mContentResolver,
+                            Settings.Secure.BLUETOOTH_NAME));
             }
         }
 
         if (address != null) {
-            Settings.Secure.putString(mContentResolver, BLUETOOTH_ADDRESS, address);
+            Settings.Secure.putString(mContentResolver, Settings.Secure.BLUETOOTH_ADDRESS, address);
             mAddress = address;
             if (DBG) {
-                Log.d(TAG,
-                        "Stored Bluetoothaddress: " + Settings.Secure.getStringForUser(
-                                mContentResolver, BLUETOOTH_ADDRESS,
-                                UserHandle.SYSTEM.getIdentifier()));
+                Log.d(TAG, "Stored Bluetoothaddress: " + Settings.Secure.getString(mContentResolver,
+                            Settings.Secure.BLUETOOTH_ADDRESS));
             }
         }
 
         if ((name != null) && (address != null)) {
-            Settings.Secure.putInt(mContentResolver, BLUETOOTH_ADDR_VALID, 1);
+            Settings.Secure.putInt(mContentResolver, Settings.Secure.BLUETOOTH_ADDR_VALID, 1);
         }
     }
 
@@ -904,7 +890,8 @@ class BluetoothManagerService extends IBluetoothManager.Stub {
             return false;
         }
         try {
-            return Settings.Global.getInt(mContentResolver, BLE_SCAN_ALWAYS_AVAILABLE) != 0;
+            return Settings.Global.getInt(mContentResolver,
+                    Settings.Global.BLE_SCAN_ALWAYS_AVAILABLE) != 0;
         } catch (SettingNotFoundException e) {
         }
         return false;
@@ -971,8 +958,8 @@ class BluetoothManagerService extends IBluetoothManager.Stub {
             }
         };
 
-        mContentResolver.registerContentObserver(
-                Settings.Global.getUriFor(BLE_SCAN_ALWAYS_AVAILABLE), false, contentObserver);
+        mContentResolver.registerContentObserver(Settings.Global.getUriFor(
+                    Settings.Global.BLE_SCAN_ALWAYS_AVAILABLE), false, contentObserver);
     }
 
     // Disable ble scan only mode.
