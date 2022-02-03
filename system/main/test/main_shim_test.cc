@@ -17,31 +17,14 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include <condition_variable>
 #include <future>
 #include <map>
-#include <thread>
 
+#include "btaa/activity_attribution.h"
 #include "btif/include/btif_hh.h"
 #include "device/include/controller.h"
-#include "gd/btaa/activity_attribution.h"
-#include "gd/hal/hci_hal.h"
-#include "gd/hci/acl_manager_mock.h"
-#include "gd/hci/controller_mock.h"
-#include "gd/module.h"
-#include "gd/os/mock_queue.h"
-#include "gd/os/queue.h"
-#include "gd/packet/packet_view.h"
-#include "hci/acl_manager.h"
-#include "hci/acl_manager/classic_acl_connection.h"
-#include "hci/acl_manager/connection_callbacks.h"
-#include "hci/acl_manager/connection_management_callbacks.h"
-#include "hci/acl_manager/le_acl_connection.h"
-#include "hci/acl_manager/le_connection_callbacks.h"
-#include "hci/acl_manager/le_connection_management_callbacks.h"
-#include "hci/include/hci_layer.h"
-#include "hci/include/hci_packet_factory.h"
-#include "hci/include/hci_packet_parser.h"
+#include "hci/acl_manager_mock.h"
+#include "hci/controller_mock.h"
 #include "include/hardware/bt_activity_attribution.h"
 #include "main/shim/acl.h"
 #include "main/shim/acl_legacy_interface.h"
@@ -50,9 +33,13 @@
 #include "os/thread.h"
 #include "stack/btm/btm_int_types.h"
 #include "stack/include/bt_hdr.h"
+#include "stack/include/hci_error_code.h"
 #include "stack/l2cap/l2c_int.h"
 #include "test/common/main_handler.h"
+#include "test/common/mock_functions.h"
 #include "test/mock/mock_main_shim_entry.h"
+#include "types/ble_address_with_type.h"
+#include "types/hci_role.h"
 #include "types/raw_address.h"
 
 using namespace bluetooth;
@@ -63,7 +50,6 @@ namespace test = bluetooth::hci::testing;
 const uint8_t kMaxLeAcceptlistSize = 16;
 const uint8_t kMaxAddressResolutionSize = kMaxLeAcceptlistSize;
 
-std::map<std::string, int> mock_function_count_map;
 tL2C_CB l2cb;
 tBTM_CB btm_cb;
 btif_hh_cb_t btif_hh_cb;
@@ -171,8 +157,9 @@ const shim::legacy::acl_interface_t GetMockAclInterface() {
   return acl_interface;
 }
 
+struct hci_packet_parser_t;
 const hci_packet_parser_t* hci_packet_parser_get_interface() { return nullptr; }
-const hci_t* hci_layer_get_interface() { return nullptr; }
+struct packet_fragmenter_t;
 const packet_fragmenter_t* packet_fragmenter_get_interface() { return nullptr; }
 void LogMsg(uint32_t trace_set_mask, const char* fmt_str, ...) {}
 
