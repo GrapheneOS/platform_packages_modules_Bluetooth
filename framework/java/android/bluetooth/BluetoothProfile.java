@@ -17,7 +17,9 @@
 package android.bluetooth;
 
 import android.annotation.IntDef;
+import android.annotation.NonNull;
 import android.annotation.RequiresNoPermission;
+import android.annotation.RequiresPermission;
 import android.annotation.SuppressLint;
 import android.annotation.SystemApi;
 import android.compat.annotation.UnsupportedAppUsage;
@@ -100,6 +102,7 @@ public interface BluetoothProfile {
      *
      * @hide
      */
+    @SystemApi
     int HID_HOST = 4;
 
     /**
@@ -115,6 +118,7 @@ public interface BluetoothProfile {
      *
      * @hide
      */
+    @SystemApi
     int PBAP = 6;
 
     /**
@@ -132,6 +136,7 @@ public interface BluetoothProfile {
      *
      * @hide
      */
+    @SystemApi
     int MAP = 9;
 
     /*
@@ -197,6 +202,7 @@ public interface BluetoothProfile {
      *
      * @hide
      */
+    @SystemApi
     int OPP = 20;
 
     /**
@@ -405,6 +411,9 @@ public interface BluetoothProfile {
      * is not defined
      * @hide
      */
+    @SystemApi
+    @NonNull
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
     static String getConnectionStateName(int connectionState) {
         switch (connectionState) {
             case STATE_DISCONNECTED:
@@ -427,6 +436,9 @@ public interface BluetoothProfile {
      * @return profile name as String, UNKOWN_PROFILE if the profile ID is not defined.
      * @hide
      */
+    @SystemApi
+    @NonNull
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
     static String getProfileName(int profile) {
         switch(profile) {
             case HEADSET:

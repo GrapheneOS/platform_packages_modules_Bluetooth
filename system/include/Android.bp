@@ -24,6 +24,7 @@ cc_library_headers {
         "//apex_available:platform",
         "com.android.bluetooth",
     ],
+    min_sdk_version: "30",
 }
 
 cc_library_headers {
@@ -42,4 +43,9 @@ cc_library_headers {
     export_include_dirs: ["./"],
     vendor_available: true,
     host_supported: true,
+    apex_available: [
+        "//apex_available:platform",
+        "com.android.bluetooth",
+    ],
+    min_sdk_version: "30",
 }

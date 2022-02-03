@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef GD_RUST_TOPSHIM_COMMON_UTILS_H
+#define GD_RUST_TOPSHIM_COMMON_UTILS_H
 
-#pragma once
-
-#include "device/include/controller.h"
-
-static const char GD_CONTROLLER_MODULE[] = "gd_controller_module";
+#include "types/raw_address.h"
 
 namespace bluetooth {
-namespace shim {
+namespace topshim {
+namespace rust {
 
-const controller_t* controller_get_interface();
+struct RustRawAddress;
 
-void controller_clear_event_mask();
-bool controller_is_write_link_supervision_timeout_supported();
+RustRawAddress CopyToRustAddress(const RawAddress& address);
+RawAddress CopyFromRustAddress(const RustRawAddress& rust_address);
 
-}  // namespace shim
+}  // namespace rust
+}  // namespace topshim
 }  // namespace bluetooth
+
+#endif  // GD_RUST_TOPSHIM_COMMON_UTILS_H

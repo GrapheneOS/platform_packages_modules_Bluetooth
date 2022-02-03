@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,28 @@
  * limitations under the License.
  */
 
-#pragma once
+#include "gd/rust/topshim/common/utils.h"
 
-#include "device/include/controller.h"
+#include "src/btif.rs.h"
 
-static const char GD_CONTROLLER_MODULE[] = "gd_controller_module";
+using bluetooth::topshim::rust::RustRawAddress;
 
 namespace bluetooth {
-namespace shim {
+namespace topshim {
+namespace rust {
 
-const controller_t* controller_get_interface();
+RustRawAddress CopyToRustAddress(const RawAddress& address) {
+  RustRawAddress raddr;
+  std::copy(std::begin(address.address), std::end(address.address), std::begin(raddr.address));
+  return raddr;
+}
 
-void controller_clear_event_mask();
-bool controller_is_write_link_supervision_timeout_supported();
+RawAddress CopyFromRustAddress(const RustRawAddress& rust_address) {
+  RawAddress addr;
+  addr.FromOctets(rust_address.address.data());
+  return addr;
+}
 
-}  // namespace shim
+}  // namespace rust
+}  // namespace topshim
 }  // namespace bluetooth

@@ -2187,15 +2187,15 @@ bool is_state_getting_name(void* data, void* context) {
 void btm_sec_rmt_name_request_complete(const RawAddress* p_bd_addr,
                                        const uint8_t* p_bd_name,
                                        tHCI_STATUS status) {
-  tBTM_SEC_DEV_REC* p_dev_rec;
+  tBTM_SEC_DEV_REC* p_dev_rec = nullptr;
+
   int i;
-  DEV_CLASS dev_class;
   uint8_t old_sec_state;
 
-  BTM_TRACE_EVENT("btm_sec_rmt_name_request_complete");
   if ((!p_bd_addr &&
        !BTM_IsAclConnectionUp(btm_cb.connecting_bda, BT_TRANSPORT_BR_EDR)) ||
       (p_bd_addr && !BTM_IsAclConnectionUp(*p_bd_addr, BT_TRANSPORT_BR_EDR))) {
+    LOG_WARN("Remote read request complete with no underlying link connection");
     btm_acl_resubmit_page();
   }
 
@@ -2204,41 +2204,41 @@ void btm_sec_rmt_name_request_complete(const RawAddress* p_bd_addr,
   if (p_bd_addr)
     p_dev_rec = btm_find_dev(*p_bd_addr);
   else {
+    LOG_INFO(
+        "Remote read request complete with no address so searching device "
+        "database");
     list_node_t* node =
         list_foreach(btm_cb.sec_dev_rec, is_state_getting_name, NULL);
     if (node != NULL) {
       p_dev_rec = static_cast<tBTM_SEC_DEV_REC*>(list_node(node));
       p_bd_addr = &p_dev_rec->bd_addr;
-    } else {
-      p_dev_rec = NULL;
     }
   }
 
-  /* Commenting out trace due to obf/compilation problems.
-   */
   if (!p_bd_name) p_bd_name = (const uint8_t*)"";
 
-  if (p_dev_rec) {
-    BTM_TRACE_EVENT(
-        "%s PairState: %s  RemName: %s  status: %d State:%d  p_dev_rec: "
-        "0x%08x ",
-        __func__, btm_pair_state_descr(btm_cb.pairing_state), p_bd_name, status,
-        p_dev_rec->sec_state, p_dev_rec);
-  } else {
-    BTM_TRACE_EVENT("%s PairState: %s  RemName: %s  status: %d", __func__,
-                    btm_pair_state_descr(btm_cb.pairing_state), p_bd_name,
-                    status);
-  }
-
-  if (p_dev_rec) {
+  if (p_dev_rec != nullptr) {
     old_sec_state = p_dev_rec->sec_state;
     if (status == HCI_SUCCESS) {
+      LOG_DEBUG(
+          "Remote read request complete for known device pairing_state:%s "
+          "name:%s sec_state:%s",
+          btm_pair_state_descr(btm_cb.pairing_state), p_bd_name,
+          security_state_text(p_dev_rec->sec_state).c_str());
+
       strlcpy((char*)p_dev_rec->sec_bd_name, (const char*)p_bd_name,
               BTM_MAX_REM_BD_NAME_LEN + 1);
       p_dev_rec->sec_flags |= BTM_SEC_NAME_KNOWN;
       BTM_TRACE_EVENT("setting BTM_SEC_NAME_KNOWN sec_flags:0x%x",
                       p_dev_rec->sec_flags);
     } else {
+      LOG_WARN(
+          "Remote read request failed for known device pairing_state:%s "
+          "status:%s name:%s sec_state:%s",
+          btm_pair_state_descr(btm_cb.pairing_state),
+          hci_status_code_text(status).c_str(), p_bd_name,
+          security_state_text(p_dev_rec->sec_state).c_str());
+
       /* Notify all clients waiting for name to be resolved even if it failed so
        * clients can continue */
       p_dev_rec->sec_bd_name[0] = 0;
@@ -2254,9 +2254,12 @@ void btm_sec_rmt_name_request_complete(const RawAddress* p_bd_addr,
                                          p_dev_rec->sec_bd_name);
     }
   } else {
-    dev_class[0] = 0;
-    dev_class[1] = 0;
-    dev_class[2] = 0;
+    LOG_DEBUG(
+        "Remote read request complete for unknown device pairing_state:%s "
+        "status:%s name:%s",
+        btm_pair_state_descr(btm_cb.pairing_state),
+        hci_status_code_text(status).c_str(), p_bd_name);
+    DEV_CLASS dev_class = {0, 0, 0};
 
     /* Notify all clients waiting for name to be resolved even if not found so
      * clients can continue */
