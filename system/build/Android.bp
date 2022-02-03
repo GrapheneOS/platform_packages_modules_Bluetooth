@@ -93,7 +93,6 @@ fluoride_defaults {
         "libbluetooth-types",
         "libbt-platform-protos-lite",
         "libbluetooth_rust_interop",
-        "liblog",
         "libcutils",
     ],
     shared_libs: [
