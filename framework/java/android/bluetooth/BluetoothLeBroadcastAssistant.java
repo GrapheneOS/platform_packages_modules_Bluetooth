@@ -344,8 +344,7 @@ public final class BluetoothLeBroadcastAssistant implements BluetoothProfile {
             android.Manifest.permission.BLUETOOTH_PRIVILEGED,
     })
     @Override
-    @NonNull
-    public List<BluetoothDevice> getConnectedDevices() {
+    public @NonNull List<BluetoothDevice> getConnectedDevices() {
         return Collections.emptyList();
     }
 

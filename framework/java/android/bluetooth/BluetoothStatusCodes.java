@@ -192,6 +192,15 @@ public final class BluetoothStatusCodes {
     public static final int ERROR_ALREADY_IN_TARGET_STATE = 26;
 
     /**
+     * Indicates that the requested operation is not supported by the remote device
+     *
+     * Caller should stop trying this operation
+     * @hide
+     */
+    @SystemApi
+    public static final int ERROR_REMOTE_OPERATION_NOT_SUPPORTED = 24;
+
+    /**
      * A GATT writeCharacteristic request is not permitted on the remote device.
      */
     public static final int ERROR_GATT_WRITE_NOT_ALLOWED = 101;
@@ -391,6 +400,48 @@ public final class BluetoothStatusCodes {
      */
     @SystemApi
     public static final int ERROR_LE_CONTENT_METADATA_INVALID_OTHER = 1206;
+
+    /**
+     * Indicates that provided group ID is invalid for the coordinated set
+     * @hide
+     */
+    @SystemApi
+    public static final int ERROR_CSIP_INVALID_GROUP_ID = 1207;
+
+    /**
+     * Indicating that CSIP group locked failed due to group member being already locked.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int ERROR_CSIP_GROUP_LOCKED_BY_OTHER = 1208;
+
+    /**
+     * Indicating that CSIP device has been lost while being locked.
+     * @hide
+     */
+    @SystemApi
+    public static final int ERROR_CSIP_LOCKED_GROUP_MEMBER_LOST = 1209;
+
+    /**
+     * Indicates that the set preset name is too long.
+     * <p>
+     * Example solution: Try using shorter name.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int ERROR_HAP_PRESET_NAME_TOO_LONG = 1210;
+
+    /**
+     * Indicates that provided preset index parameters is invalid
+     * <p>
+     * Example solution: Use preset index of a known existing preset.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int ERROR_HAP_INVALID_PRESET_INDEX = 1211;
 
     /**
      * Indicates that the RFCOMM listener could not be started due to the requested UUID already
