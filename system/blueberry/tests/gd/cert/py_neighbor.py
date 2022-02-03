@@ -14,8 +14,6 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from datetime import timedelta
-
 from bluetooth_packets_python3 import hci_packets
 from blueberry.tests.gd.cert.event_stream import EventStream
 from blueberry.tests.gd.cert.event_stream import IEventStream
@@ -45,7 +43,7 @@ class GetRemoteNameSession(Closable):
         self.remote_name_stream = EventStream(device.neighbor.GetRemoteNameEvents(empty_proto.Empty()))
 
     def verify_name(self, name):
-        assertThat(self.remote_name_stream).emits(lambda msg: bytes(name) in msg.name, timeout=timedelta(seconds=10))
+        assertThat(self.remote_name_stream).emits(lambda msg: bytes(name) in msg.name)
 
     def close(self):
         safeClose(self.remote_name_stream)
