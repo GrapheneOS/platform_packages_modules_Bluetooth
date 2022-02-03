@@ -106,7 +106,11 @@ void start_audio_ticks() {
   wakelock_acquire();
   audio_timer.SchedulePeriodic(
       worker_thread.GetWeakPtr(), FROM_HERE, base::Bind(&send_audio_data),
+#if BASE_VER < 931007
       base::TimeDelta::FromMicroseconds(source_codec_config.data_interval_us));
+#else
+      base::Microseconds(source_codec_config.data_interval_us));
+#endif
 }
 
 void stop_audio_ticks() {

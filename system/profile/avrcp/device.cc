@@ -565,7 +565,11 @@ void Device::PlaybackPosNotificationResponse(uint8_t label, bool interim,
                                          weak_ptr_factory_.GetWeakPtr()));
     btbase::AbstractMessageLoop::current_task_runner()->PostDelayedTask(
         FROM_HERE, play_pos_update_cb_.callback(),
+#if BASE_VER < 931007
         base::TimeDelta::FromSeconds(play_pos_interval_));
+#else
+        base::Seconds(play_pos_interval_));
+#endif
   }
 }
 
