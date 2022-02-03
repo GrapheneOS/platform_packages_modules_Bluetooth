@@ -2182,8 +2182,7 @@ class BluetoothManagerService extends IBluetoothManager.Stub {
                     try {
                         mBluetoothLock.writeLock().lock();
                         if (msg.arg1 == SERVICE_IBLUETOOTHGATT) {
-                            mBluetoothGatt =
-                                    IBluetoothGatt.Stub.asInterface(Binder.allowBlocking(service));
+                            mBluetoothGatt = IBluetoothGatt.Stub.asInterface(service);
                             continueFromBleOnState();
                             break;
                         } // else must be SERVICE_IBLUETOOTH
