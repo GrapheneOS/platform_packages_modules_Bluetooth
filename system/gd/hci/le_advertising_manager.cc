@@ -329,34 +329,40 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
     set_parameters(id, config);
 
     auto address_policy = le_address_manager_->GetAddressPolicy();
-    if (config.own_address_type == OwnAddressType::RANDOM_DEVICE_ADDRESS) {
-      if (address_policy == LeAddressManager::AddressPolicy::USE_NON_RESOLVABLE_ADDRESS ||
-          address_policy == LeAddressManager::AddressPolicy::USE_RESOLVABLE_ADDRESS) {
-        AddressWithType address_with_type = le_address_manager_->GetAnotherAddress();
-        le_advertising_interface_->EnqueueCommand(
-            hci::LeSetExtendedAdvertisingRandomAddressBuilder::Create(id, address_with_type.GetAddress()),
-            module_handler_->BindOnceOn(
-                this,
-                &impl::on_set_advertising_set_random_address_complete<
-                    LeSetExtendedAdvertisingRandomAddressCompleteView>,
-                id,
-                address_with_type));
+    switch (config.own_address_type) {
+      case OwnAddressType::RANDOM_DEVICE_ADDRESS:
+        if (address_policy == LeAddressManager::AddressPolicy::USE_NON_RESOLVABLE_ADDRESS ||
+            address_policy == LeAddressManager::AddressPolicy::USE_RESOLVABLE_ADDRESS) {
+          AddressWithType address_with_type = le_address_manager_->GetAnotherAddress();
+          le_advertising_interface_->EnqueueCommand(
+              hci::LeSetExtendedAdvertisingRandomAddressBuilder::Create(id, address_with_type.GetAddress()),
+              module_handler_->BindOnceOn(
+                  this,
+                  &impl::on_set_advertising_set_random_address_complete<
+                      LeSetExtendedAdvertisingRandomAddressCompleteView>,
+                  id,
+                  address_with_type));
 
-        // start timer for random address
-        advertising_sets_[id].address_rotation_alarm = std::make_unique<os::Alarm>(module_handler_);
-        advertising_sets_[id].address_rotation_alarm->Schedule(
-            common::BindOnce(&impl::set_advertising_set_random_address, common::Unretained(this), id),
-            le_address_manager_->GetNextPrivateAddressIntervalMs());
-      } else {
-        advertising_sets_[id].current_address = le_address_manager_->GetCurrentAddress();
-        le_advertising_interface_->EnqueueCommand(
-            hci::LeSetExtendedAdvertisingRandomAddressBuilder::Create(
-                id, advertising_sets_[id].current_address.GetAddress()),
-            module_handler_->BindOnce(impl::check_status<LeSetExtendedAdvertisingRandomAddressCompleteView>));
-      }
-    } else {
-      advertising_sets_[id].current_address =
-          AddressWithType(controller_->GetMacAddress(), AddressType::PUBLIC_DEVICE_ADDRESS);
+          // start timer for random address
+          advertising_sets_[id].address_rotation_alarm = std::make_unique<os::Alarm>(module_handler_);
+          advertising_sets_[id].address_rotation_alarm->Schedule(
+              common::BindOnce(&impl::set_advertising_set_random_address, common::Unretained(this), id),
+              le_address_manager_->GetNextPrivateAddressIntervalMs());
+        } else {
+          advertising_sets_[id].current_address = le_address_manager_->GetCurrentAddress();
+          le_advertising_interface_->EnqueueCommand(
+              hci::LeSetExtendedAdvertisingRandomAddressBuilder::Create(
+                  id, advertising_sets_[id].current_address.GetAddress()),
+              module_handler_->BindOnce(impl::check_status<LeSetExtendedAdvertisingRandomAddressCompleteView>));
+        }
+        break;
+      case OwnAddressType::PUBLIC_DEVICE_ADDRESS:
+        advertising_sets_[id].current_address =
+            AddressWithType(controller_->GetMacAddress(), AddressType::PUBLIC_DEVICE_ADDRESS);
+        break;
+      default:
+        // For resolvable address types, set the Peer address and type, and the controller generates the address.
+        LOG_ALWAYS_FATAL("Unsupported Advertising Type %s", OwnAddressTypeText(config.own_address_type).c_str());
     }
     if (config.advertising_type == AdvertisingType::ADV_IND ||
         config.advertising_type == AdvertisingType::ADV_NONCONN_IND) {
