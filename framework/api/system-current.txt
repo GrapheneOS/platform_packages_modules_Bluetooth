@@ -191,6 +191,183 @@ package android.bluetooth {
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public int getAudioLocation(@NonNull android.bluetooth.BluetoothDevice);
   }
 
+  public final class BluetoothLeAudioCodecConfigMetadata implements android.os.Parcelable {
+    method @NonNull public static android.bluetooth.BluetoothLeAudioCodecConfigMetadata fromRawBytes(@NonNull byte[]);
+    method public long getAudioLocation();
+    method @NonNull public byte[] getRawMetadata();
+    field @NonNull public static final android.os.Parcelable.Creator<android.bluetooth.BluetoothLeAudioCodecConfigMetadata> CREATOR;
+  }
+
+  public static final class BluetoothLeAudioCodecConfigMetadata.Builder {
+    ctor public BluetoothLeAudioCodecConfigMetadata.Builder();
+    ctor public BluetoothLeAudioCodecConfigMetadata.Builder(@NonNull android.bluetooth.BluetoothLeAudioCodecConfigMetadata);
+    method @NonNull public android.bluetooth.BluetoothLeAudioCodecConfigMetadata build();
+    method @NonNull public android.bluetooth.BluetoothLeAudioCodecConfigMetadata.Builder setAudioLocation(long);
+  }
+
+  public final class BluetoothLeAudioContentMetadata implements android.os.Parcelable {
+    method @NonNull public static android.bluetooth.BluetoothLeAudioContentMetadata fromRawBytes(@NonNull byte[]);
+    method @Nullable public String getLanguage();
+    method @Nullable public String getProgramInfo();
+    method @NonNull public byte[] getRawMetadata();
+    field @NonNull public static final android.os.Parcelable.Creator<android.bluetooth.BluetoothLeAudioContentMetadata> CREATOR;
+  }
+
+  public static final class BluetoothLeAudioContentMetadata.Builder {
+    ctor public BluetoothLeAudioContentMetadata.Builder();
+    ctor public BluetoothLeAudioContentMetadata.Builder(@NonNull android.bluetooth.BluetoothLeAudioContentMetadata);
+    method @NonNull public android.bluetooth.BluetoothLeAudioContentMetadata build();
+    method @NonNull public android.bluetooth.BluetoothLeAudioContentMetadata.Builder setLanguage(@Nullable String);
+    method @NonNull public android.bluetooth.BluetoothLeAudioContentMetadata.Builder setProgramInfo(@Nullable String);
+  }
+
+  public final class BluetoothLeBroadcast implements java.lang.AutoCloseable android.bluetooth.BluetoothProfile {
+    method @NonNull @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public java.util.List<android.bluetooth.BluetoothLeBroadcastMetadata> getAllBroadcastMetadata();
+    method @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED) public int getMaximumNumberOfBroadcast();
+    method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public boolean isPlaying(int);
+    method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public void registerCallback(@NonNull java.util.concurrent.Executor, @NonNull android.bluetooth.BluetoothLeBroadcast.Callback);
+    method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public void startBroadcast(@NonNull android.bluetooth.BluetoothLeAudioContentMetadata, @Nullable byte[]);
+    method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public void stopBroadcast(int);
+    method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public void unregisterCallback(@NonNull android.bluetooth.BluetoothLeBroadcast.Callback);
+    method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public void updateBroadcast(int, @NonNull android.bluetooth.BluetoothLeAudioContentMetadata);
+  }
+
+  public static interface BluetoothLeBroadcast.Callback {
+    method public void onBroadcastMetadataChanged(int, @NonNull android.bluetooth.BluetoothLeBroadcastMetadata);
+    method public void onBroadcastStartFailed(int);
+    method public void onBroadcastStarted(int, int);
+    method public void onBroadcastStopFailed(int);
+    method public void onBroadcastStopped(int, int);
+    method public void onBroadcastUpdateFailed(int, int);
+    method public void onBroadcastUpdated(int, int);
+    method public void onPlaybackStarted(int, int);
+    method public void onPlaybackStopped(int, int);
+  }
+
+  public final class BluetoothLeBroadcastAssistant implements android.bluetooth.BluetoothProfile {
+    method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public void addSource(@NonNull android.bluetooth.BluetoothDevice, @NonNull android.bluetooth.BluetoothLeBroadcastMetadata, boolean);
+    method @NonNull @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public java.util.List<android.bluetooth.BluetoothLeBroadcastReceiveState> getAllSources(@NonNull android.bluetooth.BluetoothDevice);
+    method @NonNull @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public java.util.List<android.bluetooth.BluetoothDevice> getConnectedDevices();
+    method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public int getConnectionPolicy(@NonNull android.bluetooth.BluetoothDevice);
+    method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public int getConnectionState(@NonNull android.bluetooth.BluetoothDevice);
+    method @NonNull @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public java.util.List<android.bluetooth.BluetoothDevice> getDevicesMatchingConnectionStates(@NonNull int[]);
+    method public int getMaximumSourceCapacity(@NonNull android.bluetooth.BluetoothDevice);
+    method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public boolean isSearchInProgress();
+    method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public void modifySource(@NonNull android.bluetooth.BluetoothDevice, int, @NonNull android.bluetooth.BluetoothLeBroadcastMetadata);
+    method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public void registerCallback(@NonNull java.util.concurrent.Executor, @NonNull android.bluetooth.BluetoothLeBroadcastAssistant.Callback);
+    method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public void removeSource(@NonNull android.bluetooth.BluetoothDevice, int);
+    method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public boolean setConnectionPolicy(@NonNull android.bluetooth.BluetoothDevice, int);
+    method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_SCAN, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public void startSearchingForSources(@NonNull java.util.List<android.bluetooth.le.ScanFilter>);
+    method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public void stopSearchingForSources();
+    method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public void unregisterCallback(@NonNull android.bluetooth.BluetoothLeBroadcastAssistant.Callback);
+    field @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public static final String ACTION_CONNECTION_STATE_CHANGED = "android.bluetooth.action.CONNECTION_STATE_CHANGED";
+  }
+
+  public static interface BluetoothLeBroadcastAssistant.Callback {
+    method public void onReceiveStateChanged(@NonNull android.bluetooth.BluetoothDevice, int, @NonNull android.bluetooth.BluetoothLeBroadcastReceiveState);
+    method public void onSearchStartFailed(int);
+    method public void onSearchStarted(int);
+    method public void onSearchStopFailed(int);
+    method public void onSearchStopped(int);
+    method public void onSourceAddFailed(@NonNull android.bluetooth.BluetoothDevice, @NonNull android.bluetooth.BluetoothLeBroadcastMetadata, int);
+    method public void onSourceAdded(@NonNull android.bluetooth.BluetoothDevice, int, int);
+    method public void onSourceFound(@NonNull android.bluetooth.BluetoothLeBroadcastMetadata);
+    method public void onSourceModified(@NonNull android.bluetooth.BluetoothDevice, int, int);
+    method public void onSourceModifyFailed(@NonNull android.bluetooth.BluetoothDevice, int, int);
+    method public void onSourceRemoveFailed(@NonNull android.bluetooth.BluetoothDevice, int, int);
+    method public void onSourceRemoved(@NonNull android.bluetooth.BluetoothDevice, int, int);
+  }
+
+  public final class BluetoothLeBroadcastChannel implements android.os.Parcelable {
+    method public int getChannelIndex();
+    method @NonNull public android.bluetooth.BluetoothLeAudioCodecConfigMetadata getCodecMetadata();
+    method public boolean isSelected();
+    field @NonNull public static final android.os.Parcelable.Creator<android.bluetooth.BluetoothLeBroadcastChannel> CREATOR;
+  }
+
+  public static final class BluetoothLeBroadcastChannel.Builder {
+    ctor public BluetoothLeBroadcastChannel.Builder();
+    ctor public BluetoothLeBroadcastChannel.Builder(@NonNull android.bluetooth.BluetoothLeBroadcastChannel);
+    method @NonNull public android.bluetooth.BluetoothLeBroadcastChannel build();
+    method @NonNull public android.bluetooth.BluetoothLeBroadcastChannel.Builder setChannelIndex(int);
+    method @NonNull public android.bluetooth.BluetoothLeBroadcastChannel.Builder setCodecMetadata(@NonNull android.bluetooth.BluetoothLeAudioCodecConfigMetadata);
+    method @NonNull public android.bluetooth.BluetoothLeBroadcastChannel.Builder setSelected(boolean);
+  }
+
+  public final class BluetoothLeBroadcastMetadata implements android.os.Parcelable {
+    method @Nullable public byte[] getBroadcastCode();
+    method public int getBroadcastId();
+    method public int getPaSyncInterval();
+    method @IntRange(from=0, to=16777215) public int getPresentationDelayMicros();
+    method public int getSourceAddressType();
+    method public int getSourceAdvertisingSid();
+    method @Nullable public android.bluetooth.BluetoothDevice getSourceDevice();
+    method @NonNull public java.util.List<android.bluetooth.BluetoothLeBroadcastSubgroup> getSubgroups();
+    method public boolean isEncrypted();
+    field @NonNull public static final android.os.Parcelable.Creator<android.bluetooth.BluetoothLeBroadcastMetadata> CREATOR;
+    field public static final int PA_SYNC_INTERVAL_UNKNOWN = 65535; // 0xffff
+  }
+
+  public static final class BluetoothLeBroadcastMetadata.Builder {
+    ctor public BluetoothLeBroadcastMetadata.Builder();
+    ctor public BluetoothLeBroadcastMetadata.Builder(@NonNull android.bluetooth.BluetoothLeBroadcastMetadata);
+    method @NonNull public android.bluetooth.BluetoothLeBroadcastMetadata.Builder addSubgroup(@NonNull android.bluetooth.BluetoothLeBroadcastSubgroup);
+    method @NonNull public android.bluetooth.BluetoothLeBroadcastMetadata build();
+    method @NonNull public android.bluetooth.BluetoothLeBroadcastMetadata.Builder clearSubgroup();
+    method @NonNull public android.bluetooth.BluetoothLeBroadcastMetadata.Builder setBroadcastCode(@Nullable byte[]);
+    method @NonNull public android.bluetooth.BluetoothLeBroadcastMetadata.Builder setBroadcastId(int);
+    method @NonNull public android.bluetooth.BluetoothLeBroadcastMetadata.Builder setEncrypted(boolean);
+    method @NonNull public android.bluetooth.BluetoothLeBroadcastMetadata.Builder setPaSyncInterval(int);
+    method @NonNull public android.bluetooth.BluetoothLeBroadcastMetadata.Builder setPresentationDelayMicros(@IntRange(from=0, to=16777215) int);
+    method @NonNull public android.bluetooth.BluetoothLeBroadcastMetadata.Builder setSourceAdvertisingSid(int);
+    method @NonNull public android.bluetooth.BluetoothLeBroadcastMetadata.Builder setSourceDevice(@Nullable android.bluetooth.BluetoothDevice, int);
+  }
+
+  public final class BluetoothLeBroadcastReceiveState implements android.os.Parcelable {
+    method @Nullable public byte[] getBadCode();
+    method public int getBigEncryptionState();
+    method @NonNull public java.util.List<java.lang.Long> getBisSyncState();
+    method public int getBroadcastId();
+    method public int getNumSubgroups();
+    method public int getPaSyncState();
+    method public int getSourceAddressType();
+    method public int getSourceAdvertisingSid();
+    method @NonNull public android.bluetooth.BluetoothDevice getSourceDevice();
+    method @IntRange(from=0, to=255) public int getSourceId();
+    method @NonNull public java.util.List<android.bluetooth.BluetoothLeAudioContentMetadata> getSubgroupMetadata();
+    field public static final int BIG_ENCRYPTION_STATE_BAD_CODE = 3; // 0x3
+    field public static final int BIG_ENCRYPTION_STATE_CODE_REQUIRED = 1; // 0x1
+    field public static final int BIG_ENCRYPTION_STATE_DECRYPTING = 2; // 0x2
+    field public static final int BIG_ENCRYPTION_STATE_NOT_ENCRYPTED = 0; // 0x0
+    field @NonNull public static final android.os.Parcelable.Creator<android.bluetooth.BluetoothLeBroadcastReceiveState> CREATOR;
+    field public static final int PA_SYNC_STATE_FAILED_TO_SYNCHRONIZE = 3; // 0x3
+    field public static final int PA_SYNC_STATE_IDLE = 0; // 0x0
+    field public static final int PA_SYNC_STATE_NO_PAST = 4; // 0x4
+    field public static final int PA_SYNC_STATE_SYNCHRONIZED = 2; // 0x2
+    field public static final int PA_SYNC_STATE_SYNCINFO_REQUEST = 1; // 0x1
+  }
+
+  public final class BluetoothLeBroadcastSubgroup implements android.os.Parcelable {
+    method @NonNull public java.util.List<android.bluetooth.BluetoothLeBroadcastChannel> getChannels();
+    method public long getCodecId();
+    method @NonNull public android.bluetooth.BluetoothLeAudioCodecConfigMetadata getCodecSpecificConfig();
+    method @NonNull public android.bluetooth.BluetoothLeAudioContentMetadata getContentMetadata();
+    method public boolean isNoChannelPreference();
+    field @NonNull public static final android.os.Parcelable.Creator<android.bluetooth.BluetoothLeBroadcastSubgroup> CREATOR;
+  }
+
+  public static final class BluetoothLeBroadcastSubgroup.Builder {
+    ctor public BluetoothLeBroadcastSubgroup.Builder();
+    ctor public BluetoothLeBroadcastSubgroup.Builder(@NonNull android.bluetooth.BluetoothLeBroadcastSubgroup);
+    method @NonNull public android.bluetooth.BluetoothLeBroadcastSubgroup.Builder addChannel(@NonNull android.bluetooth.BluetoothLeBroadcastChannel);
+    method @NonNull public android.bluetooth.BluetoothLeBroadcastSubgroup build();
+    method @NonNull public android.bluetooth.BluetoothLeBroadcastSubgroup.Builder clearChannel();
+    method @NonNull public android.bluetooth.BluetoothLeBroadcastSubgroup.Builder setCodecId(long);
+    method @NonNull public android.bluetooth.BluetoothLeBroadcastSubgroup.Builder setCodecSpecificConfig(@NonNull android.bluetooth.BluetoothLeAudioCodecConfigMetadata);
+    method @NonNull public android.bluetooth.BluetoothLeBroadcastSubgroup.Builder setContentMetadata(@NonNull android.bluetooth.BluetoothLeAudioContentMetadata);
+    method @NonNull public android.bluetooth.BluetoothLeBroadcastSubgroup.Builder setNoChannelPreference(boolean);
+  }
+
   public final class BluetoothMap implements java.lang.AutoCloseable android.bluetooth.BluetoothProfile {
     method public void close();
     method protected void finalize();
@@ -251,6 +428,8 @@ package android.bluetooth {
     field public static final int CONNECTION_POLICY_FORBIDDEN = 0; // 0x0
     field public static final int CONNECTION_POLICY_UNKNOWN = -1; // 0xffffffff
     field public static final int HEADSET_CLIENT = 16; // 0x10
+    field public static final int LE_AUDIO_BROADCAST = 26; // 0x1a
+    field public static final int LE_AUDIO_BROADCAST_ASSISTANT = 29; // 0x1d
     field public static final int MAP_CLIENT = 18; // 0x12
     field public static final int PAN = 5; // 0x5
     field public static final int PBAP_CLIENT = 17; // 0x11
@@ -261,9 +440,27 @@ package android.bluetooth {
 
   public final class BluetoothStatusCodes {
     field public static final int ALLOWED = 400; // 0x190
+    field public static final int ERROR_ALREADY_IN_TARGET_STATE = 26; // 0x1a
     field public static final int ERROR_ANOTHER_ACTIVE_OOB_REQUEST = 1000; // 0x3e8
+    field public static final int ERROR_BAD_PARAMETERS = 21; // 0x15
+    field public static final int ERROR_HARDWARE_GENERIC = 20; // 0x14
+    field public static final int ERROR_LE_BROADCAST_ASSISTANT_DUPLICATE_ADDITION = 1203; // 0x4b3
+    field public static final int ERROR_LE_BROADCAST_ASSISTANT_INVALID_SOURCE_ID = 1202; // 0x4b2
+    field public static final int ERROR_LE_BROADCAST_INVALID_BROADCAST_ID = 1200; // 0x4b0
+    field public static final int ERROR_LE_BROADCAST_INVALID_CODE = 1201; // 0x4b1
+    field public static final int ERROR_LE_CONTENT_METADATA_INVALID_LANGUAGE = 1205; // 0x4b5
+    field public static final int ERROR_LE_CONTENT_METADATA_INVALID_OTHER = 1206; // 0x4b6
+    field public static final int ERROR_LE_CONTENT_METADATA_INVALID_PROGRAM_INFO = 1204; // 0x4b4
+    field public static final int ERROR_LOCAL_NOT_ENOUGH_RESOURCES = 22; // 0x16
+    field public static final int ERROR_REMOTE_LINK_ERROR = 25; // 0x19
+    field public static final int ERROR_REMOTE_NOT_ENOUGH_RESOURCES = 23; // 0x17
+    field public static final int ERROR_REMOTE_OPERATION_REJECTED = 24; // 0x18
     field public static final int ERROR_TIMEOUT = 15; // 0xf
     field public static final int NOT_ALLOWED = 401; // 0x191
+    field public static final int REASON_LOCAL_APP_REQUEST = 16; // 0x10
+    field public static final int REASON_LOCAL_STACK_REQUEST = 17; // 0x11
+    field public static final int REASON_REMOTE_REQUEST = 18; // 0x12
+    field public static final int REASON_SYSTEM_POLICY = 19; // 0x13
     field public static final int RFCOMM_LISTENER_FAILED_TO_CLOSE_SERVER_SOCKET = 2004; // 0x7d4
     field public static final int RFCOMM_LISTENER_FAILED_TO_CREATE_SERVER_SOCKET = 2003; // 0x7d3
     field public static final int RFCOMM_LISTENER_NO_SOCKET_AVAILABLE = 2005; // 0x7d5
