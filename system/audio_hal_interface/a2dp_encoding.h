@@ -43,6 +43,9 @@ void cleanup();
 // Set up the codec into BluetoothAudio HAL
 bool setup_codec();
 
+// Set low latency buffer mode allowed or disallowed
+bool set_audio_low_latency_mode_allowed(bool allowed);
+
 // Send command to the BluetoothAudio HAL: StartSession, EndSession,
 // StreamStarted, StreamSuspended
 void start_session();
