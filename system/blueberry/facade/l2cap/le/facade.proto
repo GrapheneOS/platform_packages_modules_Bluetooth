@@ -1,9 +1,9 @@
 syntax = "proto3";
 
-package bluetooth.l2cap.le;
+package blueberry.facade.l2cap.le;
 
 import "google/protobuf/empty.proto";
-import "facade/common.proto";
+import "blueberry/facade/common.proto";
 
 service L2capLeModuleFacade {
   rpc FetchL2capData(google.protobuf.Empty) returns (stream L2capPacket) {}
@@ -31,7 +31,7 @@ message DynamicChannelOpenEvent {
 }
 
 message OpenDynamicChannelRequest {
-  facade.BluetoothAddressWithType remote = 1;
+  blueberry.facade.BluetoothAddressWithType remote = 1;
   uint32 psm = 2;
 }
 
@@ -40,7 +40,7 @@ message OpenDynamicChannelResponse {
 }
 
 message CloseDynamicChannelRequest {
-  facade.BluetoothAddressWithType remote = 1;
+  blueberry.facade.BluetoothAddressWithType remote = 1;
   uint32 psm = 2;
 }
 
@@ -59,7 +59,7 @@ message SetEnableDynamicChannelRequest {
 }
 
 message DynamicChannelPacket {
-  facade.BluetoothAddressWithType remote = 1;
+  blueberry.facade.BluetoothAddressWithType remote = 1;
   uint32 psm = 2;
   bytes payload = 3;
 }
@@ -70,7 +70,7 @@ message SetEnableFixedChannelRequest {
 }
 
 message FixedChannelPacket {
-  facade.BluetoothAddressWithType remote = 1;
+  blueberry.facade.BluetoothAddressWithType remote = 1;
   uint32 cid = 2;
   bytes payload = 3;
 }

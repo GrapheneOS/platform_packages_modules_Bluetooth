@@ -24,15 +24,9 @@ from blueberry.tests.gd.cert.event_stream import EventStream
 from blueberry.tests.gd.cert.matchers import SecurityMatchers
 from blueberry.tests.gd.cert.truth import assertThat
 from datetime import timedelta
-from facade import common_pb2 as common
 from google.protobuf import empty_pb2 as empty_proto
-from security.facade_pb2 import IoCapabilityMessage
-from security.facade_pb2 import AuthenticationRequirementsMessage
-from security.facade_pb2 import LeAuthRequirementsMessage
-from security.facade_pb2 import OobDataPresentMessage
-from security.facade_pb2 import UiCallbackMsg
-from security.facade_pb2 import UiCallbackType
-from security.facade_pb2 import HelperMsgType
+from blueberry.facade.security.facade_pb2 import LeAuthRequirementsMessage
+from blueberry.facade.security.facade_pb2 import HelperMsgType
 
 
 class PyLeSecurity(Closable):

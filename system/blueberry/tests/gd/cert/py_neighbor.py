@@ -21,8 +21,8 @@ from blueberry.tests.gd.cert.closable import Closable
 from blueberry.tests.gd.cert.closable import safeClose
 from blueberry.tests.gd.cert.truth import assertThat
 from google.protobuf import empty_pb2 as empty_proto
-from hci.facade import hci_facade_pb2 as hci_facade
-from neighbor.facade import facade_pb2 as neighbor_facade
+from blueberry.facade.hci import hci_facade_pb2 as hci_facade
+from blueberry.facade.neighbor import facade_pb2 as neighbor_facade
 
 
 class InquirySession(Closable, IEventStream):

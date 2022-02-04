@@ -16,26 +16,23 @@
 
 import logging
 
-from bluetooth_packets_python3 import hci_packets
 from blueberry.tests.gd.cert.closable import Closable
 from blueberry.tests.gd.cert.closable import safeClose
 from blueberry.tests.gd.cert.event_stream import EventStream
 from blueberry.tests.gd.cert.truth import assertThat
-from facade import common_pb2 as common
+from blueberry.facade import common_pb2 as common
 from google.protobuf import empty_pb2 as empty_proto
 
-from security.facade_pb2 import AuthenticationRequirements
-from security.facade_pb2 import AuthenticationRequirementsMessage
-from security.facade_pb2 import BondMsgType
-from security.facade_pb2 import SecurityPolicyMessage
-from security.facade_pb2 import IoCapabilities
-from security.facade_pb2 import IoCapabilityMessage
-from security.facade_pb2 import OobDataBondMessage
-from security.facade_pb2 import OobDataMessage
-from security.facade_pb2 import OobDataPresentMessage
-from security.facade_pb2 import UiMsgType
-from security.facade_pb2 import UiCallbackMsg
-from security.facade_pb2 import UiCallbackType
+from blueberry.facade.security.facade_pb2 import AuthenticationRequirements
+from blueberry.facade.security.facade_pb2 import AuthenticationRequirementsMessage
+from blueberry.facade.security.facade_pb2 import SecurityPolicyMessage
+from blueberry.facade.security.facade_pb2 import IoCapabilities
+from blueberry.facade.security.facade_pb2 import IoCapabilityMessage
+from blueberry.facade.security.facade_pb2 import OobDataBondMessage
+from blueberry.facade.security.facade_pb2 import OobDataMessage
+from blueberry.facade.security.facade_pb2 import UiMsgType
+from blueberry.facade.security.facade_pb2 import UiCallbackMsg
+from blueberry.facade.security.facade_pb2 import UiCallbackType
 
 
 class PySecurity(Closable):

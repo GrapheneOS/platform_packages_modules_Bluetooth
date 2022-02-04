@@ -16,7 +16,6 @@
 
 import encodings
 import logging
-import re
 import shlex
 import shutil
 
