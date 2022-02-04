@@ -35,6 +35,11 @@
 #include "types/raw_address.h"
 
 static const tBTA_SYS_REG bta_pan_reg = {bta_pan_hdl_event, BTA_PanDisable};
+void bta_pan_api_disable(tBTA_PAN_DATA* p_data);
+void bta_pan_api_enable(tBTA_PAN_DATA* p_data);
+void bta_pan_api_open(tBTA_PAN_DATA* p_data);
+void bta_pan_sm_execute(tBTA_PAN_SCB* p_scb, uint16_t event,
+                        tBTA_PAN_DATA* p_data);
 
 std::string user_service_name; /* Service name for PANU role */
 std::string gn_service_name;   /* Service name for GN role */
