@@ -20,7 +20,7 @@
 
 #include <memory>
 
-#include "facade/rootservice.grpc.pb.h"
+#include "blueberry/facade/rootservice.grpc.pb.h"
 #include "grpc/grpc_module.h"
 
 namespace bluetooth {

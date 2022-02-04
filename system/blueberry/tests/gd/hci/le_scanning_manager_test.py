@@ -14,8 +14,6 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import os
-import sys
 import logging
 
 from bluetooth_packets_python3 import hci_packets
@@ -24,15 +22,15 @@ from blueberry.tests.gd.cert.event_stream import EventStream
 from blueberry.tests.gd.cert.matchers import ScanningMatchers
 from blueberry.tests.gd.cert.truth import assertThat
 from blueberry.tests.gd.cert import gd_base_test
-from facade import common_pb2 as common
-from facade import rootservice_pb2 as facade_rootservice
+from blueberry.facade import common_pb2 as common
+from blueberry.facade import rootservice_pb2 as facade_rootservice
 from google.protobuf import empty_pb2 as empty_proto
-from hci.facade import hci_facade_pb2 as hci_facade
-from hci.facade import le_scanning_manager_facade_pb2 as le_scanning_facade
-from hci.facade import le_advertising_manager_facade_pb2 as le_advertising_facade
-from hci.facade import le_initiator_address_facade_pb2 as le_initiator_address_facade
-from hci.facade.le_scanning_manager_facade_pb2 import ScanningCallbackMsgType
-from hci.facade.le_scanning_manager_facade_pb2 import ScanningStatus
+from blueberry.facade.hci import hci_facade_pb2 as hci_facade
+from blueberry.facade.hci import le_scanning_manager_facade_pb2 as le_scanning_facade
+from blueberry.facade.hci import le_advertising_manager_facade_pb2 as le_advertising_facade
+from blueberry.facade.hci import le_initiator_address_facade_pb2 as le_initiator_address_facade
+from blueberry.facade.hci.le_scanning_manager_facade_pb2 import ScanningCallbackMsgType
+from blueberry.facade.hci.le_scanning_manager_facade_pb2 import ScanningStatus
 from mobly import test_runner
 
 

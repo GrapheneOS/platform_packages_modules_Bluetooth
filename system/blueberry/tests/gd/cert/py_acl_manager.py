@@ -22,7 +22,7 @@ from blueberry.tests.gd.cert.closable import Closable
 from blueberry.tests.gd.cert.closable import safeClose
 from bluetooth_packets_python3 import hci_packets
 from blueberry.tests.gd.cert.truth import assertThat
-from hci.facade import acl_manager_facade_pb2 as acl_manager_facade
+from blueberry.facade.hci import acl_manager_facade_pb2 as acl_manager_facade
 
 
 class PyAclManagerAclConnection(IEventStream, Closable):
