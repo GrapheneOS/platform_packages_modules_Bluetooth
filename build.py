@@ -99,6 +99,7 @@ REQUIRED_APT_PACKAGES = [
     'generate-ninja',
     'gnupg',
     'gperf',
+    'libc++abi-dev',
     'libc++-dev',
     'libdbus-1-dev',
     'libevent-dev',
