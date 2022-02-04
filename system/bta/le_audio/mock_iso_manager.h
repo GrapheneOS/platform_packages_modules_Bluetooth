@@ -26,6 +26,9 @@ struct MockIsoManager {
   static MockIsoManager* GetInstance();
 
   MockIsoManager() = default;
+  MockIsoManager(const MockIsoManager&) = delete;
+  MockIsoManager& operator=(const MockIsoManager&) = delete;
+
   virtual ~MockIsoManager() = default;
 
   MOCK_METHOD((void), RegisterCigCallbacks,
@@ -68,7 +71,4 @@ struct MockIsoManager {
 
   MOCK_METHOD((void), Start, ());
   MOCK_METHOD((void), Stop, ());
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(MockIsoManager);
 };

@@ -52,6 +52,9 @@ RawAddress GetTestAddress(int index) {
 class MockGroupsCallbacks : public DeviceGroupsCallbacks {
  public:
   MockGroupsCallbacks() = default;
+  MockGroupsCallbacks(const MockGroupsCallbacks&) = delete;
+  MockGroupsCallbacks& operator=(const MockGroupsCallbacks&) = delete;
+
   ~MockGroupsCallbacks() override = default;
 
   MOCK_METHOD((void), OnGroupAdded,
@@ -69,9 +72,6 @@ class MockGroupsCallbacks : public DeviceGroupsCallbacks {
               (const RawAddress& address, const bluetooth::Uuid& uuid,
                int group_id),
               (override));
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(MockGroupsCallbacks);
 };
 
 class GroupsTest : public ::testing::Test {

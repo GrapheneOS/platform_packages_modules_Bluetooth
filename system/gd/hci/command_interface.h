@@ -28,8 +28,10 @@ template <typename T>
 class CommandInterface {
  public:
   CommandInterface() = default;
+  CommandInterface(const CommandInterface&) = delete;
+  CommandInterface& operator=(const CommandInterface&) = delete;
+
   virtual ~CommandInterface() = default;
-  DISALLOW_COPY_AND_ASSIGN(CommandInterface);
 
   virtual void EnqueueCommand(std::unique_ptr<T> command,
                               common::ContextualOnceCallback<void(CommandCompleteView)> on_complete) = 0;

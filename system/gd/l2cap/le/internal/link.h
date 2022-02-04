@@ -49,6 +49,9 @@ class Link : public l2cap::internal::ILink, public hci::acl_manager::LeConnectio
        DynamicChannelServiceManagerImpl* dynamic_service_manager, FixedChannelServiceManagerImpl* fixed_service_manager,
        LinkManager* link_manager);
 
+  Link(const Link&) = delete;
+  Link& operator=(const Link&) = delete;
+
   ~Link() = default;
 
   inline hci::AddressWithType GetDevice() const override {
@@ -170,7 +173,6 @@ class Link : public l2cap::internal::ILink, public hci::acl_manager::LeConnectio
   uint16_t update_request_latency_;
   uint16_t update_request_supervision_timeout_;
   std::atomic_int remaining_packets_to_be_sent_ = 0;
-  DISALLOW_COPY_AND_ASSIGN(Link);
 
   // Received connection update complete from ACL manager. SignalId is bound to a valid number when we need to send a
   // response to remote. If SignalId is bound to an invalid number, we don't send a response to remote, because the

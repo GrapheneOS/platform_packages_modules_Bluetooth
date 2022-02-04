@@ -41,6 +41,9 @@ class BluetoothTest : public ::testing::Test,
                       public bluetooth::hal::BluetoothInterface::Observer {
  protected:
   BluetoothTest() = default;
+  BluetoothTest(const BluetoothTest&) = delete;
+  BluetoothTest& operator=(const BluetoothTest&) = delete;
+
   virtual ~BluetoothTest() = default;
 
   // Getter for the bt_interface
@@ -115,8 +118,6 @@ class BluetoothTest : public ::testing::Test,
   bt_discovery_state_t discovery_state_;
   bt_acl_state_t acl_state_;
   bt_bond_state_t bond_state_;
-
-  DISALLOW_COPY_AND_ASSIGN(BluetoothTest);
 };
 
 }  // bttest

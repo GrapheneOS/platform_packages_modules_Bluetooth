@@ -19,7 +19,6 @@
 #include <string>
 #include <vector>
 
-#include <base/macros.h>
 #include <utils/String16.h>
 #include <utils/Vector.h>
 
@@ -66,6 +65,10 @@ class BluetoothBinderServer : public BnBluetooth,
                               public bluetooth::Adapter::Observer {
  public:
   explicit BluetoothBinderServer(bluetooth::Adapter* adapter);
+
+  BluetoothBinderServer(const BluetoothBinderServer&) = delete;
+  BluetoothBinderServer& operator=(const BluetoothBinderServer&) = delete;
+
   ~BluetoothBinderServer() override;
 
   // IBluetooth overrides:
@@ -188,8 +191,6 @@ class BluetoothBinderServer : public BnBluetooth,
   // The IBluetoothAvrcpTarget interface handle. This is lazily initialized on
   // the first call to GetAvrcpTargetInterface().
   android::sp<BluetoothAvrcpTargetBinderServer> avrcp_target_interface_;
-
-  DISALLOW_COPY_AND_ASSIGN(BluetoothBinderServer);
 };
 
 }  // namespace binder

@@ -16,7 +16,6 @@
 
 #pragma once
 
-#include <base/macros.h>
 #include <hardware/bluetooth.h>
 #include <hardware/bt_av.h>
 
@@ -90,10 +89,10 @@ class BluetoothAvInterface {
 
  protected:
   BluetoothAvInterface() = default;
-  virtual ~BluetoothAvInterface() = default;
+  BluetoothAvInterface(const BluetoothAvInterface&) = delete;
+  BluetoothAvInterface& operator=(const BluetoothAvInterface&) = delete;
 
- private:
-  DISALLOW_COPY_AND_ASSIGN(BluetoothAvInterface);
+  virtual ~BluetoothAvInterface() = default;
 };
 
 }  // namespace hal

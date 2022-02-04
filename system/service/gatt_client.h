@@ -19,7 +19,6 @@
 #include <mutex>
 #include <unordered_map>
 
-#include <base/macros.h>
 #include <bluetooth/uuid.h>
 
 #include "service/bluetooth_instance.h"
@@ -32,6 +31,9 @@ namespace bluetooth {
 // obtained through the factory.
 class GattClient : public BluetoothInstance {
  public:
+  GattClient(const GattClient&) = delete;
+  GattClient& operator=(const GattClient&) = delete;
+
   ~GattClient() override;
 
   // BluetoothClientInstace overrides:
@@ -48,8 +50,6 @@ class GattClient : public BluetoothInstance {
   // See getters above for documentation.
   Uuid app_identifier_;
   int client_id_;
-
-  DISALLOW_COPY_AND_ASSIGN(GattClient);
 };
 
 // GattClientFactory is used to register and obtain a per-application GattClient
@@ -61,6 +61,9 @@ class GattClientFactory : public BluetoothInstanceFactory,
   // Don't construct/destruct directly except in tests. Instead, obtain a handle
   // from an Adapter instance.
   GattClientFactory();
+  GattClientFactory(const GattClientFactory&) = delete;
+  GattClientFactory& operator=(const GattClientFactory&) = delete;
+
   ~GattClientFactory() override;
 
   // BluetoothInstanceFactory override:
@@ -76,8 +79,6 @@ class GattClientFactory : public BluetoothInstanceFactory,
   // Map of pending calls to register.
   std::mutex pending_calls_lock_;
   std::unordered_map<Uuid, RegisterCallback> pending_calls_;
-
-  DISALLOW_COPY_AND_ASSIGN(GattClientFactory);
 };
 
 }  // namespace bluetooth

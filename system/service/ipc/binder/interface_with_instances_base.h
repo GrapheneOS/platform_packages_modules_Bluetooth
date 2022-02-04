@@ -19,8 +19,6 @@
 #include <memory>
 #include <unordered_map>
 
-#include <base/macros.h>
-
 #include "bluetooth/uuid.h"
 #include "service/bluetooth_instance.h"
 #include "service/ipc/binder/remote_callback_map.h"
@@ -40,6 +38,10 @@ class InterfaceWithInstancesBase
       virtual public android::RefBase {
  public:
   InterfaceWithInstancesBase() = default;
+  InterfaceWithInstancesBase(const InterfaceWithInstancesBase&) = delete;
+  InterfaceWithInstancesBase& operator=(const InterfaceWithInstancesBase&) =
+      delete;
+
   ~InterfaceWithInstancesBase() override = default;
 
  protected:
@@ -99,8 +101,6 @@ class InterfaceWithInstancesBase
   RemoteCallbackMap<int, IInterface> id_to_cb_;
   std::unordered_map<int, std::shared_ptr<bluetooth::BluetoothInstance>>
       id_to_instance_;
-
-  DISALLOW_COPY_AND_ASSIGN(InterfaceWithInstancesBase);
 };
 
 }  // namespace binder

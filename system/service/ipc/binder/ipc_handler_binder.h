@@ -16,8 +16,6 @@
 
 #pragma once
 
-#include <base/macros.h>
-
 #include "service/ipc/ipc_handler.h"
 #include "service/ipc/ipc_manager.h"
 
@@ -27,6 +25,10 @@ namespace ipc {
 class IPCHandlerBinder : public IPCHandler {
  public:
   IPCHandlerBinder(bluetooth::Adapter* adapter, IPCManager::Delegate* delegate);
+
+  IPCHandlerBinder(const IPCHandlerBinder&) = delete;
+  IPCHandlerBinder& operator=(const IPCHandlerBinder&) = delete;
+
   ~IPCHandlerBinder() override;
 
   // IPCHandler overrides:
@@ -38,8 +40,6 @@ class IPCHandlerBinder : public IPCHandler {
 
   // Notify the delegate that IPC has started.
   void NotifyStarted();
-
-  DISALLOW_COPY_AND_ASSIGN(IPCHandlerBinder);
 };
 
 }  // namespace ipc

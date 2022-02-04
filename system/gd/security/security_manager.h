@@ -36,6 +36,9 @@ namespace security {
  */
 class SecurityManager : public UICallbacks {
  public:
+  SecurityManager(const SecurityManager&) = delete;
+  SecurityManager& operator=(const SecurityManager&) = delete;
+
   friend class SecurityModule;
 
   /**
@@ -133,7 +136,6 @@ class SecurityManager : public UICallbacks {
  private:
   os::Handler* security_handler_ = nullptr;
   internal::SecurityManagerImpl* security_manager_impl_;
-  DISALLOW_COPY_AND_ASSIGN(SecurityManager);
 };
 
 }  // namespace security

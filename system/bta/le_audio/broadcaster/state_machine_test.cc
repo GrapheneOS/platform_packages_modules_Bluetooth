@@ -53,6 +53,11 @@ class MockBroadcastStatMachineCallbacks
     : public IBroadcastStateMachineCallbacks {
  public:
   MockBroadcastStatMachineCallbacks() = default;
+  MockBroadcastStatMachineCallbacks(const MockBroadcastStatMachineCallbacks&) =
+      delete;
+  MockBroadcastStatMachineCallbacks& operator=(
+      const MockBroadcastStatMachineCallbacks&) = delete;
+
   ~MockBroadcastStatMachineCallbacks() override = default;
 
   MOCK_METHOD((void), OnStateMachineCreateStatus,
@@ -70,9 +75,6 @@ class MockBroadcastStatMachineCallbacks
   MOCK_METHOD((uint32_t), GetSduItv, (uint8_t instance_id), (override));
   MOCK_METHOD((uint16_t), GetMaxTransportLatency, (uint8_t instance_id),
               (override));
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(MockBroadcastStatMachineCallbacks);
 };
 
 class StateMachineTest : public Test {
