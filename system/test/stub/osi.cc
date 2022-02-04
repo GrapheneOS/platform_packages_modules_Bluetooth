@@ -18,6 +18,8 @@
  * Generated mock file from original source file
  */
 
+#include <sys/socket.h>
+
 #include <list>
 #include <map>
 #include <string>

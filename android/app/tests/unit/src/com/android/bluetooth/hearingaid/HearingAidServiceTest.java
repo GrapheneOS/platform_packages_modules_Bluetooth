@@ -28,7 +28,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
-import android.media.BtProfileConnectionInfo;
+import android.media.BluetoothProfileConnectionInfo;
 import android.os.Looper;
 import android.os.ParcelUuid;
 import android.sysprop.BluetoothProperties;
@@ -524,7 +524,7 @@ public class HearingAidServiceTest {
 
         // Verify the audio is routed to Hearing Aid Profile
         verify(mAudioManager).handleBluetoothActiveDeviceChanged(
-                any(BluetoothDevice.class), eq(null), any(BtProfileConnectionInfo.class));
+                any(BluetoothDevice.class), eq(null), any(BluetoothProfileConnectionInfo.class));
 
         // Send a disconnect request
         Assert.assertTrue("Disconnect failed", mService.disconnect(mLeftDevice));
@@ -572,7 +572,7 @@ public class HearingAidServiceTest {
 
         // Verify the audio is not routed to Hearing Aid Profile
         verify(mAudioManager).handleBluetoothActiveDeviceChanged(
-                eq(null), any(BluetoothDevice.class), any(BtProfileConnectionInfo.class));
+                eq(null), any(BluetoothDevice.class), any(BluetoothProfileConnectionInfo.class));
     }
 
     /**

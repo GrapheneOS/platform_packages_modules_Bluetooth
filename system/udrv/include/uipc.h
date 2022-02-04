@@ -18,6 +18,8 @@
 #ifndef UIPC_H
 #define UIPC_H
 
+#include <sys/select.h>
+
 #include <memory>
 #include <mutex>
 

@@ -153,7 +153,11 @@ void HeartRateServer::ScheduleNextMeasurement() {
   main_task_runner_->PostDelayedTask(
       FROM_HERE, base::Bind(&HeartRateServer::SendHeartRateMeasurement,
                             weak_ptr_factory_.GetWeakPtr()),
+#if BASE_VER < 931007
       base::TimeDelta::FromSeconds(1));
+#else
+      base::Seconds(1));
+#endif
 }
 
 void HeartRateServer::SendHeartRateMeasurement() {
