@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package bluetooth.facade;
+package blueberry.facade;
 
 message Data {
   bytes payload = 1;

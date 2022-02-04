@@ -22,12 +22,12 @@ from blueberry.tests.gd.cert.metadata import metadata
 from blueberry.tests.gd.cert import gd_base_test
 from blueberry.tests.gd.l2cap.classic.cert_l2cap import CertL2cap
 from blueberry.tests.gd.l2cap.le.cert_le_l2cap import CertLeL2cap
-from facade import common_pb2 as common
+from blueberry.facade import common_pb2 as common
 from google.protobuf import empty_pb2 as empty_proto
-from hci.facade import le_acl_manager_facade_pb2 as le_acl_manager_facade
-from hci.facade import le_advertising_manager_facade_pb2 as le_advertising_facade
-from hci.facade import le_initiator_address_facade_pb2 as le_initiator_address_facade
-from neighbor.facade import facade_pb2 as neighbor_facade
+from blueberry.facade.hci import le_acl_manager_facade_pb2 as le_acl_manager_facade
+from blueberry.facade.hci import le_advertising_manager_facade_pb2 as le_advertising_facade
+from blueberry.facade.hci import le_initiator_address_facade_pb2 as le_initiator_address_facade
+from blueberry.facade.neighbor import facade_pb2 as neighbor_facade
 from mobly import test_runner
 
 # Assemble a sample packet.

@@ -15,12 +15,12 @@
  */
 #include "iso/facade.h"
 
+#include "blueberry/facade/iso/facade.grpc.pb.h"
 #include "common/contextual_callback.h"
 #include "grpc/grpc_event_queue.h"
 #include "hci/acl_manager.h"
 #include "hci/address_with_type.h"
 #include "hci/le_address_manager.h"
-#include "iso/facade.grpc.pb.h"
 #include "iso/iso_module.h"
 #include "os/handler.h"
 
@@ -28,6 +28,8 @@ using bluetooth::hci::AclManager;
 
 namespace bluetooth {
 namespace iso {
+
+using namespace blueberry::facade::iso;
 
 class IsoModuleFacadeService : public IsoModuleFacade::Service {
  public:

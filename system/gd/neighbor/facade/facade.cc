@@ -18,10 +18,10 @@
 
 #include <memory>
 
+#include "blueberry/facade/neighbor/facade.grpc.pb.h"
 #include "common/bind.h"
 #include "grpc/grpc_event_queue.h"
 #include "hci/hci_packets.h"
-#include "neighbor/facade/facade.grpc.pb.h"
 
 using ::grpc::ServerAsyncResponseWriter;
 using ::grpc::ServerAsyncWriter;
@@ -30,6 +30,8 @@ using ::grpc::ServerContext;
 namespace bluetooth {
 namespace neighbor {
 namespace facade {
+
+using namespace blueberry::facade::neighbor;
 
 class NeighborFacadeService : public NeighborFacade::Service {
  public:
@@ -49,9 +51,7 @@ class NeighborFacadeService : public NeighborFacade::Service {
         facade_handler_(facade_handler) {}
 
   ::grpc::Status SetConnectability(
-      ::grpc::ServerContext* context,
-      const ::bluetooth::neighbor::EnableMsg* request,
-      ::google::protobuf::Empty* response) override {
+      ::grpc::ServerContext* context, const EnableMsg* request, ::google::protobuf::Empty* response) override {
     if (request->enabled()) {
       connectability_module_->StartConnectability();
     } else {
@@ -62,7 +62,7 @@ class NeighborFacadeService : public NeighborFacade::Service {
 
   ::grpc::Status SetDiscoverability(
       ::grpc::ServerContext* context,
-      const ::bluetooth::neighbor::DiscoverabilitiyMsg* request,
+      const DiscoverabilitiyMsg* request,
       ::google::protobuf::Empty* response) override {
     switch (request->mode()) {
       case DiscoverabilityMode::OFF:
@@ -82,7 +82,7 @@ class NeighborFacadeService : public NeighborFacade::Service {
 
   ::grpc::Status SetInquiryMode(
       ::grpc::ServerContext* context,
-      const ::bluetooth::neighbor::InquiryMsg* request,
+      const InquiryMsg* request,
       ::grpc::ServerWriter<InquiryResultMsg>* writer) override {
     inquiry_module_->RegisterCallbacks(inquiry_callbacks_);
     switch (request->result_mode()) {
@@ -116,7 +116,7 @@ class NeighborFacadeService : public NeighborFacade::Service {
 
   ::grpc::Status ReadRemoteName(
       ::grpc::ServerContext* context,
-      const ::bluetooth::neighbor::RemoteNameRequestMsg* request,
+      const RemoteNameRequestMsg* request,
       ::google::protobuf::Empty* response) override {
     hci::Address remote;
     ASSERT(hci::Address::FromString(request->address(), remote));
@@ -152,9 +152,7 @@ class NeighborFacadeService : public NeighborFacade::Service {
   }
 
   ::grpc::Status EnableInquiryScan(
-      ::grpc::ServerContext* context,
-      const ::bluetooth::neighbor::EnableMsg* request,
-      ::google::protobuf::Empty* response) override {
+      ::grpc::ServerContext* context, const EnableMsg* request, ::google::protobuf::Empty* response) override {
     if (request->enabled()) {
       scan_module_->SetInquiryScan();
     } else {
@@ -164,9 +162,7 @@ class NeighborFacadeService : public NeighborFacade::Service {
   }
 
   ::grpc::Status EnablePageScan(
-      ::grpc::ServerContext* context,
-      const ::bluetooth::neighbor::EnableMsg* request,
-      ::google::protobuf::Empty* response) override {
+      ::grpc::ServerContext* context, const EnableMsg* request, ::google::protobuf::Empty* response) override {
     if (request->enabled()) {
       scan_module_->SetPageScan();
     } else {

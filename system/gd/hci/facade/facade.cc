@@ -18,10 +18,10 @@
 
 #include <memory>
 
+#include "blueberry/facade/hci/hci_facade.grpc.pb.h"
 #include "common/bind.h"
 #include "grpc/grpc_event_queue.h"
 #include "hci/controller.h"
-#include "hci/facade/hci_facade.grpc.pb.h"
 #include "hci/hci_layer.h"
 #include "hci/hci_packets.h"
 
@@ -32,6 +32,8 @@ using ::grpc::ServerContext;
 namespace bluetooth {
 namespace hci {
 namespace facade {
+
+using namespace blueberry::facade::hci;
 
 class HciFacadeService : public HciFacade::Service {
  public:
@@ -68,7 +70,7 @@ class HciFacadeService : public HciFacade::Service {
 
   ::grpc::Status SendCommand(
       ::grpc::ServerContext* context,
-      const ::bluetooth::facade::Data* command,
+      const ::blueberry::facade::Data* command,
       ::google::protobuf::Empty* response) override {
     auto payload = std::vector<uint8_t>(command->payload().begin(), command->payload().end());
     auto packet = std::make_unique<TestCommandBuilder>(payload);
@@ -83,7 +85,7 @@ class HciFacadeService : public HciFacade::Service {
 
   ::grpc::Status RequestEvent(
       ::grpc::ServerContext* context,
-      const ::bluetooth::hci::EventRequest* event,
+      const ::blueberry::facade::hci::EventRequest* event,
       ::google::protobuf::Empty* response) override {
     hci_layer_->RegisterEventHandler(
         static_cast<EventCode>(event->code()), facade_handler_->BindOn(this, &HciFacadeService::on_event));
@@ -92,7 +94,7 @@ class HciFacadeService : public HciFacade::Service {
 
   ::grpc::Status RequestLeSubevent(
       ::grpc::ServerContext* context,
-      const ::bluetooth::hci::EventRequest* event,
+      const ::blueberry::facade::hci::EventRequest* event,
       ::google::protobuf::Empty* response) override {
     hci_layer_->RegisterLeEventHandler(
         static_cast<SubeventCode>(event->code()), facade_handler_->BindOn(this, &HciFacadeService::on_le_subevent));
@@ -102,14 +104,14 @@ class HciFacadeService : public HciFacade::Service {
   ::grpc::Status StreamEvents(
       ::grpc::ServerContext* context,
       const ::google::protobuf::Empty* request,
-      ::grpc::ServerWriter<::bluetooth::facade::Data>* writer) override {
+      ::grpc::ServerWriter<::blueberry::facade::Data>* writer) override {
     return pending_events_.RunLoop(context, writer);
   };
 
   ::grpc::Status StreamLeSubevents(
       ::grpc::ServerContext* context,
       const ::google::protobuf::Empty* request,
-      ::grpc::ServerWriter<::bluetooth::facade::Data>* writer) override {
+      ::grpc::ServerWriter<::blueberry::facade::Data>* writer) override {
     return pending_le_events_.RunLoop(context, writer);
   };
 
@@ -134,7 +136,7 @@ class HciFacadeService : public HciFacade::Service {
 
   ::grpc::Status SendAcl(
       ::grpc::ServerContext* context,
-      const ::bluetooth::facade::Data* acl,
+      const ::blueberry::facade::Data* acl,
       ::google::protobuf::Empty* response) override {
     waiting_acl_packet_ =
         std::make_unique<TestAclBuilder>(std::vector<uint8_t>(acl->payload().begin(), acl->payload().end()));
@@ -156,7 +158,7 @@ class HciFacadeService : public HciFacade::Service {
   ::grpc::Status StreamAcl(
       ::grpc::ServerContext* context,
       const ::google::protobuf::Empty* request,
-      ::grpc::ServerWriter<::bluetooth::facade::Data>* writer) override {
+      ::grpc::ServerWriter<::blueberry::facade::Data>* writer) override {
     hci_layer_->GetAclQueueEnd()->RegisterDequeue(
         facade_handler_, common::Bind(&HciFacadeService::on_acl_ready, common::Unretained(this)));
     unregister_acl_dequeue_ = true;
@@ -175,7 +177,7 @@ class HciFacadeService : public HciFacade::Service {
     ASSERT(acl_ptr != nullptr);
     ASSERT(acl_ptr->IsValid());
     LOG_INFO("Got an Acl message for handle 0x%hx", acl_ptr->GetHandle());
-    ::bluetooth::facade::Data incoming;
+    ::blueberry::facade::Data incoming;
     incoming.set_payload(std::string(acl_ptr->begin(), acl_ptr->end()));
     pending_acl_events_.OnIncomingEvent(std::move(incoming));
   }
@@ -183,7 +185,7 @@ class HciFacadeService : public HciFacade::Service {
   void on_event(hci::EventView view) {
     ASSERT(view.IsValid());
     LOG_INFO("Got an Event %s", EventCodeText(view.GetEventCode()).c_str());
-    ::bluetooth::facade::Data response;
+    ::blueberry::facade::Data response;
     response.set_payload(std::string(view.begin(), view.end()));
     pending_events_.OnIncomingEvent(std::move(response));
   }
@@ -191,7 +193,7 @@ class HciFacadeService : public HciFacade::Service {
   void on_le_subevent(hci::LeMetaEventView view) {
     ASSERT(view.IsValid());
     LOG_INFO("Got an LE Event %s", SubeventCodeText(view.GetSubeventCode()).c_str());
-    ::bluetooth::facade::Data response;
+    ::blueberry::facade::Data response;
     response.set_payload(std::string(view.begin(), view.end()));
     pending_le_events_.OnIncomingEvent(std::move(response));
   }
@@ -199,7 +201,7 @@ class HciFacadeService : public HciFacade::Service {
   void on_complete(hci::CommandCompleteView view) {
     ASSERT(view.IsValid());
     LOG_INFO("Got a Command complete %s", OpCodeText(view.GetCommandOpCode()).c_str());
-    ::bluetooth::facade::Data response;
+    ::blueberry::facade::Data response;
     response.set_payload(std::string(view.begin(), view.end()));
     pending_events_.OnIncomingEvent(std::move(response));
   }
@@ -207,7 +209,7 @@ class HciFacadeService : public HciFacade::Service {
   void on_status(hci::CommandStatusView view) {
     ASSERT(view.IsValid());
     LOG_INFO("Got a Command status %s", OpCodeText(view.GetCommandOpCode()).c_str());
-    ::bluetooth::facade::Data response;
+    ::blueberry::facade::Data response;
     response.set_payload(std::string(view.begin(), view.end()));
     pending_events_.OnIncomingEvent(std::move(response));
   }
@@ -215,9 +217,9 @@ class HciFacadeService : public HciFacade::Service {
   HciLayer* hci_layer_;
   Controller* controller_;
   ::bluetooth::os::Handler* facade_handler_;
-  ::bluetooth::grpc::GrpcEventQueue<::bluetooth::facade::Data> pending_events_{"StreamEvents"};
-  ::bluetooth::grpc::GrpcEventQueue<::bluetooth::facade::Data> pending_le_events_{"StreamLeSubevents"};
-  ::bluetooth::grpc::GrpcEventQueue<::bluetooth::facade::Data> pending_acl_events_{"StreamAcl"};
+  ::bluetooth::grpc::GrpcEventQueue<::blueberry::facade::Data> pending_events_{"StreamEvents"};
+  ::bluetooth::grpc::GrpcEventQueue<::blueberry::facade::Data> pending_le_events_{"StreamLeSubevents"};
+  ::bluetooth::grpc::GrpcEventQueue<::blueberry::facade::Data> pending_acl_events_{"StreamAcl"};
   bool unregister_acl_dequeue_{false};
   std::unique_ptr<TestAclBuilder> waiting_acl_packet_;
   bool completed_packets_callback_registered_{false};

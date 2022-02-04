@@ -20,11 +20,11 @@
 #include <memory>
 #include <mutex>
 
+#include "blueberry/facade/hci/le_acl_manager_facade.grpc.pb.h"
+#include "blueberry/facade/hci/le_acl_manager_facade.pb.h"
 #include "common/bind.h"
 #include "grpc/grpc_event_queue.h"
 #include "hci/acl_manager.h"
-#include "hci/facade/le_acl_manager_facade.grpc.pb.h"
-#include "hci/facade/le_acl_manager_facade.pb.h"
 #include "hci/hci_packets.h"
 #include "packet/raw_builder.h"
 
@@ -41,6 +41,8 @@ namespace facade {
 using acl_manager::LeAclConnection;
 using acl_manager::LeConnectionCallbacks;
 using acl_manager::LeConnectionManagementCallbacks;
+
+using namespace blueberry::facade::hci;
 
 class LeAclManagerFacadeService : public LeAclManagerFacade::Service, public LeConnectionCallbacks {
  public:
@@ -61,7 +63,7 @@ class LeAclManagerFacadeService : public LeAclManagerFacade::Service, public LeC
 
   ::grpc::Status CreateConnection(
       ::grpc::ServerContext* context,
-      const ::bluetooth::facade::BluetoothAddressWithType* request,
+      const ::blueberry::facade::BluetoothAddressWithType* request,
       ::grpc::ServerWriter<LeConnectionEvent>* writer) override {
     Address peer_address;
     ASSERT(Address::FromString(request->address().address(), peer_address));
@@ -77,7 +79,7 @@ class LeAclManagerFacadeService : public LeAclManagerFacade::Service, public LeC
 
   ::grpc::Status CreateBackgroundAndDirectConnection(
       ::grpc::ServerContext* context,
-      const ::bluetooth::facade::BluetoothAddressWithType* request,
+      const ::blueberry::facade::BluetoothAddressWithType* request,
       ::grpc::ServerWriter<LeConnectionEvent>* writer) override {
     Address peer_address;
     ASSERT(Address::FromString(request->address().address(), peer_address));
@@ -96,7 +98,7 @@ class LeAclManagerFacadeService : public LeAclManagerFacade::Service, public LeC
 
   ::grpc::Status CancelConnection(
       ::grpc::ServerContext* context,
-      const ::bluetooth::facade::BluetoothAddressWithType* request,
+      const ::blueberry::facade::BluetoothAddressWithType* request,
       google::protobuf::Empty* response) override {
     Address peer_address;
     ASSERT(Address::FromString(request->address().address(), peer_address));

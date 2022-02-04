@@ -22,12 +22,12 @@ from blueberry.tests.gd.cert.matchers import L2capMatchers
 from blueberry.tests.gd.cert.metadata import metadata
 from blueberry.tests.gd.cert import gd_base_test
 from blueberry.tests.gd.l2cap.le.cert_le_l2cap import CertLeL2cap
-from facade import common_pb2 as common
+from blueberry.facade import common_pb2 as common
 from google.protobuf import empty_pb2 as empty_proto
-from hci.facade import le_acl_manager_facade_pb2 as le_acl_manager_facade
-from hci.facade import le_advertising_manager_facade_pb2 as le_advertising_facade
-from hci.facade import le_initiator_address_facade_pb2 as le_initiator_address_facade
-from l2cap.le.facade_pb2 import SecurityLevel
+from blueberry.facade.hci import le_acl_manager_facade_pb2 as le_acl_manager_facade
+from blueberry.facade.hci import le_advertising_manager_facade_pb2 as le_advertising_facade
+from blueberry.facade.hci import le_initiator_address_facade_pb2 as le_initiator_address_facade
+from blueberry.facade.l2cap.le.facade_pb2 import SecurityLevel
 from mobly import test_runner
 
 # Assemble a sample packet.
