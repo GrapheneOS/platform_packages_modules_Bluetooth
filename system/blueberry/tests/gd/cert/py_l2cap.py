@@ -16,10 +16,10 @@
 
 from google.protobuf import empty_pb2 as empty_proto
 
-from l2cap.classic import facade_pb2 as l2cap_facade_pb2
-from l2cap.classic.facade_pb2 import LinkSecurityInterfaceCallbackEventType
-from l2cap.le import facade_pb2 as l2cap_le_facade_pb2
-from l2cap.le.facade_pb2 import SecurityLevel
+from blueberry.facade.l2cap.classic import facade_pb2 as l2cap_facade_pb2
+from blueberry.facade.l2cap.classic.facade_pb2 import LinkSecurityInterfaceCallbackEventType
+from blueberry.facade.l2cap.le import facade_pb2 as l2cap_le_facade_pb2
+from blueberry.facade.l2cap.le.facade_pb2 import SecurityLevel
 from bluetooth_packets_python3 import hci_packets
 from bluetooth_packets_python3 import l2cap_packets
 from blueberry.tests.gd.cert.event_stream import FilteringEventStream
@@ -29,7 +29,6 @@ from blueberry.tests.gd.cert.py_hci import PyHci
 from blueberry.tests.gd.cert.matchers import HciMatchers
 from blueberry.tests.gd.cert.matchers import L2capMatchers
 from blueberry.tests.gd.cert.truth import assertThat
-from facade import common_pb2 as common
 
 
 class PyL2capChannel(IEventStream):

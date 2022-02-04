@@ -20,13 +20,13 @@
 #include <memory>
 #include <mutex>
 
+#include "blueberry/facade/hci/controller_facade.grpc.pb.h"
+#include "blueberry/facade/hci/controller_facade.pb.h"
 #include "common/bind.h"
 #include "common/blocking_queue.h"
 #include "grpc/grpc_event_queue.h"
 #include "hci/address.h"
 #include "hci/controller.h"
-#include "hci/facade/controller_facade.grpc.pb.h"
-#include "hci/facade/controller_facade.pb.h"
 
 using ::grpc::ServerAsyncResponseWriter;
 using ::grpc::ServerAsyncWriter;
@@ -36,12 +36,15 @@ namespace bluetooth {
 namespace hci {
 namespace facade {
 
+using namespace blueberry::facade::hci;
+using blueberry::facade::BluetoothAddress;
+
 class ControllerFacadeService : public ControllerFacade::Service {
  public:
   ControllerFacadeService(Controller* controller, ::bluetooth::os::Handler*) : controller_(controller) {}
 
-  ::grpc::Status GetMacAddress(::grpc::ServerContext* context, const ::google::protobuf::Empty* request,
-                               AddressMsg* response) override {
+  ::grpc::Status GetMacAddress(
+      ::grpc::ServerContext* context, const ::google::protobuf::Empty* request, BluetoothAddress* response) override {
     Address local_address = controller_->GetMacAddress();
     response->set_address(local_address.ToString());
     return ::grpc::Status::OK;

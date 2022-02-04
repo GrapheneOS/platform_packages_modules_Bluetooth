@@ -15,13 +15,13 @@
  */
 #include "security/facade.h"
 
+#include "blueberry/facade/security/facade.grpc.pb.h"
 #include "grpc/grpc_event_queue.h"
 #include "hci/address_with_type.h"
 #include "hci/le_address_manager.h"
 #include "l2cap/classic/security_policy.h"
 #include "l2cap/le/l2cap_le_module.h"
 #include "os/handler.h"
-#include "security/facade.grpc.pb.h"
 #include "security/pairing/oob_data.h"
 #include "security/security_manager_listener.h"
 #include "security/security_module.h"
@@ -32,6 +32,8 @@ using bluetooth::l2cap::le::L2capLeModule;
 namespace bluetooth {
 namespace security {
 
+using namespace blueberry::facade::security;
+
 namespace {
 constexpr uint8_t AUTH_REQ_NO_BOND = 0x01;
 constexpr uint8_t AUTH_REQ_BOND = 0x01;
@@ -41,11 +43,11 @@ constexpr uint8_t AUTH_REQ_KEYPRESS_MASK = 0x10;
 constexpr uint8_t AUTH_REQ_CT2_MASK = 0x20;
 constexpr uint8_t AUTH_REQ_RFU_MASK = 0xC0;
 
-facade::BluetoothAddressWithType ToFacadeAddressWithType(hci::AddressWithType address) {
-  facade::BluetoothAddressWithType ret;
+blueberry::facade::BluetoothAddressWithType ToFacadeAddressWithType(hci::AddressWithType address) {
+  blueberry::facade::BluetoothAddressWithType ret;
 
   ret.mutable_address()->set_address(address.GetAddress().ToString());
-  ret.set_type(static_cast<facade::BluetoothAddressTypeEnum>(address.GetAddressType()));
+  ret.set_type(static_cast<blueberry::facade::BluetoothAddressTypeEnum>(address.GetAddressType()));
 
   return ret;
 }
@@ -90,8 +92,10 @@ class SecurityModuleFacadeService : public SecurityModuleFacade::Service, public
     helper_events_.OnIncomingEvent(disconnected);
   }
 
-  ::grpc::Status CreateBond(::grpc::ServerContext* context, const facade::BluetoothAddressWithType* request,
-                            ::google::protobuf::Empty* response) override {
+  ::grpc::Status CreateBond(
+      ::grpc::ServerContext* context,
+      const blueberry::facade::BluetoothAddressWithType* request,
+      ::google::protobuf::Empty* response) override {
     hci::Address peer;
     ASSERT(hci::Address::FromString(request->address().address(), peer));
     hci::AddressType peer_type = static_cast<hci::AddressType>(request->type());
@@ -100,9 +104,7 @@ class SecurityModuleFacadeService : public SecurityModuleFacade::Service, public
   }
 
   ::grpc::Status CreateBondOutOfBand(
-      ::grpc::ServerContext* context,
-      const ::bluetooth::security::OobDataBondMessage* request,
-      ::google::protobuf::Empty* response) override {
+      ::grpc::ServerContext* context, const OobDataBondMessage* request, ::google::protobuf::Empty* response) override {
     hci::Address peer;
     ASSERT(hci::Address::FromString(request->address().address().address(), peer));
     hci::AddressType peer_type = static_cast<hci::AddressType>(request->address().type());
@@ -141,8 +143,10 @@ class SecurityModuleFacadeService : public SecurityModuleFacade::Service, public
     return oob_events_.RunLoop(context, writer);
   }
 
-  ::grpc::Status CreateBondLe(::grpc::ServerContext* context, const facade::BluetoothAddressWithType* request,
-                              ::google::protobuf::Empty* response) override {
+  ::grpc::Status CreateBondLe(
+      ::grpc::ServerContext* context,
+      const blueberry::facade::BluetoothAddressWithType* request,
+      ::google::protobuf::Empty* response) override {
     hci::Address peer;
     ASSERT(hci::Address::FromString(request->address().address(), peer));
     hci::AddressType peer_type = static_cast<hci::AddressType>(request->type());
@@ -150,8 +154,10 @@ class SecurityModuleFacadeService : public SecurityModuleFacade::Service, public
     return ::grpc::Status::OK;
   }
 
-  ::grpc::Status CancelBond(::grpc::ServerContext* context, const facade::BluetoothAddressWithType* request,
-                            ::google::protobuf::Empty* response) override {
+  ::grpc::Status CancelBond(
+      ::grpc::ServerContext* context,
+      const blueberry::facade::BluetoothAddressWithType* request,
+      ::google::protobuf::Empty* response) override {
     hci::Address peer;
     ASSERT(hci::Address::FromString(request->address().address(), peer));
     hci::AddressType peer_type = hci::AddressType::PUBLIC_DEVICE_ADDRESS;
@@ -159,8 +165,10 @@ class SecurityModuleFacadeService : public SecurityModuleFacade::Service, public
     return ::grpc::Status::OK;
   }
 
-  ::grpc::Status RemoveBond(::grpc::ServerContext* context, const facade::BluetoothAddressWithType* request,
-                            ::google::protobuf::Empty* response) override {
+  ::grpc::Status RemoveBond(
+      ::grpc::ServerContext* context,
+      const blueberry::facade::BluetoothAddressWithType* request,
+      ::google::protobuf::Empty* response) override {
     hci::Address peer;
     ASSERT(hci::Address::FromString(request->address().address(), peer));
     hci::AddressType peer_type = hci::AddressType::PUBLIC_DEVICE_ADDRESS;
@@ -275,7 +283,9 @@ class SecurityModuleFacadeService : public SecurityModuleFacade::Service, public
   }
 
   ::grpc::Status SetLeInitiatorAddressPolicy(
-      ::grpc::ServerContext* context, const hci::PrivacyPolicy* request, ::google::protobuf::Empty* response) override {
+      ::grpc::ServerContext* context,
+      const blueberry::facade::hci::PrivacyPolicy* request,
+      ::google::protobuf::Empty* response) override {
     Address address = Address::kEmpty;
     hci::LeAddressManager::AddressPolicy address_policy =
         static_cast<hci::LeAddressManager::AddressPolicy>(request->address_policy());
@@ -322,9 +332,7 @@ class SecurityModuleFacadeService : public SecurityModuleFacade::Service, public
   }
 
   ::grpc::Status GetLeOutOfBandData(
-      ::grpc::ServerContext* context,
-      const ::google::protobuf::Empty* request,
-      ::bluetooth::security::OobDataMessage* response) override {
+      ::grpc::ServerContext* context, const ::google::protobuf::Empty* request, OobDataMessage* response) override {
     std::array<uint8_t, 16> le_sc_c;
     std::array<uint8_t, 16> le_sc_r;
     security_module_->GetFacadeConfigurationApi()->GetLeOutOfBandData(&le_sc_c, &le_sc_r);
@@ -341,9 +349,7 @@ class SecurityModuleFacadeService : public SecurityModuleFacade::Service, public
   }
 
   ::grpc::Status SetOutOfBandData(
-      ::grpc::ServerContext* context,
-      const ::bluetooth::security::OobDataMessage* request,
-      ::google::protobuf::Empty* response) override {
+      ::grpc::ServerContext* context, const OobDataMessage* request, ::google::protobuf::Empty* response) override {
     hci::Address peer;
     ASSERT(hci::Address::FromString(request->address().address().address(), peer));
     hci::AddressType peer_type = static_cast<hci::AddressType>(request->address().type());

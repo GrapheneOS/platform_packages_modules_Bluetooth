@@ -18,14 +18,14 @@
 
 #include <memory>
 
+#include "blueberry/facade/shim/facade.grpc.pb.h"
+#include "blueberry/facade/shim/facade.pb.h"
 #include "common/bind.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/reflection_generated.h"
 #include "grpc/grpc_event_queue.h"
 #include "os/log.h"
 #include "shim/dumpsys.h"
-#include "shim/facade/facade.grpc.pb.h"
-#include "shim/facade/facade.pb.h"
 
 using ::grpc::ServerAsyncResponseWriter;
 using ::grpc::ServerAsyncWriter;
@@ -34,6 +34,8 @@ using ::grpc::ServerContext;
 namespace bluetooth {
 namespace shim {
 namespace facade {
+
+using namespace blueberry::facade::shim;
 
 class ShimFacadeService : public ShimFacade::Service {
  public:

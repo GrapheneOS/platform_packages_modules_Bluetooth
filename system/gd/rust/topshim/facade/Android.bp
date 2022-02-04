@@ -66,23 +66,3 @@ rust_binary_host {
         "libpaste",
     ],
 }
-
-rust_protobuf {
-    name: "libbt_topshim_facade_protobuf",
-    crate_name: "bt_topshim_facade_protobuf",
-    source_stem: "topshim_facade",
-    host_supported: true,
-    grpc_protos: ["facade.proto"],
-}
-
-genrule {
-    name: "libbt_topshim_facade_py_proto",
-    tools: [
-        "aprotoc",
-        "protoc-gen-grpc-python-plugin",
-        "soong_zip",
-    ],
-    cmd: "$(location aprotoc) --plugin=protoc-gen-grpc=$(location protoc-gen-grpc-python-plugin) -Ipackages/modules/Bluetooth/system/gd/rust/topshim/facade $(in) --grpc_out=$(genDir) --python_out=$(genDir)",
-    srcs: ["facade.proto"],
-    out: ["facade_pb2.py", "facade_pb2_grpc.py"],
-}

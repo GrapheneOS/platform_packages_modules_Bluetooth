@@ -77,8 +77,8 @@ CERT_HOST_LOGS="/tmp/logs/HostOnlyCert"
 CERT_DEVICE_LOGS="TODO: Add this"
 CERT_TEST_VENV=${ANDROID_BUILD_TOP}/out/dist/bluetooth_venv
 OUT_TARGET="${ANDROID_BUILD_TOP}/out/target"
-TEST_CONFIG="${ANDROID_BUILD_TOP}/packages/modules/Bluetooth/system/gd/cert/host_config.json"
-TEST_FILTER="-tf ${ANDROID_BUILD_TOP}/packages/modules/Bluetooth/system/gd/cert/all_cert_testcases"
+TEST_CONFIG="${ANDROID_BUILD_TOP}/packages/modules/Bluetooth/system/blueberry/tests/gd/host_config.yaml"
+TEST_FILTER="--presubmit"
 CPP_BUILD_TARGET="bluetooth_stack_with_facade root-canal bluetooth_packets_python3"
 RUST_BUILD_TARGET="bluetooth_with_facades root-canal bluetooth_packets_python3 bt_topshim_facade"
 BUILD_TARGET=$CPP_BUILD_TARGET
@@ -89,9 +89,6 @@ NUM_REPETITIONS="1"
 SKIP_SOONG_BUILD=false
 USE_ASHMEM_VENV=true
 VERBOSE_MODE=false
-
-# Directory for test configs to modify
-CONFIG_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 ## Verify devices connected and valid
 DUT_SERIAL="DUT Not Set"
@@ -155,30 +152,26 @@ function parse_options {
         shift # past argument
         ;;
         --device)
-        TEST_CONFIG="${ANDROID_BUILD_TOP}/packages/modules/Bluetooth/system/gd/cert/devices_config.json"
-        TEST_FILTER="-tf ${ANDROID_BUILD_TOP}/packages/modules/Bluetooth/system/gd/cert/real_device_testcases"
-        RR="$(cat ${TEST_CONFIG}|grep \"CERT\\\|DUT\")"
+        TEST_CONFIG="${ANDROID_BUILD_TOP}/packages/modules/Bluetooth/system/blueberry/tests/gd/devices_config.yaml"
+        RR="$(cat ${TEST_CONFIG}|grep \'CERT\\\|DUT\')"
         if [ "$RR" != "" ]; then
-        DUT_SERIAL="$(menu-adb DUT)"
-        DUT_ADB="adb -s ${DUT_SERIAL}"
-        DUT_NAME="$(adb devices -l | grep -v "List of device" | grep ${DUT_SERIAL} | awk '{ print $6 }' | cut -d ':' -f 2)"
-        CERT_SERIAL="$(menu-adb CERT)"
-        CERT_ADB="adb -s ${CERT_SERIAL}"
-        CERT_NAME="$(adb devices -l | grep -v "List of device" | grep ${CERT_SERIAL} | awk '{ print $6 }' | cut -d ':' -f 2)"
+          DUT_SERIAL="$(menu-adb DUT)"
+          DUT_ADB="adb -s ${DUT_SERIAL}"
+          DUT_NAME="$(adb devices -l | grep -v "List of device" | grep ${DUT_SERIAL} | awk '{ print $6 }' | cut -d ':' -f 2)"
+          CERT_SERIAL="$(menu-adb CERT)"
+          CERT_ADB="adb -s ${CERT_SERIAL}"
+          CERT_NAME="$(adb devices -l | grep -v "List of device" | grep ${CERT_SERIAL} | awk '{ print $6 }' | cut -d ':' -f 2)"
 
-        if [ "${CERT_SERIAL}" == "${DUT_SERIAL}" ]; then
-            echo
-            echo -e "${RED}ERROR: CERT and DUT cannot be the same device, or you only have one device connected!${NOCOLOR}"
-            echo
-            exit 1
-        fi
+          if [ "${CERT_SERIAL}" == "${DUT_SERIAL}" ]; then
+              echo
+              echo -e "${RED}ERROR: CERT and DUT cannot be the same device, or you only have one device connected!${NOCOLOR}"
+              echo
+              exit 1
+          fi
 
-        ## Set android devices in config
-        pushd .
-        cd "${CONFIG_DIR}"
-        popd
-        sed -i "s/\"DUT\"/\"${DUT_SERIAL}\"/g" ${CONFIG_DIR}/devices_config.json
-        sed -i "s/\"CERT\"/\"${CERT_SERIAL}\"/g" ${CONFIG_DIR}/devices_config.json
+          ## Set android devices in config
+          sed -i "s/'DUT'/'${DUT_SERIAL}'/g" ${TEST_CONFIG}
+          sed -i "s/'CERT'/'${CERT_SERIAL}'/g" ${TEST_CONFIG}
         fi
         shift # past argument
         ;;
@@ -198,13 +191,13 @@ function parse_options {
         --rust)
         BUILD_TARGET=$RUST_BUILD_TARGET
         export RUST_BACKTRACE=1
-        TEST_CONFIG=$ANDROID_BUILD_TOP/packages/modules/Bluetooth/system/gd/cert/rust_android_devices_config.json
+        TEST_CONFIG="${ANDROID_BUILD_TOP}/packages/modules/Bluetooth/system/blueberry/tests/gd/rust_devices_config.yaml"
         shift # past argument
         ;;
         --rhost)
         export RUST_BACKTRACE=1
         BUILD_TARGET=$RUST_BUILD_TARGET
-        TEST_CONFIG=$ANDROID_BUILD_TOP/packages/modules/Bluetooth/system/gd/cert/rust_host_config.json
+        TEST_CONFIG="${ANDROID_BUILD_TOP}/packages/modules/Bluetooth/system/blueberry/tests/gd/rust_host_config.yaml"
         shift # past argument
         ;;
         # This will log everything to both log file and stdout
@@ -228,10 +221,10 @@ function parse_options {
 
     # Set the test filter
     if [[ -n "$1" ]] ; then
-      TEST_FILTER="-tc $1"
+      TEST_FILTER="--tests $1"
     fi
 
-    INSTALL_ARGS="--reuse-acts"
+    INSTALL_ARGS="--reuse-libraries"
     if [ "$CLEAN_VENV" == true ] ; then
       echo -e "${YELLOW}Cleaning up existing virtualenv${NOCOLOR}"
       rm -rf $CERT_TEST_VENV/*
@@ -246,13 +239,13 @@ function parse_options {
 
 function soong_build {
     if [ "$CLEAN_VENV" == true ] ; then
-        $ANDROID_BUILD_TOP/build/soong/soong_ui.bash --build-mode --"modules-in-a-dir" --dir="${ANDROID_BUILD_TOP}/packages/modules/Bluetooth/system/gd" dist $BUILD_TARGET -j20
+        $ANDROID_BUILD_TOP/build/soong/soong_ui.bash --build-mode --"modules-in-a-dir" --dir="${ANDROID_BUILD_TOP}/packages/modules/Bluetooth/system" dist $BUILD_TARGET -j20
         if [[ $? -ne 0 ]] ; then
             echo -e "${RED}Failed to build ${BUILD_TARGET}${NOCOLOR}"
             exit 1
         fi
     else
-        $ANDROID_BUILD_TOP/build/soong/soong_ui.bash --build-mode --"all-modules" --dir="${ANDROID_BUILD_TOP}/packages/modules/Bluetooth/system/gd" $BUILD_TARGET -j20
+        $ANDROID_BUILD_TOP/build/soong/soong_ui.bash --build-mode --"all-modules" --dir="${ANDROID_BUILD_TOP}/packages/modules/Bluetooth/system" $BUILD_TARGET -j20
         if [[ $? -ne 0 ]] ; then
             echo -e "${RED}Failed to build ${BUILD_TARGET}${NOCOLOR}"
             exit 1
@@ -296,7 +289,7 @@ function setup_venv {
         exit 1
     fi
 
-    unzip -o -q "${ANDROID_BUILD_TOP}/out/dist/bluetooth_cert_tests.zip" -d "${CERT_TEST_VENV}/acts"
+    unzip -o -q "${ANDROID_BUILD_TOP}/out/dist/bluetooth_cert_tests.zip" -d "${CERT_TEST_VENV}/sources"
     if [[ $? -ne 0 ]] ; then
         echo -e "${RED}Error unzipping bluetooth_cert_tests.zip${NOCOLOR}"
         exit 1
@@ -309,7 +302,7 @@ function incremental_venv {
 #LINT.IfChange
     HOST_BIN="${ANDROID_BUILD_TOP}/out/host/linux-x86/bin"
     HOST_LIB="${ANDROID_BUILD_TOP}/out/host/linux-x86/lib64"
-    DEST_DIR="${ANDROID_BUILD_TOP}/out/dist/bluetooth_venv/acts"
+    DEST_DIR="${ANDROID_BUILD_TOP}/out/dist/bluetooth_venv/sources"
     DEST_LIB_DIR="${DEST_DIR}/lib64"
     cp {$HOST_BIN,$DEST_DIR}/bluetooth_stack_with_facade
     cp {$HOST_BIN,$DEST_DIR}/bluetooth_with_facades
@@ -335,23 +328,25 @@ function incremental_venv {
     cp {$HOST_LIB,$DEST_LIB_DIR}/liblzma.so
     cp {$HOST_LIB,$DEST_LIB_DIR}/libbacktrace.so
 
-    for i in `find ${ANDROID_BUILD_TOP}/packages/modules/Bluetooth/system/gd -name "*.py" -type f`; do
-        cp {${ANDROID_BUILD_TOP}/packages/modules/Bluetooth/system/gd,$DEST_DIR}${i#${ANDROID_BUILD_TOP}/packages/modules/Bluetooth/system/gd}
+    i="${ANDROID_BUILD_TOP}/packages/modules/Bluetooth/system/setup.py"
+    cp {${ANDROID_BUILD_TOP}/packages/modules/Bluetooth/system,$DEST_DIR}${i#${ANDROID_BUILD_TOP}/packages/modules/Bluetooth/system}
+    for i in `find ${ANDROID_BUILD_TOP}/packages/modules/Bluetooth/system/blueberry -name "*.py" -type f`; do
+        cp {${ANDROID_BUILD_TOP}/packages/modules/Bluetooth/system,$DEST_DIR}${i#${ANDROID_BUILD_TOP}/packages/modules/Bluetooth/system}
     done
-#LINT.ThenChange(../Android.mk)
+#LINT.ThenChange(../../Android.mk)
 
     venv_common
 }
 
 function venv_common {
-    $(echo "${CERT_TEST_VENV}/bin/python" "${CERT_TEST_VENV}/acts/setup.py" --quiet build --force)
+    $(echo "${CERT_TEST_VENV}/bin/python" "${CERT_TEST_VENV}/sources/setup.py" --quiet build --force "${INSTALL_ARGS}")
     if [[ $? -ne 0 ]] ; then
         echo -e "${RED}Error building GD Python libraries${NOCOLOR}"
         echo -e "${YELLOW}NOTE:${NOCOLOR} To build external libraries the first time, please add --clean option."
         exit 1
     fi
 
-    $(echo "${CERT_TEST_VENV}/bin/python" "${CERT_TEST_VENV}/acts/setup.py" --quiet install --skip-build --force "${INSTALL_ARGS}")
+    $(echo "${CERT_TEST_VENV}/bin/python" "${CERT_TEST_VENV}/sources/setup.py" --quiet install --skip-build --force "${INSTALL_ARGS}")
     if [[ $? -ne 0 ]] ; then
         echo -e "${RED}Error installing GD Python libraries${NOCOLOR}"
         exit 1
@@ -367,14 +362,13 @@ if [[ $? -ne 0 ]] ; then
 fi
 
 if [ "${VERBOSE_MODE}" == true ] ; then
-  TEMP_CONFIG=/tmp/temp_acts_config.json
+  TEMP_CONFIG=/tmp/temp_mobly_config.yaml
   cat "${TEST_CONFIG}" | "${CERT_TEST_VENV}/bin/python" -c "
 import sys
-import json
-from acts import keys
-config = json.load(sys.stdin)
+import yaml
+config = yaml.load(sys.stdin)
 config['verbose_mode'] = True
-print(json.dumps(config))
+print(yaml.dump(config))
   " > "${TEMP_CONFIG}"
   TEST_CONFIG="${TEMP_CONFIG}"
   if [[ $? -ne 0 ]] ; then
@@ -416,10 +410,8 @@ function gotta_go_fast {
 
 function run_tests {
     for n in $(seq "${NUM_REPETITIONS}"); do
-      $(echo "${CERT_TEST_VENV}/bin/python" "${CERT_TEST_VENV}/bin/act.py" \
-          -c "${TEST_CONFIG}" \
-          "${TEST_FILTER}" \
-          -tp "${CERT_TEST_VENV}"/acts)
+      $(echo "${CERT_TEST_VENV}/bin/python" "${CERT_TEST_VENV}/sources/blueberry/tests/gd/gd_test_runner.py" \
+          "-c ${TEST_CONFIG}" "${TEST_FILTER}")
     done
 
     if [ "${CLEAN_VENV}" != true ] ; then

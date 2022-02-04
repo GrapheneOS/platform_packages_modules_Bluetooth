@@ -20,11 +20,11 @@
 #include <memory>
 #include <mutex>
 
+#include "blueberry/facade/hci/le_initiator_address_facade.grpc.pb.h"
+#include "blueberry/facade/hci/le_initiator_address_facade.pb.h"
 #include "common/bind.h"
 #include "grpc/grpc_event_queue.h"
 #include "hci/acl_manager.h"
-#include "hci/facade/le_initiator_address_facade.grpc.pb.h"
-#include "hci/facade/le_initiator_address_facade.pb.h"
 #include "hci/hci_packets.h"
 #include "packet/raw_builder.h"
 
@@ -37,6 +37,8 @@ using ::bluetooth::packet::RawBuilder;
 namespace bluetooth {
 namespace hci {
 namespace facade {
+
+using namespace blueberry::facade::hci;
 
 class LeInitiatorAddressFacadeService : public LeInitiatorAddressFacade::Service {
  public:
@@ -74,11 +76,11 @@ class LeInitiatorAddressFacadeService : public LeInitiatorAddressFacade::Service
   ::grpc::Status GetCurrentInitiatorAddress(
       ::grpc::ServerContext* context,
       const ::google::protobuf::Empty* request,
-      ::bluetooth::facade::BluetoothAddressWithType* response) override {
+      ::blueberry::facade::BluetoothAddressWithType* response) override {
     AddressWithType current = address_manager_->GetCurrentAddress();
-    auto bluetooth_address = new ::bluetooth::facade::BluetoothAddress();
+    auto bluetooth_address = new ::blueberry::facade::BluetoothAddress();
     bluetooth_address->set_address(current.GetAddress().ToString());
-    response->set_type(static_cast<::bluetooth::facade::BluetoothAddressTypeEnum>(current.GetAddressType()));
+    response->set_type(static_cast<::blueberry::facade::BluetoothAddressTypeEnum>(current.GetAddressType()));
     response->set_allocated_address(bluetooth_address);
     return ::grpc::Status::OK;
   }
@@ -86,11 +88,11 @@ class LeInitiatorAddressFacadeService : public LeInitiatorAddressFacade::Service
   ::grpc::Status GetAnotherAddress(
       ::grpc::ServerContext* context,
       const ::google::protobuf::Empty* request,
-      ::bluetooth::facade::BluetoothAddressWithType* response) override {
+      ::blueberry::facade::BluetoothAddressWithType* response) override {
     AddressWithType another = address_manager_->GetAnotherAddress();
-    auto bluetooth_address = new ::bluetooth::facade::BluetoothAddress();
+    auto bluetooth_address = new ::blueberry::facade::BluetoothAddress();
     bluetooth_address->set_address(another.GetAddress().ToString());
-    response->set_type(static_cast<::bluetooth::facade::BluetoothAddressTypeEnum>(another.GetAddressType()));
+    response->set_type(static_cast<::blueberry::facade::BluetoothAddressTypeEnum>(another.GetAddressType()));
     response->set_allocated_address(bluetooth_address);
     return ::grpc::Status::OK;
   }
