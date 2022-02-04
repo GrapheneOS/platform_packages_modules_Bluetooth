@@ -1166,6 +1166,14 @@ size_t BluetoothAudioSourceClientInterface::WriteAudioData(const uint8_t* p_buf,
   return total_written;
 }
 
+void BluetoothAudioClientInterface::SetLowLatencyModeAllowed(bool allowed) {
+  if (!IsValid()) {
+    LOG(ERROR) << __func__ << ": BluetoothAudioHal is not valid";
+    return;
+  }
+  provider_2_2_->setLowLatencyModeAllowed(allowed);
+}
+
 }  // namespace hidl
 }  // namespace audio
 }  // namespace bluetooth
