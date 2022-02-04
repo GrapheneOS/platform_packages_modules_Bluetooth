@@ -1945,8 +1945,12 @@ void btif_storage_load_bonded_leaudio_has_devices() {
     uint8_t features = 0;
     if (btif_config_get_int(name, HAS_FEATURES, &value)) features = value;
 
+#ifndef TARGET_FLOSS
     do_in_main_thread(FROM_HERE, Bind(&le_audio::has::HasClient::AddFromStorage,
                                       bd_addr, features, is_acceptlisted));
+#else
+    ASSERT_LOG(false, "TODO - Fix LE audio build.");
+#endif
   }
 }
 
