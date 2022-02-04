@@ -43,39 +43,40 @@ class LeScanningManager : public bluetooth::Module {
   static constexpr ScannerId kInvalidScannerId = 0xFF;
   LeScanningManager();
 
-  void RegisterScanner(const Uuid app_uuid);
+  virtual void RegisterScanner(const Uuid app_uuid);
 
-  void Unregister(ScannerId scanner_id);
+  virtual void Unregister(ScannerId scanner_id);
 
-  void Scan(bool start);
+  virtual void Scan(bool start);
 
-  void SetScanParameters(ScannerId scanner_id, LeScanType scan_type, uint16_t scan_interval, uint16_t scan_window);
+  virtual void SetScanParameters(
+      ScannerId scanner_id, LeScanType scan_type, uint16_t scan_interval, uint16_t scan_window);
 
   /* Scan filter */
-  void ScanFilterEnable(bool enable);
+  virtual void ScanFilterEnable(bool enable);
 
-  void ScanFilterParameterSetup(
+  virtual void ScanFilterParameterSetup(
       ApcfAction action, uint8_t filter_index, AdvertisingFilterParameter advertising_filter_parameter);
 
-  void ScanFilterAdd(uint8_t filter_index, std::vector<AdvertisingPacketContentFilterCommand> filters);
+  virtual void ScanFilterAdd(uint8_t filter_index, std::vector<AdvertisingPacketContentFilterCommand> filters);
 
   /*Batch Scan*/
-  void BatchScanConifgStorage(
+  virtual void BatchScanConifgStorage(
       uint8_t batch_scan_full_max,
       uint8_t batch_scan_truncated_max,
       uint8_t batch_scan_notify_threshold,
       ScannerId scanner_id);
-  void BatchScanEnable(
+  virtual void BatchScanEnable(
       BatchScanMode scan_mode,
       uint32_t duty_cycle_scan_window_slots,
       uint32_t duty_cycle_scan_interval_slots,
       BatchScanDiscardRule batch_scan_discard_rule);
-  void BatchScanDisable();
-  void BatchScanReadReport(ScannerId scanner_id, BatchScanMode scan_mode);
+  virtual void BatchScanDisable();
+  virtual void BatchScanReadReport(ScannerId scanner_id, BatchScanMode scan_mode);
 
-  void TrackAdvertiser(ScannerId scanner_id);
+  virtual void TrackAdvertiser(ScannerId scanner_id);
 
-  void RegisterScanningCallback(ScanningCallback* scanning_callback);
+  virtual void RegisterScanningCallback(ScanningCallback* scanning_callback);
 
   static const ModuleFactory Factory;
 
