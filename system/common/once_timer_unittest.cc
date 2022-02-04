@@ -97,7 +97,11 @@ TEST_F(OnceTimerTest, schedule_task) {
   timer_->Schedule(message_loop_thread.GetWeakPtr(), FROM_HERE,
                    base::BindOnce(&OnceTimerTest::GetName,
                                   base::Unretained(this), &my_name, promise_),
+#if BASE_VER < 931007
                    base::TimeDelta::FromMilliseconds(delay_ms));
+#else
+                   base::Milliseconds(delay_ms));
+#endif
   EXPECT_TRUE(timer_->IsScheduled());
   future.get();
   ASSERT_EQ(name, my_name);
@@ -124,7 +128,11 @@ TEST_F(OnceTimerTest, cancel_in_callback_no_deadlock) {
   timer_->Schedule(message_loop_thread.GetWeakPtr(), FROM_HERE,
                    base::BindOnce(&OnceTimerTest::CancelTimerAndWait,
                                   base::Unretained(this)),
+#if BASE_VER < 931007
                    base::TimeDelta::FromMilliseconds(delay_ms));
+#else
+                   base::Milliseconds(delay_ms));
+#endif
 }
 
 TEST_F(OnceTimerTest, cancel_single_task) {
@@ -135,7 +143,11 @@ TEST_F(OnceTimerTest, cancel_single_task) {
   timer_->Schedule(
       message_loop_thread.GetWeakPtr(), FROM_HERE,
       base::BindOnce(&OnceTimerTest::ShouldNotHappen, base::Unretained(this)),
+#if BASE_VER < 931007
       base::TimeDelta::FromMilliseconds(delay_ms));
+#else
+      base::Milliseconds(delay_ms));
+#endif
   std::this_thread::sleep_for(std::chrono::milliseconds(delay_error_ms));
   timer_->CancelAndWait();
 }
@@ -149,7 +161,11 @@ TEST_F(OnceTimerTest, message_loop_thread_down_cancel_task) {
     timer_->Schedule(
         message_loop_thread.GetWeakPtr(), FROM_HERE,
         base::BindOnce(&OnceTimerTest::ShouldNotHappen, base::Unretained(this)),
+#if BASE_VER < 931007
         base::TimeDelta::FromMilliseconds(delay_ms));
+#else
+        base::Milliseconds(delay_ms));
+#endif
     std::this_thread::sleep_for(std::chrono::milliseconds(delay_error_ms));
   }
 }
@@ -165,7 +181,11 @@ TEST_F(OnceTimerTest, cancel_current_task_no_effect) {
   timer_->Schedule(message_loop_thread.GetWeakPtr(), FROM_HERE,
                    base::BindOnce(&OnceTimerTest::SleepAndIncreaseCounter,
                                   base::Unretained(this), promise_, delay_ms),
+#if BASE_VER < 931007
                    base::TimeDelta::FromMilliseconds(delay_ms));
+#else
+                   base::Milliseconds(delay_ms));
+#endif
   EXPECT_TRUE(timer_->IsScheduled());
   future.get();
   timer_->CancelAndWait();
@@ -180,12 +200,20 @@ TEST_F(OnceTimerTest, reschedule_task_dont_invoke_new_task_early) {
   uint32_t delay_ms = 5;
   timer_->Schedule(message_loop_thread.GetWeakPtr(), FROM_HERE,
                    base::DoNothing(),
+#if BASE_VER < 931007
                    base::TimeDelta::FromMilliseconds(delay_ms));
+#else
+                   base::Milliseconds(delay_ms));
+#endif
   std::this_thread::sleep_for(std::chrono::milliseconds(delay_ms - 2));
   timer_->Schedule(
       message_loop_thread.GetWeakPtr(), FROM_HERE,
       base::BindOnce(&OnceTimerTest::ShouldNotHappen, base::Unretained(this)),
+#if BASE_VER < 931007
       base::TimeDelta::FromMilliseconds(delay_ms + 1000));
+#else
+      base::Milliseconds(delay_ms + 1000));
+#endif
   std::this_thread::sleep_for(std::chrono::milliseconds(delay_ms));
 }
 
@@ -196,12 +224,20 @@ TEST_F(OnceTimerTest, reschedule_task_when_firing_dont_invoke_new_task_early) {
   uint32_t delay_ms = 5;
   timer_->Schedule(message_loop_thread.GetWeakPtr(), FROM_HERE,
                    base::DoNothing(),
+#if BASE_VER < 931007
                    base::TimeDelta::FromMilliseconds(delay_ms));
+#else
+                   base::Milliseconds(delay_ms));
+#endif
   std::this_thread::sleep_for(std::chrono::milliseconds(delay_ms));
   timer_->Schedule(
       message_loop_thread.GetWeakPtr(), FROM_HERE,
       base::BindOnce(&OnceTimerTest::ShouldNotHappen, base::Unretained(this)),
+#if BASE_VER < 931007
       base::TimeDelta::FromMilliseconds(delay_ms + 1000));
+#else
+      base::Milliseconds(delay_ms + 1000));
+#endif
   std::this_thread::sleep_for(std::chrono::milliseconds(delay_ms));
 }
 
@@ -214,12 +250,20 @@ TEST_F(OnceTimerTest, reschedule_task_when_firing_must_schedule_new_task) {
   auto future = promise_->get_future();
   timer_->Schedule(message_loop_thread.GetWeakPtr(), FROM_HERE,
                    base::DoNothing(),
+#if BASE_VER < 931007
                    base::TimeDelta::FromMilliseconds(delay_ms));
+#else
+                   base::Milliseconds(delay_ms));
+#endif
   std::this_thread::sleep_for(std::chrono::milliseconds(delay_ms));
   timer_->Schedule(message_loop_thread.GetWeakPtr(), FROM_HERE,
                    base::BindOnce(&OnceTimerTest::GetName,
                                   base::Unretained(this), &my_name, promise_),
+#if BASE_VER < 931007
                    base::TimeDelta::FromMilliseconds(delay_ms));
+#else
+                   base::Milliseconds(delay_ms));
+#endif
   future.get();
   ASSERT_EQ(name, my_name);
 }

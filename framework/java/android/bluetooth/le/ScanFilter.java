@@ -291,17 +291,18 @@ public final class ScanFilter implements Parcelable {
 
             // Advertising data type
             int advertisingDataType = in.readInt();
-            if (in.readInt() == 1) {
+            if (advertisingDataType != -1) {
                 byte[] advertisingData = null;
                 byte[] advertisingDataMask = null;
-
-                int advertisingDataLength = in.readInt();
-                advertisingData = new byte[advertisingDataLength];
-                in.readByteArray(advertisingData);
                 if (in.readInt() == 1) {
-                    int advertisingDataMaskLength = in.readInt();
-                    advertisingDataMask = new byte[advertisingDataMaskLength];
-                    in.readByteArray(advertisingDataMask);
+                    int advertisingDataLength = in.readInt();
+                    advertisingData = new byte[advertisingDataLength];
+                    in.readByteArray(advertisingData);
+                    if (in.readInt() == 1) {
+                        int advertisingDataMaskLength = in.readInt();
+                        advertisingDataMask = new byte[advertisingDataMaskLength];
+                        in.readByteArray(advertisingDataMask);
+                    }
                 }
                 builder.setAdvertisingDataWithType(advertisingDataType, advertisingData,
                         advertisingDataMask);
