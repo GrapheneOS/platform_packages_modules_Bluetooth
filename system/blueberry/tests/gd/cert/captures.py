@@ -22,7 +22,7 @@ from blueberry.tests.gd.cert.capture import Capture
 from blueberry.tests.gd.cert.matchers import HciMatchers
 from blueberry.tests.gd.cert.matchers import L2capMatchers
 from blueberry.tests.gd.cert.matchers import SecurityMatchers
-from security.facade_pb2 import UiMsgType
+from blueberry.facade.security.facade_pb2 import UiMsgType
 
 
 class HalCaptures(object):

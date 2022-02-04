@@ -24,7 +24,7 @@ from blueberry.tests.gd.cert.closable import safeClose
 from bluetooth_packets_python3 import hci_packets
 from blueberry.tests.gd.cert.truth import assertThat
 from datetime import timedelta
-from hci.facade import le_acl_manager_facade_pb2 as le_acl_manager_facade
+from blueberry.facade.hci import le_acl_manager_facade_pb2 as le_acl_manager_facade
 
 
 class PyLeAclManagerAclConnection(IEventStream, Closable):

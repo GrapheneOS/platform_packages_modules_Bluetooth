@@ -1,14 +1,14 @@
 syntax = "proto3";
 
-package bluetooth.hci;
+package blueberry.facade.hci;
 
 import "google/protobuf/empty.proto";
-import "facade/common.proto";
+import "blueberry/facade/common.proto";
 
 service LeInitiatorAddressFacade {
   rpc SetPrivacyPolicyForInitiatorAddress(PrivacyPolicy) returns (google.protobuf.Empty) {}
-  rpc GetCurrentInitiatorAddress(google.protobuf.Empty) returns (bluetooth.facade.BluetoothAddressWithType) {}
-  rpc GetAnotherAddress(google.protobuf.Empty) returns (bluetooth.facade.BluetoothAddressWithType) {}
+  rpc GetCurrentInitiatorAddress(google.protobuf.Empty) returns (blueberry.facade.BluetoothAddressWithType) {}
+  rpc GetAnotherAddress(google.protobuf.Empty) returns (blueberry.facade.BluetoothAddressWithType) {}
 }
 
 enum AddressPolicy {
@@ -21,7 +21,7 @@ enum AddressPolicy {
 
 message PrivacyPolicy {
   AddressPolicy address_policy = 1;
-  facade.BluetoothAddressWithType address_with_type = 2;
+  blueberry.facade.BluetoothAddressWithType address_with_type = 2;
   bytes rotation_irk = 3;
   uint64 minimum_rotation_time = 4;
   uint64 maximum_rotation_time = 5;

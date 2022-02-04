@@ -1,9 +1,9 @@
 syntax = "proto3";
 
-package bluetooth.l2cap.classic;
+package blueberry.facade.l2cap.classic;
 
 import "google/protobuf/empty.proto";
-import "facade/common.proto";
+import "blueberry/facade/common.proto";
 
 service L2capClassicModuleFacade {
   rpc FetchConnectionComplete(google.protobuf.Empty) returns (stream ConnectionCompleteEvent) {
@@ -22,12 +22,12 @@ service L2capClassicModuleFacade {
     // Get the buffer size of channel queue end for L2CAP user (how many packets we can buffer
     // before L2CAP user dequeues.
   }
-  rpc InitiateConnectionForSecurity(facade.BluetoothAddress) returns (google.protobuf.Empty) {}
+  rpc InitiateConnectionForSecurity(blueberry.facade.BluetoothAddress) returns (google.protobuf.Empty) {}
   rpc FetchSecurityConnectionEvents(google.protobuf.Empty) returns (stream LinkSecurityInterfaceCallbackEvent) {}
-  rpc SecurityLinkEnsureAuthenticated(facade.BluetoothAddress) returns (google.protobuf.Empty) {}
-  rpc SecurityLinkHold(facade.BluetoothAddress) returns (google.protobuf.Empty) {}
-  rpc SecurityLinkDisconnect(facade.BluetoothAddress) returns (google.protobuf.Empty) {}
-  rpc SecurityLinkRelease(facade.BluetoothAddress) returns (google.protobuf.Empty) {}
+  rpc SecurityLinkEnsureAuthenticated(blueberry.facade.BluetoothAddress) returns (google.protobuf.Empty) {}
+  rpc SecurityLinkHold(blueberry.facade.BluetoothAddress) returns (google.protobuf.Empty) {}
+  rpc SecurityLinkDisconnect(blueberry.facade.BluetoothAddress) returns (google.protobuf.Empty) {}
+  rpc SecurityLinkRelease(blueberry.facade.BluetoothAddress) returns (google.protobuf.Empty) {}
 }
 
 enum LinkSecurityInterfaceCallbackEventType {
@@ -40,7 +40,7 @@ enum LinkSecurityInterfaceCallbackEventType {
 }
 
 message LinkSecurityInterfaceCallbackEvent {
-  facade.BluetoothAddress address = 1;
+  blueberry.facade.BluetoothAddress address = 1;
   LinkSecurityInterfaceCallbackEventType event_type = 2;
 }
 
@@ -49,11 +49,11 @@ message RegisterChannelRequest {
 }
 
 message ConnectionCompleteEvent {
-  facade.BluetoothAddress remote = 1;
+  blueberry.facade.BluetoothAddress remote = 1;
 }
 
 message ConnectionCloseEvent {
-  facade.BluetoothAddress remote = 1;
+  blueberry.facade.BluetoothAddress remote = 1;
   uint32 reason = 2;
 }
 
@@ -64,7 +64,7 @@ enum RetransmissionFlowControlMode {
 }
 
 message OpenChannelRequest {
-  facade.BluetoothAddress remote = 1;
+  blueberry.facade.BluetoothAddress remote = 1;
   uint32 psm = 2;
   RetransmissionFlowControlMode mode = 3;
 }
@@ -108,7 +108,7 @@ message SetEnableDynamicChannelRequest {
 }
 
 message DynamicChannelPacket {
-  facade.BluetoothAddress remote = 1;
+  blueberry.facade.BluetoothAddress remote = 1;
   uint32 psm = 2;
   bytes payload = 3;
 }

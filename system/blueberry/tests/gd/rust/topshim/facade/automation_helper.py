@@ -17,8 +17,8 @@
 import asyncio
 import grpc
 
-from rust.topshim.facade import facade_pb2
-from rust.topshim.facade import facade_pb2_grpc
+from blueberry.facade.topshim import facade_pb2
+from blueberry.facade.topshim import facade_pb2_grpc
 
 
 class AdapterAutomationHelper():

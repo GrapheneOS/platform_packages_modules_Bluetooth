@@ -14,7 +14,6 @@
 #   limitations under the License.
 
 from bluetooth_packets_python3 import hci_packets
-from bluetooth_packets_python3.hci_packets import OpCode
 from bluetooth_packets_python3.security_packets import PairingFailedReason
 from blueberry.tests.gd.cert.matchers import SecurityMatchers
 from blueberry.tests.gd.cert.metadata import metadata
@@ -23,22 +22,18 @@ from blueberry.tests.gd.cert.py_le_security import PyLeSecurity
 from blueberry.tests.gd.cert.truth import assertThat
 from blueberry.tests.gd.cert import gd_base_test
 from datetime import timedelta
-from facade import common_pb2 as common
-from hci.facade import controller_facade_pb2 as controller_facade
-from hci.facade import le_advertising_manager_facade_pb2 as le_advertising_facade
-from hci.facade import le_initiator_address_facade_pb2 as le_initiator_address_facade
+from blueberry.facade import common_pb2 as common
+from blueberry.facade.hci import le_advertising_manager_facade_pb2 as le_advertising_facade
+from blueberry.facade.hci import le_initiator_address_facade_pb2 as le_initiator_address_facade
 from google.protobuf import empty_pb2 as empty_proto
-from neighbor.facade import facade_pb2 as neighbor_facade
-from security.facade_pb2 import AuthenticationRequirements
-from security.facade_pb2 import BondMsgType
-from security.facade_pb2 import OobDataMessage
-from security.facade_pb2 import UiCallbackMsg
-from security.facade_pb2 import UiCallbackType
-from security.facade_pb2 import UiMsgType
-from security.facade_pb2 import LeAuthRequirementsMessage
-from security.facade_pb2 import LeIoCapabilityMessage
-from security.facade_pb2 import LeOobDataPresentMessage
-from security.facade_pb2 import LeMaximumEncryptionKeySizeMessage
+from blueberry.facade.security.facade_pb2 import BondMsgType
+from blueberry.facade.security.facade_pb2 import OobDataMessage
+from blueberry.facade.security.facade_pb2 import UiCallbackMsg
+from blueberry.facade.security.facade_pb2 import UiCallbackType
+from blueberry.facade.security.facade_pb2 import UiMsgType
+from blueberry.facade.security.facade_pb2 import LeIoCapabilityMessage
+from blueberry.facade.security.facade_pb2 import LeOobDataPresentMessage
+from blueberry.facade.security.facade_pb2 import LeMaximumEncryptionKeySizeMessage
 from mobly import asserts
 from mobly import test_runner
 

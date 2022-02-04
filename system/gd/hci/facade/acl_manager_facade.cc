@@ -20,13 +20,13 @@
 #include <memory>
 #include <mutex>
 
+#include "blueberry/facade/hci/acl_manager_facade.grpc.pb.h"
+#include "blueberry/facade/hci/acl_manager_facade.pb.h"
 #include "common/bind.h"
 #include "grpc/grpc_event_queue.h"
 #include "hci/acl_manager.h"
 #include "hci/address.h"
 #include "hci/class_of_device.h"
-#include "hci/facade/acl_manager_facade.grpc.pb.h"
-#include "hci/facade/acl_manager_facade.pb.h"
 #include "hci/hci_packets.h"
 #include "packet/raw_builder.h"
 
@@ -43,6 +43,8 @@ namespace facade {
 using acl_manager::ClassicAclConnection;
 using acl_manager::ConnectionCallbacks;
 using acl_manager::ConnectionManagementCallbacks;
+
+using namespace blueberry::facade::hci;
 
 class AclManagerFacadeService : public AclManagerFacade::Service, public ConnectionCallbacks {
  public:

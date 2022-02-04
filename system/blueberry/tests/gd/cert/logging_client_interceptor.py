@@ -17,7 +17,7 @@
 import grpc
 import re
 
-from facade import common_pb2 as common
+from blueberry.facade import common_pb2 as common
 from google.protobuf import text_format
 
 

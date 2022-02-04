@@ -1,9 +1,9 @@
 syntax = "proto3";
 
-package bluetooth.facade;
+package blueberry.facade;
 
 import "google/protobuf/empty.proto";
-import "facade/common.proto";
+import "blueberry/facade/common.proto";
 
 service RootFacade {
   rpc StartStack(StartStackRequest) returns (StartStackResponse) {}
@@ -30,5 +30,5 @@ message StopStackRequest {}
 message StopStackResponse {}
 
 service ReadOnlyProperty {
-  rpc ReadLocalAddress(google.protobuf.Empty) returns (facade.BluetoothAddress) {}
+  rpc ReadLocalAddress(google.protobuf.Empty) returns (blueberry.facade.BluetoothAddress) {}
 }
