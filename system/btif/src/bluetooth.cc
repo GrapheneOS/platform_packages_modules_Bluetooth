@@ -426,7 +426,9 @@ static void dump(int fd, const char** arguments) {
   osi_allocator_debug_dump(fd);
   alarm_debug_dump(fd);
   bluetooth::csis::CsisClient::DebugDump(fd);
+#ifndef TARGET_FLOSS
   le_audio::has::HasClient::DebugDump(fd);
+#endif
   HearingAid::DebugDump(fd);
 #ifndef TARGET_FLOSS
   LeAudioClient::DebugDump(fd);
@@ -487,8 +489,10 @@ static const void* get_profile_interface(const char* profile_id) {
   if (is_profile(profile_id, BT_PROFILE_HEARING_AID_ID))
     return btif_hearing_aid_get_interface();
 
+#ifndef TARGET_FLOSS
   if (is_profile(profile_id, BT_PROFILE_HAP_CLIENT_ID))
     return btif_has_client_get_interface();
+#endif
 
   if (is_profile(profile_id, BT_KEYSTORE_ID))
     return bluetooth::bluetooth_keystore::getBluetoothKeystoreInterface();
