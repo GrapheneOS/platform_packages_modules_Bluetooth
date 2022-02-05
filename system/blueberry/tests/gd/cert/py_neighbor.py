@@ -14,8 +14,6 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from datetime import timedelta
-
 from bluetooth_packets_python3 import hci_packets
 from blueberry.tests.gd.cert.event_stream import EventStream
 from blueberry.tests.gd.cert.event_stream import IEventStream
@@ -23,8 +21,8 @@ from blueberry.tests.gd.cert.closable import Closable
 from blueberry.tests.gd.cert.closable import safeClose
 from blueberry.tests.gd.cert.truth import assertThat
 from google.protobuf import empty_pb2 as empty_proto
-from hci.facade import hci_facade_pb2 as hci_facade
-from neighbor.facade import facade_pb2 as neighbor_facade
+from blueberry.facade.hci import hci_facade_pb2 as hci_facade
+from blueberry.facade.neighbor import facade_pb2 as neighbor_facade
 
 
 class InquirySession(Closable, IEventStream):
@@ -45,7 +43,7 @@ class GetRemoteNameSession(Closable):
         self.remote_name_stream = EventStream(device.neighbor.GetRemoteNameEvents(empty_proto.Empty()))
 
     def verify_name(self, name):
-        assertThat(self.remote_name_stream).emits(lambda msg: bytes(name) in msg.name, timeout=timedelta(seconds=10))
+        assertThat(self.remote_name_stream).emits(lambda msg: bytes(name) in msg.name)
 
     def close(self):
         safeClose(self.remote_name_stream)

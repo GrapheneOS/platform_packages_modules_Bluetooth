@@ -30,7 +30,6 @@ from bluetooth_packets_python3.hci_packets import BroadcastFlag
 from bluetooth_packets_python3.hci_packets import PacketBoundaryFlag
 from bluetooth_packets_python3 import hci_packets
 from blueberry.tests.gd.cert.matchers import HciMatchers
-from bluetooth_packets_python3.hci_packets import FilterDuplicates
 from bluetooth_packets_python3.hci_packets import LeSetExtendedAdvertisingLegacyParametersBuilder
 from bluetooth_packets_python3.hci_packets import LegacyAdvertisingProperties
 from bluetooth_packets_python3.hci_packets import PeerAddressType
@@ -41,15 +40,13 @@ from bluetooth_packets_python3.hci_packets import GapDataType
 from bluetooth_packets_python3.hci_packets import LeSetExtendedAdvertisingDataBuilder
 from bluetooth_packets_python3.hci_packets import Operation
 from bluetooth_packets_python3.hci_packets import OwnAddressType
-from bluetooth_packets_python3.hci_packets import LeScanningFilterPolicy
 from bluetooth_packets_python3.hci_packets import Enable
 from bluetooth_packets_python3.hci_packets import FragmentPreference
 from bluetooth_packets_python3.hci_packets import LeSetExtendedAdvertisingScanResponseBuilder
 from bluetooth_packets_python3.hci_packets import LeSetExtendedAdvertisingEnableBuilder
-from bluetooth_packets_python3.hci_packets import LeSetExtendedScanEnableBuilder
 from bluetooth_packets_python3.hci_packets import EnabledSet
 from bluetooth_packets_python3.hci_packets import OpCode
-from facade import common_pb2 as common
+from blueberry.facade import common_pb2 as common
 
 
 class PyHalAclConnection(IEventStream):

@@ -137,6 +137,16 @@ void set_remote_delay(uint16_t delay_report) {
   aidl::a2dp::set_remote_delay(delay_report);
 }
 
+// Set low latency buffer mode allowed or disallowed
+bool set_audio_low_latency_mode_allowed(bool allowed){
+  if (HalVersionManager::GetHalTransport() ==
+      BluetoothAudioHalTransport::HIDL) {
+    hidl::a2dp::set_low_latency_mode_allowed(allowed);
+    return true;
+  }
+  return false;
+}
+
 }  // namespace a2dp
 }  // namespace audio
 }  // namespace bluetooth

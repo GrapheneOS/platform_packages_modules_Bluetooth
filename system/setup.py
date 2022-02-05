@@ -15,7 +15,6 @@
 #   limitations under the License.
 
 from distutils import log
-from distutils.errors import DistutilsModuleError
 import os
 from setuptools import find_packages
 from setuptools import setup
@@ -24,10 +23,14 @@ import stat
 import subprocess
 import sys
 
+reuse_libraries = False
+force_install = False
+
 install_requires = [
     'grpcio',
     'psutil',
     'protobuf>=3.14.0',
+    'mobly',
 ]
 
 host_executables = [
@@ -50,12 +53,16 @@ def set_permissions_for_host_executables(outputs):
 class InstallLocalPackagesForInstallation(install):
 
     def run(self):
+        global reuse_libraries, force_install
         install_args = [sys.executable, '-m', 'pip', 'install']
         subprocess.check_call(install_args + ['--upgrade', 'pip'])
 
         for package in install_requires:
             self.announce('Installing %s...' % package, log.INFO)
-            subprocess.check_call(install_args + ['-v', '--no-cache-dir', package])
+            cmd = install_args + ['-v', '--no-cache-dir', package]
+            if force_install and not reuse_libraries:
+                cmd.append("--force-reinstall")
+            subprocess.check_call(cmd)
         self.announce('Dependencies installed.')
 
         install.run(self)
@@ -63,6 +70,12 @@ class InstallLocalPackagesForInstallation(install):
 
 
 def main():
+    global reuse_libraries, force_install
+    if sys.argv[-1] == "--reuse-libraries":
+        reuse_libraries = True
+        sys.argv = sys.argv[:-1]
+    if "--force" in sys.argv:
+        force_install = True
     # Relative path from calling directory to this file
     our_dir = os.path.dirname(__file__)
     # Must cd into this dir for package resolution to work

@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-#include "hci/le_scanning_manager.h"
+#include "hci/facade/le_scanning_manager_facade.h"
 
 #include <cstdint>
 #include <unordered_map>
 #include <utility>
 
+#include "blueberry/facade/hci/le_scanning_manager_facade.grpc.pb.h"
+#include "blueberry/facade/hci/le_scanning_manager_facade.pb.h"
 #include "common/bidi_queue.h"
 #include "common/bind.h"
 #include "grpc/grpc_event_queue.h"
-#include "hci/facade/le_scanning_manager_facade.grpc.pb.h"
-#include "hci/facade/le_scanning_manager_facade.h"
-#include "hci/facade/le_scanning_manager_facade.pb.h"
+#include "hci/le_scanning_manager.h"
 #include "os/log.h"
 #include "packet/raw_builder.h"
 
@@ -38,6 +38,8 @@ using ::grpc::ServerAsyncWriter;
 using ::grpc::ServerContext;
 using ::grpc::ServerWriter;
 using ::grpc::Status;
+
+using namespace blueberry::facade::hci;
 
 class LeScanningManagerFacadeService : public LeScanningManagerFacade::Service, ScanningCallback {
  public:

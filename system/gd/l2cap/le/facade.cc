@@ -16,11 +16,11 @@
 
 #include "l2cap/le/facade.h"
 
+#include "blueberry/facade/l2cap/le/facade.grpc.pb.h"
 #include "grpc/grpc_event_queue.h"
 #include "l2cap/le/dynamic_channel.h"
 #include "l2cap/le/dynamic_channel_manager.h"
 #include "l2cap/le/dynamic_channel_service.h"
-#include "l2cap/le/facade.grpc.pb.h"
 #include "l2cap/le/l2cap_le_module.h"
 #include "l2cap/le/security_policy.h"
 #include "l2cap/psm.h"
@@ -29,6 +29,8 @@
 namespace bluetooth {
 namespace l2cap {
 namespace le {
+
+using namespace blueberry::facade::l2cap::le;
 
 SecurityPolicy SecurityLevelToPolicy(SecurityLevel level) {
   switch (level) {

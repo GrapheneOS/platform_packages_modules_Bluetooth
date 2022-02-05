@@ -24,12 +24,11 @@ from blueberry.tests.gd.cert.matchers import HciMatchers
 from blueberry.tests.gd.cert.py_hci import PyHci
 from blueberry.tests.gd.cert.py_security import PySecurity
 from blueberry.tests.gd.cert.truth import assertThat
-from datetime import datetime
 from google.protobuf import empty_pb2 as empty_proto
-from l2cap.classic import facade_pb2 as l2cap_facade
-from security.facade_pb2 import IoCapabilities
-from security.facade_pb2 import AuthenticationRequirements
-from security.facade_pb2 import OobDataPresent
+from blueberry.facade.l2cap.classic import facade_pb2 as l2cap_facade
+from blueberry.facade.security.facade_pb2 import IoCapabilities
+from blueberry.facade.security.facade_pb2 import AuthenticationRequirements
+from blueberry.facade.security.facade_pb2 import OobDataPresent
 
 
 class CertSecurity(PySecurity):

@@ -1,9 +1,8 @@
 syntax = "proto3";
 
-package bluetooth.iso;
+package blueberry.facade.iso;
 
 import "google/protobuf/empty.proto";
-import "facade/common.proto";
 
 service IsoModuleFacade {
   rpc LeSetCigParameters(LeSetCigParametersRequest) returns (google.protobuf.Empty) {}
