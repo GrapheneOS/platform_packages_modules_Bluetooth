@@ -48,6 +48,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "audio_hal_interface/a2dp_encoding.h"
 #include "bt_utils.h"
 #include "bta/include/bta_csis_api.h"
 #include "bta/include/bta_has_api.h"
@@ -488,8 +489,10 @@ static const void* get_profile_interface(const char* profile_id) {
   if (is_profile(profile_id, BT_PROFILE_HEARING_AID_ID))
     return btif_hearing_aid_get_interface();
 
+#ifndef TARGET_FLOSS
   if (is_profile(profile_id, BT_PROFILE_HAP_CLIENT_ID))
     return btif_has_client_get_interface();
+#endif
 
   if (is_profile(profile_id, BT_KEYSTORE_ID))
     return bluetooth::bluetooth_keystore::getBluetoothKeystoreInterface();
@@ -617,8 +620,7 @@ static int set_dynamic_audio_buffer_size(int codec, int size) {
 
 static bool allow_low_latency_audio(bool allowed, const RawAddress& address) {
   LOG_INFO("%s %s", __func__, allowed ? "true" : "false");
-  // Call HAL here
-  return true;
+  return bluetooth::audio::a2dp::set_audio_low_latency_mode_allowed(allowed);
 }
 
 EXPORT_SYMBOL bt_interface_t bluetoothInterface = {

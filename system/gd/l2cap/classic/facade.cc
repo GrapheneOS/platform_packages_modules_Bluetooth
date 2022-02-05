@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
+#include "l2cap/classic/facade.h"
+
 #include <condition_variable>
 #include <cstdint>
 #include <unordered_map>
 
+#include "blueberry/facade/l2cap/classic/facade.grpc.pb.h"
 #include "common/bidi_queue.h"
 #include "common/bind.h"
 #include "common/callback.h"
 #include "grpc/grpc_event_queue.h"
 #include "hci/address.h"
-#include "l2cap/classic/facade.grpc.pb.h"
-#include "l2cap/classic/facade.h"
 #include "l2cap/classic/l2cap_classic_module.h"
 #include "os/log.h"
 #include "packet/raw_builder.h"
@@ -38,6 +39,8 @@ using ::bluetooth::packet::RawBuilder;
 namespace bluetooth {
 namespace l2cap {
 namespace classic {
+
+using namespace blueberry::facade::l2cap::classic;
 
 class L2capClassicModuleFacadeService : public L2capClassicModuleFacade::Service, public LinkSecurityInterfaceListener {
  public:
@@ -132,7 +135,7 @@ class L2capClassicModuleFacadeService : public L2capClassicModuleFacade::Service
 
   ::grpc::Status InitiateConnectionForSecurity(
       ::grpc::ServerContext* context,
-      const facade::BluetoothAddress* request,
+      const blueberry::facade::BluetoothAddress* request,
       ::google::protobuf::Empty* response) override {
     hci::Address peer;
     ASSERT(hci::Address::FromString(request->address(), peer));
@@ -159,7 +162,7 @@ class L2capClassicModuleFacadeService : public L2capClassicModuleFacade::Service
 
   ::grpc::Status SecurityLinkHold(
       ::grpc::ServerContext* context,
-      const facade::BluetoothAddress* request,
+      const blueberry::facade::BluetoothAddress* request,
       ::google::protobuf::Empty* response) override {
     hci::Address peer;
     ASSERT(hci::Address::FromString(request->address(), peer));
@@ -174,7 +177,7 @@ class L2capClassicModuleFacadeService : public L2capClassicModuleFacade::Service
 
   ::grpc::Status SecurityLinkEnsureAuthenticated(
       ::grpc::ServerContext* context,
-      const facade::BluetoothAddress* request,
+      const blueberry::facade::BluetoothAddress* request,
       ::google::protobuf::Empty* response) override {
     hci::Address peer;
     ASSERT(hci::Address::FromString(request->address(), peer));
@@ -189,7 +192,7 @@ class L2capClassicModuleFacadeService : public L2capClassicModuleFacade::Service
 
   ::grpc::Status SecurityLinkRelease(
       ::grpc::ServerContext* context,
-      const facade::BluetoothAddress* request,
+      const blueberry::facade::BluetoothAddress* request,
       ::google::protobuf::Empty* response) override {
     hci::Address peer;
     ASSERT(hci::Address::FromString(request->address(), peer));
@@ -205,7 +208,7 @@ class L2capClassicModuleFacadeService : public L2capClassicModuleFacade::Service
 
   ::grpc::Status SecurityLinkDisconnect(
       ::grpc::ServerContext* context,
-      const facade::BluetoothAddress* request,
+      const blueberry::facade::BluetoothAddress* request,
       ::google::protobuf::Empty* response) override {
     hci::Address peer;
     ASSERT(hci::Address::FromString(request->address(), peer));

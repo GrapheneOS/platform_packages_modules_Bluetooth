@@ -16,9 +16,7 @@
 
 import logging
 
-from bluetooth_packets_python3 import hci_packets
 from blueberry.tests.gd.cert.capture import Capture
-from blueberry.tests.gd.cert.captures import SecurityCaptures
 from blueberry.tests.gd.cert.closable import Closable
 from blueberry.tests.gd.cert.closable import safeClose
 from blueberry.tests.gd.cert.event_stream import EventStream, IEventStream
@@ -26,9 +24,8 @@ from blueberry.tests.gd.cert.event_stream import FilteringEventStream
 from blueberry.tests.gd.cert.matchers import IsoMatchers
 from blueberry.tests.gd.cert.truth import assertThat
 from datetime import timedelta
-from facade import common_pb2 as common
 from google.protobuf import empty_pb2 as empty_proto
-from iso import facade_pb2 as iso_facade_pb2
+from blueberry.facade.iso import facade_pb2 as iso_facade_pb2
 
 
 class CisTestParameters():

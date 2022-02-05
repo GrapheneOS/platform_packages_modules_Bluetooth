@@ -26,7 +26,6 @@ import bluetooth_packets_python3 as bt_packets
 from bluetooth_packets_python3 import l2cap_packets
 from bluetooth_packets_python3.l2cap_packets import LeCommandCode
 from bluetooth_packets_python3.l2cap_packets import LeCreditBasedConnectionResponseResult
-from mobly import asserts
 
 
 class CertLeL2capChannel(IEventStream):

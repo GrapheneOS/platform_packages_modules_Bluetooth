@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package bluetooth.neighbor;
+package blueberry.facade.neighbor;
 
 import "google/protobuf/empty.proto";
 

@@ -21,7 +21,7 @@ import traceback
 import signal
 import subprocess
 
-from facade import rootservice_pb2 as facade_rootservice
+from blueberry.facade import rootservice_pb2 as facade_rootservice
 from functools import wraps
 from grpc import RpcError
 
