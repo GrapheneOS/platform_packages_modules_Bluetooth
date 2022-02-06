@@ -273,7 +273,7 @@ public final class BluetoothAdapter {
      * @hide
      */
     @SystemApi
-    @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
+    @RequiresNoPermission
     @NonNull
     public static String nameForState(@AdapterState int state) {
         switch (state) {
@@ -1440,7 +1440,6 @@ public final class BluetoothAdapter {
     @RequiresLegacyBluetoothPermission
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
-    @NonNull
     @SuppressLint(value = {"ArrayReturn", "NullableCollection"})
     public @Nullable ParcelUuid[] getUuids() {
         if (getState() != STATE_ON) {
@@ -4143,6 +4142,7 @@ public final class BluetoothAdapter {
      *
      * @hide
      */
+    @RequiresNoPermission
     @SystemApi
     public boolean registerServiceLifecycleCallback(@NonNull ServiceLifecycleCallback callback) {
         return getBluetoothService(callback.mRemote) != null;
@@ -4153,7 +4153,9 @@ public final class BluetoothAdapter {
      *
      * @hide
      */
-    public void unregisterServiceLifecycleCallback(ServiceLifecycleCallback callback) {
+    @RequiresNoPermission
+    @SystemApi
+    public void unregisterServiceLifecycleCallback(@NonNull ServiceLifecycleCallback callback) {
         removeServiceStateCallback(callback.mRemote);
     }
 
@@ -4647,7 +4649,7 @@ public final class BluetoothAdapter {
     public boolean registerBluetoothConnectionCallback(@NonNull @CallbackExecutor Executor executor,
             @NonNull BluetoothConnectionCallback callback) {
         if (DBG) Log.d(TAG, "registerBluetoothConnectionCallback()");
-        if (callback == null) {
+        if (callback == null || executor == null) {
             return false;
         }
 
@@ -4690,6 +4692,7 @@ public final class BluetoothAdapter {
      * @return true if the callback was unregistered successfully, false otherwise
      * @hide
      */
+    @SystemApi
     @RequiresBluetoothConnectPermission
     @RequiresPermission(allOf = {
             android.Manifest.permission.BLUETOOTH_CONNECT,
