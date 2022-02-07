@@ -21,10 +21,8 @@
 #include "btif/include/stack_manager.h"
 
 #include <hardware/bluetooth.h>
-#if defined(STATIC_LIBBLUETOOTH)
 #include <cstdlib>
 #include <cstring>
-#endif
 
 #include "btcore/include/module.h"
 #include "btcore/include/osi_module.h"
@@ -194,7 +192,6 @@ static bool get_stack_is_running() { return stack_is_running; }
 
 // Internal functions
 
-#ifdef STATIC_LIBBLUETOOTH
 extern const module_t bt_utils_module;
 extern const module_t bte_logmsg_module;
 extern const module_t btif_config_module;
@@ -238,11 +235,6 @@ inline const module_t* get_local_module(const char* name) {
   LOG_ALWAYS_FATAL("Cannot find module %s, aborting", name);
   return nullptr;
 }
-#else
-inline const module_t* get_local_module(const char* name) {
-  return get_module(name);
-}
-#endif
 
 // Synchronous function to initialize the stack
 static void event_init_stack(void* context) {
