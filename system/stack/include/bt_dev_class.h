@@ -25,6 +25,10 @@
 #define DEV_CLASS_LEN 3
 typedef uint8_t DEV_CLASS[DEV_CLASS_LEN]; /* Device class */
 
+#ifdef __cplusplus
+inline constexpr DEV_CLASS kDevClassEmpty = {};
+#endif  // __cplusplus
+
 #define DEVCLASS_TO_STREAM(p, a)                      \
   {                                                   \
     int ijk;                                          \
