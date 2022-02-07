@@ -26,12 +26,15 @@ namespace bluetooth {
 namespace topshim {
 namespace rust {
 
+struct RustApcfCommand;
+struct RustGattFilterParam;
+struct RustRawAddress;
+struct RustUuid;
+
 class BleScannerIntf : public ScanningCallbacks {
  public:
   BleScannerIntf(BleScannerInterface* scanner_intf) : scanner_intf_(scanner_intf){};
   ~BleScannerIntf() = default;
-
-  void RegisterCallbacks();
 
   // ScanningCallbacks overrides
   void OnScannerRegistered(const bluetooth::Uuid app_uuid, uint8_t scannerId, uint8_t status) override;
@@ -57,7 +60,106 @@ class BleScannerIntf : public ScanningCallbacks {
 
   void OnBatchScanThresholdCrossed(int client_if) override;
 
+  // Implementations of BleScannerInterface. These don't inherit from
+  // BleScannerInterface because the Rust FFI boundary requires some clever
+  // modifications.
+
+  // Register a scanner for a Uuid. Response comes back via
+  // |OnRegisterCallback|.
+  void RegisterScanner(RustUuid uuid);
+
+  // Unregister a scanner with a |scanner_id|.
+  void Unregister(uint8_t scanner_id);
+
+  // Start/Stop LE scanning.
+  void Scan(bool start);
+
+  // Setup scan filter parameters. Get responses via
+  // |OnFilterParamSetupCallback|.
+  void ScanFilterParamSetup(uint8_t scanner_id, uint8_t action, uint8_t filter_index, RustGattFilterParam filter_param);
+
+  // Adds filters to given filter index. Gets responses via
+  // |OnFilterConfigCallback|.
+  void ScanFilterAdd(uint8_t filter_index, ::rust::Vec<RustApcfCommand> filters);
+
+  // Clear scan filter conditions for a specific index.
+  void ScanFilterClear(uint8_t filter_index);
+
+  // Enable/disable scan filter. Gets responses via |OnEnableCallback|.
+  void ScanFilterEnable(bool enable);
+
+  // Sets the LE scan interval and window in units of N * 0.625 msec. The result
+  // of this action is returned via |OnStatusCallback|.
+  void SetScanParameters(uint8_t scanner_id, uint16_t scan_interval, uint16_t scan_window);
+
+  // Configure the batchscan storage and get a response via |OnStatusCallback|.
+  void BatchscanConfigStorage(
+      uint8_t scanner_id,
+      int32_t batch_scan_full_max,
+      int32_t batch_scan_trunc_max,
+      int32_t batch_scan_notify_threshold);
+
+  // Enable batchscan. Gets responses via |OnStatusCallback| with scanner id
+  // = 0 (since multiple scanners can be registered).
+  void BatchscanEnable(
+      int32_t scan_mode, uint16_t scan_interval, uint16_t scan_window, int32_t addr_type, int32_t discard_rule);
+
+  // Disable batchscan. Gets responses via |OnStatusCallback| with a scanner id
+  // = 0 (since multiple scanners can be registered).
+  void BatchscanDisable();
+
+  // Read out batchscan report for a specific scanner. Gets responses via
+  // |ScanningCallbacks::OnBatchScanReports|.
+  void BatchscanReadReports(uint8_t scanner_id, int32_t scan_mode);
+
+  // Start periodic sync. Gets responses via |OnStartSyncCb|. Periodic reports
+  // come via |OnSyncReportCb| and |OnSyncLostCb|.
+  void StartSync(uint8_t sid, RustRawAddress address, uint16_t skip, uint16_t timeout);
+
+  // Stop periodic sync.
+  void StopSync(uint16_t handle);
+
+  // Cancel creating a periodic sync.
+  void CancelCreateSync(uint8_t sid, RustRawAddress address);
+
+  // Transfer sync data to target address. Gets responses via
+  // |OnSyncTransferCb|.
+  void TransferSync(RustRawAddress address, uint16_t service_data, uint16_t sync_handle);
+
+  // Transfer set info to target address. Gets responses via |OnSyncTransferCb|.
+  void TransferSetInfo(RustRawAddress address, uint16_t service_data, uint8_t adv_handle);
+
+  // Sync tx parameters to target address. Gets responses via |OnStartSyncCb|.
+  void SyncTxParameters(RustRawAddress address, uint8_t mode, uint16_t skip, uint16_t timeout);
+
+  // Register scanning callbacks to be dispatched to the Rust layer via static
+  // methods.
+  void RegisterCallbacks();
+
  private:
+  // The callback functions below will get base::Bind to the apis that need it
+  // and will call the same Rust function with all the parameters. Some of these
+  // callbacks don't have all the parameters coming back in the original
+  // callback and will need the values to be base::Bind at the callsite.
+
+  void OnRegisterCallback(RustUuid uuid, uint8_t scanner_id, uint8_t btm_status);
+  void OnStatusCallback(uint8_t scanner_id, uint8_t btm_status);
+  void OnEnableCallback(uint8_t action, uint8_t btm_status);
+  void OnFilterParamSetupCallback(uint8_t scanner_id, uint8_t avbl_space, uint8_t action_type, uint8_t btm_status);
+  void OnFilterConfigCallback(
+      uint8_t filt_index, uint8_t filt_type, uint8_t avbl_space, uint8_t action, uint8_t btm_status);
+  void OnStartSyncCb(
+      uint8_t status,
+      uint16_t sync_handle,
+      uint8_t advertising_sid,
+      uint8_t address_type,
+      RawAddress address,
+      uint8_t phy,
+      uint16_t interval);
+  void OnSyncReportCb(uint16_t sync_handle, int8_t tx_power, int8_t rssi, uint8_t status, std::vector<uint8_t> data);
+  void OnSyncLostCb(uint16_t sync_handle);
+  void OnSyncTransferCb(uint8_t status, RawAddress address);
+
   BleScannerInterface* scanner_intf_;
 };
 
