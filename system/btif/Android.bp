@@ -209,7 +209,6 @@ cc_library_static {
 cc_library_static {
     name: "libbtif-static",
     defaults: ["libbtif_defaults"],
-    cflags: ["-DSTATIC_LIBBLUETOOTH"],
 }
 
 // btif unit tests for target
