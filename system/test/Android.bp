@@ -286,6 +286,7 @@ filegroup {
 filegroup {
   name: "TestMockBtif",
   srcs: [
+      ":TestCommonJniThread",
       "mock/mock_btif*.cc",
   ],
 }
@@ -399,6 +400,13 @@ filegroup {
   name: "TestCommonMockFunctions",
   srcs: [
       "common/mock_functions.cc",
+  ],
+}
+
+filegroup {
+  name: "TestCommonJniThread",
+  srcs: [
+      "common/jni_thread.cc",
   ],
 }
 

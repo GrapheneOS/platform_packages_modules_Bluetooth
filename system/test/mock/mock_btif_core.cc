@@ -49,6 +49,7 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "stack/include/a2dp_api.h"
 #include "stack/include/btm_api.h"
 #include "stack/include/btm_ble_api.h"
+#include "test/common/jni_thread.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
@@ -88,11 +89,13 @@ bt_status_t btif_transfer_context(tBTIF_CBACK* p_cback, uint16_t event,
 }
 bt_status_t do_in_jni_thread(base::OnceClosure task) {
   mock_function_count_map[__func__]++;
+  do_in_jni_thread_task_queue.push(std::move(task));
   return BT_STATUS_SUCCESS;
 }
 bt_status_t do_in_jni_thread(const base::Location& from_here,
                              base::OnceClosure task) {
   mock_function_count_map[__func__]++;
+  do_in_jni_thread_task_queue.push(std::move(task));
   return BT_STATUS_SUCCESS;
 }
 btbase::AbstractMessageLoop* get_jni_message_loop() {
