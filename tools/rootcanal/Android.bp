@@ -24,6 +24,7 @@ cc_defaults {
         "-Wextra",
         "-Werror",
         "-fvisibility=hidden",
+        "-DROOTCANAL_LMP",
     ],
     local_include_dirs: [
         "include",
@@ -95,6 +96,9 @@ cc_library_static {
     ],
     shared_libs: [
         "liblog",
+    ],
+    whole_static_libs: [
+        "liblmp",
     ],
     static_libs: [
         "libjsoncpp",
