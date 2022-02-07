@@ -58,19 +58,21 @@ fn main() {
         _ => (),
     }
 
-    // Proto root is //platform2/bt/gd
+    // Proto root is //platform2/bt/system
     let proto_root = match env::var("PLATFORM_SUBDIR") {
-        Ok(dir) => PathBuf::from(dir).join("bt/gd"),
-        // Currently at //platform2/gd/rust/facade_proto
-        Err(_) => PathBuf::from(env::current_dir().unwrap()).join("../..").canonicalize().unwrap(),
+        Ok(dir) => PathBuf::from(dir).join("bt/system"),
+        // Currently at //platform2/bt/system/gd/rust/facade_proto
+        Err(_) => {
+            PathBuf::from(env::current_dir().unwrap()).join("../../..").canonicalize().unwrap()
+        }
     };
 
     //
     // Generate protobuf output
     //
-    let facade_dir = proto_root.join("facade");
+    let facade_dir = proto_root.join("blueberry/facade");
     let proto_input_files = [facade_dir.join("common.proto")];
-    let proto_include_dirs = [facade_dir];
+    let proto_include_dirs = [facade_dir.clone()];
 
     protoc_rust::Codegen::new()
         .out_dir(proto_out_dir.as_os_str().to_str().unwrap())
@@ -84,17 +86,13 @@ fn main() {
     // Generate grpc output
     //
     let grpc_proto_input_files = [
-        proto_root.join("hci/facade/hci_facade.proto"),
-        proto_root.join("hci/facade/controller_facade.proto"),
-        proto_root.join("hal/hal_facade.proto"),
-        proto_root.join("facade/rootservice.proto"),
+        facade_dir.join("hci/hci_facade.proto"),
+        facade_dir.join("hci/controller_facade.proto"),
+        facade_dir.join("hal/hal_facade.proto"),
+        facade_dir.join("rootservice.proto"),
     ];
-    let grpc_proto_include_dirs = [
-        proto_root.join("hci/facade"),
-        proto_root.join("hal"),
-        proto_root.join("facade"),
-        proto_root,
-    ];
+    let grpc_proto_include_dirs =
+        [facade_dir.join("hci"), facade_dir.join("hal"), facade_dir, proto_root];
 
     protoc_grpcio::compile_grpc_protos(
         &grpc_proto_input_files,
