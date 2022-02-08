@@ -214,21 +214,25 @@ class GdDeviceBase(ABC):
             tag=self.label,
             color=self.terminal_color)
 
-        # Setup gRPC management channels
-        self.grpc_root_server_channel = grpc.insecure_channel("localhost:%d" % self.grpc_root_server_port)
+        # If gRPC root server port is not specified, we can skip settings up the root server
+        if self.grpc_root_server_port != -1:
+            # Setup gRPC management channels
+            self.grpc_root_server_channel = grpc.insecure_channel("localhost:%d" % self.grpc_root_server_port)
 
-        self.grpc_root_server_ready = False
-        try:
-            logging.info("[%s] Waiting to connect to gRPC root server for %s, timeout is %d seconds" %
-                         (self.type_identifier, self.label, GRPC_START_TIMEOUT_SEC))
-            grpc.channel_ready_future(self.grpc_root_server_channel).result(timeout=GRPC_START_TIMEOUT_SEC)
-            logging.info("[%s] Successfully connected to gRPC root server for %s" % (self.type_identifier, self.label))
-            self.grpc_root_server_ready = True
-        except grpc.FutureTimeoutError:
-            logging.error("[%s] Failed to connect to gRPC root server for %s" % (self.type_identifier, self.label))
+            self.grpc_root_server_ready = False
 
-        asserts.assert_true(
-            self.grpc_root_server_ready, msg="gRPC root server did not start after running " + " ".join(self.cmd))
+            try:
+                logging.info("[%s] Waiting to connect to gRPC root server for %s, timeout is %d seconds" %
+                             (self.type_identifier, self.label, GRPC_START_TIMEOUT_SEC))
+                grpc.channel_ready_future(self.grpc_root_server_channel).result(timeout=GRPC_START_TIMEOUT_SEC)
+                logging.info(
+                    "[%s] Successfully connected to gRPC root server for %s" % (self.type_identifier, self.label))
+                self.grpc_root_server_ready = True
+            except grpc.FutureTimeoutError:
+                logging.error("[%s] Failed to connect to gRPC root server for %s" % (self.type_identifier, self.label))
+
+            asserts.assert_true(
+                self.grpc_root_server_ready, msg="gRPC root server did not start after running " + " ".join(self.cmd))
 
         self.grpc_channel = grpc.insecure_channel("localhost:%d" % self.grpc_port)
 
@@ -236,7 +240,9 @@ class GdDeviceBase(ABC):
             self.grpc_channel = grpc.intercept_channel(self.grpc_channel, LoggingClientInterceptor(self.label))
 
         # Establish services from facades
-        self.rootservice = facade_rootservice_pb2_grpc.RootFacadeStub(self.grpc_root_server_channel)
+        if self.grpc_root_server_port != -1:
+            self.rootservice = facade_rootservice_pb2_grpc.RootFacadeStub(self.grpc_root_server_channel)
+
         self.hal = hal_facade_pb2_grpc.HciHalFacadeStub(self.grpc_channel)
         self.controller_read_only_property = facade_rootservice_pb2_grpc.ReadOnlyPropertyStub(self.grpc_channel)
         self.hci = hci_facade_pb2_grpc.HciFacadeStub(self.grpc_channel)
@@ -271,7 +277,8 @@ class GdDeviceBase(ABC):
         :return:
         """
         self.grpc_channel.close()
-        self.grpc_root_server_channel.close()
+        if self.grpc_root_server_port != -1:
+            self.grpc_root_server_channel.close()
         stop_signal = signal.SIGINT
         self.backing_process.send_signal(stop_signal)
         try:
@@ -325,9 +332,10 @@ class GdHostOnlyDevice(GdDeviceBase):
         # Only check on host only test, for Android devices, these ports will
         # be opened on Android device and host machine ports will be occupied
         # by sshd or adb forwarding
+        ports_needed = [self.grpc_port,
+                        self.grpc_root_server_port] if self.grpc_root_server_port != -1 else [self.grpc_port]
         asserts.assert_true(
-            make_ports_available((self.grpc_port, self.grpc_root_server_port)),
-            "[%s] Failed to make backing process ports available" % self.label)
+            make_ports_available(ports_needed), "[%s] Failed to make backing process ports available" % self.label)
         super().setup()
 
     def teardown(self):
@@ -462,7 +470,8 @@ class GdAndroidDevice(GdDeviceBase):
 
         # Set up port forwarding or reverse or die
         self.tcp_forward_or_die(self.grpc_port, self.grpc_port)
-        self.tcp_forward_or_die(self.grpc_root_server_port, self.grpc_root_server_port)
+        if self.grpc_root_server_port != -1:
+            self.tcp_forward_or_die(self.grpc_root_server_port, self.grpc_root_server_port)
         self.tcp_reverse_or_die(self.signal_port, self.signal_port)
         logging.info("Port forwarding done on device %s %s" % (self.label, self.serial_number))
 
@@ -587,7 +596,8 @@ class GdAndroidDevice(GdDeviceBase):
                 logging.error(msg)
 
         try:
-            self.adb.remove_tcp_forward(self.grpc_root_server_port)
+            if self.grpc_root_server_port != -1:
+                self.adb.remove_tcp_forward(self.grpc_root_server_port)
         except AdbError as error:
             msg = PORT_FORWARDING_ERROR_MSG_PREFIX + str(error)
             if "not found" in msg:
