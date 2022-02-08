@@ -26,6 +26,7 @@ namespace audio {
 namespace aidl {
 
 using ::aidl::android::hardware::bluetooth::audio::AudioConfiguration;
+using ::aidl::android::hardware::bluetooth::audio::LatencyMode;
 using ::aidl::android::hardware::bluetooth::audio::SessionType;
 
 /***
