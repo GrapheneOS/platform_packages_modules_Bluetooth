@@ -1575,7 +1575,8 @@ public class A2dpService extends ProfileService {
         if (mA2dpCodecConfig != null) {
             ProfileService.println(sb, "codecConfigPriorities:");
             for (BluetoothCodecConfig codecConfig : mA2dpCodecConfig.codecConfigPriorities()) {
-                ProfileService.println(sb, "  " + codecConfig.getCodecName() + ": "
+                ProfileService.println(sb, "  " + BluetoothCodecConfig.getCodecName(
+                        codecConfig.getCodecType()) + ": "
                         + codecConfig.getCodecPriority());
             }
             ProfileService.println(sb, "mA2dpOffloadEnabled: " + mA2dpOffloadEnabled);

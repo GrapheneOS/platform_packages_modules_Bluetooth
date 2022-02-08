@@ -200,25 +200,25 @@ public class BluetoothCodecConfigTest extends TestCase {
             }
 
             if (codec_type == BluetoothCodecConfig.SOURCE_CODEC_TYPE_SBC) {
-                assertEquals("SBC", bcc.getCodecName());
+                assertEquals("SBC", BluetoothCodecConfig.getCodecName(codec_type));
             }
             if (codec_type == BluetoothCodecConfig.SOURCE_CODEC_TYPE_AAC) {
-                assertEquals("AAC", bcc.getCodecName());
+                assertEquals("AAC", BluetoothCodecConfig.getCodecName(codec_type));
             }
             if (codec_type == BluetoothCodecConfig.SOURCE_CODEC_TYPE_APTX) {
-                assertEquals("aptX", bcc.getCodecName());
+                assertEquals("aptX", BluetoothCodecConfig.getCodecName(codec_type));
             }
             if (codec_type == BluetoothCodecConfig.SOURCE_CODEC_TYPE_APTX_HD) {
-                assertEquals("aptX HD", bcc.getCodecName());
+                assertEquals("aptX HD", BluetoothCodecConfig.getCodecName(codec_type));
             }
             if (codec_type == BluetoothCodecConfig.SOURCE_CODEC_TYPE_LDAC) {
-                assertEquals("LDAC", bcc.getCodecName());
+                assertEquals("LDAC", BluetoothCodecConfig.getCodecName(codec_type));
             }
             if (codec_type == BluetoothCodecConfig.SOURCE_CODEC_TYPE_LC3) {
-              assertEquals("LC3", bcc.getCodecName());
+                assertEquals("LC3", BluetoothCodecConfig.getCodecName(codec_type));
             }
             if (codec_type == BluetoothCodecConfig.SOURCE_CODEC_TYPE_INVALID) {
-                assertEquals("INVALID CODEC", bcc.getCodecName());
+                assertEquals("INVALID CODEC", BluetoothCodecConfig.getCodecName(codec_type));
             }
 
             assertEquals(codec_type, bcc.getCodecType());
