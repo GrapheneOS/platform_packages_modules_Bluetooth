@@ -33,21 +33,23 @@ void LeAdvertiser::Initialize(AddressWithType address,
   advertisement_ = advertisement;
   scan_response_ = scan_response;
   interval_ = interval;
+  tx_power_ = kTxPowerUnavailable;
 }
 
 void LeAdvertiser::InitializeExtended(
     AddressType address_type, AddressWithType peer_address,
     LeScanningFilterPolicy filter_policy,
     model::packets::AdvertisementType type,
-    std::chrono::steady_clock::duration interval) {
+    std::chrono::steady_clock::duration interval, uint8_t tx_power) {
   address_ = AddressWithType(address_.GetAddress(), address_type);
   peer_address_ = peer_address;
   filter_policy_ = filter_policy;
   type_ = type;
   interval_ = interval;
-  LOG_INFO("%s -> %s type = %hhx interval = %d ms", address_.ToString().c_str(),
-           peer_address.ToString().c_str(), type_,
-           static_cast<int>(interval_.count()));
+  tx_power_ = tx_power;
+  LOG_INFO("%s -> %s type = %hhx interval = %d ms tx_power = 0x%hhx",
+           address_.ToString().c_str(), peer_address.ToString().c_str(), type_,
+           static_cast<int>(interval_.count()), tx_power);
 }
 
 void LeAdvertiser::Clear() {
@@ -110,7 +112,7 @@ bool LeAdvertiser::IsConnectable() const {
 
 uint8_t LeAdvertiser::GetNumAdvertisingEvents() const { return num_events_; }
 
-std::unique_ptr<model::packets::LeAdvertisementBuilder>
+std::unique_ptr<model::packets::LinkLayerPacketBuilder>
 LeAdvertiser::GetAdvertisement(std::chrono::steady_clock::time_point now) {
   if (!enabled_) {
     return nullptr;
@@ -127,13 +129,23 @@ LeAdvertiser::GetAdvertisement(std::chrono::steady_clock::time_point now) {
 
   last_le_advertisement_ = now;
   num_events_ += (num_events_ < 255 ? 1 : 0);
-  return model::packets::LeAdvertisementBuilder::Create(
-      address_.GetAddress(), peer_address_.GetAddress(),
-      static_cast<model::packets::AddressType>(address_.GetAddressType()),
-      type_, advertisement_);
+  if (tx_power_ == kTxPowerUnavailable) {
+    return model::packets::LeAdvertisementBuilder::Create(
+        address_.GetAddress(), peer_address_.GetAddress(),
+        static_cast<model::packets::AddressType>(address_.GetAddressType()),
+        type_, advertisement_);
+  } else {
+    uint8_t tx_power_jittered = 2 + tx_power_ - (num_events_ & 0x03);
+    return model::packets::RssiWrapperBuilder::Create(
+        address_.GetAddress(), peer_address_.GetAddress(), tx_power_jittered,
+        model::packets::LeAdvertisementBuilder::Create(
+            address_.GetAddress(), peer_address_.GetAddress(),
+            static_cast<model::packets::AddressType>(address_.GetAddressType()),
+            type_, advertisement_));
+  }
 }
 
-std::unique_ptr<model::packets::LeScanResponseBuilder>
+std::unique_ptr<model::packets::LinkLayerPacketBuilder>
 LeAdvertiser::GetScanResponse(bluetooth::hci::Address scanned,
                               bluetooth::hci::Address scanner) {
   if (scanned != address_.GetAddress() || !enabled_) {
@@ -153,10 +165,20 @@ LeAdvertiser::GetScanResponse(bluetooth::hci::Address scanned,
     case bluetooth::hci::LeScanningFilterPolicy::ACCEPT_ALL:
       break;
   }
-  return model::packets::LeScanResponseBuilder::Create(
-      address_.GetAddress(), peer_address_.GetAddress(),
-      static_cast<model::packets::AddressType>(address_.GetAddressType()),
-      model::packets::AdvertisementType::SCAN_RESPONSE, scan_response_);
+  if (tx_power_ == kTxPowerUnavailable) {
+    return model::packets::LeScanResponseBuilder::Create(
+        address_.GetAddress(), peer_address_.GetAddress(),
+        static_cast<model::packets::AddressType>(address_.GetAddressType()),
+        type_, advertisement_);
+  } else {
+    uint8_t tx_power_jittered = 2 + tx_power_ - (num_events_ & 0x03);
+    return model::packets::RssiWrapperBuilder::Create(
+        address_.GetAddress(), peer_address_.GetAddress(), tx_power_jittered,
+        model::packets::LeScanResponseBuilder::Create(
+            address_.GetAddress(), peer_address_.GetAddress(),
+            static_cast<model::packets::AddressType>(address_.GetAddressType()),
+            type_, advertisement_));
+  }
 }
 
 }  // namespace test_vendor_lib
