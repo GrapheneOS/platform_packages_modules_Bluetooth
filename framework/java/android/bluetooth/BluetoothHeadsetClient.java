@@ -18,6 +18,7 @@ package android.bluetooth;
 import static android.bluetooth.BluetoothUtils.getSyncTimeout;
 
 import android.annotation.NonNull;
+import android.annotation.Nullable;
 import android.annotation.RequiresPermission;
 import android.annotation.SdkConstant;
 import android.annotation.SdkConstant.SdkConstantType;
@@ -31,6 +32,8 @@ import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.os.RemoteException;
 import android.util.CloseGuard;
 import android.util.Log;
@@ -1615,6 +1618,218 @@ public final class BluetoothHeadsetClient implements BluetoothProfile, AutoClose
         }
         return defaultValue;
     }
+
+    /**
+     * A class that contains the network service info provided by the HFP Client profile
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final class NetworkServiceState implements Parcelable {
+        /** The device associated with this service state */
+        private final BluetoothDevice mDevice;
+
+        /** True if there is service available, False otherwise */
+        private final boolean mIsServiceAvailable;
+
+        /** The name of the operator associated with the remote device's current network */
+        private final String mOperatorName;
+
+        /**
+         * The general signal strength
+         * (0 - Unknown, 1 - Poor, 2 - Fair, 3 - Good, 4 - Great, 5 - Excellent)
+         */
+        private final int mSignalStrength;
+
+        /** True if we are network roaming, False otherwise */
+        private final boolean mIsRoaming;
+
+        /**
+         * Create a NetworkServiceState Object
+         *
+         * @param device The device associated with this network signal state
+         * @param isServiceAvailable True if there is service available, False otherwise
+         * @param operatorName The name of the operator associated with the remote device's current
+         *                     network. Use Null if the value is unknown
+         * @param signalStrength The general signal strength
+         * @param isRoaming True if we are network roaming, False otherwise
+         *
+         * @hide
+         */
+        public NetworkServiceState(BluetoothDevice device, boolean isServiceAvailable,
+                String operatorName, int signalStrength, boolean isRoaming) {
+            mDevice = device;
+            mIsServiceAvailable = isServiceAvailable;
+            mOperatorName = operatorName;
+            mSignalStrength = signalStrength;
+            mIsRoaming = isRoaming;
+        }
+
+        /**
+         * Get the device associated with this network service state
+         *
+         * @return a BluetoothDevice associated with this state
+         *
+         * @hide
+         */
+        @SystemApi
+        public @NonNull BluetoothDevice getDevice() {
+            return mDevice;
+        }
+
+        /**
+         * Get the network service availablility state
+         *
+         * @return True if there is service available, False otherwise
+         *
+         * @hide
+         */
+        @SystemApi
+        public boolean isServiceAvailable() {
+            return mIsServiceAvailable;
+        }
+
+        /**
+         * Get the network operator name
+         *
+         * @return A string representing the name of the operator the remote device is on, or null
+         *         if unknown.
+         *
+         * @hide
+         */
+        @SystemApi
+        public @Nullable String getOperatorName() {
+            return mOperatorName;
+        }
+
+        /**
+         * Get the network's general signal strength
+         *
+         * @return The general signal strength (0 - None, 1 - Poor, 2 - Fair, 3 - Good,
+         *         4 - Great, 5 - Excellent)
+         *
+         * @hide
+         */
+        @SystemApi
+        public int getSignalStrength() {
+            return mSignalStrength;
+        }
+
+        /**
+         * Get the network service roaming status
+         *
+         * * @return True if we are network roaming, False otherwise
+         *
+         * @hide
+         */
+        @SystemApi
+        public boolean isRoaming() {
+            return mIsRoaming;
+        }
+
+        /**
+         * {@link Parcelable.Creator} interface implementation.
+         */
+        public static final @NonNull Parcelable.Creator<NetworkServiceState> CREATOR =
+                new Parcelable.Creator<NetworkServiceState>() {
+            public NetworkServiceState createFromParcel(Parcel in) {
+                return new NetworkServiceState((BluetoothDevice) in.readParcelable(null),
+                        in.readInt() == 1, in.readString(), in.readInt(), in.readInt() == 1);
+            }
+
+            public @NonNull NetworkServiceState[] newArray(int size) {
+                return new NetworkServiceState[size];
+            }
+        };
+
+        /**
+         * @hide
+         */
+        @Override
+        public void writeToParcel(@NonNull Parcel out, int flags) {
+            out.writeParcelable(mDevice, 0);
+            out.writeInt(mIsServiceAvailable ? 1 : 0);
+            out.writeString(mOperatorName);
+            out.writeInt(mSignalStrength);
+            out.writeInt(mIsRoaming ? 1 : 0);
+        }
+
+        /**
+         * @hide
+         */
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+    }
+
+    /**
+     * Intent used to broadcast the change in network service state of an HFP Client device
+     *
+     * <p>This intent will have 2 extras:
+     * <ul>
+     * <li> {@link BluetoothDevice#EXTRA_DEVICE} - The remote device. </li>
+     * <li> {@link EXTRA_NETWORK_SERVICE_STATE} - A {@link NetworkServiceState} object. </li>
+     * </ul>
+     *
+     * @hide
+     */
+    @SuppressLint("ActionValue")
+    @SystemApi
+    @RequiresBluetoothConnectPermission
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
+    @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
+    public static final String ACTION_NETWORK_SERVICE_STATE_CHANGED =
+            "android.bluetooth.headsetclient.profile.action.NETWORK_SERVICE_STATE_CHANGED";
+
+    /**
+     * Extra for the network service state changed intent.
+     *
+     * This extra represents the current network service state of a connected Bluetooth device.
+     *
+     * @hide
+     */
+    @SuppressLint("ActionValue")
+    @SystemApi
+    public static final String EXTRA_NETWORK_SERVICE_STATE =
+            "android.bluetooth.headsetclient.extra.EXTRA_NETWORK_SERVICE_STATE";
+
+    /**
+     * Get the network service state for a device
+     *
+     * @param device The {@link BluetoothDevice} you want the network service state for
+     * @return A {@link NetworkServiceState} representing the network service state of the device,
+     *         or null if the device is not connected
+     * @hide
+     */
+    @SystemApi
+    @RequiresBluetoothConnectPermission
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
+    public @Nullable NetworkServiceState getNetworkServiceState(@NonNull BluetoothDevice device) {
+        if (device == null) {
+            return null;
+        }
+
+        Bundle agEvents = getCurrentAgEvents(device);
+        if (agEvents == null) {
+            return null;
+        }
+
+        boolean isServiceAvailable = (agEvents.getInt(EXTRA_NETWORK_STATUS, 0) == 1);
+        int signalStrength = agEvents.getInt(EXTRA_NETWORK_SIGNAL_STRENGTH, 0);
+        String operatorName = agEvents.getString(EXTRA_OPERATOR_NAME, null);
+        boolean isRoaming = (agEvents.getInt(EXTRA_NETWORK_ROAMING, 0) == 1);
+
+        return new NetworkServiceState(device, isServiceAvailable, operatorName, signalStrength,
+                isRoaming);
+    }
+
     private boolean isEnabled() {
         return mAdapter.getState() == BluetoothAdapter.STATE_ON;
     }
