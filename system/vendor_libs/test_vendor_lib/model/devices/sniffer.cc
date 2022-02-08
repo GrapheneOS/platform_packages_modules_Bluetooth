@@ -47,10 +47,28 @@ void Sniffer::IncomingPacket(model::packets::LinkLayerPacketView packet) {
   if (!match_source && !match_dest) {
     return;
   }
-  LOG_INFO("%s %s -> %s (Type %s)",
-           (match_source ? (match_dest ? "<->" : "<--") : "-->"),
-           source.ToString().c_str(), dest.ToString().c_str(),
-           model::packets::PacketTypeText(packet.GetType()).c_str());
+  model::packets::PacketType packet_type = packet.GetType();
+
+  if (packet_type == model::packets::PacketType::RSSI_WRAPPER) {
+    auto wrapper_view = model::packets::RssiWrapperView::Create(packet);
+    ASSERT(wrapper_view.IsValid());
+    auto wrapped_view =
+        model::packets::LinkLayerPacketView::Create(wrapper_view.GetPayload());
+    ASSERT(wrapped_view.IsValid());
+    LOG_INFO(
+        "%s %s -> %s (Type %s wrapping %s)",
+        (match_source ? (match_dest ? "<->" : "<--") : "-->"),
+        source.ToString().c_str(), dest.ToString().c_str(),
+        model::packets::PacketTypeText(packet_type).c_str(),
+        (packet_type == model::packets::PacketType::RSSI_WRAPPER
+             ? model::packets::PacketTypeText(wrapped_view.GetType()).c_str()
+             : ""));
+  } else {
+    LOG_INFO("%s %s -> %s (Type %s)",
+             (match_source ? (match_dest ? "<->" : "<--") : "-->"),
+             source.ToString().c_str(), dest.ToString().c_str(),
+             model::packets::PacketTypeText(packet_type).c_str());
+  }
 }
 
 }  // namespace test_vendor_lib
