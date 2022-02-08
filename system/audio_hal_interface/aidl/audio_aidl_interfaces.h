@@ -45,6 +45,7 @@
 #include <aidl/android/hardware/bluetooth/audio/IBluetoothAudioPort.h>
 #include <aidl/android/hardware/bluetooth/audio/IBluetoothAudioProvider.h>
 #include <aidl/android/hardware/bluetooth/audio/IBluetoothAudioProviderFactory.h>
+#include <aidl/android/hardware/bluetooth/audio/LatencyMode.h>
 #include <aidl/android/hardware/bluetooth/audio/Lc3Capabilities.h>
 #include <aidl/android/hardware/bluetooth/audio/Lc3Configuration.h>
 #include <aidl/android/hardware/bluetooth/audio/LdacCapabilities.h>
