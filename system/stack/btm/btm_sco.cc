@@ -131,11 +131,13 @@ static void btm_esco_conn_rsp(uint16_t sco_inx, uint8_t hci_status,
     /* If parameters not specified use the default */
     if (p_parms) {
       *p_setup = *p_parms;
+    } else if (p_sco->esco.data.link_type == BTM_LINK_TYPE_SCO ||
+               !sco_peer_supports_esco_ev3(bda)) {
+      *p_setup = esco_parameters_for_codec(SCO_CODEC_CVSD_D1);
     } else {
       /* Use the last setup passed thru BTM_SetEscoMode (or defaults) */
       *p_setup = btm_cb.sco_cb.def_esco_parms;
     }
-
     /* Use Enhanced Synchronous commands if supported */
     if (controller_get_interface()
             ->supports_enhanced_setup_synchronous_connection()) {
@@ -256,6 +258,11 @@ static tBTM_STATUS btm_send_connect_request(uint16_t acl_handle,
               << unsigned(acl_handle);
     btsnd_hcic_add_SCO_conn(acl_handle, BTM_ESCO_2_SCO(p_setup->packet_types));
   } else {
+    /* Save the previous values in case command fails */
+    uint16_t saved_packet_types = p_setup->packet_types;
+    uint8_t saved_retransmission_effort = p_setup->retransmission_effort;
+    uint16_t saved_max_latency_ms = p_setup->max_latency_ms;
+
     uint16_t temp_packet_types =
         (p_setup->packet_types &
          static_cast<uint16_t>(BTM_SCO_SUPPORTED_PKTS_MASK) &
@@ -279,6 +286,13 @@ static tBTM_STATUS btm_send_connect_request(uint16_t acl_handle,
         BTM_TRACE_DEBUG("BTM Remote does not support 3-EDR eSCO");
         temp_packet_types |=
             (ESCO_PKT_TYPES_MASK_NO_3_EV3 | ESCO_PKT_TYPES_MASK_NO_3_EV5);
+      }
+      if (!sco_peer_supports_esco_ev3(bd_addr)) {
+        BTM_TRACE_DEBUG("BTM Remote does not support EV3 eSCO");
+        // If EV3 is not supported, EV4 and EV% are not supported, either.
+        temp_packet_types &= ~BTM_ESCO_LINK_ONLY_MASK;
+        p_setup->retransmission_effort = ESCO_RETRANSMISSION_OFF;
+        p_setup->max_latency_ms = 10;
       }
 
       /* Check to see if BR/EDR Secure Connections is being used
@@ -324,8 +338,6 @@ static tBTM_STATUS btm_send_connect_request(uint16_t acl_handle,
                 PRIVATE_ADDRESS(bd_addr));
     }
 
-    /* Save the previous types in case command fails */
-    uint16_t saved_packet_types = p_setup->packet_types;
     p_setup->packet_types = temp_packet_types;
 
     /* Use Enhanced Synchronous commands if supported */
@@ -345,6 +357,8 @@ static tBTM_STATUS btm_send_connect_request(uint16_t acl_handle,
                 << unsigned(p_setup->input_data_path);
       btsnd_hcic_enhanced_set_up_synchronous_connection(acl_handle, p_setup);
       p_setup->packet_types = saved_packet_types;
+      p_setup->retransmission_effort = saved_retransmission_effort;
+      p_setup->max_latency_ms = saved_max_latency_ms;
     } else { /* Use older command */
       LOG_INFO("Sending eSCO connect request over handle:0x%04x", acl_handle);
       uint16_t voice_content_format = btm_sco_voice_settings_to_legacy(p_setup);
