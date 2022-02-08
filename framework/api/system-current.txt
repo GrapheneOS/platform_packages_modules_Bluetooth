@@ -368,6 +368,7 @@ package android.bluetooth {
     field public static final int AUDIO_LOCATION_INVALID = -1; // 0xffffffff
     field public static final String EXTRA_LE_AUDIO_GROUP_ID = "android.bluetooth.extra.LE_AUDIO_GROUP_ID";
     field public static final String EXTRA_LE_AUDIO_GROUP_NODE_STATUS = "android.bluetooth.extra.LE_AUDIO_GROUP_NODE_STATUS";
+    field public static final String EXTRA_LE_AUDIO_GROUP_STATUS = "android.bluetooth.extra.LE_AUDIO_GROUP_STATUS";
     field public static final int GROUP_NODE_ADDED = 1; // 0x1
     field public static final int GROUP_NODE_REMOVED = 2; // 0x2
   }

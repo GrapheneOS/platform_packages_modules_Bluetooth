@@ -308,6 +308,7 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
      * <p>
      * @hide
      */
+    @SystemApi
     public static final String EXTRA_LE_AUDIO_GROUP_STATUS =
             "android.bluetooth.extra.LE_AUDIO_GROUP_STATUS";
 
