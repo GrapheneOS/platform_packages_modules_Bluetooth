@@ -604,8 +604,8 @@ package android.bluetooth {
   }
 
   public interface BluetoothProfile {
-    method @NonNull @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED) public static String getConnectionStateName(int);
-    method @NonNull @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED) public static String getProfileName(int);
+    method @NonNull public static String getConnectionStateName(int);
+    method @NonNull public static String getProfileName(int);
     field public static final int A2DP_SINK = 11; // 0xb
     field public static final int AVRCP_CONTROLLER = 12; // 0xc
     field public static final int CONNECTION_POLICY_ALLOWED = 100; // 0x64
