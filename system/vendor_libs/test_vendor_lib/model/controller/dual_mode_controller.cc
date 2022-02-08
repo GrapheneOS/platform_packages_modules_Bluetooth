@@ -2416,7 +2416,8 @@ void DualModeController::LeSetExtendedAdvertisingParameters(
       command_view.GetPrimaryAdvertisingIntervalMax(),
       command_view.GetAdvertisingEventLegacyProperties(),
       command_view.GetOwnAddressType(), command_view.GetPeerAddressType(),
-      command_view.GetPeerAddress(), command_view.GetAdvertisingFilterPolicy());
+      command_view.GetPeerAddress(), command_view.GetAdvertisingFilterPolicy(),
+      command_view.GetAdvertisingTxPower());
 
   send_event_(
       bluetooth::hci::LeSetExtendedAdvertisingParametersCompleteBuilder::Create(
