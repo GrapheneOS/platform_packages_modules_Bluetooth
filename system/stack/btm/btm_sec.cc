@@ -2259,13 +2259,13 @@ void btm_sec_rmt_name_request_complete(const RawAddress* p_bd_addr,
         "status:%s name:%s",
         btm_pair_state_descr(btm_cb.pairing_state),
         hci_status_code_text(status).c_str(), p_bd_name);
-    DEV_CLASS dev_class = {0, 0, 0};
 
     /* Notify all clients waiting for name to be resolved even if not found so
      * clients can continue */
     for (i = 0; i < BTM_SEC_MAX_RMT_NAME_CALLBACKS; i++) {
       if (btm_cb.p_rmt_name_callback[i] && p_bd_addr)
-        (*btm_cb.p_rmt_name_callback[i])(*p_bd_addr, dev_class, (uint8_t*)"");
+        (*btm_cb.p_rmt_name_callback[i])(*p_bd_addr, (uint8_t*)kDevClassEmpty,
+                                         (uint8_t*)kBtmBdNameEmpty);
     }
 
     return;
