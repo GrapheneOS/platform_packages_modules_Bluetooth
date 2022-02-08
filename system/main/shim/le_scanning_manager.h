@@ -24,7 +24,7 @@
 namespace bluetooth {
 namespace shim {
 
-BleScannerInterface* get_ble_scanner_instance();
+::BleScannerInterface* get_ble_scanner_instance();
 void init_scanning_manager();
 void set_empty_filter(bool enable);
 
