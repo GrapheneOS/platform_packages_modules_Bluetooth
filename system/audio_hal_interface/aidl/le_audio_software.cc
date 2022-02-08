@@ -36,9 +36,7 @@ using ::aidl::android::hardware::bluetooth::audio::ChannelMode;
 using ::aidl::android::hardware::bluetooth::audio::CodecType;
 using ::aidl::android::hardware::bluetooth::audio::Lc3Configuration;
 using ::aidl::android::hardware::bluetooth::audio::LeAudioCodecConfiguration;
-using ::aidl::android::hardware::bluetooth::audio::LeAudioMode;
 using ::aidl::android::hardware::bluetooth::audio::PcmConfiguration;
-using ::aidl::android::hardware::bluetooth::audio::UnicastConfiguration;
 using ::bluetooth::audio::aidl::AudioConfiguration;
 using ::bluetooth::audio::aidl::BluetoothAudioCtrlAck;
 using ::bluetooth::audio::le_audio::LeAudioClientInterface;
@@ -472,8 +470,8 @@ AudioConfiguration offload_config_to_hal_audio_config(
       .octetsPerFrame = static_cast<int32_t>(offload_config.octets_per_frame),
       .blocksPerSdu = static_cast<int8_t>(offload_config.blocks_per_sdu),
   };
-  UnicastConfiguration ucast_config = {
-      .peerDelay = static_cast<int32_t>(offload_config.peer_delay),
+  LeAudioConfiguration ucast_config = {
+      .peerDelayUs = static_cast<int32_t>(offload_config.peer_delay_ms * 1000),
       .leAudioCodecConfig = LeAudioCodecConfiguration(lc3_config)};
 
   for (auto& [handle, location] : offload_config.stream_map) {
@@ -483,11 +481,7 @@ AudioConfiguration offload_config_to_hal_audio_config(
     });
   }
 
-  LeAudioConfiguration le_audio_config{
-      .mode = LeAudioMode::UNICAST,
-      .modeConfig = LeAudioConfiguration::LeAudioModeConfig(ucast_config),
-  };
-  return AudioConfiguration(le_audio_config);
+  return AudioConfiguration(ucast_config);
 }
 
 }  // namespace le_audio

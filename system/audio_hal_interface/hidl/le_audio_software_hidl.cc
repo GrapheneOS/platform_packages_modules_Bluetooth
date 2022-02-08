@@ -129,7 +129,7 @@ AudioConfiguration_2_2 offload_config_to_hal_audio_config(
   le_audio_config.mode = LeAudioMode::UNICAST;
   le_audio_config.config.unicastConfig() = {
       .streamMap = std::move(hal_map),
-      .peerDelay = offload_config.peer_delay,
+      .peerDelay = offload_config.peer_delay_ms,
       .lc3Config = {.pcmBitDepth = le_audio_bits_per_sample2audio_hal(
                         offload_config.bits_per_sample),
                     .samplingFrequency = le_audio_sample_rate2audio_hal(
