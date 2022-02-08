@@ -20,7 +20,7 @@ import os
 import argparse
 
 TEST_SUITES = [
-    "blueberry.tests.gd.rust.topshim.facade.adapter_test_blueberry"
+    "blueberry.tests.gd.rust.topshim.facade.adapter_test"
 ]
 
 SOONG_UI_BASH = 'build/soong/soong_ui.bash'
