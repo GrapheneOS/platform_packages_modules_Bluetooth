@@ -1,7 +1,6 @@
-//! Bluetooth interface shim
+//! Shim for `bt_interface_t`, providing access to libbluetooth.
 //!
 //! This is a shim interface for calling the C++ bluetooth interface via Rust.
-//!
 
 use crate::bindings::root as bindings;
 use crate::topstack::get_dispatchers;
@@ -374,10 +373,10 @@ impl BluetoothProperty {
         }
     }
 
-    // Given a mutable array, this will copy the data to that array and return a
-    // pointer to it.
-    //
-    // The lifetime of the returned pointer is tied to that of the slice given.
+    /// Given a mutable array, this will copy the data to that array and return a
+    /// pointer to it.
+    ///
+    /// The lifetime of the returned pointer is tied to that of the slice given.
     fn get_data_ptr<'a>(&'a self, data: &'a mut [u8]) -> *mut u8 {
         let len = self.get_len();
         match &*self {
@@ -685,6 +684,7 @@ macro_rules! cast_to_const_ffi_address {
     };
 }
 
+/// An enum representing `bt_callbacks_t` from btif.
 #[derive(Clone, Debug)]
 pub enum BaseCallbacks {
     AdapterState(BtState),
@@ -761,13 +761,6 @@ struct RawInterfaceWrapper {
 
 unsafe impl Send for RawInterfaceWrapper {}
 
-pub struct BluetoothInterface {
-    internal: RawInterfaceWrapper,
-    pub is_init: bool,
-    // Need to take ownership of callbacks so it doesn't get freed after init
-    callbacks: Option<Box<bindings::bt_callbacks_t>>,
-}
-
 /// Macro to call functions via function pointers. Expects the self object to
 /// have a raw interface wrapper at `self.internal`. The actual function call is
 /// marked unsafe since it will need to dereference a C object. This can cause
@@ -823,11 +816,28 @@ macro_rules! mutcxxcall {
     };
 }
 
+/// Rust wrapper around `bt_interface_t`.
+pub struct BluetoothInterface {
+    internal: RawInterfaceWrapper,
+
+    /// Set to true after `initialize` is called.
+    pub is_init: bool,
+
+    // Need to take ownership of callbacks so it doesn't get freed after init
+    callbacks: Option<Box<bindings::bt_callbacks_t>>,
+}
+
 impl BluetoothInterface {
     pub fn is_initialized(&self) -> bool {
         self.is_init
     }
 
+    /// Initialize the Bluetooth interface by setting up the underlying interface.
+    ///
+    /// # Arguments
+    ///
+    /// * `callbacks` - Dispatcher struct that accepts [`BaseCallbacks`]
+    /// * `init_flags` - List of flags sent to libbluetooth for init.
     pub fn initialize(
         &mut self,
         callbacks: BaseCallbacksDispatcher,
