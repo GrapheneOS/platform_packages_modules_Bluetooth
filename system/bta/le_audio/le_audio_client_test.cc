@@ -1629,6 +1629,8 @@ class UnicastTest : public UnicastTestNoInit {
     EXPECT_CALL(mock_hal_2_1_verifier, Call()).Times(1);
     EXPECT_CALL(mock_storage_load, Call()).Times(1);
 
+    std::vector<::bluetooth::le_audio::btle_audio_codec_config_t>
+        framework_encode_preference;
     BtaAppRegisterCallback app_register_callback;
     EXPECT_CALL(mock_gatt_interface_, AppRegister(_, _, _))
         .WillOnce(DoAll(SaveArg<0>(&gatt_callback),
@@ -1638,7 +1640,8 @@ class UnicastTest : public UnicastTestNoInit {
         base::Bind([](MockFunction<void()>* foo) { foo->Call(); },
                    &mock_storage_load),
         base::Bind([](MockFunction<bool()>* foo) { return foo->Call(); },
-                   &mock_hal_2_1_verifier));
+                   &mock_hal_2_1_verifier),
+        framework_encode_preference);
 
     SyncOnMainLoop();
     ASSERT_TRUE(gatt_callback);
@@ -1677,6 +1680,8 @@ TEST_F(UnicastTestNoInit, InitializeNoHal_2_1) {
   ON_CALL(mock_gatt_interface_, AppRegister(_, _, _))
       .WillByDefault(DoAll(SaveArg<0>(&gatt_callback),
                            SaveArg<1>(&app_register_callback)));
+  std::vector<::bluetooth::le_audio::btle_audio_codec_config_t>
+      framework_encode_preference;
 
   EXPECT_DEATH(
       LeAudioClient::Initialize(
@@ -1684,7 +1689,8 @@ TEST_F(UnicastTestNoInit, InitializeNoHal_2_1) {
           base::Bind([](MockFunction<void()>* foo) { foo->Call(); },
                      &mock_storage_load),
           base::Bind([](MockFunction<bool()>* foo) { return foo->Call(); },
-                     &mock_hal_2_1_verifier)),
+                     &mock_hal_2_1_verifier),
+          framework_encode_preference),
       ", LE Audio Client requires Bluetooth Audio HAL V2.1 at least. Either "
       "disable LE Audio Profile, or update your HAL");
 }
@@ -1924,6 +1930,9 @@ TEST_F(UnicastTestNoInit, LoadStoredEarbudsCsisGrouped) {
       .WillByDefault(
           DoAll(SetArgPointee<1>(BTM_SEC_FLAG_ENCRYPTED), Return(true)));
 
+  std::vector<::bluetooth::le_audio::btle_audio_codec_config_t>
+      framework_encode_preference;
+
   // Initialize
   BtaAppRegisterCallback app_register_callback;
   ON_CALL(mock_gatt_interface_, AppRegister(_, _, _))
@@ -1934,7 +1943,8 @@ TEST_F(UnicastTestNoInit, LoadStoredEarbudsCsisGrouped) {
       base::Bind([](MockFunction<void()>* foo) { foo->Call(); },
                  &mock_storage_load),
       base::Bind([](MockFunction<bool()>* foo) { return foo->Call(); },
-                 &mock_hal_2_1_verifier));
+                 &mock_hal_2_1_verifier),
+      framework_encode_preference);
   if (app_register_callback) app_register_callback.Run(gatt_if, GATT_SUCCESS);
 
   // We need to wait for the storage callback before verifying stuff
@@ -2016,12 +2026,15 @@ TEST_F(UnicastTestNoInit, LoadStoredEarbudsCsisGroupedDifferently) {
   ON_CALL(mock_gatt_interface_, AppRegister(_, _, _))
       .WillByDefault(DoAll(SaveArg<0>(&gatt_callback),
                            SaveArg<1>(&app_register_callback)));
+  std::vector<::bluetooth::le_audio::btle_audio_codec_config_t>
+      framework_encode_preference;
   LeAudioClient::Initialize(
       &mock_client_callbacks_,
       base::Bind([](MockFunction<void()>* foo) { foo->Call(); },
                  &mock_storage_load),
       base::Bind([](MockFunction<bool()>* foo) { return foo->Call(); },
-                 &mock_hal_2_1_verifier));
+                 &mock_hal_2_1_verifier),
+      framework_encode_preference);
   if (app_register_callback) app_register_callback.Run(gatt_if, GATT_SUCCESS);
 
   // We need to wait for the storage callback before verifying stuff
