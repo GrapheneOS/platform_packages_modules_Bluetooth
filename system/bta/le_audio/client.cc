@@ -1258,6 +1258,11 @@ class LeAudioClientImpl : public LeAudioClient {
         group_remove_node(group, address, true);
       }
       leAudioDevices_.Remove(address);
+      return;
+    }
+    /* Attempt background re-connect if disconnect was not intended locally */
+    if (reason != GATT_CONN_TERMINATE_LOCAL_HOST) {
+      BTA_GATTC_Open(gatt_if_, address, false, false);
     }
   }
 
