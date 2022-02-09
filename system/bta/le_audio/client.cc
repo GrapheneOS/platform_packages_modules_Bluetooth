@@ -3308,7 +3308,9 @@ LeAudioClient* LeAudioClient::Get() {
 /* Initializer of main le audio implementation class and its instance */
 void LeAudioClient::Initialize(
     bluetooth::le_audio::LeAudioClientCallbacks* callbacks_,
-    base::Closure initCb, base::Callback<bool()> hal_2_1_verifier) {
+    base::Closure initCb, base::Callback<bool()> hal_2_1_verifier,
+    const std::vector<bluetooth::le_audio::btle_audio_codec_config_t>&
+        offloading_preference) {
   if (instance) {
     LOG(ERROR) << "Already initialized";
     return;
@@ -3342,7 +3344,7 @@ void LeAudioClient::Initialize(
   instance = new LeAudioClientImpl(callbacks_, stateMachineCallbacks, initCb);
 
   IsoManager::GetInstance()->RegisterCigCallbacks(stateMachineHciCallbacks);
-  CodecManager::GetInstance()->Start();
+  CodecManager::GetInstance()->Start(offloading_preference, capabilities);
 }
 
 void LeAudioClient::DebugDump(int fd) {
