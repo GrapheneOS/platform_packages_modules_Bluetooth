@@ -55,8 +55,8 @@ static constexpr bool kPassiveScanning = false;
 
 using BtmRemoteDeviceName = tBTM_REMOTE_DEV_NAME;
 
-extern void btm_process_cancel_complete(uint8_t status, uint8_t mode);
-extern void btm_process_inq_complete(uint8_t status, uint8_t result_type);
+extern void btm_process_cancel_complete(tHCI_STATUS status, uint8_t mode);
+extern void btm_process_inq_complete(tHCI_STATUS status, uint8_t result_type);
 extern void btm_ble_process_adv_addr(RawAddress& raw_address,
                                      tBLE_ADDR_TYPE* address_type);
 extern void btm_ble_process_adv_pkt_cont(
