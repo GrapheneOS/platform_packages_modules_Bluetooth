@@ -232,6 +232,23 @@ bool BluetoothAudioClientInterface::UpdateAudioConfig(
   return true;
 }
 
+bool BluetoothAudioClientInterface::SetLowLatencyModeAllowed(bool allowed) {
+  if (provider_ == nullptr) {
+    LOG(INFO) << __func__
+              << ": BluetoothAudioHal nullptr";
+    return false;
+  }
+
+  auto aidl_retval = provider_->setLowLatencyModeAllowed(allowed);
+  if (!aidl_retval.isOk()) {
+    LOG(ERROR) << __func__ << ": BluetoothAudioHal failure: "
+               << aidl_retval.getDescription();
+    return false;
+  }
+  return true;
+}
+
+
 int BluetoothAudioClientInterface::StartSession() {
   std::lock_guard<std::mutex> guard(internal_mutex_);
   if (provider_ == nullptr) {
