@@ -452,20 +452,16 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
         address_with_type.ToConnectListAddressType(), address_with_type.GetAddress());
   }
 
-  void clear_connect_list() {
-    if (!address_manager_registered) {
-      le_address_manager_->Register(this);
-      address_manager_registered = true;
-    }
-    pause_connection = true;
-    le_address_manager_->ClearConnectList();
-  }
-
   void remove_device_from_connect_list(AddressWithType address_with_type) {
     direct_connections_.erase(address_with_type);
     register_with_address_manager();
     le_address_manager_->RemoveDeviceFromConnectList(
         address_with_type.ToConnectListAddressType(), address_with_type.GetAddress());
+  }
+
+  void clear_connect_list() {
+    register_with_address_manager();
+    le_address_manager_->ClearConnectList();
   }
 
   void add_device_to_resolving_list(
