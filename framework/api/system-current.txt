@@ -235,6 +235,7 @@ package android.bluetooth {
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public int getAudioLocation(@NonNull android.bluetooth.BluetoothDevice);
     field @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public static final String ACTION_LE_AUDIO_ACTIVE_DEVICE_CHANGED = "android.bluetooth.action.LE_AUDIO_ACTIVE_DEVICE_CHANGED";
     field @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public static final String ACTION_LE_AUDIO_GROUP_NODE_STATUS_CHANGED = "android.bluetooth.action.LE_AUDIO_GROUP_NODE_STATUS_CHANGED";
+    field public static final int AUDIO_LOCATION_INVALID = -1; // 0xffffffff
     field public static final String EXTRA_LE_AUDIO_GROUP_ID = "android.bluetooth.extra.LE_AUDIO_GROUP_ID";
     field public static final String EXTRA_LE_AUDIO_GROUP_NODE_STATUS = "android.bluetooth.extra.LE_AUDIO_GROUP_NODE_STATUS";
     field public static final String EXTRA_LE_AUDIO_GROUP_STATUS = "android.bluetooth.extra.LE_AUDIO_GROUP_STATUS";
