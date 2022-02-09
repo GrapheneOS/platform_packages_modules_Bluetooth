@@ -385,6 +385,7 @@ bool hal_ucast_capability_to_stack_format(
   auto sample_rate_hz = hal_lc3_capability.samplingFrequencyHz[0];
   auto frame_duration_us = hal_lc3_capability.frameDurationUs[0];
   auto octets_per_frame = hal_lc3_capability.octetsPerFrame[0];
+  auto channel_count = hal_capability.channelCountPerDevice;
 
   if (sampling_freq_map.find(sample_rate_hz) == sampling_freq_map.end() ||
       frame_duration_map.find(frame_duration_us) == frame_duration_map.end() ||
@@ -406,8 +407,8 @@ bool hal_ucast_capability_to_stack_format(
           {.sampling_frequency = sampling_freq_map[sample_rate_hz],
            .frame_duration = frame_duration_map[frame_duration_us],
            .octets_per_codec_frame = octets_per_frame_map[octets_per_frame],
-           .audio_channel_allocation = audio_location_map[supportedChannel]})};
-
+           .audio_channel_allocation = audio_location_map[supportedChannel],
+           .channel_count = static_cast<uint8_t>(channel_count)})};
   return true;
 }
 

@@ -38,13 +38,19 @@ class CodecManager {
     static CodecManager* instance = new CodecManager();
     return instance;
   }
-  void Start(void);
+  void Start(
+      const std::vector<bluetooth::le_audio::btle_audio_codec_config_t>&
+          offloading_preference,
+      const std::vector<::le_audio::set_configurations::AudioSetConfiguration>&
+          adsp_capabilities);
   void Stop(void);
   virtual types::CodecLocation GetCodecLocation(void) const;
   virtual void UpdateActiveSourceAudioConfig(
       const stream_configuration& stream_conf, uint16_t delay);
   virtual void UpdateActiveSinkAudioConfig(
       const stream_configuration& stream_conf, uint16_t delay);
+  const ::le_audio::set_configurations::AudioSetConfigurations*
+  GetOffloadCodecConfig(::le_audio::types::LeAudioContextType ctx_type);
 
  private:
   struct impl;
