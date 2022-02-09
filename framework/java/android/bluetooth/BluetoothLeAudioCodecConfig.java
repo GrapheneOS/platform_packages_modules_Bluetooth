@@ -336,14 +336,14 @@ public final class BluetoothLeAudioCodecConfig implements Parcelable {
     /**
      * Returns the frame duration.
      */
-    public @ChannelMode int getFrameDuration() {
+    public @FrameDuration int getFrameDuration() {
         return mFrameDuration;
     }
 
     /**
      * Returns the octets per frame
      */
-    public @ChannelMode int getOctetsPerFrame() {
+    public int getOctetsPerFrame() {
         return mOctetsPerFrame;
     }
 
