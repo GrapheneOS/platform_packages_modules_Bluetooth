@@ -1,3 +1,5 @@
+//! Various libraries to access the profile interfaces.
+
 pub mod a2dp;
 pub mod avrcp;
 pub mod gatt;

@@ -73,22 +73,24 @@ impl Parse for CbVariant {
 /// Implement C function to convert callback into enum variant.
 ///
 /// Expected syntax:
+///     ```compile_fail
 ///     cb_variant(DispatcherType, function_name -> EnumType::Variant, args..., {
 ///         // Statements (maybe converting types)
 ///         // Args in order will be _0, _1, etc.
 ///     })
+///     ```
 ///
-///     args can do conversions inline as well. In order for conversions to work, the relevant
-///     From<T> trait should also be implemented.
+/// args can do conversions inline as well. In order for conversions to work, the relevant
+/// From<T> trait should also be implemented.
 ///
-///     Example:
-///         u32 -> BtStatus (requires impl From<u32> for BtStatus)
+/// Example:
+///     u32 -> BtStatus (requires impl From<u32> for BtStatus)
 ///
-///     To consume a value during conversion, you can use `Type -> _`. This is useful when you want
-///     to convert a pointer + size into a single Vec (i.e. using ptr_to_vec).
+/// To consume a value during conversion, you can use "Type -> _". This is useful when you want
+/// to convert a pointer + size into a single Vec (i.e. using ptr_to_vec).
 ///
-///     Example:
-///         u32 -> _
+/// Example:
+///     u32 -> _
 pub fn cb_variant(input: TokenStream) -> TokenStream {
     let parsed_cptr = parse_macro_input!(input as CbVariant);
 
