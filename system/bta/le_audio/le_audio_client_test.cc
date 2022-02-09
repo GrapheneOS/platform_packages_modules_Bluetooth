@@ -264,7 +264,9 @@ class UnicastTestNoInit : public Test {
             base::Unretained(this->gatt_callback), event_data));
   }
 
-  void InjectDisconnectedEvent(uint16_t conn_id) {
+  void InjectDisconnectedEvent(
+      uint16_t conn_id,
+      tGATT_DISCONN_REASON reason = GATT_CONN_TERMINATE_LOCAL_HOST) {
     ASSERT_NE(conn_id, GATT_INVALID_CONN_ID);
     ASSERT_NE(peer_devices.count(conn_id), 0u);
 
@@ -273,7 +275,7 @@ class UnicastTestNoInit : public Test {
         .conn_id = conn_id,
         .client_if = gatt_if,
         .remote_bda = peer_devices.at(conn_id)->addr,
-        .reason = GATT_CONN_TERMINATE_PEER_USER,
+        .reason = reason,
     };
 
     peer_devices.at(conn_id)->connected = false;
@@ -1767,6 +1769,29 @@ TEST_F(UnicastTest, ConnectDisconnectOneEarbud) {
       .Times(1);
   ConnectLeAudio(test_address0);
   DisconnectLeAudio(test_address0, 1);
+}
+
+/* same as above case except the disconnect is initiated by remote */
+TEST_F(UnicastTest, ConnectRemoteDisconnectOneEarbud) {
+  const RawAddress test_address0 = GetTestAddress(0);
+  SetSampleDatabaseEarbudsValid(1, test_address0,
+                                codec_spec_conf::kLeAudioLocationStereo,
+                                codec_spec_conf::kLeAudioLocationStereo);
+  EXPECT_CALL(mock_client_callbacks_,
+              OnConnectionState(ConnectionState::CONNECTED, test_address0))
+      .Times(1);
+  ConnectLeAudio(test_address0);
+  EXPECT_CALL(mock_client_callbacks_,
+              OnConnectionState(ConnectionState::DISCONNECTED, test_address0))
+      .Times(1);
+  /* For remote disconnection, expect stack to try background re-connect */
+  EXPECT_CALL(mock_gatt_interface_, Open(gatt_if, test_address0, false, _))
+      .Times(1);
+  global_conn_id = 1; /* Reset to keep conn_id same during re-connect */
+  EXPECT_CALL(mock_client_callbacks_,
+              OnConnectionState(ConnectionState::CONNECTED, test_address0))
+      .Times(1);
+  InjectDisconnectedEvent(1, GATT_CONN_TERMINATE_PEER_USER);
 }
 
 TEST_F(UnicastTest, ConnectTwoEarbudsCsisGrouped) {
