@@ -663,6 +663,9 @@ final class RemoteDevices {
                             }
                             break;
                         case AbstractionLayer.BT_PROPERTY_TYPE_OF_DEVICE:
+                            if (device.isConsolidated()) {
+                                return;
+                            }
                             // The device type from hal layer, defined in bluetooth.h,
                             // matches the type defined in BluetoothDevice.java
                             device.mDeviceType = Utils.byteArrayToInt(val);
@@ -737,6 +740,7 @@ final class RemoteDevices {
 
         DeviceProperties deviceProperties = getDeviceProperties(device);
         deviceProperties.mIsConsolidated = true;
+        deviceProperties.mDeviceType = BluetoothDevice.DEVICE_TYPE_DUAL;
         deviceProperties.mIdentityAddress = Utils.getAddressStringFromByte(secondaryAddress);
         mDualDevicesMap.put(deviceProperties.getIdentityAddress(), Utils.getAddressStringFromByte(mainAddress));
     }
