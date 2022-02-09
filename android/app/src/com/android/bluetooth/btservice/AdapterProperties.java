@@ -1114,11 +1114,21 @@ class AdapterProperties {
         writer.println("  " + "DiscoveryEndMs: " + mDiscoveryEndMs);
 
         writer.println("  " + "Bonded devices:");
+        StringBuilder sb = new StringBuilder();
         for (BluetoothDevice device : mBondedDevices) {
-            writer.println(
-                    "    " + device.getAddress() + " [" + dumpDeviceType(device.getType()) + "] "
+            String address = device.getAddress();
+            String identityAddress = mService.getIdentityAddress(address);
+            if (identityAddress.equals(address)) {
+                writer.println("    " + address
+                            + " [" + dumpDeviceType(device.getType()) + "] "
                             + Utils.getName(device));
+            } else {
+                sb.append("    " + address + " => " + identityAddress
+                            + " [" + dumpDeviceType(device.getType()) + "] "
+                            + Utils.getName(device) + "\n");
+            }
         }
+        writer.println(sb.toString());
     }
 
     private String dumpDeviceType(int deviceType) {
