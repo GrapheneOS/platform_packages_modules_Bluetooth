@@ -17,8 +17,8 @@ package android.bluetooth {
     method @RequiresPermission(android.Manifest.permission.BLUETOOTH_SCAN) public boolean cancelDiscovery();
     method public static boolean checkBluetoothAddress(String);
     method public void closeProfileProxy(int, android.bluetooth.BluetoothProfile);
-    method @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public boolean disable();
-    method @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public boolean enable();
+    method @Deprecated @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public boolean disable();
+    method @Deprecated @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public boolean enable();
     method public String getAddress();
     method public android.bluetooth.le.BluetoothLeAdvertiser getBluetoothLeAdvertiser();
     method public android.bluetooth.le.BluetoothLeScanner getBluetoothLeScanner();
