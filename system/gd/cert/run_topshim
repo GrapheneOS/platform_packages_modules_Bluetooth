@@ -20,7 +20,8 @@ import os
 import argparse
 
 TEST_SUITES = [
-    "blueberry.tests.gd.rust.topshim.facade.adapter_test"
+    "blueberry.tests.gd.rust.topshim.facade.adapter_test",
+    "blueberry.tests.gd.rust.topshim.facade.suspend_test"
 ]
 
 SOONG_UI_BASH = 'build/soong/soong_ui.bash'
@@ -135,7 +136,7 @@ def main():
     if not all(test_results):
         failures = [i for i, x in enumerate(test_results) if not x]
         for index in failures:
-            print('TEST FAILLED: ' + TEST_SUITES[index])
+            print('TEST FAILED: ' + TEST_SUITES[index])
         sys.exit(0)
     print('TEST PASSED ' + str(len(test_results)) + ' tests were run')
 
