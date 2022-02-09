@@ -97,7 +97,7 @@ const Uuid UUID_LE_AUDIO = Uuid::FromString("184E");
 const Uuid UUID_LE_MIDI = Uuid::FromString("03B80E5A-EDE8-4B33-A751-6CE34EC4C700");
 /* FIXME: Not known yet, using a placeholder instead. */
 const Uuid UUID_HAS = Uuid::FromString("EEEEEEEE-EEEE-EEEE-EEEE-EEEEEEEEEEEE");
-const bool enable_address_consolidate = false;  // TODO remove
+const bool enable_address_consolidate = true;  // TODO remove
 
 #define COD_MASK 0x07FF
 
