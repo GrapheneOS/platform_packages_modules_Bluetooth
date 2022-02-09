@@ -3,7 +3,7 @@
 /// Gets the value of a system property on Android
 #[cfg(target_os = "android")]
 pub fn get(name: &str) -> Option<String> {
-    rustutils::system_properties::read(name).ok()
+    rustutils::system_properties::read(name).unwrap_or(None)
 }
 
 /// Fake getter for non-Android, which will always return nothing.
