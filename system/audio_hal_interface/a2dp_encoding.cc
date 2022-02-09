@@ -144,6 +144,7 @@ bool set_audio_low_latency_mode_allowed(bool allowed){
     hidl::a2dp::set_low_latency_mode_allowed(allowed);
     return true;
   }
+  aidl::a2dp::set_low_latency_mode_allowed(allowed);
   return false;
 }
 
