@@ -23,7 +23,6 @@ cc_library_static {
     shared_libs: [
         "android.hardware.bluetooth.audio@2.0",
         "android.hardware.bluetooth.audio@2.1",
-        "android.hardware.bluetooth.audio@2.2",
         "libhidlbase",
     ],
     static_libs: [
@@ -85,7 +84,6 @@ cc_test {
     shared_libs: [
         "android.hardware.bluetooth.audio@2.0",
         "android.hardware.bluetooth.audio@2.1",
-        "android.hardware.bluetooth.audio@2.2",
         "android.hardware.bluetooth.audio-V1-ndk",
         "libbinder_ndk",
         "libcutils",
