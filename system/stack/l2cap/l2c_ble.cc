@@ -28,11 +28,8 @@
 #include <base/strings/stringprintf.h>
 
 #include "bt_target.h"
-#include "bta_hearing_aid_api.h"
+#include "bta/include/bta_hearing_aid_api.h"
 #include "device/include/controller.h"
-#include "l2c_api.h"
-#include "l2c_int.h"
-#include "l2cdefs.h"
 #include "main/shim/l2c_api.h"
 #include "main/shim/shim.h"
 #include "osi/include/allocator.h"
@@ -41,6 +38,9 @@
 #include "stack/btm/btm_dev.h"
 #include "stack/btm/btm_sec.h"
 #include "stack/include/acl_api.h"
+#include "stack/include/l2c_api.h"
+#include "stack/include/l2cdefs.h"
+#include "stack/l2cap/l2c_int.h"
 #include "stack_config.h"
 #include "types/raw_address.h"
 
