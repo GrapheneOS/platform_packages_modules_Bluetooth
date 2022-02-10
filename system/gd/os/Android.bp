@@ -8,6 +8,13 @@ package {
 }
 
 filegroup {
+    name: "BluetoothOsSources",
+    srcs: [
+        "handler.cc",
+    ],
+}
+
+filegroup {
     name: "BluetoothOsSources_android",
     srcs: [
         "android/metrics.cc",
@@ -36,6 +43,13 @@ filegroup {
 }
 
 filegroup {
+    name: "BluetoothOsTestSources",
+    srcs: [
+        "handler_unittest.cc",
+    ],
+}
+
+filegroup {
     name: "BluetoothOsTestSources_host",
     srcs: [
         "host/system_properties_test.cc",
@@ -48,7 +62,6 @@ filegroup {
     srcs: [
         "linux_generic/alarm.cc",
         "linux_generic/files.cc",
-        "linux_generic/handler.cc",
         "linux_generic/reactor.cc",
         "linux_generic/repeating_alarm.cc",
         "linux_generic/reactive_semaphore.cc",
@@ -62,7 +75,6 @@ filegroup {
     srcs: [
         "linux_generic/alarm_unittest.cc",
         "linux_generic/files_test.cc",
-        "linux_generic/handler_unittest.cc",
         "linux_generic/queue_unittest.cc",
         "linux_generic/reactor_unittest.cc",
         "linux_generic/repeating_alarm_unittest.cc",
