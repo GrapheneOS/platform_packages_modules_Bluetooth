@@ -16,8 +16,6 @@
 
 #include "os/handler.h"
 
-#include <sys/eventfd.h>
-
 #include <future>
 #include <thread>
 
