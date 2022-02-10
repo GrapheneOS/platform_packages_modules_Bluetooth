@@ -85,7 +85,8 @@ class LeAudioClientInterfaceImpl : public LeAudioClientInterface,
                             FROM_HERE, Bind(&btif_storage_load_bonded_leaudio)),
                         base::Bind([]() -> bool {
                           return LeAudioHalVerifier::SupportsLeAudio();
-                        })));
+                        }),
+                        offloading_preference));
   }
 
   void Cleanup(void) override {

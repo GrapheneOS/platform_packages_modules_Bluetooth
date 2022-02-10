@@ -1,7 +1,7 @@
-//! Fluoride/GD Bluetooth stack.
+//! Floss Bluetooth stack.
 //!
-//! This crate provides the API implementation of the Fluoride/GD Bluetooth stack, independent of
-//! any RPC projection.
+//! This crate provides the API implementation of the Fluoride/GD Bluetooth
+//! stack, independent of any RPC projection.
 
 #[macro_use]
 extern crate num_derive;
@@ -26,9 +26,6 @@ use bt_topshim::{
         gatt::GattServerCallbacks, hfp::HfpCallbacks, hid_host::HHCallbacks, sdp::SdpCallbacks,
     },
 };
-
-/// Represents a Bluetooth address.
-// TODO: Add support for LE random addresses.
 
 #[derive(Clone, Debug)]
 pub enum BluetoothCallbackType {

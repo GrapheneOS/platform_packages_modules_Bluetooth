@@ -249,6 +249,8 @@ public final class BluetoothAdapter {
      *
      * @hide
      */
+    @SystemApi
+    @SuppressLint("ActionValue")
     public static final String EXTRA_RFCOMM_LISTENER_ID =
             "android.bluetooth.adapter.extra.RFCOMM_LISTENER_ID";
 
@@ -1282,7 +1284,20 @@ public final class BluetoothAdapter {
      * such as Airplane mode, or the adapter is already turned on.
      *
      * @return true to indicate adapter startup has begun, or false on immediate error
+     *
+     * @deprecated Starting with {@link android.os.Build.VERSION_CODES#TIRAMISU}, applications
+     * are not allowed to enable/disable Bluetooth.
+     * <b>Compatibility Note:</b> For applications targeting
+     * {@link android.os.Build.VERSION_CODES#TIRAMISU} or above, this API will always fail and return
+     * {@code false}. If apps are targeting an older SDK ({@link android.os.Build.VERSION_CODES#S}
+     * or below), they can continue to use this API.
+     * <p>
+     * Deprecation Exemptions:
+     * <ul>
+     * <li>Device Owner (DO), Profile Owner (PO) and system apps.
+     * </ul>
      */
+    @Deprecated
     @RequiresLegacyBluetoothAdminPermission
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
@@ -1321,7 +1336,20 @@ public final class BluetoothAdapter {
      * such as the adapter already being turned off.
      *
      * @return true to indicate adapter shutdown has begun, or false on immediate error
+     *
+     * @deprecated Starting with {@link android.os.Build.VERSION_CODES#TIRAMISU}, applications
+     * are not allowed to enable/disable Bluetooth.
+     * <b>Compatibility Note:</b> For applications targeting
+     * {@link android.os.Build.VERSION_CODES#TIRAMISU} or above, this API will always fail and return
+     * {@code false}. If apps are targeting an older SDK ({@link android.os.Build.VERSION_CODES#S}
+     * or below), they can continue to use this API.
+     * <p>
+     * Deprecation Exemptions:
+     * <ul>
+     * <li>Device Owner (DO), Profile Owner (PO) and system apps.
+     * </ul>
      */
+    @Deprecated
     @RequiresLegacyBluetoothAdminPermission
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
