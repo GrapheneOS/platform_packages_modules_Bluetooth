@@ -27,15 +27,15 @@
 #include <string.h>
 
 #include "bt_target.h"
-#include "hcimsgs.h"
-#include "l2c_api.h"
-#include "l2c_int.h"
-#include "l2cdefs.h"
+#include "hcimsgs.h"  // HCID_GET_
 #include "main/shim/shim.h"
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "stack/include/bt_hdr.h"
+#include "stack/include/l2c_api.h"
+#include "stack/include/l2cdefs.h"
+#include "stack/l2cap/l2c_int.h"
 
 /******************************************************************************/
 /*            L O C A L    F U N C T I O N     P R O T O T Y P E S            */
