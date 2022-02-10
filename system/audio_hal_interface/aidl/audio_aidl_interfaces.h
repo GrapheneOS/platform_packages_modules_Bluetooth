@@ -37,7 +37,6 @@
 #include <aidl/android/hardware/bluetooth/audio/AudioConfiguration.h>
 #include <aidl/android/hardware/bluetooth/audio/AudioLocation.h>
 #include <aidl/android/hardware/bluetooth/audio/BluetoothAudioStatus.h>
-#include <aidl/android/hardware/bluetooth/audio/BroadcastConfiguration.h>
 #include <aidl/android/hardware/bluetooth/audio/ChannelMode.h>
 #include <aidl/android/hardware/bluetooth/audio/CodecCapabilities.h>
 #include <aidl/android/hardware/bluetooth/audio/CodecConfiguration.h>
@@ -52,10 +51,10 @@
 #include <aidl/android/hardware/bluetooth/audio/LdacChannelMode.h>
 #include <aidl/android/hardware/bluetooth/audio/LdacConfiguration.h>
 #include <aidl/android/hardware/bluetooth/audio/LdacQualityIndex.h>
+#include <aidl/android/hardware/bluetooth/audio/LeAudioBroadcastConfiguration.h>
 #include <aidl/android/hardware/bluetooth/audio/LeAudioCodecCapabilitiesSetting.h>
 #include <aidl/android/hardware/bluetooth/audio/LeAudioCodecConfiguration.h>
 #include <aidl/android/hardware/bluetooth/audio/LeAudioConfiguration.h>
-#include <aidl/android/hardware/bluetooth/audio/LeAudioMode.h>
 #include <aidl/android/hardware/bluetooth/audio/PcmCapabilities.h>
 #include <aidl/android/hardware/bluetooth/audio/PcmConfiguration.h>
 #include <aidl/android/hardware/bluetooth/audio/PresentationPosition.h>
@@ -64,8 +63,6 @@
 #include <aidl/android/hardware/bluetooth/audio/SbcChannelMode.h>
 #include <aidl/android/hardware/bluetooth/audio/SbcConfiguration.h>
 #include <aidl/android/hardware/bluetooth/audio/SessionType.h>
-#include <aidl/android/hardware/bluetooth/audio/UnicastConfiguration.h>
-
 
 
 #ifdef LOG_INFO
