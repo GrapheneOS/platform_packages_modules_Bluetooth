@@ -29,13 +29,13 @@
 #include <string.h>
 
 #include "common/time_util.h"
-#include "l2c_api.h"
-#include "l2c_int.h"
-#include "l2cdefs.h"
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_types.h"
+#include "stack/include/l2c_api.h"
+#include "stack/include/l2cdefs.h"
+#include "stack/l2cap/l2c_int.h"
 
 /* Flag passed to retransmit_i_frames() when all packets should be retransmitted
  */
