@@ -1240,7 +1240,7 @@ class BluetoothManagerService extends IBluetoothManager.Stub {
         final int callingUid = Binder.getCallingUid();
         final int callingPid = Binder.getCallingPid();
         if (!isPrivileged(callingPid, callingUid) && !isDeviceOwner(callingUid, packageName)
-                && !CompatChanges.isChangeEnabled(RESTRICT_ENABLE_DISABLE, callingUid)
+                && CompatChanges.isChangeEnabled(RESTRICT_ENABLE_DISABLE, callingUid)
                 && !isSystem(packageName, callingUid)) {
             return false;
         }
@@ -3061,6 +3061,8 @@ class BluetoothManagerService extends IBluetoothManager.Stub {
 
     private boolean isPrivileged(int pid, int uid) {
         return (mContext.checkPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED, pid, uid)
+                == PackageManager.PERMISSION_GRANTED)
+                || (mContext.checkPermission(android.Manifest.permission.NETWORK_SETTINGS, pid, uid)
                 == PackageManager.PERMISSION_GRANTED)
                 || (mContext.getPackageManager().checkSignatures(uid, Process.SYSTEM_UID)
                 == PackageManager.SIGNATURE_MATCH);
