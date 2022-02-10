@@ -102,7 +102,7 @@ class Handler : public common::IPostableContext {
   };
   std::queue<common::OnceClosure>* tasks_;
   Thread* thread_;
-  int fd_;
+  std::unique_ptr<Reactor::Event> event_;
   Reactor::Reactable* reactable_;
   mutable std::mutex mutex_;
   void handle_next_event();
