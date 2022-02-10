@@ -29,13 +29,16 @@
 #include "bta_le_audio_api.h"
 #include "client_audio.h"
 #include "client_parser.h"
+#include "codec_manager.h"
 
 namespace le_audio {
+using ::le_audio::CodecManager;
 using types::acs_ac_record;
 using types::LeAudioContextType;
 
 namespace set_configurations {
 using set_configurations::CodecCapabilitySetting;
+using types::CodecLocation;
 using types::kLeAudioCodingFormatLC3;
 using types::kLeAudioDirectionSink;
 using types::kLeAudioDirectionSource;
@@ -226,6 +229,23 @@ bool IsCodecCapabilitySettingSupported(
 }
 
 const AudioSetConfigurations* get_confs_by_type(LeAudioContextType type) {
+  if (CodecManager::GetInstance()->GetCodecLocation() == CodecLocation::ADSP) {
+    DLOG(INFO) << __func__
+               << "Get offload config for the context type: " << (int)type;
+    const AudioSetConfigurations* offload_confs =
+        CodecManager::GetInstance()->GetOffloadCodecConfig(type);
+
+    if (offload_confs != nullptr && !(*offload_confs).empty()) {
+      return offload_confs;
+    }
+
+    // TODO: Need to have a mechanism to switch to software session if offload
+    // doesn't support.
+  }
+
+  DLOG(INFO) << __func__
+             << "Get software config for the context type: " << (int)type;
+
   switch (type) {
     case LeAudioContextType::MEDIA:
       return &audio_set_conf_media;

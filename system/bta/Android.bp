@@ -580,6 +580,7 @@ cc_test {
         "le_audio/broadcaster/state_machine_test.cc",
         "le_audio/le_audio_types.cc",
         "le_audio/mock_iso_manager.cc",
+        "le_audio/mock_codec_manager.cc",
     ],
     shared_libs: [
         "libprotobuf-cpp-lite",
@@ -631,6 +632,7 @@ cc_test {
         "le_audio/mock_iso_manager.cc",
         "le_audio/mock_le_audio_client_audio.cc",
         "test/common/mock_controller.cc",
+        "le_audio/mock_codec_manager.cc",
     ],
     shared_libs: [
         "libprotobuf-cpp-lite",

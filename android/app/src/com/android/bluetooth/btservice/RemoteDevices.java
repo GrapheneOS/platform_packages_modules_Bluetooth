@@ -24,6 +24,7 @@ import android.bluetooth.BluetoothAssignedNumbers;
 import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadset;
+import android.bluetooth.BluetoothHeadsetClient;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.IBluetoothConnectionCallback;
 import android.content.BroadcastReceiver;
@@ -110,6 +111,12 @@ final class RemoteDevices {
                 case BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED:
                     onHeadsetConnectionStateChanged(intent);
                     break;
+                case BluetoothHeadsetClient.ACTION_CONNECTION_STATE_CHANGED:
+                    onHeadsetClientConnectionStateChanged(intent);
+                    break;
+                case BluetoothHeadsetClient.ACTION_AG_EVENT:
+                    onAgIndicatorValueChanged(intent);
+                    break;
                 default:
                     Log.w(TAG, "Unhandled intent: " + intent);
                     break;
@@ -157,6 +164,8 @@ final class RemoteDevices {
         filter.addCategory(BluetoothHeadset.VENDOR_SPECIFIC_HEADSET_EVENT_COMPANY_ID_CATEGORY + "."
                 + BluetoothAssignedNumbers.APPLE);
         filter.addAction(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED);
+        filter.addAction(BluetoothHeadsetClient.ACTION_CONNECTION_STATE_CHANGED);
+        filter.addAction(BluetoothHeadsetClient.ACTION_AG_EVENT);
         sAdapterService.registerReceiver(mReceiver, filter);
     }
 
@@ -663,6 +672,9 @@ final class RemoteDevices {
                             }
                             break;
                         case AbstractionLayer.BT_PROPERTY_TYPE_OF_DEVICE:
+                            if (device.isConsolidated()) {
+                                return;
+                            }
                             // The device type from hal layer, defined in bluetooth.h,
                             // matches the type defined in BluetoothDevice.java
                             device.mDeviceType = Utils.byteArrayToInt(val);
@@ -737,6 +749,7 @@ final class RemoteDevices {
 
         DeviceProperties deviceProperties = getDeviceProperties(device);
         deviceProperties.mIsConsolidated = true;
+        deviceProperties.mDeviceType = BluetoothDevice.DEVICE_TYPE_DUAL;
         deviceProperties.mIdentityAddress = Utils.getAddressStringFromByte(secondaryAddress);
         mDualDevicesMap.put(deviceProperties.getIdentityAddress(), Utils.getAddressStringFromByte(mainAddress));
     }
@@ -1036,6 +1049,38 @@ final class RemoteDevices {
             return BluetoothDevice.BATTERY_LEVEL_UNKNOWN;
         }
         return batteryLevel * 100 / (numberOfLevels - 1);
+    }
+
+    /**
+     * Handles headset client connection state change event
+     * @param intent must be {@link BluetoothHeadsetClient#ACTION_CONNECTION_STATE_CHANGED} intent
+     */
+    @VisibleForTesting
+    void onHeadsetClientConnectionStateChanged(Intent intent) {
+        BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+        if (device == null) {
+            Log.e(TAG, "onHeadsetClientConnectionStateChanged() remote device is null");
+            return;
+        }
+        if (intent.getIntExtra(BluetoothProfile.EXTRA_STATE, BluetoothProfile.STATE_DISCONNECTED)
+                == BluetoothProfile.STATE_DISCONNECTED) {
+            // TODO: Rework this when non-HFP sources of battery level indication is added
+            resetBatteryLevel(device);
+        }
+    }
+
+    @VisibleForTesting
+    void onAgIndicatorValueChanged(Intent intent) {
+        BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+        if (device == null) {
+            Log.e(TAG, "onAgIndicatorValueChanged() remote device is null");
+            return;
+        }
+
+        if (intent.hasExtra(BluetoothHeadsetClient.EXTRA_BATTERY_LEVEL)) {
+            int batteryLevel = intent.getIntExtra(BluetoothHeadsetClient.EXTRA_BATTERY_LEVEL, -1);
+            updateBatteryLevel(device, batteryLevel);
+        }
     }
 
     private static void errorLog(String msg) {

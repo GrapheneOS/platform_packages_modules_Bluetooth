@@ -59,13 +59,14 @@ USE_DEFAULTS = {
 }
 
 VALID_TARGETS = [
-    'prepare',  # Prepare the output directory (gn gen + rust setup)
-    'tools',  # Build the host tools (i.e. packetgen)
-    'rust',  # Build only the rust components + copy artifacts to output dir
-    'main',  # Build the main C++ codebase
-    'test',  # Run the unit tests
-    'clean',  # Clean up output directory
     'all',  # All targets except test and clean
+    'clean',  # Clean up output directory
+    'docs',  # Build Rust docs
+    'main',  # Build the main C++ codebase
+    'prepare',  # Prepare the output directory (gn gen + rust setup)
+    'rust',  # Build only the rust components + copy artifacts to output dir
+    'test',  # Run the unit tests
+    'tools',  # Build the host tools (i.e. packetgen)
 ]
 
 # TODO(b/190750167) - Host tests are disabled until we are full bazel build
@@ -413,6 +414,10 @@ class HostBuild():
         shutil.copy(
             os.path.join(self._gn_default_output(), 'bluetooth_packetgen'), os.path.join(self.env['CARGO_HOME'], 'bin'))
 
+    def _target_docs(self):
+        """Build the Rust docs."""
+        self.run_command('docs', ['cargo', 'doc'], cwd=os.path.join(self.platform_dir, 'bt'), env=self.env)
+
     def _target_rust(self):
         """ Build rust artifacts in an already prepared environment.
         """
@@ -427,7 +432,11 @@ class HostBuild():
         """ Runs the host tests.
         """
         # Rust tests first
-        self.run_command('test', ['cargo', 'test'], cwd=os.path.join(self.platform_dir, 'bt'), env=self.env)
+        rust_test_cmd = ['cargo', 'test']
+        if self.args.test_name:
+            rust_test_cmd = rust_test_cmd + [self.args.test_name]
+
+        self.run_command('test', rust_test_cmd, cwd=os.path.join(self.platform_dir, 'bt'), env=self.env)
 
         # Host tests second based on host test list
         for t in HOST_TESTS:
@@ -502,7 +511,7 @@ class HostBuild():
             pass
 
     def _target_all(self):
-        """ Build all common targets (skipping test and clean).
+        """ Build all common targets (skipping doc, test, and clean).
         """
         self._target_prepare()
         self._target_tools()
@@ -514,12 +523,19 @@ class HostBuild():
         """
         print('Building target ', self.target)
 
+        # Validate that the target is valid
+        if self.target not in VALID_TARGETS:
+            print('Target {} is not valid. Must be in {}', self.target, VALID_TARGETS)
+            return
+
         if self.target == 'prepare':
             self._target_prepare()
         elif self.target == 'tools':
             self._target_tools()
         elif self.target == 'rust':
             self._target_rust()
+        elif self.target == 'docs':
+            self._target_docs()
         elif self.target == 'main':
             self._target_main()
         elif self.target == 'test':
@@ -759,7 +775,8 @@ if __name__ == '__main__':
     parser.add_argument(
         '--no-strip', help='Skip stripping binaries during install.', default=False, action='store_true')
     parser.add_argument('--use', help='Set a specific use flag.')
-    parser.add_argument('--notest', help="Don't compile test code.", default=False, action='store_true')
+    parser.add_argument('--notest', help='Don\'t compile test code.', default=False, action='store_true')
+    parser.add_argument('--test-name', help='Run test with this string in the name.', default=None)
     parser.add_argument('--target', help='Run specific build target')
     parser.add_argument('--sysroot', help='Set a specific sysroot path', default='/')
     parser.add_argument('--libdir', help='Libdir - default = usr/lib', default='usr/lib')

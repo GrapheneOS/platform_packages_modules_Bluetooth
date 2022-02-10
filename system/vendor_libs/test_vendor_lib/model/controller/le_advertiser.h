@@ -44,7 +44,8 @@ class LeAdvertiser {
                           bluetooth::hci::AddressWithType peer_address,
                           bluetooth::hci::LeScanningFilterPolicy filter_policy,
                           model::packets::AdvertisementType type,
-                          std::chrono::steady_clock::duration interval);
+                          std::chrono::steady_clock::duration interval,
+                          uint8_t tx_power);
 
   void SetAddress(bluetooth::hci::Address address);
 
@@ -52,10 +53,10 @@ class LeAdvertiser {
 
   void SetScanResponse(const std::vector<uint8_t>& data);
 
-  std::unique_ptr<model::packets::LeAdvertisementBuilder> GetAdvertisement(
+  std::unique_ptr<model::packets::LinkLayerPacketBuilder> GetAdvertisement(
       std::chrono::steady_clock::time_point);
 
-  std::unique_ptr<model::packets::LeScanResponseBuilder> GetScanResponse(
+  std::unique_ptr<model::packets::LinkLayerPacketBuilder> GetScanResponse(
       bluetooth::hci::Address scanned_address,
       bluetooth::hci::Address scanner_address);
 
@@ -87,6 +88,8 @@ class LeAdvertiser {
   std::vector<uint8_t> scan_response_;
   std::chrono::steady_clock::duration interval_{};
   std::chrono::steady_clock::time_point ending_time_{};
+  static constexpr uint8_t kTxPowerUnavailable = 0x7f;
+  uint8_t tx_power_{kTxPowerUnavailable};
   uint8_t num_events_{0};
   bool extended_{false};
   bool enabled_{false};

@@ -61,10 +61,12 @@ java_library {
     libs: [
         "framework-annotations-lib",
         "framework-bluetooth-pre-jarjar",
+        "app-compat-annotations",
     ],
 
     static_libs: [
         "androidx.annotation_annotation",
+        "androidx.appcompat_appcompat",
     ],
 
     apex_available: [
@@ -78,10 +80,14 @@ java_library {
     name: "service-bluetooth",
     defaults: ["service-bluetooth-common-defaults"],
     installable: true,
-    static_libs: ["service-bluetooth-pre-jarjar"],
+    static_libs: [
+        "service-bluetooth-pre-jarjar",
+        "androidx.appcompat_appcompat",
+    ],
 
     libs: [
         "framework-bluetooth.impl",
+        "app-compat-annotations",
     ],
     sdk_version: "system_server_current",
 

@@ -84,6 +84,8 @@ class BluetoothAudioClientInterface {
 
   bool UpdateAudioConfig(const AudioConfiguration& audioConfig);
 
+  bool SetLowLatencyModeAllowed(bool allowed);
+
   void FlushAudioData();
 
   static constexpr PcmConfiguration kInvalidPcmConfiguration = {};

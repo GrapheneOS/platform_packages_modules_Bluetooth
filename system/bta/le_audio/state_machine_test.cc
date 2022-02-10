@@ -384,7 +384,11 @@ class StateMachineTest : public Test {
   void ConfigCodecManagerMock() {
     codec_manager_ = le_audio::CodecManager::GetInstance();
     ASSERT_NE(codec_manager_, nullptr);
-    codec_manager_->Start();
+    std::vector<bluetooth::le_audio::btle_audio_codec_config_t>
+        mock_offloading_preference(0);
+    std::vector<set_configurations::AudioSetConfiguration>
+        mock_adsp_capabilities(0);
+    codec_manager_->Start(mock_offloading_preference, mock_adsp_capabilities);
     mock_codec_manager_ = MockCodecManager::GetInstance();
     ASSERT_NE(mock_codec_manager_, nullptr);
     ON_CALL(*mock_codec_manager_, GetCodecLocation())
