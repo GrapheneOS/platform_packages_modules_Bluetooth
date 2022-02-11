@@ -66,7 +66,7 @@ class VolumeControlCallbacksImpl : public VolumeControlCallbacks {
   }
 
   void OnVolumeStateChanged(const RawAddress& bd_addr, uint8_t volume,
-                            bool mute) override {
+                            bool mute, bool isAutonomous) override {
     LOG(INFO) << __func__;
 
     std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
@@ -83,11 +83,11 @@ class VolumeControlCallbacksImpl : public VolumeControlCallbacks {
     sCallbackEnv->SetByteArrayRegion(addr.get(), 0, sizeof(RawAddress),
                                      (jbyte*)&bd_addr);
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onVolumeStateChanged,
-                                 (jint)volume, (jboolean)mute, addr.get());
+                                 (jint)volume, (jboolean)mute, addr.get(), (jboolean)isAutonomous);
   }
 
   void OnGroupVolumeStateChanged(int group_id, uint8_t volume,
-                                 bool mute) override {
+                                 bool mute, bool isAutonomous) override {
     LOG(INFO) << __func__;
 
     std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
@@ -96,7 +96,7 @@ class VolumeControlCallbacksImpl : public VolumeControlCallbacks {
 
     sCallbackEnv->CallVoidMethod(mCallbacksObj,
                                  method_onGroupVolumeStateChanged, (jint)volume,
-                                 (jboolean)mute, group_id);
+                                 (jboolean)mute, group_id, (jboolean)isAutonomous);
   }
 };
 
@@ -107,10 +107,10 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
       env->GetMethodID(clazz, "onConnectionStateChanged", "(I[B)V");
 
   method_onVolumeStateChanged =
-      env->GetMethodID(clazz, "onVolumeStateChanged", "(IZ[B)V");
+      env->GetMethodID(clazz, "onVolumeStateChanged", "(IZ[BZ)V");
 
   method_onGroupVolumeStateChanged =
-      env->GetMethodID(clazz, "onGroupVolumeStateChanged", "(IZI)V");
+      env->GetMethodID(clazz, "onGroupVolumeStateChanged", "(IZIZ)V");
 
   LOG(INFO) << __func__ << ": succeeds";
 }

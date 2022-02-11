@@ -42,11 +42,11 @@ class VolumeControlCallbacks {
 
   /* Callback for the volume change changed on the device */
   virtual void OnVolumeStateChanged(const RawAddress& address, uint8_t volume,
-                                    bool mute) = 0;
+                                    bool mute, bool isAutonomous) = 0;
 
   /* Callback for the volume change changed on the group*/
   virtual void OnGroupVolumeStateChanged(int group_id, uint8_t volume,
-                                         bool mute) = 0;
+                                         bool mute, bool isAutonomous) = 0;
 };
 
 class VolumeControlInterface {
