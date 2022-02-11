@@ -37,6 +37,7 @@ public class VolumeControlStackEvent {
     public int valueInt1;
     public int valueInt2;
     public boolean valueBool1;
+    public boolean valueBool2;
     /* Might need more for other callbacks*/
 
     VolumeControlStackEvent(int type) {
@@ -52,6 +53,7 @@ public class VolumeControlStackEvent {
         result.append(", valueInt1:" + eventTypeValue1ToString(type, valueInt1));
         result.append(", valueInt2:" + eventTypeValue2ToString(type, valueInt2));
         result.append(", valueBool1:" + eventTypeValueBool1ToString(type, valueBool1));
+        result.append(", valueBool2:" + eventTypeValueBool2ToString(type, valueBool2));
         result.append("}");
         return result.toString();
     }
@@ -119,6 +121,16 @@ public class VolumeControlStackEvent {
         switch (type) {
             case EVENT_TYPE_VOLUME_STATE_CHANGED:
                 return "{muted:" + value + "}";
+            default:
+                break;
+        }
+        return Boolean.toString(value);
+    }
+
+    private static String eventTypeValueBool2ToString(int type, boolean value) {
+        switch (type) {
+            case EVENT_TYPE_VOLUME_STATE_CHANGED:
+                return "{isAutonomous:" + value + "}";
             default:
                 break;
         }
