@@ -472,8 +472,7 @@ typedef void (*link_quality_report_callback)(
     int negative_acknowledgement_count);
 
 /** Switch the buffer size callback */
-typedef void (*switch_buffer_size_callback)(RawAddress* remote_addr,
-                                            bool is_low_latency_buffer_size);
+typedef void (*switch_buffer_size_callback)(bool is_low_latency_buffer_size);
 
 typedef enum { ASSOCIATE_JVM, DISASSOCIATE_JVM } bt_cb_thread_evt;
 
