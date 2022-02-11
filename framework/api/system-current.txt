@@ -512,7 +512,7 @@ package android.bluetooth {
     field public static final int ERROR_LOCAL_NOT_ENOUGH_RESOURCES = 22; // 0x16
     field public static final int ERROR_REMOTE_LINK_ERROR = 25; // 0x19
     field public static final int ERROR_REMOTE_NOT_ENOUGH_RESOURCES = 23; // 0x17
-    field public static final int ERROR_REMOTE_OPERATION_NOT_SUPPORTED = 24; // 0x18
+    field public static final int ERROR_REMOTE_OPERATION_NOT_SUPPORTED = 27; // 0x1b
     field public static final int ERROR_REMOTE_OPERATION_REJECTED = 24; // 0x18
     field public static final int ERROR_TIMEOUT = 15; // 0xf
     field public static final int NOT_ALLOWED = 401; // 0x191
