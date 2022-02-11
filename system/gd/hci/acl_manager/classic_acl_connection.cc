@@ -353,7 +353,7 @@ ClassicAclConnection::ClassicAclConnection(std::shared_ptr<Queue> queue,
 }
 
 ClassicAclConnection::~ClassicAclConnection() {
-  pimpl_->PutEventCallbacks();
+  if (pimpl_) pimpl_->PutEventCallbacks();
   delete pimpl_;
 }
 
