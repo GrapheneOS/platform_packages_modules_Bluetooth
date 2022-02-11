@@ -55,21 +55,21 @@ class VolumeControlInterfaceImpl : public VolumeControlInterface,
   }
 
   void OnVolumeStateChanged(const RawAddress& address, uint8_t volume,
-                            bool mute) override {
-    DVLOG(2) << __func__ << " address: " << address << "volume: " << volume
-             << "mute: " << mute;
+                            bool mute, bool isAutonomous) override {
+    DVLOG(2) << __func__ << " address: " << address << " volume: " << volume
+             << " mute: " << mute << " isAutonomous: " << isAutonomous;
     do_in_jni_thread(FROM_HERE,
                      Bind(&VolumeControlCallbacks::OnVolumeStateChanged,
-                          Unretained(callbacks_), address, volume, mute));
+                          Unretained(callbacks_), address, volume, mute, isAutonomous));
   }
 
   void OnGroupVolumeStateChanged(int group_id, uint8_t volume,
-                                 bool mute) override {
-    DVLOG(2) << __func__ << "group_id: " << group_id << "volume: " << volume
-             << "mute: " << mute;
+                                 bool mute, bool isAutonomous) override {
+    DVLOG(2) << __func__ << " group_id: " << group_id << " volume: " << volume
+             << " mute: " << mute << " isAutonomous: " << isAutonomous;
     do_in_jni_thread(FROM_HERE,
                      Bind(&VolumeControlCallbacks::OnGroupVolumeStateChanged,
-                          Unretained(callbacks_), group_id, volume, mute));
+                          Unretained(callbacks_), group_id, volume, mute, isAutonomous));
   }
 
   void Connect(const RawAddress& address) override {
