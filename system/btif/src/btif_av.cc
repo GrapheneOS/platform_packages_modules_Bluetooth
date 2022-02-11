@@ -2320,6 +2320,15 @@ bool BtifAvStateMachine::StateClosing::ProcessEvent(uint32_t event,
       btif_a2dp_on_offload_started(peer_.PeerAddress(), BTA_AV_FAIL);
       break;
 
+    case BTIF_AV_CONNECT_REQ_EVT:
+      BTIF_TRACE_WARNING("%s: Peer %s : Ignore %s in StateClosing",
+                         __PRETTY_FUNCTION__,
+                         peer_.PeerAddress().ToString().c_str(),
+                         BtifAvEvent::EventName(event).c_str());
+      btif_queue_advance();
+      peer_.StateMachine().TransitionTo(BtifAvStateMachine::kStateIdle);
+      break;
+
     default:
       BTIF_TRACE_WARNING("%s: Peer %s : Unhandled event=%s",
                          __PRETTY_FUNCTION__,
