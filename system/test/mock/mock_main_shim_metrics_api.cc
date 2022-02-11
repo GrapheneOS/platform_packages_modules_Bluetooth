@@ -174,5 +174,9 @@ void bluetooth::shim::LogMetricManufacturerInfo(
       raw_address, source_type, source_name, manufacturer, model,
       hardware_version, software_version);
 }
+bool bluetooth::shim::CountCounterMetrics(int32_t key, int64_t count) {
+  mock_function_count_map[__func__]++;
+  return false;
+}
 
 // END mockcify generation
