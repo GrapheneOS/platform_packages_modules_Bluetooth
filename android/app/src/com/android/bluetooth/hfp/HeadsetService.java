@@ -236,8 +236,14 @@ public class HeadsetService extends ProfileService {
         // Step 3: Destroy system interface
         mSystemInterface.stop();
         // Step 2: Stop handler thread
-        mStateMachinesThread.quitSafely();
-        mStateMachinesThread = null;
+        try {
+            mStateMachinesThread.quitSafely();
+            mStateMachinesThread.join();
+            mStateMachinesThread = null;
+        } catch (InterruptedException e) {
+            // Do not rethrow as we are shutting down anyway
+        }
+
         mStateMachinesThreadHandler = null;
         // Step 1: Clear
         synchronized (mStateMachines) {

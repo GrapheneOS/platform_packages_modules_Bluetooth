@@ -189,8 +189,13 @@ public class HearingAidService extends ProfileService {
         mHiSyncIdConnectedMap.clear();
 
         if (mStateMachinesThread != null) {
-            mStateMachinesThread.quitSafely();
-            mStateMachinesThread = null;
+            try {
+                mStateMachinesThread.quitSafely();
+                mStateMachinesThread.join();
+                mStateMachinesThread = null;
+            } catch (InterruptedException e) {
+                // Do not rethrow as we are shutting down anyway
+            }
         }
 
         // Clear AdapterService, HearingAidNativeInterface
