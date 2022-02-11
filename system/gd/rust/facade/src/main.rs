@@ -14,10 +14,7 @@ use futures::stream::StreamExt;
 use grpcio::*;
 use log::debug;
 use nix::sys::signal;
-use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::sync::{Arc, Mutex};
-use tokio::io::AsyncWriteExt;
-use tokio::net::TcpStream;
 use tokio::runtime::Runtime;
 
 fn main() {
@@ -51,7 +48,6 @@ async fn async_main(rt: Arc<Runtime>, mut sigint: mpsc::UnboundedReceiver<()>) {
 
     let root_server_port = value_t!(matches, "root-server-port", u16).unwrap();
     let grpc_port = value_t!(matches, "grpc-port", u16).unwrap();
-    let signal_port = value_t!(matches, "signal-port", u16).unwrap();
     let rootcanal_port = value_t!(matches, "rootcanal-port", u16).ok();
     let env = Arc::new(Environment::new(2));
     let mut server = ServerBuilder::new(env)
@@ -66,15 +62,8 @@ async fn async_main(rt: Arc<Runtime>, mut sigint: mpsc::UnboundedReceiver<()>) {
         .unwrap();
     server.start();
 
-    indicate_started(signal_port).await;
     sigint.next().await;
     block_on(server.shutdown()).unwrap();
-}
-
-async fn indicate_started(signal_port: u16) {
-    let address = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), signal_port);
-    let mut stream = TcpStream::connect(address).await.unwrap();
-    stream.shutdown().await.unwrap();
 }
 
 // TODO: remove as this is a temporary nix-based hack to catch SIGINT
