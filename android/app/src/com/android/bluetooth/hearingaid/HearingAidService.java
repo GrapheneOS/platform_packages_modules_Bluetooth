@@ -536,7 +536,10 @@ public class HearingAidService extends ProfileService {
                 .getProfileConnectionPolicy(device, BluetoothProfile.HEARING_AID);
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
     void setVolume(int volume) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED,
+                "Need BLUETOOTH_PRIVILEGED permission");
         mHearingAidNativeInterface.setVolume(volume);
     }
 
