@@ -54,8 +54,6 @@ class BluetoothAudioPortImpl : public BnBluetoothAudioPort {
 
   ndk::ScopedAStatus setLatencyMode(LatencyMode latency_mode) override;
 
-  ndk::ScopedAStatus setCodecType(CodecType codec_type) override;
-
  protected:
   virtual ~BluetoothAudioPortImpl();
 
