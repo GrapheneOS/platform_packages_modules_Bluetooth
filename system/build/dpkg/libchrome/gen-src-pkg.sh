@@ -7,10 +7,10 @@ if [ -z "$1" ]; then
 fi
 
 outdir="$1"
-pkgdir=libchrome-780652
-origtar=libchrome_780652.orig.tar.gz
+pkgdir=libchrome-822064
+origtar=libchrome_822064.orig.tar.gz
 scriptdir="$( cd "$( dirname "$0" )" && pwd )"
-branch=release-R90-13816.B
+branch=release-R91-13904.B
 
 tmpdir=$(mktemp -d)
 echo Generating source package in "${tmpdir}".
