@@ -16,7 +16,6 @@
 
 #include "loopback.h"
 
-#include "le_advertisement.h"
 #include "model/setup/device_boutique.h"
 #include "os/log.h"
 
