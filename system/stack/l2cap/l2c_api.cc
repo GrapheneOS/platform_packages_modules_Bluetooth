@@ -32,11 +32,11 @@
 #include <cstdint>
 #include <string>
 
-#include "btm_sec.h"
 #include "device/include/controller.h"  // TODO Remove
 #include "main/shim/shim.h"
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
+#include "stack/btm/btm_sec.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/l2c_api.h"
 #include "stack/l2cap/l2c_int.h"
