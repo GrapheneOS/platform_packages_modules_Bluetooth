@@ -195,6 +195,8 @@ tBTM_SEC_DEV_REC* btm_ble_resolve_random_addr(const RawAddress& random_bda) {
 /** Find the security record whose LE identity address is matching */
 static tBTM_SEC_DEV_REC* btm_find_dev_by_identity_addr(
     const RawAddress& bd_addr, uint8_t addr_type) {
+  if (btm_cb.sec_dev_rec == nullptr) return nullptr;
+
   list_node_t* end = list_end(btm_cb.sec_dev_rec);
   for (list_node_t* node = list_begin(btm_cb.sec_dev_rec); node != end;
        node = list_next(node)) {
