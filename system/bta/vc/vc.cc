@@ -285,7 +285,7 @@ class VolumeControlImpl : public VolumeControl {
     if (!csis_api) {
       DLOG(INFO) << __func__ << " Csis is not available";
       callbacks_->OnVolumeStateChanged(device->address, device->volume,
-                                       device->mute);
+                                       device->mute, true);
       return;
     }
 
@@ -294,7 +294,7 @@ class VolumeControlImpl : public VolumeControl {
     if (group_id == bluetooth::groups::kGroupUnknown) {
       DLOG(INFO) << __func__ << " No group for device " << device->address;
       callbacks_->OnVolumeStateChanged(device->address, device->volume,
-                                       device->mute);
+                                       device->mute, true);
       return;
     }
 
@@ -310,7 +310,7 @@ class VolumeControlImpl : public VolumeControl {
 
     if (is_volume_change) {
       std::vector<uint8_t> arg({device->volume});
-      PrepareVolumeControlOperation(devices, group_id,
+      PrepareVolumeControlOperation(devices, group_id, true,
                                     kControlPointOpcodeSetAbsoluteVolume, arg);
     }
 
@@ -318,7 +318,7 @@ class VolumeControlImpl : public VolumeControl {
       std::vector<uint8_t> arg;
       uint8_t opcode =
           device->mute ? kControlPointOpcodeMute : kControlPointOpcodeUnmute;
-      PrepareVolumeControlOperation(devices, group_id, opcode, arg);
+      PrepareVolumeControlOperation(devices, group_id, true, opcode, arg);
     }
 
     StartQueueOperation();
@@ -354,7 +354,7 @@ class VolumeControlImpl : public VolumeControl {
     /* This is just a read, send single notification */
     if (!is_notification) {
       callbacks_->OnVolumeStateChanged(device->address, device->volume,
-                                       device->mute);
+                                       device->mute, false);
       return;
     }
 
@@ -384,12 +384,15 @@ class VolumeControlImpl : public VolumeControl {
       return;
     }
 
-    if (op->IsGroupOperation())
+    if (op->IsGroupOperation()) {
       callbacks_->OnGroupVolumeStateChanged(op->group_id_, device->volume,
-                                            device->mute);
-    else
+                                            device->mute, op->is_autonomous_);
+    } else {
+      /* op->is_autonomous_ will always be false,
+         since we only make it true for group operations */
       callbacks_->OnVolumeStateChanged(device->address, device->volume,
-                                       device->mute);
+                                       device->mute, false);
+    }
 
     ongoing_operations_.erase(op);
     StartQueueOperation();
@@ -591,14 +594,16 @@ class VolumeControlImpl : public VolumeControl {
   }
 
   void PrepareVolumeControlOperation(std::vector<RawAddress>& devices,
-                                     int group_id, uint8_t opcode,
+                                     int group_id, bool is_autonomous,
+                                     uint8_t opcode,
                                      std::vector<uint8_t>& arguments) {
     DLOG(INFO) << __func__ << " num of devices: " << devices.size()
-               << " group_id: " << group_id << " opcode: " << +opcode
+               << " group_id: " << group_id << " is_autonomous: " << is_autonomous
+               << " opcode: " << +opcode
                << " arg size: " << arguments.size();
 
-    ongoing_operations_.emplace_back(latest_operation_id_++, group_id, opcode,
-                                     arguments, devices);
+    ongoing_operations_.emplace_back(latest_operation_id_++, group_id, is_autonomous,
+                                     opcode, arguments, devices);
   }
 
   void SetVolume(std::variant<RawAddress, int> addr_or_group_id,
@@ -613,7 +618,7 @@ class VolumeControlImpl : public VolumeControl {
       std::vector<RawAddress> devices = {
           std::get<RawAddress>(addr_or_group_id)};
 
-      PrepareVolumeControlOperation(devices, bluetooth::groups::kGroupUnknown,
+      PrepareVolumeControlOperation(devices, bluetooth::groups::kGroupUnknown, false,
                                     opcode, arg);
     } else {
       /* Handle group change */
@@ -641,7 +646,7 @@ class VolumeControlImpl : public VolumeControl {
         return;
       }
 
-      PrepareVolumeControlOperation(devices, group_id, opcode, arg);
+      PrepareVolumeControlOperation(devices, group_id, false, opcode, arg);
     }
 
     StartQueueOperation();
@@ -681,7 +686,7 @@ class VolumeControlImpl : public VolumeControl {
 
       // once profile connected we can notify current states
       callbacks_->OnVolumeStateChanged(device->address, device->volume,
-                                       device->mute);
+                                       device->mute, false);
 
       device->EnqueueRemainingRequests(gatt_if_, chrc_read_callback_static,
                                        OnGattWriteCccStatic);
