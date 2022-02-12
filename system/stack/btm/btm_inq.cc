@@ -545,7 +545,8 @@ tBTM_STATUS BTM_StartInquiry(tBTM_INQ_RESULTS_CB* p_results_cb,
   btm_acl_update_inquiry_status(BTM_INQUIRY_STARTED);
 
   if (p_inq->inq_active & BTM_SSP_INQUIRY_ACTIVE) {
-    btm_process_inq_complete(BTM_NO_RESOURCES, BTM_GENERAL_INQUIRY);
+    btm_process_inq_complete(HCI_ERR_MAX_NUM_OF_CONNECTIONS,
+                             BTM_GENERAL_INQUIRY);
     return BTM_CMD_STARTED;
   }
 
@@ -1261,7 +1262,7 @@ void btm_sort_inq_result(void) {
  * Returns          void
  *
  ******************************************************************************/
-void btm_process_inq_complete(uint8_t status, uint8_t mode) {
+void btm_process_inq_complete(tHCI_STATUS status, uint8_t mode) {
   tBTM_CMPL_CB* p_inq_cb = btm_cb.btm_inq_vars.p_inq_cmpl_cb;
   tBTM_INQUIRY_VAR_ST* p_inq = &btm_cb.btm_inq_vars;
 
@@ -1324,7 +1325,7 @@ void btm_process_inq_complete(uint8_t status, uint8_t mode) {
  * Returns          void
  *
  ******************************************************************************/
-void btm_process_cancel_complete(uint8_t status, uint8_t mode) {
+void btm_process_cancel_complete(tHCI_STATUS status, uint8_t mode) {
   btm_acl_update_inquiry_status(BTM_INQUIRY_CANCELLED);
   btm_process_inq_complete(status, mode);
 }
@@ -1401,7 +1402,7 @@ tBTM_STATUS btm_initiate_rem_name(const RawAddress& remote_bda, uint8_t origin,
  *
  ******************************************************************************/
 void btm_process_remote_name(const RawAddress* bda, const BD_NAME bdn,
-                             uint16_t evt_len, uint8_t hci_status) {
+                             uint16_t evt_len, tHCI_STATUS hci_status) {
   tBTM_REMOTE_DEV_NAME rem_name;
   tBTM_INQUIRY_VAR_ST* p_inq = &btm_cb.btm_inq_vars;
   tBTM_CMPL_CB* p_cb = p_inq->p_remname_cmpl_cb;
