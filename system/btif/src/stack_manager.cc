@@ -191,16 +191,13 @@ static void clean_up_stack() {
 static bool get_stack_is_running() { return stack_is_running; }
 
 // Internal functions
-
 extern const module_t bt_utils_module;
 extern const module_t bte_logmsg_module;
 extern const module_t btif_config_module;
-extern const module_t btsnoop_module;
 extern const module_t bt_utils_module;
 extern const module_t gd_controller_module;
 extern const module_t gd_idle_module;
 extern const module_t gd_shim_module;
-extern const module_t hci_module;
 extern const module_t interop_module;
 extern const module_t osi_module;
 extern const module_t stack_config_module;

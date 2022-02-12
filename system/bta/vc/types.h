@@ -50,6 +50,7 @@ struct VolumeOperation {
   int group_id_;
 
   bool started_;
+  bool is_autonomous_;
 
   uint8_t opcode_;
   std::vector<uint8_t> arguments_;
@@ -57,11 +58,12 @@ struct VolumeOperation {
   std::vector<RawAddress> devices_;
   alarm_t* operation_timeout_;
 
-  VolumeOperation(int operation_id, int group_id, uint8_t opcode,
+  VolumeOperation(int operation_id, int group_id, bool is_autonomous, uint8_t opcode,
                   std::vector<uint8_t> arguments,
                   std::vector<RawAddress> devices)
       : operation_id_(operation_id),
         group_id_(group_id),
+        is_autonomous_(is_autonomous),
         opcode_(opcode),
         arguments_(arguments),
         devices_(devices) {

@@ -117,7 +117,7 @@ LeAclConnection::LeAclConnection(
 }
 
 LeAclConnection::~LeAclConnection() {
-  pimpl_->PutEventCallbacks();
+  if (pimpl_) pimpl_->PutEventCallbacks();
   delete pimpl_;
 }
 

@@ -38,7 +38,9 @@ class LeAudioClientImpl : public LeAudioClient {
 
 void LeAudioClient::Initialize(
     bluetooth::le_audio::LeAudioClientCallbacks* callbacks,
-    base::Closure initCb, base::Callback<bool()> hal_2_1_verifier) {}
+    base::Closure initCb, base::Callback<bool()> hal_2_1_verifier,
+    const std::vector<bluetooth::le_audio::btle_audio_codec_config_t>&
+        offloading_preference) {}
 void LeAudioClient::Cleanup(void) {}
 LeAudioClient* LeAudioClient::Get(void) { return nullptr; }
 void LeAudioClient::DebugDump(int fd) {}

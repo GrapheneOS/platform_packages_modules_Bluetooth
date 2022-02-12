@@ -71,10 +71,10 @@ class MockVolumeControlCallbacks : public VolumeControlCallbacks {
   MOCK_METHOD((void), OnConnectionState,
               (ConnectionState state, const RawAddress& address), (override));
   MOCK_METHOD((void), OnVolumeStateChanged,
-              (const RawAddress& address, uint8_t volume, bool mute),
+              (const RawAddress& address, uint8_t volume, bool mute, bool isAutonomous),
               (override));
   MOCK_METHOD((void), OnGroupVolumeStateChanged,
-              (int group_id, uint8_t volume, bool mute), (override));
+              (int group_id, uint8_t volume, bool mute, bool isAutonomous), (override));
 
  private:
   DISALLOW_COPY_AND_ASSIGN(MockVolumeControlCallbacks);
@@ -560,7 +560,7 @@ TEST_F(VolumeControlTest, test_subscribe_vcs_volume_state) {
 
 TEST_F(VolumeControlTest, test_read_vcs_volume_state) {
   const RawAddress test_address = GetTestAddress(0);
-  EXPECT_CALL(*callbacks, OnVolumeStateChanged(test_address, _, _));
+  EXPECT_CALL(*callbacks, OnVolumeStateChanged(test_address, _, _, false));
   std::vector<uint16_t> handles({0x0021});
   TestReadCharacteristic(test_address, 1, handles);
 }
@@ -605,12 +605,12 @@ class VolumeControlCallbackTest : public VolumeControlTest {
 
 TEST_F(VolumeControlCallbackTest, test_volume_state_changed) {
   std::vector<uint8_t> value({0x03, 0x01, 0x02});
-  EXPECT_CALL(*callbacks, OnVolumeStateChanged(test_address, 0x03, true));
+  EXPECT_CALL(*callbacks, OnVolumeStateChanged(test_address, 0x03, true, true));
   GetNotificationEvent(0x0021, value);
 }
 
 TEST_F(VolumeControlCallbackTest, test_volume_state_changed_malformed) {
-  EXPECT_CALL(*callbacks, OnVolumeStateChanged(test_address, _, _)).Times(0);
+  EXPECT_CALL(*callbacks, OnVolumeStateChanged(test_address, _, _, _)).Times(0);
   std::vector<uint8_t> too_short({0x03, 0x01});
   GetNotificationEvent(0x0021, too_short);
   std::vector<uint8_t> too_long({0x03, 0x01, 0x02, 0x03});
@@ -726,7 +726,7 @@ TEST_F(VolumeControlCsis, test_set_volume) {
   VolumeControl::Get()->SetVolume(group_id, 10);
 
   /* Now inject notification and make sure callback is sent up to Java layer */
-  EXPECT_CALL(*callbacks, OnGroupVolumeStateChanged(group_id, 0x03, true));
+  EXPECT_CALL(*callbacks, OnGroupVolumeStateChanged(group_id, 0x03, true, false));
 
   std::vector<uint8_t> value({0x03, 0x01, 0x02});
   GetNotificationEvent(conn_id_1, test_address_1, 0x0021, value);
@@ -735,7 +735,7 @@ TEST_F(VolumeControlCsis, test_set_volume) {
 
 TEST_F(VolumeControlCsis, autonomus_test_set_volume) {
   /* Now inject notification and make sure callback is sent up to Java layer */
-  EXPECT_CALL(*callbacks, OnGroupVolumeStateChanged(group_id, 0x03, false));
+  EXPECT_CALL(*callbacks, OnGroupVolumeStateChanged(group_id, 0x03, false, true));
 
   std::vector<uint8_t> value({0x03, 0x00, 0x02});
   GetNotificationEvent(conn_id_1, test_address_1, 0x0021, value);

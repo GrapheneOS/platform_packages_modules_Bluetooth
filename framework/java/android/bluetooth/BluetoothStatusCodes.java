@@ -227,7 +227,7 @@ public final class BluetoothStatusCodes {
      * @hide
      */
     @SystemApi
-    public static final int ERROR_REMOTE_OPERATION_NOT_SUPPORTED = 24;
+    public static final int ERROR_REMOTE_OPERATION_NOT_SUPPORTED = 27;
 
     /**
      * A GATT writeCharacteristic request is not permitted on the remote device.

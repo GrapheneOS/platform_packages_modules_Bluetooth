@@ -154,7 +154,8 @@ public class VolumeControlNativeInterface {
         sendMessageToService(event);
     }
 
-    private void onVolumeStateChanged(int volume, boolean mute, byte[] address) {
+    private void onVolumeStateChanged(int volume, boolean mute, byte[] address,
+            boolean isAutonomous) {
         VolumeControlStackEvent event =
                 new VolumeControlStackEvent(
                         VolumeControlStackEvent.EVENT_TYPE_VOLUME_STATE_CHANGED);
@@ -162,6 +163,7 @@ public class VolumeControlNativeInterface {
         event.valueInt1 = -1;
         event.valueInt2 = volume;
         event.valueBool1 = mute;
+        event.valueBool2 = isAutonomous;
 
         if (DBG) {
             Log.d(TAG, "onVolumeStateChanged: " + event);
@@ -169,7 +171,8 @@ public class VolumeControlNativeInterface {
         sendMessageToService(event);
     }
 
-    private void onGroupVolumeStateChanged(int volume, boolean mute, int groupId) {
+    private void onGroupVolumeStateChanged(int volume, boolean mute, int groupId,
+            boolean isAutonomous) {
         VolumeControlStackEvent event =
                 new VolumeControlStackEvent(
                         VolumeControlStackEvent.EVENT_TYPE_VOLUME_STATE_CHANGED);
@@ -177,6 +180,7 @@ public class VolumeControlNativeInterface {
         event.valueInt1 = groupId;
         event.valueInt2 = volume;
         event.valueBool1 = mute;
+        event.valueBool2 = isAutonomous;
 
         if (DBG) {
             Log.d(TAG, "onGroupVolumeStateChanged: " + event);
