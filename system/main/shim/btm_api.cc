@@ -71,7 +71,7 @@ extern void btm_clear_all_pending_le_entry(void);
 extern void btm_clr_inq_result_flt(void);
 extern void btm_set_eir_uuid(const uint8_t* p_eir, tBTM_INQ_RESULTS* p_results);
 extern void btm_sort_inq_result(void);
-extern void btm_process_inq_complete(uint8_t status, uint8_t result_type);
+extern void btm_process_inq_complete(tHCI_STATUS status, uint8_t result_type);
 
 static bool is_classic_device(tBT_DEVICE_TYPE device_type) {
   return device_type == BT_DEVICE_TYPE_BREDR;
