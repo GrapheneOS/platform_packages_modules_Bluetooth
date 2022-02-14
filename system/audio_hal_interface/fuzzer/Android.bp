@@ -64,6 +64,7 @@ cc_defaults {
         "libbt-utils",
         "libbtdevice",
         "libcgrouprc",
+        "libflatbuffers-cpp",
         "libhidlbase",
         "libbt-stack",
         "libg722codec",
