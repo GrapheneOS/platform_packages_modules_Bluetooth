@@ -2049,6 +2049,8 @@ public class AdapterService extends Service {
                 return new ArrayList<>();
             }
 
+            enforceBluetoothPrivilegedPermission(service);
+
             return service.mDatabaseManager.getMostRecentlyConnectedDevices();
         }
 
