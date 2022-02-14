@@ -140,11 +140,6 @@ ndk::ScopedAStatus BluetoothAudioPortImpl::setLatencyMode(
   return ndk::ScopedAStatus::ok();
 }
 
-ndk::ScopedAStatus BluetoothAudioPortImpl::setCodecType(
-    CodecType codec_type) {
-  return ndk::ScopedAStatus::ok();
-}
-
 PresentationPosition::TimeSpec BluetoothAudioPortImpl::timespec_convert_to_hal(
     const timespec& ts) {
   return {.tvSec = static_cast<int64_t>(ts.tv_sec),
