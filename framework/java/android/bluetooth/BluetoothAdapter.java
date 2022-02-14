@@ -30,9 +30,8 @@ import android.annotation.RequiresPermission;
 import android.annotation.SdkConstant;
 import android.annotation.SdkConstant.SdkConstantType;
 import android.annotation.SuppressLint;
-import android.annotation.SystemApi;
+import android.annotation.SystemApi; //import android.app.PropertyInvalidatedCache;
 import android.app.PendingIntent;
-import android.app.PropertyInvalidatedCache;
 import android.bluetooth.BluetoothDevice.AddressType;
 import android.bluetooth.BluetoothDevice.Transport;
 import android.bluetooth.BluetoothProfile.ConnectionPolicy;
@@ -1124,69 +1123,45 @@ public final class BluetoothAdapter {
         return false;
     }
 
-    /**
-     * There are several instances of PropertyInvalidatedCache used in this class.
-     * BluetoothCache wraps up the common code.  All caches are created with a maximum of
-     * eight entries, and the key is in the bluetooth module.  The name is set to the api.
-     */
-    private static class BluetoothCache<Q, R> extends PropertyInvalidatedCache<Q, R> {
-        BluetoothCache(String api, PropertyInvalidatedCache.QueryHandler query) {
-            super(8, PropertyInvalidatedCache.MODULE_BLUETOOTH, api, api, query);
-        }};
-
-    /**
-     * Invalidate a bluetooth cache.  This method is just a short-hand wrapper that
-     * enforces the bluetooth module.
-     */
-    private static void invalidateCache(@NonNull String api) {
-        PropertyInvalidatedCache.invalidateCache(PropertyInvalidatedCache.MODULE_BLUETOOTH, api);
-    }
-
-    /**
-     * The binder cache for getState().
-     */
-    private final static String GET_STATE_API = "getState";
-
-    private final PropertyInvalidatedCache.QueryHandler<Void, Integer> mBluetoothGetStateQuery =
-            new PropertyInvalidatedCache.QueryHandler<>() {
-                @RequiresLegacyBluetoothPermission
-                @RequiresNoPermission
-                @AdapterState
-                @Override
-                public Integer apply(Void query) {
-                    int state = BluetoothAdapter.STATE_OFF;
-                    mServiceLock.readLock().lock();
-                    try {
-                        if (mService != null) {
-                            final SynchronousResultReceiver<Integer> recv =
-                                    new SynchronousResultReceiver();
-                            mService.getState(recv);
-                            return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(state);
-                        }
-                    } catch (TimeoutException e) {
-                        Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
-                    } catch (RemoteException e) {
-                        Log.e(TAG, "", e);
-                        e.rethrowFromSystemServer();
-                    } finally {
-                        mServiceLock.readLock().unlock();
-                    }
-                    return state;
-                }};
+    /*
+    private static final String BLUETOOTH_GET_STATE_CACHE_PROPERTY = "cache_key.bluetooth.get_state";
 
     private final PropertyInvalidatedCache<Void, Integer> mBluetoothGetStateCache =
-            new BluetoothCache<Void, Integer>(GET_STATE_API, mBluetoothGetStateQuery);
+            new PropertyInvalidatedCache<Void, Integer>(
+                8, BLUETOOTH_GET_STATE_CACHE_PROPERTY) {
+                @Override
+                @SuppressLint("AndroidFrameworkRequiresPermission")
+                public Integer recompute(Void query) {
+                    try {
+                        final SynchronousResultReceiver<Integer> recv =
+                                new SynchronousResultReceiver();
+                        mService.getState(recv);
+                        return recv.awaitResultNoInterrupt(getSyncTimeout())
+                            .getValue(BluetoothAdapter.STATE_OFF);
+                    } catch (TimeoutException e) {
+                        Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+                        return BluetoothAdapter.STATE_OFF;
+                    } catch (RemoteException e) {
+                        throw e.rethrowFromSystemServer();
+                    }
+                }
+            };
+     */
 
     /** @hide */
+    /*
     @RequiresNoPermission
     public void disableBluetoothGetStateCache() {
-        mBluetoothGetStateCache.disableForCurrentProcess();
+        mBluetoothGetStateCache.disableLocal();
     }
+     */
 
     /** @hide */
+    /*
     public static void invalidateBluetoothGetStateCache() {
-        invalidateCache(GET_STATE_API);
+        PropertyInvalidatedCache.invalidateCache(BLUETOOTH_GET_STATE_CACHE_PROPERTY);
     }
+     */
 
     /**
      * Fetch the current bluetooth state.  If the service is down, return
@@ -1194,7 +1169,25 @@ public final class BluetoothAdapter {
      */
     @AdapterState
     private int getStateInternal() {
-        return mBluetoothGetStateCache.query(null);
+        int state = BluetoothAdapter.STATE_OFF;
+        try {
+            mServiceLock.readLock().lock();
+            if (mService != null) {
+                //state = mBluetoothGetStateCache.query(null);
+                final SynchronousResultReceiver<Integer> recv = new SynchronousResultReceiver();
+                //return mBluetoothBondCache.query(this);
+                mService.getState(recv);
+                return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(state);
+            }
+        } catch (TimeoutException e) {
+            Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+        } catch (RemoteException e) {
+            Log.e(TAG, "", e);
+            e.rethrowFromSystemServer();
+        } finally {
+            mServiceLock.readLock().unlock();
+        }
+        return state;
     }
 
     /**
@@ -2267,14 +2260,17 @@ public final class BluetoothAdapter {
         }
     }
 
-    private final PropertyInvalidatedCache.QueryHandler<Void, Boolean> mBluetoothFilteringQuery =
-            new PropertyInvalidatedCache.QueryHandler<>() {
-                @RequiresLegacyBluetoothPermission
-                @RequiresNoPermission
+    /*
+    private static final String BLUETOOTH_FILTERING_CACHE_PROPERTY =
+            "cache_key.bluetooth.is_offloaded_filtering_supported";
+    private final PropertyInvalidatedCache<Void, Boolean> mBluetoothFilteringCache =
+            new PropertyInvalidatedCache<Void, Boolean>(
+                8, BLUETOOTH_FILTERING_CACHE_PROPERTY) {
                 @Override
-                public Boolean apply(Void query) {
-                    mServiceLock.readLock().lock();
+                @SuppressLint("AndroidFrameworkRequiresPermission")
+                public Boolean recompute(Void query) {
                     try {
+                        mServiceLock.readLock().lock();
                         if (mService != null) {
                             final SynchronousResultReceiver<Boolean> recv =
                                     new SynchronousResultReceiver();
@@ -2287,23 +2283,25 @@ public final class BluetoothAdapter {
                         mServiceLock.readLock().unlock();
                     }
                     return false;
-                }};
 
-    private static final String FILTERING_API = "isOffloadedFilteringSupported";
-
-    private final PropertyInvalidatedCache<Void, Boolean> mBluetoothFilteringCache =
-            new BluetoothCache<Void, Boolean>(FILTERING_API, mBluetoothFilteringQuery);
+                }
+            };
+     */
 
     /** @hide */
+    /*
     @RequiresNoPermission
     public void disableIsOffloadedFilteringSupportedCache() {
-        mBluetoothFilteringCache.disableForCurrentProcess();
+        mBluetoothFilteringCache.disableLocal();
     }
+     */
 
     /** @hide */
+    /*
     public static void invalidateIsOffloadedFilteringSupportedCache() {
-        invalidateCache(FILTERING_API);
+        PropertyInvalidatedCache.invalidateCache(BLUETOOTH_FILTERING_CACHE_PROPERTY);
     }
+     */
 
     /**
      * Return true if offloaded filters are supported
@@ -2316,7 +2314,22 @@ public final class BluetoothAdapter {
         if (!getLeAccess()) {
             return false;
         }
-        return mBluetoothFilteringCache.query(null);
+        //return mBluetoothFilteringCache.query(null);
+        try {
+            mServiceLock.readLock().lock();
+            if (mService != null) {
+                final SynchronousResultReceiver<Boolean> recv = new SynchronousResultReceiver();
+                mService.isOffloadedFilteringSupported(recv);
+                return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(false);
+            }
+        } catch (TimeoutException e) {
+            Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+        } catch (RemoteException e) {
+            Log.e(TAG, "failed to get isOffloadedFilteringSupported, error: ", e);
+        } finally {
+            mServiceLock.readLock().unlock();
+        }
+        return false;
     }
 
     /**
@@ -2799,46 +2812,47 @@ public final class BluetoothAdapter {
         return supportedProfiles;
     }
 
-   private final PropertyInvalidatedCache.QueryHandler<Void, Integer> mBluetoothGetAdapterQuery =
-            new PropertyInvalidatedCache.QueryHandler<>() {
-                @RequiresLegacyBluetoothPermission
-                @RequiresNoPermission
+    /*
+    private static final String BLUETOOTH_GET_ADAPTER_CONNECTION_STATE_CACHE_PROPERTY =
+            "cache_key.bluetooth.get_adapter_connection_state";
+    private final PropertyInvalidatedCache<Void, Integer>
+            mBluetoothGetAdapterConnectionStateCache =
+            new PropertyInvalidatedCache<Void, Integer> (
+                8, BLUETOOTH_GET_ADAPTER_CONNECTION_STATE_CACHE_PROPERTY) {
                 @Override
-                public Integer apply(Void query) {
-                    mServiceLock.readLock().lock();
+                @SuppressLint("AndroidFrameworkRequiresPermission")
+                public Integer recompute(Void query) {
                     try {
-                        if (mService != null) {
-                            final SynchronousResultReceiver<Integer> recv =
-                                    new SynchronousResultReceiver();
-                            mService.getAdapterConnectionState(recv);
-                            return recv.awaitResultNoInterrupt(getSyncTimeout())
-                                    .getValue(STATE_DISCONNECTED);
-                        }
+                        final SynchronousResultReceiver<Integer> recv =
+                                new SynchronousResultReceiver();
+                        mService.getAdapterConnectionState(recv);
+                        return recv.awaitResultNoInterrupt(getSyncTimeout())
+                            .getValue(BluetoothAdapter.STATE_DISCONNECTED);
                     } catch (TimeoutException e) {
                         Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
                     } catch (RemoteException e) {
-                        Log.e(TAG, "failed to getConnectionState, error: ", e);
-                    } finally {
-                        mServiceLock.readLock().unlock();
+                        throw e.rethrowAsRuntimeException();
                     }
                     return BluetoothAdapter.STATE_DISCONNECTED;
-                }};
-
-    private static final String GET_CONNECTION_API = "getAdapterConnectionState";
-    private final PropertyInvalidatedCache<Void, Integer>
-            mBluetoothGetAdapterConnectionStateCache =
-            new BluetoothCache<Void, Integer> (GET_CONNECTION_API, mBluetoothGetAdapterQuery);
+                }
+            };
+     */
 
     /** @hide */
+    /*
     @RequiresNoPermission
     public void disableGetAdapterConnectionStateCache() {
-        mBluetoothGetAdapterConnectionStateCache.disableForCurrentProcess();
+        mBluetoothGetAdapterConnectionStateCache.disableLocal();
     }
+     */
 
     /** @hide */
+    /*
     public static void invalidateGetAdapterConnectionStateCache() {
-        invalidateCache(GET_CONNECTION_API);
+        PropertyInvalidatedCache.invalidateCache(
+            BLUETOOTH_GET_ADAPTER_CONNECTION_STATE_CACHE_PROPERTY);
     }
+     */
 
     /**
      * Get the current connection state of the local Bluetooth adapter.
@@ -2858,14 +2872,34 @@ public final class BluetoothAdapter {
         if (getState() != STATE_ON) {
             return BluetoothAdapter.STATE_DISCONNECTED;
         }
-        return mBluetoothGetAdapterConnectionStateCache.query(null);
+        try {
+            mServiceLock.readLock().lock();
+            if (mService != null) {
+                final SynchronousResultReceiver<Integer> recv = new SynchronousResultReceiver();
+                mService.getAdapterConnectionState(recv);
+                return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(STATE_DISCONNECTED);
+            }
+            //return mBluetoothGetAdapterConnectionStateCache.query(null);
+        } catch (TimeoutException e) {
+            Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+        } catch (RemoteException e) {
+            Log.e(TAG, "failed to getConnectionState, error: ", e);
+        } finally {
+            mServiceLock.readLock().unlock();
+        }
+        return BluetoothAdapter.STATE_DISCONNECTED;
     }
 
-    private final PropertyInvalidatedCache.QueryHandler<Integer, Integer> mBluetoothProfileQuery =
-            new PropertyInvalidatedCache.QueryHandler<>() {
-                @RequiresNoPermission
+    /*
+    private static final String BLUETOOTH_PROFILE_CACHE_PROPERTY =
+            "cache_key.bluetooth.get_profile_connection_state";
+    private final PropertyInvalidatedCache<Integer, Integer>
+            mGetProfileConnectionStateCache =
+            new PropertyInvalidatedCache<Integer, Integer>(
+                8, BLUETOOTH_PROFILE_CACHE_PROPERTY) {
                 @Override
-                public Integer apply(Integer query) {
+                @SuppressLint("AndroidFrameworkRequiresPermission")
+                public Integer recompute(Integer query) {
                     try {
                         mServiceLock.readLock().lock();
                         if (mService != null) {
@@ -2873,37 +2907,37 @@ public final class BluetoothAdapter {
                                     new SynchronousResultReceiver();
                             mService.getProfileConnectionState(query, recv);
                             return recv.awaitResultNoInterrupt(getSyncTimeout())
-                                    .getValue(STATE_DISCONNECTED);
+                                .getValue(BluetoothProfile.STATE_DISCONNECTED);
                         }
-                    } catch (TimeoutException e) {
+                    } catch (RemoteException | TimeoutException e) {
                         Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
-                    } catch (RemoteException e) {
-                        Log.e(TAG, "failed to getProfileConnectionState, error: ", e);
                     } finally {
                         mServiceLock.readLock().unlock();
                     }
                     return BluetoothProfile.STATE_DISCONNECTED;
-                }};
-
-    private static final String PROFILE_API = "getProfileConnectionState";
-    private final PropertyInvalidatedCache<Integer, Integer>
-            mGetProfileConnectionStateCache =
-            new BluetoothCache<Integer, Integer>(PROFILE_API, mBluetoothProfileQuery);
-
-    /**
-     * @hide
+                }
+                @Override
+                public String queryToString(Integer query) {
+                    return String.format("getProfileConnectionState(profile=\"%d\")",
+                                         query);
+                }
+            };
      */
+
+    /** @hide */
+    /*
     @RequiresNoPermission
     public void disableGetProfileConnectionStateCache() {
-        mGetProfileConnectionStateCache.disableForCurrentProcess();
+        mGetProfileConnectionStateCache.disableLocal();
     }
-
-    /**
-     * @hide
      */
+
+    /** @hide */
+    /*
     public static void invalidateGetProfileConnectionStateCache() {
-        invalidateCache(PROFILE_API);
+        PropertyInvalidatedCache.invalidateCache(BLUETOOTH_PROFILE_CACHE_PROPERTY);
     }
+     */
 
     /**
      * Get the current connection state of a profile.
@@ -2925,7 +2959,22 @@ public final class BluetoothAdapter {
         if (getState() != STATE_ON) {
             return BluetoothProfile.STATE_DISCONNECTED;
         }
-        return mGetProfileConnectionStateCache.query(profile);
+        try {
+            mServiceLock.readLock().lock();
+            if (mService != null) {
+                final SynchronousResultReceiver<Integer> recv = new SynchronousResultReceiver();
+                mService.getProfileConnectionState(profile, recv);
+                return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(STATE_DISCONNECTED);
+            }
+            //return mGetProfileConnectionStateCache.query(new Integer(profile));
+        } catch (TimeoutException e) {
+            Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+        } catch (RemoteException e) {
+            Log.e(TAG, "failed to getProfileConnectionState, error: ", e);
+        } finally {
+            mServiceLock.readLock().unlock();
+        }
+        return BluetoothProfile.STATE_DISCONNECTED;
     }
 
     /**

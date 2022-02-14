@@ -537,7 +537,7 @@ public class AdapterService extends Service {
 
         setAdapterService(this);
 
-        invalidateBluetoothCaches();
+        //invalidateBluetoothCaches();
 
         // First call to getSharedPreferences will result in a file read into
         // memory cache. Call it here asynchronously to avoid potential ANR
@@ -870,7 +870,7 @@ public class AdapterService extends Service {
         clearAdapterService(this);
 
         mCleaningUp = true;
-        invalidateBluetoothCaches();
+        //invalidateBluetoothCaches();
 
         unregisterReceiver(mAlarmBroadcastReceiver);
 
@@ -967,6 +967,7 @@ public class AdapterService extends Service {
         }
     }
 
+    /*
     private void invalidateBluetoothCaches() {
         BluetoothAdapter.invalidateGetProfileConnectionStateCache();
         BluetoothAdapter.invalidateIsOffloadedFilteringSupportedCache();
@@ -974,6 +975,7 @@ public class AdapterService extends Service {
         BluetoothAdapter.invalidateBluetoothGetStateCache();
         BluetoothAdapter.invalidateGetAdapterConnectionStateCache();
     }
+     */
 
     private void setProfileServiceState(Class service, int state) {
         if (state == BluetoothAdapter.STATE_ON) {
