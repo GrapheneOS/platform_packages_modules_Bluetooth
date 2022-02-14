@@ -25,6 +25,7 @@ import android.annotation.RequiresNoPermission;
 import android.annotation.RequiresPermission;
 import android.annotation.SdkConstant;
 import android.annotation.SdkConstant.SdkConstantType;
+import android.annotation.SuppressLint;
 import android.annotation.SystemApi;
 import android.bluetooth.annotations.RequiresBluetoothConnectPermission;
 import android.bluetooth.annotations.RequiresLegacyBluetoothAdminPermission;
@@ -124,11 +125,12 @@ public final class BluetoothA2dp implements BluetoothProfile {
      *
      * @hide
      */
+    @SystemApi
     @RequiresLegacyBluetoothPermission
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
-    @UnsupportedAppUsage(trackingBug = 171933273)
+    @SuppressLint("ActionValue")
     public static final String ACTION_ACTIVE_DEVICE_CHANGED =
             "android.bluetooth.a2dp.profile.action.ACTIVE_DEVICE_CHANGED";
 
@@ -145,11 +147,12 @@ public final class BluetoothA2dp implements BluetoothProfile {
      *
      * @hide
      */
+    @SystemApi
     @RequiresLegacyBluetoothPermission
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
-    @UnsupportedAppUsage(trackingBug = 181103983)
+    @SuppressLint("ActionValue")
     public static final String ACTION_CODEC_CONFIG_CHANGED =
             "android.bluetooth.a2dp.profile.action.CODEC_CONFIG_CHANGED";
 
@@ -695,8 +698,12 @@ public final class BluetoothA2dp implements BluetoothProfile {
      * @param volume Absolute volume to be set on AVRCP side
      * @hide
      */
+    @SystemApi
     @RequiresBluetoothConnectPermission
-    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
     public void setAvrcpAbsoluteVolume(int volume) {
         if (DBG) Log.d(TAG, "setAvrcpAbsoluteVolume");
         final IBluetoothA2dp service = getService();
@@ -769,7 +776,7 @@ public final class BluetoothA2dp implements BluetoothProfile {
      * @return the current codec status
      * @hide
      */
-    @UnsupportedAppUsage(trackingBug = 181103983)
+    @SystemApi
     @Nullable
     @RequiresLegacyBluetoothPermission
     @RequiresBluetoothConnectPermission
@@ -802,7 +809,7 @@ public final class BluetoothA2dp implements BluetoothProfile {
      * @param codecConfig the codec configuration preference
      * @hide
      */
-    @UnsupportedAppUsage(trackingBug = 181103983)
+    @SystemApi
     @RequiresLegacyBluetoothPermission
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
@@ -833,7 +840,7 @@ public final class BluetoothA2dp implements BluetoothProfile {
      * @param device the remote Bluetooth device.
      * @hide
      */
-    @UnsupportedAppUsage(maxTargetSdk = Build.VERSION_CODES.R, trackingBug = 170729553)
+    @SystemApi
     @RequiresLegacyBluetoothPermission
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
@@ -849,7 +856,7 @@ public final class BluetoothA2dp implements BluetoothProfile {
      * @param device the remote Bluetooth device.
      * @hide
      */
-    @UnsupportedAppUsage(maxTargetSdk = Build.VERSION_CODES.R, trackingBug = 170729553)
+    @SystemApi
     @RequiresLegacyBluetoothPermission
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
@@ -892,7 +899,7 @@ public final class BluetoothA2dp implements BluetoothProfile {
      * OPTIONAL_CODECS_SUPPORTED.
      * @hide
      */
-    @UnsupportedAppUsage(maxTargetSdk = Build.VERSION_CODES.R, trackingBug = 170729553)
+    @SystemApi
     @RequiresLegacyBluetoothAdminPermission
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
@@ -925,7 +932,7 @@ public final class BluetoothA2dp implements BluetoothProfile {
      * OPTIONAL_CODECS_PREF_DISABLED.
      * @hide
      */
-    @UnsupportedAppUsage(maxTargetSdk = Build.VERSION_CODES.R, trackingBug = 170729553)
+    @SystemApi
     @RequiresLegacyBluetoothAdminPermission
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
@@ -959,7 +966,7 @@ public final class BluetoothA2dp implements BluetoothProfile {
      * OPTIONAL_CODECS_PREF_DISABLED.
      * @hide
      */
-    @UnsupportedAppUsage(maxTargetSdk = Build.VERSION_CODES.R, trackingBug = 170729553)
+    @SystemApi
     @RequiresLegacyBluetoothAdminPermission
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)

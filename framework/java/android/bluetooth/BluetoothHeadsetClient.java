@@ -40,6 +40,7 @@ import com.android.modules.utils.SynchronousResultReceiver;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
+
 /**
  * This class provides the System APIs to interact with the Hands-Free Client profile.
  *
@@ -98,9 +99,11 @@ public final class BluetoothHeadsetClient implements BluetoothProfile, AutoClose
      *
      * @hide
      */
+    @SystemApi
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
+    @SuppressLint("ActionValue")
     public static final String ACTION_AUDIO_STATE_CHANGED =
             "android.bluetooth.headsetclient.profile.action.AUDIO_STATE_CHANGED";
     /**
@@ -184,14 +187,17 @@ public final class BluetoothHeadsetClient implements BluetoothProfile, AutoClose
     /**
      * @hide
      */
+    @SystemApi
     public static final int STATE_AUDIO_DISCONNECTED = 0;
     /**
      * @hide
      */
+    @SystemApi
     public static final int STATE_AUDIO_CONNECTING = 1;
     /**
      * @hide
      */
+    @SystemApi
     public static final int STATE_AUDIO_CONNECTED = 2;
     /**
      * Extra with information if connected audio is WBS.
