@@ -2310,12 +2310,14 @@ class LeAudioClientImpl : public LeAudioClient {
     leAudioDevices_.Dump(fd, bluetooth::groups::kGroupUnknown);
   }
 
-  void Cleanup(void) {
+  void Cleanup(base::Callback<void()> cleanupCb) {
     if (alarm_is_scheduled(suspend_timeout_)) alarm_cancel(suspend_timeout_);
     leAudioDevices_.Cleanup();
     aseGroups_.Cleanup();
     StopAudio();
     if (gatt_if_) BTA_GATTC_AppDeregister(gatt_if_);
+
+    std::move(cleanupCb).Run();
   }
 
   bool UpdateConfigAndCheckIfReconfigurationIsNeeded(
@@ -3361,7 +3363,7 @@ void LeAudioClient::DebugDump(int fd) {
   dprintf(fd, "\n");
 }
 
-void LeAudioClient::Cleanup(void) {
+void LeAudioClient::Cleanup(base::Callback<void()> cleanupCb) {
   if (!instance) {
     LOG(ERROR) << "Not initialized";
     return;
@@ -3369,7 +3371,7 @@ void LeAudioClient::Cleanup(void) {
 
   LeAudioClientImpl* ptr = instance;
   instance = nullptr;
-  ptr->Cleanup();
+  ptr->Cleanup(cleanupCb);
   delete ptr;
 
   CodecManager::GetInstance()->Stop();
