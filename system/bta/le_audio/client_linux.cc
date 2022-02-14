@@ -46,3 +46,5 @@ LeAudioClient* LeAudioClient::Get(void) { return nullptr; }
 void LeAudioClient::DebugDump(int fd) {}
 void LeAudioClient::AddFromStorage(const RawAddress& addr, bool autoconnect) {}
 bool LeAudioClient::IsLeAudioClientRunning() { return false; }
+void LeAudioClient::InitializeAudioSetConfigurationProvider(void) {}
+void LeAudioClient::CleanupAudioSetConfigurationProvider(void) {}

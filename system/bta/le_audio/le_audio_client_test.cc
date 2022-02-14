@@ -33,6 +33,7 @@
 #include "fake_osi.h"
 #include "gatt/database_builder.h"
 #include "hardware/bt_gatt_types.h"
+#include "le_audio_set_configuration_provider.h"
 #include "le_audio_types.h"
 #include "mock_controller.h"
 #include "mock_csis_client.h"
@@ -717,6 +718,7 @@ class UnicastTestNoInit : public Test {
     SetUpMockGroups();
     SetUpMockGatt();
 
+    le_audio::AudioSetConfigurationProvider::Initialize();
     ASSERT_FALSE(LeAudioClient::IsLeAudioClientRunning());
   }
 
@@ -732,9 +734,12 @@ class UnicastTestNoInit : public Test {
 
     if (LeAudioClient::IsLeAudioClientRunning()) {
       EXPECT_CALL(mock_gatt_interface_, AppDeregister(gatt_if)).Times(1);
-      LeAudioClient::Cleanup();
+      LeAudioClient::Cleanup(base::DoNothing());
       ASSERT_FALSE(LeAudioClient::IsLeAudioClientRunning());
     }
+
+    if (le_audio::AudioSetConfigurationProvider::Get())
+      le_audio::AudioSetConfigurationProvider::Cleanup();
 
     iso_manager_->Stop();
   }
