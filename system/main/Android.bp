@@ -156,6 +156,10 @@ cc_library_shared {
     required: [
         "bt_did.conf",
         "bt_stack.conf",
+        "audio_set_scenarios_bfbs",
+        "audio_set_scenarios_json",
+        "audio_set_configurations_bfbs",
+        "audio_set_configurations_json",
     ],
     cflags: [
         "-DBUILDCFG",
