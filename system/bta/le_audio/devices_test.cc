@@ -21,6 +21,7 @@
 #include <gtest/gtest.h>
 
 #include "btm_api_mock.h"
+#include "le_audio_set_configuration_provider.h"
 #include "le_audio_types.h"
 #include "mock_controller.h"
 #include "stack/btm/btm_int_types.h"
@@ -380,6 +381,7 @@ class LeAudioAseConfigurationTest : public Test {
     group_ = new LeAudioDeviceGroup(group_id_);
     bluetooth::manager::SetMockBtmInterface(&btm_interface_);
     controller::SetMockControllerInterface(&controller_interface_);
+    ::le_audio::AudioSetConfigurationProvider::Initialize();
   }
 
   void TearDown() override {
@@ -387,6 +389,7 @@ class LeAudioAseConfigurationTest : public Test {
     bluetooth::manager::SetMockBtmInterface(nullptr);
     devices_.clear();
     delete group_;
+    ::le_audio::AudioSetConfigurationProvider::Cleanup();
   }
 
   LeAudioDevice* AddTestDevice(int snk_ase_num, int src_ase_num,
@@ -505,7 +508,9 @@ class LeAudioAseConfigurationTest : public Test {
   void TestGroupAseConfiguration(LeAudioContextType context_type,
                                  TestGroupAseConfigurationData* data,
                                  uint8_t data_size) {
-    const auto* configurations = get_confs_by_type(context_type);
+    const auto* configurations =
+        ::le_audio::AudioSetConfigurationProvider::Get()->GetConfigurations(
+            context_type);
     for (const auto& audio_set_conf : *configurations) {
       // the configuration should fail if there are no active ases expected
       bool success_expected = data_size > 0;
@@ -854,8 +859,14 @@ TEST_F(LeAudioAseConfigurationTest, test_reconnection_media) {
       {right, kLeAudioCodecLC3ChannelCountSingleChannel,
        kLeAudioCodecLC3ChannelCountSingleChannel, 1, 0}};
 
-  TestSingleAseConfiguration(LeAudioContextType::MEDIA, data, 2,
-                             &kDualDev_OneChanStereoSnk_48_4);
+  auto all_configurations =
+      ::le_audio::AudioSetConfigurationProvider::Get()->GetConfigurations(
+          LeAudioContextType::MEDIA);
+  ASSERT_NE(nullptr, all_configurations);
+  ASSERT_NE(all_configurations->end(), all_configurations->begin());
+  auto configuration = *all_configurations->begin();
+
+  TestSingleAseConfiguration(LeAudioContextType::MEDIA, data, 2, configuration);
 
   SetCisInformationToActiveAse();
 
@@ -870,9 +881,6 @@ TEST_F(LeAudioAseConfigurationTest, test_reconnection_media) {
       *ase->codec_config.audio_channel_allocation;
   ::le_audio::types::AudioLocations group_src_audio_location =
       *ase->codec_config.audio_channel_allocation;
-
-  /* Get known requirement*/
-  auto* configuration = &kDualDev_OneChanStereoSnk_48_4;
 
   /* Get entry for the sink direction and use it to set configuration */
   for (auto& ent : configuration->confs) {
