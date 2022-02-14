@@ -15,6 +15,7 @@
  */
 
 package android.bluetooth.le;
+import android.annotation.SystemApi;
 
 import java.util.List;
 
@@ -49,12 +50,14 @@ public abstract class ScanCallback {
      *
      * @hide
      */
+    @SystemApi
     public static final int SCAN_FAILED_OUT_OF_HARDWARE_RESOURCES = 5;
 
     /**
      * Fails to start scan as application tries to scan too frequently.
      * @hide
      */
+    @SystemApi
     public static final int SCAN_FAILED_SCANNING_TOO_FREQUENTLY = 6;
 
     static final int NO_ERROR = 0;

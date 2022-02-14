@@ -2049,6 +2049,8 @@ public class AdapterService extends Service {
                 return new ArrayList<>();
             }
 
+            enforceBluetoothPrivilegedPermission(service);
+
             return service.mDatabaseManager.getMostRecentlyConnectedDevices();
         }
 
@@ -2158,6 +2160,8 @@ public class AdapterService extends Service {
                             service, attributionSource, "AdapterService cancelBondProcess")) {
                 return false;
             }
+
+            enforceBluetoothPrivilegedPermission(service);
 
             DeviceProperties deviceProp = service.mRemoteDevices.getDeviceProperties(device);
             if (deviceProp != null) {

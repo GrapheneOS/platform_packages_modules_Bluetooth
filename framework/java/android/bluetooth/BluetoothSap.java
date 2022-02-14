@@ -19,10 +19,13 @@ package android.bluetooth;
 import static android.bluetooth.BluetoothUtils.getSyncTimeout;
 
 import android.Manifest;
+import android.annotation.NonNull;
 import android.annotation.RequiresNoPermission;
 import android.annotation.RequiresPermission;
 import android.annotation.SdkConstant;
 import android.annotation.SdkConstant.SdkConstantType;
+import android.annotation.SuppressLint;
+import android.annotation.SystemApi;
 import android.bluetooth.annotations.RequiresBluetoothConnectPermission;
 import android.bluetooth.annotations.RequiresLegacyBluetoothPermission;
 import android.compat.annotation.UnsupportedAppUsage;
@@ -37,6 +40,7 @@ import com.android.modules.utils.SynchronousResultReceiver;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -51,6 +55,8 @@ import java.util.concurrent.TimeoutException;
  *
  * @hide
  */
+@SystemApi
+@SuppressLint("NotCloseable")
 public final class BluetoothSap implements BluetoothProfile {
 
     private static final String TAG = "BluetoothSap";
@@ -73,10 +79,12 @@ public final class BluetoothSap implements BluetoothProfile {
      *
      * @hide
      */
+    @SystemApi
     @RequiresLegacyBluetoothPermission
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
+    @SuppressLint("ActionValue")
     public static final String ACTION_CONNECTION_STATE_CHANGED =
             "android.bluetooth.sap.profile.action.CONNECTION_STATE_CHANGED";
 
@@ -123,6 +131,7 @@ public final class BluetoothSap implements BluetoothProfile {
         mProfileConnector.connect(context, listener);
     }
 
+    @SuppressLint("GenericException")
     protected void finalize() throws Throwable {
         try {
             close();
@@ -393,16 +402,21 @@ public final class BluetoothSap implements BluetoothProfile {
      * @param device Paired bluetooth device
      * @param connectionPolicy is the connection policy to set to for this profile
      * @return true if connectionPolicy is set, false on error
+     *
+     * @throws NullPointerException if device is null
+     *
      * @hide
      */
+    @SystemApi
     @RequiresBluetoothConnectPermission
     @RequiresPermission(allOf = {
             android.Manifest.permission.BLUETOOTH_CONNECT,
             android.Manifest.permission.BLUETOOTH_PRIVILEGED,
     })
-    public boolean setConnectionPolicy(BluetoothDevice device,
+    public boolean setConnectionPolicy(@NonNull BluetoothDevice device,
             @ConnectionPolicy int connectionPolicy) {
         if (DBG) log("setConnectionPolicy(" + device + ", " + connectionPolicy + ")");
+        Objects.requireNonNull(device, "BluetoothDevice cannot be null");
         final IBluetoothSap service = getService();
         final boolean defaultValue = false;
         if (service == null) {
@@ -430,6 +444,7 @@ public final class BluetoothSap implements BluetoothProfile {
      *
      * @param device Bluetooth device
      * @return priority of the device
+     *
      * @hide
      */
     @RequiresBluetoothConnectPermission
@@ -451,15 +466,20 @@ public final class BluetoothSap implements BluetoothProfile {
      *
      * @param device Bluetooth device
      * @return connection policy of the device
+     *
+     * @throws NullPointerException if device is null
+     *
      * @hide
      */
+    @SystemApi
     @RequiresBluetoothConnectPermission
     @RequiresPermission(allOf = {
             android.Manifest.permission.BLUETOOTH_CONNECT,
             android.Manifest.permission.BLUETOOTH_PRIVILEGED,
     })
-    public @ConnectionPolicy int getConnectionPolicy(BluetoothDevice device) {
+    public @ConnectionPolicy int getConnectionPolicy(@NonNull BluetoothDevice device) {
         if (VDBG) log("getConnectionPolicy(" + device + ")");
+        Objects.requireNonNull(device, "BluetoothDevice cannot be null");
         final IBluetoothSap service = getService();
         final int defaultValue = BluetoothProfile.CONNECTION_POLICY_FORBIDDEN;
         if (service == null) {
