@@ -52,6 +52,10 @@ pub enum Error {
   ImpossibleStructError,
 }
 
+#[derive(Debug, Error)]
+#[error("{0}")]
+pub struct TryFromError(&'static str);
+
 pub trait Packet {
   fn to_bytes(self) -> Bytes;
   fn to_vec(self) -> Vec<u8>;
