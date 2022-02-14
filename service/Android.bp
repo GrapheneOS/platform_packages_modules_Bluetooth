@@ -91,14 +91,12 @@ java_library {
     ],
     sdk_version: "system_server_current",
 
+    jarjar_rules: ":bluetooth-jarjar-rules",
+
     optimize: {
         enabled: true,
         shrink: true,
         proguard_flags_files: ["proguard.flags"],
-    },
-    dex_preopt: {
-        enabled: false,
-        app_image: false,
     },
     visibility: [
         "//packages/modules/Bluetooth/apex",
