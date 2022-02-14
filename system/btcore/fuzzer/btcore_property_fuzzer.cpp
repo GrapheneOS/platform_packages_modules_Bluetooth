@@ -58,8 +58,8 @@ void BTCorePropertyFuzzer::process(const uint8_t* data, size_t size) {
   property_free(property);
 
   uint32_t timeout = mFdp->ConsumeIntegral<uint32_t>();
-  property = property_new_discovery_timeout(timeout);
-  (void)property_as_discovery_timeout(property);
+  property = property_new_discoverable_timeout(timeout);
+  (void)property_as_discoverable_timeout(property);
   property_free(property);
 
   std::string name = mFdp->ConsumeRandomLengthString(kRandomStringLength);

@@ -282,11 +282,11 @@ typedef enum {
    */
   BT_PROPERTY_ADAPTER_BONDED_DEVICES,
   /**
-   * Description - Bluetooth Adapter Discovery timeout (in seconds)
+   * Description - Bluetooth Adapter Discoverable timeout (in seconds)
    * Access mode - GET and SET
    * Data type   - uint32_t
    */
-  BT_PROPERTY_ADAPTER_DISCOVERY_TIMEOUT,
+  BT_PROPERTY_ADAPTER_DISCOVERABLE_TIMEOUT,
 
   /* Properties unique to remote device */
   /**
