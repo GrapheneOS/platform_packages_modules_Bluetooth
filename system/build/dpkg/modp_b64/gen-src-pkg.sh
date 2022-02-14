@@ -40,6 +40,15 @@ cd "${pkgdir}"
 yes | debmake || exit 1
 cp -aT "${scriptdir}/debian/" "${tmpdir}/${pkgdir}/debian/"
 
+# If building for docker, use the right install script.
+if [ ! -z "${MODP_DOCKER}" ]; then
+  mv "${tmpdir}/${pkgdir}/debian/modp-b64.install.docker" \
+     "${tmpdir}/${pkgdir}/debian/modp-b64.install"
+else
+  rm -f "${tmpdir}/${pkgdir}/debian/modp-b64.install.docker"
+fi
+
+
 # Build source package and binary package.
 cd "${tmpdir}/${pkgdir}"
 dpkg-buildpackage --no-sign || exit 1
