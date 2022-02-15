@@ -48,38 +48,6 @@ namespace mock {
 namespace stack_acl_btm_ble_connection_establishment {
 
 // Shared state between mocked functions and tests
-// Name: btm_send_hci_create_connection
-// Params: uint16_t scan_int, uint16_t scan_win, uint8_t init_filter_policy,
-// uint8_t addr_type_peer, const RawAddress& bda_peer, uint8_t addr_type_own,
-// uint16_t conn_int_min, uint16_t conn_int_max, uint16_t conn_latency, uint16_t
-// conn_timeout, uint16_t min_ce_len, uint16_t max_ce_len, uint8_t
-// initiating_phys Returns: void
-struct btm_send_hci_create_connection {
-  std::function<void(
-      uint16_t scan_int, uint16_t scan_win, uint8_t init_filter_policy,
-      uint8_t addr_type_peer, const RawAddress& bda_peer, uint8_t addr_type_own,
-      uint16_t conn_int_min, uint16_t conn_int_max, uint16_t conn_latency,
-      uint16_t conn_timeout, uint16_t min_ce_len, uint16_t max_ce_len,
-      uint8_t initiating_phys)>
-      body{[](uint16_t scan_int, uint16_t scan_win, uint8_t init_filter_policy,
-              uint8_t addr_type_peer, const RawAddress& bda_peer,
-              uint8_t addr_type_own, uint16_t conn_int_min,
-              uint16_t conn_int_max, uint16_t conn_latency,
-              uint16_t conn_timeout, uint16_t min_ce_len, uint16_t max_ce_len,
-              uint8_t initiating_phys) {}};
-  void operator()(uint16_t scan_int, uint16_t scan_win,
-                  uint8_t init_filter_policy, uint8_t addr_type_peer,
-                  const RawAddress& bda_peer, uint8_t addr_type_own,
-                  uint16_t conn_int_min, uint16_t conn_int_max,
-                  uint16_t conn_latency, uint16_t conn_timeout,
-                  uint16_t min_ce_len, uint16_t max_ce_len,
-                  uint8_t initiating_phys) {
-    body(scan_int, scan_win, init_filter_policy, addr_type_peer, bda_peer,
-         addr_type_own, conn_int_min, conn_int_max, conn_latency, conn_timeout,
-         min_ce_len, max_ce_len, initiating_phys);
-  };
-};
-extern struct btm_send_hci_create_connection btm_send_hci_create_connection;
 // Name: btm_ble_create_ll_conn_complete
 // Params: tHCI_STATUS status
 // Returns: void
