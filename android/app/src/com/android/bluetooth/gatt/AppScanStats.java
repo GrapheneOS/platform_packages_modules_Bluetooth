@@ -60,10 +60,12 @@ import java.util.Objects;
     ContextMap mContextMap;
 
     // GattService is needed to add scan event protos to be dumped later
-    GattService mGattService;
+    final GattService mGattService;
 
     // Battery stats is used to keep track of scans and result stats
     BatteryStatsManager mBatteryStatsManager;
+
+    private final AdapterService mAdapterService;
 
     class LastScan {
         public long duration;
@@ -164,6 +166,7 @@ import java.util.Objects;
         }
         mWorkSource = source;
         mWorkSourceUtil = new WorkSourceUtil(source);
+        mAdapterService = Objects.requireNonNull(AdapterService.getAdapterService());
     }
 
     synchronized void addResult(int scannerId) {
@@ -272,7 +275,7 @@ import java.util.Objects;
             mTotalSuspendTime += suspendDuration;
         }
         mOngoingScans.remove(scannerId);
-        if (mLastScans.size() >= getNumScanDurationsKept()) {
+        if (mLastScans.size() >= mAdapterService.getScanQuotaCount()) {
             mLastScans.remove(0);
         }
         mLastScans.add(scan);
@@ -355,19 +358,20 @@ import java.util.Objects;
     }
 
     synchronized boolean isScanningTooFrequently() {
-        if (mLastScans.size() < getNumScanDurationsKept()) {
+        if (mLastScans.size() < mAdapterService.getScanQuotaCount()) {
             return false;
         }
 
         return (SystemClock.elapsedRealtime() - mLastScans.get(0).timestamp)
-                < getExcessiveScanningPeriodMillis();
+                < mAdapterService.getScanQuotaWindowMillis();
     }
 
     synchronized boolean isScanningTooLong() {
         if (!isScanning()) {
             return false;
         }
-        return (SystemClock.elapsedRealtime() - mScanStartTime) > getScanTimeoutMillis();
+        return (SystemClock.elapsedRealtime() - mScanStartTime)
+                > mAdapterService.getScanTimeoutMillis();
     }
 
     synchronized boolean hasRecentScan() {
