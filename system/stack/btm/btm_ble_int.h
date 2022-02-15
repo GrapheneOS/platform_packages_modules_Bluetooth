@@ -99,8 +99,6 @@ extern bool btm_ble_resume_bg_conn(void);
 extern void btm_ble_update_mode_operation(uint8_t link_role,
                                           const RawAddress* bda,
                                           tHCI_STATUS status);
-extern void btm_ble_bgconn_cancel_if_disconnected(const RawAddress& bd_addr);
-
 /* BLE address management */
 extern void btm_gen_resolvable_private_addr(
     base::Callback<void(const RawAddress& rpa)> cb);

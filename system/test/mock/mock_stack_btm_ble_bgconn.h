@@ -79,16 +79,6 @@ struct btm_update_scanner_filter_policy {
   void operator()(tBTM_BLE_SFP scan_policy) { body(scan_policy); };
 };
 extern struct btm_update_scanner_filter_policy btm_update_scanner_filter_policy;
-// Name: btm_ble_bgconn_cancel_if_disconnected
-// Params: const RawAddress& bd_addr
-// Returns: void
-struct btm_ble_bgconn_cancel_if_disconnected {
-  std::function<void(const RawAddress& bd_addr)> body{
-      [](const RawAddress& bd_addr) {}};
-  void operator()(const RawAddress& bd_addr) { body(bd_addr); };
-};
-extern struct btm_ble_bgconn_cancel_if_disconnected
-    btm_ble_bgconn_cancel_if_disconnected;
 // Name: btm_ble_suspend_bg_conn
 // Params: void
 // Returns: bool
