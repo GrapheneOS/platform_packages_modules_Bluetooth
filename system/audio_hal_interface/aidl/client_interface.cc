@@ -233,6 +233,7 @@ bool BluetoothAudioClientInterface::UpdateAudioConfig(
 }
 
 bool BluetoothAudioClientInterface::SetLowLatencyModeAllowed(bool allowed) {
+  is_low_latency_allowed_ = allowed;
   if (provider_ == nullptr) {
     LOG(INFO) << __func__
               << ": BluetoothAudioHal nullptr";
@@ -266,9 +267,12 @@ int BluetoothAudioClientInterface::StartSession() {
 
   std::unique_ptr<DataMQ> data_mq;
   DataMQDesc mq_desc;
-
+  std::vector<LatencyMode> latency_modes = {LatencyMode::FREE};
+  if (is_low_latency_allowed_) {
+    latency_modes.push_back(LatencyMode::LOW_LATENCY);
+  }
   auto aidl_retval = provider_->startSession(
-      stack_if, transport_->GetAudioConfiguration(), &mq_desc);
+      stack_if, transport_->GetAudioConfiguration(), latency_modes, &mq_desc);
   if (!aidl_retval.isOk()) {
     LOG(FATAL) << __func__ << ": BluetoothAudioHal failure: "
                << aidl_retval.getDescription();
