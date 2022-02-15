@@ -18,6 +18,8 @@
 
 #include "codec_status.h"
 
+#include <unordered_set>
+
 #include "a2dp_aac_constants.h"
 #include "a2dp_sbc_constants.h"
 #include "a2dp_vendor_aptx_constants.h"
@@ -456,23 +458,23 @@ bool UpdateOffloadingCapabilities(
   audio_hal_capabilities =
       BluetoothAudioSinkClientInterface::GetAudioCapabilities(
           SessionType::A2DP_HARDWARE_OFFLOAD_ENCODING_DATAPATH);
-  uint32_t codec_type_masks = static_cast<uint32_t>(CodecType::UNKNOWN);
+  std::unordered_set<CodecType> codec_type_set;
   for (auto preference : framework_preference) {
     switch (preference.codec_type) {
       case BTAV_A2DP_CODEC_INDEX_SOURCE_SBC:
-        codec_type_masks |= static_cast<uint32_t>(CodecType::SBC);
+        codec_type_set.insert(CodecType::SBC);
         break;
       case BTAV_A2DP_CODEC_INDEX_SOURCE_AAC:
-        codec_type_masks |= static_cast<uint32_t>(CodecType::AAC);
+        codec_type_set.insert(CodecType::AAC);
         break;
       case BTAV_A2DP_CODEC_INDEX_SOURCE_APTX:
-        codec_type_masks |= static_cast<uint32_t>(CodecType::APTX);
+        codec_type_set.insert(CodecType::APTX);
         break;
       case BTAV_A2DP_CODEC_INDEX_SOURCE_APTX_HD:
-        codec_type_masks |= static_cast<uint32_t>(CodecType::APTX_HD);
+        codec_type_set.insert(CodecType::APTX_HD);
         break;
       case BTAV_A2DP_CODEC_INDEX_SOURCE_LDAC:
-        codec_type_masks |= static_cast<uint32_t>(CodecType::LDAC);
+        codec_type_set.insert(CodecType::LDAC);
         break;
       case BTAV_A2DP_CODEC_INDEX_SINK_SBC:
         [[fallthrough]];
@@ -492,9 +494,9 @@ bool UpdateOffloadingCapabilities(
   }
   offloading_preference.clear();
   for (auto capability : audio_hal_capabilities) {
-    if ((static_cast<uint32_t>(
-             capability.get<AudioCapabilities::a2dpCapabilities>().codecType) &
-         codec_type_masks) != 0) {
+    auto codec_type =
+        capability.get<AudioCapabilities::a2dpCapabilities>().codecType;
+    if (codec_type_set.find(codec_type) != codec_type_set.end()) {
       LOG(INFO) << __func__
                 << ": enabled offloading capability=" << capability.toString();
       offloading_preference.push_back(capability);

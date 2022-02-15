@@ -22,6 +22,7 @@
 #include "osi/include/properties.h"
 #include "stack/acl/acl.h"
 #include "stack/include/acl_api.h"
+#include "le_audio_set_configuration_provider.h"
 
 namespace {
 
@@ -32,6 +33,7 @@ using le_audio::types::CodecLocation;
 
 using bluetooth::le_audio::btle_audio_codec_config_t;
 using bluetooth::le_audio::btle_audio_codec_index_t;
+using le_audio::AudioSetConfigurationProvider;
 using le_audio::set_configurations::AudioSetConfiguration;
 using le_audio::set_configurations::AudioSetConfigurations;
 using le_audio::set_configurations::SetConfiguration;
@@ -220,6 +222,11 @@ struct codec_manager_impl {
     LOG(INFO) << __func__;
     std::unordered_set<uint8_t> offload_preference_set;
 
+    if (AudioSetConfigurationProvider::Get() == nullptr) {
+      LOG(ERROR) << __func__ << " Audio set configuration provider is not available.";
+      return;
+    }
+
     for (auto codec : offloading_preference) {
       auto it = btle_audio_codec_type_map_.find(codec.codec_type);
 
@@ -233,7 +240,7 @@ struct codec_manager_impl {
       // Gets the software supported context type and the corresponding config
       // priority
       const AudioSetConfigurations* software_audio_set_confs =
-          set_configurations::get_confs_by_type(ctx_type);
+          AudioSetConfigurationProvider::Get()->GetConfigurations(ctx_type);
 
       for (const auto& software_audio_set_conf : *software_audio_set_confs) {
         if (IsAudioSetConfigurationMatched(software_audio_set_conf,

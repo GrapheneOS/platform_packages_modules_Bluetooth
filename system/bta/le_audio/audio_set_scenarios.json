@@ -1,0 +1,63 @@
+{
+    "_comments_": [
+        "== Audio Set Scenarios ==",
+        "  Each defined scenario references externally defined audio set",
+        "  configurations, listed in the order of priority."
+    ],
+    "scenarios": [
+        {
+            "name": "Ringtone",
+            "configurations": [
+                "DualDev_OneChanStereoSnk_16_2",
+                "DualDev_OneChanStereoSnk_16_1",
+                "SingleDev_OneChanStereoSnk_16_2",
+                "SingleDev_OneChanStereoSnk_16_1",
+                "SingleDev_TwoChanStereoSnk_16_2",
+                "SingleDev_TwoChanStereoSnk_16_1",
+                "SingleDev_OneChanMonoSnk_16_2",
+                "SingleDev_OneChanMonoSnk_16_1"
+            ]
+        },
+        {
+            "name": "Conversational",
+            "configurations": [
+                "DualDev_OneChanStereoSnk_OneChanMonoSrc_16_2",
+                "DualDev_OneChanStereoSnk_OneChanMonoSrc_16_1",
+                "DualDev_OneChanDoubleStereoSnk_OneChanMonoSrc_16_2",
+                "DualDev_OneChanDoubleStereoSnk_OneChanMonoSrc_16_1",
+                "SingleDev_TwoChanStereoSnk_OneChanMonoSrc_16_2",
+                "SingleDev_TwoChanStereoSnk_OneChanMonoSrc_16_1",
+                "SingleDev_OneChanStereoSnk_OneChanMonoSrc_16_2",
+                "SingleDev_OneChanStereoSnk_OneChanMonoSrc_16_1",
+                "SingleDev_OneChanMonoSnk_OneChanMonoSrc_16_2",
+                "SingleDev_OneChanMonoSnk_OneChanMonoSrc_16_1"
+            ]
+        },
+        {
+            "name": "Media",
+            "configurations": [
+                "DualDev_OneChanStereoSnk_48_4",
+                "DualDev_OneChanStereoSnk_16_2",
+                "DualDev_OneChanStereoSnk_16_1",
+                "SingleDev_OneChanStereoSnk_48_4",
+                "SingleDev_OneChanStereoSnk_16_2",
+                "SingleDev_OneChanStereoSnk_16_1",
+                "SingleDev_TwoChanStereoSnk_48_4",
+                "SingleDev_TwoChanStereoSnk_16_2",
+                "SingleDev_TwoChanStereoSnk_16_1",
+                "SingleDev_OneChanMonoSnk_48_4",
+                "SingleDev_OneChanMonoSnk_16_2",
+                "SingleDev_OneChanMonoSnk_16_1"
+            ]
+        },
+        {
+            "name": "Default",
+            "configurations": [
+                "DualDev_OneChanStereoSnk_16_2",
+                "SingleDev_OneChanStereoSnk_16_2",
+                "SingleDev_TwoChanStereoSnk_16_2",
+                "SingleDev_OneChanMonoSnk_16_2"
+            ]
+        }
+    ]
+}

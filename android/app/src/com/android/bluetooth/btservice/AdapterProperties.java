@@ -200,7 +200,7 @@ class AdapterProperties {
     AdapterProperties(AdapterService service) {
         mService = service;
         mAdapter = BluetoothAdapter.getDefaultAdapter();
-        //invalidateBluetoothCaches();
+        invalidateBluetoothCaches();
     }
 
     public void init(RemoteDevices remoteDevices) {
@@ -242,7 +242,7 @@ class AdapterProperties {
         filter.addAction(BluetoothPbapClient.ACTION_CONNECTION_STATE_CHANGED);
         mService.registerReceiver(mReceiver, filter);
         mReceiverRegistered = true;
-        //invalidateBluetoothCaches();
+        invalidateBluetoothCaches();
     }
 
     public void cleanup() {
@@ -254,9 +254,9 @@ class AdapterProperties {
         }
         mService = null;
         mBondedDevices.clear();
-        //invalidateBluetoothCaches();
+        invalidateBluetoothCaches();
     }
-    /*
+
     private static void invalidateGetProfileConnectionStateCache() {
         BluetoothAdapter.invalidateGetProfileConnectionStateCache();
     }
@@ -275,7 +275,6 @@ class AdapterProperties {
         invalidateGetConnectionStateCache();
         invalidateGetBondStateCache();
     }
-     */
 
     @Override
     public Object clone() throws CloneNotSupportedException {

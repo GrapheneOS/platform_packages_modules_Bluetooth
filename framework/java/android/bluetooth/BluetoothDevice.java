@@ -25,7 +25,8 @@ import android.annotation.RequiresPermission;
 import android.annotation.SdkConstant;
 import android.annotation.SdkConstant.SdkConstantType;
 import android.annotation.SuppressLint;
-import android.annotation.SystemApi; //import android.app.PropertyInvalidatedCache;
+import android.annotation.SystemApi;
+import android.app.PropertyInvalidatedCache;
 import android.bluetooth.annotations.RequiresBluetoothConnectPermission;
 import android.bluetooth.annotations.RequiresBluetoothLocationPermission;
 import android.bluetooth.annotations.RequiresBluetoothScanPermission;
@@ -1810,42 +1811,71 @@ public final class BluetoothDevice implements Parcelable, Attributable {
         return defaultValue;
     }
 
-    /*
-    private static final String BLUETOOTH_BONDING_CACHE_PROPERTY =
-            "cache_key.bluetooth.get_bond_state";
-    private final PropertyInvalidatedCache<BluetoothDevice, Integer> mBluetoothBondCache =
-            new PropertyInvalidatedCache<BluetoothDevice, Integer>(
-                8, BLUETOOTH_BONDING_CACHE_PROPERTY) {
+    /**
+     * There are several instances of PropertyInvalidatedCache used in this class.
+     * BluetoothCache wraps up the common code.  All caches are created with a maximum of
+     * eight entries, and the key is in the bluetooth module.  The name is set to the api.
+     */
+    private static class BluetoothCache<Q, R> extends PropertyInvalidatedCache<Q, R> {
+        BluetoothCache(String api, PropertyInvalidatedCache.QueryHandler query) {
+            super(8, PropertyInvalidatedCache.MODULE_BLUETOOTH, api, api, query);
+        }};
+
+    /**
+     * Invalidate a bluetooth cache.  This method is just a short-hand wrapper that
+     * enforces the bluetooth module.
+     */
+    private static void invalidateCache(@NonNull String api) {
+        PropertyInvalidatedCache.invalidateCache(PropertyInvalidatedCache.MODULE_BLUETOOTH, api);
+    }
+
+    private final
+            PropertyInvalidatedCache.QueryHandler<BluetoothDevice, Integer> mBluetoothBondQuery =
+            new PropertyInvalidatedCache.QueryHandler<>() {
+                @RequiresLegacyBluetoothPermission
+                @RequiresBluetoothConnectPermission
+                @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
                 @Override
-                @SuppressLint("AndroidFrameworkRequiresPermission")
-                public Integer recompute(BluetoothDevice query) {
-                    final int defaultValue = BluetoothDevice.BOND_NONE;
-                    try {
-                        final SynchronousResultReceiver<Integer> recv =
-                                new SynchronousResultReceiver();
-                        sService.getBondState(query, mAttributionSource, recv);
-                        return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
-                    } catch (TimeoutException e) {
-                        Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
-                    } catch (RemoteException e) {
-                        throw e.rethrowAsRuntimeException();
+                public Integer apply(BluetoothDevice query) {
+                    if (DBG) log("getBondState() uncached");
+                    final IBluetooth service = sService;
+                    final int defaultValue = BOND_NONE;
+                    if (service == null) {
+                        Log.e(TAG, "BT not enabled. Cannot get bond state");
+                        if (DBG) log(Log.getStackTraceString(new Throwable()));
+                    } else {
+                        try {
+                            final SynchronousResultReceiver<Integer> recv =
+                                    new SynchronousResultReceiver();
+                            service.getBondState(BluetoothDevice.this, mAttributionSource, recv);
+                            return recv.awaitResultNoInterrupt(getSyncTimeout())
+                                            .getValue(defaultValue);
+                        } catch (TimeoutException e) {
+                            Log.e(TAG, e.toString() + "\n"
+                                    + Log.getStackTraceString(new Throwable()));
+                        } catch (RemoteException e) {
+                            Log.e(TAG, "failed to ", e);
+                            e.rethrowFromSystemServer();
+                        }
                     }
                     return defaultValue;
                 }
             };
-     */
+
+    private static final String GET_BOND_STATE_API = "getBondState";
+
+    private final BluetoothCache<BluetoothDevice, Integer> mBluetoothBondCache =
+        new BluetoothCache<BluetoothDevice, Integer>(GET_BOND_STATE_API, mBluetoothBondQuery);
 
     /** @hide */
-    /* public void disableBluetoothGetBondStateCache() {
-        mBluetoothBondCache.disableLocal();
-    } */
-
-    /** @hide */
-    /*
-    public static void invalidateBluetoothGetBondStateCache() {
-        PropertyInvalidatedCache.invalidateCache(BLUETOOTH_BONDING_CACHE_PROPERTY);
+    public void disableBluetoothGetBondStateCache() {
+        mBluetoothBondCache.disableForCurrentProcess();
     }
-     */
+
+    /** @hide */
+    public static void invalidateBluetoothGetBondStateCache() {
+        invalidateCache(GET_BOND_STATE_API);
+    }
 
     /**
      * Get the bond state of the remote device.
@@ -1862,25 +1892,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
     @SuppressLint("AndroidFrameworkRequiresPermission")
     public int getBondState() {
         if (DBG) log("getBondState()");
-        final IBluetooth service = sService;
-        final int defaultValue = BOND_NONE;
-        if (service == null) {
-            Log.e(TAG, "BT not enabled. Cannot get bond state");
-            if (DBG) log(Log.getStackTraceString(new Throwable()));
-        } else {
-            try {
-                final SynchronousResultReceiver<Integer> recv = new SynchronousResultReceiver();
-                //return mBluetoothBondCache.query(this);
-                service.getBondState(this, mAttributionSource, recv);
-                return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
-            } catch (TimeoutException e) {
-                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
-            } catch (RemoteException e) {
-                Log.e(TAG, "failed to ", e);
-                e.rethrowFromSystemServer();
-            }
-        }
-        return defaultValue;
+        return mBluetoothBondCache.query(null);
     }
 
     /**
