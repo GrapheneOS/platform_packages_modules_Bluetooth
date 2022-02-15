@@ -610,7 +610,10 @@ class Bootstrap():
         # Create symlinks
         for pairs in symlinks:
             (src, dst) = pairs
-            os.unlink(dst)
+            try:
+                os.unlink(dst)
+            except Exception as e:
+                print(e)
             os.symlink(src, dst)
 
         # Write to setup complete file so we don't repeat this step
