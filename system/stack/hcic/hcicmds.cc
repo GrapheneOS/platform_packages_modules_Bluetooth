@@ -421,6 +421,8 @@ void bte_main_hci_send(BT_HDR* p_msg, uint16_t event);
 #define HCI_WRITE_IAC_LAP_LAP_OFF 1
 /* Write Current IAC LAP */
 
+#define HCIC_PARAM_SIZE_CONFIGURE_DATA_PATH 3
+
 /*******************************************************************************
  * BLE Commands
  *      Note: "local_controller_id" is for transport, not counted in HCI
@@ -1870,6 +1872,27 @@ void btsnd_hcic_vendor_spec_cmd(void* buffer, uint16_t opcode, uint8_t len,
   UINT16_TO_STREAM(pp, HCI_GRP_VENDOR_SPECIFIC | opcode);
   UINT8_TO_STREAM(pp, len);
   ARRAY_TO_STREAM(pp, p_data, len);
+
+  btu_hcif_send_cmd(LOCAL_BR_EDR_CONTROLLER_ID, p);
+}
+
+void btsnd_hcic_configure_data_path(uint8_t data_path_direction,
+                                    uint8_t data_path_id,
+                                    std::vector<uint8_t> vendor_config) {
+  BT_HDR* p = (BT_HDR*)osi_malloc(HCI_CMD_BUF_SIZE);
+  uint8_t* pp = (uint8_t*)(p + 1);
+  uint8_t size = static_cast<uint8_t>(vendor_config.size());
+  p->len = HCIC_PREAMBLE_SIZE + HCIC_PARAM_SIZE_CONFIGURE_DATA_PATH + size;
+  p->offset = 0;
+
+  UINT16_TO_STREAM(pp, HCI_CONFIGURE_DATA_PATH);
+  UINT8_TO_STREAM(pp, HCIC_PARAM_SIZE_CONFIGURE_DATA_PATH + size);
+  UINT8_TO_STREAM(pp, data_path_direction);
+  UINT8_TO_STREAM(pp, data_path_id);
+  UINT8_TO_STREAM(pp, vendor_config.size());
+  if (size != 0) {
+    ARRAY_TO_STREAM(pp, vendor_config.data(), size);
+  }
 
   btu_hcif_send_cmd(LOCAL_BR_EDR_CONTROLLER_ID, p);
 }

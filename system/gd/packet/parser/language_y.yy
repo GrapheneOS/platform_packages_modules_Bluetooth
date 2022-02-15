@@ -34,12 +34,12 @@
 %verbose
 
 %union {
-  int integer;
+  uint64_t integer;
   std::string* string;
 
   EnumDef* enum_definition;
-  std::map<int, std::string>* enumeration_values;
-  std::pair<int, std::string>* enumeration_value;
+  std::map<uint64_t, std::string>* enumeration_values;
+  std::pair<uint64_t, std::string>* enumeration_value;
 
   PacketDef* packet_definition_value;
   FieldList* packet_field_definitions;
@@ -173,7 +173,7 @@ enumeration_list
   : enumeration
     {
       DEBUG() << "Enumerator with comma\n";
-      $$ = new std::map<int, std::string>();
+      $$ = new std::map<uint64_t, std::string>();
       $$->insert(std::move(*$1));
       delete $1;
     }
@@ -589,7 +589,7 @@ constraint
     {
       DEBUG() << "Group with a fixed integer value=" << $1 << " value=" << $3 << "\n";
 
-      $$ = new std::pair(*$1, std::variant<int64_t,std::string>($3));
+      $$ = new std::pair(*$1, std::variant<int64_t,std::string>((int64_t)$3));
       delete $1;
     }
   | IDENTIFIER '=' IDENTIFIER

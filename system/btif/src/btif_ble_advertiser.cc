@@ -29,6 +29,7 @@
 #include "btif_common.h"
 #include "main/shim/le_advertising_manager.h"
 #include "main/shim/shim.h"
+#include "osi/include/properties.h"
 #include "stack/include/btu.h"
 
 using base::Bind;
@@ -64,16 +65,21 @@ static inline OwnedArrayWrapper<T> OwnedArray(T* o) {
 
 void parseParams(tBTM_BLE_ADV_PARAMS* p_params,
                  const AdvertiseParameters& params) {
+  // By default use all channels, but have property for tweaking.
+  int channel_map = osi_property_get_int32(
+      "persist.bluetooth.advertising_channel_map", params.channel_map);
+
   p_params->advertising_event_properties = params.advertising_event_properties;
   p_params->adv_int_min = params.min_interval;
   p_params->adv_int_max = params.max_interval;
-  p_params->channel_map = params.channel_map;
+  p_params->channel_map = channel_map;
   p_params->adv_filter_policy = 0;
   p_params->tx_power = params.tx_power;
   p_params->primary_advertising_phy = params.primary_advertising_phy;
   p_params->secondary_advertising_phy = params.secondary_advertising_phy;
   p_params->scan_request_notification_enable =
       params.scan_request_notification_enable;
+  p_params->own_address_type = params.own_address_type;
 }
 
 void parsePeriodicParams(tBLE_PERIODIC_ADV_PARAMS* p_periodic_params,
@@ -255,17 +261,9 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface {
   }
 };
 
-BleAdvertiserInterface* btLeAdvertiserInstance = nullptr;
-
 }  // namespace
 
 BleAdvertiserInterface* get_ble_advertiser_instance() {
-  if (bluetooth::shim::is_gd_advertising_enabled()) {
-    LOG(INFO) << __func__ << " use gd le advertiser";
-    return bluetooth::shim::get_ble_advertiser_instance();
-  } else if (btLeAdvertiserInstance == nullptr) {
-    btLeAdvertiserInstance = new BleAdvertiserInterfaceImpl();
-  }
-
-  return btLeAdvertiserInstance;
+  LOG(INFO) << __func__ << " use gd le advertiser";
+  return bluetooth::shim::get_ble_advertiser_instance();
 }

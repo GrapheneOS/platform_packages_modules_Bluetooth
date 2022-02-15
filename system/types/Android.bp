@@ -19,7 +19,7 @@ cc_library_headers {
         "//apex_available:platform",
         "com.android.media",
         "com.android.media.swcodec",
-        "com.android.bluetooth.updatable"
+        "com.android.bluetooth"
     ],
     // As part of updatable mainline modules(media, swcodec), it should support at least 29(Q)
     min_sdk_version: "29",
@@ -41,6 +41,7 @@ cc_library_static {
     ],
     header_libs: ["libbluetooth-types-header"],
     export_header_lib_headers: ["libbluetooth-types-header"],
+    min_sdk_version: "29",
 }
 
 cc_test {

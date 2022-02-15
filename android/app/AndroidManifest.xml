@@ -77,6 +77,8 @@
     <uses-permission android:name="android.permission.MANAGE_COMPANION_DEVICES"/>
     <uses-permission android:name="android.permission.START_FOREGROUND_SERVICES_FROM_BACKGROUND"/>
     <uses-permission android:name="android.permission.HIDE_OVERLAY_WINDOWS"/>
+    <uses-permission android:name="android.permission.QUERY_AUDIO_STATE"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
     <uses-sdk android:minSdkVersion="14"/>
 
@@ -91,7 +93,6 @@
          android:directBootAware="true"
          android:defaultToDeviceProtectedStorage="true"
          android:memtagMode="async">
-        <uses-library android:name="javax.obex"/>
         <provider android:name=".opp.BluetoothOppProvider"
              android:authorities="com.android.bluetooth.opp"
              android:exported="true"
@@ -399,7 +400,7 @@
             </intent-filter>
         </service>
         <service android:process="@string/process"
-             android:name=".hfpclient.connserv.HfpClientConnectionService"
+             android:name=".hfpclient.HfpClientConnectionService"
              android:permission="android.permission.BIND_CONNECTION_SERVICE"
              android:enabled="@bool/hfp_client_connection_service_enabled"
              android:exported="true">
@@ -421,6 +422,14 @@
              android:exported="true">
             <intent-filter>
                 <action android:name="android.bluetooth.IBluetoothHearingAid"/>
+            </intent-filter>
+        </service>
+        <service android:process="@string/process"
+             android:name=".hap.HapClientService"
+             android:enabled="@bool/profile_supported_hap_client"
+             android:exported="true">
+            <intent-filter>
+                <action android:name="android.bluetooth.IBluetoothHapClient"/>
             </intent-filter>
         </service>
         <service
@@ -448,6 +457,15 @@
             android:exported = "true">
             <intent-filter>
                 <action android:name="android.bluetooth.IBluetoothCsipSetCoordinator" />
+            </intent-filter>
+        </service>
+        <service
+            android:process="@string/process"
+            android:name = ".tbs.TbsService"
+            android:enabled="@bool/profile_supported_le_call_control"
+            android:exported = "true">
+            <intent-filter>
+                <action android:name="android.bluetooth.IBluetoothLeCallControl" />
             </intent-filter>
         </service>
         <!-- Authenticator for PBAP account. -->

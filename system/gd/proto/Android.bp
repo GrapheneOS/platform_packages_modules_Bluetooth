@@ -19,8 +19,10 @@ java_library_static {
     ],
     apex_available: [
         "//apex_available:platform",
-        "com.android.bluetooth.updatable",
+        "com.android.bluetooth",
     ],
+    min_sdk_version: "30",
+    sdk_version: "current",
 }
 
 cc_library_static {
@@ -36,8 +38,9 @@ cc_library_static {
     ],
     apex_available: [
         "//apex_available:platform",
-        "com.android.bluetooth.updatable",
+        "com.android.bluetooth",
     ],
+    min_sdk_version: "30",
 }
 
 cc_library_static {
@@ -54,6 +57,7 @@ cc_library_static {
     ],
     apex_available: [
         "//apex_available:platform",
-        "com.android.bluetooth.updatable",
+        "com.android.bluetooth",
     ],
+    min_sdk_version: "30",
 }

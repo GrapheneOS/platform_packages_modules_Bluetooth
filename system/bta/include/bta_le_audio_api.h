@@ -27,6 +27,7 @@
 class LeAudioHalVerifier {
  public:
   static bool SupportsLeAudio();
+  static bool SupportsLeAudioHardwareOffload();
 };
 
 /* Interface class */
@@ -34,10 +35,12 @@ class LeAudioClient {
  public:
   virtual ~LeAudioClient(void) = default;
 
-  static void Initialize(bluetooth::le_audio::LeAudioClientCallbacks* callbacks,
-                         base::Closure initCb,
-                         base::Callback<bool()> hal_2_1_verifier);
-  static void Cleanup(void);
+  static void Initialize(
+      bluetooth::le_audio::LeAudioClientCallbacks* callbacks,
+      base::Closure initCb, base::Callback<bool()> hal_2_1_verifier,
+      const std::vector<bluetooth::le_audio::btle_audio_codec_config_t>&
+          offloading_preference);
+  static void Cleanup(base::Callback<void()> cleanupCb);
   static LeAudioClient* Get(void);
   static void DebugDump(int fd);
 
@@ -54,4 +57,7 @@ class LeAudioClient {
   virtual std::vector<RawAddress> GetGroupDevices(const int group_id) = 0;
   static void AddFromStorage(const RawAddress& addr, bool autoconnect);
   static bool IsLeAudioClientRunning();
+
+  static void InitializeAudioSetConfigurationProvider(void);
+  static void CleanupAudioSetConfigurationProvider(void);
 };

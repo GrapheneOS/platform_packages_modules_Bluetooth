@@ -95,7 +95,9 @@ const Uuid UUID_VC = Uuid::FromString("1844");
 const Uuid UUID_CSIS = Uuid::FromString("1846");
 const Uuid UUID_LE_AUDIO = Uuid::FromString("184E");
 const Uuid UUID_LE_MIDI = Uuid::FromString("03B80E5A-EDE8-4B33-A751-6CE34EC4C700");
-const bool enable_address_consolidate = false;  // TODO remove
+/* FIXME: Not known yet, using a placeholder instead. */
+const Uuid UUID_HAS = Uuid::FromString("EEEEEEEE-EEEE-EEEE-EEEE-EEEEEEEEEEEE");
+const bool enable_address_consolidate = true;  // TODO remove
 
 #define COD_MASK 0x07FF
 
@@ -233,7 +235,7 @@ static void btif_dm_ble_key_nc_req_evt(tBTA_DM_SP_KEY_NOTIF* p_notif_req);
 static void btif_dm_ble_oob_req_evt(tBTA_DM_SP_RMT_OOB* req_oob_type);
 static void btif_dm_ble_sc_oob_req_evt(tBTA_DM_SP_RMT_OOB* req_oob_type);
 
-static char* btif_get_default_local_name();
+static const char* btif_get_default_local_name();
 
 static void btif_stats_add_bond_event(const RawAddress& bd_addr,
                                       bt_bond_function_t function,
@@ -1333,8 +1335,8 @@ static void btif_dm_search_devices_evt(tBTA_DM_SEARCH_EVT event,
 /* Returns true if |uuid| should be passed as device property */
 static bool btif_is_interesting_le_service(bluetooth::Uuid uuid) {
   return (uuid.As16Bit() == UUID_SERVCLASS_LE_HID || uuid == UUID_HEARING_AID ||
-          uuid == UUID_VC || uuid == UUID_CSIS || uuid == UUID_LE_AUDIO || 
-          uuid == UUID_LE_MIDI);
+          uuid == UUID_VC || uuid == UUID_CSIS || uuid == UUID_LE_AUDIO ||
+          uuid == UUID_LE_MIDI || uuid == UUID_HAS);
 }
 
 /*******************************************************************************
@@ -1519,7 +1521,7 @@ void BTIF_dm_enable() {
   status = btif_storage_get_adapter_property(&prop);
   if (status == BT_STATUS_SUCCESS) {
     /* A name exists in the storage. Make this the device name */
-    BTA_DmSetDeviceName((char*)prop.val);
+    BTA_DmSetDeviceName((const char*)prop.val);
   } else {
     /* Storage does not have a name yet.
      * Use the default name and write it to the chip
@@ -1793,7 +1795,14 @@ static void btif_dm_upstreams_evt(uint16_t event, char* p_param) {
     case BTA_DM_LE_FEATURES_READ:
       btif_get_adapter_property(BT_PROPERTY_LOCAL_LE_FEATURES);
       break;
-
+    /* add case for HANDLE_KEY_MISSING */
+    case BTA_DM_REPORT_BONDING_EVT:
+      LOG_WARN("Received encryption failed: Report bonding firstly.");
+      bd_addr = p_data->delete_key_RC_to_unpair.bd_addr;
+      invoke_bond_state_changed_cb(BT_STATUS_SUCCESS, bd_addr, BT_BOND_STATE_BONDING,
+                                   pairing_cb.fail_reason);
+      btif_dm_remove_bond(bd_addr);
+      break;
     default:
       BTIF_TRACE_WARNING("%s: unhandled event (%d)", __func__, event);
       break;
@@ -3053,7 +3062,7 @@ void btif_dm_on_disable() {
  ******************************************************************************/
 void btif_dm_read_energy_info() { BTA_DmBleGetEnergyInfo(bta_energy_info_cb); }
 
-static char* btif_get_default_local_name() {
+static const char* btif_get_default_local_name() {
   if (btif_default_local_name[0] == '\0') {
     int max_len = sizeof(btif_default_local_name) - 1;
     if (BTM_DEF_LOCAL_NAME[0] != '\0') {

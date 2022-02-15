@@ -32,6 +32,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.media.AudioDeviceAttributes;
+import android.media.AudioDeviceInfo;
 import android.media.AudioManager;
 import android.os.HandlerThread;
 import android.os.ParcelUuid;
@@ -42,6 +44,7 @@ import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.btservice.ServiceFactory;
 import com.android.internal.annotations.VisibleForTesting;
+import com.android.modules.utils.SynchronousResultReceiver;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -55,11 +58,19 @@ public class VolumeControlService extends ProfileService {
 
     // Upper limit of all VolumeControl devices: Bonded or Connected
     private static final int MAX_VC_STATE_MACHINES = 10;
+    private static final int LE_AUDIO_MAX_VOL = 255;
+    private static final int LE_AUDIO_MIN_VOL = 0;
+
     private static VolumeControlService sVolumeControlService;
 
     private AdapterService mAdapterService;
     private HandlerThread mStateMachinesThread;
     private BluetoothDevice mPreviousAudioDevice;
+
+    private int mMusicMaxVolume = 0;
+    private int mMusicMinVolume = 0;
+    private int mVoiceCallMaxVolume = 0;
+    private int mVoiceCallMinVolume = 0;
 
     @VisibleForTesting
     VolumeControlNativeInterface mVolumeControlNativeInterface;
@@ -104,6 +115,11 @@ public class VolumeControlService extends ProfileService {
         mAudioManager =  getSystemService(AudioManager.class);
         Objects.requireNonNull(mAudioManager,
                 "AudioManager cannot be null when VolumeControlService starts");
+
+        mMusicMaxVolume = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+        mMusicMinVolume = mAudioManager.getStreamMinVolume(AudioManager.STREAM_MUSIC);
+        mVoiceCallMaxVolume = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_VOICE_CALL);
+        mVoiceCallMinVolume = mAudioManager.getStreamMinVolume(AudioManager.STREAM_VOICE_CALL);
 
         // Start handler thread for state machines
         mStateMachines.clear();
@@ -163,8 +179,13 @@ public class VolumeControlService extends ProfileService {
 
 
         if (mStateMachinesThread != null) {
-            mStateMachinesThread.quitSafely();
-            mStateMachinesThread = null;
+            try {
+                mStateMachinesThread.quitSafely();
+                mStateMachinesThread.join();
+                mStateMachinesThread = null;
+            } catch (InterruptedException e) {
+                // Do not rethrow as we are shutting down anyway
+            }
         }
 
         // Clear AdapterService, VolumeControlNativeInterface
@@ -409,8 +430,8 @@ public class VolumeControlService extends ProfileService {
                 .getProfileConnectionPolicy(device, BluetoothProfile.VOLUME_CONTROL);
     }
 
-    void setVolume(BluetoothDevice device, int volume) {
-        mVolumeControlNativeInterface.setVolume(device, volume);
+    void setVolumeOffset(BluetoothDevice device, int volumeOffset) {
+        // TODO Implement
     }
 
     /**
@@ -421,18 +442,51 @@ public class VolumeControlService extends ProfileService {
     }
 
     void handleVolumeControlChanged(BluetoothDevice device, int groupId,
-                                    int volume, boolean mute) {
-        /* TODO handle volume change for group in case of unicast le audio
-         * or per device in case of broadcast or simple remote controller.
-         * Note: minimum volume is 0 and maximum 255.
-         */
+                                    int volume, boolean mute, boolean isAutonomous) {
+        if (!isAutonomous) {
+            // If the change is triggered by Android device, the stream is already changed.
+            return;
+        }
+        // TODO: Handle the other arguments: device, groupId, mute.
+
+        int streamType = getBluetoothContextualVolumeStream();
+        mAudioManager.setStreamVolume(streamType, getDeviceVolume(streamType, volume),
+                AudioManager.FLAG_SHOW_UI | AudioManager.FLAG_BLUETOOTH_ABS_VOLUME);
+    }
+
+    int getDeviceVolume(int streamType, int bleVolume) {
+        int bleMaxVolume = 255; // min volume is zero
+        int deviceMaxVolume = (streamType == AudioManager.STREAM_VOICE_CALL)
+                ? mVoiceCallMaxVolume : mMusicMaxVolume;
+        int deviceMinVolume = (streamType == AudioManager.STREAM_VOICE_CALL)
+                ? mVoiceCallMinVolume : mMusicMinVolume;
+
+        // TODO: Investigate what happens in classic BT when BT volume is changed to zero.
+        return (int) Math.floor(
+                (double) bleVolume * (deviceMaxVolume - deviceMinVolume) / bleMaxVolume);
+    }
+
+    // Copied from AudioService.getBluetoothContextualVolumeStream() and modified it.
+    int getBluetoothContextualVolumeStream() {
+        int mode = mAudioManager.getMode();
+        switch (mode) {
+            case AudioManager.MODE_IN_COMMUNICATION:
+            case AudioManager.MODE_IN_CALL:
+                return AudioManager.STREAM_VOICE_CALL;
+            case AudioManager.MODE_NORMAL:
+            default:
+                // other conditions will influence the stream type choice, read on...
+                break;
+        }
+        return AudioManager.STREAM_MUSIC;
     }
 
     void messageFromNative(VolumeControlStackEvent stackEvent) {
 
         if (stackEvent.type == VolumeControlStackEvent.EVENT_TYPE_VOLUME_STATE_CHANGED) {
             handleVolumeControlChanged(stackEvent.device, stackEvent.valueInt1,
-                                       stackEvent.valueInt2, stackEvent.valueBool1);
+                                       stackEvent.valueInt2, stackEvent.valueBool1,
+                                       stackEvent.valueBool2);
           return;
         }
 
@@ -494,6 +548,14 @@ public class VolumeControlService extends ProfileService {
             sm = VolumeControlStateMachine.make(device, this,
                     mVolumeControlNativeInterface, mStateMachinesThread.getLooper());
             mStateMachines.put(device, sm);
+
+            mAudioManager.setDeviceVolumeBehavior(
+                    new AudioDeviceAttributes(
+                            AudioDeviceAttributes.ROLE_OUTPUT,
+                            // Currently, TYPE_BLUETOOTH_A2DP is the only thing that works.
+                            AudioDeviceInfo.TYPE_BLUETOOTH_A2DP,
+                            ""),
+                    AudioManager.DEVICE_VOLUME_BEHAVIOR_ABSOLUTE);
             return sm;
         }
     }
@@ -621,87 +683,137 @@ public class VolumeControlService extends ProfileService {
         }
 
         @Override
-        public boolean connect(BluetoothDevice device, AttributionSource source) {
-            VolumeControlService service = getService(source);
-            if (service == null) {
-                return false;
+        public void connect(BluetoothDevice device, AttributionSource source,
+                SynchronousResultReceiver receiver) {
+            try {
+                VolumeControlService service = getService(source);
+                boolean defaultValue = false;
+                if (service != null) {
+                    defaultValue = service.connect(device);
+                }
+                receiver.send(defaultValue);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
             }
-            return service.connect(device);
         }
 
         @Override
-        public boolean disconnect(BluetoothDevice device, AttributionSource source) {
-            VolumeControlService service = getService(source);
-            if (service == null) {
-                return false;
+        public void disconnect(BluetoothDevice device, AttributionSource source,
+                SynchronousResultReceiver receiver) {
+            try {
+                VolumeControlService service = getService(source);
+                boolean defaultValue = false;
+                if (service != null) {
+                    defaultValue = service.disconnect(device);
+                }
+                receiver.send(defaultValue);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
             }
-            return service.disconnect(device);
         }
 
         @Override
-        public List<BluetoothDevice> getConnectedDevices(AttributionSource source) {
-            VolumeControlService service = getService(source);
-            if (service == null) {
-                return new ArrayList<>();
+        public void getConnectedDevices(AttributionSource source,
+                SynchronousResultReceiver receiver) {
+            try {
+                VolumeControlService service = getService(source);
+                List<BluetoothDevice> defaultValue = new ArrayList<>();
+                if (service != null) {
+                    enforceBluetoothPrivilegedPermission(service);
+                    defaultValue = service.getConnectedDevices();
+                }
+                receiver.send(defaultValue);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
             }
-            enforceBluetoothPrivilegedPermission(service);
-            return service.getConnectedDevices();
         }
 
         @Override
-        public List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states,
-                AttributionSource source) {
-            VolumeControlService service = getService(source);
-            if (service == null) {
-                return new ArrayList<>();
+        public void getDevicesMatchingConnectionStates(int[] states,
+                AttributionSource source, SynchronousResultReceiver receiver) {
+            try {
+                VolumeControlService service = getService(source);
+                List<BluetoothDevice> defaultValue = new ArrayList<>();
+                if (service != null) {
+                    defaultValue = service.getDevicesMatchingConnectionStates(states);
+                }
+                receiver.send(defaultValue);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
             }
-            return service.getDevicesMatchingConnectionStates(states);
         }
 
         @Override
-        public int getConnectionState(BluetoothDevice device, AttributionSource source) {
-            VolumeControlService service = getService(source);
-            if (service == null) {
-                return BluetoothProfile.STATE_DISCONNECTED;
+        public void getConnectionState(BluetoothDevice device, AttributionSource source,
+                SynchronousResultReceiver receiver) {
+            try {
+                VolumeControlService service = getService(source);
+                int defaultValue = BluetoothProfile.STATE_DISCONNECTED;
+                if (service != null) {
+                    defaultValue = service.getConnectionState(device);
+                }
+                receiver.send(defaultValue);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
             }
-            return service.getConnectionState(device);
         }
 
         @Override
-        public boolean setConnectionPolicy(BluetoothDevice device, int connectionPolicy,
-                AttributionSource source) {
-            VolumeControlService service = getService(source);
-            if (service == null) {
-                return false;
+        public void setConnectionPolicy(BluetoothDevice device, int connectionPolicy,
+                AttributionSource source, SynchronousResultReceiver receiver) {
+            try {
+                VolumeControlService service = getService(source);
+                boolean defaultValue = false;
+                if (service != null) {
+                    defaultValue = service.setConnectionPolicy(device, connectionPolicy);
+                }
+                receiver.send(defaultValue);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
             }
-            return service.setConnectionPolicy(device, connectionPolicy);
         }
 
         @Override
-        public int getConnectionPolicy(BluetoothDevice device, AttributionSource source) {
-            VolumeControlService service = getService(source);
-            if (service == null) {
-                return BluetoothProfile.CONNECTION_POLICY_UNKNOWN;
+        public void getConnectionPolicy(BluetoothDevice device, AttributionSource source,
+                SynchronousResultReceiver receiver) {
+            try {
+                VolumeControlService service = getService(source);
+                int defaultValue = BluetoothProfile.CONNECTION_POLICY_UNKNOWN;
+                if (service != null) {
+                    defaultValue = service.getConnectionPolicy(device);
+                }
+                receiver.send(defaultValue);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
             }
-            return service.getConnectionPolicy(device);
         }
 
         @Override
-        public void setVolume(BluetoothDevice device, int volume, AttributionSource source) {
-            VolumeControlService service = getService(source);
-            if (service == null) {
-                return;
+        public void setVolumeOffset(BluetoothDevice device, int volumeOffset,
+                AttributionSource source, SynchronousResultReceiver receiver) {
+            try {
+                VolumeControlService service = getService(source);
+                if (service != null) {
+                    service.setVolumeOffset(device, volumeOffset);
+                }
+                receiver.send(null);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
             }
-            service.setVolume(device, volume);
         }
 
         @Override
-        public void setVolumeGroup(int groupId, int volume, AttributionSource source) {
-            VolumeControlService service = getService(source);
-            if (service == null) {
-                return;
+        public void setVolumeGroup(int groupId, int volume, AttributionSource source,
+                SynchronousResultReceiver receiver) {
+            try {
+                VolumeControlService service = getService(source);
+                if (service != null) {
+                    service.setVolumeGroup(groupId, volume);
+                }
+                receiver.send(null);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
             }
-            service.setVolumeGroup(groupId, volume);
         }
     }
 

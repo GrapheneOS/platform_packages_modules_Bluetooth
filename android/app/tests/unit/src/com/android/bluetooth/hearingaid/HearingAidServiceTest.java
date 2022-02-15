@@ -28,9 +28,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
-import android.media.BtProfileConnectionInfo;
+import android.media.BluetoothProfileConnectionInfo;
 import android.os.Looper;
 import android.os.ParcelUuid;
+import android.sysprop.BluetoothProperties;
 
 import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.MediumTest;
@@ -38,9 +39,10 @@ import androidx.test.rule.ServiceTestRule;
 import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.TestUtils;
+import com.android.bluetooth.R;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
-import com.android.internal.R;
+
 
 import org.junit.After;
 import org.junit.Assert;
@@ -82,8 +84,7 @@ public class HearingAidServiceTest {
     public void setUp() throws Exception {
         mTargetContext = InstrumentationRegistry.getTargetContext();
         Assume.assumeTrue("Ignore test when HearingAidService is not enabled",
-                mTargetContext.getResources().getBoolean(
-                    R.bool.config_hearing_aid_profile_supported));
+                BluetoothProperties.isProfileAshaCentralEnabled().orElse(false));
         // Set up mocks and test assets
         MockitoAnnotations.initMocks(this);
 
@@ -126,8 +127,7 @@ public class HearingAidServiceTest {
 
     @After
     public void tearDown() throws Exception {
-        if (!mTargetContext.getResources().getBoolean(
-                            R.bool.config_hearing_aid_profile_supported)) {
+        if (!BluetoothProperties.isProfileAshaCentralEnabled().orElse(false)) {
             return;
         }
         stopService();
@@ -524,7 +524,7 @@ public class HearingAidServiceTest {
 
         // Verify the audio is routed to Hearing Aid Profile
         verify(mAudioManager).handleBluetoothActiveDeviceChanged(
-                any(BluetoothDevice.class), eq(null), any(BtProfileConnectionInfo.class));
+                any(BluetoothDevice.class), eq(null), any(BluetoothProfileConnectionInfo.class));
 
         // Send a disconnect request
         Assert.assertTrue("Disconnect failed", mService.disconnect(mLeftDevice));
@@ -572,7 +572,7 @@ public class HearingAidServiceTest {
 
         // Verify the audio is not routed to Hearing Aid Profile
         verify(mAudioManager).handleBluetoothActiveDeviceChanged(
-                eq(null), any(BluetoothDevice.class), any(BtProfileConnectionInfo.class));
+                eq(null), any(BluetoothDevice.class), any(BluetoothProfileConnectionInfo.class));
     }
 
     /**

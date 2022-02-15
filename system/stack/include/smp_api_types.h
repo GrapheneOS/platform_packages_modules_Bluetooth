@@ -19,6 +19,8 @@
 #ifndef SMP_API_TYPES_H
 #define SMP_API_TYPES_H
 
+#include <base/strings/stringprintf.h>
+
 #include <cstdint>
 
 #include "bt_target.h"  // Must be first to define build configuration
@@ -71,7 +73,7 @@ inline std::string smp_opcode_text(const tSMP_OPCODE& opcode) {
     CASE_RETURN_TEXT(SMP_OPCODE_PAIR_KEYPR_NOTIF);
     CASE_RETURN_TEXT(SMP_OPCODE_PAIR_COMMITM);
     default:
-      return std::string("UNKNOWN:%hhu", opcode);
+      return base::StringPrintf("UNKNOWN[%hhu]", opcode);
   }
 }
 #undef CASE_RETURN_TEXT
@@ -135,6 +137,41 @@ typedef enum : uint8_t {
   SMP_CONN_TOUT = (SMP_MAX_FAIL_RSN_PER_SPEC + 0x0B), /* 0x19 */
 } tSMP_STATUS;
 
+#define CASE_RETURN_TEXT(code) \
+  case code:                   \
+    return #code
+
+inline std::string smp_status_text(const tSMP_STATUS& status) {
+  switch (status) {
+    CASE_RETURN_TEXT(SMP_SUCCESS);
+    CASE_RETURN_TEXT(SMP_PASSKEY_ENTRY_FAIL);
+    CASE_RETURN_TEXT(SMP_OOB_FAIL);
+    CASE_RETURN_TEXT(SMP_PAIR_AUTH_FAIL);
+    CASE_RETURN_TEXT(SMP_CONFIRM_VALUE_ERR);
+    CASE_RETURN_TEXT(SMP_PAIR_NOT_SUPPORT);
+    CASE_RETURN_TEXT(SMP_ENC_KEY_SIZE);
+    CASE_RETURN_TEXT(SMP_INVALID_CMD);
+    CASE_RETURN_TEXT(SMP_PAIR_FAIL_UNKNOWN);
+    CASE_RETURN_TEXT(SMP_REPEATED_ATTEMPTS);
+    CASE_RETURN_TEXT(SMP_INVALID_PARAMETERS);
+    CASE_RETURN_TEXT(SMP_DHKEY_CHK_FAIL);
+    CASE_RETURN_TEXT(SMP_NUMERIC_COMPAR_FAIL);
+    CASE_RETURN_TEXT(SMP_BR_PARING_IN_PROGR);
+    CASE_RETURN_TEXT(SMP_XTRANS_DERIVE_NOT_ALLOW);
+    CASE_RETURN_TEXT(SMP_PAIR_INTERNAL_ERR);
+    CASE_RETURN_TEXT(SMP_UNKNOWN_IO_CAP);
+    CASE_RETURN_TEXT(SMP_BUSY);
+    CASE_RETURN_TEXT(SMP_ENC_FAIL);
+    CASE_RETURN_TEXT(SMP_STARTED);
+    CASE_RETURN_TEXT(SMP_RSP_TIMEOUT);
+    CASE_RETURN_TEXT(SMP_FAIL);
+    CASE_RETURN_TEXT(SMP_CONN_TOUT);
+    default:
+      return base::StringPrintf("UNKNOWN[%hhu]", status);
+  }
+}
+#undef CASE_RETURN_TEXT
+
 /* Device IO capability */
 #define SMP_IO_CAP_IO BTM_IO_CAP_IO         /* DisplayYesNo */
 #define SMP_IO_CAP_KBDISP BTM_IO_CAP_KBDISP /* Keyboard Display */
@@ -175,10 +212,11 @@ enum : uint8_t {
 
 typedef uint8_t tSMP_AUTH_REQ;
 
-#define SMP_SEC_NONE 0
-#define SMP_SEC_UNAUTHENTICATE (1 << 0)
-#define SMP_SEC_AUTHENTICATED (1 << 2)
-typedef uint8_t tSMP_SEC_LEVEL;
+typedef enum : uint8_t {
+  SMP_SEC_NONE = 0,
+  SMP_SEC_UNAUTHENTICATE = 1,
+  SMP_SEC_AUTHENTICATED = 2,
+} tSMP_SEC_LEVEL;
 
 /* Maximum Encryption Key Size range */
 #define SMP_ENCR_KEY_SIZE_MIN 7
@@ -272,6 +310,6 @@ typedef struct {
 /* Security Manager events - Called by the stack when Security Manager related
  * events occur.*/
 typedef tBTM_STATUS(tSMP_CALLBACK)(tSMP_EVT event, const RawAddress& bd_addr,
-                                   tSMP_EVT_DATA* p_data);
+                                   const tSMP_EVT_DATA* p_data);
 
 #endif  // SMP_API_TYPES_H

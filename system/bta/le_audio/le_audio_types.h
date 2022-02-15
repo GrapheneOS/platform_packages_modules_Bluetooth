@@ -33,6 +33,7 @@
 
 #include "bta_groups.h"
 #include "bta_le_audio_api.h"
+#include "bta_le_audio_uuids.h"
 #include "btm_iso_api_types.h"
 
 namespace le_audio {
@@ -57,10 +58,9 @@ namespace uuid {
  * This service is used to identify peer role (which we are not using for now)
  * and to wrap CSIS service as this is required to understand the context of the
  * CSIS
- * Place holder
  */
 static const bluetooth::Uuid kCapServiceUuid =
-    bluetooth::Uuid::From16Bit(0x8FE0);
+    bluetooth::Uuid::From16Bit(UUID_COMMON_AUDIO_SERVICE);
 
 /* Assigned numbers for attributes */
 static const bluetooth::Uuid kPublishedAudioCapabilityServiceUuid =
@@ -332,6 +332,12 @@ enum class AudioStreamDataPathState {
   DATA_PATH_ESTABLISHED,
 };
 
+enum class CodecLocation {
+  HOST,
+  ADSP,
+  CONTROLLER,
+};
+
 /* Context Types */
 enum class LeAudioContextType : uint16_t {
   UNINITIALIZED = 0x0000,
@@ -410,39 +416,68 @@ struct LeAudioLc3Config {
   static const std::map<uint8_t, uint32_t> sampling_freq_map;
   static const std::map<uint8_t, uint32_t> frame_duration_map;
 
-  uint8_t sampling_frequency;
-  uint8_t frame_duration;
-  uint16_t octets_per_codec_frame;
-  uint32_t audio_channel_allocation;
+  std::optional<uint8_t> sampling_frequency;
+  std::optional<uint8_t> frame_duration;
+  std::optional<uint32_t> audio_channel_allocation;
+  std::optional<uint16_t> octets_per_codec_frame;
+  std::optional<uint8_t> codec_frames_blocks_per_sdu;
+
   uint8_t channel_count;
 
   /** Returns the sampling frequency representation in Hz */
   uint32_t GetSamplingFrequencyHz() const {
-    return sampling_freq_map.count(sampling_frequency)
-               ? sampling_freq_map.at(sampling_frequency)
-               : 0;
+    if (sampling_frequency)
+      return sampling_freq_map.count(*sampling_frequency)
+                 ? sampling_freq_map.at(*sampling_frequency)
+                 : 0;
+    return 0;
   }
 
   /** Returns the frame duration representation in us */
   uint32_t GetFrameDurationUs() const {
-    return frame_duration_map.count(frame_duration)
-               ? frame_duration_map.at(frame_duration)
-               : 0;
+    if (frame_duration)
+      return frame_duration_map.count(*frame_duration)
+                 ? frame_duration_map.at(*frame_duration)
+                 : 0;
+
+    return 0;
   }
 
-  uint8_t GetChannelCount(void) const { return channel_count; }
+  uint8_t GetChannelCount(void) const {
+    if (channel_count) return channel_count;
+
+    return 0;
+  }
 
   LeAudioLtvMap GetAsLtvMap() const {
-    return LeAudioLtvMap({
-        {codec_spec_conf::kLeAudioCodecLC3TypeSamplingFreq,
-         UINT8_TO_VEC_UINT8(sampling_frequency)},
-        {codec_spec_conf::kLeAudioCodecLC3TypeFrameDuration,
-         UINT8_TO_VEC_UINT8(frame_duration)},
-        {codec_spec_conf::kLeAudioCodecLC3TypeAudioChannelAllocation,
-         UINT32_TO_VEC_UINT8(audio_channel_allocation)},
-        {codec_spec_conf::kLeAudioCodecLC3TypeOctetPerFrame,
-         UINT16_TO_VEC_UINT8(octets_per_codec_frame)},
-    });
+    std::map<uint8_t, std::vector<uint8_t>> values;
+
+    if (sampling_frequency) {
+      values[codec_spec_conf::kLeAudioCodecLC3TypeSamplingFreq] =
+          UINT8_TO_VEC_UINT8(*sampling_frequency);
+    }
+
+    if (frame_duration) {
+      values[codec_spec_conf::kLeAudioCodecLC3TypeFrameDuration] =
+          UINT8_TO_VEC_UINT8(*frame_duration);
+    }
+
+    if (audio_channel_allocation) {
+      values[codec_spec_conf::kLeAudioCodecLC3TypeAudioChannelAllocation] =
+          UINT32_TO_VEC_UINT8(*audio_channel_allocation);
+    }
+
+    if (octets_per_codec_frame) {
+      values[codec_spec_conf::kLeAudioCodecLC3TypeOctetPerFrame] =
+          UINT16_TO_VEC_UINT8(*octets_per_codec_frame);
+    }
+
+    if (codec_frames_blocks_per_sdu) {
+      values[codec_spec_conf::kLeAudioCodecLC3TypeCodecFrameBlocksPerSdu] =
+          UINT8_TO_VEC_UINT8(*codec_frames_blocks_per_sdu);
+    }
+
+    return LeAudioLtvMap(values);
   }
 };
 
@@ -594,321 +629,6 @@ static constexpr uint32_t kChannelAllocationStereo =
     codec_spec_conf::kLeAudioLocationFrontLeft |
     codec_spec_conf::kLeAudioLocationFrontRight;
 
-/**
- * Supported audio codec capability settings
- *
- * The subset of capabilities defined in BAP_Validation_r13 Table 3.6.
- */
-constexpr CodecCapabilitySetting codec_lc3_16_1(uint8_t channel_count) {
-  return CodecCapabilitySetting{
-      .id = LeAudioCodecIdLc3,
-      .config = types::LeAudioLc3Config({
-          .sampling_frequency = codec_spec_conf::kLeAudioSamplingFreq16000Hz,
-          .frame_duration = codec_spec_conf::kLeAudioCodecLC3FrameDur7500us,
-          .octets_per_codec_frame = codec_spec_conf::kLeAudioCodecLC3FrameLen30,
-          .channel_count = channel_count,
-          .audio_channel_allocation = 0,
-      })};
-}
-
-constexpr CodecCapabilitySetting codec_lc3_16_2(uint8_t channel_count) {
-  return CodecCapabilitySetting{
-      .id = LeAudioCodecIdLc3,
-      .config = types::LeAudioLc3Config({
-          .sampling_frequency = codec_spec_conf::kLeAudioSamplingFreq16000Hz,
-          .frame_duration = codec_spec_conf::kLeAudioCodecLC3FrameDur10000us,
-          .octets_per_codec_frame = codec_spec_conf::kLeAudioCodecLC3FrameLen40,
-          .channel_count = channel_count,
-          .audio_channel_allocation = 0,
-      })};
-}
-
-constexpr CodecCapabilitySetting codec_lc3_48_4(uint8_t channel_count) {
-  return CodecCapabilitySetting{
-      .id = LeAudioCodecIdLc3,
-      .config = types::LeAudioLc3Config({
-          .sampling_frequency = codec_spec_conf::kLeAudioSamplingFreq48000Hz,
-          .frame_duration = codec_spec_conf::kLeAudioCodecLC3FrameDur10000us,
-          .octets_per_codec_frame =
-              codec_spec_conf::kLeAudioCodecLC3FrameLen120,
-          .channel_count = channel_count,
-          .audio_channel_allocation = 0,
-      })};
-}
-
-/*
- * AudioSetConfiguration defines the audio set configuration and codec settings
- * to to be used by le audio policy to match the required configuration with
- * audio server capabilities. The codec settings are defined with respect to
- * "Broadcast Source audio capability configuration support requirements"
- * defined in BAP d09r06
- */
-const AudioSetConfiguration kSingleDev_OneChanMonoSnk_16_2 = {
-    .name = "kSingleDev_OneChanMonoSnk_16_2",
-    .confs = {SetConfiguration(
-        types::kLeAudioDirectionSink, 1, 1,
-        codec_lc3_16_2(
-            codec_spec_caps::kLeAudioCodecLC3ChannelCountSingleChannel))}};
-
-const AudioSetConfiguration kSingleDev_OneChanMonoSnk_16_1 = {
-    .name = "kSingleDev_OneChanMonoSnk_16_1",
-    .confs = {SetConfiguration(
-        types::kLeAudioDirectionSink, 1, 1,
-        codec_lc3_16_1(
-            codec_spec_caps::kLeAudioCodecLC3ChannelCountSingleChannel))}};
-
-const AudioSetConfiguration kSingleDev_TwoChanStereoSnk_16_1 = {
-    .name = "kSingleDev_TwoChanStereoSnk_16_1",
-    .confs = {SetConfiguration(
-        types::kLeAudioDirectionSink, 1, 1,
-        codec_lc3_16_1(codec_spec_caps::kLeAudioCodecLC3ChannelCountTwoChannel),
-        le_audio::types::LeAudioConfigurationStrategy::
-            STEREO_ONE_CIS_PER_DEVICE)}};
-
-const AudioSetConfiguration kSingleDev_OneChanStereoSnk_16_1 = {
-    .name = "kSingleDev_OneChanStereoSnk_16_1",
-    .confs = {SetConfiguration(
-        types::kLeAudioDirectionSink, 1, 2,
-        codec_lc3_16_1(
-            codec_spec_caps::kLeAudioCodecLC3ChannelCountSingleChannel),
-        le_audio::types::LeAudioConfigurationStrategy::
-            STEREO_TWO_CISES_PER_DEVICE)}};
-
-const AudioSetConfiguration kDualDev_OneChanStereoSnk_16_1 = {
-    .name = "kDualDev_OneChanStereoSnk_16_1",
-    .confs = {SetConfiguration(
-        types::kLeAudioDirectionSink, 2, 2,
-        codec_lc3_16_1(
-            codec_spec_caps::kLeAudioCodecLC3ChannelCountSingleChannel))}};
-
-const AudioSetConfiguration kSingleDev_TwoChanStereoSnk_48_4 = {
-    .name = "kSingleDev_TwoChanStereoSnk_48_4",
-    .confs = {SetConfiguration(
-        types::kLeAudioDirectionSink, 1, 1,
-        codec_lc3_48_4(codec_spec_caps::kLeAudioCodecLC3ChannelCountTwoChannel),
-        le_audio::types::LeAudioConfigurationStrategy::
-            STEREO_ONE_CIS_PER_DEVICE)}};
-
-const AudioSetConfiguration kDualDev_OneChanStereoSnk_48_4 = {
-    .name = "kDualDev_OneChanStereoSnk_48_4",
-    .confs = {SetConfiguration(
-        types::kLeAudioDirectionSink, 2, 2,
-        codec_lc3_48_4(
-            codec_spec_caps::kLeAudioCodecLC3ChannelCountSingleChannel))}};
-
-const AudioSetConfiguration kSingleDev_OneChanStereoSnk_48_4 = {
-    .name = "kSingleDev_OneChanStereoSnk_48_4",
-    .confs = {SetConfiguration(
-        types::kLeAudioDirectionSink, 1, 2,
-        codec_lc3_48_4(
-            codec_spec_caps::kLeAudioCodecLC3ChannelCountSingleChannel),
-        le_audio::types::LeAudioConfigurationStrategy::
-            STEREO_TWO_CISES_PER_DEVICE)}};
-
-const AudioSetConfiguration kSingleDev_OneChanMonoSnk_48_4 = {
-    .name = "kSingleDev_OneChanMonoSnk_48_4",
-    .confs = {SetConfiguration(
-        types::kLeAudioDirectionSink, 1, 1,
-        codec_lc3_48_4(
-            codec_spec_caps::kLeAudioCodecLC3ChannelCountSingleChannel))}};
-
-const AudioSetConfiguration kSingleDev_TwoChanStereoSnk_16_2 = {
-    .name = "kSingleDev_TwoChanStereoSnk_16_2",
-    .confs = {SetConfiguration(
-        types::kLeAudioDirectionSink, 1, 1,
-        codec_lc3_16_2(codec_spec_caps::kLeAudioCodecLC3ChannelCountTwoChannel),
-        le_audio::types::LeAudioConfigurationStrategy::
-            STEREO_ONE_CIS_PER_DEVICE)}};
-
-const AudioSetConfiguration kSingleDev_OneChanStereoSnk_16_2 = {
-    .name = "kSingleDev_OneChanStereoSnk_16_2",
-    .confs = {SetConfiguration(
-        types::kLeAudioDirectionSink, 1, 2,
-        codec_lc3_16_2(
-            codec_spec_caps::kLeAudioCodecLC3ChannelCountSingleChannel),
-        le_audio::types::LeAudioConfigurationStrategy::
-            STEREO_TWO_CISES_PER_DEVICE)}};
-
-const AudioSetConfiguration kDualDev_OneChanStereoSnk_16_2 = {
-    .name = "kDualDev_OneChanStereoSnk_16_2",
-    .confs = {SetConfiguration(
-        types::kLeAudioDirectionSink, 2, 2,
-        codec_lc3_16_2(
-            codec_spec_caps::kLeAudioCodecLC3ChannelCountSingleChannel))}};
-
-const AudioSetConfiguration kSingleDev_OneChanMonoSnk_OneChanMonoSrc_16_1 = {
-    .name = "kSingleDev_OneChanMonoSnk_OneChanMonoSrc_16_1",
-    .confs = {
-        SetConfiguration(
-            types::kLeAudioDirectionSink, 1, 1,
-            codec_lc3_16_1(
-                codec_spec_caps::kLeAudioCodecLC3ChannelCountSingleChannel)),
-        SetConfiguration(
-            types::kLeAudioDirectionSource, 1, 1,
-            codec_lc3_16_1(
-                codec_spec_caps::kLeAudioCodecLC3ChannelCountSingleChannel))}};
-
-const AudioSetConfiguration kSingleDev_OneChanMonoSnk_OneChanMonoSrc_16_2 = {
-    .name = "kSingleDev_OneChanMonoSnk_OneChanMonoSrc_16_2",
-    .confs = {
-        SetConfiguration(
-            types::kLeAudioDirectionSink, 1, 1,
-            codec_lc3_16_2(
-                codec_spec_caps::kLeAudioCodecLC3ChannelCountSingleChannel)),
-        SetConfiguration(
-            types::kLeAudioDirectionSource, 1, 1,
-            codec_lc3_16_2(
-                codec_spec_caps::kLeAudioCodecLC3ChannelCountSingleChannel))}};
-
-const AudioSetConfiguration kSingleDev_TwoChanStereoSnk_OneChanMonoSrc_16_2 = {
-    .name = "kSingleDev_TwoChanStereoSnk_OneChanMonoSrc_16_2",
-    .confs = {
-        SetConfiguration(
-            types::kLeAudioDirectionSink, 1, 1,
-            codec_lc3_16_2(
-                codec_spec_caps::kLeAudioCodecLC3ChannelCountTwoChannel),
-            le_audio::types::LeAudioConfigurationStrategy::
-                STEREO_ONE_CIS_PER_DEVICE),
-        SetConfiguration(
-            types::kLeAudioDirectionSource, 1, 1,
-            codec_lc3_16_2(
-                codec_spec_caps::kLeAudioCodecLC3ChannelCountSingleChannel))}};
-
-const AudioSetConfiguration
-    kDualDev_OneChanDoubleStereoSnk_OneChanMonoSrc_16_2 = {
-        .name = "kDualDev_OneChanDoubleStereoSnk_OneChanMonoSrc_16_2",
-        .confs = {
-            SetConfiguration(
-                types::kLeAudioDirectionSink, 2, 4,
-                codec_lc3_16_2(
-                    codec_spec_caps::kLeAudioCodecLC3ChannelCountSingleChannel),
-                le_audio::types::LeAudioConfigurationStrategy::
-                    STEREO_TWO_CISES_PER_DEVICE),
-            SetConfiguration(
-                types::kLeAudioDirectionSource, 1, 1,
-                codec_lc3_16_2(
-                    codec_spec_caps::
-                        kLeAudioCodecLC3ChannelCountSingleChannel))}};
-
-const AudioSetConfiguration kSingleDev_OneChanStereoSnk_OneChanMonoSrc_16_2 = {
-    .name = "kSingleDev_OneChanStereoSnk_OneChanMonoSrc_16_2",
-    .confs = {
-        SetConfiguration(
-            types::kLeAudioDirectionSink, 1, 2,
-            codec_lc3_16_2(
-                codec_spec_caps::kLeAudioCodecLC3ChannelCountSingleChannel),
-            le_audio::types::LeAudioConfigurationStrategy::
-                STEREO_TWO_CISES_PER_DEVICE),
-        SetConfiguration(
-            types::kLeAudioDirectionSource, 1, 1,
-            codec_lc3_16_2(
-                codec_spec_caps::kLeAudioCodecLC3ChannelCountSingleChannel))}};
-
-const AudioSetConfiguration kDualDev_OneChanStereoSnk_OneChanMonoSrc_16_2 = {
-    .name = "kDualDev_OneChanStereoSnk_OneChanMonoSrc_16_2",
-    .confs = {
-        SetConfiguration(
-            types::kLeAudioDirectionSink, 2, 2,
-            codec_lc3_16_2(
-                codec_spec_caps::kLeAudioCodecLC3ChannelCountSingleChannel)),
-        SetConfiguration(
-            types::kLeAudioDirectionSource, 1, 1,
-            codec_lc3_16_2(
-                codec_spec_caps::kLeAudioCodecLC3ChannelCountSingleChannel))}};
-
-const AudioSetConfiguration kSingleDev_TwoChanStereoSnk_OneChanMonoSrc_16_1 = {
-    .name = "kSingleDev_TwoChanStereoSnk_OneChanMonoSrc_16_1",
-    .confs = {
-        SetConfiguration(
-            types::kLeAudioDirectionSink, 1, 1,
-            codec_lc3_16_1(
-                codec_spec_caps::kLeAudioCodecLC3ChannelCountTwoChannel),
-            le_audio::types::LeAudioConfigurationStrategy::
-                STEREO_ONE_CIS_PER_DEVICE),
-        SetConfiguration(
-            types::kLeAudioDirectionSource, 1, 1,
-            codec_lc3_16_1(
-                codec_spec_caps::kLeAudioCodecLC3ChannelCountSingleChannel))}};
-
-const AudioSetConfiguration kSingleDev_OneChanStereoSnk_OneChanMonoSrc_16_1 = {
-    .name = "kSingleDev_OneChanStereoSnk_OneChanMonoSrc_16_1",
-    .confs = {
-        SetConfiguration(
-            types::kLeAudioDirectionSink, 1, 2,
-            codec_lc3_16_1(
-                codec_spec_caps::kLeAudioCodecLC3ChannelCountSingleChannel),
-            le_audio::types::LeAudioConfigurationStrategy::
-                STEREO_TWO_CISES_PER_DEVICE),
-        SetConfiguration(
-            types::kLeAudioDirectionSource, 1, 1,
-            codec_lc3_16_1(
-                codec_spec_caps::kLeAudioCodecLC3ChannelCountSingleChannel))}};
-
-const AudioSetConfiguration kDualDev_OneChanStereoSnk_OneChanMonoSrc_16_1 = {
-    .name = "kDualDev_OneChanStereoSnk_OneChanMonoSrc_16_1",
-    .confs = {
-        SetConfiguration(
-            types::kLeAudioDirectionSink, 2, 2,
-            codec_lc3_16_1(
-                codec_spec_caps::kLeAudioCodecLC3ChannelCountSingleChannel)),
-        SetConfiguration(
-            types::kLeAudioDirectionSource, 1, 1,
-            codec_lc3_16_1(
-                codec_spec_caps::kLeAudioCodecLC3ChannelCountSingleChannel))}};
-
-const AudioSetConfiguration
-    kDualDev_OneChanDoubleStereoSnk_OneChanMonoSrc_16_1 = {
-        .name = "kDualDev_OneChanDoubleStereoSnk_OneChanMonoSrc_16_1",
-        .confs = {
-            SetConfiguration(
-                types::kLeAudioDirectionSink, 2, 4,
-                codec_lc3_16_1(
-                    codec_spec_caps::kLeAudioCodecLC3ChannelCountSingleChannel),
-                le_audio::types::LeAudioConfigurationStrategy::
-                    STEREO_TWO_CISES_PER_DEVICE),
-            SetConfiguration(
-                types::kLeAudioDirectionSource, 1, 1,
-                codec_lc3_16_1(
-                    codec_spec_caps::
-                        kLeAudioCodecLC3ChannelCountSingleChannel))}};
-
-/* Defined audio scenario linked with context type, priority sorted */
-const AudioSetConfigurations audio_set_conf_ringtone = {
-    &kDualDev_OneChanStereoSnk_16_2,   &kDualDev_OneChanStereoSnk_16_1,
-    &kSingleDev_OneChanStereoSnk_16_2, &kSingleDev_OneChanStereoSnk_16_1,
-    &kSingleDev_TwoChanStereoSnk_16_2, &kSingleDev_TwoChanStereoSnk_16_1,
-    &kSingleDev_OneChanMonoSnk_16_2,   &kSingleDev_OneChanMonoSnk_16_1,
-};
-
-const AudioSetConfigurations audio_set_conf_conversational = {
-    &kDualDev_OneChanStereoSnk_OneChanMonoSrc_16_2,
-    &kDualDev_OneChanStereoSnk_OneChanMonoSrc_16_1,
-    &kDualDev_OneChanDoubleStereoSnk_OneChanMonoSrc_16_2,
-    &kDualDev_OneChanDoubleStereoSnk_OneChanMonoSrc_16_1,
-    &kSingleDev_TwoChanStereoSnk_OneChanMonoSrc_16_2,
-    &kSingleDev_TwoChanStereoSnk_OneChanMonoSrc_16_1,
-    &kSingleDev_OneChanStereoSnk_OneChanMonoSrc_16_2,
-    &kSingleDev_OneChanStereoSnk_OneChanMonoSrc_16_1,
-    &kSingleDev_OneChanMonoSnk_OneChanMonoSrc_16_2,
-    &kSingleDev_OneChanMonoSnk_OneChanMonoSrc_16_1,
-};
-
-const AudioSetConfigurations audio_set_conf_media = {
-    &kDualDev_OneChanStereoSnk_48_4,   &kDualDev_OneChanStereoSnk_16_2,
-    &kDualDev_OneChanStereoSnk_16_1,   &kSingleDev_OneChanStereoSnk_48_4,
-    &kSingleDev_OneChanStereoSnk_16_2, &kSingleDev_OneChanStereoSnk_16_1,
-    &kSingleDev_TwoChanStereoSnk_48_4, &kSingleDev_TwoChanStereoSnk_16_2,
-    &kSingleDev_TwoChanStereoSnk_16_1, &kSingleDev_OneChanMonoSnk_48_4,
-    &kSingleDev_OneChanMonoSnk_16_2,   &kSingleDev_OneChanMonoSnk_16_1,
-};
-
-const AudioSetConfigurations audio_set_conf_default = {
-    &kDualDev_OneChanStereoSnk_16_2,
-    &kSingleDev_OneChanStereoSnk_16_2,
-    &kSingleDev_TwoChanStereoSnk_16_2,
-    &kSingleDev_OneChanMonoSnk_16_2,
-};
-
 /* Declarations */
 bool check_if_may_cover_scenario(
     const AudioSetConfigurations* audio_set_configurations, uint8_t group_size);
@@ -917,11 +637,12 @@ bool check_if_may_cover_scenario(
 bool IsCodecCapabilitySettingSupported(
     const types::acs_ac_record& pac_record,
     const CodecCapabilitySetting& codec_capability_setting);
-const AudioSetConfigurations* get_confs_by_type(types::LeAudioContextType type);
+uint8_t get_num_of_devices_in_configuration(
+    const AudioSetConfiguration* audio_set_configuration);
 }  // namespace set_configurations
 
 struct stream_configuration {
-  bool valid;
+  bool reconfiguration_ongoing;
 
   types::LeAudioCodecId id;
 
@@ -955,6 +676,7 @@ void AppendMetadataLtvEntryForCcidList(std::vector<uint8_t>& metadata,
                                        types::LeAudioContextType context_type);
 void AppendMetadataLtvEntryForStreamingContext(
     std::vector<uint8_t>& metadata, types::LeAudioContextType context_type);
+uint8_t GetMaxCodecFramesPerSduFromPac(const types::acs_ac_record* pac_record);
 
 }  // namespace le_audio
 

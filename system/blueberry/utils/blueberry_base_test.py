@@ -1,23 +1,18 @@
 """Base test class for Blueberry."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
+import importlib
 import re
+from typing import Union
 
 from mobly import base_test
+from mobly import records
 from mobly import signals
 from mobly.controllers import android_device
 from mobly.controllers.android_device_lib import adb
 
-# Internal import
-# Internal import
-# Internal import
-# Internal import
 from blueberry.controllers import derived_bt_device
 from blueberry.decorators import android_bluetooth_client_decorator
-from blueberry.utils.android_bluetooth_decorator import AndroidBluetoothDecorator
+from blueberry.utils import android_bluetooth_decorator
 
 
 class BlueberryBaseTest(base_test.BaseTestClass):
@@ -26,6 +21,15 @@ class BlueberryBaseTest(base_test.BaseTestClass):
   This class assists with device setup for device logging and other pre test
   setup required for Bluetooth tests.
   """
+
+  def __init__(self, configs):
+    super().__init__(configs)
+    self._upload_test_report = None
+    self.capture_bugreport_on_fail = None
+    self.android_devices = None
+    self.derived_bt_devices = None
+    self.ignore_device_setup_failures = None
+    self._test_metrics = []
 
   def setup_generated_tests(self):
     """Generates multiple the same tests for pilot run.
@@ -83,6 +87,11 @@ class BlueberryBaseTest(base_test.BaseTestClass):
   def setup_class(self):
     """Setup class is called before running any tests."""
     super(BlueberryBaseTest, self).setup_class()
+    self._upload_test_report = int(self.user_params.get(
+        'upload_test_report', 0))
+    # Inits Spanner Utils if need to upload the test reports to Spanner.
+    if self._upload_test_report:
+      self._init_spanner_utils()
     self.capture_bugreport_on_fail = int(self.user_params.get(
         'capture_bugreport_on_fail', 0))
     self.ignore_device_setup_failures = int(self.user_params.get(
@@ -117,12 +126,14 @@ class BlueberryBaseTest(base_test.BaseTestClass):
         derived_device.set_user_params(self.user_params)
         derived_device.setup()
 
-    self.android_ui_devices = {}
-    # Create a dictionary of Android UI Devices
+    self.android_devices = [
+        android_bluetooth_decorator.AndroidBluetoothDecorator(device)
+        for device in self.android_devices
+    ]
     for device in self.android_devices:
-      self.android_ui_devices[device.serial] = AdbUiDevice(device)
-      mobly_config = {'aud': self.android_ui_devices[device.serial]}
-      device.load_config(mobly_config)
+      device.set_user_params(self.user_params)
+
+    for device in self.android_devices:
       need_restart_bluetooth = False
       if (self.enable_bluetooth_verbose_logging or
           self.enable_all_bluetooth_logging):
@@ -138,10 +149,6 @@ class BlueberryBaseTest(base_test.BaseTestClass):
       if need_restart_bluetooth:
         device.log.info('Restarting Bluetooth by airplane mode...')
         self.restart_bluetooth_by_airplane_mode(device)
-    self.android_devices = [AndroidBluetoothDecorator(device)
-                            for device in self.android_devices]
-    for device in self.android_devices:
-      device.set_user_params(self.user_params)
 
     self.client_decorators = self.user_params.get('sync_decorator', [])
     if self.client_decorators:
@@ -161,8 +168,16 @@ class BlueberryBaseTest(base_test.BaseTestClass):
             num_devices] = android_bluetooth_client_decorator.decorate(
                 self.android_devices[num_devices], decorator)
 
+  def on_pass(self, record):
+    """This method is called when a test passed."""
+    if self._upload_test_report:
+      self._upload_test_report_to_spanner(record.result)
+
   def on_fail(self, record):
     """This method is called when a test failure."""
+    if self._upload_test_report:
+      self._upload_test_report_to_spanner(record.result)
+
     # Capture bugreports on fail if enabled.
     if self.capture_bugreport_on_fail:
       devices = self.android_devices
@@ -175,6 +190,50 @@ class BlueberryBaseTest(base_test.BaseTestClass):
           record.test_name,
           record.begin_time,
           destination=self.current_test_info.output_path)
+
+  def _init_spanner_utils(self) -> None:
+    """Imports spanner_utils and creates SpannerUtils object."""
+    spanner_utils_module = importlib.import_module(
+        'blueberry.utils.spanner_utils')
+    self._spanner_utils = spanner_utils_module.SpannerUtils(
+        test_class_name=self.__class__.__name__,
+        mh_sponge_link=self.user_params['mh_sponge_link'])
+
+  def _upload_test_report_to_spanner(
+      self,
+      result: records.TestResultEnums) -> None:
+    """Uploads the test report to Spanner.
+
+    Args:
+      result: Result of this test.
+    """
+    self._spanner_utils.create_test_report_proto(
+        current_test_info=self.current_test_info,
+        primary_device=self.android_devices[0],
+        companion_devices=self.derived_bt_devices,
+        test_metrics=self._test_metrics)
+    self._test_metrics.clear()
+    test_report = self._spanner_utils.write_test_report_proto(result=result)
+    # Shows the test report on Sponge properties for debugging.
+    self.record_data({
+        'Test Name': self.current_test_info.name,
+        'sponge_properties': {'test_report': test_report},
+    })
+
+  def record_test_metric(
+      self,
+      metric_name: str,
+      metric_value: Union[int, float]) -> None:
+    """Records a test metric to Spanner.
+
+    Args:
+      metric_name: Name of the metric.
+      metric_value: Value of the metric.
+    """
+    if not self._upload_test_report:
+      return
+    self._test_metrics.append(
+        self._spanner_utils.create_metric_proto(metric_name, metric_value))
 
   def set_logger_buffer_size_16m(self, device):
     """Sets all logger sizes per log buffer to 16M."""
@@ -207,7 +266,7 @@ class BlueberryBaseTest(base_test.BaseTestClass):
       return False
     # Suggest to use AndroidDeviceSettingsDecorator to disable verity and then
     # reboot (b/140277443).
-    disable_verity_check(device)
+    device.disable_verity_check()
     device.adb.remount()
     try:
       device.adb.shell(r'sed -i "s/\(TRC.*=\)2/\16/g;s/#\(LoggingV=--v=\)0/\13'
@@ -240,5 +299,5 @@ class BlueberryBaseTest(base_test.BaseTestClass):
 
   def restart_bluetooth_by_airplane_mode(self, device):
     """Restarts bluetooth by airplane mode."""
-    enable_airplane_mode(device, 3)
-    disable_airplane_mode(device, 3)
+    device.enable_airplane_mode(3)
+    device.disable_airplane_mode(3)

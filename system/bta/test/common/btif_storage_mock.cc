@@ -37,3 +37,46 @@ void btif_storage_remove_leaudio(RawAddress const& addr) {
   LOG_ASSERT(btif_storage_interface) << "Mock storage module not set!";
   btif_storage_interface->RemoveLeaudio(addr);
 }
+
+void btif_storage_add_leaudio_has_device(const RawAddress& address,
+                                         std::vector<uint8_t> presets_bin,
+                                         uint8_t features,
+                                         uint8_t active_preset) {
+  LOG_ASSERT(btif_storage_interface) << "Mock storage module not set!";
+  btif_storage_interface->AddLeaudioHasDevice(address, presets_bin, features,
+                                              active_preset);
+};
+
+bool btif_storage_get_leaudio_has_presets(const RawAddress& address,
+                                          std::vector<uint8_t>& presets_bin,
+                                          uint8_t& active_preset) {
+  if (btif_storage_interface)
+    return btif_storage_interface->GetLeaudioHasPresets(address, presets_bin,
+                                                        active_preset);
+
+  return false;
+};
+
+void btif_storage_set_leaudio_has_presets(const RawAddress& address,
+                                          std::vector<uint8_t> presets_bin) {
+  LOG_ASSERT(btif_storage_interface) << "Mock storage module not set!";
+  btif_storage_interface->SetLeaudioHasPresets(address, presets_bin);
+}
+
+bool btif_storage_get_leaudio_has_features(const RawAddress& address,
+                                           uint8_t& features) {
+  LOG_ASSERT(btif_storage_interface) << "Mock storage module not set!";
+  return btif_storage_interface->GetLeaudioHasFeatures(address, features);
+}
+
+void btif_storage_set_leaudio_has_features(const RawAddress& address,
+                                           uint8_t features) {
+  LOG_ASSERT(btif_storage_interface) << "Mock storage module not set!";
+  btif_storage_interface->SetLeaudioHasFeatures(address, features);
+}
+
+void btif_storage_set_leaudio_has_active_preset(const RawAddress& address,
+                                                uint8_t active_preset) {
+  LOG_ASSERT(btif_storage_interface) << "Mock storage module not set!";
+  btif_storage_interface->SetLeaudioHasActivePreset(address, active_preset);
+}

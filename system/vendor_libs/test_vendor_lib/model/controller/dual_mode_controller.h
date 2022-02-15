@@ -69,6 +69,8 @@ class DualModeController : public Device {
 
   virtual void TimerTick() override;
 
+  virtual void Close() override;
+
   // Route commands and data from the stack.
   void HandleAcl(std::shared_ptr<std::vector<uint8_t>> acl_packet);
   void HandleCommand(std::shared_ptr<std::vector<uint8_t>> command_packet);
@@ -117,6 +119,9 @@ class DualModeController : public Device {
 
   // 7.1.6
   void Disconnect(CommandView args);
+
+  // Deprecated
+  void AddScoConnection(CommandView args);
 
   // 7.1.7
   void CreateConnectionCancel(CommandView args);

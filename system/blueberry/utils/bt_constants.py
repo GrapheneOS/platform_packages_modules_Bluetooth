@@ -46,6 +46,18 @@ ANDROIDX_TEST_RUNNER = 'androidx.test.runner.AndroidJUnitRunner'
 # Wifi hotspot setting
 WIFI_HOTSPOT_2_4G = {'SSID': 'pqmBT', 'password': 'password', 'apBand': 0}
 
+# Strings representing boolean of device properties.
+TRUE = 'true'
+FALSE = 'false'
+
+# String representing a property of AAC VBR support for Android device.
+AAC_VBR_SUPPORTED_PROPERTY = 'persist.bluetooth.a2dp_aac.vbr_supported'
+
+# Dict containing charging control config for devices.
+CHARGING_CONTROL_CONFIG_DICT = {
+# Internal codename
+}
+
 
 class AvrcpEvent(enum.Enum):
   """Enumeration of AVRCP event types."""
@@ -189,3 +201,12 @@ class CallLogType(enum.IntEnum):
   INCOMING_CALL = 1
   OUTGOING_CALL = 2
   MISSED_CALL = 3
+
+
+class BluetoothA2dpCodec(enum.IntEnum):
+  """Enum class for Bluetooth A2DP codec type."""
+  SBC = 0
+  AAC = 1
+  APTX = 2
+  APTX_HD = 3
+  LDAC = 4

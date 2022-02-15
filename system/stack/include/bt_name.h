@@ -18,8 +18,10 @@
 
 #ifdef __cplusplus
 #include <cstdint>
+#include <cstring>
 #else
 #include <stdint.h>
+#include <string.h>
 #endif
 
 // NOTE: Shared with internal_include/bt_target.h
@@ -38,3 +40,9 @@ typedef uint8_t BD_NAME[BD_NAME_LEN + 1]; /* Device name */
 
 /* Device name of peer (may be truncated to save space in BTM database) */
 typedef uint8_t tBTM_BD_NAME[BTM_MAX_REM_BD_NAME_LEN + 1];
+
+typedef uint8_t tBTM_LOC_BD_NAME[BTM_MAX_LOC_BD_NAME_LEN + 1];
+
+#ifdef __cplusplus
+inline constexpr tBTM_BD_NAME kBtmBdNameEmpty = {};
+#endif

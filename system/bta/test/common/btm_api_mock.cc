@@ -94,3 +94,9 @@ void acl_disconnect_from_handle(uint16_t handle, tHCI_STATUS reason,
   LOG_ASSERT(btm_interface) << "Mock btm interface not set!";
   return btm_interface->AclDisconnectFromHandle(handle, reason);
 }
+
+void btm_configure_data_path(uint8_t direction, uint8_t path_id,
+                             std::vector<uint8_t> vendor_config) {
+  LOG_ASSERT(btm_interface) << "Mock btm interface not set!";
+  return btm_interface->ConfigureDataPath(direction, path_id, vendor_config);
+}

@@ -19,6 +19,7 @@
 #include <base/strings/string_number_conversions.h>
 
 #include "advertise_data_parser.h"
+#include "audio_hal_interface/le_audio_software.h"
 #include "bta/csis/csis_types.h"
 #include "bta_api.h"
 #include "bta_gatt_api.h"
@@ -29,12 +30,12 @@
 #include "btm_iso_api.h"
 #include "client_audio.h"
 #include "client_parser.h"
+#include "codec_manager.h"
 #include "common/time_util.h"
 #include "device/include/controller.h"
 #include "devices.h"
-#include "embdrv/lc3/Api/Lc3Decoder.hpp"
-#include "embdrv/lc3/Api/Lc3Encoder.hpp"
-#include "embdrv/lc3_enc/include/lc3.h"
+#include "embdrv/lc3_dec/Api/Lc3Decoder.hpp"
+#include "embdrv/lc3/include/lc3.h"
 #include "gatt/bta_gattc_int.h"
 #include "le_audio_types.h"
 #include "osi/include/osi.h"
@@ -56,6 +57,7 @@ using bluetooth::le_audio::ConnectionState;
 using bluetooth::le_audio::GroupNodeStatus;
 using bluetooth::le_audio::GroupStatus;
 using bluetooth::le_audio::GroupStreamStatus;
+using le_audio::CodecManager;
 using le_audio::LeAudioDevice;
 using le_audio::LeAudioDeviceGroup;
 using le_audio::LeAudioDeviceGroups;
@@ -120,8 +122,6 @@ CigCallbacks* stateMachineHciCallbacks;
 LeAudioGroupStateMachine::Callbacks* stateMachineCallbacks;
 DeviceGroupsCallbacks* device_group_callbacks;
 
-bool use_new_encoder = true;
-
 /*
  * Coordinatet Set Identification Profile (CSIP) based on CSIP 1.0
  * and Coordinatet Set Identification Service (CSIS) 1.0
@@ -154,7 +154,10 @@ bool use_new_encoder = true;
  */
 class LeAudioClientImpl : public LeAudioClient {
  public:
-  virtual ~LeAudioClientImpl() = default;
+  ~LeAudioClientImpl() {
+    alarm_free(suspend_timeout_);
+    suspend_timeout_ = nullptr;
+  };
 
   LeAudioClientImpl(
       bluetooth::le_audio::LeAudioClientCallbacks* callbacks_,
@@ -164,7 +167,6 @@ class LeAudioClientImpl : public LeAudioClient {
         callbacks_(callbacks_),
         active_group_id_(bluetooth::groups::kGroupUnknown),
         current_context_type_(LeAudioContextType::MEDIA),
-        upcoming_context_type_(LeAudioContextType::MEDIA),
         stream_setup_start_timestamp_(0),
         stream_setup_end_timestamp_(0),
         audio_receiver_state_(AudioState::IDLE),
@@ -173,10 +175,10 @@ class LeAudioClientImpl : public LeAudioClient {
         current_sink_codec_config({0, 0, 0, 0}),
         lc3_encoder_left_mem(nullptr),
         lc3_encoder_right_mem(nullptr),
-        lc3_encoder(nullptr),
         lc3_decoder(nullptr),
         audio_source_instance_(nullptr),
-        audio_sink_instance_(nullptr) {
+        audio_sink_instance_(nullptr),
+        suspend_timeout_(alarm_new("LeAudioSuspendTimeout")) {
     LeAudioGroupStateMachine::Initialize(state_machine_callbacks_);
     groupStateMachine_ = LeAudioGroupStateMachine::Get();
 
@@ -527,6 +529,7 @@ class LeAudioClientImpl : public LeAudioClient {
     LeAudioDeviceGroup* group = aseGroups_.FindById(group_id);
     auto final_context_type = context_type;
 
+    DLOG(INFO) << __func__;
     if (context_type >= static_cast<uint16_t>(LeAudioContextType::RFU)) {
       LOG(ERROR) << __func__ << ", stream context type is not supported: "
                  << loghex(context_type);
@@ -648,7 +651,11 @@ class LeAudioClientImpl : public LeAudioClient {
         return;
       }
 
+      if (alarm_is_scheduled(suspend_timeout_)) alarm_cancel(suspend_timeout_);
+
       StopAudio();
+      ClientAudioIntefraceRelease();
+
       GroupStop(active_group_id_);
       callbacks_->OnGroupStatus(active_group_id_, GroupStatus::INACTIVE);
       active_group_id_ = group_id;
@@ -686,14 +693,29 @@ class LeAudioClientImpl : public LeAudioClient {
       }
     }
 
-    /* Configure audio HAL sessions with most frequent context */
-    UpdateCurrentHalSessions(group_id, current_context_type_);
+    /* Configure audio HAL sessions with most frequent context.
+     * If reconfiguration is not needed it means, context type is not supported
+     */
+    UpdateConfigAndCheckIfReconfigurationIsNeeded(group_id,
+                                                  LeAudioContextType::MEDIA);
     if (current_source_codec_config.IsInvalid() &&
         current_sink_codec_config.IsInvalid()) {
       LOG(WARNING) << __func__ << ", unsupported device configurations";
       callbacks_->OnGroupStatus(active_group_id_, GroupStatus::INACTIVE);
       return;
     }
+
+    /* Expose audio sessions */
+    audio_framework_source_config.data_interval_us =
+        current_source_codec_config.data_interval_us;
+    LeAudioClientAudioSource::Start(audio_framework_source_config,
+                                    audioSinkReceiver);
+
+    audio_framework_sink_config.data_interval_us =
+          current_source_codec_config.data_interval_us;
+
+    LeAudioClientAudioSink::Start(audio_framework_sink_config,
+                                  audioSourceReceiver);
 
     active_group_id_ = group_id;
     callbacks_->OnGroupStatus(active_group_id_, GroupStatus::ACTIVE);
@@ -1236,6 +1258,11 @@ class LeAudioClientImpl : public LeAudioClient {
         group_remove_node(group, address, true);
       }
       leAudioDevices_.Remove(address);
+      return;
+    }
+    /* Attempt background re-connect if disconnect was not intended locally */
+    if (reason != GATT_CONN_TERMINATE_LOCAL_HOST) {
+      BTA_GATTC_Open(gatt_if_, address, false, false);
     }
   }
 
@@ -1702,14 +1729,24 @@ class LeAudioClientImpl : public LeAudioClient {
     LeAudioDeviceGroup* group = aseGroups_.FindById(active_group_id_);
     auto* stream_conf = &group->stream_conf;
 
-    if (!stream_conf->valid) {
-      LOG(INFO) << __func__
-                 << " Device not streaming but active. Lets update audio "
-                    "session to match needed channel number";
-      UpdateCurrentHalSessions(active_group_id_, current_context_type_);
+    if (audio_sender_state_ == AudioState::IDLE &&
+        audio_receiver_state_ == AudioState::IDLE) {
+      DLOG(INFO) << __func__
+                 << " Device not streaming but active - nothing to do";
       return;
     }
 
+    auto num_of_devices =
+        get_num_of_devices_in_configuration(stream_conf->conf);
+
+    if (num_of_devices < group->NumOfConnected()) {
+      /* Second device got just paired. We need to reconfigure CIG */
+      stream_conf->reconfiguration_ongoing = true;
+      groupStateMachine_->StopStream(group);
+      return;
+    }
+
+    /* Second device got reconnect. Try to get it to the stream seamlessly */
     le_audio::types::AudioLocations sink_group_audio_locations = 0;
     uint8_t sink_num_of_active_ases = 0;
 
@@ -1778,23 +1815,16 @@ class LeAudioClientImpl : public LeAudioClient {
     return true;
   }
 
-  void get_left_and_right_stream(const std::vector<uint8_t>& data,
-                                 std::vector<int16_t>& chan_left,
-                                 std::vector<int16_t>& chan_right,
-                                 bool prepare_mono = false) {
+  void get_mono_stream(const std::vector<uint8_t>& data,
+                       std::vector<int16_t>& chan_mono, int pitch = 1) {
     uint16_t num_of_frames_per_ch;
 
-    if (use_new_encoder) {
-      int dt_us = current_source_codec_config.data_interval_us;
-      int sr_hz = current_source_codec_config.sample_rate;
-      num_of_frames_per_ch = lc3_frame_samples(dt_us, sr_hz);
-    } else {
-      num_of_frames_per_ch = lc3_encoder->lc3Config.NF;
-    }
+    int dt_us = current_source_codec_config.data_interval_us;
+    int sr_hz = current_source_codec_config.sample_rate;
+    num_of_frames_per_ch = lc3_frame_samples(dt_us, sr_hz);
 
-    chan_left.reserve(num_of_frames_per_ch);
-    chan_right.reserve(num_of_frames_per_ch);
-    for (int i = 0; i < num_of_frames_per_ch; i++) {
+    chan_mono.reserve(num_of_frames_per_ch);
+    for (int i = 0; i < pitch * num_of_frames_per_ch; i += pitch) {
       const uint8_t* sample = data.data() + i * 4;
 
       int16_t left = (int16_t)((*(sample + 1) << 8) + *sample) >> 1;
@@ -1802,14 +1832,9 @@ class LeAudioClientImpl : public LeAudioClient {
       sample += 2;
       int16_t right = (int16_t)((*(sample + 1) << 8) + *sample) >> 1;
 
-      if (prepare_mono) {
-        uint16_t mono_data = (int16_t)(((uint32_t)left + (uint32_t)right) >> 1);
-        left = mono_data;
-        right = mono_data;
-      }
+      uint16_t mono_data = (int16_t)(((uint32_t)left + (uint32_t)right) >> 1);
 
-      chan_left.push_back(left);
-      chan_right.push_back(right);
+      chan_mono.push_back(mono_data);
     }
   }
 
@@ -1821,13 +1846,9 @@ class LeAudioClientImpl : public LeAudioClient {
     uint16_t right_cis_handle = 0;
     uint16_t number_of_required_samples_per_channel;
 
-    if (use_new_encoder) {
-      int dt_us = current_source_codec_config.data_interval_us;
-      int sr_hz = current_source_codec_config.sample_rate;
-      number_of_required_samples_per_channel = lc3_frame_samples(dt_us, sr_hz);
-    } else {
-      number_of_required_samples_per_channel = lc3_encoder->lc3Config.NF;
-    }
+    int dt_us = current_source_codec_config.data_interval_us;
+    int sr_hz = current_source_codec_config.sample_rate;
+    number_of_required_samples_per_channel = lc3_frame_samples(dt_us, sr_hz);
 
     for (auto [cis_handle, audio_location] : stream_conf->sink_streams) {
       if (audio_location & le_audio::codec_spec_conf::kLeAudioLocationAnyLeft)
@@ -1849,48 +1870,36 @@ class LeAudioClientImpl : public LeAudioClient {
 
     bool mono = (left_cis_handle == 0) || (right_cis_handle == 0);
 
-    if (!mono && use_new_encoder) {
-      lc3_encode(lc3_encoder_left, (const int16_t*)data.data(), 2,
-                 chan_left_enc.data(), chan_left_enc.size());
-      lc3_encode(lc3_encoder_right, ((const int16_t*)data.data()) + 1, 2,
-                 chan_right_enc.data(), chan_right_enc.size());
-    } else {
-      std::vector<int16_t> chan_left;
-      std::vector<int16_t> chan_right;
-      get_left_and_right_stream(data, chan_left, chan_right, mono);
+    int af_hz = audio_framework_source_config.sample_rate;
+    LOG_ASSERT(af_hz >= sr_hz) << __func__ << " sample freq issue";
 
-      uint8_t err = 0;
+    int pitch = af_hz / sr_hz;
+
+    LOG(INFO) << __func__ << " pitch " << pitch
+              << " data size: " << (int)data.size()
+              << " byte count: " << byte_count << " mono: " << mono;
+    if (!mono) {
+      lc3_encode(lc3_encoder_left, (const int16_t*)data.data(), 2 * pitch,
+                 chan_left_enc.size(), chan_left_enc.data());
+      lc3_encode(lc3_encoder_right, ((const int16_t*)data.data()) + 1,
+                 2 * pitch, chan_right_enc.size(), chan_right_enc.data());
+    } else {
+      std::vector<int16_t> chan_mono;
+      get_mono_stream(data, chan_mono, pitch);
+
       if (left_cis_handle) {
-        if (use_new_encoder) {
-          lc3_encode(lc3_encoder_left, (const int16_t*)chan_left.data(), 1,
-                     chan_left_enc.data(), chan_left_enc.size());
-        } else {
-          err |=
-              lc3_encoder->run((const int16_t*)chan_left.data(),
-                               chan_left_enc.size(), chan_left_enc.data(), 0);
-        }
+        lc3_encode(lc3_encoder_left, (const int16_t*)chan_mono.data(), 1,
+                   chan_left_enc.size(), chan_left_enc.data());
       }
 
       if (right_cis_handle) {
-        if (use_new_encoder) {
-          lc3_encode(lc3_encoder_right, (const int16_t*)chan_right.data(), 1,
-                     chan_right_enc.data(), chan_right_enc.size());
-
-        } else {
-          err |=
-              lc3_encoder->run((const int16_t*)chan_right.data(),
-                               chan_right_enc.size(), chan_right_enc.data(), 1);
-        }
-      }
-
-      if (err != Lc3Encoder::ERROR_FREE) {
-        LOG(ERROR) << " error while encoding; error code: "
-                   << "\t encoded samples: " << chan_left_enc.size()
-                   << "\t err: " << static_cast<uint8_t>(err);
-        return;
+        lc3_encode(lc3_encoder_right, (const int16_t*)chan_mono.data(), 1,
+                   chan_right_enc.size(), chan_right_enc.data());
       }
     }
 
+    DLOG(INFO) << __func__ << " left_cis_handle: " << +left_cis_handle
+               << " right_cis_handle: " << right_cis_handle;
     /* Send data to the controller */
     if (left_cis_handle)
       IsoManager::GetInstance()->SendIsoData(
@@ -1904,18 +1913,14 @@ class LeAudioClientImpl : public LeAudioClient {
   void PrepareAndSendToSingleDevice(
       const std::vector<uint8_t>& data,
       struct le_audio::stream_configuration* stream_conf) {
-    int num_channels = current_source_codec_config.num_channels;
+    int num_channels = stream_conf->sink_num_of_channels;
     uint16_t byte_count = stream_conf->sink_octets_per_codec_frame;
     auto cis_handle = stream_conf->sink_streams.front().first;
     uint16_t number_of_required_samples_per_channel;
 
-    if (use_new_encoder) {
-      int dt_us = current_source_codec_config.data_interval_us;
-      int sr_hz = current_source_codec_config.sample_rate;
-      number_of_required_samples_per_channel = lc3_frame_samples(dt_us, sr_hz);
-    } else {
-      number_of_required_samples_per_channel = lc3_encoder->lc3Config.NF;
-    }
+    int dt_us = current_source_codec_config.data_interval_us;
+    int sr_hz = current_source_codec_config.sample_rate;
+    number_of_required_samples_per_channel = lc3_frame_samples(dt_us, sr_hz);
 
     if ((int)data.size() < (2 /* bytes per sample */ * num_channels *
                             number_of_required_samples_per_channel)) {
@@ -1923,41 +1928,26 @@ class LeAudioClientImpl : public LeAudioClient {
       return;
     }
     std::vector<uint8_t> chan_encoded(num_channels * byte_count, 0);
-    uint8_t err = 0;
+
+    int af_hz = audio_framework_source_config.sample_rate;
+    LOG_ASSERT(af_hz >= sr_hz) << __func__ << " sample freq issue";
+
+    int pitch = af_hz / sr_hz;
+
     if (num_channels == 1) {
-      if (use_new_encoder) {
-        lc3_encode(lc3_encoder_left, (const int16_t*)data.data(), 1,
-                   chan_encoded.data(), byte_count);
-      } else {
-        err = lc3_encoder->run((const int16_t*)data.data(), byte_count,
-                               chan_encoded.data(), 0);
-      }
+      /* Since we always get two channels from framework, lets make it mono here
+       */
+      std::vector<int16_t> chan_mono;
+      get_mono_stream(data, chan_mono, pitch);
+
+      lc3_encode(lc3_encoder_left, (const int16_t*)chan_mono.data(), 1,
+                 byte_count, chan_encoded.data());
+
     } else {
-      std::vector<int16_t> chan_left;
-      std::vector<int16_t> chan_right;
-      get_left_and_right_stream(data, chan_left, chan_right, false);
-
-      if (use_new_encoder) {
-        lc3_encode(lc3_encoder_left, (const int16_t*)chan_left.data(), 1,
-                   chan_encoded.data(), byte_count);
-      } else {
-        err |= lc3_encoder->run((const int16_t*)chan_left.data(), byte_count,
-                                chan_encoded.data(), 0);
-      }
-
-      if (use_new_encoder) {
-        lc3_encode(lc3_encoder_right, (const int16_t*)chan_right.data(), 1,
-                   chan_encoded.data() + byte_count, byte_count);
-      } else {
-        err |= lc3_encoder->run((const int16_t*)chan_right.data(), byte_count,
-                                chan_encoded.data() + byte_count, 1);
-      }
-    }
-
-    if (err != Lc3Encoder::ERROR_FREE) {
-      LOG(ERROR) << " error while encoding; error code: "
-                 << "\t err: " << static_cast<uint8_t>(err);
-      return;
+      lc3_encode(lc3_encoder_left, (const int16_t*)data.data(), 2 * pitch,
+                 byte_count, chan_encoded.data());
+      lc3_encode(lc3_encoder_right, (const int16_t*)data.data() + 1, 2 * pitch,
+                 byte_count, chan_encoded.data() + byte_count);
     }
 
     /* Send data to the controller */
@@ -1992,7 +1982,7 @@ class LeAudioClientImpl : public LeAudioClient {
       for (; ase != nullptr;
            ase = device->GetNextActiveAseWithSameDirection(ase)) {
         streams.emplace_back(std::make_pair(
-            ase->cis_conn_hdl, ase->codec_config.audio_channel_allocation));
+            ase->cis_conn_hdl, *ase->codec_config.audio_channel_allocation));
         num_of_channels += ase->codec_config.channel_count;
         if (sample_freq_hz == 0) {
           sample_freq_hz = ase->codec_config.GetSamplingFrequencyHz();
@@ -2013,17 +2003,17 @@ class LeAudioClientImpl : public LeAudioClient {
         }
 
         if (octets_per_frame == 0) {
-          octets_per_frame = ase->codec_config.octets_per_codec_frame;
+          octets_per_frame = *ase->codec_config.octets_per_codec_frame;
         } else {
           LOG_ASSERT(octets_per_frame ==
                      ase->codec_config.octets_per_codec_frame)
               << __func__ << " octets per frame mismatch: " << +octets_per_frame
-              << " != " << ase->codec_config.octets_per_codec_frame;
+              << " != " << *ase->codec_config.octets_per_codec_frame;
         }
 
         LOG(INFO) << __func__ << " Added CIS: " << +ase->cis_conn_hdl
                   << " to stream. Allocation: "
-                  << +ase->codec_config.audio_channel_allocation
+                  << +(*ase->codec_config.audio_channel_allocation)
                   << " sample_freq: " << +sample_freq_hz
                   << " frame_duration: " << +frame_duration_us
                   << " octects per frame: " << +octets_per_frame;
@@ -2038,8 +2028,6 @@ class LeAudioClientImpl : public LeAudioClient {
     stream_conf->sink_sample_frequency_hz = sample_freq_hz;
     stream_conf->sink_frame_duration_us = frame_duration_us;
     stream_conf->sink_octets_per_codec_frame = octets_per_frame;
-    stream_conf->valid = true;
-    stream_conf->conf = group->GetActiveConfiguration();
 
     LOG(INFO) << __func__ << " configuration: " << stream_conf->conf->name;
 
@@ -2058,7 +2046,9 @@ class LeAudioClientImpl : public LeAudioClient {
     }
 
     auto stream_conf = group->stream_conf;
-    if (!stream_conf.valid || (stream_conf.sink_num_of_devices > 2)) {
+    if ((stream_conf.sink_num_of_devices > 2) ||
+        (stream_conf.sink_num_of_devices == 0) ||
+        stream_conf.sink_streams.empty()) {
       LOG(ERROR) << __func__ << " Stream configufation is not valid.";
       return;
     }
@@ -2104,7 +2094,8 @@ class LeAudioClientImpl : public LeAudioClient {
     /* TODO: What to do if not all data sinked ? */
     if (written != to_write) LOG(ERROR) << __func__ << ", not all data sinked";
 
-    LOG(INFO) << __func__;
+    DLOG(INFO) << __func__
+               << " num of frames: " << (int)lc3_decoder->lc3Config.NF;
   }
 
   static inline Lc3Config::FrameDuration Lc3ConfigFrameDuration(
@@ -2130,7 +2121,10 @@ class LeAudioClientImpl : public LeAudioClient {
       return false;
     }
 
-    if (use_new_encoder) {
+    uint16_t remote_delay_ms =
+        group->GetRemoteDelay(le_audio::types::kLeAudioDirectionSink);
+    if (CodecManager::GetInstance()->GetCodecLocation() ==
+        le_audio::types::CodecLocation::HOST) {
       if (lc3_encoder_left_mem) {
         LOG(WARNING)
             << " The encoder instance should have been already released.";
@@ -2149,24 +2143,11 @@ class LeAudioClientImpl : public LeAudioClient {
       lc3_encoder_left = lc3_setup_encoder(dt_us, sr_hz, lc3_encoder_left_mem);
       lc3_encoder_right =
           lc3_setup_encoder(dt_us, sr_hz, lc3_encoder_right_mem);
-
-    } else {
-      if (lc3_encoder) {
-        LOG(WARNING)
-            << " The encoder instance should have been already released.";
-        delete lc3_encoder;
-        lc3_encoder = nullptr;
-      }
-
-      /* One or multiple audio channels encoder */
-      lc3_encoder = new Lc3Encoder(Lc3Config(
-          current_source_codec_config.sample_rate,
-          Lc3ConfigFrameDuration(current_source_codec_config.data_interval_us),
-          current_source_codec_config.num_channels));
+    } else if (CodecManager::GetInstance()->GetCodecLocation() ==
+               le_audio::types::CodecLocation::ADSP) {
+      CodecManager::GetInstance()->UpdateActiveSourceAudioConfig(
+          *stream_conf, remote_delay_ms);
     }
-
-    uint16_t remote_delay_ms =
-        group->GetRemoteDelay(le_audio::types::kLeAudioDirectionSink);
 
     LeAudioClientAudioSource::UpdateRemoteDelay(remote_delay_ms);
     LeAudioClientAudioSource::ConfirmStreamingRequest();
@@ -2192,7 +2173,7 @@ class LeAudioClientImpl : public LeAudioClient {
     std::vector<std::pair<uint16_t, uint32_t>> streams;
 
     stream_conf->source_streams.emplace_back(std::make_pair(
-        ase->cis_conn_hdl, ase->codec_config.audio_channel_allocation));
+        ase->cis_conn_hdl, *ase->codec_config.audio_channel_allocation));
 
     stream_conf->source_num_of_devices = 1;
     stream_conf->source_num_of_channels = 1;
@@ -2201,14 +2182,11 @@ class LeAudioClientImpl : public LeAudioClient {
     stream_conf->source_frame_duration_us =
         ase->codec_config.GetFrameDurationUs();
     stream_conf->source_octets_per_codec_frame =
-        ase->codec_config.octets_per_codec_frame;
-    stream_conf->valid = true;
-
-    stream_conf->conf = group->GetActiveConfiguration();
+        *ase->codec_config.octets_per_codec_frame;
 
     LOG(INFO) << __func__ << " Added CIS: " << +ase->cis_conn_hdl
               << " to stream. Allocation: "
-              << +ase->codec_config.audio_channel_allocation
+              << +(*ase->codec_config.audio_channel_allocation)
               << " sample_freq: " << +stream_conf->source_sample_frequency_hz
               << " frame_duration: " << +stream_conf->source_frame_duration_us
               << " octects per frame: "
@@ -2229,14 +2207,22 @@ class LeAudioClientImpl : public LeAudioClient {
       return;
     }
 
-    Lc3Config lc3Config(
-        current_sink_codec_config.sample_rate,
-        Lc3ConfigFrameDuration(current_sink_codec_config.data_interval_us), 1);
-
-    lc3_decoder = new Lc3Decoder(lc3Config);
-
     uint16_t remote_delay_ms =
         group->GetRemoteDelay(le_audio::types::kLeAudioDirectionSource);
+
+    if (CodecManager::GetInstance()->GetCodecLocation() ==
+        le_audio::types::CodecLocation::HOST) {
+      Lc3Config lc3Config(
+          current_sink_codec_config.sample_rate,
+          Lc3ConfigFrameDuration(current_sink_codec_config.data_interval_us),
+          1);
+
+      lc3_decoder = new Lc3Decoder(lc3Config);
+    } else if (CodecManager::GetInstance()->GetCodecLocation() ==
+               le_audio::types::CodecLocation::ADSP) {
+      CodecManager::GetInstance()->UpdateActiveSinkAudioConfig(*stream_conf,
+                                                               remote_delay_ms);
+    }
 
     LeAudioClientAudioSink::UpdateRemoteDelay(remote_delay_ms);
     LeAudioClientAudioSink::ConfirmStreamingRequest();
@@ -2254,11 +2240,6 @@ class LeAudioClientImpl : public LeAudioClient {
       lc3_encoder_right_mem = nullptr;
     }
 
-    if (lc3_encoder) {
-      delete lc3_encoder;
-      lc3_encoder = nullptr;
-    }
-
     if (lc3_decoder) {
       LOG(INFO) << __func__ << " stopping sink";
 
@@ -2267,41 +2248,56 @@ class LeAudioClientImpl : public LeAudioClient {
     }
   }
 
-  void StopAudio(void) {
-    SuspendAudio();
-    ClientAudioIntefraceRelease();
+  void StopAudio(void) { SuspendAudio(); }
+
+  void printSingleConfiguration(int fd, LeAudioCodecConfiguration* conf,
+                                bool print_audio_state, bool sender = false) {
+    std::stringstream stream;
+    if (print_audio_state) {
+      if (sender) {
+        stream << "   audio sender state: " << audio_sender_state_ << "\n";
+      } else {
+        stream << "   audio receiver state: " << audio_receiver_state_ << "\n";
+      }
+    }
+
+    stream << "   num_channels: " << +conf->num_channels << "\n"
+           << "   sample rate: " << +conf->sample_rate << "\n"
+           << "   bits pers sample: " << +conf->bits_per_sample << "\n"
+           << "   data_interval_us: " << +conf->data_interval_us << "\n";
+
+    dprintf(fd, "%s", stream.str().c_str());
   }
 
   void printCurrentStreamConfiguration(int fd) {
-    std::stringstream stream;
-    auto conf = &current_source_codec_config;
+    auto conf = &audio_framework_source_config;
+    dprintf(fd, " Speaker codec config (audio framework) \n");
+    if (conf) {
+      printSingleConfiguration(fd, conf, false);
+    }
 
-    stream << " Speaker codec config "
-           << "\n";
+    dprintf(fd, " Microphone codec config (audio framework) \n");
+    conf = &audio_framework_sink_config;
     if (conf) {
-      stream << "   audio sender state: " << audio_sender_state_ << "\n"
-             << "   num_channels " << +conf->num_channels << "\n"
-             << "   sample rate " << +conf->sample_rate << "\n"
-             << "   bits pers sample " << +conf->bits_per_sample << "\n"
-             << "   data_interval_us " << +conf->data_interval_us << "\n";
+      printSingleConfiguration(fd, conf, false);
     }
-    stream << " Microphone codec config"
-           << "\n";
+
+    conf = &current_source_codec_config;
+    dprintf(fd, " Speaker codec config (Bluetooth)\n");
+    if (conf) {
+      printSingleConfiguration(fd, conf, true, true);
+    }
+
     conf = &current_sink_codec_config;
+    dprintf(fd, " Microphone codec config (Bluetooth)\n");
     if (conf) {
-      stream << "   audio receiver state: " << audio_receiver_state_ << "\n"
-             << "   num_channels " << +conf->num_channels << "\n"
-             << "   sample rate " << +conf->sample_rate << "\n"
-             << "   bits pers sample " << +conf->bits_per_sample << "\n"
-             << "   data_interval_us " << +conf->data_interval_us << "\n";
+      printSingleConfiguration(fd, conf, true, false);
     }
-    dprintf(fd, "%s", stream.str().c_str());
   }
 
   void Dump(int fd) {
     dprintf(fd, "  Active group: %d\n", active_group_id_);
     dprintf(fd, "    current content type: 0x%08hx\n", current_context_type_);
-    dprintf(fd, "    upcoming content type: 0x%08hx\n", upcoming_context_type_);
     dprintf(
         fd, "    stream setup time if started: %d ms\n",
         (int)((stream_setup_end_timestamp_ - stream_setup_start_timestamp_) /
@@ -2314,27 +2310,26 @@ class LeAudioClientImpl : public LeAudioClient {
     leAudioDevices_.Dump(fd, bluetooth::groups::kGroupUnknown);
   }
 
-  void Cleanup(void) {
+  void Cleanup(base::Callback<void()> cleanupCb) {
+    if (alarm_is_scheduled(suspend_timeout_)) alarm_cancel(suspend_timeout_);
     leAudioDevices_.Cleanup();
     aseGroups_.Cleanup();
     StopAudio();
     if (gatt_if_) BTA_GATTC_AppDeregister(gatt_if_);
+
+    std::move(cleanupCb).Run();
   }
 
-  void UpdateCurrentHalSessions(int group_id, LeAudioContextType context_type) {
-    if (group_id == bluetooth::groups::kGroupUnknown) {
-      LOG(WARNING) << ", cannot start straming if no active group set";
-      return;
-    }
-
+  bool UpdateConfigAndCheckIfReconfigurationIsNeeded(
+      int group_id, LeAudioContextType context_type) {
+    bool reconfiguration_needed = false;
     auto group = aseGroups_.FindById(group_id);
     if (!group) {
       LOG(ERROR) << __func__
                  << ", Invalid group: " << static_cast<int>(group_id);
-      return;
+      return reconfiguration_needed;
     }
 
-    bool send_active = false;
     std::optional<LeAudioCodecConfiguration> source_configuration =
         group->GetCodecConfigurationByDirection(
             context_type, le_audio::types::kLeAudioDirectionSink);
@@ -2342,38 +2337,15 @@ class LeAudioClientImpl : public LeAudioClient {
         group->GetCodecConfigurationByDirection(
             context_type, le_audio::types::kLeAudioDirectionSource);
 
-    if (!sink_configuration) {
-      /* Let's check if le_audio group supports conversational, if so,
-       * expose DECODED session to the system
-       */
-      sink_configuration = group->GetCodecConfigurationByDirection(
-          LeAudioContextType::CONVERSATIONAL,
-          le_audio::types::kLeAudioDirectionSource);
-      if (sink_configuration) {
-        LOG(INFO) << __func__
-                  << " exposing DECODED session to the system even context: "
-                  << static_cast<int>(context_type) << " does not use it";
-      }
-    }
-
     if (source_configuration) {
-      /* Stream configuration differs from previous one */
-      if (!current_source_codec_config.IsInvalid() &&
-          (*source_configuration != current_source_codec_config)) {
-        callbacks_->OnGroupStatus(group_id, GroupStatus::INACTIVE);
-        send_active = true;
-        LeAudioClientAudioSource::Stop();
+      if (*source_configuration != current_source_codec_config) {
+        current_source_codec_config = *source_configuration;
+        reconfiguration_needed = true;
       }
-
-      current_source_codec_config = *source_configuration;
-
-      LeAudioClientAudioSource::Start(current_source_codec_config,
-                                      audioSinkReceiver);
-
     } else {
       if (!current_source_codec_config.IsInvalid()) {
-        LeAudioClientAudioSource::Stop();
         current_source_codec_config = {0, 0, 0, 0};
+        reconfiguration_needed = true;
       }
 
       LOG(INFO) << __func__
@@ -2383,24 +2355,14 @@ class LeAudioClientImpl : public LeAudioClient {
     }
 
     if (sink_configuration) {
-      /* Stream configuration differs from previous one */
-      if (!current_sink_codec_config.IsInvalid() &&
-          (*sink_configuration != current_sink_codec_config)) {
-        if (send_active == false) {
-          callbacks_->OnGroupStatus(group_id, GroupStatus::INACTIVE);
-          send_active = true;
-        }
-        LeAudioClientAudioSink::Stop();
+      if (*sink_configuration != current_sink_codec_config) {
+        current_sink_codec_config = *sink_configuration;
+        reconfiguration_needed = true;
       }
-
-      current_sink_codec_config = *sink_configuration;
-
-      LeAudioClientAudioSink::Start(current_sink_codec_config,
-                                    audioSourceReceiver);
     } else {
       if (!current_sink_codec_config.IsInvalid()) {
-        LeAudioClientAudioSink::Stop();
         current_sink_codec_config = {0, 0, 0, 0};
+        reconfiguration_needed = true;
       }
 
       LOG(INFO) << __func__
@@ -2409,24 +2371,20 @@ class LeAudioClientImpl : public LeAudioClient {
                 << static_cast<int>(context_type);
     }
 
-    if (send_active) {
-      callbacks_->OnGroupStatus(group_id, GroupStatus::ACTIVE);
+    if (reconfiguration_needed) {
+      LOG(INFO) << __func__
+                << " Session reconfiguration needed group: " << group->group_id_
+                << " for context type: " << static_cast<int>(context_type);
     }
-    current_context_type_ = upcoming_context_type_;
+
+    current_context_type_ = context_type;
+    return reconfiguration_needed;
   }
 
   bool OnAudioResume(LeAudioDeviceGroup* group) {
-    if (upcoming_context_type_ != current_context_type_) {
-      return false;
+    if (group->GetTargetState() == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
+      return true;
     }
-
-    /* Even context type is same, we might need more audio channels e.g. because
-     * new device got connected */
-    if (ReconfigureHalSessionIfNeeded(group, current_context_type_)) {
-      return false;
-    }
-
-    /* TODO check if group already started streaming */
     return InternalGroupStream(active_group_id_,
                                static_cast<uint16_t>(current_context_type_));
   }
@@ -2437,7 +2395,21 @@ class LeAudioClientImpl : public LeAudioClient {
       return;
     }
 
-    GroupStop(active_group_id_);
+    /* Group should tie in time to get requested status */
+    uint64_t timeoutMs = kAudioSuspentKeepIsoAliveTimeoutMs;
+    timeoutMs = osi_property_get_int32(kAudioSuspentKeepIsoAliveTimeoutMsProp,
+                                       timeoutMs);
+
+    DLOG(INFO) << __func__
+               << " Stream suspend_timeout_ started: " << suspend_timeout_;
+    if (alarm_is_scheduled(suspend_timeout_)) alarm_cancel(suspend_timeout_);
+
+    alarm_set_on_mloop(
+        suspend_timeout_, timeoutMs,
+        [](void* data) {
+          if (instance) instance->GroupStop(PTR_TO_INT(data));
+        },
+        INT_TO_PTR(active_group_id_));
   }
 
   void OnAudioSinkSuspend() {
@@ -2503,8 +2475,6 @@ class LeAudioClientImpl : public LeAudioClient {
                << " audio_sender_state: " << audio_sender_state_ << "\n"
                << " current_context_type_: "
                << static_cast<int>(current_context_type_) << "\n"
-               << " upcoming_context_type_: "
-               << static_cast<int>(upcoming_context_type_) << "\n"
                << " group " << (group ? " exist " : " does not exist ") << "\n";
 
     switch (audio_sender_state_) {
@@ -2513,22 +2483,41 @@ class LeAudioClientImpl : public LeAudioClient {
         LeAudioClientAudioSource::ConfirmStreamingRequest();
         break;
       case AudioState::IDLE:
-        if (audio_receiver_state_ == AudioState::IDLE) {
-          /* Stream is not started. Try to do it.*/
-          if (OnAudioResume(group)) {
+        switch (audio_receiver_state_) {
+          case AudioState::IDLE:
+            /* Stream is not started. Try to do it.*/
+            if (OnAudioResume(group)) {
+              audio_sender_state_ = AudioState::READY_TO_START;
+            } else {
+              LeAudioClientAudioSource::CancelStreamingRequest();
+            }
+            break;
+          case AudioState::READY_TO_START:
+          case AudioState::STARTED:
             audio_sender_state_ = AudioState::READY_TO_START;
-          } else {
+            /* If signalling part is completed trigger start reveivin audio
+             * here, otherwise it'll be called on group streaming state callback
+             */
+            if (group->GetState() ==
+                AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
+              StartSendingAudio(active_group_id_);
+            }
+            break;
+          case AudioState::RELEASING:
+          case AudioState::READY_TO_RELEASE:
+            /* If group is reconfiguring, reassing state and wait for
+             * the stream to be established
+             */
+            if (group->stream_conf.reconfiguration_ongoing) {
+              audio_sender_state_ = audio_receiver_state_;
+              return;
+            }
+            FALLTHROUGH;
+          default:
             LeAudioClientAudioSource::CancelStreamingRequest();
-          }
-        } else {
-          /* Stream has been started by the Source. */
-          audio_sender_state_ = AudioState::READY_TO_START;
-          if (group->GetState() == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
-            StartSendingAudio(active_group_id_);
-          } else {
-            LeAudioClientAudioSource::CancelStreamingRequest();
-          }
+            break;
         }
+
         break;
       case AudioState::READY_TO_START:
         LOG(WARNING) << __func__
@@ -2537,13 +2526,20 @@ class LeAudioClientImpl : public LeAudioClient {
                      << " audio_sender_state: " << audio_sender_state_ << "\n";
         break;
       case AudioState::READY_TO_RELEASE:
-        if (audio_receiver_state_ == AudioState::STARTED) {
-          /* Stream is up just restore it */
-          audio_sender_state_ = AudioState::STARTED;
-          LeAudioClientAudioSource::ConfirmStreamingRequest();
-          return;
+        switch (audio_receiver_state_) {
+          case AudioState::STARTED:
+          case AudioState::IDLE:
+          case AudioState::READY_TO_RELEASE:
+            /* Stream is up just restore it */
+            audio_sender_state_ = AudioState::STARTED;
+            if (alarm_is_scheduled(suspend_timeout_))
+              alarm_cancel(suspend_timeout_);
+            LeAudioClientAudioSource::ConfirmStreamingRequest();
+            break;
+          case AudioState::RELEASING:
+          default:
+            LeAudioClientAudioSource::CancelStreamingRequest();
         }
-        LeAudioClientAudioSource::CancelStreamingRequest();
         break;
       case AudioState::RELEASING:
         /* Keep wainting */
@@ -2615,8 +2611,6 @@ class LeAudioClientImpl : public LeAudioClient {
                << " audio_sender_state: " << audio_sender_state_ << "\n"
                << " current_context_type_: "
                << static_cast<int>(current_context_type_) << "\n"
-               << " upcoming_context_type_: "
-               << static_cast<int>(upcoming_context_type_) << "\n"
                << " group " << (group ? " exist " : " does not exist ") << "\n";
 
     switch (audio_receiver_state_) {
@@ -2624,22 +2618,38 @@ class LeAudioClientImpl : public LeAudioClient {
         LeAudioClientAudioSink::ConfirmStreamingRequest();
         break;
       case AudioState::IDLE:
-        if (audio_sender_state_ == AudioState::IDLE) {
-          if (OnAudioResume(group)) {
+        switch (audio_sender_state_) {
+          case AudioState::IDLE:
+            if (OnAudioResume(group)) {
+              audio_receiver_state_ = AudioState::READY_TO_START;
+            } else {
+              LeAudioClientAudioSink::CancelStreamingRequest();
+            }
+            break;
+          case AudioState::READY_TO_START:
+          case AudioState::STARTED:
             audio_receiver_state_ = AudioState::READY_TO_START;
-          } else {
+            /* If signalling part is completed trigger start reveivin audio
+             * here, otherwise it'll be called on group streaming state callback
+             */
+            if (group->GetState() ==
+                AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
+              StartReceivingAudio(active_group_id_);
+            }
+            break;
+          case AudioState::RELEASING:
+          case AudioState::READY_TO_RELEASE:
+            /* If group is reconfiguring, reassing state and wait for
+             * the stream to be established
+             */
+            if (group->stream_conf.reconfiguration_ongoing) {
+              audio_receiver_state_ = audio_sender_state_;
+              return;
+            }
+            FALLTHROUGH;
+          default:
             LeAudioClientAudioSink::CancelStreamingRequest();
-          }
-        } else {
-          audio_receiver_state_ = AudioState::READY_TO_START;
-          /* If signalling part is completed trigger start reveivin audio here,
-           * otherwise it'll be called on group streaming state callback
-           */
-          if (group->GetState() == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
-            StartReceivingAudio(active_group_id_);
-          } else {
-            LeAudioClientAudioSink::CancelStreamingRequest();
-          }
+            break;
         }
         break;
       case AudioState::READY_TO_START:
@@ -2649,14 +2659,21 @@ class LeAudioClientImpl : public LeAudioClient {
                      << " audio_sender_state: " << audio_sender_state_ << "\n";
         break;
       case AudioState::READY_TO_RELEASE:
-        if (audio_sender_state_ == AudioState::STARTED) {
-          /* Just return to started */
-          audio_receiver_state_ = AudioState::STARTED;
-          LeAudioClientAudioSink::ConfirmStreamingRequest();
-          return;
+        switch (audio_sender_state_) {
+          case AudioState::STARTED:
+          case AudioState::IDLE:
+          case AudioState::READY_TO_RELEASE:
+            /* Stream is up just restore it */
+            audio_receiver_state_ = AudioState::STARTED;
+            if (alarm_is_scheduled(suspend_timeout_))
+              alarm_cancel(suspend_timeout_);
+            LeAudioClientAudioSink::ConfirmStreamingRequest();
+            break;
+          case AudioState::RELEASING:
+          default:
+            LeAudioClientAudioSink::CancelStreamingRequest();
         }
 
-        LeAudioClientAudioSink::CancelStreamingRequest();
         break;
       case AudioState::RELEASING:
         LeAudioClientAudioSink::CancelStreamingRequest();
@@ -2739,52 +2756,26 @@ class LeAudioClientImpl : public LeAudioClient {
     return available_contents[0];
   }
 
-  bool ReconfigureHalSessionIfNeeded(LeAudioDeviceGroup* group,
-                                     LeAudioContextType new_context_type) {
-    std::optional<LeAudioCodecConfiguration> source_configuration =
-        group->GetCodecConfigurationByDirection(
-            new_context_type, le_audio::types::kLeAudioDirectionSink);
-
-    std::optional<LeAudioCodecConfiguration> sink_configuration =
-        group->GetCodecConfigurationByDirection(
-            new_context_type, le_audio::types::kLeAudioDirectionSource);
-
-    if (!sink_configuration) {
-      /* Let's check if le_audio group supports conversational, if so,
-       * expose DECODED session to the system
-       */
-      sink_configuration = group->GetCodecConfigurationByDirection(
-          LeAudioContextType::CONVERSATIONAL,
-          le_audio::types::kLeAudioDirectionSource);
-      if (sink_configuration) {
-        DLOG(INFO) << __func__
-                   << " exposing DECODED session to the system even context: "
-                   << static_cast<int>(new_context_type) << " does not use it";
-      }
+  bool StopStreamIfNeeded(LeAudioDeviceGroup* group,
+                          LeAudioContextType new_context_type) {
+    DLOG(INFO) << __func__ << " context type " << int(new_context_type);
+    if (!UpdateConfigAndCheckIfReconfigurationIsNeeded(group->group_id_,
+                                                       new_context_type)) {
+      DLOG(INFO) << __func__ << " reconfiguration not needed";
+      return false;
     }
 
-    if ((source_configuration &&
-         (*source_configuration != current_source_codec_config)) ||
-        (sink_configuration &&
-         (*sink_configuration != current_sink_codec_config))) {
-      LOG(INFO) << __func__
-                << " Session reconfiguration needed group: " << group->group_id_
-                << "for context type: " << static_cast<int>(new_context_type);
-
-      if (group->GetState() == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
-        GroupStop(group->group_id_);
-      }
-
-      upcoming_context_type_ = new_context_type;
-      /* Schedule HAL Session update */
-      do_in_main_thread(FROM_HERE,
-                        base::Bind(&LeAudioClientImpl::UpdateCurrentHalSessions,
-                                   base::Unretained(instance), group->group_id_,
-                                   upcoming_context_type_));
-      return true;
+    if (group->GetState() != AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
+      DLOG(INFO) << __func__ << " Group is not streaming ";
+      return false;
     }
 
-    return false;
+    if (alarm_is_scheduled(suspend_timeout_)) alarm_cancel(suspend_timeout_);
+
+    /* Need to reconfigure stream */
+    group->stream_conf.reconfiguration_ongoing = true;
+    GroupStop(group->group_id_);
+    return true;
   }
 
   void OnAudioMetadataUpdate(const source_metadata_t& source_metadata) {
@@ -2838,14 +2829,17 @@ class LeAudioClientImpl : public LeAudioClient {
       return;
     }
 
-    if (ReconfigureHalSessionIfNeeded(group, new_context)) {
+    current_context_type_ = new_context;
+    if (StopStreamIfNeeded(group, new_context)) {
       return;
     }
 
-    /* Configuration is the same for new context, just will do update
-     * metadata of stream
-     */
-    GroupStream(active_group_id_, static_cast<uint16_t>(new_context));
+    if (group->GetTargetState() == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
+      /* Configuration is the same for new context, just will do update
+       * metadata of stream
+       */
+      GroupStream(active_group_id_, static_cast<uint16_t>(new_context));
+    }
   }
 
   static void OnGattReadRspStatic(uint16_t conn_id, tGATT_STATUS status,
@@ -2990,7 +2984,39 @@ class LeAudioClientImpl : public LeAudioClient {
         rxUnreceivedPackets, duplicatePackets);
   }
 
+  bool RestartStreamingAfterReconfiguration(int group_id) {
+    if (group_id != active_group_id_) return false;
+
+    DLOG(INFO) << __func__ << " audio_sender_state_: " << audio_sender_state_
+               << " audio_receiver_state_: " << audio_receiver_state_;
+
+    auto group = aseGroups_.FindById(group_id);
+    if (!group) return false;
+
+    auto stream_conf = &group->stream_conf;
+    DLOG(INFO) << __func__ << " stream_conf->reconfiguration_ongoing "
+               << stream_conf->reconfiguration_ongoing;
+
+    if (!stream_conf->reconfiguration_ongoing) return false;
+
+    if (!groupStateMachine_->StartStream(
+            group, static_cast<LeAudioContextType>(current_context_type_)))
+      return false;
+
+    if (audio_sender_state_ == AudioState::RELEASING)
+      audio_sender_state_ = AudioState::READY_TO_START;
+
+    if (audio_receiver_state_ == AudioState::RELEASING)
+      audio_receiver_state_ = AudioState::READY_TO_START;
+
+    stream_conf->reconfiguration_ongoing = false;
+    return true;
+  }
+
   void StatusReportCb(int group_id, GroupStreamStatus status) {
+    DLOG(INFO) << __func__ << "status: " << static_cast<int>(status)
+               << " audio_sender_state_: " << audio_sender_state_
+               << " audio_receiver_state_: " << audio_receiver_state_;
     switch (status) {
       case GroupStreamStatus::STREAMING:
         if (audio_sender_state_ == AudioState::READY_TO_START)
@@ -3005,15 +3031,23 @@ class LeAudioClientImpl : public LeAudioClient {
         /** Stop Audio but don't release all the Audio resources */
         SuspendAudio();
         break;
-      case GroupStreamStatus::IDLE:
+      case GroupStreamStatus::IDLE: {
         stream_setup_end_timestamp_ = 0;
         stream_setup_start_timestamp_ = 0;
-        CancelStreamingRequest();
+
+        if (!RestartStreamingAfterReconfiguration(group_id))
+          CancelStreamingRequest();
+
         break;
+      }
       case GroupStreamStatus::RELEASING:
       case GroupStreamStatus::SUSPENDING:
-        audio_sender_state_ = AudioState::RELEASING;
-        audio_receiver_state_ = AudioState::RELEASING;
+        if (audio_sender_state_ != AudioState::IDLE)
+          audio_sender_state_ = AudioState::RELEASING;
+
+        if (audio_receiver_state_ != AudioState::IDLE)
+          audio_receiver_state_ = AudioState::RELEASING;
+
         break;
       default:
         break;
@@ -3028,7 +3062,6 @@ class LeAudioClientImpl : public LeAudioClient {
   LeAudioGroupStateMachine* groupStateMachine_;
   int active_group_id_;
   LeAudioContextType current_context_type_;
-  LeAudioContextType upcoming_context_type_;
   uint64_t stream_setup_start_timestamp_;
   uint64_t stream_setup_end_timestamp_;
 
@@ -3037,8 +3070,26 @@ class LeAudioClientImpl : public LeAudioClient {
   /* Speaker(s) */
   AudioState audio_sender_state_;
 
+  /* Current stream configuration */
   LeAudioCodecConfiguration current_source_codec_config;
   LeAudioCodecConfiguration current_sink_codec_config;
+
+  /* Static Audio Framework session configuration.
+   *  Resampling will be done inside the bt stack
+   */
+  LeAudioCodecConfiguration audio_framework_source_config = {
+      .num_channels = 2,
+      .sample_rate = bluetooth::audio::le_audio::kSampleRate48000,
+      .bits_per_sample = bluetooth::audio::le_audio::kBitsPerSample16,
+      .data_interval_us = LeAudioCodecConfiguration::kInterval10000Us,
+  };
+
+  LeAudioCodecConfiguration audio_framework_sink_config = {
+      .num_channels = 1,
+      .sample_rate = bluetooth::audio::le_audio::kSampleRate16000,
+      .bits_per_sample = bluetooth::audio::le_audio::kBitsPerSample16,
+      .data_interval_us = LeAudioCodecConfiguration::kInterval10000Us,
+  };
 
   void* lc3_encoder_left_mem;
   void* lc3_encoder_right_mem;
@@ -3046,11 +3097,14 @@ class LeAudioClientImpl : public LeAudioClient {
   lc3_encoder_t lc3_encoder_left;
   lc3_encoder_t lc3_encoder_right;
 
-  Lc3Encoder* lc3_encoder;
   Lc3Decoder* lc3_decoder;
   std::vector<uint8_t> encoded_data;
   const void* audio_source_instance_;
   const void* audio_sink_instance_;
+  static constexpr uint64_t kAudioSuspentKeepIsoAliveTimeoutMs = 5000;
+  static constexpr char kAudioSuspentKeepIsoAliveTimeoutMsProp[] =
+      "persist.bluetooth.leaudio.audio.suspend.timeoutms";
+  alarm_t* suspend_timeout_;
 
   void ClientAudioIntefraceRelease() {
     if (audio_source_instance_) {
@@ -3256,7 +3310,9 @@ LeAudioClient* LeAudioClient::Get() {
 /* Initializer of main le audio implementation class and its instance */
 void LeAudioClient::Initialize(
     bluetooth::le_audio::LeAudioClientCallbacks* callbacks_,
-    base::Closure initCb, base::Callback<bool()> hal_2_1_verifier) {
+    base::Closure initCb, base::Callback<bool()> hal_2_1_verifier,
+    const std::vector<bluetooth::le_audio::btle_audio_codec_config_t>&
+        offloading_preference) {
   if (instance) {
     LOG(ERROR) << "Already initialized";
     return;
@@ -3276,9 +3332,9 @@ void LeAudioClient::Initialize(
       << ", LE Audio Client requires Bluetooth Audio HAL V2.1 at least. Either "
          "disable LE Audio Profile, or update your HAL";
 
-  use_new_encoder =
-      osi_property_get_bool("persist.bluetooth.use_new_lc3", true);
-  LOG(INFO) << "use_new_encoder = " << +use_new_encoder;
+  // TODO: The capability list should pass to the codec manager once it's ready
+  std::vector<::le_audio::set_configurations::AudioSetConfiguration>
+      capabilities = ::bluetooth::audio::le_audio::get_offload_capabilities();
 
   IsoManager::GetInstance()->Start();
 
@@ -3290,6 +3346,7 @@ void LeAudioClient::Initialize(
   instance = new LeAudioClientImpl(callbacks_, stateMachineCallbacks, initCb);
 
   IsoManager::GetInstance()->RegisterCigCallbacks(stateMachineHciCallbacks);
+  CodecManager::GetInstance()->Start(offloading_preference, capabilities);
 }
 
 void LeAudioClient::DebugDump(int fd) {
@@ -3306,7 +3363,7 @@ void LeAudioClient::DebugDump(int fd) {
   dprintf(fd, "\n");
 }
 
-void LeAudioClient::Cleanup(void) {
+void LeAudioClient::Cleanup(base::Callback<void()> cleanupCb) {
   if (!instance) {
     LOG(ERROR) << "Not initialized";
     return;
@@ -3314,9 +3371,10 @@ void LeAudioClient::Cleanup(void) {
 
   LeAudioClientImpl* ptr = instance;
   instance = nullptr;
-  ptr->Cleanup();
+  ptr->Cleanup(cleanupCb);
   delete ptr;
 
+  CodecManager::GetInstance()->Stop();
   LeAudioGroupStateMachine::Cleanup();
   IsoManager::GetInstance()->Stop();
 }

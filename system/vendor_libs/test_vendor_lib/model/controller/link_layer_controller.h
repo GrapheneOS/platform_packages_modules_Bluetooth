@@ -97,10 +97,15 @@ class LinkLayerController {
  private:
   void SendDisconnectionCompleteEvent(uint16_t handle, uint8_t reason);
 
+  void IncomingPacketWithRssi(model::packets::LinkLayerPacketView incoming,
+                              uint8_t rssi);
+
  public:
   void IncomingPacket(model::packets::LinkLayerPacketView incoming);
 
   void TimerTick();
+
+  void Close();
 
   AsyncTaskId ScheduleTask(std::chrono::milliseconds delay_ms, const TaskCallback& task);
 
@@ -154,7 +159,7 @@ class LinkLayerController {
       bluetooth::hci::LegacyAdvertisingProperties type,
       bluetooth::hci::OwnAddressType own_address_type,
       bluetooth::hci::PeerAddressType peer_address_type, Address peer,
-      bluetooth::hci::AdvertisingFilterPolicy filter_policy);
+      bluetooth::hci::AdvertisingFilterPolicy filter_policy, uint8_t tx_power);
   ErrorCode LeRemoveAdvertisingSet(uint8_t set);
   ErrorCode LeClearAdvertisingSets();
   void LeConnectionUpdateComplete(uint16_t handle, uint16_t interval_min,
@@ -348,6 +353,9 @@ class LinkLayerController {
   void ReadLocalOobData();
   void ReadLocalOobExtendedData();
 
+  ErrorCode AddScoConnection(
+      uint16_t connection_handle,
+      uint16_t packet_type);
   ErrorCode SetupSynchronousConnection(
       uint16_t connection_handle,
       uint32_t transmit_bandwidth,
@@ -371,16 +379,21 @@ class LinkLayerController {
   void HandleIso(bluetooth::hci::IsoView iso);
 
  protected:
+  void SendLeLinkLayerPacketWithRssi(
+      Address source, Address dest, uint8_t rssi,
+      std::unique_ptr<model::packets::LinkLayerPacketBuilder> packet);
   void SendLeLinkLayerPacket(
       std::unique_ptr<model::packets::LinkLayerPacketBuilder> packet);
   void SendLinkLayerPacket(
       std::unique_ptr<model::packets::LinkLayerPacketBuilder> packet);
   void IncomingAclPacket(model::packets::LinkLayerPacketView packet);
+  void IncomingScoPacket(model::packets::LinkLayerPacketView packet);
   void IncomingDisconnectPacket(model::packets::LinkLayerPacketView packet);
   void IncomingEncryptConnection(model::packets::LinkLayerPacketView packet);
   void IncomingEncryptConnectionResponse(
       model::packets::LinkLayerPacketView packet);
-  void IncomingInquiryPacket(model::packets::LinkLayerPacketView packet);
+  void IncomingInquiryPacket(model::packets::LinkLayerPacketView packet,
+                             uint8_t rssi);
   void IncomingInquiryResponsePacket(
       model::packets::LinkLayerPacketView packet);
   void IncomingIoCapabilityRequestPacket(
@@ -396,8 +409,8 @@ class LinkLayerController {
       model::packets::LinkLayerPacketView packet);
   void IncomingKeypressNotificationPacket(
       model::packets::LinkLayerPacketView packet);
-  void IncomingLeAdvertisementPacket(
-      model::packets::LinkLayerPacketView packet);
+  void IncomingLeAdvertisementPacket(model::packets::LinkLayerPacketView packet,
+                                     uint8_t rssi);
   void IncomingLeConnectPacket(model::packets::LinkLayerPacketView packet);
   void IncomingLeConnectCompletePacket(
       model::packets::LinkLayerPacketView packet);
@@ -412,7 +425,8 @@ class LinkLayerController {
   void IncomingLeReadRemoteFeaturesResponse(
       model::packets::LinkLayerPacketView packet);
   void IncomingLeScanPacket(model::packets::LinkLayerPacketView packet);
-  void IncomingLeScanResponsePacket(model::packets::LinkLayerPacketView packet);
+  void IncomingLeScanResponsePacket(model::packets::LinkLayerPacketView packet,
+                                    uint8_t rssi);
   void IncomingPagePacket(model::packets::LinkLayerPacketView packet);
   void IncomingPageRejectPacket(model::packets::LinkLayerPacketView packet);
   void IncomingPageResponsePacket(model::packets::LinkLayerPacketView packet);
@@ -442,11 +456,11 @@ class LinkLayerController {
   void IncomingRemoteNameRequestResponse(
       model::packets::LinkLayerPacketView packet);
 
-  void IncomingEScoConnectionRequest(
+  void IncomingScoConnectionRequest(
       model::packets::LinkLayerPacketView packet);
-  void IncomingEScoConnectionResponse(
+  void IncomingScoConnectionResponse(
       model::packets::LinkLayerPacketView packet);
-  void IncomingEScoDisconnect(model::packets::LinkLayerPacketView packet);
+  void IncomingScoDisconnect(model::packets::LinkLayerPacketView packet);
 
  private:
   const DeviceProperties& properties_;
@@ -457,7 +471,6 @@ class LinkLayerController {
 
   // Timing related state
   std::vector<AsyncTaskId> controller_events_;
-  AsyncTaskId timer_tick_task_{};
   std::chrono::milliseconds timer_period_ = std::chrono::milliseconds(100);
 
   // Callbacks to schedule tasks.

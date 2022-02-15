@@ -20,7 +20,7 @@ import os
 import argparse
 
 TEST_SUITES = [
-    "blueberry.tests.gd.rust.topshim.facade.adapter_test_blueberry"
+    "blueberry.tests.gd.rust.topshim.facade.adapter_test"
 ]
 
 SOONG_UI_BASH = 'build/soong/soong_ui.bash'
@@ -99,7 +99,7 @@ def get_test_cmd_or_die(suite_name, config_path):
 # path is relative to Android build top
 def build_dist_target(target):
     ANDROID_BUILD_TOP = get_android_root_or_die()
-    build_cmd = [SOONG_UI_BASH, '--make-mode', target]
+    build_cmd = [SOONG_UI_BASH, '--make-mode', 'dist', target]
     build_cmd.append(target)
     p = subprocess.Popen(build_cmd, cwd=ANDROID_BUILD_TOP, env=os.environ.copy())
     return_code = p.wait()
@@ -125,6 +125,7 @@ def main():
     build_dist_target('bluetooth_stack_with_facade')
     test_results = []
     dist_path = os.path.join(get_android_root_or_die(), "out/dist")
+    subprocess.call(['unzip', '-o', 'bluetooth_cert_tests.zip'], cwd=dist_path)
     for test in TEST_SUITES:
         test_cmd = get_test_cmd_or_die(test, args.config_path)
         if subprocess.call(test_cmd, cwd=dist_path) != 0:

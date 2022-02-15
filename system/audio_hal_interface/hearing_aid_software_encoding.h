@@ -17,6 +17,7 @@
 #pragma once
 
 #include <functional>
+
 #include "common/message_loop_thread.h"
 
 namespace bluetooth {
@@ -29,7 +30,7 @@ struct StreamCallbacks {
 };
 
 // Check if new bluetooth_audio is enabled
-bool is_hal_2_0_enabled();
+bool is_hal_enabled();
 
 // Initialize BluetoothAudio HAL: openProvider
 bool init(StreamCallbacks stream_cb,

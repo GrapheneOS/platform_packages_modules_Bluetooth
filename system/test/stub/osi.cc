@@ -18,6 +18,8 @@
  * Generated mock file from original source file
  */
 
+#include <sys/socket.h>
+
 #include <list>
 #include <map>
 #include <string>
@@ -590,7 +592,7 @@ void ringbuffer_free(ringbuffer_t* rb) { mock_function_count_map[__func__]++; }
 
 bool osi_property_get_bool(const char* key, bool default_value) {
   mock_function_count_map[__func__]++;
-  return false;
+  return default_value;
 }
 int osi_property_get(const char* key, char* value, const char* default_value) {
   mock_function_count_map[__func__]++;

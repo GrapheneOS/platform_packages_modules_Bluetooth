@@ -27,6 +27,8 @@
 #include "btm_api_mock.h"
 #include "client_parser.h"
 #include "fake_osi.h"
+#include "le_audio_set_configuration_provider.h"
+#include "mock_codec_manager.h"
 #include "mock_controller.h"
 #include "mock_iso_manager.h"
 #include "types/bt_transport.h"
@@ -155,6 +157,7 @@ class StateMachineTest : public Test {
     gatt::SetMockBtaGattQueue(&gatt_queue);
 
     ase_id_last_assigned = types::ase::kAseIdInvalid;
+    ::le_audio::AudioSetConfigurationProvider::Initialize();
     LeAudioGroupStateMachine::Initialize(&mock_callbacks_);
 
     // Support 2M Phy
@@ -190,6 +193,7 @@ class StateMachineTest : public Test {
         }));
 
     ConfigureIsoManagerMock();
+    ConfigCodecManagerMock();
   }
 
   void HandleCtpOperation(LeAudioDevice* device, std::vector<uint8_t> value,
@@ -379,9 +383,25 @@ class StateMachineTest : public Test {
         });
   }
 
+  void ConfigCodecManagerMock() {
+    codec_manager_ = le_audio::CodecManager::GetInstance();
+    ASSERT_NE(codec_manager_, nullptr);
+    std::vector<bluetooth::le_audio::btle_audio_codec_config_t>
+        mock_offloading_preference(0);
+    std::vector<set_configurations::AudioSetConfiguration>
+        mock_adsp_capabilities(0);
+    codec_manager_->Start(mock_offloading_preference, mock_adsp_capabilities);
+    mock_codec_manager_ = MockCodecManager::GetInstance();
+    ASSERT_NE(mock_codec_manager_, nullptr);
+    ON_CALL(*mock_codec_manager_, GetCodecLocation())
+        .WillByDefault(Return(types::CodecLocation::HOST));
+  }
+
   void TearDown() override {
     iso_manager_->Stop();
     mock_iso_manager_ = nullptr;
+    codec_manager_->Stop();
+    mock_codec_manager_ = nullptr;
 
     gatt::SetMockBtaGattQueue(nullptr);
     gatt::SetMockBtaGattInterface(nullptr);
@@ -394,6 +414,7 @@ class StateMachineTest : public Test {
     le_audio_devices_.clear();
     cached_codec_configuration_map_.clear();
     LeAudioGroupStateMachine::Cleanup();
+    ::le_audio::AudioSetConfigurationProvider::Cleanup();
   }
 
   std::shared_ptr<LeAudioDevice> PrepareConnectedDevice(uint8_t id,
@@ -1066,6 +1087,8 @@ class StateMachineTest : public Test {
 
   bluetooth::hci::IsoManager* iso_manager_;
   MockIsoManager* mock_iso_manager_;
+  le_audio::CodecManager* codec_manager_;
+  MockCodecManager* mock_codec_manager_;
 
   std::function<void(LeAudioDevice* device, std::vector<uint8_t> value,
                      GATT_WRITE_OP_CB cb, void* cb_data)>
@@ -2129,6 +2152,68 @@ TEST_F(StateMachineTest, testStateTransitionTimeout) {
   // simulate timeout seconds passed, alarm executing
   fake_osi_alarm_set_on_mloop_.cb(fake_osi_alarm_set_on_mloop_.data);
   ASSERT_EQ(1, mock_function_count_map["alarm_set_on_mloop"]);
+}
+
+MATCHER_P(dataPathIsEq, expected, "") { return (arg.data_path_id == expected); }
+
+TEST_F(StateMachineTest, testConfigureDataPathForHost) {
+  const auto context_type = kContextTypeRingtone;
+  const int leaudio_group_id = 4;
+
+  // Prepare fake connected device group
+  auto* group = PrepareSingleTestDeviceGroup(leaudio_group_id, context_type);
+
+  /* Since we prepared device with Ringtone context in mind, only one ASE
+   * should have been configured.
+   */
+  PrepareConfigureCodecHandler(group, 1);
+  PrepareConfigureQosHandler(group, 1);
+  PrepareEnableHandler(group, 1);
+
+  EXPECT_CALL(*mock_codec_manager_, GetCodecLocation())
+      .WillOnce(Return(types::CodecLocation::HOST));
+
+  EXPECT_CALL(
+      *mock_iso_manager_,
+      SetupIsoDataPath(
+          _, dataPathIsEq(bluetooth::hci::iso_manager::kIsoDataPathHci)))
+      .Times(1);
+
+  InjectInitialIdleNotification(group);
+
+  // Start the configuration and stream Media content
+  ASSERT_TRUE(LeAudioGroupStateMachine::Get()->StartStream(
+      group, static_cast<types::LeAudioContextType>(context_type)));
+}
+TEST_F(StateMachineTest, testConfigureDataPathForAdsp) {
+  const auto context_type = kContextTypeRingtone;
+  const int leaudio_group_id = 4;
+
+  // Prepare fake connected device group
+  auto* group = PrepareSingleTestDeviceGroup(leaudio_group_id, context_type);
+
+  /* Since we prepared device with Ringtone context in mind, only one ASE
+   * should have been configured.
+   */
+  PrepareConfigureCodecHandler(group, 1);
+  PrepareConfigureQosHandler(group, 1);
+  PrepareEnableHandler(group, 1);
+
+  EXPECT_CALL(*mock_codec_manager_, GetCodecLocation())
+      .WillOnce(Return(types::CodecLocation::ADSP));
+
+  EXPECT_CALL(
+      *mock_iso_manager_,
+      SetupIsoDataPath(
+          _, dataPathIsEq(
+                 bluetooth::hci::iso_manager::kIsoDataPathPlatformDefault)))
+      .Times(1);
+
+  InjectInitialIdleNotification(group);
+
+  // Start the configuration and stream Media content
+  ASSERT_TRUE(LeAudioGroupStateMachine::Get()->StartStream(
+      group, static_cast<types::LeAudioContextType>(context_type)));
 }
 }  // namespace internal
 }  // namespace le_audio

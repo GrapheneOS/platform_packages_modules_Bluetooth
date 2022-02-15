@@ -46,7 +46,8 @@ typedef void (*scan_result_callback)(uint16_t event_type, uint8_t addr_type,
                                      uint8_t secondary_phy,
                                      uint8_t advertising_sid, int8_t tx_power,
                                      int8_t rssi, uint16_t periodic_adv_int,
-                                     std::vector<uint8_t> adv_data);
+                                     std::vector<uint8_t> adv_data,
+                                     RawAddress* original_bda);
 
 typedef struct {
   scan_result_callback scan_result_cb;
@@ -178,6 +179,17 @@ class BleScannerInterface {
   virtual void StopSync(uint16_t handle) = 0;
 
   virtual void RegisterCallbacks(ScanningCallbacks* callbacks) = 0;
+
+  virtual void CancelCreateSync(uint8_t sid, RawAddress address) = 0;
+  using SyncTransferCb =
+      base::Callback<void(uint8_t /*status*/, RawAddress /*addr*/)>;
+
+  virtual void TransferSync(RawAddress address, uint16_t service_data,
+                            uint16_t sync_handle, SyncTransferCb cb) = 0;
+  virtual void TransferSetInfo(RawAddress address, uint16_t service_data,
+                               uint8_t adv_handle, SyncTransferCb cb) = 0;
+  virtual void SyncTxParameters(RawAddress addr, uint8_t mode, uint16_t skip,
+                                uint16_t timeout, StartSyncCb start_cb) = 0;
 };
 
 #endif /* ANDROID_INCLUDE_BLE_SCANNER_H */

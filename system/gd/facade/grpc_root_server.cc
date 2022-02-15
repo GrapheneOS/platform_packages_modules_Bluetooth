@@ -18,8 +18,8 @@
 
 #include <string>
 
+#include "blueberry/facade/rootservice.grpc.pb.h"
 #include "facade/read_only_property_server.h"
-#include "facade/rootservice.grpc.pb.h"
 #include "grpc/grpc_module.h"
 #include "hal/facade.h"
 #include "hci/facade/acl_manager_facade.h"
@@ -53,18 +53,19 @@
 namespace bluetooth {
 namespace facade {
 
+using ::blueberry::facade::BluetoothModule;
 using ::bluetooth::grpc::GrpcModule;
 using ::bluetooth::os::Thread;
 
 namespace {
-class RootFacadeService : public ::bluetooth::facade::RootFacade::Service {
+class RootFacadeService : public ::blueberry::facade::RootFacade::Service {
  public:
   RootFacadeService(int grpc_port) : grpc_port_(grpc_port) {}
 
   ::grpc::Status StartStack(
       ::grpc::ServerContext* context,
-      const ::bluetooth::facade::StartStackRequest* request,
-      ::bluetooth::facade::StartStackResponse* response) override {
+      const ::blueberry::facade::StartStackRequest* request,
+      ::blueberry::facade::StartStackResponse* response) override {
     if (is_running_) {
       return ::grpc::Status(::grpc::StatusCode::INVALID_ARGUMENT, "stack is running");
     }
@@ -136,8 +137,8 @@ class RootFacadeService : public ::bluetooth::facade::RootFacade::Service {
 
   ::grpc::Status StopStack(
       ::grpc::ServerContext* context,
-      const ::bluetooth::facade::StopStackRequest* request,
-      ::bluetooth::facade::StopStackResponse* response) override {
+      const ::blueberry::facade::StopStackRequest* request,
+      ::blueberry::facade::StopStackResponse* response) override {
     if (!is_running_) {
       return ::grpc::Status(::grpc::StatusCode::INVALID_ARGUMENT, "stack is not running");
     }

@@ -82,13 +82,13 @@ android_app {
     srcs: [
         "src/**/*.java",
         ":statslog-bluetooth-java-gen",
+        ":bluetooth-proto-enums-java-gen",
     ],
     platform_apis: true,
     certificate: "platform",
 
     jni_libs: ["libbluetooth_jni"],
     libs: [
-        "javax.obex",
         "services.net",
     ],
     static_libs: [
@@ -98,6 +98,7 @@ android_app {
         "androidx.lifecycle_lifecycle-livedata",
         "androidx.room_room-runtime",
         "bluetooth.mapsapi",
+        "bluetooth.obex",
         "bluetooth-protos-lite",
         "com.android.vcard",
         "guava",
@@ -105,6 +106,7 @@ android_app {
         "mmslib",
         "modules-utils-backgroundthread",
         "modules-utils-bytesmatcher",
+        "modules-utils-synchronous-result-receiver",
         "modules-utils-statemachine",
         "sap-api-java-static",
         "services.net",
@@ -116,7 +118,7 @@ android_app {
     ],
 
     // Add in path to Bluetooth directory because local path does not exist
-    javacflags: ["-Aroom.schemaLocation=packages/apps/Bluetooth/tests/unit/src/com/android/bluetooth/btservice/storage/schemas"],
+    javacflags: ["-Aroom.schemaLocation=packages/modules/Bluetooth/android/app/tests/unit/src/com/android/bluetooth/btservice/storage/schemas"],
 
     optimize: {
         enabled: false,
@@ -124,13 +126,39 @@ android_app {
     required: ["libbluetooth"],
     apex_available: [
         "//apex_available:platform",
-        "com.android.bluetooth.updatable",
+        "com.android.bluetooth",
     ],
     errorprone: {
         javacflags: [
             // "-Xep:AndroidFrameworkRequiresPermission:ERROR",
         ],
     },
+}
+
+gensrcs {
+    name: "bluetooth-proto-enums-java-gen",
+    depfile: true,
+
+    tools: [
+        "aprotoc",
+        "protoc-gen-javastream",
+        "soong_zip",
+    ],
+
+    cmd: "mkdir -p $(genDir)/$(in) " +
+        "&& $(location aprotoc) " +
+        "  --plugin=$(location protoc-gen-javastream) " +
+        "  --dependency_out=$(depfile) " +
+        "  --javastream_out=$(genDir)/$(in) " +
+        "  -Iexternal/protobuf/src " +
+        "  -I . " +
+        "  $(in) " +
+        "&& $(location soong_zip) -jar -o $(out) -C $(genDir)/$(in) -D $(genDir)/$(in)",
+
+    srcs: [
+        ":srcs_bluetooth_protos",
+    ],
+    output_extension: "srcjar",
 }
 
 genrule {

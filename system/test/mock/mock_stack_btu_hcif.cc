@@ -50,7 +50,7 @@ void btu_hcif_log_event_metrics(uint8_t evt_code, uint8_t* p_event) {
 void btu_hcif_process_event(UNUSED_ATTR uint8_t controller_id, BT_HDR* p_msg) {
   mock_function_count_map[__func__]++;
 }
-void btu_hcif_send_cmd(UNUSED_ATTR uint8_t controller_id, BT_HDR* p_buf) {
+void btu_hcif_send_cmd(UNUSED_ATTR uint8_t controller_id, const BT_HDR* p_buf) {
   mock_function_count_map[__func__]++;
 }
 void btu_hcif_send_cmd_with_cb(const base::Location& posted_from,

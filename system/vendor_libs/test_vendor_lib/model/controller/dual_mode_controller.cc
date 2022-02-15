@@ -61,6 +61,11 @@ void DualModeController::TimerTick() {
   link_layer_controller_.TimerTick();
 }
 
+void DualModeController::Close() {
+  link_layer_controller_.Close();
+  Device::Close();
+}
+
 void DualModeController::SendCommandCompleteUnknownOpCodeEvent(uint16_t command_opcode) const {
   std::unique_ptr<bluetooth::packet::RawBuilder> raw_builder_ptr =
       std::make_unique<bluetooth::packet::RawBuilder>();
@@ -69,9 +74,8 @@ void DualModeController::SendCommandCompleteUnknownOpCodeEvent(uint16_t command_
   raw_builder_ptr->AddOctets1(
       static_cast<uint8_t>(ErrorCode::UNKNOWN_HCI_COMMAND));
 
-  auto packet = gd_hci::EventBuilder::Create(
-      gd_hci::EventCode::COMMAND_COMPLETE, std::move(raw_builder_ptr));
-  send_event_(std::move(packet));
+  send_event_(gd_hci::EventBuilder::Create(
+      gd_hci::EventCode::COMMAND_COMPLETE, std::move(raw_builder_ptr)));
 }
 
 DualModeController::DualModeController(const std::string& properties_filename, uint16_t num_keys)
@@ -122,6 +126,7 @@ DualModeController::DualModeController(const std::string& properties_filename, u
   SET_SUPPORTED(SWITCH_ROLE, SwitchRole);
   SET_SUPPORTED(READ_REMOTE_SUPPORTED_FEATURES, ReadRemoteSupportedFeatures);
   SET_SUPPORTED(READ_CLOCK_OFFSET, ReadClockOffset);
+  SET_HANDLER(ADD_SCO_CONNECTION, AddScoConnection);
   SET_SUPPORTED(SETUP_SYNCHRONOUS_CONNECTION, SetupSynchronousConnection);
   SET_SUPPORTED(ACCEPT_SYNCHRONOUS_CONNECTION, AcceptSynchronousConnection);
   SET_SUPPORTED(REJECT_SYNCHRONOUS_CONNECTION, RejectSynchronousConnection);
@@ -354,8 +359,10 @@ void DualModeController::HandleAcl(std::shared_ptr<std::vector<uint8_t>> packet)
 void DualModeController::HandleSco(std::shared_ptr<std::vector<uint8_t>> packet) {
   bluetooth::hci::PacketView<bluetooth::hci::kLittleEndian> raw_packet(packet);
   auto sco_packet = bluetooth::hci::ScoView::Create(raw_packet);
+  ASSERT(sco_packet.IsValid());
   if (loopback_mode_ == LoopbackMode::ENABLE_LOCAL) {
     uint16_t handle = sco_packet.GetHandle();
+
     auto sco_builder = bluetooth::hci::ScoBuilder::Create(
         handle, sco_packet.GetPacketStatusFlag(), sco_packet.GetData());
     send_sco_(std::move(sco_builder));
@@ -370,6 +377,8 @@ void DualModeController::HandleSco(std::shared_ptr<std::vector<uint8_t>> packet)
     }
     return;
   }
+
+  link_layer_controller_.SendScoToRemote(sco_packet);
 }
 
 void DualModeController::HandleIso(
@@ -475,13 +484,12 @@ void DualModeController::ReadBufferSize(CommandView command) {
   auto command_view = gd_hci::ReadBufferSizeView::Create(command);
   ASSERT(command_view.IsValid());
 
-  auto packet = bluetooth::hci::ReadBufferSizeCompleteBuilder::Create(
+  send_event_(bluetooth::hci::ReadBufferSizeCompleteBuilder::Create(
       kNumCommandPackets, ErrorCode::SUCCESS,
       properties_.GetAclDataPacketSize(),
       properties_.GetSynchronousDataPacketSize(),
       properties_.GetTotalNumAclDataPackets(),
-      properties_.GetTotalNumSynchronousDataPackets());
-  send_event_(std::move(packet));
+      properties_.GetTotalNumSynchronousDataPackets()));
 }
 
 void DualModeController::ReadEncryptionKeySize(CommandView command) {
@@ -489,18 +497,16 @@ void DualModeController::ReadEncryptionKeySize(CommandView command) {
       gd_hci::SecurityCommandView::Create(command));
   ASSERT(command_view.IsValid());
 
-  auto packet = bluetooth::hci::ReadEncryptionKeySizeCompleteBuilder::Create(
+  send_event_(bluetooth::hci::ReadEncryptionKeySizeCompleteBuilder::Create(
       kNumCommandPackets, ErrorCode::SUCCESS,
-      command_view.GetConnectionHandle(), properties_.GetEncryptionKeySize());
-  send_event_(std::move(packet));
+      command_view.GetConnectionHandle(), properties_.GetEncryptionKeySize()));
 }
 
 void DualModeController::HostBufferSize(CommandView command) {
   auto command_view = gd_hci::HostBufferSizeView::Create(command);
   ASSERT(command_view.IsValid());
-  auto packet = bluetooth::hci::HostBufferSizeCompleteBuilder::Create(
-      kNumCommandPackets, ErrorCode::SUCCESS);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::HostBufferSizeCompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS));
 }
 
 void DualModeController::ReadLocalVersionInformation(CommandView command) {
@@ -516,10 +522,9 @@ void DualModeController::ReadLocalVersionInformation(CommandView command) {
   local_version_information.manufacturer_name_ =
       properties_.GetManufacturerName();
   local_version_information.lmp_subversion_ = properties_.GetLmpPalSubversion();
-  auto packet =
+  send_event_(
       bluetooth::hci::ReadLocalVersionInformationCompleteBuilder::Create(
-          kNumCommandPackets, ErrorCode::SUCCESS, local_version_information);
-  send_event_(std::move(packet));
+          kNumCommandPackets, ErrorCode::SUCCESS, local_version_information));
 }
 
 void DualModeController::ReadRemoteVersionInformation(CommandView command) {
@@ -532,18 +537,15 @@ void DualModeController::ReadRemoteVersionInformation(CommandView command) {
       OpCode::READ_REMOTE_VERSION_INFORMATION, command.GetPayload(),
       command_view.GetConnectionHandle());
 
-  auto packet =
-      bluetooth::hci::ReadRemoteVersionInformationStatusBuilder::Create(
-          status, kNumCommandPackets);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::ReadRemoteVersionInformationStatusBuilder::Create(
+      status, kNumCommandPackets));
 }
 
 void DualModeController::ReadBdAddr(CommandView command) {
   auto command_view = gd_hci::ReadBdAddrView::Create(command);
   ASSERT(command_view.IsValid());
-  auto packet = bluetooth::hci::ReadBdAddrCompleteBuilder::Create(
-      kNumCommandPackets, ErrorCode::SUCCESS, properties_.GetAddress());
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::ReadBdAddrCompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS, properties_.GetAddress()));
 }
 
 void DualModeController::ReadLocalSupportedCommands(CommandView command) {
@@ -559,32 +561,26 @@ void DualModeController::ReadLocalSupportedCommands(CommandView command) {
   std::copy_n(properties_.GetSupportedCommands().begin(), len,
               supported_commands.begin());
 
-  auto packet =
-      bluetooth::hci::ReadLocalSupportedCommandsCompleteBuilder::Create(
-          kNumCommandPackets, ErrorCode::SUCCESS, supported_commands);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::ReadLocalSupportedCommandsCompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS, supported_commands));
 }
 
 void DualModeController::ReadLocalSupportedFeatures(CommandView command) {
   auto command_view = gd_hci::ReadLocalSupportedFeaturesView::Create(command);
   ASSERT(command_view.IsValid());
 
-  auto packet =
-      bluetooth::hci::ReadLocalSupportedFeaturesCompleteBuilder::Create(
-          kNumCommandPackets, ErrorCode::SUCCESS,
-          properties_.GetSupportedFeatures());
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::ReadLocalSupportedFeaturesCompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS,
+      properties_.GetSupportedFeatures()));
 }
 
 void DualModeController::ReadLocalSupportedCodecs(CommandView command) {
   auto command_view = gd_hci::ReadLocalSupportedCodecsV1View::Create(command);
   ASSERT(command_view.IsValid());
-  auto packet =
-      bluetooth::hci::ReadLocalSupportedCodecsV1CompleteBuilder::Create(
-          kNumCommandPackets, ErrorCode::SUCCESS,
-          properties_.GetSupportedCodecs(),
-          properties_.GetVendorSpecificCodecs());
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::ReadLocalSupportedCodecsV1CompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS,
+      properties_.GetSupportedCodecs(),
+      properties_.GetVendorSpecificCodecs()));
 }
 
 void DualModeController::ReadLocalExtendedFeatures(CommandView command) {
@@ -592,12 +588,11 @@ void DualModeController::ReadLocalExtendedFeatures(CommandView command) {
   ASSERT(command_view.IsValid());
   uint8_t page_number = command_view.GetPageNumber();
 
-  auto pakcet =
+  send_event_(
       bluetooth::hci::ReadLocalExtendedFeaturesCompleteBuilder::Create(
           kNumCommandPackets, ErrorCode::SUCCESS, page_number,
           properties_.GetExtendedFeaturesMaximumPageNumber(),
-          properties_.GetExtendedFeatures(page_number));
-  send_event_(std::move(pakcet));
+          properties_.GetExtendedFeatures(page_number)));
 }
 
 void DualModeController::ReadRemoteExtendedFeatures(CommandView command) {
@@ -610,9 +605,8 @@ void DualModeController::ReadRemoteExtendedFeatures(CommandView command) {
       OpCode::READ_REMOTE_EXTENDED_FEATURES, command_view.GetPayload(),
       command_view.GetConnectionHandle());
 
-  auto packet = bluetooth::hci::ReadRemoteExtendedFeaturesStatusBuilder::Create(
-      status, kNumCommandPackets);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::ReadRemoteExtendedFeaturesStatusBuilder::Create(
+      status, kNumCommandPackets));
 }
 
 void DualModeController::SwitchRole(CommandView command) {
@@ -624,9 +618,8 @@ void DualModeController::SwitchRole(CommandView command) {
   auto status = link_layer_controller_.SwitchRole(
       command_view.GetBdAddr(), static_cast<uint8_t>(command_view.GetRole()));
 
-  auto packet = bluetooth::hci::SwitchRoleStatusBuilder::Create(
-      status, kNumCommandPackets);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::SwitchRoleStatusBuilder::Create(
+      status, kNumCommandPackets));
 }
 
 void DualModeController::ReadRemoteSupportedFeatures(CommandView command) {
@@ -639,10 +632,8 @@ void DualModeController::ReadRemoteSupportedFeatures(CommandView command) {
       OpCode::READ_REMOTE_SUPPORTED_FEATURES, command_view.GetPayload(),
       command_view.GetConnectionHandle());
 
-  auto packet =
-      bluetooth::hci::ReadRemoteSupportedFeaturesStatusBuilder::Create(
-          status, kNumCommandPackets);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::ReadRemoteSupportedFeaturesStatusBuilder::Create(
+      status, kNumCommandPackets));
 }
 
 void DualModeController::ReadClockOffset(CommandView command) {
@@ -656,9 +647,23 @@ void DualModeController::ReadClockOffset(CommandView command) {
   auto status = link_layer_controller_.SendCommandToRemoteByHandle(
       OpCode::READ_CLOCK_OFFSET, command_view.GetPayload(), handle);
 
-  auto packet = bluetooth::hci::ReadClockOffsetStatusBuilder::Create(
-      status, kNumCommandPackets);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::ReadClockOffsetStatusBuilder::Create(
+      status, kNumCommandPackets));
+}
+
+// Deprecated command, removed in v4.2.
+// Support is provided to satisfy PTS tester requirements.
+void DualModeController::AddScoConnection(CommandView command) {
+  auto command_view = gd_hci::AddScoConnectionView::Create(
+      gd_hci::ConnectionManagementCommandView::Create(
+          gd_hci::AclCommandView::Create(command)));
+  ASSERT(command_view.IsValid());
+
+  auto status = link_layer_controller_.AddScoConnection(
+      command_view.GetConnectionHandle(), command_view.GetPacketType());
+
+  send_event_(bluetooth::hci::AddScoConnectionStatusBuilder::Create(
+      status, kNumCommandPackets));
 }
 
 void DualModeController::SetupSynchronousConnection(CommandView command) {
@@ -673,9 +678,8 @@ void DualModeController::SetupSynchronousConnection(CommandView command) {
     command_view.GetVoiceSetting(), command_view.GetRetransmissionEffort(),
     command_view.GetPacketType());
 
-  auto packet = bluetooth::hci::SetupSynchronousConnectionStatusBuilder::Create(
-      status, kNumCommandPackets);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::SetupSynchronousConnectionStatusBuilder::Create(
+      status, kNumCommandPackets));
 }
 
 void DualModeController::AcceptSynchronousConnection(CommandView command) {
@@ -690,9 +694,8 @@ void DualModeController::AcceptSynchronousConnection(CommandView command) {
     command_view.GetVoiceSetting(), command_view.GetRetransmissionEffort(),
     command_view.GetPacketType());
 
-  auto packet = bluetooth::hci::AcceptSynchronousConnectionStatusBuilder::Create(
-      status, kNumCommandPackets);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::AcceptSynchronousConnectionStatusBuilder::Create(
+      status, kNumCommandPackets));
 }
 
 void DualModeController::RejectSynchronousConnection(CommandView command) {
@@ -704,9 +707,8 @@ void DualModeController::RejectSynchronousConnection(CommandView command) {
   auto status = link_layer_controller_.RejectSynchronousConnection(
     command_view.GetBdAddr(), (uint16_t)command_view.GetReason());
 
-  auto packet = bluetooth::hci::RejectSynchronousConnectionStatusBuilder::Create(
-      status, kNumCommandPackets);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::RejectSynchronousConnectionStatusBuilder::Create(
+      status, kNumCommandPackets));
 }
 
 void DualModeController::IoCapabilityRequestReply(CommandView command) {
@@ -723,10 +725,8 @@ void DualModeController::IoCapabilityRequestReply(CommandView command) {
 
   auto status = link_layer_controller_.IoCapabilityRequestReply(
       peer, io_capability, oob_data_present_flag, authentication_requirements);
-  auto packet = bluetooth::hci::IoCapabilityRequestReplyCompleteBuilder::Create(
-      kNumCommandPackets, status, peer);
-
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::IoCapabilityRequestReplyCompleteBuilder::Create(
+      kNumCommandPackets, status, peer));
 }
 
 void DualModeController::UserConfirmationRequestReply(CommandView command) {
@@ -737,11 +737,9 @@ void DualModeController::UserConfirmationRequestReply(CommandView command) {
   Address peer = command_view.GetBdAddr();
 
   auto status = link_layer_controller_.UserConfirmationRequestReply(peer);
-  auto packet =
+  send_event_(
       bluetooth::hci::UserConfirmationRequestReplyCompleteBuilder::Create(
-          kNumCommandPackets, status, peer);
-
-  send_event_(std::move(packet));
+          kNumCommandPackets, status, peer));
 }
 
 void DualModeController::UserConfirmationRequestNegativeReply(
@@ -754,11 +752,9 @@ void DualModeController::UserConfirmationRequestNegativeReply(
 
   auto status =
       link_layer_controller_.UserConfirmationRequestNegativeReply(peer);
-  auto packet =
+  send_event_(
       bluetooth::hci::UserConfirmationRequestNegativeReplyCompleteBuilder::
-          Create(kNumCommandPackets, status, peer);
-
-  send_event_(std::move(packet));
+          Create(kNumCommandPackets, status, peer));
 }
 
 void DualModeController::PinCodeRequestReply(CommandView command) {
@@ -789,11 +785,9 @@ void DualModeController::PinCodeRequestNegativeReply(CommandView command) {
   Address peer = command_view.GetBdAddr();
 
   auto status = link_layer_controller_.PinCodeRequestNegativeReply(peer);
-  auto packet =
+  send_event_(
       bluetooth::hci::PinCodeRequestNegativeReplyCompleteBuilder::Create(
-          kNumCommandPackets, status, peer);
-
-  send_event_(std::move(packet));
+          kNumCommandPackets, status, peer));
 }
 
 void DualModeController::UserPasskeyRequestReply(CommandView command) {
@@ -806,10 +800,8 @@ void DualModeController::UserPasskeyRequestReply(CommandView command) {
 
   auto status =
       link_layer_controller_.UserPasskeyRequestReply(peer, numeric_value);
-  auto packet = bluetooth::hci::UserPasskeyRequestReplyCompleteBuilder::Create(
-      kNumCommandPackets, status, peer);
-
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::UserPasskeyRequestReplyCompleteBuilder::Create(
+      kNumCommandPackets, status, peer));
 }
 
 void DualModeController::UserPasskeyRequestNegativeReply(CommandView command) {
@@ -820,11 +812,9 @@ void DualModeController::UserPasskeyRequestNegativeReply(CommandView command) {
   Address peer = command_view.GetBdAddr();
 
   auto status = link_layer_controller_.UserPasskeyRequestNegativeReply(peer);
-  auto packet =
+  send_event_(
       bluetooth::hci::UserPasskeyRequestNegativeReplyCompleteBuilder::Create(
-          kNumCommandPackets, status, peer);
-
-  send_event_(std::move(packet));
+          kNumCommandPackets, status, peer));
 }
 
 void DualModeController::RemoteOobDataRequestReply(CommandView command) {
@@ -850,11 +840,9 @@ void DualModeController::RemoteOobDataRequestNegativeReply(
   Address peer = command_view.GetBdAddr();
 
   auto status = link_layer_controller_.RemoteOobDataRequestNegativeReply(peer);
-  auto packet =
+  send_event_(
       bluetooth::hci::RemoteOobDataRequestNegativeReplyCompleteBuilder::Create(
-          kNumCommandPackets, status, peer);
-
-  send_event_(std::move(packet));
+          kNumCommandPackets, status, peer));
 }
 
 void DualModeController::IoCapabilityRequestNegativeReply(CommandView command) {
@@ -867,11 +855,9 @@ void DualModeController::IoCapabilityRequestNegativeReply(CommandView command) {
 
   auto status =
       link_layer_controller_.IoCapabilityRequestNegativeReply(peer, reason);
-  auto packet =
+  send_event_(
       bluetooth::hci::IoCapabilityRequestNegativeReplyCompleteBuilder::Create(
-          kNumCommandPackets, status, peer);
-
-  send_event_(std::move(packet));
+          kNumCommandPackets, status, peer));
 }
 
 void DualModeController::RemoteOobExtendedDataRequestReply(
@@ -898,10 +884,9 @@ void DualModeController::ReadInquiryResponseTransmitPowerLevel(
   ASSERT(command_view.IsValid());
 
   uint8_t tx_power = 20;  // maximum
-  auto packet =
+  send_event_(
       bluetooth::hci::ReadInquiryResponseTransmitPowerLevelCompleteBuilder::
-          Create(kNumCommandPackets, ErrorCode::SUCCESS, tx_power);
-  send_event_(std::move(packet));
+          Create(kNumCommandPackets, ErrorCode::SUCCESS, tx_power));
 }
 
 void DualModeController::SendKeypressNotification(CommandView command) {
@@ -944,9 +929,8 @@ void DualModeController::WriteSimplePairingMode(CommandView command) {
 
   auto enabled = command_view.GetSimplePairingMode() == gd_hci::Enable::ENABLED;
   properties_.SetSecureSimplePairingSupport(enabled);
-  auto packet = bluetooth::hci::WriteSimplePairingModeCompleteBuilder::Create(
-      kNumCommandPackets, ErrorCode::SUCCESS);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::WriteSimplePairingModeCompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS));
 }
 
 void DualModeController::ChangeConnectionPacketType(CommandView command) {
@@ -961,9 +945,8 @@ void DualModeController::ChangeConnectionPacketType(CommandView command) {
   auto status =
       link_layer_controller_.ChangeConnectionPacketType(handle, packet_type);
 
-  auto packet = bluetooth::hci::ChangeConnectionPacketTypeStatusBuilder::Create(
-      status, kNumCommandPackets);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::ChangeConnectionPacketTypeStatusBuilder::Create(
+      status, kNumCommandPackets));
 }
 
 void DualModeController::WriteLeHostSupport(CommandView command) {
@@ -972,9 +955,8 @@ void DualModeController::WriteLeHostSupport(CommandView command) {
   auto le_support =
       command_view.GetLeSupportedHost() == gd_hci::Enable::ENABLED;
   properties_.SetLeHostSupport(le_support);
-  auto packet = bluetooth::hci::WriteLeHostSupportCompleteBuilder::Create(
-      kNumCommandPackets, ErrorCode::SUCCESS);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::WriteLeHostSupportCompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS));
 }
 
 void DualModeController::WriteSecureConnectionsHostSupport(
@@ -985,19 +967,17 @@ void DualModeController::WriteSecureConnectionsHostSupport(
   properties_.SetSecureConnections(
       command_view.GetSecureConnectionsHostSupport() ==
       bluetooth::hci::Enable::ENABLED);
-  auto packet =
+  send_event_(
       bluetooth::hci::WriteSecureConnectionsHostSupportCompleteBuilder::Create(
-          kNumCommandPackets, ErrorCode::SUCCESS);
-  send_event_(std::move(packet));
+          kNumCommandPackets, ErrorCode::SUCCESS));
 }
 
 void DualModeController::SetEventMask(CommandView command) {
   auto command_view = gd_hci::SetEventMaskView::Create(command);
   ASSERT(command_view.IsValid());
   properties_.SetEventMask(command_view.GetEventMask());
-  auto packet = bluetooth::hci::SetEventMaskCompleteBuilder::Create(
-      kNumCommandPackets, ErrorCode::SUCCESS);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::SetEventMaskCompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS));
 }
 
 void DualModeController::ReadInquiryMode(CommandView command) {
@@ -1005,9 +985,8 @@ void DualModeController::ReadInquiryMode(CommandView command) {
       gd_hci::DiscoveryCommandView::Create(command));
   ASSERT(command_view.IsValid());
   gd_hci::InquiryMode inquiry_mode = gd_hci::InquiryMode::STANDARD;
-  auto packet = bluetooth::hci::ReadInquiryModeCompleteBuilder::Create(
-      kNumCommandPackets, ErrorCode::SUCCESS, inquiry_mode);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::ReadInquiryModeCompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS, inquiry_mode));
 }
 
 void DualModeController::WriteInquiryMode(CommandView command) {
@@ -1016,9 +995,8 @@ void DualModeController::WriteInquiryMode(CommandView command) {
   ASSERT(command_view.IsValid());
   link_layer_controller_.SetInquiryMode(
       static_cast<uint8_t>(command_view.GetInquiryMode()));
-  auto packet = bluetooth::hci::WriteInquiryModeCompleteBuilder::Create(
-      kNumCommandPackets, ErrorCode::SUCCESS);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::WriteInquiryModeCompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS));
 }
 
 void DualModeController::ReadPageScanType(CommandView command) {
@@ -1026,18 +1004,16 @@ void DualModeController::ReadPageScanType(CommandView command) {
       gd_hci::DiscoveryCommandView::Create(command));
   ASSERT(command_view.IsValid());
   gd_hci::PageScanType page_scan_type = gd_hci::PageScanType::STANDARD;
-  auto packet = bluetooth::hci::ReadPageScanTypeCompleteBuilder::Create(
-      kNumCommandPackets, ErrorCode::SUCCESS, page_scan_type);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::ReadPageScanTypeCompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS, page_scan_type));
 }
 
 void DualModeController::WritePageScanType(CommandView command) {
   auto command_view = gd_hci::WritePageScanTypeView::Create(
       gd_hci::DiscoveryCommandView::Create(command));
   ASSERT(command_view.IsValid());
-  auto packet = bluetooth::hci::WritePageScanTypeCompleteBuilder::Create(
-      kNumCommandPackets, ErrorCode::SUCCESS);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::WritePageScanTypeCompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS));
 }
 
 void DualModeController::ReadInquiryScanType(CommandView command) {
@@ -1045,18 +1021,16 @@ void DualModeController::ReadInquiryScanType(CommandView command) {
       gd_hci::DiscoveryCommandView::Create(command));
   ASSERT(command_view.IsValid());
   gd_hci::InquiryScanType inquiry_scan_type = gd_hci::InquiryScanType::STANDARD;
-  auto packet = bluetooth::hci::ReadInquiryScanTypeCompleteBuilder::Create(
-      kNumCommandPackets, ErrorCode::SUCCESS, inquiry_scan_type);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::ReadInquiryScanTypeCompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS, inquiry_scan_type));
 }
 
 void DualModeController::WriteInquiryScanType(CommandView command) {
   auto command_view = gd_hci::WriteInquiryScanTypeView::Create(
       gd_hci::DiscoveryCommandView::Create(command));
   ASSERT(command_view.IsValid());
-  auto packet = bluetooth::hci::WriteInquiryScanTypeCompleteBuilder::Create(
-      kNumCommandPackets, ErrorCode::SUCCESS);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::WriteInquiryScanTypeCompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS));
 }
 
 void DualModeController::AuthenticationRequested(CommandView command) {
@@ -1067,9 +1041,8 @@ void DualModeController::AuthenticationRequested(CommandView command) {
   uint16_t handle = command_view.GetConnectionHandle();
   auto status = link_layer_controller_.AuthenticationRequested(handle);
 
-  auto packet = bluetooth::hci::AuthenticationRequestedStatusBuilder::Create(
-      status, kNumCommandPackets);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::AuthenticationRequestedStatusBuilder::Create(
+      status, kNumCommandPackets));
 }
 
 void DualModeController::SetConnectionEncryption(CommandView command) {
@@ -1083,9 +1056,8 @@ void DualModeController::SetConnectionEncryption(CommandView command) {
   auto status =
       link_layer_controller_.SetConnectionEncryption(handle, encryption_enable);
 
-  auto packet = bluetooth::hci::SetConnectionEncryptionStatusBuilder::Create(
-      status, kNumCommandPackets);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::SetConnectionEncryptionStatusBuilder::Create(
+      status, kNumCommandPackets));
 }
 
 void DualModeController::ChangeConnectionLinkKey(CommandView command) {
@@ -1097,9 +1069,8 @@ void DualModeController::ChangeConnectionLinkKey(CommandView command) {
 
   auto status = link_layer_controller_.ChangeConnectionLinkKey(handle);
 
-  auto packet = bluetooth::hci::ChangeConnectionLinkKeyStatusBuilder::Create(
-      status, kNumCommandPackets);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::ChangeConnectionLinkKeyStatusBuilder::Create(
+      status, kNumCommandPackets));
 }
 
 void DualModeController::CentralLinkKey(CommandView command) {
@@ -1111,9 +1082,8 @@ void DualModeController::CentralLinkKey(CommandView command) {
 
   auto status = link_layer_controller_.CentralLinkKey(key_flag);
 
-  auto packet = bluetooth::hci::CentralLinkKeyStatusBuilder::Create(
-      status, kNumCommandPackets);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::CentralLinkKeyStatusBuilder::Create(
+      status, kNumCommandPackets));
 }
 
 void DualModeController::WriteAuthenticationEnable(CommandView command) {
@@ -1122,20 +1092,18 @@ void DualModeController::WriteAuthenticationEnable(CommandView command) {
   ASSERT(command_view.IsValid());
   properties_.SetAuthenticationEnable(
       static_cast<uint8_t>(command_view.GetAuthenticationEnable()));
-  auto packet =
+  send_event_(
       bluetooth::hci::WriteAuthenticationEnableCompleteBuilder::Create(
-          kNumCommandPackets, ErrorCode::SUCCESS);
-  send_event_(std::move(packet));
+          kNumCommandPackets, ErrorCode::SUCCESS));
 }
 
 void DualModeController::ReadAuthenticationEnable(CommandView command) {
   auto command_view = gd_hci::ReadAuthenticationEnableView::Create(command);
   ASSERT(command_view.IsValid());
-  auto packet = bluetooth::hci::ReadAuthenticationEnableCompleteBuilder::Create(
+  send_event_(bluetooth::hci::ReadAuthenticationEnableCompleteBuilder::Create(
       kNumCommandPackets, ErrorCode::SUCCESS,
       static_cast<bluetooth::hci::AuthenticationEnable>(
-          properties_.GetAuthenticationEnable()));
-  send_event_(std::move(packet));
+          properties_.GetAuthenticationEnable())));
 }
 
 void DualModeController::WriteClassOfDevice(CommandView command) {
@@ -1145,9 +1113,8 @@ void DualModeController::WriteClassOfDevice(CommandView command) {
   ClassOfDevice class_of_device = command_view.GetClassOfDevice();
   properties_.SetClassOfDevice(class_of_device.cod[0], class_of_device.cod[1],
                                class_of_device.cod[2]);
-  auto packet = bluetooth::hci::WriteClassOfDeviceCompleteBuilder::Create(
-      kNumCommandPackets, ErrorCode::SUCCESS);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::WriteClassOfDeviceCompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS));
 }
 
 void DualModeController::ReadPageTimeout(CommandView command) {
@@ -1155,18 +1122,16 @@ void DualModeController::ReadPageTimeout(CommandView command) {
       gd_hci::DiscoveryCommandView::Create(command));
   ASSERT(command_view.IsValid());
   uint16_t page_timeout = 0x2000;
-  auto packet = bluetooth::hci::ReadPageTimeoutCompleteBuilder::Create(
-      kNumCommandPackets, ErrorCode::SUCCESS, page_timeout);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::ReadPageTimeoutCompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS, page_timeout));
 }
 
 void DualModeController::WritePageTimeout(CommandView command) {
   auto command_view = gd_hci::WritePageTimeoutView::Create(
       gd_hci::DiscoveryCommandView::Create(command));
   ASSERT(command_view.IsValid());
-  auto packet = bluetooth::hci::WritePageTimeoutCompleteBuilder::Create(
-      kNumCommandPackets, ErrorCode::SUCCESS);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::WritePageTimeoutCompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS));
 }
 
 void DualModeController::HoldMode(CommandView command) {
@@ -1181,9 +1146,8 @@ void DualModeController::HoldMode(CommandView command) {
   auto status = link_layer_controller_.HoldMode(handle, hold_mode_max_interval,
                                                 hold_mode_min_interval);
 
-  auto packet =
-      bluetooth::hci::HoldModeStatusBuilder::Create(status, kNumCommandPackets);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::HoldModeStatusBuilder::Create(
+      status, kNumCommandPackets));
 }
 
 void DualModeController::SniffMode(CommandView command) {
@@ -1201,9 +1165,8 @@ void DualModeController::SniffMode(CommandView command) {
                                                  sniff_min_interval,
                                                  sniff_attempt, sniff_timeout);
 
-  auto packet = bluetooth::hci::SniffModeStatusBuilder::Create(
-      status, kNumCommandPackets);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::SniffModeStatusBuilder::Create(
+      status, kNumCommandPackets));
 }
 
 void DualModeController::ExitSniffMode(CommandView command) {
@@ -1215,9 +1178,8 @@ void DualModeController::ExitSniffMode(CommandView command) {
   auto status =
       link_layer_controller_.ExitSniffMode(command_view.GetConnectionHandle());
 
-  auto packet = bluetooth::hci::ExitSniffModeStatusBuilder::Create(
-      status, kNumCommandPackets);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::ExitSniffModeStatusBuilder::Create(
+      status, kNumCommandPackets));
 }
 
 void DualModeController::QosSetup(CommandView command) {
@@ -1236,9 +1198,8 @@ void DualModeController::QosSetup(CommandView command) {
       link_layer_controller_.QosSetup(handle, service_type, token_rate,
                                       peak_bandwidth, latency, delay_variation);
 
-  auto packet =
-      bluetooth::hci::QosSetupStatusBuilder::Create(status, kNumCommandPackets);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::QosSetupStatusBuilder::Create(
+      status, kNumCommandPackets));
 }
 
 void DualModeController::RoleDiscovery(CommandView command) {
@@ -1250,9 +1211,8 @@ void DualModeController::RoleDiscovery(CommandView command) {
 
   auto status = link_layer_controller_.RoleDiscovery(handle);
 
-  auto packet = bluetooth::hci::RoleDiscoveryCompleteBuilder::Create(
-      kNumCommandPackets, status, handle, bluetooth::hci::Role::CENTRAL);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::RoleDiscoveryCompleteBuilder::Create(
+      kNumCommandPackets, status, handle, bluetooth::hci::Role::CENTRAL));
 }
 
 void DualModeController::ReadDefaultLinkPolicySettings(CommandView command) {
@@ -1261,10 +1221,9 @@ void DualModeController::ReadDefaultLinkPolicySettings(CommandView command) {
           gd_hci::AclCommandView::Create(command)));
   ASSERT(command_view.IsValid());
   uint16_t settings = link_layer_controller_.ReadDefaultLinkPolicySettings();
-  auto packet =
+  send_event_(
       bluetooth::hci::ReadDefaultLinkPolicySettingsCompleteBuilder::Create(
-          kNumCommandPackets, ErrorCode::SUCCESS, settings);
-  send_event_(std::move(packet));
+          kNumCommandPackets, ErrorCode::SUCCESS, settings));
 }
 
 void DualModeController::WriteDefaultLinkPolicySettings(CommandView command) {
@@ -1274,10 +1233,9 @@ void DualModeController::WriteDefaultLinkPolicySettings(CommandView command) {
   ASSERT(command_view.IsValid());
   ErrorCode status = link_layer_controller_.WriteDefaultLinkPolicySettings(
       command_view.GetDefaultLinkPolicySettings());
-  auto packet =
+  send_event_(
       bluetooth::hci::WriteDefaultLinkPolicySettingsCompleteBuilder::Create(
-          kNumCommandPackets, status);
-  send_event_(std::move(packet));
+          kNumCommandPackets, status));
 }
 
 void DualModeController::FlowSpecification(CommandView command) {
@@ -1298,9 +1256,8 @@ void DualModeController::FlowSpecification(CommandView command) {
       handle, flow_direction, service_type, token_rate, token_bucket_size,
       peak_bandwidth, access_latency);
 
-  auto packet = bluetooth::hci::FlowSpecificationStatusBuilder::Create(
-      status, kNumCommandPackets);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::FlowSpecificationStatusBuilder::Create(
+      status, kNumCommandPackets));
 }
 
 void DualModeController::WriteLinkPolicySettings(CommandView command) {
@@ -1315,9 +1272,8 @@ void DualModeController::WriteLinkPolicySettings(CommandView command) {
   auto status =
       link_layer_controller_.WriteLinkPolicySettings(handle, settings);
 
-  auto packet = bluetooth::hci::WriteLinkPolicySettingsCompleteBuilder::Create(
-      kNumCommandPackets, status, handle);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::WriteLinkPolicySettingsCompleteBuilder::Create(
+      kNumCommandPackets, status, handle));
 }
 
 void DualModeController::WriteLinkSupervisionTimeout(CommandView command) {
@@ -1331,10 +1287,9 @@ void DualModeController::WriteLinkSupervisionTimeout(CommandView command) {
 
   auto status =
       link_layer_controller_.WriteLinkSupervisionTimeout(handle, timeout);
-  auto packet =
+  send_event_(
       bluetooth::hci::WriteLinkSupervisionTimeoutCompleteBuilder::Create(
-          kNumCommandPackets, status, handle);
-  send_event_(std::move(packet));
+          kNumCommandPackets, status, handle));
 }
 
 void DualModeController::ReadLocalName(CommandView command) {
@@ -1349,9 +1304,8 @@ void DualModeController::ReadLocalName(CommandView command) {
   }
   std::copy_n(properties_.GetName().begin(), len, local_name.begin());
 
-  auto packet = bluetooth::hci::ReadLocalNameCompleteBuilder::Create(
-      kNumCommandPackets, ErrorCode::SUCCESS, local_name);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::ReadLocalNameCompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS, local_name));
 }
 
 void DualModeController::WriteLocalName(CommandView command) {
@@ -1363,9 +1317,8 @@ void DualModeController::WriteLocalName(CommandView command) {
     name_vec[i] = local_name[i];
   }
   properties_.SetName(name_vec);
-  auto packet = bluetooth::hci::WriteLocalNameCompleteBuilder::Create(
-      kNumCommandPackets, ErrorCode::SUCCESS);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::WriteLocalNameCompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS));
 }
 
 void DualModeController::WriteExtendedInquiryResponse(CommandView command) {
@@ -1373,10 +1326,9 @@ void DualModeController::WriteExtendedInquiryResponse(CommandView command) {
   ASSERT(command_view.IsValid());
   properties_.SetExtendedInquiryData(std::vector<uint8_t>(
       command_view.GetPayload().begin() + 1, command_view.GetPayload().end()));
-  auto packet =
+  send_event_(
       bluetooth::hci::WriteExtendedInquiryResponseCompleteBuilder::Create(
-          kNumCommandPackets, ErrorCode::SUCCESS);
-  send_event_(std::move(packet));
+          kNumCommandPackets, ErrorCode::SUCCESS));
 }
 
 void DualModeController::RefreshEncryptionKey(CommandView command) {
@@ -1384,15 +1336,11 @@ void DualModeController::RefreshEncryptionKey(CommandView command) {
       gd_hci::SecurityCommandView::Create(command));
   ASSERT(command_view.IsValid());
   uint16_t handle = command_view.GetConnectionHandle();
-  auto status_packet =
-      bluetooth::hci::RefreshEncryptionKeyStatusBuilder::Create(
-          ErrorCode::SUCCESS, kNumCommandPackets);
-  send_event_(std::move(status_packet));
+  send_event_(bluetooth::hci::RefreshEncryptionKeyStatusBuilder::Create(
+      ErrorCode::SUCCESS, kNumCommandPackets));
   // TODO: Support this in the link layer
-  auto complete_packet =
-      bluetooth::hci::EncryptionKeyRefreshCompleteBuilder::Create(
-          ErrorCode::SUCCESS, handle);
-  send_event_(std::move(complete_packet));
+  send_event_(bluetooth::hci::EncryptionKeyRefreshCompleteBuilder::Create(
+      ErrorCode::SUCCESS, handle));
 }
 
 void DualModeController::WriteVoiceSetting(CommandView command) {
@@ -1401,9 +1349,8 @@ void DualModeController::WriteVoiceSetting(CommandView command) {
 
   properties_.SetVoiceSetting(command_view.GetVoiceSetting());
 
-  auto packet = bluetooth::hci::WriteVoiceSettingCompleteBuilder::Create(
-      kNumCommandPackets, ErrorCode::SUCCESS);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::WriteVoiceSettingCompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS));
 }
 
 void DualModeController::ReadNumberOfSupportedIac(CommandView command) {
@@ -1411,9 +1358,8 @@ void DualModeController::ReadNumberOfSupportedIac(CommandView command) {
       gd_hci::DiscoveryCommandView::Create(command));
   ASSERT(command_view.IsValid());
   uint8_t num_support_iac = 0x1;
-  auto packet = bluetooth::hci::ReadNumberOfSupportedIacCompleteBuilder::Create(
-      kNumCommandPackets, ErrorCode::SUCCESS, num_support_iac);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::ReadNumberOfSupportedIacCompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS, num_support_iac));
 }
 
 void DualModeController::ReadCurrentIacLap(CommandView command) {
@@ -1422,18 +1368,16 @@ void DualModeController::ReadCurrentIacLap(CommandView command) {
   ASSERT(command_view.IsValid());
   gd_hci::Lap lap;
   lap.lap_ = 0x30;
-  auto packet = bluetooth::hci::ReadCurrentIacLapCompleteBuilder::Create(
-      kNumCommandPackets, ErrorCode::SUCCESS, {lap});
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::ReadCurrentIacLapCompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS, {lap}));
 }
 
 void DualModeController::WriteCurrentIacLap(CommandView command) {
   auto command_view = gd_hci::WriteCurrentIacLapView::Create(
       gd_hci::DiscoveryCommandView::Create(command));
   ASSERT(command_view.IsValid());
-  auto packet = bluetooth::hci::WriteCurrentIacLapCompleteBuilder::Create(
-      kNumCommandPackets, ErrorCode::SUCCESS);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::WriteCurrentIacLapCompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS));
 }
 
 void DualModeController::ReadPageScanActivity(CommandView command) {
@@ -1442,18 +1386,16 @@ void DualModeController::ReadPageScanActivity(CommandView command) {
   ASSERT(command_view.IsValid());
   uint16_t interval = 0x1000;
   uint16_t window = 0x0012;
-  auto packet = bluetooth::hci::ReadPageScanActivityCompleteBuilder::Create(
-      kNumCommandPackets, ErrorCode::SUCCESS, interval, window);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::ReadPageScanActivityCompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS, interval, window));
 }
 
 void DualModeController::WritePageScanActivity(CommandView command) {
   auto command_view = gd_hci::WritePageScanActivityView::Create(
       gd_hci::DiscoveryCommandView::Create(command));
   ASSERT(command_view.IsValid());
-  auto packet = bluetooth::hci::WritePageScanActivityCompleteBuilder::Create(
-      kNumCommandPackets, ErrorCode::SUCCESS);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::WritePageScanActivityCompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS));
 }
 
 void DualModeController::ReadInquiryScanActivity(CommandView command) {
@@ -1462,27 +1404,24 @@ void DualModeController::ReadInquiryScanActivity(CommandView command) {
   ASSERT(command_view.IsValid());
   uint16_t interval = 0x1000;
   uint16_t window = 0x0012;
-  auto packet = bluetooth::hci::ReadInquiryScanActivityCompleteBuilder::Create(
-      kNumCommandPackets, ErrorCode::SUCCESS, interval, window);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::ReadInquiryScanActivityCompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS, interval, window));
 }
 
 void DualModeController::WriteInquiryScanActivity(CommandView command) {
   auto command_view = gd_hci::WriteInquiryScanActivityView::Create(
       gd_hci::DiscoveryCommandView::Create(command));
   ASSERT(command_view.IsValid());
-  auto packet = bluetooth::hci::WriteInquiryScanActivityCompleteBuilder::Create(
-      kNumCommandPackets, ErrorCode::SUCCESS);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::WriteInquiryScanActivityCompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS));
 }
 
 void DualModeController::ReadScanEnable(CommandView command) {
   auto command_view = gd_hci::ReadScanEnableView::Create(
       gd_hci::DiscoveryCommandView::Create(command));
   ASSERT(command_view.IsValid());
-  auto packet = bluetooth::hci::ReadScanEnableCompleteBuilder::Create(
-      kNumCommandPackets, ErrorCode::SUCCESS, gd_hci::ScanEnable::NO_SCANS);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::ReadScanEnableCompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS, gd_hci::ScanEnable::NO_SCANS));
 }
 
 void DualModeController::WriteScanEnable(CommandView command) {
@@ -1497,9 +1436,8 @@ void DualModeController::WriteScanEnable(CommandView command) {
       command_view.GetScanEnable() ==
           gd_hci::ScanEnable::INQUIRY_AND_PAGE_SCAN ||
       command_view.GetScanEnable() == gd_hci::ScanEnable::PAGE_SCAN_ONLY);
-  auto packet = bluetooth::hci::WriteScanEnableCompleteBuilder::Create(
-      kNumCommandPackets, ErrorCode::SUCCESS);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::WriteScanEnableCompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS));
 }
 
 void DualModeController::ReadSynchronousFlowControlEnable(CommandView command) {
@@ -1510,9 +1448,9 @@ void DualModeController::ReadSynchronousFlowControlEnable(CommandView command) {
   if (properties_.GetSynchronousFlowControl()) {
     enabled = bluetooth::hci::Enable::ENABLED;
   }
-  auto packet = bluetooth::hci::ReadSynchronousFlowControlEnableCompleteBuilder::Create(
-      kNumCommandPackets, ErrorCode::SUCCESS, enabled);
-  send_event_(std::move(packet));
+  send_event_(
+      bluetooth::hci::ReadSynchronousFlowControlEnableCompleteBuilder::Create(
+          kNumCommandPackets, ErrorCode::SUCCESS, enabled));
 }
 
 void DualModeController::WriteSynchronousFlowControlEnable(CommandView command) {
@@ -1521,31 +1459,35 @@ void DualModeController::WriteSynchronousFlowControlEnable(CommandView command) 
   ASSERT(command_view.IsValid());
   auto enabled = command_view.GetEnable() == bluetooth::hci::Enable::ENABLED;
   properties_.SetSynchronousFlowControl(enabled);
-  auto packet = bluetooth::hci::WriteSynchronousFlowControlEnableCompleteBuilder::Create(
-      kNumCommandPackets, ErrorCode::SUCCESS);
-  send_event_(std::move(packet));
+  send_event_(
+      bluetooth::hci::WriteSynchronousFlowControlEnableCompleteBuilder::Create(
+          kNumCommandPackets, ErrorCode::SUCCESS));
 }
 
 void DualModeController::SetEventFilter(CommandView command) {
   auto command_view = gd_hci::SetEventFilterView::Create(command);
   ASSERT(command_view.IsValid());
-  auto packet = bluetooth::hci::SetEventFilterCompleteBuilder::Create(
-      kNumCommandPackets, ErrorCode::SUCCESS);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::SetEventFilterCompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS));
 }
 
 void DualModeController::Inquiry(CommandView command) {
   auto command_view = gd_hci::InquiryView::Create(
       gd_hci::DiscoveryCommandView::Create(command));
   ASSERT(command_view.IsValid());
+  auto max_responses = command_view.GetNumResponses();
+  auto length = command_view.GetInquiryLength();
+  if (max_responses > 0xff || length < 1 || length > 0x30) {
+    send_event_(bluetooth::hci::InquiryStatusBuilder::Create(
+        ErrorCode::INVALID_HCI_COMMAND_PARAMETERS, kNumCommandPackets));
+    return;
+  }
   link_layer_controller_.SetInquiryLAP(command_view.GetLap().lap_);
-  link_layer_controller_.SetInquiryMaxResponses(command_view.GetNumResponses());
-  link_layer_controller_.StartInquiry(
-      std::chrono::milliseconds(command_view.GetInquiryLength() * 1280));
+  link_layer_controller_.SetInquiryMaxResponses(max_responses);
+  link_layer_controller_.StartInquiry(std::chrono::milliseconds(length * 1280));
 
-  auto packet = bluetooth::hci::InquiryStatusBuilder::Create(
-      ErrorCode::SUCCESS, kNumCommandPackets);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::InquiryStatusBuilder::Create(
+      ErrorCode::SUCCESS, kNumCommandPackets));
 }
 
 void DualModeController::InquiryCancel(CommandView command) {
@@ -1553,9 +1495,8 @@ void DualModeController::InquiryCancel(CommandView command) {
       gd_hci::DiscoveryCommandView::Create(command));
   ASSERT(command_view.IsValid());
   link_layer_controller_.InquiryCancel();
-  auto packet = bluetooth::hci::InquiryCancelCompleteBuilder::Create(
-      kNumCommandPackets, ErrorCode::SUCCESS);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::InquiryCancelCompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS));
 }
 
 void DualModeController::AcceptConnectionRequest(CommandView command) {
@@ -1568,9 +1509,8 @@ void DualModeController::AcceptConnectionRequest(CommandView command) {
                          gd_hci::AcceptConnectionRequestRole::BECOME_CENTRAL;
   auto status =
       link_layer_controller_.AcceptConnectionRequest(addr, try_role_switch);
-  auto packet = bluetooth::hci::AcceptConnectionRequestStatusBuilder::Create(
-      status, kNumCommandPackets);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::AcceptConnectionRequestStatusBuilder::Create(
+      status, kNumCommandPackets));
 }
 
 void DualModeController::RejectConnectionRequest(CommandView command) {
@@ -1581,9 +1521,8 @@ void DualModeController::RejectConnectionRequest(CommandView command) {
   Address addr = command_view.GetBdAddr();
   uint8_t reason = static_cast<uint8_t>(command_view.GetReason());
   auto status = link_layer_controller_.RejectConnectionRequest(addr, reason);
-  auto packet = bluetooth::hci::RejectConnectionRequestStatusBuilder::Create(
-      status, kNumCommandPackets);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::RejectConnectionRequestStatusBuilder::Create(
+      status, kNumCommandPackets));
 }
 
 void DualModeController::LinkKeyRequestReply(CommandView command) {
@@ -1593,9 +1532,8 @@ void DualModeController::LinkKeyRequestReply(CommandView command) {
   Address addr = command_view.GetBdAddr();
   auto key = command_view.GetLinkKey();
   auto status = link_layer_controller_.LinkKeyRequestReply(addr, key);
-  auto packet = bluetooth::hci::LinkKeyRequestReplyCompleteBuilder::Create(
-      kNumCommandPackets, status, addr);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::LinkKeyRequestReplyCompleteBuilder::Create(
+      kNumCommandPackets, status, addr));
 }
 
 void DualModeController::LinkKeyRequestNegativeReply(CommandView command) {
@@ -1604,10 +1542,9 @@ void DualModeController::LinkKeyRequestNegativeReply(CommandView command) {
   ASSERT(command_view.IsValid());
   Address addr = command_view.GetBdAddr();
   auto status = link_layer_controller_.LinkKeyRequestNegativeReply(addr);
-  auto packet =
+  send_event_(
       bluetooth::hci::LinkKeyRequestNegativeReplyCompleteBuilder::Create(
-          kNumCommandPackets, status, addr);
-  send_event_(std::move(packet));
+          kNumCommandPackets, status, addr));
 }
 
 void DualModeController::DeleteStoredLinkKey(CommandView command) {
@@ -1627,10 +1564,8 @@ void DualModeController::DeleteStoredLinkKey(CommandView command) {
     security_manager_.DeleteAllKeys();
   }
 
-  auto packet = bluetooth::hci::DeleteStoredLinkKeyCompleteBuilder::Create(
-      kNumCommandPackets, ErrorCode::SUCCESS, deleted_keys);
-
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::DeleteStoredLinkKeyCompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS, deleted_keys));
 }
 
 void DualModeController::RemoteNameRequest(CommandView command) {
@@ -1643,18 +1578,16 @@ void DualModeController::RemoteNameRequest(CommandView command) {
   auto status = link_layer_controller_.SendCommandToRemoteByAddress(
       OpCode::REMOTE_NAME_REQUEST, command_view.GetPayload(), remote_addr);
 
-  auto packet = bluetooth::hci::RemoteNameRequestStatusBuilder::Create(
-      status, kNumCommandPackets);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::RemoteNameRequestStatusBuilder::Create(
+      status, kNumCommandPackets));
 }
 
 void DualModeController::LeSetEventMask(CommandView command) {
   auto command_view = gd_hci::LeSetEventMaskView::Create(command);
   ASSERT(command_view.IsValid());
   properties_.SetLeEventMask(command_view.GetLeEventMask());
-  auto packet = bluetooth::hci::LeSetEventMaskCompleteBuilder::Create(
-      kNumCommandPackets, ErrorCode::SUCCESS);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::LeSetEventMaskCompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS));
 }
 
 void DualModeController::LeReadBufferSize(CommandView command) {
@@ -1665,9 +1598,8 @@ void DualModeController::LeReadBufferSize(CommandView command) {
   le_buffer_size.le_data_packet_length_ = properties_.GetLeDataPacketLength();
   le_buffer_size.total_num_le_packets_ = properties_.GetTotalNumLeDataPackets();
 
-  auto packet = bluetooth::hci::LeReadBufferSizeV1CompleteBuilder::Create(
-      kNumCommandPackets, ErrorCode::SUCCESS, le_buffer_size);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::LeReadBufferSizeV1CompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS, le_buffer_size));
 }
 
 void DualModeController::LeReadBufferSizeV2(CommandView command) {
@@ -1682,9 +1614,8 @@ void DualModeController::LeReadBufferSizeV2(CommandView command) {
   iso_buffer_size.total_num_le_packets_ =
       properties_.GetTotalNumIsoDataPackets();
 
-  auto packet = bluetooth::hci::LeReadBufferSizeV2CompleteBuilder::Create(
-      kNumCommandPackets, ErrorCode::SUCCESS, le_buffer_size, iso_buffer_size);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::LeReadBufferSizeV2CompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS, le_buffer_size, iso_buffer_size));
 }
 
 void DualModeController::LeSetAddressResolutionEnable(CommandView command) {
@@ -1712,11 +1643,10 @@ void DualModeController::LeSetResovalablePrivateAddressTimeout(CommandView comma
 void DualModeController::LeReadLocalSupportedFeatures(CommandView command) {
   auto command_view = gd_hci::LeReadLocalSupportedFeaturesView::Create(command);
   ASSERT(command_view.IsValid());
-  auto packet =
+  send_event_(
       bluetooth::hci::LeReadLocalSupportedFeaturesCompleteBuilder::Create(
           kNumCommandPackets, ErrorCode::SUCCESS,
-          properties_.GetLeSupportedFeatures());
-  send_event_(std::move(packet));
+          properties_.GetLeSupportedFeatures()));
 }
 
 void DualModeController::LeSetRandomAddress(CommandView command) {
@@ -1724,9 +1654,8 @@ void DualModeController::LeSetRandomAddress(CommandView command) {
       gd_hci::LeAdvertisingCommandView::Create(command));
   ASSERT(command_view.IsValid());
   properties_.SetLeAddress(command_view.GetRandomAddress());
-  auto packet = bluetooth::hci::LeSetRandomAddressCompleteBuilder::Create(
-      kNumCommandPackets, ErrorCode::SUCCESS);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::LeSetRandomAddressCompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS));
 }
 
 void DualModeController::LeSetAdvertisingParameters(CommandView command) {
@@ -1747,10 +1676,9 @@ void DualModeController::LeSetAdvertisingParameters(CommandView command) {
       command_view.GetChannelMap(),
       static_cast<uint8_t>(command_view.GetFilterPolicy()));
 
-  auto packet =
+  send_event_(
       bluetooth::hci::LeSetAdvertisingParametersCompleteBuilder::Create(
-          kNumCommandPackets, ErrorCode::SUCCESS);
-  send_event_(std::move(packet));
+          kNumCommandPackets, ErrorCode::SUCCESS));
 }
 
 void DualModeController::LeReadAdvertisingPhysicalChannelTxPower(
@@ -1759,11 +1687,10 @@ void DualModeController::LeReadAdvertisingPhysicalChannelTxPower(
       gd_hci::LeReadAdvertisingPhysicalChannelTxPowerView::Create(
           gd_hci::LeAdvertisingCommandView::Create(command));
   ASSERT(command_view.IsValid());
-  auto packet =
+  send_event_(
       bluetooth::hci::LeReadAdvertisingPhysicalChannelTxPowerCompleteBuilder::
           Create(kNumCommandPackets, ErrorCode::SUCCESS,
-                 properties_.GetLeAdvertisingPhysicalChannelTxPower());
-  send_event_(std::move(packet));
+                 properties_.GetLeAdvertisingPhysicalChannelTxPower()));
 }
 
 void DualModeController::LeSetAdvertisingData(CommandView command) {
@@ -1777,9 +1704,8 @@ void DualModeController::LeSetAdvertisingData(CommandView command) {
              gd_hci::OpCodeText(command.GetOpCode()).c_str(), command.size());
   ASSERT(command_view.GetPayload().size() == 32);
   properties_.SetLeAdvertisement(payload_bytes);
-  auto packet = bluetooth::hci::LeSetAdvertisingDataCompleteBuilder::Create(
-      kNumCommandPackets, ErrorCode::SUCCESS);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::LeSetAdvertisingDataCompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS));
 }
 
 void DualModeController::LeSetScanResponseData(CommandView command) {
@@ -1789,9 +1715,8 @@ void DualModeController::LeSetScanResponseData(CommandView command) {
   ASSERT(command_view.GetPayload().size() == 32);
   properties_.SetLeScanResponse(std::vector<uint8_t>(
       command_view.GetPayload().begin() + 1, command_view.GetPayload().end()));
-  auto packet = bluetooth::hci::LeSetScanResponseDataCompleteBuilder::Create(
-      kNumCommandPackets, ErrorCode::SUCCESS);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::LeSetScanResponseDataCompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS));
 }
 
 void DualModeController::LeSetAdvertisingEnable(CommandView command) {
@@ -1815,9 +1740,8 @@ void DualModeController::LeSetScanParameters(CommandView command) {
   link_layer_controller_.SetLeAddressType(command_view.GetOwnAddressType());
   link_layer_controller_.SetLeScanFilterPolicy(
       static_cast<uint8_t>(command_view.GetScanningFilterPolicy()));
-  auto packet = bluetooth::hci::LeSetScanParametersCompleteBuilder::Create(
-      kNumCommandPackets, ErrorCode::SUCCESS);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::LeSetScanParametersCompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS));
 }
 
 void DualModeController::LeSetScanEnable(CommandView command) {
@@ -1831,9 +1755,8 @@ void DualModeController::LeSetScanEnable(CommandView command) {
   }
   link_layer_controller_.SetLeFilterDuplicates(
       command_view.GetFilterDuplicates() == gd_hci::Enable::ENABLED);
-  auto packet = bluetooth::hci::LeSetScanEnableCompleteBuilder::Create(
-      kNumCommandPackets, ErrorCode::SUCCESS);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::LeSetScanEnableCompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS));
 }
 
 void DualModeController::LeCreateConnection(CommandView command) {
@@ -1869,9 +1792,8 @@ void DualModeController::LeCreateConnection(CommandView command) {
 
   auto status = link_layer_controller_.SetLeConnect(true);
 
-  auto packet = bluetooth::hci::LeCreateConnectionStatusBuilder::Create(
-      status, kNumCommandPackets);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::LeCreateConnectionStatusBuilder::Create(
+      status, kNumCommandPackets));
 }
 
 void DualModeController::LeConnectionUpdate(CommandView command) {
@@ -1908,9 +1830,8 @@ void DualModeController::CreateConnection(CommandView command) {
   auto status = link_layer_controller_.CreateConnection(
       address, packet_type, page_scan_mode, clock_offset, allow_role_switch);
 
-  auto packet = bluetooth::hci::CreateConnectionStatusBuilder::Create(
-      status, kNumCommandPackets);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::CreateConnectionStatusBuilder::Create(
+      status, kNumCommandPackets));
 }
 
 void DualModeController::CreateConnectionCancel(CommandView command) {
@@ -1923,9 +1844,8 @@ void DualModeController::CreateConnectionCancel(CommandView command) {
 
   auto status = link_layer_controller_.CreateConnectionCancel(address);
 
-  auto packet = bluetooth::hci::CreateConnectionCancelCompleteBuilder::Create(
-      kNumCommandPackets, status, address);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::CreateConnectionCancelCompleteBuilder::Create(
+      kNumCommandPackets, status, address));
 }
 
 void DualModeController::Disconnect(CommandView command) {
@@ -1939,9 +1859,8 @@ void DualModeController::Disconnect(CommandView command) {
 
   auto status = link_layer_controller_.Disconnect(handle, reason);
 
-  auto packet = bluetooth::hci::DisconnectStatusBuilder::Create(
-      status, kNumCommandPackets);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::DisconnectStatusBuilder::Create(
+      status, kNumCommandPackets));
 }
 
 void DualModeController::LeConnectionCancel(CommandView command) {
@@ -1967,10 +1886,9 @@ void DualModeController::LeReadConnectListSize(CommandView command) {
       gd_hci::LeConnectionManagementCommandView::Create(
           gd_hci::AclCommandView::Create(command)));
   ASSERT(command_view.IsValid());
-  auto packet = bluetooth::hci::LeReadConnectListSizeCompleteBuilder::Create(
+  send_event_(bluetooth::hci::LeReadConnectListSizeCompleteBuilder::Create(
       kNumCommandPackets, ErrorCode::SUCCESS,
-      properties_.GetLeConnectListSize());
-  send_event_(std::move(packet));
+      properties_.GetLeConnectListSize()));
 }
 
 void DualModeController::LeClearConnectList(CommandView command) {
@@ -1979,9 +1897,8 @@ void DualModeController::LeClearConnectList(CommandView command) {
           gd_hci::AclCommandView::Create(command)));
   ASSERT(command_view.IsValid());
   link_layer_controller_.LeConnectListClear();
-  auto packet = bluetooth::hci::LeClearConnectListCompleteBuilder::Create(
-      kNumCommandPackets, ErrorCode::SUCCESS);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::LeClearConnectListCompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS));
 }
 
 void DualModeController::LeAddDeviceToConnectList(CommandView command) {
@@ -1994,9 +1911,8 @@ void DualModeController::LeAddDeviceToConnectList(CommandView command) {
   Address address = command_view.GetAddress();
   ErrorCode result =
       link_layer_controller_.LeConnectListAddDevice(address, addr_type);
-  auto packet = bluetooth::hci::LeAddDeviceToConnectListCompleteBuilder::Create(
-      kNumCommandPackets, result);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::LeAddDeviceToConnectListCompleteBuilder::Create(
+      kNumCommandPackets, result));
 }
 
 void DualModeController::LeRemoveDeviceFromConnectList(CommandView command) {
@@ -2008,10 +1924,9 @@ void DualModeController::LeRemoveDeviceFromConnectList(CommandView command) {
   uint8_t addr_type = static_cast<uint8_t>(command_view.GetAddressType());
   Address address = command_view.GetAddress();
   link_layer_controller_.LeConnectListRemoveDevice(address, addr_type);
-  auto packet =
+  send_event_(
       bluetooth::hci::LeRemoveDeviceFromConnectListCompleteBuilder::Create(
-          kNumCommandPackets, ErrorCode::SUCCESS);
-  send_event_(std::move(packet));
+          kNumCommandPackets, ErrorCode::SUCCESS));
 }
 
 void DualModeController::LeClearResolvingList(CommandView command) {
@@ -2019,19 +1934,17 @@ void DualModeController::LeClearResolvingList(CommandView command) {
       gd_hci::LeSecurityCommandView::Create(command));
   ASSERT(command_view.IsValid());
   link_layer_controller_.LeResolvingListClear();
-  auto packet = bluetooth::hci::LeClearResolvingListCompleteBuilder::Create(
-      kNumCommandPackets, ErrorCode::SUCCESS);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::LeClearResolvingListCompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS));
 }
 
 void DualModeController::LeReadResolvingListSize(CommandView command) {
   auto command_view = gd_hci::LeReadResolvingListSizeView::Create(
       gd_hci::LeSecurityCommandView::Create(command));
   ASSERT(command_view.IsValid());
-  auto packet = bluetooth::hci::LeReadResolvingListSizeCompleteBuilder::Create(
+  send_event_(bluetooth::hci::LeReadResolvingListSizeCompleteBuilder::Create(
       kNumCommandPackets, ErrorCode::SUCCESS,
-      properties_.GetLeResolvingListSize());
-  send_event_(std::move(packet));
+      properties_.GetLeResolvingListSize()));
 }
 
 void DualModeController::LeReadMaximumDataLength(CommandView command) {
@@ -2092,10 +2005,8 @@ void DualModeController::LeAddDeviceToResolvingList(CommandView command) {
   auto status = link_layer_controller_.LeResolvingListAddDevice(
       address, addr_type, command_view.GetPeerIrk(),
       command_view.GetLocalIrk());
-  auto packet =
-      bluetooth::hci::LeAddDeviceToResolvingListCompleteBuilder::Create(
-          kNumCommandPackets, status);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::LeAddDeviceToResolvingListCompleteBuilder::Create(
+      kNumCommandPackets, status));
 }
 
 void DualModeController::LeRemoveDeviceFromResolvingList(CommandView command) {
@@ -2107,10 +2018,9 @@ void DualModeController::LeRemoveDeviceFromResolvingList(CommandView command) {
       static_cast<uint8_t>(command_view.GetPeerIdentityAddressType());
   Address address = command_view.GetPeerIdentityAddress();
   link_layer_controller_.LeResolvingListRemoveDevice(address, addr_type);
-  auto packet =
+  send_event_(
       bluetooth::hci::LeRemoveDeviceFromResolvingListCompleteBuilder::Create(
-          kNumCommandPackets, ErrorCode::SUCCESS);
-  send_event_(std::move(packet));
+          kNumCommandPackets, ErrorCode::SUCCESS));
 }
 
 void DualModeController::LeSetExtendedScanParameters(CommandView command) {
@@ -2151,9 +2061,8 @@ void DualModeController::LeSetExtendedScanEnable(CommandView command) {
   }
   link_layer_controller_.SetLeFilterDuplicates(
       command_view.GetFilterDuplicates() == gd_hci::FilterDuplicates::ENABLED);
-  auto packet = bluetooth::hci::LeSetExtendedScanEnableCompleteBuilder::Create(
-      kNumCommandPackets, ErrorCode::SUCCESS);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::LeSetExtendedScanEnableCompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS));
 }
 
 void DualModeController::LeExtendedCreateConnection(CommandView command) {
@@ -2208,9 +2117,8 @@ void DualModeController::LeSetPrivacyMode(CommandView command) {
         peer_identity_address_type, peer_identity_address, privacy_mode);
   }
 
-  auto packet = bluetooth::hci::LeSetPrivacyModeCompleteBuilder::Create(
-      kNumCommandPackets, ErrorCode::SUCCESS);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::LeSetPrivacyModeCompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS));
 }
 
 void DualModeController::LeReadIsoTxSync(CommandView command) {
@@ -2377,9 +2285,8 @@ void DualModeController::LeReadRemoteFeatures(CommandView command) {
   auto status = link_layer_controller_.SendCommandToRemoteByHandle(
       OpCode::LE_READ_REMOTE_FEATURES, command_view.GetPayload(), handle);
 
-  auto packet = bluetooth::hci::LeReadRemoteFeaturesStatusBuilder::Create(
-      status, kNumCommandPackets);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::LeReadRemoteFeaturesStatusBuilder::Create(
+      status, kNumCommandPackets));
 }
 
 
@@ -2393,18 +2300,16 @@ void DualModeController::LeRand(CommandView command) {
 
   uint64_t random_val = s_mt();
 
-  auto packet = bluetooth::hci::LeRandCompleteBuilder::Create(
-      kNumCommandPackets, ErrorCode::SUCCESS, random_val);
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::LeRandCompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS, random_val));
 }
 
 void DualModeController::LeReadSupportedStates(CommandView command) {
   auto command_view = gd_hci::LeReadSupportedStatesView::Create(command);
   ASSERT(command_view.IsValid());
-  auto packet = bluetooth::hci::LeReadSupportedStatesCompleteBuilder::Create(
+  send_event_(bluetooth::hci::LeReadSupportedStatesCompleteBuilder::Create(
       kNumCommandPackets, ErrorCode::SUCCESS,
-      properties_.GetLeSupportedStates());
-  send_event_(std::move(packet));
+      properties_.GetLeSupportedStates()));
 }
 
 void DualModeController::LeRemoteConnectionParameterRequestReply(
@@ -2456,10 +2361,9 @@ void DualModeController::LeVendorCap(CommandView command) {
   raw_builder_ptr->AddOctets1(static_cast<uint8_t>(ErrorCode::SUCCESS));
   raw_builder_ptr->AddOctets(properties_.GetLeVendorCap());
 
-  auto packet = bluetooth::hci::CommandCompleteBuilder::Create(
+  send_event_(bluetooth::hci::CommandCompleteBuilder::Create(
       kNumCommandPackets, OpCode::LE_GET_VENDOR_CAPABILITIES,
-      std::move(raw_builder_ptr));
-  send_event_(std::move(packet));
+      std::move(raw_builder_ptr)));
 }
 
 void DualModeController::LeVendorMultiAdv(CommandView command) {
@@ -2512,7 +2416,8 @@ void DualModeController::LeSetExtendedAdvertisingParameters(
       command_view.GetPrimaryAdvertisingIntervalMax(),
       command_view.GetAdvertisingEventLegacyProperties(),
       command_view.GetOwnAddressType(), command_view.GetPeerAddressType(),
-      command_view.GetPeerAddress(), command_view.GetAdvertisingFilterPolicy());
+      command_view.GetPeerAddress(), command_view.GetAdvertisingFilterPolicy(),
+      command_view.GetAdvertisingTxPower());
 
   send_event_(
       bluetooth::hci::LeSetExtendedAdvertisingParametersCompleteBuilder::Create(
@@ -2529,10 +2434,9 @@ void DualModeController::LeSetExtendedAdvertisingData(CommandView command) {
   link_layer_controller_.SetLeExtendedAdvertisingData(
       command_view.GetAdvertisingHandle(),
       raw_command_view.GetAdvertisingData());
-  auto packet =
+  send_event_(
       bluetooth::hci::LeSetExtendedAdvertisingDataCompleteBuilder::Create(
-          kNumCommandPackets, ErrorCode::SUCCESS);
-  send_event_(std::move(packet));
+          kNumCommandPackets, ErrorCode::SUCCESS));
 }
 
 void DualModeController::LeSetExtendedAdvertisingScanResponse(
@@ -2668,18 +2572,16 @@ void DualModeController::ReadClassOfDevice(CommandView command) {
       gd_hci::DiscoveryCommandView::Create(command));
   ASSERT(command_view.IsValid());
 
-  auto packet = bluetooth::hci::ReadClassOfDeviceCompleteBuilder::Create(
-      kNumCommandPackets, ErrorCode::SUCCESS, properties_.GetClassOfDevice());
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::ReadClassOfDeviceCompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS, properties_.GetClassOfDevice()));
 }
 
 void DualModeController::ReadVoiceSetting(CommandView command) {
   auto command_view = gd_hci::ReadVoiceSettingView::Create(command);
   ASSERT(command_view.IsValid());
 
-  auto packet = bluetooth::hci::ReadVoiceSettingCompleteBuilder::Create(
-      kNumCommandPackets, ErrorCode::SUCCESS, properties_.GetVoiceSetting());
-  send_event_(std::move(packet));
+  send_event_(bluetooth::hci::ReadVoiceSettingCompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS, properties_.GetVoiceSetting()));
 }
 
 void DualModeController::ReadConnectionAcceptTimeout(CommandView command) {
@@ -2688,11 +2590,10 @@ void DualModeController::ReadConnectionAcceptTimeout(CommandView command) {
           gd_hci::AclCommandView::Create(command)));
   ASSERT(command_view.IsValid());
 
-  auto packet =
+  send_event_(
       bluetooth::hci::ReadConnectionAcceptTimeoutCompleteBuilder::Create(
           kNumCommandPackets, ErrorCode::SUCCESS,
-          properties_.GetConnectionAcceptTimeout());
-  send_event_(std::move(packet));
+          properties_.GetConnectionAcceptTimeout()));
 }
 
 void DualModeController::WriteConnectionAcceptTimeout(CommandView command) {
@@ -2703,19 +2604,17 @@ void DualModeController::WriteConnectionAcceptTimeout(CommandView command) {
 
   properties_.SetConnectionAcceptTimeout(command_view.GetConnAcceptTimeout());
 
-  auto packet =
+  send_event_(
       bluetooth::hci::WriteConnectionAcceptTimeoutCompleteBuilder::Create(
-          kNumCommandPackets, ErrorCode::SUCCESS);
-  send_event_(std::move(packet));
+          kNumCommandPackets, ErrorCode::SUCCESS));
 }
 
 void DualModeController::ReadLoopbackMode(CommandView command) {
   auto command_view = gd_hci::ReadLoopbackModeView::Create(command);
   ASSERT(command_view.IsValid());
-  auto packet = bluetooth::hci::ReadLoopbackModeCompleteBuilder::Create(
+  send_event_(bluetooth::hci::ReadLoopbackModeCompleteBuilder::Create(
       kNumCommandPackets, ErrorCode::SUCCESS,
-      static_cast<LoopbackMode>(loopback_mode_));
-  send_event_(std::move(packet));
+      static_cast<LoopbackMode>(loopback_mode_)));
 }
 
 void DualModeController::WriteLoopbackMode(CommandView command) {
@@ -2724,19 +2623,16 @@ void DualModeController::WriteLoopbackMode(CommandView command) {
   loopback_mode_ = command_view.GetLoopbackMode();
   // ACL channel
   uint16_t acl_handle = 0x123;
-  auto packet_acl = bluetooth::hci::ConnectionCompleteBuilder::Create(
+  send_event_(bluetooth::hci::ConnectionCompleteBuilder::Create(
       ErrorCode::SUCCESS, acl_handle, properties_.GetAddress(),
-      bluetooth::hci::LinkType::ACL, bluetooth::hci::Enable::DISABLED);
-  send_event_(std::move(packet_acl));
+      bluetooth::hci::LinkType::ACL, bluetooth::hci::Enable::DISABLED));
   // SCO channel
   uint16_t sco_handle = 0x345;
-  auto packet_sco = bluetooth::hci::ConnectionCompleteBuilder::Create(
+  send_event_(bluetooth::hci::ConnectionCompleteBuilder::Create(
       ErrorCode::SUCCESS, sco_handle, properties_.GetAddress(),
-      bluetooth::hci::LinkType::SCO, bluetooth::hci::Enable::DISABLED);
-  send_event_(std::move(packet_sco));
-  auto packet = bluetooth::hci::WriteLoopbackModeCompleteBuilder::Create(
-      kNumCommandPackets, ErrorCode::SUCCESS);
-  send_event_(std::move(packet));
+      bluetooth::hci::LinkType::SCO, bluetooth::hci::Enable::DISABLED));
+  send_event_(bluetooth::hci::WriteLoopbackModeCompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS));
 }
 
 void DualModeController::SetAddress(Address address) {

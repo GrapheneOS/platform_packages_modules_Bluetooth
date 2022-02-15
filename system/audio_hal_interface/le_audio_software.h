@@ -20,6 +20,8 @@
 
 #include <functional>
 
+#include "bta/le_audio/codec_manager.h"
+#include "bta/le_audio/le_audio_types.h"
 #include "common/message_loop_thread.h"
 
 namespace bluetooth {
@@ -47,6 +49,9 @@ struct StreamCallbacks {
   std::function<bool(const sink_metadata_t&)> on_sink_metadata_update_;
 };
 
+std::vector<::le_audio::set_configurations::AudioSetConfiguration>
+get_offload_capabilities();
+
 class LeAudioClientInterface {
  public:
   struct PcmParameters {
@@ -67,6 +72,8 @@ class LeAudioClientInterface {
     virtual void StopSession() = 0;
     virtual void ConfirmStreamingRequest() = 0;
     virtual void CancelStreamingRequest() = 0;
+    virtual void UpdateAudioConfigToHal(
+        const ::le_audio::offload_config& config) = 0;
   };
 
  public:
@@ -81,7 +88,8 @@ class LeAudioClientInterface {
     void StopSession() override;
     void ConfirmStreamingRequest() override;
     void CancelStreamingRequest() override;
-
+    void UpdateAudioConfigToHal(
+        const ::le_audio::offload_config& config) override;
     // Read the stream of bytes sinked to us by the upper layers
     size_t Read(uint8_t* p_buf, uint32_t len);
   };
@@ -96,7 +104,8 @@ class LeAudioClientInterface {
     void StopSession() override;
     void ConfirmStreamingRequest() override;
     void CancelStreamingRequest() override;
-
+    void UpdateAudioConfigToHal(
+        const ::le_audio::offload_config& config) override;
     // Source the given stream of bytes to be sinked into the upper layers
     size_t Write(const uint8_t* p_buf, uint32_t len);
   };

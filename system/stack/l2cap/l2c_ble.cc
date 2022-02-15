@@ -28,11 +28,8 @@
 #include <base/strings/stringprintf.h>
 
 #include "bt_target.h"
-#include "bta_hearing_aid_api.h"
+#include "bta/include/bta_hearing_aid_api.h"
 #include "device/include/controller.h"
-#include "l2c_api.h"
-#include "l2c_int.h"
-#include "l2cdefs.h"
 #include "main/shim/l2c_api.h"
 #include "main/shim/shim.h"
 #include "osi/include/allocator.h"
@@ -41,6 +38,9 @@
 #include "stack/btm/btm_dev.h"
 #include "stack/btm/btm_sec.h"
 #include "stack/include/acl_api.h"
+#include "stack/include/l2c_api.h"
+#include "stack/include/l2cdefs.h"
+#include "stack/l2cap/l2c_int.h"
 #include "stack_config.h"
 #include "types/raw_address.h"
 
@@ -812,6 +812,11 @@ void l2cble_process_sig_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
 
     case L2CAP_CMD_CREDIT_BASED_RECONFIG_RES: {
       uint16_t result;
+      if (p + sizeof(uint16_t) > p_pkt_end) {
+        android_errorWriteLog(0x534e4554, "212694559");
+        LOG(ERROR) << "invalid read";
+        return;
+      }
       STREAM_TO_UINT16(result, p);
 
       L2CAP_TRACE_DEBUG(
@@ -1431,6 +1436,7 @@ void l2cble_sec_comp(const RawAddress* bda, tBT_TRANSPORT transport,
 
     if (status != BTM_SUCCESS) {
       (*(p_buf->p_callback))(p_bda, BT_TRANSPORT_LE, p_buf->p_ref_data, status);
+      osi_free(p_buf);
     } else {
       if (sec_act == BTM_SEC_ENCRYPT_MITM) {
         if (BTM_IsLinkKeyAuthed(p_bda, transport))
@@ -1448,24 +1454,28 @@ void l2cble_sec_comp(const RawAddress* bda, tBT_TRANSPORT transport,
         (*(p_buf->p_callback))(p_bda, BT_TRANSPORT_LE, p_buf->p_ref_data,
                                status);
       }
+      osi_free(p_buf);
     }
   } else {
     L2CAP_TRACE_WARNING(
         "%s Security complete for request not initiated from L2CAP", __func__);
     return;
   }
-  osi_free(p_buf);
 
   while (!fixed_queue_is_empty(p_lcb->le_sec_pending_q)) {
     p_buf = (tL2CAP_SEC_DATA*)fixed_queue_dequeue(p_lcb->le_sec_pending_q);
 
-    if (status != BTM_SUCCESS)
+    if (status != BTM_SUCCESS) {
       (*(p_buf->p_callback))(p_bda, BT_TRANSPORT_LE, p_buf->p_ref_data, status);
-    else
+      osi_free(p_buf);
+    }
+    else {
       l2ble_sec_access_req(p_bda, p_buf->psm, p_buf->is_originator,
-                           p_buf->p_callback, p_buf->p_ref_data);
+          p_buf->p_callback, p_buf->p_ref_data);
 
-    osi_free(p_buf);
+      osi_free(p_buf);
+      break;
+    }
   }
 }
 

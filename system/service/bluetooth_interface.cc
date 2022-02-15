@@ -51,6 +51,7 @@
 #include "bta/include/bta_hearing_aid_api.h"
 #include "bta/include/bta_hf_client_api.h"
 #include "bta/include/bta_le_audio_api.h"
+#include "bta/include/bta_le_audio_broadcaster_api.h"
 #include "btif/avrcp/avrcp_service.h"
 #include "btif/include/stack_manager.h"
 #include "btif_a2dp.h"
@@ -404,6 +405,7 @@ static void dump(int fd, const char** arguments) {
   bluetooth::csis::CsisClient::DebugDump(fd);
   HearingAid::DebugDump(fd);
   LeAudioClient::DebugDump(fd);
+  LeAudioBroadcaster::DebugDump(fd);
   connection_manager::dump(fd);
   bluetooth::bqr::DebugDump(fd);
   if (bluetooth::shim::is_any_gd_enabled()) {
@@ -584,6 +586,12 @@ static int set_dynamic_audio_buffer_size(int codec, int size) {
   return btif_set_dynamic_audio_buffer_size(codec, size);
 }
 
+static bool allow_low_latency_audio(bool allowed, const RawAddress& address) {
+  LOG_INFO("%s %s", __func__, allowed ? "true" : "false");
+  // Call HAL here
+  return true;
+}
+
 EXPORT_SYMBOL bt_interface_t bluetoothInterface = {
     sizeof(bluetoothInterface),
     init,
@@ -622,7 +630,8 @@ EXPORT_SYMBOL bt_interface_t bluetoothInterface = {
     obfuscate_address,
     get_metric_id,
     set_dynamic_audio_buffer_size,
-    generate_local_oob_data};
+    generate_local_oob_data,
+    allow_low_latency_audio};
 
 // callback reporting helpers
 

@@ -11,12 +11,21 @@ pub enum BthfConnectionState {
     Disconnected = 0,
     Connecting,
     Connected,
+    SlcConnected,
     Disconnecting,
 }
 
 impl From<u32> for BthfConnectionState {
     fn from(item: u32) -> Self {
         BthfConnectionState::from_u32(item).unwrap()
+    }
+}
+
+bitflags! {
+    pub struct HfpCodecCapability: i32 {
+        const UNSUPPORTED = 0b00;
+        const CVSD = 0b01;
+        const MSBC = 0b10;
     }
 }
 
@@ -36,7 +45,9 @@ pub mod ffi {
 
         fn init(self: Pin<&mut HfpIntf>) -> i32;
         fn connect(self: Pin<&mut HfpIntf>, bt_addr: RustRawAddress) -> i32;
+        fn connect_audio(self: Pin<&mut HfpIntf>, bt_addr: RustRawAddress) -> i32;
         fn disconnect(self: Pin<&mut HfpIntf>, bt_addr: RustRawAddress) -> i32;
+        fn disconnect_audio(self: Pin<&mut HfpIntf>, bt_addr: RustRawAddress) -> i32;
         fn cleanup(self: Pin<&mut HfpIntf>);
 
     }
@@ -106,8 +117,16 @@ impl Hfp {
         self.internal.pin_mut().connect(addr.into());
     }
 
+    pub fn connect_audio(&mut self, addr: RawAddress) -> i32 {
+        self.internal.pin_mut().connect_audio(addr.into())
+    }
+
     pub fn disconnect(&mut self, addr: RawAddress) {
         self.internal.pin_mut().disconnect(addr.into());
+    }
+
+    pub fn disconnect_audio(&mut self, addr: RawAddress) -> i32 {
+        self.internal.pin_mut().disconnect_audio(addr.into())
     }
 
     pub fn cleanup(&mut self) -> bool {

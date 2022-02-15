@@ -14,13 +14,11 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from datetime import timedelta
-
 from blueberry.tests.gd.cert.matchers import HciMatchers, NeighborMatchers
 from blueberry.tests.gd.cert.py_hci import PyHci
 from blueberry.tests.gd.cert.truth import assertThat
 from blueberry.tests.gd.cert.py_neighbor import PyNeighbor
-from neighbor.facade import facade_pb2 as neighbor_facade
+from blueberry.facade.neighbor import facade_pb2 as neighbor_facade
 from bluetooth_packets_python3 import hci_packets
 from bluetooth_packets_python3.hci_packets import OpCode
 from blueberry.tests.gd.cert import gd_base_test
@@ -57,22 +55,21 @@ class NeighborTest(gd_base_test.GdBaseTestClass):
         inquiry_msg = neighbor_facade.InquiryMsg(
             inquiry_mode=neighbor_facade.DiscoverabilityMode.GENERAL,
             result_mode=neighbor_facade.ResultMode.STANDARD,
-            length_1_28s=3,
+            length_1_28s=30,
             max_results=0)
         session = self.dut_neighbor.set_inquiry_mode(inquiry_msg)
         self.cert_hci.send_command(hci_packets.WriteScanEnableBuilder(hci_packets.ScanEnable.INQUIRY_AND_PAGE_SCAN))
-        assertThat(session).emits(NeighborMatchers.InquiryResult(self.cert_address), timeout=timedelta(seconds=10))
+        assertThat(session).emits(NeighborMatchers.InquiryResult(self.cert_address))
 
     def test_inquiry_rssi_from_dut(self):
         inquiry_msg = neighbor_facade.InquiryMsg(
             inquiry_mode=neighbor_facade.DiscoverabilityMode.GENERAL,
             result_mode=neighbor_facade.ResultMode.RSSI,
-            length_1_28s=6,
+            length_1_28s=31,
             max_results=0)
         session = self.dut_neighbor.set_inquiry_mode(inquiry_msg)
         self.cert_hci.send_command(hci_packets.WriteScanEnableBuilder(hci_packets.ScanEnable.INQUIRY_AND_PAGE_SCAN))
-        assertThat(session).emits(
-            NeighborMatchers.InquiryResultwithRssi(self.cert_address), timeout=timedelta(seconds=10))
+        assertThat(session).emits(NeighborMatchers.InquiryResultwithRssi(self.cert_address))
 
     def test_inquiry_extended_from_dut(self):
         self._set_name()
@@ -86,12 +83,11 @@ class NeighborTest(gd_base_test.GdBaseTestClass):
         inquiry_msg = neighbor_facade.InquiryMsg(
             inquiry_mode=neighbor_facade.DiscoverabilityMode.GENERAL,
             result_mode=neighbor_facade.ResultMode.EXTENDED,
-            length_1_28s=8,
+            length_1_28s=32,
             max_results=0)
         session = self.dut_neighbor.set_inquiry_mode(inquiry_msg)
         self.cert_hci.send_command(hci_packets.WriteScanEnableBuilder(hci_packets.ScanEnable.INQUIRY_AND_PAGE_SCAN))
-        assertThat(session).emits(
-            NeighborMatchers.ExtendedInquiryResult(self.cert_address), timeout=timedelta(seconds=10))
+        assertThat(session).emits(NeighborMatchers.ExtendedInquiryResult(self.cert_address))
 
     def test_remote_name(self):
         self._set_name()

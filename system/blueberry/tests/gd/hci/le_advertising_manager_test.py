@@ -23,13 +23,13 @@ from blueberry.tests.gd.cert.matchers import AdvertisingMatchers
 from blueberry.tests.gd.cert.py_hci import PyHci
 from blueberry.tests.gd.cert.truth import assertThat
 from blueberry.tests.gd.cert import gd_base_test
-from facade import common_pb2 as common
+from blueberry.facade import common_pb2 as common
 from google.protobuf import empty_pb2 as empty_proto
-from hci.facade import \
+from blueberry.facade.hci import \
     le_advertising_manager_facade_pb2 as le_advertising_facade
-from hci.facade import le_initiator_address_facade_pb2 as le_initiator_address_facade
-from hci.facade.le_advertising_manager_facade_pb2 import AdvertisingCallbackMsgType
-from hci.facade.le_advertising_manager_facade_pb2 import AdvertisingStatus
+from blueberry.facade.hci import le_initiator_address_facade_pb2 as le_initiator_address_facade
+from blueberry.facade.hci.le_advertising_manager_facade_pb2 import AdvertisingCallbackMsgType
+from blueberry.facade.hci.le_advertising_manager_facade_pb2 import AdvertisingStatus
 
 from mobly import test_runner
 

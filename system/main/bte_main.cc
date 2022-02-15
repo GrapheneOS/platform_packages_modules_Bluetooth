@@ -32,7 +32,7 @@
 #include "btcore/include/module.h"
 #include "btif/include/btif_config.h"
 #include "btu.h"
-#include "hci_layer.h"
+#include "hci/include/hci_layer.h"
 #include "main/shim/hci_layer.h"
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"

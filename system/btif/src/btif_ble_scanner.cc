@@ -43,6 +43,7 @@
 #include "main/shim/le_scanning_manager.h"
 #include "main/shim/shim.h"
 #include "osi/include/log.h"
+#include "stack/include/btm_ble_api.h"
 #include "stack/include/btu.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
@@ -110,7 +111,7 @@ void bta_scan_results_cb_impl(RawAddress bd_addr, tBT_DEVICE_TYPE device_type,
                               uint8_t ble_secondary_phy,
                               uint8_t ble_advertising_sid, int8_t ble_tx_power,
                               uint16_t ble_periodic_adv_int,
-                              vector<uint8_t> value) {
+                              vector<uint8_t> value, RawAddress original_bda) {
   uint8_t remote_name_len;
   bt_device_type_t dev_type;
   bt_property_t properties;
@@ -156,7 +157,8 @@ void bta_scan_results_cb_impl(RawAddress bd_addr, tBT_DEVICE_TYPE device_type,
   btif_storage_set_remote_addr_type(&bd_addr, addr_type);
   HAL_CBACK(bt_gatt_callbacks, scanner->scan_result_cb, ble_evt_type, addr_type,
             &bd_addr, ble_primary_phy, ble_secondary_phy, ble_advertising_sid,
-            ble_tx_power, rssi, ble_periodic_adv_int, std::move(value));
+            ble_tx_power, rssi, ble_periodic_adv_int, std::move(value),
+            &original_bda);
 }
 
 void bta_scan_results_cb(tBTA_DM_SEARCH_EVT event, tBTA_DM_SEARCH* p_data) {
@@ -185,11 +187,11 @@ void bta_scan_results_cb(tBTA_DM_SEARCH_EVT event, tBTA_DM_SEARCH* p_data) {
   }
 
   tBTA_DM_INQ_RES* r = &p_data->inq_res;
-  do_in_jni_thread(Bind(bta_scan_results_cb_impl, r->bd_addr, r->device_type,
-                        r->rssi, r->ble_addr_type, r->ble_evt_type,
-                        r->ble_primary_phy, r->ble_secondary_phy,
-                        r->ble_advertising_sid, r->ble_tx_power,
-                        r->ble_periodic_adv_int, std::move(value)));
+  do_in_jni_thread(
+      Bind(bta_scan_results_cb_impl, r->bd_addr, r->device_type, r->rssi,
+           r->ble_addr_type, r->ble_evt_type, r->ble_primary_phy,
+           r->ble_secondary_phy, r->ble_advertising_sid, r->ble_tx_power,
+           r->ble_periodic_adv_int, std::move(value), r->original_bda));
 }
 
 void bta_track_adv_event_cb(tBTM_BLE_TRACK_ADV_DATA* p_track_adv_data) {
@@ -334,25 +336,92 @@ class BleScannerInterfaceImpl : public BleScannerInterface {
 
   void StartSync(uint8_t sid, RawAddress address, uint16_t skip,
                  uint16_t timeout, StartSyncCb start_cb, SyncReportCb report_cb,
-                 SyncLostCb lost_cb) override {}
+                 SyncLostCb lost_cb) override {
+    const controller_t* controller = controller_get_interface();
+    if (!controller->supports_ble_periodic_advertising_sync_transfer_sender()) {
+      uint8_t status_no_resource = 2;
+      start_cb.Run(status_no_resource, -1, sid, 1, address, 0, 0);
+    }
+    do_in_main_thread(
+        FROM_HERE,
+        base::Bind(&BTM_BleStartPeriodicSync, sid, address, skip, timeout,
+                   jni_thread_wrapper(FROM_HERE, std::move(start_cb)),
+                   jni_thread_wrapper(FROM_HERE, std::move(report_cb)),
+                   jni_thread_wrapper(FROM_HERE, std::move(lost_cb))));
+  }
 
-  void StopSync(uint16_t handle) override {}
+  void StopSync(uint16_t handle) override {
+    LOG_DEBUG("handle: %d", handle);
+    const controller_t* controller = controller_get_interface();
+    if (!controller->supports_ble_periodic_advertising_sync_transfer_sender()) {
+      LOG_ERROR("PAST not supported by controller");
+    }
+    do_in_main_thread(FROM_HERE, base::Bind(&BTM_BleStopPeriodicSync, handle));
+  }
 
   void RegisterCallbacks(ScanningCallbacks* callbacks) {
     // For GD only
   }
-};
 
-BleScannerInterface* btLeScannerInstance = nullptr;
+  void CancelCreateSync(uint8_t sid, RawAddress address) override {
+    const controller_t* controller = controller_get_interface();
+    if (!controller->supports_ble_periodic_advertising_sync_transfer_sender()) {
+      LOG_ERROR("PAST not supported by controller");
+    }
+    do_in_main_thread(FROM_HERE,
+                      base::Bind(&BTM_BleCancelPeriodicSync, sid, address));
+  }
+
+  void TransferSync(RawAddress address, uint16_t service_data,
+                    uint16_t sync_handle, SyncTransferCb cb) override {
+    LOG_DEBUG("address:%s", address.ToString().c_str());
+    const controller_t* controller = controller_get_interface();
+    if (!controller->supports_ble_periodic_advertising_sync_transfer_sender()) {
+      uint8_t status_no_resource = 2;
+      LOG_ERROR("PAST not supported by controller");
+      cb.Run(status_no_resource, address);
+    }
+    do_in_main_thread(
+        FROM_HERE,
+        base::Bind(&BTM_BlePeriodicSyncTransfer, address, service_data,
+                   sync_handle, jni_thread_wrapper(FROM_HERE, std::move(cb))));
+  }
+
+  void TransferSetInfo(RawAddress address, uint16_t service_data,
+                       uint8_t adv_handle, SyncTransferCb cb) override {
+    LOG_DEBUG("address: %s", address.ToString().c_str());
+    const controller_t* controller = controller_get_interface();
+    if (!controller->supports_ble_periodic_advertising_sync_transfer_sender()) {
+      uint8_t status_no_resource = 2;
+      LOG_ERROR(" PAST not supported by controller");
+      cb.Run(status_no_resource, address);
+    }
+
+    do_in_main_thread(
+        FROM_HERE,
+        base::Bind(&BTM_BlePeriodicSyncSetInfo, address, service_data,
+                   adv_handle, jni_thread_wrapper(FROM_HERE, std::move(cb))));
+  }
+
+  void SyncTxParameters(RawAddress addr, uint8_t mode, uint16_t skip,
+                        uint16_t timeout, StartSyncCb cb) {
+    LOG_DEBUG("address: %s", addr.ToString().c_str());
+    const controller_t* controller = controller_get_interface();
+    if (!controller->supports_ble_periodic_advertising_sync_transfer_sender()) {
+      uint8_t status_no_resource = 2;
+      LOG_ERROR(" PAST not supported by controller");
+      cb.Run(status_no_resource, -1, -1, 1, addr, 0, 0);
+    }
+    do_in_main_thread(
+        FROM_HERE,
+        base::Bind(&BTM_BlePeriodicSyncTxParameters, addr, mode, skip, timeout,
+                   jni_thread_wrapper(FROM_HERE, std::move(cb))));
+  }
+};
 
 }  // namespace
 
 BleScannerInterface* get_ble_scanner_instance() {
-  if (bluetooth::shim::is_gd_scanning_enabled()) {
-    LOG_INFO("Use gd le scanner");
-    return bluetooth::shim::get_ble_scanner_instance();
-  } else if (btLeScannerInstance == nullptr) {
-    btLeScannerInstance = new BleScannerInterfaceImpl();
-  }
-  return btLeScannerInstance;
+  LOG_INFO("Use gd le scanner");
+  return bluetooth::shim::get_ble_scanner_instance();
 }

@@ -26,6 +26,7 @@ import android.annotation.RequiresPermission;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadset;
 import android.bluetooth.BluetoothProfile;
+import android.bluetooth.BluetoothStatusCodes;
 import android.bluetooth.BluetoothUuid;
 import android.bluetooth.IBluetoothHeadset;
 import android.content.AttributionSource;
@@ -53,6 +54,7 @@ import com.android.bluetooth.btservice.MetricsLogger;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 import com.android.internal.annotations.VisibleForTesting;
+import com.android.modules.utils.SynchronousResultReceiver;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -168,7 +170,7 @@ public class HeadsetService extends ProfileService {
         // Step 6: Setup broadcast receivers
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intent.ACTION_BATTERY_CHANGED);
-        filter.addAction(AudioManager.VOLUME_CHANGED_ACTION);
+        filter.addAction(AudioManager.ACTION_VOLUME_CHANGED);
         filter.addAction(BluetoothDevice.ACTION_CONNECTION_ACCESS_REPLY);
         filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
         registerReceiver(mHeadsetReceiver, filter);
@@ -235,8 +237,14 @@ public class HeadsetService extends ProfileService {
         // Step 3: Destroy system interface
         mSystemInterface.stop();
         // Step 2: Stop handler thread
-        mStateMachinesThread.quitSafely();
-        mStateMachinesThread = null;
+        try {
+            mStateMachinesThread.quitSafely();
+            mStateMachinesThread.join();
+            mStateMachinesThread = null;
+        } catch (InterruptedException e) {
+            // Do not rethrow as we are shutting down anyway
+        }
+
         mStateMachinesThreadHandler = null;
         // Step 1: Clear
         synchronized (mStateMachines) {
@@ -359,7 +367,7 @@ public class HeadsetService extends ProfileService {
                     mSystemInterface.getHeadsetPhoneState().setCindBatteryCharge(cindBatteryLevel);
                     break;
                 }
-                case AudioManager.VOLUME_CHANGED_ACTION: {
+                case AudioManager.ACTION_VOLUME_CHANGED: {
                     int streamType = intent.getIntExtra(AudioManager.EXTRA_VOLUME_STREAM_TYPE, -1);
                     if (streamType == AudioManager.STREAM_BLUETOOTH_SCO) {
                         doForEachConnectedStateMachine(stateMachine -> stateMachine.sendMessage(
@@ -447,12 +455,7 @@ public class HeadsetService extends ProfileService {
             if (mService == null) {
                 return false;
             }
-            return connectWithAttribution(device,
-                        Utils.getCallingAttributionSource(mService));
-        }
-
-        @Override
-        public boolean connectWithAttribution(BluetoothDevice device, AttributionSource source) {
+            AttributionSource source = Utils.getCallingAttributionSource(mService);
             HeadsetService service = getService(source);
             if (service == null) {
                 return false;
@@ -461,16 +464,26 @@ public class HeadsetService extends ProfileService {
         }
 
         @Override
+        public void connectWithAttribution(BluetoothDevice device, AttributionSource source,
+                SynchronousResultReceiver receiver) {
+            try {
+                HeadsetService service = getService(source);
+                boolean defaultValue = false;
+                if (service != null) {
+                    defaultValue = service.connect(device);
+                }
+                receiver.send(defaultValue);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
+            }
+        }
+
+        @Override
         public boolean disconnect(BluetoothDevice device) {
             if (mService == null) {
                 return false;
             }
-            return disconnectWithAttribution(device,
-                        Utils.getCallingAttributionSource(mService));
-        }
-
-        @Override
-        public boolean disconnectWithAttribution(BluetoothDevice device, AttributionSource source) {
+            AttributionSource source = Utils.getCallingAttributionSource(mService);
             HeadsetService service = getService(source);
             if (service == null) {
                 return false;
@@ -479,16 +492,26 @@ public class HeadsetService extends ProfileService {
         }
 
         @Override
+        public void disconnectWithAttribution(BluetoothDevice device, AttributionSource source,
+                SynchronousResultReceiver receiver) {
+            try {
+                HeadsetService service = getService(source);
+                boolean defaultValue = false;
+                if (service != null) {
+                    defaultValue = service.disconnect(device);
+                }
+                receiver.send(defaultValue);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
+            }
+        }
+
+        @Override
         public List<BluetoothDevice> getConnectedDevices() {
             if (mService == null) {
                 return new ArrayList<BluetoothDevice>(0);
             }
-            return getConnectedDevicesWithAttribution(
-                        Utils.getCallingAttributionSource(mService));
-        }
-
-        @Override
-        public List<BluetoothDevice> getConnectedDevicesWithAttribution(AttributionSource source) {
+            AttributionSource source = Utils.getCallingAttributionSource(mService);
             HeadsetService service = getService(source);
             if (service == null) {
                 return new ArrayList<BluetoothDevice>(0);
@@ -497,13 +520,33 @@ public class HeadsetService extends ProfileService {
         }
 
         @Override
-        public List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states,
-                AttributionSource source) {
-            HeadsetService service = getService(source);
-            if (service == null) {
-                return new ArrayList<BluetoothDevice>(0);
+        public void getConnectedDevicesWithAttribution(AttributionSource source,
+                SynchronousResultReceiver receiver) {
+            try {
+                HeadsetService service = getService(source);
+                List<BluetoothDevice> defaultValue = new ArrayList<BluetoothDevice>(0);
+                if (service != null) {
+                    defaultValue = service.getConnectedDevices();
+                }
+                receiver.send(defaultValue);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
             }
-            return service.getDevicesMatchingConnectionStates(states);
+        }
+
+        @Override
+        public void getDevicesMatchingConnectionStates(int[] states,
+                AttributionSource source, SynchronousResultReceiver receiver) {
+            try {
+                HeadsetService service = getService(source);
+                List<BluetoothDevice> defaultValue = new ArrayList<BluetoothDevice>(0);
+                if (service != null) {
+                    defaultValue = service.getDevicesMatchingConnectionStates(states);
+                }
+                receiver.send(defaultValue);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
+            }
         }
 
         @Override
@@ -511,13 +554,7 @@ public class HeadsetService extends ProfileService {
             if (mService == null) {
                 return BluetoothProfile.STATE_DISCONNECTED;
             }
-            return getConnectionStateWithAttribution(device,
-                        Utils.getCallingAttributionSource(mService));
-        }
-
-        @Override
-        public int getConnectionStateWithAttribution(BluetoothDevice device,
-                AttributionSource source) {
+            AttributionSource source = Utils.getCallingAttributionSource(mService);
             HeadsetService service = getService(source);
             if (service == null) {
                 return BluetoothProfile.STATE_DISCONNECTED;
@@ -526,217 +563,344 @@ public class HeadsetService extends ProfileService {
         }
 
         @Override
-        public boolean setConnectionPolicy(BluetoothDevice device, int connectionPolicy,
-                AttributionSource source) {
-            HeadsetService service = getService(source);
-            if (service == null) {
-                return false;
+        public void getConnectionStateWithAttribution(BluetoothDevice device,
+                AttributionSource source, SynchronousResultReceiver receiver) {
+            try {
+                HeadsetService service = getService(source);
+                int defaultValue = BluetoothProfile.STATE_DISCONNECTED;
+                if (service != null) {
+                    defaultValue = service.getConnectionState(device);
+                }
+                receiver.send(defaultValue);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
             }
-            enforceBluetoothPrivilegedPermission(service);
-            return service.setConnectionPolicy(device, connectionPolicy);
         }
 
         @Override
-        public int getPriority(BluetoothDevice device, AttributionSource source) {
-            HeadsetService service = getService(source);
-            if (service == null) {
-                return BluetoothProfile.CONNECTION_POLICY_UNKNOWN;
+        public void setConnectionPolicy(BluetoothDevice device, int connectionPolicy,
+                AttributionSource source, SynchronousResultReceiver receiver) {
+            try {
+                HeadsetService service = getService(source);
+                boolean defaultValue = false;
+                if (service != null) {
+                    enforceBluetoothPrivilegedPermission(service);
+                    defaultValue = service.setConnectionPolicy(device, connectionPolicy);
+                }
+                receiver.send(defaultValue);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
             }
-            return service.getConnectionPolicy(device);
         }
 
         @Override
-        public int getConnectionPolicy(BluetoothDevice device, AttributionSource source) {
-            HeadsetService service = getService(source);
-            if (service == null) {
-                return BluetoothProfile.CONNECTION_POLICY_UNKNOWN;
+        public void getConnectionPolicy(BluetoothDevice device, AttributionSource source,
+                SynchronousResultReceiver receiver) {
+            try {
+                HeadsetService service = getService(source);
+                int defaultValue = BluetoothProfile.CONNECTION_POLICY_UNKNOWN;
+                if (service != null) {
+                    enforceBluetoothPrivilegedPermission(service);
+                    defaultValue = service.getConnectionPolicy(device);
+                }
+                receiver.send(defaultValue);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
             }
-            enforceBluetoothPrivilegedPermission(service);
-            return service.getConnectionPolicy(device);
         }
 
         @Override
-        public boolean isNoiseReductionSupported(BluetoothDevice device, AttributionSource source) {
-            HeadsetService service = getService(source);
-            if (service == null) {
-                return false;
+        public void isNoiseReductionSupported(BluetoothDevice device, AttributionSource source,
+                SynchronousResultReceiver receiver) {
+            try {
+                HeadsetService service = getService(source);
+                boolean defaultValue = false;
+                if (service != null) {
+                    defaultValue = service.isNoiseReductionSupported(device);
+                }
+                receiver.send(defaultValue);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
             }
-            return service.isNoiseReductionSupported(device);
         }
 
         @Override
-        public boolean isVoiceRecognitionSupported(BluetoothDevice device,
-                AttributionSource source) {
-            HeadsetService service = getService(source);
-            if (service == null) {
-                return false;
+        public void isVoiceRecognitionSupported(BluetoothDevice device,
+                AttributionSource source, SynchronousResultReceiver receiver) {
+            try {
+                HeadsetService service = getService(source);
+                boolean defaultValue = false;
+                if (service != null) {
+                    defaultValue = service.isVoiceRecognitionSupported(device);
+                }
+                receiver.send(defaultValue);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
             }
-            return service.isVoiceRecognitionSupported(device);
         }
 
         @Override
-        public boolean startVoiceRecognition(BluetoothDevice device, AttributionSource source) {
-            HeadsetService service = getService(source);
-            if (service == null) {
-                return false;
+        public void startVoiceRecognition(BluetoothDevice device, AttributionSource source,
+                SynchronousResultReceiver receiver) {
+            try {
+                HeadsetService service = getService(source);
+                boolean defaultValue = false;
+                if (service != null) {
+                    defaultValue = service.startVoiceRecognition(device);
+                }
+                receiver.send(defaultValue);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
             }
-            return service.startVoiceRecognition(device);
         }
 
         @Override
-        public boolean stopVoiceRecognition(BluetoothDevice device, AttributionSource source) {
-            HeadsetService service = getService(source);
-            if (service == null) {
-                return false;
+        public void stopVoiceRecognition(BluetoothDevice device, AttributionSource source,
+                SynchronousResultReceiver receiver) {
+            try {
+                HeadsetService service = getService(source);
+                boolean defaultValue = false;
+                if (service != null) {
+                    defaultValue = service.stopVoiceRecognition(device);
+                }
+                receiver.send(defaultValue);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
             }
-            return service.stopVoiceRecognition(device);
         }
 
         @Override
-        public boolean isAudioOn(AttributionSource source) {
-            HeadsetService service = getService(source);
-            if (service == null) {
-                return false;
+        public void isAudioOn(AttributionSource source, SynchronousResultReceiver receiver) {
+            try {
+                HeadsetService service = getService(source);
+                boolean defaultValue = false;
+                if (service != null) {
+                    defaultValue = service.isAudioOn();
+                }
+                receiver.send(defaultValue);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
             }
-            return service.isAudioOn();
         }
 
         @Override
-        public boolean isAudioConnected(BluetoothDevice device, AttributionSource source) {
-            HeadsetService service = getService(source);
-            if (service == null) {
-                return false;
+        public void isAudioConnected(BluetoothDevice device, AttributionSource source,
+                SynchronousResultReceiver receiver) {
+            try {
+                HeadsetService service = getService(source);
+                boolean defaultValue = false;
+                if (service != null) {
+                    defaultValue = service.isAudioConnected(device);
+                }
+                receiver.send(defaultValue);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
             }
-            return service.isAudioConnected(device);
         }
 
         @Override
-        public int getAudioState(BluetoothDevice device, AttributionSource source) {
-            HeadsetService service = getService(source);
-            if (service == null) {
-                return BluetoothHeadset.STATE_AUDIO_DISCONNECTED;
+        public void getAudioState(BluetoothDevice device, AttributionSource source,
+                SynchronousResultReceiver receiver) {
+            try {
+                HeadsetService service = getService(source);
+                int defaultValue = BluetoothHeadset.STATE_AUDIO_DISCONNECTED;
+                if (service != null) {
+                    enforceBluetoothPrivilegedPermission(service);
+                    defaultValue = service.getAudioState(device);
+                }
+                receiver.send(defaultValue);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
             }
-            return service.getAudioState(device);
         }
 
         @Override
-        public boolean connectAudio(AttributionSource source) {
-            HeadsetService service = getService(source);
-            if (service == null) {
-                return false;
+        public void connectAudio(AttributionSource source, SynchronousResultReceiver receiver) {
+            try {
+                HeadsetService service = getService(source);
+                int defaultValue = BluetoothStatusCodes.ERROR_PROFILE_SERVICE_NOT_BOUND;
+                if (service != null) {
+                    enforceBluetoothPrivilegedPermission(service);
+                    defaultValue = service.connectAudio();
+                }
+                receiver.send(defaultValue);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
             }
-            return service.connectAudio();
         }
 
         @Override
-        public boolean disconnectAudio(AttributionSource source) {
-            HeadsetService service = getService(source);
-            if (service == null) {
-                return false;
+        public void disconnectAudio(AttributionSource source, SynchronousResultReceiver receiver) {
+            try {
+                HeadsetService service = getService(source);
+                int defaultValue = BluetoothStatusCodes.ERROR_PROFILE_SERVICE_NOT_BOUND;
+                if (service != null) {
+                    enforceBluetoothPrivilegedPermission(service);
+                    defaultValue = service.disconnectAudio();
+                }
+                receiver.send(defaultValue);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
             }
-            return service.disconnectAudio();
         }
 
         @Override
-        public void setAudioRouteAllowed(boolean allowed, AttributionSource source) {
-            HeadsetService service = getService(source);
-            if (service == null) {
-                return;
+        public void setAudioRouteAllowed(boolean allowed, AttributionSource source,
+                SynchronousResultReceiver receiver) {
+            try {
+                HeadsetService service = getService(source);
+                if (service != null) {
+                    enforceBluetoothPrivilegedPermission(service);
+                    service.setAudioRouteAllowed(allowed);
+                }
+                receiver.send(null);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
             }
-            service.setAudioRouteAllowed(allowed);
         }
 
         @Override
-        public boolean getAudioRouteAllowed(AttributionSource source) {
-            HeadsetService service = getService(source);
-            if (service != null) {
-                return service.getAudioRouteAllowed();
+        public void getAudioRouteAllowed(AttributionSource source,
+                SynchronousResultReceiver receiver) {
+            try {
+                HeadsetService service = getService(source);
+                boolean defaultValue = false;
+                if (service != null) {
+                    enforceBluetoothPrivilegedPermission(service);
+                    defaultValue = service.getAudioRouteAllowed();
+                }
+                receiver.send(defaultValue);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
             }
-            return false;
         }
 
         @Override
-        public void setForceScoAudio(boolean forced, AttributionSource source) {
-            HeadsetService service = getService(source);
-            if (service == null) {
-                return;
+        public void setForceScoAudio(boolean forced, AttributionSource source,
+                SynchronousResultReceiver receiver) {
+            try {
+                HeadsetService service = getService(source);
+                if (service != null) {
+                    service.setForceScoAudio(forced);
+                }
+                receiver.send(null);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
             }
-            service.setForceScoAudio(forced);
         }
 
         @Override
-        public boolean startScoUsingVirtualVoiceCall(AttributionSource source) {
-            HeadsetService service = getService(source);
-            if (service == null) {
-                return false;
+        public void startScoUsingVirtualVoiceCall(AttributionSource source,
+                SynchronousResultReceiver receiver) {
+            try {
+                HeadsetService service = getService(source);
+                boolean defaultValue = false;
+                if (service != null) {
+                    defaultValue = service.startScoUsingVirtualVoiceCall();
+                }
+                receiver.send(defaultValue);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
             }
-            return service.startScoUsingVirtualVoiceCall();
         }
 
         @Override
-        public boolean stopScoUsingVirtualVoiceCall(AttributionSource source) {
-            HeadsetService service = getService(source);
-            if (service == null) {
-                return false;
+        public void stopScoUsingVirtualVoiceCall(AttributionSource source,
+                SynchronousResultReceiver receiver) {
+            try {
+                HeadsetService service = getService(source);
+                boolean defaultValue = false;
+                if (service != null) {
+                    defaultValue = service.stopScoUsingVirtualVoiceCall();
+                }
+                receiver.send(defaultValue);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
             }
-            return service.stopScoUsingVirtualVoiceCall();
         }
 
         @Override
         public void phoneStateChanged(int numActive, int numHeld, int callState, String number,
-                int type, String name, AttributionSource source) {
+            int type, String name, AttributionSource source) {
             HeadsetService service = getService(source);
-            if (service == null) {
-                return;
+            if (service != null) {
+                service.phoneStateChanged(numActive, numHeld, callState, number, type, name, false);
             }
-            service.phoneStateChanged(numActive, numHeld, callState, number, type, name, false);
         }
 
         @Override
         public void clccResponse(int index, int direction, int status, int mode, boolean mpty,
-                String number, int type, AttributionSource source) {
-            HeadsetService service = getService(source);
-            if (service == null) {
-                return;
+                String number, int type, AttributionSource source,
+                SynchronousResultReceiver receiver) {
+            try {
+                HeadsetService service = getService(source);
+                if (service != null) {
+                    service.clccResponse(index, direction, status, mode, mpty, number, type);
+                }
+                receiver.send(null);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
             }
-            service.clccResponse(index, direction, status, mode, mpty, number, type);
         }
 
         @Override
-        public boolean sendVendorSpecificResultCode(BluetoothDevice device, String command,
-                String arg, AttributionSource source) {
-            HeadsetService service = getService(source);
-            if (service == null) {
-                return false;
+        public void sendVendorSpecificResultCode(BluetoothDevice device, String command,
+                String arg, AttributionSource source, SynchronousResultReceiver receiver) {
+            try {
+                HeadsetService service = getService(source);
+                boolean defaultValue = false;
+                if (service != null) {
+                    defaultValue = service.sendVendorSpecificResultCode(device, command, arg);
+                }
+                receiver.send(defaultValue);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
             }
-            return service.sendVendorSpecificResultCode(device, command, arg);
         }
 
         @Override
-        public boolean setActiveDevice(BluetoothDevice device, AttributionSource source) {
-            HeadsetService service = getService(source);
-            if (service == null) {
-                return false;
+        public void setActiveDevice(BluetoothDevice device, AttributionSource source,
+                SynchronousResultReceiver receiver) {
+            try {
+                HeadsetService service = getService(source);
+                boolean defaultValue = false;
+                if (service != null) {
+                    defaultValue = service.setActiveDevice(device);
+                }
+                receiver.send(defaultValue);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
             }
-            return service.setActiveDevice(device);
         }
 
         @Override
-        public BluetoothDevice getActiveDevice(AttributionSource source) {
-            HeadsetService service = getService(source);
-            if (service == null) {
-                return null;
+        public void getActiveDevice(AttributionSource source, SynchronousResultReceiver receiver) {
+            try {
+                HeadsetService service = getService(source);
+                BluetoothDevice defaultValue = null;
+                if (service != null) {
+                    defaultValue = service.getActiveDevice();
+                }
+                receiver.send(defaultValue);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
             }
-            return service.getActiveDevice();
         }
 
         @Override
-        public boolean isInbandRingingEnabled(AttributionSource source) {
-            HeadsetService service = getService(source);
-            if (service == null) {
-                return false;
+        public void isInbandRingingEnabled(AttributionSource source,
+                SynchronousResultReceiver receiver) {
+            try {
+                HeadsetService service = getService(source);
+                boolean defaultValue = false;
+                if (service != null) {
+                    enforceBluetoothPrivilegedPermission(service);
+                    defaultValue = service.isInbandRingingEnabled();
+                }
+                receiver.send(defaultValue);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
             }
-            return service.isInbandRingingEnabled();
         }
     }
 
@@ -971,7 +1135,7 @@ public class HeadsetService extends ProfileService {
             // Audio should not be on when no audio mode is active
             if (isAudioOn()) {
                 // Disconnect audio so that API user can try later
-                boolean status = disconnectAudio();
+                int status = disconnectAudio();
                 Log.w(TAG, "startVoiceRecognition: audio is still active, please wait for audio to"
                         + " be disconnected, disconnectAudio() returned " + status
                         + ", active device is " + mActiveDevice);
@@ -1176,8 +1340,10 @@ public class HeadsetService extends ProfileService {
                 }
             }
             if (getAudioState(mActiveDevice) != BluetoothHeadset.STATE_AUDIO_DISCONNECTED) {
-                if (!disconnectAudio(mActiveDevice)) {
-                    Log.w(TAG, "removeActiveDevice: disconnectAudio failed on " + mActiveDevice);
+                int disconnectStatus = disconnectAudio(mActiveDevice);
+                if (disconnectStatus != BluetoothStatusCodes.SUCCESS) {
+                    Log.w(TAG, "removeActiveDevice: disconnectAudio failed on " + mActiveDevice
+                            + " with status code " + disconnectStatus);
                 }
             }
             mActiveDevice = null;
@@ -1215,9 +1381,10 @@ public class HeadsetService extends ProfileService {
             BluetoothDevice previousActiveDevice = mActiveDevice;
             mActiveDevice = device;
             if (getAudioState(previousActiveDevice) != BluetoothHeadset.STATE_AUDIO_DISCONNECTED) {
-                if (!disconnectAudio(previousActiveDevice)) {
+                int disconnectStatus = disconnectAudio(previousActiveDevice);
+                if (disconnectStatus != BluetoothStatusCodes.SUCCESS) {
                     Log.e(TAG, "setActiveDevice: fail to disconnectAudio from "
-                            + previousActiveDevice);
+                            + previousActiveDevice + " with status code " + disconnectStatus);
                     if (previousActiveDevice == null) {
                         removeActiveDevice();
                     } else {
@@ -1229,8 +1396,10 @@ public class HeadsetService extends ProfileService {
                 broadcastActiveDevice(mActiveDevice);
             } else if (shouldPersistAudio()) {
                 broadcastActiveDevice(mActiveDevice);
-                if (!connectAudio(mActiveDevice)) {
-                    Log.e(TAG, "setActiveDevice: fail to connectAudio to " + mActiveDevice);
+                int connectStatus = connectAudio(mActiveDevice);
+                if (connectStatus != BluetoothStatusCodes.SUCCESS) {
+                    Log.e(TAG, "setActiveDevice: fail to connectAudio to " + mActiveDevice
+                            + " with status code " + connectStatus);
                     if (previousActiveDevice == null) {
                         removeActiveDevice();
                     } else {
@@ -1257,45 +1426,46 @@ public class HeadsetService extends ProfileService {
         }
     }
 
-    boolean connectAudio() {
+    int connectAudio() {
         synchronized (mStateMachines) {
             BluetoothDevice device = mActiveDevice;
             if (device == null) {
                 Log.w(TAG, "connectAudio: no active device, " + Utils.getUidPidString());
-                return false;
+                return BluetoothStatusCodes.ERROR_NO_ACTIVE_DEVICES;
             }
             return connectAudio(device);
         }
     }
 
-    boolean connectAudio(BluetoothDevice device) {
+    int connectAudio(BluetoothDevice device) {
         Log.i(TAG, "connectAudio: device=" + device + ", " + Utils.getUidPidString());
         synchronized (mStateMachines) {
-            if (!isScoAcceptable(device)) {
-                Log.w(TAG, "connectAudio, rejected SCO request to " + device);
-                return false;
-            }
             final HeadsetStateMachine stateMachine = mStateMachines.get(device);
             if (stateMachine == null) {
                 Log.w(TAG, "connectAudio: device " + device + " was never connected/connecting");
-                return false;
+                return BluetoothStatusCodes.ERROR_PROFILE_NOT_CONNECTED;
+            }
+            int scoConnectionAllowedState = isScoAcceptable(device);
+            if (scoConnectionAllowedState != BluetoothStatusCodes.SUCCESS) {
+                Log.w(TAG, "connectAudio, rejected SCO request to " + device);
+                return scoConnectionAllowedState;
             }
             if (stateMachine.getConnectionState() != BluetoothProfile.STATE_CONNECTED) {
                 Log.w(TAG, "connectAudio: profile not connected");
-                return false;
+                return BluetoothStatusCodes.ERROR_PROFILE_NOT_CONNECTED;
             }
             if (stateMachine.getAudioState() != BluetoothHeadset.STATE_AUDIO_DISCONNECTED) {
                 logD("connectAudio: audio is not idle for device " + device);
-                return true;
+                return BluetoothStatusCodes.SUCCESS;
             }
             if (isAudioOn()) {
                 Log.w(TAG, "connectAudio: audio is not idle, current audio devices are "
                         + Arrays.toString(getNonIdleAudioDevices().toArray()));
-                return false;
+                return BluetoothStatusCodes.ERROR_AUDIO_DEVICE_ALREADY_CONNECTED;
             }
             stateMachine.sendMessage(HeadsetStateMachine.CONNECT_AUDIO, device);
         }
-        return true;
+        return BluetoothStatusCodes.SUCCESS;
     }
 
     private List<BluetoothDevice> getNonIdleAudioDevices() {
@@ -1310,38 +1480,38 @@ public class HeadsetService extends ProfileService {
         return devices;
     }
 
-    boolean disconnectAudio() {
-        boolean result = false;
+    int disconnectAudio() {
+        int disconnectResult = BluetoothStatusCodes.ERROR_NO_ACTIVE_DEVICES;
         synchronized (mStateMachines) {
             for (BluetoothDevice device : getNonIdleAudioDevices()) {
-                if (disconnectAudio(device)) {
-                    result = true;
+                disconnectResult = disconnectAudio(device);
+                if (disconnectResult == BluetoothStatusCodes.SUCCESS) {
+                    return disconnectResult;
                 } else {
-                    Log.e(TAG, "disconnectAudio() from " + device + " failed");
+                    Log.e(TAG, "disconnectAudio() from " + device + " failed with status code "
+                            + disconnectResult);
                 }
             }
         }
-        if (!result) {
-            logD("disconnectAudio() no active audio connection");
-        }
-        return result;
+        logD("disconnectAudio() no active audio connection");
+        return disconnectResult;
     }
 
-    boolean disconnectAudio(BluetoothDevice device) {
+    int disconnectAudio(BluetoothDevice device) {
         synchronized (mStateMachines) {
             Log.i(TAG, "disconnectAudio: device=" + device + ", " + Utils.getUidPidString());
             final HeadsetStateMachine stateMachine = mStateMachines.get(device);
             if (stateMachine == null) {
                 Log.w(TAG, "disconnectAudio: device " + device + " was never connected/connecting");
-                return false;
+                return BluetoothStatusCodes.ERROR_PROFILE_NOT_CONNECTED;
             }
             if (stateMachine.getAudioState() == BluetoothHeadset.STATE_AUDIO_DISCONNECTED) {
                 Log.w(TAG, "disconnectAudio, audio is already disconnected for " + device);
-                return false;
+                return BluetoothStatusCodes.ERROR_AUDIO_DEVICE_ALREADY_DISCONNECTED;
             }
             stateMachine.sendMessage(HeadsetStateMachine.DISCONNECT_AUDIO, device);
         }
-        return true;
+        return BluetoothStatusCodes.SUCCESS;
     }
 
     boolean isVirtualCallStarted() {
@@ -1351,7 +1521,7 @@ public class HeadsetService extends ProfileService {
     }
 
     @RequiresPermission(android.Manifest.permission.MODIFY_PHONE_STATE)
-    private boolean startScoUsingVirtualVoiceCall() {
+    boolean startScoUsingVirtualVoiceCall() {
         Log.i(TAG, "startScoUsingVirtualVoiceCall: " + Utils.getUidPidString());
         synchronized (mStateMachines) {
             // TODO(b/79660380): Workaround in case voice recognition was not terminated properly
@@ -1371,7 +1541,7 @@ public class HeadsetService extends ProfileService {
             // Audio should not be on when no audio mode is active
             if (isAudioOn()) {
                 // Disconnect audio so that API user can try later
-                boolean status = disconnectAudio();
+                int status = disconnectAudio();
                 Log.w(TAG, "startScoUsingVirtualVoiceCall: audio is still active, please wait for "
                         + "audio to be disconnected, disconnectAudio() returned " + status
                         + ", active device is " + mActiveDevice);
@@ -1533,7 +1703,7 @@ public class HeadsetService extends ProfileService {
             // Audio should not be on when no audio mode is active
             if (isAudioOn()) {
                 // Disconnect audio so that user can try later
-                boolean status = disconnectAudio();
+                int status = disconnectAudio();
                 Log.w(TAG, "startVoiceRecognitionByHeadset: audio is still active, please wait for"
                         + " audio to be disconnected, disconnectAudio() returned " + status
                         + ", active device is " + mActiveDevice);
@@ -1588,9 +1758,10 @@ public class HeadsetService extends ProfileService {
                 mVoiceRecognitionTimeoutEvent = null;
             }
             if (mVoiceRecognitionStarted) {
-                if (!disconnectAudio()) {
+                int disconnectStatus = disconnectAudio();
+                if (disconnectStatus != BluetoothStatusCodes.SUCCESS) {
                     Log.w(TAG, "stopVoiceRecognitionByHeadset: failed to disconnect audio from "
-                            + fromDevice);
+                            + fromDevice + " with status code " + disconnectStatus);
                 }
                 mVoiceRecognitionStarted = false;
             }
@@ -1603,7 +1774,7 @@ public class HeadsetService extends ProfileService {
     }
 
     @RequiresPermission(android.Manifest.permission.MODIFY_PHONE_STATE)
-    private void phoneStateChanged(int numActive, int numHeld, int callState, String number,
+    void phoneStateChanged(int numActive, int numHeld, int callState, String number,
             int type, String name, boolean isVirtualCall) {
         enforceCallingOrSelfPermission(MODIFY_PHONE_STATE, "Need MODIFY_PHONE_STATE permission");
         synchronized (mStateMachines) {
@@ -1696,7 +1867,9 @@ public class HeadsetService extends ProfileService {
     }
 
     boolean isInbandRingingEnabled() {
-        return BluetoothHeadset.isInbandRingingSupported(this) && !SystemProperties.getBoolean(
+        boolean isInbandRingingSupported = getResources().getBoolean(
+                com.android.bluetooth.R.bool.config_bluetooth_hfp_inband_ringing_support);
+        return isInbandRingingSupported && !SystemProperties.getBoolean(
                 DISABLE_INBAND_RINGING_PROPERTY, false) && !mInbandRingingRuntimeDisable;
     }
 
@@ -1792,10 +1965,12 @@ public class HeadsetService extends ProfileService {
                 if (fromState != BluetoothHeadset.STATE_AUDIO_DISCONNECTED) {
                     if (mActiveDevice != null && !mActiveDevice.equals(device)
                             && shouldPersistAudio()) {
-                        if (!connectAudio(mActiveDevice)) {
+                        int connectStatus = connectAudio(mActiveDevice);
+                        if (connectStatus != BluetoothStatusCodes.SUCCESS) {
                             Log.w(TAG, "onAudioStateChangedFromStateMachine, failed to connect"
                                     + " audio to new " + "active device " + mActiveDevice
-                                    + ", after " + device + " is disconnected from SCO");
+                                    + ", after " + device + " is disconnected from SCO due to"
+                                    + " status code " + connectStatus);
                         }
                     }
                 }
@@ -1869,36 +2044,38 @@ public class HeadsetService extends ProfileService {
     }
 
     /**
-     * Checks if SCO should be connected at current system state
+     * Checks if SCO should be connected at current system state. Returns
+     * {@link BluetoothStatusCodes#SUCCESS} if SCO is allowed to be connected or an error code on
+     * failure.
      *
      * @param device device for SCO to be connected
-     * @return true if SCO is allowed to be connected
+     * @return whether SCO can be connected
      */
-    public boolean isScoAcceptable(BluetoothDevice device) {
+    public int isScoAcceptable(BluetoothDevice device) {
         synchronized (mStateMachines) {
             if (device == null || !device.equals(mActiveDevice)) {
                 Log.w(TAG, "isScoAcceptable: rejected SCO since " + device
                         + " is not the current active device " + mActiveDevice);
-                return false;
+                return BluetoothStatusCodes.ERROR_NOT_ACTIVE_DEVICE;
             }
             if (mForceScoAudio) {
-                return true;
+                return BluetoothStatusCodes.SUCCESS;
             }
             if (!mAudioRouteAllowed) {
                 Log.w(TAG, "isScoAcceptable: rejected SCO since audio route is not allowed");
-                return false;
+                return BluetoothStatusCodes.ERROR_AUDIO_ROUTE_BLOCKED;
             }
             if (mVoiceRecognitionStarted || mVirtualCallStarted) {
-                return true;
+                return BluetoothStatusCodes.SUCCESS;
             }
             if (shouldCallAudioBeActive()) {
-                return true;
+                return BluetoothStatusCodes.SUCCESS;
             }
             Log.w(TAG, "isScoAcceptable: rejected SCO, inCall=" + mSystemInterface.isInCall()
                     + ", voiceRecognition=" + mVoiceRecognitionStarted + ", ringing="
                     + mSystemInterface.isRinging() + ", inbandRinging=" + isInbandRingingEnabled()
                     + ", isVirtualCallStarted=" + mVirtualCallStarted);
-            return false;
+            return BluetoothStatusCodes.ERROR_CALL_ACTIVE;
         }
     }
 
@@ -1929,6 +2106,8 @@ public class HeadsetService extends ProfileService {
     @Override
     public void dump(StringBuilder sb) {
         boolean isScoOn = mSystemInterface.getAudioManager().isBluetoothScoOn();
+        boolean isInbandRingingSupported = getResources().getBoolean(
+                com.android.bluetooth.R.bool.config_bluetooth_hfp_inband_ringing_support);
         synchronized (mStateMachines) {
             super.dump(sb);
             ProfileService.println(sb, "mMaxHeadsetConnections: " + mMaxHeadsetConnections);
@@ -1937,7 +2116,7 @@ public class HeadsetService extends ProfileService {
             ProfileService.println(sb, "mActiveDevice: " + mActiveDevice);
             ProfileService.println(sb, "isInbandRingingEnabled: " + isInbandRingingEnabled());
             ProfileService.println(sb,
-                    "isInbandRingingSupported: " + BluetoothHeadset.isInbandRingingSupported(this));
+                    "isInbandRingingSupported: " + isInbandRingingSupported);
             ProfileService.println(sb,
                     "mInbandRingingRuntimeDisable: " + mInbandRingingRuntimeDisable);
             ProfileService.println(sb, "mAudioRouteAllowed: " + mAudioRouteAllowed);

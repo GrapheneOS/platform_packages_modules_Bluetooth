@@ -34,6 +34,10 @@ class BluetoothPanTest(blueberry_base_test.BlueberryBaseTest):
   to as PANU(Personal Area Networking User).
   """
 
+  def __init__(self, configs):
+    super().__init__(configs)
+    self.pan_connect_attempts = None
+
   def setup_class(self):
     """Standard Mobly setup class."""
     super(BluetoothPanTest, self).setup_class()

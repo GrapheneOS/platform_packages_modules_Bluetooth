@@ -203,6 +203,7 @@ bool acl_peer_supports_ble_connection_parameters_request(
 
 bool sco_peer_supports_esco_2m_phy(const RawAddress& remote_bda);
 bool sco_peer_supports_esco_3m_phy(const RawAddress& remote_bda);
+bool sco_peer_supports_esco_ev3(const RawAddress& remote_bda);
 
 bool acl_peer_supports_ble_packet_extension(uint16_t hci_handle);
 bool acl_peer_supports_ble_2m_phy(uint16_t hci_handle);
@@ -262,6 +263,9 @@ tBTM_STATUS btm_read_power_mode_state(const RawAddress& remote_bda,
 void btm_acl_notif_conn_collision(const RawAddress& bda);
 
 void btm_acl_update_conn_addr(uint16_t conn_handle, const RawAddress& address);
+
+void btm_configure_data_path(uint8_t direction, uint8_t path_id,
+                             std::vector<uint8_t> vendor_config);
 
 /*******************************************************************************
  *

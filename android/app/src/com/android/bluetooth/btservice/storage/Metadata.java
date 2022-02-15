@@ -110,6 +110,9 @@ class Metadata {
             case BluetoothProfile.HEARING_AID:
                 profileConnectionPolicies.hearing_aid_connection_policy = connectionPolicy;
                 break;
+            case BluetoothProfile.HAP_CLIENT:
+                profileConnectionPolicies.hap_client_connection_policy = connectionPolicy;
+                break;
             case BluetoothProfile.LE_AUDIO:
                 profileConnectionPolicies.le_audio_connection_policy = connectionPolicy;
                 break;
@@ -118,6 +121,9 @@ class Metadata {
                 break;
             case BluetoothProfile.CSIP_SET_COORDINATOR:
                 profileConnectionPolicies.csip_set_coordinator_connection_policy = connectionPolicy;
+                break;
+            case BluetoothProfile.LE_CALL_CONTROL:
+                profileConnectionPolicies.le_call_control_connection_policy = connectionPolicy;
                 break;
             default:
                 throw new IllegalArgumentException("invalid profile " + profile);
@@ -150,12 +156,16 @@ class Metadata {
                 return profileConnectionPolicies.sap_connection_policy;
             case BluetoothProfile.HEARING_AID:
                 return profileConnectionPolicies.hearing_aid_connection_policy;
+            case BluetoothProfile.HAP_CLIENT:
+                return profileConnectionPolicies.hap_client_connection_policy;
             case BluetoothProfile.LE_AUDIO:
                 return profileConnectionPolicies.le_audio_connection_policy;
             case BluetoothProfile.VOLUME_CONTROL:
                 return profileConnectionPolicies.volume_control_connection_policy;
             case BluetoothProfile.CSIP_SET_COORDINATOR:
                 return profileConnectionPolicies.csip_set_coordinator_connection_policy;
+            case BluetoothProfile.LE_CALL_CONTROL:
+                return profileConnectionPolicies.le_call_control_connection_policy;
         }
         return BluetoothProfile.CONNECTION_POLICY_UNKNOWN;
     }

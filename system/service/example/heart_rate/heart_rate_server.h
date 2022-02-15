@@ -22,7 +22,11 @@
 #include <base/macros.h>
 #include <base/memory/ref_counted.h>
 #include <base/memory/weak_ptr.h>
+#if BASE_VER < 930627
 #include <base/single_thread_task_runner.h>
+#else
+#include <base/task/single_thread_task_runner.h>
+#endif
 
 #include <android/bluetooth/BnBluetoothGattServerCallback.h>
 #include <android/bluetooth/IBluetooth.h>

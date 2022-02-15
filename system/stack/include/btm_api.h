@@ -102,7 +102,7 @@ tBTM_STATUS BTM_SetDeviceClass(DEV_CLASS dev_class);
  *                              is returned and p_name is set to NULL
  *
  ******************************************************************************/
-tBTM_STATUS BTM_ReadLocalDeviceName(char** p_name);
+tBTM_STATUS BTM_ReadLocalDeviceName(const char** p_name);
 
 /*******************************************************************************
  *
@@ -613,8 +613,8 @@ uint8_t BTM_GetNumScoLinks(void);
  *
  ******************************************************************************/
 bool BTM_SecAddDevice(const RawAddress& bd_addr, DEV_CLASS dev_class,
-                      BD_NAME bd_name, uint8_t* features, LinkKey* link_key,
-                      uint8_t key_type, uint8_t pin_length);
+                      const BD_NAME& bd_name, uint8_t* features,
+                      LinkKey* link_key, uint8_t key_type, uint8_t pin_length);
 
 /** Free resources associated with the device associated with |bd_addr| address.
  *
@@ -666,18 +666,6 @@ extern bool btm_sec_is_a_bonded_dev(const RawAddress& bda);
  ******************************************************************************/
 extern tBT_DEVICE_TYPE BTM_GetPeerDeviceTypeFromFeatures(
     const RawAddress& bd_addr);
-
-/*******************************************************************************
- *
- * Function         BTM_SecReadDevName
- *
- * Description      Looks for the device name in the security database for the
- *                  specified BD address.
- *
- * Returns          Pointer to the name or NULL
- *
- ******************************************************************************/
-char* BTM_SecReadDevName(const RawAddress& bd_addr);
 
 /*****************************************************************************
  *  POWER MANAGEMENT FUNCTIONS

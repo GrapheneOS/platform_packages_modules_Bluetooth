@@ -106,4 +106,8 @@ final class JniCallbacks {
                 packets_not_receive_count, negative_acknowledgement_count);
     }
 
+    void switchBufferSizeCallback(boolean is_low_latency_buffer_size) {
+        mAdapterService.switchBufferSizeCallback(is_low_latency_buffer_size);
+    }
+
 }

@@ -163,7 +163,7 @@ inline std::string bta_hh_status_text(const tBTA_HH_STATUS& status) {
     CASE_RETURN_TEXT(BTA_HH_ERR_HDL);
     CASE_RETURN_TEXT(BTA_HH_ERR_SEC);
     default:
-      return std::string("UNKNOWN[%hhu]", status);
+      return base::StringPrintf("UNKNOWN[%hhu]", status);
   }
 }
 
@@ -225,6 +225,7 @@ typedef struct {
 
   uint8_t flag;
   tBTA_HH_DEV_DESCR descriptor;
+  uint8_t hid_handle;
 
   std::string ToString() const {
     return base::StringPrintf("%04x::%04x::%04x", vendor_id, product_id,

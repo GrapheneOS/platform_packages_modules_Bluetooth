@@ -25,6 +25,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadset;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothProtoEnums;
+import android.bluetooth.BluetoothStatusCodes;
 import android.bluetooth.hfp.BluetoothHfpProtoEnums;
 import android.content.Intent;
 import android.media.AudioManager;
@@ -87,7 +88,7 @@ public class HeadsetStateMachine extends StateMachine {
     static final int VOICE_RECOGNITION_START = 5;
     static final int VOICE_RECOGNITION_STOP = 6;
 
-    // message.obj is an intent AudioManager.VOLUME_CHANGED_ACTION
+    // message.obj is an intent AudioManager.ACTION_VOLUME_CHANGED
     // EXTRA_VOLUME_STREAM_TYPE is STREAM_BLUETOOTH_SCO
     static final int INTENT_SCO_VOLUME_CHANGED = 7;
     static final int INTENT_CONNECTION_ACCESS_REPLY = 8;
@@ -1110,7 +1111,7 @@ public class HeadsetStateMachine extends StateMachine {
             stateLogD("processAudioEvent, state=" + state);
             switch (state) {
                 case HeadsetHalConstants.AUDIO_STATE_CONNECTED:
-                    if (!mHeadsetService.isScoAcceptable(mDevice)) {
+                    if (mHeadsetService.isScoAcceptable(mDevice) != BluetoothStatusCodes.SUCCESS) {
                         stateLogW("processAudioEvent: reject incoming audio connection");
                         if (!mNativeInterface.disconnectAudio(mDevice)) {
                             stateLogE("processAudioEvent: failed to disconnect audio");
@@ -1124,7 +1125,7 @@ public class HeadsetStateMachine extends StateMachine {
                     transitionTo(mAudioOn);
                     break;
                 case HeadsetHalConstants.AUDIO_STATE_CONNECTING:
-                    if (!mHeadsetService.isScoAcceptable(mDevice)) {
+                    if (mHeadsetService.isScoAcceptable(mDevice) != BluetoothStatusCodes.SUCCESS) {
                         stateLogW("processAudioEvent: reject incoming pending audio connection");
                         if (!mNativeInterface.disconnectAudio(mDevice)) {
                             stateLogE("processAudioEvent: failed to disconnect pending audio");

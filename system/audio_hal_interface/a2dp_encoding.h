@@ -29,10 +29,10 @@ bool update_codec_offloading_capabilities(
     const std::vector<btav_a2dp_codec_config_t>& framework_preference);
 
 // Check if new bluetooth_audio is enabled
-bool is_hal_2_0_enabled();
+bool is_hal_enabled();
 
 // Check if new bluetooth_audio is running with offloading encoders
-bool is_hal_2_0_offloading();
+bool is_hal_offloading();
 
 // Initialize BluetoothAudio HAL: openProvider
 bool init(bluetooth::common::MessageLoopThread* message_loop);
@@ -42,6 +42,9 @@ void cleanup();
 
 // Set up the codec into BluetoothAudio HAL
 bool setup_codec();
+
+// Set low latency buffer mode allowed or disallowed
+bool set_audio_low_latency_mode_allowed(bool allowed);
 
 // Send command to the BluetoothAudio HAL: StartSession, EndSession,
 // StreamStarted, StreamSuspended

@@ -61,15 +61,10 @@ class BluetoothKeystoreInterfaceImpl
       LOG(INFO) << __func__ << " callback isn't ready.";
       return;
     }
-    if (bluetooth::shim::is_any_gd_enabled()) {
-      do_in_jni_thread(
-          FROM_HERE, base::Bind([]() {
-            shim::BtifConfigInterface::ConvertEncryptOrDecryptKeyIfNeeded();
-          }));
-      return;
-    }
     do_in_jni_thread(
-        FROM_HERE, base::Bind([]() { btif_storage_get_num_bonded_devices(); }));
+        FROM_HERE, base::Bind([]() {
+          shim::BtifConfigInterface::ConvertEncryptOrDecryptKeyIfNeeded();
+        }));
   }
 
   bool set_encrypt_key_or_remove_key(std::string prefix,

@@ -46,7 +46,7 @@ class BluetoothAcceptanceSuite(mobly_g3_suite.BaseSuite):
     # Enable all Bluetooth logging in the first test.
     first_test_config = config.copy()
     first_test_config.user_params.update({
-        'enable_all_bluetooth_logging': 1,
+        'enable_hci_snoop_logging': 1,
     })
     for index, clazz in enumerate(TEST_CLASSES):
       if selected_tests:

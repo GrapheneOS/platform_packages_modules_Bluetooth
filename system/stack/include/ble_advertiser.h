@@ -56,6 +56,7 @@ typedef struct {
   uint8_t primary_advertising_phy;
   uint8_t secondary_advertising_phy;
   uint8_t scan_request_notification_enable;
+  uint8_t own_address_type;
 } tBTM_BLE_ADV_PARAMS;
 
 typedef struct {

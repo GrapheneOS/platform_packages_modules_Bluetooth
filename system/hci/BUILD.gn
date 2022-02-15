@@ -31,7 +31,6 @@ static_library("hci") {
     "//bt/system/",
     "//bt/system/internal_include",
     "//bt/system/bta/include",
-    "//bt/system/btcore/include",
     "//bt/system/stack/include",
   ]
 
@@ -55,8 +54,6 @@ if (use.test) {
     include_dirs = [
       "//bt/system/",
       "//bt/system/internal_include",
-      "//bt/system/btcore/include",
-      "//bt/system/hci/include",
       "//bt/system/osi/test",
       "//bt/system/stack/include",
     ]

@@ -8,23 +8,20 @@ package {
 }
 
 cc_library_static {
-    name: "liblc3codec",
+    name: "liblc3",
     host_supported: true,
     apex_available: [
 
         "//apex_available:platform",
-        "com.android.bluetooth.updatable"
+        "com.android.bluetooth"
     ],
     defaults: ["fluoride_defaults"],
     srcs: [
-        "Common/*.cpp",
-        "Common/fft/*.c",
-        "Common/Tables/*.cpp",
-        "Encoder/*.cpp",
-        "Decoder/*.cpp",
-        "TestSupport/DatapointsAndroid.cpp",
+        "src/*.c",
     ],
     cflags: [
+        "-O3",
+        "-ffast-math",
         "-Werror",
         "-Wmissing-braces",
         "-Wno-unused-parameter",
@@ -45,38 +42,19 @@ cc_library_static {
             },
        },
     },
-    shared_libs: [
-        "liblog",
-    ],
     export_include_dirs: [
-        "Api",
-        "Common",
-        "Common/fft",
-        "Common/Tables",
-        "TestSupport",
+        "include",
     ],
 }
 
 cc_fuzz {
-  name: "liblc3codec_encoder_fuzzer",
+  name: "liblc3_fuzzer",
 
   srcs: [
-    "fuzzer/liblc3codec_encoder_fuzzer.cpp",
+    "fuzzer/liblc3encoder_fuzzer.cpp",
   ],
 
   static_libs: [
-    "liblc3codec",
-  ],
-}
-
-cc_fuzz {
-  name: "liblc3codec_decoder_fuzzer",
-
-  srcs: [
-    "fuzzer/liblc3codec_decoder_fuzzer.cpp",
-  ],
-
-  static_libs: [
-    "liblc3codec",
+    "liblc3",
   ],
 }

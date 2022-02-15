@@ -142,7 +142,8 @@ bool AclConnectionHandler::Disconnect(uint16_t handle) {
   if (HasHandle(handle)) {
     // It is the responsibility of the caller to remove SCO connections
     // with connected peer first.
-    ASSERT(GetScoHandle(GetAddress(handle).GetAddress()) == 0);
+    uint16_t sco_handle = GetScoHandle(GetAddress(handle).GetAddress());
+    ASSERT(!HasScoHandle(sco_handle));
     acl_connections_.erase(handle);
     return true;
   }
@@ -420,18 +421,40 @@ StreamParameters AclConnectionHandler::GetStreamParameters(
   return isochronous_connection_handler_.GetStreamParameters(handle);
 }
 
-void AclConnectionHandler::CreatePendingScoConnection(
-  bluetooth::hci::Address addr, ScoConnectionParameters const &parameters) {
+void AclConnectionHandler::CreateScoConnection(
+  bluetooth::hci::Address addr, ScoConnectionParameters const &parameters,
+  ScoState state, bool legacy) {
 
   uint16_t sco_handle = GetUnusedHandle();
-  sco_connections_.emplace(
-    sco_handle, ScoConnection(addr, parameters));
+  sco_connections_.emplace(sco_handle,
+      ScoConnection(addr, parameters, state, legacy));
 }
 
 bool AclConnectionHandler::HasPendingScoConnection(bluetooth::hci::Address addr) const {
-  for (auto pair : sco_connections_) {
+  for (const auto& pair : sco_connections_) {
     if (std::get<ScoConnection>(pair).GetAddress() == addr) {
-      return true;
+      ScoState state = std::get<ScoConnection>(pair).GetState();
+      return state == SCO_STATE_PENDING ||
+             state == SCO_STATE_SENT_ESCO_CONNECTION_REQUEST ||
+             state == SCO_STATE_SENT_SCO_CONNECTION_REQUEST;
+    }
+  }
+  return false;
+}
+
+ScoState AclConnectionHandler::GetScoConnectionState(bluetooth::hci::Address addr) const {
+  for (const auto& pair : sco_connections_) {
+    if (std::get<ScoConnection>(pair).GetAddress() == addr) {
+      return std::get<ScoConnection>(pair).GetState();
+    }
+  }
+  return SCO_STATE_CLOSED;
+}
+
+bool AclConnectionHandler::IsLegacyScoConnection(bluetooth::hci::Address addr) const {
+  for (const auto& pair : sco_connections_) {
+    if (std::get<ScoConnection>(pair).GetAddress() == addr) {
+      return std::get<ScoConnection>(pair).IsLegacy();
     }
   }
   return false;
@@ -448,10 +471,10 @@ void AclConnectionHandler::CancelPendingScoConnection(bluetooth::hci::Address ad
 
 bool AclConnectionHandler::AcceptPendingScoConnection(bluetooth::hci::Address addr,
   ScoLinkParameters const &parameters) {
-
-  for (auto pair : sco_connections_) {
+  for (auto& pair : sco_connections_) {
     if (std::get<ScoConnection>(pair).GetAddress() == addr) {
       std::get<ScoConnection>(pair).SetLinkParameters(parameters);
+      std::get<ScoConnection>(pair).SetState(ScoState::SCO_STATE_OPENED);
       return true;
     }
   }
@@ -460,17 +483,19 @@ bool AclConnectionHandler::AcceptPendingScoConnection(bluetooth::hci::Address ad
 
 bool AclConnectionHandler::AcceptPendingScoConnection(bluetooth::hci::Address addr,
   ScoConnectionParameters const &parameters) {
-
-  for (auto pair : sco_connections_) {
+  for (auto& pair : sco_connections_) {
     if (std::get<ScoConnection>(pair).GetAddress() == addr) {
-      return std::get<ScoConnection>(pair).NegotiateLinkParameters(parameters);
+      bool ok = std::get<ScoConnection>(pair).NegotiateLinkParameters(parameters);
+      std::get<ScoConnection>(pair).SetState(
+          ok ? ScoState::SCO_STATE_OPENED : ScoState::SCO_STATE_CLOSED);
+      return ok;
     }
   }
   return false;
 }
 
 uint16_t AclConnectionHandler::GetScoHandle(bluetooth::hci::Address addr) const {
-  for (auto pair : sco_connections_) {
+  for (const auto& pair : sco_connections_) {
     if (std::get<ScoConnection>(pair).GetAddress() == addr) {
       return std::get<0>(pair);
     }
@@ -478,13 +503,32 @@ uint16_t AclConnectionHandler::GetScoHandle(bluetooth::hci::Address addr) const 
   return 0;
 }
 
+ScoConnectionParameters AclConnectionHandler::GetScoConnectionParameters(
+    bluetooth::hci::Address addr) const {
+  for (const auto& pair : sco_connections_) {
+    if (std::get<ScoConnection>(pair).GetAddress() == addr) {
+      return std::get<ScoConnection>(pair).GetConnectionParameters();
+    }
+  }
+  return {};
+}
+
 ScoLinkParameters AclConnectionHandler::GetScoLinkParameters(bluetooth::hci::Address addr) const {
-  for (auto pair : sco_connections_) {
+  for (const auto& pair : sco_connections_) {
     if (std::get<ScoConnection>(pair).GetAddress() == addr) {
       return std::get<ScoConnection>(pair).GetLinkParameters();
     }
   }
   return {};
+}
+
+std::vector<uint16_t> AclConnectionHandler::GetAclHandles() const {
+  std::vector<uint16_t> keys;
+
+  for (const auto& pair : acl_connections_) {
+    keys.push_back(pair.first);
+  }
+  return keys;
 }
 
 }  // namespace test_vendor_lib

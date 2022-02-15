@@ -79,18 +79,27 @@ class LeAudioClientInterfaceImpl : public LeAudioClientInterface,
       LOG_INFO("supported codec: %s", codec.ToString().c_str());
     }
 
+    LeAudioClient::InitializeAudioSetConfigurationProvider();
     do_in_main_thread(
         FROM_HERE, Bind(&LeAudioClient::Initialize, this,
                         jni_thread_wrapper(
                             FROM_HERE, Bind(&btif_storage_load_bonded_leaudio)),
                         base::Bind([]() -> bool {
                           return LeAudioHalVerifier::SupportsLeAudio();
-                        })));
+                        }),
+                        offloading_preference));
   }
 
   void Cleanup(void) override {
     DVLOG(2) << __func__;
-    do_in_main_thread(FROM_HERE, Bind(&LeAudioClient::Cleanup));
+    do_in_main_thread(
+        FROM_HERE,
+        Bind(
+            &LeAudioClient::Cleanup,
+            jni_thread_wrapper(
+                FROM_HERE,
+                Bind(
+                    &LeAudioClient::CleanupAudioSetConfigurationProvider))));
   }
 
   void RemoveDevice(const RawAddress& address) override {

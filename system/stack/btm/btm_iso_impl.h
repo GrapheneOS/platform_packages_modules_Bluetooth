@@ -60,8 +60,9 @@ struct iso_base {
   };
 
   struct iso_sync_info sync_info;
-  uint8_t state_flags;
+  std::atomic_uint8_t state_flags;
   uint32_t sdu_itv;
+  std::atomic_uint16_t used_credits;
 };
 
 typedef iso_base iso_cis;
@@ -121,11 +122,14 @@ struct iso_impl {
         STREAM_TO_UINT16(conn_handle, stream);
 
         evt.conn_handles.push_back(conn_handle);
-        conn_hdl_to_cis_map_[conn_handle] = std::unique_ptr<iso_cis>(
-            new iso_cis({.sync_info = {.first_sync_ts = 0, .seq_nb = 0},
-                         .cig_id = cig_id,
-                         .state_flags = kStateFlagsNone,
-                         .sdu_itv = sdu_itv_mtos}));
+
+        auto cis = std::unique_ptr<iso_cis>(new iso_cis());
+        cis->cig_id = cig_id;
+        cis->sdu_itv = sdu_itv_mtos;
+        cis->sync_info = {.first_sync_ts = 0, .seq_nb = 0};
+        cis->used_credits = 0;
+        cis->state_flags = kStateFlagsNone;
+        conn_hdl_to_cis_map_[conn_handle] = std::move(cis);
       }
     }
 
@@ -199,14 +203,14 @@ struct iso_impl {
     for (auto cis_param : conn_params.conn_pairs) {
       cis_establish_cmpl_evt evt;
 
-      if (status == HCI_SUCCESS) {
-        /* Set connecting flag and wait for connection established event */
+      if (status != HCI_SUCCESS) {
         auto cis = GetCisIfKnown(cis_param.cis_conn_handle);
-        cis->state_flags |= kStateFlagIsConnecting;
-      } else {
+        LOG_ASSERT(cis != nullptr) << "No such cis";
+
         evt.status = status;
         evt.cis_conn_hdl = cis_param.cis_conn_handle;
         evt.cig_id = 0xFF;
+        cis->state_flags &= ~kStateFlagIsConnecting;
         cig_callbacks_->OnCisEvent(kIsoEventCisEstablishCmpl, &evt);
       }
     }
@@ -216,8 +220,10 @@ struct iso_impl {
     for (auto& el : conn_params.conn_pairs) {
       auto cis = GetCisIfKnown(el.cis_conn_handle);
       LOG_ASSERT(cis) << "No such cis";
-      LOG_ASSERT(!(cis->state_flags & kStateFlagIsConnected))
-          << "Already connected";
+      LOG_ASSERT(!(cis->state_flags &
+                   (kStateFlagIsConnected | kStateFlagIsConnecting)))
+          << "Already connected or connecting";
+      cis->state_flags |= kStateFlagIsConnecting;
     }
     btsnd_hcic_create_cis(conn_params.conn_pairs.size(),
                           conn_params.conn_pairs.data(),
@@ -432,6 +438,7 @@ struct iso_impl {
     }
 
     iso_credits_--;
+    iso->used_credits++;
 
     BT_HDR* packet =
         prepare_ts_hci_packet(iso_handle, ts, iso->sync_info.seq_nb, data_len);
@@ -493,6 +500,11 @@ struct iso_impl {
 
       cig_callbacks_->OnCisEvent(kIsoEventCisDisconnected, &evt);
       cis->state_flags &= ~kStateFlagIsConnected;
+
+      /* return used credits */
+      iso_credits_ += cis->used_credits;
+      cis->used_credits = 0;
+
       /* Data path is considered still valid, but can be reconfigured only once
        * CIS is reestablished.
        */
@@ -512,20 +524,35 @@ struct iso_impl {
       STREAM_TO_UINT16(handle, p);
       STREAM_TO_UINT16(num_sent, p);
 
-      if ((conn_hdl_to_cis_map_.find(handle) == conn_hdl_to_cis_map_.end()) &&
-          (conn_hdl_to_bis_map_.find(handle) == conn_hdl_to_bis_map_.end()))
+      auto iter = conn_hdl_to_cis_map_.find(handle);
+      if (iter != conn_hdl_to_cis_map_.end()) {
+        iter->second->used_credits -= num_sent;
+        iso_credits_ += num_sent;
         continue;
+      }
 
-      iso_credits_ += num_sent;
+      iter = conn_hdl_to_bis_map_.find(handle);
+      if (iter != conn_hdl_to_bis_map_.end()) {
+        iter->second->used_credits -= num_sent;
+        iso_credits_ += num_sent;
+        continue;
+      }
     }
   }
 
   void handle_gd_num_completed_pkts(uint16_t handle, uint16_t credits) {
-    if ((conn_hdl_to_cis_map_.find(handle) == conn_hdl_to_cis_map_.end()) &&
-        (conn_hdl_to_bis_map_.find(handle) == conn_hdl_to_bis_map_.end()))
+    auto iter = conn_hdl_to_cis_map_.find(handle);
+    if (iter != conn_hdl_to_cis_map_.end()) {
+      iter->second->used_credits -= credits;
+      iso_credits_ += credits;
       return;
+    }
 
-    iso_credits_ += credits;
+    iter = conn_hdl_to_bis_map_.find(handle);
+    if (iter != conn_hdl_to_bis_map_.end()) {
+      iter->second->used_credits -= credits;
+      iso_credits_ += credits;
+    }
   }
 
   void process_create_big_cmpl_pkt(uint8_t len, uint8_t* data) {
@@ -561,11 +588,13 @@ struct iso_impl {
       LOG_INFO(" received BIS conn_hdl %d", +conn_handle);
 
       if (evt.status == HCI_SUCCESS) {
-        conn_hdl_to_bis_map_[conn_handle] = std::unique_ptr<iso_bis>(
-            new iso_bis({.sync_info = {.first_sync_ts = ts, .seq_nb = 0},
-                         .big_handle = evt.big_id,
-                         .state_flags = kStateFlagIsBroadcast,
-                         .sdu_itv = last_big_create_req_sdu_itv_}));
+        auto bis = std::unique_ptr<iso_bis>(new iso_bis());
+        bis->big_handle = evt.big_id;
+        bis->sdu_itv = last_big_create_req_sdu_itv_;
+        bis->sync_info = {.first_sync_ts = ts, .seq_nb = 0};
+        bis->used_credits = 0;
+        bis->state_flags = kStateFlagIsBroadcast;
+        conn_hdl_to_bis_map_[conn_handle] = std::move(bis);
       }
     }
 
@@ -690,6 +719,7 @@ struct iso_impl {
 
     evt.p_msg = p_msg;
     evt.cig_id = iso->cig_id;
+    evt.seq_nb = seq_nb;
     cig_callbacks_->OnCisEvent(kIsoEventCisDataAvailable, &evt);
   }
 
@@ -731,7 +761,7 @@ struct iso_impl {
   std::map<uint16_t, std::unique_ptr<iso_cis>> conn_hdl_to_cis_map_;
   std::map<uint16_t, std::unique_ptr<iso_bis>> conn_hdl_to_bis_map_;
 
-  uint16_t iso_credits_;
+  std::atomic_uint16_t iso_credits_;
   uint16_t iso_buffer_size_;
   uint32_t last_big_create_req_sdu_itv_;
 

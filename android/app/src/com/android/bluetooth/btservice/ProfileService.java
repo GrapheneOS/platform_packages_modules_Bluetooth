@@ -22,6 +22,7 @@ import android.annotation.SuppressLint;
 import android.app.ActivityManager;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothUtils;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -40,6 +41,8 @@ import com.android.bluetooth.BluetoothMetricsProto;
 public abstract class ProfileService extends Service {
     private static final boolean DBG = false;
 
+    public static final String BLUETOOTH_PERM =
+            android.Manifest.permission.BLUETOOTH;
     public static final String BLUETOOTH_PRIVILEGED =
             android.Manifest.permission.BLUETOOTH_PRIVILEGED;
 
@@ -280,9 +283,9 @@ public abstract class ProfileService extends Service {
             @Override
             public void onReceive(Context context, Intent intent) {
                 final String action = intent.getAction();
-                final int userId =
-                        intent.getIntExtra(Intent.EXTRA_USER_HANDLE, UserHandle.USER_NULL);
-                if (userId == UserHandle.USER_NULL) {
+                final int userId = intent.getIntExtra(Intent.EXTRA_USER_HANDLE,
+                        BluetoothUtils.USER_HANDLE_NULL.getIdentifier());
+                if (userId == BluetoothUtils.USER_HANDLE_NULL.getIdentifier()) {
                     Log.e(mName, "userChangeReceiver received an invalid EXTRA_USER_HANDLE");
                     return;
                 }

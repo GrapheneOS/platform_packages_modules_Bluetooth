@@ -31,11 +31,12 @@
 #include "client_parser.h"
 
 namespace le_audio {
+using types::acs_ac_record;
 using types::LeAudioContextType;
 
 namespace set_configurations {
 using set_configurations::CodecCapabilitySetting;
-using types::acs_ac_record;
+using types::CodecLocation;
 using types::kLeAudioCodingFormatLC3;
 using types::kLeAudioDirectionSink;
 using types::kLeAudioDirectionSource;
@@ -86,6 +87,11 @@ bool check_if_may_cover_scenario(const AudioSetConfiguration* audio_set_conf,
   }
 
   return group_size >= min_req_devices_cnt(audio_set_conf);
+}
+
+uint8_t get_num_of_devices_in_configuration(
+    const AudioSetConfiguration* audio_set_conf) {
+  return min_req_devices_cnt(audio_set_conf);
 }
 
 static bool IsCodecConfigurationSupported(const types::LeAudioLtvMap& pacs,
@@ -220,18 +226,6 @@ bool IsCodecCapabilitySettingSupported(
   }
 }
 
-const AudioSetConfigurations* get_confs_by_type(LeAudioContextType type) {
-  switch (type) {
-    case LeAudioContextType::MEDIA:
-      return &audio_set_conf_media;
-    case LeAudioContextType::CONVERSATIONAL:
-      return &audio_set_conf_conversational;
-    case LeAudioContextType::RINGTONE:
-      return &audio_set_conf_ringtone;
-    default:
-      return &audio_set_conf_default;
-  }
-}
 uint32_t CodecCapabilitySetting::GetConfigSamplingFrequency() const {
   switch (id.coding_format) {
     case kLeAudioCodingFormatLC3:
@@ -440,14 +434,24 @@ void AppendMetadataLtvEntryForStreamingContext(
                   streaming_context_ltv_entry.end());
 }
 
+uint8_t GetMaxCodecFramesPerSduFromPac(const acs_ac_record* pac) {
+  auto tlv_ent = pac->codec_spec_caps.Find(
+      codec_spec_caps::kLeAudioCodecLC3TypeMaxCodecFramesPerSdu);
+
+  if (tlv_ent) return VEC_UINT8_TO_UINT8(tlv_ent.value());
+
+  return 1;
+}
+
 }  // namespace le_audio
 
 std::ostream& operator<<(std::ostream& os,
                          const le_audio::types::LeAudioLc3Config& config) {
-  os << " LeAudioLc3Config(SamplFreq=" << loghex(config.sampling_frequency)
-     << ", FrameDur=" << loghex(config.frame_duration)
-     << ", OctetsPerFrame=" << int(config.octets_per_codec_frame)
-     << ", AudioChanLoc=" << loghex(config.audio_channel_allocation) << ")";
+  os << " LeAudioLc3Config(SamplFreq=" << loghex(*config.sampling_frequency)
+     << ", FrameDur=" << loghex(*config.frame_duration)
+     << ", OctetsPerFrame=" << int(*config.octets_per_codec_frame)
+     << ", CodecFramesBlocksPerSDU=" << int(*config.codec_frames_blocks_per_sdu)
+     << ", AudioChanLoc=" << loghex(*config.audio_channel_allocation) << ")";
   return os;
 }
 

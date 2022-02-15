@@ -1,0 +1,438 @@
+/*
+ *  Copyright (c) 2022 The Android Open Source Project
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
+
+#include "audio_set_configurations_generated.h"
+#include "audio_set_scenarios_generated.h"
+#include "codec_manager.h"
+#include "flatbuffers/idl.h"
+#include "flatbuffers/util.h"
+#include "le_audio_set_configuration_provider.h"
+#include "osi/include/log.h"
+
+using le_audio::set_configurations::AudioSetConfiguration;
+using le_audio::set_configurations::AudioSetConfigurations;
+using le_audio::set_configurations::CodecCapabilitySetting;
+using le_audio::set_configurations::LeAudioCodecIdLc3;
+using le_audio::set_configurations::SetConfiguration;
+using le_audio::types::LeAudioContextType;
+
+namespace le_audio {
+using ::le_audio::CodecManager;
+
+#ifdef OS_ANDROID
+static const std::vector<
+    std::pair<const char* /*schema*/, const char* /*content*/>>
+    kLeAudioSetConfigs = {
+        {"/system/etc/bluetooth/le_audio/audio_set_configurations.bfbs",
+         "/system/etc/bluetooth/le_audio/audio_set_configurations.json"}};
+static const std::vector<
+    std::pair<const char* /*schema*/, const char* /*content*/>>
+    kLeAudioSetScenarios = {
+        {"/system/etc/bluetooth/le_audio/audio_set_scenarios.bfbs",
+         "/system/etc/bluetooth/le_audio/audio_set_scenarios.json"}};
+#else
+static const std::vector<
+    std::pair<const char* /*schema*/, const char* /*content*/>>
+    kLeAudioSetConfigs = {
+        {"audio_set_configurations.bfbs", "audio_set_configurations.json"}};
+static const std::vector<
+    std::pair<const char* /*schema*/, const char* /*content*/>>
+    kLeAudioSetScenarios = {
+        {"audio_set_scenarios.bfbs", "audio_set_scenarios.json"}};
+#endif
+
+/** Provides a set configurations for the given context type */
+struct AudioSetConfigurationProviderJson {
+  AudioSetConfigurationProviderJson() {
+    ASSERT_LOG(LoadContent(kLeAudioSetConfigs, kLeAudioSetScenarios),
+               ": Unable to load le audio set configuration files.");
+  }
+
+  const AudioSetConfigurations* GetConfigurationsByContextType(
+      LeAudioContextType context_type) const {
+    if (context_configurations_.count(context_type))
+      return &context_configurations_.at(context_type);
+
+    LOG_WARN(": No predefined scenario for the context %d was found.",
+             (int)context_type);
+
+    auto fallback_scenario = "Default";
+    context_type = ScenarioToContextType(fallback_scenario);
+
+    if (context_configurations_.count(context_type)) {
+      LOG_WARN(": Using %s scenario by default.", fallback_scenario);
+      return &context_configurations_.at(context_type);
+    }
+
+    LOG_ERROR(
+        ": No fallback configuration for the 'Default' scenario or"
+        " no valid audio set configurations loaded at all.");
+    return nullptr;
+  };
+
+ private:
+  /* Codec configurations */
+  std::map<std::string, const AudioSetConfiguration> configurations_;
+
+  /* Maps of context types to a set of configuration structs */
+  std::map<::le_audio::types::LeAudioContextType, AudioSetConfigurations>
+      context_configurations_;
+
+  static const bluetooth::le_audio::CodecSpecificConfiguration*
+  LookupCodecSpecificParam(
+      const flatbuffers::Vector<
+          flatbuffers::Offset<bluetooth::le_audio::CodecSpecificConfiguration>>*
+          flat_codec_specific_params,
+      bluetooth::le_audio::CodecSpecificLtvGenericTypes type) {
+    auto it = std::find_if(
+        flat_codec_specific_params->cbegin(),
+        flat_codec_specific_params->cend(),
+        [&type](const auto& csc) { return (csc->type() == type); });
+    return (it != flat_codec_specific_params->cend()) ? *it : nullptr;
+  }
+
+  static CodecCapabilitySetting CodecCapabilitySettingFromFlat(
+      const bluetooth::le_audio::CodecId* flat_codec_id,
+      const flatbuffers::Vector<
+          flatbuffers::Offset<bluetooth::le_audio::CodecSpecificConfiguration>>*
+          flat_codec_specific_params) {
+    CodecCapabilitySetting codec;
+
+    /* Cache the le_audio::types::CodecId type value */
+    codec.id = types::LeAudioCodecId({
+        .coding_format = flat_codec_id->coding_format(),
+        .vendor_company_id = flat_codec_id->vendor_company_id(),
+        .vendor_codec_id = flat_codec_id->vendor_codec_id(),
+    });
+
+    /* Cache the types::LeAudioLc3Config type value */
+    uint8_t sampling_frequency = 0;
+    uint8_t frame_duration = 0;
+    uint32_t audio_channel_allocation = 0;
+    uint16_t octets_per_codec_frame = 0;
+
+    auto param = LookupCodecSpecificParam(
+        flat_codec_specific_params,
+        bluetooth::le_audio::
+            CodecSpecificLtvGenericTypes_SUPPORTED_SAMPLING_FREQUENCY);
+    if (param) {
+      ASSERT_LOG((param->compound_value()->value()->size() == 1),
+                 " Invalid compound value length: %d",
+                 param->compound_value()->value()->size());
+      auto ptr = param->compound_value()->value()->data();
+      STREAM_TO_UINT8(sampling_frequency, ptr);
+    }
+
+    param = LookupCodecSpecificParam(
+        flat_codec_specific_params,
+        bluetooth::le_audio::
+            CodecSpecificLtvGenericTypes_SUPPORTED_FRAME_DURATION);
+    if (param) {
+      LOG_ASSERT(param->compound_value()->value()->size() == 1)
+          << " Invalid compound value length: "
+          << param->compound_value()->value()->size();
+      auto ptr = param->compound_value()->value()->data();
+      STREAM_TO_UINT8(frame_duration, ptr);
+    }
+
+    param = LookupCodecSpecificParam(
+        flat_codec_specific_params,
+        bluetooth::le_audio::
+            CodecSpecificLtvGenericTypes_SUPPORTED_AUDIO_CHANNEL_ALLOCATION);
+    if (param) {
+      ASSERT_LOG((param->compound_value()->value()->size() == 4),
+                 " Invalid compound value length %d",
+                 param->compound_value()->value()->size());
+      auto ptr = param->compound_value()->value()->data();
+      STREAM_TO_UINT32(audio_channel_allocation, ptr);
+    }
+
+    param = LookupCodecSpecificParam(
+        flat_codec_specific_params,
+        bluetooth::le_audio::
+            CodecSpecificLtvGenericTypes_SUPPORTED_OCTETS_PER_CODEC_FRAME);
+    if (param) {
+      ASSERT_LOG((param->compound_value()->value()->size() == 2),
+                 " Invalid compound value length %d",
+                 param->compound_value()->value()->size());
+      auto ptr = param->compound_value()->value()->data();
+      STREAM_TO_UINT16(octets_per_codec_frame, ptr);
+    }
+
+    codec.config = types::LeAudioLc3Config({
+        .sampling_frequency = sampling_frequency,
+        .frame_duration = frame_duration,
+        .octets_per_codec_frame = octets_per_codec_frame,
+        .channel_count =
+            (uint8_t)std::bitset<32>(audio_channel_allocation).count(),
+        .audio_channel_allocation = audio_channel_allocation,
+    });
+    return codec;
+  }
+
+  SetConfiguration SetConfigurationFromFlatSubconfig(
+      const bluetooth::le_audio::AudioSetSubConfiguration* flat_subconfig) {
+    auto strategy_int =
+        static_cast<int>(flat_subconfig->configuration_strategy());
+
+    bool valid_strategy =
+        (strategy_int >=
+         (int)types::LeAudioConfigurationStrategy::MONO_ONE_CIS_PER_DEVICE) &&
+        strategy_int < (int)types::LeAudioConfigurationStrategy::RFU;
+
+    types::LeAudioConfigurationStrategy strategy =
+        valid_strategy
+            ? static_cast<types::LeAudioConfigurationStrategy>(strategy_int)
+            : types::LeAudioConfigurationStrategy::RFU;
+
+    return SetConfiguration(
+        flat_subconfig->direction(), flat_subconfig->device_cnt(),
+        flat_subconfig->ase_cnt(),
+        CodecCapabilitySettingFromFlat(flat_subconfig->codec_id(),
+                                       flat_subconfig->codec_configuration()),
+        strategy);
+  }
+
+  AudioSetConfiguration AudioSetConfigurationFromFlat(
+      const bluetooth::le_audio::AudioSetConfiguration* flat_cfg) {
+    std::vector<SetConfiguration> subconfigs;
+    if (flat_cfg->subconfigurations()) {
+      /* Load subconfigurations */
+      for (auto subconfig : *flat_cfg->subconfigurations()) {
+        subconfigs.push_back(SetConfigurationFromFlatSubconfig(subconfig));
+      }
+
+    } else {
+      LOG_ERROR("Configuration '%s' has no valid subconfigurations.",
+                flat_cfg->name()->c_str());
+    }
+
+    return AudioSetConfiguration({flat_cfg->name()->c_str(), subconfigs});
+  }
+
+  bool LoadConfigurationsFromFiles(const char* schema_file,
+                                   const char* content_file) {
+    flatbuffers::Parser configurations_parser_;
+    std::string configurations_schema_binary_content;
+    bool ok = flatbuffers::LoadFile(schema_file, true,
+                                    &configurations_schema_binary_content);
+    if (!ok) return ok;
+
+    /* Load the binary schema */
+    ok = configurations_parser_.Deserialize(
+        (uint8_t*)configurations_schema_binary_content.c_str(),
+        configurations_schema_binary_content.length());
+    if (!ok) return ok;
+
+    /* Load the content from JSON */
+    std::string configurations_json_content;
+    ok = flatbuffers::LoadFile(content_file, false,
+                               &configurations_json_content);
+    if (!ok) return ok;
+
+    /* Parse */
+    ok = configurations_parser_.Parse(configurations_json_content.c_str());
+    if (!ok) return ok;
+
+    /* Import from flatbuffers */
+    auto configurations_root = bluetooth::le_audio::GetAudioSetConfigurations(
+        configurations_parser_.builder_.GetBufferPointer());
+    if (!configurations_root) return false;
+
+    auto flat_configs = configurations_root->configurations();
+    if ((flat_configs == nullptr) || (flat_configs->size() == 0)) return false;
+
+    LOG_DEBUG(": Updating %d config entries.", flat_configs->size());
+    for (auto const& flat_cfg : *flat_configs) {
+      configurations_.insert(
+          {flat_cfg->name()->str(), AudioSetConfigurationFromFlat(flat_cfg)});
+    }
+
+    return true;
+  }
+
+  AudioSetConfigurations AudioSetConfigurationsFromFlatScenario(
+      const bluetooth::le_audio::AudioSetScenario* const flat_scenario) {
+    AudioSetConfigurations items;
+    if (!flat_scenario->configurations()) return items;
+
+    for (auto config_name : *flat_scenario->configurations()) {
+      if (configurations_.count(config_name->str()) == 0) continue;
+
+      auto& cfg = configurations_.at(config_name->str());
+      items.push_back(&cfg);
+    }
+
+    return items;
+  }
+
+  bool LoadScenariosFromFiles(const char* schema_file,
+                              const char* content_file) {
+    flatbuffers::Parser scenarios_parser_;
+    std::string scenarios_schema_binary_content;
+    bool ok = flatbuffers::LoadFile(schema_file, true,
+                                    &scenarios_schema_binary_content);
+    if (!ok) return ok;
+
+    /* Load the binary schema */
+    ok = scenarios_parser_.Deserialize(
+        (uint8_t*)scenarios_schema_binary_content.c_str(),
+        scenarios_schema_binary_content.length());
+    if (!ok) return ok;
+
+    /* Load the content from JSON */
+    std::string scenarios_json_content;
+    ok = flatbuffers::LoadFile(content_file, false, &scenarios_json_content);
+    if (!ok) return ok;
+
+    /* Parse */
+    ok = scenarios_parser_.Parse(scenarios_json_content.c_str());
+    if (!ok) return ok;
+
+    /* Import from flatbuffers */
+    auto scenarios_root = bluetooth::le_audio::GetAudioSetScenarios(
+        scenarios_parser_.builder_.GetBufferPointer());
+    if (!scenarios_root) return false;
+
+    auto flat_scenarios = scenarios_root->scenarios();
+    if ((flat_scenarios == nullptr) || (flat_scenarios->size() == 0))
+      return false;
+
+    LOG_DEBUG(": Updating %d scenarios.", flat_scenarios->size());
+    for (auto const& scenario : *flat_scenarios) {
+      context_configurations_.insert_or_assign(
+          ScenarioToContextType(scenario->name()->c_str()),
+          AudioSetConfigurationsFromFlatScenario(scenario));
+    }
+
+    return true;
+  }
+
+  bool LoadContent(
+      std::vector<std::pair<const char* /*schema*/, const char* /*content*/>>
+          config_files,
+      std::vector<std::pair<const char* /*schema*/, const char* /*content*/>>
+          scenario_files) {
+    for (auto [schema, content] : config_files) {
+      if (!LoadConfigurationsFromFiles(schema, content)) return false;
+    }
+
+    for (auto [schema, content] : scenario_files) {
+      if (!LoadScenariosFromFiles(schema, content)) return false;
+    }
+    return true;
+  }
+
+  std::string ContextTypeToScenario(
+      ::le_audio::types::LeAudioContextType context_type) {
+    switch (context_type) {
+      case types::LeAudioContextType::MEDIA:
+        return "Media";
+      case types::LeAudioContextType::CONVERSATIONAL:
+        return "Conversational";
+      case types::LeAudioContextType::RINGTONE:
+        return "Ringtone";
+      default:
+        return "Default";
+    }
+  }
+
+  static ::le_audio::types::LeAudioContextType ScenarioToContextType(
+      std::string scenario) {
+    static const std::map<std::string, ::le_audio::types::LeAudioContextType>
+        scenarios = {
+            {"Media", types::LeAudioContextType::MEDIA},
+            {"Conversational", types::LeAudioContextType::CONVERSATIONAL},
+            {"Ringtone", types::LeAudioContextType::RINGTONE},
+            {"Default", types::LeAudioContextType::UNSPECIFIED},
+        };
+    return scenarios.count(scenario) ? scenarios.at(scenario)
+                                     : types::LeAudioContextType::RFU;
+  }
+};
+
+struct AudioSetConfigurationProvider::impl {
+  impl(const AudioSetConfigurationProvider& config_provider)
+      : config_provider_(config_provider) {}
+
+  void Initialize() {
+    ASSERT_LOG(!config_provider_impl_, " Config provider not available.");
+    config_provider_impl_ =
+        std::make_unique<AudioSetConfigurationProviderJson>();
+  }
+
+  void Cleanup() {
+    ASSERT_LOG(config_provider_impl_, " Config provider not available.");
+    config_provider_impl_.reset();
+  }
+
+  bool IsRunning() { return config_provider_impl_ ? true : false; }
+
+  const AudioSetConfigurationProvider& config_provider_;
+  std::unique_ptr<AudioSetConfigurationProviderJson> config_provider_impl_;
+};
+
+static std::unique_ptr<AudioSetConfigurationProvider> config_provider;
+
+AudioSetConfigurationProvider::AudioSetConfigurationProvider()
+    : pimpl_(std::make_unique<AudioSetConfigurationProvider::impl>(*this)) {}
+
+void AudioSetConfigurationProvider::Initialize() {
+  if (!config_provider)
+    config_provider = std::make_unique<AudioSetConfigurationProvider>();
+
+  if (!config_provider->pimpl_->IsRunning())
+    config_provider->pimpl_->Initialize();
+}
+
+void AudioSetConfigurationProvider::Cleanup() {
+  if (!config_provider) return;
+  if (config_provider->pimpl_->IsRunning()) config_provider->pimpl_->Cleanup();
+  config_provider.reset();
+}
+
+AudioSetConfigurationProvider* AudioSetConfigurationProvider::Get() {
+  return config_provider.get();
+}
+
+const set_configurations::AudioSetConfigurations*
+AudioSetConfigurationProvider::GetConfigurations(
+    ::le_audio::types::LeAudioContextType content_type) const {
+  if (CodecManager::GetInstance()->GetCodecLocation() ==
+      types::CodecLocation::ADSP) {
+    LOG_DEBUG("Get offload config for the context type: %d", (int)content_type);
+    const AudioSetConfigurations* offload_confs =
+        CodecManager::GetInstance()->GetOffloadCodecConfig(content_type);
+
+    if (offload_confs != nullptr && !(*offload_confs).empty()) {
+      return offload_confs;
+    }
+
+    // TODO: Need to have a mechanism to switch to software session if offload
+    // doesn't support.
+  }
+
+  LOG_DEBUG("Get software config for the context type: %d", (int)content_type);
+
+  if (pimpl_->IsRunning())
+    return pimpl_->config_provider_impl_->GetConfigurationsByContextType(
+        content_type);
+
+  return nullptr;
+}
+
+}  // namespace le_audio

@@ -53,9 +53,10 @@ enum PacketType : 8 {
     LE_CONNECTION_PARAMETER_REQUEST = 0x2E,
     LE_CONNECTION_PARAMETER_UPDATE = 0x2F,
 
-    ESCO_CONNECTION_REQUEST = 0x30,
-    ESCO_CONNECTION_RESPONSE = 0x31,
-    ESCO_DISCONNECT = 0x32,
+    SCO_CONNECTION_REQUEST = 0x30,
+    SCO_CONNECTION_RESPONSE = 0x31,
+    SCO_DISCONNECT = 0x32,
+    RSSI_WRAPPER = 0x33,
 }
 
 packet LinkLayerPacket {
@@ -239,7 +240,7 @@ packet RemoteNameRequestResponse : LinkLayerPacket (type = REMOTE_NAME_REQUEST_R
   name : 8[248],
 }
 
-packet ScoPacket : LinkLayerPacket (type = SCO) {
+packet Sco : LinkLayerPacket (type = SCO) {
   _payload_,
 }
 
@@ -382,7 +383,7 @@ packet LeConnectionParameterUpdate : LinkLayerPacket (type = LE_CONNECTION_PARAM
   timeout : 16,
 }
 
-packet EScoConnectionRequest : LinkLayerPacket (type = ESCO_CONNECTION_REQUEST) {
+packet ScoConnectionRequest : LinkLayerPacket (type = SCO_CONNECTION_REQUEST) {
   transmit_bandwidth : 32,
   receive_bandwidth : 32,
   max_latency : 16,
@@ -392,15 +393,22 @@ packet EScoConnectionRequest : LinkLayerPacket (type = ESCO_CONNECTION_REQUEST) 
   packet_type : 16,
 }
 
-packet EScoConnectionResponse : LinkLayerPacket (type = ESCO_CONNECTION_RESPONSE) {
+packet ScoConnectionResponse : LinkLayerPacket (type = SCO_CONNECTION_RESPONSE) {
   status : 8,
   transmission_interval : 8,
   retransmission_window : 8,
   rx_packet_length : 16,
   tx_packet_length : 16,
   air_mode : 8,
+  extended : 1,
+  _reserved_ : 7,
 }
 
-packet EScoDisconnect : LinkLayerPacket (type = ESCO_DISCONNECT) {
+packet ScoDisconnect : LinkLayerPacket (type = SCO_DISCONNECT) {
   reason : 8,
+}
+
+packet RssiWrapper : LinkLayerPacket (type = RSSI_WRAPPER) {
+  rssi : 8,
+  _payload_,
 }

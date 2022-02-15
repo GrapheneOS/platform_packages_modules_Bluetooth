@@ -17,7 +17,6 @@ cc_library_static {
     include_dirs: [
         "packages/modules/Bluetooth/system",
         "packages/modules/Bluetooth/system/gd",
-        "packages/modules/Bluetooth/system/btcore/include",
         "packages/modules/Bluetooth/system/internal_include",
         "packages/modules/Bluetooth/system/stack/include",
         "packages/modules/Bluetooth/system/gd/rust/shim",
@@ -34,10 +33,11 @@ cc_library_static {
     ],
     shared_libs: [
         "libchrome",
+        "liblog",
     ],
     apex_available: [
         "//apex_available:platform",
-        "com.android.bluetooth.updatable",
+        "com.android.bluetooth",
     ],
 }
 
@@ -54,7 +54,6 @@ cc_test {
     },
     include_dirs: [
         "packages/modules/Bluetooth/system",
-        "packages/modules/Bluetooth/system/btcore/include",
         "packages/modules/Bluetooth/system/internal_include",
         "packages/modules/Bluetooth/system/stack/include",
     ],
@@ -94,7 +93,6 @@ cc_fuzz {
     include_dirs: [
         "packages/modules/Bluetooth/system",
         "packages/modules/Bluetooth/system/packet/tests",
-        "packages/modules/Bluetooth/system/btcore/include",
         "packages/modules/Bluetooth/system/internal_include",
         "packages/modules/Bluetooth/system/stack/include",
     ],

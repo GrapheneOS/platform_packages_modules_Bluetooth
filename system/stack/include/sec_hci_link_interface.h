@@ -26,24 +26,24 @@
 // This header contains functions for HCIF-Security Management to invoke
 //
 
-void btm_create_conn_cancel_complete(uint8_t* p);
-void btm_create_conn_cancel_complete(uint8_t* p);
+void btm_create_conn_cancel_complete(const uint8_t* p);
 void btm_io_capabilities_req(const RawAddress& p);
-void btm_io_capabilities_rsp(uint8_t* p);
-void btm_proc_sp_req_evt(tBTM_SP_EVT event, uint8_t* p);
+void btm_io_capabilities_rsp(const uint8_t* p);
+void btm_proc_sp_req_evt(tBTM_SP_EVT event, const uint8_t* p);
 void btm_read_inq_tx_power_complete(uint8_t* p);
 void btm_read_local_oob_complete(uint8_t* p);
-void btm_rem_oob_req(uint8_t* p);
+void btm_rem_oob_req(const uint8_t* p);
 void btm_sec_auth_complete(uint16_t handle, tHCI_STATUS status);
 void btm_sec_disconnected(uint16_t handle, tHCI_STATUS reason, std::string);
 void btm_sec_encrypt_change(uint16_t handle, tHCI_STATUS status,
                             uint8_t encr_enable);
 void btm_sec_link_key_notification(const RawAddress& p_bda,
                                    const Octet16& link_key, uint8_t key_type);
-void btm_sec_link_key_request(uint8_t* p_event);
-void btm_sec_pin_code_request(uint8_t* p_event);
-void btm_sec_rmt_host_support_feat_evt(uint8_t* p);
+void btm_sec_link_key_request(const uint8_t* p_event);
+void btm_sec_pin_code_request(const uint8_t* p_event);
+void btm_sec_rmt_host_support_feat_evt(const uint8_t* p);
 void btm_sec_rmt_name_request_complete(const RawAddress* bd_addr,
-                                       uint8_t* bd_name, tHCI_STATUS status);
+                                       const uint8_t* bd_name,
+                                       tHCI_STATUS status);
 void btm_sec_update_clock_offset(uint16_t handle, uint16_t clock_offset);
-void btm_simple_pair_complete(uint8_t* p);
+void btm_simple_pair_complete(const uint8_t* p);

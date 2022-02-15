@@ -71,7 +71,7 @@ extern void btm_clear_all_pending_le_entry(void);
 extern void btm_clr_inq_result_flt(void);
 extern void btm_set_eir_uuid(const uint8_t* p_eir, tBTM_INQ_RESULTS* p_results);
 extern void btm_sort_inq_result(void);
-extern void btm_process_inq_complete(uint8_t status, uint8_t result_type);
+extern void btm_process_inq_complete(tHCI_STATUS status, uint8_t result_type);
 
 static bool is_classic_device(tBT_DEVICE_TYPE device_type) {
   return device_type == BT_DEVICE_TYPE_BREDR;
@@ -465,19 +465,10 @@ class ShimBondListener : public bluetooth::security::ISecurityManagerListener {
             bluetooth::ToRawAddress(device.GetAddress()), 0, name, HCI_SUCCESS);
       }
     }
-    bool is_gd_enabled = bluetooth::shim::is_any_gd_enabled();
-    if (is_gd_enabled) {
-      bluetooth::shim::AllocateIdFromMetricIdAllocator(
-          bluetooth::ToRawAddress(device.GetAddress()));
-    } else {
-      MetricIdAllocator::GetInstance().AllocateId(
-          bluetooth::ToRawAddress(device.GetAddress()));
-    }
-    bool is_saving_successful =
-        is_gd_enabled ? bluetooth::shim::SaveDeviceOnMetricIdAllocator(
-                            bluetooth::ToRawAddress(device.GetAddress()))
-                      : MetricIdAllocator::GetInstance().SaveDevice(
-                            bluetooth::ToRawAddress(device.GetAddress()));
+    bluetooth::shim::AllocateIdFromMetricIdAllocator(
+        bluetooth::ToRawAddress(device.GetAddress()));
+    bool is_saving_successful = bluetooth::shim::SaveDeviceOnMetricIdAllocator(
+        bluetooth::ToRawAddress(device.GetAddress()));
     if (!is_saving_successful) {
       LOG(FATAL) << __func__ << ": Fail to save metric id for device "
                  << bluetooth::ToRawAddress(device.GetAddress());
@@ -488,13 +479,8 @@ class ShimBondListener : public bluetooth::security::ISecurityManagerListener {
     if (bta_callbacks_->p_bond_cancel_cmpl_callback) {
       (*bta_callbacks_->p_bond_cancel_cmpl_callback)(BTM_SUCCESS);
     }
-    if (bluetooth::shim::is_any_gd_enabled()) {
-      bluetooth::shim::ForgetDeviceFromMetricIdAllocator(
-          bluetooth::ToRawAddress(device.GetAddress()));
-    } else {
-      MetricIdAllocator::GetInstance().ForgetDevice(
-          bluetooth::ToRawAddress(device.GetAddress()));
-    }
+    bluetooth::shim::ForgetDeviceFromMetricIdAllocator(
+        bluetooth::ToRawAddress(device.GetAddress()));
   }
 
   void OnDeviceBondFailed(bluetooth::hci::AddressWithType device,
@@ -1241,7 +1227,8 @@ tBTM_STATUS bluetooth::shim::BTM_SecBondCancel(const RawAddress& bd_addr) {
 }
 
 bool bluetooth::shim::BTM_SecAddDevice(const RawAddress& bd_addr,
-                                       DEV_CLASS dev_class, BD_NAME bd_name,
+                                       DEV_CLASS dev_class,
+                                       const BD_NAME& bd_name,
                                        uint8_t* features, LinkKey* link_key,
                                        uint8_t key_type, uint8_t pin_length) {
   // Check if GD has a security record for the device

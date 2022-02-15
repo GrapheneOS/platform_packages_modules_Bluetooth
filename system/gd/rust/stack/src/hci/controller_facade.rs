@@ -3,9 +3,8 @@
 use crate::hci::controller::{null_terminated_to_string, ControllerExports};
 use crate::hci::Hci;
 use bt_common::GrpcFacade;
-use bt_facade_proto::controller_facade::{
-    AddressMsg, NameMsg, OpCodeMsg, SingleValueMsg, SupportedMsg,
-};
+use bt_facade_proto::common::BluetoothAddress;
+use bt_facade_proto::controller_facade::{NameMsg, OpCodeMsg, SingleValueMsg, SupportedMsg};
 use bt_facade_proto::controller_facade_grpc::{create_controller_facade, ControllerFacade};
 use bt_facade_proto::empty::Empty;
 use bt_packets::hci::{ReadLocalNameBuilder, WriteLocalNameBuilder};
@@ -40,10 +39,15 @@ impl GrpcFacade for ControllerFacadeService {
 }
 
 impl ControllerFacade for ControllerFacadeService {
-    fn get_mac_address(&mut self, ctx: RpcContext<'_>, _req: Empty, sink: UnarySink<AddressMsg>) {
+    fn get_mac_address(
+        &mut self,
+        ctx: RpcContext<'_>,
+        _req: Empty,
+        sink: UnarySink<BluetoothAddress>,
+    ) {
         let clone = self.clone();
         ctx.spawn(async move {
-            let mut address = AddressMsg::new();
+            let mut address = BluetoothAddress::new();
             address.set_address(clone.exports.address.bytes.to_vec());
             sink.success(address).await.unwrap();
         });

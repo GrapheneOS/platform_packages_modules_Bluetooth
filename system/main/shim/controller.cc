@@ -43,6 +43,7 @@ constexpr int kReadRemoteExtendedFeatures = 0x41c;
 constexpr int kEnhancedSetupSynchronousConnection = 0x428;
 constexpr int kEnhancedAcceptSynchronousConnection = 0x429;
 constexpr int kLeSetPrivacyMode = 0x204e;
+constexpr int kConfigureDataPath = 0x0c83;
 
 constexpr int kHciDataPreambleSize = 4;  // #define HCI_DATA_PREAMBLE_SIZE 4
 
@@ -212,6 +213,10 @@ MAP_TO_GD(supports_synchronized_receiver, SupportsBleSynchronizedReceiver)
     }                                                                    \
   }
 
+FORWARD_IF_RUST(
+    supports_configure_data_path,
+    GetController()->IsSupported((bluetooth::hci::OpCode)kConfigureDataPath))
+
 FORWARD_IF_RUST(supports_reading_remote_extended_features,
                 GetController()->IsSupported((bluetooth::hci::OpCode)
                                                  kReadRemoteExtendedFeatures))
@@ -351,6 +356,7 @@ static const controller_t interface = {
     .supports_non_flushable_pb = supports_non_flushable_pb,
     .supports_sniff_subrating = supports_sniff_subrating,
     .supports_encryption_pause = supports_encryption_pause,
+    .supports_configure_data_path = supports_configure_data_path,
 
     .supports_ble = supports_ble,
     .supports_ble_packet_extension = supports_packet_extension,
@@ -416,4 +422,9 @@ const controller_t* bluetooth::shim::controller_get_interface() {
 
 void bluetooth::shim::controller_clear_event_mask() {
   bluetooth::shim::GetController()->SetEventMask(0);
+}
+
+bool bluetooth::shim::controller_is_write_link_supervision_timeout_supported() {
+  return bluetooth::shim::GetController()->IsSupported(
+      bluetooth::hci::OpCode::WRITE_LINK_SUPERVISION_TIMEOUT);
 }

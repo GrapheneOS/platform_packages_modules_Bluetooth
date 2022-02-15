@@ -18,7 +18,6 @@
 package com.android.bluetooth.csip;
 
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
-import static android.Manifest.permission.BLUETOOTH_PRIVILEGED;
 
 import android.annotation.CallbackExecutor;
 import android.annotation.NonNull;
@@ -26,6 +25,7 @@ import android.annotation.Nullable;
 import android.bluetooth.BluetoothCsipSetCoordinator;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
+import android.bluetooth.BluetoothStatusCodes;
 import android.bluetooth.BluetoothUuid;
 import android.bluetooth.IBluetoothCsipSetCoordinator;
 import android.bluetooth.IBluetoothCsipSetCoordinatorCallback;
@@ -45,6 +45,7 @@ import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.internal.annotations.VisibleForTesting;
+import com.android.modules.utils.SynchronousResultReceiver;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -181,8 +182,13 @@ public class CsipSetCoordinatorService extends ProfileService {
         }
 
         if (mStateMachinesThread != null) {
-            mStateMachinesThread.quitSafely();
-            mStateMachinesThread = null;
+            try {
+                mStateMachinesThread.quitSafely();
+                mStateMachinesThread.join();
+                mStateMachinesThread = null;
+            } catch (InterruptedException e) {
+                // Do not rethrow as we are shutting down anyway
+            }
         }
 
         mDeviceGroupIdMap.clear();
@@ -487,7 +493,8 @@ public class CsipSetCoordinatorService extends ProfileService {
             if (mLocks.containsKey(groupId)) {
                 try {
                     callback.onGroupLockSet(groupId,
-                            BluetoothCsipSetCoordinator.GROUP_LOCK_FAILED_LOCKED_BY_OTHER, true);
+                            BluetoothStatusCodes.ERROR_CSIP_GROUP_LOCKED_BY_OTHER,
+                            true);
                 } catch (RemoteException e) {
                     throw e.rethrowFromSystemServer();
                 }
@@ -614,6 +621,25 @@ public class CsipSetCoordinatorService extends ProfileService {
         }
     }
 
+    int getApiStatusCode(int nativeResult) {
+        switch (nativeResult) {
+            case IBluetoothCsipSetCoordinator.CSIS_GROUP_LOCK_SUCCESS:
+                return BluetoothStatusCodes.SUCCESS;
+            case IBluetoothCsipSetCoordinator.CSIS_GROUP_LOCK_FAILED_INVALID_GROUP:
+                return BluetoothStatusCodes.ERROR_CSIP_INVALID_GROUP_ID;
+            case IBluetoothCsipSetCoordinator.CSIS_GROUP_LOCK_FAILED_GROUP_NOT_CONNECTED:
+                return BluetoothStatusCodes.ERROR_DEVICE_NOT_CONNECTED;
+            case IBluetoothCsipSetCoordinator.CSIS_GROUP_LOCK_FAILED_LOCKED_BY_OTHER:
+                return BluetoothStatusCodes.ERROR_CSIP_GROUP_LOCKED_BY_OTHER;
+            case IBluetoothCsipSetCoordinator.CSIS_LOCKED_GROUP_MEMBER_LOST:
+                return BluetoothStatusCodes.ERROR_CSIP_LOCKED_GROUP_MEMBER_LOST;
+            case IBluetoothCsipSetCoordinator.CSIS_GROUP_LOCK_FAILED_OTHER_REASON:
+            default:
+                Log.e(TAG, " Unknown status code: " + nativeResult);
+                return BluetoothStatusCodes.ERROR_UNKNOWN;
+        }
+    }
+
     void handleGroupLockChanged(int groupId, int status, boolean isLocked) {
         synchronized (mLocks) {
             if (!mLocks.containsKey(groupId)) {
@@ -622,7 +648,7 @@ public class CsipSetCoordinatorService extends ProfileService {
 
             IBluetoothCsipSetCoordinatorLockCallback cb = mLocks.get(groupId).second;
             try {
-                cb.onGroupLockSet(groupId, status, isLocked);
+                cb.onGroupLockSet(groupId, getApiStatusCode(status), isLocked);
             } catch (RemoteException e) {
                 throw e.rethrowFromSystemServer();
             }
@@ -848,120 +874,184 @@ public class CsipSetCoordinatorService extends ProfileService {
         }
 
         @Override
-        public boolean connect(BluetoothDevice device, AttributionSource source) {
-            CsipSetCoordinatorService service = getService(source);
-            if (service == null) {
-                return false;
+        public void connect(BluetoothDevice device, AttributionSource source,
+                SynchronousResultReceiver receiver) {
+            try {
+                boolean defaultValue = false;
+                CsipSetCoordinatorService service = getService(source);
+                if (service != null) {
+                    defaultValue = service.connect(device);
+                }
+                receiver.send(defaultValue);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
             }
-            return service.connect(device);
         }
 
         @Override
-        public boolean disconnect(BluetoothDevice device, AttributionSource source) {
-            CsipSetCoordinatorService service = getService(source);
-            if (service == null) {
-                return false;
+        public void disconnect(BluetoothDevice device, AttributionSource source,
+                SynchronousResultReceiver receiver) {
+            try {
+                boolean defaultValue = false;
+                CsipSetCoordinatorService service = getService(source);
+                if (service != null) {
+                    defaultValue = service.disconnect(device);
+                }
+                receiver.send(defaultValue);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
             }
-            return service.disconnect(device);
         }
 
         @Override
-        public List<BluetoothDevice> getConnectedDevices(AttributionSource source) {
-            CsipSetCoordinatorService service = getService(source);
-            if (service == null) {
-                return new ArrayList<>();
+        public void getConnectedDevices(AttributionSource source,
+                SynchronousResultReceiver receiver) {
+            try {
+                List<BluetoothDevice> defaultValue = new ArrayList<>();
+                CsipSetCoordinatorService service = getService(source);
+                if (service != null) {
+                    defaultValue = service.getConnectedDevices();
+                }
+                receiver.send(defaultValue);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
             }
-            return service.getConnectedDevices();
         }
 
         @Override
-        public List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states,
-                AttributionSource source) {
-            CsipSetCoordinatorService service = getService(source);
-            if (service == null) {
-                return new ArrayList<>();
+        public void getDevicesMatchingConnectionStates(int[] states,
+                AttributionSource source, SynchronousResultReceiver receiver) {
+            try {
+                List<BluetoothDevice> defaultValue = new ArrayList<>();
+                CsipSetCoordinatorService service = getService(source);
+                if (service != null) {
+                    defaultValue = service.getDevicesMatchingConnectionStates(states);
+                }
+                receiver.send(defaultValue);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
             }
-            return service.getDevicesMatchingConnectionStates(states);
         }
 
         @Override
-        public int getConnectionState(BluetoothDevice device, AttributionSource source) {
-            CsipSetCoordinatorService service = getService(source);
-            if (service == null) {
-                return BluetoothProfile.STATE_DISCONNECTED;
+        public void getConnectionState(BluetoothDevice device, AttributionSource source,
+                SynchronousResultReceiver receiver) {
+            try {
+                int defaultValue = BluetoothProfile.STATE_DISCONNECTED;
+                CsipSetCoordinatorService service = getService(source);
+                if (service != null) {
+                    defaultValue = service.getConnectionState(device);
+                }
+                receiver.send(defaultValue);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
             }
-            return service.getConnectionState(device);
         }
 
         @Override
-        public boolean setConnectionPolicy(BluetoothDevice device, int connectionPolicy,
-                AttributionSource source) {
-            CsipSetCoordinatorService service = getService(source);
-            if (service == null) {
-                return false;
+        public void setConnectionPolicy(BluetoothDevice device, int connectionPolicy,
+                AttributionSource source, SynchronousResultReceiver receiver) {
+            try {
+                boolean defaultValue = false;
+                CsipSetCoordinatorService service = getService(source);
+                if (service != null) {
+                    defaultValue = service.setConnectionPolicy(device, connectionPolicy);
+                }
+                receiver.send(defaultValue);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
             }
-            return service.setConnectionPolicy(device, connectionPolicy);
         }
 
         @Override
-        public int getConnectionPolicy(BluetoothDevice device, AttributionSource source) {
-            CsipSetCoordinatorService service = getService(source);
-            if (service == null) {
-                return BluetoothProfile.CONNECTION_POLICY_UNKNOWN;
+        public void getConnectionPolicy(BluetoothDevice device, AttributionSource source,
+                SynchronousResultReceiver receiver) {
+            try {
+                int defaultValue = BluetoothProfile.CONNECTION_POLICY_UNKNOWN;
+                CsipSetCoordinatorService service = getService(source);
+                if (service != null) {
+                    defaultValue = service.getConnectionPolicy(device);
+                }
+                receiver.send(defaultValue);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
             }
-            return service.getConnectionPolicy(device);
         }
 
         @Override
-        public ParcelUuid groupLock(
+        public void groupLock(
                 int groupId, @NonNull IBluetoothCsipSetCoordinatorLockCallback callback,
-                AttributionSource source) {
-            CsipSetCoordinatorService service = getService(source);
-            if (service == null) {
-                return null;
+                AttributionSource source, SynchronousResultReceiver receiver) {
+            try {
+                ParcelUuid defaultValue = null;
+                CsipSetCoordinatorService service = getService(source);
+                if (service != null) {
+                     UUID lockUuid = service.groupLock(groupId, callback);
+                    defaultValue = lockUuid == null ? null : new ParcelUuid(lockUuid);
+                }
+                receiver.send(defaultValue);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
             }
-            UUID lockUuid = service.groupLock(groupId, callback);
-            return lockUuid == null ? null : new ParcelUuid(lockUuid);
         }
 
         @Override
-        public void groupUnlock(@NonNull ParcelUuid lockUuid, AttributionSource source) {
-            CsipSetCoordinatorService service = getService(source);
-            if (service == null) {
-                return;
+        public void groupUnlock(@NonNull ParcelUuid lockUuid, AttributionSource source,
+                SynchronousResultReceiver receiver) {
+            try {
+                CsipSetCoordinatorService service = getService(source);
+                if (service != null) {
+                    service.groupUnlock(lockUuid.getUuid());
+                }
+                receiver.send(null);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
             }
-            service.groupUnlock(lockUuid.getUuid());
         }
 
         @Override
-        public List<Integer> getAllGroupIds(ParcelUuid uuid, AttributionSource source) {
-            CsipSetCoordinatorService service = getService(source);
-            if (service == null) {
-                return new ArrayList<Integer>();
+        public void getAllGroupIds(ParcelUuid uuid, AttributionSource source,
+                SynchronousResultReceiver receiver) {
+            try {
+                List<Integer> defaultValue = new ArrayList<Integer>();
+                CsipSetCoordinatorService service = getService(source);
+                if (service != null) {
+                    defaultValue = service.getAllGroupIds(uuid);
+                }
+                receiver.send(defaultValue);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
             }
-
-            return service.getAllGroupIds(uuid);
         }
 
         @Override
-        public Map<Integer, ParcelUuid> getGroupUuidMapByDevice(BluetoothDevice device,
-                AttributionSource source) {
-            CsipSetCoordinatorService service = getService(source);
-            if (service == null) {
-                return null;
+        public void getGroupUuidMapByDevice(BluetoothDevice device,
+                AttributionSource source, SynchronousResultReceiver receiver) {
+            try {
+                Map<Integer, ParcelUuid> defaultValue = null;
+                CsipSetCoordinatorService service = getService(source);
+                if (service != null) {
+                    defaultValue = service.getGroupUuidMapByDevice(device);
+                }
+                receiver.send(defaultValue);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
             }
-
-            return service.getGroupUuidMapByDevice(device);
         }
 
         @Override
-        public int getDesiredGroupSize(int groupId, AttributionSource source) {
-            CsipSetCoordinatorService service = getService(source);
-            if (service == null) {
-                return IBluetoothCsipSetCoordinator.CSIS_GROUP_SIZE_UNKNOWN;
+        public void getDesiredGroupSize(int groupId, AttributionSource source,
+                SynchronousResultReceiver receiver) {
+            try {
+                int defaultValue = IBluetoothCsipSetCoordinator.CSIS_GROUP_SIZE_UNKNOWN;
+                CsipSetCoordinatorService service = getService(source);
+                if (service != null) {
+                    defaultValue = service.getDesiredGroupSize(groupId);
+                }
+                receiver.send(defaultValue);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
             }
-
-            return service.getDesiredGroupSize(groupId);
         }
     }
 

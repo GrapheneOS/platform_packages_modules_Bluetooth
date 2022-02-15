@@ -127,7 +127,9 @@ class AdapterProperties {
     private int mDynamicAudioBufferSizeSupportedCodecsGroup2;
 
     private boolean mIsLePeriodicAdvertisingSyncTransferSenderSupported;
+    private boolean mIsLePeriodicAdvertisingSyncTransferRecipientSupported;
     private boolean mIsLeConnectedIsochronousStreamCentralSupported;
+    private boolean mIsLeIsochronousBroadcasterSupported;
 
     private List<BufferConstraint> mBufferConstraintList;
 
@@ -205,9 +207,9 @@ class AdapterProperties {
         mProfileConnectionState.clear();
         mRemoteDevices = remoteDevices;
 
-        // Get default max connected audio devices from config.xml in frameworks/base/core
+        // Get default max connected audio devices from config.xml
         int configDefaultMaxConnectedAudioDevices = mService.getResources().getInteger(
-                com.android.internal.R.integer.config_bluetooth_max_connected_audio_devices);
+                com.android.bluetooth.R.integer.config_bluetooth_max_connected_audio_devices);
         // Override max connected audio devices if MAX_CONNECTED_AUDIO_DEVICES_PROPERTY is set
         int propertyOverlayedMaxConnectedAudioDevices =
                 SystemProperties.getInt(MAX_CONNECTED_AUDIO_DEVICES_PROPERTY,
@@ -254,6 +256,7 @@ class AdapterProperties {
         mBondedDevices.clear();
         invalidateBluetoothCaches();
     }
+
     private static void invalidateGetProfileConnectionStateCache() {
         BluetoothAdapter.invalidateGetProfileConnectionStateCache();
     }
@@ -409,7 +412,7 @@ class AdapterProperties {
      */
     void setConnectionState(int connectionState) {
         mConnectionState = connectionState;
-        invalidateGetConnectionStateCache();
+        //invalidateGetConnectionStateCache();
     }
 
     /**
@@ -512,10 +515,24 @@ class AdapterProperties {
     }
 
     /**
+     * @return the mIsLePeriodicAdvertisingSyncTransferRecipientSupported
+     */
+    boolean isLePeriodicAdvertisingSyncTransferRecipientSupported() {
+        return mIsLePeriodicAdvertisingSyncTransferRecipientSupported;
+    }
+
+    /**
      * @return the mIsLeConnectedIsochronousStreamCentralSupported
      */
     boolean isLeConnectedIsochronousStreamCentralSupported() {
         return mIsLeConnectedIsochronousStreamCentralSupported;
+    }
+
+    /**
+     * @return the mIsLeIsochronousBroadcasterSupported
+     */
+    boolean isLeIsochronousBroadcasterSupported() {
+        return mIsLeIsochronousBroadcasterSupported;
     }
 
     /**
@@ -629,7 +646,7 @@ class AdapterProperties {
                     debugLog("Failed to remove device: " + device);
                 }
             }
-            invalidateGetBondStateCache();
+            //invalidateGetBondStateCache();
         } catch (Exception ee) {
             Log.w(TAG, "onBondStateChanged: Exception ", ee);
         }
@@ -858,7 +875,7 @@ class AdapterProperties {
 
         if (update) {
             mProfileConnectionState.put(profile, new Pair<Integer, Integer>(newHashState, numDev));
-            invalidateGetProfileConnectionStateCache();
+            //invalidateGetProfileConnectionStateCache();
         }
     }
 
@@ -980,6 +997,8 @@ class AdapterProperties {
                 ((0xFF & ((int) val[23])) << 8) + (0xFF & ((int) val[22]));
         mIsLePeriodicAdvertisingSyncTransferSenderSupported = ((0xFF & ((int) val[24])) != 0);
         mIsLeConnectedIsochronousStreamCentralSupported = ((0xFF & ((int) val[25])) != 0);
+        mIsLeIsochronousBroadcasterSupported = ((0xFF & ((int) val[26])) != 0);
+        mIsLePeriodicAdvertisingSyncTransferRecipientSupported = ((0xFF & ((int) val[27])) != 0);
 
         Log.d(TAG, "BT_PROPERTY_LOCAL_LE_FEATURES: update from BT controller"
                 + " mNumOfAdvertisementInstancesSupported = "
@@ -1003,8 +1022,12 @@ class AdapterProperties {
                 + " mIsLePeriodicAdvertisingSyncTransferSenderSupported = "
                 + mIsLePeriodicAdvertisingSyncTransferSenderSupported
                 + " mIsLeConnectedIsochronousStreamCentralSupported = "
-                + mIsLeConnectedIsochronousStreamCentralSupported);
-        invalidateIsOffloadedFilteringSupportedCache();
+                + mIsLeConnectedIsochronousStreamCentralSupported
+                + " mIsLeIsochronousBroadcasterSupported = "
+                + mIsLeIsochronousBroadcasterSupported
+                + " mIsLePeriodicAdvertisingSyncTransferRecipientSupported = "
+                + mIsLePeriodicAdvertisingSyncTransferRecipientSupported);
+        //invalidateIsOffloadedFilteringSupportedCache();
     }
 
     private void updateDynamicAudioBufferSupport(byte[] val) {
@@ -1037,7 +1060,7 @@ class AdapterProperties {
             // Reset adapter and profile connection states
             setConnectionState(BluetoothAdapter.STATE_DISCONNECTED);
             mProfileConnectionState.clear();
-            invalidateGetProfileConnectionStateCache();
+            //invalidateGetProfileConnectionStateCache();
             mProfilesConnected = 0;
             mProfilesConnecting = 0;
             mProfilesDisconnecting = 0;
@@ -1090,11 +1113,21 @@ class AdapterProperties {
         writer.println("  " + "DiscoveryEndMs: " + mDiscoveryEndMs);
 
         writer.println("  " + "Bonded devices:");
+        StringBuilder sb = new StringBuilder();
         for (BluetoothDevice device : mBondedDevices) {
-            writer.println(
-                    "    " + device.getAddress() + " [" + dumpDeviceType(device.getType()) + "] "
+            String address = device.getAddress();
+            String identityAddress = mService.getIdentityAddress(address);
+            if (identityAddress.equals(address)) {
+                writer.println("    " + address
+                            + " [" + dumpDeviceType(device.getType()) + "] "
                             + Utils.getName(device));
+            } else {
+                sb.append("    " + address + " => " + identityAddress
+                            + " [" + dumpDeviceType(device.getType()) + "] "
+                            + Utils.getName(device) + "\n");
+            }
         }
+        writer.println(sb.toString());
     }
 
     private String dumpDeviceType(int deviceType) {

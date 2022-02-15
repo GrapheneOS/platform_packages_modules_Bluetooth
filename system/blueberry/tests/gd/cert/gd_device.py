@@ -43,21 +43,21 @@ from blueberry.tests.gd.cert.os_utils import is_subprocess_alive
 from blueberry.tests.gd.cert.os_utils import make_ports_available
 from blueberry.tests.gd.cert.os_utils import TerminalColor
 
-from facade import rootservice_pb2_grpc as facade_rootservice_pb2_grpc
-from hal import hal_facade_pb2_grpc
-from hci.facade import hci_facade_pb2_grpc
-from hci.facade import acl_manager_facade_pb2_grpc
-from hci.facade import controller_facade_pb2_grpc
-from hci.facade import le_acl_manager_facade_pb2_grpc
-from hci.facade import le_advertising_manager_facade_pb2_grpc
-from hci.facade import le_initiator_address_facade_pb2_grpc
-from hci.facade import le_scanning_manager_facade_pb2_grpc
-from l2cap.classic import facade_pb2_grpc as l2cap_facade_pb2_grpc
-from l2cap.le import facade_pb2_grpc as l2cap_le_facade_pb2_grpc
-from iso import facade_pb2_grpc as iso_facade_pb2_grpc
-from neighbor.facade import facade_pb2_grpc as neighbor_facade_pb2_grpc
-from security import facade_pb2_grpc as security_facade_pb2_grpc
-from shim.facade import facade_pb2_grpc as shim_facade_pb2_grpc
+from blueberry.facade import rootservice_pb2_grpc as facade_rootservice_pb2_grpc
+from blueberry.facade.hal import hal_facade_pb2_grpc
+from blueberry.facade.hci import hci_facade_pb2_grpc
+from blueberry.facade.hci import acl_manager_facade_pb2_grpc
+from blueberry.facade.hci import controller_facade_pb2_grpc
+from blueberry.facade.hci import le_acl_manager_facade_pb2_grpc
+from blueberry.facade.hci import le_advertising_manager_facade_pb2_grpc
+from blueberry.facade.hci import le_initiator_address_facade_pb2_grpc
+from blueberry.facade.hci import le_scanning_manager_facade_pb2_grpc
+from blueberry.facade.l2cap.classic import facade_pb2_grpc as l2cap_facade_pb2_grpc
+from blueberry.facade.l2cap.le import facade_pb2_grpc as l2cap_le_facade_pb2_grpc
+from blueberry.facade.iso import facade_pb2_grpc as iso_facade_pb2_grpc
+from blueberry.facade.neighbor import facade_pb2_grpc as neighbor_facade_pb2_grpc
+from blueberry.facade.security import facade_pb2_grpc as security_facade_pb2_grpc
+from blueberry.facade.shim import facade_pb2_grpc as shim_facade_pb2_grpc
 
 from mobly import utils
 from mobly.controllers.android_device_lib.adb import AdbError
@@ -214,21 +214,25 @@ class GdDeviceBase(ABC):
             tag=self.label,
             color=self.terminal_color)
 
-        # Setup gRPC management channels
-        self.grpc_root_server_channel = grpc.insecure_channel("localhost:%d" % self.grpc_root_server_port)
+        # If gRPC root server port is not specified, we can skip settings up the root server
+        if self.grpc_root_server_port != -1:
+            # Setup gRPC management channels
+            self.grpc_root_server_channel = grpc.insecure_channel("localhost:%d" % self.grpc_root_server_port)
 
-        self.grpc_root_server_ready = False
-        try:
-            logging.info("[%s] Waiting to connect to gRPC root server for %s, timeout is %d seconds" %
-                         (self.type_identifier, self.label, GRPC_START_TIMEOUT_SEC))
-            grpc.channel_ready_future(self.grpc_root_server_channel).result(timeout=GRPC_START_TIMEOUT_SEC)
-            logging.info("[%s] Successfully connected to gRPC root server for %s" % (self.type_identifier, self.label))
-            self.grpc_root_server_ready = True
-        except grpc.FutureTimeoutError:
-            logging.error("[%s] Failed to connect to gRPC root server for %s" % (self.type_identifier, self.label))
+            self.grpc_root_server_ready = False
 
-        asserts.assert_true(
-            self.grpc_root_server_ready, msg="gRPC root server did not start after running " + " ".join(self.cmd))
+            try:
+                logging.info("[%s] Waiting to connect to gRPC root server for %s, timeout is %d seconds" %
+                             (self.type_identifier, self.label, GRPC_START_TIMEOUT_SEC))
+                grpc.channel_ready_future(self.grpc_root_server_channel).result(timeout=GRPC_START_TIMEOUT_SEC)
+                logging.info(
+                    "[%s] Successfully connected to gRPC root server for %s" % (self.type_identifier, self.label))
+                self.grpc_root_server_ready = True
+            except grpc.FutureTimeoutError:
+                logging.error("[%s] Failed to connect to gRPC root server for %s" % (self.type_identifier, self.label))
+
+            asserts.assert_true(
+                self.grpc_root_server_ready, msg="gRPC root server did not start after running " + " ".join(self.cmd))
 
         self.grpc_channel = grpc.insecure_channel("localhost:%d" % self.grpc_port)
 
@@ -236,7 +240,9 @@ class GdDeviceBase(ABC):
             self.grpc_channel = grpc.intercept_channel(self.grpc_channel, LoggingClientInterceptor(self.label))
 
         # Establish services from facades
-        self.rootservice = facade_rootservice_pb2_grpc.RootFacadeStub(self.grpc_root_server_channel)
+        if self.grpc_root_server_port != -1:
+            self.rootservice = facade_rootservice_pb2_grpc.RootFacadeStub(self.grpc_root_server_channel)
+
         self.hal = hal_facade_pb2_grpc.HciHalFacadeStub(self.grpc_channel)
         self.controller_read_only_property = facade_rootservice_pb2_grpc.ReadOnlyPropertyStub(self.grpc_channel)
         self.hci = hci_facade_pb2_grpc.HciFacadeStub(self.grpc_channel)
@@ -271,7 +277,8 @@ class GdDeviceBase(ABC):
         :return:
         """
         self.grpc_channel.close()
-        self.grpc_root_server_channel.close()
+        if self.grpc_root_server_port != -1:
+            self.grpc_root_server_channel.close()
         stop_signal = signal.SIGINT
         self.backing_process.send_signal(stop_signal)
         try:
@@ -325,9 +332,10 @@ class GdHostOnlyDevice(GdDeviceBase):
         # Only check on host only test, for Android devices, these ports will
         # be opened on Android device and host machine ports will be occupied
         # by sshd or adb forwarding
+        ports_needed = [self.grpc_port,
+                        self.grpc_root_server_port] if self.grpc_root_server_port != -1 else [self.grpc_port]
         asserts.assert_true(
-            make_ports_available((self.grpc_port, self.grpc_root_server_port)),
-            "[%s] Failed to make backing process ports available" % self.label)
+            make_ports_available(ports_needed), "[%s] Failed to make backing process ports available" % self.label)
         super().setup()
 
     def teardown(self):
@@ -453,15 +461,19 @@ class GdAndroidDevice(GdDeviceBase):
         logging.info("Setting up device %s %s" % (self.label, self.serial_number))
         asserts.assert_true(self.adb.ensure_root(), "device %s cannot run as root", self.serial_number)
         self.ensure_verity_disabled()
+        logging.info("Confirmed that verity is disabled on device %s %s" % (self.label, self.serial_number))
 
         # Try freeing ports and ignore results
         self.cleanup_port_forwarding()
         self.sync_device_time()
+        logging.info("Ports cleaned up and clock is set for device %s %s" % (self.label, self.serial_number))
 
         # Set up port forwarding or reverse or die
         self.tcp_forward_or_die(self.grpc_port, self.grpc_port)
-        self.tcp_forward_or_die(self.grpc_root_server_port, self.grpc_root_server_port)
+        if self.grpc_root_server_port != -1:
+            self.tcp_forward_or_die(self.grpc_root_server_port, self.grpc_root_server_port)
         self.tcp_reverse_or_die(self.signal_port, self.signal_port)
+        logging.info("Port forwarding done on device %s %s" % (self.label, self.serial_number))
 
         # Push test binaries
         self.push_or_die(os.path.join(get_gd_root(), "target", "bluetooth_stack_with_facade"), "system/bin")
@@ -472,6 +484,7 @@ class GdAndroidDevice(GdDeviceBase):
         self.push_or_die(os.path.join(get_gd_root(), "target", "libgrpc++.so"), "system/lib64")
         self.push_or_die(os.path.join(get_gd_root(), "target", "libgrpc_wrap.so"), "system/lib64")
         self.push_or_die(os.path.join(get_gd_root(), "target", "libstatslog_bt.so"), "system/lib64")
+        logging.info("Binaries pushed to device %s %s" % (self.label, self.serial_number))
 
         try:
             self.adb.shell("rm /data/misc/bluetooth/logs/btsnoop_hci.log")
@@ -496,8 +509,12 @@ class GdAndroidDevice(GdDeviceBase):
         except AdbError as error:
             if ADB_FILE_NOT_EXIST_ERROR not in str(error):
                 logging.error("Error during setup: " + str(error))
+        logging.info("Old logs removed from device %s %s" % (self.label, self.serial_number))
 
+        # Ensure Bluetooth is disabled
+        self.ensure_no_output(self.adb.shell("settings put global ble_scan_always_enabled 0"))
         self.ensure_no_output(self.adb.shell("svc bluetooth disable"))
+        logging.info("Bluetooth disabled on device %s %s" % (self.label, self.serial_number))
 
         # Start logcat logging
         self.logcat_output_path = os.path.join(
@@ -540,29 +557,30 @@ class GdAndroidDevice(GdDeviceBase):
             logging.error("logcat_process %s_%s stopped with code: %d" % (self.label, self.serial_number, return_code))
         self.logcat_logger.stop()
         self.cleanup_port_forwarding()
+        self.pull_logs(self.log_path_base)
+
+    def pull_logs(self, base_dir):
         try:
             self.adb.pull([
                 "/data/misc/bluetooth/logs/btsnoop_hci.log",
-                str(os.path.join(self.log_path_base, "%s_btsnoop_hci.log" % self.label))
+                str(os.path.join(base_dir, "%s_btsnoop_hci.log" % self.label))
             ])
         except AdbError as error:
             # Some tests have no snoop logs, and that's OK
             if ADB_FILE_NOT_EXIST_ERROR not in str(error):
                 logging.error(PULL_LOG_FILE_ERROR_MSG_PREFIX + str(error))
         try:
-            self.adb.pull([
-                "/data/misc/bluedroid/bt_config.conf",
-                str(os.path.join(self.log_path_base, "%s_bt_config.conf" % self.label))
-            ])
+            self.adb.pull(
+                ["/data/misc/bluedroid/bt_config.conf",
+                 str(os.path.join(base_dir, "%s_bt_config.conf" % self.label))])
         except AdbError as error:
             # Some tests have no config file, and that's OK
             if ADB_FILE_NOT_EXIST_ERROR not in str(error):
                 logging.error(PULL_LOG_FILE_ERROR_MSG_PREFIX + str(error))
         try:
-            self.adb.pull([
-                "/data/misc/bluedroid/bt_config.bak",
-                str(os.path.join(self.log_path_base, "%s_bt_config.bak" % self.label))
-            ])
+            self.adb.pull(
+                ["/data/misc/bluedroid/bt_config.bak",
+                 str(os.path.join(base_dir, "%s_bt_config.bak" % self.label))])
         except AdbError as error:
             # Some tests have no config.bak file, and that's OK
             if ADB_FILE_NOT_EXIST_ERROR not in str(error):
@@ -574,16 +592,17 @@ class GdAndroidDevice(GdDeviceBase):
         except AdbError as error:
             msg = PORT_FORWARDING_ERROR_MSG_PREFIX + str(error)
             if "not found" in msg:
-                logging.info(msg)
+                logging.debug(msg)
             else:
                 logging.error(msg)
 
         try:
-            self.adb.remove_tcp_forward(self.grpc_root_server_port)
+            if self.grpc_root_server_port != -1:
+                self.adb.remove_tcp_forward(self.grpc_root_server_port)
         except AdbError as error:
             msg = PORT_FORWARDING_ERROR_MSG_PREFIX + str(error)
             if "not found" in msg:
-                logging.info(msg)
+                logging.debug(msg)
             else:
                 logging.error(msg)
 
@@ -592,7 +611,7 @@ class GdAndroidDevice(GdDeviceBase):
         except AdbError as error:
             msg = PORT_FORWARDING_ERROR_MSG_PREFIX + str(error)
             if "not found" in msg:
-                logging.info(msg)
+                logging.debug(msg)
             else:
                 logging.error(msg)
 

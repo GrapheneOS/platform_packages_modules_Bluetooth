@@ -153,13 +153,9 @@ void LeAddressManager::register_client(LeAddressManagerCallback* callback) {
   } else if (
       address_policy_ == AddressPolicy::USE_RESOLVABLE_ADDRESS ||
       address_policy_ == AddressPolicy::USE_NON_RESOLVABLE_ADDRESS) {
-    if (bluetooth::common::init_flags::gd_acl_is_enabled() || bluetooth::common::init_flags::gd_l2cap_is_enabled()) {
       if (registered_clients_.size() == 1) {
         schedule_rotate_random_address();
       }
-    } else {
-      prepare_to_rotate();
-    }
   }
 }
 
@@ -168,7 +164,14 @@ void LeAddressManager::Unregister(LeAddressManagerCallback* callback) {
 }
 
 void LeAddressManager::unregister_client(LeAddressManagerCallback* callback) {
-  registered_clients_.erase(callback);
+  if (registered_clients_.find(callback) != registered_clients_.end()) {
+    if (registered_clients_.find(callback)->second == ClientState::WAITING_FOR_PAUSE) {
+      ack_pause(callback);
+    } else if (registered_clients_.find(callback)->second == ClientState::WAITING_FOR_RESUME) {
+      ack_resume(callback);
+    }
+    registered_clients_.erase(callback);
+  }
   if (registered_clients_.empty() && address_rotation_alarm_ != nullptr) {
     address_rotation_alarm_->Cancel();
   }
@@ -211,7 +214,9 @@ void LeAddressManager::push_command(Command command) {
 }
 
 void LeAddressManager::ack_pause(LeAddressManagerCallback* callback) {
-  ASSERT(registered_clients_.find(callback) != registered_clients_.end());
+  if (registered_clients_.find(callback) == registered_clients_.end()) {
+    return;
+  }
   registered_clients_.find(callback)->second = ClientState::PAUSED;
   for (auto client : registered_clients_) {
     if (client.second != ClientState::PAUSED) {
@@ -239,8 +244,9 @@ void LeAddressManager::resume_registered_clients() {
 }
 
 void LeAddressManager::ack_resume(LeAddressManagerCallback* callback) {
-  ASSERT(registered_clients_.find(callback) != registered_clients_.end());
-  registered_clients_.find(callback)->second = ClientState::RESUMED;
+  if (registered_clients_.find(callback) != registered_clients_.end()) {
+    registered_clients_.find(callback)->second = ClientState::RESUMED;
+  }
 }
 
 void LeAddressManager::prepare_to_rotate() {

@@ -22,8 +22,8 @@
 #include <chrono>
 #include <utility>
 
+#include "blueberry/facade/common.pb.h"
 #include "common/blocking_queue.h"
-#include "facade/common.pb.h"
 #include "os/log.h"
 
 namespace bluetooth {

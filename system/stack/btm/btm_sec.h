@@ -454,7 +454,7 @@ void btm_sec_conn_req(const RawAddress& bda, uint8_t* dc);
  * Returns          void
  *
  ******************************************************************************/
-void btm_create_conn_cancel_complete(uint8_t* p);
+void btm_create_conn_cancel_complete(const uint8_t* p);
 
 /*******************************************************************************
  *
@@ -494,7 +494,8 @@ bool is_state_getting_name(void* data, void* context);
  *
  ******************************************************************************/
 void btm_sec_rmt_name_request_complete(const RawAddress* p_bd_addr,
-                                       uint8_t* p_bd_name, tHCI_STATUS status);
+                                       const uint8_t* p_bd_name,
+                                       tHCI_STATUS status);
 
 /*******************************************************************************
  *
@@ -531,7 +532,7 @@ void btm_io_capabilities_req(const RawAddress& p);
  * Returns          void
  *
  ******************************************************************************/
-void btm_io_capabilities_rsp(uint8_t* p);
+void btm_io_capabilities_rsp(const uint8_t* p);
 
 /*******************************************************************************
  *
@@ -557,7 +558,7 @@ void btm_proc_sp_req_evt(tBTM_SP_EVT event, uint8_t* p);
  * Returns          void
  *
  ******************************************************************************/
-void btm_simple_pair_complete(uint8_t* p);
+void btm_simple_pair_complete(const uint8_t* p);
 
 /*******************************************************************************
  *
@@ -569,7 +570,7 @@ void btm_simple_pair_complete(uint8_t* p);
  * Returns          void
  *
  ******************************************************************************/
-void btm_rem_oob_req(uint8_t* p);
+void btm_rem_oob_req(const uint8_t* p);
 
 /*******************************************************************************
  *
@@ -673,7 +674,7 @@ void btm_sec_link_key_notification(const RawAddress& p_bda,
  * Returns          Pointer to the record or NULL
  *
  ******************************************************************************/
-void btm_sec_link_key_request(uint8_t* p_event);
+void btm_sec_link_key_request(const uint8_t* p_event);
 
 /*******************************************************************************
  *
@@ -684,7 +685,7 @@ void btm_sec_link_key_request(uint8_t* p_event);
  * Returns          Pointer to the record or NULL
  *
  ******************************************************************************/
-void btm_sec_pin_code_request(uint8_t* p_event);
+void btm_sec_pin_code_request(const uint8_t* p_event);
 
 /*******************************************************************************
  *

@@ -41,13 +41,12 @@ import com.android.bluetooth.ObexRejectServer;
 import com.android.bluetooth.R;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.MetricsLogger;
+import com.android.bluetooth.obex.ResponseCodes;
+import com.android.bluetooth.obex.ServerSession;
 import com.android.internal.util.State;
 import com.android.internal.util.StateMachine;
 
 import java.io.IOException;
-
-import javax.obex.ResponseCodes;
-import javax.obex.ServerSession;
 
 /**
  * Bluetooth PBAP StateMachine
@@ -397,7 +396,7 @@ class PbapStateMachine extends StateMachine {
                             .setTicker(mService.getString(R.string.auth_notif_ticker))
                             .setColor(mService.getResources()
                                     .getColor(
-                                            com.android.internal.R.color
+                                            android.R.color
                                                     .system_notification_accent_color,
                                             mService.getTheme()))
                             .setFlag(Notification.FLAG_AUTO_CANCEL, true)

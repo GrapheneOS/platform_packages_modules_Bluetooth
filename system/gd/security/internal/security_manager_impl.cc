@@ -701,7 +701,9 @@ void SecurityManagerImpl::OnPairingFinished(security::PairingResultOrFailure pai
     PairingFailure failure = std::get<PairingFailure>(pairing_result);
     LOG_INFO(" ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ failure message: %s",
              failure.message.c_str());
-    NotifyDeviceBondFailed(stored_chan->channel_->GetDevice(), failure);
+    if (stored_chan) {
+      NotifyDeviceBondFailed(stored_chan->channel_->GetDevice(), failure);
+    }
     return;
   }
 

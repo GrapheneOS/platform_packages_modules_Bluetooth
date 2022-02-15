@@ -19,8 +19,8 @@ package com.android.bluetooth.pbapclient;
 import android.os.Handler;
 import android.util.Log;
 
-import javax.obex.Authenticator;
-import javax.obex.PasswordAuthentication;
+import com.android.bluetooth.obex.Authenticator;
+import com.android.bluetooth.obex.PasswordAuthentication;
 
 /* ObexAuthentication is a required component for PBAP in order to support backwards compatibility
  * with PSE devices prior to PBAP 1.2. With profiles prior to 1.2 the actual initiation of

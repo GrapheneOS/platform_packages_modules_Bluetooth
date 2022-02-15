@@ -33,6 +33,8 @@
 
 #define LOG_TAG "btm_acl"
 
+#include <base/logging.h>
+
 #include <cstdint>
 
 #include "bta/include/bta_dm_acl.h"
@@ -44,6 +46,7 @@
 #include "include/l2cap_hci_link_interface.h"
 #include "main/shim/acl_api.h"
 #include "main/shim/btm_api.h"
+#include "main/shim/controller.h"
 #include "main/shim/dumpsys.h"
 #include "main/shim/l2c_api.h"
 #include "main/shim/shim.h"
@@ -68,8 +71,6 @@
 #include "stack/include/sco_hci_link_interface.h"
 #include "types/hci_role.h"
 #include "types/raw_address.h"
-
-#include <base/logging.h>
 
 void BTM_update_version_info(const RawAddress& bd_addr,
                              const remote_version_info& remote_version_info);
@@ -207,6 +208,15 @@ void hci_btm_set_link_supervision_timeout(tACL_CONN& link, uint16_t timeout) {
     return;
   }
 
+  if (!bluetooth::shim::
+          controller_is_write_link_supervision_timeout_supported()) {
+    LOG_WARN(
+        "UNSUPPORTED by controller write link supervision timeout:%.2fms "
+        "bd_addr:%s",
+        supervision_timeout_to_seconds(timeout),
+        PRIVATE_ADDRESS(link.RemoteAddress()));
+    return;
+  }
   LOG_DEBUG("Setting link supervision timeout:%.2fs peer:%s",
             double(timeout) * 0.01, PRIVATE_ADDRESS(link.RemoteAddress()));
   link.link_super_tout = timeout;
@@ -433,6 +443,17 @@ void btm_acl_update_conn_addr(uint16_t handle, const RawAddress& address) {
     return;
   }
   p_acl->conn_addr = address;
+}
+
+void btm_configure_data_path(uint8_t direction, uint8_t path_id,
+                             std::vector<uint8_t> vendor_config) {
+  if (direction != btm_data_direction::CONTROLLER_TO_HOST &&
+      direction != btm_data_direction::HOST_TO_CONTROLLER) {
+    LOG_WARN("Unknown data direction");
+    return;
+  }
+
+  btsnd_hcic_configure_data_path(direction, path_id, vendor_config);
 }
 
 /*******************************************************************************
@@ -1165,6 +1186,14 @@ tBTM_STATUS BTM_SetLinkSuperTout(const RawAddress& remote_bda,
 
   /* Only send if current role is Central; 2.0 spec requires this */
   if (p_acl->link_role == HCI_ROLE_CENTRAL) {
+    if (!bluetooth::shim::
+            controller_is_write_link_supervision_timeout_supported()) {
+      LOG_WARN(
+          "UNSUPPORTED by controller write link supervision timeout:%.2fms "
+          "bd_addr:%s",
+          supervision_timeout_to_seconds(timeout), PRIVATE_ADDRESS(remote_bda));
+      return BTM_MODE_UNSUPPORTED;
+    }
     p_acl->link_super_tout = timeout;
     btsnd_hcic_write_link_super_tout(p_acl->hci_handle, timeout);
     LOG_DEBUG("Set supervision timeout:%.2fms bd_addr:%s",
@@ -2071,7 +2100,7 @@ void btm_read_link_quality_complete(uint8_t* p) {
  * Description      This function is called to disconnect an ACL connection
  *
  * Returns          BTM_SUCCESS if successfully initiated, otherwise
- *                  BTM_NO_RESOURCES.
+ *                  BTM_UNKNOWN_ADDR.
  *
  ******************************************************************************/
 tBTM_STATUS btm_remove_acl(const RawAddress& bd_addr, tBT_TRANSPORT transport) {
@@ -2330,23 +2359,11 @@ void BTM_ReadConnectionAddr(const RawAddress& remote_bda,
     bluetooth::shim::L2CA_ReadConnectionAddr(remote_bda, local_conn_addr,
                                              p_addr_type);
     return;
-  } else if (bluetooth::shim::is_gd_scanning_enabled()) {
+  } else {
     bluetooth::shim::ACL_ReadConnectionAddress(remote_bda, local_conn_addr,
                                                p_addr_type);
     return;
   }
-
-  tACL_CONN* p_acl = internal_.btm_bda_to_acl(remote_bda, BT_TRANSPORT_LE);
-
-  if (p_acl == NULL) {
-    LOG_WARN("Unable to find active acl");
-    return;
-  }
-  local_conn_addr = p_acl->conn_addr;
-  *p_addr_type = p_acl->conn_addr_type;
-
-  LOG_DEBUG("BTM_ReadConnectionAddr address type: %d addr: 0x%02x",
-            p_acl->conn_addr_type, p_acl->conn_addr.address[0]);
 }
 
 /*******************************************************************************
@@ -2430,6 +2447,17 @@ bool sco_peer_supports_esco_3m_phy(const RawAddress& remote_bda) {
     return false;
   }
   return HCI_EDR_ESCO_3MPS_SUPPORTED(features);
+}
+
+bool sco_peer_supports_esco_ev3(const RawAddress& remote_bda) {
+  uint8_t* features = BTM_ReadRemoteFeatures(remote_bda);
+  if (features == nullptr) {
+    LOG_WARN(
+        "Checking remote features but remote feature read is "
+        "incomplete");
+    return false;
+  }
+  return HCI_ESCO_EV3_SUPPORTED(features);
 }
 
 bool acl_is_switch_role_idle(const RawAddress& bd_addr,
@@ -2909,4 +2937,13 @@ void HACK_acl_check_sm4(tBTM_SEC_DEV_REC& record) {
   record.sm4 = (HCI_SSP_HOST_SUPPORTED(p_acl->peer_lmp_feature_pages[1]))
                    ? BTM_SM4_TRUE
                    : BTM_SM4_KNOWN;
+}
+
+tACL_CONN* btm_acl_for_bda(const RawAddress& bd_addr, tBT_TRANSPORT transport) {
+  tACL_CONN* p_acl = internal_.btm_bda_to_acl(bd_addr, transport);
+  if (p_acl == nullptr) {
+    LOG_WARN("Unable to find active acl");
+    return nullptr;
+  }
+  return p_acl;
 }

@@ -16,15 +16,13 @@
 
 #include <memory>
 
-#include "embdrv/lc3/Api/Lc3Encoder.hpp"
-
 namespace bluetooth {
 namespace audio {
+
 class HalVersionManager {
-  static std::unique_ptr<HalVersionManager> instance_ptr;
+  static inline std::unique_ptr<HalVersionManager> instance_ptr =
+      std::make_unique<HalVersionManager>();
 };
+
 }  // namespace audio
 }  // namespace bluetooth
-
-std::unique_ptr<bluetooth::audio::HalVersionManager>
-    bluetooth::audio::HalVersionManager::instance_ptr;

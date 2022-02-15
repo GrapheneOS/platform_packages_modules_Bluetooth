@@ -2004,7 +2004,7 @@ static void btm_sec_bond_cancel_complete(void) {
  * Returns          void
  *
  ******************************************************************************/
-void btm_create_conn_cancel_complete(uint8_t* p) {
+void btm_create_conn_cancel_complete(const uint8_t* p) {
   uint8_t status;
   STREAM_TO_UINT8(status, p);
   RawAddress bd_addr;
@@ -2185,16 +2185,17 @@ bool is_state_getting_name(void* data, void* context) {
  *
  ******************************************************************************/
 void btm_sec_rmt_name_request_complete(const RawAddress* p_bd_addr,
-                                       uint8_t* p_bd_name, tHCI_STATUS status) {
-  tBTM_SEC_DEV_REC* p_dev_rec;
+                                       const uint8_t* p_bd_name,
+                                       tHCI_STATUS status) {
+  tBTM_SEC_DEV_REC* p_dev_rec = nullptr;
+
   int i;
-  DEV_CLASS dev_class;
   uint8_t old_sec_state;
 
-  BTM_TRACE_EVENT("btm_sec_rmt_name_request_complete");
   if ((!p_bd_addr &&
        !BTM_IsAclConnectionUp(btm_cb.connecting_bda, BT_TRANSPORT_BR_EDR)) ||
       (p_bd_addr && !BTM_IsAclConnectionUp(*p_bd_addr, BT_TRANSPORT_BR_EDR))) {
+    LOG_WARN("Remote read request complete with no underlying link connection");
     btm_acl_resubmit_page();
   }
 
@@ -2203,41 +2204,41 @@ void btm_sec_rmt_name_request_complete(const RawAddress* p_bd_addr,
   if (p_bd_addr)
     p_dev_rec = btm_find_dev(*p_bd_addr);
   else {
+    LOG_INFO(
+        "Remote read request complete with no address so searching device "
+        "database");
     list_node_t* node =
         list_foreach(btm_cb.sec_dev_rec, is_state_getting_name, NULL);
     if (node != NULL) {
       p_dev_rec = static_cast<tBTM_SEC_DEV_REC*>(list_node(node));
       p_bd_addr = &p_dev_rec->bd_addr;
-    } else {
-      p_dev_rec = NULL;
     }
   }
 
-  /* Commenting out trace due to obf/compilation problems.
-   */
-  if (!p_bd_name) p_bd_name = (uint8_t*)"";
+  if (!p_bd_name) p_bd_name = (const uint8_t*)"";
 
-  if (p_dev_rec) {
-    BTM_TRACE_EVENT(
-        "%s PairState: %s  RemName: %s  status: %d State:%d  p_dev_rec: "
-        "0x%08x ",
-        __func__, btm_pair_state_descr(btm_cb.pairing_state), p_bd_name, status,
-        p_dev_rec->sec_state, p_dev_rec);
-  } else {
-    BTM_TRACE_EVENT("%s PairState: %s  RemName: %s  status: %d", __func__,
-                    btm_pair_state_descr(btm_cb.pairing_state), p_bd_name,
-                    status);
-  }
-
-  if (p_dev_rec) {
+  if (p_dev_rec != nullptr) {
     old_sec_state = p_dev_rec->sec_state;
     if (status == HCI_SUCCESS) {
-      strlcpy((char*)p_dev_rec->sec_bd_name, (char*)p_bd_name,
+      LOG_DEBUG(
+          "Remote read request complete for known device pairing_state:%s "
+          "name:%s sec_state:%s",
+          btm_pair_state_descr(btm_cb.pairing_state), p_bd_name,
+          security_state_text(p_dev_rec->sec_state).c_str());
+
+      strlcpy((char*)p_dev_rec->sec_bd_name, (const char*)p_bd_name,
               BTM_MAX_REM_BD_NAME_LEN + 1);
       p_dev_rec->sec_flags |= BTM_SEC_NAME_KNOWN;
       BTM_TRACE_EVENT("setting BTM_SEC_NAME_KNOWN sec_flags:0x%x",
                       p_dev_rec->sec_flags);
     } else {
+      LOG_WARN(
+          "Remote read request failed for known device pairing_state:%s "
+          "status:%s name:%s sec_state:%s",
+          btm_pair_state_descr(btm_cb.pairing_state),
+          hci_status_code_text(status).c_str(), p_bd_name,
+          security_state_text(p_dev_rec->sec_state).c_str());
+
       /* Notify all clients waiting for name to be resolved even if it failed so
        * clients can continue */
       p_dev_rec->sec_bd_name[0] = 0;
@@ -2253,15 +2254,18 @@ void btm_sec_rmt_name_request_complete(const RawAddress* p_bd_addr,
                                          p_dev_rec->sec_bd_name);
     }
   } else {
-    dev_class[0] = 0;
-    dev_class[1] = 0;
-    dev_class[2] = 0;
+    LOG_DEBUG(
+        "Remote read request complete for unknown device pairing_state:%s "
+        "status:%s name:%s",
+        btm_pair_state_descr(btm_cb.pairing_state),
+        hci_status_code_text(status).c_str(), p_bd_name);
 
     /* Notify all clients waiting for name to be resolved even if not found so
      * clients can continue */
     for (i = 0; i < BTM_SEC_MAX_RMT_NAME_CALLBACKS; i++) {
       if (btm_cb.p_rmt_name_callback[i] && p_bd_addr)
-        (*btm_cb.p_rmt_name_callback[i])(*p_bd_addr, dev_class, (uint8_t*)"");
+        (*btm_cb.p_rmt_name_callback[i])(*p_bd_addr, (uint8_t*)kDevClassEmpty,
+                                         (uint8_t*)kBtmBdNameEmpty);
     }
 
     return;
@@ -2414,7 +2418,7 @@ void btm_sec_rmt_name_request_complete(const RawAddress* p_bd_addr,
  * Returns          void
  *
  ******************************************************************************/
-void btm_sec_rmt_host_support_feat_evt(uint8_t* p) {
+void btm_sec_rmt_host_support_feat_evt(const uint8_t* p) {
   tBTM_SEC_DEV_REC* p_dev_rec;
   RawAddress bd_addr; /* peer address */
   BD_FEATURES features;
@@ -2630,7 +2634,7 @@ void btm_io_capabilities_req(const RawAddress& p) {
  * Returns          void
  *
  ******************************************************************************/
-void btm_io_capabilities_rsp(uint8_t* p) {
+void btm_io_capabilities_rsp(const uint8_t* p) {
   tBTM_SEC_DEV_REC* p_dev_rec;
   tBTM_SP_IO_RSP evt_data;
 
@@ -2691,7 +2695,7 @@ void btm_io_capabilities_rsp(uint8_t* p) {
  * Returns          void
  *
  ******************************************************************************/
-void btm_proc_sp_req_evt(tBTM_SP_EVT event, uint8_t* p) {
+void btm_proc_sp_req_evt(tBTM_SP_EVT event, const uint8_t* p) {
   tBTM_STATUS status = BTM_ERR_PROCESSING;
   tBTM_SP_EVT_DATA evt_data;
   RawAddress& p_bda = evt_data.cfm_req.bd_addr;
@@ -2831,7 +2835,7 @@ void btm_proc_sp_req_evt(tBTM_SP_EVT event, uint8_t* p) {
  * Returns          void
  *
  ******************************************************************************/
-void btm_simple_pair_complete(uint8_t* p) {
+void btm_simple_pair_complete(const uint8_t* p) {
   RawAddress bd_addr;
   tBTM_SEC_DEV_REC* p_dev_rec;
   uint8_t status;
@@ -2894,7 +2898,7 @@ void btm_simple_pair_complete(uint8_t* p) {
  * Returns          void
  *
  ******************************************************************************/
-void btm_rem_oob_req(uint8_t* p) {
+void btm_rem_oob_req(const uint8_t* p) {
   tBTM_SP_RMT_OOB evt_data;
   tBTM_SEC_DEV_REC* p_dev_rec;
   Octet16 c;
@@ -2987,7 +2991,7 @@ static void btm_sec_auth_collision(uint16_t handle) {
       /* We will restart authentication after timeout */
       if (p_dev_rec->sec_state == BTM_SEC_STATE_AUTHENTICATING ||
           p_dev_rec->sec_state == BTM_SEC_STATE_ENCRYPTING)
-        p_dev_rec->sec_state = 0;
+        p_dev_rec->sec_state = BTM_SEC_STATE_IDLE;
 
       btm_cb.p_collided_dev_rec = p_dev_rec;
       alarm_set_on_mloop(btm_cb.sec_collision_timer, BT_1SEC_TIMEOUT_MS,
@@ -3262,6 +3266,7 @@ void btm_sec_encrypt_change(uint16_t handle, tHCI_STATUS status,
         status == HCI_ERR_ENCRY_MODE_NOT_ACCEPTABLE) {
       p_dev_rec->sec_flags &= ~(BTM_SEC_LE_LINK_KEY_KNOWN);
       p_dev_rec->ble.key_type = BTM_LE_KEY_NONE;
+      p_dev_rec->sec_status = status;
     }
     btm_ble_link_encrypted(p_dev_rec->ble.pseudo_addr, encr_enable);
     return;
@@ -3930,7 +3935,7 @@ void btm_sec_link_key_notification(const RawAddress& p_bda,
  * Returns          Pointer to the record or NULL
  *
  ******************************************************************************/
-void btm_sec_link_key_request(uint8_t* p_event) {
+void btm_sec_link_key_request(const uint8_t* p_event) {
   RawAddress bda;
 
   STREAM_TO_BDADDR(bda, p_event);
@@ -4082,7 +4087,7 @@ static void btm_sec_pairing_timeout(UNUSED_ATTR void* data) {
  * Returns          Pointer to the record or NULL
  *
  ******************************************************************************/
-void btm_sec_pin_code_request(uint8_t* p_event) {
+void btm_sec_pin_code_request(const uint8_t* p_event) {
   tBTM_SEC_DEV_REC* p_dev_rec;
   tBTM_CB* p_cb = &btm_cb;
   RawAddress p_bda;

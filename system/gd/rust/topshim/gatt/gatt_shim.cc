@@ -18,6 +18,7 @@
 
 #include "base/bind.h"
 #include "base/callback.h"
+#include "gd/rust/topshim/common/utils.h"
 #include "rust/cxx.h"
 #include "src/profiles/gatt.rs.h"
 #include "types/raw_address.h"
@@ -28,26 +29,14 @@ namespace rust {
 
 namespace internal {
 
-static RustRawAddress ToRustAddress(const RawAddress& address) {
-  RustRawAddress raddr;
-  std::copy(std::begin(address.address), std::end(address.address), std::begin(raddr.address));
-  return raddr;
-}
-
-static RawAddress FromRustAddress(const RustRawAddress& raddr) {
-  RawAddress addr;
-  addr.FromOctets(raddr.address.data());
-  return addr;
-}
-
 void ReadPhyCallback(int client_if, RawAddress address, uint8_t tx_phy, uint8_t rx_phy, uint8_t status) {
-  bluetooth::topshim::rust::read_phy_callback(client_if, ToRustAddress(address), tx_phy, rx_phy, status);
+  bluetooth::topshim::rust::read_phy_callback(client_if, CopyToRustAddress(address), tx_phy, rx_phy, status);
 }
 
 }  // namespace internal
 
 int GattClientIntf::read_phy(int client_if, RustRawAddress addr) {
-  RawAddress address = internal::FromRustAddress(addr);
+  RawAddress address = CopyFromRustAddress(addr);
   return client_intf_->read_phy(address, base::Bind(&internal::ReadPhyCallback, client_if, address));
 }
 

@@ -36,6 +36,8 @@
     <bool name="profile_supported_vc">true</bool>
     <bool name="profile_supported_mcp_server">true</bool>
     <bool name="profile_supported_csip_set_coordinator">true</bool>
+    <bool name="profile_supported_le_call_control">true</bool>
+    <bool name="profile_supported_hap_client">true</bool>
 
     <!-- If true, we will require location to be enabled on the device to
          fire Bluetooth LE scan result callbacks in addition to having one
@@ -90,7 +92,7 @@
     <bool name="hfp_client_connection_service_support_emergency_call">false</bool>
 
     <!-- Enabling autoconnect over pan -->
-    <bool name="config_bluetooth_pan_enable_autoconnect">true</bool>
+    <bool name="config_bluetooth_pan_enable_autoconnect">false</bool>
 
     <!-- Enabling the phone policy -->
     <bool name="enable_phone_policy">true</bool>
@@ -105,6 +107,7 @@
     <integer name="a2dp_source_codec_priority_aptx">3001</integer>
     <integer name="a2dp_source_codec_priority_aptx_hd">4001</integer>
     <integer name="a2dp_source_codec_priority_ldac">5001</integer>
+    <integer name="a2dp_source_codec_priority_lc3">6001</integer>
 
     <!-- For enabling the AVRCP Target Cover Artowrk feature-->
     <bool name="avrcp_target_enable_cover_art">true</bool>
@@ -142,4 +145,21 @@
      -->
     <bool name="enable_gd_up_to_scanning_layer">true</bool>
 
+    <!-- Package of fastpair service -->
+    <string name="peripheral_link_package">com.google.android.gms</string>
+    <!-- Service name of fastpair-->
+    <string name="peripheral_link_service">.nearby.discovery.service.DiscoveryService</string>
+
+    <!-- Max number of Bluetooth tethering connections allowed. If this is
+         updated config_tether_dhcp_range has to be updated appropriately. -->
+    <integer translatable="false" name="config_max_pan_devices">5</integer>
+
+    <!-- Whether supported profiles should be reloaded upon enabling bluetooth -->
+    <bool name="config_bluetooth_reload_supported_profiles_when_enabled">false</bool>
+
+    <!-- Max number of connected audio devices supported by Bluetooth stack -->
+    <integer name="config_bluetooth_max_connected_audio_devices">5</integer>
+
+    <!-- Boolean indicating if current platform supports HFP inband ringing -->
+    <bool name="config_bluetooth_hfp_inband_ringing_support">true</bool>
 </resources>

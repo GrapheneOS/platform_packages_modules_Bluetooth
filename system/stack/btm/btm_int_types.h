@@ -324,7 +324,7 @@ typedef struct tBTM_CB {
     connecting_bda = RawAddress::kEmpty;
     memset(&connecting_dc, 0, sizeof(connecting_dc));
 
-    memset(&acl_cb_, 0, sizeof(acl_cb_));
+    acl_cb_ = {};
 
     page_queue = fixed_queue_new(SIZE_MAX);
     sec_pending_q = fixed_queue_new(SIZE_MAX);

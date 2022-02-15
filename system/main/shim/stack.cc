@@ -144,9 +144,7 @@ void Stack::StartEverything() {
   modules.add<hci::VendorSpecificEventManager>();
 
   modules.add<hci::Controller>();
-  if (common::init_flags::gd_acl_is_enabled()) {
-    modules.add<hci::AclManager>();
-  }
+  modules.add<hci::AclManager>();
   if (common::init_flags::gd_l2cap_is_enabled()) {
     modules.add<l2cap::classic::L2capClassicModule>();
     modules.add<l2cap::le::L2capLeModule>();
@@ -155,12 +153,8 @@ void Stack::StartEverything() {
   if (common::init_flags::gd_security_is_enabled()) {
     modules.add<security::SecurityModule>();
   }
-  if (common::init_flags::gd_advertising_is_enabled()) {
-    modules.add<hci::LeAdvertisingManager>();
-  }
-  if (common::init_flags::gd_scanning_is_enabled()) {
-    modules.add<hci::LeScanningManager>();
-  }
+  modules.add<hci::LeAdvertisingManager>();
+  modules.add<hci::LeScanningManager>();
   if (common::init_flags::btaa_hci_is_enabled()) {
     modules.add<activity_attribution::ActivityAttribution>();
   }
@@ -184,24 +178,19 @@ void Stack::StartEverything() {
     btm_ = new Btm(stack_handler_,
                    stack_manager_.GetInstance<neighbor::InquiryModule>());
   }
-  if (common::init_flags::gd_acl_is_enabled()) {
-    if (!common::init_flags::gd_core_is_enabled()) {
-      acl_ = new legacy::Acl(
-          stack_handler_, legacy::GetAclInterface(),
-          controller_get_interface()->get_ble_acceptlist_size(),
-          controller_get_interface()->get_ble_resolving_list_max_size());
-    }
+  if (!common::init_flags::gd_core_is_enabled()) {
+    acl_ = new legacy::Acl(
+        stack_handler_, legacy::GetAclInterface(),
+        controller_get_interface()->get_ble_acceptlist_size(),
+        controller_get_interface()->get_ble_resolving_list_max_size());
   }
   if (!common::init_flags::gd_core_is_enabled()) {
     bluetooth::shim::hci_on_reset_complete();
   }
 
-  if (common::init_flags::gd_advertising_is_enabled()) {
-    bluetooth::shim::init_advertising_manager();
-  }
-  if (common::init_flags::gd_scanning_is_enabled()) {
-    bluetooth::shim::init_scanning_manager();
-  }
+  bluetooth::shim::init_advertising_manager();
+  bluetooth::shim::init_scanning_manager();
+
   if (common::init_flags::gd_l2cap_is_enabled() &&
       !common::init_flags::gd_core_is_enabled()) {
     L2CA_UseLegacySecurityModule();
@@ -244,7 +233,7 @@ void Stack::Stop() {
   }
 
   // Make sure gd acl flag is enabled and we started it up
-  if (common::init_flags::gd_acl_is_enabled() && acl_ != nullptr) {
+  if (acl_ != nullptr) {
     acl_->FinalShutdown();
     delete acl_;
     acl_ = nullptr;

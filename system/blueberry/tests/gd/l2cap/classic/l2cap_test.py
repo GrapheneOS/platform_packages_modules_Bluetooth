@@ -30,10 +30,10 @@ from blueberry.tests.gd.cert.py_l2cap import PyL2cap
 from blueberry.tests.gd.cert.truth import assertThat
 from blueberry.tests.gd.cert import gd_base_test
 from blueberry.tests.gd.l2cap.classic.cert_l2cap import CertL2cap
-from facade import common_pb2
+from blueberry.facade import common_pb2
 from google.protobuf import empty_pb2 as empty_proto
-from l2cap.classic.facade_pb2 import RetransmissionFlowControlMode
-from neighbor.facade import facade_pb2 as neighbor_facade
+from blueberry.facade.l2cap.classic.facade_pb2 import RetransmissionFlowControlMode
+from blueberry.facade.neighbor import facade_pb2 as neighbor_facade
 
 from mobly import asserts
 from mobly import test_runner

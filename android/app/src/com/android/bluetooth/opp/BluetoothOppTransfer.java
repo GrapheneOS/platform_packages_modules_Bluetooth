@@ -54,10 +54,9 @@ import android.util.Log;
 
 import com.android.bluetooth.BluetoothObexTransport;
 import com.android.bluetooth.Utils;
+import com.android.bluetooth.obex.ObexTransport;
 
 import java.io.IOException;
-
-import javax.obex.ObexTransport;
 
 /**
  * This class run an actual Opp transfer session (from connect target device to
@@ -81,6 +80,8 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
     private static final int CONNECT_RETRY_TIME = 100;
 
     private static final String SOCKET_LINK_KEY_ERROR = "Invalid exchange";
+
+    private static final Object INSTANCE_LOCK = new Object();
 
     private Context mContext;
 
@@ -162,8 +163,10 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
                         markConnectionFailed(null);
                         return;
                     }
-                    mConnectThread =
-                            new SocketConnectThread(mDevice, false, true, record.getL2capPsm());
+                    synchronized (INSTANCE_LOCK) {
+                        mConnectThread =
+                                new SocketConnectThread(mDevice, false, true, record.getL2capPsm());
+                    }
                     mConnectThread.start();
                     mDevice = null;
                 }
@@ -206,9 +209,10 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
             switch (msg.what) {
                 case SOCKET_ERROR_RETRY:
                     BluetoothDevice device = (BluetoothDevice) msg.obj;
-                    mConnectThread = new SocketConnectThread(device, true);
-
-                    mConnectThread.start();
+                    synchronized (INSTANCE_LOCK) {
+                        mConnectThread = new SocketConnectThread(device, true);
+                        mConnectThread.start();
+                    }
                     break;
                 case TRANSPORT_ERROR:
                     /*
@@ -218,7 +222,9 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
                     if (V) {
                         Log.v(TAG, "receive TRANSPORT_ERROR msg");
                     }
-                    mConnectThread = null;
+                    synchronized (INSTANCE_LOCK) {
+                        mConnectThread = null;
+                    }
                     markBatchFailed(BluetoothShare.STATUS_CONNECTION_ERROR);
                     mBatch.mStatus = Constants.BATCH_STATUS_FAILED;
 
@@ -231,7 +237,9 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
                     if (V) {
                         Log.v(TAG, "Transfer receive TRANSPORT_CONNECTED msg");
                     }
-                    mConnectThread = null;
+                    synchronized (INSTANCE_LOCK) {
+                        mConnectThread = null;
+                    }
                     mTransport = (ObexTransport) msg.obj;
                     startObexSession();
 
@@ -514,19 +522,21 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
         }
 
         cleanUp();
-        if (mConnectThread != null) {
-            try {
-                mConnectThread.interrupt();
-                if (V) {
-                    Log.v(TAG, "waiting for connect thread to terminate");
+        synchronized (INSTANCE_LOCK) {
+            if (mConnectThread != null) {
+                try {
+                    mConnectThread.interrupt();
+                    if (V) {
+                        Log.v(TAG, "waiting for connect thread to terminate");
+                    }
+                    mConnectThread.join();
+                } catch (InterruptedException e) {
+                    if (V) {
+                        Log.v(TAG, "Interrupted waiting for connect thread to join");
+                    }
                 }
-                mConnectThread.join();
-            } catch (InterruptedException e) {
-                if (V) {
-                    Log.v(TAG, "Interrupted waiting for connect thread to join");
-                }
+                mConnectThread = null;
             }
-            mConnectThread = null;
         }
         // Prevent concurrent access
         synchronized (this) {

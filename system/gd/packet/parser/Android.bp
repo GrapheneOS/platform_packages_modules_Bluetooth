@@ -36,6 +36,7 @@ cc_binary_host {
         "enum_def.cc",
         "enum_gen.cc",
         "packet_def.cc",
+        "packet_dependency.cc",
         "parent_def.cc",
         "struct_def.cc",
         "struct_parser_generator.cc",

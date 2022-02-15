@@ -19,17 +19,17 @@ from blueberry.tests.gd.cert.py_security import PySecurity
 from blueberry.tests.gd.cert.truth import assertThat
 from blueberry.tests.gd.cert import gd_base_test
 from blueberry.tests.gd.security.cert_security import CertSecurity
-from facade import common_pb2 as common
+from blueberry.facade import common_pb2 as common
 from google.protobuf import empty_pb2 as empty_proto
-from hci.facade import controller_facade_pb2 as controller_facade
-from hci.facade import le_initiator_address_facade_pb2 as le_initiator_address_facade
-from l2cap.classic.facade_pb2 import ClassicSecurityPolicy
-from neighbor.facade import facade_pb2 as neighbor_facade
-from security.facade_pb2 import AuthenticationRequirements
-from security.facade_pb2 import BondMsgType
-from security.facade_pb2 import IoCapabilities
-from security.facade_pb2 import OobDataPresent
-from security.facade_pb2 import UiMsgType
+from blueberry.facade.hci import controller_facade_pb2 as controller_facade
+from blueberry.facade.hci import le_initiator_address_facade_pb2 as le_initiator_address_facade
+from blueberry.facade.l2cap.classic.facade_pb2 import ClassicSecurityPolicy
+from blueberry.facade.neighbor import facade_pb2 as neighbor_facade
+from blueberry.facade.security.facade_pb2 import AuthenticationRequirements
+from blueberry.facade.security.facade_pb2 import BondMsgType
+from blueberry.facade.security.facade_pb2 import IoCapabilities
+from blueberry.facade.security.facade_pb2 import OobDataPresent
+from blueberry.facade.security.facade_pb2 import UiMsgType
 from mobly import test_runner
 
 

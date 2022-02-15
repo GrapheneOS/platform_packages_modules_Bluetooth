@@ -80,9 +80,9 @@ extern struct btm_ble_remove_resolving_list_entry_complete
 // Params: uint8_t* p, uint16_t evt_len
 // Returns: void
 struct btm_ble_read_resolving_list_entry_complete {
-  std::function<void(uint8_t* p, uint16_t evt_len)> body{
-      [](uint8_t* p, uint16_t evt_len) {}};
-  void operator()(uint8_t* p, uint16_t evt_len) { body(p, evt_len); };
+  std::function<void(const uint8_t* p, uint16_t evt_len)> body{
+      [](const uint8_t* p, uint16_t evt_len) {}};
+  void operator()(const uint8_t* p, uint16_t evt_len) { body(p, evt_len); };
 };
 extern struct btm_ble_read_resolving_list_entry_complete
     btm_ble_read_resolving_list_entry_complete;

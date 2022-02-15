@@ -13,7 +13,6 @@ btifCommonIncludes = [
     "packages/modules/Bluetooth/system/bta/dm",
     "packages/modules/Bluetooth/system/bta/include",
     "packages/modules/Bluetooth/system/bta/sys",
-    "packages/modules/Bluetooth/system/btcore/include",
     "packages/modules/Bluetooth/system/btif/avrcp",
     "packages/modules/Bluetooth/system/btif/co",
     "packages/modules/Bluetooth/system/btif/include",
@@ -21,7 +20,6 @@ btifCommonIncludes = [
     "packages/modules/Bluetooth/system/embdrv/sbc/decoder/include",
     "packages/modules/Bluetooth/system/embdrv/sbc/encoder/include",
     "packages/modules/Bluetooth/system/gd",
-    "packages/modules/Bluetooth/system/hci/include",
     "packages/modules/Bluetooth/system/include",
     "packages/modules/Bluetooth/system/internal_include",
     "packages/modules/Bluetooth/system/stack/a2dp",
@@ -48,6 +46,11 @@ cc_library {
     shared_libs: [
         "libcutils",
     ],
+    apex_available: [
+        "//apex_available:platform",
+        "com.android.bluetooth",
+    ],
+    min_sdk_version: "30",
     target: {
         android: {
             shared_libs: [
@@ -118,8 +121,6 @@ cc_defaults {
         "src/btif_config_transcode.cc",
         "src/btif_core.cc",
         "src/btif_csis_client.cc",
-        "src/btif_debug.cc",
-        "src/btif_debug_btsnoop.cc",
         "src/btif_debug_conn.cc",
         "src/btif_dm.cc",
         "src/btif_gatt.cc",
@@ -128,12 +129,14 @@ cc_defaults {
         "src/btif_gatt_test.cc",
         "src/btif_gatt_util.cc",
         "src/btif_vc.cc",
+        "src/btif_has_client.cc",
         "src/btif_hearing_aid.cc",
         "src/btif_hf.cc",
         "src/btif_hf_client.cc",
         "src/btif_hh.cc",
         "src/btif_hd.cc",
         "src/btif_le_audio.cc",
+        "src/btif_le_audio_broadcaster.cc",
         "src/btif_metrics_logging.cc",
         "src/btif_pan.cc",
         "src/btif_profile_queue.cc",
@@ -171,7 +174,9 @@ cc_defaults {
     target: {
         android: {
             shared_libs: [
+                "android.hardware.bluetooth.audio-V1-ndk",
                 "libaaudio",
+                "libbinder_ndk",
                 "libfmq",
                 "libstatslog_bt",
             ],
@@ -204,7 +209,6 @@ cc_library_static {
 cc_library_static {
     name: "libbtif-static",
     defaults: ["libbtif_defaults"],
-    cflags: ["-DSTATIC_LIBBLUETOOTH"],
 }
 
 // btif unit tests for target
@@ -244,7 +248,7 @@ cc_test {
         "libFraunhoferAAC",
         "libg722codec",
         "liblc3codec",
-        "liblc3encoder",
+        "liblc3",
         "libbtdevice",
         "libbt-hci",
         "libudrv-uipc",
@@ -257,6 +261,14 @@ cc_test {
         "libbluetooth-dumpsys",
         "libbluetooth-for-tests",
     ],
+    target: {
+        android: {
+            shared_libs: [
+                "libbinder_ndk",
+                "android.hardware.bluetooth.audio-V1-ndk",
+            ],
+        },
+    },
     cflags: ["-DBUILDCFG"],
     sanitize: {
         integer_overflow: true,
@@ -400,7 +412,6 @@ cc_test {
         "packages/modules/Bluetooth/system/embdrv/sbc/decoder/include",
         "packages/modules/Bluetooth/system/embdrv/sbc/encoder/include",
         "packages/modules/Bluetooth/system/gd",
-        "packages/modules/Bluetooth/system/hci/include",
         "packages/modules/Bluetooth/system/include",
         "packages/modules/Bluetooth/system/internal_include",
         "packages/modules/Bluetooth/system/stack/a2dp",
@@ -426,6 +437,7 @@ cc_test {
           ":TestMockBtaCsis",
           ":TestMockBtaGatt",
           ":TestMockBtaGroups",
+          ":TestMockBtaHas",
           ":TestMockBtaHd",
           ":TestMockBtaHearingAid",
           ":TestMockBtaHf",
@@ -476,6 +488,14 @@ cc_test {
           "libosi",
       ],
       cflags: ["-DBUILDCFG"],
+      target: {
+          android: {
+              shared_libs: [
+                  "libbinder_ndk",
+                  "android.hardware.bluetooth.audio-V1-ndk",
+              ],
+          },
+      },
       sanitize: {
         address: true,
         cfi: true,

@@ -23,10 +23,9 @@ from blueberry.tests.gd.cert.closable import safeClose
 from blueberry.tests.gd.cert.captures import HciCaptures
 from bluetooth_packets_python3 import hci_packets
 from blueberry.tests.gd.cert.truth import assertThat
-from hci.facade import hci_facade_pb2 as hci_facade
-from facade import common_pb2 as common
+from blueberry.facade.hci import hci_facade_pb2 as hci_facade
+from blueberry.facade import common_pb2 as common
 from blueberry.tests.gd.cert.matchers import HciMatchers
-from bluetooth_packets_python3.hci_packets import FilterDuplicates
 from bluetooth_packets_python3.hci_packets import LeSetExtendedAdvertisingLegacyParametersBuilder
 from bluetooth_packets_python3.hci_packets import LegacyAdvertisingProperties
 from bluetooth_packets_python3.hci_packets import PeerAddressType
@@ -37,12 +36,10 @@ from bluetooth_packets_python3.hci_packets import GapDataType
 from bluetooth_packets_python3.hci_packets import LeSetExtendedAdvertisingDataBuilder
 from bluetooth_packets_python3.hci_packets import Operation
 from bluetooth_packets_python3.hci_packets import OwnAddressType
-from bluetooth_packets_python3.hci_packets import LeScanningFilterPolicy
 from bluetooth_packets_python3.hci_packets import Enable
 from bluetooth_packets_python3.hci_packets import FragmentPreference
 from bluetooth_packets_python3.hci_packets import LeSetExtendedAdvertisingScanResponseBuilder
 from bluetooth_packets_python3.hci_packets import LeSetExtendedAdvertisingEnableBuilder
-from bluetooth_packets_python3.hci_packets import LeSetExtendedScanEnableBuilder
 from bluetooth_packets_python3.hci_packets import EnabledSet
 from bluetooth_packets_python3.hci_packets import OpCode
 from bluetooth_packets_python3.hci_packets import AclBuilder

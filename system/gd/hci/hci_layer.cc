@@ -328,6 +328,11 @@ struct HciLayer::impl {
   void on_hci_event(EventView event) {
     ASSERT(event.IsValid());
     if (command_queue_.empty()) {
+      auto event_code = event.GetEventCode();
+      ASSERT_LOG(
+          event_code != EventCode::COMMAND_COMPLETE && event_code != EventCode::COMMAND_STATUS,
+          "Received %s without a waiting command (is the HAL sending commands, but not handling the events?)",
+          EventCodeText(event_code).c_str());
       std::unique_ptr<CommandView> no_waiting_command{nullptr};
       log_hci_event(no_waiting_command, event, module_.GetDependency<storage::StorageModule>());
     } else {
@@ -482,6 +487,7 @@ void HciLayer::on_disconnection_complete(EventView event_view) {
 }
 
 void HciLayer::Disconnect(uint16_t handle, ErrorCode reason) {
+  std::unique_lock<std::mutex> lock(callback_handlers_guard_);
   for (auto callback : disconnect_handlers_) {
     callback.Invoke(handle, reason);
   }
@@ -500,6 +506,7 @@ void HciLayer::on_read_remote_version_complete(EventView event_view) {
 
 void HciLayer::ReadRemoteVersion(
     hci::ErrorCode hci_status, uint16_t handle, uint8_t version, uint16_t manufacturer_name, uint16_t sub_version) {
+  std::unique_lock<std::mutex> lock(callback_handlers_guard_);
   for (auto callback : read_remote_version_handlers_) {
     callback.Invoke(hci_status, handle, version, manufacturer_name, sub_version);
   }
@@ -511,8 +518,11 @@ AclConnectionInterface* HciLayer::GetAclConnectionInterface(
     ContextualCallback<
         void(hci::ErrorCode hci_status, uint16_t, uint8_t version, uint16_t manufacturer_name, uint16_t sub_version)>
         on_read_remote_version) {
-  disconnect_handlers_.push_back(on_disconnect);
-  read_remote_version_handlers_.push_back(on_read_remote_version);
+  {
+    std::unique_lock<std::mutex> lock(callback_handlers_guard_);
+    disconnect_handlers_.push_back(on_disconnect);
+    read_remote_version_handlers_.push_back(on_read_remote_version);
+  }
   for (const auto event : AclConnectionEvents) {
     RegisterEventHandler(event, event_handler);
   }
@@ -523,8 +533,11 @@ void HciLayer::PutAclConnectionInterface() {
   for (const auto event : AclConnectionEvents) {
     UnregisterEventHandler(event);
   }
-  disconnect_handlers_.clear();
-  read_remote_version_handlers_.clear();
+  {
+    std::unique_lock<std::mutex> lock(callback_handlers_guard_);
+    disconnect_handlers_.clear();
+    read_remote_version_handlers_.clear();
+  }
 }
 
 LeAclConnectionInterface* HciLayer::GetLeAclConnectionInterface(
@@ -533,8 +546,11 @@ LeAclConnectionInterface* HciLayer::GetLeAclConnectionInterface(
     ContextualCallback<
         void(hci::ErrorCode hci_status, uint16_t, uint8_t version, uint16_t manufacturer_name, uint16_t sub_version)>
         on_read_remote_version) {
-  disconnect_handlers_.push_back(on_disconnect);
-  read_remote_version_handlers_.push_back(on_read_remote_version);
+  {
+    std::unique_lock<std::mutex> lock(callback_handlers_guard_);
+    disconnect_handlers_.push_back(on_disconnect);
+    read_remote_version_handlers_.push_back(on_read_remote_version);
+  }
   for (const auto event : LeConnectionManagementEvents) {
     RegisterLeEventHandler(event, event_handler);
   }
@@ -545,8 +561,11 @@ void HciLayer::PutLeAclConnectionInterface() {
   for (const auto event : LeConnectionManagementEvents) {
     UnregisterLeEventHandler(event);
   }
-  disconnect_handlers_.clear();
-  read_remote_version_handlers_.clear();
+  {
+    std::unique_lock<std::mutex> lock(callback_handlers_guard_);
+    disconnect_handlers_.clear();
+    read_remote_version_handlers_.clear();
+  }
 }
 
 SecurityInterface* HciLayer::GetSecurityInterface(ContextualCallback<void(EventView)> event_handler) {
@@ -603,13 +622,10 @@ void HciLayer::Start() {
   RegisterEventHandler(EventCode::COMMAND_COMPLETE, handler->BindOn(impl_, &impl::on_command_complete));
   RegisterEventHandler(EventCode::COMMAND_STATUS, handler->BindOn(impl_, &impl::on_command_status));
   RegisterLeMetaEventHandler(handler->BindOn(impl_, &impl::on_le_meta_event));
-  if (bluetooth::common::init_flags::gd_acl_is_enabled() || bluetooth::common::init_flags::gd_l2cap_is_enabled()) {
-    RegisterEventHandler(
-        EventCode::DISCONNECTION_COMPLETE, handler->BindOn(this, &HciLayer::on_disconnection_complete));
-    RegisterEventHandler(
-        EventCode::READ_REMOTE_VERSION_INFORMATION_COMPLETE,
-        handler->BindOn(this, &HciLayer::on_read_remote_version_complete));
-  }
+  RegisterEventHandler(EventCode::DISCONNECTION_COMPLETE, handler->BindOn(this, &HciLayer::on_disconnection_complete));
+  RegisterEventHandler(
+      EventCode::READ_REMOTE_VERSION_INFORMATION_COMPLETE,
+      handler->BindOn(this, &HciLayer::on_read_remote_version_complete));
   auto drop_packet = handler->BindOn(impl_, &impl::drop);
   RegisterEventHandler(EventCode::PAGE_SCAN_REPETITION_MODE_CHANGE, drop_packet);
   RegisterEventHandler(EventCode::MAX_SLOTS_CHANGE, drop_packet);

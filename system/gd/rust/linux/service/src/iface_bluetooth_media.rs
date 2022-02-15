@@ -23,6 +23,7 @@ impl IBluetoothMediaCallback for BluetoothMediaCallbackDBus {
         sample_rate: i32,
         bits_per_sample: i32,
         channel_mode: i32,
+        hfp_cap: i32,
     ) {
     }
 
@@ -91,6 +92,12 @@ impl IBluetoothMedia for IBluetoothMediaDBus {
 
     #[dbus_method("StopAudioRequest")]
     fn stop_audio_request(&mut self) {}
+
+    #[dbus_method("StartScoCall")]
+    fn start_sco_call(&mut self, device: String) {}
+
+    #[dbus_method("StopScoCall")]
+    fn stop_sco_call(&mut self, device: String) {}
 
     #[dbus_method("GetPresentationPosition")]
     fn get_presentation_position(&mut self) -> PresentationPosition {

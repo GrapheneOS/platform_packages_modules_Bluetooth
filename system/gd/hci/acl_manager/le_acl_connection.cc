@@ -85,15 +85,17 @@ class LeAclConnectionTracker : public LeConnectionManagementCallbacks {
 struct LeAclConnection::impl {
   impl(LeAclConnectionInterface* le_acl_connection_interface, std::shared_ptr<Queue> queue, uint16_t connection_handle)
       : queue_(std::move(queue)), tracker(le_acl_connection_interface, connection_handle) {}
-  LeConnectionManagementCallbacks* GetEventCallbacks() {
-    ASSERT(!callbacks_given_);
-    callbacks_given_ = true;
+  LeConnectionManagementCallbacks* GetEventCallbacks(std::function<void(uint16_t)> invalidate_callbacks) {
+    ASSERT_LOG(!invalidate_callbacks_, "Already returned event callbacks for this connection");
+    invalidate_callbacks_ = std::move(invalidate_callbacks);
     return &tracker;
   }
-
-  bool callbacks_given_{false};
+  void PutEventCallbacks() {
+    if (invalidate_callbacks_) invalidate_callbacks_(tracker.connection_handle_);
+  }
   std::shared_ptr<Queue> queue_;
   LeAclConnectionTracker tracker;
+  std::function<void(uint16_t)> invalidate_callbacks_;
 };
 
 LeAclConnection::LeAclConnection()
@@ -115,6 +117,7 @@ LeAclConnection::LeAclConnection(
 }
 
 LeAclConnection::~LeAclConnection() {
+  if (pimpl_) pimpl_->PutEventCallbacks();
   delete pimpl_;
 }
 
@@ -137,8 +140,9 @@ void LeAclConnection::Disconnect(DisconnectReason reason) {
       }));
 }
 
-LeConnectionManagementCallbacks* LeAclConnection::GetEventCallbacks() {
-  return pimpl_->GetEventCallbacks();
+LeConnectionManagementCallbacks* LeAclConnection::GetEventCallbacks(
+    std::function<void(uint16_t)> invalidate_callbacks) {
+  return pimpl_->GetEventCallbacks(std::move(invalidate_callbacks));
 }
 
 bool LeAclConnection::LeConnectionUpdate(uint16_t conn_interval_min, uint16_t conn_interval_max, uint16_t conn_latency,

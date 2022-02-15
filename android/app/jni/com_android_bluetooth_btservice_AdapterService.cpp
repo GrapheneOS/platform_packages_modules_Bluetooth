@@ -71,6 +71,7 @@ static jmethodID method_addressConsolidateCallback;
 static jmethodID method_aclStateChangeCallback;
 static jmethodID method_discoveryStateChangeCallback;
 static jmethodID method_linkQualityReportCallback;
+static jmethodID method_switchBufferSizeCallback;
 static jmethodID method_setWakeAlarm;
 static jmethodID method_acquireWakeLock;
 static jmethodID method_releaseWakeLock;
@@ -598,6 +599,18 @@ static void link_quality_report_callback(
       (jint)negative_acknowledgement_count);
 }
 
+static void switch_buffer_size_callback(bool is_low_latency_buffer_size) {
+  CallbackEnv sCallbackEnv(__func__);
+  if (!sCallbackEnv.valid()) return;
+
+  ALOGV("%s: SwitchBufferSizeCallback: %s", __func__,
+        is_low_latency_buffer_size ? "true" : "false");
+
+  sCallbackEnv->CallVoidMethod(
+      sJniCallbacksObj, method_switchBufferSizeCallback,
+      (jboolean)is_low_latency_buffer_size);
+}
+
 static void callback_thread_event(bt_cb_thread_evt event) {
   if (event == ASSOCIATE_JVM) {
     JavaVMAttachArgs args;
@@ -674,7 +687,8 @@ static bt_callbacks_t sBluetoothCallbacks = {sizeof(sBluetoothCallbacks),
                                              le_test_mode_recv_callback,
                                              energy_info_recv_callback,
                                              link_quality_report_callback,
-                                             generate_local_oob_data_callback};
+                                             generate_local_oob_data_callback,
+                                             switch_buffer_size_callback};
 
 // The callback to call when the wake alarm fires.
 static alarm_cb sAlarmCallback;
@@ -892,6 +906,9 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
 
   method_linkQualityReportCallback = env->GetMethodID(
       jniCallbackClass, "linkQualityReportCallback", "(JIIIIII)V");
+
+  method_switchBufferSizeCallback =
+      env->GetMethodID(jniCallbackClass, "switchBufferSizeCallback", "(Z)V");
 
   method_setWakeAlarm = env->GetMethodID(clazz, "setWakeAlarm", "(JZ)Z");
   method_acquireWakeLock =
@@ -1714,6 +1731,22 @@ static int getMetricIdNative(JNIEnv* env, jobject obj, jbyteArray address) {
   return sBluetoothInterface->get_metric_id(addr_obj);
 }
 
+static jboolean allowLowLatencyAudioNative(JNIEnv* env, jobject obj,
+                                           jboolean allowed,
+                                           jbyteArray address) {
+  ALOGV("%s", __func__);
+  if (!sBluetoothInterface) return false;
+  jbyte* addr = env->GetByteArrayElements(address, nullptr);
+  if (addr == nullptr) {
+    jniThrowIOException(env, EINVAL);
+    return false;
+  }
+  RawAddress addr_obj = {};
+  addr_obj.FromOctets((uint8_t*)addr);
+  sBluetoothInterface->allow_low_latency_audio(allowed, addr_obj);
+  return true;
+}
+
 static JNINativeMethod sMethods[] = {
     /* name, signature, funcPtr */
     {"classInitNative", "()V", (void*)classInitNative},
@@ -1753,7 +1786,9 @@ static JNINativeMethod sMethods[] = {
     {"createSocketChannelNative", "(ILjava/lang/String;[BIII)I",
      (void*)createSocketChannelNative},
     {"requestMaximumTxDataLengthNative", "([B)V",
-     (void*)requestMaximumTxDataLengthNative}};
+     (void*)requestMaximumTxDataLengthNative},
+    {"allowLowLatencyAudioNative", "(Z[B)Z", (void*)allowLowLatencyAudioNative},
+};
 
 int register_com_android_bluetooth_btservice_AdapterService(JNIEnv* env) {
   return jniRegisterNativeMethods(
@@ -1866,6 +1901,13 @@ jint JNI_OnLoad(JavaVM* jvm, void* reserved) {
   status = android::register_com_android_bluetooth_hearing_aid(e);
   if (status < 0) {
     ALOGE("jni hearing aid registration failure: %d", status);
+    return JNI_ERR;
+  }
+
+  status = android::register_com_android_bluetooth_hap_client(e);
+  if (status < 0) {
+    ALOGE("jni le audio hearing access client registration failure: %d",
+          status);
     return JNI_ERR;
   }
 

@@ -22,10 +22,11 @@ import static android.Manifest.permission.BLUETOOTH_ADVERTISE;
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
 import static android.Manifest.permission.BLUETOOTH_SCAN;
 import static android.Manifest.permission.RENOUNCE_PERMISSIONS;
-import static android.content.PermissionChecker.PERMISSION_HARD_DENIED;
+import static android.bluetooth.BluetoothUtils.USER_HANDLE_NULL;
 import static android.content.pm.PackageManager.GET_PERMISSIONS;
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 import static android.os.PowerExemptionManager.TEMPORARY_ALLOW_LIST_TYPE_FOREGROUND_SERVICE_ALLOWED;
+import static android.permission.PermissionManager.PERMISSION_HARD_DENIED;
 
 import android.Manifest;
 import android.annotation.NonNull;
@@ -140,10 +141,6 @@ public final class Utils {
 
     public static byte[] getByteAddress(BluetoothDevice device) {
         return getBytesFromAddress(device.getAddress());
-    }
-
-    public static byte[] addressToBytes(String address) {
-        return getBytesFromAddress(address);
     }
 
     public static byte[] getBytesFromAddress(String address) {
@@ -319,12 +316,12 @@ public final class Utils {
         }
     }
 
-    static int sSystemUiUid = UserHandle.USER_NULL;
+    static int sSystemUiUid = USER_HANDLE_NULL.getIdentifier();
     public static void setSystemUiUid(int uid) {
         Utils.sSystemUiUid = uid;
     }
 
-    static int sForegroundUserId = UserHandle.USER_NULL;
+    static int sForegroundUserId = USER_HANDLE_NULL.getIdentifier();
     public static void setForegroundUserId(int uid) {
         Utils.sForegroundUserId = uid;
     }
@@ -647,7 +644,7 @@ public final class Utils {
         try {
             UserManager um = context.getSystemService(UserManager.class);
             UserHandle uh = um.getProfileParent(callingUser);
-            int parentUser = (uh != null) ? uh.getIdentifier() : UserHandle.USER_NULL;
+            int parentUser = (uh != null) ? uh.getIdentifier() : USER_HANDLE_NULL.getIdentifier();
 
             // Always allow SystemUI/System access.
             return (sForegroundUserId == callingUser.getIdentifier())
@@ -987,7 +984,17 @@ public final class Utils {
         return 1 == context.getContentResolver().update(uri, values, null, null);
     }
 
+    /**
+     * Returns bundled broadcast options.
+     */
     public static @NonNull Bundle getTempAllowlistBroadcastOptions() {
+        return getTempBroadcastOptions().toBundle();
+    }
+
+    /**
+     * Returns broadcast options.
+     */
+    public static @NonNull BroadcastOptions getTempBroadcastOptions() {
         // Use the Bluetooth process identity to pass permission check when reading DeviceConfig
         final long ident = Binder.clearCallingIdentity();
         final BroadcastOptions bOptions = BroadcastOptions.makeBasic();
@@ -1000,9 +1007,8 @@ public final class Utils {
         } finally {
             Binder.restoreCallingIdentity(ident);
         }
-        return bOptions.toBundle();
+        return bOptions;
     }
-
     /**
      * Checks that value is present as at least one of the elements of the array.
      * @param array the array to check in

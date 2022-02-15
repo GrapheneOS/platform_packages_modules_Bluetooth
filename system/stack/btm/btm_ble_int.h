@@ -34,8 +34,9 @@
 #include "stack/include/hci_error_code.h"
 #include "types/raw_address.h"
 
-extern void btm_ble_process_periodic_adv_sync_est_evt(uint8_t len, uint8_t* p);
-extern void btm_ble_process_periodic_adv_pkt(uint8_t len, uint8_t* p);
+extern void btm_ble_process_periodic_adv_sync_est_evt(uint8_t len,
+                                                      const uint8_t* p);
+extern void btm_ble_process_periodic_adv_pkt(uint8_t len, const uint8_t* p);
 extern void btm_ble_process_periodic_adv_sync_lost_evt(uint8_t len, uint8_t* p);
 extern void btm_send_hci_set_scan_params(uint8_t scan_type, uint16_t scan_int,
                                          uint16_t scan_win,
@@ -64,7 +65,7 @@ extern void btm_ble_link_sec_check(const RawAddress& bd_addr,
 extern void btm_ble_ltk_request_reply(const RawAddress& bda, bool use_stk,
                                       const Octet16& stk);
 extern tBTM_STATUS btm_proc_smp_cback(tSMP_EVT event, const RawAddress& bd_addr,
-                                      tSMP_EVT_DATA* p_data);
+                                      const tSMP_EVT_DATA* p_data);
 extern tBTM_STATUS btm_ble_set_encryption(const RawAddress& bd_addr,
                                           tBTM_BLE_SEC_ACT sec_act,
                                           uint8_t link_role);
@@ -137,6 +138,9 @@ extern bool btm_ble_topology_check(tBTM_BLE_STATE_MASK request);
 extern bool btm_ble_clear_topology_mask(tBTM_BLE_STATE_MASK request_state);
 extern bool btm_ble_set_topology_mask(tBTM_BLE_STATE_MASK request_state);
 extern void btm_ble_set_random_address(const RawAddress& random_bda);
+
+extern void btm_ble_scanner_init(void);
+extern void btm_ble_scanner_cleanup(void);
 
 #if (BTM_BLE_CONFORMANCE_TESTING == TRUE)
 extern void btm_ble_set_no_disc_if_pair_fail(bool disble_disc);

@@ -2020,7 +2020,7 @@ bool BtifAvStateMachine::StateOpened::ProcessEvent(uint32_t event,
     } break;
 
     case BTIF_AV_OFFLOAD_START_REQ_EVT:
-      BTIF_TRACE_ERROR("%s: Peer %s : event=%s: stream is not Opened",
+      BTIF_TRACE_ERROR("%s: Peer %s : event=%s: stream is not Started",
                        __PRETTY_FUNCTION__,
                        peer_.PeerAddress().ToString().c_str(),
                        BtifAvEvent::EventName(event).c_str());
@@ -2224,6 +2224,16 @@ bool BtifAvStateMachine::StateStarted::ProcessEvent(uint32_t event,
       break;
 
     case BTIF_AV_OFFLOAD_START_REQ_EVT:
+      if (peer_.CheckFlags(BtifAvPeer::kFlagLocalSuspendPending |
+                           BtifAvPeer::kFlagRemoteSuspend |
+                           BtifAvPeer::kFlagPendingStop)) {
+        LOG_WARN("%s: Peer %s : event=%s flags=%s: stream is Suspending",
+                 __PRETTY_FUNCTION__, peer_.PeerAddress().ToString().c_str(),
+                 BtifAvEvent::EventName(event).c_str(),
+                 peer_.FlagsToString().c_str());
+        btif_a2dp_on_offload_started(peer_.PeerAddress(), BTA_AV_FAIL);
+        break;
+      }
       BTA_AvOffloadStart(peer_.BtaHandle());
       break;
 
@@ -2308,6 +2318,15 @@ bool BtifAvStateMachine::StateClosing::ProcessEvent(uint32_t event,
                        peer_.PeerAddress().ToString().c_str(),
                        BtifAvEvent::EventName(event).c_str());
       btif_a2dp_on_offload_started(peer_.PeerAddress(), BTA_AV_FAIL);
+      break;
+
+    case BTIF_AV_CONNECT_REQ_EVT:
+      BTIF_TRACE_WARNING("%s: Peer %s : Ignore %s in StateClosing",
+                         __PRETTY_FUNCTION__,
+                         peer_.PeerAddress().ToString().c_str(),
+                         BtifAvEvent::EventName(event).c_str());
+      btif_queue_advance();
+      peer_.StateMachine().TransitionTo(BtifAvStateMachine::kStateIdle);
       break;
 
     default:
@@ -3470,12 +3489,10 @@ bool btif_av_is_a2dp_offload_running() {
   if (!btif_av_is_a2dp_offload_enabled()) {
     return false;
   }
-  if (!bluetooth::audio::a2dp::is_hal_2_0_enabled()) {
-    // since android::hardware::bluetooth::a2dp::V1_0 deprecated, offloading
-    // is supported by Bluetooth Audio HAL 2.0 only.
+  if (!bluetooth::audio::a2dp::is_hal_enabled()) {
     return false;
   }
-  return bluetooth::audio::a2dp::is_hal_2_0_offloading();
+  return bluetooth::audio::a2dp::is_hal_offloading();
 }
 
 bool btif_av_is_peer_silenced(const RawAddress& peer_address) {

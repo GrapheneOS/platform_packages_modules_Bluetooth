@@ -26,6 +26,7 @@
 #define BTA_GATT_API_H
 
 #include <base/callback_forward.h>
+#include <base/strings/stringprintf.h>
 
 #include <list>
 #include <string>
@@ -95,7 +96,7 @@ inline std::string gatt_client_event_text(const tBTA_GATTC_EVT& event) {
     CASE_RETURN_TEXT(BTA_GATTC_PHY_UPDATE_EVT);
     CASE_RETURN_TEXT(BTA_GATTC_CONN_UPDATE_EVT);
     default:
-      return std::string("UNKNOWN[%hhu]", event);
+      return base::StringPrintf("UNKNOWN[%hhu]", event);
   }
 }
 #undef CASE_RETURN_TEXT

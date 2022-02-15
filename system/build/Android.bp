@@ -93,10 +93,13 @@ fluoride_defaults {
         "libbluetooth-types",
         "libbt-platform-protos-lite",
         "libbluetooth_rust_interop",
-        "liblog",
         "libcutils",
     ],
+    shared_libs: [
+        "liblog",
+    ],
     cpp_std: "c++17",
+    min_sdk_version: "current",
 }
 
 fluoride_defaults {

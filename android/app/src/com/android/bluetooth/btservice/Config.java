@@ -24,6 +24,7 @@ import android.content.res.Resources;
 import android.os.SystemConfigManager;
 import android.os.SystemProperties;
 import android.provider.Settings;
+import android.sysprop.BluetoothProperties;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -34,6 +35,7 @@ import com.android.bluetooth.avrcp.AvrcpTargetService;
 import com.android.bluetooth.avrcpcontroller.AvrcpControllerService;
 import com.android.bluetooth.csip.CsipSetCoordinatorService;
 import com.android.bluetooth.gatt.GattService;
+import com.android.bluetooth.hap.HapClientService;
 import com.android.bluetooth.hearingaid.HearingAidService;
 import com.android.bluetooth.hfp.HeadsetService;
 import com.android.bluetooth.hfpclient.HeadsetClientService;
@@ -48,6 +50,7 @@ import com.android.bluetooth.pan.PanService;
 import com.android.bluetooth.pbap.BluetoothPbapService;
 import com.android.bluetooth.pbapclient.PbapClientService;
 import com.android.bluetooth.sap.SapService;
+import com.android.bluetooth.tbs.TbsService;
 import com.android.bluetooth.vc.VolumeControlService;
 
 import java.util.ArrayList;
@@ -117,18 +120,22 @@ public class Config {
                     (1 << BluetoothProfile.OPP)),
             new ProfileConfig(BluetoothPbapService.class, R.bool.profile_supported_pbap,
                     (1 << BluetoothProfile.PBAP)),
-            new ProfileConfig(LeAudioService.class, R.bool.profile_supported_le_audio,
-                    (1 << BluetoothProfile.LE_AUDIO)),
             new ProfileConfig(VolumeControlService.class, R.bool.profile_supported_vc,
                     (1 << BluetoothProfile.VOLUME_CONTROL)),
             new ProfileConfig(McpService.class, R.bool.profile_supported_mcp_server,
                     (1 << BluetoothProfile.MCP_SERVER)),
+            new ProfileConfig(TbsService.class, R.bool.profile_supported_le_call_control,
+                    (1 << BluetoothProfile.LE_CALL_CONTROL)),
             new ProfileConfig(HearingAidService.class,
-                    com.android.internal.R.bool.config_hearing_aid_profile_supported,
+                    -1,
                     (1 << BluetoothProfile.HEARING_AID)),
+            new ProfileConfig(LeAudioService.class, R.bool.profile_supported_le_audio,
+                    (1 << BluetoothProfile.LE_AUDIO)),
             new ProfileConfig(CsipSetCoordinatorService.class,
                     R.bool.profile_supported_csip_set_coordinator,
                     (1 << BluetoothProfile.CSIP_SET_COORDINATOR)),
+            new ProfileConfig(HapClientService.class, R.bool.profile_supported_hap_client,
+                    (1 << BluetoothProfile.HAP_CLIENT)),
     };
 
     private static Class[] sSupportedProfiles = new Class[0];
@@ -147,7 +154,13 @@ public class Config {
 
         ArrayList<Class> profiles = new ArrayList<>(PROFILE_SERVICES_AND_FLAGS.length);
         for (ProfileConfig config : PROFILE_SERVICES_AND_FLAGS) {
-            boolean supported = resources.getBoolean(config.mSupported);
+            boolean supported = false;
+            if (config.mClass == HearingAidService.class) {
+                supported =
+                        BluetoothProperties.isProfileAshaCentralEnabled().orElse(false);
+            } else {
+                supported = resources.getBoolean(config.mSupported);
+            }
 
             if (!supported && (config.mClass == HearingAidService.class) && isHearingAidSettingsEnabled(ctx)) {
                 Log.v(TAG, "Feature Flag enables support for HearingAidService");
@@ -227,7 +240,7 @@ public class Config {
     }
 
     private static boolean isHearingAidSettingsEnabled(Context context) {
-        final String flagOverridePrefix = "sys.fflag.override.";
+        final String flagOverridePrefix = "persist.sys.fflag.override.";
         final String hearingAidSettings = "settings_bluetooth_hearing_aid";
 
         // Override precedence:

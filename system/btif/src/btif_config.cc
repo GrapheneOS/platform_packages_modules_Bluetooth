@@ -63,7 +63,6 @@
 #define FILE_SOURCE "FileSource"
 #define TIME_STRING_LENGTH sizeof("YYYY-MM-DD HH:MM:SS")
 #define DISABLED "disabled"
-static const char* TIME_STRING_FORMAT = "%Y-%m-%d %H:%M:%S";
 
 #define BT_CONFIG_METRICS_SECTION "Metrics"
 #define BT_CONFIG_METRICS_SALT_256BIT "Salt256Bit"
@@ -73,42 +72,10 @@ using bluetooth::bluetooth_keystore::BluetoothKeystoreInterface;
 using bluetooth::common::AddressObfuscator;
 using bluetooth::common::MetricIdAllocator;
 
-// TODO(armansito): Find a better way than searching by a hardcoded path.
-#if defined(TARGET_FLOSS)
-static const char* CONFIG_FILE_PATH = "/var/lib/bluetooth/bt_config.conf";
-static const char* CONFIG_BACKUP_PATH = "/var/lib/bluetooth/bt_config.bak";
-static const char* CONFIG_LEGACY_FILE_PATH = "/var/lib/bluetooth/bt_config.xml";
-#elif defined(OS_GENERIC)
-static const char* CONFIG_FILE_PATH = "bt_config.conf";
-static const char* CONFIG_BACKUP_PATH = "bt_config.bak";
-static const char* CONFIG_LEGACY_FILE_PATH = "bt_config.xml";
-#else   // !defined(OS_GENERIC)
-static const char* CONFIG_FILE_PATH = "/data/misc/bluedroid/bt_config.conf";
-static const char* CONFIG_BACKUP_PATH = "/data/misc/bluedroid/bt_config.bak";
-static const char* CONFIG_LEGACY_FILE_PATH =
-    "/data/misc/bluedroid/bt_config.xml";
-#endif  // defined(OS_GENERIC)
-static const uint64_t CONFIG_SETTLE_PERIOD_MS = 3000;
-
-static void timer_config_save_cb(void* data);
-static void btif_config_write(uint16_t event, char* p_param);
-static bool is_factory_reset(void);
-static void delete_config_files(void);
-static std::unique_ptr<config_t> btif_config_open(const char* filename);
-
 // Key attestation
-static bool config_checksum_pass(int check_bit) {
-  return ((get_common_criteria_config_compare_result() & check_bit) ==
-          check_bit);
-}
-static bool btif_in_encrypt_key_name_list(std::string key);
-
-static const int CONFIG_FILE_COMPARE_PASS = 1;
-static const int CONFIG_BACKUP_COMPARE_PASS = 2;
 static const std::string ENCRYPTED_STR = "encrypted";
 static const std::string CONFIG_FILE_PREFIX = "bt_config-origin";
 static const std::string CONFIG_FILE_HASH = "hash";
-static const int ENCRYPT_KEY_NAME_LIST_SIZE = 7;
 static const std::string encrypt_key_name_list[] = {
     "LinkKey",      "LE_KEY_PENC", "LE_KEY_PID",  "LE_KEY_LID",
     "LE_KEY_PCSRK", "LE_KEY_LENC", "LE_KEY_LCSRK"};
@@ -123,10 +90,6 @@ static enum ConfigSource {
 } btif_config_source = NOT_LOADED;
 
 static char btif_config_time_created[TIME_STRING_LENGTH];
-
-static BluetoothKeystoreInterface* get_bluetooth_keystore_interface() {
-  return bluetooth::bluetooth_keystore::getBluetoothKeystoreInterface();
-}
 
 /**
  * Read metrics salt from config file, if salt is invalid or does not exist,
@@ -216,7 +179,6 @@ static void init_metric_id_allocator() {
 }
 
 static std::recursive_mutex config_lock;  // protects operations on |config|.
-static alarm_t* config_timer;
 
 // limited btif config cache capacity
 static BtifConfigCache btif_config_cache(TEMPORARY_SECTION_CAPACITY);
@@ -224,111 +186,11 @@ static BtifConfigCache btif_config_cache(TEMPORARY_SECTION_CAPACITY);
 // Module lifecycle functions
 
 static future_t* init(void) {
-  if (bluetooth::shim::is_any_gd_enabled()) {
-    CHECK(bluetooth::shim::is_gd_stack_started_up());
-    // TODO (b/158035889) Migrate metrics module to GD
-    read_or_set_metrics_salt();
-    init_metric_id_allocator();
-    return future_new_immediate(FUTURE_SUCCESS);
-  }
-  std::unique_lock<std::recursive_mutex> lock(config_lock);
-  std::unique_ptr<config_t> config;
-
-  if (is_factory_reset()) delete_config_files();
-
-  std::string file_source;
-
-  if (config_checksum_pass(CONFIG_FILE_COMPARE_PASS)) {
-    config = btif_config_open(CONFIG_FILE_PATH);
-    btif_config_source = ORIGINAL;
-  }
-  if (!config) {
-    LOG_WARN("%s unable to load config file: %s; using backup.", __func__,
-             CONFIG_FILE_PATH);
-    if (config_checksum_pass(CONFIG_BACKUP_COMPARE_PASS)) {
-      config = btif_config_open(CONFIG_BACKUP_PATH);
-      btif_config_source = BACKUP;
-      file_source = "Backup";
-    }
-  }
-  if (!config) {
-    LOG_WARN("%s unable to load backup; attempting to transcode legacy file.",
-             __func__);
-    config = btif_config_transcode(CONFIG_LEGACY_FILE_PATH);
-    btif_config_source = LEGACY;
-    file_source = "Legacy";
-  }
-  if (!config) {
-    LOG_ERROR("%s unable to transcode legacy file; creating empty config.",
-              __func__);
-    config = config_new_empty();
-    btif_config_source = NEW_FILE;
-    file_source = "Empty";
-  }
-
-  // move persistent config data from btif_config file to btif config cache
-  btif_config_cache.Init(std::move(config));
-
-  if (!file_source.empty()) {
-    btif_config_cache.SetString(INFO_SECTION, FILE_SOURCE, file_source);
-  }
-
-  // Cleanup temporary pairings if we have left guest mode
-  if (!is_restricted_mode()) {
-    btif_config_cache.RemovePersistentSectionsWithKey("Restricted");
-  }
-
-  // Read or set config file creation timestamp
-  auto time_str = btif_config_cache.GetString(INFO_SECTION, FILE_TIMESTAMP);
-  if (!time_str) {
-    time_t current_time = time(NULL);
-    struct tm* time_created = localtime(&current_time);
-    strftime(btif_config_time_created, TIME_STRING_LENGTH, TIME_STRING_FORMAT,
-             time_created);
-    btif_config_cache.SetString(INFO_SECTION, FILE_TIMESTAMP,
-                                btif_config_time_created);
-  } else {
-    strlcpy(btif_config_time_created, time_str->c_str(), TIME_STRING_LENGTH);
-  }
-
-  // Read or set metrics 256 bit hashing salt
+  CHECK(bluetooth::shim::is_gd_stack_started_up());
+  // TODO (b/158035889) Migrate metrics module to GD
   read_or_set_metrics_salt();
-
-  // Initialize MetricIdAllocator
   init_metric_id_allocator();
-
-  // TODO(sharvil): use a non-wake alarm for this once we have
-  // API support for it. There's no need to wake the system to
-  // write back to disk.
-  config_timer = alarm_new("btif.config");
-  if (!config_timer) {
-    LOG_ERROR("%s unable to create alarm.", __func__);
-    goto error;
-  }
-
-  LOG_EVENT_INT(BT_CONFIG_SOURCE_TAG_NUM, btif_config_source);
-
   return future_new_immediate(FUTURE_SUCCESS);
-
-error:
-  alarm_free(config_timer);
-  config.reset();
-  btif_config_cache.Clear();
-  config_timer = NULL;
-  btif_config_source = NOT_LOADED;
-  return future_new_immediate(FUTURE_FAIL);
-}
-
-static std::unique_ptr<config_t> btif_config_open(const char* filename) {
-  std::unique_ptr<config_t> config = config_new(filename);
-  if (!config) return nullptr;
-
-  if (!config_has_section(*config, "Adapter")) {
-    LOG_ERROR("Config is missing adapter section");
-    return nullptr;
-  }
-
-  return config;
 }
 
 static future_t* shut_down(void) {
@@ -337,22 +199,10 @@ static future_t* shut_down(void) {
 }
 
 static future_t* clean_up(void) {
-  if (bluetooth::shim::is_any_gd_enabled()) {
-    CHECK(bluetooth::shim::is_gd_stack_started_up());
-    // GD storage module cleanup by itself
-    std::unique_lock<std::recursive_mutex> lock(config_lock);
-    close_metric_id_allocator();
-    return future_new_immediate(FUTURE_SUCCESS);
-  }
-  btif_config_flush();
-
-  alarm_free(config_timer);
-  config_timer = NULL;
-
+  CHECK(bluetooth::shim::is_gd_stack_started_up());
+  // GD storage module cleanup by itself
   std::unique_lock<std::recursive_mutex> lock(config_lock);
-  get_bluetooth_keystore_interface()->clear_map();
   close_metric_id_allocator();
-  btif_config_cache.Clear();
   return future_new_immediate(FUTURE_SUCCESS);
 }
 
@@ -363,66 +213,32 @@ EXPORT_SYMBOL module_t btif_config_module = {.name = BTIF_CONFIG_MODULE,
                                              .clean_up = clean_up};
 
 bool btif_config_exist(const std::string& section, const std::string& key) {
-  if (bluetooth::shim::is_any_gd_enabled()) {
-    CHECK(bluetooth::shim::is_gd_stack_started_up());
-    return bluetooth::shim::BtifConfigInterface::HasProperty(section, key);
-  }
-  std::unique_lock<std::recursive_mutex> lock(config_lock);
-  return btif_config_cache.HasKey(section, key);
+  CHECK(bluetooth::shim::is_gd_stack_started_up());
+  return bluetooth::shim::BtifConfigInterface::HasProperty(section, key);
 }
 
 bool btif_config_get_int(const std::string& section, const std::string& key,
                          int* value) {
-  if (bluetooth::shim::is_any_gd_enabled()) {
-    CHECK(bluetooth::shim::is_gd_stack_started_up());
-    return bluetooth::shim::BtifConfigInterface::GetInt(section, key, value);
-  }
-  CHECK(value != NULL);
-  std::unique_lock<std::recursive_mutex> lock(config_lock);
-  auto ret = btif_config_cache.GetInt(section, key);
-  if (!ret) {
-    return false;
-  }
-  *value = *ret;
-  return true;
+  CHECK(bluetooth::shim::is_gd_stack_started_up());
+  return bluetooth::shim::BtifConfigInterface::GetInt(section, key, value);
 }
 
 bool btif_config_set_int(const std::string& section, const std::string& key,
                          int value) {
-  if (bluetooth::shim::is_any_gd_enabled()) {
-    CHECK(bluetooth::shim::is_gd_stack_started_up());
-    return bluetooth::shim::BtifConfigInterface::SetInt(section, key, value);
-  }
-  std::unique_lock<std::recursive_mutex> lock(config_lock);
-  btif_config_cache.SetInt(section, key, value);
-  return true;
+  CHECK(bluetooth::shim::is_gd_stack_started_up());
+  return bluetooth::shim::BtifConfigInterface::SetInt(section, key, value);
 }
 
 bool btif_config_get_uint64(const std::string& section, const std::string& key,
                             uint64_t* value) {
-  if (bluetooth::shim::is_any_gd_enabled()) {
-    CHECK(bluetooth::shim::is_gd_stack_started_up());
-    return bluetooth::shim::BtifConfigInterface::GetUint64(section, key, value);
-  }
-  CHECK(value != NULL);
-  std::unique_lock<std::recursive_mutex> lock(config_lock);
-  auto ret = btif_config_cache.GetUint64(section, key);
-  if (!ret) {
-    return false;
-  }
-  *value = *ret;
-  return true;
+  CHECK(bluetooth::shim::is_gd_stack_started_up());
+  return bluetooth::shim::BtifConfigInterface::GetUint64(section, key, value);
 }
 
 bool btif_config_set_uint64(const std::string& section, const std::string& key,
                             uint64_t value) {
-  if (bluetooth::shim::is_any_gd_enabled()) {
-    CHECK(bluetooth::shim::is_gd_stack_started_up());
-    return bluetooth::shim::BtifConfigInterface::SetUint64(section, key, value);
-  }
-  std::unique_lock<std::recursive_mutex> lock(config_lock);
-  btif_config_cache.SetUint64(section, key, value);
-  return true;
+  CHECK(bluetooth::shim::is_gd_stack_started_up());
+  return bluetooth::shim::BtifConfigInterface::SetUint64(section, key, value);
 }
 
 /*******************************************************************************
@@ -446,170 +262,42 @@ bool btif_config_set_uint64(const std::string& section, const std::string& key,
 
 bool btif_config_get_str(const std::string& section, const std::string& key,
                          char* value, int* size_bytes) {
-  if (bluetooth::shim::is_any_gd_enabled()) {
-    CHECK(bluetooth::shim::is_gd_stack_started_up());
-    return bluetooth::shim::BtifConfigInterface::GetStr(section, key, value,
-                                                        size_bytes);
-  }
-  CHECK(value != NULL);
-  CHECK(size_bytes != NULL);
-
-  {
-    std::unique_lock<std::recursive_mutex> lock(config_lock);
-    auto stored_value = btif_config_cache.GetString(section, key);
-    if (!stored_value) return false;
-    strlcpy(value, stored_value->c_str(), *size_bytes);
-  }
-  *size_bytes = strlen(value) + 1;
-  return true;
+  CHECK(bluetooth::shim::is_gd_stack_started_up());
+  return bluetooth::shim::BtifConfigInterface::GetStr(section, key, value,
+                                                      size_bytes);
 }
 
 bool btif_config_set_str(const std::string& section, const std::string& key,
                          const std::string& value) {
-  if (bluetooth::shim::is_any_gd_enabled()) {
-    CHECK(bluetooth::shim::is_gd_stack_started_up());
-    return bluetooth::shim::BtifConfigInterface::SetStr(section, key, value);
-  }
-  std::unique_lock<std::recursive_mutex> lock(config_lock);
-  btif_config_cache.SetString(section, key, value);
-  return true;
-}
-
-static bool btif_in_encrypt_key_name_list(std::string key) {
-  return std::find(encrypt_key_name_list,
-                   encrypt_key_name_list + ENCRYPT_KEY_NAME_LIST_SIZE,
-                   key) != (encrypt_key_name_list + ENCRYPT_KEY_NAME_LIST_SIZE);
+  CHECK(bluetooth::shim::is_gd_stack_started_up());
+  return bluetooth::shim::BtifConfigInterface::SetStr(section, key, value);
 }
 
 bool btif_config_get_bin(const std::string& section, const std::string& key,
                          uint8_t* value, size_t* length) {
-  if (bluetooth::shim::is_any_gd_enabled()) {
-    CHECK(bluetooth::shim::is_gd_stack_started_up());
-    return bluetooth::shim::BtifConfigInterface::GetBin(section, key, value,
-                                                        length);
-  }
-  CHECK(value != NULL);
-  CHECK(length != NULL);
-
-  std::unique_lock<std::recursive_mutex> lock(config_lock);
-  const std::string* value_str;
-  auto value_str_from_config = btif_config_cache.GetString(section, key);
-
-  if (!value_str_from_config) {
-    VLOG(1) << __func__ << ": cannot find string for section " << section
-            << ", key " << key;
-    return false;
-  }
-
-  bool in_encrypt_key_name_list = btif_in_encrypt_key_name_list(key);
-  bool is_key_encrypted = *value_str_from_config == ENCRYPTED_STR;
-  std::string string;
-
-  if (!value_str_from_config->empty() && in_encrypt_key_name_list &&
-      is_key_encrypted) {
-    string = get_bluetooth_keystore_interface()->get_key(section + "-" + key);
-    value_str = &string;
-  } else {
-    value_str = &value_str_from_config.value();
-  }
-
-  size_t value_len = value_str->length();
-  if ((value_len % 2) != 0 || *length < (value_len / 2)) {
-    LOG(WARNING) << ": value size not divisible by 2, size is " << value_len;
-    return false;
-  }
-
-  for (size_t i = 0; i < value_len; ++i)
-    if (!isxdigit(value_str->c_str()[i])) {
-      LOG(WARNING) << ": value is not hex digit";
-      return false;
-    }
-
-  const char* ptr = value_str->c_str();
-  for (*length = 0; *ptr; ptr += 2, *length += 1) {
-    sscanf(ptr, "%02hhx", &value[*length]);
-  }
-
-  if (is_common_criteria_mode()) {
-    if (!value_str_from_config->empty() && in_encrypt_key_name_list &&
-        !is_key_encrypted) {
-      get_bluetooth_keystore_interface()->set_encrypt_key_or_remove_key(
-          section + "-" + key, *value_str_from_config);
-      btif_config_cache.SetString(section, key, ENCRYPTED_STR);
-    }
-  } else {
-    if (in_encrypt_key_name_list && is_key_encrypted) {
-      btif_config_cache.SetString(section, key, *value_str);
-    }
-  }
-
-  return true;
+  CHECK(bluetooth::shim::is_gd_stack_started_up());
+  return bluetooth::shim::BtifConfigInterface::GetBin(section, key, value,
+                                                      length);
 }
 
 size_t btif_config_get_bin_length(const std::string& section,
                                   const std::string& key) {
-  if (bluetooth::shim::is_any_gd_enabled()) {
-    CHECK(bluetooth::shim::is_gd_stack_started_up());
-    return bluetooth::shim::BtifConfigInterface::GetBinLength(section, key);
-  }
-  std::unique_lock<std::recursive_mutex> lock(config_lock);
-  auto value_str = btif_config_cache.GetString(section, key);
-  if (!value_str) return 0;
-  size_t value_len = value_str->length();
-  return ((value_len % 2) != 0) ? 0 : (value_len / 2);
+  CHECK(bluetooth::shim::is_gd_stack_started_up());
+  return bluetooth::shim::BtifConfigInterface::GetBinLength(section, key);
 }
 
 bool btif_config_set_bin(const std::string& section, const std::string& key,
                          const uint8_t* value, size_t length) {
-  if (bluetooth::shim::is_any_gd_enabled()) {
-    CHECK(bluetooth::shim::is_gd_stack_started_up());
-    return bluetooth::shim::BtifConfigInterface::SetBin(section, key, value,
-                                                        length);
-  }
-  const char* lookup = "0123456789abcdef";
-  if (length > 0) CHECK(value != NULL);
-
-  size_t max_value = ((size_t)-1);
-  if (((max_value - 1) / 2) < length) {
-    LOG(ERROR) << __func__ << ": length too long";
-    return false;
-  }
-
-  char* str = (char*)osi_calloc(length * 2 + 1);
-
-  for (size_t i = 0; i < length; ++i) {
-    str[(i * 2) + 0] = lookup[(value[i] >> 4) & 0x0F];
-    str[(i * 2) + 1] = lookup[value[i] & 0x0F];
-  }
-
-  std::string value_str;
-  if ((length > 0) && is_common_criteria_mode() &&
-      btif_in_encrypt_key_name_list(key)) {
-    get_bluetooth_keystore_interface()->set_encrypt_key_or_remove_key(
-        section + "-" + key, str);
-    value_str = ENCRYPTED_STR;
-  } else {
-    value_str = str;
-  }
-
-  {
-    std::unique_lock<std::recursive_mutex> lock(config_lock);
-    btif_config_cache.SetString(section, key, value_str);
-  }
-
-  osi_free(str);
-  return true;
+  CHECK(bluetooth::shim::is_gd_stack_started_up());
+  return bluetooth::shim::BtifConfigInterface::SetBin(section, key, value,
+                                                      length);
 }
 
 std::vector<RawAddress> btif_config_get_paired_devices() {
   std::vector<std::string> names;
-  if (bluetooth::shim::is_any_gd_enabled()) {
-    CHECK(bluetooth::shim::is_gd_stack_started_up());
-    names = bluetooth::shim::BtifConfigInterface::GetPersistentDevices();
-  } else {
-    std::unique_lock<std::recursive_mutex> lock(config_lock);
-    names = btif_config_cache.GetPersistentSectionNames();
-  }
+  CHECK(bluetooth::shim::is_gd_stack_started_up());
+  names = bluetooth::shim::BtifConfigInterface::GetPersistentDevices();
+
   std::vector<RawAddress> result;
   result.reserve(names.size());
   for (const auto& name : names) {
@@ -623,80 +311,25 @@ std::vector<RawAddress> btif_config_get_paired_devices() {
 }
 
 bool btif_config_remove(const std::string& section, const std::string& key) {
-  if (bluetooth::shim::is_any_gd_enabled()) {
-    CHECK(bluetooth::shim::is_gd_stack_started_up());
-    return bluetooth::shim::BtifConfigInterface::RemoveProperty(section, key);
-  }
-  if (is_common_criteria_mode() && btif_in_encrypt_key_name_list(key)) {
-    get_bluetooth_keystore_interface()->set_encrypt_key_or_remove_key(
-        section + "-" + key, "");
-  }
-  std::unique_lock<std::recursive_mutex> lock(config_lock);
-  return btif_config_cache.RemoveKey(section, key);
+  CHECK(bluetooth::shim::is_gd_stack_started_up());
+  return bluetooth::shim::BtifConfigInterface::RemoveProperty(section, key);
 }
 
 void btif_config_save(void) {
-  if (bluetooth::shim::is_any_gd_enabled()) {
-    CHECK(bluetooth::shim::is_gd_stack_started_up());
-    bluetooth::shim::BtifConfigInterface::Save();
-    return;
-  }
-  CHECK(config_timer != NULL);
-
-  alarm_set(config_timer, CONFIG_SETTLE_PERIOD_MS, timer_config_save_cb, NULL);
+  CHECK(bluetooth::shim::is_gd_stack_started_up());
+  bluetooth::shim::BtifConfigInterface::Save();
 }
 
 void btif_config_flush(void) {
-  if (bluetooth::shim::is_any_gd_enabled()) {
-    CHECK(bluetooth::shim::is_gd_stack_started_up());
-    bluetooth::shim::BtifConfigInterface::Flush();
-    return;
-  }
-  CHECK(config_timer != NULL);
-
-  alarm_cancel(config_timer);
-  btif_config_write(0, NULL);
+  CHECK(bluetooth::shim::is_gd_stack_started_up());
+  bluetooth::shim::BtifConfigInterface::Flush();
 }
 
 bool btif_config_clear(void) {
-  if (bluetooth::shim::is_any_gd_enabled()) {
-    CHECK(bluetooth::shim::is_gd_stack_started_up());
-    bluetooth::shim::BtifConfigInterface::Clear();
-    bluetooth::shim::BtifConfigInterface::Save();
-    return true;
-  }
-  CHECK(config_timer != NULL);
-
-  alarm_cancel(config_timer);
-
-  std::unique_lock<std::recursive_mutex> lock(config_lock);
-
-  btif_config_cache.Clear();
-  bool ret =
-      config_save(btif_config_cache.PersistentSectionCopy(), CONFIG_FILE_PATH);
-  btif_config_source = RESET;
-
-  return ret;
-}
-
-static void timer_config_save_cb(UNUSED_ATTR void* data) {
-  // Moving file I/O to btif context instead of timer callback because
-  // it usually takes a lot of time to be completed, introducing
-  // delays during A2DP playback causing blips or choppiness.
-  btif_transfer_context(btif_config_write, 0, NULL, 0, NULL);
-}
-
-static void btif_config_write(UNUSED_ATTR uint16_t event,
-                              UNUSED_ATTR char* p_param) {
-  CHECK(config_timer != NULL);
-
-  std::unique_lock<std::recursive_mutex> lock(config_lock);
-  rename(CONFIG_FILE_PATH, CONFIG_BACKUP_PATH);
-  config_save(btif_config_cache.PersistentSectionCopy(), CONFIG_FILE_PATH);
-  if (is_common_criteria_mode()) {
-    get_bluetooth_keystore_interface()->set_encrypt_key_or_remove_key(
-        CONFIG_FILE_PREFIX, CONFIG_FILE_HASH);
-  }
+  CHECK(bluetooth::shim::is_gd_stack_started_up());
+  bluetooth::shim::BtifConfigInterface::Clear();
+  bluetooth::shim::BtifConfigInterface::Save();
+  return true;
 }
 
 void btif_debug_config_dump(int fd) {
@@ -726,7 +359,6 @@ void btif_debug_config_dump(int fd) {
 
   std::optional<std::string> file_source;
   if (bluetooth::shim::is_gd_stack_started_up()) {
-    CHECK(bluetooth::shim::is_any_gd_enabled());
     file_source =
         bluetooth::shim::BtifConfigInterface::GetStr(INFO_SECTION, FILE_SOURCE);
   } else {
@@ -739,16 +371,4 @@ void btif_debug_config_dump(int fd) {
   dprintf(fd, "  Devices loaded: %zu\n", devices.size());
   dprintf(fd, "  File created/tagged: %s\n", btif_config_time_created);
   dprintf(fd, "  File source: %s\n", file_source->c_str());
-}
-
-static bool is_factory_reset(void) {
-  char factory_reset[PROPERTY_VALUE_MAX] = {0};
-  osi_property_get("persist.bluetooth.factoryreset", factory_reset, "false");
-  return strncmp(factory_reset, "true", 4) == 0;
-}
-
-static void delete_config_files(void) {
-  remove(CONFIG_FILE_PATH);
-  remove(CONFIG_BACKUP_PATH);
-  osi_property_set("persist.bluetooth.factoryreset", "false");
 }

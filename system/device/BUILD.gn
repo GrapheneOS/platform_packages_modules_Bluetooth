@@ -23,8 +23,6 @@ static_library("device") {
 
   include_dirs = [
     "//bt/system/",
-    "//bt/system/btcore/include",
-    "//bt/system/hci/include",
     "//bt/system/internal_include",
     "//bt/system/stack/include",
   ]

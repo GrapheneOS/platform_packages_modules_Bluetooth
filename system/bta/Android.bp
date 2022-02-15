@@ -20,11 +20,9 @@ cc_defaults {
     include_dirs: [
         "packages/modules/Bluetooth/system",
         "packages/modules/Bluetooth/system/bta/include",
-        "packages/modules/Bluetooth/system/btcore/include",
         "packages/modules/Bluetooth/system/btif/avrcp",
         "packages/modules/Bluetooth/system/btif/include",
         "packages/modules/Bluetooth/system/gd",
-        "packages/modules/Bluetooth/system/hci/include",
         "packages/modules/Bluetooth/system/internal_include",
         "packages/modules/Bluetooth/system/stack/include",
         "packages/modules/Bluetooth/system/stack/btm",
@@ -91,13 +89,24 @@ cc_library_static {
         "groups/groups.cc",
         "vc/device.cc",
         "vc/vc.cc",
+        "le_audio/broadcaster/broadcaster.cc",
+        "le_audio/broadcaster/broadcaster_types.cc",
+        "le_audio/broadcaster/state_machine.cc",
         "le_audio/client.cc",
+        "le_audio/codec_manager.cc",
         "le_audio/devices.cc",
         "le_audio/hal_verifier.cc",
         "le_audio/state_machine.cc",
         "le_audio/client_parser.cc",
         "le_audio/client_audio.cc",
+        "le_audio/le_audio_set_configuration_provider.cc",
+        "le_audio/le_audio_set_configuration_provider_json.cc",
         "le_audio/le_audio_types.cc",
+        "has/has_client.cc",
+        "has/has_ctp.cc",
+        "has/has_journal.cc",
+        "has/has_preset.cc",
+        "has/has_types.cc",
         "hearing_aid/hearing_aid.cc",
         "hearing_aid/hearing_aid_audio_source.cc",
         "hf_client/bta_hf_client_act.cc",
@@ -133,12 +142,24 @@ cc_library_static {
     ],
     static_libs: [
         "avrcp-target-service",
+        "libflatbuffers-cpp",
         "lib-bt-packets",
+        "libbt-platform-protos-lite",
     ],
     shared_libs: [
         "android.hardware.bluetooth.audio@2.0",
         "android.hardware.bluetooth.audio@2.1",
         "android.hardware.bluetooth.audio@2.2",
+    ],
+    target: {
+        android: {
+            shared_libs: [
+                "android.hardware.bluetooth.audio-V1-ndk",
+            ],
+        },
+    },
+    generated_headers: [
+        "LeAudioSetConfigSchemas_h",
     ],
     host_supported: true,
 }
@@ -172,6 +193,12 @@ cc_test {
         "libbt-protos-lite",
         "libosi",
         "libbt-common",
+    ],
+    data: [
+        ":audio_set_scenarios_bfbs",
+        ":audio_set_scenarios_json",
+        ":audio_set_configurations_bfbs",
+        ":audio_set_configurations_json",
     ],
 }
 
@@ -227,6 +254,7 @@ cc_test {
         "test/bta_pan_test.cc",
     ],
     shared_libs: [
+        "libbase",
         "libcrypto",
         "libflatbuffers-cpp",
         "liblog",
@@ -414,6 +442,78 @@ cc_test {
     },
 }
 
+genrule {
+    name: "LeAudioSetConfigSchemas_h",
+    tools: [
+        "flatc",
+    ],
+    cmd: "$(location flatc) -I packages/modules/Bluetooth/system/ -o $(genDir) --cpp $(in) ",
+    srcs: [
+        "le_audio/audio_set_configurations.fbs",
+        "le_audio/audio_set_scenarios.fbs",
+    ],
+    out: [
+        "audio_set_configurations_generated.h",
+        "audio_set_scenarios_generated.h",
+    ],
+}
+
+genrule {
+    name: "LeAudioSetScenariosSchema_bfbs",
+    tools: [
+        "flatc",
+    ],
+    cmd: "$(location flatc) -I packages/modules/Bluetooth/system/ -b --schema -o $(genDir) $(in) ",
+    srcs: [
+        "le_audio/audio_set_scenarios.fbs",
+    ],
+    out: [
+        "audio_set_scenarios.bfbs",
+    ],
+}
+
+genrule {
+    name: "LeAudioSetConfigsSchema_bfbs",
+    tools: [
+        "flatc",
+    ],
+    cmd: "$(location flatc) -I packages/modules/Bluetooth/system/ -b --schema -o $(genDir) $(in) ",
+    srcs: [
+        "le_audio/audio_set_configurations.fbs",
+    ],
+    out: [
+        "audio_set_configurations.bfbs",
+    ],
+}
+
+prebuilt_etc {
+    name: "audio_set_scenarios_bfbs",
+    src: ":LeAudioSetScenariosSchema_bfbs",
+    filename: "audio_set_scenarios.bfbs",
+    sub_dir: "bluetooth/le_audio",
+}
+
+prebuilt_etc {
+    name: "audio_set_scenarios_json",
+    src: "le_audio/audio_set_scenarios.json",
+    filename_from_src: true,
+    sub_dir: "bluetooth/le_audio",
+}
+
+prebuilt_etc {
+    name: "audio_set_configurations_bfbs",
+    src: ":LeAudioSetConfigsSchema_bfbs",
+    filename: "audio_set_configurations.bfbs",
+    sub_dir: "bluetooth/le_audio",
+}
+
+prebuilt_etc {
+    name: "audio_set_configurations_json",
+    src: "le_audio/audio_set_configurations.json",
+    filename_from_src: true,
+    sub_dir: "bluetooth/le_audio",
+}
+
 // bta unit tests for LE Audio
 // ========================================================
 cc_test {
@@ -424,6 +524,19 @@ cc_test {
         "clang_coverage_bin",
     ],
     host_supported: true,
+    target: {
+        darwin: {
+            enabled: false,
+        },
+        android: {
+            cflags: [
+                "-DOS_ANDROID",
+            ],
+            sanitize: {
+                misc_undefined: ["bounds"],
+            },
+        },
+    },
     include_dirs: [
         "packages/modules/Bluetooth/system",
         "packages/modules/Bluetooth/system/bta/include",
@@ -434,6 +547,7 @@ cc_test {
     ],
     srcs : [
         ":TestStubOsi",
+        ":TestMockBtaLeAudioHalVerifier",
         "test/common/bta_gatt_api_mock.cc",
         "test/common/bta_gatt_queue_mock.cc",
         "test/common/btm_api_mock.cc",
@@ -443,12 +557,23 @@ cc_test {
         "le_audio/client_parser_test.cc",
         "le_audio/devices.cc",
         "le_audio/devices_test.cc",
+        "le_audio/le_audio_set_configuration_provider_json.cc",
         "le_audio/le_audio_types.cc",
         "le_audio/le_audio_types_test.cc",
         "le_audio/mock_iso_manager.cc",
         "test/common/mock_controller.cc",
         "le_audio/state_machine.cc",
-        "le_audio/state_machine_test.cc"
+        "le_audio/state_machine_test.cc",
+        "le_audio/mock_codec_manager.cc",
+    ],
+    data: [
+        ":audio_set_scenarios_bfbs",
+        ":audio_set_scenarios_json",
+        ":audio_set_configurations_bfbs",
+        ":audio_set_configurations_json"
+    ],
+    generated_headers: [
+        "LeAudioSetConfigSchemas_h",
     ],
     shared_libs: [
         "libprotobuf-cpp-lite",
@@ -459,6 +584,7 @@ cc_test {
         "libgmock",
         "libbt-common",
         "libbt-protos-lite",
+        "libflatbuffers-cpp",
         "libosi",
     ],
     sanitize: {
@@ -481,6 +607,7 @@ cc_test {
         "packages/modules/Bluetooth/system/stack/include",
     ],
     srcs : [
+        ":TestStubOsi",
         ":TestMockBtaLeAudioHalVerifier",
         "gatt/database.cc",
         "gatt/database_builder.cc",
@@ -488,6 +615,7 @@ cc_test {
         "le_audio/client_parser.cc",
         "le_audio/devices.cc",
         "le_audio/le_audio_client_test.cc",
+        "le_audio/le_audio_set_configuration_provider_json.cc",
         "le_audio/le_audio_types.cc",
         "le_audio/mock_iso_manager.cc",
         "le_audio/mock_le_audio_client_audio.cc",
@@ -499,6 +627,7 @@ cc_test {
         "test/common/mock_csis_client.cc",
         "test/common/mock_controller.cc",
         "test/common/mock_device_groups.cc",
+        "le_audio/mock_codec_manager.cc",
     ],
     shared_libs: [
         "android.hardware.bluetooth.audio@2.0",
@@ -513,9 +642,74 @@ cc_test {
         "libgmock",
         "libbt-common",
         "libbt-protos-lite",
+        "libflatbuffers-cpp",
         "libosi",
         "liblc3codec",
-        "liblc3encoder",
+        "liblc3",
+    ],
+    data: [
+        ":audio_set_scenarios_bfbs",
+        ":audio_set_scenarios_json",
+        ":audio_set_configurations_bfbs",
+        ":audio_set_configurations_json",
+    ],
+    generated_headers: [
+        "LeAudioSetConfigSchemas_h",
+    ],
+    target: {
+        android: {
+            shared_libs: [
+                "libbinder_ndk",
+                "android.hardware.bluetooth.audio-V1-ndk",
+            ],
+        },
+    },
+    sanitize: {
+        cfi: true,
+        scs: true,
+        address: true,
+        all_undefined: true,
+        integer_overflow: true,
+        diag: {
+            undefined : true
+        },
+    },
+}
+
+cc_test {
+    name: "bluetooth_test_broadcaster_sm",
+    test_suites: ["device-tests"],
+    defaults: [
+        "fluoride_bta_defaults",
+        "clang_coverage_bin",
+    ],
+    host_supported: true,
+    include_dirs: [
+        "packages/modules/Bluetooth/system",
+        "packages/modules/Bluetooth/system/bta/include",
+        "packages/modules/Bluetooth/system/bta/le_audio",
+        "packages/modules/Bluetooth/system/btif/include",
+        "packages/modules/Bluetooth/system/stack/include",
+        "packages/modules/Bluetooth/system/stack/btm",
+    ],
+    srcs : [
+        "le_audio/broadcaster/broadcaster_types.cc",
+        "le_audio/broadcaster/mock_ble_advertising_manager.cc",
+        "le_audio/broadcaster/state_machine.cc",
+        "le_audio/broadcaster/state_machine_test.cc",
+        "le_audio/le_audio_types.cc",
+        "le_audio/mock_iso_manager.cc",
+        "le_audio/mock_codec_manager.cc",
+    ],
+    shared_libs: [
+        "libprotobuf-cpp-lite",
+        "libcrypto",
+    ],
+    static_libs : [
+        "libgmock",
+        "libbt-common",
+        "libbt-protos-lite",
+        "liblc3",
     ],
     sanitize: {
         cfi: true,
@@ -529,3 +723,107 @@ cc_test {
     },
 }
 
+cc_test {
+    name: "bluetooth_test_broadcaster",
+    test_suites: ["device-tests"],
+    defaults: [
+        "fluoride_bta_defaults",
+        "clang_coverage_bin",
+    ],
+    host_supported: true,
+    include_dirs: [
+        "packages/modules/Bluetooth/system",
+        "packages/modules/Bluetooth/system/bta/include",
+        "packages/modules/Bluetooth/system/bta/le_audio",
+        "packages/modules/Bluetooth/system/bta/test/common",
+        "packages/modules/Bluetooth/system/btif/include",
+        "packages/modules/Bluetooth/system/stack/include",
+        "packages/modules/Bluetooth/system/stack/btm",
+    ],
+    srcs : [
+        ":TestStubOsi",
+        "le_audio/broadcaster/broadcaster.cc",
+        "le_audio/broadcaster/broadcaster_test.cc",
+        "le_audio/broadcaster/broadcaster_types.cc",
+        "le_audio/broadcaster/mock_ble_advertising_manager.cc",
+        "le_audio/broadcaster/mock_state_machine.cc",
+        "le_audio/le_audio_types.cc",
+        "le_audio/mock_iso_manager.cc",
+        "le_audio/mock_le_audio_client_audio.cc",
+        "test/common/mock_controller.cc",
+        "le_audio/mock_codec_manager.cc",
+    ],
+    shared_libs: [
+        "libprotobuf-cpp-lite",
+        "libcrypto",
+    ],
+    static_libs : [
+        "libgmock",
+        "libbt-common",
+        "libbt-protos-lite",
+        "libosi",
+        "liblc3",
+    ],
+    sanitize: {
+        cfi: true,
+        scs: true,
+        address: true,
+        all_undefined: true,
+        integer_overflow: true,
+        diag: {
+            undefined : true
+        },
+    },
+}
+
+cc_test {
+    name: "bluetooth_has_test",
+    test_suites: ["device-tests"],
+    defaults: [
+        "fluoride_bta_defaults",
+        "clang_coverage_bin",
+    ],
+    host_supported: true,
+    include_dirs: [
+        "packages/modules/Bluetooth/system",
+        "packages/modules/Bluetooth/system/bta/include",
+        "packages/modules/Bluetooth/system/bta/test/common",
+        "packages/modules/Bluetooth/system/stack/include",
+    ],
+    srcs : [
+        "gatt/database.cc",
+        "gatt/database_builder.cc",
+        "has/has_client.cc",
+        "has/has_client_test.cc",
+        "has/has_ctp.cc",
+        "has/has_journal.cc",
+        "has/has_preset.cc",
+        "has/has_types.cc",
+        "test/common/bta_gatt_api_mock.cc",
+        "test/common/bta_gatt_queue_mock.cc",
+        "test/common/btif_storage_mock.cc",
+        "test/common/btm_api_mock.cc",
+        "test/common/mock_controller.cc",
+        "test/common/mock_csis_client.cc",
+    ],
+    shared_libs: [
+        "libprotobuf-cpp-lite",
+        "libcrypto",
+    ],
+    static_libs : [
+        "crypto_toolbox_for_tests",
+        "libgmock",
+        "libbt-common",
+        "libbt-protos-lite",
+    ],
+    sanitize: {
+        cfi: true,
+        scs: true,
+        address: true,
+        all_undefined: true,
+        integer_overflow: true,
+        diag: {
+            undefined : true
+        },
+    },
+}

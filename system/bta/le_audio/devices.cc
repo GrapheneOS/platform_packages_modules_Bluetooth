@@ -28,6 +28,7 @@
 #include "btm_iso_api_types.h"
 #include "client_audio.h"
 #include "device/include/controller.h"
+#include "le_audio_set_configuration_provider.h"
 
 using bluetooth::hci::kIsoCigFramingFramed;
 using bluetooth::hci::kIsoCigFramingUnframed;
@@ -35,6 +36,7 @@ using bluetooth::hci::kIsoCigPackingSequential;
 using bluetooth::hci::kIsoCigPhy1M;
 using bluetooth::hci::kIsoCigPhy2M;
 using bluetooth::hci::iso_manager::kIsoSca0To20Ppm;
+using le_audio::AudioSetConfigurationProvider;
 using le_audio::set_configurations::CodecCapabilitySetting;
 using le_audio::types::ase;
 using le_audio::types::AseState;
@@ -726,7 +728,7 @@ bool LeAudioDeviceGroup::IsConfigurationSupported(
 
       if (device->ases_.empty()) continue;
 
-      if (!device->IsCodecConfigurationSupported(ent.direction, ent.codec))
+      if (!device->GetCodecConfigurationSupportedPac(ent.direction, ent.codec))
         continue;
 
       int needed_ase = std::min(static_cast<int>(max_required_ase_per_dev),
@@ -915,9 +917,8 @@ bool LeAudioDevice::ConfigureAses(
       ent.ase_cnt / ent.device_cnt + (ent.ase_cnt % ent.device_cnt);
   le_audio::types::LeAudioConfigurationStrategy strategy = ent.strategy;
 
-  bool is_codec_supported =
-      IsCodecConfigurationSupported(ent.direction, ent.codec);
-  if (!is_codec_supported) return false;
+  auto pac = GetCodecConfigurationSupportedPac(ent.direction, ent.codec);
+  if (!pac) return false;
 
   int needed_ase = std::min((int)(max_required_ase_per_dev),
                             (int)(ent.ase_cnt - active_ases));
@@ -948,9 +949,16 @@ bool LeAudioDevice::ConfigureAses(
     ase->codec_config.audio_channel_allocation =
         PickAudioLocation(strategy, audio_locations, group_audio_locations);
 
+    /* Get default value if no requirement for specific frame blocks per sdu */
+    if (!ase->codec_config.codec_frames_blocks_per_sdu) {
+      ase->codec_config.codec_frames_blocks_per_sdu =
+          GetMaxCodecFramesPerSduFromPac(pac);
+    }
     ase->max_sdu_size = codec_spec_caps::GetAudioChannelCounts(
-                            ase->codec_config.audio_channel_allocation) *
-                        ase->codec_config.octets_per_codec_frame;
+                            *ase->codec_config.audio_channel_allocation) *
+                        *ase->codec_config.octets_per_codec_frame *
+                        *ase->codec_config.codec_frames_blocks_per_sdu;
+
     ase->metadata = GetMetadata(context_type);
 
     DLOG(INFO) << __func__ << " device=" << address_
@@ -1108,7 +1116,7 @@ const set_configurations::AudioSetConfiguration*
 LeAudioDeviceGroup::FindFirstSupportedConfiguration(
     LeAudioContextType context_type) {
   const set_configurations::AudioSetConfigurations* confs =
-      set_configurations::get_confs_by_type(context_type);
+      AudioSetConfigurationProvider::Get()->GetConfigurations(context_type);
 
   DLOG(INFO) << __func__ << " context type: " << (int)context_type
              << " number of connected devices: " << NumOfConnected();
@@ -1156,6 +1164,11 @@ bool LeAudioDeviceGroup::Configure(LeAudioContextType context_type) {
                << ", is in mismatch with cached active contexts";
     return false;
   }
+
+  /* Store selected configuration at once it is chosen.
+   * It might happen it will get unavailable in some point of time
+   */
+  stream_conf.conf = conf;
   return true;
 }
 
@@ -1176,7 +1189,8 @@ void LeAudioDeviceGroup::Dump(int fd) {
          << "      active stream configuration name: "
          << (active_conf ? active_conf->name : " not set") << "\n"
          << "    Last used stream configuration: \n"
-         << "      valid: " << (stream_conf.valid ? " Yes " : " No") << "\n"
+         << "      reconfiguration_ongoing: "
+         << stream_conf.reconfiguration_ongoing << "\n"
          << "      codec id : " << +(stream_conf.id.coding_format) << "\n"
          << "      name: "
          << (stream_conf.conf != nullptr ? stream_conf.conf->name : " null ")
@@ -1188,8 +1202,26 @@ void LeAudioDeviceGroup::Dump(int fd) {
          << "      number of sources in the configuration "
          << stream_conf.source_num_of_devices << "\n"
          << "      number of source_streams connected: "
-         << stream_conf.source_streams.size() << "\n"
-         << "      === devices: ===\n";
+         << stream_conf.source_streams.size() << "\n";
+
+  if (GetFirstActiveDevice() != nullptr) {
+    uint32_t sink_delay;
+    stream << "      presentation_delay for sink (speaker): ";
+    if (GetPresentationDelay(&sink_delay, le_audio::types::kLeAudioDirectionSink)) {
+      stream << sink_delay << " us";
+    }
+    stream << "\n      presentation_delay for source (microphone): ";
+    uint32_t source_delay;
+    if (GetPresentationDelay(&source_delay, le_audio::types::kLeAudioDirectionSource)) {
+      stream << source_delay << " us";
+    }
+    stream << "\n";
+  } else {
+    stream << "      presentation_delay for sink (speaker):\n"
+           << "      presentation_delay for source (microphone): \n";
+  }
+
+  stream << "      === devices: ===\n";
 
   dprintf(fd, "%s", stream.str().c_str());
 
@@ -1514,14 +1546,15 @@ uint8_t LeAudioDevice::GetLc3SupportedChannelCount(uint8_t direction) {
   return 0;
 }
 
-bool LeAudioDevice::IsCodecConfigurationSupported(
+const struct types::acs_ac_record*
+LeAudioDevice::GetCodecConfigurationSupportedPac(
     uint8_t direction, const CodecCapabilitySetting& codec_capability_setting) {
   auto& pacs =
       direction == types::kLeAudioDirectionSink ? snk_pacs_ : src_pacs_;
 
   if (pacs.size() == 0) {
     LOG(ERROR) << __func__ << " missing PAC for direction " << +direction;
-    return false;
+    return nullptr;
   }
 
   /* TODO: Validate channel locations */
@@ -1530,16 +1563,16 @@ bool LeAudioDevice::IsCodecConfigurationSupported(
     /* Get PAC records from tuple as second element from tuple */
     auto& pac_recs = std::get<1>(pac_tuple);
 
-    for (const auto pac : pac_recs) {
+    for (const auto& pac : pac_recs) {
       if (!IsCodecCapabilitySettingSupported(pac, codec_capability_setting))
         continue;
 
-      return true;
+      return &pac;
     };
   }
 
   /* Doesn't match required configuration with any PAC */
-  return false;
+  return nullptr;
 }
 
 /**

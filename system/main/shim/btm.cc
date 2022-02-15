@@ -55,15 +55,15 @@ static constexpr bool kPassiveScanning = false;
 
 using BtmRemoteDeviceName = tBTM_REMOTE_DEV_NAME;
 
-extern void btm_process_cancel_complete(uint8_t status, uint8_t mode);
-extern void btm_process_inq_complete(uint8_t status, uint8_t result_type);
+extern void btm_process_cancel_complete(tHCI_STATUS status, uint8_t mode);
+extern void btm_process_inq_complete(tHCI_STATUS status, uint8_t result_type);
 extern void btm_ble_process_adv_addr(RawAddress& raw_address,
                                      tBLE_ADDR_TYPE* address_type);
 extern void btm_ble_process_adv_pkt_cont(
     uint16_t event_type, uint8_t address_type, const RawAddress& raw_address,
     uint8_t primary_phy, uint8_t secondary_phy, uint8_t advertising_sid,
     int8_t tx_power, int8_t rssi, uint16_t periodic_adv_int, uint8_t data_len,
-    uint8_t* data);
+    const uint8_t* data, const RawAddress& original_bda);
 
 extern void btm_api_process_inquiry_result(const RawAddress& raw_address,
                                            uint8_t page_scan_rep_mode,
@@ -128,12 +128,14 @@ void Btm::ScanningCallbacks::OnScanResult(
     btm_ble_process_adv_addr(raw_address, &ble_address_type);
   }
 
+  // Pass up to GattService#onScanResult
+  RawAddress original_bda = raw_address;
   btm_ble_process_adv_addr(raw_address, &ble_address_type);
-  btm_ble_process_adv_pkt_cont(extended_event_type, ble_address_type,
-                               raw_address, primary_phy, secondary_phy,
-                               advertising_sid, tx_power, rssi,
-                               periodic_advertising_interval,
-                               advertising_data.size(), &advertising_data[0]);
+  btm_ble_process_adv_pkt_cont(
+      extended_event_type, ble_address_type, raw_address, primary_phy,
+      secondary_phy, advertising_sid, tx_power, rssi,
+      periodic_advertising_interval, advertising_data.size(),
+      &advertising_data[0], original_bda);
 }
 
 void Btm::ScanningCallbacks::OnTrackAdvFoundLost(
