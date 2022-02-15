@@ -26,6 +26,7 @@
 #include <functional>
 #include <vector>
 
+#include "stack/include/gap_api.h"
 #include "types/raw_address.h"
 
 constexpr uint16_t HEARINGAID_MAX_NUM_UUIDS = 1;
@@ -166,7 +167,7 @@ struct HearingDevice {
         connection_update_status(NONE),
         accepting_audio(false),
         conn_id(0),
-        gap_handle(0),
+        gap_handle(GAP_INVALID_HANDLE),
         audio_control_point_handle(audio_control_point_handle),
         audio_status_handle(audio_status_handle),
         audio_status_ccc_handle(audio_status_ccc_handle),
@@ -190,7 +191,7 @@ struct HearingDevice {
         connection_update_status(NONE),
         accepting_audio(false),
         conn_id(0),
-        gap_handle(0),
+        gap_handle(GAP_INVALID_HANDLE),
         audio_status_handle(0),
         audio_status_ccc_handle(0),
         service_changed_ccc_handle(0),
