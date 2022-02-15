@@ -99,6 +99,8 @@ cc_library_static {
         "le_audio/state_machine.cc",
         "le_audio/client_parser.cc",
         "le_audio/client_audio.cc",
+        "le_audio/le_audio_set_configuration_provider.cc",
+        "le_audio/le_audio_set_configuration_provider_json.cc",
         "le_audio/le_audio_types.cc",
         "has/has_client.cc",
         "has/has_ctp.cc",
@@ -140,6 +142,7 @@ cc_library_static {
     ],
     static_libs: [
         "avrcp-target-service",
+        "libflatbuffers-cpp",
         "lib-bt-packets",
         "libbt-platform-protos-lite",
     ],
@@ -155,6 +158,9 @@ cc_library_static {
             ],
         },
     },
+    generated_headers: [
+        "LeAudioSetConfigSchemas_h",
+    ],
     host_supported: true,
 }
 
@@ -187,6 +193,12 @@ cc_test {
         "libbt-protos-lite",
         "libosi",
         "libbt-common",
+    ],
+    data: [
+        ":audio_set_scenarios_bfbs",
+        ":audio_set_scenarios_json",
+        ":audio_set_configurations_bfbs",
+        ":audio_set_configurations_json",
     ],
 }
 
@@ -430,6 +442,78 @@ cc_test {
     },
 }
 
+genrule {
+    name: "LeAudioSetConfigSchemas_h",
+    tools: [
+        "flatc",
+    ],
+    cmd: "$(location flatc) -I packages/modules/Bluetooth/system/ -o $(genDir) --cpp $(in) ",
+    srcs: [
+        "le_audio/audio_set_configurations.fbs",
+        "le_audio/audio_set_scenarios.fbs",
+    ],
+    out: [
+        "audio_set_configurations_generated.h",
+        "audio_set_scenarios_generated.h",
+    ],
+}
+
+genrule {
+    name: "LeAudioSetScenariosSchema_bfbs",
+    tools: [
+        "flatc",
+    ],
+    cmd: "$(location flatc) -I packages/modules/Bluetooth/system/ -b --schema -o $(genDir) $(in) ",
+    srcs: [
+        "le_audio/audio_set_scenarios.fbs",
+    ],
+    out: [
+        "audio_set_scenarios.bfbs",
+    ],
+}
+
+genrule {
+    name: "LeAudioSetConfigsSchema_bfbs",
+    tools: [
+        "flatc",
+    ],
+    cmd: "$(location flatc) -I packages/modules/Bluetooth/system/ -b --schema -o $(genDir) $(in) ",
+    srcs: [
+        "le_audio/audio_set_configurations.fbs",
+    ],
+    out: [
+        "audio_set_configurations.bfbs",
+    ],
+}
+
+prebuilt_etc {
+    name: "audio_set_scenarios_bfbs",
+    src: ":LeAudioSetScenariosSchema_bfbs",
+    filename: "audio_set_scenarios.bfbs",
+    sub_dir: "bluetooth/le_audio",
+}
+
+prebuilt_etc {
+    name: "audio_set_scenarios_json",
+    src: "le_audio/audio_set_scenarios.json",
+    filename_from_src: true,
+    sub_dir: "bluetooth/le_audio",
+}
+
+prebuilt_etc {
+    name: "audio_set_configurations_bfbs",
+    src: ":LeAudioSetConfigsSchema_bfbs",
+    filename: "audio_set_configurations.bfbs",
+    sub_dir: "bluetooth/le_audio",
+}
+
+prebuilt_etc {
+    name: "audio_set_configurations_json",
+    src: "le_audio/audio_set_configurations.json",
+    filename_from_src: true,
+    sub_dir: "bluetooth/le_audio",
+}
+
 // bta unit tests for LE Audio
 // ========================================================
 cc_test {
@@ -440,6 +524,19 @@ cc_test {
         "clang_coverage_bin",
     ],
     host_supported: true,
+    target: {
+        darwin: {
+            enabled: false,
+        },
+        android: {
+            cflags: [
+                "-DOS_ANDROID",
+            ],
+            sanitize: {
+                misc_undefined: ["bounds"],
+            },
+        },
+    },
     include_dirs: [
         "packages/modules/Bluetooth/system",
         "packages/modules/Bluetooth/system/bta/include",
@@ -460,6 +557,7 @@ cc_test {
         "le_audio/client_parser_test.cc",
         "le_audio/devices.cc",
         "le_audio/devices_test.cc",
+        "le_audio/le_audio_set_configuration_provider_json.cc",
         "le_audio/le_audio_types.cc",
         "le_audio/le_audio_types_test.cc",
         "le_audio/mock_iso_manager.cc",
@@ -467,6 +565,15 @@ cc_test {
         "le_audio/state_machine.cc",
         "le_audio/state_machine_test.cc",
         "le_audio/mock_codec_manager.cc",
+    ],
+    data: [
+        ":audio_set_scenarios_bfbs",
+        ":audio_set_scenarios_json",
+        ":audio_set_configurations_bfbs",
+        ":audio_set_configurations_json"
+    ],
+    generated_headers: [
+        "LeAudioSetConfigSchemas_h",
     ],
     shared_libs: [
         "libprotobuf-cpp-lite",
@@ -477,6 +584,7 @@ cc_test {
         "libgmock",
         "libbt-common",
         "libbt-protos-lite",
+        "libflatbuffers-cpp",
         "libosi",
     ],
     sanitize: {
@@ -507,6 +615,7 @@ cc_test {
         "le_audio/client_parser.cc",
         "le_audio/devices.cc",
         "le_audio/le_audio_client_test.cc",
+        "le_audio/le_audio_set_configuration_provider_json.cc",
         "le_audio/le_audio_types.cc",
         "le_audio/mock_iso_manager.cc",
         "le_audio/mock_le_audio_client_audio.cc",
@@ -533,9 +642,19 @@ cc_test {
         "libgmock",
         "libbt-common",
         "libbt-protos-lite",
+        "libflatbuffers-cpp",
         "libosi",
         "liblc3codec",
         "liblc3",
+    ],
+    data: [
+        ":audio_set_scenarios_bfbs",
+        ":audio_set_scenarios_json",
+        ":audio_set_configurations_bfbs",
+        ":audio_set_configurations_json",
+    ],
+    generated_headers: [
+        "LeAudioSetConfigSchemas_h",
     ],
     target: {
         android: {

@@ -232,7 +232,6 @@ void invoke_link_quality_report_cb(
     int retransmission_count, int packets_not_receive_count,
     int negative_acknowledgement_count);
 
-void invoke_switch_buffer_size_cb(RawAddress remote_addr,
-                                     bool is_low_latency_buffer_size);
+void invoke_switch_buffer_size_cb(bool is_low_latency_buffer_size);
 
 #endif /* BTIF_COMMON_H */

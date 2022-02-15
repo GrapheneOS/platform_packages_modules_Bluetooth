@@ -137,8 +137,7 @@ void link_quality_report(uint64_t timestamp, int report_id, int rssi, int snr,
 }
 
 /** Switch buffer size callback */
-void switch_buffer_size(RawAddress* remote_addr,
-                        bool is_low_latency_buffer_size) {
+void switch_buffer_size(bool is_low_latency_buffer_size) {
   LOG_INFO("%s", __func__);
 }
 

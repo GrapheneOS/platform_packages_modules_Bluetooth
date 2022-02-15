@@ -599,31 +599,15 @@ static void link_quality_report_callback(
       (jint)negative_acknowledgement_count);
 }
 
-static void switch_buffer_size_callback(RawAddress* bd_addr,
-                                        bool is_low_latency_buffer_size) {
-
-  if (!bd_addr) {
-    ALOGE("Address is null in %s", __func__);
-    return;
-  }
+static void switch_buffer_size_callback(bool is_low_latency_buffer_size) {
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
-
-  ScopedLocalRef<jbyteArray> addr(
-      sCallbackEnv.get(), sCallbackEnv->NewByteArray(sizeof(RawAddress)));
-  if (!addr.get()) {
-    ALOGE("Error while allocating in: %s", __func__);
-    return;
-  }
-
-  sCallbackEnv->SetByteArrayRegion(addr.get(), 0, sizeof(RawAddress),
-                                 (jbyte*)bd_addr);
 
   ALOGV("%s: SwitchBufferSizeCallback: %s", __func__,
         is_low_latency_buffer_size ? "true" : "false");
 
   sCallbackEnv->CallVoidMethod(
-      sJniCallbacksObj, method_switchBufferSizeCallback, addr.get(),
+      sJniCallbacksObj, method_switchBufferSizeCallback,
       (jboolean)is_low_latency_buffer_size);
 }
 
@@ -924,7 +908,7 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
       jniCallbackClass, "linkQualityReportCallback", "(JIIIIII)V");
 
   method_switchBufferSizeCallback =
-      env->GetMethodID(jniCallbackClass, "switchBufferSizeCallback", "([BZ)V");
+      env->GetMethodID(jniCallbackClass, "switchBufferSizeCallback", "(Z)V");
 
   method_setWakeAlarm = env->GetMethodID(clazz, "setWakeAlarm", "(JZ)Z");
   method_acquireWakeLock =
