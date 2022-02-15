@@ -230,9 +230,6 @@ void btm_ble_rand_enc_complete(uint8_t* p, uint16_t op_code,
                                tBTM_RAND_ENC_CB* p_enc_cplt_cback) {
   mock_function_count_map[__func__]++;
 }
-void btm_ble_set_random_address(const RawAddress& random_bda) {
-  mock_function_count_map[__func__]++;
-}
 void btm_ble_test_command_complete(uint8_t* p) {
   mock_function_count_map[__func__]++;
 }
