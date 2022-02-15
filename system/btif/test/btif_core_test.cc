@@ -79,6 +79,7 @@ void energy_info_callback(bt_activity_energy_info* energy_info,
                           bt_uid_traffic_t* uid_data) {}
 void generate_local_oob_data_callback(tBT_TRANSPORT transport,
                                       bt_oob_data_t oob_data) {}
+void switch_buffer_size_callback(bool is_low_latency_buffer_size) {}
 #undef TESTCB
 
 bt_callbacks_t callbacks = {
@@ -99,6 +100,7 @@ bt_callbacks_t callbacks = {
     .energy_info_cb = energy_info_callback,
     .link_quality_report_cb = link_quality_report_callback,
     .generate_local_oob_data_cb = generate_local_oob_data_callback,
+    .switch_buffer_size_cb = switch_buffer_size_callback,
 };
 
 }  // namespace
