@@ -29,7 +29,7 @@ import android.os.Parcelable;
 @SystemApi
 public final class BluetoothHapPresetInfo implements Parcelable {
     private int mPresetIndex;
-    private String mPresetName;
+    private String mPresetName = "";
     private boolean mIsWritable;
     private boolean mIsAvailable;
 
@@ -165,7 +165,7 @@ public final class BluetoothHapPresetInfo implements Parcelable {
          * @param isWritable whether preset is writable
          * @return the same Builder instance
          */
-        public @NonNull Builder setWritable(@NonNull boolean isWritable) {
+        public @NonNull Builder setWritable(boolean isWritable) {
             mIsWritable = isWritable;
             return this;
         }
@@ -176,7 +176,7 @@ public final class BluetoothHapPresetInfo implements Parcelable {
          * @param isAvailable whether preset is currently available to select
          * @return the same Builder instance
          */
-        public @NonNull Builder setAvailable(@NonNull boolean isAvailable) {
+        public @NonNull Builder setAvailable(boolean isAvailable) {
             mIsAvailable = isAvailable;
             return this;
         }
