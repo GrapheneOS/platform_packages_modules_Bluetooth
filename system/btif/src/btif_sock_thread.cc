@@ -448,6 +448,10 @@ static void process_data_sock(int h, struct pollfd* pfds, int count) {
   for (i = 1; i < ts[h].poll_count; i++) {
     if (pfds[i].revents) {
       int ps_i = ts[h].psi[i];
+      if (ts[h].ps[ps_i].pfd.fd == -1) {
+        LOG_INFO("Socket has been removed from poll set");
+        continue;
+      }
       asrt(pfds[i].fd == ts[h].ps[ps_i].pfd.fd);
       uint32_t user_id = ts[h].ps[ps_i].user_id;
       int type = ts[h].ps[ps_i].type;
