@@ -495,21 +495,19 @@ static void bta_dm_wait_for_acl_to_drain_cback(void* data) {
   const WaitForAllAclConnectionsToDrain* pass =
       WaitForAllAclConnectionsToDrain::FromAlarmCallbackData(data);
 
-  if (BTM_GetNumAclLinks() &&
+  if (BTM_GetNumAclLinks() && force_disconnect_all_acl_connections() &&
       WaitForAllAclConnectionsToDrain::IsFirstPass(pass)) {
     /* DISABLE_EVT still need to be sent out to avoid java layer disable timeout
      */
-    if (force_disconnect_all_acl_connections()) {
-      LOG_DEBUG(
-          "Set timer for second pass to wait for all ACL connections to "
-          "close:%lu ms ",
-          second_pass.TimeToWaitInMs());
-      alarm_set_on_mloop(
-          bta_dm_cb.disable_timer, second_pass.time_to_wait_in_ms,
-          bta_dm_wait_for_acl_to_drain_cback, second_pass.AlarmCallbackData());
-    }
+    LOG_DEBUG(
+        "Set timer for second pass to wait for all ACL connections to "
+        "close:%lu ms ",
+        second_pass.TimeToWaitInMs());
+    alarm_set_on_mloop(bta_dm_cb.disable_timer, second_pass.time_to_wait_in_ms,
+                       bta_dm_wait_for_acl_to_drain_cback,
+                       second_pass.AlarmCallbackData());
   } else {
-    // No ACL links were up or is second pass at ACL closure
+    // No ACL links to close were up or is second pass at ACL closure
     LOG_INFO("Ensuring all ACL connections have been properly flushed");
     bluetooth::shim::ACL_Shutdown();
 
