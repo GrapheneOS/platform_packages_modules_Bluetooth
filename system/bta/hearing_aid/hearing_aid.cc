@@ -41,7 +41,6 @@
 #include "stack/include/acl_api_types.h"  // tBTM_RSSI_RESULT
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_octets.h"
-#include "stack/include/gap_api.h"
 #include "stack/include/l2c_api.h"  // L2CAP_MIN_OFFSET
 #include "types/bluetooth/uuid.h"
 #include "types/bt_transport.h"
@@ -589,9 +588,9 @@ class HearingAidImpl : public HearingAid {
     hearingDevice->first_connection = true;
     hearingDevice->service_changed_rcvd = true;
     BtaGattQueue::Clean(hearingDevice->conn_id);
-    if (hearingDevice->gap_handle) {
+    if (hearingDevice->gap_handle != GAP_INVALID_HANDLE) {
       GAP_ConnClose(hearingDevice->gap_handle);
-      hearingDevice->gap_handle = 0;
+      hearingDevice->gap_handle = GAP_INVALID_HANDLE;
     }
   }
 
@@ -1549,9 +1548,9 @@ class HearingAidImpl : public HearingAid {
       hearingDevice->conn_id = 0;
     }
 
-    if (hearingDevice->gap_handle) {
+    if (hearingDevice->gap_handle != GAP_INVALID_HANDLE) {
       GAP_ConnClose(hearingDevice->gap_handle);
-      hearingDevice->gap_handle = 0;
+      hearingDevice->gap_handle = GAP_INVALID_HANDLE;
     }
 
     hearingDevice->accepting_audio = false;

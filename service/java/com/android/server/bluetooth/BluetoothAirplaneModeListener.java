@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.server;
+package com.android.server.bluetooth;
 
 import android.annotation.RequiresPermission;
 import android.content.Context;
@@ -37,7 +37,7 @@ import com.android.internal.annotations.VisibleForTesting;
  *   2. Bluetooth Hearing Aid profile is connected.
  *   3. Bluetooth LE Audio is connected
  */
-class BluetoothAirplaneModeListener {
+public class BluetoothAirplaneModeListener {
     private static final String TAG = "BluetoothAirplaneModeListener";
     @VisibleForTesting static final String TOAST_COUNT = "bluetooth_airplane_toast_count";
 
