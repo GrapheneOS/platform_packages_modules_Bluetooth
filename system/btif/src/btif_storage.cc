@@ -248,7 +248,7 @@ static int prop2cfg(const RawAddress* remote_bd_addr, bt_property_t* prop) {
       btif_config_set_int("Adapter", BTIF_STORAGE_KEY_LOCAL_IO_CAPS_BLE,
                           *(int*)prop->val);
       break;
-    case BT_PROPERTY_ADAPTER_DISCOVERY_TIMEOUT:
+    case BT_PROPERTY_ADAPTER_DISCOVERABLE_TIMEOUT:
       btif_config_set_int("Adapter", BTIF_STORAGE_KEY_ADAPTER_DISC_TIMEOUT,
                           *(int*)prop->val);
       break;
@@ -358,7 +358,7 @@ static int cfg2prop(const RawAddress* remote_bd_addr, bt_property_t* prop) {
                                   (int*)prop->val);
       break;
 
-    case BT_PROPERTY_ADAPTER_DISCOVERY_TIMEOUT:
+    case BT_PROPERTY_ADAPTER_DISCOVERABLE_TIMEOUT:
       if (prop->len >= (int)sizeof(int))
         ret = btif_config_get_int(
             "Adapter", BTIF_STORAGE_KEY_ADAPTER_DISC_TIMEOUT, (int*)prop->val);
@@ -1040,9 +1040,9 @@ bt_status_t btif_storage_load_bonded_devices(void) {
     num_props++;
 
     /* DISC_TIMEOUT */
-    BTIF_STORAGE_GET_ADAPTER_PROP(status, BT_PROPERTY_ADAPTER_DISCOVERY_TIMEOUT,
-                                  &disc_timeout, sizeof(disc_timeout),
-                                  adapter_props[num_props]);
+    BTIF_STORAGE_GET_ADAPTER_PROP(
+        status, BT_PROPERTY_ADAPTER_DISCOVERABLE_TIMEOUT, &disc_timeout,
+        sizeof(disc_timeout), adapter_props[num_props]);
     num_props++;
 
     /* BONDED_DEVICES */
