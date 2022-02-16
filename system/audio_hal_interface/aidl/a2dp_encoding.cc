@@ -208,6 +208,7 @@ uint16_t remote_delay = 0;
 
 bool btaudio_a2dp_disabled = false;
 bool is_configured = false;
+bool is_low_latency_mode_allowed = false;
 
 BluetoothAudioCtrlAck a2dp_ack_to_bt_audio_ctrl_ack(tA2DP_CTRL_ACK ack) {
   switch (ack) {
@@ -470,6 +471,7 @@ void start_session() {
     LOG(ERROR) << __func__ << ": BluetoothAudio HAL is not enabled";
     return;
   }
+  active_hal_interface->SetLowLatencyModeAllowed(is_low_latency_mode_allowed);
   active_hal_interface->StartSession();
 }
 
@@ -554,6 +556,7 @@ void set_remote_delay(uint16_t delay_report) {
 
 // Set low latency buffer mode allowed or disallowed
 void set_low_latency_mode_allowed(bool allowed) {
+  is_low_latency_mode_allowed = allowed;
   if (!is_hal_enabled()) {
     LOG(ERROR) << __func__ << ": BluetoothAudio HAL is not enabled";
     return;
