@@ -29,6 +29,7 @@ filegroup {
         "android/bluetooth/IBluetoothVolumeControl.aidl",
         "android/bluetooth/IBluetoothHidHost.aidl",
         "android/bluetooth/IBluetoothLeAudio.aidl",
+        "android/bluetooth/IBluetoothLeBroadcastCallback.aidl",
         "android/bluetooth/IBluetoothManager.aidl",
         "android/bluetooth/IBluetoothManagerCallback.aidl",
         "android/bluetooth/IBluetoothMap.aidl",
