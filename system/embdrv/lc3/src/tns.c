@@ -448,7 +448,7 @@ void lc3_tns_get_data(lc3_bits_t *bits,
             lc3_tns_order_models + data->lpc_weighting);
 
         for (int i = 0; i < data->rc_order[f]; i++)
-            data->rc[f][i] = lc3_get_symbol(bits,
+            data->rc[f][i] = (int)lc3_get_symbol(bits,
                 lc3_tns_coeffs_models + i) - 8;
     }
 }
