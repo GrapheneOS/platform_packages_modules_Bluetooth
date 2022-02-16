@@ -45,7 +45,6 @@ rust_binary_host {
         "libbt-sbc-encoder",
         "libFraunhoferAAC",
         "libg722codec",
-        "liblc3codec",
         "liblc3",
         "libudrv-uipc",
         "libbluetooth_gd", // Gabeldorsche
