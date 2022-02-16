@@ -292,7 +292,7 @@ static inline unsigned lc3_get_symbol(
     if (ac->error)
         ac->low = 0;
 
-    unsigned s = 16;
+    int s = 16;
 
     if (ac->low < range * symbols[s].low) {
         s >>= 1;
