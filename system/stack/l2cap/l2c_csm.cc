@@ -823,12 +823,22 @@ static void l2c_csm_w4_l2ca_connect_rsp(tL2C_CCB* p_ccb, tL2CEVT event,
 
       for (int i = 0; i < p_ccb->p_lcb->pending_ecoc_conn_cnt; i++) {
         uint16_t cid = p_ccb->p_lcb->pending_ecoc_connection_cids[i];
+        if (cid == 0) {
+            LOG_WARN("pending_ecoc_connection_cids[%d] is %d", i, cid);
+            continue;
+        }
+
         tL2C_CCB* temp_p_ccb = l2cu_find_ccb_by_cid(p_ccb->p_lcb, cid);
-        auto it = std::find(p_ci->lcids.begin(), p_ci->lcids.end(), cid);
-        if (it != p_ci->lcids.end()) {
-          temp_p_ccb->chnl_state = CST_OPEN;
-        } else {
-          l2cu_release_ccb(temp_p_ccb);
+        if (temp_p_ccb) {
+          auto it = std::find(p_ci->lcids.begin(), p_ci->lcids.end(), cid);
+          if (it != p_ci->lcids.end()) {
+            temp_p_ccb->chnl_state = CST_OPEN;
+          } else {
+            l2cu_release_ccb(temp_p_ccb);
+          }
+        }
+        else {
+            LOG_WARN("temp_p_ccb is NULL, pending_ecoc_connection_cids[%d] is %d", i, cid);
         }
       }
       p_ccb->p_lcb->pending_ecoc_conn_cnt = 0;

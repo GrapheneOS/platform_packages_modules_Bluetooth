@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.server;
+package com.android.server.bluetooth;
 
 import android.annotation.NonNull;
 import android.annotation.Nullable;
@@ -22,9 +22,10 @@ import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.os.UserManager;
 
+import com.android.server.SystemService;
 import com.android.server.SystemService.TargetUser;
 
-class BluetoothService extends SystemService {
+public class BluetoothService extends SystemService {
     private BluetoothManagerService mBluetoothManagerService;
     private boolean mInitialized = false;
 
