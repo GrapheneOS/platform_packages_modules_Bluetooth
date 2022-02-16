@@ -301,10 +301,10 @@ package android.bluetooth {
   public static final class BluetoothHapPresetInfo.Builder {
     ctor public BluetoothHapPresetInfo.Builder();
     method @NonNull public android.bluetooth.BluetoothHapPresetInfo build();
-    method @NonNull public android.bluetooth.BluetoothHapPresetInfo.Builder setAvailable(@NonNull boolean);
+    method @NonNull public android.bluetooth.BluetoothHapPresetInfo.Builder setAvailable(boolean);
     method @NonNull public android.bluetooth.BluetoothHapPresetInfo.Builder setIndex(int);
     method @NonNull public android.bluetooth.BluetoothHapPresetInfo.Builder setName(@NonNull String);
-    method @NonNull public android.bluetooth.BluetoothHapPresetInfo.Builder setWritable(@NonNull boolean);
+    method @NonNull public android.bluetooth.BluetoothHapPresetInfo.Builder setWritable(boolean);
   }
 
   public final class BluetoothHeadset implements android.bluetooth.BluetoothProfile {
