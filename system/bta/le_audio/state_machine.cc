@@ -499,6 +499,13 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
       return;
     }
 
+    /* If group is in Idle there is nothing to do here */
+    if ((group->GetState() == AseState::BTA_LE_AUDIO_ASE_STATE_IDLE) &&
+        (group->GetTargetState() == AseState::BTA_LE_AUDIO_ASE_STATE_IDLE)) {
+      LOG(INFO) << __func__ << " group: " << group->group_id_ << " is in IDLE";
+      return;
+    }
+
     auto* stream_conf = &group->stream_conf;
     if (!stream_conf->sink_streams.empty() ||
         !stream_conf->source_streams.empty()) {
@@ -544,13 +551,8 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     }
 
     /* Group is not connected and all the CISes are down.
-     * If group is in Idle there is nothing to do here */
-    if (group->GetState() == AseState::BTA_LE_AUDIO_ASE_STATE_IDLE) {
-      LOG(INFO) << __func__ << " group: " << group->group_id_ << " is in IDLE";
-      return;
-    }
-
-    /* Clean states and destroy HCI group */
+     * Clean states and destroy HCI group
+     */
     group->SetState(AseState::BTA_LE_AUDIO_ASE_STATE_IDLE);
     group->SetTargetState(AseState::BTA_LE_AUDIO_ASE_STATE_IDLE);
     if (alarm_is_scheduled(watchdog_)) alarm_cancel(watchdog_);
