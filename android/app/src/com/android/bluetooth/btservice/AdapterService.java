@@ -45,6 +45,8 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothAdapter.ActiveDeviceProfile;
 import android.bluetooth.BluetoothAdapter.ActiveDeviceUse;
 import android.bluetooth.BluetoothClass;
+import android.bluetooth.BluetoothCodecConfig;
+import android.bluetooth.BluetoothCodecStatus;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothProtoEnums;
@@ -849,6 +851,50 @@ public class AdapterService extends Service {
         switchBufferSizeIntent.putExtra(
                 BluetoothDevice.EXTRA_LOW_LATENCY_BUFFER_SIZE, isLowLatencyBufferSize);
         sendBroadcast(switchBufferSizeIntent);
+    }
+
+    void switchCodecCallback(boolean isLowLatencyBufferSize) {
+        List<BluetoothDevice> activeDevices = getActiveDevices(BluetoothProfile.A2DP);
+        if (activeDevices.size() != 1) {
+            errorLog(
+                    "Cannot switch buffer size. The number of A2DP active devices is "
+                            + activeDevices.size());
+        }
+        BluetoothCodecConfig codecConfig = null;
+        BluetoothCodecStatus currentCodecStatus = mA2dpService.getCodecStatus(activeDevices.get(0));
+        int currentCodec = currentCodecStatus.getCodecConfig().getCodecType();
+        if (isLowLatencyBufferSize) {
+            if (currentCodec == BluetoothCodecConfig.SOURCE_CODEC_TYPE_LC3) {
+                Log.w(TAG, "Current codec is already LC3. No need to change it.");
+                return;
+            }
+            codecConfig = new BluetoothCodecConfig(
+                    BluetoothCodecConfig.SOURCE_CODEC_TYPE_LC3,
+                    BluetoothCodecConfig.CODEC_PRIORITY_HIGHEST,
+                    BluetoothCodecConfig.SAMPLE_RATE_48000,
+                    BluetoothCodecConfig.BITS_PER_SAMPLE_16,
+                    BluetoothCodecConfig.CHANNEL_MODE_STEREO,
+                    0, 0x1 << 2, 0, 0);
+        } else {
+            if (currentCodec != BluetoothCodecConfig.SOURCE_CODEC_TYPE_LC3) {
+                Log.w(TAG, "Current codec is not LC3. No need to change it.");
+                return;
+            }
+            List<BluetoothCodecConfig> selectableCodecs =
+                    currentCodecStatus.getCodecsSelectableCapabilities();
+            for (BluetoothCodecConfig config : selectableCodecs) {
+                // Find a non LC3 codec
+                if (config.getCodecType() != BluetoothCodecConfig.SOURCE_CODEC_TYPE_LC3) {
+                    codecConfig = config;
+                    break;
+                }
+            }
+            if (codecConfig == null) {
+                Log.e(TAG, "Cannot find a non LC3 codec compatible with the remote device");
+                return;
+            }
+        }
+        mA2dpService.setCodecConfigPreference(activeDevices.get(0), codecConfig);
     }
 
     /**
