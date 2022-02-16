@@ -132,7 +132,9 @@ void BleScannerInterfaceImpl::Scan(bool start) {
   BTM_LogHistory(
       kBtmLogTag, RawAddress::kEmpty,
       base::StringPrintf("Le scan %s", (start) ? "started" : "stopped"));
-  address_cache_.init();
+  do_in_jni_thread(FROM_HERE,
+                   base::Bind(&BleScannerInterfaceImpl::AddressCache::init,
+                              base::Unretained(&address_cache_)));
 }
 
   /** Setup scan filter params */
