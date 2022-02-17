@@ -19,6 +19,7 @@
 #include <memory>
 #include <random>
 
+#include "crypto_toolbox/crypto_toolbox.h"
 #include "os/log.h"
 #include "packet/raw_builder.h"
 
@@ -231,6 +232,7 @@ DualModeController::DualModeController(const std::string& properties_filename, u
   SET_SUPPORTED(LE_ADD_DEVICE_TO_CONNECT_LIST, LeAddDeviceToConnectList);
   SET_SUPPORTED(LE_REMOVE_DEVICE_FROM_CONNECT_LIST,
                 LeRemoveDeviceFromConnectList);
+  SET_SUPPORTED(LE_ENCRYPT, LeEncrypt);
   SET_SUPPORTED(LE_RAND, LeRand);
   SET_SUPPORTED(LE_READ_SUPPORTED_STATES, LeReadSupportedStates);
   SET_HANDLER(LE_GET_VENDOR_CAPABILITIES, LeVendorCap);
@@ -2289,6 +2291,18 @@ void DualModeController::LeReadRemoteFeatures(CommandView command) {
       status, kNumCommandPackets));
 }
 
+void DualModeController::LeEncrypt(CommandView command) {
+  auto command_view = gd_hci::LeEncryptView::Create(
+      gd_hci::LeSecurityCommandView::Create(command));
+  ASSERT(command_view.IsValid());
+
+  auto encrypted_data = bluetooth::crypto_toolbox::aes_128(
+      command_view.GetKey(),
+      command_view.GetPlaintextData());
+
+  send_event_(bluetooth::hci::LeEncryptCompleteBuilder::Create(
+      kNumCommandPackets, ErrorCode::SUCCESS, encrypted_data));
+}
 
 static std::random_device rd{};
 static std::mt19937_64 s_mt{rd()};
