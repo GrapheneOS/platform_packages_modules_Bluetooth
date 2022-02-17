@@ -70,7 +70,6 @@ cc_defaults {
         "libg722codec",
         "libudrv-uipc",
         "libbt-common",
-        "liblc3codec",
         "liblc3",
         "libstatslog_bt",
         "libvndksupport",
