@@ -31,6 +31,7 @@ import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.MediumTest;
 import androidx.test.rule.ServiceTestRule;
 import androidx.test.runner.AndroidJUnit4;
+import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentation;
 
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AdapterService;
@@ -71,12 +72,14 @@ public class TbsGenericTest {
     private @Captor ArgumentCaptor<Integer> mDefaultGtbsTechnologyCaptor;
 
     private @Captor ArgumentCaptor<TbsGatt.Callback> mTbsGattCallback;
+    private static Context mContext;
 
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
 
         mAdapter = BluetoothAdapter.getDefaultAdapter();
+        mContext = getInstrumentation().getTargetContext();
 
         // Default TbsGatt mock behavior
         doReturn(true).when(mTbsGatt).init(mGtbsCcidCaptor.capture(), mGtbsUciCaptor.capture(),
@@ -97,6 +100,7 @@ public class TbsGenericTest {
         doReturn(true).when(mTbsGatt).clearIncomingCall();
         doReturn(true).when(mTbsGatt).setCallFriendlyName(anyInt(), anyString());
         doReturn(true).when(mTbsGatt).clearFriendlyName();
+        doReturn(mContext).when(mTbsGatt).getContext();
 
         mTbsGeneric = new TbsGeneric();
         mTbsGeneric.init(mTbsGatt);

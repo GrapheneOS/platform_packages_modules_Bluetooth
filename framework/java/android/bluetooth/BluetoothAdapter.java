@@ -1179,11 +1179,8 @@ public final class BluetoothAdapter {
                 mService.getState(recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(state);
             }
-        } catch (TimeoutException e) {
+        } catch (RemoteException | TimeoutException e) {
             Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
-        } catch (RemoteException e) {
-            Log.e(TAG, "", e);
-            e.rethrowFromSystemServer();
         } finally {
             mServiceLock.readLock().unlock();
         }
