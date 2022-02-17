@@ -95,7 +95,8 @@ public class ScanManager {
     private BatchScanParams mBatchScanParms;
 
     private Integer mCurUsedTrackableAdvertisements;
-    private GattService mService;
+    private final GattService mService;
+    private final AdapterService mAdapterService;
     private BroadcastReceiver mBatchAlarmReceiver;
     private boolean mBatchAlarmReceiverRegistered;
     private ScanNative mScanNative;
@@ -129,7 +130,7 @@ public class ScanManager {
         }
     }
 
-    ScanManager(GattService service) {
+    ScanManager(GattService service, AdapterService adapterService) {
         mRegularScanClients =
                 Collections.newSetFromMap(new ConcurrentHashMap<ScanClient, Boolean>());
         mBatchClients = Collections.newSetFromMap(new ConcurrentHashMap<ScanClient, Boolean>());
@@ -141,6 +142,7 @@ public class ScanManager {
         mDm = mService.getSystemService(DisplayManager.class);
         mActivityManager = mService.getSystemService(ActivityManager.class);
         mLocationManager = mService.getSystemService(LocationManager.class);
+        mAdapterService = adapterService;
 
         mPriorityMap.put(ScanSettings.SCAN_MODE_OPPORTUNISTIC, 0);
         mPriorityMap.put(ScanSettings.SCAN_MODE_SCREEN_OFF, 1);
@@ -383,7 +385,7 @@ public class ScanManager {
                         Message msg = obtainMessage(MSG_SCAN_TIMEOUT);
                         msg.obj = client;
                         // Only one timeout message should exist at any time
-                        sendMessageDelayed(msg, AppScanStats.getScanTimeoutMillis());
+                        sendMessageDelayed(msg, mAdapterService.getScanTimeoutMillis());
                     }
                 }
             }
@@ -547,7 +549,7 @@ public class ScanManager {
         }
 
         private boolean upgradeScanModeBeforeStart(ScanClient client) {
-            if (client.started || AppScanStats.getScanUpgradeDurationMillis() == 0) {
+            if (client.started || mAdapterService.getScanUpgradeDurationMillis() == 0) {
                 return false;
             }
             if (client.stats == null || client.stats.hasRecentScan()) {
@@ -563,7 +565,7 @@ public class ScanManager {
                 if (DBG) {
                     Log.d(TAG, "scanMode is upgraded for " + client);
                 }
-                sendMessageDelayed(msg, AppScanStats.getScanUpgradeDurationMillis());
+                sendMessageDelayed(msg, mAdapterService.getScanUpgradeDurationMillis());
                 return true;
             }
             return false;

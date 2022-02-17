@@ -106,7 +106,10 @@ void LeAudioDeviceGroup::Deactivate(void) {
 }
 
 LeAudioDevice* LeAudioDeviceGroup::GetFirstDevice(void) {
-  return (leAudioDevices_.front().lock()).get();
+  auto d = leAudioDevices_.front();
+  if (d.expired()) return nullptr;
+
+  return (d.lock()).get();
 }
 
 LeAudioDevice* LeAudioDeviceGroup::GetFirstDeviceWithActiveContext(

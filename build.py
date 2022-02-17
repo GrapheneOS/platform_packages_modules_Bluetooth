@@ -99,19 +99,24 @@ REQUIRED_APT_PACKAGES = [
     'generate-ninja',
     'gnupg',
     'gperf',
+    'libc++abi-dev',
     'libc++-dev',
     'libdbus-1-dev',
+    'libdouble-conversion-dev',
     'libevent-dev',
     'libevent-dev',
     'libflatbuffers-dev',
     'libflatbuffers1',
     'libgl1-mesa-dev',
     'libglib2.0-dev',
+    'libgtest-dev',
+    'libgmock-dev',
     'liblz4-tool',
     'libncurses5',
     'libnss3-dev',
     'libprotobuf-dev',
     'libre2-9',
+    'libre2-dev',
     'libssl-dev',
     'libtinyxml2-dev',
     'libx11-dev',
@@ -610,7 +615,10 @@ class Bootstrap():
         # Create symlinks
         for pairs in symlinks:
             (src, dst) = pairs
-            os.unlink(dst)
+            try:
+                os.unlink(dst)
+            except Exception as e:
+                print(e)
             os.symlink(src, dst)
 
         # Write to setup complete file so we don't repeat this step
