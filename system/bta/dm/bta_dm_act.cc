@@ -264,8 +264,6 @@ void bta_dm_enable(tBTA_DM_SEC_CBACK* p_sec_cback) {
   previous one,
   it could be an error recovery mechanism */
   if (p_sec_cback != NULL) bta_dm_cb.p_sec_cback = p_sec_cback;
-  /* notify BTA DM is now active */
-  bta_dm_cb.is_bta_dm_active = true;
 
   btm_local_io_caps = btif_storage_get_local_io_caps();
 }
@@ -328,9 +326,6 @@ void BTA_dm_on_hw_off() {
   osi_free(bta_dm_search_cb.p_pending_search);
   fixed_queue_free(bta_dm_search_cb.pending_discovery_queue, osi_free);
   memset(&bta_dm_search_cb, 0, sizeof(bta_dm_search_cb));
-
-  /* notify BTA DM is now unactive */
-  bta_dm_cb.is_bta_dm_active = false;
 }
 
 void BTA_dm_on_hw_on() {
@@ -345,7 +340,6 @@ void BTA_dm_on_hw_on() {
   bta_dm_init_cb();
   /* and retrieve the callback */
   bta_dm_cb.p_sec_cback = temp_cback;
-  bta_dm_cb.is_bta_dm_active = true;
 
   /* hw is ready, go on with BTA DM initialization */
   alarm_free(bta_dm_search_cb.search_timer);
