@@ -137,7 +137,6 @@ extern void btm_ble_adv_filter_init(void);
 extern bool btm_ble_topology_check(tBTM_BLE_STATE_MASK request);
 extern bool btm_ble_clear_topology_mask(tBTM_BLE_STATE_MASK request_state);
 extern bool btm_ble_set_topology_mask(tBTM_BLE_STATE_MASK request_state);
-extern void btm_ble_set_random_address(const RawAddress& random_bda);
 
 extern void btm_ble_scanner_init(void);
 extern void btm_ble_scanner_cleanup(void);

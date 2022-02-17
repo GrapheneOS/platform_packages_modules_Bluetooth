@@ -2073,32 +2073,6 @@ void btm_ble_reset_id(void) {
   }));
 }
 
-/* This function set a random address to local controller. It also temporarily
- * disable scans and adv before sending the command to the controller. */
-void btm_ble_set_random_address(const RawAddress& random_bda) {
-  tBTM_LE_RANDOM_CB* p_cb = &btm_cb.ble_ctr_cb.addr_mgnt_cb;
-  tBTM_BLE_CB* p_ble_cb = &btm_cb.ble_ctr_cb;
-  const bool adv_mode = btm_cb.ble_ctr_cb.inq_var.adv_mode;
-
-  if (adv_mode == BTM_BLE_ADV_ENABLE)
-    btsnd_hcic_ble_set_adv_enable(BTM_BLE_ADV_DISABLE);
-  if (p_ble_cb->is_ble_scan_active()) {
-    btm_ble_stop_scan();
-  }
-  btm_ble_suspend_bg_conn();
-
-  p_cb->private_addr = random_bda;
-  btsnd_hcic_ble_set_random_addr(p_cb->private_addr);
-  LOG_DEBUG("Updating local random address:%s", PRIVATE_ADDRESS(random_bda));
-
-  if (adv_mode == BTM_BLE_ADV_ENABLE)
-    btsnd_hcic_ble_set_adv_enable(BTM_BLE_ADV_ENABLE);
-  if (p_ble_cb->is_ble_scan_active()) {
-    btm_ble_start_scan();
-  }
-  btm_ble_resume_bg_conn();
-}
-
 /*******************************************************************************
  *
  * Function         btm_ble_get_acl_remote_addr
