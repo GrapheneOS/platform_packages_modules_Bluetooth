@@ -85,7 +85,8 @@ fn build_commands() -> HashMap<String, CommandOption> {
         String::from("adapter"),
         CommandOption {
             description: String::from(
-                "Enable/Disable/Show default bluetooth adapter. (e.g. adapter enable)",
+                "Enable/Disable/Show default bluetooth adapter. (e.g. adapter enable)\n
+                 Discoverable On/Off (e.g. adapter discoverable on)",
             ),
             function_pointer: CommandHandler::cmd_adapter,
         },
@@ -244,47 +245,94 @@ impl CommandHandler {
         }
 
         let default_adapter = self.context.lock().unwrap().default_adapter;
-        enforce_arg_len(args, 1, "adapter <enable|disable|show>", || match &args[0][0..] {
-            "enable" => {
-                self.context.lock().unwrap().manager_dbus.start(default_adapter);
-            }
-            "disable" => {
-                self.context.lock().unwrap().manager_dbus.stop(default_adapter);
-            }
-            "show" => {
-                if !self.context.lock().unwrap().adapter_ready {
-                    self.adapter_not_ready();
-                    return;
+        enforce_arg_len(args, 1, "adapter <enable|disable|show|discoverable>", || {
+            match &args[0][0..] {
+                "enable" => {
+                    self.context.lock().unwrap().manager_dbus.start(default_adapter);
                 }
+                "disable" => {
+                    self.context.lock().unwrap().manager_dbus.stop(default_adapter);
+                }
+                "show" => {
+                    if !self.context.lock().unwrap().adapter_ready {
+                        self.adapter_not_ready();
+                        return;
+                    }
 
-                let enabled = self.context.lock().unwrap().enabled;
-                let address = match self.context.lock().unwrap().adapter_address.as_ref() {
-                    Some(x) => x.clone(),
-                    None => String::from(""),
-                };
-                let name = self.context.lock().unwrap().adapter_dbus.as_ref().unwrap().get_name();
-                let uuids = self.context.lock().unwrap().adapter_dbus.as_ref().unwrap().get_uuids();
-                let cod = self
-                    .context
-                    .lock()
-                    .unwrap()
-                    .adapter_dbus
-                    .as_ref()
-                    .unwrap()
-                    .get_bluetooth_class();
-                print_info!("Address: {}", address);
-                print_info!("Name: {}", name);
-                print_info!("State: {}", if enabled { "enabled" } else { "disabled" });
-                print_info!("Class: {:#06x}", cod);
-                print_info!(
-                    "Uuids: {}",
-                    DisplayList(
-                        uuids.iter().map(|&x| UuidHelper::to_string(&x)).collect::<Vec<String>>()
-                    )
-                );
-            }
-            _ => {
-                println!("Invalid argument '{}'", args[0]);
+                    let enabled = self.context.lock().unwrap().enabled;
+                    let address = match self.context.lock().unwrap().adapter_address.as_ref() {
+                        Some(x) => x.clone(),
+                        None => String::from(""),
+                    };
+                    let name =
+                        self.context.lock().unwrap().adapter_dbus.as_ref().unwrap().get_name();
+                    let uuids =
+                        self.context.lock().unwrap().adapter_dbus.as_ref().unwrap().get_uuids();
+                    let is_discoverable = self
+                        .context
+                        .lock()
+                        .unwrap()
+                        .adapter_dbus
+                        .as_ref()
+                        .unwrap()
+                        .get_discoverable();
+                    let cod = self
+                        .context
+                        .lock()
+                        .unwrap()
+                        .adapter_dbus
+                        .as_ref()
+                        .unwrap()
+                        .get_bluetooth_class();
+                    print_info!("Address: {}", address);
+                    print_info!("Name: {}", name);
+                    print_info!("State: {}", if enabled { "enabled" } else { "disabled" });
+                    print_info!("Discoverable: {}", is_discoverable);
+                    print_info!("Class: {:#06x}", cod);
+                    print_info!(
+                        "Uuids: {}",
+                        DisplayList(
+                            uuids
+                                .iter()
+                                .map(|&x| UuidHelper::to_string(&x))
+                                .collect::<Vec<String>>()
+                        )
+                    );
+                }
+                "discoverable" => match &args[1][0..] {
+                    "on" => {
+                        let discoverable = self
+                            .context
+                            .lock()
+                            .unwrap()
+                            .adapter_dbus
+                            .as_ref()
+                            .unwrap()
+                            .set_discoverable(true, 60);
+                        print_info!(
+                            "Set discoverable for 60s: {}",
+                            if discoverable { "succeeded" } else { "failed" }
+                        );
+                    }
+                    "off" => {
+                        let discoverable = self
+                            .context
+                            .lock()
+                            .unwrap()
+                            .adapter_dbus
+                            .as_ref()
+                            .unwrap()
+                            .set_discoverable(false, 60);
+                        print_info!(
+                            "Turn discoverable off: {}",
+                            if discoverable { "succeeded" } else { "failed" }
+                        );
+                    }
+                    _ => println!("Invalid argument for adapter discoverable '{}'", args[1]),
+                },
+                _ => {
+                    println!("Invalid argument '{}'", args[0]);
+                }
             }
         });
     }
