@@ -1288,7 +1288,8 @@ TEST_F(IsoManagerDeathTest, CreateBigInvalidResponsePacket) {
           });
 
   ASSERT_EXIT(IsoManager::GetInstance()->CreateBig(0x01, kDefaultBigParams),
-              ::testing::KilledBySignal(SIGABRT), "Invalid bis count");
+              ::testing::KilledBySignal(SIGABRT),
+              "num_bis != 0. Bis count is 0");
 }
 
 TEST_F(IsoManagerDeathTest, CreateBigInvalidResponsePacket2) {
