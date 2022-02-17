@@ -99,6 +99,7 @@ public class HeadsetService extends ProfileService {
     private static final int[] CONNECTING_CONNECTED_STATES =
             {BluetoothProfile.STATE_CONNECTING, BluetoothProfile.STATE_CONNECTED};
     private static final int DIALING_OUT_TIMEOUT_MS = 10000;
+    private static final int CLCC_END_MARK_INDEX = 0;
 
     // Timeout for state machine thread join, to prevent potential ANR.
     private static final int SM_THREAD_JOIN_TIMEOUT_MS = 1000;
@@ -125,6 +126,7 @@ public class HeadsetService extends ProfileService {
     private VoiceRecognitionTimeoutEvent mVoiceRecognitionTimeoutEvent;
     // Timeout when voice recognition is started by remote device
     @VisibleForTesting static int sStartVrTimeoutMs = 5000;
+    private ArrayList<StateMachineTask> mPendingClccResponses = new ArrayList<>();
     private boolean mStarted;
     private boolean mCreated;
     private static HeadsetService sHeadsetService;
@@ -304,6 +306,14 @@ public class HeadsetService extends ProfileService {
         synchronized (mStateMachines) {
             for (BluetoothDevice device : getConnectedDevices()) {
                 task.execute(mStateMachines.get(device));
+            }
+        }
+    }
+
+    private void doForEachConnectedStateMachine(List<StateMachineTask> tasks) {
+        synchronized (mStateMachines) {
+            for (StateMachineTask task : tasks) {
+                doForEachConnectedStateMachine(task);
             }
         }
     }
@@ -1839,10 +1849,14 @@ public class HeadsetService extends ProfileService {
     private void clccResponse(int index, int direction, int status, int mode, boolean mpty,
             String number, int type) {
         enforceCallingOrSelfPermission(MODIFY_PHONE_STATE, "Need MODIFY_PHONE_STATE permission");
-        doForEachConnectedStateMachine(
-                stateMachine -> stateMachine.sendMessage(HeadsetStateMachine.SEND_CCLC_RESPONSE,
+        mPendingClccResponses.add(
+                stateMachine -> stateMachine.sendMessage(HeadsetStateMachine.SEND_CLCC_RESPONSE,
                         new HeadsetClccResponse(index, direction, status, mode, mpty, number,
                                 type)));
+        if (index == CLCC_END_MARK_INDEX) {
+            doForEachConnectedStateMachine(mPendingClccResponses);
+            mPendingClccResponses.clear();
+        }
     }
 
     private boolean sendVendorSpecificResultCode(BluetoothDevice device, String command,

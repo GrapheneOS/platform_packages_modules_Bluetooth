@@ -94,7 +94,7 @@ public class HeadsetStateMachine extends StateMachine {
     static final int INTENT_CONNECTION_ACCESS_REPLY = 8;
     static final int CALL_STATE_CHANGED = 9;
     static final int DEVICE_STATE_CHANGED = 10;
-    static final int SEND_CCLC_RESPONSE = 11;
+    static final int SEND_CLCC_RESPONSE = 11;
     static final int SEND_VENDOR_SPECIFIC_RESULT_CODE = 12;
     static final int SEND_BSIR = 13;
     static final int DIALING_OUT_RESULT = 14;
@@ -868,7 +868,7 @@ public class HeadsetStateMachine extends StateMachine {
                     }
                     mNativeInterface.notifyDeviceStatus(mDevice, (HeadsetDeviceState) message.obj);
                     break;
-                case SEND_CCLC_RESPONSE:
+                case SEND_CLCC_RESPONSE:
                     processSendClccResponse((HeadsetClccResponse) message.obj);
                     break;
                 case CLCC_RSP_TIMEOUT: {
@@ -2170,8 +2170,8 @@ public class HeadsetStateMachine extends StateMachine {
                 return "CALL_STATE_CHANGED";
             case DEVICE_STATE_CHANGED:
                 return "DEVICE_STATE_CHANGED";
-            case SEND_CCLC_RESPONSE:
-                return "SEND_CCLC_RESPONSE";
+            case SEND_CLCC_RESPONSE:
+                return "SEND_CLCC_RESPONSE";
             case SEND_VENDOR_SPECIFIC_RESULT_CODE:
                 return "SEND_VENDOR_SPECIFIC_RESULT_CODE";
             case STACK_EVENT:
