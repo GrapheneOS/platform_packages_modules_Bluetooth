@@ -471,6 +471,9 @@ class DualModeController : public Device {
   // 7.8.21
   void LeReadRemoteFeatures(CommandView args);
 
+  // 7.8.22
+  void LeEncrypt(CommandView args);
+
   // 7.8.23
   void LeRand(CommandView args);
 
