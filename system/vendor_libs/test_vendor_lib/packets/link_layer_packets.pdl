@@ -142,11 +142,11 @@ enum AddressType : 8 {
 }
 
 enum AdvertisementType : 8 {
-    ADV_IND = 0,          // Connectable and scannable
-    ADV_DIRECT_IND = 1,   // Connectable directed
-    ADV_SCAN_IND = 2,     // Scannable undirected
-    ADV_NONCONN_IND = 3,  // Non connectable undirected
-    SCAN_RESPONSE = 4,
+  ADV_IND = 0,          // Connectable and scannable
+  ADV_DIRECT_IND = 1,   // Connectable directed, high duty cycle
+  ADV_SCAN_IND = 2,     // Scannable undirected
+  ADV_NONCONN_IND = 3,  // Non connectable undirected
+  SCAN_RESPONSE = 4,    // Aliased with connectable directed, low duty cycle
 }
 
 packet LeAdvertisement : LinkLayerPacket (type = LE_ADVERTISEMENT) {
