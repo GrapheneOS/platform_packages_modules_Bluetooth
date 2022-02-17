@@ -771,6 +771,11 @@ typedef struct {
    * @return true if audio low latency is successfully allowed or disallowed
    */
   bool (*allow_low_latency_audio)(bool allowed, const RawAddress& address);
+
+  /**
+   * Set the event filter for the controller
+   */
+  int (*clear_event_filter)();
 } bt_interface_t;
 
 #define BLUETOOTH_INTERFACE_STRING "bluetoothInterface"

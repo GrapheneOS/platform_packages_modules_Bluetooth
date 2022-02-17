@@ -20,6 +20,7 @@
 
 #include <base/logging.h>
 
+#include <algorithm>
 #include <list>
 #include <memory>
 #include <sstream>
