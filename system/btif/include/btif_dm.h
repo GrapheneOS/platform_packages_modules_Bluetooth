@@ -67,6 +67,8 @@ bool btif_dm_proc_rmt_oob(const RawAddress& bd_addr, Octet16* p_c,
 void btif_dm_generate_local_oob_data(tBT_TRANSPORT transport);
 #endif /* BTIF_DM_OOB_TEST */
 
+void btif_dm_clear_event_filter();
+
 /*callout for reading SMP properties from Text file*/
 bool btif_dm_get_smp_config(tBTE_APPL_CFG* p_cfg);
 

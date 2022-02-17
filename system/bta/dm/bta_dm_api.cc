@@ -670,3 +670,17 @@ void BTA_DmBleCsisObserve(bool observe, tBTA_DM_SEARCH_CBACK* p_results_cb) {
  *
  ******************************************************************************/
 void BTA_VendorInit(void) { APPL_TRACE_API("BTA_VendorInit"); }
+
+/*******************************************************************************
+ *
+ * Function         BTA_DmClearEventFilter
+ *
+ * Description      This function clears the event filter
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+void BTA_DmClearEventFilter(void) {
+  APPL_TRACE_API("BTA_DmClearEventFilter");
+  do_in_main_thread(FROM_HERE, base::Bind(bta_dm_clear_event_filter));
+}
