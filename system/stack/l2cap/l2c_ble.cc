@@ -798,7 +798,7 @@ void l2cble_process_sig_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
           return;
         }
 
-        if (p_ccb->peer_conn_cfg.mps > mps) {
+        if (p_ccb->peer_conn_cfg.mps > mps && num_of_channels > 1) {
           L2CAP_TRACE_WARNING(
               "L2CAP - rcvd config req mps reduction new mps < mps (%d < %d)",
               mtu, p_ccb->peer_conn_cfg.mtu);
