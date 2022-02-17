@@ -93,6 +93,9 @@ public class SapServer extends Thread implements Callback {
     private PendingIntent mPendingDiscIntent = null;
     // Holds a reference to disconnect timeout intents
 
+    /* Timeout for the message handler thread join, to prevent potential ANR. */
+    private static final int HANDLER_THREAD_JOIN_TIMEOUT_MS = 1000;
+
     /* We store the mMaxMessageSize, as we need a copy of it when the init. sequence completes */
     private int mMaxMsgSize = 0;
     /* keep track of the current RIL test mode */
@@ -498,7 +501,7 @@ public class SapServer extends Thread implements Callback {
             if (mHandlerThread != null) {
                 try {
                     mHandlerThread.quitSafely();
-                    mHandlerThread.join();
+                    mHandlerThread.join(HANDLER_THREAD_JOIN_TIMEOUT_MS);
                     mHandlerThread = null;
                 } catch (InterruptedException e) {
                 }
