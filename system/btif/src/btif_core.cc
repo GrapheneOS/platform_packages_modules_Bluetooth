@@ -439,7 +439,7 @@ static bt_status_t btif_in_get_adapter_properties(void) {
 
   /* DISC_TIMEOUT */
   BTIF_STORAGE_FILL_PROPERTY(&properties[num_props],
-                             BT_PROPERTY_ADAPTER_DISCOVERY_TIMEOUT,
+                             BT_PROPERTY_ADAPTER_DISCOVERABLE_TIMEOUT,
                              sizeof(disc_timeout), &disc_timeout);
   btif_storage_get_adapter_property(&properties[num_props]);
   num_props++;
@@ -721,7 +721,7 @@ void btif_set_adapter_property(bt_property_t* property) {
         btif_core_storage_adapter_write(property);
       }
     } break;
-    case BT_PROPERTY_ADAPTER_DISCOVERY_TIMEOUT: {
+    case BT_PROPERTY_ADAPTER_DISCOVERABLE_TIMEOUT: {
       /* Nothing to do beside store the value in NV.  Java
          will change the SCAN_MODE property after setting timeout,
          if required */

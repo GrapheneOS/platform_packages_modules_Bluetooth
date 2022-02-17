@@ -98,9 +98,9 @@ bt_property_t* property_new_device_type(bt_device_type_t type) {
                        BT_PROPERTY_TYPE_OF_DEVICE);
 }
 
-bt_property_t* property_new_discovery_timeout(const uint32_t timeout) {
+bt_property_t* property_new_discoverable_timeout(const uint32_t timeout) {
   return property_new_((void*)&timeout, sizeof(uint32_t),
-                       BT_PROPERTY_ADAPTER_DISCOVERY_TIMEOUT);
+                       BT_PROPERTY_ADAPTER_DISCOVERABLE_TIMEOUT);
 }
 
 bt_property_t* property_new_name(const char* name) {
@@ -151,9 +151,9 @@ bool property_is_device_type(const bt_property_t* property) {
   return property->type == BT_PROPERTY_TYPE_OF_DEVICE;
 }
 
-bool property_is_discovery_timeout(const bt_property_t* property) {
+bool property_is_discoverable_timeout(const bt_property_t* property) {
   CHECK(property != NULL);
-  return property->type == BT_PROPERTY_ADAPTER_DISCOVERY_TIMEOUT;
+  return property->type == BT_PROPERTY_ADAPTER_DISCOVERABLE_TIMEOUT;
 }
 
 bool property_is_name(const bt_property_t* property) {
@@ -193,8 +193,8 @@ bt_device_type_t property_as_device_type(const bt_property_t* property) {
   return *(const bt_device_type_t*)property->val;
 }
 
-uint32_t property_as_discovery_timeout(const bt_property_t* property) {
-  CHECK(property_is_discovery_timeout(property));
+uint32_t property_as_discoverable_timeout(const bt_property_t* property) {
+  CHECK(property_is_discoverable_timeout(property));
   return *(const uint32_t*)property->val;
 }
 
