@@ -19,7 +19,6 @@
 #include <hci/hci_packets.h>
 
 #include "crypto_toolbox/crypto_toolbox.h"
-#include "include/le_advertisement.h"
 #include "os/log.h"
 #include "packet/raw_builder.h"
 
@@ -32,6 +31,7 @@ using bluetooth::hci::EventCode;
 
 using namespace model::packets;
 using model::packets::PacketType;
+using namespace std::literals;
 
 namespace test_vendor_lib {
 
@@ -1834,8 +1834,7 @@ void LinkLayerController::IncomingLeScanResponsePacket(
   ASSERT(scan_response.IsValid());
   vector<uint8_t> ad = scan_response.GetData();
   auto adv_type = scan_response.GetAdvertisementType();
-  auto address_type =
-      static_cast<LeAdvertisement::AddressType>(scan_response.GetAddressType());
+  auto address_type = scan_response.GetAddressType();
   if (le_scan_enable_ == bluetooth::hci::OpCode::LE_SET_SCAN_ENABLE) {
     if (adv_type != model::packets::AdvertisementType::SCAN_RESPONSE) {
       return;
@@ -2088,11 +2087,16 @@ void LinkLayerController::Close() {
 void LinkLayerController::LeAdvertising() {
   steady_clock::time_point now = steady_clock::now();
   for (auto& advertiser : advertisers_) {
-    auto ad = advertiser.GetAdvertisement(now);
-    if (ad == nullptr) {
-      continue;
+
+    auto event = advertiser.GetEvent(now);
+    if (event != nullptr) {
+      send_event_(std::move(event));
     }
-    SendLeLinkLayerPacket(std::move(ad));
+
+    auto advertisement = advertiser.GetAdvertisement(now);
+    if (advertisement != nullptr) {
+      SendLeLinkLayerPacket(std::move(advertisement));
+    }
   }
 }
 
@@ -3023,8 +3027,10 @@ ErrorCode LinkLayerController::SetLeExtendedAdvertisingParameters(
       peer = Address::kEmpty;
       break;
     case bluetooth::hci::LegacyAdvertisingProperties::ADV_DIRECT_IND_HIGH:
-    case bluetooth::hci::LegacyAdvertisingProperties::ADV_DIRECT_IND_LOW:
       ad_type = model::packets::AdvertisementType::ADV_DIRECT_IND;
+      break;
+    case bluetooth::hci::LegacyAdvertisingProperties::ADV_DIRECT_IND_LOW:
+      ad_type = model::packets::AdvertisementType::SCAN_RESPONSE;
       break;
   }
   auto interval_ms =
@@ -3082,10 +3088,13 @@ ErrorCode LinkLayerController::SetLeExtendedAdvertisingParameters(
       break;
   }
 
-  advertisers_[set].InitializeExtended(
-      own_address_address_type, peer_address, scanning_filter_policy, ad_type,
-      std::chrono::milliseconds(interval_ms), tx_power);
-
+  advertisers_[set].InitializeExtended(set,
+                                       own_address_address_type,
+                                       peer_address,
+                                       scanning_filter_policy,
+                                       ad_type,
+                                       std::chrono::milliseconds(interval_ms),
+                                       tx_power);
   return ErrorCode::SUCCESS;
 }
 
@@ -3546,6 +3555,7 @@ uint8_t LinkLayerController::LeReadNumberOfSupportedAdvertisingSets() {
 ErrorCode LinkLayerController::SetLeExtendedAdvertisingEnable(
     bluetooth::hci::Enable enable,
     const std::vector<bluetooth::hci::EnabledSet>& enabled_sets) {
+
   for (const auto& set : enabled_sets) {
     if (set.advertising_handle_ > advertisers_.size()) {
       return ErrorCode::INVALID_HCI_COMMAND_PARAMETERS;
@@ -3554,8 +3564,7 @@ ErrorCode LinkLayerController::SetLeExtendedAdvertisingEnable(
   for (const auto& set : enabled_sets) {
     auto handle = set.advertising_handle_;
     if (enable == bluetooth::hci::Enable::ENABLED) {
-      advertisers_[handle].EnableExtended(
-          std::chrono::milliseconds(10 * set.duration_));
+      advertisers_[handle].EnableExtended(10ms * set.duration_);
     } else {
       advertisers_[handle].Disable();
     }
