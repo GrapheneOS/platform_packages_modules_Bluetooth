@@ -380,15 +380,21 @@ alarm_t* alarm_new_periodic(const char* name) {
   mock_function_count_map[__func__]++;
   return nullptr;
 }
+struct fake_osi_alarm_set_on_mloop fake_osi_alarm_set_on_mloop_;
 bool alarm_is_scheduled(const alarm_t* alarm) {
   mock_function_count_map[__func__]++;
-  return false;
+  return (fake_osi_alarm_set_on_mloop_.cb != nullptr);
 }
 uint64_t alarm_get_remaining_ms(const alarm_t* alarm) {
   mock_function_count_map[__func__]++;
   return 0;
 }
-void alarm_cancel(alarm_t* alarm) { mock_function_count_map[__func__]++; }
+void alarm_cancel(alarm_t* alarm) {
+  mock_function_count_map[__func__]++;
+  fake_osi_alarm_set_on_mloop_.interval_ms = 0;
+  fake_osi_alarm_set_on_mloop_.cb = nullptr;
+  fake_osi_alarm_set_on_mloop_.data = nullptr;
+}
 void alarm_cleanup(void) { mock_function_count_map[__func__]++; }
 void alarm_debug_dump(int fd) { mock_function_count_map[__func__]++; }
 void alarm_free(alarm_t* alarm) { mock_function_count_map[__func__]++; }
@@ -397,7 +403,6 @@ void alarm_set(alarm_t* alarm, uint64_t interval_ms, alarm_callback_t cb,
   mock_function_count_map[__func__]++;
 }
 
-struct fake_osi_alarm_set_on_mloop fake_osi_alarm_set_on_mloop_;
 void alarm_set_on_mloop(alarm_t* alarm, uint64_t interval_ms,
                         alarm_callback_t cb, void* data) {
   mock_function_count_map[__func__]++;
