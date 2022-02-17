@@ -34,7 +34,6 @@
 #include "common/time_util.h"
 #include "device/include/controller.h"
 #include "devices.h"
-#include "embdrv/lc3_dec/Api/Lc3Decoder.hpp"
 #include "embdrv/lc3/include/lc3.h"
 #include "gatt/bta_gattc_int.h"
 #include "le_audio_types.h"
@@ -175,6 +174,7 @@ class LeAudioClientImpl : public LeAudioClient {
         current_sink_codec_config({0, 0, 0, 0}),
         lc3_encoder_left_mem(nullptr),
         lc3_encoder_right_mem(nullptr),
+        lc3_decoder_mem(nullptr),
         lc3_decoder(nullptr),
         audio_source_instance_(nullptr),
         audio_sink_instance_(nullptr),
@@ -2063,8 +2063,21 @@ class LeAudioClientImpl : public LeAudioClient {
   void SendAudioData(uint8_t* data, uint16_t size) {
     /* Get only one channel for MONO microphone */
     /* Gather data for channel */
+
+    if ((active_group_id_ == bluetooth::groups::kGroupUnknown) ||
+        (audio_sender_state_ != AudioState::STARTED))
+      return;
+
+    LeAudioDeviceGroup* group = aseGroups_.FindById(active_group_id_);
+    if (!group) {
+      LOG(ERROR) << __func__ << "There is no streaming group available";
+      return;
+    }
+
+    auto stream_conf = group->stream_conf;
+
     uint16_t required_for_channel_byte_count =
-        lc3_decoder->lc3Config.getByteCountFromBitrate(32000);
+        stream_conf.source_octets_per_codec_frame;
     size_t required_byte_count = current_sink_codec_config.num_channels *
                                  required_for_channel_byte_count;
 
@@ -2074,14 +2087,36 @@ class LeAudioClientImpl : public LeAudioClient {
       return;
     }
 
-    uint8_t BEC_detect = 0;
-    std::vector<int16_t> pcm_data_decoded(lc3_decoder->lc3Config.NF, 0);
-    auto err = lc3_decoder->run(data, required_for_channel_byte_count, 0,
-                                pcm_data_decoded.data(),
-                                pcm_data_decoded.size(), BEC_detect);
+    int dt_us = current_sink_codec_config.data_interval_us;
+    int sr_hz = current_sink_codec_config.sample_rate;
+    int af_hz = audio_framework_sink_config.sample_rate;
+    LOG_ASSERT(af_hz >= sr_hz) << __func__ << " sample freq issue";
+
+    int pitch = af_hz / sr_hz;
+
+    int pcm_size;
+    if (dt_us == 10000) {
+      if (sr_hz == 44100)
+        pcm_size = 480;
+      else
+        pcm_size = sr_hz / 100;
+    } else if (dt_us == 7500) {
+      if (sr_hz == 44100)
+        pcm_size = 360;
+      else
+        pcm_size = (sr_hz * 3) / 400;
+    } else {
+      LOG(ERROR) << "BAD dt_us: " << dt_us;
+      return;
+    }
+
+    std::vector<int16_t> pcm_data_decoded(pcm_size, 0);
+
+    auto err =
+        lc3_decode(lc3_decoder, data, size, pcm_data_decoded.data(), pitch);
 
     /* TODO: How handle failing decoding ? */
-    if (err != Lc3Decoder::ERROR_FREE) {
+    if (err < 0) {
       LOG(ERROR) << " error while decoding error code: "
                  << static_cast<int>(err);
       return;
@@ -2093,17 +2128,6 @@ class LeAudioClientImpl : public LeAudioClient {
 
     /* TODO: What to do if not all data sinked ? */
     if (written != to_write) LOG(ERROR) << __func__ << ", not all data sinked";
-
-    DLOG(INFO) << __func__
-               << " num of frames: " << (int)lc3_decoder->lc3Config.NF;
-  }
-
-  static inline Lc3Config::FrameDuration Lc3ConfigFrameDuration(
-      uint32_t frame_duration_us) {
-    if (frame_duration_us == LeAudioCodecConfiguration::kInterval7500Us)
-      return Lc3Config::FrameDuration::d7p5ms;
-    else
-      return Lc3Config::FrameDuration::d10ms;
   }
 
   bool StartSendingAudio(int group_id) {
@@ -2212,12 +2236,18 @@ class LeAudioClientImpl : public LeAudioClient {
 
     if (CodecManager::GetInstance()->GetCodecLocation() ==
         le_audio::types::CodecLocation::HOST) {
-      Lc3Config lc3Config(
-          current_sink_codec_config.sample_rate,
-          Lc3ConfigFrameDuration(current_sink_codec_config.data_interval_us),
-          1);
+      if (lc3_decoder_mem) {
+        LOG(WARNING)
+            << " The decoder instance should have been already released.";
+        free(lc3_decoder_mem);
+        lc3_decoder_mem = nullptr;
+      }
 
-      lc3_decoder = new Lc3Decoder(lc3Config);
+      int dt_us = current_sink_codec_config.data_interval_us;
+      int sr_hz = current_sink_codec_config.sample_rate;
+      unsigned dec_size = lc3_decoder_size(dt_us, sr_hz);
+      lc3_decoder_mem = malloc(dec_size);
+      lc3_decoder = lc3_setup_decoder(dt_us, sr_hz, lc3_decoder_mem);
     } else if (CodecManager::GetInstance()->GetCodecLocation() ==
                le_audio::types::CodecLocation::ADSP) {
       CodecManager::GetInstance()->UpdateActiveSinkAudioConfig(*stream_conf,
@@ -2240,11 +2270,10 @@ class LeAudioClientImpl : public LeAudioClient {
       lc3_encoder_right_mem = nullptr;
     }
 
-    if (lc3_decoder) {
+    if (lc3_decoder_mem) {
       LOG(INFO) << __func__ << " stopping sink";
-
-      delete lc3_decoder;
-      lc3_decoder = nullptr;
+      free(lc3_decoder_mem);
+      lc3_decoder_mem = nullptr;
     }
   }
 
@@ -3097,7 +3126,9 @@ class LeAudioClientImpl : public LeAudioClient {
   lc3_encoder_t lc3_encoder_left;
   lc3_encoder_t lc3_encoder_right;
 
-  Lc3Decoder* lc3_decoder;
+  void* lc3_decoder_mem;
+  lc3_decoder_t lc3_decoder;
+
   std::vector<uint8_t> encoded_data;
   const void* audio_source_instance_;
   const void* audio_sink_instance_;
