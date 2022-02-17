@@ -20,6 +20,8 @@ import grpc
 from blueberry.facade.topshim import facade_pb2
 from blueberry.facade.topshim import facade_pb2_grpc
 
+from google.protobuf import empty_pb2 as empty_proto
+
 
 class AdapterAutomationHelper():
     # Timeout for async wait
@@ -59,6 +61,9 @@ class AdapterAutomationHelper():
 
     async def verify_adapter_started(self):
         await asyncio.wait_for(self.pending_future, AdapterAutomationHelper.DEFAULT_TIMEOUT)
+
+    async def clear_event_filter(self):
+        await self.adapter_stub.ClearEventFilter(empty_proto.Empty())
 
 
 class A2dpAutomationHelper():

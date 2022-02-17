@@ -3998,6 +3998,20 @@ void bta_dm_proc_open_evt(tBTA_GATTC_OPEN* p_data) {
 
 /*******************************************************************************
  *
+ * Function         bta_dm_proc_open_evt
+ *
+ * Description      process BTA_GATTC_OPEN_EVT in DM.
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
+void bta_dm_clear_event_filter(void) {
+  VLOG(1) << "bta_dm_clear_event_filter in bta_dm_act";
+  bluetooth::shim::BTM_ClearEventFilter();
+}
+
+/*******************************************************************************
+ *
  * Function         bta_dm_gattc_callback
  *
  * Description      This is GATT client callback function used in DM.

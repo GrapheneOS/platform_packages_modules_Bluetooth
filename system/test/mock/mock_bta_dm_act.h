@@ -255,6 +255,15 @@ struct bta_dm_ble_observe {
 };
 extern struct bta_dm_ble_observe bta_dm_ble_observe;
 
+// Name: bta_dm_clear_event_filter
+// Params: None
+// Return: void
+struct bta_dm_clear_event_filter {
+  std::function<void()> body{[]() {}};
+  void operator()() { body(); };
+};
+extern struct bta_dm_clear_event_filter bta_dm_clear_event_filter;
+
 // Name: bta_dm_ble_passkey_reply
 // Params: const RawAddress& bd_addr, bool accept, uint32_t passkey
 // Return: void
