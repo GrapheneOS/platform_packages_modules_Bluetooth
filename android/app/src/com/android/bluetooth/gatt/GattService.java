@@ -3444,7 +3444,7 @@ public class GattService extends ProfileService {
             return new ArrayList<>(0);
         }
         List<ParcelUuid> serviceUuids = new ArrayList<ParcelUuid>();
-        for (HandleMap.Entry entry : mHandleMap.mEntries) {
+        for (HandleMap.Entry entry : mHandleMap.getEntries()) {
             serviceUuids.add(new ParcelUuid(entry.uuid));
         }
         return serviceUuids;
