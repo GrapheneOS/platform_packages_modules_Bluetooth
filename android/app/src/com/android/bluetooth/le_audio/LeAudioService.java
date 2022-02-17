@@ -66,6 +66,9 @@ public class LeAudioService extends ProfileService {
     private static final boolean DBG = true;
     private static final String TAG = "LeAudioService";
 
+    // Timeout for state machine thread join, to prevent potential ANR.
+    private static final int SM_THREAD_JOIN_TIMEOUT_MS = 1000;
+
     // Upper limit of all LeAudio devices: Bonded or Connected
     private static final int MAX_LE_AUDIO_STATE_MACHINES = 10;
     private static LeAudioService sLeAudioService;
@@ -262,7 +265,7 @@ public class LeAudioService extends ProfileService {
         if (mStateMachinesThread != null) {
             try {
                 mStateMachinesThread.quitSafely();
-                mStateMachinesThread.join();
+                mStateMachinesThread.join(SM_THREAD_JOIN_TIMEOUT_MS);
                 mStateMachinesThread = null;
             } catch (InterruptedException e) {
                 // Do not rethrow as we are shutting down anyway
