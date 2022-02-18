@@ -21,6 +21,7 @@
 #include <hardware/bt_le_audio.h>
 
 #include "audio_hal_interface/hal_version_manager.h"
+#include "bta_le_audio_api.h"
 #include "bta_le_audio_broadcaster_api.h"
 #include "btif_common.h"
 #include "stack/include/btu.h"
@@ -46,8 +47,7 @@ class LeAudioBroadcasterInterfaceImpl : public LeAudioBroadcasterInterface,
     do_in_main_thread(
         FROM_HERE,
         Bind(&LeAudioBroadcaster::Initialize, this, base::Bind([]() -> bool {
-          return bluetooth::audio::HalVersionManager::GetHalVersion() ==
-                 bluetooth::audio::BluetoothAudioHalVersion::VERSION_2_1;
+          return LeAudioHalVerifier::SupportsLeAudioBroadcast();
         })));
   }
 
