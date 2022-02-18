@@ -671,7 +671,7 @@ void l2cble_process_sig_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
         con_info.l2cap_result = L2CAP_LE_RESULT_INVALID_PARAMETERS;
         l2c_csm_execute(p_ccb, L2CEVT_L2CAP_CREDIT_BASED_CONNECT_RSP_NEG,
                         &con_info);
-        break;
+        return;
       }
 
       /* At least some of the channels has been created and parameters are
@@ -698,8 +698,27 @@ void l2cble_process_sig_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
 
       for (int i = 0; i < p_lcb->pending_ecoc_conn_cnt; i++) {
         uint16_t cid = p_lcb->pending_ecoc_connection_cids[i];
+        STREAM_TO_UINT16(rcid, p);
+        /* if duplicated remote cid then disconnect original channel
+         * and current channel by sending event to upper layer */
+        temp_p_ccb = l2cu_find_ccb_by_remote_cid(p_lcb, rcid);
+        if (temp_p_ccb != nullptr) {
+          L2CAP_TRACE_ERROR(
+              "Already Allocated Destination cid. "
+              "rcid = %d "
+              "send peer_disc_req", rcid);
+
+          l2cu_send_peer_disc_req(temp_p_ccb);
+
+          temp_p_ccb = l2cu_find_ccb_by_cid(p_lcb, cid);
+          con_info.l2cap_result = L2CAP_LE_RESULT_UNACCEPTABLE_PARAMETERS;
+          l2c_csm_execute(temp_p_ccb, L2CEVT_L2CAP_CREDIT_BASED_CONNECT_RSP_NEG,
+                          &con_info);
+          continue;
+        }
+
         temp_p_ccb = l2cu_find_ccb_by_cid(p_lcb, cid);
-        STREAM_TO_UINT16(temp_p_ccb->remote_cid, p);
+        temp_p_ccb->remote_cid = rcid;
 
         L2CAP_TRACE_DEBUG(
             "local cid = %d "
