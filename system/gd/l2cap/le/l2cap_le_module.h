@@ -39,6 +39,9 @@ namespace le {
 class L2capLeModule : public bluetooth::Module {
  public:
   L2capLeModule();
+  L2capLeModule(const L2capLeModule&) = delete;
+  L2capLeModule& operator=(const L2capLeModule&) = delete;
+
   virtual ~L2capLeModule();
 
   /**
@@ -81,8 +84,6 @@ class L2capLeModule : public bluetooth::Module {
    * This is not synchronized.
    */
   virtual void SetLinkPropertyListener(os::Handler* handler, LinkPropertyListener* listener);
-
-  DISALLOW_COPY_AND_ASSIGN(L2capLeModule);
 };
 
 }  // namespace le

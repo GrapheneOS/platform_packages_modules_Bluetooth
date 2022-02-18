@@ -36,6 +36,9 @@ class DynamicChannelImpl : public l2cap::internal::ChannelImpl {
  public:
   DynamicChannelImpl(Psm psm, Cid cid, Cid remote_cid, l2cap::internal::ILink* link, os::Handler* l2cap_handler);
 
+  DynamicChannelImpl(const DynamicChannelImpl&) = delete;
+  DynamicChannelImpl& operator=(const DynamicChannelImpl&) = delete;
+
   virtual ~DynamicChannelImpl() = default;
 
   hci::AddressWithType GetDevice() const;
@@ -90,8 +93,6 @@ class DynamicChannelImpl : public l2cap::internal::ChannelImpl {
   static constexpr size_t kChannelQueueSize = 5;
   common::BidiQueue<packet::PacketView<packet::kLittleEndian>, packet::BasePacketBuilder> channel_queue_{
       kChannelQueueSize};
-
-  DISALLOW_COPY_AND_ASSIGN(DynamicChannelImpl);
 };
 
 }  // namespace internal

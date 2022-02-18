@@ -99,6 +99,9 @@ class EattChannel {
 class EattExtension {
  public:
   EattExtension();
+  EattExtension(const EattExtension&) = delete;
+  EattExtension& operator=(const EattExtension&) = delete;
+
   virtual ~EattExtension();
 
   static EattExtension* GetInstance() {
@@ -277,8 +280,6 @@ class EattExtension {
  private:
   struct impl;
   std::unique_ptr<impl> pimpl_;
-
-  DISALLOW_COPY_AND_ASSIGN(EattExtension);
 };
 
 }  // namespace eatt

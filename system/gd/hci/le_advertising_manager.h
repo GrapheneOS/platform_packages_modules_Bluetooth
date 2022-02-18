@@ -102,6 +102,8 @@ class LeAdvertisingManager : public bluetooth::Module {
   static constexpr uint16_t kLeMaximumFragmentLength = 251;
   static constexpr FragmentPreference kFragment_preference = FragmentPreference::CONTROLLER_SHOULD_NOT;
   LeAdvertisingManager();
+  LeAdvertisingManager(const LeAdvertisingManager&) = delete;
+  LeAdvertisingManager& operator=(const LeAdvertisingManager&) = delete;
 
   size_t GetNumberOfAdvertisingInstances() const;
 
@@ -153,7 +155,6 @@ class LeAdvertisingManager : public bluetooth::Module {
       os::Handler* handler);
   struct impl;
   std::unique_ptr<impl> pimpl_;
-  DISALLOW_COPY_AND_ASSIGN(LeAdvertisingManager);
 };
 
 }  // namespace hci

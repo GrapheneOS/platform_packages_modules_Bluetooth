@@ -30,6 +30,9 @@ namespace security {
 class UIMock : public UI {
  public:
   UIMock() = default;
+  UIMock(const UIMock&) = delete;
+  UIMock& operator=(const UIMock&) = delete;
+
   ~UIMock() = default;
 
   // Convert these to accept ConfirmationData
@@ -40,9 +43,6 @@ class UIMock : public UI {
   MOCK_METHOD1(DisplayEnterPasskeyDialog, void(ConfirmationData));
   MOCK_METHOD1(DisplayPasskey, void(ConfirmationData));
   MOCK_METHOD1(DisplayEnterPinDialog, void(ConfirmationData));
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(UIMock);
 };
 
 class LeSecurityInterfaceMock : public hci::LeSecurityInterface {

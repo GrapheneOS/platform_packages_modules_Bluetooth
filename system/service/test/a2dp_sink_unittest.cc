@@ -32,15 +32,15 @@ class MockA2dpSinkHandler
     : public hal::FakeBluetoothAvInterface::TestA2dpSinkHandler {
  public:
   MockA2dpSinkHandler() = default;
+  MockA2dpSinkHandler(const MockA2dpSinkHandler&) = delete;
+  MockA2dpSinkHandler& operator=(const MockA2dpSinkHandler&) = delete;
+
   ~MockA2dpSinkHandler() override = default;
 
   MOCK_METHOD1(Connect, bt_status_t(RawAddress));
   MOCK_METHOD1(Disconnect, bt_status_t(RawAddress));
   MOCK_METHOD1(SetAudioFocusState, void(int));
   MOCK_METHOD1(SetAudioTrackGain, void(float));
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(MockA2dpSinkHandler);
 };
 
 class TestDelegate : public A2dpSink::Delegate {
@@ -89,6 +89,9 @@ class TestDelegate : public A2dpSink::Delegate {
 class A2dpSinkTest : public ::testing::Test {
  public:
   A2dpSinkTest() = default;
+  A2dpSinkTest(const A2dpSinkTest&) = delete;
+  A2dpSinkTest& operator=(const A2dpSinkTest&) = delete;
+
   ~A2dpSinkTest() override = default;
 
   void SetUp() override {
@@ -107,14 +110,14 @@ class A2dpSinkTest : public ::testing::Test {
   hal::FakeBluetoothAvInterface* fake_hal_av_iface_;
   std::shared_ptr<MockA2dpSinkHandler> mock_handler_;
   std::unique_ptr<A2dpSinkFactory> factory_;
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(A2dpSinkTest);
 };
 
 class A2dpSinkPostRegisterTest : public A2dpSinkTest {
  public:
   A2dpSinkPostRegisterTest() = default;
+  A2dpSinkPostRegisterTest(const A2dpSinkPostRegisterTest&) = delete;
+  A2dpSinkPostRegisterTest& operator=(const A2dpSinkPostRegisterTest&) = delete;
+
   ~A2dpSinkPostRegisterTest() override = default;
 
   void SetUp() override {
@@ -160,9 +163,6 @@ class A2dpSinkPostRegisterTest : public A2dpSinkTest {
   }
 
   std::unique_ptr<A2dpSink> a2dp_sink_;
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(A2dpSinkPostRegisterTest);
 };
 
 TEST_F(A2dpSinkTest, RegisterA2dpSink) {

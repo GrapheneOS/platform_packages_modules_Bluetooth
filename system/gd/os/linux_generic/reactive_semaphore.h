@@ -26,14 +26,16 @@ class ReactiveSemaphore {
  public:
   // Creates a new ReactiveSemaphore with an initial value of |value|.
   explicit ReactiveSemaphore(unsigned int value);
+
+  ReactiveSemaphore(const ReactiveSemaphore&) = delete;
+  ReactiveSemaphore& operator=(const ReactiveSemaphore&) = delete;
+
   ~ReactiveSemaphore();
   // Decrements the value of |fd_|, this will cause a crash if |fd_| unreadable.
   void Decrease();
   // Increase the value of |fd_|, this will cause a crash if |fd_| unwritable.
   void Increase();
   int GetFd();
-
-  DISALLOW_COPY_AND_ASSIGN(ReactiveSemaphore);
 
  private:
   int fd_;

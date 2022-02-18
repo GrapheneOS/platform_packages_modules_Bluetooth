@@ -29,6 +29,9 @@ class ConnectabilityModule : public bluetooth::Module {
   bool IsConnectable() const;
 
   ConnectabilityModule();
+  ConnectabilityModule(const ConnectabilityModule&) = delete;
+  ConnectabilityModule& operator=(const ConnectabilityModule&) = delete;
+
   ~ConnectabilityModule();
 
   static const ModuleFactory Factory;
@@ -44,8 +47,6 @@ class ConnectabilityModule : public bluetooth::Module {
  private:
   struct impl;
   std::unique_ptr<impl> pimpl_;
-
-  DISALLOW_COPY_AND_ASSIGN(ConnectabilityModule);
 };
 
 }  // namespace neighbor

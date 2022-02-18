@@ -56,6 +56,9 @@ class LinkManager : public hci::acl_manager::LeConnectionCallbacks {
     acl_manager_->RegisterLeCallbacks(this, l2cap_handler_);
   }
 
+  LinkManager(const LinkManager&) = delete;
+  LinkManager& operator=(const LinkManager&) = delete;
+
   struct PendingFixedChannelConnection {
     os::Handler* handler_;
     FixedChannelManager::OnConnectionFailureCallback on_fail_callback_;
@@ -116,8 +119,6 @@ class LinkManager : public hci::acl_manager::LeConnectionCallbacks {
   LinkPropertyListener* link_property_listener_ = nullptr;
   std::unordered_set<hci::AddressWithType> disconnected_links_;
   std::unordered_set<hci::AddressWithType> links_with_pending_packets_;
-
-  DISALLOW_COPY_AND_ASSIGN(LinkManager);
 };
 
 }  // namespace internal
