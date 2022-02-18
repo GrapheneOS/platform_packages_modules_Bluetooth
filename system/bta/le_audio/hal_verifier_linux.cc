@@ -18,3 +18,4 @@
 
 bool LeAudioHalVerifier::SupportsLeAudio() { return false; }
 bool LeAudioHalVerifier::SupportsLeAudioHardwareOffload() { return false; }
+bool LeAudioHalVerifier::SupportsLeAudioBroadcast() { return false; }
