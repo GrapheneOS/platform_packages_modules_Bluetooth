@@ -1096,7 +1096,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     LOG_ASSERT(ase) << __func__ << " shouldn't be called without an active ASE";
     do {
       conf.ase_id = ase->id;
-      conf.target_latency = group->GetTargetLatency();
+      conf.target_latency = ase->target_latency;
       conf.target_phy = group->GetTargetPhy(ase->direction);
       conf.codec_id = ase->codec_id;
       conf.codec_config = ase->codec_config;

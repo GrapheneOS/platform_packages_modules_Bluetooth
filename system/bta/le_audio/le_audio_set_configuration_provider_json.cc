@@ -199,9 +199,19 @@ struct AudioSetConfigurationProviderJson {
             ? static_cast<types::LeAudioConfigurationStrategy>(strategy_int)
             : types::LeAudioConfigurationStrategy::RFU;
 
+    auto target_latency_int =
+        static_cast<int>(flat_subconfig->target_latency());
+
+    bool valid_target_latency =
+        (target_latency_int >= (int)types::kTargetLatencyLower &&
+         target_latency_int <= (int)types::kTargetLatencyHigherReliability);
+
+    uint8_t target_latency =
+        valid_target_latency ? static_cast<uint8_t>(target_latency_int)
+                             : types::kTargetLatencyBalancedLatencyReliability;
     return SetConfiguration(
         flat_subconfig->direction(), flat_subconfig->device_cnt(),
-        flat_subconfig->ase_cnt(),
+        flat_subconfig->ase_cnt(), target_latency,
         CodecCapabilitySettingFromFlat(flat_subconfig->codec_id(),
                                        flat_subconfig->codec_configuration()),
         strategy);
