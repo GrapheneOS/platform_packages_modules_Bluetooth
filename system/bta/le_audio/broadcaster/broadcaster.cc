@@ -134,7 +134,7 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
                 .vendor_codec_id = codec_id.vendor_codec_id,
                 .codec_specific_params = std::move(codec_spec_data),
             },
-        .metadata = metadata,
+        .metadata = std::move(metadata),
         .bis_configs = {},
     }};
 
