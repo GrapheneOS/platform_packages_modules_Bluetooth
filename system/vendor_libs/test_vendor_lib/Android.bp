@@ -84,7 +84,6 @@ cc_library_static {
     ],
     static_libs: [
         "libjsoncpp",
-        "libbt-rootcanal-types",
         "libscriptedbeaconpayload-protos-lite",
     ],
 }
@@ -127,7 +126,6 @@ cc_test_host {
         "liblog",
     ],
     static_libs: [
-        "libbt-rootcanal-types",
         "libbt-rootcanal",
     ],
     cflags: [
@@ -174,7 +172,6 @@ cc_binary_host {
     ],
     static_libs: [
         "libjsoncpp",
-        "libbt-rootcanal-types",
         "libprotobuf-cpp-lite",
         "libscriptedbeaconpayload-protos-lite",
         "libbt-rootcanal",
