@@ -67,15 +67,10 @@ constexpr SnoopLogger::FileHeaderType kBtSnoopFileHeader = {
 // the relevant system property
 constexpr size_t kDefaultBtSnoopMaxPacketsPerFile = 0xffff;
 
-// We want to use at most 256 KB memory for btsnooz log
-constexpr size_t kDefaultBtsnoozMaxMemoryUsageBytes = 256 * 1024;
 // We restrict the maximum packet size to 150 bytes
 constexpr size_t kDefaultBtSnoozMaxBytesPerPacket = 150;
 constexpr size_t kDefaultBtSnoozMaxPayloadBytesPerPacket =
     kDefaultBtSnoozMaxBytesPerPacket - sizeof(SnoopLogger::PacketHeaderType);
-// Calculate max number of packets based on max memory usage and max packet size
-constexpr size_t kDefaultBtSnoozMaxPacketsPerBuffer =
-    kDefaultBtsnoozMaxMemoryUsageBytes / kDefaultBtSnoozMaxBytesPerPacket;
 
 using namespace std::chrono_literals;
 constexpr std::chrono::hours kBtSnoozLogLifeTime = 12h;
@@ -190,13 +185,14 @@ SnoopLogger::SnoopLogger(
     std::string snoop_log_path,
     std::string snooz_log_path,
     size_t max_packets_per_file,
+    size_t max_packets_per_buffer,
     const std::string& btsnoop_mode,
     const std::chrono::milliseconds snooz_log_life_time,
     const std::chrono::milliseconds snooz_log_delete_alarm_interval)
     : snoop_log_path_(std::move(snoop_log_path)),
       snooz_log_path_(std::move(snooz_log_path)),
       max_packets_per_file_(max_packets_per_file),
-      btsnooz_buffer_(kDefaultBtSnoozMaxPacketsPerBuffer),
+      btsnooz_buffer_(max_packets_per_buffer),
       snooz_log_life_time_(snooz_log_life_time),
       snooz_log_delete_alarm_interval_(snooz_log_delete_alarm_interval) {
   if (false && btsnoop_mode == kBtSnoopLogModeFiltered) {
@@ -419,6 +415,16 @@ size_t SnoopLogger::GetMaxPacketsPerFile() {
   return max_packets_per_file;
 }
 
+size_t SnoopLogger::GetMaxPacketsPerBuffer() {
+  // We want to use at most 256 KB memory for btsnooz log for release builds
+  // and 512 KB memory for userdebug/eng builds
+  auto is_debuggable = os::GetSystemProperty(kIsDebuggableProperty);
+  size_t btsnooz_max_memory_usage_bytes =
+      ((is_debuggable.has_value() && common::StringTrim(is_debuggable.value()) == "1") ? 512 : 256) * 1024;
+  // Calculate max number of packets based on max memory usage and max packet size
+  return btsnooz_max_memory_usage_bytes / kDefaultBtSnoozMaxBytesPerPacket;
+}
+
 std::string SnoopLogger::GetBtSnoopMode() {
   // Default mode is DISABLED on user build.
   // In userdebug/eng build, it can also be overwritten by modifying the global setting
@@ -449,6 +455,7 @@ const ModuleFactory SnoopLogger::Factory = ModuleFactory([]() {
       os::ParameterProvider::SnoopLogFilePath(),
       os::ParameterProvider::SnoozLogFilePath(),
       GetMaxPacketsPerFile(),
+      GetMaxPacketsPerBuffer(),
       GetBtSnoopMode(),
       kBtSnoozLogLifeTime,
       kBtSnoozLogDeleteRepeatingAlarmInterval);
