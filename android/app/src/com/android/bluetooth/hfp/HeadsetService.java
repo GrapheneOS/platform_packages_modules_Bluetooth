@@ -100,6 +100,9 @@ public class HeadsetService extends ProfileService {
             {BluetoothProfile.STATE_CONNECTING, BluetoothProfile.STATE_CONNECTED};
     private static final int DIALING_OUT_TIMEOUT_MS = 10000;
 
+    // Timeout for state machine thread join, to prevent potential ANR.
+    private static final int SM_THREAD_JOIN_TIMEOUT_MS = 1000;
+
     private int mMaxHeadsetConnections = 1;
     private BluetoothDevice mActiveDevice;
     private AdapterService mAdapterService;
@@ -239,7 +242,7 @@ public class HeadsetService extends ProfileService {
         // Step 2: Stop handler thread
         try {
             mStateMachinesThread.quitSafely();
-            mStateMachinesThread.join();
+            mStateMachinesThread.join(SM_THREAD_JOIN_TIMEOUT_MS);
             mStateMachinesThread = null;
         } catch (InterruptedException e) {
             // Do not rethrow as we are shutting down anyway

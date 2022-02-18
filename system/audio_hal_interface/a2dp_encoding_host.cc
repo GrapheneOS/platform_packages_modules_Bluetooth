@@ -244,8 +244,7 @@ void end_session() {
   remote_delay_report_ = 0;
 }
 
-bool set_audio_low_latency_mode_allowed(bool allowed){
-  return true;
+void set_audio_low_latency_mode_allowed(bool allowed){
 }
 
 

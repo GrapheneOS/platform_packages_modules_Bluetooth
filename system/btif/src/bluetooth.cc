@@ -262,7 +262,7 @@ static int set_adapter_property(const bt_property_t* property) {
   switch (property->type) {
     case BT_PROPERTY_BDNAME:
     case BT_PROPERTY_ADAPTER_SCAN_MODE:
-    case BT_PROPERTY_ADAPTER_DISCOVERY_TIMEOUT:
+    case BT_PROPERTY_ADAPTER_DISCOVERABLE_TIMEOUT:
     case BT_PROPERTY_CLASS_OF_DEVICE:
     case BT_PROPERTY_LOCAL_IO_CAPS:
     case BT_PROPERTY_LOCAL_IO_CAPS_BLE:
@@ -620,7 +620,8 @@ static int set_dynamic_audio_buffer_size(int codec, int size) {
 
 static bool allow_low_latency_audio(bool allowed, const RawAddress& address) {
   LOG_INFO("%s %s", __func__, allowed ? "true" : "false");
-  return bluetooth::audio::a2dp::set_audio_low_latency_mode_allowed(allowed);
+  bluetooth::audio::a2dp::set_audio_low_latency_mode_allowed(allowed);
+  return true;
 }
 
 EXPORT_SYMBOL bt_interface_t bluetoothInterface = {

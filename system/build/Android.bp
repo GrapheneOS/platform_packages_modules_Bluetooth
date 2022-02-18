@@ -120,8 +120,6 @@ fluoride_defaults {
                 "android.hardware.bluetooth@1.0",
                 "android.hardware.bluetooth@1.1",
                 "libcutils",
-                "libgrpc++",
-                "libgrpc_wrap",
                 "libhidlbase",
                 "libstatslog_bt",
                 "libutils",
