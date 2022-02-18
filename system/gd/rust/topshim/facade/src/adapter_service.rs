@@ -3,7 +3,6 @@
 use bt_topshim::btif;
 use bt_topshim::btif::{BaseCallbacks, BaseCallbacksDispatcher, BluetoothInterface};
 
-use bt_topshim_facade_protobuf::empty::Empty;
 use bt_topshim_facade_protobuf::facade::{
     EventType, FetchEventsRequest, FetchEventsResponse, SetDiscoveryModeRequest,
     SetDiscoveryModeResponse, ToggleStackRequest, ToggleStackResponse,
@@ -117,13 +116,6 @@ impl AdapterService for AdapterServiceImpl {
 
         ctx.spawn(async move {
             sink.success(SetDiscoveryModeResponse::default()).await.unwrap();
-        })
-    }
-
-    fn clear_event_filter(&mut self, ctx: RpcContext<'_>, _req: Empty, sink: UnarySink<Empty>) {
-        self.btif_intf.lock().unwrap().clear_event_filter();
-        ctx.spawn(async move {
-            sink.success(Empty::default()).await.unwrap();
         })
     }
 }
