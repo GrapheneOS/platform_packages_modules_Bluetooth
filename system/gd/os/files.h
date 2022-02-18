@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <chrono>
 #include <iterator>
 #include <optional>
 
@@ -44,6 +45,10 @@ bool WriteToFile(const std::string& path, const std::string& data);
 // Print error log when file is failed to be removed, hence user should make sure file exists before calling this
 // Return true on success, false on failure (e.g. file not exist, failed to remove, etc)
 bool RemoveFile(const std::string& path);
+
+// Returns created time_point of given file, return std::nullopt on failure
+std::optional<std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds>> FileCreatedTime(
+    const std::string& path);
 
 }  // namespace os
 }  // namespace bluetooth
