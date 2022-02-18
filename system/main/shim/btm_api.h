@@ -1840,6 +1840,17 @@ bool BTM_BleLocalPrivacyEnabled(void);
  ******************************************************************************/
 tBTM_STATUS BTM_BleGetEnergyInfo(tBTM_BLE_ENERGY_INFO_CBACK* p_ener_cback);
 
+/*******************************************************************************
+ *
+ * Function         BTM_ClearEventFilter
+ *
+ * Description      Clears the event filter in the controller
+ *
+ * Returns          Return btm status
+ *
+ ******************************************************************************/
+tBTM_STATUS BTM_ClearEventFilter(void);
+
 /**
  * Send remote name request to GD shim Name module
  */

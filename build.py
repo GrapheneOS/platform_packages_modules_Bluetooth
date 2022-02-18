@@ -333,7 +333,7 @@ class HostBuild():
             'libbase_ver': self._get_basever(),
             'enable_exceptions': os.environ.get('CXXEXCEPTIONS', 0) == '1',
             'external_cflags': [],
-            'external_cxxflags': [],
+            'external_cxxflags': ["-DNDEBUG"],
             'enable_werror': False,
         }
 

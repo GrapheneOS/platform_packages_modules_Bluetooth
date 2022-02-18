@@ -149,6 +149,8 @@ static bool allow_low_latency_audio(bool allowed, const RawAddress& address) {
   return true;
 }
 
+static int clear_event_filter(void) { return 0; }
+
 EXPORT_SYMBOL bt_interface_t bluetoothInterface = {
     sizeof(bluetoothInterface),
     init,
@@ -188,7 +190,8 @@ EXPORT_SYMBOL bt_interface_t bluetoothInterface = {
     get_metric_id,
     set_dynamic_audio_buffer_size,
     generate_local_oob_data,
-    allow_low_latency_audio};
+    allow_low_latency_audio,
+    clear_event_filter};
 
 // callback reporting helpers
 

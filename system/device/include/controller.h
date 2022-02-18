@@ -114,6 +114,7 @@ typedef struct controller_t {
   void (*set_ble_resolving_list_max_size)(int resolving_list_max_size);
   uint8_t* (*get_local_supported_codecs)(uint8_t* number_of_codecs);
   uint8_t (*get_le_all_initiating_phys)(void);
+  uint8_t (*clear_event_filter)(void);
 
 } controller_t;
 
