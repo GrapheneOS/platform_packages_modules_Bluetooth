@@ -62,7 +62,13 @@ class TestSnoopLoggerModule : public SnoopLogger {
       size_t max_packets_per_file,
       const std::string& btsnoop_mode)
       : SnoopLogger(
-            std::move(snoop_log_path), std::move(snooz_log_path), max_packets_per_file, btsnoop_mode, 20ms, 5ms) {}
+            std::move(snoop_log_path),
+            std::move(snooz_log_path),
+            max_packets_per_file,
+            SnoopLogger::GetMaxPacketsPerBuffer(),
+            btsnoop_mode,
+            20ms,
+            5ms) {}
 
   std::string ToString() const override {
     return std::string("TestSnoopLoggerModule");
