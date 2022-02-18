@@ -36,10 +36,11 @@ class Alarm {
   // Create and register a single-shot alarm on a given handler
   explicit Alarm(Handler* handler);
 
+  Alarm(const Alarm&) = delete;
+  Alarm& operator=(const Alarm&) = delete;
+
   // Unregister this alarm from the thread and release resource
   ~Alarm();
-
-  DISALLOW_COPY_AND_ASSIGN(Alarm);
 
   // Schedule the alarm with given delay
   void Schedule(common::OnceClosure task, std::chrono::milliseconds delay);

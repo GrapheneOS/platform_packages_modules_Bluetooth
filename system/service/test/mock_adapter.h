@@ -26,6 +26,9 @@ namespace testing {
 class MockAdapter : public Adapter {
  public:
   MockAdapter() = default;
+  MockAdapter(const MockAdapter&) = delete;
+  MockAdapter& operator=(const MockAdapter&) = delete;
+
   ~MockAdapter() override = default;
 
   MOCK_METHOD1(AddObserver, void(Observer*));
@@ -60,9 +63,6 @@ class MockAdapter : public Adapter {
   MOCK_CONST_METHOD0(GetLeScannerFactory, LowEnergyScannerFactory*());
   MOCK_CONST_METHOD0(GetGattClientFactory, GattClientFactory*());
   MOCK_CONST_METHOD0(GetGattServerFactory, GattServerFactory*());
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(MockAdapter);
 };
 
 }  // namespace testing

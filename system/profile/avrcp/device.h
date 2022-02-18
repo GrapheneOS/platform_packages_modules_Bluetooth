@@ -65,6 +65,10 @@ class Device {
                           std::unique_ptr<::bluetooth::PacketBuilder> message)>
           send_msg_cb,
       uint16_t ctrl_mtu, uint16_t browse_mtu);
+
+  Device(const Device&) = delete;
+  Device& operator=(const Device&) = delete;
+
   virtual ~Device() = default;
 
   /**
@@ -339,7 +343,6 @@ class Device {
   std::set<uint8_t> active_labels_;
 
   int8_t volume_ = -1;
-  DISALLOW_COPY_AND_ASSIGN(Device);
 };
 
 }  // namespace avrcp

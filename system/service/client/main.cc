@@ -20,7 +20,6 @@
 #include <base/at_exit.h>
 #include <base/command_line.h>
 #include <base/logging.h>
-#include <base/macros.h>
 #include <base/strings/string_number_conversions.h>
 #include <base/strings/string_split.h>
 #include <base/strings/string_util.h>
@@ -147,6 +146,8 @@ inline void EndAsyncOut() {
 class CLIBluetoothCallback : public android::bluetooth::BnBluetoothCallback {
  public:
   CLIBluetoothCallback() = default;
+  CLIBluetoothCallback(const CLIBluetoothCallback&) = delete;
+  CLIBluetoothCallback& operator=(const CLIBluetoothCallback&) = delete;
   ~CLIBluetoothCallback() override = default;
 
   // IBluetoothCallback overrides:
@@ -216,15 +217,15 @@ class CLIBluetoothCallback : public android::bluetooth::BnBluetoothCallback {
     // no-op
     return Status::ok();
   }
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(CLIBluetoothCallback);
 };
 
 class CLIBluetoothLowEnergyCallback
     : public android::bluetooth::BnBluetoothLowEnergyCallback {
  public:
   CLIBluetoothLowEnergyCallback() = default;
+  CLIBluetoothLowEnergyCallback(const CLIBluetoothLowEnergyCallback&) = delete;
+  CLIBluetoothLowEnergyCallback& operator=(
+      const CLIBluetoothLowEnergyCallback&) = delete;
   ~CLIBluetoothLowEnergyCallback() override = default;
 
   // IBluetoothLowEnergyCallback overrides:
@@ -262,15 +263,16 @@ class CLIBluetoothLowEnergyCallback
     EndAsyncOut();
     return Status::ok();
   }
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(CLIBluetoothLowEnergyCallback);
 };
 
 class CLIBluetoothLeAdvertiserCallback
     : public android::bluetooth::BnBluetoothLeAdvertiserCallback {
  public:
   CLIBluetoothLeAdvertiserCallback() = default;
+  CLIBluetoothLeAdvertiserCallback(const CLIBluetoothLeAdvertiserCallback&) =
+      delete;
+  CLIBluetoothLeAdvertiserCallback& operator=(
+      const CLIBluetoothLeAdvertiserCallback&) = delete;
   ~CLIBluetoothLeAdvertiserCallback() override = default;
 
   // IBluetoothLowEnergyCallback overrides:
@@ -299,15 +301,15 @@ class CLIBluetoothLeAdvertiserCallback
     EndAsyncOut();
     return Status::ok();
   }
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(CLIBluetoothLeAdvertiserCallback);
 };
 
 class CLIBluetoothLeScannerCallback
     : public android::bluetooth::BnBluetoothLeScannerCallback {
  public:
   CLIBluetoothLeScannerCallback() = default;
+  CLIBluetoothLeScannerCallback(const CLIBluetoothLeScannerCallback&) = delete;
+  CLIBluetoothLeScannerCallback& operator=(
+      const CLIBluetoothLeScannerCallback&) = delete;
   ~CLIBluetoothLeScannerCallback() override = default;
 
   // IBluetoothLowEnergyCallback overrides:
@@ -341,15 +343,14 @@ class CLIBluetoothLeScannerCallback
     EndAsyncOut();
     return Status::ok();
   }
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(CLIBluetoothLeScannerCallback);
 };
 
 class CLIGattClientCallback
     : public android::bluetooth::BnBluetoothGattClientCallback {
  public:
   CLIGattClientCallback() = default;
+  CLIGattClientCallback(const CLIGattClientCallback&) = delete;
+  CLIGattClientCallback& operator=(const CLIGattClientCallback&) = delete;
   ~CLIGattClientCallback() override = default;
 
   // IBluetoothGattClientCallback overrides:
@@ -367,9 +368,6 @@ class CLIGattClientCallback
     gatt_registering = false;
     return Status::ok();
   }
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(CLIGattClientCallback);
 };
 
 void PrintCommandStatus(bool status) { PrintOpStatus("Command", status); }
@@ -1051,6 +1049,8 @@ bool ExecuteCommand(const sp<IBluetooth>& bt_iface, std::string& command) {
 class BluetoothDeathRecipient : public android::IBinder::DeathRecipient {
  public:
   BluetoothDeathRecipient() = default;
+  BluetoothDeathRecipient(const BluetoothDeathRecipient&) = delete;
+  BluetoothDeathRecipient& operator=(const BluetoothDeathRecipient&) = delete;
   ~BluetoothDeathRecipient() override = default;
 
   // android::IBinder::DeathRecipient override:
@@ -1063,9 +1063,6 @@ class BluetoothDeathRecipient : public android::IBinder::DeathRecipient {
     android::IPCThreadState::self()->stopProcess();
     should_exit = true;
   }
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(BluetoothDeathRecipient);
 };
 
 int main(int argc, char* argv[]) {

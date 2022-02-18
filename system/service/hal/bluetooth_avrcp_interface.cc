@@ -490,6 +490,10 @@ class BluetoothAvrcpInterfaceImpl : public BluetoothAvrcpInterface {
  public:
   BluetoothAvrcpInterfaceImpl() : control_iface_(nullptr) {}
 
+  BluetoothAvrcpInterfaceImpl(const BluetoothAvrcpInterfaceImpl&) = delete;
+  BluetoothAvrcpInterfaceImpl& operator=(const BluetoothAvrcpInterfaceImpl&) =
+      delete;
+
   ~BluetoothAvrcpInterfaceImpl() override {
     if (control_iface_) control_iface_->cleanup();
   }
@@ -614,8 +618,6 @@ class BluetoothAvrcpInterfaceImpl : public BluetoothAvrcpInterface {
 
   bool control_enabled_ = false;
   bool target_enabled_ = false;
-
-  DISALLOW_COPY_AND_ASSIGN(BluetoothAvrcpInterfaceImpl);
 };
 
 namespace {

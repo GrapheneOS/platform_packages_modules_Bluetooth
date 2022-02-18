@@ -16,7 +16,6 @@
 
 #include "service/low_energy_client.h"
 
-#include <base/macros.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
@@ -40,6 +39,9 @@ class MockGattHandler
     : public hal::FakeBluetoothGattInterface::TestClientHandler {
  public:
   MockGattHandler(){};
+  MockGattHandler(const MockGattHandler&) = delete;
+  MockGattHandler& operator=(const MockGattHandler&) = delete;
+
   ~MockGattHandler() override = default;
 
   MOCK_METHOD2(RegisterClient,
@@ -47,14 +49,14 @@ class MockGattHandler
   MOCK_METHOD1(UnregisterClient, bt_status_t(int));
   MOCK_METHOD4(Connect, bt_status_t(int, const RawAddress&, bool, int));
   MOCK_METHOD3(Disconnect, bt_status_t(int, const RawAddress&, int));
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(MockGattHandler);
 };
 
 class TestDelegate : public LowEnergyClient::Delegate {
  public:
   TestDelegate() : connection_state_count_(0), last_mtu_(0) {}
+
+  TestDelegate(const TestDelegate&) = delete;
+  TestDelegate& operator=(const TestDelegate&) = delete;
 
   ~TestDelegate() override = default;
 
@@ -76,13 +78,14 @@ class TestDelegate : public LowEnergyClient::Delegate {
   int connection_state_count_;
 
   int last_mtu_;
-
-  DISALLOW_COPY_AND_ASSIGN(TestDelegate);
 };
 
 class LowEnergyClientTest : public ::testing::Test {
  public:
   LowEnergyClientTest() = default;
+  LowEnergyClientTest(const LowEnergyClientTest&) = delete;
+  LowEnergyClientTest& operator=(const LowEnergyClientTest&) = delete;
+
   ~LowEnergyClientTest() override = default;
 
   void SetUp() override {
@@ -107,15 +110,18 @@ class LowEnergyClientTest : public ::testing::Test {
   testing::MockAdapter mock_adapter_;
   std::shared_ptr<MockGattHandler> mock_handler_;
   std::unique_ptr<LowEnergyClientFactory> ble_factory_;
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(LowEnergyClientTest);
 };
 
 // Used for tests that operate on a pre-registered client.
 class LowEnergyClientPostRegisterTest : public LowEnergyClientTest {
  public:
   LowEnergyClientPostRegisterTest() : next_client_id_(0) {}
+
+  LowEnergyClientPostRegisterTest(const LowEnergyClientPostRegisterTest&) =
+      delete;
+  LowEnergyClientPostRegisterTest& operator=(
+      const LowEnergyClientPostRegisterTest&) = delete;
+
   ~LowEnergyClientPostRegisterTest() override = default;
 
   void SetUp() override {
@@ -164,8 +170,6 @@ class LowEnergyClientPostRegisterTest : public LowEnergyClientTest {
 
  private:
   int next_client_id_;
-
-  DISALLOW_COPY_AND_ASSIGN(LowEnergyClientPostRegisterTest);
 };
 
 TEST_F(LowEnergyClientTest, RegisterInstance) {

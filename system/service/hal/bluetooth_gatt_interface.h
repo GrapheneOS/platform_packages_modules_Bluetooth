@@ -16,7 +16,6 @@
 
 #pragma once
 
-#include <base/macros.h>
 #include <hardware/bluetooth.h>
 #include <hardware/bt_gatt.h>
 
@@ -254,14 +253,15 @@ class BluetoothGattInterface {
 
  protected:
   BluetoothGattInterface() = default;
+  BluetoothGattInterface(const BluetoothGattInterface&) = delete;
+  BluetoothGattInterface& operator=(const BluetoothGattInterface&) = delete;
+
   virtual ~BluetoothGattInterface() = default;
 
  private:
   // Used to keep a reference count for the different BLE scan clients.
   std::mutex scan_clients_lock_;
   std::unordered_set<int> scan_client_set_;
-
-  DISALLOW_COPY_AND_ASSIGN(BluetoothGattInterface);
 };
 
 }  // namespace hal

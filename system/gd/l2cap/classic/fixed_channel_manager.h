@@ -129,6 +129,9 @@ class FixedChannelManager {
   virtual bool RegisterService(Cid cid, OnRegistrationCompleteCallback on_registration_complete,
                                OnConnectionOpenCallback on_connection_open, os::Handler* handler);
 
+  FixedChannelManager(const FixedChannelManager&) = delete;
+  FixedChannelManager& operator=(const FixedChannelManager&) = delete;
+
   virtual ~FixedChannelManager() = default;
 
   friend class L2capClassicModule;
@@ -143,7 +146,6 @@ class FixedChannelManager {
   internal::FixedChannelServiceManagerImpl* service_manager_ = nullptr;
   internal::LinkManager* link_manager_ = nullptr;
   os::Handler* l2cap_layer_handler_ = nullptr;
-  DISALLOW_COPY_AND_ASSIGN(FixedChannelManager);
 };
 
 }  // namespace classic

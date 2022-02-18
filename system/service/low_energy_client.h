@@ -16,7 +16,6 @@
 
 #pragma once
 
-#include <base/macros.h>
 #include <bluetooth/uuid.h>
 
 #include <atomic>
@@ -53,6 +52,9 @@ class LowEnergyClient : private hal::BluetoothGattInterface::ClientObserver,
   class Delegate {
    public:
     Delegate() = default;
+    Delegate(const Delegate&) = delete;
+    Delegate& operator=(const Delegate&) = delete;
+
     virtual ~Delegate() = default;
 
     // Called asynchronously to notify the delegate of connection state change
@@ -62,10 +64,10 @@ class LowEnergyClient : private hal::BluetoothGattInterface::ClientObserver,
     // Called asynchronously to notify the delegate of mtu change
     virtual void OnMtuChanged(LowEnergyClient* client, int status,
                               const char* address, int mtu) = 0;
-
-   private:
-    DISALLOW_COPY_AND_ASSIGN(Delegate);
   };
+
+  LowEnergyClient(const LowEnergyClient&) = delete;
+  LowEnergyClient& operator=(const LowEnergyClient&) = delete;
 
   // The destructor automatically unregisters this client instance from the
   // stack.
@@ -134,8 +136,6 @@ class LowEnergyClient : private hal::BluetoothGattInterface::ClientObserver,
   // Maps bluetooth address to connection id
   // TODO(jpawlowski): change type to bimap
   std::map<const RawAddress, int, ConnComparator> connection_ids_;
-
-  DISALLOW_COPY_AND_ASSIGN(LowEnergyClient);
 };
 
 // LowEnergyClientFactory is used to register and obtain a per-application
@@ -149,6 +149,9 @@ class LowEnergyClientFactory
   // Don't construct/destruct directly except in tests. Instead, obtain a handle
   // from an Adapter instance.
   explicit LowEnergyClientFactory(Adapter& adapter);
+  LowEnergyClientFactory(const LowEnergyClientFactory&) = delete;
+  LowEnergyClientFactory& operator=(const LowEnergyClientFactory&) = delete;
+
   ~LowEnergyClientFactory() override;
 
   // BluetoothInstanceFactory override:
@@ -169,8 +172,6 @@ class LowEnergyClientFactory
 
   // Raw pointer to the Adapter that owns this factory.
   Adapter& adapter_;
-
-  DISALLOW_COPY_AND_ASSIGN(LowEnergyClientFactory);
 };
 
 }  // namespace bluetooth

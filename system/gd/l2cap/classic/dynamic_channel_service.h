@@ -32,6 +32,8 @@ class DynamicChannelServiceManagerImpl;
 class DynamicChannelService {
  public:
   DynamicChannelService() = default;
+  DynamicChannelService(const DynamicChannelService&) = delete;
+  DynamicChannelService& operator=(const DynamicChannelService&) = delete;
 
   using OnUnregisteredCallback = common::ContextualOnceCallback<void()>;
 
@@ -59,7 +61,6 @@ class DynamicChannelService {
   Psm psm_ = kDefaultPsm;
   internal::DynamicChannelServiceManagerImpl* manager_ = nullptr;
   os::Handler* l2cap_layer_handler_;
-  DISALLOW_COPY_AND_ASSIGN(DynamicChannelService);
 };
 
 }  // namespace classic
