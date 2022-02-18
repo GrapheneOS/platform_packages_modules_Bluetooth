@@ -42,6 +42,8 @@ class LeScanningManager : public bluetooth::Module {
   static constexpr uint8_t kNotPeriodicAdvertisement = 0x00;
   static constexpr ScannerId kInvalidScannerId = 0xFF;
   LeScanningManager();
+  LeScanningManager(const LeScanningManager&) = delete;
+  LeScanningManager& operator=(const LeScanningManager&) = delete;
 
   virtual void RegisterScanner(const Uuid app_uuid);
 
@@ -92,7 +94,6 @@ class LeScanningManager : public bluetooth::Module {
  private:
   struct impl;
   std::unique_ptr<impl> pimpl_;
-  DISALLOW_COPY_AND_ASSIGN(LeScanningManager);
 };
 
 }  // namespace hci

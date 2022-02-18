@@ -68,6 +68,9 @@ class CallbackList<void(Args...)> : public base::internal::CallbackListBase<Call
  public:
   using CallbackType = CallbackWithHandler<void(Args...)>;
   CallbackList() = default;
+  CallbackList(const CallbackList&) = delete;
+  CallbackList& operator=(const CallbackList&) = delete;
+
   template <typename... RunArgs>
   void Notify(RunArgs&&... args) {
     auto it = this->GetIterator();
@@ -76,9 +79,6 @@ class CallbackList<void(Args...)> : public base::internal::CallbackListBase<Call
       cb->handler->Post(base::Bind(cb->callback, args...));
     }
   }
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(CallbackList);
 };
 
 }  // namespace common

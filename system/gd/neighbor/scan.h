@@ -25,6 +25,9 @@ namespace neighbor {
 class ScanModule : public bluetooth::Module {
  public:
   ScanModule();
+  ScanModule(const ScanModule&) = delete;
+  ScanModule& operator=(const ScanModule&) = delete;
+
   ~ScanModule();
 
   void SetInquiryScan();
@@ -48,8 +51,6 @@ class ScanModule : public bluetooth::Module {
  private:
   struct impl;
   std::unique_ptr<impl> pimpl_;
-
-  DISALLOW_COPY_AND_ASSIGN(ScanModule);
 };
 
 }  // namespace neighbor

@@ -37,6 +37,9 @@ using IsoDataCallback = common::ContextualCallback<void(std::unique_ptr<hci::Iso
  */
 class IsoManager {
  public:
+  IsoManager(const IsoManager&) = delete;
+  IsoManager& operator=(const IsoManager&) = delete;
+
   friend class IsoModule;
 
   void RegisterIsoEstablishedCallback(CisEstablishedCallback cb);
@@ -80,7 +83,6 @@ class IsoManager {
  private:
   os::Handler* iso_handler_ = nullptr;
   internal::IsoManagerImpl* iso_manager_impl_;
-  DISALLOW_COPY_AND_ASSIGN(IsoManager);
 };
 
 }  // namespace iso

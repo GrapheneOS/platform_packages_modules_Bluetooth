@@ -14,7 +14,6 @@
 //  limitations under the License.
 //
 
-#include <base/macros.h>
 #include <base/observer_list.h>
 
 #include "abstract_observer_list.h"
@@ -44,6 +43,9 @@ class FakeBluetoothInterface : public BluetoothInterface {
   static Manager* GetManager();
 
   FakeBluetoothInterface() = default;
+  FakeBluetoothInterface(const FakeBluetoothInterface&) = delete;
+  FakeBluetoothInterface& operator=(const FakeBluetoothInterface&) = delete;
+
   ~FakeBluetoothInterface() override = default;
 
   // Notifies the observers that the adapter state changed to |state|.
@@ -70,8 +72,6 @@ class FakeBluetoothInterface : public BluetoothInterface {
 
  private:
   btbase::AbstractObserverList<Observer> observers_;
-
-  DISALLOW_COPY_AND_ASSIGN(FakeBluetoothInterface);
 };
 
 }  // namespace hal

@@ -137,14 +137,16 @@ class MockLeAudioGroupStateMachineCallbacks
     : public LeAudioGroupStateMachine::Callbacks {
  public:
   MockLeAudioGroupStateMachineCallbacks() = default;
+  MockLeAudioGroupStateMachineCallbacks(
+      const MockLeAudioGroupStateMachineCallbacks&) = delete;
+  MockLeAudioGroupStateMachineCallbacks& operator=(
+      const MockLeAudioGroupStateMachineCallbacks&) = delete;
+
   ~MockLeAudioGroupStateMachineCallbacks() override = default;
   MOCK_METHOD((void), StatusReportCb,
               (int group_id, bluetooth::le_audio::GroupStreamStatus status),
               (override));
   MOCK_METHOD((void), OnStateTransitionTimeout, (int group_id), (override));
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(MockLeAudioGroupStateMachineCallbacks);
 };
 
 class StateMachineTest : public Test {

@@ -43,10 +43,11 @@ class Thread {
   // priority: priority for kernel scheduler
   Thread(const std::string& name, Priority priority);
 
+  Thread(const Thread&) = delete;
+  Thread& operator=(const Thread&) = delete;
+
   // Stop and destroy this thread
   ~Thread();
-
-  DISALLOW_COPY_AND_ASSIGN(Thread);
 
   // Stop this thread. Must be invoked from another thread. After this thread is stopped, it cannot be started again.
   bool Stop();

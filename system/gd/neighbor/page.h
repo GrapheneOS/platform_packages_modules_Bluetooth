@@ -43,6 +43,9 @@ class PageModule : public bluetooth::Module {
   static const ModuleFactory Factory;
 
   PageModule();
+  PageModule(const PageModule&) = delete;
+  PageModule& operator=(const PageModule&) = delete;
+
   ~PageModule();
 
  protected:
@@ -56,8 +59,6 @@ class PageModule : public bluetooth::Module {
  private:
   struct impl;
   std::unique_ptr<impl> pimpl_;
-
-  DISALLOW_COPY_AND_ASSIGN(PageModule);
 };
 
 }  // namespace neighbor

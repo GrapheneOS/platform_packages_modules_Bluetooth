@@ -22,7 +22,6 @@
 #include <base/at_exit.h>
 #include <base/command_line.h>
 #include <base/files/scoped_file.h>
-#include <base/macros.h>
 #include <base/run_loop.h>
 #include <base/strings/stringprintf.h>
 #include <gtest/gtest.h>
@@ -45,6 +44,9 @@ const char kTestSocketPath[] = "test_socket_path";
 class IPCLinuxTest : public ::testing::Test {
  public:
   IPCLinuxTest() = default;
+  IPCLinuxTest(const IPCLinuxTest&) = delete;
+  IPCLinuxTest& operator=(const IPCLinuxTest&) = delete;
+
   ~IPCLinuxTest() override = default;
 
   void SetUp() override {
@@ -109,13 +111,14 @@ class IPCLinuxTest : public ::testing::Test {
   std::unique_ptr<bluetooth::Adapter> adapter_;
   std::unique_ptr<ipc::IPCManager> ipc_manager_;
   base::ScopedFD client_fd_;
-
-  DISALLOW_COPY_AND_ASSIGN(IPCLinuxTest);
 };
 
 class IPCLinuxTestDisabled : public IPCLinuxTest {
  public:
   IPCLinuxTestDisabled() = default;
+  IPCLinuxTestDisabled(const IPCLinuxTestDisabled&) = delete;
+  IPCLinuxTestDisabled& operator=(const IPCLinuxTestDisabled&) = delete;
+
   ~IPCLinuxTestDisabled() override = default;
 
   void SetUpCommandLine() override {
@@ -123,15 +126,15 @@ class IPCLinuxTestDisabled : public IPCLinuxTest {
     const base::CommandLine::CharType* argv[] = {"program"};
     base::CommandLine::Init(ARRAY_SIZE(argv), argv);
   }
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(IPCLinuxTestDisabled);
 };
 
 class TestDelegate : public ipc::IPCManager::Delegate,
                      public base::SupportsWeakPtr<TestDelegate> {
  public:
   TestDelegate() : started_count_(0), stopped_count_(0) {}
+
+  TestDelegate(const TestDelegate&) = delete;
+  TestDelegate& operator=(const TestDelegate&) = delete;
 
   void OnIPCHandlerStarted(ipc::IPCManager::Type type) override {
     ASSERT_EQ(ipc::IPCManager::TYPE_LINUX, type);
@@ -151,8 +154,6 @@ class TestDelegate : public ipc::IPCManager::Delegate,
  private:
   int started_count_;
   int stopped_count_;
-
-  DISALLOW_COPY_AND_ASSIGN(TestDelegate);
 };
 
 TEST_F(IPCLinuxTestDisabled, StartWithNoSocketPath) {

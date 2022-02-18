@@ -75,12 +75,12 @@ RawAddress GetTestAddress(int index) {
 class MockCsisLockCallback {
  public:
   MockCsisLockCallback() = default;
+  MockCsisLockCallback(const MockCsisLockCallback&) = delete;
+  MockCsisLockCallback& operator=(const MockCsisLockCallback&) = delete;
+
   ~MockCsisLockCallback() = default;
   MOCK_METHOD((void), CsisGroupLockCb,
               (int group_id, bool locked, CsisGroupLockStatus status));
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(MockCsisLockCallback);
 };
 
 static MockCsisLockCallback* csis_lock_callback_mock;
@@ -93,6 +93,9 @@ void SetMockCsisLockCallback(MockCsisLockCallback* mock) {
 class MockCsisCallbacks : public CsisClientCallbacks {
  public:
   MockCsisCallbacks() = default;
+  MockCsisCallbacks(const MockCsisCallbacks&) = delete;
+  MockCsisCallbacks& operator=(const MockCsisCallbacks&) = delete;
+
   ~MockCsisCallbacks() override = default;
 
   MOCK_METHOD((void), OnConnectionState,
@@ -110,9 +113,6 @@ class MockCsisCallbacks : public CsisClientCallbacks {
   MOCK_METHOD((void), OnGattCsisWriteLockRsp,
               (uint16_t conn_id, tGATT_STATUS status, uint16_t handle,
                void* data));
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(MockCsisCallbacks);
 };
 
 class CsisClientTest : public ::testing::Test {
