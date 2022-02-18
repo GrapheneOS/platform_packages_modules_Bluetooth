@@ -50,11 +50,15 @@ public class McpServiceTest {
     private McpService mMcpService;
     private Context mTargetContext;
 
-    @Rule public final ServiceTestRule mServiceRule = new ServiceTestRule();
+    @Rule
+    public final ServiceTestRule mServiceRule = new ServiceTestRule();
 
-    @Mock private AdapterService mAdapterService;
-    @Mock private MediaControlGattService mMockMcpService;
-    @Mock private MediaControlProfile mMediaControlProfile;
+    @Mock
+    private AdapterService mAdapterService;
+    @Mock
+    private MediaControlGattService mMockMcpService;
+    @Mock
+    private MediaControlProfile mMediaControlProfile;
 
     @Before
     public void setUp() throws Exception {
@@ -114,5 +118,24 @@ public class McpServiceTest {
         verify(mMediaControlProfile).onDeviceAuthorizationSet(eq(device1));
         Assert.assertEquals(BluetoothDevice.ACCESS_REJECTED,
                 mMcpService.getDeviceAuthorization(device1));
+    }
+
+    @Test
+    public void testStopMcpService() {
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(new Runnable() {
+            public void run() {
+                Assert.assertTrue(mMcpService.stop());
+            }
+        });
+        Assert.assertNull(McpService.getMcpService());
+        Assert.assertNull(McpService.getMediaControlProfile());
+
+        McpService.setMediaControlProfileForTesting(mMediaControlProfile);
+        // Try to restart the service. Note: must be done on the main thread
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(new Runnable() {
+            public void run() {
+                Assert.assertTrue(mMcpService.start());
+            }
+        });
     }
 }
