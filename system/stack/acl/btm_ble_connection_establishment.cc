@@ -43,50 +43,6 @@ extern void btm_ble_advertiser_notify_terminated_legacy(
 
 extern bool btm_ble_init_pseudo_addr(tBTM_SEC_DEV_REC* p_dev_rec,
                                      const RawAddress& new_pseudo_addr);
-void btm_send_hci_create_connection(
-    uint16_t scan_int, uint16_t scan_win, uint8_t init_filter_policy,
-    tBLE_ADDR_TYPE addr_type_peer, const RawAddress& bda_peer,
-    tBLE_ADDR_TYPE addr_type_own, uint16_t conn_int_min, uint16_t conn_int_max,
-    uint16_t conn_latency, uint16_t conn_timeout, uint16_t min_ce_len,
-    uint16_t max_ce_len, uint8_t initiating_phys) {
-  ASSERT_LOG(false,
-             "When gd_acl enabled this code path should not be exercised");
-
-  if (controller_get_interface()->supports_ble_extended_advertising()) {
-    EXT_CONN_PHY_CFG phy_cfg[3];  // maximum three phys
-
-    int phy_cnt =
-        std::bitset<std::numeric_limits<uint8_t>::digits>(initiating_phys)
-            .count();
-
-    LOG_ASSERT(phy_cnt <= 3) << "More than three phys provided";
-    // TODO(jpawlowski): tune parameters for different transports
-    for (int i = 0; i < phy_cnt; i++) {
-      phy_cfg[i].scan_int = scan_int;
-      phy_cfg[i].scan_win = scan_win;
-      phy_cfg[i].conn_int_min = conn_int_min;
-      phy_cfg[i].conn_int_max = conn_int_max;
-      phy_cfg[i].conn_latency = conn_latency;
-      phy_cfg[i].sup_timeout = conn_timeout;
-      phy_cfg[i].min_ce_len = min_ce_len;
-      phy_cfg[i].max_ce_len = max_ce_len;
-    }
-
-    addr_type_peer &= ~BLE_ADDR_TYPE_ID_BIT;
-    btsnd_hcic_ble_ext_create_conn(init_filter_policy, addr_type_own,
-                                   addr_type_peer, bda_peer, initiating_phys,
-                                   phy_cfg);
-  } else {
-    btsnd_hcic_ble_create_ll_conn(scan_int, scan_win, init_filter_policy,
-                                  addr_type_peer, bda_peer, addr_type_own,
-                                  conn_int_min, conn_int_max, conn_latency,
-                                  conn_timeout, min_ce_len, max_ce_len);
-  }
-
-  btm_cb.ble_ctr_cb.set_connection_state_connecting();
-  btm_ble_set_topology_mask(BTM_BLE_STATE_INIT_BIT);
-}
-
 /** LE connection complete. */
 void btm_ble_create_ll_conn_complete(tHCI_STATUS status) {
   if (status == HCI_SUCCESS) return;
