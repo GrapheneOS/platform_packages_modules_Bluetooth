@@ -50,7 +50,6 @@ namespace mock {
 namespace stack_acl_btm_ble_connection_establishment {
 
 // Function state capture and return values, if needed
-struct btm_send_hci_create_connection btm_send_hci_create_connection;
 struct btm_ble_create_ll_conn_complete btm_ble_create_ll_conn_complete;
 struct maybe_resolve_address maybe_resolve_address;
 struct btm_ble_conn_complete btm_ble_conn_complete;
@@ -61,20 +60,6 @@ struct btm_ble_create_conn_cancel_complete btm_ble_create_conn_cancel_complete;
 }  // namespace mock
 }  // namespace test
 
-// Mocked functions, if any
-void btm_send_hci_create_connection(
-    uint16_t scan_int, uint16_t scan_win, uint8_t init_filter_policy,
-    uint8_t addr_type_peer, const RawAddress& bda_peer, uint8_t addr_type_own,
-    uint16_t conn_int_min, uint16_t conn_int_max, uint16_t conn_latency,
-    uint16_t conn_timeout, uint16_t min_ce_len, uint16_t max_ce_len,
-    uint8_t initiating_phys) {
-  mock_function_count_map[__func__]++;
-  test::mock::stack_acl_btm_ble_connection_establishment::
-      btm_send_hci_create_connection(
-          scan_int, scan_win, init_filter_policy, addr_type_peer, bda_peer,
-          addr_type_own, conn_int_min, conn_int_max, conn_latency, conn_timeout,
-          min_ce_len, max_ce_len, initiating_phys);
-}
 void btm_ble_create_ll_conn_complete(tHCI_STATUS status) {
   mock_function_count_map[__func__]++;
   test::mock::stack_acl_btm_ble_connection_establishment::
