@@ -63,6 +63,8 @@ class SnoopLogger : public ::bluetooth::Module {
   // Changes to this value is only effective after restarting Bluetooth
   static size_t GetMaxPacketsPerFile();
 
+  static size_t GetMaxPacketsPerBuffer();
+
   // Get snoop logger mode based on current system setup
   // Changes to this values is only effective after restarting Bluetooth
   static std::string GetBtSnoopMode();
@@ -97,6 +99,7 @@ class SnoopLogger : public ::bluetooth::Module {
       std::string snoop_log_path,
       std::string snooz_log_path,
       size_t max_packets_per_file,
+      size_t max_packets_per_buffer,
       const std::string& btsnoop_mode,
       const std::chrono::milliseconds snooz_log_life_time,
       const std::chrono::milliseconds snooz_log_delete_alarm_interval);
