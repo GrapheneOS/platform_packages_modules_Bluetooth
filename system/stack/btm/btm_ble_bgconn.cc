@@ -39,12 +39,6 @@
 
 extern tBTM_CB btm_cb;
 
-extern void btm_send_hci_create_connection(
-    uint16_t scan_int, uint16_t scan_win, uint8_t init_filter_policy,
-    uint8_t addr_type_peer, const RawAddress& bda_peer, uint8_t addr_type_own,
-    uint16_t conn_int_min, uint16_t conn_int_max, uint16_t conn_latency,
-    uint16_t conn_timeout, uint16_t min_ce_len, uint16_t max_ce_len,
-    uint8_t phy);
 extern void btm_ble_create_conn_cancel();
 
 namespace {
