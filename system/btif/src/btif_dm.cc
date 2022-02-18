@@ -3206,3 +3206,8 @@ bool btif_get_address_type(const RawAddress& bda, tBLE_ADDR_TYPE* p_addr_type) {
             AddressTypeText(*p_addr_type).c_str());
   return true;
 }
+
+void btif_dm_clear_event_filter() {
+  LOG_VERBOSE("%s: called", __func__);
+  bta_dm_clear_event_filter();
+}
