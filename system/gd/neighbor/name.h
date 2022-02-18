@@ -45,6 +45,9 @@ class NameModule : public bluetooth::Module {
   static const ModuleFactory Factory;
 
   NameModule();
+  NameModule(const NameModule&) = delete;
+  NameModule& operator=(const NameModule&) = delete;
+
   ~NameModule();
 
  protected:
@@ -58,8 +61,6 @@ class NameModule : public bluetooth::Module {
  private:
   struct impl;
   std::unique_ptr<impl> pimpl_;
-
-  DISALLOW_COPY_AND_ASSIGN(NameModule);
 };
 
 }  // namespace neighbor

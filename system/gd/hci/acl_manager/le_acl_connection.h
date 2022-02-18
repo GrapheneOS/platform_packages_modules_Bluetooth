@@ -39,6 +39,9 @@ class LeAclConnection : public AclConnection {
       AddressWithType local_address,
       AddressWithType remote_address,
       Role role);
+  LeAclConnection(const LeAclConnection&) = delete;
+  LeAclConnection& operator=(const LeAclConnection&) = delete;
+
   ~LeAclConnection();
 
   virtual AddressWithType GetLocalAddress() const {
@@ -84,7 +87,6 @@ class LeAclConnection : public AclConnection {
   AddressWithType local_address_;
   AddressWithType remote_address_;
   Role role_;
-  DISALLOW_COPY_AND_ASSIGN(LeAclConnection);
 };
 
 }  // namespace acl_manager

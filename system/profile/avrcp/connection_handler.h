@@ -158,6 +158,9 @@ class ConnectionHandler {
                  tAVRC_MSG* p_msg);
 
   ConnectionHandler() : weak_ptr_factory_(this){};
+  ConnectionHandler(const ConnectionHandler&) = delete;
+  ConnectionHandler& operator=(const ConnectionHandler&) = delete;
+
   virtual ~ConnectionHandler() = default;
 
   // Callback for when sending a response to a device
@@ -165,7 +168,6 @@ class ConnectionHandler {
                    std::unique_ptr<::bluetooth::PacketBuilder> message);
 
   base::WeakPtrFactory<ConnectionHandler> weak_ptr_factory_;
-  DISALLOW_COPY_AND_ASSIGN(ConnectionHandler);
 };
 
 }  // namespace avrcp

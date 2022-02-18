@@ -33,6 +33,9 @@ class ClassicAclConnection : public AclConnection {
   ClassicAclConnection();
   ClassicAclConnection(std::shared_ptr<Queue> queue, AclConnectionInterface* acl_connection_interface, uint16_t handle,
                        Address address);
+  ClassicAclConnection(const ClassicAclConnection&) = delete;
+  ClassicAclConnection& operator=(const ClassicAclConnection&) = delete;
+
   ~ClassicAclConnection();
 
   virtual Address GetAddress() const {
@@ -86,7 +89,6 @@ class ClassicAclConnection : public AclConnection {
  private:
   struct impl;
   struct impl* pimpl_ = nullptr;
-  DISALLOW_COPY_AND_ASSIGN(ClassicAclConnection);
 };
 
 }  // namespace acl_manager

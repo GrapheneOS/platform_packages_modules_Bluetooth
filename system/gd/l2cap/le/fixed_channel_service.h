@@ -32,6 +32,8 @@ class FixedChannelServiceManagerImpl;
 class FixedChannelService {
  public:
   FixedChannelService() = default;
+  FixedChannelService(const FixedChannelService&) = delete;
+  FixedChannelService& operator=(const FixedChannelService&) = delete;
 
   using OnUnregisteredCallback = common::OnceCallback<void()>;
 
@@ -51,7 +53,6 @@ class FixedChannelService {
   Cid cid_ = kInvalidCid;
   internal::FixedChannelServiceManagerImpl* manager_ = nullptr;
   os::Handler* l2cap_layer_handler_;
-  DISALLOW_COPY_AND_ASSIGN(FixedChannelService);
 };
 
 }  // namespace le

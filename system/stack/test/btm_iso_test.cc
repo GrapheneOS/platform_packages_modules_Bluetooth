@@ -69,6 +69,9 @@ namespace {
 class MockCigCallbacks : public bluetooth::hci::iso_manager::CigCallbacks {
  public:
   MockCigCallbacks() = default;
+  MockCigCallbacks(const MockCigCallbacks&) = delete;
+  MockCigCallbacks& operator=(const MockCigCallbacks&) = delete;
+
   ~MockCigCallbacks() override = default;
 
   MOCK_METHOD((void), OnSetupIsoDataPath,
@@ -86,14 +89,14 @@ class MockCigCallbacks : public bluetooth::hci::iso_manager::CigCallbacks {
 
   MOCK_METHOD((void), OnCisEvent, (uint8_t event, void* data), (override));
   MOCK_METHOD((void), OnCigEvent, (uint8_t event, void* data), (override));
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(MockCigCallbacks);
 };
 
 class MockBigCallbacks : public bluetooth::hci::iso_manager::BigCallbacks {
  public:
   MockBigCallbacks() = default;
+  MockBigCallbacks(const MockBigCallbacks&) = delete;
+  MockBigCallbacks& operator=(const MockBigCallbacks&) = delete;
+
   ~MockBigCallbacks() override = default;
 
   MOCK_METHOD((void), OnSetupIsoDataPath,
@@ -104,9 +107,6 @@ class MockBigCallbacks : public bluetooth::hci::iso_manager::BigCallbacks {
               (override));
 
   MOCK_METHOD((void), OnBigEvent, (uint8_t event, void* data), (override));
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(MockBigCallbacks);
 };
 }  // namespace
 

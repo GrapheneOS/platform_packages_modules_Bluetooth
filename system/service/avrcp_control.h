@@ -19,7 +19,6 @@
 #include <atomic>
 #include <mutex>
 
-#include "base/macros.h"
 #include "bluetooth/uuid.h"
 #include "service/bluetooth_instance.h"
 #include "service/common/bluetooth/avrcp_media_attr.h"
@@ -49,6 +48,9 @@ class AvrcpControl : public BluetoothInstance,
    protected:
     virtual ~Delegate() = default;
   };
+
+  AvrcpControl(const AvrcpControl&) = delete;
+  AvrcpControl& operator=(const AvrcpControl&) = delete;
 
   // The destructor automatically unregisters this instance from the stack.
   ~AvrcpControl() override;
@@ -106,8 +108,6 @@ class AvrcpControl : public BluetoothInstance,
   // Raw handle to the Delegate, which must outlive this AvrcpControl instance.
   std::mutex delegate_mutex_;
   Delegate* delegate_ = nullptr;
-
-  DISALLOW_COPY_AND_ASSIGN(AvrcpControl);
 };
 
 // AvrcpControlFactory is used to register and obtain a per-application
@@ -121,6 +121,9 @@ class AvrcpControlFactory
   // Don't construct/destruct directly except in tests. Instead, obtain a handle
   // from an Adapter instance.
   AvrcpControlFactory();
+  AvrcpControlFactory(const AvrcpControlFactory&) = delete;
+  AvrcpControlFactory& operator=(const AvrcpControlFactory&) = delete;
+
   ~AvrcpControlFactory() override;
 
   // BluetoothInstanceFactory override:
@@ -129,7 +132,6 @@ class AvrcpControlFactory
 
  private:
   std::atomic<int> next_control_id_{0};
-  DISALLOW_COPY_AND_ASSIGN(AvrcpControlFactory);
 };
 
 }  // namespace bluetooth

@@ -18,8 +18,6 @@
 
 #include <memory>
 
-#include <base/macros.h>
-
 #include <android/bluetooth/IBluetoothLowEnergyCallback.h>
 #include "android/bluetooth/BnBluetoothLowEnergy.h"
 
@@ -47,6 +45,11 @@ class BluetoothLowEnergyBinderServer
       public bluetooth::LowEnergyClient::Delegate {
  public:
   explicit BluetoothLowEnergyBinderServer(bluetooth::Adapter* adapter);
+  BluetoothLowEnergyBinderServer(const BluetoothLowEnergyBinderServer&) =
+      delete;
+  BluetoothLowEnergyBinderServer& operator=(
+      const BluetoothLowEnergyBinderServer&) = delete;
+
   ~BluetoothLowEnergyBinderServer() override;
 
   // IBluetoothLowEnergy overrides:
@@ -83,8 +86,6 @@ class BluetoothLowEnergyBinderServer
                               bluetooth::BluetoothInstance* instance) override;
 
   bluetooth::Adapter* adapter_;  // weak
-
-  DISALLOW_COPY_AND_ASSIGN(BluetoothLowEnergyBinderServer);
 };
 
 }  // namespace binder

@@ -19,8 +19,6 @@
 #include <map>
 #include <string>
 
-#include <base/macros.h>
-
 #include <android/bluetooth/BnBluetoothA2dpSink.h>
 #include <android/bluetooth/IBluetoothA2dpSinkCallback.h>
 
@@ -40,6 +38,10 @@ class BluetoothA2dpSinkBinderServer
       public bluetooth::A2dpSink::Delegate {
  public:
   explicit BluetoothA2dpSinkBinderServer(bluetooth::Adapter* adapter);
+  BluetoothA2dpSinkBinderServer(const BluetoothA2dpSinkBinderServer&) = delete;
+  BluetoothA2dpSinkBinderServer& operator=(
+      const BluetoothA2dpSinkBinderServer&) = delete;
+
   ~BluetoothA2dpSinkBinderServer() override = default;
 
   // IBluetoothA2dpSink implementation:
@@ -78,8 +80,6 @@ class BluetoothA2dpSinkBinderServer
                               bluetooth::BluetoothInstance* instance) override;
 
   bluetooth::Adapter* adapter_;  // weak
-
-  DISALLOW_COPY_AND_ASSIGN(BluetoothA2dpSinkBinderServer);
 };
 
 }  // namespace binder

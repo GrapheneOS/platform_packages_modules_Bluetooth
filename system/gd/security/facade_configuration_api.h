@@ -35,6 +35,9 @@ namespace security {
  */
 class FacadeConfigurationApi {
  public:
+  FacadeConfigurationApi(const FacadeConfigurationApi&) = delete;
+  FacadeConfigurationApi& operator=(const FacadeConfigurationApi&) = delete;
+
   friend class internal::SecurityManagerImpl;
   friend class SecurityModule;
 
@@ -63,7 +66,6 @@ class FacadeConfigurationApi {
  private:
   os::Handler* security_handler_ = nullptr;
   internal::SecurityManagerImpl* security_manager_impl_;
-  DISALLOW_COPY_AND_ASSIGN(FacadeConfigurationApi);
 };
 
 }  // namespace security

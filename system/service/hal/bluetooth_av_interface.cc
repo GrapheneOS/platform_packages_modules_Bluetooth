@@ -147,6 +147,9 @@ btav_sink_callbacks_t av_sink_callbacks = {
 class BluetoothAvInterfaceImpl : public BluetoothAvInterface {
  public:
   BluetoothAvInterfaceImpl() = default;
+  BluetoothAvInterfaceImpl(const BluetoothAvInterfaceImpl&) = delete;
+  BluetoothAvInterfaceImpl& operator=(const BluetoothAvInterfaceImpl&) = delete;
+
   ~BluetoothAvInterfaceImpl() override {
     A2dpSinkDisable();
     A2dpSourceDisable();
@@ -274,8 +277,6 @@ class BluetoothAvInterfaceImpl : public BluetoothAvInterface {
 
   bool source_enabled_ = false;
   bool sink_enabled_ = false;
-
-  DISALLOW_COPY_AND_ASSIGN(BluetoothAvInterfaceImpl);
 };
 
 namespace {

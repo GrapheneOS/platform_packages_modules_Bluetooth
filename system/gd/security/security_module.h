@@ -27,6 +27,9 @@ namespace security {
 class SecurityModule : public bluetooth::Module {
  public:
   SecurityModule() = default;
+  SecurityModule(const SecurityModule&) = delete;
+  SecurityModule& operator=(const SecurityModule&) = delete;
+
   ~SecurityModule() = default;
 
   /**
@@ -55,7 +58,6 @@ class SecurityModule : public bluetooth::Module {
  private:
   struct impl;
   std::unique_ptr<impl> pimpl_;
-  DISALLOW_COPY_AND_ASSIGN(SecurityModule);
 };
 
 }  // namespace security

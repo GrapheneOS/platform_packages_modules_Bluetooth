@@ -36,10 +36,11 @@ class RepeatingAlarm {
   // Create and register a repeating alarm on a given handler
   explicit RepeatingAlarm(Handler* handler);
 
+  RepeatingAlarm(const RepeatingAlarm&) = delete;
+  RepeatingAlarm& operator=(const RepeatingAlarm&) = delete;
+
   // Unregister this alarm from the thread and release resource
   ~RepeatingAlarm();
-
-  DISALLOW_COPY_AND_ASSIGN(RepeatingAlarm);
 
   // Schedule a repeating alarm with given period
   void Schedule(common::Closure task, std::chrono::milliseconds period);

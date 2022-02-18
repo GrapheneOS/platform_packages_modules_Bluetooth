@@ -16,7 +16,6 @@
 
 #pragma once
 
-#include <base/macros.h>
 #include <hardware/bluetooth.h>
 #include <hardware/bt_rc.h>
 
@@ -130,6 +129,9 @@ class BluetoothAvrcpInterface {
                                                 uint8_t status);
   };
 
+  BluetoothAvrcpInterface(const BluetoothAvrcpInterface&) = delete;
+  BluetoothAvrcpInterface& operator=(const BluetoothAvrcpInterface&) = delete;
+
   // Initialize and clean up the BluetoothInterface singleton. Returns false if
   // the underlying HAL interface failed to initialize, and true on success.
   static bool Initialize();
@@ -172,9 +174,6 @@ class BluetoothAvrcpInterface {
  protected:
   BluetoothAvrcpInterface() = default;
   virtual ~BluetoothAvrcpInterface() = default;
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(BluetoothAvrcpInterface);
 };
 
 }  // namespace hal

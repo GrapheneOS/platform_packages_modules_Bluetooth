@@ -16,7 +16,6 @@
 
 #include "service/adapter.h"
 
-#include <base/macros.h>
 #include <gtest/gtest.h>
 
 #include "service/hal/fake_bluetooth_gatt_interface.h"
@@ -30,6 +29,9 @@ namespace {
 class AdapterTest : public ::testing::Test {
  public:
   AdapterTest() = default;
+  AdapterTest(const AdapterTest&) = delete;
+  AdapterTest& operator=(const AdapterTest&) = delete;
+
   ~AdapterTest() override = default;
 
   void SetUp() override {
@@ -55,9 +57,6 @@ class AdapterTest : public ::testing::Test {
   hal::FakeBluetoothInterface* fake_hal_iface_;
   hal::FakeBluetoothInterface::Manager* fake_hal_manager_;
   std::unique_ptr<Adapter> adapter_;
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(AdapterTest);
 };
 
 class TestObserver final : public bluetooth::Adapter::Observer {
@@ -70,6 +69,9 @@ class TestObserver final : public bluetooth::Adapter::Observer {
     CHECK(adapter_);
     adapter_->AddObserver(this);
   }
+
+  TestObserver(const TestObserver&) = delete;
+  TestObserver& operator=(const TestObserver&) = delete;
 
   ~TestObserver() override { adapter_->RemoveObserver(this); }
 
@@ -106,8 +108,6 @@ class TestObserver final : public bluetooth::Adapter::Observer {
   bluetooth::AdapterState prev_state_, cur_state_;
   std::string last_connection_state_address_;
   bool last_device_connected_state_;
-
-  DISALLOW_COPY_AND_ASSIGN(TestObserver);
 };
 
 TEST_F(AdapterTest, IsEnabled) {
