@@ -464,9 +464,10 @@ static void imdct_window(enum lc3_dt dt, enum lc3_srate sr,
  * Forward MDCT transformation
  */
 void lc3_mdct_forward(enum lc3_dt dt, enum lc3_srate sr,
-    const float *x, float *y)
+    enum lc3_srate sr_dst, const float *x, float *y)
 {
     const struct lc3_mdct_rot_def *rot = lc3_mdct_rot[dt][sr];
+    int nf = LC3_NS(dt, sr_dst);
     int ns = LC3_NS(dt, sr);
 
     union { float *f; struct lc3_complex *z; } u = { .f = y };
@@ -476,16 +477,17 @@ void lc3_mdct_forward(enum lc3_dt dt, enum lc3_srate sr,
 
     mdct_pre_fft(rot, u.f, u.z);
     u.z = fft(false, u.z, ns/2, u.z, z);
-    mdct_post_fft(rot, u.z, y, sqrtf(2.f / ns));
+    mdct_post_fft(rot, u.z, y, sqrtf( (2.f*nf) / (ns*ns) ));
 }
 
 /**
  * Inverse MDCT transformation
  */
 void lc3_mdct_inverse(enum lc3_dt dt, enum lc3_srate sr,
-    const float *x, float *d, float *y)
+    enum lc3_srate sr_src, const float *x, float *d, float *y)
 {
     const struct lc3_mdct_rot_def *rot = lc3_mdct_rot[dt][sr];
+    int nf = LC3_NS(dt, sr_src);
     int ns = LC3_NS(dt, sr);
 
     struct lc3_complex buffer[ns/2];
@@ -494,7 +496,7 @@ void lc3_mdct_inverse(enum lc3_dt dt, enum lc3_srate sr,
 
     imdct_pre_fft(rot, x, z);
     z = fft(true, z, ns/2, z, u.z);
-    imdct_post_fft(rot, z, u.f, sqrtf(2.f / ns));
+    imdct_post_fft(rot, z, u.f, sqrtf(2.f / nf));
 
     imdct_window(dt, sr, u.f, d, y);
 }

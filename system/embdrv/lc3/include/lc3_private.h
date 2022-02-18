@@ -97,7 +97,7 @@ typedef struct lc3_spec_analysis {
 
 struct lc3_encoder {
     enum lc3_dt dt;
-    enum lc3_srate sr;
+    enum lc3_srate sr, sr_pcm;
 
     lc3_attdet_analysis_t attdet;
     lc3_ltpf_analysis_t ltpf;
@@ -134,7 +134,7 @@ typedef struct lc3_plc_state {
 
 struct lc3_decoder {
     enum lc3_dt dt;
-    enum lc3_srate sr;
+    enum lc3_srate sr, sr_pcm;
 
     lc3_ltpf_synthesis_t ltpf;
     lc3_plc_state_t plc;
