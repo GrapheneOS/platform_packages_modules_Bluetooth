@@ -2334,6 +2334,7 @@ class LeAudioClientImpl : public LeAudioClient {
 
   void Cleanup(base::Callback<void()> cleanupCb) {
     if (alarm_is_scheduled(suspend_timeout_)) alarm_cancel(suspend_timeout_);
+    groupStateMachine_->Cleanup();
     leAudioDevices_.Cleanup();
     aseGroups_.Cleanup();
     StopAudio();
