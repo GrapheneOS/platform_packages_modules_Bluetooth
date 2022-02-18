@@ -195,5 +195,19 @@ bool RemoveFile(const std::string& path) {
   return true;
 }
 
+std::optional<std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds>> FileCreatedTime(
+    const std::string& path) {
+  struct stat file_info;
+  if (stat(path.c_str(), &file_info) != 0) {
+    LOG_ERROR("unable to read '%s' file metadata, error: %s", path.c_str(), strerror(errno));
+    return std::nullopt;
+  }
+  using namespace std::chrono;
+  using namespace std::chrono_literals;
+  auto created_ts = file_info.st_ctim;
+  auto d = seconds{created_ts.tv_sec} + nanoseconds{created_ts.tv_nsec};
+  return time_point<system_clock>(duration_cast<system_clock::duration>(d));
+}
+
 }  // namespace os
 }  // namespace bluetooth
