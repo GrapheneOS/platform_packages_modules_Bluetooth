@@ -35,6 +35,9 @@ class DiscoverabilityModule : public bluetooth::Module {
   static const ModuleFactory Factory;
 
   DiscoverabilityModule();
+  DiscoverabilityModule(const DiscoverabilityModule&) = delete;
+  DiscoverabilityModule& operator=(const DiscoverabilityModule&) = delete;
+
   ~DiscoverabilityModule();
 
  protected:
@@ -48,8 +51,6 @@ class DiscoverabilityModule : public bluetooth::Module {
  private:
   struct impl;
   std::unique_ptr<impl> pimpl_;
-
-  DISALLOW_COPY_AND_ASSIGN(DiscoverabilityModule);
 };
 
 }  // namespace neighbor

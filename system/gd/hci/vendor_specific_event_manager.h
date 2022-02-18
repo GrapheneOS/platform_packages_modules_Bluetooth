@@ -24,6 +24,8 @@ namespace hci {
 class VendorSpecificEventManager : public bluetooth::Module {
  public:
   VendorSpecificEventManager();
+  VendorSpecificEventManager(const VendorSpecificEventManager&) = delete;
+  VendorSpecificEventManager& operator=(const VendorSpecificEventManager&) = delete;
 
   void RegisterEventHandler(VseSubeventCode event, common::ContextualCallback<void(VendorSpecificEventView)> handler);
 
@@ -43,7 +45,6 @@ class VendorSpecificEventManager : public bluetooth::Module {
  private:
   struct impl;
   std::unique_ptr<impl> pimpl_;
-  DISALLOW_COPY_AND_ASSIGN(VendorSpecificEventManager);
 };
 
 }  // namespace hci

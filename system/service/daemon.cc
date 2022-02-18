@@ -42,6 +42,9 @@ class DaemonImpl : public Daemon, public ipc::IPCManager::Delegate {
  public:
   DaemonImpl() : initialized_(false) {}
 
+  DaemonImpl(const DaemonImpl&) = delete;
+  DaemonImpl& operator=(const DaemonImpl&) = delete;
+
   ~DaemonImpl() override {
     if (!initialized_) return;
 
@@ -161,8 +164,6 @@ class DaemonImpl : public Daemon, public ipc::IPCManager::Delegate {
   std::unique_ptr<Settings> settings_;
   std::unique_ptr<Adapter> adapter_;
   std::unique_ptr<ipc::IPCManager> ipc_manager_;
-
-  DISALLOW_COPY_AND_ASSIGN(DaemonImpl);
 };
 
 }  // namespace

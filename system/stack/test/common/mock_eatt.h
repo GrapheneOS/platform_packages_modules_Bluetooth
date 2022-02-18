@@ -27,6 +27,9 @@ using bluetooth::eatt::EattExtension;
 class MockEattExtension : public EattExtension {
  public:
   MockEattExtension() = default;
+  MockEattExtension(const MockEattExtension&) = delete;
+  MockEattExtension& operator=(const MockEattExtension&) = delete;
+
   ~MockEattExtension() override = default;
 
   static MockEattExtension* GetInstance();
@@ -65,7 +68,4 @@ class MockEattExtension : public EattExtension {
 
   MOCK_METHOD((void), Start, ());
   MOCK_METHOD((void), Stop, ());
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(MockEattExtension);
 };

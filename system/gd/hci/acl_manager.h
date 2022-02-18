@@ -57,6 +57,9 @@ class AclManager : public Module {
 
 public:
  AclManager();
+ AclManager(const AclManager&) = delete;
+ AclManager& operator=(const AclManager&) = delete;
+
  // NOTE: It is necessary to forward declare a default destructor that overrides the base class one, because
  // "struct impl" is forwarded declared in .cc and compiler needs a concrete definition of "struct impl" when
  // compiling AclManager's destructor. Hence we need to forward declare the destructor for AclManager to delay
@@ -148,8 +151,6 @@ private:
 
  struct impl;
  std::unique_ptr<impl> pimpl_;
-
- DISALLOW_COPY_AND_ASSIGN(AclManager);
 };
 
 }  // namespace hci

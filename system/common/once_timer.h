@@ -39,6 +39,9 @@ class MessageLoopThread;
 class OnceTimer final {
  public:
   OnceTimer() {}
+  OnceTimer(const OnceTimer&) = delete;
+  OnceTimer& operator=(const OnceTimer&) = delete;
+
   ~OnceTimer();
 
   /**
@@ -84,8 +87,6 @@ class OnceTimer final {
   void CancelClosure(std::promise<void> promise);
 
   void RunTask();
-
-  DISALLOW_COPY_AND_ASSIGN(OnceTimer);
 };
 
 }  // namespace common

@@ -19,7 +19,6 @@
 #include <mutex>
 #include <unordered_map>
 
-#include <base/macros.h>
 #include <base/memory/ref_counted.h>
 #include <base/memory/weak_ptr.h>
 #if BASE_VER < 930627
@@ -44,6 +43,9 @@ class HeartRateServer
   HeartRateServer(android::sp<android::bluetooth::IBluetooth> bluetooth,
                   scoped_refptr<base::SingleThreadTaskRunner> main_task_runner,
                   bool advertise);
+  HeartRateServer(const HeartRateServer&) = delete;
+  HeartRateServer& operator=(const HeartRateServer&) = delete;
+
   ~HeartRateServer() override;
 
   // Set up the server and register the GATT services with the stack. This
@@ -141,8 +143,6 @@ class HeartRateServer
   // Note: This should remain the last member so that it'll be destroyed and
   // invalidate its weak pointers before any other members are destroyed.
   base::WeakPtrFactory<HeartRateServer> weak_ptr_factory_;
-
-  DISALLOW_COPY_AND_ASSIGN(HeartRateServer);
 };
 
 }  // namespace heart_rate

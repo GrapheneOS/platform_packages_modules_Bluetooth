@@ -52,10 +52,13 @@ class Mutation;
 class ConfigCache {
  public:
   ConfigCache(size_t temp_device_capacity, std::unordered_set<std::string_view> persistent_property_names);
+
+  ConfigCache(const ConfigCache&) = delete;
+  ConfigCache& operator=(const ConfigCache&) = delete;
+
   virtual ~ConfigCache() = default;
 
   // no copy
-  DISALLOW_COPY_AND_ASSIGN(ConfigCache);
 
   // can move
   ConfigCache(ConfigCache&& other) noexcept;

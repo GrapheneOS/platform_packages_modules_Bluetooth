@@ -215,6 +215,9 @@ class AdapterImpl : public Adapter, public hal::BluetoothInterface::Observer {
     hal::BluetoothInterface::Get()->GetHALInterface()->get_adapter_properties();
   }
 
+  AdapterImpl(const AdapterImpl&) = delete;
+  AdapterImpl& operator=(const AdapterImpl&) = delete;
+
   ~AdapterImpl() override {
     hal::BluetoothInterface::Get()->RemoveObserver(this);
   }
@@ -800,8 +803,6 @@ class AdapterImpl : public Adapter, public hal::BluetoothInterface::Observer {
 
   // Factory used to create per-app GattServer instances.
   std::unique_ptr<GattServerFactory> gatt_server_factory_;
-
-  DISALLOW_COPY_AND_ASSIGN(AdapterImpl);
 };
 
 // static

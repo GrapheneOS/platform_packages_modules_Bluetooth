@@ -122,6 +122,9 @@ class DynamicChannelManager {
 
   friend class L2capClassicModule;
 
+  DynamicChannelManager(const DynamicChannelManager&) = delete;
+  DynamicChannelManager& operator=(const DynamicChannelManager&) = delete;
+
   virtual ~DynamicChannelManager() = default;
 
  protected:
@@ -139,7 +142,6 @@ class DynamicChannelManager {
   internal::DynamicChannelServiceManagerImpl* service_manager_ = nullptr;
   internal::LinkManager* link_manager_ = nullptr;
   os::Handler* l2cap_layer_handler_ = nullptr;
-  DISALLOW_COPY_AND_ASSIGN(DynamicChannelManager);
 };
 
 }  // namespace classic

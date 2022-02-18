@@ -50,6 +50,9 @@ class ActivityAttributionCallback {
 class ActivityAttribution : public bluetooth::Module {
  public:
   ActivityAttribution() = default;
+  ActivityAttribution(const ActivityAttribution&) = delete;
+  ActivityAttribution& operator=(const ActivityAttribution&) = delete;
+
   ~ActivityAttribution() = default;
 
   void Capture(const hal::HciPacket& packet, hal::SnoopLogger::PacketType type);
@@ -71,8 +74,6 @@ class ActivityAttribution : public bluetooth::Module {
  private:
   struct impl;
   std::unique_ptr<impl> pimpl_;
-
-  DISALLOW_COPY_AND_ASSIGN(ActivityAttribution);
 };
 
 }  // namespace activity_attribution

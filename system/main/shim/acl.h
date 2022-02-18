@@ -43,6 +43,10 @@ class Acl : public hci::acl_manager::ConnectionCallbacks,
  public:
   Acl(os::Handler* handler, const acl_interface_t& acl_interface,
       uint8_t max_acceptlist_size, uint8_t max_address_resolution_size);
+
+  Acl(const Acl&) = delete;
+  Acl& operator=(const Acl&) = delete;
+
   ~Acl();
 
   // hci::acl_manager::ConnectionCallbacks
@@ -120,7 +124,6 @@ class Acl : public hci::acl_manager::ConnectionCallbacks,
 
   struct impl;
   std::unique_ptr<impl> pimpl_;
-  DISALLOW_COPY_AND_ASSIGN(Acl);
 };
 
 }  // namespace legacy
