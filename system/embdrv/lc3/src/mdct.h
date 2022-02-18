@@ -32,6 +32,7 @@
 /**
  * Forward MDCT transformation
  * dt, sr          Duration and samplerate (size of the transform)
+ * sr_dst          Samplerate destination, scale transforam accordingly
  * x               [-nd..-1] Previous, [0..ns-1] Current samples
  * y               Output `ns` frequency coefficients
  *
@@ -40,18 +41,19 @@
  *   nd: `ns` *  5/ 8 for  10ms frame duration
  */
 void lc3_mdct_forward(enum lc3_dt dt, enum lc3_srate sr,
-    const float *x, float *y);
+    enum lc3_srate sr_dst, const float *x, float *y);
 
 /**
  * Inverse MDCT transformation
  * dt, sr          Duration and samplerate (size of the transform)
+ * sr_src          Samplerate source, scale transforam accordingly
  * x, d            Frequency coefficients and delayed buffer
  * y, d            Output `ns` samples and `nd` delayed ones
  *
  * `x` and `y` can be the same buffer
  */
 void lc3_mdct_inverse(enum lc3_dt dt, enum lc3_srate sr,
-    const float *x, float *d, float *y);
+    enum lc3_srate sr_src, const float *x, float *d, float *y);
 
 
 #endif /* __LC3_MDCT_H */
