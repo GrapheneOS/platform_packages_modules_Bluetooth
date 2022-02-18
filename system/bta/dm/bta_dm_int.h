@@ -310,7 +310,6 @@ extern tBTA_DM_CONNECTED_SRVCS bta_dm_conn_srvcs;
 
 /* DM control block */
 typedef struct {
-  bool is_bta_dm_active;
   tBTA_DM_ACTIVE_LINK device_list;
   tBTA_DM_SEC_CBACK* p_sec_cback;
   tBTA_BLE_ENERGY_INFO_CBACK* p_energy_info_cback;
