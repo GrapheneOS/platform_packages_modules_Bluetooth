@@ -770,14 +770,16 @@ public class LeAudioService extends ProfileService {
      * Report the active devices change to the active device manager and the media framework.
      * @param groupId id of group which devices should be updated
      * @param newActiveContexts new active contexts for group of devices
+     * @param oldActiveContexts old active contexts for group of devices
+     * @param isActive if there is new active group
      */
     private void updateActiveDevices(Integer groupId, Integer oldActiveContexts,
             Integer newActiveContexts, boolean isActive) {
-
         BluetoothDevice device = null;
 
-        if (isActive)
+        if (isActive) {
             device = getFirstDeviceFromGroup(groupId);
+        }
 
         boolean outReplaced =
             updateActiveOutDevice(device, groupId, oldActiveContexts, newActiveContexts);
