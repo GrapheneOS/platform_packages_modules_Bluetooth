@@ -43,8 +43,10 @@ class HciLayer : public Module, public CommandInterface<CommandBuilder> {
   // LINT.IfChange
  public:
   HciLayer();
+  HciLayer(const HciLayer&) = delete;
+  HciLayer& operator=(const HciLayer&) = delete;
+
   virtual ~HciLayer();
-  DISALLOW_COPY_AND_ASSIGN(HciLayer);
 
   void EnqueueCommand(
       std::unique_ptr<CommandBuilder> command,

@@ -39,6 +39,9 @@ class Stack {
   static Stack* GetInstance();
 
   Stack() = default;
+  Stack(const Stack&) = delete;
+  Stack& operator=(const Stack&) = delete;
+
   ~Stack() = default;
 
   // Idle mode, config is loaded, but controller is not enabled
@@ -63,8 +66,6 @@ class Stack {
   ::rust::Box<rust::Controller>* GetRustController() {
     return rust_controller_;
   }
-
-  DISALLOW_COPY_AND_ASSIGN(Stack);
 
  private:
   mutable std::recursive_mutex mutex_;

@@ -16,7 +16,6 @@
 
 #pragma once
 
-#include <base/macros.h>
 #include <base/observer_list.h>
 
 #include "abstract_observer_list.h"
@@ -56,6 +55,10 @@ class FakeBluetoothAvInterface : public BluetoothAvInterface {
       std::shared_ptr<TestA2dpSourceHandler> a2dp_source_handler);
   FakeBluetoothAvInterface(
       std::shared_ptr<TestA2dpSinkHandler> a2dp_sink_handler);
+
+  FakeBluetoothAvInterface(const FakeBluetoothAvInterface&) = delete;
+  FakeBluetoothAvInterface& operator=(const FakeBluetoothAvInterface&) = delete;
+
   ~FakeBluetoothAvInterface();
 
   // The methods below can be used to notify observers with certain events and
@@ -92,8 +95,6 @@ class FakeBluetoothAvInterface : public BluetoothAvInterface {
  private:
   btbase::AbstractObserverList<A2dpSourceObserver> a2dp_source_observers_;
   btbase::AbstractObserverList<A2dpSinkObserver> a2dp_sink_observers_;
-
-  DISALLOW_COPY_AND_ASSIGN(FakeBluetoothAvInterface);
 };
 
 }  // namespace hal

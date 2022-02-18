@@ -20,8 +20,6 @@
 #include <string>
 #include <vector>
 
-#include <base/macros.h>
-
 #include <android/bluetooth/BnBluetoothA2dpSource.h>
 #include <android/bluetooth/IBluetoothA2dpSourceCallback.h>
 
@@ -41,6 +39,11 @@ class BluetoothA2dpSourceBinderServer
       public bluetooth::A2dpSource::Delegate {
  public:
   explicit BluetoothA2dpSourceBinderServer(bluetooth::Adapter* adapter);
+  BluetoothA2dpSourceBinderServer(const BluetoothA2dpSourceBinderServer&) =
+      delete;
+  BluetoothA2dpSourceBinderServer& operator=(
+      const BluetoothA2dpSourceBinderServer&) = delete;
+
   ~BluetoothA2dpSourceBinderServer() override;
 
   bool HasInstance();
@@ -87,8 +90,6 @@ class BluetoothA2dpSourceBinderServer
                               bluetooth::BluetoothInstance* instance) override;
 
   bluetooth::Adapter* const adapter_;  // weak
-
-  DISALLOW_COPY_AND_ASSIGN(BluetoothA2dpSourceBinderServer);
 };
 
 }  // namespace binder
