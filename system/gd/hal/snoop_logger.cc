@@ -77,6 +77,10 @@ constexpr size_t kDefaultBtSnoozMaxPayloadBytesPerPacket =
 constexpr size_t kDefaultBtSnoozMaxPacketsPerBuffer =
     kDefaultBtsnoozMaxMemoryUsageBytes / kDefaultBtSnoozMaxBytesPerPacket;
 
+using namespace std::chrono_literals;
+constexpr std::chrono::hours kBtSnoozLogLifeTime = 12h;
+constexpr std::chrono::hours kBtSnoozLogDeleteRepeatingAlarmInterval = 1h;
+
 std::string get_btsnoop_log_path(std::string log_dir, bool filtered) {
   if (filtered) {
     log_dir.append(".filtered");
@@ -104,6 +108,20 @@ void delete_btsnoop_files(const std::string& log_path) {
     }
   } else {
     LOG_INFO("Last log file does not exist at \"%s\"", log_path.c_str());
+  }
+}
+
+void delete_old_btsnooz_files(const std::string& log_path, const std::chrono::milliseconds log_life_time) {
+  auto opt_created_ts = os::FileCreatedTime(log_path);
+  if (!opt_created_ts) return;
+
+  using namespace std::chrono;
+  auto created_tp = opt_created_ts.value();
+  auto current_tp = std::chrono::system_clock::now();
+
+  auto diff = duration_cast<milliseconds>(current_tp - created_tp);
+  if (diff >= log_life_time) {
+    delete_btsnoop_files(log_path);
   }
 }
 
@@ -172,11 +190,15 @@ SnoopLogger::SnoopLogger(
     std::string snoop_log_path,
     std::string snooz_log_path,
     size_t max_packets_per_file,
-    const std::string& btsnoop_mode)
+    const std::string& btsnoop_mode,
+    const std::chrono::milliseconds snooz_log_life_time,
+    const std::chrono::milliseconds snooz_log_delete_alarm_interval)
     : snoop_log_path_(std::move(snoop_log_path)),
       snooz_log_path_(std::move(snooz_log_path)),
       max_packets_per_file_(max_packets_per_file),
-      btsnooz_buffer_(kDefaultBtSnoozMaxPacketsPerBuffer) {
+      btsnooz_buffer_(kDefaultBtSnoozMaxPacketsPerBuffer),
+      snooz_log_life_time_(snooz_log_life_time),
+      snooz_log_delete_alarm_interval_(snooz_log_delete_alarm_interval) {
   if (false && btsnoop_mode == kBtSnoopLogModeFiltered) {
     // TODO(b/163733538): implement filtered snoop log in GD, currently filtered == disabled
     LOG_INFO("Filtered Snoop Logs enabled");
@@ -360,14 +382,20 @@ void SnoopLogger::Start() {
   if (is_enabled_) {
     OpenNextSnoopLogFile();
   }
+  alarm_ = std::make_unique<os::RepeatingAlarm>(GetHandler());
+  alarm_->Schedule(
+      common::Bind(&delete_old_btsnooz_files, snooz_log_path_, snooz_log_life_time_), snooz_log_delete_alarm_interval_);
 }
 
 void SnoopLogger::Stop() {
   std::lock_guard<std::recursive_mutex> lock(file_mutex_);
-  LOG_DEBUG("Dumping btsnooz log data to %s", snooz_log_path_.c_str());
-  DumpSnoozLogToFile(btsnooz_buffer_.Drain());
   LOG_DEBUG("Closing btsnoop log data at %s", snoop_log_path_.c_str());
   CloseCurrentSnoopLogFile();
+  // Cancel the alarm
+  alarm_->Cancel();
+  alarm_.reset();
+  // delete any existing snooz logs
+  delete_btsnoop_files(snooz_log_path_);
 }
 
 DumpsysDataFinisher SnoopLogger::GetDumpsysData(flatbuffers::FlatBufferBuilder* builder) const {
@@ -421,7 +449,9 @@ const ModuleFactory SnoopLogger::Factory = ModuleFactory([]() {
       os::ParameterProvider::SnoopLogFilePath(),
       os::ParameterProvider::SnoozLogFilePath(),
       GetMaxPacketsPerFile(),
-      GetBtSnoopMode());
+      GetBtSnoopMode(),
+      kBtSnoozLogLifeTime,
+      kBtSnoozLogDeleteRepeatingAlarmInterval);
 });
 
 }  // namespace hal
