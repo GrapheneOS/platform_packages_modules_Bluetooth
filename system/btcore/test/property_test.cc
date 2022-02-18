@@ -81,13 +81,13 @@ TEST_F(PropertyTest, device_type) {
 
 TEST_F(PropertyTest, discovery_timeout) {
   uint32_t timeout0 = 12345;
-  bt_property_t* property = property_new_discovery_timeout(timeout0);
+  bt_property_t* property = property_new_discoverable_timeout(timeout0);
 
   EXPECT_EQ(timeout0, *(uint32_t*)property->val);
-  EXPECT_EQ(BT_PROPERTY_ADAPTER_DISCOVERY_TIMEOUT, property->type);
+  EXPECT_EQ(BT_PROPERTY_ADAPTER_DISCOVERABLE_TIMEOUT, property->type);
   EXPECT_EQ((int)sizeof(uint32_t), property->len);
 
-  uint32_t timeout1 = property_as_discovery_timeout(property);
+  uint32_t timeout1 = property_as_discoverable_timeout(property);
   EXPECT_EQ(timeout0, timeout1);
 
   property_free(property);
