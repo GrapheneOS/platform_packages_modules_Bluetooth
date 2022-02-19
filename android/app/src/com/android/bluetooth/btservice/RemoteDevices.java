@@ -72,6 +72,24 @@ final class RemoteDevices {
     private final HashMap<String, String> mDualDevicesMap;
     private Queue<String> mDeviceQueue;
 
+    /**
+     * Bluetooth HFP v1.8 specifies the Battery Charge indicator of AG can take values from
+     * {@code 0} to {@code 5}, but it does not specify how to map the values back to percentages.
+     * The following mapping is used:
+     *   - Level 0:                 0%
+     *   - Level 1: midpoint of  1-25%
+     *   - Level 2: midpoint of 26-50%
+     *   - Level 3: midpoint of 51-75%
+     *   - Level 4: midpoint of 76-99%
+     *   - Level 5:               100%
+     */
+    private static final int HFP_BATTERY_CHARGE_INDICATOR_0 = 0;
+    private static final int HFP_BATTERY_CHARGE_INDICATOR_1 = 13;
+    private static final int HFP_BATTERY_CHARGE_INDICATOR_2 = 38;
+    private static final int HFP_BATTERY_CHARGE_INDICATOR_3 = 63;
+    private static final int HFP_BATTERY_CHARGE_INDICATOR_4 = 88;
+    private static final int HFP_BATTERY_CHARGE_INDICATOR_5 = 100;
+
     private final Handler mHandler;
     private class RemoteDevicesHandler extends Handler {
 
@@ -572,6 +590,38 @@ final class RemoteDevices {
         intent.addFlags(Intent.FLAG_RECEIVER_INCLUDE_BACKGROUND);
         sAdapterService.sendBroadcast(intent, BLUETOOTH_CONNECT,
                 Utils.getTempAllowlistBroadcastOptions());
+    }
+
+    /**
+     * Converts HFP's Battery Charge indicator values of {@code 0 -- 5} to an integer percentage.
+     */
+    @VisibleForTesting
+    static int batteryChargeIndicatorToPercentge(int indicator) {
+        int percent;
+        switch (indicator) {
+            case 5:
+                percent = HFP_BATTERY_CHARGE_INDICATOR_5;
+                break;
+            case 4:
+                percent = HFP_BATTERY_CHARGE_INDICATOR_4;
+                break;
+            case 3:
+                percent = HFP_BATTERY_CHARGE_INDICATOR_3;
+                break;
+            case 2:
+                percent = HFP_BATTERY_CHARGE_INDICATOR_2;
+                break;
+            case 1:
+                percent = HFP_BATTERY_CHARGE_INDICATOR_1;
+                break;
+            case 0:
+                percent = HFP_BATTERY_CHARGE_INDICATOR_0;
+                break;
+            default:
+                percent = BluetoothDevice.BATTERY_LEVEL_UNKNOWN;
+        }
+        Log.d(TAG, "Battery charge indicator: " + indicator + "; converted to: " + percent + "%");
+        return percent;
     }
 
     private static boolean areUuidsEqual(ParcelUuid[] uuids1, ParcelUuid[] uuids2) {
@@ -1079,7 +1129,7 @@ final class RemoteDevices {
 
         if (intent.hasExtra(BluetoothHeadsetClient.EXTRA_BATTERY_LEVEL)) {
             int batteryLevel = intent.getIntExtra(BluetoothHeadsetClient.EXTRA_BATTERY_LEVEL, -1);
-            updateBatteryLevel(device, batteryLevel);
+            updateBatteryLevel(device, batteryChargeIndicatorToPercentge(batteryLevel));
         }
     }
 
