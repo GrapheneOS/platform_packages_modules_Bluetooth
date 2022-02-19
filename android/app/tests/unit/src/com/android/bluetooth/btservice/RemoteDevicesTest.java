@@ -487,7 +487,7 @@ public class RemoteDevicesTest {
 
     @Test
     public void testAGIndicatorParser_testCorrectValue() {
-        int batteryLevel = 10;
+        int batteryLevel = 3;
 
         // Verify that device property is null initially
         Assert.assertNull(mRemoteDevices.getDeviceProperties(mDevice1));
@@ -497,7 +497,8 @@ public class RemoteDevicesTest {
                 getAgIndicatorIntent(mDevice1, null, null, null, new Integer(batteryLevel), null));
         verify(mAdapterService).sendBroadcast(mIntentArgument.capture(), mStringArgument.capture(),
                 any(Bundle.class));
-        verifyBatteryLevelChangedIntent(mDevice1, batteryLevel, mIntentArgument);
+        verifyBatteryLevelChangedIntent(mDevice1,
+                RemoteDevices.batteryChargeIndicatorToPercentge(batteryLevel), mIntentArgument);
         Assert.assertEquals(BLUETOOTH_CONNECT, mStringArgument.getValue());
     }
 
