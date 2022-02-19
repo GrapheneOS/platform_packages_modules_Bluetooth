@@ -89,6 +89,9 @@ constexpr uint8_t COMPLETE = 0x03;  // Complete extended advertising data
 class AdvertiserHciMock : public BleAdvertiserHciInterface {
  public:
   AdvertiserHciMock() = default;
+  AdvertiserHciMock(const AdvertiserHciMock&) = delete;
+  AdvertiserHciMock& operator=(const AdvertiserHciMock&) = delete;
+
   ~AdvertiserHciMock() override = default;
 
   MOCK_METHOD1(ReadInstanceCount,
@@ -133,9 +136,6 @@ class AdvertiserHciMock : public BleAdvertiserHciInterface {
   };
 
   bool QuirkAdvertiserZeroHandle() override { return false; }
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(AdvertiserHciMock);
 };
 
 }  // namespace

@@ -20,8 +20,6 @@
 #include <string>
 #include <vector>
 
-#include <base/macros.h>
-
 #include "service/common/bluetooth/adapter_state.h"
 #include "service/common/bluetooth/remote_device_props.h"
 
@@ -101,6 +99,9 @@ class Adapter {
   // Returns an Adapter implementation to be used in production. Don't use these
   // in tests; use MockAdapter instead.
   static std::unique_ptr<Adapter> Create();
+
+  Adapter(const Adapter&) = delete;
+  Adapter& operator=(const Adapter&) = delete;
 
   virtual ~Adapter() = default;
 
@@ -221,9 +222,6 @@ class Adapter {
 
  protected:
   Adapter() = default;
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(Adapter);
 };
 
 }  // namespace bluetooth

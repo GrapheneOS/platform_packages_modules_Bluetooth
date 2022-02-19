@@ -31,6 +31,9 @@ class GattTest : public BluetoothTest,
                  public bluetooth::hal::BluetoothGattInterface::ServerObserver {
  protected:
   GattTest() = default;
+  GattTest(const GattTest&) = delete;
+  GattTest& operator=(const GattTest&) = delete;
+
   virtual ~GattTest() = default;
 
   // Gets the gatt_scanner_interface
@@ -125,8 +128,6 @@ class GattTest : public BluetoothTest,
 
   // The status of the last callback. Is BT_STATUS_SUCCESS if no issues.
   int status_;
-
-  DISALLOW_COPY_AND_ASSIGN(GattTest);
 };
 
 }  // bttest

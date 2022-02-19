@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include "device_port_proxy.h"
 #define LOG_TAG "BTAudioHalStream"
 
 #include <android-base/logging.h>
@@ -26,11 +27,11 @@
 #include <time.h>
 #include <unistd.h>
 
+#include "BluetoothAudioSession.h"
 #include "stream_apis.h"
 #include "utils.h"
 
 using ::android::base::StringPrintf;
-using ::android::bluetooth::audio::BluetoothAudioPortOut;
 using ::android::bluetooth::audio::utils::GetAudioParamString;
 using ::android::bluetooth::audio::utils::ParseAudioParams;
 
@@ -66,7 +67,7 @@ void out_calculate_feeding_delay_ms(const BluetoothStreamOut* out,
   bool timestamp_fetched = false;
 
   std::unique_lock<std::mutex> lock(out->mutex_);
-  if (out->bluetooth_output_.GetPresentationPosition(
+  if (out->bluetooth_output_->GetPresentationPosition(
           &delay_report_ns, &absorbed_bytes, &absorbed_timestamp)) {
     delay_report_ms = delay_report_ns / 1000000;
     // assume kMinimumDelayMs (50ms) < delay_report_ns < kMaximumDelayMs
@@ -76,7 +77,7 @@ void out_calculate_feeding_delay_ms(const BluetoothStreamOut* out,
         delay_report_ms < kMaximumDelayMs) {
       timestamp_fetched = true;
     } else if (delay_report_ms >= kMaximumDelayMs) {
-      LOG(INFO) << __func__ << ": state=" << out->bluetooth_output_.GetState()
+      LOG(INFO) << __func__ << ": state=" << out->bluetooth_output_->GetState()
                 << ", delay_report=" << delay_report_ns << "ns abnormal";
     }
   }
@@ -91,10 +92,10 @@ void out_calculate_feeding_delay_ms(const BluetoothStreamOut* out,
     if (timestamp != nullptr) {
       clock_gettime(CLOCK_MONOTONIC, &absorbed_timestamp);
     }
-    LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_.GetState()
+    LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_->GetState()
                  << " uses the legacy delay " << delay_report_ms << " ms";
   }
-  LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_.GetState()
+  LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_->GetState()
                << ", delay=" << delay_report_ms << "ms, data=" << absorbed_bytes
                << " bytes, timestamp=" << absorbed_timestamp.tv_sec << "."
                << StringPrintf("%09ld", absorbed_timestamp.tv_nsec) << "s";
@@ -139,14 +140,14 @@ void in_calculate_starving_delay_ms(const BluetoothStreamIn* in,
   struct timespec dispersed_timestamp = {};
 
   std::unique_lock<std::mutex> lock(in->mutex_);
-  in->bluetooth_input_.GetPresentationPosition(
+  in->bluetooth_input_->GetPresentationPosition(
       &delay_report_ns, &dispersed_bytes, &dispersed_timestamp);
   delay_report_ms = delay_report_ns / 1000000;
 
   const uint64_t latency_frames = delay_report_ms * in->sample_rate_ / 1000;
   *frames = dispersed_bytes / audio_stream_in_frame_size(&in->stream_in_);
 
-  LOG(VERBOSE) << __func__ << ": state=" << in->bluetooth_input_.GetState()
+  LOG(VERBOSE) << __func__ << ": state=" << in->bluetooth_input_->GetState()
                << ", delay=" << delay_report_ms
                << "ms, data=" << dispersed_bytes
                << " bytes, timestamp=" << dispersed_timestamp.tv_sec << "."
@@ -198,12 +199,12 @@ std::ostream& operator<<(std::ostream& os, const BluetoothStreamState& state) {
 static uint32_t out_get_sample_rate(const struct audio_stream* stream) {
   const auto* out = reinterpret_cast<const BluetoothStreamOut*>(stream);
   audio_config_t audio_cfg;
-  if (out->bluetooth_output_.LoadAudioConfig(&audio_cfg)) {
-    LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_.GetState()
+  if (out->bluetooth_output_->LoadAudioConfig(&audio_cfg)) {
+    LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_->GetState()
                  << " audio_cfg=" << audio_cfg;
     return audio_cfg.sample_rate;
   } else {
-    LOG(WARNING) << __func__ << ": state=" << out->bluetooth_output_.GetState()
+    LOG(WARNING) << __func__ << ": state=" << out->bluetooth_output_->GetState()
                  << ", sample_rate=" << out->sample_rate_ << " failed";
     return out->sample_rate_;
   }
@@ -211,7 +212,7 @@ static uint32_t out_get_sample_rate(const struct audio_stream* stream) {
 
 static int out_set_sample_rate(struct audio_stream* stream, uint32_t rate) {
   auto* out = reinterpret_cast<BluetoothStreamOut*>(stream);
-  LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_.GetState()
+  LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_->GetState()
                << ", sample_rate=" << out->sample_rate_;
   return (rate == out->sample_rate_ ? 0 : -1);
 }
@@ -220,7 +221,7 @@ static size_t out_get_buffer_size(const struct audio_stream* stream) {
   const auto* out = reinterpret_cast<const BluetoothStreamOut*>(stream);
   size_t buffer_size =
       out->frames_count_ * audio_stream_out_frame_size(&out->stream_out_);
-  LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_.GetState()
+  LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_->GetState()
                << ", buffer_size=" << buffer_size;
   return buffer_size;
 }
@@ -229,13 +230,14 @@ static audio_channel_mask_t out_get_channels(
     const struct audio_stream* stream) {
   const auto* out = reinterpret_cast<const BluetoothStreamOut*>(stream);
   audio_config_t audio_cfg;
-  if (out->bluetooth_output_.LoadAudioConfig(&audio_cfg)) {
-    LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_.GetState()
+  if (out->bluetooth_output_->LoadAudioConfig(&audio_cfg)) {
+    LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_->GetState()
                  << " audio_cfg=" << audio_cfg;
     return audio_cfg.channel_mask;
   } else {
-    LOG(WARNING) << __func__ << ": state=" << out->bluetooth_output_.GetState()
-                 << ", channels=" << StringPrintf("%#x", out->channel_mask_) << " failure";
+    LOG(WARNING) << __func__ << ": state=" << out->bluetooth_output_->GetState()
+                 << ", channels=" << StringPrintf("%#x", out->channel_mask_)
+                 << " failure";
     return out->channel_mask_;
   }
 }
@@ -243,12 +245,12 @@ static audio_channel_mask_t out_get_channels(
 static audio_format_t out_get_format(const struct audio_stream* stream) {
   const auto* out = reinterpret_cast<const BluetoothStreamOut*>(stream);
   audio_config_t audio_cfg;
-  if (out->bluetooth_output_.LoadAudioConfig(&audio_cfg)) {
-    LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_.GetState()
+  if (out->bluetooth_output_->LoadAudioConfig(&audio_cfg)) {
+    LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_->GetState()
                  << " audio_cfg=" << audio_cfg;
     return audio_cfg.format;
   } else {
-    LOG(WARNING) << __func__ << ": state=" << out->bluetooth_output_.GetState()
+    LOG(WARNING) << __func__ << ": state=" << out->bluetooth_output_->GetState()
                  << ", format=" << out->format_ << " failure";
     return out->format_;
   }
@@ -256,7 +258,7 @@ static audio_format_t out_get_format(const struct audio_stream* stream) {
 
 static int out_set_format(struct audio_stream* stream, audio_format_t format) {
   auto* out = reinterpret_cast<BluetoothStreamOut*>(stream);
-  LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_.GetState()
+  LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_->GetState()
                << ", format=" << out->format_;
   return (format == out->format_ ? 0 : -1);
 }
@@ -268,23 +270,23 @@ static int out_standby(struct audio_stream* stream) {
 
   // out->last_write_time_us_ = 0; unnecessary as a stale write time has same
   // effect
-  LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_.GetState()
+  LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_->GetState()
                << " being standby (suspend)";
-  if (out->bluetooth_output_.GetState() == BluetoothStreamState::STARTED) {
+  if (out->bluetooth_output_->GetState() == BluetoothStreamState::STARTED) {
     out->frames_rendered_ = 0;
-    retval = (out->bluetooth_output_.Suspend() ? 0 : -EIO);
-  } else if (out->bluetooth_output_.GetState() ==
+    retval = (out->bluetooth_output_->Suspend() ? 0 : -EIO);
+  } else if (out->bluetooth_output_->GetState() ==
                  BluetoothStreamState::STARTING ||
-             out->bluetooth_output_.GetState() ==
+             out->bluetooth_output_->GetState() ==
                  BluetoothStreamState::SUSPENDING) {
-    LOG(WARNING) << __func__ << ": state=" << out->bluetooth_output_.GetState()
+    LOG(WARNING) << __func__ << ": state=" << out->bluetooth_output_->GetState()
                  << " NOT ready to be standby";
     retval = -EBUSY;
   } else {
-    LOG(DEBUG) << __func__ << ": state=" << out->bluetooth_output_.GetState()
+    LOG(DEBUG) << __func__ << ": state=" << out->bluetooth_output_->GetState()
                << " standby already";
   }
-  LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_.GetState()
+  LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_->GetState()
                << " standby (suspend) retval=" << retval;
 
   return retval;
@@ -292,7 +294,7 @@ static int out_standby(struct audio_stream* stream) {
 
 static int out_dump(const struct audio_stream* stream, int fd) {
   const auto* out = reinterpret_cast<const BluetoothStreamOut*>(stream);
-  LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_.GetState();
+  LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_->GetState();
   return 0;
 }
 
@@ -302,7 +304,7 @@ static int out_set_parameters(struct audio_stream* stream,
   std::unique_lock<std::mutex> lock(out->mutex_);
   int retval = 0;
 
-  LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_.GetState()
+  LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_->GetState()
                << ", kvpairs=[" << kvpairs << "]";
 
   std::unordered_map<std::string, std::string> params =
@@ -316,73 +318,78 @@ static int out_set_parameters(struct audio_stream* stream,
   if (params.find(AUDIO_PARAMETER_STREAM_SUP_SAMPLING_RATES) != params.end() ||
       params.find(AUDIO_PARAMETER_STREAM_SUP_CHANNELS) != params.end() ||
       params.find(AUDIO_PARAMETER_STREAM_SUP_FORMATS) != params.end()) {
-    if (out->bluetooth_output_.LoadAudioConfig(&audio_cfg)) {
+    if (out->bluetooth_output_->LoadAudioConfig(&audio_cfg)) {
       out->sample_rate_ = audio_cfg.sample_rate;
       out->channel_mask_ = audio_cfg.channel_mask;
       out->format_ = audio_cfg.format;
-      LOG(VERBOSE) << "state=" << out->bluetooth_output_.GetState() << ", sample_rate=" << out->sample_rate_
-                   << ", channels=" << StringPrintf("%#x", out->channel_mask_) << ", format=" << out->format_;
+      LOG(VERBOSE) << "state=" << out->bluetooth_output_->GetState()
+                   << ", sample_rate=" << out->sample_rate_
+                   << ", channels=" << StringPrintf("%#x", out->channel_mask_)
+                   << ", format=" << out->format_;
     } else {
       LOG(WARNING) << __func__
-                   << ": state=" << out->bluetooth_output_.GetState()
+                   << ": state=" << out->bluetooth_output_->GetState()
                    << " failed to get audio config";
     }
   }
 
   if (params.find("routing") != params.end()) {
     auto routing_param = params.find("routing");
-    LOG(INFO) << __func__ << ": state=" << out->bluetooth_output_.GetState()
+    LOG(INFO) << __func__ << ": state=" << out->bluetooth_output_->GetState()
               << ", stream param '" << routing_param->first.c_str() << "="
               << routing_param->second.c_str() << "'";
   }
 
   if (params.find("A2dpSuspended") != params.end() &&
-      out->bluetooth_output_.IsA2dp()) {
+      out->bluetooth_output_->IsA2dp()) {
     if (params["A2dpSuspended"] == "true") {
-      LOG(INFO) << __func__ << ": state=" << out->bluetooth_output_.GetState()
+      LOG(INFO) << __func__ << ": state=" << out->bluetooth_output_->GetState()
                 << " stream param stopped";
       out->frames_rendered_ = 0;
-      if (out->bluetooth_output_.GetState() == BluetoothStreamState::STARTED) {
-        out->bluetooth_output_.Suspend();
-        out->bluetooth_output_.SetState(BluetoothStreamState::DISABLED);
-      } else if (out->bluetooth_output_.GetState() !=
+      if (out->bluetooth_output_->GetState() == BluetoothStreamState::STARTED) {
+        out->bluetooth_output_->Suspend();
+        out->bluetooth_output_->SetState(BluetoothStreamState::DISABLED);
+      } else if (out->bluetooth_output_->GetState() !=
                  BluetoothStreamState::DISABLED) {
-        out->bluetooth_output_.Stop();
+        out->bluetooth_output_->Stop();
       }
     } else {
-      LOG(INFO) << __func__ << ": state=" << out->bluetooth_output_.GetState()
+      LOG(INFO) << __func__ << ": state=" << out->bluetooth_output_->GetState()
                 << " stream param standby";
-      if (out->bluetooth_output_.GetState() == BluetoothStreamState::DISABLED) {
-        out->bluetooth_output_.SetState(BluetoothStreamState::STANDBY);
+      if (out->bluetooth_output_->GetState() ==
+          BluetoothStreamState::DISABLED) {
+        out->bluetooth_output_->SetState(BluetoothStreamState::STANDBY);
       }
     }
   }
 
   if (params.find("closing") != params.end()) {
     if (params["closing"] == "true") {
-      LOG(INFO) << __func__ << ": state=" << out->bluetooth_output_.GetState()
+      LOG(INFO) << __func__ << ": state=" << out->bluetooth_output_->GetState()
                 << " stream param closing, disallow any writes?";
-      if (out->bluetooth_output_.GetState() != BluetoothStreamState::DISABLED) {
+      if (out->bluetooth_output_->GetState() !=
+          BluetoothStreamState::DISABLED) {
         out->frames_rendered_ = 0;
         out->frames_presented_ = 0;
-        out->bluetooth_output_.Stop();
+        out->bluetooth_output_->Stop();
       }
     }
   }
 
   if (params.find("exiting") != params.end()) {
     if (params["exiting"] == "1") {
-      LOG(INFO) << __func__ << ": state=" << out->bluetooth_output_.GetState()
+      LOG(INFO) << __func__ << ": state=" << out->bluetooth_output_->GetState()
                 << " stream param exiting";
-      if (out->bluetooth_output_.GetState() != BluetoothStreamState::DISABLED) {
+      if (out->bluetooth_output_->GetState() !=
+          BluetoothStreamState::DISABLED) {
         out->frames_rendered_ = 0;
         out->frames_presented_ = 0;
-        out->bluetooth_output_.Stop();
+        out->bluetooth_output_->Stop();
       }
     }
   }
 
-  LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_.GetState()
+  LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_->GetState()
                << ", kvpairs=[" << kvpairs << "], retval=" << retval;
   return retval;
 }
@@ -392,18 +399,18 @@ static char* out_get_parameters(const struct audio_stream* stream,
   const auto* out = reinterpret_cast<const BluetoothStreamOut*>(stream);
   std::unique_lock<std::mutex> lock(out->mutex_);
 
-  LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_.GetState()
+  LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_->GetState()
                << ", keys=[" << keys << "]";
 
   std::unordered_map<std::string, std::string> params = ParseAudioParams(keys);
   if (params.empty()) return strdup("");
 
   audio_config_t audio_cfg;
-  if (out->bluetooth_output_.LoadAudioConfig(&audio_cfg)) {
-    LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_.GetState()
+  if (out->bluetooth_output_->LoadAudioConfig(&audio_cfg)) {
+    LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_->GetState()
                  << " audio_cfg=" << audio_cfg;
   } else {
-    LOG(ERROR) << __func__ << ": state=" << out->bluetooth_output_.GetState()
+    LOG(ERROR) << __func__ << ": state=" << out->bluetooth_output_->GetState()
                << " failed to get audio config";
   }
 
@@ -467,7 +474,7 @@ static char* out_get_parameters(const struct audio_stream* stream,
     result += ptr.first + "=" + ptr.second + ";";
   }
 
-  LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_.GetState()
+  LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_->GetState()
                << ", result=[" << result << "]";
   return strdup(result.c_str());
 }
@@ -476,7 +483,7 @@ static uint32_t out_get_latency_ms(const struct audio_stream_out* stream) {
   const auto* out = reinterpret_cast<const BluetoothStreamOut*>(stream);
   uint32_t latency_ms = 0;
   out_calculate_feeding_delay_ms(out, &latency_ms);
-  LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_.GetState()
+  LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_->GetState()
                << ", latency=" << latency_ms << "ms";
   return latency_ms;
 }
@@ -484,7 +491,7 @@ static uint32_t out_get_latency_ms(const struct audio_stream_out* stream) {
 static int out_set_volume(struct audio_stream_out* stream, float left,
                           float right) {
   auto* out = reinterpret_cast<BluetoothStreamOut*>(stream);
-  LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_.GetState()
+  LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_->GetState()
                << ", Left=" << left << ", Right=" << right;
   return -1;
 }
@@ -495,14 +502,15 @@ static ssize_t out_write(struct audio_stream_out* stream, const void* buffer,
   std::unique_lock<std::mutex> lock(out->mutex_);
   size_t totalWritten = 0;
 
-  if (out->bluetooth_output_.GetState() != BluetoothStreamState::STARTED) {
-    LOG(INFO) << __func__ << ": state=" << out->bluetooth_output_.GetState()
+  if (out->bluetooth_output_->GetState() != BluetoothStreamState::STARTED) {
+    LOG(INFO) << __func__ << ": state=" << out->bluetooth_output_->GetState()
               << " first time bytes=" << bytes;
     lock.unlock();
     if (stream->resume(stream)) {
-      LOG(ERROR) << __func__ << ": state=" << out->bluetooth_output_.GetState()
+      LOG(ERROR) << __func__ << ": state=" << out->bluetooth_output_->GetState()
                  << " failed to resume";
-      if (out->bluetooth_output_.GetState() == BluetoothStreamState::DISABLED) {
+      if (out->bluetooth_output_->GetState() ==
+          BluetoothStreamState::DISABLED) {
         // drop data for cases of A2dpSuspended=true / closing=true
         totalWritten = bytes;
       }
@@ -512,7 +520,7 @@ static ssize_t out_write(struct audio_stream_out* stream, const void* buffer,
     lock.lock();
   }
   lock.unlock();
-  totalWritten = out->bluetooth_output_.WriteData(buffer, bytes);
+  totalWritten = out->bluetooth_output_->WriteData(buffer, bytes);
   lock.lock();
 
   struct timespec ts = {.tv_sec = 0, .tv_nsec = 0};
@@ -563,7 +571,7 @@ static int out_get_render_position(const struct audio_stream_out* stream,
     *dsp_frames = 0;
   }
 
-  LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_.GetState()
+  LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_->GetState()
                << ", dsp_frames=" << *dsp_frames;
   return 0;
 }
@@ -571,7 +579,7 @@ static int out_get_render_position(const struct audio_stream_out* stream,
 static int out_add_audio_effect(const struct audio_stream* stream,
                                 effect_handle_t effect) {
   const auto* out = reinterpret_cast<const BluetoothStreamOut*>(stream);
-  LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_.GetState()
+  LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_->GetState()
                << ", effect=" << effect;
   return 0;
 }
@@ -579,7 +587,7 @@ static int out_add_audio_effect(const struct audio_stream* stream,
 static int out_remove_audio_effect(const struct audio_stream* stream,
                                    effect_handle_t effect) {
   const auto* out = reinterpret_cast<const BluetoothStreamOut*>(stream);
-  LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_.GetState()
+  LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_->GetState()
                << ", effect=" << effect;
   return 0;
 }
@@ -588,7 +596,7 @@ static int out_get_next_write_timestamp(const struct audio_stream_out* stream,
                                         int64_t* timestamp) {
   const auto* out = reinterpret_cast<const BluetoothStreamOut*>(stream);
   *timestamp = 0;
-  LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_.GetState()
+  LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_->GetState()
                << ", timestamp=" << *timestamp;
   return -EINVAL;
 }
@@ -597,23 +605,23 @@ static int out_pause(struct audio_stream_out* stream) {
   auto* out = reinterpret_cast<BluetoothStreamOut*>(stream);
   std::unique_lock<std::mutex> lock(out->mutex_);
   int retval = 0;
-  LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_.GetState()
+  LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_->GetState()
                << ", pausing (suspend)";
-  if (out->bluetooth_output_.GetState() == BluetoothStreamState::STARTED) {
+  if (out->bluetooth_output_->GetState() == BluetoothStreamState::STARTED) {
     out->frames_rendered_ = 0;
-    retval = (out->bluetooth_output_.Suspend() ? 0 : -EIO);
-  } else if (out->bluetooth_output_.GetState() ==
+    retval = (out->bluetooth_output_->Suspend() ? 0 : -EIO);
+  } else if (out->bluetooth_output_->GetState() ==
                  BluetoothStreamState::STARTING ||
-             out->bluetooth_output_.GetState() ==
+             out->bluetooth_output_->GetState() ==
                  BluetoothStreamState::SUSPENDING) {
-    LOG(WARNING) << __func__ << ": state=" << out->bluetooth_output_.GetState()
+    LOG(WARNING) << __func__ << ": state=" << out->bluetooth_output_->GetState()
                  << " NOT ready to pause?!";
     retval = -EBUSY;
   } else {
-    LOG(DEBUG) << __func__ << ": state=" << out->bluetooth_output_.GetState()
+    LOG(DEBUG) << __func__ << ": state=" << out->bluetooth_output_->GetState()
                << " paused already";
   }
-  LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_.GetState()
+  LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_->GetState()
                << ", pausing (suspend) retval=" << retval;
 
   return retval;
@@ -624,27 +632,27 @@ static int out_resume(struct audio_stream_out* stream) {
   std::unique_lock<std::mutex> lock(out->mutex_);
   int retval = 0;
 
-  LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_.GetState()
+  LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_->GetState()
                << ", resuming (start)";
-  if (out->bluetooth_output_.GetState() == BluetoothStreamState::STANDBY) {
-    retval = (out->bluetooth_output_.Start() ? 0 : -EIO);
-  } else if (out->bluetooth_output_.GetState() ==
+  if (out->bluetooth_output_->GetState() == BluetoothStreamState::STANDBY) {
+    retval = (out->bluetooth_output_->Start() ? 0 : -EIO);
+  } else if (out->bluetooth_output_->GetState() ==
                  BluetoothStreamState::STARTING ||
-             out->bluetooth_output_.GetState() ==
+             out->bluetooth_output_->GetState() ==
                  BluetoothStreamState::SUSPENDING) {
-    LOG(WARNING) << __func__ << ": state=" << out->bluetooth_output_.GetState()
+    LOG(WARNING) << __func__ << ": state=" << out->bluetooth_output_->GetState()
                  << " NOT ready to resume?!";
     retval = -EBUSY;
-  } else if (out->bluetooth_output_.GetState() ==
+  } else if (out->bluetooth_output_->GetState() ==
              BluetoothStreamState::DISABLED) {
-    LOG(WARNING) << __func__ << ": state=" << out->bluetooth_output_.GetState()
+    LOG(WARNING) << __func__ << ": state=" << out->bluetooth_output_->GetState()
                  << " NOT allow to resume?!";
     retval = -EINVAL;
   } else {
-    LOG(DEBUG) << __func__ << ": state=" << out->bluetooth_output_.GetState()
+    LOG(DEBUG) << __func__ << ": state=" << out->bluetooth_output_->GetState()
                << " resumed already";
   }
-  LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_.GetState()
+  LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_->GetState()
                << ", resuming (start) retval=" << retval;
 
   return retval;
@@ -659,7 +667,7 @@ static int out_get_presentation_position(const struct audio_stream_out* stream,
 
   const auto* out = reinterpret_cast<const BluetoothStreamOut*>(stream);
   out_calculate_feeding_delay_ms(out, nullptr, frames, timestamp);
-  LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_.GetState()
+  LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_->GetState()
                << ", frames=" << *frames << ", timestamp=" << timestamp->tv_sec
                << "." << StringPrintf("%09ld", timestamp->tv_nsec) << "s";
   return 0;
@@ -673,9 +681,9 @@ static void out_update_source_metadata(
   if (source_metadata == nullptr || source_metadata->track_count == 0) {
     return;
   }
-  LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_.GetState()
+  LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_->GetState()
                << ", " << source_metadata->track_count << " track(s)";
-  out->bluetooth_output_.UpdateMetadata(source_metadata);
+  out->bluetooth_output_->UpdateSourceMetadata(source_metadata);
 }
 
 static size_t frame_count(size_t microseconds, uint32_t sample_rate) {
@@ -690,7 +698,19 @@ int adev_open_output_stream(struct audio_hw_device* dev,
                             const char* address __unused) {
   *stream_out = nullptr;
   auto* out = new BluetoothStreamOut{};
-  if (!out->bluetooth_output_.SetUp(devices)) {
+  if (::aidl::android::hardware::bluetooth::audio::BluetoothAudioSession::
+          IsAidlAvailable()) {
+    out->bluetooth_output_ = std::make_unique<
+        ::android::bluetooth::audio::aidl::BluetoothAudioPortAidlOut>();
+    out->is_aidl = true;
+  } else {
+    out->bluetooth_output_ = std::make_unique<
+        ::android::bluetooth::audio::hidl::BluetoothAudioPortHidlOut>();
+    out->is_aidl = false;
+  }
+  if (!out->bluetooth_output_->SetUp(devices)) {
+    out->bluetooth_output_ = nullptr;
+    LOG(ERROR) << __func__ << ": cannot init HAL";
     delete out;
     return -EINVAL;
   }
@@ -718,15 +738,17 @@ int adev_open_output_stream(struct audio_hw_device* dev,
   out->stream_out_.get_presentation_position = out_get_presentation_position;
   out->stream_out_.update_source_metadata = out_update_source_metadata;
 
-  if (!out->bluetooth_output_.LoadAudioConfig(config)) {
-    LOG(ERROR) << __func__ << ": state=" << out->bluetooth_output_.GetState()
+  if (!out->bluetooth_output_->LoadAudioConfig(config)) {
+    LOG(ERROR) << __func__ << ": state=" << out->bluetooth_output_->GetState()
                << " failed to get audio config";
   }
   // WAR to support Mono / 16 bits per sample as the Bluetooth stack required
-  if (config->channel_mask == AUDIO_CHANNEL_OUT_MONO && config->format == AUDIO_FORMAT_PCM_16_BIT) {
-    LOG(INFO) << __func__ << ": force channels=" << StringPrintf("%#x", out->channel_mask_)
+  if (config->channel_mask == AUDIO_CHANNEL_OUT_MONO &&
+      config->format == AUDIO_FORMAT_PCM_16_BIT) {
+    LOG(INFO) << __func__
+              << ": force channels=" << StringPrintf("%#x", out->channel_mask_)
               << " to be AUDIO_CHANNEL_OUT_STEREO";
-    out->bluetooth_output_.ForcePcmStereoToMono(true);
+    out->bluetooth_output_->ForcePcmStereoToMono(true);
     config->channel_mask = AUDIO_CHANNEL_OUT_STEREO;
   }
   out->sample_rate_ = config->sample_rate;
@@ -735,7 +757,7 @@ int adev_open_output_stream(struct audio_hw_device* dev,
   // frame is number of samples per channel
 
   size_t preferred_data_interval_us = kBluetoothDefaultOutputBufferMs * 1000;
-  if (out->bluetooth_output_.GetPreferredDataIntervalUs(
+  if (out->bluetooth_output_->GetPreferredDataIntervalUs(
           &preferred_data_interval_us) &&
       preferred_data_interval_us != 0) {
     out->preferred_data_interval_us = preferred_data_interval_us;
@@ -766,11 +788,11 @@ int adev_open_output_stream(struct audio_hw_device* dev,
     bluetooth_device->opened_stream_outs_.push_back(out);
   }
   *stream_out = &out->stream_out_;
-  LOG(INFO) << __func__ << ": state=" << out->bluetooth_output_.GetState()
+  LOG(INFO) << __func__ << ": state=" << out->bluetooth_output_->GetState()
             << ", sample_rate=" << out->sample_rate_
             << ", channels=" << StringPrintf("%#x", out->channel_mask_)
-            << ", format=" << out->format_
-            << ", preferred_data_interval_us=" << out->preferred_data_interval_us
+            << ", format=" << out->format_ << ", preferred_data_interval_us="
+            << out->preferred_data_interval_us
             << ", frames=" << out->frames_count_;
   return 0;
 }
@@ -778,20 +800,20 @@ int adev_open_output_stream(struct audio_hw_device* dev,
 void adev_close_output_stream(struct audio_hw_device* dev,
                               struct audio_stream_out* stream) {
   auto* out = reinterpret_cast<BluetoothStreamOut*>(stream);
-  LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_.GetState()
+  LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_->GetState()
                << ", stopping";
   {
     auto* bluetooth_device = reinterpret_cast<BluetoothAudioDevice*>(dev);
     std::lock_guard<std::mutex> guard(bluetooth_device->mutex_);
     bluetooth_device->opened_stream_outs_.remove(out);
   }
-  if (out->bluetooth_output_.GetState() != BluetoothStreamState::DISABLED) {
+  if (out->bluetooth_output_->GetState() != BluetoothStreamState::DISABLED) {
     out->frames_rendered_ = 0;
     out->frames_presented_ = 0;
-    out->bluetooth_output_.Stop();
+    out->bluetooth_output_->Stop();
   }
-  out->bluetooth_output_.TearDown();
-  LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_.GetState()
+  out->bluetooth_output_->TearDown();
+  LOG(VERBOSE) << __func__ << ": state=" << out->bluetooth_output_->GetState()
                << ", stopped";
   delete out;
 }
@@ -812,7 +834,7 @@ static uint32_t in_get_sample_rate(const struct audio_stream* stream) {
 static int in_set_sample_rate(struct audio_stream* stream, uint32_t rate) {
   const auto* in = reinterpret_cast<const BluetoothStreamIn*>(stream);
 
-  LOG(VERBOSE) << __func__ << ": state=" << in->bluetooth_input_.GetState()
+  LOG(VERBOSE) << __func__ << ": state=" << in->bluetooth_input_->GetState()
                << ", sample_rate=" << in->sample_rate_;
   return (rate == in->sample_rate_ ? 0 : -ENOSYS);
 }
@@ -821,7 +843,7 @@ static size_t in_get_buffer_size(const struct audio_stream* stream) {
   const auto* in = reinterpret_cast<const BluetoothStreamIn*>(stream);
   size_t buffer_size =
       in->frames_count_ * audio_stream_in_frame_size(&in->stream_in_);
-  LOG(VERBOSE) << __func__ << ": state=" << in->bluetooth_input_.GetState()
+  LOG(VERBOSE) << __func__ << ": state=" << in->bluetooth_input_->GetState()
                << ", buffer_size=" << buffer_size;
   return buffer_size;
 }
@@ -829,12 +851,12 @@ static size_t in_get_buffer_size(const struct audio_stream* stream) {
 static audio_channel_mask_t in_get_channels(const struct audio_stream* stream) {
   const auto* in = reinterpret_cast<const BluetoothStreamIn*>(stream);
   audio_config_t audio_cfg;
-  if (in->bluetooth_input_.LoadAudioConfig(&audio_cfg)) {
-    LOG(VERBOSE) << __func__ << ": state=" << in->bluetooth_input_.GetState()
+  if (in->bluetooth_input_->LoadAudioConfig(&audio_cfg)) {
+    LOG(VERBOSE) << __func__ << ": state=" << in->bluetooth_input_->GetState()
                  << " audio_cfg=" << audio_cfg;
     return audio_cfg.channel_mask;
   } else {
-    LOG(WARNING) << __func__ << ": state=" << in->bluetooth_input_.GetState()
+    LOG(WARNING) << __func__ << ": state=" << in->bluetooth_input_->GetState()
                  << ", channels=" << StringPrintf("%#x", in->channel_mask_)
                  << " failure";
     return in->channel_mask_;
@@ -844,12 +866,12 @@ static audio_channel_mask_t in_get_channels(const struct audio_stream* stream) {
 static audio_format_t in_get_format(const struct audio_stream* stream) {
   const auto* in = reinterpret_cast<const BluetoothStreamIn*>(stream);
   audio_config_t audio_cfg;
-  if (in->bluetooth_input_.LoadAudioConfig(&audio_cfg)) {
-    LOG(VERBOSE) << __func__ << ": state=" << in->bluetooth_input_.GetState()
+  if (in->bluetooth_input_->LoadAudioConfig(&audio_cfg)) {
+    LOG(VERBOSE) << __func__ << ": state=" << in->bluetooth_input_->GetState()
                  << " audio_cfg=" << audio_cfg;
     return audio_cfg.format;
   } else {
-    LOG(WARNING) << __func__ << ": state=" << in->bluetooth_input_.GetState()
+    LOG(WARNING) << __func__ << ": state=" << in->bluetooth_input_->GetState()
                  << ", format=" << in->format_ << " failure";
     return in->format_;
   }
@@ -857,7 +879,7 @@ static audio_format_t in_get_format(const struct audio_stream* stream) {
 
 static int in_set_format(struct audio_stream* stream, audio_format_t format) {
   const auto* in = reinterpret_cast<const BluetoothStreamIn*>(stream);
-  LOG(VERBOSE) << __func__ << ": state=" << in->bluetooth_input_.GetState()
+  LOG(VERBOSE) << __func__ << ": state=" << in->bluetooth_input_->GetState()
                << ", format=" << in->format_;
   return (format == in->format_ ? 0 : -ENOSYS);
 }
@@ -867,7 +889,7 @@ static bool in_state_transition_timeout(BluetoothStreamIn* in,
                                         const BluetoothStreamState& state,
                                         uint16_t timeout_ms) {
   /* Don't loose suspend request, AF will not retry */
-  while (in->bluetooth_input_.GetState() == state) {
+  while (in->bluetooth_input_->GetState() == state) {
     lock.unlock();
     usleep(1000);
     lock.lock();
@@ -888,22 +910,22 @@ static int in_standby(struct audio_stream* stream) {
   std::unique_lock<std::mutex> lock(in->mutex_);
   int retval = 0;
 
-  LOG(VERBOSE) << __func__ << ": state=" << in->bluetooth_input_.GetState()
+  LOG(VERBOSE) << __func__ << ": state=" << in->bluetooth_input_->GetState()
                << " being standby (suspend)";
 
   /* Give some time to start up */
   if (!in_state_transition_timeout(in, lock, BluetoothStreamState::STARTING,
                                    kBluetoothDefaultInputStateTimeoutMs)) {
-    LOG(ERROR) << __func__ << ": state=" << in->bluetooth_input_.GetState()
+    LOG(ERROR) << __func__ << ": state=" << in->bluetooth_input_->GetState()
                << " NOT ready to by standby";
     return retval;
   }
 
-  if (in->bluetooth_input_.GetState() == BluetoothStreamState::STARTED) {
-    retval = (in->bluetooth_input_.Suspend() ? 0 : -EIO);
-  } else if (in->bluetooth_input_.GetState() !=
+  if (in->bluetooth_input_->GetState() == BluetoothStreamState::STARTED) {
+    retval = (in->bluetooth_input_->Suspend() ? 0 : -EIO);
+  } else if (in->bluetooth_input_->GetState() !=
              BluetoothStreamState::SUSPENDING) {
-    LOG(DEBUG) << __func__ << ": state=" << in->bluetooth_input_.GetState()
+    LOG(DEBUG) << __func__ << ": state=" << in->bluetooth_input_->GetState()
                << " standby already";
     return retval;
   }
@@ -911,12 +933,12 @@ static int in_standby(struct audio_stream* stream) {
   /* Give some time to suspend */
   if (!in_state_transition_timeout(in, lock, BluetoothStreamState::SUSPENDING,
                                    kBluetoothDefaultInputStateTimeoutMs)) {
-    LOG(ERROR) << __func__ << ": state=" << in->bluetooth_input_.GetState()
+    LOG(ERROR) << __func__ << ": state=" << in->bluetooth_input_->GetState()
                << " NOT ready to by standby";
     return 0;
   }
 
-  LOG(VERBOSE) << __func__ << ": state=" << in->bluetooth_input_.GetState()
+  LOG(VERBOSE) << __func__ << ": state=" << in->bluetooth_input_->GetState()
                << " standby (suspend) retval=" << retval;
 
   return retval;
@@ -924,7 +946,7 @@ static int in_standby(struct audio_stream* stream) {
 
 static int in_dump(const struct audio_stream* stream, int fd) {
   const auto* in = reinterpret_cast<const BluetoothStreamIn*>(stream);
-  LOG(VERBOSE) << __func__ << ": state=" << in->bluetooth_input_.GetState();
+  LOG(VERBOSE) << __func__ << ": state=" << in->bluetooth_input_->GetState();
 
   return 0;
 }
@@ -935,7 +957,7 @@ static int in_set_parameters(struct audio_stream* stream, const char* kvpairs) {
   int retval = 0;
 
   LOG(INFO) << __func__
-            << ": NOT HANDLED! state=" << in->bluetooth_input_.GetState()
+            << ": NOT HANDLED! state=" << in->bluetooth_input_->GetState()
             << ", kvpairs=[" << kvpairs << "]";
 
   std::unordered_map<std::string, std::string> params =
@@ -955,18 +977,18 @@ static char* in_get_parameters(const struct audio_stream* stream,
   std::unique_lock<std::mutex> lock(in->mutex_);
 
   LOG(VERBOSE) << __func__
-               << ": NOT HANDLED! state=" << in->bluetooth_input_.GetState()
+               << ": NOT HANDLED! state=" << in->bluetooth_input_->GetState()
                << ", keys=[" << keys << "]";
 
   std::unordered_map<std::string, std::string> params = ParseAudioParams(keys);
   if (params.empty()) return strdup("");
 
   audio_config_t audio_cfg;
-  if (in->bluetooth_input_.LoadAudioConfig(&audio_cfg)) {
-    LOG(VERBOSE) << __func__ << ": state=" << in->bluetooth_input_.GetState()
+  if (in->bluetooth_input_->LoadAudioConfig(&audio_cfg)) {
+    LOG(VERBOSE) << __func__ << ": state=" << in->bluetooth_input_->GetState()
                  << " audio_cfg=" << audio_cfg;
   } else {
-    LOG(ERROR) << __func__ << ": state=" << in->bluetooth_input_.GetState()
+    LOG(ERROR) << __func__ << ": state=" << in->bluetooth_input_->GetState()
                << " failed to get audio config";
   }
 
@@ -985,7 +1007,7 @@ static char* in_get_parameters(const struct audio_stream* stream,
 static int in_add_audio_effect(const struct audio_stream* stream,
                                effect_handle_t effect) {
   const auto* in = reinterpret_cast<const BluetoothStreamIn*>(stream);
-  LOG(VERBOSE) << __func__ << ": state=" << in->bluetooth_input_.GetState()
+  LOG(VERBOSE) << __func__ << ": state=" << in->bluetooth_input_->GetState()
                << ", effect=" << effect;
   return 0;
 }
@@ -993,7 +1015,7 @@ static int in_add_audio_effect(const struct audio_stream* stream,
 static int in_remove_audio_effect(const struct audio_stream* stream,
                                   effect_handle_t effect) {
   const auto* in = reinterpret_cast<const BluetoothStreamIn*>(stream);
-  LOG(VERBOSE) << __func__ << ": state=" << in->bluetooth_input_.GetState()
+  LOG(VERBOSE) << __func__ << ": state=" << in->bluetooth_input_->GetState()
                << ", effect=" << effect;
   return 0;
 }
@@ -1001,7 +1023,7 @@ static int in_remove_audio_effect(const struct audio_stream* stream,
 static int in_set_gain(struct audio_stream_in* stream, float gain) {
   const auto* in = reinterpret_cast<const BluetoothStreamIn*>(stream);
   LOG(VERBOSE) << __func__
-               << ": NOT HANDLED! state=" << in->bluetooth_input_.GetState();
+               << ": NOT HANDLED! state=" << in->bluetooth_input_->GetState();
 
   return 0;
 }
@@ -1017,41 +1039,41 @@ static ssize_t in_read(struct audio_stream_in* stream, void* buffer,
                                    kBluetoothDefaultInputStateTimeoutMs))
     return -EBUSY;
 
-  if (in->bluetooth_input_.GetState() != BluetoothStreamState::STARTED) {
-    LOG(INFO) << __func__ << ": state=" << in->bluetooth_input_.GetState()
+  if (in->bluetooth_input_->GetState() != BluetoothStreamState::STARTED) {
+    LOG(INFO) << __func__ << ": state=" << in->bluetooth_input_->GetState()
               << " first time bytes=" << bytes;
 
     int retval = 0;
-    LOG(VERBOSE) << __func__ << ": state=" << in->bluetooth_input_.GetState()
+    LOG(VERBOSE) << __func__ << ": state=" << in->bluetooth_input_->GetState()
                  << ", starting";
-    if (in->bluetooth_input_.GetState() == BluetoothStreamState::STANDBY) {
-      retval = (in->bluetooth_input_.Start() ? 0 : -EIO);
-    } else if (in->bluetooth_input_.GetState() ==
+    if (in->bluetooth_input_->GetState() == BluetoothStreamState::STANDBY) {
+      retval = (in->bluetooth_input_->Start() ? 0 : -EIO);
+    } else if (in->bluetooth_input_->GetState() ==
                BluetoothStreamState::SUSPENDING) {
-      LOG(WARNING) << __func__ << ": state=" << in->bluetooth_input_.GetState()
+      LOG(WARNING) << __func__ << ": state=" << in->bluetooth_input_->GetState()
                    << " NOT ready to start?!";
       retval = -EBUSY;
-    } else if (in->bluetooth_input_.GetState() ==
+    } else if (in->bluetooth_input_->GetState() ==
                BluetoothStreamState::DISABLED) {
-      LOG(WARNING) << __func__ << ": state=" << in->bluetooth_input_.GetState()
+      LOG(WARNING) << __func__ << ": state=" << in->bluetooth_input_->GetState()
                    << " NOT allow to start?!";
       retval = -EINVAL;
     } else {
-      LOG(DEBUG) << __func__ << ": state=" << in->bluetooth_input_.GetState()
+      LOG(DEBUG) << __func__ << ": state=" << in->bluetooth_input_->GetState()
                  << " started already";
     }
-    LOG(VERBOSE) << __func__ << ": state=" << in->bluetooth_input_.GetState()
+    LOG(VERBOSE) << __func__ << ": state=" << in->bluetooth_input_->GetState()
                  << ", starting (start) retval=" << retval;
 
     if (retval) {
-      LOG(ERROR) << __func__ << ": state=" << in->bluetooth_input_.GetState()
+      LOG(ERROR) << __func__ << ": state=" << in->bluetooth_input_->GetState()
                  << " failed to start";
       return retval;
     }
   }
 
   lock.unlock();
-  totalRead = in->bluetooth_input_.ReadData(buffer, bytes);
+  totalRead = in->bluetooth_input_->ReadData(buffer, bytes);
   lock.lock();
 
   struct timespec ts = {.tv_sec = 0, .tv_nsec = 0};
@@ -1067,7 +1089,7 @@ static ssize_t in_read(struct audio_stream_in* stream, void* buffer,
 static uint32_t in_get_input_frames_lost(struct audio_stream_in* stream) {
   const auto* in = reinterpret_cast<const BluetoothStreamIn*>(stream);
   LOG(VERBOSE) << __func__
-               << ": NOT HANDLED! state=" << in->bluetooth_input_.GetState();
+               << ": NOT HANDLED! state=" << in->bluetooth_input_->GetState();
 
   return 0;
 }
@@ -1079,8 +1101,8 @@ static int in_get_capture_position(const struct audio_stream_in* stream,
   }
   const auto* in = reinterpret_cast<const BluetoothStreamIn*>(stream);
 
-  if (in->bluetooth_input_.GetState() == BluetoothStreamState::STANDBY) {
-    LOG(WARNING) << __func__ << ": state= " << in->bluetooth_input_.GetState();
+  if (in->bluetooth_input_->GetState() == BluetoothStreamState::STANDBY) {
+    LOG(WARNING) << __func__ << ": state= " << in->bluetooth_input_->GetState();
     return -ENOSYS;
   }
 
@@ -1092,7 +1114,7 @@ static int in_get_capture_position(const struct audio_stream_in* stream,
 static int in_start(const struct audio_stream_in* stream) {
   const auto* in = reinterpret_cast<const BluetoothStreamIn*>(stream);
   LOG(VERBOSE) << __func__
-               << ": NOT HANDLED! state=" << in->bluetooth_input_.GetState();
+               << ": NOT HANDLED! state=" << in->bluetooth_input_->GetState();
 
   return 0;
 }
@@ -1100,7 +1122,7 @@ static int in_start(const struct audio_stream_in* stream) {
 static int in_stop(const struct audio_stream_in* stream) {
   const auto* in = reinterpret_cast<const BluetoothStreamIn*>(stream);
   LOG(VERBOSE) << __func__
-               << ": NOT HANDLED! state=" << in->bluetooth_input_.GetState();
+               << ": NOT HANDLED! state=" << in->bluetooth_input_->GetState();
 
   return 0;
 }
@@ -1110,7 +1132,7 @@ static int in_create_mmap_buffer(const struct audio_stream_in* stream,
                                  struct audio_mmap_buffer_info* info) {
   const auto* in = reinterpret_cast<const BluetoothStreamIn*>(stream);
   LOG(VERBOSE) << __func__
-               << ": NOT HANDLED! state=" << in->bluetooth_input_.GetState();
+               << ": NOT HANDLED! state=" << in->bluetooth_input_->GetState();
 
   return -ENOSYS;
 }
@@ -1119,7 +1141,7 @@ static int in_get_mmap_position(const struct audio_stream_in* stream,
                                 struct audio_mmap_position* position) {
   const auto* in = reinterpret_cast<const BluetoothStreamIn*>(stream);
   LOG(VERBOSE) << __func__
-               << ": NOT HANDLED! state=" << in->bluetooth_input_.GetState();
+               << ": NOT HANDLED! state=" << in->bluetooth_input_->GetState();
 
   return -ENOSYS;
 }
@@ -1129,7 +1151,7 @@ static int in_get_active_microphones(
     struct audio_microphone_characteristic_t* mic_array, size_t* mic_count) {
   const auto* in = reinterpret_cast<const BluetoothStreamIn*>(stream);
   LOG(VERBOSE) << __func__
-               << ": NOT HANDLED! state=" << in->bluetooth_input_.GetState();
+               << ": NOT HANDLED! state=" << in->bluetooth_input_->GetState();
 
   return -ENOSYS;
 }
@@ -1138,7 +1160,7 @@ static int in_set_microphone_direction(const struct audio_stream_in* stream,
                                        audio_microphone_direction_t direction) {
   const auto* in = reinterpret_cast<const BluetoothStreamIn*>(stream);
   LOG(VERBOSE) << __func__
-               << ": NOT HANDLED! state=" << in->bluetooth_input_.GetState();
+               << ": NOT HANDLED! state=" << in->bluetooth_input_->GetState();
 
   return -ENOSYS;
 }
@@ -1147,7 +1169,7 @@ static int in_set_microphone_field_dimension(
     const struct audio_stream_in* stream, float zoom) {
   const auto* in = reinterpret_cast<const BluetoothStreamIn*>(stream);
   LOG(VERBOSE) << __func__
-               << ": NOT HANDLED! state=" << in->bluetooth_input_.GetState();
+               << ": NOT HANDLED! state=" << in->bluetooth_input_->GetState();
 
   return -ENOSYS;
 }
@@ -1160,10 +1182,17 @@ static void in_update_sink_metadata(struct audio_stream_in* stream,
   }
 
   const auto* in = reinterpret_cast<const BluetoothStreamIn*>(stream);
-  LOG(INFO) << __func__ << ": state=" << in->bluetooth_input_.GetState() << ", "
-            << sink_metadata->track_count << " track(s)";
+  LOG(INFO) << __func__ << ": state=" << in->bluetooth_input_->GetState()
+            << ", " << sink_metadata->track_count << " track(s)";
 
-  in->bluetooth_input_.UpdateSinkMetadata(sink_metadata);
+  if (!in->is_aidl) {
+    LOG(WARNING) << __func__
+                 << " is only supported in AIDL but using HIDL now!";
+    return;
+  }
+  static_cast<::android::bluetooth::audio::aidl::BluetoothAudioPortAidl*>(
+      in->bluetooth_input_.get())
+      ->UpdateSinkMetadata(sink_metadata);
 }
 
 int adev_open_input_stream(struct audio_hw_device* dev,
@@ -1175,7 +1204,19 @@ int adev_open_input_stream(struct audio_hw_device* dev,
                            audio_source_t source __unused) {
   *stream_in = nullptr;
   auto* in = new BluetoothStreamIn{};
-  if (!in->bluetooth_input_.SetUp(devices)) {
+  if (::aidl::android::hardware::bluetooth::audio::BluetoothAudioSession::
+          IsAidlAvailable()) {
+    in->bluetooth_input_ = std::make_unique<
+        ::android::bluetooth::audio::aidl::BluetoothAudioPortAidlIn>();
+    in->is_aidl = true;
+  } else {
+    in->bluetooth_input_ = std::make_unique<
+        ::android::bluetooth::audio::hidl::BluetoothAudioPortHidlIn>();
+    in->is_aidl = false;
+  }
+  if (!in->bluetooth_input_->SetUp(devices)) {
+    in->bluetooth_input_ = nullptr;
+    LOG(ERROR) << __func__ << ": cannot init HAL";
     delete in;
     return -EINVAL;
   }
@@ -1208,8 +1249,8 @@ int adev_open_input_stream(struct audio_hw_device* dev,
       in_set_microphone_field_dimension;
   in->stream_in_.update_sink_metadata = in_update_sink_metadata;
 
-  if (!in->bluetooth_input_.LoadAudioConfig(config)) {
-    LOG(ERROR) << __func__ << ": state=" << in->bluetooth_input_.GetState()
+  if (!in->bluetooth_input_->LoadAudioConfig(config)) {
+    LOG(ERROR) << __func__ << ": state=" << in->bluetooth_input_->GetState()
                << " failed to get audio config";
     return -EINVAL;
   }
@@ -1220,7 +1261,7 @@ int adev_open_input_stream(struct audio_hw_device* dev,
   // frame is number of samples per channel
 
   size_t preferred_data_interval_us = kBluetoothDefaultInputBufferMs * 1000;
-  if (in->bluetooth_input_.GetPreferredDataIntervalUs(
+  if (in->bluetooth_input_->GetPreferredDataIntervalUs(
           &preferred_data_interval_us) &&
       preferred_data_interval_us != 0) {
     in->preferred_data_interval_us = preferred_data_interval_us;
@@ -1233,7 +1274,7 @@ int adev_open_input_stream(struct audio_hw_device* dev,
   in->frames_presented_ = 0;
 
   *stream_in = &in->stream_in_;
-  LOG(INFO) << __func__ << ": state=" << in->bluetooth_input_.GetState()
+  LOG(INFO) << __func__ << ": state=" << in->bluetooth_input_->GetState()
             << ", sample_rate=" << in->sample_rate_
             << ", channels=" << StringPrintf("%#x", in->channel_mask_)
             << ", format=" << in->format_
@@ -1247,12 +1288,12 @@ void adev_close_input_stream(struct audio_hw_device* dev,
                              struct audio_stream_in* stream) {
   auto* in = reinterpret_cast<BluetoothStreamIn*>(stream);
 
-  if (in->bluetooth_input_.GetState() != BluetoothStreamState::DISABLED) {
-    in->bluetooth_input_.Stop();
+  if (in->bluetooth_input_->GetState() != BluetoothStreamState::DISABLED) {
+    in->bluetooth_input_->Stop();
   }
 
-  in->bluetooth_input_.TearDown();
-  LOG(VERBOSE) << __func__ << ": state=" << in->bluetooth_input_.GetState()
+  in->bluetooth_input_->TearDown();
+  LOG(VERBOSE) << __func__ << ": state=" << in->bluetooth_input_->GetState()
                << ", stopped";
 
   delete in;

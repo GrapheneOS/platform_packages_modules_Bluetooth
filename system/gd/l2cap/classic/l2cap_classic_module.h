@@ -36,6 +36,9 @@ namespace classic {
 class L2capClassicModule : public bluetooth::Module {
  public:
   L2capClassicModule();
+  L2capClassicModule(const L2capClassicModule&) = delete;
+  L2capClassicModule& operator=(const L2capClassicModule&) = delete;
+
   virtual ~L2capClassicModule();
 
   /**
@@ -86,8 +89,6 @@ class L2capClassicModule : public bluetooth::Module {
  private:
   struct impl;
   std::unique_ptr<impl> pimpl_;
-
-  DISALLOW_COPY_AND_ASSIGN(L2capClassicModule);
 };
 
 }  // namespace classic

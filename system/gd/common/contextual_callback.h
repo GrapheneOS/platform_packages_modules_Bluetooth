@@ -39,8 +39,8 @@ class ContextualOnceCallback<R(Args...)> {
       : callback_(std::move(callback)), context_(context) {}
 
   constexpr ContextualOnceCallback() = default;
-
-  DISALLOW_COPY_AND_ASSIGN(ContextualOnceCallback);
+  ContextualOnceCallback(const ContextualOnceCallback&) = delete;
+  ContextualOnceCallback& operator=(const ContextualOnceCallback&) = delete;
 
   ContextualOnceCallback(ContextualOnceCallback&&) noexcept = default;
   ContextualOnceCallback& operator=(ContextualOnceCallback&&) noexcept = default;

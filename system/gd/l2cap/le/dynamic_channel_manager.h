@@ -40,6 +40,9 @@ class DynamicChannelServiceManagerImpl;
 
 class DynamicChannelManager {
  public:
+  DynamicChannelManager(const DynamicChannelManager&) = delete;
+  DynamicChannelManager& operator=(const DynamicChannelManager&) = delete;
+
   enum class ConnectionResultCode {
     SUCCESS = 0,
     FAIL_NO_SERVICE_REGISTERED = 1,  // No service is registered
@@ -138,7 +141,6 @@ class DynamicChannelManager {
   internal::DynamicChannelServiceManagerImpl* service_manager_ = nullptr;
   internal::LinkManager* link_manager_ = nullptr;
   os::Handler* l2cap_layer_handler_ = nullptr;
-  DISALLOW_COPY_AND_ASSIGN(DynamicChannelManager);
 };
 
 }  // namespace le

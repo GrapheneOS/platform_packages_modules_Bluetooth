@@ -313,6 +313,12 @@ static uint8_t get_le_resolving_list_size(void) {
 
 static uint8_t get_le_all_initiating_phys() { return data_.phy; }
 
+static uint8_t controller_clear_event_filter() {
+  LOG_VERBOSE("Called!");
+  bluetooth::shim::GetController()->SetEventFilterClearAll();
+  return BTM_SUCCESS;
+}
+
 static const controller_t interface = {
     .get_is_ready = get_is_ready,
 
@@ -410,7 +416,8 @@ static const controller_t interface = {
     .get_ble_resolving_list_max_size = get_le_resolving_list_size,
     .set_ble_resolving_list_max_size = set_ble_resolving_list_max_size,
     .get_local_supported_codecs = get_local_supported_codecs,
-    .get_le_all_initiating_phys = get_le_all_initiating_phys};
+    .get_le_all_initiating_phys = get_le_all_initiating_phys,
+    .clear_event_filter = controller_clear_event_filter};
 
 const controller_t* bluetooth::shim::controller_get_interface() {
   static bool loaded = false;

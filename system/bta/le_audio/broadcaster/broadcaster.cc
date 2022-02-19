@@ -134,7 +134,7 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
                 .vendor_codec_id = codec_id.vendor_codec_id,
                 .codec_specific_params = std::move(codec_spec_data),
             },
-        .metadata = metadata,
+        .metadata = std::move(metadata),
         .bis_configs = {},
     }};
 
@@ -542,7 +542,7 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
 
         encoders_mem_.emplace_back(malloc(encoder_bytes), &std::free);
         encoders_.emplace_back(
-            lc3_setup_encoder(dt_us, sr_hz, encoders_mem_.back().get()));
+            lc3_setup_encoder(dt_us, sr_hz, 0, encoders_mem_.back().get()));
       }
     }
 

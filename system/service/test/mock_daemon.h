@@ -27,15 +27,15 @@ namespace testing {
 class MockDaemon : public Daemon {
  public:
   MockDaemon() = default;
+  MockDaemon(const MockDaemon&) = delete;
+  MockDaemon& operator=(const MockDaemon&) = delete;
+
   ~MockDaemon() override = default;
 
   MOCK_CONST_METHOD0(GetSettings, Settings*());
   MOCK_CONST_METHOD0(GetMessageLoop, btbase::AbstractMessageLoop*());
   MOCK_METHOD0(StartMainLoop, void());
   MOCK_METHOD0(Init, bool());
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(MockDaemon);
 };
 
 }  // namespace testing

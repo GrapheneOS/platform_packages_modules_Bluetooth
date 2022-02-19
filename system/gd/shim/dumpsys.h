@@ -36,6 +36,10 @@ class Dumpsys : public bluetooth::Module {
   os::Handler* GetGdShimHandler();
 
   Dumpsys(const std::string& pre_bundled_schema);
+
+  Dumpsys(const Dumpsys&) = delete;
+  Dumpsys& operator=(const Dumpsys&) = delete;
+
   ~Dumpsys() = default;
 
   static const ModuleFactory Factory;
@@ -51,7 +55,6 @@ class Dumpsys : public bluetooth::Module {
   struct impl;
   std::unique_ptr<impl> pimpl_;
   const dumpsys::ReflectionSchema reflection_schema_;
-  DISALLOW_COPY_AND_ASSIGN(Dumpsys);
 };
 
 }  // namespace shim

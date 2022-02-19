@@ -130,6 +130,16 @@ impl IBluetooth for IBluetoothDBus {
         true
     }
 
+    #[dbus_method("GetDiscoverable")]
+    fn get_discoverable(&self) -> bool {
+        true
+    }
+
+    #[dbus_method("SetDiscoverable")]
+    fn set_discoverable(&self, mode: bool, duration: u32) -> bool {
+        true
+    }
+
     #[dbus_method("StartDiscovery")]
     fn start_discovery(&self) -> bool {
         true

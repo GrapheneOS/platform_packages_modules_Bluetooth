@@ -19,7 +19,6 @@
 #include <functional>
 #include <memory>
 
-#include <base/macros.h>
 #include <bluetooth/uuid.h>
 
 #include "service/common/bluetooth/low_energy_constants.h"
@@ -31,6 +30,9 @@ namespace bluetooth {
 // stack-assigned integer "instance_id" ID associated with it.
 class BluetoothInstance {
  public:
+  BluetoothInstance(const BluetoothInstance&) = delete;
+  BluetoothInstance& operator=(const BluetoothInstance&) = delete;
+
   virtual ~BluetoothInstance() = default;
 
   // Returns the app-specific unique ID used while registering this instance.
@@ -43,9 +45,6 @@ class BluetoothInstance {
   // Constructor shouldn't be called directly as instances are meant to be
   // obtained from the factory.
   BluetoothInstance() = default;
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(BluetoothInstance);
 };
 
 // A BluetoothInstanceFactory provides a common interface for factory
@@ -54,6 +53,9 @@ class BluetoothInstance {
 class BluetoothInstanceFactory {
  public:
   BluetoothInstanceFactory() = default;
+  BluetoothInstanceFactory(const BluetoothInstanceFactory&) = delete;
+  BluetoothInstanceFactory& operator=(const BluetoothInstanceFactory&) = delete;
+
   virtual ~BluetoothInstanceFactory() = default;
 
   // Callback invoked as a result of a call to RegisterInstance.
@@ -67,9 +69,6 @@ class BluetoothInstanceFactory {
   // the case of an error, the pointer will contain nullptr.
   virtual bool RegisterInstance(const Uuid& app_uuid,
                                 const RegisterCallback& callback) = 0;
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(BluetoothInstanceFactory);
 };
 
 }  // namespace bluetooth

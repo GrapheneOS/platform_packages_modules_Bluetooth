@@ -99,7 +99,6 @@ cc_library_shared {
         "libbt-sbc-encoder",
         "libFraunhoferAAC",
         "libg722codec",
-        "liblc3codec",
         "liblc3",
         "libudrv-uipc",
         "libprotobuf-cpp-lite",

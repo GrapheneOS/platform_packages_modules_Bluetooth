@@ -26,6 +26,7 @@ import android.util.Log;
 
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.ProfileService;
+import com.android.internal.annotations.VisibleForTesting;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -41,7 +42,7 @@ public class McpService extends ProfileService {
 
     private static McpService sMcpService;
 
-    private static MediaControlProfile mGmcs;
+    private static MediaControlProfile sGmcs;
     private Map<BluetoothDevice, Integer> mDeviceAuthorizations = new HashMap<>();
     private Handler mHandler = new Handler(Looper.getMainLooper());
 
@@ -65,8 +66,13 @@ public class McpService extends ProfileService {
         return sMcpService;
     }
 
+    @VisibleForTesting
+    public static MediaControlProfile getMediaControlProfile() {
+        return sGmcs;
+    }
+
     public static void setMediaControlProfileForTesting(MediaControlProfile mediaControlProfile) {
-        mGmcs = mediaControlProfile;
+        sGmcs = mediaControlProfile;
     }
 
     @Override
@@ -94,11 +100,11 @@ public class McpService extends ProfileService {
         // Mark service as started
         setMcpService(this);
 
-        if (mGmcs == null) {
+        if (sGmcs == null) {
             // Initialize the Media Control Service Server
-            mGmcs = new MediaControlProfile(this);
+            sGmcs = new MediaControlProfile(this);
             // Requires this service to be already started thus we have to make it an async call
-            mHandler.post(() -> mGmcs.init());
+            mHandler.post(() -> sGmcs.init());
         }
 
         return true;
@@ -115,8 +121,9 @@ public class McpService extends ProfileService {
             return true;
         }
 
-        if (mGmcs != null) {
-            mGmcs.cleanup();
+        if (sGmcs != null) {
+            sGmcs.cleanup();
+            sGmcs = null;
         }
 
         // Mark service as stopped
@@ -141,7 +148,7 @@ public class McpService extends ProfileService {
                 : BluetoothDevice.ACCESS_REJECTED;
         mDeviceAuthorizations.put(device, authorization);
 
-        mGmcs.onDeviceAuthorizationSet(device);
+        sGmcs.onDeviceAuthorizationSet(device);
     }
 
     public int getDeviceAuthorization(BluetoothDevice device) {
@@ -192,6 +199,6 @@ public class McpService extends ProfileService {
     @Override
     public void dump(StringBuilder sb) {
         super.dump(sb);
-        mGmcs.dump(sb);
+        sGmcs.dump(sb);
     }
 }

@@ -47,6 +47,9 @@ class StorageModule : public bluetooth::Module {
 
   static const std::string kAdapterSection;
 
+  StorageModule(const StorageModule&) = delete;
+  StorageModule& operator=(const StorageModule&) = delete;
+
   ~StorageModule();
   static const ModuleFactory Factory;
 
@@ -146,8 +149,6 @@ class StorageModule : public bluetooth::Module {
   bool is_restricted_mode_;
   bool is_single_user_mode_;
   static bool is_config_checksum_pass(int check_bit);
-
-  DISALLOW_COPY_AND_ASSIGN(StorageModule);
 };
 
 }  // namespace storage

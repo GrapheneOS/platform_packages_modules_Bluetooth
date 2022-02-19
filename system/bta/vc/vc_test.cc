@@ -66,6 +66,10 @@ RawAddress GetTestAddress(int index) {
 class MockVolumeControlCallbacks : public VolumeControlCallbacks {
  public:
   MockVolumeControlCallbacks() = default;
+  MockVolumeControlCallbacks(const MockVolumeControlCallbacks&) = delete;
+  MockVolumeControlCallbacks& operator=(const MockVolumeControlCallbacks&) =
+      delete;
+
   ~MockVolumeControlCallbacks() override = default;
 
   MOCK_METHOD((void), OnConnectionState,
@@ -75,9 +79,6 @@ class MockVolumeControlCallbacks : public VolumeControlCallbacks {
               (override));
   MOCK_METHOD((void), OnGroupVolumeStateChanged,
               (int group_id, uint8_t volume, bool mute, bool isAutonomous), (override));
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(MockVolumeControlCallbacks);
 };
 
 class VolumeControlTest : public ::testing::Test {

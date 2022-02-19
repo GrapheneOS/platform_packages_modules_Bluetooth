@@ -104,6 +104,9 @@ static uint16_t GetTestConnId(const RawAddress& address) {
 class MockHasCallbacks : public HasClientCallbacks {
  public:
   MockHasCallbacks() = default;
+  MockHasCallbacks(const MockHasCallbacks&) = delete;
+  MockHasCallbacks& operator=(const MockHasCallbacks&) = delete;
+
   ~MockHasCallbacks() override = default;
 
   MOCK_METHOD((void), OnConnectionState,
@@ -133,9 +136,6 @@ class MockHasCallbacks : public HasClientCallbacks {
               ((std::variant<RawAddress, int> addr_or_group_id),
                uint8_t preset_index, ErrorCode error_code),
               (override));
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(MockHasCallbacks);
 };
 
 class HasClientTestBase : public ::testing::Test {

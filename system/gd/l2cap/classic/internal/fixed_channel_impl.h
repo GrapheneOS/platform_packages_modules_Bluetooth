@@ -35,6 +35,9 @@ class FixedChannelImpl : public l2cap::internal::ChannelImpl {
  public:
   FixedChannelImpl(Cid cid, Link* link, os::Handler* l2cap_handler);
 
+  FixedChannelImpl(const FixedChannelImpl&) = delete;
+  FixedChannelImpl& operator=(const FixedChannelImpl&) = delete;
+
   virtual ~FixedChannelImpl() = default;
 
   hci::Address GetDevice() const {
@@ -96,8 +99,6 @@ class FixedChannelImpl : public l2cap::internal::ChannelImpl {
   static constexpr size_t kChannelQueueSize = 10;
   common::BidiQueue<packet::PacketView<packet::kLittleEndian>, packet::BasePacketBuilder> channel_queue_{
       kChannelQueueSize};
-
-  DISALLOW_COPY_AND_ASSIGN(FixedChannelImpl);
 };
 
 }  // namespace internal
