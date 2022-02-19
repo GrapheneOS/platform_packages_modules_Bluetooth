@@ -25,6 +25,9 @@ namespace att {
 class AttModule : public bluetooth::Module {
  public:
   AttModule() = default;
+  AttModule(const AttModule&) = delete;
+  AttModule& operator=(const AttModule&) = delete;
+
   ~AttModule() = default;
 
   static const ModuleFactory Factory;
@@ -41,7 +44,6 @@ class AttModule : public bluetooth::Module {
  private:
   struct impl;
   std::unique_ptr<impl> pimpl_;
-  DISALLOW_COPY_AND_ASSIGN(AttModule);
 };
 
 }  // namespace att

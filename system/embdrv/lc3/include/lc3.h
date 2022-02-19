@@ -205,6 +205,9 @@ int lc3_delay_samples(int dt_us, int sr_hz);
  * dt_us           Frame duration in us, 7500 or 10000
  * sr_hz           Samplerate in Hz, 8000, 16000, 24000, 32000 or 48000
  * return          Size of then encoder in bytes, 0 on bad parameters
+ *
+ * The `sr_hz` parameter is the samplerate of the PCM input stream,
+ * and will match `sr_pcm_hz` of `lc3_setup_encoder()`.
  */
 unsigned lc3_encoder_size(int dt_us, int sr_hz);
 
@@ -212,10 +215,18 @@ unsigned lc3_encoder_size(int dt_us, int sr_hz);
  * Setup encoder
  * dt_us           Frame duration in us, 7500 or 10000
  * sr_hz           Samplerate in Hz, 8000, 16000, 24000, 32000 or 48000
+ * sr_pcm_hz       Input samplerate, downsampling option of input, or 0
  * mem             Encoder memory space, aligned to pointer type
  * return          Encoder as an handle, NULL on bad parameters
+ *
+ * The `sr_pcm_hz` parameter is a downsampling option of PCM input,
+ * the value `0` fallback to the samplerate of the encoded stream `sr_hz`.
+ * When used, `sr_pcm_hz` is intended to be higher or equal to the encoder
+ * samplerate `sr_hz`. The size of the context needed, given by
+ * `lc3_encoder_size()` will be set accordingly to `sr_pcm_hz`.
  */
-lc3_encoder_t lc3_setup_encoder(int dt_us, int sr_hz, void *mem);
+lc3_encoder_t lc3_setup_encoder(
+    int dt_us, int sr_hz, int sr_pcm_hz, void *mem);
 
 /**
  * Encode a frame
@@ -233,6 +244,9 @@ int lc3_encode(lc3_encoder_t encoder,
  * dt_us           Frame duration in us, 7500 or 10000
  * sr_hz           Samplerate in Hz, 8000, 16000, 24000, 32000 or 48000
  * return          Size of then decoder in bytes, 0 on bad parameters
+ *
+ * The `sr_hz` parameter is the samplerate of the PCM output stream,
+ * and will match `sr_pcm_hz` of `lc3_setup_decoder()`.
  */
 unsigned lc3_decoder_size(int dt_us, int sr_hz);
 
@@ -240,10 +254,18 @@ unsigned lc3_decoder_size(int dt_us, int sr_hz);
  * Setup decoder
  * dt_us           Frame duration in us, 7500 or 10000
  * sr_hz           Samplerate in Hz, 8000, 16000, 24000, 32000 or 48000
+ * sr_pcm_hz       Output samplerate, upsampling option of output (or 0)
  * mem             Decoder memory space, aligned to pointer type
  * return          Decoder as an handle, NULL on bad parameters
+ *
+ * The `sr_pcm_hz` parameter is an upsampling option of PCM output,
+ * the value `0` fallback to the samplerate of the decoded stream `sr_hz`.
+ * When used, `sr_pcm_hz` is intended to be higher or equal to the decoder
+ * samplerate `sr_hz`. The size of the context needed, given by
+ * `lc3_decoder_size()` will be set accordingly to `sr_pcm_hz`.
  */
-lc3_decoder_t lc3_setup_decoder(int dt_us, int sr_hz, void *mem);
+lc3_decoder_t lc3_setup_decoder(
+    int dt_us, int sr_hz, int sr_pcm_hz, void *mem);
 
 /**
  * Decode a frame

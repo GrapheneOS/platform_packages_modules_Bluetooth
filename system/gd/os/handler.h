@@ -38,10 +38,11 @@ class Handler : public common::IPostableContext {
   // Create and register a handler on given thread
   explicit Handler(Thread* thread);
 
+  Handler(const Handler&) = delete;
+  Handler& operator=(const Handler&) = delete;
+
   // Unregister this handler from the thread and release resource. Unhandled events will be discarded and not executed.
   virtual ~Handler();
-
-  DISALLOW_COPY_AND_ASSIGN(Handler);
 
   // Enqueue a closure to the queue of this handler
   virtual void Post(common::OnceClosure closure) override;

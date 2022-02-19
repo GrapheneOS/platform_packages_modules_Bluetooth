@@ -26,6 +26,9 @@ namespace iso {
 class IsoModule : public bluetooth::Module {
  public:
   IsoModule() = default;
+  IsoModule(const IsoModule&) = delete;
+  IsoModule& operator=(const IsoModule&) = delete;
+
   ~IsoModule() = default;
 
   /**
@@ -47,7 +50,6 @@ class IsoModule : public bluetooth::Module {
  private:
   struct impl;
   std::unique_ptr<impl> pimpl_;
-  DISALLOW_COPY_AND_ASSIGN(IsoModule);
 };
 
 }  // namespace iso

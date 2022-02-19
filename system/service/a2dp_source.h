@@ -16,8 +16,6 @@
 
 #pragma once
 
-#include <base/macros.h>
-
 #include <atomic>
 #include <mutex>
 #include <string>
@@ -49,6 +47,9 @@ class A2dpSource : public BluetoothInstance,
    protected:
     virtual ~Delegate() = default;
   };
+
+  A2dpSource(const A2dpSource&) = delete;
+  A2dpSource& operator=(const A2dpSource&) = delete;
 
   ~A2dpSource() override;
 
@@ -99,21 +100,19 @@ class A2dpSource : public BluetoothInstance,
   // delegate function which attempts to take 'clock'.
   std::mutex delegate_mutex_;
   Delegate* delegate_ = nullptr;
-
-  DISALLOW_COPY_AND_ASSIGN(A2dpSource);
 };
 
 class A2dpSourceFactory : public BluetoothInstanceFactory {
  public:
   A2dpSourceFactory();
+  A2dpSourceFactory(const A2dpSourceFactory&) = delete;
+  A2dpSourceFactory& operator=(const A2dpSourceFactory&) = delete;
+
   ~A2dpSourceFactory() override;
 
   // BluetoothInstanceFactory override:
   bool RegisterInstance(const Uuid& uuid,
                         const RegisterCallback& callback) override;
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(A2dpSourceFactory);
 };
 
 }  // namespace bluetooth

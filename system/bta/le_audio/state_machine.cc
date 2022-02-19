@@ -211,7 +211,8 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
 
   void StopStream(LeAudioDeviceGroup* group) override {
     if (group->IsReleasing()) {
-      LOG(INFO) << __func__ << ", group already in releasing process";
+      LOG(INFO) << __func__ << ", group: " << group->group_id_
+                << " already in releasing process";
       return;
     }
 
@@ -596,7 +597,9 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     }
 
     if (group->GetTargetState() != AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
-      LOG(ERROR) << __func__ << ", Unintended CIS establishement event came";
+      LOG(ERROR) << __func__
+                 << ", Unintended CIS establishement event came for group id:"
+                 << group->group_id_;
       StopStream(group);
       return;
     }

@@ -310,22 +310,14 @@ extern tBTA_DM_CONNECTED_SRVCS bta_dm_conn_srvcs;
 
 /* DM control block */
 typedef struct {
-  bool is_bta_dm_active;
   tBTA_DM_ACTIVE_LINK device_list;
   tBTA_DM_SEC_CBACK* p_sec_cback;
   tBTA_BLE_ENERGY_INFO_CBACK* p_energy_info_cback;
-  uint16_t state;
   bool disabling;
   alarm_t* disable_timer;
-  uint32_t wbt_sdp_handle; /* WIDCOMM Extensions SDP record handle */
-  uint8_t wbt_scn;         /* WIDCOMM Extensions SCN */
-  uint8_t num_central_only;
   uint8_t pm_id;
   tBTA_PM_TIMER pm_timer[BTA_DM_NUM_PM_TIMER];
   uint8_t cur_av_count;   /* current AV connecions */
-  bool disable_pair_mode; /* disable pair mode or not */
-  bool conn_paired_only;  /* allow connectable to paired device only or not */
-  tBTA_DM_API_SEARCH search_msg;
 
   /* Storage for pin code request parameters */
   RawAddress pin_bd_addr;
@@ -349,7 +341,6 @@ typedef struct {
 
   tBTA_DM_ENCRYPT_CBACK* p_encrypt_cback;
   alarm_t* switch_delay_timer;
-
 } tBTA_DM_CB;
 
 /* DM search control block */
@@ -552,6 +543,8 @@ extern void bta_dm_search_cancel_notify();
 extern void bta_dm_disc_rmt_name(tBTA_DM_MSG* p_data);
 extern tBTA_DM_PEER_DEVICE* bta_dm_find_peer_device(
     const RawAddress& peer_addr);
+
+extern void bta_dm_clear_event_filter(void);
 
 uint8_t bta_dm_search_get_state();
 void bta_dm_search_set_state(uint8_t state);

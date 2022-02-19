@@ -27,6 +27,10 @@
 class MockBleAdvertisingManager : public BleAdvertisingManager {
  public:
   MockBleAdvertisingManager() = default;
+  MockBleAdvertisingManager(const MockBleAdvertisingManager&) = delete;
+  MockBleAdvertisingManager& operator=(const MockBleAdvertisingManager&) =
+      delete;
+
   ~MockBleAdvertisingManager() override = default;
 
   /* Allows getting and setting BleAdvertiserHciInterface dependency */
@@ -99,7 +103,6 @@ class MockBleAdvertisingManager : public BleAdvertisingManager {
       (override));
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(MockBleAdvertisingManager);
   base::WeakPtrFactory<MockBleAdvertisingManager> weak_factory_{this};
   BleAdvertiserHciInterface* ble_adv_hci_interface_;
 };

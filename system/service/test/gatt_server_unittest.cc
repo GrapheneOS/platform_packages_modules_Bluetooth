@@ -32,6 +32,9 @@ class MockGattHandler
     : public hal::FakeBluetoothGattInterface::TestServerHandler {
  public:
   MockGattHandler() = default;
+  MockGattHandler(const MockGattHandler&) = delete;
+  MockGattHandler& operator=(const MockGattHandler&) = delete;
+
   ~MockGattHandler() override = default;
 
   MOCK_METHOD2(RegisterServer,
@@ -47,9 +50,6 @@ class MockGattHandler
                bt_status_t(int, int, int, int, std::vector<uint8_t>));
   MOCK_METHOD4(SendResponse,
                bt_status_t(int, int, int, const btgatt_response_t&));
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(MockGattHandler);
 };
 
 class TestDelegate : public GattServer::Delegate {
@@ -179,6 +179,9 @@ class TestDelegate : public GattServer::Delegate {
 class GattServerTest : public ::testing::Test {
  public:
   GattServerTest() = default;
+  GattServerTest(const GattServerTest&) = delete;
+  GattServerTest& operator=(const GattServerTest&) = delete;
+
   ~GattServerTest() override = default;
 
   void SetUp() override {
@@ -201,9 +204,6 @@ class GattServerTest : public ::testing::Test {
   hal::FakeBluetoothGattInterface* fake_hal_gatt_iface_;
   std::shared_ptr<MockGattHandler> mock_handler_;
   std::unique_ptr<GattServerFactory> factory_;
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(GattServerTest);
 };
 
 const int kDefaultServerId = 4;
@@ -211,6 +211,10 @@ const int kDefaultServerId = 4;
 class GattServerPostRegisterTest : public GattServerTest {
  public:
   GattServerPostRegisterTest() = default;
+  GattServerPostRegisterTest(const GattServerPostRegisterTest&) = delete;
+  GattServerPostRegisterTest& operator=(const GattServerPostRegisterTest&) =
+      delete;
+
   ~GattServerPostRegisterTest() override = default;
 
   void SetUp() override {
@@ -295,9 +299,6 @@ class GattServerPostRegisterTest : public GattServerTest {
   uint16_t srvc_handle_;
   uint16_t char_handle_;
   uint16_t desc_handle_;
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(GattServerPostRegisterTest);
 };
 
 TEST_F(GattServerTest, RegisterServer) {

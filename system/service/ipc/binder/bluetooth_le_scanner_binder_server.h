@@ -18,8 +18,6 @@
 
 #include <memory>
 
-#include <base/macros.h>
-
 #include <android/bluetooth/IBluetoothLeScannerCallback.h>
 #include "android/bluetooth/BnBluetoothLeScanner.h"
 
@@ -47,6 +45,11 @@ class BluetoothLeScannerBinderServer
       public bluetooth::LowEnergyScanner::Delegate {
  public:
   explicit BluetoothLeScannerBinderServer(bluetooth::Adapter* adapter);
+  BluetoothLeScannerBinderServer(const BluetoothLeScannerBinderServer&) =
+      delete;
+  BluetoothLeScannerBinderServer& operator=(
+      const BluetoothLeScannerBinderServer&) = delete;
+
   ~BluetoothLeScannerBinderServer() override;
 
   // IBluetoothLowEnergy overrides:
@@ -79,8 +82,6 @@ class BluetoothLeScannerBinderServer
                               bluetooth::BluetoothInstance* instance) override;
 
   bluetooth::Adapter* adapter_;  // weak
-
-  DISALLOW_COPY_AND_ASSIGN(BluetoothLeScannerBinderServer);
 };
 
 }  // namespace binder
