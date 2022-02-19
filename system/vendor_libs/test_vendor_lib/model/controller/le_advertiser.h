@@ -40,7 +40,8 @@ class LeAdvertiser {
                   const std::vector<uint8_t>& scan_response,
                   std::chrono::steady_clock::duration interval);
 
-  void InitializeExtended(bluetooth::hci::AddressType address_type,
+  void InitializeExtended(unsigned advertising_handle,
+                          bluetooth::hci::AddressType address_type,
                           bluetooth::hci::AddressWithType peer_address,
                           bluetooth::hci::LeScanningFilterPolicy filter_policy,
                           model::packets::AdvertisementType type,
@@ -53,6 +54,12 @@ class LeAdvertiser {
 
   void SetScanResponse(const std::vector<uint8_t>& data);
 
+  // Generate LE Connection Complete or LE Extended Advertising Set Terminated
+  // events at the end of the advertising period. The advertiser is
+  // automatically disabled.
+  std::unique_ptr<bluetooth::hci::EventBuilder> GetEvent(
+      std::chrono::steady_clock::time_point);
+
   std::unique_ptr<model::packets::LinkLayerPacketBuilder> GetAdvertisement(
       std::chrono::steady_clock::time_point);
 
@@ -61,24 +68,18 @@ class LeAdvertiser {
       bluetooth::hci::Address scanner_address);
 
   void Clear();
-
   void Disable();
-
   void Enable();
-
-  void EnableExtended(std::chrono::steady_clock::duration duration);
+  void EnableExtended(std::chrono::milliseconds duration);
 
   bool IsEnabled() const;
-
   bool IsExtended() const;
-
   bool IsConnectable() const;
 
   uint8_t GetNumAdvertisingEvents() const;
-
   bluetooth::hci::AddressWithType GetAddress() const;
 
- private:
+private:
   bluetooth::hci::AddressWithType address_{};
   bluetooth::hci::AddressWithType
       peer_address_{};  // For directed advertisements
@@ -88,12 +89,14 @@ class LeAdvertiser {
   std::vector<uint8_t> scan_response_;
   std::chrono::steady_clock::duration interval_{};
   std::chrono::steady_clock::time_point ending_time_{};
+  std::chrono::steady_clock::time_point last_le_advertisement_{};
   static constexpr uint8_t kTxPowerUnavailable = 0x7f;
   uint8_t tx_power_{kTxPowerUnavailable};
   uint8_t num_events_{0};
   bool extended_{false};
   bool enabled_{false};
-  std::chrono::steady_clock::time_point last_le_advertisement_;
+  bool limited_{false}; // Set if the advertising set has a timeout.
+  unsigned advertising_handle_{0};
 };
 
 }  // namespace test_vendor_lib

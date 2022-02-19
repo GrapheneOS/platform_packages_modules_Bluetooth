@@ -658,6 +658,14 @@ public class LeAudioService extends ProfileService {
         boolean newSupportedByDeviceInput = (newSupportedAudioDirections
                 & AUDIO_DIRECTION_INPUT_BIT) != 0;
 
+        /*
+         * Do not update input if neither previous nor current device support input
+         */
+        if (!oldSupportedByDeviceInput && !newSupportedByDeviceInput) {
+            Log.d(TAG, "updateActiveInDevice: Device does not support input.");
+            return false;
+        }
+
         if (device != null && mActiveAudioInDevice != null) {
             int previousGroupId = getGroupId(mActiveAudioInDevice);
             if (previousGroupId == groupId) {
@@ -672,14 +680,6 @@ public class LeAudioService extends ProfileService {
         }
 
         BluetoothDevice previousInDevice = mActiveAudioInDevice;
-
-        /*
-         * Do not update input if neither previous nor current device support input
-         */
-        if (!oldSupportedByDeviceInput && !newSupportedByDeviceInput) {
-            Log.d(TAG, "updateActiveInDevice: Device does not support input.");
-            return false;
-        }
 
         /*
          * Update input if:
@@ -717,6 +717,14 @@ public class LeAudioService extends ProfileService {
         boolean newSupportedByDeviceOutput = (newSupportedAudioDirections
                 & AUDIO_DIRECTION_OUTPUT_BIT) != 0;
 
+        /*
+         * Do not update output if neither previous nor current device support output
+         */
+        if (!oldSupportedByDeviceOutput && !newSupportedByDeviceOutput) {
+            Log.d(TAG, "updateActiveOutDevice: Device does not support output.");
+            return false;
+        }
+
         if (device != null && mActiveAudioOutDevice != null) {
             int previousGroupId = getGroupId(mActiveAudioOutDevice);
             if (previousGroupId == groupId) {
@@ -731,14 +739,6 @@ public class LeAudioService extends ProfileService {
         }
 
         BluetoothDevice previousOutDevice = mActiveAudioOutDevice;
-
-        /*
-         * Do not update output if neither previous nor current device support output
-         */
-        if (!oldSupportedByDeviceOutput && !newSupportedByDeviceOutput) {
-            Log.d(TAG, "updateActiveOutDevice: Device does not support output.");
-            return false;
-        }
 
         /*
          * Update output if:
@@ -770,14 +770,16 @@ public class LeAudioService extends ProfileService {
      * Report the active devices change to the active device manager and the media framework.
      * @param groupId id of group which devices should be updated
      * @param newActiveContexts new active contexts for group of devices
+     * @param oldActiveContexts old active contexts for group of devices
+     * @param isActive if there is new active group
      */
     private void updateActiveDevices(Integer groupId, Integer oldActiveContexts,
             Integer newActiveContexts, boolean isActive) {
-
         BluetoothDevice device = null;
 
-        if (isActive)
+        if (isActive) {
             device = getFirstDeviceFromGroup(groupId);
+        }
 
         boolean outReplaced =
             updateActiveOutDevice(device, groupId, oldActiveContexts, newActiveContexts);

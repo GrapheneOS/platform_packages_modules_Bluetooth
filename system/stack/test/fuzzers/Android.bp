@@ -34,7 +34,6 @@ cc_defaults {
         "libbt-hci",
         "libbtdevice",
         "libg722codec",
-        "liblc3codec",
         "liblc3",
         "libosi",
         "libudrv-uipc",

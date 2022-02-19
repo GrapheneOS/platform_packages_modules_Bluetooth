@@ -18,7 +18,6 @@
 
 #include "hci/address.h"
 #include "hci/hci_packets.h"
-#include "include/inquiry.h"
 #include "include/phy.h"
 #include "model/controller/acl_connection_handler.h"
 #include "model/controller/le_advertiser.h"

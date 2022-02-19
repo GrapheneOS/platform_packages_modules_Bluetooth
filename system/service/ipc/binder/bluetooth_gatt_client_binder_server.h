@@ -16,8 +16,6 @@
 
 #pragma once
 
-#include <base/macros.h>
-
 #include <android/bluetooth/BnBluetoothGattClient.h>
 #include <android/bluetooth/IBluetoothGattClientCallback.h>
 
@@ -41,6 +39,12 @@ class BluetoothGattClientBinderServer : public BnBluetoothGattClient,
                                         public InterfaceWithInstancesBase {
  public:
   explicit BluetoothGattClientBinderServer(bluetooth::Adapter* adapter);
+
+  BluetoothGattClientBinderServer(const BluetoothGattClientBinderServer&) =
+      delete;
+  BluetoothGattClientBinderServer& operator=(
+      const BluetoothGattClientBinderServer&) = delete;
+
   ~BluetoothGattClientBinderServer() override = default;
 
   // IBluetoothGattClient overrides:
@@ -67,8 +71,6 @@ class BluetoothGattClientBinderServer : public BnBluetoothGattClient,
                               bluetooth::BluetoothInstance* instance) override;
 
   bluetooth::Adapter* adapter_;  // weak
-
-  DISALLOW_COPY_AND_ASSIGN(BluetoothGattClientBinderServer);
 };
 
 }  // namespace binder

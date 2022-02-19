@@ -32,13 +32,13 @@ class MockA2dpSourceHandler
     : public hal::FakeBluetoothAvInterface::TestA2dpSourceHandler {
  public:
   MockA2dpSourceHandler() = default;
+  MockA2dpSourceHandler(const MockA2dpSourceHandler&) = delete;
+  MockA2dpSourceHandler& operator=(const MockA2dpSourceHandler&) = delete;
+
   ~MockA2dpSourceHandler() override = default;
 
   MOCK_METHOD1(Connect, bt_status_t(RawAddress));
   MOCK_METHOD1(Disconnect, bt_status_t(RawAddress));
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(MockA2dpSourceHandler);
 };
 
 class TestDelegate : public A2dpSource::Delegate {
@@ -86,6 +86,9 @@ class TestDelegate : public A2dpSource::Delegate {
 class A2dpSourceTest : public ::testing::Test {
  public:
   A2dpSourceTest() = default;
+  A2dpSourceTest(const A2dpSourceTest&) = delete;
+  A2dpSourceTest& operator=(const A2dpSourceTest&) = delete;
+
   ~A2dpSourceTest() override = default;
 
   void SetUp() override {
@@ -104,14 +107,15 @@ class A2dpSourceTest : public ::testing::Test {
   hal::FakeBluetoothAvInterface* fake_hal_av_iface_;
   std::shared_ptr<MockA2dpSourceHandler> mock_handler_;
   std::unique_ptr<A2dpSourceFactory> factory_;
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(A2dpSourceTest);
 };
 
 class A2dpSourcePostRegisterTest : public A2dpSourceTest {
  public:
   A2dpSourcePostRegisterTest() = default;
+  A2dpSourcePostRegisterTest(const A2dpSourcePostRegisterTest&) = delete;
+  A2dpSourcePostRegisterTest& operator=(const A2dpSourcePostRegisterTest&) =
+      delete;
+
   ~A2dpSourcePostRegisterTest() override = default;
 
   void SetUp() override {
@@ -157,9 +161,6 @@ class A2dpSourcePostRegisterTest : public A2dpSourceTest {
   }
 
   std::unique_ptr<A2dpSource> a2dp_source_;
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(A2dpSourcePostRegisterTest);
 };
 
 TEST_F(A2dpSourceTest, RegisterA2dpSource) {

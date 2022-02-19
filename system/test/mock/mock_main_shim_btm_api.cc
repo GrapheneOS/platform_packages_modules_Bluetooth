@@ -432,3 +432,8 @@ void btm_api_process_inquiry_result_with_rssi(RawAddress raw_address,
                                               int8_t rssi) {
   mock_function_count_map[__func__]++;
 }
+
+tBTM_STATUS bluetooth::shim::BTM_ClearEventFilter() {
+  mock_function_count_map[__func__]++;
+  return BTM_SUCCESS;
+}

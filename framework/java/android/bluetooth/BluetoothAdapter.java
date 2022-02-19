@@ -3130,7 +3130,7 @@ public final class BluetoothAdapter {
             android.Manifest.permission.BLUETOOTH_PRIVILEGED,
     })
     @RfcommListenerResult
-    public int closeRfcommServer(@NonNull UUID uuid) {
+    public int stopRfcommServer(@NonNull UUID uuid) {
         try {
             final SynchronousResultReceiver<Integer> recv = new SynchronousResultReceiver();
             mService.stopRfcommListener(new ParcelUuid(uuid), mAttributionSource, recv);

@@ -16,7 +16,6 @@
 
 #pragma once
 
-#include <base/macros.h>
 #include "abstract_message_loop.h"
 
 namespace ipc {
@@ -62,13 +61,14 @@ class Daemon {
 
  protected:
   Daemon() = default;
+  Daemon(const Daemon&) = delete;
+  Daemon& operator=(const Daemon&) = delete;
+
   virtual ~Daemon() = default;
 
  private:
   // Internal instance helper called by Initialize().
   virtual bool Init() = 0;
-
-  DISALLOW_COPY_AND_ASSIGN(Daemon);
 };
 
 }  // namespace bluetooth

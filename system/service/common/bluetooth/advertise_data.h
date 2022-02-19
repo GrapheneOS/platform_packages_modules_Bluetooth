@@ -20,8 +20,6 @@
 
 #include <vector>
 
-#include <base/macros.h>
-
 namespace bluetooth {
 
 // Represents a data packet for Bluetooth Low Energy advertisements. This is the

@@ -16,7 +16,6 @@
 
 #pragma once
 
-#include <base/macros.h>
 #include <base/time/time.h>
 
 namespace bluetooth {

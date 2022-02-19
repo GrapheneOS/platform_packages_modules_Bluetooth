@@ -21,7 +21,6 @@
 #include <map>
 #include <mutex>
 
-#include <base/macros.h>
 #include <bluetooth/uuid.h>
 
 #include "service/bluetooth_instance.h"
@@ -42,6 +41,9 @@ class Adapter;
 // should be obtained through the factory.
 class LowEnergyAdvertiser : public BluetoothInstance {
  public:
+  LowEnergyAdvertiser(const LowEnergyAdvertiser&) = delete;
+  LowEnergyAdvertiser& operator=(const LowEnergyAdvertiser&) = delete;
+
   // The destructor automatically unregisters this client instance from the
   // stack.
   ~LowEnergyAdvertiser() override;
@@ -107,8 +109,6 @@ class LowEnergyAdvertiser : public BluetoothInstance {
   std::atomic_bool adv_started_;
   std::unique_ptr<StatusCallback> adv_start_callback_;
   std::unique_ptr<StatusCallback> adv_stop_callback_;
-
-  DISALLOW_COPY_AND_ASSIGN(LowEnergyAdvertiser);
 };
 
 // LowEnergyAdvertiserFactory is used to register and obtain a per-application
@@ -121,6 +121,10 @@ class LowEnergyAdvertiserFactory : public BluetoothInstanceFactory {
   // Don't construct/destruct directly except in tests. Instead, obtain a handle
   // from an Adapter instance.
   explicit LowEnergyAdvertiserFactory();
+  LowEnergyAdvertiserFactory(const LowEnergyAdvertiserFactory&) = delete;
+  LowEnergyAdvertiserFactory& operator=(const LowEnergyAdvertiserFactory&) =
+      delete;
+
   ~LowEnergyAdvertiserFactory() override;
 
   // BluetoothInstanceFactory override:
@@ -138,8 +142,6 @@ class LowEnergyAdvertiserFactory : public BluetoothInstanceFactory {
   // Map of pending calls to register.
   std::mutex pending_calls_lock_;
   std::unordered_set<Uuid> pending_calls_;
-
-  DISALLOW_COPY_AND_ASSIGN(LowEnergyAdvertiserFactory);
 };
 
 }  // namespace bluetooth

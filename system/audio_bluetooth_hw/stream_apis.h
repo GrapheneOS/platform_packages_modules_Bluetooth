@@ -18,9 +18,11 @@
 
 #include <hardware/audio.h>
 #include <system/audio.h>
+
 #include <list>
 
 #include "device_port_proxy.h"
+#include "device_port_proxy_hidl.h"
 
 constexpr unsigned int kBluetoothDefaultSampleRate = 44100;
 constexpr audio_format_t kBluetoothDefaultAudioFormatBitsPerSample =
@@ -52,7 +54,9 @@ struct BluetoothStreamOut {
   // Must be the first member so it can be cast from audio_stream
   // or audio_stream_out pointer
   audio_stream_out stream_out_{};
-  ::android::bluetooth::audio::BluetoothAudioPortOut bluetooth_output_;
+  std::unique_ptr<::android::bluetooth::audio::BluetoothAudioPort>
+      bluetooth_output_;
+  bool is_aidl;
   int64_t last_write_time_us_;
   // Audio PCM Configs
   uint32_t sample_rate_;
@@ -83,7 +87,9 @@ struct BluetoothStreamIn {
   // Must be the first member so it can be cast from audio_stream
   // or audio_stream_in pointer
   audio_stream_in stream_in_;
-  ::android::bluetooth::audio::BluetoothAudioPortIn bluetooth_input_;
+  std::unique_ptr<::android::bluetooth::audio::BluetoothAudioPort>
+      bluetooth_input_;
+  bool is_aidl;
   int64_t last_read_time_us_;
   // Audio PCM Configs
   uint32_t sample_rate_;

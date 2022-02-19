@@ -644,7 +644,6 @@ cc_test {
         "libbt-protos-lite",
         "libflatbuffers-cpp",
         "libosi",
-        "liblc3codec",
         "liblc3",
     ],
     data: [

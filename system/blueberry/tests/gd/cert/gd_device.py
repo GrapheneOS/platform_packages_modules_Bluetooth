@@ -15,6 +15,7 @@
 #   limitations under the License.
 
 from abc import ABC
+from abc import abstractmethod
 from datetime import datetime
 import inspect
 import logging
@@ -22,7 +23,6 @@ import os
 import pathlib
 import shutil
 import signal
-import socket
 import subprocess
 import time
 from typing import List
@@ -141,6 +141,8 @@ class GdDeviceBase(ABC):
     """
 
     WAIT_CHANNEL_READY_TIMEOUT_SECONDS = 10
+    WAIT_SIGINT_TIMEOUT_SECONDS = 5
+    WAIT_SIGKILL_TIMEOUT_SECONDS = 1
 
     def __init__(self, grpc_port: str, grpc_root_server_port: str, signal_port: str, cmd: List[str], label: str,
                  type_identifier: str, name: str, verbose_mode: bool):
@@ -279,16 +281,17 @@ class GdDeviceBase(ABC):
         self.grpc_channel.close()
         if self.grpc_root_server_port != -1:
             self.grpc_root_server_channel.close()
-        stop_signal = signal.SIGINT
-        self.backing_process.send_signal(stop_signal)
+        stop_signal = self.gracefully_stop_backing_process()
         try:
-            return_code = self.backing_process.wait(timeout=self.WAIT_CHANNEL_READY_TIMEOUT_SECONDS)
-        except subprocess.TimeoutExpired:
+            if stop_signal == 0:
+                raise RuntimeError("Failed to gracefully shutdown backing process")
+            return_code = self.backing_process.wait(timeout=self.WAIT_SIGINT_TIMEOUT_SECONDS)
+        except (subprocess.TimeoutExpired, RuntimeError):
             logging.error("[%s] Failed to interrupt backing process via SIGINT, sending SIGKILL" % self.label)
             stop_signal = signal.SIGKILL
             self.backing_process.kill()
             try:
-                return_code = self.backing_process.wait(timeout=self.WAIT_CHANNEL_READY_TIMEOUT_SECONDS)
+                return_code = self.backing_process.wait(timeout=self.WAIT_SIGKILL_TIMEOUT_SECONDS)
             except subprocess.TimeoutExpired:
                 logging.error("Failed to kill backing process")
                 return_code = -65536
@@ -302,6 +305,10 @@ class GdDeviceBase(ABC):
             future.result(timeout=self.WAIT_CHANNEL_READY_TIMEOUT_SECONDS)
         except grpc.FutureTimeoutError:
             asserts.fail("[%s] wait channel ready timeout" % self.label)
+
+    @abstractmethod
+    def gracefully_stop_backing_process(self):
+        return NotImplemented
 
 
 class GdHostOnlyDevice(GdDeviceBase):
@@ -443,12 +450,19 @@ class GdHostOnlyDevice(GdDeviceBase):
             logging.warning("[%s] Failed to generated coverage summary, cmd result: %r" % (label, result))
             coverage_summary_path.unlink(missing_ok=True)
 
+    def gracefully_stop_backing_process(self):
+        stop_signal = signal.SIGINT
+        self.backing_process.send_signal(stop_signal)
+        return stop_signal
+
 
 class GdAndroidDevice(GdDeviceBase):
     """Real Android device where the backing process is running on it
     """
 
     WAIT_FOR_DEVICE_TIMEOUT_SECONDS = 180
+    WAIT_FOR_DEVICE_SIGINT_TIMEOUT_SECONDS = 1
+    ADB_ABORT_EXIT_CODE = 134
 
     def __init__(self, grpc_port: str, grpc_root_server_port: str, signal_port: str, cmd: List[str], label: str,
                  type_identifier: str, name: str, serial_number: str, verbose_mode: bool):
@@ -542,14 +556,14 @@ class GdAndroidDevice(GdDeviceBase):
         stop_signal = signal.SIGINT
         self.logcat_process.send_signal(stop_signal)
         try:
-            return_code = self.logcat_process.wait(timeout=self.WAIT_CHANNEL_READY_TIMEOUT_SECONDS)
+            return_code = self.logcat_process.wait(timeout=self.WAIT_FOR_DEVICE_SIGINT_TIMEOUT_SECONDS)
         except subprocess.TimeoutExpired:
             logging.error("[%s_%s] Failed to interrupt logcat process via SIGINT, sending SIGKILL" %
                           (self.label, self.serial_number))
             stop_signal = signal.SIGKILL
             self.logcat_process.kill()
             try:
-                return_code = self.logcat_process.wait(timeout=self.WAIT_CHANNEL_READY_TIMEOUT_SECONDS)
+                return_code = self.logcat_process.wait(timeout=self.WAIT_SIGKILL_TIMEOUT_SECONDS)
             except subprocess.TimeoutExpired:
                 logging.error("Failed to kill logcat_process %s %s" % (self.label, self.serial_number))
                 return_code = -65536
@@ -788,3 +802,44 @@ class GdAndroidDevice(GdDeviceBase):
                 pass
             time.sleep(5)
         asserts.fail(msg='Device %s booting process timed out.' % self.serial_number)
+
+    def gracefully_stop_backing_process(self):
+        """
+        Gracefully stops backing process
+        :return: expected backing process exit code on success, 0 on error
+        """
+        backing_process_pid = None
+        # Since we do not know which segment of self.cmd is the command running
+        # on the Android device. We have to iterate with trial and error.
+        cmd = self.cmd
+        if len(self.cmd) >= 5:
+            # skip adb -s serial shell to speed up the search
+            # we don't know if any environment variables are set up before the
+            # actual command and hence has to try from the 4th argument
+            cmd = self.cmd[4:] + self.cmd[:4]
+        for segment in cmd:
+            try:
+                # pgrep only takes 16 bytes including null terminator
+                # -f cannot be used because that include the full command args
+                current_cmd = pathlib.Path(segment).stem[:15]
+                # -x matches whole command, cannot avoid as short segment may partially match
+                # -n returnes the newest command matched
+                backing_process_pid = int(self.adb.shell("pgrep -n -x {}".format(current_cmd)))
+                logging.debug("Found backing process name on Android as {}, pid is {}".format(
+                    segment, backing_process_pid))
+            except (AdbError, ValueError) as e:
+                logging.debug("Failed to run pgrep {}".format(e))
+            if backing_process_pid is not None:
+                break
+        if backing_process_pid is None:
+            logging.warning("Failed to get pid for cmd {}".format(self.cmd))
+            try:
+                logging.debug(self.adb.shell("ps -A | grep bluetooth"))
+            except AdbError:
+                pass
+            return 0
+        stop_signal = signal.SIGINT
+        self.adb.shell("kill -{} {}".format(stop_signal, backing_process_pid))
+        logging.debug("Sent SIGINT to backing process at pid {}".format(backing_process_pid))
+        stop_signal = -self.ADB_ABORT_EXIT_CODE
+        return stop_signal

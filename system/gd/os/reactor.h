@@ -44,10 +44,11 @@ class Reactor {
   // Construct a reactor on the current thread
   Reactor();
 
+  Reactor(const Reactor&) = delete;
+  Reactor& operator=(const Reactor&) = delete;
+
   // Destruct this reactor and release its resources
   ~Reactor();
-
-  DISALLOW_COPY_AND_ASSIGN(Reactor);
 
   // Start the reactor. The current thread will be blocked until Stop() is invoked and handled.
   void Run();

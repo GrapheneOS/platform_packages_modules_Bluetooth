@@ -16,7 +16,6 @@
 
 #include "service/gatt_client.h"
 
-#include <base/macros.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
@@ -33,6 +32,9 @@ class MockGattHandler
     : public hal::FakeBluetoothGattInterface::TestClientHandler {
  public:
   MockGattHandler() = default;
+  MockGattHandler(const MockGattHandler&) = delete;
+  MockGattHandler& operator=(const MockGattHandler&) = delete;
+
   ~MockGattHandler() override = default;
 
   MOCK_METHOD2(RegisterClient,
@@ -41,14 +43,14 @@ class MockGattHandler
   MOCK_METHOD1(Scan, bt_status_t(bool));
   MOCK_METHOD4(Connect, bt_status_t(int, const RawAddress&, bool, int));
   MOCK_METHOD3(Disconnect, bt_status_t(int, const RawAddress&, int));
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(MockGattHandler);
 };
 
 class GattClientTest : public ::testing::Test {
  public:
   GattClientTest() = default;
+  GattClientTest(const GattClientTest&) = delete;
+  GattClientTest& operator=(const GattClientTest&) = delete;
+
   ~GattClientTest() override = default;
 
   void SetUp() override {
@@ -74,9 +76,6 @@ class GattClientTest : public ::testing::Test {
   hal::FakeBluetoothGattInterface* fake_hal_gatt_iface_;
   std::shared_ptr<MockGattHandler> mock_handler_;
   std::unique_ptr<GattClientFactory> factory_;
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(GattClientTest);
 };
 
 TEST_F(GattClientTest, RegisterInstance) {

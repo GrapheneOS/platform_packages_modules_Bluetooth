@@ -38,8 +38,6 @@
 
 extern tBTM_CB btm_cb;
 
-void btm_ble_set_random_address(const RawAddress& random_bda);
-
 /* This function generates Resolvable Private Address (RPA) from Identity
  * Resolving Key |irk| and |random|*/
 static RawAddress generate_rpa_from_irk_and_rand(const Octet16& irk,
