@@ -268,7 +268,9 @@ constexpr uint16_t kLeAudioVendorCodecIdUndefined = 0x00;
 /* Metadata types from Assigned Numbers */
 constexpr uint8_t kLeAudioMetadataTypePreferredAudioContext = 0x01;
 constexpr uint8_t kLeAudioMetadataTypeStreamingAudioContext = 0x02;
-constexpr uint8_t kLeAudioMetadataTypeCcidList = 0x03;
+constexpr uint8_t kLeAudioMetadataTypeProgramInfo = 0x03;
+constexpr uint8_t kLeAudioMetadataTypeLanguage = 0x04;
+constexpr uint8_t kLeAudioMetadataTypeCcidList = 0x05;
 
 constexpr uint8_t kLeAudioMetadataTypeLen = 1;
 constexpr uint8_t kLeAudioMetadataLenLen = 1;
