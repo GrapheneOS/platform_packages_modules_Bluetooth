@@ -1063,6 +1063,17 @@ class LeAudioClientImpl : public LeAudioClient {
          * Group would be assigned once service search is completed.
          */
         if (group) {
+          /* Update of available context may happen during state transition
+           * or while streaming. Don't bother current transition or streaming
+           * process. Update configuration once group became idle.
+           */
+          if (group->IsInTransition() ||
+              (group->GetState() ==
+               AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING)) {
+            group->SetPendingUpdateAvailableContexts(updated_avail_contexts);
+            return;
+          }
+
           std::optional<AudioContexts> updated_contexts =
               group->UpdateActiveContextsMap(updated_avail_contexts);
           if (updated_contexts) {
@@ -3070,6 +3081,30 @@ class LeAudioClientImpl : public LeAudioClient {
 
         if (!RestartStreamingAfterReconfiguration(group_id))
           CancelStreamingRequest();
+
+        LeAudioDeviceGroup* group = aseGroups_.FindById(active_group_id_);
+        if (!group) {
+          LOG(ERROR) << __func__ << ", Failed to update pending available "
+                     << "contexts for group: " << group_id;
+          return;
+        }
+
+        /* Update group configuration with pending available context */
+        std::optional<AudioContexts> pending_update_available_contexts =
+            group->GetPendingUpdateAvailableContexts();
+        if (pending_update_available_contexts) {
+          std::optional<AudioContexts> updated_contexts =
+              group->UpdateActiveContextsMap(*pending_update_available_contexts);
+
+          if (updated_contexts) {
+            callbacks_->OnAudioConf(group->audio_directions_, group->group_id_,
+                                    group->snk_audio_locations_.to_ulong(),
+                                    group->src_audio_locations_.to_ulong(),
+                                    updated_contexts->to_ulong());
+          }
+
+          group->SetPendingUpdateAvailableContexts(std::nullopt);
+        }
 
         break;
       }
