@@ -288,14 +288,12 @@ class CertSecurity(PySecurity):
             hci_packets.IoCapabilityRequestReplyBuilder(
                 address.decode('utf8'), self._io_caps, oob_data_present, self._auth_reqs), True)
 
-    def accept_pairing(self, dut_address, reply_boolean):
+    def accept_pairing(self, dut_address, reply_boolean, expect_to_fail, on_responder_reply):
         """
             Here we handle the pairing events at the HCI level
         """
-        logging.info("Cert: Waiting for LINK_KEY_REQUEST")
-        assertThat(self._hci_event_stream).emits(HciMatchers.LinkKeyRequest())
-        logging.info("Cert: Sending LINK_KEY_REQUEST_NEGATIVE_REPLY")
-        self._enqueue_hci_command(hci_packets.LinkKeyRequestNegativeReplyBuilder(dut_address.decode('utf8')), True)
+        logging.info("Cert: Waiting for IO_CAPABILITY_RESPONSE")
+        assertThat(self._hci_event_stream).emits(HciMatchers.IoCapabilityResponse())
         self.send_io_caps(dut_address)
         logging.info("Cert: Waiting for USER_CONFIRMATION_REQUEST")
         assertThat(self._hci_event_stream).emits(HciMatchers.UserConfirmationRequest())
@@ -303,14 +301,17 @@ class CertSecurity(PySecurity):
         if reply_boolean:
             logging.info("Cert: Sending USER_CONFIRMATION_REQUEST_REPLY")
             self._enqueue_hci_command(hci_packets.UserConfirmationRequestReplyBuilder(dut_address.decode('utf8')), True)
+            on_responder_reply()
             logging.info("Cert: Waiting for SIMPLE_PAIRING_COMPLETE")
             assertThat(self._hci_event_stream).emits(HciMatchers.SimplePairingComplete())
-            logging.info("Cert: Waiting for LINK_KEY_NOTIFICATION")
-            assertThat(self._hci_event_stream).emits(HciMatchers.LinkKeyNotification())
+            if not expect_to_fail:
+                logging.info("Cert: Waiting for LINK_KEY_NOTIFICATION")
+                assertThat(self._hci_event_stream).emits(HciMatchers.LinkKeyNotification())
         else:
             logging.info("Cert: Sending USER_CONFIRMATION_REQUEST_NEGATIVE_REPLY")
             self._enqueue_hci_command(
                 hci_packets.UserConfirmationRequestNegativeReplyBuilder(dut_address.decode('utf8')), True)
+            on_responder_reply()
             logging.info("Cert: Waiting for SIMPLE_PAIRING_COMPLETE")
             assertThat(self._hci_event_stream).emits(HciMatchers.SimplePairingComplete())
 
@@ -356,8 +357,10 @@ class CertSecurity(PySecurity):
         """
             Cert side needs to pass
         """
-        logging.info("Cert: Waiting for DISCONNECT_COMPLETE")
-        assertThat(self._hci_event_stream).emits(HciMatchers.DisconnectionComplete())
+        pass
+        # FIXME: Gabeldorsche facade don't allow us to register for an DISCONNECT_COMPLETE event
+        # logging.info("Cert: Waiting for DISCONNECT_COMPLETE")
+        # assertThat(self._hci_event_stream).emits(HciMatchers.DisconnectionComplete())
 
     def close(self):
         safeClose(self._hci)
