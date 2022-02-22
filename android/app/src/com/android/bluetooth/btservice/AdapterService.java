@@ -4526,8 +4526,8 @@ public class AdapterService extends Service {
      * @return true, if the LE audio broadcast source is supported
      */
     public boolean isLeAudioBroadcastSourceSupported() {
-        //TODO: check the profile support status as well after we have the implementation
-        return mAdapterProperties.isLePeriodicAdvertisingSupported()
+        return  getResources().getBoolean(R.bool.profile_supported_le_audio_broadcast)
+                && mAdapterProperties.isLePeriodicAdvertisingSupported()
                 && mAdapterProperties.isLeExtendedAdvertisingSupported()
                 && mAdapterProperties.isLeIsochronousBroadcasterSupported();
     }
