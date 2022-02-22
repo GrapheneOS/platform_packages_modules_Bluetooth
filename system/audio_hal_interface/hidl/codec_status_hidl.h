@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <android/hardware/bluetooth/audio/2.2/types.h>
+#include <android/hardware/bluetooth/audio/2.1/types.h>
 
 #include <vector>
 

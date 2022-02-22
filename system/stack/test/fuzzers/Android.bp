@@ -51,7 +51,6 @@ cc_defaults {
         "android.hardware.bluetooth.a2dp@1.0",
         "android.hardware.bluetooth.audio@2.0",
         "android.hardware.bluetooth.audio@2.1",
-        "android.hardware.bluetooth.audio@2.2",
         "android.hardware.bluetooth.audio-V1-ndk",
         "android.system.suspend.control-V1-ndk",
         "libaaudio",

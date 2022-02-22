@@ -169,8 +169,6 @@ class TestSinkTransport
   void ResetPresentationPosition() override{};
 
   void LogBytesRead(size_t) override{};
-
-  void SinkMetadataChanged(const sink_metadata_t&) override{};
 };
 
 class TestSourceTransport
@@ -204,8 +202,6 @@ class TestSourceTransport
   void ResetPresentationPosition() override{};
 
   void LogBytesWritten(size_t) override{};
-
-  void SinkMetadataChanged(const sink_metadata_t&) override{};
 };
 
 class ClientInterfaceFuzzer {
