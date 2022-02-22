@@ -140,11 +140,9 @@ void set_remote_delay(uint16_t delay_report) {
 // Set low latency buffer mode allowed or disallowed
 void set_audio_low_latency_mode_allowed(bool allowed) {
   if (HalVersionManager::GetHalTransport() ==
-      BluetoothAudioHalTransport::HIDL) {
-    hidl::a2dp::set_low_latency_mode_allowed(allowed);
-    return;
+      BluetoothAudioHalTransport::AIDL) {
+    aidl::a2dp::set_low_latency_mode_allowed(allowed);
   }
-  aidl::a2dp::set_low_latency_mode_allowed(allowed);
 }
 
 }  // namespace a2dp
