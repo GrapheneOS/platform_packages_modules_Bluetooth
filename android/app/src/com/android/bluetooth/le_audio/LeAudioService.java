@@ -676,6 +676,10 @@ public class LeAudioService extends ProfileService {
                 if (mActiveAudioInDevice.isConnected()) {
                     device = mActiveAudioInDevice;
                 }
+            } else {
+                /* Mark old group as no active */
+                LeAudioGroupDescriptor descriptor = mGroupDescriptors.get(previousGroupId);
+                descriptor.mIsActive = false;
             }
         }
 
@@ -735,6 +739,11 @@ public class LeAudioService extends ProfileService {
                 if (mActiveAudioOutDevice.isConnected()) {
                     device = mActiveAudioOutDevice;
                 }
+            } else {
+                Log.i(TAG, " Switching active group from " + previousGroupId + " to " + groupId);
+                /* Mark old group as no active */
+                LeAudioGroupDescriptor descriptor = mGroupDescriptors.get(previousGroupId);
+                descriptor.mIsActive = false;
             }
         }
 
