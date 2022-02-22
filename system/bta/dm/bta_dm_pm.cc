@@ -863,8 +863,8 @@ void bta_dm_pm_active(const RawAddress& peer_addr) {
                 PRIVATE_ADDRESS(peer_addr));
       break;
     case BTM_SUCCESS:
-      LOG_INFO("Active power mode already set for device:%s",
-               PRIVATE_ADDRESS(peer_addr));
+      LOG_DEBUG("Active power mode already set for device:%s",
+                PRIVATE_ADDRESS(peer_addr));
       break;
     default:
       LOG_WARN("Unable to set active power mode for device:%s status:%s",
