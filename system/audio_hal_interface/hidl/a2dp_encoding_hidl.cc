@@ -163,8 +163,6 @@ class A2dpTransport
     }
   }
 
-  void SinkMetadataChanged(const sink_metadata_t&) override {}
-
   tA2DP_CTRL_CMD GetPendingCmd() const { return a2dp_pending_cmd_; }
 
   void ResetPendingCmd() { a2dp_pending_cmd_ = A2DP_CTRL_CMD_NONE; }
@@ -551,15 +549,6 @@ void set_remote_delay(uint16_t delay_report) {
           << " ms";
   static_cast<A2dpTransport*>(active_hal_interface->GetTransportInstance())
       ->SetRemoteDelay(delay_report);
-}
-
-// Set low latency buffer mode allowed or disallowed
-void set_low_latency_mode_allowed(bool allowed) {
-  if (!is_hal_2_0_enabled()) {
-    LOG(ERROR) << __func__ << ": BluetoothAudio HAL is not enabled";
-    return;
-  }
-  active_hal_interface->SetLowLatencyModeAllowed(allowed);
 }
 
 }  // namespace a2dp

@@ -48,28 +48,10 @@ BluetoothAudioHalTransport HalVersionManager::GetHalTransport() {
       return BluetoothAudioHalTransport::AIDL;
     case BluetoothAudioHalVersion::VERSION_2_0:
     case BluetoothAudioHalVersion::VERSION_2_1:
-    case BluetoothAudioHalVersion::VERSION_2_2:
       return BluetoothAudioHalTransport::HIDL;
     default:
       return BluetoothAudioHalTransport::UNKNOWN;
   }
-}
-
-android::sp<IBluetoothAudioProvidersFactory_2_2>
-HalVersionManager::GetProvidersFactory_2_2() {
-  std::lock_guard<std::mutex> guard(instance_ptr->mutex_);
-  if (instance_ptr->hal_version_ != BluetoothAudioHalVersion::VERSION_2_2) {
-    return nullptr;
-  }
-  android::sp<IBluetoothAudioProvidersFactory_2_2> providers_factory =
-      IBluetoothAudioProvidersFactory_2_2::getService();
-  CHECK(providers_factory)
-      << "V2_2::IBluetoothAudioProvidersFactory::getService() failed";
-
-  LOG(INFO) << "V2_2::IBluetoothAudioProvidersFactory::getService() returned "
-            << providers_factory.get()
-            << (providers_factory->isRemote() ? " (remote)" : " (local)");
-  return providers_factory;
 }
 
 android::sp<IBluetoothAudioProvidersFactory_2_1>
@@ -124,19 +106,6 @@ HalVersionManager::HalVersionManager() {
         instance_count = instanceNames.size();
       };
   auto hidl_retval = service_manager->listManifestByInterface(
-      kFullyQualifiedInterfaceName_2_2, listManifestByInterface_cb);
-  if (!hidl_retval.isOk()) {
-    LOG(FATAL) << __func__ << ": IServiceManager::listByInterface failure: "
-               << hidl_retval.description();
-    return;
-  }
-
-  if (instance_count > 0) {
-    hal_version_ = BluetoothAudioHalVersion::VERSION_2_2;
-    return;
-  }
-
-  hidl_retval = service_manager->listManifestByInterface(
       kFullyQualifiedInterfaceName_2_1, listManifestByInterface_cb);
   if (!hidl_retval.isOk()) {
     LOG(FATAL) << __func__ << ": IServiceManager::listByInterface failure: "
