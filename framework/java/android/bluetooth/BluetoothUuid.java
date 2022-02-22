@@ -199,6 +199,11 @@ public final class BluetoothUuid {
     /** @hide */
     @NonNull
     @SystemApi
+    public static final ParcelUuid BASS =
+            ParcelUuid.fromString("0000184F-0000-1000-8000-00805F9B34FB");
+    /** @hide */
+    @NonNull
+    @SystemApi
     public static final ParcelUuid BASE_UUID =
             ParcelUuid.fromString("00000000-0000-1000-8000-00805F9B34FB");
 
