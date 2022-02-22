@@ -53,8 +53,8 @@ public final class BluetoothLeAudioCodecStatus implements Parcelable {
      * @param codecsSelectableCapabilities the selectable codecs capabilities.
      */
     public BluetoothLeAudioCodecStatus(@Nullable BluetoothLeAudioCodecConfig codecConfig,
-            @Nullable List<BluetoothLeAudioCodecConfig> codecsLocalCapabilities,
-            @Nullable List<BluetoothLeAudioCodecConfig> codecsSelectableCapabilities) {
+            @NonNull List<BluetoothLeAudioCodecConfig> codecsLocalCapabilities,
+            @NonNull List<BluetoothLeAudioCodecConfig> codecsSelectableCapabilities) {
         mCodecConfig = codecConfig;
         mCodecsLocalCapabilities = codecsLocalCapabilities;
         mCodecsSelectableCapabilities = codecsSelectableCapabilities;
@@ -164,7 +164,7 @@ public final class BluetoothLeAudioCodecStatus implements Parcelable {
      */
     @Override
     public void writeToParcel(@NonNull Parcel out, int flags) {
-        out.writeTypedObject(mCodecConfig, 0);
+        out.writeTypedObject(mCodecConfig, flags);
         out.writeTypedList(mCodecsLocalCapabilities);
         out.writeTypedList(mCodecsSelectableCapabilities);
     }
@@ -179,7 +179,7 @@ public final class BluetoothLeAudioCodecStatus implements Parcelable {
     /**
      * Returns the codecs local capabilities.
      */
-    public @NonNull List<BluetoothLeAudioCodecConfig> getCodecsLocalCapabilities() {
+    public @NonNull List<BluetoothLeAudioCodecConfig> getCodecLocalCapabilities() {
         return (mCodecsLocalCapabilities == null)
                 ? Collections.emptyList() : mCodecsLocalCapabilities;
     }
@@ -187,7 +187,7 @@ public final class BluetoothLeAudioCodecStatus implements Parcelable {
     /**
      * Returns the codecs selectable capabilities.
      */
-    public @NonNull List<BluetoothLeAudioCodecConfig> getCodecsSelectableCapabilities() {
+    public @NonNull List<BluetoothLeAudioCodecConfig> getCodecSelectableCapabilities() {
         return (mCodecsSelectableCapabilities == null)
                 ? Collections.emptyList() : mCodecsSelectableCapabilities;
     }
