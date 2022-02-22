@@ -671,9 +671,13 @@ class LeAudioClientImpl : public LeAudioClient {
     }
 
     if (active_group_id_ != bluetooth::groups::kGroupUnknown) {
-      LOG(WARNING) << __func__ << ", Another group already active: "
-                   << static_cast<int>(active_group_id_);
-      return;
+      if (active_group_id_ == group_id) {
+        LOG(INFO) << __func__ << ", Group is already active: "
+                  << static_cast<int>(active_group_id_);
+        callbacks_->OnGroupStatus(active_group_id_, GroupStatus::ACTIVE);
+        return;
+      }
+      LOG(INFO) << __func__ << ", switching active group to: " << group_id;
     }
 
     if (!audio_source_instance_) {
@@ -701,21 +705,25 @@ class LeAudioClientImpl : public LeAudioClient {
     if (current_source_codec_config.IsInvalid() &&
         current_sink_codec_config.IsInvalid()) {
       LOG(WARNING) << __func__ << ", unsupported device configurations";
-      callbacks_->OnGroupStatus(active_group_id_, GroupStatus::INACTIVE);
       return;
     }
 
-    /* Expose audio sessions */
-    audio_framework_source_config.data_interval_us =
-        current_source_codec_config.data_interval_us;
-    LeAudioClientAudioSource::Start(audio_framework_source_config,
-                                    audioSinkReceiver);
+    if (active_group_id_ == bluetooth::groups::kGroupUnknown) {
+      /* Expose audio sessions if there was no previous active group */
+      audio_framework_source_config.data_interval_us =
+          current_source_codec_config.data_interval_us;
+      LeAudioClientAudioSource::Start(audio_framework_source_config,
+                                      audioSinkReceiver);
 
-    audio_framework_sink_config.data_interval_us =
+      audio_framework_sink_config.data_interval_us =
           current_source_codec_config.data_interval_us;
 
-    LeAudioClientAudioSink::Start(audio_framework_sink_config,
-                                  audioSourceReceiver);
+      LeAudioClientAudioSink::Start(audio_framework_sink_config,
+                                    audioSourceReceiver);
+    } else {
+      /* In case there was an active group. Stop the stream */
+      GroupStop(active_group_id_);
+    }
 
     active_group_id_ = group_id;
     callbacks_->OnGroupStatus(active_group_id_, GroupStatus::ACTIVE);
