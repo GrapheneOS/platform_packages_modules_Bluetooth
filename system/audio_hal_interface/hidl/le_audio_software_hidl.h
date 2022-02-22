@@ -26,9 +26,6 @@ namespace hidl {
 namespace le_audio {
 
 using ::android::hardware::bluetooth::audio::V2_1::PcmParameters;
-using ::android::hardware::bluetooth::audio::V2_2::LeAudioConfiguration;
-using ::android::hardware::bluetooth::audio::V2_2::UnicastCapability;
-using ::bluetooth::audio::hidl::AudioConfiguration_2_2;
 using ::bluetooth::audio::hidl::BluetoothAudioCtrlAck;
 using ::le_audio::set_configurations::AudioSetConfiguration;
 using ::le_audio::set_configurations::CodecCapabilitySetting;
@@ -51,15 +48,9 @@ using ::bluetooth::audio::le_audio::StreamCallbacks;
 
 void flush_sink();
 void flush_source();
-bool halConfigToCodecCapabilitySetting(UnicastCapability halConfig,
-                                       CodecCapabilitySetting& codecCapability);
 
 bool is_source_hal_enabled();
 bool is_sink_hal_enabled();
-AudioConfiguration_2_2 offload_config_to_hal_audio_config(
-    const ::le_audio::offload_config& offload_config);
-
-std::vector<AudioSetConfiguration> get_offload_capabilities();
 
 class LeAudioTransport {
  public:
@@ -77,8 +68,6 @@ class LeAudioTransport {
                                timespec* data_position);
 
   void MetadataChanged(const source_metadata_t& source_metadata);
-
-  void SinkMetadataChanged(const sink_metadata_t& sink_metadata);
 
   void ResetPresentationPosition();
 
@@ -125,8 +114,6 @@ class LeAudioSinkTransport
 
   void MetadataChanged(const source_metadata_t& source_metadata) override;
 
-  void SinkMetadataChanged(const sink_metadata_t& sink_metadata) override;
-
   void ResetPresentationPosition() override;
 
   void LogBytesRead(size_t bytes_read) override;
@@ -168,8 +155,6 @@ class LeAudioSourceTransport
                                timespec* data_position) override;
 
   void MetadataChanged(const source_metadata_t& source_metadata) override;
-
-  void SinkMetadataChanged(const sink_metadata_t& sink_metadata) override;
 
   void ResetPresentationPosition() override;
 
