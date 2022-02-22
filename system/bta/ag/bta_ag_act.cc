@@ -373,7 +373,6 @@ void bta_ag_rfc_close(tBTA_AG_SCB* p_scb,
   p_scb->codec_fallback = false;
   p_scb->codec_msbc_settings = BTA_AG_SCO_MSBC_SETTINGS_T2;
   p_scb->role = 0;
-  p_scb->post_sco = BTA_AG_POST_SCO_NONE;
   p_scb->svc_conn = false;
   p_scb->hsp_version = HSP_VERSION_1_2;
   bta_ag_at_reinit(&p_scb->at_cb);
