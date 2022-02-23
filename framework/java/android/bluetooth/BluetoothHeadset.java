@@ -947,10 +947,21 @@ public final class BluetoothHeadset implements BluetoothProfile {
             BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED,
             BluetoothStatusCodes.ERROR_PROFILE_SERVICE_NOT_BOUND,
             BluetoothStatusCodes.ERROR_TIMEOUT,
+            BluetoothStatusCodes.ERROR_UNKNOWN,
+    })
+    public @interface SetAudioRouteAllowedReturnValues {}
+
+    /** @hide */
+    @Retention(RetentionPolicy.SOURCE)
+    @IntDef(value = {
             BluetoothStatusCodes.ALLOWED,
             BluetoothStatusCodes.NOT_ALLOWED,
+            BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED,
+            BluetoothStatusCodes.ERROR_PROFILE_SERVICE_NOT_BOUND,
+            BluetoothStatusCodes.ERROR_TIMEOUT,
+            BluetoothStatusCodes.ERROR_UNKNOWN,
     })
-    public @interface AudioRouteAllowedReturnValues {}
+    public @interface GetAudioRouteAllowedReturnValues {}
 
     /**
      * Sets whether audio routing is allowed. When set to {@code false}, the AG
@@ -971,7 +982,7 @@ public final class BluetoothHeadset implements BluetoothProfile {
             android.Manifest.permission.BLUETOOTH_CONNECT,
             android.Manifest.permission.BLUETOOTH_PRIVILEGED,
     })
-    public @AudioRouteAllowedReturnValues int setAudioRouteAllowed(boolean allowed) {
+    public @SetAudioRouteAllowedReturnValues int setAudioRouteAllowed(boolean allowed) {
         if (VDBG) log("setAudioRouteAllowed");
         final IBluetoothHeadset service = mService;
         if (service == null) {
@@ -1010,7 +1021,7 @@ public final class BluetoothHeadset implements BluetoothProfile {
             android.Manifest.permission.BLUETOOTH_CONNECT,
             android.Manifest.permission.BLUETOOTH_PRIVILEGED,
     })
-    public @AudioRouteAllowedReturnValues int getAudioRouteAllowed() {
+    public @GetAudioRouteAllowedReturnValues int getAudioRouteAllowed() {
         if (VDBG) log("getAudioRouteAllowed");
         final IBluetoothHeadset service = mService;
         if (service == null) {
