@@ -72,7 +72,7 @@ static_assert(sizeof(HasGattOpContext) <= sizeof(void*));
 /* Service UUIDs */
 /* FIXME: actually these were not yet assigned - using placeholders for now. */
 static const bluetooth::Uuid kUuidHearingAccessService =
-    bluetooth::Uuid::From16Bit(0xEEEE);
+    bluetooth::Uuid::From16Bit(0x1854);
 static const bluetooth::Uuid kUuidHearingAidFeatures =
     bluetooth::Uuid::From16Bit(0xEEED);
 static const bluetooth::Uuid kUuidHearingAidPresetControlPoint =

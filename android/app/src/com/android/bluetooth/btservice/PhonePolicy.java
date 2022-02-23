@@ -43,6 +43,7 @@ import com.android.bluetooth.Utils;
 import com.android.bluetooth.a2dp.A2dpService;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 import com.android.bluetooth.csip.CsipSetCoordinatorService;
+import com.android.bluetooth.hap.HapClientService;
 import com.android.bluetooth.hearingaid.HearingAidService;
 import com.android.bluetooth.hfp.HeadsetService;
 import com.android.bluetooth.hid.HidHostService;
@@ -296,6 +297,7 @@ class PhonePolicy {
              mFactory.getCsipSetCoordinatorService();
         VolumeControlService volumeControlService =
              mFactory.getVolumeControlService();
+        HapClientService hapClientService = mFactory.getHapClientService();
 
         // Set profile priorities only for the profiles discovered on the remote device.
         // This avoids needless auto-connect attempts to profiles non-existent on the remote device
@@ -363,6 +365,14 @@ class PhonePolicy {
             debugLog("setting volume control profile priority for device " + device);
             mAdapterService.getDatabase().setProfileConnectionPolicy(device,
                     BluetoothProfile.VOLUME_CONTROL, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+        }
+
+        if ((hapClientService != null) && Utils.arrayContains(uuids,
+                BluetoothUuid.HAS) && (hapClientService.getConnectionPolicy(device)
+                == BluetoothProfile.CONNECTION_POLICY_UNKNOWN)) {
+            debugLog("setting hearing access profile priority for device " + device);
+            mAdapterService.getDatabase().setProfileConnectionPolicy(device,
+                    BluetoothProfile.HAP_CLIENT, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
         }
     }
 
