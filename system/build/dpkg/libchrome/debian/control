@@ -18,7 +18,8 @@ Build-Depends:
  googletest,
  libre2-dev,
  libdouble-conversion-dev,
- libssl-dev
+ libssl-dev,
+ libabsl-dev
 
 Package: libchrome
 Architecture: any
