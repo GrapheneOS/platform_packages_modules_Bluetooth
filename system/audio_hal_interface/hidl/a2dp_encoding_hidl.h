@@ -57,9 +57,6 @@ size_t read(uint8_t* p_buf, uint32_t len);
 // Update A2DP delay report to BluetoothAudio HAL
 void set_remote_delay(uint16_t delay_report);
 
-// Set low latency buffer mode allowed or disallowed
-void set_low_latency_mode_allowed(bool allowed);
-
 }  // namespace a2dp
 }  // namespace hidl
 }  // namespace audio
