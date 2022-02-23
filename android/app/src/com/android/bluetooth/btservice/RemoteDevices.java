@@ -847,6 +847,12 @@ final class RemoteDevices {
             if (sAdapterService.getConnectionState(device) == 0) {
                 resetBatteryLevel(device);
             }
+            if (!sAdapterService.isAnyProfileEnabled(device)) {
+                DeviceProperties deviceProp = getDeviceProperties(device);
+                if (deviceProp != null) {
+                    deviceProp.setBondingInitiatedLocally(false);
+                }
+            }
             debugLog(
                     "aclStateChangeCallback: Adapter State: " + BluetoothAdapter.nameForState(state)
                             + " Disconnected: " + device
