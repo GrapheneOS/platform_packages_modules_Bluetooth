@@ -33,6 +33,7 @@
     <bool name="profile_supported_mapmce">false</bool>
     <bool name="profile_supported_hid_device">true</bool>
     <bool name="profile_supported_le_audio">true</bool>
+    <bool name="profile_supported_le_audio_broadcast">false</bool>
     <bool name="profile_supported_vc">true</bool>
     <bool name="profile_supported_mcp_server">true</bool>
     <bool name="profile_supported_csip_set_coordinator">true</bool>

@@ -29,11 +29,6 @@ BluetoothAudioHalTransport HalVersionManager::GetHalTransport() {
   return BluetoothAudioHalTransport::UNKNOWN;
 }
 
-android::sp<IBluetoothAudioProvidersFactory_2_2>
-HalVersionManager::GetProvidersFactory_2_2() {
-  return nullptr;
-}
-
 android::sp<IBluetoothAudioProvidersFactory_2_1>
 HalVersionManager::GetProvidersFactory_2_1() {
   return nullptr;

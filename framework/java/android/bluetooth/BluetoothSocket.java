@@ -636,7 +636,7 @@ public final class BluetoothSocket implements Closeable {
     @Override
     public void close() throws IOException {
         Log.d(TAG, "close() this: " + this + ", channel: " + mPort + ", mSocketIS: " + mSocketIS
-                + ", mSocketOS: " + mSocketOS + "mSocket: " + mSocket + ", mSocketState: "
+                + ", mSocketOS: " + mSocketOS + ", mSocket: " + mSocket + ", mSocketState: "
                 + mSocketState);
         if (mSocketState == SocketState.CLOSED) {
             return;

@@ -16,8 +16,8 @@
 
 #pragma once
 
-#include <android/hardware/bluetooth/audio/2.2/IBluetoothAudioProvidersFactory.h>
-#include <android/hardware/bluetooth/audio/2.2/types.h>
+#include <android/hardware/bluetooth/audio/2.1/IBluetoothAudioProvidersFactory.h>
+#include <android/hardware/bluetooth/audio/2.1/types.h>
 
 namespace bluetooth {
 namespace audio {
@@ -28,22 +28,17 @@ using IBluetoothAudioProvidersFactory_2_0 = ::android::hardware::bluetooth::
     audio::V2_0::IBluetoothAudioProvidersFactory;
 using IBluetoothAudioProvidersFactory_2_1 = ::android::hardware::bluetooth::
     audio::V2_1::IBluetoothAudioProvidersFactory;
-using IBluetoothAudioProvidersFactory_2_2 = ::android::hardware::bluetooth::
-    audio::V2_2::IBluetoothAudioProvidersFactory;
 
 constexpr char kFullyQualifiedInterfaceName_2_0[] =
     "android.hardware.bluetooth.audio@2.0::IBluetoothAudioProvidersFactory";
 constexpr char kFullyQualifiedInterfaceName_2_1[] =
     "android.hardware.bluetooth.audio@2.1::IBluetoothAudioProvidersFactory";
-constexpr char kFullyQualifiedInterfaceName_2_2[] =
-    "android.hardware.bluetooth.audio@2.2::IBluetoothAudioProvidersFactory";
 
 enum class BluetoothAudioHalVersion : uint8_t {
-  VERSION_2_0 = 0,
+  VERSION_UNAVAILABLE = 0,
+  VERSION_2_0,
   VERSION_2_1,
-  VERSION_2_2,
   VERSION_AIDL_V1,
-  VERSION_UNAVAILABLE,
 };
 
 enum class BluetoothAudioHalTransport : uint8_t {
@@ -60,9 +55,6 @@ class HalVersionManager {
   static BluetoothAudioHalVersion GetHalVersion();
 
   static BluetoothAudioHalTransport GetHalTransport();
-
-  static android::sp<IBluetoothAudioProvidersFactory_2_2>
-  GetProvidersFactory_2_2();
 
   static android::sp<IBluetoothAudioProvidersFactory_2_1>
   GetProvidersFactory_2_1();
