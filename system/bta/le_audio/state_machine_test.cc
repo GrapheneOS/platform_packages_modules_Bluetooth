@@ -1127,11 +1127,17 @@ TEST_F(StateMachineTest, testConfigureCodecSingle) {
   auto* leAudioDevice = group->GetFirstDevice();
   PrepareConfigureCodecHandler(group, 1);
 
-  // Start the configuration and stream Media content
+  /* Start the configuration and stream Media content.
+   * Expect 1 time for the Codec Config call only. */
   EXPECT_CALL(gatt_queue,
               WriteCharacteristic(1, leAudioDevice->ctp_hdls_.val_hdl, _,
                                   GATT_WRITE_NO_RSP, _, _))
-      .Times(2);
+      .Times(1);
+
+  /* Do nothing on the CigCreate, so the state machine stays in the configure
+   * state */
+  ON_CALL(*mock_iso_manager_, CreateCig).WillByDefault(Return());
+  EXPECT_CALL(*mock_iso_manager_, CreateCig).Times(1);
 
   InjectInitialIdleNotification(group);
 
@@ -1169,6 +1175,11 @@ TEST_F(StateMachineTest, testConfigureCodecMulti) {
   ASSERT_EQ(expected_devices_written, num_devices);
 
   InjectInitialIdleNotification(group);
+
+  /* Do nothing on the CigCreate, so the state machine stays in the configure
+   * state */
+  ON_CALL(*mock_iso_manager_, CreateCig).WillByDefault(Return());
+  EXPECT_CALL(*mock_iso_manager_, CreateCig).Times(1);
 
   // Start the configuration and stream the content
   ASSERT_TRUE(LeAudioGroupStateMachine::Get()->StartStream(
