@@ -419,8 +419,11 @@ struct iso_impl {
         << "No such iso connection handle: " << +iso_handle;
 
     if (!(iso->state_flags & kStateFlagIsBroadcast)) {
-      LOG_ASSERT(iso->state_flags & kStateFlagIsConnected)
-          << "CIS not established";
+      if (!(iso->state_flags & kStateFlagIsConnected)) {
+        LOG(WARNING) << __func__ << "Cis handle: " << loghex(iso_handle)
+                     << " not established";
+        return;
+      }
     }
     LOG_ASSERT(iso->state_flags & kStateFlagHasDataPathSet)
         << "Data path not set for handle: " << +iso_handle;
