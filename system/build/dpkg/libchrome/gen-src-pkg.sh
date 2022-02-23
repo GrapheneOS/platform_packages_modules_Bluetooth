@@ -7,25 +7,34 @@ if [ -z "$1" ]; then
 fi
 
 outdir="$1"
-pkgdir=libchrome-780652
-origtar=libchrome_780652.orig.tar.gz
+pkgdir=libchrome-930012
+origtar=libchrome_930012.orig.tar.gz
 scriptdir="$( cd "$( dirname "$0" )" && pwd )"
-branch=release-R90-13816.B
+
+# Pin the libchrome branch + commit
+libchrome_branch=master
+libchrome_commit=4b86c42f09b7c8d88b0233c60f59bafeb4d8df19
+
+# Pin the platform2 branch + commit
+platform2_branch=main
+platform2_commit=4567e833015453b3ea322eec1201cc41ecdfdec0
 
 tmpdir=$(mktemp -d)
 echo Generating source package in "${tmpdir}".
 
 # Download platform2 source.
 cd "${tmpdir}"
-git clone --branch "${branch}" https://chromium.googlesource.com/chromiumos/platform2 || exit 1
+git clone --branch "${platform2_branch}" https://chromium.googlesource.com/chromiumos/platform2 || exit 1
+(cd platform2 && git checkout "${platform2_commit}")
 mkdir "${pkgdir}"
 cd "${pkgdir}"
 # Trim platform2, only common-mk is needed.
 cp -a ../platform2/{common-mk,.gn} .
 
 # Download libchrome source and apply Chrome OS's patches.
-git clone --branch "${branch}" https://chromium.googlesource.com/aosp/platform/external/libchrome || exit 1
+git clone --branch "${libchrome_branch}" https://chromium.googlesource.com/aosp/platform/external/libchrome || exit 1
 cd libchrome
+git checkout "${libchrome_commit}"
 rm -rf .git
 while read -r patch; do
   patch -p1 < "libchrome_tools/patches/${patch}"
@@ -42,6 +51,14 @@ tar czf "${origtar}" "${pkgdir}"
 cd "${pkgdir}"
 yes | debmake || exit 1
 cp -aT "${scriptdir}/debian/" "${tmpdir}/${pkgdir}/debian/"
+
+# If building for docker, use the right install script.
+if [ ! -z "${LIBCHROME_DOCKER}" ]; then
+  mv "${tmpdir}/${pkgdir}/debian/libchrome.install.docker" \
+     "${tmpdir}/${pkgdir}/debian/libchrome.install"
+else
+  rm -f "${tmpdir}/${pkgdir}/debian/libchrome.install.docker"
+fi
 
 # Build source package and binary package.
 cd "${tmpdir}/${pkgdir}"
