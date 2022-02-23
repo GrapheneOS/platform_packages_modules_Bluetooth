@@ -36,9 +36,10 @@ enum class ConnectionState : uint8_t {
 /** Results codes for the failed preset operations */
 enum class ErrorCode : uint8_t {
   NO_ERROR = 0,
-  SET_NAME_NOT_ALLOWED,
-  OPERATION_NOT_SUPPORTED,
-  OPERATION_NOT_POSSIBLE,
+  SET_NAME_NOT_ALLOWED,     // Preset cannot be written (read only preset)
+  OPERATION_NOT_SUPPORTED,  // If theres no optional characteristic,
+                            // or request opcode is invalid or not supported
+  OPERATION_NOT_POSSIBLE,   // Operation cannot be performed at this time
   INVALID_PRESET_NAME_LENGTH,
   INVALID_PRESET_INDEX,
   GROUP_OPERATION_NOT_SUPPORTED,

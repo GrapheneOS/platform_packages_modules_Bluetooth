@@ -238,7 +238,7 @@ final class HapClientStateMachine extends StateMachine {
 
         @Override
         public boolean processMessage(Message message) {
-            log("Disconnected process message(" + mDevice + "): " + messageWhatToString(
+            log("Disconnected: process message(" + mDevice + "): " + messageWhatToString(
                     message.what));
 
             switch (message.what) {
@@ -343,7 +343,7 @@ final class HapClientStateMachine extends StateMachine {
 
         @Override
         public boolean processMessage(Message message) {
-            log("Connecting process message(" + mDevice + "): "
+            log("Connecting: process message(" + mDevice + "): "
                     + messageWhatToString(message.what));
 
             switch (message.what) {
@@ -430,7 +430,7 @@ final class HapClientStateMachine extends StateMachine {
 
         @Override
         public boolean processMessage(Message message) {
-            log("Disconnecting process message(" + mDevice + "): "
+            log("Disconnecting: process message(" + mDevice + "): "
                     + messageWhatToString(message.what));
 
             switch (message.what) {
@@ -530,7 +530,7 @@ final class HapClientStateMachine extends StateMachine {
 
         @Override
         public boolean processMessage(Message message) {
-            log("Connected process message(" + mDevice + "): "
+            log("Connected: process message(" + mDevice + "): "
                     + messageWhatToString(message.what));
 
             switch (message.what) {
