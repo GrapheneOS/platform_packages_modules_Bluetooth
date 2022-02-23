@@ -25,6 +25,7 @@ import android.annotation.NonNull;
 import android.annotation.Nullable;
 import android.annotation.RequiresPermission;
 import android.annotation.SdkConstant;
+import android.annotation.SuppressLint;
 import android.annotation.SystemApi;
 import android.bluetooth.annotations.RequiresBluetoothConnectPermission;
 import android.content.AttributionSource;
@@ -39,7 +40,9 @@ import com.android.modules.utils.SynchronousResultReceiver;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeoutException;
 
@@ -57,6 +60,8 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
     private static final String TAG = "BluetoothHapClient";
     private static final boolean DBG = false;
     private static final boolean VDBG = false;
+
+    private final Map<Callback, Executor> mCallbackExecutorMap = new HashMap<>();
 
     private CloseGuard mCloseGuard;
 
@@ -82,17 +87,6 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
                 BluetoothStatusCodes.ERROR_CSIP_INVALID_GROUP_ID,
         })
         @interface Status {}
-
-        /** @hide */
-        @Retention(RetentionPolicy.SOURCE)
-        @IntDef(value = {
-                PRESET_INFO_REASON_ALL_PRESET_INFO,
-                PRESET_INFO_REASON_PRESET_INFO_UPDATE,
-                PRESET_INFO_REASON_PRESET_DELETED,
-                PRESET_INFO_REASON_PRESET_AVAILABILITY_CHANGED,
-                PRESET_INFO_REASON_PRESET_INFO_REQUEST_RESPONSE,
-        })
-        @interface PresetInfoReason {}
 
         /**
          * Invoked to inform about HA device's currently active preset.
@@ -180,6 +174,87 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
         void onSetPresetNameForGroupFailed(int hapGroupId, @Status int status);
     }
 
+    @SuppressLint("AndroidFrameworkBluetoothPermission")
+    private final IBluetoothHapClientCallback mCallback = new IBluetoothHapClientCallback.Stub() {
+        @Override
+        public void onActivePresetChanged(@NonNull BluetoothDevice device, int presetIndex) {
+            Attributable.setAttributionSource(device, mAttributionSource);
+            for (Map.Entry<BluetoothHapClient.Callback, Executor> callbackExecutorEntry:
+                    mCallbackExecutorMap.entrySet()) {
+                BluetoothHapClient.Callback callback = callbackExecutorEntry.getKey();
+                Executor executor = callbackExecutorEntry.getValue();
+                executor.execute(() -> callback.onActivePresetChanged(device, presetIndex));
+            }
+        }
+
+        @Override
+        public void onSelectActivePresetFailed(@NonNull BluetoothDevice device, int status) {
+            Attributable.setAttributionSource(device, mAttributionSource);
+            for (Map.Entry<BluetoothHapClient.Callback, Executor> callbackExecutorEntry:
+                    mCallbackExecutorMap.entrySet()) {
+                BluetoothHapClient.Callback callback = callbackExecutorEntry.getKey();
+                Executor executor = callbackExecutorEntry.getValue();
+                executor.execute(() -> callback.onSelectActivePresetFailed(device, status));
+            }
+        }
+
+        @Override
+        public void onSelectActivePresetForGroupFailed(int hapGroupId, int statusCode) {
+            for (Map.Entry<BluetoothHapClient.Callback, Executor> callbackExecutorEntry:
+                    mCallbackExecutorMap.entrySet()) {
+                BluetoothHapClient.Callback callback = callbackExecutorEntry.getKey();
+                Executor executor = callbackExecutorEntry.getValue();
+                executor.execute(
+                        () -> callback.onSelectActivePresetForGroupFailed(hapGroupId, statusCode));
+            }
+        }
+
+        @Override
+        public void onPresetInfoChanged(@NonNull BluetoothDevice device,
+                @NonNull List<BluetoothHapPresetInfo> presetInfoList, int statusCode) {
+            Attributable.setAttributionSource(device, mAttributionSource);
+            for (Map.Entry<BluetoothHapClient.Callback, Executor> callbackExecutorEntry:
+                    mCallbackExecutorMap.entrySet()) {
+                BluetoothHapClient.Callback callback = callbackExecutorEntry.getKey();
+                Executor executor = callbackExecutorEntry.getValue();
+                executor.execute(
+                        () -> callback.onPresetInfoChanged(device, presetInfoList, statusCode));
+            }
+        }
+
+        @Override
+        public void onHapFeaturesAvailable(@NonNull BluetoothDevice device, int hapFeatures) {
+            Attributable.setAttributionSource(device, mAttributionSource);
+            for (Map.Entry<BluetoothHapClient.Callback, Executor> callbackExecutorEntry:
+                    mCallbackExecutorMap.entrySet()) {
+                BluetoothHapClient.Callback callback = callbackExecutorEntry.getKey();
+                Executor executor = callbackExecutorEntry.getValue();
+                executor.execute(() -> callback.onHapFeaturesAvailable(device, hapFeatures));
+            }
+        }
+
+        @Override
+        public void onSetPresetNameFailed(@NonNull BluetoothDevice device, int status) {
+            Attributable.setAttributionSource(device, mAttributionSource);
+            for (Map.Entry<BluetoothHapClient.Callback, Executor> callbackExecutorEntry:
+                    mCallbackExecutorMap.entrySet()) {
+                BluetoothHapClient.Callback callback = callbackExecutorEntry.getKey();
+                Executor executor = callbackExecutorEntry.getValue();
+                executor.execute(() -> callback.onSetPresetNameFailed(device, status));
+            }
+        }
+
+        @Override
+        public void onSetPresetNameForGroupFailed(int hapGroupId, int status) {
+            for (Map.Entry<BluetoothHapClient.Callback, Executor> callbackExecutorEntry:
+                    mCallbackExecutorMap.entrySet()) {
+                BluetoothHapClient.Callback callback = callbackExecutorEntry.getKey();
+                Executor executor = callbackExecutorEntry.getValue();
+                executor.execute(() -> callback.onSetPresetNameForGroupFailed(hapGroupId, status));
+            }
+        }
+    };
+
     /**
      * Intent used to broadcast the change in connection state of the Hearing Access Profile Client
      * service. Please note that in the binaural case, there will be two different LE devices for
@@ -229,233 +304,10 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
             "android.bluetooth.action.HAP_DEVICE_AVAILABLE";
 
     /**
-     * Intent used to broadcast HA device's feature set.
-     *
-     * <p>This intent will have 2 extras:
-     * <ul>
-     * <li> {@link BluetoothDevice#EXTRA_DEVICE} - The remote device. </li>
-     * <li> {@link #EXTRA_HAP_FEATURES}- The feature set integer with these possible bit numbers
-     * set: {@link #FEATURE_BIT_NUM_TYPE_MONAURAL}, {@link #FEATURE_BIT_NUM_TYPE_BANDED},
-     * {@link #FEATURE_BIT_NUM_SYNCHRONIZATED_PRESETS},
-     * {@link #FEATURE_BIT_NUM_INDEPENDENT_PRESETS}, {@link #FEATURE_BIT_NUM_DYNAMIC_PRESETS},
-     * {@link #FEATURE_BIT_NUM_WRITABLE_PRESETS}.</li>
-     * </ul>
-     *
-     * @hide
-     */
-    @RequiresPermission(allOf = {
-            android.Manifest.permission.BLUETOOTH_CONNECT,
-            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-    })
-    @SdkConstant(SdkConstant.SdkConstantType.BROADCAST_INTENT_ACTION)
-    public static final String ACTION_HAP_ON_DEVICE_FEATURES =
-            "android.bluetooth.action.HAP_ON_DEVICE_FEATURES";
-
-    /**
-     * Intent used to broadcast the change of a HA device's active preset.
-     *
-     * <p>This intent will have 2 extras:
-     * <ul>
-     * <li> {@link BluetoothDevice#EXTRA_DEVICE} - The remote device. </li>
-     * <li> {@link #EXTRA_HAP_PRESET_INDEX}- The currently active preset.</li>
-     * </ul>
-     *
-     * @hide
-     */
-    @RequiresPermission(allOf = {
-            android.Manifest.permission.BLUETOOTH_CONNECT,
-            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-    })
-    @SdkConstant(SdkConstant.SdkConstantType.BROADCAST_INTENT_ACTION)
-    public static final String ACTION_HAP_ON_ACTIVE_PRESET =
-            "android.bluetooth.action.HAP_ON_ACTIVE_PRESET";
-
-    /**
-     * Intent used to broadcast the result of a failed preset change attempt.
-     *
-     * <p>This intent will have 2 extras:
-     * <ul>
-     * <li> {@link BluetoothDevice#EXTRA_DEVICE} - The remote device. </li>
-     * <li> {@link #EXTRA_HAP_STATUS_CODE}- Failure reason.</li>
-     * </ul>
-     *
-     * <p>{@link #EXTRA_HAP_STATUS_CODE} can be any of {@link #STATUS_INVALID_PRESET_INDEX},
-     * {@link #STATUS_OPERATION_NOT_POSSIBLE},{@link #STATUS_OPERATION_NOT_SUPPORTED}.
-     *
-     * @hide
-     */
-    @RequiresPermission(allOf = {
-            android.Manifest.permission.BLUETOOTH_CONNECT,
-            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-    })
-    @SdkConstant(SdkConstant.SdkConstantType.BROADCAST_INTENT_ACTION)
-    public static final String ACTION_HAP_ON_ACTIVE_PRESET_SELECT_ERROR =
-            "android.bluetooth.action.HAP_ON_ACTIVE_PRESET_SELECT_ERROR";
-
-    /**
-     * Intent used to broadcast preset name change.
-     *
-     * <p>This intent will have 4 extras:
-     * <ul>
-     * <li> {@link BluetoothDevice#EXTRA_DEVICE} - The remote device. </li>
-     * <li> {@link #EXTRA_HAP_PRESET_INFO}- List of preset informations </li>
-     * <li> {@link #EXTRA_HAP_PRESET_INFO_REASON}- Why this preset info notification was sent </li>
-     * notifications or the user should expect more to come. </li>
-     * </ul>
-     *
-     * @hide
-     */
-    @RequiresPermission(allOf = {
-            android.Manifest.permission.BLUETOOTH_CONNECT,
-            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-    })
-    @SdkConstant(SdkConstant.SdkConstantType.BROADCAST_INTENT_ACTION)
-    public static final String ACTION_HAP_ON_PRESET_INFO =
-            "android.bluetooth.action.HAP_ON_PRESET_INFO";
-
-    /**
-     * Intent used to broadcast result of a failed rename attempt.
-     *
-     * <p>This intent will have 3 extras:
-     * <ul>
-     * <li> {@link BluetoothDevice#EXTRA_DEVICE} - The remote device. </li>
-     * <li> {@link #EXTRA_HAP_PRESET_INDEX}- The currently active preset.</li>
-     * <li> {@link #EXTRA_HAP_STATUS_CODE}- Failure reason code.</li>
-     * </ul>
-     *
-     * <p>{@link #EXTRA_HAP_STATUS_CODE} can be any of {@link #STATUS_SET_NAME_NOT_ALLOWED},
-     * {@link #STATUS_INVALID_PRESET_INDEX}, {@link #STATUS_INVALID_PRESET_NAME_LENGTH}.
-     *
-     * @hide
-     */
-    @RequiresPermission(allOf = {
-            android.Manifest.permission.BLUETOOTH_CONNECT,
-            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-    })
-    @SdkConstant(SdkConstant.SdkConstantType.BROADCAST_INTENT_ACTION)
-    public static final String ACTION_HAP_ON_PRESET_NAME_SET_ERROR =
-            "android.bluetooth.action.HAP_ON_PRESET_NAME_SET_ERROR";
-
-    /**
-     * Intent used to broadcast the result of a failed name get attempt.
-     *
-     * <p>This intent will have 3 extras:
-     * <ul>
-     * <li> {@link BluetoothDevice#EXTRA_DEVICE} - The remote device. </li>
-     * <li> {@link #EXTRA_HAP_PRESET_INDEX}- The currently active preset.</li>
-     * <li> {@link #EXTRA_HAP_STATUS_CODE}- Failure reason code.</li>
-     * </ul>
-     *
-     * <p>{@link #EXTRA_HAP_STATUS_CODE} can be any of {@link #STATUS_INVALID_PRESET_INDEX},
-     * {@link #STATUS_OPERATION_NOT_POSSIBLE}.
-     *
-     * @hide
-     */
-    @RequiresPermission(allOf = {
-            android.Manifest.permission.BLUETOOTH_CONNECT,
-            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-    })
-    @SdkConstant(SdkConstant.SdkConstantType.BROADCAST_INTENT_ACTION)
-    public static final String ACTION_HAP_ON_PRESET_INFO_GET_ERROR =
-            "android.bluetooth.action.HAP_ON_PRESET_INFO_GET_ERROR";
-
-    /**
      * Contains a list of all available presets
      * @hide
      */
     public static final String EXTRA_HAP_FEATURES = "android.bluetooth.extra.HAP_FEATURES";
-
-    /**
-     * Contains a preset identifier
-     * @hide
-     */
-    public static final String EXTRA_HAP_PRESET_INDEX = "android.bluetooth.extra.HAP_PRESET_INDEX";
-
-    /**
-     * Used to report failure reasons.
-     * @hide
-     */
-    public static final String EXTRA_HAP_STATUS_CODE = "android.bluetooth.extra.HAP_STATUS_CODE";
-
-    /**
-     * Used by group events.
-     * @hide
-     */
-    public static final String EXTRA_HAP_GROUP_ID = "android.bluetooth.extra.HAP_GROUP_ID";
-
-    /**
-     * Preset Info reason.
-     * Possible values:
-     *  {@link #PRESET_INFO_REASON_ALL_PRESET_INFO} or
-     *  {@link #PRESET_INFO_REASON_PRESET_INFO_UPDATE} or
-     *  {@link #PRESET_INFO_REASON_PRESET_DELETED} or
-     *  {@link #PRESET_INFO_REASON_PRESET_AVAILABILITY_CHANGED} or
-     *  {@link #PRESET_INFO_REASON_PRESET_INFO_REQUEST_RESPONSE}
-     * @hide
-     */
-    public static final String EXTRA_HAP_PRESET_INFO_REASON =
-            "android.bluetooth.extra.HAP_PRESET_INFO_REASON";
-
-    /**
-     * Preset Info.
-     * @hide
-     */
-    public static final String EXTRA_HAP_PRESET_INFO = "android.bluetooth.extra.HAP_PRESET_INFO";
-
-    /**
-     * Preset name change failure due to preset being read-only.
-     * @hide
-     */
-    public static final int STATUS_SET_NAME_NOT_ALLOWED =
-            IBluetoothHapClient.STATUS_SET_NAME_NOT_ALLOWED;
-
-    /**
-     * Means that the requested operation is not supported by the HA device.
-     *
-     * <p> It could mean that the requested name change is not supported on
-     * a given preset or the device does not support presets at all.
-     * @hide
-     */
-    public static final int STATUS_OPERATION_NOT_SUPPORTED =
-            IBluetoothHapClient.STATUS_OPERATION_NOT_SUPPORTED;
-
-    /**
-     * Usually means a temporary denial of certain operation. Peer device may report this
-     * status due to various implementation specific reasons. It's different than
-     * the {@link #STATUS_OPERATION_NOT_SUPPORTED} which represents more of a
-     * permanent inability to perform some of the operations.
-     * @hide
-     */
-    public static final int STATUS_OPERATION_NOT_POSSIBLE =
-            IBluetoothHapClient.STATUS_OPERATION_NOT_POSSIBLE;
-
-    /**
-     * Used when preset name change failed due to the passed name parameter being to long.
-     * @hide
-     */
-    public static final int STATUS_INVALID_PRESET_NAME_LENGTH =
-            IBluetoothHapClient.STATUS_INVALID_PRESET_NAME_LENGTH;
-
-    /**
-     * Group operations are not supported.
-     * @hide
-     */
-    public static final int STATUS_GROUP_OPERATION_NOT_SUPPORTED =
-            IBluetoothHapClient.STATUS_GROUP_OPERATION_NOT_SUPPORTED;
-
-    /**
-     * Procedure is already in progress.
-     * @hide
-     */
-    public static final int STATUS_PROCEDURE_ALREADY_IN_PROGRESS =
-            IBluetoothHapClient.STATUS_PROCEDURE_ALREADY_IN_PROGRESS;
-
-    /**
-     * Invalid preset index input parameter used in one of the API calls.
-     * @hide
-     */
-    public static final int STATUS_INVALID_PRESET_INDEX =
-            IBluetoothHapClient.STATUS_INVALID_PRESET_INDEX;
 
     /**
      * Represets an invalid index value. This is usually value returned in a currently
@@ -507,48 +359,6 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
     public static final int FEATURE_BIT_NUM_WRITABLE_PRESETS =
             IBluetoothHapClient.FEATURE_BIT_NUM_WRITABLE_PRESETS;
 
-    /**
-     * Preset Info notification reason.
-     * @hide
-     */
-    public static final int PRESET_INFO_REASON_ALL_PRESET_INFO =
-            IBluetoothHapClient.PRESET_INFO_REASON_ALL_PRESET_INFO;
-
-    /**
-     * Preset Info notification reason.
-     * @hide
-     */
-    public static final int PRESET_INFO_REASON_PRESET_INFO_UPDATE =
-            IBluetoothHapClient.PRESET_INFO_REASON_PRESET_INFO_UPDATE;
-
-    /**
-     * Preset Info notification reason.
-     * @hide
-     */
-    public static final int PRESET_INFO_REASON_PRESET_DELETED =
-            IBluetoothHapClient.PRESET_INFO_REASON_PRESET_DELETED;
-
-    /**
-     * Preset Info notification reason.
-     * @hide
-     */
-    public static final int PRESET_INFO_REASON_PRESET_AVAILABILITY_CHANGED =
-            IBluetoothHapClient.PRESET_INFO_REASON_PRESET_AVAILABILITY_CHANGED;
-
-    /**
-     * Preset Info notification reason.
-     * @hide
-     */
-    public static final int PRESET_INFO_REASON_PRESET_INFO_REQUEST_RESPONSE =
-            IBluetoothHapClient.PRESET_INFO_REASON_PRESET_INFO_REQUEST_RESPONSE;
-
-    /**
-     * Represents invalid group identifier. It's returned when user requests a group identifier
-     * for a device which is not part of any group. This value shouldn't be used in the API calls.
-     * @hide
-     */
-    public static final int HAP_GROUP_UNAVAILABLE = IBluetoothHapClient.GROUP_ID_UNAVAILABLE;
-
     private final BluetoothAdapter mAdapter;
     private final AttributionSource mAttributionSource;
     private final BluetoothProfileConnector<IBluetoothHapClient> mProfileConnector =
@@ -560,6 +370,35 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
                 }
             };
 
+    @SuppressLint("AndroidFrameworkBluetoothPermission")
+    private final IBluetoothStateChangeCallback mBluetoothStateChangeCallback =
+            new IBluetoothStateChangeCallback.Stub() {
+                public void onBluetoothStateChange(boolean up) {
+                    if (DBG) Log.d(TAG, "onBluetoothStateChange: up=" + up);
+                    if (up) {
+                        // re-register the service-to-app callback
+                        synchronized (mCallbackExecutorMap) {
+                            if (mCallbackExecutorMap.isEmpty()) return;
+
+                            try {
+                                final IBluetoothHapClient service = getService();
+                                if (service != null) {
+                                    final SynchronousResultReceiver<Integer> recv =
+                                            new SynchronousResultReceiver();
+                                    service.registerCallback(mCallback, mAttributionSource, recv);
+                                    recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
+                                }
+                            } catch (TimeoutException e) {
+                                Log.e(TAG, e.toString() + "\n"
+                                        + Log.getStackTraceString(new Throwable()));
+                            } catch (RemoteException e) {
+                                throw e.rethrowFromSystemServer();
+                            }
+                        }
+                    }
+                }
+            };
+
     /**
      * Create a BluetoothHapClient proxy object for interacting with the local
      * Bluetooth Hearing Access Profile (HAP) client.
@@ -568,6 +407,16 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mAttributionSource = mAdapter.getAttributionSource();
         mProfileConnector.connect(context, listener);
+
+        IBluetoothManager mgr = mAdapter.getBluetoothManager();
+        if (mgr != null) {
+            try {
+                mgr.registerStateChangeCallback(mBluetoothStateChangeCallback);
+            } catch (RemoteException e) {
+                throw e.rethrowFromSystemServer();
+            }
+        }
+
         mCloseGuard = new CloseGuard();
         mCloseGuard.open("close");
     }
@@ -586,6 +435,17 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
      * @hide
      */
     public void close() {
+        if (VDBG) log("close()");
+
+        IBluetoothManager mgr = mAdapter.getBluetoothManager();
+        if (mgr != null) {
+            try {
+                mgr.unregisterStateChangeCallback(mBluetoothStateChangeCallback);
+            } catch (RemoteException e) {
+                Log.e(TAG, "", e);
+            }
+        }
+
         mProfileConnector.disconnect();
     }
 
@@ -621,8 +481,36 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
         if (callback == null) {
             throw new IllegalArgumentException("callback cannot be null");
         }
+        if (!isEnabled()) {
+            throw new IllegalStateException("service not enabled");
+        }
+
         if (DBG) log("registerCallback");
-        throw new UnsupportedOperationException("Not Implemented");
+
+        synchronized (mCallbackExecutorMap) {
+            // If the callback map is empty, we register the service-to-app callback
+            if (mCallbackExecutorMap.isEmpty()) {
+                try {
+                    final IBluetoothHapClient service = getService();
+                    if (service != null) {
+                        final SynchronousResultReceiver<Integer> recv =
+                                new SynchronousResultReceiver();
+                        service.registerCallback(mCallback, mAttributionSource, recv);
+                        recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
+                    }
+                } catch (IllegalStateException | TimeoutException e) {
+                    Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+                } catch (RemoteException e) {
+                    throw e.rethrowFromSystemServer();
+                }
+            }
+
+            // Adds the passed in callback to our map of callbacks to executors
+            if (mCallbackExecutorMap.containsKey(callback)) {
+                throw new IllegalArgumentException("This callback has already been registered");
+            }
+            mCallbackExecutorMap.put(callback, executor);
+        }
     }
 
     /**
@@ -646,8 +534,30 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
         if (callback == null) {
             throw new IllegalArgumentException("callback cannot be null");
         }
+
         if (DBG) log("unregisterCallback");
-        throw new UnsupportedOperationException("Not Implemented");
+
+        synchronized (mCallbackExecutorMap) {
+            if (mCallbackExecutorMap.remove(callback) != null) {
+                throw new IllegalArgumentException("This callback has not been registered");
+            }
+        }
+
+        // If the callback map is empty, we unregister the service-to-app callback
+        if (mCallbackExecutorMap.isEmpty()) {
+            try {
+                final IBluetoothHapClient service = getService();
+                if (service != null) {
+                    final SynchronousResultReceiver<Integer> recv = new SynchronousResultReceiver();
+                    service.unregisterCallback(mCallback, mAttributionSource, recv);
+                    recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
+                }
+            } catch (TimeoutException e) {
+                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+            } catch (RemoteException e) {
+                throw e.rethrowFromSystemServer();
+            }
+        }
     }
 
     /**
@@ -683,8 +593,10 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
                 final SynchronousResultReceiver<Boolean> recv = new SynchronousResultReceiver();
                 service.setConnectionPolicy(device, connectionPolicy, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
-            } catch (RemoteException | TimeoutException e) {
+            } catch (TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+            } catch (RemoteException e) {
+                throw e.rethrowFromSystemServer();
             }
         }
         return defaultValue;
@@ -719,8 +631,10 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
                 final SynchronousResultReceiver<Integer> recv = new SynchronousResultReceiver();
                 service.getConnectionPolicy(device, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
-            } catch (RemoteException | TimeoutException e) {
+            } catch (TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+            } catch (RemoteException e) {
+                throw e.rethrowFromSystemServer();
             }
         }
         return defaultValue;
@@ -748,9 +662,13 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
             try {
                 final SynchronousResultReceiver<List> recv = new SynchronousResultReceiver();
                 service.getConnectedDevices(mAttributionSource, recv);
-                return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
-            } catch (RemoteException | TimeoutException e) {
+                return Attributable.setAttributionSource(
+                        recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue),
+                        mAttributionSource);
+            } catch (TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+            } catch (RemoteException e) {
+                throw e.rethrowFromSystemServer();
             }
         }
         return defaultValue;
@@ -779,9 +697,13 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
             try {
                 final SynchronousResultReceiver<List> recv = new SynchronousResultReceiver();
                 service.getDevicesMatchingConnectionStates(states, mAttributionSource, recv);
-                return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
-            } catch (RemoteException | TimeoutException e) {
+                return Attributable.setAttributionSource(
+                        recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue),
+                        mAttributionSource);
+            } catch (TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+            } catch (RemoteException e) {
+                throw e.rethrowFromSystemServer();
             }
         }
         return defaultValue;
@@ -811,8 +733,10 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
                 final SynchronousResultReceiver<Integer> recv = new SynchronousResultReceiver();
                 service.getConnectionState(device, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
-            } catch (RemoteException | TimeoutException e) {
+            } catch (TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+            } catch (RemoteException e) {
+                throw e.rethrowFromSystemServer();
             }
         }
         return defaultValue;
@@ -828,12 +752,11 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
      * require individual device calls.
      *
      * <p>Note that some binaural HA devices may not support group operations,
-     * therefore are not considered a valid HAP group. In such case the
-     * {@link #HAP_GROUP_UNAVAILABLE} is returned even when such
-     * device is a valid Le Audio Coordinated Set member.
+     * therefore are not considered a valid HAP group. In such case -1 is returned
+     * even if such device is a valid Le Audio Coordinated Set member.
      *
      * @param device
-     * @return valid group identifier or {@link #HAP_GROUP_UNAVAILABLE}
+     * @return valid group identifier or -1
      * @hide
      */
     @RequiresBluetoothConnectPermission
@@ -843,7 +766,7 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
     })
     public int getHapGroup(@NonNull BluetoothDevice device) {
         final IBluetoothHapClient service = getService();
-        final int defaultValue = HAP_GROUP_UNAVAILABLE;
+        final int defaultValue = BluetoothCsipSetCoordinator.GROUP_ID_INVALID;
         if (service == null) {
             Log.w(TAG, "Proxy not attached to service");
             if (DBG) log(Log.getStackTraceString(new Throwable()));
@@ -852,8 +775,10 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
                 final SynchronousResultReceiver<Integer> recv = new SynchronousResultReceiver();
                 service.getHapGroup(device, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
-            } catch (RemoteException | TimeoutException e) {
+            } catch (TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+            } catch (RemoteException e) {
+                throw e.rethrowFromSystemServer();
             }
         }
         return defaultValue;
@@ -878,14 +803,15 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
             Log.w(TAG, "Proxy not attached to service");
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else if (isEnabled() && isValidDevice(device)) {
-            // TODO(b/216639668)
-            // try {
-            //     final SynchronousResultReceiver<Boolean> recv = new SynchronousResultReceiver();
-            //     service.getActivePresetIndex(device, mAttributionSource, recv);
-            //     return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
-            // } catch (RemoteException | TimeoutException e) {
-            //     Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
-            // }
+            try {
+                final SynchronousResultReceiver<Integer> recv = new SynchronousResultReceiver();
+                service.getActivePresetIndex(device, mAttributionSource, recv);
+                return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
+            } catch (TimeoutException e) {
+                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+            } catch (RemoteException e) {
+                throw e.rethrowFromSystemServer();
+            }
         }
         return defaultValue;
     }
@@ -905,8 +831,25 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
             android.Manifest.permission.BLUETOOTH_PRIVILEGED
     })
     public @Nullable BluetoothHapPresetInfo getActivePresetInfo(@NonNull BluetoothDevice device) {
-        // TODO(b/216639668)
-        return null;
+        final IBluetoothHapClient service = getService();
+        final BluetoothHapPresetInfo defaultValue = null;
+        if (service == null) {
+            Log.w(TAG, "Proxy not attached to service");
+            if (DBG) log(Log.getStackTraceString(new Throwable()));
+        } else if (isEnabled() && isValidDevice(device)) {
+            try {
+                final SynchronousResultReceiver<BluetoothHapPresetInfo> recv =
+                        new SynchronousResultReceiver();
+                service.getActivePresetInfo(device, mAttributionSource, recv);
+                recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
+            } catch (TimeoutException e) {
+                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+            } catch (RemoteException e) {
+                throw e.rethrowFromSystemServer();
+            }
+        }
+
+        return defaultValue;
     }
 
     /**
@@ -928,18 +871,14 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
     })
     public void selectPreset(@NonNull BluetoothDevice device, int presetIndex) {
         final IBluetoothHapClient service = getService();
-        final boolean defaultValue = false;
         if (service == null) {
             Log.w(TAG, "Proxy not attached to service");
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else if (isEnabled() && isValidDevice(device)) {
             try {
-                // TODO(b/216639668)
-                final SynchronousResultReceiver<Boolean> recv = new SynchronousResultReceiver();
-                service.selectActivePreset(device, presetIndex, mAttributionSource, recv);
-                recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
-            } catch (RemoteException | TimeoutException e) {
-                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+                service.selectPreset(device, presetIndex, mAttributionSource);
+            } catch (RemoteException e) {
+                throw e.rethrowFromSystemServer();
             }
         }
     }
@@ -968,18 +907,14 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
     })
     public void selectPresetForGroup(int groupId, int presetIndex) {
         final IBluetoothHapClient service = getService();
-        final boolean defaultValue = false;
         if (service == null) {
             Log.w(TAG, "Proxy not attached to service");
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else if (isEnabled()) {
             try {
-                // TODO(b/216639668)
-                final SynchronousResultReceiver<Boolean> recv = new SynchronousResultReceiver();
-                service.groupSelectActivePreset(groupId, presetIndex, mAttributionSource, recv);
-                recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
-            } catch (RemoteException | TimeoutException e) {
-                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+                service.selectPresetForGroup(groupId, presetIndex, mAttributionSource);
+            } catch (RemoteException e) {
+                throw e.rethrowFromSystemServer();
             }
         }
     }
@@ -1000,18 +935,14 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
     })
     public void switchToNextPreset(@NonNull BluetoothDevice device) {
         final IBluetoothHapClient service = getService();
-        final boolean defaultValue = false;
         if (service == null) {
             Log.w(TAG, "Proxy not attached to service");
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else if (isEnabled() && isValidDevice(device)) {
             try {
-                // TODO(b/216639668)
-                final SynchronousResultReceiver<Boolean> recv = new SynchronousResultReceiver();
-                service.nextActivePreset(device, mAttributionSource, recv);
-                recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
-            } catch (RemoteException | TimeoutException e) {
-                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+                service.switchToNextPreset(device, mAttributionSource);
+            } catch (RemoteException e) {
+                throw e.rethrowFromSystemServer();
             }
         }
     }
@@ -1034,18 +965,14 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
     })
     public void switchToNextPresetForGroup(int groupId) {
         final IBluetoothHapClient service = getService();
-        final boolean defaultValue = false;
         if (service == null) {
             Log.w(TAG, "Proxy not attached to service");
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else if (isEnabled()) {
             try {
-                // TODO(b/216639668)
-                final SynchronousResultReceiver<Boolean> recv = new SynchronousResultReceiver();
-                service.groupNextActivePreset(groupId, mAttributionSource, recv);
-                recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
-            } catch (RemoteException | TimeoutException e) {
-                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+                service.switchToNextPresetForGroup(groupId, mAttributionSource);
+            } catch (RemoteException e) {
+                throw e.rethrowFromSystemServer();
             }
         }
     }
@@ -1066,18 +993,14 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
     })
     public void switchToPreviousPreset(@NonNull BluetoothDevice device) {
         final IBluetoothHapClient service = getService();
-        final boolean defaultValue = false;
         if (service == null) {
             Log.w(TAG, "Proxy not attached to service");
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else if (isEnabled() && isValidDevice(device)) {
             try {
-                // TODO(b/216639668)
-                final SynchronousResultReceiver<Boolean> recv = new SynchronousResultReceiver();
-                service.previousActivePreset(device, mAttributionSource, recv);
-                recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
-            } catch (RemoteException | TimeoutException e) {
-                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+                service.switchToPreviousPreset(device, mAttributionSource);
+            } catch (RemoteException e) {
+                throw e.rethrowFromSystemServer();
             }
         }
     }
@@ -1100,18 +1023,14 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
     })
     public void switchToPreviousPresetForGroup(int groupId) {
         final IBluetoothHapClient service = getService();
-        final boolean defaultValue = false;
         if (service == null) {
             Log.w(TAG, "Proxy not attached to service");
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else if (isEnabled()) {
             try {
-                // TODO(b/216639668)
-                final SynchronousResultReceiver<Boolean> recv = new SynchronousResultReceiver();
-                service.groupPreviousActivePreset(groupId, mAttributionSource, recv);
-                recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
-            } catch (RemoteException | TimeoutException e) {
-                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+                service.switchToPreviousPresetForGroup(groupId, mAttributionSource);
+            } catch (RemoteException e) {
+                throw e.rethrowFromSystemServer();
             }
         }
     }
@@ -1129,24 +1048,26 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
             android.Manifest.permission.BLUETOOTH_CONNECT,
             android.Manifest.permission.BLUETOOTH_PRIVILEGED
     })
-    public @NonNull BluetoothHapPresetInfo getPresetInfo(@NonNull BluetoothDevice device,
+    public @Nullable BluetoothHapPresetInfo getPresetInfo(@NonNull BluetoothDevice device,
             int presetIndex) {
         final IBluetoothHapClient service = getService();
-        final BluetoothHapPresetInfo.Builder builder = new BluetoothHapPresetInfo.Builder();
+        final BluetoothHapPresetInfo defaultValue = null;
         if (service == null) {
             Log.w(TAG, "Proxy not attached to service");
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else if (isEnabled() && isValidDevice(device)) {
-            // TODO(b/216639668)
-            // try {
-            //     final SynchronousResultReceiver<Boolean> recv = new SynchronousResultReceiver();
-            //     service.getPresetInfo(device, presetIndex, mAttributionSource, recv);
-            //     return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(builder);
-            // } catch (RemoteException | TimeoutException e) {
-            //     Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
-            // }
+            try {
+                final SynchronousResultReceiver<BluetoothHapPresetInfo> recv =
+                        new SynchronousResultReceiver();
+                service.getPresetInfo(device, presetIndex, mAttributionSource, recv);
+                return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
+            } catch (TimeoutException e) {
+                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+            } catch (RemoteException e) {
+                throw e.rethrowFromSystemServer();
+            }
         }
-        return builder.build();
+        return defaultValue;
     }
 
     /**
@@ -1169,14 +1090,16 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
             Log.w(TAG, "Proxy not attached to service");
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else if (isEnabled() && isValidDevice(device)) {
-            // TODO(b/216639668)
-            // try {
-            //     final SynchronousResultReceiver<Boolean> recv = new SynchronousResultReceiver();
-            //     service.getAllPresetsInfo(device, mAttributionSource, recv);
-            //     return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
-            // } catch (RemoteException | TimeoutException e) {
-            //     Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
-            // }
+            try {
+                final SynchronousResultReceiver<List<BluetoothHapPresetInfo>> recv =
+                        new SynchronousResultReceiver();
+                service.getAllPresetInfo(device, mAttributionSource, recv);
+                return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
+            } catch (TimeoutException e) {
+                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+            } catch (RemoteException e) {
+                throw e.rethrowFromSystemServer();
+            }
         }
         return defaultValue;
     }
@@ -1193,19 +1116,21 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
             android.Manifest.permission.BLUETOOTH_CONNECT,
             android.Manifest.permission.BLUETOOTH_PRIVILEGED
     })
-    public boolean getFeatures(@NonNull BluetoothDevice device) {
+    public int getFeatures(@NonNull BluetoothDevice device) {
         final IBluetoothHapClient service = getService();
-        final boolean defaultValue = false;
+        final int defaultValue = 0x00;
         if (service == null) {
             Log.w(TAG, "Proxy not attached to service");
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else if (isEnabled() && isValidDevice(device)) {
             try {
-                final SynchronousResultReceiver<Boolean> recv = new SynchronousResultReceiver();
+                final SynchronousResultReceiver<Integer> recv = new SynchronousResultReceiver();
                 service.getFeatures(device, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
-            } catch (RemoteException | TimeoutException e) {
+            } catch (TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+            } catch (RemoteException e) {
+                throw e.rethrowFromSystemServer();
             }
         }
         return defaultValue;
@@ -1235,18 +1160,14 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
     public void setPresetName(@NonNull BluetoothDevice device, int presetIndex,
             @NonNull String name) {
         final IBluetoothHapClient service = getService();
-        final boolean defaultValue = false;
         if (service == null) {
             Log.w(TAG, "Proxy not attached to service");
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else if (isEnabled() && isValidDevice(device)) {
             try {
-                // TODO(b/216639668)
-                final SynchronousResultReceiver<Boolean> recv = new SynchronousResultReceiver();
-                service.setPresetName(device, presetIndex, name, mAttributionSource, recv);
-                recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
-            } catch (RemoteException | TimeoutException e) {
-                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+                service.setPresetName(device, presetIndex, name, mAttributionSource);
+            } catch (RemoteException e) {
+                throw e.rethrowFromSystemServer();
             }
         }
     }
@@ -1274,18 +1195,14 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
     })
     public void setPresetNameForGroup(int groupId, int presetIndex, @NonNull String name) {
         final IBluetoothHapClient service = getService();
-        final boolean defaultValue = false;
         if (service == null) {
             Log.w(TAG, "Proxy not attached to service");
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else if (isEnabled()) {
             try {
-                // TODO(b/216639668)
-                final SynchronousResultReceiver<Boolean> recv = new SynchronousResultReceiver();
-                service.groupSetPresetName(groupId, presetIndex, name, mAttributionSource, recv);
-                recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
-            } catch (RemoteException | TimeoutException e) {
-                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+                service.setPresetNameForGroup(groupId, presetIndex, name, mAttributionSource);
+            } catch (RemoteException e) {
+                throw e.rethrowFromSystemServer();
             }
         }
     }
