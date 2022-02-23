@@ -1044,14 +1044,14 @@ class HasClientImpl : public HasClient {
     /* Journal update */
     device->has_journal_.Append(HasJournalRecord(features, true));
 
-    /* When service is not yet validated, report the available device and
-     * notify features otherwise.
+    /* When service is not yet validated, report the available device with
+     * features.
      */
-    if (!device->isGattServiceValid()) {
+    if (!device->isGattServiceValid())
       callbacks_->OnDeviceAvailable(device->addr, device->GetFeatures());
-    } else {
-      callbacks_->OnFeaturesUpdate(device->addr, device->GetFeatures());
-    }
+
+    /* Notify features */
+    callbacks_->OnFeaturesUpdate(device->addr, device->GetFeatures());
 
     MarkDeviceValidIfInInitialDiscovery(*device);
   }
