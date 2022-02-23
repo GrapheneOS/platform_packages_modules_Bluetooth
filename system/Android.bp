@@ -176,7 +176,7 @@ genrule {
         "protoc-gen-grpc-python-plugin",
         "soong_zip",
     ],
-    cmd: "$(location aprotoc) --plugin=protoc-gen-grpc=$(location protoc-gen-grpc-python-plugin) -Ipackages/modules/Bluetooth/system $(in) --grpc_out=$(genDir) --python_out=$(genDir)",
+    cmd: "$(location aprotoc) --plugin=protoc-gen-grpc=$(location protoc-gen-grpc-python-plugin) -Iexternal/protobuf/src -Ipackages/modules/Bluetooth/system $(in) --grpc_out=$(genDir) --python_out=$(genDir)",
     srcs: ["blueberry/facade/topshim/facade.proto"],
     out: [
         "blueberry/facade/topshim/facade_pb2.py",
