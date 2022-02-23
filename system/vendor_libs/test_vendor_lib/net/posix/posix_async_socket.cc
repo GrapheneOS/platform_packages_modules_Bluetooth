@@ -41,7 +41,7 @@ PosixAsyncSocket::PosixAsyncSocket(int fd, AsyncManager* am)
   fcntl(fd, F_SETFL, flags | O_NONBLOCK);
 
   flags = fcntl(fd, F_GETFD);
-  fcntl(fd, F_SETFD, flags | O_CLOEXEC);
+  fcntl(fd, F_SETFD, flags | FD_CLOEXEC);
 
 #ifdef SO_NOSIGPIPE
   // Disable SIGPIPE generation on Darwin.
