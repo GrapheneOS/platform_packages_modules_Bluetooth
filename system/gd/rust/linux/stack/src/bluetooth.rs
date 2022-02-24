@@ -73,6 +73,9 @@ pub trait IBluetooth {
     /// Returns whether the adapter is discoverable.
     fn get_discoverable(&self) -> bool;
 
+    /// Returns the adapter discoverable timeout.
+    fn get_discoverable_timeout(&self) -> u32;
+
     /// Sets discoverability. If discoverable, limits the duration with given value.
     fn set_discoverable(&self, mode: bool, duration: u32) -> bool;
 
@@ -853,6 +856,16 @@ impl IBluetooth for Bluetooth {
                 _ => false,
             },
             _ => false,
+        }
+    }
+
+    fn get_discoverable_timeout(&self) -> u32 {
+        match self.properties.get(&BtPropertyType::AdapterDiscoverableTimeout) {
+            Some(prop) => match prop {
+                BluetoothProperty::AdapterDiscoverableTimeout(timeout) => timeout.clone(),
+                _ => 0,
+            },
+            _ => 0,
         }
     }
 
