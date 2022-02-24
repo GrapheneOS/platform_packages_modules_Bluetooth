@@ -766,7 +766,7 @@ struct RawGattServerWrapper {
 }
 
 struct RawBleScannerWrapper {
-    raw: *const BleScannerInterface,
+    _raw: *const BleScannerInterface,
 }
 
 struct RawBleAdvertiserWrapper {
@@ -1086,7 +1086,7 @@ impl GattServer {
 }
 
 pub struct BleScanner {
-    internal: RawBleScannerWrapper,
+    _internal: RawBleScannerWrapper,
     internal_cxx: cxx::UniquePtr<ffi::BleScannerIntf>,
 }
 
@@ -1096,30 +1096,30 @@ impl BleScanner {
         internal_cxx: cxx::UniquePtr<ffi::BleScannerIntf>,
     ) -> Self {
         BleScanner {
-            internal: RawBleScannerWrapper {
-                raw: unsafe { (*raw_gatt).scanner as *const BleScannerInterface },
+            _internal: RawBleScannerWrapper {
+                _raw: unsafe { (*raw_gatt).scanner as *const BleScannerInterface },
             },
             internal_cxx,
         }
     }
 
-    fn register_scanner(&mut self, app_uuid: Uuid) {
+    pub fn register_scanner(&mut self, app_uuid: Uuid) {
         mutcxxcall!(self, RegisterScanner, app_uuid.into());
     }
 
-    fn unregister(&mut self, scanner_id: u8) {
+    pub fn unregister(&mut self, scanner_id: u8) {
         mutcxxcall!(self, Unregister, scanner_id);
     }
 
-    fn start_scan(&mut self) {
+    pub fn start_scan(&mut self) {
         mutcxxcall!(self, Scan, true);
     }
 
-    fn stop_scan(&mut self) {
+    pub fn stop_scan(&mut self) {
         mutcxxcall!(self, Scan, false);
     }
 
-    fn scan_filter_setup(
+    pub fn scan_filter_setup(
         &mut self,
         scanner_id: u8,
         action: u8,
@@ -1129,27 +1129,27 @@ impl BleScanner {
         mutcxxcall!(self, ScanFilterParamSetup, scanner_id, action, filter_index, param);
     }
 
-    fn scan_filter_add(&mut self, filter_index: u8, filters: Vec<ApcfCommand>) {
+    pub fn scan_filter_add(&mut self, filter_index: u8, filters: Vec<ApcfCommand>) {
         mutcxxcall!(self, ScanFilterAdd, filter_index, filters);
     }
 
-    fn scan_filter_clear(&mut self, filter_index: u8) {
+    pub fn scan_filter_clear(&mut self, filter_index: u8) {
         mutcxxcall!(self, ScanFilterClear, filter_index);
     }
 
-    fn scan_filter_enable(&mut self) {
+    pub fn scan_filter_enable(&mut self) {
         mutcxxcall!(self, ScanFilterEnable, true);
     }
 
-    fn scan_filter_disable(&mut self) {
+    pub fn scan_filter_disable(&mut self) {
         mutcxxcall!(self, ScanFilterEnable, false);
     }
 
-    fn set_scan_parameters(&mut self, scanner_id: u8, scan_interval: u16, scan_window: u16) {
+    pub fn set_scan_parameters(&mut self, scanner_id: u8, scan_interval: u16, scan_window: u16) {
         mutcxxcall!(self, SetScanParameters, scanner_id, scan_interval, scan_window);
     }
 
-    fn batchscan_config_storage(
+    pub fn batchscan_config_storage(
         &mut self,
         scanner_id: u8,
         full_max: i32,
@@ -1166,7 +1166,7 @@ impl BleScanner {
         );
     }
 
-    fn batchscan_enable(
+    pub fn batchscan_enable(
         &mut self,
         scan_mode: i32,
         scan_interval: u16,
@@ -1185,39 +1185,39 @@ impl BleScanner {
         );
     }
 
-    fn batchscan_disable(&mut self) {
+    pub fn batchscan_disable(&mut self) {
         mutcxxcall!(self, BatchscanDisable);
     }
 
-    fn batchscan_read_reports(&mut self, scanner_id: u8, scan_mode: i32) {
+    pub fn batchscan_read_reports(&mut self, scanner_id: u8, scan_mode: i32) {
         mutcxxcall!(self, BatchscanReadReports, scanner_id, scan_mode);
     }
 
-    fn start_sync(&mut self, sid: u8, address: RawAddress, skip: u16, timeout: u16) {
+    pub fn start_sync(&mut self, sid: u8, address: RawAddress, skip: u16, timeout: u16) {
         let addr = unsafe { *((&address as *const RawAddress) as *const ffi::RustRawAddress) };
         mutcxxcall!(self, StartSync, sid, addr, skip, timeout);
     }
 
-    fn stop_sync(&mut self, handle: u16) {
+    pub fn stop_sync(&mut self, handle: u16) {
         mutcxxcall!(self, StopSync, handle);
     }
 
-    fn cancel_create_sync(&mut self, sid: u8, address: RawAddress) {
+    pub fn cancel_create_sync(&mut self, sid: u8, address: RawAddress) {
         let addr = unsafe { *((&address as *const RawAddress) as *const ffi::RustRawAddress) };
         mutcxxcall!(self, CancelCreateSync, sid, addr);
     }
 
-    fn transfer_sync(&mut self, address: RawAddress, service_data: u16, sync_handle: u16) {
+    pub fn transfer_sync(&mut self, address: RawAddress, service_data: u16, sync_handle: u16) {
         let addr = unsafe { *((&address as *const RawAddress) as *const ffi::RustRawAddress) };
         mutcxxcall!(self, TransferSync, addr, service_data, sync_handle);
     }
 
-    fn transfer_set_info(&mut self, address: RawAddress, service_data: u16, adv_handle: u8) {
+    pub fn transfer_set_info(&mut self, address: RawAddress, service_data: u16, adv_handle: u8) {
         let addr = unsafe { *((&address as *const RawAddress) as *const ffi::RustRawAddress) };
         mutcxxcall!(self, TransferSetInfo, addr, service_data, adv_handle);
     }
 
-    fn sync_tx_parameters(&mut self, address: RawAddress, mode: u8, skip: u16, timeout: u16) {
+    pub fn sync_tx_parameters(&mut self, address: RawAddress, mode: u8, skip: u16, timeout: u16) {
         let addr = unsafe { *((&address as *const RawAddress) as *const ffi::RustRawAddress) };
         mutcxxcall!(self, SyncTxParameters, addr, mode, skip, timeout);
     }
