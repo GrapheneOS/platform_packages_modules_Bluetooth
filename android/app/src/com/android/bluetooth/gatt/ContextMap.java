@@ -194,7 +194,8 @@ import java.util.UUID;
 
     private static final int ADVERTISE_STATE_MAX_SIZE = 5;
 
-    private EvictingQueue<AppAdvertiseStats> mLastAdvertises;
+    private final EvictingQueue<AppAdvertiseStats> mLastAdvertises =
+            EvictingQueue.create(ADVERTISE_STATE_MAX_SIZE);
 
     /** Internal list of connected devices **/
     private Set<Connection> mConnections = new HashSet<Connection>();
@@ -243,10 +244,6 @@ import java.util.UUID;
             if (app == null) {
                 app = new App(appUid, callback, appName);
                 mApps.add(app);
-            }
-
-            if (mLastAdvertises == null) {
-                mLastAdvertises = EvictingQueue.create(ADVERTISE_STATE_MAX_SIZE);
             }
             return app;
         }
@@ -628,7 +625,9 @@ import java.util.UUID;
             while (i.hasNext()) {
                 App entry = i.next();
                 entry.unlinkToDeath();
-                entry.appScanStats.isRegistered = false;
+                if (entry.appScanStats != null) {
+                    entry.appScanStats.isRegistered = false;
+                }
                 i.remove();
             }
         }
