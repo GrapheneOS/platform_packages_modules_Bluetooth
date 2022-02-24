@@ -140,6 +140,16 @@ impl IBluetooth for IBluetoothDBus {
         true
     }
 
+    #[dbus_method("IsMultiAdvertisementSupported")]
+    fn is_multi_advertisement_supported(&self) -> bool {
+        true
+    }
+
+    #[dbus_method("IsLeExtendedAdvertisingSupported")]
+    fn is_le_extended_advertising_supported(&self) -> bool {
+        true
+    }
+
     #[dbus_method("StartDiscovery")]
     fn start_discovery(&self) -> bool {
         true
