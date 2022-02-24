@@ -47,20 +47,15 @@ public class HapClientStackEvent {
     static final int CONNECTION_STATE_DISCONNECTING = 3;
 
     // Possible operation results
-    static final int STATUS_SET_NAME_NOT_ALLOWED =
-            IBluetoothHapClient.STATUS_SET_NAME_NOT_ALLOWED;
-    static final int STATUS_OPERATION_NOT_SUPPORTED =
-            IBluetoothHapClient.STATUS_OPERATION_NOT_SUPPORTED;
-    static final int STATUS_OPERATION_NOT_POSSIBLE =
-            IBluetoothHapClient.STATUS_OPERATION_NOT_POSSIBLE;
-    static final int STATUS_INVALID_PRESET_NAME_LENGTH =
-            IBluetoothHapClient.STATUS_INVALID_PRESET_NAME_LENGTH;
-    static final int STATUS_INVALID_PRESET_INDEX =
-            IBluetoothHapClient.STATUS_INVALID_PRESET_INDEX;
-    static final int STATUS_GROUP_OPERATION_NOT_SUPPORTED =
-            IBluetoothHapClient.STATUS_GROUP_OPERATION_NOT_SUPPORTED;
-    static final int STATUS_PROCEDURE_ALREADY_IN_PROGRESS =
-            IBluetoothHapClient.STATUS_PROCEDURE_ALREADY_IN_PROGRESS;
+    /* WARNING: Matches status codes defined in bta_has.h */
+    static final int STATUS_NO_ERROR = 0;
+    static final int STATUS_SET_NAME_NOT_ALLOWED = 1;
+    static final int STATUS_OPERATION_NOT_SUPPORTED = 2;
+    static final int STATUS_OPERATION_NOT_POSSIBLE = 3;
+    static final int STATUS_INVALID_PRESET_NAME_LENGTH = 4;
+    static final int STATUS_INVALID_PRESET_INDEX = 5;
+    static final int STATUS_GROUP_OPERATION_NOT_SUPPORTED = 6;
+    static final int STATUS_PROCEDURE_ALREADY_IN_PROGRESS = 7;
 
     // Supported features
     public static final int FEATURE_BIT_NUM_TYPE_MONAURAL =
@@ -77,16 +72,12 @@ public class HapClientStackEvent {
             IBluetoothHapClient.FEATURE_BIT_NUM_WRITABLE_PRESETS;
 
     // Preset Info notification reason
-    public static final int PRESET_INFO_REASON_ALL_PRESET_INFO =
-            IBluetoothHapClient.PRESET_INFO_REASON_ALL_PRESET_INFO;
-    public static final int PRESET_INFO_REASON_PRESET_INFO_UPDATE =
-            IBluetoothHapClient.PRESET_INFO_REASON_PRESET_INFO_UPDATE;
-    public static final int PRESET_INFO_REASON_PRESET_DELETED =
-            IBluetoothHapClient.PRESET_INFO_REASON_PRESET_DELETED;
-    public static final int PRESET_INFO_REASON_PRESET_AVAILABILITY_CHANGED =
-            IBluetoothHapClient.PRESET_INFO_REASON_PRESET_AVAILABILITY_CHANGED;
-    public static final int PRESET_INFO_REASON_PRESET_INFO_REQUEST_RESPONSE =
-            IBluetoothHapClient.PRESET_INFO_REASON_PRESET_INFO_REQUEST_RESPONSE;
+    /* WARNING: Matches status codes defined in bta_has.h */
+    public static final int PRESET_INFO_REASON_ALL_PRESET_INFO = 0;
+    public static final int PRESET_INFO_REASON_PRESET_INFO_UPDATE = 1;
+    public static final int PRESET_INFO_REASON_PRESET_DELETED = 2;
+    public static final int PRESET_INFO_REASON_PRESET_AVAILABILITY_CHANGED = 3;
+    public static final int PRESET_INFO_REASON_PRESET_INFO_REQUEST_RESPONSE = 4;
 
     public int type;
     public BluetoothDevice device;
@@ -207,6 +198,8 @@ public class HapClientStackEvent {
 
     private String statusCodeValueToString(int value) {
         switch (value) {
+            case STATUS_NO_ERROR:
+                return "STATUS_NO_ERROR";
             case STATUS_SET_NAME_NOT_ALLOWED:
                 return "STATUS_SET_NAME_NOT_ALLOWED";
             case STATUS_OPERATION_NOT_SUPPORTED:
@@ -222,7 +215,7 @@ public class HapClientStackEvent {
             case STATUS_PROCEDURE_ALREADY_IN_PROGRESS:
                 return "STATUS_PROCEDURE_ALREADY_IN_PROGRESS";
             default:
-                return "UNKNOWN_STATUS_CODE";
+                return "ERROR_UNKNOWN";
         }
     }
 

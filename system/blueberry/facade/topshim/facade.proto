@@ -1,11 +1,14 @@
 syntax = "proto3";
 
+import "google/protobuf/empty.proto";
+
 package blueberry.facade.topshim;
 
 service AdapterService {
   rpc FetchEvents(FetchEventsRequest) returns (stream FetchEventsResponse) {}
   rpc ToggleStack(ToggleStackRequest) returns (ToggleStackResponse) {}
   rpc SetDiscoveryMode(SetDiscoveryModeRequest) returns (SetDiscoveryModeResponse) {}
+  rpc ClearEventFilter(google.protobuf.Empty) returns (google.protobuf.Empty) {}
 }
 
 enum EventType {
