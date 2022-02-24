@@ -264,31 +264,21 @@ impl CommandHandler {
                         Some(x) => x.clone(),
                         None => String::from(""),
                     };
-                    let name =
-                        self.context.lock().unwrap().adapter_dbus.as_ref().unwrap().get_name();
-                    let uuids =
-                        self.context.lock().unwrap().adapter_dbus.as_ref().unwrap().get_uuids();
-                    let is_discoverable = self
-                        .context
-                        .lock()
-                        .unwrap()
-                        .adapter_dbus
-                        .as_ref()
-                        .unwrap()
-                        .get_discoverable();
-                    let cod = self
-                        .context
-                        .lock()
-                        .unwrap()
-                        .adapter_dbus
-                        .as_ref()
-                        .unwrap()
-                        .get_bluetooth_class();
+                    let context = self.context.lock().unwrap();
+                    let adapter_dbus = context.adapter_dbus.as_ref().unwrap();
+                    let name = adapter_dbus.get_name();
+                    let uuids = adapter_dbus.get_uuids();
+                    let is_discoverable = adapter_dbus.get_discoverable();
+                    let cod = adapter_dbus.get_bluetooth_class();
+                    let multi_adv_supported = adapter_dbus.is_multi_advertisement_supported();
+                    let le_ext_adv_supported = adapter_dbus.is_le_extended_advertising_supported();
                     print_info!("Address: {}", address);
                     print_info!("Name: {}", name);
                     print_info!("State: {}", if enabled { "enabled" } else { "disabled" });
                     print_info!("Discoverable: {}", is_discoverable);
                     print_info!("Class: {:#06x}", cod);
+                    print_info!("IsMultiAdvertisementSupported: {}", multi_adv_supported);
+                    print_info!("IsLeExtendedAdvertisingSupported: {}", le_ext_adv_supported);
                     print_info!(
                         "Uuids: {}",
                         DisplayList(
