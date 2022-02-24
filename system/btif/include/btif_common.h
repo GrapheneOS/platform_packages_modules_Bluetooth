@@ -233,5 +233,6 @@ void invoke_link_quality_report_cb(
     int negative_acknowledgement_count);
 
 void invoke_switch_buffer_size_cb(bool is_low_latency_buffer_size);
+void invoke_switch_codec_cb(bool is_low_latency_buffer_size);
 
 #endif /* BTIF_COMMON_H */
