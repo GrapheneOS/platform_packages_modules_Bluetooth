@@ -1,5 +1,5 @@
-libchrome (780652-1) buster; urgency=low
+libchrome (930012-1) bullseye; urgency=low
 
-  * Initial release.
+  * Upgrade to BASE_VER = 930012
 
- -- Sonny Sasaka <sonnysasaka@chromium.org>  Fri, 19 Mar 2021 19:41:40 +0000
+ -- Abhishek Pandit-Subedi <abhishekpandit@chromium.org> Fri, 11 Feb 2022 14:56:00 +0000
