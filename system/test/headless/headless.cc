@@ -141,6 +141,9 @@ void switch_buffer_size(bool is_low_latency_buffer_size) {
   LOG_INFO("%s", __func__);
 }
 
+/** Switch codec callback */
+void switch_codec(bool is_low_latency_buffer_size) { LOG_INFO("%s", __func__); }
+
 void thread_event(bt_cb_thread_evt evt) { LOG_INFO("%s", __func__); }
 
 void dut_mode_recv(uint16_t opcode, uint8_t* buf, uint8_t len) {
@@ -175,6 +178,7 @@ bt_callbacks_t bt_callbacks{
     .energy_info_cb = energy_info,
     .link_quality_report_cb = link_quality_report,
     .switch_buffer_size_cb = switch_buffer_size,
+    .switch_codec_cb = switch_codec,
 };
 // HAL HARDWARE CALLBACKS
 
