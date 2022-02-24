@@ -316,7 +316,7 @@ struct iso_impl {
 
   void remove_iso_data_path(uint16_t iso_handle, uint8_t data_path_dir) {
     iso_base* iso = GetIsoIfKnown(iso_handle);
-    LOG_ASSERT(iso != nullptr) << "No such iso connection: " << +iso_handle;
+    LOG_ASSERT(iso != nullptr) << "No such iso connection: " << loghex(iso_handle);
     LOG_ASSERT((iso->state_flags & kStateFlagHasDataPathSet) ==
                kStateFlagHasDataPathSet)
         << "Data path not set";
@@ -373,7 +373,7 @@ struct iso_impl {
   void read_iso_link_quality(uint16_t iso_handle) {
     iso_base* iso = GetIsoIfKnown(iso_handle);
     if (iso == nullptr) {
-      LOG(ERROR) << __func__ << "No such iso connection: " << +iso_handle;
+      LOG(ERROR) << __func__ << "No such iso connection: " << loghex(iso_handle);
       return;
     }
 
@@ -416,14 +416,17 @@ struct iso_impl {
                      uint16_t data_len) {
     iso_base* iso = GetIsoIfKnown(iso_handle);
     LOG_ASSERT(iso != nullptr)
-        << "No such iso connection handle: " << +iso_handle;
+        << "No such iso connection handle: " << loghex(iso_handle);
 
     if (!(iso->state_flags & kStateFlagIsBroadcast)) {
-      LOG_ASSERT(iso->state_flags & kStateFlagIsConnected)
-          << "CIS not established";
+      if (!(iso->state_flags & kStateFlagIsConnected)) {
+        LOG(WARNING) << __func__ << "Cis handle: " << loghex(iso_handle)
+                     << " not established";
+        return;
+      }
     }
     LOG_ASSERT(iso->state_flags & kStateFlagHasDataPathSet)
-        << "Data path not set for handle: " << +iso_handle;
+        << "Data path not set for handle: " << loghex(iso_handle);
 
     /* Calculate sequence number for the ISO data packet.
      * It should be incremented by 1 every SDU Interval.

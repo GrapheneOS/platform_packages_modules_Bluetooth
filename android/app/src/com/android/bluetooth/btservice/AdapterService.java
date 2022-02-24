@@ -1090,7 +1090,7 @@ public class AdapterService extends Service {
      * @return true if any profile is enabled, false otherwise
      */
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
-    private boolean isAnyProfileEnabled(BluetoothDevice device) {
+    boolean isAnyProfileEnabled(BluetoothDevice device) {
 
         if (mA2dpService != null && mA2dpService.getConnectionPolicy(device)
                 > BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
