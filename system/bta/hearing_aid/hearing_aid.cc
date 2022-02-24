@@ -1331,9 +1331,20 @@ class HearingAidImpl : public HearingAid {
       case GAP_EVT_CONN_CLOSED:
         LOG(INFO) << __func__
                   << ": GAP_EVT_CONN_CLOSED: " << hearingDevice->address
-                  << ", playback_started=" << hearingDevice->playback_started;
-        /* Disconnect profile when data channel is not available */
-        Disconnect(hearingDevice->address);
+                  << ", playback_started=" << hearingDevice->playback_started
+                  << ", connecting_actively="
+                  << hearingDevice->connecting_actively;
+        if (hearingDevice->connecting_actively) {
+          /* Disconnect connection when data channel is not available */
+          BTA_GATTC_Close(hearingDevice->conn_id);
+        } else {
+          /* Just clean data channel related parameter when data channel is
+           * available */
+          hearingDevice->gap_handle = GAP_INVALID_HANDLE;
+          hearingDevice->accepting_audio = false;
+          hearingDevice->playback_started = false;
+          hearingDevice->command_acked = false;
+        }
         break;
       case GAP_EVT_CONN_DATA_AVAIL: {
         DVLOG(2) << "GAP_EVT_CONN_DATA_AVAIL";
@@ -1460,7 +1471,7 @@ class HearingAidImpl : public HearingAid {
     bool connected = hearingDevice->accepting_audio;
     bool connecting_by_user = hearingDevice->connecting_actively;
 
-    LOG(INFO) << "GAP_EVT_CONN_CLOSED: " << hearingDevice->address
+    LOG(INFO) << __func__ << ": " << hearingDevice->address
               << ", playback_started=" << hearingDevice->playback_started
               << ", accepting_audio=" << hearingDevice->accepting_audio;
 
@@ -1479,17 +1490,19 @@ class HearingAidImpl : public HearingAid {
 
     DoDisconnectCleanUp(hearingDevice);
 
-    hearingDevices.Remove(address);
-
     if (!connected) {
       /* In case user wanted to connect, sent DISCONNECTED state */
-      if (connecting_by_user)
+      if (connecting_by_user) {
         callbacks->OnConnectionState(ConnectionState::DISCONNECTED, address);
-
+      }
+      /* Do remove device when the address is useless. */
+      hearingDevices.Remove(address);
       return;
     }
 
     callbacks->OnConnectionState(ConnectionState::DISCONNECTED, address);
+    /* Do remove device when the address is useless. */
+    hearingDevices.Remove(address);
     for (const auto& device : hearingDevices.devices) {
       if (device.accepting_audio) return;
     }
