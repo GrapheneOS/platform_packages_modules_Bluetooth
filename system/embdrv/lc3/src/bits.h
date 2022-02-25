@@ -83,8 +83,8 @@ enum lc3_bits_mode {
  */
 
 struct lc3_ac_symbol {
-    unsigned low   : 16;
-    unsigned range : 16;
+    uint16_t low   : 16;
+    uint16_t range : 16;
 };
 
 struct lc3_ac_model {
@@ -286,9 +286,9 @@ static inline unsigned lc3_get_symbol(
     const struct lc3_ac_symbol *symbols = model->s;
     struct lc3_bits_ac *ac = &bits->ac;
 
-    unsigned range = ac->range >> 10;
+    uint16_t range = ac->range >> 10;
 
-    ac->error |= (ac->low >= (range << 10));
+    ac->error |= (ac->low >= ((unsigned)range << 10));
     if (ac->error)
         ac->low = 0;
 
