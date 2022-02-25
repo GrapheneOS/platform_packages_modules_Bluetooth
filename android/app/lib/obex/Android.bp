@@ -33,4 +33,9 @@ java_library {
   name: "bluetooth.obex",
 
   srcs: ["**/*.java"],
+  apex_available: [
+        "com.android.bluetooth",
+  ],
+  min_sdk_version: "current",
+  sdk_version: "module_current",
 }
