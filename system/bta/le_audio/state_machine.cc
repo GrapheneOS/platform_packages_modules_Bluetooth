@@ -1107,7 +1107,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
       ase->cis_id = cis_id;
 
       conf.ase_id = ase->id;
-      conf.target_latency = group->GetTargetLatency();
+      conf.target_latency = ase->target_latency;
       conf.target_phy = group->GetTargetPhy(ase->direction);
       conf.codec_id = ase->codec_id;
       conf.codec_config = ase->codec_config;

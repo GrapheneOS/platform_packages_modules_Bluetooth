@@ -339,7 +339,6 @@ bool LeAudioSourceTransport::IsPendingStartStream(void) {
 void LeAudioSourceTransport::ClearPendingStartStream(void) {
   transport_->ClearPendingStartStream();
 }
-
 }  // namespace le_audio
 }  // namespace hidl
 }  // namespace audio

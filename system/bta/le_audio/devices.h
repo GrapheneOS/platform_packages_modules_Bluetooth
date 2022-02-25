@@ -232,7 +232,6 @@ class LeAudioDeviceGroup {
   uint8_t GetSCA(void);
   uint8_t GetPacking(void);
   uint8_t GetFraming(void);
-  uint8_t GetTargetLatency(void);
   uint16_t GetMaxTransportLatencyStom(void);
   uint16_t GetMaxTransportLatencyMtos(void);
   void SetTransportLatency(uint8_t direction, uint32_t transport_latency_us);
