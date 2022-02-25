@@ -345,10 +345,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     group->SetState(AseState::BTA_LE_AUDIO_ASE_STATE_QOS_CONFIGURED);
 
     if (group->GetTargetState() == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
-      leAudioDevice = group->GetFirstActiveDevice();
-      LOG_ASSERT(leAudioDevice)
-          << __func__ << " Shouldn't be called without an active device.";
-      PrepareAndSendEnable(leAudioDevice);
+      StartConfigQoSForTheGroup(group);
     } else {
       LOG(ERROR) << __func__
                  << ", invalid state transition, from: " << group->GetState()
@@ -1095,6 +1092,20 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     ase = leAudioDevice->GetFirstActiveAse();
     LOG_ASSERT(ase) << __func__ << " shouldn't be called without an active ASE";
     do {
+      /* Get completive (to be bi-directional CIS) CIS ID for ASE */
+      uint8_t cis_id = leAudioDevice->GetMatchingBidirectionCisId(ase);
+      if (cis_id == le_audio::kInvalidCisId) {
+        /* Get next free CIS ID for group */
+        cis_id = group->GetFirstFreeCisId();
+        if (cis_id == le_audio::kInvalidCisId) {
+          LOG(ERROR) << __func__ << ", failed to get free CIS ID";
+          StopStream(group);
+          return;
+        }
+      }
+
+      ase->cis_id = cis_id;
+
       conf.ase_id = ase->id;
       conf.target_latency = group->GetTargetLatency();
       conf.target_phy = group->GetTargetPhy(ase->direction);
@@ -1182,7 +1193,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
 
           if (group->GetTargetState() ==
               AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
-            StartConfigQoSForTheGroup(group);
+            CigCreate(group);
             return;
           } else {
             LOG(ERROR) << __func__ << ", invalid state transition, from: "
@@ -1246,7 +1257,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
 
           if (group->GetTargetState() ==
               AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
-            StartConfigQoSForTheGroup(group);
+            CigCreate(group);
             return;
           } else {
             LOG(ERROR) << __func__
@@ -1334,7 +1345,10 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
         if (leAudioDeviceNext) {
           PrepareAndSendConfigQos(group, leAudioDeviceNext);
         } else {
-          CigCreate(group);
+          leAudioDevice = group->GetFirstActiveDevice();
+          LOG_ASSERT(leAudioDevice)
+              << __func__ << " Shouldn't be called without an active device.";
+          PrepareAndSendEnable(leAudioDevice);
         }
 
         break;
@@ -1461,20 +1475,6 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
 
     for (struct ase* ase = leAudioDevice->GetFirstActiveAse(); ase != nullptr;
          ase = leAudioDevice->GetNextActiveAse(ase)) {
-      /* Get completive (to be bi-directional CIS) CIS ID for ASE */
-      uint8_t cis_id = leAudioDevice->GetMatchingBidirectionCisId(ase);
-      if (cis_id == le_audio::kInvalidCisId) {
-        /* Get next free CIS ID for group */
-        cis_id = group->GetFirstFreeCisId();
-        if (cis_id == le_audio::kInvalidCisId) {
-          LOG(ERROR) << __func__ << ", failed to get free CIS ID";
-          StopStream(group);
-          return;
-        }
-      }
-
-      ase->cis_id = cis_id;
-
       /* TODO: Configure first ASE qos according to context type */
       struct le_audio::client_parser::ascs::ctp_qos_conf conf;
       conf.ase_id = ase->id;
