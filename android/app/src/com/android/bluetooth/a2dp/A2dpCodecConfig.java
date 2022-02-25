@@ -118,7 +118,7 @@ class A2dpCodecConfig {
     void enableOptionalCodecs(BluetoothDevice device, BluetoothCodecConfig currentCodecConfig) {
         if (currentCodecConfig != null && !currentCodecConfig.isMandatoryCodec()) {
             Log.i(TAG, "enableOptionalCodecs: already using optional codec "
-                    + currentCodecConfig.getCodecName());
+                    + BluetoothCodecConfig.getCodecName(currentCodecConfig.getCodecType()));
             return;
         }
 
@@ -245,7 +245,7 @@ class A2dpCodecConfig {
 
         BluetoothCodecConfig codecConfig;
         BluetoothCodecConfig[] codecConfigArray =
-                new BluetoothCodecConfig[BluetoothCodecConfig.getMaxCodecType()];
+                new BluetoothCodecConfig[6];
         codecConfig = new BluetoothCodecConfig.Builder()
                 .setCodecType(BluetoothCodecConfig.SOURCE_CODEC_TYPE_SBC)
                 .setCodecPriority(mA2dpSourceCodecPrioritySbc)
