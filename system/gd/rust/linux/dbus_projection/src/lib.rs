@@ -187,3 +187,14 @@ macro_rules! impl_dbus_arg_enum {
         }
     };
 }
+
+/// Marks a function to be implemented by dbus_projection macros.
+#[macro_export]
+macro_rules! dbus_generated {
+    () => {
+        // The implementation is not used but replaced by generated code.
+        // This uses panic! so that the compiler can accept it for any function
+        // return type.
+        panic!("To be implemented by dbus_projection macros");
+    };
+}
