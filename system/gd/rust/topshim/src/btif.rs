@@ -705,6 +705,7 @@ pub enum BaseCallbacks {
     // link_quality_report_cb
     // generate_local_oob_data_cb
     // switch_buffer_size_cb
+    // switch_codec_cb
 }
 
 pub struct BaseCallbacksDispatcher {
@@ -872,6 +873,7 @@ impl BluetoothInterface {
             link_quality_report_cb: None,
             generate_local_oob_data_cb: None,
             switch_buffer_size_cb: None,
+            switch_codec_cb: None,
         });
 
         let rawcb: *mut bindings::bt_callbacks_t = &mut *callbacks;
@@ -1002,6 +1004,10 @@ impl BluetoothInterface {
         let cvariant = bindings::bt_ssp_variant_t::from(variant);
         let ffi_addr = cast_to_const_ffi_address!(addr as *const RawAddress);
         ccall!(self, ssp_reply, ffi_addr, cvariant, accept, passkey)
+    }
+
+    pub fn clear_event_filter(&self) -> i32 {
+        ccall!(self, clear_event_filter)
     }
 
     pub(crate) fn get_profile_interface(
