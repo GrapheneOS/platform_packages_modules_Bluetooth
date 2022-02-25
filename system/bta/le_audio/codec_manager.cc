@@ -49,8 +49,8 @@ struct codec_manager_impl {
       const std::vector<AudioSetConfiguration>& adsp_capabilities) {
     offload_enable_ = osi_property_get_bool(
                           "ro.bluetooth.leaudio_offload.supported", false) &&
-                      osi_property_get_bool(
-                          "persist.bluetooth.leaudio_offload.enabled", true);
+                      !osi_property_get_bool(
+                          "persist.bluetooth.leaudio_offload.disabled", true);
     if (offload_enable_ == false) {
       LOG_INFO("offload disabled");
       return;
