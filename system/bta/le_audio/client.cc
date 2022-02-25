@@ -2060,7 +2060,8 @@ class LeAudioClientImpl : public LeAudioClient {
     }
   }
 
-  void SendAudioData(uint8_t* data, uint16_t size) {
+  void SendAudioData(uint8_t* data, uint16_t size, uint16_t cis_conn_hdl,
+                     uint32_t timestamp) {
     /* Get only one channel for MONO microphone */
     /* Gather data for channel */
 
@@ -2923,7 +2924,8 @@ class LeAudioClientImpl : public LeAudioClient {
         }
 
         SendAudioData(event->p_msg->data + event->p_msg->offset,
-                      event->p_msg->len - event->p_msg->offset);
+                      event->p_msg->len - event->p_msg->offset,
+                      event->cis_conn_hdl, event->ts);
       } break;
       case bluetooth::hci::iso_manager::kIsoEventCisEstablishCmpl: {
         auto* event =

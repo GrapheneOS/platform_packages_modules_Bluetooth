@@ -695,8 +695,11 @@ struct iso_impl {
     }
 
     STREAM_SKIP_UINT16(stream);
-    if (p_msg->layer_specific & BT_ISO_HDR_CONTAINS_TS)
+    if (p_msg->layer_specific & BT_ISO_HDR_CONTAINS_TS) {
       STREAM_TO_UINT32(evt.ts, stream);
+    } else {
+      evt.ts = 0;
+    }
 
     STREAM_TO_UINT16(seq_nb, stream);
 
