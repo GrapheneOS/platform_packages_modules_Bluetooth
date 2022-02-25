@@ -544,7 +544,7 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
     OwnAddressType own_address_type =
         static_cast<OwnAddressType>(le_address_manager_->GetCurrentAddress().GetAddressType());
     uint16_t conn_interval_min = 0x0018;
-    uint16_t conn_interval_max = 0x0028;
+    uint16_t conn_interval_max = 0x0030;
     uint16_t conn_latency = 0x0000;
     uint16_t supervision_timeout = 0x001f4;
     ASSERT(check_connection_parameters(conn_interval_min, conn_interval_max, conn_latency, supervision_timeout));
