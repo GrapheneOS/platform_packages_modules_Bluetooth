@@ -371,6 +371,8 @@ tBTM_STATUS clear_event_filter() { return BTM_SUCCESS; }
 
 tBTM_STATUS clear_event_mask() { return BTM_SUCCESS; }
 
+tBTM_STATUS le_rand(LeRandCallback cb) { return BTM_SUCCESS; }
+
 const controller_t interface = {
     get_is_ready,
 
@@ -457,7 +459,8 @@ const controller_t interface = {
     get_local_supported_codecs,
     get_le_all_initiating_phys,
     clear_event_filter,
-    clear_event_mask};
+    clear_event_mask,
+    le_rand};
 
 }  // namespace device_controller
 }  // namespace mock

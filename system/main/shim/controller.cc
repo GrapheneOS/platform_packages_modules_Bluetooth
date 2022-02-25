@@ -19,7 +19,9 @@
 #include "main/shim/controller.h"
 
 #include "btcore/include/module.h"
+#include "gd/common/contextual_callback.h"
 #include "gd/common/init_flags.h"
+#include "gd/hci/controller.h"
 #include "hci/controller.h"
 #include "main/shim/entry.h"
 #include "main/shim/shim.h"
@@ -326,6 +328,12 @@ static uint8_t controller_clear_event_mask() {
   return BTM_SUCCESS;
 }
 
+static uint8_t controller_le_rand(LeRandCallback cb) {
+  LOG_VERBOSE("Called!");
+  bluetooth::shim::GetController()->LeRand(cb);
+  return BTM_SUCCESS;
+}
+
 static const controller_t interface = {
     .get_is_ready = get_is_ready,
 
@@ -425,7 +433,8 @@ static const controller_t interface = {
     .get_local_supported_codecs = get_local_supported_codecs,
     .get_le_all_initiating_phys = get_le_all_initiating_phys,
     .clear_event_filter = controller_clear_event_filter,
-    .clear_event_mask = controller_clear_event_mask};
+    .clear_event_mask = controller_clear_event_mask,
+    .le_rand = controller_le_rand};
 
 const controller_t* bluetooth::shim::controller_get_interface() {
   static bool loaded = false;

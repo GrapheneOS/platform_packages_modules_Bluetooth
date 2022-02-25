@@ -21,8 +21,11 @@
 #include <cstddef>
 #include <cstdint>
 
+#include "base/callback.h"
 #include "btcore/include/version.h"
 #include "types/raw_address.h"
+
+using LeRandCallback = base::Callback<void(uint64_t)>;
 
 typedef struct controller_t {
   bool (*get_is_ready)(void);
@@ -116,6 +119,7 @@ typedef struct controller_t {
   uint8_t (*get_le_all_initiating_phys)(void);
   uint8_t (*clear_event_filter)(void);
   uint8_t (*clear_event_mask)(void);
+  uint8_t (*le_rand)(LeRandCallback);
 
 } controller_t;
 
