@@ -7,6 +7,7 @@ use dbus::strings::Path;
 
 use dbus_macros::{dbus_method, dbus_propmap, dbus_proxy_obj, generate_dbus_exporter};
 
+use dbus_projection::dbus_generated;
 use dbus_projection::DisconnectWatcher;
 
 use crate::dbus_arg::{DBusArg, DBusArgError, RefArgToRust};
@@ -25,16 +26,23 @@ impl IBluetoothMediaCallback for BluetoothMediaCallbackDBus {
         channel_mode: i32,
         hfp_cap: i32,
     ) {
+        dbus_generated!()
     }
 
     #[dbus_method("OnBluetoothAudioDeviceRemoved")]
-    fn on_bluetooth_audio_device_removed(&self, addr: String) {}
+    fn on_bluetooth_audio_device_removed(&self, addr: String) {
+        dbus_generated!()
+    }
 
     #[dbus_method("OnAbsoluteVolumeSupportedChanged")]
-    fn on_absolute_volume_supported_changed(&self, supported: bool) {}
+    fn on_absolute_volume_supported_changed(&self, supported: bool) {
+        dbus_generated!()
+    }
 
     #[dbus_method("OnAbsoluteVolumeChanged")]
-    fn on_absolute_volume_changed(&self, volume: i32) {}
+    fn on_absolute_volume_changed(&self, volume: i32) {
+        dbus_generated!()
+    }
 }
 
 #[allow(dead_code)]
@@ -52,27 +60,33 @@ pub struct PresentationPositionDBus {
 impl IBluetoothMedia for IBluetoothMediaDBus {
     #[dbus_method("RegisterCallback")]
     fn register_callback(&mut self, callback: Box<dyn IBluetoothMediaCallback + Send>) -> bool {
-        true
+        dbus_generated!()
     }
 
     #[dbus_method("Initialize")]
     fn initialize(&mut self) -> bool {
-        true
+        dbus_generated!()
     }
 
     #[dbus_method("Cleanup")]
     fn cleanup(&mut self) -> bool {
-        true
+        dbus_generated!()
     }
 
     #[dbus_method("Connect")]
-    fn connect(&mut self, device: String) {}
+    fn connect(&mut self, device: String) {
+        dbus_generated!()
+    }
 
     #[dbus_method("SetActiveDevice")]
-    fn set_active_device(&mut self, device: String) {}
+    fn set_active_device(&mut self, device: String) {
+        dbus_generated!()
+    }
 
     #[dbus_method("Disconnect")]
-    fn disconnect(&mut self, device: String) {}
+    fn disconnect(&mut self, device: String) {
+        dbus_generated!()
+    }
 
     #[dbus_method("SetAudioConfig")]
     fn set_audio_config(
@@ -81,31 +95,36 @@ impl IBluetoothMedia for IBluetoothMediaDBus {
         bits_per_sample: i32,
         channel_mode: i32,
     ) -> bool {
-        true
+        dbus_generated!()
     }
 
     #[dbus_method("SetVolume")]
-    fn set_volume(&mut self, volume: i32) {}
+    fn set_volume(&mut self, volume: i32) {
+        dbus_generated!()
+    }
 
     #[dbus_method("StartAudioRequest")]
-    fn start_audio_request(&mut self) {}
+    fn start_audio_request(&mut self) {
+        dbus_generated!()
+    }
 
     #[dbus_method("StopAudioRequest")]
-    fn stop_audio_request(&mut self) {}
+    fn stop_audio_request(&mut self) {
+        dbus_generated!()
+    }
 
     #[dbus_method("StartScoCall")]
-    fn start_sco_call(&mut self, device: String) {}
+    fn start_sco_call(&mut self, device: String) {
+        dbus_generated!()
+    }
 
     #[dbus_method("StopScoCall")]
-    fn stop_sco_call(&mut self, device: String) {}
+    fn stop_sco_call(&mut self, device: String) {
+        dbus_generated!()
+    }
 
     #[dbus_method("GetPresentationPosition")]
     fn get_presentation_position(&mut self) -> PresentationPosition {
-        PresentationPosition {
-            remote_delay_report_ns: 0,
-            total_bytes_read: 0,
-            data_position_sec: 0,
-            data_position_nsec: 0,
-        }
+        dbus_generated!()
     }
 }
