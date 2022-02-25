@@ -919,7 +919,6 @@ package android.bluetooth {
     method public int getCodecPriority();
     method public int getCodecType();
     method public int getFrameDuration();
-    method public static int getMaxCodecType();
     method public int getOctetsPerFrame();
     method public int getSampleRate();
     method public void writeToParcel(@NonNull android.os.Parcel, int);
@@ -962,11 +961,11 @@ package android.bluetooth {
   }
 
   public final class BluetoothLeAudioCodecStatus implements android.os.Parcelable {
-    ctor public BluetoothLeAudioCodecStatus(@Nullable android.bluetooth.BluetoothLeAudioCodecConfig, @Nullable java.util.List<android.bluetooth.BluetoothLeAudioCodecConfig>, @Nullable java.util.List<android.bluetooth.BluetoothLeAudioCodecConfig>);
+    ctor public BluetoothLeAudioCodecStatus(@Nullable android.bluetooth.BluetoothLeAudioCodecConfig, @NonNull java.util.List<android.bluetooth.BluetoothLeAudioCodecConfig>, @NonNull java.util.List<android.bluetooth.BluetoothLeAudioCodecConfig>);
     method public int describeContents();
     method @Nullable public android.bluetooth.BluetoothLeAudioCodecConfig getCodecConfig();
-    method @NonNull public java.util.List<android.bluetooth.BluetoothLeAudioCodecConfig> getCodecsLocalCapabilities();
-    method @NonNull public java.util.List<android.bluetooth.BluetoothLeAudioCodecConfig> getCodecsSelectableCapabilities();
+    method @NonNull public java.util.List<android.bluetooth.BluetoothLeAudioCodecConfig> getCodecLocalCapabilities();
+    method @NonNull public java.util.List<android.bluetooth.BluetoothLeAudioCodecConfig> getCodecSelectableCapabilities();
     method public boolean isCodecConfigSelectable(@Nullable android.bluetooth.BluetoothLeAudioCodecConfig);
     method public void writeToParcel(@NonNull android.os.Parcel, int);
     field @NonNull public static final android.os.Parcelable.Creator<android.bluetooth.BluetoothLeAudioCodecStatus> CREATOR;
