@@ -50,7 +50,13 @@ enum AudioSetConfigurationDirection : byte {
     SINK = 0x01,
     SOURCE = 0x02,
 }
+enum AudioSetConfigurationTargetLatency : byte {
+    LOW = 0x01,
+    BALANCED_RELIABILITY = 0x02,
+    HIGH_RELIABILITY = 0x03,
+}
 table AudioSetSubConfiguration {
+    target_latency: AudioSetConfigurationTargetLatency = BALANCED_RELIABILITY;
     device_cnt: ubyte;
     ase_cnt: ubyte;
     direction: AudioSetConfigurationDirection = SINK;
