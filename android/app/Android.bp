@@ -32,6 +32,8 @@ java_library {
     name: "bluetooth.mapsapi",
 
     srcs: ["lib/mapapi/**/*.java"],
+    min_sdk_version: "current",
+    sdk_version: "module_current",
 }
 
 java_library {
@@ -39,6 +41,11 @@ java_library {
 
     srcs: [":framework-mms-shared-srcs"],
     libs: ["unsupportedappusage"],
+    apex_available: [
+        "com.android.bluetooth",
+    ],
+    min_sdk_version: "current",
+    sdk_version: "module_current",
 }
 
 // Bluetooth JNI
@@ -71,6 +78,10 @@ cc_library_shared {
     sanitize: {
         scs: true,
     },
+    apex_available: [
+        "com.android.bluetooth",
+    ],
+    min_sdk_version: "current",
 }
 
 // Bluetooth APK
@@ -84,12 +95,21 @@ android_app {
         ":statslog-bluetooth-java-gen",
         ":bluetooth-proto-enums-java-gen",
     ],
-    platform_apis: true,
+    platform_apis: false,
     certificate: "platform",
 
-    jni_libs: ["libbluetooth_jni"],
+    jarjar_rules: ":bluetooth-jarjar-rules",
+
+    jni_uses_platform_apis: true,
     libs: [
-        "services.net",
+        "framework-bluetooth-pre-jarjar",
+        "framework-statsd.stubs.module_lib",
+        "framework-tethering.stubs.module_lib",
+        "framework-connectivity.stubs.module_lib",
+        "framework-mediaprovider",
+        "unsupportedappusage",
+        "framework-annotations-lib",
+        "error_prone_annotations",
     ],
     static_libs: [
         "android.hardware.radio-V1.0-java",
@@ -97,6 +117,7 @@ android_app {
         "androidx.legacy_legacy-support-v4",
         "androidx.lifecycle_lifecycle-livedata",
         "androidx.room_room-runtime",
+        "androidx.annotation_annotation",
         "bluetooth.mapsapi",
         "bluetooth.obex",
         "bluetooth-protos-lite",
@@ -109,8 +130,9 @@ android_app {
         "modules-utils-synchronous-result-receiver",
         "modules-utils-statemachine",
         "sap-api-java-static",
-        "services.net",
-        "PlatformProperties"
+        "net-utils-services-common",
+        "networkstack-client",
+        "PlatformProperties",
     ],
 
     plugins: [
@@ -123,9 +145,7 @@ android_app {
     optimize: {
         enabled: false,
     },
-    required: ["libbluetooth"],
     apex_available: [
-        "//apex_available:platform",
         "com.android.bluetooth",
     ],
     errorprone: {
@@ -133,6 +153,8 @@ android_app {
             // "-Xep:AndroidFrameworkRequiresPermission:ERROR",
         ],
     },
+    min_sdk_version: "current",
+    sdk_version: "module_current",
 }
 
 gensrcs {
@@ -164,8 +186,8 @@ gensrcs {
 genrule {
     name: "statslog-bluetooth-java-gen",
     tools: ["stats-log-api-gen"],
-    cmd: "$(location stats-log-api-gen) --java $(out) --module bluetooth"
-        + " --javaPackage com.android.bluetooth --javaClass BluetoothStatsLog"
-        + " --minApiLevel 32",
+    cmd: "$(location stats-log-api-gen) --java $(out) --module bluetooth" +
+        " --javaPackage com.android.bluetooth --javaClass BluetoothStatsLog" +
+        " --minApiLevel 32",
     out: ["com/android/bluetooth/BluetoothStatsLog.java"],
 }
