@@ -84,8 +84,7 @@ public final class BluetoothCodecConfig implements Parcelable {
     public static final int SOURCE_CODEC_TYPE_INVALID = 1000 * 1000;
 
     /**
-     * Represents the count of valid source codec types. Can be accessed via
-     * {@link #getMaxCodecType}.
+     * Represents the count of valid source codec types.
      */
     private static final int SOURCE_CODEC_TYPE_MAX = 6;
 
@@ -390,7 +389,7 @@ public final class BluetoothCodecConfig implements Parcelable {
             channelModeStr = appendCapabilityToString(channelModeStr, "STEREO");
         }
 
-        return "{codecName:" + getCodecName()
+        return "{codecName:" + getCodecName(mCodecType)
                 + ",mCodecType:" + mCodecType
                 + ",mCodecPriority:" + mCodecPriority
                 + ",mSampleRate:" + String.format("0x%x", mSampleRate)
@@ -450,8 +449,8 @@ public final class BluetoothCodecConfig implements Parcelable {
      * Returns the codec name converted to {@link String}.
      * @hide
      */
-    public @NonNull String getCodecName() {
-        switch (mCodecType) {
+    public static @NonNull String getCodecName(@SourceCodecType int codecType) {
+        switch (codecType) {
             case SOURCE_CODEC_TYPE_SBC:
                 return "SBC";
             case SOURCE_CODEC_TYPE_AAC:
@@ -469,7 +468,7 @@ public final class BluetoothCodecConfig implements Parcelable {
             default:
                 break;
         }
-        return "UNKNOWN CODEC(" + mCodecType + ")";
+        return "UNKNOWN CODEC(" + codecType + ")";
     }
 
     /**
@@ -477,13 +476,6 @@ public final class BluetoothCodecConfig implements Parcelable {
      */
     public @SourceCodecType int getCodecType() {
         return mCodecType;
-    }
-
-    /**
-     * Returns the valid codec types count.
-     */
-    public static int getMaxCodecType() {
-        return SOURCE_CODEC_TYPE_MAX;
     }
 
     /**

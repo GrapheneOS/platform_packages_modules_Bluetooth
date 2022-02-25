@@ -422,7 +422,6 @@ package android.bluetooth {
     method public long getCodecSpecific3();
     method public long getCodecSpecific4();
     method public int getCodecType();
-    method public static int getMaxCodecType();
     method public int getSampleRate();
     method public void writeToParcel(android.os.Parcel, int);
     field public static final int BITS_PER_SAMPLE_16 = 1; // 0x1
