@@ -445,7 +445,7 @@ static void put_quantized(lc3_bits_t *bits,
  */
 static int get_quantized(lc3_bits_t *bits,
     enum lc3_dt dt, enum lc3_srate sr, int nbytes,
-    int nq, bool lsb_mode, float *xq, unsigned *nf_seed)
+    int nq, bool lsb_mode, float *xq, uint16_t *nf_seed)
 {
     int ne = LC3_NE(dt, sr);
     bool high_rate = resolve_high_rate(sr, nbytes);
@@ -500,7 +500,7 @@ static int get_quantized(lc3_bits_t *bits,
             xq[i  ] = u && lc3_get_bit(bits) ? -u : u;
             xq[i+1] = v && lc3_get_bit(bits) ? -v : v;
 
-            *nf_seed += u * i + v * (i+1);
+            *nf_seed = (*nf_seed + u * i + v * (i+1)) & 0xffff;
 
             /* --- Update state --- */
 
@@ -591,7 +591,7 @@ static void put_lsb(lc3_bits_t *bits, int nbits, const int16_t *x, int n)
  * nf_seed         Update the noise factor seed according
  */
 static void get_lsb(lc3_bits_t *bits,
-    int nbits, float *x, int nq, unsigned *nf_seed)
+    int nbits, float *x, int nq, uint16_t *nf_seed)
 {
     for (int i = 0; i < nq && nbits > 0; i += 2) {
 
@@ -603,20 +603,20 @@ static void get_lsb(lc3_bits_t *bits,
         if (nbits-- > 0 && lc3_get_bit(bits)) {
             if (a) {
                 x[i] += x[i] < 0 ? -1 : 1;
-                *nf_seed += i;
+                *nf_seed = (*nf_seed + i) & 0xffff;
             } else if (nbits-- > 0) {
                 x[i] = lc3_get_bit(bits) ? -1 : 1;
-                *nf_seed += i;
+                *nf_seed = (*nf_seed + i) & 0xffff;
             }
         }
 
         if (nbits-- > 0 && lc3_get_bit(bits)) {
             if (b) {
                 x[i+1] += x[i+1] < 0 ? -1 : 1;
-                *nf_seed += i+1;
+                *nf_seed = (*nf_seed + i+1) & 0xffff;
             } else if (nbits-- > 0) {
                 x[i+1] = lc3_get_bit(bits) ? -1 : 1;
-                *nf_seed += i+1;
+                *nf_seed = (*nf_seed + i+1) & 0xffff;
             }
         }
     }
@@ -666,7 +666,7 @@ static int estimate_noise(enum lc3_dt dt, enum lc3_bandwidth bw,
  * x, nq           Spectral quantized, and count of significants
  */
 static void fill_noise(enum lc3_dt dt, enum lc3_bandwidth bw,
-    int nf, unsigned nf_seed, float g, float *x, int nq)
+    int nf, uint16_t nf_seed, float g, float *x, int nq)
 {
     int bw_stop = (dt == LC3_DT_7M5 ? 60 : 80) * (1 + bw);
     int w = 2 + dt;
@@ -854,7 +854,7 @@ int lc3_spec_decode(lc3_bits_t *bits,
     int ret = 0;
 
     int nf = get_noise_factor(bits);
-    unsigned nf_seed;
+    uint16_t nf_seed;
 
     if ((ret = get_quantized(bits, dt, sr, nbytes,
                     nq, lsb_mode, x, &nf_seed)) < 0)
