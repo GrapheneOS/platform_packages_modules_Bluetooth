@@ -104,7 +104,6 @@ import com.android.bluetooth.R;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.a2dp.A2dpService;
 import com.android.bluetooth.a2dpsink.A2dpSinkService;
-import com.android.bluetooth.btservice.MetricsLogger;
 import com.android.bluetooth.btservice.RemoteDevices.DeviceProperties;
 import com.android.bluetooth.btservice.activityattribution.ActivityAttributionService;
 import com.android.bluetooth.btservice.bluetoothkeystore.BluetoothKeystoreService;
@@ -3377,10 +3376,10 @@ public class AdapterService extends Service {
             HashSet<Class> leAudioUnicastProfiles = Config.geLeAudioUnicastProfiles();
 
             if (supportedProfileServices.containsAll(leAudioUnicastProfiles)) {
-                return BluetoothStatusCodes.SUCCESS;
+                return BluetoothStatusCodes.FEATURE_SUPPORTED;
             }
 
-            return BluetoothStatusCodes.ERROR_FEATURE_NOT_SUPPORTED;
+            return BluetoothStatusCodes.FEATURE_NOT_SUPPORTED;
         }
 
         @Override
@@ -3398,10 +3397,10 @@ public class AdapterService extends Service {
             }
 
             if (service.isLeAudioBroadcastSourceSupported()) {
-                return BluetoothStatusCodes.SUCCESS;
+                return BluetoothStatusCodes.FEATURE_SUPPORTED;
             }
 
-            return BluetoothStatusCodes.ERROR_FEATURE_NOT_SUPPORTED;
+            return BluetoothStatusCodes.FEATURE_NOT_SUPPORTED;
         }
 
         @Override
@@ -3419,10 +3418,10 @@ public class AdapterService extends Service {
             }
 
             if (service.isLeAudioBroadcastAssistantSupported()) {
-                return BluetoothStatusCodes.SUCCESS;
+                return BluetoothStatusCodes.FEATURE_SUPPORTED;
             }
 
-            return BluetoothStatusCodes.ERROR_FEATURE_NOT_SUPPORTED;
+            return BluetoothStatusCodes.FEATURE_NOT_SUPPORTED;
         }
 
         @Override
