@@ -45,6 +45,8 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothAdapter.ActiveDeviceProfile;
 import android.bluetooth.BluetoothAdapter.ActiveDeviceUse;
 import android.bluetooth.BluetoothClass;
+import android.bluetooth.BluetoothCodecConfig;
+import android.bluetooth.BluetoothCodecStatus;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothFrameworkInitializer;
 import android.bluetooth.BluetoothProfile;
@@ -537,7 +539,7 @@ public class AdapterService extends Service {
 
         setAdapterService(this);
 
-        //invalidateBluetoothCaches();
+        invalidateBluetoothCaches();
 
         // First call to getSharedPreferences will result in a file read into
         // memory cache. Call it here asynchronously to avoid potential ANR
@@ -727,11 +729,9 @@ public class AdapterService extends Service {
         setProfileServiceState(GattService.class, BluetoothAdapter.STATE_OFF);
     }
 
-    /*
     private void invalidateBluetoothGetStateCache() {
         BluetoothAdapter.invalidateBluetoothGetStateCache();
     }
-     */
 
     void updateLeAudioProfileServiceState(boolean isCisCentralSupported) {
         if (isCisCentralSupported) {
@@ -752,7 +752,7 @@ public class AdapterService extends Service {
 
     void updateAdapterState(int prevState, int newState) {
         mAdapterProperties.setState(newState);
-        //invalidateBluetoothGetStateCache();
+        invalidateBluetoothGetStateCache();
         if (mCallbacks != null) {
             int n = mCallbacks.beginBroadcast();
             debugLog("updateAdapterState() - Broadcasting state " + BluetoothAdapter.nameForState(
@@ -844,6 +844,50 @@ public class AdapterService extends Service {
         sendBroadcast(switchBufferSizeIntent);
     }
 
+    void switchCodecCallback(boolean isLowLatencyBufferSize) {
+        List<BluetoothDevice> activeDevices = getActiveDevices(BluetoothProfile.A2DP);
+        if (activeDevices.size() != 1) {
+            errorLog(
+                    "Cannot switch buffer size. The number of A2DP active devices is "
+                            + activeDevices.size());
+        }
+        BluetoothCodecConfig codecConfig = null;
+        BluetoothCodecStatus currentCodecStatus = mA2dpService.getCodecStatus(activeDevices.get(0));
+        int currentCodec = currentCodecStatus.getCodecConfig().getCodecType();
+        if (isLowLatencyBufferSize) {
+            if (currentCodec == BluetoothCodecConfig.SOURCE_CODEC_TYPE_LC3) {
+                Log.w(TAG, "Current codec is already LC3. No need to change it.");
+                return;
+            }
+            codecConfig = new BluetoothCodecConfig(
+                    BluetoothCodecConfig.SOURCE_CODEC_TYPE_LC3,
+                    BluetoothCodecConfig.CODEC_PRIORITY_HIGHEST,
+                    BluetoothCodecConfig.SAMPLE_RATE_48000,
+                    BluetoothCodecConfig.BITS_PER_SAMPLE_16,
+                    BluetoothCodecConfig.CHANNEL_MODE_STEREO,
+                    0, 0x1 << 2, 0, 0);
+        } else {
+            if (currentCodec != BluetoothCodecConfig.SOURCE_CODEC_TYPE_LC3) {
+                Log.w(TAG, "Current codec is not LC3. No need to change it.");
+                return;
+            }
+            List<BluetoothCodecConfig> selectableCodecs =
+                    currentCodecStatus.getCodecsSelectableCapabilities();
+            for (BluetoothCodecConfig config : selectableCodecs) {
+                // Find a non LC3 codec
+                if (config.getCodecType() != BluetoothCodecConfig.SOURCE_CODEC_TYPE_LC3) {
+                    codecConfig = config;
+                    break;
+                }
+            }
+            if (codecConfig == null) {
+                Log.e(TAG, "Cannot find a non LC3 codec compatible with the remote device");
+                return;
+            }
+        }
+        mA2dpService.setCodecConfigPreference(activeDevices.get(0), codecConfig);
+    }
+
     /**
      * Enable/disable BluetoothInCallService
      *
@@ -870,7 +914,7 @@ public class AdapterService extends Service {
         clearAdapterService(this);
 
         mCleaningUp = true;
-        //invalidateBluetoothCaches();
+        invalidateBluetoothCaches();
 
         unregisterReceiver(mAlarmBroadcastReceiver);
 
@@ -967,7 +1011,6 @@ public class AdapterService extends Service {
         }
     }
 
-    /*
     private void invalidateBluetoothCaches() {
         BluetoothAdapter.invalidateGetProfileConnectionStateCache();
         BluetoothAdapter.invalidateIsOffloadedFilteringSupportedCache();
@@ -975,7 +1018,6 @@ public class AdapterService extends Service {
         BluetoothAdapter.invalidateBluetoothGetStateCache();
         BluetoothAdapter.invalidateGetAdapterConnectionStateCache();
     }
-     */
 
     private void setProfileServiceState(Class service, int state) {
         if (state == BluetoothAdapter.STATE_ON) {
@@ -1527,8 +1569,8 @@ public class AdapterService extends Service {
 
         AdapterServiceBinder(AdapterService svc) {
             mService = svc;
-            //mService.invalidateBluetoothGetStateCache();
-            //BluetoothAdapter.getDefaultAdapter().disableBluetoothGetStateCache();
+            mService.invalidateBluetoothGetStateCache();
+            BluetoothAdapter.getDefaultAdapter().disableBluetoothGetStateCache();
         }
 
         public void cleanup() {
