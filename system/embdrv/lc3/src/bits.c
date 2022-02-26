@@ -69,8 +69,9 @@ static int get_bits_left(const struct lc3_bits *bits)
     uintptr_t start = (uintptr_t)buffer->p_fw -
         (bits->mode == LC3_BITS_MODE_READ ? LC3_AC_BITS/8 : 0);
 
-    return 8 * (end - start) -
-        (accu->n + accu->nover + ac_get_pending_bits(ac));
+    int n = end > start ? (int)(end - start) : -(int)(start - end);
+
+    return 8 * n - (accu->n + accu->nover + ac_get_pending_bits(ac));
 }
 
 /**

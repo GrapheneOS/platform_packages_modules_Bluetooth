@@ -312,11 +312,6 @@ uint8_t LeAudioDeviceGroup::GetFraming(void) {
   return kIsoCigFramingUnframed;
 }
 
-uint8_t LeAudioDeviceGroup::GetTargetLatency(void) {
-  /* TODO: Decide about target latency */
-  return types::kTargetLatencyBalancedLatencyReliability;
-}
-
 /* TODO: Preferred parameter may be other than minimum */
 static uint16_t find_max_transport_latency(LeAudioDeviceGroup* group,
                                            uint8_t direction) {
@@ -944,6 +939,7 @@ bool LeAudioDevice::ConfigureAses(
     if (ase->state == AseState::BTA_LE_AUDIO_ASE_STATE_CODEC_CONFIGURED)
       ase->reconfigure = true;
 
+    ase->target_latency = ent.target_latency;
     ase->codec_id = ent.codec.id;
     /* TODO: find better way to not use LC3 explicitly */
     ase->codec_config = std::get<LeAudioLc3Config>(ent.codec.config);
@@ -968,7 +964,8 @@ bool LeAudioDevice::ConfigureAses(
                << ", activated ASE id=" << +ase->id
                << ", direction=" << +ase->direction
                << ", max_sdu_size=" << +ase->max_sdu_size
-               << ", cis_id=" << +ase->cis_id;
+               << ", cis_id=" << +ase->cis_id
+               << ", target_latency=" << +ent.target_latency;
 
     ase = GetFirstInactiveAse(ent.direction, reconnect);
   }

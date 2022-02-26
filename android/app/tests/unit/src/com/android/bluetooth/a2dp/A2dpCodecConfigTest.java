@@ -607,7 +607,7 @@ public class A2dpCodecConfigTest {
     @Test
     public void testDisableOptionalCodecs() {
         BluetoothCodecConfig[] codecConfigsArray =
-                new BluetoothCodecConfig[BluetoothCodecConfig.getMaxCodecType()];
+                new BluetoothCodecConfig[6];
         codecConfigsArray[0] = buildBluetoothCodecConfig(
                 BluetoothCodecConfig.SOURCE_CODEC_TYPE_SBC,
                 BluetoothCodecConfig.CODEC_PRIORITY_HIGHEST,
@@ -640,7 +640,7 @@ public class A2dpCodecConfigTest {
     @Test
     public void testEnableOptionalCodecs() {
         BluetoothCodecConfig[] codecConfigsArray =
-                new BluetoothCodecConfig[BluetoothCodecConfig.getMaxCodecType()];
+                new BluetoothCodecConfig[6];
         codecConfigsArray[0] = buildBluetoothCodecConfig(
                 BluetoothCodecConfig.SOURCE_CODEC_TYPE_SBC,
                 SBC_PRIORITY_DEFAULT,

@@ -571,23 +571,13 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
 
         int systemUiUid = -1;
         // Check if device is configured with no home screen, which implies no SystemUI.
-        boolean noHome = context.getResources()
-                .getBoolean(Resources.getSystem().getIdentifier(
-                "config_noHomeScreen", "bool", "android"));
-        if (!noHome) {
-            try {
-                systemUiUid = mContext.createContextAsUser(UserHandle.SYSTEM, 0)
-                    .getPackageManager()
-                    .getPackageUid("com.android.systemui",
-                            PackageManager.PackageInfoFlags.of(PackageManager.MATCH_SYSTEM_ONLY));
-            } catch (PackageManager.NameNotFoundException e) {
-                Log.w(TAG, "SystemUi uid not found", e);
-            }
-        }
-        if (systemUiUid >= 0) {
+        try {
+            systemUiUid = mContext.createContextAsUser(UserHandle.SYSTEM, 0)
+                .getPackageManager()
+                .getPackageUid("com.android.systemui",
+                        PackageManager.PackageInfoFlags.of(PackageManager.MATCH_SYSTEM_ONLY));
             Log.d(TAG, "Detected SystemUiUid: " + Integer.toString(systemUiUid));
-        } else {
-            // Some platforms, such as wearables do not have a system ui.
+        } catch (PackageManager.NameNotFoundException e) {
             Log.w(TAG, "Unable to resolve SystemUI's UID.");
         }
         mSystemUiUid = systemUiUid;

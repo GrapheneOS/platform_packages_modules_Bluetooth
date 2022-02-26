@@ -83,6 +83,7 @@ class BluetoothInterface {
         int negative_acknowledgement_count);
 
     virtual void SwitchBufferSizeCallback(bool is_low_latency_buffer_size);
+    virtual void SwitchCodecCallback(bool is_low_latency_buffer_size);
 
     // TODO(armansito): Complete the list of callbacks.
   };

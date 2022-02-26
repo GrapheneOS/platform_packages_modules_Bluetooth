@@ -110,4 +110,8 @@ final class JniCallbacks {
         mAdapterService.switchBufferSizeCallback(is_low_latency_buffer_size);
     }
 
+    void switchCodecCallback(boolean is_low_latency_buffer_size) {
+        mAdapterService.switchCodecCallback(is_low_latency_buffer_size);
+    }
+
 }
