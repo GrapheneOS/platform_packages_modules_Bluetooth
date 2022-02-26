@@ -954,6 +954,8 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
      * @return the current codec status
      * @hide
      */
+    @SystemApi
+    @Nullable
     @RequiresBluetoothConnectPermission
     @RequiresPermission(allOf = {
             android.Manifest.permission.BLUETOOTH_CONNECT,
@@ -977,6 +979,7 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
      * @param codecConfig the codec configuration preference
      * @hide
      */
+    @SystemApi
     @RequiresBluetoothConnectPermission
     @RequiresPermission(allOf = {
             android.Manifest.permission.BLUETOOTH_CONNECT,

@@ -521,6 +521,7 @@ struct ase {
         id(kAseIdInvalid),
         cis_id(kInvalidCisId),
         direction(direction),
+        target_latency(types::kTargetLatencyBalancedLatencyReliability),
         active(false),
         reconfigure(false),
         data_path_state(AudioStreamDataPathState::IDLE),
@@ -531,6 +532,7 @@ struct ase {
   uint8_t id;
   uint8_t cis_id;
   const uint8_t direction;
+  uint8_t target_latency;
   uint16_t cis_conn_hdl = 0;
 
   bool active;
@@ -595,19 +597,21 @@ struct CodecCapabilitySetting {
 
 struct SetConfiguration {
   SetConfiguration(uint8_t direction, uint8_t device_cnt, uint8_t ase_cnt,
-                   CodecCapabilitySetting codec,
+                   uint8_t target_latency, CodecCapabilitySetting codec,
                    le_audio::types::LeAudioConfigurationStrategy strategy =
                        le_audio::types::LeAudioConfigurationStrategy::
                            MONO_ONE_CIS_PER_DEVICE)
       : direction(direction),
         device_cnt(device_cnt),
         ase_cnt(ase_cnt),
+        target_latency(target_latency),
         codec(codec),
         strategy(strategy) {}
 
   uint8_t direction;  /* Direction of set */
   uint8_t device_cnt; /* How many devices must be in set */
   uint8_t ase_cnt;    /* How many ASE we need in configuration */
+  uint8_t target_latency;
   CodecCapabilitySetting codec;
   types::LeAudioConfigurationStrategy strategy;
 };
