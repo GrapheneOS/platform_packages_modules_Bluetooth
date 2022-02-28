@@ -1966,14 +1966,16 @@ class LeAudioClientImpl : public LeAudioClient {
                                            chan_encoded.size());
   }
 
-  struct le_audio::stream_configuration* GetStreamSinkConfiguration(
-      LeAudioDeviceGroup* group) {
+  struct le_audio::stream_configuration* GetStreamConfigurationByDirection(
+      LeAudioDeviceGroup* group, uint8_t direction) {
     struct le_audio::stream_configuration* stream_conf = &group->stream_conf;
     int num_of_devices = 0;
     int num_of_channels = 0;
     uint32_t sample_freq_hz = 0;
     uint32_t frame_duration_us = 0;
+    uint32_t audio_channel_allocation = 0;
     uint16_t octets_per_frame = 0;
+    uint16_t codec_frames_blocks_per_sdu = 0;
 
     LOG(INFO) << __func__ << " group_id: " << group->group_id_;
 
@@ -1982,8 +1984,7 @@ class LeAudioClientImpl : public LeAudioClient {
 
     for (auto* device = group->GetFirstActiveDevice(); device != nullptr;
          device = group->GetNextActiveDevice(device)) {
-      auto* ase = device->GetFirstActiveAseByDirection(
-          le_audio::types::kLeAudioDirectionSink);
+      auto* ase = device->GetFirstActiveAseByDirection(direction);
 
       if (ase) {
         LOG(INFO) << __func__ << "device: " << device->address_;
@@ -1994,6 +1995,7 @@ class LeAudioClientImpl : public LeAudioClient {
            ase = device->GetNextActiveAseWithSameDirection(ase)) {
         streams.emplace_back(std::make_pair(
             ase->cis_conn_hdl, *ase->codec_config.audio_channel_allocation));
+        audio_channel_allocation |= *ase->codec_config.audio_channel_allocation;
         num_of_channels += ase->codec_config.channel_count;
         if (sample_freq_hz == 0) {
           sample_freq_hz = ase->codec_config.GetSamplingFrequencyHz();
@@ -2022,27 +2024,61 @@ class LeAudioClientImpl : public LeAudioClient {
               << " != " << *ase->codec_config.octets_per_codec_frame;
         }
 
+        if (codec_frames_blocks_per_sdu == 0) {
+          codec_frames_blocks_per_sdu =
+              *ase->codec_config.codec_frames_blocks_per_sdu;
+        } else {
+          LOG_ASSERT(codec_frames_blocks_per_sdu ==
+                     ase->codec_config.codec_frames_blocks_per_sdu)
+              << __func__ << " codec_frames_blocks_per_sdu: "
+              << +codec_frames_blocks_per_sdu
+              << " != " << *ase->codec_config.codec_frames_blocks_per_sdu;
+        }
+
         LOG(INFO) << __func__ << " Added CIS: " << +ase->cis_conn_hdl
                   << " to stream. Allocation: "
                   << +(*ase->codec_config.audio_channel_allocation)
                   << " sample_freq: " << +sample_freq_hz
                   << " frame_duration: " << +frame_duration_us
-                  << " octects per frame: " << +octets_per_frame;
+                  << " octects per frame: " << +octets_per_frame
+                  << " codec_frame_blocks_per_sdu: "
+                  << +codec_frames_blocks_per_sdu;
       }
     }
 
     if (streams.empty()) return nullptr;
 
-    stream_conf->sink_streams = std::move(streams);
-    stream_conf->sink_num_of_devices = num_of_devices;
-    stream_conf->sink_num_of_channels = num_of_channels;
-    stream_conf->sink_sample_frequency_hz = sample_freq_hz;
-    stream_conf->sink_frame_duration_us = frame_duration_us;
-    stream_conf->sink_octets_per_codec_frame = octets_per_frame;
+    if (direction == le_audio::types::kLeAudioDirectionSource) {
+      stream_conf->source_streams = std::move(streams);
+      stream_conf->source_num_of_devices = num_of_devices;
+      stream_conf->source_num_of_channels = num_of_channels;
+      stream_conf->source_sample_frequency_hz = sample_freq_hz;
+      stream_conf->source_frame_duration_us = frame_duration_us;
+      stream_conf->source_audio_channel_allocation = audio_channel_allocation;
+      stream_conf->source_octets_per_codec_frame = octets_per_frame;
+      stream_conf->source_codec_frames_blocks_per_sdu =
+          codec_frames_blocks_per_sdu;
+    } else if (direction == le_audio::types::kLeAudioDirectionSink) {
+      stream_conf->sink_streams = std::move(streams);
+      stream_conf->sink_num_of_devices = num_of_devices;
+      stream_conf->sink_num_of_channels = num_of_channels;
+      stream_conf->sink_sample_frequency_hz = sample_freq_hz;
+      stream_conf->sink_frame_duration_us = frame_duration_us;
+      stream_conf->sink_audio_channel_allocation = audio_channel_allocation;
+      stream_conf->sink_octets_per_codec_frame = octets_per_frame;
+      stream_conf->sink_codec_frames_blocks_per_sdu =
+          codec_frames_blocks_per_sdu;
+    }
 
     LOG(INFO) << __func__ << " configuration: " << stream_conf->conf->name;
 
     return stream_conf;
+  }
+
+  struct le_audio::stream_configuration* GetStreamSinkConfiguration(
+      LeAudioDeviceGroup* group) {
+    return GetStreamConfigurationByDirection(
+        group, le_audio::types::kLeAudioDirectionSink);
   }
 
   void OnAudioDataReady(const std::vector<uint8_t>& data) {
@@ -2193,41 +2229,8 @@ class LeAudioClientImpl : public LeAudioClient {
 
   struct le_audio::stream_configuration* GetStreamSourceConfiguration(
       LeAudioDeviceGroup* group) {
-    LeAudioDevice* device = group->GetFirstActiveDevice();
-    LOG_ASSERT(device) << __func__
-                       << " Shouldn't be called without an active device.";
-
-    ase* ase = device->GetFirstActiveAseByDirection(
-        le_audio::types::kLeAudioDirectionSource);
-
-    if (!ase) return nullptr;
-
-    /* For now we support one microphone only*/
-
-    auto* stream_conf = &group->stream_conf;
-    std::vector<std::pair<uint16_t, uint32_t>> streams;
-
-    stream_conf->source_streams.emplace_back(std::make_pair(
-        ase->cis_conn_hdl, *ase->codec_config.audio_channel_allocation));
-
-    stream_conf->source_num_of_devices = 1;
-    stream_conf->source_num_of_channels = 1;
-    stream_conf->source_sample_frequency_hz =
-        ase->codec_config.GetSamplingFrequencyHz();
-    stream_conf->source_frame_duration_us =
-        ase->codec_config.GetFrameDurationUs();
-    stream_conf->source_octets_per_codec_frame =
-        *ase->codec_config.octets_per_codec_frame;
-
-    LOG(INFO) << __func__ << " Added CIS: " << +ase->cis_conn_hdl
-              << " to stream. Allocation: "
-              << +(*ase->codec_config.audio_channel_allocation)
-              << " sample_freq: " << +stream_conf->source_sample_frequency_hz
-              << " frame_duration: " << +stream_conf->source_frame_duration_us
-              << " octects per frame: "
-              << +stream_conf->source_octets_per_codec_frame;
-
-    return stream_conf;
+    return GetStreamConfigurationByDirection(
+        group, le_audio::types::kLeAudioDirectionSource);
   }
 
   void StartReceivingAudio(int group_id) {
