@@ -59,9 +59,9 @@ import com.android.bluetooth.IObexConnectionHandler;
 import com.android.bluetooth.ObexServerSockets;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
-import com.android.bluetooth.obex.ObexTransport;
 import com.android.bluetooth.sdp.SdpManager;
 import com.android.internal.annotations.VisibleForTesting;
+import com.android.obex.ObexTransport;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;

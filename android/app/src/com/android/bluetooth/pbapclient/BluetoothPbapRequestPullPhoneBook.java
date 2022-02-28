@@ -19,7 +19,7 @@ package com.android.bluetooth.pbapclient;
 import android.accounts.Account;
 import android.util.Log;
 
-import com.android.bluetooth.obex.HeaderSet;
+import com.android.obex.HeaderSet;
 import com.android.vcard.VCardEntry;
 
 import java.io.IOException;
