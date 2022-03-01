@@ -15,11 +15,11 @@
  */
 #define LOG_TAG "a2dp_encoding"
 
-#include "a2dp_encoding.h"
+#include "a2dp_encoding_aidl.h"
 
 #include "a2dp_transport.h"
 #include "audio_aidl_interfaces.h"
-#include "codec_status.h"
+#include "codec_status_aidl.h"
 #include "transport_instance.h"
 
 namespace bluetooth {
