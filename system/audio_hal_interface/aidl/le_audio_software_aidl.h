@@ -19,7 +19,7 @@
 #include "../le_audio_software.h"
 #include "audio_aidl_interfaces.h"
 #include "bta/le_audio/le_audio_types.h"
-#include "client_interface.h"
+#include "client_interface_aidl.h"
 
 namespace bluetooth {
 namespace audio {

@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "client_interface.h"
+#include "client_interface_aidl.h"
 
 namespace bluetooth {
 namespace audio {

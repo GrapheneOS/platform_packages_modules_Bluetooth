@@ -16,10 +16,10 @@
 
 #define LOG_TAG "BTAudioClientHearingAid"
 
-#include "hearing_aid_software_encoding.h"
+#include "hearing_aid_software_encoding_aidl.h"
 
 #include "audio_hearing_aid_hw/include/audio_hearing_aid_hw.h"
-#include "client_interface.h"
+#include "client_interface_aidl.h"
 #include "osi/include/log.h"
 #include "osi/include/properties.h"
 
