@@ -68,6 +68,7 @@ import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
+import android.os.ParcelFileDescriptor;
 import android.os.PowerExemptionManager;
 import android.os.Process;
 import android.os.RemoteCallbackList;
@@ -1019,7 +1020,7 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
         // Check if packageName belongs to callingUid
         final int callingUid = Binder.getCallingUid();
         final boolean isCallerSystem = UserHandle.getAppId(callingUid) == Process.SYSTEM_UID;
-        if (!isCallerSystem) {
+        if (!isCallerSystem && callingUid != Process.SHELL_UID) {
             checkPackage(callingUid, attributionSource.getPackageName());
 
             if (requireForeground && !checkIfCallerIsForegroundUser()) {
@@ -3016,6 +3017,14 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
             Context context, AttributionSource attributionSource, String message) {
         return checkPermissionForDataDelivery(context, BLUETOOTH_CONNECT,
                 attributionSource, message);
+    }
+
+    @Override
+    public int handleShellCommand(@NonNull ParcelFileDescriptor in,
+            @NonNull ParcelFileDescriptor out, @NonNull ParcelFileDescriptor err,
+            @NonNull String[] args) {
+        return new BluetoothShellCommand(this, mContext).exec(this, in.getFileDescriptor(),
+                out.getFileDescriptor(), err.getFileDescriptor(), args);
     }
 
     static @NonNull Bundle getTempAllowlistBroadcastOptions() {
