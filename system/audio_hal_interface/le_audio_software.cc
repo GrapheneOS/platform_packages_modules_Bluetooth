@@ -22,7 +22,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "aidl/le_audio_software.h"
+#include "aidl/le_audio_software_aidl.h"
 #include "bta/le_audio/codec_manager.h"
 #include "hal_version_manager.h"
 #include "hidl/le_audio_software_hidl.h"
