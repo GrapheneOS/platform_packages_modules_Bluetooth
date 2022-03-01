@@ -766,7 +766,8 @@ int adev_open_output_stream(struct audio_hw_device* dev,
   }
 
   // Ensure minimum buffer duration for spatialized output
-  if (flags == (AUDIO_OUTPUT_FLAG_FAST | AUDIO_OUTPUT_FLAG_DEEP_BUFFER) &&
+  if ((flags == (AUDIO_OUTPUT_FLAG_FAST | AUDIO_OUTPUT_FLAG_DEEP_BUFFER) ||
+       flags == AUDIO_OUTPUT_FLAG_SPATIALIZER) &&
       out->preferred_data_interval_us <
           kBluetoothSpatializerOutputBufferMs * 1000) {
     out->preferred_data_interval_us =
