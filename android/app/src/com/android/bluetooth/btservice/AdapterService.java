@@ -859,41 +859,7 @@ public class AdapterService extends Service {
                     "Cannot switch buffer size. The number of A2DP active devices is "
                             + activeDevices.size());
         }
-        BluetoothCodecConfig codecConfig = null;
-        BluetoothCodecStatus currentCodecStatus = mA2dpService.getCodecStatus(activeDevices.get(0));
-        int currentCodec = currentCodecStatus.getCodecConfig().getCodecType();
-        if (isLowLatencyBufferSize) {
-            if (currentCodec == BluetoothCodecConfig.SOURCE_CODEC_TYPE_LC3) {
-                Log.w(TAG, "Current codec is already LC3. No need to change it.");
-                return;
-            }
-            codecConfig = new BluetoothCodecConfig(
-                    BluetoothCodecConfig.SOURCE_CODEC_TYPE_LC3,
-                    BluetoothCodecConfig.CODEC_PRIORITY_HIGHEST,
-                    BluetoothCodecConfig.SAMPLE_RATE_48000,
-                    BluetoothCodecConfig.BITS_PER_SAMPLE_16,
-                    BluetoothCodecConfig.CHANNEL_MODE_STEREO,
-                    0, 0x1 << 2, 0, 0);
-        } else {
-            if (currentCodec != BluetoothCodecConfig.SOURCE_CODEC_TYPE_LC3) {
-                Log.w(TAG, "Current codec is not LC3. No need to change it.");
-                return;
-            }
-            List<BluetoothCodecConfig> selectableCodecs =
-                    currentCodecStatus.getCodecsSelectableCapabilities();
-            for (BluetoothCodecConfig config : selectableCodecs) {
-                // Find a non LC3 codec
-                if (config.getCodecType() != BluetoothCodecConfig.SOURCE_CODEC_TYPE_LC3) {
-                    codecConfig = config;
-                    break;
-                }
-            }
-            if (codecConfig == null) {
-                Log.e(TAG, "Cannot find a non LC3 codec compatible with the remote device");
-                return;
-            }
-        }
-        mA2dpService.setCodecConfigPreference(activeDevices.get(0), codecConfig);
+        mA2dpService.switchCodecByBufferSize(activeDevices.get(0), isLowLatencyBufferSize);
     }
 
     /**
