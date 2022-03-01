@@ -16,11 +16,11 @@
 
 package com.android.bluetooth.mapclient;
 
-import com.android.bluetooth.obex.ClientOperation;
-import com.android.bluetooth.obex.ClientSession;
-import com.android.bluetooth.obex.HeaderSet;
-import com.android.bluetooth.obex.Operation;
-import com.android.bluetooth.obex.ResponseCodes;
+import com.android.obex.ClientOperation;
+import com.android.obex.ClientSession;
+import com.android.obex.HeaderSet;
+import com.android.obex.Operation;
+import com.android.obex.ResponseCodes;
 
 import java.io.DataOutputStream;
 import java.io.IOException;

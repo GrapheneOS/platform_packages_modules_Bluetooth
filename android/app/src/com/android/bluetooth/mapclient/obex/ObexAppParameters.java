@@ -16,7 +16,7 @@
 
 package com.android.bluetooth.mapclient;
 
-import com.android.bluetooth.obex.HeaderSet;
+import com.android.obex.HeaderSet;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
