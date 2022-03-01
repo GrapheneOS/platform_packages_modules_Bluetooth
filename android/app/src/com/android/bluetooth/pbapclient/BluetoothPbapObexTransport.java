@@ -18,7 +18,7 @@ package com.android.bluetooth.pbapclient;
 
 import android.bluetooth.BluetoothSocket;
 
-import com.android.bluetooth.obex.ObexTransport;
+import com.android.obex.ObexTransport;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;

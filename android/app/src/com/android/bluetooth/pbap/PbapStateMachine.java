@@ -41,10 +41,10 @@ import com.android.bluetooth.ObexRejectServer;
 import com.android.bluetooth.R;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.MetricsLogger;
-import com.android.bluetooth.obex.ResponseCodes;
-import com.android.bluetooth.obex.ServerSession;
 import com.android.internal.util.State;
 import com.android.internal.util.StateMachine;
+import com.android.obex.ResponseCodes;
+import com.android.obex.ServerSession;
 
 import java.io.IOException;
 

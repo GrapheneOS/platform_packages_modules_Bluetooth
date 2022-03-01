@@ -54,7 +54,7 @@ import android.util.Log;
 
 import com.android.bluetooth.BluetoothObexTransport;
 import com.android.bluetooth.Utils;
-import com.android.bluetooth.obex.ObexTransport;
+import com.android.obex.ObexTransport;
 
 import java.io.IOException;
 
