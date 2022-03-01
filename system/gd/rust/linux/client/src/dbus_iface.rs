@@ -313,6 +313,10 @@ impl IBluetooth for BluetoothDBus {
         self.client_proxy.method("GetDiscoverable", ())
     }
 
+    fn get_discoverable_timeout(&self) -> u32 {
+        self.client_proxy.method("GetDiscoverableTimeout", ())
+    }
+
     fn set_discoverable(&self, mode: bool, duration: u32) -> bool {
         self.client_proxy.method("SetDiscoverable", (mode, duration))
     }

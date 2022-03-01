@@ -145,6 +145,7 @@ android_app {
     optimize: {
         enabled: false,
     },
+    required: ["libbluetooth"],
     apex_available: [
         "com.android.bluetooth",
     ],
