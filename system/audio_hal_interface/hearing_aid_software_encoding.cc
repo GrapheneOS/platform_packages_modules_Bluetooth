@@ -16,7 +16,7 @@
 
 #include "hearing_aid_software_encoding.h"
 
-#include "aidl/hearing_aid_software_encoding.h"
+#include "aidl/hearing_aid_software_encoding_aidl.h"
 #include "hal_version_manager.h"
 #include "hidl/hearing_aid_software_encoding_hidl.h"
 
