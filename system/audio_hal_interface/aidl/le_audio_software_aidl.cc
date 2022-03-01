@@ -17,12 +17,12 @@
 
 #define LOG_TAG "BTAudioClientLeAudioAIDL"
 
-#include "le_audio_software.h"
+#include "le_audio_software_aidl.h"
 
 #include <unordered_map>
 #include <vector>
 
-#include "codec_status.h"
+#include "codec_status_aidl.h"
 #include "hal_version_manager.h"
 
 namespace bluetooth {

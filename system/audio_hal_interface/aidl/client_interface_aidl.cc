@@ -16,7 +16,7 @@
 
 #define LOG_TAG "BTAudioClientIf"
 
-#include "client_interface.h"
+#include "client_interface_aidl.h"
 
 #include <android/binder_manager.h>
 
@@ -235,8 +235,7 @@ bool BluetoothAudioClientInterface::UpdateAudioConfig(
 bool BluetoothAudioClientInterface::SetLowLatencyModeAllowed(bool allowed) {
   is_low_latency_allowed_ = allowed;
   if (provider_ == nullptr) {
-    LOG(INFO) << __func__
-              << ": BluetoothAudioHal nullptr";
+    LOG(INFO) << __func__ << ": BluetoothAudioHal nullptr";
     return false;
   }
 
@@ -248,7 +247,6 @@ bool BluetoothAudioClientInterface::SetLowLatencyModeAllowed(bool allowed) {
   }
   return true;
 }
-
 
 int BluetoothAudioClientInterface::StartSession() {
   std::lock_guard<std::mutex> guard(internal_mutex_);
