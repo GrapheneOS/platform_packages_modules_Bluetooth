@@ -2,8 +2,8 @@
 
 use bt_topshim::btif::{
     BaseCallbacks, BaseCallbacksDispatcher, BluetoothInterface, BluetoothProperty, BtAclState,
-    BtBondState, BtDiscoveryState, BtHciErrorCode, BtLocalLeFeatures, BtPinCode, BtPropertyType,
-    BtScanMode, BtSspVariant, BtState, BtStatus, BtTransport, RawAddress, Uuid, Uuid128Bit,
+    BtBondState, BtDiscoveryState, BtHciErrorCode, BtPinCode, BtPropertyType, BtScanMode,
+    BtSspVariant, BtState, BtStatus, BtTransport, RawAddress, Uuid, Uuid128Bit,
 };
 use bt_topshim::{
     profiles::hid_host::{HHCallbacksDispatcher, HidHost},
@@ -343,7 +343,7 @@ impl Bluetooth {
         }
     }
 
-    fn get_connectable(&self) -> bool {
+    pub fn get_connectable(&self) -> bool {
         match self.properties.get(&BtPropertyType::AdapterScanMode) {
             Some(prop) => match prop {
                 BluetoothProperty::AdapterScanMode(mode) => match *mode {
@@ -356,7 +356,7 @@ impl Bluetooth {
         }
     }
 
-    fn set_connectable(&mut self, mode: bool) -> bool {
+    pub fn set_connectable(&mut self, mode: bool) -> bool {
         self.is_connectable = mode;
         if mode && self.get_discoverable() {
             return true;
