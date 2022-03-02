@@ -382,7 +382,9 @@ impl BluetoothProperty {
         let len = self.get_len();
         match &*self {
             BluetoothProperty::BdName(name) => {
-                data.copy_from_slice(&name.as_bytes()[0..len]);
+                let copy_len = len - 1;
+                data[0..copy_len].copy_from_slice(&name.as_bytes()[0..copy_len]);
+                data[copy_len] = 0;
             }
             BluetoothProperty::BdAddr(addr) => {
                 data.copy_from_slice(&addr.val);
@@ -408,11 +410,12 @@ impl BluetoothProperty {
                     unsafe { &mut *(data.as_mut_ptr() as *mut bindings::bt_service_record_t) };
                 record.uuid = sr.uuid;
                 record.channel = sr.channel;
-                let name_len = len - mem::size_of::<BtServiceRecord>();
-                record.name.copy_from_slice(
+                let name_len = len - mem::size_of::<BtServiceRecord>() - 1;
+                record.name[0..name_len].copy_from_slice(
                     &(sr.name.as_bytes().iter().map(|x| *x as c_char).collect::<Vec<c_char>>())
                         [0..name_len],
                 );
+                record.name[name_len] = 0;
             }
             BluetoothProperty::AdapterScanMode(sm) => {
                 data.copy_from_slice(&BtScanMode::to_u32(sm).unwrap_or_default().to_ne_bytes());
@@ -428,7 +431,9 @@ impl BluetoothProperty {
                 data.copy_from_slice(&timeout.to_ne_bytes());
             }
             BluetoothProperty::RemoteFriendlyName(name) => {
-                data.copy_from_slice(&name.as_bytes()[0..len]);
+                let copy_len = len - 1;
+                data[0..copy_len].copy_from_slice(&name.as_bytes()[0..copy_len]);
+                data[copy_len] = 0;
             }
             BluetoothProperty::RemoteRssi(rssi) => {
                 data[0] = *rssi as u8;
@@ -1109,5 +1114,47 @@ mod tests {
         let vec: Vec<i32> = ptr_to_vec(arr.as_ptr(), arr.len());
         let expected: Vec<i32> = vec![1, 2, 3];
         assert_eq!(expected, vec);
+    }
+
+    #[test]
+    fn test_property_with_string_conversions() {
+        {
+            let bdname = BluetoothProperty::BdName("FooBar".into());
+            let prop_pair: (Box<[u8]>, bindings::bt_property_t) = bdname.into();
+            let converted: BluetoothProperty = prop_pair.1.into();
+            assert!(match converted {
+                BluetoothProperty::BdName(name) => "FooBar".to_string() == name,
+                _ => false,
+            });
+        }
+
+        {
+            let orig_record = BtServiceRecord {
+                uuid: Uuid { uu: [0; 16] },
+                channel: 3,
+                name: "FooBar".to_string(),
+            };
+            let service_record = BluetoothProperty::ServiceRecord(orig_record.clone());
+            let prop_pair: (Box<[u8]>, bindings::bt_property_t) = service_record.into();
+            let converted: BluetoothProperty = prop_pair.1.into();
+            assert!(match converted {
+                BluetoothProperty::ServiceRecord(sr) => {
+                    sr.uuid == orig_record.uuid
+                        && sr.channel == orig_record.channel
+                        && sr.name == orig_record.name
+                }
+                _ => false,
+            });
+        }
+
+        {
+            let rfname = BluetoothProperty::RemoteFriendlyName("FooBizz".into());
+            let prop_pair: (Box<[u8]>, bindings::bt_property_t) = rfname.into();
+            let converted: BluetoothProperty = prop_pair.1.into();
+            assert!(match converted {
+                BluetoothProperty::RemoteFriendlyName(name) => "FooBizz".to_string() == name,
+                _ => false,
+            });
+        }
     }
 }

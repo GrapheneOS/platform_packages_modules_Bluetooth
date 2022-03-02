@@ -437,7 +437,7 @@ impl CommandHandler {
             return;
         }
 
-        enforce_arg_len(args, 2, "device <connect|disconnect|info> <address>", || {
+        enforce_arg_len(args, 2, "device <connect|disconnect|info|set-alias> <address>", || {
             match &args[0][0..] {
                 "connect" => {
                     let device = BluetoothDevice {
@@ -518,6 +518,31 @@ impl CommandHandler {
                                 .collect::<Vec<String>>()
                         )
                     );
+                }
+                "set-alias" => {
+                    if args.len() < 3 {
+                        println!("usage: device set-alias <address> <new-alias>");
+                        return;
+                    }
+                    let new_alias = &args[2];
+                    let device =
+                        BluetoothDevice { address: String::from(&args[1]), name: String::from("") };
+                    let old_alias = self
+                        .context
+                        .lock()
+                        .unwrap()
+                        .adapter_dbus
+                        .as_ref()
+                        .unwrap()
+                        .get_remote_alias(device.clone());
+                    println!("Updating alias for {}: {} -> {}", &args[1], old_alias, new_alias);
+                    self.context
+                        .lock()
+                        .unwrap()
+                        .adapter_dbus
+                        .as_mut()
+                        .unwrap()
+                        .set_remote_alias(device.clone(), new_alias.clone());
                 }
                 _ => {
                     println!("Invalid argument '{}'", args[0]);
