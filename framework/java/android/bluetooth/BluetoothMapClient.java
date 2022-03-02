@@ -340,9 +340,7 @@ public final class BluetoothMapClient implements BluetoothProfile, AutoCloseable
     }
 
     /**
-     * Get the list of connected devices. Currently at most one.
-     *
-     * @return list of connected devices
+     * {@inheritDoc}
      * @hide
      */
     @SystemApi
@@ -378,10 +376,7 @@ public final class BluetoothMapClient implements BluetoothProfile, AutoCloseable
     }
 
     /**
-     * Get the list of devices matching specified states. Currently at most one.
-     *
-     * @param states The connection states to match for.
-     * @return list of matching devices
+     * {@inheritDoc}
      * @hide
      */
     @SystemApi
@@ -418,10 +413,7 @@ public final class BluetoothMapClient implements BluetoothProfile, AutoCloseable
     }
 
     /**
-     * Get connection state of device
-     *
-     * @param device The remote device whose connection state is to be ascertained.
-     * @return device connection state
+     * {@inheritDoc}
      * @hide
      */
     @SystemApi
