@@ -53,12 +53,10 @@ static int bta_dm_get_sco_index();
 static void bta_dm_pm_stop_timer_by_index(tBTA_PM_TIMER* p_timer,
                                           uint8_t timer_idx);
 
-#if (BTA_HH_INCLUDED == TRUE)
 #include "../hh/bta_hh_int.h"
 /* BTA_DM_PM_SSR1 will be dedicated for HH SSR setting entry, no other profile
  * can use it */
 #define BTA_DM_PM_SSR_HH BTA_DM_PM_SSR1
-#endif
 static void bta_dm_pm_ssr(const RawAddress& peer_addr, int ssr);
 
 tBTA_DM_CONNECTED_SRVCS bta_dm_conn_srvcs;
@@ -790,7 +788,6 @@ static void bta_dm_pm_ssr(const RawAddress& peer_addr, int ssr) {
     }
     /* find the ssr index with the smallest max latency. */
     tBTA_DM_SSR_SPEC* p_spec_cur = &p_bta_dm_ssr_spec[current_ssr_index];
-#if (BTA_HH_INCLUDED == TRUE)
     /* HH has the per connection SSR preference, already read the SSR params
      * from BTA HH */
     if (current_ssr_index == BTA_DM_PM_SSR_HH) {
@@ -799,7 +796,6 @@ static void bta_dm_pm_ssr(const RawAddress& peer_addr, int ssr) {
         continue;
       }
     }
-#endif
     if (p_spec_cur->max_lat < p_spec->max_lat ||
         (ssr_index == BTA_DM_PM_SSR0 && current_ssr_index != BTA_DM_PM_SSR0)) {
       LOG_DEBUG(
