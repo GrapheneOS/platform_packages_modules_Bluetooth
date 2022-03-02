@@ -1332,9 +1332,8 @@ class HearingAidImpl : public HearingAid {
         LOG(INFO) << __func__
                   << ": GAP_EVT_CONN_CLOSED: " << hearingDevice->address
                   << ", playback_started=" << hearingDevice->playback_started
-                  << ", connecting_actively="
-                  << hearingDevice->connecting_actively;
-        if (hearingDevice->connecting_actively) {
+                  << ", accepting_audio=" << hearingDevice->accepting_audio;
+        if (!hearingDevice->accepting_audio) {
           /* Disconnect connection when data channel is not available */
           BTA_GATTC_Close(hearingDevice->conn_id);
         } else {
