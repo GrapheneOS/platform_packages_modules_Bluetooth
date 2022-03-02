@@ -48,12 +48,12 @@ import com.android.bluetooth.BluetoothMetricsProto;
 import com.android.bluetooth.BluetoothObexTransport;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.MetricsLogger;
-import com.android.bluetooth.obex.HeaderSet;
-import com.android.bluetooth.obex.ObexTransport;
-import com.android.bluetooth.obex.Operation;
-import com.android.bluetooth.obex.ResponseCodes;
-import com.android.bluetooth.obex.ServerRequestHandler;
-import com.android.bluetooth.obex.ServerSession;
+import com.android.obex.HeaderSet;
+import com.android.obex.ObexTransport;
+import com.android.obex.Operation;
+import com.android.obex.ResponseCodes;
+import com.android.obex.ServerRequestHandler;
+import com.android.obex.ServerSession;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;

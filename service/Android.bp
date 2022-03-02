@@ -67,6 +67,7 @@ java_library {
     static_libs: [
         "androidx.annotation_annotation",
         "androidx.appcompat_appcompat",
+        "modules-utils-shell-command-handler",
     ],
 
     apex_available: [

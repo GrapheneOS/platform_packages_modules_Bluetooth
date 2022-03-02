@@ -16,7 +16,7 @@
 
 #include "a2dp_encoding.h"
 
-#include "aidl/a2dp_encoding.h"
+#include "aidl/a2dp_encoding_aidl.h"
 #include "hal_version_manager.h"
 #include "hidl/a2dp_encoding_hidl.h"
 

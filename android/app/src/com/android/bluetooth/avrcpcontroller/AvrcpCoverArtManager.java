@@ -23,7 +23,7 @@ import android.net.Uri;
 import android.os.SystemProperties;
 import android.util.Log;
 
-import com.android.bluetooth.obex.ResponseCodes;
+import com.android.obex.ResponseCodes;
 
 import java.util.Map;
 import java.util.Set;

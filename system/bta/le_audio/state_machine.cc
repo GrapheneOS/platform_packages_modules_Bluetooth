@@ -868,14 +868,12 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
             group->GetPhyBitmask(le_audio::types::kLeAudioDirectionSource);
 
         if (ases_pair.sink) {
-          /* TODO: config should be previously adopted */
-          cis_cfg.max_sdu_size_mtos = ase->max_sdu_size;
-          cis_cfg.rtn_mtos = ase->retrans_nb;
+          cis_cfg.max_sdu_size_mtos = ases_pair.sink->max_sdu_size;
+          cis_cfg.rtn_mtos = ases_pair.sink->retrans_nb;
         }
         if (ases_pair.source) {
-          /* TODO: config should be previously adopted */
-          cis_cfg.max_sdu_size_stom = ase->max_sdu_size;
-          cis_cfg.rtn_stom = ase->retrans_nb;
+          cis_cfg.max_sdu_size_stom = ases_pair.source->max_sdu_size;
+          cis_cfg.rtn_stom = ases_pair.source->retrans_nb;
         }
 
         cis_cfgs.push_back(cis_cfg);
