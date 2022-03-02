@@ -25,12 +25,10 @@
 #define LOG_TAG "bluetooth"
 
 // BTA_HH_INCLUDED
-#include "bt_target.h"  // Must be first to define build configuration
-#if (BTA_HH_INCLUDED == TRUE)
-
 #include <cstdint>
 #include <string>
 
+#include "bt_target.h"  // Must be first to define build configuration
 #include "bta/hh/bta_hh_int.h"
 #include "bta/include/bta_hh_api.h"
 #include "bta/include/bta_hh_co.h"
@@ -170,7 +168,6 @@ void bta_hh_disc_cmpl(void) {
   if (HID_HostDeregister() != HID_SUCCESS) status = BTA_HH_ERR;
 
   bta_hh_cleanup_disable(status);
-#endif
 }
 
 /*******************************************************************************
