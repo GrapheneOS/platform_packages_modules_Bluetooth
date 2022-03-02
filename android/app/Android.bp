@@ -119,9 +119,9 @@ android_app {
         "androidx.room_room-runtime",
         "androidx.annotation_annotation",
         "bluetooth.mapsapi",
-        "bluetooth.obex",
         "bluetooth-protos-lite",
         "com.android.vcard",
+        "com.android.obex",
         "guava",
         "libprotobuf-java-lite",
         "mmslib",
@@ -145,6 +145,7 @@ android_app {
     optimize: {
         enabled: false,
     },
+    required: ["libbluetooth"],
     apex_available: [
         "com.android.bluetooth",
     ],

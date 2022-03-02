@@ -22,7 +22,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "aidl/le_audio_software.h"
+#include "aidl/le_audio_software_aidl.h"
 #include "bta/le_audio/codec_manager.h"
 #include "hal_version_manager.h"
 #include "hidl/le_audio_software_hidl.h"
@@ -287,8 +287,6 @@ void LeAudioClientInterface::Source::SetRemoteDelay(uint16_t delay_report_ms) {
 
 void LeAudioClientInterface::Source::StartSession() {
   LOG(INFO) << __func__;
-  if (!hidl::le_audio::is_source_hal_enabled()) return;
-
   if (HalVersionManager::GetHalVersion() ==
       BluetoothAudioHalVersion::VERSION_2_1) {
     AudioConfiguration_2_1 audio_config;

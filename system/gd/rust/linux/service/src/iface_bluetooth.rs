@@ -147,22 +147,27 @@ impl IBluetooth for IBluetoothDBus {
 
     #[dbus_method("GetDiscoverable")]
     fn get_discoverable(&self) -> bool {
-        true
+        dbus_generated!()
+    }
+
+    #[dbus_method("GetDiscoverableTimeout")]
+    fn get_discoverable_timeout(&self) -> u32 {
+        dbus_generated!()
     }
 
     #[dbus_method("SetDiscoverable")]
     fn set_discoverable(&self, mode: bool, duration: u32) -> bool {
-        true
+        dbus_generated!()
     }
 
     #[dbus_method("IsMultiAdvertisementSupported")]
     fn is_multi_advertisement_supported(&self) -> bool {
-        true
+        dbus_generated!()
     }
 
     #[dbus_method("IsLeExtendedAdvertisingSupported")]
     fn is_le_extended_advertising_supported(&self) -> bool {
-        true
+        dbus_generated!()
     }
 
     #[dbus_method("StartDiscovery")]

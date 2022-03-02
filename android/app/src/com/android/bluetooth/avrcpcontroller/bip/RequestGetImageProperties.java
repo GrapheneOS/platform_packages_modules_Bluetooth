@@ -16,8 +16,8 @@
 
 package com.android.bluetooth.avrcpcontroller;
 
-import com.android.bluetooth.obex.ClientSession;
-import com.android.bluetooth.obex.HeaderSet;
+import com.android.obex.ClientSession;
+import com.android.obex.HeaderSet;
 
 import java.io.IOException;
 import java.io.InputStream;

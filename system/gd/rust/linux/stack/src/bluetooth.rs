@@ -2,8 +2,8 @@
 
 use bt_topshim::btif::{
     BaseCallbacks, BaseCallbacksDispatcher, BluetoothInterface, BluetoothProperty, BtAclState,
-    BtBondState, BtDiscoveryState, BtHciErrorCode, BtLocalLeFeatures, BtPinCode, BtPropertyType,
-    BtScanMode, BtSspVariant, BtState, BtStatus, BtTransport, RawAddress, Uuid, Uuid128Bit,
+    BtBondState, BtDiscoveryState, BtHciErrorCode, BtPinCode, BtPropertyType, BtScanMode,
+    BtSspVariant, BtState, BtStatus, BtTransport, RawAddress, Uuid, Uuid128Bit,
 };
 use bt_topshim::{
     profiles::hid_host::{HHCallbacksDispatcher, HidHost},
@@ -72,6 +72,9 @@ pub trait IBluetooth {
 
     /// Returns whether the adapter is discoverable.
     fn get_discoverable(&self) -> bool;
+
+    /// Returns the adapter discoverable timeout.
+    fn get_discoverable_timeout(&self) -> u32;
 
     /// Sets discoverability. If discoverable, limits the duration with given value.
     fn set_discoverable(&self, mode: bool, duration: u32) -> bool;
@@ -340,7 +343,7 @@ impl Bluetooth {
         }
     }
 
-    fn get_connectable(&self) -> bool {
+    pub fn get_connectable(&self) -> bool {
         match self.properties.get(&BtPropertyType::AdapterScanMode) {
             Some(prop) => match prop {
                 BluetoothProperty::AdapterScanMode(mode) => match *mode {
@@ -353,7 +356,7 @@ impl Bluetooth {
         }
     }
 
-    fn set_connectable(&mut self, mode: bool) -> bool {
+    pub fn set_connectable(&mut self, mode: bool) -> bool {
         self.is_connectable = mode;
         if mode && self.get_discoverable() {
             return true;
@@ -853,6 +856,16 @@ impl IBluetooth for Bluetooth {
                 _ => false,
             },
             _ => false,
+        }
+    }
+
+    fn get_discoverable_timeout(&self) -> u32 {
+        match self.properties.get(&BtPropertyType::AdapterDiscoverableTimeout) {
+            Some(prop) => match prop {
+                BluetoothProperty::AdapterDiscoverableTimeout(timeout) => timeout.clone(),
+                _ => 0,
+            },
+            _ => 0,
         }
     }
 

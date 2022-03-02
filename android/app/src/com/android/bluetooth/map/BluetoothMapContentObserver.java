@@ -58,7 +58,7 @@ import com.android.bluetooth.map.BluetoothMapUtils.TYPE;
 import com.android.bluetooth.map.BluetoothMapbMessageMime.MimePart;
 import com.android.bluetooth.mapapi.BluetoothMapContract;
 import com.android.bluetooth.mapapi.BluetoothMapContract.MessageColumns;
-import com.android.bluetooth.obex.ResponseCodes;
+import com.android.obex.ResponseCodes;
 
 import com.google.android.mms.pdu.PduHeaders;
 

@@ -49,7 +49,6 @@ static void bta_dm_pm_btm_cback(const RawAddress& bd_addr,
                                 tHCI_STATUS hci_status);
 static bool bta_dm_pm_park(const RawAddress& peer_addr);
 void bta_dm_pm_sniff(tBTA_DM_PEER_DEVICE* p_peer_dev, uint8_t index);
-static bool bta_dm_pm_is_sco_active();
 static int bta_dm_get_sco_index();
 static void bta_dm_pm_stop_timer_by_index(tBTA_PM_TIMER* p_timer,
                                           uint8_t timer_idx);
@@ -815,13 +814,11 @@ static void bta_dm_pm_ssr(const RawAddress& peer_addr, int ssr) {
 
   if (p_spec->max_lat) {
     /* Avoid SSR reset on device which has SCO connected */
-    if (bta_dm_pm_is_sco_active()) {
-      int idx = bta_dm_get_sco_index();
-      if (idx != -1) {
-        if (bta_dm_conn_srvcs.conn_srvc[idx].peer_bdaddr == peer_addr) {
-          LOG_WARN("SCO is active on device, ignore SSR");
-          return;
-        }
+    int idx = bta_dm_get_sco_index();
+    if (idx != -1) {
+      if (bta_dm_conn_srvcs.conn_srvc[idx].peer_bdaddr == peer_addr) {
+        LOG_WARN("SCO is active on device, ignore SSR");
+        return;
       }
     }
 
@@ -1045,30 +1042,6 @@ tBTA_DM_PEER_DEVICE* bta_dm_find_peer_device(const RawAddress& peer_addr) {
     }
   }
   return p_dev;
-}
-
-/*******************************************************************************
- *
- * Function         bta_dm_is_sco_active
- *
- * Description      Loop through connected services for HFP+State=SCO
- *
- * Returns          bool. true if SCO active, else false
- *
- ******************************************************************************/
-static bool bta_dm_pm_is_sco_active() {
-  int j;
-  bool bScoActive = false;
-
-  for (j = 0; j < bta_dm_conn_srvcs.count; j++) {
-    /* check if an entry already present */
-    if ((bta_dm_conn_srvcs.conn_srvc[j].id == BTA_ID_AG) &&
-        (bta_dm_conn_srvcs.conn_srvc[j].state == BTA_SYS_SCO_OPEN)) {
-      bScoActive = true;
-      break;
-    }
-  }
-  return bScoActive;
 }
 
 /*******************************************************************************
