@@ -32,6 +32,9 @@ java_library {
     name: "bluetooth.mapsapi",
 
     srcs: ["lib/mapapi/**/*.java"],
+    apex_available: [
+        "com.android.bluetooth",
+    ],
     min_sdk_version: "Tiramisu",
     sdk_version: "module_current",
 }
