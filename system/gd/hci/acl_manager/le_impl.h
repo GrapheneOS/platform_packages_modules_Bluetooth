@@ -191,6 +191,16 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
       }
       return kIllegalConnectionHandle;
     }
+
+    AddressWithType getAddressWithType(uint16_t handle) {
+      std::unique_lock<std::mutex> lock(le_acl_connections_guard_);
+      auto it = le_acl_connections_.find(handle);
+      if (it != le_acl_connections_.end()) {
+        return it->second.remote_address_;
+      }
+      AddressWithType empty(Address::kEmpty, AddressType::RANDOM_DEVICE_ADDRESS);
+      return empty;
+    }
   } connections;
 
  public:
@@ -359,6 +369,11 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
 
   static constexpr bool kRemoveConnectionAfterwards = true;
   void on_le_disconnect(uint16_t handle, ErrorCode reason) {
+    AddressWithType remote_address = connections.getAddressWithType(handle);
+    if (background_connections_.count(remote_address) == 1) {
+      LOG_INFO("re-add device to connect list");
+      add_device_to_connect_list(remote_address);
+    }
     bool event_also_routes_to_other_receivers = connections.crash_on_unknown_handle_;
     connections.crash_on_unknown_handle_ = false;
     connections.execute(
@@ -369,6 +384,11 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
         },
         kRemoveConnectionAfterwards);
     connections.crash_on_unknown_handle_ = event_also_routes_to_other_receivers;
+    if (!connect_list.empty()) {
+      LOG_INFO("connect_list is not empty, send a new connection request");
+      AddressWithType empty(Address::kEmpty, AddressType::RANDOM_DEVICE_ADDRESS);
+      create_le_connection(empty, false, false);
+    }
   }
 
   void on_le_connection_update_complete(LeMetaEventView view) {
