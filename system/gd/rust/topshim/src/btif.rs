@@ -121,6 +121,7 @@ pub enum BtDeviceType {
     Bredr,
     Ble,
     Dual,
+    Unknown,
 }
 
 #[derive(Clone, Debug, Eq, Hash, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
