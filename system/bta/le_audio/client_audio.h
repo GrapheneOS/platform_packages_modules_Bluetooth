@@ -112,8 +112,9 @@ class LeAudioClientAudioSource {
   static void ConfirmStreamingRequest();
   static void CancelStreamingRequest();
   static void UpdateRemoteDelay(uint16_t remote_delay_ms);
-  static void DebugDump(int fd);
   static void UpdateAudioConfigToHal(const ::le_audio::offload_config& config);
+  static void SuspendedForReconfiguration();
+  static void DebugDump(int fd);
 };
 
 /* Represents audio sink for le audio client */
@@ -128,6 +129,7 @@ class LeAudioClientAudioSink {
   static void ConfirmStreamingRequest();
   static void CancelStreamingRequest();
   static void UpdateRemoteDelay(uint16_t remote_delay_ms);
-  static void DebugDump(int fd);
   static void UpdateAudioConfigToHal(const ::le_audio::offload_config& config);
+  static void SuspendedForReconfiguration();
+  static void DebugDump(int fd);
 };
