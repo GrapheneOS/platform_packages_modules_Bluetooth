@@ -3076,6 +3076,28 @@ class LeAudioClientImpl : public LeAudioClient {
     return true;
   }
 
+  void HandlePendingAvailableContexts(int group_id) {
+    LeAudioDeviceGroup* group = aseGroups_.FindById(group_id);
+    if (!group) return;
+
+    /* Update group configuration with pending available context */
+    std::optional<AudioContexts> pending_update_available_contexts =
+        group->GetPendingUpdateAvailableContexts();
+    if (pending_update_available_contexts) {
+      std::optional<AudioContexts> updated_contexts =
+          group->UpdateActiveContextsMap(*pending_update_available_contexts);
+
+      if (updated_contexts) {
+        callbacks_->OnAudioConf(group->audio_directions_, group->group_id_,
+                                group->snk_audio_locations_.to_ulong(),
+                                group->src_audio_locations_.to_ulong(),
+                                updated_contexts->to_ulong());
+      }
+
+      group->SetPendingUpdateAvailableContexts(std::nullopt);
+    }
+  }
+
   void StatusReportCb(int group_id, GroupStreamStatus status) {
     DLOG(INFO) << __func__ << "status: " << static_cast<int>(status)
                << " audio_sender_state_: " << audio_sender_state_
@@ -3106,29 +3128,8 @@ class LeAudioClientImpl : public LeAudioClient {
         } else {
           CancelStreamingRequest();
         }
-        LeAudioDeviceGroup* group = aseGroups_.FindById(group_id);
-        if (!group) {
-          LOG(ERROR) << __func__ << ", Failed to update pending available "
-                     << "contexts for group: " << group_id;
-          return;
-        }
 
-        /* Update group configuration with pending available context */
-        std::optional<AudioContexts> pending_update_available_contexts =
-            group->GetPendingUpdateAvailableContexts();
-        if (pending_update_available_contexts) {
-          std::optional<AudioContexts> updated_contexts =
-              group->UpdateActiveContextsMap(*pending_update_available_contexts);
-
-          if (updated_contexts) {
-            callbacks_->OnAudioConf(group->audio_directions_, group->group_id_,
-                                    group->snk_audio_locations_.to_ulong(),
-                                    group->src_audio_locations_.to_ulong(),
-                                    updated_contexts->to_ulong());
-          }
-
-          group->SetPendingUpdateAvailableContexts(std::nullopt);
-        }
+        HandlePendingAvailableContexts(group_id);
         break;
       }
       case GroupStreamStatus::RELEASING:
