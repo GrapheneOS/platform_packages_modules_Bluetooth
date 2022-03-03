@@ -23,12 +23,10 @@
  ******************************************************************************/
 
 #include <string.h>  // memset
+
 #include <cstdint>
 
 #include "bt_target.h"  // Must be first to define build configuration
-
-#if (BTA_HH_INCLUDED == TRUE)
-
 #include "bta/hh/bta_hh_int.h"
 #include "osi/include/allocator.h"
 #include "stack/include/bt_hdr.h"
@@ -441,5 +439,3 @@ static const char* bta_hh_state_code(tBTA_HH_STATE state_code) {
       return "unknown HID Host state";
   }
 }
-
-#endif /* BTA_HH_INCLUDED */

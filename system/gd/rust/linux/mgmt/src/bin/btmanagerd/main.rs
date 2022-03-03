@@ -7,7 +7,6 @@ mod state_machine;
 use crate::bluetooth_manager::BluetoothManager;
 use dbus::channel::MatchingReceiver;
 use dbus::message::MatchRule;
-use dbus::nonblock::SyncConnection;
 use dbus_crossroads::Crossroads;
 use dbus_projection::DisconnectWatcher;
 use dbus_tokio::connection;
@@ -20,7 +19,6 @@ use syslog::{BasicLogger, Facility, Formatter3164};
 struct ManagerContext {
     proxy: state_machine::StateMachineProxy,
     floss_enabled: Arc<AtomicBool>,
-    dbus_connection: Arc<SyncConnection>,
 }
 
 #[tokio::main]
@@ -58,7 +56,6 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let manager_context = ManagerContext {
         proxy: proxy,
         floss_enabled: Arc::new(AtomicBool::new(config_util::is_floss_enabled())),
-        dbus_connection: conn.clone(),
     };
 
     // The resource is a task that should be spawned onto a tokio compatible
