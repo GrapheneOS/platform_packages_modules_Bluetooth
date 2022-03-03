@@ -1385,6 +1385,17 @@ public final class BluetoothDevice implements Parcelable, Attributable {
     }
 
     /**
+     * Returns the address type of this BluetoothDevice.
+     *
+     * @return Bluetooth address type
+     * @hide
+     */
+    public int getAddressType() {
+        if (DBG) Log.d(TAG, "mAddressType: " + mAddressType);
+        return mAddressType;
+    }
+
+    /**
      * Returns the anonymized hardware address of this BluetoothDevice. The first three octets
      * will be suppressed for anonymization.
      * <p> For example, "XX:XX:XX:AA:BB:CC".
