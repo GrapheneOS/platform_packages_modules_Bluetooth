@@ -56,5 +56,7 @@ filegroup {
         "android/bluetooth/le/IPeriodicAdvertisingCallback.aidl",
         "android/bluetooth/le/IScannerCallback.aidl",
         "android/bluetooth/IBluetoothConnectionCallback.aidl",
+        "android/bluetooth/IBluetoothLeBroadcastAssistantCallback.aidl",
+        "android/bluetooth/IBluetoothLeBroadcastAssistant.aidl",
     ],
 }
