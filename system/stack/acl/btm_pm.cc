@@ -711,7 +711,6 @@ void btm_pm_proc_cmd_status(tHCI_STATUS status) {
 void btm_pm_proc_mode_change(tHCI_STATUS hci_status, uint16_t hci_handle,
                              tHCI_MODE hci_mode, uint16_t interval) {
   tBTM_PM_STATUS mode = static_cast<tBTM_PM_STATUS>(hci_mode);
-  tBTM_PM_STATE old_state;
 
   /* update control block */
   if (pm_mode_db.count(hci_handle) == 0) {
@@ -720,7 +719,7 @@ void btm_pm_proc_mode_change(tHCI_STATUS hci_status, uint16_t hci_handle,
   }
   tBTM_PM_MCB* p_cb = &pm_mode_db[hci_handle];
 
-  old_state = p_cb->state;
+  const tBTM_PM_STATE old_state = p_cb->state;
   p_cb->state = mode;
   p_cb->interval = interval;
 

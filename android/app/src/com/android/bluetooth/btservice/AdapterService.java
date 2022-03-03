@@ -515,9 +515,16 @@ public class AdapterService extends Service {
         mDatabaseManager = new DatabaseManager(this);
         mDatabaseManager.start(MetadataDatabase.createDatabase(this));
 
-        // Phone policy is specific to phone implementations and hence if a device wants to exclude
-        // it out then it can be disabled by using the flag below.
-        if (getResources().getBoolean(R.bool.enable_phone_policy)) {
+        boolean isAutomotiveDevice = getApplicationContext().getPackageManager().hasSystemFeature(
+                PackageManager.FEATURE_AUTOMOTIVE);
+
+        /*
+         * Phone policy is specific to phone implementations and hence if a device wants to exclude
+         * it out then it can be disabled by using the flag below. Phone policy is never used on
+         * Android Automotive OS builds, in favor of a policy currently located in
+         * CarBluetoothService.
+         */
+        if (!isAutomotiveDevice && getResources().getBoolean(R.bool.enable_phone_policy)) {
             Log.i(TAG, "Phone policy enabled");
             mPhonePolicy = new PhonePolicy(this, new ServiceFactory());
             mPhonePolicy.start();
