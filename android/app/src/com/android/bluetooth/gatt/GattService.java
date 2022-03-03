@@ -1777,7 +1777,9 @@ public class GattService extends ProfileService {
         for (ScanClient client : mScanManager.getRegularScanQueue()) {
             ScannerMap.App app = mScannerMap.getById(client.scannerId);
             if (app == null) {
-                Log.i(TAG, "App is null; skip.");
+                if (VDBG) {
+                    Log.d(TAG, "App is null; skip.");
+                }
                 continue;
             }
 
@@ -1789,7 +1791,9 @@ public class GattService extends ProfileService {
             if (settings.getLegacy()) {
                 if ((eventType & ET_LEGACY_MASK) == 0) {
                     // If this is legacy scan, but nonlegacy result - skip.
-                    Log.i(TAG, "Legacy scan, non legacy result; skip.");
+                    if (VDBG) {
+                        Log.d(TAG, "Legacy scan, non legacy result; skip.");
+                    }
                     continue;
                 } else {
                     // Some apps are used to fixed-size advertise data.
@@ -1830,8 +1834,10 @@ public class GattService extends ProfileService {
             }
             MatchResult matchResult = matchesFilters(client, result, originalAddress);
             if (!hasPermission || !matchResult.getMatches()) {
-                Log.i(TAG, "Skipping client: permission="
-                        + hasPermission + " matches=" + matchResult.getMatches());
+                if (VDBG) {
+                    Log.d(TAG, "Skipping client: permission="
+                            + hasPermission + " matches=" + matchResult.getMatches());
+                }
                 continue;
             }
 
@@ -1843,7 +1849,9 @@ public class GattService extends ProfileService {
             }
 
             if ((settings.getCallbackType() & ScanSettings.CALLBACK_TYPE_ALL_MATCHES) == 0) {
-                Log.i(TAG, "Skipping client: CALLBACK_TYPE_ALL_MATCHES");
+                if (VDBG) {
+                    Log.d(TAG, "Skipping client: CALLBACK_TYPE_ALL_MATCHES");
+                }
                 continue;
             }
 
