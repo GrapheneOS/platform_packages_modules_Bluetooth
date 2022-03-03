@@ -515,9 +515,16 @@ public class AdapterService extends Service {
         mDatabaseManager = new DatabaseManager(this);
         mDatabaseManager.start(MetadataDatabase.createDatabase(this));
 
-        // Phone policy is specific to phone implementations and hence if a device wants to exclude
-        // it out then it can be disabled by using the flag below.
-        if (getResources().getBoolean(R.bool.enable_phone_policy)) {
+        boolean isAutomotiveDevice = getApplicationContext().getPackageManager().hasSystemFeature(
+                PackageManager.FEATURE_AUTOMOTIVE);
+
+        /*
+         * Phone policy is specific to phone implementations and hence if a device wants to exclude
+         * it out then it can be disabled by using the flag below. Phone policy is never used on
+         * Android Automotive OS builds, in favor of a policy currently located in
+         * CarBluetoothService.
+         */
+        if (!isAutomotiveDevice && getResources().getBoolean(R.bool.enable_phone_policy)) {
             Log.i(TAG, "Phone policy enabled");
             mPhonePolicy = new PhonePolicy(this, new ServiceFactory());
             mPhonePolicy.start();
@@ -851,41 +858,7 @@ public class AdapterService extends Service {
                     "Cannot switch buffer size. The number of A2DP active devices is "
                             + activeDevices.size());
         }
-        BluetoothCodecConfig codecConfig = null;
-        BluetoothCodecStatus currentCodecStatus = mA2dpService.getCodecStatus(activeDevices.get(0));
-        int currentCodec = currentCodecStatus.getCodecConfig().getCodecType();
-        if (isLowLatencyBufferSize) {
-            if (currentCodec == BluetoothCodecConfig.SOURCE_CODEC_TYPE_LC3) {
-                Log.w(TAG, "Current codec is already LC3. No need to change it.");
-                return;
-            }
-            codecConfig = new BluetoothCodecConfig(
-                    BluetoothCodecConfig.SOURCE_CODEC_TYPE_LC3,
-                    BluetoothCodecConfig.CODEC_PRIORITY_HIGHEST,
-                    BluetoothCodecConfig.SAMPLE_RATE_48000,
-                    BluetoothCodecConfig.BITS_PER_SAMPLE_16,
-                    BluetoothCodecConfig.CHANNEL_MODE_STEREO,
-                    0, 0x1 << 2, 0, 0);
-        } else {
-            if (currentCodec != BluetoothCodecConfig.SOURCE_CODEC_TYPE_LC3) {
-                Log.w(TAG, "Current codec is not LC3. No need to change it.");
-                return;
-            }
-            List<BluetoothCodecConfig> selectableCodecs =
-                    currentCodecStatus.getCodecsSelectableCapabilities();
-            for (BluetoothCodecConfig config : selectableCodecs) {
-                // Find a non LC3 codec
-                if (config.getCodecType() != BluetoothCodecConfig.SOURCE_CODEC_TYPE_LC3) {
-                    codecConfig = config;
-                    break;
-                }
-            }
-            if (codecConfig == null) {
-                Log.e(TAG, "Cannot find a non LC3 codec compatible with the remote device");
-                return;
-            }
-        }
-        mA2dpService.setCodecConfigPreference(activeDevices.get(0), codecConfig);
+        mA2dpService.switchCodecByBufferSize(activeDevices.get(0), isLowLatencyBufferSize);
     }
 
     /**

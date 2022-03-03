@@ -26,10 +26,7 @@
 
 #include <cstdint>
 
-// BTA_HH_INCLUDED
 #include "bt_target.h"  // Must be first to define build configuration
-#if (BTA_HH_INCLUDED == TRUE)
-
 #include "bta/hh/bta_hh_int.h"
 #include "bta/sys/bta_sys.h"
 #include "osi/include/allocator.h"
@@ -359,9 +356,3 @@ void BTA_HhRemoveDev(uint8_t dev_handle) {
 
   bta_sys_sendmsg(p_buf);
 }
-
-/******************************************************************************/
-/*                          Utility Function */
-/******************************************************************************/
-
-#endif /* BTA_HH_INCLUDED */
