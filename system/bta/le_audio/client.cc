@@ -3106,7 +3106,7 @@ class LeAudioClientImpl : public LeAudioClient {
         } else {
           CancelStreamingRequest();
         }
-        LeAudioDeviceGroup* group = aseGroups_.FindById(active_group_id_);
+        LeAudioDeviceGroup* group = aseGroups_.FindById(group_id);
         if (!group) {
           LOG(ERROR) << __func__ << ", Failed to update pending available "
                      << "contexts for group: " << group_id;
