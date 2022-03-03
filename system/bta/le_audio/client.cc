@@ -3082,10 +3082,13 @@ class LeAudioClientImpl : public LeAudioClient {
                << " audio_receiver_state_: " << audio_receiver_state_;
     switch (status) {
       case GroupStreamStatus::STREAMING:
+        LOG_ASSERT(group_id == active_group_id_)
+            << __func__ << " invalid group id " << group_id
+            << " active_group_id_ " << active_group_id_;
         if (audio_sender_state_ == AudioState::READY_TO_START)
-          StartSendingAudio(active_group_id_);
+          StartSendingAudio(group_id);
         if (audio_receiver_state_ == AudioState::READY_TO_START)
-          StartReceivingAudio(active_group_id_);
+          StartReceivingAudio(group_id);
 
         stream_setup_end_timestamp_ =
             bluetooth::common::time_get_os_boottime_us();
