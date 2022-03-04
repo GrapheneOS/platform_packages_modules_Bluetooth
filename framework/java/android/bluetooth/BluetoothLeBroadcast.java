@@ -16,21 +16,33 @@
 
 package android.bluetooth;
 
+import static android.bluetooth.BluetoothUtils.getSyncTimeout;
+
 import android.annotation.CallbackExecutor;
 import android.annotation.IntDef;
 import android.annotation.NonNull;
 import android.annotation.Nullable;
 import android.annotation.RequiresPermission;
+import android.annotation.SuppressLint;
 import android.annotation.SystemApi;
 import android.bluetooth.annotations.RequiresBluetoothConnectPermission;
+import android.content.AttributionSource;
 import android.content.Context;
+import android.os.IBinder;
+import android.os.RemoteException;
+import android.util.CloseGuard;
 import android.util.Log;
+
+import com.android.modules.utils.SynchronousResultReceiver;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeoutException;
 
 /**
  * This class provides the public APIs to control the BAP Broadcast Source profile.
@@ -45,6 +57,148 @@ import java.util.concurrent.Executor;
 public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfile {
     private static final String TAG = "BluetoothLeBroadcast";
     private static final boolean DBG = true;
+    private static final boolean VDBG = false;
+
+    private CloseGuard mCloseGuard;
+
+    private final BluetoothAdapter mAdapter;
+    private final AttributionSource mAttributionSource;
+    private final BluetoothProfileConnector<IBluetoothLeAudio> mProfileConnector =
+            new BluetoothProfileConnector(this, BluetoothProfile.LE_AUDIO_BROADCAST,
+                    "BluetoothLeAudioBroadcast", IBluetoothLeAudio.class.getName()) {
+                @Override
+                public IBluetoothLeAudio getServiceInterface(IBinder service) {
+                    return IBluetoothLeAudio.Stub.asInterface(service);
+                }
+            };
+
+    private final Map<Callback, Executor> mCallbackExecutorMap = new HashMap<>();
+
+    @SuppressLint("AndroidFrameworkBluetoothPermission")
+    private final IBluetoothLeBroadcastCallback mCallback =
+            new IBluetoothLeBroadcastCallback.Stub() {
+        @Override
+        public void onBroadcastStarted(int reason, int broadcastId) {
+            for (Map.Entry<BluetoothLeBroadcast.Callback, Executor> callbackExecutorEntry:
+                    mCallbackExecutorMap.entrySet()) {
+                BluetoothLeBroadcast.Callback callback = callbackExecutorEntry.getKey();
+                Executor executor = callbackExecutorEntry.getValue();
+                executor.execute(() -> callback.onBroadcastStarted(reason, broadcastId));
+            }
+        }
+
+        @Override
+        public void onBroadcastStartFailed(int reason) {
+            for (Map.Entry<BluetoothLeBroadcast.Callback, Executor> callbackExecutorEntry:
+                    mCallbackExecutorMap.entrySet()) {
+                BluetoothLeBroadcast.Callback callback = callbackExecutorEntry.getKey();
+                Executor executor = callbackExecutorEntry.getValue();
+                executor.execute(() -> callback.onBroadcastStartFailed(reason));
+            }
+        }
+
+        @Override
+        public void onBroadcastStopped(int reason, int broadcastId) {
+            for (Map.Entry<BluetoothLeBroadcast.Callback, Executor> callbackExecutorEntry:
+                    mCallbackExecutorMap.entrySet()) {
+                BluetoothLeBroadcast.Callback callback = callbackExecutorEntry.getKey();
+                Executor executor = callbackExecutorEntry.getValue();
+                executor.execute(() -> callback.onBroadcastStopped(reason, broadcastId));
+            }
+        }
+
+        @Override
+        public void onBroadcastStopFailed(int reason) {
+            for (Map.Entry<BluetoothLeBroadcast.Callback, Executor> callbackExecutorEntry:
+                    mCallbackExecutorMap.entrySet()) {
+                BluetoothLeBroadcast.Callback callback = callbackExecutorEntry.getKey();
+                Executor executor = callbackExecutorEntry.getValue();
+                executor.execute(() -> callback.onBroadcastStopFailed(reason));
+            }
+        }
+
+        @Override
+        public void onPlaybackStarted(int reason, int broadcastId) {
+            for (Map.Entry<BluetoothLeBroadcast.Callback, Executor> callbackExecutorEntry:
+                    mCallbackExecutorMap.entrySet()) {
+                BluetoothLeBroadcast.Callback callback = callbackExecutorEntry.getKey();
+                Executor executor = callbackExecutorEntry.getValue();
+                executor.execute(() -> callback.onPlaybackStarted(reason, broadcastId));
+            }
+        }
+
+        @Override
+        public void onPlaybackStopped(int reason, int broadcastId) {
+            for (Map.Entry<BluetoothLeBroadcast.Callback, Executor> callbackExecutorEntry:
+                    mCallbackExecutorMap.entrySet()) {
+                BluetoothLeBroadcast.Callback callback = callbackExecutorEntry.getKey();
+                Executor executor = callbackExecutorEntry.getValue();
+                executor.execute(() -> callback.onPlaybackStopped(reason, broadcastId));
+            }
+        }
+
+        @Override
+        public void onBroadcastUpdated(int reason, int broadcastId) {
+            for (Map.Entry<BluetoothLeBroadcast.Callback, Executor> callbackExecutorEntry:
+                    mCallbackExecutorMap.entrySet()) {
+                BluetoothLeBroadcast.Callback callback = callbackExecutorEntry.getKey();
+                Executor executor = callbackExecutorEntry.getValue();
+                executor.execute(() -> callback.onBroadcastUpdated(reason, broadcastId));
+            }
+        }
+
+        @Override
+        public void onBroadcastUpdateFailed(int reason, int broadcastId) {
+            for (Map.Entry<BluetoothLeBroadcast.Callback, Executor> callbackExecutorEntry:
+                    mCallbackExecutorMap.entrySet()) {
+                BluetoothLeBroadcast.Callback callback = callbackExecutorEntry.getKey();
+                Executor executor = callbackExecutorEntry.getValue();
+                executor.execute(() -> callback.onBroadcastUpdateFailed(reason, broadcastId));
+            }
+        }
+
+        @Override
+        public void onBroadcastMetadataChanged(int broadcastId,
+                BluetoothLeBroadcastMetadata metadata) {
+            for (Map.Entry<BluetoothLeBroadcast.Callback, Executor> callbackExecutorEntry:
+                    mCallbackExecutorMap.entrySet()) {
+                BluetoothLeBroadcast.Callback callback = callbackExecutorEntry.getKey();
+                Executor executor = callbackExecutorEntry.getValue();
+                executor.execute(() -> callback.onBroadcastMetadataChanged(broadcastId, metadata));
+            }
+        }
+    };
+
+    @SuppressLint("AndroidFrameworkBluetoothPermission")
+    private final IBluetoothStateChangeCallback mBluetoothStateChangeCallback =
+            new IBluetoothStateChangeCallback.Stub() {
+                public void onBluetoothStateChange(boolean up) {
+                    if (DBG) Log.d(TAG, "onBluetoothStateChange: up=" + up);
+                    if (up) {
+                        // re-register the service-to-app callback
+                        synchronized (mCallbackExecutorMap) {
+                            if (!mCallbackExecutorMap.isEmpty()) {
+                                try {
+                                    final IBluetoothLeAudio service = getService();
+                                    if (service != null) {
+                                        final SynchronousResultReceiver<Integer> recv =
+                                                new SynchronousResultReceiver();
+                                        service.registerLeBroadcastCallback(mCallback,
+                                                mAttributionSource, recv);
+                                        recv.awaitResultNoInterrupt(getSyncTimeout())
+                                                .getValue(null);
+                                    }
+                                } catch (TimeoutException e) {
+                                    Log.e(TAG, "onBluetoothServiceUp: Failed to register "
+                                            + "Le Broadcaster callback", e);
+                                } catch (RemoteException e) {
+                                    throw e.rethrowFromSystemServer();
+                                }
+                            }
+                        }
+                    }
+                }
+            };
 
     /**
      * Interface for receiving events related to Broadcast Source
@@ -171,7 +325,33 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
      * @param listener listens for service callbacks across binder
      * @hide
      */
-    /*package*/ BluetoothLeBroadcast(Context context, BluetoothProfile.ServiceListener listener) {}
+    /*package*/ BluetoothLeBroadcast(Context context, BluetoothProfile.ServiceListener listener) {
+        mAdapter = BluetoothAdapter.getDefaultAdapter();
+        mAttributionSource = mAdapter.getAttributionSource();
+        mProfileConnector.connect(context, listener);
+
+        IBluetoothManager mgr = mAdapter.getBluetoothManager();
+        if (mgr != null) {
+            try {
+                mgr.registerStateChangeCallback(mBluetoothStateChangeCallback);
+            } catch (RemoteException e) {
+                throw e.rethrowFromSystemServer();
+            }
+        }
+
+        mCloseGuard = new CloseGuard();
+        mCloseGuard.open("close");
+    }
+
+    /**
+     * @hide
+     */
+    protected void finalize() {
+        if (mCloseGuard != null) {
+            mCloseGuard.warnIfOpen();
+        }
+        close();
+    }
 
     /**
      * Not supported since LE Audio Broadcasts do not establish a connection.
@@ -246,8 +426,36 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
         if (callback == null) {
             throw new IllegalArgumentException("callback cannot be null");
         }
-        log("registerCallback");
-        throw new UnsupportedOperationException("Not Implemented");
+        if (!isEnabled()) {
+            throw new IllegalStateException("service not enabled");
+        }
+
+        if (DBG) log("registerCallback");
+
+        synchronized (mCallbackExecutorMap) {
+            // If the callback map is empty, we register the service-to-app callback
+            if (mCallbackExecutorMap.isEmpty()) {
+                try {
+                    final IBluetoothLeAudio service = getService();
+                    if (service != null) {
+                        final SynchronousResultReceiver<Integer> recv =
+                                new SynchronousResultReceiver();
+                        service.registerLeBroadcastCallback(mCallback, mAttributionSource, recv);
+                        recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
+                    }
+                } catch (TimeoutException | IllegalStateException e) {
+                    Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+                } catch (RemoteException e) {
+                    throw e.rethrowFromSystemServer();
+                }
+            }
+
+            // Adds the passed in callback to our map of callbacks to executors
+            if (mCallbackExecutorMap.containsKey(callback)) {
+                throw new IllegalArgumentException("This callback has already been registered");
+            }
+            mCallbackExecutorMap.put(callback, executor);
+        }
     }
 
     /**
@@ -271,8 +479,30 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
         if (callback == null) {
             throw new IllegalArgumentException("callback cannot be null");
         }
-        log("unregisterCallback");
-        throw new UnsupportedOperationException("Not Implemented");
+
+        if (DBG) log("unregisterCallback");
+
+        synchronized (mCallbackExecutorMap) {
+            if (mCallbackExecutorMap.remove(callback) != null) {
+                throw new IllegalArgumentException("This callback has not been registered");
+            }
+        }
+
+        // If the callback map is empty, we unregister the service-to-app callback
+        if (mCallbackExecutorMap.isEmpty()) {
+            try {
+                final IBluetoothLeAudio service = getService();
+                if (service != null) {
+                    final SynchronousResultReceiver<Integer> recv = new SynchronousResultReceiver();
+                    service.unregisterLeBroadcastCallback(mCallback, mAttributionSource, recv);
+                    recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
+                }
+            } catch (TimeoutException | IllegalStateException e) {
+                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+            } catch (RemoteException e) {
+                throw e.rethrowFromSystemServer();
+            }
+        }
     }
 
     /**
@@ -323,6 +553,17 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
     public void startBroadcast(@NonNull BluetoothLeAudioContentMetadata contentMetadata,
             @Nullable byte[] broadcastCode) {
         if (DBG) log("startBroadcasting");
+        final IBluetoothLeAudio service = getService();
+        if (service == null) {
+            Log.w(TAG, "Proxy not attached to service");
+            if (DBG) log(Log.getStackTraceString(new Throwable()));
+        } else if (isEnabled()) {
+            try {
+                service.startBroadcast(contentMetadata, broadcastCode, mAttributionSource);
+            } catch (RemoteException e) {
+                throw e.rethrowFromSystemServer();
+            }
+        }
     }
 
     /**
@@ -346,7 +587,18 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
     })
     public void updateBroadcast(int broadcastId,
             @NonNull BluetoothLeAudioContentMetadata contentMetadata) {
-
+        if (DBG) log("updateBroadcast");
+        final IBluetoothLeAudio service = getService();
+        if (service == null) {
+            Log.w(TAG, "Proxy not attached to service");
+            if (DBG) log(Log.getStackTraceString(new Throwable()));
+        } else if (isEnabled()) {
+            try {
+                service.updateBroadcast(broadcastId, contentMetadata, mAttributionSource);
+            } catch (RemoteException e) {
+                throw e.rethrowFromSystemServer();
+            }
+        }
     }
 
     /**
@@ -368,6 +620,17 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
     })
     public void stopBroadcast(int broadcastId) {
         if (DBG) log("disableBroadcastMode");
+        final IBluetoothLeAudio service = getService();
+        if (service == null) {
+            Log.w(TAG, "Proxy not attached to service");
+            if (DBG) log(Log.getStackTraceString(new Throwable()));
+        } else if (isEnabled()) {
+            try {
+                service.stopBroadcast(broadcastId, mAttributionSource);
+            } catch (RemoteException e) {
+                throw e.rethrowFromSystemServer();
+            }
+        }
     }
 
     /**
@@ -385,7 +648,23 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
             android.Manifest.permission.BLUETOOTH_PRIVILEGED,
     })
     public boolean isPlaying(int broadcastId) {
-        return false;
+        final IBluetoothLeAudio service = getService();
+        final boolean defaultValue = false;
+        if (service == null) {
+            Log.w(TAG, "Proxy not attached to service");
+            if (DBG) log(Log.getStackTraceString(new Throwable()));
+        } else if (isEnabled()) {
+            try {
+                final SynchronousResultReceiver<Boolean> recv = new SynchronousResultReceiver();
+                service.isPlaying(broadcastId, mAttributionSource, recv);
+                return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
+            } catch (TimeoutException e) {
+                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+            } catch (RemoteException e) {
+                throw e.rethrowFromSystemServer();
+            }
+        }
+        return defaultValue;
     }
 
     /**
@@ -402,7 +681,24 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
             android.Manifest.permission.BLUETOOTH_PRIVILEGED,
     })
     public @NonNull List<BluetoothLeBroadcastMetadata> getAllBroadcastMetadata() {
-        return Collections.emptyList();
+        final IBluetoothLeAudio service = getService();
+        final List<BluetoothLeBroadcastMetadata> defaultValue = Collections.emptyList();
+        if (service == null) {
+            Log.w(TAG, "Proxy not attached to service");
+            if (DBG) log(Log.getStackTraceString(new Throwable()));
+        } else if (isEnabled()) {
+            try {
+                final SynchronousResultReceiver<List<BluetoothLeBroadcastMetadata>> recv =
+                        new SynchronousResultReceiver();
+                service.getAllBroadcastMetadata(mAttributionSource, recv);
+                return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
+            } catch (TimeoutException e) {
+                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+            } catch (RemoteException e) {
+                throw e.rethrowFromSystemServer();
+            }
+        }
+        return defaultValue;
     }
 
     /**
@@ -413,7 +709,23 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
     @SystemApi
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
     public int getMaximumNumberOfBroadcast() {
-        return 1;
+        final IBluetoothLeAudio service = getService();
+        final int defaultValue = 1;
+        if (service == null) {
+            Log.w(TAG, "Proxy not attached to service");
+            if (DBG) log(Log.getStackTraceString(new Throwable()));
+        } else if (isEnabled()) {
+            try {
+                final SynchronousResultReceiver<Integer> recv = new SynchronousResultReceiver();
+                service.getMaximumNumberOfBroadcast(mAttributionSource, recv);
+                return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
+            } catch (TimeoutException e) {
+                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+            } catch (RemoteException e) {
+                throw e.rethrowFromSystemServer();
+            }
+        }
+        return defaultValue;
     }
 
     /**
@@ -421,7 +733,29 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
      * @hide
      */
     @Override
-    public void close() throws Exception {}
+    public void close() {
+        if (VDBG) log("close()");
+
+        IBluetoothManager mgr = mAdapter.getBluetoothManager();
+        if (mgr != null) {
+            try {
+                mgr.unregisterStateChangeCallback(mBluetoothStateChangeCallback);
+            } catch (RemoteException e) {
+                Log.e(TAG, "", e);
+            }
+        }
+
+        mProfileConnector.disconnect();
+    }
+
+    private boolean isEnabled() {
+        if (mAdapter.getState() == BluetoothAdapter.STATE_ON) return true;
+        return false;
+    }
+
+    private IBluetoothLeAudio getService() {
+        return mProfileConnector.getService();
+    }
 
     private static void log(String msg) {
         Log.d(TAG, msg);
