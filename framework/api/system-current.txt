@@ -341,8 +341,8 @@ package android.bluetooth {
 
   public static final class BluetoothHeadsetClient.NetworkServiceState implements android.os.Parcelable {
     method @NonNull public android.bluetooth.BluetoothDevice getDevice();
-    method @Nullable public String getOperatorName();
-    method public int getSignalStrength();
+    method @Nullable public String getNetworkOperatorName();
+    method @IntRange(from=0, to=5) public int getSignalStrength();
     method public boolean isRoaming();
     method public boolean isServiceAvailable();
     field @NonNull public static final android.os.Parcelable.Creator<android.bluetooth.BluetoothHeadsetClient.NetworkServiceState> CREATOR;

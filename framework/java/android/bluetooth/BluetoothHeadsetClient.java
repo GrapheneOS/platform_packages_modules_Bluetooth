@@ -17,6 +17,7 @@ package android.bluetooth;
 
 import static android.bluetooth.BluetoothUtils.getSyncTimeout;
 
+import android.annotation.IntRange;
 import android.annotation.NonNull;
 import android.annotation.Nullable;
 import android.annotation.RequiresPermission;
@@ -1746,8 +1747,19 @@ public final class BluetoothHeadsetClient implements BluetoothProfile, AutoClose
         private final String mOperatorName;
 
         /**
-         * The general signal strength
-         * (0 - Unknown, 1 - Poor, 2 - Fair, 3 - Good, 4 - Great, 5 - Excellent)
+         * The general signal strength, from 0 to 5.
+         *
+         * Bluetooth HFP v1.8 specifies that the signal strength of a device can be [0, 5]. It does
+         * place any requirements on how a device derives those values. While they're typically
+         * derived from signal quality/RSSI buckets, there's way to be certain on the exact meaning.
+         *
+         * That said, you can "generally" interpret the values relative to each other as follows:
+         *   - Level 0: None/Unknown
+         *   - Level 1: Very Poor
+         *   - Level 2: Poor
+         *   - Level 3: Fair
+         *   - Level 4: Good
+         *   - Level 5: Great
          */
         private final int mSignalStrength;
 
@@ -1808,20 +1820,19 @@ public final class BluetoothHeadsetClient implements BluetoothProfile, AutoClose
          * @hide
          */
         @SystemApi
-        public @Nullable String getOperatorName() {
+        public @Nullable String getNetworkOperatorName() {
             return mOperatorName;
         }
 
         /**
          * Get the network's general signal strength
          *
-         * @return The general signal strength (0 - None, 1 - Poor, 2 - Fair, 3 - Good,
-         *         4 - Great, 5 - Excellent)
+         * @return The general signal strength, range [0, 5]
          *
          * @hide
          */
         @SystemApi
-        public int getSignalStrength() {
+        public @IntRange(from = 0, to = 5) int getSignalStrength() {
             return mSignalStrength;
         }
 
