@@ -32,7 +32,6 @@ import android.annotation.SdkConstant.SdkConstantType;
 import android.annotation.SuppressLint;
 import android.annotation.SystemApi;
 import android.app.PendingIntent;
-import android.app.PropertyInvalidatedCache;
 import android.bluetooth.BluetoothDevice.AddressType;
 import android.bluetooth.BluetoothDevice.Transport;
 import android.bluetooth.BluetoothProfile.ConnectionPolicy;
@@ -57,6 +56,7 @@ import android.os.Binder;
 import android.os.BluetoothServiceManager;
 import android.os.Build;
 import android.os.IBinder;
+import android.os.IpcDataCache;
 import android.os.ParcelUuid;
 import android.os.RemoteException;
 import android.os.ResultReceiver;
@@ -1125,13 +1125,13 @@ public final class BluetoothAdapter {
     }
 
     /**
-     * There are several instances of PropertyInvalidatedCache used in this class.
+     * There are several instances of IpcDataCache used in this class.
      * BluetoothCache wraps up the common code.  All caches are created with a maximum of
      * eight entries, and the key is in the bluetooth module.  The name is set to the api.
      */
-    private static class BluetoothCache<Q, R> extends PropertyInvalidatedCache<Q, R> {
-        BluetoothCache(String api, PropertyInvalidatedCache.QueryHandler query) {
-            super(8, PropertyInvalidatedCache.MODULE_BLUETOOTH, api, api, query);
+    private static class BluetoothCache<Q, R> extends IpcDataCache<Q, R> {
+        BluetoothCache(String api, IpcDataCache.QueryHandler query) {
+            super(8, IpcDataCache.MODULE_BLUETOOTH, api, api, query);
         }};
 
     /**
@@ -1139,7 +1139,7 @@ public final class BluetoothAdapter {
      * enforces the bluetooth module.
      */
     private static void invalidateCache(@NonNull String api) {
-        PropertyInvalidatedCache.invalidateCache(PropertyInvalidatedCache.MODULE_BLUETOOTH, api);
+        IpcDataCache.invalidateCache(IpcDataCache.MODULE_BLUETOOTH, api);
     }
 
     /**
@@ -1147,8 +1147,8 @@ public final class BluetoothAdapter {
      */
     private static final String GET_STATE_API = "getState";
 
-    private final PropertyInvalidatedCache.QueryHandler<Void, Integer> mBluetoothGetStateQuery =
-            new PropertyInvalidatedCache.QueryHandler<>() {
+    private final IpcDataCache.QueryHandler<Void, Integer> mBluetoothGetStateQuery =
+            new IpcDataCache.QueryHandler<>() {
         @RequiresLegacyBluetoothPermission
         @RequiresNoPermission
         @AdapterState
@@ -1174,7 +1174,7 @@ public final class BluetoothAdapter {
             return state;
         }};
 
-    private final PropertyInvalidatedCache<Void, Integer> mBluetoothGetStateCache =
+    private final IpcDataCache<Void, Integer> mBluetoothGetStateCache =
             new BluetoothCache<Void, Integer>(GET_STATE_API, mBluetoothGetStateQuery);
 
     /** @hide */
@@ -2267,8 +2267,8 @@ public final class BluetoothAdapter {
         }
     }
 
-    private final PropertyInvalidatedCache.QueryHandler<Void, Boolean> mBluetoothFilteringQuery =
-            new PropertyInvalidatedCache.QueryHandler<>() {
+    private final IpcDataCache.QueryHandler<Void, Boolean> mBluetoothFilteringQuery =
+            new IpcDataCache.QueryHandler<>() {
         @RequiresLegacyBluetoothPermission
         @RequiresNoPermission
         @Override
@@ -2290,7 +2290,7 @@ public final class BluetoothAdapter {
 
     private static final String FILTERING_API = "isOffloadedFilteringSupported";
 
-    private final PropertyInvalidatedCache<Void, Boolean> mBluetoothFilteringCache =
+    private final IpcDataCache<Void, Boolean> mBluetoothFilteringCache =
             new BluetoothCache<Void, Boolean>(FILTERING_API, mBluetoothFilteringQuery);
 
     /** @hide */
@@ -2810,8 +2810,8 @@ public final class BluetoothAdapter {
         return supportedProfiles;
     }
 
-    private final PropertyInvalidatedCache.QueryHandler<Void, Integer> mBluetoothGetAdapterQuery =
-            new PropertyInvalidatedCache.QueryHandler<>() {
+    private final IpcDataCache.QueryHandler<Void, Integer> mBluetoothGetAdapterQuery =
+            new IpcDataCache.QueryHandler<>() {
         @RequiresLegacyBluetoothPermission
         @RequiresNoPermission
         @Override
@@ -2836,7 +2836,7 @@ public final class BluetoothAdapter {
         }};
 
     private static final String GET_CONNECTION_API = "getAdapterConnectionState";
-    private final PropertyInvalidatedCache<Void, Integer>
+    private final IpcDataCache<Void, Integer>
             mBluetoothGetAdapterConnectionStateCache =
             new BluetoothCache<Void, Integer>(GET_CONNECTION_API, mBluetoothGetAdapterQuery);
 
@@ -2872,8 +2872,8 @@ public final class BluetoothAdapter {
         return mBluetoothGetAdapterConnectionStateCache.query(null);
     }
 
-    private final PropertyInvalidatedCache.QueryHandler<Integer, Integer> mBluetoothProfileQuery =
-            new PropertyInvalidatedCache.QueryHandler<>() {
+    private final IpcDataCache.QueryHandler<Integer, Integer> mBluetoothProfileQuery =
+            new IpcDataCache.QueryHandler<>() {
         @RequiresNoPermission
         @Override
         public Integer apply(Integer query) {
@@ -2896,7 +2896,7 @@ public final class BluetoothAdapter {
         }};
 
     private static final String PROFILE_API = "getProfileConnectionState";
-    private final PropertyInvalidatedCache<Integer, Integer>
+    private final IpcDataCache<Integer, Integer>
             mGetProfileConnectionStateCache =
             new BluetoothCache<Integer, Integer>(PROFILE_API, mBluetoothProfileQuery);
 
