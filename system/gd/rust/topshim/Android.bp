@@ -51,6 +51,7 @@ cc_library_static {
         "btif/btif_shim.cc",
         "gatt/gatt_shim.cc",
         "gatt/gatt_ble_scanner_shim.cc",
+        "gatt/gatt_ble_advertiser_shim.cc",
         "hfp/hfp_shim.cc",
         "controller/controller_shim.cc",
         "common/utils.cc",
