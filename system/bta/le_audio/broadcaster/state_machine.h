@@ -98,7 +98,7 @@ struct BroadcastStateMachineConfig {
   uint8_t streaming_phy;
   BroadcastCodecWrapper codec_wrapper;
   BasicAudioAnnouncementData announcement;
-  std::optional<LeAudioBroadcaster::Code> broadcast_code;
+  std::optional<bluetooth::le_audio::BroadcastCode> broadcast_code;
 };
 
 class BroadcastStateMachine : public StateMachine<5> {
@@ -144,7 +144,9 @@ class BroadcastStateMachine : public StateMachine<5> {
   virtual void RequestOwnAddress() = 0;
   virtual RawAddress GetOwnAddress() = 0;
   virtual uint8_t GetOwnAddressType() = 0;
-  virtual bluetooth::le_audio::BroadcastId GetBroadcastId() const = 0;
+  virtual std::optional<bluetooth::le_audio::BroadcastCode> GetBroadcastCode()
+      const = 0;
+  virtual bluetooth::le_audio::BroadcastId const& GetBroadcastId() const = 0;
   virtual void UpdateBroadcastAnnouncement(
       BasicAudioAnnouncementData announcement) = 0;
   void SetMuted(bool muted) { is_muted_ = muted; };
