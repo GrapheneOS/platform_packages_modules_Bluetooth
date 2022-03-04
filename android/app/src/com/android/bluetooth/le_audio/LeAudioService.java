@@ -122,6 +122,7 @@ public class LeAudioService extends ProfileService {
     LeAudioBroadcasterNativeInterface mLeAudioBroadcasterNativeInterface = null;
     @VisibleForTesting
     AudioManager mAudioManager;
+    LeAudioTmapGattServer mTmapGattServer;
 
     @VisibleForTesting
     RemoteCallbackList<IBluetoothLeBroadcastCallback> mBroadcastCallbacks;
@@ -240,6 +241,9 @@ public class LeAudioService extends ProfileService {
         registerReceiver(mConnectionStateChangedReceiver, filter);
         mLeAudioCallbacks = new RemoteCallbackList<IBluetoothLeAudioCallback>();
 
+        int tmapRoleMask =
+                LeAudioTmapGattServer.TMAP_ROLE_FLAG_CG | LeAudioTmapGattServer.TMAP_ROLE_FLAG_UMS;
+
         // Initialize Broadcast native interface
         if (mAdapterService.isLeAudioBroadcastSourceSupported()) {
             mBroadcastCallbacks = new RemoteCallbackList<IBluetoothLeBroadcastCallback>();
@@ -247,9 +251,18 @@ public class LeAudioService extends ProfileService {
                     LeAudioBroadcasterNativeInterface.getInstance(),
                     "LeAudioBroadcasterNativeInterface cannot be null when LeAudioService starts");
             mLeAudioBroadcasterNativeInterface.init();
+            tmapRoleMask |= LeAudioTmapGattServer.TMAP_ROLE_FLAG_BMS;
         } else {
             Log.w(TAG, "Le Audio Broadcasts not supported.");
         }
+
+        // the role mask is fixed in Android
+        if (mTmapGattServer != null) {
+            throw new IllegalStateException("TMAP GATT server started before start() is called");
+        }
+        mTmapGattServer = LeAudioObjectsFactory.getInstance().getTmapGattServer(this);
+        mTmapGattServer.start(tmapRoleMask);
+
         // Mark service as started
         setLeAudioService(this);
 
@@ -280,6 +293,14 @@ public class LeAudioService extends ProfileService {
         }
 
         setActiveDevice(null);
+
+        if (mTmapGattServer == null) {
+            Log.w(TAG, "TMAP GATT server should never be null before stop() is called");
+        } else {
+            mTmapGattServer.stop();
+            mTmapGattServer = null;
+        }
+
         //Don't wait for async call with INACTIVE group status, clean active
         //device for active group.
         synchronized (mGroupLock) {

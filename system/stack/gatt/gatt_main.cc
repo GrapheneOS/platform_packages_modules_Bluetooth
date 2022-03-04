@@ -125,6 +125,7 @@ void gatt_init(void) {
   gatt_cb.hdl_cfg.gap_start_hdl = GATT_GAP_START_HANDLE;
   gatt_cb.hdl_cfg.gmcs_start_hdl = GATT_GMCS_START_HANDLE;
   gatt_cb.hdl_cfg.gtbs_start_hdl = GATT_GTBS_START_HANDLE;
+  gatt_cb.hdl_cfg.tmas_start_hdl = GATT_TMAS_START_HANDLE;
   gatt_cb.hdl_cfg.app_start_hdl = GATT_APP_START_HANDLE;
 
   gatt_cb.hdl_list_info = new std::list<tGATT_HDL_LIST_ELEM>();
