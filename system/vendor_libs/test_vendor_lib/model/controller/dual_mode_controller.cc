@@ -1430,14 +1430,21 @@ void DualModeController::WriteScanEnable(CommandView command) {
   auto command_view = gd_hci::WriteScanEnableView::Create(
       gd_hci::DiscoveryCommandView::Create(command));
   ASSERT(command_view.IsValid());
-  link_layer_controller_.SetInquiryScanEnable(
-      command_view.GetScanEnable() ==
-          gd_hci::ScanEnable::INQUIRY_AND_PAGE_SCAN ||
-      command_view.GetScanEnable() == gd_hci::ScanEnable::INQUIRY_SCAN_ONLY);
-  link_layer_controller_.SetPageScanEnable(
-      command_view.GetScanEnable() ==
-          gd_hci::ScanEnable::INQUIRY_AND_PAGE_SCAN ||
-      command_view.GetScanEnable() == gd_hci::ScanEnable::PAGE_SCAN_ONLY);
+
+  gd_hci::ScanEnable scan_enable = command_view.GetScanEnable();
+  bool inquiry_scan =
+      scan_enable == gd_hci::ScanEnable::INQUIRY_AND_PAGE_SCAN ||
+      scan_enable == gd_hci::ScanEnable::INQUIRY_SCAN_ONLY;
+  bool page_scan =
+      scan_enable == gd_hci::ScanEnable::INQUIRY_AND_PAGE_SCAN ||
+      scan_enable == gd_hci::ScanEnable::PAGE_SCAN_ONLY;
+
+  LOG_INFO("%s | WriteScanEnable %s",
+      properties_.GetAddress().ToString().c_str(),
+      gd_hci::ScanEnableText(scan_enable).c_str());
+
+  link_layer_controller_.SetInquiryScanEnable(inquiry_scan);
+  link_layer_controller_.SetPageScanEnable(page_scan);
   send_event_(bluetooth::hci::WriteScanEnableCompleteBuilder::Create(
       kNumCommandPackets, ErrorCode::SUCCESS));
 }
@@ -1725,6 +1732,11 @@ void DualModeController::LeSetAdvertisingEnable(CommandView command) {
   auto command_view = gd_hci::LeSetAdvertisingEnableView::Create(
       gd_hci::LeAdvertisingCommandView::Create(command));
   ASSERT(command_view.IsValid());
+
+  LOG_INFO("%s | LeSetAdvertisingEnable (%d)",
+      properties_.GetAddress().ToString().c_str(),
+      command_view.GetAdvertisingEnable() == gd_hci::Enable::ENABLED);
+
   auto status = link_layer_controller_.SetLeAdvertisingEnable(
       command_view.GetAdvertisingEnable() == gd_hci::Enable::ENABLED);
   send_event_(bluetooth::hci::LeSetAdvertisingEnableCompleteBuilder::Create(
@@ -1750,6 +1762,11 @@ void DualModeController::LeSetScanEnable(CommandView command) {
   auto command_view = gd_hci::LeSetScanEnableView::Create(
       gd_hci::LeScanningCommandView::Create(command));
   ASSERT(command_view.IsValid());
+
+  LOG_INFO("%s | LeSetScanEnable (%d)",
+      properties_.GetAddress().ToString().c_str(),
+      command_view.GetLeScanEnable() == gd_hci::Enable::ENABLED);
+
   if (command_view.GetLeScanEnable() == gd_hci::Enable::ENABLED) {
     link_layer_controller_.SetLeScanEnable(gd_hci::OpCode::LE_SET_SCAN_ENABLE);
   } else {
