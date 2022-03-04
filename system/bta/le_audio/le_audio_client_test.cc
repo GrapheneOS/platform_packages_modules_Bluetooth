@@ -974,7 +974,10 @@ class UnicastTestNoInit : public Test {
     tracks_[0].content_type = content_type;
 
     if (reconfigure_existing_stream) {
+      EXPECT_CALL(mock_audio_source_, SuspendedForReconfiguration()).Times(1);
       EXPECT_CALL(mock_audio_source_, ConfirmStreamingRequest()).Times(1);
+    } else {
+      EXPECT_CALL(mock_audio_source_, SuspendedForReconfiguration()).Times(0);
     }
 
     auto do_metadata_update_future = do_metadata_update_promise.get_future();

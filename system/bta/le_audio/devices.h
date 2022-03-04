@@ -197,10 +197,10 @@ class LeAudioDeviceGroup {
         transport_latency_mtos_us_(0),
         transport_latency_stom_us_(0),
         active_context_type_(types::LeAudioContextType::UNINITIALIZED),
+        pending_update_available_contexts_(std::nullopt),
         target_state_(types::AseState::BTA_LE_AUDIO_ASE_STATE_IDLE),
         current_state_(types::AseState::BTA_LE_AUDIO_ASE_STATE_IDLE),
-        context_type_(types::LeAudioContextType::UNINITIALIZED) {
-  }
+        context_type_(types::LeAudioContextType::UNINITIALIZED) {}
   ~LeAudioDeviceGroup(void);
 
   void AddNode(const std::shared_ptr<LeAudioDevice>& leAudioDevice);
