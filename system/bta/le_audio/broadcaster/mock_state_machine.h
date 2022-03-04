@@ -97,7 +97,9 @@ class MockBroadcastStateMachine
   MOCK_METHOD((void), RequestOwnAddress, (), (override));
   MOCK_METHOD((RawAddress), GetOwnAddress, (), (override));
   MOCK_METHOD((uint8_t), GetOwnAddressType, (), (override));
-  MOCK_METHOD((bluetooth::le_audio::BroadcastId), GetBroadcastId, (),
+  MOCK_METHOD((std::optional<bluetooth::le_audio::BroadcastCode>),
+              GetBroadcastCode, (), (const override));
+  MOCK_METHOD((bluetooth::le_audio::BroadcastId const&), GetBroadcastId, (),
               (const override));
   MOCK_METHOD((void), UpdateBroadcastAnnouncement,
               (le_audio::broadcaster::BasicAudioAnnouncementData announcement),

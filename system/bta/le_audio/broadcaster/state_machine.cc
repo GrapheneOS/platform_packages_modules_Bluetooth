@@ -101,8 +101,13 @@ class BroadcastStateMachineImpl : public BroadcastStateMachine {
     return addr_type_;
   }
 
-  bluetooth::le_audio::BroadcastId GetBroadcastId() const override {
+  bluetooth::le_audio::BroadcastId const& GetBroadcastId() const override {
     return sm_config_.broadcast_id;
+  }
+
+  std::optional<bluetooth::le_audio::BroadcastCode> GetBroadcastCode()
+      const override {
+    return sm_config_.broadcast_code;
   }
 
   void UpdateBroadcastAnnouncement(
