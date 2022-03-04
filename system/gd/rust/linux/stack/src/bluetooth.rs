@@ -498,6 +498,9 @@ impl BtifBluetoothCallbacks for Bluetooth {
 
             // Also need to manually request some properties
             self.intf.lock().unwrap().get_adapter_property(BtPropertyType::ClassOfDevice);
+
+            // Ensure device is connectable so that disconnected device can reconnect
+            self.set_connectable(true);
         }
     }
 
