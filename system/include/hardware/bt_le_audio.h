@@ -144,9 +144,10 @@ enum class BroadcastAudioProfile {
   MEDIA,
 };
 
-using BroadcastCode = std::array<uint8_t, 16>;
-using BroadcastId = std::array<uint8_t, 3>;
 constexpr uint8_t kBroadcastAnnouncementBroadcastIdSize = 3;
+using BroadcastId = std::array<uint8_t, kBroadcastAnnouncementBroadcastIdSize>;
+constexpr BroadcastId kBroadcastBroadcastIdInvalid = {0, 0, 0};
+using BroadcastCode = std::array<uint8_t, 16>;
 
 class LeAudioBroadcasterCallbacks {
  public:
