@@ -199,6 +199,8 @@
 
 #define UUID_SERVCLASS_GMCS_SERVER 0x1849 /* Generic Media Control Service */
 #define UUID_SERVCLASS_GTBS_SERVER 0x184c /* Generic Telephony Bearer Service*/
+#define UUID_SERVCLASS_TMAS_SERVER \
+  0x1855 /* Telephone and Media Audio Service */
 
 #define UUID_CODEC_CVSD 0x0001 /* CVSD */
 #define UUID_CODEC_MSBC 0x0002 /* mSBC */
