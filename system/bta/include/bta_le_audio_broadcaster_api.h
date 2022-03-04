@@ -26,8 +26,6 @@
 /* Interface class */
 class LeAudioBroadcaster {
  public:
-  typedef std::array<uint8_t, 16> Code;
-
   enum class AudioProfile {
     SONIFICATION = 0,
     MEDIA = 1,
@@ -47,10 +45,10 @@ class LeAudioBroadcaster {
   static bool IsLeAudioBroadcasterRunning(void);
   static void DebugDump(int fd);
 
-  virtual void CreateAudioBroadcast(std::vector<uint8_t> metadata,
-                                    AudioProfile profile,
-                                    std::optional<LeAudioBroadcaster::Code>
-                                        broadcast_code = std::nullopt) = 0;
+  virtual void CreateAudioBroadcast(
+      std::vector<uint8_t> metadata, AudioProfile profile,
+      std::optional<bluetooth::le_audio::BroadcastCode> broadcast_code =
+          std::nullopt) = 0;
   virtual void SuspendAudioBroadcast(uint8_t instance_id) = 0;
   virtual void StartAudioBroadcast(uint8_t instance_id) = 0;
   virtual void StopAudioBroadcast(uint8_t instance_id) = 0;
