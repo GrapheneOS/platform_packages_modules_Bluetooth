@@ -85,6 +85,12 @@ void LeAudioClientAudioSource::UpdateAudioConfigToHal(
   source_instance->UpdateAudioConfigToHal(config);
 }
 
+void LeAudioClientAudioSource::SuspendedForReconfiguration() {
+  LOG_ASSERT(source_instance)
+      << "Mock LeAudioClientAudioSource interface not set!";
+  source_instance->SuspendedForReconfiguration();
+}
+
 /* Sink mock */
 static MockLeAudioClientAudioSink* sink_instance = nullptr;
 void MockLeAudioClientAudioSink::SetMockInstanceForTesting(
@@ -143,7 +149,11 @@ void LeAudioClientAudioSink::CancelStreamingRequest() {
 
 void LeAudioClientAudioSink::UpdateAudioConfigToHal(
     const ::le_audio::offload_config& config) {
-  LOG_ASSERT(sink_instance)
-      << "Mock LeAudioClientAudioSource interface not set!";
+  LOG_ASSERT(sink_instance) << "Mock LeAudioClientAudioSink interface not set!";
   sink_instance->UpdateAudioConfigToHal(config);
+}
+
+void LeAudioClientAudioSink::SuspendedForReconfiguration() {
+  LOG_ASSERT(sink_instance) << "Mock LeAudioClientAudioSink interface not set!";
+  sink_instance->SuspendedForReconfiguration();
 }
