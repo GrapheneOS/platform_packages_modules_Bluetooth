@@ -36,6 +36,7 @@ class MockLeAudioClientAudioSource {
   MOCK_METHOD((void), DebugDump, (int fd));
   MOCK_METHOD((void), UpdateAudioConfigToHal,
               (const ::le_audio::offload_config&));
+  MOCK_METHOD((void), SuspendedForReconfiguration, ());
 };
 
 class MockLeAudioClientAudioSink {
@@ -54,4 +55,5 @@ class MockLeAudioClientAudioSink {
   MOCK_METHOD((void), DebugDump, (int fd));
   MOCK_METHOD((void), UpdateAudioConfigToHal,
               (const ::le_audio::offload_config&));
+  MOCK_METHOD((void), SuspendedForReconfiguration, ());
 };
