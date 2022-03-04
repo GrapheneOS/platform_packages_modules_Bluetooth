@@ -16,7 +16,6 @@ rust_library {
     proc_macros: ["libgddi_macros"],
     rustlibs: ["libtokio"],
     apex_available: [
-        "//apex_available:platform",
         "com.android.bluetooth",
     ],
     min_sdk_version: "30",
