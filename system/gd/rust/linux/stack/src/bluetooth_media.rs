@@ -14,7 +14,7 @@ use bt_topshim::profiles::hfp::{
 use bt_topshim::topstack;
 
 use log::{info, warn};
-
+use num_traits::cast::ToPrimitive;
 use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::sync::Arc;
@@ -227,6 +227,20 @@ impl BluetoothMedia {
         for callback in &self.callbacks {
             f(&callback.1);
         }
+    }
+
+    pub fn get_hfp_connection_state(&self) -> u32 {
+        for state in self.hfp_states.values() {
+            return BthfConnectionState::to_u32(state).unwrap_or(0);
+        }
+        0
+    }
+
+    pub fn get_a2dp_connection_state(&self) -> u32 {
+        for state in self.a2dp_states.values() {
+            return BtavConnectionState::to_u32(state).unwrap_or(0);
+        }
+        0
     }
 }
 

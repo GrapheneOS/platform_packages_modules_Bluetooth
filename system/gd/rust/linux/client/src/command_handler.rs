@@ -8,7 +8,7 @@ use crate::{console_red, console_yellow, print_error, print_info};
 use bt_topshim::btif::BtTransport;
 use btstack::bluetooth::{BluetoothDevice, IBluetooth};
 use btstack::bluetooth_gatt::IBluetoothGatt;
-use btstack::uuid::UuidHelper;
+use btstack::uuid::{Profile, UuidHelper};
 use manager_service::iface_bluetooth_manager::IBluetoothManager;
 
 const INDENT_CHAR: &str = " ";
@@ -273,6 +273,13 @@ impl CommandHandler {
                     let cod = adapter_dbus.get_bluetooth_class();
                     let multi_adv_supported = adapter_dbus.is_multi_advertisement_supported();
                     let le_ext_adv_supported = adapter_dbus.is_le_extended_advertising_supported();
+                    let uuid_helper = UuidHelper::new();
+                    let enabled_profiles = uuid_helper.get_enabled_profiles();
+                    let connected_profiles: Vec<Profile> = enabled_profiles
+                        .iter()
+                        .filter(|&&prof| adapter_dbus.get_profile_connection_state(prof) > 0)
+                        .cloned()
+                        .collect();
                     print_info!("Address: {}", address);
                     print_info!("Name: {}", name);
                     print_info!("State: {}", if enabled { "enabled" } else { "disabled" });
@@ -281,6 +288,7 @@ impl CommandHandler {
                     print_info!("Class: {:#06x}", cod);
                     print_info!("IsMultiAdvertisementSupported: {}", multi_adv_supported);
                     print_info!("IsLeExtendedAdvertisingSupported: {}", le_ext_adv_supported);
+                    print_info!("Connected profiles: {:?}", connected_profiles);
                     print_info!(
                         "Uuids: {}",
                         DisplayList(
