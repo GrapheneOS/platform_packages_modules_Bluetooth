@@ -5,6 +5,7 @@ package {
 android_test {
     name: "BlueberryServer",
     srcs: ["src/**/*.kt"],
+    platform_apis: true,
     certificate: "platform",
 
     static_libs: [
@@ -14,6 +15,10 @@ android_test {
         "grpc-java-lite",
         "guava",
         "opencensus-java-api",
+        "kotlinx_coroutines",
+        "blueberry-grpc-java",
+        "blueberry-proto-java",
+        "opencensus-java-contrib-grpc-metrics",
     ],
 
     dex_preopt: {
@@ -21,5 +26,50 @@ android_test {
     },
     optimize: {
         enabled: false,
+    },
+}
+
+java_library {
+    name: "blueberry-grpc-java",
+    visibility: ["//visibility:private"],
+    srcs: [
+        "proto/blueberry/*.proto",
+    ],
+    static_libs: [
+        "blueberry-proto-java",
+        "grpc-java-lite",
+        "guava",
+        "opencensus-java-api",
+        "libprotobuf-java-lite",
+        "javax_annotation-api_1.3.2",
+    ],
+    proto: {
+        include_dirs: [
+            "packages/modules/Bluetooth/android/blueberry/server/proto",
+            "external/protobuf/src",
+        ],
+        plugin: "grpc-java-plugin",
+        output_params: [
+           "lite",
+        ],
+    },
+}
+
+java_library {
+    name: "blueberry-proto-java",
+    visibility: ["//visibility:private"],
+    srcs: [
+        "proto/blueberry/*.proto",
+        ":libprotobuf-internal-protos",
+    ],
+    static_libs: [
+        "libprotobuf-java-lite",
+    ],
+    proto: {
+        type: "lite",
+        include_dirs: [
+            "packages/modules/Bluetooth/android/blueberry/server/proto",
+            "external/protobuf/src",
+        ],
     },
 }
