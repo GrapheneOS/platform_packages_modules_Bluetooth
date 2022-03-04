@@ -1559,7 +1559,7 @@ void LinkLayerController::IncomingScoDisconnect(
            static_cast<unsigned>(reason),
            incoming.GetSourceAddress().ToString().c_str());
 
-  if (handle != 0) {
+  if (handle != kReservedHandle) {
     connections_.Disconnect(handle);
     SendDisconnectionCompleteEvent(handle, reason);
   }
@@ -2771,7 +2771,7 @@ ErrorCode LinkLayerController::Disconnect(uint16_t handle, uint8_t reason) {
              remote.ToString().c_str());
 
     uint16_t sco_handle = connections_.GetScoHandle(remote.GetAddress());
-    if (sco_handle != 0) {
+    if (sco_handle != kReservedHandle) {
       SendLinkLayerPacket(model::packets::ScoDisconnectBuilder::Create(
           properties_.GetAddress(), remote.GetAddress(), reason));
 
