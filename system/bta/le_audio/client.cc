@@ -328,6 +328,15 @@ class LeAudioClientImpl : public LeAudioClient {
     }
   }
 
+  void SuspendedForReconfiguration() {
+    if (audio_sender_state_ > AudioState::IDLE) {
+      LeAudioClientAudioSource::SuspendedForReconfiguration();
+    }
+    if (audio_receiver_state_ > AudioState::IDLE) {
+      LeAudioClientAudioSink::SuspendedForReconfiguration();
+    }
+  }
+
   void CancelStreamingRequest() {
     if (audio_sender_state_ >= AudioState::READY_TO_START) {
       LeAudioClientAudioSource::CancelStreamingRequest();
@@ -3031,7 +3040,7 @@ class LeAudioClientImpl : public LeAudioClient {
         rxUnreceivedPackets, duplicatePackets);
   }
 
-  bool RestartStreamingAfterReconfiguration(int group_id) {
+  bool IsSuspendedForReconfiguration(int group_id) {
     if (group_id != active_group_id_) return false;
 
     DLOG(INFO) << __func__ << " audio_sender_state_: " << audio_sender_state_
@@ -3044,20 +3053,49 @@ class LeAudioClientImpl : public LeAudioClient {
     DLOG(INFO) << __func__ << " stream_conf->reconfiguration_ongoing "
                << stream_conf->reconfiguration_ongoing;
 
-    if (!stream_conf->reconfiguration_ongoing) return false;
+    return stream_conf->reconfiguration_ongoing;
+  }
 
-    if (!groupStateMachine_->StartStream(
-            group, static_cast<LeAudioContextType>(current_context_type_)))
-      return false;
+  bool RestartStreamingAfterReconfiguration(int group_id) {
+    auto group = aseGroups_.FindById(group_id);
+    LOG_ASSERT(group) << __func__ << " group does not exist: " << group_id;
 
-    if (audio_sender_state_ == AudioState::RELEASING)
-      audio_sender_state_ = AudioState::READY_TO_START;
+    if (groupStateMachine_->StartStream(
+            group, static_cast<LeAudioContextType>(current_context_type_))) {
+      if (audio_sender_state_ == AudioState::RELEASING)
+        audio_sender_state_ = AudioState::READY_TO_START;
 
-    if (audio_receiver_state_ == AudioState::RELEASING)
-      audio_receiver_state_ = AudioState::READY_TO_START;
+      if (audio_receiver_state_ == AudioState::RELEASING)
+        audio_receiver_state_ = AudioState::READY_TO_START;
+    } else {
+      audio_receiver_state_ = AudioState::IDLE;
+      audio_sender_state_ = AudioState::IDLE;
+    }
 
-    stream_conf->reconfiguration_ongoing = false;
+    group->stream_conf.reconfiguration_ongoing = false;
     return true;
+  }
+
+  void HandlePendingAvailableContexts(int group_id) {
+    LeAudioDeviceGroup* group = aseGroups_.FindById(group_id);
+    if (!group) return;
+
+    /* Update group configuration with pending available context */
+    std::optional<AudioContexts> pending_update_available_contexts =
+        group->GetPendingUpdateAvailableContexts();
+    if (pending_update_available_contexts) {
+      std::optional<AudioContexts> updated_contexts =
+          group->UpdateActiveContextsMap(*pending_update_available_contexts);
+
+      if (updated_contexts) {
+        callbacks_->OnAudioConf(group->audio_directions_, group->group_id_,
+                                group->snk_audio_locations_.to_ulong(),
+                                group->src_audio_locations_.to_ulong(),
+                                updated_contexts->to_ulong());
+      }
+
+      group->SetPendingUpdateAvailableContexts(std::nullopt);
+    }
   }
 
   void StatusReportCb(int group_id, GroupStreamStatus status) {
@@ -3066,10 +3104,13 @@ class LeAudioClientImpl : public LeAudioClient {
                << " audio_receiver_state_: " << audio_receiver_state_;
     switch (status) {
       case GroupStreamStatus::STREAMING:
+        LOG_ASSERT(group_id == active_group_id_)
+            << __func__ << " invalid group id " << group_id
+            << " active_group_id_ " << active_group_id_;
         if (audio_sender_state_ == AudioState::READY_TO_START)
-          StartSendingAudio(active_group_id_);
+          StartSendingAudio(group_id);
         if (audio_receiver_state_ == AudioState::READY_TO_START)
-          StartReceivingAudio(active_group_id_);
+          StartReceivingAudio(group_id);
 
         stream_setup_end_timestamp_ =
             bluetooth::common::time_get_os_boottime_us();
@@ -3081,34 +3122,14 @@ class LeAudioClientImpl : public LeAudioClient {
       case GroupStreamStatus::IDLE: {
         stream_setup_end_timestamp_ = 0;
         stream_setup_start_timestamp_ = 0;
-
-        if (!RestartStreamingAfterReconfiguration(group_id))
+        if (IsSuspendedForReconfiguration(group_id)) {
+          SuspendedForReconfiguration();
+          RestartStreamingAfterReconfiguration(group_id);
+        } else {
           CancelStreamingRequest();
-
-        LeAudioDeviceGroup* group = aseGroups_.FindById(active_group_id_);
-        if (!group) {
-          LOG(ERROR) << __func__ << ", Failed to update pending available "
-                     << "contexts for group: " << group_id;
-          return;
         }
 
-        /* Update group configuration with pending available context */
-        std::optional<AudioContexts> pending_update_available_contexts =
-            group->GetPendingUpdateAvailableContexts();
-        if (pending_update_available_contexts) {
-          std::optional<AudioContexts> updated_contexts =
-              group->UpdateActiveContextsMap(*pending_update_available_contexts);
-
-          if (updated_contexts) {
-            callbacks_->OnAudioConf(group->audio_directions_, group->group_id_,
-                                    group->snk_audio_locations_.to_ulong(),
-                                    group->src_audio_locations_.to_ulong(),
-                                    updated_contexts->to_ulong());
-          }
-
-          group->SetPendingUpdateAvailableContexts(std::nullopt);
-        }
-
+        HandlePendingAvailableContexts(group_id);
         break;
       }
       case GroupStreamStatus::RELEASING:
