@@ -468,6 +468,15 @@
                 <action android:name="android.bluetooth.IBluetoothLeCallControl" />
             </intent-filter>
         </service>
+        <service
+            android:process="@string/process"
+            android:name = ".bass_client.BassClientService"
+            android:enabled="@bool/profile_supported_bass_client"
+            android:exported = "true">
+            <intent-filter>
+                <action android:name="android.bluetooth.IBluetoothLeBroadcastAssistant" />
+            </intent-filter>
+        </service>
         <!-- Authenticator for PBAP account. -->
         <service android:process="@string/process"
              android:name=".pbapclient.AuthenticationService"
