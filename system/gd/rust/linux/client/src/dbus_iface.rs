@@ -238,27 +238,17 @@ trait DBusExportable {}
 
 #[generate_dbus_interface_client]
 impl IBluetooth for BluetoothDBus {
+    #[dbus_method("RegisterCallback")]
     fn register_callback(&mut self, callback: Box<dyn IBluetoothCallback + Send>) {
-        let callback = {
-            let path = dbus::Path::new(callback.get_object_id()).unwrap();
-            callback.export_for_rpc();
-            path
-        };
-
-        self.client_proxy.method_noreturn("RegisterCallback", (callback,))
+        dbus_generated!()
     }
 
+    #[dbus_method("RegisterConnectionCallback")]
     fn register_connection_callback(
         &mut self,
         callback: Box<dyn IBluetoothConnectionCallback + Send>,
     ) -> u32 {
-        let callback = {
-            let path = dbus::Path::new(callback.get_object_id()).unwrap();
-            callback.export_for_rpc();
-            path
-        };
-
-        self.client_proxy.method("RegisterConnectionCallback", (callback,))
+        dbus_generated!()
     }
 
     #[dbus_method("UnregisterConnectionCallback")]
@@ -467,16 +457,9 @@ impl IBluetoothManager for BluetoothManagerDBus {
         dbus_generated!()
     }
 
-    // `generate_dbus_interface_client` doesn't support callback types yet.
-    // TODO(b/200732080): Support autogenerate code for callback types.
+    #[dbus_method("RegisterCallback")]
     fn register_callback(&mut self, callback: Box<dyn IBluetoothManagerCallback + Send>) {
-        let callback = {
-            let path = dbus::Path::new(callback.get_object_id()).unwrap();
-            callback.export_for_rpc();
-            path
-        };
-
-        self.client_proxy.method_noreturn("RegisterCallback", (callback,))
+        dbus_generated!()
     }
 
     #[dbus_method("GetFlossEnabled")]
@@ -559,19 +542,14 @@ impl IBluetoothGatt for BluetoothGattDBus {
         // TODO(b/200066804): implement
     }
 
+    #[dbus_method("RegisterClient")]
     fn register_client(
         &mut self,
         app_uuid: String,
         callback: Box<dyn IBluetoothGattCallback + Send>,
         eatt_support: bool,
     ) {
-        let callback = {
-            let path = dbus::Path::new(callback.get_object_id()).unwrap();
-            callback.export_for_rpc();
-            path
-        };
-
-        self.client_proxy.method_noreturn("RegisterClient", (app_uuid, callback, eatt_support))
+        dbus_generated!()
     }
 
     #[dbus_method("UnregisterClient")]
