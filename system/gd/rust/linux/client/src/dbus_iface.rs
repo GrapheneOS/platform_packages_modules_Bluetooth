@@ -15,8 +15,6 @@ use btstack::bluetooth_gatt::{
 use dbus::arg::{AppendAll, RefArg};
 use dbus::nonblock::SyncConnection;
 
-use dbus_crossroads::Crossroads;
-
 use dbus_projection::{impl_dbus_arg_enum, DisconnectWatcher};
 
 use dbus_macros::{
@@ -30,7 +28,7 @@ use manager_service::iface_bluetooth_manager::{
 use num_traits::{FromPrimitive, ToPrimitive};
 
 use std::convert::TryInto;
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 
 use crate::dbus_arg::{DBusArg, DBusArgError, RefArgToRust};
 
@@ -98,7 +96,6 @@ pub struct BluetoothDeviceDBus {
 
 struct ClientDBusProxy {
     conn: Arc<SyncConnection>,
-    cr: Arc<Mutex<Crossroads>>,
     bus_name: String,
     objpath: dbus::Path<'static>,
     interface: String,
@@ -160,6 +157,7 @@ impl btstack::RPCProxy for IBluetoothCallbackDBus {
     fn unregister(&mut self, _id: u32) -> bool {
         false
     }
+    fn export_for_rpc(self: Box<Self>) {}
 }
 
 #[generate_dbus_exporter(
@@ -204,6 +202,7 @@ impl btstack::RPCProxy for IBluetoothConnectionCallbackDBus {
     fn unregister(&mut self, _id: u32) -> bool {
         false
     }
+    fn export_for_rpc(self: Box<Self>) {}
 }
 
 #[generate_dbus_exporter(
@@ -223,15 +222,10 @@ pub(crate) struct BluetoothDBus {
 }
 
 impl BluetoothDBus {
-    pub(crate) fn new(
-        conn: Arc<SyncConnection>,
-        cr: Arc<Mutex<Crossroads>>,
-        index: i32,
-    ) -> BluetoothDBus {
+    pub(crate) fn new(conn: Arc<SyncConnection>, index: i32) -> BluetoothDBus {
         BluetoothDBus {
             client_proxy: ClientDBusProxy {
                 conn: conn.clone(),
-                cr: cr,
                 bus_name: String::from("org.chromium.bluetooth"),
                 objpath: make_object_path(index, "adapter"),
                 interface: String::from("org.chromium.bluetooth.Bluetooth"),
@@ -240,37 +234,31 @@ impl BluetoothDBus {
     }
 }
 
+trait DBusExportable {}
+
 #[generate_dbus_interface_client]
 impl IBluetooth for BluetoothDBus {
     fn register_callback(&mut self, callback: Box<dyn IBluetoothCallback + Send>) {
-        let path_string = callback.get_object_id();
-        let path = dbus::Path::new(path_string.clone()).unwrap();
-        export_bluetooth_callback_dbus_obj(
-            path_string,
-            self.client_proxy.conn.clone(),
-            &mut self.client_proxy.cr.lock().unwrap(),
-            Arc::new(Mutex::new(callback)),
-            Arc::new(Mutex::new(DisconnectWatcher::new())),
-        );
+        let callback = {
+            let path = dbus::Path::new(callback.get_object_id()).unwrap();
+            callback.export_for_rpc();
+            path
+        };
 
-        self.client_proxy.method_noreturn("RegisterCallback", (path,))
+        self.client_proxy.method_noreturn("RegisterCallback", (callback,))
     }
 
     fn register_connection_callback(
         &mut self,
         callback: Box<dyn IBluetoothConnectionCallback + Send>,
     ) -> u32 {
-        let path_string = callback.get_object_id();
-        let path = dbus::Path::new(path_string.clone()).unwrap();
-        export_bluetooth_connection_callback_dbus_obj(
-            path_string,
-            self.client_proxy.conn.clone(),
-            &mut self.client_proxy.cr.lock().unwrap(),
-            Arc::new(Mutex::new(callback)),
-            Arc::new(Mutex::new(DisconnectWatcher::new())),
-        );
+        let callback = {
+            let path = dbus::Path::new(callback.get_object_id()).unwrap();
+            callback.export_for_rpc();
+            path
+        };
 
-        self.client_proxy.method("RegisterConnectionCallback", (path,))
+        self.client_proxy.method("RegisterConnectionCallback", (callback,))
     }
 
     #[dbus_method("UnregisterConnectionCallback")]
@@ -445,14 +433,10 @@ pub(crate) struct BluetoothManagerDBus {
 }
 
 impl BluetoothManagerDBus {
-    pub(crate) fn new(
-        conn: Arc<SyncConnection>,
-        cr: Arc<Mutex<Crossroads>>,
-    ) -> BluetoothManagerDBus {
+    pub(crate) fn new(conn: Arc<SyncConnection>) -> BluetoothManagerDBus {
         BluetoothManagerDBus {
             client_proxy: ClientDBusProxy {
                 conn: conn.clone(),
-                cr: cr,
                 bus_name: String::from("org.chromium.bluetooth.Manager"),
                 objpath: dbus::Path::new("/org/chromium/bluetooth/Manager").unwrap(),
                 interface: String::from("org.chromium.bluetooth.Manager"),
@@ -486,17 +470,13 @@ impl IBluetoothManager for BluetoothManagerDBus {
     // `generate_dbus_interface_client` doesn't support callback types yet.
     // TODO(b/200732080): Support autogenerate code for callback types.
     fn register_callback(&mut self, callback: Box<dyn IBluetoothManagerCallback + Send>) {
-        let path_string = callback.get_object_id();
-        let path = dbus::Path::new(path_string.clone()).unwrap();
-        export_bluetooth_manager_callback_dbus_obj(
-            path_string,
-            self.client_proxy.conn.clone(),
-            &mut self.client_proxy.cr.lock().unwrap(),
-            Arc::new(Mutex::new(callback)),
-            Arc::new(Mutex::new(DisconnectWatcher::new())),
-        );
+        let callback = {
+            let path = dbus::Path::new(callback.get_object_id()).unwrap();
+            callback.export_for_rpc();
+            path
+        };
 
-        self.client_proxy.method_noreturn("RegisterCallback", (path,))
+        self.client_proxy.method_noreturn("RegisterCallback", (callback,))
     }
 
     #[dbus_method("GetFlossEnabled")]
@@ -529,6 +509,7 @@ impl manager_service::RPCProxy for IBluetoothManagerCallbackDBus {
     fn unregister(&mut self, _id: u32) -> bool {
         false
     }
+    fn export_for_rpc(self: Box<Self>) {}
 }
 
 #[generate_dbus_exporter(
@@ -548,15 +529,10 @@ pub(crate) struct BluetoothGattDBus {
 }
 
 impl BluetoothGattDBus {
-    pub(crate) fn new(
-        conn: Arc<SyncConnection>,
-        cr: Arc<Mutex<Crossroads>>,
-        index: i32,
-    ) -> BluetoothGattDBus {
+    pub(crate) fn new(conn: Arc<SyncConnection>, index: i32) -> BluetoothGattDBus {
         BluetoothGattDBus {
             client_proxy: ClientDBusProxy {
                 conn: conn.clone(),
-                cr: cr,
                 bus_name: String::from("org.chromium.bluetooth"),
                 objpath: make_object_path(index, "gatt"),
                 interface: String::from("org.chromium.bluetooth.BluetoothGatt"),
@@ -589,17 +565,13 @@ impl IBluetoothGatt for BluetoothGattDBus {
         callback: Box<dyn IBluetoothGattCallback + Send>,
         eatt_support: bool,
     ) {
-        let path_string = callback.get_object_id();
-        let path = dbus::Path::new(path_string.clone()).unwrap();
-        export_bluetooth_gatt_callback_dbus_obj(
-            path_string,
-            self.client_proxy.conn.clone(),
-            &mut self.client_proxy.cr.lock().unwrap(),
-            Arc::new(Mutex::new(callback)),
-            Arc::new(Mutex::new(DisconnectWatcher::new())),
-        );
+        let callback = {
+            let path = dbus::Path::new(callback.get_object_id()).unwrap();
+            callback.export_for_rpc();
+            path
+        };
 
-        self.client_proxy.method_noreturn("RegisterClient", (app_uuid, path, eatt_support))
+        self.client_proxy.method_noreturn("RegisterClient", (app_uuid, callback, eatt_support))
     }
 
     #[dbus_method("UnregisterClient")]
@@ -760,6 +732,7 @@ impl btstack::RPCProxy for IBluetoothGattCallbackDBus {
     fn unregister(&mut self, _id: u32) -> bool {
         false
     }
+    fn export_for_rpc(self: Box<Self>) {}
 }
 
 #[generate_dbus_exporter(

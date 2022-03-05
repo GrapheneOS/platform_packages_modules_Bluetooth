@@ -82,8 +82,7 @@ impl ClientContext {
     ) -> ClientContext {
         // Manager interface is almost always available but adapter interface
         // requires that the specific adapter is enabled.
-        let manager_dbus =
-            BluetoothManagerDBus::new(dbus_connection.clone(), dbus_crossroads.clone());
+        let manager_dbus = BluetoothManagerDBus::new(dbus_connection.clone());
 
         ClientContext {
             adapters: HashMap::new(),
@@ -128,12 +127,11 @@ impl ClientContext {
     // Creates adapter proxy, registers callbacks and initializes address.
     fn create_adapter_proxy(&mut self, idx: i32) {
         let conn = self.dbus_connection.clone();
-        let cr = self.dbus_crossroads.clone();
 
-        let dbus = BluetoothDBus::new(conn.clone(), cr.clone(), idx);
+        let dbus = BluetoothDBus::new(conn.clone(), idx);
         self.adapter_dbus = Some(dbus);
 
-        let gatt_dbus = BluetoothGattDBus::new(conn.clone(), cr.clone(), idx);
+        let gatt_dbus = BluetoothGattDBus::new(conn.clone(), idx);
         self.gatt_dbus = Some(gatt_dbus);
 
         // Trigger callback registration in the foreground
@@ -212,7 +210,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let (tx, rx) = mpsc::channel::<ForegroundActions>(10);
 
         // Create the context needed for handling commands
-        let context = Arc::new(Mutex::new(ClientContext::new(conn, cr, tx.clone())));
+        let context =
+            Arc::new(Mutex::new(ClientContext::new(conn.clone(), cr.clone(), tx.clone())));
 
         // Check if manager interface is valid. We only print some help text before failing on the
         // first actual access to the interface (so we can also capture the actual reason the
@@ -228,6 +227,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         context.lock().unwrap().manager_dbus.register_callback(Box::new(BtManagerCallback::new(
             String::from("/org/chromium/bluetooth/client/bluetooth_manager_callback"),
             context.clone(),
+            conn.clone(),
+            cr.clone(),
         )));
 
         // Check if the default adapter is enabled. If yes, we should create the adapter proxy
@@ -312,13 +313,17 @@ async fn start_interactive_shell(
                 let conn_cb_objpath: String =
                     format!("/org/chromium/bluetooth/client/{}/bluetooth_conn_callback", adapter);
 
-                context
-                    .lock()
-                    .unwrap()
-                    .adapter_dbus
-                    .as_mut()
-                    .unwrap()
-                    .register_callback(Box::new(BtCallback::new(cb_objpath, context.clone())));
+                let dbus_connection = context.lock().unwrap().dbus_connection.clone();
+                let dbus_crossroads = context.lock().unwrap().dbus_crossroads.clone();
+
+                context.lock().unwrap().adapter_dbus.as_mut().unwrap().register_callback(Box::new(
+                    BtCallback::new(
+                        cb_objpath,
+                        context.clone(),
+                        dbus_connection.clone(),
+                        dbus_crossroads.clone(),
+                    ),
+                ));
                 context
                     .lock()
                     .unwrap()
@@ -328,6 +333,8 @@ async fn start_interactive_shell(
                     .register_connection_callback(Box::new(BtConnectionCallback::new(
                         conn_cb_objpath,
                         context.clone(),
+                        dbus_connection.clone(),
+                        dbus_crossroads.clone(),
                     )));
                 context.lock().unwrap().adapter_ready = true;
                 let adapter_address = context.lock().unwrap().update_adapter_address();
