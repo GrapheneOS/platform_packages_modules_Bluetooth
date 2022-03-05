@@ -218,11 +218,14 @@ class StateMachineTest : public Test {
     std::future<uint8_t> instance_future =
         instance_creation_promise_.get_future();
 
+    static uint8_t broadcast_id_lsb = 1;
+
     auto codec_wrapper =
         BroadcastCodecWrapper::getCodecConfigForProfile(profile);
     pending_broadcasts_.push_back(BroadcastStateMachine::CreateInstance({
-        .codec_wrapper = std::move(codec_wrapper),
+        .broadcast_id = {0, 0, broadcast_id_lsb++},
         // .streaming_phy = ,
+        .codec_wrapper = std::move(codec_wrapper),
         // .announcement = ,
         // .broadcast_code = ,
     }));
@@ -751,6 +754,19 @@ TEST_F(StateMachineTest, GetConfig) {
   ASSERT_EQ(big_cfg->status, 0);
   ASSERT_EQ(big_cfg->big_id, instance_id);
   ASSERT_EQ(big_cfg->connection_handles.size(), num_channels);
+}
+
+TEST_F(StateMachineTest, GetBroadcastId) {
+  EXPECT_CALL(*(sm_callbacks_.get()), OnStateMachineCreateStatus(_, true))
+      .Times(1);
+
+  uint8_t instance_id = InstantiateStateMachine();
+  ASSERT_EQ(broadcasts_[instance_id]->GetState(),
+            BroadcastStateMachine::State::CONFIGURED);
+
+  bluetooth::le_audio::BroadcastId const& broadcast_id =
+      broadcasts_[instance_id]->GetBroadcastId();
+  ASSERT_NE(bluetooth::le_audio::kBroadcastBroadcastIdInvalid, broadcast_id);
 }
 
 TEST_F(StateMachineTest, AnnouncementUUIDs) {
