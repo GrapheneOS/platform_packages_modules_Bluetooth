@@ -22,6 +22,7 @@ import static android.Manifest.permission.BLUETOOTH_PRIVILEGED;
 
 import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermission;
 
+import android.annotation.Nullable;
 import android.bluetooth.BluetoothCsipSetCoordinator;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHapClient;
@@ -564,9 +565,9 @@ public class HapClientService extends ProfileService {
      * Gets the currently active preset info for a HA device
      *
      * @param device is the device for which we want to get the currently active preset info
-     * @return active preset info
+     * @return active preset info or null if not available
      */
-    public BluetoothHapPresetInfo getActivePresetInfo(BluetoothDevice device) {
+    public @Nullable BluetoothHapPresetInfo getActivePresetInfo(BluetoothDevice device) {
         int index = getActivePresetIndex(device);
         if (index == BluetoothHapClient.PRESET_INDEX_UNAVAILABLE) return null;
 
@@ -684,11 +685,10 @@ public class HapClientService extends ProfileService {
      *
      * @param device is the device for which we want to get the preset name
      * @param presetIndex is an index of one of the available presets
-     * @return a preset Info corresponding to the requested preset index
+     * @return a preset Info corresponding to the requested preset index or null if not available
      */
-    public BluetoothHapPresetInfo getPresetInfo(BluetoothDevice device, int presetIndex) {
-        BluetoothHapPresetInfo defaultValue = new BluetoothHapPresetInfo.Builder().build();
-
+    public @Nullable BluetoothHapPresetInfo getPresetInfo(BluetoothDevice device, int presetIndex) {
+        BluetoothHapPresetInfo defaultValue = null;
         if (presetIndex == BluetoothHapClient.PRESET_INDEX_UNAVAILABLE) return defaultValue;
 
         List<BluetoothHapPresetInfo> current_presets = mPresetsMap.get(device);
@@ -1400,7 +1400,7 @@ public class HapClientService extends ProfileService {
         public void getPresetInfo(BluetoothDevice device, int presetIndex,
                 AttributionSource source, SynchronousResultReceiver receiver) {
             try {
-                BluetoothHapPresetInfo defaultValue = new BluetoothHapPresetInfo.Builder().build();
+                BluetoothHapPresetInfo defaultValue = null;
                 HapClientService service = getService(source);
                 if (service != null) {
                     defaultValue = service.getPresetInfo(device, presetIndex);
