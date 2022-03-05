@@ -1,3 +1,7 @@
+use crate::dbus_iface::{
+    export_bluetooth_callback_dbus_obj, export_bluetooth_connection_callback_dbus_obj,
+    export_bluetooth_gatt_callback_dbus_obj, export_bluetooth_manager_callback_dbus_obj,
+};
 use crate::ClientContext;
 use crate::{console_yellow, print_info};
 use bt_topshim::btif::{BtBondState, BtSspVariant};
@@ -7,6 +11,9 @@ use btstack::bluetooth::{
 };
 use btstack::bluetooth_gatt::{BluetoothGattService, IBluetoothGattCallback, LePhy};
 use btstack::RPCProxy;
+use dbus::nonblock::SyncConnection;
+use dbus_crossroads::Crossroads;
+use dbus_projection::DisconnectWatcher;
 use manager_service::iface_bluetooth_manager::IBluetoothManagerCallback;
 use std::sync::{Arc, Mutex};
 
@@ -14,11 +21,19 @@ use std::sync::{Arc, Mutex};
 pub(crate) struct BtManagerCallback {
     objpath: String,
     context: Arc<Mutex<ClientContext>>,
+
+    dbus_connection: Arc<SyncConnection>,
+    dbus_crossroads: Arc<Mutex<Crossroads>>,
 }
 
 impl BtManagerCallback {
-    pub(crate) fn new(objpath: String, context: Arc<Mutex<ClientContext>>) -> Self {
-        Self { objpath, context }
+    pub(crate) fn new(
+        objpath: String,
+        context: Arc<Mutex<ClientContext>>,
+        dbus_connection: Arc<SyncConnection>,
+        dbus_crossroads: Arc<Mutex<Crossroads>>,
+    ) -> Self {
+        Self { objpath, context, dbus_connection, dbus_crossroads }
     }
 }
 
@@ -50,17 +65,36 @@ impl manager_service::RPCProxy for BtManagerCallback {
     fn unregister(&mut self, _id: u32) -> bool {
         false
     }
+
+    fn export_for_rpc(self: Box<Self>) {
+        let cr = self.dbus_crossroads.clone();
+        export_bluetooth_manager_callback_dbus_obj(
+            self.get_object_id(),
+            self.dbus_connection.clone(),
+            &mut cr.lock().unwrap(),
+            Arc::new(Mutex::new(self)),
+            Arc::new(Mutex::new(DisconnectWatcher::new())),
+        );
+    }
 }
 
 /// Callback container for adapter interface callbacks.
 pub(crate) struct BtCallback {
     objpath: String,
     context: Arc<Mutex<ClientContext>>,
+
+    dbus_connection: Arc<SyncConnection>,
+    dbus_crossroads: Arc<Mutex<Crossroads>>,
 }
 
 impl BtCallback {
-    pub(crate) fn new(objpath: String, context: Arc<Mutex<ClientContext>>) -> Self {
-        Self { objpath, context }
+    pub(crate) fn new(
+        objpath: String,
+        context: Arc<Mutex<ClientContext>>,
+        dbus_connection: Arc<SyncConnection>,
+        dbus_crossroads: Arc<Mutex<Crossroads>>,
+    ) -> Self {
+        Self { objpath, context, dbus_connection, dbus_crossroads }
     }
 }
 
@@ -179,16 +213,35 @@ impl RPCProxy for BtCallback {
     fn unregister(&mut self, _id: u32) -> bool {
         false
     }
+
+    fn export_for_rpc(self: Box<Self>) {
+        let cr = self.dbus_crossroads.clone();
+        export_bluetooth_callback_dbus_obj(
+            self.get_object_id(),
+            self.dbus_connection.clone(),
+            &mut cr.lock().unwrap(),
+            Arc::new(Mutex::new(self)),
+            Arc::new(Mutex::new(DisconnectWatcher::new())),
+        );
+    }
 }
 
 pub(crate) struct BtConnectionCallback {
     objpath: String,
     _context: Arc<Mutex<ClientContext>>,
+
+    dbus_connection: Arc<SyncConnection>,
+    dbus_crossroads: Arc<Mutex<Crossroads>>,
 }
 
 impl BtConnectionCallback {
-    pub(crate) fn new(objpath: String, _context: Arc<Mutex<ClientContext>>) -> Self {
-        Self { objpath, _context }
+    pub(crate) fn new(
+        objpath: String,
+        _context: Arc<Mutex<ClientContext>>,
+        dbus_connection: Arc<SyncConnection>,
+        dbus_crossroads: Arc<Mutex<Crossroads>>,
+    ) -> Self {
+        Self { objpath, _context, dbus_connection, dbus_crossroads }
     }
 }
 
@@ -214,16 +267,35 @@ impl RPCProxy for BtConnectionCallback {
     fn unregister(&mut self, _id: u32) -> bool {
         false
     }
+
+    fn export_for_rpc(self: Box<Self>) {
+        let cr = self.dbus_crossroads.clone();
+        export_bluetooth_connection_callback_dbus_obj(
+            self.get_object_id(),
+            self.dbus_connection.clone(),
+            &mut cr.lock().unwrap(),
+            Arc::new(Mutex::new(self)),
+            Arc::new(Mutex::new(DisconnectWatcher::new())),
+        );
+    }
 }
 
 pub(crate) struct BtGattCallback {
     objpath: String,
     context: Arc<Mutex<ClientContext>>,
+
+    dbus_connection: Arc<SyncConnection>,
+    dbus_crossroads: Arc<Mutex<Crossroads>>,
 }
 
 impl BtGattCallback {
-    pub(crate) fn new(objpath: String, context: Arc<Mutex<ClientContext>>) -> Self {
-        Self { objpath, context }
+    pub(crate) fn new(
+        objpath: String,
+        context: Arc<Mutex<ClientContext>>,
+        dbus_connection: Arc<SyncConnection>,
+        dbus_crossroads: Arc<Mutex<Crossroads>>,
+    ) -> Self {
+        Self { objpath, context, dbus_connection, dbus_crossroads }
     }
 }
 
@@ -366,5 +438,16 @@ impl RPCProxy for BtGattCallback {
 
     fn unregister(&mut self, _id: u32) -> bool {
         false
+    }
+
+    fn export_for_rpc(self: Box<Self>) {
+        let cr = self.dbus_crossroads.clone();
+        export_bluetooth_gatt_callback_dbus_obj(
+            self.get_object_id(),
+            self.dbus_connection.clone(),
+            &mut cr.lock().unwrap(),
+            Arc::new(Mutex::new(self)),
+            Arc::new(Mutex::new(DisconnectWatcher::new())),
+        );
     }
 }
