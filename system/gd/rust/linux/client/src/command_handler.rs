@@ -538,11 +538,16 @@ impl CommandHandler {
 
         enforce_arg_len(args, 1, "gatt <commands>", || match &args[0][0..] {
             "register-client" => {
+                let dbus_connection = self.context.lock().unwrap().dbus_connection.clone();
+                let dbus_crossroads = self.context.lock().unwrap().dbus_crossroads.clone();
+
                 self.context.lock().unwrap().gatt_dbus.as_mut().unwrap().register_client(
                     String::from(GATT_CLIENT_APP_UUID),
                     Box::new(BtGattCallback::new(
                         String::from("/org/chromium/bluetooth/client/bluetooth_gatt_callback"),
                         self.context.clone(),
+                        dbus_connection,
+                        dbus_crossroads,
                     )),
                     false,
                 );
