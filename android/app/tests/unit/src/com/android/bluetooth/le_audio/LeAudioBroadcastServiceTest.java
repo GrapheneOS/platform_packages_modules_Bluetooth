@@ -150,85 +150,56 @@ public class LeAudioBroadcastServiceTest {
     @Test
     public void testCreateBroadcastNative() {
         int broadcast_profile = 0;
-        byte[] meta = new byte[]{0x02, 0x01, 0x02};
         byte[] code = {0x00, 0x01, 0x00};
-        mService.createBroadcast(meta, broadcast_profile, code);
 
-        verify(mNativeInterface, times(1)).createBroadcast(eq(meta),
-                eq(broadcast_profile), eq(code));
+        BluetoothLeAudioContentMetadata.Builder meta_builder =
+                new BluetoothLeAudioContentMetadata.Builder();
+        meta_builder.setLanguage("EN");
+        meta_builder.setProgramInfo("Public broadcast info");
+        BluetoothLeAudioContentMetadata meta = meta_builder.build();
+        mService.createBroadcast(meta, code);
+
+        verify(mNativeInterface, times(1)).createBroadcast(eq(meta.getRawMetadata()), eq(1),
+                eq(code));
     }
 
     @Test
-    public void testStartBroadcastNative() {
+    public void testStartStopBroadcastNative() {
         int broadcast_profile = 0;
-        byte[] meta = new byte[]{0x02, 0x01, 0x02};
         byte[] code = {0x00, 0x01, 0x00};
-        mService.createBroadcast(meta, broadcast_profile, code);
 
-        int broadcast_id = 243;
-        mService.startBroadcast(broadcast_id);
-        verify(mNativeInterface, times(1)).startBroadcast(eq(broadcast_id));
-    }
+        BluetoothLeAudioContentMetadata.Builder meta_builder =
+        new BluetoothLeAudioContentMetadata.Builder();
+        meta_builder.setLanguage("EN");
+        meta_builder.setProgramInfo("Public broadcast info");
+        BluetoothLeAudioContentMetadata meta = meta_builder.build();
+        mService.createBroadcast(meta, code);
 
-    @Test
-    public void testStopBroadcastNative() {
-        int broadcast_profile = 0;
-        byte[] meta = new byte[]{0x02, 0x01, 0x02};
-        byte[] code = {0x00, 0x01, 0x00};
-        mService.createBroadcast(meta, broadcast_profile, code);
+        int instance_id = 243;
+        mService.startBroadcast(instance_id);
+        verify(mNativeInterface, times(1)).startBroadcast(eq(instance_id));
 
-        int broadcast_id = 243;
-        mService.stopBroadcast(broadcast_id);
-        verify(mNativeInterface, times(1)).stopBroadcast(eq(broadcast_id));
-    }
-
-    @Test
-    public void testPauseBroadcastNative() {
-        int broadcast_profile = 0;
-        byte[] meta = new byte[]{0x02, 0x01, 0x02};
-        byte[] code = {0x00, 0x01, 0x00};
-        mService.createBroadcast(meta, broadcast_profile, code);
-
-        int broadcast_id = 243;
-        mService.pauseBroadcast(broadcast_id);
-        verify(mNativeInterface, times(1)).pauseBroadcast(eq(broadcast_id));
+        mService.stopBroadcast(instance_id);
+        verify(mNativeInterface, times(1)).stopBroadcast(eq(instance_id));
     }
 
     @Test
     public void testDestroyBroadcastNative() {
         int broadcast_profile = 0;
-        byte[] meta = new byte[]{0x02, 0x01, 0x02};
         byte[] code = {0x00, 0x01, 0x00};
-        mService.createBroadcast(meta, broadcast_profile, code);
+
+        BluetoothLeAudioContentMetadata.Builder meta_builder =
+                new BluetoothLeAudioContentMetadata.Builder();
+        meta_builder.setLanguage("ENG");
+        meta_builder.setProgramInfo("Public broadcast info");
+        BluetoothLeAudioContentMetadata meta = meta_builder.build();
+        mService.createBroadcast(meta, code);
 
         int broadcast_id = 243;
         mService.destroyBroadcast(broadcast_id);
         verify(mNativeInterface, times(1)).destroyBroadcast(eq(broadcast_id));
     }
-
-    @Test
-    public void testGetBroadcastAddressNative() {
-        int broadcast_profile = 0;
-        byte[] meta = new byte[]{0x02, 0x01, 0x02};
-        byte[] code = {0x00, 0x01, 0x00};
-        mService.createBroadcast(meta, broadcast_profile, code);
-
-        int broadcast_id = 243;
-        mService.getBroadcastId(broadcast_id);
-        verify(mNativeInterface, times(1)).getBroadcastId(eq(broadcast_id));
-    }
-
-    @Test
-    public void testGetAllBroadcastStates() {
-        int broadcast_profile = 0;
-        byte[] meta = new byte[]{0x02, 0x01, 0x02};
-        byte[] code = {0x00, 0x01, 0x00};
-        mService.createBroadcast(meta, broadcast_profile, code);
-
-        int broadcast_id = 243;
-        mService.getAllBroadcastStates();
-        verify(mNativeInterface, times(1)).getAllBroadcastStates();
-    }
+    // FIXME: Add the missign API test cases
 
     private class LeAudioIntentReceiver extends BroadcastReceiver {
         @Override
