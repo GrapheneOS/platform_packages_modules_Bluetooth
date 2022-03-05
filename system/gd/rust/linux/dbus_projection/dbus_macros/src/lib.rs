@@ -257,6 +257,8 @@ pub fn generate_dbus_interface_client(_attr: TokenStream, item: TokenStream) -> 
 
             let mut input_list = quote! {};
 
+            let mut object_conversions = quote! {};
+
             // Iterate on every parameter of a method to build a tuple, e.g.
             // `(param1, param2, param3)`
             for input in &method.sig.inputs {
@@ -265,10 +267,40 @@ pub fn generate_dbus_interface_client(_attr: TokenStream, item: TokenStream) -> 
                     if let Pat::Ident(pat_ident) = &*typed.pat {
                         let ident = pat_ident.ident.clone();
 
-                        input_list = quote! {
-                            #input_list
-                            <#arg_type as DBusArg>::to_dbus(#ident).unwrap(),
+                        let is_box = if let Type::Path(type_path) = &**arg_type {
+                            if type_path.path.segments[0].ident.to_string().eq("Box") {
+                                true
+                            } else {
+                                false
+                            }
+                        } else {
+                            false
                         };
+
+                        if is_box {
+                            // A Box<dyn> parameter means this is an object that should be exported
+                            // on D-Bus.
+                            object_conversions = quote! {
+                                #object_conversions
+                                    let #ident = {
+                                        let path = dbus::Path::new(#ident.get_object_id()).unwrap();
+                                        #ident.export_for_rpc();
+                                        path
+                                    };
+                            };
+
+                            input_list = quote! {
+                                #input_list
+                                #ident,
+                            };
+                        } else {
+                            // Convert every parameter to its corresponding type recognized by
+                            // the D-Bus library.
+                            input_list = quote! {
+                                #input_list
+                                <#arg_type as DBusArg>::to_dbus(#ident).unwrap(),
+                            };
+                        }
                     }
                 }
             }
@@ -299,6 +331,14 @@ pub fn generate_dbus_interface_client(_attr: TokenStream, item: TokenStream) -> 
                         #output_as_dbus_arg::from_dbus(ret, None, None, None).unwrap()
                     }
                 }
+            };
+
+            // Assemble the method body. May have object conversions if there is a param that is
+            // a proxy object (`Box<dyn>` type).
+            let body = quote! {
+                #object_conversions
+
+                #body
             };
 
             // The method definition is its signature and the body.
