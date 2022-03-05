@@ -12,4 +12,7 @@ pub trait RPCProxy {
 
     /// Unregisters callback with this id.
     fn unregister(&mut self, id: u32) -> bool;
+
+    /// Makes this object available for remote call.
+    fn export_for_rpc(self: Box<Self>);
 }
