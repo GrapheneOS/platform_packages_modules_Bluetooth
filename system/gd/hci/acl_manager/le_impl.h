@@ -191,6 +191,16 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
       }
       return kIllegalConnectionHandle;
     }
+
+    AddressWithType getAddressWithType(uint16_t handle) {
+      std::unique_lock<std::mutex> lock(le_acl_connections_guard_);
+      auto it = le_acl_connections_.find(handle);
+      if (it != le_acl_connections_.end()) {
+        return it->second.remote_address_;
+      }
+      AddressWithType empty(Address::kEmpty, AddressType::RANDOM_DEVICE_ADDRESS);
+      return empty;
+    }
   } connections;
 
  public:
@@ -239,6 +249,11 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
       canceled_connections_.erase(remote_address);
       ready_to_unregister = true;
       remove_device_from_connect_list(remote_address);
+    }
+
+    if (!connect_list.empty()) {
+      AddressWithType empty(Address::kEmpty, AddressType::RANDOM_DEVICE_ADDRESS);
+      handler_->Post(common::BindOnce(&le_impl::create_le_connection, common::Unretained(this), empty, false, false));
     }
 
     if (le_client_handler_ == nullptr) {
@@ -303,6 +318,11 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
       remove_device_from_connect_list(remote_address);
     }
 
+    if (!connect_list.empty()) {
+      AddressWithType empty(Address::kEmpty, AddressType::RANDOM_DEVICE_ADDRESS);
+      handler_->Post(common::BindOnce(&le_impl::create_le_connection, common::Unretained(this), empty, false, false));
+    }
+
     if (le_client_handler_ == nullptr) {
       LOG_ERROR("No callbacks to call");
       return;
@@ -349,6 +369,11 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
 
   static constexpr bool kRemoveConnectionAfterwards = true;
   void on_le_disconnect(uint16_t handle, ErrorCode reason) {
+    AddressWithType remote_address = connections.getAddressWithType(handle);
+    if (background_connections_.count(remote_address) == 1) {
+      LOG_INFO("re-add device to connect list");
+      add_device_to_connect_list(remote_address);
+    }
     bool event_also_routes_to_other_receivers = connections.crash_on_unknown_handle_;
     connections.crash_on_unknown_handle_ = false;
     connections.execute(
@@ -359,6 +384,11 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
         },
         kRemoveConnectionAfterwards);
     connections.crash_on_unknown_handle_ = event_also_routes_to_other_receivers;
+    if (!connect_list.empty()) {
+      LOG_INFO("connect_list is not empty, send a new connection request");
+      AddressWithType empty(Address::kEmpty, AddressType::RANDOM_DEVICE_ADDRESS);
+      create_le_connection(empty, false, false);
+    }
   }
 
   void on_le_connection_update_complete(LeMetaEventView view) {
@@ -447,12 +477,14 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
   }
 
   void add_device_to_connect_list(AddressWithType address_with_type) {
+    connect_list.insert(address_with_type);
     register_with_address_manager();
     le_address_manager_->AddDeviceToConnectList(
         address_with_type.ToConnectListAddressType(), address_with_type.GetAddress());
   }
 
   void remove_device_from_connect_list(AddressWithType address_with_type) {
+    connect_list.erase(address_with_type);
     direct_connections_.erase(address_with_type);
     register_with_address_manager();
     le_address_manager_->RemoveDeviceFromConnectList(
@@ -460,6 +492,7 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
   }
 
   void clear_connect_list() {
+    connect_list.clear();
     register_with_address_manager();
     le_address_manager_->ClearConnectList();
   }
@@ -790,11 +823,12 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
   LeAclConnectionInterface* le_acl_connection_interface_ = nullptr;
   LeConnectionCallbacks* le_client_callbacks_ = nullptr;
   os::Handler* le_client_handler_ = nullptr;
-  std::set<AddressWithType> connecting_le_;
-  std::set<AddressWithType> canceled_connections_;
-  std::set<AddressWithType> direct_connections_;
+  std::unordered_set<AddressWithType> connecting_le_;
+  std::unordered_set<AddressWithType> canceled_connections_;
+  std::unordered_set<AddressWithType> direct_connections_;
   // Set of devices that will not be removed from connect list after direct connect timeout
-  std::set<AddressWithType> background_connections_;
+  std::unordered_set<AddressWithType> background_connections_;
+  std::unordered_set<AddressWithType> connect_list;
   bool address_manager_registered = false;
   bool ready_to_unregister = false;
   bool pause_connection = false;

@@ -500,7 +500,7 @@ uint16_t AclConnectionHandler::GetScoHandle(bluetooth::hci::Address addr) const 
       return std::get<0>(pair);
     }
   }
-  return 0;
+  return kReservedHandle;
 }
 
 ScoConnectionParameters AclConnectionHandler::GetScoConnectionParameters(

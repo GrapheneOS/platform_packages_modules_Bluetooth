@@ -226,6 +226,22 @@ void LeAudioClientInterface::Sink::UpdateAudioConfigToHal(
       aidl::le_audio::offload_config_to_hal_audio_config(offload_config));
 }
 
+void LeAudioClientInterface::Sink::SuspendedForReconfiguration() {
+  if (HalVersionManager::GetHalTransport() ==
+      BluetoothAudioHalTransport::HIDL) {
+    return;
+  }
+
+  if (aidl::le_audio::LeAudioSinkTransport::interface->GetTransportInstance()
+          ->GetSessionType() !=
+      aidl::SessionType::LE_AUDIO_HARDWARE_OFFLOAD_ENCODING_DATAPATH) {
+    return;
+  }
+
+  aidl::le_audio::LeAudioSinkTransport::interface->StreamSuspended(
+      aidl::BluetoothAudioCtrlAck::SUCCESS_RECONFIGURATION);
+}
+
 size_t LeAudioClientInterface::Sink::Read(uint8_t* p_buf, uint32_t len) {
   if (HalVersionManager::GetHalTransport() ==
       BluetoothAudioHalTransport::HIDL) {
@@ -322,6 +338,22 @@ void LeAudioClientInterface::Source::StartSession() {
     }
     aidl::le_audio::LeAudioSourceTransport::interface->StartSession();
   }
+}
+
+void LeAudioClientInterface::Source::SuspendedForReconfiguration() {
+  if (HalVersionManager::GetHalTransport() ==
+      BluetoothAudioHalTransport::HIDL) {
+    return;
+  }
+
+  if (aidl::le_audio::LeAudioSourceTransport::interface->GetTransportInstance()
+          ->GetSessionType() !=
+      aidl::SessionType::LE_AUDIO_HARDWARE_OFFLOAD_DECODING_DATAPATH) {
+    return;
+  }
+
+  aidl::le_audio::LeAudioSourceTransport::interface->StreamSuspended(
+      aidl::BluetoothAudioCtrlAck::SUCCESS_RECONFIGURATION);
 }
 
 void LeAudioClientInterface::Source::ConfirmStreamingRequest() {

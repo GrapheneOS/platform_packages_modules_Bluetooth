@@ -64,7 +64,7 @@ namespace broadcaster {
 namespace {
 static constexpr LeAudioBroadcaster::AudioProfile default_profile =
     LeAudioBroadcaster::AudioProfile::SONIFICATION;
-static constexpr LeAudioBroadcaster::Code default_code = {
+static constexpr BroadcastCode default_code = {
     0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
     0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10};
 static const std::vector<uint8_t> default_metadata = {0x03, 0x02, 0x01, 0x00};
@@ -143,7 +143,7 @@ class BroadcasterTest : public Test {
   uint8_t InstantiateBroadcast(
       LeAudioBroadcaster::AudioProfile profile = default_profile,
       std::vector<uint8_t> metadata = default_metadata,
-      LeAudioBroadcaster::Code code = default_code) {
+      BroadcastCode code = default_code) {
     uint8_t instance_id = LeAudioBroadcaster::kInstanceIdUndefined;
     EXPECT_CALL(mock_broadcaster_callbacks_, OnBroadcastCreated(_, true))
         .WillOnce(SaveArg<0>(&instance_id));

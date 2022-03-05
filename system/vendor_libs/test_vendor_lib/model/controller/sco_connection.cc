@@ -140,7 +140,7 @@ std::optional<ScoLinkParameters> ScoConnectionParameters::GetLinkParameters() {
       double bandwidth_usage =
         (double)transmission_window / (double)transmission_interval;
 
-      if (bandwidth_usage < best_bandwidth_usage) {
+      if (bandwidth_usage <= best_bandwidth_usage) {
         LOG_INFO("Valid combination!");
 
         uint16_t tx_packet_length =
