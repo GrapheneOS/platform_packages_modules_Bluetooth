@@ -859,6 +859,7 @@ public class AdapterService extends Service {
             errorLog(
                     "Cannot switch buffer size. The number of A2DP active devices is "
                             + activeDevices.size());
+            return;
         }
         mA2dpService.switchCodecByBufferSize(activeDevices.get(0), isLowLatencyBufferSize);
     }
@@ -4106,16 +4107,22 @@ public class AdapterService extends Service {
                 if (mHeadsetService == null) {
                     Log.e(TAG, "getActiveDevices: HeadsetService is null");
                 } else {
-                    activeDevices.add(mHeadsetService.getActiveDevice());
-                    Log.i(TAG, "getActiveDevices: Headset device: " + activeDevices.get(0));
+                    BluetoothDevice device = mHeadsetService.getActiveDevice();
+                    if (device != null) {
+                        activeDevices.add(device);
+                    }
+                    Log.i(TAG, "getActiveDevices: Headset device: " + device);
                 }
                 break;
             case BluetoothProfile.A2DP:
                 if (mA2dpService == null) {
                     Log.e(TAG, "getActiveDevices: A2dpService is null");
                 } else {
-                    activeDevices.add(mA2dpService.getActiveDevice());
-                    Log.i(TAG, "getActiveDevices: A2dp device: " + activeDevices.get(0));
+                    BluetoothDevice device = mA2dpService.getActiveDevice();
+                    if (device != null) {
+                        activeDevices.add(device);
+                    }
+                    Log.i(TAG, "getActiveDevices: A2dp device: " + device);
                 }
                 break;
             case BluetoothProfile.HEARING_AID:

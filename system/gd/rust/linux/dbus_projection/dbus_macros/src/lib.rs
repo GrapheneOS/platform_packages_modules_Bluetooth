@@ -207,6 +207,175 @@ pub fn generate_dbus_exporter(attr: TokenStream, item: TokenStream) -> TokenStre
     gen.into()
 }
 
+/// Generates a client implementation of a D-Bus interface.
+///
+/// Example:
+///   #[generate_dbus_interface_client()]
+///
+/// The impl containing #[dbus_method()] will contain a generated code to call the method via D-Bus.
+#[proc_macro_attribute]
+pub fn generate_dbus_interface_client(_attr: TokenStream, item: TokenStream) -> TokenStream {
+    let ast: ItemImpl = syn::parse(item.clone()).unwrap();
+    let trait_path = ast.trait_.unwrap().1;
+    let struct_path = match *ast.self_ty {
+        Type::Path(path) => path,
+        _ => panic!("Struct path not available"),
+    };
+
+    let mut methods = quote! {};
+
+    // Iterate on every methods of a trait impl
+    for item in ast.items {
+        if let ImplItem::Method(method) = item {
+            // If the method is not marked with #[dbus_method], just copy the
+            // original method body.
+            if method.attrs.len() != 1 {
+                methods = quote! {
+                    #methods
+
+                    #method
+                };
+                continue;
+            }
+
+            let attr = &method.attrs[0];
+            if !attr.path.get_ident().unwrap().to_string().eq("dbus_method") {
+                continue;
+            }
+
+            let sig = &method.sig;
+
+            let dbus_method_name = if let Meta::List(meta_list) = attr.parse_meta().unwrap() {
+                Some(meta_list.nested[0].clone())
+            } else {
+                None
+            };
+
+            if dbus_method_name.is_none() {
+                continue;
+            }
+
+            let mut input_list = quote! {};
+
+            let mut object_conversions = quote! {};
+
+            // Iterate on every parameter of a method to build a tuple, e.g.
+            // `(param1, param2, param3)`
+            for input in &method.sig.inputs {
+                if let FnArg::Typed(ref typed) = input {
+                    let arg_type = &typed.ty;
+                    if let Pat::Ident(pat_ident) = &*typed.pat {
+                        let ident = pat_ident.ident.clone();
+
+                        let is_box = if let Type::Path(type_path) = &**arg_type {
+                            if type_path.path.segments[0].ident.to_string().eq("Box") {
+                                true
+                            } else {
+                                false
+                            }
+                        } else {
+                            false
+                        };
+
+                        if is_box {
+                            // A Box<dyn> parameter means this is an object that should be exported
+                            // on D-Bus.
+                            object_conversions = quote! {
+                                #object_conversions
+                                    let #ident = {
+                                        let path = dbus::Path::new(#ident.get_object_id()).unwrap();
+                                        #ident.export_for_rpc();
+                                        path
+                                    };
+                            };
+
+                            input_list = quote! {
+                                #input_list
+                                #ident,
+                            };
+                        } else {
+                            // Convert every parameter to its corresponding type recognized by
+                            // the D-Bus library.
+                            input_list = quote! {
+                                #input_list
+                                <#arg_type as DBusArg>::to_dbus(#ident).unwrap(),
+                            };
+                        }
+                    }
+                }
+            }
+
+            let mut output_as_dbus_arg = quote! {};
+            if let ReturnType::Type(_, t) = &method.sig.output {
+                output_as_dbus_arg = quote! {<#t as DBusArg>};
+            }
+
+            let input_tuple = quote! {
+                (#input_list)
+            };
+
+            let body = match &method.sig.output {
+                // Build the method call to `self.client_proxy`. `method` or `method_noreturn`
+                // depends on whether there is a return from the function.
+                ReturnType::Default => {
+                    quote! {
+                        self.client_proxy.method_noreturn(#dbus_method_name, #input_tuple)
+                    }
+                }
+                _ => {
+                    quote! {
+                        let ret: #output_as_dbus_arg::DBusType = self.client_proxy.method(
+                            #dbus_method_name,
+                            #input_tuple,
+                        );
+                        #output_as_dbus_arg::from_dbus(ret, None, None, None).unwrap()
+                    }
+                }
+            };
+
+            // Assemble the method body. May have object conversions if there is a param that is
+            // a proxy object (`Box<dyn>` type).
+            let body = quote! {
+                #object_conversions
+
+                #body
+            };
+
+            // The method definition is its signature and the body.
+            let generated_method = quote! {
+                #sig {
+                    #body
+                }
+            };
+
+            // Assemble all the method definitions.
+            methods = quote! {
+                #methods
+
+                #generated_method
+            };
+        }
+    }
+
+    let gen = quote! {
+        impl #trait_path for #struct_path {
+            #methods
+        }
+    };
+
+    // TODO: Have a switch to turn on/off this debug.
+    debug_output_to_file(
+        &gen,
+        std::path::PathBuf::from(std::env::var("OUT_DIR").unwrap())
+            .join(format!("out-{}.rs", struct_path.path.get_ident().unwrap()))
+            .to_str()
+            .unwrap()
+            .to_string(),
+    );
+
+    gen.into()
+}
+
 fn copy_without_attributes(item: &TokenStream) -> TokenStream {
     let mut ast: ItemStruct = syn::parse(item.clone()).unwrap();
     for field in &mut ast.fields {
@@ -365,7 +534,13 @@ pub fn dbus_proxy_obj(attr: TokenStream, item: TokenStream) -> TokenStream {
 
     for item in ast.items {
         if let ImplItem::Method(method) = item {
+            // If the method is not marked with #[dbus_method], just copy the
+            // original method body.
             if method.attrs.len() != 1 {
+                method_impls = quote! {
+                    #method_impls
+                    #method
+                };
                 continue;
             }
 
@@ -436,6 +611,7 @@ pub fn dbus_proxy_obj(attr: TokenStream, item: TokenStream) -> TokenStream {
                 String::from("")
             }
             fn unregister(&mut self, _id: u32) -> bool { false }
+            fn export_for_rpc(self: Box<Self>) {}
         }
 
         struct #struct_ident {
@@ -461,6 +637,7 @@ pub fn dbus_proxy_obj(attr: TokenStream, item: TokenStream) -> TokenStream {
             fn unregister(&mut self, id: u32) -> bool {
                 self.disconnect_watcher.lock().unwrap().remove(self.remote.clone(), id)
             }
+            fn export_for_rpc(self: Box<Self>) {}
         }
 
         impl DBusArg for Box<dyn #trait_ + Send> {
