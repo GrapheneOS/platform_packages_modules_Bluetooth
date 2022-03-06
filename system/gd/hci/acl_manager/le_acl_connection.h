@@ -62,6 +62,21 @@ class LeAclConnection : public AclConnection {
 
   // The peer address and type returned from the Connection Complete Event
   AddressWithType peer_address_with_type_;
+  Address remote_initiator_address_;
+  Address local_initiator_address_;
+  // 5.2::7.7.65.10 Connection interval used on this connection.
+  // Range: 0x0006 to 0x0C80
+  // Time = N * 1.25 ms
+  // Time Range: 7.5 ms to 4000 ms.
+  uint16_t interval_;
+  // 5.2::7.7.65.10 Peripheral latency for the connection in number of connection events.
+  // Range: 0x0000 to 0x01F3
+  uint16_t latency_;
+  // 5.2::7.7.65.10 Connection supervision timeout.
+  // Range: 0x000A to 0x0C80
+  // Time = N * 10 ms
+  // Time Range: 100 ms to 32 s
+  uint16_t supervision_timeout_;
 
   virtual void RegisterCallbacks(LeConnectionManagementCallbacks* callbacks, os::Handler* handler);
   virtual void Disconnect(DisconnectReason reason);
