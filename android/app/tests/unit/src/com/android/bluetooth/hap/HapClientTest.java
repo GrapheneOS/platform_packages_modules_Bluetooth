@@ -746,9 +746,7 @@ public class HapClientTest {
 
         int info_reason = HapClientStackEvent.PRESET_INFO_REASON_PRESET_INFO_UPDATE;
         BluetoothHapPresetInfo[] info =
-                {new BluetoothHapPresetInfo.Builder()
-                        .setIndex(0x01)
-                        .setName("OneChangedToUnavailable")
+                {new BluetoothHapPresetInfo.Builder(0x01, "OneChangedToUnavailable")
                         .setWritable(true)
                         .setAvailable(false)
                         .build()};
@@ -965,21 +963,15 @@ public class HapClientTest {
         // Inject some initial presets
         List<BluetoothHapPresetInfo> presets =
                 new ArrayList<BluetoothHapPresetInfo>(Arrays.asList(
-                        new BluetoothHapPresetInfo.Builder()
-                                .setIndex(0x01)
-                                .setName("One")
+                        new BluetoothHapPresetInfo.Builder(0x01, "One")
                                 .setAvailable(true)
                                 .setWritable(false)
                                 .build(),
-                        new BluetoothHapPresetInfo.Builder()
-                                .setIndex(0x02)
-                                .setName("Two")
+                        new BluetoothHapPresetInfo.Builder(0x02, "Two")
                                 .setAvailable(true)
                                 .setWritable(true)
                                 .build(),
-                        new BluetoothHapPresetInfo.Builder()
-                                .setIndex(0x03)
-                                .setName("Three")
+                        new BluetoothHapPresetInfo.Builder(0x03, "Three")
                                 .setAvailable(false)
                                 .setWritable(false)
                                 .build()));

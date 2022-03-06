@@ -104,7 +104,6 @@ public final class BluetoothHeadsetClient implements BluetoothProfile, AutoClose
      *
      * @hide
      */
-    @SystemApi
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
@@ -198,19 +197,16 @@ public final class BluetoothHeadsetClient implements BluetoothProfile, AutoClose
     /**
      * @hide
      */
-    @SystemApi
     public static final int STATE_AUDIO_DISCONNECTED = 0;
 
     /**
      * @hide
      */
-    @SystemApi
     public static final int STATE_AUDIO_CONNECTING = 1;
 
     /**
      * @hide
      */
-    @SystemApi
     public static final int STATE_AUDIO_CONNECTED = 2;
 
     /**
