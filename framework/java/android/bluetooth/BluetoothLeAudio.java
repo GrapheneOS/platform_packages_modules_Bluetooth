@@ -966,9 +966,22 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
             Log.d(TAG, "getCodecStatus(" + device + ")");
         }
 
+        final IBluetoothLeAudio service = getService();
         final BluetoothLeAudioCodecStatus defaultValue = null;
 
-        // TODO: Add the implementation to get codec status
+        if (service == null) {
+            Log.w(TAG, "Proxy not attached to service");
+            if (DBG) log(Log.getStackTraceString(new Throwable()));
+        } else if (mAdapter.isEnabled() && isValidDevice(device)) {
+            try {
+                final SynchronousResultReceiver<BluetoothLeAudioCodecStatus> recv =
+                        new SynchronousResultReceiver();
+                service.getCodecStatus(device, mAttributionSource, recv);
+                return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
+            } catch (RemoteException | TimeoutException e) {
+                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+            }
+        }
         return defaultValue;
     }
 
@@ -994,8 +1007,18 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
             throw new IllegalArgumentException("codecConfig cannot be null");
         }
 
-        // TODO: Add the implementation to set config preference
-        return;
+        final IBluetoothLeAudio service = getService();
+
+        if (service == null) {
+            Log.w(TAG, "Proxy not attached to service");
+            if (DBG) log(Log.getStackTraceString(new Throwable()));
+        } else if (mAdapter.isEnabled() && isValidDevice(device)) {
+            try {
+                service.setCodecConfigPreference(device, codecConfig, mAttributionSource);
+            } catch (RemoteException e) {
+                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+            }
+        }
     }
 
 }
