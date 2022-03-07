@@ -26,6 +26,7 @@ extern std::map<std::string, int> mock_function_count_map;
 
 #include <map>
 #include <vector>
+
 #include "bta/vc/devices.h"
 #include "stack/btm/btm_sec.h"
 
@@ -61,6 +62,10 @@ bool VolumeControlDevice::set_volume_control_service_handles(
     const gatt::Service& service) {
   mock_function_count_map[__func__]++;
   return false;
+}
+void VolumeControlDevice::set_volume_offset_control_service_handles(
+    const gatt::Service& service) {
+  mock_function_count_map[__func__]++;
 }
 bool VolumeControlDevice::subscribe_for_notifications(tGATT_IF gatt_if,
                                                       uint16_t handle,

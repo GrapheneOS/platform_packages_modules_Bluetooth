@@ -24,6 +24,10 @@ public class VolumeControlStackEvent {
     private static final int EVENT_TYPE_NONE = 0;
     public static final int EVENT_TYPE_CONNECTION_STATE_CHANGED = 1;
     public static final int EVENT_TYPE_VOLUME_STATE_CHANGED = 2;
+    public static final int EVENT_TYPE_DEVICE_AVAILABLE = 3;
+    public static final int EVENT_TYPE_EXT_AUDIO_OUT_VOL_OFFSET_CHANGED = 4;
+    public static final int EVENT_TYPE_EXT_AUDIO_OUT_LOCATION_CHANGED = 5;
+    public static final int EVENT_TYPE_EXT_AUDIO_OUT_DESCRIPTION_CHANGED = 6;
 
     // Do not modify without updating the HAL bt_vc_aid.h files.
     // Match up with enum class ConnectionState of bt_vc_aid.h.
@@ -38,6 +42,8 @@ public class VolumeControlStackEvent {
     public int valueInt2;
     public boolean valueBool1;
     public boolean valueBool2;
+    public String valueString1;
+
     /* Might need more for other callbacks*/
 
     VolumeControlStackEvent(int type) {
@@ -54,6 +60,7 @@ public class VolumeControlStackEvent {
         result.append(", valueInt2:" + eventTypeValue2ToString(type, valueInt2));
         result.append(", valueBool1:" + eventTypeValueBool1ToString(type, valueBool1));
         result.append(", valueBool2:" + eventTypeValueBool2ToString(type, valueBool2));
+        result.append(", valueString1:" + eventTypeString1ToString(type, valueString1));
         result.append("}");
         return result.toString();
     }
@@ -66,6 +73,14 @@ public class VolumeControlStackEvent {
                 return "EVENT_TYPE_CONNECTION_STATE_CHANGED";
             case EVENT_TYPE_VOLUME_STATE_CHANGED:
                 return "EVENT_TYPE_VOLUME_STATE_CHANGED";
+            case EVENT_TYPE_DEVICE_AVAILABLE:
+                return "EVENT_TYPE_DEVICE_AVAILABLE";
+            case EVENT_TYPE_EXT_AUDIO_OUT_VOL_OFFSET_CHANGED:
+                return "EVENT_TYPE_EXT_AUDIO_OUT_VOL_OFFSET_CHANGED";
+            case EVENT_TYPE_EXT_AUDIO_OUT_LOCATION_CHANGED:
+                return "EVENT_TYPE_EXT_AUDIO_OUT_LOCATION_CHANGED";
+            case EVENT_TYPE_EXT_AUDIO_OUT_DESCRIPTION_CHANGED:
+                return "EVENT_TYPE_EXT_AUDIO_OUT_DESCRIPTION_CHANGED";
             default:
                 return "EVENT_TYPE_UNKNOWN:" + type;
         }
@@ -88,6 +103,12 @@ public class VolumeControlStackEvent {
                 }
             case EVENT_TYPE_VOLUME_STATE_CHANGED:
                 return "{group_id:" + value + "}";
+            case EVENT_TYPE_DEVICE_AVAILABLE:
+                return "{num_ext_outputs:"  + value + "}";
+            case EVENT_TYPE_EXT_AUDIO_OUT_VOL_OFFSET_CHANGED:
+            case EVENT_TYPE_EXT_AUDIO_OUT_LOCATION_CHANGED:
+            case EVENT_TYPE_EXT_AUDIO_OUT_DESCRIPTION_CHANGED:
+                return "{ext output id:" + value + "}";
             default:
                 break;
         }
@@ -135,5 +156,15 @@ public class VolumeControlStackEvent {
                 break;
         }
         return Boolean.toString(value);
+    }
+
+    private static String eventTypeString1ToString(int type, String value) {
+        switch (type) {
+            case EVENT_TYPE_EXT_AUDIO_OUT_DESCRIPTION_CHANGED:
+                return "{descrition:" + value + "}";
+            default:
+                break;
+        }
+        return value;
     }
 }
