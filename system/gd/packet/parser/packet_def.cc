@@ -1138,7 +1138,8 @@ void PacketDef::GenRustAccessStructImpls(std::ostream& s) const {
     s << "impl CommandExpectations for " << name_ << "Packet {";
     s << " type ResponseType = " << complement_->name_ << "Packet;";
     s << " fn _to_response_type(pkt: EventPacket) -> Self::ResponseType { ";
-    s << complement_->name_ << "Packet::new(pkt." << complement_root_accessor << ".clone())";
+    s << complement_->name_ << "Packet::new(pkt." << complement_root_accessor << ".clone())"
+      << ".unwrap()";
     s << " }";
     s << "}";
   }
@@ -1173,10 +1174,20 @@ void PacketDef::GenRustAccessStructImpls(std::ostream& s) const {
   s << "}\n";
   s << "}\n";
 
+  if (root != this) {
+    s << "impl TryFrom<" << root->name_ << "Packet"
+      << "> for " << name_ << "Packet {\n";
+    s << "type Error = TryFromError;\n";
+    s << "fn try_from(value: " << root->name_ << "Packet)"
+      << " -> std::result::Result<Self, Self::Error> {\n";
+    s << "Self::new(value." << root_accessor << ").map_err(TryFromError)\n", s << "}\n";
+    s << "}\n";
+  }
+
   s << "impl " << name_ << "Packet {";
   if (parent_ == nullptr) {
     s << "pub fn parse(bytes: &[u8]) -> Result<Self> { ";
-    s << "Ok(Self::new(Arc::new(" << name_ << "Data::parse(bytes)?)))";
+    s << "Ok(Self::new(Arc::new(" << name_ << "Data::parse(bytes)?)).unwrap())";
     s << "}";
   }
 
@@ -1185,7 +1196,7 @@ void PacketDef::GenRustAccessStructImpls(std::ostream& s) const {
     s << " match &self." << util::CamelCaseToUnderScore(name_) << ".child {";
     for (const auto& child : children_) {
       s << name_ << "DataChild::" << child->name_ << "(_) => " << name_ << "Child::" << child->name_ << "("
-        << child->name_ << "Packet::new(self." << root_accessor << ".clone())),";
+        << child->name_ << "Packet::new(self." << root_accessor << ".clone()).unwrap()),";
     }
     if (fields_.HasPayload()) {
       s << name_ << "DataChild::Payload(p) => " << name_ << "Child::Payload(p.clone()),";
@@ -1197,7 +1208,7 @@ void PacketDef::GenRustAccessStructImpls(std::ostream& s) const {
   lineage.push_back(this);
   const ParentDef* prev = nullptr;
 
-  s << " fn new(root: Arc<" << root->name_ << "Data>) -> Self {";
+  s << " fn new(root: Arc<" << root->name_ << "Data>) -> std::result::Result<Self, &'static str> {";
   for (auto it = lineage.begin(); it != lineage.end(); it++) {
     auto def = *it;
     auto accessor_name = util::CamelCaseToUnderScore(def->name_);
@@ -1206,17 +1217,17 @@ void PacketDef::GenRustAccessStructImpls(std::ostream& s) const {
     } else {
       s << "let " << accessor_name << " = match &" << util::CamelCaseToUnderScore(prev->name_) << ".child {";
       s << prev->name_ << "DataChild::" << def->name_ << "(value) => (*value).clone(),";
-      s << "_ => panic!(\"inconsistent state - child was not " << def->name_ << "\"),";
+      s << "_ => return Err(\"inconsistent state - child was not " << def->name_ << "\"),";
       s << "};";
     }
     prev = def;
   }
-  s << "Self {";
+  s << "Ok(Self {";
   for (auto it = lineage.begin(); it != lineage.end(); it++) {
     auto def = *it;
     s << util::CamelCaseToUnderScore(def->name_) << ",";
   }
-  s << "}}";
+  s << "})}";
 
   for (auto it = lineage.begin(); it != lineage.end(); it++) {
     auto def = *it;
@@ -1250,7 +1261,8 @@ void PacketDef::GenRustAccessStructImpls(std::ostream& s) const {
     auto def = *it;
     s << "impl Into<" << def->name_ << "Packet> for " << name_ << "Packet {";
     s << " fn into(self) -> " << def->name_ << "Packet {";
-    s << def->name_ << "Packet::new(self." << util::CamelCaseToUnderScore(root->name_) << ")";
+    s << def->name_ << "Packet::new(self." << util::CamelCaseToUnderScore(root->name_) << ")"
+      << ".unwrap()";
     s << " }";
     s << "}\n";
   }
@@ -1263,7 +1275,8 @@ void PacketDef::GenRustBuilderStructImpls(std::ostream& s) const {
     s << "impl CommandExpectations for " << name_ << "Builder {";
     s << " type ResponseType = " << complement_->name_ << "Packet;";
     s << " fn _to_response_type(pkt: EventPacket) -> Self::ResponseType { ";
-    s << complement_->name_ << "Packet::new(pkt." << complement_root_accessor << ".clone())";
+    s << complement_->name_ << "Packet::new(pkt." << complement_root_accessor << ".clone())"
+      << ".unwrap()";
     s << " }";
     s << "}";
   }
@@ -1328,7 +1341,7 @@ void PacketDef::GenRustBuilderStructImpls(std::ostream& s) const {
     prev = ancestor;
   }
 
-  s << name_ << "Packet::new(" << util::CamelCaseToUnderScore(prev->name_) << ")";
+  s << name_ << "Packet::new(" << util::CamelCaseToUnderScore(prev->name_) << ").unwrap()";
   s << "}\n";
 
   s << "}\n";
