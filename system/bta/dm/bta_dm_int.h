@@ -548,6 +548,7 @@ extern void bta_dm_clear_event_filter(void);
 extern void bta_dm_clear_event_mask(void);
 extern void bta_dm_clear_filter_accept_list(void);
 extern void bta_dm_disconnect_all_acls(void);
+extern void bta_dm_le_rand(LeRandCallback cb);
 
 uint8_t bta_dm_search_get_state();
 void bta_dm_search_set_state(uint8_t state);

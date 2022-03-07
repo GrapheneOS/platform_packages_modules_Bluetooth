@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include "base/callback.h"
 #include "device/include/esco_parameters.h"
 #include "stack/btm/btm_sec.h"
 #include "stack/btm/neighbor_inquiry.h"
@@ -1853,6 +1854,20 @@ tBTM_STATUS BTM_ClearFilterAcceptList(void);
  *
  ******************************************************************************/
 tBTM_STATUS BTM_DisconnectAllAcls(void);
+
+/*******************************************************************************
+ *
+ * Function         BTM_LeRand
+ *
+ * Description      Retrieves a random number from the controller
+ *
+ * Parameters       cb - The callback to receive the random number
+ *
+ * Returns          Return btm status
+ *
+ ******************************************************************************/
+using LeRandCallback = base::Callback<void(uint64_t)>;
+tBTM_STATUS BTM_LeRand(LeRandCallback);
 
 /**
  * Send remote name request to GD shim Name module

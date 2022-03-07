@@ -684,3 +684,17 @@ void BTA_DmClearEventFilter(void) {
   APPL_TRACE_API("BTA_DmClearEventFilter");
   do_in_main_thread(FROM_HERE, base::Bind(bta_dm_clear_event_filter));
 }
+
+/*******************************************************************************
+ *
+ * Function         BTA_DmLeRand
+ *
+ * Description      This function clears the event filter
+ *
+ * Returns          cb: callback to receive the resulting random number
+ *
+ ******************************************************************************/
+void BTA_DmLeRand(LeRandCallback cb) {
+  APPL_TRACE_API("BTA_DmLeRand");
+  do_in_main_thread(FROM_HERE, base::Bind(bta_dm_le_rand, cb));
+}
