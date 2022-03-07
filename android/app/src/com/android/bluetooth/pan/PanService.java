@@ -168,6 +168,10 @@ public class PanService extends ProfileService {
 
     @Override
     protected boolean stop() {
+        if (!mStarted) {
+            Log.w(TAG, "stop() called before start()");
+            return true;
+        }
         mAdapterService = null;
         mTetheringManager.unregisterTetheringEventCallback(mTetheringCallback);
         mHandler.removeCallbacksAndMessages(null);
