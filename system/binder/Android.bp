@@ -27,6 +27,7 @@ filegroup {
         "android/bluetooth/IBluetoothHapClient.aidl",
         "android/bluetooth/IBluetoothHapClientCallback.aidl",
         "android/bluetooth/IBluetoothVolumeControl.aidl",
+        "android/bluetooth/IBluetoothVolumeControlCallback.aidl",
         "android/bluetooth/IBluetoothHidHost.aidl",
         "android/bluetooth/IBluetoothLeAudio.aidl",
         "android/bluetooth/IBluetoothLeBroadcastCallback.aidl",

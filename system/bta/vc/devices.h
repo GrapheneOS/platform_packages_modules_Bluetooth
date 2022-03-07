@@ -59,6 +59,8 @@ class VolumeControlDevice {
   uint16_t volume_flags_handle;
   uint16_t volume_flags_ccc_handle;
 
+  VolumeOffsets audio_offsets;
+
   bool device_ready; /* Set when device read server status and registgered for
                         notifications */
 
@@ -83,7 +85,25 @@ class VolumeControlDevice {
 
   inline std::string ToString() { return address.ToString(); }
 
-  void DebugDump(int fd) { dprintf(fd, "%s\n", this->ToString().c_str()); }
+  void DebugDump(int fd) {
+    std::stringstream stream;
+    stream << "   == device address: " << address << " == \n";
+
+    if (connection_id == GATT_INVALID_CONN_ID)
+      stream << "    Not connected\n";
+    else
+      stream << "    Connected. Conn_id = " << connection_id << "\n";
+
+    stream << "    volume: " << +volume << "\n"
+           << "    mute: " << +mute << "\n"
+           << "    flags: " << +flags << "\n"
+           << "    device read: " << device_ready << "\n"
+           << "    first_connection_: " << first_connection << "\n"
+           << "    connecting_actively_: " << connecting_actively << "\n";
+
+    dprintf(fd, "%s", stream.str().c_str());
+    audio_offsets.Dump(fd);
+  }
 
   bool IsConnected() { return connection_id != GATT_INVALID_CONN_ID; }
 
@@ -97,6 +117,17 @@ class VolumeControlDevice {
 
   void ControlPointOperation(uint8_t opcode, const std::vector<uint8_t>* arg,
                              GATT_WRITE_OP_CB cb, void* cb_data);
+  void GetExtAudioOutVolumeOffset(uint8_t ext_output_id, GATT_READ_OP_CB cb,
+                                  void* cb_data);
+  void SetExtAudioOutLocation(uint8_t ext_output_id, uint32_t location);
+  void GetExtAudioOutLocation(uint8_t ext_output_id, GATT_READ_OP_CB cb,
+                              void* cb_data);
+  void GetExtAudioOutDescription(uint8_t ext_output_id, GATT_READ_OP_CB cb,
+                                 void* cb_data);
+  void SetExtAudioOutDescription(uint8_t ext_output_id, std::string& descr);
+  void ExtAudioOutControlPointOperation(uint8_t ext_output_id, uint8_t opcode,
+                                        const std::vector<uint8_t>* arg,
+                                        GATT_WRITE_OP_CB cb, void* cb_data);
   bool IsEncryptionEnabled();
 
   bool EnableEncryption(tBTM_SEC_CALLBACK* callback);
@@ -118,6 +149,7 @@ class VolumeControlDevice {
 
   uint16_t find_ccc_handle(uint16_t chrc_handle);
   bool set_volume_control_service_handles(const gatt::Service& service);
+  void set_volume_offset_control_service_handles(const gatt::Service& service);
   bool subscribe_for_notifications(tGATT_IF gatt_if, uint16_t handle,
                                    uint16_t ccc_handle, GATT_WRITE_OP_CB cb);
 };
@@ -163,8 +195,13 @@ class VolumeControlDevices {
   void Clear() { devices_.clear(); }
 
   void DebugDump(int fd) {
-    for (auto& device : devices_) {
-      device.DebugDump(fd);
+    if (devices_.empty()) {
+      dprintf(fd, "  No VC devices:\n");
+    } else {
+      dprintf(fd, "  Devices:\n");
+      for (auto& device : devices_) {
+        device.DebugDump(fd);
+      }
     }
   }
 
