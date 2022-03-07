@@ -119,10 +119,10 @@ config("target_defaults") {
     "FALLTHROUGH_INTENDED=[[clang::fallthrough]]",
     # TODO(b/214148074): Start with NB, should enable WB.
     "DISABLE_WBS=TRUE",
-    # TODO(b/214149380): Start with no extra feature supported. Should enable
-    # required features in the future.
+    # TODO(b/214149380): Start with Enhanced Call Status feature supported.
+    # Should enable required features in the future.
     # This will be consumed by BTA_AgRegister and passed to HF through AT+BRSF.
-    "BTIF_HF_FEATURES=0x00000000"
+    "BTIF_HF_FEATURES=0x00000040"
   ]
 
   if (!(defined(use.bt_nonstandard_codecs) && use.bt_nonstandard_codecs)) {
