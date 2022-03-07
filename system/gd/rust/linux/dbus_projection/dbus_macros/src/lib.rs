@@ -13,8 +13,20 @@ use syn::{Expr, FnArg, ImplItem, ItemImpl, ItemStruct, Meta, Pat, ReturnType, Ty
 
 use crate::proc_macro::TokenStream;
 
+const OUTPUT_DEBUG: bool = false;
+
 fn debug_output_to_file(gen: &proc_macro2::TokenStream, filename: String) {
-    let path = Path::new(filename.as_str());
+    if !OUTPUT_DEBUG {
+        return;
+    }
+
+    let filepath = std::path::PathBuf::from(std::env::var("OUT_DIR").unwrap())
+        .join(filename)
+        .to_str()
+        .unwrap()
+        .to_string();
+
+    let path = Path::new(&filepath);
     let mut file = File::create(&path).unwrap();
     file.write_all(gen.to_string().as_bytes()).unwrap();
 }
@@ -201,8 +213,7 @@ pub fn generate_dbus_exporter(attr: TokenStream, item: TokenStream) -> TokenStre
         }
     };
 
-    // TODO: Have a switch to turn on/off this debug.
-    debug_output_to_file(&gen, format!("/tmp/out-{}.rs", fn_ident.to_string()));
+    debug_output_to_file(&gen, format!("out-{}.rs", fn_ident.to_string()));
 
     gen.into()
 }
@@ -363,7 +374,6 @@ pub fn generate_dbus_interface_client(_attr: TokenStream, item: TokenStream) -> 
         }
     };
 
-    // TODO: Have a switch to turn on/off this debug.
     debug_output_to_file(
         &gen,
         std::path::PathBuf::from(std::env::var("OUT_DIR").unwrap())
@@ -501,8 +511,7 @@ pub fn dbus_propmap(attr: TokenStream, item: TokenStream) -> TokenStream {
         }
     };
 
-    // TODO: Have a switch to turn this debug off/on.
-    debug_output_to_file(&gen, format!("/tmp/out-{}.rs", struct_ident.to_string()));
+    debug_output_to_file(&gen, format!("out-{}.rs", struct_ident.to_string()));
 
     gen.into()
 }
@@ -664,8 +673,7 @@ pub fn dbus_proxy_obj(attr: TokenStream, item: TokenStream) -> TokenStream {
         }
     };
 
-    // TODO: Have a switch to turn this debug off/on.
-    debug_output_to_file(&gen, format!("/tmp/out-{}.rs", struct_ident.to_string()));
+    debug_output_to_file(&gen, format!("out-{}.rs", struct_ident.to_string()));
 
     gen.into()
 }
@@ -860,8 +868,7 @@ pub fn generate_dbus_arg(_item: TokenStream) -> TokenStream {
         }
     };
 
-    // TODO: Have a switch to turn this debug off/on.
-    debug_output_to_file(&gen, format!("/tmp/out-generate_dbus_arg.rs"));
+    debug_output_to_file(&gen, format!("out-generate_dbus_arg.rs"));
 
     gen.into()
 }
