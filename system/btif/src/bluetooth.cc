@@ -56,6 +56,7 @@
 #include "bta/include/bta_hf_client_api.h"
 #include "bta/include/bta_le_audio_api.h"
 #include "bta/include/bta_le_audio_broadcaster_api.h"
+#include "bta/include/bta_vc_api.h"
 #include "btif/avrcp/avrcp_service.h"
 #include "btif/include/stack_manager.h"
 #include "btif_a2dp.h"
@@ -441,6 +442,7 @@ static void dump(int fd, const char** arguments) {
 #ifndef TARGET_FLOSS
   LeAudioClient::DebugDump(fd);
   LeAudioBroadcaster::DebugDump(fd);
+  VolumeControl::DebugDump(fd);
 #endif
   connection_manager::dump(fd);
   bluetooth::bqr::DebugDump(fd);
