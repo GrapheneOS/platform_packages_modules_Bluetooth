@@ -174,8 +174,10 @@ class LeAudioClientImpl : public LeAudioClient {
         current_sink_codec_config({0, 0, 0, 0}),
         lc3_encoder_left_mem(nullptr),
         lc3_encoder_right_mem(nullptr),
-        lc3_decoder_mem(nullptr),
-        lc3_decoder(nullptr),
+        lc3_decoder_left_mem(nullptr),
+        lc3_decoder_right_mem(nullptr),
+        lc3_decoder_left(nullptr),
+        lc3_decoder_right(nullptr),
         audio_source_instance_(nullptr),
         audio_sink_instance_(nullptr),
         suspend_timeout_(alarm_new("LeAudioSuspendTimeout")) {
@@ -2120,7 +2122,6 @@ class LeAudioClientImpl : public LeAudioClient {
                      uint32_t timestamp) {
     /* Get only one channel for MONO microphone */
     /* Gather data for channel */
-
     if ((active_group_id_ == bluetooth::groups::kGroupUnknown) ||
         (audio_sender_state_ != AudioState::STARTED))
       return;
@@ -2133,16 +2134,30 @@ class LeAudioClientImpl : public LeAudioClient {
 
     auto stream_conf = group->stream_conf;
 
-    uint16_t required_for_channel_byte_count =
-        stream_conf.source_octets_per_codec_frame;
-    size_t required_byte_count = current_sink_codec_config.num_channels *
-                                 required_for_channel_byte_count;
+    uint16_t left_cis_handle = 0;
+    uint16_t right_cis_handle = 0;
+    for (auto [cis_handle, audio_location] : stream_conf.source_streams) {
+      if (audio_location & le_audio::codec_spec_conf::kLeAudioLocationAnyLeft) {
+        left_cis_handle = cis_handle;
+      }
+      if (audio_location &
+          le_audio::codec_spec_conf::kLeAudioLocationAnyRight) {
+        right_cis_handle = cis_handle;
+      }
+    }
 
-    if (required_byte_count != size) {
-      LOG(ERROR) << "Insufficient data for decoding and send, required: "
-                 << int(required_byte_count) << ", received: " << int(size);
+    bool is_left = true;
+    if (cis_conn_hdl == left_cis_handle) {
+      is_left = true;
+    } else if (cis_conn_hdl == right_cis_handle) {
+      is_left = false;
+    } else {
+      LOG_ERROR("Received data for unknown handle: %04x", cis_conn_hdl);
       return;
     }
+
+    uint16_t required_for_channel_byte_count =
+        stream_conf.source_octets_per_codec_frame;
 
     int dt_us = current_sink_codec_config.data_interval_us;
     int af_hz = audio_framework_sink_config.sample_rate;
@@ -2165,19 +2180,146 @@ class LeAudioClientImpl : public LeAudioClient {
 
     std::vector<int16_t> pcm_data_decoded(pcm_size, 0);
 
-    auto err = lc3_decode(lc3_decoder, data, size, pcm_data_decoded.data(),
-                          1 /* pitch */);
+    int err = 0;
 
-    /* TODO: How handle failing decoding ? */
+    if (required_for_channel_byte_count != size) {
+      LOG(INFO) << "Insufficient data for decoding and send, required: "
+                << int(required_for_channel_byte_count)
+                << ", received: " << int(size) << ", will do PLC";
+      size = 0;
+      data = nullptr;
+    }
+
+    lc3_decoder_t decoder_to_use =
+        is_left ? lc3_decoder_left : lc3_decoder_right;
+
+    err = lc3_decode(decoder_to_use, data, size, pcm_data_decoded.data(),
+                     1 /* pitch */);
+
     if (err < 0) {
-      LOG(ERROR) << " error while decoding error code: "
-                 << static_cast<int>(err);
+      LOG(ERROR) << " bad decoding parameters: " << static_cast<int>(err);
       return;
     }
 
-    uint16_t to_write = sizeof(int16_t) * pcm_data_decoded.size();
-    uint16_t written = LeAudioClientAudioSink::SendData(
-        (uint8_t*)pcm_data_decoded.data(), to_write);
+    /* AF == Audio Framework */
+    bool af_is_stereo = (audio_framework_sink_config.num_channels == 2);
+
+    if (!left_cis_handle || !right_cis_handle) {
+      /* mono or just one device connected */
+      SendAudioDataToAF(false /* bt_got_stereo */, af_is_stereo,
+                        &pcm_data_decoded, nullptr);
+      return;
+    }
+
+    /* both devices are connected */
+    if (cached_channel_timestamp_ == 0) {
+      /* First packet received, cache it. We need both channel data to send it
+       * to AF. */
+      cached_channel_data_ = pcm_data_decoded;
+      cached_channel_timestamp_ = timestamp;
+      cached_channel_is_left_ = is_left;
+      return;
+    }
+
+    /* We received either data for the other audio channel, or another
+     * packet for same channel */
+
+    if (cached_channel_is_left_ != is_left) {
+      /* It's data for the 2nd channel */
+      if (timestamp == cached_channel_timestamp_) {
+        /* Ready to mix data and send out to AF */
+        if (is_left) {
+          SendAudioDataToAF(true /* bt_got_stereo */, af_is_stereo,
+                            &cached_channel_data_, &pcm_data_decoded);
+        } else {
+          SendAudioDataToAF(true /* bt_got_stereo */, af_is_stereo,
+                            &pcm_data_decoded, &cached_channel_data_);
+        }
+
+        cached_channel_timestamp_ = 0;
+        return;
+      }
+
+      /* 2nd Channel is in the future compared to the cached data.
+       Send the cached data to AF, and keep the new channel data in cache.
+       This should happen only during stream setup */
+
+      if (cached_channel_is_left_) {
+        SendAudioDataToAF(false /* bt_got_stereo */, af_is_stereo,
+                          &cached_channel_data_, nullptr);
+      } else {
+        SendAudioDataToAF(false /* bt_got_stereo */, af_is_stereo, nullptr,
+                          &cached_channel_data_);
+      }
+
+      cached_channel_data_ = pcm_data_decoded;
+      cached_channel_timestamp_ = timestamp;
+      cached_channel_is_left_ = is_left;
+      return;
+    }
+
+    /* Data for same channel received. 2nd channel is down/not sending
+     * data */
+
+    /* Send the cached data out */
+    if (cached_channel_is_left_) {
+      SendAudioDataToAF(false /* bt_got_stereo */, af_is_stereo,
+                        &cached_channel_data_, nullptr);
+    } else {
+      SendAudioDataToAF(false /* bt_got_stereo */, af_is_stereo, nullptr,
+                        &cached_channel_data_);
+    }
+
+    /* Cache the data in case 2nd channel connects */
+    cached_channel_data_ = pcm_data_decoded;
+    cached_channel_timestamp_ = timestamp;
+    cached_channel_is_left_ = is_left;
+  }
+
+  void SendAudioDataToAF(bool bt_got_stereo, bool af_is_stereo,
+                         std::vector<int16_t>* left,
+                         std::vector<int16_t>* right) {
+    uint16_t to_write = 0;
+    uint16_t written = 0;
+    if (!bt_got_stereo && !af_is_stereo) {
+      std::vector<int16_t>* mono = left ? left : right;
+      /* mono audio over bluetooth, audio framework expects mono */
+      to_write = sizeof(int16_t) * mono->size();
+      written =
+          LeAudioClientAudioSink::SendData((uint8_t*)mono->data(), to_write);
+    } else if (bt_got_stereo && af_is_stereo) {
+      /* stero audio over bluetooth, audio framework expects stereo */
+      std::vector<uint16_t> mixed(left->size() * 2);
+
+      for (size_t i = 0; i < left->size(); i++) {
+        mixed[2 * i] = (*left)[i];
+        mixed[2 * i + 1] = (*right)[i];
+      }
+      to_write = sizeof(int16_t) * mixed.size();
+      written =
+          LeAudioClientAudioSink::SendData((uint8_t*)mixed.data(), to_write);
+    } else if (bt_got_stereo && !af_is_stereo) {
+      /* stero audio over bluetooth, audio framework expects mono */
+      std::vector<uint16_t> mixed(left->size() * 2);
+
+      for (size_t i = 0; i < left->size(); i++) {
+        (*left)[i] = ((*left)[i] + (*right)[i]) / 2;
+      }
+      to_write = sizeof(int16_t) * left->size();
+      written =
+          LeAudioClientAudioSink::SendData((uint8_t*)left->data(), to_write);
+    } else if (!bt_got_stereo && af_is_stereo) {
+      /* mono audio over bluetooth, audio framework expects stereo */
+      std::vector<uint16_t> mixed(left ? left->size() * 2 : right->size() * 2);
+
+      for (size_t i = 0; i < left->size(); i++) {
+        mixed[2 * i] = left ? (*left)[i] : 0;
+        mixed[2 * i + 1] = right ? (*right)[i] : 0;
+      }
+      to_write = sizeof(int16_t) * mixed.size();
+      written =
+          LeAudioClientAudioSink::SendData((uint8_t*)mixed.data(), to_write);
+    }
 
     /* TODO: What to do if not all data sinked ? */
     if (written != to_write) LOG(ERROR) << __func__ << ", not all data sinked";
@@ -2257,22 +2399,29 @@ class LeAudioClientImpl : public LeAudioClient {
     uint16_t remote_delay_ms =
         group->GetRemoteDelay(le_audio::types::kLeAudioDirectionSource);
 
+    cached_channel_timestamp_ = 0;
     if (CodecManager::GetInstance()->GetCodecLocation() ==
         le_audio::types::CodecLocation::HOST) {
-      if (lc3_decoder_mem) {
+      if (lc3_decoder_left_mem) {
         LOG(WARNING)
             << " The decoder instance should have been already released.";
-        free(lc3_decoder_mem);
-        lc3_decoder_mem = nullptr;
+        free(lc3_decoder_left_mem);
+        lc3_decoder_left_mem = nullptr;
+        free(lc3_decoder_right_mem);
+        lc3_decoder_right_mem = nullptr;
       }
 
       int dt_us = current_sink_codec_config.data_interval_us;
       int sr_hz = current_sink_codec_config.sample_rate;
       int af_hz = audio_framework_sink_config.sample_rate;
       unsigned dec_size = lc3_decoder_size(dt_us, af_hz);
-      lc3_decoder_mem = malloc(dec_size);
+      lc3_decoder_left_mem = malloc(dec_size);
+      lc3_decoder_right_mem = malloc(dec_size);
 
-      lc3_decoder = lc3_setup_decoder(dt_us, sr_hz, af_hz, lc3_decoder_mem);
+      lc3_decoder_left =
+          lc3_setup_decoder(dt_us, sr_hz, af_hz, lc3_decoder_left_mem);
+      lc3_decoder_right =
+          lc3_setup_decoder(dt_us, sr_hz, af_hz, lc3_decoder_right_mem);
     } else if (CodecManager::GetInstance()->GetCodecLocation() ==
                le_audio::types::CodecLocation::ADSP) {
       CodecManager::GetInstance()->UpdateActiveSinkAudioConfig(*stream_conf,
@@ -2295,10 +2444,11 @@ class LeAudioClientImpl : public LeAudioClient {
       lc3_encoder_right_mem = nullptr;
     }
 
-    if (lc3_decoder_mem) {
-      LOG(INFO) << __func__ << " stopping sink";
-      free(lc3_decoder_mem);
-      lc3_decoder_mem = nullptr;
+    if (lc3_decoder_left_mem) {
+      free(lc3_decoder_left_mem);
+      lc3_decoder_left_mem = nullptr;
+      free(lc3_decoder_left_mem);
+      lc3_decoder_right_mem = nullptr;
     }
   }
 
@@ -3189,8 +3339,11 @@ class LeAudioClientImpl : public LeAudioClient {
   lc3_encoder_t lc3_encoder_left;
   lc3_encoder_t lc3_encoder_right;
 
-  void* lc3_decoder_mem;
-  lc3_decoder_t lc3_decoder;
+  void* lc3_decoder_left_mem;
+  void* lc3_decoder_right_mem;
+
+  lc3_decoder_t lc3_decoder_left;
+  lc3_decoder_t lc3_decoder_right;
 
   std::vector<uint8_t> encoded_data;
   const void* audio_source_instance_;
@@ -3199,6 +3352,10 @@ class LeAudioClientImpl : public LeAudioClient {
   static constexpr char kAudioSuspentKeepIsoAliveTimeoutMsProp[] =
       "persist.bluetooth.leaudio.audio.suspend.timeoutms";
   alarm_t* suspend_timeout_;
+
+  std::vector<int16_t> cached_channel_data_;
+  uint32_t cached_channel_timestamp_ = 0;
+  uint32_t cached_channel_is_left_;
 
   void ClientAudioIntefraceRelease() {
     if (audio_source_instance_) {
