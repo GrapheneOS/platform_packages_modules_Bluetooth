@@ -58,7 +58,6 @@ import android.content.ServiceConnection;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-import android.content.res.Resources;
 import android.database.ContentObserver;
 import android.os.BatteryStatsManager;
 import android.os.Binder;
@@ -1231,9 +1230,11 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
 
         final int callingUid = Binder.getCallingUid();
         final int callingPid = Binder.getCallingPid();
-        if (!isPrivileged(callingPid, callingUid) && !isDeviceOwner(callingUid, packageName)
-                && CompatChanges.isChangeEnabled(RESTRICT_ENABLE_DISABLE, callingUid)
-                && !isSystem(packageName, callingUid)) {
+        if (CompatChanges.isChangeEnabled(RESTRICT_ENABLE_DISABLE, callingUid)
+                && !isPrivileged(callingPid, callingUid)
+                && !isSystem(packageName, callingUid)
+                && !isDeviceOwner(callingUid, packageName)
+                && !isProfileOwner(callingUid, packageName)) {
             return false;
         }
 
@@ -1272,9 +1273,11 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
 
         final int callingUid = Binder.getCallingUid();
         final int callingPid = Binder.getCallingPid();
-        if (!isPrivileged(callingPid, callingUid) && !isDeviceOwner(callingUid, packageName)
-                && CompatChanges.isChangeEnabled(RESTRICT_ENABLE_DISABLE, callingUid)
-                && !isSystem(packageName, callingUid)) {
+        if (CompatChanges.isChangeEnabled(RESTRICT_ENABLE_DISABLE, callingUid)
+                && !isPrivileged(callingPid, callingUid)
+                && !isSystem(packageName, callingUid)
+                && !isDeviceOwner(callingUid, packageName)
+                && !isProfileOwner(callingUid, packageName)) {
             return false;
         }
 
@@ -3093,6 +3096,7 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
             Log.e(TAG, "isDeviceOwner: packageName is null, returning false");
             return false;
         }
+
         Pair<UserHandle, ComponentName> deviceOwner = getDeviceOwner();
 
         // no device owner
@@ -3100,6 +3104,28 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
 
         return deviceOwner.first.equals(UserHandle.getUserHandleForUid(uid))
                 && deviceOwner.second.getPackageName().equals(packageName);
+    }
+
+    private boolean isProfileOwner(int uid, String packageName) {
+        Context userContext;
+        try {
+            userContext = mContext.createPackageContextAsUser(mContext.getPackageName(), 0,
+                    UserHandle.getUserHandleForUid(uid));
+        } catch (PackageManager.NameNotFoundException e) {
+            Log.e(TAG, "Unknown package name");
+            return false;
+        }
+        if (userContext == null) {
+            Log.e(TAG, "Unable to retrieve user context for " + uid);
+            return false;
+        }
+        DevicePolicyManager devicePolicyManager =
+                userContext.getSystemService(DevicePolicyManager.class);
+        if (devicePolicyManager == null) {
+            Log.w(TAG, "Error retrieving DPM service");
+            return false;
+        }
+        return devicePolicyManager.isProfileOwnerApp(packageName);
     }
 
     public boolean isSystem(String packageName, int uid) {
