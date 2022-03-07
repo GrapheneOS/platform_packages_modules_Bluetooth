@@ -261,6 +261,8 @@ class VolumeControlDeviceTest : public ::testing::Test {
   void SetSampleDatabase1(void) {
     gatt::DatabaseBuilder builder;
     builder.AddService(0x0001, 0x0016, kVolumeControlUuid, true);
+    builder.AddIncludedService(0x0004, kVolumeOffsetUuid, 0x0060, 0x0069);
+    builder.AddIncludedService(0x0005, kVolumeOffsetUuid, 0x0080, 0x008b);
     builder.AddCharacteristic(
         0x0010, 0x0011, kVolumeControlStateUuid,
         GATT_CHAR_PROP_BIT_READ | GATT_CHAR_PROP_BIT_NOTIFY);
@@ -270,6 +272,39 @@ class VolumeControlDeviceTest : public ::testing::Test {
                               GATT_CHAR_PROP_BIT_WRITE);
     builder.AddCharacteristic(0x0015, 0x0016, kVolumeFlagsUuid,
                               GATT_CHAR_PROP_BIT_READ);
+    builder.AddService(0x0060, 0x0069, kVolumeOffsetUuid, false);
+    builder.AddCharacteristic(
+        0x0061, 0x0062, kVolumeOffsetStateUuid,
+        GATT_CHAR_PROP_BIT_READ | GATT_CHAR_PROP_BIT_NOTIFY);
+    builder.AddDescriptor(0x0063,
+                          Uuid::From16Bit(GATT_UUID_CHAR_CLIENT_CONFIG));
+    builder.AddCharacteristic(0x0064, 0x0065, kVolumeOffsetLocationUuid,
+                              GATT_CHAR_PROP_BIT_READ);
+    builder.AddCharacteristic(0x0066, 0x0067, kVolumeOffsetControlPointUuid,
+                              GATT_CHAR_PROP_BIT_WRITE);
+    builder.AddCharacteristic(0x0068, 0x0069,
+                              kVolumeOffsetOutputDescriptionUuid,
+                              GATT_CHAR_PROP_BIT_READ);
+    builder.AddService(0x0080, 0x008b, kVolumeOffsetUuid, false);
+    builder.AddCharacteristic(
+        0x0081, 0x0082, kVolumeOffsetStateUuid,
+        GATT_CHAR_PROP_BIT_READ | GATT_CHAR_PROP_BIT_NOTIFY);
+    builder.AddDescriptor(0x0083,
+                          Uuid::From16Bit(GATT_UUID_CHAR_CLIENT_CONFIG));
+    builder.AddCharacteristic(0x0084, 0x0085, kVolumeOffsetLocationUuid,
+                              GATT_CHAR_PROP_BIT_READ |
+                                  GATT_CHAR_PROP_BIT_WRITE_NR |
+                                  GATT_CHAR_PROP_BIT_NOTIFY);
+    builder.AddDescriptor(0x0086,
+                          Uuid::From16Bit(GATT_UUID_CHAR_CLIENT_CONFIG));
+    builder.AddCharacteristic(0x0087, 0x0088, kVolumeOffsetControlPointUuid,
+                              GATT_CHAR_PROP_BIT_WRITE);
+    builder.AddCharacteristic(
+        0x0089, 0x008a, kVolumeOffsetOutputDescriptionUuid,
+        GATT_CHAR_PROP_BIT_READ | GATT_CHAR_PROP_BIT_WRITE_NR |
+            GATT_CHAR_PROP_BIT_NOTIFY);
+    builder.AddDescriptor(0x008b,
+                          Uuid::From16Bit(GATT_UUID_CHAR_CLIENT_CONFIG));
     builder.AddService(0x00a0, 0x00a3,
                        Uuid::From16Bit(UUID_SERVCLASS_GATT_SERVER), true);
     builder.AddCharacteristic(0x00a1, 0x00a2,
@@ -323,13 +358,104 @@ TEST_F(VolumeControlDeviceTest, test_service_volume_control_incomplete) {
   ASSERT_EQ(false, device->HasHandles());
 }
 
+TEST_F(VolumeControlDeviceTest, test_service_vocs_incomplete) {
+  gatt::DatabaseBuilder builder;
+  builder.AddService(0x0001, 0x000a, kVolumeControlUuid, true);
+  builder.AddIncludedService(0x0002, kVolumeOffsetUuid, 0x000b, 0x0013);
+  builder.AddCharacteristic(
+      0x0003, 0x0004, kVolumeControlStateUuid,
+      GATT_CHAR_PROP_BIT_READ | GATT_CHAR_PROP_BIT_NOTIFY);
+  builder.AddDescriptor(0x0005, Uuid::From16Bit(GATT_UUID_CHAR_CLIENT_CONFIG));
+  builder.AddCharacteristic(0x0006, 0x0007, kVolumeControlPointUuid,
+                            GATT_CHAR_PROP_BIT_WRITE);
+  builder.AddCharacteristic(
+      0x0008, 0x0009, kVolumeFlagsUuid,
+      GATT_CHAR_PROP_BIT_READ | GATT_CHAR_PROP_BIT_NOTIFY);
+  builder.AddDescriptor(0x000a, Uuid::From16Bit(GATT_UUID_CHAR_CLIENT_CONFIG));
+  builder.AddService(0x000b, 0x0013, kVolumeOffsetUuid, false);
+  builder.AddCharacteristic(
+      0x000c, 0x000d, kVolumeOffsetStateUuid,
+      GATT_CHAR_PROP_BIT_READ | GATT_CHAR_PROP_BIT_NOTIFY);
+  builder.AddDescriptor(0x000e, Uuid::From16Bit(GATT_UUID_CHAR_CLIENT_CONFIG));
+  builder.AddCharacteristic(
+      0x000f, 0x0010, kVolumeOffsetLocationUuid,
+      GATT_CHAR_PROP_BIT_READ | GATT_CHAR_PROP_BIT_NOTIFY);
+  builder.AddDescriptor(0x0011, Uuid::From16Bit(GATT_UUID_CHAR_CLIENT_CONFIG));
+  builder.AddCharacteristic(0x0012, 0x0013, kVolumeOffsetControlPointUuid,
+                            GATT_CHAR_PROP_BIT_WRITE);
+  /* no Audio Output Description characteristic */
+  services = builder.Build().Services();
+  ASSERT_EQ(true, device->UpdateHandles());
+  ASSERT_EQ((size_t)0, device->audio_offsets.Size());
+  ASSERT_EQ(0x0004, device->volume_state_handle);
+  ASSERT_EQ(0x0005, device->volume_state_ccc_handle);
+  ASSERT_EQ(0x0007, device->volume_control_point_handle);
+  ASSERT_EQ(0x0009, device->volume_flags_handle);
+  ASSERT_EQ(0x000a, device->volume_flags_ccc_handle);
+  ASSERT_EQ(true, device->HasHandles());
+}
+
+TEST_F(VolumeControlDeviceTest, test_service_vocs_found) {
+  gatt::DatabaseBuilder builder;
+  builder.AddService(0x0001, 0x000a, kVolumeControlUuid, true);
+  builder.AddIncludedService(0x0002, kVolumeOffsetUuid, 0x000b, 0x0015);
+  builder.AddCharacteristic(
+      0x0003, 0x0004, kVolumeControlStateUuid,
+      GATT_CHAR_PROP_BIT_READ | GATT_CHAR_PROP_BIT_NOTIFY);
+  builder.AddDescriptor(0x0005, Uuid::From16Bit(GATT_UUID_CHAR_CLIENT_CONFIG));
+  builder.AddCharacteristic(0x0006, 0x0007, kVolumeControlPointUuid,
+                            GATT_CHAR_PROP_BIT_WRITE);
+  builder.AddCharacteristic(
+      0x0008, 0x0009, kVolumeFlagsUuid,
+      GATT_CHAR_PROP_BIT_READ | GATT_CHAR_PROP_BIT_NOTIFY);
+  builder.AddDescriptor(0x000a, Uuid::From16Bit(GATT_UUID_CHAR_CLIENT_CONFIG));
+  builder.AddService(0x000b, 0x0015, kVolumeOffsetUuid, false);
+  builder.AddCharacteristic(
+      0x000c, 0x000d, kVolumeOffsetStateUuid,
+      GATT_CHAR_PROP_BIT_READ | GATT_CHAR_PROP_BIT_NOTIFY);
+  builder.AddDescriptor(0x000e, Uuid::From16Bit(GATT_UUID_CHAR_CLIENT_CONFIG));
+  builder.AddCharacteristic(
+      0x000f, 0x0010, kVolumeOffsetLocationUuid,
+      GATT_CHAR_PROP_BIT_READ | GATT_CHAR_PROP_BIT_NOTIFY);
+  builder.AddDescriptor(0x0011, Uuid::From16Bit(GATT_UUID_CHAR_CLIENT_CONFIG));
+  builder.AddCharacteristic(0x0012, 0x0013, kVolumeOffsetControlPointUuid,
+                            GATT_CHAR_PROP_BIT_WRITE);
+  builder.AddCharacteristic(0x0014, 0x0015, kVolumeOffsetOutputDescriptionUuid,
+                            GATT_CHAR_PROP_BIT_READ);
+  services = builder.Build().Services();
+  ASSERT_EQ(true, device->UpdateHandles());
+  ASSERT_EQ((size_t)1, device->audio_offsets.Size());
+  VolumeOffset* offset = device->audio_offsets.FindByServiceHandle(0x000b);
+  ASSERT_NE(nullptr, offset);
+  ASSERT_EQ(0x000d, offset->state_handle);
+  ASSERT_EQ(0x000e, offset->state_ccc_handle);
+  ASSERT_EQ(0x0010, offset->audio_location_handle);
+  ASSERT_EQ(0x0011, offset->audio_location_ccc_handle);
+  ASSERT_EQ(0x0013, offset->control_point_handle);
+  ASSERT_EQ(0x0015, offset->audio_descr_handle);
+  ASSERT_EQ(0x0000, offset->audio_descr_ccc_handle);
+  ASSERT_EQ(true, device->HasHandles());
+}
+
+TEST_F(VolumeControlDeviceTest, test_multiple_services_found) {
+  SetSampleDatabase1();
+  ASSERT_EQ((size_t)2, device->audio_offsets.Size());
+  VolumeOffset* offset_1 = device->audio_offsets.FindById(1);
+  VolumeOffset* offset_2 = device->audio_offsets.FindById(2);
+  ASSERT_NE(nullptr, offset_1);
+  ASSERT_NE(nullptr, offset_2);
+  ASSERT_NE(offset_1->service_handle, offset_2->service_handle);
+}
+
 TEST_F(VolumeControlDeviceTest, test_services_changed) {
   SetSampleDatabase1();
+  ASSERT_NE((size_t)0, device->audio_offsets.Size());
   ASSERT_NE(0, device->volume_state_handle);
   ASSERT_NE(0, device->volume_control_point_handle);
   ASSERT_NE(0, device->volume_flags_handle);
   ASSERT_EQ(true, device->HasHandles());
   SetSampleDatabase2();
+  ASSERT_EQ((size_t)0, device->audio_offsets.Size());
   ASSERT_EQ(0, device->volume_state_handle);
   ASSERT_EQ(0, device->volume_control_point_handle);
   ASSERT_EQ(0, device->volume_flags_handle);
@@ -343,7 +469,9 @@ TEST_F(VolumeControlDeviceTest, test_enqueue_initial_requests) {
   std::vector<uint8_t> register_for_notification_data({0x01, 0x00});
 
   std::map<uint16_t, uint16_t> expected_to_read_write{
-      {0x0011, 0x0012} /* volume control state */};
+      {0x0011, 0x0012} /* volume control state */,
+      {0x0062, 0x0063} /* volume offset state 1 */,
+      {0x0082, 0x0083} /* volume offset state 2 */};
 
   for (auto const& handle_pair : expected_to_read_write) {
     EXPECT_CALL(gatt_queue, ReadCharacteristic(_, handle_pair.first, _, _));
@@ -408,9 +536,15 @@ TEST_F(VolumeControlDeviceTest, test_enqueue_remaining_requests) {
   tGATT_IF gatt_if = 0x0001;
   std::vector<uint8_t> register_for_notification_data({0x01, 0x00});
 
-  std::vector<uint16_t> expected_to_read{0x0016 /* volume flags */};
+  std::vector<uint16_t> expected_to_read{
+      0x0016 /* volume flags */, 0x0065 /* audio location 1 */,
+      0x0069 /* audio output description 1 */, 0x0085 /* audio location 1 */,
+      0x008a /* audio output description 1 */};
 
-  std::map<uint16_t, uint16_t> expected_to_write_value_ccc_handle_map{};
+  std::map<uint16_t, uint16_t> expected_to_write_value_ccc_handle_map{
+      {0x0085, 0x0086} /* audio location ccc 2 */,
+      {0x008a, 0x008b} /* audio output description ccc */
+  };
 
   for (uint16_t handle : expected_to_read) {
     EXPECT_CALL(gatt_queue, ReadCharacteristic(_, handle, _, _));
@@ -465,6 +599,96 @@ TEST_F(VolumeControlDeviceTest, test_control_point_operation_arg) {
                                               GATT_WRITE, write_cb, nullptr));
   std::vector<uint8_t> arg({0x02, 0x03});
   device->ControlPointOperation(0x01, &arg, write_cb, nullptr);
+}
+
+TEST_F(VolumeControlDeviceTest, test_get_ext_audio_out_volume_offset) {
+  GATT_READ_OP_CB read_cb = [](uint16_t conn_id, tGATT_STATUS status,
+                               uint16_t handle, uint16_t len, uint8_t* value,
+                               void* data) {};
+  SetSampleDatabase1();
+  EXPECT_CALL(gatt_queue, ReadCharacteristic(_, 0x0062, read_cb, nullptr));
+  device->GetExtAudioOutVolumeOffset(1, read_cb, nullptr);
+}
+
+TEST_F(VolumeControlDeviceTest, test_get_ext_audio_out_location) {
+  GATT_READ_OP_CB read_cb = [](uint16_t conn_id, tGATT_STATUS status,
+                               uint16_t handle, uint16_t len, uint8_t* value,
+                               void* data) {};
+  SetSampleDatabase1();
+  EXPECT_CALL(gatt_queue, ReadCharacteristic(_, 0x0085, read_cb, nullptr));
+  device->GetExtAudioOutLocation(2, read_cb, nullptr);
+}
+
+TEST_F(VolumeControlDeviceTest, test_set_ext_audio_out_location) {
+  SetSampleDatabase1();
+  std::vector<uint8_t> expected_data({0x44, 0x33, 0x22, 0x11});
+  EXPECT_CALL(gatt_queue,
+              WriteCharacteristic(_, 0x0085, expected_data, GATT_WRITE_NO_RSP,
+                                  nullptr, nullptr));
+  device->SetExtAudioOutLocation(2, 0x11223344);
+}
+
+TEST_F(VolumeControlDeviceTest, test_set_ext_audio_out_location_non_writable) {
+  SetSampleDatabase1();
+  EXPECT_CALL(gatt_queue, WriteCharacteristic(_, _, _, _, _, _)).Times(0);
+  device->SetExtAudioOutLocation(1, 0x11223344);
+}
+
+TEST_F(VolumeControlDeviceTest, test_get_ext_audio_out_description) {
+  GATT_READ_OP_CB read_cb = [](uint16_t conn_id, tGATT_STATUS status,
+                               uint16_t handle, uint16_t len, uint8_t* value,
+                               void* data) {};
+  SetSampleDatabase1();
+  EXPECT_CALL(gatt_queue, ReadCharacteristic(_, 0x008a, read_cb, nullptr));
+  device->GetExtAudioOutDescription(2, read_cb, nullptr);
+}
+
+TEST_F(VolumeControlDeviceTest, test_set_ext_audio_out_description) {
+  SetSampleDatabase1();
+  std::string descr = "right front";
+  std::vector<uint8_t> expected_data(descr.begin(), descr.end());
+  EXPECT_CALL(gatt_queue,
+              WriteCharacteristic(_, 0x008a, expected_data, GATT_WRITE_NO_RSP,
+                                  nullptr, nullptr));
+  device->SetExtAudioOutDescription(2, descr);
+}
+
+TEST_F(VolumeControlDeviceTest,
+       test_set_ext_audio_out_description_non_writable) {
+  SetSampleDatabase1();
+  std::string descr = "left front";
+  EXPECT_CALL(gatt_queue, WriteCharacteristic(_, _, _, _, _, _)).Times(0);
+  device->SetExtAudioOutDescription(1, descr);
+}
+
+TEST_F(VolumeControlDeviceTest, test_ext_audio_out_control_point_operation) {
+  GATT_WRITE_OP_CB write_cb = [](uint16_t conn_id, tGATT_STATUS status,
+                                 uint16_t handle, uint16_t len,
+                                 const uint8_t* value, void* data) {};
+  SetSampleDatabase1();
+  VolumeOffset* offset = device->audio_offsets.FindById(1);
+  ASSERT_NE(nullptr, offset);
+  offset->change_counter = 0x09;
+  std::vector<uint8_t> expected_data({0x0b, 0x09});
+  EXPECT_CALL(gatt_queue, WriteCharacteristic(_, 0x0067, expected_data,
+                                              GATT_WRITE, write_cb, nullptr));
+  device->ExtAudioOutControlPointOperation(1, 0x0b, nullptr, write_cb, nullptr);
+}
+
+TEST_F(VolumeControlDeviceTest,
+       test_ext_audio_out_control_point_operation_arg) {
+  GATT_WRITE_OP_CB write_cb = [](uint16_t conn_id, tGATT_STATUS status,
+                                 uint16_t handle, uint16_t len,
+                                 const uint8_t* value, void* data) {};
+  SetSampleDatabase1();
+  VolumeOffset* offset = device->audio_offsets.FindById(1);
+  ASSERT_NE(nullptr, offset);
+  offset->change_counter = 0x09;
+  std::vector<uint8_t> expected_data({0x0b, 0x09, 0x01, 0x02, 0x03, 0x04});
+  std::vector<uint8_t> arg({0x01, 0x02, 0x03, 0x04});
+  EXPECT_CALL(gatt_queue, WriteCharacteristic(_, 0x0067, expected_data,
+                                              GATT_WRITE, write_cb, nullptr));
+  device->ExtAudioOutControlPointOperation(1, 0x0b, &arg, write_cb, nullptr);
 }
 
 }  // namespace internal
