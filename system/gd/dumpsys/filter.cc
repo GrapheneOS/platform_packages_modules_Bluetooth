@@ -113,6 +113,9 @@ bool UserPrivacyFilter::FilterField(const reflection::Field* field, flatbuffers:
     case flatbuffers::BASE_TYPE_BOOL:
       return internal::FilterTypeBool(*field, table, privacy_level);
       break;
+    case flatbuffers::BASE_TYPE_LONG:
+      return internal::FilterTypeLong(*field, table, privacy_level);
+      break;
     default:
       LOG_WARN("%s WARN Unsupported base type\n", __func__);
       break;
