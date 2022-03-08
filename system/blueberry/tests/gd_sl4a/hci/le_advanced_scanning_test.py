@@ -222,6 +222,82 @@ class LeAdvancedScanningTest(GdSl4aBaseTestClass):
 
         return True
 
+    def test_scan_filter_device_public_address_with_irk_extended_pdu(self):
+        """
+        The cert side will advertise an RPA derived from the adapter's public address.
+        """
+        data = [0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10]
+        byteArrayObject = bytearray(data)
+        irk = bytes(byteArrayObject)
+
+        DEVICE_NAME = 'Im_The_CERT!'
+        logging.info("Getting public address")
+        PUBLIC_ADDRESS = self.set_cert_privacy_policy_with_public_address_but_advertise_resolvable(irk)
+        logging.info("Done %s" % PUBLIC_ADDRESS)
+
+        # Setup cert side to advertise
+        gap_name = hci_packets.GapData()
+        gap_name.data_type = hci_packets.GapDataType.COMPLETE_LOCAL_NAME
+        gap_name.data = list(bytes(DEVICE_NAME, encoding='utf8'))
+        gap_data = le_advertising_facade.GapDataMsg(data=bytes(gap_name.Serialize()))
+        config = le_advertising_facade.AdvertisingConfig(
+            advertisement=[gap_data],
+            interval_min=512,
+            interval_max=768,
+            advertising_type=le_advertising_facade.AdvertisingEventType.ADV_IND,
+            own_address_type=common.USE_RANDOM_DEVICE_ADDRESS,
+            channel_map=7,
+            filter_policy=le_advertising_facade.AdvertisingFilterPolicy.ALL_DEVICES)
+        extended_config = le_advertising_facade.ExtendedAdvertisingConfig(
+            include_tx_power=True,
+            connectable=True,
+            legacy_pdus=False,
+            advertising_config=config,
+            secondary_advertising_phy=ble_scan_settings_phys["1m"])
+        request = le_advertising_facade.ExtendedCreateAdvertiserRequest(config=extended_config)
+        logging.info("Creating advertiser")
+        create_response = self.cert.hci_le_advertising_manager.ExtendedCreateAdvertiser(request)
+        logging.info("Created advertiser")
+
+        # Setup SL4A DUT side to scan
+        addr_type = ble_address_types["public"]
+        logging.info("Start scanning for PUBLIC_ADDRESS %s with address type %d and IRK %s" %
+                     (PUBLIC_ADDRESS, addr_type, irk.decode("utf-8")))
+        self.dut.sl4a.bleSetScanSettingsScanMode(ble_scan_settings_modes['low_latency'])
+        self.dut.sl4a.bleSetScanSettingsLegacy(False)
+        filter_list, scan_settings, scan_callback = generate_ble_scan_objects(self.dut.sl4a)
+        expected_event_name = scan_result.format(scan_callback)
+
+        # Setup SL4A DUT filter
+        self.dut.sl4a.bleSetScanFilterDeviceAddressTypeAndIrk(PUBLIC_ADDRESS, int(addr_type), irk.decode("utf-8"))
+        self.dut.sl4a.bleBuildScanFilter(filter_list)
+
+        # Start scanning on SL4A DUT side
+        self.dut.sl4a.bleStartBleScan(filter_list, scan_settings, scan_callback)
+        logging.info("Started scanning")
+        try:
+            # Verify if there is scan result
+            event_info = self.dut.ed.pop_event(expected_event_name, self.default_timeout)
+        except queue.Empty as error:
+            logging.error("Could not find initial advertisement.")
+            return False
+        # Print out scan result
+        mac_address = event_info['data']['Result']['deviceInfo']['address']
+        logging.info("Filter advertisement with address {}".format(mac_address))
+
+        # Stop scanning
+        logging.info("Stop scanning")
+        self.dut.sl4a.bleStopBleScan(scan_callback)
+        logging.info("Stopped scanning")
+
+        # Stop advertising
+        logging.info("Stop advertising")
+        remove_request = le_advertising_facade.RemoveAdvertiserRequest(advertiser_id=create_response.advertiser_id)
+        self.cert.hci_le_advertising_manager.RemoveAdvertiser(remove_request)
+        logging.info("Stopped advertising")
+
+        return True
+
     def test_scan_filter_device_name_legacy_pdu(self):
         # Use public address on cert side
         logging.info("Setting public address")
