@@ -273,6 +273,7 @@ public final class BluetoothCodecConfig implements Parcelable {
      * values to 0.
      *
      * @param codecType the source codec type
+     * @hide
      */
     public BluetoothCodecConfig(@SourceCodecType int codecType) {
         this(codecType, BluetoothCodecConfig.CODEC_PRIORITY_DEFAULT,
