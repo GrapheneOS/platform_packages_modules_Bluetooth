@@ -30,7 +30,8 @@ get_offload_capabilities() {
 
 LeAudioClientInterface* LeAudioClientInterface::Get() { return nullptr; }
 
-bool LeAudioClientInterface::IsSinkAcquired() { return false; }
+bool LeAudioClientInterface::IsUnicastSinkAcquired() { return false; }
+bool LeAudioClientInterface::IsBroadcastSinkAcquired() { return false; }
 
 bool LeAudioClientInterface::ReleaseSink(LeAudioClientInterface::Sink* sink) {
   return false;
@@ -38,7 +39,8 @@ bool LeAudioClientInterface::ReleaseSink(LeAudioClientInterface::Sink* sink) {
 
 LeAudioClientInterface::Sink* LeAudioClientInterface::GetSink(
     StreamCallbacks stream_cb,
-    bluetooth::common::MessageLoopThread* message_loop) {
+    bluetooth::common::MessageLoopThread* message_loop,
+    bool is_broadcasting_session_type) {
   return nullptr;
 }
 
