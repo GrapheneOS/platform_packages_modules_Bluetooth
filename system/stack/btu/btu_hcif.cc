@@ -194,6 +194,9 @@ void btu_hcif_log_event_metrics(uint8_t evt_code, const uint8_t* p_event) {
           android::bluetooth::hci::BLE_EVT_UNKNOWN, status, reason);
       break;
     }
+    case HCI_BLE_EVENT: {
+      break;
+    }
     case HCI_CONNECTION_COMP_EVT:  // EventCode::CONNECTION_COMPLETE
     default:
       LOG_ERROR(
