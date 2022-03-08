@@ -11,6 +11,7 @@ package {
 filegroup {
     name: "libbluetooth-binder-aidl",
     srcs: [
+        ":framework-bluetooth-updatable-exported-aidl-sources",
         ":modules-utils-synchronous-result-receiver-aidl",
         "android/bluetooth/IBluetooth.aidl",
         "android/bluetooth/IBluetoothA2dp.aidl",
