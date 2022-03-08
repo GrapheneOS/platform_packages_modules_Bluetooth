@@ -364,9 +364,6 @@ public class LeAudioService extends ProfileService {
             sm.sendMessage(LeAudioStateMachine.CONNECT);
         }
 
-        // Connect other devices from this group
-        connectSet(device);
-
         return true;
     }
 
@@ -390,28 +387,6 @@ public class LeAudioService extends ProfileService {
                 return false;
             }
             sm.sendMessage(LeAudioStateMachine.DISCONNECT);
-        }
-
-        // Disconnect other devices from this group
-        int groupId = getGroupId(device);
-        if (groupId != LE_AUDIO_GROUP_ID_INVALID) {
-            for (BluetoothDevice storedDevice : mDeviceGroupIdMap.keySet()) {
-                if (device.equals(storedDevice)) {
-                    continue;
-                }
-                if (getGroupId(storedDevice) != groupId) {
-                    continue;
-                }
-                synchronized (mStateMachines) {
-                    LeAudioStateMachine sm = mStateMachines.get(storedDevice);
-                    if (sm == null) {
-                        Log.e(TAG, "Ignored disconnect request for " + storedDevice
-                                + " : no state machine");
-                        continue;
-                    }
-                    sm.sendMessage(LeAudioStateMachine.DISCONNECT);
-                }
-            }
         }
 
         return true;
