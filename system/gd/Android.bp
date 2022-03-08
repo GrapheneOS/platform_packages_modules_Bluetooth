@@ -504,6 +504,9 @@ cc_fuzz {
     srcs: [
         "hci/fuzz/acl_manager_fuzz_test.cc",
     ],
+    fuzz_config: {
+       cc: ["zachoverflow@google.com"],
+    },
 }
 
 cc_benchmark {
