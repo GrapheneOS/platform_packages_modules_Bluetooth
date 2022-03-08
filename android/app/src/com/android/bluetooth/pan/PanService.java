@@ -169,7 +169,10 @@ public class PanService extends ProfileService {
     @Override
     protected boolean stop() {
         mAdapterService = null;
-        mTetheringManager.unregisterTetheringEventCallback(mTetheringCallback);
+        if (mTetheringManager != null) {
+            mTetheringManager.unregisterTetheringEventCallback(mTetheringCallback);
+            mTetheringManager = null;
+        }
         mHandler.removeCallbacksAndMessages(null);
         return true;
     }

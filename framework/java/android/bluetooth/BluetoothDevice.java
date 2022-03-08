@@ -26,7 +26,6 @@ import android.annotation.SdkConstant;
 import android.annotation.SdkConstant.SdkConstantType;
 import android.annotation.SuppressLint;
 import android.annotation.SystemApi;
-import android.app.PropertyInvalidatedCache;
 import android.bluetooth.annotations.RequiresBluetoothConnectPermission;
 import android.bluetooth.annotations.RequiresBluetoothLocationPermission;
 import android.bluetooth.annotations.RequiresBluetoothScanPermission;
@@ -38,6 +37,7 @@ import android.content.AttributionSource;
 import android.content.Context;
 import android.os.Build;
 import android.os.Handler;
+import android.os.IpcDataCache;
 import android.os.Parcel;
 import android.os.ParcelUuid;
 import android.os.Parcelable;
@@ -1823,13 +1823,13 @@ public final class BluetoothDevice implements Parcelable, Attributable {
     }
 
     /**
-     * There are several instances of PropertyInvalidatedCache used in this class.
+     * There are several instances of IpcDataCache used in this class.
      * BluetoothCache wraps up the common code.  All caches are created with a maximum of
      * eight entries, and the key is in the bluetooth module.  The name is set to the api.
      */
-    private static class BluetoothCache<Q, R> extends PropertyInvalidatedCache<Q, R> {
-        BluetoothCache(String api, PropertyInvalidatedCache.QueryHandler query) {
-            super(8, PropertyInvalidatedCache.MODULE_BLUETOOTH, api, api, query);
+    private static class BluetoothCache<Q, R> extends IpcDataCache<Q, R> {
+        BluetoothCache(String api, IpcDataCache.QueryHandler query) {
+            super(8, IpcDataCache.MODULE_BLUETOOTH, api, api, query);
         }};
 
     /**
@@ -1837,12 +1837,12 @@ public final class BluetoothDevice implements Parcelable, Attributable {
      * enforces the bluetooth module.
      */
     private static void invalidateCache(@NonNull String api) {
-        PropertyInvalidatedCache.invalidateCache(PropertyInvalidatedCache.MODULE_BLUETOOTH, api);
+        IpcDataCache.invalidateCache(IpcDataCache.MODULE_BLUETOOTH, api);
     }
 
     private final
-            PropertyInvalidatedCache.QueryHandler<BluetoothDevice, Integer> mBluetoothBondQuery =
-            new PropertyInvalidatedCache.QueryHandler<>() {
+            IpcDataCache.QueryHandler<BluetoothDevice, Integer> mBluetoothBondQuery =
+            new IpcDataCache.QueryHandler<>() {
                 @RequiresLegacyBluetoothPermission
                 @RequiresBluetoothConnectPermission
                 @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
