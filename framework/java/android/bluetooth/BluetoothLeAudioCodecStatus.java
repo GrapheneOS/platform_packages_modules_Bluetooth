@@ -109,8 +109,15 @@ public final class BluetoothLeAudioCodecStatus implements Parcelable {
      * @return {@code true} if the codec config matches, {@code false} otherwise
      */
     public boolean isCodecConfigSelectable(@Nullable BluetoothLeAudioCodecConfig codecConfig) {
-        // TODO: Add the implementation to check the config is selectable
-        return true;
+        if (codecConfig == null) {
+            return false;
+        }
+        for (BluetoothLeAudioCodecConfig selectableConfig : mCodecsSelectableCapabilities) {
+            if (codecConfig.equals(selectableConfig)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -171,6 +178,8 @@ public final class BluetoothLeAudioCodecStatus implements Parcelable {
 
     /**
      * Returns the current codec configuration.
+     *
+     * @return The current codec config.
      */
     public @Nullable BluetoothLeAudioCodecConfig getCodecConfig() {
         return mCodecConfig;
@@ -178,6 +187,8 @@ public final class BluetoothLeAudioCodecStatus implements Parcelable {
 
     /**
      * Returns the codecs local capabilities.
+     *
+     * @return The list of codec config that supported by the local system.
      */
     public @NonNull List<BluetoothLeAudioCodecConfig> getCodecLocalCapabilities() {
         return (mCodecsLocalCapabilities == null)
@@ -186,6 +197,9 @@ public final class BluetoothLeAudioCodecStatus implements Parcelable {
 
     /**
      * Returns the codecs selectable capabilities.
+     *
+     * @return The list of codec config that supported by both of the local system and
+     * remote devices.
      */
     public @NonNull List<BluetoothLeAudioCodecConfig> getCodecSelectableCapabilities() {
         return (mCodecsSelectableCapabilities == null)

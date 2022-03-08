@@ -47,6 +47,21 @@ class VolumeControlCallbacks {
   /* Callback for the volume change changed on the group*/
   virtual void OnGroupVolumeStateChanged(int group_id, uint8_t volume,
                                          bool mute, bool isAutonomous) = 0;
+
+  virtual void OnDeviceAvailable(const RawAddress& address,
+                                 uint8_t num_offset) = 0;
+
+  /* Callbacks for Volume Offset Control Service (VOCS) - Extended Audio Outputs
+   */
+  virtual void OnExtAudioOutVolumeOffsetChanged(const RawAddress& address,
+                                                uint8_t ext_output_id,
+                                                int16_t offset) = 0;
+  virtual void OnExtAudioOutLocationChanged(const RawAddress& address,
+                                            uint8_t ext_output_id,
+                                            uint32_t location) = 0;
+  virtual void OnExtAudioOutDescriptionChanged(const RawAddress& address,
+                                               uint8_t ext_output_id,
+                                               std::string descr) = 0;
 };
 
 class VolumeControlInterface {
@@ -71,6 +86,21 @@ class VolumeControlInterface {
   /** Set the volume */
   virtual void SetVolume(std::variant<RawAddress, int> addr_or_group_id,
                          uint8_t volume) = 0;
+  virtual void GetExtAudioOutVolumeOffset(const RawAddress& address,
+                                          uint8_t ext_output_id) = 0;
+  virtual void SetExtAudioOutVolumeOffset(const RawAddress& address,
+                                          uint8_t ext_output_id,
+                                          int16_t offset_val) = 0;
+  virtual void GetExtAudioOutLocation(const RawAddress& address,
+                                      uint8_t ext_output_id) = 0;
+  virtual void SetExtAudioOutLocation(const RawAddress& address,
+                                      uint8_t ext_output_id,
+                                      uint32_t location) = 0;
+  virtual void GetExtAudioOutDescription(const RawAddress& address,
+                                         uint8_t ext_output_id) = 0;
+  virtual void SetExtAudioOutDescription(const RawAddress& address,
+                                         uint8_t ext_output_id,
+                                         std::string descr) = 0;
 };
 
 } /* namespace vc */

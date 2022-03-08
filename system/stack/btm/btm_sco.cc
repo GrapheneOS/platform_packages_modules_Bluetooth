@@ -199,7 +199,6 @@ void btm_route_sco_data(BT_HDR* p_msg) {
     osi_free(p_msg);
     return;
   }
-  LOG_INFO("Received SCO packet from HCI. Dropping it since no handler so far");
   uint16_t handle = handle_with_flags & 0xFFF;
   ASSERT_LOG(handle <= 0xEFF, "Require handle <= 0xEFF, but is 0x%X", handle);
   auto* active_sco = btm_get_active_sco();
@@ -210,7 +209,7 @@ void btm_route_sco_data(BT_HDR* p_msg) {
   osi_free(p_msg);
   // For Chrome OS, we send the outgoing data after receiving an incoming one
   uint8_t out_buf[BTM_SCO_DATA_SIZE_MAX];
-  auto size_read = bluetooth::audio::sco::read(out_buf, BTM_SCO_DATA_SIZE_MAX);
+  auto size_read = bluetooth::audio::sco::read(out_buf, length);
   auto data = std::vector<uint8_t>(out_buf, out_buf + size_read);
   // TODO: For MSBC, we need to encode here
   btm_send_sco_packet(std::move(data));

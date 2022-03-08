@@ -74,11 +74,25 @@ class MockVolumeControlCallbacks : public VolumeControlCallbacks {
 
   MOCK_METHOD((void), OnConnectionState,
               (ConnectionState state, const RawAddress& address), (override));
+  MOCK_METHOD((void), OnDeviceAvailable,
+              (const RawAddress& address, uint8_t num_offset), (override));
   MOCK_METHOD((void), OnVolumeStateChanged,
               (const RawAddress& address, uint8_t volume, bool mute, bool isAutonomous),
               (override));
   MOCK_METHOD((void), OnGroupVolumeStateChanged,
               (int group_id, uint8_t volume, bool mute, bool isAutonomous), (override));
+  MOCK_METHOD((void), OnExtAudioOutVolumeOffsetChanged,
+              (const RawAddress& address, uint8_t ext_output_id,
+               int16_t offset),
+              (override));
+  MOCK_METHOD((void), OnExtAudioOutLocationChanged,
+              (const RawAddress& address, uint8_t ext_output_id,
+               uint32_t location),
+              (override));
+  MOCK_METHOD((void), OnExtAudioOutDescriptionChanged,
+              (const RawAddress& address, uint8_t ext_output_id,
+               std::string descr),
+              (override));
 };
 
 class VolumeControlTest : public ::testing::Test {
@@ -98,7 +112,8 @@ class VolumeControlTest : public ::testing::Test {
         /* TODO Place holder */
       }
       if (vocs) {
-        /* TODO Place holder */
+        builder.AddIncludedService(0x0013, kVolumeOffsetUuid, 0x0070, 0x0079);
+        builder.AddIncludedService(0x0014, kVolumeOffsetUuid, 0x0080, 0x008b);
       }
       /* 0x0015-0x001f RFU */
       builder.AddCharacteristic(
@@ -117,7 +132,45 @@ class VolumeControlTest : public ::testing::Test {
         /* TODO Place holder for AICS */
       }
       if (vocs) {
-        /* TODO Place holder for VOCS */
+        /* VOCS 1st instance */
+        builder.AddService(0x0070, 0x0079, kVolumeOffsetUuid, false);
+        builder.AddCharacteristic(
+            0x0071, 0x0072, kVolumeOffsetStateUuid,
+            GATT_CHAR_PROP_BIT_READ | GATT_CHAR_PROP_BIT_NOTIFY);
+        builder.AddDescriptor(0x0073,
+                              Uuid::From16Bit(GATT_UUID_CHAR_CLIENT_CONFIG));
+        builder.AddCharacteristic(0x0074, 0x0075, kVolumeOffsetLocationUuid,
+                                  GATT_CHAR_PROP_BIT_READ);
+        builder.AddCharacteristic(0x0076, 0x0077, kVolumeOffsetControlPointUuid,
+                                  GATT_CHAR_PROP_BIT_WRITE);
+        builder.AddCharacteristic(0x0078, 0x0079,
+                                  kVolumeOffsetOutputDescriptionUuid,
+                                  GATT_CHAR_PROP_BIT_READ);
+        /* 0x007a-0x007f RFU */
+
+        /* VOCS 2nd instance */
+        builder.AddService(0x0080, 0x008b, kVolumeOffsetUuid, false);
+        builder.AddCharacteristic(
+            0x0081, 0x0082, kVolumeOffsetStateUuid,
+            GATT_CHAR_PROP_BIT_READ | GATT_CHAR_PROP_BIT_NOTIFY);
+        builder.AddDescriptor(0x0083,
+                              Uuid::From16Bit(GATT_UUID_CHAR_CLIENT_CONFIG));
+        if (!vocs_broken) {
+          builder.AddCharacteristic(0x0084, 0x0085, kVolumeOffsetLocationUuid,
+                                    GATT_CHAR_PROP_BIT_READ |
+                                        GATT_CHAR_PROP_BIT_WRITE_NR |
+                                        GATT_CHAR_PROP_BIT_NOTIFY);
+          builder.AddDescriptor(0x0086,
+                                Uuid::From16Bit(GATT_UUID_CHAR_CLIENT_CONFIG));
+        }
+        builder.AddCharacteristic(0x0087, 0x0088, kVolumeOffsetControlPointUuid,
+                                  GATT_CHAR_PROP_BIT_WRITE);
+        builder.AddCharacteristic(
+            0x0089, 0x008a, kVolumeOffsetOutputDescriptionUuid,
+            GATT_CHAR_PROP_BIT_READ | GATT_CHAR_PROP_BIT_WRITE_NR |
+                GATT_CHAR_PROP_BIT_NOTIFY);
+        builder.AddDescriptor(0x008b,
+                              Uuid::From16Bit(GATT_UUID_CHAR_CLIENT_CONFIG));
       }
     }
     /* 0x008c-0x008f RFU */
@@ -151,6 +204,24 @@ class VolumeControlTest : public ::testing::Test {
             case 0x0026:
               /* volume flags */
               value.resize(1);
+              break;
+
+            case 0x0072:  // 1st VOCS instance
+            case 0x0082:  // 2nd VOCS instance
+              /* offset state */
+              value.resize(3);
+              break;
+
+            case 0x0075:  // 1st VOCS instance
+            case 0x0085:  // 2nd VOCS instance
+              /* offset location */
+              value.resize(4);
+              break;
+
+            case 0x0079:  // 1st VOCS instance
+            case 0x008a:  // 2nd VOCS instance
+              /* offset output description */
+              value.resize(10);
               break;
 
             default:
@@ -392,6 +463,14 @@ class VolumeControlTest : public ::testing::Test {
     set_sample_database(conn_id, true, true, true, false, true, false);
   }
 
+  void SetSampleDatabaseVOCS(uint16_t conn_id) {
+    set_sample_database(conn_id, true, false, false, false, true, false);
+  }
+
+  void SetSampleDatabaseVOCSBroken(uint16_t conn_id) {
+    set_sample_database(conn_id, true, false, true, false, true, true);
+  }
+
   void SetSampleDatabase(uint16_t conn_id) {
     set_sample_database(conn_id, true, false, true, false, true, false);
   }
@@ -519,6 +598,7 @@ TEST_F(VolumeControlTest, test_discovery_vcs_found) {
   SetSampleDatabaseVCS(1);
   TestAppRegister();
   TestConnect(test_address);
+  EXPECT_CALL(*callbacks, OnDeviceAvailable(test_address, _));
   EXPECT_CALL(*callbacks,
               OnConnectionState(ConnectionState::CONNECTED, test_address));
   GetConnectedEvent(test_address, 1);
@@ -559,6 +639,21 @@ TEST_F(VolumeControlTest, test_subscribe_vcs_volume_state) {
   TestSubscribeNotifications(GetTestAddress(0), 1, handles);
 }
 
+TEST_F(VolumeControlTest, test_subscribe_vocs_offset_state) {
+  std::map<uint16_t, uint16_t> handles({{0x0072, 0x0073}, {0x0082, 0x0083}});
+  TestSubscribeNotifications(GetTestAddress(0), 1, handles);
+}
+
+TEST_F(VolumeControlTest, test_subscribe_vocs_offset_location) {
+  std::map<uint16_t, uint16_t> handles({{0x0085, 0x0086}});
+  TestSubscribeNotifications(GetTestAddress(0), 1, handles);
+}
+
+TEST_F(VolumeControlTest, test_subscribe_vocs_output_description) {
+  std::map<uint16_t, uint16_t> handles({{0x008a, 0x008b}});
+  TestSubscribeNotifications(GetTestAddress(0), 1, handles);
+}
+
 TEST_F(VolumeControlTest, test_read_vcs_volume_state) {
   const RawAddress test_address = GetTestAddress(0);
   EXPECT_CALL(*callbacks, OnVolumeStateChanged(test_address, _, _, false));
@@ -569,6 +664,72 @@ TEST_F(VolumeControlTest, test_read_vcs_volume_state) {
 TEST_F(VolumeControlTest, test_read_vcs_volume_flags) {
   std::vector<uint16_t> handles({0x0026});
   TestReadCharacteristic(GetTestAddress(0), 1, handles);
+}
+
+TEST_F(VolumeControlTest, test_read_vocs_volume_offset) {
+  const RawAddress test_address = GetTestAddress(0);
+  EXPECT_CALL(*callbacks, OnExtAudioOutVolumeOffsetChanged(test_address, 1, _));
+  EXPECT_CALL(*callbacks, OnExtAudioOutVolumeOffsetChanged(test_address, 2, _));
+  std::vector<uint16_t> handles({0x0072, 0x0082});
+  TestReadCharacteristic(test_address, 1, handles);
+}
+
+TEST_F(VolumeControlTest, test_read_vocs_offset_location) {
+  const RawAddress test_address = GetTestAddress(0);
+  EXPECT_CALL(*callbacks, OnExtAudioOutLocationChanged(test_address, 1, _));
+  EXPECT_CALL(*callbacks, OnExtAudioOutLocationChanged(test_address, 2, _));
+  std::vector<uint16_t> handles({0x0075, 0x0085});
+  TestReadCharacteristic(test_address, 1, handles);
+}
+
+TEST_F(VolumeControlTest, test_read_vocs_output_description) {
+  const RawAddress test_address = GetTestAddress(0);
+  EXPECT_CALL(*callbacks, OnExtAudioOutDescriptionChanged(test_address, 1, _));
+  EXPECT_CALL(*callbacks, OnExtAudioOutDescriptionChanged(test_address, 2, _));
+  std::vector<uint16_t> handles({0x0079, 0x008a});
+  TestReadCharacteristic(test_address, 1, handles);
+}
+
+TEST_F(VolumeControlTest, test_discovery_vocs_found) {
+  const RawAddress test_address = GetTestAddress(0);
+  SetSampleDatabaseVOCS(1);
+  TestAppRegister();
+  TestConnect(test_address);
+  EXPECT_CALL(*callbacks,
+              OnConnectionState(ConnectionState::CONNECTED, test_address));
+  EXPECT_CALL(*callbacks, OnDeviceAvailable(test_address, 2));
+  GetConnectedEvent(test_address, 1);
+  GetSearchCompleteEvent(1);
+  Mock::VerifyAndClearExpectations(callbacks.get());
+  TestAppUnregister();
+}
+
+TEST_F(VolumeControlTest, test_discovery_vocs_not_found) {
+  const RawAddress test_address = GetTestAddress(0);
+  SetSampleDatabaseVCS(1);
+  TestAppRegister();
+  TestConnect(test_address);
+  EXPECT_CALL(*callbacks,
+              OnConnectionState(ConnectionState::CONNECTED, test_address));
+  EXPECT_CALL(*callbacks, OnDeviceAvailable(test_address, 0));
+  GetConnectedEvent(test_address, 1);
+  GetSearchCompleteEvent(1);
+  Mock::VerifyAndClearExpectations(callbacks.get());
+  TestAppUnregister();
+}
+
+TEST_F(VolumeControlTest, test_discovery_vocs_broken) {
+  const RawAddress test_address = GetTestAddress(0);
+  SetSampleDatabaseVOCSBroken(1);
+  TestAppRegister();
+  TestConnect(test_address);
+  EXPECT_CALL(*callbacks,
+              OnConnectionState(ConnectionState::CONNECTED, test_address));
+  EXPECT_CALL(*callbacks, OnDeviceAvailable(test_address, 1));
+  GetConnectedEvent(test_address, 1);
+  GetSearchCompleteEvent(1);
+  Mock::VerifyAndClearExpectations(callbacks.get());
+  TestAppUnregister();
 }
 
 class VolumeControlCallbackTest : public VolumeControlTest {
@@ -618,6 +779,106 @@ TEST_F(VolumeControlCallbackTest, test_volume_state_changed_malformed) {
   GetNotificationEvent(0x0021, too_long);
 }
 
+TEST_F(VolumeControlCallbackTest, test_volume_offset_changed) {
+  std::vector<uint8_t> value({0x04, 0x05, 0x06});
+  EXPECT_CALL(*callbacks,
+              OnExtAudioOutVolumeOffsetChanged(test_address, 2, 0x0504));
+  GetNotificationEvent(0x0082, value);
+}
+
+TEST_F(VolumeControlCallbackTest, test_volume_offset_changed_malformed) {
+  EXPECT_CALL(*callbacks, OnExtAudioOutVolumeOffsetChanged(test_address, 2, _))
+      .Times(0);
+  std::vector<uint8_t> too_short({0x04});
+  GetNotificationEvent(0x0082, too_short);
+  std::vector<uint8_t> too_long({0x04, 0x05, 0x06, 0x07});
+  GetNotificationEvent(0x0082, too_long);
+}
+
+TEST_F(VolumeControlCallbackTest, test_offset_location_changed) {
+  std::vector<uint8_t> value({0x01, 0x02, 0x03, 0x04});
+  EXPECT_CALL(*callbacks,
+              OnExtAudioOutLocationChanged(test_address, 2, 0x04030201));
+  GetNotificationEvent(0x0085, value);
+}
+
+TEST_F(VolumeControlCallbackTest, test_offset_location_changed_malformed) {
+  EXPECT_CALL(*callbacks, OnExtAudioOutLocationChanged(test_address, 2, _))
+      .Times(0);
+  std::vector<uint8_t> too_short({0x04});
+  GetNotificationEvent(0x0085, too_short);
+  std::vector<uint8_t> too_long({0x04, 0x05, 0x06});
+  GetNotificationEvent(0x0085, too_long);
+}
+
+TEST_F(VolumeControlCallbackTest, test_audio_output_description_changed) {
+  std::string descr = "left";
+  std::vector<uint8_t> value(descr.begin(), descr.end());
+  EXPECT_CALL(*callbacks,
+              OnExtAudioOutDescriptionChanged(test_address, 2, descr));
+  GetNotificationEvent(0x008a, value);
+}
+
+class VolumeControlValueGetTest : public VolumeControlTest {
+ protected:
+  const RawAddress test_address = GetTestAddress(0);
+  uint16_t conn_id = 22;
+  GATT_READ_OP_CB cb;
+  void* cb_data;
+  uint16_t handle;
+
+  void SetUp(void) override {
+    VolumeControlTest::SetUp();
+    SetSampleDatabase(conn_id);
+    TestAppRegister();
+    TestConnect(test_address);
+    GetConnectedEvent(test_address, conn_id);
+    GetSearchCompleteEvent(conn_id);
+    EXPECT_CALL(gatt_queue, ReadCharacteristic(conn_id, _, _, _))
+        .WillOnce(
+            DoAll(SaveArg<1>(&handle), SaveArg<2>(&cb), SaveArg<3>(&cb_data)));
+  }
+
+  void TearDown(void) override {
+    TestAppUnregister();
+    cb = nullptr;
+    cb_data = nullptr;
+    handle = 0;
+    VolumeControlTest::TearDown();
+  }
+};
+
+TEST_F(VolumeControlValueGetTest, test_get_ext_audio_out_volume_offset) {
+  VolumeControl::Get()->GetExtAudioOutVolumeOffset(test_address, 1);
+  EXPECT_TRUE(cb);
+  std::vector<uint8_t> value({0x01, 0x02, 0x03});
+  EXPECT_CALL(*callbacks,
+              OnExtAudioOutVolumeOffsetChanged(test_address, 1, 0x0201));
+  cb(conn_id, GATT_SUCCESS, handle, (uint16_t)value.size(), value.data(),
+     cb_data);
+}
+
+TEST_F(VolumeControlValueGetTest, test_get_ext_audio_out_location) {
+  VolumeControl::Get()->GetExtAudioOutLocation(test_address, 2);
+  EXPECT_TRUE(cb);
+  std::vector<uint8_t> value({0x01, 0x02, 0x03, 0x04});
+  EXPECT_CALL(*callbacks,
+              OnExtAudioOutLocationChanged(test_address, 2, 0x04030201));
+  cb(conn_id, GATT_SUCCESS, handle, (uint16_t)value.size(), value.data(),
+     cb_data);
+}
+
+TEST_F(VolumeControlValueGetTest, test_get_ext_audio_out_description) {
+  VolumeControl::Get()->GetExtAudioOutDescription(test_address, 2);
+  EXPECT_TRUE(cb);
+  std::string descr = "right";
+  std::vector<uint8_t> value(descr.begin(), descr.end());
+  EXPECT_CALL(*callbacks,
+              OnExtAudioOutDescriptionChanged(test_address, 2, descr));
+  cb(conn_id, GATT_SUCCESS, handle, (uint16_t)value.size(), value.data(),
+     cb_data);
+}
+
 class VolumeControlValueSetTest : public VolumeControlTest {
  protected:
   const RawAddress test_address = GetTestAddress(0);
@@ -656,6 +917,41 @@ TEST_F(VolumeControlValueSetTest, test_set_volume) {
   EXPECT_CALL(gatt_queue, WriteCharacteristic(conn_id, 0x0024, expected_data,
                                               GATT_WRITE, _, _));
   VolumeControl::Get()->SetVolume(test_address, 0x10);
+}
+
+TEST_F(VolumeControlValueSetTest, test_set_ext_audio_out_volume_offset) {
+  std::vector<uint8_t> expected_data({0x01, 0x00, 0x34, 0x12});
+  EXPECT_CALL(gatt_queue, WriteCharacteristic(conn_id, 0x0088, expected_data,
+                                              GATT_WRITE, _, _));
+  VolumeControl::Get()->SetExtAudioOutVolumeOffset(test_address, 2, 0x1234);
+}
+
+TEST_F(VolumeControlValueSetTest, test_set_ext_audio_out_location) {
+  std::vector<uint8_t> expected_data({0x44, 0x33, 0x22, 0x11});
+  EXPECT_CALL(gatt_queue, WriteCharacteristic(conn_id, 0x0085, expected_data,
+                                              GATT_WRITE_NO_RSP, _, _));
+  VolumeControl::Get()->SetExtAudioOutLocation(test_address, 2, 0x11223344);
+}
+
+TEST_F(VolumeControlValueSetTest,
+       test_set_ext_audio_out_location_non_writable) {
+  EXPECT_CALL(gatt_queue, WriteCharacteristic(_, _, _, _, _, _)).Times(0);
+  VolumeControl::Get()->SetExtAudioOutLocation(test_address, 1, 0x11223344);
+}
+
+TEST_F(VolumeControlValueSetTest, test_set_ext_audio_out_description) {
+  std::string descr = "right front";
+  std::vector<uint8_t> expected_data(descr.begin(), descr.end());
+  EXPECT_CALL(gatt_queue, WriteCharacteristic(conn_id, 0x008a, expected_data,
+                                              GATT_WRITE_NO_RSP, _, _));
+  VolumeControl::Get()->SetExtAudioOutDescription(test_address, 2, descr);
+}
+
+TEST_F(VolumeControlValueSetTest,
+       test_set_ext_audio_out_description_non_writable) {
+  std::string descr = "left front";
+  EXPECT_CALL(gatt_queue, WriteCharacteristic(_, _, _, _, _, _)).Times(0);
+  VolumeControl::Get()->SetExtAudioOutDescription(test_address, 1, descr);
 }
 
 class VolumeControlCsis : public VolumeControlTest {
