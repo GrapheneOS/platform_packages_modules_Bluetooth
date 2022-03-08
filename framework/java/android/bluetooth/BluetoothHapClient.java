@@ -142,15 +142,12 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
          * Invoked to inform about HA device's feature set.
          *
          * @param device remote device
-         * @param hapFeatures the feature set integer with these possible bit numbers
-         *  set: {@link #FEATURE_BIT_NUM_TYPE_MONAURAL}, {@link #FEATURE_BIT_NUM_TYPE_BANDED},
-         *  {@link #FEATURE_BIT_NUM_SYNCHRONIZATED_PRESETS},
-         *  {@link #FEATURE_BIT_NUM_INDEPENDENT_PRESETS}, {@link #FEATURE_BIT_NUM_DYNAMIC_PRESETS},
-         *  {@link #FEATURE_BIT_NUM_WRITABLE_PRESETS}.
+         * @param hapFeatures the feature set integer with feature bits set. The inidividual bits
+         * are defined by Bluetooth SIG in Hearing Access Service specification.
          *
          * @hide
          */
-        void onHapFeaturesAvailable(@NonNull BluetoothDevice device, int hapFeatures);
+        void onHapFeaturesAvailable(@NonNull BluetoothDevice device, @Feature int hapFeatures);
 
         /**
          * Invoked to inform about the failed preset rename attempt.
@@ -224,7 +221,8 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
         }
 
         @Override
-        public void onHapFeaturesAvailable(@NonNull BluetoothDevice device, int hapFeatures) {
+        public void onHapFeaturesAvailable(@NonNull BluetoothDevice device,
+                @Feature int hapFeatures) {
             Attributable.setAttributionSource(device, mAttributionSource);
             for (Map.Entry<BluetoothHapClient.Callback, Executor> callbackExecutorEntry:
                     mCallbackExecutorMap.entrySet()) {
@@ -319,46 +317,61 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
     public static final int PRESET_INDEX_UNAVAILABLE = IBluetoothHapClient.PRESET_INDEX_UNAVAILABLE;
 
     /**
-     * Feature bit.
+     * Feature value.
      * @hide
      */
-    public static final int FEATURE_BIT_NUM_TYPE_MONAURAL =
-            IBluetoothHapClient.FEATURE_BIT_NUM_TYPE_MONAURAL;
+    public static final int FEATURE_TYPE_MONAURAL =
+            1 << IBluetoothHapClient.FEATURE_BIT_NUM_TYPE_MONAURAL;
 
     /**
-     * Feature bit.
+     * Feature value.
      * @hide
      */
-    public static final int FEATURE_BIT_NUM_TYPE_BANDED =
-            IBluetoothHapClient.FEATURE_BIT_NUM_TYPE_BANDED;
+    public static final int FEATURE_TYPE_BANDED =
+            1 << IBluetoothHapClient.FEATURE_BIT_NUM_TYPE_BANDED;
 
     /**
-     * Feature bit.
+     * Feature value.
      * @hide
      */
-    public static final int FEATURE_BIT_NUM_SYNCHRONIZATED_PRESETS =
-            IBluetoothHapClient.FEATURE_BIT_NUM_SYNCHRONIZATED_PRESETS;
+    public static final int FEATURE_SYNCHRONIZATED_PRESETS =
+            1 << IBluetoothHapClient.FEATURE_BIT_NUM_SYNCHRONIZATED_PRESETS;
 
     /**
-     * Feature bit.
+     * Feature value.
      * @hide
      */
-    public static final int FEATURE_BIT_NUM_INDEPENDENT_PRESETS =
-            IBluetoothHapClient.FEATURE_BIT_NUM_INDEPENDENT_PRESETS;
+    public static final int FEATURE_INDEPENDENT_PRESETS =
+            1 << IBluetoothHapClient.FEATURE_BIT_NUM_INDEPENDENT_PRESETS;
 
     /**
-     * Feature bit.
+     * Feature value.
      * @hide
      */
-    public static final int FEATURE_BIT_NUM_DYNAMIC_PRESETS =
-            IBluetoothHapClient.FEATURE_BIT_NUM_DYNAMIC_PRESETS;
+    public static final int FEATURE_DYNAMIC_PRESETS =
+            1 << IBluetoothHapClient.FEATURE_BIT_NUM_DYNAMIC_PRESETS;
 
     /**
-     * Feature bit.
+     * Feature value.
      * @hide
      */
-    public static final int FEATURE_BIT_NUM_WRITABLE_PRESETS =
-            IBluetoothHapClient.FEATURE_BIT_NUM_WRITABLE_PRESETS;
+    public static final int FEATURE_WRITABLE_PRESETS =
+            1 << IBluetoothHapClient.FEATURE_BIT_NUM_WRITABLE_PRESETS;
+
+    /**
+     * @hide
+     */
+    @Retention(RetentionPolicy.SOURCE)
+    @IntDef(
+        flag = true,
+        value = {
+            FEATURE_TYPE_MONAURAL,
+            FEATURE_TYPE_BANDED,
+            FEATURE_SYNCHRONIZATED_PRESETS,
+            FEATURE_DYNAMIC_PRESETS,
+            FEATURE_WRITABLE_PRESETS,
+    })
+    @interface Feature {}
 
     private final BluetoothAdapter mAdapter;
     private final AttributionSource mAttributionSource;
@@ -1106,7 +1119,7 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
      * Requests HAP features
      *
      * @param device is the device for which we want to get features for
-     * @return true if request was processed, false otherwise
+     * @return features value with feature bits set
      * @hide
      */
     @RequiresBluetoothConnectPermission
@@ -1114,7 +1127,7 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
             android.Manifest.permission.BLUETOOTH_CONNECT,
             android.Manifest.permission.BLUETOOTH_PRIVILEGED
     })
-    public int getFeatures(@NonNull BluetoothDevice device) {
+    public @Feature int getFeatures(@NonNull BluetoothDevice device) {
         final IBluetoothHapClient service = getService();
         final int defaultValue = 0x00;
         if (service == null) {
