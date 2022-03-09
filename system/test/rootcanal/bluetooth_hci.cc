@@ -33,9 +33,9 @@ namespace V1_1 {
 namespace sim {
 
 using android::hardware::hidl_vec;
-using test_vendor_lib::AsyncTaskId;
-using test_vendor_lib::DualModeController;
-using test_vendor_lib::TaskCallback;
+using rootcanal::AsyncTaskId;
+using rootcanal::DualModeController;
+using rootcanal::TaskCallback;
 
 namespace {
 
@@ -177,9 +177,8 @@ Return<void> BluetoothHci::initialize_impl(
   // Add the controller as a device in the model.
   size_t controller_index = test_model_.Add(controller_);
   size_t low_energy_phy_index =
-      test_model_.AddPhy(test_vendor_lib::Phy::Type::LOW_ENERGY);
-  size_t classic_phy_index =
-      test_model_.AddPhy(test_vendor_lib::Phy::Type::BR_EDR);
+      test_model_.AddPhy(rootcanal::Phy::Type::LOW_ENERGY);
+  size_t classic_phy_index = test_model_.AddPhy(rootcanal::Phy::Type::BR_EDR);
   test_model_.AddDeviceToPhy(controller_index, low_energy_phy_index);
   test_model_.AddDeviceToPhy(controller_index, classic_phy_index);
   test_model_.SetTimerPeriod(std::chrono::milliseconds(10));
