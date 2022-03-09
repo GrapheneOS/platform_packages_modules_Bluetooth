@@ -181,6 +181,7 @@ static bool btm_ble_match_random_bda(void* data, void* context) {
  * matched to.
  */
 tBTM_SEC_DEV_REC* btm_ble_resolve_random_addr(const RawAddress& random_bda) {
+  if (btm_cb.sec_dev_rec == nullptr) return nullptr;
   list_node_t* n = list_foreach(btm_cb.sec_dev_rec, btm_ble_match_random_bda,
                                 (void*)&random_bda);
   return (n == nullptr) ? (nullptr)
