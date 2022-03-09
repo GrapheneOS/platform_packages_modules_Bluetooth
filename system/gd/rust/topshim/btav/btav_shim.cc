@@ -215,7 +215,7 @@ int A2dpIntf::set_active_device(RustRawAddress bt_addr) const {
 int A2dpIntf::config_codec(RustRawAddress bt_addr, ::rust::Vec<A2dpCodecConfig> codec_preferences) const {
   RawAddress addr = rusty::CopyFromRustAddress(bt_addr);
   std::vector<btav_a2dp_codec_config_t> prefs;
-  for (int i = 0; i < codec_preferences.size(); ++i) {
+  for (size_t i = 0; i < codec_preferences.size(); ++i) {
     prefs.push_back(internal::from_rust_codec_config(codec_preferences[i]));
   }
   return intf_->config_codec(addr, prefs);

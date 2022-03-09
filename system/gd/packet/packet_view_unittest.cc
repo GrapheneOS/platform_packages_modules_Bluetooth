@@ -347,15 +347,15 @@ TYPED_TEST(IteratorTest, subrangeTest) {
   ASSERT_EQ(*(all + 1), 1);
 
   auto subrange = all.Subrange(0, 1);
-  ASSERT_EQ(1, subrange.NumBytesRemaining());
+  ASSERT_EQ(1ul, subrange.NumBytesRemaining());
   ASSERT_EQ(*(subrange), 0);
 
   subrange = this->packet->begin().Subrange(0, 4);
-  ASSERT_EQ(4, subrange.NumBytesRemaining());
+  ASSERT_EQ(4ul, subrange.NumBytesRemaining());
   ASSERT_EQ(*(subrange + 1), 1);
 
   subrange = all.Subrange(0, 3);
-  ASSERT_EQ(3, subrange.NumBytesRemaining());
+  ASSERT_EQ(3ul, subrange.NumBytesRemaining());
   ASSERT_EQ(*(subrange + 1), 1);
 
   subrange = all.Subrange(0, all.NumBytesRemaining() - 1);
@@ -383,15 +383,15 @@ TYPED_TEST(IteratorTest, subrangeTest) {
   ASSERT_EQ(*subrange, 2);
 
   subrange = all.Subrange(1, 1);
-  ASSERT_EQ(1, subrange.NumBytesRemaining());
+  ASSERT_EQ(1ul, subrange.NumBytesRemaining());
   ASSERT_EQ(*(subrange), 1);
 
   subrange = all.Subrange(1, 2);
-  ASSERT_EQ(2, subrange.NumBytesRemaining());
+  ASSERT_EQ(2ul, subrange.NumBytesRemaining());
   ASSERT_EQ(*(subrange), 1);
 
   subrange = all.Subrange(2, 1);
-  ASSERT_EQ(1, subrange.NumBytesRemaining());
+  ASSERT_EQ(1ul, subrange.NumBytesRemaining());
   ASSERT_EQ(*(subrange), 2);
 
   subrange = this->packet->begin().Subrange(this->packet->size() - 1, 2);
