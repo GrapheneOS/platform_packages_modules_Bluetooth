@@ -2310,9 +2310,10 @@ class LeAudioClientImpl : public LeAudioClient {
           LeAudioClientAudioSink::SendData((uint8_t*)left->data(), to_write);
     } else if (!bt_got_stereo && af_is_stereo) {
       /* mono audio over bluetooth, audio framework expects stereo */
-      std::vector<uint16_t> mixed(left ? left->size() * 2 : right->size() * 2);
+      const size_t mono_size = left ? left->size() : right->size();
+      std::vector<uint16_t> mixed(mono_size * 2);
 
-      for (size_t i = 0; i < left->size(); i++) {
+      for (size_t i = 0; i < mono_size; i++) {
         mixed[2 * i] = left ? (*left)[i] : 0;
         mixed[2 * i + 1] = right ? (*right)[i] : 0;
       }
