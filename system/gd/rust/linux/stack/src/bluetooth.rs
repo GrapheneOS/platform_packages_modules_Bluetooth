@@ -125,6 +125,9 @@ pub trait IBluetooth {
     /// Gets the connection state of a single device.
     fn get_connection_state(&self, device: BluetoothDevice) -> u32;
 
+    /// Gets the connection state of a specific profile.
+    fn get_profile_connection_state(&self, profile: Profile) -> u32;
+
     /// Returns the cached UUIDs of a remote device.
     fn get_remote_uuids(&self, device: BluetoothDevice) -> Vec<Uuid128Bit>;
 
@@ -1084,6 +1087,19 @@ impl IBluetooth for Bluetooth {
         }
 
         self.intf.lock().unwrap().get_connection_state(&addr.unwrap())
+    }
+
+    fn get_profile_connection_state(&self, profile: Profile) -> u32 {
+        match profile {
+            Profile::A2dpSink | Profile::A2dpSource => {
+                self.bluetooth_media.lock().unwrap().get_a2dp_connection_state()
+            }
+            Profile::Hfp | Profile::HfpAg => {
+                self.bluetooth_media.lock().unwrap().get_hfp_connection_state()
+            }
+            // TODO: (b/223431229) Profile::Hid and Profile::Hogp
+            _ => 0,
+        }
     }
 
     fn get_remote_uuids(&self, device: BluetoothDevice) -> Vec<Uuid128Bit> {
