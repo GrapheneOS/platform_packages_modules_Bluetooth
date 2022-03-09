@@ -10,6 +10,7 @@ package {
 apex {
     name: "com.android.bluetooth",
     enabled: false,
+    defaults: ["t-launched-apex-module"],
 
     manifest: "apex_manifest.json",
 
