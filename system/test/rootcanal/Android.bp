@@ -31,7 +31,9 @@ cc_binary {
         "bluetooth_hci.cc",
         "service.cc",
     ],
-
+    visibility: [
+        "//platform_testing/libraries/sts-common-util/host-side/rootcanal"
+    ],
     header_libs: ["libbluetooth_headers"],
     shared_libs: [
         "android.hardware.bluetooth@1.0",
@@ -81,7 +83,9 @@ cc_library_shared {
     srcs: [
         "bluetooth_hci.cc",
     ],
-
+    visibility: [
+        "//platform_testing/libraries/sts-common-util/host-side/rootcanal"
+    ],
     header_libs: ["libbluetooth_headers"],
     shared_libs: [
         "android.hardware.bluetooth@1.0",

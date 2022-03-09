@@ -51,10 +51,11 @@ cc_fuzz {
   name: "liblc3_fuzzer",
 
   srcs: [
-    "fuzzer/liblc3encoder_fuzzer.cpp",
+    "fuzzer/liblc3_fuzzer.cpp",
   ],
 
   static_libs: [
     "liblc3",
   ],
 }
+
