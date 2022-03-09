@@ -65,7 +65,7 @@ static bool pts_test_send_authentication_complete_failure(tSMP_CB* p_cb) {
  * Function         smp_update_key_mask
  * Description      This function updates the key mask for sending or receiving.
  ******************************************************************************/
-void smp_update_key_mask(tSMP_CB* p_cb, uint8_t key_type, bool recv) {
+static void smp_update_key_mask(tSMP_CB* p_cb, uint8_t key_type, bool recv) {
   SMP_TRACE_DEBUG(
       "%s before update role=%d recv=%d local_i_key = %02x, local_r_key = %02x",
       __func__, p_cb->role, recv, p_cb->local_i_key, p_cb->local_r_key);
@@ -406,8 +406,6 @@ void smp_send_id_info(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
 void smp_send_csrk_info(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
   SMP_TRACE_DEBUG("%s", __func__);
   smp_update_key_mask(p_cb, SMP_SEC_KEY_TYPE_CSRK, false);
-  p_cb->total_tx_unacked =
-      p_cb->total_tx_unacked > 0 ? p_cb->total_tx_unacked - 1 : 0;
 
   if (smp_send_cmd(SMP_OPCODE_SIGN_INFO, p_cb)) {
     tBTM_LE_KEY_VALUE key = {
