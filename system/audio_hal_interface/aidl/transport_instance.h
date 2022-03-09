@@ -65,7 +65,7 @@ class IBluetoothTransportInstance {
     }
   }
 
-  virtual BluetoothAudioCtrlAck StartRequest() = 0;
+  virtual BluetoothAudioCtrlAck StartRequest(bool is_low_latency) = 0;
 
   virtual BluetoothAudioCtrlAck SuspendRequest() = 0;
 
