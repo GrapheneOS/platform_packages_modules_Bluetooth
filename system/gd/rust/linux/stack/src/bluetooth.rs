@@ -949,6 +949,10 @@ impl IBluetooth for Bluetooth {
         }
 
         let address = addr.unwrap();
+
+        // BREDR connection won't work when Inquiry is in progress.
+        self.cancel_discovery();
+
         self.intf.lock().unwrap().create_bond(&address, transport) == 0
     }
 
@@ -1152,6 +1156,9 @@ impl IBluetooth for Bluetooth {
             warn!("Can't connect profiles on invalid address [{}]", &device.address);
             return false;
         }
+
+        // BREDR connection won't work when Inquiry is in progress.
+        self.cancel_discovery();
 
         // Check all remote uuids to see if they match enabled profiles and connect them.
         let uuids = self.get_remote_uuids(device.clone());
