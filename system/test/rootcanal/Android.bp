@@ -24,7 +24,10 @@ package {
 
 cc_binary {
     name: "android.hardware.bluetooth@1.1-service.sim",
-    defaults: ["gd_defaults"],
+    defaults: [
+      "gd_defaults",
+      "libchrome_support_defaults"
+    ],
     proprietary: true,
     relative_install_path: "hw",
     srcs: [
@@ -39,7 +42,6 @@ cc_binary {
         "android.hardware.bluetooth@1.0",
         "android.hardware.bluetooth@1.1",
         "libbase",
-        "libchrome",
         "libcutils",
         "libhidlbase",
         "libjsoncpp",
@@ -77,7 +79,10 @@ cc_binary {
 
 cc_library_shared {
     name: "android.hardware.bluetooth@1.1-impl-sim",
-    defaults: ["gd_defaults"],
+    defaults: [
+      "gd_defaults",
+      "libchrome_support_defaults"
+    ],
     proprietary: true,
     relative_install_path: "hw",
     srcs: [
@@ -91,7 +96,6 @@ cc_library_shared {
         "android.hardware.bluetooth@1.0",
         "android.hardware.bluetooth@1.1",
         "libbase",
-        "libchrome",
         "libcutils",
         "libhidlbase",
         "libjsoncpp",

@@ -29,7 +29,7 @@ TEST(MultiPriorityQueueTest, without_high_priority_item) {
   q.push(0);
   q.push(1, 0);
   q.push(2);
-  ASSERT_EQ(q.size(), 3);
+  ASSERT_EQ(q.size(), 3ul);
   for (int i = 0; i < 3; i++) {
     ASSERT_EQ(q.front(), i);
     q.pop();

@@ -12,6 +12,7 @@ cc_library_static {
     defaults: [
         "fluoride_defaults",
         "clang_file_coverage",
+        "libchrome_support_defaults",
     ],
     host_supported: true,
     include_dirs: [
@@ -32,7 +33,6 @@ cc_library_static {
         "libosi",
     ],
     shared_libs: [
-        "libchrome",
         "liblog",
     ],
     apex_available: [
@@ -47,6 +47,7 @@ cc_test {
     defaults: [
         "fluoride_defaults",
         "clang_coverage_bin",
+        "libchrome_support_defaults",
     ],
     host_supported: true,
     test_options: {
@@ -64,15 +65,14 @@ cc_test {
     static_libs: [
         "libgmock",
         "lib-bt-packets",
+        "lib-bt-packets-base",
+        "lib-bt-packets-avrcp",
         "libosi",
         "liblog",
         "libcutils",
         "libbase",
         "libbtdevice",
         "avrcp-target-service",
-    ],
-    shared_libs: [
-        "libchrome",
     ],
     sanitize: {
         cfi: false,
@@ -86,6 +86,7 @@ cc_fuzz {
     host_supported: true,
     defaults: [
         "fluoride_defaults_fuzzable",
+        "libchrome_support_defaults",
     ],
     srcs: [
         "tests/avrcp_device_fuzz/avrcp_device_fuzz.cc",
@@ -99,8 +100,9 @@ cc_fuzz {
     static_libs: [
         "avrcp-target-service",
         "lib-bt-packets",
+        "lib-bt-packets-base",
+        "lib-bt-packets-avrcp",
         "libbase",
-        "libchrome",
         "libcutils",
         "libevent",
         "liblog",

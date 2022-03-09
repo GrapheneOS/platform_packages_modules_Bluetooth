@@ -15,7 +15,7 @@ cc_library_static {
         "./include",
         "./",
     ],
-    whole_static_libs: [
+    static_libs: [
         "lib-bt-packets-base",
         "lib-bt-packets-avrcp",
     ],
@@ -69,6 +69,8 @@ cc_test {
     static_libs: [
         "libgmock",
         "lib-bt-packets",
+        "lib-bt-packets-base",
+        "lib-bt-packets-avrcp",
     ],
     cflags: [
         "-DBUILDCFG",
