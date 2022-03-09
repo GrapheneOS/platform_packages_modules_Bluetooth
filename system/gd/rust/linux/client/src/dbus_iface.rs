@@ -12,6 +12,7 @@ use btstack::bluetooth_gatt::{
     IScannerCallback, LePhy, ScanFilter, ScanSettings,
 };
 
+use btstack::uuid::Profile;
 use dbus::arg::{AppendAll, RefArg};
 use dbus::nonblock::SyncConnection;
 
@@ -42,6 +43,7 @@ impl_dbus_arg_enum!(GattStatus);
 impl_dbus_arg_enum!(GattWriteType);
 impl_dbus_arg_enum!(LePhy);
 impl_dbus_arg_enum!(GattWriteRequestStatus);
+impl_dbus_arg_enum!(Profile);
 
 // Represents Uuid128Bit as an array in D-Bus.
 impl DBusArg for Uuid128Bit {
@@ -383,6 +385,11 @@ impl IBluetooth for BluetoothDBus {
 
     #[dbus_method("GetConnectionState")]
     fn get_connection_state(&self, device: BluetoothDevice) -> u32 {
+        dbus_generated!()
+    }
+
+    #[dbus_method("GetProfileConnectionState")]
+    fn get_profile_connection_state(&self, profile: Profile) -> u32 {
         dbus_generated!()
     }
 
