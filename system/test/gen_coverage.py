@@ -70,16 +70,16 @@ COVERAGE_TESTS = [
         ],
     },
     {
-        "test_name": "test-vendor_test_host",
+        "test_name": "rootcanal_test_host",
         "covered_files": [
-            "packages/modules/Bluetooth/system/vendor_libs/test_vendor_lib/include",
-            "packages/modules/Bluetooth/system/vendor_libs/test_vendor_lib/src",
+            "packages/modules/Bluetooth/tools/rootcanal/include",
+            "packages/modules/Bluetooth/tools/rootcanal/src",
         ],
     },
     {
         "test_name": "rootcanal-packets_test_host",
         "covered_files": [
-            "packages/modules/Bluetooth/system/vendor_libs/test_vendor_lib/packets",
+            "packages/modules/Bluetooth/tools/rootcanal/packets",
         ],
     },
     {
