@@ -763,16 +763,21 @@ static void gap_config_ind(uint16_t l2cap_cid, tL2CAP_CFG_INFO* p_cfg) {
   if (p_ccb == NULL) return;
 
   /* Remember the remote MTU size */
-
-  if (p_ccb->cfg.fcr.mode == L2CAP_FCR_ERTM_MODE) {
-    local_mtu_size = BT_DEFAULT_BUFFER_SIZE - sizeof(BT_HDR) - L2CAP_MIN_OFFSET;
-  } else
-    local_mtu_size = L2CAP_MTU_SIZE;
-
-  if ((!p_cfg->mtu_present) || (p_cfg->mtu > local_mtu_size)) {
-    p_ccb->rem_mtu_size = local_mtu_size;
-  } else
-    p_ccb->rem_mtu_size = p_cfg->mtu;
+  if (!p_cfg->mtu_present) {
+    p_ccb->rem_mtu_size = L2CAP_DEFAULT_MTU;
+  } else {
+    if (p_ccb->cfg.fcr.mode == L2CAP_FCR_ERTM_MODE) {
+      local_mtu_size =
+          BT_DEFAULT_BUFFER_SIZE - sizeof(BT_HDR) - L2CAP_MIN_OFFSET;
+    } else {
+      local_mtu_size = L2CAP_MTU_SIZE;
+    }
+    if (p_cfg->mtu > local_mtu_size) {
+      p_ccb->rem_mtu_size = local_mtu_size;
+    } else {
+      p_ccb->rem_mtu_size = p_cfg->mtu;
+    }
+  }
 }
 
 /*******************************************************************************
