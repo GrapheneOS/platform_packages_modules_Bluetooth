@@ -1487,9 +1487,9 @@ public final class BluetoothAdapter {
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     @SuppressLint(value = {"ArrayReturn", "NullableCollection"})
-    public @Nullable ParcelUuid[] getUuids() {
+    public @NonNull ParcelUuid[] getUuids() {
         if (getState() != STATE_ON) {
-            return null;
+            return new ParcelUuid[0];
         }
         try {
             mServiceLock.readLock().lock();
@@ -1506,7 +1506,7 @@ public final class BluetoothAdapter {
         } finally {
             mServiceLock.readLock().unlock();
         }
-        return null;
+        return new ParcelUuid[0];
     }
 
     /**
