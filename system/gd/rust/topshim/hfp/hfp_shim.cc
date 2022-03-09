@@ -36,6 +36,11 @@ static void connection_state_cb(bluetooth::headset::bthf_connection_state_t stat
   rusty::hfp_connection_state_callback(state, raddr);
 }
 
+static void audio_state_cb(bluetooth::headset::bthf_audio_state_t state, RawAddress* addr) {
+  RustRawAddress raddr = rusty::CopyToRustAddress(*addr);
+  rusty::hfp_audio_state_callback(state, raddr);
+}
+
 }  // namespace internal
 
 class DBusHeadsetCallbacks : public headset::Callbacks {
@@ -54,6 +59,8 @@ class DBusHeadsetCallbacks : public headset::Callbacks {
 
   void AudioStateCallback(headset::bthf_audio_state_t state, RawAddress* bd_addr) override {
     LOG_INFO("AudioStateCallback %u from %s", state, bd_addr->ToString().c_str());
+    topshim::rust::internal::audio_state_cb(state, bd_addr);
+
     switch (state) {
       case headset::bthf_audio_state_t::BTHF_AUDIO_STATE_CONNECTED:
         // This triggers a +CIEV command to set the call status for HFP
