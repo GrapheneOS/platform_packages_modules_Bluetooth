@@ -21,6 +21,21 @@ impl From<u32> for BthfConnectionState {
     }
 }
 
+#[derive(Debug, FromPrimitive, PartialEq, PartialOrd)]
+#[repr(u32)]
+pub enum BthfAudioState {
+    Disconnected = 0,
+    Connecting,
+    Connected,
+    Disconnecting,
+}
+
+impl From<u32> for BthfAudioState {
+    fn from(item: u32) -> Self {
+        BthfAudioState::from_u32(item).unwrap()
+    }
+}
+
 bitflags! {
     pub struct HfpCodecCapability: i32 {
         const UNSUPPORTED = 0b00;
@@ -53,6 +68,7 @@ pub mod ffi {
     }
     extern "Rust" {
         fn hfp_connection_state_callback(state: u32, addr: RustRawAddress);
+        fn hfp_audio_state_callback(state: u32, addr: RustRawAddress);
     }
 }
 
@@ -71,6 +87,7 @@ impl Into<RawAddress> for ffi::RustRawAddress {
 #[derive(Debug)]
 pub enum HfpCallbacks {
     ConnectionState(BthfConnectionState, RawAddress),
+    AudioState(BthfAudioState, RawAddress),
 }
 
 pub struct HfpCallbacksDispatcher {
@@ -83,6 +100,14 @@ cb_variant!(
     HfpCb,
     hfp_connection_state_callback -> HfpCallbacks::ConnectionState,
     u32 -> BthfConnectionState, ffi::RustRawAddress -> RawAddress, {
+        let _1 = _1.into();
+    }
+);
+
+cb_variant!(
+    HfpCb,
+    hfp_audio_state_callback -> HfpCallbacks::AudioState,
+    u32 -> BthfAudioState, ffi::RustRawAddress -> RawAddress, {
         let _1 = _1.into();
     }
 );
