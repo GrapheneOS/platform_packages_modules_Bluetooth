@@ -73,7 +73,7 @@ LeAudioTransport::LeAudioTransport(void (*flush)(void),
       pcm_config_(std::move(pcm_config)),
       is_pending_start_request_(false){};
 
-BluetoothAudioCtrlAck LeAudioTransport::StartRequest() {
+BluetoothAudioCtrlAck LeAudioTransport::StartRequest(bool is_low_latency) {
   LOG(INFO) << __func__;
 
   if (stream_cb_.on_resume_(true)) {
@@ -198,8 +198,8 @@ LeAudioSinkTransport::LeAudioSinkTransport(SessionType session_type,
 
 LeAudioSinkTransport::~LeAudioSinkTransport() { delete transport_; }
 
-BluetoothAudioCtrlAck LeAudioSinkTransport::StartRequest() {
-  return transport_->StartRequest();
+BluetoothAudioCtrlAck LeAudioSinkTransport::StartRequest(bool is_low_latency) {
+  return transport_->StartRequest(is_low_latency);
 }
 
 BluetoothAudioCtrlAck LeAudioSinkTransport::SuspendRequest() {
@@ -270,8 +270,9 @@ LeAudioSourceTransport::LeAudioSourceTransport(SessionType session_type,
 
 LeAudioSourceTransport::~LeAudioSourceTransport() { delete transport_; }
 
-BluetoothAudioCtrlAck LeAudioSourceTransport::StartRequest() {
-  return transport_->StartRequest();
+BluetoothAudioCtrlAck LeAudioSourceTransport::StartRequest(
+    bool is_low_latency) {
+  return transport_->StartRequest(is_low_latency);
 }
 
 BluetoothAudioCtrlAck LeAudioSourceTransport::SuspendRequest() {
