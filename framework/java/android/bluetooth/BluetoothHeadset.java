@@ -1236,6 +1236,7 @@ public final class BluetoothHeadset implements BluetoothProfile {
     @RequiresPermission(allOf = {
             android.Manifest.permission.BLUETOOTH_CONNECT,
             android.Manifest.permission.MODIFY_PHONE_STATE,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
     })
     public boolean startScoUsingVirtualVoiceCall() {
         if (DBG) log("startScoUsingVirtualVoiceCall()");
@@ -1274,6 +1275,7 @@ public final class BluetoothHeadset implements BluetoothProfile {
     @RequiresPermission(allOf = {
             android.Manifest.permission.BLUETOOTH_CONNECT,
             android.Manifest.permission.MODIFY_PHONE_STATE,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
     })
     public boolean stopScoUsingVirtualVoiceCall() {
         if (DBG) log("stopScoUsingVirtualVoiceCall()");
