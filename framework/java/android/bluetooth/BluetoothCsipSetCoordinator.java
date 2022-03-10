@@ -154,6 +154,9 @@ public final class BluetoothCsipSetCoordinator implements BluetoothProfile, Auto
      * Used as an extra field in {@link #ACTION_CSIS_DEVICE_AVAILABLE} intent.
      * Contains the group id.
      *
+     * <p>Possible Values:
+     * {@link GROUP_ID_INVALID} Invalid group identifier
+     * 0x01 - 0xEF Valid group identifier
      * @hide
      */
     @SystemApi
