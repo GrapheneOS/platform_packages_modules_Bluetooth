@@ -697,7 +697,7 @@ public class HapClientTest {
      * Test that native callback generates proper callback call.
      */
     @Test
-    public void testOtackEventonPresetSelected() {
+    public void testStackEventOnPresetSelected() {
         doReturn(new ParcelUuid[]{BluetoothUuid.HAS}).when(mAdapterService)
                 .getRemoteUuids(any(BluetoothDevice.class));
 
@@ -705,7 +705,7 @@ public class HapClientTest {
 
         try {
             verify(mCallback, after(TIMEOUT_MS).times(1)).onPresetSelected(eq(mDevice),
-                    eq(0x01));
+                    eq(0x01), eq(BluetoothStatusCodes.REASON_LOCAL_STACK_REQUEST));
         } catch (RemoteException e) {
             throw e.rethrowFromSystemServer();
         }
@@ -988,7 +988,7 @@ public class HapClientTest {
 
         try {
             verify(mCallback, after(TIMEOUT_MS).times(1)).onPresetSelected(eq(device),
-                    eq(evt.valueInt1));
+                    eq(evt.valueInt1), eq(BluetoothStatusCodes.REASON_LOCAL_STACK_REQUEST));
         } catch (RemoteException e) {
             throw e.rethrowFromSystemServer();
         }
