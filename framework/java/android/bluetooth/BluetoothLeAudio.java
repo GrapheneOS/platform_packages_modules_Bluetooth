@@ -20,11 +20,13 @@ package android.bluetooth;
 import static android.bluetooth.BluetoothUtils.getSyncTimeout;
 
 import android.Manifest;
+import android.annotation.CallbackExecutor;
 import android.annotation.NonNull;
 import android.annotation.Nullable;
 import android.annotation.RequiresPermission;
 import android.annotation.SdkConstant;
 import android.annotation.SdkConstant.SdkConstantType;
+import android.annotation.SuppressLint;
 import android.annotation.SystemApi;
 import android.bluetooth.annotations.RequiresBluetoothConnectPermission;
 import android.bluetooth.annotations.RequiresLegacyBluetoothPermission;
@@ -38,7 +40,11 @@ import android.util.Log;
 import com.android.modules.utils.SynchronousResultReceiver;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -56,7 +62,44 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
     private static final boolean DBG = false;
     private static final boolean VDBG = false;
 
+    private final Map<Callback, Executor> mCallbackExecutorMap = new HashMap<>();
+
     private CloseGuard mCloseGuard;
+
+    /**
+     * This class provides a callback that is invoked when audio codec config changes on
+     * the remote device.
+     *
+     * @hide
+     */
+    @SystemApi
+    public interface Callback {
+        /**
+         * Callback invoked when callback is registered and when codec config
+         * changes on the remote device.
+         *
+         * @param groupId the group id
+         * @param status latest codec status for this group
+         * @hide
+         */
+        @SystemApi
+        void onCodecConfigChanged(int groupId,
+                                  @NonNull BluetoothLeAudioCodecStatus status);
+    }
+
+    @SuppressLint("AndroidFrameworkBluetoothPermission")
+    private final IBluetoothLeAudioCallback mCallback = new IBluetoothLeAudioCallback.Stub() {
+        @Override
+        public void onCodecConfigChanged(int groupId,
+                                         @NonNull BluetoothLeAudioCodecStatus status) {
+            for (Map.Entry<BluetoothLeAudio.Callback, Executor> callbackExecutorEntry:
+                    mCallbackExecutorMap.entrySet()) {
+                BluetoothLeAudio.Callback callback = callbackExecutorEntry.getKey();
+                Executor executor = callbackExecutorEntry.getValue();
+                executor.execute(() -> callback.onCodecConfigChanged(groupId, status));
+            }
+        }
+    };
 
     /**
      * Intent used to broadcast the change in connection state of the LeAudio
@@ -166,23 +209,6 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
     public static final String ACTION_LE_AUDIO_CONF_CHANGED =
             "android.bluetooth.action.LE_AUDIO_CONF_CHANGED";
 
-    /**
-     * Intent used to broadcast the audio codec config changed information.
-     *
-     * <p>This intent will have 2 extras:
-     * <ul>
-     * <li> {@link BluetoothLeAudioCodecStatus#EXTRA_LE_AUDIO_CODEC_STATUS} - The codec status.
-     * </li>
-     * <li> {@link BluetoothDevice#EXTRA_DEVICE} - The remote device if the device is currently
-     * connected, otherwise it is not included.</li>
-     * </ul>
-     *
-     * @hide
-     */
-    @RequiresPermission(Manifest.permission.BLUETOOTH_PRIVILEGED)
-    @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
-    public static final String ACTION_LE_AUDIO_CODEC_CONFIG_CHANGED =
-            "android.bluetooth.action.LE_AUDIO_CODEC_CONFIG_CHANGED";
 
     /**
      * Indicates unspecified audio content.
@@ -377,6 +403,37 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
                 }
     };
 
+
+    @SuppressLint("AndroidFrameworkBluetoothPermission")
+    private final IBluetoothStateChangeCallback mBluetoothStateChangeCallback =
+            new IBluetoothStateChangeCallback.Stub() {
+                public void onBluetoothStateChange(boolean up) {
+                    if (DBG) Log.d(TAG, "onBluetoothStateChange: up=" + up);
+                    if (up) {
+                        // re-register the service-to-app callback
+                        synchronized (mCallbackExecutorMap) {
+                            if (!mCallbackExecutorMap.isEmpty()) {
+                                try {
+                                    final IBluetoothLeAudio service = getService();
+                                    if (service != null) {
+                                        final SynchronousResultReceiver<Integer> recv =
+                                                new SynchronousResultReceiver();
+                                        service.registerCallback(mCallback,
+                                                mAttributionSource, recv);
+                                        recv.awaitResultNoInterrupt(getSyncTimeout())
+                                                .getValue(null);
+                                    }
+                                } catch (TimeoutException e) {
+                                    Log.e(TAG, "Failed to register callback", e);
+                                } catch (RemoteException e) {
+                                    throw e.rethrowFromSystemServer();
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
     /**
      * Create a BluetoothLeAudio proxy object for interacting with the local
      * Bluetooth LeAudio service.
@@ -386,6 +443,16 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
         mAdapter = adapter;
         mAttributionSource = adapter.getAttributionSource();
         mProfileConnector.connect(context, listener);
+
+        IBluetoothManager mgr = mAdapter.getBluetoothManager();
+        if (mgr != null) {
+            try {
+                mgr.registerStateChangeCallback(mBluetoothStateChangeCallback);
+            } catch (RemoteException e) {
+                throw e.rethrowFromSystemServer();
+            }
+        }
+
         mCloseGuard = new CloseGuard();
         mCloseGuard.open("close");
     }
@@ -394,6 +461,15 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
      * @hide
      */
     public void close() {
+        IBluetoothManager mgr = mAdapter.getBluetoothManager();
+        if (mgr != null) {
+            try {
+                mgr.unregisterStateChangeCallback(mBluetoothStateChangeCallback);
+            } catch (RemoteException e) {
+                Log.e(TAG, "", e);
+            }
+        }
+
         mProfileConnector.disconnect();
     }
 
@@ -608,6 +684,105 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
             }
         }
         return defaultValue;
+    }
+
+    /**
+     * Register a {@link Callback} that will be invoked during the
+     * operation of this profile.
+     *
+     * Repeated registration of the same <var>callback</var> object will have no effect after
+     * the first call to this method, even when the <var>executor</var> is different. API caller
+     * would have to call {@link #unregisterCallback(Callback)} with
+     * the same callback object before registering it again.
+     *
+     * @param executor an {@link Executor} to execute given callback
+     * @param callback user implementation of the {@link Callback}
+     * @throws NullPointerException if a null executor or callback is given
+     * @throws IllegalArgumentException the callback is already registered
+     * @hide
+     */
+    @SystemApi
+    @RequiresBluetoothConnectPermission
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
+    public void registerCallback(@NonNull @CallbackExecutor Executor executor,
+            @NonNull Callback callback) {
+        Objects.requireNonNull(executor, "executor cannot be null");
+        Objects.requireNonNull(callback, "callback cannot be null");
+        if (DBG) log("registerCallback");
+
+        synchronized (mCallbackExecutorMap) {
+            // If the callback map is empty, we register the service-to-app callback
+            if (mCallbackExecutorMap.isEmpty()) {
+                try {
+                    final IBluetoothLeAudio service = getService();
+                    if (service != null) {
+                        final SynchronousResultReceiver<Integer> recv =
+                                new SynchronousResultReceiver();
+                        service.registerCallback(mCallback, mAttributionSource, recv);
+                        recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
+                    }
+                } catch (IllegalStateException | TimeoutException e) {
+                    Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+                    throw new IllegalStateException("Unexpected error", e);
+                } catch (RemoteException e) {
+                    throw e.rethrowFromSystemServer();
+                }
+            }
+
+            // Adds the passed in callback to our map of callbacks to executors
+            if (mCallbackExecutorMap.containsKey(callback)) {
+                throw new IllegalArgumentException("This callback has already been registered");
+            }
+            mCallbackExecutorMap.put(callback, executor);
+        }
+    }
+
+    /**
+     * Unregister the specified {@link Callback}.
+     * <p>The same {@link Callback} object used when calling
+     * {@link #registerCallback(Executor, Callback)} must be used.
+     *
+     * <p>Callbacks are automatically unregistered when application process goes away
+     *
+     * @param callback user implementation of the {@link Callback}
+     * @throws NullPointerException when callback is null
+     * @throws IllegalArgumentException when no callback is registered
+     * @hide
+     */
+    @SystemApi
+    @RequiresBluetoothConnectPermission
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
+    public void unregisterCallback(@NonNull Callback callback) {
+        Objects.requireNonNull(callback, "callback cannot be null");
+        if (DBG) log("unregisterCallback");
+
+        synchronized (mCallbackExecutorMap) {
+            if (mCallbackExecutorMap.remove(callback) != null) {
+                throw new IllegalArgumentException("This callback has not been registered");
+            }
+        }
+
+        // If the callback map is empty, we unregister the service-to-app callback
+        if (mCallbackExecutorMap.isEmpty()) {
+            try {
+                final IBluetoothLeAudio service = getService();
+                if (service != null) {
+                    final SynchronousResultReceiver<Integer> recv = new SynchronousResultReceiver();
+                    service.unregisterCallback(mCallback, mAttributionSource, recv);
+                    recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
+                }
+            } catch (TimeoutException e) {
+                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+            } catch (RemoteException e) {
+                throw e.rethrowFromSystemServer();
+            }
+        }
     }
 
     /**
