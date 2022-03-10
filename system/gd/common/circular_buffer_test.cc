@@ -94,7 +94,7 @@ TEST(CircularBufferTest, max_timestamps) {
   }
 
   auto vec = buffer.Pull();
-  ASSERT_EQ(10ul, vec.size());
+  ASSERT_EQ(10, vec.size());
 
   int i = 0 + 1;
   for (auto v : vec) {

@@ -10,7 +10,7 @@ package {
 cc_library_static {
     name: "libbt-common",
     defaults: [
-        "fluoride_basic_defaults",
+        "fluoride_defaults",
         "clang_file_coverage",
     ],
     host_supported: true,
@@ -33,11 +33,18 @@ cc_library_static {
     target: {
         android: {
             srcs: ["metrics.cc"],
+            shared_libs: ["libstatslog_bt"],
         },
         host: {
             srcs: ["metrics_linux.cc"],
         },
     },
+    shared_libs: [
+        "libcrypto",
+    ],
+    static_libs: [
+        "libbt-protos-lite",
+    ],
 }
 
 cc_test {
