@@ -139,7 +139,8 @@ int lc3_check_bits(const struct lc3_bits *bits)
 static inline void accu_flush(
     struct lc3_bits_accu *accu, struct lc3_bits_buffer *buffer)
 {
-    int nbytes = LC3_MIN(accu->n >> 3, buffer->p_bw - buffer->p_fw);
+    int nbytes = LC3_MIN(accu->n >> 3,
+        LC3_MAX(buffer->p_bw - buffer->p_fw, 0));
 
     accu->n -= 8 * nbytes;
 
