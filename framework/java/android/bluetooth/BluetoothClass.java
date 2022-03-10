@@ -17,7 +17,6 @@
 package android.bluetooth;
 
 import android.annotation.Nullable;
-import android.annotation.SystemApi;
 import android.compat.annotation.UnsupportedAppUsage;
 import android.os.Build;
 import android.os.Parcel;
@@ -242,25 +241,9 @@ public final class BluetoothClass implements Parcelable {
         public static final int HEALTH_DATA_DISPLAY = 0x091C;
 
         // Devices in PERIPHERAL major class
-        /**
-         * @hide
-         */
-        @SystemApi
         public static final int PERIPHERAL_NON_KEYBOARD_NON_POINTING = 0x0500;
-        /**
-         * @hide
-         */
-        @SystemApi
         public static final int PERIPHERAL_KEYBOARD = 0x0540;
-        /**
-         * @hide
-         */
-        @SystemApi
         public static final int PERIPHERAL_POINTING = 0x0580;
-        /**
-         * @hide
-         */
-        @SystemApi
         public static final int PERIPHERAL_KEYBOARD_POINTING = 0x05C0;
     }
 

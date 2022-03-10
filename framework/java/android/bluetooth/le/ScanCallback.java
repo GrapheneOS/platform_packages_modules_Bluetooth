@@ -15,8 +15,11 @@
  */
 
 package android.bluetooth.le;
-import android.annotation.SystemApi;
 
+import android.annotation.IntDef;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.List;
 
 /**
@@ -25,6 +28,21 @@ import java.util.List;
  * @see BluetoothLeScanner#startScan
  */
 public abstract class ScanCallback {
+    // Le Roles
+    /** @hide */
+    @Retention(RetentionPolicy.SOURCE)
+    @IntDef(
+        prefix = { "SCAN_FAILED_" },
+        value = {
+            SCAN_FAILED_ALREADY_STARTED,
+            SCAN_FAILED_APPLICATION_REGISTRATION_FAILED,
+            SCAN_FAILED_INTERNAL_ERROR,
+            SCAN_FAILED_FEATURE_UNSUPPORTED,
+            SCAN_FAILED_OUT_OF_HARDWARE_RESOURCES,
+            SCAN_FAILED_SCANNING_TOO_FREQUENTLY,
+        }
+    )
+    public @interface ScanFailed {}
     /**
      * Fails to start scan as BLE scan with the same settings is already started by the app.
      */
@@ -47,17 +65,12 @@ public abstract class ScanCallback {
 
     /**
      * Fails to start scan as it is out of hardware resources.
-     *
-     * @hide
      */
-    @SystemApi
     public static final int SCAN_FAILED_OUT_OF_HARDWARE_RESOURCES = 5;
 
     /**
      * Fails to start scan as application tries to scan too frequently.
-     * @hide
      */
-    @SystemApi
     public static final int SCAN_FAILED_SCANNING_TOO_FREQUENTLY = 6;
 
     static final int NO_ERROR = 0;
@@ -86,6 +99,6 @@ public abstract class ScanCallback {
      *
      * @param errorCode Error code (one of SCAN_FAILED_*) for scan failure.
      */
-    public void onScanFailed(int errorCode) {
+    public void onScanFailed(@ScanFailed int errorCode) {
     }
 }
