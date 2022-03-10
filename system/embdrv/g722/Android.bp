@@ -20,4 +20,5 @@ cc_library_static {
         "g722_encode.cc",
     ],
     host_supported: true,
+    min_sdk_version: "Tiramisu"
 }
