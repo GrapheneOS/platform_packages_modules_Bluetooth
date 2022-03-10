@@ -658,7 +658,7 @@ public class LeAudioService extends ProfileService {
      * Get the maximum number of supported simultaneous broadcasts.
      * @return number of supported simultaneous broadcasts
      */
-    public int getMaximumNumberOfBroadcast() {
+    public int getMaximumNumberOfBroadcasts() {
         /* TODO: This is currently fixed to 1 */
         return 1;
     }
@@ -2067,13 +2067,13 @@ public class LeAudioService extends ProfileService {
         }
 
         @Override
-        public void getMaximumNumberOfBroadcast(AttributionSource source,
+        public void getMaximumNumberOfBroadcasts(AttributionSource source,
                 SynchronousResultReceiver receiver) {
             try {
                 int defaultValue = 0;
                 LeAudioService service = getService(source);
                 if (service != null) {
-                    defaultValue = service.getMaximumNumberOfBroadcast();
+                    defaultValue = service.getMaximumNumberOfBroadcasts();
                 }
                 receiver.send(defaultValue);
             } catch (RuntimeException e) {
