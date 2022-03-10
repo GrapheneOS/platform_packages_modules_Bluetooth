@@ -32,7 +32,7 @@ java_library {
     name: "bluetooth.mapsapi",
 
     srcs: ["lib/mapapi/**/*.java"],
-    min_sdk_version: "current",
+    min_sdk_version: "Tiramisu",
     sdk_version: "module_current",
 }
 
@@ -44,7 +44,7 @@ java_library {
     apex_available: [
         "com.android.bluetooth",
     ],
-    min_sdk_version: "current",
+    min_sdk_version: "Tiramisu",
     sdk_version: "module_current",
 }
 
@@ -81,7 +81,7 @@ cc_library_shared {
     apex_available: [
         "com.android.bluetooth",
     ],
-    min_sdk_version: "current",
+    min_sdk_version: "Tiramisu",
 }
 
 // Bluetooth APK
@@ -154,7 +154,7 @@ android_app {
             // "-Xep:AndroidFrameworkRequiresPermission:ERROR",
         ],
     },
-    min_sdk_version: "current",
+    min_sdk_version: "Tiramisu",
     sdk_version: "module_current",
 }
 
