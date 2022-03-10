@@ -45,8 +45,6 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothAdapter.ActiveDeviceProfile;
 import android.bluetooth.BluetoothAdapter.ActiveDeviceUse;
 import android.bluetooth.BluetoothClass;
-import android.bluetooth.BluetoothCodecConfig;
-import android.bluetooth.BluetoothCodecStatus;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothFrameworkInitializer;
 import android.bluetooth.BluetoothProfile;
@@ -57,6 +55,7 @@ import android.bluetooth.BluetoothStatusCodes;
 import android.bluetooth.BluetoothUuid;
 import android.bluetooth.BufferConstraints;
 import android.bluetooth.IBluetooth;
+import android.bluetooth.IBluetoothActivityEnergyInfoListener;
 import android.bluetooth.IBluetoothCallback;
 import android.bluetooth.IBluetoothConnectionCallback;
 import android.bluetooth.IBluetoothMetadataListener;
@@ -86,7 +85,6 @@ import android.os.ParcelUuid;
 import android.os.PowerManager;
 import android.os.RemoteCallbackList;
 import android.os.RemoteException;
-import android.os.ResultReceiver;
 import android.os.SystemClock;
 import android.os.SystemProperties;
 import android.os.UserHandle;
@@ -216,8 +214,6 @@ public class AdapterService extends Service {
 
     public static final String ACTIVITY_ATTRIBUTION_NO_ACTIVE_DEVICE_ADDRESS =
             "no_active_device_address";
-
-    public static final String RESULT_RECEIVER_CONTROLLER_KEY = "controller_activity";
 
     // Report ID definition
     public enum BqrQualityReportId {
@@ -3584,11 +3580,14 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void requestActivityInfo(ResultReceiver result, AttributionSource source) {
-            Bundle bundle = new Bundle();
-            bundle.putParcelable(RESULT_RECEIVER_CONTROLLER_KEY,
-                    reportActivityInfo(source));
-            result.send(0, bundle);
+        public void requestActivityInfo(IBluetoothActivityEnergyInfoListener listener,
+                    AttributionSource source) {
+            BluetoothActivityEnergyInfo info = reportActivityInfo(source);
+            try {
+                listener.onBluetoothActivityEnergyInfo(info);
+            } catch (RemoteException e) {
+                Log.e(TAG, "onBluetoothActivityEnergyInfo: RemoteException", e);
+            }
         }
 
         @Override

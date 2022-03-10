@@ -16,6 +16,7 @@ filegroup {
         "android/bluetooth/IBluetooth.aidl",
         "android/bluetooth/IBluetoothA2dp.aidl",
         "android/bluetooth/IBluetoothA2dpSink.aidl",
+        "android/bluetooth/IBluetoothActivityEnergyInfoListener.aidl",
         "android/bluetooth/IBluetoothAvrcpController.aidl",
         "android/bluetooth/IBluetoothAvrcpTarget.aidl",
         "android/bluetooth/IBluetoothCallback.aidl",

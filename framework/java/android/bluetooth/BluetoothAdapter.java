@@ -59,7 +59,6 @@ import android.os.Build;
 import android.os.IBinder;
 import android.os.ParcelUuid;
 import android.os.RemoteException;
-import android.os.ResultReceiver;
 import android.sysprop.BluetoothProperties;
 import android.util.Log;
 import android.util.Pair;
@@ -820,6 +819,55 @@ public final class BluetoothAdapter {
             return;
         }
     };
+
+    /**
+     * Interface for Bluetooth activity energy info listener. Should be implemented by applications
+     * and set when calling {@link BluetoothAdapter#requestControllerActivityEnergyInfo}.
+     *
+     * @hide
+     */
+    @SystemApi
+    public interface OnBluetoothActivityEnergyInfoListener {
+        /**
+         * Called when Bluetooth activity energy info is available.
+         * Note: this listener is triggered at most once for each call to
+         * {@link #requestControllerActivityEnergyInfo}.
+         *
+         * @param info the latest {@link BluetoothActivityEnergyInfo}, or null if unavailable.
+         */
+        void onBluetoothActivityEnergyInfo(@Nullable BluetoothActivityEnergyInfo info);
+    }
+
+    private static class OnBluetoothActivityEnergyInfoProxy
+            extends IBluetoothActivityEnergyInfoListener.Stub {
+        private final Object mLock = new Object();
+        @Nullable @GuardedBy("mLock") private Executor mExecutor;
+        @Nullable @GuardedBy("mLock") private OnBluetoothActivityEnergyInfoListener mListener;
+
+        OnBluetoothActivityEnergyInfoProxy(Executor executor,
+                OnBluetoothActivityEnergyInfoListener listener) {
+            mExecutor = executor;
+            mListener = listener;
+        }
+
+        @Override
+        public void onBluetoothActivityEnergyInfo(BluetoothActivityEnergyInfo info) {
+            Executor executor;
+            OnBluetoothActivityEnergyInfoListener listener;
+            synchronized (mLock) {
+                if (mExecutor == null || mListener == null) {
+                    return;
+                }
+                executor = mExecutor;
+                listener = mListener;
+                // null out to allow garbage collection, prevent triggering listener more than once
+                mExecutor = null;
+                mListener = null;
+            }
+            Binder.clearCallingIdentity();
+            executor.execute(() -> listener.onBluetoothActivityEnergyInfo(info));
+        }
+    }
 
     /**
      * Get a handle to the default local Bluetooth adapter.
@@ -2672,22 +2720,22 @@ public final class BluetoothAdapter {
             android.Manifest.permission.BLUETOOTH_CONNECT,
             android.Manifest.permission.BLUETOOTH_PRIVILEGED,
     })
-    public void requestControllerActivityEnergyInfo(@NonNull ResultReceiver result) {
-        requireNonNull(result, "ResultReceiver cannot be null");
+    public void requestControllerActivityEnergyInfo(
+            @NonNull @CallbackExecutor Executor executor,
+            @NonNull OnBluetoothActivityEnergyInfoListener listener) {
+        requireNonNull(executor, "executor cannot be null");
+        requireNonNull(listener, "listener cannot be null");
         try {
             mServiceLock.readLock().lock();
             if (mService != null) {
-                mService.requestActivityInfo(result, mAttributionSource);
-                result = null;
+                mService.requestActivityInfo(
+                        new OnBluetoothActivityEnergyInfoProxy(executor, listener),
+                        mAttributionSource);
             }
         } catch (RemoteException e) {
             Log.e(TAG, "getControllerActivityEnergyInfoCallback: " + e);
         } finally {
             mServiceLock.readLock().unlock();
-            if (result != null) {
-                // Only send an immediate result if we failed.
-                result.send(0, null);
-            }
         }
     }
 
