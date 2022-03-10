@@ -4128,7 +4128,6 @@ public final class BluetoothAdapter {
      * @hide
      */
     @RequiresNoPermission
-    @SystemApi
     public boolean registerServiceLifecycleCallback(@NonNull ServiceLifecycleCallback callback) {
         return getBluetoothService(callback.mRemote) != null;
     }
@@ -4139,7 +4138,6 @@ public final class BluetoothAdapter {
      * @hide
      */
     @RequiresNoPermission
-    @SystemApi
     public void unregisterServiceLifecycleCallback(@NonNull ServiceLifecycleCallback callback) {
         removeServiceStateCallback(callback.mRemote);
     }
@@ -4149,7 +4147,6 @@ public final class BluetoothAdapter {
      *
      * @hide
      */
-    @SystemApi
     public abstract static class ServiceLifecycleCallback {
 
         /** Called when the bluetooth stack is up */
