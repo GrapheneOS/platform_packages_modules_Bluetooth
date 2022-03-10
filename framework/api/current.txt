@@ -367,6 +367,10 @@ package android.bluetooth {
     field public static final int HEALTH_THERMOMETER = 2312; // 0x908
     field public static final int HEALTH_UNCATEGORIZED = 2304; // 0x900
     field public static final int HEALTH_WEIGHING = 2316; // 0x90c
+    field public static final int PERIPHERAL_KEYBOARD = 1344; // 0x540
+    field public static final int PERIPHERAL_KEYBOARD_POINTING = 1472; // 0x5c0
+    field public static final int PERIPHERAL_NON_KEYBOARD_NON_POINTING = 1280; // 0x500
+    field public static final int PERIPHERAL_POINTING = 1408; // 0x580
     field public static final int PHONE_CELLULAR = 516; // 0x204
     field public static final int PHONE_CORDLESS = 520; // 0x208
     field public static final int PHONE_ISDN = 532; // 0x214
@@ -417,7 +421,6 @@ package android.bluetooth {
   }
 
   public final class BluetoothCodecConfig implements android.os.Parcelable {
-    ctor public BluetoothCodecConfig(int);
     method public int describeContents();
     method public int getBitsPerSample();
     method public int getChannelMode();
@@ -428,6 +431,7 @@ package android.bluetooth {
     method public long getCodecSpecific4();
     method public int getCodecType();
     method public int getSampleRate();
+    method public boolean isMandatoryCodec();
     method public void writeToParcel(android.os.Parcel, int);
     field public static final int BITS_PER_SAMPLE_16 = 1; // 0x1
     field public static final int BITS_PER_SAMPLE_24 = 2; // 0x2
@@ -471,7 +475,6 @@ package android.bluetooth {
   }
 
   public final class BluetoothCodecStatus implements android.os.Parcelable {
-    ctor public BluetoothCodecStatus(@Nullable android.bluetooth.BluetoothCodecConfig, @Nullable java.util.List<android.bluetooth.BluetoothCodecConfig>, @Nullable java.util.List<android.bluetooth.BluetoothCodecConfig>);
     method public int describeContents();
     method @Nullable public android.bluetooth.BluetoothCodecConfig getCodecConfig();
     method @NonNull public java.util.List<android.bluetooth.BluetoothCodecConfig> getCodecsLocalCapabilities();
@@ -480,6 +483,14 @@ package android.bluetooth {
     method public void writeToParcel(@NonNull android.os.Parcel, int);
     field @NonNull public static final android.os.Parcelable.Creator<android.bluetooth.BluetoothCodecStatus> CREATOR;
     field public static final String EXTRA_CODEC_STATUS = "android.bluetooth.extra.CODEC_STATUS";
+  }
+
+  public static final class BluetoothCodecStatus.Builder {
+    ctor public BluetoothCodecStatus.Builder();
+    method @NonNull public android.bluetooth.BluetoothCodecStatus build();
+    method @NonNull public android.bluetooth.BluetoothCodecStatus.Builder setCodecConfig(@NonNull android.bluetooth.BluetoothCodecConfig);
+    method @NonNull public android.bluetooth.BluetoothCodecStatus.Builder setCodecsLocalCapabilities(@NonNull java.util.List<android.bluetooth.BluetoothCodecConfig>);
+    method @NonNull public android.bluetooth.BluetoothCodecStatus.Builder setCodecsSelectableCapabilities(@NonNull java.util.List<android.bluetooth.BluetoothCodecConfig>);
   }
 
   public final class BluetoothCsipSetCoordinator implements java.lang.AutoCloseable android.bluetooth.BluetoothProfile {
@@ -1232,6 +1243,8 @@ package android.bluetooth.le {
     field public static final int SCAN_FAILED_APPLICATION_REGISTRATION_FAILED = 2; // 0x2
     field public static final int SCAN_FAILED_FEATURE_UNSUPPORTED = 4; // 0x4
     field public static final int SCAN_FAILED_INTERNAL_ERROR = 3; // 0x3
+    field public static final int SCAN_FAILED_OUT_OF_HARDWARE_RESOURCES = 5; // 0x5
+    field public static final int SCAN_FAILED_SCANNING_TOO_FREQUENTLY = 6; // 0x6
   }
 
   public final class ScanFilter implements android.os.Parcelable {

@@ -10,7 +10,7 @@ package {
 
 cc_defaults {
     name: "libbtcore_defaults",
-    defaults: ["fluoride_defaults"],
+    defaults: ["fluoride_basic_defaults"],
     local_include_dirs: ["include"],
     include_dirs: [
         "packages/modules/Bluetooth/system",
@@ -23,15 +23,8 @@ cc_defaults {
         "src/osi_module.cc",
         "src/property.cc",
     ],
-    shared_libs: [
-        "liblog",
-    ],
     header_libs: ["libbluetooth_headers"],
     host_supported: true,
-    apex_available: [
-        "//apex_available:platform",
-        "com.android.bluetooth",
-    ],
     target: {
         linux_glibc: {
             cflags: ["-D_GNU_SOURCE"],
@@ -41,11 +34,10 @@ cc_defaults {
 
 cc_library_static {
     name: "libbtcore",
-    defaults: ["libbtcore_defaults"],
-}
-
-cc_library_static {
-    name: "libbtcore-static",
+    visibility:[
+        "//packages/apps/Test/connectivity/sl4n",
+        "//packages/modules/Bluetooth:__subpackages__",
+    ],
     defaults: ["libbtcore_defaults"],
 }
 

@@ -33,7 +33,7 @@ class A2dpTransport
  public:
   A2dpTransport(SessionType sessionType);
 
-  BluetoothAudioCtrlAck StartRequest() override;
+  BluetoothAudioCtrlAck StartRequest(bool is_low_latency) override;
 
   BluetoothAudioCtrlAck SuspendRequest() override;
 

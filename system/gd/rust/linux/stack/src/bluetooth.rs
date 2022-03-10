@@ -125,6 +125,9 @@ pub trait IBluetooth {
     /// Gets the connection state of a single device.
     fn get_connection_state(&self, device: BluetoothDevice) -> u32;
 
+    /// Gets the connection state of a specific profile.
+    fn get_profile_connection_state(&self, profile: Profile) -> u32;
+
     /// Returns the cached UUIDs of a remote device.
     fn get_remote_uuids(&self, device: BluetoothDevice) -> Vec<Uuid128Bit>;
 
@@ -946,6 +949,10 @@ impl IBluetooth for Bluetooth {
         }
 
         let address = addr.unwrap();
+
+        // BREDR connection won't work when Inquiry is in progress.
+        self.cancel_discovery();
+
         self.intf.lock().unwrap().create_bond(&address, transport) == 0
     }
 
@@ -1086,6 +1093,19 @@ impl IBluetooth for Bluetooth {
         self.intf.lock().unwrap().get_connection_state(&addr.unwrap())
     }
 
+    fn get_profile_connection_state(&self, profile: Profile) -> u32 {
+        match profile {
+            Profile::A2dpSink | Profile::A2dpSource => {
+                self.bluetooth_media.lock().unwrap().get_a2dp_connection_state()
+            }
+            Profile::Hfp | Profile::HfpAg => {
+                self.bluetooth_media.lock().unwrap().get_hfp_connection_state()
+            }
+            // TODO: (b/223431229) Profile::Hid and Profile::Hogp
+            _ => 0,
+        }
+    }
+
     fn get_remote_uuids(&self, device: BluetoothDevice) -> Vec<Uuid128Bit> {
         match self.get_remote_device_property(&device, &BtPropertyType::Uuids) {
             Some(BluetoothProperty::Uuids(uuids)) => {
@@ -1136,6 +1156,9 @@ impl IBluetooth for Bluetooth {
             warn!("Can't connect profiles on invalid address [{}]", &device.address);
             return false;
         }
+
+        // BREDR connection won't work when Inquiry is in progress.
+        self.cancel_discovery();
 
         // Check all remote uuids to see if they match enabled profiles and connect them.
         let uuids = self.get_remote_uuids(device.clone());

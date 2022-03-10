@@ -36,7 +36,7 @@ pub const COORDINATED_SET: &str = "00001846-0000-1000-8000-00805F9B34FB";
 pub const BASE_UUID: &str = "00000000-0000-1000-8000-00805F9B34FB";
 
 /// List of profiles that with known uuids.
-#[derive(Clone, Debug, Hash, PartialEq, PartialOrd, Eq)]
+#[derive(Clone, Debug, Hash, PartialEq, PartialOrd, Eq, FromPrimitive, ToPrimitive, Copy)]
 #[repr(u32)]
 pub enum Profile {
     A2dpSink,
@@ -142,6 +142,10 @@ impl UuidHelper {
     /// Converts a UUID to a known profile enum.
     pub fn is_known_profile(&self, uuid: &Uuid128Bit) -> Option<&Profile> {
         self.profiles.get(uuid)
+    }
+
+    pub fn get_enabled_profiles(&self) -> HashSet<Profile> {
+        self.enabled_profiles.clone()
     }
 
     /// Converts a UUID byte array into a formatted string.

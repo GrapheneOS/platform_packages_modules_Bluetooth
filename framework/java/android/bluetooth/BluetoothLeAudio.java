@@ -978,8 +978,11 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
                         new SynchronousResultReceiver();
                 service.getCodecStatus(device, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
-            } catch (RemoteException | TimeoutException e) {
+            } catch (TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+            } catch (RemoteException e) {
+                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+                e.rethrowFromSystemServer();
             }
         }
         return defaultValue;
@@ -990,6 +993,7 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
      *
      * @param device the remote Bluetooth device.
      * @param codecConfig the codec configuration preference
+     * @throws IllegalStateException if LE Audio Service is null
      * @hide
      */
     @SystemApi
@@ -1012,11 +1016,13 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
         if (service == null) {
             Log.w(TAG, "Proxy not attached to service");
             if (DBG) log(Log.getStackTraceString(new Throwable()));
+            throw new IllegalStateException("Service is unavailable");
         } else if (mAdapter.isEnabled() && isValidDevice(device)) {
             try {
                 service.setCodecConfigPreference(device, codecConfig, mAttributionSource);
             } catch (RemoteException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+                e.rethrowFromSystemServer();
             }
         }
     }
