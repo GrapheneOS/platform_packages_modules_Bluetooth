@@ -451,7 +451,7 @@ class LeAudioClientImpl : public LeAudioClient {
         callbacks_->OnAudioConf(old_group->audio_directions_, old_group_id,
                                 old_group->snk_audio_locations_.to_ulong(),
                                 old_group->src_audio_locations_.to_ulong(),
-                                old_group_updated_contexts->to_ulong());
+                                old_group->GetActiveContexts().to_ulong());
       }
     }
 
@@ -506,7 +506,7 @@ class LeAudioClientImpl : public LeAudioClient {
       callbacks_->OnAudioConf(group->audio_directions_, group->group_id_,
                               group->snk_audio_locations_.to_ulong(),
                               group->src_audio_locations_.to_ulong(),
-                              updated_contexts->to_ulong());
+                              group->GetActiveContexts().to_ulong());
   }
 
   void GroupRemoveNode(const int group_id, const RawAddress& address) override {
@@ -1091,7 +1091,7 @@ class LeAudioClientImpl : public LeAudioClient {
             callbacks_->OnAudioConf(group->audio_directions_, group->group_id_,
                                     group->snk_audio_locations_.to_ulong(),
                                     group->src_audio_locations_.to_ulong(),
-                                    updated_contexts->to_ulong());
+                                    group->GetActiveContexts().to_ulong());
           }
         }
       }
