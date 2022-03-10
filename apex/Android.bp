@@ -27,7 +27,7 @@ apex_defaults {
 
     key: "com.android.bluetooth.key",
     certificate: ":com.android.bluetooth.certificate",
-    min_sdk_version: "current",
+    min_sdk_version: "Tiramisu",
 
     updatable: false,
     future_updatable: true,

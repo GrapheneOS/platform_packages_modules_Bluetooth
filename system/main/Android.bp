@@ -59,6 +59,7 @@ cc_library_static {
     ],
     header_libs: ["libbt_callbacks_cxx_headers"],
     host_supported: true,
+    min_sdk_version: "Tiramisu"
 }
 
 cc_library_shared {
@@ -284,4 +285,5 @@ cc_test {
         "BluetoothGeneratedDumpsysDataSchema_h",
         "BluetoothGeneratedPackets_h",
     ],
+    min_sdk_version: "Tiramisu"
 }
