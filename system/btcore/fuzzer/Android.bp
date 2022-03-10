@@ -48,9 +48,6 @@ cc_defaults {
         "libbluetooth-protos",
         "libprotobuf-cpp-lite",
         "libbluetooth_rust_interop",
-        "libbt_callbacks_cxx",
-        "libbt_shim_bridge",
-        "libbt_shim_ffi",
     ],
     include_dirs: [
         "packages/modules/Bluetooth/system",

@@ -135,7 +135,6 @@ cc_defaults {
     defaults: [
         "gd_defaults",
         "gd_clang_file_coverage",
-        "libchrome_support_defaults",
     ],
     host_supported: true,
     target: {
@@ -196,6 +195,7 @@ cc_defaults {
         "BluetoothGeneratedPackets_h",
     ],
     shared_libs: [
+        "libchrome",
         "libcrypto",
         "libflatbuffers-cpp",
     ],
@@ -204,9 +204,6 @@ cc_defaults {
         "libbluetooth-protos",
         "libbluetooth_rust_interop",
         "libbt-platform-protos-lite",
-        "libbt_callbacks_cxx",
-        "libbt_shim_bridge",
-        "libbt_shim_ffi",
     ],
     export_static_lib_headers: [ "libbluetooth_rust_interop" ],
 }
@@ -237,7 +234,6 @@ cc_binary {
     defaults: [
         "gd_defaults",
         "gd_clang_coverage_bin",
-        "libchrome_support_defaults",
     ],
     host_supported: true,
     srcs: [
@@ -272,12 +268,10 @@ cc_binary {
         "libbluetooth_gd",
         "libflatbuffers-cpp",
         "libbluetooth_rust_interop",
-        "libbt_callbacks_cxx",
-        "libbt_shim_bridge",
-        "libbt_shim_ffi",
     ],
     shared_libs: [
         "libbacktrace",
+        "libchrome",
         "libcrypto",
         "libgrpc++",
         "libgrpc++_unsecure",
@@ -316,7 +310,6 @@ cc_test {
     defaults: [
         "gd_defaults",
         "gd_clang_coverage_bin",
-        "libchrome_support_defaults",
     ],
     host_supported: true,
     test_options: {
@@ -384,11 +377,9 @@ cc_test {
         "libflatbuffers-cpp",
         "libgmock",
         "libbluetooth_rust_interop",
-        "libbt_callbacks_cxx",
-        "libbt_shim_bridge",
-        "libbt_shim_ffi",
     ],
     shared_libs: [
+        "libchrome",
         "libcrypto",
         "libgrpc++",
         "libgrpc_wrap",
@@ -404,7 +395,6 @@ cc_test {
     defaults: [
         "gd_defaults",
         "gd_clang_coverage_bin",
-        "libchrome_support_defaults",
     ],
     include_dirs: ["packages/modules/Bluetooth/system/gd"],
     host_supported: true,
@@ -424,10 +414,8 @@ cc_test {
         cfi: true,
     },
     static_libs: [
+        "libchrome",
         "libbluetooth_rust_interop",
-        "libbt_callbacks_cxx",
-        "libbt_shim_bridge",
-        "libbt_shim_ffi",
     ],
     shared_libs: [
         "libgrpc++",
@@ -435,15 +423,6 @@ cc_test {
     ],
     target: {
         android: {
-            shared_libs: [
-                "android.hardware.bluetooth@1.0",
-                "android.hardware.bluetooth@1.1",
-                "libhidlbase",
-                "libutils",
-                "libcutils",
-            ],
-        },
-        linux_glibc: {
             shared_libs: [
                 "android.hardware.bluetooth@1.0",
                 "android.hardware.bluetooth@1.1",
@@ -469,9 +448,6 @@ cc_defaults {
         "libgmock",
         "libgtest",
         "libbluetooth_rust_interop",
-        "libbt_callbacks_cxx",
-        "libbt_shim_bridge",
-        "libbt_shim_ffi",
     ],
     host_supported: true,
     generated_headers: [
@@ -532,10 +508,7 @@ cc_fuzz {
 
 cc_benchmark {
     name: "bluetooth_benchmark_gd",
-    defaults: [
-        "gd_defaults",
-        "libchrome_support_defaults"
-    ],
+    defaults: ["gd_defaults"],
     host_supported: true,
     srcs: [
         "benchmark.cc",
@@ -543,7 +516,9 @@ cc_benchmark {
     ],
     static_libs: [
         "libbluetooth_gd",
-        "libbt_shim_bridge",
+    ],
+    shared_libs: [
+        "libchrome",
     ],
 }
 
