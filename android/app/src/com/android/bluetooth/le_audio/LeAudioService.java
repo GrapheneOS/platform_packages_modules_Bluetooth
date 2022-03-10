@@ -132,11 +132,13 @@ public class LeAudioService extends ProfileService {
             mIsConnected = false;
             mIsActive = false;
             mActiveContexts = ACTIVE_CONTEXTS_NONE;
+            mCodecStatus = null;
         }
 
         public Boolean mIsConnected;
         public Boolean mIsActive;
         public Integer mActiveContexts;
+        public BluetoothLeAudioCodecStatus mCodecStatus;
     }
 
     private final Map<Integer, LeAudioGroupDescriptor> mGroupDescriptors = new LinkedHashMap<>();
@@ -1726,46 +1728,64 @@ public class LeAudioService extends ProfileService {
     /**
      * Gets the current codec status (configuration and capability).
      *
-     * @param device the remote Bluetooth device.
+     * @param groupId the group id
      * @return the current codec status
      * @hide
      */
-    public BluetoothLeAudioCodecStatus getCodecStatus(BluetoothDevice device) {
+    public BluetoothLeAudioCodecStatus getCodecStatus(int groupId) {
         if (DBG) {
-            Log.d(TAG, "getCodecStatus(" + device + ")");
+            Log.d(TAG, "getCodecStatus(" + groupId + ")");
         }
-
+        LeAudioGroupDescriptor descriptor = mGroupDescriptors.get(groupId);
+        if (descriptor != null) {
+            return descriptor.mCodecStatus;
+        }
         return null;
     }
 
     /**
      * Sets the codec configuration preference.
      *
-     * @param device the remote Bluetooth device.
-     * @param codecConfig the codec configuration preference
+     * @param groupId the group id
+     * @param inputCodecConfig the input codec configuration preference
+     * @param outputCodecConfig the output codec configuration preference
      * @hide
      */
-    public void setCodecConfigPreference(BluetoothDevice device,
-                                         BluetoothLeAudioCodecConfig codecConfig) {
+    public void setCodecConfigPreference(int groupId,
+                                         BluetoothLeAudioCodecConfig inputCodecConfig,
+                                         BluetoothLeAudioCodecConfig outputCodecConfig) {
         if (DBG) {
-            Log.d(TAG, "setCodecConfigPreference(" + device + "): "
-                    + Objects.toString(codecConfig));
+            Log.d(TAG, "setCodecConfigPreference(" + groupId + "): "
+                    + Objects.toString(inputCodecConfig)
+                    + Objects.toString(outputCodecConfig));
         }
-        if (device == null) {
-            Log.e(TAG, "setCodecConfigPreference: Invalid device");
+        LeAudioGroupDescriptor descriptor = mGroupDescriptors.get(groupId);
+        if (descriptor == null) {
+            Log.e(TAG, "setCodecConfigPreference: Invalid groupId, " + groupId);
             return;
         }
-        if (codecConfig == null) {
+
+        if (inputCodecConfig == null || outputCodecConfig == null) {
             Log.e(TAG, "setCodecConfigPreference: Codec config can't be null");
             return;
         }
-        BluetoothLeAudioCodecStatus codecStatus = getCodecStatus(device);
-        if (codecStatus == null) {
+
+        /* We support different configuration for input and output but codec type
+         * shall be same */
+        if (inputCodecConfig.getCodecType() != outputCodecConfig.getCodecType()) {
+            Log.e(TAG, "setCodecConfigPreference: Input codec type: "
+                    + inputCodecConfig.getCodecType()
+                    + "does not match output codec type: " + outputCodecConfig.getCodecType());
+            return;
+        }
+
+        if (descriptor.mCodecStatus == null) {
             Log.e(TAG, "setCodecConfigPreference: Codec status is null");
             return;
         }
 
-        // TODO: pass the information to bt stack
+        mLeAudioNativeInterface.setCodecConfigPreference(groupId,
+                                inputCodecConfig, outputCodecConfig);
     }
 
 
@@ -2185,14 +2205,14 @@ public class LeAudioService extends ProfileService {
         }
 
         @Override
-        public void getCodecStatus(BluetoothDevice device,
+        public void getCodecStatus(int groupId,
                 AttributionSource source, SynchronousResultReceiver receiver) {
             try {
                 LeAudioService service = getService(source);
                 BluetoothLeAudioCodecStatus codecStatus = null;
                 if (service != null) {
                     enforceBluetoothPrivilegedPermission(service);
-                    codecStatus = service.getCodecStatus(device);
+                    codecStatus = service.getCodecStatus(groupId);
                 }
                 receiver.send(codecStatus);
             } catch (RuntimeException e) {
@@ -2201,15 +2221,17 @@ public class LeAudioService extends ProfileService {
         }
 
         @Override
-        public void setCodecConfigPreference(BluetoothDevice device,
-                BluetoothLeAudioCodecConfig codecConfig, AttributionSource source) {
+        public void setCodecConfigPreference(int groupId,
+                BluetoothLeAudioCodecConfig inputCodecConfig,
+                BluetoothLeAudioCodecConfig outputCodecConfig,
+                AttributionSource source) {
             LeAudioService service = getService(source);
             if (service == null) {
                 return;
             }
 
             enforceBluetoothPrivilegedPermission(service);
-            service.setCodecConfigPreference(device, codecConfig);
+            service.setCodecConfigPreference(groupId, inputCodecConfig, outputCodecConfig);
         }
     }
 

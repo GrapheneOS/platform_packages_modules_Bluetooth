@@ -1392,7 +1392,7 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
     /**
      * Gets the current codec status (configuration and capability).
      *
-     * @param device the remote Bluetooth device.
+     * @param groupId The group id
      * @return the current codec status
      * @hide
      */
@@ -1403,9 +1403,9 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
             android.Manifest.permission.BLUETOOTH_CONNECT,
             android.Manifest.permission.BLUETOOTH_PRIVILEGED
     })
-    public BluetoothLeAudioCodecStatus getCodecStatus(@NonNull BluetoothDevice device) {
+    public BluetoothLeAudioCodecStatus getCodecStatus(int groupId) {
         if (DBG) {
-            Log.d(TAG, "getCodecStatus(" + device + ")");
+            Log.d(TAG, "getCodecStatus(" + groupId + ")");
         }
 
         final IBluetoothLeAudio service = getService();
@@ -1414,11 +1414,11 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
         if (service == null) {
             Log.w(TAG, "Proxy not attached to service");
             if (DBG) log(Log.getStackTraceString(new Throwable()));
-        } else if (mAdapter.isEnabled() && isValidDevice(device)) {
+        } else if (mAdapter.isEnabled()) {
             try {
                 final SynchronousResultReceiver<BluetoothLeAudioCodecStatus> recv =
                         new SynchronousResultReceiver();
-                service.getCodecStatus(device, mAttributionSource, recv);
+                service.getCodecStatus(groupId, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
@@ -1433,9 +1433,11 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
     /**
      * Sets the codec configuration preference.
      *
-     * @param device the remote Bluetooth device.
-     * @param codecConfig the codec configuration preference
+     * @param groupId the groupId
+     * @param inputCodecConfig the input codec configuration preference
+     * @param outputCodecConfig the output codec configuration preference
      * @throws IllegalStateException if LE Audio Service is null
+     * @throws NullPointerException if any of the configs is null
      * @hide
      */
     @SystemApi
@@ -1444,14 +1446,13 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
             android.Manifest.permission.BLUETOOTH_CONNECT,
             android.Manifest.permission.BLUETOOTH_PRIVILEGED
     })
-    public void setCodecConfigPreference(@NonNull BluetoothDevice device,
-                                         @NonNull BluetoothLeAudioCodecConfig codecConfig) {
-        if (DBG) Log.d(TAG, "setCodecConfigPreference(" + device + ")");
+    public void setCodecConfigPreference(int groupId,
+                                         @NonNull BluetoothLeAudioCodecConfig inputCodecConfig,
+                                         @NonNull BluetoothLeAudioCodecConfig outputCodecConfig) {
+        if (DBG) Log.d(TAG, "setCodecConfigPreference(" + groupId + ")");
 
-        if (codecConfig == null) {
-            Log.e(TAG, "setCodecConfigPreference: Codec config can't be null");
-            throw new IllegalArgumentException("codecConfig cannot be null");
-        }
+        Objects.requireNonNull(inputCodecConfig, " inputCodecConfig shall not be null");
+        Objects.requireNonNull(outputCodecConfig, " outputCodecConfig shall not be null");
 
         final IBluetoothLeAudio service = getService();
 
@@ -1459,9 +1460,10 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
             Log.w(TAG, "Proxy not attached to service");
             if (DBG) log(Log.getStackTraceString(new Throwable()));
             throw new IllegalStateException("Service is unavailable");
-        } else if (mAdapter.isEnabled() && isValidDevice(device)) {
+        } else if (mAdapter.isEnabled()) {
             try {
-                service.setCodecConfigPreference(device, codecConfig, mAttributionSource);
+                service.setCodecConfigPreference(groupId, inputCodecConfig, outputCodecConfig,
+                                        mAttributionSource);
             } catch (RemoteException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
                 e.rethrowFromSystemServer();
