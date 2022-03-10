@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 #define LOG_TAG "BluetoothCsipSetCoordinatorJni"
+#define LOG_NDEBUG 0
 #include <string.h>
 
 #include <shared_mutex>

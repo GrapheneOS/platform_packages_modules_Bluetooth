@@ -9,7 +9,7 @@ package {
 
 cc_defaults {
     name: "fluoride_bta_defaults",
-    defaults: ["fluoride_basic_defaults"],
+    defaults: ["fluoride_defaults"],
     local_include_dirs: [
         "include",
         "sys",
@@ -30,6 +30,9 @@ cc_defaults {
         "packages/modules/Bluetooth/system/vnd/include",
         "packages/modules/Bluetooth/system/utils/include",
         "packages/modules/Bluetooth/system/gd/rust/shim",
+    ],
+    shared_libs: [
+        "libcutils",
     ],
     header_libs: ["libbluetooth_headers"],
     cflags: ["-DBUILDCFG"],
@@ -139,8 +142,21 @@ cc_library_static {
     ],
     static_libs: [
         "avrcp-target-service",
+        "libflatbuffers-cpp",
         "lib-bt-packets",
+        "libbt-platform-protos-lite",
     ],
+    shared_libs: [
+        "android.hardware.bluetooth.audio@2.0",
+        "android.hardware.bluetooth.audio@2.1",
+    ],
+    target: {
+        android: {
+            shared_libs: [
+                "android.hardware.bluetooth.audio-V1-ndk",
+            ],
+        },
+    },
     generated_headers: [
         "LeAudioSetConfigSchemas_h",
     ],
@@ -239,6 +255,7 @@ cc_test {
     shared_libs: [
         "libbase",
         "libcrypto",
+        "libflatbuffers-cpp",
         "liblog",
         "libprotobuf-cpp-lite",
     ],
@@ -247,7 +264,6 @@ cc_test {
         "libbt-common",
         "libbt-protos-lite",
         "libbtcore",
-        "libflatbuffers-cpp",
         "libgmock",
     ],
     sanitize: {
