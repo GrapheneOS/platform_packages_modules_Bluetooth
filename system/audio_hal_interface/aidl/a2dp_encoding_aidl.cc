@@ -19,6 +19,7 @@
 
 #include "a2dp_transport.h"
 #include "audio_aidl_interfaces.h"
+#include "btif/include/btif_common.h"
 #include "codec_status_aidl.h"
 #include "transport_instance.h"
 
@@ -62,7 +63,7 @@ A2dpTransport::A2dpTransport(SessionType sessionType)
   remote_delay_report_ = 0;
 }
 
-BluetoothAudioCtrlAck A2dpTransport::StartRequest() {
+BluetoothAudioCtrlAck A2dpTransport::StartRequest(bool is_low_latency) {
   // Check if a previous request is not finished
   if (a2dp_pending_cmd_ == A2DP_CTRL_CMD_START) {
     LOG(INFO) << __func__ << ": A2DP_CTRL_CMD_START in progress";
@@ -95,6 +96,7 @@ BluetoothAudioCtrlAck A2dpTransport::StartRequest() {
       return a2dp_ack_to_bt_audio_ctrl_ack(A2DP_CTRL_ACK_PENDING);
     }
     a2dp_pending_cmd_ = A2DP_CTRL_CMD_NONE;
+    invoke_switch_codec_cb(is_low_latency);
     return a2dp_ack_to_bt_audio_ctrl_ack(A2DP_CTRL_ACK_SUCCESS);
   }
   LOG(ERROR) << __func__ << ": AV stream is not ready to start";

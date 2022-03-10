@@ -799,6 +799,7 @@ public class HeadsetService extends ProfileService {
                 HeadsetService service = getService(source);
                 boolean defaultValue = false;
                 if (service != null) {
+                    enforceBluetoothPrivilegedPermission(service);
                     defaultValue = service.startScoUsingVirtualVoiceCall();
                 }
                 receiver.send(defaultValue);
@@ -814,6 +815,7 @@ public class HeadsetService extends ProfileService {
                 HeadsetService service = getService(source);
                 boolean defaultValue = false;
                 if (service != null) {
+                    enforceBluetoothPrivilegedPermission(service);
                     defaultValue = service.stopScoUsingVirtualVoiceCall();
                 }
                 receiver.send(defaultValue);

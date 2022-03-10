@@ -8,13 +8,14 @@ use bt_topshim::profiles::a2dp::{
 };
 use bt_topshim::profiles::avrcp::{Avrcp, AvrcpCallbacks, AvrcpCallbacksDispatcher};
 use bt_topshim::profiles::hfp::{
-    BthfConnectionState, Hfp, HfpCallbacks, HfpCallbacksDispatcher, HfpCodecCapability,
+    BthfAudioState, BthfConnectionState, Hfp, HfpCallbacks, HfpCallbacksDispatcher,
+    HfpCodecCapability,
 };
 
 use bt_topshim::topstack;
 
 use log::{info, warn};
-
+use num_traits::cast::ToPrimitive;
 use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::sync::Arc;
@@ -194,10 +195,10 @@ impl BluetoothMedia {
                 }
                 match state {
                     BthfConnectionState::Connected => {
-                        info!("HFP connected.");
+                        info!("{} HFP connected.", addr.to_string());
                     }
                     BthfConnectionState::SlcConnected => {
-                        info!("HFP SLC connected.");
+                        info!("{} HFP SLC connected.", addr.to_string());
                         // TODO: Coordinate with A2DP. Should only trigger once.
                         self.for_all_callbacks(|callback| {
                             callback.on_bluetooth_audio_device_added(
@@ -210,13 +211,37 @@ impl BluetoothMedia {
                         });
                     }
                     BthfConnectionState::Disconnected => {
-                        info!("HFP disconnected.");
+                        info!("{} HFP disconnected.", addr.to_string());
                     }
                     BthfConnectionState::Connecting => {
-                        info!("HFP connecting.");
+                        info!("{} HFP connecting.", addr.to_string());
                     }
                     BthfConnectionState::Disconnecting => {
-                        info!("HFP disconnecting.");
+                        info!("{} HFP disconnecting.", addr.to_string());
+                    }
+                }
+
+                self.hfp_states.insert(addr, state);
+            }
+            HfpCallbacks::AudioState(state, addr) => {
+                if self.hfp_states.get(&addr).is_none()
+                    || BthfConnectionState::SlcConnected != *self.hfp_states.get(&addr).unwrap()
+                {
+                    warn!("{} not connected or SLC not ready", addr.to_string());
+                    return;
+                }
+                match state {
+                    BthfAudioState::Connected => {
+                        info!("{} HFP audio connected.", addr.to_string());
+                    }
+                    BthfAudioState::Disconnected => {
+                        info!("{} HFP audio disconnected.", addr.to_string());
+                    }
+                    BthfAudioState::Connecting => {
+                        info!("{} HFP audio connecting.", addr.to_string());
+                    }
+                    BthfAudioState::Disconnecting => {
+                        info!("{} HFP audio disconnecting.", addr.to_string());
                     }
                 }
             }
@@ -227,6 +252,20 @@ impl BluetoothMedia {
         for callback in &self.callbacks {
             f(&callback.1);
         }
+    }
+
+    pub fn get_hfp_connection_state(&self) -> u32 {
+        for state in self.hfp_states.values() {
+            return BthfConnectionState::to_u32(state).unwrap_or(0);
+        }
+        0
+    }
+
+    pub fn get_a2dp_connection_state(&self) -> u32 {
+        for state in self.a2dp_states.values() {
+            return BtavConnectionState::to_u32(state).unwrap_or(0);
+        }
+        0
     }
 }
 

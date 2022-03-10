@@ -27,7 +27,7 @@ cc_test_library {
 // Bluetooth stack static library for target
 cc_library_static {
     name: "libbt-stack",
-    defaults: ["fluoride_defaults"],
+    defaults: ["fluoride_basic_defaults"],
     local_include_dirs: [
         "include",
         "avct",
@@ -202,17 +202,6 @@ cc_library_static {
     ],
     static_libs: [
         "libbt-hci",
-        "libFraunhoferAAC",
-        "libbt-platform-protos-lite",
-    ],
-    shared_libs: [
-        "libcutils",
-        "liblog",
-        "libcrypto",
-    ],
-    required: [
-        "libldacBT_enc",
-        "libldacBT_abr",
     ],
     host_supported: true,
 }
@@ -387,10 +376,10 @@ cc_test {
     shared_libs: [
         "libcrypto",
         "libcutils",
-        "libflatbuffers-cpp",
     ],
     static_libs: [
         "liblog",
+        "libflatbuffers-cpp",
         "libgmock",
         "libosi",
     ],
@@ -829,6 +818,7 @@ cc_test {
         "libbt-protos-lite",
         "libbtdevice",
         "libbt-utils",
+        "libflatbuffers-cpp",
         "libgmock",
         "liblog",
         "libosi",
@@ -836,7 +826,6 @@ cc_test {
     ],
     shared_libs: [
         "libcrypto",
-        "libflatbuffers-cpp",
         "libprotobuf-cpp-lite",
     ],
     sanitize: {
@@ -980,6 +969,7 @@ cc_test {
         "libbt-common",
         "libbt-protos-lite",
         "libbtdevice",
+        "libflatbuffers-cpp",
         "libgmock",
         "liblog",
         "libosi",
@@ -987,7 +977,6 @@ cc_test {
     shared_libs: [
         "libbinder_ndk",
         "libcrypto",
-        "libflatbuffers-cpp",
         "libprotobuf-cpp-lite",
     ],
     sanitize: {
@@ -1051,6 +1040,7 @@ cc_test {
         "libbt-common",
         "libbt-protos-lite",
         "libbtdevice",
+        "libflatbuffers-cpp",
         "libgmock",
         "liblog",
         "libosi",
@@ -1058,7 +1048,6 @@ cc_test {
     shared_libs: [
         "libbinder_ndk",
         "libcrypto",
-        "libflatbuffers-cpp",
         "libprotobuf-cpp-lite",
     ],
     sanitize: {
