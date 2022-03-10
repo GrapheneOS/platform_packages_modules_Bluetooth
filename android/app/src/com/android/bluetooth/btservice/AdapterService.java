@@ -45,8 +45,6 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothAdapter.ActiveDeviceProfile;
 import android.bluetooth.BluetoothAdapter.ActiveDeviceUse;
 import android.bluetooth.BluetoothClass;
-import android.bluetooth.BluetoothCodecConfig;
-import android.bluetooth.BluetoothCodecStatus;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothProtoEnums;
@@ -104,6 +102,7 @@ import com.android.bluetooth.R;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.a2dp.A2dpService;
 import com.android.bluetooth.a2dpsink.A2dpSinkService;
+import com.android.bluetooth.bas.BatteryService;
 import com.android.bluetooth.bass_client.BassClientService;
 import com.android.bluetooth.btservice.RemoteDevices.DeviceProperties;
 import com.android.bluetooth.btservice.activityattribution.ActivityAttributionService;
@@ -328,6 +327,7 @@ public class AdapterService extends Service {
     private CsipSetCoordinatorService mCsipSetCoordinatorService;
     private LeAudioService mLeAudioService;
     private BassClientService mBassClientService;
+    private BatteryService mBatteryService;
 
     private BinderCallsStats.SettingsObserver mBinderCallsSettingsObserver;
 
@@ -372,7 +372,7 @@ public class AdapterService extends Service {
     /**
      * Confirm whether the ProfileService is started expectedly.
      *
-     * @param string the service simple name.
+     * @param serviceSampleName the service simple name.
      * @return true if the service is started expectedly, false otherwise.
      */
     public boolean isStartedProfile(String serviceSampleName) {
@@ -1102,6 +1102,9 @@ public class AdapterService extends Service {
         if (profile == BluetoothProfile.LE_AUDIO_BROADCAST_ASSISTANT) {
             return Utils.arrayContains(remoteDeviceUuids, BluetoothUuid.BASS);
         }
+        if (profile == BluetoothProfile.BATTERY) {
+            return Utils.arrayContains(remoteDeviceUuids, BluetoothUuid.BATTERY);
+        }
 
         Log.e(TAG, "isSupported: Unexpected profile passed in to function: " + profile);
         return false;
@@ -1115,7 +1118,6 @@ public class AdapterService extends Service {
      */
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
     boolean isAnyProfileEnabled(BluetoothDevice device) {
-
         if (mA2dpService != null && mA2dpService.getConnectionPolicy(device)
                 > BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
             return true;
@@ -1173,12 +1175,16 @@ public class AdapterService extends Service {
                  > BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
             return true;
         }
+        if (mBatteryService != null && mBatteryService.getConnectionPolicy(device)
+                > BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
+            return true;
+        }
         return false;
     }
 
     /**
      * Connects only available profiles
-     * (those with {@link BluetoothProfile.CONNECTION_POLICY_ALLOWED})
+     * (those with {@link BluetoothProfile#CONNECTION_POLICY_ALLOWED})
      *
      * @param device is the device with which we are connecting the profiles
      * @return {@link BluetoothStatusCodes#SUCCESS}
@@ -1274,16 +1280,24 @@ public class AdapterService extends Service {
         if (mLeAudioService != null && isSupported(localDeviceUuids, remoteDeviceUuids,
                 BluetoothProfile.LE_AUDIO, device)
                 && mLeAudioService.getConnectionPolicy(device)
-                > BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
+                        > BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
             Log.i(TAG, "connectEnabledProfiles: Connecting LeAudio profile (BAP)");
             mLeAudioService.connect(device);
         }
         if (mBassClientService != null && isSupported(localDeviceUuids, remoteDeviceUuids,
                 BluetoothProfile.LE_AUDIO_BROADCAST_ASSISTANT, device)
                 && mBassClientService.getConnectionPolicy(device)
-                > BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
+                        > BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
             Log.i(TAG, "connectEnabledProfiles: Connecting LE Broadcast Assistant Profile");
             mBassClientService.connect(device);
+        }
+        if (mBatteryService != null
+                && isSupported(
+                        localDeviceUuids, remoteDeviceUuids, BluetoothProfile.BATTERY, device)
+                && mBatteryService.getConnectionPolicy(device)
+                        > BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
+            Log.i(TAG, "connectEnabledProfiles: Connecting Battery Service");
+            mBatteryService.connect(device);
         }
         return BluetoothStatusCodes.SUCCESS;
     }
@@ -1326,6 +1340,7 @@ public class AdapterService extends Service {
         mCsipSetCoordinatorService = CsipSetCoordinatorService.getCsipSetCoordinatorService();
         mLeAudioService = LeAudioService.getLeAudioService();
         mBassClientService = BassClientService.getBassClientService();
+        mBatteryService = BatteryService.getBatteryService();
     }
 
     @BluetoothAdapter.RfcommListenerResult
@@ -3903,7 +3918,7 @@ public class AdapterService extends Service {
      * Fetches the local OOB data to give out to remote.
      *
      * @param transport - specify data transport.
-     * @param callback - callback used to receive the requested {@link Oobdata}; null will be
+     * @param callback - callback used to receive the requested {@link OobData}; null will be
      * ignored silently.
      *
      * @hide
@@ -5268,6 +5283,13 @@ public class AdapterService extends Service {
      */
     public boolean allowLowLatencyAudio(boolean allowed, BluetoothDevice device) {
         return allowLowLatencyAudioNative(allowed, Utils.getByteAddress(device));
+    }
+
+    /**
+     * Sets the battery level of the remote device
+     */
+    public void setBatteryLevel(BluetoothDevice device, int batteryLevel) {
+        mRemoteDevices.updateBatteryLevel(device, batteryLevel);
     }
 
     static native void classInitNative();
