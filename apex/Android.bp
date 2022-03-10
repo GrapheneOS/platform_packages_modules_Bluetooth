@@ -16,6 +16,9 @@ apex_defaults {
     multilib: {
         first: {
             // Extractor process runs only with the primary ABI.
+            native_shared_libs: [
+                "libbluetooth",
+            ],
             jni_libs: [
                 "libbluetooth_jni",
             ],

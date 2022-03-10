@@ -28,7 +28,7 @@ using bluetooth::common::ListMap;
 
 TEST(ListMapTest, empty_test) {
   ListMap<int, int> list_map;
-  EXPECT_EQ(list_map.size(), 0ul);
+  EXPECT_EQ(list_map.size(), 0);
   EXPECT_EQ(list_map.find(42), list_map.end());
   list_map.clear();  // should not crash
   EXPECT_EQ(list_map.find(42), list_map.end());
@@ -180,7 +180,7 @@ TEST(ListMapTest, splice_same_list_test) {
 
 TEST(ListMapTest, put_get_and_contains_key_test) {
   ListMap<int, int> list_map;
-  EXPECT_EQ(list_map.size(), 0ul);
+  EXPECT_EQ(list_map.size(), 0);
   EXPECT_EQ(list_map.find(42), list_map.end());
   EXPECT_FALSE(list_map.contains(42));
   list_map.insert_or_assign(56, 200);
@@ -350,7 +350,7 @@ TEST(ListMapTest, pressure_test) {
     EXPECT_EQ(iter->second, key);
     EXPECT_TRUE(list_map.extract(key));
   }
-  EXPECT_EQ(list_map.size(), 0ul);
+  EXPECT_EQ(list_map.size(), 0);
 
   // test execution time
   auto done = std::chrono::high_resolution_clock::now();

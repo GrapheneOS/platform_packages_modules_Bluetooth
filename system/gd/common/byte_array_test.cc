@@ -31,7 +31,7 @@ static uint8_t data[16] = {
 TEST(ByteArrayTest, test_constructor_array) {
   ByteArray<16> byte_array(data);
 
-  for (size_t i = 0; i < ByteArray<16>::kLength; i++) {
+  for (int i = 0; i < ByteArray<16>::kLength; i++) {
     ASSERT_EQ(data[i], byte_array.bytes[i]);
   }
 }
@@ -40,7 +40,7 @@ TEST(ByteArrayTest, test_from_str) {
   auto byte_array = ByteArray<16>::FromString(test_bytes);
   ASSERT_TRUE(byte_array);
 
-  for (size_t i = 0; i < ByteArray<16>::kLength; i++) {
+  for (int i = 0; i < ByteArray<16>::kLength; i++) {
     ASSERT_EQ(test_data[i], byte_array->bytes[i]);
   }
 }
