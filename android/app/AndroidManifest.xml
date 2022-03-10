@@ -500,5 +500,14 @@
               <action android:name="android.telecom.InCallService"/>
             </intent-filter>
          </service>
+        <service
+            android:process="@string/process"
+            android:name=".bas.BatteryService"
+            android:enabled="@bool/profile_supported_battery"
+            android:exported = "true">
+            <intent-filter>
+                <action android:name="android.bluetooth.IBluetoothBattery" />
+            </intent-filter>
+        </service>
     </application>
 </manifest>
