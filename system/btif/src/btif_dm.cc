@@ -97,6 +97,7 @@ const Uuid UUID_LE_AUDIO = Uuid::FromString("184E");
 const Uuid UUID_LE_MIDI = Uuid::FromString("03B80E5A-EDE8-4B33-A751-6CE34EC4C700");
 const Uuid UUID_HAS = Uuid::FromString("1854");
 const Uuid UUID_BASS = Uuid::FromString("184F");
+const Uuid UUID_BATTERY = Uuid::FromString("180F");
 const bool enable_address_consolidate = true;  // TODO remove
 
 #define COD_MASK 0x07FF
@@ -1336,7 +1337,8 @@ static void btif_dm_search_devices_evt(tBTA_DM_SEARCH_EVT event,
 static bool btif_is_interesting_le_service(bluetooth::Uuid uuid) {
   return (uuid.As16Bit() == UUID_SERVCLASS_LE_HID || uuid == UUID_HEARING_AID ||
           uuid == UUID_VC || uuid == UUID_CSIS || uuid == UUID_LE_AUDIO ||
-          uuid == UUID_LE_MIDI || uuid == UUID_HAS || uuid == UUID_BASS);
+          uuid == UUID_LE_MIDI || uuid == UUID_HAS || uuid == UUID_BASS ||
+          uuid == UUID_BATTERY);
 }
 
 /*******************************************************************************

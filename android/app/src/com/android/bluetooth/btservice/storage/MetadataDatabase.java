@@ -33,7 +33,7 @@ import java.util.List;
 /**
  * MetadataDatabase is a Room database stores Bluetooth persistence data
  */
-@Database(entities = {Metadata.class}, version = 111)
+@Database(entities = {Metadata.class}, version = 112)
 public abstract class MetadataDatabase extends RoomDatabase {
     /**
      * The metadata database file name
@@ -64,6 +64,7 @@ public abstract class MetadataDatabase extends RoomDatabase {
                 .addMigrations(MIGRATION_108_109)
                 .addMigrations(MIGRATION_109_110)
                 .addMigrations(MIGRATION_110_111)
+                .addMigrations(MIGRATION_111_112)
                 .allowMainThreadQueries()
                 .build();
     }
@@ -435,12 +436,30 @@ public abstract class MetadataDatabase extends RoomDatabase {
             try {
                 database.execSQL(
                         "ALTER TABLE metadata ADD COLUMN `bass_client_connection_policy` "
-                        + "INTEGER DEFAULT 100");
+                                + "INTEGER DEFAULT 100");
             } catch (SQLException ex) {
                 // Check if user has new schema, but is just missing the version update
                 Cursor cursor = database.query("SELECT * FROM metadata");
                 if (cursor == null
                         || cursor.getColumnIndex("bass_client_connection_policy") == -1) {
+                    throw ex;
+                }
+            }
+        }
+    };
+
+    @VisibleForTesting
+    static final Migration MIGRATION_111_112 = new Migration(111, 112) {
+        @Override
+        public void migrate(SupportSQLiteDatabase database) {
+            try {
+                database.execSQL(
+                        "ALTER TABLE metadata ADD COLUMN `battery_connection_policy` "
+                                + "INTEGER DEFAULT 100");
+            } catch (SQLException ex) {
+                // Check if user has new schema, but is just missing the version update
+                Cursor cursor = database.query("SELECT * FROM metadata");
+                if (cursor == null || cursor.getColumnIndex("battery_connection_policy") == -1) {
                     throw ex;
                 }
             }
