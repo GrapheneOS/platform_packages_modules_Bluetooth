@@ -36,6 +36,9 @@
 #include <pthread.h>
 
 using bluetooth::Uuid;
+#ifndef DYNAMIC_LOAD_BLUETOOTH
+extern bt_interface_t bluetoothInterface;
+#endif
 
 namespace android {
 // Both
@@ -846,6 +849,10 @@ static bt_os_callouts_t sBluetoothOsCallouts = {
 };
 
 int hal_util_load_bt_library(const bt_interface_t** interface) {
+#ifndef DYNAMIC_LOAD_BLUETOOTH
+  *interface = &bluetoothInterface;
+  return 0;
+#else
   const char* sym = BLUETOOTH_INTERFACE_STRING;
   bt_interface_t* itf = nullptr;
 
@@ -875,6 +882,7 @@ error:
   if (handle) dlclose(handle);
 
   return -EINVAL;
+#endif
 }
 
 static void classInitNative(JNIEnv* env, jclass clazz) {

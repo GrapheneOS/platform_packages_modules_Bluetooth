@@ -5,6 +5,7 @@ use bt_topshim::btif::{BtSspVariant, BtTransport, Uuid128Bit};
 use btstack::bluetooth::{
     BluetoothDevice, IBluetooth, IBluetoothCallback, IBluetoothConnectionCallback,
 };
+use btstack::uuid::Profile;
 use btstack::RPCProxy;
 
 use dbus::arg::RefArg;
@@ -64,6 +65,7 @@ impl IBluetoothCallback for BluetoothCallbackDBus {
 
 impl_dbus_arg_enum!(BtTransport);
 impl_dbus_arg_enum!(BtSspVariant);
+impl_dbus_arg_enum!(Profile);
 
 #[allow(dead_code)]
 struct BluetoothConnectionCallbackDBus {}
@@ -232,6 +234,11 @@ impl IBluetooth for IBluetoothDBus {
 
     #[dbus_method("GetConnectionState")]
     fn get_connection_state(&self, _device: BluetoothDevice) -> u32 {
+        dbus_generated!()
+    }
+
+    #[dbus_method("GetProfileConnectionState")]
+    fn get_profile_connection_state(&self, _profile: Profile) -> u32 {
         dbus_generated!()
     }
 
