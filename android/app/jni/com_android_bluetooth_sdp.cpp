@@ -16,6 +16,8 @@
 
 #define LOG_TAG "BluetoothSdpJni"
 
+#define LOG_NDEBUG 0
+
 #include "com_android_bluetooth.h"
 #include "hardware/bt_sdp.h"
 #include "utils/Log.h"

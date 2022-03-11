@@ -16,6 +16,8 @@
 
 #define LOG_TAG "BluetoothAvrcpControllerJni"
 
+#define LOG_NDEBUG 0
+
 #include "com_android_bluetooth.h"
 #include "hardware/bt_rc.h"
 #include "utils/Log.h"

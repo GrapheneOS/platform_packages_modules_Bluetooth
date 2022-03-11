@@ -157,7 +157,7 @@ class TestDequeueEnd {
     std::unique_ptr<std::string> data = queue_->TryDequeue();
     buffer_.push(std::move(data));
 
-    if (buffer_.size() == (size_t)capacity_) {
+    if (buffer_.size() == capacity_) {
       queue_->UnregisterDequeue();
     }
 
@@ -475,7 +475,7 @@ TEST_F(QueueTest, queue_becomes_full_dequeue_callback_slower) {
   // Wait for enqueue buffer empty and expect queue is full
   enqueue_future.wait();
   EXPECT_EQ(enqueue_future.get(), 0);
-  EXPECT_GE(test_dequeue_end.buffer_.size(), (size_t)(kQueueSize - 1));
+  EXPECT_GE(test_dequeue_end.buffer_.size(), kQueueSize - 1);
 
   test_dequeue_end.UnregisterDequeue();
 }
@@ -535,7 +535,7 @@ TEST_F(QueueTest, queue_becomes_non_full_during_test) {
 
   // Expect kQueueSize data block in enqueue end buffer
   std::this_thread::sleep_for(std::chrono::milliseconds(20));
-  EXPECT_EQ(test_enqueue_end.buffer_.size(), (size_t)kQueueSize);
+  EXPECT_EQ(test_enqueue_end.buffer_.size(), kQueueSize);
 
   // Register dequeue
   std::unordered_map<int, std::promise<int>> dequeue_promise_map;

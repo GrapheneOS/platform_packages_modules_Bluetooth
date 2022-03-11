@@ -52,7 +52,6 @@ java_library {
 
 cc_library_shared {
     name: "libbluetooth_jni",
-    defaults: ["fluoride_full_defaults"],
     srcs: ["jni/**/*.cpp"],
     header_libs: [
         "jni_headers",
@@ -61,9 +60,14 @@ cc_library_shared {
     include_dirs: [
         "packages/modules/Bluetooth/system/types",
     ],
+    shared_libs: [
+        "libbase",
+        "libchrome",
+        "liblog",
+        "libnativehelper",
+    ],
     static_libs: [
         "libbluetooth-types",
-        "libbluetooth",
     ],
     cflags: [
         "-Wall",
@@ -74,6 +78,9 @@ cc_library_shared {
     sanitize: {
         scs: true,
     },
+    apex_available: [
+        "com.android.bluetooth",
+    ],
     min_sdk_version: "current",
 }
 
