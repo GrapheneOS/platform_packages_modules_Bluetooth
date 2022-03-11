@@ -485,7 +485,7 @@ public class CsipSetCoordinatorService extends ProfileService {
      *
      * @hide
      */
-    public @Nullable UUID groupLock(
+    public @Nullable UUID lockGroup(
             int groupId, @NonNull IBluetoothCsipSetCoordinatorLockCallback callback) {
         if (callback == null) {
             return null;
@@ -517,7 +517,7 @@ public class CsipSetCoordinatorService extends ProfileService {
      *
      * @hide
      */
-    public void groupUnlock(@NonNull UUID lockUuid) {
+    public void unlockGroup(@NonNull UUID lockUuid) {
         if (lockUuid == null) {
             return;
         }
@@ -982,14 +982,14 @@ public class CsipSetCoordinatorService extends ProfileService {
         }
 
         @Override
-        public void groupLock(
+        public void lockGroup(
                 int groupId, @NonNull IBluetoothCsipSetCoordinatorLockCallback callback,
                 AttributionSource source, SynchronousResultReceiver receiver) {
             try {
                 ParcelUuid defaultValue = null;
                 CsipSetCoordinatorService service = getService(source);
                 if (service != null) {
-                     UUID lockUuid = service.groupLock(groupId, callback);
+                    UUID lockUuid = service.lockGroup(groupId, callback);
                     defaultValue = lockUuid == null ? null : new ParcelUuid(lockUuid);
                 }
                 receiver.send(defaultValue);
@@ -999,12 +999,12 @@ public class CsipSetCoordinatorService extends ProfileService {
         }
 
         @Override
-        public void groupUnlock(@NonNull ParcelUuid lockUuid, AttributionSource source,
+        public void unlockGroup(@NonNull ParcelUuid lockUuid, AttributionSource source,
                 SynchronousResultReceiver receiver) {
             try {
                 CsipSetCoordinatorService service = getService(source);
                 if (service != null) {
-                    service.groupUnlock(lockUuid.getUuid());
+                    service.unlockGroup(lockUuid.getUuid());
                 }
                 receiver.send(null);
             } catch (RuntimeException e) {

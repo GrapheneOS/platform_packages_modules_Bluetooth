@@ -252,7 +252,7 @@ public class CsipSetCoordinatorServiceTest {
     public void testGroupLockSetNative() {
         int group = 0x02;
 
-        UUID lock_uuid = mService.groupLock(group, mCsipSetCoordinatorLockCallback);
+        UUID lock_uuid = mService.lockGroup(group, mCsipSetCoordinatorLockCallback);
         Assert.assertNotNull(lock_uuid);
         verify(mCsipSetCoordinatorNativeInterface, times(1)).groupLockSet(eq(group), eq(true));
 
@@ -270,7 +270,7 @@ public class CsipSetCoordinatorServiceTest {
             throw e.rethrowFromSystemServer();
         }
 
-        mService.groupUnlock(lock_uuid);
+        mService.unlockGroup(lock_uuid);
         verify(mCsipSetCoordinatorNativeInterface, times(1)).groupLockSet(eq(group), eq(false));
 
         mCsipSetCoordinatorNativeInterface.onGroupLockChanged(
@@ -293,11 +293,11 @@ public class CsipSetCoordinatorServiceTest {
     public void testGroupExclusiveLockSet() {
         int group = 0x02;
 
-        UUID lock_uuid = mService.groupLock(group, mCsipSetCoordinatorLockCallback);
+        UUID lock_uuid = mService.lockGroup(group, mCsipSetCoordinatorLockCallback);
         verify(mCsipSetCoordinatorNativeInterface, times(1)).groupLockSet(eq(group), eq(true));
         Assert.assertNotNull(lock_uuid);
 
-        lock_uuid = mService.groupLock(group, mCsipSetCoordinatorLockCallback);
+        lock_uuid = mService.lockGroup(group, mCsipSetCoordinatorLockCallback);
         verify(mCsipSetCoordinatorNativeInterface, times(1)).groupLockSet(eq(group), eq(true));
 
         doCallRealMethod()
