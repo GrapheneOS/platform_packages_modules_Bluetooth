@@ -236,6 +236,7 @@ cc_test {
         ":TestMockLegacyHciInterface",
         ":TestMockMainShimEntry",
         ":TestMockStack",
+        ":BluetoothOsSources_host",
         "shim/acl_api.cc",
         "shim/acl.cc",
         "shim/acl_legacy_interface.cc",
@@ -254,6 +255,7 @@ cc_test {
         "shim/shim.cc",
         "shim/stack.cc",
         "test/common_stack_test.cc",
+        "test/main_shim_dumpsys_test.cc",
         "test/main_shim_test.cc",
     ],
     static_libs: [
