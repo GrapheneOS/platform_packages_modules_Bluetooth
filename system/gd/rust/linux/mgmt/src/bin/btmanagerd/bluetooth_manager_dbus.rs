@@ -1,7 +1,7 @@
 use dbus::arg::RefArg;
 use dbus::strings::Path;
 use dbus_macros::{dbus_method, dbus_propmap, dbus_proxy_obj, generate_dbus_exporter};
-use dbus_projection::DisconnectWatcher;
+use dbus_projection::{dbus_generated, DisconnectWatcher};
 
 use manager_service::iface_bluetooth_manager::{
     AdapterWithEnabled, IBluetoothManager, IBluetoothManagerCallback,
@@ -22,30 +22,38 @@ struct BluetoothManagerDBus {}
 #[generate_dbus_exporter(export_bluetooth_manager_dbus_obj, "org.chromium.bluetooth.Manager")]
 impl IBluetoothManager for BluetoothManagerDBus {
     #[dbus_method("Start")]
-    fn start(&mut self, _hci_interface: i32) {}
+    fn start(&mut self, hci_interface: i32) {
+        dbus_generated!()
+    }
 
     #[dbus_method("Stop")]
-    fn stop(&mut self, _hci_interface: i32) {}
+    fn stop(&mut self, hci_interface: i32) {
+        dbus_generated!()
+    }
 
     #[dbus_method("GetAdapterEnabled")]
-    fn get_adapter_enabled(&mut self, _hci_interface: i32) -> bool {
-        false
+    fn get_adapter_enabled(&mut self, hci_interface: i32) -> bool {
+        dbus_generated!()
     }
 
     #[dbus_method("RegisterCallback")]
-    fn register_callback(&mut self, _callback: Box<dyn IBluetoothManagerCallback + Send>) {}
+    fn register_callback(&mut self, callback: Box<dyn IBluetoothManagerCallback + Send>) {
+        dbus_generated!()
+    }
 
     #[dbus_method("GetFlossEnabled")]
     fn get_floss_enabled(&mut self) -> bool {
-        false
+        dbus_generated!()
     }
 
     #[dbus_method("SetFlossEnabled")]
-    fn set_floss_enabled(&mut self, _enabled: bool) {}
+    fn set_floss_enabled(&mut self, enabled: bool) {
+        dbus_generated!()
+    }
 
     #[dbus_method("GetAvailableAdapters")]
     fn get_available_adapters(&mut self) -> Vec<AdapterWithEnabled> {
-        vec![]
+        dbus_generated!()
     }
 }
 

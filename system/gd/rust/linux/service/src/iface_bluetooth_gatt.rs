@@ -30,7 +30,7 @@ struct BluetoothGattCallbackDBus {}
 #[dbus_proxy_obj(BluetoothGattCallback, "org.chromium.bluetooth.BluetoothGattCallback")]
 impl IBluetoothGattCallback for BluetoothGattCallbackDBus {
     #[dbus_method("OnClientRegistered")]
-    fn on_client_registered(&self, _status: i32, _scanner_id: i32) {
+    fn on_client_registered(&self, status: i32, scanner_id: i32) {
         dbus_generated!()
     }
 
@@ -142,7 +142,7 @@ struct ScannerCallbackDBus {}
 #[dbus_proxy_obj(ScannerCallback, "org.chromium.bluetooth.ScannerCallback")]
 impl IScannerCallback for ScannerCallbackDBus {
     #[dbus_method("OnScannerRegistered")]
-    fn on_scanner_registered(&self, _status: i32, _scanner_id: i32) {
+    fn on_scanner_registered(&self, status: i32, scanner_id: i32) {
         dbus_generated!()
     }
 }
