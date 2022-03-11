@@ -17,6 +17,8 @@
 
 #define LOG_TAG "BluetoothHapClientJni"
 
+#define LOG_NDEBUG 0
+
 #include <string.h>
 
 #include <shared_mutex>

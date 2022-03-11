@@ -16,6 +16,8 @@
 
 #define LOG_TAG "BluetoothLeAudioServiceJni"
 
+#define LOG_NDEBUG 0
+
 #include <hardware/bluetooth.h>
 
 #include <array>

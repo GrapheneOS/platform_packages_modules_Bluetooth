@@ -80,10 +80,7 @@ impl FacadeServer {
             BluetoothModule::HAL => {
                 services.push(stack.get_grpc::<HciHalFacadeService>().await);
             }
-            BluetoothModule::HCI => {
-                services.push(stack.get_grpc::<HciFacadeService>().await);
-            }
-            BluetoothModule::HCI_INTERFACES => {
+            BluetoothModule::HCI | BluetoothModule::HCI_INTERFACES => {
                 services.push(stack.get_grpc::<HciFacadeService>().await);
                 services.push(stack.get_grpc::<ControllerFacadeService>().await);
             }

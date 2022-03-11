@@ -30,8 +30,6 @@ cc_fuzz {
     static_libs: [
         "libgmock",
         "lib-bt-packets",
-        "lib-bt-packets-base",
-        "lib-bt-packets-avrcp",
     ],
     cflags: [
         "-DBUILDCFG",
@@ -62,8 +60,6 @@ cc_fuzz {
     static_libs: [
         "libgmock",
         "lib-bt-packets",
-        "lib-bt-packets-base",
-        "lib-bt-packets-avrcp",
     ],
     cflags: [
         "-DBUILDCFG",
@@ -94,8 +90,6 @@ cc_fuzz {
     static_libs: [
         "libgmock",
         "lib-bt-packets",
-        "lib-bt-packets-base",
-        "lib-bt-packets-avrcp",
     ],
     cflags: [
         "-DBUILDCFG",
@@ -126,8 +120,6 @@ cc_fuzz {
     static_libs: [
         "libgmock",
         "lib-bt-packets",
-        "lib-bt-packets-base",
-        "lib-bt-packets-avrcp",
     ],
     cflags: [
         "-DBUILDCFG",
@@ -158,8 +150,6 @@ cc_fuzz {
     static_libs: [
         "libgmock",
         "lib-bt-packets",
-        "lib-bt-packets-base",
-        "lib-bt-packets-avrcp",
     ],
     cflags: [
         "-DBUILDCFG",
@@ -190,8 +180,6 @@ cc_fuzz {
     static_libs: [
         "libgmock",
         "lib-bt-packets",
-        "lib-bt-packets-base",
-        "lib-bt-packets-avrcp",
     ],
     cflags: [
         "-DBUILDCFG",
@@ -222,8 +210,6 @@ cc_fuzz {
     static_libs: [
         "libgmock",
         "lib-bt-packets",
-        "lib-bt-packets-base",
-        "lib-bt-packets-avrcp",
     ],
     cflags: [
         "-DBUILDCFG",
@@ -254,8 +240,6 @@ cc_fuzz {
     static_libs: [
         "libgmock",
         "lib-bt-packets",
-        "lib-bt-packets-base",
-        "lib-bt-packets-avrcp",
     ],
     cflags: [
         "-DBUILDCFG",
@@ -286,8 +270,6 @@ cc_fuzz {
     static_libs: [
         "libgmock",
         "lib-bt-packets",
-        "lib-bt-packets-base",
-        "lib-bt-packets-avrcp",
     ],
     cflags: [
         "-DBUILDCFG",
@@ -318,8 +300,6 @@ cc_fuzz {
     static_libs: [
         "libgmock",
         "lib-bt-packets",
-        "lib-bt-packets-base",
-        "lib-bt-packets-avrcp",
     ],
     cflags: [
         "-DBUILDCFG",
@@ -350,8 +330,6 @@ cc_fuzz {
     static_libs: [
         "libgmock",
         "lib-bt-packets",
-        "lib-bt-packets-base",
-        "lib-bt-packets-avrcp",
     ],
     cflags: [
         "-DBUILDCFG",
@@ -382,8 +360,6 @@ cc_fuzz {
     static_libs: [
         "libgmock",
         "lib-bt-packets",
-        "lib-bt-packets-base",
-        "lib-bt-packets-avrcp",
     ],
     cflags: [
         "-DBUILDCFG",
@@ -414,8 +390,6 @@ cc_fuzz {
     static_libs: [
         "libgmock",
         "lib-bt-packets",
-        "lib-bt-packets-base",
-        "lib-bt-packets-avrcp",
     ],
     cflags: [
         "-DBUILDCFG",
@@ -446,8 +420,6 @@ cc_fuzz {
     static_libs: [
         "libgmock",
         "lib-bt-packets",
-        "lib-bt-packets-base",
-        "lib-bt-packets-avrcp",
     ],
     cflags: [
         "-DBUILDCFG",
@@ -478,8 +450,6 @@ cc_fuzz {
     static_libs: [
         "libgmock",
         "lib-bt-packets",
-        "lib-bt-packets-base",
-        "lib-bt-packets-avrcp",
     ],
     cflags: [
         "-DBUILDCFG",
@@ -510,8 +480,6 @@ cc_fuzz {
     static_libs: [
         "libgmock",
         "lib-bt-packets",
-        "lib-bt-packets-base",
-        "lib-bt-packets-avrcp",
     ],
     cflags: [
         "-DBUILDCFG",
@@ -542,8 +510,6 @@ cc_fuzz {
     static_libs: [
         "libgmock",
         "lib-bt-packets",
-        "lib-bt-packets-base",
-        "lib-bt-packets-avrcp",
     ],
     cflags: [
         "-DBUILDCFG",
@@ -574,8 +540,6 @@ cc_fuzz {
     static_libs: [
         "libgmock",
         "lib-bt-packets",
-        "lib-bt-packets-base",
-        "lib-bt-packets-avrcp",
     ],
     cflags: [
         "-DBUILDCFG",
@@ -606,8 +570,6 @@ cc_fuzz {
     static_libs: [
         "libgmock",
         "lib-bt-packets",
-        "lib-bt-packets-base",
-        "lib-bt-packets-avrcp",
     ],
     cflags: [
         "-DBUILDCFG",
@@ -638,8 +600,6 @@ cc_fuzz {
     static_libs: [
         "libgmock",
         "lib-bt-packets",
-        "lib-bt-packets-base",
-        "lib-bt-packets-avrcp",
     ],
     cflags: [
         "-DBUILDCFG",
@@ -670,8 +630,6 @@ cc_fuzz {
     static_libs: [
         "libgmock",
         "lib-bt-packets",
-        "lib-bt-packets-base",
-        "lib-bt-packets-avrcp",
     ],
     cflags: [
         "-DBUILDCFG",
@@ -702,8 +660,6 @@ cc_fuzz {
     static_libs: [
         "libgmock",
         "lib-bt-packets",
-        "lib-bt-packets-base",
-        "lib-bt-packets-avrcp",
     ],
     cflags: [
         "-DBUILDCFG",
@@ -734,8 +690,6 @@ cc_fuzz {
     static_libs: [
         "libgmock",
         "lib-bt-packets",
-        "lib-bt-packets-base",
-        "lib-bt-packets-avrcp",
     ],
     cflags: [
         "-DBUILDCFG",
@@ -766,8 +720,6 @@ cc_fuzz {
     static_libs: [
         "libgmock",
         "lib-bt-packets",
-        "lib-bt-packets-base",
-        "lib-bt-packets-avrcp",
     ],
     cflags: [
         "-DBUILDCFG",
@@ -798,8 +750,6 @@ cc_fuzz {
     static_libs: [
         "libgmock",
         "lib-bt-packets",
-        "lib-bt-packets-base",
-        "lib-bt-packets-avrcp",
     ],
     cflags: [
         "-DBUILDCFG",
