@@ -708,7 +708,7 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
      */
     @SystemApi
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
-    public int getMaximumNumberOfBroadcast() {
+    public int getMaximumNumberOfBroadcasts() {
         final IBluetoothLeAudio service = getService();
         final int defaultValue = 1;
         if (service == null) {
@@ -717,7 +717,7 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
         } else if (isEnabled()) {
             try {
                 final SynchronousResultReceiver<Integer> recv = new SynchronousResultReceiver();
-                service.getMaximumNumberOfBroadcast(mAttributionSource, recv);
+                service.getMaximumNumberOfBroadcasts(mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));

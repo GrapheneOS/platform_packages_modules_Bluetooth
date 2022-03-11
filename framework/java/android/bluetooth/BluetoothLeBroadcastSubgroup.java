@@ -275,6 +275,7 @@ public final class BluetoothLeBroadcastSubgroup implements Parcelable {
          * A Broadcast subgroup should contain at least 1 Broadcast Channel
          *
          * @param channel  a Broadcast Channel to be added to this Broadcast subgroup
+         * @return this builder
          * @hide
          */
         @SystemApi
@@ -305,6 +306,15 @@ public final class BluetoothLeBroadcastSubgroup implements Parcelable {
          */
         @SystemApi
         public @NonNull BluetoothLeBroadcastSubgroup build() {
+            if (mCodecSpecificConfig == null) {
+                throw new IllegalArgumentException("CodecSpecificConfig is null");
+            }
+            if (mContentMetadata == null) {
+                throw new IllegalArgumentException("ContentMetadata is null");
+            }
+            if (mChannels.isEmpty()) {
+                throw new IllegalArgumentException("Must have at least one channel");
+            }
             return new BluetoothLeBroadcastSubgroup(mCodecId, mCodecSpecificConfig,
                     mContentMetadata, mNoChannelPreference, mChannels);
         }

@@ -200,6 +200,9 @@ public final class BluetoothLeBroadcastChannel implements Parcelable {
          */
         @SystemApi
         public @NonNull BluetoothLeBroadcastChannel build() {
+            if (mCodecMetadata == null) {
+                throw new IllegalArgumentException("codec metadata cannot be null");
+            }
             return new BluetoothLeBroadcastChannel(mIsSelected, mChannelIndex, mCodecMetadata);
         }
     }
