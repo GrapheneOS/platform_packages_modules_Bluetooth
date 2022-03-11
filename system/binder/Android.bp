@@ -22,6 +22,7 @@ filegroup {
         "android/bluetooth/IBluetoothA2dpSink.aidl",
         "android/bluetooth/IBluetoothAvrcpController.aidl",
         "android/bluetooth/IBluetoothAvrcpTarget.aidl",
+        "android/bluetooth/IBluetoothBattery.aidl",
         "android/bluetooth/IBluetoothCallback.aidl",
         "android/bluetooth/IBluetoothCsipSetCoordinator.aidl",
         "android/bluetooth/IBluetoothCsipSetCoordinatorCallback.aidl",
