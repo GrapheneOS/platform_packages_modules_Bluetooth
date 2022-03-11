@@ -340,7 +340,35 @@ package android.bluetooth {
     field @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public static final String ACTION_LE_AUDIO_ACTIVE_DEVICE_CHANGED = "android.bluetooth.action.LE_AUDIO_ACTIVE_DEVICE_CHANGED";
     field @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public static final String ACTION_LE_AUDIO_GROUP_NODE_STATUS_CHANGED = "android.bluetooth.action.LE_AUDIO_GROUP_NODE_STATUS_CHANGED";
     field @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED) public static final String ACTION_LE_AUDIO_GROUP_STATUS_CHANGED = "android.bluetooth.action.LE_AUDIO_GROUP_STATUS_CHANGED";
-    field public static final int AUDIO_LOCATION_INVALID = -1; // 0xffffffff
+    field public static final int AUDIO_LOCATION_BACK_CENTER = 256; // 0x100
+    field public static final int AUDIO_LOCATION_BACK_LEFT = 16; // 0x10
+    field public static final int AUDIO_LOCATION_BACK_RIGHT = 32; // 0x20
+    field public static final int AUDIO_LOCATION_BOTTOM_FRONT_CENTER = 2097152; // 0x200000
+    field public static final int AUDIO_LOCATION_BOTTOM_FRONT_LEFT = 4194304; // 0x400000
+    field public static final int AUDIO_LOCATION_BOTTOM_FRONT_RIGHT = 8388608; // 0x800000
+    field public static final int AUDIO_LOCATION_FRONT_CENTER = 4; // 0x4
+    field public static final int AUDIO_LOCATION_FRONT_LEFT = 1; // 0x1
+    field public static final int AUDIO_LOCATION_FRONT_LEFT_OF_CENTER = 64; // 0x40
+    field public static final int AUDIO_LOCATION_FRONT_LEFT_WIDE = 16777216; // 0x1000000
+    field public static final int AUDIO_LOCATION_FRONT_RIGHT = 2; // 0x2
+    field public static final int AUDIO_LOCATION_FRONT_RIGHT_OF_CENTER = 128; // 0x80
+    field public static final int AUDIO_LOCATION_FRONT_RIGHT_WIDE = 33554432; // 0x2000000
+    field public static final int AUDIO_LOCATION_INVALID = 0; // 0x0
+    field public static final int AUDIO_LOCATION_LEFT_SURROUND = 67108864; // 0x4000000
+    field public static final int AUDIO_LOCATION_LOW_FREQ_EFFECTS_ONE = 8; // 0x8
+    field public static final int AUDIO_LOCATION_LOW_FREQ_EFFECTS_TWO = 512; // 0x200
+    field public static final int AUDIO_LOCATION_RIGHT_SURROUND = 134217728; // 0x8000000
+    field public static final int AUDIO_LOCATION_SIDE_LEFT = 1024; // 0x400
+    field public static final int AUDIO_LOCATION_SIDE_RIGHT = 2048; // 0x800
+    field public static final int AUDIO_LOCATION_TOP_BACK_CENTER = 1048576; // 0x100000
+    field public static final int AUDIO_LOCATION_TOP_BACK_LEFT = 65536; // 0x10000
+    field public static final int AUDIO_LOCATION_TOP_BACK_RIGHT = 131072; // 0x20000
+    field public static final int AUDIO_LOCATION_TOP_CENTER = 32768; // 0x8000
+    field public static final int AUDIO_LOCATION_TOP_FRONT_CENTER = 16384; // 0x4000
+    field public static final int AUDIO_LOCATION_TOP_FRONT_LEFT = 4096; // 0x1000
+    field public static final int AUDIO_LOCATION_TOP_FRONT_RIGHT = 8192; // 0x2000
+    field public static final int AUDIO_LOCATION_TOP_SIDE_LEFT = 262144; // 0x40000
+    field public static final int AUDIO_LOCATION_TOP_SIDE_RIGHT = 524288; // 0x80000
     field public static final String EXTRA_LE_AUDIO_GROUP_ID = "android.bluetooth.extra.LE_AUDIO_GROUP_ID";
     field public static final String EXTRA_LE_AUDIO_GROUP_NODE_STATUS = "android.bluetooth.extra.LE_AUDIO_GROUP_NODE_STATUS";
     field public static final String EXTRA_LE_AUDIO_GROUP_STATUS = "android.bluetooth.extra.LE_AUDIO_GROUP_STATUS";

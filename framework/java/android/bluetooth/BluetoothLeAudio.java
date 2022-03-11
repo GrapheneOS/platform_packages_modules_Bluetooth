@@ -21,6 +21,7 @@ import static android.bluetooth.BluetoothUtils.getSyncTimeout;
 
 import android.Manifest;
 import android.annotation.CallbackExecutor;
+import android.annotation.IntDef;
 import android.annotation.NonNull;
 import android.annotation.Nullable;
 import android.annotation.RequiresPermission;
@@ -39,6 +40,8 @@ import android.util.Log;
 
 import com.android.modules.utils.SynchronousResultReceiver;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -299,7 +302,267 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
      * @hide
      */
     @SystemApi
-    public static final int AUDIO_LOCATION_INVALID = -1;
+    public static final int AUDIO_LOCATION_INVALID = 0;
+
+    /**
+     * This represents an audio location front left.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_FRONT_LEFT = 0x01 << 0;
+
+    /**
+     * This represents an audio location front right.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_FRONT_RIGHT = 0x01 << 1;
+
+    /**
+     * This represents an audio location front center.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_FRONT_CENTER = 0x01 << 2;
+
+    /**
+     * This represents an audio location low frequency effects 1.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_LOW_FREQ_EFFECTS_ONE = 0x01 << 3;
+
+    /**
+     * This represents an audio location back left.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_BACK_LEFT = 0x01 << 4;
+
+    /**
+     * This represents an audio location back right.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_BACK_RIGHT = 0x01 << 5;
+
+    /**
+     * This represents an audio location front left of center.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_FRONT_LEFT_OF_CENTER = 0x01 << 6;
+
+    /**
+     * This represents an audio location front right of center.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_FRONT_RIGHT_OF_CENTER = 0x01 << 7;
+
+    /**
+     * This represents an audio location back center.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_BACK_CENTER = 0x01 << 8;
+
+    /**
+     * This represents an audio location low frequency effects 2.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_LOW_FREQ_EFFECTS_TWO = 0x01 << 9;
+
+    /**
+     * This represents an audio location side left.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_SIDE_LEFT = 0x01 << 10;
+
+    /**
+     * This represents an audio location side right.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_SIDE_RIGHT = 0x01 << 11;
+
+    /**
+     * This represents an audio location top front left.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_TOP_FRONT_LEFT = 0x01 << 12;
+
+    /**
+     * This represents an audio location top front right.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_TOP_FRONT_RIGHT = 0x01 << 13;
+
+    /**
+     * This represents an audio location top front center.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_TOP_FRONT_CENTER = 0x01 << 14;
+
+    /**
+     * This represents an audio location top center.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_TOP_CENTER = 0x01 << 15;
+
+    /**
+     * This represents an audio location top back left.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_TOP_BACK_LEFT = 0x01 << 16;
+
+    /**
+     * This represents an audio location top back right.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_TOP_BACK_RIGHT = 0x01 << 17;
+
+    /**
+     * This represents an audio location top side left.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_TOP_SIDE_LEFT = 0x01 << 18;
+
+    /**
+     * This represents an audio location top side right.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_TOP_SIDE_RIGHT = 0x01 << 19;
+
+    /**
+     * This represents an audio location top back center.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_TOP_BACK_CENTER = 0x01 << 20;
+
+    /**
+     * This represents an audio location bottom front center.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_BOTTOM_FRONT_CENTER = 0x01 << 21;
+
+    /**
+     * This represents an audio location bottom front left.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_BOTTOM_FRONT_LEFT = 0x01 << 22;
+
+    /**
+     * This represents an audio location bottom front right.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_BOTTOM_FRONT_RIGHT = 0x01 << 23;
+
+    /**
+     * This represents an audio location front left wide.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_FRONT_LEFT_WIDE = 0x01 << 24;
+
+    /**
+     * This represents an audio location front right wide.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_FRONT_RIGHT_WIDE = 0x01 << 25;
+
+    /**
+     * This represents an audio location left surround.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_LEFT_SURROUND = 0x01 << 26;
+
+    /**
+     * This represents an audio location right surround.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_RIGHT_SURROUND = 0x01 << 27;
+
+    /** @hide */
+    @IntDef(flag = true, prefix = "AUDIO_LOCATION_",
+            value = {
+            AUDIO_LOCATION_INVALID,
+            AUDIO_LOCATION_FRONT_LEFT,
+            AUDIO_LOCATION_FRONT_RIGHT,
+            AUDIO_LOCATION_FRONT_CENTER,
+            AUDIO_LOCATION_LOW_FREQ_EFFECTS_ONE,
+            AUDIO_LOCATION_BACK_LEFT,
+            AUDIO_LOCATION_BACK_RIGHT,
+            AUDIO_LOCATION_FRONT_LEFT_OF_CENTER,
+            AUDIO_LOCATION_FRONT_RIGHT_OF_CENTER,
+            AUDIO_LOCATION_BACK_CENTER,
+            AUDIO_LOCATION_LOW_FREQ_EFFECTS_TWO,
+            AUDIO_LOCATION_SIDE_LEFT,
+            AUDIO_LOCATION_SIDE_RIGHT,
+            AUDIO_LOCATION_TOP_FRONT_LEFT,
+            AUDIO_LOCATION_TOP_FRONT_RIGHT,
+            AUDIO_LOCATION_TOP_FRONT_CENTER,
+            AUDIO_LOCATION_TOP_CENTER,
+            AUDIO_LOCATION_TOP_BACK_LEFT,
+            AUDIO_LOCATION_TOP_BACK_RIGHT,
+            AUDIO_LOCATION_TOP_SIDE_LEFT,
+            AUDIO_LOCATION_TOP_SIDE_RIGHT,
+            AUDIO_LOCATION_TOP_BACK_CENTER,
+            AUDIO_LOCATION_BOTTOM_FRONT_CENTER,
+            AUDIO_LOCATION_BOTTOM_FRONT_LEFT,
+            AUDIO_LOCATION_BOTTOM_FRONT_RIGHT,
+            AUDIO_LOCATION_FRONT_LEFT_WIDE,
+            AUDIO_LOCATION_FRONT_RIGHT_WIDE,
+            AUDIO_LOCATION_LEFT_SURROUND,
+            AUDIO_LOCATION_RIGHT_SURROUND,
+    })
+    @Retention(RetentionPolicy.SOURCE)
+    public @interface AudioLocation {}
 
     /**
      * Contains group id.
@@ -998,7 +1261,7 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
             android.Manifest.permission.BLUETOOTH_PRIVILEGED
     })
     @SystemApi
-    public int getAudioLocation(@NonNull BluetoothDevice device) {
+    public @AudioLocation int getAudioLocation(@NonNull BluetoothDevice device) {
         if (VDBG) log("getAudioLocation()");
         final IBluetoothLeAudio service = getService();
         final int defaultLocation = AUDIO_LOCATION_INVALID;
