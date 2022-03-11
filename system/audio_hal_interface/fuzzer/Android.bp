@@ -59,8 +59,6 @@ cc_defaults {
         "libbtcore",
         "libbt-bta",
         "libbt-hci",
-        "libbt_shim_bridge",
-        "libbt_shim_ffi",
         "libjsoncpp",
         "libbt-utils",
         "libbtdevice",
@@ -86,7 +84,6 @@ cc_defaults {
         "libprotobuf-cpp-lite",
         "libbt-audio-hal-interface",
         "libbluetooth_rust_interop",
-        "libaudio-a2dp-hw-utils",
     ],
     include_dirs: [
         "packages/modules/Bluetooth/system",

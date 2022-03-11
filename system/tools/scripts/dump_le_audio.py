@@ -182,7 +182,7 @@ def generate_header(file, connection):
         }
         header = header + struct.pack("<H", sf_case[ase.sampling_frequencies])
         fd_case = {FRAME_DURATION_7_5: 7.5, FRAME_DURATION_10: 10}
-        header = header + struct.pack("<H", ase.octets_per_frame * 8 * 10 / fd_case[ase.frame_duration])
+        header = header + struct.pack("<H", int(ase.octets_per_frame * 8 * 10 / fd_case[ase.frame_duration]))
         al_case = {AUDIO_LOCATION_MONO: 1, AUDIO_LOCATION_LEFT: 1, AUDIO_LOCATION_RIGHT: 1, AUDIO_LOCATION_CENTER: 2}
         header = header + struct.pack("<HHHL", al_case[ase.channel_allocation], fd_case[ase.frame_duration] * 100, 0,
                                       48000000)
@@ -335,7 +335,7 @@ def convert_time_str(timestamp):
     """This function converts time to string format."""
     timestamp_sec = float(timestamp) / 1000000
     local_timestamp = time.localtime(timestamp_sec)
-    ms = timestamp_sec - long(timestamp_sec)
+    ms = timestamp_sec - int(timestamp_sec)
     ms_str = "{0:06}".format(int(round(ms * 1000000)))
 
     str_format = time.strftime("%m_%d__%H_%M_%S", local_timestamp)

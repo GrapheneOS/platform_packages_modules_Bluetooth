@@ -84,7 +84,7 @@ ErrorCode LinkLayerController::SendLeCommandToRemoteByAddress(
     OpCode opcode, const Address& remote, const Address& local) {
   switch (opcode) {
     case (OpCode::LE_READ_REMOTE_FEATURES):
-      SendLinkLayerPacket(
+      SendLeLinkLayerPacket(
           model::packets::LeReadRemoteFeaturesBuilder::Create(local, remote));
       break;
     default:
@@ -1777,7 +1777,7 @@ void LinkLayerController::IncomingLeReadRemoteFeatures(
              incoming.GetDestinationAddress().ToString().c_str(),
              incoming.GetSourceAddress().ToString().c_str());
   }
-  SendLinkLayerPacket(
+  SendLeLinkLayerPacket(
       model::packets::LeReadRemoteFeaturesResponseBuilder::Create(
           incoming.GetDestinationAddress(), incoming.GetSourceAddress(),
           properties_.GetLeSupportedFeatures(), static_cast<uint8_t>(status)));
@@ -3641,14 +3641,21 @@ bool LinkLayerController::LeResolvingListFull() {
 }
 
 void LinkLayerController::Reset() {
+  connections_ = AclConnectionHandler();
+  le_connect_list_.clear();
+  le_resolving_list_.clear();
+  le_resolving_list_enabled_ = false;
+  le_connecting_rpa_ = Address();
+  LeDisableAdvertisingSets();
+  le_scan_enable_ = bluetooth::hci::OpCode::NONE;
+  le_connect_ = false;
   if (inquiry_timer_task_id_ != kInvalidTaskId) {
     CancelScheduledTask(inquiry_timer_task_id_);
     inquiry_timer_task_id_ = kInvalidTaskId;
   }
   last_inquiry_ = steady_clock::now();
-  le_scan_enable_ = bluetooth::hci::OpCode::NONE;
-  LeDisableAdvertisingSets();
-  le_connect_ = 0;
+  page_scans_enabled_ = false;
+  inquiry_scans_enabled_ = false;
 }
 
 void LinkLayerController::StartInquiry(milliseconds timeout) {

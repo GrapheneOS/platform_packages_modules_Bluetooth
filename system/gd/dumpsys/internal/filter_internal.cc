@@ -108,7 +108,21 @@ const reflection::Object* internal::FindReflectionObject(
 bool internal::FilterTypeBool(const reflection::Field& field, flatbuffers::Table* table, PrivacyLevel privacy_level) {
   ASSERT(table != nullptr);
 
-  // TODO(cmanton) Figure out boolean filtering
+  const bool default_val = flatbuffers::GetFieldDefaultI<int8_t>(field);
+  flatbuffers::voffset_t field_offset = field.offset();
+
+  // boolean privacy levels are simpler.
+  switch (privacy_level) {
+    case kPrivate:
+    case kOpaque:
+    case kAnonymized:
+      flatbuffers::SetField<int8_t>(table, field, default_val);
+      internal::ScrubFromTable(table, field_offset);
+      break;
+    default:
+    case kAny:
+      break;
+  }
   return kFieldHasBeenFiltered;
 }
 
