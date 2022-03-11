@@ -478,6 +478,15 @@ public final class BluetoothLeBroadcastMetadata implements Parcelable {
          */
         @SystemApi
         public @NonNull BluetoothLeBroadcastMetadata build() {
+            if (mSourceAddressType == BluetoothDevice.ADDRESS_TYPE_UNKNOWN) {
+                throw new IllegalArgumentException("SourceAddressTyp cannot be unknown");
+            }
+            if (mSourceDevice == null) {
+                throw new IllegalArgumentException("SourceDevice cannot be null");
+            }
+            if (mSubgroups.isEmpty()) {
+                throw new IllegalArgumentException("Must contain at least one subgroup");
+            }
             return new BluetoothLeBroadcastMetadata(mSourceAddressType, mSourceDevice,
                     mSourceAdvertisingSid, mBroadcastId, mPaSyncInterval, mIsEncrypted,
                     mBroadcastCode, mPresentationDelayMicros, mSubgroups);
