@@ -252,32 +252,37 @@ public final class BluetoothCsipSetCoordinator implements BluetoothProfile, Auto
      * Lock the set.
      * @param groupId group ID to lock,
      * @param executor callback executor,
-     * @param cb callback to report lock and unlock events - stays valid until the app unlocks
+     * @param callback callback to report lock and unlock events - stays valid until the app unlocks
      *           using the returned lock identifier or the lock timeouts on the remote side,
      *           as per CSIS specification,
      * @return unique lock identifier used for unlocking or null if lock has failed.
+     * @throws {@link IllegalArgumentException} when executor or callback is null
      *
      * @hide
      */
     @SystemApi
     @RequiresPermission(Manifest.permission.BLUETOOTH_PRIVILEGED)
     public
-    @Nullable UUID groupLock(int groupId, @Nullable @CallbackExecutor Executor executor,
-            @Nullable ClientLockCallback cb) {
-        if (VDBG) log("groupLockSet()");
+    @Nullable UUID lockGroup(int groupId, @NonNull @CallbackExecutor Executor executor,
+            @NonNull ClientLockCallback callback) {
+        if (VDBG) log("lockGroup()");
         final IBluetoothCsipSetCoordinator service = getService();
         final UUID defaultValue = null;
         if (service == null) {
             Log.w(TAG, "Proxy not attached to service");
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else if (isEnabled()) {
-            IBluetoothCsipSetCoordinatorLockCallback delegate = null;
-            if ((executor != null) && (cb != null)) {
-                delegate = new BluetoothCsipSetCoordinatorLockCallbackDelegate(executor, cb);
+            if (executor == null) {
+                throw new IllegalArgumentException("executor cannot be null");
             }
+            if (callback == null) {
+                throw new IllegalArgumentException("callback cannot be null");
+            }
+            IBluetoothCsipSetCoordinatorLockCallback delegate =
+                    new BluetoothCsipSetCoordinatorLockCallbackDelegate(executor, callback);
             try {
                 final SynchronousResultReceiver<ParcelUuid> recv = new SynchronousResultReceiver();
-                service.groupLock(groupId, delegate, mAttributionSource, recv);
+                service.lockGroup(groupId, delegate, mAttributionSource, recv);
                 final ParcelUuid ret = recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
                 return ret == null ? defaultValue : ret.getUuid();
             } catch (RemoteException | TimeoutException e) {
@@ -291,15 +296,16 @@ public final class BluetoothCsipSetCoordinator implements BluetoothProfile, Auto
      * Unlock the set.
      * @param lockUuid unique lock identifier
      * @return true if unlocked, false on error
+     * @throws {@link IllegalArgumentException} when lockUuid is null
      *
      * @hide
      */
     @SystemApi
     @RequiresPermission(Manifest.permission.BLUETOOTH_PRIVILEGED)
-    public boolean groupUnlock(@NonNull UUID lockUuid) {
-        if (VDBG) log("groupLockSet()");
+    public boolean unlockGroup(@NonNull UUID lockUuid) {
+        if (VDBG) log("unlockGroup()");
         if (lockUuid == null) {
-            return false;
+            throw new IllegalArgumentException("lockUuid cannot be null");
         }
         final IBluetoothCsipSetCoordinator service = getService();
         final boolean defaultValue = false;
@@ -309,7 +315,7 @@ public final class BluetoothCsipSetCoordinator implements BluetoothProfile, Auto
         } else if (isEnabled()) {
             try {
                 final SynchronousResultReceiver recv = new SynchronousResultReceiver();
-                service.groupUnlock(new ParcelUuid(lockUuid), mAttributionSource, recv);
+                service.unlockGroup(new ParcelUuid(lockUuid), mAttributionSource, recv);
                 recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
                 return true;
             } catch (RemoteException | TimeoutException e) {
