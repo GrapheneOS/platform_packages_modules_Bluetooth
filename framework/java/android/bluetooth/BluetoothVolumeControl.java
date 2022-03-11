@@ -40,7 +40,10 @@ import android.util.Log;
 import com.android.modules.utils.SynchronousResultReceiver;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeoutException;
 
@@ -59,6 +62,7 @@ public final class BluetoothVolumeControl implements BluetoothProfile, AutoClose
     private static final boolean VDBG = false;
 
     private CloseGuard mCloseGuard;
+    private final Map<Callback, Executor> mCallbackExecutorMap = new HashMap<>();
 
     /**
      * This class provides a callback that is invoked when volume offset value changes on
@@ -86,6 +90,21 @@ public final class BluetoothVolumeControl implements BluetoothProfile, AutoClose
         void onVolumeOffsetChanged(@NonNull BluetoothDevice device,
                                    @IntRange(from = -255, to = 255) int volumeOffset);
     }
+
+    @SuppressLint("AndroidFrameworkBluetoothPermission")
+    private final IBluetoothVolumeControlCallback mCallback =
+            new IBluetoothVolumeControlCallback.Stub() {
+        @Override
+        public void onVolumeOffsetChanged(@NonNull BluetoothDevice device, int volumeOffset) {
+            Attributable.setAttributionSource(device, mAttributionSource);
+            for (Map.Entry<BluetoothVolumeControl.Callback, Executor> callbackExecutorEntry:
+                    mCallbackExecutorMap.entrySet()) {
+                        BluetoothVolumeControl.Callback callback = callbackExecutorEntry.getKey();
+                Executor executor = callbackExecutorEntry.getValue();
+                executor.execute(() -> callback.onVolumeOffsetChanged(device, volumeOffset));
+            }
+        }
+    };
 
     /**
      * Intent used to broadcast the change in connection state of the Volume Control
@@ -123,6 +142,37 @@ public final class BluetoothVolumeControl implements BluetoothProfile, AutoClose
                 }
             };
 
+    @SuppressLint("AndroidFrameworkBluetoothPermission")
+    private final IBluetoothStateChangeCallback mBluetoothStateChangeCallback =
+            new IBluetoothStateChangeCallback.Stub() {
+                public void onBluetoothStateChange(boolean up) {
+                    if (DBG) Log.d(TAG, "onBluetoothStateChange: up=" + up);
+                    if (!up) {
+                        return;
+                    }
+                    // re-register the service-to-app callback
+                    synchronized (mCallbackExecutorMap) {
+                        if (!mCallbackExecutorMap.isEmpty()) {
+                            try {
+                                final IBluetoothVolumeControl service = getService();
+                                if (service != null) {
+                                    final SynchronousResultReceiver<Integer> recv =
+                                                    new SynchronousResultReceiver();
+                                    service.registerCallback(mCallback, mAttributionSource, recv);
+                                    recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
+                                }
+                            } catch (RemoteException e) {
+                                Log.e(TAG, "onBluetoothServiceUp: Failed to register"
+                                        + "Volume Control callback", e);
+                            } catch (TimeoutException e) {
+                                Log.e(TAG, e.toString() + "\n"
+                                        + Log.getStackTraceString(new Throwable()));
+                            }
+                        }
+                    }
+                }
+            };
+
     /**
      * Create a BluetoothVolumeControl proxy object for interacting with the local
      * Bluetooth Volume Control service.
@@ -132,6 +182,17 @@ public final class BluetoothVolumeControl implements BluetoothProfile, AutoClose
         mAdapter = adapter;
         mAttributionSource = adapter.getAttributionSource();
         mProfileConnector.connect(context, listener);
+
+        IBluetoothManager mgr = mAdapter.getBluetoothManager();
+        if (mgr != null) {
+            try {
+                mgr.registerStateChangeCallback(mBluetoothStateChangeCallback);
+            } catch (RemoteException e) {
+                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+                throw e.rethrowFromSystemServer();
+            }
+        }
+
         mCloseGuard = new CloseGuard();
         mCloseGuard.open("close");
     }
@@ -146,6 +207,16 @@ public final class BluetoothVolumeControl implements BluetoothProfile, AutoClose
 
     @RequiresPermission(Manifest.permission.BLUETOOTH_PRIVILEGED)
     public void close() {
+        if (VDBG) log("close()");
+
+        IBluetoothManager mgr = mAdapter.getBluetoothManager();
+        if (mgr != null) {
+            try {
+                mgr.unregisterStateChangeCallback(mBluetoothStateChangeCallback);
+            } catch (RemoteException e) {
+                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+            }
+        }
         mProfileConnector.disconnect();
     }
 
@@ -267,14 +338,34 @@ public final class BluetoothVolumeControl implements BluetoothProfile, AutoClose
     })
     public void registerCallback(@NonNull @CallbackExecutor Executor executor,
             @NonNull Callback callback) {
-        if (executor == null) {
-            throw new IllegalArgumentException("executor cannot be null");
-        }
-        if (callback == null) {
-            throw new IllegalArgumentException("callback cannot be null");
-        }
+        Objects.requireNonNull(executor, "executor cannot be null");
+        Objects.requireNonNull(callback, "callback cannot be null");
         if (DBG) log("registerCallback");
-        throw new UnsupportedOperationException("Not Implemented");
+        synchronized (mCallbackExecutorMap) {
+            // If the callback map is empty, we register the service-to-app callback
+            if (mCallbackExecutorMap.isEmpty()) {
+                try {
+                    final IBluetoothVolumeControl service = getService();
+                    if (service != null) {
+                        final SynchronousResultReceiver<Integer> recv =
+                                                        new SynchronousResultReceiver();
+                        service.registerCallback(mCallback, mAttributionSource, recv);
+                        recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
+                    }
+                } catch (RemoteException e) {
+                    Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+                    throw e.rethrowFromSystemServer();
+                } catch (IllegalStateException | TimeoutException e) {
+                    Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+                }
+            }
+
+            // Adds the passed in callback to our map of callbacks to executors
+            if (mCallbackExecutorMap.containsKey(callback)) {
+                throw new IllegalArgumentException("This callback has already been registered");
+            }
+            mCallbackExecutorMap.put(callback, executor);
+        }
     }
 
     /**
@@ -295,11 +386,30 @@ public final class BluetoothVolumeControl implements BluetoothProfile, AutoClose
             android.Manifest.permission.BLUETOOTH_PRIVILEGED,
     })
     public void unregisterCallback(@NonNull Callback callback) {
-        if (callback == null) {
-            throw new IllegalArgumentException("callback cannot be null");
-        }
+        Objects.requireNonNull(callback, "callback cannot be null");
         if (DBG) log("unregisterCallback");
-        throw new UnsupportedOperationException("Not Implemented");
+        synchronized (mCallbackExecutorMap) {
+            if (mCallbackExecutorMap.remove(callback) == null) {
+                throw new IllegalArgumentException("This callback has not been registered");
+            }
+        }
+
+        // If the callback map is empty, we unregister the service-to-app callback
+        if (mCallbackExecutorMap.isEmpty()) {
+            try {
+                final IBluetoothVolumeControl service = getService();
+                if (service != null) {
+                    final SynchronousResultReceiver<Integer> recv = new SynchronousResultReceiver();
+                    service.unregisterCallback(mCallback, mAttributionSource, recv);
+                    recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
+                }
+            } catch (RemoteException e) {
+                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+                throw e.rethrowFromSystemServer();
+            } catch (IllegalStateException | TimeoutException e) {
+                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+            }
+        }
     }
 
     /**
@@ -353,7 +463,27 @@ public final class BluetoothVolumeControl implements BluetoothProfile, AutoClose
     })
     public boolean isVolumeOffsetAvailable(@NonNull BluetoothDevice device) {
         if (DBG) log("isVolumeOffsetAvailable(" + device + ")");
-        return false;
+        final IBluetoothVolumeControl service = getService();
+        if (service == null) {
+            Log.w(TAG, "Proxy not attached to service");
+            if (DBG) log(Log.getStackTraceString(new Throwable()));
+            return false;
+        }
+
+        if (!isEnabled()) {
+            return false;
+        }
+
+        final boolean defaultValue = false;
+        try {
+            final SynchronousResultReceiver recv = new SynchronousResultReceiver();
+            service.isVolumeOffsetAvailable(device, mAttributionSource, recv);
+            recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
+        } catch (RemoteException | TimeoutException e) {
+            Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+        }
+
+        return defaultValue;
     }
 
     /**
