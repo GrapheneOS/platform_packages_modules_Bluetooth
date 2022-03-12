@@ -40,7 +40,7 @@
     <bool name="profile_supported_le_call_control">true</bool>
     <bool name="profile_supported_hap_client">true</bool>
     <bool name="profile_supported_bass_client">false</bool>
-    <bool name="profile_supported_battery">true</bool>
+    <bool name="profile_supported_battery">false</bool>
 
     <!-- If true, we will require location to be enabled on the device to
          fire Bluetooth LE scan result callbacks in addition to having one
