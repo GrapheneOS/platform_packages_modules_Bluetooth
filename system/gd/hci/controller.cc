@@ -260,11 +260,10 @@ struct Controller::impl {
     ErrorCode status = complete_view.GetStatus();
     ASSERT_LOG(status == ErrorCode::SUCCESS, "Status 0x%02hhx, %s", status, ErrorCodeText(status).c_str());
     uint8_t page_number = complete_view.GetPageNumber();
-    maximum_page_number_ = complete_view.GetMaximumPageNumber();
     extended_lmp_features_array_.push_back(complete_view.GetExtendedLmpFeatures());
 
     // Query all extended features
-    if (page_number < maximum_page_number_) {
+    if (page_number < complete_view.GetMaximumPageNumber()) {
       page_number++;
       hci_->EnqueueCommand(
           ReadLocalExtendedFeaturesBuilder::Create(page_number),
@@ -858,7 +857,6 @@ struct Controller::impl {
   CompletedAclPacketsCallback acl_monitor_credits_callback_{};
   LocalVersionInformation local_version_information_;
   std::array<uint8_t, 64> local_supported_commands_;
-  uint8_t maximum_page_number_;
   std::vector<uint64_t> extended_lmp_features_array_;
   uint16_t acl_buffer_length_ = 0;
   uint16_t acl_buffers_ = 0;
@@ -988,7 +986,7 @@ LOCAL_LE_FEATURE_ACCESSOR(SupportsBlePowerChangeIndication, 34)
 LOCAL_LE_FEATURE_ACCESSOR(SupportsBlePathLossMonitoring, 35)
 
 uint64_t Controller::GetLocalFeatures(uint8_t page_number) const {
-  if (page_number <= impl_->maximum_page_number_) {
+  if (page_number < impl_->extended_lmp_features_array_.size()) {
     return impl_->extended_lmp_features_array_[page_number];
   }
   return 0x00;

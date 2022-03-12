@@ -29,6 +29,7 @@ cc_library_static {
     shared_libs: [
         "liblog",
     ],
+    min_sdk_version: "Tiramisu"
 }
 
 // Bluetooth device unit tests for target

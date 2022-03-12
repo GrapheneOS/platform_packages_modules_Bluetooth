@@ -140,6 +140,8 @@ typedef struct {
     bluetooth::audio::sco::init();
   }
 
+  void Free() { bluetooth::audio::sco::cleanup(); }
+
   uint16_t get_index(const tSCO_CONN* p_sco) const {
     CHECK(p_sco != nullptr);
     const tSCO_CONN* p = sco_db;

@@ -68,7 +68,12 @@ namespace bluetooth {
 namespace audio {
 namespace sco {
 
-void init() { sco_uipc = UIPC_Init(); }
+void init() {
+  if (sco_uipc != nullptr) {
+    LOG_WARN("Re-initializing UIPC that is already running");
+  }
+  sco_uipc = UIPC_Init();
+}
 
 void open() {
   UIPC_Open(*sco_uipc, UIPC_CH_ID_AV_AUDIO, sco_data_cb, SCO_HOST_DATA_PATH);
