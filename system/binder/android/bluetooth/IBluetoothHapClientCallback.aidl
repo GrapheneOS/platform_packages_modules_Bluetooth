@@ -27,7 +27,7 @@ import java.util.List;
  * @hide
  */
 oneway interface IBluetoothHapClientCallback {
-    void onPresetSelected(in BluetoothDevice device, in int presetIndex);
+    void onPresetSelected(in BluetoothDevice device, in int presetIndex, in int reasonCode);
     void onPresetSelectionFailed(in  BluetoothDevice device, in int statusCode);
     void onPresetSelectionForGroupFailed(in int hapGroupId, in int statusCode);
     void onPresetInfoChanged(in  BluetoothDevice device,

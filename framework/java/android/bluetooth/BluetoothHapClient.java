@@ -94,11 +94,13 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
          *
          * @param device remote device,
          * @param presetIndex the currently active preset index.
+         * @param statusCode reason for the selected preset change
          *
          * @hide
          */
         @SystemApi
-        void onPresetSelected(@NonNull BluetoothDevice device, int presetIndex);
+        void onPresetSelected(@NonNull BluetoothDevice device, int presetIndex,
+                @Status int statusCode);
 
         /**
          * Invoked inform about the result of a failed preset change attempt.
@@ -175,13 +177,14 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
     @SuppressLint("AndroidFrameworkBluetoothPermission")
     private final IBluetoothHapClientCallback mCallback = new IBluetoothHapClientCallback.Stub() {
         @Override
-        public void onPresetSelected(@NonNull BluetoothDevice device, int presetIndex) {
+        public void onPresetSelected(@NonNull BluetoothDevice device, int presetIndex,
+                int reasonCode) {
             Attributable.setAttributionSource(device, mAttributionSource);
             for (Map.Entry<BluetoothHapClient.Callback, Executor> callbackExecutorEntry:
                     mCallbackExecutorMap.entrySet()) {
                 BluetoothHapClient.Callback callback = callbackExecutorEntry.getKey();
                 Executor executor = callbackExecutorEntry.getValue();
-                executor.execute(() -> callback.onPresetSelected(device, presetIndex));
+                executor.execute(() -> callback.onPresetSelected(device, presetIndex, reasonCode));
             }
         }
 
@@ -866,7 +869,7 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
     /**
      * Selects the currently active preset for a HA device
      *
-     * On success, {@link Callback#onPresetSelected(BluetoothDevice, int)} will be called with
+     * On success, {@link Callback#onPresetSelected(BluetoothDevice, int, int)} will be called with
      * reason code {@link BluetoothStatusCodes#REASON_LOCAL_APP_REQUEST}
      * On failure, {@link Callback#onPresetSelectionFailed(BluetoothDevice, int)} will be called.
      *
@@ -900,11 +903,11 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
      * <p> This group call may replace multiple device calls if those are part of the
      * valid HAS group. Note that binaural HA devices may or may not support group.
      *
-     * On success, {@link Callback#onPresetSelected(BluetoothDevice, int)} will be called
+     * On success, {@link Callback#onPresetSelected(BluetoothDevice, int, int)} will be called
      * for each device within the group with reason code
      * {@link BluetoothStatusCodes#REASON_LOCAL_APP_REQUEST}
-     * On failure, {@link Callback#onPresetSelectionFailed(BluetoothDevice, int)} will be called
-     * for each device within the group.
+     * On failure, {@link Callback#onPresetSelectionForGroupFailed(int, int)} will be
+     * called for the group.
      *
      * @param groupId is the device group identifier for which want to set the active preset
      * @param presetIndex is an index of one of the available presets
