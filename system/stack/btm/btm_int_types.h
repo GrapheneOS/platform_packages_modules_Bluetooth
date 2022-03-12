@@ -356,6 +356,7 @@ typedef struct tBTM_CB {
     history_.reset();
 
     devcb.Free();
+    sco_cb.Free();
     btm_inq_vars.Free();
 
     fixed_queue_free(page_queue, nullptr);

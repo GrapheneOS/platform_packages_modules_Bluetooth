@@ -161,6 +161,7 @@ cc_library_static {
         "LeAudioSetConfigSchemas_h",
     ],
     host_supported: true,
+    min_sdk_version: "Tiramisu"
 }
 
 // bta unit tests for target

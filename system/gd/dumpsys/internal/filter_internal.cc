@@ -200,6 +200,32 @@ bool internal::FilterTypeFloat(const reflection::Field& field, flatbuffers::Tabl
   return kFieldHasBeenFiltered;
 }
 
+bool internal::FilterTypeLong(const reflection::Field& field, flatbuffers::Table* table, PrivacyLevel privacy_level) {
+  ASSERT(table != nullptr);
+
+  const int64_t default_val = flatbuffers::GetFieldDefaultI<int64_t>(field);
+  flatbuffers::voffset_t field_offset = field.offset();
+
+  switch (privacy_level) {
+    case kPrivate:
+      flatbuffers::SetField<int64_t>(table, field, default_val);
+      internal::ScrubFromTable(table, field_offset);
+      break;
+    case kOpaque:
+      flatbuffers::SetField<int64_t>(table, field, default_val);
+      break;
+    case kAnonymized: {
+      auto target_field = flatbuffers::GetFieldI<int64_t>(*table, field);
+      int64_t new_val = static_cast<int64_t>(std::hash<std::string>{}(std::to_string(target_field)));
+      flatbuffers::SetField<int64_t>(table, field, new_val);
+    } break;
+    default:
+    case kAny:
+      break;
+  }
+  return kFieldHasBeenFiltered;
+}
+
 bool internal::FilterTypeString(const reflection::Field& field, flatbuffers::Table* table, PrivacyLevel privacy_level) {
   ASSERT(table != nullptr);
   ASSERT(field.type()->base_type() == reflection::BaseType::String);

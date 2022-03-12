@@ -203,6 +203,7 @@ cc_defaults {
 cc_library_static {
     name: "libbtif",
     defaults: ["libbtif_defaults"],
+    min_sdk_version: "Tiramisu"
 }
 
 cc_library_static {

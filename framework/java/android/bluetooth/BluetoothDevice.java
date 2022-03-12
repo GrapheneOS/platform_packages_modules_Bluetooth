@@ -244,6 +244,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
     /**
      * Broadcast Action: Indicates the audio buffer size should be switched
      * between a low latency buffer size and a higher and larger latency buffer size.
+     * Only registered receivers will receive this intent.
      * <p>Always contains the extra fields {@link #EXTRA_DEVICE} and {@link
      * #EXTRA_LOW_LATENCY_BUFFER_SIZE}.
      *
