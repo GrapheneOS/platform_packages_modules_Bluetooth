@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
+#include "dumpsys/filter.h"
+
 #include <memory>
 
-#include "dumpsys/filter.h"
+#include "common/init_flags.h"
 #include "dumpsys/internal/filter_internal.h"
 #include "os/log.h"
 
@@ -78,7 +80,8 @@ class Filter {
 class DeveloperPrivacyFilter : public Filter {
  public:
   DeveloperPrivacyFilter(const dumpsys::ReflectionSchema& reflection_schema) : Filter(reflection_schema) {}
-  void FilterInPlace(char* dumpsys_data) override {}
+  void FilterInPlace(char* dumpsys_data) override { /* Nothing to do in this mode */
+  }
 };
 
 class UserPrivacyFilter : public Filter {
@@ -97,7 +100,8 @@ bool UserPrivacyFilter::FilterField(const reflection::Field* field, flatbuffers:
   ASSERT(table != nullptr);
   internal::PrivacyLevel privacy_level = internal::FindFieldPrivacyLevel(*field);
 
-  switch (static_cast<flatbuffers::BaseType>(field->type()->base_type())) {
+  const auto type = static_cast<flatbuffers::BaseType>(field->type()->base_type());
+  switch (type) {
     case flatbuffers::BASE_TYPE_INT:
       return internal::FilterTypeInteger(*field, table, privacy_level);
       break;
@@ -113,8 +117,11 @@ bool UserPrivacyFilter::FilterField(const reflection::Field* field, flatbuffers:
     case flatbuffers::BASE_TYPE_BOOL:
       return internal::FilterTypeBool(*field, table, privacy_level);
       break;
+    case flatbuffers::BASE_TYPE_LONG:
+      return internal::FilterTypeLong(*field, table, privacy_level);
+      break;
     default:
-      LOG_WARN("%s WARN Unsupported base type\n", __func__);
+      LOG_WARN("Unsupported base type:%s", internal::FlatbufferTypeText(type).c_str());
       break;
   }
   return false;

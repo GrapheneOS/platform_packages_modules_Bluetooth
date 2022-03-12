@@ -24,4 +24,5 @@ cc_library_static {
         "include",
     ],
     host_supported: true,
+    min_sdk_version: "Tiramisu"
 }

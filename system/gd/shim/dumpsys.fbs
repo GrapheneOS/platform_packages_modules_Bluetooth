@@ -18,8 +18,6 @@ table ExampleInstantTable {
 table DumpsysModuleData {
     title:string (privacy:"Any");
     number_of_bundled_schemas:int (privacy:"Any");
-    example_piecemeal_table:ExamplePiecemealTable (privacy:"Any");
-    example_instant_table:ExampleInstantTable (privacy:"Any");
 }
 
 root_type DumpsysModuleData;

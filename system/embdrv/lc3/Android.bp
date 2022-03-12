@@ -45,6 +45,7 @@ cc_library_static {
     export_include_dirs: [
         "include",
     ],
+    min_sdk_version: "Tiramisu"
 }
 
 cc_fuzz {

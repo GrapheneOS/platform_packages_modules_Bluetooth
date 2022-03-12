@@ -34,6 +34,7 @@ import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothStatusCodes;
 import android.bluetooth.BluetoothUuid;
 import android.bluetooth.IBluetoothLeAudio;
+import android.bluetooth.IBluetoothLeAudioCallback;
 import android.bluetooth.IBluetoothLeBroadcastCallback;
 import android.content.AttributionSource;
 import android.content.BroadcastReceiver;
@@ -122,6 +123,9 @@ public class LeAudioService extends ProfileService {
 
     @VisibleForTesting
     RemoteCallbackList<IBluetoothLeBroadcastCallback> mBroadcastCallbacks;
+
+    @VisibleForTesting
+    RemoteCallbackList<IBluetoothLeAudioCallback> mLeAudioCallbacks;
 
     private class LeAudioGroupDescriptor {
         LeAudioGroupDescriptor() {
@@ -215,6 +219,7 @@ public class LeAudioService extends ProfileService {
         filter.addAction(BluetoothLeAudio.ACTION_LE_AUDIO_CONNECTION_STATE_CHANGED);
         mConnectionStateChangedReceiver = new ConnectionStateChangedReceiver();
         registerReceiver(mConnectionStateChangedReceiver, filter);
+        mLeAudioCallbacks = new RemoteCallbackList<IBluetoothLeAudioCallback>();
 
         // Initialize Broadcast native interface
         if (mAdapterService.isLeAudioBroadcastSourceSupported()) {
@@ -289,6 +294,10 @@ public class LeAudioService extends ProfileService {
 
         if (mBroadcastCallbacks != null) {
             mBroadcastCallbacks.kill();
+        }
+
+        if (mLeAudioCallbacks != null) {
+            mLeAudioCallbacks.kill();
         }
 
         mBroadcastStateMap.clear();
@@ -658,7 +667,7 @@ public class LeAudioService extends ProfileService {
      * Get the maximum number of supported simultaneous broadcasts.
      * @return number of supported simultaneous broadcasts
      */
-    public int getMaximumNumberOfBroadcast() {
+    public int getMaximumNumberOfBroadcasts() {
         /* TODO: This is currently fixed to 1 */
         return 1;
     }
@@ -1500,6 +1509,21 @@ public class LeAudioService extends ProfileService {
         }
     }
 
+    private void notifyUnicastCodecConfigChanged(int groupId,
+                                                 BluetoothLeAudioCodecStatus status) {
+        if (mLeAudioCallbacks != null) {
+            int n = mLeAudioCallbacks.beginBroadcast();
+            for (int i = 0; i < n; i++) {
+                try {
+                    mLeAudioCallbacks.getBroadcastItem(i).onCodecConfigChanged(groupId, status);
+                } catch (RemoteException e) {
+                    continue;
+                }
+            }
+            mLeAudioCallbacks.finishBroadcast();
+        }
+    }
+
     private void notifyBroadcastStarted(Integer instanceId, int reason) {
         if (!mBroadcastIdMap.containsKey(instanceId)) {
             Log.e(TAG, "Unknown Broadcast ID for broadcast instance: " + instanceId);
@@ -1954,6 +1978,42 @@ public class LeAudioService extends ProfileService {
         }
 
         @Override
+        public void registerCallback(IBluetoothLeAudioCallback callback,
+                AttributionSource source, SynchronousResultReceiver receiver) {
+            LeAudioService service = getService(source);
+            if ((service == null) || (service.mLeAudioCallbacks == null)) {
+                receiver.propagateException(new IllegalStateException("Service is unavailable"));
+                return;
+            }
+
+            enforceBluetoothPrivilegedPermission(service);
+            try {
+                service.mLeAudioCallbacks.register(callback);
+                receiver.send(null);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
+            }
+        }
+
+        @Override
+        public void unregisterCallback(IBluetoothLeAudioCallback callback,
+                AttributionSource source, SynchronousResultReceiver receiver) {
+            LeAudioService service = getService(source);
+            if ((service == null) || (service.mLeAudioCallbacks == null)) {
+                receiver.propagateException(new IllegalStateException("Service is unavailable"));
+                return;
+            }
+
+            enforceBluetoothPrivilegedPermission(service);
+            try {
+                service.mLeAudioCallbacks.unregister(callback);
+                receiver.send(null);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
+            }
+        }
+
+        @Override
         public void registerLeBroadcastCallback(IBluetoothLeBroadcastCallback callback,
                 AttributionSource source, SynchronousResultReceiver receiver) {
             LeAudioService service = getService(source);
@@ -2067,13 +2127,13 @@ public class LeAudioService extends ProfileService {
         }
 
         @Override
-        public void getMaximumNumberOfBroadcast(AttributionSource source,
+        public void getMaximumNumberOfBroadcasts(AttributionSource source,
                 SynchronousResultReceiver receiver) {
             try {
                 int defaultValue = 0;
                 LeAudioService service = getService(source);
                 if (service != null) {
-                    defaultValue = service.getMaximumNumberOfBroadcast();
+                    defaultValue = service.getMaximumNumberOfBroadcasts();
                 }
                 receiver.send(defaultValue);
             } catch (RuntimeException e) {

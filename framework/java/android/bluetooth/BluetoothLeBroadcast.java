@@ -41,6 +41,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeoutException;
 
@@ -402,14 +403,16 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
     /**
      * Register a {@link Callback} that will be invoked during the operation of this profile.
      *
-     * Repeated registration of the same <var>callback</var> object will have no effect after
-     * the first call to this method, even when the <var>executor</var> is different. API caller
-     * would have to call {@link #unregisterCallback(Callback)} with
-     * the same callback object before registering it again.
+     * Repeated registration of the same <var>callback</var> object after the first call to this
+     * method will result with IllegalArgumentException being thrown, even when the
+     * <var>executor</var> is different. API caller would have to call
+     * {@link #unregisterCallback(Callback)} with the same callback object before registering it
+     * again.
      *
      * @param executor an {@link Executor} to execute given callback
      * @param callback user implementation of the {@link Callback}
-     * @throws IllegalArgumentException if a null executor, sink, or callback is given
+     * @throws NullPointerException if a null executor, or callback is given, or
+     *  IllegalArgumentException if the same <var>callback<var> is already registered.
      * @hide
      */
     @SystemApi
@@ -420,12 +423,8 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
     })
     public void registerCallback(@NonNull @CallbackExecutor Executor executor,
             @NonNull Callback callback) {
-        if (executor == null) {
-            throw new IllegalArgumentException("executor cannot be null");
-        }
-        if (callback == null) {
-            throw new IllegalArgumentException("callback cannot be null");
-        }
+        Objects.requireNonNull(executor, "executor cannot be null");
+        Objects.requireNonNull(callback, "callback cannot be null");
         if (!isEnabled()) {
             throw new IllegalStateException("service not enabled");
         }
@@ -466,7 +465,8 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
      * <p>Callbacks are automatically unregistered when application process goes away
      *
      * @param callback user implementation of the {@link Callback}
-     * @throws IllegalArgumentException when callback is null or when no callback is registered
+     * @throws NullPointerException when callback is null or IllegalArgumentException when no
+     *  callback is registered
      * @hide
      */
     @SystemApi
@@ -476,9 +476,7 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
             android.Manifest.permission.BLUETOOTH_PRIVILEGED,
     })
     public void unregisterCallback(@NonNull Callback callback) {
-        if (callback == null) {
-            throw new IllegalArgumentException("callback cannot be null");
-        }
+        Objects.requireNonNull(callback, "callback cannot be null");
 
         if (DBG) log("unregisterCallback");
 
@@ -708,7 +706,7 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
      */
     @SystemApi
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
-    public int getMaximumNumberOfBroadcast() {
+    public int getMaximumNumberOfBroadcasts() {
         final IBluetoothLeAudio service = getService();
         final int defaultValue = 1;
         if (service == null) {
@@ -717,7 +715,7 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
         } else if (isEnabled()) {
             try {
                 final SynchronousResultReceiver<Integer> recv = new SynchronousResultReceiver();
-                service.getMaximumNumberOfBroadcast(mAttributionSource, recv);
+                service.getMaximumNumberOfBroadcasts(mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));

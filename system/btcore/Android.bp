@@ -46,6 +46,7 @@ cc_library_static {
         "//packages/modules/Bluetooth:__subpackages__",
     ],
     defaults: ["libbtcore_defaults"],
+    min_sdk_version: "Tiramisu"
 }
 
 cc_library_static {

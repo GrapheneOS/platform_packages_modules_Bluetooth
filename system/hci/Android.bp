@@ -61,6 +61,7 @@ cc_library_static {
         },
     },
     host_supported: true,
+    min_sdk_version: "Tiramisu"
 }
 
 // HCI unit tests for target

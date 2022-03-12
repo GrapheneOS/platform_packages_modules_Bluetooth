@@ -72,14 +72,14 @@ oneway interface IBluetoothCsipSetCoordinator {
    * @return unique lock identifier required for unlocking
    */
   @JavaPassthrough(annotation="@android.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)")
-  void groupLock(int groupId, in IBluetoothCsipSetCoordinatorLockCallback callback, in AttributionSource attributionSource, in SynchronousResultReceiver receiver);
+  void lockGroup(int groupId, in IBluetoothCsipSetCoordinatorLockCallback callback, in AttributionSource attributionSource, in SynchronousResultReceiver receiver);
 
   /**
    * Unlock group using {@var lockUuid} acquired through
-   * {@link android.bluetooth.IBluetoothCsipSetCoordinator.groupLock}.
+   * {@link android.bluetooth.IBluetoothCsipSetCoordinator.lockGroup}.
    */
   @JavaPassthrough(annotation="@android.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)")
-  void groupUnlock(in ParcelUuid lockUuid, in AttributionSource attributionSource, in SynchronousResultReceiver receiver);
+  void unlockGroup(in ParcelUuid lockUuid, in AttributionSource attributionSource, in SynchronousResultReceiver receiver);
 
   const int CSIS_GROUP_ID_INVALID = -1;
   const int CSIS_GROUP_SIZE_UNKNOWN = 1;

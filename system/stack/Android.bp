@@ -215,6 +215,7 @@ cc_library_static {
         "libldacBT_abr",
     ],
     host_supported: true,
+    min_sdk_version: "Tiramisu"
 }
 
 // Bluetooth stack unit tests for target
