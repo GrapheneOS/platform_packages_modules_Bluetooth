@@ -595,7 +595,7 @@ public class HapClientService extends ProfileService {
                 int n = mCallbacks.beginBroadcast();
                 for (int i = 0; i < n; i++) {
                     try {
-                        mCallbacks.getBroadcastItem(i).onSelectActivePresetFailed(device,
+                        mCallbacks.getBroadcastItem(i).onPresetSelectionFailed(device,
                                 BluetoothStatusCodes.ERROR_HAP_INVALID_PRESET_INDEX);
                     } catch (RemoteException e) {
                         continue;
@@ -630,7 +630,7 @@ public class HapClientService extends ProfileService {
                 int n = mCallbacks.beginBroadcast();
                 for (int i = 0; i < n; i++) {
                     try {
-                        mCallbacks.getBroadcastItem(i).onSelectActivePresetForGroupFailed(groupId,
+                        mCallbacks.getBroadcastItem(i).onPresetSelectionForGroupFailed(groupId,
                                 BluetoothStatusCodes.ERROR_HAP_INVALID_PRESET_INDEX);
                     } catch (RemoteException e) {
                         continue;
@@ -790,7 +790,7 @@ public class HapClientService extends ProfileService {
             int n = mCallbacks.beginBroadcast();
             for (int i = 0; i < n; i++) {
                 try {
-                    mCallbacks.getBroadcastItem(i).onActivePresetChanged(device, presetIndex);
+                    mCallbacks.getBroadcastItem(i).onPresetSelected(device, presetIndex);
                 } catch (RemoteException e) {
                     continue;
                 }
@@ -832,7 +832,7 @@ public class HapClientService extends ProfileService {
             int n = mCallbacks.beginBroadcast();
             for (int i = 0; i < n; i++) {
                 try {
-                    mCallbacks.getBroadcastItem(i).onSelectActivePresetFailed(device,
+                    mCallbacks.getBroadcastItem(i).onPresetSelectionFailed(device,
                             stackEventStatusToProfileStatus(statusCode));
                 } catch (RemoteException e) {
                     continue;
@@ -847,7 +847,7 @@ public class HapClientService extends ProfileService {
             int n = mCallbacks.beginBroadcast();
             for (int i = 0; i < n; i++) {
                 try {
-                    mCallbacks.getBroadcastItem(i).onSelectActivePresetForGroupFailed(groupId,
+                    mCallbacks.getBroadcastItem(i).onPresetSelectionForGroupFailed(groupId,
                             stackEventStatusToProfileStatus(statusCode));
                 } catch (RemoteException e) {
                     continue;

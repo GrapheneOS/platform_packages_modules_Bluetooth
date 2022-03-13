@@ -98,7 +98,7 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
          * @hide
          */
         @SystemApi
-        void onActivePresetChanged(@NonNull BluetoothDevice device, int presetIndex);
+        void onPresetSelected(@NonNull BluetoothDevice device, int presetIndex);
 
         /**
          * Invoked inform about the result of a failed preset change attempt.
@@ -109,7 +109,7 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
          * @hide
          */
         @SystemApi
-        void onSelectActivePresetFailed(@NonNull BluetoothDevice device, @Status int statusCode);
+        void onPresetSelectionFailed(@NonNull BluetoothDevice device, @Status int statusCode);
 
         /**
          * Invoked to inform about the result of a failed preset change attempt.
@@ -122,7 +122,7 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
          * @hide
          */
         @SystemApi
-        void onSelectActivePresetForGroupFailed(int hapGroupId, @Status int statusCode);
+        void onPresetSelectionForGroupFailed(int hapGroupId, @Status int statusCode);
 
         /**
          * Invoked to inform about the preset list changes.
@@ -175,35 +175,35 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
     @SuppressLint("AndroidFrameworkBluetoothPermission")
     private final IBluetoothHapClientCallback mCallback = new IBluetoothHapClientCallback.Stub() {
         @Override
-        public void onActivePresetChanged(@NonNull BluetoothDevice device, int presetIndex) {
+        public void onPresetSelected(@NonNull BluetoothDevice device, int presetIndex) {
             Attributable.setAttributionSource(device, mAttributionSource);
             for (Map.Entry<BluetoothHapClient.Callback, Executor> callbackExecutorEntry:
                     mCallbackExecutorMap.entrySet()) {
                 BluetoothHapClient.Callback callback = callbackExecutorEntry.getKey();
                 Executor executor = callbackExecutorEntry.getValue();
-                executor.execute(() -> callback.onActivePresetChanged(device, presetIndex));
+                executor.execute(() -> callback.onPresetSelected(device, presetIndex));
             }
         }
 
         @Override
-        public void onSelectActivePresetFailed(@NonNull BluetoothDevice device, int status) {
+        public void onPresetSelectionFailed(@NonNull BluetoothDevice device, int status) {
             Attributable.setAttributionSource(device, mAttributionSource);
             for (Map.Entry<BluetoothHapClient.Callback, Executor> callbackExecutorEntry:
                     mCallbackExecutorMap.entrySet()) {
                 BluetoothHapClient.Callback callback = callbackExecutorEntry.getKey();
                 Executor executor = callbackExecutorEntry.getValue();
-                executor.execute(() -> callback.onSelectActivePresetFailed(device, status));
+                executor.execute(() -> callback.onPresetSelectionFailed(device, status));
             }
         }
 
         @Override
-        public void onSelectActivePresetForGroupFailed(int hapGroupId, int statusCode) {
+        public void onPresetSelectionForGroupFailed(int hapGroupId, int statusCode) {
             for (Map.Entry<BluetoothHapClient.Callback, Executor> callbackExecutorEntry:
                     mCallbackExecutorMap.entrySet()) {
                 BluetoothHapClient.Callback callback = callbackExecutorEntry.getKey();
                 Executor executor = callbackExecutorEntry.getValue();
                 executor.execute(
-                        () -> callback.onSelectActivePresetForGroupFailed(hapGroupId, statusCode));
+                        () -> callback.onPresetSelectionForGroupFailed(hapGroupId, statusCode));
             }
         }
 
@@ -866,9 +866,9 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
     /**
      * Selects the currently active preset for a HA device
      *
-     * On success, {@link Callback#onActivePresetChanged(BluetoothDevice, int)} will be called with
+     * On success, {@link Callback#onPresetSelected(BluetoothDevice, int)} will be called with
      * reason code {@link BluetoothStatusCodes#REASON_LOCAL_APP_REQUEST}
-     * On failure, {@link Callback#onSelectActivePresetFailed(BluetoothDevice, int)} will be called.
+     * On failure, {@link Callback#onPresetSelectionFailed(BluetoothDevice, int)} will be called.
      *
      * @param device is the device for which we want to set the active preset
      * @param presetIndex is an index of one of the available presets
@@ -900,10 +900,10 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
      * <p> This group call may replace multiple device calls if those are part of the
      * valid HAS group. Note that binaural HA devices may or may not support group.
      *
-     * On success, {@link Callback#onActivePresetChanged(BluetoothDevice, int)} will be called
+     * On success, {@link Callback#onPresetSelected(BluetoothDevice, int)} will be called
      * for each device within the group with reason code
      * {@link BluetoothStatusCodes#REASON_LOCAL_APP_REQUEST}
-     * On failure, {@link Callback#onSelectActivePresetFailed(BluetoothDevice, int)} will be called
+     * On failure, {@link Callback#onPresetSelectionFailed(BluetoothDevice, int)} will be called
      * for each device within the group.
      *
      * @param groupId is the device group identifier for which want to set the active preset
