@@ -270,10 +270,10 @@ package android.bluetooth {
   }
 
   public static interface BluetoothHapClient.Callback {
-    method public void onActivePresetChanged(@NonNull android.bluetooth.BluetoothDevice, int);
     method public void onPresetInfoChanged(@NonNull android.bluetooth.BluetoothDevice, @NonNull java.util.List<android.bluetooth.BluetoothHapPresetInfo>, int);
-    method public void onSelectActivePresetFailed(@NonNull android.bluetooth.BluetoothDevice, int);
-    method public void onSelectActivePresetForGroupFailed(int, int);
+    method public void onPresetSelected(@NonNull android.bluetooth.BluetoothDevice, int);
+    method public void onPresetSelectionFailed(@NonNull android.bluetooth.BluetoothDevice, int);
+    method public void onPresetSelectionForGroupFailed(int, int);
     method public void onSetPresetNameFailed(@NonNull android.bluetooth.BluetoothDevice, int);
     method public void onSetPresetNameForGroupFailed(int, int);
   }
