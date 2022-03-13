@@ -785,12 +785,14 @@ public class HapClientService extends ProfileService {
         }
     }
 
-    private void notifyActivePresetChanged(BluetoothDevice device, int presetIndex) {
+    private void notifyActivePresetChanged(BluetoothDevice device, int presetIndex,
+            int reasonCode) {
         if (mCallbacks != null) {
             int n = mCallbacks.beginBroadcast();
             for (int i = 0; i < n; i++) {
                 try {
-                    mCallbacks.getBroadcastItem(i).onPresetSelected(device, presetIndex);
+                    mCallbacks.getBroadcastItem(i).onPresetSelected(device, presetIndex,
+                            reasonCode);
                 } catch (RemoteException e) {
                     continue;
                 }
@@ -799,10 +801,10 @@ public class HapClientService extends ProfileService {
         }
     }
 
-    private void notifyActivePresetChangedForGroup(int groupId, int presetIndex) {
+    private void notifyActivePresetChangedForGroup(int groupId, int presetIndex, int reasonCode) {
         List<BluetoothDevice> all_group_devices = getGroupDevices(groupId);
         for (BluetoothDevice dev : all_group_devices) {
-            notifyActivePresetChanged(dev, presetIndex);
+            notifyActivePresetChanged(dev, presetIndex, reasonCode);
         }
     }
 
@@ -1103,14 +1105,18 @@ public class HapClientService extends ProfileService {
 
                 if (device != null) {
                     mDeviceCurrentPresetMap.put(device, currentPresetIndex);
-                    notifyActivePresetChanged(device, currentPresetIndex);
+                    // FIXME: Add app request queueing to support other reasons
+                    int reasonCode = BluetoothStatusCodes.REASON_LOCAL_STACK_REQUEST;
+                    notifyActivePresetChanged(device, currentPresetIndex, reasonCode);
 
                 } else if (groupId != BluetoothCsipSetCoordinator.GROUP_ID_INVALID) {
                     List<BluetoothDevice> all_group_devices = getGroupDevices(groupId);
                     for (BluetoothDevice dev : all_group_devices) {
                         mDeviceCurrentPresetMap.put(dev, currentPresetIndex);
                     }
-                    notifyActivePresetChangedForGroup(groupId, currentPresetIndex);
+                    // FIXME: Add app request queueing to support other reasons
+                    int reasonCode = BluetoothStatusCodes.REASON_LOCAL_STACK_REQUEST;
+                    notifyActivePresetChangedForGroup(groupId, currentPresetIndex, reasonCode);
                 }
             } return;
 
