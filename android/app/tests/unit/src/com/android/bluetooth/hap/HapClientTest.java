@@ -678,25 +678,6 @@ public class HapClientTest {
      * Test that native callback generates proper callback call.
      */
     @Test
-    public void testStackEventOnFeaturesUpdate() {
-        doReturn(new ParcelUuid[]{BluetoothUuid.HAS}).when(mAdapterService)
-                .getRemoteUuids(any(BluetoothDevice.class));
-
-        mNativeInterface.onDeviceAvailable(getByteAddress(mDevice), 0x00);
-        mNativeInterface.onFeaturesUpdate(getByteAddress(mDevice), 0x03);
-
-        try {
-            verify(mCallback, after(TIMEOUT_MS).times(1)).onHapFeaturesAvailable(eq(mDevice),
-                    eq(0x03));
-        } catch (RemoteException e) {
-            throw e.rethrowFromSystemServer();
-        }
-    }
-
-    /**
-     * Test that native callback generates proper callback call.
-     */
-    @Test
     public void testStackEventOnPresetSelected() {
         doReturn(new ParcelUuid[]{BluetoothUuid.HAS}).when(mAdapterService)
                 .getRemoteUuids(any(BluetoothDevice.class));
@@ -952,13 +933,6 @@ public class HapClientTest {
         evt.device = device;
         evt.valueInt1 = 0x01; // features
         mService.messageFromNative(evt);
-
-        try {
-            verify(mCallback, after(TIMEOUT_MS).times(1)).onHapFeaturesAvailable(eq(device),
-                    eq(evt.valueInt1));
-        } catch (RemoteException e) {
-            throw e.rethrowFromSystemServer();
-        }
 
         // Inject some initial presets
         List<BluetoothHapPresetInfo> presets =
