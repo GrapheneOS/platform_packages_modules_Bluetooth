@@ -17,6 +17,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <cstddef>
 #include <future>
 #include <map>
 
@@ -364,35 +365,33 @@ TEST_F(MainShimTest, connect_and_disconnect) {
 
 TEST_F(MainShimTest, is_flushable) {
   {
-    BT_HDR* bt_hdr =
-        (BT_HDR*)calloc(1, sizeof(BT_HDR) + sizeof(HciDataPreamble));
+    alignas(BT_HDR)
+        std::byte hdr_data[sizeof(BT_HDR) + sizeof(HciDataPreamble)]{};
+    BT_HDR* bt_hdr = reinterpret_cast<BT_HDR*>(hdr_data);
 
     ASSERT_TRUE(!IsPacketFlushable(bt_hdr));
     HciDataPreamble* hci = ToPacketData<HciDataPreamble>(bt_hdr);
     hci->SetFlushable();
     ASSERT_TRUE(IsPacketFlushable(bt_hdr));
-
-    free(bt_hdr);
   }
 
   {
-    size_t offset = 1024;
-    BT_HDR* bt_hdr =
-        (BT_HDR*)calloc(1, sizeof(BT_HDR) + sizeof(HciDataPreamble) + offset);
-    bt_hdr->offset = offset;
+    const size_t offset = 1024;
+    alignas(BT_HDR)
+        std::byte hdr_data[sizeof(BT_HDR) + sizeof(HciDataPreamble) + offset]{};
+    BT_HDR* bt_hdr = reinterpret_cast<BT_HDR*>(hdr_data);
 
     ASSERT_TRUE(!IsPacketFlushable(bt_hdr));
     HciDataPreamble* hci = ToPacketData<HciDataPreamble>(bt_hdr);
     hci->SetFlushable();
     ASSERT_TRUE(IsPacketFlushable(bt_hdr));
-
-    free(bt_hdr);
   }
 
   {
-    size_t offset = 1024;
-    BT_HDR* bt_hdr =
-        (BT_HDR*)calloc(1, sizeof(BT_HDR) + sizeof(HciDataPreamble) + offset);
+    const size_t offset = 1024;
+    alignas(BT_HDR)
+        std::byte hdr_data[sizeof(BT_HDR) + sizeof(HciDataPreamble) + offset]{};
+    BT_HDR* bt_hdr = reinterpret_cast<BT_HDR*>(hdr_data);
 
     uint8_t* p = ToPacketData<uint8_t>(bt_hdr, L2CAP_SEND_CMD_OFFSET);
     UINT16_TO_STREAM(
@@ -402,7 +401,5 @@ TEST_F(MainShimTest, is_flushable) {
     p = ToPacketData<uint8_t>(bt_hdr, L2CAP_SEND_CMD_OFFSET);
     UINT16_TO_STREAM(p, 0x123 | (L2CAP_PKT_START << L2CAP_PKT_TYPE_SHIFT));
     ASSERT_TRUE(IsPacketFlushable(bt_hdr));
-
-    free(bt_hdr);
   }
 }
