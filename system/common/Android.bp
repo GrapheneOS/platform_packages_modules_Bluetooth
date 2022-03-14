@@ -10,7 +10,7 @@ package {
 cc_library_static {
     name: "libbt-common",
     defaults: [
-        "fluoride_defaults",
+        "fluoride_basic_defaults",
         "clang_file_coverage",
     ],
     host_supported: true,
@@ -33,18 +33,11 @@ cc_library_static {
     target: {
         android: {
             srcs: ["metrics.cc"],
-            shared_libs: ["libstatslog_bt"],
         },
         host: {
             srcs: ["metrics_linux.cc"],
         },
     },
-    shared_libs: [
-        "libcrypto",
-    ],
-    static_libs: [
-        "libbt-protos-lite",
-    ],
     min_sdk_version: "Tiramisu"
 }
 
@@ -107,6 +100,8 @@ cc_test {
         "test/thread_performance_test.cc",
     ],
     shared_libs: [
+        "android.hardware.bluetooth@1.0",
+        "android.hardware.bluetooth@1.1",
         "liblog",
     ],
     static_libs: [

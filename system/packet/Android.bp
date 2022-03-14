@@ -15,7 +15,7 @@ cc_library_static {
         "./include",
         "./",
     ],
-    whole_static_libs: [
+    static_libs: [
         "lib-bt-packets-base",
         "lib-bt-packets-avrcp",
     ],
@@ -63,19 +63,23 @@ cc_test {
         "tests/base/packet_test.cc",
     ],
     shared_libs: [
+        "android.hardware.bluetooth@1.0",
+        "android.hardware.bluetooth@1.1",
         "libbinder_ndk",
         "libcrypto",
     ],
     static_libs: [
         "libgmock",
         "lib-bt-packets",
+        "lib-bt-packets-base",
+        "lib-bt-packets-avrcp",
     ],
     cflags: [
         "-DBUILDCFG",
     ],
     target: {
         android: {
-            shared_libs: [
+            static_libs: [
                 "android.system.suspend.control-V1-ndk",
             ],
         },
