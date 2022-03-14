@@ -531,7 +531,6 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
     /** @hide */
     @IntDef(flag = true, prefix = "AUDIO_LOCATION_",
             value = {
-            AUDIO_LOCATION_INVALID,
             AUDIO_LOCATION_FRONT_LEFT,
             AUDIO_LOCATION_FRONT_RIGHT,
             AUDIO_LOCATION_FRONT_CENTER,
