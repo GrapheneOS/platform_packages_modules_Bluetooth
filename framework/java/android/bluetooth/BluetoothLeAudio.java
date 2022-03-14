@@ -1268,9 +1268,14 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
         if (service == null) {
             Log.w(TAG, "Proxy not attached to service");
             if (DBG) log(Log.getStackTraceString(new Throwable()));
-        } else if (mAdapter.isEnabled()) {
-            //TODO: add the implementation.
-            if (VDBG) log("getAudioLocation() from LE audio service");
+        } else if (mAdapter.isEnabled() && isValidDevice(device)) {
+            try {
+                final SynchronousResultReceiver<Integer> recv = new SynchronousResultReceiver();
+                service.getAudioLocation(device, mAttributionSource, recv);
+                return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultLocation);
+            } catch (RemoteException | TimeoutException e) {
+                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+            }
         }
         return defaultLocation;
     }
