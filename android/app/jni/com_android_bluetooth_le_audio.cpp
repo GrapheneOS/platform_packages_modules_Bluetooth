@@ -43,6 +43,7 @@ static jmethodID method_onConnectionStateChanged;
 static jmethodID method_onGroupStatus;
 static jmethodID method_onGroupNodeStatus;
 static jmethodID method_onAudioConf;
+static jmethodID method_onSinkAudioLocationAvailable;
 
 static struct {
   jclass clazz;
@@ -127,6 +128,28 @@ class LeAudioClientCallbacksImpl : public LeAudioClientCallbacks {
                                  (jint)sink_audio_location,
                                  (jint)source_audio_location, (jint)avail_cont);
   }
+
+  void OnSinkAudioLocationAvailable(const RawAddress& bd_addr,
+                                    uint32_t sink_audio_location) override {
+    LOG(INFO) << __func__;
+
+    std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid() || mCallbacksObj == nullptr) return;
+
+    ScopedLocalRef<jbyteArray> addr(
+        sCallbackEnv.get(), sCallbackEnv->NewByteArray(sizeof(RawAddress)));
+    if (!addr.get()) {
+      LOG(ERROR) << "Failed to new jbyteArray bd addr for group status";
+      return;
+    }
+
+    sCallbackEnv->SetByteArrayRegion(addr.get(), 0, sizeof(RawAddress),
+                                     (jbyte*)&bd_addr);
+    sCallbackEnv->CallVoidMethod(mCallbacksObj,
+                                 method_onSinkAudioLocationAvailable,
+                                 addr.get(), (jint)sink_audio_location);
+  }
 };
 
 static LeAudioClientCallbacksImpl sLeAudioClientCallbacks;
@@ -143,6 +166,8 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
   method_onGroupNodeStatus =
       env->GetMethodID(clazz, "onGroupNodeStatus", "([BII)V");
   method_onAudioConf = env->GetMethodID(clazz, "onAudioConf", "(IIIII)V");
+  method_onSinkAudioLocationAvailable =
+      env->GetMethodID(clazz, "onSinkAudioLocationAvailable", "([BI)V");
   method_onConnectionStateChanged =
       env->GetMethodID(clazz, "onConnectionStateChanged", "(I[B)V");
 }
