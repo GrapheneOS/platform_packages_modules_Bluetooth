@@ -70,6 +70,13 @@ class LeAudioClientInterfaceImpl : public LeAudioClientInterface,
                           snk_audio_location, src_audio_location, avail_cont));
   }
 
+  void OnSinkAudioLocationAvailable(const RawAddress& address,
+                                    uint32_t snk_audio_location) override {
+    do_in_jni_thread(FROM_HERE,
+                     Bind(&LeAudioClientCallbacks::OnSinkAudioLocationAvailable,
+                          Unretained(callbacks), address, snk_audio_location));
+  }
+
   void Initialize(LeAudioClientCallbacks* callbacks,
                   const std::vector<btle_audio_codec_config_t>&
                       offloading_preference) override {
