@@ -1016,6 +1016,8 @@ class LeAudioClientImpl : public LeAudioClient {
       leAudioDevice->snk_audio_locations_ = snk_audio_locations;
 
       LeAudioDeviceGroup* group = aseGroups_.FindById(leAudioDevice->group_id_);
+      callbacks_->OnSinkAudioLocationAvailable(leAudioDevice->address_,
+                                               snk_audio_locations.to_ulong());
       /* Read of source audio locations during initial attribute discovery.
        * Group would be assigned once service search is completed.
        */
