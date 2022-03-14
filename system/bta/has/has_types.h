@@ -79,6 +79,9 @@ static const bluetooth::Uuid kUuidHearingAidPresetControlPoint =
 static const bluetooth::Uuid kUuidActivePresetIndex =
     bluetooth::Uuid::From16Bit(0x2BDC);
 
+static const uint8_t kStartPresetIndex = 1;
+static const uint8_t kMaxNumOfPresets = 255;
+
 /* Base device class for the GATT-based service clients */
 class GattServiceDevice {
  public:
