@@ -16,8 +16,6 @@
 
 #define LOG_TAG "BluetoothHidDeviceServiceJni"
 
-#define LOG_NDEBUG 0
-
 #include "com_android_bluetooth.h"
 #include "hardware/bt_hd.h"
 #include "utils/Log.h"

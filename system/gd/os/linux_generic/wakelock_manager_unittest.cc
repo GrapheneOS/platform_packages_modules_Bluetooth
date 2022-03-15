@@ -104,12 +104,12 @@ TEST_F(WakelockManagerTest, test_set_os_callouts_repeated_acquire) {
 
   WakelockManager::Get().Acquire();
   SyncHandler();
-  ASSERT_EQ(os_callouts.acquired_lock_counts.size(), 1);
+  ASSERT_EQ(os_callouts.acquired_lock_counts.size(), (size_t)1);
   ASSERT_THAT(os_callouts.GetNetAcquiredCount(WakelockManager::kBtWakelockId), Optional(Eq(1)));
 
   WakelockManager::Get().Acquire();
   SyncHandler();
-  ASSERT_EQ(os_callouts.acquired_lock_counts.size(), 1);
+  ASSERT_EQ(os_callouts.acquired_lock_counts.size(), (size_t)1);
   ASSERT_THAT(os_callouts.GetNetAcquiredCount(WakelockManager::kBtWakelockId), Optional(Eq(2)));
 
   WakelockManager::Get().Release();
@@ -130,12 +130,12 @@ TEST_F(WakelockManagerTest, test_set_os_callouts_repeated_release) {
 
   WakelockManager::Get().Acquire();
   SyncHandler();
-  ASSERT_EQ(os_callouts.acquired_lock_counts.size(), 1);
+  ASSERT_EQ(os_callouts.acquired_lock_counts.size(), (size_t)1);
   ASSERT_THAT(os_callouts.GetNetAcquiredCount(WakelockManager::kBtWakelockId), Optional(Eq(1)));
 
   WakelockManager::Get().Release();
   SyncHandler();
-  ASSERT_EQ(os_callouts.acquired_lock_counts.size(), 1);
+  ASSERT_EQ(os_callouts.acquired_lock_counts.size(), (size_t)1);
   ASSERT_THAT(os_callouts.GetNetAcquiredCount(WakelockManager::kBtWakelockId), Optional(Eq(0)));
 
   // OS callouts allow pass through for repeated release calls
@@ -158,7 +158,7 @@ TEST_F(WakelockManagerTest, test_with_os_callouts_in_a_loop_and_dump) {
   for (size_t i = 0; i < 1000; i++) {
     WakelockManager::Get().Acquire();
     SyncHandler();
-    ASSERT_EQ(os_callouts.acquired_lock_counts.size(), 1);
+    ASSERT_EQ(os_callouts.acquired_lock_counts.size(), (size_t)1);
     ASSERT_THAT(os_callouts.GetNetAcquiredCount(WakelockManager::kBtWakelockId), Optional(Eq(1)));
     WakelockManager::Get().Release();
     SyncHandler();

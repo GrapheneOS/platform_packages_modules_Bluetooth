@@ -95,9 +95,7 @@ struct codec_manager_impl {
     sink_config.sampling_rate = stream_conf.sink_sample_frequency_hz;
     sink_config.frame_duration = stream_conf.sink_frame_duration_us;
     sink_config.octets_per_frame = stream_conf.sink_octets_per_codec_frame;
-    // TODO: set the default value 1 for now, would change it if we need more
-    // configuration
-    sink_config.blocks_per_sdu = 1;
+    sink_config.blocks_per_sdu = stream_conf.sink_codec_frames_blocks_per_sdu;
     sink_config.peer_delay_ms = delay_ms;
     LeAudioClientAudioSource::UpdateAudioConfigToHal(sink_config);
   }
@@ -113,9 +111,8 @@ struct codec_manager_impl {
     source_config.sampling_rate = stream_conf.source_sample_frequency_hz;
     source_config.frame_duration = stream_conf.source_frame_duration_us;
     source_config.octets_per_frame = stream_conf.source_octets_per_codec_frame;
-    // TODO: set the default value 1 for now, would change it if we need more
-    // configuration
-    source_config.blocks_per_sdu = 1;
+    source_config.blocks_per_sdu =
+        stream_conf.source_codec_frames_blocks_per_sdu;
     source_config.peer_delay_ms = delay_ms;
     LeAudioClientAudioSink::UpdateAudioConfigToHal(source_config);
   }

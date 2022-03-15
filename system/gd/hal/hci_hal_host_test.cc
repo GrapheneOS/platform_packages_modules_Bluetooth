@@ -325,7 +325,7 @@ TEST_F(HciHalRootcanalTest, receive_multiple_acl_batch) {
   for (int i = 0; i < num_packets; i++) {
     write(fake_server_socket_, incoming_packet.data(), incoming_packet.size());
   }
-  while (incoming_packets_queue_.size() != num_packets) {
+  while (incoming_packets_queue_.size() != (size_t)num_packets) {
   }
   for (int i = 0; i < num_packets; i++) {
     auto packet = incoming_packets_queue_.front();

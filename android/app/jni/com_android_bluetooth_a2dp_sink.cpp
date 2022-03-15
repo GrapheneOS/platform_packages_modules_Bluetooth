@@ -16,8 +16,6 @@
 
 #define LOG_TAG "BluetoothA2dpSinkServiceJni"
 
-#define LOG_NDEBUG 0
-
 #include "com_android_bluetooth.h"
 #include "hardware/bt_av.h"
 #include "utils/Log.h"

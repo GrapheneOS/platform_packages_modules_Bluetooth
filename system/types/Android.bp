@@ -56,4 +56,8 @@ cc_test {
         "test/raw_address_unittest.cc",
         "test/bluetooth/uuid_unittest.cc",
     ],
+    shared_libs: [
+        "android.hardware.bluetooth@1.0",
+        "android.hardware.bluetooth@1.1",
+    ],
 }

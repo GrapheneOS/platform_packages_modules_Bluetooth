@@ -46,7 +46,7 @@ rust_defaults {
     proc_macros: [
         "libpaste",
     ],
-    whole_static_libs: [
+    static_libs: [
         "libbt_callbacks_cxx",
     ],
 }
@@ -68,7 +68,10 @@ rust_ffi_static {
 
 cc_library_static {
     name: "libbt_shim_bridge",
-    defaults: ["gd_ffi_defaults"],
+    defaults: [
+        "gd_ffi_defaults",
+        "libchrome_support_defaults"
+    ],
     generated_headers: [
         "libbt_init_flags_bridge_header",
         "libbt_shim_bridge_header",
@@ -99,16 +102,16 @@ cc_library_static {
         "//apex_available:platform",
         "com.android.bluetooth",
     ],
-    shared_libs: [
-        "libchrome",
-    ],
     min_sdk_version: "30",
 }
 
 cc_library_static {
     name: "libbluetooth_rust_interop",
-    defaults: ["gd_ffi_defaults"],
-    whole_static_libs: [
+    defaults: [
+        "gd_ffi_defaults",
+        "libchrome_support_defaults"
+    ],
+    static_libs: [
         "libbt_shim_bridge",
         "libbt_shim_ffi",
     ],
@@ -122,13 +125,13 @@ cc_library_static {
 
 cc_library_static {
     name: "libbt_callbacks_cxx",
-    defaults: ["gd_ffi_defaults"],
+    defaults: [
+        "gd_ffi_defaults",
+        "libchrome_support_defaults"
+    ],
     header_libs: ["libbt_callbacks_cxx_headers"],
     srcs: ["callbacks/callbacks.cc"],
     generated_headers: ["libbt_shim_bridge_header", "cxx-bridge-header"],
-    shared_libs: [
-        "libchrome",
-    ],
     host_supported: true,
     apex_available: [
         "//apex_available:platform",

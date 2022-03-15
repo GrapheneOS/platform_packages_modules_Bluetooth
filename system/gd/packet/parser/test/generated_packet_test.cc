@@ -568,7 +568,7 @@ TEST(GeneratedPacketTest, testFixedSizeByteArray) {
   for (uint32_t i = 0; i < word_array_size; i++) word_array[i] = i;
 
   auto packet = PacketWithFixedArraysOfBytesBuilder::Create(byte_array, word_array);
-  ASSERT_EQ(2 * (256 / 8), packet->size());
+  ASSERT_EQ((size_t)(2 * (256 / 8)), packet->size());
 
   std::shared_ptr<std::vector<uint8_t>> packet_bytes = std::make_shared<std::vector<uint8_t>>();
   BitInserter it(*packet_bytes);
@@ -1118,7 +1118,7 @@ TEST(GeneratedPacketTest, testOneArrayOfStructAndAnotherStruct) {
   auto view = OneArrayOfStructAndAnotherStructView::Create(packet_bytes_view);
   ASSERT_TRUE(view.IsValid());
   auto one = view.GetOne();
-  ASSERT_EQ(one.array_.size(), 3);
+  ASSERT_EQ(one.array_.size(), 3ul);
   ASSERT_EQ(one.another_.id_, 4);
   ASSERT_EQ(one.another_.count_, 0x0804);
 }
@@ -1901,7 +1901,7 @@ TEST(GeneratedPacketTest, testOneGenericStructArrayNoZeroEmpty) {
   too_few_bytes = std::make_shared<std::vector<uint8_t>>(a_two_byte_struct);
   view = OneGenericStructArrayNoZeroView::Create(PacketView<kLittleEndian>(too_few_bytes));
   ASSERT_TRUE(view.IsValid());
-  ASSERT_EQ(1, view.GetAnArray().size());
+  ASSERT_EQ(1ul, view.GetAnArray().size());
 }
 
 TEST(GeneratedPacketTest, testToStringOutput) {
