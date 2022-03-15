@@ -1322,7 +1322,14 @@ public final class BluetoothDevice implements Parcelable, Attributable {
         mAttributionSource = attributionSource;
     }
 
-    /** {@hide} */
+    /**
+     * Method should never be used anywhere. Only exception is from {@link Intent}
+     * Used to set the device current attribution source
+     *
+     * @param attributionSource The associated {@link AttributionSource} for this device in this
+     * process
+     * @hide
+     */
     @SystemApi
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
     public void prepareToEnterProcess(@NonNull AttributionSource attributionSource) {
