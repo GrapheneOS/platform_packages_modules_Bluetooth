@@ -50,8 +50,11 @@ class DBusHeadsetCallbacks : public headset::Callbacks {
     return instance;
   }
 
-  DBusHeadsetCallbacks(headset::Interface* headset) : headset_(headset){};
+  DBusHeadsetCallbacks(headset::Interface* headset) : headset_(headset) {
+    call_status = 0;
+  };
 
+  // headset::Callbacks
   void ConnectionStateCallback(headset::bthf_connection_state_t state, RawAddress* bd_addr) override {
     LOG_INFO("ConnectionStateCallback from %s", bd_addr->ToString().c_str());
     topshim::rust::internal::connection_state_cb(state, bd_addr);
@@ -63,17 +66,7 @@ class DBusHeadsetCallbacks : public headset::Callbacks {
 
     switch (state) {
       case headset::bthf_audio_state_t::BTHF_AUDIO_STATE_CONNECTED:
-        // This triggers a +CIEV command to set the call status for HFP
-        // devices. It is required along with the SCO establishment for some
-        // devices to provide sound.
-        headset_->PhoneStateChange(
-            /*num_active=*/1,
-            /*num_held=*/0,
-            /*call_setup_state=*/headset::bthf_call_state_t::BTHF_CALL_STATE_IDLE,
-            /*number=*/"",
-            /*type=*/(headset::bthf_call_addrtype_t)0,
-            /*name=*/"",
-            /*bd_addr=*/bd_addr);
+        SetCallStatus(1, bd_addr);
         // This triggers a +VGS command to set the speaker volume for HFP
         // devices.
         // TODO(b/215089433): Add a set volume API and have client to handle the
@@ -81,22 +74,7 @@ class DBusHeadsetCallbacks : public headset::Callbacks {
         headset_->VolumeControl(headset::bthf_volume_type_t::BTHF_VOLUME_TYPE_SPK, 5, bd_addr);
         return;
       case headset::bthf_audio_state_t::BTHF_AUDIO_STATE_DISCONNECTED:
-        headset_->PhoneStateChange(
-            /*num_active=*/0,
-            /*num_held=*/0,
-            /*call_setup_state=*/headset::bthf_call_state_t::BTHF_CALL_STATE_DISCONNECTED,
-            /*number=*/"",
-            /*type=*/(headset::bthf_call_addrtype_t)0,
-            /*name=*/"",
-            /*bd_addr=*/bd_addr);
-        headset_->PhoneStateChange(
-            /*num_active=*/0,
-            /*num_held=*/0,
-            /*call_setup_state=*/headset::bthf_call_state_t::BTHF_CALL_STATE_IDLE,
-            /*number=*/"",
-            /*type=*/(headset::bthf_call_addrtype_t)0,
-            /*name=*/"",
-            /*bd_addr=*/bd_addr);
+        SetCallStatus(0, bd_addr);
         return;
       default:
         return;
@@ -148,17 +126,20 @@ class DBusHeadsetCallbacks : public headset::Callbacks {
   }
 
   void AtClccCallback(RawAddress* bd_addr) override {
-    // If we want to support the Enhanced Call Status feature, we need to use this
-    // callback to send response like "+CLCC: 0,0,0,0,0," with the following codes.
-    // headset_->ClccResponse(
-    //    0,
-    //    headset::BTHF_CALL_DIRECTION_OUTGOING,
-    //    headset::BTHF_CALL_STATE_ACTIVE,
-    //    headset::BTHF_CALL_TYPE_VOICE,
-    //    headset::BTHF_CALL_MPTY_TYPE_SINGLE,
-    //    NULL,
-    //    headset::BTHF_CALL_ADDRTYPE_UNKNOWN,
-    //    bd_addr);
+    // Reply +CLCC:<idx>,<dir>,<status>,<mode>,<mprty>[,<number>,<type>] if
+    // there is an active audio connection. Simply rely OK otherwise.
+    // This is required for some headsets to start to send actual data to AG.
+    if (call_status)
+      headset_->ClccResponse(
+          /*index=*/1,
+          /*dir=*/headset::BTHF_CALL_DIRECTION_OUTGOING,
+          /*state=*/headset::BTHF_CALL_STATE_ACTIVE,
+          /*mode=*/headset::BTHF_CALL_TYPE_VOICE,
+          /*multi_party=*/headset::BTHF_CALL_MPTY_TYPE_SINGLE,
+          /*number=*/"",
+          /*type=*/headset::BTHF_CALL_ADDRTYPE_UNKNOWN,
+          bd_addr);
+
     headset_->AtResponse(headset::BTHF_AT_RESPONSE_OK, 0, bd_addr);
   }
 
@@ -188,6 +169,36 @@ class DBusHeadsetCallbacks : public headset::Callbacks {
 
  private:
   headset::Interface* headset_;
+  int call_status;
+
+  void SetCallStatus(int call, RawAddress* bd_addr) {
+    if (call == call_status) return;
+
+    if (call) {
+      // This triggers a +CIEV command to set the call status for HFP
+      // devices. It is required along with the SCO establishment for some
+      // devices to provide sound.
+      headset_->PhoneStateChange(
+          /*num_active=*/1,
+          /*num_held=*/0,
+          /*call_setup_state=*/headset::bthf_call_state_t::BTHF_CALL_STATE_IDLE,
+          /*number=*/"",
+          /*type=*/(headset::bthf_call_addrtype_t)0,
+          /*name=*/"",
+          /*bd_addr=*/bd_addr);
+    } else {
+      headset_->PhoneStateChange(
+          /*num_active=*/0,
+          /*num_held=*/0,
+          /*call_setup_state=*/headset::bthf_call_state_t::BTHF_CALL_STATE_IDLE,
+          /*number=*/"",
+          /*type=*/(headset::bthf_call_addrtype_t)0,
+          /*name=*/"",
+          /*bd_addr=*/bd_addr);
+    }
+
+    call_status = call;
+  }
 };
 
 int HfpIntf::init() {
