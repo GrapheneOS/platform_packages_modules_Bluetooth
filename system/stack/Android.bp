@@ -27,7 +27,7 @@ cc_test_library {
 // Bluetooth stack static library for target
 cc_library_static {
     name: "libbt-stack",
-    defaults: ["fluoride_defaults"],
+    defaults: ["fluoride_basic_defaults"],
     local_include_dirs: [
         "include",
         "avct",
@@ -202,17 +202,6 @@ cc_library_static {
     ],
     static_libs: [
         "libbt-hci",
-        "libFraunhoferAAC",
-        "libbt-platform-protos-lite",
-    ],
-    shared_libs: [
-        "libcutils",
-        "liblog",
-        "libcrypto",
-    ],
-    required: [
-        "libldacBT_enc",
-        "libldacBT_abr",
     ],
     host_supported: true,
     min_sdk_version: "Tiramisu"
@@ -238,11 +227,9 @@ cc_test {
     shared_libs: [
         "android.hardware.bluetooth@1.0",
         "android.hardware.bluetooth@1.1",
-        "android.hardware.bluetooth.a2dp@1.0",
         "android.hardware.bluetooth.audio@2.0",
         "android.hardware.bluetooth.audio@2.1",
         "android.hardware.bluetooth.audio-V1-ndk",
-        "android.system.suspend.control-V1-ndk",
         "libaaudio",
         "libbinder_ndk",
         "libcutils",
@@ -258,6 +245,8 @@ cc_test {
         "libcrypto",
     ],
     static_libs: [
+        "android.hardware.bluetooth.a2dp@1.0",
+        "android.system.suspend.control-V1-ndk",
         "libbt-audio-hal-interface",
         "libbluetooth-dumpsys",
         "libbtcore",
@@ -386,12 +375,14 @@ cc_test {
         "BluetoothGeneratedPackets_h",
     ],
     shared_libs: [
+        "android.hardware.bluetooth@1.0",
+        "android.hardware.bluetooth@1.1",
         "libcrypto",
         "libcutils",
-        "libflatbuffers-cpp",
     ],
     static_libs: [
         "liblog",
+        "libflatbuffers-cpp",
         "libgmock",
         "libosi",
     ],
@@ -419,12 +410,14 @@ cc_test {
         "test/ble_advertiser_test.cc",
     ],
     shared_libs: [
-        "android.system.suspend.control-V1-ndk",
+        "android.hardware.bluetooth@1.0",
+        "android.hardware.bluetooth@1.1",
         "libbinder_ndk",
         "libcrypto",
         "libcutils",
     ],
     static_libs: [
+        "android.system.suspend.control-V1-ndk",
         "libbluetooth-types",
         "liblog",
         "libgmock",
@@ -446,11 +439,13 @@ cc_test {
         "test/ad_parser_unittest.cc",
     ],
     shared_libs: [
-        "android.system.suspend.control-V1-ndk",
+        "android.hardware.bluetooth@1.0",
+        "android.hardware.bluetooth@1.1",
         "libbinder_ndk",
         "libcrypto",
     ],
     static_libs: [
+        "android.system.suspend.control-V1-ndk",
         "libbluetooth-types",
         "liblog",
         "libgmock",
@@ -830,6 +825,7 @@ cc_test {
         "libbt-protos-lite",
         "libbtdevice",
         "libbt-utils",
+        "libflatbuffers-cpp",
         "libgmock",
         "liblog",
         "libosi",
@@ -837,7 +833,6 @@ cc_test {
     ],
     shared_libs: [
         "libcrypto",
-        "libflatbuffers-cpp",
         "libprotobuf-cpp-lite",
     ],
     sanitize: {
@@ -981,6 +976,7 @@ cc_test {
         "libbt-common",
         "libbt-protos-lite",
         "libbtdevice",
+        "libflatbuffers-cpp",
         "libgmock",
         "liblog",
         "libosi",
@@ -988,7 +984,6 @@ cc_test {
     shared_libs: [
         "libbinder_ndk",
         "libcrypto",
-        "libflatbuffers-cpp",
         "libprotobuf-cpp-lite",
     ],
     sanitize: {
@@ -1052,6 +1047,7 @@ cc_test {
         "libbt-common",
         "libbt-protos-lite",
         "libbtdevice",
+        "libflatbuffers-cpp",
         "libgmock",
         "liblog",
         "libosi",
@@ -1059,7 +1055,6 @@ cc_test {
     shared_libs: [
         "libbinder_ndk",
         "libcrypto",
-        "libflatbuffers-cpp",
         "libprotobuf-cpp-lite",
     ],
     sanitize: {
