@@ -334,7 +334,8 @@ public final class BluetoothCsipSetCoordinator implements BluetoothProfile, Auto
      */
     @SystemApi
     @RequiresPermission(Manifest.permission.BLUETOOTH_PRIVILEGED)
-    public @NonNull Map getGroupUuidMapByDevice(@Nullable BluetoothDevice device) {
+    public @NonNull Map<Integer, ParcelUuid> getGroupUuidMapByDevice(
+            @Nullable BluetoothDevice device) {
         if (VDBG) log("getGroupUuidMapByDevice()");
         final IBluetoothCsipSetCoordinator service = getService();
         final Map defaultValue = new HashMap<>();
