@@ -2449,7 +2449,7 @@ class LeAudioClientImpl : public LeAudioClient {
     if (lc3_decoder_left_mem) {
       free(lc3_decoder_left_mem);
       lc3_decoder_left_mem = nullptr;
-      free(lc3_decoder_left_mem);
+      free(lc3_decoder_right_mem);
       lc3_decoder_right_mem = nullptr;
     }
   }
