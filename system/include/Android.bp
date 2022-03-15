@@ -16,7 +16,7 @@ cc_library_headers {
 
     // We need this in case some file outside of the Bluetooth project includes
     // bluetooth.h but doesn't include libchrome which avrcp.h depends on.
-    export_shared_lib_headers: ["libchrome"],
+    export_static_lib_headers: ["libchrome"],
 
     vendor_available: true,
     host_supported: true,
