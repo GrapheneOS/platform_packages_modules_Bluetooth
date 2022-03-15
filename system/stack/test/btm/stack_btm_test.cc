@@ -218,6 +218,8 @@ TEST(ScoTest, make_sco_packet) {
   osi_free(p);
 }
 
+TEST(BtmTest, BTM_EIR_MAX_SERVICES) { ASSERT_EQ(46, BTM_EIR_MAX_SERVICES); }
+
 }  // namespace
 
 void btm_sec_rmt_name_request_complete(const RawAddress* p_bd_addr,
