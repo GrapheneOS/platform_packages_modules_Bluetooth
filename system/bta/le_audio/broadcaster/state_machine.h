@@ -191,9 +191,6 @@ class IBroadcastStateMachineCallbacks {
   virtual uint16_t GetMaxTransportLatency(uint8_t instance_id) = 0;
 };
 
-} /* namespace broadcaster */
-} /* namespace le_audio */
-
 std::ostream& operator<<(
     std::ostream& os,
     const le_audio::broadcaster::BroadcastStateMachine::Message& state);
@@ -205,3 +202,6 @@ std::ostream& operator<<(
 std::ostream& operator<<(
     std::ostream& os,
     const le_audio::broadcaster::BroadcastStateMachine& machine);
+
+} /* namespace broadcaster */
+} /* namespace le_audio */

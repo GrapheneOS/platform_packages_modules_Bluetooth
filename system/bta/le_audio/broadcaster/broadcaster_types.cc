@@ -272,9 +272,6 @@ std::vector<uint8_t> BroadcastCodecWrapper::GetCodecSpecData() const {
   return data;
 }
 
-} /* namespace broadcaster */
-} /* namespace le_audio */
-
 std::ostream& operator<<(
     std::ostream& os,
     const le_audio::broadcaster::BroadcastCodecWrapper& config) {
@@ -292,3 +289,6 @@ std::ostream& operator<<(
   os << "]";
   return os;
 }
+
+} /* namespace broadcaster */
+} /* namespace le_audio */

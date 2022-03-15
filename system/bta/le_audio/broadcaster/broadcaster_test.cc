@@ -53,12 +53,6 @@ void btsnd_hcic_ble_rand(base::Callback<void(BT_OCTET8)> cb) {
   generator_cb = cb;
 }
 
-std::ostream& operator<<(
-    std::ostream& os,
-    const le_audio::broadcaster::BroadcastStateMachine& machine) {
-  return os;
-}
-
 namespace le_audio {
 namespace broadcaster {
 namespace {
