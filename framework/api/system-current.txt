@@ -94,7 +94,7 @@ package android.bluetooth {
 
   public abstract static class BluetoothAdapter.BluetoothConnectionCallback {
     ctor public BluetoothAdapter.BluetoothConnectionCallback();
-    method @NonNull public static String disconnectReasonText(int);
+    method @NonNull public static String disconnectReasonToString(int);
     method public void onDeviceConnected(@NonNull android.bluetooth.BluetoothDevice);
     method public void onDeviceDisconnected(@NonNull android.bluetooth.BluetoothDevice, int);
   }
