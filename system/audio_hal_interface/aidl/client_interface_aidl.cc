@@ -241,9 +241,10 @@ bool BluetoothAudioClientInterface::SetLowLatencyModeAllowed(bool allowed) {
 
   auto aidl_retval = provider_->setLowLatencyModeAllowed(allowed);
   if (!aidl_retval.isOk()) {
-    LOG(ERROR) << __func__ << ": BluetoothAudioHal failure: "
-               << aidl_retval.getDescription();
-    return false;
+    LOG(WARNING) << __func__ << ": BluetoothAudioHal is not ready: "
+               << aidl_retval.getDescription()
+               << ". is_low_latency_allowed_ is saved "
+               <<"and it will be sent to BluetoothAudioHal at StartSession.";
   }
   return true;
 }
