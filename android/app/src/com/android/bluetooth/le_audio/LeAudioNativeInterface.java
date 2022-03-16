@@ -141,6 +141,18 @@ public class LeAudioNativeInterface {
         sendMessageToService(event);
     }
 
+    private void onSinkAudioLocationAvailable(byte[] address, int sinkAudioLocation) {
+        LeAudioStackEvent event =
+                new LeAudioStackEvent(LeAudioStackEvent.EVENT_TYPE_SINK_AUDIO_LOCATION_AVAILABLE);
+        event.device = getDevice(address);
+        event.valueInt1 = sinkAudioLocation;
+
+        if (DBG) {
+            Log.d(TAG, "onSinkAudioLocationAvailable: " + event);
+        }
+        sendMessageToService(event);
+    }
+
     /**
      * Initializes the native interface.
      *

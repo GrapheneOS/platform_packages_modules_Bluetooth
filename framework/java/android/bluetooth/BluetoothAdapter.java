@@ -190,6 +190,16 @@ public final class BluetoothAdapter {
             STATE_BLE_TURNING_OFF
     })
     @Retention(RetentionPolicy.SOURCE)
+    public @interface InternalAdapterState {}
+
+    /** @hide */
+    @IntDef(prefix = { "STATE_" }, value = {
+            STATE_OFF,
+            STATE_TURNING_ON,
+            STATE_ON,
+            STATE_TURNING_OFF,
+    })
+    @Retention(RetentionPolicy.SOURCE)
     public @interface AdapterState {}
 
     /**
@@ -270,14 +280,14 @@ public final class BluetoothAdapter {
     public @interface RfcommListenerResult {}
 
     /**
-     * Human-readable string helper for AdapterState
+     * Human-readable string helper for AdapterState and InternalAdapterState
      *
      * @hide
      */
     @SystemApi
     @RequiresNoPermission
     @NonNull
-    public static String nameForState(@AdapterState int state) {
+    public static String nameForState(@InternalAdapterState int state) {
         switch (state) {
             case STATE_OFF:
                 return "OFF";
@@ -1151,9 +1161,8 @@ public final class BluetoothAdapter {
             new IpcDataCache.QueryHandler<>() {
         @RequiresLegacyBluetoothPermission
         @RequiresNoPermission
-        @AdapterState
         @Override
-        public Integer apply(Void query) {
+        public @InternalAdapterState Integer apply(Void query) {
             int state = BluetoothAdapter.STATE_OFF;
             mServiceLock.readLock().lock();
             try {
@@ -1189,8 +1198,7 @@ public final class BluetoothAdapter {
      * Fetch the current bluetooth state.  If the service is down, return
      * OFF.
      */
-    @AdapterState
-    private int getStateInternal() {
+    private @InternalAdapterState int getStateInternal() {
         return mBluetoothGetStateCache.query(null);
     }
 
@@ -1206,8 +1214,7 @@ public final class BluetoothAdapter {
      */
     @RequiresLegacyBluetoothPermission
     @RequiresNoPermission
-    @AdapterState
-    public int getState() {
+    public @AdapterState int getState() {
         int state = getStateInternal();
 
         // Consider all internal states as OFF
@@ -1243,10 +1250,9 @@ public final class BluetoothAdapter {
      */
     @RequiresLegacyBluetoothPermission
     @RequiresNoPermission
-    @AdapterState
     @UnsupportedAppUsage(publicAlternatives = "Use {@link #getState()} instead to determine "
             + "whether you can use BLE & BT classic.")
-    public int getLeState() {
+    public @InternalAdapterState int getLeState() {
         int state = getStateInternal();
 
         if (VDBG) {
@@ -4125,7 +4131,6 @@ public final class BluetoothAdapter {
      * @hide
      */
     @RequiresNoPermission
-    @SystemApi
     public boolean registerServiceLifecycleCallback(@NonNull ServiceLifecycleCallback callback) {
         return getBluetoothService(callback.mRemote) != null;
     }
@@ -4136,7 +4141,6 @@ public final class BluetoothAdapter {
      * @hide
      */
     @RequiresNoPermission
-    @SystemApi
     public void unregisterServiceLifecycleCallback(@NonNull ServiceLifecycleCallback callback) {
         removeServiceStateCallback(callback.mRemote);
     }
@@ -4146,7 +4150,6 @@ public final class BluetoothAdapter {
      *
      * @hide
      */
-    @SystemApi
     public abstract static class ServiceLifecycleCallback {
 
         /** Called when the bluetooth stack is up */
@@ -4759,7 +4762,7 @@ public final class BluetoothAdapter {
          * Returns human-readable strings corresponding to {@link DisconnectReason}.
          */
         @NonNull
-        public static String disconnectReasonText(@DisconnectReason int reason) {
+        public static String disconnectReasonToString(@DisconnectReason int reason) {
             switch (reason) {
                 case BluetoothStatusCodes.ERROR_UNKNOWN:
                     return "Reason unknown";

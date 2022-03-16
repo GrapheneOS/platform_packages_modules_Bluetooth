@@ -145,6 +145,9 @@ class MockLeAudioClientCallbacks
               (uint8_t direction, int group_id, uint32_t snk_audio_location,
                uint32_t src_audio_location, uint16_t avail_cont),
               (override));
+  MOCK_METHOD((void), OnSinkAudioLocationAvailable,
+              (const RawAddress& bd_addr, uint32_t snk_audio_location),
+              (override));
 };
 
 class UnicastTestNoInit : public Test {
