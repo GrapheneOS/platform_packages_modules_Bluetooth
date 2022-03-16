@@ -772,17 +772,7 @@ public class HapClientService extends ProfileService {
     }
 
     private void notifyFeaturesAvailable(BluetoothDevice device, int features) {
-        if (mCallbacks != null) {
-            int n = mCallbacks.beginBroadcast();
-            for (int i = 0; i < n; i++) {
-                try {
-                    mCallbacks.getBroadcastItem(i).onHapFeaturesAvailable(device, features);
-                } catch (RemoteException e) {
-                    continue;
-                }
-            }
-            mCallbacks.finishBroadcast();
-        }
+        Log.d(TAG, "HAP device: " + device + ", features: " + String.format("0x%04X", features));
     }
 
     private void notifyActivePresetChanged(BluetoothDevice device, int presetIndex,
