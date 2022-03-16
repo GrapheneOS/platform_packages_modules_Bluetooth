@@ -141,17 +141,6 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
                 @Status int statusCode);
 
         /**
-         * Invoked to inform about HA device's feature set.
-         *
-         * @param device remote device
-         * @param hapFeatures the feature set integer with feature bits set. The inidividual bits
-         * are defined by Bluetooth SIG in Hearing Access Service specification.
-         *
-         * @hide
-         */
-        void onHapFeaturesAvailable(@NonNull BluetoothDevice device, @Feature int hapFeatures);
-
-        /**
          * Invoked to inform about the failed preset rename attempt.
          *
          * @param device remote device
@@ -220,18 +209,6 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
                 Executor executor = callbackExecutorEntry.getValue();
                 executor.execute(
                         () -> callback.onPresetInfoChanged(device, presetInfoList, statusCode));
-            }
-        }
-
-        @Override
-        public void onHapFeaturesAvailable(@NonNull BluetoothDevice device,
-                @Feature int hapFeatures) {
-            Attributable.setAttributionSource(device, mAttributionSource);
-            for (Map.Entry<BluetoothHapClient.Callback, Executor> callbackExecutorEntry:
-                    mCallbackExecutorMap.entrySet()) {
-                BluetoothHapClient.Callback callback = callbackExecutorEntry.getKey();
-                Executor executor = callbackExecutorEntry.getValue();
-                executor.execute(() -> callback.onHapFeaturesAvailable(device, hapFeatures));
             }
         }
 
