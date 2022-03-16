@@ -1,6 +1,6 @@
 //! D-Bus proxy implementations of the APIs.
 
-use bt_topshim::btif::{BtSspVariant, BtTransport, Uuid128Bit};
+use bt_topshim::btif::{BtDeviceType, BtSspVariant, BtTransport, Uuid128Bit};
 use bt_topshim::profiles::gatt::GattStatus;
 
 use btstack::bluetooth::{
@@ -37,12 +37,13 @@ fn make_object_path(idx: i32, name: &str) -> dbus::Path {
     dbus::Path::new(format!("/org/chromium/bluetooth/hci{}/{}", idx, name)).unwrap()
 }
 
-impl_dbus_arg_enum!(BtTransport);
+impl_dbus_arg_enum!(BtDeviceType);
 impl_dbus_arg_enum!(BtSspVariant);
+impl_dbus_arg_enum!(BtTransport);
 impl_dbus_arg_enum!(GattStatus);
+impl_dbus_arg_enum!(GattWriteRequestStatus);
 impl_dbus_arg_enum!(GattWriteType);
 impl_dbus_arg_enum!(LePhy);
-impl_dbus_arg_enum!(GattWriteRequestStatus);
 impl_dbus_arg_enum!(Profile);
 
 // Represents Uuid128Bit as an array in D-Bus.
@@ -380,6 +381,26 @@ impl IBluetooth for BluetoothDBus {
 
     #[dbus_method("SetPairingConfirmation")]
     fn set_pairing_confirmation(&self, device: BluetoothDevice, accept: bool) -> bool {
+        dbus_generated!()
+    }
+
+    #[dbus_method("GetRemoteName")]
+    fn get_remote_name(&self, device: BluetoothDevice) -> String {
+        dbus_generated!()
+    }
+
+    #[dbus_method("GetRemoteType")]
+    fn get_remote_type(&self, device: BluetoothDevice) -> BtDeviceType {
+        dbus_generated!()
+    }
+
+    #[dbus_method("GetRemoteAlias")]
+    fn get_remote_alias(&self, device: BluetoothDevice) -> String {
+        dbus_generated!()
+    }
+
+    #[dbus_method("GetRemoteClass")]
+    fn get_remote_class(&self, device: BluetoothDevice) -> u32 {
         dbus_generated!()
     }
 
