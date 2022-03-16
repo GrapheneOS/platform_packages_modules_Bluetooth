@@ -137,7 +137,8 @@ class BroadcastStateMachine : public StateMachine<5> {
 
   virtual bool Initialize() = 0;
   virtual const BroadcastCodecWrapper& GetCodecConfig() const = 0;
-  virtual std::optional<BigConfig> const& GetBigConfig() = 0;
+  virtual std::optional<BigConfig> const& GetBigConfig() const = 0;
+  virtual BroadcastStateMachineConfig const& GetStateMachineConfig() const = 0;
   virtual void RequestOwnAddress(
       base::Callback<void(uint8_t /* address_type*/, RawAddress /*address*/)>
           cb) = 0;
@@ -202,6 +203,13 @@ std::ostream& operator<<(
 std::ostream& operator<<(
     std::ostream& os,
     const le_audio::broadcaster::BroadcastStateMachine& machine);
+
+std::ostream& operator<<(std::ostream& os,
+                         const le_audio::broadcaster::BigConfig& machine);
+
+std::ostream& operator<<(
+    std::ostream& os,
+    const le_audio::broadcaster::BroadcastStateMachineConfig& machine);
 
 } /* namespace broadcaster */
 } /* namespace le_audio */

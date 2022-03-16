@@ -88,7 +88,9 @@ class MockBroadcastStateMachine
   MOCK_METHOD((const le_audio::broadcaster::BroadcastCodecWrapper&),
               GetCodecConfig, (), (const override));
   MOCK_METHOD((std::optional<le_audio::broadcaster::BigConfig> const&),
-              GetBigConfig, (), (override));
+              GetBigConfig, (), (const override));
+  MOCK_METHOD((le_audio::broadcaster::BroadcastStateMachineConfig const&),
+              GetStateMachineConfig, (), (const override));
   MOCK_METHOD(
       (void), RequestOwnAddress,
       (base::Callback<void(uint8_t /* address_type*/, RawAddress /*address*/)>

@@ -77,8 +77,12 @@ class BroadcastStateMachineImpl : public BroadcastStateMachine {
     return sm_config_.codec_wrapper;
   }
 
-  std::optional<BigConfig> const& GetBigConfig() override {
+  std::optional<BigConfig> const& GetBigConfig() const override {
     return active_config_;
+  }
+
+  BroadcastStateMachineConfig const& GetStateMachineConfig() const override {
+    return sm_config_;
   }
 
   void RequestOwnAddress(
@@ -596,18 +600,80 @@ std::ostream& operator<<(std::ostream& os,
   return os;
 }
 
+std::ostream& operator<<(std::ostream& os,
+                         const le_audio::broadcaster::BigConfig& config) {
+  os << "\n";
+  os << "        Status: 0x" << std::hex << +config.status << std::dec << "\n";
+  os << "        BIG ID: " << +config.big_id << "\n";
+  os << "        Sync delay: " << config.big_sync_delay << "\n";
+  os << "        Transport Latency: " << config.transport_latency_big << "\n";
+  os << "        Phy: " << +config.phy << "\n";
+  os << "        Nse: " << +config.nse << "\n";
+  os << "        Bn: " << +config.bn << "\n";
+  os << "        Pto: " << +config.pto << "\n";
+  os << "        Irc: " << +config.irc << "\n";
+  os << "        Max pdu: " << config.max_pdu << "\n";
+  os << "        Iso interval: " << config.iso_interval << "\n";
+  os << "        Connection handles (BISes): [";
+  for (auto& el : config.connection_handles) {
+    os << std::hex << +el << std::dec << ":";
+  }
+  os << "]";
+  return os;
+}
+
+std::ostream& operator<<(
+    std::ostream& os,
+    const le_audio::broadcaster::BroadcastStateMachineConfig& config) {
+  const char* const PHYS[] = {"NONE", "1M", "2M", "CODED"};
+
+  os << "\n";
+  os << "        Broadcast ID: [";
+  for (auto& el : config.broadcast_id) {
+    os << std::hex << +el << ":";
+  }
+  os << "]\n";
+  os << "        Streaming PHY: "
+     << ((config.streaming_phy > 3) ? std::to_string(config.streaming_phy)
+                                    : PHYS[config.streaming_phy])
+     << "\n";
+  os << "        Codec Wrapper: " << config.codec_wrapper << "\n";
+  if (config.broadcast_code) {
+    os << "        Broadcast Code: [";
+    for (auto& el : *config.broadcast_code) {
+      os << std::hex << +el << ":";
+    }
+    os << "]\n";
+  } else {
+    os << "        Broadcast Code: NONE\n";
+  }
+
+  std::vector<uint8_t> an_raw;
+  config.announcement.ToRawPacket(an_raw);
+  os << "        Announcement RAW: [";
+  for (auto& el : an_raw) {
+    os << std::hex << +el << ":";
+  }
+  os << "]";
+
+  return os;
+}
+
 std::ostream& operator<<(
     std::ostream& os,
     const le_audio::broadcaster::BroadcastStateMachine& machine) {
   os << "    Broadcast state machine: {"
-     << "      State: " << machine.GetState()
      << "      Instance ID: " << +machine.GetInstanceId() << "\n"
-     << "      Codec Config: " << machine.GetCodecConfig() << "\n";
-  os << "      Broadcast ID: [";
-  for (auto& el : machine.GetBroadcastId()) {
-    os << std::hex << +el << ":";
+     << "      State: " << machine.GetState() << "\n";
+  os << "      State Machine Config: " << machine.GetStateMachineConfig()
+     << "\n";
+
+  if (machine.GetBigConfig()) {
+    os << "      BigConfig: " << *machine.GetBigConfig() << "\n";
+  } else {
+    os << "      BigConfig: NONE\n";
   }
-  os << "]}\n";
+  os << "    }\n";
   return os;
 }
 
