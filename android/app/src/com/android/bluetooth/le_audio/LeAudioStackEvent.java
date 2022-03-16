@@ -30,8 +30,9 @@ public class LeAudioStackEvent {
     public static final int EVENT_TYPE_GROUP_STATUS_CHANGED = 2;
     public static final int EVENT_TYPE_GROUP_NODE_STATUS_CHANGED = 3;
     public static final int EVENT_TYPE_AUDIO_CONF_CHANGED = 4;
+    public static final int EVENT_TYPE_SINK_AUDIO_LOCATION_AVAILABLE = 5;
         // -------- DO NOT PUT ANY NEW UNICAST EVENTS BELOW THIS LINE-------------
-    public static final int EVENT_TYPE_UNICAST_MAX = 5;
+    public static final int EVENT_TYPE_UNICAST_MAX = 6;
 
     // Broadcast related events
     public static final int EVENT_TYPE_BROADCAST_CREATED = EVENT_TYPE_UNICAST_MAX + 1;
@@ -103,6 +104,8 @@ public class LeAudioStackEvent {
                 return "EVENT_TYPE_GROUP_NODE_STATUS_CHANGED";
             case EVENT_TYPE_AUDIO_CONF_CHANGED:
                 return "EVENT_TYPE_AUDIO_CONF_CHANGED";
+            case EVENT_TYPE_SINK_AUDIO_LOCATION_AVAILABLE:
+                return "EVENT_TYPE_SINK_AUDIO_LOCATION_AVAILABLE";
             case EVENT_TYPE_BROADCAST_CREATED:
                 return "EVENT_TYPE_BROADCAST_CREATED";
             case EVENT_TYPE_BROADCAST_DESTROYED:
@@ -138,6 +141,8 @@ public class LeAudioStackEvent {
             case EVENT_TYPE_AUDIO_CONF_CHANGED:
                 // FIXME: It should have proper direction names here
                 return "{direction:" + value + "}";
+            case EVENT_TYPE_SINK_AUDIO_LOCATION_AVAILABLE:
+                return "{sink_audio_location:" + value + "}";
             case EVENT_TYPE_BROADCAST_CREATED:
                 return "{instance_id:" + value + "}";
             case EVENT_TYPE_BROADCAST_DESTROYED:

@@ -143,6 +143,7 @@ public class LeAudioService extends ProfileService {
     private final Map<BluetoothDevice, LeAudioStateMachine> mStateMachines = new LinkedHashMap<>();
 
     private final Map<BluetoothDevice, Integer> mDeviceGroupIdMap = new ConcurrentHashMap<>();
+    private final Map<BluetoothDevice, Integer> mDeviceAudioLocationMap = new ConcurrentHashMap<>();
 
     private final int mContextSupportingInputAudio =
             BluetoothLeAudio.CONTEXT_TYPE_COMMUNICATION |
@@ -203,6 +204,7 @@ public class LeAudioService extends ProfileService {
         mStateMachinesThread.start();
 
         mDeviceGroupIdMap.clear();
+        mDeviceAudioLocationMap.clear();
         mBroadcastStateMap.clear();
         mBroadcastIdMap.clear();
         mBroadcastMetadataList.clear();
@@ -290,6 +292,7 @@ public class LeAudioService extends ProfileService {
         }
 
         mDeviceGroupIdMap.clear();
+        mDeviceAudioLocationMap.clear();
         mGroupDescriptors.clear();
 
         if (mBroadcastCallbacks != null) {
@@ -1049,6 +1052,17 @@ public class LeAudioService extends ProfileService {
             intent.putExtra(BluetoothLeAudio.EXTRA_LE_AUDIO_SINK_LOCATION, snk_audio_location);
             intent.putExtra(BluetoothLeAudio.EXTRA_LE_AUDIO_SOURCE_LOCATION, src_audio_location);
             intent.putExtra(BluetoothLeAudio.EXTRA_LE_AUDIO_AVAILABLE_CONTEXTS, available_contexts);
+        } else if (stackEvent.type == LeAudioStackEvent.EVENT_TYPE_SINK_AUDIO_LOCATION_AVAILABLE) {
+            Objects.requireNonNull(stackEvent.device,
+                    "Device should never be null, event: " + stackEvent);
+
+            int sink_audio_location = stackEvent.valueInt1;
+            mDeviceAudioLocationMap.put(device, sink_audio_location);
+
+            if (DBG) {
+                Log.i(TAG, "EVENT_TYPE_SINK_AUDIO_LOCATION_AVAILABLE:" + device
+                        + " audio location:" + sink_audio_location);
+            }
         } else if (stackEvent.type == LeAudioStackEvent.EVENT_TYPE_GROUP_STATUS_CHANGED) {
             int group_id = stackEvent.valueInt1;
             int group_status = stackEvent.valueInt2;
@@ -1263,6 +1277,7 @@ public class LeAudioService extends ProfileService {
         }
 
         mDeviceGroupIdMap.remove(device);
+        mDeviceAudioLocationMap.remove(device);
         synchronized (mStateMachines) {
             LeAudioStateMachine sm = mStateMachines.get(device);
             if (sm == null) {
@@ -1421,6 +1436,19 @@ public class LeAudioService extends ProfileService {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Get device audio location.
+     * @param device LE Audio capable device
+     * @return the sink audioi location that this device currently exposed
+     */
+    public int getAudioLocation(BluetoothDevice device) {
+        if (device == null) {
+            return BluetoothLeAudio.AUDIO_LOCATION_INVALID;
+        }
+        return mDeviceAudioLocationMap.getOrDefault(device,
+                BluetoothLeAudio.AUDIO_LOCATION_INVALID);
     }
 
     /**
@@ -1880,6 +1908,21 @@ public class LeAudioService extends ProfileService {
                 List<BluetoothDevice> defaultValue = new ArrayList<>();
                 if (service != null) {
                     defaultValue = service.getActiveDevices();
+                }
+                receiver.send(defaultValue);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
+            }
+        }
+
+        @Override
+        public void getAudioLocation(BluetoothDevice device, AttributionSource source,
+                SynchronousResultReceiver receiver) {
+            try {
+                LeAudioService service = getService(source);
+                int defaultValue = BluetoothLeAudio.AUDIO_LOCATION_INVALID;
+                if (service != null) {
+                    defaultValue = service.getAudioLocation(device);
                 }
                 receiver.send(defaultValue);
             } catch (RuntimeException e) {
