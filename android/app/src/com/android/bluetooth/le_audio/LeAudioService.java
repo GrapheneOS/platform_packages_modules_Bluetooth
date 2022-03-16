@@ -1170,17 +1170,10 @@ public class LeAudioService extends ProfileService {
 
             if (state == LeAudioStackEvent.BROADCAST_STATE_STOPPED) {
                 if (DBG) Log.d(TAG, "Broadcast Instance id: " + instanceId + " stopped.");
-                destroyBroadcast(instanceId);
 
-            } else if (state == LeAudioStackEvent.BROADCAST_STATE_CONFIGURING) {
-                if (DBG) Log.d(TAG, "Broadcast Instance id: " + instanceId + " configuring.");
-
-            } else if (state == LeAudioStackEvent.BROADCAST_STATE_PAUSED) {
-                if (DBG) Log.d(TAG, "Broadcast Instance id: " + instanceId + " paused.");
-
-                // Playback paused
+                // Playback stopped
                 mBroadcastsPlaybackMap.put(instanceId, false);
-                notifyPlaybackStopped(instanceId, BluetoothStatusCodes.REASON_LOCAL_STACK_REQUEST);
+                notifyPlaybackStopped(instanceId, BluetoothStatusCodes.REASON_LOCAL_APP_REQUEST);
 
                 // Notify audio manager
                 if (Collections.frequency(mBroadcastsPlaybackMap.values(), true) == 0) {
@@ -1193,6 +1186,18 @@ public class LeAudioService extends ProfileService {
                                 BluetoothProfileConnectionInfo.createLeAudioInfo(false, true));
                     }
                 }
+
+                destroyBroadcast(instanceId);
+
+            } else if (state == LeAudioStackEvent.BROADCAST_STATE_CONFIGURING) {
+                if (DBG) Log.d(TAG, "Broadcast Instance id: " + instanceId + " configuring.");
+
+            } else if (state == LeAudioStackEvent.BROADCAST_STATE_PAUSED) {
+                if (DBG) Log.d(TAG, "Broadcast Instance id: " + instanceId + " paused.");
+
+                // Playback paused
+                mBroadcastsPlaybackMap.put(instanceId, false);
+                notifyPlaybackStopped(instanceId, BluetoothStatusCodes.REASON_LOCAL_STACK_REQUEST);
 
             } else if (state == LeAudioStackEvent.BROADCAST_STATE_STOPPING) {
                 if (DBG) Log.d(TAG, "Broadcast Instance id: " + instanceId + " stopping.");
