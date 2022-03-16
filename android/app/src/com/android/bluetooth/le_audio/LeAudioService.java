@@ -1178,12 +1178,6 @@ public class LeAudioService extends ProfileService {
             } else if (state == LeAudioStackEvent.BROADCAST_STATE_PAUSED) {
                 if (DBG) Log.d(TAG, "Broadcast Instance id: " + instanceId + " paused.");
 
-                if (!mBroadcastsPlaybackMap.containsKey(instanceId)) {
-                    // Initial playback state after the creation
-                    notifyBroadcastStarted(instanceId,
-                            BluetoothStatusCodes.REASON_LOCAL_APP_REQUEST);
-                }
-
                 // Playback paused
                 mBroadcastsPlaybackMap.put(instanceId, false);
                 notifyPlaybackStopped(instanceId, BluetoothStatusCodes.REASON_LOCAL_STACK_REQUEST);
