@@ -111,6 +111,7 @@ import com.android.bluetooth.btservice.storage.DatabaseManager;
 import com.android.bluetooth.btservice.storage.MetadataDatabase;
 import com.android.bluetooth.csip.CsipSetCoordinatorService;
 import com.android.bluetooth.gatt.GattService;
+import com.android.bluetooth.gatt.ScanManager;
 import com.android.bluetooth.hap.HapClientService;
 import com.android.bluetooth.hearingaid.HearingAidService;
 import com.android.bluetooth.hfp.HeadsetService;
@@ -5110,6 +5111,18 @@ public class AdapterService extends Service {
     @GuardedBy("mDeviceConfigLock")
     private int mScanUpgradeDurationMillis =
             DeviceConfigListener.DEFAULT_SCAN_UPGRADE_DURATION_MILLIS;
+    @GuardedBy("mDeviceConfigLock")
+    private int mScreenOffLowPowerWindowMillis =
+            ScanManager.SCAN_MODE_SCREEN_OFF_LOW_POWER_WINDOW_MS;
+    @GuardedBy("mDeviceConfigLock")
+    private int mScreenOffLowPowerIntervalMillis =
+            ScanManager.SCAN_MODE_SCREEN_OFF_LOW_POWER_INTERVAL_MS;
+    @GuardedBy("mDeviceConfigLock")
+    private int mScreenOffBalancedWindowMillis =
+            ScanManager.SCAN_MODE_SCREEN_OFF_BALANCED_WINDOW_MS;
+    @GuardedBy("mDeviceConfigLock")
+    private int mScreenOffBalancedIntervalMillis =
+            ScanManager.SCAN_MODE_SCREEN_OFF_BALANCED_INTERVAL_MS;
 
     public @NonNull Predicate<String> getLocationDenylistName() {
         synchronized (mDeviceConfigLock) {
@@ -5156,6 +5169,42 @@ public class AdapterService extends Service {
         }
     }
 
+    /**
+     * Returns SCREEN_OFF_BALANCED scan window in millis.
+     */
+    public int getScreenOffBalancedWindowMillis() {
+        synchronized (mDeviceConfigLock) {
+            return mScreenOffBalancedWindowMillis;
+        }
+    }
+
+    /**
+     * Returns SCREEN_OFF_BALANCED scan interval in millis.
+     */
+    public int getScreenOffBalancedIntervalMillis() {
+        synchronized (mDeviceConfigLock) {
+            return mScreenOffBalancedIntervalMillis;
+        }
+    }
+
+    /**
+     * Returns SCREEN_OFF low power scan window in millis.
+     */
+    public int getScreenOffLowPowerWindowMillis() {
+        synchronized (mDeviceConfigLock) {
+            return mScreenOffLowPowerWindowMillis;
+        }
+    }
+
+    /**
+     * Returns SCREEN_OFF low power scan interval in millis.
+     */
+    public int getScreenOffLowPowerIntervalMillis() {
+        synchronized (mDeviceConfigLock) {
+            return mScreenOffLowPowerIntervalMillis;
+        }
+    }
+
     private final DeviceConfigListener mDeviceConfigListener = new DeviceConfigListener();
 
     private class DeviceConfigListener implements DeviceConfig.OnPropertiesChangedListener {
@@ -5173,6 +5222,14 @@ public class AdapterService extends Service {
                 "scan_timeout_millis";
         private static final String SCAN_UPGRADE_DURATION_MILLIS =
                 "scan_upgrade_duration_millis";
+        private static final String SCREEN_OFF_LOW_POWER_WINDOW_MILLIS =
+                "screen_off_low_power_window_millis";
+        private static final String SCREEN_OFF_LOW_POWER_INTERVAL_MILLIS =
+                "screen_off_low_power_interval_millis";
+        private static final String SCREEN_OFF_BALANCED_WINDOW_MILLIS =
+                "screen_off_balanced_window_millis";
+        private static final String SCREEN_OFF_BALANCED_INTERVAL_MILLIS =
+                "screen_off_balanced_interval_millis";
 
         /**
          * Default denylist which matches Eddystone and iBeacon payloads.
@@ -5211,6 +5268,18 @@ public class AdapterService extends Service {
                         DEFAULT_SCAN_TIMEOUT_MILLIS);
                 mScanUpgradeDurationMillis = properties.getInt(SCAN_UPGRADE_DURATION_MILLIS,
                         DEFAULT_SCAN_UPGRADE_DURATION_MILLIS);
+                mScreenOffLowPowerWindowMillis = properties.getInt(
+                        SCREEN_OFF_LOW_POWER_WINDOW_MILLIS,
+                        ScanManager.SCAN_MODE_SCREEN_OFF_LOW_POWER_WINDOW_MS);
+                mScreenOffLowPowerIntervalMillis = properties.getInt(
+                        SCREEN_OFF_LOW_POWER_INTERVAL_MILLIS,
+                        ScanManager.SCAN_MODE_SCREEN_OFF_LOW_POWER_INTERVAL_MS);
+                mScreenOffBalancedWindowMillis = properties.getInt(
+                        SCREEN_OFF_BALANCED_WINDOW_MILLIS,
+                        ScanManager.SCAN_MODE_SCREEN_OFF_BALANCED_WINDOW_MS);
+                mScreenOffBalancedIntervalMillis = properties.getInt(
+                        SCREEN_OFF_BALANCED_INTERVAL_MILLIS,
+                        ScanManager.SCAN_MODE_SCREEN_OFF_BALANCED_INTERVAL_MS);
             }
         }
     }
