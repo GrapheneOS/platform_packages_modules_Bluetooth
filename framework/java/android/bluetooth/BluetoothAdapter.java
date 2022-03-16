@@ -739,6 +739,16 @@ public final class BluetoothAdapter {
             3; //BluetoothProtoEnums.CONNECTION_STATE_DISCONNECTING;
 
     /** @hide */
+    @Retention(RetentionPolicy.SOURCE)
+    @IntDef(prefix = { "STATE_" }, value = {
+        STATE_DISCONNECTED,
+        STATE_CONNECTING,
+        STATE_CONNECTED,
+        STATE_DISCONNECTING,
+    })
+    public @interface ConnectionState {}
+
+    /** @hide */
     public static final String BLUETOOTH_MANAGER_SERVICE = "bluetooth_manager";
     private final IBinder mToken;
 
@@ -2856,13 +2866,12 @@ public final class BluetoothAdapter {
      * <p> Use this function along with {@link #ACTION_CONNECTION_STATE_CHANGED}
      * intent to get the connection state of the adapter.
      *
-     * @return One of {@link #STATE_CONNECTED}, {@link #STATE_DISCONNECTED}, {@link
-     * #STATE_CONNECTING} or {@link #STATE_DISCONNECTED}
+     * @return the connection state
      * @hide
      */
     @SystemApi
     @RequiresNoPermission
-    public int getConnectionState() {
+    public @ConnectionState int getConnectionState() {
         if (getState() != STATE_ON) {
             return BluetoothAdapter.STATE_DISCONNECTED;
         }
@@ -2918,17 +2927,13 @@ public final class BluetoothAdapter {
      * is connected to any remote device for a specific profile.
      * Profile can be one of {@link BluetoothProfile#HEADSET}, {@link BluetoothProfile#A2DP}.
      *
-     * <p> Return value can be one of
-     * {@link BluetoothProfile#STATE_DISCONNECTED},
-     * {@link BluetoothProfile#STATE_CONNECTING},
-     * {@link BluetoothProfile#STATE_CONNECTED},
-     * {@link BluetoothProfile#STATE_DISCONNECTING}
+     * <p> Return the profile connection state
      */
     @RequiresLegacyBluetoothPermission
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     @SuppressLint("AndroidFrameworkRequiresPermission")
-    public int getProfileConnectionState(int profile) {
+    public @ConnectionState int getProfileConnectionState(int profile) {
         if (getState() != STATE_ON) {
             return BluetoothProfile.STATE_DISCONNECTED;
         }
