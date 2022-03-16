@@ -1405,7 +1405,7 @@ public final class BluetoothAdapter {
             android.Manifest.permission.BLUETOOTH_CONNECT,
             android.Manifest.permission.BLUETOOTH_PRIVILEGED,
     })
-    public boolean factoryReset() {
+    public boolean clearBluetooth() {
         try {
             mServiceLock.readLock().lock();
             if (mService != null) {
@@ -1425,6 +1425,22 @@ public final class BluetoothAdapter {
             mServiceLock.readLock().unlock();
         }
         return false;
+    }
+
+     /**
+     * See {@link #clearBluetooth()}
+     *
+     * @return true to indicate that the config file was successfully cleared
+     * @hide
+     */
+    @UnsupportedAppUsage(maxTargetSdk = Build.VERSION_CODES.R, trackingBug = 170729553)
+    @RequiresBluetoothConnectPermission
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
+    public boolean factoryReset() {
+        return clearBluetooth();
     }
 
     /**
