@@ -2009,10 +2009,14 @@ public final class BluetoothDevice implements Parcelable, Attributable {
 
     /**
      * Disconnects all connected bluetooth profiles between the local and remote device.
-     * Disconnection is asynchronous and you should listen to each profile's broadcast intent
+     * Disconnection is asynchronous, so you should listen to each profile's broadcast intent
      * ACTION_CONNECTION_STATE_CHANGED to verify whether disconnection was successful. For example,
      * to verify a2dp is disconnected, you would listen for
-     * {@link BluetoothA2dp#ACTION_CONNECTION_STATE_CHANGED}
+     * {@link BluetoothA2dp#ACTION_CONNECTION_STATE_CHANGED}. Once all profiles have disconnected,
+     * the ACL link should come down and {@link #ACTION_ACL_DISCONNECTED} should be broadcast.
+     * <p>
+     * In the rare event that one or more profiles fail to disconnect, call this method again to
+     * send another request to disconnect each connected profile.
      *
      * @return whether the messages were successfully sent to try to disconnect all profiles
      * @throws IllegalArgumentException if the device address is invalid
