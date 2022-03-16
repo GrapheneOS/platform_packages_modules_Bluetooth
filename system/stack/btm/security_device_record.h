@@ -95,7 +95,14 @@ typedef struct {
 typedef struct {
   RawAddress pseudo_addr; /* LE pseudo address of the device if different from
                           device address  */
-  tBLE_ADDR_TYPE ble_addr_type; /* LE device type: public or random address */
+ private:
+  tBLE_ADDR_TYPE ble_addr_type_; /* LE device type: public or random address */
+
+ public:
+  tBLE_ADDR_TYPE AddressType() const { return ble_addr_type_; }
+  void SetAddressType(tBLE_ADDR_TYPE ble_addr_type) {
+    if (is_ble_addr_type_known(ble_addr_type)) ble_addr_type_ = ble_addr_type;
+  }
 
   tBLE_BD_ADDR identity_address_with_type;
 

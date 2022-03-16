@@ -585,7 +585,7 @@ bool btm_ble_resolving_list_load_dev(tBTM_SEC_DEV_REC* p_dev_rec) {
     if (p_dev_rec->ble.identity_address_with_type.bda.IsEmpty()) {
       p_dev_rec->ble.identity_address_with_type.bda = p_dev_rec->bd_addr;
       p_dev_rec->ble.identity_address_with_type.type =
-          p_dev_rec->ble.ble_addr_type;
+          p_dev_rec->ble.AddressType();
     }
 
     BTM_TRACE_DEBUG(
@@ -686,7 +686,7 @@ void btm_ble_resolving_list_load_dev(tBTM_SEC_DEV_REC& dev_rec) {
   if (dev_rec.ble.identity_address_with_type.bda.IsEmpty()) {
     dev_rec.ble.identity_address_with_type = {
         .bda = dev_rec.bd_addr,
-        .type = dev_rec.ble.ble_addr_type,
+        .type = dev_rec.ble.AddressType(),
     };
   }
 

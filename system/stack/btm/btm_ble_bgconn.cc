@@ -97,7 +97,7 @@ const tBLE_BD_ADDR convert_to_address_with_type(
 
   if (p_dev_rec->ble.identity_address_with_type.bda.IsEmpty()) {
     return {
-        .type = p_dev_rec->ble.ble_addr_type,
+        .type = p_dev_rec->ble.AddressType(),
         .bda = bd_addr,
     };
   } else {
@@ -203,7 +203,7 @@ bool BTM_BackgroundConnectAddressKnown(const RawAddress& address) {
   }
 
   // Public address, Random Static, or Random Non-Resolvable Address known
-  if (p_dev_rec->ble.ble_addr_type == BLE_ADDR_PUBLIC ||
+  if (p_dev_rec->ble.AddressType() == BLE_ADDR_PUBLIC ||
       !BTM_BLE_IS_RESOLVE_BDA(address)) {
     return true;
   }
