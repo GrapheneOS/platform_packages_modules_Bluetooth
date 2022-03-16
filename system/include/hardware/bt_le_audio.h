@@ -94,6 +94,9 @@ class LeAudioClientCallbacks {
                            uint32_t snk_audio_location,
                            uint32_t src_audio_location,
                            uint16_t avail_cont) = 0;
+  /* Callback for sink audio location recognized */
+  virtual void OnSinkAudioLocationAvailable(const RawAddress& address,
+                                            uint32_t snk_audio_locations) = 0;
 };
 
 class LeAudioClientInterface {

@@ -1,4 +1,5 @@
 use crate::bluetooth_manager::BluetoothManager;
+use crate::config_util;
 use bt_common::time::Alarm;
 use log::{debug, error, info, warn};
 use nix::sys::signal::{self, Signal};
@@ -135,7 +136,7 @@ fn hci_devices_inotify_async_fd() -> AsyncFd<inotify::Inotify> {
     let mut detector = inotify::Inotify::init().expect("cannot use inotify");
     detector
         .add_watch(
-            crate::config_util::HCI_DEVICES_DIR,
+            config_util::HCI_DEVICES_DIR,
             inotify::WatchMask::CREATE | inotify::WatchMask::DELETE,
         )
         .expect("failed to add watch");
@@ -144,7 +145,7 @@ fn hci_devices_inotify_async_fd() -> AsyncFd<inotify::Inotify> {
 
 /// On startup, get and cache all hci devices by emitting the callback
 fn startup_hci_devices(manager: &Arc<std::sync::Mutex<Box<BluetoothManager>>>) {
-    let devices = crate::config_util::list_hci_devices();
+    let devices = config_util::list_hci_devices();
     for device in devices {
         manager.lock().unwrap().callback_hci_device_change(device, true);
     }
@@ -188,10 +189,10 @@ pub async fn mainloop(
         }
     });
 
-    // Get a list of active pid files to determine initial adapter status
     let init_tx = context.tx.clone();
     tokio::spawn(async move {
-        let files = crate::config_util::list_pid_files(PID_DIR);
+        // Get a list of active pid files to determine initial adapter status
+        let files = config_util::list_pid_files(PID_DIR);
         for file in files {
             let _ = init_tx
                 .send_timeout(
@@ -200,6 +201,21 @@ pub async fn mainloop(
                 )
                 .await
                 .unwrap();
+        }
+
+        // Initialize adapter states based on saved config
+        let hci_devices = config_util::list_hci_devices();
+        for device in hci_devices.iter() {
+            let is_enabled = config_util::is_hci_n_enabled(*device);
+            if is_enabled {
+                let _ = init_tx
+                    .send_timeout(
+                        Message::AdapterStateChange(AdapterStateActions::StartBluetooth(*device)),
+                        TX_SEND_TIMEOUT_DURATION,
+                    )
+                    .await
+                    .unwrap();
+            }
         }
     });
 
