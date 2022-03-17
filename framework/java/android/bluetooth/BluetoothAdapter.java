@@ -1440,11 +1440,10 @@ public final class BluetoothAdapter {
      * @return the UUIDs supported by the local Bluetooth Adapter.
      * @hide
      */
-    @SystemApi
+    @UnsupportedAppUsage
     @RequiresLegacyBluetoothPermission
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
-    @SuppressLint(value = {"ArrayReturn", "NullableCollection"})
     public @NonNull ParcelUuid[] getUuids() {
         if (getState() != STATE_ON) {
             return new ParcelUuid[0];
@@ -1465,6 +1464,18 @@ public final class BluetoothAdapter {
             mServiceLock.readLock().unlock();
         }
         return new ParcelUuid[0];
+    }
+
+    /**
+     * Get the UUIDs supported by the local Bluetooth adapter.
+     *
+     * @return a list of the UUIDs supported by the local Bluetooth Adapter.
+     * @hide
+     */
+    @SystemApi
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
+    public @NonNull List<ParcelUuid> getUuidsList() {
+        return Arrays.asList(getUuids());
     }
 
     /**
