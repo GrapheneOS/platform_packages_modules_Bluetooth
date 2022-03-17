@@ -33,7 +33,6 @@ oneway interface IBluetoothHapClientCallback {
     void onPresetInfoChanged(in  BluetoothDevice device,
                 in List<BluetoothHapPresetInfo> presetInfoList,
                 in int statusCode);
-    void onHapFeaturesAvailable(in BluetoothDevice device, in int hapFeatures);
     void onSetPresetNameFailed(in BluetoothDevice device, in int status);
     void onSetPresetNameForGroupFailed(in int hapGroupId, in int status);
 }
