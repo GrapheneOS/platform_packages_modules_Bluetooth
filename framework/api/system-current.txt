@@ -65,7 +65,7 @@ package android.bluetooth {
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public long getDiscoveryEndMillis();
     method @NonNull @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public java.util.List<android.bluetooth.BluetoothDevice> getMostRecentlyConnectedDevices();
     method @NonNull @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public java.util.List<java.lang.Integer> getSupportedProfiles();
-    method @NonNull @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public android.os.ParcelUuid[] getUuids();
+    method @NonNull @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public java.util.List<android.os.ParcelUuid> getUuidsList();
     method public boolean isBleScanAlwaysAvailable();
     method public boolean isLeEnabled();
     method @NonNull public static String nameForState(int);
