@@ -14,12 +14,19 @@
  * limitations under the License.
  */
 
+#include "hci/acl_manager_mock.h"
+#include "hci/controller_mock.h"
+#include "hci/le_advertising_manager_mock.h"
+#include "hci/le_scanning_manager_mock.h"
+
 namespace bluetooth {
 namespace hci {
 namespace testing {
 
 extern MockAclManager* mock_acl_manager_;
 extern MockController* mock_controller_;
+extern MockLeAdvertisingManager* mock_le_advertising_manager_;
+extern MockLeScanningManager* mock_le_scanning_manager_;
 
 }  // namespace testing
 }  // namespace hci
