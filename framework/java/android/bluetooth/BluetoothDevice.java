@@ -19,6 +19,7 @@ package android.bluetooth;
 import static android.bluetooth.BluetoothUtils.getSyncTimeout;
 
 import android.annotation.IntDef;
+import android.annotation.IntRange;
 import android.annotation.NonNull;
 import android.annotation.Nullable;
 import android.annotation.RequiresPermission;
@@ -794,6 +795,15 @@ public final class BluetoothDevice implements Parcelable, Attributable {
     /**
      * Broadcast Action: This intent is used to broadcast CONNECTION ACCESS REQUEST
      *
+     * This action will trigger a prompt for the user to accept or deny giving the
+     * permission for this device. Permissions can be specified with
+     * {@link #EXTRA_ACCESS_REQUEST_TYPE}.
+     *
+     * The reply will be an {@link #ACTION_CONNECTION_ACCESS_REPLY} sent to the specified
+     * {@link #EXTRA_PACKAGE_NAME} and {@link #EXTRA_CLASS_NAME}.
+     *
+     * This action can be cancelled with {@link #ACTION_CONNECTION_ACCESS_CANCEL}.
+     *
      * @hide
      */
     @SystemApi
@@ -806,6 +816,13 @@ public final class BluetoothDevice implements Parcelable, Attributable {
 
     /**
      * Broadcast Action: This intent is used to broadcast CONNECTION ACCESS REPLY
+     *
+     * This action is the reply from {@link #ACTION_CONNECTION_ACCESS_REQUEST}
+     * that is sent to the specified {@link #EXTRA_PACKAGE_NAME}
+     * and {@link #EXTRA_CLASS_NAME}.
+     *
+     * See the extra fields {@link #EXTRA_CONNECTION_ACCESS_RESULT} and
+     * {@link #EXTRA_ALWAYS_ALLOWED} for possible results.
      *
      * @hide
      */
@@ -844,7 +861,11 @@ public final class BluetoothDevice implements Parcelable, Attributable {
             "android.bluetooth.device.action.SILENCE_MODE_CHANGED";
 
     /**
-     * Used as an extra field in {@link #ACTION_CONNECTION_ACCESS_REQUEST} intent.
+     * Used as an extra field in {@link #ACTION_CONNECTION_ACCESS_REQUEST}.
+     *
+     * Possible values are {@link #REQUEST_TYPE_PROFILE_CONNECTION},
+     * {@link #REQUEST_TYPE_PHONEBOOK_ACCESS}, {@link #REQUEST_TYPE_MESSAGE_ACCESS}
+     * and {@link #REQUEST_TYPE_SIM_ACCESS}
      *
      * @hide
      */
@@ -887,6 +908,8 @@ public final class BluetoothDevice implements Parcelable, Attributable {
 
     /**
      * Used as an extra field in {@link #ACTION_CONNECTION_ACCESS_REPLY} intent.
+     *
+     * Possible values are {@link #CONNECTION_ACCESS_YES} and {@link #CONNECTION_ACCESS_NO}.
      *
      * @hide
      */
@@ -1044,7 +1067,8 @@ public final class BluetoothDevice implements Parcelable, Attributable {
     public static final int PAIRING_VARIANT_DISPLAY_PIN = 5;
 
     /**
-     * The user will be prompted to accept or deny the OOB pairing request
+     * The user will be prompted to accept or deny the OOB pairing request.
+     * This is used for Bluetooth 2.1 secure simple pairing.
      *
      * @hide
      */
@@ -1624,7 +1648,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
     @RequiresLegacyBluetoothPermission
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
-    public int getBatteryLevel() {
+    public @IntRange(from = -100, to = 100) int getBatteryLevel() {
         if (DBG) log("getBatteryLevel()");
         final IBluetooth service = sService;
         final int defaultValue = BATTERY_LEVEL_BLUETOOTH_OFF;
