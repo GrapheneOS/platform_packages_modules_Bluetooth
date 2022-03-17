@@ -14,14 +14,11 @@
  * limitations under the License.
  */
 
-// #include "gd/btaa/activity_attribution.h"
-#include "gd/module.h"
-
 #include "gd/hci/acl_manager_mock.h"
 #include "gd/hci/controller_mock.h"
 #include "gd/hci/hci_layer.h"
-#include "gd/hci/le_advertising_manager.h"
-#include "gd/hci/le_scanning_manager.h"
+#include "gd/hci/le_advertising_manager_mock.h"
+#include "gd/hci/le_scanning_manager_mock.h"
 #include "gd/neighbor/connectability.h"
 #include "gd/neighbor/discoverability.h"
 #include "gd/neighbor/inquiry.h"
@@ -41,6 +38,8 @@ namespace testing {
 MockAclManager* mock_acl_manager_{nullptr};
 MockController* mock_controller_{nullptr};
 os::Handler* mock_gd_shim_handler_{nullptr};
+MockLeAdvertisingManager* mock_le_advertising_manager_{nullptr};
+MockLeScanningManager* mock_le_scanning_manager_{nullptr};
 
 }  // namespace testing
 }  // namespace hci
@@ -56,8 +55,12 @@ activity_attribution::ActivityAttribution* GetActivityAttribution() {
 hci::AclManager* GetAclManager() { return hci::testing::mock_acl_manager_; }
 hci::Controller* GetController() { return hci::testing::mock_controller_; }
 hci::HciLayer* GetHciLayer() { return nullptr; }
-hci::LeAdvertisingManager* GetAdvertising() { return nullptr; }
-hci::LeScanningManager* GetScanning() { return nullptr; }
+hci::LeAdvertisingManager* GetAdvertising() {
+  return hci::testing::mock_le_advertising_manager_;
+}
+hci::LeScanningManager* GetScanning() {
+  return hci::testing::mock_le_scanning_manager_;
+}
 hci::VendorSpecificEventManager* GetVendorSpecificEventManager() {
   return nullptr;
 }
