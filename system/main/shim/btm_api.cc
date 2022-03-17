@@ -878,13 +878,6 @@ tBTM_STATUS bluetooth::shim::BTM_ClearInqDb(const RawAddress* p_bda) {
   return BTM_NO_RESOURCES;
 }
 
-tBTM_STATUS bluetooth::shim::BTM_WriteEIR(BT_HDR* p_buff) {
-  LOG_INFO("UNIMPLEMENTED %s", __func__);
-  CHECK(p_buff != nullptr);
-  osi_free(p_buff);
-  return BTM_NO_RESOURCES;
-}
-
 bool bluetooth::shim::BTM_HasEirService(const uint32_t* p_eir_uuid,
                                         uint16_t uuid16) {
   LOG_INFO("UNIMPLEMENTED %s", __func__);
