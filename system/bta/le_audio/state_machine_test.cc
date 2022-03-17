@@ -173,7 +173,7 @@ class StateMachineTest : public Test {
                          : ((uint16_t)(remote_bda.address[0] ^
                                        remote_bda.address[1] ^
                                        remote_bda.address[2]))
-                                   << 8 ||
+                                   << 8 |
                                (remote_bda.address[3] ^ remote_bda.address[4] ^
                                 remote_bda.address[5]);
             }));
