@@ -952,8 +952,14 @@ void btif_storage_load_consolidate_devices(void) {
         LOG_INFO("found consolidated device %s %s",
                  bonded_devices.devices[i].ToString().c_str(),
                  key.pid_key.identity_addr.ToString().c_str());
-        consolidated_devices.emplace_back(bonded_devices.devices[i],
-                                          key.pid_key.identity_addr);
+
+        if (bonded_devices.devices[i].IsEmpty() ||
+            key.pid_key.identity_addr.IsEmpty()) {
+          LOG_WARN("Address is empty! Skip");
+        } else {
+          consolidated_devices.emplace_back(bonded_devices.devices[i],
+                                            key.pid_key.identity_addr);
+        }
       }
     }
   }

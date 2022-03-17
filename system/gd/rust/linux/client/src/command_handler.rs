@@ -487,18 +487,26 @@ impl CommandHandler {
                         name: String::from("Classic Device"),
                     };
 
-                    let (bonded, connected, uuids) = {
+                    let (name, alias, device_type, class, bonded, connected, uuids) = {
                         let ctx = self.context.lock().unwrap();
                         let adapter = ctx.adapter_dbus.as_ref().unwrap();
 
+                        let name = adapter.get_remote_name(device.clone());
+                        let device_type = adapter.get_remote_type(device.clone());
+                        let alias = adapter.get_remote_alias(device.clone());
+                        let class = adapter.get_remote_class(device.clone());
                         let bonded = adapter.get_bond_state(device.clone());
                         let connected = adapter.get_connection_state(device.clone());
                         let uuids = adapter.get_remote_uuids(device.clone());
 
-                        (bonded, connected, uuids)
+                        (name, alias, device_type, class, bonded, connected, uuids)
                     };
 
                     print_info!("Address: {}", &device.address);
+                    print_info!("Name: {}", name);
+                    print_info!("Alias: {}", alias);
+                    print_info!("Type: {:?}", device_type);
+                    print_info!("Class: {}", class);
                     print_info!("Bonded: {}", bonded);
                     print_info!("Connected: {}", connected);
                     print_info!(
