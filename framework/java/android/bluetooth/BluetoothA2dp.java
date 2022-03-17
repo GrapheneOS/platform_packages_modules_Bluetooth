@@ -835,9 +835,14 @@ public final class BluetoothA2dp implements BluetoothProfile {
     }
 
     /**
-     * Enables the optional codecs.
+     * Enables the optional codecs for the given device for this connection.
      *
-     * @param device the remote Bluetooth device.
+     * If the given device supports another codec type than
+     * {@link BluetoothCodecConfig.SOURCE_CODEC_TYPE_SBC}, this will switch to it.
+     * See {@link #setOptionalCodecsEnabled} to enable optional codecs by default
+     * when the given device is connected.
+     *
+     * @param device the remote Bluetooth device
      * @hide
      */
     @SystemApi
@@ -851,9 +856,15 @@ public final class BluetoothA2dp implements BluetoothProfile {
     }
 
     /**
-     * Disables the optional codecs.
+     * Disables the optional codecs for the given device.
      *
-     * @param device the remote Bluetooth device.
+     * When optional codecs are disabled, the device will use the default
+     * Bluetooth audio codec type.
+     * See {@link BluetoothCodecConfig.SOURCE_CODEC_TYPE_SBC}.
+     * See {@link #setOptionalCodecsEnabled} to disable optional codecs by default
+     * when the given device is connected.
+     *
+     * @param device the remote Bluetooth device
      * @hide
      */
     @SystemApi
@@ -870,7 +881,7 @@ public final class BluetoothA2dp implements BluetoothProfile {
      * Enables or disables the optional codecs.
      *
      * @param device the remote Bluetooth device.
-     * @param enable if true, enable the optional codecs, other disable them
+     * @param enable if true, enable the optional codecs, otherwise disable them
      */
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     private void enableDisableOptionalCodecs(BluetoothDevice device, boolean enable) {
@@ -894,17 +905,18 @@ public final class BluetoothA2dp implements BluetoothProfile {
     /**
      * Returns whether this device supports optional codecs.
      *
-     * @param device The device to check
-     * @return one of OPTIONAL_CODECS_SUPPORT_UNKNOWN, OPTIONAL_CODECS_NOT_SUPPORTED, or
-     * OPTIONAL_CODECS_SUPPORTED.
+     * @param device the remote Bluetooth device
+     * @return whether the optional codecs are supported or not, or
+     *         {@link #OPTIONAL_CODECS_SUPPORT_UNKNOWN} if the state
+     *         can't be retrieved.
      * @hide
      */
     @SystemApi
     @RequiresLegacyBluetoothAdminPermission
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
-    @OptionalCodecsSupportStatus
-    public int isOptionalCodecsSupported(@NonNull BluetoothDevice device) {
+    public @OptionalCodecsSupportStatus int isOptionalCodecsSupported(
+            @NonNull BluetoothDevice device) {
         if (DBG) log("isOptionalCodecsSupported(" + device + ")");
         verifyDeviceNotNull(device, "isOptionalCodecsSupported");
         final IBluetoothA2dp service = getService();
@@ -925,19 +937,20 @@ public final class BluetoothA2dp implements BluetoothProfile {
     }
 
     /**
-     * Returns whether this device should have optional codecs enabled.
+     * Returns whether this device has its optional codecs enabled.
      *
-     * @param device The device in question.
-     * @return one of OPTIONAL_CODECS_PREF_UNKNOWN, OPTIONAL_CODECS_PREF_ENABLED, or
-     * OPTIONAL_CODECS_PREF_DISABLED.
+     * @param device the remote Bluetooth device
+     * @return whether the optional codecs are enabled or not, or
+     *         {@link #OPTIONAL_CODECS_PREF_UNKNOWN} if the state
+     *         can't be retrieved.
      * @hide
      */
     @SystemApi
     @RequiresLegacyBluetoothAdminPermission
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
-    @OptionalCodecsPreferenceStatus
-    public int isOptionalCodecsEnabled(@NonNull BluetoothDevice device) {
+    public @OptionalCodecsPreferenceStatus int isOptionalCodecsEnabled(
+            @NonNull BluetoothDevice device) {
         if (DBG) log("isOptionalCodecsEnabled(" + device + ")");
         verifyDeviceNotNull(device, "isOptionalCodecsEnabled");
         final IBluetoothA2dp service = getService();
@@ -958,12 +971,13 @@ public final class BluetoothA2dp implements BluetoothProfile {
     }
 
     /**
-     * Sets a persistent preference for whether a given device should have optional codecs enabled.
+     * Sets the default state of optional codecs for the given device.
      *
-     * @param device The device to set this preference for.
-     * @param value Whether the optional codecs should be enabled for this device.  This should be
-     * one of OPTIONAL_CODECS_PREF_UNKNOWN, OPTIONAL_CODECS_PREF_ENABLED, or
-     * OPTIONAL_CODECS_PREF_DISABLED.
+     * Automatically enables or disables the optional codecs for the given device when
+     * connected.
+     *
+     * @param device the remote Bluetooth device
+     * @param value whether the optional codecs should be enabled for this device
      * @hide
      */
     @SystemApi
