@@ -45,6 +45,7 @@ apex {
     name: "com.android.bluetooth",
     defaults: ["com.android.bluetooth-defaults"],
     manifest: "apex_manifest.json",
+    prebuilts: ["privapp_allowlist_com.android.bluetooth.services.xml"],
 }
 
 apex_key {
