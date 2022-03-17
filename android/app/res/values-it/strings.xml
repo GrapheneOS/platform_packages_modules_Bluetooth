@@ -110,12 +110,12 @@
     <string name="outbound_noti_title" msgid="2045560896819618979">"Bluetooth: file inviati"</string>
     <string name="inbound_noti_title" msgid="3730993443609581977">"Bluetooth: file ricevuti"</string>
     <plurals name="noti_caption_unsuccessful" formatted="false" msgid="6511510339394311097">
-      <item quantity="one"><xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> unsuccessful.</item>
       <item quantity="other">Operazioni non riuscite: <xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g>.</item>
+      <item quantity="one">Operazione non riuscita: <xliff:g id="UNSUCCESSFUL_NUMBER_0">%1$d</xliff:g>.</item>
     </plurals>
     <plurals name="noti_caption_success" formatted="false" msgid="2452887423660955489">
-      <item quantity="one"><xliff:g id="SUCCESSFUL_NUMBER_1">%1$d</xliff:g> successful, %2$s</item>
       <item quantity="other">Operazioni riuscite: <xliff:g id="SUCCESSFUL_NUMBER_1">%1$d</xliff:g>, %2$s</item>
+      <item quantity="one">Operazione riuscita: <xliff:g id="SUCCESSFUL_NUMBER_0">%1$d</xliff:g>, %2$s</item>
     </plurals>
     <string name="transfer_menu_clear_all" msgid="3014459758656427076">"Cancella elenco"</string>
     <string name="transfer_menu_open" msgid="5193344638774400131">"Apri"</string>
