@@ -215,6 +215,18 @@ public class LeAudioNativeInterface {
         groupSetActiveNative(groupId);
     }
 
+    /**
+     * Set codec config preference.
+     * @param groupId group ID for the preference
+     * @param inputCodecConfig input codec configuration
+     * @param outputCodecConfig output codec configuration
+     */
+    public void setCodecConfigPreference(int groupId,
+            BluetoothLeAudioCodecConfig inputCodecConfig,
+            BluetoothLeAudioCodecConfig outputCodecConfig) {
+        setCodecConfigPreferenceNative(groupId, inputCodecConfig, outputCodecConfig);
+    }
+
     // Native methods that call into the JNI interface
     private static native void classInitNative();
     private native void initNative(BluetoothLeAudioCodecConfig[] codecConfigOffloading);
@@ -224,4 +236,7 @@ public class LeAudioNativeInterface {
     private native boolean groupAddNodeNative(int groupId, byte[] address);
     private native boolean groupRemoveNodeNative(int groupId, byte[] address);
     private native void groupSetActiveNative(int groupId);
+    private native void setCodecConfigPreferenceNative(int groupId,
+            BluetoothLeAudioCodecConfig inputCodecConfig,
+            BluetoothLeAudioCodecConfig outputCodecConfig);
 }
