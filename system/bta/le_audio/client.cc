@@ -299,24 +299,32 @@ class LeAudioClientImpl : public LeAudioClient {
       return;
     }
 
-    /* Releasement didn't finished in time */
-    if (group->GetTargetState() == AseState::BTA_LE_AUDIO_ASE_STATE_IDLE) {
-      CancelStreamingRequest();
-      LeAudioDevice* leAudioDevice = group->GetFirstActiveDevice();
-      LOG_ASSERT(leAudioDevice)
-          << __func__ << " Shouldn't be called without an active device.";
+    LOG_ERROR(
+        " State not achieved on time for group: group id %d, current state %s, "
+        "target state: %s",
+        group_id, ToString(group->GetState()).c_str(),
+        ToString(group->GetTargetState()).c_str());
+    group->SetTargetState(AseState::BTA_LE_AUDIO_ASE_STATE_IDLE);
 
-      do {
-        if (instance) instance->DisconnectDevice(leAudioDevice, true);
-        leAudioDevice = group->GetNextActiveDevice(leAudioDevice);
-      } while (leAudioDevice);
-
-      return;
+    /* There is an issue with a setting up stream or any other operation which
+     * are gatt operations. It means peer is not responsable. Lets close ACL
+     */
+    CancelStreamingRequest();
+    LeAudioDevice* leAudioDevice = group->GetFirstActiveDevice();
+    if (leAudioDevice == nullptr) {
+      LOG_ERROR(" Shouldn't be called without an active device.");
+      leAudioDevice = group->GetFirstDevice();
+      if (leAudioDevice == nullptr) {
+        LOG_ERROR(" Front device is null. Number of devices: %d",
+                  group->Size());
+        return;
+      }
     }
 
-    LOG(ERROR) << __func__ << ", State not achieved on time, releasing ases";
-
-    groupStateMachine_->StopStream(group);
+    do {
+      if (instance) instance->DisconnectDevice(leAudioDevice, true);
+      leAudioDevice = group->GetNextActiveDevice(leAudioDevice);
+    } while (leAudioDevice);
   }
 
   void UpdateContextAndLocations(LeAudioDeviceGroup* group,
