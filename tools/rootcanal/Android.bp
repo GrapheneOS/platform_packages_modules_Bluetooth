@@ -12,13 +12,61 @@ package {
     ],
 }
 
-cc_library_static {
-    name: "libbt-rootcanal",
+cc_defaults {
+    name: "rootcanal_defaults",
     defaults: [
         "gd_defaults",
         "gd_clang_tidy",
         "gd_clang_tidy_ignore_android",
     ],
+    cflags: [
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-fvisibility=hidden",
+    ],
+    local_include_dirs: [
+        "include",
+    ],
+    include_dirs: [
+        "packages/modules/Bluetooth/system",
+        "packages/modules/Bluetooth/system/gd",
+    ],
+    generated_headers: [
+        "RootCanalGeneratedPackets_h",
+        "BluetoothGeneratedPackets_h",
+        "libbt_init_flags_bridge_header",
+    ],
+}
+
+// Compile devices and device boutique into a single object to force the linker
+// to pick all the symbols for static registration to work
+cc_object {
+    name: "libbt-rootcanal-devices",
+    defaults: ["rootcanal_defaults"],
+    host_supported: true,
+    proprietary: true,
+    cflags: ["-fPIC"],
+    srcs: [
+        "model/devices/beacon.cc",
+        "model/devices/beacon_swarm.cc",
+        "model/devices/broken_adv.cc",
+        "model/devices/car_kit.cc",
+        "model/devices/classic.cc",
+        "model/devices/keyboard.cc",
+        "model/devices/loopback.cc",
+        "model/devices/scripted_beacon.cc",
+        "model/devices/sniffer.cc",
+        "model/setup/device_boutique.cc",
+    ],
+    static_libs: [
+        "libscriptedbeaconpayload-protos-lite",
+    ]
+}
+
+cc_library_static {
+    name: "libbt-rootcanal",
+    defaults: ["rootcanal_defaults"],
     host_supported: true,
     proprietary: true,
     srcs: [
@@ -30,11 +78,6 @@ cc_library_static {
         "model/controller/link_layer_controller.cc",
         "model/controller/sco_connection.cc",
         "model/controller/security_manager.cc",
-        "model/devices/beacon.cc",
-        "model/devices/beacon_swarm.cc",
-        "model/devices/broken_adv.cc",
-        "model/devices/car_kit.cc",
-        "model/devices/classic.cc",
         "model/devices/device.cc",
         "model/devices/device_properties.cc",
         "model/devices/h4_data_channel_packetizer.cc",
@@ -42,14 +85,9 @@ cc_library_static {
         "model/devices/h4_parser.cc",
         "model/devices/hci_protocol.cc",
         "model/devices/hci_socket_device.cc",
-        "model/devices/keyboard.cc",
         "model/devices/link_layer_socket_device.cc",
-        "model/devices/loopback.cc",
         "model/devices/remote_loopback_device.cc",
-        "model/devices/scripted_beacon.cc",
-        "model/devices/sniffer.cc",
         "model/setup/async_manager.cc",
-        "model/setup/device_boutique.cc",
         "model/setup/phy_layer_factory.cc",
         "model/setup/test_channel_transport.cc",
         "model/setup/test_command_handler.cc",
@@ -60,35 +98,17 @@ cc_library_static {
         ":BluetoothPacketSources",
         ":BluetoothHciClassSources",
         ":BluetoothCryptoToolboxSources",
-    ],
-    cflags: [
-        "-Wall",
-        "-Wextra",
-        "-Werror",
-        "-fvisibility=hidden",
-    ],
-    local_include_dirs: [
-        "include",
+        ":libbt-rootcanal-devices",
     ],
     export_include_dirs: [
         "include",
         ".",
-    ],
-    generated_headers: [
-        "RootCanalGeneratedPackets_h",
-        "BluetoothGeneratedPackets_h",
-        "libbt_init_flags_bridge_header",
-    ],
-    include_dirs: [
-        "packages/modules/Bluetooth/system",
-        "packages/modules/Bluetooth/system/gd",
     ],
     shared_libs: [
         "liblog",
     ],
     static_libs: [
         "libjsoncpp",
-        "libscriptedbeaconpayload-protos-lite",
     ],
 }
 
@@ -149,26 +169,13 @@ cc_test_host {
 // Linux RootCanal Executable
 cc_binary_host {
     name: "root-canal",
-    defaults: [
-        "gd_clang_tidy",
-    ],
+    defaults: ["rootcanal_defaults"],
     srcs: [
         "desktop/root_canal_main.cc",
         "desktop/test_environment.cc",
     ],
     header_libs: [
         "libbluetooth_headers",
-    ],
-    local_include_dirs: [
-        "include",
-    ],
-    include_dirs: [
-        "packages/modules/Bluetooth/system",
-        "packages/modules/Bluetooth/system/gd",
-    ],
-    generated_headers: [
-        "RootCanalGeneratedPackets_h",
-        "BluetoothGeneratedPackets_h",
     ],
     shared_libs: [
         "liblog",
@@ -181,11 +188,6 @@ cc_binary_host {
         "libbt-rootcanal",
         "breakpad_client",
         "libgflags",
-    ],
-    cflags: [
-        "-Wall",
-        "-Wextra",
-        "-Werror",
     ],
     sanitize: {
         address: true,
