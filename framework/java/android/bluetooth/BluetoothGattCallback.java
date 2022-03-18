@@ -105,6 +105,7 @@ public abstract class BluetoothGattCallback {
      */
     public void onCharacteristicRead(@NonNull BluetoothGatt gatt, @NonNull
             BluetoothGattCharacteristic characteristic, @NonNull byte[] value, int status) {
+        onCharacteristicRead(gatt, characteristic, status);
     }
 
     /**
@@ -155,6 +156,7 @@ public abstract class BluetoothGattCallback {
      */
     public void onCharacteristicChanged(@NonNull BluetoothGatt gatt,
             @NonNull BluetoothGattCharacteristic characteristic, @NonNull byte[] value) {
+        onCharacteristicChanged(gatt, characteristic);
     }
 
     /**
@@ -184,6 +186,7 @@ public abstract class BluetoothGattCallback {
      */
     public void onDescriptorRead(@NonNull BluetoothGatt gatt,
             @NonNull BluetoothGattDescriptor descriptor, int status, @NonNull byte[] value) {
+        onDescriptorRead(gatt, descriptor, status);
     }
 
     /**

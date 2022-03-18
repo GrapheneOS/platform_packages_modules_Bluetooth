@@ -1056,7 +1056,6 @@ package android.bluetooth {
     field public static final int ERROR_GATT_WRITE_NOT_ALLOWED = 200; // 0xc8
     field public static final int ERROR_GATT_WRITE_REQUEST_BUSY = 201; // 0xc9
     field public static final int ERROR_MISSING_BLUETOOTH_CONNECT_PERMISSION = 6; // 0x6
-    field public static final int ERROR_MISSING_BLUETOOTH_PRIVILEGED_PERMISSION = 8; // 0x8
     field public static final int ERROR_PROFILE_SERVICE_NOT_BOUND = 9; // 0x9
     field public static final int ERROR_UNKNOWN = 2147483647; // 0x7fffffff
     field public static final int FEATURE_NOT_SUPPORTED = 11; // 0xb
