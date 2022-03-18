@@ -275,14 +275,15 @@ extern struct acl_peer_supports_sniff_subrating
 struct acl_refresh_remote_address {
   std::function<bool(
       const RawAddress& identity_address, tBLE_ADDR_TYPE identity_address_type,
-      const RawAddress& bda, tBLE_ADDR_TYPE rra_type, const RawAddress& rpa)>
+      const RawAddress& bda, tBTM_SEC_BLE::tADDRESS_TYPE rra_type,
+      const RawAddress& rpa)>
       body{[](const RawAddress& identity_address,
               tBLE_ADDR_TYPE identity_address_type, const RawAddress& bda,
-              tBLE_ADDR_TYPE rra_type,
+              tBTM_SEC_BLE::tADDRESS_TYPE rra_type,
               const RawAddress& rpa) { return false; }};
   bool operator()(const RawAddress& identity_address,
                   tBLE_ADDR_TYPE identity_address_type, const RawAddress& bda,
-                  tBLE_ADDR_TYPE rra_type, const RawAddress& rpa) {
+                  tBTM_SEC_BLE::tADDRESS_TYPE rra_type, const RawAddress& rpa) {
     return body(identity_address, identity_address_type, bda, rra_type, rpa);
   };
 };
