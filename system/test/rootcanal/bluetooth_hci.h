@@ -42,6 +42,9 @@ using android::net::AsyncDataChannelConnector;
 using android::net::AsyncDataChannelServer;
 using android::net::ConnectCallback;
 
+using rootcanal::Device;
+using rootcanal::Phy;
+
 class BluetoothHci : public IBluetoothHci {
  public:
   BluetoothHci();
@@ -89,8 +92,8 @@ class BluetoothHci : public IBluetoothHci {
   void SetUpTestChannel();
   void SetUpHciServer(ConnectCallback on_connect);
   void SetUpLinkLayerServer(ConnectCallback on_connect);
-  std::shared_ptr<AsyncDataChannel> ConnectToRemoteServer(
-      const std::string& server, int port);
+  std::shared_ptr<Device> ConnectToRemoteServer(const std::string& server,
+                                                int port, Phy::Type phy_type);
 
   std::shared_ptr<rootcanal::DualModeController> controller_;
 
@@ -121,8 +124,8 @@ class BluetoothHci : public IBluetoothHci {
         async_manager_.CancelAsyncTask(task);
       },
 
-      [this](const std::string& server, int port) {
-        return ConnectToRemoteServer(server, port);
+      [this](const std::string& server, int port, Phy::Type phy_type) {
+        return ConnectToRemoteServer(server, port, phy_type);
       }};
   rootcanal::TestCommandHandler test_channel_{test_model_};
 };
