@@ -28,6 +28,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * The {@link BluetoothLeBroadcastReceiveState} is used by the BASS server to expose information
@@ -187,13 +188,59 @@ public final class BluetoothLeBroadcastReceiveState implements Parcelable {
     /**
      * Constructor to create a read-only {@link BluetoothLeBroadcastReceiveState} instance.
      *
+     * @throws NullPointerException if sourceDevice, bisSyncState, or subgroupMetadata is null
+     * @throws IllegalArgumentException if sourceID is not [0, 0xFF] or if sourceAddressType
+     *      is invalid or if bisSyncState.size() != numSubgroups or if subgroupMetadata.size() !=
+     *      numSubgroups or if paSyncState or bigEncryptionState is not recognized bye IntDef
      * @hide
      */
-    public BluetoothLeBroadcastReceiveState(int sourceId, int sourceAddressType,
-            BluetoothDevice sourceDevice, int sourceAdvertisingSid, int broadcastId,
-            int paSyncState, int bigEncryptionState, byte[] badCode, int numSubgroups,
-            List<Long> bisSyncState,
-            List<BluetoothLeAudioContentMetadata> subgroupMetadata) {
+    public BluetoothLeBroadcastReceiveState(@IntRange(from = 0x00, to = 0xFF) int sourceId,
+            @BluetoothDevice.AddressType int sourceAddressType,
+            @NonNull BluetoothDevice sourceDevice, int sourceAdvertisingSid, int broadcastId,
+            @PaSyncState int paSyncState, @BigEncryptionState int bigEncryptionState,
+            byte[] badCode, @IntRange(from = 0x00) int numSubgroups,
+            @NonNull List<Long> bisSyncState,
+            @NonNull List<BluetoothLeAudioContentMetadata> subgroupMetadata) {
+        if (sourceId < 0x00 || sourceId > 0xFF) {
+            throw new IllegalArgumentException("sourceId " + sourceId
+                    + " does not fall between 0x00 and 0xFF");
+        }
+        Objects.requireNonNull(sourceDevice, "sourceDevice cannot be null");
+        if (sourceAddressType == BluetoothDevice.ADDRESS_TYPE_UNKNOWN) {
+            throw new IllegalArgumentException("sourceAddressType cannot be ADDRESS_TYPE_UNKNOWN");
+        }
+        if (sourceAddressType != BluetoothDevice.ADDRESS_TYPE_RANDOM
+                && sourceAddressType != BluetoothDevice.ADDRESS_TYPE_PUBLIC) {
+            throw new IllegalArgumentException("sourceAddressType " + sourceAddressType
+                    + " is invalid");
+        }
+        Objects.requireNonNull(bisSyncState, "bisSyncState cannot be null");
+        if (bisSyncState.size() != numSubgroups) {
+            throw new IllegalArgumentException("bisSyncState.size() " + bisSyncState.size()
+                    + " must be equal to numSubgroups " + numSubgroups);
+        }
+        Objects.requireNonNull(subgroupMetadata, "subgroupMetadata cannot be null");
+        if (subgroupMetadata.size() != numSubgroups) {
+            throw new IllegalArgumentException("subgroupMetadata.size()  "
+                    + subgroupMetadata.size() + " must be equal to numSubgroups " + numSubgroups);
+        }
+        if (paSyncState != PA_SYNC_STATE_IDLE && paSyncState != PA_SYNC_STATE_SYNCINFO_REQUEST
+                && paSyncState != PA_SYNC_STATE_FAILED_TO_SYNCHRONIZE
+                && paSyncState != PA_SYNC_STATE_NO_PAST && paSyncState != PA_SYNC_STATE_INVALID) {
+            throw new IllegalArgumentException("unrecognized paSyncState " + paSyncState);
+        }
+        if (bigEncryptionState != BIG_ENCRYPTION_STATE_NOT_ENCRYPTED
+                && bigEncryptionState != BIG_ENCRYPTION_STATE_CODE_REQUIRED
+                && bigEncryptionState != BIG_ENCRYPTION_STATE_DECRYPTING
+                && bigEncryptionState != BIG_ENCRYPTION_STATE_BAD_CODE
+                && bigEncryptionState != BIG_ENCRYPTION_STATE_INVALID) {
+            throw new IllegalArgumentException("unrecognized bigEncryptionState "
+                    + bigEncryptionState);
+        }
+        if (badCode != null && badCode.length != 16) {
+            throw new IllegalArgumentException("badCode must be 16 bytes long of null, but is "
+                    + badCode.length + " + bytes long");
+        }
         mSourceId = sourceId;
         mSourceAddressType = sourceAddressType;
         mSourceDevice = sourceDevice;
