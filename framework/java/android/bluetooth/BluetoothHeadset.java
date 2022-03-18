@@ -49,6 +49,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -930,7 +931,7 @@ public final class BluetoothHeadset implements BluetoothProfile {
      *
      * @param device is the Bluetooth device for which the audio state is being queried
      * @return the audio state of the device or an error code
-     * @throws IllegalArgumentException if the device is null
+     * @throws NullPointerException if the device is null
      *
      * @hide
      */
@@ -942,9 +943,7 @@ public final class BluetoothHeadset implements BluetoothProfile {
     })
     public @GetAudioStateReturnValues int getAudioState(@NonNull BluetoothDevice device) {
         if (VDBG) log("getAudioState");
-        if (device == null) {
-            throw new IllegalArgumentException("device cannot be null");
-        }
+        Objects.requireNonNull(device);
         final IBluetoothHeadset service = mService;
         final int defaultValue = BluetoothHeadset.STATE_AUDIO_DISCONNECTED;
         if (service == null) {
