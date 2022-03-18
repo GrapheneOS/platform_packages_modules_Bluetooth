@@ -30,6 +30,8 @@ import android.util.Log;
 import com.android.bluetooth.Utils;
 import com.android.internal.annotations.GuardedBy;
 
+import java.util.Arrays;
+
 /**
  * LeAudio Native Interface to/from JNI.
  */
@@ -149,6 +151,42 @@ public class LeAudioNativeInterface {
 
         if (DBG) {
             Log.d(TAG, "onSinkAudioLocationAvailable: " + event);
+        }
+        sendMessageToService(event);
+    }
+
+    private void onAudioLocalCodecCapabilities(
+                            BluetoothLeAudioCodecConfig[] localInputCodecCapabilities,
+                            BluetoothLeAudioCodecConfig[] localOutputCodecCapabilities) {
+        LeAudioStackEvent event =
+                new LeAudioStackEvent(
+                        LeAudioStackEvent.EVENT_TYPE_AUDIO_LOCAL_CODEC_CONFIG_CAPA_CHANGED);
+
+        event.valueCodecList1 = Arrays.asList(localInputCodecCapabilities);
+        event.valueCodecList2 = Arrays.asList(localOutputCodecCapabilities);
+
+        if (DBG) {
+            Log.d(TAG, "onAudioLocalCodecCapabilities: " + event);
+        }
+        sendMessageToService(event);
+    }
+
+    private void onAudioGroupCodecConf(int groupId, BluetoothLeAudioCodecConfig inputCodecConfig,
+                            BluetoothLeAudioCodecConfig outputCodecConfig,
+                            BluetoothLeAudioCodecConfig [] inputSelectableCodecConfig,
+                            BluetoothLeAudioCodecConfig [] outputSelectableCodecConfig) {
+        LeAudioStackEvent event =
+                new LeAudioStackEvent(
+                        LeAudioStackEvent.EVENT_TYPE_AUDIO_GROUP_CODEC_CONFIG_CHANGED);
+
+        event.valueInt1 = groupId;
+        event.valueCodec1 = inputCodecConfig;
+        event.valueCodec2 = outputCodecConfig;
+        event.valueCodecList1 = Arrays.asList(inputSelectableCodecConfig);
+        event.valueCodecList2 = Arrays.asList(outputSelectableCodecConfig);
+
+        if (DBG) {
+            Log.d(TAG, "onAudioGroupCodecConf: " + event);
         }
         sendMessageToService(event);
     }
