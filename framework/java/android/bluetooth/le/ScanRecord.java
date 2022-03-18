@@ -16,6 +16,7 @@
 
 package android.bluetooth.le;
 
+import android.annotation.IntDef;
 import android.annotation.NonNull;
 import android.annotation.Nullable;
 import android.annotation.SuppressLint;
@@ -26,6 +27,8 @@ import android.util.ArrayMap;
 import android.util.Log;
 import android.util.SparseArray;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -41,25 +44,107 @@ public final class ScanRecord {
 
     private static final String TAG = "ScanRecord";
 
+    /** @hide */
+    @IntDef(prefix = "DATA_TYPE_", value = {
+        DATA_TYPE_FLAGS,
+        DATA_TYPE_SERVICE_UUIDS_16_BIT_PARTIAL,
+        DATA_TYPE_SERVICE_UUIDS_16_BIT_COMPLETE,
+        DATA_TYPE_SERVICE_UUIDS_32_BIT_PARTIAL,
+        DATA_TYPE_SERVICE_UUIDS_32_BIT_COMPLETE,
+        DATA_TYPE_SERVICE_UUIDS_128_BIT_PARTIAL,
+        DATA_TYPE_SERVICE_UUIDS_128_BIT_COMPLETE,
+        DATA_TYPE_LOCAL_NAME_SHORT,
+        DATA_TYPE_LOCAL_NAME_COMPLETE,
+        DATA_TYPE_TX_POWER_LEVEL,
+        DATA_TYPE_CLASS_OF_DEVICE,
+        DATA_TYPE_SIMPLE_PAIRING_HASH_C,
+        DATA_TYPE_SIMPLE_PAIRING_RANDOMIZER_R,
+        DATA_TYPE_DEVICE_ID,
+        DATA_TYPE_SECURITY_MANAGER_OUT_OF_BAND_FLAGS,
+        DATA_TYPE_SLAVE_CONNECTION_INTERVAL_RANGE,
+        DATA_TYPE_SERVICE_SOLICITATION_UUIDS_16_BIT,
+        DATA_TYPE_SERVICE_SOLICITATION_UUIDS_128_BIT,
+        DATA_TYPE_SERVICE_DATA_16_BIT,
+        DATA_TYPE_PUBLIC_TARGET_ADDRESS,
+        DATA_TYPE_RANDOM_TARGET_ADDRESS,
+        DATA_TYPE_APPEARANCE,
+        DATA_TYPE_ADVERTISING_INTERVAL,
+        DATA_TYPE_LE_BLUETOOTH_DEVICE_ADDRESS,
+        DATA_TYPE_LE_ROLE,
+        DATA_TYPE_SIMPLE_PAIRING_HASH_C_256,
+        DATA_TYPE_SIMPLE_PAIRING_RANDOMIZER_R_256,
+        DATA_TYPE_SERVICE_SOLICITATION_UUIDS_32_BIT,
+        DATA_TYPE_SERVICE_DATA_32_BIT,
+        DATA_TYPE_SERVICE_DATA_128_BIT,
+        DATA_TYPE_LE_SECURE_CONNECTIONS_CONFIRMATION_VALUE,
+        DATA_TYPE_LE_SECURE_CONNECTIONS_RANDOM_VALUE,
+        DATA_TYPE_URI,
+        DATA_TYPE_INDOOR_POSITIONING,
+        DATA_TYPE_TRANSPORT_DISCOVERY_DATA,
+        DATA_TYPE_LE_SUPPORTED_FEATURES,
+        DATA_TYPE_CHANNEL_MAP_UPDATE_INDICATION,
+        DATA_TYPE_PB_ADV,
+        DATA_TYPE_MESH_MESSAGE,
+        DATA_TYPE_MESH_BEACON,
+        DATA_TYPE_BIG_INFO,
+        DATA_TYPE_BROADCAST_CODE,
+        DATA_TYPE_RESOLVABLE_SET_IDENTIFIER,
+        DATA_TYPE_ADVERTISING_INTERVAL_LONG,
+        DATA_TYPE_3D_INFORMATION_DATA,
+        DATA_TYPE_MANUFACTURER_SPECIFIC_DATA,
+    })
+    @Retention(RetentionPolicy.SOURCE)
+    public @interface AdvertisingDataType {}
+
     // The following data type values are assigned by Bluetooth SIG.
-    // For more details refer to Bluetooth 4.1 specification, Volume 3, Part C, Section 18.
-    private static final int DATA_TYPE_FLAGS = 0x01;
-    private static final int DATA_TYPE_SERVICE_UUIDS_16_BIT_PARTIAL = 0x02;
-    private static final int DATA_TYPE_SERVICE_UUIDS_16_BIT_COMPLETE = 0x03;
-    private static final int DATA_TYPE_SERVICE_UUIDS_32_BIT_PARTIAL = 0x04;
-    private static final int DATA_TYPE_SERVICE_UUIDS_32_BIT_COMPLETE = 0x05;
-    private static final int DATA_TYPE_SERVICE_UUIDS_128_BIT_PARTIAL = 0x06;
-    private static final int DATA_TYPE_SERVICE_UUIDS_128_BIT_COMPLETE = 0x07;
-    private static final int DATA_TYPE_LOCAL_NAME_SHORT = 0x08;
-    private static final int DATA_TYPE_LOCAL_NAME_COMPLETE = 0x09;
-    private static final int DATA_TYPE_TX_POWER_LEVEL = 0x0A;
-    private static final int DATA_TYPE_SERVICE_DATA_16_BIT = 0x16;
-    private static final int DATA_TYPE_SERVICE_DATA_32_BIT = 0x20;
-    private static final int DATA_TYPE_SERVICE_DATA_128_BIT = 0x21;
-    private static final int DATA_TYPE_SERVICE_SOLICITATION_UUIDS_16_BIT = 0x14;
-    private static final int DATA_TYPE_SERVICE_SOLICITATION_UUIDS_32_BIT = 0x1F;
-    private static final int DATA_TYPE_SERVICE_SOLICITATION_UUIDS_128_BIT = 0x15;
-    private static final int DATA_TYPE_MANUFACTURER_SPECIFIC_DATA = 0xFF;
+    // For more details refer to Bluetooth Generic Access Profile.
+    public static final int DATA_TYPE_NONE = -1;
+    public static final int DATA_TYPE_FLAGS = 0x01;
+    public static final int DATA_TYPE_SERVICE_UUIDS_16_BIT_PARTIAL = 0x02;
+    public static final int DATA_TYPE_SERVICE_UUIDS_16_BIT_COMPLETE = 0x03;
+    public static final int DATA_TYPE_SERVICE_UUIDS_32_BIT_PARTIAL = 0x04;
+    public static final int DATA_TYPE_SERVICE_UUIDS_32_BIT_COMPLETE = 0x05;
+    public static final int DATA_TYPE_SERVICE_UUIDS_128_BIT_PARTIAL = 0x06;
+    public static final int DATA_TYPE_SERVICE_UUIDS_128_BIT_COMPLETE = 0x07;
+    public static final int DATA_TYPE_LOCAL_NAME_SHORT = 0x08;
+    public static final int DATA_TYPE_LOCAL_NAME_COMPLETE = 0x09;
+    public static final int DATA_TYPE_TX_POWER_LEVEL = 0x0A;
+    public static final int DATA_TYPE_CLASS_OF_DEVICE = 0x0D;
+    public static final int DATA_TYPE_SIMPLE_PAIRING_HASH_C = 0x0E;
+    public static final int DATA_TYPE_SIMPLE_PAIRING_RANDOMIZER_R = 0x0F;
+    public static final int DATA_TYPE_DEVICE_ID = 0x10;
+    public static final int DATA_TYPE_SECURITY_MANAGER_OUT_OF_BAND_FLAGS = 0x11;
+    public static final int DATA_TYPE_SLAVE_CONNECTION_INTERVAL_RANGE = 0x12;
+    public static final int DATA_TYPE_SERVICE_SOLICITATION_UUIDS_16_BIT = 0x14;
+    public static final int DATA_TYPE_SERVICE_SOLICITATION_UUIDS_128_BIT = 0x15;
+    public static final int DATA_TYPE_SERVICE_DATA_16_BIT = 0x16;
+    public static final int DATA_TYPE_PUBLIC_TARGET_ADDRESS = 0x17;
+    public static final int DATA_TYPE_RANDOM_TARGET_ADDRESS = 0x18;
+    public static final int DATA_TYPE_APPEARANCE = 0x19;
+    public static final int DATA_TYPE_ADVERTISING_INTERVAL = 0x1A;
+    public static final int DATA_TYPE_LE_BLUETOOTH_DEVICE_ADDRESS = 0x1B;
+    public static final int DATA_TYPE_LE_ROLE = 0x1C;
+    public static final int DATA_TYPE_SIMPLE_PAIRING_HASH_C_256 = 0x1D;
+    public static final int DATA_TYPE_SIMPLE_PAIRING_RANDOMIZER_R_256 = 0x1E;
+    public static final int DATA_TYPE_SERVICE_SOLICITATION_UUIDS_32_BIT = 0x1F;
+    public static final int DATA_TYPE_SERVICE_DATA_32_BIT = 0x20;
+    public static final int DATA_TYPE_SERVICE_DATA_128_BIT = 0x21;
+    public static final int DATA_TYPE_LE_SECURE_CONNECTIONS_CONFIRMATION_VALUE = 0x22;
+    public static final int DATA_TYPE_LE_SECURE_CONNECTIONS_RANDOM_VALUE = 0x23;
+    public static final int DATA_TYPE_URI = 0x24;
+    public static final int DATA_TYPE_INDOOR_POSITIONING = 0x25;
+    public static final int DATA_TYPE_TRANSPORT_DISCOVERY_DATA = 0x26;
+    public static final int DATA_TYPE_LE_SUPPORTED_FEATURES = 0x27;
+    public static final int DATA_TYPE_CHANNEL_MAP_UPDATE_INDICATION = 0x28;
+    public static final int DATA_TYPE_PB_ADV = 0x29;
+    public static final int DATA_TYPE_MESH_MESSAGE = 0x2A;
+    public static final int DATA_TYPE_MESH_BEACON = 0x2B;
+    public static final int DATA_TYPE_BIG_INFO = 0x2C;
+    public static final int DATA_TYPE_BROADCAST_CODE = 0x2D;
+    public static final int DATA_TYPE_RESOLVABLE_SET_IDENTIFIER = 0x2E;
+    public static final int DATA_TYPE_ADVERTISING_INTERVAL_LONG = 0x2F;
+    public static final int DATA_TYPE_3D_INFORMATION_DATA = 0x3D;
+    public static final int DATA_TYPE_MANUFACTURER_SPECIFIC_DATA = 0xFF;
 
     // Flags of the advertising data.
     private final int mAdvertiseFlags;
@@ -170,6 +255,8 @@ public final class ScanRecord {
 
     /**
      * Returns a map of advertising data type and its corresponding advertising data.
+     * The values of advertising data type are defined in the Bluetooth Generic Access Profile
+     * (https://www.bluetooth.com/specifications/assigned-numbers/)
      */
     public @NonNull Map<Integer, byte[]> getAdvertisingDataMap() {
         return mAdvertisingDataMap;
