@@ -190,6 +190,8 @@ pub async fn mainloop(
     });
 
     let init_tx = context.tx.clone();
+    let floss_enabled = bluetooth_manager.lock().unwrap().get_floss_enabled_internal();
+
     tokio::spawn(async move {
         // Get a list of active pid files to determine initial adapter status
         let files = config_util::list_pid_files(PID_DIR);
@@ -203,18 +205,22 @@ pub async fn mainloop(
                 .unwrap();
         }
 
-        // Initialize adapter states based on saved config
-        let hci_devices = config_util::list_hci_devices();
-        for device in hci_devices.iter() {
-            let is_enabled = config_util::is_hci_n_enabled(*device);
-            if is_enabled {
-                let _ = init_tx
-                    .send_timeout(
-                        Message::AdapterStateChange(AdapterStateActions::StartBluetooth(*device)),
-                        TX_SEND_TIMEOUT_DURATION,
-                    )
-                    .await
-                    .unwrap();
+        // Initialize adapter states based on saved config only if floss is enabled.
+        if floss_enabled {
+            let hci_devices = config_util::list_hci_devices();
+            for device in hci_devices.iter() {
+                let is_enabled = config_util::is_hci_n_enabled(*device);
+                if is_enabled {
+                    let _ = init_tx
+                        .send_timeout(
+                            Message::AdapterStateChange(AdapterStateActions::StartBluetooth(
+                                *device,
+                            )),
+                            TX_SEND_TIMEOUT_DURATION,
+                        )
+                        .await
+                        .unwrap();
+                }
             }
         }
     });
