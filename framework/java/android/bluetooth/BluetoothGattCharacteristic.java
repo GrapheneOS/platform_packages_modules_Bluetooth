@@ -15,11 +15,14 @@
  */
 package android.bluetooth;
 
+import android.annotation.IntDef;
 import android.compat.annotation.UnsupportedAppUsage;
 import android.os.Parcel;
 import android.os.ParcelUuid;
 import android.os.Parcelable;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -115,8 +118,17 @@ public class BluetoothGattCharacteristic implements Parcelable {
      */
     public static final int PERMISSION_WRITE_SIGNED_MITM = 0x100;
 
+    /** @hide */
+    @Retention(RetentionPolicy.SOURCE)
+    @IntDef(prefix = "WRITE_TYPE_", value = {
+            WRITE_TYPE_DEFAULT,
+            WRITE_TYPE_NO_RESPONSE,
+            WRITE_TYPE_SIGNED
+    })
+    public @interface WriteType{}
+
     /**
-     * Write characteristic, requesting acknoledgement by the remote device
+     * Write characteristic, requesting acknowledgement by the remote device
      */
     public static final int WRITE_TYPE_DEFAULT = 0x02;
 
