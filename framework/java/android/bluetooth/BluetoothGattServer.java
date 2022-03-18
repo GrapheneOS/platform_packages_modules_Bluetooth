@@ -751,11 +751,8 @@ public final class BluetoothGattServer implements BluetoothProfile {
     @IntDef(value = {
             BluetoothStatusCodes.SUCCESS,
             BluetoothStatusCodes.ERROR_MISSING_BLUETOOTH_CONNECT_PERMISSION,
-            BluetoothStatusCodes.ERROR_MISSING_BLUETOOTH_PRIVILEGED_PERMISSION,
             BluetoothStatusCodes.ERROR_DEVICE_NOT_CONNECTED,
             BluetoothStatusCodes.ERROR_PROFILE_SERVICE_NOT_BOUND,
-            BluetoothStatusCodes.ERROR_GATT_WRITE_NOT_ALLOWED,
-            BluetoothStatusCodes.ERROR_GATT_WRITE_REQUEST_BUSY,
             BluetoothStatusCodes.ERROR_UNKNOWN
     })
     public @interface NotifyCharacteristicReturnValues{}
