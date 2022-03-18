@@ -128,6 +128,11 @@ class LeAudioClientInterface {
 
   /* Set active le audio group */
   virtual void GroupSetActive(int group_id) = 0;
+
+  /* Set codec config preference */
+  virtual void SetCodecConfigPreference(
+      int group_id, btle_audio_codec_config_t input_codec_config,
+      btle_audio_codec_config_t output_codec_config) = 0;
 };
 
 static constexpr uint8_t INSTANCE_ID_UNDEFINED = 0xFF;
