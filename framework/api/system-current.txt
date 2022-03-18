@@ -689,6 +689,7 @@ package android.bluetooth {
     field @NonNull public static final android.os.ParcelUuid A2DP_SINK;
     field @NonNull public static final android.os.ParcelUuid A2DP_SOURCE;
     field @NonNull public static final android.os.ParcelUuid ADV_AUDIO_DIST;
+    field @NonNull public static final android.os.ParcelUuid AVRCP;
     field @NonNull public static final android.os.ParcelUuid AVRCP_CONTROLLER;
     field @NonNull public static final android.os.ParcelUuid AVRCP_TARGET;
     field @NonNull public static final android.os.ParcelUuid BASE_UUID;
