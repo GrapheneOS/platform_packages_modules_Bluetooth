@@ -3100,7 +3100,7 @@ static void bta_dm_set_eir(char* local_name) {
   if (free_eir_length)
     UINT8_TO_STREAM(p, 0); /* terminator of significant part */
 
-  BTM_WriteEIR(p_buf);
+  get_btm_client_interface().eir.BTM_WriteEIR(p_buf);
 }
 
 #if (BTA_EIR_CANNED_UUID_LIST != TRUE)

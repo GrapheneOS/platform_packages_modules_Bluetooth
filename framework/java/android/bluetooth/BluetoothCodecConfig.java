@@ -536,6 +536,8 @@ public final class BluetoothCodecConfig implements Parcelable {
 
     /**
      * Returns the codec specific value1.
+     * As the value and usage differ for each codec, please refer to the concerned
+     * codec specification to obtain the codec specific information.
      */
     public long getCodecSpecific1() {
         return mCodecSpecific1;
@@ -543,6 +545,8 @@ public final class BluetoothCodecConfig implements Parcelable {
 
     /**
      * Returns the codec specific value2.
+     * As the value and usage differ for each codec, please refer to the concerned
+     * codec specification to obtain the codec specific information.
      */
     public long getCodecSpecific2() {
         return mCodecSpecific2;
@@ -550,6 +554,8 @@ public final class BluetoothCodecConfig implements Parcelable {
 
     /**
      * Returns the codec specific value3.
+     * As the value and usage differ for each codec, please refer to the concerned
+     * codec specification to obtain the codec specific information.
      */
     public long getCodecSpecific3() {
         return mCodecSpecific3;
@@ -557,6 +563,8 @@ public final class BluetoothCodecConfig implements Parcelable {
 
     /**
      * Returns the codec specific value4.
+     * As the value and usage differ for each codec, please refer to the concerned
+     * codec specification to obtain the codec specific information.
      */
     public long getCodecSpecific4() {
         return mCodecSpecific4;

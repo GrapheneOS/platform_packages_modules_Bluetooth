@@ -101,7 +101,7 @@ cc_library {
         "-DBUILDCFG",
     ],
     sanitize: {
-        never: true,
+        scs: true,
     },
     host_supported: true,
     min_sdk_version: "30",
