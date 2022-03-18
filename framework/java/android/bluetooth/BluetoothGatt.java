@@ -23,6 +23,7 @@ import android.annotation.NonNull;
 import android.annotation.RequiresNoPermission;
 import android.annotation.RequiresPermission;
 import android.annotation.SuppressLint;
+import android.bluetooth.BluetoothGattCharacteristic.WriteType;
 import android.bluetooth.annotations.RequiresBluetoothConnectPermission;
 import android.bluetooth.annotations.RequiresLegacyBluetoothPermission;
 import android.compat.annotation.UnsupportedAppUsage;
@@ -423,9 +424,6 @@ public final class BluetoothGatt implements BluetoothProfile {
                                 if (status == 0) characteristic.setValue(value);
                                 callback.onCharacteristicRead(BluetoothGatt.this, characteristic,
                                         value, status);
-                                // Keep calling deprecated callback to maintain app compatibility
-                                callback.onCharacteristicRead(BluetoothGatt.this, characteristic,
-                                        status);
                             }
                         }
                     });
@@ -526,9 +524,6 @@ public final class BluetoothGatt implements BluetoothProfile {
                                 characteristic.setValue(value);
                                 callback.onCharacteristicChanged(BluetoothGatt.this,
                                         characteristic, value);
-                                // Keep calling deprecated callback to maintain app compatibility
-                                callback.onCharacteristicChanged(BluetoothGatt.this,
-                                        characteristic);
                             }
                         }
                     });
@@ -585,8 +580,6 @@ public final class BluetoothGatt implements BluetoothProfile {
                                 if (status == 0) descriptor.setValue(value);
                                 callback.onDescriptorRead(BluetoothGatt.this, descriptor, status,
                                         value);
-                                // Keep calling deprecated callback to maintain app compatibility
-                                callback.onDescriptorRead(BluetoothGatt.this, descriptor, status);
                             }
                         }
                     });
@@ -1305,7 +1298,6 @@ public final class BluetoothGatt implements BluetoothProfile {
         return true;
     }
 
-
     /**
      * Writes a given characteristic and its values to the associated remote device.
      *
@@ -1318,7 +1310,8 @@ public final class BluetoothGatt implements BluetoothProfile {
      * @throws IllegalArgumentException if characteristic or its value are null
      *
      * @deprecated Use {@link BluetoothGatt#writeCharacteristic(BluetoothGattCharacteristic, byte[],
-     * int)} as this is not memory safe.
+     * int)} as this is not memory safe because it relies on a {@link BluetoothGattCharacteristic}
+     * object whose underlying fields are subject to change outside this method.
      */
     @Deprecated
     @RequiresLegacyBluetoothPermission
@@ -1338,7 +1331,6 @@ public final class BluetoothGatt implements BluetoothProfile {
     @IntDef(value = {
             BluetoothStatusCodes.SUCCESS,
             BluetoothStatusCodes.ERROR_MISSING_BLUETOOTH_CONNECT_PERMISSION,
-            BluetoothStatusCodes.ERROR_MISSING_BLUETOOTH_PRIVILEGED_PERMISSION,
             BluetoothStatusCodes.ERROR_DEVICE_NOT_CONNECTED,
             BluetoothStatusCodes.ERROR_PROFILE_SERVICE_NOT_BOUND,
             BluetoothStatusCodes.ERROR_GATT_WRITE_NOT_ALLOWED,
@@ -1362,7 +1354,7 @@ public final class BluetoothGatt implements BluetoothProfile {
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     @WriteOperationReturnValues
     public int writeCharacteristic(@NonNull BluetoothGattCharacteristic characteristic,
-            @NonNull byte[] value, int writeType) {
+            @NonNull byte[] value, @WriteType int writeType) {
         if (characteristic == null) {
             throw new IllegalArgumentException("characteristic must not be null");
         }
@@ -1487,7 +1479,8 @@ public final class BluetoothGatt implements BluetoothProfile {
      * @throws IllegalArgumentException if descriptor or its value are null
      *
      * @deprecated Use {@link BluetoothGatt#writeDescriptor(BluetoothGattDescriptor, byte[])} as
-     * this is not memory safe.
+     * this is not memory safe because it relies on a {@link BluetoothGattDescriptor} object
+     * whose underlying fields are subject to change outside this method.
      */
     @Deprecated
     @RequiresLegacyBluetoothPermission
