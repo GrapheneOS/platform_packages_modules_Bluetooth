@@ -19,7 +19,6 @@ package android.bluetooth;
 
 import static android.bluetooth.BluetoothUtils.getSyncTimeout;
 
-import android.Manifest;
 import android.annotation.CallbackExecutor;
 import android.annotation.IntDef;
 import android.annotation.IntRange;
@@ -78,6 +77,14 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
      */
     @SystemApi
     public interface Callback {
+        /** @hide */
+        @Retention(RetentionPolicy.SOURCE)
+        @IntDef(value = {
+            GROUP_STATUS_ACTIVE,
+            GROUP_STATUS_INACTIVE,
+        })
+        @interface GroupStatus {}
+
         /**
          * Callback invoked when callback is registered and when codec config
          * changes on the remote device.
@@ -89,6 +96,40 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
         @SystemApi
         void onCodecConfigChanged(int groupId,
                                   @NonNull BluetoothLeAudioCodecStatus status);
+
+        /**
+         * Callback invoked when a device has been added to the group.
+         * It usually happens after connection or on bluetooth startup if
+         * the device is bonded.
+         *
+         * @param device the device which is added to the group
+         * @param groupId the group id
+         * @hide
+         */
+        @SystemApi
+        void onGroupNodeAdded(@NonNull BluetoothDevice device, int groupId);
+
+        /**
+         * Callback invoked when a device has been removed from the group.
+         * It usually happens when device gets unbonded.
+         *
+         * @param device the device which is removed from the group
+         * @param groupId the group id
+         *
+         * @hide
+         */
+        @SystemApi
+        void onGroupNodeRemoved(@NonNull BluetoothDevice device, int groupId);
+
+        /**
+         * Callback invoked the group's active state changes.
+         *
+         * @param groupId the group id
+         * @param groupStatus active or inactive state.
+         * @hide
+         */
+        @SystemApi
+        void onGroupStatusChanged(int groupId, @GroupStatus int groupStatus);
     }
 
     @SuppressLint("AndroidFrameworkBluetoothPermission")
@@ -101,6 +142,38 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
                 BluetoothLeAudio.Callback callback = callbackExecutorEntry.getKey();
                 Executor executor = callbackExecutorEntry.getValue();
                 executor.execute(() -> callback.onCodecConfigChanged(groupId, status));
+            }
+        }
+
+        @Override
+        public void onGroupNodeAdded(@NonNull BluetoothDevice device, int groupId) {
+            Attributable.setAttributionSource(device, mAttributionSource);
+            for (Map.Entry<BluetoothLeAudio.Callback, Executor> callbackExecutorEntry:
+                    mCallbackExecutorMap.entrySet()) {
+                BluetoothLeAudio.Callback callback = callbackExecutorEntry.getKey();
+                Executor executor = callbackExecutorEntry.getValue();
+                executor.execute(() -> callback.onGroupNodeAdded(device, groupId));
+            }
+        }
+
+        @Override
+        public void onGroupNodeRemoved(@NonNull BluetoothDevice device, int groupId) {
+            Attributable.setAttributionSource(device, mAttributionSource);
+            for (Map.Entry<BluetoothLeAudio.Callback, Executor> callbackExecutorEntry:
+                    mCallbackExecutorMap.entrySet()) {
+                BluetoothLeAudio.Callback callback = callbackExecutorEntry.getKey();
+                Executor executor = callbackExecutorEntry.getValue();
+                executor.execute(() -> callback.onGroupNodeRemoved(device, groupId));
+            }
+        }
+
+        @Override
+        public void onGroupStatusChanged(int groupId, int groupStatus) {
+            for (Map.Entry<BluetoothLeAudio.Callback, Executor> callbackExecutorEntry:
+                    mCallbackExecutorMap.entrySet()) {
+                BluetoothLeAudio.Callback callback = callbackExecutorEntry.getKey();
+                Executor executor = callbackExecutorEntry.getValue();
+                executor.execute(() -> callback.onGroupStatusChanged(groupId, groupStatus));
             }
         }
     };
@@ -149,70 +222,6 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
     @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
     public static final String ACTION_LE_AUDIO_ACTIVE_DEVICE_CHANGED =
             "android.bluetooth.action.LE_AUDIO_ACTIVE_DEVICE_CHANGED";
-
-    /**
-     * Intent used to broadcast group node status information.
-     *
-     * <p>This intent will have 3 extras:
-     * <ul>
-     * <li> {@link BluetoothDevice#EXTRA_DEVICE} - The remote device. It can
-     * be null if no device is active. </li>
-     * <li> {@link #EXTRA_LE_AUDIO_GROUP_ID} - Group id. </li>
-     * <li> {@link #EXTRA_LE_AUDIO_GROUP_NODE_STATUS} - Group node status. </li>
-     * </ul>
-     *
-     * @hide
-     */
-    @SystemApi
-    @RequiresPermission(allOf = {
-            android.Manifest.permission.BLUETOOTH_CONNECT,
-            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-    })
-    @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
-    public static final String ACTION_LE_AUDIO_GROUP_NODE_STATUS_CHANGED =
-            "android.bluetooth.action.LE_AUDIO_GROUP_NODE_STATUS_CHANGED";
-
-    /**
-     * Intent used to broadcast group status information.
-     *
-     * <p>This intent will have 3 extras:
-     * <ul>
-     * <li> {@link BluetoothDevice#EXTRA_DEVICE} - The remote device. It can
-     * be null if no device is active. </li>
-     * <li> {@link #EXTRA_LE_AUDIO_GROUP_ID} - Group id. </li>
-     * <li> {@link #EXTRA_LE_AUDIO_GROUP_STATUS} - Group status. </li>
-     * </ul>
-     *
-     * @hide
-     */
-    @SystemApi
-    @RequiresPermission(Manifest.permission.BLUETOOTH_PRIVILEGED)
-    @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
-    public static final String ACTION_LE_AUDIO_GROUP_STATUS_CHANGED =
-            "android.bluetooth.action.LE_AUDIO_GROUP_STATUS_CHANGED";
-
-    /**
-     * Intent used to broadcast group audio configuration changed information.
-     *
-     * <p>This intent will have 5 extra:
-     * <ul>
-     * <li> {@link #EXTRA_LE_AUDIO_GROUP_ID} - Group id. </li>
-     * <li> {@link #EXTRA_LE_AUDIO_DIRECTION} - Direction as bit mask. </li>
-     * <li> {@link #EXTRA_LE_AUDIO_SINK_LOCATION} - Sink location as per Bluetooth Assigned
-     * Numbers </li>
-     * <li> {@link #EXTRA_LE_AUDIO_SOURCE_LOCATION} - Source location as per Bluetooth Assigned
-     * Numbers </li>
-     * <li> {@link #EXTRA_LE_AUDIO_AVAILABLE_CONTEXTS} - Available contexts for group as per
-     * Bluetooth Assigned Numbers </li>
-     * </ul>
-     *
-     * @hide
-     */
-    @RequiresPermission(Manifest.permission.BLUETOOTH_PRIVILEGED)
-    @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
-    public static final String ACTION_LE_AUDIO_CONF_CHANGED =
-            "android.bluetooth.action.LE_AUDIO_CONF_CHANGED";
-
 
     /**
      * Indicates unspecified audio content.
@@ -573,35 +582,6 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
             "android.bluetooth.extra.LE_AUDIO_GROUP_ID";
 
     /**
-     * Contains group node status, can be any of
-     * <p>
-     * <ul>
-     * <li> {@link #GROUP_NODE_ADDED} </li>
-     * <li> {@link #GROUP_NODE_REMOVED} </li>
-     * </ul>
-     * <p>
-     * @hide
-     */
-    @SystemApi
-    public static final String EXTRA_LE_AUDIO_GROUP_NODE_STATUS =
-            "android.bluetooth.extra.LE_AUDIO_GROUP_NODE_STATUS";
-
-    /**
-     * Contains group status, can be any of
-     *
-     * <p>
-     * <ul>
-     * <li> {@link #GROUP_STATUS_ACTIVE} </li>
-     * <li> {@link #GROUP_STATUS_INACTIVE} </li>
-     * </ul>
-     * <p>
-     * @hide
-     */
-    @SystemApi
-    public static final String EXTRA_LE_AUDIO_GROUP_STATUS =
-            "android.bluetooth.extra.LE_AUDIO_GROUP_STATUS";
-
-    /**
      * Contains bit mask for direction, bit 0 set when Sink, bit 1 set when Source.
      * @hide
      */
@@ -642,20 +622,6 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
      * @hide
      */
     public static final int GROUP_STATUS_INACTIVE = IBluetoothLeAudio.GROUP_STATUS_INACTIVE;
-
-    /**
-     * Indicating that node has been added to the group.
-     * @hide
-     */
-    @SystemApi
-    public static final int GROUP_NODE_ADDED = IBluetoothLeAudio.GROUP_NODE_ADDED;
-
-    /**
-     * Indicating that node has been removed from the group.
-     * @hide
-     */
-    @SystemApi
-    public static final int GROUP_NODE_REMOVED = IBluetoothLeAudio.GROUP_NODE_REMOVED;
 
     private final BluetoothProfileConnector<IBluetoothLeAudio> mProfileConnector =
             new BluetoothProfileConnector(this, BluetoothProfile.LE_AUDIO, "BluetoothLeAudio",
@@ -979,6 +945,13 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
         synchronized (mCallbackExecutorMap) {
             // If the callback map is empty, we register the service-to-app callback
             if (mCallbackExecutorMap.isEmpty()) {
+                if (!mAdapter.isEnabled()) {
+                    /* If Bluetooth is off, just store callback and it will be registered
+                     * when Bluetooth is on
+                     */
+                    mCallbackExecutorMap.put(callback, executor);
+                    return;
+                }
                 try {
                     final IBluetoothLeAudio service = getService();
                     if (service != null) {
