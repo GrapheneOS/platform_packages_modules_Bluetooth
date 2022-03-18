@@ -2301,7 +2301,7 @@ bool acl_refresh_remote_address(const RawAddress& identity_address,
       p_acl->active_remote_addr = rpa;
     }
   } else {
-    p_acl->active_remote_addr_type = rra_type;
+    p_acl->active_remote_addr_type = static_cast<tBLE_ADDR_TYPE>(rra_type);
     p_acl->active_remote_addr = rpa;
   }
 
