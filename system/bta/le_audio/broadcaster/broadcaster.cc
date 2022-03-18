@@ -704,12 +704,11 @@ void LeAudioBroadcaster::Initialize(
     return;
   }
 
-  IsoManager::GetInstance()->Start();
-
   if (!std::move(audio_hal_verifier).Run()) {
-    LOG_ASSERT(false) << __func__ << ", HAL 2.1 not supported, Init aborted.";
-    return;
+    LOG_ALWAYS_FATAL("HAL requirements not met. Init aborted.");
   }
+
+  IsoManager::GetInstance()->Start();
 
   instance = new LeAudioBroadcasterImpl(callbacks);
   /* Register HCI event handlers */
