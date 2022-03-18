@@ -22,6 +22,7 @@ import static android.bluetooth.BluetoothUtils.getSyncTimeout;
 import android.Manifest;
 import android.annotation.CallbackExecutor;
 import android.annotation.IntDef;
+import android.annotation.IntRange;
 import android.annotation.NonNull;
 import android.annotation.Nullable;
 import android.annotation.RequiresPermission;
@@ -152,7 +153,7 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
     /**
      * Intent used to broadcast group node status information.
      *
-     * <p>This intent will have 3 extra:
+     * <p>This intent will have 3 extras:
      * <ul>
      * <li> {@link BluetoothDevice#EXTRA_DEVICE} - The remote device. It can
      * be null if no device is active. </li>
@@ -174,7 +175,7 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
     /**
      * Intent used to broadcast group status information.
      *
-     * <p>This intent will have 4 extra:
+     * <p>This intent will have 3 extras:
      * <ul>
      * <li> {@link BluetoothDevice#EXTRA_DEVICE} - The remote device. It can
      * be null if no device is active. </li>
@@ -827,13 +828,13 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
     }
 
     /**
-     * Get lead device for a group.
+     * Get Lead device for the group.
      *
      * Lead device is the device that can be used as an active device in the system.
      * Active devices points to the Audio Device for the Le Audio group.
-     * This method returns a list of Lead devices for all the connected LE Audio
-     * groups and those devices should be used in the setActiveDevice() method by other parts
-     * of the system, which wants to setActive a particular Le Audio Group.
+     * This method returns the Lead devices for the connected LE Audio
+     * group and this device should be used in the setActiveDevice() method by other parts
+     * of the system, which wants to set to active a particular Le Audio group.
      *
      * Note: getActiveDevice() returns the Lead device for the currently active LE Audio group.
      * Note: When lead device gets disconnected, there will be new lead device for the group.
@@ -1161,7 +1162,7 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
             android.Manifest.permission.BLUETOOTH_CONNECT,
             android.Manifest.permission.BLUETOOTH_PRIVILEGED
     })
-    public void setVolume(int volume) {
+    public void setVolume(@IntRange(from = 0, to = 255) int volume) {
         if (VDBG) log("setVolume(vol: " + volume + " )");
         final IBluetoothLeAudio service = getService();
         if (service == null) {
@@ -1392,7 +1393,7 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
     /**
      * Gets the current codec status (configuration and capability).
      *
-     * @param device the remote Bluetooth device.
+     * @param groupId The group id
      * @return the current codec status
      * @hide
      */
@@ -1403,9 +1404,9 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
             android.Manifest.permission.BLUETOOTH_CONNECT,
             android.Manifest.permission.BLUETOOTH_PRIVILEGED
     })
-    public BluetoothLeAudioCodecStatus getCodecStatus(@NonNull BluetoothDevice device) {
+    public BluetoothLeAudioCodecStatus getCodecStatus(int groupId) {
         if (DBG) {
-            Log.d(TAG, "getCodecStatus(" + device + ")");
+            Log.d(TAG, "getCodecStatus(" + groupId + ")");
         }
 
         final IBluetoothLeAudio service = getService();
@@ -1414,11 +1415,11 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
         if (service == null) {
             Log.w(TAG, "Proxy not attached to service");
             if (DBG) log(Log.getStackTraceString(new Throwable()));
-        } else if (mAdapter.isEnabled() && isValidDevice(device)) {
+        } else if (mAdapter.isEnabled()) {
             try {
                 final SynchronousResultReceiver<BluetoothLeAudioCodecStatus> recv =
                         new SynchronousResultReceiver();
-                service.getCodecStatus(device, mAttributionSource, recv);
+                service.getCodecStatus(groupId, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
@@ -1433,9 +1434,11 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
     /**
      * Sets the codec configuration preference.
      *
-     * @param device the remote Bluetooth device.
-     * @param codecConfig the codec configuration preference
+     * @param groupId the groupId
+     * @param inputCodecConfig the input codec configuration preference
+     * @param outputCodecConfig the output codec configuration preference
      * @throws IllegalStateException if LE Audio Service is null
+     * @throws NullPointerException if any of the configs is null
      * @hide
      */
     @SystemApi
@@ -1444,14 +1447,13 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
             android.Manifest.permission.BLUETOOTH_CONNECT,
             android.Manifest.permission.BLUETOOTH_PRIVILEGED
     })
-    public void setCodecConfigPreference(@NonNull BluetoothDevice device,
-                                         @NonNull BluetoothLeAudioCodecConfig codecConfig) {
-        if (DBG) Log.d(TAG, "setCodecConfigPreference(" + device + ")");
+    public void setCodecConfigPreference(int groupId,
+                                         @NonNull BluetoothLeAudioCodecConfig inputCodecConfig,
+                                         @NonNull BluetoothLeAudioCodecConfig outputCodecConfig) {
+        if (DBG) Log.d(TAG, "setCodecConfigPreference(" + groupId + ")");
 
-        if (codecConfig == null) {
-            Log.e(TAG, "setCodecConfigPreference: Codec config can't be null");
-            throw new IllegalArgumentException("codecConfig cannot be null");
-        }
+        Objects.requireNonNull(inputCodecConfig, " inputCodecConfig shall not be null");
+        Objects.requireNonNull(outputCodecConfig, " outputCodecConfig shall not be null");
 
         final IBluetoothLeAudio service = getService();
 
@@ -1459,9 +1461,10 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
             Log.w(TAG, "Proxy not attached to service");
             if (DBG) log(Log.getStackTraceString(new Throwable()));
             throw new IllegalStateException("Service is unavailable");
-        } else if (mAdapter.isEnabled() && isValidDevice(device)) {
+        } else if (mAdapter.isEnabled()) {
             try {
-                service.setCodecConfigPreference(device, codecConfig, mAttributionSource);
+                service.setCodecConfigPreference(groupId, inputCodecConfig, outputCodecConfig,
+                                        mAttributionSource);
             } catch (RemoteException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
                 e.rethrowFromSystemServer();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,21 @@
  * limitations under the License.
  */
 
-#include "hci/acl_manager_mock.h"
-#include "hci/controller_mock.h"
-#include "hci/le_advertising_manager_mock.h"
-#include "hci/le_scanning_manager_mock.h"
+package android.bluetooth;
 
-namespace bluetooth {
-namespace hci {
-namespace testing {
+import android.bluetooth.BluetoothActivityEnergyInfo;
 
-extern MockAclManager* mock_acl_manager_;
-extern MockController* mock_controller_;
-extern MockLeAdvertisingManager* mock_le_advertising_manager_;
-extern MockLeScanningManager* mock_le_scanning_manager_;
-
-}  // namespace testing
-}  // namespace hci
-}  // namespace bluetooth
+/**
+ * Interface for Bluetooth activity energy info listener.
+ *
+ * {@hide}
+ */
+oneway interface IBluetoothActivityEnergyInfoListener
+{
+    /**
+     * AdapterService to BluetoothAdapter callback providing current Bluetooth
+     * activity energy info.
+     * @param info the Bluetooth activity energy info
+     */
+    void onBluetoothActivityEnergyInfo(in BluetoothActivityEnergyInfo info);
+}

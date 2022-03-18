@@ -374,5 +374,7 @@ BleAdvertiserInterface* bluetooth::shim::get_ble_advertiser_instance() {
 };
 
 void bluetooth::shim::init_advertising_manager() {
-  bt_le_advertiser_instance->Init();
+  static_cast<BleAdvertiserInterfaceImpl*>(
+      bluetooth::shim::get_ble_advertiser_instance())
+      ->Init();
 }
