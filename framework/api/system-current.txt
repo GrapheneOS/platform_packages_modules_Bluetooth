@@ -500,7 +500,7 @@ package android.bluetooth {
     method @IntRange(from=0, to=16777215) public int getPresentationDelayMicros();
     method public int getSourceAddressType();
     method public int getSourceAdvertisingSid();
-    method @Nullable public android.bluetooth.BluetoothDevice getSourceDevice();
+    method @NonNull public android.bluetooth.BluetoothDevice getSourceDevice();
     method @NonNull public java.util.List<android.bluetooth.BluetoothLeBroadcastSubgroup> getSubgroups();
     method public boolean isEncrypted();
     field @NonNull public static final android.os.Parcelable.Creator<android.bluetooth.BluetoothLeBroadcastMetadata> CREATOR;
@@ -519,7 +519,7 @@ package android.bluetooth {
     method @NonNull public android.bluetooth.BluetoothLeBroadcastMetadata.Builder setPaSyncInterval(int);
     method @NonNull public android.bluetooth.BluetoothLeBroadcastMetadata.Builder setPresentationDelayMicros(@IntRange(from=0, to=16777215) int);
     method @NonNull public android.bluetooth.BluetoothLeBroadcastMetadata.Builder setSourceAdvertisingSid(int);
-    method @NonNull public android.bluetooth.BluetoothLeBroadcastMetadata.Builder setSourceDevice(@Nullable android.bluetooth.BluetoothDevice, int);
+    method @NonNull public android.bluetooth.BluetoothLeBroadcastMetadata.Builder setSourceDevice(@NonNull android.bluetooth.BluetoothDevice, int);
   }
 
   public final class BluetoothLeBroadcastReceiveState implements android.os.Parcelable {
@@ -551,7 +551,7 @@ package android.bluetooth {
     method public long getCodecId();
     method @NonNull public android.bluetooth.BluetoothLeAudioCodecConfigMetadata getCodecSpecificConfig();
     method @NonNull public android.bluetooth.BluetoothLeAudioContentMetadata getContentMetadata();
-    method public boolean isNoChannelPreference();
+    method public boolean hasChannelPreference();
     field @NonNull public static final android.os.Parcelable.Creator<android.bluetooth.BluetoothLeBroadcastSubgroup> CREATOR;
   }
 
@@ -564,7 +564,6 @@ package android.bluetooth {
     method @NonNull public android.bluetooth.BluetoothLeBroadcastSubgroup.Builder setCodecId(long);
     method @NonNull public android.bluetooth.BluetoothLeBroadcastSubgroup.Builder setCodecSpecificConfig(@NonNull android.bluetooth.BluetoothLeAudioCodecConfigMetadata);
     method @NonNull public android.bluetooth.BluetoothLeBroadcastSubgroup.Builder setContentMetadata(@NonNull android.bluetooth.BluetoothLeAudioContentMetadata);
-    method @NonNull public android.bluetooth.BluetoothLeBroadcastSubgroup.Builder setNoChannelPreference(boolean);
   }
 
   public final class BluetoothMap implements java.lang.AutoCloseable android.bluetooth.BluetoothProfile {
