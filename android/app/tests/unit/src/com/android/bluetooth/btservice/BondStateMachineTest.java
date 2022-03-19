@@ -361,10 +361,10 @@ public class BondStateMachineTest {
         Assert.assertEquals(oldState, intent.getIntExtra(BluetoothDevice.EXTRA_PREVIOUS_BOND_STATE,
                                                           -1));
         if (newState == BOND_NONE) {
-            Assert.assertEquals(TEST_BOND_REASON, intent.getIntExtra(BluetoothDevice.EXTRA_REASON,
-                                                              -1));
+            Assert.assertEquals(TEST_BOND_REASON,
+                    intent.getIntExtra(BluetoothDevice.EXTRA_UNBOND_REASON, -1));
         } else {
-            Assert.assertEquals(-1, intent.getIntExtra(BluetoothDevice.EXTRA_REASON, -1));
+            Assert.assertEquals(-1, intent.getIntExtra(BluetoothDevice.EXTRA_UNBOND_REASON, -1));
         }
     }
 }
