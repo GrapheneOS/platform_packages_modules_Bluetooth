@@ -30,5 +30,5 @@ oneway interface IBluetoothActivityEnergyInfoListener
      * activity energy info.
      * @param info the Bluetooth activity energy info
      */
-    void onBluetoothActivityEnergyInfo(in BluetoothActivityEnergyInfo info);
+    void onBluetoothActivityEnergyInfoAvailable(in BluetoothActivityEnergyInfo info);
 }
