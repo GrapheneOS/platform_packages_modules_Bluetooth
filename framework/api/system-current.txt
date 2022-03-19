@@ -187,7 +187,7 @@ package android.bluetooth {
     field public static final String EXTRA_PAIRING_INITIATOR = "android.bluetooth.device.extra.PAIRING_INITIATOR";
     field public static final int EXTRA_PAIRING_INITIATOR_BACKGROUND = 2; // 0x2
     field public static final int EXTRA_PAIRING_INITIATOR_FOREGROUND = 1; // 0x1
-    field public static final String EXTRA_REASON = "android.bluetooth.device.extra.REASON";
+    field public static final String EXTRA_UNBOND_REASON = "android.bluetooth.device.extra.REASON";
     field public static final int METADATA_COMPANION_APP = 4; // 0x4
     field public static final int METADATA_DEVICE_TYPE = 17; // 0x11
     field public static final int METADATA_ENHANCED_SETTINGS_UI_URI = 16; // 0x10

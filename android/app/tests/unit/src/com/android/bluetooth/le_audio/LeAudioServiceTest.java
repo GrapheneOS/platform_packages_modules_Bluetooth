@@ -34,6 +34,7 @@ import static org.mockito.Mockito.eq;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothLeAudio;
+import android.bluetooth.BluetoothLeAudioCodecConfig;
 import android.bluetooth.BluetoothLeAudioCodecStatus;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUuid;
@@ -67,6 +68,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -93,6 +95,8 @@ public class LeAudioServiceTest {
     private LinkedBlockingQueue<Intent> mGroupIntentQueue = new LinkedBlockingQueue<>();
     private int testGroupId = 1;
     private boolean onGroupStatusCallbackCalled = false;
+    private boolean onGroupCodecConfChangedCallbackCalled = false;
+    private BluetoothLeAudioCodecStatus testCodecStatus = null;
 
     private BroadcastReceiver mLeAudioIntentReceiver;
 
@@ -102,6 +106,45 @@ public class LeAudioServiceTest {
     @Mock private AudioManager mAudioManager;
 
     @Rule public final ServiceTestRule mServiceRule = new ServiceTestRule();
+
+    private static final BluetoothLeAudioCodecConfig LC3_16KHZ_CONFIG =
+            new BluetoothLeAudioCodecConfig.Builder()
+                .setCodecType(BluetoothLeAudioCodecConfig.SOURCE_CODEC_TYPE_LC3)
+                .setSampleRate(BluetoothLeAudioCodecConfig.SAMPLE_RATE_16000)
+                .build();
+    private static final BluetoothLeAudioCodecConfig LC3_48KHZ_CONFIG =
+            new BluetoothLeAudioCodecConfig.Builder()
+                .setCodecType(BluetoothLeAudioCodecConfig.SOURCE_CODEC_TYPE_LC3)
+                .setSampleRate(BluetoothLeAudioCodecConfig.SAMPLE_RATE_48000)
+                .build();
+
+    private static final BluetoothLeAudioCodecConfig LC3_48KHZ_16KHZ_CONFIG =
+             new BluetoothLeAudioCodecConfig.Builder()
+               .setCodecType(BluetoothLeAudioCodecConfig.SOURCE_CODEC_TYPE_LC3)
+               .setSampleRate(BluetoothLeAudioCodecConfig.SAMPLE_RATE_48000
+                                | BluetoothLeAudioCodecConfig.SAMPLE_RATE_16000)
+               .build();
+
+    private static final List<BluetoothLeAudioCodecConfig> INPUT_CAPABILITIES_CONFIG =
+            new ArrayList() {{
+                    add(LC3_48KHZ_16KHZ_CONFIG);
+            }};
+
+    private static final List<BluetoothLeAudioCodecConfig> OUTPUT_CAPABILITIES_CONFIG =
+            new ArrayList() {{
+                    add(LC3_48KHZ_16KHZ_CONFIG);
+            }};
+
+
+    private static final List<BluetoothLeAudioCodecConfig> INPUT_SELECTABLE_CONFIG =
+            new ArrayList() {{
+                    add(LC3_16KHZ_CONFIG);
+             }};
+
+    private static final List<BluetoothLeAudioCodecConfig> OUTPUT_SELECTABLE_CONFIG =
+            new ArrayList() {{
+                    add(LC3_48KHZ_16KHZ_CONFIG);
+            }};
 
     @Before
     public void setUp() throws Exception {
@@ -1101,4 +1144,76 @@ public class LeAudioServiceTest {
         sendEventAndVerifyIntentForGroupStatusChanged(testGroupId, LeAudioStackEvent.GROUP_STATUS_INACTIVE);
     }
 
+    private void injectLocalCodecConfigCapaChanged(List<BluetoothLeAudioCodecConfig> inputCodecCapa,
+                                                 List<BluetoothLeAudioCodecConfig> outputCodecCapa) {
+        int eventType = LeAudioStackEvent.EVENT_TYPE_AUDIO_LOCAL_CODEC_CONFIG_CAPA_CHANGED;
+
+        // Add device to group
+        LeAudioStackEvent localCodecCapaEvent = new LeAudioStackEvent(eventType);
+        localCodecCapaEvent.valueCodecList1 = inputCodecCapa;
+        localCodecCapaEvent.valueCodecList2 =  outputCodecCapa;
+        mService.messageFromNative(localCodecCapaEvent);
+    }
+
+    private void injectGroupCodecConfigChanged(int groupId, BluetoothLeAudioCodecConfig inputCodecConfig,
+                                BluetoothLeAudioCodecConfig outputCodecConfig,
+                                List<BluetoothLeAudioCodecConfig> inputSelectableCodecConfig,
+                                List<BluetoothLeAudioCodecConfig> outputSelectableCodecConfig) {
+        int eventType = LeAudioStackEvent.EVENT_TYPE_AUDIO_GROUP_CODEC_CONFIG_CHANGED;
+
+        // Add device to group
+        LeAudioStackEvent groupCodecConfigChangedEvent = new LeAudioStackEvent(eventType);
+        groupCodecConfigChangedEvent.valueInt1 = groupId;
+        groupCodecConfigChangedEvent.valueCodec1 = inputCodecConfig;
+        groupCodecConfigChangedEvent.valueCodec2 = outputCodecConfig;
+        groupCodecConfigChangedEvent.valueCodecList1 = inputSelectableCodecConfig;
+        groupCodecConfigChangedEvent.valueCodecList2 =  outputSelectableCodecConfig;
+        mService.messageFromNative(groupCodecConfigChangedEvent);
+    }
+
+    /**
+     * Test native interface group status message handling
+     */
+    @Test
+    public void testMessageFromNativeGroupCodecConfigChanged() {
+        onGroupCodecConfChangedCallbackCalled = false;
+
+        injectLocalCodecConfigCapaChanged(INPUT_CAPABILITIES_CONFIG, OUTPUT_CAPABILITIES_CONFIG);
+
+        doReturn(true).when(mNativeInterface).connectLeAudio(any(BluetoothDevice.class));
+        connectTestDevice(mSingleDevice, testGroupId);
+
+        testCodecStatus = new BluetoothLeAudioCodecStatus(LC3_16KHZ_CONFIG,
+                                LC3_48KHZ_CONFIG, INPUT_CAPABILITIES_CONFIG,
+                                OUTPUT_CAPABILITIES_CONFIG, INPUT_SELECTABLE_CONFIG,
+                                OUTPUT_SELECTABLE_CONFIG);
+
+        IBluetoothLeAudioCallback leAudioCallbacks =
+        new IBluetoothLeAudioCallback.Stub() {
+            @Override
+            public void onCodecConfigChanged(int gid, BluetoothLeAudioCodecStatus status) {
+                onGroupCodecConfChangedCallbackCalled = true;
+                assertThat(status.equals(testCodecStatus)).isTrue();
+            }
+            @Override
+            public void onGroupStatusChanged(int gid, int gStatus) {}
+            @Override
+            public void onGroupNodeAdded(BluetoothDevice device, int gid) {}
+            @Override
+            public void onGroupNodeRemoved(BluetoothDevice device, int gid) {}
+        };
+
+        mService.mLeAudioCallbacks.register(leAudioCallbacks);
+
+        injectGroupCodecConfigChanged(testGroupId, LC3_16KHZ_CONFIG, LC3_48KHZ_CONFIG,
+                                        INPUT_SELECTABLE_CONFIG,
+                                        OUTPUT_SELECTABLE_CONFIG);
+
+
+        TestUtils.waitForLooperToFinishScheduledTask(mService.getMainLooper());
+        assertThat(onGroupCodecConfChangedCallbackCalled).isTrue();
+
+        onGroupCodecConfChangedCallbackCalled = false;
+        mService.mLeAudioCallbacks.unregister(leAudioCallbacks);
+    }
 }
