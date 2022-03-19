@@ -217,7 +217,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
      * #EXTRA_BOND_STATE} and {@link #EXTRA_PREVIOUS_BOND_STATE}.
      */
     // Note: When EXTRA_BOND_STATE is BOND_NONE then this will also
-    // contain a hidden extra field EXTRA_REASON with the result code.
+    // contain a hidden extra field EXTRA_UNBOND_REASON with the result code.
     @RequiresLegacyBluetoothPermission
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
@@ -380,8 +380,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
     public static final int BOND_BONDED = 12;
 
     /**
-     * Used as an int extra field in {@link #ACTION_PAIRING_REQUEST}
-     * intents for unbond reason.
+     * Used as an int extra field in {@link #ACTION_PAIRING_REQUEST} intents for unbond reason.
      * Possible value are :
      *  - {@link #UNBOND_REASON_AUTH_FAILED}
      *  - {@link #UNBOND_REASON_AUTH_REJECTED}
@@ -393,11 +392,22 @@ public final class BluetoothDevice implements Parcelable, Attributable {
      *  - {@link #UNBOND_REASON_REMOTE_AUTH_CANCELED}
      *  - {@link #UNBOND_REASON_REMOVED}
      *
-     * {@hide}
+     * Note: Can be added as a hidden extra field for {@link #ACTION_BOND_STATE_CHANGED} when the
+     * {@link #EXTRA_BOND_STATE} is {@link #BOND_NONE}
+     *
+     * @hide
      */
     @SystemApi
     @SuppressLint("ActionValue")
-    public static final String EXTRA_REASON = "android.bluetooth.device.extra.REASON";
+    public static final String EXTRA_UNBOND_REASON = "android.bluetooth.device.extra.REASON";
+
+    /**
+     * Use {@link EXTRA_UNBOND_REASON} instead
+     * @hide
+     */
+    @UnsupportedAppUsage
+    public static final String EXTRA_REASON = EXTRA_UNBOND_REASON;
+
 
     /**
      * Used as an int extra field in {@link #ACTION_PAIRING_REQUEST}
