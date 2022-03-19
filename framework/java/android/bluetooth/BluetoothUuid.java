@@ -30,7 +30,9 @@ import java.util.HashSet;
 import java.util.UUID;
 
 /**
- * Static helper methods and constants to decode the ParcelUuid of remote devices.
+ * Static helper methods and constants to decode the ParcelUuid of remote devices. Bluetooth service
+ * UUIDs are defined in the SDP section of the Bluetooth Assigned Numbers document. The constant
+ * 128 bit values in this class are calculated as: uuid * 2^96 + {@link #BASE_UUID}.
  *
  * @hide
  */
@@ -38,164 +40,321 @@ import java.util.UUID;
 @SuppressLint("AndroidFrameworkBluetoothPermission")
 public final class BluetoothUuid {
 
-    /* See Bluetooth Assigned Numbers document - SDP section, to get the values of UUIDs
-     * for the various services.
+    /**
+     * UUID corresponding to the Audio sink role (also referred to as the A2DP sink role).
      *
-     * The following 128 bit values are calculated as:
-     *  uuid * 2^96 + BASE_UUID
+     * @hide
      */
-
-    /** @hide */
     @NonNull
     @SystemApi
     public static final ParcelUuid A2DP_SINK =
             ParcelUuid.fromString("0000110B-0000-1000-8000-00805F9B34FB");
-    /** @hide */
+    /**
+     * UUID corresponding to the Audio source role (also referred to as the A2DP source role).
+     *
+     * @hide
+     */
     @NonNull
     @SystemApi
     public static final ParcelUuid A2DP_SOURCE =
             ParcelUuid.fromString("0000110A-0000-1000-8000-00805F9B34FB");
-    /** @hide */
+
+    /**
+     * UUID corresponding to the Advanced Audio Distribution Profile (A2DP).
+     *
+     * @hide
+     */
     @NonNull
     @SystemApi
     public static final ParcelUuid ADV_AUDIO_DIST =
             ParcelUuid.fromString("0000110D-0000-1000-8000-00805F9B34FB");
-    /** @hide */
+
+    /**
+     * UUID corresponding to the Headset Profile (HSP).
+     *
+     * @hide
+     */
     @NonNull
     @SystemApi
     public static final ParcelUuid HSP =
             ParcelUuid.fromString("00001108-0000-1000-8000-00805F9B34FB");
-    /** @hide */
+
+    /**
+     * UUID corresponding to the Headset Profile (HSP) Audio Gateway role.
+     *
+     * @hide
+     */
     @NonNull
     @SystemApi
     public static final ParcelUuid HSP_AG =
             ParcelUuid.fromString("00001112-0000-1000-8000-00805F9B34FB");
-    /** @hide */
+
+    /**
+     * UUID corresponding to the Hands-Free Profile (HFP).
+     *
+     * @hide
+     */
     @NonNull
     @SystemApi
     public static final ParcelUuid HFP =
             ParcelUuid.fromString("0000111E-0000-1000-8000-00805F9B34FB");
-    /** @hide */
+
+    /**
+     * UUID corresponding to the Hands-Free Profile (HFP) Audio Gateway role.
+     *
+     * @hide
+     */
     @NonNull
     @SystemApi
     public static final ParcelUuid HFP_AG =
             ParcelUuid.fromString("0000111F-0000-1000-8000-00805F9B34FB");
-    /** @hide */
+
+    /**
+     * UUID corresponding to the Audio Video Remote Control Profile (AVRCP).
+     *
+     * @hide
+     */
+    @NonNull
+    @SystemApi
+    public static final ParcelUuid AVRCP =
+            ParcelUuid.fromString("0000110E-0000-1000-8000-00805F9B34FB");
+
+    /**
+     * UUID corresponding to the Audio Video Remote Control Profile (AVRCP) controller role.
+     *
+     * @hide
+     */
     @NonNull
     @SystemApi
     public static final ParcelUuid AVRCP_CONTROLLER =
-            ParcelUuid.fromString("0000110E-0000-1000-8000-00805F9B34FB");
-    /** @hide */
+            ParcelUuid.fromString("0000110F-0000-1000-8000-00805F9B34FB");
+
+    /**
+     * UUID corresponding to the Audio Video Remote Control Profile (AVRCP) target role.
+     *
+     * @hide
+     */
     @NonNull
     @SystemApi
     public static final ParcelUuid AVRCP_TARGET =
             ParcelUuid.fromString("0000110C-0000-1000-8000-00805F9B34FB");
-    /** @hide */
+
+    /**
+     * UUID corresponding to the OBject EXchange (OBEX) Object Push Profile (OPP).
+     *
+     * @hide
+     */
     @NonNull
     @SystemApi
     public static final ParcelUuid OBEX_OBJECT_PUSH =
             ParcelUuid.fromString("00001105-0000-1000-8000-00805f9b34fb");
-    /** @hide */
+
+    /**
+     * UUID corresponding to the Human Interface Device (HID) profile.
+     *
+     * @hide
+     */
     @NonNull
     @SystemApi
     public static final ParcelUuid HID =
             ParcelUuid.fromString("00001124-0000-1000-8000-00805f9b34fb");
-    /** @hide */
+
+    /**
+     * UUID corresponding to the Human Interface Device over GATT Profile (HOGP).
+     *
+     * @hide
+     */
     @NonNull
     @SystemApi
     public static final ParcelUuid HOGP =
             ParcelUuid.fromString("00001812-0000-1000-8000-00805f9b34fb");
-    /** @hide */
+
+    /**
+     * UUID corresponding to the Personal Area Network User (PANU) role.
+     *
+     * @hide
+     */
     @NonNull
     @SystemApi
     public static final ParcelUuid PANU =
             ParcelUuid.fromString("00001115-0000-1000-8000-00805F9B34FB");
-    /** @hide */
+
+    /**
+     * UUID corresponding to the Network Access Point (NAP) role.
+     *
+     * @hide
+     */
     @NonNull
     @SystemApi
     public static final ParcelUuid NAP =
             ParcelUuid.fromString("00001116-0000-1000-8000-00805F9B34FB");
-    /** @hide */
+
+    /**
+     * UUID corresponding to the Bluetooth Network Encapsulation Protocol (BNEP).
+     *
+     * @hide
+     */
     @NonNull
     @SystemApi
     public static final ParcelUuid BNEP =
             ParcelUuid.fromString("0000000f-0000-1000-8000-00805F9B34FB");
-    /** @hide */
+
+    /**
+     * UUID corresponding to the Phonebook Access Profile (PBAP) client role.
+     *
+     * @hide
+     */
     @NonNull
     @SystemApi
     public static final ParcelUuid PBAP_PCE =
             ParcelUuid.fromString("0000112e-0000-1000-8000-00805F9B34FB");
-    /** @hide */
+
+    /**
+     * UUID corresponding to the Phonebook Access Profile (PBAP) server role.
+     *
+     * @hide
+     */
     @NonNull
     @SystemApi
     public static final ParcelUuid PBAP_PSE =
             ParcelUuid.fromString("0000112f-0000-1000-8000-00805F9B34FB");
-    /** @hide */
+
+    /**
+     * UUID corresponding to the Message Access Profile (MAP).
+     *
+     * @hide
+     */
     @NonNull
     @SystemApi
     public static final ParcelUuid MAP =
             ParcelUuid.fromString("00001134-0000-1000-8000-00805F9B34FB");
-    /** @hide */
+
+    /**
+     * UUID corresponding to the Message Notification Server (MNS) role.
+     *
+     * @hide
+     */
     @NonNull
     @SystemApi
     public static final ParcelUuid MNS =
             ParcelUuid.fromString("00001133-0000-1000-8000-00805F9B34FB");
-    /** @hide */
+
+    /**
+     * UUID corresponding to the Message Access Server (MAS) role.
+     *
+     * @hide
+     */
     @NonNull
     @SystemApi
     public static final ParcelUuid MAS =
             ParcelUuid.fromString("00001132-0000-1000-8000-00805F9B34FB");
-    /** @hide */
+
+    /**
+     * UUID corresponding to the Sim Access Profile (SAP).
+     *
+     * @hide
+     */
     @NonNull
     @SystemApi
     public static final ParcelUuid SAP =
             ParcelUuid.fromString("0000112D-0000-1000-8000-00805F9B34FB");
-    /** @hide */
+
+    /**
+     * UUID corresponding to the Hearing Aid Profile.
+     *
+     * @hide
+     */
     @NonNull
     @SystemApi
     public static final ParcelUuid HEARING_AID =
             ParcelUuid.fromString("0000FDF0-0000-1000-8000-00805f9b34fb");
-    /** @hide */
+
+    /**
+     * UUID corresponding to the Hearing Access Service (HAS).
+     *
+     * @hide
+     */
     @NonNull
     @SystemApi
     public static final ParcelUuid HAS =
             ParcelUuid.fromString("00001854-0000-1000-8000-00805F9B34FB");
-    /** @hide */
+
+    /**
+     * UUID corresponding to Audio Stream Control (also known as Bluetooth Low Energy Audio).
+     *
+     * @hide
+     */
     @NonNull
     @SystemApi
     public static final ParcelUuid LE_AUDIO =
             ParcelUuid.fromString("0000184E-0000-1000-8000-00805F9B34FB");
-    /** @hide */
+
+    /**
+     * UUID corresponding to the Device Identification Profile (DIP).
+     *
+     * @hide
+     */
     @NonNull
     @SystemApi
     public static final ParcelUuid DIP =
             ParcelUuid.fromString("00001200-0000-1000-8000-00805F9B34FB");
-    /** @hide */
+
+    /**
+     * UUID corresponding to the Volume Control Service.
+     *
+     * @hide
+     */
     @NonNull
     @SystemApi
     public static final ParcelUuid VOLUME_CONTROL =
             ParcelUuid.fromString("00001844-0000-1000-8000-00805F9B34FB");
-    /** @hide */
+
+    /**
+     * UUID corresponding to the Generic Media Control Service.
+     *
+     * @hide
+     */
     @NonNull
     @SystemApi
     public static final ParcelUuid GENERIC_MEDIA_CONTROL =
             ParcelUuid.fromString("00001849-0000-1000-8000-00805F9B34FB");
-    /** @hide */
+
+    /**
+     * UUID corresponding to the Media Control Service.
+     *
+     * @hide
+     */
     @NonNull
     @SystemApi
     public static final ParcelUuid MEDIA_CONTROL =
             ParcelUuid.fromString("00001848-0000-1000-8000-00805F9B34FB");
-    /** @hide */
+
+    /**
+     * UUID corresponding to the Coordinated Set Identification Service.
+     *
+     * @hide
+     */
     @NonNull
     @SystemApi
     public static final ParcelUuid COORDINATED_SET =
             ParcelUuid.fromString("00001846-0000-1000-8000-00805F9B34FB");
-    /** @hide */
+
+    /**
+     * UUID corresponding to the Common Audio Service.
+     *
+     * @hide
+     */
     @NonNull
     @SystemApi
     public static final ParcelUuid CAP =
             ParcelUuid.fromString("00001853-0000-1000-8000-00805F9B34FB");
-    /** @hide */
+
+    /**
+     * UUID corresponding to the Broadcast Audio Scan Service (also known as LE Audio Broadcast
+     * Assistant).
+     *
+     * @hide
+     */
     @NonNull
     public static final ParcelUuid BATTERY =
             ParcelUuid.fromString("0000180F-0000-1000-8000-00805F9B34FB");
@@ -204,7 +363,12 @@ public final class BluetoothUuid {
     @SystemApi
     public static final ParcelUuid BASS =
             ParcelUuid.fromString("0000184F-0000-1000-8000-00805F9B34FB");
-    /** @hide */
+
+    /**
+     * Base UUID to calculate all other UUIDs defined in this class.
+     *
+     * @hide
+     */
     @NonNull
     @SystemApi
     public static final ParcelUuid BASE_UUID =

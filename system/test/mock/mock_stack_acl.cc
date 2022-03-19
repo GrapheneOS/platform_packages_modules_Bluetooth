@@ -272,7 +272,8 @@ bool acl_peer_supports_sniff_subrating(const RawAddress& remote_bda) {
 }
 bool acl_refresh_remote_address(const RawAddress& identity_address,
                                 tBLE_ADDR_TYPE identity_address_type,
-                                const RawAddress& bda, tBLE_ADDR_TYPE rra_type,
+                                const RawAddress& bda,
+                                tBTM_SEC_BLE::tADDRESS_TYPE rra_type,
                                 const RawAddress& rpa) {
   mock_function_count_map[__func__]++;
   return test::mock::stack_acl::acl_refresh_remote_address(

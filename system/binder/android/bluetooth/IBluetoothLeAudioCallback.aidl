@@ -28,4 +28,7 @@ import java.util.List;
  */
 oneway interface IBluetoothLeAudioCallback {
     void onCodecConfigChanged(in int groupId, in BluetoothLeAudioCodecStatus status);
+    void onGroupNodeAdded(in BluetoothDevice device, int groupId);
+    void onGroupNodeRemoved(in BluetoothDevice device, int groupId);
+    void onGroupStatusChanged(int groupId, int groupStatus);
 }

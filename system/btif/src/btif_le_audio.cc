@@ -101,12 +101,10 @@ class LeAudioClientInterfaceImpl : public LeAudioClientInterface,
     DVLOG(2) << __func__;
     do_in_main_thread(
         FROM_HERE,
-        Bind(
-            &LeAudioClient::Cleanup,
-            jni_thread_wrapper(
-                FROM_HERE,
-                Bind(
-                    &LeAudioClient::CleanupAudioSetConfigurationProvider))));
+        Bind(&LeAudioClient::Cleanup,
+             jni_thread_wrapper(
+                 FROM_HERE,
+                 Bind(&LeAudioClient::CleanupAudioSetConfigurationProvider))));
   }
 
   void RemoveDevice(const RawAddress& address) override {
@@ -155,6 +153,16 @@ class LeAudioClientInterfaceImpl : public LeAudioClientInterface,
     do_in_main_thread(FROM_HERE,
                       Bind(&LeAudioClient::GroupSetActive,
                            Unretained(LeAudioClient::Get()), group_id));
+  }
+
+  void SetCodecConfigPreference(int group_id,
+                                btle_audio_codec_config_t input_codec_config,
+                                btle_audio_codec_config_t output_codec_config) {
+    DVLOG(2) << __func__ << " group_id: " << group_id;
+    do_in_main_thread(FROM_HERE,
+                      Bind(&LeAudioClient::SetCodecConfigPreference,
+                           Unretained(LeAudioClient::Get()), group_id,
+                           input_codec_config, output_codec_config));
   }
 
  private:

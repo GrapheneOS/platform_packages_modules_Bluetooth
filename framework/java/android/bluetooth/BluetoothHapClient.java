@@ -76,42 +76,66 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
         /** @hide */
         @Retention(RetentionPolicy.SOURCE)
         @IntDef(value = {
+                // needed for future release compatibility
                 BluetoothStatusCodes.ERROR_UNKNOWN,
                 BluetoothStatusCodes.REASON_LOCAL_APP_REQUEST,
                 BluetoothStatusCodes.REASON_LOCAL_STACK_REQUEST,
                 BluetoothStatusCodes.REASON_REMOTE_REQUEST,
                 BluetoothStatusCodes.REASON_SYSTEM_POLICY,
-                BluetoothStatusCodes.ERROR_REMOTE_OPERATION_REJECTED,
-                BluetoothStatusCodes.ERROR_REMOTE_OPERATION_NOT_SUPPORTED,
-                BluetoothStatusCodes.ERROR_HAP_PRESET_NAME_TOO_LONG,
-                BluetoothStatusCodes.ERROR_HAP_INVALID_PRESET_INDEX,
-                BluetoothStatusCodes.ERROR_CSIP_INVALID_GROUP_ID,
         })
-        @interface Status {}
+        @interface PresetSelectionReason {}
 
         /**
          * Invoked to inform about HA device's currently active preset.
          *
          * @param device remote device,
          * @param presetIndex the currently active preset index.
-         * @param statusCode reason for the selected preset change
+         * @param reason reason for the selected preset change
          *
          * @hide
          */
         @SystemApi
         void onPresetSelected(@NonNull BluetoothDevice device, int presetIndex,
-                @Status int statusCode);
+                @PresetSelectionReason int reason);
+
+        /** @hide */
+        @Retention(RetentionPolicy.SOURCE)
+        @IntDef(value = {
+                // needed for future release compatibility
+                BluetoothStatusCodes.ERROR_UNKNOWN,
+                BluetoothStatusCodes.REASON_LOCAL_STACK_REQUEST,
+                BluetoothStatusCodes.REASON_SYSTEM_POLICY,
+                BluetoothStatusCodes.ERROR_REMOTE_OPERATION_REJECTED,
+                BluetoothStatusCodes.ERROR_REMOTE_OPERATION_NOT_SUPPORTED,
+                BluetoothStatusCodes.ERROR_HAP_INVALID_PRESET_INDEX,
+        })
+        @interface PresetSelectionFailureReason {}
 
         /**
          * Invoked inform about the result of a failed preset change attempt.
          *
          * @param device remote device,
-         * @param statusCode failure reason.
+         * @param reason failure reason.
          *
          * @hide
          */
         @SystemApi
-        void onPresetSelectionFailed(@NonNull BluetoothDevice device, @Status int statusCode);
+        void onPresetSelectionFailed(@NonNull BluetoothDevice device,
+                @PresetSelectionFailureReason int reason);
+
+        /** @hide */
+        @Retention(RetentionPolicy.SOURCE)
+        @IntDef(value = {
+                // needed for future release compatibility
+                BluetoothStatusCodes.ERROR_UNKNOWN,
+                BluetoothStatusCodes.REASON_LOCAL_STACK_REQUEST,
+                BluetoothStatusCodes.REASON_SYSTEM_POLICY,
+                BluetoothStatusCodes.ERROR_REMOTE_OPERATION_REJECTED,
+                BluetoothStatusCodes.ERROR_REMOTE_OPERATION_NOT_SUPPORTED,
+                BluetoothStatusCodes.ERROR_HAP_INVALID_PRESET_INDEX,
+                BluetoothStatusCodes.ERROR_CSIP_INVALID_GROUP_ID,
+        })
+        @interface GroupPresetSelectionFailureReason {}
 
         /**
          * Invoked to inform about the result of a failed preset change attempt.
@@ -119,36 +143,79 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
          * The implementation will try to restore the state for every device back to original
          *
          * @param hapGroupId valid HAP group ID,
-         * @param statusCode failure reason.
+         * @param reason failure reason.
          *
          * @hide
          */
         @SystemApi
-        void onPresetSelectionForGroupFailed(int hapGroupId, @Status int statusCode);
+        void onPresetSelectionForGroupFailed(int hapGroupId,
+                @GroupPresetSelectionFailureReason int reason);
+
+        /** @hide */
+        @Retention(RetentionPolicy.SOURCE)
+        @IntDef(value = {
+                // needed for future release compatibility
+                BluetoothStatusCodes.ERROR_UNKNOWN,
+                BluetoothStatusCodes.REASON_LOCAL_APP_REQUEST,
+                BluetoothStatusCodes.REASON_LOCAL_STACK_REQUEST,
+                BluetoothStatusCodes.REASON_REMOTE_REQUEST,
+                BluetoothStatusCodes.REASON_SYSTEM_POLICY,
+        })
+        @interface PresetInfoChangeReason {}
 
         /**
          * Invoked to inform about the preset list changes.
          *
          * @param device remote device,
          * @param presetInfoList a list of all preset information on the target device
-         * @param statusCode reason for the preset list change
+         * @param reason reason for the preset list change
          *
          * @hide
          */
         @SystemApi
         void onPresetInfoChanged(@NonNull BluetoothDevice device,
                 @NonNull List<BluetoothHapPresetInfo> presetInfoList,
-                @Status int statusCode);
+                @PresetInfoChangeReason int reason);
+
+        /** @hide */
+        @Retention(RetentionPolicy.SOURCE)
+        @IntDef(value = {
+                // needed for future release compatibility
+                BluetoothStatusCodes.ERROR_UNKNOWN,
+                BluetoothStatusCodes.REASON_LOCAL_STACK_REQUEST,
+                BluetoothStatusCodes.REASON_SYSTEM_POLICY,
+                BluetoothStatusCodes.ERROR_REMOTE_OPERATION_REJECTED,
+                BluetoothStatusCodes.ERROR_REMOTE_OPERATION_NOT_SUPPORTED,
+                BluetoothStatusCodes.ERROR_HAP_PRESET_NAME_TOO_LONG,
+                BluetoothStatusCodes.ERROR_HAP_INVALID_PRESET_INDEX,
+        })
+        @interface PresetNameChangeFailureReason {}
 
         /**
          * Invoked to inform about the failed preset rename attempt.
          *
          * @param device remote device
-         * @param status Failure reason code.
+         * @param reason Failure reason code.
          * @hide
          */
         @SystemApi
-        void onSetPresetNameFailed(@NonNull BluetoothDevice device, @Status int status);
+        void onSetPresetNameFailed(@NonNull BluetoothDevice device,
+                @PresetNameChangeFailureReason int reason);
+
+        /** @hide */
+        @Retention(RetentionPolicy.SOURCE)
+        @IntDef(value = {
+                // needed for future release compatibility
+                BluetoothStatusCodes.ERROR_UNKNOWN,
+                BluetoothStatusCodes.REASON_LOCAL_STACK_REQUEST,
+                BluetoothStatusCodes.REASON_SYSTEM_POLICY,
+                BluetoothStatusCodes.ERROR_REMOTE_OPERATION_REJECTED,
+                BluetoothStatusCodes.ERROR_REMOTE_OPERATION_NOT_SUPPORTED,
+                BluetoothStatusCodes.ERROR_HAP_PRESET_NAME_TOO_LONG,
+                BluetoothStatusCodes.ERROR_HAP_INVALID_PRESET_INDEX,
+                BluetoothStatusCodes.ERROR_CSIP_INVALID_GROUP_ID,
+        })
+        @interface GroupPresetNameChangeFailureReason {}
 
         /**
          * Invoked to inform about the failed preset rename attempt.
@@ -156,11 +223,12 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
          * The implementation will try to restore the state for every device back to original
          *
          * @param hapGroupId valid HAP group ID,
-         * @param status Failure reason code.
+         * @param reason Failure reason code.
          * @hide
          */
         @SystemApi
-        void onSetPresetNameForGroupFailed(int hapGroupId, @Status int status);
+        void onSetPresetNameForGroupFailed(int hapGroupId,
+                @GroupPresetNameChangeFailureReason int reason);
     }
 
     @SuppressLint("AndroidFrameworkBluetoothPermission")
