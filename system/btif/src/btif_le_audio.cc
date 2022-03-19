@@ -77,6 +77,29 @@ class LeAudioClientInterfaceImpl : public LeAudioClientInterface,
                           Unretained(callbacks), address, snk_audio_location));
   }
 
+  void OnAudioLocalCodecCapabilities(
+      std::vector<btle_audio_codec_config_t> local_input_capa_codec_conf,
+      std::vector<btle_audio_codec_config_t> local_output_capa_codec_conf)
+      override {
+    do_in_jni_thread(
+        FROM_HERE, Bind(&LeAudioClientCallbacks::OnAudioLocalCodecCapabilities,
+                        Unretained(callbacks), local_input_capa_codec_conf,
+                        local_output_capa_codec_conf));
+  }
+
+  void OnAudioGroupCodecConf(
+      int group_id, btle_audio_codec_config_t input_codec_conf,
+      btle_audio_codec_config_t output_codec_conf,
+      std::vector<btle_audio_codec_config_t> input_selectable_codec_conf,
+      std::vector<btle_audio_codec_config_t> output_selectable_codec_conf)
+      override {
+    do_in_jni_thread(FROM_HERE,
+                     Bind(&LeAudioClientCallbacks::OnAudioGroupCodecConf,
+                          Unretained(callbacks), group_id, input_codec_conf,
+                          output_codec_conf, input_selectable_codec_conf,
+                          output_selectable_codec_conf));
+  }
+
   void Initialize(LeAudioClientCallbacks* callbacks,
                   const std::vector<btle_audio_codec_config_t>&
                       offloading_preference) override {
