@@ -18,7 +18,9 @@
 package com.android.bluetooth.le_audio;
 
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothLeAudioCodecConfig;
 
+import java.util.List;
 /**
  * Stack event sent via a callback from JNI to Java, or generated
  * internally by the LeAudio State Machine.
@@ -31,8 +33,10 @@ public class LeAudioStackEvent {
     public static final int EVENT_TYPE_GROUP_NODE_STATUS_CHANGED = 3;
     public static final int EVENT_TYPE_AUDIO_CONF_CHANGED = 4;
     public static final int EVENT_TYPE_SINK_AUDIO_LOCATION_AVAILABLE = 5;
+    public static final int EVENT_TYPE_AUDIO_LOCAL_CODEC_CONFIG_CAPA_CHANGED = 6;
+    public static final int EVENT_TYPE_AUDIO_GROUP_CODEC_CONFIG_CHANGED = 7;
         // -------- DO NOT PUT ANY NEW UNICAST EVENTS BELOW THIS LINE-------------
-    public static final int EVENT_TYPE_UNICAST_MAX = 6;
+    public static final int EVENT_TYPE_UNICAST_MAX = 8;
 
     // Broadcast related events
     public static final int EVENT_TYPE_BROADCAST_CREATED = EVENT_TYPE_UNICAST_MAX + 1;
@@ -70,6 +74,10 @@ public class LeAudioStackEvent {
     public int valueInt5 = 0;
     public boolean valueBool1 = false;
     public byte[] valueByte1;
+    public BluetoothLeAudioCodecConfig valueCodec1;
+    public BluetoothLeAudioCodecConfig valueCodec2;
+    public List<BluetoothLeAudioCodecConfig> valueCodecList1;
+    public List<BluetoothLeAudioCodecConfig> valueCodecList2;
 
     LeAudioStackEvent(int type) {
         this.type = type;
@@ -87,6 +95,12 @@ public class LeAudioStackEvent {
         result.append(", value4:" + eventTypeValue4ToString(type, valueInt4));
         result.append(", value5:" + eventTypeValue5ToString(type, valueInt5));
         result.append(", valueBool1:" + eventTypeValueBool1ToString(type, valueBool1));
+        result.append(", valueCodec1:" + eventTypeValueCodec1ToString(type, valueCodec1));
+        result.append(", valueCodec2:" + eventTypeValueCodec2ToString(type, valueCodec2));
+        result.append(", valueCodecList1:"
+                + eventTypeValueCodecList1ToString(type, valueCodecList1));
+        result.append(", valueCodecList2:"
+                + eventTypeValueCodecList2ToString(type, valueCodecList2));
         result.append(", " + eventTypeValueByte1ToString(type, valueByte1));
         result.append("}");
         return result.toString();
@@ -114,6 +128,10 @@ public class LeAudioStackEvent {
                 return "EVENT_TYPE_BROADCAST_STATE";
             case EVENT_TYPE_BROADCAST_ID:
                 return "EVENT_TYPE_BROADCAST_ID";
+            case EVENT_TYPE_AUDIO_LOCAL_CODEC_CONFIG_CAPA_CHANGED:
+                return "EVENT_TYPE_AUDIO_LOCAL_CODEC_CONFIG_CAPA_CHANGED";
+            case EVENT_TYPE_AUDIO_GROUP_CODEC_CONFIG_CHANGED:
+                return "EVENT_TYPE_AUDIO_GROUP_CODEC_CONFIG_CHANGED";
             default:
                 return "EVENT_TYPE_UNKNOWN:" + type;
         }
@@ -135,6 +153,8 @@ public class LeAudioStackEvent {
                         return "UNKNOWN";
                 }
             case EVENT_TYPE_GROUP_NODE_STATUS_CHANGED:
+                // same as EVENT_TYPE_GROUP_STATUS_CHANGED
+            case EVENT_TYPE_AUDIO_GROUP_CODEC_CONFIG_CHANGED:
                 // same as EVENT_TYPE_GROUP_STATUS_CHANGED
             case EVENT_TYPE_GROUP_STATUS_CHANGED:
                 return "{group_id:" + Integer.toString(value) + "}";
@@ -238,6 +258,50 @@ public class LeAudioStackEvent {
         switch (type) {
             case EVENT_TYPE_BROADCAST_CREATED:
                 return "{success:" + value + "}";
+            default:
+                return "<unused>";
+        }
+    }
+
+    private static String eventTypeValueCodec1ToString(int type,
+                                    BluetoothLeAudioCodecConfig value) {
+        switch (type) {
+            case EVENT_TYPE_AUDIO_GROUP_CODEC_CONFIG_CHANGED:
+                return "{input codec = " + value + "}";
+            default:
+                return "<unused>";
+        }
+    }
+
+    private static String eventTypeValueCodec2ToString(int type,
+                                    BluetoothLeAudioCodecConfig value) {
+        switch (type) {
+            case EVENT_TYPE_AUDIO_GROUP_CODEC_CONFIG_CHANGED:
+                return "{output codec = " + value + "}";
+            default:
+                return "<unused>";
+        }
+    }
+
+    private static String eventTypeValueCodecList1ToString(int type,
+                                    List<BluetoothLeAudioCodecConfig> value) {
+        switch (type) {
+            case EVENT_TYPE_AUDIO_LOCAL_CODEC_CONFIG_CAPA_CHANGED:
+                return "{input local capa codec = " + value + "}";
+            case EVENT_TYPE_AUDIO_GROUP_CODEC_CONFIG_CHANGED:
+                return "{input selectable codec = " + value + "}";
+            default:
+                return "<unused>";
+        }
+    }
+
+    private static String eventTypeValueCodecList2ToString(int type,
+                                    List<BluetoothLeAudioCodecConfig> value) {
+        switch (type) {
+            case EVENT_TYPE_AUDIO_LOCAL_CODEC_CONFIG_CAPA_CHANGED:
+                return "{output local capa codec = " + value + "}";
+            case EVENT_TYPE_AUDIO_GROUP_CODEC_CONFIG_CHANGED:
+                return "{output selectable codec = " + value + "}";
             default:
                 return "<unused>";
         }
