@@ -211,7 +211,7 @@ public class AdapterService extends Service {
     private static final int CONTROLLER_ENERGY_UPDATE_TIMEOUT_MILLIS = 30;
 
     private static final ComponentName BLUETOOTH_INCALLSERVICE_COMPONENT =
-            new ComponentName("com.android.bluetooth",
+            new ComponentName("com.android.bluetooth.services",
                     BluetoothInCallService.class.getCanonicalName());
 
     public static final String ACTIVITY_ATTRIBUTION_NO_ACTIVE_DEVICE_ADDRESS =

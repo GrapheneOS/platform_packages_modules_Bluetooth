@@ -751,7 +751,7 @@ public class MediaControlProfile implements MediaControlServiceCallbacks {
 
 
     private final Map<String, MediaControlGattServiceInterface> mServiceMap;
-    static final String THIS_PACKAGE_NAME = "com.android.bluetooth";
+    static final String THIS_PACKAGE_NAME = "com.android.bluetooth.services";
 
     public void unregisterServiceInstance(String appToken) {
         Log.d(TAG, "unregisterServiceInstance");
