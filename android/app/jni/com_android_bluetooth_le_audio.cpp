@@ -367,7 +367,22 @@ static void setCodecConfigPreferenceNative(JNIEnv* env, jobject object,
     return;
   }
 
-  // TODO Implement
+  jint inputCodecType = env->CallIntMethod(
+      inputCodecConfig,
+      android_bluetooth_BluetoothLeAudioCodecConfig.getCodecType);
+
+  btle_audio_codec_config_t input_codec_config = {
+      .codec_type = static_cast<btle_audio_codec_index_t>(inputCodecType)};
+
+  jint outputCodecType = env->CallIntMethod(
+      outputCodecConfig,
+      android_bluetooth_BluetoothLeAudioCodecConfig.getCodecType);
+
+  btle_audio_codec_config_t output_codec_config = {
+      .codec_type = static_cast<btle_audio_codec_index_t>(outputCodecType)};
+
+  sLeAudioClientInterface->SetCodecConfigPreference(
+      group_id, input_codec_config, output_codec_config);
 }
 
 static JNINativeMethod sMethods[] = {
