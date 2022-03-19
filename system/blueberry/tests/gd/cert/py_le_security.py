@@ -45,12 +45,17 @@ class PyLeSecurity(Closable):
         self._ui_event_stream = EventStream(self._device.security.FetchUiEvents(empty_proto.Empty()))
         self._bond_event_stream = EventStream(self._device.security.FetchBondEvents(empty_proto.Empty()))
         self._helper_event_stream = EventStream(self._device.security.FetchHelperEvents(empty_proto.Empty()))
+        self._advertising_callback_event_stream = EventStream(
+            self._device.security.FetchAdvertisingCallbackEvents(empty_proto.Empty()))
 
     def get_ui_stream(self):
         return self._ui_event_stream
 
     def get_bond_stream(self):
         return self._bond_event_stream
+
+    def get_advertising_callback_event_stream(self):
+        return self._advertising_callback_event_stream
 
     def wait_for_ui_event_passkey(self, timeout=timedelta(seconds=3)):
         display_passkey_capture = SecurityCaptures.DisplayPasskey()
@@ -79,3 +84,8 @@ class PyLeSecurity(Closable):
             safeClose(self._helper_event_stream)
         else:
             logging.info("DUT: Helper Event Stream is None!")
+
+        if self._advertising_callback_event_stream is not None:
+            safeClose(self._advertising_callback_event_stream)
+        else:
+            logging.info("DUT: Advertising Callback Event Stream is None!")

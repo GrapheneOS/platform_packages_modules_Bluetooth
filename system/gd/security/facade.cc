@@ -19,6 +19,7 @@
 #include "grpc/grpc_event_queue.h"
 #include "hci/address_with_type.h"
 #include "hci/le_address_manager.h"
+#include "hci/le_advertising_manager.h"
 #include "l2cap/classic/security_policy.h"
 #include "l2cap/le/l2cap_le_module.h"
 #include "os/handler.h"
@@ -54,11 +55,20 @@ blueberry::facade::BluetoothAddressWithType ToFacadeAddressWithType(hci::Address
 
 }  // namespace
 
-class SecurityModuleFacadeService : public SecurityModuleFacade::Service, public ISecurityManagerListener, public UI {
+class SecurityModuleFacadeService : public SecurityModuleFacade::Service,
+                                    public ISecurityManagerListener,
+                                    public UI,
+                                    public hci::AdvertisingCallback {
  public:
   SecurityModuleFacadeService(
-      SecurityModule* security_module, L2capLeModule* l2cap_le_module, ::bluetooth::os::Handler* security_handler)
-      : security_module_(security_module), l2cap_le_module_(l2cap_le_module), security_handler_(security_handler) {
+      SecurityModule* security_module,
+      L2capLeModule* l2cap_le_module,
+      ::bluetooth::os::Handler* security_handler,
+      hci::LeAdvertisingManager* le_advertising_manager)
+      : security_module_(security_module),
+        l2cap_le_module_(l2cap_le_module),
+        security_handler_(security_handler),
+        le_advertising_manager_(le_advertising_manager) {
     security_module_->GetSecurityManager()->RegisterCallbackListener(this, security_handler_);
     security_module_->GetSecurityManager()->SetUserInterfaceHandler(this, security_handler_);
 
@@ -224,6 +234,58 @@ class SecurityModuleFacadeService : public SecurityModuleFacade::Service, public
       ::grpc::ServerWriter<SecurityHelperMsg>* writer) override {
     return helper_events_.RunLoop(context, writer);
   }
+
+  ::grpc::Status FetchAdvertisingCallbackEvents(
+      ::grpc::ServerContext* context,
+      const ::google::protobuf::Empty* request,
+      ::grpc::ServerWriter<AdvertisingCallbackMsg>* writer) override {
+    le_advertising_manager_->RegisterAdvertisingCallback(this);
+    return advertising_callback_events_.RunLoop(context, writer);
+  }
+
+  void OnAdvertisingSetStarted(int reg_id, uint8_t advertiser_id, int8_t tx_power, AdvertisingStatus status) {
+    AdvertisingCallbackMsg advertising_set_started;
+    advertising_set_started.set_message_type(AdvertisingCallbackMsgType::ADVERTISING_SET_STARTED);
+    advertising_set_started.set_advertising_started(AdvertisingSetStarted::STARTED);
+    advertising_set_started.set_advertiser_id(advertiser_id);
+    advertising_callback_events_.OnIncomingEvent(advertising_set_started);
+  }
+
+  void OnAdvertisingEnabled(uint8_t advertiser_id, bool enable, uint8_t status) {
+    // Not used yet
+  }
+
+  void OnAdvertisingDataSet(uint8_t advertiser_id, uint8_t status) {
+    // Not used yet
+  }
+
+  void OnScanResponseDataSet(uint8_t advertiser_id, uint8_t status) {
+    // Not used yet
+  }
+
+  void OnAdvertisingParametersUpdated(uint8_t advertiser_id, int8_t tx_power, uint8_t status) {
+    // Not used yet
+  }
+
+  void OnPeriodicAdvertisingParametersUpdated(uint8_t advertiser_id, uint8_t status) {
+    // Not used yet
+  }
+
+  void OnPeriodicAdvertisingDataSet(uint8_t advertiser_id, uint8_t status) {
+    // Not used yet
+  }
+
+  void OnPeriodicAdvertisingEnabled(uint8_t advertiser_id, bool enable, uint8_t status) {
+    // Not used yet
+  }
+
+  void OnOwnAddressRead(uint8_t advertiser_id, uint8_t address_type, Address address) {
+    AdvertisingCallbackMsg get_own_address;
+    get_own_address.set_message_type(AdvertisingCallbackMsgType::OWN_ADDRESS_READ);
+    get_own_address.mutable_address()->set_address(address.ToString());
+    advertising_callback_events_.OnIncomingEvent(get_own_address);
+  }
+
   ::grpc::Status SetIoCapability(::grpc::ServerContext* context, const IoCapabilityMessage* request,
                                  ::google::protobuf::Empty* response) override {
     security_module_->GetFacadeConfigurationApi()->SetIoCapability(
@@ -532,6 +594,7 @@ class SecurityModuleFacadeService : public SecurityModuleFacade::Service, public
   SecurityModule* security_module_;
   L2capLeModule* l2cap_le_module_;
   ::bluetooth::os::Handler* security_handler_;
+  hci::LeAdvertisingManager* le_advertising_manager_;
   ::bluetooth::grpc::GrpcEventQueue<UiMsg> ui_events_{"UI events"};
   ::bluetooth::grpc::GrpcEventQueue<BondMsg> bond_events_{"Bond events"};
   ::bluetooth::grpc::GrpcEventQueue<SecurityHelperMsg> helper_events_{"Events that don't fit any other category"};
@@ -539,6 +602,7 @@ class SecurityModuleFacadeService : public SecurityModuleFacade::Service, public
       "Enforce Security Policy Events"};
   ::bluetooth::grpc::GrpcEventQueue<DisconnectMsg> disconnect_events_{"Disconnect events"};
   ::bluetooth::grpc::GrpcEventQueue<OobDataBondMessage> oob_events_{"OOB Data events"};
+  ::bluetooth::grpc::GrpcEventQueue<AdvertisingCallbackMsg> advertising_callback_events_{"Advertising callback events"};
   uint32_t unique_id{1};
   std::map<uint32_t, common::OnceCallback<void(bool)>> user_yes_no_callbacks_;
   std::map<uint32_t, common::OnceCallback<void(uint32_t)>> user_passkey_callbacks_;
@@ -548,12 +612,16 @@ void SecurityModuleFacadeModule::ListDependencies(ModuleList* list) const {
   ::bluetooth::grpc::GrpcFacadeModule::ListDependencies(list);
   list->add<SecurityModule>();
   list->add<L2capLeModule>();
+  list->add<hci::LeAdvertisingManager>();
 }
 
 void SecurityModuleFacadeModule::Start() {
   ::bluetooth::grpc::GrpcFacadeModule::Start();
-  service_ =
-      new SecurityModuleFacadeService(GetDependency<SecurityModule>(), GetDependency<L2capLeModule>(), GetHandler());
+  service_ = new SecurityModuleFacadeService(
+      GetDependency<SecurityModule>(),
+      GetDependency<L2capLeModule>(),
+      GetHandler(),
+      GetDependency<hci::LeAdvertisingManager>());
 }
 
 void SecurityModuleFacadeModule::Stop() {
