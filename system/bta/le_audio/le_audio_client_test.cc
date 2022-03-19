@@ -148,6 +148,18 @@ class MockLeAudioClientCallbacks
   MOCK_METHOD((void), OnSinkAudioLocationAvailable,
               (const RawAddress& bd_addr, uint32_t snk_audio_location),
               (override));
+  MOCK_METHOD(
+      (void), OnAudioLocalCodecCapabilities,
+      (std::vector<btle_audio_codec_config_t> local_input_capa_codec_conf,
+       std::vector<btle_audio_codec_config_t> local_output_capa_codec_conf),
+      (override));
+  MOCK_METHOD(
+      (void), OnAudioGroupCodecConf,
+      (int group_id, btle_audio_codec_config_t input_codec_conf,
+       btle_audio_codec_config_t output_codec_conf,
+       std::vector<btle_audio_codec_config_t> input_selectable_codec_conf,
+       std::vector<btle_audio_codec_config_t> output_selectable_codec_conf),
+      (override));
 };
 
 class UnicastTestNoInit : public Test {
