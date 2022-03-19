@@ -65,6 +65,81 @@ public class BluetoothProxy {
 
     private final Map<Integer, UUID> mGroupLocks = new HashMap<>();
 
+    private int GROUP_NODE_ADDED = 1;
+    private int GROUP_NODE_REMOVED = 2;
+
+    private boolean mLeAudioCallbackRegistered = false;
+    private BluetoothLeAudio.Callback mLeAudioCallbacks =
+    new BluetoothLeAudio.Callback() {
+        @Override
+        public void onCodecConfigChanged(int groupId, BluetoothLeAudioCodecStatus status) {}
+        @Override
+        public void onGroupStatusChanged(int groupId, int groupStatus) {
+            List<LeAudioDeviceStateWrapper> valid_devices = null;
+            valid_devices = allLeAudioDevicesMutable.getValue().stream().filter(
+                                state -> state.leAudioData.nodeStatusMutable.getValue() != null
+                                        && state.leAudioData.nodeStatusMutable.getValue().first
+                                                .equals(groupId))
+                                .collect(Collectors.toList());
+            for (LeAudioDeviceStateWrapper dev : valid_devices) {
+                dev.leAudioData.groupStatusMutable.setValue(
+                        new Pair<>(groupId, new Pair<>(groupStatus, 0)));
+            }
+        }
+        @Override
+        public void onGroupNodeAdded(BluetoothDevice device, int groupId) {
+            Log.d("LeCB:", device.getAddress() + " group added " + groupId);
+            if (device == null || groupId == BluetoothLeAudio.GROUP_ID_INVALID) {
+                Log.d("LeCB:", "invalid parameter");
+                return;
+            }
+            Optional<LeAudioDeviceStateWrapper> valid_device_opt = allLeAudioDevicesMutable
+                            .getValue().stream()
+                            .filter(state -> state.device.getAddress().equals(device.getAddress()))
+                            .findAny();
+
+            if (!valid_device_opt.isPresent()) {
+                Log.d("LeCB:", "Device not present");
+                return;
+            }
+
+            LeAudioDeviceStateWrapper valid_device = valid_device_opt.get();
+            LeAudioDeviceStateWrapper.LeAudioData svc_data = valid_device.leAudioData;
+
+            svc_data.nodeStatusMutable.setValue(new Pair<>(groupId, GROUP_NODE_ADDED));
+            svc_data.groupStatusMutable.setValue(new Pair<>(groupId, new Pair<>(-1, -1)));
+        }
+        @Override
+        public void onGroupNodeRemoved(BluetoothDevice device, int groupId) {
+            if (device == null || groupId == BluetoothLeAudio.GROUP_ID_INVALID) {
+                Log.d("LeCB:", "invalid parameter");
+                return;
+            }
+
+            Log.d("LeCB:", device.getAddress() + " group added " + groupId);
+            if (device == null || groupId == BluetoothLeAudio.GROUP_ID_INVALID) {
+                Log.d("LeCB:", "invalid parameter");
+                return;
+            }
+
+            Optional<LeAudioDeviceStateWrapper> valid_device_opt = allLeAudioDevicesMutable
+            .getValue().stream()
+            .filter(state -> state.device.getAddress().equals(device.getAddress()))
+            .findAny();
+
+            if (!valid_device_opt.isPresent()) {
+                Log.d("LeCB:", "Device not present");
+                return;
+            }
+
+            LeAudioDeviceStateWrapper valid_device = valid_device_opt.get();
+            LeAudioDeviceStateWrapper.LeAudioData svc_data = valid_device.leAudioData;
+
+            svc_data.nodeStatusMutable.setValue(new Pair<>(groupId, GROUP_NODE_REMOVED));
+            svc_data.groupStatusMutable.setValue(new Pair<>(groupId, new Pair<>(-1, -1)));
+        }
+    };
+
     private final MutableLiveData<Boolean> enabledBluetoothMutable;
     private final BroadcastReceiver adapterIntentReceiver = new BroadcastReceiver() {
         @Override
@@ -112,48 +187,11 @@ public class BluetoothProxy {
 
                                 group_id = bluetoothLeAudio.getGroupId(device);
                                 svc_data.nodeStatusMutable.setValue(
-                                        new Pair<>(group_id, BluetoothLeAudio.GROUP_NODE_ADDED));
+                                        new Pair<>(group_id, GROUP_NODE_ADDED));
                                 svc_data.groupStatusMutable
                                         .setValue(new Pair<>(group_id, new Pair<>(-1, -1)));
                                 break;
                             }
-                            case BluetoothLeAudio.ACTION_LE_AUDIO_GROUP_NODE_STATUS_CHANGED:
-                                group_id =
-                                        intent.getIntExtra(BluetoothLeAudio.EXTRA_LE_AUDIO_GROUP_ID,
-                                                BluetoothLeAudio.GROUP_ID_INVALID);
-                                final int node_status = intent.getIntExtra(
-                                        BluetoothLeAudio.EXTRA_LE_AUDIO_GROUP_NODE_STATUS, -1);
-                                svc_data.nodeStatusMutable
-                                        .setValue(new Pair<>(group_id, node_status));
-                                svc_data.groupStatusMutable
-                                        .setValue(new Pair<>(group_id, new Pair<>(-1, -1)));
-                                break;
-                        }
-                    }
-                } else {
-                    final int group_id =
-                            intent.getIntExtra(BluetoothLeAudio.EXTRA_LE_AUDIO_GROUP_ID,
-                                    BluetoothLeAudio.GROUP_ID_INVALID);
-                    final int group_status =
-                            intent.getIntExtra(BluetoothLeAudio.EXTRA_LE_AUDIO_GROUP_STATUS, -1);
-
-                    List<LeAudioDeviceStateWrapper> valid_devices = null;
-
-                    if (group_id != BluetoothLeAudio.GROUP_ID_INVALID)
-                        valid_devices = allLeAudioDevicesMutable.getValue().stream().filter(
-                                state -> state.leAudioData.nodeStatusMutable.getValue() != null
-                                        && state.leAudioData.nodeStatusMutable.getValue().first
-                                                .equals(group_id))
-                                .collect(Collectors.toList());
-
-                    if (valid_devices != null) {
-                        switch (action) {
-                            case BluetoothLeAudio.ACTION_LE_AUDIO_GROUP_STATUS_CHANGED:
-                                for (LeAudioDeviceStateWrapper dev : valid_devices) {
-                                    dev.leAudioData.groupStatusMutable.setValue(
-                                            new Pair<>(group_id, new Pair<>(group_status, 0)));
-                                }
-                                break;
                         }
                     }
                 }
@@ -453,6 +491,15 @@ public class BluetoothProxy {
                         break;
                     case BluetoothProfile.LE_AUDIO:
                         bluetoothLeAudio = (BluetoothLeAudio) bluetoothProfile;
+                        if (!mLeAudioCallbackRegistered) {
+                            try {
+                            bluetoothLeAudio.registerCallback(mExecutor, mLeAudioCallbacks);
+                            mLeAudioCallbackRegistered = true;
+                            } catch (Exception e){
+                                Log.e("Unicast:" ,
+                                    " Probably not supported: Exception on registering callbacks: " + e);
+                            }
+                        }
                         break;
                     case BluetoothProfile.VOLUME_CONTROL:
                         bluetoothVolumeControl = (BluetoothVolumeControl) bluetoothProfile;
@@ -513,8 +560,6 @@ public class BluetoothProxy {
 
         intentFilter = new IntentFilter();
         intentFilter.addAction(BluetoothLeAudio.ACTION_LE_AUDIO_CONNECTION_STATE_CHANGED);
-        intentFilter.addAction(BluetoothLeAudio.ACTION_LE_AUDIO_GROUP_NODE_STATUS_CHANGED);
-        intentFilter.addAction(BluetoothLeAudio.ACTION_LE_AUDIO_GROUP_STATUS_CHANGED);
         application.registerReceiver(leAudioIntentReceiver, intentFilter);
     }
 
@@ -590,7 +635,7 @@ public class BluetoothProxy {
                                 .getConnectionState(dev) == BluetoothLeAudio.STATE_CONNECTED);
                         int group_id = bluetoothLeAudio.getGroupId(dev);
                         state_wrapper.leAudioData.nodeStatusMutable
-                                .setValue(new Pair<>(group_id, BluetoothLeAudio.GROUP_NODE_ADDED));
+                                .setValue(new Pair<>(group_id, GROUP_NODE_ADDED));
                         state_wrapper.leAudioData.groupStatusMutable
                                 .setValue(new Pair<>(group_id, new Pair<>(-1, -1)));
                     }

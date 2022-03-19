@@ -25,6 +25,8 @@
 
 #include "hci_internals.h"
 #include "log/log.h"
+#include "model/devices/hci_socket_device.h"
+#include "model/devices/link_layer_socket_device.h"
 
 namespace android {
 namespace hardware {
@@ -35,6 +37,8 @@ namespace sim {
 using android::hardware::hidl_vec;
 using rootcanal::AsyncTaskId;
 using rootcanal::DualModeController;
+using rootcanal::HciSocketDevice;
+using rootcanal::LinkLayerSocketDevice;
 using rootcanal::TaskCallback;
 
 namespace {
@@ -201,12 +205,14 @@ Return<void> BluetoothHci::initialize_impl(
     SetUpTestChannel();
     SetUpHciServer([this](std::shared_ptr<AsyncDataChannel> socket,
                           AsyncDataChannelServer* srv) {
-      test_model_.IncomingHciConnection(socket);
+      test_model_.AddHciConnection(HciSocketDevice::Create(socket, ""));
       srv->StartListening();
     });
     SetUpLinkLayerServer([this](std::shared_ptr<AsyncDataChannel> socket,
                                 AsyncDataChannelServer* srv) {
-      test_model_.IncomingLinkLayerConnection(socket);
+      auto phy_type = Phy::Type::BR_EDR;
+      test_model_.AddLinkLayerConnection(
+          LinkLayerSocketDevice::Create(socket, phy_type), phy_type);
       srv->StartListening();
     });
   } else {
@@ -313,9 +319,11 @@ void BluetoothHci::SetUpLinkLayerServer(ConnectCallback connection_callback) {
   });
 }
 
-std::shared_ptr<AsyncDataChannel> BluetoothHci::ConnectToRemoteServer(
-    const std::string& server, int port) {
-  return connector_->ConnectToRemoteServer(server, port);
+std::shared_ptr<Device> BluetoothHci::ConnectToRemoteServer(
+    const std::string& server, int port, Phy::Type phy_type) {
+  auto socket = connector_->ConnectToRemoteServer(server, port);
+  if (!socket->Connected()) return nullptr;
+  return LinkLayerSocketDevice::Create(socket, phy_type);
 }
 
 void BluetoothHci::SetUpTestChannel() {

@@ -57,6 +57,9 @@ public class LeAudioRecycleViewAdapter
     private OnHapInteractionListener hapInteractionListener;
     private final ArrayList<LeAudioDeviceStateWrapper> devices;
 
+    private int GROUP_NODE_ADDED = 1;
+    private int GROUP_NODE_REMOVED = 2;
+
     public LeAudioRecycleViewAdapter(AppCompatActivity context) {
         this.parent = context;
         devices = new ArrayList<>();
@@ -139,7 +142,7 @@ public class LeAudioRecycleViewAdapter
                 final Integer status = group_id_node_status_pair.second;
                 final Integer group_id = group_id_node_status_pair.first;
 
-                if (status == BluetoothLeAudio.GROUP_NODE_REMOVED)
+                if (status == GROUP_NODE_REMOVED)
                     holder.leAudioGroupIdText
                             .setText(((Integer) BluetoothLeAudio.GROUP_ID_INVALID).toString());
                 else

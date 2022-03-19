@@ -24,6 +24,7 @@ import android.annotation.SystemApi;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothDevice.AddressType;
+import android.bluetooth.le.ScanRecord.AdvertisingDataType;
 import android.os.Parcel;
 import android.os.ParcelUuid;
 import android.os.Parcelable;
@@ -43,6 +44,7 @@ import java.util.UUID;
  * <li>Mac address of the remote device.
  * <li>Service data which is the data associated with a service.
  * <li>Manufacturer specific data which is the data associated with a particular manufacturer.
+ * <li>Advertising data type and corresponding data.
  *
  * @see ScanResult
  * @see BluetoothLeScanner
@@ -83,7 +85,7 @@ public final class ScanFilter implements Parcelable {
     @Nullable
     private final byte[] mManufacturerDataMask;
 
-    private int mAdvertisingDataType = -1;
+    private int mAdvertisingDataType = ScanRecord.DATA_TYPE_NONE;
     @Nullable
     private final byte[] mAdvertisingData;
     @Nullable
@@ -303,7 +305,7 @@ public final class ScanFilter implements Parcelable {
                     advertisingDataMask = new byte[advertisingDataMaskLength];
                     in.readByteArray(advertisingDataMask);
                 }
-                builder.setAdvertisingDataWithType(advertisingDataType, advertisingData,
+                builder.setAdvertisingDataTypeWithData(advertisingDataType, advertisingData,
                         advertisingDataMask);
             }
 
@@ -403,16 +405,26 @@ public final class ScanFilter implements Parcelable {
     }
 
     /**
-     * Returns the advertising data type. -1 if the type is not set.
-     */
+     * Returns the advertising data type of this filter.
+     * Returns {@link ScanRecord#DATA_TYPE_NONE} if the type is not set.
+     * The values of advertising data type are defined in the Bluetooth Generic Access Profile
+     * (https://www.bluetooth.com/specifications/assigned-numbers/)
+    */
+    @AdvertisingDataType
     public int getAdvertisingDataType() {
         return mAdvertisingDataType;
     }
 
+    /**
+     * Returns the advertising data of this filter.
+    */
     public @Nullable byte[] getAdvertisingData() {
         return mAdvertisingData;
     }
 
+    /**
+     * Returns the advertising data mask of this filter.
+    */
     public @Nullable byte[] getAdvertisingDataMask() {
         return mAdvertisingDataMask;
     }
@@ -477,7 +489,7 @@ public final class ScanFilter implements Parcelable {
         }
 
         // Advertising data type match
-        if (mAdvertisingDataType >= 0) {
+        if (mAdvertisingDataType > 0) {
             byte[] advertisingData = scanRecord.getAdvertisingDataMap().get(mAdvertisingDataType);
             if (advertisingData == null || !matchesPartialData(mAdvertisingData,
                     mAdvertisingDataMask, advertisingData)) {
@@ -665,7 +677,7 @@ public final class ScanFilter implements Parcelable {
         private byte[] mManufacturerData;
         private byte[] mManufacturerDataMask;
 
-        private int mAdvertisingDataType = -1;
+        private int mAdvertisingDataType = ScanRecord.DATA_TYPE_NONE;
         private byte[] mAdvertisingData;
         private byte[] mAdvertisingDataMask;
 
@@ -978,15 +990,19 @@ public final class ScanFilter implements Parcelable {
          * For any bit in the mask, set it the 1 if it needs to match the one in
          * advertising data, otherwise set it to 0.
          * <p>
+         * The values of {@code advertisingDataType} are assigned by Bluetooth SIG. For more
+         * details refer to Bluetooth Generic Access Profile.
+         * (https://www.bluetooth.com/specifications/assigned-numbers/)
          * The {@code advertisingDataMask} must have the same length of {@code advertisingData}.
          *
          * @throws IllegalArgumentException If the {@code advertisingDataType} is invalid, {@code
-         * advertisingData} is null while {@code advertisingDataMask} is not, or {@code
+         * advertisingData} or {@code advertisingDataMask} is null or {@code
          * advertisingData} and {@code advertisingDataMask} have different length.
          */
-        public @NonNull Builder setAdvertisingDataWithType(int advertisingDataType,
-                @Nullable byte[] advertisingData, @Nullable byte[] advertisingDataMask) {
-            if (advertisingDataType < -1) {
+        public @NonNull Builder setAdvertisingDataTypeWithData(
+                @AdvertisingDataType int advertisingDataType, @NonNull byte[] advertisingData,
+                @NonNull byte[] advertisingDataMask) {
+            if (advertisingDataType < 0) {
                 throw new IllegalArgumentException("invalid advertising data type");
             }
             if (mAdvertisingDataMask != null) {
@@ -1004,6 +1020,24 @@ public final class ScanFilter implements Parcelable {
             mAdvertisingDataType = advertisingDataType;
             mAdvertisingData = advertisingData;
             mAdvertisingDataMask = advertisingDataMask;
+            return this;
+        }
+
+
+        /**
+         * Set filter on advertising data with specific advertising data type.
+         * <p>
+         * The values of {@code advertisingDataType} are assigned by Bluetooth SIG. For more
+         * details refer to Bluetooth Generic Access Profile.
+         * (https://www.bluetooth.com/specifications/assigned-numbers/)
+         * @throws IllegalArgumentException If the {@code advertisingDataType} is invalid
+         */
+        public @NonNull Builder setAdvertisingDataType(
+                @AdvertisingDataType int advertisingDataType) {
+            if (advertisingDataType < 0) {
+                throw new IllegalArgumentException("invalid advertising data type");
+            }
+            mAdvertisingDataType = advertisingDataType;
             return this;
         }
 

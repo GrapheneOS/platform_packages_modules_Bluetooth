@@ -2282,7 +2282,8 @@ bool BTM_BLE_IS_RESOLVE_BDA(const RawAddress& x) {
 
 bool acl_refresh_remote_address(const RawAddress& identity_address,
                                 tBLE_ADDR_TYPE identity_address_type,
-                                const RawAddress& bda, tBLE_ADDR_TYPE rra_type,
+                                const RawAddress& bda,
+                                tBTM_SEC_BLE::tADDRESS_TYPE rra_type,
                                 const RawAddress& rpa) {
   tACL_CONN* p_acl = internal_.btm_bda_to_acl(bda, BT_TRANSPORT_LE);
   if (p_acl == nullptr) {
@@ -2300,7 +2301,7 @@ bool acl_refresh_remote_address(const RawAddress& identity_address,
       p_acl->active_remote_addr = rpa;
     }
   } else {
-    p_acl->active_remote_addr_type = rra_type;
+    p_acl->active_remote_addr_type = static_cast<tBLE_ADDR_TYPE>(rra_type);
     p_acl->active_remote_addr = rpa;
   }
 
