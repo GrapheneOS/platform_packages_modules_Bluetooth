@@ -141,6 +141,9 @@ public class LeAudioService extends ProfileService {
         public BluetoothLeAudioCodecStatus mCodecStatus;
     }
 
+    List<BluetoothLeAudioCodecConfig> mInputLocalCodecCapabilities = new ArrayList<>();
+    List<BluetoothLeAudioCodecConfig> mOutputLocalCodecCapabilities = new ArrayList<>();
+
     private final Map<Integer, LeAudioGroupDescriptor> mGroupDescriptors = new LinkedHashMap<>();
     private final Map<BluetoothDevice, LeAudioStateMachine> mStateMachines = new LinkedHashMap<>();
 
@@ -1029,6 +1032,37 @@ public class LeAudioService extends ProfileService {
                 default:
                     break;
             }
+        } else if (stackEvent.type
+                        == LeAudioStackEvent.EVENT_TYPE_AUDIO_LOCAL_CODEC_CONFIG_CAPA_CHANGED) {
+            mInputLocalCodecCapabilities = stackEvent.valueCodecList1;
+            mOutputLocalCodecCapabilities = stackEvent.valueCodecList2;
+        } else if (stackEvent.type
+                        == LeAudioStackEvent.EVENT_TYPE_AUDIO_GROUP_CODEC_CONFIG_CHANGED) {
+            int groupId = stackEvent.valueInt1;
+            LeAudioGroupDescriptor descriptor = mGroupDescriptors.get(groupId);
+            if (descriptor == null) {
+                Log.e(TAG, " Group not found " + groupId);
+                return;
+            }
+
+            BluetoothLeAudioCodecStatus status =
+                    new BluetoothLeAudioCodecStatus(stackEvent.valueCodec1,
+                            stackEvent.valueCodec2, mInputLocalCodecCapabilities,
+                            mOutputLocalCodecCapabilities,
+                            stackEvent.valueCodecList1,
+                            stackEvent.valueCodecList2);
+
+            if (DBG) {
+                if (descriptor.mCodecStatus != null) {
+                    Log.d(TAG, " Replacing codec status for group: " + groupId);
+                } else {
+                    Log.d(TAG, " New codec status for group: " + groupId);
+                }
+            }
+
+            descriptor.mCodecStatus = status;
+            notifyUnicastCodecConfigChanged(groupId, status);
+
         } else if (stackEvent.type == LeAudioStackEvent.EVENT_TYPE_AUDIO_CONF_CHANGED) {
             int direction = stackEvent.valueInt1;
             int group_id = stackEvent.valueInt2;
