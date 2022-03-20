@@ -20,5 +20,9 @@ cc_library_static {
         "g722_encode.cc",
     ],
     host_supported: true,
+    apex_available: [
+        "//apex_available:platform",
+        "com.android.bluetooth",
+    ],
     min_sdk_version: "Tiramisu"
 }

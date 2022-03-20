@@ -51,6 +51,23 @@ fluoride_defaults {
     },
 }
 
+// default to be used only on platform libs that can rely on shared libchrome
+fluoride_defaults {
+    name: "libchrome_shared_support_defaults",
+    shared_libs: ["libchrome"],
+    cflags: [
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+    ],
+    target: {
+        darwin: {
+            enabled: false,
+        },
+    },
+}
+
+
 // Fuzzable defaults are the subset of defaults that are used in fuzzing, which
 // requires no shared libraries, and no explicit sanitization.
 fluoride_defaults {

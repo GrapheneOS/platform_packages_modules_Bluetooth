@@ -33,6 +33,11 @@ class LeAudioClientImpl : public LeAudioClient {
   void GroupStop(const int group_id) override {}
   void GroupDestroy(const int group_id) override {}
   void GroupSetActive(const int group_id) override {}
+  void SetCodecConfigPreference(
+      int group_id,
+      bluetooth::le_audio::btle_audio_codec_config_t input_codec_config,
+      bluetooth::le_audio::btle_audio_codec_config_t output_codec_config)
+      override {}
   std::vector<RawAddress> GetGroupDevices(const int group_id) override {
     return {};
   }

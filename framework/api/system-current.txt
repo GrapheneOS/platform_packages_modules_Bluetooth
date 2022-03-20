@@ -187,7 +187,7 @@ package android.bluetooth {
     field public static final String EXTRA_PAIRING_INITIATOR = "android.bluetooth.device.extra.PAIRING_INITIATOR";
     field public static final int EXTRA_PAIRING_INITIATOR_BACKGROUND = 2; // 0x2
     field public static final int EXTRA_PAIRING_INITIATOR_FOREGROUND = 1; // 0x1
-    field public static final String EXTRA_REASON = "android.bluetooth.device.extra.REASON";
+    field public static final String EXTRA_UNBOND_REASON = "android.bluetooth.device.extra.REASON";
     field public static final int METADATA_COMPANION_APP = 4; // 0x4
     field public static final int METADATA_DEVICE_TYPE = 17; // 0x11
     field public static final int METADATA_ENHANCED_SETTINGS_UI_URI = 16; // 0x10
@@ -351,8 +351,6 @@ package android.bluetooth {
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public void setVolume(@IntRange(from=0, to=255) int);
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public void unregisterCallback(@NonNull android.bluetooth.BluetoothLeAudio.Callback);
     field @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public static final String ACTION_LE_AUDIO_ACTIVE_DEVICE_CHANGED = "android.bluetooth.action.LE_AUDIO_ACTIVE_DEVICE_CHANGED";
-    field @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.BLUETOOTH_PRIVILEGED}) public static final String ACTION_LE_AUDIO_GROUP_NODE_STATUS_CHANGED = "android.bluetooth.action.LE_AUDIO_GROUP_NODE_STATUS_CHANGED";
-    field @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED) public static final String ACTION_LE_AUDIO_GROUP_STATUS_CHANGED = "android.bluetooth.action.LE_AUDIO_GROUP_STATUS_CHANGED";
     field public static final int AUDIO_LOCATION_BACK_CENTER = 256; // 0x100
     field public static final int AUDIO_LOCATION_BACK_LEFT = 16; // 0x10
     field public static final int AUDIO_LOCATION_BACK_RIGHT = 32; // 0x20
@@ -383,14 +381,13 @@ package android.bluetooth {
     field public static final int AUDIO_LOCATION_TOP_SIDE_LEFT = 262144; // 0x40000
     field public static final int AUDIO_LOCATION_TOP_SIDE_RIGHT = 524288; // 0x80000
     field public static final String EXTRA_LE_AUDIO_GROUP_ID = "android.bluetooth.extra.LE_AUDIO_GROUP_ID";
-    field public static final String EXTRA_LE_AUDIO_GROUP_NODE_STATUS = "android.bluetooth.extra.LE_AUDIO_GROUP_NODE_STATUS";
-    field public static final String EXTRA_LE_AUDIO_GROUP_STATUS = "android.bluetooth.extra.LE_AUDIO_GROUP_STATUS";
-    field public static final int GROUP_NODE_ADDED = 1; // 0x1
-    field public static final int GROUP_NODE_REMOVED = 2; // 0x2
   }
 
   public static interface BluetoothLeAudio.Callback {
     method public void onCodecConfigChanged(int, @NonNull android.bluetooth.BluetoothLeAudioCodecStatus);
+    method public void onGroupNodeAdded(@NonNull android.bluetooth.BluetoothDevice, int);
+    method public void onGroupNodeRemoved(@NonNull android.bluetooth.BluetoothDevice, int);
+    method public void onGroupStatusChanged(int, int);
   }
 
   public final class BluetoothLeAudioCodecConfigMetadata implements android.os.Parcelable {
@@ -503,7 +500,7 @@ package android.bluetooth {
     method @IntRange(from=0, to=16777215) public int getPresentationDelayMicros();
     method public int getSourceAddressType();
     method public int getSourceAdvertisingSid();
-    method @Nullable public android.bluetooth.BluetoothDevice getSourceDevice();
+    method @NonNull public android.bluetooth.BluetoothDevice getSourceDevice();
     method @NonNull public java.util.List<android.bluetooth.BluetoothLeBroadcastSubgroup> getSubgroups();
     method public boolean isEncrypted();
     field @NonNull public static final android.os.Parcelable.Creator<android.bluetooth.BluetoothLeBroadcastMetadata> CREATOR;
@@ -522,7 +519,7 @@ package android.bluetooth {
     method @NonNull public android.bluetooth.BluetoothLeBroadcastMetadata.Builder setPaSyncInterval(int);
     method @NonNull public android.bluetooth.BluetoothLeBroadcastMetadata.Builder setPresentationDelayMicros(@IntRange(from=0, to=16777215) int);
     method @NonNull public android.bluetooth.BluetoothLeBroadcastMetadata.Builder setSourceAdvertisingSid(int);
-    method @NonNull public android.bluetooth.BluetoothLeBroadcastMetadata.Builder setSourceDevice(@Nullable android.bluetooth.BluetoothDevice, int);
+    method @NonNull public android.bluetooth.BluetoothLeBroadcastMetadata.Builder setSourceDevice(@NonNull android.bluetooth.BluetoothDevice, int);
   }
 
   public final class BluetoothLeBroadcastReceiveState implements android.os.Parcelable {
@@ -554,7 +551,7 @@ package android.bluetooth {
     method public long getCodecId();
     method @NonNull public android.bluetooth.BluetoothLeAudioCodecConfigMetadata getCodecSpecificConfig();
     method @NonNull public android.bluetooth.BluetoothLeAudioContentMetadata getContentMetadata();
-    method public boolean isNoChannelPreference();
+    method public boolean hasChannelPreference();
     field @NonNull public static final android.os.Parcelable.Creator<android.bluetooth.BluetoothLeBroadcastSubgroup> CREATOR;
   }
 
@@ -567,7 +564,6 @@ package android.bluetooth {
     method @NonNull public android.bluetooth.BluetoothLeBroadcastSubgroup.Builder setCodecId(long);
     method @NonNull public android.bluetooth.BluetoothLeBroadcastSubgroup.Builder setCodecSpecificConfig(@NonNull android.bluetooth.BluetoothLeAudioCodecConfigMetadata);
     method @NonNull public android.bluetooth.BluetoothLeBroadcastSubgroup.Builder setContentMetadata(@NonNull android.bluetooth.BluetoothLeAudioContentMetadata);
-    method @NonNull public android.bluetooth.BluetoothLeBroadcastSubgroup.Builder setNoChannelPreference(boolean);
   }
 
   public final class BluetoothMap implements java.lang.AutoCloseable android.bluetooth.BluetoothProfile {

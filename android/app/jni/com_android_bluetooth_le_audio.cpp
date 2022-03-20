@@ -44,6 +44,8 @@ static jmethodID method_onGroupStatus;
 static jmethodID method_onGroupNodeStatus;
 static jmethodID method_onAudioConf;
 static jmethodID method_onSinkAudioLocationAvailable;
+static jmethodID method_onAudioLocalCodecCapabilities;
+static jmethodID method_onAudioGroupCodecConf;
 
 static struct {
   jclass clazz;
@@ -56,6 +58,32 @@ static std::shared_timed_mutex interface_mutex;
 
 static jobject mCallbacksObj = nullptr;
 static std::shared_timed_mutex callbacks_mutex;
+
+jobject prepareCodecConfigObj(JNIEnv* env,
+                              btle_audio_codec_config_t codecConfig) {
+  jobject codecConfigObj =
+      env->NewObject(android_bluetooth_BluetoothLeAudioCodecConfig.clazz,
+                     android_bluetooth_BluetoothLeAudioCodecConfig.constructor,
+                     (jint)codecConfig.codec_type, 0, 0, 0, 0, 0, 0, 0, 0);
+  return codecConfigObj;
+}
+
+jobjectArray prepareArrayOfCodecConfigs(
+    JNIEnv* env, std::vector<btle_audio_codec_config_t> codecConfigs) {
+  jsize i = 0;
+  jobjectArray CodecConfigArray = env->NewObjectArray(
+      (jsize)codecConfigs.size(),
+      android_bluetooth_BluetoothLeAudioCodecConfig.clazz, nullptr);
+
+  for (auto const& cap : codecConfigs) {
+    jobject Obj = prepareCodecConfigObj(env, cap);
+
+    env->SetObjectArrayElement(CodecConfigArray, i++, Obj);
+    env->DeleteLocalRef(Obj);
+  }
+
+  return CodecConfigArray;
+}
 
 class LeAudioClientCallbacksImpl : public LeAudioClientCallbacks {
  public:
@@ -150,6 +178,54 @@ class LeAudioClientCallbacksImpl : public LeAudioClientCallbacks {
                                  method_onSinkAudioLocationAvailable,
                                  addr.get(), (jint)sink_audio_location);
   }
+
+  void OnAudioLocalCodecCapabilities(
+      std::vector<btle_audio_codec_config_t> local_input_capa_codec_conf,
+      std::vector<btle_audio_codec_config_t> local_output_capa_codec_conf)
+      override {
+    LOG(INFO) << __func__;
+
+    std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid() || mCallbacksObj == nullptr) return;
+
+    jobject localInputCapCodecConfigArray = prepareArrayOfCodecConfigs(
+        sCallbackEnv.get(), local_input_capa_codec_conf);
+
+    jobject localOutputCapCodecConfigArray = prepareArrayOfCodecConfigs(
+        sCallbackEnv.get(), local_output_capa_codec_conf);
+
+    sCallbackEnv->CallVoidMethod(
+        mCallbacksObj, method_onAudioLocalCodecCapabilities,
+        localInputCapCodecConfigArray, localOutputCapCodecConfigArray);
+  }
+
+  void OnAudioGroupCodecConf(
+      int group_id, btle_audio_codec_config_t input_codec_conf,
+      btle_audio_codec_config_t output_codec_conf,
+      std::vector<btle_audio_codec_config_t> input_selectable_codec_conf,
+      std::vector<btle_audio_codec_config_t> output_selectable_codec_conf)
+      override {
+    LOG(INFO) << __func__;
+
+    std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid() || mCallbacksObj == nullptr) return;
+
+    jobject inputCodecConfigObj =
+        prepareCodecConfigObj(sCallbackEnv.get(), input_codec_conf);
+    jobject outputCodecConfigObj =
+        prepareCodecConfigObj(sCallbackEnv.get(), input_codec_conf);
+    jobject inputSelectableCodecConfigArray = prepareArrayOfCodecConfigs(
+        sCallbackEnv.get(), input_selectable_codec_conf);
+    jobject outputSelectableCodecConfigArray = prepareArrayOfCodecConfigs(
+        sCallbackEnv.get(), output_selectable_codec_conf);
+
+    sCallbackEnv->CallVoidMethod(
+        mCallbacksObj, method_onAudioGroupCodecConf, (jint)group_id,
+        inputCodecConfigObj, outputCodecConfigObj,
+        inputSelectableCodecConfigArray, outputSelectableCodecConfigArray);
+  }
 };
 
 static LeAudioClientCallbacksImpl sLeAudioClientCallbacks;
@@ -170,6 +246,16 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
       env->GetMethodID(clazz, "onSinkAudioLocationAvailable", "([BI)V");
   method_onConnectionStateChanged =
       env->GetMethodID(clazz, "onConnectionStateChanged", "(I[B)V");
+  method_onAudioLocalCodecCapabilities =
+      env->GetMethodID(clazz, "onAudioLocalCodecCapabilities",
+                       "([Landroid/bluetooth/BluetoothLeAudioCodecConfig;"
+                       "[Landroid/bluetooth/BluetoothLeAudioCodecConfig;)V");
+  method_onAudioGroupCodecConf =
+      env->GetMethodID(clazz, "onAudioGroupCodecConf",
+                       "(ILandroid/bluetooth/BluetoothLeAudioCodecConfig;"
+                       "Landroid/bluetooth/BluetoothLeAudioCodecConfig;"
+                       "[Landroid/bluetooth/BluetoothLeAudioCodecConfig;"
+                       "[Landroid/bluetooth/BluetoothLeAudioCodecConfig;)V");
 }
 
 std::vector<btle_audio_codec_config_t> prepareCodecPreferences(
@@ -367,7 +453,22 @@ static void setCodecConfigPreferenceNative(JNIEnv* env, jobject object,
     return;
   }
 
-  // TODO Implement
+  jint inputCodecType = env->CallIntMethod(
+      inputCodecConfig,
+      android_bluetooth_BluetoothLeAudioCodecConfig.getCodecType);
+
+  btle_audio_codec_config_t input_codec_config = {
+      .codec_type = static_cast<btle_audio_codec_index_t>(inputCodecType)};
+
+  jint outputCodecType = env->CallIntMethod(
+      outputCodecConfig,
+      android_bluetooth_BluetoothLeAudioCodecConfig.getCodecType);
+
+  btle_audio_codec_config_t output_codec_config = {
+      .codec_type = static_cast<btle_audio_codec_index_t>(outputCodecType)};
+
+  sLeAudioClientInterface->SetCodecConfigPreference(
+      group_id, input_codec_config, output_codec_config);
 }
 
 static JNINativeMethod sMethods[] = {

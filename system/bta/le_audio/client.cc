@@ -652,6 +652,14 @@ class LeAudioClientImpl : public LeAudioClient {
     }
   }
 
+  void SetCodecConfigPreference(
+      int group_id,
+      bluetooth::le_audio::btle_audio_codec_config_t input_codec_config,
+      bluetooth::le_audio::btle_audio_codec_config_t output_codec_config)
+      override {
+    // TODO Implement
+  }
+
   void GroupSetActive(const int group_id) override {
     DLOG(INFO) << __func__ << " group_id: " << group_id;
 

@@ -97,6 +97,16 @@ class LeAudioClientCallbacks {
   /* Callback for sink audio location recognized */
   virtual void OnSinkAudioLocationAvailable(const RawAddress& address,
                                             uint32_t snk_audio_locations) = 0;
+  /* Callback with local codec capabilities */
+  virtual void OnAudioLocalCodecCapabilities(
+      std::vector<btle_audio_codec_config_t> local_input_capa_codec_conf,
+      std::vector<btle_audio_codec_config_t> local_output_capa_codec_conf) = 0;
+  /* Callback with group codec configurations */
+  virtual void OnAudioGroupCodecConf(
+      int group_id, btle_audio_codec_config_t input_codec_conf,
+      btle_audio_codec_config_t output_codec_conf,
+      std::vector<btle_audio_codec_config_t> input_selectable_codec_conf,
+      std::vector<btle_audio_codec_config_t> output_selectable_codec_conf) = 0;
 };
 
 class LeAudioClientInterface {
@@ -128,6 +138,11 @@ class LeAudioClientInterface {
 
   /* Set active le audio group */
   virtual void GroupSetActive(int group_id) = 0;
+
+  /* Set codec config preference */
+  virtual void SetCodecConfigPreference(
+      int group_id, btle_audio_codec_config_t input_codec_config,
+      btle_audio_codec_config_t output_codec_config) = 0;
 };
 
 static constexpr uint8_t INSTANCE_ID_UNDEFINED = 0xFF;
