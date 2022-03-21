@@ -257,14 +257,14 @@ bool bluetooth::shim::L2CA_IsLeLink(uint16_t acl_handle) {
 }
 void bluetooth::shim::L2CA_ReadConnectionAddr(const RawAddress& pseudo_addr,
                                               RawAddress& conn_addr,
-                                              uint8_t* p_addr_type) {
+                                              tBLE_ADDR_TYPE* p_addr_type) {
   mock_function_count_map[__func__]++;
   test::mock::main_shim_l2cap_api::L2CA_ReadConnectionAddr(
       pseudo_addr, conn_addr, p_addr_type);
 }
 bool bluetooth::shim::L2CA_ReadRemoteConnectionAddr(
     const RawAddress& pseudo_addr, RawAddress& conn_addr,
-    uint8_t* p_addr_type) {
+    tBLE_ADDR_TYPE* p_addr_type) {
   mock_function_count_map[__func__]++;
   return test::mock::main_shim_l2cap_api::L2CA_ReadRemoteConnectionAddr(
       pseudo_addr, conn_addr, p_addr_type);

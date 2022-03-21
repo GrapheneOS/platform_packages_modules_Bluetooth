@@ -18,6 +18,8 @@
 
 #include "main/shim/l2c_api.h"
 
+#include <base/logging.h>
+
 #include <future>
 #include <unordered_map>
 #include <unordered_set>
@@ -42,9 +44,8 @@
 #include "stack/include/btu.h"
 #include "stack/include/gatt_api.h"
 #include "stack/include/sco_hci_link_interface.h"
+#include "types/ble_address_with_type.h"
 #include "types/raw_address.h"
-
-#include <base/logging.h>
 
 extern void gatt_notify_conn_update(const RawAddress& remote, uint16_t interval,
                                     uint16_t latency, uint16_t timeout,
@@ -1200,7 +1201,8 @@ bool L2CA_IsLeLink(uint16_t acl_handle) {
 }
 
 void L2CA_ReadConnectionAddr(const RawAddress& pseudo_addr,
-                             RawAddress& conn_addr, uint8_t* p_addr_type) {
+                             RawAddress& conn_addr,
+                             tBLE_ADDR_TYPE* p_addr_type) {
   auto* helper = &le_fixed_channel_helper_.find(kSmpCid)->second;
   auto channel = helper->channels_.find(ToGdAddress(pseudo_addr));
   if (channel == helper->channels_.end() || channel->second == nullptr) {
@@ -1209,12 +1211,12 @@ void L2CA_ReadConnectionAddr(const RawAddress& pseudo_addr,
   }
   auto local = channel->second->GetLinkOptions()->GetLocalAddress();
   conn_addr = ToRawAddress(local.GetAddress());
-  *p_addr_type = static_cast<uint8_t>(local.GetAddressType());
+  *p_addr_type = static_cast<tBLE_ADDR_TYPE>(local.GetAddressType());
 }
 
 bool L2CA_ReadRemoteConnectionAddr(const RawAddress& pseudo_addr,
                                    RawAddress& conn_addr,
-                                   uint8_t* p_addr_type) {
+                                   tBLE_ADDR_TYPE* p_addr_type) {
   auto remote = ToGdAddress(pseudo_addr);
   if (le_link_property_listener_shim_.info_.count(remote) == 0) {
     LOG(ERROR) << __func__ << ": Unknown address";

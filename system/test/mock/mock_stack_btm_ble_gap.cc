@@ -26,10 +26,12 @@ extern std::map<std::string, int> mock_function_count_map;
 
 #include <base/bind.h>
 #include <base/strings/string_number_conversions.h>
+
 #include <cstdint>
 #include <list>
 #include <memory>
 #include <vector>
+
 #include "common/time_util.h"
 #include "device/include/controller.h"
 #include "main/shim/acl_api.h"
@@ -47,6 +49,7 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "stack/include/gap_api.h"
 #include "stack/include/hci_error_code.h"
 #include "stack/include/inq_hci_link_interface.h"
+#include "types/ble_address_with_type.h"
 #include "types/raw_address.h"
 
 #ifndef UNUSED_ATTR
@@ -155,13 +158,13 @@ void btm_ble_increment_link_topology_mask(uint8_t link_role) {
   mock_function_count_map[__func__]++;
 }
 void btm_ble_init(void) { mock_function_count_map[__func__]++; }
-void btm_ble_process_adv_addr(RawAddress& bda, uint8_t* addr_type) {
+void btm_ble_process_adv_addr(RawAddress& bda, tBLE_ADDR_TYPE* addr_type) {
   mock_function_count_map[__func__]++;
 }
 void btm_ble_process_adv_pkt(uint8_t data_len, const uint8_t* data) {
   mock_function_count_map[__func__]++;
 }
-void btm_ble_process_adv_pkt_cont(uint16_t evt_type, uint8_t addr_type,
+void btm_ble_process_adv_pkt_cont(uint16_t evt_type, tBLE_ADDR_TYPE addr_type,
                                   const RawAddress& bda, uint8_t primary_phy,
                                   uint8_t secondary_phy,
                                   uint8_t advertising_sid, int8_t tx_power,
@@ -171,7 +174,7 @@ void btm_ble_process_adv_pkt_cont(uint16_t evt_type, uint8_t addr_type,
   mock_function_count_map[__func__]++;
 }
 void btm_ble_process_adv_pkt_cont_for_inquiry(
-    uint16_t evt_type, uint8_t addr_type, const RawAddress& bda,
+    uint16_t evt_type, tBLE_ADDR_TYPE addr_type, const RawAddress& bda,
     uint8_t primary_phy, uint8_t secondary_phy, uint8_t advertising_sid,
     int8_t tx_power, int8_t rssi, uint16_t periodic_adv_int,
     std::vector<uint8_t> advertising_data) {
@@ -220,7 +223,8 @@ void btm_clear_all_pending_le_entry(void) {
   mock_function_count_map[__func__]++;
 }
 void btm_send_hci_set_scan_params(uint8_t scan_type, uint16_t scan_int,
-                                  uint16_t scan_win, uint8_t addr_type_own,
+                                  uint16_t scan_win,
+                                  tBLE_ADDR_TYPE addr_type_own,
                                   uint8_t scan_filter_policy) {
   mock_function_count_map[__func__]++;
 }
