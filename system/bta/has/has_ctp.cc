@@ -138,14 +138,14 @@ std::vector<uint8_t> HasCtpOp::ToCharacteristicValue() const {
   auto* pp = value.data();
 
   switch (opcode) {
-    case PresetCtpOpcode::READ_ALL_PRESETS:
-      value.resize(1);
+    case PresetCtpOpcode::READ_PRESETS:
+      value.resize(3);
       pp = value.data();
       UINT8_TO_STREAM(
           pp, static_cast<std::underlying_type_t<PresetCtpOpcode>>(opcode));
+      UINT8_TO_STREAM(pp, index);
+      UINT8_TO_STREAM(pp, num_of_indices);
       break;
-
-    case PresetCtpOpcode::READ_PRESET_BY_INDEX:
     case PresetCtpOpcode::SET_ACTIVE_PRESET:
     case PresetCtpOpcode::SET_ACTIVE_PRESET_SYNC:
       value.resize(2);
@@ -206,8 +206,7 @@ std::ostream& operator<<(std::ostream& out, const PresetCtpChangeId value) {
 std::ostream& operator<<(std::ostream& out, const PresetCtpOpcode value) {
   const char* ch = 0;
   switch (value) {
-    CASE_SET_PTR_TO_TOKEN_STR(PresetCtpOpcode::READ_ALL_PRESETS);
-    CASE_SET_PTR_TO_TOKEN_STR(PresetCtpOpcode::READ_PRESET_BY_INDEX);
+    CASE_SET_PTR_TO_TOKEN_STR(PresetCtpOpcode::READ_PRESETS);
     CASE_SET_PTR_TO_TOKEN_STR(PresetCtpOpcode::READ_PRESET_RESPONSE);
     CASE_SET_PTR_TO_TOKEN_STR(PresetCtpOpcode::PRESET_CHANGED);
     CASE_SET_PTR_TO_TOKEN_STR(PresetCtpOpcode::WRITE_PRESET_NAME);
