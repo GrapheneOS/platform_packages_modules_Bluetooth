@@ -144,9 +144,6 @@ void BTM_AddEirService(uint32_t* p_eir_uuid, uint16_t uuid16) {
 void BTM_CancelInquiry(void) { mock_function_count_map[__func__]++; }
 void BTM_EnableInterlacedInquiryScan() { mock_function_count_map[__func__]++; }
 void BTM_EnableInterlacedPageScan() { mock_function_count_map[__func__]++; }
-void BTM_RemoveEirService(uint32_t* p_eir_uuid, uint16_t uuid16) {
-  mock_function_count_map[__func__]++;
-}
 void btm_clr_inq_db(const RawAddress* p_bda) {
   mock_function_count_map[__func__]++;
 }
