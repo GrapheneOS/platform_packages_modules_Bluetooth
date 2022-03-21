@@ -35,6 +35,7 @@ filegroup {
     srcs: [
         "acl_manager/le_impl_test.cc",
         "acl_builder_test.cc",
+        "acl_manager_unittest.cc",
         "address_unittest.cc",
         "address_with_type_test.cc",
         "class_of_device_unittest.cc",
