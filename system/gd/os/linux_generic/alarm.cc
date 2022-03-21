@@ -77,7 +77,11 @@ void Alarm::on_fire() {
   lock.unlock();
   std::move(task).Run();
   ASSERT(bytes_read == static_cast<ssize_t>(sizeof(uint64_t)));
-  ASSERT(times_invoked == static_cast<uint64_t>(1));
+  ASSERT_LOG(
+      times_invoked == static_cast<uint64_t>(1),
+      "Invoked number of times:%lu fd:%d",
+      (unsigned long)times_invoked,
+      fd_);
 }
 
 }  // namespace os
