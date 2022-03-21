@@ -107,6 +107,14 @@ void LeAudioDeviceGroup::Deactivate(void) {
   }
 }
 
+void LeAudioDeviceGroup::Activate(void) {
+  for (auto leAudioDevice : leAudioDevices_) {
+    if (leAudioDevice.expired()) continue;
+
+    leAudioDevice.lock()->ActivateConfiguredAses();
+  }
+}
+
 LeAudioDevice* LeAudioDeviceGroup::GetFirstDevice(void) {
   auto d = leAudioDevices_.front();
   if (d.expired()) return nullptr;
@@ -1120,6 +1128,14 @@ types::LeAudioContextType LeAudioDeviceGroup::GetCurrentContextType(void) {
   return active_context_type_;
 }
 
+bool LeAudioDeviceGroup::IsPendingConfiguration(void) {
+  return stream_conf.pending_configuration;
+}
+
+void LeAudioDeviceGroup::SetPendingConfiguration(void) {
+  stream_conf.pending_configuration = true;
+}
+
 const set_configurations::AudioSetConfiguration*
 LeAudioDeviceGroup::FindFirstSupportedConfiguration(
     LeAudioContextType context_type) {
@@ -1197,8 +1213,8 @@ void LeAudioDeviceGroup::Dump(int fd) {
          << "      active stream configuration name: "
          << (active_conf ? active_conf->name : " not set") << "\n"
          << "    Last used stream configuration: \n"
-         << "      reconfiguration_ongoing: "
-         << stream_conf.reconfiguration_ongoing << "\n"
+         << "      pending_configuration: " << stream_conf.pending_configuration
+         << "\n"
          << "      codec id : " << +(stream_conf.id.coding_format) << "\n"
          << "      name: "
          << (stream_conf.conf != nullptr ? stream_conf.conf->name : " null ")
@@ -1658,6 +1674,22 @@ AudioContexts LeAudioDevice::SetAvailableContexts(AudioContexts snk_contexts,
   avail_src_contexts_ = src_contexts;
 
   return updated_contexts;
+}
+
+void LeAudioDevice::ActivateConfiguredAses(void) {
+  if (conn_id_ == GATT_INVALID_CONN_ID) {
+    LOG_DEBUG(" Device %s is not connected ", address_.ToString().c_str());
+    return;
+  }
+
+  LOG_DEBUG(" Configuring device %s", address_.ToString().c_str());
+  for (auto& ase : ases_) {
+    if (!ase.active &&
+        ase.state == AseState::BTA_LE_AUDIO_ASE_STATE_CODEC_CONFIGURED) {
+      LOG_DEBUG(" Ase id %d, cis id %d activated.", ase.id, ase.cis_id);
+      ase.active = true;
+    }
+  }
 }
 
 void LeAudioDevice::DeactivateAllAses(void) {

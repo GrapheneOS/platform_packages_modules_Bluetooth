@@ -1788,9 +1788,11 @@ TEST_F(StateMachineTest, testReleaseCachingSingle) {
       StatusReportCb(leaudio_group_id,
                      bluetooth::le_audio::GroupStreamStatus::RELEASING));
 
-  EXPECT_CALL(mock_callbacks_,
-              StatusReportCb(leaudio_group_id,
-                             bluetooth::le_audio::GroupStreamStatus::IDLE));
+  EXPECT_CALL(
+      mock_callbacks_,
+      StatusReportCb(
+          leaudio_group_id,
+          bluetooth::le_audio::GroupStreamStatus::CONFIGURED_AUTONOMOUS));
   EXPECT_CALL(
       mock_callbacks_,
       StatusReportCb(leaudio_group_id,
@@ -1829,11 +1831,19 @@ TEST_F(StateMachineTest, testStreamCachingSingle) {
   PrepareDisableHandler(group, 2);
   PrepareReleaseHandler(group, 2);
 
+  /* Ctp messages we expect:
+   * 1. Codec Config
+   * 2. QoS Config
+   * 3. Enable
+   * 4. Release
+   * 5. QoS Config (because device stays in Configured state)
+   * 6. Enable
+   */
   auto* leAudioDevice = group->GetFirstDevice();
   EXPECT_CALL(gatt_queue,
               WriteCharacteristic(1, leAudioDevice->ctp_hdls_.val_hdl, _,
                                   GATT_WRITE_NO_RSP, _, _))
-      .Times(4 + 3);
+      .Times(6);
 
   EXPECT_CALL(*mock_iso_manager_, CreateCig(_, _)).Times(2);
   EXPECT_CALL(*mock_iso_manager_, EstablishCis(_)).Times(2);
@@ -1850,9 +1860,11 @@ TEST_F(StateMachineTest, testStreamCachingSingle) {
       StatusReportCb(leaudio_group_id,
                      bluetooth::le_audio::GroupStreamStatus::RELEASING));
 
-  EXPECT_CALL(mock_callbacks_,
-              StatusReportCb(leaudio_group_id,
-                             bluetooth::le_audio::GroupStreamStatus::IDLE));
+  EXPECT_CALL(
+      mock_callbacks_,
+      StatusReportCb(
+          leaudio_group_id,
+          bluetooth::le_audio::GroupStreamStatus::CONFIGURED_AUTONOMOUS));
 
   EXPECT_CALL(mock_callbacks_,
               StatusReportCb(leaudio_group_id,
