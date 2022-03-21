@@ -40,6 +40,7 @@
 #include "stack/btm/btm_int_types.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_octets.h"
+#include "types/ble_address_with_type.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
@@ -1236,8 +1237,8 @@ void bluetooth::shim::BTM_ConfirmReqReply(tBTM_STATUS res,
                                           const RawAddress& bd_addr) {
   // Send for both Classic and LE until we can determine the type
   bool accept = res == BTM_SUCCESS;
-  hci::AddressWithType address = ToAddressWithType(bd_addr, 0);
-  hci::AddressWithType address2 = ToAddressWithType(bd_addr, 1);
+  hci::AddressWithType address = ToAddressWithType(bd_addr, BLE_ADDR_PUBLIC);
+  hci::AddressWithType address2 = ToAddressWithType(bd_addr, BLE_ADDR_RANDOM);
   auto security_manager =
       bluetooth::shim::GetSecurityModule()->GetSecurityManager();
   if (ShimUi::GetInstance()->waiting_for_pairing_prompt_) {
