@@ -1505,7 +1505,7 @@ void shim::legacy::Acl::OnLeConnectSuccess(
 
   RawAddress local_rpa = RawAddress::kEmpty; /* TODO enhanced */
   RawAddress peer_rpa = RawAddress::kEmpty;  /* TODO enhanced */
-  uint8_t peer_addr_type = 0;                /* TODO public */
+  tBLE_ADDR_TYPE peer_addr_type = BLE_ADDR_PUBLIC; /* TODO public */
 
   // Once an le connection has successfully been established
   // the device address is removed from the controller accept list.
