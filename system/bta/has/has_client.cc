@@ -395,7 +395,7 @@ class HasClientImpl : public HasClient {
     }
 
     auto op = op_opt.value();
-    if (op.opcode == PresetCtpOpcode::READ_PRESET_BY_INDEX) {
+    if (op.opcode == PresetCtpOpcode::READ_PRESETS) {
       callbacks_->OnPresetInfoError(device->addr, op.index,
                                     GattStatus2SvcErrorCode(status));
 
@@ -588,7 +588,7 @@ class HasClientImpl : public HasClient {
 
     if (status != ErrorCode::NO_ERROR) {
       switch (operation.opcode) {
-        case PresetCtpOpcode::READ_PRESET_BY_INDEX:
+        case PresetCtpOpcode::READ_PRESETS:
           LOG_ASSERT(
               std::holds_alternative<RawAddress>(operation.addr_or_group))
               << " Unsupported group operation!";
@@ -837,8 +837,8 @@ class HasClientImpl : public HasClient {
                                  .available = preset->IsAvailable(),
                                  .preset_name = preset->GetName()}});
     } else {
-      CpPresetIndexOperation(HasCtpOp(
-          address, PresetCtpOpcode::READ_PRESET_BY_INDEX, preset_index));
+      CpPresetIndexOperation(
+          HasCtpOp(address, PresetCtpOpcode::READ_PRESETS, preset_index));
     }
   }
 
@@ -849,7 +849,7 @@ class HasClientImpl : public HasClient {
 
     CpWritePresetNameOperation(HasCtpOp(addr_or_group_id,
                                         PresetCtpOpcode::WRITE_PRESET_NAME,
-                                        preset_index, name));
+                                        preset_index, 1 /* Don't care */, name));
   }
 
   void CleanUp() {
@@ -1662,8 +1662,9 @@ class HasClientImpl : public HasClient {
                                 ccc_val);
 
       /* Get all the presets */
-      CpReadAllPresetsOperation(
-          HasCtpOp(device->addr, PresetCtpOpcode::READ_ALL_PRESETS));
+      CpReadAllPresetsOperation(HasCtpOp(
+          device->addr, PresetCtpOpcode::READ_PRESETS,
+          le_audio::has::kStartPresetIndex, le_audio::has::kMaxNumOfPresets));
 
       /* Read the current active preset index */
       BtaGattQueue::ReadCharacteristic(
