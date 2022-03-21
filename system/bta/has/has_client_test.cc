@@ -319,7 +319,7 @@ class HasClientTestBase : public ::testing::Test {
                                               void* cb_data) {
           auto pp = value.data();
           auto len = value.size();
-          uint8_t op, index;
+          uint8_t op, index, num_of_indices;
 
           const bool indicate = false;
 
@@ -344,25 +344,21 @@ class HasClientTestBase : public ::testing::Test {
           }
 
           switch (static_cast<::le_audio::has::PresetCtpOpcode>(op)) {
-            case ::le_audio::has::PresetCtpOpcode::READ_ALL_PRESETS:
-              ASSERT_EQ(0u, len);
-              InjectNotifyReadPresetsResponse(conn_id, address, handle, value,
-                                              indicate, -1, cb, cb_data);
-              break;
-
-            case ::le_audio::has::PresetCtpOpcode::READ_PRESET_BY_INDEX:
-              if (len < 1) {
+            case ::le_audio::has::PresetCtpOpcode::READ_PRESETS:
+              if (len < 2) {
                 if (cb)
                   cb(conn_id, GATT_INVALID_ATTR_LEN, handle, value.size(),
                      value.data(), cb_data);
 
               } else {
                 STREAM_TO_UINT8(index, pp);
-                --len;
+                STREAM_TO_UINT8(num_of_indices, pp);
+                len -= 2;
                 ASSERT_EQ(0u, len);
 
                 InjectNotifyReadPresetsResponse(conn_id, address, handle, value,
-                                                indicate, index, cb, cb_data);
+                                                indicate, index, num_of_indices,
+                                                cb, cb_data);
               }
               break;
 
@@ -949,38 +945,43 @@ class HasClientTestBase : public ::testing::Test {
                             value, indicate);
   }
 
-  void InjectNotifyReadPresetsResponse(uint16_t conn_id,
-                                       RawAddress const& address,
-                                       uint16_t handle,
-                                       std::vector<uint8_t> value,
-                                       bool indicate, int index,
-                                       GATT_WRITE_OP_CB cb, void* cb_data) {
+  void InjectNotifyReadPresetsResponse(
+      uint16_t conn_id, RawAddress const& address, uint16_t handle,
+      std::vector<uint8_t> value, bool indicate, int index, int num_of_indices,
+      GATT_WRITE_OP_CB cb, void* cb_data) {
     auto presets = current_peer_presets_.at(conn_id);
     LOG_ASSERT(!presets.empty()) << __func__ << " Mocking error!";
 
-    if (index == -1) {
+    /* Index is a start index, not necessary is a valid index for the
+     * peer device */
+    auto preset = presets.find(index);
+    while (preset == presets.end() &&
+           index++ <= ::le_audio::has::kMaxNumOfPresets) {
+      preset = presets.find(index);
+    }
+
+    if (preset == presets.end()) {
+      /* operation not possible */
       if (cb)
-        cb(conn_id, GATT_SUCCESS, handle, value.size(), value.data(), cb_data);
-      /* Notify all presets */
-      for (auto preset = presets.begin(); preset != presets.end(); preset++) {
-        InjectNotifyReadPresetResponse(conn_id, address, handle, *preset,
-                                       indicate,
-                                       (preset == std::prev(presets.end())));
-      }
-    } else {
-      auto preset = presets.find(index);
-      if (preset != presets.end()) {
-        if (cb)
-          cb(conn_id, GATT_SUCCESS, handle, value.size(), value.data(),
-             cb_data);
-        InjectNotifyReadPresetResponse(conn_id, address, handle, *preset,
-                                       indicate, true);
-      } else {
-        /* operation not possible */
-        if (cb)
-          cb(conn_id, (tGATT_STATUS)0x83, handle, value.size(), value.data(),
-             cb_data);
-      }
+        cb(conn_id, (tGATT_STATUS)0x83, handle, value.size(), value.data(),
+           cb_data);
+
+      return;
+    }
+
+    if (cb)
+      cb(conn_id, GATT_SUCCESS, handle, value.size(), value.data(), cb_data);
+    /* Notify presets */
+    int num_of_notif = 1;
+    while (1) {
+      bool last =
+          preset == std::prev(presets.end()) || num_of_notif == num_of_indices;
+      InjectNotifyReadPresetResponse(conn_id, address, handle, *preset,
+                                     indicate, (last));
+      if (last) return;
+
+      num_of_notif++;
+      preset++;
     }
   }
 
@@ -3023,8 +3024,7 @@ TEST_F(HasTypesTest, test_group_op_coordinator_init) {
   EXPECT_CALL(*AlarmMock::Get(), AlarmNew(_)).Times(1);
   HasCtpGroupOpCoordinator wrapper(
       {address1, address2},
-      HasCtpOp(0x01, ::le_audio::has::PresetCtpOpcode::READ_PRESET_BY_INDEX,
-               6));
+      HasCtpOp(0x01, ::le_audio::has::PresetCtpOpcode::READ_PRESETS, 6));
   ASSERT_EQ(2u, wrapper.ref_cnt);
 
   EXPECT_CALL(*AlarmMock::Get(), AlarmFree(_)).Times(1);
@@ -3043,12 +3043,10 @@ TEST_F(HasTypesTest, test_group_op_coordinator_copy) {
   EXPECT_CALL(*AlarmMock::Get(), AlarmNew(_)).Times(1);
   HasCtpGroupOpCoordinator wrapper(
       {address1, address2},
-      HasCtpOp(0x01, ::le_audio::has::PresetCtpOpcode::READ_PRESET_BY_INDEX,
-               6));
+      HasCtpOp(0x01, ::le_audio::has::PresetCtpOpcode::READ_PRESETS, 6));
   HasCtpGroupOpCoordinator wrapper2(
       {address1},
-      HasCtpOp(0x01, ::le_audio::has::PresetCtpOpcode::READ_PRESET_BY_INDEX,
-               6));
+      HasCtpOp(0x01, ::le_audio::has::PresetCtpOpcode::READ_PRESETS, 6));
   ASSERT_EQ(3u, wrapper.ref_cnt);
   HasCtpGroupOpCoordinator wrapper3 = wrapper2;
   auto* wrapper4 =
@@ -3076,12 +3074,10 @@ TEST_F(HasTypesTest, test_group_op_coordinator_completion) {
   EXPECT_CALL(*AlarmMock::Get(), AlarmNew(_)).Times(1);
   HasCtpGroupOpCoordinator wrapper(
       {address1, address3},
-      HasCtpOp(0x01, ::le_audio::has::PresetCtpOpcode::READ_PRESET_BY_INDEX,
-               6));
+      HasCtpOp(0x01, ::le_audio::has::PresetCtpOpcode::READ_PRESETS, 6));
   HasCtpGroupOpCoordinator wrapper2(
       {address2},
-      HasCtpOp(0x01, ::le_audio::has::PresetCtpOpcode::READ_PRESET_BY_INDEX,
-               6));
+      HasCtpOp(0x01, ::le_audio::has::PresetCtpOpcode::READ_PRESETS, 6));
   ASSERT_EQ(3u, wrapper.ref_cnt);
 
   EXPECT_CALL(*AlarmMock::Get(), AlarmFree(_)).Times(0);
