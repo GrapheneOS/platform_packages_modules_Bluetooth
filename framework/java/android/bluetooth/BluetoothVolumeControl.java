@@ -344,6 +344,13 @@ public final class BluetoothVolumeControl implements BluetoothProfile, AutoClose
         synchronized (mCallbackExecutorMap) {
             // If the callback map is empty, we register the service-to-app callback
             if (mCallbackExecutorMap.isEmpty()) {
+                if (!mAdapter.isEnabled()) {
+                    /* If Bluetooth is off, just store callback and it will be registered
+                     * when Bluetooth is on
+                     */
+                    mCallbackExecutorMap.put(callback, executor);
+                    return;
+                }
                 try {
                     final IBluetoothVolumeControl service = getService();
                     if (service != null) {
@@ -355,7 +362,7 @@ public final class BluetoothVolumeControl implements BluetoothProfile, AutoClose
                 } catch (RemoteException e) {
                     Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
                     throw e.rethrowFromSystemServer();
-                } catch (IllegalStateException | TimeoutException e) {
+                } catch (TimeoutException e) {
                     Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
                 }
             }
