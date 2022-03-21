@@ -76,7 +76,7 @@ class Host(private val context: Context, private val server: Server) : HostImplB
     grpcUnary<Empty>(scope, responseObserver) {
       Log.i(TAG, "reset")
 
-      bluetoothAdapter.factoryReset()
+      bluetoothAdapter.clearBluetooth()
 
       val stateFlow =
         flow.filter { it.getAction() == BluetoothAdapter.ACTION_STATE_CHANGED }.map {
