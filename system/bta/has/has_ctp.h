@@ -41,8 +41,7 @@ std::ostream& operator<<(std::ostream& out, const PresetCtpChangeId value);
 
 /* HAS control point Opcodes */
 enum class PresetCtpOpcode : uint8_t {
-  READ_ALL_PRESETS = 0,
-  READ_PRESET_BY_INDEX,
+  READ_PRESETS = 1,
   READ_PRESET_RESPONSE,
   PRESET_CHANGED,
   WRITE_PRESET_NAME,
@@ -67,8 +66,7 @@ static constexpr uint16_t PresetCtpOpcode2Bitmask(PresetCtpOpcode op) {
 
 /* Mandatory opcodes if control point characteristic exists */
 static constexpr uint16_t kControlPointMandatoryOpcodesBitmask =
-    PresetCtpOpcode2Bitmask(PresetCtpOpcode::READ_ALL_PRESETS) |
-    PresetCtpOpcode2Bitmask(PresetCtpOpcode::READ_PRESET_BY_INDEX) |
+    PresetCtpOpcode2Bitmask(PresetCtpOpcode::READ_PRESETS) |
     PresetCtpOpcode2Bitmask(PresetCtpOpcode::SET_ACTIVE_PRESET) |
     PresetCtpOpcode2Bitmask(PresetCtpOpcode::SET_NEXT_PRESET) |
     PresetCtpOpcode2Bitmask(PresetCtpOpcode::SET_PREV_PRESET);
@@ -100,13 +98,19 @@ struct HasCtpOp {
   std::variant<RawAddress, int> addr_or_group;
   PresetCtpOpcode opcode;
   uint8_t index;
+  uint8_t num_of_indices;
   std::optional<std::string> name;
   uint16_t op_id;
 
   HasCtpOp(std::variant<RawAddress, int> addr_or_group_id, PresetCtpOpcode op,
            uint8_t index = bluetooth::has::kHasPresetIndexInvalid,
+           uint8_t num_of_indices = 1,
            std::optional<std::string> name = std::nullopt)
-      : addr_or_group(addr_or_group_id), opcode(op), index(index), name(name) {
+      : addr_or_group(addr_or_group_id),
+        opcode(op),
+        index(index),
+        num_of_indices(num_of_indices),
+        name(name) {
     /* Skip 0 on roll-over */
     last_op_id_ += 1;
     if (last_op_id_ == 0) last_op_id_ = 1;
