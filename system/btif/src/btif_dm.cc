@@ -967,9 +967,14 @@ static void btif_dm_auth_cmpl_evt(tBTA_DM_AUTH_CMPL* p_auth_cmpl) {
         bt_status_t ret;
         BTIF_TRACE_DEBUG("%s: Storing link key. key_type=0x%x, bond_type=%d",
                          __func__, p_auth_cmpl->key_type, pairing_cb.bond_type);
-        ret = btif_storage_add_bonded_device(&bd_addr, p_auth_cmpl->key,
-                                             p_auth_cmpl->key_type,
-                                             pairing_cb.pin_code_len);
+        if (!bd_addr.IsEmpty()) {
+          ret = btif_storage_add_bonded_device(&bd_addr, p_auth_cmpl->key,
+                                               p_auth_cmpl->key_type,
+                                               pairing_cb.pin_code_len);
+        } else {
+          LOG_WARN("bd_addr is empty");
+          ret = BT_STATUS_FAIL;
+        }
         ASSERTC(ret == BT_STATUS_SUCCESS, "storing link key failed", ret);
       } else {
         BTIF_TRACE_DEBUG(
@@ -2774,6 +2779,11 @@ void btif_dm_get_ble_local_keys(tBTA_DM_BLE_LOCAL_KEY_MASK* p_key_mask,
 
 static void btif_dm_save_ble_bonding_keys(RawAddress& bd_addr) {
   BTIF_TRACE_DEBUG("%s", __func__);
+
+  if (bd_addr.IsEmpty()) {
+    LOG_WARN("bd_addr is empty");
+    return;
+  }
 
   if (pairing_cb.ble.is_penc_key_rcvd) {
     btif_storage_add_ble_bonding_key(
