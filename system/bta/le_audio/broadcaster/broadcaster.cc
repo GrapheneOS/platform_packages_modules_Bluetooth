@@ -561,7 +561,8 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
                           int initial_channel_offset, int pitch_samples,
                           int num_channels) {
       auto encoder_status =
-          lc3_encode(encoder, (int16_t*)(data.data() + initial_channel_offset),
+          lc3_encode(encoder, LC3_PCM_FORMAT_S16,
+                     (int16_t*)(data.data() + initial_channel_offset),
                      pitch_samples, out_buffer.size(), out_buffer.data());
       if (encoder_status != 0) {
         LOG(ERROR) << "Error while encoding"
