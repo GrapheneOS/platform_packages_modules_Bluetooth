@@ -293,6 +293,7 @@ cc_test {
     srcs: [
         ":TestCommonMockFunctions",
         ":TestMockHci",
+        ":TestMockStackMetrics",
         "rfcomm/port_api.cc",
         "rfcomm/port_rfc.cc",
         "rfcomm/port_utils.cc",
