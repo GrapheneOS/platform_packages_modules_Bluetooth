@@ -3200,7 +3200,8 @@ void bta_dm_eir_update_uuid(uint16_t uuid16, bool adding) {
   } else {
     LOG_INFO("EIR Removing UUID=0x%04X from extended inquiry response", uuid16);
 
-    BTM_RemoveEirService(bta_dm_cb.eir_uuid, uuid16);
+    get_btm_client_interface().eir.BTM_RemoveEirService(bta_dm_cb.eir_uuid,
+                                                        uuid16);
   }
 
   bta_dm_set_eir(NULL);
