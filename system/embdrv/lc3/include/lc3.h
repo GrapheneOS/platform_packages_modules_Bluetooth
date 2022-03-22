@@ -245,13 +245,13 @@ lc3_encoder_t lc3_setup_encoder(
  * Encode a frame
  * encoder         Handle of the encoder
  * fmt             PCM input format
- * pcm, pitch      Input PCM samples, and count between two consecutives
+ * pcm, stride     Input PCM samples, and count between two consecutives
  * nbytes          Target size, in bytes, of the frame (20 to 400)
  * out             Output buffer of `nbytes` size
  * return          0: On success  -1: Wrong parameters
  */
-int lc3_encode(lc3_encoder_t encoder,
-    enum lc3_pcm_format fmt, const void *pcm, int pitch, int nbytes, void *out);
+int lc3_encode(lc3_encoder_t encoder, enum lc3_pcm_format fmt,
+    const void *pcm, int stride, int nbytes, void *out);
 
 /**
  * Return size needed for an decoder
@@ -286,11 +286,11 @@ lc3_decoder_t lc3_setup_decoder(
  * decoder         Handle of the decoder
  * in, nbytes      Input bitstream, and size in bytes, NULL performs PLC
  * fmt             PCM output format
- * pcm, pitch      Output PCM samples, and count between two consecutives
+ * pcm, stride     Output PCM samples, and count between two consecutives
  * return          0: On success  1: PLC operated  -1: Wrong parameters
  */
-int lc3_decode(lc3_decoder_t decoder,
-    const void *in, int nbytes, enum lc3_pcm_format fmt, void *pcm, int pitch);
+int lc3_decode(lc3_decoder_t decoder, const void *in, int nbytes,
+    enum lc3_pcm_format fmt, void *pcm, int stride);
 
 
 #ifdef __cplusplus
