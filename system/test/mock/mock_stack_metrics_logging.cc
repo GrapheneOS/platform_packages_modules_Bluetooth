@@ -60,6 +60,7 @@ struct log_link_layer_connection_event log_link_layer_connection_event;
 struct log_smp_pairing_event log_smp_pairing_event;
 struct log_sdp_attribute log_sdp_attribute;
 struct log_manufacturer_info log_manufacturer_info;
+struct log_counter_metrics log_counter_metrics;
 
 }  // namespace stack_metrics_logging
 }  // namespace mock
@@ -110,6 +111,12 @@ void log_manufacturer_info(const RawAddress& address,
   test::mock::stack_metrics_logging::log_manufacturer_info(
       address, source_type, source_name, manufacturer, model, hardware_version,
       software_version);
+}
+
+void log_counter_metrics(android::bluetooth::CodePathCounterKeyEnum key,
+                         int64_t value) {
+  mock_function_count_map[__func__]++;
+  test::mock::stack_metrics_logging::log_counter_metrics(key, value);
 }
 
 // END mockcify generation
