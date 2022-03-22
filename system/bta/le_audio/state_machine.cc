@@ -386,7 +386,6 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
 
       for (auto& ase : leAudioDevice->ases_) {
         ase.data_path_state = AudioStreamDataPathState::IDLE;
-        ase.cis_id = le_audio::kInvalidCisId;
       }
     } while ((leAudioDevice = group->GetNextDevice(leAudioDevice)));
   }
@@ -490,6 +489,22 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
               << ", duplicatePackets: " << loghex(duplicatePackets);
   }
 
+  void ReleaseCisIds(LeAudioDeviceGroup* group) {
+    if (group == nullptr) {
+      LOG_DEBUG(" Group is null.");
+      return;
+    }
+    LOG_DEBUG(" Releasing CIS is for group %d", group->group_id_);
+
+    LeAudioDevice* leAudioDevice = group->GetFirstDevice();
+    while (leAudioDevice != nullptr) {
+      for (auto& ase : leAudioDevice->ases_) {
+        ase.cis_id = le_audio::kInvalidCisId;
+      }
+      leAudioDevice = group->GetNextDevice(leAudioDevice);
+    }
+  }
+
   void ProcessHciNotifAclDisconnected(LeAudioDeviceGroup* group,
                                       LeAudioDevice* leAudioDevice) {
     FreeLinkQualityReports(leAudioDevice);
@@ -559,6 +574,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     group->SetState(AseState::BTA_LE_AUDIO_ASE_STATE_IDLE);
     group->SetTargetState(AseState::BTA_LE_AUDIO_ASE_STATE_IDLE);
     if (alarm_is_scheduled(watchdog_)) alarm_cancel(watchdog_);
+    ReleaseCisIds(group);
     state_machine_callbacks_->StatusReportCb(group->group_id_,
                                              GroupStreamStatus::IDLE);
 
@@ -857,6 +873,8 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
                       << " shouldn't be called without an active ASE";
       do {
         auto& cis = ase->cis_id;
+        ASSERT_LOG(ase->cis_id != le_audio::kInvalidCisId,
+                   " ase id %d has invalid cis id %d", ase->id, ase->cis_id);
         auto iter =
             find_if(cis_cfgs.begin(), cis_cfgs.end(),
                     [&cis](auto const& cfg) { return cis == cfg.cis_id; });
@@ -1061,7 +1079,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
           if (alarm_is_scheduled(watchdog_)) alarm_cancel(watchdog_);
 
           group->SetState(AseState::BTA_LE_AUDIO_ASE_STATE_IDLE);
-
+          ReleaseCisIds(group);
           state_machine_callbacks_->StatusReportCb(group->group_id_,
                                                    GroupStreamStatus::IDLE);
         }
