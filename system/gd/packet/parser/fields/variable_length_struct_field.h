@@ -53,7 +53,7 @@ class VariableLengthStructField : public PacketField {
 
   virtual std::string GetRustDataType() const override;
 
-  void GenRustGetter(std::ostream&, Size, Size) const  override;
+  void GenRustGetter(std::ostream&, Size, Size, std::string) const override;
 
   void GenRustWriter(std::ostream& s, Size start_offset, Size end_offset) const override;
 

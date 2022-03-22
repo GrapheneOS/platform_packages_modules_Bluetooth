@@ -66,7 +66,7 @@ class ArrayField : public PacketField {
 
   virtual std::string GetRustDataType() const override;
 
-  void GenRustGetter(std::ostream& s, Size start_offset, Size end_offset) const override;
+  void GenRustGetter(std::ostream& s, Size start_offset, Size end_offset, std::string parent_name) const override;
 
   void GenRustWriter(std::ostream& s, Size start_offset, Size end_offset) const override;
 
