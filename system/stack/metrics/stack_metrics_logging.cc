@@ -67,3 +67,8 @@ void log_manufacturer_info(const RawAddress& address,
       address, source_type, source_name, manufacturer, model, hardware_version,
       software_version);
 }
+
+void log_counter_metrics(android::bluetooth::CodePathCounterKeyEnum key,
+                         int64_t value) {
+  bluetooth::shim::CountCounterMetrics(key, value);
+}
