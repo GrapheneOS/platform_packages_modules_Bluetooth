@@ -336,21 +336,6 @@ void BTM_AddEirService(uint32_t* p_eir_uuid, uint16_t uuid16);
 
 /*******************************************************************************
  *
- * Function         BTM_RemoveEirService
- *
- * Description      This function is called to remove a service from the bit map
- *                  UUID list.
- *
- * Parameters       p_eir_uuid - bit mask of UUID list for EIR
- *                  uuid16 - UUID 16-bit
- *
- * Returns          None
- *
- ******************************************************************************/
-void BTM_RemoveEirService(uint32_t* p_eir_uuid, uint16_t uuid16);
-
-/*******************************************************************************
- *
  * Function         BTM_SecAddBleDevice
  *
  * Description      Add/modify device.  This function will be normally called
