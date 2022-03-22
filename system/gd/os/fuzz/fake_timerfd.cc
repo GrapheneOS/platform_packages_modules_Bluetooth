@@ -122,7 +122,7 @@ static bool fire_next_event(uint64_t new_clock) {
 
 void fake_timerfd_advance(uint64_t ms) {
   uint64_t new_clock = clock + ms;
-  if (new_clock > max_clock) {
+  if (new_clock < clock) {
     new_clock = max_clock;
   }
   while (fire_next_event(new_clock)) {
