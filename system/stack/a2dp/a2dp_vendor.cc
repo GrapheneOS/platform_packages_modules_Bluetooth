@@ -22,6 +22,8 @@
 
 #include "a2dp_vendor.h"
 
+#include <dlfcn.h>
+
 #include "a2dp_vendor_aptx.h"
 #include "a2dp_vendor_aptx_hd.h"
 #include "a2dp_vendor_ldac.h"
@@ -659,4 +661,24 @@ std::string A2DP_VendorCodecInfoString(const uint8_t* p_codec_info) {
 
   return "Unsupported codec vendor_id: " + loghex(vendor_id) +
          " codec_id: " + loghex(codec_id);
+}
+
+void* A2DP_VendorCodecLoadExternalLib(const std::vector<std::string>& lib_paths,
+                                      const std::string& friendly_name) {
+  std::string lib_path_error_list = "";
+  for (auto lib_path : lib_paths) {
+    void* lib_handle = dlopen(lib_path.c_str(), RTLD_NOW);
+    if (lib_handle != NULL) {
+      LOG(INFO) << __func__ << "Library found: " << friendly_name << " with ["
+                << lib_path << "]."
+                << " (Tested libs: " << lib_path_error_list << ")";
+      return lib_handle;
+    }
+    lib_path_error_list += "[ Err: ";
+    lib_path_error_list += dlerror();
+    lib_path_error_list += " ], ";
+  }
+  LOG(ERROR) << __func__ << "Failed to open library: " << friendly_name
+             << ". (Tested libs: " << lib_path_error_list << ")";
+  return nullptr;
 }
