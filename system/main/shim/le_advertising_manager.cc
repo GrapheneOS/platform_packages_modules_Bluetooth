@@ -59,9 +59,9 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface,
     bluetooth::shim::GetAdvertising()->RegisterAdvertisingCallback(this);
   }
 
-  // nobody use this function
   void RegisterAdvertiser(IdStatusCallback cb) override {
     LOG(INFO) << __func__ << " in shim layer";
+    bluetooth::shim::GetAdvertising()->RegisterAdvertiser(cb);
   }
 
   void Unregister(uint8_t advertiser_id) override {
@@ -73,6 +73,7 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface,
 
   void GetOwnAddress(uint8_t advertiser_id, GetAddressCallback cb) override {
     LOG(INFO) << __func__ << " in shim layer";
+    address_callbacks_[advertiser_id] = cb;
     bluetooth::shim::GetAdvertising()->GetOwnAddress(advertiser_id);
   }
 
@@ -123,6 +124,41 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface,
                         std::vector<uint8_t> scan_response_data, int timeout_s,
                         MultiAdvCb timeout_cb) override {
     LOG(INFO) << __func__ << " in shim layer";
+
+    bluetooth::hci::ExtendedAdvertisingConfig config{};
+    parse_parameter(config, params);
+
+    size_t offset = 0;
+    while (offset < advertise_data.size()) {
+      GapData gap_data;
+      uint8_t len = advertise_data[offset];
+      auto begin = advertise_data.begin() + offset;
+      auto end = begin + len + 1;  // 1 byte for len
+      auto data_copy = std::make_shared<std::vector<uint8_t>>(begin, end);
+      bluetooth::packet::PacketView<bluetooth::packet::kLittleEndian> packet(
+          data_copy);
+      GapData::Parse(&gap_data, packet.begin());
+      config.advertisement.push_back(gap_data);
+      offset += len + 1;  // 1 byte for len
+    }
+
+    offset = 0;
+    while (offset < scan_response_data.size()) {
+      GapData gap_data;
+      uint8_t len = scan_response_data[offset];
+      auto begin = scan_response_data.begin() + offset;
+      auto end = begin + len + 1;  // 1 byte for len
+      auto data_copy = std::make_shared<std::vector<uint8_t>>(begin, end);
+      bluetooth::packet::PacketView<bluetooth::packet::kLittleEndian> packet(
+          data_copy);
+      GapData::Parse(&gap_data, packet.begin());
+      config.scan_response.push_back(gap_data);
+      offset += len + 1;  // 1 byte for len
+    }
+
+    bluetooth::shim::GetAdvertising()->StartAdvertising(
+        advertiser_id, config, timeout_s * 100, cb, timeout_cb, scan_callback,
+        set_terminated_callback, bluetooth::shim::GetGdShimHandler());
   }
 
   void StartAdvertisingSet(int reg_id, IdTxPowerStatusCallback register_cb,
@@ -331,6 +367,11 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface,
   void OnOwnAddressRead(uint8_t advertiser_id, uint8_t address_type,
                         bluetooth::hci::Address address) {
     RawAddress raw_address = bluetooth::ToRawAddress(address);
+    if (address_callbacks_.find(advertiser_id) != address_callbacks_.end()) {
+      address_callbacks_[advertiser_id].Run(address_type, raw_address);
+      address_callbacks_.erase(advertiser_id);
+      return;
+    }
     do_in_jni_thread(FROM_HERE,
                      base::Bind(&AdvertisingCallbacks::OnOwnAddressRead,
                                 base::Unretained(advertising_callbacks_),
@@ -362,6 +403,7 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface,
     // TODO set own_address_type based on address policy
     config.own_address_type = OwnAddressType::RANDOM_DEVICE_ADDRESS;
   }
+  std::map<uint8_t, GetAddressCallback> address_callbacks_;
 };
 
 BleAdvertiserInterfaceImpl* bt_le_advertiser_instance = nullptr;
