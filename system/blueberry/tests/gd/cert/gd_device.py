@@ -771,12 +771,15 @@ class GdAndroidDevice(GdDeviceBase):
         # sys.boot_completed.
         while time.time() < timeout_start + timeout:
             try:
+                logging.debug("waiting for device %s to turn off", self.serial_number)
                 self.adb.get_state()
+                logging.debug("device %s not turned off yet", self.serial_number)
                 time.sleep(.1)
             except AdbError:
                 # get_state will raise an error if the device is not found. We
                 # want the device to be missing to prove the device has kicked
                 # off the reboot.
+                logging.debug("device %s is turned off, waiting for it to boot", self.serial_number)
                 break
         minutes_left = timeout_minutes - (time.time() - timeout_start) / 60.0
         self.wait_for_boot_completion(timeout_minutes=minutes_left)
