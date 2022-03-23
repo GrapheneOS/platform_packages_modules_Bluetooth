@@ -133,7 +133,7 @@ pub mod ffi {
         address: [u8; 6],
     }
 
-    #[derive(Debug)]
+    #[derive(Debug, Copy, Clone)]
     pub struct A2dpCodecConfig {
         codec_type: i32,
         codec_priority: i32,
