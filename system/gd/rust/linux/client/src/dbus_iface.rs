@@ -237,8 +237,6 @@ impl BluetoothDBus {
     }
 }
 
-trait DBusExportable {}
-
 #[generate_dbus_interface_client]
 impl IBluetooth for BluetoothDBus {
     #[dbus_method("RegisterCallback")]
