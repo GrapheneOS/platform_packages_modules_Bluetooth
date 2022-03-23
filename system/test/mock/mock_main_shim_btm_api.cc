@@ -383,10 +383,6 @@ void bluetooth::shim::BTM_RemoteOobDataReply(tBTM_STATUS res,
                                              const Octet16& r) {
   mock_function_count_map[__func__]++;
 }
-void bluetooth::shim::BTM_RemoveEirService(uint32_t* p_eir_uuid,
-                                           uint16_t uuid16) {
-  mock_function_count_map[__func__]++;
-}
 void bluetooth::shim::BTM_SecAddBleDevice(const RawAddress& bd_addr,
                                           tBT_DEVICE_TYPE dev_type,
                                           tBLE_ADDR_TYPE addr_type) {

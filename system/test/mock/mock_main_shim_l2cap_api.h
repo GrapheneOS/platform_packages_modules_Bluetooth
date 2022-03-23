@@ -54,6 +54,7 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "stack/include/btm_api.h"
 #include "stack/include/gatt_api.h"
 #include "stack/include/sco_hci_link_interface.h"
+#include "types/ble_address_with_type.h"
 #include "types/raw_address.h"
 
 // Mocked compile conditionals, if any
@@ -418,11 +419,11 @@ extern struct L2CA_IsLeLink L2CA_IsLeLink;
 // p_addr_type Returns: void
 struct L2CA_ReadConnectionAddr {
   std::function<void(const RawAddress& pseudo_addr, RawAddress& conn_addr,
-                     uint8_t* p_addr_type)>
+                     tBLE_ADDR_TYPE* p_addr_type)>
       body{[](const RawAddress& pseudo_addr, RawAddress& conn_addr,
-              uint8_t* p_addr_type) {}};
+              tBLE_ADDR_TYPE* p_addr_type) {}};
   void operator()(const RawAddress& pseudo_addr, RawAddress& conn_addr,
-                  uint8_t* p_addr_type) {
+                  tBLE_ADDR_TYPE* p_addr_type) {
     body(pseudo_addr, conn_addr, p_addr_type);
   };
 };
@@ -432,11 +433,11 @@ extern struct L2CA_ReadConnectionAddr L2CA_ReadConnectionAddr;
 // p_addr_type Returns: bool
 struct L2CA_ReadRemoteConnectionAddr {
   std::function<bool(const RawAddress& pseudo_addr, RawAddress& conn_addr,
-                     uint8_t* p_addr_type)>
+                     tBLE_ADDR_TYPE* p_addr_type)>
       body{[](const RawAddress& pseudo_addr, RawAddress& conn_addr,
-              uint8_t* p_addr_type) { return false; }};
+              tBLE_ADDR_TYPE* p_addr_type) { return false; }};
   bool operator()(const RawAddress& pseudo_addr, RawAddress& conn_addr,
-                  uint8_t* p_addr_type) {
+                  tBLE_ADDR_TYPE* p_addr_type) {
     return body(pseudo_addr, conn_addr, p_addr_type);
   };
 };

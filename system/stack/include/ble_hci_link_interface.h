@@ -20,6 +20,7 @@
 #include <cstdint>
 
 #include "osi/include/osi.h"  // UNUSED_ATTR
+#include "types/ble_address_with_type.h"
 #include "types/raw_address.h"
 
 // This header contains functions for HCI-ble to invoke
@@ -36,7 +37,7 @@ extern void btm_ble_test_command_complete(uint8_t* p);
 extern void btm_ble_rand_enc_complete(uint8_t* p, uint16_t op_code,
                                       tBTM_RAND_ENC_CB* p_enc_cplt_cback);
 extern bool btm_identity_addr_to_random_pseudo(RawAddress* bd_addr,
-                                               uint8_t* p_addr_type,
+                                               tBLE_ADDR_TYPE* p_addr_type,
                                                bool refresh);
 extern bool btm_identity_addr_to_random_pseudo_from_address_with_type(
     tBLE_BD_ADDR* address_with_type, bool refresh);
