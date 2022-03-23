@@ -477,6 +477,22 @@ class BluetoothManagerService extends IBluetoothManager.Stub {
                     Slog.i(TAG, "Device disconnected, reactivating pending flag changes");
                     onInitFlagsChanged();
                 }
+            } else if (action.equals(Intent.ACTION_SHUTDOWN)) {
+                Slog.i(TAG, "Device is shutting down.");
+                mBluetoothLock.readLock().lock();
+                try {
+                    mEnable = false;
+                    mEnableExternal = false;
+                    if (mBluetooth != null && (mState == BluetoothAdapter.STATE_BLE_ON)) {
+                        synchronousOnBrEdrDown(mContext.getAttributionSource());
+                    } else if (mBluetooth != null && (mState == BluetoothAdapter.STATE_ON)) {
+                        synchronousDisable(mContext.getAttributionSource());
+                    }
+                } catch (RemoteException | TimeoutException e) {
+                    Slog.e(TAG, "Unable to shutdown Bluetooth", e);
+                } finally {
+                    mBluetoothLock.readLock().unlock();
+                }
             }
         }
     };
@@ -536,6 +552,7 @@ class BluetoothManagerService extends IBluetoothManager.Stub {
         filter.addAction(Intent.ACTION_SETTING_RESTORED);
         filter.addAction(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED);
         filter.addAction(BluetoothHearingAid.ACTION_CONNECTION_STATE_CHANGED);
+        filter.addAction(Intent.ACTION_SHUTDOWN);
         filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
         mContext.registerReceiver(mReceiver, filter);
 
