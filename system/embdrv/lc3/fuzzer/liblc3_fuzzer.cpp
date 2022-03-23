@@ -18,6 +18,8 @@
 #include "include/lc3.h"
 
 void TestEncoder(FuzzedDataProvider& fdp) {
+  enum lc3_pcm_format pcm_format =
+      fdp.PickValueInArray({LC3_PCM_FORMAT_S16, LC3_PCM_FORMAT_S24});
   int dt_us = fdp.PickValueInArray({10000, 7500});
   int sr_hz =
       fdp.PickValueInArray({8000, 16000, 24000, 32000, /*44100,*/ 48000});
@@ -39,8 +41,8 @@ void TestEncoder(FuzzedDataProvider& fdp) {
       lc3_setup_encoder(dt_us, sr_hz, 0, lc3_encoder_mem);
 
   std::vector<uint8_t> output(output_byte_count);
-  lc3_encode(lc3_encoder, (const int16_t*)input_frames.data(), 1, output.size(),
-             output.data());
+  lc3_encode(lc3_encoder, pcm_format, (const int16_t*)input_frames.data(), 1,
+             output.size(), output.data());
 
   free(lc3_encoder_mem);
   lc3_encoder_mem = nullptr;
@@ -48,6 +50,8 @@ void TestEncoder(FuzzedDataProvider& fdp) {
 }
 
 void TestDecoder(FuzzedDataProvider& fdp) {
+  enum lc3_pcm_format pcm_format =
+      fdp.PickValueInArray({LC3_PCM_FORMAT_S16, LC3_PCM_FORMAT_S24});
   int dt_us = fdp.PickValueInArray({10000, 7500});
   int sr_hz =
       fdp.PickValueInArray({8000, 16000, 24000, 32000, /*44100,*/ 48000});
@@ -68,11 +72,11 @@ void TestDecoder(FuzzedDataProvider& fdp) {
       lc3_setup_decoder(dt_us, sr_hz, 0, lc3_decoder_mem);
 
   std::vector<uint16_t> output(num_frames);
-  lc3_decode(lc3_decoder, input.data(), input.size(), (int16_t*)output.data(),
-             1);
+  lc3_decode(lc3_decoder, input.data(), input.size(), pcm_format,
+             (int16_t*)output.data(), 1);
 
   /* Empty input performs PLC (packet loss concealment) */
-  lc3_decode(lc3_decoder, nullptr, 0, (int16_t*)output.data(), 1);
+  lc3_decode(lc3_decoder, nullptr, 0, pcm_format, (int16_t*)output.data(), 1);
 
   free(lc3_decoder_mem);
   lc3_decoder_mem = nullptr;
