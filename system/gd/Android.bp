@@ -280,12 +280,12 @@ cc_binary {
         "libbt_shim_ffi",
     ],
     shared_libs: [
-        "libbacktrace",
         "libcrypto",
         "libgrpc++",
         "libgrpc++_unsecure",
         "libgrpc_wrap",
         "libprotobuf-cpp-full",
+        "libunwindstack",
     ],
     target: {
         android: {
