@@ -1,0 +1,5 @@
+{
+    "permittedPaths": [
+        "/system_ext/${LIB}"
+    ]
+}

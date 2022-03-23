@@ -44,7 +44,7 @@
 //
 // The LDAC encoder shared library, and the functions to use
 //
-static const char* LDAC_ENCODER_LIB_NAME = "libldacBT_enc.so";
+static const std::string LDAC_ENCODER_LIB_NAME = "libldacBT_enc.so";
 static void* ldac_encoder_lib_handle = NULL;
 
 static const char* LDAC_GET_HANDLE_NAME = "ldacBT_get_handle";
@@ -194,6 +194,15 @@ static void* load_func(const char* func_name) {
   return func_ptr;
 }
 
+static const std::vector<std::string> LDAC_ENCODER_LIB_PATHS = {
+    LDAC_ENCODER_LIB_NAME,
+#ifdef __LP64__
+    "/system/lib64/" + LDAC_ENCODER_LIB_NAME,
+#else
+    "/system/lib/" + LDAC_ENCODER_LIB_NAME,
+#endif
+};
+
 bool A2DP_VendorLoadEncoderLdac(void) {
   if (ldac_encoder_lib_handle != NULL) return true;  // Already loaded
 
@@ -201,10 +210,9 @@ bool A2DP_VendorLoadEncoderLdac(void) {
   memset(&a2dp_ldac_encoder_cb, 0, sizeof(a2dp_ldac_encoder_cb));
 
   // Open the encoder library
-  ldac_encoder_lib_handle = dlopen(LDAC_ENCODER_LIB_NAME, RTLD_NOW);
-  if (ldac_encoder_lib_handle == NULL) {
-    LOG_ERROR("%s: cannot open LDAC encoder library %s: %s", __func__,
-              LDAC_ENCODER_LIB_NAME, dlerror());
+  ldac_encoder_lib_handle =
+      A2DP_VendorCodecLoadExternalLib(LDAC_ENCODER_LIB_PATHS, "LDAC encoder");
+  if (!ldac_encoder_lib_handle) {
     return false;
   }
 

@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "a2dp_vendor.h"
 #include "osi/include/log.h"
 
 //
@@ -32,7 +33,7 @@
 //
 // The LDAC ABR shared library, and the functions to use
 //
-static const char* LDAC_ABR_LIB_NAME = "libldacBT_abr.so";
+static const std::string LDAC_ABR_LIB_NAME = "libldacBT_abr.so";
 static void* ldac_abr_lib_handle = NULL;
 
 static const char* LDAC_ABR_GET_HANDLE_NAME = "ldac_ABR_get_handle";
@@ -62,15 +63,22 @@ static tLDAC_ABR_INIT ldac_abr_init_func;
 static tLDAC_ABR_SET_THRESHOLDS ldac_abr_set_thresholds_func;
 static tLDAC_ABR_PROC ldac_abr_proc_func;
 
+static const std::vector<std::string> LDAC_ABR_LIB_PATHS = {
+    LDAC_ABR_LIB_NAME,
+#ifdef __LP64__
+    "/system/lib64/" + LDAC_ABR_LIB_NAME,
+#else
+    "/system/lib/" + LDAC_ABR_LIB_NAME,
+#endif
+};
+
 bool A2DP_VendorLoadLdacAbr(void) {
   if (ldac_abr_lib_handle != NULL) return true;  // Already loaded
 
   // Open the LDAC ABR library
-  ldac_abr_lib_handle = dlopen(LDAC_ABR_LIB_NAME, RTLD_NOW);
-  if (ldac_abr_lib_handle == NULL) {
-    LOG_ERROR("%s: cannot open LDAC ABR library %s: %s", __func__,
-              LDAC_ABR_LIB_NAME, dlerror());
-    A2DP_VendorUnloadLdacAbr();
+  ldac_abr_lib_handle =
+      A2DP_VendorCodecLoadExternalLib(LDAC_ABR_LIB_PATHS, "LDAC ABR");
+  if (!ldac_abr_lib_handle) {
     return false;
   }
 
