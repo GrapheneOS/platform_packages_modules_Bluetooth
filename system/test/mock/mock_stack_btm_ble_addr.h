@@ -118,11 +118,13 @@ extern struct btm_ble_resolve_random_addr btm_ble_resolve_random_addr;
 // Params: RawAddress* bd_addr, uint8_t* p_addr_type, bool refresh
 // Returns: bool
 struct btm_identity_addr_to_random_pseudo {
-  std::function<bool(RawAddress* bd_addr, uint8_t* p_addr_type, bool refresh)>
-      body{[](RawAddress* bd_addr, uint8_t* p_addr_type, bool refresh) {
+  std::function<bool(RawAddress* bd_addr, tBLE_ADDR_TYPE* p_addr_type,
+                     bool refresh)>
+      body{[](RawAddress* bd_addr, tBLE_ADDR_TYPE* p_addr_type, bool refresh) {
         return false;
       }};
-  bool operator()(RawAddress* bd_addr, uint8_t* p_addr_type, bool refresh) {
+  bool operator()(RawAddress* bd_addr, tBLE_ADDR_TYPE* p_addr_type,
+                  bool refresh) {
     return body(bd_addr, p_addr_type, refresh);
   };
 };

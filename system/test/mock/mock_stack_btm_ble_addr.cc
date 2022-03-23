@@ -35,6 +35,7 @@ extern std::map<std::string, int> mock_function_count_map;
 
 // Mock include file to share data between tests and mock
 #include "test/mock/mock_stack_btm_ble_addr.h"
+#include "types/ble_address_with_type.h"
 #include "types/raw_address.h"
 
 // Mocked compile conditionals, if any
@@ -100,7 +101,8 @@ tBTM_SEC_DEV_REC* btm_ble_resolve_random_addr(const RawAddress& random_bda) {
       random_bda);
 }
 bool btm_identity_addr_to_random_pseudo(RawAddress* bd_addr,
-                                        uint8_t* p_addr_type, bool refresh) {
+                                        tBLE_ADDR_TYPE* p_addr_type,
+                                        bool refresh) {
   mock_function_count_map[__func__]++;
   return test::mock::stack_btm_ble_addr::btm_identity_addr_to_random_pseudo(
       bd_addr, p_addr_type, refresh);
@@ -113,7 +115,7 @@ bool btm_identity_addr_to_random_pseudo_from_address_with_type(
           address_with_type, refresh);
 }
 bool btm_random_pseudo_to_identity_addr(RawAddress* random_pseudo,
-                                        uint8_t* p_identity_addr_type) {
+                                        tBLE_ADDR_TYPE* p_identity_addr_type) {
   mock_function_count_map[__func__]++;
   return test::mock::stack_btm_ble_addr::btm_random_pseudo_to_identity_addr(
       random_pseudo, p_identity_addr_type);
