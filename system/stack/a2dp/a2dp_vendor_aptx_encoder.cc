@@ -38,7 +38,8 @@
 //
 // The aptX encoder shared library, and the functions to use
 //
-static const char* APTX_ENCODER_LIB_NAME = "libaptX_encoder.so";
+static const std::string APTX_ENCODER_LIB_NAME = "libaptX_encoder.so";
+
 static void* aptx_encoder_lib_handle = NULL;
 
 static const char* APTX_ENCODER_INIT_NAME = "aptxbtenc_init";
@@ -111,14 +112,22 @@ static size_t aptx_encode_16bit(tAPTX_FRAMING_PARAMS* framing_params,
                                 size_t* data_out_index, uint16_t* data16_in,
                                 uint8_t* data_out);
 
+static const std::vector<std::string> APTX_ENCODER_LIB_PATHS = {
+    APTX_ENCODER_LIB_NAME,
+#ifdef __LP64__
+    "/system_ext/lib64/" + APTX_ENCODER_LIB_NAME,
+#else
+    "/system_ext/lib/" + APTX_ENCODER_LIB_NAME,
+#endif
+};
+
 bool A2DP_VendorLoadEncoderAptx(void) {
   if (aptx_encoder_lib_handle != NULL) return true;  // Already loaded
 
   // Open the encoder library
-  aptx_encoder_lib_handle = dlopen(APTX_ENCODER_LIB_NAME, RTLD_NOW);
-  if (aptx_encoder_lib_handle == NULL) {
-    LOG_ERROR("%s: cannot open aptX encoder library %s: %s", __func__,
-              APTX_ENCODER_LIB_NAME, dlerror());
+  aptx_encoder_lib_handle =
+      A2DP_VendorCodecLoadExternalLib(APTX_ENCODER_LIB_PATHS, "aptX encoder");
+  if (!aptx_encoder_lib_handle) {
     return false;
   }
 
