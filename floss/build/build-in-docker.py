@@ -25,15 +25,16 @@ class FlossDockerRunner:
         ['/root/src/build.py', '--target', 'test'],
     ]
 
-    def __init__(self, workdir, rootdir, image_tag, volume_tag, container_name):
+    def __init__(self, workdir, rootdir, image_tag, volume_name, container_name, staging_dir):
         """ Constructor.
 
         Args:
             workdir: Current working directory (should be the script path).
             rootdir: Root directory for Bluetooth.
             image_tag: Tag for docker image used for building.
-            volume_tag: Volume name used for storing artifacts.
+            volume_name: Volume name used for storing artifacts.
             container_name: Name for running container instance.
+            staging_dir: Directory to mount for artifacts instead of using volume.
         """
         self.workdir = workdir
         self.rootdir = rootdir
@@ -43,8 +44,10 @@ class FlossDockerRunner:
         # Name of running container
         self.container_name = container_name
 
-        # Name of volume where we'll send build output
-        self.volume_name = volume_tag
+        # Name of volume to write output.
+        self.volume_name = volume_name
+        # Staging dir where we send output instead of the volume.
+        self.staging_dir = staging_dir
 
     def run_command(self, target, args, cwd=None, env=None, ignore_rc=False):
         """ Run command and stream the output.
@@ -83,8 +86,12 @@ class FlossDockerRunner:
         self.stop_container(ignore_error=True)
 
         # Create volume and create mount string
-        self._create_volume_if_needed()
-        mount_output_volume = 'type=volume,src={},dst=/root/.floss'.format(self.volume_name)
+        if self.staging_dir:
+            mount_output_volume = 'type=bind,src={},dst=/root/.floss'.format(self.staging_dir)
+        else:
+            # If not using staging dir, use the volume instead
+            self._create_volume_if_needed()
+            mount_output_volume = 'type=volume,src={},dst=/root/.floss'.format(self.volume_name)
 
         # Mount the source directory
         mount_src_dir = 'type=bind,src={},dst=/root/src'.format(self.rootdir)
@@ -145,7 +152,14 @@ if __name__ == "__main__":
         help='Only start the container. Prints the commands it would have ran.')
     parser.add_argument('--only-stop', action='store_true', default=False, help='Only stop the container and exit.')
     parser.add_argument('--image-tag', default='floss:latest', help='Docker image to use to build.')
-    parser.add_argument('--volume-tag', default='floss-out', help='Name of volume to use.')
+    parser.add_argument(
+        '--volume-tag',
+        default='floss-out',
+        help='Name of volume to use. This is where build artifacts will be stored by default.')
+    parser.add_argument(
+        '--staging-dir',
+        default=None,
+        help='Staging directory to use instead of volume. Build artifacts will be written here.')
     parser.add_argument('--container-name', default='floss-docker-runner', help='What to name the started container')
     args = parser.parse_args()
 
@@ -154,7 +168,10 @@ if __name__ == "__main__":
     workdir = os.path.dirname(os.path.abspath(sys.argv[0]))
     rootdir = os.path.abspath(os.path.join(workdir, '../..'))
 
-    fdr = FlossDockerRunner(workdir, rootdir, args.image_tag, args.volume_tag, args.container_name)
+    # Determine staging directory absolute path
+    staging = os.path.abspath(args.staging_dir) if args.staging_dir else None
+
+    fdr = FlossDockerRunner(workdir, rootdir, args.image_tag, args.volume_tag, args.container_name, staging)
 
     # Make sure docker is runnable before continuing
     if fdr.check_docker_runnable():
