@@ -52,12 +52,14 @@ import android.bluetooth.BluetoothCodecConfig;
 import android.bluetooth.BluetoothCodecStatus;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
+import android.bluetooth.BluetoothProtoEnums;
 import android.content.Intent;
 import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 
 import com.android.bluetooth.Utils;
+import com.android.bluetooth.btservice.MetricsLogger;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.internal.util.State;
@@ -298,6 +300,8 @@ final class A2dpStateMachine extends StateMachine {
                     event.device = mDevice;
                     event.valueInt = A2dpStackEvent.CONNECTION_STATE_DISCONNECTED;
                     sendMessage(STACK_EVENT, event);
+                    MetricsLogger.getInstance().count(
+                            BluetoothProtoEnums.A2DP_CONNECTION_TIMEOUT, 1);
                     break;
                 }
                 case DISCONNECT:
