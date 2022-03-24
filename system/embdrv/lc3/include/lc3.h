@@ -145,6 +145,19 @@ extern "C" {
 
 
 /**
+ * PCM Sample Format
+ *   S16  Signed 16 bits, in 16 bits words (int16_t)
+ *   S24  Signed 24 bits, using low three bytes of 32 bits words (int32_t).
+ *        The high byte sign extends the sample value (bits 31..24 set to b23).
+ */
+
+enum lc3_pcm_format {
+    LC3_PCM_FORMAT_S16,
+    LC3_PCM_FORMAT_S24,
+};
+
+
+/**
  * Handle
  */
 
@@ -231,13 +244,14 @@ lc3_encoder_t lc3_setup_encoder(
 /**
  * Encode a frame
  * encoder         Handle of the encoder
- * pcm, pitch      Input PCM samples, and count between two consecutives
+ * fmt             PCM input format
+ * pcm, stride     Input PCM samples, and count between two consecutives
  * nbytes          Target size, in bytes, of the frame (20 to 400)
  * out             Output buffer of `nbytes` size
  * return          0: On success  -1: Wrong parameters
  */
-int lc3_encode(lc3_encoder_t encoder,
-    const int16_t *pcm, int pitch, int nbytes, void *out);
+int lc3_encode(lc3_encoder_t encoder, enum lc3_pcm_format fmt,
+    const void *pcm, int stride, int nbytes, void *out);
 
 /**
  * Return size needed for an decoder
@@ -271,11 +285,12 @@ lc3_decoder_t lc3_setup_decoder(
  * Decode a frame
  * decoder         Handle of the decoder
  * in, nbytes      Input bitstream, and size in bytes, NULL performs PLC
- * pcm, pitch      Output PCM samples, and count between two consecutives
+ * fmt             PCM output format
+ * pcm, stride     Output PCM samples, and count between two consecutives
  * return          0: On success  1: PLC operated  -1: Wrong parameters
  */
-int lc3_decode(lc3_decoder_t decoder,
-    const void *in, int nbytes, int16_t *pcm, int pitch);
+int lc3_decode(lc3_decoder_t decoder, const void *in, int nbytes,
+    enum lc3_pcm_format fmt, void *pcm, int stride);
 
 
 #ifdef __cplusplus

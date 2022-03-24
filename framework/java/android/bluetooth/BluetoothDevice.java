@@ -507,7 +507,9 @@ public final class BluetoothDevice implements Parcelable, Attributable {
             METADATA_MAIN_LOW_BATTERY_THRESHOLD,
             METADATA_UNTETHERED_LEFT_LOW_BATTERY_THRESHOLD,
             METADATA_UNTETHERED_RIGHT_LOW_BATTERY_THRESHOLD,
-            METADATA_UNTETHERED_CASE_LOW_BATTERY_THRESHOLD})
+            METADATA_UNTETHERED_CASE_LOW_BATTERY_THRESHOLD,
+            METADATA_SPATIAL_AUDIO,
+            METADATA_FAST_PAIR_CUSTOMIZED_FIELDS})
     @Retention(RetentionPolicy.SOURCE)
     public @interface MetadataKey{}
 
@@ -716,6 +718,21 @@ public final class BluetoothDevice implements Parcelable, Attributable {
      */
     @SystemApi
     public static final int METADATA_UNTETHERED_CASE_LOW_BATTERY_THRESHOLD = 23;
+
+
+    /**
+     * The metadata of the audio spatial data.
+     * Data type should be {@link Byte} array.
+     * @hide
+     */
+    public static final int METADATA_SPATIAL_AUDIO = 24;
+
+    /**
+     * The metadata of the Fast Pair for any custmized feature.
+     * Data type should be {@link Byte} array.
+     * @hide
+     */
+    public static final int METADATA_FAST_PAIR_CUSTOMIZED_FIELDS = 25;
 
     /**
      * Device type which is used in METADATA_DEVICE_TYPE
@@ -3222,7 +3239,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
      * @hide
      */
     public static @MetadataKey int getMaxMetadataKey() {
-        return METADATA_UNTETHERED_CASE_LOW_BATTERY_THRESHOLD;
+        return METADATA_FAST_PAIR_CUSTOMIZED_FIELDS;
     }
 
     /**
