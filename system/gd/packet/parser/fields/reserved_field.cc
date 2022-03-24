@@ -72,7 +72,6 @@ std::string ReservedField::GetRustDataType() const {
   return util::GetRustTypeForSize(size_);
 }
 
-void ReservedField::GenRustGetter(std::ostream&, Size, Size) const {
-}
+void ReservedField::GenRustGetter(std::ostream&, Size, Size, std::string) const {}
 
 void ReservedField::GenRustWriter(std::ostream&, Size, Size) const {}

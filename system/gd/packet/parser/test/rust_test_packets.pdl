@@ -1,5 +1,45 @@
 little_endian_packets
 
+custom_field Boolean: 8 "Boolean"
+enum Enum : 8 {
+  // Keep 0x0 as invalid value
+  ONE = 1,
+  TWO = 2,
+}
+
+struct Struct {
+  v: Enum,
+  u: 8,
+}
+
+packet TestEnum {
+  v: Enum,
+}
+
+packet TestCustomField {
+  v: Boolean,
+}
+
+packet TestArraySize {
+  _size_(array) : 8,
+  array : Struct[],
+}
+
+packet TestArrayCount {
+  _count_(array) : 8,
+  array : Struct[],
+}
+
+packet TestPayloadSize {
+  _size_(_payload_) : 8,
+  _payload_,
+}
+
+packet TestBodySize {
+  _size_(_body_) : 8,
+  _body_,
+}
+
 // Test Packets #1
 enum OpCode: 8 {
     ADD_ERR = 0,
@@ -122,5 +162,3 @@ test ChildThree {
 test GrandChildThreeFive {
   "\x01\x02\x03\x01",
 }
-
-
