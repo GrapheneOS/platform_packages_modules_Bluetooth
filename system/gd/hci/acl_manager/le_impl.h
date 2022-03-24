@@ -201,6 +201,16 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
       AddressWithType empty(Address::kEmpty, AddressType::RANDOM_DEVICE_ADDRESS);
       return empty;
     }
+
+    bool alreadyConnected(AddressWithType address_with_type) {
+      for (auto it = le_acl_connections_.begin(); it != le_acl_connections_.end(); it++) {
+        if (it->second.remote_address_ == address_with_type) {
+          return true;
+        }
+      }
+      return false;
+    }
+
   } connections;
 
  public:
@@ -370,10 +380,6 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
   static constexpr bool kRemoveConnectionAfterwards = true;
   void on_le_disconnect(uint16_t handle, ErrorCode reason) {
     AddressWithType remote_address = connections.getAddressWithType(handle);
-    if (background_connections_.count(remote_address) == 1) {
-      LOG_INFO("re-add device to connect list");
-      add_device_to_connect_list(remote_address);
-    }
     bool event_also_routes_to_other_receivers = connections.crash_on_unknown_handle_;
     connections.crash_on_unknown_handle_ = false;
     connections.execute(
@@ -384,6 +390,12 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
         },
         kRemoveConnectionAfterwards);
     connections.crash_on_unknown_handle_ = event_also_routes_to_other_receivers;
+
+    if (background_connections_.count(remote_address) == 1) {
+      LOG_INFO("re-add device to connect list");
+      add_device_to_connect_list(remote_address);
+    }
+
     if (!connect_list.empty()) {
       LOG_INFO("connect_list is not empty, send a new connection request");
       AddressWithType empty(Address::kEmpty, AddressType::RANDOM_DEVICE_ADDRESS);
@@ -477,6 +489,11 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
   }
 
   void add_device_to_connect_list(AddressWithType address_with_type) {
+    if (connections.alreadyConnected(address_with_type)) {
+      LOG_INFO("Device already connected, return");
+      return;
+    }
+
     connect_list.insert(address_with_type);
     register_with_address_manager();
     le_address_manager_->AddDeviceToConnectList(
@@ -525,6 +542,11 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
   void create_le_connection(AddressWithType address_with_type, bool add_to_connect_list, bool is_direct) {
     if (le_client_callbacks_ == nullptr) {
       LOG_ERROR("No callbacks to call");
+      return;
+    }
+
+    if (connections.alreadyConnected(address_with_type)) {
+      LOG_INFO("Device already connected, return");
       return;
     }
 

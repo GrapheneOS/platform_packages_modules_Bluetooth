@@ -148,7 +148,7 @@ final class BondStateMachine extends StateMachine {
                     int newState = msg.arg1;
                 /* if incoming pairing, transition to pending state */
                     if (newState == BluetoothDevice.BOND_BONDING) {
-                        sendIntent(dev, newState, 0);
+                        deferMessage(msg);
                         transitionTo(mPendingCommandState);
                     } else if (newState == BluetoothDevice.BOND_NONE) {
                     /* if the link key was deleted by the stack */
