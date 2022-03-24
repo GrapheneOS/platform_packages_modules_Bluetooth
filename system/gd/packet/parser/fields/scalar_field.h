@@ -58,7 +58,7 @@ class ScalarField : public PacketField {
   virtual int GetRustBitOffset(std::ostream& s, Size start_offset,
       Size end_offset, Size size) const override;
 
-  void GenRustGetter(std::ostream& s, Size start_offset, Size end_offset) const override;
+  void GenRustGetter(std::ostream& s, Size start_offset, Size end_offset, std::string) const override;
 
   void GenRustWriter(std::ostream& s, Size start_offset, Size end_offset) const override;
 

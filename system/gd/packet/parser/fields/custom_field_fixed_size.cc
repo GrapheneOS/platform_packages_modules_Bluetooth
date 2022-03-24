@@ -77,7 +77,7 @@ std::string CustomFieldFixedSize::GetRustParseDataType() const {
   return "[u8; " + std::to_string(GetSize().bytes()) + "]";
 }
 
-void CustomFieldFixedSize::GenRustGetter(std::ostream& s, Size start_offset, Size end_offset) const {
+void CustomFieldFixedSize::GenRustGetter(std::ostream& s, Size start_offset, Size end_offset, std::string) const {
   Size size = GetSize();
   int num_leading_bits = GetRustBitOffset(s, start_offset, end_offset, GetSize());
   if (num_leading_bits != 0) {
@@ -88,7 +88,8 @@ void CustomFieldFixedSize::GenRustGetter(std::ostream& s, Size start_offset, Siz
   }
 
   s << "let " << GetName() << " = bytes[" << start_offset.bytes() << "..";
-  s << start_offset.bytes() + size.bytes() << "].try_into().unwrap();";
+  s << start_offset.bytes() + size.bytes() << "].try_into()";
+  s << ".map_err(|_| Error::InvalidPacketError)?;";
 }
 
 void CustomFieldFixedSize::GenRustWriter(std::ostream& s, Size start_offset, Size end_offset) const {

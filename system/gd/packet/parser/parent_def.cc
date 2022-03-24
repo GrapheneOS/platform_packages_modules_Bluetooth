@@ -618,7 +618,7 @@ void ParentDef::GenRustConformanceCheck(std::ostream& s) const {
     auto end_offset = GetOffsetForField(field->GetName(), true);
 
     auto f = (FixedScalarField*)field;
-    f->GenRustGetter(s, start_offset, end_offset);
+    f->GenRustGetter(s, start_offset, end_offset, name_);
     s << "if " << f->GetName() << " != ";
     f->GenValue(s);
     s << " { return false; } ";
