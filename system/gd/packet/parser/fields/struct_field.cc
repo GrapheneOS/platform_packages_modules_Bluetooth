@@ -96,10 +96,10 @@ void StructField::GenBoundsCheck(std::ostream&, Size, Size, std::string) const {
   // implicitly checked by the struct parser
 }
 
-void StructField::GenRustGetter(std::ostream& s, Size start_offset, Size) const {
+void StructField::GenRustGetter(std::ostream& s, Size start_offset, Size, std::string) const {
   s << "let " << GetName() << " = ";
   s << GetRustDataType() << "::parse(&bytes[" << start_offset.bytes() << "..";
-  s << start_offset.bytes() + GetSize().bytes() << "]).unwrap();";
+  s << start_offset.bytes() + GetSize().bytes() << "])?;";
 }
 
 void StructField::GenRustWriter(std::ostream& s, Size start_offset, Size) const {
