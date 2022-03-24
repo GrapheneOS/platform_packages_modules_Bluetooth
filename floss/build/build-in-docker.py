@@ -25,13 +25,15 @@ class FlossDockerRunner:
         ['/root/src/build.py', '--target', 'test'],
     ]
 
-    def __init__(self, workdir, rootdir, image_tag, volume_tag):
+    def __init__(self, workdir, rootdir, image_tag, volume_tag, container_name):
         """ Constructor.
 
         Args:
             workdir: Current working directory (should be the script path).
             rootdir: Root directory for Bluetooth.
-            build_tag: Tag for docker image used for building.
+            image_tag: Tag for docker image used for building.
+            volume_tag: Volume name used for storing artifacts.
+            container_name: Name for running container instance.
         """
         self.workdir = workdir
         self.rootdir = rootdir
@@ -39,7 +41,7 @@ class FlossDockerRunner:
         self.env = os.environ.copy()
 
         # Name of running container
-        self.container_name = 'floss-docker-runner'
+        self.container_name = container_name
 
         # Name of volume where we'll send build output
         self.volume_name = volume_tag
@@ -104,12 +106,13 @@ class FlossDockerRunner:
         # Start container before building
         self.start_container()
 
-        # Run all commands
-        for i, cmd in enumerate(self.BUILD_COMMANDS):
-            self.run_command('docker exec #{}'.format(i), ['docker', 'exec', '-it', self.container_name] + cmd)
-
-        # Stop container before exiting
-        self.stop_container()
+        try:
+            # Run all commands
+            for i, cmd in enumerate(self.BUILD_COMMANDS):
+                self.run_command('docker exec #{}'.format(i), ['docker', 'exec', '-it', self.container_name] + cmd)
+        finally:
+            # Always stop container before exiting
+            self.stop_container()
 
     def print_do_build(self):
         """Prints the commands for building."""
@@ -143,6 +146,7 @@ if __name__ == "__main__":
     parser.add_argument('--only-stop', action='store_true', default=False, help='Only stop the container and exit.')
     parser.add_argument('--image-tag', default='floss:latest', help='Docker image to use to build.')
     parser.add_argument('--volume-tag', default='floss-out', help='Name of volume to use.')
+    parser.add_argument('--container-name', default='floss-docker-runner', help='What to name the started container')
     args = parser.parse_args()
 
     # cwd should be set to same directory as this script (that's where Dockerfile
@@ -150,7 +154,7 @@ if __name__ == "__main__":
     workdir = os.path.dirname(os.path.abspath(sys.argv[0]))
     rootdir = os.path.abspath(os.path.join(workdir, '../..'))
 
-    fdr = FlossDockerRunner(workdir, rootdir, args.image_tag, args.volume_tag)
+    fdr = FlossDockerRunner(workdir, rootdir, args.image_tag, args.volume_tag, args.container_name)
 
     # Make sure docker is runnable before continuing
     if fdr.check_docker_runnable():
