@@ -55,6 +55,42 @@ static struct {
   jmethodID getCodecType;
 } android_bluetooth_BluetoothLeAudioCodecConfig;
 
+static struct {
+  jclass clazz;
+  jmethodID constructor;
+} android_bluetooth_BluetoothLeAudioCodecConfigMetadata;
+
+static struct {
+  jclass clazz;
+  jmethodID constructor;
+  jmethodID add;
+} java_util_ArrayList;
+
+static struct {
+  jclass clazz;
+  jmethodID constructor;
+} android_bluetooth_BluetoothLeBroadcastChannel;
+
+static struct {
+  jclass clazz;
+  jmethodID constructor;
+} android_bluetooth_BluetoothLeBroadcastSubgroup;
+
+static struct {
+  jclass clazz;
+  jmethodID constructor;
+} android_bluetooth_BluetoothLeAudioContentMetadata;
+
+static struct {
+  jclass clazz;
+  jmethodID constructor;
+} android_bluetooth_BluetoothLeBroadcastMetadata;
+
+static struct {
+  jclass clazz;
+  jmethodID constructor;
+} android_bluetooth_BluetoothDevice;
+
 static LeAudioClientInterface* sLeAudioClientInterface = nullptr;
 static std::shared_timed_mutex interface_mutex;
 
@@ -498,12 +534,304 @@ static JNINativeMethod sMethods[] = {
 static jmethodID method_onBroadcastCreated;
 static jmethodID method_onBroadcastDestroyed;
 static jmethodID method_onBroadcastStateChanged;
+static jmethodID method_onBroadcastMetadataChanged;
 
 static LeAudioBroadcasterInterface* sLeAudioBroadcasterInterface = nullptr;
 static std::shared_timed_mutex sBroadcasterInterfaceMutex;
 
 static jobject sBroadcasterCallbacksObj = nullptr;
 static std::shared_timed_mutex sBroadcasterCallbacksMutex;
+
+#define VEC_UINT8_TO_UINT32(vec)                                          \
+  ((vec.data()[3] << 24) + (vec.data()[2] << 16) + (vec.data()[1] << 8) + \
+   vec.data()[0])
+
+size_t RawPacketSize(const std::map<uint8_t, std::vector<uint8_t>>& values) {
+  size_t bytes = 0;
+  for (auto const& value : values) {
+    bytes += (/* ltv_len + ltv_type */ 2 + value.second.size());
+  }
+  return bytes;
+}
+
+jbyteArray prepareRawLtvArray(
+    JNIEnv* env, const std::map<uint8_t, std::vector<uint8_t>>& metadata) {
+  auto raw_meta_size = RawPacketSize(metadata);
+
+  jbyteArray raw_metadata = env->NewByteArray(raw_meta_size);
+  if (!raw_metadata) {
+    LOG(ERROR) << "Failed to create new jbyteArray for raw LTV";
+    return nullptr;
+  }
+
+  jsize offset = 0;
+  for (auto const& kv_pair : metadata) {
+    // Length
+    const jbyte ltv_sz = kv_pair.second.size() + 1;
+    env->SetByteArrayRegion(raw_metadata, offset, 1, &ltv_sz);
+    offset += 1;
+    // Type
+    env->SetByteArrayRegion(raw_metadata, offset, 1,
+                            (const jbyte*)&kv_pair.first);
+    offset += 1;
+    // Value
+    env->SetByteArrayRegion(raw_metadata, offset, 1,
+                            (const jbyte*)kv_pair.second.data());
+    offset += kv_pair.second.size();
+  }
+
+  return raw_metadata;
+}
+
+static jlong getAudioLocationOrDefault(
+    const std::map<uint8_t, std::vector<uint8_t>>& metadata,
+    jlong default_location) {
+  if (metadata.count(
+          bluetooth::le_audio::kLeAudioCodecLC3TypeAudioChannelAllocation) == 0)
+    return default_location;
+
+  auto& vec = metadata.at(
+      bluetooth::le_audio::kLeAudioCodecLC3TypeAudioChannelAllocation);
+  return VEC_UINT8_TO_UINT32(vec);
+}
+
+jobject prepareLeAudioCodecConfigMetadataObject(
+    JNIEnv* env, const std::map<uint8_t, std::vector<uint8_t>>& metadata) {
+  jlong audio_location = getAudioLocationOrDefault(metadata, -1);
+  ScopedLocalRef<jbyteArray> raw_metadata(env,
+                                          prepareRawLtvArray(env, metadata));
+  if (!raw_metadata.get()) {
+    LOG(ERROR) << "Failed to create raw metadata jbyteArray";
+    return nullptr;
+  }
+
+  jobject obj = env->NewObject(
+      android_bluetooth_BluetoothLeAudioCodecConfigMetadata.clazz,
+      android_bluetooth_BluetoothLeAudioCodecConfigMetadata.constructor,
+      audio_location, raw_metadata.get());
+
+  return obj;
+}
+
+jobject prepareLeBroadcastChannelObject(
+    JNIEnv* env,
+    const bluetooth::le_audio::BasicAudioAnnouncementBisConfig& bis_config) {
+  ScopedLocalRef<jobject> meta_object(
+      env, prepareLeAudioCodecConfigMetadataObject(
+               env, bis_config.codec_specific_params));
+  if (!meta_object.get()) {
+    LOG(ERROR) << "Failed to create new metadata object for bis config";
+    return nullptr;
+  }
+
+  jobject obj =
+      env->NewObject(android_bluetooth_BluetoothLeBroadcastChannel.clazz,
+                     android_bluetooth_BluetoothLeBroadcastChannel.constructor,
+                     false, bis_config.bis_index, meta_object.get());
+
+  return obj;
+}
+
+jobject prepareLeAudioContentMetadataObject(
+    JNIEnv* env, const std::map<uint8_t, std::vector<uint8_t>>& metadata) {
+  jstring program_info_str = nullptr;
+  if (metadata.count(bluetooth::le_audio::kLeAudioMetadataTypeProgramInfo)) {
+    program_info_str = env->NewStringUTF(
+        (const char*)(metadata
+                          .at(bluetooth::le_audio::
+                                  kLeAudioMetadataTypeProgramInfo)
+                          .data()));
+    if (!program_info_str) {
+      LOG(ERROR) << "Failed to create new preset name String for preset name";
+      return nullptr;
+    }
+  }
+
+  jstring language_str = nullptr;
+  if (metadata.count(bluetooth::le_audio::kLeAudioMetadataTypeLanguage)) {
+    language_str = env->NewStringUTF(
+        (const char*)(metadata
+                          .at(bluetooth::le_audio::kLeAudioMetadataTypeLanguage)
+                          .data()));
+    if (!language_str) {
+      LOG(ERROR) << "Failed to create new preset name String for language";
+      return nullptr;
+    }
+  }
+
+  // This can be nullptr
+  ScopedLocalRef<jbyteArray> raw_metadata(env,
+                                          prepareRawLtvArray(env, metadata));
+  if (!raw_metadata.get()) {
+    LOG(ERROR) << "Failed to create raw_metadata jbyteArray";
+    return nullptr;
+  }
+
+  jobject obj = env->NewObject(
+      android_bluetooth_BluetoothLeAudioContentMetadata.clazz,
+      android_bluetooth_BluetoothLeAudioContentMetadata.constructor,
+      program_info_str, language_str, raw_metadata.get());
+
+  if (program_info_str) {
+    env->DeleteLocalRef(program_info_str);
+  }
+
+  if (language_str) {
+    env->DeleteLocalRef(language_str);
+  }
+
+  return obj;
+}
+
+jobject prepareLeBroadcastChannelListObject(
+    JNIEnv* env,
+    const std::vector<bluetooth::le_audio::BasicAudioAnnouncementBisConfig>&
+        bis_configs) {
+  jobject array = env->NewObject(java_util_ArrayList.clazz,
+                                 java_util_ArrayList.constructor);
+  if (!array) {
+    LOG(ERROR) << "Failed to create array for subgroups";
+    return nullptr;
+  }
+
+  for (const auto& el : bis_configs) {
+    ScopedLocalRef<jobject> channel_obj(
+        env, prepareLeBroadcastChannelObject(env, el));
+    if (!channel_obj.get()) {
+      LOG(ERROR) << "Failed to create new channel object";
+      return nullptr;
+    }
+
+    env->CallBooleanMethod(array, java_util_ArrayList.add, channel_obj.get());
+  }
+  return array;
+}
+
+jobject prepareLeBroadcastSubgroupObject(
+    JNIEnv* env,
+    const bluetooth::le_audio::BasicAudioAnnouncementSubgroup& subgroup) {
+  // Serialize codec ID
+  jlong jlong_codec_id =
+      subgroup.codec_config.codec_id |
+      ((jlong)subgroup.codec_config.vendor_company_id << 16) |
+      ((jlong)subgroup.codec_config.vendor_codec_id << 32);
+
+  ScopedLocalRef<jobject> codec_config_meta_obj(
+      env, prepareLeAudioCodecConfigMetadataObject(
+               env, subgroup.codec_config.codec_specific_params));
+  if (!codec_config_meta_obj.get()) {
+    LOG(ERROR) << "Failed to create new codec config metadata";
+    return nullptr;
+  }
+
+  ScopedLocalRef<jobject> content_meta_obj(
+      env, prepareLeAudioContentMetadataObject(env, subgroup.metadata));
+  if (!content_meta_obj.get()) {
+    LOG(ERROR) << "Failed to create new codec config metadata";
+    return nullptr;
+  }
+
+  ScopedLocalRef<jobject> channel_list_obj(
+      env, prepareLeBroadcastChannelListObject(env, subgroup.bis_configs));
+  if (!channel_list_obj.get()) {
+    LOG(ERROR) << "Failed to create new codec config metadata";
+    return nullptr;
+  }
+
+  // Create the subgroup
+  return env->NewObject(
+      android_bluetooth_BluetoothLeBroadcastSubgroup.clazz,
+      android_bluetooth_BluetoothLeBroadcastSubgroup.constructor,
+      jlong_codec_id, codec_config_meta_obj.get(), content_meta_obj.get(),
+      channel_list_obj.get());
+}
+
+jobject prepareLeBroadcastSubgroupListObject(
+    JNIEnv* env,
+    const std::vector<bluetooth::le_audio::BasicAudioAnnouncementSubgroup>&
+        subgroup_configs) {
+  jobject array = env->NewObject(java_util_ArrayList.clazz,
+                                 java_util_ArrayList.constructor);
+  if (!array) {
+    LOG(ERROR) << "Failed to create array for subgroups";
+    return nullptr;
+  }
+
+  for (const auto& el : subgroup_configs) {
+    ScopedLocalRef<jobject> subgroup_obj(
+        env, prepareLeBroadcastSubgroupObject(env, el));
+    if (!subgroup_obj.get()) {
+      LOG(ERROR) << "Failed to create new subgroup object";
+      return nullptr;
+    }
+
+    env->CallBooleanMethod(array, java_util_ArrayList.add, subgroup_obj.get());
+  }
+  return array;
+}
+
+jobject prepareBluetoothDeviceObject(JNIEnv* env, const RawAddress& addr,
+                                     int addr_type) {
+  // The address string has to be uppercase or the BluetoothDevice constructor
+  // will treat it as invalid.
+  auto addr_str = addr.ToString();
+  std::transform(addr_str.begin(), addr_str.end(), addr_str.begin(),
+                 [](unsigned char c) { return std::toupper(c); });
+
+  ScopedLocalRef<jstring> addr_jstr(env, env->NewStringUTF(addr_str.c_str()));
+  if (!addr_jstr.get()) {
+    LOG(ERROR) << "Failed to create new preset name String for preset name";
+    return nullptr;
+  }
+
+  return env->NewObject(android_bluetooth_BluetoothDevice.clazz,
+                        android_bluetooth_BluetoothDevice.constructor,
+                        addr_jstr.get(), (jint)addr_type);
+}
+
+jobject prepareBluetoothLeBroadcastMetadataObject(
+    JNIEnv* env,
+    const bluetooth::le_audio::BroadcastMetadata& broadcast_metadata) {
+  ScopedLocalRef<jobject> device_obj(
+      env, prepareBluetoothDeviceObject(env, broadcast_metadata.addr,
+                                        broadcast_metadata.addr_type));
+  if (!device_obj.get()) {
+    LOG(ERROR) << "Failed to create new BluetoothDevice";
+    return nullptr;
+  }
+
+  ScopedLocalRef<jobject> subgroup_list_obj(
+      env,
+      prepareLeBroadcastSubgroupListObject(
+          env, broadcast_metadata.basic_audio_announcement.subgroup_configs));
+  if (!subgroup_list_obj.get()) {
+    LOG(ERROR) << "Failed to create new Subgroup array";
+    return nullptr;
+  }
+
+  ScopedLocalRef<jbyteArray> code(env, env->NewByteArray(sizeof(RawAddress)));
+  if (!code.get()) {
+    LOG(ERROR) << "Failed to create new jbyteArray for the broadcast code";
+    return nullptr;
+  }
+
+  if (broadcast_metadata.broadcast_code) {
+    env->SetByteArrayRegion(
+        code.get(), 0, sizeof(RawAddress),
+        (jbyte*)broadcast_metadata.broadcast_code.value().data());
+  }
+
+  return env->NewObject(
+      android_bluetooth_BluetoothLeBroadcastMetadata.clazz,
+      android_bluetooth_BluetoothLeBroadcastMetadata.constructor,
+      (jint)broadcast_metadata.addr_type, device_obj.get(),
+      (jint)broadcast_metadata.adv_sid, (jint)broadcast_metadata.broadcast_id,
+      (jint)broadcast_metadata.pa_interval,
+      broadcast_metadata.broadcast_code ? true : false,
+      broadcast_metadata.broadcast_code ? code.get() : nullptr,
+      (jint)broadcast_metadata.basic_audio_announcement.presentation_delay,
+      subgroup_list_obj.get());
+}
 
 class LeAudioBroadcasterCallbacksImpl : public LeAudioBroadcasterCallbacks {
  public:
@@ -546,6 +874,24 @@ class LeAudioBroadcasterCallbacksImpl : public LeAudioBroadcasterCallbacks {
         (jint)broadcast_id,
         (jint) static_cast<std::underlying_type<BroadcastState>::type>(state));
   }
+
+  void OnBroadcastMetadataChanged(uint32_t broadcast_id,
+                                  const bluetooth::le_audio::BroadcastMetadata&
+                                      broadcast_metadata) override {
+    LOG(INFO) << __func__;
+
+    std::shared_lock<std::shared_timed_mutex> lock(sBroadcasterCallbacksMutex);
+    CallbackEnv sCallbackEnv(__func__);
+
+    ScopedLocalRef<jobject> metadata_obj(
+        sCallbackEnv.get(), prepareBluetoothLeBroadcastMetadataObject(
+                                sCallbackEnv.get(), broadcast_metadata));
+
+    if (!sCallbackEnv.valid() || sBroadcasterCallbacksObj == nullptr) return;
+    sCallbackEnv->CallVoidMethod(sBroadcasterCallbacksObj,
+                                 method_onBroadcastMetadataChanged,
+                                 (jint)broadcast_id, metadata_obj.get());
+  }
 };
 
 static LeAudioBroadcasterCallbacksImpl sLeAudioBroadcasterCallbacks;
@@ -557,6 +903,52 @@ static void BroadcasterClassInitNative(JNIEnv* env, jclass clazz) {
       env->GetMethodID(clazz, "onBroadcastDestroyed", "(I)V");
   method_onBroadcastStateChanged =
       env->GetMethodID(clazz, "onBroadcastStateChanged", "(II)V");
+  method_onBroadcastMetadataChanged =
+      env->GetMethodID(clazz, "onBroadcastMetadataChanged",
+                       "(ILandroid/bluetooth/BluetoothLeBroadcastMetadata;)V");
+
+  jclass jniArrayListClass = env->FindClass("java/util/ArrayList");
+  java_util_ArrayList.constructor =
+      env->GetMethodID(jniArrayListClass, "<init>", "()V");
+  java_util_ArrayList.add =
+      env->GetMethodID(jniArrayListClass, "add", "(Ljava/lang/Object;)Z");
+
+  jclass jniBluetoothLeAudioCodecConfigMetadataClass =
+      env->FindClass("android/bluetooth/BluetoothLeAudioCodecConfigMetadata");
+  android_bluetooth_BluetoothLeAudioCodecConfigMetadata.constructor =
+      env->GetMethodID(jniBluetoothLeAudioCodecConfigMetadataClass, "<init>",
+                       "(J[B)V");
+
+  jclass jniBluetoothLeAudioContentMetadataClass =
+      env->FindClass("android/bluetooth/BluetoothLeAudioContentMetadata");
+  android_bluetooth_BluetoothLeAudioContentMetadata.constructor =
+      env->GetMethodID(jniBluetoothLeAudioContentMetadataClass, "<init>",
+                       "(Ljava/lang/String;Ljava/lang/String;[B)V");
+
+  jclass jniBluetoothLeBroadcastChannelClass =
+      env->FindClass("android/bluetooth/BluetoothLeBroadcastChannel");
+  android_bluetooth_BluetoothLeBroadcastChannel.constructor = env->GetMethodID(
+      jniBluetoothLeBroadcastChannelClass, "<init>",
+      "(ZILandroid/bluetooth/BluetoothLeAudioCodecConfigMetadata;)V");
+
+  jclass jniBluetoothLeBroadcastSubgroupClass =
+      env->FindClass("android/bluetooth/BluetoothLeBroadcastSubgroup");
+  android_bluetooth_BluetoothLeBroadcastSubgroup.constructor = env->GetMethodID(
+      jniBluetoothLeBroadcastSubgroupClass, "<init>",
+      "(JLandroid/bluetooth/BluetoothLeAudioCodecConfigMetadata;"
+      "Landroid/bluetooth/BluetoothLeAudioContentMetadata;"
+      "Ljava/util/List;)V");
+
+  jclass jniBluetoothDeviceClass =
+      env->FindClass("android/bluetooth/BluetoothDevice");
+  android_bluetooth_BluetoothDevice.constructor = env->GetMethodID(
+      jniBluetoothDeviceClass, "<init>", "(Ljava/lang/String;I)V");
+
+  jclass jniBluetoothLeBroadcastMetadataClass =
+      env->FindClass("android/bluetooth/BluetoothLeBroadcastMetadata");
+  android_bluetooth_BluetoothLeBroadcastMetadata.constructor = env->GetMethodID(
+      jniBluetoothLeBroadcastMetadataClass, "<init>",
+      "(ILandroid/bluetooth/BluetoothDevice;IIIZ[BILjava/util/List;)V");
 }
 
 static void BroadcasterInitNative(JNIEnv* env, jobject object) {
@@ -568,6 +960,65 @@ static void BroadcasterInitNative(JNIEnv* env, jobject object) {
   const bt_interface_t* btInf = getBluetoothInterface();
   if (btInf == nullptr) {
     LOG(ERROR) << "Bluetooth module is not loaded";
+    return;
+  }
+
+  android_bluetooth_BluetoothDevice.clazz = (jclass)env->NewGlobalRef(
+      env->FindClass("android/bluetooth/BluetoothDevice"));
+  if (android_bluetooth_BluetoothDevice.clazz == nullptr) {
+    LOG(ERROR) << "Failed to allocate Global Ref for BluetoothDevice class";
+    return;
+  }
+
+  java_util_ArrayList.clazz =
+      (jclass)env->NewGlobalRef(env->FindClass("java/util/ArrayList"));
+  if (java_util_ArrayList.clazz == nullptr) {
+    LOG(ERROR) << "Failed to allocate Global Ref for ArrayList class";
+    return;
+  }
+
+  android_bluetooth_BluetoothLeAudioCodecConfigMetadata.clazz =
+      (jclass)env->NewGlobalRef(env->FindClass(
+          "android/bluetooth/BluetoothLeAudioCodecConfigMetadata"));
+  if (android_bluetooth_BluetoothLeAudioCodecConfigMetadata.clazz == nullptr) {
+    LOG(ERROR) << "Failed to allocate Global Ref for "
+                  "BluetoothLeAudioCodecConfigMetadata class";
+    return;
+  }
+
+  android_bluetooth_BluetoothLeAudioContentMetadata.clazz =
+      (jclass)env->NewGlobalRef(
+          env->FindClass("android/bluetooth/BluetoothLeAudioContentMetadata"));
+  if (android_bluetooth_BluetoothLeAudioContentMetadata.clazz == nullptr) {
+    LOG(ERROR) << "Failed to allocate Global Ref for "
+                  "BluetoothLeAudioContentMetadata class";
+    return;
+  }
+
+  android_bluetooth_BluetoothLeBroadcastSubgroup.clazz =
+      (jclass)env->NewGlobalRef(
+          env->FindClass("android/bluetooth/BluetoothLeBroadcastSubgroup"));
+  if (android_bluetooth_BluetoothLeBroadcastSubgroup.clazz == nullptr) {
+    LOG(ERROR) << "Failed to allocate Global Ref for "
+                  "BluetoothLeBroadcastSubgroup class";
+    return;
+  }
+
+  android_bluetooth_BluetoothLeBroadcastChannel.clazz =
+      (jclass)env->NewGlobalRef(
+          env->FindClass("android/bluetooth/BluetoothLeBroadcastChannel"));
+  if (android_bluetooth_BluetoothLeBroadcastChannel.clazz == nullptr) {
+    LOG(ERROR) << "Failed to allocate Global Ref for "
+                  "BluetoothLeBroadcastChannel class";
+    return;
+  }
+
+  android_bluetooth_BluetoothLeBroadcastMetadata.clazz =
+      (jclass)env->NewGlobalRef(
+          env->FindClass("android/bluetooth/BluetoothLeBroadcastMetadata"));
+  if (android_bluetooth_BluetoothLeBroadcastMetadata.clazz == nullptr) {
+    LOG(ERROR) << "Failed to allocate Global Ref for "
+                  "BluetoothLeBroadcastMetadata class";
     return;
   }
 
@@ -619,6 +1070,28 @@ static void BroadcasterCleanupNative(JNIEnv* env, jobject object) {
     LOG(ERROR) << "Bluetooth module is not loaded";
     return;
   }
+
+  env->DeleteGlobalRef(java_util_ArrayList.clazz);
+  java_util_ArrayList.clazz = nullptr;
+
+  env->DeleteGlobalRef(android_bluetooth_BluetoothDevice.clazz);
+  android_bluetooth_BluetoothDevice.clazz = nullptr;
+
+  env->DeleteGlobalRef(
+      android_bluetooth_BluetoothLeAudioCodecConfigMetadata.clazz);
+  android_bluetooth_BluetoothLeAudioCodecConfigMetadata.clazz = nullptr;
+
+  env->DeleteGlobalRef(android_bluetooth_BluetoothLeAudioContentMetadata.clazz);
+  android_bluetooth_BluetoothLeAudioContentMetadata.clazz = nullptr;
+
+  env->DeleteGlobalRef(android_bluetooth_BluetoothLeBroadcastSubgroup.clazz);
+  android_bluetooth_BluetoothLeBroadcastSubgroup.clazz = nullptr;
+
+  env->DeleteGlobalRef(android_bluetooth_BluetoothLeBroadcastChannel.clazz);
+  android_bluetooth_BluetoothLeBroadcastChannel.clazz = nullptr;
+
+  env->DeleteGlobalRef(android_bluetooth_BluetoothLeBroadcastMetadata.clazz);
+  android_bluetooth_BluetoothLeBroadcastMetadata.clazz = nullptr;
 
   if (sLeAudioBroadcasterInterface != nullptr) {
     sLeAudioBroadcasterInterface->Cleanup();
@@ -692,11 +1165,12 @@ static void DestroyBroadcastNative(JNIEnv* env, jobject object,
   sLeAudioBroadcasterInterface->DestroyBroadcast(broadcast_id);
 }
 
-static void GetAllBroadcastStatesNative(JNIEnv* env, jobject object) {
+static void getBroadcastMetadataNative(JNIEnv* env, jobject object,
+                                       jint broadcast_id) {
   LOG(INFO) << __func__;
   std::shared_lock<std::shared_timed_mutex> lock(sBroadcasterInterfaceMutex);
   if (!sLeAudioBroadcasterInterface) return;
-  sLeAudioBroadcasterInterface->GetAllBroadcastStates();
+  sLeAudioBroadcasterInterface->GetBroadcastMetadata(broadcast_id);
 }
 
 static JNINativeMethod sBroadcasterMethods[] = {
@@ -710,7 +1184,7 @@ static JNINativeMethod sBroadcasterMethods[] = {
     {"stopBroadcastNative", "(I)V", (void*)StopBroadcastNative},
     {"pauseBroadcastNative", "(I)V", (void*)PauseBroadcastNative},
     {"destroyBroadcastNative", "(I)V", (void*)DestroyBroadcastNative},
-    {"getAllBroadcastStatesNative", "()V", (void*)GetAllBroadcastStatesNative},
+    {"getBroadcastMetadataNative", "(I)V", (void*)getBroadcastMetadataNative},
 };
 
 int register_com_android_bluetooth_le_audio(JNIEnv* env) {
