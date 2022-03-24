@@ -53,7 +53,7 @@ class BroadcastStateMachineImpl : public BroadcastStateMachine {
   ~BroadcastStateMachineImpl() {
     if (GetState() == State::STREAMING) TerminateBig();
     DestroyBroadcastAnnouncement();
-    if (callbacks_) callbacks_->OnStateMachineDestroyed(GetInstanceId());
+    if (callbacks_) callbacks_->OnStateMachineDestroyed(GetBroadcastId());
   }
 
   bool Initialize() override {
@@ -88,15 +88,15 @@ class BroadcastStateMachineImpl : public BroadcastStateMachine {
   void RequestOwnAddress(
       base::Callback<void(uint8_t /* address_type*/, RawAddress /*address*/)>
           cb) override {
-    uint8_t instance_id = GetInstanceId();
-    advertiser_if_->GetOwnAddress(instance_id, cb);
+    uint8_t advertising_sid = GetAdvertisingSid();
+    advertiser_if_->GetOwnAddress(advertising_sid, cb);
   }
 
   void RequestOwnAddress(void) override {
-    uint8_t instance_id = GetInstanceId();
+    auto broadcast_id = GetBroadcastId();
     RequestOwnAddress(
         base::Bind(&IBroadcastStateMachineCallbacks::OnOwnAddressResponse,
-                   base::Unretained(this->callbacks_), instance_id));
+                   base::Unretained(this->callbacks_), broadcast_id));
   }
 
   RawAddress GetOwnAddress() override {
@@ -109,7 +109,7 @@ class BroadcastStateMachineImpl : public BroadcastStateMachine {
     return addr_type_;
   }
 
-  bluetooth::le_audio::BroadcastId const& GetBroadcastId() const override {
+  bluetooth::le_audio::BroadcastId GetBroadcastId() const override {
     return sm_config_.broadcast_id;
   }
 
@@ -124,12 +124,12 @@ class BroadcastStateMachineImpl : public BroadcastStateMachine {
     PreparePeriodicData(announcement, periodic_data);
 
     sm_config_.announcement = std::move(announcement);
-    advertiser_if_->SetPeriodicAdvertisingData(instance_id_, periodic_data,
+    advertiser_if_->SetPeriodicAdvertisingData(advertising_sid_, periodic_data,
                                                base::DoNothing());
   }
 
   void ProcessMessage(Message msg, const void* data = nullptr) override {
-    LOG_INFO("Instance_id=%d, state=%s, message=%s", GetInstanceId(),
+    LOG_INFO("broadcast_id=%d, state=%s, message=%s", GetBroadcastId(),
              ToString(GetState()).c_str(), ToString(msg).c_str());
     switch (msg) {
       case Message::START:
@@ -159,7 +159,7 @@ class BroadcastStateMachineImpl : public BroadcastStateMachine {
           /* in STOPPED state */
           [this](const void*) {
             SetState(State::CONFIGURING);
-            callbacks_->OnStateMachineEvent(GetInstanceId(), GetState());
+            callbacks_->OnStateMachineEvent(GetBroadcastId(), GetState());
             EnableAnnouncement();
           },
           /* in CONFIGURING state */
@@ -180,7 +180,7 @@ class BroadcastStateMachineImpl : public BroadcastStateMachine {
           /* in CONFIGURED state */
           [this](const void*) {
             SetState(State::STOPPING);
-            callbacks_->OnStateMachineEvent(GetInstanceId(), GetState());
+            callbacks_->OnStateMachineEvent(GetBroadcastId(), GetState());
             DisableAnnouncement();
           },
           /* in STOPPING state */
@@ -190,7 +190,7 @@ class BroadcastStateMachineImpl : public BroadcastStateMachine {
             if ((active_config_ != std::nullopt) && !suspending_) {
               suspending_ = false;
               SetState(State::STOPPING);
-              callbacks_->OnStateMachineEvent(GetInstanceId(), GetState());
+              callbacks_->OnStateMachineEvent(GetBroadcastId(), GetState());
               TriggerIsoDatapathTeardown(active_config_->connection_handles[0]);
             }
           }};
@@ -231,38 +231,38 @@ class BroadcastStateMachineImpl : public BroadcastStateMachine {
     addr_type_ = addr_type;
   }
 
-  void CreateAnnouncementCb(uint8_t instance_id, int8_t tx_power,
+  void CreateAnnouncementCb(uint8_t advertising_sid, int8_t tx_power,
                             uint8_t status) {
-    LOG_INFO("instance_id=%d tx_power=%d status=%d", instance_id, tx_power,
-             status);
+    LOG_INFO("advertising_sid=%d tx_power=%d status=%d", advertising_sid,
+             tx_power, status);
 
-    /* If this callback gets called the instance_id is valid even though the
-     * status can be other than BTM_BLE_MULTI_ADV_SUCCESS. We must set it here
-     * to properly identify the instance when callback gets called.
+    /* If this callback gets called the advertising_sid is valid even though the
+     * status can be other than BTM_BLE_MULTI_ADV_SUCCESS.
      */
-    instance_id_ = instance_id;
+    advertising_sid_ = advertising_sid;
 
     if (status != BTM_BLE_MULTI_ADV_SUCCESS) {
       LOG_ERROR("Creating Announcement failed");
-      callbacks_->OnStateMachineCreateStatus(instance_id, false);
+      callbacks_->OnStateMachineCreateStatus(GetBroadcastId(), false);
       return;
     }
 
     /* Ext. advertisings are already on */
     SetState(State::CONFIGURED);
 
-    callbacks_->OnStateMachineCreateStatus(instance_id, true);
-    callbacks_->OnStateMachineEvent(instance_id, State::CONFIGURED);
+    callbacks_->OnStateMachineCreateStatus(GetBroadcastId(), true);
+    callbacks_->OnStateMachineEvent(GetBroadcastId(), State::CONFIGURED);
 
     advertiser_if_->GetOwnAddress(
-        instance_id, base::Bind(&BroadcastStateMachineImpl::OnAddressResponse,
-                                base::Unretained(this)));
+        advertising_sid,
+        base::Bind(&BroadcastStateMachineImpl::OnAddressResponse,
+                   base::Unretained(this)));
   }
 
-  void CreateAnnouncementTimeoutCb(uint8_t instance_id, uint8_t status) {
-    LOG_INFO("instance_id=%d status=%d", instance_id, status);
-    instance_id_ = instance_id;
-    callbacks_->OnStateMachineCreateStatus(instance_id, false);
+  void CreateAnnouncementTimeoutCb(uint8_t advertising_sid, uint8_t status) {
+    LOG_INFO("advertising_sid=%d status=%d", advertising_sid, status);
+    advertising_sid_ = advertising_sid;
+    callbacks_->OnStateMachineCreateStatus(GetBroadcastId(), false);
   }
 
   void CreateBroadcastAnnouncement(
@@ -308,12 +308,12 @@ class BroadcastStateMachineImpl : public BroadcastStateMachine {
 
   void DestroyBroadcastAnnouncement() {
     if (BleAdvertisingManager::IsInitialized())
-      advertiser_if_->Unregister(GetInstanceId());
+      advertiser_if_->Unregister(GetAdvertisingSid());
   }
 
   void EnableAnnouncementCb(bool enable, uint8_t status) {
-    LOG_INFO("operation=%s, instance_id=%d, status=%d",
-             (enable ? "enable" : "disable"), GetInstanceId(), status);
+    LOG_INFO("operation=%s, broadcast_id=%d, status=%d",
+             (enable ? "enable" : "disable"), GetBroadcastId(), status);
 
     if (status == BTM_BLE_MULTI_ADV_SUCCESS) {
       /* Periodic is enabled but without BIGInfo. Stream is suspended. */
@@ -324,14 +324,14 @@ class BroadcastStateMachineImpl : public BroadcastStateMachine {
       } else {
         /* User wanted to stop the announcement - report target state reached */
         SetState(State::STOPPED);
-        callbacks_->OnStateMachineEvent(GetInstanceId(), GetState());
+        callbacks_->OnStateMachineEvent(GetBroadcastId(), GetState());
       }
     }
   }
 
   void EnableAnnouncementTimeoutCb(bool enable, uint8_t status) {
-    LOG_INFO("operation=%s, instance_id=%d, status=%d",
-             (enable ? "enable" : "disable"), GetInstanceId(), status);
+    LOG_INFO("operation=%s, broadcast_id=%d, status=%d",
+             (enable ? "enable" : "disable"), GetBroadcastId(), status);
     if (enable) {
       /* Timeout on enabling */
       SetState(State::STOPPED);
@@ -339,13 +339,13 @@ class BroadcastStateMachineImpl : public BroadcastStateMachine {
       /* Timeout on disabling */
       SetState(State::CONFIGURED);
     }
-    callbacks_->OnStateMachineEvent(GetInstanceId(), GetState());
+    callbacks_->OnStateMachineEvent(GetBroadcastId(), GetState());
   }
 
   void EnableAnnouncement() {
-    LOG_INFO("instance_id=%d", GetInstanceId());
+    LOG_INFO("broadcast_id=%d", GetBroadcastId());
     advertiser_if_->Enable(
-        GetInstanceId(), true,
+        GetAdvertisingSid(), true,
         base::Bind(&BroadcastStateMachineImpl::EnableAnnouncementCb,
                    base::Unretained(this), true),
         0, 0, /* Enable until stopped */
@@ -354,16 +354,16 @@ class BroadcastStateMachineImpl : public BroadcastStateMachine {
   }
 
   void CreateBig(void) {
-    LOG_INFO("instance_id=%d", GetInstanceId());
+    LOG_INFO("broadcast_id=%d", GetBroadcastId());
     /* TODO: Figure out how to decide on the currently hard-codded params. */
     struct bluetooth::hci::iso_manager::big_create_params big_params = {
-        .adv_handle = GetInstanceId(),
+        .adv_handle = GetAdvertisingSid(),
         .num_bis = sm_config_.codec_wrapper.GetNumChannels(),
-        .sdu_itv = callbacks_->GetSduItv(GetInstanceId()),
+        .sdu_itv = callbacks_->GetSduItv(GetBroadcastId()),
         .max_sdu_size = sm_config_.codec_wrapper.GetMaxSduSize(),
         .max_transport_latency =
-            callbacks_->GetMaxTransportLatency(GetInstanceId()),
-        .rtn = callbacks_->GetNumRetransmit(GetInstanceId()),
+            callbacks_->GetMaxTransportLatency(GetBroadcastId()),
+        .rtn = callbacks_->GetNumRetransmit(GetBroadcastId()),
         .phy = sm_config_.streaming_phy,
         .packing = 0x00, /* Sequencial */
         .framing = 0x00, /* Unframed */
@@ -372,14 +372,14 @@ class BroadcastStateMachineImpl : public BroadcastStateMachine {
                                               : std::array<uint8_t, 16>({0}),
     };
 
-    IsoManager::GetInstance()->CreateBig(GetInstanceId(),
+    IsoManager::GetInstance()->CreateBig(GetAdvertisingSid(),
                                          std::move(big_params));
   }
 
   void DisableAnnouncement(void) {
-    LOG_INFO("instance_id=%d", GetInstanceId());
+    LOG_INFO("broadcast_id=%d", GetBroadcastId());
     advertiser_if_->Enable(
-        GetInstanceId(), false,
+        GetAdvertisingSid(), false,
         base::Bind(&BroadcastStateMachineImpl::EnableAnnouncementCb,
                    base::Unretained(this), false),
         0, 0,
@@ -390,7 +390,7 @@ class BroadcastStateMachineImpl : public BroadcastStateMachine {
   void TerminateBig() {
     LOG_INFO("suspending=%d", suspending_);
     /* Terminate with reason: Connection Terminated By Local Host */
-    IsoManager::GetInstance()->TerminateBig(GetInstanceId(), 0x16);
+    IsoManager::GetInstance()->TerminateBig(GetAdvertisingSid(), 0x16);
   }
 
   void OnSetupIsoDataPath(uint8_t status, uint16_t conn_hdl) override {
@@ -415,7 +415,7 @@ class BroadcastStateMachineImpl : public BroadcastStateMachine {
       /* It was the last BIS to set up - change state to streaming */
       SetState(State::STREAMING);
       callbacks_->OnStateMachineEvent(
-          GetInstanceId(), GetState(),
+          GetBroadcastId(), GetState(),
           &sm_config_.codec_wrapper.GetLeAudioCodecConfiguration());
     } else {
       /* Note: We would feed a watchdog here if we had one */
@@ -496,7 +496,7 @@ class BroadcastStateMachineImpl : public BroadcastStateMachine {
       case HCI_BLE_CREATE_BIG_CPL_EVT: {
         auto* evt = static_cast<big_create_cmpl_evt*>(data);
 
-        if (evt->big_id != GetInstanceId()) {
+        if (evt->big_id != GetAdvertisingSid()) {
           LOG_ERROR("State=%s, Event=%d, Unknown big, big_id=%d",
                     ToString(GetState()).c_str(), event, evt->big_id);
           break;
@@ -531,8 +531,8 @@ class BroadcastStateMachineImpl : public BroadcastStateMachine {
         LOG_INFO("BIG terminate BIG cmpl, reason=%d big_id=%d", evt->reason,
                  evt->big_id);
 
-        if (evt->big_id != GetInstanceId()) {
-          LOG_ERROR("State=%s Event=%d, unknown instance=%d",
+        if (evt->big_id != GetAdvertisingSid()) {
+          LOG_ERROR("State=%s Event=%d, unknown adv.sid=%d",
                     ToString(GetState()).c_str(), event, evt->big_id);
           break;
         }
@@ -544,7 +544,7 @@ class BroadcastStateMachineImpl : public BroadcastStateMachine {
 
         /* Check if we got this HCI event due to STOP or SUSPEND message. */
         if (suspending_) {
-          callbacks_->OnStateMachineEvent(GetInstanceId(), GetState(), evt);
+          callbacks_->OnStateMachineEvent(GetBroadcastId(), GetState(), evt);
           suspending_ = false;
         } else {
           DisableAnnouncement();
@@ -628,11 +628,7 @@ std::ostream& operator<<(
   const char* const PHYS[] = {"NONE", "1M", "2M", "CODED"};
 
   os << "\n";
-  os << "        Broadcast ID: [";
-  for (auto& el : config.broadcast_id) {
-    os << std::hex << +el << ":";
-  }
-  os << "]\n";
+  os << "        Broadcast ID: " << config.broadcast_id << "\n";
   os << "        Streaming PHY: "
      << ((config.streaming_phy > 3) ? std::to_string(config.streaming_phy)
                                     : PHYS[config.streaming_phy])
@@ -663,7 +659,7 @@ std::ostream& operator<<(
     std::ostream& os,
     const le_audio::broadcaster::BroadcastStateMachine& machine) {
   os << "    Broadcast state machine: {"
-     << "      Instance ID: " << +machine.GetInstanceId() << "\n"
+     << "      Advertising SID: " << +machine.GetAdvertisingSid() << "\n"
      << "      State: " << machine.GetState() << "\n";
   os << "      State Machine Config: " << machine.GetStateMachineConfig()
      << "\n";

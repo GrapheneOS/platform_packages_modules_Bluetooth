@@ -147,8 +147,7 @@ void PrepareAdvertisingData(bluetooth::le_audio::BroadcastId& broadcast_id,
   UINT8_TO_STREAM(data_ptr, 6);
   UINT8_TO_STREAM(data_ptr, BTM_BLE_AD_TYPE_SERVICE_DATA_TYPE);
   UINT16_TO_STREAM(data_ptr, kBroadcastAudioAnnouncementServiceUuid);
-  ARRAY_TO_STREAM(data_ptr, broadcast_id.data(),
-                  bluetooth::le_audio::kBroadcastAnnouncementBroadcastIdSize);
+  UINT24_TO_STREAM(data_ptr, broadcast_id)
 };
 
 void PreparePeriodicData(const BasicAudioAnnouncementData& announcement,
