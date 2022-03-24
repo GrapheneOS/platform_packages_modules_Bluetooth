@@ -50,6 +50,13 @@ pub enum Error {
   },
   #[error("Due to size restrictions a struct could not be parsed.")]
   ImpossibleStructError,
+  #[error("when parsing field {obj}.{field}, {value} is not a valid {type_} value")]
+  InvalidEnumValueError {
+    obj: String,
+    field: String,
+    value: u64,
+    type_: String,
+  },
 }
 
 #[derive(Debug, Error)]
