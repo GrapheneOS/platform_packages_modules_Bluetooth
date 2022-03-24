@@ -860,7 +860,8 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
         if (iter != cis_cfgs.end()) continue;
 
         auto ases_pair = leAudioDevice->GetAsesByCisId(cis);
-        EXT_CIS_CFG cis_cfg;
+        EXT_CIS_CFG cis_cfg = {0, 0, 0, 0, 0, 0, 0};
+
         cis_cfg.cis_id = ase->cis_id;
         cis_cfg.phy_mtos =
             group->GetPhyBitmask(le_audio::types::kLeAudioDirectionSink);
