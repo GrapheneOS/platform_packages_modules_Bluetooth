@@ -61,6 +61,11 @@ impl BluetoothManager {
     pub(crate) fn callback_disconnected(&mut self, id: u32) {
         self.callbacks.remove(&id);
     }
+
+    pub(crate) fn get_floss_enabled_internal(&mut self) -> bool {
+        let enabled = self.manager_context.floss_enabled.load(Ordering::Relaxed);
+        enabled
+    }
 }
 
 impl IBluetoothManager for BluetoothManager {
@@ -115,8 +120,7 @@ impl IBluetoothManager for BluetoothManager {
     }
 
     fn get_floss_enabled(&mut self) -> bool {
-        let enabled = self.manager_context.floss_enabled.load(Ordering::Relaxed);
-        enabled
+        self.get_floss_enabled_internal()
     }
 
     fn set_floss_enabled(&mut self, enabled: bool) {
