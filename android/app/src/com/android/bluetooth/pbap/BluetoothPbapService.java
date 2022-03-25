@@ -86,7 +86,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
 
     public static final boolean DEBUG = true;
 
-    public static final boolean VERBOSE = false;
+    public static final boolean VERBOSE = Log.isLoggable(TAG, Log.VERBOSE);
 
     /**
      * Intent indicating incoming obex authentication request which is from
@@ -147,7 +147,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
 
     private static final int SDP_PBAP_SERVER_VERSION = 0x0102;
     // PBAP v1.2.3, Sec. 7.1.2: local phonebook and favorites
-    private static final int SDP_PBAP_SUPPORTED_REPOSITORIES = 0x0009;
+    private static final int SDP_PBAP_SUPPORTED_REPOSITORIES = 0x000B;
     private static final int SDP_PBAP_SUPPORTED_FEATURES = 0x021F;
 
     /* PBAP will use Bluetooth notification ID from 1000000 (included) to 2000000 (excluded).
