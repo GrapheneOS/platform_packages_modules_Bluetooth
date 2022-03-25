@@ -199,16 +199,16 @@ public class Config {
     }
 
     /**
-     * Remove LE audio unicast related profiles from the supported list.
+     * Remove the input profiles from the supported list.
      */
-    static void removeLeAudioUnicastProfilesFromSupportedList() {
+    static void removeProfileFromSupportedList(HashSet<Class> nonSupportedProfiles) {
         ArrayList<Class> profilesList = new ArrayList<Class>(Arrays.asList(sSupportedProfiles));
         Iterator<Class> iter = profilesList.iterator();
 
         while (iter.hasNext()) {
             Class profileClass = iter.next();
 
-            if (mLeAudioUnicastProfiles.contains(profileClass)) {
+            if (nonSupportedProfiles.contains(profileClass)) {
                 iter.remove();
                 Log.v(TAG, "Remove " + profileClass.getSimpleName() + " from supported list.");
             }
