@@ -36,7 +36,6 @@ cc_library_static {
         "liblog",
     ],
     apex_available: [
-        "//apex_available:platform",
         "com.android.bluetooth",
     ],
     min_sdk_version: "Tiramisu"

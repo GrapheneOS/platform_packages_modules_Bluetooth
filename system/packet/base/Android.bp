@@ -19,7 +19,6 @@ cc_library_static {
         "packet_builder.cc",
     ],
     apex_available: [
-        "//apex_available:platform",
         "com.android.bluetooth",
     ],
     min_sdk_version: "30",
