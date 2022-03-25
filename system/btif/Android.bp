@@ -47,7 +47,6 @@ cc_library {
         "libcutils",
     ],
     apex_available: [
-        "//apex_available:platform",
         "com.android.bluetooth",
     ],
     min_sdk_version: "30",

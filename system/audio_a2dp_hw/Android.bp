@@ -29,7 +29,6 @@ cc_library {
         "src/audio_a2dp_hw_utils.cc",
     ],
     apex_available: [
-        "//apex_available:platform",
         "com.android.bluetooth",
     ],
     shared_libs: [
