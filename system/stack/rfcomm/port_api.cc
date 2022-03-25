@@ -711,11 +711,18 @@ int PORT_ReadData(uint16_t handle, char* p_data, uint16_t max_len,
     return (PORT_NOT_OPENED);
   }
 
+  if (p_port->state == PORT_STATE_OPENING) {
+    LOG_WARN("Trying to read a port in PORT_STATE_OPENING state");
+  }
+
   if (p_port->line_status) {
     return (PORT_LINE_ERR);
   }
 
-  if (fixed_queue_is_empty(p_port->rx.queue)) return (PORT_SUCCESS);
+  if (fixed_queue_is_empty(p_port->rx.queue)) {
+    LOG_WARN("Read on empty input queue");
+    return (PORT_SUCCESS);
+  }
 
   count = 0;
 
@@ -1022,6 +1029,10 @@ int PORT_WriteData(uint16_t handle, const char* p_data, uint16_t max_len,
   if (!p_port->in_use || (p_port->state == PORT_STATE_CLOSED)) {
     RFCOMM_TRACE_WARNING("PORT_WriteData() no port state:%d", p_port->state);
     return (PORT_NOT_OPENED);
+  }
+
+  if (p_port->state == PORT_STATE_OPENING) {
+    LOG_WARN("Write data received but port is in OPENING state");
   }
 
   if (!max_len || !p_port->peer_mtu) {
