@@ -36,6 +36,13 @@
 namespace bluetooth {
 namespace common {
 
+template <typename T>
+inline std::string ToString(const T& value) {
+  std::stringstream tmp;
+  tmp << value;
+  return tmp.str();
+}
+
 // Convert number into a hex string prefixed with 0x
 template <typename T>
 std::string ToHexString(T x) {
