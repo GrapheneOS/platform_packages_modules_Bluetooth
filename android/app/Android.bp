@@ -96,7 +96,7 @@ android_app {
     ],
     platform_apis: false,
     certificate: "platform",
-
+    aaptflags: [ "--custom-package", "com.android.bluetooth" ],
     jarjar_rules: ":bluetooth-jarjar-rules",
 
     jni_uses_platform_apis: true,
