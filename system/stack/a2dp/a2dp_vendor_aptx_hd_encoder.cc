@@ -38,7 +38,7 @@
 //
 // The aptX-HD encoder shared library, and the functions to use
 //
-static const char* APTX_HD_ENCODER_LIB_NAME = "libaptXHD_encoder.so";
+static const std::string APTX_HD_ENCODER_LIB_NAME = "libaptXHD_encoder.so";
 static void* aptx_hd_encoder_lib_handle = NULL;
 
 static const char* APTX_HD_ENCODER_INIT_NAME = "aptxhdbtenc_init";
@@ -112,14 +112,22 @@ static size_t aptx_hd_encode_24bit(tAPTX_HD_FRAMING_PARAMS* framing_params,
                                    size_t* data_out_index, uint32_t* data32_in,
                                    uint8_t* data_out);
 
+static const std::vector<std::string> APTX_HD_ENCODER_LIB_PATHS = {
+    APTX_HD_ENCODER_LIB_NAME,
+#ifdef __LP64__
+    "/system_ext/lib64/" + APTX_HD_ENCODER_LIB_NAME,
+#else
+    "/system_ext/lib/" + APTX_HD_ENCODER_LIB_NAME,
+#endif
+};
+
 bool A2DP_VendorLoadEncoderAptxHd(void) {
   if (aptx_hd_encoder_lib_handle != NULL) return true;  // Already loaded
 
   // Open the encoder library
-  aptx_hd_encoder_lib_handle = dlopen(APTX_HD_ENCODER_LIB_NAME, RTLD_NOW);
-  if (aptx_hd_encoder_lib_handle == NULL) {
-    LOG_ERROR("%s: cannot open aptX-HD encoder library %s: %s", __func__,
-              APTX_HD_ENCODER_LIB_NAME, dlerror());
+  aptx_hd_encoder_lib_handle = A2DP_VendorCodecLoadExternalLib(
+      APTX_HD_ENCODER_LIB_PATHS, "aptX-HD encoder");
+  if (!aptx_hd_encoder_lib_handle) {
     return false;
   }
 

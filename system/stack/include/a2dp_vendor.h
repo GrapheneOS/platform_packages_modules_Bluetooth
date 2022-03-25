@@ -25,6 +25,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include <vector>
+
 #include "a2dp_codec_api.h"
 #include "stack/include/bt_hdr.h"
 
@@ -210,5 +212,13 @@ bool A2DP_VendorInitCodecConfig(btav_a2dp_codec_index_t codec_index,
 // |p_codec_info| is a pointer to the codec_info to decode.
 // Returns a string describing the codec information.
 std::string A2DP_VendorCodecInfoString(const uint8_t* p_codec_info);
+
+// Try to dlopen external codec library
+// Will iterate over |lib_paths| to return the first successfully dlopen library
+// |friendly_name| is only use for logging purpose
+// Return pointer to the handle if the library is successfully dlopen,
+// nullptr otherwise
+void* A2DP_VendorCodecLoadExternalLib(const std::vector<std::string>& lib_paths,
+                                      const std::string& friendly_name);
 
 #endif  // A2DP_VENDOR_H
