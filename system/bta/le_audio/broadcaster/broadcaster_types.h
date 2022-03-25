@@ -148,9 +148,10 @@ struct BroadcastCodecWrapper {
   uint32_t codec_frame_len;
   uint8_t blocks_per_sdu;
 };
-}  // namespace broadcaster
-}  // namespace le_audio
 
 std::ostream& operator<<(
     std::ostream& os,
     const le_audio::broadcaster::BroadcastCodecWrapper& config);
+
+}  // namespace broadcaster
+}  // namespace le_audio
