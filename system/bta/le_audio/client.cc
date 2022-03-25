@@ -36,7 +36,9 @@
 #include "devices.h"
 #include "embdrv/lc3/include/lc3.h"
 #include "gatt/bta_gattc_int.h"
+#include "gd/common/strings.h"
 #include "le_audio_types.h"
+#include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "osi/include/properties.h"
 #include "stack/btm/btm_dev.h"
@@ -46,6 +48,7 @@
 
 using base::Closure;
 using bluetooth::Uuid;
+using bluetooth::common::ToString;
 using bluetooth::groups::DeviceGroups;
 using bluetooth::groups::DeviceGroupsCallbacks;
 using bluetooth::hci::IsoManager;
@@ -598,15 +601,15 @@ class LeAudioClientImpl : public LeAudioClient {
     }
 
     if (group->IsInTransition()) {
-      LOG(INFO) << __func__
-                << ", group is in transition from: " << group->GetState()
-                << ", to: " << group->GetTargetState();
+      LOG_INFO(", group is in transition from: %s to: %s",
+               ToString(group->GetState()).c_str(),
+               ToString(group->GetTargetState()).c_str());
       return;
     }
 
     if (group->GetState() != AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
-      LOG(ERROR) << __func__
-                 << ", invalid current state of group: " << group->GetState();
+      LOG_ERROR(", invalid current state of group: %s",
+                ToString(group->GetState()).c_str());
       return;
     }
 
@@ -627,8 +630,9 @@ class LeAudioClientImpl : public LeAudioClient {
     }
 
     if (group->GetState() == AseState::BTA_LE_AUDIO_ASE_STATE_IDLE) {
-      LOG(ERROR) << __func__
-                 << ", group already stopped: " << group->GetState();
+      LOG_ERROR(", group already stopped: %s",
+                ToString(group->GetState()).c_str());
+
       return;
     }
 

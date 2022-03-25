@@ -28,7 +28,9 @@
 #include "btm_iso_api_types.h"
 #include "client_audio.h"
 #include "device/include/controller.h"
+#include "gd/common/strings.h"
 #include "le_audio_set_configuration_provider.h"
+#include "osi/include/log.h"
 
 using bluetooth::hci::kIsoCigFramingFramed;
 using bluetooth::hci::kIsoCigFramingUnframed;
