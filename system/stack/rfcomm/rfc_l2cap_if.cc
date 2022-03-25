@@ -22,12 +22,15 @@
  *
  ******************************************************************************/
 
+#include <base/logging.h>
+
 #include <cstddef>
 #include <cstdint>
 
 #include "bt_target.h"
 #include "common/time_util.h"
 #include "osi/include/allocator.h"
+#include "osi/include/log.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_types.h"
@@ -35,8 +38,6 @@
 #include "stack/rfcomm/port_int.h"
 #include "stack/rfcomm/rfc_int.h"
 #include "types/raw_address.h"
-
-#include <base/logging.h>
 
 /*
  * Define Callback functions to be called by L2CAP
@@ -177,6 +178,11 @@ void RFCOMM_ConnectCnf(uint16_t lcid, uint16_t result) {
  *
  ******************************************************************************/
 void RFCOMM_ConfigInd(uint16_t lcid, tL2CAP_CFG_INFO* p_cfg) {
+  if (p_cfg == nullptr) {
+    LOG_ERROR("Received l2cap configuration info with nullptr");
+    return;
+  }
+
   tRFC_MCB* p_mcb = rfc_find_lcid_mcb(lcid);
 
   if (!p_mcb) {
