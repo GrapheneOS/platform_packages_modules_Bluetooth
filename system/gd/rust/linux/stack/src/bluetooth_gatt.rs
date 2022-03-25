@@ -1458,6 +1458,8 @@ mod tests {
         fn unregister(&mut self, _id: u32) -> bool {
             false
         }
+
+        fn export_for_rpc(self: Box<Self>) {}
     }
 
     use super::*;

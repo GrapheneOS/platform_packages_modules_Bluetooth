@@ -160,7 +160,7 @@ int ScalarField::GetRustBitOffset(
   return num_leading_bits;
 }
 
-void ScalarField::GenRustGetter(std::ostream& s, Size start_offset, Size end_offset) const {
+void ScalarField::GenRustGetter(std::ostream& s, Size start_offset, Size end_offset, std::string parent_name) const {
   Size size = GetSize();
 
   int num_leading_bits = GetRustBitOffset(s, start_offset, end_offset, GetSize());
@@ -207,7 +207,13 @@ void ScalarField::GenRustGetter(std::ostream& s, Size start_offset, Size end_off
   // needs casting from primitive
   if (GetRustParseDataType() != GetRustDataType()) {
     s << "let " << GetName() << " = ";
-    s << GetRustDataType() << "::from_" << GetRustParseDataType() << "(" << GetName() << ").unwrap();";
+    s << GetRustDataType() << "::from_" << GetRustParseDataType() << "(" << GetName() << ").ok_or_else(||";
+    s << "Error::InvalidEnumValueError {";
+    s << "    obj: \"" << parent_name << "\".to_string(),";
+    s << "    field: \"" << GetName() << "\".to_string(),";
+    s << "    value: " << GetName() << " as u64,";
+    s << "    type_: \"" << GetRustDataType() << "\".to_string(),";
+    s << "})?;";
   }
 }
 

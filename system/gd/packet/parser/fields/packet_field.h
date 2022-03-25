@@ -124,7 +124,7 @@ class PacketField : public Loggable {
   virtual int GetRustBitOffset(
       std::ostream& s, Size start_offset, Size end_offset, Size size) const;
 
-  virtual void GenRustGetter(std::ostream& s, Size start_offset, Size end_offset) const = 0;
+  virtual void GenRustGetter(std::ostream& s, Size start_offset, Size end_offset, std::string) const = 0;
 
   virtual void GenRustWriter(std::ostream& s, Size start_offset, Size end_offset) const = 0;
 
