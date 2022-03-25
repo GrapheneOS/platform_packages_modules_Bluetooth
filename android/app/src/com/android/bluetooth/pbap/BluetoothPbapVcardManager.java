@@ -148,12 +148,16 @@ public class BluetoothPbapVcardManager {
         return vcard;
     }
 
-    public final int getPhonebookSize(final int type) {
+    public final int getPhonebookSize(final int type,
+            BluetoothPbapSimVcardManager vCardSimManager) {
         int size;
         switch (type) {
             case BluetoothPbapObexServer.ContentType.PHONEBOOK:
             case BluetoothPbapObexServer.ContentType.FAVORITES:
                 size = getContactsSize(type);
+                break;
+            case BluetoothPbapObexServer.ContentType.SIM_PHONEBOOK:
+                size = vCardSimManager.getSIMContactsSize();
                 break;
             default:
                 size = getCallHistorySize(type);
