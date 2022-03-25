@@ -745,19 +745,27 @@ public class AdapterService extends Service {
     }
      */
 
-    void updateLeAudioProfileServiceState(boolean isCisCentralSupported) {
-        if (isCisCentralSupported) {
-            return;
+    void updateLeAudioProfileServiceState() {
+        HashSet<Class> nonSupportedProfiles = new HashSet<>();
+
+        if (!isLeConnectedIsochronousStreamCentralSupported()) {
+            nonSupportedProfiles.addAll(Config.geLeAudioUnicastProfiles());
         }
 
-        // Remove the Le audio unicast profiles from the supported list
-        // since the controller doesn't support
-        Config.removeLeAudioUnicastProfilesFromSupportedList();
-        HashSet<Class> leAudioUnicastProfiles = Config.geLeAudioUnicastProfiles();
+        if (!isLeAudioBroadcastAssistantSupported()) {
+            nonSupportedProfiles.add(BassClientService.class);
+        }
 
-        for (Class profileService : leAudioUnicastProfiles) {
-            if (isStartedProfile(profileService.getSimpleName())){
-                setProfileServiceState(profileService, BluetoothAdapter.STATE_OFF);
+        if (!nonSupportedProfiles.isEmpty()) {
+            // Remove non-supported profiles from the supported list
+            // since the controller doesn't support
+            Config.removeProfileFromSupportedList(nonSupportedProfiles);
+
+            // Disable the non-supported profiles service
+            for (Class profileService : nonSupportedProfiles) {
+                if (isStartedProfile(profileService.getSimpleName())) {
+                    setProfileServiceState(profileService, BluetoothAdapter.STATE_OFF);
+                }
             }
         }
     }
@@ -3418,7 +3426,10 @@ public class AdapterService extends Service {
                 return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED;
             }
 
-            if (service.isLeAudioBroadcastAssistantSupported()) {
+            HashSet<Class> supportedProfileServices =
+                    new HashSet<Class>(Arrays.asList(Config.getSupportedProfiles()));
+
+            if (supportedProfileServices.contains(BassClientService.class)) {
                 return BluetoothStatusCodes.FEATURE_SUPPORTED;
             }
 
@@ -4603,11 +4614,19 @@ public class AdapterService extends Service {
      * @return true, if the LE audio broadcast assistant is supported
      */
     public boolean isLeAudioBroadcastAssistantSupported() {
-        //TODO: check the profile support status as well after we have the implementation
         return mAdapterProperties.isLePeriodicAdvertisingSupported()
             && mAdapterProperties.isLeExtendedAdvertisingSupported()
             && (mAdapterProperties.isLePeriodicAdvertisingSyncTransferSenderSupported()
                 || mAdapterProperties.isLePeriodicAdvertisingSyncTransferRecipientSupported());
+    }
+
+    /**
+     * Check if the LE audio CIS central feature is supported.
+     *
+     * @return true, if the LE audio CIS central is supported
+     */
+    public boolean isLeConnectedIsochronousStreamCentralSupported() {
+        return mAdapterProperties.isLeConnectedIsochronousStreamCentralSupported();
     }
 
     public int getLeMaximumAdvertisingDataLength() {
