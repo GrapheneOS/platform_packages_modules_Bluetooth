@@ -65,3 +65,65 @@ typedef uint8_t tRFC_PORT_EVENT;
 #define RFC_PORT_EVENT_CLEAR 13
 #define RFC_PORT_EVENT_DATA 14
 #define RFC_PORT_EVENT_SEC_COMPLETE 15
+
+#define CASE_RETURN_TEXT(code) \
+  case code:                   \
+    return #code
+
+// Common events for both port and mux
+inline std::string rfcomm_event_text(const tRFC_EVENT& event) {
+  switch (event) {
+    CASE_RETURN_TEXT(RFC_EVENT_SABME);
+    CASE_RETURN_TEXT(RFC_EVENT_UA);
+    CASE_RETURN_TEXT(RFC_EVENT_DM);
+    CASE_RETURN_TEXT(RFC_EVENT_DISC);
+    CASE_RETURN_TEXT(RFC_EVENT_UIH);
+    CASE_RETURN_TEXT(RFC_EVENT_TIMEOUT);
+    CASE_RETURN_TEXT(RFC_EVENT_BAD_FRAME);
+    default:
+      return std::string("UNKNOWN[") + std::to_string(event) + std::string("]");
+  }
+}
+
+inline std::string rfcomm_mx_event_text(const tRFC_MX_EVENT& event) {
+  switch (event) {
+    CASE_RETURN_TEXT(RFC_MX_EVENT_SABME);
+    CASE_RETURN_TEXT(RFC_MX_EVENT_UA);
+    CASE_RETURN_TEXT(RFC_MX_EVENT_DM);
+    CASE_RETURN_TEXT(RFC_MX_EVENT_DISC);
+    CASE_RETURN_TEXT(RFC_MX_EVENT_UIH);
+    CASE_RETURN_TEXT(RFC_MX_EVENT_TIMEOUT);
+    CASE_RETURN_TEXT(RFC_MX_EVENT_START_REQ);
+    CASE_RETURN_TEXT(RFC_MX_EVENT_START_RSP);
+    CASE_RETURN_TEXT(RFC_MX_EVENT_CLOSE_REQ);
+    CASE_RETURN_TEXT(RFC_MX_EVENT_CONN_CNF);
+    CASE_RETURN_TEXT(RFC_MX_EVENT_CONN_IND);
+    CASE_RETURN_TEXT(RFC_MX_EVENT_CONF_CNF);
+    CASE_RETURN_TEXT(RFC_MX_EVENT_CONF_IND);
+    CASE_RETURN_TEXT(RFC_MX_EVENT_QOS_VIOLATION_IND);
+    CASE_RETURN_TEXT(RFC_MX_EVENT_DISC_IND);
+    default:
+      return std::string("UNKNOWN[") + std::to_string(event) + std::string("]");
+  }
+}
+
+inline std::string rfcomm_port_event_text(const tRFC_PORT_EVENT& event) {
+  switch (event) {
+    CASE_RETURN_TEXT(RFC_PORT_EVENT_SABME);
+    CASE_RETURN_TEXT(RFC_PORT_EVENT_UA);
+    CASE_RETURN_TEXT(RFC_PORT_EVENT_DM);
+    CASE_RETURN_TEXT(RFC_PORT_EVENT_DISC);
+    CASE_RETURN_TEXT(RFC_PORT_EVENT_UIH);
+    CASE_RETURN_TEXT(RFC_PORT_EVENT_TIMEOUT);
+    CASE_RETURN_TEXT(RFC_PORT_EVENT_OPEN);
+    CASE_RETURN_TEXT(RFC_PORT_EVENT_ESTABLISH_RSP);
+    CASE_RETURN_TEXT(RFC_PORT_EVENT_CLOSE);
+    CASE_RETURN_TEXT(RFC_PORT_EVENT_CLEAR);
+    CASE_RETURN_TEXT(RFC_PORT_EVENT_DATA);
+    CASE_RETURN_TEXT(RFC_PORT_EVENT_SEC_COMPLETE);
+    default:
+      return std::string("UNKNOWN[") + std::to_string(event) + std::string("]");
+  }
+}
+
+#undef CASE_RETURN_TEXT
