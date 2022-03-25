@@ -1909,8 +1909,6 @@ class LeAudioClientImpl : public LeAudioClient {
 
     bool mono = (left_cis_handle == 0) || (right_cis_handle == 0);
 
-    LOG(INFO) << __func__ << " data size: " << (int)data.size()
-              << " byte count: " << byte_count << " mono: " << mono;
     if (!mono) {
       lc3_encode(lc3_encoder_left, LC3_PCM_FORMAT_S16,
                  (const int16_t*)data.data(), 2, chan_left_enc.size(),
