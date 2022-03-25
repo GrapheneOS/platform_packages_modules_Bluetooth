@@ -45,8 +45,38 @@ inline std::string AddressTypeText(tBLE_ADDR_TYPE type) {
 }
 #endif  // __cplusplus
 
+inline bool is_ble_addr_type_valid(uint8_t raw_type) { return raw_type < 4; }
+
+inline bool is_ble_addr_type_known(tBLE_ADDR_TYPE type) {
+  switch (type) {
+    case BLE_ADDR_PUBLIC:
+    case BLE_ADDR_PUBLIC_ID:
+    case BLE_ADDR_RANDOM:
+    case BLE_ADDR_RANDOM_ID:
+      return true;
+    default:
+      return false;
+  }
+}
+
+inline tBLE_ADDR_TYPE to_ble_addr_type(uint8_t raw_type) {
+  return (tBLE_ADDR_TYPE)raw_type;
+}
+inline uint8_t from_ble_addr_type(tBLE_ADDR_TYPE type) { return (uint8_t)type; }
+
 /* BLE ADDR type ID bit */
 #define BLE_ADDR_TYPE_ID_BIT 0x02
+inline bool is_identity_type(const tBLE_ADDR_TYPE& type) {
+  return type & BLE_ADDR_TYPE_ID_BIT;
+}
+
+#define STREAM_TO_BLE_ADDR_TYPE(type, p) \
+  {                                      \
+    (type) = (tBLE_ADDR_TYPE)(*(p));     \
+    (p) += sizeof(tBLE_ADDR_TYPE);       \
+  }
+#define BLE_ADDR_TYPE_TO_STREAM(p, type) \
+  { *(p)++ = (tBLE_ADDR_TYPE)(type); }
 
 #ifdef __cplusplus
 constexpr uint8_t kBleAddressPublicDevice = BLE_ADDR_PUBLIC;
