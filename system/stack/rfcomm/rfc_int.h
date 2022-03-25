@@ -159,26 +159,25 @@ typedef enum : uint16_t {
   RFC_MX_STATE_DISC_WAIT_UA = 6,
 } tRFC_MX_STATE;
 
-inline std::string rfcomm_mx_state_text(tRFC_MX_STATE state) {
+#define CASE_RETURN_TEXT(code) \
+  case code:                   \
+    return #code
+
+inline std::string rfcomm_mx_state_text(const tRFC_MX_STATE& state) {
   switch (state) {
-    case RFC_MX_STATE_IDLE:
-      return std::string("idle");
-    case RFC_MX_STATE_WAIT_CONN_CNF:
-      return std::string("wait_config");
-    case RFC_MX_STATE_CONFIGURE:
-      return std::string("configure");
-    case RFC_MX_STATE_SABME_WAIT_UA:
-      return std::string("sabme_wait_ua");
-    case RFC_MX_STATE_WAIT_SABME:
-      return std::string("wait_sabme");
-    case RFC_MX_STATE_CONNECTED:
-      return std::string("connected");
-    case RFC_MX_STATE_DISC_WAIT_UA:
-      return std::string("disconnect_wait_ua");
+    CASE_RETURN_TEXT(RFC_MX_STATE_IDLE);
+    CASE_RETURN_TEXT(RFC_MX_STATE_WAIT_CONN_CNF);
+    CASE_RETURN_TEXT(RFC_MX_STATE_CONFIGURE);
+    CASE_RETURN_TEXT(RFC_MX_STATE_SABME_WAIT_UA);
+    CASE_RETURN_TEXT(RFC_MX_STATE_WAIT_SABME);
+    CASE_RETURN_TEXT(RFC_MX_STATE_CONNECTED);
+    CASE_RETURN_TEXT(RFC_MX_STATE_DISC_WAIT_UA);
     default:
-      return std::string("UNKNOWN");
+      return std::string("UNKNOWN[") + std::to_string(state) + std::string("]");
   }
 }
+
+#undef CASE_RETURN_TEXT
 
 /*
  * Define port states
