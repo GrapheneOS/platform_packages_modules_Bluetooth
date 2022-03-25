@@ -16,6 +16,7 @@
 
 package com.android.bluetooth.gatt;
 
+import static com.android.bluetooth.Utils.checkCallerTargetSdk;
 import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermission;
 
 import android.annotation.RequiresPermission;
@@ -2303,8 +2304,8 @@ public class GattService extends ProfileService {
             try {
                 permissionCheck(connId, handle);
             } catch (SecurityException ex) {
-                // Only throws on T+ as this is an older API and did not throw prior to T
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                // Only throws on apps with target SDK T+ as this old API did not throw prior to T
+                if (checkCallerTargetSdk(this, app.name, Build.VERSION_CODES.TIRAMISU)) {
                     throw ex;
                 }
                 Log.w(TAG, "onNotify() - permission check failed!");
@@ -2966,7 +2967,7 @@ public class GattService extends ProfileService {
         scanClient.hasDisavowedLocation =
                 Utils.hasDisavowedLocationForScan(this, attributionSource, isTestModeEnabled());
 
-        scanClient.isQApp = Utils.isQApp(this, callingPackage);
+        scanClient.isQApp = checkCallerTargetSdk(this, callingPackage, Build.VERSION_CODES.Q);
         if (!scanClient.hasDisavowedLocation) {
             if (scanClient.isQApp) {
                 scanClient.hasLocationPermission = Utils.checkCallerHasFineLocation(
@@ -3042,10 +3043,9 @@ public class GattService extends ProfileService {
         app.mHasDisavowedLocation =
                 Utils.hasDisavowedLocationForScan(this, attributionSource, isTestModeEnabled());
 
-        app.mIsQApp = Utils.isQApp(this, callingPackage);
         if (!app.mHasDisavowedLocation) {
             try {
-                if (app.mIsQApp) {
+                if (checkCallerTargetSdk(this, callingPackage, Build.VERSION_CODES.Q)) {
                     app.hasLocationPermission = Utils.checkCallerHasFineLocation(
                             this, attributionSource, app.mUserHandle);
                 } else {
@@ -3079,7 +3079,7 @@ public class GattService extends ProfileService {
                 new ScanClient(scannerId, piInfo.settings, piInfo.filters);
         scanClient.hasLocationPermission = app.hasLocationPermission;
         scanClient.userHandle = app.mUserHandle;
-        scanClient.isQApp = app.mIsQApp;
+        scanClient.isQApp = checkCallerTargetSdk(this, app.name, Build.VERSION_CODES.Q);
         scanClient.eligibleForSanitizedExposureNotification =
                 app.mEligibleForSanitizedExposureNotification;
         scanClient.hasNetworkSettingsPermission = app.mHasNetworkSettingsPermission;
@@ -3546,8 +3546,9 @@ public class GattService extends ProfileService {
         try {
             permissionCheck(connId, handle);
         } catch (SecurityException ex) {
-            // Only throws on T+ as this is an older API and did not throw prior to T
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            String callingPackage = attributionSource.getPackageName();
+            // Only throws on apps with target SDK T+ as this old API did not throw prior to T
+            if (checkCallerTargetSdk(this, callingPackage, Build.VERSION_CODES.TIRAMISU)) {
                 throw ex;
             }
             Log.w(TAG, "readCharacteristic() - permission check failed!");
@@ -3578,8 +3579,9 @@ public class GattService extends ProfileService {
         try {
             permissionCheck(uuid);
         } catch (SecurityException ex) {
-            // Only throws on T+ as this is an older API and did not throw prior to T
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            String callingPackage = attributionSource.getPackageName();
+            // Only throws on apps with target SDK T+ as this old API did not throw prior to T
+            if (checkCallerTargetSdk(this, callingPackage, Build.VERSION_CODES.TIRAMISU)) {
                 throw ex;
             }
             Log.w(TAG, "readUsingCharacteristicUuid() - permission check failed!");
@@ -3655,8 +3657,9 @@ public class GattService extends ProfileService {
         try {
             permissionCheck(connId, handle);
         } catch (SecurityException ex) {
-            // Only throws on T+ as this is an older API and did not throw prior to T
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            String callingPackage = attributionSource.getPackageName();
+            // Only throws on apps with target SDK T+ as this old API did not throw prior to T
+            if (checkCallerTargetSdk(this, callingPackage, Build.VERSION_CODES.TIRAMISU)) {
                 throw ex;
             }
             Log.w(TAG, "readDescriptor() - permission check failed!");
@@ -3741,8 +3744,9 @@ public class GattService extends ProfileService {
         try {
             permissionCheck(connId, handle);
         } catch (SecurityException ex) {
-            // Only throws on T+ as this is an older API and did not throw prior to T
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            String callingPackage = attributionSource.getPackageName();
+            // Only throws on apps with target SDK T+ as this old API did not throw prior to T
+            if (checkCallerTargetSdk(this, callingPackage, Build.VERSION_CODES.TIRAMISU)) {
                 throw ex;
             }
             Log.w(TAG, "registerForNotification() - permission check failed!");
