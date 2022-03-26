@@ -712,7 +712,7 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
 
       switch (filter.filter_type) {
         case ApcfFilterType::BROADCASTER_ADDRESS: {
-          update_address_filter(apcf_action, filter_index, filter.address, filter.application_address_type);
+          update_address_filter(apcf_action, filter_index, filter.address, filter.application_address_type, filter.irk);
           break;
         }
         case ApcfFilterType::SERVICE_UUID:
@@ -741,16 +741,50 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
   }
 
   void update_address_filter(
-      ApcfAction action, uint8_t filter_index, Address address, ApcfApplicationAddressType address_type) {
+      ApcfAction action,
+      uint8_t filter_index,
+      Address address,
+      ApcfApplicationAddressType address_type,
+      std::array<uint8_t, 16> irk) {
     if (action != ApcfAction::CLEAR) {
+      /*
+       * The vendor command (APCF Filtering 0x0157) takes Public (0) or Random (1)
+       * or Addresses type not applicable (2).
+       *
+       * Advertising results have four types:
+       * ￼    -  Public = 0
+       * ￼    -  Random = 1
+       * ￼    -  Public ID = 2
+       * ￼    -  Random ID = 3
+       *
+       * e.g. specifying PUBLIC (0) will only return results with a public
+       * address. It will ignore resolved addresses, since they return PUBLIC
+       * IDENTITY (2). For this, Addresses type not applicable (0x02) must be specified.
+       * This should also cover if the RPA is derived from RANDOM STATIC.
+       */
       le_scanning_interface_->EnqueueCommand(
-          LeAdvFilterBroadcasterAddressBuilder::Create(action, filter_index, address, address_type),
+          LeAdvFilterBroadcasterAddressBuilder::Create(
+              action, filter_index, address, ApcfApplicationAddressType::NOT_APPLICABLE),
           module_handler_->BindOnceOn(this, &impl::on_advertising_filter_complete));
+      if (!is_empty_128bit(irk)) {
+        std::array<uint8_t, 16> empty_irk;
+        le_address_manager_->AddDeviceToResolvingList(
+            static_cast<PeerAddressType>(address_type), address, irk, empty_irk);
+      }
     } else {
       le_scanning_interface_->EnqueueCommand(
           LeAdvFilterClearBroadcasterAddressBuilder::Create(filter_index),
           module_handler_->BindOnceOn(this, &impl::on_advertising_filter_complete));
     }
+  }
+
+  bool is_empty_128bit(const std::array<uint8_t, 16> data) {
+    for (int i = 0; i < 16; i++) {
+      if (data[i] != (uint8_t)0) {
+        return false;
+      }
+    }
+    return true;
   }
 
   void update_uuid_filter(

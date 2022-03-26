@@ -88,7 +88,7 @@ bool maybe_resolve_address(RawAddress* bda, tBLE_ADDR_TYPE* bda_type) {
       if (!btm_ble_init_pseudo_addr(match_rec, *bda)) {
         /* assign the original address to be the current report address */
         *bda = match_rec->ble.pseudo_addr;
-        *bda_type = match_rec->ble.ble_addr_type;
+        *bda_type = match_rec->ble.AddressType();
       } else {
         *bda = match_rec->bd_addr;
       }

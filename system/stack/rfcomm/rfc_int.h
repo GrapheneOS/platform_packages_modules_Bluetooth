@@ -34,6 +34,7 @@
 #include "stack/include/l2c_api.h"
 #include "stack/rfcomm/port_int.h"
 #include "stack/rfcomm/rfc_event.h"
+#include "stack/rfcomm/rfc_state.h"
 #include "types/raw_address.h"
 
 /*
@@ -145,49 +146,6 @@ typedef struct {
 #define LINE_STATUS_RXPARITY 0x04 /* Receive Parity Error    */
 #define LINE_STATUS_FRAME 0x08    /* Receive Framing error   */
 #define LINE_STATUS_FAILED 0x10   /* Connection Failed       */
-
-/*
- * Define states and events for the RFC multiplexer state machine
-*/
-typedef enum : uint16_t {
-  RFC_MX_STATE_IDLE = 0,
-  RFC_MX_STATE_WAIT_CONN_CNF = 1,
-  RFC_MX_STATE_CONFIGURE = 2,
-  RFC_MX_STATE_SABME_WAIT_UA = 3,
-  RFC_MX_STATE_WAIT_SABME = 4,
-  RFC_MX_STATE_CONNECTED = 5,
-  RFC_MX_STATE_DISC_WAIT_UA = 6,
-} tRFC_MX_STATE;
-
-#define CASE_RETURN_TEXT(code) \
-  case code:                   \
-    return #code
-
-inline std::string rfcomm_mx_state_text(const tRFC_MX_STATE& state) {
-  switch (state) {
-    CASE_RETURN_TEXT(RFC_MX_STATE_IDLE);
-    CASE_RETURN_TEXT(RFC_MX_STATE_WAIT_CONN_CNF);
-    CASE_RETURN_TEXT(RFC_MX_STATE_CONFIGURE);
-    CASE_RETURN_TEXT(RFC_MX_STATE_SABME_WAIT_UA);
-    CASE_RETURN_TEXT(RFC_MX_STATE_WAIT_SABME);
-    CASE_RETURN_TEXT(RFC_MX_STATE_CONNECTED);
-    CASE_RETURN_TEXT(RFC_MX_STATE_DISC_WAIT_UA);
-    default:
-      return std::string("UNKNOWN[") + std::to_string(state) + std::string("]");
-  }
-}
-
-#undef CASE_RETURN_TEXT
-
-/*
- * Define port states
- */
-#define RFC_STATE_CLOSED 0
-#define RFC_STATE_SABME_WAIT_UA 1
-#define RFC_STATE_ORIG_WAIT_SEC_CHECK 2
-#define RFC_STATE_TERM_WAIT_SEC_CHECK 3
-#define RFC_STATE_OPENED 4
-#define RFC_STATE_DISC_WAIT_UA 5
 
 /* seconds to wait for reply with Poll bit */
 #define RFC_T1_TIMEOUT 20
