@@ -35,11 +35,12 @@
 /*
  * Define used by RFCOMM TS frame types
 */
-#define RFCOMM_SABME 0x2F
-#define RFCOMM_UA 0x63
-#define RFCOMM_DM 0x0F
-#define RFCOMM_DISC 0x43
-#define RFCOMM_UIH 0xEF
+#define RFCOMM_SABME 0x2F  // Start Asynchronous Balanced Mode (startup command)
+#define RFCOMM_UA 0x63  // Unnumbered Acknowledgement (response when connected)
+#define RFCOMM_DM \
+  0x0F  // Disconnected Mode (response to a command when disconnected)
+#define RFCOMM_DISC 0x43  // Disconnect (disconnect command)
+#define RFCOMM_UIH 0xEF   // Unnumbered Information with Header check
 
 /*
  * Defenitions for the TS control frames
