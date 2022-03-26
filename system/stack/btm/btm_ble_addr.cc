@@ -247,7 +247,7 @@ bool btm_identity_addr_to_random_pseudo(RawAddress* bd_addr,
     *bd_addr = p_dev_rec->ble.pseudo_addr;
   }
 
-  *p_addr_type = p_dev_rec->ble.ble_addr_type;
+  *p_addr_type = p_dev_rec->ble.AddressType();
   return true;
 }
 
