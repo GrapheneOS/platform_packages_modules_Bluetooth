@@ -80,7 +80,6 @@ std::string BodyField::GetRustDataType() const {
   return GetDataType();
 }
 
-void BodyField::GenRustGetter(std::ostream&, Size, Size) const {
-}
+void BodyField::GenRustGetter(std::ostream&, Size, Size, std::string) const {}
 
 void BodyField::GenRustWriter(std::ostream&, Size, Size) const {}

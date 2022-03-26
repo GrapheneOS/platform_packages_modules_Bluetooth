@@ -1909,8 +1909,6 @@ class LeAudioClientImpl : public LeAudioClient {
 
     bool mono = (left_cis_handle == 0) || (right_cis_handle == 0);
 
-    LOG(INFO) << __func__ << " data size: " << (int)data.size()
-              << " byte count: " << byte_count << " mono: " << mono;
     if (!mono) {
       lc3_encode(lc3_encoder_left, LC3_PCM_FORMAT_S16,
                  (const int16_t*)data.data(), 2, chan_left_enc.size(),
@@ -2145,7 +2143,7 @@ class LeAudioClientImpl : public LeAudioClient {
     /* Get only one channel for MONO microphone */
     /* Gather data for channel */
     if ((active_group_id_ == bluetooth::groups::kGroupUnknown) ||
-        (audio_sender_state_ != AudioState::STARTED))
+        (audio_receiver_state_ != AudioState::STARTED))
       return;
 
     LeAudioDeviceGroup* group = aseGroups_.FindById(active_group_id_);

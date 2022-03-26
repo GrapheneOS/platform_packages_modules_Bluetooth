@@ -491,7 +491,6 @@ static JNINativeMethod sMethods[] = {
 static jmethodID method_onBroadcastCreated;
 static jmethodID method_onBroadcastDestroyed;
 static jmethodID method_onBroadcastStateChanged;
-static jmethodID method_onBroadcastId;
 
 static LeAudioBroadcasterInterface* sLeAudioBroadcasterInterface = nullptr;
 static std::shared_timed_mutex sBroadcasterInterfaceMutex;
@@ -503,7 +502,7 @@ class LeAudioBroadcasterCallbacksImpl : public LeAudioBroadcasterCallbacks {
  public:
   ~LeAudioBroadcasterCallbacksImpl() = default;
 
-  void OnBroadcastCreated(uint8_t instance_id, bool success) override {
+  void OnBroadcastCreated(uint32_t broadcast_id, bool success) override {
     LOG(INFO) << __func__;
 
     std::shared_lock<std::shared_timed_mutex> lock(sBroadcasterCallbacksMutex);
@@ -511,11 +510,11 @@ class LeAudioBroadcasterCallbacksImpl : public LeAudioBroadcasterCallbacks {
 
     if (!sCallbackEnv.valid() || sBroadcasterCallbacksObj == nullptr) return;
     sCallbackEnv->CallVoidMethod(sBroadcasterCallbacksObj,
-                                 method_onBroadcastCreated, (jint)instance_id,
+                                 method_onBroadcastCreated, (jint)broadcast_id,
                                  success ? JNI_TRUE : JNI_FALSE);
   }
 
-  void OnBroadcastDestroyed(uint8_t instance_id) override {
+  void OnBroadcastDestroyed(uint32_t broadcast_id) override {
     LOG(INFO) << __func__;
 
     std::shared_lock<std::shared_timed_mutex> lock(sBroadcasterCallbacksMutex);
@@ -524,10 +523,10 @@ class LeAudioBroadcasterCallbacksImpl : public LeAudioBroadcasterCallbacks {
     if (!sCallbackEnv.valid() || sBroadcasterCallbacksObj == nullptr) return;
     sCallbackEnv->CallVoidMethod(sBroadcasterCallbacksObj,
                                  method_onBroadcastDestroyed,
-                                 (jint)instance_id);
+                                 (jint)broadcast_id);
   }
 
-  void OnBroadcastStateChanged(uint8_t instance_id,
+  void OnBroadcastStateChanged(uint32_t broadcast_id,
                                BroadcastState state) override {
     LOG(INFO) << __func__;
 
@@ -537,34 +536,8 @@ class LeAudioBroadcasterCallbacksImpl : public LeAudioBroadcasterCallbacks {
     if (!sCallbackEnv.valid() || sBroadcasterCallbacksObj == nullptr) return;
     sCallbackEnv->CallVoidMethod(
         sBroadcasterCallbacksObj, method_onBroadcastStateChanged,
-        (jint)instance_id,
+        (jint)broadcast_id,
         (jint) static_cast<std::underlying_type<BroadcastState>::type>(state));
-  }
-
-  void OnBroadcastId(uint8_t instance_id,
-                     const BroadcastId& broadcast_id) override {
-    LOG(INFO) << __func__;
-
-    std::shared_lock<std::shared_timed_mutex> lock(sBroadcasterCallbacksMutex);
-    CallbackEnv sCallbackEnv(__func__);
-
-    // broadcast_id
-    int field_size = broadcast_id.size();
-    ScopedLocalRef<jbyteArray> serialized_broadcast_id(
-        sCallbackEnv.get(), sCallbackEnv->NewByteArray(field_size));
-    if (!serialized_broadcast_id.get()) {
-      LOG(ERROR) << "Failed to allocate new jbyteArray broadcast_id for the "
-                    "announcement";
-      return;
-    }
-
-    sCallbackEnv->SetByteArrayRegion(serialized_broadcast_id.get(), 0,
-                                     field_size, (jbyte*)broadcast_id.data());
-
-    if (!sCallbackEnv.valid() || sBroadcasterCallbacksObj == nullptr) return;
-    sCallbackEnv->CallVoidMethod(sBroadcasterCallbacksObj, method_onBroadcastId,
-                                 (jint)instance_id,
-                                 serialized_broadcast_id.get());
   }
 };
 
@@ -577,7 +550,6 @@ static void BroadcasterClassInitNative(JNIEnv* env, jclass clazz) {
       env->GetMethodID(clazz, "onBroadcastDestroyed", "(I)V");
   method_onBroadcastStateChanged =
       env->GetMethodID(clazz, "onBroadcastStateChanged", "(II)V");
-  method_onBroadcastId = env->GetMethodID(clazz, "onBroadcastId", "(I[B)V");
 }
 
 static void BroadcasterInitNative(JNIEnv* env, jobject object) {
@@ -672,52 +644,45 @@ static void CreateBroadcastNative(JNIEnv* env, jobject object,
   env->ReleaseByteArrayElements(metadata, meta, 0);
 }
 
-static void UpdateMetadataNative(JNIEnv* env, jobject object, jint instance_id,
+static void UpdateMetadataNative(JNIEnv* env, jobject object, jint broadcast_id,
                                  jbyteArray metadata) {
   jbyte* meta = env->GetByteArrayElements(metadata, nullptr);
   sLeAudioBroadcasterInterface->UpdateMetadata(
-      instance_id,
+      broadcast_id,
       std::vector<uint8_t>(meta, meta + env->GetArrayLength(metadata)));
   env->ReleaseByteArrayElements(metadata, meta, 0);
 }
 
 static void StartBroadcastNative(JNIEnv* env, jobject object,
-                                 jint instance_id) {
+                                 jint broadcast_id) {
   LOG(INFO) << __func__;
   std::shared_lock<std::shared_timed_mutex> lock(sBroadcasterInterfaceMutex);
   if (!sLeAudioBroadcasterInterface) return;
-  sLeAudioBroadcasterInterface->StartBroadcast(instance_id);
+  sLeAudioBroadcasterInterface->StartBroadcast(broadcast_id);
 }
 
-static void StopBroadcastNative(JNIEnv* env, jobject object, jint instance_id) {
+static void StopBroadcastNative(JNIEnv* env, jobject object,
+                                jint broadcast_id) {
   LOG(INFO) << __func__;
   std::shared_lock<std::shared_timed_mutex> lock(sBroadcasterInterfaceMutex);
   if (!sLeAudioBroadcasterInterface) return;
-  sLeAudioBroadcasterInterface->StopBroadcast(instance_id);
+  sLeAudioBroadcasterInterface->StopBroadcast(broadcast_id);
 }
 
 static void PauseBroadcastNative(JNIEnv* env, jobject object,
-                                 jint instance_id) {
+                                 jint broadcast_id) {
   LOG(INFO) << __func__;
   std::shared_lock<std::shared_timed_mutex> lock(sBroadcasterInterfaceMutex);
   if (!sLeAudioBroadcasterInterface) return;
-  sLeAudioBroadcasterInterface->PauseBroadcast(instance_id);
+  sLeAudioBroadcasterInterface->PauseBroadcast(broadcast_id);
 }
 
 static void DestroyBroadcastNative(JNIEnv* env, jobject object,
-                                   jint instance_id) {
+                                   jint broadcast_id) {
   LOG(INFO) << __func__;
   std::shared_lock<std::shared_timed_mutex> lock(sBroadcasterInterfaceMutex);
   if (!sLeAudioBroadcasterInterface) return;
-  sLeAudioBroadcasterInterface->DestroyBroadcast(instance_id);
-}
-
-static void GetBroadcastIdNative(JNIEnv* env, jobject object,
-                                 jint instance_id) {
-  LOG(INFO) << __func__;
-  std::shared_lock<std::shared_timed_mutex> lock(sBroadcasterInterfaceMutex);
-  if (!sLeAudioBroadcasterInterface) return;
-  sLeAudioBroadcasterInterface->GetBroadcastId(instance_id);
+  sLeAudioBroadcasterInterface->DestroyBroadcast(broadcast_id);
 }
 
 static void GetAllBroadcastStatesNative(JNIEnv* env, jobject object) {
@@ -738,7 +703,6 @@ static JNINativeMethod sBroadcasterMethods[] = {
     {"stopBroadcastNative", "(I)V", (void*)StopBroadcastNative},
     {"pauseBroadcastNative", "(I)V", (void*)PauseBroadcastNative},
     {"destroyBroadcastNative", "(I)V", (void*)DestroyBroadcastNative},
-    {"getBroadcastIdNative", "(I)V", (void*)GetBroadcastIdNative},
     {"getAllBroadcastStatesNative", "()V", (void*)GetAllBroadcastStatesNative},
 };
 

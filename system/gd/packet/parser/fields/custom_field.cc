@@ -104,7 +104,6 @@ std::string CustomField::GetRustDataType() const {
   return type_name_;
 }
 
-void CustomField::GenRustGetter(std::ostream&, Size, Size) const {
-}
+void CustomField::GenRustGetter(std::ostream&, Size, Size, std::string) const {}
 
 void CustomField::GenRustWriter(std::ostream&, Size, Size) const {}

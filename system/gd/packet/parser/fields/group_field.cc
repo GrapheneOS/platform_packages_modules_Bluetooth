@@ -87,7 +87,6 @@ std::string GroupField::GetRustDataType() const {
   return GetDataType();
 }
 
-void GroupField::GenRustGetter(std::ostream&, Size, Size) const {
-}
+void GroupField::GenRustGetter(std::ostream&, Size, Size, std::string) const {}
 
 void GroupField::GenRustWriter(std::ostream&, Size, Size) const {}
