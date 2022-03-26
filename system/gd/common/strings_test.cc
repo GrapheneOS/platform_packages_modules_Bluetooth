@@ -256,4 +256,15 @@ TEST(StringsTest, string_format_time_with_ms_test) {
   ASSERT_THAT(StringFormatTimeWithMilliseconds(format, time_point2, gmtime), StrEq("2009-02-13 23:31:30.001"));
 }
 
+class ExampleClass {};
+std::ostream& operator<<(std::ostream& os, const ExampleClass& obj) {
+  os << "ExampleClass";
+  return os;
+}
+
+TEST(StringsTest, example_class_to_string_test) {
+  ExampleClass obj;
+  ASSERT_THAT(ToString(obj), StrEq("ExampleClass"));
+}
+
 }  // namespace testing

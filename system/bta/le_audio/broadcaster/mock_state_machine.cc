@@ -32,6 +32,9 @@ std::unique_ptr<BroadcastStateMachine> BroadcastStateMachine::CreateInstance(
   return std::move(instance);
 }
 
+namespace le_audio {
+namespace broadcaster {
+
 std::ostream& operator<<(std::ostream& os,
                          const BroadcastStateMachine::Message& state) {
   static const char* char_value_[BroadcastStateMachine::MESSAGE_COUNT] = {
@@ -47,6 +50,23 @@ std::ostream& operator<<(std::ostream& os,
   os << char_value_[static_cast<uint8_t>(state)];
   return os;
 }
+
+std::ostream& operator<<(std::ostream& os, const BigConfig& config) {
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os,
+                         const BroadcastStateMachineConfig& config) {
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os,
+                         const BroadcastStateMachine& machine) {
+  return os;
+}
+
+}  // namespace broadcaster
+}  // namespace le_audio
 
 uint8_t MockBroadcastStateMachine::instance_counter_ = 0;
 MockBroadcastStateMachine* MockBroadcastStateMachine::last_instance_ = nullptr;

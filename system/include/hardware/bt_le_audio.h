@@ -145,8 +145,6 @@ class LeAudioClientInterface {
       btle_audio_codec_config_t output_codec_config) = 0;
 };
 
-static constexpr uint8_t INSTANCE_ID_UNDEFINED = 0xFF;
-
 /* Represents the broadcast source state. */
 enum class BroadcastState {
   STOPPED = 0,
@@ -162,25 +160,21 @@ enum class BroadcastAudioProfile {
   MEDIA,
 };
 
-constexpr uint8_t kBroadcastAnnouncementBroadcastIdSize = 3;
-using BroadcastId = std::array<uint8_t, kBroadcastAnnouncementBroadcastIdSize>;
-constexpr BroadcastId kBroadcastBroadcastIdInvalid = {0, 0, 0};
+using BroadcastId = uint32_t;
+static constexpr BroadcastId kBroadcastIdInvalid = 0x00000000;
 using BroadcastCode = std::array<uint8_t, 16>;
 
 class LeAudioBroadcasterCallbacks {
  public:
   virtual ~LeAudioBroadcasterCallbacks() = default;
   /* Callback for the newly created broadcast event. */
-  virtual void OnBroadcastCreated(uint8_t instance_id, bool success) = 0;
+  virtual void OnBroadcastCreated(uint32_t broadcast_id, bool success) = 0;
 
   /* Callback for the destroyed broadcast event. */
-  virtual void OnBroadcastDestroyed(uint8_t instance_id) = 0;
+  virtual void OnBroadcastDestroyed(uint32_t broadcast_id) = 0;
   /* Callback for the broadcast source state event. */
-  virtual void OnBroadcastStateChanged(uint8_t instance_id,
+  virtual void OnBroadcastStateChanged(uint32_t broadcast_id,
                                        BroadcastState state) = 0;
-  /* Callback for the broadcaster identifier. */
-  virtual void OnBroadcastId(uint8_t instance_id,
-                             const BroadcastId& broadcast_id) = 0;
 };
 
 class LeAudioBroadcasterInterface {
@@ -197,19 +191,17 @@ class LeAudioBroadcasterInterface {
                                BroadcastAudioProfile profile,
                                std::optional<BroadcastCode> broadcast_code) = 0;
   /* Update the ongoing Broadcast metadata */
-  virtual void UpdateMetadata(uint8_t instance_id,
+  virtual void UpdateMetadata(uint32_t broadcast_id,
                               std::vector<uint8_t> metadata) = 0;
 
   /* Start the existing Broadcast stream */
-  virtual void StartBroadcast(uint8_t instance_id) = 0;
+  virtual void StartBroadcast(uint32_t broadcast_id) = 0;
   /* Pause the ongoing Broadcast stream */
-  virtual void PauseBroadcast(uint8_t instance_id) = 0;
+  virtual void PauseBroadcast(uint32_t broadcast_id) = 0;
   /* Stop the Broadcast (no stream, no periodic advertisements */
-  virtual void StopBroadcast(uint8_t instance_id) = 0;
+  virtual void StopBroadcast(uint32_t broadcast_id) = 0;
   /* Destroy the existing Broadcast instance */
-  virtual void DestroyBroadcast(uint8_t instance_id) = 0;
-  /* Get Broadcasts identifier */
-  virtual void GetBroadcastId(uint8_t instance_id) = 0;
+  virtual void DestroyBroadcast(uint32_t broadcast_id) = 0;
 
   /* Get all broadcast states */
   virtual void GetAllBroadcastStates(void) = 0;

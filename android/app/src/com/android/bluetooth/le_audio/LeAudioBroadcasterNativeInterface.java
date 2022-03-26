@@ -81,34 +81,34 @@ public class LeAudioBroadcasterNativeInterface {
 
     // Callbacks from the native stack back into the Java framework.
     @VisibleForTesting
-    public void onBroadcastCreated(int instanceId, boolean success) {
+    public void onBroadcastCreated(int broadcastId, boolean success) {
         if (DBG) {
-            Log.d(TAG, "onBroadcastCreated: instanceId=" + instanceId);
+            Log.d(TAG, "onBroadcastCreated: broadcastId=" + broadcastId);
         }
         LeAudioStackEvent event =
                 new LeAudioStackEvent(LeAudioStackEvent.EVENT_TYPE_BROADCAST_CREATED);
 
-        event.valueInt1 = instanceId;
+        event.valueInt1 = broadcastId;
         event.valueBool1 = success;
         sendMessageToService(event);
     }
 
     @VisibleForTesting
-    public void onBroadcastDestroyed(int instanceId) {
+    public void onBroadcastDestroyed(int broadcastId) {
         if (DBG) {
-            Log.d(TAG, "onBroadcastDestroyed: instanceId=" + instanceId);
+            Log.d(TAG, "onBroadcastDestroyed: broadcastId=" + broadcastId);
         }
         LeAudioStackEvent event =
                 new LeAudioStackEvent(LeAudioStackEvent.EVENT_TYPE_BROADCAST_DESTROYED);
 
-        event.valueInt1 = instanceId;
+        event.valueInt1 = broadcastId;
         sendMessageToService(event);
     }
 
     @VisibleForTesting
-    public void onBroadcastStateChanged(int instanceId, int state) {
+    public void onBroadcastStateChanged(int broadcastId, int state) {
         if (DBG) {
-            Log.d(TAG, "onBroadcastStateChanged: instanceId=" + instanceId + " state=" + state);
+            Log.d(TAG, "onBroadcastStateChanged: broadcastId=" + broadcastId + " state=" + state);
         }
         LeAudioStackEvent event =
                 new LeAudioStackEvent(LeAudioStackEvent.EVENT_TYPE_BROADCAST_STATE);
@@ -120,20 +120,8 @@ public class LeAudioBroadcasterNativeInterface {
          * For now it's only important that this device is a Bluetooth device.
          */
         event.device = getDevice(Utils.getBytesFromAddress("FF:FF:FF:FF:FF:FF"));
-        event.valueInt1 = instanceId;
+        event.valueInt1 = broadcastId;
         event.valueInt2 = state;
-        sendMessageToService(event);
-    }
-
-    @VisibleForTesting
-    public void onBroadcastId(int instanceId, byte[] broadcastId) {
-        LeAudioStackEvent event =
-                new LeAudioStackEvent(LeAudioStackEvent.EVENT_TYPE_BROADCAST_ID);
-        event.valueInt1 = instanceId;
-        event.valueByte1 = broadcastId;
-        if (DBG) {
-            Log.d(TAG, "onBroadcastId: " + event);
-        }
         sendMessageToService(event);
     }
 
@@ -178,62 +166,52 @@ public class LeAudioBroadcasterNativeInterface {
     /**
      * Update LeAudio Broadcast instance metadata.
      *
-     * @param instanceId broadcast instance identifier
+     * @param broadcastId broadcast instance identifier
      * @param metadata metadata buffer with TLVs
      */
     @VisibleForTesting(visibility = VisibleForTesting.Visibility.PACKAGE)
-    public void updateMetadata(int instanceId, byte[] metadata) {
-        updateMetadataNative(instanceId, metadata);
+    public void updateMetadata(int broadcastId, byte[] metadata) {
+        updateMetadataNative(broadcastId, metadata);
     }
 
     /**
      * Start LeAudio Broadcast instance.
      *
-     * @param instanceId broadcast instance identifier
+     * @param broadcastId broadcast instance identifier
      */
     @VisibleForTesting(visibility = VisibleForTesting.Visibility.PACKAGE)
-    public void startBroadcast(int instanceId) {
-        startBroadcastNative(instanceId);
+    public void startBroadcast(int broadcastId) {
+        startBroadcastNative(broadcastId);
     }
 
     /**
      * Stop LeAudio Broadcast instance.
      *
-     * @param instanceId broadcast instance identifier
+     * @param broadcastId broadcast instance identifier
      */
     @VisibleForTesting(visibility = VisibleForTesting.Visibility.PACKAGE)
-    public void stopBroadcast(int instanceId) {
-        stopBroadcastNative(instanceId);
+    public void stopBroadcast(int broadcastId) {
+        stopBroadcastNative(broadcastId);
     }
 
     /**
      * Pause LeAudio Broadcast instance.
      *
-     * @param instanceId broadcast instance identifier
+     * @param broadcastId broadcast instance identifier
      */
     @VisibleForTesting(visibility = VisibleForTesting.Visibility.PACKAGE)
-    public void pauseBroadcast(int instanceId) {
-        pauseBroadcastNative(instanceId);
+    public void pauseBroadcast(int broadcastId) {
+        pauseBroadcastNative(broadcastId);
     }
 
     /**
      * Destroy LeAudio Broadcast instance.
      *
-     * @param instanceId broadcast instance identifier
+     * @param broadcastId broadcast instance identifier
      */
     @VisibleForTesting(visibility = VisibleForTesting.Visibility.PACKAGE)
-    public void destroyBroadcast(int instanceId) {
-        destroyBroadcastNative(instanceId);
-    }
-
-    /**
-     * Get LeAudio Broadcast instance advertising address.
-     *
-     * @param instanceId broadcast instance identifier
-     */
-    @VisibleForTesting(visibility = VisibleForTesting.Visibility.PACKAGE)
-    public void getBroadcastId(int instanceId) {
-        getBroadcastIdNative(instanceId);
+    public void destroyBroadcast(int broadcastId) {
+        destroyBroadcastNative(broadcastId);
     }
 
     /**
@@ -250,11 +228,10 @@ public class LeAudioBroadcasterNativeInterface {
     private native void stopNative();
     private native void cleanupNative();
     private native void createBroadcastNative(byte[] metadata, int profile, byte[] broadcastCode);
-    private native void updateMetadataNative(int instanceId, byte[] metadata);
-    private native void startBroadcastNative(int instanceId);
-    private native void stopBroadcastNative(int instanceId);
-    private native void pauseBroadcastNative(int instanceId);
-    private native void destroyBroadcastNative(int instanceId);
-    private native void getBroadcastIdNative(int instanceId);
+    private native void updateMetadataNative(int broadcastId, byte[] metadata);
+    private native void startBroadcastNative(int broadcastId);
+    private native void stopBroadcastNative(int broadcastId);
+    private native void pauseBroadcastNative(int broadcastId);
+    private native void destroyBroadcastNative(int broadcastId);
     private native void getAllBroadcastStatesNative();
 }

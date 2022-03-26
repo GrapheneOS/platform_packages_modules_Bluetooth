@@ -25,6 +25,9 @@ cc_defaults {
     ],
     header_libs: ["libbluetooth_headers"],
     host_supported: true,
+    apex_available: [
+        "com.android.bluetooth",
+    ],
     target: {
         linux_glibc: {
             cflags: ["-D_GNU_SOURCE"],

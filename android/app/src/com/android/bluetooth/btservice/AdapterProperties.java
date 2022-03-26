@@ -949,8 +949,7 @@ class AdapterProperties {
 
                     case AbstractionLayer.BT_PROPERTY_LOCAL_LE_FEATURES:
                         updateFeatureSupport(val);
-                        mService.updateLeAudioProfileServiceState(
-                                mIsLeConnectedIsochronousStreamCentralSupported);
+                        mService.updateLeAudioProfileServiceState();
                         break;
 
                     case AbstractionLayer.BT_PROPERTY_DYNAMIC_AUDIO_BUFFER:

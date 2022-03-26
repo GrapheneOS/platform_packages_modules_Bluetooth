@@ -2846,7 +2846,7 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
      */
     private void updateOppLauncherComponentState(UserHandle userHandle,
             boolean bluetoothSharingDisallowed) {
-        final ComponentName oppLauncherComponent = new ComponentName("com.android.bluetooth",
+        final ComponentName oppLauncherComponent = new ComponentName("com.android.bluetooth.services",
                 "com.android.bluetooth.opp.BluetoothOppLauncherActivity");
         final int newState =
                 bluetoothSharingDisallowed ? PackageManager.COMPONENT_ENABLED_STATE_DISABLED

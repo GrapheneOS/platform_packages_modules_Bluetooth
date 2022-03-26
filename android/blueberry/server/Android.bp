@@ -2,7 +2,7 @@ package {
     default_applicable_licenses: ["Android-Apache-2.0"],
 }
 
-android_test {
+android_test_helper_app {
     name: "BlueberryServer",
     srcs: ["src/**/*.kt"],
     platform_apis: true,
@@ -27,6 +27,13 @@ android_test {
     optimize: {
         enabled: false,
     },
+}
+
+android_test {
+    name: "pts-bot",
+    required: ["BlueberryServer"],
+    test_config: "configs/PtsBotTest.xml",
+    data: ["configs/pts_bot_tests_config.json"],
 }
 
 java_library {
