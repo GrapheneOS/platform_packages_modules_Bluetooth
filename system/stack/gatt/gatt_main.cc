@@ -189,7 +189,7 @@ void gatt_find_in_device_record(const RawAddress& bd_addr,
 
   if (p_dev_rec->device_type & BT_DEVICE_TYPE_BLE) {
     if (p_dev_rec->ble.identity_address_with_type.bda.IsEmpty()) {
-      *address_with_type = {.type = p_dev_rec->ble.ble_addr_type,
+      *address_with_type = {.type = p_dev_rec->ble.AddressType(),
                             .bda = bd_addr};
       return;
     }
