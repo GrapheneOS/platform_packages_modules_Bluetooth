@@ -678,7 +678,7 @@ hci::AddressWithType Btm::GetAddressAndType(const RawAddress& bd_addr) {
                                p_dev_rec->ble.identity_address_with_type.type);
     } else {
       return ToAddressWithType(p_dev_rec->ble.pseudo_addr,
-                               p_dev_rec->ble.ble_addr_type);
+                               p_dev_rec->ble.AddressType());
     }
   }
   LOG(ERROR) << "Unknown bd_addr. Use public address";
