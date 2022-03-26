@@ -237,7 +237,7 @@ tBTM_SEC_DEV_REC* btm_sec_alloc_dev(const RawAddress& bd_addr) {
     memcpy(p_dev_rec->dev_class, p_inq_info->results.dev_class, DEV_CLASS_LEN);
 
     p_dev_rec->device_type = p_inq_info->results.device_type;
-    p_dev_rec->ble.ble_addr_type = p_inq_info->results.ble_addr_type;
+    p_dev_rec->ble.SetAddressType(p_inq_info->results.ble_addr_type);
   } else if (bd_addr == btm_cb.connecting_bda)
     memcpy(p_dev_rec->dev_class, btm_cb.connecting_dc, DEV_CLASS_LEN);
 
@@ -405,7 +405,7 @@ void btm_consolidate_dev(tBTM_SEC_DEV_REC* p_target_rec) {
     /* an RPA device entry is a duplicate of the target record */
     if (btm_ble_addr_resolvable(p_dev_rec->bd_addr, p_target_rec)) {
       if (p_target_rec->ble.pseudo_addr == p_dev_rec->bd_addr) {
-        p_target_rec->ble.ble_addr_type = p_dev_rec->ble.ble_addr_type;
+        p_target_rec->ble.SetAddressType(p_dev_rec->ble.AddressType());
         p_target_rec->device_type |= p_dev_rec->device_type;
 
         /* remove the combined record */
