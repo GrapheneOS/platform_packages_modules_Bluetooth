@@ -2488,7 +2488,7 @@ void btm_ble_process_adv_addr(RawAddress& bda, tBLE_ADDR_TYPE* addr_type) {
       } else {
         // Assign the original address to be the current report address
         bda = match_rec->ble.pseudo_addr;
-        *addr_type = match_rec->ble.ble_addr_type;
+        *addr_type = match_rec->ble.AddressType();
       }
     }
   }

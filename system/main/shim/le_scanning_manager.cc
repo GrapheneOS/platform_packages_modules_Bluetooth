@@ -491,6 +491,7 @@ bool BleScannerInterfaceImpl::parse_filter_command(
       apcf_command.data.begin(), apcf_command.data.end());
   advertising_packet_content_filter_command.data_mask.assign(
       apcf_command.data_mask.begin(), apcf_command.data_mask.end());
+  advertising_packet_content_filter_command.irk = apcf_command.irk;
   return true;
 }
 

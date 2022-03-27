@@ -89,6 +89,7 @@ class AdvertisingPacketContentFilterCommand {
   uint16_t company_mask;
   std::vector<uint8_t> data;
   std::vector<uint8_t> data_mask;
+  std::array<uint8_t, 16> irk;
 };
 
 class AdvertisingFilterParameter {
