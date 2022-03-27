@@ -1,6 +1,14 @@
 {
     "_comments_": [
         " == Audio Set Configurations == ",
+        " Contains: ",
+        "   1. configurations : ",
+        "        Maps configuration name with codec and qos config to be used",
+        "   2. codec_configurations : ",
+        "        Array of codec specific configurations",
+        "   3. qos_configurations : ",
+        "        Array of QoS specific configurations",
+        "        QoS configuration values are as per BAP spec 1.0",
         " Example values which can be used as 'codec_configuration.type'",
         "   Codec Configuration parameter types:",
         "     SUPPORTED_SAMPLING_FREQUENCY = 1",
@@ -34,6 +42,338 @@
         "     10000us = 1"
     ],
     "configurations": [
+        {
+            "name": "DualDev_OneChanStereoSnk_16_1_Server_Preferred",
+            "codec_config_name": "DualDev_OneChanStereoSnk_16_1",
+            "qos_config_name": "QoS_Config_Server_Preferred"
+        },
+        {
+            "name": "DualDev_OneChanStereoSnk_16_1_1",
+            "codec_config_name": "DualDev_OneChanStereoSnk_16_1",
+            "qos_config_name": "QoS_Config_16_1_1"
+        },
+        {
+            "name": "DualDev_OneChanStereoSnk_16_1_2",
+            "codec_config_name": "DualDev_OneChanStereoSnk_16_1",
+            "qos_config_name": "QoS_Config_16_1_2"
+        },
+        {
+            "name": "DualDev_OneChanStereoSnk_16_2_Server_Preferred",
+            "codec_config_name": "DualDev_OneChanStereoSnk_16_2",
+            "qos_config_name": "QoS_Config_Server_Preferred"
+        },
+        {
+            "name": "DualDev_OneChanStereoSnk_16_2_1",
+            "codec_config_name": "DualDev_OneChanStereoSnk_16_2",
+            "qos_config_name": "QoS_Config_16_2_1"
+        },
+        {
+            "name": "DualDev_OneChanStereoSnk_16_2_2",
+            "codec_config_name": "DualDev_OneChanStereoSnk_16_2",
+            "qos_config_name": "QoS_Config_16_2_2"
+        },
+        {
+            "name": "SingleDev_OneChanStereoSnk_16_1_Server_Preferred",
+            "codec_config_name": "SingleDev_OneChanStereoSnk_16_1",
+            "qos_config_name": "QoS_Config_Server_Preferred"
+        },
+        {
+            "name": "SingleDev_OneChanStereoSnk_16_1_1",
+            "codec_config_name": "SingleDev_OneChanStereoSnk_16_1",
+            "qos_config_name": "QoS_Config_16_1_1"
+        },
+        {
+            "name": "SingleDev_OneChanStereoSnk_16_1_2",
+            "codec_config_name": "SingleDev_OneChanStereoSnk_16_1",
+            "qos_config_name": "QoS_Config_16_1_2"
+        },
+        {
+            "name": "SingleDev_OneChanStereoSnk_16_2_Server_Preferred",
+            "codec_config_name": "SingleDev_OneChanStereoSnk_16_2",
+            "qos_config_name": "QoS_Config_Server_Preferred"
+        },
+        {
+            "name": "SingleDev_OneChanStereoSnk_16_2_1",
+            "codec_config_name": "SingleDev_OneChanStereoSnk_16_2",
+            "qos_config_name": "QoS_Config_16_2_1"
+        },
+        {
+            "name": "SingleDev_OneChanStereoSnk_16_2_2",
+            "codec_config_name": "SingleDev_OneChanStereoSnk_16_2",
+            "qos_config_name": "QoS_Config_16_2_2"
+        },
+        {
+            "name": "SingleDev_TwoChanStereoSnk_16_1_Server_Preferred",
+            "codec_config_name": "SingleDev_TwoChanStereoSnk_16_1",
+            "qos_config_name": "QoS_Config_Server_Preferred"
+        },
+        {
+            "name": "SingleDev_TwoChanStereoSnk_16_1_1",
+            "codec_config_name": "SingleDev_TwoChanStereoSnk_16_1",
+            "qos_config_name": "QoS_Config_16_1_1"
+        },
+        {
+            "name": "SingleDev_TwoChanStereoSnk_16_1_2",
+            "codec_config_name": "SingleDev_TwoChanStereoSnk_16_1",
+            "qos_config_name": "QoS_Config_16_1_2"
+        },
+        {
+            "name": "SingleDev_TwoChanStereoSnk_16_2_Server_Preferred",
+            "codec_config_name": "SingleDev_TwoChanStereoSnk_16_2",
+            "qos_config_name": "QoS_Config_Server_Preferred"
+        },
+        {
+            "name": "SingleDev_TwoChanStereoSnk_16_2_1",
+            "codec_config_name": "SingleDev_TwoChanStereoSnk_16_2",
+            "qos_config_name": "QoS_Config_16_2_1"
+        },
+        {
+            "name": "SingleDev_TwoChanStereoSnk_16_2_2",
+            "codec_config_name": "SingleDev_TwoChanStereoSnk_16_2",
+            "qos_config_name": "QoS_Config_16_2_2"
+        },
+        {
+            "name": "SingleDev_OneChanMonoSnk_16_1_Server_Preferred",
+            "codec_config_name": "SingleDev_OneChanMonoSnk_16_1",
+            "qos_config_name": "QoS_Config_Server_Preferred"
+        },
+        {
+            "name": "SingleDev_OneChanMonoSnk_16_1_1",
+            "codec_config_name": "SingleDev_OneChanMonoSnk_16_1",
+            "qos_config_name": "QoS_Config_16_1_1"
+        },
+        {
+            "name": "SingleDev_OneChanMonoSnk_16_1_2",
+            "codec_config_name": "SingleDev_OneChanMonoSnk_16_1",
+            "qos_config_name": "QoS_Config_16_1_2"
+        },
+        {
+            "name": "SingleDev_OneChanMonoSnk_16_2_Server_Preferred",
+            "codec_config_name": "SingleDev_OneChanMonoSnk_16_2",
+            "qos_config_name": "QoS_Config_Server_Preferred"
+        },
+        {
+            "name": "SingleDev_OneChanMonoSnk_16_2_1",
+            "codec_config_name": "SingleDev_OneChanMonoSnk_16_2",
+            "qos_config_name": "QoS_Config_16_2_1"
+        },
+        {
+            "name": "SingleDev_OneChanMonoSnk_16_2_2",
+            "codec_config_name": "SingleDev_OneChanMonoSnk_16_2",
+            "qos_config_name": "QoS_Config_16_2_2"
+        },
+        {
+            "name": "DualDev_OneChanStereoSnk_OneChanMonoSrc_16_1_Server_Preferred",
+            "codec_config_name": "DualDev_OneChanStereoSnk_OneChanMonoSrc_16_1",
+            "qos_config_name": "QoS_Config_Server_Preferred"
+        },
+        {
+            "name": "DualDev_OneChanStereoSnk_OneChanMonoSrc_16_1_1",
+            "codec_config_name": "DualDev_OneChanStereoSnk_OneChanMonoSrc_16_1",
+            "qos_config_name": "QoS_Config_16_1_1"
+        },
+        {
+            "name": "DualDev_OneChanStereoSnk_OneChanMonoSrc_16_1_2",
+            "codec_config_name": "DualDev_OneChanStereoSnk_OneChanMonoSrc_16_1",
+            "qos_config_name": "QoS_Config_16_1_2"
+        },
+        {
+            "name": "DualDev_OneChanStereoSnk_OneChanMonoSrc_16_2_Server_Preferred",
+            "codec_config_name": "DualDev_OneChanStereoSnk_OneChanMonoSrc_16_2",
+            "qos_config_name": "QoS_Config_Server_Preferred"
+        },
+        {
+            "name": "DualDev_OneChanStereoSnk_OneChanMonoSrc_16_2_1",
+            "codec_config_name": "DualDev_OneChanStereoSnk_OneChanMonoSrc_16_2",
+            "qos_config_name": "QoS_Config_16_2_1"
+        },
+        {
+            "name": "DualDev_OneChanStereoSnk_OneChanMonoSrc_16_2_2",
+            "codec_config_name": "DualDev_OneChanStereoSnk_OneChanMonoSrc_16_2",
+            "qos_config_name": "QoS_Config_16_2_2"
+        },
+        {
+            "name": "DualDev_OneChanDoubleStereoSnk_OneChanMonoSrc_16_1_Server_Preferred",
+            "codec_config_name": "DualDev_OneChanDoubleStereoSnk_OneChanMonoSrc_16_1",
+            "qos_config_name": "QoS_Config_Server_Preferred"
+        },
+        {
+            "name": "DualDev_OneChanDoubleStereoSnk_OneChanMonoSrc_16_1_1",
+            "codec_config_name": "DualDev_OneChanDoubleStereoSnk_OneChanMonoSrc_16_1",
+            "qos_config_name": "QoS_Config_16_1_1"
+        },
+        {
+            "name": "DualDev_OneChanDoubleStereoSnk_OneChanMonoSrc_16_1_2",
+            "codec_config_name": "DualDev_OneChanDoubleStereoSnk_OneChanMonoSrc_16_1",
+            "qos_config_name": "QoS_Config_16_1_2"
+        },
+        {
+            "name": "DualDev_OneChanDoubleStereoSnk_OneChanMonoSrc_16_2_Server_Preferred",
+            "codec_config_name": "DualDev_OneChanDoubleStereoSnk_OneChanMonoSrc_16_2",
+            "qos_config_name": "QoS_Config_Server_Preferred"
+        },
+        {
+            "name": "DualDev_OneChanDoubleStereoSnk_OneChanMonoSrc_16_2_1",
+            "codec_config_name": "DualDev_OneChanDoubleStereoSnk_OneChanMonoSrc_16_2",
+            "qos_config_name": "QoS_Config_16_2_1"
+        },
+        {
+            "name": "DualDev_OneChanDoubleStereoSnk_OneChanMonoSrc_16_2_2",
+            "codec_config_name": "DualDev_OneChanDoubleStereoSnk_OneChanMonoSrc_16_2",
+            "qos_config_name": "QoS_Config_16_2_2"
+        },
+        {
+            "name": "SingleDev_TwoChanStereoSnk_OneChanMonoSrc_16_1_Server_Preferred",
+            "codec_config_name": "SingleDev_TwoChanStereoSnk_OneChanMonoSrc_16_1",
+            "qos_config_name": "QoS_Config_Server_Preferred"
+        },
+        {
+            "name": "SingleDev_TwoChanStereoSnk_OneChanMonoSrc_16_1_1",
+            "codec_config_name": "SingleDev_TwoChanStereoSnk_OneChanMonoSrc_16_1",
+            "qos_config_name": "QoS_Config_16_1_1"
+        },
+        {
+            "name": "SingleDev_TwoChanStereoSnk_OneChanMonoSrc_16_1_2",
+            "codec_config_name": "SingleDev_TwoChanStereoSnk_OneChanMonoSrc_16_1",
+            "qos_config_name": "QoS_Config_16_1_2"
+        },
+        {
+            "name": "SingleDev_TwoChanStereoSnk_OneChanMonoSrc_16_2_Server_Preferred",
+            "codec_config_name": "SingleDev_TwoChanStereoSnk_OneChanMonoSrc_16_2",
+            "qos_config_name": "QoS_Config_Server_Preferred"
+        },
+        {
+            "name": "SingleDev_TwoChanStereoSnk_OneChanMonoSrc_16_2_1",
+            "codec_config_name": "SingleDev_TwoChanStereoSnk_OneChanMonoSrc_16_2",
+            "qos_config_name": "QoS_Config_16_2_1"
+        },
+        {
+            "name": "SingleDev_TwoChanStereoSnk_OneChanMonoSrc_16_2_2",
+            "codec_config_name": "SingleDev_TwoChanStereoSnk_OneChanMonoSrc_16_2",
+            "qos_config_name": "QoS_Config_16_2_2"
+        },
+        {
+            "name": "SingleDev_OneChanStereoSnk_OneChanMonoSrc_16_1_Server_Preferred",
+            "codec_config_name": "SingleDev_OneChanStereoSnk_OneChanMonoSrc_16_1",
+            "qos_config_name": "QoS_Config_Server_Preferred"
+        },
+        {
+            "name": "SingleDev_OneChanStereoSnk_OneChanMonoSrc_16_1_1",
+            "codec_config_name": "SingleDev_OneChanStereoSnk_OneChanMonoSrc_16_1",
+            "qos_config_name": "QoS_Config_16_1_1"
+        },
+        {
+            "name": "SingleDev_OneChanStereoSnk_OneChanMonoSrc_16_1_2",
+            "codec_config_name": "SingleDev_OneChanStereoSnk_OneChanMonoSrc_16_1",
+            "qos_config_name": "QoS_Config_16_1_2"
+        },
+        {
+            "name": "SingleDev_OneChanStereoSnk_OneChanMonoSrc_16_2_Server_Preferred",
+            "codec_config_name": "SingleDev_OneChanStereoSnk_OneChanMonoSrc_16_2",
+            "qos_config_name": "QoS_Config_Server_Preferred"
+        },
+        {
+            "name": "SingleDev_OneChanStereoSnk_OneChanMonoSrc_16_2_1",
+            "codec_config_name": "SingleDev_OneChanStereoSnk_OneChanMonoSrc_16_2",
+            "qos_config_name": "QoS_Config_16_2_1"
+        },
+        {
+            "name": "SingleDev_OneChanStereoSnk_OneChanMonoSrc_16_2_2",
+            "codec_config_name": "SingleDev_OneChanStereoSnk_OneChanMonoSrc_16_2",
+            "qos_config_name": "QoS_Config_16_2_2"
+        },
+        {
+            "name": "SingleDev_OneChanMonoSnk_OneChanMonoSrc_16_1_Server_Preferred",
+            "codec_config_name": "SingleDev_OneChanMonoSnk_OneChanMonoSrc_16_1",
+            "qos_config_name": "QoS_Config_Server_Preferred"
+        },
+        {
+            "name": "SingleDev_OneChanMonoSnk_OneChanMonoSrc_16_1_1",
+            "codec_config_name": "SingleDev_OneChanMonoSnk_OneChanMonoSrc_16_1",
+            "qos_config_name": "QoS_Config_16_1_1"
+        },
+        {
+            "name": "SingleDev_OneChanMonoSnk_OneChanMonoSrc_16_1_2",
+            "codec_config_name": "SingleDev_OneChanMonoSnk_OneChanMonoSrc_16_1",
+            "qos_config_name": "QoS_Config_16_1_2"
+        },
+        {
+            "name": "SingleDev_OneChanMonoSnk_OneChanMonoSrc_16_2_Server_Preferred",
+            "codec_config_name": "SingleDev_OneChanMonoSnk_OneChanMonoSrc_16_2",
+            "qos_config_name": "QoS_Config_Server_Preferred"
+        },
+        {
+            "name": "SingleDev_OneChanMonoSnk_OneChanMonoSrc_16_2_1",
+            "codec_config_name": "SingleDev_OneChanMonoSnk_OneChanMonoSrc_16_2",
+            "qos_config_name": "QoS_Config_16_2_1"
+        },
+        {
+            "name": "SingleDev_OneChanMonoSnk_OneChanMonoSrc_16_2_2",
+            "codec_config_name": "SingleDev_OneChanMonoSnk_OneChanMonoSrc_16_2",
+            "qos_config_name": "QoS_Config_16_2_2"
+        },
+        {
+            "name": "DualDev_OneChanStereoSnk_48_4_Server_Preferred",
+            "codec_config_name": "DualDev_OneChanStereoSnk_48_4",
+            "qos_config_name": "QoS_Config_Server_Preferred"
+        },
+        {
+            "name": "DualDev_OneChanStereoSnk_48_4_1",
+            "codec_config_name": "DualDev_OneChanStereoSnk_48_4",
+            "qos_config_name": "QoS_Config_48_4_1"
+        },
+        {
+            "name": "DualDev_OneChanStereoSnk_48_4_2",
+            "codec_config_name": "DualDev_OneChanStereoSnk_48_4",
+            "qos_config_name": "QoS_Config_48_4_2"
+        },
+        {
+            "name": "SingleDev_OneChanStereoSnk_48_4_Server_Preferred",
+            "codec_config_name": "SingleDev_OneChanStereoSnk_48_4",
+            "qos_config_name": "QoS_Config_Server_Preferred"
+        },
+        {
+            "name": "SingleDev_OneChanStereoSnk_48_4_1",
+            "codec_config_name": "SingleDev_OneChanStereoSnk_48_4",
+            "qos_config_name": "QoS_Config_48_4_1"
+        },
+        {
+            "name": "SingleDev_OneChanStereoSnk_48_4_2",
+            "codec_config_name": "SingleDev_OneChanStereoSnk_48_4",
+            "qos_config_name": "QoS_Config_48_4_2"
+        },
+        {
+            "name": "SingleDev_TwoChanStereoSnk_48_4_Server_Preferred",
+            "codec_config_name": "SingleDev_TwoChanStereoSnk_48_4",
+            "qos_config_name": "QoS_Config_Server_Preferred"
+        },
+        {
+            "name": "SingleDev_TwoChanStereoSnk_48_4_1",
+            "codec_config_name": "SingleDev_TwoChanStereoSnk_48_4",
+            "qos_config_name": "QoS_Config_48_4_1"
+        },
+        {
+            "name": "SingleDev_TwoChanStereoSnk_48_4_2",
+            "codec_config_name": "SingleDev_TwoChanStereoSnk_48_4",
+            "qos_config_name": "QoS_Config_48_4_2"
+        },
+        {
+            "name": "SingleDev_OneChanMonoSnk_48_4_Server_Preferred",
+            "codec_config_name": "SingleDev_OneChanMonoSnk_48_4",
+            "qos_config_name": "QoS_Config_Server_Preferred"
+        },
+        {
+            "name": "SingleDev_OneChanMonoSnk_48_4_1",
+            "codec_config_name": "SingleDev_OneChanMonoSnk_48_4",
+            "qos_config_name": "QoS_Config_48_4_1"
+        },
+        {
+            "name": "SingleDev_OneChanMonoSnk_48_4_2",
+            "codec_config_name": "SingleDev_OneChanMonoSnk_48_4",
+            "qos_config_name": "QoS_Config_48_4_2"
+        }
+    ],
+    "codec_configurations": [
         {
             "name": "DualDev_OneChanStereoSnk_16_2",
             "subconfigurations": [
@@ -2113,6 +2453,43 @@
                     ]
                 }
             ]
+        }
+    ],
+    "qos_configurations": [
+        {
+            "name": "QoS_Config_16_1_1",
+            "retransmission_number": 2,
+            "max_transport_latency": 8
+        },
+        {
+            "name": "QoS_Config_16_1_2",
+            "retransmission_number": 13,
+            "max_transport_latency": 75
+        },
+        {
+            "name": "QoS_Config_16_2_1",
+            "retransmission_number": 2,
+            "max_transport_latency": 10
+        },
+        {
+            "name": "QoS_Config_16_2_2",
+            "retransmission_number": 13,
+            "max_transport_latency": 95
+        },
+        {
+            "name": "QoS_Config_48_4_1",
+            "retransmission_number": 5,
+            "max_transport_latency": 20
+        },
+        {
+            "name": "QoS_Config_48_4_2",
+            "retransmission_number": 13,
+            "max_transport_latency": 100
+        },
+        {
+            "name": "QoS_Config_Server_Preferred",
+            "retransmission_number": 0,
+            "max_transport_latency": 0
         }
     ]
 }

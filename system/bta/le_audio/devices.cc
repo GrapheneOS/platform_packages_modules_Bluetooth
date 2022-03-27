@@ -958,6 +958,9 @@ bool LeAudioDevice::ConfigureAses(
                         *ase->codec_config.octets_per_codec_frame *
                         *ase->codec_config.codec_frames_blocks_per_sdu;
 
+    ase->retrans_nb = ent.qos.retransmission_number;
+    ase->max_transport_latency = ent.qos.max_transport_latency;
+
     ase->metadata = GetMetadata(context_type);
 
     DLOG(INFO) << __func__ << " device=" << address_
