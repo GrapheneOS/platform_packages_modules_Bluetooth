@@ -2316,8 +2316,8 @@ class LeAudioClientImpl : public LeAudioClient {
       std::vector<uint16_t> mixed(left->size() * 2);
 
       for (size_t i = 0; i < left->size(); i++) {
-        mixed[2 * i] = (*left)[i];
-        mixed[2 * i + 1] = (*right)[i];
+        mixed[2 * i] = (*right)[i];
+        mixed[2 * i + 1] = (*left)[i];
       }
       to_write = sizeof(int16_t) * mixed.size();
       written =
@@ -2338,8 +2338,8 @@ class LeAudioClientImpl : public LeAudioClient {
       std::vector<uint16_t> mixed(mono_size * 2);
 
       for (size_t i = 0; i < mono_size; i++) {
-        mixed[2 * i] = left ? (*left)[i] : 0;
-        mixed[2 * i + 1] = right ? (*right)[i] : 0;
+        mixed[2 * i] = right ? (*right)[i] : 0;
+        mixed[2 * i + 1] = left ? (*left)[i] : 0;
       }
       to_write = sizeof(int16_t) * mixed.size();
       written =
