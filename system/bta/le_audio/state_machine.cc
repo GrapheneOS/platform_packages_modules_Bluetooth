@@ -1114,15 +1114,20 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     ase = leAudioDevice->GetFirstActiveAse();
     LOG_ASSERT(ase) << __func__ << " shouldn't be called without an active ASE";
     do {
-      /* Get completive (to be bi-directional CIS) CIS ID for ASE */
-      uint8_t cis_id = leAudioDevice->GetMatchingBidirectionCisId(ase);
+      uint8_t cis_id = ase->cis_id;
       if (cis_id == le_audio::kInvalidCisId) {
-        /* Get next free CIS ID for group */
-        cis_id = group->GetFirstFreeCisId();
+        /* Get completive (to be bi-directional CIS) CIS ID for ASE */
+        cis_id = leAudioDevice->GetMatchingBidirectionCisId(ase);
+        LOG_INFO(" Configure ase_id %d, cis_id %d, ase state %s", ase->id,
+                 cis_id, ToString(ase->state).c_str());
         if (cis_id == le_audio::kInvalidCisId) {
-          LOG(ERROR) << __func__ << ", failed to get free CIS ID";
-          StopStream(group);
-          return;
+          /* Get next free CIS ID for group */
+          cis_id = group->GetFirstFreeCisId();
+          if (cis_id == le_audio::kInvalidCisId) {
+            LOG(ERROR) << __func__ << ", failed to get free CIS ID";
+            StopStream(group);
+            return;
+          }
         }
       }
 
