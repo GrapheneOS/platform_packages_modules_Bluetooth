@@ -47,6 +47,9 @@ void log_read_tx_power_level_result(const RawAddress& address, uint16_t handle,
                                     uint32_t cmd_status,
                                     int32_t transmit_power_level);
 
+void log_counter_metrics_btif(android::bluetooth::CodePathCounterKeyEnum key,
+                              int64_t value);
+
 void log_socket_connection_state(
     const RawAddress& address, int port, int type,
     android::bluetooth::SocketConnectionstateEnum connection_state,
