@@ -70,22 +70,6 @@ struct BgConnHash {
 static std::unordered_map<RawAddress, BackgroundConnection, BgConnHash>
     background_connections;
 
-/** This function is to stop auto connection procedure */
-static bool btm_ble_stop_auto_conn() {
-  BTM_TRACE_EVENT("%s", __func__);
-
-  if (!btm_cb.ble_ctr_cb.is_connection_state_connecting()) {
-    LOG_DEBUG(
-        "No need to stop auto connection procedure that is not connecting");
-    return false;
-  }
-
-  btm_ble_create_conn_cancel();
-
-  btm_cb.ble_ctr_cb.reset_acceptlist_process_in_progress();
-  return true;
-}
-
 const tBLE_BD_ADDR convert_to_address_with_type(
     const RawAddress& bd_addr, const tBTM_SEC_DEV_REC* p_dev_rec) {
   if (p_dev_rec == nullptr || !p_dev_rec->is_device_type_has_ble()) {
@@ -129,31 +113,6 @@ void btm_update_scanner_filter_policy(tBTM_BLE_SFP scan_policy) {
   btm_send_hci_set_scan_params(
       p_inq->scan_type, (uint16_t)scan_interval, (uint16_t)scan_window,
       btm_cb.ble_ctr_cb.addr_mgnt_cb.own_addr_type, scan_policy);
-}
-
-/*******************************************************************************
- *
- * Function         btm_ble_bgconn_cancel_if_disconnected
- *
- * Description      If a device has been disconnected, it must be re-added to
- *                  the acceptlist. If needed, this function cancels a pending
- *                  initiate command in order to trigger restart of the initiate
- *                  command which in turn updates the acceptlist.
- *
- * Parameters       bd_addr: updated device
- *
- ******************************************************************************/
-void btm_ble_bgconn_cancel_if_disconnected(const RawAddress& bd_addr) {
-  if (!btm_cb.ble_ctr_cb.is_connection_state_connecting()) return;
-
-  auto map_it = background_connections.find(bd_addr);
-  if (map_it != background_connections.end()) {
-    BackgroundConnection* connection = &map_it->second;
-    if (!connection->in_controller_wl && !connection->pending_removal &&
-        !BTM_IsAclConnectionUp(bd_addr, BT_TRANSPORT_LE)) {
-      btm_ble_stop_auto_conn();
-    }
-  }
 }
 
 /*******************************************************************************
