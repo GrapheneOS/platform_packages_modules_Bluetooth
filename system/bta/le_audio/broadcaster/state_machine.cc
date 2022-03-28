@@ -488,7 +488,8 @@ class BroadcastStateMachineImpl : public BroadcastStateMachine {
 
     SetMuted(true);
     IsoManager::GetInstance()->RemoveIsoDataPath(
-        conn_handle, bluetooth::hci::iso_manager::kIsoDataPathDirectionIn);
+        conn_handle,
+        bluetooth::hci::iso_manager::kRemoveIsoDataPathDirectionInput);
   }
 
   void HandleHciEvent(uint16_t event, void* data) override {
