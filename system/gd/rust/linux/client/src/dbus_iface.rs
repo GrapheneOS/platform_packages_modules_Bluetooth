@@ -11,6 +11,7 @@ use btstack::bluetooth_gatt::{
     GattWriteRequestStatus, GattWriteType, IBluetoothGatt, IBluetoothGattCallback,
     IScannerCallback, LePhy, ScanFilter, ScanSettings,
 };
+use btstack::RPCProxy;
 
 use btstack::suspend::{ISuspend, ISuspendCallback, SuspendType};
 
@@ -152,7 +153,7 @@ impl ClientDBusProxy {
 #[allow(dead_code)]
 struct IBluetoothCallbackDBus {}
 
-impl btstack::RPCProxy for IBluetoothCallbackDBus {
+impl RPCProxy for IBluetoothCallbackDBus {
     // Dummy implementations just to satisfy impl RPCProxy requirements.
     fn register_disconnect(&mut self, _f: Box<dyn Fn(u32) + Send>) -> u32 {
         0
@@ -206,7 +207,7 @@ impl IBluetoothCallback for IBluetoothCallbackDBus {
 #[allow(dead_code)]
 struct IBluetoothConnectionCallbackDBus {}
 
-impl btstack::RPCProxy for IBluetoothConnectionCallbackDBus {
+impl RPCProxy for IBluetoothConnectionCallbackDBus {
     // Dummy implementations just to satisfy impl RPCProxy requirements.
     fn register_disconnect(&mut self, _f: Box<dyn Fn(u32) + Send>) -> u32 {
         0
@@ -524,7 +525,7 @@ impl IBluetoothManager for BluetoothManagerDBus {
 #[allow(dead_code)]
 struct IBluetoothManagerCallbackDBus {}
 
-impl manager_service::RPCProxy for IBluetoothManagerCallbackDBus {
+impl RPCProxy for IBluetoothManagerCallbackDBus {
     // Placeholder implementations just to satisfy impl RPCProxy requirements.
     fn register_disconnect(&mut self, _f: Box<dyn Fn(u32) + Send>) -> u32 {
         0
@@ -742,7 +743,7 @@ impl IBluetoothGatt for BluetoothGattDBus {
 #[allow(dead_code)]
 struct IBluetoothGattCallbackDBus {}
 
-impl btstack::RPCProxy for IBluetoothGattCallbackDBus {
+impl RPCProxy for IBluetoothGattCallbackDBus {
     // Placeholder implementations just to satisfy impl RPCProxy requirements.
     fn register_disconnect(&mut self, _f: Box<dyn Fn(u32) + Send>) -> u32 {
         0
@@ -865,7 +866,7 @@ impl ISuspend for SuspendDBus {
 #[allow(dead_code)]
 struct ISuspendCallbackDBus {}
 
-impl btstack::RPCProxy for ISuspendCallbackDBus {
+impl RPCProxy for ISuspendCallbackDBus {
     // Placeholder implementations just to satisfy impl RPCProxy requirements.
     fn register_disconnect(&mut self, _f: Box<dyn Fn(u32) + Send>) -> u32 {
         0
