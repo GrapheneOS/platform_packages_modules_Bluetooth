@@ -408,7 +408,9 @@ class LeAudioLtvMap {
   std::string ToString() const;
   size_t RawPacketSize() const;
   uint8_t* RawPacket(uint8_t* p_buf) const;
+  std::vector<uint8_t> RawPacket() const;
   static LeAudioLtvMap Parse(const uint8_t* value, uint8_t len, bool& success);
+  void Append(const LeAudioLtvMap& other);
 
  private:
   std::map<uint8_t, std::vector<uint8_t>> values;

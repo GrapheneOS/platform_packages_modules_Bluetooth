@@ -315,6 +315,19 @@ uint8_t* LeAudioLtvMap::RawPacket(uint8_t* p_buf) const {
   return p_buf;
 }
 
+std::vector<uint8_t> LeAudioLtvMap::RawPacket() const {
+  std::vector<uint8_t> data(RawPacketSize());
+  RawPacket(data.data());
+  return data;
+}
+
+void LeAudioLtvMap::Append(const LeAudioLtvMap& other) {
+  /* This will override values for the already existing keys */
+  for (auto& el : other.values) {
+    values[el.first] = el.second;
+  }
+}
+
 LeAudioLtvMap LeAudioLtvMap::Parse(const uint8_t* p_value, uint8_t len,
                                    bool& success) {
   LeAudioLtvMap ltv_map;
