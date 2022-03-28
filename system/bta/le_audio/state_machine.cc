@@ -800,11 +800,11 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
       IsoManager::GetInstance()->RemoveIsoDataPath(
           ase->cis_conn_hdl,
           (ases_pair.sink
-               ? bluetooth::hci::iso_manager::kIsoDataPathDirectionOut
+               ? bluetooth::hci::iso_manager::kRemoveIsoDataPathDirectionOutput
                : 0x00) |
-              (ases_pair.source
-                   ? bluetooth::hci::iso_manager::kIsoDataPathDirectionIn
-                   : 0x00));
+              (ases_pair.source ? bluetooth::hci::iso_manager::
+                                      kRemoveIsoDataPathDirectionInput
+                                : 0x00));
     }
   }
 
@@ -1038,10 +1038,11 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
 
     IsoManager::GetInstance()->RemoveIsoDataPath(
         ase->cis_conn_hdl,
-        (ases_pair.sink ? bluetooth::hci::iso_manager::kIsoDataPathDirectionOut
-                        : 0x00) |
+        (ases_pair.sink
+             ? bluetooth::hci::iso_manager::kRemoveIsoDataPathDirectionOutput
+             : 0x00) |
             (ases_pair.source
-                 ? bluetooth::hci::iso_manager::kIsoDataPathDirectionIn
+                 ? bluetooth::hci::iso_manager::kRemoveIsoDataPathDirectionInput
                  : 0x00));
   }
 
@@ -1839,12 +1840,12 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
               leAudioDevice->GetAsesByCisConnHdl(ase->cis_conn_hdl);
           IsoManager::GetInstance()->RemoveIsoDataPath(
               ase->cis_conn_hdl,
-              (ases_pair.sink
-                   ? bluetooth::hci::iso_manager::kIsoDataPathDirectionOut
-                   : 0x00) |
-                  (ases_pair.source
-                       ? bluetooth::hci::iso_manager::kIsoDataPathDirectionIn
-                       : 0x00));
+              (ases_pair.sink ? bluetooth::hci::iso_manager::
+                                    kRemoveIsoDataPathDirectionOutput
+                              : 0x00) |
+                  (ases_pair.source ? bluetooth::hci::iso_manager::
+                                          kRemoveIsoDataPathDirectionInput
+                                    : 0x00));
         } else if (ase->data_path_state ==
                        AudioStreamDataPathState::CIS_ESTABLISHED ||
                    ase->data_path_state ==
