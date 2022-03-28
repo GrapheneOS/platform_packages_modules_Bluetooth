@@ -476,8 +476,22 @@ class BroadcastStateMachineImpl : public BroadcastStateMachine {
         /* TODO: Implement HCI command to get the controller delay */
         .controller_delay = 0x00000000,
     };
-    if (codec_id.coding_format != le_audio::types::kLeAudioCodingFormatLC3)
-      param.codec_conf = sm_config_.codec_wrapper.GetCodecSpecData();
+    if (codec_id.coding_format != le_audio::types::kLeAudioCodingFormatLC3) {
+      // TODO: Until the proper offloader support is added, pass all the params
+      auto const& conn_handles = active_config_->connection_handles;
+
+      auto it =
+          std::find(conn_handles.begin(), conn_handles.end(), conn_handle);
+      if (it != conn_handles.end()) {
+        /* Find BIS index - BIS indices start at 1 */
+        auto bis_idx = it - conn_handles.begin() + 1;
+
+        /* Compose subgroup params with BIS params  */
+        auto params = sm_config_.codec_wrapper.GetSubgroupCodecSpecData();
+        params.Append(sm_config_.codec_wrapper.GetBisCodecSpecData(bis_idx));
+        param.codec_conf = params.RawPacket();
+      }
+    }
 
     IsoManager::GetInstance()->SetupIsoDataPath(conn_handle, std::move(param));
   }
