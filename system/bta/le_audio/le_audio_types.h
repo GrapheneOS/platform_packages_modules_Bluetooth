@@ -575,6 +575,9 @@ using PublishedAudioCapabilities =
 using AudioLocations = std::bitset<32>;
 using AudioContexts = std::bitset<16>;
 
+std::ostream& operator<<(std::ostream& os, const AseState& state);
+
+std::ostream& operator<<(std::ostream& os, const LeAudioLc3Config& config);
 }  // namespace types
 
 namespace set_configurations {
@@ -696,11 +699,4 @@ void AppendMetadataLtvEntryForCcidList(std::vector<uint8_t>& metadata,
 void AppendMetadataLtvEntryForStreamingContext(
     std::vector<uint8_t>& metadata, types::LeAudioContextType context_type);
 uint8_t GetMaxCodecFramesPerSduFromPac(const types::acs_ac_record* pac_record);
-
 }  // namespace le_audio
-
-std::ostream& operator<<(std::ostream& os,
-                         const le_audio::types::LeAudioLc3Config& config);
-
-std::ostream& operator<<(std::ostream& os,
-                         const le_audio::types::AseState& state);
