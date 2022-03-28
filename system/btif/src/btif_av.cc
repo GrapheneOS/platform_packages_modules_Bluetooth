@@ -24,6 +24,7 @@
 #include <base/logging.h>
 #include <base/strings/stringprintf.h>
 #include <frameworks/proto_logging/stats/enums/bluetooth/a2dp/enums.pb.h>
+#include <frameworks/proto_logging/stats/enums/bluetooth/enums.pb.h>
 
 #include <cstdint>
 #include <future>
@@ -39,6 +40,7 @@
 #include "btif/include/btif_a2dp_source.h"
 #include "btif/include/btif_av_co.h"
 #include "btif/include/btif_common.h"
+#include "btif/include/btif_metrics_logging.h"
 #include "btif/include/btif_profile_queue.h"
 #include "btif/include/btif_rc.h"
 #include "btif/include/btif_util.h"
@@ -1676,6 +1678,9 @@ bool BtifAvStateMachine::StateOpening::ProcessEvent(uint32_t event,
           "%s: Peer %s : event=%s: transitioning to Idle due to ACL Disconnect",
           __PRETTY_FUNCTION__, peer_.PeerAddress().ToString().c_str(),
           BtifAvEvent::EventName(event).c_str());
+      log_counter_metrics_btif(android::bluetooth::CodePathCounterKeyEnum::
+                                   A2DP_CONNECTION_ACL_DISCONNECTED,
+                               1);
       btif_report_connection_state(peer_.PeerAddress(),
                                    BTAV_CONNECTION_STATE_DISCONNECTED);
       peer_.StateMachine().TransitionTo(BtifAvStateMachine::kStateIdle);
@@ -1688,6 +1693,9 @@ bool BtifAvStateMachine::StateOpening::ProcessEvent(uint32_t event,
                          peer_.PeerAddress().ToString().c_str(),
                          BtifAvEvent::EventName(event).c_str(),
                          peer_.FlagsToString().c_str());
+      log_counter_metrics_btif(android::bluetooth::CodePathCounterKeyEnum::
+                                   A2DP_CONNECTION_REJECT_EVT,
+                               1);
       btif_report_connection_state(peer_.PeerAddress(),
                                    BTAV_CONNECTION_STATE_DISCONNECTED);
       peer_.StateMachine().TransitionTo(BtifAvStateMachine::kStateIdle);
@@ -1714,6 +1722,9 @@ bool BtifAvStateMachine::StateOpening::ProcessEvent(uint32_t event,
         av_state = BtifAvStateMachine::kStateOpened;
         peer_.SetEdr(p_bta_data->open.edr);
         CHECK(peer_.PeerSep() == p_bta_data->open.sep);
+        log_counter_metrics_btif(
+            android::bluetooth::CodePathCounterKeyEnum::A2DP_CONNECTION_SUCCESS,
+            1);
       } else {
         if (btif_rc_is_connected_peer(peer_.PeerAddress())) {
           // Disconnect the AVRCP connection, in case the A2DP connectiton
@@ -1721,6 +1732,10 @@ bool BtifAvStateMachine::StateOpening::ProcessEvent(uint32_t event,
           BTIF_TRACE_WARNING("%s: Peer %s : Disconnecting AVRCP",
                              __PRETTY_FUNCTION__,
                              peer_.PeerAddress().ToString().c_str());
+          log_counter_metrics_btif(
+              android::bluetooth::CodePathCounterKeyEnum::
+              A2DP_CONNECTION_FAILURE,
+              1);
           uint8_t peer_handle =
               btif_rc_get_connected_peer_handle(peer_.PeerAddress());
           if (peer_handle != BTRC_HANDLE_NONE) {
@@ -1768,6 +1783,9 @@ bool BtifAvStateMachine::StateOpening::ProcessEvent(uint32_t event,
           "ignore Connect request",
           __PRETTY_FUNCTION__, peer_.PeerAddress().ToString().c_str(),
           BtifAvEvent::EventName(event).c_str());
+      log_counter_metrics_btif(
+          android::bluetooth::CodePathCounterKeyEnum::A2DP_ALREADY_CONNECTING,
+          1);
       btif_queue_advance();
     } break;
 
@@ -1779,6 +1797,9 @@ bool BtifAvStateMachine::StateOpening::ProcessEvent(uint32_t event,
           "ignore incoming request",
           __PRETTY_FUNCTION__, peer_.PeerAddress().ToString().c_str(),
           BtifAvEvent::EventName(event).c_str());
+      log_counter_metrics_btif(
+          android::bluetooth::CodePathCounterKeyEnum::A2DP_ALREADY_CONNECTING,
+          1);
     } break;
 
     case BTIF_AV_OFFLOAD_START_REQ_EVT:
@@ -1787,6 +1808,9 @@ bool BtifAvStateMachine::StateOpening::ProcessEvent(uint32_t event,
                        peer_.PeerAddress().ToString().c_str(),
                        BtifAvEvent::EventName(event).c_str());
       btif_a2dp_on_offload_started(peer_.PeerAddress(), BTA_AV_FAIL);
+      log_counter_metrics_btif(android::bluetooth::CodePathCounterKeyEnum::
+                                   A2DP_OFFLOAD_START_REQ_FAILURE,
+                               1);
       break;
 
     case BTA_AV_CLOSE_EVT:
@@ -1794,6 +1818,8 @@ bool BtifAvStateMachine::StateOpening::ProcessEvent(uint32_t event,
       btif_report_connection_state(peer_.PeerAddress(),
                                    BTAV_CONNECTION_STATE_DISCONNECTED);
       peer_.StateMachine().TransitionTo(BtifAvStateMachine::kStateIdle);
+      log_counter_metrics_btif(
+          android::bluetooth::CodePathCounterKeyEnum::A2DP_CONNECTION_CLOSE, 1);
       if (peer_.SelfInitiatedConnection()) {
         btif_queue_advance();
       }
@@ -1804,6 +1830,9 @@ bool BtifAvStateMachine::StateOpening::ProcessEvent(uint32_t event,
       btif_report_connection_state(peer_.PeerAddress(),
                                    BTAV_CONNECTION_STATE_DISCONNECTED);
       peer_.StateMachine().TransitionTo(BtifAvStateMachine::kStateIdle);
+      log_counter_metrics_btif(android::bluetooth::CodePathCounterKeyEnum::
+                                   A2DP_CONNECTION_DISCONNECTED,
+                               1);
       if (peer_.SelfInitiatedConnection()) {
         btif_queue_advance();
       }
@@ -1812,6 +1841,9 @@ bool BtifAvStateMachine::StateOpening::ProcessEvent(uint32_t event,
       CHECK_RC_EVENT(event, (tBTA_AV*)p_data);
 
     default:
+      log_counter_metrics_btif(android::bluetooth::CodePathCounterKeyEnum::
+                                   A2DP_CONNECTION_UNKNOWN_EVENT,
+                               1);
       BTIF_TRACE_WARNING("%s: Peer %s : Unhandled event=%s",
                          __PRETTY_FUNCTION__,
                          peer_.PeerAddress().ToString().c_str(),
