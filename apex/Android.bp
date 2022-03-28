@@ -28,9 +28,7 @@ apex_defaults {
     key: "com.android.bluetooth.key",
     certificate: ":com.android.bluetooth.certificate",
     defaults: ["t-launched-apex-module"],
-
-    updatable: false, // TODO(b/223839432): Remove this
-    future_updatable: true,
+    updatable: true,
     // Indicates that pre-installed version of this apex can be compressed.
     // Whether it actually will be compressed is controlled on per-device basis.
     compressible: true,
