@@ -1067,7 +1067,8 @@ class BluetoothManagerService extends IBluetoothManager.Stub {
     public boolean enableBle(AttributionSource attributionSource, IBinder token)
             throws RemoteException {
         final String packageName = attributionSource.getPackageName();
-        if (!checkBluetoothPermissions(attributionSource, "enableBle", false)) {
+        if (!checkBluetoothPermissions(attributionSource, "enableBle", false)
+                || isAirplaneModeOn()) {
             if (DBG) {
                 Slog.d(TAG, "enableBle(): bluetooth disallowed");
             }
