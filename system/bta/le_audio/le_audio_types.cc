@@ -443,20 +443,8 @@ uint8_t GetMaxCodecFramesPerSduFromPac(const acs_ac_record* pac) {
   return 1;
 }
 
-}  // namespace le_audio
-
-std::ostream& operator<<(std::ostream& os,
-                         const le_audio::types::LeAudioLc3Config& config) {
-  os << " LeAudioLc3Config(SamplFreq=" << loghex(*config.sampling_frequency)
-     << ", FrameDur=" << loghex(*config.frame_duration)
-     << ", OctetsPerFrame=" << int(*config.octets_per_codec_frame)
-     << ", CodecFramesBlocksPerSDU=" << int(*config.codec_frames_blocks_per_sdu)
-     << ", AudioChanLoc=" << loghex(*config.audio_channel_allocation) << ")";
-  return os;
-}
-
-std::ostream& operator<<(std::ostream& os,
-                         const le_audio::types::AseState& state) {
+namespace types {
+std::ostream& operator<<(std::ostream& os, const types::AseState& state) {
   static const char* char_value_[7] = {
       "IDLE",      "CODEC_CONFIGURED", "QOS_CONFIGURED", "ENABLING",
       "STREAMING", "DISABLING",        "RELEASING",
@@ -467,3 +455,16 @@ std::ostream& operator<<(std::ostream& os,
      << ")";
   return os;
 }
+
+std::ostream& operator<<(std::ostream& os,
+                         const types::LeAudioLc3Config& config) {
+  os << " LeAudioLc3Config(SamplFreq=" << loghex(*config.sampling_frequency)
+     << ", FrameDur=" << loghex(*config.frame_duration)
+     << ", OctetsPerFrame=" << int(*config.octets_per_codec_frame)
+     << ", CodecFramesBlocksPerSDU=" << int(*config.codec_frames_blocks_per_sdu)
+     << ", AudioChanLoc=" << loghex(*config.audio_channel_allocation) << ")";
+  return os;
+}
+}  // namespace types
+
+}  // namespace le_audio

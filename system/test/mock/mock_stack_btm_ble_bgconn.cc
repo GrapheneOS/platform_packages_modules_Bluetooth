@@ -48,8 +48,6 @@ namespace stack_btm_ble_bgconn {
 // Function state capture and return values, if needed
 struct convert_to_address_with_type convert_to_address_with_type;
 struct btm_update_scanner_filter_policy btm_update_scanner_filter_policy;
-struct btm_ble_bgconn_cancel_if_disconnected
-    btm_ble_bgconn_cancel_if_disconnected;
 struct btm_ble_suspend_bg_conn btm_ble_suspend_bg_conn;
 struct btm_ble_resume_bg_conn btm_ble_resume_bg_conn;
 struct BTM_BackgroundConnectAddressKnown BTM_BackgroundConnectAddressKnown;
@@ -74,11 +72,6 @@ void btm_update_scanner_filter_policy(tBTM_BLE_SFP scan_policy) {
   mock_function_count_map[__func__]++;
   test::mock::stack_btm_ble_bgconn::btm_update_scanner_filter_policy(
       scan_policy);
-}
-void btm_ble_bgconn_cancel_if_disconnected(const RawAddress& bd_addr) {
-  mock_function_count_map[__func__]++;
-  test::mock::stack_btm_ble_bgconn::btm_ble_bgconn_cancel_if_disconnected(
-      bd_addr);
 }
 bool btm_ble_suspend_bg_conn(void) {
   mock_function_count_map[__func__]++;
