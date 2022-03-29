@@ -132,6 +132,7 @@ static RawAddress GetTestAddress(uint8_t index) {
 }
 
 static uint8_t ase_id_last_assigned;
+static uint8_t additional_ases = 0;
 
 class MockLeAudioGroupStateMachineCallbacks
     : public LeAudioGroupStateMachine::Callbacks {
@@ -159,6 +160,7 @@ class StateMachineTest : public Test {
     gatt::SetMockBtaGattQueue(&gatt_queue);
 
     ase_id_last_assigned = types::ase::kAseIdInvalid;
+    additional_ases = 0;
     ::le_audio::AudioSetConfigurationProvider::Initialize();
     LeAudioGroupStateMachine::Initialize(&mock_callbacks_);
 
@@ -415,6 +417,7 @@ class StateMachineTest : public Test {
 
     le_audio_devices_.clear();
     cached_codec_configuration_map_.clear();
+    cached_ase_to_cis_id_map_.clear();
     LeAudioGroupStateMachine::Cleanup();
     ::le_audio::AudioSetConfigurationProvider::Cleanup();
   }
@@ -651,17 +654,17 @@ class StateMachineTest : public Test {
     uint8_t num_ase_src;
     switch (context_type) {
       case kContextTypeRingtone:
-        num_ase_snk = 1;
+        num_ase_snk = 1 + additional_ases;
         num_ase_src = 0;
         break;
 
       case kContextTypeMedia:
-        num_ase_snk = 2;
+        num_ase_snk = 2 + additional_ases;
         num_ase_src = 0;
         break;
 
       case kContextTypeConversational:
-        num_ase_snk = 1;
+        num_ase_snk = 1 + additional_ases;
         num_ase_src = 1;
         break;
 
@@ -824,11 +827,12 @@ class StateMachineTest : public Test {
   }
 
   void PrepareConfigureQosHandler(LeAudioDeviceGroup* group,
-                                  int verify_ase_count = 0) {
+                                  int verify_ase_count = 0,
+                                  bool caching = false) {
     ase_ctp_handlers[ascs::kAseCtpOpcodeConfigureQos] =
-        [group, verify_ase_count](LeAudioDevice* device,
-                                  std::vector<uint8_t> value,
-                                  GATT_WRITE_OP_CB cb, void* cb_data) {
+        [group, verify_ase_count, caching, this](
+            LeAudioDevice* device, std::vector<uint8_t> value,
+            GATT_WRITE_OP_CB cb, void* cb_data) {
           auto num_ase = value[1];
 
           // Verify ase count if needed
@@ -869,6 +873,24 @@ class StateMachineTest : public Test {
             qos_configured_state_params.pres_delay =
                 (uint16_t)((ase_p[0] << 16) | (ase_p[1] << 8) | ase_p[2]);
             ase_p += 3;
+
+            if (caching) {
+              LOG(INFO) << __func__ << " Device: " << device->address_;
+              if (cached_ase_to_cis_id_map_.count(device->address_) > 0) {
+                auto ase_list = cached_ase_to_cis_id_map_.at(device->address_);
+                if (ase_list.count(ase_id) > 0) {
+                  auto cis_id = ase_list.at(ase_id);
+                  ASSERT_EQ(cis_id, qos_configured_state_params.cis_id);
+                } else {
+                  ase_list[ase_id] = qos_configured_state_params.cis_id;
+                }
+              } else {
+                std::map<int, int> ase_map;
+                ase_map[ase_id] = qos_configured_state_params.cis_id;
+
+                cached_ase_to_cis_id_map_[device->address_] = ase_map;
+              }
+            }
 
             InjectAseStateNotification(ase, device, group,
                                        ascs::kAseStateQoSConfigured,
@@ -1097,6 +1119,8 @@ class StateMachineTest : public Test {
       ase_ctp_handlers[ascs::kAseCtpOpcodeMaxVal + 1] = {nullptr};
   std::map<int, client_parser::ascs::ase_codec_configured_state_params>
       cached_codec_configuration_map_;
+
+  std::map<RawAddress, std::map<int, int>> cached_ase_to_cis_id_map_;
 
   MockLeAudioGroupStateMachineCallbacks mock_callbacks_;
   std::vector<std::shared_ptr<LeAudioDevice>> le_audio_devices_;
@@ -1764,9 +1788,11 @@ TEST_F(StateMachineTest, testReleaseCachingSingle) {
       StatusReportCb(leaudio_group_id,
                      bluetooth::le_audio::GroupStreamStatus::RELEASING));
 
-  EXPECT_CALL(mock_callbacks_,
-              StatusReportCb(leaudio_group_id,
-                             bluetooth::le_audio::GroupStreamStatus::IDLE));
+  EXPECT_CALL(
+      mock_callbacks_,
+      StatusReportCb(
+          leaudio_group_id,
+          bluetooth::le_audio::GroupStreamStatus::CONFIGURED_AUTONOMOUS));
   EXPECT_CALL(
       mock_callbacks_,
       StatusReportCb(leaudio_group_id,
@@ -1792,29 +1818,38 @@ TEST_F(StateMachineTest, testStreamCachingSingle) {
   const auto context_type = kContextTypeRingtone;
   const int leaudio_group_id = 4;
 
+  additional_ases = 2;
   // Prepare fake connected device group
   auto* group = PrepareSingleTestDeviceGroup(leaudio_group_id, context_type);
 
   /* Since we prepared device with Ringtone context in mind, only one ASE
    * should have been configured.
    */
-  PrepareConfigureCodecHandler(group, 1, true);
-  PrepareConfigureQosHandler(group, 1);
-  PrepareEnableHandler(group, 1);
-  PrepareDisableHandler(group, 1);
-  PrepareReleaseHandler(group, 1);
+  PrepareConfigureCodecHandler(group, 2, true);
+  PrepareConfigureQosHandler(group, 2, true);
+  PrepareEnableHandler(group, 2);
+  PrepareDisableHandler(group, 2);
+  PrepareReleaseHandler(group, 2);
 
+  /* Ctp messages we expect:
+   * 1. Codec Config
+   * 2. QoS Config
+   * 3. Enable
+   * 4. Release
+   * 5. QoS Config (because device stays in Configured state)
+   * 6. Enable
+   */
   auto* leAudioDevice = group->GetFirstDevice();
   EXPECT_CALL(gatt_queue,
               WriteCharacteristic(1, leAudioDevice->ctp_hdls_.val_hdl, _,
                                   GATT_WRITE_NO_RSP, _, _))
-      .Times(4 + 3);
+      .Times(6);
 
   EXPECT_CALL(*mock_iso_manager_, CreateCig(_, _)).Times(2);
   EXPECT_CALL(*mock_iso_manager_, EstablishCis(_)).Times(2);
-  EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(2);
-  EXPECT_CALL(*mock_iso_manager_, RemoveIsoDataPath(_, _)).Times(1);
-  EXPECT_CALL(*mock_iso_manager_, DisconnectCis(_, _)).Times(1);
+  EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(4);
+  EXPECT_CALL(*mock_iso_manager_, RemoveIsoDataPath(_, _)).Times(2);
+  EXPECT_CALL(*mock_iso_manager_, DisconnectCis(_, _)).Times(2);
   EXPECT_CALL(*mock_iso_manager_, RemoveCig(_)).Times(1);
 
   InjectInitialIdleNotification(group);
@@ -1825,16 +1860,18 @@ TEST_F(StateMachineTest, testStreamCachingSingle) {
       StatusReportCb(leaudio_group_id,
                      bluetooth::le_audio::GroupStreamStatus::RELEASING));
 
-  EXPECT_CALL(mock_callbacks_,
-              StatusReportCb(leaudio_group_id,
-                             bluetooth::le_audio::GroupStreamStatus::IDLE));
+  EXPECT_CALL(
+      mock_callbacks_,
+      StatusReportCb(
+          leaudio_group_id,
+          bluetooth::le_audio::GroupStreamStatus::CONFIGURED_AUTONOMOUS));
 
   EXPECT_CALL(mock_callbacks_,
               StatusReportCb(leaudio_group_id,
                              bluetooth::le_audio::GroupStreamStatus::STREAMING))
       .Times(2);
 
-  // Start the configuration and stream Media content
+  // Start the configuration and stream Ringtone content
   LeAudioGroupStateMachine::Get()->StartStream(
       group, static_cast<types::LeAudioContextType>(context_type));
 
