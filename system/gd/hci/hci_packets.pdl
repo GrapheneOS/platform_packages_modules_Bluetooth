@@ -4370,10 +4370,16 @@ packet LeSetupIsoDataPathComplete : CommandComplete (command_op_code = LE_SETUP_
   _reserved_ : 4,
 }
 
+enum RemoveDataPathDirection : 8 {
+  INPUT = 1,
+  OUTPUT = 2,
+  INPUT_AND_OUTPUT = 3,
+}
+
 packet LeRemoveIsoDataPath : LeIsoCommand (op_code = LE_REMOVE_ISO_DATA_PATH) {
   connection_handle : 12,
   _reserved_ : 4,
-  data_path_direction : DataPathDirection,
+  remove_data_path_direction : RemoveDataPathDirection,
 }
 
 packet LeRemoveIsoDataPathComplete : CommandComplete (command_op_code = LE_REMOVE_ISO_DATA_PATH) {

@@ -44,6 +44,9 @@ namespace iso_manager {
 constexpr uint8_t kIsoDataPathDirectionIn = 0x00;
 constexpr uint8_t kIsoDataPathDirectionOut = 0x01;
 
+constexpr uint8_t kRemoveIsoDataPathDirectionInput = 0x01;
+constexpr uint8_t kRemoveIsoDataPathDirectionOutput = 0x02;
+
 constexpr uint8_t kIsoDataPathHci = 0x00;
 constexpr uint8_t kIsoDataPathPlatformDefault = 0x01;
 constexpr uint8_t kIsoDataPathDisabled = 0xFF;
