@@ -57,7 +57,6 @@ import android.os.Build;
 import android.os.IBinder;
 import android.os.ParcelUuid;
 import android.os.RemoteException;
-import android.os.ResultReceiver;
 import android.os.ServiceManager;
 import android.sysprop.BluetoothProperties;
 import android.util.Log;
@@ -818,6 +817,82 @@ public final class BluetoothAdapter {
             return;
         }
     };
+
+    /** @hide */
+    @IntDef(value = {
+            BluetoothStatusCodes.ERROR_UNKNOWN,
+            BluetoothStatusCodes.FEATURE_NOT_SUPPORTED,
+            BluetoothStatusCodes.ERROR_PROFILE_SERVICE_NOT_BOUND,
+    })
+    @Retention(RetentionPolicy.SOURCE)
+    public @interface BluetoothActivityEnergyInfoCallbackError {}
+
+    /**
+     * Interface for Bluetooth activity energy info callback. Should be implemented by applications
+     * and set when calling {@link #requestControllerActivityEnergyInfo}.
+     *
+     * @hide
+     */
+    @SystemApi
+    public interface OnBluetoothActivityEnergyInfoCallback {
+        /**
+         * Called when Bluetooth activity energy info is available.
+         * Note: this callback is triggered at most once for each call to
+         * {@link #requestControllerActivityEnergyInfo}.
+         *
+         * @param info the latest {@link BluetoothActivityEnergyInfo}
+         */
+        void onBluetoothActivityEnergyInfoAvailable(
+                @NonNull BluetoothActivityEnergyInfo info);
+
+        /**
+         * Called when the latest {@link BluetoothActivityEnergyInfo} can't be retrieved.
+         * The reason of the failure is indicated by the {@link BluetoothStatusCodes}
+         * passed as an argument to this method.
+         * Note: this callback is triggered at most once for each call to
+         * {@link #requestControllerActivityEnergyInfo}.
+         *
+         * @param error code indicating the reason for the failure
+         */
+        default void onBluetoothActivityEnergyInfoError(
+                @BluetoothActivityEnergyInfoCallbackError int error) {}
+    }
+
+    private static class OnBluetoothActivityEnergyInfoProxy
+            extends IBluetoothActivityEnergyInfoListener.Stub {
+        private final Object mLock = new Object();
+        @Nullable @GuardedBy("mLock") private Executor mExecutor;
+        @Nullable @GuardedBy("mLock") private OnBluetoothActivityEnergyInfoCallback mCallback;
+
+        OnBluetoothActivityEnergyInfoProxy(Executor executor,
+                OnBluetoothActivityEnergyInfoCallback callback) {
+            mExecutor = executor;
+            mCallback = callback;
+        }
+
+        @Override
+        public void onBluetoothActivityEnergyInfoAvailable(BluetoothActivityEnergyInfo info) {
+            Executor executor;
+            OnBluetoothActivityEnergyInfoCallback callback;
+            synchronized (mLock) {
+                if (mExecutor == null || mCallback == null) {
+                    return;
+                }
+                executor = mExecutor;
+                callback = mCallback;
+                // null out to allow garbage collection, prevent triggering callback more than once
+                mExecutor = null;
+                mCallback = null;
+            }
+            Binder.clearCallingIdentity();
+            if (info == null) {
+                executor.execute(() -> callback.onBluetoothActivityEnergyInfoError(
+                        BluetoothStatusCodes.FEATURE_NOT_SUPPORTED));
+            } else {
+                executor.execute(() -> callback.onBluetoothActivityEnergyInfoAvailable(info));
+            }
+        }
+    }
 
     /**
      * Get a handle to the default local Bluetooth adapter.
@@ -2686,10 +2761,12 @@ public final class BluetoothAdapter {
      * has the activity and energy info. This can be used to ascertain what
      * the controller has been up to, since the last sample.
      *
-     * A null value for the activity info object may be sent if the bluetooth service is
-     * unreachable or the device does not support reporting such information.
+     * The callback will be called only once, when the record is available.
      *
-     * @param result The callback to which to send the activity info.
+     * @param executor the executor that the callback will be invoked on
+     * @param callback the callback that will be called with either the
+     *                 {@link BluetoothActivityEnergyInfo} object, or the
+     *                 error code if an error has occurred
      * @hide
      */
     @SystemApi
@@ -2698,22 +2775,28 @@ public final class BluetoothAdapter {
             android.Manifest.permission.BLUETOOTH_CONNECT,
             android.Manifest.permission.BLUETOOTH_PRIVILEGED,
     })
-    public void requestControllerActivityEnergyInfo(@NonNull ResultReceiver result) {
-        requireNonNull(result, "ResultReceiver cannot be null");
+    public void requestControllerActivityEnergyInfo(
+            @NonNull @CallbackExecutor Executor executor,
+            @NonNull OnBluetoothActivityEnergyInfoCallback callback) {
+        requireNonNull(executor, "executor cannot be null");
+        requireNonNull(callback, "callback cannot be null");
         try {
             mServiceLock.readLock().lock();
             if (mService != null) {
-                mService.requestActivityInfo(result, mAttributionSource);
-                result = null;
+                mService.requestActivityInfo(
+                        new OnBluetoothActivityEnergyInfoProxy(executor, callback),
+                        mAttributionSource);
+            } else {
+                executor.execute(() -> callback.onBluetoothActivityEnergyInfoError(
+                        BluetoothStatusCodes.ERROR_PROFILE_SERVICE_NOT_BOUND));
             }
         } catch (RemoteException e) {
             Log.e(TAG, "getControllerActivityEnergyInfoCallback: " + e);
+            Binder.clearCallingIdentity();
+            executor.execute(() -> callback.onBluetoothActivityEnergyInfoError(
+                    BluetoothStatusCodes.ERROR_UNKNOWN));
         } finally {
             mServiceLock.readLock().unlock();
-            if (result != null) {
-                // Only send an immediate result if we failed.
-                result.send(0, null);
-            }
         }
     }
 
