@@ -139,6 +139,7 @@ class LeAudioDevice {
   types::AudioContexts SetAvailableContexts(types::AudioContexts snk_cont_val,
                                             types::AudioContexts src_cont_val);
   void DeactivateAllAses(void);
+  void ActivateConfiguredAses(void);
   void Dump(int fd);
   std::vector<uint8_t> GetMetadata(types::LeAudioContextType context_type);
   bool IsMetadataChanged(types::LeAudioContextType context_type);
@@ -210,6 +211,7 @@ class LeAudioDeviceGroup {
   int Size(void);
   int NumOfConnected(
       types::LeAudioContextType context_type = types::LeAudioContextType::RFU);
+  void Activate(void);
   void Deactivate(void);
   void Cleanup(void);
   LeAudioDevice* GetFirstDevice(void);
@@ -245,6 +247,8 @@ class LeAudioDeviceGroup {
   bool ReloadAudioLocations(void);
   const set_configurations::AudioSetConfiguration* GetActiveConfiguration(void);
   types::LeAudioContextType GetCurrentContextType(void);
+  bool IsPendingConfiguration(void);
+  void SetPendingConfiguration(void);
   types::AudioContexts GetActiveContexts(void);
   std::optional<LeAudioCodecConfiguration> GetCodecConfigurationByDirection(
       types::LeAudioContextType group_context_type, uint8_t direction);

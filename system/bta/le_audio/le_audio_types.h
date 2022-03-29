@@ -660,7 +660,7 @@ uint8_t get_num_of_devices_in_configuration(
 }  // namespace set_configurations
 
 struct stream_configuration {
-  bool reconfiguration_ongoing;
+  bool pending_configuration;
 
   types::LeAudioCodecId id;
 
