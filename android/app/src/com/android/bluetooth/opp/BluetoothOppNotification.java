@@ -438,12 +438,8 @@ class BluetoothOppNotification {
         outboundNum = outboundSuccNumber + outboundFailNumber;
         // create the outbound notification
         if (outboundNum > 0) {
-            String unsuccessCaption = mContext.getResources()
-                    .getQuantityString(R.plurals.noti_caption_unsuccessful, outboundFailNumber,
-                            outboundFailNumber);
-            String caption = mContext.getResources()
-                    .getQuantityString(R.plurals.noti_caption_success, outboundSuccNumber,
-                            outboundSuccNumber, unsuccessCaption);
+            String caption = BluetoothOppUtility.formatResultText(outboundSuccNumber,
+                    outboundFailNumber, mContext);
             Intent contentIntent = new Intent(Constants.ACTION_OPEN_OUTBOUND_TRANSFER).setClassName(
                     Constants.THIS_PACKAGE_NAME, BluetoothOppReceiver.class.getName());
             Intent deleteIntent = new Intent(Constants.ACTION_COMPLETE_HIDE).setClassName(
@@ -508,12 +504,8 @@ class BluetoothOppNotification {
         inboundNum = inboundSuccNumber + inboundFailNumber;
         // create the inbound notification
         if (inboundNum > 0) {
-            String unsuccessCaption = mContext.getResources()
-                    .getQuantityString(R.plurals.noti_caption_unsuccessful, inboundFailNumber,
-                            inboundFailNumber);
-            String caption = mContext.getResources()
-                    .getQuantityString(R.plurals.noti_caption_success, inboundSuccNumber,
-                            inboundSuccNumber, unsuccessCaption);
+            String caption = BluetoothOppUtility.formatResultText(inboundSuccNumber,
+                    inboundFailNumber, mContext);
             Intent contentIntent = new Intent(Constants.ACTION_OPEN_INBOUND_TRANSFER).setClassName(
                     Constants.THIS_PACKAGE_NAME, BluetoothOppReceiver.class.getName());
             Intent deleteIntent = new Intent(Constants.ACTION_COMPLETE_HIDE).setClassName(
