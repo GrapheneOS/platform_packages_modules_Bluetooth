@@ -1211,7 +1211,7 @@ void L2CA_ReadConnectionAddr(const RawAddress& pseudo_addr,
   }
   auto local = channel->second->GetLinkOptions()->GetLocalAddress();
   conn_addr = ToRawAddress(local.GetAddress());
-  *p_addr_type = static_cast<tBLE_ADDR_TYPE>(local.GetAddressType());
+  *p_addr_type = to_ble_addr_type(static_cast<uint8_t>(local.GetAddressType()));
 }
 
 bool L2CA_ReadRemoteConnectionAddr(const RawAddress& pseudo_addr,
@@ -1224,7 +1224,7 @@ bool L2CA_ReadRemoteConnectionAddr(const RawAddress& pseudo_addr,
   }
   auto info = le_link_property_listener_shim_.info_[remote].address_with_type;
   conn_addr = ToRawAddress(info.GetAddress());
-  *p_addr_type = static_cast<tBLE_ADDR_TYPE>(info.GetAddressType());
+  *p_addr_type = to_ble_addr_type(static_cast<uint8_t>(info.GetAddressType()));
   return true;
 }
 

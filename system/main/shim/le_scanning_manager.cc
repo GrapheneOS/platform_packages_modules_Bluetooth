@@ -338,28 +338,29 @@ void BleScannerInterfaceImpl::OnScanResult(
     int8_t tx_power, int8_t rssi, uint16_t periodic_advertising_interval,
     std::vector<uint8_t> advertising_data) {
   RawAddress raw_address = ToRawAddress(address);
+  tBLE_ADDR_TYPE ble_addr_type = to_ble_addr_type(address_type);
 
-  if (address_type != BLE_ADDR_ANONYMOUS) {
-    btm_ble_process_adv_addr(raw_address, &address_type);
+  if (ble_addr_type != BLE_ADDR_ANONYMOUS) {
+    btm_ble_process_adv_addr(raw_address, &ble_addr_type);
   }
 
   do_in_jni_thread(
       FROM_HERE,
       base::BindOnce(&BleScannerInterfaceImpl::handle_remote_properties,
-                     base::Unretained(this), raw_address, address_type,
+                     base::Unretained(this), raw_address, ble_addr_type,
                      advertising_data));
 
   do_in_jni_thread(
       FROM_HERE,
       base::BindOnce(&ScanningCallbacks::OnScanResult,
                      base::Unretained(scanning_callbacks_), event_type,
-                     address_type, raw_address, primary_phy, secondary_phy,
-                     advertising_sid, tx_power, rssi,
-                     periodic_advertising_interval, advertising_data));
+                     static_cast<uint8_t>(address_type), raw_address,
+                     primary_phy, secondary_phy, advertising_sid, tx_power,
+                     rssi, periodic_advertising_interval, advertising_data));
 
   // TODO: Remove when StartInquiry in GD part implemented
   btm_ble_process_adv_pkt_cont_for_inquiry(
-      event_type, address_type, raw_address, primary_phy, secondary_phy,
+      event_type, ble_addr_type, raw_address, primary_phy, secondary_phy,
       advertising_sid, tx_power, rssi, periodic_advertising_interval,
       advertising_data);
 }
