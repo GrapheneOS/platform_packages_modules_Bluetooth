@@ -849,7 +849,7 @@ public final class BluetoothAdapter {
         }
 
         @Override
-        public void onBluetoothActivityEnergyInfo(BluetoothActivityEnergyInfo info) {
+        public void onBluetoothActivityEnergyInfoAvailable(BluetoothActivityEnergyInfo info) {
             Executor executor;
             OnBluetoothActivityEnergyInfoListener listener;
             synchronized (mLock) {
@@ -2737,7 +2737,9 @@ public final class BluetoothAdapter {
      * A null value for the activity info object may be sent if the bluetooth service is
      * unreachable or the device does not support reporting such information.
      *
-     * @param result The callback to which to send the activity info.
+     * @param executor the executor that the listener will be invoked on
+     * @param listener the listener that will receive the {@link BluetoothActivityEnergyInfo}
+     *                 object when it becomes available
      * @hide
      */
     @SystemApi
