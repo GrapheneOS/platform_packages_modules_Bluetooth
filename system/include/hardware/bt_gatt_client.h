@@ -113,7 +113,7 @@ typedef void (*disconnect_callback)(int conn_id, int status, int client_if,
  */
 typedef void (*search_complete_callback)(int conn_id, int status);
 
-/** Callback invoked in response to [de]register_for_notification */
+/** Callback invoked in response to (de)register_for_notification */
 typedef void (*register_for_notification_callback)(int conn_id, int registered,
                                                    int status, uint16_t handle);
 
