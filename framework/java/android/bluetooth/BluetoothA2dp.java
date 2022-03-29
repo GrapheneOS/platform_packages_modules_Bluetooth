@@ -1024,9 +1024,6 @@ public final class BluetoothA2dp implements BluetoothProfile {
                 && value != BluetoothA2dp.OPTIONAL_CODECS_PREF_DISABLED
                 && value != BluetoothA2dp.OPTIONAL_CODECS_PREF_ENABLED) {
             Log.e(TAG, "Invalid value passed to setOptionalCodecsEnabled: " + value);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                throw new IllegalArgumentException("Invalid codec preference");
-            }
             return;
         }
         final IBluetoothA2dp service = getService();
