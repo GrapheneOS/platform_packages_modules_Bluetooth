@@ -77,6 +77,11 @@ void log_socket_connection_state(
       server_port, socket_role);
 }
 
+void log_counter_metrics_btif(android::bluetooth::CodePathCounterKeyEnum key,
+                              int64_t value) {
+  bluetooth::shim::CountCounterMetrics(key, value);
+}
+
 bool init_metric_id_allocator(
     const std::unordered_map<RawAddress, int>& paired_device_map,
     bluetooth::shim::CallbackLegacy save_device_callback,
