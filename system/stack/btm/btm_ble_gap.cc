@@ -1107,8 +1107,10 @@ void btm_ble_periodic_adv_sync_established(uint8_t status, uint16_t sync_handle,
 
   RawAddress bda = addr;
   alarm_cancel(sync_timeout_alarm);
-  if (address_type & BLE_ADDR_TYPE_ID_BIT) {
-    btm_identity_addr_to_random_pseudo(&bda, &address_type, true);
+
+  tBLE_ADDR_TYPE ble_addr_type = to_ble_addr_type(address_type);
+  if (ble_addr_type & BLE_ADDR_TYPE_ID_BIT) {
+    btm_identity_addr_to_random_pseudo(&bda, &ble_addr_type, true);
 #if (BLE_PRIVACY_SPT == TRUE)
     btm_ble_disable_resolving_list(BTM_BLE_RL_SCAN, true);
 #endif
@@ -1129,8 +1131,8 @@ void btm_ble_periodic_adv_sync_established(uint8_t status, uint16_t sync_handle,
   tBTM_BLE_PERIODIC_SYNC* ps = &btm_ble_pa_sync_cb.p_sync[index];
   ps->sync_handle = sync_handle;
   ps->sync_state = PERIODIC_SYNC_ESTABLISHED;
-  ps->sync_start_cb.Run(status, sync_handle, adv_sid, address_type, bda, phy,
-                        interval);
+  ps->sync_start_cb.Run(status, sync_handle, adv_sid,
+                        from_ble_addr_type(ble_addr_type), bda, phy, interval);
   btm_sync_queue_advance();
 }
 
