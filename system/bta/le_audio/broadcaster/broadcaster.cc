@@ -129,12 +129,11 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
     announcement.presentation_delay = 0x004E20; /* TODO: Use the proper value */
 
     auto const& codec_id = codec_config.GetLeAudioCodecId();
-    auto codec_spec_data = codec_config.GetCodecSpecData();
 
     /* Note: Currently we have a single audio source configured with a one
      *       set of codec/pcm parameters thus we can use a single subgroup
-     *       for all the BISes. And configure codec params at the BIG level,
-     *       since all these BISes share common codec configuration.
+     *       for all the BISes. Configure common BIS codec params at the
+     *       subgroup level.
      */
     announcement.subgroup_configs = {{
         .codec_config =
@@ -142,21 +141,18 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
                 .codec_id = codec_id.coding_format,
                 .vendor_company_id = codec_id.vendor_company_id,
                 .vendor_codec_id = codec_id.vendor_codec_id,
-                .codec_specific_params = std::move(codec_spec_data),
+                .codec_specific_params =
+                    codec_config.GetSubgroupCodecSpecData().RawPacket(),
             },
         .metadata = std::move(metadata),
         .bis_configs = {},
     }};
 
-    /* In general we could have individual BISes in this single subgroup
-     * have different codec configurations, but here we put all channel bises
-     * into this one subgroup and assign every BIS's index with an empty config
-     * to indicate that the lower lvl config should be used instead.
-     * BIS indices range is [1-31] - BASS, Sec.3.2 Broadcast Receive State.
-     */
+    /* BIS indices range is [1-31] - BASS, Sec.3.2 Broadcast Receive State. */
     for (uint8_t i = 0; i < codec_config.GetNumChannels(); ++i) {
       announcement.subgroup_configs[0].bis_configs.push_back(
-          {.codec_specific_params = {},
+          {.codec_specific_params =
+               codec_config.GetBisCodecSpecData(i + 1).RawPacket(),
            .bis_index = static_cast<uint8_t>(i + 1)});
     }
 
