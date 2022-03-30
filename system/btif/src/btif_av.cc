@@ -1732,10 +1732,6 @@ bool BtifAvStateMachine::StateOpening::ProcessEvent(uint32_t event,
           BTIF_TRACE_WARNING("%s: Peer %s : Disconnecting AVRCP",
                              __PRETTY_FUNCTION__,
                              peer_.PeerAddress().ToString().c_str());
-          log_counter_metrics_btif(
-              android::bluetooth::CodePathCounterKeyEnum::
-              A2DP_CONNECTION_FAILURE,
-              1);
           uint8_t peer_handle =
               btif_rc_get_connected_peer_handle(peer_.PeerAddress());
           if (peer_handle != BTRC_HANDLE_NONE) {
@@ -1744,6 +1740,10 @@ bool BtifAvStateMachine::StateOpening::ProcessEvent(uint32_t event,
         }
         state = BTAV_CONNECTION_STATE_DISCONNECTED;
         av_state = BtifAvStateMachine::kStateIdle;
+        log_counter_metrics_btif(
+              android::bluetooth::CodePathCounterKeyEnum::
+              A2DP_CONNECTION_FAILURE,
+              1);
       }
 
       // Report the connection state to the application
