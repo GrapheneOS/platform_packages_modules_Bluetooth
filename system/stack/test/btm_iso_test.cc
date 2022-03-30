@@ -1674,7 +1674,7 @@ TEST_F(IsoManagerTest, RemoveIsoDataPathValid) {
 
   // Setup and remove data paths for all CISes
   path_params.data_path_dir =
-      bluetooth::hci::iso_manager::kIsoDataPathDirectionIn;
+      bluetooth::hci::iso_manager::kRemoveIsoDataPathDirectionInput;
   for (auto& handle : volatile_test_cig_create_cmpl_evt_.conn_handles) {
     IsoManager::GetInstance()->SetupIsoDataPath(handle, path_params);
 

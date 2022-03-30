@@ -50,6 +50,9 @@ class LeAudioGroupStateMachine {
   virtual bool StartStream(LeAudioDeviceGroup* group,
                            types::LeAudioContextType context_type) = 0;
   virtual void SuspendStream(LeAudioDeviceGroup* group) = 0;
+  virtual bool ConfigureStream(
+      LeAudioDeviceGroup* group,
+      le_audio::types::LeAudioContextType context_type) = 0;
   virtual void StopStream(LeAudioDeviceGroup* group) = 0;
   virtual void ProcessGattNotifEvent(uint8_t* value, uint16_t len,
                                      struct types::ase* ase,

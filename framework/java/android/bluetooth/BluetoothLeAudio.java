@@ -924,6 +924,10 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
      * would have to call {@link #unregisterCallback(Callback)} with
      * the same callback object before registering it again.
      *
+     * <p> The {@link Callback} will be invoked only if there is codec status changed for the
+     * remote device or the device is connected/disconnected in a certain group or the group
+     * status is changed.
+     *
      * @param executor an {@link Executor} to execute given callback
      * @param callback user implementation of the {@link Callback}
      * @throws NullPointerException if a null executor or callback is given
