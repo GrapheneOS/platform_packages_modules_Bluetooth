@@ -776,7 +776,7 @@ public class LeAudioService extends ProfileService {
                 if (mActiveAudioOutDevice.isConnected()) {
                     device = mActiveAudioOutDevice;
                 }
-            } else {
+            } else if (previousGroupId != LE_AUDIO_GROUP_ID_INVALID) {
                 Log.i(TAG, " Switching active group from " + previousGroupId + " to " + groupId);
                 /* Mark old group as no active */
                 LeAudioGroupDescriptor descriptor = mGroupDescriptors.get(previousGroupId);
