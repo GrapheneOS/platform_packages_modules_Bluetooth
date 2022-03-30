@@ -222,7 +222,7 @@ void port_release_port(tPORT* p_port) {
 
   alarm_cancel(p_port->rfc.port_timer);
 
-  p_port->state = PORT_STATE_CLOSED;
+  p_port->state = PORT_CONNECTION_STATE_CLOSED;
 
   if (p_port->rfc.state == RFC_STATE_CLOSED) {
     if (p_port->rfc.p_mcb) {
@@ -258,7 +258,7 @@ void port_release_port(tPORT* p_port) {
       p_port->user_port_pars = user_port_pars;
       p_port->mtu = p_port->keep_mtu;
 
-      p_port->state = PORT_STATE_OPENING;
+      p_port->state = PORT_CONNECTION_STATE_OPENING;
       p_port->rfc.p_mcb = nullptr;
       if (p_port->is_server) p_port->dlci &= 0xfe;
 
