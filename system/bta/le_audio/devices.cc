@@ -116,10 +116,12 @@ void LeAudioDeviceGroup::Activate(void) {
 }
 
 LeAudioDevice* LeAudioDeviceGroup::GetFirstDevice(void) {
-  auto d = leAudioDevices_.front();
-  if (d.expired()) return nullptr;
+  auto iter = std::find_if(leAudioDevices_.begin(), leAudioDevices_.end(),
+                           [](auto& iter) { return !iter.expired(); });
 
-  return (d.lock()).get();
+  if (iter == leAudioDevices_.end()) return nullptr;
+
+  return (iter->lock()).get();
 }
 
 LeAudioDevice* LeAudioDeviceGroup::GetFirstDeviceWithActiveContext(
