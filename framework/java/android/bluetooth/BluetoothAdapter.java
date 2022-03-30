@@ -902,16 +902,43 @@ public final class BluetoothAdapter {
                 }
                 executor = mExecutor;
                 callback = mCallback;
-                // null out to allow garbage collection, prevent triggering callback more than once
                 mExecutor = null;
                 mCallback = null;
             }
-            Binder.clearCallingIdentity();
-            if (info == null) {
+            final long identity = Binder.clearCallingIdentity();
+            try {
+                if (info == null) {
+                    executor.execute(() -> callback.onBluetoothActivityEnergyInfoError(
+                            BluetoothStatusCodes.FEATURE_NOT_SUPPORTED));
+                } else {
+                    executor.execute(() -> callback.onBluetoothActivityEnergyInfoAvailable(info));
+                }
+            } finally {
+                Binder.restoreCallingIdentity(identity);
+            }
+        }
+
+        /**
+         * Framework only method that is called when the service can't be reached.
+         */
+        public void onError(int errorCode) {
+            Executor executor;
+            OnBluetoothActivityEnergyInfoCallback callback;
+            synchronized (mLock) {
+                if (mExecutor == null || mCallback == null) {
+                    return;
+                }
+                executor = mExecutor;
+                callback = mCallback;
+                mExecutor = null;
+                mCallback = null;
+            }
+            final long identity = Binder.clearCallingIdentity();
+            try {
                 executor.execute(() -> callback.onBluetoothActivityEnergyInfoError(
-                        BluetoothStatusCodes.FEATURE_NOT_SUPPORTED));
-            } else {
-                executor.execute(() -> callback.onBluetoothActivityEnergyInfoAvailable(info));
+                        errorCode));
+            } finally {
+                Binder.restoreCallingIdentity(identity);
             }
         }
     }
@@ -2792,21 +2819,20 @@ public final class BluetoothAdapter {
             @NonNull OnBluetoothActivityEnergyInfoCallback callback) {
         requireNonNull(executor, "executor cannot be null");
         requireNonNull(callback, "callback cannot be null");
+        OnBluetoothActivityEnergyInfoProxy proxy =
+                new OnBluetoothActivityEnergyInfoProxy(executor, callback);
         try {
             mServiceLock.readLock().lock();
             if (mService != null) {
                 mService.requestActivityInfo(
-                        new OnBluetoothActivityEnergyInfoProxy(executor, callback),
+                        proxy,
                         mAttributionSource);
             } else {
-                executor.execute(() -> callback.onBluetoothActivityEnergyInfoError(
-                        BluetoothStatusCodes.ERROR_PROFILE_SERVICE_NOT_BOUND));
+                proxy.onError(BluetoothStatusCodes.ERROR_PROFILE_SERVICE_NOT_BOUND);
             }
         } catch (RemoteException e) {
             Log.e(TAG, "getControllerActivityEnergyInfoCallback: " + e);
-            Binder.clearCallingIdentity();
-            executor.execute(() -> callback.onBluetoothActivityEnergyInfoError(
-                    BluetoothStatusCodes.ERROR_UNKNOWN));
+            proxy.onError(BluetoothStatusCodes.ERROR_UNKNOWN);
         } finally {
             mServiceLock.readLock().unlock();
         }
