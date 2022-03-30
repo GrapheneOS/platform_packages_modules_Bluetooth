@@ -854,8 +854,8 @@ public final class BluetoothAdapter {
          *
          * @param error code indicating the reason for the failure
          */
-        default void onBluetoothActivityEnergyInfoError(
-                @BluetoothActivityEnergyInfoCallbackError int error) {}
+        void onBluetoothActivityEnergyInfoError(
+                @BluetoothActivityEnergyInfoCallbackError int error);
     }
 
     private static class OnBluetoothActivityEnergyInfoProxy
