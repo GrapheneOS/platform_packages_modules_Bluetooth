@@ -394,6 +394,7 @@ static jboolean disconnectLeAudioNative(JNIEnv* env, jobject object,
 
 static jboolean groupAddNodeNative(JNIEnv* env, jobject object, jint group_id,
                                    jbyteArray address) {
+  std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   jbyte* addr = env->GetByteArrayElements(address, nullptr);
 
   if (!sLeAudioClientInterface) {
@@ -415,6 +416,7 @@ static jboolean groupAddNodeNative(JNIEnv* env, jobject object, jint group_id,
 
 static jboolean groupRemoveNodeNative(JNIEnv* env, jobject object,
                                       jint group_id, jbyteArray address) {
+  std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   if (!sLeAudioClientInterface) {
     LOG(ERROR) << __func__ << ": Failed to get the Bluetooth LeAudio Interface";
     return JNI_FALSE;
@@ -434,6 +436,7 @@ static jboolean groupRemoveNodeNative(JNIEnv* env, jobject object,
 
 static void groupSetActiveNative(JNIEnv* env, jobject object, jint group_id) {
   LOG(INFO) << __func__;
+  std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
 
   if (!sLeAudioClientInterface) {
     LOG(ERROR) << __func__ << ": Failed to get the Bluetooth LeAudio Interface";
@@ -447,6 +450,8 @@ static void setCodecConfigPreferenceNative(JNIEnv* env, jobject object,
                                            jint group_id,
                                            jobject inputCodecConfig,
                                            jobject outputCodecConfig) {
+  std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
+
   if (!env->IsInstanceOf(inputCodecConfig,
                          android_bluetooth_BluetoothLeAudioCodecConfig.clazz) ||
       !env->IsInstanceOf(outputCodecConfig,
