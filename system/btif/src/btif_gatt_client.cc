@@ -339,7 +339,7 @@ void btif_gattc_open_impl(int client_if, RawAddress address, bool is_direct,
         break;
 
       case BT_DEVICE_TYPE_DUMO:
-        if (transport_p == BT_TRANSPORT_LE)
+        if (addr_type == BLE_ADDR_RANDOM)
           transport = BT_TRANSPORT_LE;
         else
           transport = BT_TRANSPORT_BR_EDR;
@@ -348,8 +348,8 @@ void btif_gattc_open_impl(int client_if, RawAddress address, bool is_direct,
   }
 
   // Connect!
-  BTIF_TRACE_DEBUG("%s Transport=%d, device type=%d, phy=%d", __func__,
-                   transport, device_type, initiating_phys);
+  LOG_INFO("%s Transport=%d, device type=%d, address type =%d, phy=%d",
+           __func__, transport, device_type, addr_type, initiating_phys);
   BTA_GATTC_Open(client_if, address, is_direct, transport, opportunistic,
                  initiating_phys);
 }
