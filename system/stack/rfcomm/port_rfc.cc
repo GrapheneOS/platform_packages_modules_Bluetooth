@@ -409,7 +409,7 @@ void PORT_ParNegCnf(tRFC_MCB* p_mcb, uint8_t dlci, uint16_t mtu, uint8_t cl,
     port_get_credits(p_port, k);
   }
 
-  if (p_port->state == PORT_STATE_OPENING)
+  if (p_port->state == PORT_CONNECTION_STATE_OPENING)
     RFCOMM_DlcEstablishReq(p_mcb, p_port->dlci, p_port->mtu);
 }
 
@@ -464,7 +464,7 @@ void PORT_DlcEstablishInd(tRFC_MCB* p_mcb, uint8_t dlci, uint16_t mtu) {
                         1);
   }
 
-  p_port->state = PORT_STATE_OPENED;
+  p_port->state = PORT_CONNECTION_STATE_OPENED;
 }
 
 /*******************************************************************************
@@ -510,7 +510,7 @@ void PORT_DlcEstablishCnf(tRFC_MCB* p_mcb, uint8_t dlci, uint16_t mtu,
                             RFCOMM_CONNECTION_SUCCESS_CNF,
                         1);
   }
-  p_port->state = PORT_STATE_OPENED;
+  p_port->state = PORT_CONNECTION_STATE_OPENED;
 
   /* RPN is required only if we want to tell DTE how the port should be opened
    */
@@ -979,7 +979,7 @@ void port_rfc_closed(tPORT* p_port, uint8_t res) {
   uint32_t events = 0;
   tRFC_MCB* p_mcb = p_port->rfc.p_mcb;
 
-  if ((p_port->state == PORT_STATE_OPENING) && (p_port->is_server)) {
+  if ((p_port->state == PORT_CONNECTION_STATE_OPENING) && (p_port->is_server)) {
     /* The server side was not informed that connection is up, ignore */
     RFCOMM_TRACE_WARNING("port_rfc_closed in OPENING state ignored");
 
@@ -1002,8 +1002,8 @@ void port_rfc_closed(tPORT* p_port, uint8_t res) {
     return;
   }
 
-  if ((p_port->state != PORT_STATE_CLOSING) &&
-      (p_port->state != PORT_STATE_CLOSED)) {
+  if ((p_port->state != PORT_CONNECTION_STATE_CLOSING) &&
+      (p_port->state != PORT_CONNECTION_STATE_CLOSED)) {
     p_port->line_status |= LINE_STATUS_FAILED;
 
     old_signals = p_port->peer_ctrl.modem_signal;
