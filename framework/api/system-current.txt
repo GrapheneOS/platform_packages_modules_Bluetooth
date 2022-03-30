@@ -99,7 +99,7 @@ package android.bluetooth {
 
   public static interface BluetoothAdapter.OnBluetoothActivityEnergyInfoCallback {
     method public void onBluetoothActivityEnergyInfoAvailable(@NonNull android.bluetooth.BluetoothActivityEnergyInfo);
-    method public default void onBluetoothActivityEnergyInfoError(int);
+    method public void onBluetoothActivityEnergyInfoError(int);
   }
 
   public static interface BluetoothAdapter.OnMetadataChangedListener {
