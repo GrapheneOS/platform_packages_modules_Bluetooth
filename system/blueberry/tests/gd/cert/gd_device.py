@@ -653,7 +653,7 @@ class GdAndroidDevice(GdDeviceBase):
             self.adb.shell("setprop persist.sys.timezone %s" % target_timezone)
             self.reboot()
             self.adb.remount()
-            device_tz = self.adb.shell("date +%z")
+            device_tz = self.adb.shell("date +%z").decode(UTF_8).rstrip()
             asserts.assert_equal(
                 host_tz, device_tz, "Device timezone %s still does not match host "
                 "timezone %s after reset" % (device_tz, host_tz))

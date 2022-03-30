@@ -525,6 +525,44 @@ class UnicastTestNoInit : public Test {
     ON_CALL(mock_state_machine_, Initialize(_))
         .WillByDefault(SaveArg<0>(&state_machine_callbacks_));
 
+    ON_CALL(mock_state_machine_, ConfigureStream(_, _))
+        .WillByDefault([this](LeAudioDeviceGroup* group,
+                              types::LeAudioContextType context_type) {
+          bool isReconfiguration = group->IsPendingConfiguration();
+
+          /* This shall be called only for user reconfiguration */
+          if (!isReconfiguration) return false;
+
+          group->Configure(context_type);
+
+          for (LeAudioDevice* device = group->GetFirstDevice();
+               device != nullptr; device = group->GetNextDevice(device)) {
+            for (auto& ase : device->ases_) {
+              ase.data_path_state = types::AudioStreamDataPathState::IDLE;
+              ase.active = false;
+              ase.state =
+                  types::AseState::BTA_LE_AUDIO_ASE_STATE_CODEC_CONFIGURED;
+            }
+          }
+
+          // Inject the state
+          group->SetTargetState(
+              types::AseState::BTA_LE_AUDIO_ASE_STATE_CODEC_CONFIGURED);
+          group->SetState(group->GetTargetState());
+          do_in_main_thread(
+              FROM_HERE, base::BindOnce(
+                             [](int group_id,
+                                le_audio::LeAudioGroupStateMachine::Callbacks*
+                                    state_machine_callbacks) {
+                               state_machine_callbacks->StatusReportCb(
+                                   group_id,
+                                   GroupStreamStatus::CONFIGURED_BY_USER);
+                             },
+                             group->group_id_,
+                             base::Unretained(this->state_machine_callbacks_)));
+          return true;
+        });
+
     ON_CALL(mock_state_machine_, StartStream(_, _))
         .WillByDefault([this](LeAudioDeviceGroup* group,
                               types::LeAudioContextType context_type) {
@@ -1001,15 +1039,7 @@ class UnicastTestNoInit : public Test {
     do_metadata_update_future.wait();
   }
 
-  void StartStreaming(audio_usage_t usage, audio_content_type_t content_type,
-                      int group_id, bool reconfigure_existing_stream = false) {
-    ASSERT_NE(audio_sink_receiver_, nullptr);
-
-    UpdateMetadata(usage, content_type, reconfigure_existing_stream);
-
-    /* Stream has been automatically restarted on UpdateMetadata */
-    if (reconfigure_existing_stream) return;
-
+  void SinkAudioResume(void) {
     EXPECT_CALL(mock_audio_source_, ConfirmStreamingRequest()).Times(1);
     do_in_main_thread(FROM_HERE,
                       base::BindOnce(
@@ -1020,6 +1050,18 @@ class UnicastTestNoInit : public Test {
 
     SyncOnMainLoop();
     Mock::VerifyAndClearExpectations(&mock_audio_source_);
+  }
+
+  void StartStreaming(audio_usage_t usage, audio_content_type_t content_type,
+                      int group_id, bool reconfigure_existing_stream = false) {
+    ASSERT_NE(audio_sink_receiver_, nullptr);
+
+    UpdateMetadata(usage, content_type, reconfigure_existing_stream);
+
+    /* Stream has been automatically restarted on UpdateMetadata */
+    if (reconfigure_existing_stream) return;
+
+    SinkAudioResume();
 
     if (usage == AUDIO_USAGE_VOICE_COMMUNICATION) {
       ASSERT_NE(audio_source_receiver_, nullptr);
@@ -2740,6 +2782,11 @@ TEST_F(UnicastTest, TwoEarbuds2ndLateConnect) {
 
   cis_count_out = 2;
   cis_count_in = 0;
+
+  /* The above will trigger reconfiguration. After that Audio Hal action
+   * is needed to restart the stream */
+  SinkAudioResume();
+
   TestAudioDataTransfer(group_id, cis_count_out, cis_count_in, 1920);
 }
 

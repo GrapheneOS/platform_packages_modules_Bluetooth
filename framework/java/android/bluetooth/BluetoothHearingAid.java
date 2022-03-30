@@ -597,7 +597,7 @@ public final class BluetoothHearingAid implements BluetoothProfile {
     })
     public long getHiSyncId(@NonNull BluetoothDevice device) {
         if (VDBG) log("getHiSyncId(" + device + ")");
-        verifyDeviceNotNull(device, "getConnectionPolicy");
+        verifyDeviceNotNull(device, "getHiSyncId");
         final IBluetoothHearingAid service = getService();
         final long defaultValue = HI_SYNC_ID_INVALID;
         if (service == null) {

@@ -151,6 +151,15 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
 
     switch (group->GetState()) {
       case AseState::BTA_LE_AUDIO_ASE_STATE_CODEC_CONFIGURED:
+        if (group->GetCurrentContextType() == context_type) {
+          group->Activate();
+          SetTargetState(group, AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING);
+          CigCreate(group);
+          return true;
+        }
+
+        /* If configuration is needed */
+        FALLTHROUGH;
       case AseState::BTA_LE_AUDIO_ASE_STATE_IDLE:
         if (!group->Configure(context_type)) {
           LOG(ERROR) << __func__ << ", failed to set ASE configuration";
@@ -197,6 +206,29 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
                   ToString(group->GetState()).c_str());
         return false;
     }
+
+    return true;
+  }
+
+  bool ConfigureStream(
+      LeAudioDeviceGroup* group,
+      le_audio::types::LeAudioContextType context_type) override {
+    if (group->GetState() > AseState::BTA_LE_AUDIO_ASE_STATE_CODEC_CONFIGURED) {
+      LOG_ERROR(
+          "Stream should be stopped or in configured stream. Current state: %s",
+          ToString(group->GetState()).c_str());
+      return false;
+    }
+
+    if (!group->Configure(context_type)) {
+      LOG_ERROR("Could not configure ASEs for group %d content type %d",
+                group->group_id_, int(context_type));
+
+      return false;
+    }
+
+    SetTargetState(group, AseState::BTA_LE_AUDIO_ASE_STATE_CODEC_CONFIGURED);
+    PrepareAndSendCodecConfigure(group, group->GetFirstActiveDevice());
 
     return true;
   }
@@ -800,11 +832,11 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
       IsoManager::GetInstance()->RemoveIsoDataPath(
           ase->cis_conn_hdl,
           (ases_pair.sink
-               ? bluetooth::hci::iso_manager::kIsoDataPathDirectionOut
+               ? bluetooth::hci::iso_manager::kRemoveIsoDataPathDirectionOutput
                : 0x00) |
-              (ases_pair.source
-                   ? bluetooth::hci::iso_manager::kIsoDataPathDirectionIn
-                   : 0x00));
+              (ases_pair.source ? bluetooth::hci::iso_manager::
+                                      kRemoveIsoDataPathDirectionInput
+                                : 0x00));
     }
   }
 
@@ -1038,10 +1070,11 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
 
     IsoManager::GetInstance()->RemoveIsoDataPath(
         ase->cis_conn_hdl,
-        (ases_pair.sink ? bluetooth::hci::iso_manager::kIsoDataPathDirectionOut
-                        : 0x00) |
+        (ases_pair.sink
+             ? bluetooth::hci::iso_manager::kRemoveIsoDataPathDirectionOutput
+             : 0x00) |
             (ases_pair.source
-                 ? bluetooth::hci::iso_manager::kIsoDataPathDirectionIn
+                 ? bluetooth::hci::iso_manager::kRemoveIsoDataPathDirectionInput
                  : 0x00));
   }
 
@@ -1114,15 +1147,20 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     ase = leAudioDevice->GetFirstActiveAse();
     LOG_ASSERT(ase) << __func__ << " shouldn't be called without an active ASE";
     do {
-      /* Get completive (to be bi-directional CIS) CIS ID for ASE */
-      uint8_t cis_id = leAudioDevice->GetMatchingBidirectionCisId(ase);
+      uint8_t cis_id = ase->cis_id;
       if (cis_id == le_audio::kInvalidCisId) {
-        /* Get next free CIS ID for group */
-        cis_id = group->GetFirstFreeCisId();
+        /* Get completive (to be bi-directional CIS) CIS ID for ASE */
+        cis_id = leAudioDevice->GetMatchingBidirectionCisId(ase);
+        LOG_INFO(" Configure ase_id %d, cis_id %d, ase state %s", ase->id,
+                 cis_id, ToString(ase->state).c_str());
         if (cis_id == le_audio::kInvalidCisId) {
-          LOG(ERROR) << __func__ << ", failed to get free CIS ID";
-          StopStream(group);
-          return;
+          /* Get next free CIS ID for group */
+          cis_id = group->GetFirstFreeCisId();
+          if (cis_id == le_audio::kInvalidCisId) {
+            LOG(ERROR) << __func__ << ", failed to get free CIS ID";
+            StopStream(group);
+            return;
+          }
         }
       }
 
@@ -1225,13 +1263,26 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
               AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
             CigCreate(group);
             return;
-          } else {
-            LOG(ERROR) << __func__ << ", invalid state transition, from: "
-                       << group->GetState()
-                       << ", to: " << group->GetTargetState();
-            StopStream(group);
+          }
+
+          if (group->GetTargetState() ==
+                  AseState::BTA_LE_AUDIO_ASE_STATE_CODEC_CONFIGURED &&
+              group->stream_conf.pending_configuration) {
+            LOG_INFO(" Configured state completed ");
+            group->stream_conf.pending_configuration = false;
+            state_machine_callbacks_->StatusReportCb(
+                group->group_id_, GroupStreamStatus::CONFIGURED_BY_USER);
+
+            /* No more transition for group */
+            alarm_cancel(watchdog_);
             return;
           }
+
+          LOG_ERROR(", invalid state transition, from: %s to %s",
+                    ToString(group->GetState()).c_str(),
+                    ToString(group->GetTargetState()).c_str());
+          StopStream(group);
+          return;
         }
 
         break;
@@ -1297,11 +1348,24 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
               AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
             CigCreate(group);
             return;
-          } else {
-            LOG(ERROR) << __func__
-                       << ", Autonomouse change ?: " << group->GetState()
-                       << ", to: " << group->GetTargetState();
           }
+
+          if (group->GetTargetState() ==
+                  AseState::BTA_LE_AUDIO_ASE_STATE_CODEC_CONFIGURED &&
+              group->stream_conf.pending_configuration) {
+            LOG_INFO(" Configured state completed ");
+            group->stream_conf.pending_configuration = false;
+            state_machine_callbacks_->StatusReportCb(
+                group->group_id_, GroupStreamStatus::CONFIGURED_BY_USER);
+
+            /* No more transition for group */
+            alarm_cancel(watchdog_);
+            return;
+          }
+
+          LOG_ERROR(", Autonomouse change, from: %s to %s",
+                    ToString(group->GetState()).c_str(),
+                    ToString(group->GetTargetState()).c_str());
         }
 
         break;
@@ -1336,8 +1400,8 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
            * remote device.
            */
           group->SetTargetState(group->GetState());
-          state_machine_callbacks_->StatusReportCb(group->group_id_,
-                                                   GroupStreamStatus::IDLE);
+          state_machine_callbacks_->StatusReportCb(
+              group->group_id_, GroupStreamStatus::CONFIGURED_AUTONOMOUS);
         }
         break;
       default:
@@ -1839,12 +1903,12 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
               leAudioDevice->GetAsesByCisConnHdl(ase->cis_conn_hdl);
           IsoManager::GetInstance()->RemoveIsoDataPath(
               ase->cis_conn_hdl,
-              (ases_pair.sink
-                   ? bluetooth::hci::iso_manager::kIsoDataPathDirectionOut
-                   : 0x00) |
-                  (ases_pair.source
-                       ? bluetooth::hci::iso_manager::kIsoDataPathDirectionIn
-                       : 0x00));
+              (ases_pair.sink ? bluetooth::hci::iso_manager::
+                                    kRemoveIsoDataPathDirectionOutput
+                              : 0x00) |
+                  (ases_pair.source ? bluetooth::hci::iso_manager::
+                                          kRemoveIsoDataPathDirectionInput
+                                    : 0x00));
         } else if (ase->data_path_state ==
                        AudioStreamDataPathState::CIS_ESTABLISHED ||
                    ase->data_path_state ==
@@ -1853,7 +1917,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
                                                    HCI_ERR_PEER_USER);
         } else {
           DLOG(INFO) << __func__ << ", Nothing to do ase data path state: "
-                    << static_cast<int>(ase->data_path_state);
+                     << static_cast<int>(ase->data_path_state);
         }
         break;
       }
