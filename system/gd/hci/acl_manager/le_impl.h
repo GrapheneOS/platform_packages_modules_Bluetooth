@@ -591,9 +591,9 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
   }
 
   void disarm_connectability() {
-    if (connectability_state_ != ConnectabilityState::ARMED) {
+    if (connectability_state_ != ConnectabilityState::ARMED && connectability_state_ != ConnectabilityState::ARMING) {
       LOG_ERROR(
-          "Attempting to re-arm le connection state machine in unexpected state:%s",
+          "Attempting to disarm le connection state machine in unexpected state:%s",
           connectability_state_machine_text(connectability_state_).c_str());
       return;
     }
@@ -669,6 +669,7 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
     ASSERT(check_connection_parameters(conn_interval_min, conn_interval_max, conn_latency, supervision_timeout));
 
     connecting_le_.insert(address_with_type);
+    connectability_state_ = ConnectabilityState::ARMING;
 
     if (initiator_filter_policy == InitiatorFilterPolicy::USE_CONNECT_LIST) {
       address_with_type = AddressWithType();

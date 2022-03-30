@@ -251,6 +251,19 @@ void BluetoothAudioPortHidl::ControlResultHandler(
             << ", status=" << toString(status);
 
   switch (previous_state) {
+    case BluetoothStreamState::STARTED:
+      /* Only Suspend signal can be send in STARTED state*/
+      if (status == BluetoothAudioStatus::SUCCESS) {
+        state_ = BluetoothStreamState::STANDBY;
+      } else {
+        // Set to standby since the stack may be busy switching between outputs
+        LOG(WARNING) << "control_result_cb: status=" << toString(status)
+                     << " failure for session_type="
+                     << toString(session_type_hidl_)
+                     << ", cookie=" << StringPrintf("%#hx", cookie_)
+                     << ", previous_state=" << previous_state;
+      }
+      break;
     case BluetoothStreamState::STARTING:
       if (status == BluetoothAudioStatusHidl::SUCCESS) {
         state_ = BluetoothStreamState::STARTED;
