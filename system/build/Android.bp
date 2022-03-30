@@ -80,6 +80,11 @@ fluoride_defaults {
                 misc_undefined: ["bounds"],
             },
         },
+        host: {
+            static_libs: [
+                "libcutils",
+            ]
+        }
     },
     defaults: ["fluoride_types_defaults_fuzzable"],
     header_libs: ["libbluetooth_headers", "libbt_callbacks_cxx_headers"],
@@ -93,7 +98,6 @@ fluoride_defaults {
         "libbluetooth-types",
         "libbt-platform-protos-lite",
         "libbluetooth_rust_interop",
-        "libcutils",
     ],
     shared_libs: [
         "liblog",

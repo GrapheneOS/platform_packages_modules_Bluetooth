@@ -129,7 +129,6 @@ cc_test {
         "libgmock",
         "liblog",
         "libbluetooth-types",
-        "libutils",
     ],
     shared_libs: [
         "libchrome",
