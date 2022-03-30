@@ -146,6 +146,8 @@ public class BluetoothInCallService extends InCallService {
 
     public CallInfo mCallInfo = new CallInfo();
 
+    protected boolean mOnCreateCalled = false;
+
     /**
      * Listens to connections and disconnections of bluetooth headsets.  We need to save the current
      * bluetooth headset so that we know where to send BluetoothCall updates.
@@ -487,6 +489,10 @@ public class BluetoothInCallService extends InCallService {
     @RequiresPermission(android.Manifest.permission.MODIFY_PHONE_STATE)
     public boolean listCurrentCalls() {
         synchronized (LOCK) {
+            if (!mOnCreateCalled) {
+                Log.w(TAG, "listcurrentCalls() is called before onCreate()");
+                return false;
+            }
             enforceModifyPermission();
             // only log if it is after we recently updated the headset state or else it can
             // clog the android log since this can be queried every second.
@@ -655,12 +661,14 @@ public class BluetoothInCallService extends InCallService {
         mAudioManager = getSystemService(AudioManager.class);
         mAudioManager.addOnModeChangedListener(
                 Executors.newSingleThreadExecutor(), mBluetoothOnModeChangedListener);
+        mOnCreateCalled = true;
     }
 
     @Override
     public void onDestroy() {
         Log.d(TAG, "onDestroy");
         clear();
+        mOnCreateCalled = false;
         super.onDestroy();
     }
 
