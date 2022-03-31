@@ -840,52 +840,106 @@ public final class BluetoothAdapter {
         }
     };
 
+    /** @hide */
+    @IntDef(value = {
+            BluetoothStatusCodes.ERROR_UNKNOWN,
+            BluetoothStatusCodes.FEATURE_NOT_SUPPORTED,
+            BluetoothStatusCodes.ERROR_PROFILE_SERVICE_NOT_BOUND,
+    })
+    @Retention(RetentionPolicy.SOURCE)
+    public @interface BluetoothActivityEnergyInfoCallbackError {}
+
     /**
-     * Interface for Bluetooth activity energy info listener. Should be implemented by applications
-     * and set when calling {@link BluetoothAdapter#requestControllerActivityEnergyInfo}.
+     * Interface for Bluetooth activity energy info callback. Should be implemented by applications
+     * and set when calling {@link #requestControllerActivityEnergyInfo}.
      *
      * @hide
      */
     @SystemApi
-    public interface OnBluetoothActivityEnergyInfoListener {
+    public interface OnBluetoothActivityEnergyInfoCallback {
         /**
          * Called when Bluetooth activity energy info is available.
-         * Note: this listener is triggered at most once for each call to
+         * Note: this callback is triggered at most once for each call to
          * {@link #requestControllerActivityEnergyInfo}.
          *
-         * @param info the latest {@link BluetoothActivityEnergyInfo}, or null if unavailable.
+         * @param info the latest {@link BluetoothActivityEnergyInfo}
          */
-        void onBluetoothActivityEnergyInfo(@Nullable BluetoothActivityEnergyInfo info);
+        void onBluetoothActivityEnergyInfoAvailable(
+                @NonNull BluetoothActivityEnergyInfo info);
+
+        /**
+         * Called when the latest {@link BluetoothActivityEnergyInfo} can't be retrieved.
+         * The reason of the failure is indicated by the {@link BluetoothStatusCodes}
+         * passed as an argument to this method.
+         * Note: this callback is triggered at most once for each call to
+         * {@link #requestControllerActivityEnergyInfo}.
+         *
+         * @param error code indicating the reason for the failure
+         */
+        void onBluetoothActivityEnergyInfoError(
+                @BluetoothActivityEnergyInfoCallbackError int error);
     }
 
     private static class OnBluetoothActivityEnergyInfoProxy
             extends IBluetoothActivityEnergyInfoListener.Stub {
         private final Object mLock = new Object();
         @Nullable @GuardedBy("mLock") private Executor mExecutor;
-        @Nullable @GuardedBy("mLock") private OnBluetoothActivityEnergyInfoListener mListener;
+        @Nullable @GuardedBy("mLock") private OnBluetoothActivityEnergyInfoCallback mCallback;
 
         OnBluetoothActivityEnergyInfoProxy(Executor executor,
-                OnBluetoothActivityEnergyInfoListener listener) {
+                OnBluetoothActivityEnergyInfoCallback callback) {
             mExecutor = executor;
-            mListener = listener;
+            mCallback = callback;
         }
 
         @Override
         public void onBluetoothActivityEnergyInfoAvailable(BluetoothActivityEnergyInfo info) {
             Executor executor;
-            OnBluetoothActivityEnergyInfoListener listener;
+            OnBluetoothActivityEnergyInfoCallback callback;
             synchronized (mLock) {
-                if (mExecutor == null || mListener == null) {
+                if (mExecutor == null || mCallback == null) {
                     return;
                 }
                 executor = mExecutor;
-                listener = mListener;
-                // null out to allow garbage collection, prevent triggering listener more than once
+                callback = mCallback;
                 mExecutor = null;
-                mListener = null;
+                mCallback = null;
             }
-            Binder.clearCallingIdentity();
-            executor.execute(() -> listener.onBluetoothActivityEnergyInfo(info));
+            final long identity = Binder.clearCallingIdentity();
+            try {
+                if (info == null) {
+                    executor.execute(() -> callback.onBluetoothActivityEnergyInfoError(
+                            BluetoothStatusCodes.FEATURE_NOT_SUPPORTED));
+                } else {
+                    executor.execute(() -> callback.onBluetoothActivityEnergyInfoAvailable(info));
+                }
+            } finally {
+                Binder.restoreCallingIdentity(identity);
+            }
+        }
+
+        /**
+         * Framework only method that is called when the service can't be reached.
+         */
+        public void onError(int errorCode) {
+            Executor executor;
+            OnBluetoothActivityEnergyInfoCallback callback;
+            synchronized (mLock) {
+                if (mExecutor == null || mCallback == null) {
+                    return;
+                }
+                executor = mExecutor;
+                callback = mCallback;
+                mExecutor = null;
+                mCallback = null;
+            }
+            final long identity = Binder.clearCallingIdentity();
+            try {
+                executor.execute(() -> callback.onBluetoothActivityEnergyInfoError(
+                        errorCode));
+            } finally {
+                Binder.restoreCallingIdentity(identity);
+            }
         }
     }
 
@@ -1887,6 +1941,7 @@ public final class BluetoothAdapter {
      * @param mode represents the desired state of the local device scan mode
      *
      * @return status code indicating whether the scan mode was successfully set
+     * @throws IllegalArgumentException if the mode is not a valid scan mode
      * @hide
      */
     @SystemApi
@@ -1899,6 +1954,10 @@ public final class BluetoothAdapter {
     public int setScanMode(@ScanMode int mode) {
         if (getState() != STATE_ON) {
             return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED;
+        }
+        if (mode != SCAN_MODE_NONE && mode != SCAN_MODE_CONNECTABLE
+                && mode != SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
+            throw new IllegalArgumentException("Invalid scan mode param value");
         }
         try {
             mServiceLock.readLock().lock();
@@ -2746,12 +2805,12 @@ public final class BluetoothAdapter {
      * has the activity and energy info. This can be used to ascertain what
      * the controller has been up to, since the last sample.
      *
-     * A null value for the activity info object may be sent if the bluetooth service is
-     * unreachable or the device does not support reporting such information.
+     * The callback will be called only once, when the record is available.
      *
-     * @param executor the executor that the listener will be invoked on
-     * @param listener the listener that will receive the {@link BluetoothActivityEnergyInfo}
-     *                 object when it becomes available
+     * @param executor the executor that the callback will be invoked on
+     * @param callback the callback that will be called with either the
+     *                 {@link BluetoothActivityEnergyInfo} object, or the
+     *                 error code if an error has occurred
      * @hide
      */
     @SystemApi
@@ -2762,18 +2821,23 @@ public final class BluetoothAdapter {
     })
     public void requestControllerActivityEnergyInfo(
             @NonNull @CallbackExecutor Executor executor,
-            @NonNull OnBluetoothActivityEnergyInfoListener listener) {
+            @NonNull OnBluetoothActivityEnergyInfoCallback callback) {
         requireNonNull(executor, "executor cannot be null");
-        requireNonNull(listener, "listener cannot be null");
+        requireNonNull(callback, "callback cannot be null");
+        OnBluetoothActivityEnergyInfoProxy proxy =
+                new OnBluetoothActivityEnergyInfoProxy(executor, callback);
         try {
             mServiceLock.readLock().lock();
             if (mService != null) {
                 mService.requestActivityInfo(
-                        new OnBluetoothActivityEnergyInfoProxy(executor, listener),
+                        proxy,
                         mAttributionSource);
+            } else {
+                proxy.onError(BluetoothStatusCodes.ERROR_PROFILE_SERVICE_NOT_BOUND);
             }
         } catch (RemoteException e) {
             Log.e(TAG, "getControllerActivityEnergyInfoCallback: " + e);
+            proxy.onError(BluetoothStatusCodes.ERROR_UNKNOWN);
         } finally {
             mServiceLock.readLock().unlock();
         }

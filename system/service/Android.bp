@@ -193,7 +193,6 @@ cc_test {
         "libchrome",
         "libgmock",
         "liblog",
-        "libutils",
         "libflatbuffers-cpp",
         "libFraunhoferAAC",
         "libg722codec",
