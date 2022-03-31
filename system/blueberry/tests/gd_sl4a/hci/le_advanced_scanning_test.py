@@ -886,9 +886,8 @@ class LeAdvancedScanningTest(GdSl4aBaseTestClass):
         addr_type = ble_address_types["random"]
         logging.info("Start scanning for RANDOM_ADDRESS %s with address type %d and IRK %s" %
                      (RANDOM_ADDRESS, addr_type, irk.decode("utf-8")))
-        self.dut.sl4a.bleSetScanSettingsScanMode(ble_scan_settings_modes['low_latency'])
+        self.dut.sl4a.bleSetScanSettingsScanMode(ble_scan_settings_modes['ambient_discovery'])
         self.dut.sl4a.bleSetScanSettingsLegacy(False)
-        self.dut.sl4a.bleSetScanSettingsScanMode(3)  # ambient discovery
         filter_list, scan_settings, scan_callback = generate_ble_scan_objects(self.dut.sl4a)
         # Hard code here since callback index iterates and will cause this to fail if ran
         # Second as the impl in SL4A sends this since its a single callback for broadcast.
