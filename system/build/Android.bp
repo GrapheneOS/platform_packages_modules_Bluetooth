@@ -110,6 +110,11 @@ fluoride_defaults {
                 misc_undefined: ["bounds"],
             },
         },
+        host: {
+            static_libs: [
+                "libcutils",
+            ]
+        }
     },
     defaults: ["fluoride_types_defaults_fuzzable"],
     header_libs: ["libbluetooth_headers", "libbt_callbacks_cxx_headers"],
@@ -126,7 +131,6 @@ fluoride_defaults {
         "libbt_callbacks_cxx",
         "libbt_shim_bridge",
         "libbt_shim_ffi",
-        "libcutils",
     ],
     shared_libs: [
         "liblog",
