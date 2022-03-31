@@ -1041,7 +1041,9 @@ public class BluetoothProxy {
 
         BluetoothLeAudioContentMetadata.Builder contentBuilder =
                 new BluetoothLeAudioContentMetadata.Builder();
-        contentBuilder.setProgramInfo(programInfo);
+        if (!programInfo.isEmpty()) {
+            contentBuilder.setProgramInfo(programInfo);
+        }
         mBluetoothLeBroadcast.startBroadcast(contentBuilder.build(), code);
         return true;
     }
