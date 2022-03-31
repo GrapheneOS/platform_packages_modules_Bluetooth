@@ -130,6 +130,8 @@ class LeAddressManager {
   hci::Address generate_nrpa();
   void handle_next_command();
   void check_cached_commands();
+  template <class View>
+  void on_command_complete(CommandCompleteView view);
 
   common::Callback<void(std::unique_ptr<CommandBuilder>)> enqueue_command_;
   os::Handler* handler_;
