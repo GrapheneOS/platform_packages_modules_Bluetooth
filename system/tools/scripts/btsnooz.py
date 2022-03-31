@@ -26,6 +26,7 @@ import fileinput
 import struct
 import sys
 import zlib
+import subprocess
 
 # Enumeration of the values the 'type' field can take in a btsnooz
 # header. These values come from the Bluetooth stack's internal
@@ -56,15 +57,15 @@ def type_to_hci(type):
   Returns the HCI type of a packet given its btsnooz type.
   """
     if type == TYPE_OUT_CMD:
-        return '\x01'
+        return b'\x01'
     if type == TYPE_IN_ACL or type == TYPE_OUT_ACL:
-        return '\x02'
+        return b'\x02'
     if type == TYPE_IN_SCO or type == TYPE_OUT_SCO:
-        return '\x03'
+        return b'\x03'
     if type == TYPE_IN_EVT:
-        return '\x04'
+        return b'\x04'
     if type == TYPE_IN_ISO or type == TYPE_OUT_ISO:
-        return '\x05'
+        return b'\x05'
     raise RuntimeError("type_to_hci: unknown type (0x{:02x})".format(type))
 
 
@@ -81,7 +82,7 @@ def decode_snooz(snooz):
     # Oddly, the file header (9 bytes) is not compressed, but the rest is.
     decompressed = zlib.decompress(snooz[9:])
 
-    sys.stdout.write('btsnoop\x00\x00\x00\x00\x01\x00\x00\x03\xea')
+    sys.stdout.buffer.write(b'btsnoop\x00\x00\x00\x00\x01\x00\x00\x03\xea')
 
     if version == 1:
         decode_snooz_v1(decompressed, last_timestamp_ms)
@@ -108,11 +109,11 @@ def decode_snooz_v1(decompressed, last_timestamp_ms):
         length, delta_time_ms, type = struct.unpack_from('=HIb', decompressed, offset)
         first_timestamp_ms += delta_time_ms
         offset += 7
-        sys.stdout.write(struct.pack('>II', length, length))
-        sys.stdout.write(struct.pack('>II', type_to_direction(type), 0))
-        sys.stdout.write(struct.pack('>II', (first_timestamp_ms >> 32), (first_timestamp_ms & 0xFFFFFFFF)))
-        sys.stdout.write(type_to_hci(type))
-        sys.stdout.write(decompressed[offset:offset + length - 1])
+        sys.stdout.buffer.write(struct.pack('>II', length, length))
+        sys.stdout.buffer.write(struct.pack('>II', type_to_direction(type), 0))
+        sys.stdout.buffer.write(struct.pack('>II', (first_timestamp_ms >> 32), (first_timestamp_ms & 0xFFFFFFFF)))
+        sys.stdout.buffer.write(type_to_hci(type))
+        sys.stdout.buffer.write(decompressed[offset:offset + length - 1])
         offset += length - 1
 
 
@@ -135,31 +136,58 @@ def decode_snooz_v2(decompressed, last_timestamp_ms):
         length, packet_length, delta_time_ms, snooz_type = struct.unpack_from('=HHIb', decompressed, offset)
         first_timestamp_ms += delta_time_ms
         offset += 9
-        sys.stdout.write(struct.pack('>II', packet_length, length))
-        sys.stdout.write(struct.pack('>II', type_to_direction(snooz_type), 0))
-        sys.stdout.write(struct.pack('>II', (first_timestamp_ms >> 32), (first_timestamp_ms & 0xFFFFFFFF)))
-        sys.stdout.write(type_to_hci(snooz_type))
-        sys.stdout.write(decompressed[offset:offset + length - 1])
+        sys.stdout.buffer.write(struct.pack('>II', packet_length, length))
+        sys.stdout.buffer.write(struct.pack('>II', type_to_direction(snooz_type), 0))
+        sys.stdout.buffer.write(struct.pack('>II', (first_timestamp_ms >> 32), (first_timestamp_ms & 0xFFFFFFFF)))
+        sys.stdout.buffer.write(type_to_hci(snooz_type))
+        sys.stdout.buffer.write(decompressed[offset:offset + length - 1])
         offset += length - 1
 
 
 def main():
     if len(sys.argv) > 2:
         sys.stderr.write('Usage: %s [bugreport]\n' % sys.argv[0])
-        exit(1)
+        sys.exit(1)
+
+    ## Assume the uudecoded data is being piped in
+    if not sys.stdin.isatty():
+        base64_string = ""
+        try:
+            for line in sys.stdin.readlines():
+                base64_string += line.strip()
+            decode_snooz(base64.standard_b64decode(base64_string))
+            sys.exit(0)
+        except Exception as e:
+            sys.stderr.write('Failed uudecoding...ensure input is a valid uuencoded stream.\n')
+            sys.stderr.write(e)
+            sys.exit(1)
 
     iterator = fileinput.input()
+
     found = False
     base64_string = ""
-    for line in iterator:
-        if found:
-            if line.find('--- END:BTSNOOP_LOG_SUMMARY') != -1:
-                decode_snooz(base64.standard_b64decode(base64_string))
-                sys.exit(0)
-            base64_string += line.strip()
+    try:
+        for line in iterator:
+            if found:
+                if line.find('--- END:BTSNOOP_LOG_SUMMARY') != -1:
+                    decode_snooz(base64.standard_b64decode(base64_string))
+                    sys.exit(0)
+                base64_string += line.strip()
 
-        if line.find('--- BEGIN:BTSNOOP_LOG_SUMMARY') != -1:
-            found = True
+            if line.find('--- BEGIN:BTSNOOP_LOG_SUMMARY') != -1:
+                found = True
+
+    except UnicodeDecodeError:
+        ## Check if there is a BTSNOOP log uuencoded in the bugreport
+        p = subprocess.Popen(["egrep", "-a", "BTSNOOP_LOG_SUMMARY", sys.argv[1]], stdout=subprocess.PIPE)
+        p.wait()
+
+        if (p.returncode == 0):
+            sys.stderr.write('Failed to parse uuencoded btsnooz data from bugreport.\n')
+            sys.stderr.write(' Try:\n')
+            sys.stderr.write('LC_CTYPE=C sed -n "/BEGIN:BTSNOOP_LOG_SUMMARY/,/END:BTSNOOP_LOG_SUMMARY/p " ' +
+                             sys.argv[1] + ' | egrep -av "BTSNOOP_LOG_SUMMARY" | ' + sys.argv[0] + ' > hci.log\n')
+            sys.exit(1)
 
     if not found:
         sys.stderr.write('No btsnooz section found in bugreport.\n')
