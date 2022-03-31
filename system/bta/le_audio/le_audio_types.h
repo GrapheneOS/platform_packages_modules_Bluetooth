@@ -122,7 +122,7 @@ constexpr uint8_t kLeAudioCodecLC3FrameDur7500us = 0x00;
 constexpr uint8_t kLeAudioCodecLC3FrameDur10000us = 0x01;
 
 /* Audio Allocations */
-constexpr uint32_t kLeAudioLocationMonoUnspecified = 0x00000000;
+constexpr uint32_t kLeAudioLocationNotAllowed = 0x00000000;
 constexpr uint32_t kLeAudioLocationFrontLeft = 0x00000001;
 constexpr uint32_t kLeAudioLocationFrontRight = 0x00000002;
 constexpr uint32_t kLeAudioLocationFrontCenter = 0x00000004;
@@ -643,8 +643,6 @@ const types::LeAudioCodecId LeAudioCodecIdLc3 = {
     .vendor_company_id = types::kLeAudioVendorCompanyIdUndefined,
     .vendor_codec_id = types::kLeAudioVendorCodecIdUndefined};
 
-static constexpr uint32_t kChannelAllocationMono =
-    codec_spec_conf::kLeAudioLocationMonoUnspecified;
 static constexpr uint32_t kChannelAllocationStereo =
     codec_spec_conf::kLeAudioLocationFrontLeft |
     codec_spec_conf::kLeAudioLocationFrontRight;
