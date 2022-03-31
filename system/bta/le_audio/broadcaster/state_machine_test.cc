@@ -380,24 +380,26 @@ static BasicAudioAnnouncementData prepareAnnouncement(
   BasicAudioAnnouncementData announcement;
 
   announcement.presentation_delay = 0x004E20;
+  auto const& codec_id = codec_config.GetLeAudioCodecId();
 
   announcement.subgroup_configs = {{
       .codec_config =
           {
-              .codec_id = codec_config.GetLeAudioCodecId().coding_format,
-              .vendor_company_id =
-                  codec_config.GetLeAudioCodecId().vendor_company_id,
-              .vendor_codec_id =
-                  codec_config.GetLeAudioCodecId().vendor_codec_id,
-              .codec_specific_params = codec_config.GetCodecSpecData(),
+              .codec_id = codec_id.coding_format,
+              .vendor_company_id = codec_id.vendor_company_id,
+              .vendor_codec_id = codec_id.vendor_codec_id,
+              .codec_specific_params =
+                  codec_config.GetSubgroupCodecSpecData().RawPacket(),
           },
-      .metadata = metadata,
+      .metadata = std::move(metadata),
       .bis_configs = {},
   }};
 
   for (uint8_t i = 0; i < codec_config.GetNumChannels(); ++i) {
     announcement.subgroup_configs[0].bis_configs.push_back(
-        {.codec_specific_params = {}, .bis_index = i});
+        {.codec_specific_params =
+             codec_config.GetBisCodecSpecData(i + 1).RawPacket(),
+         .bis_index = static_cast<uint8_t>(i + 1)});
   }
 
   return announcement;
