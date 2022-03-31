@@ -3665,6 +3665,10 @@ public final class BluetoothAdapter {
         } else if (profile == BluetoothProfile.LE_CALL_CONTROL) {
             BluetoothLeCallControl tbs = new BluetoothLeCallControl(context, listener);
             return true;
+        } else if (profile == BluetoothProfile.LE_AUDIO_BROADCAST_ASSISTANT) {
+            BluetoothLeBroadcastAssistant leAudioBroadcastAssistant =
+                    new BluetoothLeBroadcastAssistant(context, listener);
+            return true;
         } else {
             return false;
         }
@@ -3778,6 +3782,11 @@ public final class BluetoothAdapter {
             case BluetoothProfile.LE_CALL_CONTROL:
                 BluetoothLeCallControl tbs = (BluetoothLeCallControl) proxy;
                 tbs.close();
+                break;
+            case BluetoothProfile.LE_AUDIO_BROADCAST_ASSISTANT:
+                BluetoothLeBroadcastAssistant leAudioBroadcastAssistant =
+                        (BluetoothLeBroadcastAssistant) proxy;
+                leAudioBroadcastAssistant.close();
                 break;
         }
     }
