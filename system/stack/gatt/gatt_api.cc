@@ -21,7 +21,7 @@
  *  this file contains GATT interface functions
  *
  ******************************************************************************/
-#include "gatt_api.h"
+#include "stack/include/gatt_api.h"
 
 #include <base/logging.h>
 #include <base/strings/string_number_conversions.h>
@@ -31,12 +31,12 @@
 
 #include "bt_target.h"
 #include "device/include/controller.h"
-#include "gatt_int.h"
 #include "l2c_api.h"
 #include "main/shim/dumpsys.h"
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "stack/gatt/connection_manager.h"
+#include "stack/gatt/gatt_int.h"
 #include "stack/include/bt_hdr.h"
 #include "types/bluetooth/uuid.h"
 #include "types/bt_transport.h"
