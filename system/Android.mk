@@ -79,6 +79,12 @@ $(bluetooth_cert_src_and_bin_zip): $(SOONG_ZIP) $(LOCAL_cert_test_sources) \
 		-C $(TARGET_OUT_EXECUTABLES) $(addprefix -f ,$(PRIVATE_target_executables)) \
 		-C $(TARGET_OUT_SHARED_LIBRARIES) $(addprefix -f ,$(PRIVATE_target_libraries))
 
+$(call declare-container-license-metadata,$(bluetooth_cert_src_and_bin_zip),\
+    SPDX-license-identifier-Apache-2.0 SPDX-license-identifier-BSD SPDX-license-identifier-MIT legacy_unencumbered,\
+    notice, $(LOCAL_PATH)/../NOTICE,,packages/modules/Bluetooth)
+$(call declare-container-license-deps,$(bluetooth_cert_src_and_bin_zip),\
+    $(LOCAL_host_python_extension_libraries) $(LOCAL_target_executables) $(LOCAL_target_libraries),$(bluetooth_cert_src_and_bin_zip):)
+
 # TODO: Find a better way to locate output from SOONG genrule()
 LOCAL_facade_generated_py_zip := \
 	$(SOONG_OUT_DIR)/.intermediates/packages/modules/Bluetooth/system/BlueberryFacadeAndCertGeneratedStub_py/gen/blueberry_facade_generated_py.zip
@@ -107,5 +113,11 @@ $(bluetooth_cert_tests_py_package_zip): $(SOONG_ZIP) \
 		-f $(LLVM_PREBUILTS_BASE)/linux-x86/$(LLVM_PREBUILTS_VERSION)/bin/llvm-profdata \
 		-f $(LLVM_PREBUILTS_BASE)/linux-x86/$(LLVM_PREBUILTS_VERSION)/bin/llvm-symbolizer \
 		-f $(LLVM_PREBUILTS_BASE)/linux-x86/$(LLVM_PREBUILTS_VERSION)/lib64/libc++.so.1
+
+$(call declare-container-license-metadata,$(bluetooth_cert_tests_py_package_zip),\
+    SPDX-license-identifier-Apache-2.0 SPDX-license-identifier-BSD SPDX-license-identifier-MIT legacy_unencumbered,\
+    notice, $(LOCAL_PATH)/../NOTICE,,packages/modules/Bluetooth)
+$(call declare-container-license-deps,$(bluetooth_cert_tests_py_package_zip),\
+    $(bluetooth_cert_src_and_bin_zip) $(bluetooth_cert_generated_py_zip),$(bluetooth_cert_tests_py_package_zip):)
 
 $(call dist-for-goals,bluetooth_stack_with_facade,$(bluetooth_cert_tests_py_package_zip):bluetooth_cert_tests.zip)
