@@ -83,7 +83,6 @@ import java.util.concurrent.TimeUnit;
 /**
  * @hide
  */
-
 public final class Utils {
     private static final String TAG = "BluetoothUtils";
     private static final int MICROS_PER_UNIT = 625;
@@ -322,8 +321,8 @@ public final class Utils {
     }
 
     static int sForegroundUserId = USER_HANDLE_NULL.getIdentifier();
-    public static void setForegroundUserId(int uid) {
-        Utils.sForegroundUserId = uid;
+    public static void setForegroundUserId(int userId) {
+        Utils.sForegroundUserId = userId;
     }
 
     /**
