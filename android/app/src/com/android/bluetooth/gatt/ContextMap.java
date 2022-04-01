@@ -455,6 +455,9 @@ import java.util.UUID;
     void setAdvertiserIdByRegId(int regId, int advertiserId) {
         synchronized (this) {
             AppAdvertiseStats stats = mAppAdvertiseStats.get(regId);
+            if (stats == null) {
+                return;
+            }
             stats.setId(advertiserId);
             mAppAdvertiseStats.remove(regId);
             mAppAdvertiseStats.put(advertiserId, stats);
@@ -467,6 +470,9 @@ import java.util.UUID;
             int duration, int maxExtAdvEvents) {
         synchronized (this) {
             AppAdvertiseStats stats = mAppAdvertiseStats.get(id);
+            if (stats == null) {
+                return;
+            }
             stats.recordAdvertiseStart(parameters, advertiseData, scanResponse,
                     periodicParameters, periodicData, duration, maxExtAdvEvents);
         }
@@ -475,6 +481,9 @@ import java.util.UUID;
     void recordAdvertiseStop(int id) {
         synchronized (this) {
             AppAdvertiseStats stats = mAppAdvertiseStats.get(id);
+            if (stats == null) {
+                return;
+            }
             stats.recordAdvertiseStop();
             mAppAdvertiseStats.remove(id);
             mLastAdvertises.add(stats);
@@ -484,6 +493,9 @@ import java.util.UUID;
     void enableAdvertisingSet(int id, boolean enable, int duration, int maxExtAdvEvents) {
         synchronized (this) {
             AppAdvertiseStats stats = mAppAdvertiseStats.get(id);
+            if (stats == null) {
+                return;
+            }
             stats.enableAdvertisingSet(enable, duration, maxExtAdvEvents);
         }
     }
@@ -491,6 +503,9 @@ import java.util.UUID;
     void setAdvertisingData(int id, AdvertiseData data) {
         synchronized (this) {
             AppAdvertiseStats stats = mAppAdvertiseStats.get(id);
+            if (stats == null) {
+                return;
+            }
             stats.setAdvertisingData(data);
         }
     }
@@ -498,6 +513,9 @@ import java.util.UUID;
     void setScanResponseData(int id, AdvertiseData data) {
         synchronized (this) {
             AppAdvertiseStats stats = mAppAdvertiseStats.get(id);
+            if (stats == null) {
+                return;
+            }
             stats.setScanResponseData(data);
         }
     }
@@ -505,6 +523,9 @@ import java.util.UUID;
     void setAdvertisingParameters(int id, AdvertisingSetParameters parameters) {
         synchronized (this) {
             AppAdvertiseStats stats = mAppAdvertiseStats.get(id);
+            if (stats == null) {
+                return;
+            }
             stats.setAdvertisingParameters(parameters);
         }
     }
@@ -512,6 +533,9 @@ import java.util.UUID;
     void setPeriodicAdvertisingParameters(int id, PeriodicAdvertisingParameters parameters) {
         synchronized (this) {
             AppAdvertiseStats stats = mAppAdvertiseStats.get(id);
+            if (stats == null) {
+                return;
+            }
             stats.setPeriodicAdvertisingParameters(parameters);
         }
     }
@@ -519,6 +543,9 @@ import java.util.UUID;
     void setPeriodicAdvertisingData(int id, AdvertiseData data) {
         synchronized (this) {
             AppAdvertiseStats stats = mAppAdvertiseStats.get(id);
+            if (stats == null) {
+                return;
+            }
             stats.setPeriodicAdvertisingData(data);
         }
     }
@@ -526,6 +553,9 @@ import java.util.UUID;
     void onPeriodicAdvertiseEnabled(int id, boolean enable) {
         synchronized (this) {
             AppAdvertiseStats stats = mAppAdvertiseStats.get(id);
+            if (stats == null) {
+                return;
+            }
             stats.onPeriodicAdvertiseEnabled(enable);
         }
     }
