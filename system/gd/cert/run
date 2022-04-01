@@ -43,6 +43,8 @@ function sad_hedgehog {
     echo -e "{$NOCOLOR}"
 }
 
+PYTHON_BIN="python3.10"
+
 function check_environment {
     if [[ -z "${ANDROID_BUILD_TOP}" ]] || [[ -z "${ANDROID_HOST_OUT}" ]] ; then
       echo -e "${RED}ANDROID_BUILD_TOP${NOCOLOR} or ${RED}ANDROID_HOST_OUT${NOCOLOR} is not set for host run"
@@ -54,14 +56,14 @@ function check_environment {
       echo
       exit 1
     fi
-    if ! [ -x "$(command -v python3.9)" ] ; then
-      echo -e "${RED}You must have python 3.9 installed${NOCOLOR}"
+    if ! [ -x "$(command -v ${PYTHON_BIN})" ] ; then
+      echo -e "${RED}You must have ${PYTHON_BIN} installed${NOCOLOR}"
       exit 1
     fi
-    python3.9 -m virtualenv --version
+    ${PYTHON_BIN} -m virtualenv --version
     if [[ $? -ne 0 ]] ; then
-        echo -e "${RED}virtualenv not installed for python3.9${NOCOLOR}"
-        echo -e "${RED}Please run 'python3.9 -m pip install virtualenv' to install it${NOCOLOR}"
+        echo -e "${RED}virtualenv not installed for ${PYTHON_BIN}${NOCOLOR}"
+        echo -e "${RED}Please run '${PYTHON_BIN} -m pip install virtualenv' to install it${NOCOLOR}"
         exit 1
     fi
 }
@@ -301,7 +303,7 @@ function setup_venv {
             echo -e "${NOCOLOR}"
         fi
     fi
-    python3.9 -m virtualenv --python `which python3.9` "${CERT_TEST_VENV}"
+    ${PYTHON_BIN} -m virtualenv --python `which "${PYTHON_BIN}"` "${CERT_TEST_VENV}"
     if [[ $? -ne 0 ]] ; then
         echo -e "${RED}Error setting up virtualenv${NOCOLOR}"
         exit 1
