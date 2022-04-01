@@ -111,6 +111,10 @@ public class BluetoothInCallServiceTest {
         }
         @Override
         protected void enforceModifyPermission() {}
+
+        protected void setOnCreateCalled(boolean called) {
+            mOnCreateCalled = called;
+        }
     }
 
     @Before
@@ -140,6 +144,7 @@ public class BluetoothInCallServiceTest {
         mBluetoothInCallService.setBluetoothHeadset(mMockBluetoothHeadset);
         mBluetoothInCallService.setBluetoothLeCallControl(mMockBluetoothLeCallControl);
         mBluetoothInCallService.mCallInfo = mMockCallInfo;
+        mBluetoothInCallService.setOnCreateCalled(true);
     }
 
     @After
