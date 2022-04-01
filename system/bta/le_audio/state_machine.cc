@@ -841,7 +841,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
   }
 
  private:
-  static constexpr uint64_t kStateTransitionTimeoutMs = 5000;
+  static constexpr uint64_t kStateTransitionTimeoutMs = 3500;
   static constexpr char kStateTransitionTimeoutMsProp[] =
       "persist.bluetooth.leaudio.device.set.state.timeoutms";
   Callbacks* state_machine_callbacks_;
