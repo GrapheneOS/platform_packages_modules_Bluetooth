@@ -18,24 +18,25 @@ import asyncio
 from mobly import test_runner
 from blueberry.tests.gd.rust.topshim.facade import topshim_base_test
 from blueberry.tests.gd.rust.topshim.facade.automation_helper import AdapterAutomationHelper
-import time
 
 
 class SuspendTest(topshim_base_test.TopshimBaseTest):
 
-    async def _test_verify_event_filter_cleared(self):
+    async def _test_verify_suspend(self):
         self.dut_adapter = AdapterAutomationHelper(port=self.dut_port)
         event_loop = asyncio.get_running_loop()
         self.dut_adapter.fetch_events(event_loop)
         self.dut_adapter.pending_future = event_loop.create_future()
         await self.dut_adapter.clear_event_filter()
-        #TODO(optedoblivion): Replace sleep with a call to LeGetRandom and synchronize on
-        # the callback
-        time.sleep(1)
+        await self.dut_adapter.le_rand()
+        await asyncio.wait_for(self.dut_adapter.pending_future, AdapterAutomationHelper.DEFAULT_TIMEOUT)
+        self.dut_adapter.fetch_events(event_loop)
+        self.dut_adapter.pending_future = event_loop.create_future()
+        await asyncio.wait_for(self.dut_adapter.pending_future, AdapterAutomationHelper.DEFAULT_TIMEOUT)
         self.dut_adapter.event_handler.cancel()
 
-    def test_verify_event_filter_cleared(self):
-        asyncio.run(self._test_verify_event_filter_cleared())
+    def test_verify_suspend(self):
+        asyncio.run(self._test_verify_suspend())
 
 
 if __name__ == "__main__":

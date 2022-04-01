@@ -85,6 +85,7 @@ bt_interface_t fake_bt_iface = {
     nullptr, /* clear_event_mask */
     nullptr, /* clear_filter_accept_list */
     nullptr, /* disconnect_all_acls */
+    nullptr, /* le_rand */
 };
 
 }  // namespace

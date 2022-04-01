@@ -157,6 +157,8 @@ static int clear_filter_accept_list() { return 0; }
 
 static int disconnect_all_acls() { return 0; }
 
+static int le_rand() { return 0; }
+
 EXPORT_SYMBOL bt_interface_t bluetoothInterface = {
     sizeof(bluetoothInterface),
     init,
@@ -200,7 +202,8 @@ EXPORT_SYMBOL bt_interface_t bluetoothInterface = {
     clear_event_filter,
     clear_event_mask,
     clear_filter_accept_list,
-    disconnect_all_acls};
+    disconnect_all_acls,
+    le_rand};
 
 // callback reporting helpers
 

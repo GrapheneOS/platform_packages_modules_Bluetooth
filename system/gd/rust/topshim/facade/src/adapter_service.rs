@@ -84,6 +84,12 @@ impl AdapterService for AdapterServiceImpl {
                         sink.send((rsp, WriteFlags::default())).await.unwrap();
                     }
                     BaseCallbacks::SspRequest(_, _, _, _, _) => {}
+                    BaseCallbacks::LeRandCallback(random) => {
+                        let mut rsp = FetchEventsResponse::new();
+                        rsp.event_type = EventType::LE_RAND;
+                        rsp.data = random.to_string();
+                        sink.send((rsp, WriteFlags::default())).await.unwrap();
+                    }
                     _ => (),
                 }
             }
@@ -148,6 +154,13 @@ impl AdapterService for AdapterServiceImpl {
 
     fn disconnect_all_acls(&mut self, ctx: RpcContext<'_>, _req: Empty, sink: UnarySink<Empty>) {
         self.btif_intf.lock().unwrap().disconnect_all_acls();
+        ctx.spawn(async move {
+            sink.success(Empty::default()).await.unwrap();
+        })
+    }
+
+    fn le_rand(&mut self, ctx: RpcContext<'_>, _req: Empty, sink: UnarySink<Empty>) {
+        self.btif_intf.lock().unwrap().le_rand();
         ctx.spawn(async move {
             sink.success(Empty::default()).await.unwrap();
         })

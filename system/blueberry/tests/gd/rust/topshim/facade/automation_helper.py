@@ -55,8 +55,11 @@ class AdapterAutomationHelper():
     async def get_next_event(self):
         while True:
             e = await self.adapter_event_stream.read()
+            print(e)
             # Match event by some condition.
             if e.event_type == facade_pb2.EventType.ADAPTER_STATE and e.data == "ON" and self.pending_future is not None:
+                self.pending_future.set_result(True)
+            if e.event_type == facade_pb2.EventType.LE_RAND:
                 self.pending_future.set_result(True)
 
     async def verify_adapter_started(self):
@@ -73,6 +76,9 @@ class AdapterAutomationHelper():
 
     async def disconnect_all_acls(self):
         await self.adapter_stub.DisconnectAllAcls(empty_proto.Empty())
+
+    async def le_rand(self):
+        await self.adapter_stub.LeRand(empty_proto.Empty())
 
 
 class A2dpAutomationHelper():
