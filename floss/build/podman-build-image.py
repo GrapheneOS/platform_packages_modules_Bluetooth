@@ -8,8 +8,8 @@ import subprocess
 SRC_MOUNT = "/root/src"
 
 
-class DockerImageBuilder:
-    """Builds the docker image for Floss build environment."""
+class PodmanImageBuilder:
+    """Builds the podman image for Floss build environment."""
 
     def __init__(self, workdir, rootdir, tag):
         """ Constructor.
@@ -27,7 +27,7 @@ class DockerImageBuilder:
         self.final_tag = tag
         self.env = os.environ.copy()
 
-        # Mark dpkg builders for docker
+        # Mark dpkg builders for podman
         self.env['LIBCHROME_DOCKER'] = '1'
         self.env['MODP_DOCKER'] = '1'
 
@@ -55,19 +55,19 @@ class DockerImageBuilder:
         if rc != 0 and not ignore_rc:
             raise Exception("{} failed. Return code is {}".format(target, rc))
 
-    def _docker_build(self):
-        self.run_command('docker build', ['docker', 'build', '-t', self.build_tag, '.'])
+    def _podman_build(self):
+        self.run_command('podman build', ['podman', 'build', '-t', self.build_tag, '.'])
 
     def _build_dpkg_and_commit(self):
         # Try to remove any previous instance of the container that may be
         # running if this script didn't complete cleanly last time.
-        self.run_command('docker stop', ['docker', 'stop', '-t', '1', self.container_name], ignore_rc=True)
-        self.run_command('docker rm', ['docker', 'rm', self.container_name], ignore_rc=True)
+        self.run_command('podman stop', ['podman', 'stop', '-t', '1', self.container_name], ignore_rc=True)
+        self.run_command('podman rm', ['podman', 'rm', self.container_name], ignore_rc=True)
 
         # Runs never terminating application on the newly built image in detached mode
         mount_str = 'type=bind,src={},dst={},readonly'.format(self.rootdir, SRC_MOUNT)
-        self.run_command('docker run', [
-            'docker', 'run', '--name', self.container_name, '--mount', mount_str, '-d', self.build_tag, 'tail', '-f',
+        self.run_command('podman run', [
+            'podman', 'run', '--name', self.container_name, '--mount', mount_str, '-d', self.build_tag, 'tail', '-f',
             '/dev/null'
         ])
 
@@ -76,13 +76,13 @@ class DockerImageBuilder:
             ['mkdir', '-p', '/tmp/libchrome', '/tmp/modpb64'],
 
             # Run the dpkg builder for modp_b64
-            ['/root/src/system/build/dpkg/modp_b64/gen-src-pkg.sh', '/tmp/modpb64'],
+            [f'{SRC_MOUNT}/system/build/dpkg/modp_b64/gen-src-pkg.sh', '/tmp/modpb64'],
 
             # Install modp_b64 since libchrome depends on it
             ['find', '/tmp/modpb64', '-name', 'modp*.deb', '-exec', 'dpkg', '-i', '{}', '+'],
 
             # Run the dpkg builder for libchrome
-            ['/root/src/system/build/dpkg/libchrome/gen-src-pkg.sh', '/tmp/libchrome'],
+            [f'{SRC_MOUNT}/system/build/dpkg/libchrome/gen-src-pkg.sh', '/tmp/libchrome'],
 
             # Install libchrome.
             ['find', '/tmp/libchrome', '-name', 'libchrome_*.deb', '-exec', 'dpkg', '-i', '{}', '+'],
@@ -91,20 +91,21 @@ class DockerImageBuilder:
             ['rm', '-rf', '/tmp/libchrome', '/tmp/modpb64'],
         ]
 
-        # Run commands in container first to install everything.
-        for i, cmd in enumerate(commands):
-            self.run_command('docker exec #{}'.format(i), ['docker', 'exec', '-it', self.container_name] + cmd)
-
-        # Commit changes into the final tag name
-        self.run_command('docker commit', ['docker', 'commit', self.container_name, self.final_tag])
-
-        # Stop running the container and remove it
-        self.run_command('docker stop', ['docker', 'stop', '-t', '1', self.container_name])
-        self.run_command('docker rm', ['docker', 'rm', self.container_name])
-
-    def _check_docker_runnable(self):
         try:
-            subprocess.check_output(['docker', 'ps'], stderr=subprocess.STDOUT)
+            # Run commands in container first to install everything.
+            for i, cmd in enumerate(commands):
+                self.run_command('podman exec #{}'.format(i), ['podman', 'exec', '-it', self.container_name] + cmd)
+
+            # Commit changes into the final tag name
+            self.run_command('podman commit', ['podman', 'commit', self.container_name, self.final_tag])
+        finally:
+            # Stop running the container and remove it
+            self.run_command('podman stop', ['podman', 'stop', '-t', '1', self.container_name])
+            self.run_command('podman rm', ['podman', 'rm', self.container_name])
+
+    def _check_podman_runnable(self):
+        try:
+            subprocess.check_output(['podman', 'ps'], stderr=subprocess.STDOUT)
         except subprocess.CalledProcessError as err:
             if 'denied' in err.output.decode('utf-8'):
                 print('Run script as sudo')
@@ -113,24 +114,24 @@ class DockerImageBuilder:
 
             return False
 
-        # No exception means docker is ok
+        # No exception means podman is ok
         return True
 
     def build(self):
-        if not self._check_docker_runnable():
+        if not self._check_podman_runnable():
             return
 
-        # First build the docker image
-        self._docker_build()
+        # First build the podman image
+        self._podman_build()
 
-        # Then build libchrome and modp-b64 inside the docker image and install
+        # Then build libchrome and modp-b64 inside the podman image and install
         # them. Commit those changes to the final label.
         self._build_dpkg_and_commit()
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Build docker image for Floss build environment.')
-    parser.add_argument('--tag', required=True, help='Tag for docker image. i.e. floss:latest')
+    parser = argparse.ArgumentParser(description='Build podman image for Floss build environment.')
+    parser.add_argument('--tag', required=True, help='Tag for podman image. i.e. floss:latest')
     args = parser.parse_args()
 
     # cwd should be set to same directory as this script (that's where Dockerfile
@@ -138,9 +139,9 @@ def main():
     workdir = os.path.dirname(os.path.abspath(sys.argv[0]))
     rootdir = os.path.abspath(os.path.join(workdir, '../..'))
 
-    # Build the docker image
-    dib = DockerImageBuilder(workdir, rootdir, args.tag)
-    dib.build()
+    # Build the podman image
+    pib = PodmanImageBuilder(workdir, rootdir, args.tag)
+    pib.build()
 
 
 if __name__ == '__main__':
