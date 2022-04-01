@@ -25,6 +25,7 @@ impl IBluetoothMediaCallback for BluetoothMediaCallbackDBus {
         bits_per_sample: i32,
         channel_mode: i32,
         hfp_cap: i32,
+        name: String,
     ) {
         dbus_generated!()
     }
