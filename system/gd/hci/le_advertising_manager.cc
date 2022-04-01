@@ -230,11 +230,6 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
     if (advertising_sets_.count(advertiser_id) == 0) {
       return;
     }
-    if (advertising_sets_.empty() && address_manager_registered) {
-      le_address_manager_->Unregister(this);
-      address_manager_registered = false;
-      paused = false;
-    }
     if (advertising_api_type_ == AdvertisingApiType::EXTENDED) {
       le_advertising_interface_->EnqueueCommand(
           hci::LeRemoveAdvertisingSetBuilder::Create(advertiser_id),
@@ -246,6 +241,11 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
       }
     }
     advertising_sets_.erase(advertiser_id);
+    if (advertising_sets_.empty() && address_manager_registered) {
+      le_address_manager_->Unregister(this);
+      address_manager_registered = false;
+      paused = false;
+    }
   }
 
   void create_advertiser(
@@ -343,6 +343,11 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
     if (advertising_api_type_ != AdvertisingApiType::EXTENDED) {
       create_advertiser(id, config, scan_callback, set_terminated_callback, handler);
       return;
+    }
+
+    if (!address_manager_registered) {
+      le_address_manager_->Register(this);
+      address_manager_registered = true;
     }
 
     advertising_sets_[id].scan_callback = scan_callback;
@@ -901,11 +906,7 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
         case (AdvertisingApiType::LEGACY): {
           le_advertising_interface_->EnqueueCommand(
               hci::LeSetAdvertisingEnableBuilder::Create(Enable::DISABLED),
-              module_handler_->BindOnceOn(
-                  this,
-                  &impl::on_set_advertising_enable_complete<LeSetAdvertisingEnableCompleteView>,
-                  false,
-                  enabled_sets));
+              module_handler_->BindOnce(impl::check_status<LeSetAdvertisingEnableCompleteView>));
         } break;
         case (AdvertisingApiType::ANDROID_HCI): {
           for (size_t i = 0; i < enabled_sets_.size(); i++) {
@@ -921,11 +922,7 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
           if (enabled_sets.size() != 0) {
             le_advertising_interface_->EnqueueCommand(
                 hci::LeSetExtendedAdvertisingEnableBuilder::Create(Enable::DISABLED, enabled_sets),
-                module_handler_->BindOnceOn(
-                    this,
-                    &impl::on_set_extended_advertising_enable_complete<LeSetExtendedAdvertisingEnableCompleteView>,
-                    false,
-                    enabled_sets));
+                module_handler_->BindOnce(impl::check_status<LeSetExtendedAdvertisingEnableCompleteView>));
           }
         } break;
       }
@@ -948,11 +945,7 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
         case (AdvertisingApiType::LEGACY): {
           le_advertising_interface_->EnqueueCommand(
               hci::LeSetAdvertisingEnableBuilder::Create(Enable::ENABLED),
-              module_handler_->BindOnceOn(
-                  this,
-                  &impl::on_set_advertising_enable_complete<LeSetAdvertisingEnableCompleteView>,
-                  true,
-                  enabled_sets));
+              module_handler_->BindOnce(impl::check_status<LeSetAdvertisingEnableCompleteView>));
         } break;
         case (AdvertisingApiType::ANDROID_HCI): {
           for (size_t i = 0; i < enabled_sets_.size(); i++) {
@@ -968,11 +961,7 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
           if (enabled_sets.size() != 0) {
             le_advertising_interface_->EnqueueCommand(
                 hci::LeSetExtendedAdvertisingEnableBuilder::Create(Enable::ENABLED, enabled_sets),
-                module_handler_->BindOnceOn(
-                    this,
-                    &impl::on_set_extended_advertising_enable_complete<LeSetExtendedAdvertisingEnableCompleteView>,
-                    true,
-                    enabled_sets));
+                module_handler_->BindOnce(impl::check_status<LeSetExtendedAdvertisingEnableCompleteView>));
           }
         } break;
       }
