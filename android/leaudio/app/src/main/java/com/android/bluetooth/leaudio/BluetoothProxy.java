@@ -998,6 +998,7 @@ public class BluetoothProxy {
     }
 
     private void initLeAudioBroadcastProxy() {
+        if (!isLeAudioBroadcastSourceSupported()) return;
         if (mBluetoothLeBroadcast == null) {
             bluetoothAdapter.getProfileProxy(this.application, profileListener,
                     BluetoothProfile.LE_AUDIO_BROADCAST);
@@ -1005,6 +1006,7 @@ public class BluetoothProxy {
     }
 
     private void cleanupLeAudioBroadcastProxy() {
+        if (!isLeAudioBroadcastSourceSupported()) return;
         if (mBluetoothLeBroadcast != null) {
             bluetoothAdapter.closeProfileProxy(BluetoothProfile.LE_AUDIO_BROADCAST,
                     mBluetoothLeBroadcast);
@@ -1041,7 +1043,9 @@ public class BluetoothProxy {
 
         BluetoothLeAudioContentMetadata.Builder contentBuilder =
                 new BluetoothLeAudioContentMetadata.Builder();
-        contentBuilder.setProgramInfo(programInfo);
+        if (!programInfo.isEmpty()) {
+            contentBuilder.setProgramInfo(programInfo);
+        }
         mBluetoothLeBroadcast.startBroadcast(contentBuilder.build(), code);
         return true;
     }

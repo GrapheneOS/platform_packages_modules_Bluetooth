@@ -377,7 +377,8 @@ public class DatabaseManager {
             Metadata data = mMetadataCache.get(address);
             int connectionPolicy = data.getProfileConnectionPolicy(profile);
 
-            Log.v(TAG, "getProfileConnectionPolicy: xx:xx:xx:xx:xx:xx, profile=" + profile
+            Log.v(TAG, "getProfileConnectionPolicy: xx:xx:xx:xx:xx:xx, profile="
+                    + BluetoothProfile.getProfileName(profile)
                     + ", connectionPolicy = " + connectionPolicy);
             return connectionPolicy;
         }

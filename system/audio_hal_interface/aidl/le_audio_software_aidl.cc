@@ -352,7 +352,7 @@ std::unordered_map<int32_t, uint16_t> octets_per_frame_map{
 
 std::unordered_map<AudioLocation, uint32_t> audio_location_map{
     {AudioLocation::UNKNOWN,
-     ::le_audio::codec_spec_conf::kLeAudioLocationMonoUnspecified},
+     ::le_audio::codec_spec_conf::kLeAudioLocationFrontCenter},
     {AudioLocation::FRONT_LEFT,
      ::le_audio::codec_spec_conf::kLeAudioLocationFrontLeft},
     {AudioLocation::FRONT_RIGHT,
