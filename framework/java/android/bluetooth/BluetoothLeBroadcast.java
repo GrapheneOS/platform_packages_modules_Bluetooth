@@ -485,7 +485,7 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
         if (DBG) log("unregisterCallback");
 
         synchronized (mCallbackExecutorMap) {
-            if (mCallbackExecutorMap.remove(callback) != null) {
+            if (mCallbackExecutorMap.remove(callback) == null) {
                 throw new IllegalArgumentException("This callback has not been registered");
             }
         }

@@ -80,6 +80,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     {
         intf.lock().unwrap().initialize(get_bt_dispatcher(tx.clone()), args);
 
+        bluetooth_media.lock().unwrap().set_adapter(bluetooth.clone());
+
         let mut bluetooth = bluetooth.lock().unwrap();
         bluetooth.init_profiles();
         bluetooth.enable();
