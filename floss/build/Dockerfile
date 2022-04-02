@@ -5,7 +5,8 @@
 
 # Inherit from a recent Debian version. The slim version is a smaller variant
 # meant for containers.
-FROM debian:bookworm-slim
+# This digest is taken from the tag debian:bookworm-slim (if you want to update)
+FROM debian@sha256:b66f66d473ef3128436ba2812198edcae86c268eb530dff44ff6ae26f9a2ee30
 
 # First install all required apt packages.
 RUN apt-get update && \
@@ -56,8 +57,10 @@ RUN apt-get update && \
     zlib1g-dev \
     ;
 
-# Next install the Rust toolchain.
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+# Next install the Rust toolchain. Download the toolchain to the local folder
+# using curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs
+ADD rustup/rustup.sh /tmp
+RUN /tmp/rustup.sh -y --default-toolchain 1.59.0
 
 # Add .cargo/bin to $PATH
 ENV PATH="/root/.cargo/bin:${PATH}"
