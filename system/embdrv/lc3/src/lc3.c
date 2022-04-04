@@ -453,6 +453,7 @@ static void synthesize(struct lc3_decoder *decoder,
     enum lc3_srate sr = decoder->sr;
     enum lc3_srate sr_pcm = decoder->sr_pcm;
     int ns = LC3_NS(dt, sr_pcm);
+    int ne = LC3_NE(dt, sr);
     int nh = LC3_NH(sr_pcm);
 
     float *xf = decoder->xs;
@@ -473,6 +474,8 @@ static void synthesize(struct lc3_decoder *decoder,
 
     } else {
         lc3_plc_synthesize(dt, sr, &decoder->plc, xg, xf);
+
+        memset(xf + ne, 0, (ns - ne) * sizeof(float));
 
         lc3_mdct_inverse(dt, sr_pcm, sr, xf, xd, xs);
     }
