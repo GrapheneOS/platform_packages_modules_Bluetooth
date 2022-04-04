@@ -4409,7 +4409,11 @@ static void btm_sec_wait_and_start_authentication(tBTM_SEC_DEV_REC* p_dev_rec) {
   auto addr = new RawAddress(p_dev_rec->bd_addr);
   bt_status_t status = do_in_main_thread_delayed(
       FROM_HERE, base::Bind(&btm_sec_auth_timer_timeout, addr),
+#if BASE_VER < 931007
       base::TimeDelta::FromMilliseconds(BTM_DELAY_AUTH_MS));
+#else
+      base::Milliseconds(BTM_DELAY_AUTH_MS));
+#endif
   if (status != BT_STATUS_SUCCESS) {
     LOG(ERROR) << __func__
                << ": do_in_main_thread_delayed failed. directly calling.";
