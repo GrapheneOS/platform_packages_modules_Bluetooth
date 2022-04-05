@@ -26,14 +26,15 @@ void TestEncoder(FuzzedDataProvider& fdp) {
   unsigned enc_size = lc3_encoder_size(dt_us, sr_hz);
   uint16_t output_byte_count = fdp.ConsumeIntegralInRange(20, 400);
   uint16_t num_frames = lc3_frame_samples(dt_us, sr_hz);
+  uint8_t bytes_per_frame = (pcm_format == LC3_PCM_FORMAT_S16 ? 2 : 4);
 
-  if (fdp.remaining_bytes() < num_frames * 2) {
+  if (fdp.remaining_bytes() < num_frames * bytes_per_frame) {
     return;
   }
 
-  std::vector<uint16_t> input_frames(num_frames);
-  fdp.ConsumeData(input_frames.data(),
-                  input_frames.size() * 2 /* each frame is 2 bytes */);
+  std::vector<uint32_t> input_frames(
+      num_frames / (pcm_format == LC3_PCM_FORMAT_S16 ? 2 : 1));
+  fdp.ConsumeData(input_frames.data(), num_frames * bytes_per_frame);
 
   void* lc3_encoder_mem = nullptr;
   lc3_encoder_mem = malloc(enc_size);
@@ -71,7 +72,8 @@ void TestDecoder(FuzzedDataProvider& fdp) {
   lc3_decoder_t lc3_decoder =
       lc3_setup_decoder(dt_us, sr_hz, 0, lc3_decoder_mem);
 
-  std::vector<uint16_t> output(num_frames);
+  std::vector<uint32_t> output(num_frames /
+                               (pcm_format == LC3_PCM_FORMAT_S16 ? 2 : 1));
   lc3_decode(lc3_decoder, input.data(), input.size(), pcm_format,
              (int16_t*)output.data(), 1);
 
