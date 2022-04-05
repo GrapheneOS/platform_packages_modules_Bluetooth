@@ -33,7 +33,7 @@ cc_defaults {
         "com.android.bluetooth",
     ],
     target: {
-        linux_glibc: {
+        host_linux: {
             cflags: ["-D_GNU_SOURCE"],
         },
     },
