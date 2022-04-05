@@ -155,6 +155,8 @@ static int clear_event_mask() { return 0; }
 
 static int clear_filter_accept_list() { return 0; }
 
+static int disconnect_all_acls() { return 0; }
+
 EXPORT_SYMBOL bt_interface_t bluetoothInterface = {
     sizeof(bluetoothInterface),
     init,
@@ -197,7 +199,8 @@ EXPORT_SYMBOL bt_interface_t bluetoothInterface = {
     allow_low_latency_audio,
     clear_event_filter,
     clear_event_mask,
-    clear_filter_accept_list};
+    clear_filter_accept_list,
+    disconnect_all_acls};
 
 // callback reporting helpers
 

@@ -787,9 +787,14 @@ typedef struct {
   int (*clear_event_mask)();
 
   /**
-   * Call to clear out the connect list
+   * Call to clear out the filter accept list
    */
   int (*clear_filter_accept_list)();
+
+  /**
+   * Call to disconnect all ACL connections
+   */
+  int (*disconnect_all_acls)();
 } bt_interface_t;
 
 #define BLUETOOTH_INTERFACE_STRING "bluetoothInterface"
