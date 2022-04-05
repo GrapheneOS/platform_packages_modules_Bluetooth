@@ -3224,16 +3224,6 @@ class LeAudioClientImpl : public LeAudioClient {
         rxUnreceivedPackets, duplicatePackets);
   }
 
-  void CompleteUserConfiguration(LeAudioDeviceGroup* group) {
-    if (audio_sender_state_ == AudioState::RELEASING) {
-      audio_sender_state_ = AudioState::IDLE;
-    }
-
-    if (audio_receiver_state_ == AudioState::RELEASING) {
-      audio_receiver_state_ = AudioState::IDLE;
-    }
-  }
-
   void HandlePendingAvailableContexts(LeAudioDeviceGroup* group) {
     if (!group) return;
 
@@ -3280,7 +3270,12 @@ class LeAudioClientImpl : public LeAudioClient {
         SuspendAudio();
         break;
       case GroupStreamStatus::CONFIGURED_BY_USER:
-        CompleteUserConfiguration(group);
+        /* We are done with reconfiguration.
+         * Clean state and if Audio HAL is waiting, cancel the request
+         * so Audio HAL can Resume again.
+         */
+        CancelStreamingRequest();
+        HandlePendingAvailableContexts(group);
         break;
       case GroupStreamStatus::CONFIGURED_AUTONOMOUS:
         /* This state is notified only when
