@@ -92,7 +92,7 @@ cc_library_static {
     // should be compatible for a Linux host OS. We should figure out what to do for
     // a non-Linux host OS.
     target: {
-        linux_glibc: {
+        host_linux: {
             cflags: [
                 "-D_GNU_SOURCE",
                 "-DOS_GENERIC",
@@ -147,7 +147,7 @@ cc_test {
         "libc++fs",
     ],
     target: {
-        linux_glibc: {
+        host_linux: {
             cflags: ["-DOS_GENERIC"],
         },
     },
