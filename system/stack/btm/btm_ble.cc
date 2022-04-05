@@ -89,7 +89,11 @@ void BTM_SecAddBleDevice(const RawAddress& bd_addr, tBT_DEVICE_TYPE dev_type,
   memset(p_dev_rec->sec_bd_name, 0, sizeof(tBTM_BD_NAME));
 
   p_dev_rec->device_type |= dev_type;
-  p_dev_rec->ble.SetAddressType(addr_type);
+  if (is_ble_addr_type_known(addr_type))
+    p_dev_rec->ble.SetAddressType(addr_type);
+  else
+    LOG_WARN(
+        "Please do not update device record from anonymous le advertisement");
 
   /* sync up with the Inq Data base*/
   tBTM_INQ_INFO* p_info = BTM_InqDbRead(bd_addr);
@@ -481,7 +485,12 @@ void BTM_ReadDevInfo(const RawAddress& remote_bda, tBT_DEVICE_TYPE* p_dev_type,
     /* new inquiry result, overwrite device type in security device record */
     if (p_inq_info) {
       p_dev_rec->device_type = p_inq_info->results.device_type;
-      p_dev_rec->ble.SetAddressType(p_inq_info->results.ble_addr_type);
+      if (is_ble_addr_type_known(p_inq_info->results.ble_addr_type))
+        p_dev_rec->ble.SetAddressType(p_inq_info->results.ble_addr_type);
+      else
+        LOG_WARN(
+            "Please do not update device record from anonymous le "
+            "advertisement");
     }
 
     if (p_dev_rec->bd_addr == remote_bda &&
@@ -1713,7 +1722,12 @@ void btm_ble_connected(const RawAddress& bda, uint16_t handle, uint8_t enc_mode,
     p_dev_rec->timestamp = btm_cb.dev_rec_count++;
   }
 
-  p_dev_rec->ble.SetAddressType(addr_type);
+  if (is_ble_addr_type_known(addr_type))
+    p_dev_rec->ble.SetAddressType(addr_type);
+  else
+    LOG_WARN(
+        "Please do not update device record from anonymous le advertisement");
+
   p_dev_rec->ble.pseudo_addr = bda;
   p_dev_rec->ble_hci_handle = handle;
   p_dev_rec->device_type |= BT_DEVICE_TYPE_BLE;
