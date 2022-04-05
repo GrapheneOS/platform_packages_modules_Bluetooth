@@ -319,6 +319,8 @@ async fn start_interactive_shell(
                     format!("/org/chromium/bluetooth/client/{}/bluetooth_callback", adapter);
                 let conn_cb_objpath: String =
                     format!("/org/chromium/bluetooth/client/{}/bluetooth_conn_callback", adapter);
+                let suspend_cb_objpath: String =
+                    format!("/org/chromium/bluetooth/client/{}/suspend_callback", adapter);
 
                 let dbus_connection = context.lock().unwrap().dbus_connection.clone();
                 let dbus_crossroads = context.lock().unwrap().dbus_crossroads.clone();
@@ -348,7 +350,7 @@ async fn start_interactive_shell(
                 // TODO(b/224606285): Implement suspend debug utils in btclient.
                 context.lock().unwrap().suspend_dbus.as_mut().unwrap().register_callback(Box::new(
                     SuspendCallback::new(
-                        cb_objpath,
+                        suspend_cb_objpath,
                         dbus_connection.clone(),
                         dbus_crossroads.clone(),
                     ),
