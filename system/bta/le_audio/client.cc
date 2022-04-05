@@ -3299,11 +3299,11 @@ class LeAudioClientImpl : public LeAudioClient {
         stream_setup_start_timestamp_ = 0;
         if (group && group->IsPendingConfiguration()) {
           SuspendedForReconfiguration();
-          if (!groupStateMachine_->ConfigureStream(group,
-                                                   current_context_type_)) {
-            // DO SOMETHING
+          if (groupStateMachine_->ConfigureStream(group,
+                                                  current_context_type_)) {
+            /* If configuration succeed wait for new status. */
+            return;
           }
-          return;
         }
         CancelStreamingRequest();
         HandlePendingAvailableContexts(group);
