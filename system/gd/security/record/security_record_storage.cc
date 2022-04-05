@@ -114,10 +114,10 @@ void SecurityRecordStorage::SaveSecurityRecords(std::set<std::shared_ptr<record:
     } else if (!record->IsClassicLinkKeyValid() && record->remote_ltk) {
       mutation.Add(device.SetDeviceType(hci::DeviceType::LE));
     } else {
-      LOG_ERROR(
-          "Cannot determine device type from security record for '%s'; dropping!",
+      mutation.Add(device.SetDeviceType(hci::DeviceType::LE));
+      LOG_WARN(
+          "Cannot determine device type from security record for '%s'; defaulting to LE",
           record->GetPseudoAddress()->ToString().c_str());
-      continue;
     }
     mutation.Commit();
     SetClassicData(mutation, record, device);
