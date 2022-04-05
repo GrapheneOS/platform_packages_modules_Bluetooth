@@ -153,6 +153,8 @@ static int clear_event_filter(void) { return 0; }
 
 static int clear_event_mask() { return 0; }
 
+static int clear_filter_accept_list() { return 0; }
+
 EXPORT_SYMBOL bt_interface_t bluetoothInterface = {
     sizeof(bluetoothInterface),
     init,
@@ -194,7 +196,8 @@ EXPORT_SYMBOL bt_interface_t bluetoothInterface = {
     generate_local_oob_data,
     allow_low_latency_audio,
     clear_event_filter,
-    clear_event_mask};
+    clear_event_mask,
+    clear_filter_accept_list};
 
 // callback reporting helpers
 

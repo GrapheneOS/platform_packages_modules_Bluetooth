@@ -785,6 +785,11 @@ typedef struct {
    * Call to clear event mask
    */
   int (*clear_event_mask)();
+
+  /**
+   * Call to clear out the connect list
+   */
+  int (*clear_filter_accept_list)();
 } bt_interface_t;
 
 #define BLUETOOTH_INTERFACE_STRING "bluetoothInterface"
