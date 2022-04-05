@@ -780,6 +780,11 @@ typedef struct {
    * Set the event filter for the controller
    */
   int (*clear_event_filter)();
+
+  /**
+   * Call to clear event mask
+   */
+  int (*clear_event_mask)();
 } bt_interface_t;
 
 #define BLUETOOTH_INTERFACE_STRING "bluetoothInterface"
