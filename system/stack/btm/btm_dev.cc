@@ -237,7 +237,12 @@ tBTM_SEC_DEV_REC* btm_sec_alloc_dev(const RawAddress& bd_addr) {
     memcpy(p_dev_rec->dev_class, p_inq_info->results.dev_class, DEV_CLASS_LEN);
 
     p_dev_rec->device_type = p_inq_info->results.device_type;
-    p_dev_rec->ble.SetAddressType(p_inq_info->results.ble_addr_type);
+    if (is_ble_addr_type_known(p_inq_info->results.ble_addr_type))
+      p_dev_rec->ble.SetAddressType(p_inq_info->results.ble_addr_type);
+    else
+      LOG_WARN(
+          "Please do not update device record from anonymous le advertisement");
+
   } else if (bd_addr == btm_cb.connecting_bda)
     memcpy(p_dev_rec->dev_class, btm_cb.connecting_dc, DEV_CLASS_LEN);
 
