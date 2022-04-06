@@ -1832,6 +1832,17 @@ tBTM_STATUS BTM_ClearEventFilter(void);
  ******************************************************************************/
 tBTM_STATUS BTM_ClearEventMask(void);
 
+/*******************************************************************************
+ *
+ * Function         BTM_ClearFilterAcceptList
+ *
+ * Description      Clears the connect list in the controller
+ *
+ * Returns          Return btm status
+ *
+ ******************************************************************************/
+tBTM_STATUS BTM_ClearFilterAcceptList(void);
+
 /**
  * Send remote name request to GD shim Name module
  */
