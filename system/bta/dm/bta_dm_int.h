@@ -133,7 +133,7 @@ typedef struct {
 /* data type for BTA_DM_SDP_RESULT_EVT */
 typedef struct {
   BT_HDR_RIGID hdr;
-  uint16_t sdp_result;
+  tSDP_RESULT sdp_result;
 } tBTA_DM_SDP_RESULT;
 
 typedef struct {
