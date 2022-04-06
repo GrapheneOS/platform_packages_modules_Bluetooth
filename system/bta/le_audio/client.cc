@@ -3280,23 +3280,10 @@ class LeAudioClientImpl : public LeAudioClient {
       case GroupStreamStatus::CONFIGURED_AUTONOMOUS:
         /* This state is notified only when
          * groups stays into CONFIGURED state after
-         * STREAMING. Peer device uses cache.
-         * */
-        stream_setup_end_timestamp_ = 0;
-        stream_setup_start_timestamp_ = 0;
-
-        /* Check if stream was stopped for reconfiguration */
-        if (group->IsPendingConfiguration()) {
-          SuspendedForReconfiguration();
-          if (!groupStateMachine_->ConfigureStream(group,
-                                                   current_context_type_)) {
-            // DO SOMETHING
-          }
-          return;
-        }
-        CancelStreamingRequest();
-        HandlePendingAvailableContexts(group);
-        break;
+         * STREAMING. Peer device uses cache. For the moment
+         * it is handled same as IDLE
+         */
+        FALLTHROUGH;
       case GroupStreamStatus::IDLE: {
         stream_setup_end_timestamp_ = 0;
         stream_setup_start_timestamp_ = 0;
