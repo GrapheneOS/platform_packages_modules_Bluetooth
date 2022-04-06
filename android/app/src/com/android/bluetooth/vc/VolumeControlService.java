@@ -40,6 +40,7 @@ import android.os.HandlerThread;
 import android.os.ParcelUuid;
 import android.os.RemoteCallbackList;
 import android.os.RemoteException;
+import android.sysprop.BluetoothProperties;
 import android.util.Log;
 
 import com.android.bluetooth.Utils;
@@ -183,6 +184,10 @@ public class VolumeControlService extends ProfileService {
     private BroadcastReceiver mConnectionStateChangedReceiver;
 
     private final ServiceFactory mFactory = new ServiceFactory();
+
+    public static boolean isEnabled() {
+        return BluetoothProperties.isProfileVcServerEnabled().orElse(false);
+    }
 
     @Override
     protected IProfileServiceBinder initBinder() {

@@ -50,6 +50,10 @@ public class Constants {
     /** Tag used for debugging/logging */
     public static final String TAG = "BluetoothOpp";
 
+    /** the permission required for others to send us handover broadcasts */
+    static final String PERMISSION_ALLOWLIST_BLUETOOTH_DEVICE =
+                "com.android.permission.ALLOWLIST_BLUETOOTH_DEVICE";
+
     /**
      * The intent that gets sent when the service must wake up for a retry
      * Note: Only retry Outbound transfers

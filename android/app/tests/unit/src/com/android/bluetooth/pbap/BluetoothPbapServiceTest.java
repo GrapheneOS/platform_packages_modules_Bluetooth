@@ -57,7 +57,7 @@ public class BluetoothPbapServiceTest {
     public void setUp() throws Exception {
         mTargetContext = InstrumentationRegistry.getTargetContext();
         Assume.assumeTrue("Ignore test when BluetoothPbapService is not enabled",
-                mTargetContext.getResources().getBoolean(R.bool.profile_supported_pbap));
+                BluetoothPbapService.isEnabled());
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
         doReturn(mDatabaseManager).when(mAdapterService).getDatabase();
@@ -72,7 +72,7 @@ public class BluetoothPbapServiceTest {
 
     @After
     public void tearDown() throws Exception {
-        if (!mTargetContext.getResources().getBoolean(R.bool.profile_supported_pbap)) {
+        if (!BluetoothPbapService.isEnabled()) {
             return;
         }
         TestUtils.stopService(mServiceRule, BluetoothPbapService.class);
