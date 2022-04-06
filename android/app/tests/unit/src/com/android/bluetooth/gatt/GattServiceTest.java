@@ -40,8 +40,7 @@ public class GattServiceTest {
     @Before
     public void setUp() throws Exception {
         mTargetContext = InstrumentationRegistry.getTargetContext();
-        Assume.assumeTrue("Ignore test when GattService is not enabled",
-                mTargetContext.getResources().getBoolean(R.bool.profile_supported_gatt));
+        Assume.assumeTrue("Ignore test when GattService is not enabled", GattService.isEnabled());
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
         doReturn(true).when(mAdapterService).isStartedProfile(anyString());
@@ -52,7 +51,7 @@ public class GattServiceTest {
 
     @After
     public void tearDown() throws Exception {
-        if (!mTargetContext.getResources().getBoolean(R.bool.profile_supported_gatt)) {
+        if (!GattService.isEnabled()) {
             return;
         }
         doReturn(false).when(mAdapterService).isStartedProfile(anyString());

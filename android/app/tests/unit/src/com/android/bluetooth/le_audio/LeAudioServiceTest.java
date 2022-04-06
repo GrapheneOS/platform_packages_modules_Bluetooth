@@ -150,7 +150,7 @@ public class LeAudioServiceTest {
     public void setUp() throws Exception {
         mTargetContext = InstrumentationRegistry.getTargetContext();
         Assume.assumeTrue("Ignore test when LeAudioService is not enabled",
-        mTargetContext.getResources().getBoolean(R.bool.profile_supported_le_audio));
+                LeAudioService.isEnabled());
 
         // Set up mocks and test assets
         MockitoAnnotations.initMocks(this);
@@ -202,7 +202,7 @@ public class LeAudioServiceTest {
 
     @After
     public void tearDown() throws Exception {
-        if (!mTargetContext.getResources().getBoolean(R.bool.profile_supported_le_audio)) {
+        if (!LeAudioService.isEnabled()) {
             return;
         }
 

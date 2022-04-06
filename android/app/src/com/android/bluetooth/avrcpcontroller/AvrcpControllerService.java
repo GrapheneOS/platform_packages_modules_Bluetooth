@@ -23,11 +23,14 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.IBluetoothAvrcpController;
 import android.content.AttributionSource;
+import android.content.ComponentName;
 import android.content.Intent;
 import android.support.v4.media.MediaBrowserCompat.MediaItem;
 import android.support.v4.media.session.PlaybackStateCompat;
+import android.sysprop.BluetoothProperties;
 import android.util.Log;
 
+import com.android.bluetooth.BluetoothPrefs;
 import com.android.bluetooth.R;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.a2dpsink.A2dpSinkService;
@@ -50,6 +53,13 @@ public class AvrcpControllerService extends ProfileService {
     static final int MAXIMUM_CONNECTED_DEVICES = 5;
     static final boolean DBG = Log.isLoggable(TAG, Log.DEBUG);
     static final boolean VDBG = Log.isLoggable(TAG, Log.VERBOSE);
+
+    /**
+     * Owned Components
+     */
+    private static final String ON_ERROR_SETTINGS_ACTIVITY =
+            BluetoothPrefs.class.getCanonicalName();
+    private static final String COVER_ART_PROVIDER = AvrcpCoverArtProvider.class.getCanonicalName();
 
     /*
      *  Play State Values from JNI
@@ -132,12 +142,18 @@ public class AvrcpControllerService extends ProfileService {
         classInitNative();
     }
 
+    public static boolean isEnabled() {
+        return BluetoothProperties.isProfileAvrcpControllerEnabled().orElse(false);
+    }
+
     @Override
     protected synchronized boolean start() {
         initNative();
+        setComponentAvailable(ON_ERROR_SETTINGS_ACTIVITY, true);
         mAdapterService = AdapterService.getAdapterService();
         mCoverArtEnabled = getResources().getBoolean(R.bool.avrcp_controller_enable_cover_art);
         if (mCoverArtEnabled) {
+            setComponentAvailable(COVER_ART_PROVIDER, true);
             mCoverArtManager = new AvrcpCoverArtManager(this, new ImageDownloadCallback());
         }
         sBrowseTree = new BrowseTree(null);
@@ -164,7 +180,9 @@ public class AvrcpControllerService extends ProfileService {
         if (mCoverArtManager != null) {
             mCoverArtManager.cleanup();
             mCoverArtManager = null;
+            setComponentAvailable(COVER_ART_PROVIDER, false);
         }
+        setComponentAvailable(ON_ERROR_SETTINGS_ACTIVITY, false);
         return true;
     }
 
