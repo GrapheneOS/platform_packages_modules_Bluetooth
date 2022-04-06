@@ -4021,6 +4021,18 @@ void bta_dm_clear_event_filter(void) {
 
 /*******************************************************************************
  *
+ * Function         bta_dm_clear_event_mask
+ *
+ * Description      Clears out the event mask in the controller.
+ *
+ ******************************************************************************/
+void bta_dm_clear_event_mask(void) {
+  VLOG(1) << "bta_dm_clear_event_mask in bta_dm_act";
+  bluetooth::shim::BTM_ClearEventMask();
+}
+
+/*******************************************************************************
+ *
  * Function         bta_dm_gattc_callback
  *
  * Description      This is GATT client callback function used in DM.
