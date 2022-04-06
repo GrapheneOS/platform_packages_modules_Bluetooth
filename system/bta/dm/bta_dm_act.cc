@@ -4045,6 +4045,18 @@ void bta_dm_clear_filter_accept_list(void) {
 
 /*******************************************************************************
  *
+ * Function         bta_dm_disconnect_all_acls
+ *
+ * Description      Disconnects all ACL connections.
+ *
+ ******************************************************************************/
+void bta_dm_disconnect_all_acls(void) {
+  VLOG(1) << "bta_dm_disconnect_all_acls in bta_dm_act";
+  bluetooth::shim::BTM_DisconnectAllAcls();
+}
+
+/*******************************************************************************
+ *
  * Function         bta_dm_gattc_callback
  *
  * Description      This is GATT client callback function used in DM.
