@@ -24,6 +24,7 @@ import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothUtils;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -45,6 +46,8 @@ public abstract class ProfileService extends Service {
             android.Manifest.permission.BLUETOOTH;
     public static final String BLUETOOTH_PRIVILEGED =
             android.Manifest.permission.BLUETOOTH_PRIVILEGED;
+
+    static final String BLUETOOTH_PACKAGE_NAME = "com.android.bluetooth.services";
 
     public interface IProfileServiceBinder extends IBinder {
         /**
@@ -208,6 +211,54 @@ public abstract class ProfileService extends Service {
             Log.d(mName, "onUnbind");
         }
         return super.onUnbind(intent);
+    }
+
+    /**
+     * Set the availability of an owned/managed component (Service, Activity, Provider, etc.)
+     * using a string class name assumed to be in the Bluetooth package.
+     *
+     * It's expected that profiles can have a set of components that they may use to provide
+     * features or interact with other services/the user. Profiles are expected to enable those
+     * components when they start, and disable them when they stop.
+     *
+     * @param className The class name of the owned component residing in the Bluetooth package
+     * @param enable True to enable the component, False to disable it
+     */
+    protected void setComponentAvailable(String className, boolean enable) {
+        if (DBG) {
+            Log.d(mName, "setComponentAvailable(className=" + className + ", enable=" + enable
+                    + ")");
+        }
+        if (className == null) {
+            return;
+        }
+        ComponentName component = new ComponentName(BLUETOOTH_PACKAGE_NAME, className);
+        setComponentAvailable(component, enable);
+    }
+
+    /**
+     * Set the availability of an owned/managed component (Service, Activity, Provider, etc.)
+     *
+     * It's expected that profiles can have a set of components that they may use to provide
+     * features or interact with other services/the user. Profiles are expected to enable those
+     * components when they start, and disable them when they stop.
+     *
+     * @param component The component name of owned component
+     * @param enable True to enable the component, False to disable it
+     */
+    protected void setComponentAvailable(ComponentName component, boolean enable) {
+        if (DBG) {
+            Log.d(mName, "setComponentAvailable(component=" + component + ", enable=" + enable
+                    + ")");
+        }
+        if (component == null) {
+            return;
+        }
+        getPackageManager().setComponentEnabledSetting(
+                component,
+                enable ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+                       : PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                PackageManager.DONT_KILL_APP);
     }
 
     /**

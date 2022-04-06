@@ -41,6 +41,7 @@ import android.media.AudioManager;
 import android.media.BluetoothProfileConnectionInfo;
 import android.os.Build;
 import android.os.HandlerThread;
+import android.sysprop.BluetoothProperties;
 import android.util.Log;
 
 import com.android.bluetooth.BluetoothMetricsProto;
@@ -102,6 +103,10 @@ public class A2dpService extends ProfileService {
 
     private BroadcastReceiver mBondStateChangedReceiver;
     private BroadcastReceiver mConnectionStateChangedReceiver;
+
+    public static boolean isEnabled() {
+        return BluetoothProperties.isProfileA2dpSourceEnabled().orElse(false);
+    }
 
     @Override
     protected IProfileServiceBinder initBinder() {

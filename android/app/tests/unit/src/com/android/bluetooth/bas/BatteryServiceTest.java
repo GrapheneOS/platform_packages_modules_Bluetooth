@@ -72,8 +72,8 @@ public class BatteryServiceTest {
     @Before
     public void setUp() throws Exception {
         mTargetContext = InstrumentationRegistry.getTargetContext();
-        Assume.assumeTrue("Ignore test when Battery service is not enabled",
-                mTargetContext.getResources().getBoolean(R.bool.profile_supported_battery));
+        Assume.assumeTrue("Ignore test when BatteryService is not enabled",
+                BatteryService.isEnabled());
 
         if (Looper.myLooper() == null) {
             Looper.prepare();
@@ -98,8 +98,7 @@ public class BatteryServiceTest {
 
     @After
     public void tearDown() throws Exception {
-        if (!mTargetContext.getResources().getBoolean(
-                R.bool.profile_supported_battery)) {
+        if (!BatteryService.isEnabled()) {
             return;
         }
         stopService();

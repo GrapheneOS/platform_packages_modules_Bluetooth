@@ -35,7 +35,6 @@ import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.SparseArray;
 
-import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.FlakyTest;
 import androidx.test.filters.MediumTest;
 import androidx.test.rule.ServiceTestRule;
@@ -72,7 +71,6 @@ public class AvrcpControllerStateMachineTest {
     private static final int KEY_UP = 1;
 
     private BluetoothAdapter mAdapter;
-    private Context mTargetContext;
 
     @Rule public final ServiceTestRule mAvrcpServiceRule = new ServiceTestRule();
     @Rule public final ServiceTestRule mA2dpServiceRule = new ServiceTestRule();
@@ -92,10 +90,8 @@ public class AvrcpControllerStateMachineTest {
 
     @Before
     public void setUp() throws Exception {
-        mTargetContext = InstrumentationRegistry.getTargetContext();
         Assume.assumeTrue("Ignore test when AVRCP Controller is not enabled",
-                mTargetContext.getResources().getBoolean(
-                        R.bool.profile_supported_avrcp_controller));
+                AvrcpControllerService.isEnabled());
         if (Looper.myLooper() == null) {
             Looper.prepare();
         }
@@ -145,7 +141,7 @@ public class AvrcpControllerStateMachineTest {
 
     @After
     public void tearDown() throws Exception {
-        if (!mTargetContext.getResources().getBoolean(R.bool.profile_supported_avrcp_controller)) {
+        if (!AvrcpControllerService.isEnabled()) {
             return;
         }
         destroyStateMachine(mAvrcpStateMachine);

@@ -83,8 +83,7 @@ public class A2dpServiceTest {
     @Before
     public void setUp() throws Exception {
         mTargetContext = InstrumentationRegistry.getTargetContext();
-        Assume.assumeTrue("Ignore test when A2dpService is not enabled",
-                mTargetContext.getResources().getBoolean(R.bool.profile_supported_a2dp));
+        Assume.assumeTrue("Ignore test when A2dpService is not enabled", A2dpService.isEnabled());
         // Set up mocks and test assets
         MockitoAnnotations.initMocks(this);
 
@@ -124,7 +123,7 @@ public class A2dpServiceTest {
 
     @After
     public void tearDown() throws Exception {
-        if (!mTargetContext.getResources().getBoolean(R.bool.profile_supported_a2dp)) {
+        if (!A2dpService.isEnabled()) {
             return;
         }
         stopService();

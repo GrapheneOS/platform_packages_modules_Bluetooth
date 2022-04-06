@@ -32,6 +32,7 @@ import android.content.AttributionSource;
 import android.content.Context;
 import android.os.ParcelUuid;
 import android.os.RemoteException;
+import android.sysprop.BluetoothProperties;
 import android.util.Log;
 
 import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermission;
@@ -53,6 +54,10 @@ public class TbsService extends ProfileService {
     private static TbsService sTbsService;
 
     private final TbsGeneric mTbsGeneric = new TbsGeneric();
+
+    public static boolean isEnabled() {
+        return BluetoothProperties.isProfileTbsServerEnabled().orElse(false);
+    }
 
     @Override
     protected IProfileServiceBinder initBinder() {
