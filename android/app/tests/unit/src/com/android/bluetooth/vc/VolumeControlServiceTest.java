@@ -318,6 +318,10 @@ public class VolumeControlServiceTest {
 
         // Send a connect request
         Assert.assertTrue("Connect expected to succeed", mService.connect(mDevice));
+
+        // Verify the connection state broadcast, and that we are in Connecting state
+        verifyConnectionStateIntent(TIMEOUT_MS, mDevice, BluetoothProfile.STATE_CONNECTING,
+                BluetoothProfile.STATE_DISCONNECTED);
     }
 
     /**
