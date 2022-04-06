@@ -1843,6 +1843,17 @@ tBTM_STATUS BTM_ClearEventMask(void);
  ******************************************************************************/
 tBTM_STATUS BTM_ClearFilterAcceptList(void);
 
+/*******************************************************************************
+ *
+ * Function         BTM_DisconnectAllAcls
+ *
+ * Description      Disconnects all of the ACL connections
+ *
+ * Returns          Return btm status
+ *
+ ******************************************************************************/
+tBTM_STATUS BTM_DisconnectAllAcls(void);
+
 /**
  * Send remote name request to GD shim Name module
  */

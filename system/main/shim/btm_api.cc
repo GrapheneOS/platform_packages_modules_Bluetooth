@@ -38,8 +38,10 @@
 #include "main/shim/stack.h"
 #include "osi/include/allocator.h"
 #include "stack/btm/btm_int_types.h"
+#include "stack/btm/btm_sec.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_octets.h"
+#include "stack/include/hci_error_code.h"
 #include "types/ble_address_with_type.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
@@ -1342,5 +1344,12 @@ tBTM_STATUS bluetooth::shim::BTM_ClearEventMask() {
 
 tBTM_STATUS bluetooth::shim::BTM_ClearFilterAcceptList() {
   Stack::GetInstance()->GetAcl()->ClearAcceptList();
+  return BTM_SUCCESS;
+}
+
+tBTM_STATUS bluetooth::shim::BTM_DisconnectAllAcls() {
+  for (uint16_t i = 0; i < 0xfffe; i++) {
+    btm_sec_disconnect(i, HCI_SUCCESS, "");
+  }
   return BTM_SUCCESS;
 }
