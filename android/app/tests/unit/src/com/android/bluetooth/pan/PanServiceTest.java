@@ -61,7 +61,7 @@ public class PanServiceTest {
     public void setUp() throws Exception {
         mTargetContext = InstrumentationRegistry.getTargetContext();
         Assume.assumeTrue("Ignore test when PanService is not enabled",
-                mTargetContext.getResources().getBoolean(R.bool.profile_supported_pan));
+                PanService.isEnabled());
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
         doReturn(mDatabaseManager).when(mAdapterService).getDatabase();
@@ -77,7 +77,7 @@ public class PanServiceTest {
 
     @After
     public void tearDown() throws Exception {
-        if (!mTargetContext.getResources().getBoolean(R.bool.profile_supported_pan)) {
+        if (!PanService.isEnabled()) {
             return;
         }
         TestUtils.stopService(mServiceRule, PanService.class);

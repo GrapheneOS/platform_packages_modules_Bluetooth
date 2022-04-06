@@ -70,10 +70,9 @@ public class ActiveDeviceManagerTest {
     @Before
     public void setUp() throws Exception {
         mContext = InstrumentationRegistry.getTargetContext();
-        Assume.assumeTrue("Ignore test when A2dpService is not enabled",
-                mContext.getResources().getBoolean(R.bool.profile_supported_a2dp));
+        Assume.assumeTrue("Ignore test when A2dpService is not enabled", A2dpService.isEnabled());
         Assume.assumeTrue("Ignore test when HeadsetService is not enabled",
-                mContext.getResources().getBoolean(R.bool.profile_supported_hs_hfp));
+                HeadsetService.isEnabled());
 
         // Set up mocks and test assets
         MockitoAnnotations.initMocks(this);
@@ -101,8 +100,7 @@ public class ActiveDeviceManagerTest {
 
     @After
     public void tearDown() throws Exception {
-        if (!mContext.getResources().getBoolean(R.bool.profile_supported_hs_hfp)
-                || !mContext.getResources().getBoolean(R.bool.profile_supported_a2dp)) {
+        if (!HeadsetService.isEnabled() || !A2dpService.isEnabled()) {
             return;
         }
         mActiveDeviceManager.cleanup();
@@ -220,7 +218,7 @@ public class ActiveDeviceManagerTest {
     @Test
     public void hearingAidActive_clearA2dpAndHeadsetActive() {
         Assume.assumeTrue("Ignore test when HearingAidService is not enabled",
-                BluetoothProperties.isProfileAshaCentralEnabled().orElse(false));
+                HearingAidService.isEnabled());
 
         a2dpConnected(mA2dpHeadsetDevice);
         headsetConnected(mA2dpHeadsetDevice);
@@ -238,7 +236,7 @@ public class ActiveDeviceManagerTest {
     @Test
     public void hearingAidActive_dontSetA2dpAndHeadsetActive() {
         Assume.assumeTrue("Ignore test when HearingAidService is not enabled",
-                BluetoothProperties.isProfileAshaCentralEnabled().orElse(false));
+                HearingAidService.isEnabled());
 
         hearingAidActiveDeviceChanged(mHearingAidDevice);
         a2dpConnected(mA2dpHeadsetDevice);
@@ -255,7 +253,7 @@ public class ActiveDeviceManagerTest {
     @Test
     public void hearingAidActive_setA2dpActiveExplicitly() {
         Assume.assumeTrue("Ignore test when HearingAidService is not enabled",
-                BluetoothProperties.isProfileAshaCentralEnabled().orElse(false));
+                HearingAidService.isEnabled());
 
         hearingAidActiveDeviceChanged(mHearingAidDevice);
         a2dpConnected(mA2dpHeadsetDevice);
@@ -275,7 +273,7 @@ public class ActiveDeviceManagerTest {
     @Test
     public void hearingAidActive_setHeadsetActiveExplicitly() {
         Assume.assumeTrue("Ignore test when HearingAidService is not enabled",
-                BluetoothProperties.isProfileAshaCentralEnabled().orElse(false));
+                HearingAidService.isEnabled());
 
         hearingAidActiveDeviceChanged(mHearingAidDevice);
         headsetConnected(mA2dpHeadsetDevice);

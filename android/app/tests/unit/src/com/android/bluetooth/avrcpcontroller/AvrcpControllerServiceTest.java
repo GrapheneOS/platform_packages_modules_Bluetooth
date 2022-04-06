@@ -55,8 +55,7 @@ public class AvrcpControllerServiceTest {
     public void setUp() throws Exception {
         mTargetContext = InstrumentationRegistry.getTargetContext();
         Assume.assumeTrue("Ignore test when AvrcpControllerService is not enabled",
-                mTargetContext.getResources()
-                        .getBoolean(R.bool.profile_supported_avrcp_controller));
+                AvrcpControllerService.isEnabled());
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
         doReturn(true, false).when(mAdapterService).isStartedProfile(anyString());
@@ -70,7 +69,7 @@ public class AvrcpControllerServiceTest {
 
     @After
     public void tearDown() throws Exception {
-        if (!mTargetContext.getResources().getBoolean(R.bool.profile_supported_avrcp_controller)) {
+        if (!AvrcpControllerService.isEnabled()) {
             return;
         }
         TestUtils.stopService(mServiceRule, AvrcpControllerService.class);
