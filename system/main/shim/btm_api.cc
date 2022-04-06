@@ -1334,3 +1334,8 @@ tBTM_STATUS bluetooth::shim::BTM_ClearEventFilter() {
   controller_get_interface()->clear_event_filter();
   return BTM_SUCCESS;
 }
+
+tBTM_STATUS bluetooth::shim::BTM_ClearEventMask() {
+  controller_get_interface()->clear_event_mask();
+  return BTM_SUCCESS;
+}
