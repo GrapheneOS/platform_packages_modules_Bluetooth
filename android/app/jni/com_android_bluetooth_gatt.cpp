@@ -16,8 +16,6 @@
 
 #define LOG_TAG "BtGatt.JNI"
 
-#define LOG_NDEBUG 0
-
 #include "com_android_bluetooth.h"
 #include "hardware/bt_gatt.h"
 #include "utils/Log.h"

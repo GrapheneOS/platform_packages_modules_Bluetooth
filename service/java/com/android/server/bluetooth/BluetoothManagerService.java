@@ -226,6 +226,7 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
     // used inside handler thread
     private boolean mQuietEnable = false;
     private boolean mEnable;
+    private boolean mShutdownInProgress = false;
 
     private static CharSequence timeToLog(long timestamp) {
         return android.text.format.DateFormat.format("MM-dd HH:mm:ss", timestamp);
@@ -484,6 +485,23 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
                     Log.i(TAG, "Device disconnected, reactivating pending flag changes");
                     onInitFlagsChanged();
                 }
+            } else if (action.equals(Intent.ACTION_SHUTDOWN)) {
+                Log.i(TAG, "Device is shutting down.");
+                mShutdownInProgress = true;
+                mBluetoothLock.readLock().lock();
+                try {
+                    mEnable = false;
+                    mEnableExternal = false;
+                    if (mBluetooth != null && (mState == BluetoothAdapter.STATE_BLE_ON)) {
+                        synchronousOnBrEdrDown(mContext.getAttributionSource());
+                    } else if (mBluetooth != null && (mState == BluetoothAdapter.STATE_ON)) {
+                        synchronousDisable(mContext.getAttributionSource());
+                    }
+                } catch (RemoteException | TimeoutException e) {
+                    Log.e(TAG, "Unable to shutdown Bluetooth", e);
+                } finally {
+                    mBluetoothLock.readLock().unlock();
+                }
             }
         }
     };
@@ -540,6 +558,7 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
         filter.addAction(Intent.ACTION_SETTING_RESTORED);
         filter.addAction(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED);
         filter.addAction(BluetoothHearingAid.ACTION_CONNECTION_STATE_CHANGED);
+        filter.addAction(Intent.ACTION_SHUTDOWN);
         filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
         mContext.registerReceiver(mReceiver, filter);
 
@@ -1904,6 +1923,11 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
                 case MESSAGE_ENABLE:
                     int quietEnable = msg.arg1;
                     int isBle  = msg.arg2;
+                    if (mShutdownInProgress) {
+                        Log.d(TAG, "Skip Bluetooth Enable in device shutdown process");
+                        break;
+                    }
+
                     if (mHandler.hasMessages(MESSAGE_HANDLE_DISABLE_DELAYED)
                             || mHandler.hasMessages(MESSAGE_HANDLE_ENABLE_DELAYED)) {
                         // We are handling enable or disable right now, wait for it.
@@ -2822,7 +2846,7 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
      */
     private void updateOppLauncherComponentState(UserHandle userHandle,
             boolean bluetoothSharingDisallowed) {
-        final ComponentName oppLauncherComponent = new ComponentName("com.android.bluetooth",
+        final ComponentName oppLauncherComponent = new ComponentName("com.android.bluetooth.services",
                 "com.android.bluetooth.opp.BluetoothOppLauncherActivity");
         final int newState =
                 bluetoothSharingDisallowed ? PackageManager.COMPONENT_ENABLED_STATE_DISABLED

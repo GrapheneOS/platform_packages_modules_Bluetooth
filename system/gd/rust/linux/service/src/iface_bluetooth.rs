@@ -1,10 +1,11 @@
 extern crate bt_shim;
 
-use bt_topshim::btif::{BtSspVariant, BtTransport, Uuid128Bit};
+use bt_topshim::btif::{BtDeviceType, BtSspVariant, BtTransport, Uuid128Bit};
 
 use btstack::bluetooth::{
     BluetoothDevice, IBluetooth, IBluetoothCallback, IBluetoothConnectionCallback,
 };
+use btstack::uuid::Profile;
 use btstack::RPCProxy;
 
 use dbus::arg::RefArg;
@@ -62,8 +63,10 @@ impl IBluetoothCallback for BluetoothCallbackDBus {
     }
 }
 
-impl_dbus_arg_enum!(BtTransport);
+impl_dbus_arg_enum!(BtDeviceType);
 impl_dbus_arg_enum!(BtSspVariant);
+impl_dbus_arg_enum!(BtTransport);
+impl_dbus_arg_enum!(Profile);
 
 #[allow(dead_code)]
 struct BluetoothConnectionCallbackDBus {}
@@ -191,17 +194,17 @@ impl IBluetooth for IBluetoothDBus {
     }
 
     #[dbus_method("CreateBond")]
-    fn create_bond(&self, _device: BluetoothDevice, _transport: BtTransport) -> bool {
+    fn create_bond(&self, device: BluetoothDevice, transport: BtTransport) -> bool {
         dbus_generated!()
     }
 
     #[dbus_method("CancelBondProcess")]
-    fn cancel_bond_process(&self, _device: BluetoothDevice) -> bool {
+    fn cancel_bond_process(&self, device: BluetoothDevice) -> bool {
         dbus_generated!()
     }
 
     #[dbus_method("RemoveBond")]
-    fn remove_bond(&self, _device: BluetoothDevice) -> bool {
+    fn remove_bond(&self, device: BluetoothDevice) -> bool {
         dbus_generated!()
     }
 
@@ -211,52 +214,77 @@ impl IBluetooth for IBluetoothDBus {
     }
 
     #[dbus_method("GetBondState")]
-    fn get_bond_state(&self, _device: BluetoothDevice) -> u32 {
+    fn get_bond_state(&self, device: BluetoothDevice) -> u32 {
         dbus_generated!()
     }
 
     #[dbus_method("SetPin")]
-    fn set_pin(&self, _device: BluetoothDevice, _accept: bool, _pin_code: Vec<u8>) -> bool {
+    fn set_pin(&self, device: BluetoothDevice, accept: bool, pin_code: Vec<u8>) -> bool {
         dbus_generated!()
     }
 
     #[dbus_method("SetPasskey")]
-    fn set_passkey(&self, _device: BluetoothDevice, _accept: bool, _passkey: Vec<u8>) -> bool {
+    fn set_passkey(&self, device: BluetoothDevice, accept: bool, passkey: Vec<u8>) -> bool {
         dbus_generated!()
     }
 
     #[dbus_method("SetPairingConfirmation")]
-    fn set_pairing_confirmation(&self, _device: BluetoothDevice, _accept: bool) -> bool {
+    fn set_pairing_confirmation(&self, device: BluetoothDevice, accept: bool) -> bool {
+        dbus_generated!()
+    }
+
+    #[dbus_method("GetRemoteName")]
+    fn get_remote_name(&self, _device: BluetoothDevice) -> String {
+        dbus_generated!()
+    }
+
+    #[dbus_method("GetRemoteType")]
+    fn get_remote_type(&self, _device: BluetoothDevice) -> BtDeviceType {
+        dbus_generated!()
+    }
+
+    #[dbus_method("GetRemoteAlias")]
+    fn get_remote_alias(&self, _device: BluetoothDevice) -> String {
+        dbus_generated!()
+    }
+
+    #[dbus_method("GetRemoteClass")]
+    fn get_remote_class(&self, _device: BluetoothDevice) -> u32 {
         dbus_generated!()
     }
 
     #[dbus_method("GetConnectionState")]
-    fn get_connection_state(&self, _device: BluetoothDevice) -> u32 {
+    fn get_connection_state(&self, device: BluetoothDevice) -> u32 {
+        dbus_generated!()
+    }
+
+    #[dbus_method("GetProfileConnectionState")]
+    fn get_profile_connection_state(&self, profile: Profile) -> u32 {
         dbus_generated!()
     }
 
     #[dbus_method("GetRemoteUuids")]
-    fn get_remote_uuids(&self, _device: BluetoothDevice) -> Vec<Uuid128Bit> {
+    fn get_remote_uuids(&self, device: BluetoothDevice) -> Vec<Uuid128Bit> {
         dbus_generated!()
     }
 
     #[dbus_method("FetchRemoteUuids")]
-    fn fetch_remote_uuids(&self, _device: BluetoothDevice) -> bool {
+    fn fetch_remote_uuids(&self, device: BluetoothDevice) -> bool {
         dbus_generated!()
     }
 
     #[dbus_method("SdpSearch")]
-    fn sdp_search(&self, _device: BluetoothDevice, _uuid: Uuid128Bit) -> bool {
+    fn sdp_search(&self, device: BluetoothDevice, uuid: Uuid128Bit) -> bool {
         dbus_generated!()
     }
 
     #[dbus_method("ConnectAllEnabledProfiles")]
-    fn connect_all_enabled_profiles(&self, _device: BluetoothDevice) -> bool {
+    fn connect_all_enabled_profiles(&self, device: BluetoothDevice) -> bool {
         dbus_generated!()
     }
 
     #[dbus_method("DisconnectAllEnabledProfiles")]
-    fn disconnect_all_enabled_profiles(&self, _device: BluetoothDevice) -> bool {
+    fn disconnect_all_enabled_profiles(&self, device: BluetoothDevice) -> bool {
         dbus_generated!()
     }
 }

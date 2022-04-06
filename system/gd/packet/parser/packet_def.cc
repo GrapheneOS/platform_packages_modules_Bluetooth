@@ -929,7 +929,7 @@ void PacketDef::GenRustStructImpls(std::ostream& s) const {
     }
 
     field->GenBoundsCheck(s, start_field_offset, end_field_offset, name_);
-    field->GenRustGetter(s, start_field_offset, end_field_offset);
+    field->GenRustGetter(s, start_field_offset, end_field_offset, name_);
   }
 
   auto payload_field = fields_.GetFieldsWithTypes({

@@ -23,6 +23,7 @@ import android.os.Parcelable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * This class contains the subgroup level information as defined in the BASE structure of Basic
@@ -35,17 +36,15 @@ public final class BluetoothLeBroadcastSubgroup implements Parcelable {
     private final long mCodecId;
     private final BluetoothLeAudioCodecConfigMetadata mCodecSpecificConfig;
     private final BluetoothLeAudioContentMetadata mContentMetadata;
-    private final boolean mNoChannelPreference;
     private final List<BluetoothLeBroadcastChannel> mChannels;
 
     private BluetoothLeBroadcastSubgroup(long codecId,
             BluetoothLeAudioCodecConfigMetadata codecSpecificConfig,
-            BluetoothLeAudioContentMetadata contentMetadata, boolean noChannelPreference,
+            BluetoothLeAudioContentMetadata contentMetadata,
             List<BluetoothLeBroadcastChannel> channels) {
         mCodecId = codecId;
         mCodecSpecificConfig = codecSpecificConfig;
         mContentMetadata = contentMetadata;
-        mNoChannelPreference = noChannelPreference;
         mChannels = channels;
     }
 
@@ -91,16 +90,17 @@ public final class BluetoothLeBroadcastSubgroup implements Parcelable {
     }
 
     /**
-     * Indicate if Broadcast Sink should have no Broadcast Channel (BIS) preference.
+     * Indicate if Broadcast Sink should have a preferred Broadcast Channel (BIS).
      *
      * Only used by Broadcast Assistant and Sink. Ignored by Broadcast Source
      *
-     * @return true if Broadcast Sink should have no Broadcast Channel (BIS) preference
+     * @return true if Broadcast Sink has at least one preferred Broadcast Channel (BIS) as
+     * indicated by {@link BluetoothLeBroadcastChannel#isSelected()}
      * @hide
      */
     @SystemApi
-    public boolean isNoChannelPreference() {
-        return mNoChannelPreference;
+    public boolean hasChannelPreference() {
+        return mChannels.stream().anyMatch(BluetoothLeBroadcastChannel::isSelected);
     }
 
     /**
@@ -136,7 +136,6 @@ public final class BluetoothLeBroadcastSubgroup implements Parcelable {
         out.writeLong(mCodecId);
         out.writeTypedObject(mCodecSpecificConfig, 0);
         out.writeTypedObject(mContentMetadata, 0);
-        out.writeBoolean(mNoChannelPreference);
         out.writeTypedList(mChannels);
     }
 
@@ -152,7 +151,6 @@ public final class BluetoothLeBroadcastSubgroup implements Parcelable {
                     builder.setCodecId(in.readLong());
                     builder.setCodecSpecificConfig(in.readTypedObject(
                             BluetoothLeAudioCodecConfigMetadata.CREATOR));
-                    builder.setNoChannelPreference(in.readBoolean());
                     List<BluetoothLeBroadcastChannel> channels = new ArrayList<>();
                     in.readTypedList(channels, BluetoothLeBroadcastChannel.CREATOR);
                     for (BluetoothLeBroadcastChannel channel : channels) {
@@ -177,11 +175,11 @@ public final class BluetoothLeBroadcastSubgroup implements Parcelable {
         private long mCodecId = UNKNOWN_VALUE_PLACEHOLDER;
         private BluetoothLeAudioCodecConfigMetadata mCodecSpecificConfig = null;
         private BluetoothLeAudioContentMetadata mContentMetadata = null;
-        private boolean mNoChannelPreference = false;
         private List<BluetoothLeBroadcastChannel> mChannels = new ArrayList<>();
 
         /**
          * Create an empty constructor.
+         *
          * @hide
          */
         @SystemApi
@@ -198,10 +196,8 @@ public final class BluetoothLeBroadcastSubgroup implements Parcelable {
             mCodecId = original.getCodecId();
             mCodecSpecificConfig = original.getCodecSpecificConfig();
             mContentMetadata = original.getContentMetadata();
-            mNoChannelPreference = original.isNoChannelPreference();
             mChannels = original.getChannels();
         }
-
 
         /**
          * Set the codec ID field as defined by the Basic Audio Profile.
@@ -227,12 +223,14 @@ public final class BluetoothLeBroadcastSubgroup implements Parcelable {
          * Set codec specific config metadata for this subgroup.
          *
          * @param codecSpecificConfig codec specific config metadata for this subgroup
+         * @throws {@link NullPointerException} if codecSpecificConfig is null
          * @return this builder
          * @hide
          */
         @SystemApi
         public @NonNull Builder setCodecSpecificConfig(
                 @NonNull BluetoothLeAudioCodecConfigMetadata codecSpecificConfig) {
+            Objects.requireNonNull(codecSpecificConfig, "codecSpecificConfig cannot be null");
             mCodecSpecificConfig = codecSpecificConfig;
             return this;
         }
@@ -241,29 +239,15 @@ public final class BluetoothLeBroadcastSubgroup implements Parcelable {
          * Set content metadata for this Broadcast Source subgroup.
          *
          * @param contentMetadata content metadata for this Broadcast Source subgroup
+         * @throws NullPointerException if contentMetadata is null
          * @return this builder
          * @hide
          */
         @SystemApi
         public @NonNull Builder setContentMetadata(
                 @NonNull BluetoothLeAudioContentMetadata contentMetadata) {
+            Objects.requireNonNull(contentMetadata, "contentMetadata cannot be null");
             mContentMetadata = contentMetadata;
-            return this;
-        }
-
-        /**
-         * Set if Broadcast Sink should have no Broadcast Channel (BIS) preference.
-         *
-         * Only used by Broadcast Assistant and Sink. Ignored by Broadcast Source
-         *
-         * @param isNoChannelPreference true if Broadcast Sink should have no Broadcast Channel
-         *                              (BIS) preference
-         * @return this builder
-         * @hide
-         */
-        @SystemApi
-        public @NonNull Builder setNoChannelPreference(boolean isNoChannelPreference) {
-            mNoChannelPreference = isNoChannelPreference;
             return this;
         }
 
@@ -275,10 +259,13 @@ public final class BluetoothLeBroadcastSubgroup implements Parcelable {
          * A Broadcast subgroup should contain at least 1 Broadcast Channel
          *
          * @param channel  a Broadcast Channel to be added to this Broadcast subgroup
+         * @throws NullPointerException if channel is null
+         * @return this builder
          * @hide
          */
         @SystemApi
         public @NonNull Builder addChannel(@NonNull BluetoothLeBroadcastChannel channel) {
+            Objects.requireNonNull(channel, "channel cannot be null");
             mChannels.add(channel);
             return this;
         }
@@ -300,13 +287,19 @@ public final class BluetoothLeBroadcastSubgroup implements Parcelable {
          * Build {@link BluetoothLeBroadcastSubgroup}.
          *
          * @return constructed {@link BluetoothLeBroadcastSubgroup}
+         * @throws NullPointerException if {@link NonNull} items are null
          * @throws IllegalArgumentException if the object cannot be built
          * @hide
          */
         @SystemApi
         public @NonNull BluetoothLeBroadcastSubgroup build() {
+            Objects.requireNonNull(mCodecSpecificConfig, "CodecSpecificConfig is null");
+            Objects.requireNonNull(mContentMetadata, "ContentMetadata is null");
+            if (mChannels.isEmpty()) {
+                throw new IllegalArgumentException("Must have at least one channel");
+            }
             return new BluetoothLeBroadcastSubgroup(mCodecId, mCodecSpecificConfig,
-                    mContentMetadata, mNoChannelPreference, mChannels);
+                    mContentMetadata, mChannels);
         }
     }
 }

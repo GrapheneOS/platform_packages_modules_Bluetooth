@@ -68,7 +68,7 @@ class LeAudioTransport {
   LeAudioTransport(void (*flush)(void), StreamCallbacks stream_cb,
                    PcmConfiguration pcm_config);
 
-  BluetoothAudioCtrlAck StartRequest();
+  BluetoothAudioCtrlAck StartRequest(bool is_low_latency);
 
   BluetoothAudioCtrlAck SuspendRequest();
 
@@ -115,7 +115,7 @@ class LeAudioSinkTransport
 
   ~LeAudioSinkTransport();
 
-  BluetoothAudioCtrlAck StartRequest() override;
+  BluetoothAudioCtrlAck StartRequest(bool is_low_latency) override;
 
   BluetoothAudioCtrlAck SuspendRequest() override;
 
@@ -158,7 +158,7 @@ class LeAudioSourceTransport
 
   ~LeAudioSourceTransport();
 
-  BluetoothAudioCtrlAck StartRequest() override;
+  BluetoothAudioCtrlAck StartRequest(bool is_low_latency) override;
 
   BluetoothAudioCtrlAck SuspendRequest() override;
 

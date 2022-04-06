@@ -19,7 +19,6 @@ package android.bluetooth;
 import android.annotation.IntDef;
 import android.annotation.NonNull;
 import android.annotation.Nullable;
-import android.annotation.SystemApi;
 import android.compat.annotation.UnsupportedAppUsage;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -272,6 +271,7 @@ public final class BluetoothCodecConfig implements Parcelable {
      * values to 0.
      *
      * @param codecType the source codec type
+     * @hide
      */
     public BluetoothCodecConfig(@SourceCodecType int codecType) {
         this(codecType, BluetoothCodecConfig.CODEC_PRIORITY_DEFAULT,
@@ -484,9 +484,7 @@ public final class BluetoothCodecConfig implements Parcelable {
      * See {@link #SOURCE_CODEC_TYPE_SBC}.
      *
      * @return {@code true} if the codec is mandatory, {@code false} otherwise
-     * @hide
      */
-    @SystemApi
     public boolean isMandatoryCodec() {
         return mCodecType == SOURCE_CODEC_TYPE_SBC;
     }
@@ -538,6 +536,19 @@ public final class BluetoothCodecConfig implements Parcelable {
 
     /**
      * Returns the codec specific value1.
+     * As the value and usage differ for each codec, please refer to the concerned
+     * codec specification to obtain the codec specific information.
+     *
+     * <p>See section 4.3.2 of the Bluetooth A2dp specification for SBC codec specific
+     * information elements.
+     * <p>See section 4.4.2 of the Bluetooth A2dp specification for MPEG-1,2 Audio
+     * codec specific information elements.
+     * <p>See section 4.5.2 of the Bluetooth A2dp specification for MPEG-2, 4 AAC
+     * codec specific information elements.
+     * <p>See section 4.6.2 of the Bluetooth A2dp specification for ATRAC family
+     * codec specific information elements.
+     * <p>See section 4.7.2 of the Bluetooth A2dp specification for Vendor Specific A2DP
+     * codec specific information elements.
      */
     public long getCodecSpecific1() {
         return mCodecSpecific1;
@@ -545,6 +556,19 @@ public final class BluetoothCodecConfig implements Parcelable {
 
     /**
      * Returns the codec specific value2.
+     * As the value and usage differ for each codec, please refer to the concerned
+     * codec specification to obtain the codec specific information.
+     *
+     * <p>See section 4.3.2 of the Bluetooth A2dp specification for SBC codec specific
+     * information elements.
+     * <p>See section 4.4.2 of the Bluetooth A2dp specification for MPEG-1,2 Audio
+     * codec specific information elements.
+     * <p>See section 4.5.2 of the Bluetooth A2dp specification for MPEG-2, 4 AAC
+     * codec specific information elements.
+     * <p>See section 4.6.2 of the Bluetooth A2dp specification for ATRAC family
+     * codec specific information elements.
+     * <p>See section 4.7.2 of the Bluetooth A2dp specification for Vendor Specific A2DP
+     * codec specific information elements.
      */
     public long getCodecSpecific2() {
         return mCodecSpecific2;
@@ -552,6 +576,19 @@ public final class BluetoothCodecConfig implements Parcelable {
 
     /**
      * Returns the codec specific value3.
+     * As the value and usage differ for each codec, please refer to the concerned
+     * codec specification to obtain the codec specific information.
+     *
+     * <p>See section 4.3.2 of the Bluetooth A2dp specification for SBC codec specific
+     * information elements.
+     * <p>See section 4.4.2 of the Bluetooth A2dp specification for MPEG-1,2 Audio
+     * codec specific information elements.
+     * <p>See section 4.5.2 of the Bluetooth A2dp specification for MPEG-2, 4 AAC
+     * codec specific information elements.
+     * <p>See section 4.6.2 of the Bluetooth A2dp specification for ATRAC family
+     * codec specific information elements.
+     * <p>See section 4.7.2 of the Bluetooth A2dp specification for Vendor Specific A2DP
+     * codec specific information elements.
      */
     public long getCodecSpecific3() {
         return mCodecSpecific3;
@@ -559,6 +596,19 @@ public final class BluetoothCodecConfig implements Parcelable {
 
     /**
      * Returns the codec specific value4.
+     * As the value and usage differ for each codec, please refer to the concerned
+     * codec specification to obtain the codec specific information.
+     *
+     * <p>See section 4.3.2 of the Bluetooth A2dp specification for SBC codec specific
+     * information elements.
+     * <p>See section 4.4.2 of the Bluetooth A2dp specification for MPEG-1,2 Audio
+     * codec specific information elements.
+     * <p>See section 4.5.2 of the Bluetooth A2dp specification for MPEG-2, 4 AAC
+     * codec specific information elements.
+     * <p>See section 4.6.2 of the Bluetooth A2dp specification for ATRAC family
+     * codec specific information elements.
+     * <p>See section 4.7.2 of the Bluetooth A2dp specification for Vendor Specific A2DP
+     * codec specific information elements.
      */
     public long getCodecSpecific4() {
         return mCodecSpecific4;

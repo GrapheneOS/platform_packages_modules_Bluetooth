@@ -50,6 +50,10 @@ public class Constants {
     /** Tag used for debugging/logging */
     public static final String TAG = "BluetoothOpp";
 
+    /** the permission required for others to send us handover broadcasts */
+    static final String PERMISSION_ALLOWLIST_BLUETOOTH_DEVICE =
+                "com.android.permission.ALLOWLIST_BLUETOOTH_DEVICE";
+
     /**
      * The intent that gets sent when the service must wake up for a retry
      * Note: Only retry Outbound transfers
@@ -159,7 +163,7 @@ public class Constants {
     /** the intent that gets sent when clicking a incoming file confirm notification */
     static final String ACTION_INCOMING_FILE_CONFIRM = "android.btopp.intent.action.CONFIRM";
 
-    static final String THIS_PACKAGE_NAME = "com.android.bluetooth";
+    static final String THIS_PACKAGE_NAME = "com.android.bluetooth.services";
 
     /** The column that is used to remember whether the media scanner was invoked */
     static final String MEDIA_SCANNED = "scanned";

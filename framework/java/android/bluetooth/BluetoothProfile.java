@@ -267,12 +267,19 @@ public interface BluetoothProfile {
     int LE_AUDIO_BROADCAST_ASSISTANT = 29;
 
     /**
+     * Battery Service
+     *
+     * @hide
+     */
+    int BATTERY = 30;
+
+    /**
      * Max profile ID. This value should be updated whenever a new profile is added to match
      * the largest value assigned to a profile.
      *
      * @hide
      */
-    int MAX_PROFILE_ID = 29;
+    int MAX_PROFILE_ID = 30;
 
     /**
      * Default priority for devices that we try to auto-connect to and
@@ -478,8 +485,22 @@ public interface BluetoothProfile {
                 return "HEARING_AID";
             case LE_AUDIO:
                 return "LE_AUDIO";
+            case VOLUME_CONTROL:
+                return "VOLUME_CONTROL";
+            case MCP_SERVER:
+                return "MCP_SERVER";
+            case CSIP_SET_COORDINATOR:
+                return "CSIP_SET_COORDINATOR";
+            case LE_AUDIO_BROADCAST:
+                return "LE_AUDIO_BROADCAST";
+            case LE_CALL_CONTROL:
+                return "LE_CALL_CONTROL";
             case HAP_CLIENT:
                 return "HAP_CLIENT";
+            case LE_AUDIO_BROADCAST_ASSISTANT:
+                return "LE_AUDIO_BROADCAST_ASSISTANT";
+            case BATTERY:
+                return "BATTERY";
             default:
                 return "UNKNOWN_PROFILE";
         }

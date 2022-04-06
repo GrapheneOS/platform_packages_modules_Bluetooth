@@ -19,15 +19,13 @@ package com.android.bluetooth.telephony;
 import android.annotation.RequiresPermission;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothHeadset;
-import android.bluetooth.BluetoothProfile;
-import android.bluetooth.BluetoothLeCallControl;
 import android.bluetooth.BluetoothLeCall;
+import android.bluetooth.BluetoothLeCallControl;
+import android.bluetooth.BluetoothProfile;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.PackageManager;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Binder;
@@ -50,23 +48,19 @@ import android.util.Log;
 
 import androidx.annotation.VisibleForTesting;
 
-import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.hfp.BluetoothHeadsetProxy;
 import com.android.bluetooth.tbs.BluetoothLeCallControlProxy;
 
-import java.util.Arrays;
-import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
@@ -145,6 +139,8 @@ public class BluetoothInCallService extends InCallService {
     private static BluetoothInCallService sInstance = null;
 
     public CallInfo mCallInfo = new CallInfo();
+
+    protected boolean mOnCreateCalled = false;
 
     /**
      * Listens to connections and disconnections of bluetooth headsets.  We need to save the current
@@ -348,17 +344,6 @@ public class BluetoothInCallService extends InCallService {
     @Override
     public IBinder onBind(Intent intent) {
         Log.i(TAG, "onBind. Intent: " + intent);
-        BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        if (bluetoothAdapter == null || !bluetoothAdapter.isEnabled()) {
-            Log.i(TAG, "Bluetooth is off");
-            ComponentName componentName
-                    = new ComponentName(getPackageName(), this.getClass().getName());
-            getPackageManager().setComponentEnabledSetting(
-                    componentName,
-                    PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-                    PackageManager.DONT_KILL_APP);
-            return null;
-        }
         IBinder binder = super.onBind(intent);
         mTelephonyManager = getSystemService(TelephonyManager.class);
         mTelecomManager = getSystemService(TelecomManager.class);
@@ -368,13 +353,6 @@ public class BluetoothInCallService extends InCallService {
     @Override
     public boolean onUnbind(Intent intent) {
         Log.i(TAG, "onUnbind. Intent: " + intent);
-        BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        if (bluetoothAdapter == null || !bluetoothAdapter.isEnabled()) {
-            Log.i(TAG, "Bluetooth is off when unbind, disable BluetoothInCallService");
-            AdapterService adapterService = AdapterService.getAdapterService();
-            adapterService.enableBluetoothInCallService(false);
-
-        }
         return super.onUnbind(intent);
     }
 
@@ -487,6 +465,10 @@ public class BluetoothInCallService extends InCallService {
     @RequiresPermission(android.Manifest.permission.MODIFY_PHONE_STATE)
     public boolean listCurrentCalls() {
         synchronized (LOCK) {
+            if (!mOnCreateCalled) {
+                Log.w(TAG, "listcurrentCalls() is called before onCreate()");
+                return false;
+            }
             enforceModifyPermission();
             // only log if it is after we recently updated the headset state or else it can
             // clog the android log since this can be queried every second.
@@ -655,12 +637,14 @@ public class BluetoothInCallService extends InCallService {
         mAudioManager = getSystemService(AudioManager.class);
         mAudioManager.addOnModeChangedListener(
                 Executors.newSingleThreadExecutor(), mBluetoothOnModeChangedListener);
+        mOnCreateCalled = true;
     }
 
     @Override
     public void onDestroy() {
         Log.d(TAG, "onDestroy");
         clear();
+        mOnCreateCalled = false;
         super.onDestroy();
     }
 

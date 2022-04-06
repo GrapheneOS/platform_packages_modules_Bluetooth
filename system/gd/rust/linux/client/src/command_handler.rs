@@ -8,7 +8,7 @@ use crate::{console_red, console_yellow, print_error, print_info};
 use bt_topshim::btif::BtTransport;
 use btstack::bluetooth::{BluetoothDevice, IBluetooth};
 use btstack::bluetooth_gatt::IBluetoothGatt;
-use btstack::uuid::UuidHelper;
+use btstack::uuid::{Profile, UuidHelper};
 use manager_service::iface_bluetooth_manager::IBluetoothManager;
 
 const INDENT_CHAR: &str = " ";
@@ -273,6 +273,13 @@ impl CommandHandler {
                     let cod = adapter_dbus.get_bluetooth_class();
                     let multi_adv_supported = adapter_dbus.is_multi_advertisement_supported();
                     let le_ext_adv_supported = adapter_dbus.is_le_extended_advertising_supported();
+                    let uuid_helper = UuidHelper::new();
+                    let enabled_profiles = uuid_helper.get_enabled_profiles();
+                    let connected_profiles: Vec<Profile> = enabled_profiles
+                        .iter()
+                        .filter(|&&prof| adapter_dbus.get_profile_connection_state(prof) > 0)
+                        .cloned()
+                        .collect();
                     print_info!("Address: {}", address);
                     print_info!("Name: {}", name);
                     print_info!("State: {}", if enabled { "enabled" } else { "disabled" });
@@ -281,6 +288,7 @@ impl CommandHandler {
                     print_info!("Class: {:#06x}", cod);
                     print_info!("IsMultiAdvertisementSupported: {}", multi_adv_supported);
                     print_info!("IsLeExtendedAdvertisingSupported: {}", le_ext_adv_supported);
+                    print_info!("Connected profiles: {:?}", connected_profiles);
                     print_info!(
                         "Uuids: {}",
                         DisplayList(
@@ -479,18 +487,26 @@ impl CommandHandler {
                         name: String::from("Classic Device"),
                     };
 
-                    let (bonded, connected, uuids) = {
+                    let (name, alias, device_type, class, bonded, connected, uuids) = {
                         let ctx = self.context.lock().unwrap();
                         let adapter = ctx.adapter_dbus.as_ref().unwrap();
 
+                        let name = adapter.get_remote_name(device.clone());
+                        let device_type = adapter.get_remote_type(device.clone());
+                        let alias = adapter.get_remote_alias(device.clone());
+                        let class = adapter.get_remote_class(device.clone());
                         let bonded = adapter.get_bond_state(device.clone());
                         let connected = adapter.get_connection_state(device.clone());
                         let uuids = adapter.get_remote_uuids(device.clone());
 
-                        (bonded, connected, uuids)
+                        (name, alias, device_type, class, bonded, connected, uuids)
                     };
 
                     print_info!("Address: {}", &device.address);
+                    print_info!("Name: {}", name);
+                    print_info!("Alias: {}", alias);
+                    print_info!("Type: {:?}", device_type);
+                    print_info!("Class: {}", class);
                     print_info!("Bonded: {}", bonded);
                     print_info!("Connected: {}", connected);
                     print_info!(

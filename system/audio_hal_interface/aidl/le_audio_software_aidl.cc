@@ -73,7 +73,7 @@ LeAudioTransport::LeAudioTransport(void (*flush)(void),
       pcm_config_(std::move(pcm_config)),
       is_pending_start_request_(false){};
 
-BluetoothAudioCtrlAck LeAudioTransport::StartRequest() {
+BluetoothAudioCtrlAck LeAudioTransport::StartRequest(bool is_low_latency) {
   LOG(INFO) << __func__;
 
   if (stream_cb_.on_resume_(true)) {
@@ -198,8 +198,8 @@ LeAudioSinkTransport::LeAudioSinkTransport(SessionType session_type,
 
 LeAudioSinkTransport::~LeAudioSinkTransport() { delete transport_; }
 
-BluetoothAudioCtrlAck LeAudioSinkTransport::StartRequest() {
-  return transport_->StartRequest();
+BluetoothAudioCtrlAck LeAudioSinkTransport::StartRequest(bool is_low_latency) {
+  return transport_->StartRequest(is_low_latency);
 }
 
 BluetoothAudioCtrlAck LeAudioSinkTransport::SuspendRequest() {
@@ -270,8 +270,9 @@ LeAudioSourceTransport::LeAudioSourceTransport(SessionType session_type,
 
 LeAudioSourceTransport::~LeAudioSourceTransport() { delete transport_; }
 
-BluetoothAudioCtrlAck LeAudioSourceTransport::StartRequest() {
-  return transport_->StartRequest();
+BluetoothAudioCtrlAck LeAudioSourceTransport::StartRequest(
+    bool is_low_latency) {
+  return transport_->StartRequest(is_low_latency);
 }
 
 BluetoothAudioCtrlAck LeAudioSourceTransport::SuspendRequest() {
@@ -351,7 +352,7 @@ std::unordered_map<int32_t, uint16_t> octets_per_frame_map{
 
 std::unordered_map<AudioLocation, uint32_t> audio_location_map{
     {AudioLocation::UNKNOWN,
-     ::le_audio::codec_spec_conf::kLeAudioLocationMonoUnspecified},
+     ::le_audio::codec_spec_conf::kLeAudioLocationFrontCenter},
     {AudioLocation::FRONT_LEFT,
      ::le_audio::codec_spec_conf::kLeAudioLocationFrontLeft},
     {AudioLocation::FRONT_RIGHT,
@@ -432,10 +433,9 @@ std::vector<AudioSetConfiguration> get_offload_capabilities() {
 
     if (hal_ucast_capability_to_stack_format(hal_encode_cap, encode_cap)) {
       audio_set_config.confs.push_back(SetConfiguration(
-          ::le_audio::types::kLeAudioDirectionSink,
-          ::le_audio::types::kTargetLatencyBalancedLatencyReliability,
-          hal_encode_cap.deviceCount,
+          ::le_audio::types::kLeAudioDirectionSink, hal_encode_cap.deviceCount,
           hal_encode_cap.deviceCount * hal_encode_cap.channelCountPerDevice,
+          ::le_audio::types::kTargetLatencyBalancedLatencyReliability,
           encode_cap));
       str_capability_log = " Encode Capability: " + hal_encode_cap.toString();
     }
@@ -443,9 +443,9 @@ std::vector<AudioSetConfiguration> get_offload_capabilities() {
     if (hal_ucast_capability_to_stack_format(hal_decode_cap, decode_cap)) {
       audio_set_config.confs.push_back(SetConfiguration(
           ::le_audio::types::kLeAudioDirectionSource,
-          ::le_audio::types::kTargetLatencyBalancedLatencyReliability,
           hal_decode_cap.deviceCount,
           hal_decode_cap.deviceCount * hal_decode_cap.channelCountPerDevice,
+          ::le_audio::types::kTargetLatencyBalancedLatencyReliability,
           decode_cap));
       str_capability_log += " Decode Capability: " + hal_decode_cap.toString();
     }

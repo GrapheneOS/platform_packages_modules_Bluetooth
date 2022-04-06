@@ -25,6 +25,7 @@
 #include <vector>
 
 #include "btif/include/btif_hh.h"
+#include "common/init_flags.h"
 #include "hci/include/hci_layer.h"
 #include "hci/include/hci_packet_factory.h"
 #include "internal_include/stack_config.h"
@@ -121,6 +122,13 @@ TEST_F(StackBtmTest, DynamicLifecycle) {
   delete btm;
 }
 
+TEST_F(StackBtmTest, tSCO_CB) {
+  bluetooth::common::InitFlags::SetAllForTesting();
+  tSCO_CB* p_sco = &btm_cb.sco_cb;
+  p_sco->Init();
+  p_sco->Free();
+}
+
 TEST_F(StackBtmTest, InformClientOnConnectionSuccess) {
   get_btm_client_interface().lifecycle.btm_init();
 
@@ -209,6 +217,8 @@ TEST(ScoTest, make_sco_packet) {
   ASSERT_EQ(p->data[5], 30);
   osi_free(p);
 }
+
+TEST(BtmTest, BTM_EIR_MAX_SERVICES) { ASSERT_EQ(46, BTM_EIR_MAX_SERVICES); }
 
 }  // namespace
 

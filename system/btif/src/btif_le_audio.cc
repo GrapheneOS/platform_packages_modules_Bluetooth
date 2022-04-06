@@ -70,6 +70,36 @@ class LeAudioClientInterfaceImpl : public LeAudioClientInterface,
                           snk_audio_location, src_audio_location, avail_cont));
   }
 
+  void OnSinkAudioLocationAvailable(const RawAddress& address,
+                                    uint32_t snk_audio_location) override {
+    do_in_jni_thread(FROM_HERE,
+                     Bind(&LeAudioClientCallbacks::OnSinkAudioLocationAvailable,
+                          Unretained(callbacks), address, snk_audio_location));
+  }
+
+  void OnAudioLocalCodecCapabilities(
+      std::vector<btle_audio_codec_config_t> local_input_capa_codec_conf,
+      std::vector<btle_audio_codec_config_t> local_output_capa_codec_conf)
+      override {
+    do_in_jni_thread(
+        FROM_HERE, Bind(&LeAudioClientCallbacks::OnAudioLocalCodecCapabilities,
+                        Unretained(callbacks), local_input_capa_codec_conf,
+                        local_output_capa_codec_conf));
+  }
+
+  void OnAudioGroupCodecConf(
+      int group_id, btle_audio_codec_config_t input_codec_conf,
+      btle_audio_codec_config_t output_codec_conf,
+      std::vector<btle_audio_codec_config_t> input_selectable_codec_conf,
+      std::vector<btle_audio_codec_config_t> output_selectable_codec_conf)
+      override {
+    do_in_jni_thread(FROM_HERE,
+                     Bind(&LeAudioClientCallbacks::OnAudioGroupCodecConf,
+                          Unretained(callbacks), group_id, input_codec_conf,
+                          output_codec_conf, input_selectable_codec_conf,
+                          output_selectable_codec_conf));
+  }
+
   void Initialize(LeAudioClientCallbacks* callbacks,
                   const std::vector<btle_audio_codec_config_t>&
                       offloading_preference) override {
@@ -94,12 +124,10 @@ class LeAudioClientInterfaceImpl : public LeAudioClientInterface,
     DVLOG(2) << __func__;
     do_in_main_thread(
         FROM_HERE,
-        Bind(
-            &LeAudioClient::Cleanup,
-            jni_thread_wrapper(
-                FROM_HERE,
-                Bind(
-                    &LeAudioClient::CleanupAudioSetConfigurationProvider))));
+        Bind(&LeAudioClient::Cleanup,
+             jni_thread_wrapper(
+                 FROM_HERE,
+                 Bind(&LeAudioClient::CleanupAudioSetConfigurationProvider))));
   }
 
   void RemoveDevice(const RawAddress& address) override {
@@ -148,6 +176,16 @@ class LeAudioClientInterfaceImpl : public LeAudioClientInterface,
     do_in_main_thread(FROM_HERE,
                       Bind(&LeAudioClient::GroupSetActive,
                            Unretained(LeAudioClient::Get()), group_id));
+  }
+
+  void SetCodecConfigPreference(int group_id,
+                                btle_audio_codec_config_t input_codec_config,
+                                btle_audio_codec_config_t output_codec_config) {
+    DVLOG(2) << __func__ << " group_id: " << group_id;
+    do_in_main_thread(FROM_HERE,
+                      Bind(&LeAudioClient::SetCodecConfigPreference,
+                           Unretained(LeAudioClient::Get()), group_id,
+                           input_codec_config, output_codec_config));
   }
 
  private:

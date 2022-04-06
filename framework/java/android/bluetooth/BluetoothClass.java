@@ -119,6 +119,7 @@ public final class BluetoothClass implements Parcelable {
         private static final int BITMASK = 0xFFE000;
 
         public static final int LIMITED_DISCOVERABILITY = 0x002000;
+        /** Represent devices LE audio service */
         public static final int LE_AUDIO = 0x004000;
         public static final int POSITIONING = 0x010000;
         public static final int NETWORKING = 0x020000;
@@ -242,25 +243,9 @@ public final class BluetoothClass implements Parcelable {
         public static final int HEALTH_DATA_DISPLAY = 0x091C;
 
         // Devices in PERIPHERAL major class
-        /**
-         * @hide
-         */
-        @SystemApi
         public static final int PERIPHERAL_NON_KEYBOARD_NON_POINTING = 0x0500;
-        /**
-         * @hide
-         */
-        @SystemApi
         public static final int PERIPHERAL_KEYBOARD = 0x0540;
-        /**
-         * @hide
-         */
-        @SystemApi
         public static final int PERIPHERAL_POINTING = 0x0580;
-        /**
-         * @hide
-         */
-        @SystemApi
         public static final int PERIPHERAL_KEYBOARD_POINTING = 0x05C0;
     }
 

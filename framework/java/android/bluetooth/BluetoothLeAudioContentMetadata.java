@@ -19,8 +19,13 @@ package android.bluetooth;
 import android.annotation.NonNull;
 import android.annotation.Nullable;
 import android.annotation.SystemApi;
+import android.bluetooth.BluetoothUtils.TypeValueEntry;
 import android.os.Parcel;
 import android.os.Parcelable;
+
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A class representing the media metadata information defined in the Basic Audio Profile.
@@ -29,6 +34,11 @@ import android.os.Parcelable;
  */
 @SystemApi
 public final class BluetoothLeAudioContentMetadata implements Parcelable {
+    // From Generic Audio assigned numbers
+    private static final int PROGRAM_INFO_TYPE = 0x03;
+    private static final int LANGUAGE_TYPE = 0x04;
+    private static final int LANGUAGE_LENGTH = 0x03;
+
     private final String mProgramInfo;
     private final String mLanguage;
     private final byte[] mRawMetadata;
@@ -137,7 +147,29 @@ public final class BluetoothLeAudioContentMetadata implements Parcelable {
         if (rawBytes == null) {
             throw new IllegalArgumentException("Raw bytes cannot be null");
         }
-        return null;
+        List<TypeValueEntry> entries = BluetoothUtils.parseLengthTypeValueBytes(rawBytes);
+        if (rawBytes.length > 0 && rawBytes[0] > 0 && entries.isEmpty()) {
+            throw new IllegalArgumentException("No LTV entries are found from rawBytes of size "
+                    + rawBytes.length);
+        }
+        String programInfo = null;
+        String language = null;
+        for (TypeValueEntry entry : entries) {
+            // Only use the first value of each type
+            if (programInfo == null && entry.getType() == PROGRAM_INFO_TYPE) {
+                byte[] bytes = entry.getValue();
+                programInfo = new String(bytes, StandardCharsets.UTF_8);
+            } else if (language == null && entry.getType() == LANGUAGE_TYPE) {
+                byte[] bytes = entry.getValue();
+                if (bytes.length != LANGUAGE_LENGTH) {
+                    throw new IllegalArgumentException("Language byte size " + bytes.length
+                            + " is less than " + LANGUAGE_LENGTH + ", needed for ISO 639-3");
+                }
+                // Parse 3 bytes ISO 639-3 only
+                language = new String(bytes, 0, LANGUAGE_LENGTH, StandardCharsets.US_ASCII);
+            }
+        }
+        return new BluetoothLeAudioContentMetadata(programInfo, language, rawBytes);
     }
 
     /**
@@ -189,7 +221,7 @@ public final class BluetoothLeAudioContentMetadata implements Parcelable {
          * Set language of the audio stream in 3-byte, lower case language code as defined in
          * ISO 639-3.
          *
-         * @return ISO 639-3 formatted language code, null if this metadata does not exist
+         * @return this builder
          * @hide
          */
         @SystemApi
@@ -207,10 +239,35 @@ public final class BluetoothLeAudioContentMetadata implements Parcelable {
          */
         @SystemApi
         public @NonNull BluetoothLeAudioContentMetadata build() {
-            if (mRawMetadata == null) {
-                mRawMetadata = new byte[0];
+            List<TypeValueEntry> entries = new ArrayList<>();
+            if (mRawMetadata != null) {
+                entries = BluetoothUtils.parseLengthTypeValueBytes(mRawMetadata);
+                if (mRawMetadata.length > 0 && mRawMetadata[0] > 0 && entries.isEmpty()) {
+                    throw new IllegalArgumentException("No LTV entries are found from rawBytes of"
+                            + " size " + mRawMetadata.length + " please check the original object"
+                            + " passed to Builder's copy constructor");
+                }
             }
-            return new BluetoothLeAudioContentMetadata(mProgramInfo, mLanguage, mRawMetadata);
+            if (mProgramInfo != null) {
+                entries.removeIf(entry -> entry.getType() == PROGRAM_INFO_TYPE);
+                entries.add(new TypeValueEntry(PROGRAM_INFO_TYPE,
+                        mProgramInfo.getBytes(StandardCharsets.UTF_8)));
+            }
+            if (mLanguage != null) {
+                String cleanedLanguage = mLanguage.toLowerCase().strip();
+                byte[] languageBytes = cleanedLanguage.getBytes(StandardCharsets.US_ASCII);
+                if (languageBytes.length != LANGUAGE_LENGTH) {
+                    throw new IllegalArgumentException("Language byte size " + languageBytes.length
+                            + " is less than " + LANGUAGE_LENGTH + ", needed ISO 639-3, to build");
+                }
+                entries.removeIf(entry -> entry.getType() == LANGUAGE_TYPE);
+                entries.add(new TypeValueEntry(LANGUAGE_TYPE, languageBytes));
+            }
+            byte[] rawBytes = BluetoothUtils.serializeTypeValue(entries);
+            if (rawBytes == null) {
+                throw new IllegalArgumentException("Failed to serialize entries to bytes");
+            }
+            return new BluetoothLeAudioContentMetadata(mProgramInfo, mLanguage, rawBytes);
         }
     }
 }

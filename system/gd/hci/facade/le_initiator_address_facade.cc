@@ -58,18 +58,20 @@ class LeInitiatorAddressFacadeService : public LeInitiatorAddressFacade::Service
       ASSERT(Address::FromString(request->address_with_type().address().address(), address));
     }
     AddressWithType address_with_type(address, static_cast<AddressType>(request->address_with_type().type()));
+    auto minimum_rotation_time = std::chrono::milliseconds(request->minimum_rotation_time());
+    auto maximum_rotation_time = std::chrono::milliseconds(request->maximum_rotation_time());
     crypto_toolbox::Octet16 irk = {};
     auto request_irk_length = request->rotation_irk().end() - request->rotation_irk().begin();
     if (request_irk_length == crypto_toolbox::OCTET16_LEN) {
       std::vector<uint8_t> irk_data(request->rotation_irk().begin(), request->rotation_irk().end());
       std::copy_n(irk_data.begin(), crypto_toolbox::OCTET16_LEN, irk.begin());
+      acl_manager_->SetPrivacyPolicyForInitiatorAddressForTest(
+          address_policy, address_with_type, irk, minimum_rotation_time, maximum_rotation_time);
     } else {
+      acl_manager_->SetPrivacyPolicyForInitiatorAddress(
+          address_policy, address_with_type, minimum_rotation_time, maximum_rotation_time);
       ASSERT(request_irk_length == 0);
     }
-    auto minimum_rotation_time = std::chrono::milliseconds(request->minimum_rotation_time());
-    auto maximum_rotation_time = std::chrono::milliseconds(request->maximum_rotation_time());
-    acl_manager_->SetPrivacyPolicyForInitiatorAddress(
-        address_policy, address_with_type, minimum_rotation_time, maximum_rotation_time);
     return ::grpc::Status::OK;
   }
 

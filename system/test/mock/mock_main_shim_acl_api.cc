@@ -69,7 +69,7 @@ void bluetooth::shim::ACL_IgnoreAllLeConnections() {
 }
 void bluetooth::shim::ACL_ReadConnectionAddress(const RawAddress& pseudo_addr,
                                                 RawAddress& conn_addr,
-                                                uint8_t* p_addr_type) {
+                                                tBLE_ADDR_TYPE* p_addr_type) {
   mock_function_count_map[__func__]++;
 }
 

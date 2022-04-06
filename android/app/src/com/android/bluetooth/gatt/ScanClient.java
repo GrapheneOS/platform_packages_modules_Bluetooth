@@ -111,6 +111,9 @@ import java.util.Objects;
                 .setScanResultType(settings.getScanResultType())
                 .setReportDelay(settings.getReportDelayMillis())
                 .setNumOfMatches(settings.getNumOfMatches())
+                .setMatchMode(settings.getMatchMode())
+                .setLegacy(settings.getLegacy())
+                .setPhy(settings.getPhy())
                 .build();
         return true;
     }

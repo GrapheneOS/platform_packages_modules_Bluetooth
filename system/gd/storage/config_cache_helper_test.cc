@@ -57,7 +57,7 @@ TEST(ConfigCacheHelperTest, set_get_uint64_test) {
   // zero
   ConfigCacheHelper(config).SetUint64("A", "B", 0);
   ASSERT_THAT(config.GetProperty("A", "B"), Optional(StrEq("0")));
-  ASSERT_THAT(ConfigCacheHelper(config).GetUint64("A", "B"), Optional(Eq(0)));
+  ASSERT_THAT(ConfigCacheHelper(config).GetUint64("A", "B"), Optional(Eq(0ul)));
 }
 
 TEST(ConfigCacheHelperTest, set_get_uint32_test) {
@@ -76,7 +76,7 @@ TEST(ConfigCacheHelperTest, set_get_uint32_test) {
   // zero
   ConfigCacheHelper(config).SetUint32("A", "B", 0);
   ASSERT_THAT(config.GetProperty("A", "B"), Optional(StrEq("0")));
-  ASSERT_THAT(ConfigCacheHelper(config).GetUint32("A", "B"), Optional(Eq(0)));
+  ASSERT_THAT(ConfigCacheHelper(config).GetUint32("A", "B"), Optional(Eq(0u)));
 }
 
 TEST(ConfigCacheHelperTest, set_get_int64_test) {

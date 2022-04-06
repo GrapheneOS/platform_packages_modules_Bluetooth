@@ -45,6 +45,11 @@ public final class BluetoothCodecStatus implements Parcelable {
     private final @Nullable List<BluetoothCodecConfig> mCodecsLocalCapabilities;
     private final @Nullable List<BluetoothCodecConfig> mCodecsSelectableCapabilities;
 
+    /**
+     * Creates a new BluetoothCodecStatus.
+     *
+     * @hide
+     */
     public BluetoothCodecStatus(@Nullable BluetoothCodecConfig codecConfig,
             @Nullable List<BluetoothCodecConfig> codecsLocalCapabilities,
             @Nullable List<BluetoothCodecConfig> codecsSelectableCapabilities) {
@@ -204,5 +209,58 @@ public final class BluetoothCodecStatus implements Parcelable {
     public @NonNull List<BluetoothCodecConfig> getCodecsSelectableCapabilities() {
         return (mCodecsSelectableCapabilities == null)
                 ? Collections.emptyList() : mCodecsSelectableCapabilities;
+    }
+
+    /**
+     * Builder for {@link BluetoothCodecStatus}.
+     */
+    public static final class Builder {
+        private BluetoothCodecConfig mCodecConfig = null;
+        private List<BluetoothCodecConfig> mCodecsLocalCapabilities = null;
+        private List<BluetoothCodecConfig> mCodecsSelectableCapabilities = null;
+
+        /**
+         * Set Bluetooth codec config for this codec status.
+         *
+         * @param codecConfig of this codec status
+         * @return the same Builder instance
+         */
+        public @NonNull Builder setCodecConfig(@NonNull BluetoothCodecConfig codecConfig) {
+            mCodecConfig = codecConfig;
+            return this;
+        }
+
+        /**
+         * Set codec local capabilities list for this codec status.
+         *
+         * @param codecsLocalCapabilities of this codec status
+         * @return the same Builder instance
+         */
+        public @NonNull Builder setCodecsLocalCapabilities(
+                @NonNull List<BluetoothCodecConfig> codecsLocalCapabilities) {
+            mCodecsLocalCapabilities = codecsLocalCapabilities;
+            return this;
+        }
+
+        /**
+         * Set codec selectable capabilities list for this codec status.
+         *
+         * @param codecsSelectableCapabilities of this codec status
+         * @return the same Builder instance
+         */
+        public @NonNull Builder setCodecsSelectableCapabilities(
+                @NonNull List<BluetoothCodecConfig> codecsSelectableCapabilities) {
+            mCodecsSelectableCapabilities = codecsSelectableCapabilities;
+            return this;
+        }
+
+        /**
+         * Build {@link BluetoothCodecStatus}.
+         * @return new BluetoothCodecStatus built
+         */
+        public @NonNull BluetoothCodecStatus build() {
+            return new BluetoothCodecStatus(mCodecConfig, mCodecsLocalCapabilities,
+                    mCodecsSelectableCapabilities);
+        }
     }
 }

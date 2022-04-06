@@ -46,7 +46,7 @@ class HearingAidTransport
         total_bytes_read_(0),
         data_position_({}){};
 
-  BluetoothAudioCtrlAck StartRequest() override {
+  BluetoothAudioCtrlAck StartRequest(bool is_low_latency) override {
     LOG(INFO) << __func__;
     if (stream_cb_.on_resume_(true)) {
       return BluetoothAudioCtrlAck::SUCCESS_FINISHED;

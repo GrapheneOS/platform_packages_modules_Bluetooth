@@ -5,7 +5,7 @@ use num_traits::cast::FromPrimitive;
 use std::sync::{Arc, Mutex};
 use topshim_macros::cb_variant;
 
-#[derive(Debug, FromPrimitive, PartialEq, PartialOrd)]
+#[derive(Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
 #[repr(u32)]
 pub enum BtavConnectionState {
     Disconnected = 0,
@@ -133,7 +133,7 @@ pub mod ffi {
         address: [u8; 6],
     }
 
-    #[derive(Debug)]
+    #[derive(Debug, Copy, Clone)]
     pub struct A2dpCodecConfig {
         codec_type: i32,
         codec_priority: i32,

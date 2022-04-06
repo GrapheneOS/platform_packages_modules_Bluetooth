@@ -108,7 +108,21 @@ const reflection::Object* internal::FindReflectionObject(
 bool internal::FilterTypeBool(const reflection::Field& field, flatbuffers::Table* table, PrivacyLevel privacy_level) {
   ASSERT(table != nullptr);
 
-  // TODO(cmanton) Figure out boolean filtering
+  const bool default_val = flatbuffers::GetFieldDefaultI<int8_t>(field);
+  flatbuffers::voffset_t field_offset = field.offset();
+
+  // boolean privacy levels are simpler.
+  switch (privacy_level) {
+    case kPrivate:
+    case kOpaque:
+    case kAnonymized:
+      flatbuffers::SetField<int8_t>(table, field, default_val);
+      internal::ScrubFromTable(table, field_offset);
+      break;
+    default:
+    case kAny:
+      break;
+  }
   return kFieldHasBeenFiltered;
 }
 
@@ -182,6 +196,32 @@ bool internal::FilterTypeFloat(const reflection::Field& field, flatbuffers::Tabl
         PrivacyLevelName(privacy_level),
         val,
         table->GetField<float>(field_offset, default_val));
+  }
+  return kFieldHasBeenFiltered;
+}
+
+bool internal::FilterTypeLong(const reflection::Field& field, flatbuffers::Table* table, PrivacyLevel privacy_level) {
+  ASSERT(table != nullptr);
+
+  const int64_t default_val = flatbuffers::GetFieldDefaultI<int64_t>(field);
+  flatbuffers::voffset_t field_offset = field.offset();
+
+  switch (privacy_level) {
+    case kPrivate:
+      flatbuffers::SetField<int64_t>(table, field, default_val);
+      internal::ScrubFromTable(table, field_offset);
+      break;
+    case kOpaque:
+      flatbuffers::SetField<int64_t>(table, field, default_val);
+      break;
+    case kAnonymized: {
+      auto target_field = flatbuffers::GetFieldI<int64_t>(*table, field);
+      int64_t new_val = static_cast<int64_t>(std::hash<std::string>{}(std::to_string(target_field)));
+      flatbuffers::SetField<int64_t>(table, field, new_val);
+    } break;
+    default:
+    case kAny:
+      break;
   }
   return kFieldHasBeenFiltered;
 }

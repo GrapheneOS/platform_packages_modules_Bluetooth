@@ -51,19 +51,19 @@ TEST(SyncMapCount, simple) {
   SyncMapCount<std::string> map;
   LoadStringMap(map);
 
-  ASSERT_EQ(5, map.Size());
+  ASSERT_EQ(5ul, map.Size());
 
   auto m = map.Get();
-  ASSERT_EQ(3, m["Three"]);
-  ASSERT_EQ(2, m["Two"]);
-  ASSERT_EQ(1, m["One"]);
+  ASSERT_EQ(3ul, m["Three"]);
+  ASSERT_EQ(2ul, m["Two"]);
+  ASSERT_EQ(1ul, m["One"]);
 }
 
 TEST(SyncMapCount, sized) {
   SyncMapCount<std::string> map(2);
   LoadStringMap(map);
 
-  ASSERT_EQ(2, map.Size());
+  ASSERT_EQ(2ul, map.Size());
 }
 
 TEST(SyncMapCount, sorted_string_value_low_to_high) {
@@ -71,8 +71,8 @@ TEST(SyncMapCount, sorted_string_value_low_to_high) {
   LoadStringMap(map);
 
   auto entries = map.GetSortedLowToHigh();
-  ASSERT_EQ(3, entries[entries.size() - 1].count);
-  ASSERT_EQ(2, entries[entries.size() - 2].count);
+  ASSERT_EQ(3ul, entries[entries.size() - 1].count);
+  ASSERT_EQ(2ul, entries[entries.size() - 2].count);
 }
 
 TEST(SyncMapCount, sorted_string_value_high_to_low) {
@@ -80,8 +80,8 @@ TEST(SyncMapCount, sorted_string_value_high_to_low) {
   LoadStringMap(map);
 
   auto entries = map.GetSortedHighToLow();
-  ASSERT_EQ(3, entries[0].count);
-  ASSERT_EQ(2, entries[1].count);
+  ASSERT_EQ(3ul, entries[0].count);
+  ASSERT_EQ(2ul, entries[1].count);
 }
 
 struct TestString {
@@ -113,12 +113,12 @@ TEST(SyncMapCount, simple_struct) {
   SyncMapCount<TestString> map;
   LoadTestStringMap(map);
 
-  ASSERT_EQ(5, map.Size());
+  ASSERT_EQ(5ul, map.Size());
 
   auto m = map.Get();
-  ASSERT_EQ(3, m[TestString("Three")]);
-  ASSERT_EQ(2, m[TestString("Two")]);
-  ASSERT_EQ(1, m[TestString("One")]);
+  ASSERT_EQ(3ul, m[TestString("Three")]);
+  ASSERT_EQ(2ul, m[TestString("Two")]);
+  ASSERT_EQ(1ul, m[TestString("One")]);
 }
 
 TEST(SyncMapCount, sorted_string_struct_value_low_to_high) {
@@ -126,8 +126,8 @@ TEST(SyncMapCount, sorted_string_struct_value_low_to_high) {
   LoadTestStringMap(map);
 
   auto entries = map.GetSortedLowToHigh();
-  ASSERT_EQ(3, entries[entries.size() - 1].count);
-  ASSERT_EQ(2, entries[entries.size() - 2].count);
+  ASSERT_EQ(3ul, entries[entries.size() - 1].count);
+  ASSERT_EQ(2ul, entries[entries.size() - 2].count);
 }
 
 TEST(SyncMapCount, sorted_string_struct_value_high_to_low) {
@@ -135,22 +135,22 @@ TEST(SyncMapCount, sorted_string_struct_value_high_to_low) {
   LoadTestStringMap(map);
 
   auto entries = map.GetSortedHighToLow();
-  ASSERT_EQ(3, entries[0].count);
-  ASSERT_EQ(2, entries[1].count);
+  ASSERT_EQ(3ul, entries[0].count);
+  ASSERT_EQ(2ul, entries[1].count);
 }
 
 TEST(SyncMapCount, locked_for_map_copy) {
   SyncMapCount<TestString> map;
   LoadTestStringMap(map);
 
-  ASSERT_EQ(5, map.Size());
+  ASSERT_EQ(5ul, map.Size());
   std::vector<SyncMapCount<TestString>::Item> vec;
   for (auto& it : map.Get()) {
     map.Clear();
     vec.push_back(SyncMapCount<TestString>::Item{it.first, it.second});
   }
-  ASSERT_EQ(0, map.Size());
-  ASSERT_EQ(5, vec.size());
+  ASSERT_EQ(0ul, map.Size());
+  ASSERT_EQ(5ul, vec.size());
 }
 
 }  // namespace testing

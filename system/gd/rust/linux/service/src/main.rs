@@ -12,6 +12,7 @@ use btstack::{
     bluetooth::{get_bt_dispatcher, Bluetooth, IBluetooth},
     bluetooth_gatt::BluetoothGatt,
     bluetooth_media::BluetoothMedia,
+    suspend::Suspend,
     Stack,
 };
 use dbus_projection::DisconnectWatcher;
@@ -20,6 +21,7 @@ mod dbus_arg;
 mod iface_bluetooth;
 mod iface_bluetooth_gatt;
 mod iface_bluetooth_media;
+mod iface_suspend;
 
 const DBUS_SERVICE_NAME: &str = "org.chromium.bluetooth";
 
@@ -58,6 +60,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let (tx, rx) = Stack::create_channel();
 
     let intf = Arc::new(Mutex::new(get_btinterface().unwrap()));
+    let suspend = Arc::new(Mutex::new(Box::new(Suspend::new(tx.clone()))));
     let bluetooth_gatt = Arc::new(Mutex::new(Box::new(BluetoothGatt::new(intf.clone()))));
     let bluetooth_media =
         Arc::new(Mutex::new(Box::new(BluetoothMedia::new(tx.clone(), intf.clone()))));
@@ -76,6 +79,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     // Hold locks and initialize all interfaces.
     {
         intf.lock().unwrap().initialize(get_bt_dispatcher(tx.clone()), args);
+
+        bluetooth_media.lock().unwrap().set_adapter(bluetooth.clone());
 
         let mut bluetooth = bluetooth.lock().unwrap();
         bluetooth.init_profiles();
@@ -113,6 +118,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             bluetooth.clone(),
             bluetooth_gatt.clone(),
             bluetooth_media.clone(),
+            suspend.clone(),
         ));
 
         // Set up the disconnect watcher to monitor client disconnects.
@@ -141,6 +147,14 @@ fn main() -> Result<(), Box<dyn Error>> {
             conn.clone(),
             &mut cr,
             bluetooth_media,
+            disconnect_watcher.clone(),
+        );
+
+        iface_suspend::export_suspend_dbus_obj(
+            make_object_name(adapter_index, "suspend"),
+            conn.clone(),
+            &mut cr,
+            suspend,
             disconnect_watcher.clone(),
         );
 

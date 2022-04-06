@@ -1,14 +1,16 @@
 use crate::bluetooth_manager::BluetoothManager;
+use crate::config_util;
 use bt_common::time::Alarm;
 use log::{debug, error, info, warn};
 use nix::sys::signal::{self, Signal};
 use nix::unistd::Pid;
 use regex::Regex;
+use std::cmp;
 use std::process::{Child, Command, Stdio};
 use std::sync::Arc;
-use std::time::Duration;
 use tokio::io::unix::AsyncFd;
 use tokio::sync::mpsc;
+use tokio::time::{sleep, Duration};
 
 // Directory for Bluetooth pid file
 pub const PID_DIR: &str = "/var/run/bluetooth";
@@ -83,6 +85,10 @@ pub struct StateMachineProxy {
 const TX_SEND_TIMEOUT_DURATION: Duration = Duration::from_secs(3);
 const COMMAND_TIMEOUT_DURATION: Duration = Duration::from_secs(3);
 
+/// Maximum amount of time (in seconds) we should wait before polling for
+/// /sys/class/bluetooth to become available.
+const HCI_DEVICE_SLEEP_MAX_SECONDS: u64 = 64;
+
 impl StateMachineProxy {
     pub fn start_bluetooth(&self, hci_interface: i32) {
         let tx = self.tx.clone();
@@ -121,8 +127,8 @@ fn pid_inotify_async_fd() -> AsyncFd<inotify::Inotify> {
     let mut pid_detector = inotify::Inotify::init().expect("cannot use inotify");
     pid_detector
         .add_watch(PID_DIR, inotify::WatchMask::CREATE | inotify::WatchMask::DELETE)
-        .expect("failed to add watch");
-    AsyncFd::new(pid_detector).expect("failed to add async fd")
+        .expect("failed to add watch on pid directory");
+    AsyncFd::new(pid_detector).expect("failed to add async fd for pid detector")
 }
 
 /// Given an pid path, returns the adapter index for that pid path.
@@ -131,20 +137,34 @@ fn get_hci_index_from_pid_path(path: &str) -> Option<i32> {
     re.captures(path)?.get(1)?.as_str().parse().ok()
 }
 
-fn hci_devices_inotify_async_fd() -> AsyncFd<inotify::Inotify> {
-    let mut detector = inotify::Inotify::init().expect("cannot use inotify");
-    detector
-        .add_watch(
-            crate::config_util::HCI_DEVICES_DIR,
+fn hci_devices_inotify_async_fd() -> Option<AsyncFd<inotify::Inotify>> {
+    let detector = inotify::Inotify::init().and_then(|mut detector| {
+        match detector.add_watch(
+            config_util::HCI_DEVICES_DIR,
             inotify::WatchMask::CREATE | inotify::WatchMask::DELETE,
-        )
-        .expect("failed to add watch");
-    AsyncFd::new(detector).expect("failed to add async fd")
+        ) {
+            Ok(_) => Ok(detector),
+            Err(e) => Err(e),
+        }
+    });
+    match detector {
+        Ok(d) => match AsyncFd::new(d) {
+            Ok(afd) => Some(afd),
+            Err(_) => {
+                warn!("Could not init asyncfd for {}", config_util::HCI_DEVICES_DIR);
+                None
+            }
+        },
+        Err(_) => {
+            warn!("Could not init inotify: {}", config_util::HCI_DEVICES_DIR);
+            None
+        }
+    }
 }
 
 /// On startup, get and cache all hci devices by emitting the callback
 fn startup_hci_devices(manager: &Arc<std::sync::Mutex<Box<BluetoothManager>>>) {
-    let devices = crate::config_util::list_hci_devices();
+    let devices = config_util::list_hci_devices();
     for device in devices {
         manager.lock().unwrap().callback_hci_device_change(device, true);
     }
@@ -188,10 +208,12 @@ pub async fn mainloop(
         }
     });
 
-    // Get a list of active pid files to determine initial adapter status
     let init_tx = context.tx.clone();
+    let floss_enabled = bluetooth_manager.lock().unwrap().get_floss_enabled_internal();
+
     tokio::spawn(async move {
-        let files = crate::config_util::list_pid_files(PID_DIR);
+        // Get a list of active pid files to determine initial adapter status
+        let files = config_util::list_pid_files(PID_DIR);
         for file in files {
             let _ = init_tx
                 .send_timeout(
@@ -200,6 +222,25 @@ pub async fn mainloop(
                 )
                 .await
                 .unwrap();
+        }
+
+        // Initialize adapter states based on saved config only if floss is enabled.
+        if floss_enabled {
+            let hci_devices = config_util::list_hci_devices();
+            for device in hci_devices.iter() {
+                let is_enabled = config_util::is_hci_n_enabled(*device);
+                if is_enabled {
+                    let _ = init_tx
+                        .send_timeout(
+                            Message::AdapterStateChange(AdapterStateActions::StartBluetooth(
+                                *device,
+                            )),
+                            TX_SEND_TIMEOUT_DURATION,
+                        )
+                        .await
+                        .unwrap();
+                }
+            }
         }
     });
 
@@ -228,7 +269,7 @@ pub async fn mainloop(
                             .unwrap();
                     }
                 }
-                Err(_) | Ok(Err(_)) => panic!("why can't we read while the asyncfd is ready?"),
+                Err(_) | Ok(Err(_)) => panic!("Inotify watcher on {} failed.", PID_DIR),
             }
             fd_ready.clear_ready();
             drop(fd_ready);
@@ -236,35 +277,67 @@ pub async fn mainloop(
     });
 
     // Set up an HCI device listener to emit HCI device inotify messages
-    let mut hci_devices_async_fd = hci_devices_inotify_async_fd();
     let hci_tx = context.tx.clone();
 
     tokio::spawn(async move {
         debug!("Spawned hci notify task");
+
+        // Try to create an inotify on /sys/class/bluetooth and listen for any
+        // changes. If we fail to create the inotify, we go into a polling mode
+        // which will do exponential backoff waiting for Bluetooth to become
+        // available.
+        //
+        // TODO(b/226644782) - Eventually we need to replace this inotify
+        // listener with something that talks to MGMT via socket(AF_BLUETOOTH).
+        // We should poll on INDEX_ADDED/INDEX_REMOVED rather than inotify the
+        // /sys/class/bluetooth directory.
+        let mut sleep_duration = 1;
         loop {
-            let r = hci_devices_async_fd.readable_mut();
-            let mut fd_ready = r.await.unwrap();
-            let mut buffer: [u8; 1024] = [0; 1024];
-            debug!("Found new hci device entries. Reading them.");
-            match fd_ready.try_io(|inner| inner.get_mut().read_events(&mut buffer)) {
-                Ok(Ok(events)) => {
-                    for event in events {
-                        let _ = hci_tx
-                            .send_timeout(
-                                Message::HciDeviceChange(
-                                    event.mask,
-                                    event_name_to_string(event.name),
-                                ),
-                                TX_SEND_TIMEOUT_DURATION,
-                            )
-                            .await
-                            .unwrap();
+            match hci_devices_inotify_async_fd() {
+                Some(mut hci_inotify) => {
+                    sleep_duration = 1;
+
+                    // This inner loop runs successfully as long as the hci inotify is valid.
+                    loop {
+                        let r = hci_inotify.readable_mut();
+                        let mut fd_ready = r.await.unwrap();
+                        let mut buffer: [u8; 1024] = [0; 1024];
+                        debug!("Found new hci device entries. Reading them.");
+                        match fd_ready.try_io(|inner| inner.get_mut().read_events(&mut buffer)) {
+                            Ok(Ok(events)) => {
+                                for event in events {
+                                    let _ = hci_tx
+                                        .send_timeout(
+                                            Message::HciDeviceChange(
+                                                event.mask,
+                                                event_name_to_string(event.name),
+                                            ),
+                                            TX_SEND_TIMEOUT_DURATION,
+                                        )
+                                        .await
+                                        .unwrap();
+                                }
+                            }
+                            // In the case where inotify fails, we want to reconfigure the inotify
+                            // again.
+                            Err(_) | Ok(Err(_)) => {
+                                warn!(
+                                    "Inotify watcher on {} failed.",
+                                    config_util::HCI_DEVICES_DIR
+                                );
+                                break;
+                            }
+                        }
+                        fd_ready.clear_ready();
+                        drop(fd_ready);
                     }
                 }
-                Err(_) | Ok(Err(_)) => panic!("why can't we read while the asyncfd is ready?"),
+                None => {
+                    // Exponential backoff until we succeed.
+                    sleep_duration = cmp::min(sleep_duration * 2, HCI_DEVICE_SLEEP_MAX_SECONDS);
+                    sleep(Duration::from_secs(sleep_duration)).await;
+                }
             }
-            fd_ready.clear_ready();
-            drop(fd_ready);
         }
     });
 
@@ -321,7 +394,7 @@ pub async fn mainloop(
                             true => {
                                 command_timeout.cancel();
                             }
-                            false => error!("unexpected BluetoothStarted pid{} hci{}", pid, hci),
+                            false => warn!("unexpected BluetoothStarted pid{} hci{}", pid, hci),
                         }
                     }
                     AdapterStateActions::BluetoothStopped(i) => {
@@ -371,9 +444,7 @@ pub async fn mainloop(
                                 .await
                                 .unwrap();
                         }
-                        (hci, s) => {
-                            warn!("invalid file hci={:?} pid_file={:?}", hci, s)
-                        }
+                        _ => debug!("Invalid pid path: {}", fname),
                     }
                 }
                 (inotify::EventMask::DELETE, Some(fname)) => {

@@ -33,6 +33,8 @@ namespace broadcaster {
 static const uint16_t kBroadcastAudioAnnouncementServiceUuid = 0x1852;
 static const uint16_t kBasicAudioAnnouncementServiceUuid = 0x1851;
 
+static const uint8_t kBisIndexInvalid = 0;
+
 struct BasicAudioAnnouncementCodecConfig {
   /* 5 octets for the Codec ID */
   uint8_t codec_id;
@@ -101,7 +103,8 @@ struct BroadcastCodecWrapper {
   static const BroadcastCodecWrapper& getCodecConfigForProfile(
       LeAudioBroadcaster::AudioProfile profile);
 
-  std::vector<uint8_t> GetCodecSpecData() const;
+  types::LeAudioLtvMap GetSubgroupCodecSpecData() const;
+  types::LeAudioLtvMap GetBisCodecSpecData(uint8_t bis_idx) const;
 
   uint16_t GetMaxSduSizePerChannel() const {
     if (codec_id.coding_format == types::kLeAudioCodingFormatLC3) {
@@ -148,9 +151,10 @@ struct BroadcastCodecWrapper {
   uint32_t codec_frame_len;
   uint8_t blocks_per_sdu;
 };
-}  // namespace broadcaster
-}  // namespace le_audio
 
 std::ostream& operator<<(
     std::ostream& os,
     const le_audio::broadcaster::BroadcastCodecWrapper& config);
+
+}  // namespace broadcaster
+}  // namespace le_audio

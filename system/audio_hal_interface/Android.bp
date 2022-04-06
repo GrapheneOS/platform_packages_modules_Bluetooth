@@ -67,6 +67,7 @@ cc_library_static {
     cflags: [
         "-DBUILDCFG",
     ],
+    min_sdk_version: "Tiramisu"
 }
 
 // Bluetooth Audio client interface library unit tests for target and host

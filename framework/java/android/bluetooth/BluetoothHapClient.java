@@ -43,6 +43,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeoutException;
 
@@ -75,40 +76,66 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
         /** @hide */
         @Retention(RetentionPolicy.SOURCE)
         @IntDef(value = {
+                // needed for future release compatibility
                 BluetoothStatusCodes.ERROR_UNKNOWN,
                 BluetoothStatusCodes.REASON_LOCAL_APP_REQUEST,
                 BluetoothStatusCodes.REASON_LOCAL_STACK_REQUEST,
                 BluetoothStatusCodes.REASON_REMOTE_REQUEST,
                 BluetoothStatusCodes.REASON_SYSTEM_POLICY,
-                BluetoothStatusCodes.ERROR_REMOTE_OPERATION_REJECTED,
-                BluetoothStatusCodes.ERROR_REMOTE_OPERATION_NOT_SUPPORTED,
-                BluetoothStatusCodes.ERROR_HAP_PRESET_NAME_TOO_LONG,
-                BluetoothStatusCodes.ERROR_HAP_INVALID_PRESET_INDEX,
-                BluetoothStatusCodes.ERROR_CSIP_INVALID_GROUP_ID,
         })
-        @interface Status {}
+        @interface PresetSelectionReason {}
 
         /**
          * Invoked to inform about HA device's currently active preset.
          *
          * @param device remote device,
          * @param presetIndex the currently active preset index.
+         * @param reason reason for the selected preset change
          *
          * @hide
          */
         @SystemApi
-        void onActivePresetChanged(@NonNull BluetoothDevice device, int presetIndex);
+        void onPresetSelected(@NonNull BluetoothDevice device, int presetIndex,
+                @PresetSelectionReason int reason);
+
+        /** @hide */
+        @Retention(RetentionPolicy.SOURCE)
+        @IntDef(value = {
+                // needed for future release compatibility
+                BluetoothStatusCodes.ERROR_UNKNOWN,
+                BluetoothStatusCodes.REASON_LOCAL_STACK_REQUEST,
+                BluetoothStatusCodes.REASON_SYSTEM_POLICY,
+                BluetoothStatusCodes.ERROR_REMOTE_OPERATION_REJECTED,
+                BluetoothStatusCodes.ERROR_REMOTE_OPERATION_NOT_SUPPORTED,
+                BluetoothStatusCodes.ERROR_HAP_INVALID_PRESET_INDEX,
+        })
+        @interface PresetSelectionFailureReason {}
 
         /**
          * Invoked inform about the result of a failed preset change attempt.
          *
          * @param device remote device,
-         * @param statusCode failure reason.
+         * @param reason failure reason.
          *
          * @hide
          */
         @SystemApi
-        void onSelectActivePresetFailed(@NonNull BluetoothDevice device, @Status int statusCode);
+        void onPresetSelectionFailed(@NonNull BluetoothDevice device,
+                @PresetSelectionFailureReason int reason);
+
+        /** @hide */
+        @Retention(RetentionPolicy.SOURCE)
+        @IntDef(value = {
+                // needed for future release compatibility
+                BluetoothStatusCodes.ERROR_UNKNOWN,
+                BluetoothStatusCodes.REASON_LOCAL_STACK_REQUEST,
+                BluetoothStatusCodes.REASON_SYSTEM_POLICY,
+                BluetoothStatusCodes.ERROR_REMOTE_OPERATION_REJECTED,
+                BluetoothStatusCodes.ERROR_REMOTE_OPERATION_NOT_SUPPORTED,
+                BluetoothStatusCodes.ERROR_HAP_INVALID_PRESET_INDEX,
+                BluetoothStatusCodes.ERROR_CSIP_INVALID_GROUP_ID,
+        })
+        @interface GroupPresetSelectionFailureReason {}
 
         /**
          * Invoked to inform about the result of a failed preset change attempt.
@@ -116,50 +143,79 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
          * The implementation will try to restore the state for every device back to original
          *
          * @param hapGroupId valid HAP group ID,
-         * @param statusCode failure reason.
+         * @param reason failure reason.
          *
          * @hide
          */
         @SystemApi
-        void onSelectActivePresetForGroupFailed(int hapGroupId, @Status int statusCode);
+        void onPresetSelectionForGroupFailed(int hapGroupId,
+                @GroupPresetSelectionFailureReason int reason);
+
+        /** @hide */
+        @Retention(RetentionPolicy.SOURCE)
+        @IntDef(value = {
+                // needed for future release compatibility
+                BluetoothStatusCodes.ERROR_UNKNOWN,
+                BluetoothStatusCodes.REASON_LOCAL_APP_REQUEST,
+                BluetoothStatusCodes.REASON_LOCAL_STACK_REQUEST,
+                BluetoothStatusCodes.REASON_REMOTE_REQUEST,
+                BluetoothStatusCodes.REASON_SYSTEM_POLICY,
+        })
+        @interface PresetInfoChangeReason {}
 
         /**
          * Invoked to inform about the preset list changes.
          *
          * @param device remote device,
          * @param presetInfoList a list of all preset information on the target device
-         * @param statusCode reason for the preset list change
+         * @param reason reason for the preset list change
          *
          * @hide
          */
         @SystemApi
         void onPresetInfoChanged(@NonNull BluetoothDevice device,
                 @NonNull List<BluetoothHapPresetInfo> presetInfoList,
-                @Status int statusCode);
+                @PresetInfoChangeReason int reason);
 
-        /**
-         * Invoked to inform about HA device's feature set.
-         *
-         * @param device remote device
-         * @param hapFeatures the feature set integer with these possible bit numbers
-         *  set: {@link #FEATURE_BIT_NUM_TYPE_MONAURAL}, {@link #FEATURE_BIT_NUM_TYPE_BANDED},
-         *  {@link #FEATURE_BIT_NUM_SYNCHRONIZATED_PRESETS},
-         *  {@link #FEATURE_BIT_NUM_INDEPENDENT_PRESETS}, {@link #FEATURE_BIT_NUM_DYNAMIC_PRESETS},
-         *  {@link #FEATURE_BIT_NUM_WRITABLE_PRESETS}.
-         *
-         * @hide
-         */
-        void onHapFeaturesAvailable(@NonNull BluetoothDevice device, int hapFeatures);
+        /** @hide */
+        @Retention(RetentionPolicy.SOURCE)
+        @IntDef(value = {
+                // needed for future release compatibility
+                BluetoothStatusCodes.ERROR_UNKNOWN,
+                BluetoothStatusCodes.REASON_LOCAL_STACK_REQUEST,
+                BluetoothStatusCodes.REASON_SYSTEM_POLICY,
+                BluetoothStatusCodes.ERROR_REMOTE_OPERATION_REJECTED,
+                BluetoothStatusCodes.ERROR_REMOTE_OPERATION_NOT_SUPPORTED,
+                BluetoothStatusCodes.ERROR_HAP_PRESET_NAME_TOO_LONG,
+                BluetoothStatusCodes.ERROR_HAP_INVALID_PRESET_INDEX,
+        })
+        @interface PresetNameChangeFailureReason {}
 
         /**
          * Invoked to inform about the failed preset rename attempt.
          *
          * @param device remote device
-         * @param status Failure reason code.
+         * @param reason Failure reason code.
          * @hide
          */
         @SystemApi
-        void onSetPresetNameFailed(@NonNull BluetoothDevice device, @Status int status);
+        void onSetPresetNameFailed(@NonNull BluetoothDevice device,
+                @PresetNameChangeFailureReason int reason);
+
+        /** @hide */
+        @Retention(RetentionPolicy.SOURCE)
+        @IntDef(value = {
+                // needed for future release compatibility
+                BluetoothStatusCodes.ERROR_UNKNOWN,
+                BluetoothStatusCodes.REASON_LOCAL_STACK_REQUEST,
+                BluetoothStatusCodes.REASON_SYSTEM_POLICY,
+                BluetoothStatusCodes.ERROR_REMOTE_OPERATION_REJECTED,
+                BluetoothStatusCodes.ERROR_REMOTE_OPERATION_NOT_SUPPORTED,
+                BluetoothStatusCodes.ERROR_HAP_PRESET_NAME_TOO_LONG,
+                BluetoothStatusCodes.ERROR_HAP_INVALID_PRESET_INDEX,
+                BluetoothStatusCodes.ERROR_CSIP_INVALID_GROUP_ID,
+        })
+        @interface GroupPresetNameChangeFailureReason {}
 
         /**
          * Invoked to inform about the failed preset rename attempt.
@@ -167,45 +223,47 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
          * The implementation will try to restore the state for every device back to original
          *
          * @param hapGroupId valid HAP group ID,
-         * @param status Failure reason code.
+         * @param reason Failure reason code.
          * @hide
          */
         @SystemApi
-        void onSetPresetNameForGroupFailed(int hapGroupId, @Status int status);
+        void onSetPresetNameForGroupFailed(int hapGroupId,
+                @GroupPresetNameChangeFailureReason int reason);
     }
 
     @SuppressLint("AndroidFrameworkBluetoothPermission")
     private final IBluetoothHapClientCallback mCallback = new IBluetoothHapClientCallback.Stub() {
         @Override
-        public void onActivePresetChanged(@NonNull BluetoothDevice device, int presetIndex) {
+        public void onPresetSelected(@NonNull BluetoothDevice device, int presetIndex,
+                int reasonCode) {
             Attributable.setAttributionSource(device, mAttributionSource);
             for (Map.Entry<BluetoothHapClient.Callback, Executor> callbackExecutorEntry:
                     mCallbackExecutorMap.entrySet()) {
                 BluetoothHapClient.Callback callback = callbackExecutorEntry.getKey();
                 Executor executor = callbackExecutorEntry.getValue();
-                executor.execute(() -> callback.onActivePresetChanged(device, presetIndex));
+                executor.execute(() -> callback.onPresetSelected(device, presetIndex, reasonCode));
             }
         }
 
         @Override
-        public void onSelectActivePresetFailed(@NonNull BluetoothDevice device, int status) {
+        public void onPresetSelectionFailed(@NonNull BluetoothDevice device, int status) {
             Attributable.setAttributionSource(device, mAttributionSource);
             for (Map.Entry<BluetoothHapClient.Callback, Executor> callbackExecutorEntry:
                     mCallbackExecutorMap.entrySet()) {
                 BluetoothHapClient.Callback callback = callbackExecutorEntry.getKey();
                 Executor executor = callbackExecutorEntry.getValue();
-                executor.execute(() -> callback.onSelectActivePresetFailed(device, status));
+                executor.execute(() -> callback.onPresetSelectionFailed(device, status));
             }
         }
 
         @Override
-        public void onSelectActivePresetForGroupFailed(int hapGroupId, int statusCode) {
+        public void onPresetSelectionForGroupFailed(int hapGroupId, int statusCode) {
             for (Map.Entry<BluetoothHapClient.Callback, Executor> callbackExecutorEntry:
                     mCallbackExecutorMap.entrySet()) {
                 BluetoothHapClient.Callback callback = callbackExecutorEntry.getKey();
                 Executor executor = callbackExecutorEntry.getValue();
                 executor.execute(
-                        () -> callback.onSelectActivePresetForGroupFailed(hapGroupId, statusCode));
+                        () -> callback.onPresetSelectionForGroupFailed(hapGroupId, statusCode));
             }
         }
 
@@ -219,17 +277,6 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
                 Executor executor = callbackExecutorEntry.getValue();
                 executor.execute(
                         () -> callback.onPresetInfoChanged(device, presetInfoList, statusCode));
-            }
-        }
-
-        @Override
-        public void onHapFeaturesAvailable(@NonNull BluetoothDevice device, int hapFeatures) {
-            Attributable.setAttributionSource(device, mAttributionSource);
-            for (Map.Entry<BluetoothHapClient.Callback, Executor> callbackExecutorEntry:
-                    mCallbackExecutorMap.entrySet()) {
-                BluetoothHapClient.Callback callback = callbackExecutorEntry.getKey();
-                Executor executor = callbackExecutorEntry.getValue();
-                executor.execute(() -> callback.onHapFeaturesAvailable(device, hapFeatures));
             }
         }
 
@@ -318,46 +365,61 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
     public static final int PRESET_INDEX_UNAVAILABLE = IBluetoothHapClient.PRESET_INDEX_UNAVAILABLE;
 
     /**
-     * Feature bit.
+     * Feature value.
      * @hide
      */
-    public static final int FEATURE_BIT_NUM_TYPE_MONAURAL =
-            IBluetoothHapClient.FEATURE_BIT_NUM_TYPE_MONAURAL;
+    public static final int FEATURE_TYPE_MONAURAL =
+            1 << IBluetoothHapClient.FEATURE_BIT_NUM_TYPE_MONAURAL;
 
     /**
-     * Feature bit.
+     * Feature value.
      * @hide
      */
-    public static final int FEATURE_BIT_NUM_TYPE_BANDED =
-            IBluetoothHapClient.FEATURE_BIT_NUM_TYPE_BANDED;
+    public static final int FEATURE_TYPE_BANDED =
+            1 << IBluetoothHapClient.FEATURE_BIT_NUM_TYPE_BANDED;
 
     /**
-     * Feature bit.
+     * Feature value.
      * @hide
      */
-    public static final int FEATURE_BIT_NUM_SYNCHRONIZATED_PRESETS =
-            IBluetoothHapClient.FEATURE_BIT_NUM_SYNCHRONIZATED_PRESETS;
+    public static final int FEATURE_SYNCHRONIZATED_PRESETS =
+            1 << IBluetoothHapClient.FEATURE_BIT_NUM_SYNCHRONIZATED_PRESETS;
 
     /**
-     * Feature bit.
+     * Feature value.
      * @hide
      */
-    public static final int FEATURE_BIT_NUM_INDEPENDENT_PRESETS =
-            IBluetoothHapClient.FEATURE_BIT_NUM_INDEPENDENT_PRESETS;
+    public static final int FEATURE_INDEPENDENT_PRESETS =
+            1 << IBluetoothHapClient.FEATURE_BIT_NUM_INDEPENDENT_PRESETS;
 
     /**
-     * Feature bit.
+     * Feature value.
      * @hide
      */
-    public static final int FEATURE_BIT_NUM_DYNAMIC_PRESETS =
-            IBluetoothHapClient.FEATURE_BIT_NUM_DYNAMIC_PRESETS;
+    public static final int FEATURE_DYNAMIC_PRESETS =
+            1 << IBluetoothHapClient.FEATURE_BIT_NUM_DYNAMIC_PRESETS;
 
     /**
-     * Feature bit.
+     * Feature value.
      * @hide
      */
-    public static final int FEATURE_BIT_NUM_WRITABLE_PRESETS =
-            IBluetoothHapClient.FEATURE_BIT_NUM_WRITABLE_PRESETS;
+    public static final int FEATURE_WRITABLE_PRESETS =
+            1 << IBluetoothHapClient.FEATURE_BIT_NUM_WRITABLE_PRESETS;
+
+    /**
+     * @hide
+     */
+    @Retention(RetentionPolicy.SOURCE)
+    @IntDef(
+        flag = true,
+        value = {
+            FEATURE_TYPE_MONAURAL,
+            FEATURE_TYPE_BANDED,
+            FEATURE_SYNCHRONIZATED_PRESETS,
+            FEATURE_DYNAMIC_PRESETS,
+            FEATURE_WRITABLE_PRESETS,
+    })
+    @interface Feature {}
 
     private final BluetoothAdapter mAdapter;
     private final AttributionSource mAttributionSource;
@@ -457,14 +519,16 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
      * Register a {@link Callback} that will be invoked during the
      * operation of this profile.
      *
-     * Repeated registration of the same <var>callback</var> object will have no effect after
-     * the first call to this method, even when the <var>executor</var> is different. API caller
-     * would have to call {@link #unregisterCallback(Callback)} with
-     * the same callback object before registering it again.
+     * Repeated registration of the same <var>callback</var> object after the first call to this
+     * method will result with IllegalArgumentException being thrown, even when the
+     * <var>executor</var> is different. API caller would have to call
+     * {@link #unregisterCallback(Callback)} with the same callback object before registering it
+     * again.
      *
      * @param executor an {@link Executor} to execute given callback
      * @param callback user implementation of the {@link Callback}
-     * @throws IllegalArgumentException if a null executor, sink, or callback is given
+     * @throws NullPointerException if a null executor, or callback is given, or
+     *  IllegalArgumentException if the same <var>callback<var> is already registered.
      * @hide
      */
     @SystemApi
@@ -475,21 +539,21 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
     })
     public void registerCallback(@NonNull @CallbackExecutor Executor executor,
             @NonNull Callback callback) {
-        if (executor == null) {
-            throw new IllegalArgumentException("executor cannot be null");
-        }
-        if (callback == null) {
-            throw new IllegalArgumentException("callback cannot be null");
-        }
-        if (!isEnabled()) {
-            throw new IllegalStateException("service not enabled");
-        }
+        Objects.requireNonNull(executor, "executor cannot be null");
+        Objects.requireNonNull(callback, "callback cannot be null");
 
         if (DBG) log("registerCallback");
 
         synchronized (mCallbackExecutorMap) {
             // If the callback map is empty, we register the service-to-app callback
             if (mCallbackExecutorMap.isEmpty()) {
+                if (!isEnabled()) {
+                    /* If Bluetooth is off, just store callback and it will be registered
+                     * when Bluetooth is on
+                     */
+                    mCallbackExecutorMap.put(callback, executor);
+                    return;
+                }
                 try {
                     final IBluetoothHapClient service = getService();
                     if (service != null) {
@@ -498,7 +562,7 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
                         service.registerCallback(mCallback, mAttributionSource, recv);
                         recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
                     }
-                } catch (IllegalStateException | TimeoutException e) {
+                } catch (TimeoutException e) {
                     Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
                 } catch (RemoteException e) {
                     throw e.rethrowFromSystemServer();
@@ -521,7 +585,8 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
      * <p>Callbacks are automatically unregistered when application process goes away
      *
      * @param callback user implementation of the {@link Callback}
-     * @throws IllegalArgumentException when callback is null or when no callback is registered
+     * @throws NullPointerException when callback is null or IllegalArgumentException when no
+     *  callback is registered
      * @hide
      */
     @SystemApi
@@ -531,14 +596,12 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
             android.Manifest.permission.BLUETOOTH_PRIVILEGED,
     })
     public void unregisterCallback(@NonNull Callback callback) {
-        if (callback == null) {
-            throw new IllegalArgumentException("callback cannot be null");
-        }
+        Objects.requireNonNull(callback, "callback cannot be null");
 
         if (DBG) log("unregisterCallback");
 
         synchronized (mCallbackExecutorMap) {
-            if (mCallbackExecutorMap.remove(callback) != null) {
+            if (mCallbackExecutorMap.remove(callback) == null) {
                 throw new IllegalArgumentException("This callback has not been registered");
             }
         }
@@ -855,9 +918,9 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
     /**
      * Selects the currently active preset for a HA device
      *
-     * On success, {@link Callback#onActivePresetChanged(BluetoothDevice, int)} will be called with
+     * On success, {@link Callback#onPresetSelected(BluetoothDevice, int, int)} will be called with
      * reason code {@link BluetoothStatusCodes#REASON_LOCAL_APP_REQUEST}
-     * On failure, {@link Callback#onSelectActivePresetFailed(BluetoothDevice, int)} will be called.
+     * On failure, {@link Callback#onPresetSelectionFailed(BluetoothDevice, int)} will be called.
      *
      * @param device is the device for which we want to set the active preset
      * @param presetIndex is an index of one of the available presets
@@ -889,11 +952,11 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
      * <p> This group call may replace multiple device calls if those are part of the
      * valid HAS group. Note that binaural HA devices may or may not support group.
      *
-     * On success, {@link Callback#onActivePresetChanged(BluetoothDevice, int)} will be called
+     * On success, {@link Callback#onPresetSelected(BluetoothDevice, int, int)} will be called
      * for each device within the group with reason code
      * {@link BluetoothStatusCodes#REASON_LOCAL_APP_REQUEST}
-     * On failure, {@link Callback#onSelectActivePresetFailed(BluetoothDevice, int)} will be called
-     * for each device within the group.
+     * On failure, {@link Callback#onPresetSelectionForGroupFailed(int, int)} will be
+     * called for the group.
      *
      * @param groupId is the device group identifier for which want to set the active preset
      * @param presetIndex is an index of one of the available presets
@@ -1108,7 +1171,7 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
      * Requests HAP features
      *
      * @param device is the device for which we want to get features for
-     * @return true if request was processed, false otherwise
+     * @return features value with feature bits set
      * @hide
      */
     @RequiresBluetoothConnectPermission
@@ -1116,7 +1179,7 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
             android.Manifest.permission.BLUETOOTH_CONNECT,
             android.Manifest.permission.BLUETOOTH_PRIVILEGED
     })
-    public int getFeatures(@NonNull BluetoothDevice device) {
+    public @Feature int getFeatures(@NonNull BluetoothDevice device) {
         final IBluetoothHapClient service = getService();
         final int defaultValue = 0x00;
         if (service == null) {

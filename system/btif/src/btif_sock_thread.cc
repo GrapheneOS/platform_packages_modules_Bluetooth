@@ -442,10 +442,11 @@ static int process_cmd_sock(int h) {
   return true;
 }
 
-static void process_data_sock(int h, struct pollfd* pfds, int count) {
-  asrt(count <= ts[h].poll_count);
+static void process_data_sock(int h, struct pollfd* pfds, int pfds_count,
+                              int event_count) {
+  asrt(event_count <= pfds_count);
   int i;
-  for (i = 1; i < ts[h].poll_count; i++) {
+  for (i = 1; i < pfds_count; i++) {
     if (pfds[i].revents) {
       int ps_i = ts[h].psi[i];
       if (ts[h].ps[ps_i].pfd.fd == -1) {
@@ -512,6 +513,7 @@ static void* sock_poll_thread(void* arg) {
     }
     if (ret != 0) {
       int need_process_data_fd = true;
+      int pfds_count = ts[h].poll_count;
       if (pfds[0].revents)  // cmd fd always is the first one
       {
         asrt(pfds[0].fd == ts[h].cmd_fdr);
@@ -524,7 +526,7 @@ static void* sock_poll_thread(void* arg) {
         else
           ret--;  // exclude the cmd fd
       }
-      if (need_process_data_fd) process_data_sock(h, pfds, ret);
+      if (need_process_data_fd) process_data_sock(h, pfds, pfds_count, ret);
     } else {
       LOG_INFO("no data, select ret: %d", ret);
     };

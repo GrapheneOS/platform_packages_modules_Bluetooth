@@ -154,7 +154,7 @@ public class LeAudioBroadcastServiceTest {
 
         BluetoothLeAudioContentMetadata.Builder meta_builder =
                 new BluetoothLeAudioContentMetadata.Builder();
-        meta_builder.setLanguage("EN");
+        meta_builder.setLanguage("deu");
         meta_builder.setProgramInfo("Public broadcast info");
         BluetoothLeAudioContentMetadata meta = meta_builder.build();
         mService.createBroadcast(meta, code);
@@ -170,7 +170,7 @@ public class LeAudioBroadcastServiceTest {
 
         BluetoothLeAudioContentMetadata.Builder meta_builder =
         new BluetoothLeAudioContentMetadata.Builder();
-        meta_builder.setLanguage("EN");
+        meta_builder.setLanguage("eng");
         meta_builder.setProgramInfo("Public broadcast info");
         BluetoothLeAudioContentMetadata meta = meta_builder.build();
         mService.createBroadcast(meta, code);

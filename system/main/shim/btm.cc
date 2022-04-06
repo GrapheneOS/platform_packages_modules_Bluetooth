@@ -18,6 +18,8 @@
 
 #include "main/shim/btm.h"
 
+#include <base/logging.h>
+
 #include <algorithm>
 #include <chrono>
 #include <cstddef>
@@ -40,11 +42,10 @@
 #include "main/shim/shim.h"
 #include "stack/btm/btm_dev.h"
 #include "stack/btm/btm_int_types.h"
+#include "types/ble_address_with_type.h"
 #include "types/bluetooth/uuid.h"
 #include "types/bt_transport.h"
 #include "types/raw_address.h"
-
-#include <base/logging.h>
 
 extern tBTM_CB btm_cb;
 
@@ -60,10 +61,11 @@ extern void btm_process_inq_complete(tHCI_STATUS status, uint8_t result_type);
 extern void btm_ble_process_adv_addr(RawAddress& raw_address,
                                      tBLE_ADDR_TYPE* address_type);
 extern void btm_ble_process_adv_pkt_cont(
-    uint16_t event_type, uint8_t address_type, const RawAddress& raw_address,
-    uint8_t primary_phy, uint8_t secondary_phy, uint8_t advertising_sid,
-    int8_t tx_power, int8_t rssi, uint16_t periodic_adv_int, uint8_t data_len,
-    const uint8_t* data, const RawAddress& original_bda);
+    uint16_t event_type, tBLE_ADDR_TYPE address_type,
+    const RawAddress& raw_address, uint8_t primary_phy, uint8_t secondary_phy,
+    uint8_t advertising_sid, int8_t tx_power, int8_t rssi,
+    uint16_t periodic_adv_int, uint8_t data_len, const uint8_t* data,
+    const RawAddress& original_bda);
 
 extern void btm_api_process_inquiry_result(const RawAddress& raw_address,
                                            uint8_t page_scan_rep_mode,
@@ -118,7 +120,7 @@ void Btm::ScanningCallbacks::OnScanResult(
     uint8_t primary_phy, uint8_t secondary_phy, uint8_t advertising_sid,
     int8_t tx_power, int8_t rssi, uint16_t periodic_advertising_interval,
     std::vector<uint8_t> advertising_data) {
-  tBLE_ADDR_TYPE ble_address_type = static_cast<tBLE_ADDR_TYPE>(address_type);
+  tBLE_ADDR_TYPE ble_address_type = to_ble_addr_type(address_type);
   uint16_t extended_event_type = 0;
 
   RawAddress raw_address;
@@ -676,7 +678,7 @@ hci::AddressWithType Btm::GetAddressAndType(const RawAddress& bd_addr) {
                                p_dev_rec->ble.identity_address_with_type.type);
     } else {
       return ToAddressWithType(p_dev_rec->ble.pseudo_addr,
-                               p_dev_rec->ble.ble_addr_type);
+                               p_dev_rec->ble.AddressType());
     }
   }
   LOG(ERROR) << "Unknown bd_addr. Use public address";

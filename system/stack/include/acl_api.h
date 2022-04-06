@@ -192,7 +192,8 @@ bool BTM_BLE_IS_RESOLVE_BDA(const RawAddress& x);
 
 bool acl_refresh_remote_address(const RawAddress& identity_address,
                                 tBLE_ADDR_TYPE identity_address_type,
-                                const RawAddress& remote_bda, uint8_t rra_type,
+                                const RawAddress& remote_bda,
+                                tBTM_SEC_BLE::tADDRESS_TYPE rra_type,
                                 const RawAddress& rpa);
 
 void btm_establish_continue_from_address(const RawAddress& remote_bda,

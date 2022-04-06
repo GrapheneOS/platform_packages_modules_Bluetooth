@@ -16,7 +16,8 @@
 
 package com.android.bluetooth.gatt;
 
-import static android.content.pm.PackageManager.PERMISSION_GRANTED;
+import static com.android.bluetooth.Utils.checkCallerTargetSdk;
+import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermission;
 
 import android.annotation.RequiresPermission;
 import android.annotation.SuppressLint;
@@ -52,6 +53,7 @@ import android.content.AttributionSource;
 import android.content.Intent;
 import android.net.MacAddress;
 import android.os.Binder;
+import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -62,6 +64,7 @@ import android.os.UserHandle;
 import android.os.WorkSource;
 import android.provider.DeviceConfig;
 import android.provider.Settings;
+import android.sysprop.BluetoothProperties;
 import android.text.format.DateUtils;
 import android.util.Log;
 
@@ -168,6 +171,7 @@ public class GattService extends ProfileService {
             UUID.fromString("0000184E-0000-1000-8000-00805F9B34FB"), // ASCS
             UUID.fromString("0000184F-0000-1000-8000-00805F9B34FB"), // BASS
             UUID.fromString("00001854-0000-1000-8000-00805F9B34FB"), // HAP
+            UUID.fromString("00001846-0000-1000-8000-00805F9B34FB"), // CSIS
     };
 
     /**
@@ -264,6 +268,10 @@ public class GattService extends ProfileService {
     private String mExposureNotificationPackage;
     private Handler mTestModeHandler;
     private final Object mTestModeLock = new Object();
+
+    public static boolean isEnabled() {
+        return BluetoothProperties.isProfileGattEnabled().orElse(false);
+    }
 
     /**
      */
@@ -423,40 +431,37 @@ public class GattService extends ProfileService {
         sGattService = instance;
     }
 
-    // Suppressed since we're not actually enforcing here
+    // Suppressed because we are conditionally enforcing
     @SuppressLint("AndroidFrameworkRequiresPermission")
-    private boolean permissionCheck(UUID characteristicUuid) {
-        return !isHidCharUuid(characteristicUuid)
-                || (checkCallingOrSelfPermission(BLUETOOTH_PRIVILEGED)
-                        == PERMISSION_GRANTED);
+    private void permissionCheck(UUID characteristicUuid) {
+        if (!isHidCharUuid(characteristicUuid)) {
+            return;
+        }
+        enforceBluetoothPrivilegedPermission(this);
     }
 
-    // Suppressed since we're not actually enforcing here
+    // Suppressed because we are conditionally enforcing
     @SuppressLint("AndroidFrameworkRequiresPermission")
-    private boolean permissionCheck(int connId, int handle) {
-        Set<Integer> restrictedHandles = mRestrictedHandles.get(connId);
-        if (restrictedHandles == null || !restrictedHandles.contains(handle)) {
-            return true;
+    private void permissionCheck(int connId, int handle) {
+        if (!isHandleRestricted(connId, handle)) {
+            return;
         }
-
-        return (checkCallingOrSelfPermission(BLUETOOTH_PRIVILEGED)
-                == PERMISSION_GRANTED);
+        enforceBluetoothPrivilegedPermission(this);
     }
 
-    // Suppressed since we're not actually enforcing here
+    // Suppressed because we are conditionally enforcing
     @SuppressLint("AndroidFrameworkRequiresPermission")
-    private boolean permissionCheck(ClientMap.App app, int connId, int handle) {
+    private void permissionCheck(ClientMap.App app, int connId, int handle) {
+        if (!isHandleRestricted(connId, handle) || app.hasBluetoothPrivilegedPermission) {
+            return;
+        }
+        enforceBluetoothPrivilegedPermission(this);
+        app.hasBluetoothPrivilegedPermission = true;
+    }
+
+    private boolean isHandleRestricted(int connId, int handle) {
         Set<Integer> restrictedHandles = mRestrictedHandles.get(connId);
-        if (restrictedHandles == null || !restrictedHandles.contains(handle)) {
-            return true;
-        }
-
-        if (!app.hasBluetoothPrivilegedPermission
-                && checkCallingOrSelfPermission(BLUETOOTH_PRIVILEGED)== PERMISSION_GRANTED) {
-            app.hasBluetoothPrivilegedPermission = true;
-        }
-
-        return app.hasBluetoothPrivilegedPermission;
+        return restrictedHandles != null && restrictedHandles.contains(handle);
     }
 
     @Override
@@ -1775,7 +1780,9 @@ public class GattService extends ProfileService {
         for (ScanClient client : mScanManager.getRegularScanQueue()) {
             ScannerMap.App app = mScannerMap.getById(client.scannerId);
             if (app == null) {
-                Log.i(TAG, "App is null; skip.");
+                if (VDBG) {
+                    Log.d(TAG, "App is null; skip.");
+                }
                 continue;
             }
 
@@ -1787,7 +1794,9 @@ public class GattService extends ProfileService {
             if (settings.getLegacy()) {
                 if ((eventType & ET_LEGACY_MASK) == 0) {
                     // If this is legacy scan, but nonlegacy result - skip.
-                    Log.i(TAG, "Legacy scan, non legacy result; skip.");
+                    if (VDBG) {
+                        Log.d(TAG, "Legacy scan, non legacy result; skip.");
+                    }
                     continue;
                 } else {
                     // Some apps are used to fixed-size advertise data.
@@ -1828,8 +1837,10 @@ public class GattService extends ProfileService {
             }
             MatchResult matchResult = matchesFilters(client, result, originalAddress);
             if (!hasPermission || !matchResult.getMatches()) {
-                Log.i(TAG, "Skipping client: permission="
-                        + hasPermission + " matches=" + matchResult.getMatches());
+                if (VDBG) {
+                    Log.d(TAG, "Skipping client: permission="
+                            + hasPermission + " matches=" + matchResult.getMatches());
+                }
                 continue;
             }
 
@@ -1841,7 +1852,9 @@ public class GattService extends ProfileService {
             }
 
             if ((settings.getCallbackType() & ScanSettings.CALLBACK_TYPE_ALL_MATCHES) == 0) {
-                Log.i(TAG, "Skipping client: CALLBACK_TYPE_ALL_MATCHES");
+                if (VDBG) {
+                    Log.d(TAG, "Skipping client: CALLBACK_TYPE_ALL_MATCHES");
+                }
                 continue;
             }
 
@@ -2290,7 +2303,13 @@ public class GattService extends ProfileService {
 
         ClientMap.App app = mClientMap.getByConnId(connId);
         if (app != null) {
-            if (!permissionCheck(app, connId, handle)) {
+            try {
+                permissionCheck(connId, handle);
+            } catch (SecurityException ex) {
+                // Only throws on apps with target SDK T+ as this old API did not throw prior to T
+                if (checkCallerTargetSdk(this, app.name, Build.VERSION_CODES.TIRAMISU)) {
+                    throw ex;
+                }
                 Log.w(TAG, "onNotify() - permission check failed!");
                 return;
             }
@@ -2955,7 +2974,7 @@ public class GattService extends ProfileService {
         scanClient.hasDisavowedLocation =
                 Utils.hasDisavowedLocationForScan(this, attributionSource, isTestModeEnabled());
 
-        scanClient.isQApp = Utils.isQApp(this, callingPackage);
+        scanClient.isQApp = checkCallerTargetSdk(this, callingPackage, Build.VERSION_CODES.Q);
         if (!scanClient.hasDisavowedLocation) {
             if (scanClient.isQApp) {
                 scanClient.hasLocationPermission = Utils.checkCallerHasFineLocation(
@@ -3031,10 +3050,9 @@ public class GattService extends ProfileService {
         app.mHasDisavowedLocation =
                 Utils.hasDisavowedLocationForScan(this, attributionSource, isTestModeEnabled());
 
-        app.mIsQApp = Utils.isQApp(this, callingPackage);
         if (!app.mHasDisavowedLocation) {
             try {
-                if (app.mIsQApp) {
+                if (checkCallerTargetSdk(this, callingPackage, Build.VERSION_CODES.Q)) {
                     app.hasLocationPermission = Utils.checkCallerHasFineLocation(
                             this, attributionSource, app.mUserHandle);
                 } else {
@@ -3068,7 +3086,7 @@ public class GattService extends ProfileService {
                 new ScanClient(scannerId, piInfo.settings, piInfo.filters);
         scanClient.hasLocationPermission = app.hasLocationPermission;
         scanClient.userHandle = app.mUserHandle;
-        scanClient.isQApp = app.mIsQApp;
+        scanClient.isQApp = checkCallerTargetSdk(this, app.name, Build.VERSION_CODES.Q);
         scanClient.eligibleForSanitizedExposureNotification =
                 app.mEligibleForSanitizedExposureNotification;
         scanClient.hasNetworkSettingsPermission = app.mHasNetworkSettingsPermission;
@@ -3248,7 +3266,7 @@ public class GattService extends ProfileService {
                 this, attributionSource, "GattService getOwnAddress")) {
             return;
         }
-        enforcePrivilegedPermission();
+        enforceBluetoothPrivilegedPermission(this);
         mAdvertiseManager.getOwnAddress(advertiserId);
     }
 
@@ -3532,7 +3550,14 @@ public class GattService extends ProfileService {
             return;
         }
 
-        if (!permissionCheck(connId, handle)) {
+        try {
+            permissionCheck(connId, handle);
+        } catch (SecurityException ex) {
+            String callingPackage = attributionSource.getPackageName();
+            // Only throws on apps with target SDK T+ as this old API did not throw prior to T
+            if (checkCallerTargetSdk(this, callingPackage, Build.VERSION_CODES.TIRAMISU)) {
+                throw ex;
+            }
             Log.w(TAG, "readCharacteristic() - permission check failed!");
             return;
         }
@@ -3558,7 +3583,14 @@ public class GattService extends ProfileService {
             return;
         }
 
-        if (!permissionCheck(uuid)) {
+        try {
+            permissionCheck(uuid);
+        } catch (SecurityException ex) {
+            String callingPackage = attributionSource.getPackageName();
+            // Only throws on apps with target SDK T+ as this old API did not throw prior to T
+            if (checkCallerTargetSdk(this, callingPackage, Build.VERSION_CODES.TIRAMISU)) {
+                throw ex;
+            }
             Log.w(TAG, "readUsingCharacteristicUuid() - permission check failed!");
             return;
         }
@@ -3588,11 +3620,7 @@ public class GattService extends ProfileService {
             Log.e(TAG, "writeCharacteristic() - No connection for " + address + "...");
             return BluetoothStatusCodes.ERROR_DEVICE_NOT_CONNECTED;
         }
-
-        if (!permissionCheck(connId, handle)) {
-            Log.w(TAG, "writeCharacteristic() - permission check failed!");
-            return BluetoothStatusCodes.ERROR_MISSING_BLUETOOTH_PRIVILEGED_PERMISSION;
-        }
+        permissionCheck(connId, handle);
 
         Log.d(TAG, "writeCharacteristic() - trying to acquire permit.");
         // Lock the thread until onCharacteristicWrite callback comes back.
@@ -3633,7 +3661,14 @@ public class GattService extends ProfileService {
             return;
         }
 
-        if (!permissionCheck(connId, handle)) {
+        try {
+            permissionCheck(connId, handle);
+        } catch (SecurityException ex) {
+            String callingPackage = attributionSource.getPackageName();
+            // Only throws on apps with target SDK T+ as this old API did not throw prior to T
+            if (checkCallerTargetSdk(this, callingPackage, Build.VERSION_CODES.TIRAMISU)) {
+                throw ex;
+            }
             Log.w(TAG, "readDescriptor() - permission check failed!");
             return;
         }
@@ -3657,11 +3692,7 @@ public class GattService extends ProfileService {
             Log.e(TAG, "writeDescriptor() - No connection for " + address + "...");
             return BluetoothStatusCodes.ERROR_DEVICE_NOT_CONNECTED;
         }
-
-        if (!permissionCheck(connId, handle)) {
-            Log.w(TAG, "writeDescriptor() - permission check failed!");
-            return BluetoothStatusCodes.ERROR_MISSING_BLUETOOTH_PRIVILEGED_PERMISSION;
-        }
+        permissionCheck(connId, handle);
 
         gattClientWriteDescriptorNative(connId, handle, authReq, value);
         return BluetoothStatusCodes.SUCCESS;
@@ -3717,7 +3748,14 @@ public class GattService extends ProfileService {
             return;
         }
 
-        if (!permissionCheck(connId, handle)) {
+        try {
+            permissionCheck(connId, handle);
+        } catch (SecurityException ex) {
+            String callingPackage = attributionSource.getPackageName();
+            // Only throws on apps with target SDK T+ as this old API did not throw prior to T
+            if (checkCallerTargetSdk(this, callingPackage, Build.VERSION_CODES.TIRAMISU)) {
+                throw ex;
+            }
             Log.w(TAG, "registerForNotification() - permission check failed!");
             return;
         }
@@ -4442,25 +4480,17 @@ public class GattService extends ProfileService {
                             == BluetoothDevice.ADDRESS_TYPE_PUBLIC && filter.getIrk() == null) {
                         // Do not enforce
                     } else {
-                        enforcePrivilegedPermission();
+                        enforceBluetoothPrivilegedPermission(this);
                     }
                 }
             }
         }
     }
 
-    // Enforce caller has BLUETOOTH_PRIVILEGED permission. A {@link SecurityException} will be
-    // thrown if the caller app does not have BLUETOOTH_PRIVILEGED permission.
-    @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
-    private void enforcePrivilegedPermission() {
-        enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED,
-                "Need BLUETOOTH_PRIVILEGED permission");
-    }
-
     @SuppressLint("AndroidFrameworkRequiresPermission")
     private void enforcePrivilegedPermissionIfNeeded(ScanSettings settings) {
         if (needsPrivilegedPermissionForScan(settings)) {
-            enforcePrivilegedPermission();
+            enforceBluetoothPrivilegedPermission(this);
         }
     }
 

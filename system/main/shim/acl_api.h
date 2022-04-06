@@ -39,7 +39,8 @@ void ACL_Shutdown();
 void ACL_IgnoreAllLeConnections();
 
 void ACL_ReadConnectionAddress(const RawAddress& pseudo_addr,
-                               RawAddress& conn_addr, uint8_t* p_addr_type);
+                               RawAddress& conn_addr,
+                               tBLE_ADDR_TYPE* p_addr_type);
 
 void ACL_AddToAddressResolution(const tBLE_BD_ADDR& legacy_address_with_type,
                                 const Octet16& peer_irk,

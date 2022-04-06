@@ -19,12 +19,15 @@ package android.bluetooth;
 
 import static android.bluetooth.BluetoothUtils.getSyncTimeout;
 
-import android.Manifest;
+import android.annotation.CallbackExecutor;
+import android.annotation.IntDef;
+import android.annotation.IntRange;
 import android.annotation.NonNull;
 import android.annotation.Nullable;
 import android.annotation.RequiresPermission;
 import android.annotation.SdkConstant;
 import android.annotation.SdkConstant.SdkConstantType;
+import android.annotation.SuppressLint;
 import android.annotation.SystemApi;
 import android.bluetooth.annotations.RequiresBluetoothConnectPermission;
 import android.bluetooth.annotations.RequiresLegacyBluetoothPermission;
@@ -37,8 +40,14 @@ import android.util.Log;
 
 import com.android.modules.utils.SynchronousResultReceiver;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -56,7 +65,118 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
     private static final boolean DBG = false;
     private static final boolean VDBG = false;
 
+    private final Map<Callback, Executor> mCallbackExecutorMap = new HashMap<>();
+
     private CloseGuard mCloseGuard;
+
+    /**
+     * This class provides a callback that is invoked when audio codec config changes on
+     * the remote device.
+     *
+     * @hide
+     */
+    @SystemApi
+    public interface Callback {
+        /** @hide */
+        @Retention(RetentionPolicy.SOURCE)
+        @IntDef(value = {
+            GROUP_STATUS_ACTIVE,
+            GROUP_STATUS_INACTIVE,
+        })
+        @interface GroupStatus {}
+
+        /**
+         * Callback invoked when callback is registered and when codec config
+         * changes on the remote device.
+         *
+         * @param groupId the group id
+         * @param status latest codec status for this group
+         * @hide
+         */
+        @SystemApi
+        void onCodecConfigChanged(int groupId,
+                                  @NonNull BluetoothLeAudioCodecStatus status);
+
+        /**
+         * Callback invoked when a device has been added to the group.
+         * It usually happens after connection or on bluetooth startup if
+         * the device is bonded.
+         *
+         * @param device the device which is added to the group
+         * @param groupId the group id
+         * @hide
+         */
+        @SystemApi
+        void onGroupNodeAdded(@NonNull BluetoothDevice device, int groupId);
+
+        /**
+         * Callback invoked when a device has been removed from the group.
+         * It usually happens when device gets unbonded.
+         *
+         * @param device the device which is removed from the group
+         * @param groupId the group id
+         *
+         * @hide
+         */
+        @SystemApi
+        void onGroupNodeRemoved(@NonNull BluetoothDevice device, int groupId);
+
+        /**
+         * Callback invoked the group's active state changes.
+         *
+         * @param groupId the group id
+         * @param groupStatus active or inactive state.
+         * @hide
+         */
+        @SystemApi
+        void onGroupStatusChanged(int groupId, @GroupStatus int groupStatus);
+    }
+
+    @SuppressLint("AndroidFrameworkBluetoothPermission")
+    private final IBluetoothLeAudioCallback mCallback = new IBluetoothLeAudioCallback.Stub() {
+        @Override
+        public void onCodecConfigChanged(int groupId,
+                                         @NonNull BluetoothLeAudioCodecStatus status) {
+            for (Map.Entry<BluetoothLeAudio.Callback, Executor> callbackExecutorEntry:
+                    mCallbackExecutorMap.entrySet()) {
+                BluetoothLeAudio.Callback callback = callbackExecutorEntry.getKey();
+                Executor executor = callbackExecutorEntry.getValue();
+                executor.execute(() -> callback.onCodecConfigChanged(groupId, status));
+            }
+        }
+
+        @Override
+        public void onGroupNodeAdded(@NonNull BluetoothDevice device, int groupId) {
+            Attributable.setAttributionSource(device, mAttributionSource);
+            for (Map.Entry<BluetoothLeAudio.Callback, Executor> callbackExecutorEntry:
+                    mCallbackExecutorMap.entrySet()) {
+                BluetoothLeAudio.Callback callback = callbackExecutorEntry.getKey();
+                Executor executor = callbackExecutorEntry.getValue();
+                executor.execute(() -> callback.onGroupNodeAdded(device, groupId));
+            }
+        }
+
+        @Override
+        public void onGroupNodeRemoved(@NonNull BluetoothDevice device, int groupId) {
+            Attributable.setAttributionSource(device, mAttributionSource);
+            for (Map.Entry<BluetoothLeAudio.Callback, Executor> callbackExecutorEntry:
+                    mCallbackExecutorMap.entrySet()) {
+                BluetoothLeAudio.Callback callback = callbackExecutorEntry.getKey();
+                Executor executor = callbackExecutorEntry.getValue();
+                executor.execute(() -> callback.onGroupNodeRemoved(device, groupId));
+            }
+        }
+
+        @Override
+        public void onGroupStatusChanged(int groupId, int groupStatus) {
+            for (Map.Entry<BluetoothLeAudio.Callback, Executor> callbackExecutorEntry:
+                    mCallbackExecutorMap.entrySet()) {
+                BluetoothLeAudio.Callback callback = callbackExecutorEntry.getKey();
+                Executor executor = callbackExecutorEntry.getValue();
+                executor.execute(() -> callback.onGroupStatusChanged(groupId, groupStatus));
+            }
+        }
+    };
 
     /**
      * Intent used to broadcast the change in connection state of the LeAudio
@@ -102,87 +222,6 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
     @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
     public static final String ACTION_LE_AUDIO_ACTIVE_DEVICE_CHANGED =
             "android.bluetooth.action.LE_AUDIO_ACTIVE_DEVICE_CHANGED";
-
-    /**
-     * Intent used to broadcast group node status information.
-     *
-     * <p>This intent will have 3 extra:
-     * <ul>
-     * <li> {@link BluetoothDevice#EXTRA_DEVICE} - The remote device. It can
-     * be null if no device is active. </li>
-     * <li> {@link #EXTRA_LE_AUDIO_GROUP_ID} - Group id. </li>
-     * <li> {@link #EXTRA_LE_AUDIO_GROUP_NODE_STATUS} - Group node status. </li>
-     * </ul>
-     *
-     * @hide
-     */
-    @SystemApi
-    @RequiresPermission(allOf = {
-            android.Manifest.permission.BLUETOOTH_CONNECT,
-            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-    })
-    @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
-    public static final String ACTION_LE_AUDIO_GROUP_NODE_STATUS_CHANGED =
-            "android.bluetooth.action.LE_AUDIO_GROUP_NODE_STATUS_CHANGED";
-
-    /**
-     * Intent used to broadcast group status information.
-     *
-     * <p>This intent will have 4 extra:
-     * <ul>
-     * <li> {@link BluetoothDevice#EXTRA_DEVICE} - The remote device. It can
-     * be null if no device is active. </li>
-     * <li> {@link #EXTRA_LE_AUDIO_GROUP_ID} - Group id. </li>
-     * <li> {@link #EXTRA_LE_AUDIO_GROUP_STATUS} - Group status. </li>
-     * </ul>
-     *
-     * @hide
-     */
-    @SystemApi
-    @RequiresPermission(Manifest.permission.BLUETOOTH_PRIVILEGED)
-    @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
-    public static final String ACTION_LE_AUDIO_GROUP_STATUS_CHANGED =
-            "android.bluetooth.action.LE_AUDIO_GROUP_STATUS_CHANGED";
-
-    /**
-     * Intent used to broadcast group audio configuration changed information.
-     *
-     * <p>This intent will have 5 extra:
-     * <ul>
-     * <li> {@link #EXTRA_LE_AUDIO_GROUP_ID} - Group id. </li>
-     * <li> {@link #EXTRA_LE_AUDIO_DIRECTION} - Direction as bit mask. </li>
-     * <li> {@link #EXTRA_LE_AUDIO_SINK_LOCATION} - Sink location as per Bluetooth Assigned
-     * Numbers </li>
-     * <li> {@link #EXTRA_LE_AUDIO_SOURCE_LOCATION} - Source location as per Bluetooth Assigned
-     * Numbers </li>
-     * <li> {@link #EXTRA_LE_AUDIO_AVAILABLE_CONTEXTS} - Available contexts for group as per
-     * Bluetooth Assigned Numbers </li>
-     * </ul>
-     *
-     * @hide
-     */
-    @RequiresPermission(Manifest.permission.BLUETOOTH_PRIVILEGED)
-    @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
-    public static final String ACTION_LE_AUDIO_CONF_CHANGED =
-            "android.bluetooth.action.LE_AUDIO_CONF_CHANGED";
-
-    /**
-     * Intent used to broadcast the audio codec config changed information.
-     *
-     * <p>This intent will have 2 extras:
-     * <ul>
-     * <li> {@link BluetoothLeAudioCodecStatus#EXTRA_LE_AUDIO_CODEC_STATUS} - The codec status.
-     * </li>
-     * <li> {@link BluetoothDevice#EXTRA_DEVICE} - The remote device if the device is currently
-     * connected, otherwise it is not included.</li>
-     * </ul>
-     *
-     * @hide
-     */
-    @RequiresPermission(Manifest.permission.BLUETOOTH_PRIVILEGED)
-    @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
-    public static final String ACTION_LE_AUDIO_CODEC_CONFIG_CHANGED =
-            "android.bluetooth.action.LE_AUDIO_CODEC_CONFIG_CHANGED";
 
     /**
      * Indicates unspecified audio content.
@@ -273,7 +312,266 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
      * @hide
      */
     @SystemApi
-    public static final int AUDIO_LOCATION_INVALID = -1;
+    public static final int AUDIO_LOCATION_INVALID = 0;
+
+    /**
+     * This represents an audio location front left.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_FRONT_LEFT = 0x01 << 0;
+
+    /**
+     * This represents an audio location front right.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_FRONT_RIGHT = 0x01 << 1;
+
+    /**
+     * This represents an audio location front center.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_FRONT_CENTER = 0x01 << 2;
+
+    /**
+     * This represents an audio location low frequency effects 1.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_LOW_FREQ_EFFECTS_ONE = 0x01 << 3;
+
+    /**
+     * This represents an audio location back left.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_BACK_LEFT = 0x01 << 4;
+
+    /**
+     * This represents an audio location back right.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_BACK_RIGHT = 0x01 << 5;
+
+    /**
+     * This represents an audio location front left of center.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_FRONT_LEFT_OF_CENTER = 0x01 << 6;
+
+    /**
+     * This represents an audio location front right of center.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_FRONT_RIGHT_OF_CENTER = 0x01 << 7;
+
+    /**
+     * This represents an audio location back center.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_BACK_CENTER = 0x01 << 8;
+
+    /**
+     * This represents an audio location low frequency effects 2.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_LOW_FREQ_EFFECTS_TWO = 0x01 << 9;
+
+    /**
+     * This represents an audio location side left.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_SIDE_LEFT = 0x01 << 10;
+
+    /**
+     * This represents an audio location side right.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_SIDE_RIGHT = 0x01 << 11;
+
+    /**
+     * This represents an audio location top front left.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_TOP_FRONT_LEFT = 0x01 << 12;
+
+    /**
+     * This represents an audio location top front right.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_TOP_FRONT_RIGHT = 0x01 << 13;
+
+    /**
+     * This represents an audio location top front center.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_TOP_FRONT_CENTER = 0x01 << 14;
+
+    /**
+     * This represents an audio location top center.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_TOP_CENTER = 0x01 << 15;
+
+    /**
+     * This represents an audio location top back left.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_TOP_BACK_LEFT = 0x01 << 16;
+
+    /**
+     * This represents an audio location top back right.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_TOP_BACK_RIGHT = 0x01 << 17;
+
+    /**
+     * This represents an audio location top side left.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_TOP_SIDE_LEFT = 0x01 << 18;
+
+    /**
+     * This represents an audio location top side right.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_TOP_SIDE_RIGHT = 0x01 << 19;
+
+    /**
+     * This represents an audio location top back center.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_TOP_BACK_CENTER = 0x01 << 20;
+
+    /**
+     * This represents an audio location bottom front center.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_BOTTOM_FRONT_CENTER = 0x01 << 21;
+
+    /**
+     * This represents an audio location bottom front left.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_BOTTOM_FRONT_LEFT = 0x01 << 22;
+
+    /**
+     * This represents an audio location bottom front right.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_BOTTOM_FRONT_RIGHT = 0x01 << 23;
+
+    /**
+     * This represents an audio location front left wide.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_FRONT_LEFT_WIDE = 0x01 << 24;
+
+    /**
+     * This represents an audio location front right wide.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_FRONT_RIGHT_WIDE = 0x01 << 25;
+
+    /**
+     * This represents an audio location left surround.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_LEFT_SURROUND = 0x01 << 26;
+
+    /**
+     * This represents an audio location right surround.
+     *
+     * @hide
+     */
+    @SystemApi
+    public static final int AUDIO_LOCATION_RIGHT_SURROUND = 0x01 << 27;
+
+    /** @hide */
+    @IntDef(flag = true, prefix = "AUDIO_LOCATION_",
+            value = {
+            AUDIO_LOCATION_FRONT_LEFT,
+            AUDIO_LOCATION_FRONT_RIGHT,
+            AUDIO_LOCATION_FRONT_CENTER,
+            AUDIO_LOCATION_LOW_FREQ_EFFECTS_ONE,
+            AUDIO_LOCATION_BACK_LEFT,
+            AUDIO_LOCATION_BACK_RIGHT,
+            AUDIO_LOCATION_FRONT_LEFT_OF_CENTER,
+            AUDIO_LOCATION_FRONT_RIGHT_OF_CENTER,
+            AUDIO_LOCATION_BACK_CENTER,
+            AUDIO_LOCATION_LOW_FREQ_EFFECTS_TWO,
+            AUDIO_LOCATION_SIDE_LEFT,
+            AUDIO_LOCATION_SIDE_RIGHT,
+            AUDIO_LOCATION_TOP_FRONT_LEFT,
+            AUDIO_LOCATION_TOP_FRONT_RIGHT,
+            AUDIO_LOCATION_TOP_FRONT_CENTER,
+            AUDIO_LOCATION_TOP_CENTER,
+            AUDIO_LOCATION_TOP_BACK_LEFT,
+            AUDIO_LOCATION_TOP_BACK_RIGHT,
+            AUDIO_LOCATION_TOP_SIDE_LEFT,
+            AUDIO_LOCATION_TOP_SIDE_RIGHT,
+            AUDIO_LOCATION_TOP_BACK_CENTER,
+            AUDIO_LOCATION_BOTTOM_FRONT_CENTER,
+            AUDIO_LOCATION_BOTTOM_FRONT_LEFT,
+            AUDIO_LOCATION_BOTTOM_FRONT_RIGHT,
+            AUDIO_LOCATION_FRONT_LEFT_WIDE,
+            AUDIO_LOCATION_FRONT_RIGHT_WIDE,
+            AUDIO_LOCATION_LEFT_SURROUND,
+            AUDIO_LOCATION_RIGHT_SURROUND,
+    })
+    @Retention(RetentionPolicy.SOURCE)
+    public @interface AudioLocation {}
 
     /**
      * Contains group id.
@@ -282,35 +580,6 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
     @SystemApi
     public static final String EXTRA_LE_AUDIO_GROUP_ID =
             "android.bluetooth.extra.LE_AUDIO_GROUP_ID";
-
-    /**
-     * Contains group node status, can be any of
-     * <p>
-     * <ul>
-     * <li> {@link #GROUP_NODE_ADDED} </li>
-     * <li> {@link #GROUP_NODE_REMOVED} </li>
-     * </ul>
-     * <p>
-     * @hide
-     */
-    @SystemApi
-    public static final String EXTRA_LE_AUDIO_GROUP_NODE_STATUS =
-            "android.bluetooth.extra.LE_AUDIO_GROUP_NODE_STATUS";
-
-    /**
-     * Contains group status, can be any of
-     *
-     * <p>
-     * <ul>
-     * <li> {@link #GROUP_STATUS_ACTIVE} </li>
-     * <li> {@link #GROUP_STATUS_INACTIVE} </li>
-     * </ul>
-     * <p>
-     * @hide
-     */
-    @SystemApi
-    public static final String EXTRA_LE_AUDIO_GROUP_STATUS =
-            "android.bluetooth.extra.LE_AUDIO_GROUP_STATUS";
 
     /**
      * Contains bit mask for direction, bit 0 set when Sink, bit 1 set when Source.
@@ -354,20 +623,6 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
      */
     public static final int GROUP_STATUS_INACTIVE = IBluetoothLeAudio.GROUP_STATUS_INACTIVE;
 
-    /**
-     * Indicating that node has been added to the group.
-     * @hide
-     */
-    @SystemApi
-    public static final int GROUP_NODE_ADDED = IBluetoothLeAudio.GROUP_NODE_ADDED;
-
-    /**
-     * Indicating that node has been removed from the group.
-     * @hide
-     */
-    @SystemApi
-    public static final int GROUP_NODE_REMOVED = IBluetoothLeAudio.GROUP_NODE_REMOVED;
-
     private final BluetoothProfileConnector<IBluetoothLeAudio> mProfileConnector =
             new BluetoothProfileConnector(this, BluetoothProfile.LE_AUDIO, "BluetoothLeAudio",
                     IBluetoothLeAudio.class.getName()) {
@@ -376,6 +631,37 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
                     return IBluetoothLeAudio.Stub.asInterface(service);
                 }
     };
+
+
+    @SuppressLint("AndroidFrameworkBluetoothPermission")
+    private final IBluetoothStateChangeCallback mBluetoothStateChangeCallback =
+            new IBluetoothStateChangeCallback.Stub() {
+                public void onBluetoothStateChange(boolean up) {
+                    if (DBG) Log.d(TAG, "onBluetoothStateChange: up=" + up);
+                    if (up) {
+                        // re-register the service-to-app callback
+                        synchronized (mCallbackExecutorMap) {
+                            if (!mCallbackExecutorMap.isEmpty()) {
+                                try {
+                                    final IBluetoothLeAudio service = getService();
+                                    if (service != null) {
+                                        final SynchronousResultReceiver<Integer> recv =
+                                                new SynchronousResultReceiver();
+                                        service.registerCallback(mCallback,
+                                                mAttributionSource, recv);
+                                        recv.awaitResultNoInterrupt(getSyncTimeout())
+                                                .getValue(null);
+                                    }
+                                } catch (TimeoutException e) {
+                                    Log.e(TAG, "Failed to register callback", e);
+                                } catch (RemoteException e) {
+                                    throw e.rethrowFromSystemServer();
+                                }
+                            }
+                        }
+                    }
+                }
+            };
 
     /**
      * Create a BluetoothLeAudio proxy object for interacting with the local
@@ -386,6 +672,16 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
         mAdapter = adapter;
         mAttributionSource = adapter.getAttributionSource();
         mProfileConnector.connect(context, listener);
+
+        IBluetoothManager mgr = mAdapter.getBluetoothManager();
+        if (mgr != null) {
+            try {
+                mgr.registerStateChangeCallback(mBluetoothStateChangeCallback);
+            } catch (RemoteException e) {
+                throw e.rethrowFromSystemServer();
+            }
+        }
+
         mCloseGuard = new CloseGuard();
         mCloseGuard.open("close");
     }
@@ -394,6 +690,15 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
      * @hide
      */
     public void close() {
+        IBluetoothManager mgr = mAdapter.getBluetoothManager();
+        if (mgr != null) {
+            try {
+                mgr.unregisterStateChangeCallback(mBluetoothStateChangeCallback);
+            } catch (RemoteException e) {
+                Log.e(TAG, "", e);
+            }
+        }
+
         mProfileConnector.disconnect();
     }
 
@@ -489,13 +794,13 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
     }
 
     /**
-     * Get lead device for a group.
+     * Get Lead device for the group.
      *
      * Lead device is the device that can be used as an active device in the system.
      * Active devices points to the Audio Device for the Le Audio group.
-     * This method returns a list of Lead devices for all the connected LE Audio
-     * groups and those devices should be used in the setActiveDevice() method by other parts
-     * of the system, which wants to setActive a particular Le Audio Group.
+     * This method returns the Lead devices for the connected LE Audio
+     * group and this device should be used in the setActiveDevice() method by other parts
+     * of the system, which wants to set to active a particular Le Audio group.
      *
      * Note: getActiveDevice() returns the Lead device for the currently active LE Audio group.
      * Note: When lead device gets disconnected, there will be new lead device for the group.
@@ -608,6 +913,115 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
             }
         }
         return defaultValue;
+    }
+
+    /**
+     * Register a {@link Callback} that will be invoked during the
+     * operation of this profile.
+     *
+     * Repeated registration of the same <var>callback</var> object will have no effect after
+     * the first call to this method, even when the <var>executor</var> is different. API caller
+     * would have to call {@link #unregisterCallback(Callback)} with
+     * the same callback object before registering it again.
+     *
+     * <p> The {@link Callback} will be invoked only if there is codec status changed for the
+     * remote device or the device is connected/disconnected in a certain group or the group
+     * status is changed.
+     *
+     * @param executor an {@link Executor} to execute given callback
+     * @param callback user implementation of the {@link Callback}
+     * @throws NullPointerException if a null executor or callback is given
+     * @throws IllegalArgumentException the callback is already registered
+     * @hide
+     */
+    @SystemApi
+    @RequiresBluetoothConnectPermission
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
+    public void registerCallback(@NonNull @CallbackExecutor Executor executor,
+            @NonNull Callback callback) {
+        Objects.requireNonNull(executor, "executor cannot be null");
+        Objects.requireNonNull(callback, "callback cannot be null");
+        if (DBG) log("registerCallback");
+
+        synchronized (mCallbackExecutorMap) {
+            // If the callback map is empty, we register the service-to-app callback
+            if (mCallbackExecutorMap.isEmpty()) {
+                if (!mAdapter.isEnabled()) {
+                    /* If Bluetooth is off, just store callback and it will be registered
+                     * when Bluetooth is on
+                     */
+                    mCallbackExecutorMap.put(callback, executor);
+                    return;
+                }
+                try {
+                    final IBluetoothLeAudio service = getService();
+                    if (service != null) {
+                        final SynchronousResultReceiver<Integer> recv =
+                                new SynchronousResultReceiver();
+                        service.registerCallback(mCallback, mAttributionSource, recv);
+                        recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
+                    }
+                } catch (TimeoutException e) {
+                    Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+                } catch (RemoteException e) {
+                    throw e.rethrowFromSystemServer();
+                }
+            }
+
+            // Adds the passed in callback to our map of callbacks to executors
+            if (mCallbackExecutorMap.containsKey(callback)) {
+                throw new IllegalArgumentException("This callback has already been registered");
+            }
+            mCallbackExecutorMap.put(callback, executor);
+        }
+    }
+
+    /**
+     * Unregister the specified {@link Callback}.
+     * <p>The same {@link Callback} object used when calling
+     * {@link #registerCallback(Executor, Callback)} must be used.
+     *
+     * <p>Callbacks are automatically unregistered when application process goes away
+     *
+     * @param callback user implementation of the {@link Callback}
+     * @throws NullPointerException when callback is null
+     * @throws IllegalArgumentException when no callback is registered
+     * @hide
+     */
+    @SystemApi
+    @RequiresBluetoothConnectPermission
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
+    public void unregisterCallback(@NonNull Callback callback) {
+        Objects.requireNonNull(callback, "callback cannot be null");
+        if (DBG) log("unregisterCallback");
+
+        synchronized (mCallbackExecutorMap) {
+            if (mCallbackExecutorMap.remove(callback) == null) {
+                throw new IllegalArgumentException("This callback has not been registered");
+            }
+        }
+
+        // If the callback map is empty, we unregister the service-to-app callback
+        if (mCallbackExecutorMap.isEmpty()) {
+            try {
+                final IBluetoothLeAudio service = getService();
+                if (service != null) {
+                    final SynchronousResultReceiver<Integer> recv = new SynchronousResultReceiver();
+                    service.unregisterCallback(mCallback, mAttributionSource, recv);
+                    recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
+                }
+            } catch (TimeoutException e) {
+                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+            } catch (RemoteException e) {
+                throw e.rethrowFromSystemServer();
+            }
+        }
     }
 
     /**
@@ -724,7 +1138,7 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
             android.Manifest.permission.BLUETOOTH_CONNECT,
             android.Manifest.permission.BLUETOOTH_PRIVILEGED
     })
-    public void setVolume(int volume) {
+    public void setVolume(@IntRange(from = 0, to = 255) int volume) {
         if (VDBG) log("setVolume(vol: " + volume + " )");
         final IBluetoothLeAudio service = getService();
         if (service == null) {
@@ -823,16 +1237,21 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
             android.Manifest.permission.BLUETOOTH_PRIVILEGED
     })
     @SystemApi
-    public int getAudioLocation(@NonNull BluetoothDevice device) {
+    public @AudioLocation int getAudioLocation(@NonNull BluetoothDevice device) {
         if (VDBG) log("getAudioLocation()");
         final IBluetoothLeAudio service = getService();
         final int defaultLocation = AUDIO_LOCATION_INVALID;
         if (service == null) {
             Log.w(TAG, "Proxy not attached to service");
             if (DBG) log(Log.getStackTraceString(new Throwable()));
-        } else if (mAdapter.isEnabled()) {
-            //TODO: add the implementation.
-            if (VDBG) log("getAudioLocation() from LE audio service");
+        } else if (mAdapter.isEnabled() && isValidDevice(device)) {
+            try {
+                final SynchronousResultReceiver<Integer> recv = new SynchronousResultReceiver();
+                service.getAudioLocation(device, mAttributionSource, recv);
+                return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultLocation);
+            } catch (RemoteException | TimeoutException e) {
+                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+            }
         }
         return defaultLocation;
     }
@@ -950,7 +1369,7 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
     /**
      * Gets the current codec status (configuration and capability).
      *
-     * @param device the remote Bluetooth device.
+     * @param groupId The group id
      * @return the current codec status
      * @hide
      */
@@ -961,9 +1380,9 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
             android.Manifest.permission.BLUETOOTH_CONNECT,
             android.Manifest.permission.BLUETOOTH_PRIVILEGED
     })
-    public BluetoothLeAudioCodecStatus getCodecStatus(@NonNull BluetoothDevice device) {
+    public BluetoothLeAudioCodecStatus getCodecStatus(int groupId) {
         if (DBG) {
-            Log.d(TAG, "getCodecStatus(" + device + ")");
+            Log.d(TAG, "getCodecStatus(" + groupId + ")");
         }
 
         final IBluetoothLeAudio service = getService();
@@ -972,14 +1391,17 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
         if (service == null) {
             Log.w(TAG, "Proxy not attached to service");
             if (DBG) log(Log.getStackTraceString(new Throwable()));
-        } else if (mAdapter.isEnabled() && isValidDevice(device)) {
+        } else if (mAdapter.isEnabled()) {
             try {
                 final SynchronousResultReceiver<BluetoothLeAudioCodecStatus> recv =
                         new SynchronousResultReceiver();
-                service.getCodecStatus(device, mAttributionSource, recv);
+                service.getCodecStatus(groupId, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
-            } catch (RemoteException | TimeoutException e) {
+            } catch (TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+            } catch (RemoteException e) {
+                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+                e.rethrowFromSystemServer();
             }
         }
         return defaultValue;
@@ -988,8 +1410,11 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
     /**
      * Sets the codec configuration preference.
      *
-     * @param device the remote Bluetooth device.
-     * @param codecConfig the codec configuration preference
+     * @param groupId the groupId
+     * @param inputCodecConfig the input codec configuration preference
+     * @param outputCodecConfig the output codec configuration preference
+     * @throws IllegalStateException if LE Audio Service is null
+     * @throws NullPointerException if any of the configs is null
      * @hide
      */
     @SystemApi
@@ -998,25 +1423,27 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
             android.Manifest.permission.BLUETOOTH_CONNECT,
             android.Manifest.permission.BLUETOOTH_PRIVILEGED
     })
-    public void setCodecConfigPreference(@NonNull BluetoothDevice device,
-                                         @NonNull BluetoothLeAudioCodecConfig codecConfig) {
-        if (DBG) Log.d(TAG, "setCodecConfigPreference(" + device + ")");
+    public void setCodecConfigPreference(int groupId,
+                                         @NonNull BluetoothLeAudioCodecConfig inputCodecConfig,
+                                         @NonNull BluetoothLeAudioCodecConfig outputCodecConfig) {
+        if (DBG) Log.d(TAG, "setCodecConfigPreference(" + groupId + ")");
 
-        if (codecConfig == null) {
-            Log.e(TAG, "setCodecConfigPreference: Codec config can't be null");
-            throw new IllegalArgumentException("codecConfig cannot be null");
-        }
+        Objects.requireNonNull(inputCodecConfig, " inputCodecConfig shall not be null");
+        Objects.requireNonNull(outputCodecConfig, " outputCodecConfig shall not be null");
 
         final IBluetoothLeAudio service = getService();
 
         if (service == null) {
             Log.w(TAG, "Proxy not attached to service");
             if (DBG) log(Log.getStackTraceString(new Throwable()));
-        } else if (mAdapter.isEnabled() && isValidDevice(device)) {
+            throw new IllegalStateException("Service is unavailable");
+        } else if (mAdapter.isEnabled()) {
             try {
-                service.setCodecConfigPreference(device, codecConfig, mAttributionSource);
+                service.setCodecConfigPreference(groupId, inputCodecConfig, outputCodecConfig,
+                                        mAttributionSource);
             } catch (RemoteException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+                e.rethrowFromSystemServer();
             }
         }
     }

@@ -91,7 +91,7 @@ public class HeadsetStateMachineTest {
     public void setUp() throws Exception {
         mTargetContext = InstrumentationRegistry.getTargetContext();
         Assume.assumeTrue("Ignore test when HeadsetService is not enabled",
-                mTargetContext.getResources().getBoolean(R.bool.profile_supported_hs_hfp));
+                HeadsetService.isEnabled());
         // Setup mocks and test assets
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
@@ -138,7 +138,7 @@ public class HeadsetStateMachineTest {
 
     @After
     public void tearDown() throws Exception {
-        if (!mTargetContext.getResources().getBoolean(R.bool.profile_supported_hs_hfp)) {
+        if (!HeadsetService.isEnabled()) {
             return;
         }
         HeadsetObjectsFactory.getInstance().destroyStateMachine(mHeadsetStateMachine);

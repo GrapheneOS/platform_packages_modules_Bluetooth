@@ -30,10 +30,13 @@ void BTM_BleBackgroundObserve(bool enable, tBTM_INQ_RESULTS_CB* p_results_cb) {}
 void BTM_BleReadControllerFeatures(tBTM_BLE_CTRL_FEATURES_CBACK* p_vsc_cback) {}
 uint8_t BTM_GetAcceptlistSize() { return 0; }
 
+tBTM_STATUS BTM_WriteEIR(BT_HDR* p_buff) { return BTM_SUCCESS; }
+
 struct btm_client_interface_t btm_client_interface = {
     .eir =
         {
             .BTM_GetEirSupportedServices = BTM_GetEirSupportedServices,
+            .BTM_WriteEIR = BTM_WriteEIR,
         },
 };
 

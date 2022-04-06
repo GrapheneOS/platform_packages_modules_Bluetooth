@@ -48,16 +48,16 @@ void BluetoothTest::SetUp() {
   acl_state_ = BT_ACL_STATE_DISCONNECTED;
   bond_state_ = BT_BOND_STATE_NONE;
 
-  adapter_properties_callback_sem_ = semaphore_new(0);
-  remote_device_properties_callback_sem_ = semaphore_new(0);
-  adapter_state_changed_callback_sem_ = semaphore_new(0);
-  discovery_state_changed_callback_sem_ = semaphore_new(0);
-
   remove("/data/misc/bluedroid/bt_config.conf.encrypted-checksum");
   remove("/data/misc/bluedroid/bt_config.bak.encrypted-checksum");
 
   bluetooth::hal::BluetoothInterface::Initialize();
   ASSERT_TRUE(bluetooth::hal::BluetoothInterface::IsInitialized());
+  adapter_properties_callback_sem_ = semaphore_new(0);
+  remote_device_properties_callback_sem_ = semaphore_new(0);
+  adapter_state_changed_callback_sem_ = semaphore_new(0);
+  discovery_state_changed_callback_sem_ = semaphore_new(0);
+
   auto bt_hal_interface = bluetooth::hal::BluetoothInterface::Get();
   bt_hal_interface->AddObserver(this);
   bt_interface_ = bt_hal_interface->GetHALInterface();

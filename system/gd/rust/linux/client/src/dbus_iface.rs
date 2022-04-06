@@ -1,6 +1,6 @@
 //! D-Bus proxy implementations of the APIs.
 
-use bt_topshim::btif::{BtSspVariant, BtTransport, Uuid128Bit};
+use bt_topshim::btif::{BtDeviceType, BtSspVariant, BtTransport, Uuid128Bit};
 use bt_topshim::profiles::gatt::GattStatus;
 
 use btstack::bluetooth::{
@@ -12,6 +12,9 @@ use btstack::bluetooth_gatt::{
     IScannerCallback, LePhy, ScanFilter, ScanSettings,
 };
 
+use btstack::suspend::{ISuspend, ISuspendCallback, SuspendType};
+
+use btstack::uuid::Profile;
 use dbus::arg::{AppendAll, RefArg};
 use dbus::nonblock::SyncConnection;
 
@@ -36,12 +39,15 @@ fn make_object_path(idx: i32, name: &str) -> dbus::Path {
     dbus::Path::new(format!("/org/chromium/bluetooth/hci{}/{}", idx, name)).unwrap()
 }
 
-impl_dbus_arg_enum!(BtTransport);
+impl_dbus_arg_enum!(BtDeviceType);
 impl_dbus_arg_enum!(BtSspVariant);
+impl_dbus_arg_enum!(BtTransport);
 impl_dbus_arg_enum!(GattStatus);
+impl_dbus_arg_enum!(GattWriteRequestStatus);
 impl_dbus_arg_enum!(GattWriteType);
 impl_dbus_arg_enum!(LePhy);
-impl_dbus_arg_enum!(GattWriteRequestStatus);
+impl_dbus_arg_enum!(Profile);
+impl_dbus_arg_enum!(SuspendType);
 
 // Represents Uuid128Bit as an array in D-Bus.
 impl DBusArg for Uuid128Bit {
@@ -234,8 +240,6 @@ impl BluetoothDBus {
     }
 }
 
-trait DBusExportable {}
-
 #[generate_dbus_interface_client]
 impl IBluetooth for BluetoothDBus {
     #[dbus_method("RegisterCallback")]
@@ -381,8 +385,33 @@ impl IBluetooth for BluetoothDBus {
         dbus_generated!()
     }
 
+    #[dbus_method("GetRemoteName")]
+    fn get_remote_name(&self, device: BluetoothDevice) -> String {
+        dbus_generated!()
+    }
+
+    #[dbus_method("GetRemoteType")]
+    fn get_remote_type(&self, device: BluetoothDevice) -> BtDeviceType {
+        dbus_generated!()
+    }
+
+    #[dbus_method("GetRemoteAlias")]
+    fn get_remote_alias(&self, device: BluetoothDevice) -> String {
+        dbus_generated!()
+    }
+
+    #[dbus_method("GetRemoteClass")]
+    fn get_remote_class(&self, device: BluetoothDevice) -> u32 {
+        dbus_generated!()
+    }
+
     #[dbus_method("GetConnectionState")]
     fn get_connection_state(&self, device: BluetoothDevice) -> u32 {
+        dbus_generated!()
+    }
+
+    #[dbus_method("GetProfileConnectionState")]
+    fn get_profile_connection_state(&self, profile: Profile) -> u32 {
         dbus_generated!()
     }
 
@@ -777,4 +806,74 @@ impl IBluetoothGattCallback for IBluetoothGattCallbackDBus {
 
     #[dbus_method("OnServiceChanged")]
     fn on_service_changed(&self, addr: String) {}
+}
+
+pub(crate) struct SuspendDBus {
+    client_proxy: ClientDBusProxy,
+}
+
+impl SuspendDBus {
+    pub(crate) fn new(conn: Arc<SyncConnection>, index: i32) -> SuspendDBus {
+        SuspendDBus {
+            client_proxy: ClientDBusProxy {
+                conn: conn.clone(),
+                bus_name: String::from("org.chromium.bluetooth"),
+                objpath: make_object_path(index, "suspend"),
+                interface: String::from("org.chromium.bluetooth.Suspend"),
+            },
+        }
+    }
+}
+
+#[generate_dbus_interface_client]
+impl ISuspend for SuspendDBus {
+    #[dbus_method("RegisterCallback")]
+    fn register_callback(&mut self, _callback: Box<dyn ISuspendCallback + Send>) -> bool {
+        dbus_generated!()
+    }
+
+    #[dbus_method("UnregisterCallback")]
+    fn unregister_callback(&mut self, _callback_id: u32) -> bool {
+        dbus_generated!()
+    }
+
+    #[dbus_method("Suspend")]
+    fn suspend(&self, _suspend_type: SuspendType) -> u32 {
+        dbus_generated!()
+    }
+
+    #[dbus_method("Resume")]
+    fn resume(&self) -> bool {
+        dbus_generated!()
+    }
+}
+
+#[allow(dead_code)]
+struct ISuspendCallbackDBus {}
+
+impl btstack::RPCProxy for ISuspendCallbackDBus {
+    // Placeholder implementations just to satisfy impl RPCProxy requirements.
+    fn register_disconnect(&mut self, _f: Box<dyn Fn(u32) + Send>) -> u32 {
+        0
+    }
+    fn get_object_id(&self) -> String {
+        String::from("")
+    }
+    fn unregister(&mut self, _id: u32) -> bool {
+        false
+    }
+    fn export_for_rpc(self: Box<Self>) {}
+}
+
+#[generate_dbus_exporter(
+    export_suspend_callback_dbus_obj,
+    "org.chromium.bluetooth.SuspendCallback"
+)]
+impl ISuspendCallback for ISuspendCallbackDBus {
+    #[dbus_method("OnCallbackRegistered")]
+    fn on_callback_registered(&self, callback_id: u32) {}
+    #[dbus_method("OnSuspendReady")]
+    fn on_suspend_ready(&self, suspend_id: u32) {}
+    #[dbus_method("OnResumed")]
+    fn on_resumed(&self, suspend_id: u32) {}
 }

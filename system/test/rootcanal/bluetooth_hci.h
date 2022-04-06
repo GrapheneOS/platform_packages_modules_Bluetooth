@@ -42,6 +42,9 @@ using android::net::AsyncDataChannelConnector;
 using android::net::AsyncDataChannelServer;
 using android::net::ConnectCallback;
 
+using rootcanal::Device;
+using rootcanal::Phy;
+
 class BluetoothHci : public IBluetoothHci {
  public:
   BluetoothHci();
@@ -84,48 +87,47 @@ class BluetoothHci : public IBluetoothHci {
   std::shared_ptr<AsyncDataChannelServer> hci_socket_server_;
   std::shared_ptr<AsyncDataChannelServer> link_socket_server_;
   std::shared_ptr<AsyncDataChannelConnector> connector_;
-  test_vendor_lib::AsyncManager async_manager_;
+  rootcanal::AsyncManager async_manager_;
 
   void SetUpTestChannel();
   void SetUpHciServer(ConnectCallback on_connect);
   void SetUpLinkLayerServer(ConnectCallback on_connect);
-  std::shared_ptr<AsyncDataChannel> ConnectToRemoteServer(
-      const std::string& server, int port);
+  std::shared_ptr<Device> ConnectToRemoteServer(const std::string& server,
+                                                int port, Phy::Type phy_type);
 
-  std::shared_ptr<test_vendor_lib::DualModeController> controller_;
+  std::shared_ptr<rootcanal::DualModeController> controller_;
 
-  test_vendor_lib::TestChannelTransport test_channel_transport_;
-  test_vendor_lib::TestChannelTransport remote_hci_transport_;
-  test_vendor_lib::TestChannelTransport remote_link_layer_transport_;
+  rootcanal::TestChannelTransport test_channel_transport_;
+  rootcanal::TestChannelTransport remote_hci_transport_;
+  rootcanal::TestChannelTransport remote_link_layer_transport_;
 
-  test_vendor_lib::AsyncUserId user_id_ = async_manager_.GetNextUserId();
-  test_vendor_lib::TestModel test_model_{
+  rootcanal::AsyncUserId user_id_ = async_manager_.GetNextUserId();
+  rootcanal::TestModel test_model_{
       [this]() { return async_manager_.GetNextUserId(); },
-      [this](test_vendor_lib::AsyncUserId user_id,
-             std::chrono::milliseconds delay,
-             const test_vendor_lib::TaskCallback& task) {
+      [this](rootcanal::AsyncUserId user_id, std::chrono::milliseconds delay,
+             const rootcanal::TaskCallback& task) {
         return async_manager_.ExecAsync(user_id, delay, task);
       },
 
-      [this](test_vendor_lib::AsyncUserId user_id,
-             std::chrono::milliseconds delay, std::chrono::milliseconds period,
-             const test_vendor_lib::TaskCallback& task) {
+      [this](rootcanal::AsyncUserId user_id, std::chrono::milliseconds delay,
+             std::chrono::milliseconds period,
+             const rootcanal::TaskCallback& task) {
         return async_manager_.ExecAsyncPeriodically(user_id, delay, period,
                                                     task);
       },
 
-      [this](test_vendor_lib::AsyncUserId user) {
+      [this](rootcanal::AsyncUserId user) {
         async_manager_.CancelAsyncTasksFromUser(user);
       },
 
-      [this](test_vendor_lib::AsyncTaskId task) {
+      [this](rootcanal::AsyncTaskId task) {
         async_manager_.CancelAsyncTask(task);
       },
 
-      [this](const std::string& server, int port) {
-        return ConnectToRemoteServer(server, port);
+      [this](const std::string& server, int port, Phy::Type phy_type) {
+        return ConnectToRemoteServer(server, port, phy_type);
       }};
-  test_vendor_lib::TestCommandHandler test_channel_{test_model_};
+  rootcanal::TestCommandHandler test_channel_{test_model_};
 };
 
 extern "C" IBluetoothHci* HIDL_FETCH_IBluetoothHci(const char* name);

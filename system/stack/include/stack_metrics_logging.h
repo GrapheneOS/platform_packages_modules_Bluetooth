@@ -49,3 +49,6 @@ void log_manufacturer_info(const RawAddress& address,
                            const std::string& model,
                            const std::string& hardware_version,
                            const std::string& software_version);
+
+void log_counter_metrics(android::bluetooth::CodePathCounterKeyEnum key,
+                         int64_t value);

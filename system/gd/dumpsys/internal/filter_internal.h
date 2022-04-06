@@ -15,6 +15,8 @@
  */
 #pragma once
 
+#include <base/strings/stringprintf.h>
+
 #include <string>
 
 #include "flatbuffers/flatbuffers.h"
@@ -113,10 +115,39 @@ const reflection::Object* FindReflectionObject(
  * @return true if successfully filtered, false otherwise.
  */
 bool FilterTypeBool(const reflection::Field& field, flatbuffers::Table* table, PrivacyLevel privacy_level);
-bool FilterTypeInteger(const reflection::Field& field, flatbuffers::Table* table, PrivacyLevel privacy_level);
 bool FilterTypeFloat(const reflection::Field& field, flatbuffers::Table* table, PrivacyLevel privacy_level);
+bool FilterTypeInteger(const reflection::Field& field, flatbuffers::Table* table, PrivacyLevel privacy_level);
+bool FilterTypeLong(const reflection::Field& field, flatbuffers::Table* table, PrivacyLevel privacy_level);
 bool FilterTypeString(const reflection::Field& field, flatbuffers::Table* table, PrivacyLevel privacy_level);
 bool FilterTypeStruct(const reflection::Field& field, flatbuffers::Table* table, PrivacyLevel privacy_level);
+
+#define CASE_RETURN_TEXT(code) \
+  case code:                   \
+    return #code
+
+inline std::string FlatbufferTypeText(const flatbuffers::BaseType& type) {
+  switch (type) {
+    CASE_RETURN_TEXT(flatbuffers::BASE_TYPE_NONE);
+    CASE_RETURN_TEXT(flatbuffers::BASE_TYPE_BOOL);
+    CASE_RETURN_TEXT(flatbuffers::BASE_TYPE_CHAR);
+    CASE_RETURN_TEXT(flatbuffers::BASE_TYPE_UCHAR);
+    CASE_RETURN_TEXT(flatbuffers::BASE_TYPE_SHORT);
+    CASE_RETURN_TEXT(flatbuffers::BASE_TYPE_USHORT);
+    CASE_RETURN_TEXT(flatbuffers::BASE_TYPE_INT);
+    CASE_RETURN_TEXT(flatbuffers::BASE_TYPE_UINT);
+    CASE_RETURN_TEXT(flatbuffers::BASE_TYPE_LONG);
+    CASE_RETURN_TEXT(flatbuffers::BASE_TYPE_ULONG);
+    CASE_RETURN_TEXT(flatbuffers::BASE_TYPE_FLOAT);
+    CASE_RETURN_TEXT(flatbuffers::BASE_TYPE_DOUBLE);
+    CASE_RETURN_TEXT(flatbuffers::BASE_TYPE_STRING);
+    CASE_RETURN_TEXT(flatbuffers::BASE_TYPE_VECTOR);
+    CASE_RETURN_TEXT(flatbuffers::BASE_TYPE_STRUCT);
+    CASE_RETURN_TEXT(flatbuffers::BASE_TYPE_UNION);
+    default:
+      return base::StringPrintf("UNKNOWN[%d]", (int)type);
+  }
+}
+#undef CASE_RETURN_TEXT
 
 }  // namespace internal
 }  // namespace dumpsys

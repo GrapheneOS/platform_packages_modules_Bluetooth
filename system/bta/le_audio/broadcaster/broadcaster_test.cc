@@ -20,13 +20,13 @@
 
 #include <chrono>
 
-#include "device/include/controller.h"
 #include "bta/include/bta_le_audio_api.h"
 #include "bta/include/bta_le_audio_broadcaster_api.h"
-#include "bta/test/common/mock_controller.h"
+#include "bta/le_audio/broadcaster/mock_state_machine.h"
 #include "bta/le_audio/mock_iso_manager.h"
 #include "bta/le_audio/mock_le_audio_client_audio.h"
-#include "bta/le_audio/broadcaster/mock_state_machine.h"
+#include "bta/test/common/mock_controller.h"
+#include "device/include/controller.h"
 #include "stack/include/btm_iso_api.h"
 
 using testing::_;
@@ -53,12 +53,6 @@ void btsnd_hcic_ble_rand(base::Callback<void(BT_OCTET8)> cb) {
   generator_cb = cb;
 }
 
-std::ostream& operator<<(
-    std::ostream& os,
-    const le_audio::broadcaster::BroadcastStateMachine& machine) {
-  return os;
-}
-
 namespace le_audio {
 namespace broadcaster {
 namespace {
@@ -72,15 +66,13 @@ static const std::vector<uint8_t> default_metadata = {0x03, 0x02, 0x01, 0x00};
 class MockLeAudioBroadcasterCallbacks
     : public bluetooth::le_audio::LeAudioBroadcasterCallbacks {
  public:
-  MOCK_METHOD((void), OnBroadcastCreated, (uint8_t instance_id, bool success),
+  MOCK_METHOD((void), OnBroadcastCreated, (uint32_t broadcast_id, bool success),
               (override));
-  MOCK_METHOD((void), OnBroadcastDestroyed, (uint8_t instance_id), (override));
+  MOCK_METHOD((void), OnBroadcastDestroyed, (uint32_t broadcast_id),
+              (override));
   MOCK_METHOD((void), OnBroadcastStateChanged,
-              (uint8_t instance_id, bluetooth::le_audio::BroadcastState state),
-              (override));
-  MOCK_METHOD((void), OnBroadcastId,
-              (uint8_t instance_id,
-               const bluetooth::le_audio::BroadcastId& broadcast_id),
+              (uint32_t broadcast_id,
+               bluetooth::le_audio::BroadcastState state),
               (override));
 };
 
@@ -140,16 +132,16 @@ class BroadcasterTest : public Test {
     MockLeAudioClientAudioSource::SetMockInstanceForTesting(nullptr);
   }
 
-  uint8_t InstantiateBroadcast(
+  uint32_t InstantiateBroadcast(
       LeAudioBroadcaster::AudioProfile profile = default_profile,
       std::vector<uint8_t> metadata = default_metadata,
       BroadcastCode code = default_code) {
-    uint8_t instance_id = LeAudioBroadcaster::kInstanceIdUndefined;
+    uint32_t broadcast_id = LeAudioBroadcaster::kInstanceIdUndefined;
     EXPECT_CALL(mock_broadcaster_callbacks_, OnBroadcastCreated(_, true))
-        .WillOnce(SaveArg<0>(&instance_id));
+        .WillOnce(SaveArg<0>(&broadcast_id));
     LeAudioBroadcaster::Get()->CreateAudioBroadcast(metadata, profile, code);
 
-    return instance_id;
+    return broadcast_id;
   }
 
  protected:
@@ -180,10 +172,10 @@ TEST_F(BroadcasterTest, GetStreamingPhy) {
 }
 
 TEST_F(BroadcasterTest, CreateAudioBroadcast) {
-  uint8_t instance_id = InstantiateBroadcast();
-  ASSERT_NE(instance_id, LeAudioBroadcaster::kInstanceIdUndefined);
-  ASSERT_EQ(instance_id,
-            MockBroadcastStateMachine::GetLastInstance()->GetInstanceId());
+  auto broadcast_id = InstantiateBroadcast();
+  ASSERT_NE(broadcast_id, LeAudioBroadcaster::kInstanceIdUndefined);
+  ASSERT_EQ(broadcast_id,
+            MockBroadcastStateMachine::GetLastInstance()->GetBroadcastId());
 
   auto& instance_config = MockBroadcastStateMachine::GetLastInstance()->cfg;
   ASSERT_EQ(instance_config.broadcast_code, default_code);
@@ -194,30 +186,30 @@ TEST_F(BroadcasterTest, CreateAudioBroadcast) {
 }
 
 TEST_F(BroadcasterTest, SuspendAudioBroadcast) {
-  uint8_t instance_id = InstantiateBroadcast();
-  LeAudioBroadcaster::Get()->StartAudioBroadcast(instance_id);
+  auto broadcast_id = InstantiateBroadcast();
+  LeAudioBroadcaster::Get()->StartAudioBroadcast(broadcast_id);
 
   EXPECT_CALL(mock_broadcaster_callbacks_,
-              OnBroadcastStateChanged(instance_id, BroadcastState::CONFIGURED))
+              OnBroadcastStateChanged(broadcast_id, BroadcastState::CONFIGURED))
       .Times(1);
 
   EXPECT_CALL(mock_audio_source_, Stop).Times(AtLeast(1));
-  LeAudioBroadcaster::Get()->SuspendAudioBroadcast(instance_id);
+  LeAudioBroadcaster::Get()->SuspendAudioBroadcast(broadcast_id);
 }
 
 TEST_F(BroadcasterTest, StartAudioBroadcast) {
-  uint8_t instance_id = InstantiateBroadcast();
-  LeAudioBroadcaster::Get()->StopAudioBroadcast(instance_id);
+  auto broadcast_id = InstantiateBroadcast();
+  LeAudioBroadcaster::Get()->StopAudioBroadcast(broadcast_id);
 
   EXPECT_CALL(mock_broadcaster_callbacks_,
-              OnBroadcastStateChanged(instance_id, BroadcastState::STREAMING))
+              OnBroadcastStateChanged(broadcast_id, BroadcastState::STREAMING))
       .Times(1);
 
   LeAudioClientAudioSinkReceiver* audio_receiver;
   EXPECT_CALL(mock_audio_source_, Start)
       .WillOnce(DoAll(SaveArg<1>(&audio_receiver), Return(true)));
 
-  LeAudioBroadcaster::Get()->StartAudioBroadcast(instance_id);
+  LeAudioBroadcaster::Get()->StartAudioBroadcast(broadcast_id);
   ASSERT_NE(audio_receiver, nullptr);
 
   // NOTICE: This is really an implementation specific part, we fake the BIG
@@ -226,7 +218,7 @@ TEST_F(BroadcasterTest, StartAudioBroadcast) {
   //         a mocked one).
   BigConfig big_cfg;
   big_cfg.big_id =
-      MockBroadcastStateMachine::GetLastInstance()->GetInstanceId();
+      MockBroadcastStateMachine::GetLastInstance()->GetAdvertisingSid();
   big_cfg.connection_handles = {0x10, 0x12};
   big_cfg.max_pdu = 128;
   MockBroadcastStateMachine::GetLastInstance()->SetExpectedBigConfig(big_cfg);
@@ -238,19 +230,19 @@ TEST_F(BroadcasterTest, StartAudioBroadcast) {
 }
 
 TEST_F(BroadcasterTest, StartAudioBroadcastMedia) {
-  uint8_t instance_id =
+  auto broadcast_id =
       InstantiateBroadcast(LeAudioBroadcaster::AudioProfile::MEDIA);
-  LeAudioBroadcaster::Get()->StopAudioBroadcast(instance_id);
+  LeAudioBroadcaster::Get()->StopAudioBroadcast(broadcast_id);
 
   EXPECT_CALL(mock_broadcaster_callbacks_,
-              OnBroadcastStateChanged(instance_id, BroadcastState::STREAMING))
+              OnBroadcastStateChanged(broadcast_id, BroadcastState::STREAMING))
       .Times(1);
 
   LeAudioClientAudioSinkReceiver* audio_receiver;
   EXPECT_CALL(mock_audio_source_, Start)
       .WillOnce(DoAll(SaveArg<1>(&audio_receiver), Return(true)));
 
-  LeAudioBroadcaster::Get()->StartAudioBroadcast(instance_id);
+  LeAudioBroadcaster::Get()->StartAudioBroadcast(broadcast_id);
   ASSERT_NE(audio_receiver, nullptr);
 
   // NOTICE: This is really an implementation specific part, we fake the BIG
@@ -259,7 +251,7 @@ TEST_F(BroadcasterTest, StartAudioBroadcastMedia) {
   //         a mocked one).
   BigConfig big_cfg;
   big_cfg.big_id =
-      MockBroadcastStateMachine::GetLastInstance()->GetInstanceId();
+      MockBroadcastStateMachine::GetLastInstance()->GetAdvertisingSid();
   big_cfg.connection_handles = {0x10, 0x12};
   big_cfg.max_pdu = 128;
   MockBroadcastStateMachine::GetLastInstance()->SetExpectedBigConfig(big_cfg);
@@ -271,83 +263,75 @@ TEST_F(BroadcasterTest, StartAudioBroadcastMedia) {
 }
 
 TEST_F(BroadcasterTest, StopAudioBroadcast) {
-  uint8_t instance_id = InstantiateBroadcast();
-  LeAudioBroadcaster::Get()->StartAudioBroadcast(instance_id);
+  auto broadcast_id = InstantiateBroadcast();
+  LeAudioBroadcaster::Get()->StartAudioBroadcast(broadcast_id);
 
   EXPECT_CALL(mock_broadcaster_callbacks_,
-              OnBroadcastStateChanged(instance_id, BroadcastState::STOPPED))
+              OnBroadcastStateChanged(broadcast_id, BroadcastState::STOPPED))
       .Times(1);
 
   EXPECT_CALL(mock_audio_source_, Stop).Times(AtLeast(1));
-  LeAudioBroadcaster::Get()->StopAudioBroadcast(instance_id);
+  LeAudioBroadcaster::Get()->StopAudioBroadcast(broadcast_id);
 }
 
 TEST_F(BroadcasterTest, DestroyAudioBroadcast) {
-  uint8_t instance_id = InstantiateBroadcast();
+  auto broadcast_id = InstantiateBroadcast();
 
-  EXPECT_CALL(mock_broadcaster_callbacks_, OnBroadcastDestroyed(instance_id))
+  EXPECT_CALL(mock_broadcaster_callbacks_, OnBroadcastDestroyed(broadcast_id))
       .Times(1);
-  LeAudioBroadcaster::Get()->DestroyAudioBroadcast(instance_id);
+  LeAudioBroadcaster::Get()->DestroyAudioBroadcast(broadcast_id);
 
   // Expect not being able to interact with this Broadcast
   EXPECT_CALL(mock_broadcaster_callbacks_,
-              OnBroadcastStateChanged(instance_id, _))
+              OnBroadcastStateChanged(broadcast_id, _))
       .Times(0);
 
   EXPECT_CALL(mock_audio_source_, Stop).Times(0);
-  LeAudioBroadcaster::Get()->StopAudioBroadcast(instance_id);
+  LeAudioBroadcaster::Get()->StopAudioBroadcast(broadcast_id);
 
   EXPECT_CALL(mock_audio_source_, Start).Times(0);
-  LeAudioBroadcaster::Get()->StartAudioBroadcast(instance_id);
+  LeAudioBroadcaster::Get()->StartAudioBroadcast(broadcast_id);
 
   EXPECT_CALL(mock_audio_source_, Stop).Times(0);
-  LeAudioBroadcaster::Get()->SuspendAudioBroadcast(instance_id);
-}
-
-TEST_F(BroadcasterTest, GetBroadcastId) {
-  uint8_t instance_id = InstantiateBroadcast();
-
-  EXPECT_CALL(mock_broadcaster_callbacks_, OnBroadcastId(instance_id, _))
-      .Times(1);
-  LeAudioBroadcaster::Get()->GetBroadcastId(instance_id);
+  LeAudioBroadcaster::Get()->SuspendAudioBroadcast(broadcast_id);
 }
 
 TEST_F(BroadcasterTest, GetBroadcastAllStates) {
-  uint8_t instance_id = InstantiateBroadcast();
-  uint8_t instance_id2 = InstantiateBroadcast();
-  ASSERT_NE(instance_id, LeAudioBroadcaster::kInstanceIdUndefined);
-  ASSERT_NE(instance_id2, LeAudioBroadcaster::kInstanceIdUndefined);
-  ASSERT_NE(instance_id, instance_id2);
+  auto broadcast_id = InstantiateBroadcast();
+  auto broadcast_id2 = InstantiateBroadcast();
+  ASSERT_NE(broadcast_id, LeAudioBroadcaster::kInstanceIdUndefined);
+  ASSERT_NE(broadcast_id2, LeAudioBroadcaster::kInstanceIdUndefined);
+  ASSERT_NE(broadcast_id, broadcast_id2);
 
   /* In the current implementation state machine switches to the correct state
    * on itself, therefore here when we use mocked state machine this is not
    * being verified.
    */
   EXPECT_CALL(mock_broadcaster_callbacks_,
-              OnBroadcastStateChanged(instance_id, _))
+              OnBroadcastStateChanged(broadcast_id, _))
       .Times(1);
   EXPECT_CALL(mock_broadcaster_callbacks_,
-              OnBroadcastStateChanged(instance_id2, _))
+              OnBroadcastStateChanged(broadcast_id2, _))
       .Times(1);
 
   LeAudioBroadcaster::Get()->GetAllBroadcastStates();
 }
 
 TEST_F(BroadcasterTest, UpdateMetadata) {
-  uint8_t instance_id = InstantiateBroadcast();
+  auto broadcast_id = InstantiateBroadcast();
 
   EXPECT_CALL(*MockBroadcastStateMachine::GetLastInstance(),
               UpdateBroadcastAnnouncement)
       .Times(1);
-  LeAudioBroadcaster::Get()->UpdateMetadata(instance_id,
+  LeAudioBroadcaster::Get()->UpdateMetadata(broadcast_id,
                                             std::vector<uint8_t>({0x02, 0x01}));
 }
 
 TEST_F(BroadcasterTest, SetNumRetransmit) {
-  uint8_t instance_id = InstantiateBroadcast();
+  auto broadcast_id = InstantiateBroadcast();
   LeAudioBroadcaster::Get()->SetNumRetransmit(9);
   ASSERT_EQ(MockBroadcastStateMachine::GetLastInstance()->cb->GetNumRetransmit(
-                instance_id),
+                broadcast_id),
             9);
   ASSERT_EQ(LeAudioBroadcaster::Get()->GetNumRetransmit(), 9);
 }
@@ -355,12 +339,12 @@ TEST_F(BroadcasterTest, SetNumRetransmit) {
 TEST_F(BroadcasterTest, SetStreamingPhy) {
   LeAudioBroadcaster::Get()->SetStreamingPhy(2);
   // From now on new streams should be using Phy = 2.
-  uint8_t instance_id = InstantiateBroadcast();
+  InstantiateBroadcast();
   ASSERT_EQ(MockBroadcastStateMachine::GetLastInstance()->cfg.streaming_phy, 2);
 
   // From now on new streams should be using Phy = 1.
   LeAudioBroadcaster::Get()->SetStreamingPhy(1);
-  instance_id = InstantiateBroadcast();
+  InstantiateBroadcast();
   ASSERT_EQ(MockBroadcastStateMachine::GetLastInstance()->cfg.streaming_phy, 1);
   ASSERT_EQ(LeAudioBroadcaster::Get()->GetStreamingPhy(), 1);
 }

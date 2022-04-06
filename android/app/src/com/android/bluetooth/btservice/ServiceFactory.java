@@ -18,6 +18,7 @@ package com.android.bluetooth.btservice;
 
 import com.android.bluetooth.a2dp.A2dpService;
 import com.android.bluetooth.avrcp.AvrcpTargetService;
+import com.android.bluetooth.bas.BatteryService;
 import com.android.bluetooth.bass_client.BassClientService;
 import com.android.bluetooth.csip.CsipSetCoordinatorService;
 import com.android.bluetooth.hap.HapClientService;
@@ -82,5 +83,9 @@ public class ServiceFactory {
 
     public BassClientService getBassClientService() {
         return BassClientService.getBassClientService();
+    }
+
+    public BatteryService getBatteryService() {
+        return BatteryService.getBatteryService();
     }
 }

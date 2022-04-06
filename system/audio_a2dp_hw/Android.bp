@@ -9,7 +9,7 @@ package {
 
 cc_defaults {
     name: "audio_a2dp_hw_defaults",
-    defaults: ["libchrome_support_defaults"],
+    defaults: ["libchrome_shared_support_defaults"],
     include_dirs: [
         "packages/modules/Bluetooth/system",
         "packages/modules/Bluetooth/system/audio_a2dp_hw/include",
@@ -29,7 +29,6 @@ cc_library {
         "src/audio_a2dp_hw_utils.cc",
     ],
     apex_available: [
-        "//apex_available:platform",
         "com.android.bluetooth",
     ],
     shared_libs: [

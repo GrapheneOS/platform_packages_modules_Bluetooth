@@ -42,6 +42,7 @@ import android.util.Log;
 import com.android.bluetooth.BluetoothStatsLog;
 import com.android.bluetooth.R;
 import com.android.bluetooth.Utils;
+import com.android.bluetooth.bas.BatteryService;
 import com.android.bluetooth.hfp.HeadsetHalConstants;
 import com.android.internal.annotations.VisibleForTesting;
 
@@ -824,6 +825,10 @@ final class RemoteDevices {
                     || state == BluetoothAdapter.STATE_BLE_TURNING_ON) {
                 intent = new Intent(BluetoothAdapter.ACTION_BLE_ACL_CONNECTED);
             }
+            BatteryService batteryService = BatteryService.getBatteryService();
+            if (batteryService != null) {
+                batteryService.connect(device);
+            }
             debugLog(
                     "aclStateChangeCallback: Adapter State: " + BluetoothAdapter.nameForState(state)
                             + " Connected: " + device);
@@ -845,6 +850,10 @@ final class RemoteDevices {
             }
             // Reset battery level on complete disconnection
             if (sAdapterService.getConnectionState(device) == 0) {
+                BatteryService batteryService = BatteryService.getBatteryService();
+                if (batteryService != null) {
+                    batteryService.disconnect(device);
+                }
                 resetBatteryLevel(device);
             }
             if (!sAdapterService.isAnyProfileEnabled(device)) {

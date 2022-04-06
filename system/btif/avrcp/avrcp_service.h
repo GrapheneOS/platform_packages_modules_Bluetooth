@@ -98,6 +98,7 @@ class AvrcpService : public MediaCallbacks {
   static ServiceInterfaceImpl* service_interface_;
 
   uint32_t sdp_record_handle = -1;
+  uint32_t ct_sdp_record_handle = -1;
   uint16_t profile_version = -1;
 
   MediaInterface* media_interface_ = nullptr;
@@ -110,5 +111,5 @@ class AvrcpService : public MediaCallbacks {
 }  // namespace bluetooth
 
 inline bool is_new_avrcp_enabled() {
-  return osi_property_get_bool("persist.bluetooth.enablenewavrcp", true);
+  return osi_property_get_bool("bluetooth.profile.avrcp.target.enabled", false);
 }

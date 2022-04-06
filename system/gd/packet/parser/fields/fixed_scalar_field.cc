@@ -43,6 +43,7 @@ void FixedScalarField::GenRustWriter(std::ostream& s, Size start_offset, Size en
   FixedField::GenRustWriter(s, start_offset, end_offset);
 }
 
-void FixedScalarField::GenRustGetter(std::ostream& s, Size start_offset, Size end_offset) const {
-  FixedField::GenRustGetter(s, start_offset, end_offset);
+void FixedScalarField::GenRustGetter(
+    std::ostream& s, Size start_offset, Size end_offset, std::string parent_name) const {
+  FixedField::GenRustGetter(s, start_offset, end_offset, parent_name);
 }

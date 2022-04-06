@@ -70,15 +70,17 @@ union HasGattOpContext {
 static_assert(sizeof(HasGattOpContext) <= sizeof(void*));
 
 /* Service UUIDs */
-/* FIXME: actually these were not yet assigned - using placeholders for now. */
 static const bluetooth::Uuid kUuidHearingAccessService =
     bluetooth::Uuid::From16Bit(0x1854);
 static const bluetooth::Uuid kUuidHearingAidFeatures =
-    bluetooth::Uuid::From16Bit(0xEEED);
+    bluetooth::Uuid::From16Bit(0x2BDA);
 static const bluetooth::Uuid kUuidHearingAidPresetControlPoint =
-    bluetooth::Uuid::From16Bit(0xEEEC);
+    bluetooth::Uuid::From16Bit(0x2BDB);
 static const bluetooth::Uuid kUuidActivePresetIndex =
-    bluetooth::Uuid::From16Bit(0xEEEB);
+    bluetooth::Uuid::From16Bit(0x2BDC);
+
+static const uint8_t kStartPresetIndex = 1;
+static const uint8_t kMaxNumOfPresets = 255;
 
 /* Base device class for the GATT-based service clients */
 class GattServiceDevice {

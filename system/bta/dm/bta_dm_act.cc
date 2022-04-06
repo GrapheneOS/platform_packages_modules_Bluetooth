@@ -1793,7 +1793,7 @@ static void bta_dm_sdp_callback(tSDP_STATUS sdp_status) {
       (tBTA_DM_SDP_RESULT*)osi_malloc(sizeof(tBTA_DM_SDP_RESULT));
 
   p_msg->hdr.event = BTA_DM_SDP_RESULT_EVT;
-  p_msg->sdp_result = static_cast<uint16_t>(sdp_status);
+  p_msg->sdp_result = sdp_status;
 
   bta_sys_sendmsg(p_msg);
 }
@@ -3100,7 +3100,7 @@ static void bta_dm_set_eir(char* local_name) {
   if (free_eir_length)
     UINT8_TO_STREAM(p, 0); /* terminator of significant part */
 
-  BTM_WriteEIR(p_buf);
+  get_btm_client_interface().eir.BTM_WriteEIR(p_buf);
 }
 
 #if (BTA_EIR_CANNED_UUID_LIST != TRUE)
@@ -3200,7 +3200,8 @@ void bta_dm_eir_update_uuid(uint16_t uuid16, bool adding) {
   } else {
     LOG_INFO("EIR Removing UUID=0x%04X from extended inquiry response", uuid16);
 
-    BTM_RemoveEirService(bta_dm_cb.eir_uuid, uuid16);
+    get_btm_client_interface().eir.BTM_RemoveEirService(bta_dm_cb.eir_uuid,
+                                                        uuid16);
   }
 
   bta_dm_set_eir(NULL);

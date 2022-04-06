@@ -147,8 +147,7 @@ void PrepareAdvertisingData(bluetooth::le_audio::BroadcastId& broadcast_id,
   UINT8_TO_STREAM(data_ptr, 6);
   UINT8_TO_STREAM(data_ptr, BTM_BLE_AD_TYPE_SERVICE_DATA_TYPE);
   UINT16_TO_STREAM(data_ptr, kBroadcastAudioAnnouncementServiceUuid);
-  ARRAY_TO_STREAM(data_ptr, broadcast_id.data(),
-                  bluetooth::le_audio::kBroadcastAnnouncementBroadcastIdSize);
+  UINT24_TO_STREAM(data_ptr, broadcast_id)
 };
 
 void PreparePeriodicData(const BasicAudioAnnouncementData& announcement,
@@ -229,7 +228,27 @@ const std::map<uint32_t, uint8_t> data_interval_ms_to_frame_duration = {
      codec_spec_conf::kLeAudioCodecLC3FrameDur10000us},
 };
 
-std::vector<uint8_t> BroadcastCodecWrapper::GetCodecSpecData() const {
+types::LeAudioLtvMap BroadcastCodecWrapper::GetBisCodecSpecData(
+    uint8_t bis_idx) const {
+  /* For a single channel this will be set at the subgroup lvl. */
+  if (source_codec_config.num_channels == 1) return {};
+
+  switch (bis_idx) {
+    case 1:
+      return types::LeAudioLtvMap(
+          {{codec_spec_conf::kLeAudioCodecLC3TypeAudioChannelAllocation,
+            UINT32_TO_VEC_UINT8(codec_spec_conf::kLeAudioLocationFrontLeft)}});
+    case 2:
+      return types::LeAudioLtvMap(
+          {{codec_spec_conf::kLeAudioCodecLC3TypeAudioChannelAllocation,
+            UINT32_TO_VEC_UINT8(codec_spec_conf::kLeAudioLocationFrontRight)}});
+      break;
+    default:
+      return {};
+  }
+}
+
+types::LeAudioLtvMap BroadcastCodecWrapper::GetSubgroupCodecSpecData() const {
   LOG_ASSERT(
       sample_rate_to_sampling_freq_map.count(source_codec_config.sample_rate))
       << "Invalid sample_rate";
@@ -253,27 +272,14 @@ std::vector<uint8_t> BroadcastCodecWrapper::GetCodecSpecData() const {
         UINT16_TO_VEC_UINT8(bc);
   }
 
-  uint32_t audio_location;
-  switch (source_codec_config.num_channels) {
-    case 1:
-      audio_location = codec_spec_conf::kLeAudioLocationMonoUnspecified;
-      break;
-    default:
-      audio_location = codec_spec_conf::kLeAudioLocationFrontLeft |
-                       codec_spec_conf::kLeAudioLocationFrontRight;
-      break;
+  if (source_codec_config.num_channels == 1) {
+    codec_spec_ltvs
+        [codec_spec_conf::kLeAudioCodecLC3TypeAudioChannelAllocation] =
+            UINT32_TO_VEC_UINT8(codec_spec_conf::kLeAudioLocationFrontCenter);
   }
-  codec_spec_ltvs[codec_spec_conf::kLeAudioCodecLC3TypeAudioChannelAllocation] =
-      UINT32_TO_VEC_UINT8(audio_location);
 
-  types::LeAudioLtvMap ltv_map(codec_spec_ltvs);
-  std::vector<uint8_t> data(ltv_map.RawPacketSize());
-  ltv_map.RawPacket(data.data());
-  return data;
+  return types::LeAudioLtvMap(codec_spec_ltvs);
 }
-
-} /* namespace broadcaster */
-} /* namespace le_audio */
 
 std::ostream& operator<<(
     std::ostream& os,
@@ -292,3 +298,6 @@ std::ostream& operator<<(
   os << "]";
   return os;
 }
+
+} /* namespace broadcaster */
+} /* namespace le_audio */

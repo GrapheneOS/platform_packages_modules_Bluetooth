@@ -47,7 +47,6 @@ cc_library {
         "libcutils",
     ],
     apex_available: [
-        "//apex_available:platform",
         "com.android.bluetooth",
     ],
     min_sdk_version: "30",
@@ -93,7 +92,7 @@ genrule {
 // libbtif static library for target
 cc_defaults {
     name: "libbtif_defaults",
-    defaults: ["fluoride_defaults"],
+    defaults: ["fluoride_basic_defaults"],
     include_dirs: btifCommonIncludes,
     srcs: [
         // AVRCP Target Service
@@ -160,25 +159,8 @@ cc_defaults {
         "BluetoothGeneratedDumpsysDataSchema_h",
         "BluetoothGeneratedPackets_h",
     ],
-    shared_libs: [
-        "android.hardware.bluetooth.a2dp@1.0",
-        "android.hardware.bluetooth.audio@2.0",
-        "android.hardware.bluetooth.audio@2.1",
-        "libcrypto",
-        "libflatbuffers-cpp",
-        "libhidlbase",
-        "libtinyxml2",
-        "libz",
-    ],
     target: {
         android: {
-            shared_libs: [
-                "android.hardware.bluetooth.audio-V1-ndk",
-                "libaaudio",
-                "libbinder_ndk",
-                "libfmq",
-                "libstatslog_bt",
-            ],
             srcs: ["src/btif_avrcp_audio_track.cc"],
         },
         host: {
@@ -188,9 +170,11 @@ cc_defaults {
                   ],
         },
     },
-    whole_static_libs: [
+    static_libs: [
         "avrcp-target-service",
         "lib-bt-packets",
+        "lib-bt-packets-base",
+        "lib-bt-packets-avrcp",
         "libbt-audio-hal-interface",
         "libaudio-a2dp-hw-utils",
     ],
@@ -203,11 +187,7 @@ cc_defaults {
 cc_library_static {
     name: "libbtif",
     defaults: ["libbtif_defaults"],
-}
-
-cc_library_static {
-    name: "libbtif-static",
-    defaults: ["libbtif_defaults"],
+    min_sdk_version: "Tiramisu"
 }
 
 // btif unit tests for target
@@ -221,37 +201,38 @@ cc_test {
     ],
     header_libs: ["libbluetooth_headers"],
     shared_libs: [
-        "libaaudio",
         "android.hardware.bluetooth@1.0",
         "android.hardware.bluetooth@1.1",
-        "android.hardware.bluetooth.a2dp@1.0",
         "android.hardware.bluetooth.audio@2.0",
         "android.hardware.bluetooth.audio@2.1",
-        "android.system.suspend.control-V1-ndk",
+        "libaaudio",
         "libbinder_ndk",
+        "libcrypto",
         "libfmq",
         "libhidlbase",
         "libprotobuf-cpp-lite",
         "libprocessgroup",
-        "libcrypto",
     ],
     static_libs: [
+        "android.hardware.bluetooth.a2dp@1.0",
+        "android.system.suspend.control-V1-ndk",
+        "libbluetooth-types",
+        "libbt-audio-hal-interface",
         "libbt-bta",
-        "libbtcore",
         "libbt-common",
-        "libbt-stack",
+        "libbtcore",
+        "libbtdevice",
+        "libbt-hci",
+        "libbt-protos-lite",
         "libbt-sbc-decoder",
         "libbt-sbc-encoder",
+        "libbt-stack",
         "libbt-utils",
         "libFraunhoferAAC",
         "libg722codec",
         "liblc3",
-        "libbtdevice",
-        "libbt-hci",
-        "libudrv-uipc",
-        "libbluetooth-types",
         "libosi",
-        "libbt-protos-lite",
+        "libudrv-uipc",
    ],
     whole_static_libs: [
         "libbtif",
@@ -288,10 +269,12 @@ cc_test {
         "BluetoothGeneratedPackets_h",
     ],
     shared_libs: [
-        "libflatbuffers-cpp",
+        "android.hardware.bluetooth@1.0",
+        "android.hardware.bluetooth@1.1",
     ],
     static_libs: [
         "libbluetooth-types",
+        "libflatbuffers-cpp",
         "libosi",
     ],
     cflags: ["-DBUILDCFG"],
@@ -362,7 +345,7 @@ cc_test {
     cflags: ["-DBUILDCFG"],
     target: {
         android: {
-            shared_libs: [
+            static_libs: [
                 "android.system.suspend.control-V1-ndk",
             ],
         },
@@ -464,12 +447,10 @@ cc_test {
       ],
       header_libs: ["libbluetooth_headers"],
       shared_libs: [
-          "android.hardware.bluetooth.a2dp@1.0",
           "android.hardware.bluetooth.audio@2.0",
           "android.hardware.bluetooth.audio@2.1",
           "libcrypto",
           "libcutils",
-          "libflatbuffers-cpp",
           "libhidlbase",
           "liblog",
           "libtinyxml2",
@@ -478,8 +459,16 @@ cc_test {
           "libbtif",
       ],
       static_libs: [
+          "android.hardware.bluetooth.a2dp@1.0",
+          "avrcp-target-service",
+          "libaudio-a2dp-hw-utils",
           "libbluetooth-types",
+          "libbt-audio-hal-interface",
           "libbtdevice",
+          "lib-bt-packets",
+          "lib-bt-packets-avrcp",
+          "lib-bt-packets-base",
+          "libflatbuffers-cpp",
           "libgmock",
           "libosi",
       ],

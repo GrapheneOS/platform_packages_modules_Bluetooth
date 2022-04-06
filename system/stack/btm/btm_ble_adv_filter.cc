@@ -531,8 +531,9 @@ static void BTM_LE_PF_addr_filter(tBTM_BLE_SCAN_COND_OP action,
      * cover if the RPA is derived from RANDOM STATIC.
      */
     /* ALWAYS FORCE 2 for this vendor command! */
-    addr.type = 0x02;  // Really, you will break scanning if you change this.
-    UINT8_TO_STREAM(p, addr.type);
+    uint8_t addr_type =
+        0x02;  // Really, you will break scanning if you change this.
+    UINT8_TO_STREAM(p, addr_type);
   }
 
   /* send address filter */
@@ -648,7 +649,7 @@ void BTM_LE_PF_set(tBTM_BLE_PF_FILT_INDEX filt_index,
       case BTM_BLE_PF_ADDR_FILTER: {
         tBLE_BD_ADDR target_addr;
         target_addr.bda = cmd.address;
-        target_addr.type = cmd.addr_type;
+        target_addr.type = to_ble_addr_type(cmd.addr_type);
 
         BTM_LE_PF_addr_filter(action, filt_index, target_addr,
                               base::DoNothing());
@@ -687,7 +688,7 @@ void BTM_LE_PF_set(tBTM_BLE_PF_FILT_INDEX filt_index,
           // Set the IRK
           tBTM_LE_PID_KEYS pid_keys;
           pid_keys.irk = cmd.irk;
-          pid_keys.identity_addr_type = cmd.addr_type;
+          pid_keys.identity_addr_type = to_ble_addr_type(cmd.addr_type);
           pid_keys.identity_addr = cmd.address;
           // Add it to the union to pass to SecAddBleKey
           tBTM_LE_KEY_VALUE le_key;

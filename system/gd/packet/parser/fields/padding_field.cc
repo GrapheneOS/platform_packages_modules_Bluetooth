@@ -66,7 +66,6 @@ std::string PaddingField::GetRustDataType() const {
   return "There's no type for Padding fields";
 }
 
-void PaddingField::GenRustGetter(std::ostream&, Size, Size) const {
-}
+void PaddingField::GenRustGetter(std::ostream&, Size, Size, std::string) const {}
 
 void PaddingField::GenRustWriter(std::ostream&, Size, Size) const {}

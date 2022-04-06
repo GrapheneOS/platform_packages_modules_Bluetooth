@@ -34,6 +34,7 @@
 #include "stack/crypto_toolbox/crypto_toolbox.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/bt_octets.h"
+#include "types/ble_address_with_type.h"
 #include "types/raw_address.h"
 
 extern tBTM_CB btm_cb;
@@ -181,6 +182,7 @@ static bool btm_ble_match_random_bda(void* data, void* context) {
  * matched to.
  */
 tBTM_SEC_DEV_REC* btm_ble_resolve_random_addr(const RawAddress& random_bda) {
+  if (btm_cb.sec_dev_rec == nullptr) return nullptr;
   list_node_t* n = list_foreach(btm_cb.sec_dev_rec, btm_ble_match_random_bda,
                                 (void*)&random_bda);
   return (n == nullptr) ? (nullptr)
@@ -225,7 +227,8 @@ static tBTM_SEC_DEV_REC* btm_find_dev_by_identity_addr(
  *
  ******************************************************************************/
 bool btm_identity_addr_to_random_pseudo(RawAddress* bd_addr,
-                                        uint8_t* p_addr_type, bool refresh) {
+                                        tBLE_ADDR_TYPE* p_addr_type,
+                                        bool refresh) {
   tBTM_SEC_DEV_REC* p_dev_rec =
       btm_find_dev_by_identity_addr(*bd_addr, *p_addr_type);
   if (p_dev_rec == nullptr) {
@@ -244,7 +247,7 @@ bool btm_identity_addr_to_random_pseudo(RawAddress* bd_addr,
     *bd_addr = p_dev_rec->ble.pseudo_addr;
   }
 
-  *p_addr_type = p_dev_rec->ble.ble_addr_type;
+  *p_addr_type = p_dev_rec->ble.AddressType();
   return true;
 }
 
@@ -263,7 +266,7 @@ bool btm_identity_addr_to_random_pseudo_from_address_with_type(
  *
  ******************************************************************************/
 bool btm_random_pseudo_to_identity_addr(RawAddress* random_pseudo,
-                                        uint8_t* p_identity_addr_type) {
+                                        tBLE_ADDR_TYPE* p_identity_addr_type) {
   tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(*random_pseudo);
 
   if (p_dev_rec != NULL) {

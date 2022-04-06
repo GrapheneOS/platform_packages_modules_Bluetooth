@@ -286,9 +286,9 @@ static inline unsigned lc3_get_symbol(
     const struct lc3_ac_symbol *symbols = model->s;
     struct lc3_bits_ac *ac = &bits->ac;
 
-    uint16_t range = ac->range >> 10;
+    unsigned range = (ac->range >> 10) & 0xffff;
 
-    ac->error |= (ac->low >= ((unsigned)range << 10));
+    ac->error |= (ac->low >= (range << 10));
     if (ac->error)
         ac->low = 0;
 

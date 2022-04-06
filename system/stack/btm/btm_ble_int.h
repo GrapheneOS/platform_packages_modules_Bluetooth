@@ -32,6 +32,7 @@
 #include "btm_int_types.h"
 #include "smp_api.h"
 #include "stack/include/hci_error_code.h"
+#include "types/ble_address_with_type.h"
 #include "types/raw_address.h"
 
 extern void btm_ble_process_periodic_adv_sync_est_evt(uint8_t len,
@@ -98,8 +99,6 @@ extern bool btm_ble_resume_bg_conn(void);
 extern void btm_ble_update_mode_operation(uint8_t link_role,
                                           const RawAddress* bda,
                                           tHCI_STATUS status);
-extern void btm_ble_bgconn_cancel_if_disconnected(const RawAddress& bd_addr);
-
 /* BLE address management */
 extern void btm_gen_resolvable_private_addr(
     base::Callback<void(const RawAddress& rpa)> cb);
@@ -111,8 +110,8 @@ extern uint64_t btm_get_next_private_addrress_interval_ms();
 
 /*  privacy function */
 /* BLE address mapping with CS feature */
-extern bool btm_random_pseudo_to_identity_addr(RawAddress* random_pseudo,
-                                               uint8_t* p_identity_addr_type);
+extern bool btm_random_pseudo_to_identity_addr(
+    RawAddress* random_pseudo, tBLE_ADDR_TYPE* p_identity_addr_type);
 extern void btm_ble_refresh_peer_resolvable_private_addr(
     const RawAddress& pseudo_bda, const RawAddress& rra,
     tBTM_SEC_BLE::tADDRESS_TYPE type);

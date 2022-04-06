@@ -1743,19 +1743,7 @@ public final class BluetoothHeadsetClient implements BluetoothProfile, AutoClose
         private final String mOperatorName;
 
         /**
-         * The general signal strength, from 0 to 5.
-         *
-         * Bluetooth HFP v1.8 specifies that the signal strength of a device can be [0, 5]. It does
-         * place any requirements on how a device derives those values. While they're typically
-         * derived from signal quality/RSSI buckets, there's way to be certain on the exact meaning.
-         *
-         * That said, you can "generally" interpret the values relative to each other as follows:
-         *   - Level 0: None/Unknown
-         *   - Level 1: Very Poor
-         *   - Level 2: Poor
-         *   - Level 3: Fair
-         *   - Level 4: Good
-         *   - Level 5: Great
+         * The general signal strength, from 0 to 5
          */
         private final int mSignalStrength;
 
@@ -1821,9 +1809,22 @@ public final class BluetoothHeadsetClient implements BluetoothProfile, AutoClose
         }
 
         /**
-         * Get the network's general signal strength
+         * The HFP Client defined signal strength, from 0 to 5.
          *
-         * @return The general signal strength, range [0, 5]
+         * Bluetooth HFP v1.8 specifies that the signal strength of a device can be [0, 5]. It does
+         * not place any requirements on how a device derives those values. While they're typically
+         * derived from signal quality/RSSI buckets, there's no way to be certain on the exact
+         * meaning. Derivation methods can even change between wireless cellular technologies.
+         *
+         * That said, you can "generally" interpret the values relative to each other as follows:
+         *   - Level 0: None/Unknown
+         *   - Level 1: Very Poor
+         *   - Level 2: Poor
+         *   - Level 3: Fair
+         *   - Level 4: Good
+         *   - Level 5: Great
+         *
+         * @return the HFP Client defined signal strength, range [0, 5]
          *
          * @hide
          */

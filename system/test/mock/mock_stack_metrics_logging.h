@@ -159,6 +159,18 @@ struct log_manufacturer_info {
 };
 extern struct log_manufacturer_info log_manufacturer_info;
 
+// Name: log_counter_metrics
+struct log_counter_metrics {
+  std::function<void(android::bluetooth::CodePathCounterKeyEnum key,
+                     int64_t value)>
+      body{
+          [](android::bluetooth::CodePathCounterKeyEnum key, int64_t value) {}};
+  void operator()(android::bluetooth::CodePathCounterKeyEnum key,
+                  int64_t value) {
+    body(key, value);
+  };
+};
+extern struct log_counter_metrics log_counter_metrics;
 }  // namespace stack_metrics_logging
 }  // namespace mock
 }  // namespace test

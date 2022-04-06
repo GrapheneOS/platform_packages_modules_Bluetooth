@@ -57,7 +57,7 @@ static void bta_dm_pm_stop_timer_by_index(tBTA_PM_TIMER* p_timer,
 /* BTA_DM_PM_SSR1 will be dedicated for HH SSR setting entry, no other profile
  * can use it */
 #define BTA_DM_PM_SSR_HH BTA_DM_PM_SSR1
-static void bta_dm_pm_ssr(const RawAddress& peer_addr, int ssr);
+static void bta_dm_pm_ssr(const RawAddress& peer_addr, const int ssr);
 
 tBTA_DM_CONNECTED_SRVCS bta_dm_conn_srvcs;
 static std::recursive_mutex pm_timer_schedule_mutex;
@@ -759,10 +759,9 @@ void bta_dm_pm_sniff(tBTA_DM_PEER_DEVICE* p_peer_dev, uint8_t index) {
  * Returns          void
  *
  ******************************************************************************/
-static void bta_dm_pm_ssr(const RawAddress& peer_addr, int ssr) {
-  int current_ssr_index;
+static void bta_dm_pm_ssr(const RawAddress& peer_addr, const int ssr) {
   int ssr_index = ssr;
-  tBTA_DM_SSR_SPEC* p_spec = &p_bta_dm_ssr_spec[ssr_index];
+  tBTA_DM_SSR_SPEC* p_spec = &p_bta_dm_ssr_spec[ssr];
 
   LOG_DEBUG("Request to put link to device:%s into power_mode:%s",
             PRIVATE_ADDRESS(peer_addr), p_spec->name);
@@ -773,6 +772,7 @@ static void bta_dm_pm_ssr(const RawAddress& peer_addr, int ssr) {
       continue;
     }
     /* p_bta_dm_pm_cfg[0].app_id is the number of entries */
+    int current_ssr_index = BTA_DM_PM_SSR0;
     for (int j = 1; j <= p_bta_dm_pm_cfg[0].app_id; j++) {
       /* find the associated p_bta_dm_pm_cfg */
       const tBTA_DM_PM_CFG& config = p_bta_dm_pm_cfg[j];
@@ -856,8 +856,8 @@ void bta_dm_pm_active(const RawAddress& peer_addr) {
                 PRIVATE_ADDRESS(peer_addr));
       break;
     case BTM_SUCCESS:
-      LOG_INFO("Active power mode already set for device:%s",
-               PRIVATE_ADDRESS(peer_addr));
+      LOG_DEBUG("Active power mode already set for device:%s",
+                PRIVATE_ADDRESS(peer_addr));
       break;
     default:
       LOG_WARN("Unable to set active power mode for device:%s status:%s",

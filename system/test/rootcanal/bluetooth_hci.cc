@@ -25,6 +25,9 @@
 
 #include "hci_internals.h"
 #include "log/log.h"
+#include "model/devices/hci_device.h"
+#include "model/devices/link_layer_socket_device.h"
+#include "model/hci/hci_socket_transport.h"
 
 namespace android {
 namespace hardware {
@@ -33,9 +36,13 @@ namespace V1_1 {
 namespace sim {
 
 using android::hardware::hidl_vec;
-using test_vendor_lib::AsyncTaskId;
-using test_vendor_lib::DualModeController;
-using test_vendor_lib::TaskCallback;
+using ::bluetooth::hci::Address;
+using rootcanal::AsyncTaskId;
+using rootcanal::DualModeController;
+using rootcanal::HciDevice;
+using rootcanal::HciSocketTransport;
+using rootcanal::LinkLayerSocketDevice;
+using rootcanal::TaskCallback;
 
 namespace {
 
@@ -103,7 +110,12 @@ Return<void> BluetoothHci::initialize_impl(
   char mac_property[PROPERTY_VALUE_MAX] = "";
   property_get("vendor.bt.rootcanal_mac_address", mac_property,
                "3C:5A:B4:01:02:03");
-  controller_->Initialize({"dmc", std::string(mac_property)});
+  auto addr = Address::FromString(std::string(mac_property));
+  if (addr) {
+    controller_->SetAddress(*addr);
+  } else {
+    LOG_ALWAYS_FATAL("Invalid address: %s", mac_property);
+  }
 
   controller_->RegisterEventChannel(
       [this, cb](std::shared_ptr<std::vector<uint8_t>> packet) {
@@ -177,9 +189,8 @@ Return<void> BluetoothHci::initialize_impl(
   // Add the controller as a device in the model.
   size_t controller_index = test_model_.Add(controller_);
   size_t low_energy_phy_index =
-      test_model_.AddPhy(test_vendor_lib::Phy::Type::LOW_ENERGY);
-  size_t classic_phy_index =
-      test_model_.AddPhy(test_vendor_lib::Phy::Type::BR_EDR);
+      test_model_.AddPhy(rootcanal::Phy::Type::LOW_ENERGY);
+  size_t classic_phy_index = test_model_.AddPhy(rootcanal::Phy::Type::BR_EDR);
   test_model_.AddDeviceToPhy(controller_index, low_energy_phy_index);
   test_model_.AddDeviceToPhy(controller_index, classic_phy_index);
   test_model_.SetTimerPeriod(std::chrono::milliseconds(10));
@@ -202,12 +213,15 @@ Return<void> BluetoothHci::initialize_impl(
     SetUpTestChannel();
     SetUpHciServer([this](std::shared_ptr<AsyncDataChannel> socket,
                           AsyncDataChannelServer* srv) {
-      test_model_.IncomingHciConnection(socket);
+      auto transport = HciSocketTransport::Create(socket);
+      test_model_.AddHciConnection(HciDevice::Create(transport, ""));
       srv->StartListening();
     });
     SetUpLinkLayerServer([this](std::shared_ptr<AsyncDataChannel> socket,
                                 AsyncDataChannelServer* srv) {
-      test_model_.IncomingLinkLayerConnection(socket);
+      auto phy_type = Phy::Type::BR_EDR;
+      test_model_.AddLinkLayerConnection(
+          LinkLayerSocketDevice::Create(socket, phy_type), phy_type);
       srv->StartListening();
     });
   } else {
@@ -314,9 +328,11 @@ void BluetoothHci::SetUpLinkLayerServer(ConnectCallback connection_callback) {
   });
 }
 
-std::shared_ptr<AsyncDataChannel> BluetoothHci::ConnectToRemoteServer(
-    const std::string& server, int port) {
-  return connector_->ConnectToRemoteServer(server, port);
+std::shared_ptr<Device> BluetoothHci::ConnectToRemoteServer(
+    const std::string& server, int port, Phy::Type phy_type) {
+  auto socket = connector_->ConnectToRemoteServer(server, port);
+  if (!socket->Connected()) return nullptr;
+  return LinkLayerSocketDevice::Create(socket, phy_type);
 }
 
 void BluetoothHci::SetUpTestChannel() {

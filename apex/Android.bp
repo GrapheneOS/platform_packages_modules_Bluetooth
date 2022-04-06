@@ -16,24 +16,28 @@ apex_defaults {
     multilib: {
         first: {
             // Extractor process runs only with the primary ABI.
-            native_shared_libs: [
-                "libbluetooth",
-            ],
             jni_libs: [
                 "libbluetooth_jni",
             ],
         },
     },
 
+    prebuilts: [
+        "bluetooth-linker-config",
+    ],
     key: "com.android.bluetooth.key",
     certificate: ":com.android.bluetooth.certificate",
-    min_sdk_version: "current",
-
-    updatable: false,
-    future_updatable: true,
+    defaults: ["t-launched-apex-module"],
+    updatable: true,
     // Indicates that pre-installed version of this apex can be compressed.
     // Whether it actually will be compressed is controlled on per-device basis.
     compressible: true,
+}
+
+linker_config {
+    name: "bluetooth-linker-config",
+    src: "linker.config.json",
+    installable: false,
 }
 
 //Mainline bluetooth apex module.

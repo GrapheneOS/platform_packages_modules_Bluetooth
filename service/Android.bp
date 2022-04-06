@@ -73,6 +73,7 @@ java_library {
     apex_available: [
         "com.android.bluetooth",
     ],
+    min_sdk_version: "Tiramisu"
 }
 
 // service-bluetooth static library
@@ -105,6 +106,7 @@ java_library {
     apex_available: [
         "com.android.bluetooth",
     ],
+    min_sdk_version: "Tiramisu"
 }
 
 gensrcs {

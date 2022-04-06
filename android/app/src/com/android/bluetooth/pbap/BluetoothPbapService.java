@@ -43,6 +43,7 @@ import android.bluetooth.BluetoothSocket;
 import android.bluetooth.IBluetoothPbap;
 import android.content.AttributionSource;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -55,6 +56,7 @@ import android.os.Message;
 import android.os.PowerManager;
 import android.os.UserHandle;
 import android.os.UserManager;
+import android.sysprop.BluetoothProperties;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
@@ -86,7 +88,12 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
 
     public static final boolean DEBUG = true;
 
-    public static final boolean VERBOSE = false;
+    public static final boolean VERBOSE = Log.isLoggable(TAG, Log.VERBOSE);
+
+    /**
+     * The component name of the owned BluetoothPbapActivity
+     */
+    private static final String PBAP_ACTIVITY = BluetoothPbapActivity.class.getCanonicalName();
 
     /**
      * Intent indicating incoming obex authentication request which is from
@@ -147,7 +154,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
 
     private static final int SDP_PBAP_SERVER_VERSION = 0x0102;
     // PBAP v1.2.3, Sec. 7.1.2: local phonebook and favorites
-    private static final int SDP_PBAP_SUPPORTED_REPOSITORIES = 0x0009;
+    private static final int SDP_PBAP_SUPPORTED_REPOSITORIES = 0x000B;
     private static final int SDP_PBAP_SUPPORTED_FEATURES = 0x021F;
 
     /* PBAP will use Bluetooth notification ID from 1000000 (included) to 2000000 (excluded).
@@ -175,6 +182,10 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
     private Thread mThreadUpdateSecVersionCounter;
 
     private static BluetoothPbapService sBluetoothPbapService;
+
+    public static boolean isEnabled() {
+        return BluetoothProperties.isProfilePbapServerEnabled().orElse(false);
+    }
 
     private class BluetoothPbapContentObserver extends ContentObserver {
         BluetoothPbapContentObserver() {
@@ -562,6 +573,9 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
         mDatabaseManager = Objects.requireNonNull(AdapterService.getAdapterService().getDatabase(),
             "DatabaseManager cannot be null when PbapService starts");
 
+        // Enable owned Activity component
+        setComponentAvailable(PBAP_ACTIVITY, true);
+
         mContext = this;
         mContactsLoaded = false;
         mHandlerThread = new HandlerThread("PbapHandlerThread");
@@ -613,6 +627,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
         unregisterReceiver(mPbapReceiver);
         getContentResolver().unregisterContentObserver(mContactChangeObserver);
         mContactChangeObserver = null;
+        setComponentAvailable(PBAP_ACTIVITY, false);
         return true;
     }
 

@@ -254,54 +254,54 @@ std::string VectorField::GetRustDataType() const {
   return "Vec::<" + element_field_->GetRustDataType() + ">";
 }
 
-void VectorField::GenBoundsCheck(std::ostream& s, Size start_offset, Size, std::string context) const {
+void VectorField::GenBoundsCheck(std::ostream& s, Size start_offset, Size, std::string parent_name) const {
   auto element_field_type = GetElementField()->GetFieldType();
   auto element_field = GetElementField();
-  auto element_size = element_field->GetSize().bytes();
+  auto element_size = element_field->GetSize();
 
-  if (element_field_type == ScalarField::kFieldType) {
-    if (size_field_ == nullptr) {
-      s << "let rem_ = (bytes.len() - " << start_offset.bytes() << ") % " << element_size << ";";
-      s << "if rem_ != 0 {";
-      s << " return Err(Error::InvalidLengthError{";
-      s << "    obj: \"" << context << "\".to_string(),";
-      s << "    field: \"" << GetName() << "\".to_string(),";
-      s << "    wanted: bytes.len() + rem_,";
-      s << "    got: bytes.len()});";
-      s << "}";
-    } else if (size_field_->GetFieldType() == CountField::kFieldType) {
-      s << "let want_ = " << start_offset.bytes() << " + ((" << size_field_->GetName() << " as usize) * "
-        << element_size << ");";
-      s << "if bytes.len() < want_ {";
-      s << " return Err(Error::InvalidLengthError{";
-      s << "    obj: \"" << context << "\".to_string(),";
-      s << "    field: \"" << GetName() << "\".to_string(),";
-      s << "    wanted: want_,";
-      s << "    got: bytes.len()});";
-      s << "}";
-    } else {
-      s << "let want_ = " << start_offset.bytes() << " + (" << size_field_->GetName() << " as usize)";
-      if (GetSizeModifier() != "") {
-        s << " - ((" << GetSizeModifier().substr(1) << ") / 8)";
-      }
-      s << ";";
-      s << "if bytes.len() < want_ {";
-      s << " return Err(Error::InvalidLengthError{";
-      s << "    obj: \"" << context << "\".to_string(),";
-      s << "    field: \"" << GetName() << "\".to_string(),";
-      s << "    wanted: want_,";
-      s << "    got: bytes.len()});";
-      s << "}";
-      if (GetSizeModifier() != "") {
-        s << "if ((" << size_field_->GetName() << " as usize) < ((" << GetSizeModifier().substr(1) << ") / 8)) {";
-        s << " return Err(Error::ImpossibleStructError);";
-        s << "}";
-      }
+  if (size_field_ != nullptr && size_field_->GetFieldType() == SizeField::kFieldType) {
+    s << "let want_ = " << start_offset.bytes() << " + (" << size_field_->GetName() << " as usize)";
+    if (GetSizeModifier() != "") {
+      s << " - ((" << GetSizeModifier().substr(1) << ") / 8)";
     }
+    s << ";";
+    s << "if bytes.len() < want_ {";
+    s << " return Err(Error::InvalidLengthError{";
+    s << "    obj: \"" << parent_name << "\".to_string(),";
+    s << "    field: \"" << GetName() << "\".to_string(),";
+    s << "    wanted: want_,";
+    s << "    got: bytes.len()});";
+    s << "}";
+    if (GetSizeModifier() != "") {
+      s << "if ((" << size_field_->GetName() << " as usize) < ((" << GetSizeModifier().substr(1) << ") / 8)) {";
+      s << " return Err(Error::ImpossibleStructError);";
+      s << "}";
+    }
+  } else if (
+      size_field_ != nullptr && size_field_->GetFieldType() == CountField::kFieldType && !element_size.empty() &&
+      !element_size.has_dynamic()) {
+    s << "let want_ = " << start_offset.bytes() << " + ((" << size_field_->GetName() << " as usize) * "
+      << element_size.bytes() << ");";
+    s << "if bytes.len() < want_ {";
+    s << " return Err(Error::InvalidLengthError{";
+    s << "    obj: \"" << parent_name << "\".to_string(),";
+    s << "    field: \"" << GetName() << "\".to_string(),";
+    s << "    wanted: want_,";
+    s << "    got: bytes.len()});";
+    s << "}";
+  } else if (size_field_ == nullptr && element_field_type == ScalarField::kFieldType) {
+    s << "let rem_ = (bytes.len() - " << start_offset.bytes() << ") % " << element_size.bytes() << ";";
+    s << "if rem_ != 0 {";
+    s << " return Err(Error::InvalidLengthError{";
+    s << "    obj: \"" << parent_name << "\".to_string(),";
+    s << "    field: \"" << GetName() << "\".to_string(),";
+    s << "    wanted: bytes.len() + rem_,";
+    s << "    got: bytes.len()});";
+    s << "}";
   }
 }
 
-void VectorField::GenRustGetter(std::ostream& s, Size start_offset, Size) const {
+void VectorField::GenRustGetter(std::ostream& s, Size start_offset, Size, std::string) const {
   auto element_field_type = GetElementField()->GetFieldType();
   auto element_field = GetElementField();
   auto element_size = element_field->GetSize().bytes();

@@ -34,6 +34,7 @@ import android.content.Context;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.RemoteException;
+import android.util.CloseGuard;
 import android.util.Log;
 
 import com.android.modules.utils.SynchronousResultReceiver;
@@ -56,17 +57,18 @@ import java.util.concurrent.TimeoutException;
  * @hide
  */
 @SystemApi
-@SuppressLint("NotCloseable")
-public final class BluetoothSap implements BluetoothProfile {
+public final class BluetoothSap implements BluetoothProfile, AutoCloseable {
 
     private static final String TAG = "BluetoothSap";
     private static final boolean DBG = true;
     private static final boolean VDBG = false;
 
+    private CloseGuard mCloseGuard;
+
     /**
      * Intent used to broadcast the change in connection state of the profile.
      *
-     * <p>This intent will have 4 extras:
+     * <p>This intent will have 3 extras:
      * <ul>
      * <li> {@link #EXTRA_STATE} - The current state of the profile. </li>
      * <li> {@link #EXTRA_PREVIOUS_STATE}- The previous state of the profile.</li>
@@ -129,15 +131,19 @@ public final class BluetoothSap implements BluetoothProfile {
         mAdapter = adapter;
         mAttributionSource = adapter.getAttributionSource();
         mProfileConnector.connect(context, listener);
+        mCloseGuard = new CloseGuard();
+        mCloseGuard.open("close");
     }
 
-    @SuppressLint("GenericException")
-    protected void finalize() throws Throwable {
-        try {
-            close();
-        } finally {
-            super.finalize();
+    /**
+     *
+     * @hide
+     */
+    protected void finalize() {
+        if (mCloseGuard != null) {
+            mCloseGuard.warnIfOpen();
         }
+        close();
     }
 
     /**

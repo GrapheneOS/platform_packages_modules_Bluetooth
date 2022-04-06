@@ -36,6 +36,17 @@ TEST(LeAudioLtvMapTest, test_serialization) {
   const std::vector<uint8_t> ltv_test_vec{
       0x02, 0x01, 0x0a,
       0x03, 0x02, 0xaa, 0xbb,
+      0x04, 0x03, 0xde, 0xc0, 0xd0,
+  };
+
+  const std::vector<uint8_t> ltv_test_vec2{
+      0x04, 0x03, 0xde, 0xc0, 0xde,
+      0x05, 0x04, 0xc0, 0xde, 0xc0, 0xde,
+  };
+
+  const std::vector<uint8_t> ltv_test_vec_expected{
+      0x02, 0x01, 0x0a,
+      0x03, 0x02, 0xaa, 0xbb,
       0x04, 0x03, 0xde, 0xc0, 0xde,
       0x05, 0x04, 0xc0, 0xde, 0xc0, 0xde,
   };
@@ -47,6 +58,18 @@ TEST(LeAudioLtvMapTest, test_serialization) {
       LeAudioLtvMap::Parse(ltv_test_vec.data(), ltv_test_vec.size(), success);
   ASSERT_TRUE(success);
   ASSERT_FALSE(ltv_map.IsEmpty());
+  ASSERT_EQ((size_t)3, ltv_map.Size());
+
+  ASSERT_TRUE(ltv_map.Find(0x03));
+  ASSERT_THAT(*(ltv_map.Find(0x03)), ElementsAre(0xde, 0xc0, 0xd0));
+
+  LeAudioLtvMap ltv_map2 =
+      LeAudioLtvMap::Parse(ltv_test_vec2.data(), ltv_test_vec2.size(), success);
+  ASSERT_TRUE(success);
+  ASSERT_FALSE(ltv_map2.IsEmpty());
+  ASSERT_EQ((size_t)2, ltv_map2.Size());
+
+  ltv_map.Append(ltv_map2);
   ASSERT_EQ((size_t)4, ltv_map.Size());
 
   ASSERT_TRUE(ltv_map.Find(0x01));
@@ -61,7 +84,8 @@ TEST(LeAudioLtvMapTest, test_serialization) {
   // RawPacket
   std::vector<uint8_t> serialized(ltv_map.RawPacketSize());
   ASSERT_TRUE(ltv_map.RawPacket(serialized.data()));
-  ASSERT_THAT(serialized, ElementsAreArray(ltv_test_vec));
+  ASSERT_THAT(serialized, ElementsAreArray(ltv_test_vec_expected));
+  ASSERT_THAT(ltv_map2.RawPacket(), ElementsAreArray(ltv_test_vec2));
 }
 
 TEST(LeAudioLtvMapTest, test_serialization_ltv_len_is_zero) {
