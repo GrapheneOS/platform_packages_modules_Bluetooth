@@ -319,6 +319,13 @@ static uint8_t controller_clear_event_filter() {
   return BTM_SUCCESS;
 }
 
+static uint8_t controller_clear_event_mask() {
+  LOG_VERBOSE("Called!");
+  bluetooth::shim::GetController()->SetEventMask(0);
+  bluetooth::shim::GetController()->LeSetEventMask(0);
+  return BTM_SUCCESS;
+}
+
 static const controller_t interface = {
     .get_is_ready = get_is_ready,
 
@@ -417,7 +424,8 @@ static const controller_t interface = {
     .set_ble_resolving_list_max_size = set_ble_resolving_list_max_size,
     .get_local_supported_codecs = get_local_supported_codecs,
     .get_le_all_initiating_phys = get_le_all_initiating_phys,
-    .clear_event_filter = controller_clear_event_filter};
+    .clear_event_filter = controller_clear_event_filter,
+    .clear_event_mask = controller_clear_event_mask};
 
 const controller_t* bluetooth::shim::controller_get_interface() {
   static bool loaded = false;
@@ -425,10 +433,6 @@ const controller_t* bluetooth::shim::controller_get_interface() {
     loaded = true;
   }
   return &interface;
-}
-
-void bluetooth::shim::controller_clear_event_mask() {
-  bluetooth::shim::GetController()->SetEventMask(0);
 }
 
 bool bluetooth::shim::controller_is_write_link_supervision_timeout_supported() {
