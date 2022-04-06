@@ -238,7 +238,7 @@ tBTM_STATUS BTM_SetPowerMode(uint8_t pm_id, const RawAddress& remote_bda,
          (p_mode->min <= p_cb->interval)) ||
         ((p_mode->mode & BTM_PM_MD_FORCE) == 0 &&
          (p_mode->max >= p_cb->interval))) {
-      LOG_INFO(
+      LOG_DEBUG(
           "Device is already in requested mode %d, interval: %d, max: %d, min: "
           "%d",
           p_mode->mode, p_cb->interval, p_mode->max, p_mode->min);
