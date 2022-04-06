@@ -31,6 +31,7 @@ service SecurityModuleFacade {
   rpc EnforceSecurityPolicy(SecurityPolicyMessage) returns (google.protobuf.Empty) {}
   rpc FetchEnforceSecurityPolicyEvents(google.protobuf.Empty) returns (stream EnforceSecurityPolicyMsg) {}
   rpc FetchDisconnectEvents(google.protobuf.Empty) returns (stream DisconnectMsg) {}
+  rpc FetchAdvertisingCallbackEvents(google.protobuf.Empty) returns (stream AdvertisingCallbackMsg) {}
 }
 
 message OobDataMessage {
@@ -176,4 +177,21 @@ message EnforceSecurityPolicyMsg {
 
 message DisconnectMsg {
   blueberry.facade.BluetoothAddressWithType address = 1;
+}
+
+enum AdvertisingCallbackMsgType {
+  ADVERTISING_SET_STARTED = 0;
+  OWN_ADDRESS_READ = 1;
+}
+
+enum AdvertisingSetStarted {
+  NOT_STARTED = 0;
+  STARTED = 1;
+}
+
+message AdvertisingCallbackMsg {
+  AdvertisingCallbackMsgType message_type = 1;
+  uint32 advertiser_id = 2;
+  AdvertisingSetStarted advertising_started = 3;
+  blueberry.facade.BluetoothAddress address = 4;
 }
