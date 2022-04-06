@@ -412,6 +412,11 @@ public class VolumeControlService extends ProfileService {
      */
     @VisibleForTesting(visibility = VisibleForTesting.Visibility.PACKAGE)
     public boolean okToConnect(BluetoothDevice device) {
+        /* Make sure device is valid */
+        if (device == null) {
+            Log.e(TAG, "okToConnect: Invalid device");
+            return false;
+        }
         // Check if this is an incoming connection in Quiet mode.
         if (mAdapterService.isQuietModeEnabled()) {
             Log.e(TAG, "okToConnect: cannot connect to " + device + " : quiet mode enabled");
