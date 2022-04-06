@@ -60,7 +60,13 @@ void LeAudioDeviceGroup::AddNode(
 
 void LeAudioDeviceGroup::RemoveNode(
     const std::shared_ptr<LeAudioDevice>& leAudioDevice) {
+  /* Group information cleaning in the device. */
   leAudioDevice->group_id_ = bluetooth::groups::kGroupUnknown;
+  for (auto ase : leAudioDevice->ases_) {
+    ase.active = false;
+    ase.cis_conn_hdl = 0;
+  }
+
   leAudioDevices_.erase(
       std::remove_if(
           leAudioDevices_.begin(), leAudioDevices_.end(),
