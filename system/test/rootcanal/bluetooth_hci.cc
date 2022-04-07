@@ -36,6 +36,7 @@ namespace V1_1 {
 namespace sim {
 
 using android::hardware::hidl_vec;
+using ::bluetooth::hci::Address;
 using rootcanal::AsyncTaskId;
 using rootcanal::DualModeController;
 using rootcanal::HciDevice;
@@ -109,7 +110,12 @@ Return<void> BluetoothHci::initialize_impl(
   char mac_property[PROPERTY_VALUE_MAX] = "";
   property_get("vendor.bt.rootcanal_mac_address", mac_property,
                "3C:5A:B4:01:02:03");
-  controller_->Initialize({"dmc", std::string(mac_property)});
+  auto addr = Address::FromString(std::string(mac_property));
+  if (addr) {
+    controller_->SetAddress(*addr);
+  } else {
+    LOG_ALWAYS_FATAL("Invalid address: %s", mac_property);
+  }
 
   controller_->RegisterEventChannel(
       [this, cb](std::shared_ptr<std::vector<uint8_t>> packet) {

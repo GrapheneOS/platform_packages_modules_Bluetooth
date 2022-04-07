@@ -111,5 +111,5 @@ class AvrcpService : public MediaCallbacks {
 }  // namespace bluetooth
 
 inline bool is_new_avrcp_enabled() {
-  return osi_property_get_bool("persist.bluetooth.enablenewavrcp", true);
+  return osi_property_get_bool("bluetooth.profile.avrcp.target.enabled", false);
 }

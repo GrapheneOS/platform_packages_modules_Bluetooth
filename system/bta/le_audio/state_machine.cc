@@ -1145,8 +1145,6 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
       if (cis_id == le_audio::kInvalidCisId) {
         /* Get completive (to be bi-directional CIS) CIS ID for ASE */
         cis_id = leAudioDevice->GetMatchingBidirectionCisId(ase);
-        LOG_INFO(" Configure ase_id %d, cis_id %d, ase state %s", ase->id,
-                 cis_id, ToString(ase->state).c_str());
         if (cis_id == le_audio::kInvalidCisId) {
           /* Get next free CIS ID for group */
           cis_id = group->GetFirstFreeCisId();
@@ -1157,6 +1155,9 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
           }
         }
       }
+
+      LOG_INFO(" Configure ase_id %d, cis_id %d, ase state %s", ase->id, cis_id,
+               ToString(ase->state).c_str());
 
       ase->cis_id = cis_id;
 

@@ -23,6 +23,7 @@ import android.bluetooth.BluetoothProfile;
 import android.bluetooth.IBluetoothA2dpSink;
 import android.content.AttributionSource;
 import android.media.AudioManager;
+import android.sysprop.BluetoothProperties;
 import android.util.Log;
 
 import com.android.bluetooth.Utils;
@@ -62,6 +63,10 @@ public class A2dpSinkService extends ProfileService {
     private static A2dpSinkService sService;
 
     A2dpSinkNativeInterface mNativeInterface;
+
+    public static boolean isEnabled() {
+        return BluetoothProperties.isProfileA2dpSinkEnabled().orElse(false);
+    }
 
     @Override
     protected boolean start() {

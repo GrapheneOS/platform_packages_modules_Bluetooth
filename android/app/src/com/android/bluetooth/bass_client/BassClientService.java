@@ -39,6 +39,7 @@ import android.os.Message;
 import android.os.ParcelUuid;
 import android.os.RemoteCallbackList;
 import android.os.RemoteException;
+import android.sysprop.BluetoothProperties;
 import android.util.Log;
 
 import com.android.bluetooth.Utils;
@@ -84,6 +85,10 @@ public class BassClientService extends ProfileService {
     private Map<BluetoothDevice, PeriodicAdvertisementResult> mPeriodicAdvertisementResultMap;
     private ScanCallback mSearchScanCallback;
     private Callbacks mCallbacks;
+
+    public static boolean isEnabled() {
+        return BluetoothProperties.isProfileBapBroadcastAssistEnabled().orElse(false);
+    }
 
     void updatePeriodicAdvertisementResultMap(
             BluetoothDevice device,

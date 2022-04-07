@@ -86,7 +86,7 @@ public class BluetoothMapContentObserverTest {
     public void setUp() {
         mTargetContext = InstrumentationRegistry.getTargetContext();
         Assume.assumeTrue("Ignore test when BluetoothMapService is not enabled",
-                mTargetContext.getResources().getBoolean(R.bool.profile_supported_map));
+                BluetoothMapService.isEnabled());
     }
 
     @Test

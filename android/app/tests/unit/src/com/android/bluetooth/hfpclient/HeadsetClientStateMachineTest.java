@@ -72,7 +72,7 @@ public class HeadsetClientStateMachineTest {
     public void setUp() {
         mTargetContext = InstrumentationRegistry.getTargetContext();
         Assume.assumeTrue("Ignore test when HeadsetClientService is not enabled",
-                mTargetContext.getResources().getBoolean(R.bool.profile_supported_hfpclient));
+                HeadsetClientService.isEnabled());
         // Setup mocks and test assets
         MockitoAnnotations.initMocks(this);
         // Set a valid volume
@@ -105,7 +105,7 @@ public class HeadsetClientStateMachineTest {
 
     @After
     public void tearDown() {
-        if (!mTargetContext.getResources().getBoolean(R.bool.profile_supported_hfpclient)) {
+        if (!HeadsetClientService.isEnabled()) {
             return;
         }
         TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
