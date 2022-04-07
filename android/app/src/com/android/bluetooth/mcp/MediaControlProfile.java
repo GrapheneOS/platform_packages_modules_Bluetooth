@@ -682,7 +682,7 @@ public class MediaControlProfile implements MediaControlServiceCallbacks {
             }
 
             // Only the bluetooth app is allowed to create generic media control service
-            boolean isGenericMcs = appToken.equals(THIS_PACKAGE_NAME);
+            boolean isGenericMcs = appToken.equals(mContext.getPackageName());
 
             MediaControlGattService svc = new MediaControlGattService(mMcpService, this, ccid);
             svc.init(isGenericMcs ? BluetoothUuid.GENERIC_MEDIA_CONTROL.getUuid()
@@ -751,7 +751,6 @@ public class MediaControlProfile implements MediaControlServiceCallbacks {
 
 
     private final Map<String, MediaControlGattServiceInterface> mServiceMap;
-    static final String THIS_PACKAGE_NAME = "com.android.bluetooth.services";
 
     public void unregisterServiceInstance(String appToken) {
         Log.d(TAG, "unregisterServiceInstance");
