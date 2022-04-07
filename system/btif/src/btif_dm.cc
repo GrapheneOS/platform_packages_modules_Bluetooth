@@ -3283,3 +3283,8 @@ void btif_dm_clear_filter_accept_list() {
   LOG_VERBOSE("%s: called", __func__);
   bta_dm_clear_filter_accept_list();
 }
+
+void btif_dm_disconnect_all_acls() {
+  LOG_VERBOSE("%s: called", __func__);
+  bta_dm_disconnect_all_acls();
+}

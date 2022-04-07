@@ -73,6 +73,8 @@ void btif_dm_clear_event_mask();
 
 void btif_dm_clear_filter_accept_list();
 
+void btif_dm_disconnect_all_acls();
+
 /*callout for reading SMP properties from Text file*/
 bool btif_dm_get_smp_config(tBTE_APPL_CFG* p_cfg);
 
