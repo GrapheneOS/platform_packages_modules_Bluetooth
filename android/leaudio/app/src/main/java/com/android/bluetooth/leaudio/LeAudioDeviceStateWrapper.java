@@ -19,6 +19,8 @@ package com.android.bluetooth.leaudio;
 
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHapPresetInfo;
+import android.bluetooth.BluetoothLeBroadcastReceiveState;
+import android.bluetooth.BluetoothLeBroadcastSubgroup;
 
 import androidx.core.util.Pair;
 import androidx.lifecycle.MutableLiveData;
@@ -100,16 +102,10 @@ public class LeAudioDeviceStateWrapper {
                 public Object viewsData = null;
         }
 
-        public static class ReceiverState {
-                int receiver_id;
-                int state;
-        }
-
         public static class BassData {
-                public MutableLiveData<Boolean> isValidBassDevice = new MutableLiveData<>();
                 public MutableLiveData<Boolean> isConnectedMutable = new MutableLiveData<>();
-                public MutableLiveData<HashMap<Integer, ReceiverState>> receiverStatesMutable =
-                                new MutableLiveData<>();
+                public MutableLiveData<HashMap<Integer, BluetoothLeBroadcastReceiveState>>
+                        receiverStatesMutable = new MutableLiveData<>();
 
                 public Object viewsData = null;
         }
