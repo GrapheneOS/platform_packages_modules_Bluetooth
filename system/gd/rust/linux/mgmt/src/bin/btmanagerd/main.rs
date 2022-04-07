@@ -2,6 +2,7 @@ mod bluetooth_manager;
 mod bluetooth_manager_dbus;
 mod config_util;
 mod dbus_arg;
+mod service_watcher;
 mod state_machine;
 
 use crate::bluetooth_manager::BluetoothManager;
