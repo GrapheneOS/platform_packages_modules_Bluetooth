@@ -68,7 +68,7 @@ public class MapClientTest {
     public void setUp() throws Exception {
         mTargetContext = InstrumentationRegistry.getTargetContext();
         Assume.assumeTrue("Ignore test when MapClientService is not enabled",
-                mTargetContext.getResources().getBoolean(R.bool.profile_supported_mapmce));
+                MapClientService.isEnabled());
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
         when(mAdapterService.getDatabase()).thenReturn(mDatabaseManager);
@@ -82,7 +82,7 @@ public class MapClientTest {
 
     @After
     public void tearDown() throws Exception {
-        if (!mTargetContext.getResources().getBoolean(R.bool.profile_supported_mapmce)) {
+        if (!MapClientService.isEnabled()) {
             return;
         }
         TestUtils.stopService(mServiceRule, MapClientService.class);

@@ -39,6 +39,8 @@
 #define BTM_MAX_SCN_ 31  // PORT_MAX_RFC_PORTS packages/modules/Bluetooth/system/stack/include/rfcdefs.h
 
 constexpr size_t kMaxLogSize = 255;
+constexpr size_t kBtmLogHistoryBufferSize = 100;
+
 class TimestampedStringCircularBuffer
     : public bluetooth::common::TimestampedCircularBuffer<std::string> {
  public:
@@ -347,7 +349,8 @@ typedef struct tBTM_CB {
     sco_cb.Init();       /* SCO Database and Structures (If included) */
     devcb.Init();
 
-    history_ = std::make_shared<TimestampedStringCircularBuffer>(40);
+    history_ = std::make_shared<TimestampedStringCircularBuffer>(
+        kBtmLogHistoryBufferSize);
     CHECK(history_ != nullptr);
     history_->Push(std::string("Initialized btm history"));
   }

@@ -35,6 +35,7 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.Process;
 import android.os.RemoteException;
+import android.sysprop.BluetoothProperties;
 import android.util.Log;
 
 import com.android.bluetooth.BluetoothMetricsProto;
@@ -84,6 +85,10 @@ public class HidDeviceService extends ProfileService {
     private ActivityManager mActivityManager;
 
     private HidDeviceServiceHandler mHandler;
+
+    public static boolean isEnabled() {
+        return BluetoothProperties.isProfileHidDeviceEnabled().orElse(false);
+    }
 
     private class HidDeviceServiceHandler extends Handler {
         @Override

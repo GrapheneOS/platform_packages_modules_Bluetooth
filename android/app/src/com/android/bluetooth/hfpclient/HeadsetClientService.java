@@ -32,6 +32,7 @@ import android.os.BatteryManager;
 import android.os.Bundle;
 import android.os.HandlerThread;
 import android.os.Message;
+import android.sysprop.BluetoothProperties;
 import android.util.Log;
 
 import com.android.bluetooth.Utils;
@@ -80,6 +81,10 @@ public class HeadsetClientService extends ProfileService {
     private final Object mStartStopLock = new Object();
 
     public static final String HFP_CLIENT_STOP_TAG = "hfp_client_stop_tag";
+
+    public static boolean isEnabled() {
+        return BluetoothProperties.isProfileHfpHfEnabled().orElse(false);
+    }
 
     @Override
     public IProfileServiceBinder initBinder() {
