@@ -602,7 +602,7 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
                                 in1.putExtra(BluetoothDevicePicker.EXTRA_FILTER_TYPE,
                                         BluetoothDevicePicker.FILTER_TYPE_TRANSFER);
                                 in1.putExtra(BluetoothDevicePicker.EXTRA_LAUNCH_PACKAGE,
-                                        Constants.THIS_PACKAGE_NAME);
+                                        getPackageName());
                                 in1.putExtra(BluetoothDevicePicker.EXTRA_LAUNCH_CLASS,
                                         BluetoothOppReceiver.class.getName());
 
