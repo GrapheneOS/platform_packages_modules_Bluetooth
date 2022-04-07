@@ -3273,3 +3273,8 @@ void btif_dm_clear_event_filter() {
   LOG_VERBOSE("%s: called", __func__);
   bta_dm_clear_event_filter();
 }
+
+void btif_dm_clear_event_mask() {
+  LOG_VERBOSE("%s: called", __func__);
+  bta_dm_clear_event_mask();
+}
