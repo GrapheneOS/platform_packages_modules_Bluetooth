@@ -3278,3 +3278,8 @@ void btif_dm_clear_event_mask() {
   LOG_VERBOSE("%s: called", __func__);
   bta_dm_clear_event_mask();
 }
+
+void btif_dm_clear_filter_accept_list() {
+  LOG_VERBOSE("%s: called", __func__);
+  bta_dm_clear_filter_accept_list();
+}
