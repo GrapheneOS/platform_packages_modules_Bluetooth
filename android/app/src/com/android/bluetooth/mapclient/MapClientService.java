@@ -32,6 +32,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.ParcelUuid;
+import android.sysprop.BluetoothProperties;
 import android.util.Log;
 
 import com.android.bluetooth.Utils;
@@ -64,6 +65,10 @@ public class MapClientService extends ProfileService {
     private DatabaseManager mDatabaseManager;
     private static MapClientService sMapClientService;
     private MapBroadcastReceiver mMapReceiver;
+
+    public static boolean isEnabled() {
+        return BluetoothProperties.isProfileMapClientEnabled().orElse(false);
+    }
 
     public static synchronized MapClientService getMapClientService() {
         if (sMapClientService == null) {

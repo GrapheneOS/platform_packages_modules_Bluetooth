@@ -31,6 +31,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.os.UserHandle;
+import android.sysprop.BluetoothProperties;
 import android.util.Log;
 
 import androidx.annotation.VisibleForTesting;
@@ -85,6 +86,10 @@ public class HidHostService extends ProfileService {
 
     static {
         classInitNative();
+    }
+
+    public static boolean isEnabled() {
+        return BluetoothProperties.isProfileHidHostEnabled().orElse(false);
     }
 
     @Override
