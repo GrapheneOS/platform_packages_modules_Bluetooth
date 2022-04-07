@@ -272,4 +272,7 @@ interface IBluetooth
     oneway void stopRfcommListener(in ParcelUuid uuid, in AttributionSource attributionSource, in SynchronousResultReceiver receiver);
     @JavaPassthrough(annotation="@android.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)")
     oneway void retrievePendingSocketForServiceRecord(in ParcelUuid uuid, in AttributionSource attributionSource, in SynchronousResultReceiver receiver);
+
+    @JavaPassthrough(annotation="@android.annotation.RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT,android.Manifest.permission.BLUETOOTH_PRIVILEGED})")
+    oneway void setForegroundUserId(in int userId, in AttributionSource attributionSource);
 }
