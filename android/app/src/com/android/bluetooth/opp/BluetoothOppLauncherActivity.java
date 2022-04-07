@@ -195,7 +195,7 @@ public class BluetoothOppLauncherActivity extends Activity {
             }
 
             Intent intent1 = new Intent(Constants.ACTION_OPEN);
-            intent1.setClassName(Constants.THIS_PACKAGE_NAME, BluetoothOppReceiver.class.getName());
+            intent1.setClassName(this, BluetoothOppReceiver.class.getName());
             intent1.setDataAndNormalize(uri);
             this.sendBroadcast(intent1);
             finish();
@@ -229,7 +229,7 @@ public class BluetoothOppLauncherActivity extends Activity {
             in1.putExtra(BluetoothDevicePicker.EXTRA_NEED_AUTH, false);
             in1.putExtra(BluetoothDevicePicker.EXTRA_FILTER_TYPE,
                     BluetoothDevicePicker.FILTER_TYPE_TRANSFER);
-            in1.putExtra(BluetoothDevicePicker.EXTRA_LAUNCH_PACKAGE, Constants.THIS_PACKAGE_NAME);
+            in1.putExtra(BluetoothDevicePicker.EXTRA_LAUNCH_PACKAGE, getPackageName());
             in1.putExtra(BluetoothDevicePicker.EXTRA_LAUNCH_CLASS,
                     BluetoothOppReceiver.class.getName());
             if (V) {
