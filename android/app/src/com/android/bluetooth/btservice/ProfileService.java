@@ -47,8 +47,6 @@ public abstract class ProfileService extends Service {
     public static final String BLUETOOTH_PRIVILEGED =
             android.Manifest.permission.BLUETOOTH_PRIVILEGED;
 
-    static final String BLUETOOTH_PACKAGE_NAME = "com.android.bluetooth.services";
-
     public interface IProfileServiceBinder extends IBinder {
         /**
          * Called in {@link #onDestroy()}
@@ -232,7 +230,7 @@ public abstract class ProfileService extends Service {
         if (className == null) {
             return;
         }
-        ComponentName component = new ComponentName(BLUETOOTH_PACKAGE_NAME, className);
+        ComponentName component = new ComponentName(getPackageName(), className);
         setComponentAvailable(component, enable);
     }
 
