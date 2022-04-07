@@ -20,8 +20,6 @@ pub struct ServiceWatcher {
     service_name: String,
 }
 
-#[allow(dead_code)]
-// TODO: Remove allow dead_code when the code is actually used.
 impl ServiceWatcher {
     pub fn new(conn: Arc<SyncConnection>, service_name: String) -> Self {
         ServiceWatcher { conn, service_name }

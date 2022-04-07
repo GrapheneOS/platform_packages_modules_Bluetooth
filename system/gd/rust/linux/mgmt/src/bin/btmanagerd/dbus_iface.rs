@@ -17,8 +17,6 @@ pub struct SuspendDBus {
 }
 
 impl SuspendDBus {
-    #[allow(dead_code)]
-    // TODO: Remove allow dead code when the code is actually used.
     pub(crate) fn new(conn: Arc<SyncConnection>, path: dbus::Path<'static>) -> SuspendDBus {
         SuspendDBus {
             client_proxy: ClientDBusProxy::new(
