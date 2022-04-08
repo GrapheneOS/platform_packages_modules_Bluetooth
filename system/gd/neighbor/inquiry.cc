@@ -208,14 +208,14 @@ void neighbor::InquiryModule::impl::OnEvent(hci::EventView view) {
     case hci::EventCode::INQUIRY_RESULT: {
       auto packet = hci::InquiryResultView::Create(view);
       ASSERT(packet.IsValid());
-      LOG_INFO("Inquiry result size:%zd num_responses:%zu", packet.size(), packet.GetInquiryResults().size());
+      LOG_INFO("Inquiry result size:%zd num_responses:%zu", packet.size(), packet.GetResponses().size());
       inquiry_callbacks_.result(packet);
     } break;
 
     case hci::EventCode::INQUIRY_RESULT_WITH_RSSI: {
       auto packet = hci::InquiryResultWithRssiView::Create(view);
       ASSERT(packet.IsValid());
-      LOG_INFO("Inquiry result with rssi num_responses:%zu", packet.GetInquiryResults().size());
+      LOG_INFO("Inquiry result with rssi num_responses:%zu", packet.GetResponses().size());
       inquiry_callbacks_.result_with_rssi(packet);
     } break;
 
