@@ -191,7 +191,7 @@ public class BluetoothPbapActivity extends AlertActivity
     private void sendIntentToReceiver(final String intentName, final String extraName,
             final String extraValue) {
         Intent intent = new Intent(intentName);
-        intent.setPackage(BluetoothPbapService.THIS_PACKAGE_NAME);
+        intent.setPackage(getPackageName());
         intent.putExtra(BluetoothPbapService.EXTRA_DEVICE, mDevice);
         if (extraName != null) {
             intent.putExtra(extraName, extraValue);
