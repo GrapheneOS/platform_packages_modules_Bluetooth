@@ -28,6 +28,7 @@ class AudioSetConfigurationProvider {
   virtual ~AudioSetConfigurationProvider() = default;
   static AudioSetConfigurationProvider* Get();
   static void Initialize();
+  static void DebugDump(int fd);
   static void Cleanup();
   virtual const set_configurations::AudioSetConfigurations* GetConfigurations(
       ::le_audio::types::LeAudioContextType content_type) const;
