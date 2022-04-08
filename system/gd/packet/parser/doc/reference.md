@@ -54,6 +54,20 @@ packet Brew {
 }
 ```
 
+## Identifiers
+
+- Identifiers can denote a field; an enumeration tag; or a declared type.
+
+- Field identifiers declared in a [packet](#packet) (resp. [struct](#struct)) belong to the _scope_ that extends
+  to the packet (resp. struct), and all derived packets (resp. structs).
+
+- Field identifiers declared in a [group](#group) belong to the _scope_ that
+  extends to the packets declaring a [group field](#group_field) for this group.
+
+- Two fields may not be declared with the same identifier in any packet scope.
+
+- Two types may not be declared width the same identifier.
+
 ## Declarations
 
 > declaration: {#declaration}\
