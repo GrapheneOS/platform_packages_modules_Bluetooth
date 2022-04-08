@@ -172,7 +172,6 @@ final class BondStateMachine extends StateMachine {
         }
     }
 
-
     private class PendingCommandState extends State {
         private final ArrayList<BluetoothDevice> mDevices = new ArrayList<BluetoothDevice>();
 
@@ -187,9 +186,9 @@ final class BondStateMachine extends StateMachine {
 
             DeviceProperties devProp = mRemoteDevices.getDeviceProperties(dev);
             boolean result = false;
-            if (mDevices.contains(dev) && msg.what != CANCEL_BOND
-                    && msg.what != BONDING_STATE_CHANGE && msg.what != SSP_REQUEST
-                    && msg.what != PIN_REQUEST) {
+            if ((mDevices.contains(dev) || mPendingBondedDevices.contains(dev))
+                    && msg.what != CANCEL_BOND && msg.what != BONDING_STATE_CHANGE
+                    && msg.what != SSP_REQUEST && msg.what != PIN_REQUEST) {
                 deferMessage(msg);
                 return true;
             }
@@ -271,7 +270,6 @@ final class BondStateMachine extends StateMachine {
                         sendDisplayPinIntent(devProp.getAddress(), 0,
                                 BluetoothDevice.PAIRING_VARIANT_PIN);
                     }
-
                     break;
                 default:
                     Log.e(TAG, "Received unhandled event:" + msg.what);
@@ -280,7 +278,6 @@ final class BondStateMachine extends StateMachine {
             if (result) {
                 mDevices.add(dev);
             }
-
             return true;
         }
     }
@@ -309,7 +306,6 @@ final class BondStateMachine extends StateMachine {
                 }
                 return true;
             }
-
         }
         return false;
     }
