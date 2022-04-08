@@ -218,7 +218,7 @@ static void bta_gattc_explore_srvc_finished(uint16_t conn_id,
 
   if (btm_sec_is_a_bonded_dev(p_srvc_cb->server_bda)) {
     bta_gattc_cache_write(p_clcb->p_srcb->server_bda,
-                          p_clcb->p_srcb->gatt_database.Serialize());
+                          p_clcb->p_srcb->gatt_database);
   }
 
   // After success, reset the count.

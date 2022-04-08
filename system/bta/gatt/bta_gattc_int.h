@@ -479,7 +479,7 @@ extern bool bta_gattc_conn_dealloc(const RawAddress& remote_bda);
 extern bool bta_gattc_cache_load(tBTA_GATTC_SERV* p_srcb);
 extern void bta_gattc_cache_write(
     const RawAddress& server_bda,
-    const std::vector<gatt::StoredAttribute>& attr);
+    const gatt::Database& database);
 extern void bta_gattc_cache_reset(const RawAddress& server_bda);
 
 extern bool bta_gattc_read_db_hash(tBTA_GATTC_CLCB* p_clcb);

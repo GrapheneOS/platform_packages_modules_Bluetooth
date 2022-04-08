@@ -90,33 +90,30 @@ done:
 
 /*******************************************************************************
  *
- * Function         bta_gattc_cache_write
+ * Function         bta_gattc_store_db
  *
- * Description      This callout function is executed by GATT when a server
- *                  cache is available to save.
+ * Description      Storess GATT db.
  *
- * Parameter        server_bda: server bd address of this cache belongs to
+ * Parameter        fname: output file name
  *                  attr: attributes to save.
- * Returns
+ *
+ * Returns          true on success, false otherwise
  *
  ******************************************************************************/
-void bta_gattc_cache_write(const RawAddress& server_bda,
-                           const std::vector<StoredAttribute>& attr) {
-  char fname[255] = {0};
-  bta_gattc_generate_cache_file_name(fname, sizeof(fname), server_bda);
-
+static bool bta_gattc_store_db(
+    const char* fname, const std::vector<StoredAttribute>& attr) {
   FILE* fd = fopen(fname, "wb");
   if (!fd) {
     LOG(ERROR) << __func__
                << ": can't open GATT cache file for writing: " << fname;
-    return;
+    return false;
   }
 
   uint16_t cache_ver = GATT_CACHE_VERSION;
   if (fwrite(&cache_ver, sizeof(uint16_t), 1, fd) != 1) {
     LOG(ERROR) << __func__ << ": can't write GATT cache version: " << fname;
     fclose(fd);
-    return;
+    return false;
   }
 
   uint16_t num_attr = attr.size();
@@ -124,16 +121,36 @@ void bta_gattc_cache_write(const RawAddress& server_bda,
     LOG(ERROR) << __func__
                << ": can't write GATT cache attribute count: " << fname;
     fclose(fd);
-    return;
+    return false;
   }
 
   if (fwrite(attr.data(), sizeof(StoredAttribute), num_attr, fd) != num_attr) {
     LOG(ERROR) << __func__ << ": can't write GATT cache attributes: " << fname;
     fclose(fd);
-    return;
+    return false;
   }
 
   fclose(fd);
+  return true;
+}
+
+/*******************************************************************************
+ *
+ * Function         bta_gattc_cache_write
+ *
+ * Description      This callout function is executed by GATT when a server
+ *                  cache is available to save.
+ *
+ * Parameter        server_bda: server bd address of this cache belongs to
+ *                  database: attributes to save.
+ * Returns
+ *
+ ******************************************************************************/
+void bta_gattc_cache_write(const RawAddress& server_bda,
+                           const gatt::Database& database) {
+  char fname[255] = {0};
+  bta_gattc_generate_cache_file_name(fname, sizeof(fname), server_bda);
+  bta_gattc_store_db(fname, database.Serialize());
 }
 
 /*******************************************************************************
