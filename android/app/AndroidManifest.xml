@@ -8,13 +8,13 @@
     <permission android:name="android.permission.ACCESS_BLUETOOTH_SHARE"
          android:label="@string/permlab_bluetoothShareManager"
          android:description="@string/permdesc_bluetoothShareManager"
-         android:protectionLevel="signature"/>
+         android:protectionLevel="signature|privileged"/>
 
     <!--  Allows temporarily acceptlisting Bluetooth addresses for sharing -->
     <permission android:name="com.android.permission.ALLOWLIST_BLUETOOTH_DEVICE"
          android:label="@string/permlab_bluetoothAcceptlist"
          android:description="@string/permdesc_bluetoothAcceptlist"
-         android:protectionLevel="signature"/>
+         android:protectionLevel="signature|privileged"/>
 
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.ACCESS_BLUETOOTH_SHARE"/>

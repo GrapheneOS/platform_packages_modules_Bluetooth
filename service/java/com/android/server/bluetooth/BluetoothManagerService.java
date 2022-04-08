@@ -216,6 +216,7 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
     private final ReentrantReadWriteLock mBluetoothLock = new ReentrantReadWriteLock();
     private boolean mBinding;
     private boolean mUnbinding;
+    private int mForegroundUserId;
 
     private BluetoothModeChangeHelper mBluetoothModeChangeHelper;
 
@@ -543,6 +544,8 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
 
         String value = SystemProperties.get(
                 "persist.sys.fflag.override.settings_bluetooth_hearing_aid");
+        mForegroundUserId = UserHandle.SYSTEM.getIdentifier();
+
         if (!TextUtils.isEmpty(value)) {
             boolean isHearingAidEnabled = Boolean.parseBoolean(value);
             Log.v(TAG, "set feature flag HEARING_AID_SETTINGS to " + isHearingAidEnabled);
@@ -855,6 +858,25 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
         final SynchronousResultReceiver recv = new SynchronousResultReceiver();
         mBluetooth.unregisterCallback(callback, attributionSource, recv);
         recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
+    }
+
+    /**
+     * Sends the current foreground user id to the Bluetooth process. This user id is used to
+     * determine if Binder calls are coming from the active user.
+     *
+     * @param userId is the foreground user id we are propagating to the Bluetooth process
+     */
+    private void propagateForegroundUserId(int userId) {
+        mBluetoothLock.readLock().lock();
+        try {
+            if (mBluetooth != null) {
+                mBluetooth.setForegroundUserId(userId, mContext.getAttributionSource());
+            }
+        } catch (RemoteException e) {
+            Log.e(TAG, "Unable to set foreground user id", e);
+        } finally {
+            mBluetoothLock.readLock().unlock();
+        }
     }
 
     public int getState() {
@@ -2215,6 +2237,8 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
                                 BluetoothAdapter.STATE_BLE_TURNING_ON,
                                 BluetoothAdapter.STATE_BLE_ON,
                                 BluetoothAdapter.STATE_BLE_TURNING_OFF));
+                    } else {
+                        propagateForegroundUserId(mForegroundUserId);
                     }
                     break;
                 }
@@ -2351,6 +2375,12 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
                         Log.d(TAG, "MESSAGE_USER_SWITCHED");
                     }
                     mHandler.removeMessages(MESSAGE_USER_SWITCHED);
+
+                    // Save the foreground user id and propagate to BT process after it's restarted
+                    int toUserId = msg.arg1;
+                    if (mForegroundUserId != toUserId) {
+                        mForegroundUserId = toUserId;
+                    }
 
                     /* disable and enable BT when detect a user switch */
                     if (mBluetooth != null && isEnabled()) {
