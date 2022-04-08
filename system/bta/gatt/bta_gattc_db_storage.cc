@@ -30,30 +30,29 @@ static void bta_gattc_generate_cache_file_name(char* buffer, size_t buffer_len,
            bda.address[4], bda.address[5]);
 }
 
+static gatt::Database EMPTY_DB;
+
 /*******************************************************************************
  *
- * Function         bta_gattc_cache_load
+ * Function         bta_gattc_load_db
  *
- * Description      Load GATT cache from storage for server.
+ * Description      Load GATT database from storage.
  *
- * Parameter        p_srcb: pointer to server cache, that will
- *                          be filled from storage
- * Returns          true on success, false otherwise
+ * Parameter        fname: input file name
+ *
+ * Returns          non-empty GATT database on success, empty GATT database
+ *                  otherwise
  *
  ******************************************************************************/
-bool bta_gattc_cache_load(tBTA_GATTC_SERV* p_srcb) {
-  char fname[255] = {0};
-  bta_gattc_generate_cache_file_name(fname, sizeof(fname), p_srcb->server_bda);
-
+static gatt::Database bta_gattc_load_db(const char* fname) {
   FILE* fd = fopen(fname, "rb");
   if (!fd) {
     LOG(ERROR) << __func__ << ": can't open GATT cache file " << fname
                << " for reading, error: " << strerror(errno);
-    return false;
+    return EMPTY_DB;
   }
 
   uint16_t cache_ver = 0;
-  bool success = false;
   uint16_t num_attr = 0;
 
   if (fread(&cache_ver, sizeof(uint16_t), 1, fd) != 1) {
@@ -76,16 +75,36 @@ bool bta_gattc_cache_load(tBTA_GATTC_SERV* p_srcb) {
     std::vector<StoredAttribute> attr(num_attr);
 
     if (fread(attr.data(), sizeof(StoredAttribute), num_attr, fd) != num_attr) {
-      LOG(ERROR) << __func__ << "s: can't read GATT attributes: " << fname;
+      LOG(ERROR) << __func__ << ": can't read GATT attributes: " << fname;
       goto done;
     }
 
-    p_srcb->gatt_database = gatt::Database::Deserialize(attr, &success);
+    bool success = false;
+    gatt::Database result = gatt::Database::Deserialize(attr, &success);
+    return success ? result : EMPTY_DB;
   }
 
 done:
   fclose(fd);
-  return success;
+  return EMPTY_DB;
+}
+
+/*******************************************************************************
+ *
+ * Function         bta_gattc_cache_load
+ *
+ * Description      Load GATT cache from storage for server.
+ *
+ * Parameter        bd_address: remote device address
+ *
+ * Returns          non-empty GATT database on success, empty GATT database
+ *                  otherwise
+ *
+ ******************************************************************************/
+gatt::Database bta_gattc_cache_load(const RawAddress& server_bda) {
+  char fname[255] = {0};
+  bta_gattc_generate_cache_file_name(fname, sizeof(fname), server_bda);
+  return bta_gattc_load_db(fname);
 }
 
 /*******************************************************************************
@@ -100,8 +119,8 @@ done:
  * Returns          true on success, false otherwise
  *
  ******************************************************************************/
-static bool bta_gattc_store_db(
-    const char* fname, const std::vector<StoredAttribute>& attr) {
+static bool bta_gattc_store_db(const char* fname,
+                               const std::vector<StoredAttribute>& attr) {
   FILE* fd = fopen(fname, "wb");
   if (!fd) {
     LOG(ERROR) << __func__
