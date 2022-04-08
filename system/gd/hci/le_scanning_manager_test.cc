@@ -382,7 +382,7 @@ TEST_F(LeScanningManagerTest, start_scan_test) {
   ASSERT_EQ(std::future_status::ready, result);
   test_hci_layer_->IncomingEvent(LeSetScanEnableCompleteBuilder::Create(uint8_t{1}, ErrorCode::SUCCESS));
 
-  LeAdvertisingReport report{};
+  LeAdvertisingResponse report{};
   report.event_type_ = AdvertisingEventType::ADV_DIRECT_IND;
   report.address_type_ = AddressType::PUBLIC_DEVICE_ADDRESS;
   Address::FromString("12:34:56:78:9a:bc", report.address_);
@@ -409,7 +409,7 @@ TEST_F(LeAndroidHciScanningManagerTest, start_scan_test) {
   ASSERT_EQ(std::future_status::ready, result);
   test_hci_layer_->IncomingEvent(LeSetScanEnableCompleteBuilder::Create(uint8_t{1}, ErrorCode::SUCCESS));
 
-  LeAdvertisingReport report{};
+  LeAdvertisingResponse report{};
   report.event_type_ = AdvertisingEventType::ADV_DIRECT_IND;
   report.address_type_ = AddressType::PUBLIC_DEVICE_ADDRESS;
   Address::FromString("12:34:56:78:9a:bc", report.address_);
@@ -527,7 +527,7 @@ TEST_F(LeExtendedScanningManagerTest, start_scan_test) {
 
   test_hci_layer_->IncomingEvent(LeSetScanEnableCompleteBuilder::Create(uint8_t{1}, ErrorCode::SUCCESS));
 
-  LeExtendedAdvertisingReport report{};
+  LeExtendedAdvertisingResponse report{};
   report.connectable_ = 1;
   report.scannable_ = 0;
   report.address_type_ = DirectAdvertisingAddressType::PUBLIC_DEVICE_ADDRESS;
