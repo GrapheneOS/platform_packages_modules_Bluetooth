@@ -87,16 +87,16 @@ cc_library_shared {
 
 android_app {
     name: "Bluetooth",
-    defaults: ["platform_app_defaults"],
+    defaults: ["bluetooth-module-sdk-version-defaults"],
 
     srcs: [
         "src/**/*.java",
         ":statslog-bluetooth-java-gen",
         ":bluetooth-proto-enums-java-gen",
     ],
-    platform_apis: false,
-    certificate: "platform",
     aaptflags: [ "--custom-package", "com.android.bluetooth" ],
+    certificate: ":com.android.bluetooth.services.certificate",
+
     jarjar_rules: ":bluetooth-jarjar-rules",
 
     jni_uses_platform_apis: true,
@@ -156,6 +156,7 @@ android_app {
         "audio_set_scenarios_json",
         "bt_did.conf",
         "bt_stack.conf",
+        "privapp_allowlist_com.android.bluetooth.services.xml",
     ],
     apex_available: [
         "com.android.bluetooth",
@@ -200,6 +201,11 @@ genrule {
     tools: ["stats-log-api-gen"],
     cmd: "$(location stats-log-api-gen) --java $(out) --module bluetooth" +
         " --javaPackage com.android.bluetooth --javaClass BluetoothStatsLog" +
-        " --minApiLevel 32",
+        " --minApiLevel 33",
     out: ["com/android/bluetooth/BluetoothStatsLog.java"],
+}
+
+android_app_certificate {
+    name: "com.android.bluetooth.services.certificate",
+    certificate: "certs/com.android.bluetooth.services"
 }
