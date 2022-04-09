@@ -174,7 +174,7 @@ Btm::Btm(os::Handler* handler, neighbor::InquiryModule* inquiry)
 }
 
 void Btm::OnInquiryResult(bluetooth::hci::InquiryResultView view) {
-  for (auto& response : view.GetInquiryResults()) {
+  for (auto& response : view.GetResponses()) {
     btm_api_process_inquiry_result(
         ToRawAddress(response.bd_addr_),
         static_cast<uint8_t>(response.page_scan_repetition_mode_),
@@ -184,7 +184,7 @@ void Btm::OnInquiryResult(bluetooth::hci::InquiryResultView view) {
 
 void Btm::OnInquiryResultWithRssi(
     bluetooth::hci::InquiryResultWithRssiView view) {
-  for (auto& response : view.GetInquiryResults()) {
+  for (auto& response : view.GetResponses()) {
     btm_api_process_inquiry_result_with_rssi(
         ToRawAddress(response.address_),
         static_cast<uint8_t>(response.page_scan_repetition_mode_),

@@ -242,7 +242,7 @@ class NeighborMatchers(object):
         inquiry_view = hci_packets.InquiryResultView(hci_event)
         if inquiry_view is None:
             return False
-        results = inquiry_view.GetInquiryResults()
+        results = inquiry_view.GetResponses()
         return any((address == result.bd_addr for result in results))
 
     @staticmethod
@@ -257,7 +257,7 @@ class NeighborMatchers(object):
         inquiry_view = hci_packets.InquiryResultWithRssiView(hci_event)
         if inquiry_view is None:
             return False
-        results = inquiry_view.GetInquiryResults()
+        results = inquiry_view.GetResponses()
         return any((address == result.address for result in results))
 
     @staticmethod
