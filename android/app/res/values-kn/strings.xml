@@ -69,7 +69,7 @@
     <string name="upload_succ_ok" msgid="6797291708604959167">"ಸರಿ"</string>
     <string name="upload_fail_line1" msgid="7044307783071776426">"\"<xliff:g id="RECIPIENT">%1$s</xliff:g>\" ಇವರಿಗೆ ಫೈಲ್‌ ಕಳುಹಿಸಲಾಗಲಿಲ್ಲ."</string>
     <string name="upload_fail_line1_2" msgid="6102642590057711459">"ಫೈಲ್‌: <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="upload_fail_cancel" msgid="1632528037932779727">"ಮುಚ್ಚು"</string>
+    <string name="upload_fail_cancel" msgid="1632528037932779727">"ಮುಚ್ಚಿ"</string>
     <string name="bt_error_btn_ok" msgid="2802751202009957372">"ಸರಿ"</string>
     <string name="unknown_file" msgid="3719981572107052685">"ಅಪರಿಚಿತ ಫೈಲ್"</string>
     <string name="unknown_file_desc" msgid="9185609398960437760">"ಈ ಪ್ರಕಾರದ ಫೈಲ್ ನಿರ್ವಹಿಸಲು ಯಾವುದೇ ಅಪ್ಲಿಕೇಶನ್ ಇಲ್ಲ. \n"</string>
