@@ -4959,7 +4959,7 @@ packet InquiryComplete : Event (event_code = INQUIRY_COMPLETE) {
   status : ErrorCode,
 }
 
-struct InquiryResult {
+struct InquiryResponse {
   bd_addr : Address,
   page_scan_repetition_mode : PageScanRepetitionMode,
   _reserved_ : 8,
@@ -4970,8 +4970,8 @@ struct InquiryResult {
 }
 
 packet InquiryResult : Event (event_code = INQUIRY_RESULT) {
-  _count_(inquiry_results) : 8,
-  inquiry_results : InquiryResult[],
+  _count_(responses) : 8,
+  responses : InquiryResponse[],
 }
 
 enum LinkType : 8 {
@@ -5197,7 +5197,7 @@ packet FlowSpecificationComplete : Event (event_code = FLOW_SPECIFICATION_COMPLE
   access_latency : 32, // Octets/s
 }
 
-struct InquiryResultWithRssi {
+struct InquiryResponseWithRssi {
   address : Address,
   page_scan_repetition_mode : PageScanRepetitionMode,
   _reserved_ : 8,
@@ -5208,8 +5208,8 @@ struct InquiryResultWithRssi {
 }
 
 packet InquiryResultWithRssi : Event (event_code = INQUIRY_RESULT_WITH_RSSI) {
-  _count_(inquiry_results) : 8,
-  inquiry_results : InquiryResultWithRssi[],
+  _count_(responses) : 8,
+  responses : InquiryResponseWithRssi[],
 }
 
 packet ReadRemoteExtendedFeaturesComplete : Event (event_code = READ_REMOTE_EXTENDED_FEATURES_COMPLETE) {
@@ -5403,7 +5403,7 @@ enum AdvertisingEventType : 8 {
   SCAN_RESPONSE = 0x04,
 }
 
-struct LeAdvertisingReport {
+struct LeAdvertisingResponse {
   event_type : AdvertisingEventType,
   address_type : AddressType,
   address : Address,
@@ -5413,11 +5413,11 @@ struct LeAdvertisingReport {
 }
 
 packet LeAdvertisingReport : LeMetaEvent (subevent_code = ADVERTISING_REPORT) {
-  _count_(advertising_reports) : 8,
-  advertising_reports : LeAdvertisingReport[],
+  _count_(responses) : 8,
+  responses : LeAdvertisingResponse[],
 }
 
-struct LeAdvertisingReportRaw {
+struct LeAdvertisingResponseRaw {
   event_type : AdvertisingEventType,
   address_type : AddressType,
   address : Address,
@@ -5427,8 +5427,8 @@ struct LeAdvertisingReportRaw {
 }
 
 packet LeAdvertisingReportRaw : LeMetaEvent (subevent_code = ADVERTISING_REPORT) {
-  _count_(advertising_reports) : 8,
-  advertising_reports : LeAdvertisingReportRaw[],
+  _count_(responses) : 8,
+  responses : LeAdvertisingResponseRaw[],
 }
 
 packet LeConnectionUpdateComplete : LeMetaEvent (subevent_code = CONNECTION_UPDATE_COMPLETE) {
@@ -5514,7 +5514,7 @@ enum DirectAddressType : 8 {
   RANDOM_DEVICE_ADDRESS = 0x01,
 }
 
-struct LeDirectedAdvertisingReport {
+struct LeDirectedAdvertisingResponse {
   event_type : DirectAdvertisingEventType,
   address_type : DirectAdvertisingAddressType,
   address : Address,
@@ -5524,8 +5524,8 @@ struct LeDirectedAdvertisingReport {
 }
 
 packet LeDirectedAdvertisingReport : LeMetaEvent (subevent_code = DIRECTED_ADVERTISING_REPORT) {
-  _count_(advertising_reports) : 8,
-  advertising_reports : LeDirectedAdvertisingReport[],
+  _count_(responses) : 8,
+  responses : LeDirectedAdvertisingResponse[],
 }
 
 packet LePhyUpdateComplete : LeMetaEvent (subevent_code = PHY_UPDATE_COMPLETE) {
@@ -5543,7 +5543,7 @@ enum DataStatus : 2 {
   RESERVED = 0x3,
 }
 
-struct LeExtendedAdvertisingReport {
+struct LeExtendedAdvertisingResponse {
   connectable : 1,
   scannable : 1,
   directed : 1,
@@ -5566,8 +5566,8 @@ struct LeExtendedAdvertisingReport {
 }
 
 packet LeExtendedAdvertisingReport : LeMetaEvent (subevent_code = EXTENDED_ADVERTISING_REPORT) {
-  _count_(advertising_reports) : 8,
-  advertising_reports : LeExtendedAdvertisingReport[],
+  _count_(responses) : 8,
+  responses : LeExtendedAdvertisingResponse[],
 }
 
 packet LePeriodicAdvertisingSyncEstablished : LeMetaEvent (subevent_code = PERIODIC_ADVERTISING_SYNC_ESTABLISHED) {
