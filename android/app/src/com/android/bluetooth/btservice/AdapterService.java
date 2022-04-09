@@ -683,8 +683,10 @@ public class AdapterService extends Service {
     void startProfileServices() {
         debugLog("startCoreServices()");
         Class[] supportedProfileServices = Config.getSupportedProfiles();
-        if (supportedProfileServices.length == 1 && GattService.class.getSimpleName()
-                .equals(supportedProfileServices[0].getSimpleName())) {
+        // If we support no profiles, or we only support GATT/BLE, just move on to BREDR_STARTED
+        if (supportedProfileServices.length == 0
+                || (supportedProfileServices.length == 1 && GattService.class.getSimpleName()
+                .equals(supportedProfileServices[0].getSimpleName()))) {
             mAdapterProperties.onBluetoothReady();
             updateUuids();
             setBluetoothClassFromConfig();
@@ -700,8 +702,10 @@ public class AdapterService extends Service {
         mAdapterProperties.setScanMode(AbstractionLayer.BT_SCAN_MODE_NONE);
 
         Class[] supportedProfileServices = Config.getSupportedProfiles();
-        if (supportedProfileServices.length == 1 && (mRunningProfiles.size() == 1
-                && GattService.class.getSimpleName().equals(mRunningProfiles.get(0).getName()))) {
+        // If we support no profiles, or we only support GATT/BLE, just move on to BREDR_STOPPED
+        if (supportedProfileServices.length == 0
+                || (supportedProfileServices.length == 1 && (mRunningProfiles.size() == 1
+                && GattService.class.getSimpleName().equals(mRunningProfiles.get(0).getName())))) {
             debugLog("stopProfileServices() - No profiles services to stop or already stopped.");
             mAdapterStateMachine.sendMessage(AdapterState.BREDR_STOPPED);
         } else {
