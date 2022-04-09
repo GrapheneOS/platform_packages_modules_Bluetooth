@@ -74,7 +74,7 @@ void HciProcessor::process_special_event(
       if (!packet_view.IsValid()) {
         return;
       }
-      auto inquiry_results = packet_view.GetInquiryResults();
+      auto inquiry_results = packet_view.GetResponses();
       avg_byte_count = byte_count / inquiry_results.size();
       for (auto& inquiry_result : inquiry_results) {
         btaa_hci_packets.push_back(BtaaHciPacket(Activity::SCAN, inquiry_result.bd_addr_, avg_byte_count));

@@ -304,13 +304,13 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
       LOG_INFO("Dropping invalid advertising event");
       return;
     }
-    std::vector<LeAdvertisingReport> reports = event_view.GetAdvertisingReports();
+    std::vector<LeAdvertisingResponse> reports = event_view.GetResponses();
     if (reports.empty()) {
       LOG_INFO("Zero results in advertising event");
       return;
     }
 
-    for (LeAdvertisingReport report : reports) {
+    for (LeAdvertisingResponse report : reports) {
       uint16_t extended_event_type = 0;
       switch (report.event_type_) {
         case hci::AdvertisingEventType::ADV_IND:
@@ -362,7 +362,7 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
       LOG_INFO("Dropping invalid advertising event");
       return;
     }
-    std::vector<LeDirectedAdvertisingReport> reports = event_view.GetAdvertisingReports();
+    std::vector<LeDirectedAdvertisingResponse> reports = event_view.GetResponses();
     if (reports.empty()) {
       LOG_INFO("Zero results in advertising event");
       return;
@@ -377,13 +377,13 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
       LOG_INFO("Dropping invalid advertising event");
       return;
     }
-    std::vector<LeExtendedAdvertisingReport> reports = event_view.GetAdvertisingReports();
+    std::vector<LeExtendedAdvertisingResponse> reports = event_view.GetResponses();
     if (reports.empty()) {
       LOG_INFO("Zero results in advertising event");
       return;
     }
 
-    for (LeExtendedAdvertisingReport report : reports) {
+    for (LeExtendedAdvertisingResponse report : reports) {
       uint16_t event_type = report.connectable_ | (report.scannable_ << kScannableBit) |
                             (report.directed_ << kDirectedBit) | (report.scan_response_ << kScanResponseBit) |
                             (report.legacy_ << kLegacyBit) | ((uint16_t)report.data_status_ << kDataStatusBits);
