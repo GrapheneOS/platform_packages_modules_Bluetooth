@@ -56,11 +56,11 @@ public class BroadcasterViewModel extends AndroidViewModel {
     }
 
     public List<BluetoothLeBroadcastMetadata> getAllBroadcastMetadata() {
-        return mBluetooth.getAllBroadcastMetadata();
+        return mBluetooth.getAllLocalBroadcasts();
     }
 
     public int getBroadcastCount() {
-        return mBluetooth.getAllBroadcastMetadata().size();
+        return mBluetooth.getAllLocalBroadcasts().size();
     }
 
     public LiveData<BluetoothLeBroadcastMetadata> getBroadcastUpdateMetadataLive() {
