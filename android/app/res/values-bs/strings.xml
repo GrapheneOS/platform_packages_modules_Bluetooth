@@ -109,16 +109,10 @@
     <string name="transfer_clear_dlg_msg" msgid="586117930961007311">"Sve stavke će biti izbrisane sa spiska."</string>
     <string name="outbound_noti_title" msgid="2045560896819618979">"Bluetooth dijeljenje: Poslani fajlovi"</string>
     <string name="inbound_noti_title" msgid="3730993443609581977">"Bluetooth dijeljenje: Primljeni fajlovi"</string>
-    <plurals name="noti_caption_unsuccessful" formatted="false" msgid="6511510339394311097">
-      <item quantity="one"><xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> neuspješan.</item>
-      <item quantity="few"><xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> neuspješna.</item>
-      <item quantity="other"><xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> neuspješnih.</item>
-    </plurals>
-    <plurals name="noti_caption_success" formatted="false" msgid="2452887423660955489">
-      <item quantity="one"><xliff:g id="SUCCESSFUL_NUMBER_1">%1$d</xliff:g> uspješan, %2$s</item>
-      <item quantity="few"><xliff:g id="SUCCESSFUL_NUMBER_1">%1$d</xliff:g> uspješna, %2$s</item>
-      <item quantity="other"><xliff:g id="SUCCESSFUL_NUMBER_1">%1$d</xliff:g> uspješnih, %2$s</item>
-    </plurals>
+    <!-- no translation found for noti_caption_unsuccessful (8321968345160824888) -->
+    <skip />
+    <!-- no translation found for noti_caption_success (7914987425717863454) -->
+    <skip />
     <string name="transfer_menu_clear_all" msgid="3014459758656427076">"Obriši spisak"</string>
     <string name="transfer_menu_open" msgid="5193344638774400131">"Otvori"</string>
     <string name="transfer_menu_clear" msgid="7213491281898188730">"Obriši sa spiska"</string>

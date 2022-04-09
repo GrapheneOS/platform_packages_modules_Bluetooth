@@ -109,22 +109,10 @@
     <string name="transfer_clear_dlg_msg" msgid="586117930961007311">"سيتم محو جميع العناصر من القائمة."</string>
     <string name="outbound_noti_title" msgid="2045560896819618979">"مشاركة البلوتوث: الملفات المرسلة"</string>
     <string name="inbound_noti_title" msgid="3730993443609581977">"مشاركة البلوتوث: الملفات المستلمة"</string>
-    <plurals name="noti_caption_unsuccessful" formatted="false" msgid="6511510339394311097">
-      <item quantity="zero">تعذّر إرسال <xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> من العناصر.</item>
-      <item quantity="two">تعذّر إرسال عنصرين (<xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g>).</item>
-      <item quantity="few">تعذّر إرسال <xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> عناصر.</item>
-      <item quantity="many">تعذّر إرسال <xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> عنصرًا.</item>
-      <item quantity="other">تعذّر إرسال <xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> من العناصر.</item>
-      <item quantity="one">تعذّر إرسال <xliff:g id="UNSUCCESSFUL_NUMBER_0">%1$d</xliff:g> عنصر.</item>
-    </plurals>
-    <plurals name="noti_caption_success" formatted="false" msgid="2452887423660955489">
-      <item quantity="zero">‏نجح إرسال <xliff:g id="SUCCESSFUL_NUMBER_1">%1$d</xliff:g> من العناصر، %2$s</item>
-      <item quantity="two">‏نجح إرسال عنصرين (<xliff:g id="SUCCESSFUL_NUMBER_1">%1$d</xliff:g>)، %2$s</item>
-      <item quantity="few">‏نجح إرسال <xliff:g id="SUCCESSFUL_NUMBER_1">%1$d</xliff:g> عناصر، %2$s</item>
-      <item quantity="many">‏نجح إرسال <xliff:g id="SUCCESSFUL_NUMBER_1">%1$d</xliff:g> عنصرًا، %2$s</item>
-      <item quantity="other">‏نجح إرسال <xliff:g id="SUCCESSFUL_NUMBER_1">%1$d</xliff:g> من العناصر، %2$s</item>
-      <item quantity="one">‏نجح إرسال <xliff:g id="SUCCESSFUL_NUMBER_0">%1$d</xliff:g> عنصر، %2$s</item>
-    </plurals>
+    <!-- no translation found for noti_caption_unsuccessful (8321968345160824888) -->
+    <skip />
+    <!-- no translation found for noti_caption_success (7914987425717863454) -->
+    <skip />
     <string name="transfer_menu_clear_all" msgid="3014459758656427076">"محو القائمة"</string>
     <string name="transfer_menu_open" msgid="5193344638774400131">"فتح"</string>
     <string name="transfer_menu_clear" msgid="7213491281898188730">"محو من القائمة"</string>
