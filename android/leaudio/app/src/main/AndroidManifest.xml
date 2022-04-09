@@ -36,6 +36,11 @@
             android:excludeFromRecents="true"
             android:theme="@style/AppTheme.NoActionBar">
         </activity>
+        <activity
+            android:name=".BroadcastScanActivity"
+            android:excludeFromRecents="true"
+            android:theme="@style/AppTheme.NoActionBar">
+        </activity>
     </application>
 
 </manifest>
