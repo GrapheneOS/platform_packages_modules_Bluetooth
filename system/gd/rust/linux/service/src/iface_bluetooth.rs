@@ -248,6 +248,11 @@ impl IBluetooth for IBluetoothDBus {
         dbus_generated!()
     }
 
+    #[dbus_method("SetRemoteAlias")]
+    fn set_remote_alias(&mut self, _device: BluetoothDevice, new_alias: String) {
+        dbus_generated!()
+    }
+
     #[dbus_method("GetRemoteClass")]
     fn get_remote_class(&self, _device: BluetoothDevice) -> u32 {
         dbus_generated!()

@@ -19,6 +19,7 @@ package com.android.bluetooth.leaudio;
 
 import android.app.Application;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothLeBroadcastMetadata;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
@@ -114,5 +115,38 @@ public class LeAudioViewModel extends AndroidViewModel {
 
     public boolean isLeAudioBroadcastSourceSupported() {
         return bluetoothProxy.isLeAudioBroadcastSourceSupported();
+    }
+
+    public void connectBass(BluetoothDevice sink, boolean connect) {
+        bluetoothProxy.connectBass(sink, connect);
+    }
+
+    public boolean stopBroadcastObserving() {
+        return bluetoothProxy.stopBroadcastObserving();
+    }
+
+    // TODO: Uncomment this method if necessary
+//    public boolean getBroadcastReceiverState(BluetoothDevice device, int receiver_id) {
+//        return bluetoothProxy.getBroadcastReceiverState(device, receiver_id);
+//    }
+
+    // TODO: Uncomment this method if necessary
+//    public boolean modifyBroadcastSource(BluetoothDevice device, int receiver_id, boolean sync_pa,
+//            List<BluetoothBroadcastAudioScanBaseConfig> configs) {
+//        return bluetoothProxy.modifyBroadcastSource(device, receiver_id, sync_pa, configs);
+//    }
+
+    public boolean removeBroadcastSource(BluetoothDevice sink, int receiver_id) {
+        // TODO: Find source ID from receiver_id. What is receiver_id?
+        int sourceId = 0;
+        return bluetoothProxy.removeBroadcastSource(sink, sourceId);
+    }
+
+    public boolean setBroadcastCode(BluetoothDevice sink, int receiver_id, byte[] bcast_code) {
+        // TODO: Find source ID from receiver_id. What is receiver_id?
+        // TODO: Build BluetoothLeBroadcastMetadata with the new bcast_code.
+        int sourceId = 0;
+        BluetoothLeBroadcastMetadata metadata = null;
+        return bluetoothProxy.modifyBroadcastSource(sink, sourceId, metadata);
     }
 }
