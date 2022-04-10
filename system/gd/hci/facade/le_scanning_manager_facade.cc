@@ -124,8 +124,8 @@ class LeScanningManagerFacadeService : public LeScanningManagerFacade::Service, 
       uint16_t periodic_advertising_interval,
       std::vector<uint8_t> advertising_data) {
     AdvertisingReportMsg advertising_report_msg;
-    std::vector<LeExtendedAdvertisingReport> advertisements;
-    LeExtendedAdvertisingReport le_extended_advertising_report;
+    std::vector<LeExtendedAdvertisingResponse> advertisements;
+    LeExtendedAdvertisingResponse le_extended_advertising_report;
     le_extended_advertising_report.address_type_ = (DirectAdvertisingAddressType)address_type;
     le_extended_advertising_report.address_ = address;
     le_extended_advertising_report.advertising_data_ = advertising_data;

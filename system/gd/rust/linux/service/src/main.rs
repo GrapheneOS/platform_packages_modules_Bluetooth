@@ -76,19 +76,6 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let adapter_index = get_adapter_index(&args);
 
-    // Hold locks and initialize all interfaces.
-    {
-        intf.lock().unwrap().initialize(get_bt_dispatcher(tx.clone()), args);
-
-        bluetooth_media.lock().unwrap().set_adapter(bluetooth.clone());
-
-        let mut bluetooth = bluetooth.lock().unwrap();
-        bluetooth.init_profiles();
-        bluetooth.enable();
-
-        bluetooth_gatt.lock().unwrap().init_profiles(tx.clone());
-    }
-
     topstack::get_runtime().block_on(async {
         // Connect to D-Bus system bus.
         let (resource, conn) = connection::new_system_sync()?;
@@ -138,7 +125,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             make_object_name(adapter_index, "gatt"),
             conn.clone(),
             &mut cr,
-            bluetooth_gatt,
+            bluetooth_gatt.clone(),
             disconnect_watcher.clone(),
         );
 
@@ -146,7 +133,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             make_object_name(adapter_index, "media"),
             conn.clone(),
             &mut cr,
-            bluetooth_media,
+            bluetooth_media.clone(),
             disconnect_watcher.clone(),
         );
 
@@ -158,6 +145,22 @@ fn main() -> Result<(), Box<dyn Error>> {
             disconnect_watcher.clone(),
         );
 
+        // Hold locks and initialize all interfaces. This must be done AFTER DBus is
+        // initialized so DBus can properly enforce user policies.
+        {
+            intf.lock().unwrap().initialize(get_bt_dispatcher(tx.clone()), args);
+
+            bluetooth_media.lock().unwrap().set_adapter(bluetooth.clone());
+
+            let mut bluetooth = bluetooth.lock().unwrap();
+            bluetooth.init_profiles();
+            bluetooth.enable();
+
+            bluetooth_gatt.lock().unwrap().init_profiles(tx.clone());
+        }
+
+        // Start listening on DBus after exporting interfaces and initializing
+        // all bluetooth objects.
         conn.start_receive(
             MatchRule::new_method_call(),
             Box::new(move |msg, conn| {

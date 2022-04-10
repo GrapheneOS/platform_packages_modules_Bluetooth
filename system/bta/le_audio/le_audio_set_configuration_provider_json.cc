@@ -461,6 +461,36 @@ struct AudioSetConfigurationProvider::impl {
 
   bool IsRunning() { return config_provider_impl_ ? true : false; }
 
+  void Dump(int fd) {
+    std::stringstream stream;
+
+    for (LeAudioContextType context : types::kLeAudioContextAllTypesArray) {
+      auto confs = Get()->GetConfigurations(context);
+      stream << "  === Configurations for context type: " << (int)context
+             << ", num: " << (confs == nullptr ? 0 : confs->size()) << " \n";
+      if (confs->size() > 0) {
+        for (const auto& conf : *confs) {
+          stream << "  name: " << conf->name << " \n";
+          for (const auto& ent : conf->confs) {
+            stream << "    direction: "
+                   << (ent.direction == types::kLeAudioDirectionSink
+                           ? "Sink (speaker)\n"
+                           : "Source (mic)\n")
+                   << "     number of devices: " << +ent.device_cnt << " \n"
+                   << "     number of ASEs: " << +ent.ase_cnt << " \n"
+                   << "     target latency: " << +ent.target_latency << " \n"
+                   << "     strategy: " << (int)(ent.strategy) << " \n"
+                   << "     qos->retransmission_number: "
+                   << +ent.qos.retransmission_number << " \n"
+                   << "     qos->max_transport_latency: "
+                   << +ent.qos.max_transport_latency << " \n";
+          }
+        }
+      }
+    }
+    dprintf(fd, "%s", stream.str().c_str());
+  }
+
   const AudioSetConfigurationProvider& config_provider_;
   std::unique_ptr<AudioSetConfigurationProviderJson> config_provider_impl_;
 };
@@ -476,6 +506,21 @@ void AudioSetConfigurationProvider::Initialize() {
 
   if (!config_provider->pimpl_->IsRunning())
     config_provider->pimpl_->Initialize();
+}
+
+void AudioSetConfigurationProvider::DebugDump(int fd) {
+  if (!config_provider || !config_provider->pimpl_->IsRunning()) {
+    dprintf(
+        fd,
+        "\n AudioSetConfigurationProvider not initialized: config provider: "
+        "%d, pimpl: %d \n",
+        config_provider != nullptr,
+        (config_provider == nullptr ? 0
+                                    : config_provider->pimpl_->IsRunning()));
+    return;
+  }
+  dprintf(fd, "\n AudioSetConfigurationProvider: \n");
+  config_provider->pimpl_->Dump(fd);
 }
 
 void AudioSetConfigurationProvider::Cleanup() {

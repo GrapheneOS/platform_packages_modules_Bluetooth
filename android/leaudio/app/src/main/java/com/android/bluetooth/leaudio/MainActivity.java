@@ -136,6 +136,21 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = null;
 
         switch (item.getItemId()) {
+            case R.id.action_scan:
+                intent = new Intent(MainActivity.this, BroadcastScanActivity.class);
+                // TODO: Why does this pass no information?
+                //intent.putExtra(BluetoothBroadcastAudioScan.EXTRA_BASS_RECEIVER_ID, 0);
+
+                // TODO: Change BluetoothAdapter.getDefaultAdapter() usages into BluetoothManager#getAdapter().
+                BluetoothAdapter mAdapter = BluetoothAdapter.getDefaultAdapter();
+
+                // What does this fake address mean?
+                byte[] address = {(byte)0xff, (byte)0xff, (byte)0xff, (byte)0xff, (byte)0xff, (byte)0xff};
+                BluetoothDevice dev = mAdapter.getRemoteDevice(address);
+                intent.putExtra(BluetoothDevice.EXTRA_DEVICE, dev);
+                startActivity(intent);
+                return true;
+
             case R.id.action_broadcast:
                 if (leAudioViewModel.getBluetoothEnabledLive().getValue() == null
                         || !leAudioViewModel.getBluetoothEnabledLive().getValue()) {
@@ -168,6 +183,9 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(MainActivity.this, message + "(" + resultCode + ")",
                         Toast.LENGTH_SHORT).show();
             }
+
+            // TODO: Depending on the resultCode we should either stop the sync or try the PAST
+            leAudioViewModel.stopBroadcastObserving();
         }
     }
 
@@ -548,12 +566,72 @@ public class MainActivity extends AppCompatActivity {
                                     .show();
                     }
                 });
+
+        recyclerViewAdapter.setOnBassInteractionListener(
+                new LeAudioRecycleViewAdapter.OnBassInteractionListener() {
+                    @Override
+                    public void onConnectClick(
+                            LeAudioDeviceStateWrapper leAudioDeviceStateWrapper) {
+                        Toast.makeText(MainActivity.this,
+                                "Connecting BASS to " + leAudioDeviceStateWrapper.device.toString(),
+                                Toast.LENGTH_SHORT).show();
+                        leAudioViewModel.connectBass(leAudioDeviceStateWrapper.device, true);
+                    }
+
+                    @Override
+                    public void onDisconnectClick(
+                            LeAudioDeviceStateWrapper leAudioDeviceStateWrapper) {
+                        Toast.makeText(MainActivity.this,
+                                "Disconnecting BASS from "
+                                        + leAudioDeviceStateWrapper.device.toString(),
+                                Toast.LENGTH_SHORT).show();
+                        leAudioViewModel.connectBass(leAudioDeviceStateWrapper.device, false);
+                    }
+
+                    @Override
+                    public void onReceiverSelected(
+                            LeAudioDeviceStateWrapper leAudioDeviceStateWrapper, int receiver_id) {
+                        // Do nothing here, the UI is updated elsewhere and we already have the
+                        // latest state value as well
+                    }
+
+                    @Override
+                    public void onBroadcastCodeEntered(BluetoothDevice device, int receiver_id,
+                            byte[] broadcast_code) {
+                        leAudioViewModel.setBroadcastCode(device, receiver_id, broadcast_code);
+                    }
+
+                    @Override
+                    public void onStopSyncReq(BluetoothDevice device, int receiver_id) {
+                        // TODO: When is onStopSyncReq called? and what does below code do?
+
+//                        List<BluetoothBroadcastAudioScanBaseConfig> configs = new ArrayList<>();
+//                        // JT@CC: How come you can call this with null metadata when the
+//                        // constructor has the @Nonull annotation for the param?
+//                        BluetoothBroadcastAudioScanBaseConfig stop_config =
+//                                new BluetoothBroadcastAudioScanBaseConfig(0, new byte[] {});
+//                        configs.add(stop_config);
+//
+//                        leAudioViewModel.modifyBroadcastSource(device, receiver_id, false, configs);
+                    }
+
+                    @Override
+                    public void onRemoveSourceReq(BluetoothDevice device, int receiver_id) {
+                        leAudioViewModel.removeBroadcastSource(device, receiver_id);
+                    }
+
+                    @Override
+                    public void onStopObserving() {
+                        leAudioViewModel.stopBroadcastObserving();
+                    }
+                });
     }
 
     private void cleanupViewsProfileUiEventListeners() {
         recyclerViewAdapter.setOnLeAudioInteractionListener(null);
         recyclerViewAdapter.setOnVolumeControlInteractionListener(null);
         recyclerViewAdapter.setOnHapInteractionListener(null);
+        recyclerViewAdapter.setOnBassInteractionListener(null);
     }
 
     // This sets the initial values and set up the observers
