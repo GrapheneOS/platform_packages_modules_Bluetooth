@@ -79,6 +79,13 @@
     </string-array>
     <string name="group_locked">LOCKED</string>
     <string name="group_unlocked">UNLOCKED</string>
+    <string name="broadcast_state_idle">IDLE</string>
+    <string name="broadcast_state_set_source_failed">SET_SOURCE_FAILED</string>
+    <string name="broadcast_state_syncing">SYNCING</string>
+    <string name="broadcast_state_sync_pa_failed">SYNC_PA_FAILED</string>
+    <string name="broadcast_state_code_required">BROADCAST_CODE_REQUIRED</string>
+    <string name="broadcast_state_code_invalid">BROADCAST_CODE_INVALID</string>
+    <string name="broadcast_state_receiving_broadcast">RECEIVING_BROADCAST</string>
     <string-array name="tbs_call_states">
         <item>Incoming</item>
         <item>Dialing</item>

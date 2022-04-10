@@ -37,6 +37,7 @@
 #include "embdrv/lc3/include/lc3.h"
 #include "gatt/bta_gattc_int.h"
 #include "gd/common/strings.h"
+#include "le_audio_set_configuration_provider.h"
 #include "le_audio_types.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
@@ -3628,6 +3629,7 @@ void LeAudioClient::DebugDump(int fd) {
 
   LeAudioClientAudioSource::DebugDump(fd);
   LeAudioClientAudioSink::DebugDump(fd);
+  le_audio::AudioSetConfigurationProvider::Get()->DebugDump(fd);
   dprintf(fd, "\n");
 }
 
