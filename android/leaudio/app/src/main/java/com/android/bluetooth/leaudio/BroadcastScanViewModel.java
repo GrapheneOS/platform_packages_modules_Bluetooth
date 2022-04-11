@@ -34,7 +34,7 @@ import java.util.List;
 public class BroadcastScanViewModel extends AndroidViewModel {
     private final String TAG = "BroadcastScanViewModel";
     boolean mIsActivityScanning = false;
-    BluetoothDevice mOnBehalfDevice;
+    BluetoothDevice mScanDelegatorDevice;
 
     // TODO: Remove these variables if they are unnecessary
 //    // AddBroadcast context
@@ -71,8 +71,8 @@ public class BroadcastScanViewModel extends AndroidViewModel {
 
                 // Continue as long as the main activity wants
                 if (mIsActivityScanning) {
-                    if (mOnBehalfDevice != null) {
-                        mBluetooth.scanForBroadcasts(mOnBehalfDevice, true);
+                    if (mScanDelegatorDevice != null) {
+                        mBluetooth.scanForBroadcasts(mScanDelegatorDevice, true);
                     }
                 }
             } else {
@@ -128,14 +128,9 @@ public class BroadcastScanViewModel extends AndroidViewModel {
         return mAllBroadcasts;
     }
 
-    public void scanForBroadcasts(BluetoothDevice device, boolean scan) {
-        if (device == null) {
-            Log.e(TAG, "scanForBroadcasts: device is null. Ignoring.");
-            return;
-        }
-
+    public void scanForBroadcasts(BluetoothDevice delegatorDevice, boolean scan) {
         mIsActivityScanning = scan;
-        mOnBehalfDevice = scan ? device : null;
+        mScanDelegatorDevice = delegatorDevice;
 
         // First update the live broadcast list
         List<BluetoothLeBroadcastMetadata> localSessionBroadcasts =
@@ -149,7 +144,7 @@ public class BroadcastScanViewModel extends AndroidViewModel {
         new_arr.addAll(mScanSessionBroadcasts.values());
         mAllBroadcasts.postValue(new_arr);
 
-        mBluetooth.scanForBroadcasts(device, scan);
+        mBluetooth.scanForBroadcasts(mScanDelegatorDevice, scan);
     }
 
     public void addBroadcastSource(BluetoothDevice sink, BluetoothLeBroadcastMetadata sourceMetadata) {
