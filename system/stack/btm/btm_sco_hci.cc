@@ -28,7 +28,6 @@
 // For hardware encoding path, provide an empty implementation
 
 namespace bluetooth::audio::sco {
-void init() {}
 void open() {}
 void cleanup() {}
 size_t read(uint8_t*, uint32_t) { return 0; }
@@ -68,14 +67,11 @@ namespace bluetooth {
 namespace audio {
 namespace sco {
 
-void init() {
+void open() {
   if (sco_uipc != nullptr) {
-    LOG_WARN("Re-initializing UIPC that is already running");
+    LOG_WARN("Re-opening UIPC that is already running");
   }
   sco_uipc = UIPC_Init();
-}
-
-void open() {
   UIPC_Open(*sco_uipc, UIPC_CH_ID_AV_AUDIO, sco_data_cb, SCO_HOST_DATA_PATH);
   struct group* grp = getgrnam(SCO_HOST_DATA_GROUP);
   chmod(SCO_HOST_DATA_PATH, 0770);
@@ -88,19 +84,26 @@ void open() {
 }
 
 void cleanup() {
-  if (sco_uipc != nullptr) {
-    UIPC_Close(*sco_uipc, UIPC_CH_ID_ALL);
+  if (sco_uipc == nullptr) {
+    return;
   }
+  UIPC_Close(*sco_uipc, UIPC_CH_ID_ALL);
+  sco_uipc = nullptr;
 }
 
 size_t read(uint8_t* p_buf, uint32_t len) {
   if (sco_uipc == nullptr) {
+    LOG_WARN("Read from uninitialized or closed UIPC");
     return 0;
   }
   return UIPC_Read(*sco_uipc, UIPC_CH_ID_AV_AUDIO, p_buf, len);
 }
 
 size_t write(const uint8_t* p_buf, uint32_t len) {
+  if (sco_uipc == nullptr) {
+    LOG_WARN("Write to uninitialized or closed UIPC");
+    return 0;
+  }
   return UIPC_Send(*sco_uipc, UIPC_CH_ID_AV_AUDIO, 0, p_buf, len);
 }
 
