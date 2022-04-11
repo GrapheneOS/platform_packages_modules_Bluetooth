@@ -55,26 +55,32 @@ public class BroadcastItemsAdapter
 
     @Override
     public void onBindViewHolder(@NonNull BroadcastItemHolder holder, int position) {
-        Integer broadcastId = (Integer) mBroadcastPlaybackMap.keySet().toArray()[position];
-        Boolean isPlaying = mBroadcastPlaybackMap.get(broadcastId);
+        BluetoothLeBroadcastMetadata meta = mBroadcastMetadataList.get(position);
+        Integer broadcastId = meta.getBroadcastId();
+        Boolean isPlaybackStateKnown = mBroadcastPlaybackMap.containsKey(broadcastId);
 
-        // Set card color based on the playback state
-        if (isPlaying) {
-            holder.background
-                    .setCardBackgroundColor(ColorStateList.valueOf(Color.parseColor("#92b141")));
-            holder.mTextViewBroadcastId.setText("ID: " + broadcastId + " ▶️");
+        if (isPlaybackStateKnown) {
+            // Set card color based on the playback state
+            Boolean isPlaying = mBroadcastPlaybackMap.getOrDefault(broadcastId, false);
+            if (isPlaying) {
+                holder.background
+                .setCardBackgroundColor(ColorStateList.valueOf(Color.parseColor("#92b141")));
+                holder.mTextViewBroadcastId.setText("ID: " + broadcastId + " ▶️");
+            } else {
+                holder.background.setCardBackgroundColor(ColorStateList.valueOf(Color.WHITE));
+                holder.mTextViewBroadcastId.setText("ID: " + broadcastId + " ⏸");
+            }
         } else {
             holder.background.setCardBackgroundColor(ColorStateList.valueOf(Color.WHITE));
-            holder.mTextViewBroadcastId.setText("ID: " + broadcastId + " ⏸");
+            holder.mTextViewBroadcastId.setText("ID: " + broadcastId);
         }
 
         // TODO: Add additional informations to the card
-        // BluetoothLeBroadcastMetadata current_item = mBroadcastMetadata.get(position);
     }
 
     @Override
     public int getItemCount() {
-        return mBroadcastPlaybackMap.size();
+        return mBroadcastMetadataList.size();
     }
 
     public void updateBroadcastsMetadata(List<BluetoothLeBroadcastMetadata> broadcasts) {
@@ -137,7 +143,7 @@ public class BroadcastItemsAdapter
 
                 int position = getAdapterPosition();
                 if (position != RecyclerView.NO_POSITION) {
-                    Integer broadcastId = (Integer) mBroadcastPlaybackMap.keySet().toArray()[position];
+                    Integer broadcastId = mBroadcastMetadataList.get(position).getBroadcastId();
                     listener.onItemClick(broadcastId);
                 }
             });
