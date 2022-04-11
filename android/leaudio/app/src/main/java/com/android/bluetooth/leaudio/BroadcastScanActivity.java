@@ -42,7 +42,6 @@ public class BroadcastScanActivity extends AppCompatActivity {
     private BluetoothDevice device;
     private BroadcastScanViewModel mViewModel;
     private BroadcastItemsAdapter adapter;
-    private String mLocalBluetoothAddress;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,8 +51,6 @@ public class BroadcastScanActivity extends AppCompatActivity {
         RecyclerView recyclerView = findViewById(R.id.broadcast_recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setHasFixedSize(true);
-
-        mLocalBluetoothAddress = BluetoothAdapter.getDefaultAdapter().getAddress();
 
         adapter = new BroadcastItemsAdapter();
         adapter.setOnItemClickListener(broadcastId -> {
@@ -73,14 +70,11 @@ public class BroadcastScanActivity extends AppCompatActivity {
                 return;
             }
 
-            // TODO: Support selecting the subgroups instead of using all
-            mViewModel.addBroadcastSource(device, broadcast);
-            if (TextUtils.equals(mLocalBluetoothAddress, broadcast.getSourceDevice().getAddress())) {
-                Toast.makeText(recyclerView.getContext(), "Add local broadcast",
-                        Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(recyclerView.getContext(), "Add remote broadcast",
-                        Toast.LENGTH_SHORT).show();
+            // Set broadcast source on peer only if scan delegator device context is available
+            if (device != null) {
+                Toast.makeText(recyclerView.getContext(), "Adding broadcast source"
+                                + " broadcastId=" + broadcastId, Toast.LENGTH_SHORT).show();
+                mViewModel.addBroadcastSource(device, broadcast);
             }
         });
         recyclerView.setAdapter(adapter);
