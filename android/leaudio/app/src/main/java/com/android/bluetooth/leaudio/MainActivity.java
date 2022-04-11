@@ -137,17 +137,8 @@ public class MainActivity extends AppCompatActivity {
 
         switch (item.getItemId()) {
             case R.id.action_scan:
+                // Clicking this gives no device or receiver context - no extras for this intent.
                 intent = new Intent(MainActivity.this, BroadcastScanActivity.class);
-                // TODO: Why does this pass no information?
-                //intent.putExtra(BluetoothBroadcastAudioScan.EXTRA_BASS_RECEIVER_ID, 0);
-
-                // TODO: Change BluetoothAdapter.getDefaultAdapter() usages into BluetoothManager#getAdapter().
-                BluetoothAdapter mAdapter = BluetoothAdapter.getDefaultAdapter();
-
-                // What does this fake address mean?
-                byte[] address = {(byte)0xff, (byte)0xff, (byte)0xff, (byte)0xff, (byte)0xff, (byte)0xff};
-                BluetoothDevice dev = mAdapter.getRemoteDevice(address);
-                intent.putExtra(BluetoothDevice.EXTRA_DEVICE, dev);
                 startActivity(intent);
                 return true;
 
