@@ -60,12 +60,21 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 public class Config {
     private static final String TAG = "AdapterServiceConfig";
 
     private static final String FEATURE_HEARING_AID = "settings_bluetooth_hearing_aid";
     private static final String FEATURE_BATTERY = "settings_bluetooth_battery";
+
+    private static final String FFLAG_OVERRIDE_PREFIX = "sys.fflag.override.";
+    private static final String PERSIST_PREFIX = "persist." + FFLAG_OVERRIDE_PREFIX;
+
+    private static final Set<String> PERSISTENT_FLAGS = Set.of(
+            FEATURE_HEARING_AID,
+            FEATURE_BATTERY
+    );
 
     private static class ProfileConfig {
         Class mClass;
@@ -255,17 +264,9 @@ public class Config {
         return (disabledProfilesBitMask & profileMask) != 0;
     }
 
-    private static boolean isHearingAidSettingsEnabled(Context context) {
-        final String flagOverridePrefix = "sys.fflag.override.";
-        final String hearingAidSettings = "settings_bluetooth_hearing_aid";
-
-        return isFeatureEnabled(context, hearingAidSettings, /*defaultValue=*/false);
-    }
-
     private static boolean isFeatureEnabled(Context context, String feature, boolean defaultValue) {
-        final String flagOverridePrefix = "sys.fflag.override.";
         // Override precedence:
-        // Settings.Global -> sys.fflag.override.* -> static list
+        // Settings.Global -> [persist.]sys.fflag.override.* -> static list
 
         // Step 1: check if feature flag is set in Settings.Global.
         String value;
@@ -277,13 +278,17 @@ public class Config {
         }
 
         // Step 2: check if feature flag has any override.
-        // Flag name: sys.fflag.override.<feature>
-        value = SystemProperties.get(flagOverridePrefix + feature);
+        // Flag name: [persist.]sys.fflag.override.<feature>
+        value = SystemProperties.get(getSystemPropertyPrefix(feature) + feature);
         if (!TextUtils.isEmpty(value)) {
             return Boolean.parseBoolean(value);
         }
         // Step 3: return default value
         return defaultValue;
+    }
+
+    private static String getSystemPropertyPrefix(String feature) {
+        return PERSISTENT_FLAGS.contains(feature) ? PERSIST_PREFIX : FFLAG_OVERRIDE_PREFIX;
     }
 
     private static List<String> getSystemConfigEnabledProfilesForPackage(Context ctx) {
