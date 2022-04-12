@@ -473,30 +473,90 @@ void LeAddressManager::ClearResolvingList() {
   pause_registered_clients();
 }
 
+template <class View>
+void LeAddressManager::on_command_complete(CommandCompleteView view) {
+  auto op_code = view.GetCommandOpCode();
+
+  auto complete_view = View::Create(view);
+  if (!complete_view.IsValid()) {
+    LOG_ERROR("Received %s complete with invalid packet", hci::OpCodeText(op_code).c_str());
+    return;
+  }
+  auto status = complete_view.GetStatus();
+  if (status != ErrorCode::SUCCESS) {
+    LOG_ERROR(
+        "Received %s complete with status %s",
+        hci::OpCodeText(op_code).c_str(),
+        ErrorCodeText(complete_view.GetStatus()).c_str());
+  }
+}
+
 void LeAddressManager::OnCommandComplete(bluetooth::hci::CommandCompleteView view) {
   if (!view.IsValid()) {
     LOG_ERROR("Received command complete with invalid packet");
     return;
   }
-  std::string op_code = OpCodeText(view.GetCommandOpCode());
-  LOG_INFO("Received command complete with op_code %s", op_code.c_str());
+  auto op_code = view.GetCommandOpCode();
+  LOG_INFO("Received command complete with op_code %s", OpCodeText(op_code).c_str());
 
-  // The command was sent before any client registered, we can make sure all the clients paused when command complete.
-  if (view.GetCommandOpCode() == OpCode::LE_SET_RANDOM_ADDRESS) {
-    if (address_policy_ == AddressPolicy::USE_STATIC_ADDRESS) {
-      LOG_INFO("Received LE_SET_RANDOM_ADDRESS complete and Address policy is USE_STATIC_ADDRESS, return");
-      return;
-    }
-    auto complete_view = LeSetRandomAddressCompleteView::Create(view);
-    if (!complete_view.IsValid()) {
-      LOG_ERROR("Received LE_SET_RANDOM_ADDRESS complete with invalid packet");
-    } else if (complete_view.IsValid() && complete_view.GetStatus() != ErrorCode::SUCCESS) {
-      LOG_ERROR(
-          "Received LE_SET_RANDOM_ADDRESS complete with status %s", ErrorCodeText(complete_view.GetStatus()).c_str());
-    } else {
-      LOG_INFO("update random address : %s", cached_address_.GetAddress().ToString().c_str());
-      le_address_ = cached_address_;
-    }
+  switch (op_code) {
+    case OpCode::LE_SET_RANDOM_ADDRESS: {
+      // The command was sent before any client registered, we can make sure all the clients paused when command
+      // complete.
+      if (address_policy_ == AddressPolicy::USE_STATIC_ADDRESS) {
+        LOG_INFO("Received LE_SET_RANDOM_ADDRESS complete and Address policy is USE_STATIC_ADDRESS, return");
+        return;
+      }
+      auto complete_view = LeSetRandomAddressCompleteView::Create(view);
+      if (!complete_view.IsValid()) {
+        LOG_ERROR("Received LE_SET_RANDOM_ADDRESS complete with invalid packet");
+      } else {
+        if (complete_view.GetStatus() != ErrorCode::SUCCESS) {
+          LOG_ERROR(
+              "Received LE_SET_RANDOM_ADDRESS complete with status %s",
+              ErrorCodeText(complete_view.GetStatus()).c_str());
+        } else {
+          LOG_INFO("update random address : %s", cached_address_.GetAddress().ToString().c_str());
+          le_address_ = cached_address_;
+        }
+      }
+    } break;
+
+    case OpCode::LE_SET_PRIVACY_MODE:
+      on_command_complete<LeSetPrivacyModeCompleteView>(view);
+      break;
+
+    case OpCode::LE_ADD_DEVICE_TO_RESOLVING_LIST:
+      on_command_complete<LeAddDeviceToResolvingListCompleteView>(view);
+      break;
+
+    case OpCode::LE_REMOVE_DEVICE_FROM_RESOLVING_LIST:
+      on_command_complete<LeRemoveDeviceFromResolvingListCompleteView>(view);
+      break;
+
+    case OpCode::LE_CLEAR_RESOLVING_LIST:
+      on_command_complete<LeClearResolvingListCompleteView>(view);
+      break;
+
+    case OpCode::LE_ADD_DEVICE_TO_CONNECT_LIST:
+      on_command_complete<LeAddDeviceToConnectListCompleteView>(view);
+      break;
+
+    case OpCode::LE_REMOVE_DEVICE_FROM_CONNECT_LIST:
+      on_command_complete<LeAddDeviceToConnectListCompleteView>(view);
+      break;
+
+    case OpCode::LE_SET_ADDRESS_RESOLUTION_ENABLE:
+      on_command_complete<LeSetAddressResolutionEnableCompleteView>(view);
+      break;
+
+    case OpCode::LE_CLEAR_CONNECT_LIST:
+      on_command_complete<LeClearConnectListCompleteView>(view);
+      break;
+
+    default:
+      LOG_ERROR("Received UNSUPPORTED command %s complete", hci::OpCodeText(op_code).c_str());
+      break;
   }
 
   handler_->BindOnceOn(this, &LeAddressManager::check_cached_commands).Invoke();
