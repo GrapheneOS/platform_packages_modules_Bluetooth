@@ -2290,5 +2290,144 @@ TEST_F(StateMachineTest, testConfigureDataPathForAdsp) {
   ASSERT_TRUE(LeAudioGroupStateMachine::Get()->StartStream(
       group, static_cast<types::LeAudioContextType>(context_type)));
 }
+
+static void InjectCisDisconnected(LeAudioDeviceGroup* group,
+                                  LeAudioDevice* leAudioDevice) {
+  bluetooth::hci::iso_manager::cis_disconnected_evt event;
+
+  auto* ase = leAudioDevice->GetFirstActiveAse();
+  while (ase) {
+    event.reason = 0x08;
+    event.cig_id = group->group_id_;
+    event.cis_conn_hdl = ase->cis_conn_hdl;
+    LeAudioGroupStateMachine::Get()->ProcessHciNotifCisDisconnected(
+        group, leAudioDevice, &event);
+
+    ase = leAudioDevice->GetNextActiveAse(ase);
+  }
+}
+
+static void InjectAclDisconnected(LeAudioDeviceGroup* group,
+                                  LeAudioDevice* leAudioDevice) {
+  LeAudioGroupStateMachine::Get()->ProcessHciNotifAclDisconnected(
+      group, leAudioDevice);
+}
+
+TEST_F(StateMachineTest, testAttachDeviceToTheStream) {
+  const auto context_type = kContextTypeMedia;
+  const auto leaudio_group_id = 6;
+  const auto num_devices = 2;
+
+  // Prepare multiple fake connected devices in a group
+  auto* group =
+      PrepareSingleTestDeviceGroup(leaudio_group_id, context_type, num_devices);
+  ASSERT_EQ(group->Size(), num_devices);
+
+  PrepareConfigureCodecHandler(group);
+  PrepareConfigureQosHandler(group);
+  PrepareEnableHandler(group);
+  PrepareDisableHandler(group);
+  PrepareReleaseHandler(group);
+
+  auto* leAudioDevice = group->GetFirstDevice();
+  LeAudioDevice* lastDevice;
+
+  auto expected_devices_written = 0;
+  while (leAudioDevice) {
+    /* Three Writes:
+     * 1: Codec Config
+     * 2: Codec QoS
+     * 3: Enabling
+     */
+    lastDevice = leAudioDevice;
+    EXPECT_CALL(gatt_queue,
+                WriteCharacteristic(leAudioDevice->conn_id_,
+                                    leAudioDevice->ctp_hdls_.val_hdl, _,
+                                    GATT_WRITE_NO_RSP, _, _))
+        .Times(AtLeast(3));
+    expected_devices_written++;
+    leAudioDevice = group->GetNextDevice(leAudioDevice);
+  }
+  ASSERT_EQ(expected_devices_written, num_devices);
+
+  EXPECT_CALL(*mock_iso_manager_, CreateCig(_, _)).Times(1);
+  EXPECT_CALL(*mock_iso_manager_, EstablishCis(_)).Times(2);
+  EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(2);
+
+  InjectInitialIdleNotification(group);
+
+  // Start the configuration and stream Media content
+  LeAudioGroupStateMachine::Get()->StartStream(
+      group, static_cast<types::LeAudioContextType>(context_type));
+
+  // Check if group has transitioned to a proper state
+  ASSERT_EQ(group->GetState(),
+            types::AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING);
+
+  // Inject CIS and ACL disconnection of first device
+  InjectCisDisconnected(group, lastDevice);
+  InjectAclDisconnected(group, lastDevice);
+
+  // Check if group keeps streaming
+  ASSERT_EQ(group->GetState(),
+            types::AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING);
+
+  lastDevice->conn_id_ = 3;
+  group->UpdateActiveContextsMap();
+  auto* stream_conf = &group->stream_conf;
+
+  /* Second device got reconnect. Try to get it to the stream seamlessly
+   * Code take from client.cc
+   */
+  le_audio::types::AudioLocations sink_group_audio_locations = 0;
+  uint8_t sink_num_of_active_ases = 0;
+
+  for (auto [cis_handle, audio_location] : stream_conf->sink_streams) {
+    sink_group_audio_locations |= audio_location;
+    sink_num_of_active_ases++;
+  }
+
+  le_audio::types::AudioLocations source_group_audio_locations = 0;
+  uint8_t source_num_of_active_ases = 0;
+
+  for (auto [cis_handle, audio_location] : stream_conf->source_streams) {
+    source_group_audio_locations |= audio_location;
+    source_num_of_active_ases++;
+  }
+
+  for (auto& ent : stream_conf->conf->confs) {
+    if (ent.direction == le_audio::types::kLeAudioDirectionSink) {
+      /* Sink*/
+      if (!lastDevice->ConfigureAses(
+              ent, group->GetCurrentContextType(), &sink_num_of_active_ases,
+              sink_group_audio_locations, source_group_audio_locations, true)) {
+        LOG(INFO) << __func__ << " Could not set sink configuration of "
+                  << stream_conf->conf->name;
+        return;
+      }
+    } else {
+      /* Source*/
+      if (!lastDevice->ConfigureAses(
+              ent, group->GetCurrentContextType(), &source_num_of_active_ases,
+              sink_group_audio_locations, source_group_audio_locations, true)) {
+        LOG(INFO) << __func__ << " Could not set source configuration of "
+                  << stream_conf->conf->name;
+        return;
+      }
+    }
+  }
+
+  EXPECT_CALL(gatt_queue, WriteCharacteristic(lastDevice->conn_id_,
+                                              lastDevice->ctp_hdls_.val_hdl, _,
+                                              GATT_WRITE_NO_RSP, _, _))
+      .Times(AtLeast(3));
+
+  LeAudioGroupStateMachine::Get()->AttachToStream(group, lastDevice);
+
+  // Check if group keeps streaming
+  ASSERT_EQ(group->GetState(),
+            types::AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING);
+}
+
 }  // namespace internal
 }  // namespace le_audio
