@@ -3630,6 +3630,7 @@ void LeAudioClient::DebugDump(int fd) {
   LeAudioClientAudioSource::DebugDump(fd);
   LeAudioClientAudioSink::DebugDump(fd);
   le_audio::AudioSetConfigurationProvider::Get()->DebugDump(fd);
+  IsoManager::GetInstance()->Dump(fd);
   dprintf(fd, "\n");
 }
 
