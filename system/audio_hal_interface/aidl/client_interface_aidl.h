@@ -117,7 +117,6 @@ class BluetoothAudioClientInterface {
       std::string() + IBluetoothAudioProviderFactory::descriptor + "/default";
 
  private:
-  static inline bool aidl_available = true;
   IBluetoothTransportInstance* transport_;
   std::vector<AudioCapabilities> capabilities_;
   bool is_low_latency_allowed_{false};
