@@ -133,4 +133,16 @@ impl AdapterService for AdapterServiceImpl {
             sink.success(Empty::default()).await.unwrap();
         })
     }
+
+    fn clear_filter_accept_list(
+        &mut self,
+        ctx: RpcContext<'_>,
+        _req: Empty,
+        sink: UnarySink<Empty>,
+    ) {
+        self.btif_intf.lock().unwrap().clear_filter_accept_list();
+        ctx.spawn(async move {
+            sink.success(Empty::default()).await.unwrap();
+        })
+    }
 }
