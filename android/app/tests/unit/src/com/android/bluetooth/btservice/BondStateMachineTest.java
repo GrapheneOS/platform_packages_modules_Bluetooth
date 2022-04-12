@@ -141,6 +141,45 @@ public class BondStateMachineTest {
     }
 
     @Test
+    public void testUuidUpdateWithPendingDevice() {
+        mRemoteDevices.reset();
+        mBondStateMachine.mPendingBondedDevices.clear();
+
+        RemoteDevices.DeviceProperties pendingDeviceProperties =
+                mRemoteDevices.addDeviceProperties(TEST_BT_ADDR_BYTES_2);
+        BluetoothDevice pendingDevice = pendingDeviceProperties.getDevice();
+        Assert.assertNotNull(pendingDevice);
+        mBondStateMachine.sendIntent(pendingDevice, BOND_BONDED, TEST_BOND_REASON, false);
+
+        RemoteDevices.DeviceProperties testDeviceProperties =
+                mRemoteDevices.addDeviceProperties(TEST_BT_ADDR_BYTES);
+        testDeviceProperties.mUuids = TEST_UUIDS;
+        BluetoothDevice testDevice = testDeviceProperties.getDevice();
+        Assert.assertNotNull(testDevice);
+
+        Message bondingMsg = mBondStateMachine.obtainMessage(BondStateMachine.BONDING_STATE_CHANGE);
+        bondingMsg.obj = testDevice;
+        bondingMsg.arg1 = BOND_BONDING;
+        bondingMsg.arg2 = AbstractionLayer.BT_STATUS_RMT_DEV_DOWN;
+        mBondStateMachine.sendMessage(bondingMsg);
+
+        pendingDeviceProperties.mUuids = TEST_UUIDS;
+        Message uuidUpdateMsg = mBondStateMachine.obtainMessage(BondStateMachine.UUID_UPDATE);
+        uuidUpdateMsg.obj = pendingDevice;
+
+        mBondStateMachine.sendMessage(uuidUpdateMsg);
+
+        Message bondedMsg = mBondStateMachine.obtainMessage(BondStateMachine.BONDING_STATE_CHANGE);
+        bondedMsg.obj = testDevice;
+        bondedMsg.arg1 = BOND_BONDED;
+        bondedMsg.arg2 = AbstractionLayer.BT_STATUS_SUCCESS;
+        mBondStateMachine.sendMessage(bondedMsg);
+
+        TestUtils.waitForLooperToFinishScheduledTask(mBondStateMachine.getHandler().getLooper());
+        Assert.assertTrue(mBondStateMachine.mPendingBondedDevices.isEmpty());
+    }
+
+    @Test
     public void testSendIntent() {
         int badBondState = 42;
         mVerifyCount = 0;
