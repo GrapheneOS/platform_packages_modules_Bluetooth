@@ -16,6 +16,8 @@
 
 import queue
 import logging
+import _thread
+import time
 
 from google.protobuf import empty_pb2 as empty_proto
 
@@ -24,7 +26,7 @@ from blueberry.facade.hci import le_advertising_manager_facade_pb2 as le_adverti
 from blueberry.facade.hci import le_initiator_address_facade_pb2 as le_initiator_address_facade
 from blueberry.facade import common_pb2 as common
 from blueberry.tests.gd.cert.truth import assertThat
-from blueberry.tests.gd_sl4a.lib.bt_constants import ble_scan_settings_modes, ble_address_types, scan_result, ble_scan_settings_phys
+from blueberry.tests.gd_sl4a.lib.bt_constants import ble_scan_settings_modes, ble_address_types, scan_result, ble_scan_settings_phys, ble_scan_settings_callback_types
 from blueberry.tests.gd_sl4a.lib.ble_lib import generate_ble_scan_objects
 from blueberry.tests.gd_sl4a.lib.gd_sl4a_base_test import GdSl4aBaseTestClass
 
@@ -684,3 +686,37 @@ class LeAdvancedScanningTest(GdSl4aBaseTestClass):
         self._stop_advertising(create_response.advertiser_id)
 
         assertThat(got_result).isTrue()
+
+    def test_scan_filter_lost_random_address_with_irk(self):
+        RANDOM_ADDRESS, create_response = self._advertise_rpa_random_extended_pdu(self.__get_test_irk())
+
+        # Setup SL4A DUT side to scan
+        addr_type = ble_address_types["random"]
+        logging.info("Start scanning for RANDOM_ADDRESS %s with address type %d and IRK %s" %
+                     (RANDOM_ADDRESS, addr_type, self.__get_test_irk().decode("utf-8")))
+        self.dut.sl4a.bleSetScanSettingsScanMode(ble_scan_settings_modes['low_latency'])
+        self.dut.sl4a.bleSetScanSettingsLegacy(False)
+        self.dut.sl4a.bleSetScanSettingsCallbackType(ble_scan_settings_callback_types['match_lost'])
+        filter_list, scan_settings, scan_callback = generate_ble_scan_objects(self.dut.sl4a)
+        expected_event_name = scan_result.format(scan_callback)
+
+        # Start scanning on SL4A DUT side
+        self.dut.sl4a.bleSetScanFilterDeviceAddressTypeAndIrk(RANDOM_ADDRESS, int(addr_type),
+                                                              self.__get_test_irk().decode("utf-8"))
+        self.dut.sl4a.bleBuildScanFilter(filter_list)
+        self.dut.sl4a.bleStartBleScan(filter_list, scan_settings, scan_callback)
+        logging.info("Started scanning")
+
+        def run(test, delay):
+            time.sleep(delay)
+            # Stop advertising to trigger the lost event
+            test._stop_advertising(create_response.advertiser_id)
+
+        _thread.start_new_thread(run, (self, 3))
+
+        # Wait for results
+        got_result = self._wait_for_scan_result_event(expected_event_name)
+        assertThat(got_result).isTrue()
+
+        # Test over
+        self._stop_scanning(scan_callback)
