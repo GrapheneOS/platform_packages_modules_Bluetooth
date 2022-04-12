@@ -41,6 +41,7 @@
 
 /* Control block for AVCT */
 tAVCT_CB avct_cb;
+uint8_t avct_trace_level = AVCT_INITIAL_TRACE_LEVEL;
 
 /*******************************************************************************
  *
@@ -74,11 +75,7 @@ void AVCT_Register() {
                  &ertm_info, kAvrcBrMtu, AVCT_MIN_BROWSE_MTU,
                  BTA_SEC_AUTHENTICATE);
 
-#if defined(AVCT_INITIAL_TRACE_LEVEL)
-  avct_cb.trace_level = AVCT_INITIAL_TRACE_LEVEL;
-#else
-  avct_cb.trace_level = BT_TRACE_LEVEL_NONE;
-#endif
+  avct_cb.trace_level = avct_trace_level;
 }
 
 /*******************************************************************************
@@ -426,4 +423,32 @@ uint16_t AVCT_MsgReq(uint8_t handle, uint8_t label, uint8_t cr, BT_HDR* p_msg) {
     }
   }
   return result;
+}
+
+/******************************************************************************
+ *
+ * Function         AVCT_SetTraceLevel
+ *
+ * Description      Sets the trace level for AVCT. If 0xff is passed, the
+ *                  current trace level is returned.
+ *
+ *                  Input Parameters:
+ *                      new_level:  The level to set the AVCT tracing to:
+ *                      0xff-returns the current setting.
+ *                      0-turns off tracing.
+ *                      >= 1-Errors.
+ *                      >= 2-Warnings.
+ *                      >= 3-APIs.
+ *                      >= 4-Events.
+ *                      >= 5-Debug.
+ *
+ * Returns          The new trace level or current trace level if
+ *                  the input parameter is 0xff.
+ *
+ *****************************************************************************/
+uint8_t AVCT_SetTraceLevel(uint8_t new_level) {
+  if (new_level != 0xFF) {
+    avct_cb.trace_level = avct_trace_level = new_level;
+  }
+  return avct_trace_level;
 }
