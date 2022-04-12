@@ -64,6 +64,7 @@ class OobPairingSl4aTest(GdSl4aBaseTestClass):
     SL4A_EVENT_GENERATED = "GeneratedOobData"
     SL4A_EVENT_ERROR = "ErrorOobData"
     SL4A_EVENT_BONDED = "Bonded"
+    SL4A_EVENT_UNBONDED = "Unbonded"
 
     # Matches tBT_TRANSPORT
     # Used Strings because ints were causing gRPC problems
@@ -127,7 +128,7 @@ class OobPairingSl4aTest(GdSl4aBaseTestClass):
 
     def __advertise_rpa_random_policy(self, legacy_pdus, irk):
         DEVICE_NAME = 'Im_The_CERT!'
-        logging.info("Getting public address")
+        logging.info("Getting random address")
         ADDRESS = self._set_cert_privacy_policy_with_random_address_but_advertise_resolvable(irk)
         logging.info("Done %s" % ADDRESS)
 
@@ -226,7 +227,7 @@ class OobPairingSl4aTest(GdSl4aBaseTestClass):
         oob_data = self._generate_cert_oob_data(self.TRANSPORT_LE)
         assertThat(oob_data).isNotNone()
 
-    def test_sl4a_create_bond_out_of_band(self):
+    def _bond_sl4a_cert_oob(self):
         self.cert.security.SetLeIoCapability(DISPLAY_ONLY)
         self.cert.security.SetLeOobDataPresent(OOB_NOT_PRESENT)
         self.cert.security.SetLeAuthRequirements(LeAuthRequirementsMessage(bond=1, mitm=1, secure_connections=1))
@@ -257,8 +258,28 @@ class OobPairingSl4aTest(GdSl4aBaseTestClass):
         try:
             bond_state = self.dut.ed.pop_event(self.SL4A_EVENT_BONDED, self.default_timeout)
         except queue.Empty as error:
-            logging.error("Failed to generate OOB data!")
+            logging.error("Failed to get bond event!")
 
         assertThat(bond_state).isNotNone()
+        logging.info("Bonded: %s", bond_state["data"]["bonded_state"])
         assertThat(bond_state["data"]["bonded_state"]).isEqualTo(True)
         self._stop_advertising(create_response.advertiser_id)
+        return (RANDOM_ADDRESS, advertising_address)
+
+    def test_sl4a_create_bond_out_of_band(self):
+        self._bond_sl4a_cert_oob()
+
+    def test_generate_oob_after_pairing(self):
+        self._bond_sl4a_cert_oob()
+        assertThat(self._generate_sl4a_oob_data(self.TRANSPORT_LE)).isNotNone()
+
+    def test_remove_bond(self):
+        self.dut.sl4a.bluetoothUnbond(self._bond_sl4a_cert_oob()[1].decode().upper())
+        bond_state = None
+        try:
+            bond_state = self.dut.ed.pop_event(self.SL4A_EVENT_UNBONDED, self.default_timeout)
+        except queue.Empty as error:
+            logging.error("Failed to get bond event!")
+
+        assertThat(bond_state).isNotNone()
+        assertThat(bond_state["data"]["bonded_state"]).isEqualTo(False)
