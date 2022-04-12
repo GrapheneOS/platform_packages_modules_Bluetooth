@@ -1657,6 +1657,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
 
     if (group->GetState() == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
       /* We are here because of the reconnection of the single device. */
+      ase->state = AseState::BTA_LE_AUDIO_ASE_STATE_ENABLING;
       CisCreateForDevice(leAudioDevice);
       return;
     }
@@ -1716,7 +1717,6 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
 
         if (group->GetState() == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
           /* We are here because of the reconnection of the single device. */
-          CisCreateForDevice(leAudioDevice);
           return;
         }
 
