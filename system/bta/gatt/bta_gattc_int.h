@@ -476,7 +476,9 @@ extern tBTA_GATTC_CONN* bta_gattc_conn_find(const RawAddress& remote_bda);
 extern tBTA_GATTC_CONN* bta_gattc_conn_find_alloc(const RawAddress& remote_bda);
 extern bool bta_gattc_conn_dealloc(const RawAddress& remote_bda);
 
-extern bool bta_gattc_cache_load(tBTA_GATTC_SERV* p_srcb);
+extern gatt::Database bta_gattc_cache_load(const RawAddress& server_bda);
+extern void bta_gattc_cache_write(const RawAddress& server_bda,
+                                  const gatt::Database& database);
 extern void bta_gattc_cache_reset(const RawAddress& server_bda);
 
 extern bool bta_gattc_read_db_hash(tBTA_GATTC_CLCB* p_clcb);
