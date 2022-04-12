@@ -501,7 +501,9 @@ void bta_gattc_conn(tBTA_GATTC_CLCB* p_clcb, const tBTA_GATTC_DATA* p_data) {
       p_clcb->p_srcb->state != BTA_GATTC_SERV_IDLE) {
     if (p_clcb->p_srcb->state == BTA_GATTC_SERV_IDLE) {
       p_clcb->p_srcb->state = BTA_GATTC_SERV_LOAD;
-      if (bta_gattc_cache_load(p_clcb->p_srcb)) {
+      gatt::Database db = bta_gattc_cache_load(p_clcb->p_srcb->server_bda);
+      if (!db.IsEmpty()) {
+        p_clcb->p_srcb->gatt_database = db;
         p_clcb->p_srcb->state = BTA_GATTC_SERV_IDLE;
         bta_gattc_reset_discover_st(p_clcb->p_srcb, GATT_SUCCESS);
       } else {
@@ -1201,7 +1203,10 @@ static bool bta_gattc_process_srvc_chg_ind(uint16_t conn_id,
   Uuid srvc_chg_uuid = Uuid::From16Bit(GATT_UUID_GATT_SRV_CHGD);
 
   if (p_srcb->gatt_database.IsEmpty() && p_srcb->state == BTA_GATTC_SERV_IDLE) {
-    bta_gattc_cache_load(p_srcb);
+    gatt::Database db = bta_gattc_cache_load(p_srcb->server_bda);
+    if (!db.IsEmpty()) {
+      p_srcb->gatt_database = db;
+    }
   }
 
   const gatt::Characteristic* p_char =
