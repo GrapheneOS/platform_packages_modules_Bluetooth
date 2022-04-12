@@ -26,7 +26,7 @@
     <string name="airplane_error_title" msgid="2570111716678850860">"Mode pesawat"</string>
     <string name="airplane_error_msg" msgid="4853111123699559578">"Anda tidak dapat menggunakan Bluetooth dalam mode Pesawat."</string>
     <string name="bt_enable_title" msgid="4484289159118416315"></string>
-    <string name="bt_enable_line1" msgid="8429910585843481489">"Kepada menggunakan Layanan Bluetooth, Anda harus menghidupkan Bluetooth terlebih dulu."</string>
+    <string name="bt_enable_line1" msgid="8429910585843481489">"Untuk menggunakan Layanan Bluetooth, Anda harus mengaktifkan Bluetooth terlebih dulu."</string>
     <string name="bt_enable_line2" msgid="1466367120348920892">"Hidupkan Bluetooth sekarang?"</string>
     <string name="bt_enable_cancel" msgid="6770180540581977614">"Batal"</string>
     <string name="bt_enable_ok" msgid="4224374055813566166">"Hidupkan"</string>
@@ -109,14 +109,10 @@
     <string name="transfer_clear_dlg_msg" msgid="586117930961007311">"Semua item akan dihapus dari daftar."</string>
     <string name="outbound_noti_title" msgid="2045560896819618979">"Berbagi bluetooth: Telah mengirimkan file"</string>
     <string name="inbound_noti_title" msgid="3730993443609581977">"Berbagi Bluetooth: File yang diterima"</string>
-    <plurals name="noti_caption_unsuccessful" formatted="false" msgid="6511510339394311097">
-      <item quantity="other"><xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> gagal.</item>
-      <item quantity="one"><xliff:g id="UNSUCCESSFUL_NUMBER_0">%1$d</xliff:g> gagal.</item>
-    </plurals>
-    <plurals name="noti_caption_success" formatted="false" msgid="2452887423660955489">
-      <item quantity="other"><xliff:g id="SUCCESSFUL_NUMBER_1">%1$d</xliff:g> berhasil, %2$s</item>
-      <item quantity="one"><xliff:g id="SUCCESSFUL_NUMBER_0">%1$d</xliff:g> berhasil, %2$s</item>
-    </plurals>
+    <!-- no translation found for noti_caption_unsuccessful (8321968345160824888) -->
+    <skip />
+    <!-- no translation found for noti_caption_success (7914987425717863454) -->
+    <skip />
     <string name="transfer_menu_clear_all" msgid="3014459758656427076">"Hapus daftar"</string>
     <string name="transfer_menu_open" msgid="5193344638774400131">"Buka"</string>
     <string name="transfer_menu_clear" msgid="7213491281898188730">"Hapus dari daftar"</string>
