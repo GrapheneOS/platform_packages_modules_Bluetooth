@@ -20,6 +20,7 @@ package com.android.bluetooth.leaudio;
 import android.bluetooth.BluetoothLeBroadcastMetadata;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -114,7 +115,8 @@ public class BroadcastItemsAdapter
             if (mBroadcastPlaybackMap.containsKey(broadcastId)) {
                 continue;
             }
-            mBroadcastPlaybackMap.remove(broadcastId);
+//          mBroadcastPlaybackMap.remove(broadcastId);
+            mBroadcastPlaybackMap.put(broadcastId, false);
         }
         notifyDataSetChanged();
     }

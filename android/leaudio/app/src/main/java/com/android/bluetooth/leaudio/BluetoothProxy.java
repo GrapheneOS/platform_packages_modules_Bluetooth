@@ -374,6 +374,7 @@ public class BluetoothProxy {
 
         @Override
         public void onSourceFound(BluetoothLeBroadcastMetadata source) {
+            Log.d("BluetoothProxy", "onSourceFound");
             if (mBassEventListener != null) {
                 mBassEventListener.onSourceFound(source);
             }
@@ -401,6 +402,7 @@ public class BluetoothProxy {
         @Override
         public void onReceiveStateChanged(BluetoothDevice sink, int sourceId,
                 BluetoothLeBroadcastReceiveState state) {
+            Log.d("BluetoothProxy", "onReceiveStateChanged");
             if (allLeAudioDevicesMutable.getValue() != null) {
                 Optional<LeAudioDeviceStateWrapper> valid_device_opt = allLeAudioDevicesMutable
                         .getValue().stream()
@@ -437,18 +439,20 @@ public class BluetoothProxy {
                  *
                  * Broadcast receiver's endpoint identifier.
                  */
+                synchronized(this) {
+                    HashMap<Integer, BluetoothLeBroadcastReceiveState> states =
+                            svc_data.receiverStatesMutable.getValue();
+                    if (states == null)
+                        states = new HashMap<>();
+                    states.put(state.getSourceId(), state);
 
-                HashMap<Integer, BluetoothLeBroadcastReceiveState> states =
-                        svc_data.receiverStatesMutable.getValue();
-                if (states == null)
-                    states = new HashMap<>();
-                states.put(state.getSourceId(), state);
-
-                // Use SetValue instead of PostValue() since we want to make it
-                // synchronous due to getValue() we do here as well
-                // Otherwise we could miss the update and store only the last
-                // receiver ID
-                svc_data.receiverStatesMutable.setValue(states);
+                    // Use SetValue instead of PostValue() since we want to make it
+                    // synchronous due to getValue() we do here as well
+                    // Otherwise we could miss the update and store only the last
+                    // receiver ID
+//                    svc_data.receiverStatesMutable.setValue(states);
+                    svc_data.receiverStatesMutable.postValue(states);
+                }
             }
         }
     };
@@ -642,6 +646,8 @@ public class BluetoothProxy {
         profileListener = new BluetoothProfile.ServiceListener() {
             @Override
             public void onServiceConnected(int i, BluetoothProfile bluetoothProfile) {
+                Log.d("BluetoothProxy", "onServiceConnected(): i = " + i + " bluetoothProfile = " +
+                        bluetoothProfile);
                 switch (i) {
                     case BluetoothProfile.CSIP_SET_COORDINATOR:
                         bluetoothCsis = (BluetoothCsipSetCoordinator) bluetoothProfile;
@@ -670,6 +676,7 @@ public class BluetoothProxy {
                         mBluetoothLeBroadcast.registerCallback(mExecutor, mBroadcasterCallback);
                         break;
                     case BluetoothProfile.LE_AUDIO_BROADCAST_ASSISTANT:
+                        Log.d("BluetoothProxy", "LE_AUDIO_BROADCAST_ASSISTANT Service connected");
                         mBluetoothLeBroadcastAssistant = (BluetoothLeBroadcastAssistant)
                                 bluetoothProfile;
                         mBluetoothLeBroadcastAssistant.registerCallback(mExecutor,
@@ -1364,7 +1371,10 @@ public class BluetoothProxy {
     }
 
     public int getMaximumNumberOfBroadcast() {
-        if (mBluetoothLeBroadcast == null) return 0;
+        if (mBluetoothLeBroadcast == null) {
+            Log.d("BluetoothProxy", "mBluetoothLeBroadcast is null");
+            return 0;
+        }
         return mBluetoothLeBroadcast.getMaximumNumberOfBroadcasts();
     }
 
