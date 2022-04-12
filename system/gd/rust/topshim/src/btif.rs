@@ -1024,6 +1024,10 @@ impl BluetoothInterface {
         ccall!(self, clear_filter_accept_list)
     }
 
+    pub fn disconnect_all_acls(&self) -> i32 {
+        ccall!(self, disconnect_all_acls)
+    }
+
     pub(crate) fn get_profile_interface(
         &self,
         profile: SupportedProfiles,
