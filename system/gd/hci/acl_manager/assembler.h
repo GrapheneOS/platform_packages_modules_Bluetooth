@@ -16,6 +16,16 @@
 
 #pragma once
 
+#include <cstddef>
+#include <cstdint>
+#include <memory>
+
+#include "hci/acl_manager/acl_connection.h"
+#include "hci/address_with_type.h"
+#include "os/handler.h"
+#include "os/log.h"
+#include "packet/packet_view.h"
+
 namespace bluetooth {
 namespace hci {
 namespace acl_manager {
@@ -24,10 +34,10 @@ constexpr size_t kMaxQueuedPacketsPerConnection = 10;
 constexpr size_t kL2capBasicFrameHeaderSize = 4;
 
 namespace {
-class PacketViewForRecombination : public packet::PacketView<kLittleEndian> {
+class PacketViewForRecombination : public packet::PacketView<packet::kLittleEndian> {
  public:
   PacketViewForRecombination(const PacketView& packetView) : PacketView(packetView) {}
-  void AppendPacketView(packet::PacketView<kLittleEndian> to_append) {
+  void AppendPacketView(packet::PacketView<packet::kLittleEndian> to_append) {
     Append(to_append);
   }
 };
@@ -51,10 +61,11 @@ struct assembler {
   AddressWithType address_with_type_;
   AclConnection::QueueDownEnd* down_end_;
   os::Handler* handler_;
-  PacketViewForRecombination recombination_stage_{PacketView<kLittleEndian>(std::make_shared<std::vector<uint8_t>>())};
+  PacketViewForRecombination recombination_stage_{
+      PacketView<packet::kLittleEndian>(std::make_shared<std::vector<uint8_t>>())};
   size_t remaining_sdu_continuation_packet_size_ = 0;
   std::shared_ptr<std::atomic_bool> enqueue_registered_ = std::make_shared<std::atomic_bool>(false);
-  std::queue<packet::PacketView<kLittleEndian>> incoming_queue_;
+  std::queue<packet::PacketView<packet::kLittleEndian>> incoming_queue_;
 
   ~assembler() {
     if (enqueue_registered_->exchange(false)) {
@@ -63,17 +74,17 @@ struct assembler {
   }
 
   // Invoked from some external Queue Reactable context
-  std::unique_ptr<packet::PacketView<kLittleEndian>> on_le_incoming_data_ready() {
+  std::unique_ptr<packet::PacketView<packet::kLittleEndian>> on_le_incoming_data_ready() {
     auto packet = incoming_queue_.front();
     incoming_queue_.pop();
     if (incoming_queue_.empty() && enqueue_registered_->exchange(false)) {
       down_end_->UnregisterEnqueue();
     }
-    return std::make_unique<PacketView<kLittleEndian>>(packet);
+    return std::make_unique<PacketView<packet::kLittleEndian>>(packet);
   }
 
   void on_incoming_packet(AclView packet) {
-    PacketView<kLittleEndian> payload = packet.GetPayload();
+    PacketView<packet::kLittleEndian> payload = packet.GetPayload();
     auto payload_size = payload.size();
     auto broadcast_flag = packet.GetBroadcastFlag();
     if (broadcast_flag == BroadcastFlag::ACTIVE_PERIPHERAL_BROADCAST) {
@@ -89,7 +100,7 @@ struct assembler {
       if (remaining_sdu_continuation_packet_size_ < payload_size) {
         LOG_WARN("Remote sent unexpected L2CAP PDU. Drop the entire L2CAP PDU");
         recombination_stage_ =
-            PacketViewForRecombination(PacketView<kLittleEndian>(std::make_shared<std::vector<uint8_t>>()));
+            PacketViewForRecombination(PacketView<packet::kLittleEndian>(std::make_shared<std::vector<uint8_t>>()));
         remaining_sdu_continuation_packet_size_ = 0;
         return;
       }
@@ -100,7 +111,7 @@ struct assembler {
       } else {
         payload = recombination_stage_;
         recombination_stage_ =
-            PacketViewForRecombination(PacketView<kLittleEndian>(std::make_shared<std::vector<uint8_t>>()));
+            PacketViewForRecombination(PacketView<packet::kLittleEndian>(std::make_shared<std::vector<uint8_t>>()));
       }
     } else if (packet_boundary_flag == PacketBoundaryFlag::FIRST_AUTOMATICALLY_FLUSHABLE) {
       if (recombination_stage_.size() > 0) {
