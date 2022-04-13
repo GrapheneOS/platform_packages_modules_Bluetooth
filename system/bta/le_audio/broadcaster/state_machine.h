@@ -97,7 +97,7 @@ struct BroadcastStateMachineConfig {
   bluetooth::le_audio::BroadcastId broadcast_id;
   uint8_t streaming_phy;
   BroadcastCodecWrapper codec_wrapper;
-  BasicAudioAnnouncementData announcement;
+  bluetooth::le_audio::BasicAudioAnnouncementData announcement;
   std::optional<bluetooth::le_audio::BroadcastCode> broadcast_code;
 };
 
@@ -133,7 +133,8 @@ class BroadcastStateMachine : public StateMachine<5> {
     return static_cast<State>(StateMachine::GetState());
   }
 
-  inline uint8_t GetAdvertisingSid() const { return advertising_sid_; }
+  virtual uint8_t GetAdvertisingSid() const { return advertising_sid_; }
+  virtual uint8_t GetPaInterval() const { return kPaIntervalMax; }
 
   virtual bool Initialize() = 0;
   virtual const BroadcastCodecWrapper& GetCodecConfig() const = 0;
@@ -148,8 +149,10 @@ class BroadcastStateMachine : public StateMachine<5> {
   virtual std::optional<bluetooth::le_audio::BroadcastCode> GetBroadcastCode()
       const = 0;
   virtual bluetooth::le_audio::BroadcastId GetBroadcastId() const = 0;
+  virtual const bluetooth::le_audio::BasicAudioAnnouncementData&
+  GetBroadcastAnnouncement() const = 0;
   virtual void UpdateBroadcastAnnouncement(
-      BasicAudioAnnouncementData announcement) = 0;
+      bluetooth::le_audio::BasicAudioAnnouncementData announcement) = 0;
   void SetMuted(bool muted) { is_muted_ = muted; };
   bool IsMuted() const { return is_muted_; };
 

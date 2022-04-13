@@ -31,6 +31,7 @@
 using namespace bluetooth::hci::iso_manager;
 
 using bluetooth::hci::IsoManager;
+using bluetooth::le_audio::BasicAudioAnnouncementData;
 using testing::_;
 using testing::Mock;
 using testing::SaveArg;
@@ -376,7 +377,8 @@ TEST_F(StateMachineTest, Mute) {
 }
 
 static BasicAudioAnnouncementData prepareAnnouncement(
-    const BroadcastCodecWrapper& codec_config, std::vector<uint8_t> metadata) {
+    const BroadcastCodecWrapper& codec_config,
+    std::map<uint8_t, std::vector<uint8_t>> metadata) {
   BasicAudioAnnouncementData announcement;
 
   announcement.presentation_delay = 0x004E20;
@@ -389,7 +391,7 @@ static BasicAudioAnnouncementData prepareAnnouncement(
               .vendor_company_id = codec_id.vendor_company_id,
               .vendor_codec_id = codec_id.vendor_codec_id,
               .codec_specific_params =
-                  codec_config.GetSubgroupCodecSpecData().RawPacket(),
+                  codec_config.GetSubgroupCodecSpecData().Values(),
           },
       .metadata = std::move(metadata),
       .bis_configs = {},
@@ -398,7 +400,7 @@ static BasicAudioAnnouncementData prepareAnnouncement(
   for (uint8_t i = 0; i < codec_config.GetNumChannels(); ++i) {
     announcement.subgroup_configs[0].bis_configs.push_back(
         {.codec_specific_params =
-             codec_config.GetBisCodecSpecData(i + 1).RawPacket(),
+             codec_config.GetBisCodecSpecData(i + 1).Values(),
          .bis_index = static_cast<uint8_t>(i + 1)});
   }
 
@@ -410,7 +412,7 @@ TEST_F(StateMachineTest, UpdateAnnouncement) {
       .Times(1);
 
   auto broadcast_id = InstantiateStateMachine();
-  std::vector<uint8_t> metadata = {};
+  std::map<uint8_t, std::vector<uint8_t>> metadata = {};
   BroadcastCodecWrapper codec_config(
       {.coding_format = le_audio::types::kLeAudioCodingFormatLC3,
        .vendor_company_id = le_audio::types::kLeAudioVendorCompanyIdUndefined,
@@ -439,14 +441,15 @@ TEST_F(StateMachineTest, UpdateAnnouncement) {
   // The rest of the packet data is already covered by the announcement tests
 
   // Verify that changes in the announcement makes a difference
-  metadata = {0x02, 0x01, 0x03};
+  metadata = {{0x01, {0x03}}};
   announcement = prepareAnnouncement(codec_config, metadata);
   broadcasts_[broadcast_id]->UpdateBroadcastAnnouncement(
       std::move(announcement));
   uint8_t second_len = data.size();
 
   // These should differ by the difference in metadata
-  ASSERT_EQ(first_len + metadata.size(), second_len);
+  ASSERT_EQ(first_len + types::LeAudioLtvMap(metadata).RawPacketSize(),
+            second_len);
 }
 
 TEST_F(StateMachineTest, ProcessMessageStartWhenConfigured) {
@@ -829,6 +832,28 @@ TEST_F(StateMachineTest, GetBroadcastId) {
   ASSERT_NE(bluetooth::le_audio::kBroadcastIdInvalid, broadcast_id);
   ASSERT_EQ(broadcasts_[broadcast_id]->GetState(),
             BroadcastStateMachine::State::CONFIGURED);
+}
+
+TEST_F(StateMachineTest, GetBroadcastAnnouncement) {
+  EXPECT_CALL(*(sm_callbacks_.get()), OnStateMachineCreateStatus(_, true))
+      .Times(1);
+
+  auto broadcast_id = InstantiateStateMachine();
+  std::map<uint8_t, std::vector<uint8_t>> metadata = {};
+  BroadcastCodecWrapper codec_config(
+      {.coding_format = le_audio::types::kLeAudioCodingFormatLC3,
+       .vendor_company_id = le_audio::types::kLeAudioVendorCompanyIdUndefined,
+       .vendor_codec_id = le_audio::types::kLeAudioVendorCodecIdUndefined},
+      {.num_channels = LeAudioCodecConfiguration::kChannelNumberMono,
+       .sample_rate = LeAudioCodecConfiguration::kSampleRate16000,
+       .bits_per_sample = LeAudioCodecConfiguration::kBitsPerSample16,
+       .data_interval_us = LeAudioCodecConfiguration::kInterval10000Us},
+      32000, 40);
+  auto announcement = prepareAnnouncement(codec_config, metadata);
+  broadcasts_[broadcast_id]->UpdateBroadcastAnnouncement(announcement);
+
+  ASSERT_EQ(announcement,
+            broadcasts_[broadcast_id]->GetBroadcastAnnouncement());
 }
 
 TEST_F(StateMachineTest, AnnouncementUUIDs) {

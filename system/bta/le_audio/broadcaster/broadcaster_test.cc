@@ -35,6 +35,7 @@ using testing::DoAll;
 using testing::Mock;
 using testing::NotNull;
 using testing::Return;
+using testing::ReturnRef;
 using testing::SaveArg;
 using testing::Test;
 
@@ -73,6 +74,10 @@ class MockLeAudioBroadcasterCallbacks
   MOCK_METHOD((void), OnBroadcastStateChanged,
               (uint32_t broadcast_id,
                bluetooth::le_audio::BroadcastState state),
+              (override));
+  MOCK_METHOD((void), OnBroadcastMetadataChanged,
+              (uint32_t broadcast_id,
+               const BroadcastMetadata& broadcast_metadata),
               (override));
 };
 
@@ -180,7 +185,8 @@ TEST_F(BroadcasterTest, CreateAudioBroadcast) {
   auto& instance_config = MockBroadcastStateMachine::GetLastInstance()->cfg;
   ASSERT_EQ(instance_config.broadcast_code, default_code);
   for (auto& subgroup : instance_config.announcement.subgroup_configs) {
-    ASSERT_EQ(subgroup.metadata, default_metadata);
+    ASSERT_EQ(types::LeAudioLtvMap(subgroup.metadata).RawPacket(),
+              default_metadata);
   }
   // Note: There shall be a separate test to verify audio parameters
 }
@@ -323,8 +329,83 @@ TEST_F(BroadcasterTest, UpdateMetadata) {
   EXPECT_CALL(*MockBroadcastStateMachine::GetLastInstance(),
               UpdateBroadcastAnnouncement)
       .Times(1);
-  LeAudioBroadcaster::Get()->UpdateMetadata(broadcast_id,
-                                            std::vector<uint8_t>({0x02, 0x01}));
+  LeAudioBroadcaster::Get()->UpdateMetadata(
+      broadcast_id, std::vector<uint8_t>({0x02, 0x01, 0x02}));
+}
+
+static BasicAudioAnnouncementData prepareAnnouncement(
+    const BroadcastCodecWrapper& codec_config,
+    std::map<uint8_t, std::vector<uint8_t>> metadata) {
+  BasicAudioAnnouncementData announcement;
+
+  announcement.presentation_delay = 0x004E20;
+  auto const& codec_id = codec_config.GetLeAudioCodecId();
+
+  announcement.subgroup_configs = {{
+      .codec_config =
+          {
+              .codec_id = codec_id.coding_format,
+              .vendor_company_id = codec_id.vendor_company_id,
+              .vendor_codec_id = codec_id.vendor_codec_id,
+              .codec_specific_params =
+                  codec_config.GetSubgroupCodecSpecData().Values(),
+          },
+      .metadata = std::move(metadata),
+      .bis_configs = {},
+  }};
+
+  for (uint8_t i = 0; i < codec_config.GetNumChannels(); ++i) {
+    announcement.subgroup_configs[0].bis_configs.push_back(
+        {.codec_specific_params =
+             codec_config.GetBisCodecSpecData(i + 1).Values(),
+         .bis_index = static_cast<uint8_t>(i + 1)});
+  }
+
+  return announcement;
+}
+
+TEST_F(BroadcasterTest, GetMetadata) {
+  auto broadcast_id = InstantiateBroadcast();
+  bluetooth::le_audio::BroadcastMetadata metadata;
+  // bluetooth::le_audio::BasicAudioAnnouncementData announcement;
+
+  static const uint8_t test_adv_sid = 0x14;
+  std::optional<bluetooth::le_audio::BroadcastCode> test_broadcast_code =
+      bluetooth::le_audio::BroadcastCode({1, 2, 3, 4, 5, 6});
+
+  auto sm = MockBroadcastStateMachine::GetLastInstance();
+
+  std::map<uint8_t, std::vector<uint8_t>> meta = {};
+  BroadcastCodecWrapper codec_config(
+      {.coding_format = le_audio::types::kLeAudioCodingFormatLC3,
+       .vendor_company_id = le_audio::types::kLeAudioVendorCompanyIdUndefined,
+       .vendor_codec_id = le_audio::types::kLeAudioVendorCodecIdUndefined},
+      {.num_channels = LeAudioCodecConfiguration::kChannelNumberMono,
+       .sample_rate = LeAudioCodecConfiguration::kSampleRate16000,
+       .bits_per_sample = LeAudioCodecConfiguration::kBitsPerSample16,
+       .data_interval_us = LeAudioCodecConfiguration::kInterval10000Us},
+      32000, 40);
+  auto announcement = prepareAnnouncement(codec_config, meta);
+
+  ON_CALL(*sm, GetAdvertisingSid()).WillByDefault(Return(test_adv_sid));
+  ON_CALL(*sm, GetBroadcastCode()).WillByDefault(Return(test_broadcast_code));
+  ON_CALL(*sm, GetBroadcastAnnouncement())
+      .WillByDefault(ReturnRef(announcement));
+
+  EXPECT_CALL(mock_broadcaster_callbacks_,
+              OnBroadcastMetadataChanged(broadcast_id, _))
+      .Times(1)
+      .WillOnce(SaveArg<1>(&metadata));
+  LeAudioBroadcaster::Get()->GetBroadcastMetadata(broadcast_id);
+
+  ASSERT_NE(LeAudioBroadcaster::kInstanceIdUndefined, metadata.broadcast_id);
+  ASSERT_EQ(sm->GetBroadcastId(), metadata.broadcast_id);
+  ASSERT_EQ(sm->GetBroadcastCode(), metadata.broadcast_code);
+  ASSERT_EQ(sm->GetBroadcastAnnouncement(), metadata.basic_audio_announcement);
+  ASSERT_EQ(sm->GetPaInterval(), metadata.pa_interval);
+  ASSERT_EQ(sm->GetOwnAddress(), metadata.addr);
+  ASSERT_EQ(sm->GetOwnAddressType(), metadata.addr_type);
+  ASSERT_EQ(sm->GetAdvertisingSid(), metadata.adv_sid);
 }
 
 TEST_F(BroadcasterTest, SetNumRetransmit) {

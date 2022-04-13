@@ -18,6 +18,7 @@
 #pragma once
 
 #include <array>
+#include <map>
 #include <optional>
 
 #include "raw_address.h"
@@ -165,6 +166,65 @@ using BroadcastId = uint32_t;
 static constexpr BroadcastId kBroadcastIdInvalid = 0x00000000;
 using BroadcastCode = std::array<uint8_t, 16>;
 
+/* Content Metadata LTV Types */
+constexpr uint8_t kLeAudioMetadataTypePreferredAudioContext = 0x01;
+constexpr uint8_t kLeAudioMetadataTypeStreamingAudioContext = 0x02;
+constexpr uint8_t kLeAudioMetadataTypeProgramInfo = 0x03;
+constexpr uint8_t kLeAudioMetadataTypeLanguage = 0x04;
+constexpr uint8_t kLeAudioMetadataTypeCcidList = 0x05;
+
+/* Codec specific LTV Types */
+constexpr uint8_t kLeAudioCodecLC3TypeSamplingFreq = 0x01;
+constexpr uint8_t kLeAudioCodecLC3TypeFrameDuration = 0x02;
+constexpr uint8_t kLeAudioCodecLC3TypeAudioChannelAllocation = 0x03;
+constexpr uint8_t kLeAudioCodecLC3TypeOctetPerFrame = 0x04;
+constexpr uint8_t kLeAudioCodecLC3TypeCodecFrameBlocksPerSdu = 0x05;
+
+struct BasicAudioAnnouncementCodecConfig {
+  /* 5 octets for the Codec ID */
+  uint8_t codec_id;
+  uint16_t vendor_company_id;
+  uint16_t vendor_codec_id;
+
+  /* Codec params - series of LTV formatted triplets */
+  std::map<uint8_t, std::vector<uint8_t>> codec_specific_params;
+};
+
+struct BasicAudioAnnouncementBisConfig {
+  std::map<uint8_t, std::vector<uint8_t>> codec_specific_params;
+  uint8_t bis_index;
+};
+
+struct BasicAudioAnnouncementSubgroup {
+  /* Subgroup specific codec configuration and metadata */
+  BasicAudioAnnouncementCodecConfig codec_config;
+  // Content metadata
+  std::map<uint8_t, std::vector<uint8_t>> metadata;
+  // Broadcast channel configuration
+  std::vector<BasicAudioAnnouncementBisConfig> bis_configs;
+};
+
+struct BasicAudioAnnouncementData {
+  /* Announcement Header fields */
+  uint32_t presentation_delay;
+
+  /* Subgroup specific configurations */
+  std::vector<BasicAudioAnnouncementSubgroup> subgroup_configs;
+};
+
+struct BroadcastMetadata {
+  uint16_t pa_interval;
+  RawAddress addr;
+  uint8_t addr_type;
+  uint8_t adv_sid;
+
+  BroadcastId broadcast_id;
+  std::optional<BroadcastCode> broadcast_code;
+
+  /* Presentation delay and subgroup configurations */
+  BasicAudioAnnouncementData basic_audio_announcement;
+};
+
 class LeAudioBroadcasterCallbacks {
  public:
   virtual ~LeAudioBroadcasterCallbacks() = default;
@@ -176,6 +236,9 @@ class LeAudioBroadcasterCallbacks {
   /* Callback for the broadcast source state event. */
   virtual void OnBroadcastStateChanged(uint32_t broadcast_id,
                                        BroadcastState state) = 0;
+  /* Callback for the broadcast metadata change. */
+  virtual void OnBroadcastMetadataChanged(
+      uint32_t broadcast_id, const BroadcastMetadata& broadcast_metadata) = 0;
 };
 
 class LeAudioBroadcasterInterface {
@@ -203,9 +266,8 @@ class LeAudioBroadcasterInterface {
   virtual void StopBroadcast(uint32_t broadcast_id) = 0;
   /* Destroy the existing Broadcast instance */
   virtual void DestroyBroadcast(uint32_t broadcast_id) = 0;
-
-  /* Get all broadcast states */
-  virtual void GetAllBroadcastStates(void) = 0;
+  /* Get Broadcast Metadata */
+  virtual void GetBroadcastMetadata(uint32_t broadcast_id) = 0;
 };
 
 } /* namespace le_audio */
