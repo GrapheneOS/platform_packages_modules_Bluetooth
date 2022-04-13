@@ -53,6 +53,7 @@ class LeAudioBroadcaster {
   virtual void StartAudioBroadcast(uint32_t broadcast_id) = 0;
   virtual void StopAudioBroadcast(uint32_t broadcast_id) = 0;
   virtual void DestroyAudioBroadcast(uint32_t broadcast_id) = 0;
+  virtual void GetBroadcastMetadata(uint32_t broadcast_id) = 0;
   virtual void GetAllBroadcastStates(void) = 0;
   virtual void UpdateMetadata(uint32_t broadcast_id,
                               std::vector<uint8_t> metadata) = 0;

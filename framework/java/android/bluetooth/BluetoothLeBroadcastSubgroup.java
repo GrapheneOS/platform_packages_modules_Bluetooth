@@ -151,6 +151,8 @@ public final class BluetoothLeBroadcastSubgroup implements Parcelable {
                     builder.setCodecId(in.readLong());
                     builder.setCodecSpecificConfig(in.readTypedObject(
                             BluetoothLeAudioCodecConfigMetadata.CREATOR));
+                    builder.setContentMetadata(
+                            in.readTypedObject(BluetoothLeAudioContentMetadata.CREATOR));
                     List<BluetoothLeBroadcastChannel> channels = new ArrayList<>();
                     in.readTypedList(channels, BluetoothLeBroadcastChannel.CREATOR);
                     for (BluetoothLeBroadcastChannel channel : channels) {
