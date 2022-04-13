@@ -370,6 +370,12 @@ void BleScannerInterfaceImpl::OnTrackAdvFoundLost(
   AdvertisingTrackInfo track_info = {};
   RawAddress raw_address =
       ToRawAddress(on_found_on_lost_info.advertiser_address);
+
+  if (on_found_on_lost_info.advertiser_address_type != BLE_ADDR_ANONYMOUS) {
+    btm_ble_process_adv_addr(raw_address,
+                             &on_found_on_lost_info.advertiser_address_type);
+  }
+
   track_info.advertiser_address = raw_address;
   track_info.advertiser_address_type =
       on_found_on_lost_info.advertiser_address_type;
