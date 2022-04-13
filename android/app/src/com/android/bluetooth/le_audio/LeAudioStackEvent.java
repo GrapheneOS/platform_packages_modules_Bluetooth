@@ -19,6 +19,7 @@ package com.android.bluetooth.le_audio;
 
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothLeAudioCodecConfig;
+import android.bluetooth.BluetoothLeBroadcastMetadata;
 
 import java.util.List;
 /**
@@ -42,6 +43,7 @@ public class LeAudioStackEvent {
     public static final int EVENT_TYPE_BROADCAST_CREATED = EVENT_TYPE_UNICAST_MAX + 1;
     public static final int EVENT_TYPE_BROADCAST_DESTROYED = EVENT_TYPE_UNICAST_MAX + 2;
     public static final int EVENT_TYPE_BROADCAST_STATE = EVENT_TYPE_UNICAST_MAX + 3;
+    public static final int EVENT_TYPE_BROADCAST_METADATA_CHANGED = EVENT_TYPE_UNICAST_MAX + 4;
 
     // Do not modify without updating the HAL bt_le_audio.h files.
     // Match up with GroupStatus enum of bt_le_audio.h
@@ -76,6 +78,7 @@ public class LeAudioStackEvent {
     public BluetoothLeAudioCodecConfig valueCodec2;
     public List<BluetoothLeAudioCodecConfig> valueCodecList1;
     public List<BluetoothLeAudioCodecConfig> valueCodecList2;
+    public BluetoothLeBroadcastMetadata broadcastMetadata;
 
     LeAudioStackEvent(int type) {
         this.type = type;
@@ -99,6 +102,10 @@ public class LeAudioStackEvent {
                 + eventTypeValueCodecList1ToString(type, valueCodecList1));
         result.append(", valueCodecList2:"
                 + eventTypeValueCodecList2ToString(type, valueCodecList2));
+        if (type == EVENT_TYPE_BROADCAST_METADATA_CHANGED) {
+            result.append(", broadcastMetadata:"
+                    + eventTypeValueBroadcastMetadataToString(broadcastMetadata));
+        }
         result.append("}");
         return result.toString();
     }
@@ -123,6 +130,8 @@ public class LeAudioStackEvent {
                 return "EVENT_TYPE_BROADCAST_DESTROYED";
             case EVENT_TYPE_BROADCAST_STATE:
                 return "EVENT_TYPE_BROADCAST_STATE";
+            case EVENT_TYPE_BROADCAST_METADATA_CHANGED:
+                return "EVENT_TYPE_BROADCAST_METADATA_CHANGED";
             case EVENT_TYPE_AUDIO_LOCAL_CODEC_CONFIG_CAPA_CHANGED:
                 return "EVENT_TYPE_AUDIO_LOCAL_CODEC_CONFIG_CAPA_CHANGED";
             case EVENT_TYPE_AUDIO_GROUP_CODEC_CONFIG_CHANGED:
@@ -159,9 +168,11 @@ public class LeAudioStackEvent {
             case EVENT_TYPE_SINK_AUDIO_LOCATION_AVAILABLE:
                 return "{sink_audio_location:" + value + "}";
             case EVENT_TYPE_BROADCAST_CREATED:
-                return "{broadcastId:" + value + "}";
+                // same as EVENT_TYPE_BROADCAST_STATE
             case EVENT_TYPE_BROADCAST_DESTROYED:
-                return "{broadcastId:" + value + "}";
+                // same as EVENT_TYPE_BROADCAST_STATE
+            case EVENT_TYPE_BROADCAST_METADATA_CHANGED:
+                // same as EVENT_TYPE_BROADCAST_STATE
             case EVENT_TYPE_BROADCAST_STATE:
                 return "{broadcastId:" + value + "}";
             default:
@@ -301,6 +312,11 @@ public class LeAudioStackEvent {
             default:
                 return "UNKNOWN";
         }
+    }
+
+    private static String eventTypeValueBroadcastMetadataToString(
+            BluetoothLeBroadcastMetadata meta) {
+        return meta.toString();
     }
 
     protected static String encodeHexString(byte[] pduData) {

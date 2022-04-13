@@ -118,8 +118,13 @@ class BroadcastStateMachineImpl : public BroadcastStateMachine {
     return sm_config_.broadcast_code;
   }
 
+  const bluetooth::le_audio::BasicAudioAnnouncementData&
+  GetBroadcastAnnouncement() const override {
+    return sm_config_.announcement;
+  }
+
   void UpdateBroadcastAnnouncement(
-      BasicAudioAnnouncementData announcement) override {
+      bluetooth::le_audio::BasicAudioAnnouncementData announcement) override {
     std::vector<uint8_t> periodic_data;
     PreparePeriodicData(announcement, periodic_data);
 
@@ -267,7 +272,8 @@ class BroadcastStateMachineImpl : public BroadcastStateMachine {
 
   void CreateBroadcastAnnouncement(
       bluetooth::le_audio::BroadcastId& broadcast_id,
-      const BasicAudioAnnouncementData& announcement, uint8_t streaming_phy) {
+      const bluetooth::le_audio::BasicAudioAnnouncementData& announcement,
+      uint8_t streaming_phy) {
     LOG_INFO();
     if (advertiser_if_ != nullptr) {
       tBTM_BLE_ADV_PARAMS adv_params;
@@ -660,7 +666,7 @@ std::ostream& operator<<(
   }
 
   std::vector<uint8_t> an_raw;
-  config.announcement.ToRawPacket(an_raw);
+  ToRawPacket(config.announcement, an_raw);
   os << "        Announcement RAW: [";
   for (auto& el : an_raw) {
     os << std::hex << +el << ":";
