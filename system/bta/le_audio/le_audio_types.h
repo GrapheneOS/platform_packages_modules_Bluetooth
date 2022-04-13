@@ -302,18 +302,6 @@ constexpr uint16_t kMaxTransportLatencyMin = 0x0005;
 constexpr uint16_t kMaxTransportLatencyMax = 0x0FA0;
 
 /* Enums */
-enum class CsisLockState : uint8_t {
-  CSIS_STATE_UNSET = 0x00,
-  CSIS_STATE_UNLOCKED,
-  CSIS_STATE_LOCKED
-};
-
-enum class CsisDiscoveryState : uint8_t {
-  CSIS_DISCOVERY_IDLE,
-  CSIS_DISCOVERY_ONGOING,
-  CSIS_DISCOVERY_COMPLETED,
-};
-
 /* ASE states according to BAP defined state machine states */
 enum class AseState : uint8_t {
   BTA_LE_AUDIO_ASE_STATE_IDLE = 0x00,
