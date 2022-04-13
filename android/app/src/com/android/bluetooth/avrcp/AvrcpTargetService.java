@@ -28,6 +28,7 @@ import android.media.AudioManager;
 import android.os.Looper;
 import android.os.SystemProperties;
 import android.os.UserManager;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.android.bluetooth.BluetoothMetricsProto;
@@ -408,7 +409,7 @@ public class AvrcpTargetService extends ProfileService {
         List<Metadata> nowPlayingList = mMediaPlayerList.getNowPlayingList();
         if (mAvrcpCoverArtService != null) {
             for (Metadata metadata : nowPlayingList) {
-                if (metadata.mediaId == currentMediaId) {
+                if (TextUtils.equals(metadata.mediaId, currentMediaId)) {
                     currentTrack = metadata;
                 } else if (metadata.image != null) {
                     imageHandle = mAvrcpCoverArtService.storeImage(metadata.image);
