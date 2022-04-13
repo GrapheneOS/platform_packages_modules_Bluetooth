@@ -302,6 +302,8 @@ constexpr uint16_t kMaxTransportLatencyMin = 0x0005;
 constexpr uint16_t kMaxTransportLatencyMax = 0x0FA0;
 
 /* Enums */
+enum class CigState : uint8_t { NONE, CREATING, CREATED, REMOVING };
+
 /* ASE states according to BAP defined state machine states */
 enum class AseState : uint8_t {
   BTA_LE_AUDIO_ASE_STATE_IDLE = 0x00,
@@ -566,7 +568,7 @@ using AudioLocations = std::bitset<32>;
 using AudioContexts = std::bitset<16>;
 
 std::ostream& operator<<(std::ostream& os, const AseState& state);
-
+std::ostream& operator<<(std::ostream& os, const CigState& state);
 std::ostream& operator<<(std::ostream& os, const LeAudioLc3Config& config);
 }  // namespace types
 
