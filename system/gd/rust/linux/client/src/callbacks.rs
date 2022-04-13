@@ -106,6 +106,14 @@ impl IBluetoothCallback for BtCallback {
         self.context.lock().unwrap().adapter_address = Some(addr);
     }
 
+    fn on_name_changed(&self, name: String) {
+        print_info!("Name changed to {}", &name);
+    }
+
+    fn on_discoverable_changed(&self, discoverable: bool) {
+        print_info!("Discoverable changed to {}", &discoverable);
+    }
+
     fn on_device_found(&self, remote_device: BluetoothDevice) {
         self.context
             .lock()
