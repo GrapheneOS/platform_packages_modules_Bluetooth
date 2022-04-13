@@ -65,6 +65,9 @@ class AdapterAutomationHelper():
     async def clear_event_filter(self):
         await self.adapter_stub.ClearEventFilter(empty_proto.Empty())
 
+    async def clear_event_mask(self):
+        await self.adapter_stub.ClearEventMask(empty_proto.Empty())
+
 
 class A2dpAutomationHelper():
     """Invoke gRPC on topshim for A2DP testing"""
