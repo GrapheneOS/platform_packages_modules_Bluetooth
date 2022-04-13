@@ -41,6 +41,10 @@ struct IsoManager::impl {
     iso_impl_.reset();
   }
 
+  void Dump(int fd) {
+    if (iso_impl_) iso_impl_->dump(fd);
+  }
+
   bool IsRunning() { return iso_impl_ ? true : false; }
 
   const IsoManager& iso_manager_;
@@ -141,6 +145,10 @@ void IsoManager::Start() {
 void IsoManager::Stop() {
   if (pimpl_->IsRunning())
     pimpl_->Stop();
+}
+
+void IsoManager::Dump(int fd) {
+  if (pimpl_->IsRunning()) pimpl_->Dump(fd);
 }
 
 IsoManager::~IsoManager() = default;
