@@ -161,6 +161,7 @@ class LeAdvertisingManager : public bluetooth::Module {
  private:
   // Return -1 if the advertiser was not created, otherwise the advertiser ID.
   AdvertiserId create_advertiser(
+      int reg_id,
       const AdvertisingConfig config,
       const common::Callback<void(Address, AddressType)>& scan_callback,
       const common::Callback<void(ErrorCode, uint8_t, uint8_t)>& set_terminated_callback,
