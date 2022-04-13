@@ -81,6 +81,10 @@ class MockBroadcastStateMachine
     ON_CALL(*this, GetOwnAddressType()).WillByDefault([this]() -> uint8_t {
       return this->addr_type_;
     });
+
+    ON_CALL(*this, GetPaInterval()).WillByDefault([this]() -> uint8_t {
+      return this->BroadcastStateMachine::GetPaInterval();
+    });
   };
 
   ~MockBroadcastStateMachine() {
@@ -106,9 +110,12 @@ class MockBroadcastStateMachine
               GetBroadcastCode, (), (const override));
   MOCK_METHOD((bluetooth::le_audio::BroadcastId), GetBroadcastId, (),
               (const override));
+  MOCK_METHOD((bluetooth::le_audio::BasicAudioAnnouncementData&),
+              GetBroadcastAnnouncement, (), (const override));
   MOCK_METHOD((void), UpdateBroadcastAnnouncement,
-              (le_audio::broadcaster::BasicAudioAnnouncementData announcement),
+              (bluetooth::le_audio::BasicAudioAnnouncementData announcement),
               (override));
+  MOCK_METHOD((uint8_t), GetPaInterval, (), (const override));
   MOCK_METHOD((void), HandleHciEvent, (uint16_t event, void* data), (override));
   MOCK_METHOD((void), OnSetupIsoDataPath,
               (uint8_t status, uint16_t conn_handle), (override));
@@ -118,6 +125,7 @@ class MockBroadcastStateMachine
               (le_audio::broadcaster::BroadcastStateMachine::Message event,
                const void* data),
               (override));
+  MOCK_METHOD((uint8_t), GetAdvertisingSid, (), (const override));
 
   bool result_ = true;
   std::optional<le_audio::broadcaster::BigConfig> big_config_ = std::nullopt;
