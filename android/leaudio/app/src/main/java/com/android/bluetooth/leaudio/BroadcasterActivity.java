@@ -17,12 +17,14 @@
 
 package com.android.bluetooth.leaudio;
 
+import android.bluetooth.BluetoothLeBroadcastMetadata;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
@@ -82,7 +84,46 @@ public class BroadcasterActivity extends AppCompatActivity {
         final BroadcastItemsAdapter itemsAdapter = new BroadcastItemsAdapter();
         itemsAdapter.setOnItemClickListener(broadcastId -> {
             AlertDialog.Builder alert = new AlertDialog.Builder(this);
-            alert.setTitle("Broadcast actions:");
+            alert.setTitle("Broadcast Info:");
+
+            // Load and fill in the metadata layout
+            final View metaLayout =
+                    getLayoutInflater().inflate(R.layout.broadcast_metadata, null);
+            alert.setView(metaLayout);
+
+            BluetoothLeBroadcastMetadata metadata = null;
+            for (BluetoothLeBroadcastMetadata b : mViewModel.getAllBroadcastMetadata()) {
+                if (b.getBroadcastId() == broadcastId) {
+                    metadata = b;
+                    break;
+                }
+            }
+
+            if (metadata != null) {
+                TextView addr_text = metaLayout.findViewById(R.id.device_addr_text);
+                addr_text.setText("Device Address: " + metadata.getSourceDevice().toString());
+
+                addr_text = metaLayout.findViewById(R.id.adv_sid_text);
+                addr_text.setText("Advertising SID: " + metadata.getSourceAdvertisingSid());
+
+                addr_text = metaLayout.findViewById(R.id.pasync_interval_text);
+                addr_text.setText("Pa Sync Interval: " + metadata.getPaSyncInterval());
+
+                addr_text = metaLayout.findViewById(R.id.is_encrypted_text);
+                addr_text.setText("Is Encrypted: " + metadata.isEncrypted());
+
+                byte[] code = metadata.getBroadcastCode();
+                addr_text = metaLayout.findViewById(R.id.broadcast_code_text);
+                if (code != null) {
+                    addr_text.setText("Broadcast Code: " + metadata.getBroadcastCode().toString());
+                } else {
+                    addr_text.setVisibility(View.INVISIBLE);
+                }
+
+                addr_text = metaLayout.findViewById(R.id.presentation_delay_text);
+                addr_text.setText(
+                        "Presentation Delay: " + metadata.getPresentationDelayMicros() + " [us]");
+            }
 
             alert.setNeutralButton("Stop", (dialog, which) -> {
                 mViewModel.stopBroadcast(broadcastId);
