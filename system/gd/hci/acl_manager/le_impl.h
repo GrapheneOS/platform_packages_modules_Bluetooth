@@ -19,14 +19,24 @@
 #include <base/strings/stringprintf.h>
 
 #include <atomic>
+#include <cstddef>
+#include <cstdint>
 #include <memory>
+#include <string>
+#include <unordered_set>
 
 #include "common/bind.h"
 #include "crypto_toolbox/crypto_toolbox.h"
 #include "hci/acl_manager/assembler.h"
+#include "hci/acl_manager/le_connection_management_callbacks.h"
 #include "hci/acl_manager/round_robin_scheduler.h"
+#include "hci/controller.h"
+#include "hci/hci_layer.h"
+#include "hci/hci_packets.h"
 #include "hci/le_address_manager.h"
 #include "os/alarm.h"
+#include "os/handler.h"
+#include "packet/packet_view.h"
 
 using bluetooth::crypto_toolbox::Octet16;
 

@@ -127,7 +127,10 @@ class BlueberryAdbProxy(AdbProxy):
             #     device port
             remote_port = self._ssh_connection.find_free_port()
             host_port = self._ssh_connection.create_ssh_tunnel(remote_port, local_port=host_port)
-        output = self.forward(["tcp:%d" % host_port, "tcp:%d" % device_port])
+        try:
+            output = self.forward(["tcp:%d" % host_port, "tcp:%d" % device_port])
+        except AdbError as error:
+            return error
         # If hinted_port is 0, the output will be the selected port.
         # Otherwise, there will be no output upon successfully
         # forwarding the hinted port.
