@@ -767,6 +767,34 @@ struct iso_impl {
     return (bis_it != conn_hdl_to_bis_map_.cend());
   }
 
+  void dump(int fd) const {
+    dprintf(fd, "  ----------------\n ");
+    dprintf(fd, "  ISO Manager:\n");
+    dprintf(fd, "    Available credits: %d\n", iso_credits_.load());
+    dprintf(fd, "    Controller buffer size: %d\n", iso_buffer_size_);
+    dprintf(fd, "    CISes:\n");
+    for (auto const& cis_pair : conn_hdl_to_cis_map_) {
+      dprintf(fd, "      CIS Connection handle: %d\n", cis_pair.first);
+      dprintf(fd, "        CIG ID: %d\n", cis_pair.second->cig_id);
+      dprintf(fd, "        Used Credits: %d\n",
+              cis_pair.second->used_credits.load());
+      dprintf(fd, "        SDU Interval: %d\n", cis_pair.second->sdu_itv);
+      dprintf(fd, "        State Flags: 0x%02hx\n",
+              cis_pair.second->state_flags.load());
+    }
+    dprintf(fd, "    BISes:\n");
+    for (auto const& cis_pair : conn_hdl_to_bis_map_) {
+      dprintf(fd, "      BIS Connection handle: %d\n", cis_pair.first);
+      dprintf(fd, "        BIG Handle: %d\n", cis_pair.second->big_handle);
+      dprintf(fd, "        Used Credits: %d\n",
+              cis_pair.second->used_credits.load());
+      dprintf(fd, "        SDU Interval: %d\n", cis_pair.second->sdu_itv);
+      dprintf(fd, "        State Flags: 0x%02hx\n",
+              cis_pair.second->state_flags.load());
+    }
+    dprintf(fd, "  ----------------\n ");
+  }
+
   std::map<uint16_t, std::unique_ptr<iso_cis>> conn_hdl_to_cis_map_;
   std::map<uint16_t, std::unique_ptr<iso_bis>> conn_hdl_to_bis_map_;
 
