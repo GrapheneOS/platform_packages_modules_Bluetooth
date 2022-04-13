@@ -177,6 +177,14 @@ void LeAddressManager::unregister_client(LeAddressManagerCallback* callback) {
   }
 }
 
+bool LeAddressManager::UnregisterSync(LeAddressManagerCallback* callback, std::chrono::milliseconds timeout) {
+  handler_->BindOnceOn(this, &LeAddressManager::unregister_client, callback).Invoke();
+  std::promise<void> promise;
+  auto future = promise.get_future();
+  handler_->Post(common::BindOnce(&std::promise<void>::set_value, common::Unretained(&promise)));
+  return future.wait_for(timeout) == std::future_status::ready;
+}
+
 void LeAddressManager::AckPause(LeAddressManagerCallback* callback) {
   handler_->BindOnceOn(this, &LeAddressManager::ack_pause, callback).Invoke();
 }

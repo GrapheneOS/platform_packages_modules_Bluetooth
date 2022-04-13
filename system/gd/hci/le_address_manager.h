@@ -27,6 +27,8 @@
 namespace bluetooth {
 namespace hci {
 
+constexpr std::chrono::milliseconds kUnregisterSyncTimeoutInMs = std::chrono::milliseconds(10);
+
 class LeAddressManagerCallback {
  public:
   virtual ~LeAddressManagerCallback() = default;
@@ -72,6 +74,8 @@ class LeAddressManager {
   void AckResume(LeAddressManagerCallback* callback);
   virtual AddressPolicy Register(LeAddressManagerCallback* callback);
   virtual void Unregister(LeAddressManagerCallback* callback);
+  virtual bool UnregisterSync(
+      LeAddressManagerCallback* callback, std::chrono::milliseconds timeout = kUnregisterSyncTimeoutInMs);
   virtual AddressWithType GetCurrentAddress();  // What was set in SetRandomAddress()
   virtual AddressWithType GetAnotherAddress();  // A new random address without rotating.
 
