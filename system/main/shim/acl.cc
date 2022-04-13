@@ -434,7 +434,7 @@ class ShimAclConnection {
   }
 
   void Disconnect() {
-    if (!is_disconnected_) {
+    if (is_disconnected_) {
       LOG_ERROR(
           "Cannot disconnect ACL multiple times handle:%04x creation_time:%s",
           handle_,
