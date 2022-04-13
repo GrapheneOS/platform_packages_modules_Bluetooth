@@ -1548,7 +1548,14 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
         if (DBG) {
             Log.d(TAG, "User " + userHandle + " switched");
         }
-        mHandler.obtainMessage(MESSAGE_USER_SWITCHED, userHandle.getIdentifier(), 0).sendToTarget();
+
+        // Save the foreground user id and propagate to BT process after it's restarted
+        int toUserId = userHandle.getIdentifier();
+        if (mForegroundUserId != toUserId) {
+            mForegroundUserId = toUserId;
+        }
+
+        mHandler.obtainMessage(MESSAGE_USER_SWITCHED, toUserId, 0).sendToTarget();
     }
 
     /**
@@ -2376,12 +2383,6 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
                         Log.d(TAG, "MESSAGE_USER_SWITCHED");
                     }
                     mHandler.removeMessages(MESSAGE_USER_SWITCHED);
-
-                    // Save the foreground user id and propagate to BT process after it's restarted
-                    int toUserId = msg.arg1;
-                    if (mForegroundUserId != toUserId) {
-                        mForegroundUserId = toUserId;
-                    }
 
                     /* disable and enable BT when detect a user switch */
                     if (mBluetooth != null && isEnabled()) {
