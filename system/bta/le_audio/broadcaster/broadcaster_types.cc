@@ -24,6 +24,11 @@
 #include "btm_ble_api_types.h"
 #include "embdrv/lc3/include/lc3.h"
 
+using bluetooth::le_audio::BasicAudioAnnouncementBisConfig;
+using bluetooth::le_audio::BasicAudioAnnouncementCodecConfig;
+using bluetooth::le_audio::BasicAudioAnnouncementData;
+using bluetooth::le_audio::BasicAudioAnnouncementSubgroup;
+
 namespace le_audio {
 namespace broadcaster {
 
@@ -46,8 +51,11 @@ static void EmitCodecConfiguration(
   // Add 5 for full, or 1 for short Codec ID
   uint8_t codec_config_length = 5;
 
+  auto ltv = types::LeAudioLtvMap(config.codec_specific_params);
+  auto ltv_raw_sz = ltv.RawPacketSize();
+
   // Add 1 for the codec spec. config length + config spec. data itself
-  codec_config_length += 1 + config.codec_specific_params.size();
+  codec_config_length += 1 + ltv_raw_sz;
 
   // Resize and set the cursor behind the old data
   data.resize(old_size + codec_config_length);
@@ -58,27 +66,27 @@ static void EmitCodecConfiguration(
   UINT16_TO_STREAM(p_value, config.vendor_company_id);
   UINT16_TO_STREAM(p_value, config.vendor_codec_id);
 
-  // Codec specific config length
-  UINT8_TO_STREAM(p_value, config.codec_specific_params.size());
-
-  if (config.codec_specific_params.size() > 0) {
-    // Codec specific config
-    ARRAY_TO_STREAM(p_value, config.codec_specific_params.data(),
-                    (int)config.codec_specific_params.size());
-  }
+  // Codec specific config length and data
+  UINT8_TO_STREAM(p_value, ltv_raw_sz);
+  p_value = ltv.RawPacket(p_value);
 }
 
-static void EmitMetadata(const std::vector<uint8_t>& metadata,
-                         std::vector<uint8_t>& data) {
+static void EmitMetadata(
+    const std::map<uint8_t, std::vector<uint8_t>>& metadata,
+    std::vector<uint8_t>& data) {
+  auto ltv = types::LeAudioLtvMap(metadata);
+  auto ltv_raw_sz = ltv.RawPacketSize();
+
   size_t old_size = data.size();
-  data.resize(old_size + metadata.size() + 1);
+  data.resize(old_size + ltv_raw_sz + 1);
 
   // Set the cursor behind the old data
   uint8_t* p_value = data.data() + old_size;
 
-  UINT8_TO_STREAM(p_value, metadata.size());
-  if (metadata.size() > 0)
-    ARRAY_TO_STREAM(p_value, metadata.data(), (int)metadata.size());
+  UINT8_TO_STREAM(p_value, ltv_raw_sz);
+  if (ltv_raw_sz > 0) {
+    p_value = ltv.RawPacket(p_value);
+  }
 }
 
 static void EmitBisConfigs(
@@ -86,8 +94,11 @@ static void EmitBisConfigs(
     std::vector<uint8_t>& data) {
   // Emit each BIS config - that's the level 3 data
   for (auto const& bis_config : bis_configs) {
+    auto ltv = types::LeAudioLtvMap(bis_config.codec_specific_params);
+    auto ltv_raw_sz = ltv.RawPacketSize();
+
     size_t old_size = data.size();
-    data.resize(old_size + bis_config.codec_specific_params.size() + 2);
+    data.resize(old_size + ltv_raw_sz + 2);
 
     // Set the cursor behind the old data
     auto* p_value = data.data() + old_size;
@@ -96,9 +107,10 @@ static void EmitBisConfigs(
     UINT8_TO_STREAM(p_value, bis_config.bis_index);
 
     // Per BIS Codec Specific Params[i[k]]
-    UINT8_TO_STREAM(p_value, bis_config.codec_specific_params.size());
-    ARRAY_TO_STREAM(p_value, bis_config.codec_specific_params.data(),
-                    (int)bis_config.codec_specific_params.size());
+    UINT8_TO_STREAM(p_value, ltv_raw_sz);
+    if (ltv_raw_sz > 0) {
+      p_value = ltv.RawPacket(p_value);
+    }
   }
 }
 
@@ -121,8 +133,9 @@ static void EmitSubgroup(const BasicAudioAnnouncementSubgroup& subgroup_config,
   EmitBisConfigs(subgroup_config.bis_configs, data);
 }
 
-bool BasicAudioAnnouncementData::ToRawPacket(std::vector<uint8_t>& data) const {
-  EmitHeader(*this, data);
+bool ToRawPacket(BasicAudioAnnouncementData const& in,
+                 std::vector<uint8_t>& data) {
+  EmitHeader(in, data);
 
   // Set the cursor behind the old data and resize
   size_t old_size = data.size();
@@ -131,8 +144,8 @@ bool BasicAudioAnnouncementData::ToRawPacket(std::vector<uint8_t>& data) const {
 
   // Emit the subgroup size and each subgroup
   // That's the level 1 Num_Subgroups
-  UINT8_TO_STREAM(p_value, this->subgroup_configs.size());
-  for (const auto& subgroup_config : this->subgroup_configs) {
+  UINT8_TO_STREAM(p_value, in.subgroup_configs.size());
+  for (const auto& subgroup_config : in.subgroup_configs) {
     // That's the level 2 and higher level data
     EmitSubgroup(subgroup_config, data);
   }
@@ -160,7 +173,7 @@ void PreparePeriodicData(const BasicAudioAnnouncementData& announcement,
   UINT16_TO_STREAM(data_ptr, kBasicAudioAnnouncementServiceUuid);
 
   /* Append the announcement */
-  announcement.ToRawPacket(periodic_data);
+  ToRawPacket(announcement, periodic_data);
 
   /* Update the length field accordingly */
   data_ptr = periodic_data.data();
@@ -301,3 +314,70 @@ std::ostream& operator<<(
 
 } /* namespace broadcaster */
 } /* namespace le_audio */
+
+/* Helper functions for comparing BroadcastAnnouncements */
+namespace bluetooth {
+namespace le_audio {
+
+static bool isMetadataSame(std::map<uint8_t, std::vector<uint8_t>> m1,
+                           std::map<uint8_t, std::vector<uint8_t>> m2) {
+  if (m1.size() != m2.size()) return false;
+
+  for (auto& m1pair : m1) {
+    if (m2.count(m1pair.first) == 0) return false;
+
+    auto& m2val = m2.at(m1pair.first);
+    if (m1pair.second.size() != m2val.size()) return false;
+
+    if (m1pair.second.size() != 0) {
+      if (memcmp(m1pair.second.data(), m2val.data(), m2val.size()) != 0)
+        return false;
+    }
+  }
+  return true;
+}
+
+bool operator==(const BasicAudioAnnouncementData& lhs,
+                const BasicAudioAnnouncementData& rhs) {
+  if (lhs.presentation_delay != rhs.presentation_delay) return false;
+
+  if (lhs.subgroup_configs.size() != rhs.subgroup_configs.size()) return false;
+
+  for (auto i = 0lu; i < lhs.subgroup_configs.size(); ++i) {
+    auto& lhs_subgroup = lhs.subgroup_configs[i];
+    auto& rhs_subgroup = rhs.subgroup_configs[i];
+
+    if (lhs_subgroup.codec_config.codec_id !=
+        rhs_subgroup.codec_config.codec_id)
+      return false;
+
+    if (lhs_subgroup.codec_config.vendor_company_id !=
+        rhs_subgroup.codec_config.vendor_company_id)
+      return false;
+
+    if (lhs_subgroup.codec_config.vendor_codec_id !=
+        rhs_subgroup.codec_config.vendor_codec_id)
+      return false;
+
+    if (!isMetadataSame(lhs_subgroup.codec_config.codec_specific_params,
+                        rhs_subgroup.codec_config.codec_specific_params))
+      return false;
+
+    if (!isMetadataSame(lhs_subgroup.metadata, rhs_subgroup.metadata))
+      return false;
+
+    for (auto j = 0lu; j < lhs_subgroup.bis_configs.size(); ++j) {
+      auto& lhs_bis_config = lhs_subgroup.bis_configs[i];
+      auto& rhs_bis_config = rhs_subgroup.bis_configs[i];
+      if (lhs_bis_config.bis_index != rhs_bis_config.bis_index) return false;
+
+      if (!isMetadataSame(lhs_bis_config.codec_specific_params,
+                          rhs_bis_config.codec_specific_params))
+        return false;
+    }
+  }
+
+  return true;
+}
+}  // namespace le_audio
+}  // namespace bluetooth
