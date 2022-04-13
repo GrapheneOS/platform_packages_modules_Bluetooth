@@ -54,12 +54,9 @@ BluetoothAudioClientInterface::BluetoothAudioClientInterface(
 }
 
 bool BluetoothAudioClientInterface::is_aidl_available() {
-  if (!aidl_available) return false;
   auto service = AServiceManager_checkService(
       kDefaultAudioProviderFactoryInterface.c_str());
-  aidl_available = (service != nullptr);
-
-  return aidl_available;
+  return (service != nullptr);
 }
 
 std::vector<AudioCapabilities>
@@ -79,7 +76,6 @@ BluetoothAudioClientInterface::GetAudioCapabilities(SessionType session_type) {
 
   if (provider_factory == nullptr) {
     LOG(ERROR) << __func__ << ", can't get capability from unknown factory";
-    aidl_available = false;
     return capabilities;
   }
 
@@ -95,9 +91,11 @@ BluetoothAudioClientInterface::GetAudioCapabilities(SessionType session_type) {
 
 void BluetoothAudioClientInterface::FetchAudioProvider() {
   if (provider_ != nullptr) {
-    LOG(WARNING) << __func__ << ": reflash";
-  }
-  if (!is_aidl_available()) {
+    LOG(WARNING) << __func__ << ": refetch";
+  } else if (!is_aidl_available()) {
+    // AIDL availability should only be checked at the beginning.
+    // When refetching, AIDL may not be ready *yet* but it's expected to be
+    // available later.
     return;
   }
   auto provider_factory = IBluetoothAudioProviderFactory::fromBinder(
@@ -106,7 +104,6 @@ void BluetoothAudioClientInterface::FetchAudioProvider() {
 
   if (provider_factory == nullptr) {
     LOG(ERROR) << __func__ << ", can't get capability from unknown factory";
-    aidl_available = false;
     return;
   }
 

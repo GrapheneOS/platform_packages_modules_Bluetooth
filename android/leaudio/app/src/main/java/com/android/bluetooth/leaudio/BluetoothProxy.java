@@ -27,6 +27,7 @@ import android.os.ParcelUuid;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.util.Pair;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -55,7 +56,7 @@ public class BluetoothProxy {
     private BluetoothLeAudio bluetoothLeAudio = null;
     private BluetoothLeBroadcast mBluetoothLeBroadcast = null;
     private BluetoothLeBroadcastAssistant mBluetoothLeBroadcastAssistant = null;
-    private Set<BluetoothDevice> mBroadcastScanOnBehalfDevices = new HashSet<>();
+    private Set<BluetoothDevice> mBroadcastScanDelegatorDevices = new HashSet<>();
     private BluetoothCsipSetCoordinator bluetoothCsis = null;
     private BluetoothVolumeControl bluetoothVolumeControl = null;
     private BluetoothHapClient bluetoothHapClient = null;
@@ -704,6 +705,7 @@ public class BluetoothProxy {
     }
 
     private void initCsisProxy() {
+        if (!isCoordinatedSetProfileSupported()) return;
         if (bluetoothCsis == null) {
             bluetoothAdapter.getProfileProxy(this.application, profileListener,
                     BluetoothProfile.CSIP_SET_COORDINATOR);
@@ -711,12 +713,14 @@ public class BluetoothProxy {
     }
 
     private void cleanupCsisProxy() {
+        if (!isCoordinatedSetProfileSupported()) return;
         if (bluetoothCsis != null) {
             bluetoothAdapter.closeProfileProxy(BluetoothProfile.LE_AUDIO, bluetoothCsis);
         }
     }
 
     private void initLeAudioProxy() {
+        if (!isLeAudioUnicastSupported()) return;
         if (bluetoothLeAudio == null) {
             bluetoothAdapter.getProfileProxy(this.application, profileListener,
                     BluetoothProfile.LE_AUDIO);
@@ -728,6 +732,7 @@ public class BluetoothProxy {
     }
 
     private void cleanupLeAudioProxy() {
+        if (!isLeAudioUnicastSupported()) return;
         if (bluetoothLeAudio != null) {
             bluetoothAdapter.closeProfileProxy(BluetoothProfile.LE_AUDIO, bluetoothLeAudio);
             application.unregisterReceiver(leAudioIntentReceiver);
@@ -735,6 +740,7 @@ public class BluetoothProxy {
     }
 
     private void initVolumeControlProxy() {
+        if (!isVolumeControlClientSupported()) return;
         bluetoothAdapter.getProfileProxy(this.application, profileListener,
                 BluetoothProfile.VOLUME_CONTROL);
 
@@ -744,6 +750,7 @@ public class BluetoothProxy {
     }
 
     private void cleanupVolumeControlProxy() {
+        if (!isVolumeControlClientSupported()) return;
         if (bluetoothVolumeControl != null) {
             bluetoothAdapter.closeProfileProxy(BluetoothProfile.VOLUME_CONTROL,
                     bluetoothVolumeControl);
@@ -752,6 +759,7 @@ public class BluetoothProxy {
     }
 
     private void initHapProxy() {
+        if (!isLeAudioHearingAccessClientSupported()) return;
         bluetoothAdapter.getProfileProxy(this.application, profileListener,
                 BluetoothProfile.HAP_CLIENT);
 
@@ -762,6 +770,7 @@ public class BluetoothProxy {
     }
 
     private void cleanupHapProxy() {
+        if (!isLeAudioHearingAccessClientSupported()) return;
         if (bluetoothHapClient != null) {
             bluetoothHapClient.unregisterCallback(hapCallback);
             bluetoothAdapter.closeProfileProxy(BluetoothProfile.HAP_CLIENT, bluetoothHapClient);
@@ -770,11 +779,13 @@ public class BluetoothProxy {
     }
 
     private void initBassProxy() {
+        if (!isLeAudioBroadcastScanAssistanSupported()) return;
         bluetoothAdapter.getProfileProxy(this.application, profileListener,
                 BluetoothProfile.LE_AUDIO_BROADCAST_ASSISTANT);
     }
 
     private void cleanupBassProxy() {
+        if (!isLeAudioBroadcastScanAssistanSupported()) return;
         if (mBluetoothLeBroadcastAssistant != null) {
             mBluetoothLeBroadcastAssistant.unregisterCallback(mBroadcastAssistantCallback);
             bluetoothAdapter.closeProfileProxy(BluetoothProfile.LE_AUDIO_BROADCAST_ASSISTANT,
@@ -977,6 +988,8 @@ public class BluetoothProxy {
     }
 
     public void groupSetLock(Integer group_id, boolean lock) {
+        if (bluetoothCsis == null) return;
+
         Log.d("Lock", "lock: " + lock);
         if (lock) {
             if (mGroupLocks.containsKey(group_id)) return;
@@ -1026,20 +1039,24 @@ public class BluetoothProxy {
         }
     }
 
-    public boolean scanForBroadcasts(@NonNull BluetoothDevice onBehalfDevice, boolean scan) {
+    public boolean scanForBroadcasts(@Nullable BluetoothDevice scanDelegator, boolean scan) {
         if (mBluetoothLeBroadcastAssistant != null) {
             // Note: startSearchingForSources() does not support scanning on behalf of
             // a specific device - it only searches for all BASS connected devices.
             // Therefore, we manage the list of the devices and start/stop the scanning.
             if (scan) {
-                mBroadcastScanOnBehalfDevices.add(onBehalfDevice);
+                if (scanDelegator != null) {
+                    mBroadcastScanDelegatorDevices.add(scanDelegator);
+                }
                 mBluetoothLeBroadcastAssistant.startSearchingForSources(new ArrayList<>());
                 if (mBassEventListener != null) {
                     mBassEventListener.onScanningStateChanged(true);
                 }
             } else {
-                mBroadcastScanOnBehalfDevices.remove(onBehalfDevice);
-                if (mBroadcastScanOnBehalfDevices.isEmpty()) {
+                if (scanDelegator != null) {
+                    mBroadcastScanDelegatorDevices.remove(scanDelegator);
+                }
+                if (mBroadcastScanDelegatorDevices.isEmpty()) {
                     mBluetoothLeBroadcastAssistant.stopSearchingForSources();
                     if (mBassEventListener != null) {
                         mBassEventListener.onScanningStateChanged(false);
@@ -1053,7 +1070,7 @@ public class BluetoothProxy {
 
     public boolean stopBroadcastObserving() {
         if (mBluetoothLeBroadcastAssistant != null) {
-            mBroadcastScanOnBehalfDevices.clear();
+            mBroadcastScanDelegatorDevices.clear();
             mBluetoothLeBroadcastAssistant.stopSearchingForSources();
             if (mBassEventListener != null) {
                 mBassEventListener.onScanningStateChanged(false);
@@ -1356,9 +1373,31 @@ public class BluetoothProxy {
         return mBluetoothLeBroadcast.isPlaying(broadcastId);
     }
 
+    boolean isLeAudioUnicastSupported() {
+        return (bluetoothAdapter
+                .isLeAudioSupported() == BluetoothStatusCodes.FEATURE_SUPPORTED);
+    }
+
+    boolean isCoordinatedSetProfileSupported() {
+        return isLeAudioUnicastSupported();
+    }
+
+    boolean isVolumeControlClientSupported() {
+        return isLeAudioUnicastSupported();
+    }
+
+    boolean isLeAudioHearingAccessClientSupported() {
+        return isLeAudioUnicastSupported();
+    }
+
     public boolean isLeAudioBroadcastSourceSupported() {
         return (bluetoothAdapter
                 .isLeAudioBroadcastSourceSupported() == BluetoothStatusCodes.FEATURE_SUPPORTED);
+    }
+
+    public boolean isLeAudioBroadcastScanAssistanSupported() {
+        return (bluetoothAdapter
+                .isLeAudioBroadcastAssistantSupported() == BluetoothStatusCodes.FEATURE_SUPPORTED);
     }
 
     public void setOnBassEventListener(OnBassEventListener listener) {
