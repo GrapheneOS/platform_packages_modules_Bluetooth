@@ -99,11 +99,11 @@ class LeAudioBroadcasterInterfaceImpl : public LeAudioBroadcasterInterface,
                         Unretained(LeAudioBroadcaster::Get()), broadcast_id));
   }
 
-  void GetAllBroadcastStates(void) override {
+  void GetBroadcastMetadata(uint32_t broadcast_id) override {
     DVLOG(2) << __func__;
-    do_in_main_thread(FROM_HERE,
-                      Bind(&LeAudioBroadcaster::GetAllBroadcastStates,
-                           Unretained(LeAudioBroadcaster::Get())));
+    do_in_main_thread(
+        FROM_HERE, Bind(&LeAudioBroadcaster::GetBroadcastMetadata,
+                        Unretained(LeAudioBroadcaster::Get()), broadcast_id));
   }
 
   void OnBroadcastCreated(uint32_t broadcast_id, bool success) override {
@@ -126,6 +126,16 @@ class LeAudioBroadcasterInterfaceImpl : public LeAudioBroadcasterInterface,
     do_in_jni_thread(FROM_HERE,
                      Bind(&LeAudioBroadcasterCallbacks::OnBroadcastStateChanged,
                           Unretained(callbacks_), broadcast_id, state));
+  }
+
+  void OnBroadcastMetadataChanged(uint32_t broadcast_id,
+                                  const bluetooth::le_audio::BroadcastMetadata&
+                                      broadcast_metadata) override {
+    DVLOG(2) << __func__;
+    do_in_jni_thread(
+        FROM_HERE,
+        Bind(&LeAudioBroadcasterCallbacks::OnBroadcastMetadataChanged,
+             Unretained(callbacks_), broadcast_id, broadcast_metadata));
   }
 
   void Stop(void) override {
