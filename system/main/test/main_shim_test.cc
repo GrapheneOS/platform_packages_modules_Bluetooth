@@ -33,6 +33,8 @@
 #include "hci/acl_manager/le_connection_callbacks.h"
 #include "hci/acl_manager/le_connection_management_callbacks.h"
 #include "hci/acl_manager_mock.h"
+#include "hci/address.h"
+#include "hci/address_with_type.h"
 #include "hci/controller_mock.h"
 #include "hci/le_advertising_manager_mock.h"
 #include "hci/le_scanning_manager_mock.h"
@@ -50,8 +52,12 @@
 #include "os/thread.h"
 #include "packet/packet_view.h"
 #include "stack/btm/btm_int_types.h"
+#include "stack/include/acl_hci_link_interface.h"
+#include "stack/include/ble_acl_interface.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/hci_error_code.h"
+#include "stack/include/sco_hci_link_interface.h"
+#include "stack/include/sec_hci_link_interface.h"
 #include "stack/l2cap/l2c_int.h"
 #include "test/common/jni_thread.h"
 #include "test/common/main_handler.h"
@@ -65,6 +71,7 @@ using ::testing::_;
 
 using namespace bluetooth;
 using namespace testing;
+using HciHandle = uint16_t;
 
 namespace test = bluetooth::hci::testing;
 
@@ -90,26 +97,19 @@ struct controller_t mock_controller {
 
 const controller_t* controller_get_interface() { return &mock_controller; }
 
-void mock_on_send_data_upwards(BT_HDR*) { mock_function_count_map[__func__]++; }
+void mock_on_send_data_upwards(BT_HDR*) {}
 
-void mock_on_packets_completed(uint16_t handle, uint16_t num_packets) {
-  mock_function_count_map[__func__]++;
-}
+void mock_on_packets_completed(uint16_t handle, uint16_t num_packets) {}
 
 void mock_connection_classic_on_connected(const RawAddress& bda,
-                                          uint16_t handle, uint8_t enc_mode) {
-  mock_function_count_map[__func__]++;
-}
+                                          uint16_t handle, uint8_t enc_mode) {}
 
 void mock_connection_classic_on_failed(const RawAddress& bda,
-                                       tHCI_STATUS status) {
-  mock_function_count_map[__func__]++;
-}
+                                       tHCI_STATUS status) {}
 
 void mock_connection_classic_on_disconnected(tHCI_STATUS status,
                                              uint16_t handle,
                                              tHCI_STATUS reason) {
-  mock_function_count_map[__func__]++;
   ASSERT_TRUE(mock_function_handle_promise_map.find(__func__) !=
               mock_function_handle_promise_map.end());
   mock_function_handle_promise_map[__func__].set_value(handle);
@@ -118,17 +118,14 @@ void mock_connection_le_on_connected(
     const tBLE_BD_ADDR& address_with_type, uint16_t handle, tHCI_ROLE role,
     uint16_t conn_interval, uint16_t conn_latency, uint16_t conn_timeout,
     const RawAddress& local_rpa, const RawAddress& peer_rpa,
-    tBLE_ADDR_TYPE peer_addr_type) {
-  mock_function_count_map[__func__]++;
-}
+    tBLE_ADDR_TYPE peer_addr_type) {}
 void mock_connection_le_on_failed(const tBLE_BD_ADDR& address_with_type,
                                   uint16_t handle, bool enhanced,
-                                  tHCI_STATUS status) {
-  mock_function_count_map[__func__]++;
-}
+                                  tHCI_STATUS status) {}
+static std::promise<uint16_t> mock_connection_le_on_disconnected_promise;
 void mock_connection_le_on_disconnected(tHCI_STATUS status, uint16_t handle,
                                         tHCI_STATUS reason) {
-  mock_function_count_map[__func__]++;
+  mock_connection_le_on_disconnected_promise.set_value(handle);
 }
 
 const shim::legacy::acl_interface_t GetMockAclInterface() {
@@ -252,6 +249,53 @@ class MockClassicAclConnection
   int disconnect_cnt_{0};
 };
 
+class MockLeAclConnection
+    : public bluetooth::hci::acl_manager::LeAclConnection {
+ public:
+  MockLeAclConnection(uint16_t handle, hci::AddressWithType local_address,
+                      hci::AddressWithType remote_address, hci::Role role) {
+    handle_ = handle;
+    local_address_ = local_address;
+    remote_address_ = remote_address;
+    role_ = role;
+  }
+
+  void RegisterCallbacks(
+      hci::acl_manager::LeConnectionManagementCallbacks* callbacks,
+      os::Handler* handler) override {
+    callbacks_ = callbacks;
+    handler_ = handler;
+  }
+
+  // Returns the bidi queue for this mock connection
+  AclConnection::QueueUpEnd* GetAclQueueEnd() const override {
+    return &mock_acl_queue_;
+  }
+
+  mutable common::BidiQueueEnd<hci::BasePacketBuilder,
+                               packet::PacketView<hci::kLittleEndian>>
+      mock_acl_queue_{&tx_, &rx_};
+
+  MockEnQueue<hci::BasePacketBuilder> tx_;
+  MockDeQueue<packet::PacketView<hci::kLittleEndian>> rx_;
+
+  bool ReadRemoteVersionInformation() override { return true; }
+
+  void Disconnect(hci::DisconnectReason reason) override {
+    disconnect_cnt_++;
+    disconnect_promise_.set_value(handle_);
+  }
+
+  std::promise<uint16_t> disconnect_promise_;
+
+  hci::acl_manager::LeConnectionManagementCallbacks* callbacks_{nullptr};
+  os::Handler* handler_{nullptr};
+
+  hci::LeAclConnectionInterface* le_acl_connection_interface_{nullptr};
+
+  int disconnect_cnt_{0};
+};
+
 namespace bluetooth {
 namespace shim {
 void init_activity_attribution() {}
@@ -281,9 +325,8 @@ class MainShimTest : public testing::Test {
  public:
  protected:
   void SetUp() override {
-    reset_mock_function_count_map();
-
     main_thread_start_up();
+    post_on_bt_main([]() { LOG_INFO("Main thread started"); });
 
     thread_ = new os::Thread("acl_thread", os::Thread::Priority::NORMAL);
     handler_ = new os::Handler(thread_);
@@ -311,7 +354,9 @@ class MainShimTest : public testing::Test {
     delete handler_;
     delete thread_;
 
+    post_on_bt_main([]() { LOG_INFO("Main thread stopped"); });
     main_thread_shut_down();
+    reset_mock_function_count_map();
   }
   os::Thread* thread_{nullptr};
   os::Handler* handler_{nullptr};
@@ -502,4 +547,51 @@ TEST_F(MainShimTest, BleScannerInterfaceImpl_OnScanResult) {
   ASSERT_EQ(0, mock_function_count_map["btm_ble_process_adv_addr"]);
 
   run_all_jni_thread_task();
+}
+
+const char* test_flags[] = {
+    "INIT_logging_debug_enabled_for_all=true",
+    nullptr,
+};
+
+TEST_F(MainShimTest, LeShimAclConnection_local_disconnect) {
+  bluetooth::common::InitFlags::Load(test_flags);
+  auto acl = MakeAcl();
+  EXPECT_CALL(*test::mock_acl_manager_, CreateLeConnection(_, _)).Times(1);
+
+  hci::AddressWithType local_address(
+      hci::Address{{0x01, 0x02, 0x03, 0x04, 0x05, 0x6}},
+      hci::AddressType::RANDOM_DEVICE_ADDRESS);
+  hci::AddressWithType remote_address(
+      hci::Address{{0x01, 0x02, 0x03, 0x04, 0x05, 0x6}},
+      hci::AddressType::RANDOM_DEVICE_ADDRESS);
+
+  // Allow LE connections to be accepted
+  std::promise<bool> promise;
+  auto future = promise.get_future();
+  acl->AcceptLeConnectionFrom(remote_address, true, std::move(promise));
+  ASSERT_TRUE(future.get());
+
+  // Simulate LE connection successful
+  uint16_t handle = 0x1234;
+  hci::Role role;
+  auto connection = std::make_unique<MockLeAclConnection>(handle, local_address,
+                                                          remote_address, role);
+  auto raw_connection = connection.get();
+  acl->OnLeConnectSuccess(remote_address, std::move(connection));
+
+  // Initiate local LE disconnect
+  mock_connection_le_on_disconnected_promise = std::promise<uint16_t>();
+  auto disconnect_future =
+      mock_connection_le_on_disconnected_promise.get_future();
+  {
+    raw_connection->disconnect_promise_ = std::promise<uint16_t>();
+    auto future = raw_connection->disconnect_promise_.get_future();
+    acl->DisconnectLe(0x1234, HCI_SUCCESS, __func__);
+    uint16_t result = future.get();
+    ASSERT_EQ(0x1234, result);
+  }
+  raw_connection->callbacks_->OnDisconnection(hci::ErrorCode::SUCCESS);
+
+  ASSERT_EQ(0x1234, disconnect_future.get());
 }
