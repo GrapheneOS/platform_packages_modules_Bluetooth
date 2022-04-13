@@ -39,6 +39,14 @@ impl IBluetoothCallback for BluetoothCallbackDBus {
     fn on_address_changed(&self, addr: String) {
         dbus_generated!()
     }
+    #[dbus_method("OnNameChanged")]
+    fn on_name_changed(&self, name: String) {
+        dbus_generated!()
+    }
+    #[dbus_method("OnDiscoverableChanged")]
+    fn on_discoverable_changed(&self, discoverable: bool) {
+        dbus_generated!()
+    }
     #[dbus_method("OnDeviceFound")]
     fn on_device_found(&self, remote_device: BluetoothDevice) {
         dbus_generated!()
