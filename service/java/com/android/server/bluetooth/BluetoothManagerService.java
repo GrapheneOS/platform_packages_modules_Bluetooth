@@ -216,7 +216,6 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
     private final ReentrantReadWriteLock mBluetoothLock = new ReentrantReadWriteLock();
     private boolean mBinding;
     private boolean mUnbinding;
-    private int mForegroundUserId;
 
     private BluetoothModeChangeHelper mBluetoothModeChangeHelper;
 
@@ -544,7 +543,6 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
 
         String value = SystemProperties.get(
                 "persist.sys.fflag.override.settings_bluetooth_hearing_aid");
-        mForegroundUserId = UserHandle.SYSTEM.getIdentifier();
 
         if (!TextUtils.isEmpty(value)) {
             boolean isHearingAidEnabled = Boolean.parseBoolean(value);
@@ -567,11 +565,23 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
 
         IntentFilter filterUser = new IntentFilter();
         filterUser.addAction(UserManager.ACTION_USER_RESTRICTIONS_CHANGED);
+        filterUser.addAction(Intent.ACTION_USER_SWITCHED);
         filterUser.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
         mContext.registerReceiverForAllUsers(new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                onUserRestrictionsChanged(getSendingUser());
+                switch (intent.getAction()) {
+                    case Intent.ACTION_USER_SWITCHED:
+                        int foregroundUserId = intent.getIntExtra(Intent.EXTRA_USER_HANDLE, 0);
+                        propagateForegroundUserId(foregroundUserId);
+                        break;
+                    case UserManager.ACTION_USER_RESTRICTIONS_CHANGED:
+                        onUserRestrictionsChanged(getSendingUser());
+                        break;
+                    default:
+                        Log.e(TAG, "Unknown broadcast received in BluetoothManagerService receiver"
+                                + " registered across all users");
+                }
             }
         }, filterUser, null, null);
 
@@ -1548,14 +1558,7 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
         if (DBG) {
             Log.d(TAG, "User " + userHandle + " switched");
         }
-
-        // Save the foreground user id and propagate to BT process after it's restarted
-        int toUserId = userHandle.getIdentifier();
-        if (mForegroundUserId != toUserId) {
-            mForegroundUserId = toUserId;
-        }
-
-        mHandler.obtainMessage(MESSAGE_USER_SWITCHED, toUserId, 0).sendToTarget();
+        mHandler.obtainMessage(MESSAGE_USER_SWITCHED, userHandle.getIdentifier(), 0).sendToTarget();
     }
 
     /**
@@ -2206,6 +2209,9 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
                         mBluetoothBinder = service;
                         mBluetooth = IBluetooth.Stub.asInterface(service);
 
+                        int foregroundUserId = ActivityManager.getCurrentUser();
+                        propagateForegroundUserId(foregroundUserId);
+
                         if (!isNameAndAddressSet()) {
                             Message getMsg = mHandler.obtainMessage(MESSAGE_GET_NAME_AND_ADDRESS);
                             mHandler.sendMessage(getMsg);
@@ -2245,8 +2251,6 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
                                 BluetoothAdapter.STATE_BLE_TURNING_ON,
                                 BluetoothAdapter.STATE_BLE_ON,
                                 BluetoothAdapter.STATE_BLE_TURNING_OFF));
-                    } else {
-                        propagateForegroundUserId(mForegroundUserId);
                     }
                     break;
                 }
