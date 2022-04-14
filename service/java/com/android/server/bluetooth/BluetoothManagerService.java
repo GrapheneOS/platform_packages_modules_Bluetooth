@@ -2388,12 +2388,6 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
                     }
                     mHandler.removeMessages(MESSAGE_USER_SWITCHED);
 
-                    // Save the foreground user id and propagate to BT process after it's restarted
-                    int toUserId = msg.arg1;
-                    if (mForegroundUserId != toUserId) {
-                        mForegroundUserId = toUserId;
-                    }
-
                     /* disable and enable BT when detect a user switch */
                     if (mBluetooth != null && isEnabled()) {
                         restartForReason(BluetoothProtoEnums.ENABLE_DISABLE_REASON_USER_SWITCH);
