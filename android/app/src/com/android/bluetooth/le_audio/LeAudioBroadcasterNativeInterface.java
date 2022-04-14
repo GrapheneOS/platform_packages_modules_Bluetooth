@@ -24,6 +24,7 @@ package com.android.bluetooth.le_audio;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothLeBroadcastMetadata;
 import android.util.Log;
 
 import com.android.bluetooth.Utils;
@@ -125,6 +126,19 @@ public class LeAudioBroadcasterNativeInterface {
         sendMessageToService(event);
     }
 
+    @VisibleForTesting
+    public void onBroadcastMetadataChanged(int broadcastId, BluetoothLeBroadcastMetadata metadata) {
+        if (DBG) {
+            Log.d(TAG, "onBroadcastMetadataChanged: broadcastId=" + broadcastId);
+        }
+        LeAudioStackEvent event =
+                new LeAudioStackEvent(LeAudioStackEvent.EVENT_TYPE_BROADCAST_METADATA_CHANGED);
+
+        event.valueInt1 = broadcastId;
+        event.broadcastMetadata = metadata;
+        sendMessageToService(event);
+    }
+
     /**
      * Initializes the native interface.
      *
@@ -218,8 +232,8 @@ public class LeAudioBroadcasterNativeInterface {
      * Get all LeAudio Broadcast instance states.
      */
     @VisibleForTesting(visibility = VisibleForTesting.Visibility.PACKAGE)
-    public void getAllBroadcastStates() {
-        getAllBroadcastStatesNative();
+    public void getBroadcastMetadata(int broadcastId) {
+        getBroadcastMetadataNative(broadcastId);
     }
 
     // Native methods that call into the JNI interface
@@ -233,5 +247,5 @@ public class LeAudioBroadcasterNativeInterface {
     private native void stopBroadcastNative(int broadcastId);
     private native void pauseBroadcastNative(int broadcastId);
     private native void destroyBroadcastNative(int broadcastId);
-    private native void getAllBroadcastStatesNative();
+    private native void getBroadcastMetadataNative(int broadcastId);
 }

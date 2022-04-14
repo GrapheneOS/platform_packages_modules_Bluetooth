@@ -41,6 +41,7 @@ void IsoManager::HandleHciEvent(uint8_t sub_code, uint8_t* params,
                                 uint16_t length) {}
 void IsoManager::Start() {}
 void IsoManager::Stop() {}
+void IsoManager::Dump(int fd) {}
 
 }  // namespace hci
 }  // namespace bluetooth

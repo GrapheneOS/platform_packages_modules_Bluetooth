@@ -35,43 +35,14 @@ static const uint16_t kBasicAudioAnnouncementServiceUuid = 0x1851;
 
 static const uint8_t kBisIndexInvalid = 0;
 
-struct BasicAudioAnnouncementCodecConfig {
-  /* 5 octets for the Codec ID */
-  uint8_t codec_id;
-  uint16_t vendor_company_id;
-  uint16_t vendor_codec_id;
-
-  /* Codec params - series of LTV formatted triplets */
-  std::vector<uint8_t> codec_specific_params;
-};
-
-struct BasicAudioAnnouncementBisConfig {
-  std::vector<uint8_t> codec_specific_params;
-  uint8_t bis_index;
-};
-
-struct BasicAudioAnnouncementSubgroup {
-  /* Subgroup specific codec configuration and metadata */
-  BasicAudioAnnouncementCodecConfig codec_config;
-  std::vector<uint8_t> metadata;
-  std::vector<BasicAudioAnnouncementBisConfig> bis_configs;
-};
-
-struct BasicAudioAnnouncementData {
-  /* Announcement Header fields */
-  uint32_t presentation_delay;
-
-  /* Subgroup specific configurations */
-  std::vector<BasicAudioAnnouncementSubgroup> subgroup_configs;
-
-  bool FromRawPacket(const uint8_t* p_value, uint8_t len);
-  bool ToRawPacket(std::vector<uint8_t>& data) const;
-};
+bool ToRawPacket(bluetooth::le_audio::BasicAudioAnnouncementData const&,
+                 std::vector<uint8_t>&);
 
 void PrepareAdvertisingData(bluetooth::le_audio::BroadcastId& broadcast_id,
                             std::vector<uint8_t>& periodic_data);
-void PreparePeriodicData(const BasicAudioAnnouncementData& announcement,
-                         std::vector<uint8_t>& periodic_data);
+void PreparePeriodicData(
+    const bluetooth::le_audio::BasicAudioAnnouncementData& announcement,
+    std::vector<uint8_t>& periodic_data);
 
 struct BroadcastCodecWrapper {
   BroadcastCodecWrapper(types::LeAudioCodecId codec_id,
@@ -158,3 +129,11 @@ std::ostream& operator<<(
 
 }  // namespace broadcaster
 }  // namespace le_audio
+
+/* BroadcastAnnouncements compare helper */
+namespace bluetooth {
+namespace le_audio {
+bool operator==(const BasicAudioAnnouncementData& lhs,
+                const BasicAudioAnnouncementData& rhs);
+}  // namespace le_audio
+}  // namespace bluetooth
