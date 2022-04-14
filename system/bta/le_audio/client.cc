@@ -3352,7 +3352,7 @@ class LeAudioClientImpl : public LeAudioClient {
   };
 
   LeAudioCodecConfiguration audio_framework_sink_config = {
-      .num_channels = 1,
+      .num_channels = 2,
       .sample_rate = bluetooth::audio::le_audio::kSampleRate16000,
       .bits_per_sample = bluetooth::audio::le_audio::kBitsPerSample16,
       .data_interval_us = LeAudioCodecConfiguration::kInterval10000Us,
