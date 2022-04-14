@@ -641,6 +641,8 @@ static void process_service_search_attr_rsp(tCONN_CB* p_ccb, uint8_t* p_reply,
 
   if ((type >> 3) != DATA_ELE_SEQ_DESC_TYPE) {
     LOG_WARN("Wrong element in attr_rsp type:0x%02x", type);
+    android_errorWriteLog(0x534e4554, "224545125");
+    sdp_disconnect(p_ccb, SDP_ILLEGAL_PARAMETER);
     return;
   }
   p = sdpu_get_len_from_type(p, p + p_ccb->list_len, type, &seq_len);
