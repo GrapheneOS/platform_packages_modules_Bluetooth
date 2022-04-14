@@ -149,6 +149,8 @@ void IsoManager::Stop() {
   mock_pimpl_ = nullptr;
 }
 
+void IsoManager::Dump(int fd) {}
+
 IsoManager::~IsoManager() = default;
 
 }  // namespace hci

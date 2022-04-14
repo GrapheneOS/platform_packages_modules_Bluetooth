@@ -434,8 +434,15 @@ class ShimAclConnection {
   }
 
   void Disconnect() {
-    ASSERT_LOG(!is_disconnected_,
-               "Cannot disconnect ACL multiple times handle:%04x", handle_);
+    if (is_disconnected_) {
+      LOG_ERROR(
+          "Cannot disconnect ACL multiple times handle:%04x creation_time:%s",
+          handle_,
+          common::StringFormatTimeWithMilliseconds(
+              kConnectionDescriptorTimeFormat, creation_time_)
+              .c_str());
+      return;
+    }
     is_disconnected_ = true;
     UnregisterEnqueue();
     queue_up_end_->UnregisterDequeue();

@@ -492,8 +492,8 @@ class BtifAvSource {
     }
 
     BtifAvPeer* peer = FindPeer(peer_address);
-    if (peer != nullptr && !peer->IsConnected()) {
-      LOG(ERROR) << __func__ << ": Error setting " << peer->PeerAddress()
+    if (peer == nullptr || !peer->IsConnected()) {
+      LOG(ERROR) << __func__ << ": Error setting " << peer_address
                  << " as active Source peer";
       peer_ready_promise.set_value();
       return false;
@@ -631,8 +631,8 @@ class BtifAvSink {
     }
 
     BtifAvPeer* peer = FindPeer(peer_address);
-    if (peer != nullptr && !peer->IsConnected()) {
-      LOG(ERROR) << __func__ << ": Error setting " << peer->PeerAddress()
+    if (peer == nullptr || !peer->IsConnected()) {
+      LOG(ERROR) << __func__ << ": Error setting " << peer_address
                  << " as active Sink peer";
       peer_ready_promise.set_value();
       return false;

@@ -233,6 +233,11 @@ class IsoManager {
    */
   void Stop();
 
+  /**
+   * Dumps the IsoManager module state
+   */
+  void Dump(int fd);
+
  private:
   struct impl;
   std::unique_ptr<impl> pimpl_;
