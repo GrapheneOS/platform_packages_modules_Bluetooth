@@ -71,6 +71,9 @@ class AdapterAutomationHelper():
     async def clear_filter_accept_list(self):
         await self.adapter_stub.ClearFilterAcceptList(empty_proto.Empty())
 
+    async def disconnect_all_acls(self):
+        await self.adapter_stub.DisconnectAllAcls(empty_proto.Empty())
+
 
 class A2dpAutomationHelper():
     """Invoke gRPC on topshim for A2DP testing"""
