@@ -63,6 +63,21 @@ struct iso_base {
   std::atomic_uint8_t state_flags;
   uint32_t sdu_itv;
   std::atomic_uint16_t used_credits;
+
+  struct credits_stats {
+    size_t credits_underflow_bytes = 0;
+    size_t credits_underflow_count = 0;
+    uint64_t credits_last_underflow_us = 0;
+  };
+
+  struct event_stats {
+    size_t evt_lost_count = 0;
+    size_t seq_nb_mismatch_count = 0;
+    uint64_t evt_last_lost_us = 0;
+  };
+
+  credits_stats cr_stats;
+  event_stats evt_stats;
 };
 
 typedef iso_base iso_cis;
@@ -435,6 +450,11 @@ struct iso_impl {
     iso->sync_info.seq_nb = (ts - iso->sync_info.first_sync_ts) / iso->sdu_itv;
 
     if (iso_credits_ == 0 || data_len > iso_buffer_size_) {
+      iso->cr_stats.credits_underflow_bytes += data_len;
+      iso->cr_stats.credits_underflow_count++;
+      iso->cr_stats.credits_last_underflow_us =
+          bluetooth::common::time_get_os_boottime_us();
+
       LOG(WARNING) << __func__ << ", dropping ISO packet, len: "
                    << static_cast<int>(data_len)
                    << ", iso credits: " << static_cast<int>(iso_credits_)
@@ -714,6 +734,10 @@ struct iso_impl {
     } else {
       evt.evt_lost = new_calc_seq_nb - iso->sync_info.seq_nb - 1;
       if (evt.evt_lost > 0) {
+        iso->evt_stats.evt_lost_count += evt.evt_lost;
+        iso->evt_stats.evt_last_lost_us =
+            bluetooth::common::time_get_os_boottime_us();
+
         LOG(WARNING) << evt.evt_lost << " packets possibly lost.";
       }
 
@@ -722,6 +746,8 @@ struct iso_impl {
                         "Adjusting own time reference point.";
         iso->sync_info.first_sync_ts = ts - (seq_nb * iso->sdu_itv);
         new_calc_seq_nb = seq_nb;
+
+        iso->evt_stats.seq_nb_mismatch_count++;
       }
     }
     iso->sync_info.seq_nb = new_calc_seq_nb;
@@ -765,6 +791,67 @@ struct iso_impl {
                        return (kv_pair.second->big_handle == big_id);
                      });
     return (bis_it != conn_hdl_to_bis_map_.cend());
+  }
+
+  static void dump_credits_stats(int fd, const iso_base::credits_stats& stats) {
+    uint64_t now_us = bluetooth::common::time_get_os_boottime_us();
+
+    dprintf(fd, "        Credits Stats:\n");
+    dprintf(fd, "          Credits underflow (count): %zu\n",
+            stats.credits_underflow_count);
+    dprintf(fd, "          Credits underflow (bytes): %zu\n",
+            stats.credits_underflow_bytes);
+    dprintf(
+        fd, "          Last underflow time ago (ms): %llu\n",
+        (stats.credits_last_underflow_us > 0
+             ? (unsigned long long)(now_us - stats.credits_last_underflow_us) /
+                   1000
+             : 0llu));
+  }
+
+  static void dump_event_stats(int fd, const iso_base::event_stats& stats) {
+    uint64_t now_us = bluetooth::common::time_get_os_boottime_us();
+
+    dprintf(fd, "        Event Stats:\n");
+    dprintf(fd, "          Sequence number mismatch (count): %zu\n",
+            stats.seq_nb_mismatch_count);
+    dprintf(fd, "          Event lost (count): %zu\n", stats.evt_lost_count);
+    dprintf(fd, "          Last event lost time ago (ms): %llu\n",
+            (stats.evt_last_lost_us > 0
+                 ? (unsigned long long)(now_us - stats.evt_last_lost_us) / 1000
+                 : 0llu));
+  }
+
+  void dump(int fd) const {
+    dprintf(fd, "  ----------------\n ");
+    dprintf(fd, "  ISO Manager:\n");
+    dprintf(fd, "    Available credits: %d\n", iso_credits_.load());
+    dprintf(fd, "    Controller buffer size: %d\n", iso_buffer_size_);
+    dprintf(fd, "    CISes:\n");
+    for (auto const& cis_pair : conn_hdl_to_cis_map_) {
+      dprintf(fd, "      CIS Connection handle: %d\n", cis_pair.first);
+      dprintf(fd, "        CIG ID: %d\n", cis_pair.second->cig_id);
+      dprintf(fd, "        Used Credits: %d\n",
+              cis_pair.second->used_credits.load());
+      dprintf(fd, "        SDU Interval: %d\n", cis_pair.second->sdu_itv);
+      dprintf(fd, "        State Flags: 0x%02hx\n",
+              cis_pair.second->state_flags.load());
+      dump_credits_stats(fd, cis_pair.second->cr_stats);
+      dump_event_stats(fd, cis_pair.second->evt_stats);
+    }
+    dprintf(fd, "    BISes:\n");
+    for (auto const& cis_pair : conn_hdl_to_bis_map_) {
+      dprintf(fd, "      BIS Connection handle: %d\n", cis_pair.first);
+      dprintf(fd, "        BIG Handle: %d\n", cis_pair.second->big_handle);
+      dprintf(fd, "        Used Credits: %d\n",
+              cis_pair.second->used_credits.load());
+      dprintf(fd, "        SDU Interval: %d\n", cis_pair.second->sdu_itv);
+      dprintf(fd, "        State Flags: 0x%02hx\n",
+              cis_pair.second->state_flags.load());
+      dump_credits_stats(fd, cis_pair.second->cr_stats);
+      dump_event_stats(fd, cis_pair.second->evt_stats);
+    }
+    dprintf(fd, "  ----------------\n ");
   }
 
   std::map<uint16_t, std::unique_ptr<iso_cis>> conn_hdl_to_cis_map_;

@@ -2735,7 +2735,7 @@ class LeAudioClientImpl : public LeAudioClient {
           case AudioState::READY_TO_START:
           case AudioState::STARTED:
             audio_sender_state_ = AudioState::READY_TO_START;
-            /* If signalling part is completed trigger start reveivin audio
+            /* If signalling part is completed trigger start receiving audio
              * here, otherwise it'll be called on group streaming state callback
              */
             if (group->GetState() ==
@@ -2744,30 +2744,33 @@ class LeAudioClientImpl : public LeAudioClient {
             }
             break;
           case AudioState::RELEASING:
-          case AudioState::READY_TO_RELEASE:
-            /* If group is reconfiguring, reassing state and wait for
-             * the stream to be established
+            /* Group is reconfiguring, reassing state and wait for
+             * the stream to be configured
              */
-            if (group->IsPendingConfiguration()) {
-              audio_sender_state_ = audio_receiver_state_;
-              return;
-            }
-            FALLTHROUGH;
-          default:
-            LeAudioClientAudioSource::CancelStreamingRequest();
+            audio_sender_state_ = audio_receiver_state_;
+            break;
+          case AudioState::READY_TO_RELEASE:
+            LOG_WARN(
+                " called in wrong state. \n audio_receiver_state: %s \n"
+                "audio_sender_state: %s \n",
+                ToString(audio_receiver_state_).c_str(),
+                ToString(audio_sender_state_).c_str());
+            CancelStreamingRequest();
             break;
         }
-
         break;
       case AudioState::READY_TO_START:
-        LOG(WARNING) << __func__
-                     << " called in wrong state. \n audio_receiver_state: "
-                     << audio_receiver_state_ << "\n"
-                     << " audio_sender_state: " << audio_sender_state_ << "\n";
+        LOG_WARN(
+            " called in wrong state. \n audio_receiver_state: %s \n"
+            "audio_sender_state: %s \n",
+            ToString(audio_receiver_state_).c_str(),
+            ToString(audio_sender_state_).c_str());
+        CancelStreamingRequest();
         break;
       case AudioState::READY_TO_RELEASE:
         switch (audio_receiver_state_) {
           case AudioState::STARTED:
+          case AudioState::READY_TO_START:
           case AudioState::IDLE:
           case AudioState::READY_TO_RELEASE:
             /* Stream is up just restore it */
@@ -2777,13 +2780,13 @@ class LeAudioClientImpl : public LeAudioClient {
             LeAudioClientAudioSource::ConfirmStreamingRequest();
             break;
           case AudioState::RELEASING:
-          default:
-            LeAudioClientAudioSource::CancelStreamingRequest();
+            /* Keep wainting. After release is done, Audio Hal will be notified
+             */
+            break;
         }
         break;
       case AudioState::RELEASING:
-        /* Keep wainting */
-        LeAudioClientAudioSource::CancelStreamingRequest();
+        /* Keep wainting. After release is done, Audio Hal will be notified */
         break;
     }
   }
@@ -2878,30 +2881,34 @@ class LeAudioClientImpl : public LeAudioClient {
             }
             break;
           case AudioState::RELEASING:
-          case AudioState::READY_TO_RELEASE:
-            /* If group is reconfiguring, reassing state and wait for
-             * the stream to be established
+            /* Group is reconfiguring, reassing state and wait for
+             * the stream to be configured
              */
-            if (group->IsPendingConfiguration()) {
-              audio_receiver_state_ = audio_sender_state_;
-              return;
-            }
-            FALLTHROUGH;
-          default:
-            LeAudioClientAudioSink::CancelStreamingRequest();
+            audio_receiver_state_ = audio_sender_state_;
+            break;
+          case AudioState::READY_TO_RELEASE:
+            LOG_WARN(
+                " called in wrong state. \n audio_receiver_state: %s \n"
+                "audio_sender_state: %s \n",
+                ToString(audio_receiver_state_).c_str(),
+                ToString(audio_sender_state_).c_str());
+            CancelStreamingRequest();
             break;
         }
         break;
       case AudioState::READY_TO_START:
-        LOG(WARNING) << __func__
-                     << " called in wrong state. \n audio_receiver_state: "
-                     << audio_receiver_state_ << "\n"
-                     << " audio_sender_state: " << audio_sender_state_ << "\n";
+        LOG_WARN(
+            " called in wrong state. \n audio_receiver_state: %s \n"
+            "audio_sender_state: %s \n",
+            ToString(audio_receiver_state_).c_str(),
+            ToString(audio_sender_state_).c_str());
+        CancelStreamingRequest();
         break;
       case AudioState::READY_TO_RELEASE:
         switch (audio_sender_state_) {
           case AudioState::STARTED:
           case AudioState::IDLE:
+          case AudioState::READY_TO_START:
           case AudioState::READY_TO_RELEASE:
             /* Stream is up just restore it */
             audio_receiver_state_ = AudioState::STARTED;
@@ -2910,13 +2917,13 @@ class LeAudioClientImpl : public LeAudioClient {
             LeAudioClientAudioSink::ConfirmStreamingRequest();
             break;
           case AudioState::RELEASING:
-          default:
-            LeAudioClientAudioSink::CancelStreamingRequest();
+            /* Wait until releasing is completed */
+            break;
         }
 
         break;
       case AudioState::RELEASING:
-        LeAudioClientAudioSink::CancelStreamingRequest();
+        /* Wait until releasing is completed */
         break;
     }
   }
@@ -3630,6 +3637,7 @@ void LeAudioClient::DebugDump(int fd) {
   LeAudioClientAudioSource::DebugDump(fd);
   LeAudioClientAudioSink::DebugDump(fd);
   le_audio::AudioSetConfigurationProvider::Get()->DebugDump(fd);
+  IsoManager::GetInstance()->Dump(fd);
   dprintf(fd, "\n");
 }
 
