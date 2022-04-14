@@ -66,6 +66,18 @@ class Metadata {
         return address;
     }
 
+    /**
+     * Returns the anonymized hardware address. The first three octets will be suppressed for
+     * anonymization.
+     * <p> For example, "XX:XX:XX:AA:BB:CC".
+     *
+     * @return Anonymized bluetooth hardware address as string
+     */
+    @NonNull
+    public String getAnonymizedAddress() {
+        return "XX:XX:XX" + getAddress().substring(8);
+    }
+
     void setProfileConnectionPolicy(int profile, int connectionPolicy) {
         // We no longer support BluetoothProfile.PRIORITY_AUTO_CONNECT and are merging it into
         // BluetoothProfile.CONNECTION_POLICY_ALLOWED
