@@ -78,6 +78,7 @@ static gatt::Database bta_gattc_load_db(const char* fname) {
       LOG(ERROR) << __func__ << ": can't read GATT attributes: " << fname;
       goto done;
     }
+    fclose(fd);
 
     bool success = false;
     gatt::Database result = gatt::Database::Deserialize(attr, &success);
