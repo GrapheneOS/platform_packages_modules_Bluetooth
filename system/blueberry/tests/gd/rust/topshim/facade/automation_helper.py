@@ -25,7 +25,7 @@ from google.protobuf import empty_pb2 as empty_proto
 
 class AdapterAutomationHelper():
     # Timeout for async wait
-    DEFAULT_TIMEOUT = 6
+    DEFAULT_TIMEOUT = 2
     """Invoke gRPC on topshim for Adapter testing"""
 
     def __init__(self, port=8999):

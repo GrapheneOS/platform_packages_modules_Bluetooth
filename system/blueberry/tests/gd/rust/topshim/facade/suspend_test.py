@@ -23,16 +23,30 @@ from blueberry.tests.gd.rust.topshim.facade.automation_helper import AdapterAuto
 class SuspendTest(topshim_base_test.TopshimBaseTest):
 
     async def _test_verify_suspend(self):
+
+        # Setup
         self.dut_adapter = AdapterAutomationHelper(port=self.dut_port)
         event_loop = asyncio.get_running_loop()
-        self.dut_adapter.fetch_events(event_loop)
+
+        # Get 'ON' event
         self.dut_adapter.pending_future = event_loop.create_future()
+        self.dut_adapter.fetch_events(event_loop)
+        await asyncio.wait_for(self.dut_adapter.pending_future, AdapterAutomationHelper.DEFAULT_TIMEOUT)
+
+        # Start suspend work
         await self.dut_adapter.clear_event_filter()
+        await self.dut_adapter.clear_event_mask()
+        await self.dut_adapter.clear_filter_accept_list()
+        # TODO(optedoblivion): Find a better way to disconnect active ACLs
+        #await self.dut_adapter.disconnect_all_acls()
         await self.dut_adapter.le_rand()
-        await asyncio.wait_for(self.dut_adapter.pending_future, AdapterAutomationHelper.DEFAULT_TIMEOUT)
-        self.dut_adapter.fetch_events(event_loop)
+
+        # Get 'LE RAND' event
         self.dut_adapter.pending_future = event_loop.create_future()
+        self.dut_adapter.fetch_events(event_loop)
         await asyncio.wait_for(self.dut_adapter.pending_future, AdapterAutomationHelper.DEFAULT_TIMEOUT)
+
+        # Teardown
         self.dut_adapter.event_handler.cancel()
 
     def test_verify_suspend(self):
