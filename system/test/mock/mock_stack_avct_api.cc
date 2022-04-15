@@ -73,3 +73,7 @@ uint16_t AVCT_RemoveConn(uint8_t handle) {
 }
 void AVCT_Deregister(void) { mock_function_count_map[__func__]++; }
 void AVCT_Register() { mock_function_count_map[__func__]++; }
+uint8_t AVCT_SetTraceLevel(uint8_t new_level) {
+  mock_function_count_map[__func__]++;
+  return 0;
+}
