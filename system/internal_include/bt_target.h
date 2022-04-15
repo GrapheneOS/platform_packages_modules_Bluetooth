@@ -340,13 +340,6 @@
 #define BTM_MAX_LOC_BD_NAME_LEN 248
 #endif
 
-/* Fixed Default String. When this is defined as null string, the device's
- * product model name is used as the default local name.
- */
-#ifndef BTM_DEF_LOCAL_NAME
-#define BTM_DEF_LOCAL_NAME ""
-#endif
-
 /* Maximum service name stored with security authorization (0 if not needed) */
 #ifndef BTM_SEC_SERVICE_NAME_LEN
 #define BTM_SEC_SERVICE_NAME_LEN BT_MAX_SERVICE_NAME_LEN
