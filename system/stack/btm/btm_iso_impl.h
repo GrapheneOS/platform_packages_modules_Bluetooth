@@ -440,8 +440,11 @@ struct iso_impl {
         return;
       }
     }
-    LOG_ASSERT(iso->state_flags & kStateFlagHasDataPathSet)
-        << "Data path not set for handle: " << loghex(iso_handle);
+
+    if (!(iso->state_flags & kStateFlagHasDataPathSet)) {
+      LOG_WARN("Data path not set for handle: 0x%04x", iso_handle);
+      return;
+    }
 
     /* Calculate sequence number for the ISO data packet.
      * It should be incremented by 1 every SDU Interval.
