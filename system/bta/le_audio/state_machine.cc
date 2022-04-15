@@ -328,21 +328,26 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
      */
 
     if (!group) {
-      LOG(ERROR) << __func__ << ", invalid cig";
+      LOG_ERROR(", group is null");
       return;
     }
 
     if (status != HCI_SUCCESS) {
-      LOG(ERROR) << __func__
-                 << ", failed to create CIG, reason: " << loghex(status);
+      group->cig_state_ = le_audio::types::CigState::NONE;
+      LOG_ERROR(", failed to create CIG, reason: 0x%02x, new cig state: %s",
+                +status, ToString(group->cig_state_).c_str());
       StopStream(group);
       return;
     }
 
-    group->cig_created_ = true;
+    ASSERT_LOG(group->cig_state_ == le_audio::types::CigState::CREATING,
+               "Unexpected CIG creation group id: %d, cig state: %s",
+               group->group_id_, ToString(group->cig_state_).c_str());
 
-    LOG(INFO) << __func__ << "Group id: " << +group->group_id_
-              << " conn_handle size " << +conn_handles.size();
+    group->cig_state_ = le_audio::types::CigState::CREATED;
+    LOG_INFO("Group: %p, id: %d cig state: %s, number of cis handles: %d",
+             group, group->group_id_, ToString(group->cig_state_).c_str(),
+             static_cast<int>(conn_handles.size()));
 
     /* Assign all connection handles to ases. CIS ID order is represented by the
      * order of active ASEs in active leAudioDevices
@@ -402,13 +407,18 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
   void ProcessHciNotifOnCigRemove(uint8_t status,
                                   LeAudioDeviceGroup* group) override {
     if (status) {
-      LOG(ERROR) << __func__
-                 << ", failed to remove cig, id: " << loghex(group->group_id_)
-                 << ", status: " << loghex(status);
+      group->cig_state_ = le_audio::types::CigState::CREATED;
+      LOG_ERROR(
+          "failed to remove cig, id: %d, status 0x%02x, new cig state: %s",
+          group->group_id_, +status, ToString(group->cig_state_).c_str());
       return;
     }
 
-    group->cig_created_ = false;
+    ASSERT_LOG(group->cig_state_ == le_audio::types::CigState::REMOVING,
+               "Unexpected CIG remove group id: %d, cig state %s",
+               group->group_id_, ToString(group->cig_state_).c_str());
+
+    group->cig_state_ = le_audio::types::CigState::NONE;
 
     LeAudioDevice* leAudioDevice = group->GetFirstDevice();
     if (!leAudioDevice) return;
@@ -537,6 +547,21 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     }
   }
 
+  void RemoveCigForGroup(LeAudioDeviceGroup* group) {
+    LOG_DEBUG("Group: %p, id: %d cig state: %s", group, group->group_id_,
+              ToString(group->cig_state_).c_str());
+    if (group->cig_state_ != le_audio::types::CigState::CREATED) {
+      LOG_WARN("Group: %p, id: %d cig state: %s cannot be removed", group,
+               group->group_id_, ToString(group->cig_state_).c_str());
+      return;
+    }
+
+    group->cig_state_ = le_audio::types::CigState::REMOVING;
+    IsoManager::GetInstance()->RemoveCig(group->group_id_);
+    LOG_DEBUG("Group: %p, id: %d cig state: %s", group, group->group_id_,
+              ToString(group->cig_state_).c_str());
+  }
+
   void ProcessHciNotifAclDisconnected(LeAudioDeviceGroup* group,
                                       LeAudioDevice* leAudioDevice) {
     FreeLinkQualityReports(leAudioDevice);
@@ -609,10 +634,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     ReleaseCisIds(group);
     state_machine_callbacks_->StatusReportCb(group->group_id_,
                                              GroupStreamStatus::IDLE);
-
-    if (!group->cig_created_) return;
-
-    IsoManager::GetInstance()->RemoveCig(group->group_id_);
+    RemoveCigForGroup(group);
   }
 
   void ProcessHciNotifCisEstablished(
@@ -636,7 +658,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
        * complete event
        */
       if (group->HaveAllActiveDevicesCisDisc()) {
-        IsoManager::GetInstance()->RemoveCig(group->group_id_);
+        RemoveCigForGroup(group);
       }
 
       LOG(ERROR) << __func__
@@ -804,7 +826,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
         /* Those two are used when closing the stream and CIS disconnection is
          * expected */
         if (group->HaveAllActiveDevicesCisDisc()) {
-          IsoManager::GetInstance()->RemoveCig(group->group_id_);
+          RemoveCigForGroup(group);
           return;
         }
 
@@ -881,15 +903,17 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     uint8_t packing, framing, sca;
     std::vector<EXT_CIS_CFG> cis_cfgs;
 
-    if (group->cig_created_) {
-      LOG(ERROR) << __func__ << " group id " << group->group_id_
-                 << " is already created  in the controller. ";
+    LOG_DEBUG("Group: %p, id: %d cig state: %s", group, group->group_id_,
+              ToString(group->cig_state_).c_str());
+
+    if (group->cig_state_ != le_audio::types::CigState::NONE) {
+      LOG_WARN(" Group %p, id: %d has invalid cig state: %s ", group,
+               group->group_id_, ToString(group->cig_state_).c_str());
       return;
     }
 
     if (!leAudioDevice) {
-      LOG(ERROR) << __func__ << ", no active devices in group";
-
+      LOG_ERROR("No active devices in group id: %d", group->group_id_);
       return;
     }
 
@@ -950,7 +974,10 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
         .max_trans_lat_mtos = max_trans_lat_mtos,
         .cis_cfgs = std::move(cis_cfgs),
     };
+    group->cig_state_ = le_audio::types::CigState::CREATING;
     IsoManager::GetInstance()->CreateCig(group->group_id_, std::move(param));
+    LOG_DEBUG("Group: %p, id: %d cig state: %s", group, group->group_id_,
+              ToString(group->cig_state_).c_str());
   }
 
   static void CisCreateForDevice(LeAudioDevice* leAudioDevice) {
@@ -1869,8 +1896,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
       }
       case AseState::BTA_LE_AUDIO_ASE_STATE_QOS_CONFIGURED:
         /* At this point all of the active ASEs within group are released. */
-        if (group->cig_created_)
-          IsoManager::GetInstance()->RemoveCig(group->group_id_);
+        RemoveCigForGroup(group);
 
         ase->state = AseState::BTA_LE_AUDIO_ASE_STATE_RELEASING;
         if (group->HaveAllActiveDevicesAsesTheSameState(
