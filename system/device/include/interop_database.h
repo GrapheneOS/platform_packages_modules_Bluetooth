@@ -156,6 +156,7 @@ static const interop_addr_entry_t interop_addr_database[] = {
 
     // Audi Carkit
     {{{0x90, 0x03, 0xb7, 0, 0, 0}}, 3, INTEROP_AVRCP_1_4_ONLY},
+    {{{0x28, 0xA1, 0x83, 0, 0, 0}}, 3, INTEROP_AVRCP_1_4_ONLY},
 
     // Lexus Carkit
     {{{0x64, 0xd4, 0xbd, 0, 0, 0}}, 3, INTEROP_AVRCP_1_4_ONLY},

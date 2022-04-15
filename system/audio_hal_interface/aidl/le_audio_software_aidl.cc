@@ -265,7 +265,7 @@ LeAudioSourceTransport::LeAudioSourceTransport(SessionType session_type,
                                                StreamCallbacks stream_cb)
     : IBluetoothSourceTransportInstance(session_type, (AudioConfiguration){}) {
   transport_ = new LeAudioTransport(flush_source, std::move(stream_cb),
-                                    {16000, ChannelMode::MONO, 16, 0});
+                                    {16000, ChannelMode::STEREO, 16, 0});
 };
 
 LeAudioSourceTransport::~LeAudioSourceTransport() { delete transport_; }
