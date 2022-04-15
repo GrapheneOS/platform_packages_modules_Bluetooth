@@ -2401,18 +2401,16 @@ TEST_F(StateMachineTest, testAttachDeviceToTheStream) {
       if (!lastDevice->ConfigureAses(
               ent, group->GetCurrentContextType(), &sink_num_of_active_ases,
               sink_group_audio_locations, source_group_audio_locations, true)) {
-        LOG(INFO) << __func__ << " Could not set sink configuration of "
-                  << stream_conf->conf->name;
-        return;
+        FAIL() << __func__ << " Could not set sink configuration of "
+               << stream_conf->conf->name;
       }
     } else {
       /* Source*/
       if (!lastDevice->ConfigureAses(
               ent, group->GetCurrentContextType(), &source_num_of_active_ases,
               sink_group_audio_locations, source_group_audio_locations, true)) {
-        LOG(INFO) << __func__ << " Could not set source configuration of "
-                  << stream_conf->conf->name;
-        return;
+        FAIL() << __func__ << " Could not set source configuration of "
+               << stream_conf->conf->name;
       }
     }
   }
