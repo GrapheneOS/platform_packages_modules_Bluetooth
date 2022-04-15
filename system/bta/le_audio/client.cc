@@ -427,9 +427,9 @@ class LeAudioClientImpl : public LeAudioClient {
         return;
       }
     } else {
-      LOG_ASSERT(id == group_id)
-          << " group id missmatch? leaudio id: " << group_id
-          << " groups module " << id;
+      ASSERT_LOG(id == group_id,
+                 " group id missmatch? leaudio id: %d, groups module %d",
+                 group_id, id);
       new_group = aseGroups_.FindById(group_id);
       if (!new_group) {
         new_group = aseGroups_.Add(group_id);
@@ -437,6 +437,8 @@ class LeAudioClientImpl : public LeAudioClient {
         if (new_group->IsDeviceInTheGroup(leAudioDevice)) return;
       }
     }
+
+    LOG_DEBUG("New group %p, id: %d", new_group, new_group->group_id_);
 
     /* If device was in the group and it was not removed by the application,
      * lets do it now
@@ -483,7 +485,15 @@ class LeAudioClientImpl : public LeAudioClient {
   }
 
   void remove_group_if_possible(LeAudioDeviceGroup* group) {
-    if (group && group->IsEmpty() && !group->cig_created_) {
+    if (!group) {
+      LOG_DEBUG("group is null");
+      return;
+    }
+    LOG_DEBUG("Group %p, id: %d, size: %d, is cig_state %s", group,
+              group->group_id_, group->Size(),
+              ToString(group->cig_state_).c_str());
+    if (group->IsEmpty() &&
+        (group->cig_state_ == le_audio::types::CigState::NONE)) {
       aseGroups_.Remove(group->group_id_);
     }
   }
@@ -1774,8 +1784,7 @@ class LeAudioClientImpl : public LeAudioClient {
       return;
     }
 
-    LOG(INFO) << __func__ << " attaching to group  "
-              << leAudioDevice->group_id_;
+    LOG_INFO("Attaching to group: %d", leAudioDevice->group_id_);
 
     /* Restore configuration */
     LeAudioDeviceGroup* group = aseGroups_.FindById(active_group_id_);
@@ -3113,17 +3122,19 @@ class LeAudioClientImpl : public LeAudioClient {
       case bluetooth::hci::iso_manager::kIsoEventCigOnCreateCmpl: {
         auto* evt = static_cast<cig_create_cmpl_evt*>(data);
         LeAudioDeviceGroup* group = aseGroups_.FindById(evt->cig_id);
+        ASSERT_LOG(group, "Group id: %d is null", evt->cig_id);
         groupStateMachine_->ProcessHciNotifOnCigCreate(
             group, evt->status, evt->cig_id, evt->conn_handles);
       } break;
       case bluetooth::hci::iso_manager::kIsoEventCigOnRemoveCmpl: {
         auto* evt = static_cast<cig_remove_cmpl_evt*>(data);
         LeAudioDeviceGroup* group = aseGroups_.FindById(evt->cig_id);
+        ASSERT_LOG(group, "Group id: %d is null", evt->cig_id);
         groupStateMachine_->ProcessHciNotifOnCigRemove(evt->status, group);
         remove_group_if_possible(group);
       } break;
       default:
-        LOG(ERROR) << __func__ << " Invalid event " << int{event_type};
+        LOG_ERROR("Invalid event %d", +event_type);
     }
   }
 
