@@ -22,6 +22,7 @@ uint8_t appl_trace_level = 6;
 uint8_t btif_trace_level = 6;
 
 uint8_t A2DP_SetTraceLevel(uint8_t new_level) { return 0; }
+uint8_t AVCT_SetTraceLevel(uint8_t new_level) { return 0; }
 uint8_t AVDT_SetTraceLevel(uint8_t new_level) { return 0; }
 uint8_t AVRC_SetTraceLevel(uint8_t new_level) { return 0; }
 uint8_t BNEP_SetTraceLevel(uint8_t new_level) { return 0; }
