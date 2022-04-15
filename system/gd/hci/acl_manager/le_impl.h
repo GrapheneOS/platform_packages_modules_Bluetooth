@@ -40,6 +40,8 @@
 
 using bluetooth::crypto_toolbox::Octet16;
 
+#define PRIVATE_ADDRESS_WITH_TYPE(addr) addr.ToString().substr(12U).c_str()
+
 namespace bluetooth {
 namespace hci {
 namespace acl_manager {
@@ -529,6 +531,12 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
       return;
     }
 
+    if (connect_list.find(address_with_type) != connect_list.end()) {
+      LOG_WARN(
+          "Device already exists in acceptlist and cannot be added:%s", PRIVATE_ADDRESS_WITH_TYPE(address_with_type));
+      return;
+    }
+
     connect_list.insert(address_with_type);
     register_with_address_manager();
     le_address_manager_->AddDeviceToConnectList(
@@ -536,6 +544,10 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
   }
 
   void remove_device_from_connect_list(AddressWithType address_with_type) {
+    if (connect_list.find(address_with_type) == connect_list.end()) {
+      LOG_WARN("Device not in acceptlist and cannot be removed:%s", PRIVATE_ADDRESS_WITH_TYPE(address_with_type));
+      return;
+    }
     connect_list.erase(address_with_type);
     direct_connections_.erase(address_with_type);
     register_with_address_manager();
@@ -936,6 +948,8 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
   ConnectabilityState connectability_state_{ConnectabilityState::DISARMED};
   std::map<AddressWithType, os::Alarm> create_connection_timeout_alarms_;
 };
+
+#undef PRIVATE_ADDRESS_WITH_TYPE
 
 }  // namespace acl_manager
 }  // namespace hci

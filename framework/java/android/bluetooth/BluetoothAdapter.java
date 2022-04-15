@@ -84,6 +84,7 @@ import java.util.UUID;
 import java.util.WeakHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
@@ -990,8 +991,12 @@ public final class BluetoothAdapter {
     BluetoothAdapter(IBluetoothManager managerService, AttributionSource attributionSource) {
         mManagerService = Objects.requireNonNull(managerService);
         mAttributionSource = Objects.requireNonNull(attributionSource);
-        synchronized (mServiceLock.writeLock()) {
+        Lock l = mServiceLock.writeLock();
+        l.lock();
+        try {
             mService = getBluetoothService(mManagerCallback);
+        } finally {
+            l.unlock();
         }
         mLeScanClients = new HashMap<LeScanCallback, ScanCallback>();
         mToken = new Binder(DESCRIPTOR);
@@ -3834,8 +3839,12 @@ public final class BluetoothAdapter {
     private final IBluetoothManagerCallback mManagerCallback =
             new IBluetoothManagerCallback.Stub() {
                 public void onBluetoothServiceUp(IBluetooth bluetoothService) {
-                    synchronized (mServiceLock.writeLock()) {
+                    Lock l = mServiceLock.writeLock();
+                    l.lock();
+                    try {
                         mService = bluetoothService;
+                    } finally {
+                        l.unlock();
                     }
                     synchronized (mMetadataListeners) {
                         mMetadataListeners.forEach((device, pair) -> {
@@ -3869,7 +3878,9 @@ public final class BluetoothAdapter {
                 }
 
                 public void onBluetoothServiceDown() {
-                    synchronized (mServiceLock.writeLock()) {
+                    Lock l = mServiceLock.writeLock();
+                    l.lock();
+                    try {
                         mService = null;
                         if (mLeScanClients != null) {
                             mLeScanClients.clear();
@@ -3880,6 +3891,8 @@ public final class BluetoothAdapter {
                         if (mBluetoothLeScanner != null) {
                             mBluetoothLeScanner.cleanup();
                         }
+                    } finally {
+                        l.unlock();
                     }
                 }
 
