@@ -457,6 +457,15 @@ uint8_t GetMaxCodecFramesPerSduFromPac(const acs_ac_record* pac) {
 }
 
 namespace types {
+std::ostream& operator<<(std::ostream& os, const types::CigState& state) {
+  static const char* char_value_[4] = {"NONE", "CREATING", "CREATED",
+                                       "REMOVING"};
+
+  os << char_value_[static_cast<uint8_t>(state)] << " ("
+     << "0x" << std::setfill('0') << std::setw(2) << static_cast<int>(state)
+     << ")";
+  return os;
+}
 std::ostream& operator<<(std::ostream& os, const types::AseState& state) {
   static const char* char_value_[7] = {
       "IDLE",      "CODEC_CONFIGURED", "QOS_CONFIGURED", "ENABLING",

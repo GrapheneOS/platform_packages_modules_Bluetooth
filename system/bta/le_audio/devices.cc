@@ -1212,6 +1212,7 @@ void LeAudioDeviceGroup::Dump(int fd) {
   stream << "    == Group id: " << group_id_ << " == \n"
          << "      state: " << GetState() << "\n"
          << "      target state: " << GetTargetState() << "\n"
+         << "      cig state: " << cig_state_ << "\n"
          << "      number of devices: " << Size() << "\n"
          << "      number of connected devices: " << NumOfConnected() << "\n"
          << "      active context types: "
