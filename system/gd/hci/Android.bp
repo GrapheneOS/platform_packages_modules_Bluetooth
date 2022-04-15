@@ -33,6 +33,7 @@ filegroup {
 filegroup {
     name: "BluetoothHciUnitTestSources",
     srcs: [
+        "acl_manager/le_impl_test.cc",
         "acl_builder_test.cc",
         "address_unittest.cc",
         "address_with_type_test.cc",

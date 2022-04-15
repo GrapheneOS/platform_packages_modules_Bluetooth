@@ -508,6 +508,9 @@ cc_fuzz {
         ":BluetoothHciFuzzTestSources",
         ":BluetoothL2capFuzzTestSources",
     ],
+    fuzz_config: {
+       cc: ["android-bluetooth@google.com"],
+    },
 }
 
 cc_fuzz {
