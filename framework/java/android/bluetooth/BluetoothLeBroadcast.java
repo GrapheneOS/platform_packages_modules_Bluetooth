@@ -542,8 +542,8 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
      *
      * @param contentMetadata metadata for the default Broadcast subgroup
      * @param broadcastCode Encryption will be enabled when <var>broadcastCode</var> is not null
-     * @throws IllegalArgumentException if <var>contentMetadata</var> is null
      * @throws IllegalStateException if callback was not registered
+     * @throws NullPointerException if <var>contentMetadata</var> is null
      * @hide
      */
     @SystemApi
@@ -554,6 +554,8 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
     })
     public void startBroadcast(@NonNull BluetoothLeAudioContentMetadata contentMetadata,
             @Nullable byte[] broadcastCode) {
+        Objects.requireNonNull(contentMetadata, "contentMetadata cannot be null");
+
         if (DBG) log("startBroadcasting");
         final IBluetoothLeAudio service = getService();
         if (service == null) {
@@ -579,6 +581,7 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
      * @param broadcastId broadcastId as defined by the Basic Audio Profile
      * @param contentMetadata updated metadata for the default Broadcast subgroup
      * @throws IllegalStateException if callback was not registered
+     * @throws NullPointerException if <var>contentMetadata</var> is null
      * @hide
      */
     @SystemApi
@@ -589,6 +592,8 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
     })
     public void updateBroadcast(int broadcastId,
             @NonNull BluetoothLeAudioContentMetadata contentMetadata) {
+        Objects.requireNonNull(contentMetadata, "contentMetadata cannot be null");
+
         if (DBG) log("updateBroadcast");
         final IBluetoothLeAudio service = getService();
         if (service == null) {

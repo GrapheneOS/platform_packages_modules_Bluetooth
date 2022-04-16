@@ -2125,20 +2125,18 @@ TEST_F(IsoManagerDeathTest, SendIsoDataWithNoDataPath) {
   IsoManager::GetInstance()->EstablishCis(params);
 
   EXPECT_CALL(bte_interface_, HciSend).Times(0);
-  ASSERT_EXIT(IsoManager::GetInstance()->SendIsoData(
-                  volatile_test_cig_create_cmpl_evt_.conn_handles[0],
-                  data_vec.data(), data_vec.size()),
-              ::testing::KilledBySignal(SIGABRT), "Data path not set");
+  IsoManager::GetInstance()->SendIsoData(
+      volatile_test_cig_create_cmpl_evt_.conn_handles[0], data_vec.data(),
+      data_vec.size());
 
   // Check on BIG
   IsoManager::GetInstance()->CreateBig(volatile_test_big_params_evt_.big_id,
                                        kDefaultBigParams);
 
   EXPECT_CALL(bte_interface_, HciSend).Times(0);
-  ASSERT_EXIT(IsoManager::GetInstance()->SendIsoData(
-                  volatile_test_big_params_evt_.conn_handles[0],
-                  data_vec.data(), data_vec.size()),
-              ::testing::KilledBySignal(SIGABRT), "Data path not set");
+  IsoManager::GetInstance()->SendIsoData(
+      volatile_test_big_params_evt_.conn_handles[0], data_vec.data(),
+      data_vec.size());
 }
 
 TEST_F(IsoManagerDeathTest, SendIsoDataWithNoCigBigHandle) {
