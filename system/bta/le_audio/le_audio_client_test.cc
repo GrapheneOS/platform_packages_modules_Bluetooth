@@ -634,7 +634,7 @@ class UnicastTestNoInit : public Test {
           streaming_groups[group->group_id_] = group;
 
           /* Assume CIG is created */
-          group->cig_created_ = true;
+          group->cig_state_ = le_audio::types::CigState::CREATED;
 
           do_in_main_thread(
               FROM_HERE, base::BindOnce(
@@ -700,7 +700,7 @@ class UnicastTestNoInit : public Test {
           }
 
           if (group->IsEmpty()) {
-            group->cig_created_ = false;
+            group->cig_state_ = le_audio::types::CigState::NONE;
             InjectCigRemoved(group->group_id_);
           }
         });
