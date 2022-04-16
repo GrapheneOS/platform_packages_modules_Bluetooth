@@ -1914,7 +1914,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
                     if (DBG) log("getBondState() uncached");
                     final IBluetooth service = sService;
                     final int defaultValue = BOND_NONE;
-                    if (service == null) {
+                    if (service == null || !isBluetoothEnabled()) {
                         Log.e(TAG, "BT not enabled. Cannot get bond state");
                         if (DBG) log(Log.getStackTraceString(new Throwable()));
                     } else {
