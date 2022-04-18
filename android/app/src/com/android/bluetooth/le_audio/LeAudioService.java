@@ -49,6 +49,7 @@ import android.os.Looper;
 import android.os.ParcelUuid;
 import android.os.RemoteCallbackList;
 import android.os.RemoteException;
+import android.sysprop.BluetoothProperties;
 import android.util.Log;
 
 import com.android.bluetooth.Utils;
@@ -180,6 +181,10 @@ public class LeAudioService extends ProfileService {
     @Override
     protected IProfileServiceBinder initBinder() {
         return new BluetoothLeAudioBinder(this);
+    }
+
+    public static boolean isEnabled() {
+        return BluetoothProperties.isProfileBapUnicastServerEnabled().orElse(false);
     }
 
     @Override
