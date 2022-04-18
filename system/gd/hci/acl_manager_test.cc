@@ -598,8 +598,8 @@ class AclManagerWithLeConnectionTest : public AclManagerTest {
     remote_with_type_ = AddressWithType(remote, AddressType::PUBLIC_DEVICE_ADDRESS);
     test_hci_layer_->SetCommandFuture();
     acl_manager_->CreateLeConnection(remote_with_type_, true);
-    test_hci_layer_->GetCommand(OpCode::LE_ADD_DEVICE_TO_CONNECT_LIST);
-    test_hci_layer_->IncomingEvent(LeAddDeviceToConnectListCompleteBuilder::Create(0x01, ErrorCode::SUCCESS));
+    test_hci_layer_->GetCommand(OpCode::LE_ADD_DEVICE_TO_FILTER_ACCEPT_LIST);
+    test_hci_layer_->IncomingEvent(LeAddDeviceToFilterAcceptListCompleteBuilder::Create(0x01, ErrorCode::SUCCESS));
     test_hci_layer_->SetCommandFuture();
     auto packet = test_hci_layer_->GetCommand(OpCode::LE_CREATE_CONNECTION);
     auto le_connection_management_command_view =
@@ -630,8 +630,8 @@ class AclManagerWithLeConnectionTest : public AclManagerTest {
         ClockAccuracy::PPM_30));
 
     test_hci_layer_->SetCommandFuture();
-    test_hci_layer_->GetCommand(OpCode::LE_REMOVE_DEVICE_FROM_CONNECT_LIST);
-    test_hci_layer_->IncomingEvent(LeRemoveDeviceFromConnectListCompleteBuilder::Create(0x01, ErrorCode::SUCCESS));
+    test_hci_layer_->GetCommand(OpCode::LE_REMOVE_DEVICE_FROM_FILTER_ACCEPT_LIST);
+    test_hci_layer_->IncomingEvent(LeRemoveDeviceFromFilterAcceptListCompleteBuilder::Create(0x01, ErrorCode::SUCCESS));
 
     auto first_connection_status = first_connection.wait_for(kTimeout);
     ASSERT_EQ(first_connection_status, std::future_status::ready);
@@ -687,8 +687,8 @@ TEST_F(AclManagerTest, invoke_registered_callback_le_connection_complete_fail) {
   AddressWithType remote_with_type(remote, AddressType::PUBLIC_DEVICE_ADDRESS);
   test_hci_layer_->SetCommandFuture();
   acl_manager_->CreateLeConnection(remote_with_type, true);
-  test_hci_layer_->GetLastCommand(OpCode::LE_ADD_DEVICE_TO_CONNECT_LIST);
-  test_hci_layer_->IncomingEvent(LeAddDeviceToConnectListCompleteBuilder::Create(0x01, ErrorCode::SUCCESS));
+  test_hci_layer_->GetLastCommand(OpCode::LE_ADD_DEVICE_TO_FILTER_ACCEPT_LIST);
+  test_hci_layer_->IncomingEvent(LeAddDeviceToFilterAcceptListCompleteBuilder::Create(0x01, ErrorCode::SUCCESS));
   test_hci_layer_->SetCommandFuture();
   auto packet = test_hci_layer_->GetLastCommand(OpCode::LE_CREATE_CONNECTION);
   auto le_connection_management_command_view =
@@ -718,19 +718,19 @@ TEST_F(AclManagerTest, invoke_registered_callback_le_connection_complete_fail) {
       ClockAccuracy::PPM_30));
 
   test_hci_layer_->SetCommandFuture();
-  packet = test_hci_layer_->GetLastCommand(OpCode::LE_REMOVE_DEVICE_FROM_CONNECT_LIST);
+  packet = test_hci_layer_->GetLastCommand(OpCode::LE_REMOVE_DEVICE_FROM_FILTER_ACCEPT_LIST);
   le_connection_management_command_view = LeConnectionManagementCommandView::Create(AclCommandView::Create(packet));
-  auto remove_command_view = LeRemoveDeviceFromConnectListView::Create(le_connection_management_command_view);
+  auto remove_command_view = LeRemoveDeviceFromFilterAcceptListView::Create(le_connection_management_command_view);
   ASSERT_TRUE(remove_command_view.IsValid());
-  test_hci_layer_->IncomingEvent(LeRemoveDeviceFromConnectListCompleteBuilder::Create(0x01, ErrorCode::SUCCESS));
+  test_hci_layer_->IncomingEvent(LeRemoveDeviceFromFilterAcceptListCompleteBuilder::Create(0x01, ErrorCode::SUCCESS));
 }
 
 TEST_F(AclManagerTest, cancel_le_connection) {
   AddressWithType remote_with_type(remote, AddressType::PUBLIC_DEVICE_ADDRESS);
   test_hci_layer_->SetCommandFuture();
   acl_manager_->CreateLeConnection(remote_with_type, true);
-  test_hci_layer_->GetLastCommand(OpCode::LE_ADD_DEVICE_TO_CONNECT_LIST);
-  test_hci_layer_->IncomingEvent(LeAddDeviceToConnectListCompleteBuilder::Create(0x01, ErrorCode::SUCCESS));
+  test_hci_layer_->GetLastCommand(OpCode::LE_ADD_DEVICE_TO_FILTER_ACCEPT_LIST);
+  test_hci_layer_->IncomingEvent(LeAddDeviceToFilterAcceptListCompleteBuilder::Create(0x01, ErrorCode::SUCCESS));
   test_hci_layer_->SetCommandFuture();
   test_hci_layer_->GetLastCommand(OpCode::LE_CREATE_CONNECTION);
 
@@ -755,20 +755,20 @@ TEST_F(AclManagerTest, cancel_le_connection) {
       ClockAccuracy::PPM_30));
 
   test_hci_layer_->SetCommandFuture();
-  packet = test_hci_layer_->GetLastCommand(OpCode::LE_REMOVE_DEVICE_FROM_CONNECT_LIST);
+  packet = test_hci_layer_->GetLastCommand(OpCode::LE_REMOVE_DEVICE_FROM_FILTER_ACCEPT_LIST);
   le_connection_management_command_view = LeConnectionManagementCommandView::Create(AclCommandView::Create(packet));
-  auto remove_command_view = LeRemoveDeviceFromConnectListView::Create(le_connection_management_command_view);
+  auto remove_command_view = LeRemoveDeviceFromFilterAcceptListView::Create(le_connection_management_command_view);
   ASSERT_TRUE(remove_command_view.IsValid());
 
-  test_hci_layer_->IncomingEvent(LeRemoveDeviceFromConnectListCompleteBuilder::Create(0x01, ErrorCode::SUCCESS));
+  test_hci_layer_->IncomingEvent(LeRemoveDeviceFromFilterAcceptListCompleteBuilder::Create(0x01, ErrorCode::SUCCESS));
 }
 
 TEST_F(AclManagerTest, create_connection_with_fast_mode) {
   AddressWithType remote_with_type(remote, AddressType::PUBLIC_DEVICE_ADDRESS);
   test_hci_layer_->SetCommandFuture();
   acl_manager_->CreateLeConnection(remote_with_type, true);
-  test_hci_layer_->GetLastCommand(OpCode::LE_ADD_DEVICE_TO_CONNECT_LIST);
-  test_hci_layer_->IncomingEvent(LeAddDeviceToConnectListCompleteBuilder::Create(0x01, ErrorCode::SUCCESS));
+  test_hci_layer_->GetLastCommand(OpCode::LE_ADD_DEVICE_TO_FILTER_ACCEPT_LIST);
+  test_hci_layer_->IncomingEvent(LeAddDeviceToFilterAcceptListCompleteBuilder::Create(0x01, ErrorCode::SUCCESS));
   test_hci_layer_->SetCommandFuture();
   auto packet = test_hci_layer_->GetLastCommand(OpCode::LE_CREATE_CONNECTION);
   auto command_view =
@@ -789,8 +789,8 @@ TEST_F(AclManagerTest, create_connection_with_fast_mode) {
       0x0C80,
       ClockAccuracy::PPM_30));
   test_hci_layer_->SetCommandFuture();
-  test_hci_layer_->GetCommand(OpCode::LE_REMOVE_DEVICE_FROM_CONNECT_LIST);
-  test_hci_layer_->IncomingEvent(LeRemoveDeviceFromConnectListCompleteBuilder::Create(0x01, ErrorCode::SUCCESS));
+  test_hci_layer_->GetCommand(OpCode::LE_REMOVE_DEVICE_FROM_FILTER_ACCEPT_LIST);
+  test_hci_layer_->IncomingEvent(LeRemoveDeviceFromFilterAcceptListCompleteBuilder::Create(0x01, ErrorCode::SUCCESS));
   auto first_connection_status = first_connection.wait_for(kTimeout);
   ASSERT_EQ(first_connection_status, std::future_status::ready);
 }
@@ -799,8 +799,8 @@ TEST_F(AclManagerTest, create_connection_with_slow_mode) {
   AddressWithType remote_with_type(remote, AddressType::PUBLIC_DEVICE_ADDRESS);
   test_hci_layer_->SetCommandFuture();
   acl_manager_->CreateLeConnection(remote_with_type, false);
-  test_hci_layer_->GetLastCommand(OpCode::LE_ADD_DEVICE_TO_CONNECT_LIST);
-  test_hci_layer_->IncomingEvent(LeAddDeviceToConnectListCompleteBuilder::Create(0x01, ErrorCode::SUCCESS));
+  test_hci_layer_->GetLastCommand(OpCode::LE_ADD_DEVICE_TO_FILTER_ACCEPT_LIST);
+  test_hci_layer_->IncomingEvent(LeAddDeviceToFilterAcceptListCompleteBuilder::Create(0x01, ErrorCode::SUCCESS));
   test_hci_layer_->SetCommandFuture();
   auto packet = test_hci_layer_->GetLastCommand(OpCode::LE_CREATE_CONNECTION);
   auto command_view =
@@ -821,8 +821,8 @@ TEST_F(AclManagerTest, create_connection_with_slow_mode) {
       0x0C80,
       ClockAccuracy::PPM_30));
   test_hci_layer_->SetCommandFuture();
-  test_hci_layer_->GetCommand(OpCode::LE_REMOVE_DEVICE_FROM_CONNECT_LIST);
-  test_hci_layer_->IncomingEvent(LeRemoveDeviceFromConnectListCompleteBuilder::Create(0x01, ErrorCode::SUCCESS));
+  test_hci_layer_->GetCommand(OpCode::LE_REMOVE_DEVICE_FROM_FILTER_ACCEPT_LIST);
+  test_hci_layer_->IncomingEvent(LeRemoveDeviceFromFilterAcceptListCompleteBuilder::Create(0x01, ErrorCode::SUCCESS));
   auto first_connection_status = first_connection.wait_for(kTimeout);
   ASSERT_EQ(first_connection_status, std::future_status::ready);
 }
@@ -1353,9 +1353,9 @@ TEST_F(AclManagerWithResolvableAddressTest, create_connection_cancel_fail) {
   test_hci_layer_->IncomingEvent(LeSetRandomAddressCompleteBuilder::Create(0x01, ErrorCode::SUCCESS));
 
   // Add device to connect list
-  test_hci_layer_->GetLastCommand(OpCode::LE_ADD_DEVICE_TO_CONNECT_LIST);
+  test_hci_layer_->GetLastCommand(OpCode::LE_ADD_DEVICE_TO_FILTER_ACCEPT_LIST);
   test_hci_layer_->SetCommandFuture();
-  test_hci_layer_->IncomingEvent(LeAddDeviceToConnectListCompleteBuilder::Create(0x01, ErrorCode::SUCCESS));
+  test_hci_layer_->IncomingEvent(LeAddDeviceToFilterAcceptListCompleteBuilder::Create(0x01, ErrorCode::SUCCESS));
 
   // send create connection command
   test_hci_layer_->GetLastCommand(OpCode::LE_CREATE_CONNECTION);
@@ -1393,8 +1393,8 @@ TEST_F(AclManagerWithResolvableAddressTest, create_connection_cancel_fail) {
       LeCreateConnectionCancelCompleteBuilder::Create(0x01, ErrorCode::CONNECTION_ALREADY_EXISTS));
 
   // Add another device to connect list
-  test_hci_layer_->GetLastCommand(OpCode::LE_ADD_DEVICE_TO_CONNECT_LIST);
-  test_hci_layer_->IncomingEvent(LeAddDeviceToConnectListCompleteBuilder::Create(0x01, ErrorCode::SUCCESS));
+  test_hci_layer_->GetLastCommand(OpCode::LE_ADD_DEVICE_TO_FILTER_ACCEPT_LIST);
+  test_hci_layer_->IncomingEvent(LeAddDeviceToFilterAcceptListCompleteBuilder::Create(0x01, ErrorCode::SUCCESS));
 }
 
 class AclManagerLifeCycleTest : public AclManagerNoCallbacksTest {
@@ -1452,8 +1452,8 @@ TEST_F(AclManagerLifeCycleTest, unregister_le_before_connection_complete) {
   AddressWithType remote_with_type(remote, AddressType::PUBLIC_DEVICE_ADDRESS);
   test_hci_layer_->SetCommandFuture();
   acl_manager_->CreateLeConnection(remote_with_type, true);
-  test_hci_layer_->GetLastCommand(OpCode::LE_ADD_DEVICE_TO_CONNECT_LIST);
-  test_hci_layer_->IncomingEvent(LeAddDeviceToConnectListCompleteBuilder::Create(0x01, ErrorCode::SUCCESS));
+  test_hci_layer_->GetLastCommand(OpCode::LE_ADD_DEVICE_TO_FILTER_ACCEPT_LIST);
+  test_hci_layer_->IncomingEvent(LeAddDeviceToFilterAcceptListCompleteBuilder::Create(0x01, ErrorCode::SUCCESS));
 
   test_hci_layer_->SetCommandFuture();
   auto packet = test_hci_layer_->GetLastCommand(OpCode::LE_CREATE_CONNECTION);
@@ -1494,8 +1494,8 @@ TEST_F(AclManagerLifeCycleTest, unregister_le_before_enhanced_connection_complet
   AddressWithType remote_with_type(remote, AddressType::PUBLIC_DEVICE_ADDRESS);
   test_hci_layer_->SetCommandFuture();
   acl_manager_->CreateLeConnection(remote_with_type, true);
-  test_hci_layer_->GetLastCommand(OpCode::LE_ADD_DEVICE_TO_CONNECT_LIST);
-  test_hci_layer_->IncomingEvent(LeAddDeviceToConnectListCompleteBuilder::Create(0x01, ErrorCode::SUCCESS));
+  test_hci_layer_->GetLastCommand(OpCode::LE_ADD_DEVICE_TO_FILTER_ACCEPT_LIST);
+  test_hci_layer_->IncomingEvent(LeAddDeviceToFilterAcceptListCompleteBuilder::Create(0x01, ErrorCode::SUCCESS));
 
   test_hci_layer_->SetCommandFuture();
   auto packet = test_hci_layer_->GetLastCommand(OpCode::LE_CREATE_CONNECTION);
