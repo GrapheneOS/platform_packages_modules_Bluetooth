@@ -78,9 +78,7 @@ public class MediaControlGattServiceTest {
     @Before
     public void setUp() throws Exception {
         mTargetContext = InstrumentationRegistry.getTargetContext();
-        Assume.assumeTrue("Ignore test when MCP Server is not enabled",
-                mTargetContext.getResources().getBoolean(
-                        R.bool.profile_supported_mcp_server));
+        Assume.assumeTrue("Ignore test when MCP Server is not enabled", McpService.isEnabled());
         if (Looper.myLooper() == null) {
             Looper.prepare();
         }
@@ -102,7 +100,7 @@ public class MediaControlGattServiceTest {
 
     @After
     public void tearDown() throws Exception {
-        if (!mTargetContext.getResources().getBoolean(R.bool.profile_supported_mcp_server)) {
+        if (!McpService.isEnabled()) {
             return;
         }
         mMcpService = null;

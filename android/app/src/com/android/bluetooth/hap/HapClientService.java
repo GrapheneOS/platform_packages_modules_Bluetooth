@@ -42,6 +42,7 @@ import android.os.HandlerThread;
 import android.os.ParcelUuid;
 import android.os.RemoteCallbackList;
 import android.os.RemoteException;
+import android.sysprop.BluetoothProperties;
 import android.util.Log;
 
 import com.android.bluetooth.Utils;
@@ -93,6 +94,10 @@ public class HapClientService extends ProfileService {
 
     @VisibleForTesting
     ServiceFactory mFactory = new ServiceFactory();
+
+    public static boolean isEnabled() {
+        return BluetoothProperties.isProfileHapClientEnabled().orElse(false);
+    }
 
     private static synchronized void setHapClient(HapClientService instance) {
         if (DBG) {

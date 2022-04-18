@@ -80,7 +80,7 @@ public class VolumeControlServiceTest {
     public void setUp() throws Exception {
         mTargetContext = InstrumentationRegistry.getTargetContext();
         Assume.assumeTrue("Ignore test when VolumeControl is not enabled",
-                mTargetContext.getResources().getBoolean(R.bool.profile_supported_vc));
+                VolumeControlService.isEnabled());
         // Set up mocks and test assets
         MockitoAnnotations.initMocks(this);
 
@@ -120,8 +120,7 @@ public class VolumeControlServiceTest {
 
     @After
     public void tearDown() throws Exception {
-        if (!mTargetContext.getResources().getBoolean(
-            R.bool.profile_supported_vc)) {
+        if (!VolumeControlService.isEnabled()) {
             return;
         }
         stopService();

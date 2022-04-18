@@ -877,20 +877,6 @@ public class AdapterService extends Service {
         mA2dpService.switchCodecByBufferSize(activeDevices.get(0), isLowLatencyBufferSize);
     }
 
-    /**
-     * Enable/disable BluetoothInCallService
-     *
-     * @param enable to enable/disable BluetoothInCallService.
-     */
-    public void enableBluetoothInCallService(boolean enable) {
-        debugLog("enableBluetoothInCallService() - Enable = " + enable);
-        getPackageManager().setComponentEnabledSetting(
-                BLUETOOTH_INCALLSERVICE_COMPONENT,
-                enable ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED
-                        : PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-                PackageManager.DONT_KILL_APP);
-    }
-
     void cleanup() {
         debugLog("cleanup()");
         if (mCleaningUp) {
@@ -4607,7 +4593,7 @@ public class AdapterService extends Service {
      * @return true, if the LE audio broadcast source is supported
      */
     public boolean isLeAudioBroadcastSourceSupported() {
-        return  getResources().getBoolean(R.bool.profile_supported_le_audio_broadcast)
+        return  BluetoothProperties.isProfileBapBroadcastSourceEnabled().orElse(false)
                 && mAdapterProperties.isLePeriodicAdvertisingSupported()
                 && mAdapterProperties.isLeExtendedAdvertisingSupported()
                 && mAdapterProperties.isLeIsochronousBroadcasterSupported();
@@ -4936,6 +4922,12 @@ public class AdapterService extends Service {
         writer.println("mDefaultSnoopLogSettingAtEnable = " + mDefaultSnoopLogSettingAtEnable);
 
         writer.println();
+        writer.println("Enabled Profile Services:");
+        for (Class profile : Config.getSupportedProfiles()) {
+            writer.println("  " + profile.getSimpleName());
+        }
+        writer.println();
+
         mAdapterStateMachine.dump(fd, writer, args);
 
         StringBuilder sb = new StringBuilder();

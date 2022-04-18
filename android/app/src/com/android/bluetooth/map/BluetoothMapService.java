@@ -31,6 +31,7 @@ import android.bluetooth.IBluetoothMap;
 import android.bluetooth.SdpMnsRecord;
 import android.content.AttributionSource;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -42,6 +43,7 @@ import android.os.Message;
 import android.os.ParcelUuid;
 import android.os.PowerManager;
 import android.os.RemoteException;
+import android.sysprop.BluetoothProperties;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
@@ -76,6 +78,13 @@ public class BluetoothMapService extends ProfileService {
     public static final boolean DEBUG = false;
 
     public static final boolean VERBOSE = false;
+
+    /**
+     * The component names for the owned provider and activity
+     */
+    private static final String MAP_SETTINGS_ACTIVITY =
+            BluetoothMapSettings.class.getCanonicalName();
+    private static final String MAP_FILE_PROVIDER = MmsFileProvider.class.getCanonicalName();
 
     /**
      * Intent indicating timeout for user confirmation, which is sent to
@@ -154,6 +163,10 @@ public class BluetoothMapService extends ProfileService {
     private static final ParcelUuid[] MAP_UUIDS = {
             BluetoothUuid.MAP, BluetoothUuid.MNS,
     };
+
+    public static boolean isEnabled() {
+        return BluetoothProperties.isProfileMapServerEnabled().orElse(false);
+    }
 
     public BluetoothMapService() {
         mState = BluetoothMap.STATE_DISCONNECTED;
@@ -660,6 +673,9 @@ public class BluetoothMapService extends ProfileService {
         mDatabaseManager = Objects.requireNonNull(AdapterService.getAdapterService().getDatabase(),
                 "DatabaseManager cannot be null when MapService starts");
 
+        setComponentAvailable(MAP_SETTINGS_ACTIVITY, true);
+        setComponentAvailable(MAP_FILE_PROVIDER, true);
+
         HandlerThread thread = new HandlerThread("BluetoothMapHandler");
         thread.start();
         Looper looper = thread.getLooper();
@@ -881,6 +897,8 @@ public class BluetoothMapService extends ProfileService {
             mAppObserver.shutdown();
         }
         sendShutdownMessage();
+        setComponentAvailable(MAP_SETTINGS_ACTIVITY, false);
+        setComponentAvailable(MAP_FILE_PROVIDER, false);
         return true;
     }
 

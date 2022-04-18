@@ -32,6 +32,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.HandlerThread;
 import android.os.ParcelUuid;
+import android.sysprop.BluetoothProperties;
 import android.util.Log;
 
 import com.android.bluetooth.Utils;
@@ -65,6 +66,10 @@ public class BatteryService extends ProfileService {
     private final Map<BluetoothDevice, BatteryStateMachine> mStateMachines = new HashMap<>();
 
     private BroadcastReceiver mBondStateChangedReceiver;
+
+    public static boolean isEnabled() {
+        return BluetoothProperties.isProfileBasClientEnabled().orElse(false);
+    }
 
     @Override
     protected IProfileServiceBinder initBinder() {
