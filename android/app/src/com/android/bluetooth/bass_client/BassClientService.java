@@ -672,8 +672,12 @@ public class BassClientService extends ProfileService {
                 filters = new ArrayList<ScanFilter>();
             }
             if (!BassUtils.containUuid(filters, BassConstants.BAAS_UUID)) {
+                byte[] serviceData = {0x00, 0x00 ,0x00}; // Broadcast_ID
+                byte[] serviceDataMask = {0x00, 0x00, 0x00};
+
                 filters.add(new ScanFilter.Builder()
-                        .setServiceUuid(BassConstants.BAAS_UUID).build());
+                        .setServiceData(BassConstants.BAAS_UUID,
+                                serviceData, serviceDataMask).build());
             }
             scanner.startScan(filters, settings, mSearchScanCallback);
             mCallbacks.notifySearchStarted(BluetoothStatusCodes.REASON_LOCAL_APP_REQUEST);
