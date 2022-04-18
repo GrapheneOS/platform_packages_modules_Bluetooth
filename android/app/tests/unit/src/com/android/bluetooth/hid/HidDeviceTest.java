@@ -101,7 +101,7 @@ public class HidDeviceTest {
     public void setUp() throws Exception {
         mTargetContext = InstrumentationRegistry.getTargetContext();
         Assume.assumeTrue("Ignore test when HidDeviceService is not enabled",
-                mTargetContext.getResources().getBoolean(R.bool.profile_supported_hid_device));
+                HidDeviceService.isEnabled());
         if (Looper.myLooper() == null) {
             Looper.prepare();
         }
@@ -145,7 +145,7 @@ public class HidDeviceTest {
 
     @After
     public void tearDown() throws Exception {
-        if (!mTargetContext.getResources().getBoolean(R.bool.profile_supported_hid_device)) {
+        if (!HidDeviceService.isEnabled()) {
             return;
         }
         TestUtils.stopService(mServiceRule, HidDeviceService.class);
