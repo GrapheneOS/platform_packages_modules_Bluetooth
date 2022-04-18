@@ -13,7 +13,6 @@
    limitations under the License.
 -->
 <resources>
-    <bool name="profile_supported_opp">true</bool>
     <bool name="pbap_include_photos_in_vcard">true</bool>
     <bool name="pbap_use_profile_for_owner_vcard">true</bool>
 
