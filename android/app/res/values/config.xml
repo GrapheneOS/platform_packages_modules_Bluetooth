@@ -20,7 +20,6 @@
     <bool name="profile_supported_pbap">true</bool>
     <bool name="pbap_include_photos_in_vcard">true</bool>
     <bool name="pbap_use_profile_for_owner_vcard">true</bool>
-    <bool name="profile_supported_map">true</bool>
     <bool name="profile_supported_sap">false</bool>
     <bool name="profile_supported_pbapclient">false</bool>
     <bool name="profile_supported_mapmce">false</bool>
