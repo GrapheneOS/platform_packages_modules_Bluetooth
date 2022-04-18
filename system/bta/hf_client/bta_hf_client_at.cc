@@ -252,6 +252,7 @@ static void bta_hf_client_handle_ok(tBTA_HF_CLIENT_CB* client_cb) {
   switch (client_cb->at_cb.current_cmd) {
     case BTA_HF_CLIENT_AT_BIA:
     case BTA_HF_CLIENT_AT_BCC:
+    case BTA_HF_CLIENT_AT_BIEV:
       break;
     case BTA_HF_CLIENT_AT_BCS:
       bta_hf_client_start_at_hold_timer(client_cb);
