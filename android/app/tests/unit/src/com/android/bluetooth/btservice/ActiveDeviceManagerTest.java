@@ -70,8 +70,7 @@ public class ActiveDeviceManagerTest {
     @Before
     public void setUp() throws Exception {
         mContext = InstrumentationRegistry.getTargetContext();
-        Assume.assumeTrue("Ignore test when A2dpService is not enabled",
-                mContext.getResources().getBoolean(R.bool.profile_supported_a2dp));
+        Assume.assumeTrue("Ignore test when A2dpService is not enabled", A2dpService.isEnabled());
         Assume.assumeTrue("Ignore test when HeadsetService is not enabled",
                 mContext.getResources().getBoolean(R.bool.profile_supported_hs_hfp));
 
@@ -102,7 +101,7 @@ public class ActiveDeviceManagerTest {
     @After
     public void tearDown() throws Exception {
         if (!mContext.getResources().getBoolean(R.bool.profile_supported_hs_hfp)
-                || !mContext.getResources().getBoolean(R.bool.profile_supported_a2dp)) {
+                || !A2dpService.isEnabled()) {
             return;
         }
         mActiveDeviceManager.cleanup();
