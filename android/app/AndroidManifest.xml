@@ -232,6 +232,25 @@
             </intent-filter>
         </service>
 
+        <!--  Hands-Free HF/Client Profile Service and owned Service  -->
+        <service android:process="@string/process"
+             android:name="com.android.bluetooth.hfpclient.HeadsetClientService"
+             android:enabled="true"
+             android:exported="true">
+            <intent-filter>
+                <action android:name="android.bluetooth.IBluetoothHeadsetClient"/>
+            </intent-filter>
+        </service>
+        <service android:process="@string/process"
+             android:name="com.android.bluetooth.hfpclient.HfpClientConnectionService"
+             android:permission="android.permission.BIND_CONNECTION_SERVICE"
+             android:enabled="true"
+             android:exported="true">
+            <intent-filter>
+                <action android:name="android.telecom.ConnectionService"/>
+            </intent-filter>
+        </service>
+
         <!--  Human Interface Device (HID) host Profile Service  -->
         <service android:process="@string/process"
              android:name="com.android.bluetooth.hid.HidHostService"
@@ -489,24 +508,6 @@
              android:exported="true">
             <intent-filter>
                 <action android:name="android.bluetooth.IBluetoothPan"/>
-            </intent-filter>
-        </service>
-        <service android:process="@string/process"
-             android:name=".hfpclient.HeadsetClientService"
-             android:enabled="@bool/profile_supported_hfpclient"
-             android:exported="true">
-            <intent-filter>
-                <action android:name="android.bluetooth.IBluetoothHeadsetClient"/>
-            </intent-filter>
-        </service>
-        <service android:process="@string/process"
-             android:name=".hfpclient.HfpClientConnectionService"
-             android:permission="android.permission.BIND_CONNECTION_SERVICE"
-             android:enabled="@bool/hfp_client_connection_service_enabled"
-             android:exported="true">
-            <intent-filter>
-                <!-- Mechanism for Telecom stack to connect -->
-                <action android:name="android.telecom.ConnectionService"/>
             </intent-filter>
         </service>
         <service android:process="@string/process"
