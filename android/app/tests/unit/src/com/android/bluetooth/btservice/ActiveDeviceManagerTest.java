@@ -72,7 +72,7 @@ public class ActiveDeviceManagerTest {
         mContext = InstrumentationRegistry.getTargetContext();
         Assume.assumeTrue("Ignore test when A2dpService is not enabled", A2dpService.isEnabled());
         Assume.assumeTrue("Ignore test when HeadsetService is not enabled",
-                mContext.getResources().getBoolean(R.bool.profile_supported_hs_hfp));
+                HeadsetService.isEnabled());
 
         // Set up mocks and test assets
         MockitoAnnotations.initMocks(this);
@@ -100,8 +100,7 @@ public class ActiveDeviceManagerTest {
 
     @After
     public void tearDown() throws Exception {
-        if (!mContext.getResources().getBoolean(R.bool.profile_supported_hs_hfp)
-                || !A2dpService.isEnabled()) {
+        if (!HeadsetService.isEnabled() || !A2dpService.isEnabled()) {
             return;
         }
         mActiveDeviceManager.cleanup();
