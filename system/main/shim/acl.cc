@@ -78,11 +78,11 @@ class ConnectAddressWithType {
  public:
   explicit ConnectAddressWithType(hci::AddressWithType address_with_type)
       : address_(address_with_type.GetAddress()),
-        type_(address_with_type.ToConnectListAddressType()) {}
+        type_(address_with_type.ToFilterAcceptListAddressType()) {}
 
   std::string const ToString() const {
     std::stringstream ss;
-    ss << address_ << "[" << ConnectListAddressTypeText(type_) << "]";
+    ss << address_ << "[" << FilterAcceptListAddressTypeText(type_) << "]";
     return ss.str();
   }
 
@@ -93,7 +93,7 @@ class ConnectAddressWithType {
  private:
   friend std::hash<ConnectAddressWithType>;
   hci::Address address_;
-  hci::ConnectListAddressType type_;
+  hci::FilterAcceptListAddressType type_;
 };
 
 namespace std {
@@ -102,13 +102,13 @@ struct hash<ConnectAddressWithType> {
   std::size_t operator()(const ConnectAddressWithType& val) const {
     static_assert(sizeof(uint64_t) >=
                   (bluetooth::hci::Address::kLength +
-                   sizeof(bluetooth::hci::ConnectListAddressType)));
+                   sizeof(bluetooth::hci::FilterAcceptListAddressType)));
     uint64_t int_addr = 0;
     memcpy(reinterpret_cast<uint8_t*>(&int_addr), val.address_.data(),
            bluetooth::hci::Address::kLength);
     memcpy(reinterpret_cast<uint8_t*>(&int_addr) +
                bluetooth::hci::Address::kLength,
-           &val.type_, sizeof(bluetooth::hci::ConnectListAddressType));
+           &val.type_, sizeof(bluetooth::hci::FilterAcceptListAddressType));
     return std::hash<uint64_t>{}(int_addr);
   }
 };
@@ -971,7 +971,7 @@ struct shim::legacy::Acl::impl {
   void clear_acceptlist() {
     auto shadow_acceptlist = shadow_acceptlist_.GetCopy();
     size_t count = shadow_acceptlist.size();
-    GetAclManager()->ClearConnectList();
+    GetAclManager()->ClearFilterAcceptList();
     shadow_acceptlist_.Clear();
     LOG_DEBUG("Cleared entire Le address acceptlist count:%zu", count);
   }

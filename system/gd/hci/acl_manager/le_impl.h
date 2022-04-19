@@ -115,7 +115,7 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
         common::Bind(&le_impl::enqueue_command, common::Unretained(this)),
         handler_,
         controller->GetMacAddress(),
-        controller->GetLeConnectListSize(),
+        controller->GetLeFilterAcceptListSize(),
         controller->GetLeResolvingListSize());
   }
 
@@ -552,8 +552,8 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
 
     connect_list.insert(address_with_type);
     register_with_address_manager();
-    le_address_manager_->AddDeviceToConnectList(
-        address_with_type.ToConnectListAddressType(), address_with_type.GetAddress());
+    le_address_manager_->AddDeviceToFilterAcceptList(
+        address_with_type.ToFilterAcceptListAddressType(), address_with_type.GetAddress());
   }
 
   void remove_device_from_connect_list(AddressWithType address_with_type) {
@@ -564,14 +564,14 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
     connect_list.erase(address_with_type);
     direct_connections_.erase(address_with_type);
     register_with_address_manager();
-    le_address_manager_->RemoveDeviceFromConnectList(
-        address_with_type.ToConnectListAddressType(), address_with_type.GetAddress());
+    le_address_manager_->RemoveDeviceFromFilterAcceptList(
+        address_with_type.ToFilterAcceptListAddressType(), address_with_type.GetAddress());
   }
 
   void clear_connect_list() {
     connect_list.clear();
     register_with_address_manager();
-    le_address_manager_->ClearConnectList();
+    le_address_manager_->ClearFilterAcceptList();
   }
 
   void add_device_to_resolving_list(
@@ -694,7 +694,7 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
       le_scan_window_2m = kScanWindow2mFast;
       le_scan_window_coded = kScanWindowCodedFast;
     }
-    InitiatorFilterPolicy initiator_filter_policy = InitiatorFilterPolicy::USE_CONNECT_LIST;
+    InitiatorFilterPolicy initiator_filter_policy = InitiatorFilterPolicy::USE_FILTER_ACCEPT_LIST;
     OwnAddressType own_address_type =
         static_cast<OwnAddressType>(le_address_manager_->GetCurrentAddress().GetAddressType());
     uint16_t conn_interval_min = 0x0018;
@@ -706,7 +706,7 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
     connecting_le_.insert(address_with_type);
     connectability_state_ = ConnectabilityState::ARMING;
 
-    if (initiator_filter_policy == InitiatorFilterPolicy::USE_CONNECT_LIST) {
+    if (initiator_filter_policy == InitiatorFilterPolicy::USE_FILTER_ACCEPT_LIST) {
       address_with_type = AddressWithType();
     }
 

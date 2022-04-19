@@ -301,7 +301,7 @@ FORWARD_GETTER_IF_RUST(
     uint8_t, get_iso_buffers,
     GetController()->GetControllerIsoBufferSize().total_num_le_packets_)
 FORWARD_GETTER_IF_RUST(uint8_t, get_le_connect_list_size,
-                       GetController()->GetLeConnectListSize())
+                       GetController()->GetLeFilterAcceptListSize())
 
 static void set_ble_resolving_list_max_size(int resolving_list_max_size) {
   LOG_DEBUG("UNSUPPORTED");
