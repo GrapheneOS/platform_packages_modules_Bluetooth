@@ -168,17 +168,18 @@ class A2dp(val context: Context) : A2DPImplBase() {
         throw Status.UNKNOWN.asException()
       }
 
-      if (!bluetoothA2dp.isA2dpPlaying(device)) {
-        val a2dpPlayingStateFlow =
-          flow
-            .filter { it.getAction() == BluetoothA2dp.ACTION_PLAYING_STATE_CHANGED }
-            .filter {
-              it.getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE).address == address
-            }
-            .map { it.getIntExtra(BluetoothA2dp.EXTRA_STATE, BluetoothAdapter.ERROR) }
+      audioTrack.play()
 
-        audioTrack.play()
-        a2dpPlayingStateFlow.filter { it == BluetoothA2dp.STATE_PLAYING }.first()
+      // If A2dp is not already playing, wait for it
+      if (!bluetoothA2dp.isA2dpPlaying(device)) {
+        flow
+          .filter { it.getAction() == BluetoothA2dp.ACTION_PLAYING_STATE_CHANGED }
+          .filter {
+            it.getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE).address == address
+          }
+          .map { it.getIntExtra(BluetoothA2dp.EXTRA_STATE, BluetoothAdapter.ERROR) }
+          .filter { it == BluetoothA2dp.STATE_PLAYING }
+          .first()
       }
       StartResponse.getDefaultInstance()
     }
