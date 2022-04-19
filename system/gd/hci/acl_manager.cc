@@ -210,15 +210,15 @@ void AclManager::CancelLeConnect(AddressWithType address_with_type) {
   CallOn(pimpl_->le_impl_, &le_impl::cancel_connect, address_with_type);
 }
 
-void AclManager::AddDeviceToConnectList(AddressWithType address_with_type) {
+void AclManager::AddDeviceToFilterAcceptList(AddressWithType address_with_type) {
   CallOn(pimpl_->le_impl_, &le_impl::add_device_to_connect_list, address_with_type);
 }
 
-void AclManager::RemoveDeviceFromConnectList(AddressWithType address_with_type) {
+void AclManager::RemoveDeviceFromFilterAcceptList(AddressWithType address_with_type) {
   CallOn(pimpl_->le_impl_, &le_impl::remove_device_from_connect_list, address_with_type);
 }
 
-void AclManager::ClearConnectList() {
+void AclManager::ClearFilterAcceptList() {
   CallOn(pimpl_->le_impl_, &le_impl::clear_connect_list);
 }
 

@@ -68,8 +68,8 @@ CmdEvtActivityClassification lookup_cmd(hci::OpCode opcode) {
     case hci::OpCode::WRITE_SIMPLE_PAIRING_MODE:
     case hci::OpCode::READ_SCAN_ENABLE:
     case hci::OpCode::LE_CREATE_CONNECTION_CANCEL:
-    case hci::OpCode::LE_READ_CONNECT_LIST_SIZE:
-    case hci::OpCode::LE_CLEAR_CONNECT_LIST:
+    case hci::OpCode::LE_READ_FILTER_ACCEPT_LIST_SIZE:
+    case hci::OpCode::LE_CLEAR_FILTER_ACCEPT_LIST:
     case hci::OpCode::SEND_KEYPRESS_NOTIFICATION:
     case hci::OpCode::LE_CLEAR_RESOLVING_LIST:
     case hci::OpCode::LE_READ_RESOLVING_LIST_SIZE:
@@ -287,12 +287,12 @@ CmdEvtActivityClassification lookup_cmd(hci::OpCode opcode) {
     case hci::OpCode::LE_CREATE_CONNECTION:
       classification = {.activity = Activity::CONNECT, .connection_handle_pos = 0, .address_pos = 9};
       break;
-    case hci::OpCode::LE_ADD_DEVICE_TO_CONNECT_LIST:
+    case hci::OpCode::LE_ADD_DEVICE_TO_FILTER_ACCEPT_LIST:
     case hci::OpCode::LE_READ_CHANNEL_MAP:
       classification = {.activity = Activity::CONNECT, .connection_handle_pos = 4, .address_pos = 0};
       break;
 
-    case hci::OpCode::LE_REMOVE_DEVICE_FROM_CONNECT_LIST:
+    case hci::OpCode::LE_REMOVE_DEVICE_FROM_FILTER_ACCEPT_LIST:
     case hci::OpCode::LE_ADD_DEVICE_TO_RESOLVING_LIST:
     case hci::OpCode::LE_REMOVE_DEVICE_FROM_RESOLVING_LIST:
     case hci::OpCode::LE_READ_PEER_RESOLVABLE_ADDRESS:
