@@ -78,7 +78,7 @@ struct Controller::impl {
     }
 
     hci_->EnqueueCommand(
-        LeReadConnectListSizeBuilder::Create(),
+        LeReadFilterAcceptListSizeBuilder::Create(),
         handler->BindOnceOn(this, &Controller::impl::le_read_connect_list_size_handler));
 
     if (is_supported(OpCode::LE_READ_RESOLVING_LIST_SIZE) && module_.SupportsBlePrivacy()) {
@@ -352,11 +352,11 @@ struct Controller::impl {
   }
 
   void le_read_connect_list_size_handler(CommandCompleteView view) {
-    auto complete_view = LeReadConnectListSizeCompleteView::Create(view);
+    auto complete_view = LeReadFilterAcceptListSizeCompleteView::Create(view);
     ASSERT(complete_view.IsValid());
     ErrorCode status = complete_view.GetStatus();
     ASSERT_LOG(status == ErrorCode::SUCCESS, "Status 0x%02hhx, %s", status, ErrorCodeText(status).c_str());
-    le_connect_list_size_ = complete_view.GetConnectListSize();
+    le_connect_list_size_ = complete_view.GetFilterAcceptListSize();
   }
 
   void le_read_resolving_list_size_handler(CommandCompleteView view) {
@@ -709,10 +709,10 @@ struct Controller::impl {
       OP_CODE_MAPPING(LE_SET_SCAN_ENABLE)
       OP_CODE_MAPPING(LE_CREATE_CONNECTION)
       OP_CODE_MAPPING(LE_CREATE_CONNECTION_CANCEL)
-      OP_CODE_MAPPING(LE_READ_CONNECT_LIST_SIZE)
-      OP_CODE_MAPPING(LE_CLEAR_CONNECT_LIST)
-      OP_CODE_MAPPING(LE_ADD_DEVICE_TO_CONNECT_LIST)
-      OP_CODE_MAPPING(LE_REMOVE_DEVICE_FROM_CONNECT_LIST)
+      OP_CODE_MAPPING(LE_READ_FILTER_ACCEPT_LIST_SIZE)
+      OP_CODE_MAPPING(LE_CLEAR_FILTER_ACCEPT_LIST)
+      OP_CODE_MAPPING(LE_ADD_DEVICE_TO_FILTER_ACCEPT_LIST)
+      OP_CODE_MAPPING(LE_REMOVE_DEVICE_FROM_FILTER_ACCEPT_LIST)
       OP_CODE_MAPPING(LE_CONNECTION_UPDATE)
       OP_CODE_MAPPING(LE_SET_HOST_CHANNEL_CLASSIFICATION)
       OP_CODE_MAPPING(LE_READ_CHANNEL_MAP)
@@ -1106,7 +1106,7 @@ uint64_t Controller::GetLeSupportedStates() const {
   return impl_->le_supported_states_;
 }
 
-uint8_t Controller::GetLeConnectListSize() const {
+uint8_t Controller::GetLeFilterAcceptListSize() const {
   return impl_->le_connect_list_size_;
 }
 

@@ -234,11 +234,12 @@ class PyHal(Closable):
                 hci_packets.AddressType.RANDOM_DEVICE_ADDRESS, remote_addr, 1, [phy_scan_params]))
         self.wait_for_status(OpCode.LE_EXTENDED_CREATE_CONNECTION)
 
-    def add_to_connect_list(self, remote_addr):
+    def add_to_filter_accept_list(self, remote_addr):
         self.send_hci_command(
-            hci_packets.LeAddDeviceToConnectListBuilder(hci_packets.ConnectListAddressType.RANDOM, remote_addr))
+            hci_packets.LeAddDeviceToFilterAcceptListBuilder(hci_packets.FilterAcceptListAddressType.RANDOM,
+                                                             remote_addr))
 
-    def initiate_le_connection_by_connect_list(self, remote_addr):
+    def initiate_le_connection_by_filter_accept_list(self, remote_addr):
         phy_scan_params = hci_packets.LeCreateConnPhyScanParameters()
         phy_scan_params.scan_interval = 0x60
         phy_scan_params.scan_window = 0x30
@@ -249,9 +250,10 @@ class PyHal(Closable):
         phy_scan_params.min_ce_length = 0
         phy_scan_params.max_ce_length = 0
         self.send_hci_command(
-            hci_packets.LeExtendedCreateConnectionBuilder(
-                hci_packets.InitiatorFilterPolicy.USE_CONNECT_LIST, hci_packets.OwnAddressType.RANDOM_DEVICE_ADDRESS,
-                hci_packets.AddressType.RANDOM_DEVICE_ADDRESS, remote_addr, 1, [phy_scan_params]))
+            hci_packets.LeExtendedCreateConnectionBuilder(hci_packets.InitiatorFilterPolicy.USE_FILTER_ACCEPT_LIST,
+                                                          hci_packets.OwnAddressType.RANDOM_DEVICE_ADDRESS,
+                                                          hci_packets.AddressType.RANDOM_DEVICE_ADDRESS, remote_addr, 1,
+                                                          [phy_scan_params]))
 
     def complete_le_connection(self):
         connection_complete = HciCaptures.LeConnectionCompleteCapture()
