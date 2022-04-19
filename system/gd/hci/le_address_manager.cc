@@ -551,7 +551,7 @@ void LeAddressManager::OnCommandComplete(bluetooth::hci::CommandCompleteView vie
       break;
 
     case OpCode::LE_REMOVE_DEVICE_FROM_FILTER_ACCEPT_LIST:
-      on_command_complete<LeAddDeviceToFilterAcceptListCompleteView>(view);
+      on_command_complete<LeRemoveDeviceFromFilterAcceptListCompleteView>(view);
       break;
 
     case OpCode::LE_SET_ADDRESS_RESOLUTION_ENABLE:
