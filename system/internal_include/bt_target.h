@@ -75,10 +75,6 @@
 #define BTA_HH_ROLE BTA_CENTRAL_ROLE_PREF
 #endif
 
-#ifndef BTA_AV_SINK_INCLUDED
-#define BTA_AV_SINK_INCLUDED FALSE
-#endif
-
 #ifndef BTA_DISABLE_DELAY
 #define BTA_DISABLE_DELAY 200 /* in milliseconds */
 #endif
@@ -422,15 +418,13 @@
  *****************************************************************************/
 
 /* The maximum number of simultaneous links that L2CAP can support. */
-#ifndef MAX_ACL_CONNECTIONS
-#define MAX_L2CAP_LINKS 13
-#else
-#define MAX_L2CAP_LINKS MAX_ACL_CONNECTIONS
+#ifndef MAX_L2CAP_LINKS
+#define MAX_L2CAP_LINKS 16
 #endif
 
 /* The maximum number of simultaneous channels that L2CAP can support. */
 #ifndef MAX_L2CAP_CHANNELS
-#define MAX_L2CAP_CHANNELS 32
+#define MAX_L2CAP_CHANNELS 64
 #endif
 
 /* The maximum number of simultaneous applications that can register with L2CAP.
@@ -557,7 +551,7 @@
  * feature discovery, multi-adv etc.
  */
 #ifndef BLE_VND_INCLUDED
-#define BLE_VND_INCLUDED FALSE
+#define BLE_VND_INCLUDED TRUE
 #endif
 
 /* The maximum number of simultaneous applications that can register with LE
@@ -699,10 +693,8 @@
 #endif
 
 /* The maximum simultaneous links to different devices. */
-#ifndef MAX_ACL_CONNECTIONS
-#define MAX_BD_CONNECTIONS 7
-#else
-#define MAX_BD_CONNECTIONS MAX_ACL_CONNECTIONS
+#ifndef MAX_BD_CONNECTIONS
+#define MAX_BD_CONNECTIONS 16
 #endif
 
 /* The port receive queue low watermark level, in bytes. */
@@ -813,7 +805,7 @@
 
 /* Number of simultaneous stream endpoints. */
 #ifndef AVDT_NUM_SEPS
-#define AVDT_NUM_SEPS 6
+#define AVDT_NUM_SEPS 12
 #endif
 
 /* Number of transport channels setup by AVDT for all media streams */
