@@ -39,31 +39,9 @@ cc_defaults {
     ],
 }
 
-// Compile devices and device boutique into a single object to force the linker
-// to pick all the symbols for static registration to work
-cc_object {
-    name: "libbt-rootcanal-devices",
-    defaults: ["rootcanal_defaults"],
-    host_supported: true,
-    proprietary: true,
-    cflags: ["-fPIC"],
-    srcs: [
-        "model/devices/beacon.cc",
-        "model/devices/beacon_swarm.cc",
-        "model/devices/broken_adv.cc",
-        "model/devices/car_kit.cc",
-        "model/devices/classic.cc",
-        "model/devices/keyboard.cc",
-        "model/devices/loopback.cc",
-        "model/devices/scripted_beacon.cc",
-        "model/devices/sniffer.cc",
-        "model/setup/device_boutique.cc",
-    ],
-    static_libs: [
-        "libscriptedbeaconpayload-protos-lite",
-    ]
-}
-
+// This library should be added as `whole_static_libs`
+// as it uses static registration and all object
+// files needs to be linked
 cc_library_static {
     name: "libbt-rootcanal",
     defaults: ["rootcanal_defaults"],
@@ -78,17 +56,27 @@ cc_library_static {
         "model/controller/link_layer_controller.cc",
         "model/controller/sco_connection.cc",
         "model/controller/security_manager.cc",
+        "model/devices/beacon.cc",
+        "model/devices/beacon_swarm.cc",
+        "model/devices/broken_adv.cc",
+        "model/devices/car_kit.cc",
+        "model/devices/classic.cc",
         "model/devices/device.cc",
         "model/devices/device_properties.cc",
         "model/devices/hci_device.cc",
+        "model/devices/keyboard.cc",
         "model/devices/link_layer_socket_device.cc",
+        "model/devices/loopback.cc",
         "model/devices/remote_loopback_device.cc",
+        "model/devices/scripted_beacon.cc",
+        "model/devices/sniffer.cc",
         "model/hci/h4_data_channel_packetizer.cc",
         "model/hci/h4_packetizer.cc",
         "model/hci/h4_parser.cc",
         "model/hci/hci_protocol.cc",
         "model/hci/hci_socket_transport.cc",
         "model/setup/async_manager.cc",
+        "model/setup/device_boutique.cc",
         "model/setup/phy_layer_factory.cc",
         "model/setup/test_channel_transport.cc",
         "model/setup/test_command_handler.cc",
@@ -99,7 +87,6 @@ cc_library_static {
         ":BluetoothPacketSources",
         ":BluetoothHciClassSources",
         ":BluetoothCryptoToolboxSources",
-        ":libbt-rootcanal-devices",
     ],
     export_include_dirs: [
         "include",
@@ -110,6 +97,7 @@ cc_library_static {
     ],
     static_libs: [
         "libjsoncpp",
+        "libscriptedbeaconpayload-protos-lite",
     ],
 }
 
@@ -182,11 +170,13 @@ cc_binary_host {
         "liblog",
         "libbacktrace",
     ],
+    whole_static_libs: [
+        "libbt-rootcanal",
+    ],
     static_libs: [
         "libjsoncpp",
         "libprotobuf-cpp-lite",
         "libscriptedbeaconpayload-protos-lite",
-        "libbt-rootcanal",
         "breakpad_client",
         "libgflags",
     ],

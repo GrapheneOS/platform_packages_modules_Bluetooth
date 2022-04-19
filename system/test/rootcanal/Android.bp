@@ -61,10 +61,12 @@ cc_binary {
         "BluetoothGeneratedPackets_h",
         "libbt_init_flags_bridge_header",
     ],
+    whole_static_libs: [
+        "libbt-rootcanal",
+    ],
     static_libs: [
         "android.hardware.bluetooth-async",
         "android.hardware.bluetooth-hci",
-        "libbt-rootcanal",
         "libscriptedbeaconpayload-protos-lite",
     ],
     include_dirs: [
@@ -114,10 +116,12 @@ cc_library_shared {
         "BluetoothGeneratedPackets_h",
         "libbt_init_flags_bridge_header",
     ],
+    whole_static_libs: [
+        "libbt-rootcanal"
+    ],
     static_libs: [
         "android.hardware.bluetooth-async",
         "android.hardware.bluetooth-hci",
-        "libbt-rootcanal",
         "libscriptedbeaconpayload-protos-lite",
     ],
     include_dirs: [
