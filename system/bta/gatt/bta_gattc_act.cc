@@ -501,13 +501,23 @@ void bta_gattc_conn(tBTA_GATTC_CLCB* p_clcb, const tBTA_GATTC_DATA* p_data) {
       p_clcb->p_srcb->state != BTA_GATTC_SERV_IDLE) {
     if (p_clcb->p_srcb->state == BTA_GATTC_SERV_IDLE) {
       p_clcb->p_srcb->state = BTA_GATTC_SERV_LOAD;
+      // Consider the case that if GATT Server is changed, but no service
+      // changed indication is received, the database might be out of date. So
+      // if robust caching is enabled, any time when connection is established,
+      // always check the db hash first, not just load the stored database.
       gatt::Database db = bta_gattc_cache_load(p_clcb->p_srcb->server_bda);
-      if (!db.IsEmpty()) {
+      if (!bta_gattc_is_robust_caching_enabled() && !db.IsEmpty()) {
         p_clcb->p_srcb->gatt_database = db;
         p_clcb->p_srcb->state = BTA_GATTC_SERV_IDLE;
         bta_gattc_reset_discover_st(p_clcb->p_srcb, GATT_SUCCESS);
       } else {
         p_clcb->p_srcb->state = BTA_GATTC_SERV_DISC;
+
+        /* set true to read database hash before service discovery */
+        if (bta_gattc_is_robust_caching_enabled()) {
+          p_clcb->p_srcb->srvc_hdl_db_hash = true;
+        }
+
         /* cache load failure, start discovery */
         bta_gattc_start_discover(p_clcb, NULL);
       }
@@ -707,6 +717,11 @@ void bta_gattc_start_discover(tBTA_GATTC_CLCB* p_clcb,
       /* set all srcb related clcb into discovery ST */
       bta_gattc_set_discover_st(p_clcb->p_srcb);
 
+      // Before clear mask, set is_svc_chg to
+      // 1. true, invoked by service changed indication
+      // 2. false, invoked by connect API
+      bool is_svc_chg = p_clcb->p_srcb->srvc_hdl_chg;
+
       /* clear the service change mask */
       p_clcb->p_srcb->srvc_hdl_chg = false;
       p_clcb->p_srcb->update_count = 0;
@@ -714,7 +729,8 @@ void bta_gattc_start_discover(tBTA_GATTC_CLCB* p_clcb,
 
       /* read db hash if db hash characteristic exists */
       if (bta_gattc_is_robust_caching_enabled() &&
-          p_clcb->p_srcb->srvc_hdl_db_hash && bta_gattc_read_db_hash(p_clcb)) {
+          p_clcb->p_srcb->srvc_hdl_db_hash &&
+          bta_gattc_read_db_hash(p_clcb, is_svc_chg)) {
         LOG(INFO) << __func__
                   << ": pending service discovery, read db hash first";
         p_clcb->p_srcb->srvc_hdl_db_hash = false;
