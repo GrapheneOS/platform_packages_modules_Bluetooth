@@ -221,7 +221,9 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
     le_address_manager_ = acl_manager->GetLeAddressManager();
     le_scanning_interface_ = hci_layer_->GetLeScanningInterface(
         module_handler_->BindOn(this, &LeScanningManager::impl::handle_scan_results));
-    if (controller_->IsSupported(OpCode::LE_SET_EXTENDED_SCAN_PARAMETERS)) {
+    /* Check to see if the opcode is supported and C19 (support for extended advertising). */
+    if (controller_->IsSupported(OpCode::LE_SET_EXTENDED_SCAN_PARAMETERS) &&
+        controller->SupportsBleExtendedAdvertising()) {
       api_type_ = ScanApiType::EXTENDED;
       interval_ms_ = kDefaultLeExtendedScanInterval;
       window_ms_ = kDefaultLeExtendedScanWindow;
