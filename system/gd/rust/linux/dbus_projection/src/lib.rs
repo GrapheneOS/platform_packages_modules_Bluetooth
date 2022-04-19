@@ -188,6 +188,43 @@ macro_rules! impl_dbus_arg_enum {
     };
 }
 
+/// Implements `DBusArg` for a type which implements TryFrom and TryInto.
+#[macro_export]
+macro_rules! impl_dbus_arg_from_into {
+    ($rust_type:ty, $dbus_type:ty) => {
+        impl DBusArg for $rust_type {
+            type DBusType = $dbus_type;
+            fn from_dbus(
+                data: $dbus_type,
+                _conn: Option<Arc<SyncConnection>>,
+                _remote: Option<dbus::strings::BusName<'static>>,
+                _disconnect_watcher: Option<
+                    Arc<std::sync::Mutex<dbus_projection::DisconnectWatcher>>,
+                >,
+            ) -> Result<$rust_type, Box<dyn std::error::Error>> {
+                match <$rust_type>::try_from(data) {
+                    Err(e) => Err(Box::new(DBusArgError::new(String::from(format!(
+                        "error converting {} to {}",
+                        data,
+                        stringify!($rust_type),
+                    ))))),
+                    Ok(result) => Ok(result),
+                }
+            }
+
+            fn to_dbus(data: $rust_type) -> Result<$dbus_type, Box<dyn std::error::Error>> {
+                match data.try_into() {
+                    Err(e) => Err(Box::new(DBusArgError::new(String::from(format!(
+                        "error converting {:?} to {}",
+                        data,
+                        stringify!($dbus_type)
+                    ))))),
+                    Ok(result) => Ok(result),
+                }
+            }
+        }
+    };
+}
 /// Marks a function to be implemented by dbus_projection macros.
 #[macro_export]
 macro_rules! dbus_generated {
