@@ -228,7 +228,6 @@ public class LeAudioBroadcastServiceTest {
 
     void verifyBroadcastStarted(int broadcastId, byte[] code,
             BluetoothLeAudioContentMetadata meta) {
-        int broadcast_profile = 0;
         mService.createBroadcast(meta, code);
 
         verify(mNativeInterface, times(1)).createBroadcast(eq(meta.getRawMetadata()), eq(1),
@@ -329,7 +328,6 @@ public class LeAudioBroadcastServiceTest {
     @Test
     public void testStartStopBroadcastNative() {
         int broadcastId = 243;
-        int broadcast_profile = 0;
         byte[] code = {0x00, 0x01, 0x00};
 
         mService.mBroadcastCallbacks.register(mCallbacks);
@@ -390,7 +388,6 @@ public class LeAudioBroadcastServiceTest {
     @Test
     public void testGetAllBroadcastMetadata() {
         int broadcastId = 243;
-        int broadcast_profile = 0;
         byte[] code = {0x00, 0x01, 0x00};
 
         BluetoothLeAudioContentMetadata.Builder meta_builder =
