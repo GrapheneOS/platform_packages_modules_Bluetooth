@@ -23,8 +23,8 @@
     <string name="bt_share_picker_label" msgid="7464438494743777696">"Bluetooth"</string>
     <string name="unknown_device" msgid="2317679521750821654">"Dispositivo desconocido"</string>
     <string name="unknownNumber" msgid="1245183329830158661">"Desconocido"</string>
-    <string name="airplane_error_title" msgid="2570111716678850860">"Modo avión"</string>
-    <string name="airplane_error_msg" msgid="4853111123699559578">"No puedes utilizar el Bluetooth en el modo avión."</string>
+    <string name="airplane_error_title" msgid="2570111716678850860">"Modo Avión"</string>
+    <string name="airplane_error_msg" msgid="4853111123699559578">"No puedes utilizar el Bluetooth en el modo Avión."</string>
     <string name="bt_enable_title" msgid="4484289159118416315"></string>
     <string name="bt_enable_line1" msgid="8429910585843481489">"Para utilizar los servicios de Bluetooth, primero debes activar la función Bluetooth."</string>
     <string name="bt_enable_line2" msgid="1466367120348920892">"¿Quieres activar la función Bluetooth ahora?"</string>
