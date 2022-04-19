@@ -265,6 +265,10 @@ class A2dp(val context: Context) : A2DPImplBase() {
   ): StreamObserver<PlaybackAudioRequest> {
     Log.i(TAG, "playbackAudio")
 
+    if (audioTrack.getPlayState() != AudioTrack.PLAYSTATE_PLAYING) {
+      responseObserver.onError(Status.UNKNOWN.withDescription("AudioTrack is not started").asException())
+    }
+
     // Volume is maxed out to avoid any amplitude modification of the provided audio data,
     // enabling the test runner to do comparisons between input and output audio signal.
     // Any volume modification should be done before providing the audio data.
@@ -280,10 +284,16 @@ class A2dp(val context: Context) : A2DPImplBase() {
         )
       }
     }
+
     return object : StreamObserver<PlaybackAudioRequest> {
       override fun onNext(request: PlaybackAudioRequest) {
         val data = request.data.toByteArray()
-        audioTrack.write(data, 0, data.size)
+        val written = audioTrack.write(data, 0, data.size)
+        if (written != data.size) {
+          responseObserver.onError(
+            Status.UNKNOWN.withDescription("AudioTrack write failed").asException()
+          )
+        }
       }
       override fun onError(t: Throwable?) {
         Log.e(TAG, t.toString())
