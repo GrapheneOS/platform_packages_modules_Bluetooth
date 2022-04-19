@@ -64,6 +64,7 @@ cc_test {
     shared_libs: [
         "android.hardware.bluetooth@1.0",
         "android.hardware.bluetooth@1.1",
+        "libbase",
         "libbinder_ndk",
         "libcrypto",
     ],
