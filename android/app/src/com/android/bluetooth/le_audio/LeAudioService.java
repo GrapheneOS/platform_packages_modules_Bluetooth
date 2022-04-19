@@ -1138,6 +1138,9 @@ public class LeAudioService extends ProfileService {
             boolean success = stackEvent.valueBool1;
             if (success) {
                 Log.d(TAG, "Broadcast broadcastId: " + broadcastId + " created.");
+                notifyBroadcastStarted(broadcastId, BluetoothStatusCodes.REASON_LOCAL_APP_REQUEST);
+
+                // Start sending the actual stream
                 startBroadcast(broadcastId);
             } else {
                 // TODO: Improve reason reporting or extend the native stack event with reason code
@@ -1200,11 +1203,6 @@ public class LeAudioService extends ProfileService {
 
             } else if (state == LeAudioStackEvent.BROADCAST_STATE_STREAMING) {
                 if (DBG) Log.d(TAG, "Broadcast broadcastId: " + broadcastId + " streaming.");
-
-                if (!mBroadcastsPlaybackMap.containsKey(broadcastId)) {
-                    notifyBroadcastStarted(broadcastId,
-                            BluetoothStatusCodes.REASON_LOCAL_APP_REQUEST);
-                }
 
                 // Stream resumed
                 mBroadcastsPlaybackMap.put(broadcastId, true);
