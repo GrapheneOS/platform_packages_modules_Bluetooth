@@ -26,12 +26,14 @@ from blueberry.facade.hci import le_advertising_manager_facade_pb2 as le_adverti
 from blueberry.facade.hci import le_initiator_address_facade_pb2 as le_initiator_address_facade
 from blueberry.facade import common_pb2 as common
 from blueberry.tests.gd.cert.truth import assertThat
+from blueberry.tests.gd_sl4a.lib import gd_sl4a_base_test
 from blueberry.tests.gd_sl4a.lib.bt_constants import ble_scan_settings_modes, ble_address_types, scan_result, ble_scan_settings_phys, ble_scan_settings_callback_types
 from blueberry.tests.gd_sl4a.lib.ble_lib import generate_ble_scan_objects
-from blueberry.tests.gd_sl4a.lib.gd_sl4a_base_test import GdSl4aBaseTestClass
+
+from mobly import test_runner
 
 
-class LeAdvancedScanningTest(GdSl4aBaseTestClass):
+class LeAdvancedScanningTest(gd_sl4a_base_test.GdSl4aBaseTestClass):
 
     def setup_class(self):
         super().setup_class(cert_module='HCI_INTERFACES')
@@ -720,3 +722,7 @@ class LeAdvancedScanningTest(GdSl4aBaseTestClass):
 
         # Test over
         self._stop_scanning(scan_callback)
+
+
+if __name__ == '__main__':
+    test_runner.main()
