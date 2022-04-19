@@ -341,6 +341,27 @@ public class LeAudioBroadcastServiceTest {
         verifyBroadcastStopped(broadcastId);
     }
 
+    @Test
+    public void testBroadcastInvalidBroadcastIdRequest() {
+        int broadcastId = 243;
+
+        mService.mBroadcastCallbacks.register(mCallbacks);
+
+        // Stop non-existing broadcast
+        mService.stopBroadcast(broadcastId);
+        Assert.assertFalse(mOnBroadcastStoppedCalled);
+        Assert.assertTrue(mOnBroadcastStopFailedCalled);
+
+        // Update metadata for non-existing broadcast
+        BluetoothLeAudioContentMetadata.Builder meta_builder =
+        new BluetoothLeAudioContentMetadata.Builder();
+        meta_builder.setLanguage("eng");
+        meta_builder.setProgramInfo("Public broadcast info");
+        mService.updateBroadcast(broadcastId, meta_builder.build());
+        Assert.assertFalse(mOnBroadcastUpdatedCalled);
+        Assert.assertTrue(mOnBroadcastUpdateFailedCalled);
+    }
+
     private BluetoothLeBroadcastSubgroup createBroadcastSubgroup() {
         BluetoothLeAudioCodecConfigMetadata codecMetadata =
                 new BluetoothLeAudioCodecConfigMetadata.Builder()

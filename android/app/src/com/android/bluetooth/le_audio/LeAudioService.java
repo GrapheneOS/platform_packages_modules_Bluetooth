@@ -631,6 +631,12 @@ public class LeAudioService extends ProfileService {
             Log.w(TAG, "Native interface not available.");
             return;
         }
+        if (!mBroadcastStateMap.containsKey(broadcastId)) {
+            notifyBroadcastUpdateFailed(broadcastId,
+                    BluetoothStatusCodes.ERROR_LE_BROADCAST_INVALID_BROADCAST_ID);
+            return;
+        }
+
         if (DBG) Log.d(TAG, "updateBroadcast");
         mLeAudioBroadcasterNativeInterface.updateMetadata(broadcastId, metadata.getRawMetadata());
     }
@@ -644,6 +650,12 @@ public class LeAudioService extends ProfileService {
             Log.w(TAG, "Native interface not available.");
             return;
         }
+        if (!mBroadcastStateMap.containsKey(broadcastId)) {
+            notifyOnBroadcastStopFailed(
+                    BluetoothStatusCodes.ERROR_LE_BROADCAST_INVALID_BROADCAST_ID);
+            return;
+        }
+
         if (DBG) Log.d(TAG, "stopBroadcast");
         mLeAudioBroadcasterNativeInterface.stopBroadcast(broadcastId);
     }
@@ -657,6 +669,12 @@ public class LeAudioService extends ProfileService {
             Log.w(TAG, "Native interface not available.");
             return;
         }
+        if (!mBroadcastStateMap.containsKey(broadcastId)) {
+            notifyOnBroadcastStopFailed(
+                    BluetoothStatusCodes.ERROR_LE_BROADCAST_INVALID_BROADCAST_ID);
+            return;
+        }
+
         if (DBG) Log.d(TAG, "destroyBroadcast");
         mLeAudioBroadcasterNativeInterface.destroyBroadcast(broadcastId);
     }
