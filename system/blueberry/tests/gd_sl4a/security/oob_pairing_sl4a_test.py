@@ -21,8 +21,8 @@ from google.protobuf import empty_pb2 as empty_proto
 
 from bluetooth_packets_python3 import hci_packets
 
+from blueberry.tests.gd_sl4a.lib import gd_sl4a_base_test
 from blueberry.tests.gd_sl4a.lib.bt_constants import ble_scan_settings_phys
-from blueberry.tests.gd_sl4a.lib.gd_sl4a_base_test import GdSl4aBaseTestClass
 from blueberry.tests.gd.cert.matchers import SecurityMatchers
 from blueberry.tests.gd.cert.py_le_security import PyLeSecurity
 from blueberry.tests.gd.cert.truth import assertThat
@@ -38,6 +38,8 @@ from blueberry.facade.security.facade_pb2 import LeOobDataPresentMessage
 from blueberry.facade.security.facade_pb2 import UiCallbackMsg
 from blueberry.facade.security.facade_pb2 import UiCallbackType
 from blueberry.facade.security.facade_pb2 import UiMsgType
+
+from mobly import test_runner
 
 LeIoCapabilities = LeIoCapabilityMessage.LeIoCapabilities
 LeOobDataFlag = LeOobDataPresentMessage.LeOobDataFlag
@@ -59,7 +61,7 @@ class OobData:
         self.randomizer = randomizer
 
 
-class OobPairingSl4aTest(GdSl4aBaseTestClass):
+class OobPairingSl4aTest(gd_sl4a_base_test.GdSl4aBaseTestClass):
     # Events sent from SL4A
     SL4A_EVENT_GENERATED = "GeneratedOobData"
     SL4A_EVENT_ERROR = "ErrorOobData"
@@ -283,3 +285,7 @@ class OobPairingSl4aTest(GdSl4aBaseTestClass):
 
         assertThat(bond_state).isNotNone()
         assertThat(bond_state["data"]["bonded_state"]).isEqualTo(False)
+
+
+if __name__ == '__main__':
+    test_runner.main()
