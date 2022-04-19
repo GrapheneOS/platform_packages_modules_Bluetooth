@@ -1,32 +1,52 @@
-use bt_topshim::profiles::a2dp::PresentationPosition;
-use btstack::bluetooth_media::{IBluetoothMedia, IBluetoothMediaCallback};
+use bt_topshim::profiles::a2dp::{A2dpCodecConfig, PresentationPosition};
+use bt_topshim::profiles::hfp::HfpCodecCapability;
+use btstack::bluetooth_media::{BluetoothAudioDevice, IBluetoothMedia, IBluetoothMediaCallback};
 use btstack::RPCProxy;
 
 use dbus::arg::RefArg;
+use dbus::nonblock::SyncConnection;
 use dbus::strings::Path;
 
 use dbus_macros::{dbus_method, dbus_propmap, dbus_proxy_obj, generate_dbus_exporter};
 
-use dbus_projection::dbus_generated;
 use dbus_projection::DisconnectWatcher;
+use dbus_projection::{dbus_generated, impl_dbus_arg_from_into};
 
 use crate::dbus_arg::{DBusArg, DBusArgError, RefArgToRust};
+
+use std::convert::{TryFrom, TryInto};
+use std::sync::Arc;
 
 #[allow(dead_code)]
 struct BluetoothMediaCallbackDBus {}
 
+#[dbus_propmap(A2dpCodecConfig)]
+pub struct A2dpCodecConfigDBus {
+    codec_type: i32,
+    codec_priority: i32,
+    sample_rate: i32,
+    bits_per_sample: i32,
+    channel_mode: i32,
+    codec_specific_1: i64,
+    codec_specific_2: i64,
+    codec_specific_3: i64,
+    codec_specific_4: i64,
+}
+
+#[dbus_propmap(BluetoothAudioDevice)]
+pub struct BluetoothAudioDeviceDBus {
+    address: String,
+    name: String,
+    a2dp_caps: Vec<A2dpCodecConfig>,
+    hfp_cap: HfpCodecCapability,
+}
+
+impl_dbus_arg_from_into!(HfpCodecCapability, i32);
+
 #[dbus_proxy_obj(BluetoothMediaCallback, "org.chromium.bluetooth.BluetoothMediaCallback")]
 impl IBluetoothMediaCallback for BluetoothMediaCallbackDBus {
     #[dbus_method("OnBluetoothAudioDeviceAdded")]
-    fn on_bluetooth_audio_device_added(
-        &self,
-        addr: String,
-        sample_rate: i32,
-        bits_per_sample: i32,
-        channel_mode: i32,
-        hfp_cap: i32,
-        name: String,
-    ) {
+    fn on_bluetooth_audio_device_added(&self, device: BluetoothAudioDevice) {
         dbus_generated!()
     }
 

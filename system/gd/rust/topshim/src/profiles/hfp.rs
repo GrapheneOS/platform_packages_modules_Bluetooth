@@ -2,6 +2,7 @@ use crate::btif::{BluetoothInterface, RawAddress};
 use crate::topstack::get_dispatchers;
 
 use num_traits::cast::FromPrimitive;
+use std::convert::{TryFrom, TryInto};
 use std::sync::{Arc, Mutex};
 use topshim_macros::cb_variant;
 
@@ -37,10 +38,25 @@ impl From<u32> for BthfAudioState {
 }
 
 bitflags! {
+    #[derive(Default)]
     pub struct HfpCodecCapability: i32 {
         const UNSUPPORTED = 0b00;
         const CVSD = 0b01;
         const MSBC = 0b10;
+    }
+}
+
+impl TryInto<i32> for HfpCodecCapability {
+    type Error = ();
+    fn try_into(self) -> Result<i32, Self::Error> {
+        Ok(self.bits())
+    }
+}
+
+impl TryFrom<i32> for HfpCodecCapability {
+    type Error = ();
+    fn try_from(val: i32) -> Result<Self, Self::Error> {
+        Self::from_bits(val).ok_or(())
     }
 }
 
