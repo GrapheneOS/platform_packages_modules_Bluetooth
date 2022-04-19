@@ -58,8 +58,8 @@ from bluetooth_packets_python3.hci_packets import LeExtendedCreateConnectionBuil
 from bluetooth_packets_python3.hci_packets import InitiatorFilterPolicy
 from bluetooth_packets_python3.hci_packets import AddressType
 from bluetooth_packets_python3.hci_packets import BroadcastFlag
-from bluetooth_packets_python3.hci_packets import ConnectListAddressType
-from bluetooth_packets_python3.hci_packets import LeAddDeviceToConnectListBuilder
+from bluetooth_packets_python3.hci_packets import FilterAcceptListAddressType
+from bluetooth_packets_python3.hci_packets import LeAddDeviceToFilterAcceptListBuilder
 from bluetooth_packets_python3.hci_packets import LeSetRandomAddressBuilder
 from bluetooth_packets_python3.hci_packets import LeReadRemoteFeaturesBuilder
 from bluetooth_packets_python3.hci_packets import WritePageTimeoutBuilder
@@ -238,14 +238,15 @@ class DirectHciTest(gd_base_test.GdBaseTestClass):
         assertThat(self.dut_hci.get_raw_acl_stream()).emits(
             lambda packet: logging.debug(packet.payload) or b'SomeMoreAclData' in packet.payload)
 
-    def test_le_connect_list_connection_cert_advertises(self):
+    def test_le_filter_accept_list_connection_cert_advertises(self):
         self.dut_hci.register_for_le_events(SubeventCode.CONNECTION_COMPLETE, SubeventCode.ENHANCED_CONNECTION_COMPLETE)
         # DUT Connects
         self.dut_hci.send_command(LeSetRandomAddressBuilder('0D:05:04:03:02:01'))
-        self.dut_hci.send_command(LeAddDeviceToConnectListBuilder(ConnectListAddressType.RANDOM, '0C:05:04:03:02:01'))
+        self.dut_hci.send_command(
+            LeAddDeviceToFilterAcceptListBuilder(FilterAcceptListAddressType.RANDOM, '0C:05:04:03:02:01'))
         phy_scan_params = self._create_phy_scan_params()
         self.dut_hci.send_command(
-            LeExtendedCreateConnectionBuilder(InitiatorFilterPolicy.USE_CONNECT_LIST,
+            LeExtendedCreateConnectionBuilder(InitiatorFilterPolicy.USE_FILTER_ACCEPT_LIST,
                                               OwnAddressType.RANDOM_DEVICE_ADDRESS, AddressType.RANDOM_DEVICE_ADDRESS,
                                               'BA:D5:A4:A3:A2:A1', 1, [phy_scan_params]))
 
