@@ -28,6 +28,8 @@ import android.net.Uri;
 import androidx.test.InstrumentationRegistry;
 import androidx.test.runner.AndroidJUnit4;
 
+import com.android.bluetooth.TestUtils;
+
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -54,12 +56,7 @@ public final class AvrcpCoverArtStorageTest {
     @Before
     public void setUp() {
         mTargetContext = InstrumentationRegistry.getTargetContext();
-        try {
-            mTestResources = mTargetContext.getPackageManager()
-                    .getResourcesForApplication("com.android.bluetooth.tests");
-        } catch (PackageManager.NameNotFoundException e) {
-            Assert.fail("Setup Failure Unable to get resources" + e.toString());
-        }
+        mTestResources = TestUtils.getTestApplicationResources(mTargetContext);
         mDevice1 = BluetoothAdapter.getDefaultAdapter().getRemoteDevice("AA:BB:CC:DD:EE:FF");
         mDevice2 = BluetoothAdapter.getDefaultAdapter().getRemoteDevice("BB:CC:DD:EE:FF:AA");
         InputStream is = mTestResources.openRawResource(
