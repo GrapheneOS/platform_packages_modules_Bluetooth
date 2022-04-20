@@ -154,6 +154,9 @@ static const interop_addr_entry_t interop_addr_database[] = {
     // because BR/EDR address and ADV random address are the same
     {{{0xd4, 0x7a, 0xe2, 0, 0, 0}}, 3, INTEROP_DISABLE_NAME_REQUEST},
 
+    // SUBARU Carkit
+    {{{0x48, 0xf0, 0x7b, 0, 0, 0}}, 3, INTEROP_AVRCP_1_4_ONLY},
+
     // Audi Carkit
     {{{0x90, 0x03, 0xb7, 0, 0, 0}}, 3, INTEROP_AVRCP_1_4_ONLY},
     {{{0x28, 0xA1, 0x83, 0, 0, 0}}, 3, INTEROP_AVRCP_1_4_ONLY},
