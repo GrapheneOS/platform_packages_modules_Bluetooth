@@ -1017,7 +1017,7 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
   void batch_scan_read_results(ScannerId scanner_id, uint16_t total_num_of_records, BatchScanMode scan_mode) {
     if (!is_batch_scan_support_) {
       LOG_WARN("Batch scan is not supported");
-      int status = static_cast<int>(ErrorCode::UNSUPORTED_FEATURE_OR_PARAMETER_VALUE);
+      int status = static_cast<int>(ErrorCode::UNSUPPORTED_FEATURE_OR_PARAMETER_VALUE);
       scanning_callbacks_->OnBatchScanReports(scanner_id, status, 0, 0, {});
       return;
     }
