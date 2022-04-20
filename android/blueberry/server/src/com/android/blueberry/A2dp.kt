@@ -168,17 +168,18 @@ class A2dp(val context: Context) : A2DPImplBase() {
         throw Status.UNKNOWN.asException()
       }
 
-      if (!bluetoothA2dp.isA2dpPlaying(device)) {
-        val a2dpPlayingStateFlow =
-          flow
-            .filter { it.getAction() == BluetoothA2dp.ACTION_PLAYING_STATE_CHANGED }
-            .filter {
-              it.getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE).address == address
-            }
-            .map { it.getIntExtra(BluetoothA2dp.EXTRA_STATE, BluetoothAdapter.ERROR) }
+      audioTrack.play()
 
-        audioTrack.play()
-        a2dpPlayingStateFlow.filter { it == BluetoothA2dp.STATE_PLAYING }.first()
+      // If A2dp is not already playing, wait for it
+      if (!bluetoothA2dp.isA2dpPlaying(device)) {
+        flow
+          .filter { it.getAction() == BluetoothA2dp.ACTION_PLAYING_STATE_CHANGED }
+          .filter {
+            it.getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE).address == address
+          }
+          .map { it.getIntExtra(BluetoothA2dp.EXTRA_STATE, BluetoothAdapter.ERROR) }
+          .filter { it == BluetoothA2dp.STATE_PLAYING }
+          .first()
       }
       StartResponse.getDefaultInstance()
     }
@@ -264,6 +265,10 @@ class A2dp(val context: Context) : A2DPImplBase() {
   ): StreamObserver<PlaybackAudioRequest> {
     Log.i(TAG, "playbackAudio")
 
+    if (audioTrack.getPlayState() != AudioTrack.PLAYSTATE_PLAYING) {
+      responseObserver.onError(Status.UNKNOWN.withDescription("AudioTrack is not started").asException())
+    }
+
     // Volume is maxed out to avoid any amplitude modification of the provided audio data,
     // enabling the test runner to do comparisons between input and output audio signal.
     // Any volume modification should be done before providing the audio data.
@@ -279,10 +284,16 @@ class A2dp(val context: Context) : A2DPImplBase() {
         )
       }
     }
+
     return object : StreamObserver<PlaybackAudioRequest> {
       override fun onNext(request: PlaybackAudioRequest) {
         val data = request.data.toByteArray()
-        audioTrack.write(data, 0, data.size)
+        val written = audioTrack.write(data, 0, data.size)
+        if (written != data.size) {
+          responseObserver.onError(
+            Status.UNKNOWN.withDescription("AudioTrack write failed").asException()
+          )
+        }
       }
       override fun onError(t: Throwable?) {
         Log.e(TAG, t.toString())
@@ -319,8 +330,8 @@ class A2dp(val context: Context) : A2DPImplBase() {
   // TODO: Remove reflection and import framework bluetooth library when it will be available
   // on AOSP.
   fun BluetoothA2dp.connect(device: BluetoothDevice) =
-        this.javaClass.getMethod("connect", BluetoothDevice::class.java).invoke(this, device)
+    this.javaClass.getMethod("connect", BluetoothDevice::class.java).invoke(this, device)
 
   fun BluetoothA2dp.disconnect(device: BluetoothDevice) =
-        this.javaClass.getMethod("disconnect", BluetoothDevice::class.java).invoke(this, device)
+    this.javaClass.getMethod("disconnect", BluetoothDevice::class.java).invoke(this, device)
 }
