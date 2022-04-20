@@ -66,7 +66,6 @@ import android.bluetooth.UidTraffic;
 import android.companion.CompanionDeviceManager;
 import android.content.AttributionSource;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -3715,8 +3714,7 @@ public class AdapterService extends Service {
         @Override
         public void setForegroundUserId(int userId, AttributionSource attributionSource) {
             AdapterService service = getService();
-            if (service == null || !callerIsSystemOrActiveUser(TAG, "setForegroundUserId")
-                    || !Utils.checkConnectPermissionForDataDelivery(
+            if (service == null || !Utils.checkConnectPermissionForDataDelivery(
                     service, Utils.getCallingAttributionSource(mService),
                     "AdapterService setForegroundUserId")) {
                 return;

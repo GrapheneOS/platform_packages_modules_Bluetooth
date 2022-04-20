@@ -322,6 +322,11 @@ public final class Utils {
     }
 
     static int sForegroundUserId = USER_HANDLE_NULL.getIdentifier();
+
+    public static int getForegroundUserId() {
+        return Utils.sForegroundUserId;
+    }
+
     public static void setForegroundUserId(int userId) {
         Utils.sForegroundUserId = userId;
     }
