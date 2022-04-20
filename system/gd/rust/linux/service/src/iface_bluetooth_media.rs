@@ -39,6 +39,7 @@ pub struct BluetoothAudioDeviceDBus {
     name: String,
     a2dp_caps: Vec<A2dpCodecConfig>,
     hfp_cap: HfpCodecCapability,
+    absolute_volume: bool,
 }
 
 impl_dbus_arg_from_into!(HfpCodecCapability, i32);

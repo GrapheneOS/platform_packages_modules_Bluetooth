@@ -81,6 +81,7 @@ pub struct BluetoothAudioDevice {
     pub name: String,
     pub a2dp_caps: Vec<A2dpCodecConfig>,
     pub hfp_cap: HfpCodecCapability,
+    pub absolute_volume: bool,
 }
 
 impl BluetoothAudioDevice {
@@ -89,8 +90,9 @@ impl BluetoothAudioDevice {
         name: String,
         a2dp_caps: Vec<A2dpCodecConfig>,
         hfp_cap: HfpCodecCapability,
+        absolute_volume: bool,
     ) -> BluetoothAudioDevice {
-        BluetoothAudioDevice { address, name, a2dp_caps, hfp_cap }
+        BluetoothAudioDevice { address, name, a2dp_caps, hfp_cap, absolute_volume }
     }
 }
 /// Actions that `BluetoothMedia` can take on behalf of the stack.
@@ -114,6 +116,7 @@ pub struct BluetoothMedia {
     selectable_caps: HashMap<RawAddress, Vec<A2dpCodecConfig>>,
     hfp_caps: HashMap<RawAddress, HfpCodecCapability>,
     device_added_tasks: Arc<Mutex<HashMap<RawAddress, Option<JoinHandle<()>>>>>,
+    absolute_volume: bool,
 }
 
 impl BluetoothMedia {
@@ -133,6 +136,7 @@ impl BluetoothMedia {
             selectable_caps: HashMap::new(),
             hfp_caps: HashMap::new(),
             device_added_tasks: Arc::new(Mutex::new(HashMap::new())),
+            absolute_volume: false,
         }
     }
 
@@ -176,6 +180,7 @@ impl BluetoothMedia {
     pub fn dispatch_avrcp_callbacks(&mut self, cb: AvrcpCallbacks) {
         match cb {
             AvrcpCallbacks::AvrcpAbsoluteVolumeEnabled(supported) => {
+                self.absolute_volume = supported;
                 self.for_all_callbacks(|callback| {
                     callback.on_absolute_volume_supported_changed(supported);
                 });
@@ -308,6 +313,7 @@ impl BluetoothMedia {
         let cur_a2dp_caps = self.selectable_caps.get(&addr);
         let cur_hfp_cap = self.hfp_caps.get(&addr);
         let name = self.adapter_get_remote_name(addr);
+        let absolute_volume = self.absolute_volume;
         match (cur_a2dp_caps, cur_hfp_cap) {
             (None, None) => warn!(
                 "[{}]: Try to add a device without a2dp and hfp capability.",
@@ -323,6 +329,7 @@ impl BluetoothMedia {
                         name.clone(),
                         caps.to_vec(),
                         *hfp_cap,
+                        absolute_volume,
                     ),
                     false,
                 );
@@ -337,6 +344,7 @@ impl BluetoothMedia {
                         name.clone(),
                         cur_a2dp_caps.unwrap_or(&Vec::new()).to_vec(),
                         *cur_hfp_cap.unwrap_or(&HfpCodecCapability::UNSUPPORTED),
+                        absolute_volume,
                     );
                     let task = topstack::get_runtime().spawn(async move {
                         sleep(Duration::from_secs(DEFAULT_PROFILE_DISCOVERY_TIMEOUT_SEC)).await;
