@@ -135,15 +135,15 @@ pub mod ffi {
 
     #[derive(Debug, Copy, Clone)]
     pub struct A2dpCodecConfig {
-        codec_type: i32,
-        codec_priority: i32,
-        sample_rate: i32,
-        bits_per_sample: i32,
-        channel_mode: i32,
-        codec_specific_1: i64,
-        codec_specific_2: i64,
-        codec_specific_3: i64,
-        codec_specific_4: i64,
+        pub codec_type: i32,
+        pub codec_priority: i32,
+        pub sample_rate: i32,
+        pub bits_per_sample: i32,
+        pub channel_mode: i32,
+        pub codec_specific_1: i64,
+        pub codec_specific_2: i64,
+        pub codec_specific_3: i64,
+        pub codec_specific_4: i64,
     }
 
     #[derive(Debug, Default)]

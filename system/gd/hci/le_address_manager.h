@@ -79,17 +79,17 @@ class LeAddressManager {
   virtual AddressWithType GetCurrentAddress();  // What was set in SetRandomAddress()
   virtual AddressWithType GetAnotherAddress();  // A new random address without rotating.
 
-  uint8_t GetConnectListSize();
+  uint8_t GetFilterAcceptListSize();
   uint8_t GetResolvingListSize();
-  void AddDeviceToConnectList(ConnectListAddressType connect_list_address_type, Address address);
+  void AddDeviceToFilterAcceptList(FilterAcceptListAddressType connect_list_address_type, Address address);
   void AddDeviceToResolvingList(
       PeerAddressType peer_identity_address_type,
       Address peer_identity_address,
       const std::array<uint8_t, 16>& peer_irk,
       const std::array<uint8_t, 16>& local_irk);
-  void RemoveDeviceFromConnectList(ConnectListAddressType connect_list_address_type, Address address);
+  void RemoveDeviceFromFilterAcceptList(FilterAcceptListAddressType connect_list_address_type, Address address);
   void RemoveDeviceFromResolvingList(PeerAddressType peer_identity_address_type, Address peer_identity_address);
-  void ClearConnectList();
+  void ClearFilterAcceptList();
   void ClearResolvingList();
   void OnCommandComplete(CommandCompleteView view);
   std::chrono::milliseconds GetNextPrivateAddressIntervalMs();

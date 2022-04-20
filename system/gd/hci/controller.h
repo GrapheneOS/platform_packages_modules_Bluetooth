@@ -161,7 +161,7 @@ class Controller : public Module {
 
   virtual uint64_t GetControllerLeLocalSupportedFeatures() const;
 
-  virtual uint8_t GetLeConnectListSize() const;
+  virtual uint8_t GetLeFilterAcceptListSize() const;
 
   virtual uint8_t GetLeResolvingListSize() const;
 
