@@ -102,8 +102,7 @@ static const char* btm_pair_state_descr(tBTM_PAIRING_STATE state);
 
 static void btm_sec_check_pending_reqs(void);
 static bool btm_sec_queue_mx_request(const RawAddress& bd_addr, uint16_t psm,
-                                     bool is_orig, uint32_t mx_proto_id,
-                                     uint32_t mx_chan_id,
+                                     bool is_orig, uint16_t security_required,
                                      tBTM_SEC_CALLBACK* p_callback,
                                      void* p_ref_data);
 static void btm_sec_bond_cancel_complete(void);
@@ -1830,8 +1829,7 @@ tBTM_STATUS btm_sec_mx_access_request(const RawAddress& bd_addr,
     }
     if (rc == BTM_CMD_STARTED) {
       btm_sec_queue_mx_request(bd_addr, BT_PSM_RFCOMM, is_originator,
-                               BTM_SEC_PROTO_RFCOMM, security_required,
-                               p_callback, p_ref_data);
+                               security_required, p_callback, p_ref_data);
     } else /* rc == BTM_SUCCESS */
     {
       if (p_callback) {
@@ -4690,8 +4688,7 @@ void btm_sec_cr_loc_oob_data_cback_event(const RawAddress& address,
  *
  ******************************************************************************/
 static bool btm_sec_queue_mx_request(const RawAddress& bd_addr, uint16_t psm,
-                                     bool is_orig, uint32_t mx_proto_id,
-                                     uint32_t mx_chan_id,
+                                     bool is_orig, uint16_t security_required,
                                      tBTM_SEC_CALLBACK* p_callback,
                                      void* p_ref_data) {
   tBTM_SEC_QUEUE_ENTRY* p_e =
@@ -4704,10 +4701,10 @@ static bool btm_sec_queue_mx_request(const RawAddress& bd_addr, uint16_t psm,
   p_e->transport = BT_TRANSPORT_BR_EDR;
   p_e->sec_act = BTM_BLE_SEC_NONE;
   p_e->bd_addr = bd_addr;
+  p_e->rfcomm_security_requirement = security_required;
 
-  BTM_TRACE_EVENT(
-      "%s() PSM: 0x%04x  Is_Orig: %u  mx_proto_id: %u  mx_chan_id: %u",
-      __func__, psm, is_orig, mx_proto_id, mx_chan_id);
+  BTM_TRACE_EVENT("%s() PSM: 0x%04x  Is_Orig: %u  security_required: 0x%x",
+                  __func__, psm, is_orig, security_required);
 
   fixed_queue_enqueue(btm_cb.sec_pending_q, p_e);
 
