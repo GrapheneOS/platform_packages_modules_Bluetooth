@@ -357,7 +357,7 @@ std::chrono::milliseconds LeAddressManager::GetNextPrivateAddressIntervalMs() {
   return minimum_rotation_time_ + random_ms;
 }
 
-uint8_t LeAddressManager::GetConnectListSize() {
+uint8_t LeAddressManager::GetFilterAcceptListSize() {
   return connect_list_size_;
 }
 
@@ -385,9 +385,9 @@ void LeAddressManager::handle_next_command() {
   }
 }
 
-void LeAddressManager::AddDeviceToConnectList(
-    ConnectListAddressType connect_list_address_type, bluetooth::hci::Address address) {
-  auto packet_builder = hci::LeAddDeviceToConnectListBuilder::Create(connect_list_address_type, address);
+void LeAddressManager::AddDeviceToFilterAcceptList(
+    FilterAcceptListAddressType connect_list_address_type, bluetooth::hci::Address address) {
+  auto packet_builder = hci::LeAddDeviceToFilterAcceptListBuilder::Create(connect_list_address_type, address);
   Command command = {CommandType::ADD_DEVICE_TO_CONNECT_LIST, std::move(packet_builder)};
   handler_->BindOnceOn(this, &LeAddressManager::push_command, std::move(command)).Invoke();
 }
@@ -426,9 +426,9 @@ void LeAddressManager::AddDeviceToResolvingList(
   }
 }
 
-void LeAddressManager::RemoveDeviceFromConnectList(
-    ConnectListAddressType connect_list_address_type, bluetooth::hci::Address address) {
-  auto packet_builder = hci::LeRemoveDeviceFromConnectListBuilder::Create(connect_list_address_type, address);
+void LeAddressManager::RemoveDeviceFromFilterAcceptList(
+    FilterAcceptListAddressType connect_list_address_type, bluetooth::hci::Address address) {
+  auto packet_builder = hci::LeRemoveDeviceFromFilterAcceptListBuilder::Create(connect_list_address_type, address);
   Command command = {CommandType::REMOVE_DEVICE_FROM_CONNECT_LIST, std::move(packet_builder)};
   handler_->BindOnceOn(this, &LeAddressManager::push_command, std::move(command)).Invoke();
 }
@@ -457,8 +457,8 @@ void LeAddressManager::RemoveDeviceFromResolvingList(
   }
 }
 
-void LeAddressManager::ClearConnectList() {
-  auto packet_builder = hci::LeClearConnectListBuilder::Create();
+void LeAddressManager::ClearFilterAcceptList() {
+  auto packet_builder = hci::LeClearFilterAcceptListBuilder::Create();
   Command command = {CommandType::CLEAR_CONNECT_LIST, std::move(packet_builder)};
   handler_->BindOnceOn(this, &LeAddressManager::push_command, std::move(command)).Invoke();
 }
@@ -546,20 +546,20 @@ void LeAddressManager::OnCommandComplete(bluetooth::hci::CommandCompleteView vie
       on_command_complete<LeClearResolvingListCompleteView>(view);
       break;
 
-    case OpCode::LE_ADD_DEVICE_TO_CONNECT_LIST:
-      on_command_complete<LeAddDeviceToConnectListCompleteView>(view);
+    case OpCode::LE_ADD_DEVICE_TO_FILTER_ACCEPT_LIST:
+      on_command_complete<LeAddDeviceToFilterAcceptListCompleteView>(view);
       break;
 
-    case OpCode::LE_REMOVE_DEVICE_FROM_CONNECT_LIST:
-      on_command_complete<LeAddDeviceToConnectListCompleteView>(view);
+    case OpCode::LE_REMOVE_DEVICE_FROM_FILTER_ACCEPT_LIST:
+      on_command_complete<LeAddDeviceToFilterAcceptListCompleteView>(view);
       break;
 
     case OpCode::LE_SET_ADDRESS_RESOLUTION_ENABLE:
       on_command_complete<LeSetAddressResolutionEnableCompleteView>(view);
       break;
 
-    case OpCode::LE_CLEAR_CONNECT_LIST:
-      on_command_complete<LeClearConnectListCompleteView>(view);
+    case OpCode::LE_CLEAR_FILTER_ACCEPT_LIST:
+      on_command_complete<LeClearFilterAcceptListCompleteView>(view);
       break;
 
     default:
