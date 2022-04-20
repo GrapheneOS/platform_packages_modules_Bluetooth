@@ -26,6 +26,7 @@ import static android.bluetooth.BluetoothUtils.USER_HANDLE_NULL;
 import static android.content.PermissionChecker.PERMISSION_HARD_DENIED;
 import static android.content.PermissionChecker.PID_UNKNOWN;
 import static android.content.pm.PackageManager.GET_PERMISSIONS;
+import static android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES;
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 import static android.os.PowerExemptionManager.TEMPORARY_ALLOW_LIST_TYPE_FOREGROUND_SERVICE_ALLOWED;
 
@@ -588,7 +589,8 @@ public final class Utils {
         PackageManager pm = context.getPackageManager();
         try {
             // TODO(b/183478032): Cache PackageInfo for use here.
-            PackageInfo pkgInfo = pm.getPackageInfo(packageName, GET_PERMISSIONS);
+            PackageInfo pkgInfo =
+                    pm.getPackageInfo(packageName, GET_PERMISSIONS | MATCH_UNINSTALLED_PACKAGES);
             for (int i = 0; i < pkgInfo.requestedPermissions.length; i++) {
                 if (pkgInfo.requestedPermissions[i].equals(BLUETOOTH_SCAN)) {
                     return (pkgInfo.requestedPermissionsFlags[i]
