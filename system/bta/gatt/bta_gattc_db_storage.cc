@@ -16,7 +16,10 @@
  *
  ******************************************************************************/
 
+#include <base/logging.h>
+
 #include "bta/gatt/bta_gattc_int.h"
+#include "osi/include/log.h"
 
 using gatt::StoredAttribute;
 
