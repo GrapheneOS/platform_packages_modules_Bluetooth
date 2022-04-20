@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include <android-base/silent_death_test.h>
 #include <gtest/gtest.h>
 
 #include "avrcp_test_packets.h"
@@ -186,24 +187,38 @@ TEST(GetFolderItemsResponseBuilderTest, builderErrorStatusTest) {
   ASSERT_EQ(test_packet->GetData(), get_folder_items_inv_scope);
 }
 
-TEST(GetFolderItemsResponseBuilderTest, builderDeathTest) {
+TEST(GetFolderItemsResponseBuilderDeathTest, builderDeathTest) {
   auto player = MediaPlayerItem(0x0001, "com.google.android.music", true);
   auto folder = FolderItem(0x01, 0x00, true, "test folder");
   auto song = MediaElementItem(0x01, "test song", std::set<AttributeEntry>());
 
   auto builder = GetFolderItemsResponseBuilder::MakePlayerListBuilder(
       Status::NO_ERROR, 0x0000, 0xFFFF);
-  ASSERT_DEATH(builder->AddFolder(folder), "scope_ == Scope::VFS");
-  ASSERT_DEATH(builder->AddSong(song),
-               "scope_ == Scope::VFS \\|\\| scope_ == Scope::NOW_PLAYING");
+  {
+    // this will silent SIGABRT sent in ASSERT_DEATH below
+    ScopedSilentDeath _silentDeath;
+
+    ASSERT_DEATH(builder->AddFolder(folder), "scope_ == Scope::VFS");
+    ASSERT_DEATH(builder->AddSong(song),
+                 "scope_ == Scope::VFS \\|\\| scope_ == Scope::NOW_PLAYING");
+  }
 
   builder = GetFolderItemsResponseBuilder::MakeVFSBuilder(Status::NO_ERROR,
                                                           0x0000, 0xFFFF);
-  ASSERT_DEATH(builder->AddMediaPlayer(player),
-               "scope_ == Scope::MEDIA_PLAYER_LIST");
+  {
+    // this will silent SIGABRT sent in ASSERT_DEATH below
+    ScopedSilentDeath _silentDeath;
+
+    ASSERT_DEATH(builder->AddMediaPlayer(player),
+                 "scope_ == Scope::MEDIA_PLAYER_LIST");
+  }
 
   builder = GetFolderItemsResponseBuilder::MakeNowPlayingBuilder(
       Status::NO_ERROR, 0x0000, 0xFFFF);
+
+  // this will silent SIGABRT sent in ASSERT_DEATH below
+  ScopedSilentDeath _silentDeath;
+
   ASSERT_DEATH(builder->AddMediaPlayer(player),
                "scope_ == Scope::MEDIA_PLAYER_LIST");
   ASSERT_DEATH(builder->AddFolder(folder), "scope_ == Scope::VFS");
