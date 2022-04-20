@@ -2572,10 +2572,15 @@ class LeAudioClientImpl : public LeAudioClient {
 
   void Cleanup(base::Callback<void()> cleanupCb) {
     if (alarm_is_scheduled(suspend_timeout_)) alarm_cancel(suspend_timeout_);
+
+    if (active_group_id_ != bluetooth::groups::kGroupUnknown) {
+      /* Bluetooth turned off while streaming */
+      StopAudio();
+      ClientAudioIntefraceRelease();
+    }
     groupStateMachine_->Cleanup();
-    leAudioDevices_.Cleanup();
     aseGroups_.Cleanup();
-    StopAudio();
+    leAudioDevices_.Cleanup();
     if (gatt_if_) BTA_GATTC_AppDeregister(gatt_if_);
 
     std::move(cleanupCb).Run();
