@@ -123,7 +123,8 @@ public class HeadsetStateMachineTest {
         when(mHeadsetService.getConnectionPolicy(any(BluetoothDevice.class))).thenReturn(
                 BluetoothProfile.CONNECTION_POLICY_ALLOWED);
         when(mHeadsetService.getForceScoAudio()).thenReturn(true);
-        when(mHeadsetService.okToAcceptConnection(any(BluetoothDevice.class))).thenReturn(true);
+        when(mHeadsetService.okToAcceptConnection(any(BluetoothDevice.class), anyBoolean()))
+                .thenReturn(true);
         when(mHeadsetService.isScoAcceptable(any(BluetoothDevice.class))).thenReturn(
                 BluetoothStatusCodes.SUCCESS);
         // Setup thread and looper

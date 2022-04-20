@@ -51,6 +51,7 @@ import android.util.Log;
 import com.android.bluetooth.BluetoothMetricsProto;
 import com.android.bluetooth.BluetoothStatsLog;
 import com.android.bluetooth.Utils;
+import com.android.bluetooth.a2dp.A2dpService;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.MetricsLogger;
 import com.android.bluetooth.btservice.ProfileService;
@@ -2040,7 +2041,7 @@ public class HeadsetService extends ProfileService {
      * @param device remote device that initiates the connection
      * @return true if the connection is acceptable
      */
-    public boolean okToAcceptConnection(BluetoothDevice device) {
+    public boolean okToAcceptConnection(BluetoothDevice device, boolean isOutgoingRequest) {
         // Check if this is an incoming connection in Quiet mode.
         if (mAdapterService.isQuietModeEnabled()) {
             Log.w(TAG, "okToAcceptConnection: return false as quiet mode enabled");
@@ -2057,6 +2058,15 @@ public class HeadsetService extends ProfileService {
         } else if (connectionPolicy != BluetoothProfile.CONNECTION_POLICY_UNKNOWN
                 && connectionPolicy != BluetoothProfile.CONNECTION_POLICY_ALLOWED) {
             // Otherwise, reject the connection if connection policy is not valid.
+            if (!isOutgoingRequest) {
+                A2dpService a2dpService = A2dpService.getA2dpService();
+                if (a2dpService != null && a2dpService.okToConnect(device, true)) {
+                    Log.d(TAG, "okToAcceptConnection: return temporary true,"
+                            + " Fallback connection to allowed A2DP profile");
+                    a2dpService.connect(device);
+                    return true;
+                }
+            }
             Log.w(TAG, "okToAcceptConnection: return false, connectionPolicy=" + connectionPolicy);
             return false;
         }
