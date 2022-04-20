@@ -44,6 +44,11 @@ public class ScanRecordTest extends TestCase {
     private static final String RECORD_TLM = "0201060303AAFE1116AAFE20000BF017000008874803FB93540916802069080EFE13551109426C7565436861726D5F313639363835000000000000000000";
     private static final String RECORD_IBEACON = "0201061AFF4C000215426C7565436861726D426561636F6E730EFE1355C509168020691E0EFE13551109426C7565436861726D5F31363936383500000000";
 
+    /**
+     * Example Eddystone E2EE-EID beacon from design doc
+     */
+    private static final String RECORD_E2EE_EID = "0201061816AAFE400000000000000000000000000000000000000000";
+
     @SmallTest
     public void testMatchesAnyField_Eddystone_Parser() {
         final List<String> found = new ArrayList<>();
@@ -68,6 +73,18 @@ public class ScanRecordTest extends TestCase {
         assertMatchesAnyField(RECORD_URL, matcher);
         assertMatchesAnyField(RECORD_UUID, matcher);
         assertMatchesAnyField(RECORD_TLM, matcher);
+        assertMatchesAnyField(RECORD_E2EE_EID, matcher);
+        assertNotMatchesAnyField(RECORD_IBEACON, matcher);
+    }
+
+    @SmallTest
+    public void testMatchesAnyField_Eddystone_ExceptE2eeEid() {
+        final BytesMatcher matcher = BytesMatcher
+                .decode("⊈0016AAFE40/00FFFFFFFF,⊆0016AAFE/00FFFFFF");
+        assertMatchesAnyField(RECORD_URL, matcher);
+        assertMatchesAnyField(RECORD_UUID, matcher);
+        assertMatchesAnyField(RECORD_TLM, matcher);
+        assertNotMatchesAnyField(RECORD_E2EE_EID, matcher);
         assertNotMatchesAnyField(RECORD_IBEACON, matcher);
     }
 
@@ -94,6 +111,7 @@ public class ScanRecordTest extends TestCase {
         assertNotMatchesAnyField(RECORD_URL, matcher);
         assertNotMatchesAnyField(RECORD_UUID, matcher);
         assertNotMatchesAnyField(RECORD_TLM, matcher);
+        assertNotMatchesAnyField(RECORD_E2EE_EID, matcher);
         assertMatchesAnyField(RECORD_IBEACON, matcher);
     }
 
