@@ -150,6 +150,7 @@ public class AdapterServiceTest {
     private PackageManager mMockPackageManager;
     private MockContentResolver mMockContentResolver;
     private HashMap<String, HashMap<String, String>> mAdapterConfig;
+    private int mForegroundUserId;
 
     private void configureEnabledProfiles() {
         Log.e("AdapterServiceTest", "configureEnabledProfiles");
@@ -319,6 +320,10 @@ public class AdapterServiceTest {
     @After
     public void tearDown() {
         Log.e("AdapterServiceTest", "tearDown()");
+
+        // Restores the foregroundUserId to the ID prior to the test setup
+        Utils.setForegroundUserId(mForegroundUserId);
+
         mServiceBinder.unregisterCallback(mIBluetoothCallback, mAttributionSource);
         mAdapterService.cleanup();
     }
