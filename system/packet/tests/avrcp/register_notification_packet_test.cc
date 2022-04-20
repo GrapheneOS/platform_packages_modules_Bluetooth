@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
+#include "register_notification_packet.h"
+
+#include <android-base/silent_death_test.h>
 #include <gtest/gtest.h>
 
 #include "avrcp_test_packets.h"
 #include "packet_test_helper.h"
-#include "register_notification_packet.h"
 
 namespace bluetooth {
 namespace avrcp {
@@ -93,10 +95,13 @@ TEST(RegisterNotificationResponseTest, invalidTest) {
   ASSERT_FALSE(test_packet->IsValid());
 }
 
-TEST(RegisterNotificationResponseTest, wrongEventDeathTest) {
+TEST(RegisterNotificationResponseDeathTest, wrongEventDeathTest) {
   auto wrong_event = interim_volume_changed_notification;
   wrong_event[10] = 0x00;
   auto test_packet = TestRegNotifRspPacket::Make(wrong_event);
+
+  // this will silent SIGABRT sent in ASSERT_DEATH below
+  ScopedSilentDeath _silentDeath;
 
   ASSERT_DEATH(test_packet->GetVolume(),
                "GetEvent\\(\\) == Event::VOLUME_CHANGED");
