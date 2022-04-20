@@ -278,6 +278,12 @@ public class AdapterServiceTest {
             return InstrumentationRegistry.getTargetContext().getDatabasePath((String) args[0]);
         }).when(mMockContext).getDatabasePath(anyString());
 
+        // Sets the foreground user id to match that of the tests (restored in tearDown)
+        mForegroundUserId = Utils.getForegroundUserId();
+        int callingUid = Binder.getCallingUid();
+        UserHandle callingUser = UserHandle.getUserHandleForUid(callingUid);
+        Utils.setForegroundUserId(callingUser.getIdentifier());
+
         when(mMockDevicePolicyManager.isCommonCriteriaModeEnabled(any())).thenReturn(false);
 
         when(mIBluetoothCallback.asBinder()).thenReturn(mBinder);
