@@ -51,6 +51,10 @@ impl IBluetoothCallback for BluetoothCallbackDBus {
     fn on_device_found(&self, remote_device: BluetoothDevice) {
         dbus_generated!()
     }
+    #[dbus_method("OnDeviceCleared")]
+    fn on_device_cleared(&self, remote_device: BluetoothDevice) {
+        dbus_generated!()
+    }
     #[dbus_method("OnDiscoveringChanged")]
     fn on_discovering_changed(&self, discovering: bool) {
         dbus_generated!()
