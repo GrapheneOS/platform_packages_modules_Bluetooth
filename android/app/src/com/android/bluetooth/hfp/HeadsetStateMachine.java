@@ -525,7 +525,7 @@ public class HeadsetStateMachine extends StateMachine {
                 // Both events result in Connecting state as SLC establishment is still required
                 case HeadsetHalConstants.CONNECTION_STATE_CONNECTED:
                 case HeadsetHalConstants.CONNECTION_STATE_CONNECTING:
-                    if (mHeadsetService.okToAcceptConnection(mDevice)) {
+                    if (mHeadsetService.okToAcceptConnection(mDevice, false)) {
                         stateLogI("accept incoming connection");
                         transitionTo(mConnecting);
                     } else {
