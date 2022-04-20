@@ -180,9 +180,9 @@ inline tHCI_STATUS ToLegacyHciErrorCode(const hci::ErrorCode& reason) {
       return HCI_ERR_HOST_REJECT_DEVICE;
     case hci::ErrorCode::CONNECTION_ACCEPT_TIMEOUT:
       return HCI_ERR_HOST_TIMEOUT;
-    case hci::ErrorCode::UNSUPORTED_FEATURE_OR_PARAMETER_VALUE:
+    case hci::ErrorCode::UNSUPPORTED_FEATURE_OR_PARAMETER_VALUE:
       return static_cast<tHCI_STATUS>(
-          hci::ErrorCode::UNSUPORTED_FEATURE_OR_PARAMETER_VALUE);
+          hci::ErrorCode::UNSUPPORTED_FEATURE_OR_PARAMETER_VALUE);
     case hci::ErrorCode::INVALID_HCI_COMMAND_PARAMETERS:
       return HCI_ERR_ILLEGAL_PARAMETER_FMT;
     case hci::ErrorCode::REMOTE_USER_TERMINATED_CONNECTION:
