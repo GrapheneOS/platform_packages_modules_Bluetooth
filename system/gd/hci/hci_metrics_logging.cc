@@ -191,16 +191,16 @@ void log_link_layer_connection_command(std::unique_ptr<CommandView>& command_vie
       link_type = android::bluetooth::LINK_TYPE_ACL;
       break;
     }
-    case OpCode::LE_CLEAR_CONNECT_LIST: {
-      auto le_clear_connect_list_view = LeClearConnectListView::Create(
+    case OpCode::LE_CLEAR_FILTER_ACCEPT_LIST: {
+      auto le_clear_connect_list_view = LeClearFilterAcceptListView::Create(
           LeConnectionManagementCommandView::Create(std::move(connection_management_command_view)));
       ASSERT(le_clear_connect_list_view.IsValid());
       direction = android::bluetooth::DIRECTION_INCOMING;
       link_type = android::bluetooth::LINK_TYPE_ACL;
       break;
     }
-    case OpCode::LE_ADD_DEVICE_TO_CONNECT_LIST: {
-      auto le_add_device_to_connect_list_view = LeAddDeviceToConnectListView::Create(
+    case OpCode::LE_ADD_DEVICE_TO_FILTER_ACCEPT_LIST: {
+      auto le_add_device_to_connect_list_view = LeAddDeviceToFilterAcceptListView::Create(
           LeConnectionManagementCommandView::Create(std::move(connection_management_command_view)));
       ASSERT(le_add_device_to_connect_list_view.IsValid());
       address = le_add_device_to_connect_list_view.GetAddress();
@@ -208,8 +208,8 @@ void log_link_layer_connection_command(std::unique_ptr<CommandView>& command_vie
       link_type = android::bluetooth::LINK_TYPE_ACL;
       break;
     }
-    case OpCode::LE_REMOVE_DEVICE_FROM_CONNECT_LIST: {
-      auto le_remove_device_from_connect_list_view = LeRemoveDeviceFromConnectListView::Create(
+    case OpCode::LE_REMOVE_DEVICE_FROM_FILTER_ACCEPT_LIST: {
+      auto le_remove_device_from_connect_list_view = LeRemoveDeviceFromFilterAcceptListView::Create(
           LeConnectionManagementCommandView::Create(std::move(connection_management_command_view)));
       ASSERT(le_remove_device_from_connect_list_view.IsValid());
       address = le_remove_device_from_connect_list_view.GetAddress();
@@ -371,16 +371,16 @@ void log_link_layer_connection_command_status(std::unique_ptr<CommandView>& comm
       link_type = android::bluetooth::LINK_TYPE_ACL;
       break;
     }
-    case OpCode::LE_CLEAR_CONNECT_LIST: {
-      auto le_clear_connect_list_view = LeClearConnectListView::Create(
+    case OpCode::LE_CLEAR_FILTER_ACCEPT_LIST: {
+      auto le_clear_connect_list_view = LeClearFilterAcceptListView::Create(
           LeConnectionManagementCommandView::Create(std::move(connection_management_command_view)));
       ASSERT(le_clear_connect_list_view.IsValid());
       direction = android::bluetooth::DIRECTION_INCOMING;
       link_type = android::bluetooth::LINK_TYPE_ACL;
       break;
     }
-    case OpCode::LE_ADD_DEVICE_TO_CONNECT_LIST: {
-      auto le_add_device_to_connect_list_view = LeAddDeviceToConnectListView::Create(
+    case OpCode::LE_ADD_DEVICE_TO_FILTER_ACCEPT_LIST: {
+      auto le_add_device_to_connect_list_view = LeAddDeviceToFilterAcceptListView::Create(
           LeConnectionManagementCommandView::Create(std::move(connection_management_command_view)));
       ASSERT(le_add_device_to_connect_list_view.IsValid());
       address = le_add_device_to_connect_list_view.GetAddress();
@@ -388,8 +388,8 @@ void log_link_layer_connection_command_status(std::unique_ptr<CommandView>& comm
       link_type = android::bluetooth::LINK_TYPE_ACL;
       break;
     }
-    case OpCode::LE_REMOVE_DEVICE_FROM_CONNECT_LIST: {
-      auto le_remove_device_from_connect_list_view = LeRemoveDeviceFromConnectListView::Create(
+    case OpCode::LE_REMOVE_DEVICE_FROM_FILTER_ACCEPT_LIST: {
+      auto le_remove_device_from_connect_list_view = LeRemoveDeviceFromFilterAcceptListView::Create(
           LeConnectionManagementCommandView::Create(std::move(connection_management_command_view)));
       ASSERT(le_remove_device_from_connect_list_view.IsValid());
       address = le_remove_device_from_connect_list_view.GetAddress();
@@ -433,16 +433,16 @@ void log_link_layer_connection_command_complete(EventView event_view, std::uniqu
   ASSERT(connection_management_command_view.IsValid());
 
   switch (op_code) {
-    case OpCode::LE_CLEAR_CONNECT_LIST: {
-      auto le_clear_connect_list_view = LeClearConnectListView::Create(
+    case OpCode::LE_CLEAR_FILTER_ACCEPT_LIST: {
+      auto le_clear_connect_list_view = LeClearFilterAcceptListView::Create(
           LeConnectionManagementCommandView::Create(std::move(connection_management_command_view)));
       ASSERT(le_clear_connect_list_view.IsValid());
       direction = android::bluetooth::DIRECTION_INCOMING;
       link_type = android::bluetooth::LINK_TYPE_ACL;
       break;
     }
-    case OpCode::LE_ADD_DEVICE_TO_CONNECT_LIST: {
-      auto le_add_device_to_connect_list_view = LeAddDeviceToConnectListView::Create(
+    case OpCode::LE_ADD_DEVICE_TO_FILTER_ACCEPT_LIST: {
+      auto le_add_device_to_connect_list_view = LeAddDeviceToFilterAcceptListView::Create(
           LeConnectionManagementCommandView::Create(std::move(connection_management_command_view)));
       ASSERT(le_add_device_to_connect_list_view.IsValid());
       address = le_add_device_to_connect_list_view.GetAddress();
@@ -450,8 +450,8 @@ void log_link_layer_connection_command_complete(EventView event_view, std::uniqu
       link_type = android::bluetooth::LINK_TYPE_ACL;
       break;
     }
-    case OpCode::LE_REMOVE_DEVICE_FROM_CONNECT_LIST: {
-      auto le_remove_device_from_connect_list_view = LeRemoveDeviceFromConnectListView::Create(
+    case OpCode::LE_REMOVE_DEVICE_FROM_FILTER_ACCEPT_LIST: {
+      auto le_remove_device_from_connect_list_view = LeRemoveDeviceFromFilterAcceptListView::Create(
           LeConnectionManagementCommandView::Create(std::move(connection_management_command_view)));
       ASSERT(le_remove_device_from_connect_list_view.IsValid());
       address = le_remove_device_from_connect_list_view.GetAddress();

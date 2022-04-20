@@ -498,6 +498,19 @@ public class CsipSetCoordinatorService extends ProfileService {
             return null;
         }
 
+        synchronized (mGroupIdToUuidMap) {
+            if (!mGroupIdToUuidMap.containsKey(groupId)) {
+                try {
+                    callback.onGroupLockSet(groupId,
+                            BluetoothStatusCodes.ERROR_CSIP_INVALID_GROUP_ID,
+                            false);
+                } catch (RemoteException e) {
+                    throw e.rethrowFromSystemServer();
+                }
+                return null;
+            }
+        }
+
         UUID uuid = UUID.randomUUID();
         synchronized (mLocks) {
             if (mLocks.containsKey(groupId)) {
