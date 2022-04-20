@@ -57,6 +57,7 @@ class LeAudioDevice {
    * This is true only during initial phase of first connection. */
   bool first_connection_;
   bool connecting_actively_;
+  bool closing_stream_for_disconnection_;
   uint16_t conn_id_;
   bool encrypted_;
   int group_id_;
@@ -87,6 +88,7 @@ class LeAudioDevice {
         removing_device_(false),
         first_connection_(first_connection),
         connecting_actively_(first_connection),
+        closing_stream_for_disconnection_(false),
         conn_id_(GATT_INVALID_CONN_ID),
         encrypted_(false),
         group_id_(group_id),
