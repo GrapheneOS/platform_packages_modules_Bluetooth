@@ -3,15 +3,15 @@
 use crate::hci::{Address, CommandSender};
 use bt_packets::hci::{
     Enable, ErrorCode, LeHostFeatureBits, LeMaximumDataLength, LeReadBufferSizeV1Builder,
-    LeReadBufferSizeV2Builder, LeReadConnectListSizeBuilder, LeReadLocalSupportedFeaturesBuilder,
-    LeReadMaximumAdvertisingDataLengthBuilder, LeReadMaximumDataLengthBuilder,
-    LeReadNumberOfSupportedAdvertisingSetsBuilder, LeReadPeriodicAdvertiserListSizeBuilder,
-    LeReadResolvingListSizeBuilder, LeReadSuggestedDefaultDataLengthBuilder,
-    LeReadSupportedStatesBuilder, LeSetEventMaskBuilder, LeSetHostFeatureBuilder,
-    LocalVersionInformation, OpCode, OpCodeIndex, ReadBdAddrBuilder, ReadBufferSizeBuilder,
-    ReadLocalExtendedFeaturesBuilder, ReadLocalNameBuilder, ReadLocalSupportedCommandsBuilder,
-    ReadLocalVersionInformationBuilder, SetEventMaskBuilder, WriteLeHostSupportBuilder,
-    WriteSimplePairingModeBuilder,
+    LeReadBufferSizeV2Builder, LeReadFilterAcceptListSizeBuilder,
+    LeReadLocalSupportedFeaturesBuilder, LeReadMaximumAdvertisingDataLengthBuilder,
+    LeReadMaximumDataLengthBuilder, LeReadNumberOfSupportedAdvertisingSetsBuilder,
+    LeReadPeriodicAdvertiserListSizeBuilder, LeReadResolvingListSizeBuilder,
+    LeReadSuggestedDefaultDataLengthBuilder, LeReadSupportedStatesBuilder, LeSetEventMaskBuilder,
+    LeSetHostFeatureBuilder, LocalVersionInformation, OpCode, OpCodeIndex, ReadBdAddrBuilder,
+    ReadBufferSizeBuilder, ReadLocalExtendedFeaturesBuilder, ReadLocalNameBuilder,
+    ReadLocalSupportedCommandsBuilder, ReadLocalVersionInformationBuilder, SetEventMaskBuilder,
+    WriteLeHostSupportBuilder, WriteSimplePairingModeBuilder,
 };
 use gddi::{module, provides, Stoppable};
 use num_traits::ToPrimitive;
@@ -96,8 +96,8 @@ async fn provide_controller(mut hci: CommandSender) -> Arc<ControllerExports> {
     );
     let le_supported_states =
         assert_success!(hci.send(LeReadSupportedStatesBuilder {})).get_le_states();
-    let le_connect_list_size =
-        assert_success!(hci.send(LeReadConnectListSizeBuilder {})).get_connect_list_size();
+    let le_connect_list_size = assert_success!(hci.send(LeReadFilterAcceptListSizeBuilder {}))
+        .get_filter_accept_list_size();
     let le_resolving_list_size =
         assert_success!(hci.send(LeReadResolvingListSizeBuilder {})).get_resolving_list_size();
 

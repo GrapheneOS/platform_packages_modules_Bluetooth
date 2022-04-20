@@ -3,8 +3,7 @@
 use bt_topshim::btif::{BluetoothInterface, RawAddress};
 use bt_topshim::profiles::a2dp::{
     A2dp, A2dpCallbacks, A2dpCallbacksDispatcher, A2dpCodecBitsPerSample, A2dpCodecChannelMode,
-    A2dpCodecConfig, A2dpCodecIndex, A2dpCodecSampleRate, BtavConnectionState,
-    PresentationPosition,
+    A2dpCodecConfig, A2dpCodecSampleRate, BtavConnectionState, PresentationPosition,
 };
 use bt_topshim::profiles::avrcp::{Avrcp, AvrcpCallbacks, AvrcpCallbacksDispatcher};
 use bt_topshim::profiles::hfp::{
@@ -61,17 +60,9 @@ pub trait IBluetoothMedia {
 pub trait IBluetoothMediaCallback {
     /// Triggered when a Bluetooth audio device is ready to be used. This should
     /// only be triggered once for a device and send an event to clients. If the
-    ///  device supports both HFP and A2DP, both should be ready when this is
+    /// device supports both HFP and A2DP, both should be ready when this is
     /// triggered.
-    fn on_bluetooth_audio_device_added(
-        &self,
-        addr: String,
-        sample_rate: i32,
-        bits_per_sample: i32,
-        channel_mode: i32,
-        hfp_cap: i32,
-        name: String,
-    );
+    fn on_bluetooth_audio_device_added(&self, device: BluetoothAudioDevice);
 
     ///
     fn on_bluetooth_audio_device_removed(&self, addr: String);
@@ -83,6 +74,25 @@ pub trait IBluetoothMediaCallback {
     fn on_absolute_volume_changed(&self, volume: i32);
 }
 
+/// Serializable device used in.
+#[derive(Debug, Default, Clone)]
+pub struct BluetoothAudioDevice {
+    pub address: String,
+    pub name: String,
+    pub a2dp_caps: Vec<A2dpCodecConfig>,
+    pub hfp_cap: HfpCodecCapability,
+}
+
+impl BluetoothAudioDevice {
+    pub(crate) fn new(
+        address: String,
+        name: String,
+        a2dp_caps: Vec<A2dpCodecConfig>,
+        hfp_cap: HfpCodecCapability,
+    ) -> BluetoothAudioDevice {
+        BluetoothAudioDevice { address, name, a2dp_caps, hfp_cap }
+    }
+}
 /// Actions that `BluetoothMedia` can take on behalf of the stack.
 pub enum MediaActions {
     Connect(String),
@@ -254,22 +264,13 @@ impl BluetoothMedia {
             device_added_tasks: Arc<Mutex<HashMap<RawAddress, Option<JoinHandle<()>>>>>,
             addr: RawAddress,
             callbacks: Arc<Mutex<Vec<(u32, Box<dyn IBluetoothMediaCallback + Send>)>>>,
-            cap: A2dpCodecConfig,
-            hfp_cap: HfpCodecCapability,
-            name: String,
+            device: BluetoothAudioDevice,
             is_delayed: bool,
         ) -> bool {
             // Closure used to lock and trigger the device added callbacks.
             let trigger_device_added = || {
                 for callback in &*callbacks.lock().unwrap() {
-                    callback.1.on_bluetooth_audio_device_added(
-                        addr.to_string(),
-                        cap.sample_rate,
-                        cap.bits_per_sample,
-                        cap.channel_mode,
-                        hfp_cap.bits(),
-                        name.clone(),
-                    );
+                    callback.1.on_bluetooth_audio_device_added(device.clone());
                 }
             };
             let mut guard = device_added_tasks.lock().unwrap();
@@ -304,26 +305,25 @@ impl BluetoothMedia {
             }
         }
 
-        let cur_a2dp_cap = self.selectable_caps.get(&addr).and_then(|a2dp_caps| {
-            a2dp_caps
-                .iter()
-                .find(|cap| A2dpCodecIndex::SrcSbc == A2dpCodecIndex::from(cap.codec_type))
-        });
+        let cur_a2dp_caps = self.selectable_caps.get(&addr);
         let cur_hfp_cap = self.hfp_caps.get(&addr);
         let name = self.adapter_get_remote_name(addr);
-        match (cur_a2dp_cap, cur_hfp_cap) {
+        match (cur_a2dp_caps, cur_hfp_cap) {
             (None, None) => warn!(
                 "[{}]: Try to add a device without a2dp and hfp capability.",
                 addr.to_string()
             ),
-            (Some(cap), Some(hfp_cap)) => {
+            (Some(caps), Some(hfp_cap)) => {
                 dedup_added_cb(
                     self.device_added_tasks.clone(),
                     addr,
                     self.callbacks.clone(),
-                    *cap,
-                    *hfp_cap,
-                    name,
+                    BluetoothAudioDevice::new(
+                        addr.to_string(),
+                        name.clone(),
+                        caps.to_vec(),
+                        *hfp_cap,
+                    ),
                     false,
                 );
             }
@@ -332,11 +332,15 @@ impl BluetoothMedia {
                 if guard.get(&addr).is_none() {
                     let callbacks = self.callbacks.clone();
                     let device_added_tasks = self.device_added_tasks.clone();
-                    let cap = cur_a2dp_cap.unwrap_or(&A2dpCodecConfig::default()).clone();
-                    let hfp_cap = cur_hfp_cap.unwrap_or(&HfpCodecCapability::UNSUPPORTED).clone();
+                    let device = BluetoothAudioDevice::new(
+                        addr.to_string(),
+                        name.clone(),
+                        cur_a2dp_caps.unwrap_or(&Vec::new()).to_vec(),
+                        *cur_hfp_cap.unwrap_or(&HfpCodecCapability::UNSUPPORTED),
+                    );
                     let task = topstack::get_runtime().spawn(async move {
                         sleep(Duration::from_secs(DEFAULT_PROFILE_DISCOVERY_TIMEOUT_SEC)).await;
-                        if dedup_added_cb(device_added_tasks, addr, callbacks, cap, hfp_cap, name, true) {
+                        if dedup_added_cb(device_added_tasks, addr, callbacks, device, true) {
                             warn!(
                                 "[{}]: Add a device with only hfp or a2dp capability after timeout.",
                                 addr.to_string()

@@ -156,8 +156,10 @@ void StorageModule::Start() {
   std::lock_guard<std::recursive_mutex> lock(mutex_);
   std::string file_source;
   if (os::GetSystemProperty(kFactoryResetProperty) == "true") {
+    LOG_INFO("%s is true, delete config files", kFactoryResetProperty.c_str());
     LegacyConfigFile::FromPath(config_file_path_).Delete();
     LegacyConfigFile::FromPath(config_backup_path_).Delete();
+    os::SetSystemProperty(kFactoryResetProperty, "false");
   }
   if (!is_config_checksum_pass(kConfigFileComparePass)) {
     LegacyConfigFile::FromPath(config_file_path_).Delete();

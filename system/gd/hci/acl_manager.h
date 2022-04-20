@@ -103,9 +103,9 @@ public:
  virtual void CancelConnect(Address address);
 
  virtual void CancelLeConnect(AddressWithType address_with_type);
- virtual void AddDeviceToConnectList(AddressWithType address_with_type);
- virtual void RemoveDeviceFromConnectList(AddressWithType address_with_type);
- virtual void ClearConnectList();
+ virtual void AddDeviceToFilterAcceptList(AddressWithType address_with_type);
+ virtual void RemoveDeviceFromFilterAcceptList(AddressWithType address_with_type);
+ virtual void ClearFilterAcceptList();
 
  virtual void AddDeviceToResolvingList(
      AddressWithType address_with_type,
