@@ -26,6 +26,7 @@
 #define LOG_TAG "bt_bta_gattc"
 
 #include <base/logging.h>
+#include <base/strings/string_number_conversions.h>
 #include <base/strings/stringprintf.h>
 
 #include <cstdint>
@@ -61,7 +62,8 @@ static void bta_gattc_explore_srvc_finished(uint16_t conn_id,
                                             tBTA_GATTC_SERV* p_srvc_cb);
 
 static void bta_gattc_read_db_hash_cmpl(tBTA_GATTC_CLCB* p_clcb,
-                                        const tBTA_GATTC_OP_CMPL* p_data);
+                                        const tBTA_GATTC_OP_CMPL* p_data,
+                                        bool is_svc_chg);
 
 static void bta_gattc_read_ext_prop_desc_cmpl(tBTA_GATTC_CLCB* p_clcb,
                                               const tBTA_GATTC_OP_CMPL* p_data);
@@ -216,16 +218,25 @@ static void bta_gattc_explore_srvc_finished(uint16_t conn_id,
   /* save cache to NV */
   p_clcb->p_srcb->state = BTA_GATTC_SERV_SAVE;
 
-  if (btm_sec_is_a_bonded_dev(p_srvc_cb->server_bda)) {
-    bta_gattc_cache_write(p_clcb->p_srcb->server_bda,
-                          p_clcb->p_srcb->gatt_database);
-  }
+  // If robust caching is not enabled, use original design
+  if (!bta_gattc_is_robust_caching_enabled()) {
+    if (btm_sec_is_a_bonded_dev(p_srvc_cb->server_bda)) {
+      bta_gattc_cache_write(p_clcb->p_srcb->server_bda,
+                            p_clcb->p_srcb->gatt_database);
+    }
+  } else {
+    // If robust caching is enabled, do something optimized
+    Octet16 hash = p_clcb->p_srcb->gatt_database.Hash();
+    bool success = bta_gattc_hash_write(hash, p_clcb->p_srcb->gatt_database);
 
-  // After success, reset the count.
-  if (bta_gattc_is_robust_caching_enabled()) {
-    LOG(INFO) << __func__
-              << ": service discovery succeed, reset count to zero, conn_id="
-              << loghex(conn_id);
+    // If the device is trusted, link the addr file to hash file
+    if (success && btm_sec_is_a_bonded_dev(p_srvc_cb->server_bda)) {
+      bta_gattc_cache_link(p_clcb->p_srcb->server_bda, hash);
+    }
+
+    // After success, reset the count.
+    LOG_DEBUG("service discovery succeed, reset count to zero, conn_id=0x%04x",
+              conn_id);
     p_srvc_cb->srvc_disc_count = 0;
   }
 
@@ -366,8 +377,11 @@ void bta_gattc_op_cmpl_during_discovery(tBTA_GATTC_CLCB* p_clcb,
       bta_gattc_read_ext_prop_desc_cmpl(p_clcb, &p_data->op_cmpl);
       break;
     case BTA_GATTC_DISCOVER_REQ_READ_DB_HASH:
+    case BTA_GATTC_DISCOVER_REQ_READ_DB_HASH_FOR_SVC_CHG:
       if (bta_gattc_is_robust_caching_enabled()) {
-        bta_gattc_read_db_hash_cmpl(p_clcb, &p_data->op_cmpl);
+        bool is_svc_chg = (p_clcb->request_during_discovery ==
+                           BTA_GATTC_DISCOVER_REQ_READ_DB_HASH_FOR_SVC_CHG);
+        bta_gattc_read_db_hash_cmpl(p_clcb, &p_data->op_cmpl, is_svc_chg);
       } else {
         // it is not possible here if flag is off, but just in case
         p_clcb->request_during_discovery = BTA_GATTC_DISCOVER_REQ_NONE;
@@ -614,7 +628,7 @@ const Characteristic* bta_gattc_get_owning_characteristic(uint16_t conn_id,
 }
 
 /* request reading database hash */
-bool bta_gattc_read_db_hash(tBTA_GATTC_CLCB* p_clcb) {
+bool bta_gattc_read_db_hash(tBTA_GATTC_CLCB* p_clcb, bool is_svc_chg) {
   tGATT_READ_PARAM read_param;
   memset(&read_param, 0, sizeof(tGATT_READ_BY_TYPE));
 
@@ -626,14 +640,21 @@ bool bta_gattc_read_db_hash(tBTA_GATTC_CLCB* p_clcb) {
       GATTC_Read(p_clcb->bta_conn_id, GATT_READ_BY_TYPE, &read_param);
 
   if (status != GATT_SUCCESS) return false;
-  p_clcb->request_during_discovery = BTA_GATTC_DISCOVER_REQ_READ_DB_HASH;
+
+  if (is_svc_chg) {
+    p_clcb->request_during_discovery =
+        BTA_GATTC_DISCOVER_REQ_READ_DB_HASH_FOR_SVC_CHG;
+  } else {
+    p_clcb->request_during_discovery = BTA_GATTC_DISCOVER_REQ_READ_DB_HASH;
+  }
 
   return true;
 }
 
 /* handle response of reading database hash */
 static void bta_gattc_read_db_hash_cmpl(tBTA_GATTC_CLCB* p_clcb,
-                                        const tBTA_GATTC_OP_CMPL* p_data) {
+                                        const tBTA_GATTC_OP_CMPL* p_data,
+                                        bool is_svc_chg) {
   uint8_t op = (uint8_t)p_data->op_code;
   if (op != GATTC_OPTYPE_READ) {
     VLOG(1) << __func__ << ": op = " << +p_data->hdr.layer_specific;
@@ -643,29 +664,72 @@ static void bta_gattc_read_db_hash_cmpl(tBTA_GATTC_CLCB* p_clcb,
 
   // run match flow only if the status is success
   bool matched = false;
+  bool found = false;
   if (p_data->status == GATT_SUCCESS) {
     // start to compare local hash and remote hash
     uint16_t len = p_data->p_cmpl->att_value.len;
     uint8_t* data = p_data->p_cmpl->att_value.value;
 
     Octet16 remote_hash;
-    if (len == remote_hash.size()) {
-      uint8_t idx = 0;
-      auto it = remote_hash.begin();
-      for (; idx < len; idx++, data++, it++) *it = *data;
+    if (len == remote_hash.max_size()) {
+      std::copy(data, data + len, remote_hash.begin());
 
       Octet16 local_hash = p_clcb->p_srcb->gatt_database.Hash();
       matched = (local_hash == remote_hash);
+
+      LOG_DEBUG("lhash=%s",
+                base::HexEncode(local_hash.data(), local_hash.size()).c_str());
+      LOG_DEBUG(
+          "rhash=%s",
+          base::HexEncode(remote_hash.data(), remote_hash.size()).c_str());
+
+      if (!matched) {
+        gatt::Database db = bta_gattc_hash_load(remote_hash);
+        if (!db.IsEmpty()) {
+          p_clcb->p_srcb->gatt_database = db;
+          found = true;
+        }
+        // If the device is trusted, link addr file to correct hash file
+        if (found && (btm_sec_is_a_bonded_dev(p_clcb->p_srcb->server_bda))) {
+          bta_gattc_cache_link(p_clcb->p_srcb->server_bda, remote_hash);
+        }
+      }
+    }
+  } else {
+    // Only load cache for trusted device if no database hash on server side.
+    // If is_svc_chg is true, do not read the existing cache.
+    bool is_a_bonded_dev = btm_sec_is_a_bonded_dev(p_clcb->p_srcb->server_bda);
+    if (!is_svc_chg && is_a_bonded_dev) {
+      gatt::Database db = bta_gattc_cache_load(p_clcb->p_srcb->server_bda);
+      if (!db.IsEmpty()) {
+        p_clcb->p_srcb->gatt_database = db;
+        found = true;
+      }
+      LOG_DEBUG("load cache directly, result=%d", found);
+    } else {
+      LOG_DEBUG("skip read cache, is_svc_chg=%d, is_a_bonded_dev=%d",
+                is_svc_chg, is_a_bonded_dev);
     }
   }
 
   if (matched) {
-    LOG(INFO) << __func__ << ": hash is the same, skip service discovery";
+    LOG_DEBUG("hash is the same, skip service discovery");
     p_clcb->p_srcb->state = BTA_GATTC_SERV_IDLE;
     bta_gattc_reset_discover_st(p_clcb->p_srcb, GATT_SUCCESS);
   } else {
-    LOG(INFO) << __func__ << ": hash is not the same, start service discovery";
-    bta_gattc_start_discover_internal(p_clcb);
+    if (found) {
+      LOG_DEBUG("hash found in cache, skip service discovery");
+
+#if (BTA_GATT_DEBUG == TRUE)
+      bta_gattc_display_cache_server(p_clcb->p_srcb->gatt_database);
+#endif
+
+      p_clcb->p_srcb->state = BTA_GATTC_SERV_IDLE;
+      bta_gattc_reset_discover_st(p_clcb->p_srcb, GATT_SUCCESS);
+    } else {
+      LOG_DEBUG("hash is not the same, start service discovery");
+      bta_gattc_start_discover_internal(p_clcb);
+    }
   }
 }
 
