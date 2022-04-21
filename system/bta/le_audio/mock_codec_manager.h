@@ -33,10 +33,14 @@ class MockCodecManager {
   MOCK_METHOD((le_audio::types::CodecLocation), GetCodecLocation, (), (const));
   MOCK_METHOD((void), UpdateActiveSourceAudioConfig,
               (const le_audio::stream_configuration& stream_conf,
-               uint16_t delay));
+               uint16_t delay,
+               std::function<void(const ::le_audio::offload_config& config)>
+                   update_receiver));
   MOCK_METHOD((void), UpdateActiveSinkAudioConfig,
               (const le_audio::stream_configuration& stream_conf,
-               uint16_t delay));
+               uint16_t delay,
+               std::function<void(const ::le_audio::offload_config& config)>
+                   update_receiver));
   MOCK_METHOD((le_audio::set_configurations::AudioSetConfigurations*),
               GetOffloadCodecConfig,
               (le_audio::types::LeAudioContextType ctx_type), (const));

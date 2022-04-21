@@ -182,6 +182,13 @@ bool BluetoothAudioPortAidl::init_session_type(audio_devices_t device) {
                    << StringPrintf("%#x", device) << ")";
       session_type_ = SessionType::LE_AUDIO_SOFTWARE_DECODING_DATAPATH;
       break;
+    case AUDIO_DEVICE_OUT_BLE_BROADCAST:
+      LOG(VERBOSE) << __func__
+                   << ": device=AUDIO_DEVICE_OUT_BLE_BROADCAST (MEDIA) ("
+                   << StringPrintf("%#x", device) << ")";
+      session_type_ =
+          SessionType::LE_AUDIO_BROADCAST_SOFTWARE_ENCODING_DATAPATH;
+      break;
     default:
       LOG(ERROR) << __func__
                  << ": unknown device=" << StringPrintf("%#x", device);
