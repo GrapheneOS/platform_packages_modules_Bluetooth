@@ -808,6 +808,8 @@ public class CsipSetCoordinatorService extends ProfileService {
             return;
         }
 
+        mDeviceGroupIdMap.remove(device);
+
         synchronized (mStateMachines) {
             CsipSetCoordinatorStateMachine sm = mStateMachines.get(device);
             if (sm == null) {
