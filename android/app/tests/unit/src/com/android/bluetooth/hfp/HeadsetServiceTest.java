@@ -951,7 +951,7 @@ public class HeadsetServiceTest {
         doReturn(bondState).when(mAdapterService).getBondState(device);
         when(mDatabaseManager.getProfileConnectionPolicy(device, BluetoothProfile.HEADSET))
                 .thenReturn(priority);
-        Assert.assertEquals(expected, mHeadsetService.okToAcceptConnection(device));
+        Assert.assertEquals(expected, mHeadsetService.okToAcceptConnection(device, false));
     }
 
 }
