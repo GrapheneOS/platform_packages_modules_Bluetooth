@@ -2303,3 +2303,30 @@ void btif_storage_remove_gatt_cl_db_hash(const RawAddress& bd_addr) {
                        },
                        bd_addr));
 }
+
+void btif_debug_linkkey_type_dump(int fd) {
+  dprintf(fd, "\nLink Key Types:\n");
+  for (const auto& bd_addr : btif_config_get_paired_devices()) {
+    auto bdstr = bd_addr.ToString();
+    int linkkey_type;
+    dprintf(fd, "  %s\n", bdstr.c_str());
+
+    dprintf(fd, "    BR: ");
+    if (btif_config_get_int(bdstr, "LinkKeyType", &linkkey_type)) {
+      dprintf(fd, "%s", linkkey_type_text(linkkey_type).c_str());
+    }
+    dprintf(fd, "\n");
+
+    dprintf(fd, "    LE:");
+    if (btif_config_exist(bdstr, "LE_KEY_PENC")) dprintf(fd, " PENC");
+    if (btif_config_exist(bdstr, "LE_KEY_PID")) dprintf(fd, " PID");
+    if (btif_config_exist(bdstr, "LE_KEY_PCSRK")) dprintf(fd, " PCSRK");
+    if (btif_config_exist(bdstr, "LE_KEY_PLK")) dprintf(fd, " PLK");
+    if (btif_config_exist(bdstr, "LE_KEY_LENC")) dprintf(fd, " LENC");
+    if (btif_config_exist(bdstr, "LE_KEY_LCSRK")) dprintf(fd, " LCSRK");
+    if (btif_config_exist(bdstr, "LE_KEY_LID")) dprintf(fd, " LID");
+    if (btif_config_exist(bdstr, "LE_KEY_PLK")) dprintf(fd, " LLK");
+
+    dprintf(fd, "\n");
+  }
+}
