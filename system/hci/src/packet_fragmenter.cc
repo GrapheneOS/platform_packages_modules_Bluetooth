@@ -295,6 +295,7 @@ static void reassemble_and_dispatch_iso(UNUSED_ATTR BT_HDR* packet) {
           ((boundary_flag == HCI_ISO_BF_FIRST_FRAGMENTED_PACKET) &&
            (iso_full_len <= packet->len))) {
         LOG_ERROR("%s corrupted ISO frame", __func__);
+        buffer_allocator->free(packet);
         return;
       }
 
