@@ -813,8 +813,13 @@ final class RemoteDevices {
         int connectionState = newState == AbstractionLayer.BT_ACL_STATE_CONNECTED
                 ? BluetoothAdapter.STATE_CONNECTED : BluetoothAdapter.STATE_DISCONNECTED;
         int metricId = sAdapterService.getMetricId(device);
-        BluetoothStatsLog.write(BluetoothStatsLog.BLUETOOTH_ACL_CONNECTION_STATE_CHANGED,
-                sAdapterService.obfuscateAddress(device), connectionState, metricId);
+        BluetoothStatsLog.write(
+                BluetoothStatsLog.BLUETOOTH_ACL_CONNECTION_STATE_CHANGED,
+                sAdapterService.obfuscateAddress(device),
+                connectionState,
+                metricId,
+                transportLinkType);
+
         BluetoothClass deviceClass = device.getBluetoothClass();
         int classOfDevice = deviceClass == null ? 0 : deviceClass.getClassOfDevice();
         BluetoothStatsLog.write(BluetoothStatsLog.BLUETOOTH_CLASS_OF_DEVICE_REPORTED,
