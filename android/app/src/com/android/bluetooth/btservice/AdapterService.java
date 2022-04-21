@@ -736,6 +736,10 @@ public class AdapterService extends Service {
             nonSupportedProfiles.add(BassClientService.class);
         }
 
+        if (isLeAudioBroadcastSourceSupported()) {
+            Config.addSupportedProfile(BluetoothProfile.LE_AUDIO_BROADCAST);
+        }
+
         if (!nonSupportedProfiles.isEmpty()) {
             // Remove non-supported profiles from the supported list
             // since the controller doesn't support
