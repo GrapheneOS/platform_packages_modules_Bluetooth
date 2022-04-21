@@ -42,7 +42,6 @@
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "osi/include/properties.h"
-#include "stack/btm/btm_dev.h"
 #include "stack/btm/btm_sec.h"
 #include "stack/include/btu.h"  // do_in_main_thread
 #include "state_machine.h"
@@ -901,13 +900,8 @@ class LeAudioClientImpl : public LeAudioClient {
     }
 
     if (acl_force_disconnect) {
-      uint16_t acl_handle =
-          BTM_GetHCIConnHandle(leAudioDevice->address_, BT_TRANSPORT_LE);
-      if (acl_handle != HCI_INVALID_HANDLE) {
-        acl_disconnect_from_handle(acl_handle, HCI_ERR_PEER_USER,
-                                   "bta::le_audio::client disconnect");
-        return;
-      }
+     leAudioDevice->DisconnectAcl();
+     return;
     }
 
     BtaGattQueue::Clean(leAudioDevice->conn_id_);
