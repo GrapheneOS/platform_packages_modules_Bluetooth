@@ -80,9 +80,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     interface->ReleaseSource(source);
   }
 
-  if (!interface->IsSinkAcquired()) {
+  if (!interface->IsUnicastSinkAcquired()) {
     LeAudioClientInterface::Sink* sink =
-        interface->GetSink(streamCb, &messageLoopThread);
+        interface->GetSink(streamCb, &messageLoopThread, false);
     if (sink != nullptr) {
       sink->StartSession();
       uint16_t delay = fdp.ConsumeIntegral<uint16_t>();
