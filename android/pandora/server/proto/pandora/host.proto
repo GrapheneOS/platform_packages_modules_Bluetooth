@@ -2,7 +2,7 @@ syntax = "proto3";
 
 option java_outer_classname = "HostProto";
 
-package blueberry;
+package pandora;
 
 import "google/protobuf/empty.proto";
 

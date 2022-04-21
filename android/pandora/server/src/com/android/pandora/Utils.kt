@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.blueberry
+package com.android.pandora
 
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothProfile

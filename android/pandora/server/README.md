@@ -1,18 +1,18 @@
-# Blueberry Android server
+# Pandora Android server
 
-The Blueberry Android server exposes the [Blueberry test interfaces](
-go/blueberry-doc) over gRPC implemented on top of the Android Bluetooth SDK.
+The Pandora Android server exposes the [Pandora test interfaces](
+go/pandora-doc) over gRPC implemented on top of the Android Bluetooth SDK.
 
 ## Getting started
 
-Using Blueberry Android server requires to:
+Using Pandora Android server requires to:
 
 * Build AOSP for your DUT, which can be either a physical device or an Android
   Virtual Device (AVD).
 * [Only for virtual tests] Build Rootcanal, the Android
   virtual Bluetooth Controller.
 * Setup your test environment.
-* Build, install, and run Blueberry server.
+* Build, install, and run Pandora server.
 * Run your tests.
 
 ### 1. Build and run AOSP code
@@ -62,25 +62,25 @@ with the following steps to setup the test environment:
     `adb forward tcp:<rootcanal-port> tcp:<rootcanal-port>`.
     Rootcanal port number may differ depending on its configuration. It is
     7200 for the AVD, and generally 6211 for physical devices.
-* Forward Blueberry Android server port through ADB:
+* Forward Pandora Android server port through ADB:
   `adb forward tcp:8999 tcp:8999`.
 
 The above steps can be done by executing the `setup.sh` helper script (the
 `-rootcanal` option must be used for virtual tests on a physical device).
 
 Finally, you must also make sure that the machine on which tests are executed
-can access the ports of the Blueberry Android server, Rootcanal (if required),
+can access the ports of the Pandora Android server, Rootcanal (if required),
 and ADB (if required).
 
 You can also check the usage examples provided below.
 
-### 4. Build, install, and run Blueberry Android server
+### 4. Build, install, and run Pandora Android server
 
-* `m BlueberryServer`
-* `adb install -r -g out/target/product/<device>/testcases/Blueberry/arm64/Blueberry.apk`
+* `m PandoraServer`
+* `adb install -r -g out/target/product/<device>/testcases/Pandora/arm64/Pandora.apk`
 
 * Start the instrumented app:
-* `adb shell am instrument -w -e Debug false com.android.blueberry/.Server`
+* `adb shell am instrument -w -e Debug false com.android.pandora/.Server`
 
 ### 5. Run your tests
 
@@ -93,13 +93,13 @@ Here are some usage examples:
 * **DUT**: physical
   **Test type**: virtual
   **Test executer**: remote instance (for instance a Cloudtop) accessed via SSH
-  **Blueberry Android server repository location**: local machine (typically
+  **Pandora Android server repository location**: local machine (typically
   using Android Studio)
 
   * On your local machine: `./setup.sh --rootcanal`.
   * On your local machine: build and install the app on your DUT.
   * Log on your remote instance, and forward Rootcanal port (6211, may change
-    depending on your build) and Blueberry Android server (8999) port:
+    depending on your build) and Pandora Android server (8999) port:
     `ssh -R 6211:localhost:6211 -R 8999:localhost:8999 <remote-instance>`.
     Optionnally, you can also share ADB port to your remote instance (if
     needed) by adding `-R 5037:localhost:5037` to the command.
@@ -108,7 +108,7 @@ Here are some usage examples:
 * **DUT**: virtual (running in remote instance)
   **Test type**: virtual
   **Test executer**: remote instance
-  **Blueberry Android server repository location**: remote instance
+  **Pandora Android server repository location**: remote instance
 
   On your remote instance:
   * `./setup.sh`.

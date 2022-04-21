@@ -3,7 +3,7 @@ package {
 }
 
 android_test_helper_app {
-    name: "BlueberryServer",
+    name: "PandoraServer",
     srcs: ["src/**/*.kt"],
     platform_apis: true,
     certificate: "platform",
@@ -16,8 +16,8 @@ android_test_helper_app {
         "guava",
         "opencensus-java-api",
         "kotlinx_coroutines",
-        "blueberry-grpc-java",
-        "blueberry-proto-java",
+        "pandora-grpc-java",
+        "pandora-proto-java",
         "opencensus-java-contrib-grpc-metrics",
     ],
 
@@ -31,19 +31,19 @@ android_test_helper_app {
 
 android_test {
     name: "pts-bot",
-    required: ["BlueberryServer"],
+    required: ["PandoraServer"],
     test_config: "configs/PtsBotTest.xml",
     data: ["configs/pts_bot_tests_config.json"],
 }
 
 java_library {
-    name: "blueberry-grpc-java",
+    name: "pandora-grpc-java",
     visibility: ["//visibility:private"],
     srcs: [
-        "proto/blueberry/*.proto",
+        "proto/pandora/*.proto",
     ],
     static_libs: [
-        "blueberry-proto-java",
+        "pandora-proto-java",
         "grpc-java-lite",
         "guava",
         "opencensus-java-api",
@@ -52,7 +52,7 @@ java_library {
     ],
     proto: {
         include_dirs: [
-            "packages/modules/Bluetooth/android/blueberry/server/proto",
+            "packages/modules/Bluetooth/android/pandora/server/proto",
             "external/protobuf/src",
         ],
         plugin: "grpc-java-plugin",
@@ -63,10 +63,10 @@ java_library {
 }
 
 java_library {
-    name: "blueberry-proto-java",
+    name: "pandora-proto-java",
     visibility: ["//visibility:private"],
     srcs: [
-        "proto/blueberry/*.proto",
+        "proto/pandora/*.proto",
         ":libprotobuf-internal-protos",
     ],
     static_libs: [
@@ -75,7 +75,7 @@ java_library {
     proto: {
         type: "lite",
         include_dirs: [
-            "packages/modules/Bluetooth/android/blueberry/server/proto",
+            "packages/modules/Bluetooth/android/pandora/server/proto",
             "external/protobuf/src",
         ],
     },

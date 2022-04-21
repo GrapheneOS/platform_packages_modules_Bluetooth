@@ -8,5 +8,5 @@ then
     adb forward tcp:6211 tcp:6211
 fi
 
-# Forward Blueberry server port
+# Forward Pandora server port
 adb forward tcp:8999 tcp:8999

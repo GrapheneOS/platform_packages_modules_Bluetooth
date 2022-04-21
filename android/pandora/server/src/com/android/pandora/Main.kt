@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.blueberry
+package com.android.pandora
 
 import android.content.Context
 import android.os.Bundle
@@ -26,7 +26,7 @@ import androidx.test.runner.MonitoringInstrumentation
 @kotlinx.coroutines.ExperimentalCoroutinesApi
 class Main : MonitoringInstrumentation() {
 
-  private val TAG = "BlueberryMain"
+  private val TAG = "PandoraMain"
 
   override fun onCreate(arguments: Bundle) {
     super.onCreate(arguments)
