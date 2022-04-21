@@ -53,6 +53,9 @@ pub enum Message {
     // Client callback disconnections
     BluetoothCallbackDisconnected(u32, BluetoothCallbackType),
 
+    // Update list of found devices and remove old instances.
+    DeviceFreshnessCheck,
+
     // Suspend related
     SuspendCallbackRegistered(u32),
     SuspendCallbackDisconnected(u32),
@@ -124,6 +127,10 @@ impl Stack {
 
                 Message::BluetoothCallbackDisconnected(id, cb_type) => {
                     bluetooth.lock().unwrap().callback_disconnected(id, cb_type);
+                }
+
+                Message::DeviceFreshnessCheck => {
+                    bluetooth.lock().unwrap().trigger_freshness_check();
                 }
 
                 Message::SuspendCallbackRegistered(id) => {

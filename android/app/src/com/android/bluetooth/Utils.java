@@ -24,6 +24,7 @@ import static android.Manifest.permission.BLUETOOTH_SCAN;
 import static android.Manifest.permission.RENOUNCE_PERMISSIONS;
 import static android.bluetooth.BluetoothUtils.USER_HANDLE_NULL;
 import static android.content.pm.PackageManager.GET_PERMISSIONS;
+import static android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES;
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 import static android.os.PowerExemptionManager.TEMPORARY_ALLOW_LIST_TYPE_FOREGROUND_SERVICE_ALLOWED;
 import static android.permission.PermissionManager.PERMISSION_HARD_DENIED;
@@ -321,6 +322,11 @@ public final class Utils {
     }
 
     static int sForegroundUserId = USER_HANDLE_NULL.getIdentifier();
+
+    public static int getForegroundUserId() {
+        return Utils.sForegroundUserId;
+    }
+
     public static void setForegroundUserId(int userId) {
         Utils.sForegroundUserId = userId;
     }
@@ -597,7 +603,8 @@ public final class Utils {
         PackageManager pm = context.getPackageManager();
         try {
             // TODO(b/183478032): Cache PackageInfo for use here.
-            PackageInfo pkgInfo = pm.getPackageInfo(packageName, GET_PERMISSIONS);
+            PackageInfo pkgInfo =
+                    pm.getPackageInfo(packageName, GET_PERMISSIONS | MATCH_UNINSTALLED_PACKAGES);
             for (int i = 0; i < pkgInfo.requestedPermissions.length; i++) {
                 if (pkgInfo.requestedPermissions[i].equals(BLUETOOTH_SCAN)) {
                     return (pkgInfo.requestedPermissionsFlags[i]
