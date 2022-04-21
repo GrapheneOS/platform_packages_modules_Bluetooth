@@ -54,14 +54,6 @@ static ChannelMode le_audio_channel_mode2audio_hal(uint8_t channels_count) {
   return ChannelMode::UNKNOWN;
 }
 
-bool is_source_hal_enabled() {
-  return LeAudioSourceTransport::interface != nullptr;
-}
-
-bool is_sink_hal_enabled() {
-  return LeAudioSinkTransport::interface != nullptr;
-}
-
 LeAudioTransport::LeAudioTransport(void (*flush)(void),
                                    StreamCallbacks stream_cb,
                                    PcmConfiguration pcm_config)
@@ -183,17 +175,36 @@ void LeAudioTransport::ClearPendingStartStream(void) {
   is_pending_start_request_ = false;
 }
 
-void flush_sink() {
-  if (!is_sink_hal_enabled()) return;
+inline void flush_unicast_sink() {
+  if (LeAudioSinkTransport::interface_unicast_ == nullptr) return;
 
-  LeAudioSinkTransport::interface->FlushAudioData();
+  LeAudioSinkTransport::interface_unicast_->FlushAudioData();
+}
+
+inline void flush_broadcast_sink() {
+  if (LeAudioSinkTransport::interface_broadcast_ == nullptr) return;
+
+  LeAudioSinkTransport::interface_broadcast_->FlushAudioData();
+}
+
+inline bool is_broadcaster_session(SessionType session_type) {
+  if (session_type ==
+          SessionType::LE_AUDIO_BROADCAST_HARDWARE_OFFLOAD_ENCODING_DATAPATH ||
+      session_type ==
+          SessionType::LE_AUDIO_BROADCAST_SOFTWARE_ENCODING_DATAPATH) {
+    return true;
+  }
+
+  return false;
 }
 
 LeAudioSinkTransport::LeAudioSinkTransport(SessionType session_type,
                                            StreamCallbacks stream_cb)
     : IBluetoothSinkTransportInstance(session_type, (AudioConfiguration){}) {
-  transport_ = new LeAudioTransport(flush_sink, std::move(stream_cb),
-                                    {16000, ChannelMode::STEREO, 16, 0});
+  transport_ = new LeAudioTransport(
+      is_broadcaster_session(session_type) ? flush_broadcast_sink
+                                           : flush_unicast_sink,
+      std::move(stream_cb), {16000, ChannelMode::STEREO, 16, 0});
 };
 
 LeAudioSinkTransport::~LeAudioSinkTransport() { delete transport_; }
