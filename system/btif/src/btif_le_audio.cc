@@ -151,8 +151,6 @@ class LeAudioClientInterfaceImpl : public LeAudioClientInterface,
     do_in_main_thread(FROM_HERE,
                       Bind(&LeAudioClient::Disconnect,
                            Unretained(LeAudioClient::Get()), address));
-    do_in_jni_thread(
-        FROM_HERE, Bind(&btif_storage_set_leaudio_autoconnect, address, false));
   }
 
   void GroupAddNode(const int group_id, const RawAddress& address) override {
