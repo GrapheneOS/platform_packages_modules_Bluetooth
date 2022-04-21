@@ -83,6 +83,7 @@ typedef struct {
   bthh_connection_state_t dev_status;
   uint8_t dev_handle;
   RawAddress bd_addr;
+  bool le_hid;
   tBTA_HH_ATTR_MASK attr_mask;
   uint8_t sub_class;
   uint8_t app_id;
