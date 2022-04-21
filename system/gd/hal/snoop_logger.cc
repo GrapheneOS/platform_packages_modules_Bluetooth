@@ -120,11 +120,15 @@ void delete_old_btsnooz_files(const std::string& log_path, const std::chrono::mi
   }
 }
 
-size_t get_btsnooz_packet_length_to_write(const HciPacket& packet, SnoopLogger::PacketType type) {
+size_t get_btsnooz_packet_length_to_write(
+    const HciPacket& packet, SnoopLogger::PacketType type, bool qualcomm_debug_log_enabled) {
   static const size_t kAclHeaderSize = 4;
   static const size_t kL2capHeaderSize = 4;
   static const size_t kL2capCidOffset = (kAclHeaderSize + 2);
   static const uint16_t kL2capSignalingCid = 0x0001;
+
+  static const size_t kHciAclHandleOffset = 0;
+  static const uint16_t kQualcommDebugLogHandle = 0xedc;
 
   // Maximum amount of ACL data to log.
   // Enough for an RFCOMM frame up to the frame check;
@@ -147,10 +151,18 @@ size_t get_btsnooz_packet_length_to_write(const HciPacket& packet, SnoopLogger::
         uint16_t l2cap_cid =
             static_cast<uint16_t>(packet[kL2capCidOffset]) |
             static_cast<uint16_t>((static_cast<uint16_t>(packet[kL2capCidOffset + 1]) << static_cast<uint16_t>(8)));
+        uint16_t hci_acl_packet_handle = static_cast<uint16_t>(packet[kHciAclHandleOffset]) |
+                                         static_cast<uint16_t>(
+                                             (static_cast<uint16_t>(packet[kHciAclHandleOffset + 1])
+                                              << static_cast<uint16_t>(8)));
+        hci_acl_packet_handle &= 0x0fff;
+
         if (l2cap_cid == kL2capSignalingCid) {
           // For the signaling CID, take the full packet.
           // That way, the PSM setup is captured, allowing decoding of PSMs down
           // the road.
+          return packet.size();
+        } else if (qualcomm_debug_log_enabled && hci_acl_packet_handle == kQualcommDebugLogHandle) {
           return packet.size();
         } else {
           // Otherwise, return as much as we reasonably can
@@ -175,11 +187,13 @@ size_t get_btsnooz_packet_length_to_write(const HciPacket& packet, SnoopLogger::
 const std::string SnoopLogger::kBtSnoopLogModeDisabled = "disabled";
 const std::string SnoopLogger::kBtSnoopLogModeFiltered = "filtered";
 const std::string SnoopLogger::kBtSnoopLogModeFull = "full";
+const std::string SnoopLogger::kSoCManufacturerQualcomm = "Qualcomm";
 
 const std::string SnoopLogger::kBtSnoopMaxPacketsPerFileProperty = "persist.bluetooth.btsnoopsize";
 const std::string SnoopLogger::kIsDebuggableProperty = "ro.debuggable";
 const std::string SnoopLogger::kBtSnoopLogModeProperty = "persist.bluetooth.btsnooplogmode";
 const std::string SnoopLogger::kBtSnoopDefaultLogModeProperty = "persist.bluetooth.btsnoopdefaultmode";
+const std::string SnoopLogger::kSoCManufacturerProperty = "ro.soc.manufacturer";
 
 SnoopLogger::SnoopLogger(
     std::string snoop_log_path,
@@ -187,12 +201,14 @@ SnoopLogger::SnoopLogger(
     size_t max_packets_per_file,
     size_t max_packets_per_buffer,
     const std::string& btsnoop_mode,
+    bool qualcomm_debug_log_enabled,
     const std::chrono::milliseconds snooz_log_life_time,
     const std::chrono::milliseconds snooz_log_delete_alarm_interval)
     : snoop_log_path_(std::move(snoop_log_path)),
       snooz_log_path_(std::move(snooz_log_path)),
       max_packets_per_file_(max_packets_per_file),
       btsnooz_buffer_(max_packets_per_buffer),
+      qualcomm_debug_log_enabled_(qualcomm_debug_log_enabled),
       snooz_log_life_time_(snooz_log_life_time),
       snooz_log_delete_alarm_interval_(snooz_log_delete_alarm_interval) {
   if (false && btsnoop_mode == kBtSnoopLogModeFiltered) {
@@ -298,7 +314,8 @@ void SnoopLogger::Capture(const HciPacket& packet, Direction direction, PacketTy
     if (!is_enabled_) {
       // btsnoop disabled, log in-memory btsnooz log only
       std::stringstream ss;
-      size_t included_length = get_btsnooz_packet_length_to_write(packet, type);
+      size_t included_length =
+          get_btsnooz_packet_length_to_write(packet, type, qualcomm_debug_log_enabled_);
       header.length_captured = htonl(included_length + /* type byte */ 1);
       if (!ss.write(reinterpret_cast<const char*>(&header), sizeof(PacketHeaderType))) {
         LOG_ERROR("Failed to write packet header for btsnooz, error: \"%s\"", strerror(errno));
@@ -450,6 +467,18 @@ std::string SnoopLogger::GetBtSnoopMode() {
   return btsnoop_mode;
 }
 
+bool SnoopLogger::IsQualcommDebugLogEnabled() {
+  // Check system prop if the soc manufacturer is Qualcomm
+  bool qualcomm_debug_log_enabled = false;
+  {
+    auto soc_manufacturer_prop = os::GetSystemProperty(kSoCManufacturerProperty);
+    qualcomm_debug_log_enabled =
+        soc_manufacturer_prop.has_value() &&
+        common::StringTrim(soc_manufacturer_prop.value()) == kSoCManufacturerQualcomm;
+  }
+  return qualcomm_debug_log_enabled;
+}
+
 const ModuleFactory SnoopLogger::Factory = ModuleFactory([]() {
   return new SnoopLogger(
       os::ParameterProvider::SnoopLogFilePath(),
@@ -457,6 +486,7 @@ const ModuleFactory SnoopLogger::Factory = ModuleFactory([]() {
       GetMaxPacketsPerFile(),
       GetMaxPacketsPerBuffer(),
       GetBtSnoopMode(),
+      IsQualcommDebugLogEnabled(),
       kBtSnoozLogLifeTime,
       kBtSnoozLogDeleteRepeatingAlarmInterval);
 });
