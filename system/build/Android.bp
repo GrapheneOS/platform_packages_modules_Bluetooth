@@ -67,7 +67,7 @@ fluoride_defaults {
     name: "fluoride_types_defaults",
     defaults: [
         "fluoride_types_defaults_fuzzable",
-        "libchrome_support_defaults"
+        "libchrome_support_defaults",
     ],
 }
 
@@ -83,15 +83,18 @@ fluoride_defaults {
         host: {
             static_libs: [
                 "libcutils",
-            ]
-        }
+            ],
+        },
     },
     defaults: ["fluoride_types_defaults_fuzzable"],
-    header_libs: ["libbluetooth_headers", "libbt_callbacks_cxx_headers"],
+    header_libs: [
+        "libbluetooth_headers",
+        "libbt_callbacks_cxx_headers",
+    ],
     generated_headers: [
         "libbt_shim_bridge_header",
         "libbt_message_loop_thread_bridge_header",
-        "cxx-bridge-header"
+        "cxx-bridge-header",
     ],
     include_dirs: ["packages/modules/Bluetooth/system/gd/rust/shim"],
     static_libs: [
@@ -108,7 +111,10 @@ fluoride_defaults {
 
 fluoride_defaults {
     name: "fluoride_defaults",
-    defaults: ["fluoride_defaults_fuzzable", "fluoride_types_defaults"],
+    defaults: [
+        "fluoride_defaults_fuzzable",
+        "fluoride_types_defaults",
+    ],
     static_libs: [
         "libbluetooth_gd",
         "libbluetooth_rust_interop",
@@ -147,7 +153,7 @@ cc_defaults {
     name: "clang_file_coverage",
     target: {
         glibc: {
-            clang_cflags: [
+            cflags: [
                 "-fprofile-instr-generate",
                 "-fcoverage-mapping",
             ],
