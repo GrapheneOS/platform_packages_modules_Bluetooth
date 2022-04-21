@@ -29,8 +29,11 @@
 
 #include "btif/include/btif_hh.h"
 
+#include <base/logging.h>
+
 #include <cstdint>
 
+#include "bta_hh_co.h"
 #include "btif/include/btif_common.h"
 #include "btif/include/btif_storage.h"
 #include "btif/include/btif_util.h"
@@ -42,8 +45,6 @@
 #include "stack/include/hidh_api.h"
 #include "stack/include/l2c_api.h"
 #include "types/raw_address.h"
-
-#include <base/logging.h>
 
 #define COD_HID_KEYBOARD 0x0540
 #define COD_HID_POINTING 0x0580
@@ -796,6 +797,7 @@ static void btif_hh_upstreams_evt(uint16_t event, char* p_param) {
           BTIF_TRACE_WARNING(
               "BTA_HH_OPEN_EVT: Error, failed to find the uhid driver...");
           p_dev->bd_addr = p_data->conn.bda;
+          p_dev->le_hid = p_data->conn.le_hid;
           // remove the connection  and then try again to reconnect from the
           // mouse side to recover
           btif_hh_cb.status = (BTIF_HH_STATUS)BTIF_HH_DEV_DISCONNECTED;
@@ -806,6 +808,7 @@ static void btif_hh_upstreams_evt(uint16_t event, char* p_param) {
               "... %d",
               p_data->conn.handle);
           p_dev->bd_addr = p_data->conn.bda;
+          p_dev->le_hid = p_data->conn.le_hid;
           btif_hh_cb.status = (BTIF_HH_STATUS)BTIF_HH_DEV_CONNECTED;
           // Send set_idle if the peer_device is a keyboard
           if (check_cod(&p_data->conn.bda, COD_HID_KEYBOARD) ||
@@ -900,6 +903,18 @@ static void btif_hh_upstreams_evt(uint16_t event, char* p_param) {
       if (p_dev != NULL) {
         HAL_CBACK(bt_hh_callbacks, handshake_cb, (RawAddress*)&(p_dev->bd_addr),
                   (bthh_status_t)p_data->hs_data.status);
+
+#ifdef OS_ANDROID  // Host kernel does not support UHID_SET_REPORT
+        if (p_dev->le_hid && p_dev->set_rpt_id_queue) {
+          /* There is no handshake response for HOGP. Conclude the
+           * UHID_SET_REPORT procedure here. */
+          uint32_t* set_rpt_id =
+              (uint32_t*)fixed_queue_try_peek_first(p_dev->set_rpt_id_queue);
+          if (set_rpt_id) {
+            bta_hh_co_set_rpt_rsp(p_dev->dev_handle, p_data->dev_status.status);
+          }
+        }
+#endif
       }
       break;
 
