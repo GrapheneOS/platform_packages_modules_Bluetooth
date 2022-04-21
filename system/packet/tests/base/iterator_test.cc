@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
+#include <android-base/silent_death_test.h>
 #include <gtest/gtest.h>
+
 #include <memory>
 
 #include "packet.h"
@@ -47,9 +49,19 @@ INSTANTIATE_TEST_CASE_P(IteratorParameterTest, IteratorTest,
                         ::testing::Values(pair(0, test_l2cap_data.size()),
                                           pair(3, test_l2cap_data.size() - 2)));
 
-TEST_F(IteratorTest, iteratorCreateDeathTest) {
+using IteratorDeathTest = IteratorTest;
+
+INSTANTIATE_TEST_CASE_P(IteratorParameterTest, IteratorDeathTest,
+                        ::testing::Values(pair(0, test_l2cap_data.size()),
+                                          pair(3, test_l2cap_data.size() - 2)));
+
+TEST_F(IteratorDeathTest, iteratorCreateDeathTest) {
   auto packet =
       TestPacket::Make(test_l2cap_data, 3, test_l2cap_data.size() - 2);
+
+  // this will silent SIGABRT sent in ASSERT_DEATH below
+  ScopedSilentDeath _silentDeath;
+
   ASSERT_DEATH(Iterator(packet, 0), "index_ >= packet->packet_start_index_");
   ASSERT_DEATH(Iterator(packet, test_l2cap_data.size()),
                "index_ <= packet->packet_end_index_");
@@ -86,9 +98,13 @@ TEST_P(IteratorTest, payloadBoundsTest) {
   }
 }
 
-TEST_P(IteratorTest, extractBoundsDeathTest) {
+TEST_P(IteratorDeathTest, extractBoundsDeathTest) {
   auto packet = GetTestPacket();
   Iterator bounds_test = packet->end();
+
+  // this will silent SIGABRT sent in ASSERT_DEATH below
+  ScopedSilentDeath _silentDeath;
+
   ASSERT_DEATH(bounds_test.extract<uint8_t>(),
                "index_ != packet_->packet_end_index_");
   ASSERT_DEATH(bounds_test.extract<uint16_t>(),
@@ -99,9 +115,13 @@ TEST_P(IteratorTest, extractBoundsDeathTest) {
                "index_ != packet_->packet_end_index_");
 }
 
-TEST_P(IteratorTest, extractBEBoundsDeathTest) {
+TEST_P(IteratorDeathTest, extractBEBoundsDeathTest) {
   auto packet = GetTestPacket();
   Iterator bounds_test = packet->end();
+
+  // this will silent SIGABRT sent in ASSERT_DEATH below
+  ScopedSilentDeath _silentDeath;
+
   ASSERT_DEATH(bounds_test.extractBE<uint8_t>(),
                "index_ != packet_->packet_end_index_");
   ASSERT_DEATH(bounds_test.extractBE<uint16_t>(),
@@ -112,12 +132,16 @@ TEST_P(IteratorTest, extractBEBoundsDeathTest) {
                "index_ != packet_->packet_end_index_");
 }
 
-TEST_P(IteratorTest, dereferenceDeathTest) {
+TEST_P(IteratorDeathTest, dereferenceDeathTest) {
   auto packet = GetTestPacket();
   Iterator dereference_test = packet->end();
 
   ASSERT_EQ((*packet)[GetTestPacketLength() - 1],
             *(dereference_test - static_cast<size_t>(1)));
+
+  // this will silent SIGABRT sent in ASSERT_DEATH below
+  ScopedSilentDeath _silentDeath;
+
   ASSERT_DEATH(*dereference_test, "index_ != packet_->packet_end_index_");
 }
 
