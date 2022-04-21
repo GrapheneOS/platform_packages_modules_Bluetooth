@@ -150,6 +150,7 @@ public class AdapterServiceTest {
     private PackageManager mMockPackageManager;
     private MockContentResolver mMockContentResolver;
     private HashMap<String, HashMap<String, String>> mAdapterConfig;
+    private int mForegroundUserId;
 
     private void configureEnabledProfiles() {
         Log.e("AdapterServiceTest", "configureEnabledProfiles");
@@ -278,6 +279,12 @@ public class AdapterServiceTest {
             return InstrumentationRegistry.getTargetContext().getDatabasePath((String) args[0]);
         }).when(mMockContext).getDatabasePath(anyString());
 
+        // Sets the foreground user id to match that of the tests (restored in tearDown)
+        mForegroundUserId = Utils.getForegroundUserId();
+        int callingUid = Binder.getCallingUid();
+        UserHandle callingUser = UserHandle.getUserHandleForUid(callingUid);
+        Utils.setForegroundUserId(callingUser.getIdentifier());
+
         when(mMockDevicePolicyManager.isCommonCriteriaModeEnabled(any())).thenReturn(false);
 
         when(mIBluetoothCallback.asBinder()).thenReturn(mBinder);
@@ -313,6 +320,10 @@ public class AdapterServiceTest {
     @After
     public void tearDown() {
         Log.e("AdapterServiceTest", "tearDown()");
+
+        // Restores the foregroundUserId to the ID prior to the test setup
+        Utils.setForegroundUserId(mForegroundUserId);
+
         mServiceBinder.unregisterCallback(mIBluetoothCallback, mAttributionSource);
         mAdapterService.cleanup();
     }

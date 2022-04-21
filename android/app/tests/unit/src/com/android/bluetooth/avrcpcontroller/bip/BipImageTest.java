@@ -25,6 +25,8 @@ import android.graphics.BitmapFactory;
 import androidx.test.InstrumentationRegistry;
 import androidx.test.runner.AndroidJUnit4;
 
+import com.android.bluetooth.TestUtils;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,18 +40,12 @@ import java.io.InputStream;
 @RunWith(AndroidJUnit4.class)
 public class BipImageTest {
     private static String sImageHandle = "123456789";
-    private Context mTargetContext;
     private Resources mTestResources;
 
     @Before
     public void setUp() {
-        mTargetContext = InstrumentationRegistry.getTargetContext();
-        try {
-            mTestResources = mTargetContext.getPackageManager()
-                    .getResourcesForApplication("com.android.bluetooth.tests");
-        } catch (PackageManager.NameNotFoundException e) {
-            Assert.fail("Setup Failure Unable to get resources" + e.toString());
-        }
+        mTestResources = TestUtils.getTestApplicationResources(
+                InstrumentationRegistry.getTargetContext());
     }
 
     @Test

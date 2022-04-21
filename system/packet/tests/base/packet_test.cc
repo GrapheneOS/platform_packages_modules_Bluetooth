@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
+#include "packet.h"
+
+#include <android-base/silent_death_test.h>
 #include <gtest/gtest.h>
 
-#include "packet.h"
 #include "packet_test_common.h"
 #include "test_packets.h"
 
@@ -64,9 +66,13 @@ TEST(PacketTest, arrayAccessTest) {
 }
 
 // Test that accessing past the end of the defined payload dies
-TEST(PacketTest, arrayAccessDeathTest) {
+TEST(PacketDeathTest, arrayAccessDeathTest) {
   auto packet =
       TestPacket::Make(test_l2cap_data, 3, test_l2cap_data.size() - 2);
+
+  // this will silent SIGABRT sent in ASSERT_DEATH below
+  ScopedSilentDeath _silentDeath;
+
   ASSERT_DEATH((*packet)[test_l2cap_data.size()], "");
 }
 
