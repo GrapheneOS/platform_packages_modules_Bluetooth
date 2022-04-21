@@ -2478,8 +2478,7 @@ class LeAudioClientImpl : public LeAudioClient {
   }
 
   void SuspendAudio(void) {
-    audio_receiver_state_ = AudioState::IDLE;
-    audio_sender_state_ = AudioState::IDLE;
+    CancelStreamingRequest();
 
     if (lc3_encoder_left_mem) {
       free(lc3_encoder_left_mem);
