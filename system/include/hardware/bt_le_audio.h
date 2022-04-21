@@ -20,6 +20,7 @@
 #include <array>
 #include <map>
 #include <optional>
+#include <vector>
 
 #include "raw_address.h"
 

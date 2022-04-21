@@ -869,7 +869,7 @@ public class HeadsetStateMachine extends StateMachine {
                     mNativeInterface.notifyDeviceStatus(mDevice, (HeadsetDeviceState) message.obj);
                     break;
                 case SEND_CLCC_RESPONSE:
-                    processSendClccResponse((HeadsetClccResponse) message.obj);
+                    processSendClccResponse((ArrayList<HeadsetClccResponse>) message.obj);
                     break;
                 case CLCC_RSP_TIMEOUT: {
                     BluetoothDevice device = (BluetoothDevice) message.obj;
@@ -2029,15 +2029,16 @@ public class HeadsetStateMachine extends StateMachine {
         sendIndicatorIntent(device, indId, indValue);
     }
 
-    private void processSendClccResponse(HeadsetClccResponse clcc) {
+    private void processSendClccResponse(ArrayList<HeadsetClccResponse> clccList) {
         if (!hasMessages(CLCC_RSP_TIMEOUT)) {
             return;
         }
-        if (clcc.mIndex == 0) {
-            removeMessages(CLCC_RSP_TIMEOUT);
+        removeMessages(CLCC_RSP_TIMEOUT);
+
+        for (HeadsetClccResponse clcc : clccList) {
+            mNativeInterface.clccResponse(mDevice, clcc.mIndex, clcc.mDirection, clcc.mStatus,
+                    clcc.mMode, clcc.mMpty, clcc.mNumber, clcc.mType);
         }
-        mNativeInterface.clccResponse(mDevice, clcc.mIndex, clcc.mDirection, clcc.mStatus,
-                clcc.mMode, clcc.mMpty, clcc.mNumber, clcc.mType);
     }
 
     private void processSendVendorSpecificResultCode(HeadsetVendorSpecificResultCode resultCode) {

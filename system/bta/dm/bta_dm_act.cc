@@ -1197,7 +1197,7 @@ void bta_dm_sdp_result(tBTA_DM_MSG* p_data) {
             &bta_dm_service_search_remname_cback);
       }
 
-      p_msg = (tBTA_DM_MSG*)osi_malloc(sizeof(tBTA_DM_MSG));
+      p_msg = (tBTA_DM_MSG*)osi_calloc(sizeof(tBTA_DM_MSG));
       p_msg->hdr.event = BTA_DM_DISCOVERY_RESULT_EVT;
       p_msg->disc_result.result.disc_res.result = BTA_SUCCESS;
       p_msg->disc_result.result.disc_res.num_uuids = uuid_list.size();
@@ -1206,7 +1206,7 @@ void bta_dm_sdp_result(tBTA_DM_MSG* p_data) {
         // TODO(jpawlowski): make p_uuid_list into vector, and just copy
         // vectors, but first get rid of bta_sys_sendmsg below.
         p_msg->disc_result.result.disc_res.p_uuid_list =
-            (Uuid*)osi_malloc(uuid_list.size() * sizeof(Uuid));
+            (Uuid*)osi_calloc(uuid_list.size() * sizeof(Uuid));
         memcpy(p_msg->disc_result.result.disc_res.p_uuid_list, uuid_list.data(),
                uuid_list.size() * sizeof(Uuid));
       }
@@ -1262,7 +1262,7 @@ void bta_dm_sdp_result(tBTA_DM_MSG* p_data) {
       BTM_SecDeleteRmtNameNotifyCallback(&bta_dm_service_search_remname_cback);
     }
 
-    p_msg = (tBTA_DM_MSG*)osi_malloc(sizeof(tBTA_DM_MSG));
+    p_msg = (tBTA_DM_MSG*)osi_calloc(sizeof(tBTA_DM_MSG));
     p_msg->hdr.event = BTA_DM_DISCOVERY_RESULT_EVT;
     p_msg->disc_result.result.disc_res.result = BTA_FAILURE;
     p_msg->disc_result.result.disc_res.services =
