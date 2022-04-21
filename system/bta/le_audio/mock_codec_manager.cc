@@ -38,14 +38,21 @@ types::CodecLocation CodecManager::GetCodecLocation() const {
 }
 
 void CodecManager::UpdateActiveSourceAudioConfig(
-    const stream_configuration& stream_conf, uint16_t delay_ms) {
+    const stream_configuration& stream_conf, uint16_t delay_ms,
+    std::function<void(const ::le_audio::offload_config& config)>
+        update_receiver) {
   if (pimpl_)
-    return pimpl_->UpdateActiveSourceAudioConfig(stream_conf, delay_ms);
+    return pimpl_->UpdateActiveSourceAudioConfig(stream_conf, delay_ms,
+                                                 update_receiver);
 }
 
 void CodecManager::UpdateActiveSinkAudioConfig(
-    const stream_configuration& stream_conf, uint16_t delay_ms) {
-  if (pimpl_) return pimpl_->UpdateActiveSinkAudioConfig(stream_conf, delay_ms);
+    const stream_configuration& stream_conf, uint16_t delay_ms,
+    std::function<void(const ::le_audio::offload_config& config)>
+        update_receiver) {
+  if (pimpl_)
+    return pimpl_->UpdateActiveSinkAudioConfig(stream_conf, delay_ms,
+                                               update_receiver);
 }
 
 const set_configurations::AudioSetConfigurations*
