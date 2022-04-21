@@ -439,6 +439,9 @@ public class LeAudioService extends ProfileService {
     }
 
     BluetoothDevice getConnectedGroupLeadDevice(int groupId) {
+        if (mActiveAudioOutDevice != null) {
+            return mActiveAudioOutDevice;
+        }
         return getFirstDeviceFromGroup(groupId);
     }
 
@@ -2364,7 +2367,8 @@ public class LeAudioService extends ProfileService {
             ProfileService.println(sb, "    isActive: " + descriptor.mIsActive);
             ProfileService.println(sb, "    isConnected: " + descriptor.mIsConnected);
             ProfileService.println(sb, "    mActiveContexts: " + descriptor.mActiveContexts);
-            ProfileService.println(sb, "    group lead: " + getFirstDeviceFromGroup(groupId));
+            ProfileService.println(sb, "    group lead: " + getConnectedGroupLeadDevice(groupId));
+            ProfileService.println(sb, "    first device: " + getFirstDeviceFromGroup(groupId));
         }
     }
 }
