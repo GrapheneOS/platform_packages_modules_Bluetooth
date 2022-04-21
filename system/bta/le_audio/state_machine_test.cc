@@ -2146,7 +2146,11 @@ TEST_F(StateMachineTest, testAseAutonomousRelease) {
   // Validate new GroupStreamStatus
   EXPECT_CALL(mock_callbacks_,
               StatusReportCb(leaudio_group_id,
-                             bluetooth::le_audio::GroupStreamStatus::IDLE));
+                             bluetooth::le_audio::GroupStreamStatus::IDLE))
+      .Times(AtLeast(1));
+
+  /* Single disconnect as it is bidirectional Cis*/
+  EXPECT_CALL(*mock_iso_manager_, DisconnectCis(_, _)).Times(1);
 
   for (auto* device = group->GetFirstDevice(); device != nullptr;
        device = group->GetNextDevice(device)) {
@@ -2170,6 +2174,62 @@ TEST_F(StateMachineTest, testAseAutonomousRelease) {
     for (auto& ase : device->ases_) {
       ASSERT_EQ(ase.state, types::AseState::BTA_LE_AUDIO_ASE_STATE_IDLE);
     }
+  }
+}
+
+TEST_F(StateMachineTest, testAseAutonomousRelease2Devices) {
+  const auto context_type = kContextTypeConversational;
+  const int leaudio_group_id = 4;
+  const int num_of_devices = 2;
+
+  // Prepare fake connected device group
+  auto* group = PrepareSingleTestDeviceGroup(leaudio_group_id, context_type,
+                                             num_of_devices);
+
+  /* Since we prepared device with Conversional context in mind, Sink and Source
+   * ASEs should have been configured.
+   */
+  PrepareConfigureCodecHandler(group);
+  PrepareConfigureQosHandler(group);
+  PrepareEnableHandler(group);
+  PrepareDisableHandler(group);
+  PrepareReceiverStartReady(group);
+  PrepareReceiverStopReady(group);
+  PrepareReleaseHandler(group);
+
+  InjectInitialIdleNotification(group);
+
+  // Validate initial GroupStreamStatus
+  EXPECT_CALL(
+      mock_callbacks_,
+      StatusReportCb(leaudio_group_id,
+                     bluetooth::le_audio::GroupStreamStatus::STREAMING));
+
+  // Start the configuration and stream Media content
+  ASSERT_TRUE(LeAudioGroupStateMachine::Get()->StartStream(
+      group, static_cast<types::LeAudioContextType>(context_type)));
+
+  // Check streaming will continue
+  EXPECT_CALL(mock_callbacks_,
+              StatusReportCb(leaudio_group_id,
+                             bluetooth::le_audio::GroupStreamStatus::IDLE))
+      .Times(0);
+
+  /* Single disconnect as it is bidirectional Cis*/
+  EXPECT_CALL(*mock_iso_manager_, DisconnectCis(_, _)).Times(1);
+
+  auto device = group->GetFirstDevice();
+  for (auto& ase : device->ases_) {
+    client_parser::ascs::ase_codec_configured_state_params
+        codec_configured_state_params;
+
+    ASSERT_EQ(ase.state, types::AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING);
+
+    // Simulate autonomus release for one device.
+    InjectAseStateNotification(&ase, device, group, ascs::kAseStateReleasing,
+                               &codec_configured_state_params);
+    InjectAseStateNotification(&ase, device, group, ascs::kAseStateIdle,
+                               &codec_configured_state_params);
   }
 }
 
