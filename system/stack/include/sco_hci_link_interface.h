@@ -30,8 +30,12 @@ extern void btm_sco_chk_pend_unpark(tHCI_STATUS hci_status,
                                     uint16_t hci_handle);
 extern void btm_sco_conn_req(const RawAddress& bda, const DEV_CLASS& dev_class,
                              uint8_t link_type);
-extern void btm_sco_connected(tHCI_STATUS hci_status, const RawAddress& bda,
-                              uint16_t hci_handle, tBTM_ESCO_DATA* p_esco_data);
+extern void btm_sco_connected(const RawAddress& bda, uint16_t hci_handle,
+                              tBTM_ESCO_DATA* p_esco_data);
+extern void btm_sco_connection_failed(tHCI_STATUS hci_status,
+                                      const RawAddress& bda,
+                                      uint16_t hci_handle,
+                                      tBTM_ESCO_DATA* p_esco_data);
 extern bool btm_sco_removed(uint16_t hci_handle, tHCI_REASON reason);
 
 void btm_sco_on_disconnected(uint16_t hci_handle, tHCI_REASON reason);
