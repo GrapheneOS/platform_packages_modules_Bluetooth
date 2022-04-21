@@ -192,9 +192,9 @@ void log_link_layer_connection_command(std::unique_ptr<CommandView>& command_vie
       break;
     }
     case OpCode::LE_CLEAR_FILTER_ACCEPT_LIST: {
-      auto le_clear_connect_list_view = LeClearFilterAcceptListView::Create(
+      auto le_clear_filter_accept_list_view = LeClearFilterAcceptListView::Create(
           LeConnectionManagementCommandView::Create(std::move(connection_management_command_view)));
-      ASSERT(le_clear_connect_list_view.IsValid());
+      ASSERT(le_clear_filter_accept_list_view.IsValid());
       direction = android::bluetooth::DIRECTION_INCOMING;
       link_type = android::bluetooth::LINK_TYPE_ACL;
       break;
@@ -372,9 +372,9 @@ void log_link_layer_connection_command_status(std::unique_ptr<CommandView>& comm
       break;
     }
     case OpCode::LE_CLEAR_FILTER_ACCEPT_LIST: {
-      auto le_clear_connect_list_view = LeClearFilterAcceptListView::Create(
+      auto le_clear_filter_accept_list_view = LeClearFilterAcceptListView::Create(
           LeConnectionManagementCommandView::Create(std::move(connection_management_command_view)));
-      ASSERT(le_clear_connect_list_view.IsValid());
+      ASSERT(le_clear_filter_accept_list_view.IsValid());
       direction = android::bluetooth::DIRECTION_INCOMING;
       link_type = android::bluetooth::LINK_TYPE_ACL;
       break;
@@ -434,9 +434,9 @@ void log_link_layer_connection_command_complete(EventView event_view, std::uniqu
 
   switch (op_code) {
     case OpCode::LE_CLEAR_FILTER_ACCEPT_LIST: {
-      auto le_clear_connect_list_view = LeClearFilterAcceptListView::Create(
+      auto le_clear_filter_accept_list_view = LeClearFilterAcceptListView::Create(
           LeConnectionManagementCommandView::Create(std::move(connection_management_command_view)));
-      ASSERT(le_clear_connect_list_view.IsValid());
+      ASSERT(le_clear_filter_accept_list_view.IsValid());
       direction = android::bluetooth::DIRECTION_INCOMING;
       link_type = android::bluetooth::LINK_TYPE_ACL;
       break;
