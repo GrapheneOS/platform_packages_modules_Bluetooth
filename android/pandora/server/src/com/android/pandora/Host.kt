@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.blueberry
+package com.android.pandora
 
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
@@ -24,8 +24,8 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.net.MacAddress
 import android.util.Log
-import blueberry.HostGrpc.HostImplBase
-import blueberry.HostProto.*
+import pandora.HostGrpc.HostImplBase
+import pandora.HostProto.*
 import com.google.protobuf.ByteString
 import com.google.protobuf.Empty
 import io.grpc.Status
@@ -43,7 +43,7 @@ import kotlinx.coroutines.launch
 
 @kotlinx.coroutines.ExperimentalCoroutinesApi
 class Host(private val context: Context, private val server: Server) : HostImplBase() {
-  private val TAG = "BlueberryHost"
+  private val TAG = "PandoraHost"
 
   private val scope: CoroutineScope
   private val flow: Flow<Intent>

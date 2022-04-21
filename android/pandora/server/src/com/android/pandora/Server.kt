@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.blueberry
+package com.android.pandora
 
 import android.content.Context
 import android.util.Log
@@ -24,7 +24,7 @@ import io.grpc.netty.shaded.io.grpc.netty.NettyServerBuilder
 @kotlinx.coroutines.ExperimentalCoroutinesApi
 class Server(context: Context) {
 
-  private val TAG = "BlueberryServer"
+  private val TAG = "PandoraServer"
   private val GRPC_PORT = 8999
 
   private var host: Host
@@ -36,9 +36,9 @@ class Server(context: Context) {
     a2dp = A2dp(context)
     grpcServer = NettyServerBuilder.forPort(GRPC_PORT).addService(host).addService(a2dp).build()
 
-    Log.d(TAG, "Starting Blueberry Server")
+    Log.d(TAG, "Starting Pandora Server")
     grpcServer.start()
-    Log.d(TAG, "Blueberry Server started at $GRPC_PORT")
+    Log.d(TAG, "Pandora Server started at $GRPC_PORT")
   }
 
   fun shutdownNow() {

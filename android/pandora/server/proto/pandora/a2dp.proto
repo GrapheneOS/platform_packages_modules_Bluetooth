@@ -2,9 +2,9 @@ syntax = "proto3";
 
 option java_outer_classname = "A2dpProto";
 
-package blueberry;
+package pandora;
 
-import "blueberry/host.proto";
+import "pandora/host.proto";
 import "google/protobuf/wrappers.proto";
 
 // Service to trigger A2DP (Advanced Audio Distribution Profile) procedures.

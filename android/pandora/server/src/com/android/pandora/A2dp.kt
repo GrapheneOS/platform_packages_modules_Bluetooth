@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.blueberry
+package com.android.pandora
 
 import android.bluetooth.BluetoothA2dp
 import android.bluetooth.BluetoothAdapter
@@ -26,8 +26,8 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.media.*
 import android.util.Log
-import blueberry.A2DPGrpc.A2DPImplBase
-import blueberry.A2dpProto.*
+import pandora.A2DPGrpc.A2DPImplBase
+import pandora.A2dpProto.*
 import io.grpc.Status
 import io.grpc.stub.StreamObserver
 import kotlinx.coroutines.CoroutineScope
@@ -42,7 +42,7 @@ import kotlinx.coroutines.flow.shareIn
 
 @kotlinx.coroutines.ExperimentalCoroutinesApi
 class A2dp(val context: Context) : A2DPImplBase() {
-  private val TAG = "BlueberryA2dp"
+  private val TAG = "PandoraA2dp"
 
   private val scope: CoroutineScope
   private val flow: Flow<Intent>
