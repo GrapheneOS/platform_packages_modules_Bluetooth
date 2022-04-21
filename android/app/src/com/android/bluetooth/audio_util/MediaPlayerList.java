@@ -196,7 +196,16 @@ public class MediaPlayerList {
 
                 // If there were any active players and we don't already have one due to the Media
                 // Framework Callbacks then set the highest priority one to active
-                if (mActivePlayerId == 0 && mMediaPlayers.size() > 0) setActivePlayer(1);
+                if (mActivePlayerId == 0 && mMediaPlayers.size() > 0) {
+                    String packageName = mMediaSessionManager.getMediaKeyEventSessionPackageName();
+                    if (!TextUtils.isEmpty(packageName) && haveMediaPlayer(packageName)) {
+                        Log.i(TAG, "Set active player to MediaKeyEvent session = " + packageName);
+                        setActivePlayer(mMediaPlayerIds.get(packageName));
+                    } else {
+                        Log.i(TAG, "Set active player to first default");
+                        setActivePlayer(1);
+                    }
+                }
             });
     }
 
