@@ -31,6 +31,7 @@
 #include "gd/common/strings.h"
 #include "le_audio_set_configuration_provider.h"
 #include "osi/include/log.h"
+#include "stack/include/acl_api.h"
 
 using bluetooth::hci::kIsoCigFramingFramed;
 using bluetooth::hci::kIsoCigFramingUnframed;
@@ -1658,6 +1659,17 @@ void LeAudioDevice::Dump(int fd) {
          << "\n";
 
   dprintf(fd, "%s", stream.str().c_str());
+}
+
+void LeAudioDevice::DisconnectAcl(void) {
+  if (conn_id_ == GATT_INVALID_CONN_ID) return;
+
+  uint16_t acl_handle =
+      BTM_GetHCIConnHandle(address_, BT_TRANSPORT_LE);
+  if (acl_handle != HCI_INVALID_HANDLE) {
+    acl_disconnect_from_handle(acl_handle, HCI_ERR_PEER_USER,
+                               "bta::le_audio::client disconnect");
+  }
 }
 
 AudioContexts LeAudioDevice::GetAvailableContexts(void) {

@@ -141,6 +141,7 @@ class LeAudioDevice {
   void DeactivateAllAses(void);
   void ActivateConfiguredAses(void);
   void Dump(int fd);
+  void DisconnectAcl(void);
   std::vector<uint8_t> GetMetadata(types::LeAudioContextType context_type);
   bool IsMetadataChanged(types::LeAudioContextType context_type);
 
