@@ -1220,6 +1220,17 @@ extern void BTA_DmLeRand(LeRandCallback cb);
 
 /*******************************************************************************
  *
+ * Function        BTA_DmSetDefaultEventMask
+ *
+ * Description    Floss: Set the default event mask for Classic and LE
+ *
+ * Parameters
+ *
+ *******************************************************************************/
+extern void BTA_DmSetDefaultEventMask();
+
+/*******************************************************************************
+ *
  * Function        BTA_DmSetEventFilterInquiryResultAllDevices
  *
  * Description    Floss: Set the event filter to inquiry result device all

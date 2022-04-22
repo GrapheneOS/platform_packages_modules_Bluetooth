@@ -699,6 +699,11 @@ void BTA_DmLeRand(LeRandCallback cb) {
   do_in_main_thread(FROM_HERE, base::Bind(bta_dm_le_rand, cb));
 }
 
+void BTA_DmSetDefaultEventMask() {
+  APPL_TRACE_API("BTA_DmSetDefaultEventMask");
+  do_in_main_thread(FROM_HERE, base::Bind(bta_dm_set_default_event_mask));
+}
+
 void BTA_DmSetEventFilterInquiryResultAllDevices() {
   APPL_TRACE_API("BTA_DmSetEventFilterInquiryResultAllDevices");
   do_in_main_thread(

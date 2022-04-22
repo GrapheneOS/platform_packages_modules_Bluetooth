@@ -4071,6 +4071,20 @@ void bta_dm_le_rand(LeRandCallback cb) {
 
 /*******************************************************************************
  *
+ * Function        BTA_DmSetDefaultEventMask
+ *
+ * Description    Floss: Set the default event mask for Classic and LE
+ *
+ * Parameters
+ *
+ *******************************************************************************/
+void bta_dm_set_default_event_mask() {
+  // Autoplumbed
+  bluetooth::shim::BTM_SetDefaultEventMask();
+}
+
+/*******************************************************************************
+ *
  * Function        BTA_DmSetEventFilterInquiryResultAllDevices
  *
  * Description    Floss: Set the event filter to inquiry result device all
