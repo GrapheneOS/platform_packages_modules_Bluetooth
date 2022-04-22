@@ -510,7 +510,7 @@ struct AudioSetConfigurationProvider::impl {
 
     for (LeAudioContextType context : types::kLeAudioContextAllTypesArray) {
       auto confs = Get()->GetConfigurations(context);
-      stream << "  === Configurations for context type: " << (int)context
+      stream << "\n  === Configurations for context type: " << (int)context
              << ", num: " << (confs == nullptr ? 0 : confs->size()) << " \n";
       if (confs->size() > 0) {
         for (const auto& conf : *confs) {
@@ -527,7 +527,9 @@ struct AudioSetConfigurationProvider::impl {
                    << "     qos->retransmission_number: "
                    << +ent.qos.retransmission_number << " \n"
                    << "     qos->max_transport_latency: "
-                   << +ent.qos.max_transport_latency << " \n";
+                   << +ent.qos.max_transport_latency << " \n"
+                   << "     channel count: "
+                   << +ent.codec.GetConfigChannelCount() << "\n";
           }
         }
       }
