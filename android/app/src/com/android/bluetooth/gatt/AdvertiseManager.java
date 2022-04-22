@@ -16,6 +16,7 @@
 
 package com.android.bluetooth.gatt;
 
+import android.bluetooth.le.AdvertiseCallback;
 import android.bluetooth.le.AdvertiseData;
 import android.bluetooth.le.AdvertisingSetParameters;
 import android.bluetooth.le.IAdvertisingSetCallback;
@@ -195,9 +196,12 @@ class AdvertiseManager {
         }
 
         String deviceName = AdapterService.getAdapterService().getName();
-        byte[] advDataBytes = AdvertiseHelper.advertiseDataToBytes(advertiseData, deviceName);
-        byte[] scanResponseBytes = AdvertiseHelper.advertiseDataToBytes(scanResponse, deviceName);
-        byte[] periodicDataBytes = AdvertiseHelper.advertiseDataToBytes(periodicData, deviceName);
+        try {
+            byte[] advDataBytes = AdvertiseHelper.advertiseDataToBytes(advertiseData, deviceName);
+            byte[] scanResponseBytes =
+                    AdvertiseHelper.advertiseDataToBytes(scanResponse, deviceName);
+            byte[] periodicDataBytes =
+                    AdvertiseHelper.advertiseDataToBytes(periodicData, deviceName);
 
         int cbId = --sTempRegistrationId;
         mAdvertisers.put(binder, new AdvertiserInfo(cbId, deathRecipient, callback));
@@ -207,6 +211,16 @@ class AdvertiseManager {
         }
         startAdvertisingSetNative(parameters, advDataBytes, scanResponseBytes, periodicParameters,
                 periodicDataBytes, duration, maxExtAdvEvents, cbId);
+
+        } catch (IllegalArgumentException e) {
+            try {
+                binder.unlinkToDeath(deathRecipient, 0);
+                callback.onAdvertisingSetStarted(0x00, 0x00,
+                        AdvertiseCallback.ADVERTISE_FAILED_DATA_TOO_LARGE);
+            } catch (RemoteException exception) {
+                Log.e(TAG, "Failed to callback:" + Log.getStackTraceString(exception));
+            }
+        }
     }
 
     void onOwnAddressRead(int advertiserId, int addressType, String address)
@@ -280,8 +294,17 @@ class AdvertiseManager {
             return;
         }
         String deviceName = AdapterService.getAdapterService().getName();
-        setAdvertisingDataNative(advertiserId,
-                AdvertiseHelper.advertiseDataToBytes(data, deviceName));
+        try {
+            setAdvertisingDataNative(advertiserId,
+                    AdvertiseHelper.advertiseDataToBytes(data, deviceName));
+        } catch (IllegalArgumentException e) {
+            try {
+                onAdvertisingDataSet(advertiserId,
+                        AdvertiseCallback.ADVERTISE_FAILED_DATA_TOO_LARGE);
+            } catch (Exception exception) {
+                Log.e(TAG, "Failed to callback:" + Log.getStackTraceString(exception));
+            }
+        }
     }
 
     void setScanResponseData(int advertiserId, AdvertiseData data) {
@@ -291,8 +314,17 @@ class AdvertiseManager {
             return;
         }
         String deviceName = AdapterService.getAdapterService().getName();
-        setScanResponseDataNative(advertiserId,
-                AdvertiseHelper.advertiseDataToBytes(data, deviceName));
+        try {
+            setScanResponseDataNative(advertiserId,
+                    AdvertiseHelper.advertiseDataToBytes(data, deviceName));
+        } catch (IllegalArgumentException e) {
+            try {
+                onScanResponseDataSet(advertiserId,
+                        AdvertiseCallback.ADVERTISE_FAILED_DATA_TOO_LARGE);
+            } catch (Exception exception) {
+                Log.e(TAG, "Failed to callback:" + Log.getStackTraceString(exception));
+            }
+        }
     }
 
     void setAdvertisingParameters(int advertiserId, AdvertisingSetParameters parameters) {
@@ -321,8 +353,17 @@ class AdvertiseManager {
             return;
         }
         String deviceName = AdapterService.getAdapterService().getName();
-        setPeriodicAdvertisingDataNative(advertiserId,
-                AdvertiseHelper.advertiseDataToBytes(data, deviceName));
+        try {
+            setPeriodicAdvertisingDataNative(advertiserId,
+                    AdvertiseHelper.advertiseDataToBytes(data, deviceName));
+        } catch (IllegalArgumentException e) {
+            try {
+                onPeriodicAdvertisingDataSet(advertiserId,
+                        AdvertiseCallback.ADVERTISE_FAILED_DATA_TOO_LARGE);
+            } catch (Exception exception) {
+                Log.e(TAG, "Failed to callback:" + Log.getStackTraceString(exception));
+            }
+        }
     }
 
     void setPeriodicAdvertisingEnable(int advertiserId, boolean enable) {

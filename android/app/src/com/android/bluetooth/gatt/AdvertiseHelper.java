@@ -71,6 +71,7 @@ class AdvertiseHelper {
                     type = COMPLETE_LOCAL_NAME;
                 }
 
+                check_length(type, nameLength + 1);
                 ret.write(nameLength + 1);
                 ret.write(type);
                 ret.write(nameBytes, 0, nameLength);
@@ -92,6 +93,7 @@ class AdvertiseHelper {
                 System.arraycopy(manufacturerData, 0, concated, 2, manufacturerData.length);
             }
 
+            check_length(MANUFACTURER_SPECIFIC_DATA, concated.length + 1);
             ret.write(concated.length + 1);
             ret.write(MANUFACTURER_SPECIFIC_DATA);
             ret.write(concated, 0, concated.length);
@@ -121,18 +123,21 @@ class AdvertiseHelper {
             }
 
             if (serviceUuids16.size() != 0) {
+                check_length(COMPLETE_LIST_16_BIT_SERVICE_UUIDS, serviceUuids16.size() + 1);
                 ret.write(serviceUuids16.size() + 1);
                 ret.write(COMPLETE_LIST_16_BIT_SERVICE_UUIDS);
                 ret.write(serviceUuids16.toByteArray(), 0, serviceUuids16.size());
             }
 
             if (serviceUuids32.size() != 0) {
+                check_length(COMPLETE_LIST_32_BIT_SERVICE_UUIDS, serviceUuids32.size() + 1);
                 ret.write(serviceUuids32.size() + 1);
                 ret.write(COMPLETE_LIST_32_BIT_SERVICE_UUIDS);
                 ret.write(serviceUuids32.toByteArray(), 0, serviceUuids32.size());
             }
 
             if (serviceUuids128.size() != 0) {
+                check_length(COMPLETE_LIST_128_BIT_SERVICE_UUIDS, serviceUuids32.size() + 1);
                 ret.write(serviceUuids128.size() + 1);
                 ret.write(COMPLETE_LIST_128_BIT_SERVICE_UUIDS);
                 ret.write(serviceUuids128.toByteArray(), 0, serviceUuids128.size());
@@ -156,14 +161,17 @@ class AdvertiseHelper {
                 }
 
                 if (uuid.length == BluetoothUuid.UUID_BYTES_16_BIT) {
+                    check_length(SERVICE_DATA_16_BIT_UUID, concated.length + 1);
                     ret.write(concated.length + 1);
                     ret.write(SERVICE_DATA_16_BIT_UUID);
                     ret.write(concated, 0, concated.length);
                 } else if (uuid.length == BluetoothUuid.UUID_BYTES_32_BIT) {
+                    check_length(SERVICE_DATA_32_BIT_UUID, concated.length + 1);
                     ret.write(concated.length + 1);
                     ret.write(SERVICE_DATA_32_BIT_UUID);
                     ret.write(concated, 0, concated.length);
                 } else /*if (uuid.length == BluetoothUuid.UUID_BYTES_128_BIT)*/ {
+                    check_length(SERVICE_DATA_128_BIT_UUID, concated.length + 1);
                     ret.write(concated.length + 1);
                     ret.write(SERVICE_DATA_128_BIT_UUID);
                     ret.write(concated, 0, concated.length);
@@ -190,18 +198,21 @@ class AdvertiseHelper {
             }
 
             if (serviceUuids16.size() != 0) {
+                check_length(LIST_16_BIT_SERVICE_SOLICITATION_UUIDS, serviceUuids16.size() + 1);
                 ret.write(serviceUuids16.size() + 1);
                 ret.write(LIST_16_BIT_SERVICE_SOLICITATION_UUIDS);
                 ret.write(serviceUuids16.toByteArray(), 0, serviceUuids16.size());
             }
 
             if (serviceUuids32.size() != 0) {
+                check_length(LIST_32_BIT_SERVICE_SOLICITATION_UUIDS, serviceUuids32.size() + 1);
                 ret.write(serviceUuids32.size() + 1);
                 ret.write(LIST_32_BIT_SERVICE_SOLICITATION_UUIDS);
                 ret.write(serviceUuids32.toByteArray(), 0, serviceUuids32.size());
             }
 
             if (serviceUuids128.size() != 0) {
+                check_length(LIST_128_BIT_SERVICE_SOLICITATION_UUIDS, serviceUuids128.size() + 1);
                 ret.write(serviceUuids128.size() + 1);
                 ret.write(LIST_128_BIT_SERVICE_SOLICITATION_UUIDS);
                 ret.write(serviceUuids128.toByteArray(), 0, serviceUuids128.size());
@@ -209,11 +220,20 @@ class AdvertiseHelper {
         }
 
         for (TransportDiscoveryData transportDiscoveryData : data.getTransportDiscoveryData()) {
+            check_length(TRANSPORT_DISCOVERY_DATA, transportDiscoveryData.totalBytes() + 1);
             ret.write(transportDiscoveryData.totalBytes() + 1);
             ret.write(TRANSPORT_DISCOVERY_DATA);
             ret.write(transportDiscoveryData.toByteArray(),
                     0, transportDiscoveryData.totalBytes());
         }
         return ret.toByteArray();
+    }
+
+    static void check_length(int type, int length) {
+        if (length > 255) {
+            Log.w(TAG, "Length of data with type " + Integer.toString(type, 16)
+                    + " is grater than 255");
+            throw new IllegalArgumentException("Length of data is grater than 255");
+        }
     }
 }

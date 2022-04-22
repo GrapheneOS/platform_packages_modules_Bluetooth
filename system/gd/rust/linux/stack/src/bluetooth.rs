@@ -161,10 +161,10 @@ pub trait IBluetooth {
     fn sdp_search(&self, device: BluetoothDevice, uuid: Uuid128Bit) -> bool;
 
     /// Connect all profiles supported by device and enabled on adapter.
-    fn connect_all_enabled_profiles(&self, device: BluetoothDevice) -> bool;
+    fn connect_all_enabled_profiles(&mut self, device: BluetoothDevice) -> bool;
 
     /// Disconnect all profiles supported by device and enabled on adapter.
-    fn disconnect_all_enabled_profiles(&self, device: BluetoothDevice) -> bool;
+    fn disconnect_all_enabled_profiles(&mut self, device: BluetoothDevice) -> bool;
 }
 
 /// Serializable device used in various apis.
@@ -311,6 +311,8 @@ pub struct Bluetooth {
     state: BtState,
     tx: Sender<Message>,
     uuid_helper: UuidHelper,
+    /// Used to delay connection until we have SDP results.
+    wait_to_connect: bool,
 }
 
 impl Bluetooth {
@@ -339,6 +341,7 @@ impl Bluetooth {
             state: BtState::Off,
             tx,
             uuid_helper: UuidHelper::new(),
+            wait_to_connect: false,
         }
     }
 
@@ -835,6 +838,12 @@ impl BtifBluetoothCallbacks for Bluetooth {
             Some(d) => {
                 d.update_properties(properties);
                 d.seen();
+
+                let info = d.info.clone();
+                let uuids = self.get_remote_uuids(info.clone());
+                if self.wait_to_connect && uuids.len() > 0 {
+                    self.connect_all_enabled_profiles(info);
+                }
             }
             None => (),
         };
@@ -1333,7 +1342,7 @@ impl IBluetooth for Bluetooth {
         self.sdp.as_ref().unwrap().sdp_search(&mut addr.unwrap(), &uu) == BtStatus::Success
     }
 
-    fn connect_all_enabled_profiles(&self, device: BluetoothDevice) -> bool {
+    fn connect_all_enabled_profiles(&mut self, device: BluetoothDevice) -> bool {
         // Profile init must be complete before this api is callable
         if !self.profiles_ready {
             return false;
@@ -1345,10 +1354,8 @@ impl IBluetooth for Bluetooth {
             return false;
         }
 
-        // BREDR connection won't work when Inquiry is in progress.
-        self.cancel_discovery();
-
         // Check all remote uuids to see if they match enabled profiles and connect them.
+        let mut has_enabled_uuids = false;
         let uuids = self.get_remote_uuids(device.clone());
         for uuid in uuids.iter() {
             match self.uuid_helper.is_known_profile(uuid) {
@@ -1372,15 +1379,22 @@ impl IBluetooth for Bluetooth {
                             _ => (),
                         }
                     }
+                    has_enabled_uuids = true;
                 }
                 _ => {}
             }
         }
 
+        // If SDP isn't completed yet, we wait for it to complete and retry the connection again.
+        // Otherwise, this connection request is done, no retry is required.
+        self.wait_to_connect = !has_enabled_uuids;
         return true;
     }
 
-    fn disconnect_all_enabled_profiles(&self, device: BluetoothDevice) -> bool {
+    fn disconnect_all_enabled_profiles(&mut self, device: BluetoothDevice) -> bool {
+        // No need to retry connection as we are going to disconnect all enabled profiles.
+        self.wait_to_connect = false;
+
         if !self.profiles_ready {
             return false;
         }
