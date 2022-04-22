@@ -334,6 +334,11 @@ static uint8_t controller_le_rand(LeRandCallback cb) {
   return BTM_SUCCESS;
 }
 
+static uint8_t controller_set_event_filter_inquiry_result_all_devices() {
+  bluetooth::shim::GetController()->SetEventFilterInquiryResultAllDevices();
+  return BTM_SUCCESS;
+}
+
 static const controller_t interface = {
     .get_is_ready = get_is_ready,
 
@@ -434,7 +439,9 @@ static const controller_t interface = {
     .get_le_all_initiating_phys = get_le_all_initiating_phys,
     .clear_event_filter = controller_clear_event_filter,
     .clear_event_mask = controller_clear_event_mask,
-    .le_rand = controller_le_rand};
+    .le_rand = controller_le_rand,
+    .set_event_filter_inquiry_result_all_devices =
+        controller_set_event_filter_inquiry_result_all_devices};
 
 const controller_t* bluetooth::shim::controller_get_interface() {
   static bool loaded = false;
