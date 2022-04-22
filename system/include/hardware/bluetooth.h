@@ -811,6 +811,13 @@ typedef struct {
    *
    */
   int (*set_event_filter_inquiry_result_all_devices)();
+
+  /**
+   *
+   * Floss: Set the default event mask for Classic and LE
+   *
+   */
+  int (*set_default_event_mask)();
 } bt_interface_t;
 
 #define BLUETOOTH_INTERFACE_STRING "bluetoothInterface"
