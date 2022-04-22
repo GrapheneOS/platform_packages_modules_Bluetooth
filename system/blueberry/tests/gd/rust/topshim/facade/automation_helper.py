@@ -80,6 +80,9 @@ class AdapterAutomationHelper():
     async def le_rand(self):
         await self.adapter_stub.LeRand(empty_proto.Empty())
 
+    async def set_event_filter_inquiry_result_all_devices(self):
+        await self.adapter_stub.SetEventFilterInquiryResultAllDevices(empty_proto.Empty())
+
 
 class A2dpAutomationHelper():
     """Invoke gRPC on topshim for A2DP testing"""

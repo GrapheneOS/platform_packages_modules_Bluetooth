@@ -165,4 +165,16 @@ impl AdapterService for AdapterServiceImpl {
             sink.success(Empty::default()).await.unwrap();
         })
     }
+
+    fn set_event_filter_inquiry_result_all_devices(
+        &mut self,
+        ctx: RpcContext<'_>,
+        _req: Empty,
+        sink: UnarySink<Empty>,
+    ) {
+        self.btif_intf.lock().unwrap().set_event_filter_inquiry_result_all_devices();
+        ctx.spawn(async move {
+            sink.success(Empty::default()).await.unwrap();
+        })
+    }
 }
