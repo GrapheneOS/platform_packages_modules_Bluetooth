@@ -464,6 +464,14 @@ static int le_rand() {
   return BT_STATUS_SUCCESS;
 }
 
+static int set_event_filter_inquiry_result_all_devices() {
+  if (!interface_ready()) return BT_STATUS_NOT_READY;
+  do_in_main_thread(
+      FROM_HERE,
+      base::BindOnce(btif_dm_set_event_filter_inquiry_result_all_devices));
+  return BT_STATUS_SUCCESS;
+}
+
 static void dump(int fd, const char** arguments) {
   btif_debug_conn_dump(fd);
   btif_debug_bond_event_dump(fd);
@@ -722,7 +730,8 @@ EXPORT_SYMBOL bt_interface_t bluetoothInterface = {
     clear_event_mask,
     clear_filter_accept_list,
     disconnect_all_acls,
-    le_rand};
+    le_rand,
+    set_event_filter_inquiry_result_all_devices};
 
 // callback reporting helpers
 

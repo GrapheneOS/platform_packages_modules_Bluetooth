@@ -3293,3 +3293,8 @@ void btif_dm_le_rand(LeRandCallback callback) {
   LOG_VERBOSE("%s: called", __func__);
   bta_dm_le_rand(callback);
 }
+
+void btif_dm_set_event_filter_inquiry_result_all_devices() {
+  // Autoplumbed
+  BTA_DmSetEventFilterInquiryResultAllDevices();
+}

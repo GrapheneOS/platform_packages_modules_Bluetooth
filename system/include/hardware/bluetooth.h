@@ -804,6 +804,13 @@ typedef struct {
    * Call to retrieve a generated random
    */
   int (*le_rand)();
+
+  /**
+   *
+   * Floss: Set the event filter to inquiry result device all
+   *
+   */
+  int (*set_event_filter_inquiry_result_all_devices)();
 } bt_interface_t;
 
 #define BLUETOOTH_INTERFACE_STRING "bluetoothInterface"
