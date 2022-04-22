@@ -186,7 +186,7 @@ public class VolumeControlService extends ProfileService {
     private final ServiceFactory mFactory = new ServiceFactory();
 
     public static boolean isEnabled() {
-        return BluetoothProperties.isProfileVcServerEnabled().orElse(false);
+        return BluetoothProperties.isProfileVcpControllerEnabled().orElse(false);
     }
 
     @Override
