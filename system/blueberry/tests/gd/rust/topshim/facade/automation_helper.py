@@ -80,6 +80,9 @@ class AdapterAutomationHelper():
     async def le_rand(self):
         await self.adapter_stub.LeRand(empty_proto.Empty())
 
+    async def set_default_event_mask(self):
+        await self.adapter_stub.SetDefaultEventMask(empty_proto.Empty())
+
     async def set_event_filter_inquiry_result_all_devices(self):
         await self.adapter_stub.SetEventFilterInquiryResultAllDevices(empty_proto.Empty())
 

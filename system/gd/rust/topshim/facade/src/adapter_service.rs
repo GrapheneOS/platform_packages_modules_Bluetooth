@@ -166,6 +166,13 @@ impl AdapterService for AdapterServiceImpl {
         })
     }
 
+    fn set_default_event_mask(&mut self, ctx: RpcContext<'_>, _req: Empty, sink: UnarySink<Empty>) {
+        self.btif_intf.lock().unwrap().set_default_event_mask();
+        ctx.spawn(async move {
+            sink.success(Empty::default()).await.unwrap();
+        })
+    }
+
     fn set_event_filter_inquiry_result_all_devices(
         &mut self,
         ctx: RpcContext<'_>,
