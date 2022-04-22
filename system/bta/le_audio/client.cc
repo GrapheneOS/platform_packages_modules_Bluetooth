@@ -883,6 +883,18 @@ class LeAudioClientImpl : public LeAudioClient {
     BTA_GATTC_CancelOpen(0, address, false);
 
     if (leAudioDevice->conn_id_ != GATT_INVALID_CONN_ID) {
+      /* User is disconnecting the device, we shall remove the autoconnect flag
+       */
+      btif_storage_set_leaudio_autoconnect(address, false);
+
+      auto group = aseGroups_.FindById(leAudioDevice->group_id_);
+      if (group &&
+          group->GetState() ==
+              le_audio::types::AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
+        leAudioDevice->closing_stream_for_disconnection_ = true;
+        groupStateMachine_->StopStream(group);
+        return;
+      }
       DisconnectDevice(leAudioDevice);
       return;
     }
@@ -1308,6 +1320,7 @@ class LeAudioClientImpl : public LeAudioClient {
 
     callbacks_->OnConnectionState(ConnectionState::DISCONNECTED, address);
     leAudioDevice->conn_id_ = GATT_INVALID_CONN_ID;
+    leAudioDevice->closing_stream_for_disconnection_ = false;
     leAudioDevice->encrypted_ = false;
 
     if (leAudioDevice->removing_device_) {
@@ -2559,10 +2572,15 @@ class LeAudioClientImpl : public LeAudioClient {
 
   void Cleanup(base::Callback<void()> cleanupCb) {
     if (alarm_is_scheduled(suspend_timeout_)) alarm_cancel(suspend_timeout_);
+
+    if (active_group_id_ != bluetooth::groups::kGroupUnknown) {
+      /* Bluetooth turned off while streaming */
+      StopAudio();
+      ClientAudioIntefraceRelease();
+    }
     groupStateMachine_->Cleanup();
-    leAudioDevices_.Cleanup();
     aseGroups_.Cleanup();
-    StopAudio();
+    leAudioDevices_.Cleanup();
     if (gatt_if_) BTA_GATTC_AppDeregister(gatt_if_);
 
     std::move(cleanupCb).Run();
@@ -3233,6 +3251,20 @@ class LeAudioClientImpl : public LeAudioClient {
     }
   }
 
+  void HandlePendingDeviceDisconnection(LeAudioDeviceGroup* group) {
+    LOG_DEBUG();
+    auto leAudioDevice = group->GetFirstDevice();
+    while (leAudioDevice) {
+      if (leAudioDevice->closing_stream_for_disconnection_) {
+        leAudioDevice->closing_stream_for_disconnection_ = false;
+        LOG_DEBUG("Disconnecting group id: %d, address: %s", group->group_id_,
+                  leAudioDevice->address_.ToString().c_str());
+        DisconnectDevice(leAudioDevice);
+      }
+      leAudioDevice = group->GetNextDevice(leAudioDevice);
+    }
+  }
+
   void StatusReportCb(int group_id, GroupStreamStatus status) {
     LOG(INFO) << __func__ << "status: " << static_cast<int>(status)
               << " audio_sender_state_: " << audio_sender_state_
@@ -3284,7 +3316,10 @@ class LeAudioClientImpl : public LeAudioClient {
           }
         }
         CancelStreamingRequest();
-        HandlePendingAvailableContexts(group);
+        if (group) {
+          HandlePendingAvailableContexts(group);
+          HandlePendingDeviceDisconnection(group);
+        }
         break;
       }
       case GroupStreamStatus::RELEASING:
