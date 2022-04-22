@@ -17,6 +17,7 @@
 package android.bluetooth;
 
 import android.annotation.NonNull;
+import android.annotation.Nullable;
 import android.annotation.SystemApi;
 import android.bluetooth.BluetoothUtils.TypeValueEntry;
 import android.os.Parcel;
@@ -24,7 +25,9 @@ import android.os.Parcelable;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * A class representing the codec specific config metadata information defined in the Basic Audio
@@ -42,6 +45,21 @@ public final class BluetoothLeAudioCodecConfigMetadata implements Parcelable {
     private BluetoothLeAudioCodecConfigMetadata(long audioLocation, byte[] rawMetadata) {
         mAudioLocation = audioLocation;
         mRawMetadata = rawMetadata;
+    }
+
+    @Override
+    public boolean equals(@Nullable Object o) {
+        if (o != null && o instanceof BluetoothLeAudioCodecConfigMetadata) {
+            final BluetoothLeAudioCodecConfigMetadata oth = (BluetoothLeAudioCodecConfigMetadata) o;
+            return mAudioLocation == oth.getAudioLocation()
+                && Arrays.equals(mRawMetadata, oth.getRawMetadata());
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(mAudioLocation, mRawMetadata);
     }
 
     /**
