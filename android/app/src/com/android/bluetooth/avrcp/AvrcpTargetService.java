@@ -384,10 +384,10 @@ public class AvrcpTargetService extends ProfileService {
 
     String getCurrentMediaId() {
         String id = mMediaPlayerList.getCurrentMediaId();
-        if (id != null) return id;
+        if (id != null && !id.isEmpty()) return id;
 
         Metadata song = getCurrentSongInfo();
-        if (song != null) return song.mediaId;
+        if (song != null && !song.mediaId.isEmpty()) return song.mediaId;
 
         // We always want to return something, the error string just makes debugging easier
         return "error";

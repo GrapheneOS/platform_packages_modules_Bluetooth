@@ -47,6 +47,7 @@ using le_audio::types::LeAudioLtvMap;
 namespace {
 class LeAudioBroadcasterImpl;
 LeAudioBroadcasterImpl* instance;
+LeAudioBroadcastClientAudioSource* leAudioClientAudioSource;
 
 /* Class definitions */
 
@@ -107,8 +108,8 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
     callbacks_ = nullptr;
 
     if (audio_instance_) {
-      LeAudioClientAudioSource::Stop();
-      LeAudioClientAudioSource::Release(audio_instance_);
+      leAudioClientAudioSource->Stop();
+      leAudioClientAudioSource->Release(audio_instance_);
       audio_instance_ = nullptr;
     }
   }
@@ -237,7 +238,7 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
 
     if (broadcasts_.count(broadcast_id) != 0) {
       LOG_INFO("Stopping LeAudioClientAudioSource");
-      LeAudioClientAudioSource::Stop();
+      leAudioClientAudioSource->Stop();
       broadcasts_[broadcast_id]->SetMuted(true);
       broadcasts_[broadcast_id]->ProcessMessage(
           BroadcastStateMachine::Message::SUSPEND, nullptr);
@@ -268,7 +269,7 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
 
     if (broadcasts_.count(broadcast_id) != 0) {
       if (!audio_instance_) {
-        audio_instance_ = LeAudioClientAudioSource::Acquire();
+        audio_instance_ = leAudioClientAudioSource->Acquire();
         if (!audio_instance_) {
           LOG_ERROR("Could not acquire le audio");
           return;
@@ -290,7 +291,7 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
 
     LOG_INFO("Stopping LeAudioClientAudioSource, broadcast_id=%d",
              broadcast_id);
-    LeAudioClientAudioSource::Stop();
+    leAudioClientAudioSource->Stop();
     broadcasts_[broadcast_id]->SetMuted(true);
     broadcasts_[broadcast_id]->ProcessMessage(
         BroadcastStateMachine::Message::STOP, nullptr);
@@ -421,7 +422,7 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
         CHECK(broadcasts_.count(broadcast_id) != 0);
         broadcasts_[broadcast_id]->HandleHciEvent(HCI_BLE_TERM_BIG_CPL_EVT,
                                                   evt);
-        LeAudioClientAudioSource::Release(audio_instance_);
+        leAudioClientAudioSource->Release(audio_instance_);
         audio_instance_ = nullptr;
       } break;
       default:
@@ -538,7 +539,7 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
               broadcast->SetMuted(false);
               auto cfg = static_cast<const LeAudioCodecConfiguration*>(data);
               auto is_started =
-                  LeAudioClientAudioSource::Start(*cfg, &audio_receiver_);
+                  leAudioClientAudioSource->Start(*cfg, &audio_receiver_);
               if (!is_started) {
                 /* Audio Source setup failed - stop the broadcast */
                 instance->StopAudioBroadcast(broadcast_id);
@@ -704,11 +705,11 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
         instance->audio_data_path_state_ = AudioDataPathState::ACTIVE;
 
       if (!IsAnyoneStreaming()) {
-        LeAudioClientAudioSource::CancelStreamingRequest();
+        leAudioClientAudioSource->CancelStreamingRequest();
         return;
       }
 
-      LeAudioClientAudioSource::ConfirmStreamingRequest();
+      leAudioClientAudioSource->ConfirmStreamingRequest();
     }
 
     virtual void OnAudioMetadataUpdate(
@@ -769,6 +770,8 @@ void LeAudioBroadcaster::Initialize(
     LOG_ALWAYS_FATAL("HAL requirements not met. Init aborted.");
   }
 
+  /* Create new client audio broadcast instance */
+  InitializeAudioClient(nullptr);
   IsoManager::GetInstance()->Start();
 
   instance = new LeAudioBroadcasterImpl(callbacks);
@@ -801,6 +804,10 @@ void LeAudioBroadcaster::Cleanup(void) {
   instance = nullptr;
 
   ptr->CleanUp();
+  if (leAudioClientAudioSource) {
+    delete leAudioClientAudioSource;
+    leAudioClientAudioSource = nullptr;
+  }
   delete ptr;
 }
 
@@ -808,4 +815,20 @@ void LeAudioBroadcaster::DebugDump(int fd) {
   dprintf(fd, "Le Audio Broadcaster:\n");
   if (instance) instance->Dump(fd);
   dprintf(fd, "\n");
+}
+
+void LeAudioBroadcaster::InitializeAudioClient(
+    LeAudioBroadcastClientAudioSource* clientAudioSource) {
+  if (leAudioClientAudioSource) {
+    LOG(WARNING) << __func__ << ", audio clients already initialized";
+    return;
+  }
+
+  if (!clientAudioSource) {
+    /* Create new instance if no pre-created is delivered */
+    leAudioClientAudioSource = new LeAudioBroadcastClientAudioSource();
+  } else {
+    /* Use pre-created instance e.g. from test suit */
+    leAudioClientAudioSource = clientAudioSource;
+  }
 }

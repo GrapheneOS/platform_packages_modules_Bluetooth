@@ -424,6 +424,7 @@ static int clear_event_filter() {
 static void dump(int fd, const char** arguments) {
   btif_debug_conn_dump(fd);
   btif_debug_bond_event_dump(fd);
+  btif_debug_linkkey_type_dump(fd);
   btif_debug_a2dp_dump(fd);
   btif_debug_av_dump(fd);
   bta_debug_av_dump(fd);

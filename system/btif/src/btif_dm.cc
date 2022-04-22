@@ -29,6 +29,10 @@
 
 #include "btif_dm.h"
 
+#ifdef OS_ANDROID
+#include <android/sysprop/BluetoothProperties.sysprop.h>
+#endif
+
 #include <base/bind.h>
 #include <base/logging.h>
 #include <bluetooth/uuid.h>
@@ -117,6 +121,9 @@ const bool enable_address_consolidate = true;  // TODO remove
 #define BTIF_DM_MAX_SDP_ATTEMPTS_AFTER_PAIRING 2
 
 #define NUM_TIMEOUT_RETRIES 5
+#ifndef PROPERTY_DEFAULT_DEVICE_NAME
+#define PROPERTY_DEFAULT_DEVICE_NAME "bluetooth.device.default_name"
+#endif
 #ifndef PROPERTY_PRODUCT_MODEL
 #define PROPERTY_PRODUCT_MODEL "ro.product.model"
 #endif
@@ -3083,9 +3090,23 @@ void btif_dm_read_energy_info() { BTA_DmBleGetEnergyInfo(bta_energy_info_cb); }
 static const char* btif_get_default_local_name() {
   if (btif_default_local_name[0] == '\0') {
     int max_len = sizeof(btif_default_local_name) - 1;
-    if (BTM_DEF_LOCAL_NAME[0] != '\0') {
-      strncpy(btif_default_local_name, BTM_DEF_LOCAL_NAME, max_len);
-    } else {
+
+    // Use the stable sysprop on Android devices, otherwise use osi_property_get
+#ifdef OS_ANDROID
+    std::optional<std::string> default_local_name =
+        android::sysprop::BluetoothProperties::getDefaultDeviceName();
+    if (default_local_name.has_value() && default_local_name.value() != "") {
+      strncpy(btif_default_local_name, default_local_name.value().c_str(),
+              max_len);
+    }
+#else
+    char prop_name[PROPERTY_VALUE_MAX];
+    osi_property_get(PROPERTY_DEFAULT_DEVICE_NAME, prop_name, "");
+    strncpy(btif_default_local_name, prop_name, max_len);
+#endif
+
+    // If no value was placed in the btif_default_local_name then use model name
+    if (btif_default_local_name[0] == '\0') {
       char prop_model[PROPERTY_VALUE_MAX];
       osi_property_get(PROPERTY_PRODUCT_MODEL, prop_model, "");
       strncpy(btif_default_local_name, prop_model, max_len);
