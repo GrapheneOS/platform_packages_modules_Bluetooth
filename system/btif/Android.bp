@@ -179,6 +179,9 @@ cc_defaults {
                 "libfmq",
                 "libstatslog_bt",
             ],
+            whole_static_libs: [
+                "PlatformProperties",
+            ],
             srcs: ["src/btif_avrcp_audio_track.cc"],
         },
         host: {
