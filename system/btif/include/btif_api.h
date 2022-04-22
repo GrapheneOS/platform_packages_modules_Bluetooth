@@ -391,4 +391,15 @@ void btif_debug_bond_event_dump(int fd);
  ******************************************************************************/
 bt_status_t btif_set_dynamic_audio_buffer_size(int codec, int size);
 
+/*******************************************************************************
+ *
+ * Function         btif_debug_linkkey_type_dump
+ *
+ * Description     Dump exchanged linkkey types information
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+void btif_debug_linkkey_type_dump(int fd);
+
 #endif /* BTIF_API_H */

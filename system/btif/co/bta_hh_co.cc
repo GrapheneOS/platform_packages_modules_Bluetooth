@@ -603,14 +603,19 @@ void bta_hh_co_set_rpt_rsp(uint8_t dev_handle, uint8_t status) {
 
   // Send the HID set report reply to the kernel.
   if (p_dev->fd >= 0) {
-    struct uhid_event ev = {};
     uint32_t* set_rpt_id =
         (uint32_t*)fixed_queue_dequeue(p_dev->set_rpt_id_queue);
-    ev.type = UHID_SET_REPORT_REPLY;
-    ev.u.set_report_reply.id = *set_rpt_id;
-    ev.u.set_report_reply.err = status;
-    osi_free(set_rpt_id);
-    uhid_write(p_dev->fd, &ev);
+    if (set_rpt_id) {
+      struct uhid_event ev = {};
+
+      ev.type = UHID_SET_REPORT_REPLY;
+      ev.u.set_report_reply.id = *set_rpt_id;
+      ev.u.set_report_reply.err = status;
+      osi_free(set_rpt_id);
+      uhid_write(p_dev->fd, &ev);
+    } else {
+      LOG_VERBOSE("No pending UHID_SET_REPORT");
+    }
   }
 #else
   LOG_ERROR("Error: UHID_SET_REPORT_REPLY not supported");
