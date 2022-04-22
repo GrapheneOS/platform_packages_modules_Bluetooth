@@ -80,7 +80,7 @@ table QosConfiguration {
 table AudioSetConfiguration {
     name: string (key, required);
     codec_config_name: string (required);
-    qos_config_name: string (required);
+    qos_config_name: [string] (required);
 }
 table AudioSetConfigurations {
     _comments_: [string];
