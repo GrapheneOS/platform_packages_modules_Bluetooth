@@ -1220,6 +1220,17 @@ extern void BTA_DmLeRand(LeRandCallback cb);
 
 /*******************************************************************************
  *
+ * Function        BTA_DmRestoreFilterAcceptList
+ *
+ * Description    Floss: Restore the state of the for the filter accept list
+ *
+ * Parameters
+ *
+ *******************************************************************************/
+extern void BTA_DmRestoreFilterAcceptList();
+
+/*******************************************************************************
+ *
  * Function        BTA_DmSetDefaultEventMask
  *
  * Description    Floss: Set the default event mask for Classic and LE

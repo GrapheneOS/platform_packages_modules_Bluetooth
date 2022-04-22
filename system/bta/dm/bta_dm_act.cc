@@ -4071,6 +4071,20 @@ void bta_dm_le_rand(LeRandCallback cb) {
 
 /*******************************************************************************
  *
+ * Function        BTA_DmRestoreFilterAcceptList
+ *
+ * Description    Floss: Restore the state of the for the filter accept list
+ *
+ * Parameters
+ *
+ *******************************************************************************/
+void bta_dm_restore_filter_accept_list() {
+  // Autoplumbed
+  bluetooth::shim::BTM_RestoreFilterAcceptList();
+}
+
+/*******************************************************************************
+ *
  * Function        BTA_DmSetDefaultEventMask
  *
  * Description    Floss: Set the default event mask for Classic and LE
