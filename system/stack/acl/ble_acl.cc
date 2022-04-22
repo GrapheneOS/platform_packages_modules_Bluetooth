@@ -181,3 +181,14 @@ void acl_ble_update_event_received(tHCI_STATUS status, uint16_t handle,
   gatt_notify_conn_update(p_dev_rec->ble.pseudo_addr, interval, latency,
                           timeout, status);
 }
+
+void acl_ble_data_length_change_event(uint16_t handle, uint16_t max_tx_octets,
+                                      uint16_t max_tx_time,
+                                      uint16_t max_rx_octets,
+                                      uint16_t max_rx_time) {
+  LOG_DEBUG(
+      "Data length change event received handle:0x%04x max_tx_octets:%hu "
+      "max_tx_time:%hu max_rx_octets:%hu max_rx_time:%hu",
+      handle, max_tx_octets, max_tx_time, max_rx_octets, max_rx_time);
+  l2cble_process_data_length_change_event(handle, max_tx_octets, max_rx_octets);
+}
