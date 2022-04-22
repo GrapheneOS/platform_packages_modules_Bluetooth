@@ -4071,6 +4071,20 @@ void bta_dm_le_rand(LeRandCallback cb) {
 
 /*******************************************************************************
  *
+ * Function        BTA_DmSetEventFilterInquiryResultAllDevices
+ *
+ * Description    Floss: Set the event filter to inquiry result device all
+ *
+ * Parameters
+ *
+ *******************************************************************************/
+void bta_dm_set_event_filter_inquiry_result_all_devices() {
+  // Autoplumbed
+  bluetooth::shim::BTM_SetEventFilterInquiryResultAllDevices();
+}
+
+/*******************************************************************************
+ *
  * Function         bta_dm_gattc_callback
  *
  * Description      This is GATT client callback function used in DM.

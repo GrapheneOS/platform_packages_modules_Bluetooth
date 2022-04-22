@@ -698,3 +698,10 @@ void BTA_DmLeRand(LeRandCallback cb) {
   APPL_TRACE_API("BTA_DmLeRand");
   do_in_main_thread(FROM_HERE, base::Bind(bta_dm_le_rand, cb));
 }
+
+void BTA_DmSetEventFilterInquiryResultAllDevices() {
+  APPL_TRACE_API("BTA_DmSetEventFilterInquiryResultAllDevices");
+  do_in_main_thread(
+      FROM_HERE,
+      base::Bind(bta_dm_set_event_filter_inquiry_result_all_devices));
+}

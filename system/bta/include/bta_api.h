@@ -1218,4 +1218,15 @@ using LeRandCallback = base::Callback<void(uint64_t)>;
  ******************************************************************************/
 extern void BTA_DmLeRand(LeRandCallback cb);
 
+/*******************************************************************************
+ *
+ * Function        BTA_DmSetEventFilterInquiryResultAllDevices
+ *
+ * Description    Floss: Set the event filter to inquiry result device all
+ *
+ * Parameters
+ *
+ *******************************************************************************/
+extern void BTA_DmSetEventFilterInquiryResultAllDevices();
+
 #endif /* BTA_API_H */
