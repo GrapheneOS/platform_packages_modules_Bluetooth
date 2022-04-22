@@ -1869,6 +1869,17 @@ tBTM_STATUS BTM_DisconnectAllAcls(void);
 using LeRandCallback = base::Callback<void(uint64_t)>;
 tBTM_STATUS BTM_LeRand(LeRandCallback);
 
+/*******************************************************************************
+ *
+ * Function        BTM_SetEventFilterInquiryResultAllDevices
+ *
+ * Description    Floss: Set the event filter to inquiry result device all
+ *
+ * Parameters
+ *
+ *******************************************************************************/
+tBTM_STATUS BTM_SetEventFilterInquiryResultAllDevices(void);
+
 /**
  * Send remote name request to GD shim Name module
  */

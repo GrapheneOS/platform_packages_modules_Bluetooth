@@ -1358,3 +1358,9 @@ tBTM_STATUS bluetooth::shim::BTM_LeRand(LeRandCallback cb) {
   controller_get_interface()->le_rand(cb);
   return BTM_SUCCESS;
 }
+
+tBTM_STATUS bluetooth::shim::BTM_SetEventFilterInquiryResultAllDevices() {
+  // Autoplumbed
+  controller_get_interface()->set_event_filter_inquiry_result_all_devices();
+  return BTM_SUCCESS;
+}
