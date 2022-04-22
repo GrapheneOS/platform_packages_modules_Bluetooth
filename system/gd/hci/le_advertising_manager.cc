@@ -351,6 +351,14 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
       return;
     }
 
+    // check extended advertising data is valid before start advertising
+    if (!check_extended_advertising_data(config.advertisement) ||
+        !check_extended_advertising_data(config.scan_response)) {
+      advertising_callbacks_->OnAdvertisingSetStarted(
+          reg_id, id, le_physical_channel_tx_power_, AdvertisingCallback::AdvertisingStatus::DATA_TOO_LARGE);
+      return;
+    }
+
     if (!address_manager_registered) {
       le_address_manager_->Register(this);
       address_manager_registered = true;
@@ -628,6 +636,25 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
       } break;
     }
   }
+
+  bool check_extended_advertising_data(std::vector<GapData> data) {
+    uint16_t data_len = 0;
+    // check data size
+    for (size_t i = 0; i < data.size(); i++) {
+      if (data[i].size() > kLeMaximumFragmentLength) {
+        LOG_WARN("AD data len shall not greater than %d", kLeMaximumFragmentLength);
+        return false;
+      }
+      data_len += data[i].size();
+    }
+
+    if (data_len > le_maximum_advertising_data_length_) {
+      LOG_WARN(
+          "advertising data len exceeds le_maximum_advertising_data_length_ %d", le_maximum_advertising_data_length_);
+      return false;
+    }
+    return true;
+  };
 
   void set_data(AdvertiserId advertiser_id, bool set_scan_rsp, std::vector<GapData> data) {
     if (!set_scan_rsp && advertising_sets_[advertiser_id].connectable) {

@@ -704,7 +704,11 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
      * to streaming state.
      */
     struct ase* ase = leAudioDevice->GetFirstActiveAse();
-    LOG_ASSERT(ase) << __func__ << " shouldn't be called without an active ASE";
+    ASSERT_LOG(ase != nullptr,
+               "shouldn't be called without an active ASE, device %s, group "
+               "id: %d, cis handle 0x%04x",
+               leAudioDevice->address_.ToString().c_str(), event->cig_id,
+               event->cis_conn_hdl);
     do {
       if (ase->direction == le_audio::types::kLeAudioDirectionSource)
         ids.push_back(ase->id);
@@ -793,15 +797,21 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
          * is, otherwise stop the stream.
          */
         if (!group->HaveAllActiveDevicesCisDisc()) {
-          /* TODO: Reconfigure LC3 codec from here or maybe other place?*/
+          /* There is ASE streaming for some device. Continue streaming. */
+          LOG_WARN(
+              "Group member disconnected during streaming. Cis handle 0x%04x",
+              event->cis_conn_hdl);
           return;
         }
 
-        /*If there is no more ase to stream. Suspend audio and clear state
-         * machine -> go to Idle */
+        LOG_INFO("Lost all members from the group %d", group->group_id_);
+        RemoveCigForGroup(group);
+
+        group->SetState(AseState::BTA_LE_AUDIO_ASE_STATE_IDLE);
+        group->SetTargetState(AseState::BTA_LE_AUDIO_ASE_STATE_IDLE);
+        /* If there is no more ase to stream. Notify it is in IDLE. */
         state_machine_callbacks_->StatusReportCb(group->group_id_,
-                                                 GroupStreamStatus::SUSPENDED);
-        StopStream(group);
+                                                 GroupStreamStatus::IDLE);
         return;
 
       case AseState::BTA_LE_AUDIO_ASE_STATE_QOS_CONFIGURED:
@@ -1120,6 +1130,17 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
                 AseState::BTA_LE_AUDIO_ASE_STATE_IDLE)) {
           /* More ASEs notification from this device has to come for this group
            */
+          LOG_DEBUG("Wait for more ASE to configure for device %s",
+                    leAudioDevice->address_.ToString().c_str());
+          return;
+        }
+
+        /* Before continue with release, make sure this is what is requested.
+         * If not (e.g. only single device got disconnected), stop here
+         */
+        if (group->GetTargetState() != AseState::BTA_LE_AUDIO_ASE_STATE_IDLE) {
+          LOG_DEBUG("Autonomus change of stated for device %s, ase id: %d",
+                    leAudioDevice->address_.ToString().c_str(), ase->id);
           return;
         }
 
@@ -1243,9 +1264,10 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
             !ase->retrans_nb) {
           ase->max_transport_latency = rsp.max_transport_latency;
           ase->retrans_nb = rsp.preferred_retrans_nb;
-          LOG(INFO) << __func__ << " Using server preferred QoS settings."
-                    << " Max Transport Latency: " << +ase->max_transport_latency
-                    << ", Retransmission Number: " << +ase->retrans_nb;
+          LOG_INFO(
+              " Using server preferred QoS settings. Max Transport Latency: %d"
+              ", Retransmission Number: %d",
+              +ase->max_transport_latency, ase->retrans_nb);
         }
         ase->pres_delay_min = rsp.pres_delay_min;
         ase->pres_delay_max = rsp.pres_delay_max;
@@ -1256,13 +1278,16 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
 
         if (group->GetTargetState() == AseState::BTA_LE_AUDIO_ASE_STATE_IDLE) {
           /* This is autonomus change of the remote device */
-          LOG(INFO) << __func__ << " Autonomus change. Just store it. ";
+          LOG_DEBUG("Autonomus change for device %s, ase id %d. Just store it.",
+                    leAudioDevice->address_.ToString().c_str(), ase->id);
           return;
         }
 
         if (leAudioDevice->HaveAnyUnconfiguredAses()) {
           /* More ASEs notification from this device has to come for this group
            */
+          LOG_DEBUG("More Ases to be configured for the device %s",
+                    leAudioDevice->address_.ToString().c_str());
           return;
         }
 
@@ -1404,6 +1429,17 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
                 AseState::BTA_LE_AUDIO_ASE_STATE_CODEC_CONFIGURED)) {
           /* More ASEs notification from this device has to come for this group
            */
+          LOG_DEBUG("Wait for more ASE to configure for device %s",
+                    leAudioDevice->address_.ToString().c_str());
+          return;
+        }
+
+        /* Before continue with release, make sure this is what is requested.
+         * If not (e.g. only single device got disconnected), stop here
+         */
+        if (group->GetTargetState() != AseState::BTA_LE_AUDIO_ASE_STATE_IDLE) {
+          LOG_DEBUG("Autonomus change of stated for device %s, ase id: %d",
+                    leAudioDevice->address_.ToString().c_str(), ase->id);
           return;
         }
 
@@ -1908,11 +1944,6 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
       case AseState::BTA_LE_AUDIO_ASE_STATE_ENABLING:
       case AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING: {
         ase->state = AseState::BTA_LE_AUDIO_ASE_STATE_RELEASING;
-
-        /* Since single ase gets into Releasing state, lets assume our new
-         * target state is IDLE
-         */
-        SetTargetState(group, AseState::BTA_LE_AUDIO_ASE_STATE_IDLE);
 
         /* Happens when bi-directional completive ASE releasing state came */
         if (ase->data_path_state == AudioStreamDataPathState::CIS_DISCONNECTING)

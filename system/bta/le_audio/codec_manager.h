@@ -46,9 +46,13 @@ class CodecManager {
   void Stop(void);
   virtual types::CodecLocation GetCodecLocation(void) const;
   virtual void UpdateActiveSourceAudioConfig(
-      const stream_configuration& stream_conf, uint16_t delay_ms);
+      const stream_configuration& stream_conf, uint16_t delay_ms,
+      std::function<void(const ::le_audio::offload_config& config)>
+          update_receiver);
   virtual void UpdateActiveSinkAudioConfig(
-      const stream_configuration& stream_conf, uint16_t delay_ms);
+      const stream_configuration& stream_conf, uint16_t delay_ms,
+      std::function<void(const ::le_audio::offload_config& config)>
+          update_receiver);
   const ::le_audio::set_configurations::AudioSetConfigurations*
   GetOffloadCodecConfig(::le_audio::types::LeAudioContextType ctx_type);
 

@@ -59,6 +59,7 @@ public class Config {
 
     private static final String FEATURE_HEARING_AID = "settings_bluetooth_hearing_aid";
     private static final String FEATURE_BATTERY = "settings_bluetooth_battery";
+    private static long sSupportedMask = 0;
 
     private static class ProfileConfig {
         Class mClass;
@@ -197,6 +198,10 @@ public class Config {
         sSupportedProfiles = profilesList.toArray(new Class[profilesList.size()]);
     }
 
+    static void addSupportedProfile(int supportedProfile) {
+        sSupportedMask |= (1 << supportedProfile);
+    }
+
     static HashSet<Class> geLeAudioUnicastProfiles() {
         return mLeAudioUnicastProfiles;
     }
@@ -220,7 +225,7 @@ public class Config {
     }
 
     static long getSupportedProfilesBitMask() {
-        long mask = 0;
+        long mask = sSupportedMask;
         for (final Class profileClass : getSupportedProfiles()) {
             mask |= getProfileMask(profileClass);
         }
