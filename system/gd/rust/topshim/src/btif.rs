@@ -1036,6 +1036,10 @@ impl BluetoothInterface {
         ccall!(self, le_rand)
     }
 
+    pub fn restore_filter_accept_list(&self) -> i32 {
+        ccall!(self, restore_filter_accept_list)
+    }
+
     pub fn set_default_event_mask(&self) -> i32 {
         ccall!(self, set_default_event_mask)
     }

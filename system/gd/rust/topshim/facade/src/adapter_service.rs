@@ -166,6 +166,18 @@ impl AdapterService for AdapterServiceImpl {
         })
     }
 
+    fn restore_filter_accept_list(
+        &mut self,
+        ctx: RpcContext<'_>,
+        _req: Empty,
+        sink: UnarySink<Empty>,
+    ) {
+        self.btif_intf.lock().unwrap().restore_filter_accept_list();
+        ctx.spawn(async move {
+            sink.success(Empty::default()).await.unwrap();
+        })
+    }
+
     fn set_default_event_mask(&mut self, ctx: RpcContext<'_>, _req: Empty, sink: UnarySink<Empty>) {
         self.btif_intf.lock().unwrap().set_default_event_mask();
         ctx.spawn(async move {
