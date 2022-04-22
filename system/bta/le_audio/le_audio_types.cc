@@ -122,9 +122,7 @@ static bool IsCodecConfigurationSupported(const types::LeAudioLtvMap& pacs,
   DLOG(INFO) << __func__ << " Pac:SamplFreq=" << loghex(u16_pac_val);
 
   /* TODO: Integrate with codec capabilities */
-  if ((u8_req_val != codec_spec_conf::kLeAudioSamplingFreq16000Hz &&
-       u8_req_val != codec_spec_conf::kLeAudioSamplingFreq48000Hz) ||
-      !(u16_pac_val &
+  if (!(u16_pac_val &
         codec_spec_caps::SamplingFreqConfig2Capability(u8_req_val))) {
     DLOG(ERROR) << __func__ << ", sampling frequency not supported";
     return false;
