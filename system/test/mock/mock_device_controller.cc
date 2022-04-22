@@ -372,6 +372,7 @@ tBTM_STATUS clear_event_filter() { return BTM_SUCCESS; }
 tBTM_STATUS clear_event_mask() { return BTM_SUCCESS; }
 
 tBTM_STATUS le_rand(LeRandCallback cb) { return BTM_SUCCESS; }
+tBTM_STATUS set_default_event_mask() { return BTM_SUCCESS; }
 tBTM_STATUS set_event_filter_inquiry_result_all_devices() {
   return BTM_SUCCESS;
 }
@@ -464,6 +465,7 @@ const controller_t interface = {
     clear_event_filter,
     clear_event_mask,
     le_rand,
+    set_default_event_mask,
     set_event_filter_inquiry_result_all_devices};
 
 }  // namespace device_controller
