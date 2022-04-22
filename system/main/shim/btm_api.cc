@@ -1359,6 +1359,12 @@ tBTM_STATUS bluetooth::shim::BTM_LeRand(LeRandCallback cb) {
   return BTM_SUCCESS;
 }
 
+tBTM_STATUS bluetooth::shim::BTM_RestoreFilterAcceptList() {
+  LOG_ERROR("%s: TODO(230604670): Figure out what address for A2DP Connected Resume", __func__);
+  // TODO(230604670): Figure out what address for A2DP Connected Resume
+  return BTM_SUCCESS;
+}
+
 tBTM_STATUS bluetooth::shim::BTM_SetDefaultEventMask() {
   // Autoplumbed
   controller_get_interface()->set_default_event_mask();

@@ -1871,6 +1871,17 @@ tBTM_STATUS BTM_LeRand(LeRandCallback);
 
 /*******************************************************************************
  *
+ * Function        BTM_RestoreFilterAcceptList
+ *
+ * Description    Floss: Restore the state of the for the filter accept list
+ *
+ * Parameters
+ *
+ *******************************************************************************/
+tBTM_STATUS BTM_RestoreFilterAcceptList(void);
+
+/*******************************************************************************
+ *
  * Function        BTM_SetDefaultEventMask
  *
  * Description    Floss: Set the default event mask for Classic and LE
