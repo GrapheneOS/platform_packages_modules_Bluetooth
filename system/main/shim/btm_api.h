@@ -1871,6 +1871,17 @@ tBTM_STATUS BTM_LeRand(LeRandCallback);
 
 /*******************************************************************************
  *
+ * Function        BTM_SetDefaultEventMask
+ *
+ * Description    Floss: Set the default event mask for Classic and LE
+ *
+ * Parameters
+ *
+ *******************************************************************************/
+tBTM_STATUS BTM_SetDefaultEventMask(void);
+
+/*******************************************************************************
+ *
  * Function        BTM_SetEventFilterInquiryResultAllDevices
  *
  * Description    Floss: Set the event filter to inquiry result device all
