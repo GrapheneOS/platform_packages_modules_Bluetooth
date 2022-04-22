@@ -818,6 +818,13 @@ typedef struct {
    *
    */
   int (*set_default_event_mask)();
+
+  /**
+   *
+   * Floss: Restore the state of the for the filter accept list
+   *
+   */
+  int (*restore_filter_accept_list)();
 } bt_interface_t;
 
 #define BLUETOOTH_INTERFACE_STRING "bluetoothInterface"
