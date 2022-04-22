@@ -1343,7 +1343,7 @@ tBTM_STATUS bluetooth::shim::BTM_ClearEventMask() {
 }
 
 tBTM_STATUS bluetooth::shim::BTM_ClearFilterAcceptList() {
-  Stack::GetInstance()->GetAcl()->ClearAcceptList();
+  Stack::GetInstance()->GetAcl()->ClearFilterAcceptList();
   return BTM_SUCCESS;
 }
 
