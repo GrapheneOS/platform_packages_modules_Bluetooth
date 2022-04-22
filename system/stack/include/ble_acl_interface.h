@@ -42,3 +42,7 @@ void acl_ble_connection_fail(const tBLE_BD_ADDR& address_with_type,
 void acl_ble_update_event_received(tHCI_STATUS status, uint16_t handle,
                                    uint16_t interval, uint16_t latency,
                                    uint16_t timeout);
+void acl_ble_data_length_change_event(uint16_t handle, uint16_t max_tx_octets,
+                                      uint16_t max_tx_time,
+                                      uint16_t max_rx_octets,
+                                      uint16_t max_rx_time);
