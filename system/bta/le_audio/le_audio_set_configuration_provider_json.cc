@@ -15,6 +15,9 @@
  *
  */
 
+#include <string>
+#include <string_view>
+
 #include "audio_set_configurations_generated.h"
 #include "audio_set_scenarios_generated.h"
 #include "codec_manager.h"
@@ -237,72 +240,74 @@ struct AudioSetConfigurationProviderJson {
       const bluetooth::le_audio::AudioSetConfiguration* flat_cfg,
       std::vector<const bluetooth::le_audio::CodecConfiguration*>* codec_cfgs,
       std::vector<const bluetooth::le_audio::QosConfiguration*>* qos_cfgs) {
-    std::vector<SetConfiguration> subconfigs;
-    QosConfigSetting qos_sink;
-    QosConfigSetting qos_source;
-    const bluetooth::le_audio::CodecConfiguration* codec_cfg = NULL;
-    const bluetooth::le_audio::QosConfiguration* qos_sink_cfg = NULL;
-    const bluetooth::le_audio::QosConfiguration* qos_source_cfg = NULL;
-
-    const char* codec_config_key = flat_cfg->codec_config_name()->c_str();
+    ASSERT_LOG(flat_cfg != nullptr, "flat_cfg cannot be null");
+    std::string codec_config_key = flat_cfg->codec_config_name()->str();
     auto* qos_config_key_array = flat_cfg->qos_config_name();
 
-    char default_qos[] = "QoS_Config_Server_Preferred";
+    constexpr std::string_view default_qos = "QoS_Config_Server_Preferred";
 
-    const char* qos_sink_key = default_qos;
-    const char* qos_source_key = default_qos;
+    std::string qos_sink_key(default_qos);
+    std::string qos_source_key(default_qos);
 
     /* We expect maximum two QoS settings. First for Sink and second for Source
      */
     if (qos_config_key_array->size() > 0) {
-      qos_sink_key = qos_config_key_array->Get(0)->c_str();
+      qos_sink_key = qos_config_key_array->Get(0)->str();
       if (qos_config_key_array->size() > 1) {
-        qos_source_key = qos_config_key_array->Get(1)->c_str();
+        qos_source_key = qos_config_key_array->Get(1)->str();
       } else {
         qos_source_key = qos_sink_key;
       }
     }
 
-    LOG_DEBUG("Config name %s, qos_sink %s, qos_source %s", codec_config_key,
-              qos_sink_key, qos_source_key);
+    LOG_INFO("Config name %s, qos_sink %s, qos_source %s",
+             codec_config_key.c_str(), qos_sink_key.c_str(),
+             qos_source_key.c_str());
 
+    const bluetooth::le_audio::QosConfiguration* qos_sink_cfg = nullptr;
     for (auto i = qos_cfgs->begin(); i != qos_cfgs->end(); ++i) {
-      if (0 == strcmp((*i)->name()->c_str(), qos_sink_key)) {
+      if ((*i)->name()->str() == qos_sink_key) {
         qos_sink_cfg = *i;
         break;
       }
     }
 
+    const bluetooth::le_audio::QosConfiguration* qos_source_cfg = nullptr;
     for (auto i = qos_cfgs->begin(); i != qos_cfgs->end(); ++i) {
-      if (0 == strcmp((*i)->name()->c_str(), qos_source_key)) {
+      if ((*i)->name()->str() == qos_source_key) {
         qos_source_cfg = *i;
         break;
       }
     }
 
-    if (qos_sink_cfg != NULL) {
+    QosConfigSetting qos_sink;
+    if (qos_sink_cfg != nullptr) {
       qos_sink.retransmission_number = qos_sink_cfg->retransmission_number();
       qos_sink.max_transport_latency = qos_sink_cfg->max_transport_latency();
     } else {
-      LOG_ERROR("No qos config matching key %s found", qos_sink_key);
+      LOG_ERROR("No qos config matching key %s found", qos_sink_key.c_str());
     }
 
-    if (qos_source_cfg != NULL) {
+    QosConfigSetting qos_source;
+    if (qos_source_cfg != nullptr) {
       qos_source.retransmission_number =
           qos_source_cfg->retransmission_number();
       qos_source.max_transport_latency =
           qos_source_cfg->max_transport_latency();
     } else {
-      LOG_ERROR("No qos config matching key %s found", qos_source_key);
+      LOG_ERROR("No qos config matching key %s found", qos_source_key.c_str());
     }
 
+    const bluetooth::le_audio::CodecConfiguration* codec_cfg = nullptr;
     for (auto i = codec_cfgs->begin(); i != codec_cfgs->end(); ++i) {
-      if (0 == strcmp((*i)->name()->c_str(), codec_config_key)) {
+      if ((*i)->name()->str() == codec_config_key) {
         codec_cfg = *i;
         break;
       }
     }
-    if (codec_cfg != NULL && codec_cfg->subconfigurations()) {
+
+    std::vector<SetConfiguration> subconfigs;
+    if (codec_cfg != nullptr && codec_cfg->subconfigurations()) {
       /* Load subconfigurations */
       for (auto subconfig : *codec_cfg->subconfigurations()) {
         if (subconfig->direction() == le_audio::types::kLeAudioDirectionSink) {
@@ -314,8 +319,9 @@ struct AudioSetConfigurationProviderJson {
         }
       }
     } else {
-      if (codec_cfg == NULL) {
-        LOG_ERROR("No codec config matching key %s found", codec_config_key);
+      if (codec_cfg == nullptr) {
+        LOG_ERROR("No codec config matching key %s found",
+                  codec_config_key.c_str());
       } else {
         LOG_ERROR("Configuration '%s' has no valid subconfigurations.",
                   flat_cfg->name()->c_str());
