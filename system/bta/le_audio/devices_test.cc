@@ -188,6 +188,7 @@ enum class Lc3SettingId {
   LC3_48_4,
   LC3_48_5,
   LC3_48_6,
+  LC3_VND_1,
   _END,
   UNSUPPORTED = _END,
 };
@@ -206,7 +207,8 @@ bool IsLc3SettingSupported(LeAudioContextType context_type, Lc3SettingId id) {
 
     case LeAudioContextType::MEDIA:
       if (id == Lc3SettingId::LC3_16_1 || id == Lc3SettingId::LC3_16_2 ||
-          id == Lc3SettingId::LC3_48_4)
+          id == Lc3SettingId::LC3_48_4 || id == Lc3SettingId::LC3_48_2 ||
+          id == Lc3SettingId::LC3_VND_1)
         return true;
 
       break;
@@ -244,6 +246,7 @@ uint8_t GetSamplingFrequency(Lc3SettingId id) {
     case Lc3SettingId::LC3_48_4:
     case Lc3SettingId::LC3_48_5:
     case Lc3SettingId::LC3_48_6:
+    case Lc3SettingId::LC3_VND_1:
       return ::le_audio::codec_spec_conf::kLeAudioSamplingFreq48000Hz;
     case Lc3SettingId::UNSUPPORTED:
       return kLeAudioSamplingFreqRfu;
@@ -270,6 +273,7 @@ uint8_t GetFrameDuration(Lc3SettingId id) {
     case Lc3SettingId::LC3_48_2:
     case Lc3SettingId::LC3_48_4:
     case Lc3SettingId::LC3_48_6:
+    case Lc3SettingId::LC3_VND_1:
       return ::le_audio::codec_spec_conf::kLeAudioCodecLC3FrameDur10000us;
     case Lc3SettingId::UNSUPPORTED:
       return kLeAudioCodecLC3FrameDurRfu;
@@ -300,6 +304,7 @@ uint16_t GetOctetsPerCodecFrame(Lc3SettingId id) {
     case Lc3SettingId::LC3_48_1:
       return 75;
     case Lc3SettingId::LC3_48_2:
+    case Lc3SettingId::LC3_VND_1:
       return 100;
     case Lc3SettingId::LC3_48_3:
       return 90;
@@ -519,6 +524,11 @@ class LeAudioAseConfigurationTest : public Test {
                              data[i].active_channel_num_src) > 0;
 
         /* Prepare PAC's */
+        /* Note this test requires that reach TwoStereoChan configuration
+         * version has similar version for OneStereoChan (both SingleDev,
+         * DualDev). This is just how the test is created and this limitation
+         * should be removed b/230107540
+         */
         PublishedAudioCapabilitiesBuilder snk_pac_builder, src_pac_builder;
         for (const auto& entry : (*audio_set_conf).confs) {
           if (entry.direction == kLeAudioDirectionSink) {
