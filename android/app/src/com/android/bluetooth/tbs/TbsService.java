@@ -56,7 +56,7 @@ public class TbsService extends ProfileService {
     private final TbsGeneric mTbsGeneric = new TbsGeneric();
 
     public static boolean isEnabled() {
-        return BluetoothProperties.isProfileTbsServerEnabled().orElse(false);
+        return BluetoothProperties.isProfileCcpServerEnabled().orElse(false);
     }
 
     @Override
