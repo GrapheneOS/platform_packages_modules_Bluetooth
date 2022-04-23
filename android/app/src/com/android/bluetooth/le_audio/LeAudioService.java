@@ -185,7 +185,7 @@ public class LeAudioService extends ProfileService {
     }
 
     public static boolean isEnabled() {
-        return BluetoothProperties.isProfileBapUnicastServerEnabled().orElse(false);
+        return BluetoothProperties.isProfileBapUnicastClientEnabled().orElse(false);
     }
 
     @Override
