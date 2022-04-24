@@ -46,6 +46,7 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "stack/include/btm_status.h"
 #include "stack/include/l2cap_security_interface.h"
 #include "stack/smp/smp_int.h"
+#include "test/mock/mock_stack_btm_sec.h"
 #include "types/raw_address.h"
 
 #ifndef UNUSED_ATTR
@@ -146,11 +147,25 @@ tBTM_STATUS BTM_SecBondCancel(const RawAddress& bd_addr) {
   mock_function_count_map[__func__]++;
   return BTM_SUCCESS;
 }
+namespace test {
+namespace mock {
+namespace stack_btm_sec {
+
+struct BTM_SetEncryption BTM_SetEncryption;
+
+}
+}  // namespace mock
+}  // namespace test
+
 tBTM_STATUS BTM_SetEncryption(const RawAddress& bd_addr,
                               tBT_TRANSPORT transport,
                               tBTM_SEC_CALLBACK* p_callback, void* p_ref_data,
                               tBTM_BLE_SEC_ACT sec_act) {
   mock_function_count_map[__func__]++;
+  if (test::mock::stack_btm_sec::BTM_SetEncryption.body) {
+    return test::mock::stack_btm_sec::BTM_SetEncryption.body(
+        bd_addr, transport, p_callback, p_ref_data, sec_act);
+  }
   return BTM_SUCCESS;
 }
 tBTM_STATUS btm_sec_bond_by_transport(const RawAddress& bd_addr,
