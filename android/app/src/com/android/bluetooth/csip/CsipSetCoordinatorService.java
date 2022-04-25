@@ -52,6 +52,7 @@ import com.android.internal.annotations.VisibleForTesting;
 import com.android.modules.utils.SynchronousResultReceiver;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -631,6 +632,24 @@ public class CsipSetCoordinatorService extends ProfileService {
                 .sorted(Map.Entry.comparingByValue())
                 .map(e -> e.getKey())
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Get grouped devices
+     * @param device group member device
+     * @param uuid
+     * @return related list of devices sorted from the lowest to the highest rank value.
+     */
+    public @NonNull List<BluetoothDevice> getGroupDevicesOrdered(BluetoothDevice device,
+            ParcelUuid uuid) {
+        List<Integer> groupIds = getAllGroupIds(uuid);
+        for (Integer id : groupIds) {
+            List<BluetoothDevice> devices = getGroupDevicesOrdered(id);
+            if (devices.contains(device)) {
+                return devices;
+            }
+        }
+        return Collections.emptyList();
     }
 
     /**
