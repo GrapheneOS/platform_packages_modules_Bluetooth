@@ -580,7 +580,7 @@ public final class BluetoothHidDevice implements BluetoothProfile {
                 final SynchronousResultReceiver<Boolean> recv = new SynchronousResultReceiver();
                 CallbackWrapper cbw = new CallbackWrapper(executor, callback, mAttributionSource);
                 service.registerApp(sdp, inQos, outQos, cbw, mAttributionSource, recv);
-                result = recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
+                return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (RemoteException | TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             }
