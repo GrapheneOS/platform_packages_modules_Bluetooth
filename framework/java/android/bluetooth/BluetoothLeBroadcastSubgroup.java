@@ -17,6 +17,7 @@
 package android.bluetooth;
 
 import android.annotation.NonNull;
+import android.annotation.Nullable;
 import android.annotation.SystemApi;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -46,6 +47,23 @@ public final class BluetoothLeBroadcastSubgroup implements Parcelable {
         mCodecSpecificConfig = codecSpecificConfig;
         mContentMetadata = contentMetadata;
         mChannels = channels;
+    }
+
+    @Override
+    public boolean equals(@Nullable Object o) {
+        if (!(o instanceof BluetoothLeBroadcastSubgroup)) {
+            return false;
+        }
+        final BluetoothLeBroadcastSubgroup other = (BluetoothLeBroadcastSubgroup) o;
+        return mCodecId == other.getCodecId()
+                && mCodecSpecificConfig.equals(other.getCodecSpecificConfig())
+                && mContentMetadata.equals(other.getContentMetadata())
+                && mChannels.equals(other.getChannels());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(mCodecId, mCodecSpecificConfig, mContentMetadata, mChannels);
     }
 
     /**
