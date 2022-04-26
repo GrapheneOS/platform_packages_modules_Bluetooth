@@ -26,6 +26,7 @@
 #include "btif_bqr.h"
 #include "btif_common.h"
 #include "btm_api.h"
+#include "btm_ble_api.h"
 #include "common/leaky_bonded_queue.h"
 #include "common/time_util.h"
 #include "osi/include/properties.h"
@@ -39,6 +40,8 @@ using std::chrono::system_clock;
 // The instance of BQR event queue
 static std::unique_ptr<LeakyBondedQueue<BqrVseSubEvt>> kpBqrEventQueue(
     new LeakyBondedQueue<BqrVseSubEvt>(kBqrEventQueueSize));
+
+static uint16_t vendor_cap_supported_version;
 
 void BqrVseSubEvt::ParseBqrLinkQualityEvt(uint8_t length,
                                           const uint8_t* p_param_buf) {
@@ -72,6 +75,16 @@ void BqrVseSubEvt::ParseBqrLinkQualityEvt(uint8_t length,
   STREAM_TO_UINT32(bqr_link_quality_event_.last_flow_on_timestamp, p_param_buf);
   STREAM_TO_UINT32(bqr_link_quality_event_.buffer_overflow_bytes, p_param_buf);
   STREAM_TO_UINT32(bqr_link_quality_event_.buffer_underflow_bytes, p_param_buf);
+
+  if (vendor_cap_supported_version >= kBqrIsoVersion) {
+    STREAM_TO_UINT32(bqr_link_quality_event_.tx_total_packets, p_param_buf);
+    STREAM_TO_UINT32(bqr_link_quality_event_.tx_unacked_packets, p_param_buf);
+    STREAM_TO_UINT32(bqr_link_quality_event_.tx_flushed_packets, p_param_buf);
+    STREAM_TO_UINT32(bqr_link_quality_event_.tx_last_subevent_packets,
+                     p_param_buf);
+    STREAM_TO_UINT32(bqr_link_quality_event_.crc_error_packets, p_param_buf);
+    STREAM_TO_UINT32(bqr_link_quality_event_.rx_duplicate_packets, p_param_buf);
+  }
 
   const auto now = system_clock::to_time_t(system_clock::now());
   localtime_r(&now, &tm_timestamp_);
@@ -144,6 +157,22 @@ std::string BqrVseSubEvt::ToString() const {
      << std::to_string(bqr_link_quality_event_.buffer_overflow_bytes)
      << ", UndFlow: "
      << std::to_string(bqr_link_quality_event_.buffer_underflow_bytes);
+
+  if (vendor_cap_supported_version >= kBqrIsoVersion) {
+    ss << ", TxTotal: "
+       << std::to_string(bqr_link_quality_event_.tx_total_packets)
+       << ", TxUnAcked: "
+       << std::to_string(bqr_link_quality_event_.tx_unacked_packets)
+       << ", TxFlushed: "
+       << std::to_string(bqr_link_quality_event_.tx_flushed_packets)
+       << ", TxLastSubEvent: "
+       << std::to_string(bqr_link_quality_event_.tx_last_subevent_packets)
+       << ", CRCError: "
+       << std::to_string(bqr_link_quality_event_.crc_error_packets)
+       << ", RxDuplicate: "
+       << std::to_string(bqr_link_quality_event_.rx_duplicate_packets);
+  }
+
   return ss.str();
 }
 
@@ -157,6 +186,8 @@ std::string QualityReportIdToString(uint8_t quality_report_id) {
       return "A2DP Choppy";
     case QUALITY_REPORT_ID_SCO_VOICE_CHOPPY:
       return "SCO Choppy ";
+    case QUALITY_REPORT_ID_LE_AUDIO_CHOPPY:
+      return "LE Audio Choppy";
     default:
       return "Invalid    ";
   }
@@ -220,6 +251,8 @@ std::string PacketTypeToString(uint8_t packet_type) {
       return "3DH3";
     case PACKET_TYPE_3DH5:
       return "3DH5";
+    case PACKET_TYPE_ISO:
+      return "ISO";
     default:
       return "UnKnown ";
   }
@@ -254,9 +287,15 @@ void EnableBtQualityReport(bool is_enable) {
     bqr_config.minimum_report_interval_ms = kMinReportIntervalNoLimit;
   }
 
+  tBTM_BLE_VSC_CB cmn_vsc_cb;
+  BTM_BleGetVendorCapabilities(&cmn_vsc_cb);
+  vendor_cap_supported_version = cmn_vsc_cb.version_supported;
+
   LOG(INFO) << __func__
             << ": Event Mask: " << loghex(bqr_config.quality_event_mask)
-            << ", Interval: " << bqr_config.minimum_report_interval_ms;
+            << ", Interval: " << bqr_config.minimum_report_interval_ms
+            << ", vendor_cap_supported_version: "
+            << vendor_cap_supported_version;
   ConfigureBqr(bqr_config);
 }
 
