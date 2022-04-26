@@ -100,7 +100,8 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.stream.IntStream;
 
-class BassClientStateMachine extends StateMachine {
+@VisibleForTesting
+public class BassClientStateMachine extends StateMachine {
     private static final String TAG = "BassClientStateMachine";
     private static final byte[] REMOTE_SCAN_STOP = {00};
     private static final byte[] REMOTE_SCAN_START = {01};
@@ -199,6 +200,16 @@ class BassClientStateMachine extends StateMachine {
         BassClientStateMachine BassclientSm = new BassClientStateMachine(device, svc, looper);
         BassclientSm.start();
         return BassclientSm;
+    }
+
+    static void destroy(BassClientStateMachine stateMachine) {
+        Log.i(TAG, "destroy");
+        if (stateMachine == null) {
+            Log.w(TAG, "destroy(), stateMachine is null");
+            return;
+        }
+        stateMachine.doQuit();
+        stateMachine.cleanup();
     }
 
     public void doQuit() {
