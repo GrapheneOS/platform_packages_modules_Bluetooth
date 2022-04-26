@@ -44,12 +44,13 @@ public class BluetoothLeBroadcastAssistantCallback
      * @hide
      * @param executor an {@link Executor} to execute given callback
      * @param callback user implementation of the {@link BluetoothLeBroadcastAssistant#Callback}
+     * @throws IllegalArgumentException if the same <var>callback<var> is already registered.
      */
     public void register(@NonNull Executor executor,
                          @NonNull BluetoothLeBroadcastAssistant.Callback callback) {
         synchronized (this) {
             if (mCallbackMap.containsKey(callback)) {
-                return;
+                throw new IllegalArgumentException("callback is already registered");
             }
             mCallbackMap.put(callback, executor);
 
@@ -58,7 +59,7 @@ public class BluetoothLeBroadcastAssistantCallback
                     mAdapter.registerCallback(this);
                     mIsRegistered = true;
                 } catch (RemoteException e) {
-                    Log.w(TAG, "Failed to register broaddcast assistant callback");
+                    Log.w(TAG, "Failed to register broadcast assistant callback");
                     Log.e(TAG, Log.getStackTraceString(new Throwable()));
                 }
             }
@@ -68,11 +69,12 @@ public class BluetoothLeBroadcastAssistantCallback
     /**
      * @hide
      * @param callback user implementation of the {@link BluetoothLeBroadcastAssistant#Callback}
+     * @throws IllegalArgumentException if <var>callback</var> was not registered before
      */
     public void unregister(@NonNull BluetoothLeBroadcastAssistant.Callback callback) {
         synchronized (this) {
             if (!mCallbackMap.containsKey(callback)) {
-                return;
+                throw new IllegalArgumentException("callback was not registered before");
             }
             mCallbackMap.remove(callback);
             if (mCallbackMap.isEmpty() && mIsRegistered) {
@@ -80,10 +82,22 @@ public class BluetoothLeBroadcastAssistantCallback
                     mAdapter.unregisterCallback(this);
                     mIsRegistered = false;
                 } catch (RemoteException e) {
-                    Log.w(TAG, "Failed to unregister broaddcast assistant with service");
+                    Log.w(TAG, "Failed to unregister callback with service");
                     Log.e(TAG, Log.getStackTraceString(new Throwable()));
                 }
             }
+        }
+    }
+
+    /**
+     * Check if at least one callback is registered from this App
+     *
+     * @return true if at least one callback is registered
+     * @hide
+     */
+    public boolean isAtLeastOneCallbackRegistered() {
+        synchronized (this) {
+            return !mCallbackMap.isEmpty();
         }
     }
 
