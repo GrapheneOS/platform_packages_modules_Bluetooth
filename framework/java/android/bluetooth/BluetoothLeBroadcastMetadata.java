@@ -24,6 +24,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -74,6 +75,30 @@ public final class BluetoothLeBroadcastMetadata implements Parcelable {
         mBroadcastCode = broadcastCode;
         mPresentationDelayMicros = presentationDelay;
         mSubgroups = subgroups;
+    }
+
+    @Override
+    public boolean equals(@Nullable Object o) {
+        if (!(o instanceof BluetoothLeBroadcastMetadata)) {
+            return false;
+        }
+        final BluetoothLeBroadcastMetadata other = (BluetoothLeBroadcastMetadata) o;
+        return mSourceAddressType == other.getSourceAddressType()
+                && mSourceDevice.equals(other.getSourceDevice())
+                && mSourceAdvertisingSid == other.getSourceAdvertisingSid()
+                && mBroadcastId == other.getBroadcastId()
+                && mPaSyncInterval == other.getPaSyncInterval()
+                && mIsEncrypted == other.isEncrypted()
+                && Arrays.equals(mBroadcastCode, other.getBroadcastCode())
+                && mPresentationDelayMicros == other.getPresentationDelayMicros()
+                && mSubgroups.equals(other.getSubgroups());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(mSourceAddressType, mSourceDevice, mSourceAdvertisingSid,
+                mBroadcastId, mPaSyncInterval, mIsEncrypted, Arrays.hashCode(mBroadcastCode),
+                mPresentationDelayMicros, mSubgroups);
     }
 
     /**

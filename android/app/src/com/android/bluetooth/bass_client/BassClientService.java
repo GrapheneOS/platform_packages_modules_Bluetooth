@@ -752,7 +752,14 @@ public class BassClientService extends ProfileService {
                     BluetoothStatusCodes.ERROR_BAD_PARAMETERS);
             return;
         }
+        if (getConnectionState(sink) != BluetoothProfile.STATE_CONNECTED) {
+            log("addSource: device is not connected");
+            mCallbacks.notifySourceAddFailed(sink, sourceMetadata,
+                    BluetoothStatusCodes.ERROR_REMOTE_LINK_ERROR);
+            return;
+        }
         if (!hasRoomForBroadcastSourceAddition(sink)) {
+            log("addSource: device has no room");
             mCallbacks.notifySourceAddFailed(sink, sourceMetadata,
                     BluetoothStatusCodes.ERROR_REMOTE_NOT_ENOUGH_RESOURCES);
             return;
@@ -788,6 +795,12 @@ public class BassClientService extends ProfileService {
                     BluetoothStatusCodes.ERROR_BAD_PARAMETERS);
             return;
         }
+        if (getConnectionState(sink) != BluetoothProfile.STATE_CONNECTED) {
+            log("modifySource: device is not connected");
+            mCallbacks.notifySourceModifyFailed(sink, sourceId,
+                    BluetoothStatusCodes.ERROR_REMOTE_LINK_ERROR);
+            return;
+        }
         Message message = stateMachine.obtainMessage(BassClientStateMachine.UPDATE_BCAST_SOURCE);
         message.arg1 = sourceId;
         message.obj = updatedMetadata;
@@ -807,9 +820,15 @@ public class BassClientService extends ProfileService {
         BassClientStateMachine stateMachine = getOrCreateStateMachine(sink);
         if (sourceId == BassConstants.INVALID_SOURCE_ID
                 || stateMachine == null) {
-            log("Error bad parameters: sourceId = " + sourceId);
+            log("removeSource: Error bad parameters: sourceId = " + sourceId);
             mCallbacks.notifySourceRemoveFailed(sink, sourceId,
                     BluetoothStatusCodes.ERROR_BAD_PARAMETERS);
+            return;
+        }
+        if (getConnectionState(sink) != BluetoothProfile.STATE_CONNECTED) {
+            log("removeSource: device is not connected");
+            mCallbacks.notifySourceRemoveFailed(sink, sourceId,
+                    BluetoothStatusCodes.ERROR_REMOTE_LINK_ERROR);
             return;
         }
         Message message = stateMachine.obtainMessage(BassClientStateMachine.REMOVE_BCAST_SOURCE);
