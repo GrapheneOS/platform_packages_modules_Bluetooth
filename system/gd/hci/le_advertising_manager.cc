@@ -62,6 +62,7 @@ struct Advertiser {
   bool started = false;
   bool connectable = false;
   bool directed = false;
+  bool in_use = false;
   std::unique_ptr<os::Alarm> address_rotation_alarm;
 };
 
@@ -221,9 +222,10 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
       while (id < num_instances_ && advertising_sets_.count(id) != 0) {
         id++;
       }
-    }
-    if (id == num_instances_) {
-      return kInvalidId;
+      if (id == num_instances_) {
+        return kInvalidId;
+      }
+      advertising_sets_[id].in_use = true;
     }
     return id;
   }
