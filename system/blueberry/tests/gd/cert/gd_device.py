@@ -478,6 +478,10 @@ class GdAndroidDevice(GdDeviceBase):
         logging.info("Confirmed that verity is disabled on device %s %s" % (self.label, self.serial_number))
 
         # Try freeing ports and ignore results
+        asserts.assert_true(
+            make_ports_available((self.grpc_port, self.grpc_root_server_port, self.signal_port)),
+            "[%s] Failed to make backing process ports available" % self.label
+        )
         self.cleanup_port_forwarding()
         self.sync_device_time()
         logging.info("Ports cleaned up and clock is set for device %s %s" % (self.label, self.serial_number))
