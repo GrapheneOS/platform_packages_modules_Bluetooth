@@ -1516,6 +1516,7 @@ void shim::legacy::Acl::OnLeConnectSuccess(
 
   // Once an le connection has successfully been established
   // the device address is removed from the controller accept list.
+
   if (IsRpa(address_with_type)) {
     LOG_DEBUG("Connection address is rpa:%s identity_addr:%s",
               PRIVATE_ADDRESS(address_with_type),
