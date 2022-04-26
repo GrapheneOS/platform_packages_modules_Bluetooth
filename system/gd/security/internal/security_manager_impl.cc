@@ -734,7 +734,7 @@ void SecurityManagerImpl::OnPairingFinished(security::PairingResultOrFailure pai
 
 void SecurityManagerImpl::WipeLePairingHandler() {
   pending_le_pairing_.handler_.reset();
-  pending_le_pairing_.connection_handle_ = 0;
+  pending_le_pairing_.connection_handle_ = kInvalidConnectionHandle;
   pending_le_pairing_.address_ = hci::AddressWithType();
 }
 
