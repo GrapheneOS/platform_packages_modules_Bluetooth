@@ -427,10 +427,6 @@ extern void btsnd_hcic_ble_read_chnl_map(uint16_t handle);
 
 extern void btsnd_hcic_ble_read_remote_feat(uint16_t handle);
 
-extern void btsnd_hcic_ble_encrypt(uint8_t* key, uint8_t key_len,
-                                   uint8_t* plain_text, uint8_t pt_len,
-                                   void* p_cmd_cplt_cback);
-
 extern void btsnd_hcic_ble_rand(base::Callback<void(BT_OCTET8)> cb);
 
 extern void btsnd_hcic_ble_start_enc(uint16_t handle,
