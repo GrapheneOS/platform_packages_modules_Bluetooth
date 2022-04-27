@@ -525,21 +525,6 @@
 #endif
 
 /*
- * Toggles support for general LE privacy features such as remote address
- * resolution, local address rotation etc.
- */
-#ifndef BLE_PRIVACY_SPT
-#define BLE_PRIVACY_SPT TRUE
-#endif
-
-/*
- * Enables or disables support for local privacy (ex. address rotation)
- */
-#ifndef BLE_LOCAL_PRIVACY_ENABLED
-#define BLE_LOCAL_PRIVACY_ENABLED TRUE
-#endif
-
-/*
  * Toggles support for vendor specific extensions such as RPA offloading,
  * feature discovery, multi-adv etc.
  */
