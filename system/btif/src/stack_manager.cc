@@ -76,27 +76,6 @@
 
 // Validate or respond to various conditional compilation flags
 
-#ifdef BLE_PRIVACY_SPT
-// When BLE_PRIVACY_SPT is not used anymore this check and error statement may be removed.
-#warning \
-    "#define BLE_PRIVACY_SPT FALSE preprocessor compilation flag is no longer used"
-#warning \
-    "  To disable LE privacy for a device \
-set 'bluetooth.core.gap.le.privacy.enabled' sysprop to false"
-#if BLE_PRIVACY_SPT == FALSE
-#error "*** Conditional Compilation Directive error"
-#endif
-#endif
-
-#ifdef BLE_LOCAL_PRIVACY_ENABLED
-// When BLE_PRIVACY_SPT is not used anymore this warning statement may be removed.
-#warning \
-    "#define BLE_LOCAL_PRIVACY_ENABLED FALSE preprocessor compilation flag is no longer used"
-#warning \
-    "  To disable LE privacy for a device \
-set 'bluetooth.core.gap.le.privacy.enabled sysprop' to false"
-#endif
-
 #if SDP_RAW_DATA_INCLUDED != TRUE
 // Once SDP_RAW_DATA_INCLUDED is no longer exposed via bt_target.h
 // this check and error statement may be removed.
