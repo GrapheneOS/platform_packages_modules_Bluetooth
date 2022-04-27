@@ -102,7 +102,42 @@ int LeAudioDeviceGroup::NumOfConnected(types::LeAudioContextType context_type) {
       });
 }
 
-void LeAudioDeviceGroup::Cleanup(void) { leAudioDevices_.clear(); }
+void LeAudioDeviceGroup::Cleanup(void) {
+  /* Bluetooth is off while streaming - disconnect CISes and remove CIG */
+  if (GetState() == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
+    if (!stream_conf.sink_streams.empty()) {
+      for (auto [cis_handle, audio_location] : stream_conf.sink_streams) {
+        bluetooth::hci::IsoManager::GetInstance()->DisconnectCis(
+            cis_handle, HCI_ERR_PEER_USER);
+
+        if (stream_conf.source_streams.empty()) {
+          continue;
+        }
+        uint16_t cis_hdl = cis_handle;
+        stream_conf.source_streams.erase(
+            std::remove_if(
+                stream_conf.source_streams.begin(),
+                stream_conf.source_streams.end(),
+                [cis_hdl](auto& pair) { return pair.first == cis_hdl; }),
+            stream_conf.source_streams.end());
+      }
+    }
+
+    if (!stream_conf.source_streams.empty()) {
+      for (auto [cis_handle, audio_location] : stream_conf.source_streams) {
+        bluetooth::hci::IsoManager::GetInstance()->DisconnectCis(
+            cis_handle, HCI_ERR_PEER_USER);
+      }
+    }
+  }
+
+  /* Note: CIG will stay in the controller. We cannot remove it here, because
+   * Cises are not yet disconnected.
+   * When user start Bluetooth, HCI Reset should remove it
+   */
+
+  leAudioDevices_.clear();
+}
 
 void LeAudioDeviceGroup::Deactivate(void) {
   for (auto* leAudioDevice = GetFirstActiveDevice(); leAudioDevice;
@@ -1900,6 +1935,11 @@ void LeAudioDevices::Dump(int fd, int group_id) {
   }
 }
 
-void LeAudioDevices::Cleanup(void) { leAudioDevices_.clear(); }
+void LeAudioDevices::Cleanup(void) {
+  for (auto const& device : leAudioDevices_) {
+    device->DisconnectAcl();
+  }
+  leAudioDevices_.clear();
+}
 
 }  // namespace le_audio
