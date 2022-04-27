@@ -51,6 +51,10 @@
 
 #include <mutex>
 
+#ifdef OS_ANDROID
+#include <android/sysprop/BluetoothProperties.sysprop.h>
+#endif
+
 #include "advertise_data_parser.h"
 #include "bta_csis_api.h"
 #include "bta_dm_int.h"
@@ -130,6 +134,10 @@ const bool enable_address_consolidate = true;  // TODO remove
 #define DEFAULT_LOCAL_NAME_MAX 31
 #if (DEFAULT_LOCAL_NAME_MAX > BTM_MAX_LOC_BD_NAME_LEN)
 #error "default btif local name size exceeds stack supported length"
+#endif
+
+#ifndef PROPERTY_BLE_PRIVACY_ENABLED
+#define PROPERTY_BLE_PRIVACY_ENABLED "bluetooth.core.gap.le.privacy.enabled"
 #endif
 
 #define ENCRYPTED_BREDR 2
@@ -1543,8 +1551,22 @@ void BTIF_dm_enable() {
     BTA_DmSetDeviceName(btif_get_default_local_name());
   }
 
-  /* Enable local privacy */
-  BTA_DmBleConfigLocalPrivacy(BLE_LOCAL_PRIVACY_ENABLED);
+  /* Enable or disable local privacy */
+  bool ble_privacy_enabled = true;
+#ifdef OS_ANDROID
+  ble_privacy_enabled =
+      android::sysprop::BluetoothProperties::isGapLePrivacyEnabled().value_or(
+          true);
+#else
+  char ble_privacy_text[PROPERTY_VALUE_MAX] = "true";  // default is enabled
+  if (osi_property_get(PROPERTY_BLE_PRIVACY_ENABLED, ble_privacy_text,
+                       "true") &&
+      !strcmp(ble_privacy_text, "false")) {
+    ble_privacy_enabled = false;
+  }
+#endif
+  LOG_INFO("%s BLE Privacy: %d", __func__, ble_privacy_enabled);
+  BTA_DmBleConfigLocalPrivacy(ble_privacy_enabled);
 
   /* for each of the enabled services in the mask, trigger the profile
    * enable */
