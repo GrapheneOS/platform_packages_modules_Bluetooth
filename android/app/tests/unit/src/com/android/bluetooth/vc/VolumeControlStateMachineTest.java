@@ -62,8 +62,6 @@ public class VolumeControlStateMachineTest {
     @Before
     public void setUp() throws Exception {
         mTargetContext = InstrumentationRegistry.getTargetContext();
-        Assume.assumeTrue("Ignore test when VolumeControl is not enabled",
-                VolumeControlService.isEnabled());
         // Set up mocks and test assets
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
@@ -85,10 +83,6 @@ public class VolumeControlStateMachineTest {
 
     @After
     public void tearDown() throws Exception {
-        if (!VolumeControlService.isEnabled()) {
-            return;
-        }
-        mVolumeControlStateMachine.doQuit();
         mHandlerThread.quit();
         TestUtils.clearAdapterService(mAdapterService);
     }

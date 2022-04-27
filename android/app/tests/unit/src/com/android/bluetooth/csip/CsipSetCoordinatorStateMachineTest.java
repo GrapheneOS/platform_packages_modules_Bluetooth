@@ -61,9 +61,6 @@ public class CsipSetCoordinatorStateMachineTest {
     @Before
     public void setUp() throws Exception {
         mTargetContext = InstrumentationRegistry.getTargetContext();
-        Assume.assumeTrue("Ignore test when CsipSetCoordinatorService is not enabled",
-                CsipSetCoordinatorService.isEnabled());
-
         // Set up mocks and test assets
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
@@ -86,10 +83,6 @@ public class CsipSetCoordinatorStateMachineTest {
 
     @After
     public void tearDown() throws Exception {
-        if (!CsipSetCoordinatorService.isEnabled()) {
-            return;
-        }
-
         mStateMachine.doQuit();
         mHandlerThread.quit();
         TestUtils.clearAdapterService(mAdapterService);
