@@ -143,6 +143,10 @@ void ClassicPairingHandler::OnNameRequestComplete(hci::Address address, bool suc
     device_name_ = tmp_name;
   }
   has_gotten_name_response_ = true;
+  // For PIN Pairing
+  if (is_legacy_pin_code_) {
+    NotifyUiDisplayPinCodeInput();
+  }
   // For SSP/Numeric comparison flow
   if (user_confirmation_request_) {
     this->OnReceive(*user_confirmation_request_);
@@ -178,7 +182,10 @@ void ClassicPairingHandler::OnReceive(hci::PinCodeRequestView packet) {
   LOG_INFO("Received: %s", hci::EventCodeText(packet.GetEventCode()).c_str());
   ASSERT_LOG(GetRecord()->GetPseudoAddress()->GetAddress() == packet.GetBdAddr(), "Address mismatch");
   is_legacy_pin_code_ = true;
-  NotifyUiDisplayPinCodeInput();
+  GetNameDbModule()->ReadRemoteNameRequest(
+      GetRecord()->GetPseudoAddress()->GetAddress(),
+      common::BindOnce(&ClassicPairingHandler::OnNameRequestComplete, common::Unretained(this)),
+      security_handler_);
 }
 
 void ClassicPairingHandler::OnReceive(hci::LinkKeyRequestView packet) {

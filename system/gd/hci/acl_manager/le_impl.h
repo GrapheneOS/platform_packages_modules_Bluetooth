@@ -293,7 +293,6 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
       on_le_connection_canceled_on_pause();
       return;
     }
-    // TODO: find out which address and type was used to initiate the connection
     AddressWithType remote_address(address, peer_address_type);
     AddressWithType local_address = le_address_manager_->GetCurrentAddress();
     on_common_le_connection_complete(remote_address);
@@ -364,9 +363,15 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
       return;
     }
     AddressWithType remote_address(address, peer_address_type);
-    if (!peer_resolvable_address.IsEmpty()) {
+    // The address added to the connect list is the one that callbacks
+    // should be sent for, given that is the address passed in
+    // call to BluetoothDevice#connectGatt and tied to app layer callbacks.
+    if (!peer_resolvable_address.IsEmpty() &&
+        is_device_in_connect_list(AddressWithType(peer_resolvable_address, AddressType::RANDOM_DEVICE_ADDRESS))) {
+      LOG_INFO("Using resolvable address");
       remote_address = AddressWithType(peer_resolvable_address, AddressType::RANDOM_DEVICE_ADDRESS);
     }
+
     on_common_le_connection_complete(remote_address);
     if (status == ErrorCode::UNKNOWN_CONNECTION) {
       if (remote_address.GetAddress() != Address::kEmpty) {
@@ -555,6 +560,10 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
     register_with_address_manager();
     le_address_manager_->AddDeviceToFilterAcceptList(
         address_with_type.ToFilterAcceptListAddressType(), address_with_type.GetAddress());
+  }
+
+  bool is_device_in_connect_list(AddressWithType address_with_type) {
+    return (connect_list.find(address_with_type) != connect_list.end());
   }
 
   void remove_device_from_connect_list(AddressWithType address_with_type) {
