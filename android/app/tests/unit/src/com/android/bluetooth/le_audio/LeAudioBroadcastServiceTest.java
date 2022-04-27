@@ -45,6 +45,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
 
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeoutException;
@@ -70,6 +71,8 @@ public class LeAudioBroadcastServiceTest {
     private AudioManager mAudioManager;
     @Mock
     private LeAudioBroadcasterNativeInterface mNativeInterface;
+    @Mock private LeAudioTmapGattServer mTmapGattServer;
+    @Spy private LeAudioObjectsFactory mObjectsFactory = LeAudioObjectsFactory.getInstance();
 
     private static final String TEST_MAC_ADDRESS = "00:11:22:33:44:55";
     private static final int TEST_BROADCAST_ID = 42;
@@ -154,6 +157,12 @@ public class LeAudioBroadcastServiceTest {
 
         // Set up mocks and test assets
         MockitoAnnotations.initMocks(this);
+
+        // Use spied objects factory
+        doNothing().when(mTmapGattServer).start(anyInt());
+        doNothing().when(mTmapGattServer).stop();
+        LeAudioObjectsFactory.setInstanceForTesting(mObjectsFactory);
+        doReturn(mTmapGattServer).when(mObjectsFactory).getTmapGattServer(any());
 
         if (Looper.myLooper() == null) {
             Looper.prepare();
