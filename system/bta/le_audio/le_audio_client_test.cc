@@ -1970,6 +1970,13 @@ TEST_F(UnicastTest, ConnectTwoEarbudsCsisGrouped) {
                     codec_spec_conf::kLeAudioLocationFrontRight, group_size,
                     group_id, 2 /* rank*/, true /*connect_through_csis*/);
 
+  Mock::VerifyAndClearExpectations(&mock_btif_storage_);
+
+  EXPECT_CALL(mock_btif_storage_, AddLeaudioAutoconnect(test_address1, false))
+      .Times(1);
+  EXPECT_CALL(mock_btif_storage_, AddLeaudioAutoconnect(test_address0, false))
+      .Times(1);
+
   // Verify grouping information
   std::vector<RawAddress> devs =
       LeAudioClient::Get()->GetGroupDevices(group_id);
@@ -2006,12 +2013,18 @@ TEST_F(UnicastTest, ConnectTwoEarbudsCsisGroupUnknownAtConnect) {
                     codec_spec_conf::kLeAudioLocationFrontRight, group_size,
                     group_id, 2 /* rank*/, true /*connect_through_csis*/);
 
+  Mock::VerifyAndClearExpectations(&mock_btif_storage_);
+
   // Verify grouping information
   std::vector<RawAddress> devs =
       LeAudioClient::Get()->GetGroupDevices(group_id);
   ASSERT_NE(std::find(devs.begin(), devs.end(), test_address0), devs.end());
   ASSERT_NE(std::find(devs.begin(), devs.end(), test_address1), devs.end());
 
+  EXPECT_CALL(mock_btif_storage_, AddLeaudioAutoconnect(test_address1, false))
+      .Times(1);
+  EXPECT_CALL(mock_btif_storage_, AddLeaudioAutoconnect(test_address0, false))
+      .Times(1);
   DisconnectLeAudio(test_address0, 1);
   DisconnectLeAudio(test_address1, 2);
 }

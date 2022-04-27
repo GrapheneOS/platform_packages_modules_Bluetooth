@@ -883,6 +883,10 @@ class LeAudioClientImpl : public LeAudioClient {
     BTA_GATTC_CancelOpen(0, address, false);
 
     if (leAudioDevice->conn_id_ != GATT_INVALID_CONN_ID) {
+      /* User is disconnecting the device, we shall remove the autoconnect flag
+       */
+      btif_storage_set_leaudio_autoconnect(address, false);
+
       auto group = aseGroups_.FindById(leAudioDevice->group_id_);
       if (group &&
           group->GetState() ==
