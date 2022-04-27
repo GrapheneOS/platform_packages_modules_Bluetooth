@@ -149,8 +149,6 @@ public class LeAudioServiceTest {
     @Before
     public void setUp() throws Exception {
         mTargetContext = InstrumentationRegistry.getTargetContext();
-        Assume.assumeTrue("Ignore test when LeAudioService is not enabled",
-                LeAudioService.isEnabled());
 
         // Set up mocks and test assets
         MockitoAnnotations.initMocks(this);
@@ -202,10 +200,6 @@ public class LeAudioServiceTest {
 
     @After
     public void tearDown() throws Exception {
-        if (!LeAudioService.isEnabled()) {
-            return;
-        }
-
         mBondedDevices.clear();
         mGroupIntentQueue.clear();
         stopService();
