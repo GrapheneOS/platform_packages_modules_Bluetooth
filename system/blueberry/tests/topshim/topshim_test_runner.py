@@ -15,11 +15,12 @@
 #   limitations under the License.
 
 from blueberry.tests.topshim.adapter.adapter_test import AdapterTest
+from blueberry.tests.topshim.power.suspend_test import SuspendTest
 
 from mobly import suite_runner
 import argparse
 
-ALL_TESTS = [AdapterTest]
+ALL_TESTS = [AdapterTest, SuspendTest]
 
 
 def main():
@@ -27,14 +28,9 @@ def main():
     Local test runner that allows  to specify list of tests to and customize
     test config file location
     """
-    parser = argparse.ArgumentParser(
-        description="Run local Topshim to Topshim tests.")
-    parser.add_argument('-c',
-                        '--config',
-                        type=str,
-                        required=True,
-                        metavar='<PATH>',
-                        help='Path to the test configuration file.')
+    parser = argparse.ArgumentParser(description="Run local Topshim to Topshim tests.")
+    parser.add_argument(
+        '-c', '--config', type=str, required=True, metavar='<PATH>', help='Path to the test configuration file.')
     parser.add_argument(
         '--tests',
         '--test_case',
@@ -42,22 +38,9 @@ def main():
         type=str,
         metavar='[ClassA[.test_a] ClassB[.test_b] ...]',
         help='A list of test classes and optional tests to execute.')
-    parser.add_argument("--all_tests",
-                        "-A",
-                        type=bool,
-                        dest="all_tests",
-                        default=False,
-                        nargs="?")
-    parser.add_argument("--presubmit",
-                        type=bool,
-                        dest="presubmit",
-                        default=False,
-                        nargs="?")
-    parser.add_argument("--postsubmit",
-                        type=bool,
-                        dest="postsubmit",
-                        default=False,
-                        nargs="?")
+    parser.add_argument("--all_tests", "-A", type=bool, dest="all_tests", default=False, nargs="?")
+    parser.add_argument("--presubmit", type=bool, dest="presubmit", default=False, nargs="?")
+    parser.add_argument("--postsubmit", type=bool, dest="postsubmit", default=False, nargs="?")
     args = parser.parse_args()
     test_list = ALL_TESTS
     if args.all_tests:
