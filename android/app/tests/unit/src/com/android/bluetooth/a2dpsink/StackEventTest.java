@@ -42,8 +42,6 @@ public class StackEventTest {
     @Before
     public void setUp() throws Exception {
         mTargetContext = InstrumentationRegistry.getTargetContext();
-        Assume.assumeTrue("Ignore test when A2dpSinkService is not enabled",
-                A2dpSinkService.isEnabled());
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         assertThat(mAdapter).isNotNull();
         mDevice = mAdapter.getRemoteDevice(TEST_ADDRESS);

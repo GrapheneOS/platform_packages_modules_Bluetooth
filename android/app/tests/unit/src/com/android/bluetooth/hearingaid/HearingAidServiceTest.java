@@ -83,8 +83,6 @@ public class HearingAidServiceTest {
     @Before
     public void setUp() throws Exception {
         mTargetContext = InstrumentationRegistry.getTargetContext();
-        Assume.assumeTrue("Ignore test when HearingAidService is not enabled",
-                HearingAidService.isEnabled());
         // Set up mocks and test assets
         MockitoAnnotations.initMocks(this);
 
@@ -127,9 +125,6 @@ public class HearingAidServiceTest {
 
     @After
     public void tearDown() throws Exception {
-        if (!HearingAidService.isEnabled()) {
-            return;
-        }
         stopService();
         mTargetContext.unregisterReceiver(mHearingAidIntentReceiver);
         mDeviceQueueMap.clear();
