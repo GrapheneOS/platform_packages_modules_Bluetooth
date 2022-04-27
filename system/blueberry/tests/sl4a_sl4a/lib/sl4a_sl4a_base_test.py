@@ -144,13 +144,13 @@ class Sl4aSl4aBaseTestClass(BaseTestClass):
         if not callable(attr) or not Sl4aSl4aBaseTestClass.__is_entry_function(name):
             return attr
 
-    @wraps(attr)
-    def __wrapped(*args, **kwargs):
-        try:
-            return attr(*args, **kwargs)
-        except RpcError as e:
-            exception_info = "".join(traceback.format_exception(e.__class__, e, e.__traceback__))
-            raise signals.TestFailure("RpcError during test\n\nRpcError:\n\n%s" % (exception_info))
+        @wraps(attr)
+        def __wrapped(*args, **kwargs):
+            try:
+                return attr(*args, **kwargs)
+            except RpcError as e:
+                exception_info = "".join(traceback.format_exception(e.__class__, e, e.__traceback__))
+                raise signals.TestFailure("RpcError during test\n\nRpcError:\n\n%s" % (exception_info))
 
         return __wrapped
 
