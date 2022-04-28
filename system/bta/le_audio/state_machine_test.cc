@@ -38,6 +38,7 @@ using ::testing::AnyNumber;
 using ::testing::AtLeast;
 using ::testing::DoAll;
 using ::testing::Invoke;
+using ::testing::NiceMock;
 using ::testing::Return;
 using ::testing::SaveArg;
 using ::testing::Test;
@@ -731,7 +732,8 @@ class StateMachineTest : public Test {
           src_context_type |= kContextTypeConversational;
 
           leAudioDevice->src_audio_locations_ =
-              ::le_audio::codec_spec_conf::kLeAudioLocationFrontLeft;
+              ::le_audio::codec_spec_conf::kLeAudioLocationFrontLeft |
+              ::le_audio::codec_spec_conf::kLeAudioLocationFrontRight;
         }
 
         leAudioDevice->SetSupportedContexts(snk_context_type, src_context_type);
@@ -923,7 +925,7 @@ class StateMachineTest : public Test {
 
             auto meta_len = *ase_p++;
             auto num_handled_bytes = ase_p - value.data();
-            ase_p += num_handled_bytes;
+            ase_p += meta_len;
 
             client_parser::ascs::ase_transient_state_params enable_params = {
                 .metadata = std::vector<uint8_t>(
@@ -1104,8 +1106,8 @@ class StateMachineTest : public Test {
         };
   }
 
-  controller::MockControllerInterface mock_controller_;
-  bluetooth::manager::MockBtmInterface btm_interface;
+  NiceMock<controller::MockControllerInterface> mock_controller_;
+  NiceMock<bluetooth::manager::MockBtmInterface> btm_interface;
   gatt::MockBtaGattInterface gatt_interface;
   gatt::MockBtaGattQueue gatt_queue;
 
@@ -1441,11 +1443,11 @@ TEST_F(StateMachineTest, testStreamMultipleConversational) {
   PrepareConfigureCodecHandler(group);
   PrepareConfigureQosHandler(group);
   PrepareEnableHandler(group);
-  PrepareReceiverStartReady(group, 1);
+  PrepareReceiverStartReady(group);
 
   EXPECT_CALL(*mock_iso_manager_, CreateCig(_, _)).Times(1);
   EXPECT_CALL(*mock_iso_manager_, EstablishCis(_)).Times(AtLeast(1));
-  EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(3);
+  EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(4);
   EXPECT_CALL(*mock_iso_manager_, RemoveIsoDataPath(_, _)).Times(0);
   EXPECT_CALL(*mock_iso_manager_, DisconnectCis(_, _)).Times(0);
   EXPECT_CALL(*mock_iso_manager_, RemoveCig(_)).Times(0);
@@ -1459,7 +1461,7 @@ TEST_F(StateMachineTest, testStreamMultipleConversational) {
                 WriteCharacteristic(leAudioDevice->conn_id_,
                                     leAudioDevice->ctp_hdls_.val_hdl, _,
                                     GATT_WRITE_NO_RSP, _, _))
-        .Times(AtLeast(3));
+        .Times(4);
     expected_devices_written++;
     leAudioDevice = group->GetNextDevice(leAudioDevice);
   }
