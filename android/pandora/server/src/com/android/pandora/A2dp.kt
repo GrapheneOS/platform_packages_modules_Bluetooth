@@ -288,7 +288,9 @@ class A2dp(val context: Context) : A2DPImplBase() {
     return object : StreamObserver<PlaybackAudioRequest> {
       override fun onNext(request: PlaybackAudioRequest) {
         val data = request.data.toByteArray()
-        val written = audioTrack.write(data, 0, data.size)
+        val written = synchronized(audioTrack) {
+          audioTrack.write(data, 0, data.size)
+        }
         if (written != data.size) {
           responseObserver.onError(
             Status.UNKNOWN.withDescription("AudioTrack write failed").asException()
