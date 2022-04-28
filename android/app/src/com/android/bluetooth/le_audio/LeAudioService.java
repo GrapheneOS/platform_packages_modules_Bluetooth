@@ -440,7 +440,8 @@ public class LeAudioService extends ProfileService {
     }
 
     BluetoothDevice getConnectedGroupLeadDevice(int groupId) {
-        if (mActiveAudioOutDevice != null) {
+        if (mActiveAudioOutDevice != null
+            && getGroupId(mActiveAudioOutDevice) == groupId) {
             return mActiveAudioOutDevice;
         }
         return getFirstDeviceFromGroup(groupId);
