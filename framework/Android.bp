@@ -66,7 +66,15 @@ java_sdk_library {
     },
     hostdex: true, // for hiddenapi check
 
-    impl_library_visibility: ["//visibility:public"],
+    impl_library_visibility: [
+        "//external/sl4a/Common",
+        "//frameworks/opt/wear",
+        "//packages/modules/Bluetooth/android/app/tests/unit",
+        "//packages/modules/Bluetooth/service",
+        "//packages/modules/Connectivity/nearby/tests/multidevices/clients/test_support/fastpair_provider",
+        "//packages/services/Car/car-builtin-lib",
+        ":__subpackages__",
+    ],
 
     apex_available: [
         "com.android.bluetooth",
