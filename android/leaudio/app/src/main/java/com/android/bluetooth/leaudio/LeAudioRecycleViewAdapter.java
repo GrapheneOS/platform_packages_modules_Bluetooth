@@ -39,6 +39,7 @@ import android.content.res.Resources;
 import android.os.ParcelUuid;
 import android.text.InputFilter;
 import android.text.InputType;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -671,15 +672,26 @@ public class LeAudioRecycleViewAdapter
             Map<Integer, BluetoothLeBroadcastReceiveState> states =
                     leAudioDeviceStateWrapper.bassData.receiverStatesMutable.getValue();
 
+            Log.d("LeAudioRecycleViewAdapter",
+                    "BluetoothLeBroadcastReceiveState " + holder.bassReceiverIdSpinner.getSelectedItem());
             if (states != null) {
                 if (states.containsKey(receiver_id)) {
                     BluetoothLeBroadcastReceiveState state =
                             states.get(holder.bassReceiverIdSpinner.getSelectedItem());
-                    final int paSyncState = state.getPaSyncState();
-                    final int bigEncryptionState = state.getBigEncryptionState();
+                    int paSyncState = state.getPaSyncState();
+                    int bigEncryptionState = state.getBigEncryptionState();
 
                     Resources res = this.parent.getResources();
                     String stateName = null;
+
+                    if (paSyncState == 0xffff) {// invalid sync state
+                        paSyncState = PA_SYNC_STATE_IDLE;
+                    }
+                    if (bigEncryptionState == 0xffff) {// invalid encryption state
+                        bigEncryptionState = BIG_ENCRYPTION_STATE_NOT_ENCRYPTED;
+                    }
+                    Log.d("LeAudioRecycleViewAdapter", "paSyncState " + paSyncState +
+                            " bigEncryptionState" + bigEncryptionState);
 
                     // Set the icon
                     if (paSyncState == PA_SYNC_STATE_IDLE) {
@@ -1754,6 +1766,11 @@ public class LeAudioRecycleViewAdapter
                     alert.setTitle("Scan and add a source or remove the currently set one.");
 
                     BluetoothDevice device = devices.get(ViewHolder.this.getAdapterPosition()).device;
+                    if (bassReceiverIdSpinner.getSelectedItem() == null) {
+                        Toast.makeText(view.getContext(), "Not available",
+                                Toast.LENGTH_SHORT).show();
+                        return;
+                    }
                     int receiver_id = Integer.parseInt(bassReceiverIdSpinner.getSelectedItem().toString());
 
                     alert.setPositiveButton("Scan", (dialog, whichButton) -> {
@@ -1780,6 +1797,11 @@ public class LeAudioRecycleViewAdapter
                     alert.setView(pass_input_view);
 
                     BluetoothDevice device = devices.get(ViewHolder.this.getAdapterPosition()).device;
+                    if (bassReceiverIdSpinner.getSelectedItem() == null) {
+                        Toast.makeText(view.getContext(), "Not available",
+                                Toast.LENGTH_SHORT).show();
+                        return;
+                    }
                     int receiver_id = Integer.parseInt(bassReceiverIdSpinner.getSelectedItem().toString());
 
                     alert.setPositiveButton("Set", (dialog, whichButton) -> {
@@ -1796,6 +1818,11 @@ public class LeAudioRecycleViewAdapter
                     alert.setTitle("Stop the synchronization?");
 
                     BluetoothDevice device = devices.get(ViewHolder.this.getAdapterPosition()).device;
+                    if (bassReceiverIdSpinner.getSelectedItem() == null) {
+                        Toast.makeText(view.getContext(), "Not available",
+                                Toast.LENGTH_SHORT).show();
+                        return;
+                    }
                     int receiver_id = Integer.parseInt(bassReceiverIdSpinner.getSelectedItem().toString());
 
                     alert.setPositiveButton("Yes", (dialog, whichButton) -> {
@@ -1816,10 +1843,15 @@ public class LeAudioRecycleViewAdapter
                     AlertDialog.Builder alert = new AlertDialog.Builder(itemView.getContext());
                     alert.setTitle("Retry broadcast audio announcement scan?");
 
+                    if (bassReceiverIdSpinner.getSelectedItem() == null) {
+                        Toast.makeText(view.getContext(), "Not available",
+                                Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    int receiver_id = Integer.parseInt(bassReceiverIdSpinner.getSelectedItem().toString());
                     alert.setPositiveButton("Yes", (dialog, whichButton) -> {
                         // Scan for new announcements
                         Intent intent = new Intent(view.getContext(), BroadcastScanActivity.class);
-                        int receiver_id = Integer.parseInt(bassReceiverIdSpinner.getSelectedItem().toString());
                         intent.putExtra(EXTRA_BASS_RECEIVER_ID, receiver_id);
                         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, devices.get(ViewHolder.this.getAdapterPosition()).device);
                         parent.startActivityForResult(intent, 666);
@@ -1834,6 +1866,11 @@ public class LeAudioRecycleViewAdapter
                     alert.setTitle("Stop the synchronization?");
 
                     BluetoothDevice device = devices.get(ViewHolder.this.getAdapterPosition()).device;
+                    if (bassReceiverIdSpinner.getSelectedItem() == null) {
+                        Toast.makeText(view.getContext(), "Not available",
+                                Toast.LENGTH_SHORT).show();
+                        return;
+                    }
                     int receiver_id = Integer.parseInt(bassReceiverIdSpinner.getSelectedItem().toString());
 
                     alert.setPositiveButton("Yes", (dialog, whichButton) -> {
