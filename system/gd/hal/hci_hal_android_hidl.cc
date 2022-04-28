@@ -246,7 +246,10 @@ class HciHalHidl : public HciHal {
     if (!death_unlink.isOk()) {
       LOG_ERROR("Error unlinking death recipient from the Bluetooth HAL");
     }
-    bt_hci_->close();
+    auto close_status = bt_hci_->close();
+    if (!close_status.isOk()) {
+      LOG_ERROR("Error calling close on the Bluetooth HAL");
+    }
     callbacks_->ResetCallback();
     bt_hci_ = nullptr;
     bt_hci_1_1_ = nullptr;
