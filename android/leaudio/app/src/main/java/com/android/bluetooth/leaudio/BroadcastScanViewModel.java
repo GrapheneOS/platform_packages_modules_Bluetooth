@@ -52,6 +52,7 @@ public class BroadcastScanViewModel extends AndroidViewModel {
         @Override
         public void onSourceFound(BluetoothLeBroadcastMetadata source) {
             mScanSessionBroadcasts.put(source.getBroadcastId(), source);
+            refreshBroadcasts();
         }
 
         @Override
