@@ -55,7 +55,6 @@ struct btsnd_hcic_ble_clear_acceptlist btsnd_hcic_ble_clear_acceptlist;
 struct btsnd_hcic_ble_clear_resolving_list btsnd_hcic_ble_clear_resolving_list;
 struct btsnd_hcic_ble_create_conn_cancel btsnd_hcic_ble_create_conn_cancel;
 struct btsnd_hcic_ble_create_ll_conn btsnd_hcic_ble_create_ll_conn;
-struct btsnd_hcic_ble_encrypt btsnd_hcic_ble_encrypt;
 struct btsnd_hcic_ble_enh_rx_test btsnd_hcic_ble_enh_rx_test;
 struct btsnd_hcic_ble_enh_tx_test btsnd_hcic_ble_enh_tx_test;
 struct btsnd_hcic_ble_ext_create_conn btsnd_hcic_ble_ext_create_conn;
@@ -230,12 +229,6 @@ void btsnd_hcic_ble_create_ll_conn(uint16_t scan_int, uint16_t scan_win,
       scan_int, scan_win, init_filter_policy, addr_type_peer, bda_peer,
       addr_type_own, conn_int_min, conn_int_max, conn_latency, conn_timeout,
       min_ce_len, max_ce_len);
-}
-void btsnd_hcic_ble_encrypt(uint8_t* key, uint8_t key_len, uint8_t* plain_text,
-                            uint8_t pt_len, void* p_cmd_cplt_cback) {
-  mock_function_count_map[__func__]++;
-  test::mock::stack_hcic_hciblecmds::btsnd_hcic_ble_encrypt(
-      key, key_len, plain_text, pt_len, p_cmd_cplt_cback);
 }
 void btsnd_hcic_ble_enh_rx_test(uint8_t rx_chan, uint8_t phy,
                                 uint8_t mod_index) {
