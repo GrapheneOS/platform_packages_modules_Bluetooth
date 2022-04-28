@@ -1138,7 +1138,12 @@ static void btu_hcif_esco_connection_comp_evt(const uint8_t* p) {
   handle = HCID_GET_HANDLE(handle);
 
   data.bd_addr = bda;
-  btm_sco_connected(static_cast<tHCI_STATUS>(status), bda, handle, &data);
+  if (status == HCI_SUCCESS) {
+    btm_sco_connected(bda, handle, &data);
+  } else {
+    btm_sco_connection_failed(static_cast<tHCI_STATUS>(status), bda, handle,
+                              &data);
+  }
 }
 
 /*******************************************************************************
@@ -1393,7 +1398,9 @@ static void btu_hcif_hdl_command_status(uint16_t opcode, uint8_t status,
     case HCI_ENH_SETUP_ESCO_CONNECTION:
       if (status != HCI_SUCCESS) {
         STREAM_TO_UINT16(handle, p_cmd);
-        // Determine if initial connection failed or is a change of setup
+        RawAddress addr(RawAddress::kEmpty);
+        btm_sco_connection_failed(static_cast<tHCI_STATUS>(status), addr,
+                                  handle, nullptr);
       }
       break;
 
@@ -1434,6 +1441,12 @@ static void btu_hcif_hdl_command_status(uint16_t opcode, uint8_t status,
                          (tBTM_VSC_CMPL_CB*)p_vsc_status_cback);
       }
   }
+}
+
+void bluetooth::legacy::testing::btu_hcif_hdl_command_status(
+    uint16_t opcode, uint8_t status, const uint8_t* p_cmd,
+    void* p_vsc_status_cback) {
+  ::btu_hcif_hdl_command_status(opcode, status, p_cmd, p_vsc_status_cback);
 }
 
 /*******************************************************************************
