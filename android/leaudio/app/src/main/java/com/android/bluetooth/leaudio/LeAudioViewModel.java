@@ -138,14 +138,14 @@ public class LeAudioViewModel extends AndroidViewModel {
 
     public boolean removeBroadcastSource(BluetoothDevice sink, int receiver_id) {
         // TODO: Find source ID from receiver_id. What is receiver_id?
-        int sourceId = 0;
+        int sourceId = receiver_id;
         return bluetoothProxy.removeBroadcastSource(sink, sourceId);
     }
 
     public boolean setBroadcastCode(BluetoothDevice sink, int receiver_id, byte[] bcast_code) {
         // TODO: Find source ID from receiver_id. What is receiver_id?
         // TODO: Build BluetoothLeBroadcastMetadata with the new bcast_code.
-        int sourceId = 0;
+        int sourceId = receiver_id;
         BluetoothLeBroadcastMetadata metadata = null;
         return bluetoothProxy.modifyBroadcastSource(sink, sourceId, metadata);
     }
