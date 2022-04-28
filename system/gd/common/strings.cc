@@ -16,6 +16,7 @@
 
 #include "common/strings.h"
 
+#include <algorithm>
 #include <charconv>
 #include <cstdlib>
 #include <functional>
