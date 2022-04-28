@@ -947,11 +947,15 @@ uint32_t PickAudioLocation(types::LeAudioConfigurationStrategy strategy,
       }
       break;
     default:
-      LOG_ASSERT(0) << " Shall never happen ";
+      LOG_ALWAYS_FATAL("%s: Unknown strategy: %hhu", __func__, strategy);
       return 0;
   }
 
-  LOG_ASSERT(0) << " Shall never happen ";
+  LOG_ALWAYS_FATAL(
+      "%s: Shall never exit switch statement, strategy: %hhu, "
+      "locations: %lx, group_locations: %lx",
+      __func__, strategy, audio_locations.to_ulong(),
+      group_audio_locations->to_ulong());
   return 0;
 }
 
