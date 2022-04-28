@@ -577,6 +577,11 @@ tBTM_STATUS BTM_SwitchRoleToCentral(const RawAddress& remote_bd_addr) {
     return BTM_BUSY;
   }
 
+  if (interop_match_addr(INTEROP_DYNAMIC_ROLE_SWITCH, &remote_bd_addr)) {
+    LOG_DEBUG("Device restrict listed under INTEROP_DYNAMIC_ROLE_SWITCH");
+    return BTM_DEV_RESTRICT_LISTED;
+  }
+
   tBTM_PM_MODE pwr_mode;
   if (!BTM_ReadPowerMode(p_acl->remote_addr, &pwr_mode)) {
     LOG_WARN(
