@@ -83,7 +83,6 @@ cc_library_static {
         "a2dp/a2dp_vendor_aptx_encoder.cc",
         "a2dp/a2dp_vendor_aptx_hd_encoder.cc",
         "a2dp/a2dp_vendor_ldac.cc",
-        "a2dp/a2dp_vendor_ldac_abr.cc",
         "a2dp/a2dp_vendor_ldac_decoder.cc",
         "a2dp/a2dp_vendor_ldac_encoder.cc",
         "avct/avct_api.cc",
@@ -202,6 +201,10 @@ cc_library_static {
     ],
     static_libs: [
         "libbt-hci",
+    ],
+    whole_static_libs: [
+        "libldacBT_abr",
+        "libldacBT_enc",
     ],
     host_supported: true,
     min_sdk_version: "Tiramisu"
