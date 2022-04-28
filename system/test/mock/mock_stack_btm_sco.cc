@@ -97,8 +97,13 @@ void btm_sco_conn_req(const RawAddress& bda, const DEV_CLASS& dev_class,
                       uint8_t link_type) {
   mock_function_count_map[__func__]++;
 }
-void btm_sco_connected(tHCI_STATUS hci_status, const RawAddress& bda,
-                       uint16_t hci_handle, tBTM_ESCO_DATA* p_esco_data) {
+void btm_sco_connected(const RawAddress& bda, uint16_t hci_handle,
+                       tBTM_ESCO_DATA* p_esco_data) {
+  mock_function_count_map[__func__]++;
+}
+void btm_sco_connection_failed(tHCI_STATUS hci_status, const RawAddress& bda,
+                               uint16_t hci_handle,
+                               tBTM_ESCO_DATA* p_esco_data) {
   mock_function_count_map[__func__]++;
 }
 void btm_sco_disc_chk_pend_for_modechange(uint16_t hci_handle) {
