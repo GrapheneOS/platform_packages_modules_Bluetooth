@@ -937,7 +937,9 @@ public class LeAudioService extends ProfileService {
         }
 
         if (groupId == currentlyActiveGroupId) {
-            Log.w(TAG, "group is already active");
+            if (groupId != LE_AUDIO_GROUP_ID_INVALID) {
+                Log.w(TAG, "group is already active: device=" + device + ", groupId = " + groupId);
+            }
             return;
         }
 
