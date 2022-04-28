@@ -365,10 +365,14 @@ public final class BluetoothUuid {
             ParcelUuid.fromString("0000184F-0000-1000-8000-00805F9B34FB");
 
     /**
-     * Base UUID to calculate all other UUIDs defined in this class.
-     *
+     * Telephony and Media Audio Profile (TMAP) UUID
      * @hide
      */
+    @NonNull
+    public static final ParcelUuid TMAP =
+            ParcelUuid.fromString("00001855-0000-1000-8000-00805F9B34FB");
+
+    /** @hide */
     @NonNull
     @SystemApi
     public static final ParcelUuid BASE_UUID =
