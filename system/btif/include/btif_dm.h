@@ -52,6 +52,11 @@ void btif_dm_proc_io_rsp(const RawAddress& bd_addr, tBTM_IO_CAP io_cap,
                          tBTM_OOB_DATA oob_data, tBTM_AUTH_REQ auth_req);
 
 /**
+ * Device Configuration Queries
+ */
+void btif_dm_get_local_class_of_device(DEV_CLASS device_class);
+
+/**
  * Out-of-band functions
  */
 void btif_dm_set_oob_for_io_req(tBTM_OOB_DATA* p_oob_data);
