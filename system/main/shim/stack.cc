@@ -179,11 +179,17 @@ void Stack::StartEverything() {
                    stack_manager_.GetInstance<neighbor::InquiryModule>());
   }
   if (!common::init_flags::gd_core_is_enabled()) {
-    acl_ = new legacy::Acl(
-        stack_handler_, legacy::GetAclInterface(),
-        controller_get_interface()->get_ble_acceptlist_size(),
-        controller_get_interface()->get_ble_resolving_list_max_size());
+    if (stack_manager_.IsStarted<hci::Controller>()) {
+      acl_ = new legacy::Acl(
+          stack_handler_, legacy::GetAclInterface(),
+          controller_get_interface()->get_ble_acceptlist_size(),
+          controller_get_interface()->get_ble_resolving_list_max_size());
+    } else {
+      LOG_ERROR(
+          "Unable to create shim ACL layer as Controller has not started");
+    }
   }
+
   if (!common::init_flags::gd_core_is_enabled()) {
     bluetooth::shim::hci_on_reset_complete();
   }
