@@ -70,7 +70,6 @@ public class A2dpStateMachineTest {
     @Before
     public void setUp() throws Exception {
         mTargetContext = InstrumentationRegistry.getTargetContext();
-        Assume.assumeTrue("Ignore test when A2dpService is not enabled", A2dpService.isEnabled());
         // Set up mocks and test assets
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
@@ -116,9 +115,6 @@ public class A2dpStateMachineTest {
 
     @After
     public void tearDown() throws Exception {
-        if (!A2dpService.isEnabled()) {
-            return;
-        }
         mA2dpStateMachine.doQuit();
         mHandlerThread.quit();
         mHandlerThread.join(TIMEOUT_MS);

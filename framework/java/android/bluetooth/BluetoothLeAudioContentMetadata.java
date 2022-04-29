@@ -25,7 +25,9 @@ import android.os.Parcelable;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * A class representing the media metadata information defined in the Basic Audio Profile.
@@ -48,6 +50,22 @@ public final class BluetoothLeAudioContentMetadata implements Parcelable {
         mProgramInfo = programInfo;
         mLanguage = language;
         mRawMetadata = rawMetadata;
+    }
+
+    @Override
+    public boolean equals(@Nullable Object o) {
+        if (!(o instanceof BluetoothLeAudioContentMetadata)) {
+            return false;
+        }
+        final BluetoothLeAudioContentMetadata other = (BluetoothLeAudioContentMetadata) o;
+        return Objects.equals(mProgramInfo, other.getProgramInfo())
+                && Objects.equals(mLanguage, other.getLanguage())
+                && Arrays.equals(mRawMetadata, other.getRawMetadata());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(mProgramInfo, mLanguage, Arrays.hashCode(mRawMetadata));
     }
 
     /**
