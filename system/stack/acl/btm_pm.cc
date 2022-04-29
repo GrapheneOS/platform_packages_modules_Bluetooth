@@ -334,6 +334,12 @@ tBTM_STATUS BTM_SetSsrParams(const RawAddress& remote_bda, uint16_t max_lat,
     return BTM_UNKNOWN_ADDR;
   }
 
+  const controller_t* controller = controller_get_interface();
+  if (!controller->supports_sniff_subrating()) {
+    LOG_INFO("No controller support for sniff subrating");
+    return BTM_SUCCESS;
+  }
+
   if (bluetooth::shim::is_gd_link_policy_enabled()) {
     return bluetooth::shim::BTM_SetSsrParams(p_cb->handle_, max_lat, min_rmt_to,
                                              min_loc_to);
@@ -558,9 +564,12 @@ static tBTM_STATUS btm_pm_snd_md_req(uint16_t handle, uint8_t pm_id,
     LOG_DEBUG("Need to wake first");
     md_res.mode = BTM_PM_MD_ACTIVE;
   } else if (BTM_PM_MD_SNIFF == md_res.mode && p_cb->max_lat) {
-    LOG_DEBUG("Sending sniff subrating to controller");
-    send_sniff_subrating(handle, p_cb->bda_, p_cb->max_lat, p_cb->min_rmt_to,
-                         p_cb->min_loc_to);
+    const controller_t* controller = controller_get_interface();
+    if (controller->supports_sniff_subrating()) {
+      LOG_DEBUG("Sending sniff subrating to controller");
+      send_sniff_subrating(handle, p_cb->bda_, p_cb->max_lat, p_cb->min_rmt_to,
+                           p_cb->min_loc_to);
+    }
     p_cb->max_lat = 0;
   }
   /* Default is failure */
