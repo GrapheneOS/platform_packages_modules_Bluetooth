@@ -176,6 +176,10 @@ struct HciLayer::impl {
 
     ASSERT_LOG(!command_queue_.empty(), "Unexpected %s event with OpCode 0x%02hx (%s)", logging_id.c_str(), op_code,
                OpCodeText(op_code).c_str());
+    if (waiting_command_ == OpCode::CONTROLLER_DEBUG_INFO && op_code != OpCode::CONTROLLER_DEBUG_INFO) {
+      LOG_ERROR("Discarding event that came after timeout 0x%02hx (%s)", op_code, OpCodeText(op_code).c_str());
+      return;
+    }
     ASSERT_LOG(waiting_command_ == op_code, "Waiting for 0x%02hx (%s), got 0x%02hx (%s)", waiting_command_,
                OpCodeText(waiting_command_).c_str(), op_code, OpCodeText(op_code).c_str());
 
