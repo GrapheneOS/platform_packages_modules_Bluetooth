@@ -803,7 +803,9 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
      * of the system, which wants to set to active a particular Le Audio group.
      *
      * Note: getActiveDevice() returns the Lead device for the currently active LE Audio group.
-     * Note: When lead device gets disconnected, there will be new lead device for the group.
+     * Note: When Lead device gets disconnected while Le Audio group is active and has more devices
+     * in the group, then Lead device will not change. If Lead device gets disconnected, for the
+     * Le Audio group which is not active, a new Lead device will be chosen
      *
      * @param groupId The group id.
      * @return group lead device.
