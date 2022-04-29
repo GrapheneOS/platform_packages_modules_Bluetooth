@@ -100,8 +100,6 @@ public class HidDeviceTest {
     @Before
     public void setUp() throws Exception {
         mTargetContext = InstrumentationRegistry.getTargetContext();
-        Assume.assumeTrue("Ignore test when HidDeviceService is not enabled",
-                HidDeviceService.isEnabled());
         if (Looper.myLooper() == null) {
             Looper.prepare();
         }
@@ -145,9 +143,6 @@ public class HidDeviceTest {
 
     @After
     public void tearDown() throws Exception {
-        if (!HidDeviceService.isEnabled()) {
-            return;
-        }
         TestUtils.stopService(mServiceRule, HidDeviceService.class);
         mHidDeviceService = HidDeviceService.getHidDeviceService();
         Assert.assertNull(mHidDeviceService);
