@@ -2061,10 +2061,10 @@ public class HeadsetService extends ProfileService {
             if (!isOutgoingRequest) {
                 A2dpService a2dpService = A2dpService.getA2dpService();
                 if (a2dpService != null && a2dpService.okToConnect(device, true)) {
-                    Log.d(TAG, "okToAcceptConnection: return temporary true,"
+                    Log.d(TAG, "okToAcceptConnection: return false,"
                             + " Fallback connection to allowed A2DP profile");
                     a2dpService.connect(device);
-                    return true;
+                    return false;
                 }
             }
             Log.w(TAG, "okToAcceptConnection: return false, connectionPolicy=" + connectionPolicy);
