@@ -363,6 +363,7 @@ public final class BluetoothLeBroadcastAssistant implements BluetoothProfile, Au
     @Override
     public @BluetoothProfile.BtProfileState int getConnectionState(@NonNull BluetoothDevice sink) {
         log("getConnectionState(" + sink + ")");
+        Objects.requireNonNull(sink, "sink cannot be null");
         final IBluetoothLeBroadcastAssistant service = getService();
         final int defaultValue = BluetoothProfile.STATE_DISCONNECTED;
         if (service == null) {
@@ -392,6 +393,7 @@ public final class BluetoothLeBroadcastAssistant implements BluetoothProfile, Au
     public @NonNull List<BluetoothDevice> getDevicesMatchingConnectionStates(
             @NonNull int[] states) {
         log("getDevicesMatchingConnectionStates()");
+        Objects.requireNonNull(states, "states cannot be null");
         final IBluetoothLeBroadcastAssistant service = getService();
         final List<BluetoothDevice> defaultValue = new ArrayList<BluetoothDevice>();
         if (service == null) {
@@ -445,6 +447,7 @@ public final class BluetoothLeBroadcastAssistant implements BluetoothProfile, Au
      * @param device Paired bluetooth device
      * @param connectionPolicy is the connection policy to set to for this profile
      * @return true if connectionPolicy is set, false on error
+     * @throws NullPointerException if <var>device</var> is null
      * @hide
      */
     @SystemApi
@@ -456,6 +459,7 @@ public final class BluetoothLeBroadcastAssistant implements BluetoothProfile, Au
     public boolean setConnectionPolicy(@NonNull BluetoothDevice device,
             @ConnectionPolicy int connectionPolicy) {
         log("setConnectionPolicy()");
+        Objects.requireNonNull(device, "device cannot be null");
         final IBluetoothLeBroadcastAssistant service = getService();
         final boolean defaultValue = false;
         if (service == null) {
@@ -482,6 +486,7 @@ public final class BluetoothLeBroadcastAssistant implements BluetoothProfile, Au
      *
      * @param device Bluetooth device
      * @return connection policy of the device
+     * @throws NullPointerException if <var>device</var> is null
      * @hide
      */
     @SystemApi
@@ -492,6 +497,7 @@ public final class BluetoothLeBroadcastAssistant implements BluetoothProfile, Au
     })
     public @ConnectionPolicy int getConnectionPolicy(@NonNull BluetoothDevice device) {
         log("getConnectionPolicy()");
+        Objects.requireNonNull(device, "device cannot be null");
         final IBluetoothLeBroadcastAssistant service = getService();
         final int defaultValue = BluetoothProfile.CONNECTION_POLICY_FORBIDDEN;
         if (service == null) {
@@ -518,8 +524,8 @@ public final class BluetoothLeBroadcastAssistant implements BluetoothProfile, Au
      *
      * @param executor an {@link Executor} to execute given callback
      * @param callback user implementation of the {@link Callback}
-     * @throws NullPointerException if a null executor, or callback is given, or
-     *  IllegalArgumentException if the same <var>callback<var> is already registered.
+     * @throws NullPointerException if a null executor, or callback is given
+     * @throws IllegalArgumentException if the same <var>callback<var> is already registered
      * @hide
      */
     @SystemApi
@@ -554,8 +560,8 @@ public final class BluetoothLeBroadcastAssistant implements BluetoothProfile, Au
      * <p>Callbacks are automatically unregistered when application process goes away.
      *
      * @param callback user implementation of the {@link Callback}
-     * @throws NullPointerException when callback is null or IllegalArgumentException when no
-     *  callback is registered
+     * @throws NullPointerException when callback is null
+     * @throws IllegalArgumentException when the <var>callback</var> was not registered before
      * @hide
      */
     @SystemApi
@@ -572,9 +578,10 @@ public final class BluetoothLeBroadcastAssistant implements BluetoothProfile, Au
             Log.w(TAG, "Proxy not attached to service");
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else if (mBluetoothAdapter.isEnabled()) {
-            if (mCallback != null) {
-                mCallback.unregister(callback);
+            if (mCallback == null) {
+                throw new IllegalArgumentException("no callback was ever registered");
             }
+            mCallback.unregister(callback);
         }
     }
 
@@ -605,7 +612,7 @@ public final class BluetoothLeBroadcastAssistant implements BluetoothProfile, Au
      *
      * @param filters {@link ScanFilter}s for finding exact Broadcast Source, if no filter is
      *               needed, please provide an empty list instead
-     * @throws IllegalArgumentException when <var>filters</var> argument is null
+     * @throws NullPointerException when <var>filters</var> argument is null
      * @throws IllegalStateException when no callback is registered
      * @hide
      */
@@ -618,8 +625,12 @@ public final class BluetoothLeBroadcastAssistant implements BluetoothProfile, Au
     })
     public void startSearchingForSources(@NonNull List<ScanFilter> filters) {
         log("searchForBroadcastSources");
-        if (filters == null) {
-            throw new IllegalArgumentException("filters can be empty, but not null");
+        Objects.requireNonNull(filters, "filters can be empty, but not null");
+        if (mCallback == null) {
+            throw new IllegalStateException("No callback was ever registered");
+        }
+        if (!mCallback.isAtLeastOneCallbackRegistered()) {
+            throw new IllegalStateException("All callbacks are unregistered");
         }
         final IBluetoothLeBroadcastAssistant service = getService();
         if (service == null) {
@@ -652,6 +663,12 @@ public final class BluetoothLeBroadcastAssistant implements BluetoothProfile, Au
     })
     public void stopSearchingForSources() {
         log("stopSearchingForSources:");
+        if (mCallback == null) {
+            throw new IllegalStateException("No callback was ever registered");
+        }
+        if (!mCallback.isAtLeastOneCallbackRegistered()) {
+            throw new IllegalStateException("All callbacks are unregistered");
+        }
         final IBluetoothLeBroadcastAssistant service = getService();
         if (service == null) {
             Log.w(TAG, "Proxy not attached to service");
@@ -751,7 +768,7 @@ public final class BluetoothLeBroadcastAssistant implements BluetoothProfile, Au
      * @param isGroupOp {@code true} if Application wants to perform this operation for all
      *                  coordinated set members throughout this session. Otherwise, caller
      *                  would have to add, modify, and remove individual set members.
-     * @throws IllegalArgumentException if <var>sink</var> or <var>source</var> are null
+     * @throws NullPointerException if <var>sink</var> or <var>source</var> is null
      * @throws IllegalStateException if callback was not registered
      * @hide
      */
@@ -764,6 +781,14 @@ public final class BluetoothLeBroadcastAssistant implements BluetoothProfile, Au
     public void addSource(@NonNull BluetoothDevice sink,
             @NonNull BluetoothLeBroadcastMetadata sourceMetadata, boolean isGroupOp) {
         log("addBroadcastSource: " + sourceMetadata + " on " + sink);
+        Objects.requireNonNull(sink, "sink cannot be null");
+        Objects.requireNonNull(sourceMetadata, "sourceMetadata cannot be null");
+        if (mCallback == null) {
+            throw new IllegalStateException("No callback was ever registered");
+        }
+        if (!mCallback.isAtLeastOneCallbackRegistered()) {
+            throw new IllegalStateException("All callbacks are unregistered");
+        }
         final IBluetoothLeBroadcastAssistant service = getService();
         if (service == null) {
             Log.w(TAG, "Proxy not attached to service");
@@ -818,6 +843,7 @@ public final class BluetoothLeBroadcastAssistant implements BluetoothProfile, Au
      * {@link Callback#onSourceAdded(BluetoothDevice, int, int)}
      * @param updatedMetadata  updated Broadcast Source metadata to be updated on the Broadcast Sink
      * @throws IllegalStateException if callback was not registered
+     * @throws NullPointerException if <var>sink</var> or <var>updatedMetadata</var> is null
      * @hide
      */
     @SystemApi
@@ -829,6 +855,14 @@ public final class BluetoothLeBroadcastAssistant implements BluetoothProfile, Au
     public void modifySource(@NonNull BluetoothDevice sink, int sourceId,
             @NonNull BluetoothLeBroadcastMetadata updatedMetadata) {
         log("updateBroadcastSource: " + updatedMetadata + " on " + sink);
+        Objects.requireNonNull(sink, "sink cannot be null");
+        Objects.requireNonNull(updatedMetadata, "updatedMetadata cannot be null");
+        if (mCallback == null) {
+            throw new IllegalStateException("No callback was ever registered");
+        }
+        if (!mCallback.isAtLeastOneCallbackRegistered()) {
+            throw new IllegalStateException("All callbacks are unregistered");
+        }
         final IBluetoothLeBroadcastAssistant service = getService();
         if (service == null) {
             Log.w(TAG, "Proxy not attached to service");
@@ -862,7 +896,7 @@ public final class BluetoothLeBroadcastAssistant implements BluetoothProfile, Au
      * @param sink Broadcast Sink from which a Broadcast Source should be removed
      * @param sourceId source ID as delivered in
      * {@link Callback#onSourceAdded(BluetoothDevice, int, int)}
-     * @throws IllegalArgumentException when the <var>sink</var> is null
+     * @throws NullPointerException when the <var>sink</var> is null
      * @throws IllegalStateException if callback was not registered
      * @hide
      */
@@ -874,6 +908,13 @@ public final class BluetoothLeBroadcastAssistant implements BluetoothProfile, Au
     })
     public void removeSource(@NonNull BluetoothDevice sink, int sourceId) {
         log("removeBroadcastSource: " + sourceId + " from " + sink);
+        Objects.requireNonNull(sink, "sink cannot be null");
+        if (mCallback == null) {
+            throw new IllegalStateException("No callback was ever registered");
+        }
+        if (!mCallback.isAtLeastOneCallbackRegistered()) {
+            throw new IllegalStateException("All callbacks are unregistered");
+        }
         final IBluetoothLeBroadcastAssistant service = getService();
         if (service == null) {
             Log.w(TAG, "Proxy not attached to service");
@@ -894,7 +935,7 @@ public final class BluetoothLeBroadcastAssistant implements BluetoothProfile, Au
      * @param sink Broadcast Sink from which to get all Broadcast Sources
      * @return the list of Broadcast Receive State {@link BluetoothLeBroadcastReceiveState}
      *         stored in the Broadcast Sink
-     * @throws IllegalArgumentException when <var>sink</var> is null
+     * @throws NullPointerException when <var>sink</var> is null
      * @hide
      */
     @SystemApi
@@ -906,6 +947,7 @@ public final class BluetoothLeBroadcastAssistant implements BluetoothProfile, Au
     public @NonNull List<BluetoothLeBroadcastReceiveState> getAllSources(
             @NonNull BluetoothDevice sink) {
         log("getAllSources()");
+        Objects.requireNonNull(sink, "sink cannot be null");
         final IBluetoothLeBroadcastAssistant service = getService();
         final List<BluetoothLeBroadcastReceiveState> defaultValue =
                 new ArrayList<BluetoothLeBroadcastReceiveState>();
@@ -927,11 +969,12 @@ public final class BluetoothLeBroadcastAssistant implements BluetoothProfile, Au
      *
      * @param sink Broadcast Sink device
      * @return maximum number of sources that can be added to this Broadcast Sink
-     * @throws IllegalArgumentException when <var>sink</var> is null
+     * @throws NullPointerException when <var>sink</var> is null
      * @hide
      */
     @SystemApi
     public int getMaximumSourceCapacity(@NonNull BluetoothDevice sink) {
+        Objects.requireNonNull(sink, "sink cannot be null");
         final IBluetoothLeBroadcastAssistant service = getService();
         final int defaultValue = 0;
         if (service == null) {
