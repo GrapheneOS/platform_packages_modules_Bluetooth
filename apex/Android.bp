@@ -7,8 +7,17 @@ package {
     default_applicable_licenses: ["system_bt_license"],
 }
 
-apex_defaults {
-    name: "com.android.bluetooth-defaults",
+linker_config {
+    name: "bluetooth-linker-config",
+    src: "linker.config.json",
+    installable: false,
+}
+
+//Mainline bluetooth apex module.
+apex {
+    name: "com.android.bluetooth",
+    defaults: ["t-launched-apex-module"],
+    manifest: "apex_manifest.json",
     bootclasspath_fragments: ["com.android.bluetooth-bootclasspath-fragment"],
     systemserverclasspath_fragments: ["com.android.bluetooth-systemserverclasspath-fragment"],
     apps: ["Bluetooth"],
@@ -24,28 +33,15 @@ apex_defaults {
 
     prebuilts: [
         "bluetooth-linker-config",
+        "privapp_allowlist_com.android.bluetooth.services.xml",
     ],
+
     key: "com.android.bluetooth.key",
     certificate: ":com.android.bluetooth.certificate",
-    defaults: ["t-launched-apex-module"],
     updatable: true,
     // Indicates that pre-installed version of this apex can be compressed.
     // Whether it actually will be compressed is controlled on per-device basis.
     compressible: true,
-}
-
-linker_config {
-    name: "bluetooth-linker-config",
-    src: "linker.config.json",
-    installable: false,
-}
-
-//Mainline bluetooth apex module.
-apex {
-    name: "com.android.bluetooth",
-    defaults: ["com.android.bluetooth-defaults"],
-    manifest: "apex_manifest.json",
-    prebuilts: ["privapp_allowlist_com.android.bluetooth.services.xml"],
 }
 
 apex_key {
