@@ -270,7 +270,7 @@ public class GattService extends ProfileService {
     private final Object mTestModeLock = new Object();
 
     public static boolean isEnabled() {
-        return BluetoothProperties.isProfileGattEnabled().orElse(false);
+        return BluetoothProperties.isProfileGattEnabled().orElse(true);
     }
 
     /**
