@@ -73,6 +73,7 @@ public class HeadsetPhoneState {
     private PhoneStateListener mPhoneStateListener;
     private final OnSubscriptionsChangedListener mOnSubscriptionsChangedListener;
     private SignalStrengthUpdateRequest mSignalStrengthUpdateRequest;
+    private final Object mPhoneStateListenerLock = new Object();
 
     HeadsetPhoneState(HeadsetService headsetService) {
         Objects.requireNonNull(headsetService, "headsetService is null");
@@ -145,39 +146,43 @@ public class HeadsetPhoneState {
     }
 
     private void startListenForPhoneState() {
-        if (mPhoneStateListener != null) {
-            Log.w(TAG, "startListenForPhoneState, already listening");
-            return;
-        }
-        int events = getTelephonyEventsToListen();
-        if (events == PhoneStateListener.LISTEN_NONE) {
-            Log.w(TAG, "startListenForPhoneState, no event to listen");
-            return;
-        }
-        int subId = SubscriptionManager.getDefaultSubscriptionId();
-        if (!SubscriptionManager.isValidSubscriptionId(subId)) {
-            // Will retry listening for phone state in onSubscriptionsChanged() callback
-            Log.w(TAG, "startListenForPhoneState, invalid subscription ID " + subId);
-            return;
-        }
-        Log.i(TAG, "startListenForPhoneState(), subId=" + subId + ", enabled_events=" + events);
-        mPhoneStateListener = new HeadsetPhoneStateListener(command -> mHandler.post(command));
-        mTelephonyManager.listen(mPhoneStateListener, events);
-        if ((events & PhoneStateListener.LISTEN_SIGNAL_STRENGTHS) != 0) {
-            mTelephonyManager.setSignalStrengthUpdateRequest(mSignalStrengthUpdateRequest);
+        synchronized (mPhoneStateListenerLock) {
+            if (mPhoneStateListener != null) {
+                Log.w(TAG, "startListenForPhoneState, already listening");
+                return;
+            }
+            int events = getTelephonyEventsToListen();
+            if (events == PhoneStateListener.LISTEN_NONE) {
+                Log.w(TAG, "startListenForPhoneState, no event to listen");
+                return;
+            }
+            int subId = SubscriptionManager.getDefaultSubscriptionId();
+            if (!SubscriptionManager.isValidSubscriptionId(subId)) {
+                // Will retry listening for phone state in onSubscriptionsChanged() callback
+                Log.w(TAG, "startListenForPhoneState, invalid subscription ID " + subId);
+                return;
+            }
+            Log.i(TAG, "startListenForPhoneState(), subId=" + subId + ", enabled_events=" + events);
+            mPhoneStateListener = new HeadsetPhoneStateListener(command -> mHandler.post(command));
+            mTelephonyManager.listen(mPhoneStateListener, events);
+            if ((events & PhoneStateListener.LISTEN_SIGNAL_STRENGTHS) != 0) {
+                mTelephonyManager.setSignalStrengthUpdateRequest(mSignalStrengthUpdateRequest);
+            }
         }
     }
 
     private void stopListenForPhoneState() {
-        if (mPhoneStateListener == null) {
-            Log.i(TAG, "stopListenForPhoneState(), no listener indicates nothing is listening");
-            return;
+        synchronized (mPhoneStateListenerLock) {
+            if (mPhoneStateListener == null) {
+                Log.i(TAG, "stopListenForPhoneState(), no listener indicates nothing is listening");
+                return;
+            }
+            Log.i(TAG, "stopListenForPhoneState(), stopping listener, enabled_events="
+                    + getTelephonyEventsToListen());
+            mTelephonyManager.listen(mPhoneStateListener, PhoneStateListener.LISTEN_NONE);
+            mPhoneStateListener = null;
+            mTelephonyManager.clearSignalStrengthUpdateRequest(mSignalStrengthUpdateRequest);
         }
-        Log.i(TAG, "stopListenForPhoneState(), stopping listener, enabled_events="
-                + getTelephonyEventsToListen());
-        mTelephonyManager.listen(mPhoneStateListener, PhoneStateListener.LISTEN_NONE);
-        mPhoneStateListener = null;
-        mTelephonyManager.clearSignalStrengthUpdateRequest(mSignalStrengthUpdateRequest);
     }
 
     int getCindService() {
