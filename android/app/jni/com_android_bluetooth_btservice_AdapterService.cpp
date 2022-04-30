@@ -626,6 +626,10 @@ static void switch_codec_callback(bool is_low_latency_buffer_size) {
                                (jboolean)is_low_latency_buffer_size);
 }
 
+static void le_rand_callback(uint64_t random) {
+  // Android doesn't support the LeRand API.
+}
+
 static void callback_thread_event(bt_cb_thread_evt event) {
   if (event == ASSOCIATE_JVM) {
     JavaVMAttachArgs args;
@@ -704,7 +708,8 @@ static bt_callbacks_t sBluetoothCallbacks = {sizeof(sBluetoothCallbacks),
                                              link_quality_report_callback,
                                              generate_local_oob_data_callback,
                                              switch_buffer_size_callback,
-                                             switch_codec_callback};
+                                             switch_codec_callback,
+                                             le_rand_callback};
 
 // The callback to call when the wake alarm fires.
 static alarm_cb sAlarmCallback;

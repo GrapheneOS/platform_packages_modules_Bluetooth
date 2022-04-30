@@ -97,7 +97,7 @@ void bluetooth::shim::ACL_Shutdown() {
 }
 
 void bluetooth::shim::ACL_IgnoreAllLeConnections() {
-  return Stack::GetInstance()->GetAcl()->ClearAcceptList();
+  return Stack::GetInstance()->GetAcl()->ClearFilterAcceptList();
 }
 
 void bluetooth::shim::ACL_ReadConnectionAddress(const RawAddress& pseudo_addr,
@@ -128,6 +128,6 @@ void bluetooth::shim::ACL_ClearAddressResolution() {
   Stack::GetInstance()->GetAcl()->ClearAddressResolution();
 }
 
-void bluetooth::shim::ACL_ClearAcceptList() {
-  Stack::GetInstance()->GetAcl()->ClearAcceptList();
+void bluetooth::shim::ACL_ClearFilterAcceptList() {
+  Stack::GetInstance()->GetAcl()->ClearFilterAcceptList();
 }

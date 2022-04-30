@@ -14,28 +14,32 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+import asyncio
 import importlib
 import logging
 import os
 import signal
 import subprocess
 
-from blueberry.tests.gd.cert.context import get_current_context
-from blueberry.tests.gd.cert.tracelogger import TraceLogger
 from blueberry.tests.gd.cert.async_subprocess_logger import AsyncSubprocessLogger
+from blueberry.tests.gd.cert.context import get_current_context
 from blueberry.tests.gd.cert.os_utils import get_gd_root
 from blueberry.tests.gd.cert.os_utils import get_gd_root
 from blueberry.tests.gd.cert.os_utils import read_crash_snippet_and_log_tail
 from blueberry.tests.gd.cert.os_utils import is_subprocess_alive
 from blueberry.tests.gd.cert.os_utils import make_ports_available
 from blueberry.tests.gd.cert.os_utils import TerminalColor
+from blueberry.tests.gd.cert.tracelogger import TraceLogger
+from blueberry.tests.gd.cert.truth import assertThat
+from blueberry.tests.topshim.lib.adapter_client import AdapterClient
+
 from mobly import asserts
 from mobly import base_test
 
 CONTROLLER_CONFIG_NAME = "GdDevice"
 
 
-def setup_test_core(verbose_mode, log_path_base, controller_configs):
+def _setup_class_core(verbose_mode, log_path_base, controller_configs):
     info = {}
     info['controller_configs'] = controller_configs
 
@@ -103,7 +107,7 @@ def setup_test_core(verbose_mode, log_path_base, controller_configs):
     return info
 
 
-def teardown_class_core(rootcanal_running, rootcanal_process, rootcanal_logger, subprocess_wait_timeout_seconds):
+def _teardown_class_core(rootcanal_running, rootcanal_process, rootcanal_logger, subprocess_wait_timeout_seconds):
     if rootcanal_running:
         stop_signal = signal.SIGINT
         rootcanal_process.send_signal(stop_signal)
@@ -152,15 +156,28 @@ def dump_crashes_core(dut, cert, rootcanal_running, rootcanal_process, rootcanal
 
 class TopshimBaseTest(base_test.BaseTestClass):
 
+    dut_adapter = None
+
+    async def _setup_adapter(self):
+        self.dut_adapter = AdapterClient(port=self.dut_port)
+        started = await self.dut_adapter._verify_adapter_started()
+        assertThat(started).isTrue()
+        return started
+
+    async def _teardown_adapter(self):
+        await self.dut_adapter.terminate()
+
     def setup_class(self):
-        super().setup_test()
+        """
+        Configure rootcanal and setup test parameters
+        """
         self.log = TraceLogger(logging.getLogger())
         self.log_path_base = get_current_context().get_full_output_path()
         self.verbose_mode = bool(self.user_params.get('verbose_mode', False))
         for config in self.controller_configs[CONTROLLER_CONFIG_NAME]:
             config['verbose_mode'] = self.verbose_mode
 
-        self.info = setup_test_core(
+        self.info = _setup_class_core(
             verbose_mode=self.verbose_mode,
             log_path_base=self.log_path_base,
             controller_configs=self.controller_configs)
@@ -179,20 +196,16 @@ class TopshimBaseTest(base_test.BaseTestClass):
 
         self.controller_configs = self.info['controller_configs']
 
-        controllers = self.register_controller(
-            importlib.import_module('blueberry.tests.gd.rust.topshim.facade.topshim_device'))
+        controllers = self.register_controller(importlib.import_module('blueberry.tests.topshim.lib.topshim_device'))
         self.cert_port = controllers[0].grpc_port
         self.dut_port = controllers[1].grpc_port
-
-    def test_empty(self):
-        pass
-
-    def teardown_test(self):
-        return super().teardown_test()
+        asyncio.set_event_loop(asyncio.new_event_loop())
+        asyncio.get_event_loop().run_until_complete(self._setup_adapter())
 
     def teardown_class(self):
-        teardown_class_core(
+        _teardown_class_core(
             rootcanal_running=self.rootcanal_running,
             rootcanal_process=self.rootcanal_process,
             rootcanal_logger=self.rootcanal_logger,
             subprocess_wait_timeout_seconds=1)
+        asyncio.get_event_loop().run_until_complete(self._teardown_adapter())

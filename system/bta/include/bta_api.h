@@ -30,6 +30,7 @@
 #include <cstdint>
 #include <vector>
 
+#include "base/callback.h"
 #include "bt_target.h"  // Must be first to define build configuration
 #include "osi/include/log.h"
 #include "stack/include/bt_octets.h"
@@ -1204,5 +1205,50 @@ extern void BTA_VendorInit(void);
  *
  ******************************************************************************/
 extern void BTA_DmClearEventFilter(void);
+
+using LeRandCallback = base::Callback<void(uint64_t)>;
+/*******************************************************************************
+ *
+ * Function         BTA_DmLeRand
+ *
+ * Description      This function clears the event filter
+ *
+ * Returns          cb: callback to receive the resulting random number
+ *
+ ******************************************************************************/
+extern void BTA_DmLeRand(LeRandCallback cb);
+
+/*******************************************************************************
+ *
+ * Function        BTA_DmRestoreFilterAcceptList
+ *
+ * Description    Floss: Restore the state of the for the filter accept list
+ *
+ * Parameters
+ *
+ *******************************************************************************/
+extern void BTA_DmRestoreFilterAcceptList();
+
+/*******************************************************************************
+ *
+ * Function        BTA_DmSetDefaultEventMask
+ *
+ * Description    Floss: Set the default event mask for Classic and LE
+ *
+ * Parameters
+ *
+ *******************************************************************************/
+extern void BTA_DmSetDefaultEventMask();
+
+/*******************************************************************************
+ *
+ * Function        BTA_DmSetEventFilterInquiryResultAllDevices
+ *
+ * Description    Floss: Set the event filter to inquiry result device all
+ *
+ * Parameters
+ *
+ *******************************************************************************/
+extern void BTA_DmSetEventFilterInquiryResultAllDevices();
 
 #endif /* BTA_API_H */
