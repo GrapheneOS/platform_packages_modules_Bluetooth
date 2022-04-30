@@ -109,7 +109,7 @@ class Acl : public hci::acl_manager::ConnectionCallbacks,
   void Shutdown();
   void FinalShutdown();
 
-  void ClearAcceptList();
+  void ClearFilterAcceptList();
 
  protected:
   void on_incoming_acl_credits(uint16_t handle, uint16_t credits);

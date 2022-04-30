@@ -684,3 +684,34 @@ void BTA_DmClearEventFilter(void) {
   APPL_TRACE_API("BTA_DmClearEventFilter");
   do_in_main_thread(FROM_HERE, base::Bind(bta_dm_clear_event_filter));
 }
+
+/*******************************************************************************
+ *
+ * Function         BTA_DmLeRand
+ *
+ * Description      This function clears the event filter
+ *
+ * Returns          cb: callback to receive the resulting random number
+ *
+ ******************************************************************************/
+void BTA_DmLeRand(LeRandCallback cb) {
+  APPL_TRACE_API("BTA_DmLeRand");
+  do_in_main_thread(FROM_HERE, base::Bind(bta_dm_le_rand, cb));
+}
+
+void BTA_DmRestoreFilterAcceptList() {
+  APPL_TRACE_API("BTA_DmRestoreFilterAcceptList");
+  do_in_main_thread(FROM_HERE, base::Bind(bta_dm_restore_filter_accept_list));
+}
+
+void BTA_DmSetDefaultEventMask() {
+  APPL_TRACE_API("BTA_DmSetDefaultEventMask");
+  do_in_main_thread(FROM_HERE, base::Bind(bta_dm_set_default_event_mask));
+}
+
+void BTA_DmSetEventFilterInquiryResultAllDevices() {
+  APPL_TRACE_API("BTA_DmSetEventFilterInquiryResultAllDevices");
+  do_in_main_thread(
+      FROM_HERE,
+      base::Bind(bta_dm_set_event_filter_inquiry_result_all_devices));
+}
