@@ -31,7 +31,6 @@ import android.bluetooth.BluetoothUuid;
 import android.bluetooth.IBluetoothHeadset;
 import android.content.AttributionSource;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -137,7 +136,7 @@ public class HeadsetService extends ProfileService {
     private VoiceRecognitionTimeoutEvent mVoiceRecognitionTimeoutEvent;
     // Timeout when voice recognition is started by remote device
     @VisibleForTesting static int sStartVrTimeoutMs = 5000;
-    private ArrayList<HeadsetClccResponse> mHeadsetClccResponses = new ArrayList<>();
+    private ArrayList<StateMachineTask> mPendingClccResponses = new ArrayList<>();
     private boolean mStarted;
     private boolean mCreated;
     private static HeadsetService sHeadsetService;
@@ -325,6 +324,14 @@ public class HeadsetService extends ProfileService {
         synchronized (mStateMachines) {
             for (BluetoothDevice device : getConnectedDevices()) {
                 task.execute(mStateMachines.get(device));
+            }
+        }
+    }
+
+    private void doForEachConnectedStateMachine(List<StateMachineTask> tasks) {
+        synchronized (mStateMachines) {
+            for (StateMachineTask task : tasks) {
+                doForEachConnectedStateMachine(task);
             }
         }
     }
@@ -1855,18 +1862,20 @@ public class HeadsetService extends ProfileService {
                 mSystemInterface.getAudioManager().setA2dpSuspended(false);
             }
         });
+
     }
 
     @RequiresPermission(android.Manifest.permission.MODIFY_PHONE_STATE)
     private void clccResponse(int index, int direction, int status, int mode, boolean mpty,
             String number, int type) {
         enforceCallingOrSelfPermission(MODIFY_PHONE_STATE, "Need MODIFY_PHONE_STATE permission");
-        mHeadsetClccResponses.add(
-                new HeadsetClccResponse(index, direction, status, mode, mpty, number, type));
+        mPendingClccResponses.add(
+                stateMachine -> stateMachine.sendMessage(HeadsetStateMachine.SEND_CLCC_RESPONSE,
+                        new HeadsetClccResponse(index, direction, status, mode, mpty, number,
+                                type)));
         if (index == CLCC_END_MARK_INDEX) {
-            doForEachConnectedStateMachine(stateMachine -> stateMachine.sendMessage(
-                    HeadsetStateMachine.SEND_CLCC_RESPONSE, mHeadsetClccResponses));
-            mHeadsetClccResponses.clear();
+            doForEachConnectedStateMachine(mPendingClccResponses);
+            mPendingClccResponses.clear();
         }
     }
 
