@@ -31,7 +31,6 @@ import android.bluetooth.IBluetoothMap;
 import android.bluetooth.SdpMnsRecord;
 import android.content.AttributionSource;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -166,6 +165,7 @@ public class BluetoothMapService extends ProfileService {
 
     public BluetoothMapService() {
         mState = BluetoothMap.STATE_DISCONNECTED;
+        BluetoothMap.invalidateBluetoothGetConnectionStateCache();
     }
 
     private synchronized void closeService() {
@@ -195,6 +195,7 @@ public class BluetoothMapService extends ProfileService {
         }
 
         sRemoteDevice = null;
+        // no need to invalidate cache here because setState did it above
 
         if (mSessionStatusHandler == null) {
             return;
@@ -332,6 +333,7 @@ public class BluetoothMapService extends ProfileService {
             setState(BluetoothMap.STATE_DISCONNECTED);
             mPermission = BluetoothDevice.ACCESS_UNKNOWN;
             sRemoteDevice = null;
+            // no need to invalidate cache here because setState did it above
             if (mAccountChanged) {
                 updateMasInstances(UPDATE_MAS_INSTANCES_ACCOUNT_DISCONNECT);
             }
@@ -519,6 +521,7 @@ public class BluetoothMapService extends ProfileService {
             }
             int prevState = mState;
             mState = state;
+            BluetoothMap.invalidateBluetoothGetConnectionStateCache();
             Intent intent = new Intent(BluetoothMap.ACTION_CONNECTION_STATE_CHANGED);
             intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, prevState);
             intent.putExtra(BluetoothProfile.EXTRA_STATE, mState);
@@ -595,7 +598,8 @@ public class BluetoothMapService extends ProfileService {
      */
     public int getConnectionState(BluetoothDevice device) {
         synchronized (this) {
-            if (getState() == BluetoothMap.STATE_CONNECTED && getRemoteDevice().equals(device)) {
+            if (getState() == BluetoothMap.STATE_CONNECTED && getRemoteDevice() != null
+                    && getRemoteDevice().equals(device)) {
                 return BluetoothProfile.STATE_CONNECTED;
             } else {
                 return BluetoothProfile.STATE_DISCONNECTED;
@@ -911,6 +915,9 @@ public class BluetoothMapService extends ProfileService {
         synchronized (this) {
             if (sRemoteDevice == null) {
                 sRemoteDevice = remoteDevice;
+                if (getState() == BluetoothMap.STATE_CONNECTED) {
+                    BluetoothMap.invalidateBluetoothGetConnectionStateCache();
+                }
                 sRemoteDeviceName = Utils.getName(sRemoteDevice);
                 // In case getRemoteName failed and return null
                 if (TextUtils.isEmpty(sRemoteDeviceName)) {
@@ -933,6 +940,7 @@ public class BluetoothMapService extends ProfileService {
                         (remoteDevice == null) ? "unknown" : Utils.getName(remoteDevice)));
                 return false;
             } // Else second connection to same device, just continue
+
         }
 
         if (sendIntent) {
@@ -1274,8 +1282,8 @@ public class BluetoothMapService extends ProfileService {
                 BluetoothMapService service = getService(source);
                 boolean result = false;
                 if (service != null) {
-                    result = service.getState() == BluetoothMap.STATE_CONNECTED
-                        && BluetoothMapService.getRemoteDevice().equals(device);
+                    result = service.getConnectionState(device)
+                        == BluetoothProfile.STATE_CONNECTED;
                 }
                 receiver.send(result);
             } catch (RuntimeException e) {
