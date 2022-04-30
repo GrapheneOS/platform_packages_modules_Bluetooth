@@ -38,8 +38,10 @@
 #include "main/shim/stack.h"
 #include "osi/include/allocator.h"
 #include "stack/btm/btm_int_types.h"
+#include "stack/btm/btm_sec.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_octets.h"
+#include "stack/include/hci_error_code.h"
 #include "types/ble_address_with_type.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
@@ -1332,5 +1334,45 @@ tBTM_STATUS bluetooth::shim::BTM_SetDeviceClass(DEV_CLASS dev_class) {
 
 tBTM_STATUS bluetooth::shim::BTM_ClearEventFilter() {
   controller_get_interface()->clear_event_filter();
+  return BTM_SUCCESS;
+}
+
+tBTM_STATUS bluetooth::shim::BTM_ClearEventMask() {
+  controller_get_interface()->clear_event_mask();
+  return BTM_SUCCESS;
+}
+
+tBTM_STATUS bluetooth::shim::BTM_ClearFilterAcceptList() {
+  Stack::GetInstance()->GetAcl()->ClearFilterAcceptList();
+  return BTM_SUCCESS;
+}
+
+tBTM_STATUS bluetooth::shim::BTM_DisconnectAllAcls() {
+  for (uint16_t i = 0; i < 0xfffe; i++) {
+    btm_sec_disconnect(i, HCI_SUCCESS, "");
+  }
+  return BTM_SUCCESS;
+}
+
+tBTM_STATUS bluetooth::shim::BTM_LeRand(LeRandCallback cb) {
+  controller_get_interface()->le_rand(cb);
+  return BTM_SUCCESS;
+}
+
+tBTM_STATUS bluetooth::shim::BTM_RestoreFilterAcceptList() {
+  LOG_ERROR("%s: TODO(230604670): Figure out what address for A2DP Connected Resume", __func__);
+  // TODO(230604670): Figure out what address for A2DP Connected Resume
+  return BTM_SUCCESS;
+}
+
+tBTM_STATUS bluetooth::shim::BTM_SetDefaultEventMask() {
+  // Autoplumbed
+  controller_get_interface()->set_default_event_mask();
+  return BTM_SUCCESS;
+}
+
+tBTM_STATUS bluetooth::shim::BTM_SetEventFilterInquiryResultAllDevices() {
+  // Autoplumbed
+  controller_get_interface()->set_event_filter_inquiry_result_all_devices();
   return BTM_SUCCESS;
 }

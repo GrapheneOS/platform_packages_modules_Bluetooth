@@ -511,6 +511,22 @@ struct Controller::impl {
                          module_.GetHandler()->BindOnceOn(this, &Controller::impl::check_status<ResetCompleteView>));
   }
 
+  void le_rand(LeRandCallback cb) {
+    std::unique_ptr<LeRandBuilder> packet = LeRandBuilder::Create();
+    hci_->EnqueueCommand(
+        std::move(packet),
+        module_.GetHandler()->BindOnceOn(this, &Controller::impl::le_rand_cb<LeRandCompleteView>, cb));
+  }
+
+  template <class T>
+  void le_rand_cb(LeRandCallback cb, CommandCompleteView view) {
+    ASSERT(view.IsValid());
+    auto status_view = T::Create(view);
+    ASSERT(status_view.IsValid());
+    ASSERT(status_view.GetStatus() == ErrorCode::SUCCESS);
+    cb.Run(status_view.GetRandomNumber());
+  }
+
   void set_event_filter(std::unique_ptr<SetEventFilterBuilder> packet) {
     hci_->EnqueueCommand(std::move(packet), module_.GetHandler()->BindOnceOn(
                                                 this, &Controller::impl::check_status<SetEventFilterCompleteView>));
@@ -1018,6 +1034,10 @@ void Controller::SetEventMask(uint64_t event_mask) {
 
 void Controller::Reset() {
   CallOn(impl_.get(), &impl::reset);
+}
+
+void Controller::LeRand(LeRandCallback cb) {
+  CallOn(impl_.get(), &impl::le_rand, cb);
 }
 
 void Controller::SetEventFilterClearAll() {

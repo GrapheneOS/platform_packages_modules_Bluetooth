@@ -369,6 +369,14 @@ uint8_t get_le_all_initiating_phys() {
 
 tBTM_STATUS clear_event_filter() { return BTM_SUCCESS; }
 
+tBTM_STATUS clear_event_mask() { return BTM_SUCCESS; }
+
+tBTM_STATUS le_rand(LeRandCallback cb) { return BTM_SUCCESS; }
+tBTM_STATUS set_default_event_mask() { return BTM_SUCCESS; }
+tBTM_STATUS set_event_filter_inquiry_result_all_devices() {
+  return BTM_SUCCESS;
+}
+
 const controller_t interface = {
     get_is_ready,
 
@@ -454,7 +462,11 @@ const controller_t interface = {
     set_ble_resolving_list_max_size,
     get_local_supported_codecs,
     get_le_all_initiating_phys,
-    clear_event_filter};
+    clear_event_filter,
+    clear_event_mask,
+    le_rand,
+    set_default_event_mask,
+    set_event_filter_inquiry_result_all_devices};
 
 }  // namespace device_controller
 }  // namespace mock
