@@ -84,6 +84,12 @@ impl AdapterService for AdapterServiceImpl {
                         sink.send((rsp, WriteFlags::default())).await.unwrap();
                     }
                     BaseCallbacks::SspRequest(_, _, _, _, _) => {}
+                    BaseCallbacks::LeRandCallback(random) => {
+                        let mut rsp = FetchEventsResponse::new();
+                        rsp.event_type = EventType::LE_RAND;
+                        rsp.data = random.to_string();
+                        sink.send((rsp, WriteFlags::default())).await.unwrap();
+                    }
                     _ => (),
                 }
             }
@@ -122,6 +128,70 @@ impl AdapterService for AdapterServiceImpl {
 
     fn clear_event_filter(&mut self, ctx: RpcContext<'_>, _req: Empty, sink: UnarySink<Empty>) {
         self.btif_intf.lock().unwrap().clear_event_filter();
+        ctx.spawn(async move {
+            sink.success(Empty::default()).await.unwrap();
+        })
+    }
+
+    fn clear_event_mask(&mut self, ctx: RpcContext<'_>, _req: Empty, sink: UnarySink<Empty>) {
+        self.btif_intf.lock().unwrap().clear_event_mask();
+        ctx.spawn(async move {
+            sink.success(Empty::default()).await.unwrap();
+        })
+    }
+
+    fn clear_filter_accept_list(
+        &mut self,
+        ctx: RpcContext<'_>,
+        _req: Empty,
+        sink: UnarySink<Empty>,
+    ) {
+        self.btif_intf.lock().unwrap().clear_filter_accept_list();
+        ctx.spawn(async move {
+            sink.success(Empty::default()).await.unwrap();
+        })
+    }
+
+    fn disconnect_all_acls(&mut self, ctx: RpcContext<'_>, _req: Empty, sink: UnarySink<Empty>) {
+        self.btif_intf.lock().unwrap().disconnect_all_acls();
+        ctx.spawn(async move {
+            sink.success(Empty::default()).await.unwrap();
+        })
+    }
+
+    fn le_rand(&mut self, ctx: RpcContext<'_>, _req: Empty, sink: UnarySink<Empty>) {
+        self.btif_intf.lock().unwrap().le_rand();
+        ctx.spawn(async move {
+            sink.success(Empty::default()).await.unwrap();
+        })
+    }
+
+    fn restore_filter_accept_list(
+        &mut self,
+        ctx: RpcContext<'_>,
+        _req: Empty,
+        sink: UnarySink<Empty>,
+    ) {
+        self.btif_intf.lock().unwrap().restore_filter_accept_list();
+        ctx.spawn(async move {
+            sink.success(Empty::default()).await.unwrap();
+        })
+    }
+
+    fn set_default_event_mask(&mut self, ctx: RpcContext<'_>, _req: Empty, sink: UnarySink<Empty>) {
+        self.btif_intf.lock().unwrap().set_default_event_mask();
+        ctx.spawn(async move {
+            sink.success(Empty::default()).await.unwrap();
+        })
+    }
+
+    fn set_event_filter_inquiry_result_all_devices(
+        &mut self,
+        ctx: RpcContext<'_>,
+        _req: Empty,
+        sink: UnarySink<Empty>,
+    ) {
+        self.btif_intf.lock().unwrap().set_event_filter_inquiry_result_all_devices();
         ctx.spawn(async move {
             sink.success(Empty::default()).await.unwrap();
         })

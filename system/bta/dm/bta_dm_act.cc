@@ -4008,9 +4008,9 @@ void bta_dm_proc_open_evt(tBTA_GATTC_OPEN* p_data) {
 
 /*******************************************************************************
  *
- * Function         bta_dm_proc_open_evt
+ * Function         bta_dm_clear_event_filter
  *
- * Description      process BTA_GATTC_OPEN_EVT in DM.
+ * Description      clears out the event filter.
  *
  * Parameters:
  *
@@ -4018,6 +4018,98 @@ void bta_dm_proc_open_evt(tBTA_GATTC_OPEN* p_data) {
 void bta_dm_clear_event_filter(void) {
   VLOG(1) << "bta_dm_clear_event_filter in bta_dm_act";
   bluetooth::shim::BTM_ClearEventFilter();
+}
+
+/*******************************************************************************
+ *
+ * Function         bta_dm_clear_event_mask
+ *
+ * Description      Clears out the event mask in the controller.
+ *
+ ******************************************************************************/
+void bta_dm_clear_event_mask(void) {
+  VLOG(1) << "bta_dm_clear_event_mask in bta_dm_act";
+  bluetooth::shim::BTM_ClearEventMask();
+}
+
+/*******************************************************************************
+ *
+ * Function         bta_dm_clear_filter_accept_list
+ *
+ * Description      Clears out the connect list in the controller.
+ *
+ ******************************************************************************/
+void bta_dm_clear_filter_accept_list(void) {
+  VLOG(1) << "bta_dm_clear_filter_accept_list in bta_dm_act";
+  bluetooth::shim::BTM_ClearFilterAcceptList();
+}
+
+/*******************************************************************************
+ *
+ * Function         bta_dm_disconnect_all_acls
+ *
+ * Description      Disconnects all ACL connections.
+ *
+ ******************************************************************************/
+void bta_dm_disconnect_all_acls(void) {
+  VLOG(1) << "bta_dm_disconnect_all_acls in bta_dm_act";
+  bluetooth::shim::BTM_DisconnectAllAcls();
+}
+
+/*******************************************************************************
+ *
+ * Function         bta_dm_le_rand
+ *
+ * Description      Generates a random number from the controller.
+ *
+ * Parameters:      |cb| Callback to receive the random number.
+ *
+ ******************************************************************************/
+void bta_dm_le_rand(LeRandCallback cb) {
+  VLOG(1) << "bta_dm_le_rand in bta_dm_act";
+  bluetooth::shim::BTM_LeRand(cb);
+}
+
+/*******************************************************************************
+ *
+ * Function        BTA_DmRestoreFilterAcceptList
+ *
+ * Description    Floss: Restore the state of the for the filter accept list
+ *
+ * Parameters
+ *
+ *******************************************************************************/
+void bta_dm_restore_filter_accept_list() {
+  // Autoplumbed
+  bluetooth::shim::BTM_RestoreFilterAcceptList();
+}
+
+/*******************************************************************************
+ *
+ * Function        BTA_DmSetDefaultEventMask
+ *
+ * Description    Floss: Set the default event mask for Classic and LE
+ *
+ * Parameters
+ *
+ *******************************************************************************/
+void bta_dm_set_default_event_mask() {
+  // Autoplumbed
+  bluetooth::shim::BTM_SetDefaultEventMask();
+}
+
+/*******************************************************************************
+ *
+ * Function        BTA_DmSetEventFilterInquiryResultAllDevices
+ *
+ * Description    Floss: Set the event filter to inquiry result device all
+ *
+ * Parameters
+ *
+ *******************************************************************************/
+void bta_dm_set_event_filter_inquiry_result_all_devices() {
+  // Autoplumbed
+  bluetooth::shim::BTM_SetEventFilterInquiryResultAllDevices();
 }
 
 /*******************************************************************************

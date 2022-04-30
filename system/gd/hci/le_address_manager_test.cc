@@ -362,7 +362,7 @@ TEST_F(LeAddressManagerWithSingleClientTest, remove_device_from_connect_list) {
   clients[0].get()->WaitForResume();
 }
 
-TEST_F(LeAddressManagerWithSingleClientTest, clear_connect_list) {
+TEST_F(LeAddressManagerWithSingleClientTest, clear_filter_accept_list) {
   Address address;
   Address::FromString("01:02:03:04:05:06", address);
   test_hci_layer_->SetCommandFuture();
