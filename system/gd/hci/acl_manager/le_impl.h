@@ -578,7 +578,7 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
         address_with_type.ToFilterAcceptListAddressType(), address_with_type.GetAddress());
   }
 
-  void clear_connect_list() {
+  void clear_filter_accept_list() {
     connect_list.clear();
     register_with_address_manager();
     le_address_manager_->ClearFilterAcceptList();
