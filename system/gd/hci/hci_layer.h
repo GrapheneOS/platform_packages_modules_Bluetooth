@@ -17,7 +17,11 @@
 #pragma once
 
 #include <chrono>
+#include <list>
 #include <map>
+#include <memory>
+#include <string>
+#include <utility>
 
 #include "address.h"
 #include "class_of_device.h"
@@ -136,12 +140,12 @@ class HciLayer : public Module, public CommandInterface<CommandBuilder> {
 
     void EnqueueCommand(std::unique_ptr<T> command,
                         common::ContextualOnceCallback<void(CommandCompleteView)> on_complete) override {
-      hci_.EnqueueCommand(move(command), std::move(on_complete));
+      hci_.EnqueueCommand(std::move(command), std::move(on_complete));
     }
 
     void EnqueueCommand(std::unique_ptr<T> command,
                         common::ContextualOnceCallback<void(CommandStatusView)> on_status) override {
-      hci_.EnqueueCommand(move(command), std::move(on_status));
+      hci_.EnqueueCommand(std::move(command), std::move(on_status));
     }
     HciLayer& hci_;
   };
