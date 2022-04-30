@@ -24,18 +24,16 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyInt;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.nullable;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.eq;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothLeAudio;
 import android.bluetooth.BluetoothLeAudioCodecConfig;
 import android.bluetooth.BluetoothLeAudioCodecStatus;
+import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUuid;
 import android.bluetooth.IBluetoothLeAudioCallback;
@@ -44,7 +42,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
-import android.media.BluetoothProfileConnectionInfo;
 import android.os.ParcelUuid;
 
 import androidx.test.InstrumentationRegistry;
@@ -63,13 +60,11 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
 
-import java.util.Arrays;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -104,6 +99,9 @@ public class LeAudioServiceTest {
     @Mock private DatabaseManager mDatabaseManager;
     @Mock private LeAudioNativeInterface mNativeInterface;
     @Mock private AudioManager mAudioManager;
+    @Mock private LeAudioTmapGattServer mTmapGattServer;
+    @Spy private LeAudioObjectsFactory mObjectsFactory = LeAudioObjectsFactory.getInstance();
+
 
     @Rule public final ServiceTestRule mServiceRule = new ServiceTestRule();
 
@@ -135,7 +133,6 @@ public class LeAudioServiceTest {
                     add(LC3_48KHZ_16KHZ_CONFIG);
             }};
 
-
     private static final List<BluetoothLeAudioCodecConfig> INPUT_SELECTABLE_CONFIG =
             new ArrayList() {{
                     add(LC3_16KHZ_CONFIG);
@@ -149,11 +146,15 @@ public class LeAudioServiceTest {
     @Before
     public void setUp() throws Exception {
         mTargetContext = InstrumentationRegistry.getTargetContext();
-        Assume.assumeTrue("Ignore test when LeAudioService is not enabled",
-                LeAudioService.isEnabled());
 
         // Set up mocks and test assets
         MockitoAnnotations.initMocks(this);
+
+        // Use spied objects factory
+        doNothing().when(mTmapGattServer).start(anyInt());
+        doNothing().when(mTmapGattServer).stop();
+        LeAudioObjectsFactory.setInstanceForTesting(mObjectsFactory);
+        doReturn(mTmapGattServer).when(mObjectsFactory).getTmapGattServer(any());
 
         TestUtils.setAdapterService(mAdapterService);
         doReturn(MAX_LE_AUDIO_CONNECTIONS).when(mAdapterService).getMaxConnectedAudioDevices();
@@ -162,7 +163,9 @@ public class LeAudioServiceTest {
         doReturn(mDatabaseManager).when(mAdapterService).getDatabase();
         doReturn(true, false).when(mAdapterService).isStartedProfile(anyString());
 
-        mAdapter = BluetoothAdapter.getDefaultAdapter();
+        BluetoothManager manager = mTargetContext.getSystemService(BluetoothManager.class);
+        assertThat(manager).isNotNull();
+        mAdapter = manager.getAdapter();
         // Mock methods in AdapterService
         doAnswer(invocation -> mBondedDevices.toArray(new BluetoothDevice[]{})).when(
                 mAdapterService).getBondedDevices();
@@ -202,10 +205,6 @@ public class LeAudioServiceTest {
 
     @After
     public void tearDown() throws Exception {
-        if (!LeAudioService.isEnabled()) {
-            return;
-        }
-
         mBondedDevices.clear();
         mGroupIntentQueue.clear();
         stopService();

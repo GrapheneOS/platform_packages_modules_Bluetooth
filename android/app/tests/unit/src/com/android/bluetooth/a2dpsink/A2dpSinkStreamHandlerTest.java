@@ -62,8 +62,6 @@ public class A2dpSinkStreamHandlerTest {
     @Before
     public void setUp() {
         mTargetContext = InstrumentationRegistry.getTargetContext();
-        Assume.assumeTrue("Ignore test when A2dpSinkService is not enabled",
-                A2dpSinkService.isEnabled());
         MockitoAnnotations.initMocks(this);
         // Mock the looper
         if (Looper.myLooper() == null) {

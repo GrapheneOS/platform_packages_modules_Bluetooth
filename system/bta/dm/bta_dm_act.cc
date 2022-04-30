@@ -253,8 +253,6 @@ const tBTM_APPL_INFO bta_security = {
 #define MAX_DISC_RAW_DATA_BUF (4096)
 uint8_t g_disc_raw_data_buf[MAX_DISC_RAW_DATA_BUF];
 
-extern DEV_CLASS local_device_default_class;
-
 // Stores the local Input/Output Capabilities of the Bluetooth device.
 static uint8_t btm_local_io_caps;
 
@@ -359,7 +357,10 @@ void BTA_dm_on_hw_on() {
   memset(&bta_dm_conn_srvcs, 0, sizeof(bta_dm_conn_srvcs));
   memset(&bta_dm_di_cb, 0, sizeof(tBTA_DM_DI_CB));
 
-  memcpy(dev_class, p_bta_dm_cfg->dev_class, sizeof(dev_class));
+  btif_dm_get_local_class_of_device(dev_class);
+  LOG_INFO("%s: Read default class of device {0x%x, 0x%x, 0x%x}", __func__,
+      dev_class[0], dev_class[1], dev_class[2]);
+
   if (bluetooth::shim::is_gd_security_enabled()) {
     bluetooth::shim::BTM_SetDeviceClass(dev_class);
   } else {
@@ -3208,6 +3209,16 @@ void bta_dm_eir_update_uuid(uint16_t uuid16, bool adding) {
 }
 #endif
 
+static tBTA_DM_PEER_DEVICE* find_connected_device(
+    const RawAddress& bd_addr, UNUSED_ATTR tBT_TRANSPORT transport) {
+  for (uint8_t i = 0; i < bta_dm_cb.device_list.count; i++) {
+    if (bta_dm_cb.device_list.peer_device[i].peer_bdaddr == bd_addr &&
+        bta_dm_cb.device_list.peer_device[i].conn_state == BTA_DM_CONNECTED)
+      return &bta_dm_cb.device_list.peer_device[i];
+  }
+  return nullptr;
+}
+
 /*******************************************************************************
  *
  * Function         bta_dm_encrypt_cback
@@ -3263,29 +3274,35 @@ void bta_dm_encrypt_cback(const RawAddress* bd_addr, tBT_TRANSPORT transport,
 void bta_dm_set_encryption(const RawAddress& bd_addr, tBT_TRANSPORT transport,
                            tBTA_DM_ENCRYPT_CBACK* p_callback,
                            tBTM_BLE_SEC_ACT sec_act) {
-  uint8_t i;
-
-  APPL_TRACE_DEBUG("bta_dm_set_encryption");  // todo
-  if (!p_callback) {
-    APPL_TRACE_ERROR("bta_dm_set_encryption callback is not provided");
+  if (p_callback == nullptr) {
+    LOG_ERROR("bta_dm_set_encryption callback is not provided");
     return;
   }
-  for (i = 0; i < bta_dm_cb.device_list.count; i++) {
-    if (bta_dm_cb.device_list.peer_device[i].peer_bdaddr == bd_addr &&
-        bta_dm_cb.device_list.peer_device[i].conn_state == BTA_DM_CONNECTED)
-      break;
-  }
-  if (i < bta_dm_cb.device_list.count) {
-    if (bta_dm_cb.device_list.peer_device[i].p_encrypt_cback) {
-      APPL_TRACE_ERROR("earlier enc was not done for same device");
-      (*p_callback)(bd_addr, transport, BTA_BUSY);
-      return;
-    }
 
-    if (BTM_SetEncryption(bd_addr, transport, bta_dm_encrypt_cback, NULL,
-                          sec_act) == BTM_CMD_STARTED) {
-      bta_dm_cb.device_list.peer_device[i].p_encrypt_cback = p_callback;
-    }
+  tBTA_DM_PEER_DEVICE* device = find_connected_device(bd_addr, transport);
+  if (device == nullptr) {
+    LOG_ERROR("Unable to find active ACL connection device:%s transport:%s",
+              PRIVATE_ADDRESS(bd_addr), bt_transport_text(transport).c_str());
+    return;
+  }
+
+  if (device->p_encrypt_cback) {
+    LOG_ERROR(
+        "Unable to start encryption as already in progress peer:%s "
+        "transport:%s",
+        PRIVATE_ADDRESS(bd_addr), bt_transport_text(transport).c_str());
+    (*p_callback)(bd_addr, transport, BTA_BUSY);
+    return;
+  }
+
+  if (BTM_SetEncryption(bd_addr, transport, bta_dm_encrypt_cback, NULL,
+                        sec_act) == BTM_CMD_STARTED) {
+    device->p_encrypt_cback = p_callback;
+    LOG_DEBUG("Started encryption peer:%s transport:%s",
+              PRIVATE_ADDRESS(bd_addr), bt_transport_text(transport).c_str());
+  } else {
+    LOG_ERROR("Unable to start encryption process peer:%s transport:%s",
+              PRIVATE_ADDRESS(bd_addr), bt_transport_text(transport).c_str());
   }
 }
 
@@ -4078,3 +4095,14 @@ void bta_dm_process_delete_key_RC_to_unpair(const RawAddress& bd_addr)
     bta_dm_cb.p_sec_cback(BTA_DM_REPORT_BONDING_EVT, &param);
 }
 
+namespace bluetooth {
+namespace legacy {
+namespace testing {
+tBTA_DM_PEER_DEVICE* allocate_device_for(const RawAddress& bd_addr,
+                                         tBT_TRANSPORT transport) {
+  return ::allocate_device_for(bd_addr, transport);
+}
+
+}  // namespace testing
+}  // namespace legacy
+}  // namespace bluetooth
