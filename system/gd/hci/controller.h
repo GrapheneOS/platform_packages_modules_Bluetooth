@@ -16,9 +16,9 @@
 
 #pragma once
 
-#include "common/contextual_callback.h"
 #include "hci/address.h"
 #include "hci/hci_packets.h"
+#include "hci/le_rand_callback.h"
 #include "module.h"
 #include "os/handler.h"
 
@@ -126,6 +126,8 @@ class Controller : public Module {
   virtual void SetEventMask(uint64_t event_mask);
 
   virtual void Reset();
+
+  virtual void LeRand(LeRandCallback cb);
 
   virtual void SetEventFilterClearAll();
 

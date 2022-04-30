@@ -219,7 +219,7 @@ void AclManager::RemoveDeviceFromFilterAcceptList(AddressWithType address_with_t
 }
 
 void AclManager::ClearFilterAcceptList() {
-  CallOn(pimpl_->le_impl_, &le_impl::clear_connect_list);
+  CallOn(pimpl_->le_impl_, &le_impl::clear_filter_accept_list);
 }
 
 void AclManager::AddDeviceToResolvingList(

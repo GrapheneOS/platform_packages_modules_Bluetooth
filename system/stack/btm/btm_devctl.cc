@@ -667,7 +667,7 @@ tBTM_STATUS BTM_EnableTestMode(void) {
   }
 
   /* mask off all of event from controller */
-  bluetooth::shim::controller_clear_event_mask();
+  bluetooth::shim::BTM_ClearEventMask();
 
   /* Send the HCI command */
   btsnd_hcic_enable_test_mode();

@@ -151,6 +151,20 @@ static bool allow_low_latency_audio(bool allowed, const RawAddress& address) {
 
 static int clear_event_filter(void) { return 0; }
 
+static int clear_event_mask() { return 0; }
+
+static int clear_filter_accept_list() { return 0; }
+
+static int disconnect_all_acls() { return 0; }
+
+static int le_rand() { return 0; }
+
+static int set_event_filter_inquiry_result_all_devices() { return 0; }
+
+static int set_default_event_mask() { return 0; }
+
+static int restore_filter_accept_list() { return 0; }
+
 EXPORT_SYMBOL bt_interface_t bluetoothInterface = {
     sizeof(bluetoothInterface),
     init,
@@ -191,7 +205,14 @@ EXPORT_SYMBOL bt_interface_t bluetoothInterface = {
     set_dynamic_audio_buffer_size,
     generate_local_oob_data,
     allow_low_latency_audio,
-    clear_event_filter};
+    clear_event_filter,
+    clear_event_mask,
+    clear_filter_accept_list,
+    disconnect_all_acls,
+    le_rand,
+    restore_filter_accept_list,
+    set_default_event_mask,
+    set_event_filter_inquiry_result_all_devices};
 
 // callback reporting helpers
 

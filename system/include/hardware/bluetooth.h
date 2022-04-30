@@ -23,6 +23,7 @@
 #include <sys/types.h>
 
 #include "avrcp/avrcp.h"
+#include "base/callback.h"
 #include "bluetooth/uuid.h"
 #include "bt_transport.h"
 #include "raw_address.h"
@@ -477,6 +478,8 @@ typedef void (*switch_buffer_size_callback)(bool is_low_latency_buffer_size);
 /** Switch the codec callback */
 typedef void (*switch_codec_callback)(bool is_low_latency_buffer_size);
 
+typedef void (*le_rand_callback)(uint64_t random);
+
 typedef enum { ASSOCIATE_JVM, DISASSOCIATE_JVM } bt_cb_thread_evt;
 
 /** Thread Associate/Disassociate JVM Callback */
@@ -536,6 +539,7 @@ typedef struct {
   generate_local_oob_data_callback generate_local_oob_data_cb;
   switch_buffer_size_callback switch_buffer_size_cb;
   switch_codec_callback switch_codec_cb;
+  le_rand_callback le_rand_cb;
 } bt_callbacks_t;
 
 typedef void (*alarm_cb)(void* data);
@@ -780,6 +784,47 @@ typedef struct {
    * Set the event filter for the controller
    */
   int (*clear_event_filter)();
+
+  /**
+   * Call to clear event mask
+   */
+  int (*clear_event_mask)();
+
+  /**
+   * Call to clear out the filter accept list
+   */
+  int (*clear_filter_accept_list)();
+
+  /**
+   * Call to disconnect all ACL connections
+   */
+  int (*disconnect_all_acls)();
+
+  /**
+   * Call to retrieve a generated random
+   */
+  int (*le_rand)();
+
+  /**
+   *
+   * Floss: Set the event filter to inquiry result device all
+   *
+   */
+  int (*set_event_filter_inquiry_result_all_devices)();
+
+  /**
+   *
+   * Floss: Set the default event mask for Classic and LE
+   *
+   */
+  int (*set_default_event_mask)();
+
+  /**
+   *
+   * Floss: Restore the state of the for the filter accept list
+   *
+   */
+  int (*restore_filter_accept_list)();
 } bt_interface_t;
 
 #define BLUETOOTH_INTERFACE_STRING "bluetoothInterface"
