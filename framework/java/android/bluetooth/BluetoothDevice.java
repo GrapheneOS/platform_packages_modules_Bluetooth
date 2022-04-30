@@ -45,6 +45,7 @@ import android.os.Parcelable;
 import android.os.Process;
 import android.os.RemoteException;
 import android.util.Log;
+import android.util.Pair;
 
 import com.android.modules.utils.SynchronousResultReceiver;
 
@@ -1903,43 +1904,32 @@ public final class BluetoothDevice implements Parcelable, Attributable {
         IpcDataCache.invalidateCache(IpcDataCache.MODULE_BLUETOOTH, api);
     }
 
-    private final
-            IpcDataCache.QueryHandler<BluetoothDevice, Integer> mBluetoothBondQuery =
-            new IpcDataCache.QueryHandler<>() {
+    private final IpcDataCache.QueryHandler<Pair<IBluetooth, BluetoothDevice>, Integer>
+            mBluetoothBondQuery = new IpcDataCache.QueryHandler<>() {
                 @RequiresLegacyBluetoothPermission
                 @RequiresBluetoothConnectPermission
                 @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
                 @Override
-                public Integer apply(BluetoothDevice query) {
-                    if (DBG) log("getBondState() uncached");
-                    final IBluetooth service = sService;
-                    final int defaultValue = BOND_NONE;
-                    if (service == null) {
-                        Log.e(TAG, "BT not enabled. Cannot get bond state");
-                        if (DBG) log(Log.getStackTraceString(new Throwable()));
-                    } else {
-                        try {
-                            final SynchronousResultReceiver<Integer> recv =
-                                    new SynchronousResultReceiver();
-                            service.getBondState(BluetoothDevice.this, mAttributionSource, recv);
-                            return recv.awaitResultNoInterrupt(getSyncTimeout())
-                                            .getValue(defaultValue);
-                        } catch (TimeoutException e) {
-                            Log.e(TAG, e.toString() + "\n"
-                                    + Log.getStackTraceString(new Throwable()));
-                        } catch (RemoteException e) {
-                            Log.e(TAG, "failed to ", e);
-                            e.rethrowFromSystemServer();
-                        }
+                public Integer apply(Pair<IBluetooth, BluetoothDevice> pairQuery) {
+                    if (DBG) {
+                        log("getConnectionState(" + pairQuery.second.getAnonymizedAddress()
+                                + ") uncached");
                     }
-                    return defaultValue;
+                    try {
+                        final SynchronousResultReceiver<Integer> recv =
+                                new SynchronousResultReceiver();
+                        pairQuery.first.getBondState(pairQuery.second, mAttributionSource, recv);
+                        return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(BOND_NONE);
+                    } catch (RemoteException | TimeoutException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
             };
 
-    private static final String GET_BOND_STATE_API = "getBondState";
+    private static final String GET_BOND_STATE_API = "BluetoothDevice_getBondState";
 
-    private final BluetoothCache<BluetoothDevice, Integer> mBluetoothBondCache =
-            new BluetoothCache<BluetoothDevice, Integer>(GET_BOND_STATE_API, mBluetoothBondQuery);
+    private final BluetoothCache<Pair<IBluetooth, BluetoothDevice>, Integer> mBluetoothBondCache =
+            new BluetoothCache<>(GET_BOND_STATE_API, mBluetoothBondQuery);
 
     /** @hide */
     public void disableBluetoothGetBondStateCache() {
@@ -1965,8 +1955,23 @@ public final class BluetoothDevice implements Parcelable, Attributable {
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     @SuppressLint("AndroidFrameworkRequiresPermission")
     public int getBondState() {
-        if (DBG) log("getBondState()");
-        return mBluetoothBondCache.query(null);
+        if (DBG) log("getBondState(" + getAnonymizedAddress() + ")");
+        final IBluetooth service = sService;
+        if (service == null) {
+            Log.e(TAG, "BT not enabled. Cannot get bond state");
+            if (DBG) log(Log.getStackTraceString(new Throwable()));
+        } else {
+            try {
+                return mBluetoothBondCache.query(new Pair<>(service, BluetoothDevice.this));
+            } catch (RuntimeException e) {
+                if (!(e.getCause() instanceof TimeoutException)
+                        && !(e.getCause() instanceof RemoteException)) {
+                    throw e;
+                }
+                Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
+            }
+        }
+        return BOND_NONE;
     }
 
     /**
