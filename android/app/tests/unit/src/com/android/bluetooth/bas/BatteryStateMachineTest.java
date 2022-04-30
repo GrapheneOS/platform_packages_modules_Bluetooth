@@ -77,10 +77,6 @@ public class BatteryStateMachineTest {
     @Before
     public void setUp() throws Exception {
         mTargetContext = InstrumentationRegistry.getTargetContext();
-        //TODO: check flag or override it
-        Assume.assumeTrue("Ignore test when BatteryService is not enabled",
-                BatteryService.isEnabled());
-
         TestUtils.setAdapterService(mAdapterService);
 
         mAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -100,9 +96,6 @@ public class BatteryStateMachineTest {
 
     @After
     public void tearDown() throws Exception {
-        if (!BatteryService.isEnabled()) {
-            return;
-        }
         mBatteryStateMachine.doQuit();
         mHandlerThread.quit();
         TestUtils.clearAdapterService(mAdapterService);
