@@ -82,6 +82,13 @@ bt_interface_t fake_bt_iface = {
     nullptr, /* generate_local_oob_data */
     nullptr, /* allow_low_latency_audio */
     nullptr, /* clear_event_filter */
+    nullptr, /* clear_event_mask */
+    nullptr, /* clear_filter_accept_list */
+    nullptr, /* disconnect_all_acls */
+    nullptr, /* le_rand */
+    nullptr, /* restore_filter_accept_list */
+    nullptr, /* set_default_event_mask */
+    nullptr, /* set_event_filter_inquiry_result_all_devices */
 };
 
 }  // namespace

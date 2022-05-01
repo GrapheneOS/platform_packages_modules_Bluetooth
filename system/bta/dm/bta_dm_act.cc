@@ -3230,41 +3230,50 @@ static tBTA_DM_PEER_DEVICE* find_connected_device(
  ******************************************************************************/
 void bta_dm_encrypt_cback(const RawAddress* bd_addr, tBT_TRANSPORT transport,
                           UNUSED_ATTR void* p_ref_data, tBTM_STATUS result) {
+  tBTA_DM_ENCRYPT_CBACK* p_callback = nullptr;
+  tBTA_DM_PEER_DEVICE* device = find_connected_device(*bd_addr, transport);
+  if (device != nullptr) {
+    p_callback = device->p_encrypt_cback;
+    device->p_encrypt_cback = nullptr;
+  }
+
   tBTA_STATUS bta_status = BTA_SUCCESS;
-  tBTA_DM_ENCRYPT_CBACK* p_callback = NULL;
-  uint8_t i;
-
-  for (i = 0; i < bta_dm_cb.device_list.count; i++) {
-    if (bta_dm_cb.device_list.peer_device[i].peer_bdaddr == *bd_addr &&
-        bta_dm_cb.device_list.peer_device[i].conn_state == BTA_DM_CONNECTED)
-      break;
-  }
-
-  if (i < bta_dm_cb.device_list.count) {
-    p_callback = bta_dm_cb.device_list.peer_device[i].p_encrypt_cback;
-    bta_dm_cb.device_list.peer_device[i].p_encrypt_cback = NULL;
-  }
-
   switch (result) {
     case BTM_SUCCESS:
+      LOG_WARN("Encrypted link peer:%s transport:%s status:%s callback:%c",
+               PRIVATE_ADDRESS((*bd_addr)),
+               bt_transport_text(transport).c_str(),
+               btm_status_text(result).c_str(), (p_callback) ? 'T' : 'F');
       break;
     case BTM_WRONG_MODE:
+      LOG_WARN(
+          "Unable to encrypt link peer:%s transport:%s status:%s callback:%c",
+          PRIVATE_ADDRESS((*bd_addr)), bt_transport_text(transport).c_str(),
+          btm_status_text(result).c_str(), (p_callback) ? 'T' : 'F');
       bta_status = BTA_WRONG_MODE;
       break;
     case BTM_NO_RESOURCES:
+      LOG_WARN(
+          "Unable to encrypt link peer:%s transport:%s status:%s callback:%c",
+          PRIVATE_ADDRESS((*bd_addr)), bt_transport_text(transport).c_str(),
+          btm_status_text(result).c_str(), (p_callback) ? 'T' : 'F');
       bta_status = BTA_NO_RESOURCES;
       break;
     case BTM_BUSY:
+      LOG_WARN(
+          "Unable to encrypt link peer:%s transport:%s status:%s callback:%c",
+          PRIVATE_ADDRESS((*bd_addr)), bt_transport_text(transport).c_str(),
+          btm_status_text(result).c_str(), (p_callback) ? 'T' : 'F');
       bta_status = BTA_BUSY;
       break;
     default:
+      LOG_ERROR(
+          "Failed to encrypt link peer:%s transport:%s status:%s callback:%c",
+          PRIVATE_ADDRESS((*bd_addr)), bt_transport_text(transport).c_str(),
+          btm_status_text(result).c_str(), (p_callback) ? 'T' : 'F');
       bta_status = BTA_FAILURE;
       break;
   }
-
-  APPL_TRACE_DEBUG("bta_dm_encrypt_cback status =%d p_callback=0x%x",
-                   bta_status, p_callback);
-
   if (p_callback) {
     (*p_callback)(*bd_addr, transport, bta_status);
   }
@@ -4008,9 +4017,9 @@ void bta_dm_proc_open_evt(tBTA_GATTC_OPEN* p_data) {
 
 /*******************************************************************************
  *
- * Function         bta_dm_proc_open_evt
+ * Function         bta_dm_clear_event_filter
  *
- * Description      process BTA_GATTC_OPEN_EVT in DM.
+ * Description      clears out the event filter.
  *
  * Parameters:
  *
@@ -4018,6 +4027,98 @@ void bta_dm_proc_open_evt(tBTA_GATTC_OPEN* p_data) {
 void bta_dm_clear_event_filter(void) {
   VLOG(1) << "bta_dm_clear_event_filter in bta_dm_act";
   bluetooth::shim::BTM_ClearEventFilter();
+}
+
+/*******************************************************************************
+ *
+ * Function         bta_dm_clear_event_mask
+ *
+ * Description      Clears out the event mask in the controller.
+ *
+ ******************************************************************************/
+void bta_dm_clear_event_mask(void) {
+  VLOG(1) << "bta_dm_clear_event_mask in bta_dm_act";
+  bluetooth::shim::BTM_ClearEventMask();
+}
+
+/*******************************************************************************
+ *
+ * Function         bta_dm_clear_filter_accept_list
+ *
+ * Description      Clears out the connect list in the controller.
+ *
+ ******************************************************************************/
+void bta_dm_clear_filter_accept_list(void) {
+  VLOG(1) << "bta_dm_clear_filter_accept_list in bta_dm_act";
+  bluetooth::shim::BTM_ClearFilterAcceptList();
+}
+
+/*******************************************************************************
+ *
+ * Function         bta_dm_disconnect_all_acls
+ *
+ * Description      Disconnects all ACL connections.
+ *
+ ******************************************************************************/
+void bta_dm_disconnect_all_acls(void) {
+  VLOG(1) << "bta_dm_disconnect_all_acls in bta_dm_act";
+  bluetooth::shim::BTM_DisconnectAllAcls();
+}
+
+/*******************************************************************************
+ *
+ * Function         bta_dm_le_rand
+ *
+ * Description      Generates a random number from the controller.
+ *
+ * Parameters:      |cb| Callback to receive the random number.
+ *
+ ******************************************************************************/
+void bta_dm_le_rand(LeRandCallback cb) {
+  VLOG(1) << "bta_dm_le_rand in bta_dm_act";
+  bluetooth::shim::BTM_LeRand(cb);
+}
+
+/*******************************************************************************
+ *
+ * Function        BTA_DmRestoreFilterAcceptList
+ *
+ * Description    Floss: Restore the state of the for the filter accept list
+ *
+ * Parameters
+ *
+ *******************************************************************************/
+void bta_dm_restore_filter_accept_list() {
+  // Autoplumbed
+  bluetooth::shim::BTM_RestoreFilterAcceptList();
+}
+
+/*******************************************************************************
+ *
+ * Function        BTA_DmSetDefaultEventMask
+ *
+ * Description    Floss: Set the default event mask for Classic and LE
+ *
+ * Parameters
+ *
+ *******************************************************************************/
+void bta_dm_set_default_event_mask() {
+  // Autoplumbed
+  bluetooth::shim::BTM_SetDefaultEventMask();
+}
+
+/*******************************************************************************
+ *
+ * Function        BTA_DmSetEventFilterInquiryResultAllDevices
+ *
+ * Description    Floss: Set the event filter to inquiry result device all
+ *
+ * Parameters
+ *
+ *******************************************************************************/
+void bta_dm_set_event_filter_inquiry_result_all_devices() {
+  // Autoplumbed
+  bluetooth::shim::BTM_SetEventFilterInquiryResultAllDevices();
 }
 
 /*******************************************************************************

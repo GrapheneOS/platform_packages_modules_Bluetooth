@@ -3410,3 +3410,38 @@ void btif_dm_clear_event_filter() {
   LOG_VERBOSE("%s: called", __func__);
   bta_dm_clear_event_filter();
 }
+
+void btif_dm_clear_event_mask() {
+  LOG_VERBOSE("%s: called", __func__);
+  bta_dm_clear_event_mask();
+}
+
+void btif_dm_clear_filter_accept_list() {
+  LOG_VERBOSE("%s: called", __func__);
+  bta_dm_clear_filter_accept_list();
+}
+
+void btif_dm_disconnect_all_acls() {
+  LOG_VERBOSE("%s: called", __func__);
+  bta_dm_disconnect_all_acls();
+}
+
+void btif_dm_le_rand(LeRandCallback callback) {
+  LOG_VERBOSE("%s: called", __func__);
+  bta_dm_le_rand(callback);
+}
+
+void btif_dm_restore_filter_accept_list() {
+  // Autoplumbed
+  BTA_DmRestoreFilterAcceptList();
+}
+
+void btif_dm_set_default_event_mask() {
+  // Autoplumbed
+  BTA_DmSetDefaultEventMask();
+}
+
+void btif_dm_set_event_filter_inquiry_result_all_devices() {
+  // Autoplumbed
+  BTA_DmSetEventFilterInquiryResultAllDevices();
+}

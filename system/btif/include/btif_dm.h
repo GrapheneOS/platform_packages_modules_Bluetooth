@@ -74,6 +74,17 @@ void btif_dm_generate_local_oob_data(tBT_TRANSPORT transport);
 
 void btif_dm_clear_event_filter();
 
+void btif_dm_clear_event_mask();
+
+void btif_dm_clear_filter_accept_list();
+
+void btif_dm_disconnect_all_acls();
+
+void btif_dm_le_rand(LeRandCallback callback);
+void btif_dm_restore_filter_accept_list();
+void btif_dm_set_default_event_mask();
+void btif_dm_set_event_filter_inquiry_result_all_devices();
+
 /*callout for reading SMP properties from Text file*/
 bool btif_dm_get_smp_config(tBTE_APPL_CFG* p_cfg);
 

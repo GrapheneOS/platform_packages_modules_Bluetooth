@@ -259,6 +259,7 @@ bt_callbacks_t bt_callbacks = {
     nullptr /* generate_local_oob_data_cb */,
     SwitchBufferSizeCallback,
     SwitchCodecCallback,
+    nullptr /* le_rand_cb */,
 };
 
 bt_os_callouts_t bt_os_callouts = {sizeof(bt_os_callouts_t),

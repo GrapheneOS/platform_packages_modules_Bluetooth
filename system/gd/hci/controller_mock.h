@@ -126,6 +126,7 @@ class MockController : public Controller {
   MOCK_METHOD(uint8_t, GetLePeriodicAdvertiserListSize, (), (const));
   MOCK_METHOD(VendorCapabilities, GetVendorCapabilities, (), (const));
   MOCK_METHOD(bool, IsSupported, (OpCode op_code), (const));
+  MOCK_METHOD(void, LeRand, (LeRandCallback cb));
 };
 
 }  // namespace testing

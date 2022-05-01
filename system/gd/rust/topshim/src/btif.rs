@@ -712,6 +712,7 @@ pub enum BaseCallbacks {
     // generate_local_oob_data_cb
     // switch_buffer_size_cb
     // switch_codec_cb
+    LeRandCallback(u64),
 }
 
 pub struct BaseCallbacksDispatcher {
@@ -761,6 +762,8 @@ cb_variant!(BaseCb, acl_state_cb -> BaseCallbacks::AclState,
 u32 -> BtStatus, *mut FfiAddress, bindings::bt_acl_state_t -> BtAclState, i32 -> BtTransport, bindings::bt_hci_error_code_t -> BtHciErrorCode, {
     let _1 = unsafe { *(_1 as *const RawAddress) };
 });
+
+cb_variant!(BaseCb, le_rand_cb -> BaseCallbacks::LeRandCallback, u64);
 
 struct RawInterfaceWrapper {
     pub raw: *const bindings::bt_interface_t,
@@ -880,6 +883,7 @@ impl BluetoothInterface {
             generate_local_oob_data_cb: None,
             switch_buffer_size_cb: None,
             switch_codec_cb: None,
+            le_rand_cb: Some(le_rand_cb),
         });
 
         let rawcb: *mut bindings::bt_callbacks_t = &mut *callbacks;
@@ -1014,6 +1018,34 @@ impl BluetoothInterface {
 
     pub fn clear_event_filter(&self) -> i32 {
         ccall!(self, clear_event_filter)
+    }
+
+    pub fn clear_event_mask(&self) -> i32 {
+        ccall!(self, clear_event_mask)
+    }
+
+    pub fn clear_filter_accept_list(&self) -> i32 {
+        ccall!(self, clear_filter_accept_list)
+    }
+
+    pub fn disconnect_all_acls(&self) -> i32 {
+        ccall!(self, disconnect_all_acls)
+    }
+
+    pub fn le_rand(&self) -> i32 {
+        ccall!(self, le_rand)
+    }
+
+    pub fn restore_filter_accept_list(&self) -> i32 {
+        ccall!(self, restore_filter_accept_list)
+    }
+
+    pub fn set_default_event_mask(&self) -> i32 {
+        ccall!(self, set_default_event_mask)
+    }
+
+    pub fn set_event_filter_inquiry_result_all_devices(&self) -> i32 {
+        ccall!(self, set_event_filter_inquiry_result_all_devices)
     }
 
     pub(crate) fn get_profile_interface(
