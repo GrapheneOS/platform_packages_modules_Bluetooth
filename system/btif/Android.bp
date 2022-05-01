@@ -246,7 +246,7 @@ cc_test {
         android: {
             shared_libs: [
                 "libbinder_ndk",
-                "android.hardware.bluetooth.audio-V1-ndk",
+                "android.hardware.bluetooth.audio-V2-ndk",
             ],
         },
     },
@@ -480,7 +480,7 @@ cc_test {
           android: {
               shared_libs: [
                   "libbinder_ndk",
-                  "android.hardware.bluetooth.audio-V1-ndk",
+                  "android.hardware.bluetooth.audio-V2-ndk",
               ],
           },
       },
