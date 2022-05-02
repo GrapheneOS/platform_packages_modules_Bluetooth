@@ -1406,8 +1406,8 @@ void PacketDef::GenRustBuilderTest(std::ostream& s) const {
     }
     for (size_t i = 1; i < lineage.size(); i++) {
       s << "_ => {";
-      s << "println!(\"Couldn't parse " << util::CamelCaseToUnderScore(lineage[lineage.size() - i]->name_);
-      s << "{:02x?}\", " << util::CamelCaseToUnderScore(lineage[lineage.size() - i - 1]->name_) << "_packet); ";
+      s << "panic!(\"Couldn't parse " << util::CamelCaseToUnderScore(lineage[lineage.size() - i]->name_);
+      s << "\n {:#02x?}\", " << util::CamelCaseToUnderScore(lineage[lineage.size() - i - 1]->name_) << "_packet); ";
       s << "}}}";
     }
 

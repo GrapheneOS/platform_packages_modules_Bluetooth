@@ -3832,6 +3832,10 @@ packet LeSetExtendedAdvertisingEnable : LeAdvertisingCommand (op_code = LE_SET_E
 }
 
 test LeSetExtendedAdvertisingEnable {
+  "\x39\x20\x06\x01\x01\x01\x00\x00\x00",
+}
+
+test LeSetExtendedAdvertisingDisable {
   "\x39\x20\x06\x00\x01\x01\x00\x00\x00",
 }
 
