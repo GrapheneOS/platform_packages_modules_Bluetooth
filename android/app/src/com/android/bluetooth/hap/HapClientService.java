@@ -621,22 +621,21 @@ public class HapClientService extends ProfileService {
      * @param presetIndex is an index of one of the available presets
      */
     public void selectPresetForGroup(int groupId, int presetIndex) {
-        int status = BluetoothStatusCodes.ERROR_UNKNOWN;
+        int status = BluetoothStatusCodes.SUCCESS;
 
-        if ((presetIndex == BluetoothHapClient.PRESET_INDEX_UNAVAILABLE)
-                || (groupId == BluetoothCsipSetCoordinator.GROUP_ID_INVALID)) {
-            if (presetIndex == BluetoothHapClient.PRESET_INDEX_UNAVAILABLE) {
-                status = BluetoothStatusCodes.ERROR_HAP_INVALID_PRESET_INDEX;
-            } else {
-                status = BluetoothStatusCodes.ERROR_CSIP_INVALID_GROUP_ID;
-            }
+        if (!isGroupIdValid(groupId)) {
+            status = BluetoothStatusCodes.ERROR_CSIP_INVALID_GROUP_ID;
+        } else if (!isPresetIndexValid(groupId, presetIndex)) {
+            status = BluetoothStatusCodes.ERROR_HAP_INVALID_PRESET_INDEX;
+        }
 
+        if (status != BluetoothStatusCodes.SUCCESS) {
             if (mCallbacks != null) {
                 int n = mCallbacks.beginBroadcast();
                 for (int i = 0; i < n; i++) {
                     try {
-                        mCallbacks.getBroadcastItem(i).onPresetSelectionForGroupFailed(groupId,
-                                BluetoothStatusCodes.ERROR_HAP_INVALID_PRESET_INDEX);
+                        mCallbacks.getBroadcastItem(i)
+                                .onPresetSelectionForGroupFailed(groupId, status);
                     } catch (RemoteException e) {
                         continue;
                     }
@@ -900,6 +899,8 @@ public class HapClientService extends ProfileService {
 
     private boolean isPresetIndexValid(int groupId, int presetIndex) {
         List<BluetoothDevice> all_group_devices = getGroupDevices(groupId);
+        if (all_group_devices.isEmpty()) return false;
+
         for (BluetoothDevice device : all_group_devices) {
             if (!isPresetIndexValid(device, presetIndex)) return false;
         }
@@ -915,7 +916,7 @@ public class HapClientService extends ProfileService {
             List<Integer> groups = csipClient.getAllGroupIds(BluetoothUuid.CAP);
             return groups.contains(groupId);
         }
-        return true;
+        return false;
     }
 
     /**
@@ -959,8 +960,7 @@ public class HapClientService extends ProfileService {
 
         if (!isGroupIdValid(groupId)) {
             status = BluetoothStatusCodes.ERROR_CSIP_INVALID_GROUP_ID;
-        }
-        if (!isPresetIndexValid(groupId, presetIndex)) {
+        } else if (!isPresetIndexValid(groupId, presetIndex)) {
             status = BluetoothStatusCodes.ERROR_HAP_INVALID_PRESET_INDEX;
         }
         if (status != BluetoothStatusCodes.SUCCESS) {
