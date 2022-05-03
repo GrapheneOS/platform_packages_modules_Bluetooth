@@ -1100,12 +1100,10 @@ static void l2c_link_send_to_lower_br_edr(tL2C_LCB* p_lcb, BT_HDR* p_buf) {
 }
 
 static void l2c_link_send_to_lower_ble(tL2C_LCB* p_lcb, BT_HDR* p_buf) {
-  const uint16_t acl_packet_size_ble =
-      controller_get_interface()->get_acl_packet_size_ble();
   const uint16_t acl_data_size_ble =
       controller_get_interface()->get_acl_data_size_ble();
   const uint16_t link_xmit_quota = p_lcb->link_xmit_quota;
-  const bool is_ble_and_fits_in_buffer = (p_buf->len <= acl_packet_size_ble);
+  const bool is_ble_and_fits_in_buffer = true;
 
   if (is_ble_and_fits_in_buffer) {
     if (link_xmit_quota == 0) {
