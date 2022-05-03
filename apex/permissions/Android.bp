@@ -6,4 +6,5 @@ prebuilt_etc {
     name: "privapp_allowlist_com.android.bluetooth.services.xml",
     src: "com.android.bluetooth.services.xml",
     sub_dir: "permissions",
+    installable: false,
 }
