@@ -227,6 +227,8 @@ class HostBuild():
             '{}/out/Default'.format(self.output_dir),
             '-C',
             'link-arg=-Wl,--allow-multiple-definition',
+            # exclude uninteresting warnings
+            '-A improper_ctypes_definitions -A improper_ctypes -A unknown_lints',
         ]
 
         return ' '.join(rust_flags)
