@@ -147,55 +147,55 @@ class HciMatchers(object):
 
     @staticmethod
     def LinkKeyRequest():
-        return lambda event: HciMatchers.EventWithCode(EventCode.LINK_KEY_REQUEST)
+        return HciMatchers.EventWithCode(EventCode.LINK_KEY_REQUEST)
 
     @staticmethod
     def IoCapabilityRequest():
-        return lambda event: HciMatchers.EventWithCode(EventCode.IO_CAPABILITY_REQUEST)
+        return HciMatchers.EventWithCode(EventCode.IO_CAPABILITY_REQUEST)
 
     @staticmethod
     def IoCapabilityResponse():
-        return lambda event: HciMatchers.EventWithCode(EventCode.IO_CAPABILITY_RESPONSE)
+        return HciMatchers.EventWithCode(EventCode.IO_CAPABILITY_RESPONSE)
 
     @staticmethod
     def UserPasskeyNotification():
-        return lambda event: HciMatchers.EventWithCode(EventCode.USER_PASSKEY_NOTIFICATION)
+        return HciMatchers.EventWithCode(EventCode.USER_PASSKEY_NOTIFICATION)
 
     @staticmethod
     def UserPasskeyRequest():
-        return lambda event: HciMatchers.EventWithCode(EventCode.USER_PASSKEY_REQUEST)
+        return HciMatchers.EventWithCode(EventCode.USER_PASSKEY_REQUEST)
 
     @staticmethod
     def UserConfirmationRequest():
-        return lambda event: HciMatchers.EventWithCode(EventCode.USER_CONFIRMATION_REQUEST)
+        return HciMatchers.EventWithCode(EventCode.USER_CONFIRMATION_REQUEST)
 
     @staticmethod
     def RemoteHostSupportedFeaturesNotification():
-        return lambda event: HciMatchers.EventWithCode(EventCode.REMOTE_HOST_SUPPORTED_FEATURES_NOTIFICATION)
+        return HciMatchers.EventWithCode(EventCode.REMOTE_HOST_SUPPORTED_FEATURES_NOTIFICATION)
 
     @staticmethod
     def LinkKeyNotification():
-        return lambda event: HciMatchers.EventWithCode(EventCode.LINK_KEY_NOTIFICATION)
+        return HciMatchers.EventWithCode(EventCode.LINK_KEY_NOTIFICATION)
 
     @staticmethod
     def SimplePairingComplete():
-        return lambda event: HciMatchers.EventWithCode(EventCode.SIMPLE_PAIRING_COMPLETE)
+        return HciMatchers.EventWithCode(EventCode.SIMPLE_PAIRING_COMPLETE)
 
     @staticmethod
     def Disconnect():
-        return lambda event: HciMatchers.EventWithCode(EventCode.DISCONNECT)
+        return HciMatchers.EventWithCode(EventCode.DISCONNECT)
 
     @staticmethod
     def DisconnectionComplete():
-        return lambda event: HciMatchers.EventWithCode(EventCode.DISCONNECTION_COMPLETE)
+        return HciMatchers.EventWithCode(EventCode.DISCONNECTION_COMPLETE)
 
     @staticmethod
     def RemoteOobDataRequest():
-        return lambda event: HciMatchers.EventWithCode(EventCode.REMOTE_OOB_DATA_REQUEST)
+        return HciMatchers.EventWithCode(EventCode.REMOTE_OOB_DATA_REQUEST)
 
     @staticmethod
     def PinCodeRequest():
-        return lambda event: HciMatchers.EventWithCode(EventCode.PIN_CODE_REQUEST)
+        return HciMatchers.EventWithCode(EventCode.PIN_CODE_REQUEST)
 
     @staticmethod
     def LoopbackOf(packet):
