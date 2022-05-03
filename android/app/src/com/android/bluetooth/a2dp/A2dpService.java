@@ -413,9 +413,10 @@ public class A2dpService extends ProfileService {
             if (!isOutgoingRequest) {
                 HeadsetService headsetService = HeadsetService.getHeadsetService();
                 if (headsetService != null && headsetService.okToAcceptConnection(device, true)) {
-                    Log.d(TAG, "okToConnect: Fallback connection to allowed HFP profile");
+                    Log.d(TAG, "okToConnect: return false,"
+                            + " Fallback connection to allowed HFP profile");
                     headsetService.connect(device);
-                    return true;
+                    return false;
                 }
             }
             // Otherwise, reject the connection if connectionPolicy is not valid.
