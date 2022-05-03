@@ -91,6 +91,11 @@ class LeAclConnection : public AclConnection {
   // Called once before passing the connection to the client
   virtual LeConnectionManagementCallbacks* GetEventCallbacks(std::function<void(uint16_t)> invalidate_callbacks);
 
+ protected:
+  AddressWithType local_address_;
+  AddressWithType remote_address_;
+  Role role_;
+
  private:
   virtual bool check_connection_parameters(
       uint16_t conn_interval_min,
@@ -99,9 +104,6 @@ class LeAclConnection : public AclConnection {
       uint16_t expected_supervision_timeout);
   struct impl;
   struct impl* pimpl_ = nullptr;
-  AddressWithType local_address_;
-  AddressWithType remote_address_;
-  Role role_;
 };
 
 }  // namespace acl_manager
