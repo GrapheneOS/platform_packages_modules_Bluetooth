@@ -334,3 +334,25 @@ TEST_F(StackBtmWithInitFreeTest, btm_sec_encrypt_change) {
 
   wipe_secrets_and_remove(device_record);
 }
+
+TEST_F(StackBtmWithInitFreeTest, BTM_SetEncryption) {
+  const RawAddress bd_addr = RawAddress({0x11, 0x22, 0x33, 0x44, 0x55, 0x66});
+  const tBT_TRANSPORT transport{BT_TRANSPORT_LE};
+  tBTM_SEC_CALLBACK* p_callback{nullptr};
+  tBTM_BLE_SEC_ACT sec_act{BTM_BLE_SEC_ENCRYPT};
+
+  // No device
+  ASSERT_EQ(BTM_WRONG_MODE, BTM_SetEncryption(bd_addr, transport, p_callback,
+                                              nullptr, sec_act));
+
+  // With device
+  tBTM_SEC_DEV_REC* device_record = btm_sec_allocate_dev_rec();
+  ASSERT_NE(nullptr, device_record);
+  device_record->bd_addr = bd_addr;
+  device_record->hci_handle = 0x1234;
+
+  ASSERT_EQ(BTM_WRONG_MODE, BTM_SetEncryption(bd_addr, transport, p_callback,
+                                              nullptr, sec_act));
+
+  wipe_secrets_and_remove(device_record);
+}
