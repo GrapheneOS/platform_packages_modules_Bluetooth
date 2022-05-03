@@ -27,6 +27,7 @@
 
 #include "bt_target.h"
 #include "main/shim/dumpsys.h"
+#include "osi/include/log.h"
 #include "stack/btm/btm_int_types.h"
 #include "stack/include/btm_client_interface.h"
 #include "stack_config.h"
@@ -64,6 +65,11 @@ constexpr size_t kMaxLogHistoryMsgLength = 25;
 
 static void btm_log_history(const std::string& tag, const char* addr,
                             const std::string& msg, const std::string& extra) {
+  if (btm_cb.history_ == nullptr) {
+    LOG_ERROR("BTM_LogHistory has not been constructed or already destroyed !");
+    return;
+  }
+
   btm_cb.history_->Push(
       "%-6s %-25s: %s %s", tag.substr(0, kMaxLogHistoryTagLength).c_str(),
       msg.substr(0, kMaxLogHistoryMsgLength).c_str(), addr, extra.c_str());
