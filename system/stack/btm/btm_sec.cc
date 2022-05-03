@@ -3210,7 +3210,6 @@ void btm_sec_auth_complete(uint16_t handle, tHCI_STATUS status) {
  ******************************************************************************/
 void btm_sec_encrypt_change(uint16_t handle, tHCI_STATUS status,
                             uint8_t encr_enable) {
-  tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev_by_handle(handle);
   /* For transaction collision we need to wait and repeat.  There is no need */
   /* for random timeout because only peripheral should receive the result */
   if ((status == HCI_ERR_LMP_ERR_TRANS_COLLISION) ||
@@ -3220,7 +3219,17 @@ void btm_sec_encrypt_change(uint16_t handle, tHCI_STATUS status,
   }
   btm_cb.collision_start_time = 0;
 
-  if (!p_dev_rec) return;
+  tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev_by_handle(handle);
+  if (p_dev_rec == nullptr) {
+    LOG_WARN(
+        "Received encryption change for unknown device handle:0x%04x status:%s "
+        "enable:0x%x",
+        handle, hci_status_code_text(status).c_str(), encr_enable);
+    return;
+  }
+
+  const tBT_TRANSPORT transport =
+      BTM_IsBleConnection(handle) ? BT_TRANSPORT_LE : BT_TRANSPORT_BR_EDR;
 
   LOG_DEBUG(
       "Security Manager encryption change request hci_status:%s"
@@ -3230,37 +3239,46 @@ void btm_sec_encrypt_change(uint16_t handle, tHCI_STATUS status,
       (p_dev_rec->sec_state) ? "encrypted" : "unencrypted",
       p_dev_rec->sec_flags);
 
-  if ((status == HCI_SUCCESS) && encr_enable) {
-    if (p_dev_rec->hci_handle == handle) {
-      p_dev_rec->sec_flags |= (BTM_SEC_AUTHENTICATED | BTM_SEC_ENCRYPTED);
-      if (p_dev_rec->pin_code_length >= 16 ||
-          p_dev_rec->link_key_type == BTM_LKEY_TYPE_AUTH_COMB ||
-          p_dev_rec->link_key_type == BTM_LKEY_TYPE_AUTH_COMB_P_256) {
-        p_dev_rec->sec_flags |= BTM_SEC_16_DIGIT_PIN_AUTHED;
+  if (status == HCI_SUCCESS) {
+    if (encr_enable) {
+      if (p_dev_rec->hci_handle == handle) {  // classic
+        p_dev_rec->sec_flags |= (BTM_SEC_AUTHENTICATED | BTM_SEC_ENCRYPTED);
+        if (p_dev_rec->pin_code_length >= 16 ||
+            p_dev_rec->link_key_type == BTM_LKEY_TYPE_AUTH_COMB ||
+            p_dev_rec->link_key_type == BTM_LKEY_TYPE_AUTH_COMB_P_256) {
+          p_dev_rec->sec_flags |= BTM_SEC_16_DIGIT_PIN_AUTHED;
+        }
+      } else if (p_dev_rec->ble_hci_handle == handle) {  // BLE
+        p_dev_rec->sec_flags |=
+            (BTM_SEC_LE_AUTHENTICATED | BTM_SEC_LE_ENCRYPTED);
+      } else {
+        LOG_ERROR(
+            "Received encryption change for unknown device handle:0x%04x "
+            "status:%s enable:0x%x",
+            handle, hci_status_code_text(status).c_str(), encr_enable);
       }
     } else {
-      p_dev_rec->sec_flags |= (BTM_SEC_LE_AUTHENTICATED | BTM_SEC_LE_ENCRYPTED);
+      /* It is possible that we decrypted the link to perform role switch */
+      /* mark link not to be encrypted, so that when we execute security next
+       * time it will kick in again */
+      if (p_dev_rec->hci_handle == handle) {  // clasic
+        p_dev_rec->sec_flags &= ~BTM_SEC_ENCRYPTED;
+      } else if (p_dev_rec->ble_hci_handle == handle) {  // BLE
+        p_dev_rec->sec_flags &= ~BTM_SEC_LE_ENCRYPTED;
+      } else {
+        LOG_ERROR(
+            "Received encryption change for unknown device handle:0x%04x "
+            "status:%s enable:0x%x",
+            handle, hci_status_code_text(status).c_str(), encr_enable);
+      }
     }
   }
 
-  /* It is possible that we decrypted the link to perform role switch */
-  /* mark link not to be encrypted, so that when we execute security next time
-   * it will kick in again */
-  if ((status == HCI_SUCCESS) && !encr_enable) {
-    if (p_dev_rec->hci_handle == handle)
-      p_dev_rec->sec_flags &= ~BTM_SEC_ENCRYPTED;
-    else
-      p_dev_rec->sec_flags &= ~BTM_SEC_LE_ENCRYPTED;
-  }
+  LOG_DEBUG("after update p_dev_rec->sec_flags=0x%x", p_dev_rec->sec_flags);
 
-  BTM_TRACE_DEBUG("after update p_dev_rec->sec_flags=0x%x",
-                  p_dev_rec->sec_flags);
-
-  auto transport =
-      BTM_IsBleConnection(handle) ? BT_TRANSPORT_LE : BT_TRANSPORT_BR_EDR;
   btm_sec_check_pending_enc_req(p_dev_rec, transport, encr_enable);
 
-  if (BTM_IsBleConnection(handle)) {
+  if (transport == BT_TRANSPORT_LE) {
     if (status == HCI_ERR_KEY_MISSING || status == HCI_ERR_AUTH_FAILURE ||
         status == HCI_ERR_ENCRY_MODE_NOT_ACCEPTABLE) {
       p_dev_rec->sec_flags &= ~(BTM_SEC_LE_LINK_KEY_KNOWN);
@@ -3274,8 +3292,7 @@ void btm_sec_encrypt_change(uint16_t handle, tHCI_STATUS status,
     p_dev_rec->enc_key_size = 16;
   }
 
-  BTM_TRACE_DEBUG("in %s new_encr_key_256 is %d", __func__,
-                  p_dev_rec->new_encryption_key_is_p256);
+  LOG_DEBUG("in new_encr_key_256 is %d", p_dev_rec->new_encryption_key_is_p256);
 
   if ((status == HCI_SUCCESS) && encr_enable &&
       (p_dev_rec->hci_handle == handle)) {
