@@ -2768,6 +2768,15 @@ bool acl_create_le_connection_with_id(uint8_t id, const RawAddress& bd_addr) {
     gatt_find_in_device_record(bd_addr, &address_with_type);
     LOG_DEBUG("Creating le direct connection to:%s",
               PRIVATE_ADDRESS(address_with_type));
+
+    if (address_with_type.type == BLE_ADDR_ANONYMOUS) {
+      LOG_WARN(
+          "Creating le direct connection to:%s, address type 'anonymous' is "
+          "invalid",
+          PRIVATE_ADDRESS(address_with_type));
+      return false;
+    }
+
     bluetooth::shim::ACL_AcceptLeConnectionFrom(address_with_type,
                                                 /* is_direct */ true);
     return true;
