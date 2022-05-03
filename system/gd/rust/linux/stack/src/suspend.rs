@@ -1,8 +1,10 @@
 //! Suspend/Resume API.
 
 use crate::{Message, RPCProxy};
+use bt_topshim::btif::BluetoothInterface;
 use log::warn;
 use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
 use tokio::sync::mpsc::Sender;
 
 /// Defines the Suspend/Resume API.
@@ -56,13 +58,22 @@ pub enum SuspendType {
 
 /// Implementation of the suspend API.
 pub struct Suspend {
+    intf: Arc<Mutex<BluetoothInterface>>,
     tx: Sender<Message>,
     callbacks: HashMap<u32, Box<dyn ISuspendCallback + Send>>,
+    is_connected_suspend: bool,
+    was_a2dp_connected: bool,
 }
 
 impl Suspend {
-    pub fn new(tx: Sender<Message>) -> Suspend {
-        Self { tx, callbacks: HashMap::new() }
+    pub fn new(intf: Arc<Mutex<BluetoothInterface>>, tx: Sender<Message>) -> Suspend {
+        Self {
+            intf: intf,
+            tx,
+            callbacks: HashMap::new(),
+            is_connected_suspend: false,
+            was_a2dp_connected: false,
+        }
     }
 
     pub(crate) fn callback_registered(&mut self, id: u32) {
@@ -114,10 +125,30 @@ impl ISuspend for Suspend {
         self.remove_callback(callback_id)
     }
 
-    fn suspend(&self, _suspend_type: SuspendType) -> u32 {
-        // Temporary no-op.
-        // TODO(b/224606285): Implement suspend logic.
+    fn suspend(&self, suspend_type: SuspendType) -> u32 {
         let suspend_id = 1;
+        match suspend_type {
+            // TODO(231437552): Rename AllowWakeFromHid to Connected since it isn't only for HID
+            SuspendType::AllowWakeFromHid => {
+                // TODO(231345733): API For allowing classic HID only
+                // TODO(230604670): check if A2DP is connected
+                // TODO(224603198): save all advertiser information
+            }
+            // TODO(231437552): Rename NoWakesAllowed to Disconnected since it isn't only for HID
+            SuspendType::NoWakesAllowed => {
+                self.intf.lock().unwrap().clear_event_filter();
+                self.intf.lock().unwrap().clear_event_mask();
+            }
+            SuspendType::Other => {
+                // TODO(231438120): Decide what to do about Other suspend type
+                // For now perform disconnected suspend flow
+                self.intf.lock().unwrap().clear_event_filter();
+                self.intf.lock().unwrap().clear_event_mask();
+            }
+        }
+        self.intf.lock().unwrap().clear_filter_accept_list();
+        // TODO(231435700): self.intf.lock().unwrap().disconnect_all_acls();
+        self.intf.lock().unwrap().le_rand();
         self.for_all_callbacks(|callback| {
             callback.on_suspend_ready(suspend_id);
         });
@@ -125,9 +156,17 @@ impl ISuspend for Suspend {
     }
 
     fn resume(&self) -> bool {
-        // Temporary no-op.
-        // TODO(b/224606285): Implement resume logic.
         let suspend_id = 1;
+        self.intf.lock().unwrap().set_event_filter_inquiry_result_all_devices();
+        self.intf.lock().unwrap().set_default_event_mask();
+        if self.is_connected_suspend {
+            if self.was_a2dp_connected {
+                // TODO(230604670): self.intf.lock().unwrap().restore_filter_accept_list();
+                // TODO(230604670): reconnect to a2dp device if connected before
+            }
+            // TODO(224603198): start all advertising again
+        }
+        self.intf.lock().unwrap().le_rand();
         self.for_all_callbacks(|callback| {
             callback.on_resumed(suspend_id);
         });
