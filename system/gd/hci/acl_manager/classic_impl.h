@@ -18,6 +18,7 @@
 
 #include <atomic>
 #include <memory>
+#include <unordered_set>
 
 #include "common/bind.h"
 #include "hci/acl_manager/assembler.h"
@@ -254,7 +255,7 @@ struct classic_impl : public security::ISecurityManagerListener {
         return;
     }
 
-    incoming_connecting_address_ = address;
+    incoming_connecting_address_set_.insert(address);
     if (is_classic_link_already_connected(address)) {
       auto reason = RejectConnectionReason::UNACCEPTABLE_BD_ADDR;
       this->reject_connection(RejectConnectionRequestBuilder::Create(address, reason));
@@ -281,7 +282,7 @@ struct classic_impl : public security::ISecurityManagerListener {
     std::unique_ptr<CreateConnectionBuilder> packet = CreateConnectionBuilder::Create(
         address, packet_type, page_scan_repetition_mode, clock_offset, clock_offset_valid, allow_role_switch);
 
-    if (incoming_connecting_address_ == Address::kEmpty && outgoing_connecting_address_ == Address::kEmpty) {
+    if (incoming_connecting_address_set_.empty() && outgoing_connecting_address_ == Address::kEmpty) {
       if (is_classic_link_already_connected(address)) {
         LOG_WARN("already connected: %s", address.ToString().c_str());
         return;
@@ -310,17 +311,18 @@ struct classic_impl : public security::ISecurityManagerListener {
     if (outgoing_connecting_address_ == address) {
       outgoing_connecting_address_ = Address::kEmpty;
     } else {
-      if (incoming_connecting_address_ != address && status == ErrorCode::UNKNOWN_CONNECTION) {
+      auto incoming_address = incoming_connecting_address_set_.find(address);
+      if (incoming_address == incoming_connecting_address_set_.end()) {
+        ASSERT_LOG(
+            status != ErrorCode::UNKNOWN_CONNECTION,
+            "No prior connection request for %s expecting:%s",
+            address.ToString().c_str(),
+            set_of_incoming_connecting_addresses().c_str());
         LOG_WARN("No matching connection to %s (%s)", address.ToString().c_str(), ErrorCodeText(status).c_str());
         LOG_WARN("Firmware error after RemoteNameRequestCancel?");
         return;
       }
-      ASSERT_LOG(
-          incoming_connecting_address_ == address,
-          "No prior connection request for %s expecting:%s",
-          address.ToString().c_str(),
-          incoming_connecting_address_.ToString().c_str());
-      incoming_connecting_address_ = Address::kEmpty;
+      incoming_connecting_address_set_.erase(incoming_address);
       current_role = Role::PERIPHERAL;
       locally_initiated = false;
     }
@@ -721,7 +723,13 @@ struct classic_impl : public security::ISecurityManagerListener {
   ConnectionCallbacks* client_callbacks_ = nullptr;
   os::Handler* client_handler_ = nullptr;
   Address outgoing_connecting_address_{Address::kEmpty};
-  Address incoming_connecting_address_{Address::kEmpty};
+  std::unordered_set<Address> incoming_connecting_address_set_;
+  const std::string set_of_incoming_connecting_addresses() const {
+    std::stringstream buffer;
+    for (const auto& c : incoming_connecting_address_set_) buffer << " " << c;
+    return buffer.str();
+  }
+
   common::Callback<bool(Address, ClassOfDevice)> should_accept_connection_;
   std::queue<std::pair<Address, std::unique_ptr<CreateConnectionBuilder>>> pending_outgoing_connections_;
   std::unique_ptr<RoleChangeView> delayed_role_change_ = nullptr;
