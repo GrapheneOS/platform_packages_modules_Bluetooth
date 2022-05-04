@@ -933,8 +933,7 @@ void l2c_link_check_send_pkts(tL2C_LCB* p_lcb, uint16_t local_cid,
         continue;
       }
 
-      if ((!p_lcb->in_use) || (p_lcb->partial_segment_being_sent) ||
-          (p_lcb->link_state != LST_CONNECTED) ||
+      if ((!p_lcb->in_use) || (p_lcb->link_state != LST_CONNECTED) ||
           (p_lcb->link_xmit_quota != 0) || (l2c_link_check_power_mode(p_lcb))) {
         LOG_DEBUG("Skipping lcb %d due to quota", xx);
         continue;
@@ -975,8 +974,7 @@ void l2c_link_check_send_pkts(tL2C_LCB* p_lcb, uint16_t local_cid,
   } else /* if this is not round-robin service */
   {
     /* If a partial segment is being sent, can't send anything else */
-    if ((p_lcb->partial_segment_being_sent) ||
-        (p_lcb->link_state != LST_CONNECTED) ||
+    if ((p_lcb->link_state != LST_CONNECTED) ||
         (l2c_link_check_power_mode(p_lcb))) {
       LOG_INFO("A partial segment is being sent, cannot send anything else");
       return;
@@ -1281,8 +1279,6 @@ void l2c_link_segments_xmitted(BT_HDR* p_msg) {
   /* Enqueue the buffer to the head of the transmit queue, and see */
   /* if we can transmit anything more.                             */
   list_prepend(p_lcb->link_xmit_data_q, p_msg);
-
-  p_lcb->partial_segment_being_sent = false;
 
   l2c_link_check_send_pkts(p_lcb, 0, NULL);
 }
