@@ -1,4 +1,4 @@
-use crate::RPCProxy;
+use btstack::RPCProxy;
 
 #[derive(Debug, Default)]
 pub struct AdapterWithEnabled {

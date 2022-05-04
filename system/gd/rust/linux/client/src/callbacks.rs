@@ -55,7 +55,7 @@ impl IBluetoothManagerCallback for BtManagerCallback {
     }
 }
 
-impl manager_service::RPCProxy for BtManagerCallback {
+impl RPCProxy for BtManagerCallback {
     fn register_disconnect(&mut self, _f: Box<dyn Fn(u32) + Send>) -> u32 {
         0
     }
