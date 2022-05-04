@@ -3984,7 +3984,7 @@ public class AdapterService extends Service {
     }
 
     public boolean isQuietModeEnabled() {
-        debugLog("isQuetModeEnabled() - Enabled = " + mQuietmode);
+        debugLog("isQuietModeEnabled() - Enabled = " + mQuietmode);
         return mQuietmode;
     }
 
