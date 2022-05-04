@@ -26,6 +26,7 @@
 #include <unordered_set>
 
 #include "common/bind.h"
+#include "common/init_flags.h"
 #include "crypto_toolbox/crypto_toolbox.h"
 #include "hci/acl_manager/assembler.h"
 #include "hci/acl_manager/le_connection_management_callbacks.h"
@@ -272,9 +273,9 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
     auto connecting_addr_with_type = connecting_le_.find(address_with_type);
     if (connecting_addr_with_type == connecting_le_.end()) {
       LOG_WARN("No prior connection request for %s", address_with_type.ToString().c_str());
-    } else {
-      connecting_le_.erase(connecting_addr_with_type);
     }
+    connecting_le_.clear();
+
     if (create_connection_timeout_alarms_.find(address_with_type) != create_connection_timeout_alarms_.end()) {
       create_connection_timeout_alarms_.at(address_with_type).Cancel();
       create_connection_timeout_alarms_.erase(address_with_type);
@@ -629,68 +630,9 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
           connectability_state_machine_text(connectability_state_).c_str());
       return;
     }
-    connectability_state_ = ConnectabilityState::ARMING;
     AddressWithType empty(Address::kEmpty, AddressType::RANDOM_DEVICE_ADDRESS);
-    create_le_connection(empty, false, false);
-  }
-
-  void disarm_connectability() {
-    if (connectability_state_ != ConnectabilityState::ARMED && connectability_state_ != ConnectabilityState::ARMING) {
-      LOG_ERROR(
-          "Attempting to disarm le connection state machine in unexpected state:%s",
-          connectability_state_machine_text(connectability_state_).c_str());
-      return;
-    }
-    connectability_state_ = ConnectabilityState::DISARMING;
-    le_acl_connection_interface_->EnqueueCommand(
-        LeCreateConnectionCancelBuilder::Create(),
-        handler_->BindOnce(&le_impl::on_create_connection_cancel_complete, common::Unretained(this)));
-  }
-
-  void create_le_connection(AddressWithType address_with_type, bool add_to_connect_list, bool is_direct) {
-    if (le_client_callbacks_ == nullptr) {
-      LOG_ERROR("No callbacks to call");
-      return;
-    }
-
-    if (connections.alreadyConnected(address_with_type)) {
-      LOG_INFO("Device already connected, return");
-      return;
-    }
-
-    // TODO: Configure default LE connection parameters?
-    if (add_to_connect_list) {
-      add_device_to_connect_list(address_with_type);
-      if (is_direct) {
-        direct_connections_.insert(address_with_type);
-        if (create_connection_timeout_alarms_.find(address_with_type) == create_connection_timeout_alarms_.end()) {
-          create_connection_timeout_alarms_.emplace(
-              std::piecewise_construct,
-              std::forward_as_tuple(address_with_type.GetAddress(), address_with_type.GetAddressType()),
-              std::forward_as_tuple(handler_));
-          create_connection_timeout_alarms_.at(address_with_type)
-              .Schedule(
-                  common::BindOnce(&le_impl::on_create_connection_timeout, common::Unretained(this), address_with_type),
-                  kCreateConnectionTimeoutMs);
-        }
-      }
-    }
-
-    if (!address_manager_registered) {
-      auto policy = le_address_manager_->Register(this);
-      address_manager_registered = true;
-
-      // Pause connection, wait for set random address complete
-      if (policy == LeAddressManager::AddressPolicy::USE_RESOLVABLE_ADDRESS ||
-          policy == LeAddressManager::AddressPolicy::USE_NON_RESOLVABLE_ADDRESS) {
-        pause_connection = true;
-      }
-    }
-
-    if (pause_connection) {
-      canceled_connections_.insert(address_with_type);
-      return;
-    }
+    connectability_state_ = ConnectabilityState::ARMING;
+    connecting_le_ = connect_list;
 
     uint16_t le_scan_interval = kScanIntervalSlow;
     uint16_t le_scan_window = kScanWindowSlow;
@@ -712,9 +654,7 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
     uint16_t supervision_timeout = 0x001f4;
     ASSERT(check_connection_parameters(conn_interval_min, conn_interval_max, conn_latency, supervision_timeout));
 
-    connecting_le_.insert(address_with_type);
-    connectability_state_ = ConnectabilityState::ARMING;
-
+    AddressWithType address_with_type = connection_peer_address_with_type_;
     if (initiator_filter_policy == InitiatorFilterPolicy::USE_FILTER_ACCEPT_LIST) {
       address_with_type = AddressWithType();
     }
@@ -785,6 +725,85 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
               kMinimumCeLength,
               kMaximumCeLength),
           handler_->BindOnce(&le_impl::on_create_connection, common::Unretained(this)));
+    }
+  }
+
+  void disarm_connectability() {
+    if (connectability_state_ != ConnectabilityState::ARMED && connectability_state_ != ConnectabilityState::ARMING) {
+      LOG_ERROR(
+          "Attempting to disarm le connection state machine in unexpected state:%s",
+          connectability_state_machine_text(connectability_state_).c_str());
+      return;
+    }
+    connectability_state_ = ConnectabilityState::DISARMING;
+    le_acl_connection_interface_->EnqueueCommand(
+        LeCreateConnectionCancelBuilder::Create(),
+        handler_->BindOnce(&le_impl::on_create_connection_cancel_complete, common::Unretained(this)));
+  }
+
+  void create_le_connection(AddressWithType address_with_type, bool add_to_connect_list, bool is_direct) {
+    if (le_client_callbacks_ == nullptr) {
+      LOG_ERROR("No callbacks to call");
+      return;
+    }
+
+    if (connections.alreadyConnected(address_with_type)) {
+      LOG_INFO("Device already connected, return");
+      return;
+    }
+
+    // TODO: Configure default LE connection parameters?
+    if (add_to_connect_list) {
+      add_device_to_connect_list(address_with_type);
+      if (is_direct) {
+        direct_connections_.insert(address_with_type);
+        if (create_connection_timeout_alarms_.find(address_with_type) == create_connection_timeout_alarms_.end()) {
+          create_connection_timeout_alarms_.emplace(
+              std::piecewise_construct,
+              std::forward_as_tuple(address_with_type.GetAddress(), address_with_type.GetAddressType()),
+              std::forward_as_tuple(handler_));
+          create_connection_timeout_alarms_.at(address_with_type)
+              .Schedule(
+                  common::BindOnce(&le_impl::on_create_connection_timeout, common::Unretained(this), address_with_type),
+                  kCreateConnectionTimeoutMs);
+        }
+      }
+    }
+
+    if (!address_manager_registered) {
+      auto policy = le_address_manager_->Register(this);
+      address_manager_registered = true;
+
+      // Pause connection, wait for set random address complete
+      if (policy == LeAddressManager::AddressPolicy::USE_RESOLVABLE_ADDRESS ||
+          policy == LeAddressManager::AddressPolicy::USE_NON_RESOLVABLE_ADDRESS) {
+        pause_connection = true;
+      }
+    }
+
+    if (pause_connection) {
+      canceled_connections_.insert(address_with_type);
+      return;
+    }
+
+    switch (connectability_state_) {
+      case ConnectabilityState::ARMED:
+      case ConnectabilityState::ARMING:
+        // Ignored, if we add new device to the filter accept list, create connection command will be sent by OnResume.
+        LOG_DEBUG(
+            "Deferred until filter accept list updated create connection state %s",
+            connectability_state_machine_text(connectability_state_).c_str());
+        break;
+      default:
+        // If we added to filter accept list then the arming of the le state machine
+        // must wait until the filter accept list command as completed
+        if (add_to_connect_list) {
+          canceled_connections_.insert(address_with_type);
+          LOG_DEBUG("Deferred until filter accept list has completed");
+        } else {
+          handler_->CallOn(this, &le_impl::arm_connectability);
+        }
+        break;
     }
   }
 
@@ -960,6 +979,7 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
   // Set of devices that will not be removed from connect list after direct connect timeout
   std::unordered_set<AddressWithType> background_connections_;
   std::unordered_set<AddressWithType> connect_list;
+  AddressWithType connection_peer_address_with_type_;  // Direct peer address UNSUPPORTEDD
   bool address_manager_registered = false;
   bool ready_to_unregister = false;
   bool pause_connection = false;
