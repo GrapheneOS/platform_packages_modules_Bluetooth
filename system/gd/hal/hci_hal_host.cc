@@ -90,7 +90,6 @@ int waitHciDev(int hci_interface) {
   struct pollfd fds[1];
   struct mgmt_pkt ev;
   int fd;
-  int ret = 0;
 
   fd = socket(PF_BLUETOOTH, SOCK_RAW, BTPROTO_HCI);
   if (fd < 0) {
@@ -128,11 +127,9 @@ int waitHciDev(int hci_interface) {
     WRITE_NO_INTR(n = poll(fds, 1, -1));
     if (n == -1) {
       LOG_ERROR("Poll error: %s", strerror(errno));
-      ret = -1;
       break;
     } else if (n == 0) {
       LOG_ERROR("Timeout, no HCI device detected");
-      ret = -1;
       break;
     }
 
@@ -140,7 +137,6 @@ int waitHciDev(int hci_interface) {
       WRITE_NO_INTR(n = read(fd, &ev, sizeof(struct mgmt_pkt)));
       if (n < 0) {
         LOG_ERROR("Error reading control channel: %s", strerror(errno));
-        ret = -1;
         break;
       }
 
