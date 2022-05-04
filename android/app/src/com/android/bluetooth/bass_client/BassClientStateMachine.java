@@ -992,6 +992,16 @@ public class BassClientStateMachine extends StateMachine {
             } else {
                 broadcastConnectionState(
                         mDevice, mLastConnectionState, BluetoothProfile.STATE_DISCONNECTED);
+                if (mLastConnectionState != BluetoothProfile.STATE_DISCONNECTED) {
+                    // Reconnect in background if not disallowed by the service
+                    if (mService.okToConnect(mDevice)) {
+                        mBluetoothGatt = mDevice.connectGatt(mService, true,
+                                mGattCallback, BluetoothDevice.TRANSPORT_LE,
+                                (BluetoothDevice.PHY_LE_1M_MASK
+                                        | BluetoothDevice.PHY_LE_2M_MASK
+                                        | BluetoothDevice.PHY_LE_CODED_MASK), null);
+                    }
+                }
             }
         }
 
@@ -1028,7 +1038,15 @@ public class BassClientStateMachine extends StateMachine {
                     }
                     break;
                 case DISCONNECT:
-                    Log.w(TAG, "Disconnected: DISCONNECT ignored: " + mDevice);
+                    // Disconnect if there's an ongoing background connection
+                    if (mBluetoothGatt != null) {
+                        log("Cancelling the background connection to " + mDevice);
+                        mBluetoothGatt.disconnect();
+                        mBluetoothGatt.close();
+                        mBluetoothGatt = null;
+                    } else {
+                        Log.d(TAG, "Disconnected: DISCONNECT ignored: " + mDevice);
+                    }
                     break;
                 case CONNECTION_STATE_CHANGED:
                     int state = (int) message.obj;
