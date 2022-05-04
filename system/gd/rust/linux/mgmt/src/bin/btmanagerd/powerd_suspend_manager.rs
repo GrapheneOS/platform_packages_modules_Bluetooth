@@ -118,20 +118,20 @@ impl ISuspendCallback for SuspendCallback {
         // Received when adapter is ready to suspend. Tell powerd that suspend is ready.
         log::debug!("Suspend ready, adapter suspend_id = {}", suspend_id);
 
-        if let Some(pending_suspend_imminent) =
-            &self.context.lock().unwrap().pending_suspend_imminent
         {
-            if let Some(powerd_session) = &self.context.lock().unwrap().powerd_session {
+            let context = self.context.lock().unwrap();
+
+            if let (Some(pending_suspend_imminent), Some(powerd_session)) =
+                (&context.pending_suspend_imminent, &context.powerd_session)
+            {
                 send_handle_suspend_readiness(
                     powerd_session.powerd_proxy.clone(),
                     powerd_session.delay_id,
                     pending_suspend_imminent.get_suspend_id(),
                 );
             } else {
-                log::warn!("Suspend is ready but there is no powerd session to report to");
+                log::warn!("Suspend ready but no SuspendImminent signal or powerd session");
             }
-        } else {
-            log::warn!("Suspend ready but no SuspendImminent signal");
         }
     }
 
@@ -395,9 +395,13 @@ impl PowerdSuspendManager {
         // still have pending SuspendImminent.
         log::debug!("powerd stopped, cleaning up");
 
-        match self.context.lock().unwrap().powerd_session {
-            None => log::warn!("powerd session does not exist, ignoring"),
-            Some(_) => self.context.lock().unwrap().powerd_session = None,
+        {
+            let mut context = self.context.lock().unwrap();
+
+            match context.powerd_session {
+                None => log::warn!("powerd session does not exist, ignoring"),
+                Some(_) => context.powerd_session = None,
+            }
         }
     }
 
@@ -468,10 +472,11 @@ impl PowerdSuspendManager {
         self.context.lock().unwrap().adapter_suspend_dbus =
             Some(SuspendDBus::new(conn.clone(), path));
 
+        let crossroads = self.context.lock().unwrap().dbus_crossroads.clone();
+
         if let Some(adapter_suspend_dbus) = &mut self.context.lock().unwrap().adapter_suspend_dbus {
             let suspend_cb_objpath: String =
                 format!("/org/chromium/bluetooth/Manager/suspend_callback");
-            let crossroads = self.context.lock().unwrap().dbus_crossroads.clone();
             adapter_suspend_dbus.register_callback(Box::new(SuspendCallback::new(
                 suspend_cb_objpath,
                 conn,
