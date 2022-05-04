@@ -3,10 +3,10 @@ use dbus::strings::Path;
 use dbus_macros::{dbus_method, dbus_propmap, dbus_proxy_obj, generate_dbus_exporter};
 use dbus_projection::{dbus_generated, DisconnectWatcher};
 
+use btstack::RPCProxy;
 use manager_service::iface_bluetooth_manager::{
     AdapterWithEnabled, IBluetoothManager, IBluetoothManagerCallback,
 };
-use manager_service::RPCProxy;
 
 use crate::dbus_arg::{DBusArg, DBusArgError, RefArgToRust};
 
