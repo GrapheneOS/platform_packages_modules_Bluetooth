@@ -469,8 +469,10 @@ public class HapClientTest {
     public void testGroupSelectActivePresetNative() {
         doReturn(new ParcelUuid[]{BluetoothUuid.HAS}).when(mAdapterService)
                 .getRemoteUuids(any(BluetoothDevice.class));
+        testConnectingDevice(mDevice3);
+
         int flags = 0x01;
-        mNativeInterface.onFeaturesUpdate(getByteAddress(mDevice), flags);
+        mNativeInterface.onFeaturesUpdate(getByteAddress(mDevice3), flags);
 
         // Verify Native Interface call
         mService.selectPresetForGroup(0x03, 0x00);
