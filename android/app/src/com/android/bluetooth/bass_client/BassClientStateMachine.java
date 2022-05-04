@@ -412,11 +412,7 @@ public class BassClientStateMachine extends StateMachine {
                 channel.setSelected(false);
                 subGroup.addChannel(channel.build());
             }
-            subGroup.setCodecId((long)(baseLevel2.codecId[4] << 32
-                    | baseLevel2.codecId[3] << 24
-                    | baseLevel2.codecId[2] << 16
-                    | baseLevel2.codecId[1] << 8
-                    | baseLevel2.codecId[0]));
+            subGroup.setCodecId(ByteBuffer.wrap(baseLevel2.codecId).getLong());
             subGroup.setCodecSpecificConfig(BluetoothLeAudioCodecConfigMetadata.
                     fromRawBytes(baseLevel2.codecConfigInfo));
             subGroup.setContentMetadata(BluetoothLeAudioContentMetadata.
