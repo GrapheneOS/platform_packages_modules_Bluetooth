@@ -596,6 +596,7 @@ rust_library {
     crate_name: "bt_packets",
     srcs: ["rust/packets/lib.rs", ":BluetoothGeneratedPackets_rust"],
     edition: "2018",
+    vendor_available : true,
     host_supported: true,
     proc_macros: ["libnum_derive"],
     rustlibs: [

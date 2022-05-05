@@ -227,6 +227,8 @@ class HostBuild():
             '{}/out/Default'.format(self.output_dir),
             '-C',
             'link-arg=-Wl,--allow-multiple-definition',
+            # exclude uninteresting warnings
+            '-A improper_ctypes_definitions -A improper_ctypes -A unknown_lints',
         ]
 
         return ' '.join(rust_flags)
@@ -246,6 +248,7 @@ class HostBuild():
         self.env['CARGO_HOME'] = os.path.join(self.output_dir, 'cargo_home')
         self.env['RUSTFLAGS'] = self._generate_rustflags()
         self.env['CXX_ROOT_PATH'] = os.path.join(self.platform_dir, 'bt')
+        self.env['CROS_SYSTEM_API_ROOT'] = os.path.join(self.platform_dir, 'system_api')
 
     def run_command(self, target, args, cwd=None, env=None):
         """ Run command and stream the output.
@@ -606,6 +609,7 @@ class Bootstrap():
         # Symlink things
         symlinks = [
             (os.path.join(self.git_dir, 'platform2', 'common-mk'), os.path.join(self.staging_dir, 'common-mk')),
+            (os.path.join(self.git_dir, 'platform2', 'system_api'), os.path.join(self.staging_dir, 'system_api')),
             (os.path.join(self.git_dir, 'platform2', '.gn'), os.path.join(self.staging_dir, '.gn')),
             (os.path.join(self.bt_dir), os.path.join(self.staging_dir, 'bt')),
             (os.path.join(self.git_dir, 'rust_crates'), os.path.join(self.external_dir, 'rust')),

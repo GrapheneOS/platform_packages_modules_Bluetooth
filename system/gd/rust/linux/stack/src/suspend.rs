@@ -82,6 +82,12 @@ impl Suspend {
             None => false,
         }
     }
+
+    fn for_all_callbacks<F: Fn(&Box<dyn ISuspendCallback + Send>)>(&self, f: F) {
+        for (_, callback) in self.callbacks.iter() {
+            f(&callback);
+        }
+    }
 }
 
 impl ISuspend for Suspend {
@@ -109,10 +115,22 @@ impl ISuspend for Suspend {
     }
 
     fn suspend(&self, _suspend_type: SuspendType) -> u32 {
-        todo!()
+        // Temporary no-op.
+        // TODO(b/224606285): Implement suspend logic.
+        let suspend_id = 1;
+        self.for_all_callbacks(|callback| {
+            callback.on_suspend_ready(suspend_id);
+        });
+        return 1;
     }
 
     fn resume(&self) -> bool {
-        todo!()
+        // Temporary no-op.
+        // TODO(b/224606285): Implement resume logic.
+        let suspend_id = 1;
+        self.for_all_callbacks(|callback| {
+            callback.on_resumed(suspend_id);
+        });
+        return true;
     }
 }

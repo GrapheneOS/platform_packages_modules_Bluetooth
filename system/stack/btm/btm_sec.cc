@@ -1045,42 +1045,71 @@ tBTM_STATUS BTM_SetEncryption(const RawAddress& bd_addr,
                                               p_ref_data, sec_act);
   }
 
-  tBTM_STATUS rc = BTM_SUCCESS;
-
   tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(bd_addr);
-  if (!p_dev_rec ||
-      (transport == BT_TRANSPORT_BR_EDR &&
-       p_dev_rec->hci_handle == HCI_INVALID_HANDLE) ||
-      (transport == BT_TRANSPORT_LE &&
-       p_dev_rec->ble_hci_handle == HCI_INVALID_HANDLE)) {
-    /* Connection should be up and runnning */
-    BTM_TRACE_WARNING("Security Manager: BTM_SetEncryption not connected");
-
-    if (p_callback)
-      (*p_callback)(&bd_addr, transport, p_ref_data, BTM_WRONG_MODE);
-
-    return (BTM_WRONG_MODE);
+  if (p_dev_rec == nullptr) {
+    LOG_ERROR("Unable to set encryption for unknown device");
+    return BTM_WRONG_MODE;
   }
 
-  if (transport == BT_TRANSPORT_BR_EDR &&
-      (p_dev_rec->sec_flags & BTM_SEC_ENCRYPTED)) {
-    BTM_TRACE_EVENT("Security Manager: BTM_SetEncryption already encrypted");
+  switch (transport) {
+    case BT_TRANSPORT_BR_EDR:
+      if (p_dev_rec->hci_handle == HCI_INVALID_HANDLE) {
+        LOG_WARN(
+            "Security Manager: BTM_SetEncryption not connected peer:%s "
+            "transport:%s",
+            PRIVATE_ADDRESS(bd_addr), bt_transport_text(transport).c_str());
+        if (p_callback)
+          (*p_callback)(&bd_addr, transport, p_ref_data, BTM_WRONG_MODE);
+        return BTM_WRONG_MODE;
+      }
+      if (p_dev_rec->sec_flags & BTM_SEC_ENCRYPTED) {
+        LOG_DEBUG(
+            "Security Manager: BTM_SetEncryption already encrypted peer:%s "
+            "transport:%s",
+            PRIVATE_ADDRESS(bd_addr), bt_transport_text(transport).c_str());
+        if (*p_callback)
+          (*p_callback)(&bd_addr, transport, p_ref_data, BTM_SUCCESS);
+        return BTM_SUCCESS;
+      }
+      break;
 
-    if (*p_callback)
-      (*p_callback)(&bd_addr, transport, p_ref_data, BTM_SUCCESS);
+    case BT_TRANSPORT_LE:
+      if (p_dev_rec->ble_hci_handle == HCI_INVALID_HANDLE) {
+        LOG_WARN(
+            "Security Manager: BTM_SetEncryption not connected peer:%s "
+            "transport:%s",
+            PRIVATE_ADDRESS(bd_addr), bt_transport_text(transport).c_str());
+        if (p_callback)
+          (*p_callback)(&bd_addr, transport, p_ref_data, BTM_WRONG_MODE);
 
-    return (BTM_SUCCESS);
+        return BTM_WRONG_MODE;
+      }
+      if (p_dev_rec->sec_flags & BTM_SEC_LE_ENCRYPTED) {
+        LOG_DEBUG(
+            "Security Manager: BTM_SetEncryption already encrypted peer:%s "
+            "transport:%s",
+            PRIVATE_ADDRESS(bd_addr), bt_transport_text(transport).c_str());
+        if (*p_callback)
+          (*p_callback)(&bd_addr, transport, p_ref_data, BTM_SUCCESS);
+
+        return BTM_SUCCESS;
+      }
+      break;
+
+    default:
+      LOG_ERROR("Unknown transport");
+      break;
   }
 
   /* enqueue security request if security is active */
   if (p_dev_rec->p_callback || (p_dev_rec->sec_state != BTM_SEC_STATE_IDLE)) {
-    BTM_TRACE_WARNING(
-        "Security Manager: BTM_SetEncryption busy, enqueue request");
-
+    LOG_WARN("Security Manager: BTM_SetEncryption busy, enqueue request");
     if (btm_sec_queue_encrypt_request(bd_addr, transport, p_callback,
                                       p_ref_data, sec_act)) {
+      LOG_INFO("Queued start encryption");
       return BTM_CMD_STARTED;
     } else {
+      LOG_WARN("Unable to enqueue start encryption request");
       if (p_callback)
         (*p_callback)(&bd_addr, transport, p_ref_data, BTM_NO_RESOURCES);
       return BTM_NO_RESOURCES;
@@ -1093,38 +1122,51 @@ tBTM_STATUS BTM_SetEncryption(const RawAddress& bd_addr,
       (BTM_SEC_IN_AUTHENTICATE | BTM_SEC_IN_ENCRYPT);
   p_dev_rec->is_originator = false;
 
-  BTM_TRACE_API(
-      "Security Manager: BTM_SetEncryption Handle:%d State:%d Flags:0x%x "
-      "Required:0x%x, p_dev_rec=%p, p_callback=%p",
-      p_dev_rec->hci_handle, p_dev_rec->sec_state, p_dev_rec->sec_flags,
-      p_dev_rec->security_required, p_dev_rec, p_callback);
+  LOG_DEBUG(
+      "Security Manager: BTM_SetEncryption classic_handle:0x%04x "
+      "ble_handle:0x%04x state:%d flags:0x%x "
+      "required:0x%x p_callback=%c",
+      p_dev_rec->hci_handle, p_dev_rec->ble_hci_handle, p_dev_rec->sec_state,
+      p_dev_rec->sec_flags, p_dev_rec->security_required,
+      (p_callback) ? 'T' : 'F');
 
-  if (transport == BT_TRANSPORT_LE) {
-    if (BTM_IsAclConnectionUp(bd_addr, BT_TRANSPORT_LE)) {
-      rc = btm_ble_set_encryption(bd_addr, sec_act,
-                                  L2CA_GetBleConnRole(bd_addr));
-    } else {
-      rc = BTM_WRONG_MODE;
-      BTM_TRACE_WARNING("%s: cannot call btm_ble_set_encryption, p is NULL",
-                        __func__);
-    }
-  } else {
-    rc = btm_sec_execute_procedure(p_dev_rec);
+  tBTM_STATUS rc = BTM_SUCCESS;
+  switch (transport) {
+    case BT_TRANSPORT_LE:
+      if (BTM_IsAclConnectionUp(bd_addr, BT_TRANSPORT_LE)) {
+        rc = btm_ble_set_encryption(bd_addr, sec_act,
+                                    L2CA_GetBleConnRole(bd_addr));
+      } else {
+        rc = BTM_WRONG_MODE;
+        LOG_WARN("cannot call btm_ble_set_encryption, p is NULL");
+      }
+      break;
+
+    case BT_TRANSPORT_BR_EDR:
+      rc = btm_sec_execute_procedure(p_dev_rec);
+      break;
+
+    default:
+      LOG_ERROR("Unknown transport");
+      break;
   }
 
-  if (rc != BTM_CMD_STARTED && rc != BTM_BUSY) {
-    if (p_callback) {
-      BTM_TRACE_DEBUG(
-          "%s: clearing p_callback=%p, p_dev_rec=%p, transport=%d, "
-          "bd_addr=%s",
-          __func__, p_callback, p_dev_rec, transport,
-          bd_addr.ToString().c_str());
-      p_dev_rec->p_callback = NULL;
-      (*p_callback)(&bd_addr, transport, p_dev_rec->p_ref_data, rc);
-    }
-  }
+  switch (rc) {
+    case BTM_CMD_STARTED:
+    case BTM_BUSY:
+      break;
 
-  return (rc);
+    default:
+      if (p_callback) {
+        LOG_DEBUG("Executing encryption callback peer:%s transport:%s",
+                  PRIVATE_ADDRESS(bd_addr),
+                  bt_transport_text(transport).c_str());
+        p_dev_rec->p_callback = nullptr;
+        (*p_callback)(&bd_addr, transport, p_dev_rec->p_ref_data, rc);
+      }
+      break;
+  }
+  return rc;
 }
 
 bool BTM_SecIsSecurityPending(const RawAddress& bd_addr) {

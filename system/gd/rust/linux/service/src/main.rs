@@ -99,6 +99,11 @@ fn main() -> Result<(), Box<dyn Error>> {
             }),
         )));
 
+        // Announce the exported adapter objects so that clients can properly detect the readiness
+        // of the adapter APIs.
+        cr.set_object_manager_support(Some(conn.clone()));
+        cr.insert("/", &[cr.object_manager()], {});
+
         // Run the stack main dispatch loop.
         topstack::get_runtime().spawn(Stack::dispatch(
             rx,
