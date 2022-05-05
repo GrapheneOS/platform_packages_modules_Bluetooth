@@ -256,7 +256,7 @@ public abstract class ProfileService extends Service {
                 component,
                 enable ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED
                        : PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-                PackageManager.DONT_KILL_APP);
+                PackageManager.DONT_KILL_APP | PackageManager.SYNCHRONOUS);
     }
 
     /**
