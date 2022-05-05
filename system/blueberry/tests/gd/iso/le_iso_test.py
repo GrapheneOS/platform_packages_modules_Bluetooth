@@ -90,13 +90,14 @@ class LeIsoTest(gd_base_test.GdBaseTestClass):
         create_response = self.dut.hci_le_advertising_manager.CreateAdvertiser(request)
         self.cert_l2cap.connect_le_acl(self.dut_address)
 
-    def _setup_cis_from_cert(self, cig_id, sdu_interval_m_to_s, sdu_interval_s_to_m, ft_m_to_s, ft_s_to_m, iso_interval,
-                             peripherals_clock_accuracy, packing, framing, max_transport_latency_m_to_s,
-                             max_transport_latency_s_to_m, cis_configs):
-        self.cert_iso.le_set_cig_parameters_test(cig_id, sdu_interval_m_to_s, sdu_interval_s_to_m, ft_m_to_s, ft_s_to_m,
-                                                 iso_interval, peripherals_clock_accuracy, packing, framing,
-                                                 max_transport_latency_m_to_s, max_transport_latency_s_to_m,
-                                                 cis_configs)
+    def _setup_cis_from_cert(self, cig_id, sdu_interval_m_to_s, sdu_interval_s_to_m, peripherals_clock_accuracy,
+                             packing, framing, max_transport_latency_m_to_s, max_transport_latency_s_to_m, cis_id,
+                             max_sdu_m_to_s, max_sdu_s_to_m, phy_m_to_s, phy_s_to_m, bn_m_to_s, bn_s_to_m):
+
+        self.cert_iso.le_set_cig_parameters(cig_id, sdu_interval_m_to_s, sdu_interval_s_to_m,
+                                            peripherals_clock_accuracy, packing, framing, max_transport_latency_m_to_s,
+                                            max_transport_latency_s_to_m, cis_id, max_sdu_m_to_s, max_sdu_s_to_m,
+                                            phy_m_to_s, phy_s_to_m, bn_m_to_s, bn_s_to_m)
 
         cis_handles = self.cert_iso.wait_le_set_cig_parameters_complete()
 
@@ -125,34 +126,24 @@ class LeIsoTest(gd_base_test.GdBaseTestClass):
         cig_id = 0x01
         sdu_interval_m_to_s = 0
         sdu_interval_s_to_m = 0x186a
-        ft_m_to_s = 0
-        ft_s_to_m = 1
-        iso_interval = 0x0A
         peripherals_clock_accuracy = 0
         packing = 0
         framing = 0
         max_transport_latency_m_to_s = 0
         max_transport_latency_s_to_m = 0
-        cis_configs = [
-            CisTestParameters(
-                cis_id=0x01,
-                nse=2,
-                max_sdu_m_to_s=100,
-                max_sdu_s_to_m=100,
-                max_pdu_m_to_s=100,
-                max_pdu_s_to_m=100,
-                phy_m_to_s=0x02,
-                phy_s_to_m=0x00,
-                bn_m_to_s=0,
-                bn_s_to_m=2,
-            )
-        ]
+        cis_id = 0x01
+        max_sdu_m_to_s = 100
+        max_sdu_s_to_m = 100
+        phy_m_to_s = 0x02
+        phy_s_to_m = 0x00
+        bn_m_to_s = 0
+        bn_s_to_m = 2
 
         self._setup_link_from_cert()
         (dut_cis_stream, cert_cis_stream) = self._setup_cis_from_cert(
-            cig_id, sdu_interval_m_to_s, sdu_interval_s_to_m, ft_m_to_s, ft_s_to_m, iso_interval,
-            peripherals_clock_accuracy, packing, framing, max_transport_latency_m_to_s, max_transport_latency_s_to_m,
-            cis_configs)
+            cig_id, sdu_interval_m_to_s, sdu_interval_s_to_m, peripherals_clock_accuracy, packing, framing,
+            max_transport_latency_m_to_s, max_transport_latency_s_to_m, cis_id, max_sdu_m_to_s, max_sdu_s_to_m,
+            phy_m_to_s, phy_s_to_m, bn_m_to_s, bn_s_to_m)
         dut_cis_stream.send(b'abcdefgh' * 10)
         assertThat(cert_cis_stream).emits(IsoMatchers.Data(b'abcdefgh' * 10))
 
@@ -167,34 +158,24 @@ class LeIsoTest(gd_base_test.GdBaseTestClass):
         cig_id = 0x01
         sdu_interval_m_to_s = 0x7530
         sdu_interval_s_to_m = 0x7530
-        ft_m_to_s = 3
-        ft_s_to_m = 2
-        iso_interval = 0x18
         peripherals_clock_accuracy = 0
         packing = 0
         framing = 0
         max_transport_latency_m_to_s = 0
         max_transport_latency_s_to_m = 0
-        cis_configs = [
-            CisTestParameters(
-                cis_id=0x01,
-                nse=5,
-                max_sdu_m_to_s=100,
-                max_sdu_s_to_m=100,
-                max_pdu_m_to_s=100,
-                max_pdu_s_to_m=100,
-                phy_m_to_s=0x02,
-                phy_s_to_m=0x00,
-                bn_m_to_s=3,
-                bn_s_to_m=1,
-            )
-        ]
+        cis_id = 0x01
+        max_sdu_m_to_s = 100
+        max_sdu_s_to_m = 100
+        phy_m_to_s = 0x02
+        phy_s_to_m = 0x00
+        bn_m_to_s = 3
+        bn_s_to_m = 1
 
         self._setup_link_from_cert()
         (dut_cis_stream, cert_cis_stream) = self._setup_cis_from_cert(
-            cig_id, sdu_interval_m_to_s, sdu_interval_s_to_m, ft_m_to_s, ft_s_to_m, iso_interval,
-            peripherals_clock_accuracy, packing, framing, max_transport_latency_m_to_s, max_transport_latency_s_to_m,
-            cis_configs)
+            cig_id, sdu_interval_m_to_s, sdu_interval_s_to_m, peripherals_clock_accuracy, packing, framing,
+            max_transport_latency_m_to_s, max_transport_latency_s_to_m, cis_id, max_sdu_m_to_s, max_sdu_s_to_m,
+            phy_m_to_s, phy_s_to_m, bn_m_to_s, bn_s_to_m)
         dut_cis_stream.send(b'abcdefgh' * 10)
         assertThat(cert_cis_stream).emits(IsoMatchers.Data(b'abcdefgh' * 10))
 
@@ -209,34 +190,24 @@ class LeIsoTest(gd_base_test.GdBaseTestClass):
         cig_id = 0x01
         sdu_interval_m_to_s = 0x0000
         sdu_interval_s_to_m = 0x4e30
-        ft_m_to_s = 0
-        ft_s_to_m = 2
-        iso_interval = 0x14
         peripherals_clock_accuracy = 0
         packing = 0
         framing = 1
         max_transport_latency_m_to_s = 0
         max_transport_latency_s_to_m = 0
-        cis_configs = [
-            CisTestParameters(
-                cis_id=0x01,
-                nse=4,
-                max_sdu_m_to_s=100,
-                max_sdu_s_to_m=100,
-                max_pdu_m_to_s=100,
-                max_pdu_s_to_m=100,
-                phy_m_to_s=0x02,
-                phy_s_to_m=0x00,
-                bn_m_to_s=0,
-                bn_s_to_m=2,
-            )
-        ]
+        cis_id = 0x01
+        max_sdu_m_to_s = 100
+        max_sdu_s_to_m = 100
+        phy_m_to_s = 0x02
+        phy_s_to_m = 0x00
+        bn_m_to_s = 0
+        bn_s_to_m = 2
 
         self._setup_link_from_cert()
         (dut_cis_stream, cert_cis_stream) = self._setup_cis_from_cert(
-            cig_id, sdu_interval_m_to_s, sdu_interval_s_to_m, ft_m_to_s, ft_s_to_m, iso_interval,
-            peripherals_clock_accuracy, packing, framing, max_transport_latency_m_to_s, max_transport_latency_s_to_m,
-            cis_configs)
+            cig_id, sdu_interval_m_to_s, sdu_interval_s_to_m, peripherals_clock_accuracy, packing, framing,
+            max_transport_latency_m_to_s, max_transport_latency_s_to_m, cis_id, max_sdu_m_to_s, max_sdu_s_to_m,
+            phy_m_to_s, phy_s_to_m, bn_m_to_s, bn_s_to_m)
         dut_cis_stream.send(b'abcdefgh' * 10)
         assertThat(cert_cis_stream).emits(IsoMatchers.Data(b'abcdefgh' * 10))
 
@@ -251,34 +222,24 @@ class LeIsoTest(gd_base_test.GdBaseTestClass):
         cig_id = 0x01
         sdu_interval_m_to_s = 0x14D5
         sdu_interval_s_to_m = 0x14D5
-        ft_m_to_s = 1
-        ft_s_to_m = 1
-        iso_interval = 0x08
         peripherals_clock_accuracy = 0
         packing = 0
         framing = 1
         max_transport_latency_m_to_s = 0
         max_transport_latency_s_to_m = 0
-        cis_configs = [
-            CisTestParameters(
-                cis_id=0x01,
-                nse=2,
-                max_sdu_m_to_s=100,
-                max_sdu_s_to_m=100,
-                max_pdu_m_to_s=100,
-                max_pdu_s_to_m=100,
-                phy_m_to_s=0x02,
-                phy_s_to_m=0x00,
-                bn_m_to_s=1,
-                bn_s_to_m=1,
-            )
-        ]
+        cis_id = 0x01
+        max_sdu_m_to_s = 100
+        max_sdu_s_to_m = 100
+        phy_m_to_s = 0x02
+        phy_s_to_m = 0x00
+        bn_m_to_s = 1
+        bn_s_to_m = 1
 
         self._setup_link_from_cert()
         (dut_cis_stream, cert_cis_stream) = self._setup_cis_from_cert(
-            cig_id, sdu_interval_m_to_s, sdu_interval_s_to_m, ft_m_to_s, ft_s_to_m, iso_interval,
-            peripherals_clock_accuracy, packing, framing, max_transport_latency_m_to_s, max_transport_latency_s_to_m,
-            cis_configs)
+            cig_id, sdu_interval_m_to_s, sdu_interval_s_to_m, peripherals_clock_accuracy, packing, framing,
+            max_transport_latency_m_to_s, max_transport_latency_s_to_m, cis_id, max_sdu_m_to_s, max_sdu_s_to_m,
+            phy_m_to_s, phy_s_to_m, bn_m_to_s, bn_s_to_m)
         dut_cis_stream.send(b'abcdefgh' * 10)
         assertThat(cert_cis_stream).emits(IsoMatchers.Data(b'abcdefgh' * 10))
 
