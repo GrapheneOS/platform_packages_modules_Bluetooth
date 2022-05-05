@@ -53,8 +53,6 @@
 #endif
 
 const tBTA_DM_CFG bta_dm_cfg = {
-    /* mobile phone COD */
-    BTA_DM_COD,
     /* page timeout in 625uS */
     BTA_DM_PAGE_TIMEOUT,
     /* true to avoid scatternet when av is streaming (be the central) */

@@ -106,6 +106,9 @@ void btif_dm_hh_open_failed(RawAddress* bdaddr) {
   mock_function_count_map[__func__]++;
 }
 void btif_dm_init(uid_set_t* set) { mock_function_count_map[__func__]++; }
+void btif_dm_get_local_class_of_device(DEV_CLASS device_class) {
+  mock_function_count_map[__func__]++;
+}
 void btif_dm_load_ble_local_keys(void) { mock_function_count_map[__func__]++; }
 void btif_dm_on_disable() { mock_function_count_map[__func__]++; }
 void btif_dm_pin_reply(const RawAddress bd_addr, uint8_t accept,

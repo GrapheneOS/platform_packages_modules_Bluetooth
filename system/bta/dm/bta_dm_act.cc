@@ -253,8 +253,6 @@ const tBTM_APPL_INFO bta_security = {
 #define MAX_DISC_RAW_DATA_BUF (4096)
 uint8_t g_disc_raw_data_buf[MAX_DISC_RAW_DATA_BUF];
 
-extern DEV_CLASS local_device_default_class;
-
 // Stores the local Input/Output Capabilities of the Bluetooth device.
 static uint8_t btm_local_io_caps;
 
@@ -359,7 +357,10 @@ void BTA_dm_on_hw_on() {
   memset(&bta_dm_conn_srvcs, 0, sizeof(bta_dm_conn_srvcs));
   memset(&bta_dm_di_cb, 0, sizeof(tBTA_DM_DI_CB));
 
-  memcpy(dev_class, p_bta_dm_cfg->dev_class, sizeof(dev_class));
+  btif_dm_get_local_class_of_device(dev_class);
+  LOG_INFO("%s: Read default class of device {0x%x, 0x%x, 0x%x}", __func__,
+      dev_class[0], dev_class[1], dev_class[2]);
+
   if (bluetooth::shim::is_gd_security_enabled()) {
     bluetooth::shim::BTM_SetDeviceClass(dev_class);
   } else {
