@@ -266,7 +266,7 @@ public class BluetoothPbapSimVcardManager {
         try {
             contactCursor = mContentResolver.query(myUri, SIM_PROJECTION, null,null, null);
             if (contactCursor != null) {
-                size = contactCursor.getCount() +1;  //always has the 0.vcf
+                size = contactCursor.getCount();
             }
         } finally {
             if (contactCursor != null) {
@@ -397,7 +397,7 @@ public class BluetoothPbapSimVcardManager {
                 String vcard = composer.createOneEntry(vcardType21);
                 if (vcard == null) {
                     Log.e(TAG, "Failed to read a contact. Error reason: "
-                            + composer.getErrorReason());
+                            + composer.getErrorReason() + ", count:" + count);
                     return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
                 }
                 buffer.onEntryCreated(vcard);
