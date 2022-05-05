@@ -28,7 +28,7 @@ pub trait ISuspend {
     ///
     /// Returns a positive number identifying the suspend if it can be started. If there is already
     /// a suspend, that active suspend id is returned.
-    fn suspend(&self, suspend_type: SuspendType) -> u32;
+    fn suspend(&self, suspend_type: SuspendType);
 
     /// Undoes previous suspend preparation identified by `suspend_id`.
     ///
@@ -45,7 +45,7 @@ pub trait ISuspendCallback: RPCProxy {
     fn on_suspend_ready(&self, suspend_id: u32);
 
     /// Triggered when the stack has resumed the previous suspend.
-    fn on_resumed(&self, suspend_id: u32);
+    fn on_resumed(&self, suspend_id: i32);
 }
 
 #[derive(FromPrimitive, ToPrimitive)]
@@ -104,8 +104,7 @@ impl ISuspend for Suspend {
         self.remove_callback(callback_id)
     }
 
-    fn suspend(&self, suspend_type: SuspendType) -> u32 {
-        let suspend_id = 1;
+    fn suspend(&self, suspend_type: SuspendType) {
         match suspend_type {
             SuspendType::Connected => {
                 // TODO(231345733): API For allowing classic HID only
@@ -127,9 +126,8 @@ impl ISuspend for Suspend {
         self.intf.lock().unwrap().disconnect_all_acls();
         self.intf.lock().unwrap().le_rand();
         self.callbacks.for_all_callbacks(|callback| {
-            callback.on_suspend_ready(suspend_id);
+            callback.on_suspend_ready(1 as u32);
         });
-        return 1;
     }
 
     fn resume(&self) -> bool {
