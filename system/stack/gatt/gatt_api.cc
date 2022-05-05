@@ -305,7 +305,12 @@ tGATT_STATUS GATTS_AddService(tGATT_IF gatt_if, btgatt_db_element_t* service,
 
   if (elem.type == GATT_UUID_PRI_SERVICE) {
     Uuid* p_uuid = gatts_get_service_uuid(elem.p_db);
-    elem.sdp_handle = gatt_add_sdp_record(*p_uuid, elem.s_hdl, elem.e_hdl);
+    if (*p_uuid != Uuid::From16Bit(UUID_SERVCLASS_GMCS_SERVER) &&
+        *p_uuid != Uuid::From16Bit(UUID_SERVCLASS_GTBS_SERVER)) {
+      elem.sdp_handle = gatt_add_sdp_record(*p_uuid, elem.s_hdl, elem.e_hdl);
+    } else {
+      elem.sdp_handle = 0;
+    }
   } else {
     elem.sdp_handle = 0;
   }
