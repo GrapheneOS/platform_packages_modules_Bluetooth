@@ -127,7 +127,7 @@ class PyLeIso(Closable):
                     bn_s_to_m=cc.bn_s_to_m,
                 ))
 
-        resp = self._device.iso.LeSetCigParameters(
+        resp = self._device.iso.LeSetCigParametersTest(
             iso_facade_pb2.LeSetCigParametersTestRequest(
                 cig_id=cig_id,
                 sdu_interval_m_to_s=sdu_interval_m_to_s,
