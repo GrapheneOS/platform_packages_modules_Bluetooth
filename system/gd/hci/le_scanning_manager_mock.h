@@ -56,7 +56,7 @@ class MockLeScanningManager : public LeScanningManager {
   MOCK_METHOD(void, BatchScanEnable, (BatchScanMode, uint32_t, uint32_t, BatchScanDiscardRule));
   MOCK_METHOD(void, BatchScanDisable, ());
   MOCK_METHOD(void, BatchScanReadReport, (ScannerId, BatchScanMode));
-  MOCK_METHOD(void, TrackAdvertiser, (ScannerId));
+  MOCK_METHOD(void, TrackAdvertiser, (uint8_t, ScannerId));
   MOCK_METHOD(void, RegisterScanningCallback, (ScanningCallback*));
 };
 
