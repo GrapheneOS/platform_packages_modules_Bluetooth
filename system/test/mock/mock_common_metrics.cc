@@ -204,5 +204,20 @@ void LogSocketConnectionState(
   mock_function_count_map[__func__]++;
 }
 
+void LogLeAudioConnectionSessionReported(
+    int32_t group_size, int32_t group_metric_id,
+    int64_t connection_duration_nanos,
+    std::vector<int64_t>& device_connecting_offset_nanos,
+    std::vector<int64_t>& device_connected_offset_nanos,
+    std::vector<int64_t>& device_connection_duration_nanos,
+    std::vector<int32_t>& device_connection_status,
+    std::vector<int32_t>& device_disconnection_status,
+    std::vector<RawAddress>& device_address,
+    std::vector<int64_t>& streaming_offset_nanos,
+    std::vector<int64_t>& streaming_duration_nanos,
+    std::vector<int32_t>& streaming_context_type) {
+  mock_function_count_map[__func__]++;
+}
+
 }  // namespace common
 }  // namespace bluetooth
