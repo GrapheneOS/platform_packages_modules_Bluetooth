@@ -2227,13 +2227,13 @@ void btif_dm_get_local_class_of_device(DEV_CLASS device_class) {
   // Error check the inputs. Use the default if problems are found
   if (local_device_class.size() != 3) {
     LOG_ERROR("COD malformed, must have unsigned 3 integers.");
-  } else if (local_device_class[0].has_value()
+  } else if (!local_device_class[0].has_value()
       || local_device_class[0].value() > 0xFF) {
     LOG_ERROR("COD malformed, first value is missing or too large.");
-  } else if (local_device_class[1].has_value()
+  } else if (!local_device_class[1].has_value()
       || local_device_class[1].value() > 0xFF) {
     LOG_ERROR("COD malformed, second value is missing or too large.");
-  } else if (local_device_class[2].has_value()
+  } else if (!local_device_class[2].has_value()
       || local_device_class[2].value() > 0xFF) {
     LOG_ERROR("COD malformed, third value is missing or too large.");
   } else {
