@@ -76,7 +76,7 @@ class LeScanningManager : public bluetooth::Module {
   virtual void BatchScanDisable();
   virtual void BatchScanReadReport(ScannerId scanner_id, BatchScanMode scan_mode);
 
-  virtual void TrackAdvertiser(ScannerId scanner_id);
+  virtual void TrackAdvertiser(uint8_t filter_index, ScannerId scanner_id);
 
   virtual void RegisterScanningCallback(ScanningCallback* scanning_callback);
 
