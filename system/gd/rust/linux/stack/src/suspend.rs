@@ -51,8 +51,8 @@ pub trait ISuspendCallback: RPCProxy {
 #[derive(FromPrimitive, ToPrimitive)]
 #[repr(u32)]
 pub enum SuspendType {
-    NoWakesAllowed,
-    AllowWakeFromHid,
+    Disconnected,
+    Connected,
     Other,
 }
 
@@ -128,14 +128,12 @@ impl ISuspend for Suspend {
     fn suspend(&self, suspend_type: SuspendType) -> u32 {
         let suspend_id = 1;
         match suspend_type {
-            // TODO(231437552): Rename AllowWakeFromHid to Connected since it isn't only for HID
-            SuspendType::AllowWakeFromHid => {
+            SuspendType::Connected => {
                 // TODO(231345733): API For allowing classic HID only
                 // TODO(230604670): check if A2DP is connected
                 // TODO(224603198): save all advertiser information
             }
-            // TODO(231437552): Rename NoWakesAllowed to Disconnected since it isn't only for HID
-            SuspendType::NoWakesAllowed => {
+            SuspendType::Disconnected => {
                 self.intf.lock().unwrap().clear_event_filter();
                 self.intf.lock().unwrap().clear_event_mask();
             }
