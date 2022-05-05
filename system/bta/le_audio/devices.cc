@@ -30,6 +30,7 @@
 #include "device/include/controller.h"
 #include "gd/common/strings.h"
 #include "le_audio_set_configuration_provider.h"
+#include "metrics_collector.h"
 #include "osi/include/log.h"
 #include "stack/include/acl_api.h"
 
@@ -57,6 +58,7 @@ void LeAudioDeviceGroup::AddNode(
     const std::shared_ptr<LeAudioDevice>& leAudioDevice) {
   leAudioDevice->group_id_ = group_id_;
   leAudioDevices_.push_back(std::weak_ptr<LeAudioDevice>(leAudioDevice));
+  MetricsCollector::Get()->OnGroupSizeUpdate(group_id_, leAudioDevices_.size());
 }
 
 void LeAudioDeviceGroup::RemoveNode(
@@ -73,6 +75,7 @@ void LeAudioDeviceGroup::RemoveNode(
           leAudioDevices_.begin(), leAudioDevices_.end(),
           [&leAudioDevice](auto& d) { return d.lock() == leAudioDevice; }),
       leAudioDevices_.end());
+  MetricsCollector::Get()->OnGroupSizeUpdate(group_id_, leAudioDevices_.size());
 }
 
 bool LeAudioDeviceGroup::IsEmpty(void) { return leAudioDevices_.size() == 0; }
