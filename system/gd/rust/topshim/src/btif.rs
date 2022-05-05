@@ -118,7 +118,7 @@ impl From<bindings::bt_acl_state_t> for BtAclState {
 #[derive(Clone, Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
 #[repr(u32)]
 pub enum BtDeviceType {
-    Bredr,
+    Bredr = 0x1,
     Ble,
     Dual,
     Unknown,
