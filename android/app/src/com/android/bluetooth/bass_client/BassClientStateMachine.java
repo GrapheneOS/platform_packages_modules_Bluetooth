@@ -141,6 +141,7 @@ public class BassClientStateMachine extends StateMachine {
     private final Map<Integer, BluetoothLeBroadcastReceiveState>
             mBluetoothLeBroadcastReceiveStates =
             new HashMap<Integer, BluetoothLeBroadcastReceiveState>();
+    private final Map<Integer, BluetoothLeBroadcastMetadata> mCurrentMetadata = new HashMap();
     private final Disconnected mDisconnected = new Disconnected();
     private final Connected mConnected = new Connected();
     private final Connecting mConnecting = new Connecting();
@@ -241,6 +242,20 @@ public class BassClientStateMachine extends StateMachine {
         mPendingOperation = -1;
         mPendingSourceId = -1;
         mPendingMetadata = null;
+        mCurrentMetadata.clear();
+    }
+
+    BluetoothLeBroadcastMetadata getCurrentBroadcastMetadata(Integer sourceId) {
+        return mCurrentMetadata.getOrDefault(sourceId, null);
+    }
+
+    private void setCurrentBroadcastMetadata(Integer sourceId,
+            BluetoothLeBroadcastMetadata metadata) {
+        if (metadata != null) {
+            mCurrentMetadata.put(sourceId, metadata);
+        } else {
+            mCurrentMetadata.remove(sourceId);
+        }
     }
 
     BluetoothLeBroadcastReceiveState getBroadcastReceiveStateForSourceDevice(
@@ -725,7 +740,7 @@ public class BassClientStateMachine extends StateMachine {
                 mService.getCallbacks().notifySourceAdded(mDevice,
                         recvState.getSourceId(), BluetoothStatusCodes.REASON_LOCAL_APP_REQUEST);
                 if (mPendingMetadata != null) {
-                    mService.updateSourceInternal(recvState.getSourceId(), mPendingMetadata);
+                    setCurrentBroadcastMetadata(recvState.getSourceId(), mPendingMetadata);
                 }
                 checkAndUpdateBroadcastCode(recvState);
                 processPASyncState(recvState);
@@ -735,13 +750,13 @@ public class BassClientStateMachine extends StateMachine {
                     BluetoothDevice removedDevice = oldRecvState.getSourceDevice();
                     log("sourceInfo removal" + removedDevice);
                     cancelActiveSync(removedDevice);
-                    mService.updateSourceInternal(oldRecvState.getSourceId(), null);
+                    setCurrentBroadcastMetadata(oldRecvState.getSourceId(), null);
                     mService.getCallbacks().notifySourceRemoved(mDevice,
                             oldRecvState.getSourceId(),
                             BluetoothStatusCodes.REASON_LOCAL_APP_REQUEST);
                 } else {
                     log("update to an existing recvState");
-                    mService.updateSourceInternal(recvState.getSourceId(), mPendingMetadata);
+                    setCurrentBroadcastMetadata(recvState.getSourceId(), mPendingMetadata);
                     mService.getCallbacks().notifySourceModified(mDevice,
                             recvState.getSourceId(), BluetoothStatusCodes.REASON_LOCAL_APP_REQUEST);
                     checkAndUpdateBroadcastCode(recvState);
@@ -960,6 +975,7 @@ public class BassClientStateMachine extends StateMachine {
         }
         mPendingOperation = -1;
         mPendingMetadata = null;
+        mCurrentMetadata.clear();
     }
 
     @VisibleForTesting
@@ -1290,8 +1306,8 @@ public class BassClientStateMachine extends StateMachine {
         res[1] = (byte) recvState.getSourceId();
         log("convertRecvStateToSetBroadcastCodeByteArray: Source device : "
                 + recvState.getSourceDevice());
-        BluetoothLeBroadcastMetadata metaData = mService.getSourceInternal(
-                recvState.getSourceId());
+        BluetoothLeBroadcastMetadata metaData =
+                getCurrentBroadcastMetadata(recvState.getSourceId());
         if (metaData == null) {
             Log.e(TAG, "Fail to find broadcast source, sourceId = "
                     + recvState.getSourceId());
