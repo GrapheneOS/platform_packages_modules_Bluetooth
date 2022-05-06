@@ -95,7 +95,7 @@ public class Config {
             new ProfileConfig(AvrcpControllerService.class, AvrcpControllerService.isEnabled(),
                     (1 << BluetoothProfile.AVRCP_CONTROLLER)),
             new ProfileConfig(BassClientService.class, BassClientService.isEnabled(),
-                    (1 >> BluetoothProfile.LE_AUDIO_BROADCAST_ASSISTANT)),
+                    (1 << BluetoothProfile.LE_AUDIO_BROADCAST_ASSISTANT)),
             new ProfileConfig(BatteryService.class, BatteryService.isEnabled(),
                     (1 << BluetoothProfile.BATTERY)),
             new ProfileConfig(CsipSetCoordinatorService.class,
