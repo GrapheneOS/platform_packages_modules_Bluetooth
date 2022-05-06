@@ -37,6 +37,7 @@ class LeConnectionManagementCallbacks {
   virtual void OnDisconnection(ErrorCode reason) = 0;
   virtual void OnReadRemoteVersionInformationComplete(
       hci::ErrorCode hci_status, uint8_t lmp_version, uint16_t manufacturer_name, uint16_t sub_version) = 0;
+  virtual void OnLeReadRemoteFeaturesComplete(hci::ErrorCode hci_status, uint64_t features) = 0;
   virtual void OnPhyUpdate(hci::ErrorCode hci_status, uint8_t tx_phy, uint8_t rx_phy) = 0;
   virtual void OnLocalAddressUpdate(AddressWithType address_with_type) = 0;
 };
