@@ -13,16 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "hci/le_scanning_manager.h"
+
 #include <memory>
 #include <mutex>
 #include <set>
+#include <unordered_map>
 
 #include "hci/acl_manager.h"
 #include "hci/controller.h"
 #include "hci/hci_layer.h"
 #include "hci/hci_packets.h"
 #include "hci/le_scanning_interface.h"
-#include "hci/le_scanning_manager.h"
 #include "hci/vendor_specific_event_manager.h"
 #include "module.h"
 #include "os/handler.h"
@@ -232,6 +234,7 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
     }
     is_filter_support_ = controller_->IsSupported(OpCode::LE_ADV_FILTER);
     is_batch_scan_support_ = controller->IsSupported(OpCode::LE_BATCH_SCAN);
+    total_num_of_advt_tracked_ = controller->GetVendorCapabilities().total_num_of_advt_tracked_;
     if (is_batch_scan_support_) {
       vendor_specific_event_manager_->RegisterEventHandler(
           VseSubeventCode::BLE_THRESHOLD, handler->BindOn(this, &LeScanningManager::impl::on_storage_threshold_breach));
@@ -681,6 +684,7 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
             module_handler_->BindOnceOn(this, &impl::on_advertising_filter_complete));
         break;
       case ApcfAction::DELETE:
+        tracker_id_map_.erase(filter_index);
         le_scanning_interface_->EnqueueCommand(
             LeAdvFilterDeleteFilteringParametersBuilder::Create(filter_index),
             module_handler_->BindOnceOn(this, &impl::on_advertising_filter_complete));
@@ -1039,16 +1043,23 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
         module_handler_->BindOnceOn(this, &impl::on_batch_scan_read_result_complete, scanner_id, total_num_of_records));
   }
 
-  void track_advertiser(ScannerId scanner_id) {
-    if (!is_batch_scan_support_) {
-      LOG_WARN("Batch scan is not supported");
+  void track_advertiser(uint8_t filter_index, ScannerId scanner_id) {
+    if (total_num_of_advt_tracked_ <= 0) {
+      LOG_WARN("advertisement tracking is not supported");
+      AdvertisingFilterOnFoundOnLostInfo on_found_on_lost_info = {};
+      on_found_on_lost_info.scanner_id = scanner_id;
+      on_found_on_lost_info.advertiser_info_present = AdvtInfoPresent::NO_ADVT_INFO_PRESENT;
+      scanning_callbacks_->OnTrackAdvFoundLost(on_found_on_lost_info);
+      return;
+    } else if (tracker_id_map_.size() >= total_num_of_advt_tracked_) {
       AdvertisingFilterOnFoundOnLostInfo on_found_on_lost_info = {};
       on_found_on_lost_info.scanner_id = scanner_id;
       on_found_on_lost_info.advertiser_info_present = AdvtInfoPresent::NO_ADVT_INFO_PRESENT;
       scanning_callbacks_->OnTrackAdvFoundLost(on_found_on_lost_info);
       return;
     }
-    tracker_id = scanner_id;
+    LOG_INFO("track_advertiser scanner_id %d, filter_index %d", (uint16_t)scanner_id, (uint16_t)filter_index);
+    tracker_id_map_[filter_index] = scanner_id;
   }
 
   void register_scanning_callback(ScanningCallback* scanning_callbacks) {
@@ -1242,15 +1253,16 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
   }
 
   void on_advertisement_tracking(VendorSpecificEventView event) {
-    if (tracker_id == kInvalidScannerId) {
-      LOG_WARN("Advertisement track is not register");
-      return;
-    }
     auto view = LEAdvertisementTrackingEventView::Create(event);
     ASSERT(view.IsValid());
+    uint8_t filter_index = view.GetApcfFilterIndex();
+    if (tracker_id_map_.find(filter_index) == tracker_id_map_.end()) {
+      LOG_WARN("Advertisement track for filter_index %d is not register", (uint16_t)filter_index);
+      return;
+    }
     AdvertisingFilterOnFoundOnLostInfo on_found_on_lost_info = {};
-    on_found_on_lost_info.scanner_id = tracker_id;
-    on_found_on_lost_info.filter_index = view.GetApcfFilterIndex();
+    on_found_on_lost_info.scanner_id = tracker_id_map_[filter_index];
+    on_found_on_lost_info.filter_index = filter_index;
     on_found_on_lost_info.advertiser_state = view.GetAdvertiserState();
     on_found_on_lost_info.advertiser_address = view.GetAdvertiserAddress();
     on_found_on_lost_info.advertiser_address_type = view.GetAdvertiserAddressType();
@@ -1319,7 +1331,8 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
   LeScanningFilterPolicy filter_policy_{LeScanningFilterPolicy::ACCEPT_ALL};
   BatchScanConfig batch_scan_config_;
   std::map<ScannerId, std::vector<uint8_t>> batch_scan_result_cache_;
-  ScannerId tracker_id = kInvalidScannerId;
+  std::unordered_map<uint8_t, ScannerId> tracker_id_map_;
+  uint16_t total_num_of_advt_tracked_ = 0x00;
 
   static void check_status(CommandCompleteView view) {
     switch (view.GetCommandOpCode()) {
@@ -1441,8 +1454,8 @@ void LeScanningManager::BatchScanReadReport(ScannerId scanner_id, BatchScanMode 
   CallOn(pimpl_.get(), &impl::batch_scan_read_results, scanner_id, 0, scan_mode);
 }
 
-void LeScanningManager::TrackAdvertiser(ScannerId scanner_id) {
-  CallOn(pimpl_.get(), &impl::track_advertiser, scanner_id);
+void LeScanningManager::TrackAdvertiser(uint8_t filter_index, ScannerId scanner_id) {
+  CallOn(pimpl_.get(), &impl::track_advertiser, filter_index, scanner_id);
 }
 
 void LeScanningManager::RegisterScanningCallback(ScanningCallback* scanning_callback) {
