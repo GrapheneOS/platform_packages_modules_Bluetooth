@@ -63,6 +63,11 @@ class LeAclConnectionTracker : public LeConnectionManagementCallbacks {
         connection_handle_, static_cast<uint8_t>(hci_status), lmp_version, manufacturer_name, sub_version);
     SAVE_OR_CALL(OnReadRemoteVersionInformationComplete, hci_status, lmp_version, manufacturer_name, sub_version);
   }
+
+  void OnLeReadRemoteFeaturesComplete(hci::ErrorCode hci_status, uint64_t features) override {
+    SAVE_OR_CALL(OnLeReadRemoteFeaturesComplete, hci_status, features);
+  }
+
   void OnPhyUpdate(hci::ErrorCode hci_status, uint8_t tx_phy, uint8_t rx_phy) override {
     SAVE_OR_CALL(OnPhyUpdate, hci_status, tx_phy, rx_phy);
   }
@@ -167,6 +172,16 @@ bool LeAclConnection::ReadRemoteVersionInformation() {
       pimpl_->tracker.client_handler_->BindOnce([](CommandStatusView status) {
         ASSERT(status.IsValid());
         ASSERT(status.GetCommandOpCode() == OpCode::READ_REMOTE_VERSION_INFORMATION);
+      }));
+  return true;
+}
+
+bool LeAclConnection::LeReadRemoteFeatures() {
+  pimpl_->tracker.le_acl_connection_interface_->EnqueueCommand(
+      LeReadRemoteFeaturesBuilder::Create(handle_),
+      pimpl_->tracker.client_handler_->BindOnce([](CommandStatusView status) {
+        ASSERT(status.IsValid());
+        ASSERT(status.GetCommandOpCode() == OpCode::LE_READ_REMOTE_FEATURES);
       }));
   return true;
 }
