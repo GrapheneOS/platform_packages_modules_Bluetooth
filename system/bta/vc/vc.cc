@@ -32,6 +32,8 @@
 #include "bta_vc_api.h"
 #include "btif_storage.h"
 #include "devices.h"
+#include "gd/common/strings.h"
+#include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
@@ -709,6 +711,61 @@ class VolumeControlImpl : public VolumeControl {
 
     ongoing_operations_.emplace_back(latest_operation_id_++, group_id,
                                      is_autonomous, opcode, arguments, devices);
+  }
+
+  void MuteUnmute(std::variant<RawAddress, int> addr_or_group_id, bool mute) {
+    std::vector<uint8_t> arg;
+
+    uint8_t opcode = mute ? kControlPointOpcodeMute : kControlPointOpcodeUnmute;
+
+    if (std::holds_alternative<RawAddress>(addr_or_group_id)) {
+      LOG_DEBUG("Address: %s: ",
+                (std::get<RawAddress>(addr_or_group_id)).ToString().c_str());
+      std::vector<RawAddress> devices = {
+          std::get<RawAddress>(addr_or_group_id)};
+
+      PrepareVolumeControlOperation(devices, bluetooth::groups::kGroupUnknown,
+                                    false, opcode, arg);
+    } else {
+      /* Handle group change */
+      auto group_id = std::get<int>(addr_or_group_id);
+      LOG_DEBUG("group: %d", group_id);
+      auto csis_api = CsisClient::Get();
+      if (!csis_api) {
+        LOG(ERROR) << __func__ << " Csis is not there";
+        return;
+      }
+
+      auto devices = csis_api->GetDeviceList(group_id);
+      for (auto it = devices.begin(); it != devices.end();) {
+        auto dev = volume_control_devices_.FindByAddress(*it);
+        if (!dev || !dev->IsConnected()) {
+          it = devices.erase(it);
+        } else {
+          it++;
+        }
+      }
+
+      if (devices.empty()) {
+        LOG(ERROR) << __func__ << " group id : " << group_id
+                   << " is not connected? ";
+        return;
+      }
+
+      PrepareVolumeControlOperation(devices, group_id, false, opcode, arg);
+    }
+
+    StartQueueOperation();
+  }
+
+  void Mute(std::variant<RawAddress, int> addr_or_group_id) override {
+    LOG_DEBUG();
+    MuteUnmute(addr_or_group_id, true /* mute */);
+  }
+
+  void UnMute(std::variant<RawAddress, int> addr_or_group_id) override {
+    LOG_DEBUG();
+    MuteUnmute(addr_or_group_id, false /* mute */);
   }
 
   void SetVolume(std::variant<RawAddress, int> addr_or_group_id,
