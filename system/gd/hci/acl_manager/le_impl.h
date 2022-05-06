@@ -341,6 +341,9 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
     std::unique_ptr<LeAclConnection> connection(new LeAclConnection(
         std::move(queue), le_acl_connection_interface_, handle, local_address, remote_address, role));
     connection->peer_address_with_type_ = AddressWithType(address, peer_address_type);
+    connection->interval_ = conn_interval;
+    connection->latency_ = conn_latency;
+    connection->supervision_timeout_ = supervision_timeout;
     connections.add(
         handle, remote_address, queue_down_end, handler_, connection->GetEventCallbacks([this](uint16_t handle) {
           this->connections.invalidate(handle);
@@ -426,6 +429,12 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
     std::unique_ptr<LeAclConnection> connection(new LeAclConnection(
         std::move(queue), le_acl_connection_interface_, handle, local_address, remote_address, role));
     connection->peer_address_with_type_ = AddressWithType(address, peer_address_type);
+    connection->interval_ = conn_interval;
+    connection->latency_ = conn_latency;
+    connection->supervision_timeout_ = supervision_timeout;
+    connection->local_resolvable_private_address_ = connection_complete.GetLocalResolvablePrivateAddress();
+    connection->peer_resolvable_private_address_ = connection_complete.GetPeerResolvablePrivateAddress();
+    connection_complete.GetLocalResolvablePrivateAddress();
     connections.add(
         handle, remote_address, queue_down_end, handler_, connection->GetEventCallbacks([this](uint16_t handle) {
           this->connections.invalidate(handle);
