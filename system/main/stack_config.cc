@@ -46,7 +46,7 @@ static future_t* init() {
 #elif defined(OS_GENERIC)
   const char* path = "bt_stack.conf";
 #else  // !defined(OS_GENERIC)
-  const char* path = "/etc/bluetooth/bt_stack.conf";
+  const char* path = "/apex/com.android.bluetooth/etc/bluetooth/bt_stack.conf";
 #endif  // defined(OS_GENERIC)
   CHECK(path != NULL);
 
