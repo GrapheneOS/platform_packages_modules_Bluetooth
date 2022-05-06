@@ -716,7 +716,8 @@ class LeShimAclConnection
   }
 
   void ReadRemoteControllerInformation() override {
-    // TODO Issue LeReadRemoteFeatures Command
+    connection_->LeReadRemoteFeatures();
+    connection_->ReadRemoteVersionInformation();
   }
 
   bluetooth::hci::AddressWithType GetLocalAddressWithType() {
@@ -744,6 +745,11 @@ class LeShimAclConnection
     TRY_POSTING_ON_MAIN(interface_.on_read_remote_version_information_complete,
                         ToLegacyHciErrorCode(hci_status), handle_, lmp_version,
                         manufacturer_name, sub_version);
+  }
+
+  void OnLeReadRemoteFeaturesComplete(hci::ErrorCode hci_status,
+                                      uint64_t features) {
+    // TODO
   }
 
   void OnPhyUpdate(hci::ErrorCode hci_status, uint8_t tx_phy,
