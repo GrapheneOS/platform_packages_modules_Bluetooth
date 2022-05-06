@@ -98,6 +98,8 @@ void Link::OnReadRemoteVersionInformationComplete(
       hci_status, GetDevice(), lmp_version, manufacturer_name, sub_version);
 }
 
+void Link::OnLeReadRemoteFeaturesComplete(hci::ErrorCode hci_status, uint64_t features) {}
+
 void Link::OnPhyUpdate(hci::ErrorCode hci_status, uint8_t tx_phy, uint8_t rx_phy) {}
 
 void Link::OnLocalAddressUpdate(hci::AddressWithType address_with_type) {
