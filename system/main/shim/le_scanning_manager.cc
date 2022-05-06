@@ -149,8 +149,9 @@ void BleScannerInterfaceImpl::ScanFilterParamSetup(
   bluetooth::hci::AdvertisingFilterParameter advertising_filter_parameter;
 
   if (filt_param != nullptr) {
-    if (filt_param && filt_param->dely_mode == 1) {
-      bluetooth::shim::GetScanning()->TrackAdvertiser(client_if);
+    if (filt_param && filt_param->dely_mode == 1 &&
+        apcf_action == hci::ApcfAction::ADD) {
+      bluetooth::shim::GetScanning()->TrackAdvertiser(filter_index, client_if);
     }
     advertising_filter_parameter.feature_selection = filt_param->feat_seln;
     advertising_filter_parameter.list_logic_type = filt_param->list_logic_type;

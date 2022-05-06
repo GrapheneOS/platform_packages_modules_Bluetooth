@@ -420,8 +420,8 @@ impl PowerdSuspendManager {
         if let Some(adapter_suspend_dbus) = &self.context.lock().unwrap().adapter_suspend_dbus {
             let adapter_suspend_id =
                 adapter_suspend_dbus.suspend(match suspend_imminent.get_reason() {
-                    SuspendImminent_Reason::IDLE => SuspendType::AllowWakeFromHid,
-                    SuspendImminent_Reason::LID_CLOSED => SuspendType::NoWakesAllowed,
+                    SuspendImminent_Reason::IDLE => SuspendType::Connected,
+                    SuspendImminent_Reason::LID_CLOSED => SuspendType::Disconnected,
                     SuspendImminent_Reason::OTHER => SuspendType::Other,
                 });
             log::debug!("Adapter suspend id = {}", adapter_suspend_id);
