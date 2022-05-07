@@ -118,10 +118,10 @@ impl From<bindings::bt_acl_state_t> for BtAclState {
 #[derive(Clone, Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
 #[repr(u32)]
 pub enum BtDeviceType {
-    Bredr = 0x1,
+    Unknown = 0,
+    Bredr,
     Ble,
     Dual,
-    Unknown,
 }
 
 #[derive(Clone, Debug, Eq, Hash, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
@@ -487,7 +487,7 @@ impl From<bindings::bt_property_t> for BluetoothProperty {
                 BluetoothProperty::ClassOfDevice(u32_from_bytes(slice))
             }
             BtPropertyType::TypeOfDevice => BluetoothProperty::TypeOfDevice(
-                BtDeviceType::from_u32(u32_from_bytes(slice)).unwrap_or(BtDeviceType::Bredr),
+                BtDeviceType::from_u32(u32_from_bytes(slice)).unwrap_or(BtDeviceType::Unknown),
             ),
             BtPropertyType::ServiceRecord => {
                 let v = unsafe { *(prop.val as *const bindings::bt_service_record_t) };
