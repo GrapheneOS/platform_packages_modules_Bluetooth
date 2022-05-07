@@ -23,13 +23,14 @@ from blueberry.tests.gd.cert.context import get_current_context
 from blueberry.tests.gd.cert.truth import assertThat
 from blueberry.tests.gd_sl4a.lib.bt_constants import adv_succ, ble_advertise_settings_modes, ble_scan_settings_modes, ble_address_types, ble_scan_settings_phys, gatt_connection_state_change, gatt_transport, scan_result
 from blueberry.tests.gd_sl4a.lib.ble_lib import generate_ble_scan_objects, generate_ble_advertise_objects
-from blueberry.tests.sl4a_sl4a.lib.sl4a_sl4a_base_test import Sl4aSl4aBaseTestClass
+from blueberry.tests.sl4a_sl4a.lib import sl4a_sl4a_base_test
 from blueberry.facade import common_pb2 as common
 
+from mobly import test_runner
 from mobly.controllers.android_device_lib.adb import AdbError
 
 
-class GattConnectTest(Sl4aSl4aBaseTestClass):
+class GattConnectTest(sl4a_sl4a_base_test.Sl4aSl4aBaseTestClass):
 
     def setup_class(self):
         super().setup_class()
@@ -135,3 +136,7 @@ class GattConnectTest(Sl4aSl4aBaseTestClass):
 
         # Test over
         self.cert.sl4a.bleStopBleAdvertising(advertise_callback)
+
+
+if __name__ == '__main__':
+    test_runner.main()
