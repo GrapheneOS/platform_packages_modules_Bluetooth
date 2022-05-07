@@ -873,9 +873,11 @@ void bta_dm_search_start(tBTA_DM_MSG* p_data) {
  ******************************************************************************/
 void bta_dm_search_cancel() {
   if (BTM_IsInquiryActive()) {
-    BTM_CancelInquiry();
-    bta_dm_search_cancel_notify();
-    bta_dm_search_cmpl();
+    LOG_DEBUG("Cancelling search with inquiry active");
+    BTM_CancelInquiryNotifyWhenComplete([]() {
+      bta_dm_search_cancel_notify();
+      bta_dm_search_cmpl();
+    });
   }
   /* If no Service Search going on then issue cancel remote name in case it is
      active */
