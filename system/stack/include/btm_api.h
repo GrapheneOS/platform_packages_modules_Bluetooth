@@ -25,6 +25,7 @@
 #define BTM_API_H
 
 #include <cstdint>
+#include <functional>
 
 #include "device/include/esco_parameters.h"
 #include "stack/btm/neighbor_inquiry.h"
@@ -316,6 +317,7 @@ uint16_t BTM_IsInquiryActive(void);
  *
  ******************************************************************************/
 void BTM_CancelInquiry(void);
+void BTM_CancelInquiryNotifyWhenComplete(std::function<void()>);
 
 /*******************************************************************************
  *
