@@ -3469,7 +3469,9 @@ static void btif_debug_av_source_dump(int fd) {
           btif_av_source.ActivePeer().ToString().c_str());
   for (auto it : btif_av_source.Peers()) {
     const BtifAvPeer* peer = it.second;
-    btif_debug_av_peer_dump(fd, *peer);
+    if (peer != nullptr) {
+      btif_debug_av_peer_dump(fd, *peer);
+    }
   }
 }
 
