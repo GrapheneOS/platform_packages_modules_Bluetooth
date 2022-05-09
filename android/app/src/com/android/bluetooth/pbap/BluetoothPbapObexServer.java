@@ -101,6 +101,17 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
             "/telecom/och",
             "/telecom/mch",
             "/telecom/cch",
+    };
+
+    // Currently not support SIM card
+    @SuppressWarnings("unused") private static final String[] LEGAL_PATH_WITH_SIM = {
+            "/telecom",
+            "/telecom/pb",
+            "/telecom/fav",
+            "/telecom/ich",
+            "/telecom/och",
+            "/telecom/mch",
+            "/telecom/cch",
             "/SIM1",
             "/SIM1/telecom",
             "/SIM1/telecom/ich",
@@ -108,7 +119,6 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
             "/SIM1/telecom/mch",
             "/SIM1/telecom/cch",
             "/SIM1/telecom/pb"
-
     };
 
     // SIM card
@@ -463,23 +473,21 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
                 appParamValue.needTag = ContentType.PHONEBOOK;
             } else if (mCurrentPath.equals(FAV_PATH)) {
                 appParamValue.needTag = ContentType.FAVORITES;
-            } else if (mCurrentPath.equals(ICH_PATH) || mCurrentPath.equals(SIM_ICH_PATH)) {
+            } else if (mCurrentPath.equals(ICH_PATH)) {
                 appParamValue.needTag = ContentType.INCOMING_CALL_HISTORY;
-            } else if (mCurrentPath.equals(OCH_PATH)|| mCurrentPath.equals(SIM_OCH_PATH)) {
+            } else if (mCurrentPath.equals(OCH_PATH)) {
                 appParamValue.needTag = ContentType.OUTGOING_CALL_HISTORY;
-            } else if (mCurrentPath.equals(MCH_PATH)|| mCurrentPath.equals(SIM_MCH_PATH)) {
+            } else if (mCurrentPath.equals(MCH_PATH)) {
                 appParamValue.needTag = ContentType.MISSED_CALL_HISTORY;
                 mNeedNewMissedCallsNum = true;
-            } else if (mCurrentPath.equals(CCH_PATH)|| mCurrentPath.equals(SIM_CCH_PATH)) {
+            } else if (mCurrentPath.equals(CCH_PATH)) {
                 appParamValue.needTag = ContentType.COMBINED_CALL_HISTORY;
-            } else if (mCurrentPath.equals(TELECOM_PATH)|| mCurrentPath.equals(SIM_PATH)) {
+            } else if (mCurrentPath.equals(TELECOM_PATH)) {
                 /* PBAP 1.1.1 change */
                 if (!validName && type.equals(TYPE_LISTING)) {
                     Log.e(TAG, "invalid vcard listing request in default folder");
                     return ResponseCodes.OBEX_HTTP_NOT_FOUND;
                 }
-            } else if (mCurrentPath.equals(SIM_PB_PATH)) {
-                appParamValue.needTag = ContentType.SIM_PHONEBOOK;
             } else {
                 Log.w(TAG, "mCurrentpath is not valid path!!!");
                 return ResponseCodes.OBEX_HTTP_NOT_ACCEPTABLE;
@@ -495,6 +503,9 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
                 TYPE_PB, TYPE_LISTING, mCurrentPath)) {
                 appParamValue.needTag = ContentType.SIM_PHONEBOOK;
                 if (D) Log.d(TAG, "download SIM phonebook request");
+                // Not support SIM card currently
+                Log.w(TAG, "Not support access SIM card info!");
+                return ResponseCodes.OBEX_HTTP_NOT_ACCEPTABLE;
             } else if (isNameMatchTarget(name, PB)) {
                 appParamValue.needTag = ContentType.PHONEBOOK;
                 if (D) {
