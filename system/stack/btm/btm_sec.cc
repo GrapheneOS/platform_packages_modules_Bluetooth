@@ -2780,12 +2780,16 @@ void btm_proc_sp_req_evt(tBTM_SP_EVT event, const uint8_t* p) {
             BTM_ConfirmReqReply(status, p_bda);
             return;
           }
-          if ((p_dev_rec->rmt_io_caps == BTM_IO_CAP_IO) &&
+
+          if ((p_dev_rec->rmt_io_caps == BTM_IO_CAP_IO ||
+               p_dev_rec->rmt_io_caps == BTM_IO_CAP_OUT) &&
               (btm_cb.devcb.loc_io_caps == BTM_IO_CAP_IO) &&
               ((p_dev_rec->rmt_auth_req & BTM_AUTH_SP_YES) ||
                (btm_cb.devcb.loc_auth_req & BTM_AUTH_SP_YES))) {
-            /* Both devices are DisplayYesNo and one or both devices want to
-               authenticate -> use authenticated link key */
+            /* Use Numeric Comparison if
+             * 1. Local IO capability is DisplayYesNo,
+             * 2. Remote IO capability is DisplayOnly or DiaplayYesNo, and
+             * 3. Either of the devices have requested authenticated link key */
             evt_data.cfm_req.just_works = false;
           }
         }
