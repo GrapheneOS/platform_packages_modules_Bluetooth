@@ -245,6 +245,10 @@ public class BassClientStateMachine extends StateMachine {
         mCurrentMetadata.clear();
     }
 
+    Boolean hasPendingSourceOperation() {
+        return mPendingMetadata != null;
+    }
+
     BluetoothLeBroadcastMetadata getCurrentBroadcastMetadata(Integer sourceId) {
         return mCurrentMetadata.getOrDefault(sourceId, null);
     }
