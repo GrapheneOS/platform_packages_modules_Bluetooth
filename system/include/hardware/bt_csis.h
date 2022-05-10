@@ -46,6 +46,8 @@ enum class CsisGroupLockStatus {
   LOCKED_GROUP_MEMBER_LOST,
 };
 
+static constexpr uint8_t CSIS_RANK_INVALID = 0x00;
+
 class CsisClientCallbacks {
  public:
   virtual ~CsisClientCallbacks() = default;
@@ -56,7 +58,7 @@ class CsisClientCallbacks {
 
   /** Callback for the new available device */
   virtual void OnDeviceAvailable(const RawAddress& addr, int group_id,
-                                 int group_size,
+                                 int group_size, int rank,
                                  const bluetooth::Uuid& uuid) = 0;
 
   /* Callback for available set member*/
