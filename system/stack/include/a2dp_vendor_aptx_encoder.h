@@ -25,10 +25,11 @@
 #include <stdint.h>
 
 #include "a2dp_codec_api.h"
+#include "a2dp_vendor.h"
 
 // Loads the A2DP aptX encoder.
-// Return true on success, otherwise false.
-bool A2DP_VendorLoadEncoderAptx(void);
+// Return loading status
+tLOADING_CODEC_STATUS A2DP_VendorLoadEncoderAptx(void);
 
 // Unloads the A2DP aptX encoder.
 void A2DP_VendorUnloadEncoderAptx(void);
@@ -62,5 +63,24 @@ int a2dp_vendor_aptx_get_effective_frame_size();
 // Prepare and send A2DP aptX encoded frames.
 // |timestamp_us| is the current timestamp (in microseconds).
 void a2dp_vendor_aptx_send_frames(uint64_t timestamp_us);
+
+typedef int (*tAPTX_ENCODER_INIT)(void* state, short endian);
+
+typedef int (*tAPTX_ENCODER_ENCODE_STEREO)(void* state, void* pcmL, void* pcmR,
+                                           void* buffer);
+
+typedef int (*tAPTX_ENCODER_SIZEOF_PARAMS)(void);
+
+typedef struct {
+  tAPTX_ENCODER_INIT init_func;
+  tAPTX_ENCODER_ENCODE_STEREO encode_stereo_func;
+  tAPTX_ENCODER_SIZEOF_PARAMS sizeof_params_func;
+} tAPTX_API;
+
+// Filled the |external_api| with the ptr to the codec api
+// return true if the codec is loaded
+// This is for test purpose and ensure we are testing the api in real life
+// condition
+bool A2DP_VendorCopyAptxApi(tAPTX_API& external_api);
 
 #endif  // A2DP_VENDOR_APTX_ENCODER_H
