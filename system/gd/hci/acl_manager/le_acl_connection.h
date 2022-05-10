@@ -85,6 +85,7 @@ class LeAclConnection : public AclConnection {
                                   uint16_t supervision_timeout, uint16_t min_ce_length, uint16_t max_ce_length);
 
   virtual bool ReadRemoteVersionInformation() override;
+  virtual bool LeReadRemoteFeatures();
 
   // TODO implement LeRemoteConnectionParameterRequestReply, LeRemoteConnectionParameterRequestNegativeReply
 
