@@ -15,11 +15,17 @@
 #   limitations under the License.
 
 from blueberry.tests.sl4a_sl4a.gatt.gatt_connect_test import GattConnectTest
+from blueberry.tests.sl4a_sl4a.gatt.gatt_connect_with_irk_test import GattConnectWithIrkTest
+from blueberry.tests.sl4a_sl4a.gatt.gatt_notify_test import GattNotifyTest
 
 from mobly import suite_runner
 import argparse
 
-ALL_TESTS = [GattConnectTest]
+ALL_TESTS = [
+    GattConnectTest,
+    GattConnectWithIrk,
+    GattNotifyTest,
+]
 
 
 def main():
