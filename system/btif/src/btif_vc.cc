@@ -143,6 +143,20 @@ class VolumeControlInterfaceImpl : public VolumeControlInterface,
                                       std::move(addr_or_group_id), volume));
   }
 
+  void Mute(std::variant<RawAddress, int> addr_or_group_id) override {
+    DVLOG(2) << __func__;
+    do_in_main_thread(
+        FROM_HERE, Bind(&VolumeControl::Mute, Unretained(VolumeControl::Get()),
+                        std::move(addr_or_group_id)));
+  }
+
+  void Unmute(std::variant<RawAddress, int> addr_or_group_id) override {
+    DVLOG(2) << __func__;
+    do_in_main_thread(FROM_HERE, Bind(&VolumeControl::UnMute,
+                                      Unretained(VolumeControl::Get()),
+                                      std::move(addr_or_group_id)));
+  }
+
   void RemoveDevice(const RawAddress& address) override {
     DVLOG(2) << __func__ << " address: " << address;
 
