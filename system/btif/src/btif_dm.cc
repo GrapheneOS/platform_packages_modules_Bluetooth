@@ -3403,6 +3403,11 @@ void btif_dm_le_rand(LeRandCallback callback) {
   bta_dm_le_rand(callback);
 }
 
+void btif_dm_allow_wake_by_hid() {
+  // Autoplumbed
+  BTA_DmAllowWakeByHid();
+}
+
 void btif_dm_restore_filter_accept_list() {
   // Autoplumbed
   BTA_DmRestoreFilterAcceptList();

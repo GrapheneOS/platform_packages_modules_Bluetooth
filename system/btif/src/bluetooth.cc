@@ -485,6 +485,12 @@ static int restore_filter_accept_list() {
   return BT_STATUS_SUCCESS;
 }
 
+static int allow_wake_by_hid() {
+  if (!interface_ready()) return BT_STATUS_NOT_READY;
+  do_in_main_thread(FROM_HERE, base::BindOnce(btif_dm_allow_wake_by_hid));
+  return BT_STATUS_SUCCESS;
+}
+
 static void dump(int fd, const char** arguments) {
   btif_debug_conn_dump(fd);
   btif_debug_bond_event_dump(fd);
@@ -744,6 +750,7 @@ EXPORT_SYMBOL bt_interface_t bluetoothInterface = {
     clear_filter_accept_list,
     disconnect_all_acls,
     le_rand,
+    allow_wake_by_hid,
     restore_filter_accept_list,
     set_default_event_mask,
     set_event_filter_inquiry_result_all_devices};
