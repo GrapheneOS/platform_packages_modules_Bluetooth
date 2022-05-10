@@ -89,6 +89,9 @@ class Link : public l2cap::internal::ILink, public hci::acl_manager::LeConnectio
 
   void OnReadRemoteVersionInformationComplete(
       hci::ErrorCode hci_status, uint8_t lmp_version, uint16_t manufacturer_name, uint16_t sub_version) override;
+
+  void OnLeReadRemoteFeaturesComplete(hci::ErrorCode hci_status, uint64_t features) override;
+
   void OnPhyUpdate(hci::ErrorCode hci_status, uint8_t tx_phy, uint8_t rx_phy) override;
 
   void OnLocalAddressUpdate(hci::AddressWithType address_with_type) override;
