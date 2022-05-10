@@ -13,6 +13,7 @@ service AdapterService {
   rpc ClearFilterAcceptList(google.protobuf.Empty) returns (google.protobuf.Empty) {}
   rpc DisconnectAllAcls(google.protobuf.Empty) returns (google.protobuf.Empty) {}
   rpc LeRand(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc AllowWakeByHid(google.protobuf.Empty) returns (google.protobuf.Empty) {}
   rpc RestoreFilterAcceptList(google.protobuf.Empty) returns (google.protobuf.Empty) {}
   rpc SetDefaultEventMask(google.protobuf.Empty) returns (google.protobuf.Empty) {}
   rpc SetEventFilterInquiryResultAllDevices(google.protobuf.Empty) returns (google.protobuf.Empty) {}
