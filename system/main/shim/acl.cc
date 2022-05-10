@@ -716,7 +716,8 @@ class LeShimAclConnection
   }
 
   void ReadRemoteControllerInformation() override {
-    // TODO Issue LeReadRemoteFeatures Command
+    connection_->LeReadRemoteFeatures();
+    connection_->ReadRemoteVersionInformation();
   }
 
   bluetooth::hci::AddressWithType GetLocalAddressWithType() {
@@ -744,6 +745,11 @@ class LeShimAclConnection
     TRY_POSTING_ON_MAIN(interface_.on_read_remote_version_information_complete,
                         ToLegacyHciErrorCode(hci_status), handle_, lmp_version,
                         manufacturer_name, sub_version);
+  }
+
+  void OnLeReadRemoteFeaturesComplete(hci::ErrorCode hci_status,
+                                      uint64_t features) {
+    // TODO
   }
 
   void OnPhyUpdate(hci::ErrorCode hci_status, uint8_t tx_phy,
@@ -1491,6 +1497,17 @@ void shim::legacy::Acl::OnLeConnectSuccess(
   hci::Role connection_role = connection->GetRole();
   bool locally_initiated = connection->locally_initiated_;
 
+  uint16_t conn_interval = connection->interval_;
+  uint16_t conn_latency = connection->latency_;
+  uint16_t conn_timeout = connection->supervision_timeout_;
+
+  RawAddress local_rpa =
+      ToRawAddress(connection->local_resolvable_private_address_);
+  RawAddress peer_rpa =
+      ToRawAddress(connection->peer_resolvable_private_address_);
+  tBLE_ADDR_TYPE peer_addr_type =
+      (tBLE_ADDR_TYPE)connection->peer_address_with_type_.GetAddressType();
+
   pimpl_->handle_to_le_connection_map_.emplace(
       handle, std::make_unique<LeShimAclConnection>(
                   acl_interface_.on_send_data_upwards,
@@ -1505,14 +1522,6 @@ void shim::legacy::Acl::OnLeConnectSuccess(
 
   tBLE_BD_ADDR legacy_address_with_type =
       ToLegacyAddressWithType(address_with_type);
-
-  uint16_t conn_interval = 36; /* TODO Default to 45 msec*/
-  uint16_t conn_latency = 0;   /* TODO Default to zero events */
-  uint16_t conn_timeout = 500; /* TODO Default to 5s */
-
-  RawAddress local_rpa = RawAddress::kEmpty; /* TODO enhanced */
-  RawAddress peer_rpa = RawAddress::kEmpty;  /* TODO enhanced */
-  tBLE_ADDR_TYPE peer_addr_type = BLE_ADDR_PUBLIC; /* TODO public */
 
   // Once an le connection has successfully been established
   // the device address is removed from the controller accept list.
