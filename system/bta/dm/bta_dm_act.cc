@@ -4107,6 +4107,20 @@ void bta_dm_le_rand(LeRandCallback cb) {
 
 /*******************************************************************************
  *
+ * Function        BTA_DmAllowWakeByHid
+ *
+ * Description    Allow the device to be woken by HID devices
+ *
+ * Parameters
+ *
+ *******************************************************************************/
+void bta_dm_allow_wake_by_hid() {
+  // Autoplumbed
+  bluetooth::shim::BTM_AllowWakeByHid();
+}
+
+/*******************************************************************************
+ *
  * Function        BTA_DmRestoreFilterAcceptList
  *
  * Description    Floss: Restore the state of the for the filter accept list
