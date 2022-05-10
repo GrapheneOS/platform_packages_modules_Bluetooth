@@ -1100,21 +1100,9 @@ impl BluetoothInterface {
         ccall!(self, allow_wake_by_hid)
     }
 
-    /*async*/
     pub fn le_rand(&self) -> i32 {
-        // global_future = Future()
         ccall!(self, le_rand)
-        // await glogal_future
-        // result = global_future.result()
-        // global_future = null
-        // return result
     }
-
-    /*
-    pub fn le_rand_cb(&self, random: u64) {
-        global_future.set_result(random)
-    }
-    */
 
     pub fn restore_filter_accept_list(&self) -> i32 {
         ccall!(self, restore_filter_accept_list)
