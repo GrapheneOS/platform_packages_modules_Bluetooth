@@ -919,6 +919,20 @@ TEST_F(VolumeControlValueSetTest, test_set_volume) {
   VolumeControl::Get()->SetVolume(test_address, 0x10);
 }
 
+TEST_F(VolumeControlValueSetTest, test_mute) {
+  std::vector<uint8_t> mute({0x06, 0x00});
+  EXPECT_CALL(gatt_queue,
+              WriteCharacteristic(conn_id, 0x0024, mute, GATT_WRITE, _, _));
+  VolumeControl::Get()->Mute(test_address);
+}
+
+TEST_F(VolumeControlValueSetTest, test_unmute) {
+  std::vector<uint8_t> unmute({0x05, 0x00});
+  EXPECT_CALL(gatt_queue,
+              WriteCharacteristic(conn_id, 0x0024, unmute, GATT_WRITE, _, _));
+  VolumeControl::Get()->UnMute(test_address);
+}
+
 TEST_F(VolumeControlValueSetTest, test_set_ext_audio_out_volume_offset) {
   std::vector<uint8_t> expected_data({0x01, 0x00, 0x34, 0x12});
   EXPECT_CALL(gatt_queue, WriteCharacteristic(conn_id, 0x0088, expected_data,

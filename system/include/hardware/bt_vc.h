@@ -86,6 +86,12 @@ class VolumeControlInterface {
   /** Set the volume */
   virtual void SetVolume(std::variant<RawAddress, int> addr_or_group_id,
                          uint8_t volume) = 0;
+  /** Mute the volume */
+  virtual void Mute(std::variant<RawAddress, int> addr_or_group_id) = 0;
+
+  /** Unmute the volume */
+  virtual void Unmute(std::variant<RawAddress, int> addr_or_group_id) = 0;
+
   virtual void GetExtAudioOutVolumeOffset(const RawAddress& address,
                                           uint8_t ext_output_id) = 0;
   virtual void SetExtAudioOutVolumeOffset(const RawAddress& address,
