@@ -582,6 +582,34 @@ public class VolumeControlService extends ProfileService {
         mVolumeControlNativeInterface.setVolumeGroup(groupId, volume);
     }
 
+    /**
+     * {@hide}
+     */
+    public void mute(BluetoothDevice device) {
+        mVolumeControlNativeInterface.mute(device);
+    }
+
+    /**
+     * {@hide}
+     */
+    public void muteGroup(int groupId) {
+        mVolumeControlNativeInterface.muteGroup(groupId);
+    }
+
+    /**
+     * {@hide}
+     */
+    public void unmute(BluetoothDevice device) {
+        mVolumeControlNativeInterface.unmute(device);
+    }
+
+    /**
+     * {@hide}
+     */
+    public void unmuteGroup(int groupId) {
+        mVolumeControlNativeInterface.unmuteGroup(groupId);
+    }
+
     void handleVolumeControlChanged(BluetoothDevice device, int groupId,
                                     int volume, boolean mute, boolean isAutonomous) {
         if (!isAutonomous) {
@@ -1106,6 +1134,76 @@ public class VolumeControlService extends ProfileService {
                 VolumeControlService service = getService(source);
                 if (service != null) {
                     service.setVolumeGroup(groupId, volume);
+                }
+                receiver.send(null);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
+            }
+        }
+
+        @Override
+        public void mute(BluetoothDevice device,  AttributionSource source,
+                SynchronousResultReceiver receiver) {
+            try {
+                Objects.requireNonNull(device, "device cannot be null");
+                Objects.requireNonNull(source, "source cannot be null");
+                Objects.requireNonNull(receiver, "receiver cannot be null");
+
+                VolumeControlService service = getService(source);
+                if (service != null) {
+                    service.mute(device);
+                }
+                receiver.send(null);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
+            }
+        }
+
+        @Override
+        public void muteGroup(int groupId, AttributionSource source,
+                SynchronousResultReceiver receiver) {
+            try {
+                Objects.requireNonNull(source, "source cannot be null");
+                Objects.requireNonNull(receiver, "receiver cannot be null");
+
+                VolumeControlService service = getService(source);
+                if (service != null) {
+                    service.muteGroup(groupId);
+                }
+                receiver.send(null);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
+            }
+        }
+
+        @Override
+        public void unmute(BluetoothDevice device,  AttributionSource source,
+                SynchronousResultReceiver receiver) {
+            try {
+                Objects.requireNonNull(device, "device cannot be null");
+                Objects.requireNonNull(source, "source cannot be null");
+                Objects.requireNonNull(receiver, "receiver cannot be null");
+
+                VolumeControlService service = getService(source);
+                if (service != null) {
+                    service.unmute(device);
+                }
+                receiver.send(null);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
+            }
+        }
+
+        @Override
+        public void unmuteGroup(int groupId,  AttributionSource source,
+                SynchronousResultReceiver receiver) {
+            try {
+                Objects.requireNonNull(source, "source cannot be null");
+                Objects.requireNonNull(receiver, "receiver cannot be null");
+
+                VolumeControlService service = getService(source);
+                if (service != null) {
+                    service.unmuteGroup(groupId);
                 }
                 receiver.send(null);
             } catch (RuntimeException e) {
