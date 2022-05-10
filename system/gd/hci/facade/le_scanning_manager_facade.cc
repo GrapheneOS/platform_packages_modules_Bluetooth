@@ -148,6 +148,30 @@ class LeScanningManagerFacadeService : public LeScanningManagerFacade::Service, 
   void OnFilterConfigCallback(
       ApcfFilterType filter_type, uint8_t available_spaces, ApcfAction action, uint8_t status){};
 
+  void OnPeriodicSyncStarted(
+      int reg_id,
+      uint8_t status,
+      uint16_t sync_handle,
+      uint8_t advertising_sid,
+      AddressWithType address_with_type,
+      uint8_t phy,
+      uint16_t interval) override {
+    LOG_INFO("OnPeriodicSyncStarted in LeScanningManagerFacadeService");
+  };
+
+  void OnPeriodicSyncReport(
+      uint16_t sync_handle, int8_t tx_power, int8_t rssi, uint8_t status, std::vector<uint8_t> data) override {
+    LOG_INFO("OnPeriodicSyncReport in LeScanningManagerFacadeService");
+  };
+
+  void OnPeriodicSyncLost(uint16_t sync_handle) override {
+    LOG_INFO("OnPeriodicSyncLost in LeScanningManagerFacadeService");
+  };
+
+  void OnPeriodicSyncTransferred(int pa_source, uint8_t status, Address address) override {
+    LOG_INFO("OnPeriodicSyncTransferred in LeScanningManagerFacadeService");
+  };
+
   LeScanningManager* le_scanning_manager_;
   os::Handler* facade_handler_;
   ::bluetooth::grpc::GrpcEventQueue<AdvertisingReportMsg> advertising_reports_{"advertising reports"};
