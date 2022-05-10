@@ -14,45 +14,28 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import traceback
-import os
 import logging
-
+import os
+import traceback
 from functools import wraps
-from grpc import RpcError
-
-from mobly import signals
-from mobly.base_test import BaseTestClass
-from mobly.controllers.android_device_lib.adb import AdbError
-from mobly.controllers import android_device
-from mobly.controllers.android_device import MOBLY_CONTROLLER_CONFIG_NAME as ANDROID_DEVICE_CONFIG_NAME
-from mobly.controllers.android_device_lib.jsonrpc_client_base import \
-  AppRestoreConnectionError
-from mobly.controllers.android_device_lib.services.sl4a_service import Sl4aService
-import mobly.controllers.android_device_lib.sl4a_client as sl4a_client
 
 from blueberry.tests.gd.cert.context import get_current_context
-from blueberry.tests.gd_sl4a.lib.ble_lib import enable_bluetooth, disable_bluetooth, BleLib
+from blueberry.tests.gd_sl4a.lib.ble_lib import BleLib
+from blueberry.tests.gd_sl4a.lib.ble_lib import disable_bluetooth
+from blueberry.tests.gd_sl4a.lib.ble_lib import enable_bluetooth
+from blueberry.utils.mobly_sl4a_utils import setup_sl4a
+from blueberry.utils.mobly_sl4a_utils import teardown_sl4a
+from grpc import RpcError
+from mobly import signals
+from mobly.base_test import BaseTestClass
+from mobly.controllers import android_device
+from mobly.controllers.android_device import MOBLY_CONTROLLER_CONFIG_NAME as ANDROID_DEVICE_CONFIG_NAME
+from mobly.controllers.android_device_lib.adb import AdbError
 
 
 class Sl4aSl4aBaseTestClass(BaseTestClass):
 
     SUBPROCESS_WAIT_TIMEOUT_SECONDS = 10
-
-    def setup_sl4a(self, device, server_port, forwarded_port):
-        device.services.register('sl4a', Sl4aService, start_service=False)
-        sl4a_client._DEVICE_SIDE_PORT = server_port
-        sl4a_client._APP_START_WAIT_TIME = 0.5
-        try:
-            device.sl4a.start()
-        except AppRestoreConnectionError:
-            pass
-        try:
-            device.sl4a.clear_host_port()
-        except AdbError:
-            pass
-        sl4a_client._APP_START_WAIT_TIME = 2 * 60
-        device.sl4a.restore_app_connection(port=forwarded_port)
 
     def setup_class(self):
         self.log_path_base = get_current_context().get_full_output_path()
@@ -60,33 +43,39 @@ class Sl4aSl4aBaseTestClass(BaseTestClass):
 
         # Parse and construct Android device objects
         self.android_devices = self.register_controller(android_device, required=True)
-        self.cert = self.android_devices[1]
-        server_port = int(self.controller_configs[ANDROID_DEVICE_CONFIG_NAME][1]['server_port'])
-        forwarded_port = int(self.controller_configs[ANDROID_DEVICE_CONFIG_NAME][1]['forwarded_port'])
-        self.setup_sl4a(self.cert, server_port, forwarded_port)
 
+        # Setup SL4A for dut, overriding default mobly port settings
         self.dut = self.android_devices[0]
         server_port = int(self.controller_configs[ANDROID_DEVICE_CONFIG_NAME][0]['server_port'])
         forwarded_port = int(self.controller_configs[ANDROID_DEVICE_CONFIG_NAME][0]['forwarded_port'])
+        setup_sl4a(self.dut, server_port, forwarded_port)
 
-        sl4a_client._DEVICE_SIDE_PORT = server_port
-        sl4a_client._APP_START_WAIT_TIME = 0.5
-        self.setup_sl4a(self.dut, server_port, forwarded_port)
+        # Setup SL4A for cert, overriding default mobly port settings
+        self.cert = self.android_devices[1]
+        server_port = int(self.controller_configs[ANDROID_DEVICE_CONFIG_NAME][1]['server_port'])
+        forwarded_port = int(self.controller_configs[ANDROID_DEVICE_CONFIG_NAME][1]['forwarded_port'])
+        setup_sl4a(self.cert, server_port, forwarded_port)
 
         # Enable full btsnoop log
+        self.dut.adb.root()
         self.dut.adb.shell("setprop persist.bluetooth.btsnooplogmode full")
-        getprop_result = self.dut.adb.shell("getprop persist.bluetooth.btsnooplogmode") == "full"
-        if not getprop_result:
-            self.dut.log.warning("Failed to enable Bluetooth Hci Snoop Logging.")
+        getprop_result = self.dut.adb.getprop("persist.bluetooth.btsnooplogmode")
+        if getprop_result is None or ("full" not in getprop_result.lower()):
+            self.dut.log.warning("Failed to enable Bluetooth HCI Snoop Logging on DUT, mode is {}"
+                                 .format(getprop_result))
+        self.cert.adb.root()
         self.cert.adb.shell("setprop persist.bluetooth.btsnooplogmode full")
-        getprop_result = self.cert.adb.shell("getprop persist.bluetooth.btsnooplogmode") == "full"
-        if not getprop_result:
-            self.cert.log.warning("Failed to enable Bluetooth Hci Snoop Logging.")
+        getprop_result = self.cert.adb.getprop("persist.bluetooth.btsnooplogmode")
+        if getprop_result is None or ("full" not in getprop_result.lower()):
+            self.cert.log.warning("Failed to enable Bluetooth HCI Snoop Logging on CERT, mode is {}"
+                                  .format(getprop_result))
 
         self.ble = BleLib(dut=self.dut)
 
     def teardown_class(self):
-        pass
+        teardown_sl4a(self.cert)
+        teardown_sl4a(self.dut)
+        super().teardown_class()
 
     def setup_device_for_test(self, device):
         device.ed.clear_all_events()
