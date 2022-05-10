@@ -39,6 +39,9 @@ class VolumeControl {
   virtual void Disconnect(const RawAddress& address) = 0;
   virtual void SetVolume(std::variant<RawAddress, int> addr_or_group_id,
                          uint8_t volume) = 0;
+  virtual void Mute(std::variant<RawAddress, int> addr_or_group_id) = 0;
+  virtual void UnMute(std::variant<RawAddress, int> addr_or_group_id) = 0;
+
   /* Volume Offset Control Service (VOCS) */
   virtual void SetExtAudioOutVolumeOffset(const RawAddress& address,
                                           uint8_t ext_output_id,
