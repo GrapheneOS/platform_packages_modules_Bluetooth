@@ -329,6 +329,11 @@ static uint8_t controller_le_rand(LeRandCallback cb) {
   return BTM_SUCCESS;
 }
 
+static uint8_t controller_allow_wake_by_hid() {
+  bluetooth::shim::GetController()->AllowWakeByHid();
+  return BTM_SUCCESS;
+}
+
 static uint8_t controller_set_default_event_mask() {
   bluetooth::shim::GetController()->SetEventMask(
       bluetooth::hci::Controller::kDefaultEventMask);
@@ -443,6 +448,7 @@ static const controller_t interface = {
     .clear_event_filter = controller_clear_event_filter,
     .clear_event_mask = controller_clear_event_mask,
     .le_rand = controller_le_rand,
+    .allow_wake_by_hid = controller_allow_wake_by_hid,
     .set_default_event_mask = controller_set_default_event_mask,
     .set_event_filter_inquiry_result_all_devices =
         controller_set_event_filter_inquiry_result_all_devices};
