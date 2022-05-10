@@ -58,30 +58,48 @@ constexpr uint8_t kLowestRssiValue = 129;
 
 class DefaultScanningCallback : public ::ScanningCallbacks {
   void OnScannerRegistered(const bluetooth::Uuid app_uuid, uint8_t scanner_id,
-                           uint8_t status) {
+                           uint8_t status) override {
     LogUnused();
   }
-  void OnSetScannerParameterComplete(uint8_t scanner_id, uint8_t status) {
+  void OnSetScannerParameterComplete(uint8_t scanner_id,
+                                     uint8_t status) override {
     LogUnused();
   }
   void OnScanResult(uint16_t event_type, uint8_t address_type, RawAddress bda,
                     uint8_t primary_phy, uint8_t secondary_phy,
                     uint8_t advertising_sid, int8_t tx_power, int8_t rssi,
                     uint16_t periodic_advertising_interval,
-                    std::vector<uint8_t> advertising_data) {
+                    std::vector<uint8_t> advertising_data) override {
     LogUnused();
   }
-  void OnTrackAdvFoundLost(AdvertisingTrackInfo advertising_track_info) {
+  void OnTrackAdvFoundLost(
+      AdvertisingTrackInfo advertising_track_info) override {
     LogUnused();
   }
   void OnBatchScanReports(int client_if, int status, int report_format,
-                          int num_records, std::vector<uint8_t> data) {
+                          int num_records, std::vector<uint8_t> data) override {
     LogUnused();
   }
-  void OnBatchScanThresholdCrossed(int client_if) { LogUnused(); }
+  void OnBatchScanThresholdCrossed(int client_if) override { LogUnused(); }
+  void OnPeriodicSyncStarted(int reg_id, uint8_t status, uint16_t sync_handle,
+                             uint8_t advertising_sid, uint8_t address_type,
+                             RawAddress address, uint8_t phy,
+                             uint16_t interval) override {
+    LogUnused();
+  };
+  void OnPeriodicSyncReport(uint16_t sync_handle, int8_t tx_power, int8_t rssi,
+                            uint8_t status,
+                            std::vector<uint8_t> data) override {
+    LogUnused();
+  };
+  void OnPeriodicSyncLost(uint16_t sync_handle) override { LogUnused(); };
+  void OnPeriodicSyncTransferred(int pa_source, uint8_t status,
+                                 RawAddress address) override {
+    LogUnused();
+  };
 
  private:
-  void LogUnused() const {
+  static void LogUnused() {
     LOG_WARN("BLE Scanning callbacks have not been registered");
   }
 } default_scanning_callback_;
@@ -269,9 +287,7 @@ void BleScannerInterfaceImpl::BatchscanReadReports(int client_if,
 
 void BleScannerInterfaceImpl::StartSync(uint8_t sid, RawAddress address,
                                         uint16_t skip, uint16_t timeout,
-                                        StartSyncCb start_cb,
-                                        SyncReportCb report_cb,
-                                        SyncLostCb lost_cb) {
+                                        int reg_id) {
   LOG(INFO) << __func__ << " in shim layer";
   // This function doesn't implement in the old stack
 }
@@ -290,7 +306,7 @@ void BleScannerInterfaceImpl::CancelCreateSync(uint8_t sid,
 void BleScannerInterfaceImpl::TransferSync(RawAddress address,
                                            uint16_t service_data,
                                            uint16_t sync_handle,
-                                           SyncTransferCb cb) {
+                                           int pa_source) {
   LOG(INFO) << __func__ << " in shim layer";
   // This function doesn't implement in the old stack
 }
@@ -298,14 +314,14 @@ void BleScannerInterfaceImpl::TransferSync(RawAddress address,
 void BleScannerInterfaceImpl::TransferSetInfo(RawAddress address,
                                               uint16_t service_data,
                                               uint8_t adv_handle,
-                                              SyncTransferCb cb) {
+                                              int pa_source) {
   LOG(INFO) << __func__ << " in shim layer";
   // This function doesn't implement in the old stack
 }
 
 void BleScannerInterfaceImpl::SyncTxParameters(RawAddress addr, uint8_t mode,
                                                uint16_t skip, uint16_t timeout,
-                                               StartSyncCb start_cb) {
+                                               int reg_id) {
   LOG(INFO) << __func__ << " in shim layer";
   // This function doesn't implement in the old stack
 }
