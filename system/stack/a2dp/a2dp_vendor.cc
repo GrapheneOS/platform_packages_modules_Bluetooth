@@ -22,8 +22,6 @@
 
 #include "a2dp_vendor.h"
 
-#include <dlfcn.h>
-
 #include "a2dp_vendor_aptx.h"
 #include "a2dp_vendor_aptx_hd.h"
 #include "a2dp_vendor_ldac.h"
