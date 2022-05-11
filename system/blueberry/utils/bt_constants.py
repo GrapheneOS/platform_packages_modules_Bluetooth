@@ -3,7 +3,6 @@
 
 import enum
 
-
 ### Generic Constants Begin ###
 BT_DEFAULT_TIMEOUT_SECONDS = 15
 DEFAULT_RFCOMM_TIMEOUT_MS = 10000
@@ -55,16 +54,17 @@ AAC_VBR_SUPPORTED_PROPERTY = 'persist.bluetooth.a2dp_aac.vbr_supported'
 
 # Dict containing charging control config for devices.
 CHARGING_CONTROL_CONFIG_DICT = {
-# Internal codename
+    # Internal codename
 }
 
 
 class AvrcpEvent(enum.Enum):
-  """Enumeration of AVRCP event types."""
-  PLAY = 'State:NOT_PLAYING->PLAYING'
-  PAUSE = 'State:PLAYING->NOT_PLAYING'
-  TRACK_PREVIOUS = 'sendMediaKeyEvent: keyEvent=76'
-  TRACK_NEXT = 'sendMediaKeyEvent: keyEvent=75'
+    """Enumeration of AVRCP event types."""
+    PLAY = 'State:NOT_PLAYING->PLAYING'
+    PAUSE = 'State:PLAYING->NOT_PLAYING'
+    TRACK_PREVIOUS = 'sendMediaKeyEvent: keyEvent=76'
+    TRACK_NEXT = 'sendMediaKeyEvent: keyEvent=75'
+
 
 # Bluetooth RFCOMM UUIDs as defined by the SIG
 BT_RFCOMM_UUIDS = {
@@ -98,115 +98,98 @@ BT_RFCOMM_UUIDS = {
 
 
 class BluetoothAccessLevel(enum.IntEnum):
-  """Enum class for bluetooth profile access levels."""
-  ACCESS_ALLOWED = 1
-  ACCESS_DENIED = 2
+    """Enum class for bluetooth profile access levels."""
+    ACCESS_ALLOWED = 1
+    ACCESS_DENIED = 2
 
 
 class BluetoothProfile(enum.IntEnum):
-  """Enum class for bluetooth profile types.
+    """Enum class for bluetooth profile types.
 
-  Should be kept in sync with
-  //frameworks/base/core/java/android/bluetooth/BluetoothProfile.java
-  """
-
-  HEADSET = 1
-  A2DP = 2
-  HEALTH = 3
-  HID_HOST = 4
-  PAN = 5
-  PBAP = 6
-  GATT = 7
-  GATT_SERVER = 8
-  MAP = 9
-  SAP = 10
-  A2DP_SINK = 11
-  AVRCP_CONTROLLER = 12
-  AVRCP = 13
-  HEADSET_CLIENT = 16
-  PBAP_CLIENT = 17
-  MAP_MCE = 18
-  HID_DEVICE = 19
-  OPP = 20
-  HEARING_AID = 21
+    Should be kept in sync with
+    //frameworks/base/core/java/android/bluetooth/BluetoothProfile.java
+    """
+    HEADSET = 1
+    A2DP = 2
+    HEALTH = 3
+    HID_HOST = 4
+    PAN = 5
+    PBAP = 6
+    GATT = 7
+    GATT_SERVER = 8
+    MAP = 9
+    SAP = 10
+    A2DP_SINK = 11
+    AVRCP_CONTROLLER = 12
+    AVRCP = 13
+    HEADSET_CLIENT = 16
+    PBAP_CLIENT = 17
+    MAP_MCE = 18
+    HID_DEVICE = 19
+    OPP = 20
+    HEARING_AID = 21
 
 
 class BluetoothConnectionPolicy(enum.IntEnum):
-  """Enum class for bluetooth bluetooth connection policy.
+    """Enum class for bluetooth bluetooth connection policy.
 
-  bluetooth connection policy as defined in
-  //frameworks/base/core/java/android/bluetooth/BluetoothProfile.java
-  """
-  CONNECTION_POLICY_UNKNOWN = -1
-  CONNECTION_POLICY_FORBIDDEN = 0
-  CONNECTION_POLICY_ALLOWED = 100
+    bluetooth connection policy as defined in
+    //frameworks/base/core/java/android/bluetooth/BluetoothProfile.java
+    """
+    CONNECTION_POLICY_UNKNOWN = -1
+    CONNECTION_POLICY_FORBIDDEN = 0
+    CONNECTION_POLICY_ALLOWED = 100
 
 
 class BluetoothConnectionStatus(enum.IntEnum):
-  """Enum class for bluetooth connection status.
+    """Enum class for bluetooth connection status.
 
-  Bluetooth connection status as defined in
-  //frameworks/base/core/java/android/bluetooth/BluetoothProfile.java
-  """
-  STATE_DISCONNECTED = 0
-  STATE_CONNECTING = 1
-  STATE_CONNECTED = 2
-  STATE_DISCONNECTING = 3
+    Bluetooth connection status as defined in
+    //frameworks/base/core/java/android/bluetooth/BluetoothProfile.java
+    """
+    STATE_DISCONNECTED = 0
+    STATE_CONNECTING = 1
+    STATE_CONNECTED = 2
+    STATE_DISCONNECTING = 3
 
 
 class BluetoothPriorityLevel(enum.IntEnum):
-  """Enum class for bluetooth priority level.
+    """Enum class for bluetooth priority level.
 
-  Priority levels as defined in
-  //frameworks/base/core/java/android/bluetooth/BluetoothProfile.java
-  """
-
-  PRIORITY_AUTO_CONNECT = 1000
-  PRIORITY_ON = 100
-  PRIORITY_OFF = 0
-  PRIORITY_UNDEFINED = -1
-
-
-class BleAdvertiseSettingsMode(enum.IntEnum):
-  """Enum class for BLE advertise settings mode."""
-  LOW_POWER = 0
-  BALANCED = 1
-  LOW_LATENCY = 2
-
-
-class BleAdvertiseSettingsTxPower(enum.IntEnum):
-  """Enum class for BLE advertise settings tx power."""
-  ULTRA_LOW = 0
-  LOW = 1
-  MEDIUM = 2
-  HIGH = 3
+    Priority levels as defined in
+    //frameworks/base/core/java/android/bluetooth/BluetoothProfile.java
+    """
+    PRIORITY_AUTO_CONNECT = 1000
+    PRIORITY_ON = 100
+    PRIORITY_OFF = 0
+    PRIORITY_UNDEFINED = -1
 
 
 class LogType(enum.Enum):
-  """Enumeration of device log type."""
-  DEFAULT_VALUE = 'GENERIC'
-  BLUETOOTH_DEVICE_SIMULATOR = 'BDS'
-  ICLEVER_HB01 = 'GENERIC'
+    """Enumeration of device log type."""
+    DEFAULT_VALUE = 'GENERIC'
+    BLUETOOTH_DEVICE_SIMULATOR = 'BDS'
+    ICLEVER_HB01 = 'GENERIC'
 
 
 class CallState(enum.IntEnum):
-  """Enum class for phone call state."""
-  IDLE = 0
-  RINGING = 1
-  OFFHOOK = 2
+    """Enum class for phone call state."""
+    IDLE = 0
+    RINGING = 1
+    OFFHOOK = 2
 
 
 class CallLogType(enum.IntEnum):
-  """Enum class for phone call log type."""
-  INCOMING_CALL = 1
-  OUTGOING_CALL = 2
-  MISSED_CALL = 3
+    """Enum class for phone call log type."""
+    INCOMING_CALL = 1
+    OUTGOING_CALL = 2
+    MISSED_CALL = 3
 
 
 class BluetoothA2dpCodec(enum.IntEnum):
-  """Enum class for Bluetooth A2DP codec type."""
-  SBC = 0
-  AAC = 1
-  APTX = 2
-  APTX_HD = 3
-  LDAC = 4
+    """Enum class for Bluetooth A2DP codec type."""
+    SBC = 0
+    AAC = 1
+    APTX = 2
+    APTX_HD = 3
+    LDAC = 4
