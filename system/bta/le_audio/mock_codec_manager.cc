@@ -63,9 +63,7 @@ CodecManager::GetOffloadCodecConfig(types::LeAudioContextType ctx_type) {
 
 void CodecManager::Start(
     const std::vector<bluetooth::le_audio::btle_audio_codec_config_t>&
-        offloading_preference,
-    const std::vector<set_configurations::AudioSetConfiguration>&
-        adsp_capabilities) {
+        offloading_preference) {
   // It is needed here as CodecManager which is a singleton creates it, but in
   // this mock we want to destroy and recreate the mock on each test case.
   if (!pimpl_) {
