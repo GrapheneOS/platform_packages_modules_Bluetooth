@@ -2897,7 +2897,7 @@ void acl_process_extended_features(uint16_t handle, uint8_t current_page_number,
       bd_features_text(p_acl->peer_lmp_feature_pages[current_page_number])
           .c_str());
 
-  if (max_page_number == current_page_number) {
+  if (max_page_number == 0 || max_page_number == current_page_number) {
     NotifyAclFeaturesReadComplete(*p_acl, max_page_number);
   }
 }

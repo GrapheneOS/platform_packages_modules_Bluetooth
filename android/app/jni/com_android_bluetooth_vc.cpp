@@ -357,6 +357,60 @@ static void setVolumeGroupNative(JNIEnv* env, jobject object, jint group_id,
   sVolumeControlInterface->SetVolume(group_id, volume);
 }
 
+static void muteNative(JNIEnv* env, jobject object, jbyteArray address) {
+  if (!sVolumeControlInterface) {
+    LOG(ERROR) << __func__
+               << ": Failed to get the Bluetooth Volume Control Interface";
+    return;
+  }
+
+  jbyte* addr = env->GetByteArrayElements(address, nullptr);
+  if (!addr) {
+    jniThrowIOException(env, EINVAL);
+    return;
+  }
+
+  RawAddress* tmpraw = (RawAddress*)addr;
+  sVolumeControlInterface->Mute(*tmpraw);
+  env->ReleaseByteArrayElements(address, addr, 0);
+}
+
+static void muteGroupNative(JNIEnv* env, jobject object, jint group_id) {
+  if (!sVolumeControlInterface) {
+    LOG(ERROR) << __func__
+               << ": Failed to get the Bluetooth Volume Control Interface";
+    return;
+  }
+  sVolumeControlInterface->Mute(group_id);
+}
+
+static void unmuteNative(JNIEnv* env, jobject object, jbyteArray address) {
+  if (!sVolumeControlInterface) {
+    LOG(ERROR) << __func__
+               << ": Failed to get the Bluetooth Volume Control Interface";
+    return;
+  }
+
+  jbyte* addr = env->GetByteArrayElements(address, nullptr);
+  if (!addr) {
+    jniThrowIOException(env, EINVAL);
+    return;
+  }
+
+  RawAddress* tmpraw = (RawAddress*)addr;
+  sVolumeControlInterface->Unmute(*tmpraw);
+  env->ReleaseByteArrayElements(address, addr, 0);
+}
+
+static void unmuteGroupNative(JNIEnv* env, jobject object, jint group_id) {
+  if (!sVolumeControlInterface) {
+    LOG(ERROR) << __func__
+               << ": Failed to get the Bluetooth Volume Control Interface";
+    return;
+  }
+  sVolumeControlInterface->Unmute(group_id);
+}
+
 /* Native methods for exterbak audio outputs */
 static jboolean getExtAudioOutVolumeOffsetNative(JNIEnv* env, jobject object,
                                                  jbyteArray address,
@@ -494,6 +548,10 @@ static JNINativeMethod sMethods[] = {
      (void*)disconnectVolumeControlNative},
     {"setVolumeNative", "([BI)V", (void*)setVolumeNative},
     {"setVolumeGroupNative", "(II)V", (void*)setVolumeGroupNative},
+    {"muteNative", "([B)V", (void*)muteNative},
+    {"muteGroupNative", "(I)V", (void*)muteGroupNative},
+    {"unmuteNative", "([B)V", (void*)unmuteNative},
+    {"unmuteGroupNative", "(I)V", (void*)unmuteGroupNative},
     {"getExtAudioOutVolumeOffsetNative", "([BI)Z",
      (void*)getExtAudioOutVolumeOffsetNative},
     {"setExtAudioOutVolumeOffsetNative", "([BII)Z",
