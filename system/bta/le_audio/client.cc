@@ -3623,10 +3623,6 @@ void LeAudioClient::Initialize(
       << ", LE Audio Client requires Bluetooth Audio HAL V2.1 at least. Either "
          "disable LE Audio Profile, or update your HAL";
 
-  // TODO: The capability list should pass to the codec manager once it's ready
-  std::vector<::le_audio::set_configurations::AudioSetConfiguration>
-      capabilities = ::bluetooth::audio::le_audio::get_offload_capabilities();
-
   IsoManager::GetInstance()->Start();
 
   if (leAudioClientAudioSource == nullptr)
@@ -3642,7 +3638,7 @@ void LeAudioClient::Initialize(
   instance = new LeAudioClientImpl(callbacks_, stateMachineCallbacks, initCb);
 
   IsoManager::GetInstance()->RegisterCigCallbacks(stateMachineHciCallbacks);
-  CodecManager::GetInstance()->Start(offloading_preference, capabilities);
+  CodecManager::GetInstance()->Start(offloading_preference);
 }
 
 void LeAudioClient::DebugDump(int fd) {
