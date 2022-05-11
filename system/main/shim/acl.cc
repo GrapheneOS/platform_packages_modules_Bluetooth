@@ -653,7 +653,7 @@ class ClassicShimAclConnection
       return;
     }
 
-    if (page_number != max_page_number)
+    if (max_page_number != 0 && page_number != max_page_number)
       connection_->ReadRemoteExtendedFeatures(page_number + 1);
   }
 
