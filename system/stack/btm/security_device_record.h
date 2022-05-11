@@ -18,6 +18,7 @@
 
 #pragma once
 
+#include <base/logging.h>
 #include <base/strings/stringprintf.h>
 #include <string.h>
 
@@ -92,7 +93,7 @@ typedef struct {
   uint32_t local_counter; /* local sign counter for sending signed write cmd*/
 } tBTM_SEC_BLE_KEYS;
 
-typedef struct {
+struct tBTM_SEC_BLE {
   RawAddress pseudo_addr; /* LE pseudo address of the device if different from
                           device address  */
  private:
@@ -101,7 +102,12 @@ typedef struct {
  public:
   tBLE_ADDR_TYPE AddressType() const { return ble_addr_type_; }
   void SetAddressType(tBLE_ADDR_TYPE ble_addr_type) {
-    if (is_ble_addr_type_known(ble_addr_type)) ble_addr_type_ = ble_addr_type;
+    if (is_ble_addr_type_known(ble_addr_type)) {
+      ble_addr_type_ = ble_addr_type;
+    } else {
+      LOG(ERROR) << "Please don't store illegal addresses into security record:"
+                 << AddressTypeText(ble_addr_type);
+    }
   }
 
   tBLE_BD_ADDR identity_address_with_type;
@@ -121,7 +127,8 @@ typedef struct {
 
   tBTM_LE_KEY_TYPE key_type; /* bit mask of valid key types in record */
   tBTM_SEC_BLE_KEYS keys;    /* LE device security info in peripheral rode */
-} tBTM_SEC_BLE;
+};
+typedef struct tBTM_SEC_BLE tBTM_SEC_BLE;
 
 enum : uint16_t {
   BTM_SEC_AUTHENTICATED = 0x0002,
