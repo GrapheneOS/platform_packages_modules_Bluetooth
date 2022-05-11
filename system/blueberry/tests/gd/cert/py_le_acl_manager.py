@@ -113,10 +113,14 @@ class PyLeAclManager(Closable):
         safeClose(pair[0])
         self.le_acl_manager.CancelConnection(pair[1])
 
-    def initiate_connection(self, remote_addr):
+    def initiate_connection(self, remote_addr, is_direct=True):
         assertThat(self.next_token in self.outgoing_connection_event_streams).isFalse()
+        create_connection_msg = le_acl_manager_facade.CreateConnectionMsg(
+            peer_address=remote_addr,
+            is_direct=is_direct
+        )
         self.outgoing_connection_event_streams[self.next_token] = EventStream(
-            self.le_acl_manager.CreateConnection(remote_addr)), remote_addr
+            self.le_acl_manager.CreateConnection(create_connection_msg)), remote_addr
         token = self.next_token
         self.next_token += 1
         return token
