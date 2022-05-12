@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright 2021 Google, Inc.
+ *  Copyright 2022 Google LLC
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -89,7 +89,7 @@ struct wave_data {
 /**
  * Read WAVE file header
  */
-int wave_read_header(FILE *fp,
+int wave_read_header(FILE *fp, int *bitdepth, int *samplesize,
     int *samplerate, int *nchannels, int *nframes)
 {
     struct wave_file file;
@@ -102,11 +102,9 @@ int wave_read_header(FILE *fp,
         return -1;
 
     if (fread(&format, sizeof(format), 1, fp) != 1
-            || format.id        != WAVE_FORMAT_ID
-            || format.fmt       != WAVE_FORMAT_PCM
-            || format.byterate  != format.samplerate * format.framesize
-            || format.framesize != format.channels * format.bitdepth / 8
-            || format.bitdepth  != 16)
+            || format.id       != WAVE_FORMAT_ID
+            || format.fmt      != WAVE_FORMAT_PCM
+            || format.byterate != format.samplerate * format.framesize)
         return -1;
 
     fseek(fp, sizeof(format) - (8 + format.size), SEEK_CUR);
@@ -115,8 +113,10 @@ int wave_read_header(FILE *fp,
             || data.id != WAVE_DATA_ID)
         return -1;
 
-    *nchannels = format.channels;
+    *bitdepth = format.bitdepth;
+    *samplesize = format.framesize / format.channels;
     *samplerate = format.samplerate;
+    *nchannels = format.channels;
     *nframes = data.size / format.framesize;
 
     return 0;
@@ -125,15 +125,17 @@ int wave_read_header(FILE *fp,
 /**
  * Read PCM samples from wave file
  */
-int wave_read_pcm(FILE *fp, int nch, int count, int16_t *buffer)
+int wave_read_pcm(FILE *fp, int samplesize,
+    int nch, int count, void *buffer)
 {
-    return fread(buffer, nch * sizeof(*buffer), count, fp);
+    return fread(buffer, nch * samplesize, count, fp);
 }
 
 /**
  * Write WAVE file header
  */
-void wave_write_header(FILE *fp, int samplerate, int nchannels, int nframes)
+void wave_write_header(FILE *fp, int bitdepth, int samplesize,
+    int samplerate, int nchannels, int nframes)
 {
     struct {
         struct wave_file file;
@@ -141,7 +143,7 @@ void wave_write_header(FILE *fp, int samplerate, int nchannels, int nframes)
         struct wave_data data;
     } header;
 
-    long data_size = nchannels * nframes * sizeof(uint16_t);
+    long data_size = nchannels * nframes * samplesize;
     long file_size = sizeof(header) + data_size;
 
     header.file = (struct wave_file){
@@ -154,9 +156,9 @@ void wave_write_header(FILE *fp, int samplerate, int nchannels, int nframes)
         .fmt = WAVE_FORMAT_PCM,
         .channels = nchannels,
         .samplerate = samplerate,
-        .byterate = samplerate * nchannels * sizeof(int16_t),
-        .framesize = nchannels * sizeof(int16_t),
-        .bitdepth = sizeof(int16_t) * 8,
+        .byterate = samplerate * nchannels * samplesize,
+        .framesize = nchannels * samplesize,
+        .bitdepth = bitdepth,
     };
 
     header.data = (struct wave_data){
@@ -169,8 +171,9 @@ void wave_write_header(FILE *fp, int samplerate, int nchannels, int nframes)
 /**
  * Write PCM samples to wave file
  */
-void wave_write_pcm(FILE *fp,
-    const int16_t *pcm, int nch, int off, int count)
+void wave_write_pcm(FILE *fp, int samplesize,
+    const void *_pcm, int nch, int off, int count)
 {
-    fwrite(pcm + nch * off, nch * sizeof(*pcm), count, fp);
+    const int8_t *pcm = _pcm;
+    fwrite(pcm + nch * off * samplesize, nch * samplesize, count, fp);
 }
