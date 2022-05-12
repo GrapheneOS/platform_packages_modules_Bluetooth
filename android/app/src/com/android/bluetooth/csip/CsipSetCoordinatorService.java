@@ -52,11 +52,9 @@ import com.android.modules.utils.SynchronousResultReceiver;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
@@ -87,7 +85,8 @@ public class CsipSetCoordinatorService extends ProfileService {
             new HashMap<>();
 
     private final Map<Integer, ParcelUuid> mGroupIdToUuidMap = new HashMap<>();
-    private final Map<BluetoothDevice, Set<Integer>> mDeviceGroupIdMap = new ConcurrentHashMap<>();
+    private final Map<BluetoothDevice, Map<Integer, Integer>> mDeviceGroupIdRankMap =
+            new ConcurrentHashMap<>();
     private final Map<Integer, Integer> mGroupIdToGroupSize = new HashMap<>();
     private final Map<ParcelUuid, Map<Executor, IBluetoothCsipSetCoordinatorCallback>> mCallbacks =
             new HashMap<>();
@@ -201,7 +200,7 @@ public class CsipSetCoordinatorService extends ProfileService {
             }
         }
 
-        mDeviceGroupIdMap.clear();
+        mDeviceGroupIdRankMap.clear();
         mCallbacks.clear();
         mGroupIdToGroupSize.clear();
         mGroupIdToUuidMap.clear();
@@ -555,6 +554,17 @@ public class CsipSetCoordinatorService extends ProfileService {
     }
 
     /**
+     * Check whether a given group is currently locked.
+     * @param groupId unique group identifier
+     * @return true if group is currently locked, otherwise false.
+     *
+     * @hide
+     */
+    public boolean isGroupLocked(int groupId) {
+        return mLocks.containsKey(groupId);
+    }
+
+    /**
      * Get collection of group IDs for a given UUID
      * @param uuid
      * @return list of group IDs
@@ -573,11 +583,35 @@ public class CsipSetCoordinatorService extends ProfileService {
      * @return map of group id and related uuids.
      */
     public Map<Integer, ParcelUuid> getGroupUuidMapByDevice(BluetoothDevice device) {
-        Set<Integer> device_groups = mDeviceGroupIdMap.getOrDefault(device, new HashSet<>());
+        Map<Integer, Integer> device_groups =
+                mDeviceGroupIdRankMap.getOrDefault(device, new HashMap<>());
         return mGroupIdToUuidMap.entrySet()
                 .stream()
-                .filter(e -> device_groups.contains(e.getKey()))
+                .filter(e -> device_groups.containsKey(e.getKey()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
+
+    /**
+     * Get grouped devices
+     * @param groupId group ID
+     * @return related list of devices sorted from the lowest to the highest rank value.
+     */
+    public @NonNull List<BluetoothDevice> getGroupDevicesOrdered(int groupId) {
+        final Map<BluetoothDevice, Integer> deviceRankMap = new HashMap();
+        for (Map.Entry<BluetoothDevice, ?> entry : mDeviceGroupIdRankMap.entrySet()) {
+            Map<Integer, Integer> rankMap = (Map<Integer, Integer>) entry.getValue();
+            BluetoothDevice device = entry.getKey();
+            if (rankMap.containsKey(groupId)) {
+                deviceRankMap.put(device, rankMap.get(groupId));
+            }
+        }
+
+        // Return device list sorted by descending rank order
+        return deviceRankMap.entrySet()
+                .stream()
+                .sorted(Map.Entry.comparingByValue())
+                .map(e -> e.getKey())
+                .collect(Collectors.toList());
     }
 
     /**
@@ -590,18 +624,18 @@ public class CsipSetCoordinatorService extends ProfileService {
                 IBluetoothCsipSetCoordinator.CSIS_GROUP_SIZE_UNKNOWN);
     }
 
-    private void handleDeviceAvailable(BluetoothDevice device, int groupId, UUID uuid) {
+    private void handleDeviceAvailable(BluetoothDevice device, int groupId, int rank, UUID uuid) {
         ParcelUuid parcel_uuid = new ParcelUuid(uuid);
         if (!getAllGroupIds(parcel_uuid).contains(groupId)) {
             mGroupIdToUuidMap.put(groupId, parcel_uuid);
         }
 
-        if (!mDeviceGroupIdMap.containsKey(device)) {
-            mDeviceGroupIdMap.put(device, new HashSet<Integer>());
+        if (!mDeviceGroupIdRankMap.containsKey(device)) {
+            mDeviceGroupIdRankMap.put(device, new HashMap<Integer, Integer>());
         }
 
-        Set<Integer> all_device_groups = mDeviceGroupIdMap.get(device);
-        all_device_groups.add(groupId);
+        Map<Integer, Integer> all_device_groups = mDeviceGroupIdRankMap.get(device);
+        all_device_groups.put(groupId, rank);
     }
 
     private void executeCallback(Executor exec, IBluetoothCsipSetCoordinatorCallback callback,
@@ -700,7 +734,7 @@ public class CsipSetCoordinatorService extends ProfileService {
             intent.putExtra(
                     BluetoothCsipSetCoordinator.EXTRA_CSIS_GROUP_TYPE_UUID, stackEvent.valueUuid1);
 
-            handleDeviceAvailable(device, groupId, stackEvent.valueUuid1);
+            handleDeviceAvailable(device, groupId, stackEvent.valueInt3, stackEvent.valueUuid1);
         } else if (stackEvent.type
                 == CsipSetCoordinatorStackEvent.EVENT_TYPE_SET_MEMBER_AVAILABLE) {
             Objects.requireNonNull(device, "Device should never be null, event: " + stackEvent);
@@ -808,7 +842,7 @@ public class CsipSetCoordinatorService extends ProfileService {
             return;
         }
 
-        mDeviceGroupIdMap.remove(device);
+        mDeviceGroupIdRankMap.remove(device);
 
         synchronized (mStateMachines) {
             CsipSetCoordinatorStateMachine sm = mStateMachines.get(device);
