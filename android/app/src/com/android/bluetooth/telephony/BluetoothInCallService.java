@@ -26,7 +26,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.Bundle;
@@ -61,8 +60,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Used to receive updates about calls from the Telecom component. This service is bound to Telecom
@@ -97,8 +94,6 @@ public class BluetoothInCallService extends InCallService {
     // Indicates that no BluetoothCall is ringing
     private static final int DEFAULT_RINGING_ADDRESS_TYPE = 128;
 
-    private static final int DISCONNECT_TONE_TIMEOUT_SECONDS = 1;
-
     private int mNumActiveCalls = 0;
     private int mNumHeldCalls = 0;
     private int mNumChildrenOfActiveCall = 0;
@@ -113,13 +108,6 @@ public class BluetoothInCallService extends InCallService {
     private BluetoothHeadsetProxy mBluetoothHeadset;
     private BluetoothLeCallControlProxy mBluetoothLeCallControl;
     private ExecutorService mExecutor;
-
-    private Semaphore mDisconnectionToneSemaphore = new Semaphore(0);
-    private int mAudioMode = AudioManager.MODE_INVALID;
-    private final Object mAudioModeLock = new Object();
-
-    @VisibleForTesting
-    public AudioManager mAudioManager;
 
     @VisibleForTesting
     public TelephonyManager mTelephonyManager;
@@ -327,19 +315,6 @@ public class BluetoothInCallService extends InCallService {
                     getBluetoothCallsByIds(BluetoothCall.getIds(children)));
         }
     }
-
-    class BluetoothOnModeChangedListener implements AudioManager.OnModeChangedListener {
-        @Override
-        public void onModeChanged(int mode) {
-            synchronized (mAudioModeLock) {
-                mAudioMode = mode;
-            }
-            if (mode == AudioManager.MODE_NORMAL) {
-                mDisconnectionToneSemaphore.release();
-            }
-        }
-    }
-    private BluetoothOnModeChangedListener mBluetoothOnModeChangedListener;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -567,26 +542,6 @@ public class BluetoothInCallService extends InCallService {
             return;
         }
         Log.d(TAG, "onCallRemoved");
-        BluetoothCall heldCall = mCallInfo.getHeldCall();
-        if (mCallInfo.isNullCall(heldCall)) {
-            // current call is the only call
-
-            mDisconnectionToneSemaphore.drainPermits();
-            boolean isAudioModeNormal = false;
-            synchronized (mAudioModeLock) {
-                isAudioModeNormal = (mAudioMode == AudioManager.MODE_NORMAL);
-            }
-            if (!isAudioModeNormal) {
-                Log.d(TAG, "Acquiring mDisconnectionToneSemaphore");
-                try {
-                  boolean result = mDisconnectionToneSemaphore.tryAcquire(
-                    DISCONNECT_TONE_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-                  Log.d(TAG, "Acquiring mDisconnectionToneSemaphore result " + result);
-                } catch (InterruptedException e) {
-                  Log.w(TAG, "Failed to acquire mDisconnectionToneSemaphore");
-                }
-            }
-        }
         CallStateCallback callback = getCallback(call);
         if (callback != null) {
             call.unregisterCallback(callback);
@@ -633,10 +588,6 @@ public class BluetoothInCallService extends InCallService {
         mBluetoothAdapterReceiver = new BluetoothAdapterReceiver();
         IntentFilter intentFilter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
         registerReceiver(mBluetoothAdapterReceiver, intentFilter);
-        mBluetoothOnModeChangedListener = new BluetoothOnModeChangedListener();
-        mAudioManager = getSystemService(AudioManager.class);
-        mAudioManager.addOnModeChangedListener(
-                Executors.newSingleThreadExecutor(), mBluetoothOnModeChangedListener);
         mOnCreateCalled = true;
     }
 
@@ -650,10 +601,6 @@ public class BluetoothInCallService extends InCallService {
 
     private void clear() {
         Log.d(TAG, "clear");
-        if (mBluetoothOnModeChangedListener != null) {
-            mAudioManager.removeOnModeChangedListener(mBluetoothOnModeChangedListener);
-            mBluetoothOnModeChangedListener = null;
-        }
         if (mBluetoothAdapterReceiver != null) {
             unregisterReceiver(mBluetoothAdapterReceiver);
             mBluetoothAdapterReceiver = null;

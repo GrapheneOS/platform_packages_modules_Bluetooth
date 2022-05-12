@@ -116,6 +116,23 @@ std::ostream& operator<<(std::ostream& os, const AudioState& audio_state) {
 namespace {
 void le_audio_gattc_callback(tBTA_GATTC_EVT event, tBTA_GATTC* p_data);
 
+inline uint8_t bits_to_bytes_per_sample(uint8_t bits_per_sample) {
+  // 24 bit audio stream is sent as unpacked, each sample takes 4 bytes.
+  if (bits_per_sample == 24) return 4;
+
+  return bits_per_sample / 8;
+}
+
+inline lc3_pcm_format bits_to_lc3_bits(uint8_t bits_per_sample) {
+  if (bits_per_sample == 16) return LC3_PCM_FORMAT_S16;
+
+  if (bits_per_sample == 24) return LC3_PCM_FORMAT_S24;
+
+  LOG_ALWAYS_FATAL("Encoder/decoder don't know how to handle %d",
+                   bits_per_sample);
+  return LC3_PCM_FORMAT_S16;
+}
+
 class LeAudioClientImpl;
 LeAudioClientImpl* instance;
 LeAudioClientAudioSinkReceiver* audioSinkReceiver;
@@ -684,6 +701,52 @@ class LeAudioClientImpl : public LeAudioClient {
     // TODO Implement
   }
 
+  void StartAudioSession(LeAudioDeviceGroup* group,
+                          LeAudioCodecConfiguration* source_config,
+                          LeAudioCodecConfiguration* sink_config) {
+    /* This function is called when group is not yet set to active.
+     * This is why we don't have to check if session is started already.
+     * Just check if it is acquired.
+     */
+    ASSERT_LOG(active_group_id_ == bluetooth::groups::kGroupUnknown,
+               "Active group is not set.");
+    ASSERT_LOG(audio_source_instance_, "Source session not acquired");
+    ASSERT_LOG(audio_sink_instance_, "Sink session not acquired");
+
+    /* We assume that peer device always use same frame duration */
+    uint32_t frame_duration_us = 0;
+    if (!source_config->IsInvalid()) {
+      frame_duration_us = source_config->data_interval_us;
+    } else if (!sink_config->IsInvalid()) {
+      frame_duration_us = sink_config->data_interval_us;
+    } else {
+      ASSERT_LOG(true, "Both configs are invalid");
+    }
+
+    audio_framework_source_config.data_interval_us = frame_duration_us;
+    leAudioClientAudioSource->Start(audio_framework_source_config,
+                                    audioSinkReceiver);
+
+    /* We use same frame duration for sink/source */
+    audio_framework_sink_config.data_interval_us = frame_duration_us;
+
+    /* If group supports more than 16kHz for the microphone in converstional
+     * case let's use that also for Audio Framework.
+     */
+    std::optional<LeAudioCodecConfiguration> sink_configuration =
+        group->GetCodecConfigurationByDirection(
+            LeAudioContextType::CONVERSATIONAL,
+            le_audio::types::kLeAudioDirectionSource);
+    if (sink_configuration &&
+        sink_configuration->sample_rate >
+            bluetooth::audio::le_audio::kSampleRate16000) {
+      audio_framework_sink_config.sample_rate = sink_configuration->sample_rate;
+    }
+
+    leAudioClientAudioSink->Start(audio_framework_sink_config,
+                                  audioSourceReceiver);
+  }
+
   void GroupSetActive(const int group_id) override {
     DLOG(INFO) << __func__ << " group_id: " << group_id;
 
@@ -752,16 +815,8 @@ class LeAudioClientImpl : public LeAudioClient {
 
     if (active_group_id_ == bluetooth::groups::kGroupUnknown) {
       /* Expose audio sessions if there was no previous active group */
-      audio_framework_source_config.data_interval_us =
-          current_source_codec_config.data_interval_us;
-      leAudioClientAudioSource->Start(audio_framework_source_config,
-                                      audioSinkReceiver);
-
-      audio_framework_sink_config.data_interval_us =
-          current_source_codec_config.data_interval_us;
-
-      leAudioClientAudioSink->Start(audio_framework_sink_config,
-                                    audioSourceReceiver);
+      StartAudioSession(group, &current_source_codec_config,
+                         &current_sink_codec_config);
     } else {
       /* In case there was an active group. Stop the stream */
       GroupStop(active_group_id_);
@@ -1885,27 +1940,36 @@ class LeAudioClientImpl : public LeAudioClient {
     return true;
   }
 
-  void get_mono_stream(const std::vector<uint8_t>& data,
-                       std::vector<int16_t>& chan_mono, int pitch = 1) {
-    uint16_t num_of_frames_per_ch;
+  // mix stero signal into mono
+  std::vector<uint8_t> mono_blend(const std::vector<uint8_t>& buf,
+                                  int bytes_per_sample, size_t frames) {
+    std::vector<uint8_t> mono_out;
+    mono_out.resize(frames * bytes_per_sample);
 
-    int dt_us = current_source_codec_config.data_interval_us;
-    int af_hz = audio_framework_source_config.sample_rate;
-    num_of_frames_per_ch = lc3_frame_samples(dt_us, af_hz);
-
-    chan_mono.reserve(num_of_frames_per_ch);
-    for (int i = 0; i < pitch * num_of_frames_per_ch; i += pitch) {
-      const uint8_t* sample = data.data() + i * 4;
-
-      int16_t left = (int16_t)((*(sample + 1) << 8) + *sample) >> 1;
-
-      sample += 2;
-      int16_t right = (int16_t)((*(sample + 1) << 8) + *sample) >> 1;
-
-      uint16_t mono_data = (int16_t)(((uint32_t)left + (uint32_t)right) >> 1);
-
-      chan_mono.push_back(mono_data);
+    if (bytes_per_sample == 2) {
+      int16_t* out = (int16_t*)mono_out.data();
+      for (size_t i = 0; i < frames; ++i) {
+        const int16_t* in = (int16_t*)(buf.data());
+        int accum = 0;
+        accum += *in++;
+        accum += *in++;
+        accum /= 2;  // round to 0
+        *out++ = accum;
+      }
+    } else if (bytes_per_sample == 4) {
+      int32_t* out = (int32_t*)mono_out.data();
+      for (size_t i = 0; i < frames; ++i) {
+        const int32_t* in = (int32_t*)(buf.data());
+        int accum = 0;
+        accum += *in++;
+        accum += *in++;
+        accum /= 2;  // round to 0
+        *out++ = accum;
+      }
+    } else {
+      LOG_ERROR("Don't know how to mono blend that %d!", bytes_per_sample);
     }
+    return mono_out;
   }
 
   void PrepareAndSendToTwoDevices(
@@ -1920,6 +1984,11 @@ class LeAudioClientImpl : public LeAudioClient {
     int af_hz = audio_framework_source_config.sample_rate;
     number_of_required_samples_per_channel = lc3_frame_samples(dt_us, af_hz);
 
+    lc3_pcm_format bits_per_sample =
+        bits_to_lc3_bits(audio_framework_source_config.bits_per_sample);
+    uint8_t bytes_per_sample =
+        bits_to_bytes_per_sample(audio_framework_source_config.bits_per_sample);
+
     for (auto [cis_handle, audio_location] : stream_conf->sink_streams) {
       if (audio_location & le_audio::codec_spec_conf::kLeAudioLocationAnyLeft)
         left_cis_handle = cis_handle;
@@ -1927,11 +1996,12 @@ class LeAudioClientImpl : public LeAudioClient {
         right_cis_handle = cis_handle;
     }
 
-    if (data.size() < 2 /* bytes per sample */ * 2 /* channels */ *
+    if (data.size() < bytes_per_sample * 2 /* channels */ *
                           number_of_required_samples_per_channel) {
       LOG(ERROR) << __func__ << " Missing samples. Data size: " << +data.size()
                  << " expected: "
-                 << 2 * 2 * number_of_required_samples_per_channel;
+                 << bytes_per_sample * 2 *
+                        number_of_required_samples_per_channel;
       return;
     }
 
@@ -1941,26 +2011,22 @@ class LeAudioClientImpl : public LeAudioClient {
     bool mono = (left_cis_handle == 0) || (right_cis_handle == 0);
 
     if (!mono) {
-      lc3_encode(lc3_encoder_left, LC3_PCM_FORMAT_S16,
-                 (const int16_t*)data.data(), 2, chan_left_enc.size(),
-                 chan_left_enc.data());
-      lc3_encode(lc3_encoder_right, LC3_PCM_FORMAT_S16,
-                 ((const int16_t*)data.data()) + 1, 2, chan_right_enc.size(),
+      lc3_encode(lc3_encoder_left, bits_per_sample, data.data(), 2,
+                 chan_left_enc.size(), chan_left_enc.data());
+      lc3_encode(lc3_encoder_right, bits_per_sample,
+                 data.data() + bytes_per_sample, 2, chan_right_enc.size(),
                  chan_right_enc.data());
     } else {
-      std::vector<int16_t> chan_mono;
-      get_mono_stream(data, chan_mono);
-
+      std::vector<uint8_t> mono = mono_blend(
+          data, bytes_per_sample, number_of_required_samples_per_channel);
       if (left_cis_handle) {
-        lc3_encode(lc3_encoder_left, LC3_PCM_FORMAT_S16,
-                   (const int16_t*)chan_mono.data(), 1, chan_left_enc.size(),
-                   chan_left_enc.data());
+        lc3_encode(lc3_encoder_left, bits_per_sample, mono.data(), 1,
+                   chan_left_enc.size(), chan_left_enc.data());
       }
 
       if (right_cis_handle) {
-        lc3_encode(lc3_encoder_right, LC3_PCM_FORMAT_S16,
-                   (const int16_t*)chan_mono.data(), 1, chan_right_enc.size(),
-                   chan_right_enc.data());
+        lc3_encode(lc3_encoder_right, bits_per_sample, mono.data(), 1,
+                   chan_right_enc.size(), chan_right_enc.data());
       }
     }
 
@@ -1987,6 +2053,10 @@ class LeAudioClientImpl : public LeAudioClient {
     int dt_us = current_source_codec_config.data_interval_us;
     int af_hz = audio_framework_source_config.sample_rate;
     number_of_required_samples_per_channel = lc3_frame_samples(dt_us, af_hz);
+    lc3_pcm_format bits_per_sample =
+        bits_to_lc3_bits(audio_framework_source_config.bits_per_sample);
+    uint8_t bytes_per_sample =
+        bits_to_bytes_per_sample(audio_framework_source_config.bits_per_sample);
 
     if ((int)data.size() < (2 /* bytes per sample */ * num_channels *
                             number_of_required_samples_per_channel)) {
@@ -1998,21 +2068,19 @@ class LeAudioClientImpl : public LeAudioClient {
     if (num_channels == 1) {
       /* Since we always get two channels from framework, lets make it mono here
        */
-      std::vector<int16_t> chan_mono;
-      get_mono_stream(data, chan_mono);
+      std::vector<uint8_t> mono = mono_blend(
+          data, bytes_per_sample, number_of_required_samples_per_channel);
 
-      auto err = lc3_encode(lc3_encoder_left, LC3_PCM_FORMAT_S16,
-                            (const int16_t*)chan_mono.data(), 1, byte_count,
-                            chan_encoded.data());
+      auto err = lc3_encode(lc3_encoder_left, bits_per_sample, mono.data(), 1,
+                            byte_count, chan_encoded.data());
 
       if (err < 0) {
         LOG(ERROR) << " error while encoding, error code: " << +err;
       }
     } else {
-      lc3_encode(lc3_encoder_left, LC3_PCM_FORMAT_S16,
-                 (const int16_t*)data.data(), 2, byte_count,
-                 chan_encoded.data());
-      lc3_encode(lc3_encoder_right, LC3_PCM_FORMAT_S16,
+      lc3_encode(lc3_encoder_left, bits_per_sample, (const int16_t*)data.data(),
+                 2, byte_count, chan_encoded.data());
+      lc3_encode(lc3_encoder_right, bits_per_sample,
                  (const int16_t*)data.data() + 1, 2, byte_count,
                  chan_encoded.data() + byte_count);
     }
@@ -2212,6 +2280,8 @@ class LeAudioClientImpl : public LeAudioClient {
 
     int dt_us = current_sink_codec_config.data_interval_us;
     int af_hz = audio_framework_sink_config.sample_rate;
+    lc3_pcm_format bits_per_sample =
+        bits_to_lc3_bits(audio_framework_sink_config.bits_per_sample);
 
     int pcm_size;
     if (dt_us == 10000) {
@@ -2244,7 +2314,7 @@ class LeAudioClientImpl : public LeAudioClient {
     lc3_decoder_t decoder_to_use =
         is_left ? lc3_decoder_left : lc3_decoder_right;
 
-    err = lc3_decode(decoder_to_use, data, size, LC3_PCM_FORMAT_S16,
+    err = lc3_decode(decoder_to_use, data, size, bits_per_sample,
                      pcm_data_decoded.data(), 1 /* pitch */);
 
     if (err < 0) {
