@@ -4,11 +4,11 @@ use dbus_macros::{dbus_method, dbus_propmap, dbus_proxy_obj, generate_dbus_expor
 use dbus_projection::{dbus_generated, DisconnectWatcher};
 
 use btstack::RPCProxy;
-use manager_service::iface_bluetooth_manager::{
-    AdapterWithEnabled, IBluetoothManager, IBluetoothManagerCallback,
-};
 
 use crate::dbus_arg::{DBusArg, DBusArgError, RefArgToRust};
+use crate::iface_bluetooth_manager::{
+    AdapterWithEnabled, IBluetoothManager, IBluetoothManagerCallback,
+};
 
 #[dbus_propmap(AdapterWithEnabled)]
 pub struct AdapterWithEnabledDbus {

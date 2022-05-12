@@ -5,16 +5,16 @@ use dbus::message::MatchRule;
 use dbus::nonblock::SyncConnection;
 use dbus_crossroads::Crossroads;
 use dbus_projection::DisconnectWatcher;
-use manager_service::suspend::{
-    RegisterSuspendDelayReply, RegisterSuspendDelayRequest, SuspendDone, SuspendImminent,
-    SuspendImminent_Reason, SuspendReadinessInfo,
-};
 use protobuf::{CodedInputStream, CodedOutputStream, Message};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use crate::dbus_iface::{export_suspend_callback_dbus_obj, SuspendDBus};
 use crate::service_watcher::ServiceWatcher;
+use crate::suspend::{
+    RegisterSuspendDelayReply, RegisterSuspendDelayRequest, SuspendDone, SuspendImminent,
+    SuspendImminent_Reason, SuspendReadinessInfo,
+};
 
 const POWERD_SERVICE: &str = "org.chromium.PowerManager";
 const POWERD_INTERFACE: &str = "org.chromium.PowerManager";
