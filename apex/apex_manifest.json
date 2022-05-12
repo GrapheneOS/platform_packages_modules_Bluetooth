@@ -1,4 +1,8 @@
 {
   "name": "com.android.bluetooth",
-  "version": 990090000
+  "version": 990090000,
+  "requireNativeLibs": [
+    "libaptX_encoder.so",
+    "libaptXHD_encoder.so"
+  ]
 }
