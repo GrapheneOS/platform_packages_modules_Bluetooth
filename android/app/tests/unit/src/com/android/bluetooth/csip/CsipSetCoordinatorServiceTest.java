@@ -40,6 +40,7 @@ import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeoutException;
@@ -254,13 +255,16 @@ public class CsipSetCoordinatorServiceTest {
 
         doCallRealMethod()
                 .when(mCsipSetCoordinatorNativeInterface)
-                .onDeviceAvailable(any(byte[].class), anyInt(), anyInt(), anyLong(), anyLong());
+                .onDeviceAvailable(any(byte[].class), anyInt(), anyInt(), anyInt(), anyLong(),
+                        anyLong());
         mCsipSetCoordinatorNativeInterface.onDeviceAvailable(
-                getByteAddress(mTestDevice), group_id, group_size, uuidLsb, uuidMsb);
+                getByteAddress(mTestDevice), group_id, group_size, 1, uuidLsb, uuidMsb);
+        Assert.assertFalse(mService.isGroupLocked(group_id));
 
         UUID lock_uuid = mService.lockGroup(group_id, mCsipSetCoordinatorLockCallback);
         Assert.assertNotNull(lock_uuid);
         verify(mCsipSetCoordinatorNativeInterface, times(1)).groupLockSet(eq(group_id), eq(true));
+        Assert.assertTrue(mService.isGroupLocked(group_id));
 
         doCallRealMethod()
                 .when(mCsipSetCoordinatorNativeInterface)
@@ -281,6 +285,7 @@ public class CsipSetCoordinatorServiceTest {
 
         mCsipSetCoordinatorNativeInterface.onGroupLockChanged(
                 group_id, false, IBluetoothCsipSetCoordinator.CSIS_GROUP_LOCK_SUCCESS);
+        Assert.assertFalse(mService.isGroupLocked(group_id));
 
         try {
             verify(mCsipSetCoordinatorLockCallback, times(1))
@@ -305,13 +310,16 @@ public class CsipSetCoordinatorServiceTest {
 
         doCallRealMethod()
                 .when(mCsipSetCoordinatorNativeInterface)
-                .onDeviceAvailable(any(byte[].class), anyInt(), anyInt(), anyLong(), anyLong());
+                .onDeviceAvailable(any(byte[].class), anyInt(), anyInt(), anyInt(), anyLong(),
+                        anyLong());
         mCsipSetCoordinatorNativeInterface.onDeviceAvailable(
-                getByteAddress(mTestDevice), group_id, group_size, uuidLsb, uuidMsb);
+                getByteAddress(mTestDevice), group_id, group_size, 1, uuidLsb, uuidMsb);
+        Assert.assertFalse(mService.isGroupLocked(group_id));
 
         UUID lock_uuid = mService.lockGroup(group_id, mCsipSetCoordinatorLockCallback);
         verify(mCsipSetCoordinatorNativeInterface, times(1)).groupLockSet(eq(group_id), eq(true));
         Assert.assertNotNull(lock_uuid);
+        Assert.assertTrue(mService.isGroupLocked(group_id));
 
         lock_uuid = mService.lockGroup(group_id, mCsipSetCoordinatorLockCallback);
         verify(mCsipSetCoordinatorNativeInterface, times(1)).groupLockSet(eq(group_id), eq(true));
@@ -431,16 +439,17 @@ public class CsipSetCoordinatorServiceTest {
     @Test
     public void testStackEventDeviceAvailable() {
         int group_id = 0x01;
-        int group_size = 0x01;
+        int group_size = 0x03;
         long uuidLsb = 0x01;
         long uuidMsb = 0x01;
         UUID uuid = new UUID(uuidMsb, uuidLsb);
 
         doCallRealMethod()
                 .when(mCsipSetCoordinatorNativeInterface)
-                .onDeviceAvailable(any(byte[].class), anyInt(), anyInt(), anyLong(), anyLong());
+                .onDeviceAvailable(any(byte[].class), anyInt(), anyInt(), anyInt(), anyLong(),
+                        anyLong());
         mCsipSetCoordinatorNativeInterface.onDeviceAvailable(
-                getByteAddress(mTestDevice), group_id, group_size, uuidLsb, uuidMsb);
+                getByteAddress(mTestDevice), group_id, group_size, 0x02, uuidLsb, uuidMsb);
 
         Intent intent = TestUtils.waitForIntent(TIMEOUT_MS, mIntentQueue.get(mTestDevice));
         Assert.assertNotNull(intent);
@@ -454,6 +463,20 @@ public class CsipSetCoordinatorServiceTest {
         Assert.assertEquals(uuid,
                 intent.getSerializableExtra(
                         BluetoothCsipSetCoordinator.EXTRA_CSIS_GROUP_TYPE_UUID));
+
+        // Another device with the highest rank
+        mCsipSetCoordinatorNativeInterface.onDeviceAvailable(
+                getByteAddress(mTestDevice2), group_id, group_size, 0x01, uuidLsb, uuidMsb);
+
+        // Yet another device with the lowest rank
+        mCsipSetCoordinatorNativeInterface.onDeviceAvailable(
+                getByteAddress(mTestDevice3), group_id, group_size, 0x03, uuidLsb, uuidMsb);
+
+        // Verify if the list of devices is sorted, with the lowest rank value devices first
+        List<BluetoothDevice> devices = mService.getGroupDevicesOrdered(group_id);
+        Assert.assertEquals(0, devices.indexOf(mTestDevice2));
+        Assert.assertEquals(1, devices.indexOf(mTestDevice));
+        Assert.assertEquals(2, devices.indexOf(mTestDevice3));
     }
 
     /**

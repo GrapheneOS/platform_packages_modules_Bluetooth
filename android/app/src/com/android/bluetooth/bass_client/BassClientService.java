@@ -741,6 +741,9 @@ public class BassClientService extends ProfileService {
                     BluetoothStatusCodes.ERROR_REMOTE_LINK_ERROR);
             return;
         }
+        if (stateMachine.hasPendingSourceOperation()) {
+            throw new IllegalStateException("addSource: source operation already pending");
+        }
         if (!hasRoomForBroadcastSourceAddition(sink)) {
             log("addSource: device has no room");
             mCallbacks.notifySourceAddFailed(sink, sourceMetadata,
@@ -783,6 +786,9 @@ public class BassClientService extends ProfileService {
             mCallbacks.notifySourceModifyFailed(sink, sourceId,
                     BluetoothStatusCodes.ERROR_REMOTE_LINK_ERROR);
             return;
+        }
+        if (stateMachine.hasPendingSourceOperation()) {
+            throw new IllegalStateException("modifySource: source operation already pending");
         }
         Message message = stateMachine.obtainMessage(BassClientStateMachine.UPDATE_BCAST_SOURCE);
         message.arg1 = sourceId;
