@@ -128,6 +128,10 @@ void mock_connection_le_on_disconnected(tHCI_STATUS status, uint16_t handle,
   mock_connection_le_on_disconnected_promise.set_value(handle);
 }
 
+void mock_link_classic_on_read_remote_extended_features_complete(
+    uint16_t handle, uint8_t current_page_number, uint8_t max_page_number,
+    uint64_t features) {}
+
 const shim::legacy::acl_interface_t GetMockAclInterface() {
   shim::legacy::acl_interface_t acl_interface{
       .on_send_data_upwards = mock_on_send_data_upwards,
@@ -165,7 +169,8 @@ const shim::legacy::acl_interface_t GetMockAclInterface() {
       .link.classic.on_read_link_quality_complete = nullptr,
       .link.classic.on_read_link_supervision_timeout_complete = nullptr,
       .link.classic.on_read_remote_version_information_complete = nullptr,
-      .link.classic.on_read_remote_extended_features_complete = nullptr,
+      .link.classic.on_read_remote_extended_features_complete =
+          mock_link_classic_on_read_remote_extended_features_complete,
       .link.classic.on_read_rssi_complete = nullptr,
       .link.classic.on_read_transmit_power_level_complete = nullptr,
       .link.classic.on_role_change = nullptr,
@@ -235,6 +240,15 @@ class MockClassicAclConnection
   bool ReadRemoteVersionInformation() override { return true; }
   bool ReadRemoteSupportedFeatures() override { return true; }
 
+  std::function<void(uint8_t)> read_remote_extended_features_function_{};
+
+  bool ReadRemoteExtendedFeatures(uint8_t page_number) override {
+    if (read_remote_extended_features_function_) {
+      read_remote_extended_features_function_(page_number);
+    }
+    return true;
+  }
+
   bool Disconnect(hci::DisconnectReason reason) override {
     disconnect_cnt_++;
     disconnect_promise_.set_value(handle_);
@@ -280,6 +294,7 @@ class MockLeAclConnection
   MockDeQueue<packet::PacketView<hci::kLittleEndian>> rx_;
 
   bool ReadRemoteVersionInformation() override { return true; }
+  bool LeReadRemoteFeatures() override { return true; }
 
   void Disconnect(hci::DisconnectReason reason) override {
     disconnect_cnt_++;
@@ -377,6 +392,65 @@ class MainShimTest : public testing::Test {
                                                kMaxLeAcceptlistSize,
                                                kMaxAddressResolutionSize);
   }
+};
+
+class MainShimTestWithClassicConnection : public MainShimTest {
+ protected:
+  void SetUp() override {
+    MainShimTest::SetUp();
+    hci::Address address({0x11, 0x22, 0x33, 0x44, 0x55, 0x66});
+
+    acl_ = MakeAcl();
+
+    // Create connection
+    EXPECT_CALL(*test::mock_acl_manager_, CreateConnection(_)).Times(1);
+    acl_->CreateClassicConnection(address);
+
+    // Respond with a mock connection created
+    auto connection = std::make_unique<MockClassicAclConnection>(address, 123);
+    ASSERT_EQ(123, connection->GetHandle());
+    ASSERT_EQ(hci::Address({0x11, 0x22, 0x33, 0x44, 0x55, 0x66}),
+              connection->GetAddress());
+    raw_connection_ = connection.get();
+
+    acl_->OnConnectSuccess(std::move(connection));
+    ASSERT_EQ(nullptr, connection);
+    ASSERT_NE(nullptr, raw_connection_->callbacks_);
+  }
+
+  void TearDown() override {
+    // Specify local disconnect request
+    auto tx_disconnect_future =
+        raw_connection_->disconnect_promise_.get_future();
+    acl_->DisconnectClassic(123, HCI_SUCCESS, {});
+
+    // Wait for disconnect to be received
+    uint16_t result = tx_disconnect_future.get();
+    ASSERT_EQ(123, result);
+
+    // Now emulate the remote disconnect response
+    auto handle_promise = std::promise<uint16_t>();
+    auto rx_disconnect_future = handle_promise.get_future();
+    mock_function_handle_promise_map
+        ["mock_connection_classic_on_disconnected"] = std::move(handle_promise);
+    raw_connection_->callbacks_->OnDisconnection(hci::ErrorCode::SUCCESS);
+
+    result = rx_disconnect_future.get();
+    ASSERT_EQ(123, result);
+
+    // *Our* task completing indicates reactor is done
+    std::promise<void> done;
+    auto future = done.get_future();
+    handler_->Call([](std::promise<void> done) { done.set_value(); },
+                   std::move(done));
+    future.wait();
+
+    acl_.reset();
+
+    MainShimTest::TearDown();
+  }
+  std::unique_ptr<shim::legacy::Acl> acl_;
+  MockClassicAclConnection* raw_connection_{nullptr};
 };
 
 TEST_F(MainShimTest, Nop) {}
@@ -512,7 +586,7 @@ class TestScanningCallbacks : public ::ScanningCallbacks {
   void OnBatchScanThresholdCrossed(int client_if) override {}
 };
 
-TEST_F(MainShimTest, BleScannerInterfaceImpl_OnScanResult) {
+TEST_F(MainShimTest, DISABLED_BleScannerInterfaceImpl_OnScanResult) {
   auto* ble = static_cast<bluetooth::shim::BleScannerInterfaceImpl*>(
       bluetooth::shim::get_ble_scanner_instance());
 
@@ -554,7 +628,7 @@ const char* test_flags[] = {
     nullptr,
 };
 
-TEST_F(MainShimTest, LeShimAclConnection_local_disconnect) {
+TEST_F(MainShimTest, DISABLED_LeShimAclConnection_local_disconnect) {
   bluetooth::common::InitFlags::Load(test_flags);
   auto acl = MakeAcl();
   EXPECT_CALL(*test::mock_acl_manager_, CreateLeConnection(_, _)).Times(1);
@@ -579,6 +653,8 @@ TEST_F(MainShimTest, LeShimAclConnection_local_disconnect) {
                                                           remote_address, role);
   auto raw_connection = connection.get();
   acl->OnLeConnectSuccess(remote_address, std::move(connection));
+  ASSERT_EQ(nullptr, connection);
+  ASSERT_NE(nullptr, raw_connection->callbacks_);
 
   // Initiate local LE disconnect
   mock_connection_le_on_disconnected_promise = std::promise<uint16_t>();
@@ -594,4 +670,51 @@ TEST_F(MainShimTest, LeShimAclConnection_local_disconnect) {
   raw_connection->callbacks_->OnDisconnection(hci::ErrorCode::SUCCESS);
 
   ASSERT_EQ(0x1234, disconnect_future.get());
+}
+
+TEST_F(MainShimTestWithClassicConnection, nop) {}
+
+TEST_F(MainShimTestWithClassicConnection, read_extended_feature) {
+  int read_remote_extended_feature_call_count = 0;
+  raw_connection_->read_remote_extended_features_function_ =
+      [&read_remote_extended_feature_call_count](uint8_t page_number) {
+        read_remote_extended_feature_call_count++;
+      };
+
+  // Handle typical case
+  {
+    read_remote_extended_feature_call_count = 0;
+    const uint8_t max_page = 3;
+    raw_connection_->callbacks_->OnReadRemoteExtendedFeaturesComplete(
+        1, max_page, 0xabcdef9876543210);
+    raw_connection_->callbacks_->OnReadRemoteExtendedFeaturesComplete(
+        2, max_page, 0xbcdef9876543210a);
+    raw_connection_->callbacks_->OnReadRemoteExtendedFeaturesComplete(
+        3, max_page, 0xcdef9876543210ab);
+    ASSERT_EQ(static_cast<int>(max_page) - 1,
+              read_remote_extended_feature_call_count);
+  }
+
+  // Handle extreme case
+  {
+    read_remote_extended_feature_call_count = 0;
+    const uint8_t max_page = 255;
+    for (int page = 1; page < static_cast<int>(max_page) + 1; page++) {
+      raw_connection_->callbacks_->OnReadRemoteExtendedFeaturesComplete(
+          static_cast<uint8_t>(page), max_page, 0xabcdef9876543210);
+    }
+    ASSERT_EQ(static_cast<int>(max_page - 1),
+              read_remote_extended_feature_call_count);
+  }
+
+  // Handle case where device returns max page of zero
+  {
+    read_remote_extended_feature_call_count = 0;
+    const uint8_t max_page = 0;
+    raw_connection_->callbacks_->OnReadRemoteExtendedFeaturesComplete(
+        1, max_page, 0xabcdef9876543210);
+    ASSERT_EQ(0, read_remote_extended_feature_call_count);
+  }
+
+  raw_connection_->read_remote_extended_features_function_ = {};
 }
