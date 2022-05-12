@@ -367,12 +367,12 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
       do {
         auto ases_pair = leAudioDevice->GetAsesByCisId(ase->cis_id);
 
-        if (ases_pair.sink) {
+        if (ases_pair.sink && ases_pair.sink->active) {
           ases_pair.sink->cis_conn_hdl = conn_handles[i];
           ases_pair.sink->data_path_state =
               AudioStreamDataPathState::CIS_ASSIGNED;
         }
-        if (ases_pair.source) {
+        if (ases_pair.source && ases_pair.source->active) {
           ases_pair.source->cis_conn_hdl = conn_handles[i];
           ases_pair.source->data_path_state =
               AudioStreamDataPathState::CIS_ASSIGNED;
