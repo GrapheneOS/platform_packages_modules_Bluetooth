@@ -136,7 +136,7 @@ public class MetricsLoggerTest {
     }
 
     /**
-     * Test add counters and send them to westworld
+     * Test add counters and send them to statsd
      */
     @Test
     public void testAddAndSendCountersNormalCases() {
