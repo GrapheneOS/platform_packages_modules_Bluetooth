@@ -1,16 +1,28 @@
 use log::{error, info, warn};
 
-use manager_service::iface_bluetooth_manager::{
-    AdapterWithEnabled, IBluetoothManager, IBluetoothManagerCallback,
-};
-
 use std::collections::HashMap;
 use std::process::Command;
-use std::sync::atomic::Ordering;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
 
-use crate::{config_util, state_machine, ManagerContext};
+use crate::iface_bluetooth_manager::{
+    AdapterWithEnabled, IBluetoothManager, IBluetoothManagerCallback,
+};
+use crate::{config_util, state_machine};
 
 const BLUEZ_INIT_TARGET: &str = "bluetoothd";
+
+#[derive(Clone)]
+pub struct ManagerContext {
+    proxy: state_machine::StateMachineProxy,
+    floss_enabled: Arc<AtomicBool>,
+}
+
+impl ManagerContext {
+    pub fn new(proxy: state_machine::StateMachineProxy, floss_enabled: Arc<AtomicBool>) -> Self {
+        Self { proxy, floss_enabled }
+    }
+}
 
 /// Implementation of IBluetoothManager.
 pub struct BluetoothManager {
@@ -20,7 +32,7 @@ pub struct BluetoothManager {
 }
 
 impl BluetoothManager {
-    pub(crate) fn new(manager_context: ManagerContext) -> BluetoothManager {
+    pub fn new(manager_context: ManagerContext) -> BluetoothManager {
         BluetoothManager {
             manager_context,
             callbacks: HashMap::new(),
