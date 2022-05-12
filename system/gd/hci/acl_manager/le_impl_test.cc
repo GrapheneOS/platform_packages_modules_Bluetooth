@@ -88,12 +88,12 @@ class TestHciLayer : public HciLayer {
 
     void EnqueueCommand(
         std::unique_ptr<T> command, common::ContextualOnceCallback<void(CommandCompleteView)> on_complete) override {
-      hci_.EnqueueCommand(move(command), std::move(on_complete));
+      hci_.EnqueueCommand(std::move(command), std::move(on_complete));
     }
 
     void EnqueueCommand(
         std::unique_ptr<T> command, common::ContextualOnceCallback<void(CommandStatusView)> on_status) override {
-      hci_.EnqueueCommand(move(command), std::move(on_status));
+      hci_.EnqueueCommand(std::move(command), std::move(on_status));
     }
     HciLayer& hci_;
   };
