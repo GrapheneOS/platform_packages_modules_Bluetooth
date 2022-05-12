@@ -44,7 +44,6 @@ using hci::OpCode;
 using hci::ResetCompleteView;
 using os::Alarm;
 using os::Handler;
-using std::move;
 using std::unique_ptr;
 
 static void fail_if_reset_complete_not_success(CommandCompleteView complete) {
@@ -61,12 +60,18 @@ static void abort_after_time_out(OpCode op_code) {
 class CommandQueueEntry {
  public:
   CommandQueueEntry(
-      unique_ptr<CommandBuilder> command_packet, ContextualOnceCallback<void(CommandCompleteView)> on_complete_function)
-      : command(move(command_packet)), waiting_for_status_(false), on_complete(move(on_complete_function)) {}
+      unique_ptr<CommandBuilder> command_packet,
+      ContextualOnceCallback<void(CommandCompleteView)> on_complete_function)
+      : command(std::move(command_packet)),
+        waiting_for_status_(false),
+        on_complete(std::move(on_complete_function)) {}
 
   CommandQueueEntry(
-      unique_ptr<CommandBuilder> command_packet, ContextualOnceCallback<void(CommandStatusView)> on_status_function)
-      : command(move(command_packet)), waiting_for_status_(true), on_status(move(on_status_function)) {}
+      unique_ptr<CommandBuilder> command_packet,
+      ContextualOnceCallback<void(CommandStatusView)> on_status_function)
+      : command(std::move(command_packet)),
+        waiting_for_status_(true),
+        on_status(std::move(on_status_function)) {}
 
   unique_ptr<CommandBuilder> command;
   unique_ptr<CommandView> command_view;
@@ -139,7 +144,7 @@ struct HciLayer::impl {
 
   template <typename TResponse>
   void enqueue_command(unique_ptr<CommandBuilder> command, ContextualOnceCallback<void(TResponse)> on_response) {
-    command_queue_.emplace_back(move(command), move(on_response));
+    command_queue_.emplace_back(std::move(command), std::move(on_response));
     send_next_command();
   }
 
@@ -174,26 +179,36 @@ struct HciLayer::impl {
     }
     bool is_status = logging_id == "status";
 
-    ASSERT_LOG(!command_queue_.empty(), "Unexpected %s event with OpCode 0x%02hx (%s)", logging_id.c_str(), op_code,
-               OpCodeText(op_code).c_str());
+    ASSERT_LOG(
+        !command_queue_.empty(),
+        "Unexpected %s event with OpCode 0x%02hx (%s)",
+        logging_id.c_str(),
+        op_code,
+        OpCodeText(op_code).c_str());
     if (waiting_command_ == OpCode::CONTROLLER_DEBUG_INFO && op_code != OpCode::CONTROLLER_DEBUG_INFO) {
       LOG_ERROR("Discarding event that came after timeout 0x%02hx (%s)", op_code, OpCodeText(op_code).c_str());
       return;
     }
-    ASSERT_LOG(waiting_command_ == op_code, "Waiting for 0x%02hx (%s), got 0x%02hx (%s)", waiting_command_,
-               OpCodeText(waiting_command_).c_str(), op_code, OpCodeText(op_code).c_str());
+    ASSERT_LOG(
+        waiting_command_ == op_code,
+        "Waiting for 0x%02hx (%s), got 0x%02hx (%s)",
+        waiting_command_,
+        OpCodeText(waiting_command_).c_str(),
+        op_code,
+        OpCodeText(op_code).c_str());
 
     bool is_vendor_specific = static_cast<int>(op_code) & (0x3f << 10);
     CommandStatusView status_view = CommandStatusView::Create(event);
     if (is_vendor_specific && (is_status && !command_queue_.front().waiting_for_status_) &&
         (status_view.IsValid() && status_view.GetStatus() == ErrorCode::UNKNOWN_HCI_COMMAND)) {
-      // If this is a command status of a vendor specific command, and command complete is expected, we can't treat
-      // this as hard failure since we have no way of probing this lack of support at earlier time. Instead we let
-      // the command complete handler handle a empty Command Complete packet, which will be interpreted as invalid
-      // response.
+      // If this is a command status of a vendor specific command, and command complete is expected,
+      // we can't treat this as hard failure since we have no way of probing this lack of support at
+      // earlier time. Instead we let the command complete handler handle a empty Command Complete
+      // packet, which will be interpreted as invalid response.
       CommandCompleteView command_complete_view = CommandCompleteView::Create(
           EventView::Create(PacketView<kLittleEndian>(std::make_shared<std::vector<uint8_t>>(std::vector<uint8_t>()))));
-      command_queue_.front().GetCallback<CommandCompleteView>()->Invoke(move(command_complete_view));
+      command_queue_.front().GetCallback<CommandCompleteView>()->Invoke(
+          std::move(command_complete_view));
     } else {
       ASSERT_LOG(
           command_queue_.front().waiting_for_status_ == is_status,
@@ -202,7 +217,7 @@ struct HciLayer::impl {
           OpCodeText(op_code).c_str(),
           logging_id.c_str());
 
-      command_queue_.front().GetCallback<TResponse>()->Invoke(move(response_view));
+      command_queue_.front().GetCallback<TResponse>()->Invoke(std::move(response_view));
     }
 
     command_queue_.pop_front();
@@ -275,8 +290,11 @@ struct HciLayer::impl {
         "Can not register handler for %02hhx (%s)",
         EventCode::LE_META_EVENT,
         EventCodeText(EventCode::LE_META_EVENT).c_str());
-    ASSERT_LOG(event_handlers_.count(event) == 0, "Can not register a second handler for %02hhx (%s)", event,
-               EventCodeText(event).c_str());
+    ASSERT_LOG(
+        event_handlers_.count(event) == 0,
+        "Can not register a second handler for %02hhx (%s)",
+        event,
+        EventCodeText(event).c_str());
     event_handlers_[event] = handler;
   }
 
@@ -298,8 +316,11 @@ struct HciLayer::impl {
   }
 
   void register_le_event(SubeventCode event, ContextualCallback<void(LeMetaEventView)> handler) {
-    ASSERT_LOG(subevent_handlers_.count(event) == 0, "Can not register a second handler for %02hhx (%s)", event,
-               SubeventCodeText(event).c_str());
+    ASSERT_LOG(
+        subevent_handlers_.count(event) == 0,
+        "Can not register a second handler for %02hhx (%s)",
+        event,
+        SubeventCodeText(event).c_str());
     subevent_handlers_[event] = handler;
   }
 
@@ -336,22 +357,28 @@ struct HciLayer::impl {
       // BT Core spec 5.2 (Volume 4, Part E section 4.4) allows anytime
       // COMMAND_COMPLETE and COMMAND_STATUS with opcode 0x0 for flow control
       if (event_code == EventCode::COMMAND_COMPLETE) {
-          auto view = CommandCompleteView::Create(event);
-          ASSERT(view.IsValid());
-          auto op_code = view.GetCommandOpCode();
-          ASSERT_LOG(op_code == OpCode::NONE,
+        auto view = CommandCompleteView::Create(event);
+        ASSERT(view.IsValid());
+        auto op_code = view.GetCommandOpCode();
+        ASSERT_LOG(
+            op_code == OpCode::NONE,
             "Received %s event with OpCode 0x%02hx (%s) without a waiting command"
             "(is the HAL sending commands, but not handling the events?)",
-            EventCodeText(event_code).c_str(), op_code, OpCodeText(op_code).c_str());
+            EventCodeText(event_code).c_str(),
+            op_code,
+            OpCodeText(op_code).c_str());
       }
       if (event_code == EventCode::COMMAND_STATUS) {
-          auto view = CommandStatusView::Create(event);
-          ASSERT(view.IsValid());
-          auto op_code = view.GetCommandOpCode();
-          ASSERT_LOG(op_code == OpCode::NONE,
+        auto view = CommandStatusView::Create(event);
+        ASSERT(view.IsValid());
+        auto op_code = view.GetCommandOpCode();
+        ASSERT_LOG(
+            op_code == OpCode::NONE,
             "Received %s event with OpCode 0x%02hx (%s) without a waiting command"
             "(is the HAL sending commands, but not handling the events?)",
-            EventCodeText(event_code).c_str(), op_code, OpCodeText(op_code).c_str());
+            EventCodeText(event_code).c_str(),
+            op_code,
+            OpCodeText(op_code).c_str());
       }
       std::unique_ptr<CommandView> no_waiting_command{nullptr};
       log_hci_event(no_waiting_command, event, module_.GetDependency<storage::StorageModule>());
@@ -423,25 +450,28 @@ struct HciLayer::hal_callbacks : public hal::HciHalCallbacks {
   void hciEventReceived(hal::HciPacket event_bytes) override {
     auto packet = packet::PacketView<packet::kLittleEndian>(std::make_shared<std::vector<uint8_t>>(event_bytes));
     EventView event = EventView::Create(packet);
-    module_.CallOn(module_.impl_, &impl::on_hci_event, move(event));
+    module_.CallOn(module_.impl_, &impl::on_hci_event, std::move(event));
   }
 
   void aclDataReceived(hal::HciPacket data_bytes) override {
-    auto packet = packet::PacketView<packet::kLittleEndian>(std::make_shared<std::vector<uint8_t>>(move(data_bytes)));
+    auto packet = packet::PacketView<packet::kLittleEndian>(
+        std::make_shared<std::vector<uint8_t>>(std::move(data_bytes)));
     auto acl = std::make_unique<AclView>(AclView::Create(packet));
-    module_.impl_->incoming_acl_buffer_.Enqueue(move(acl), module_.GetHandler());
+    module_.impl_->incoming_acl_buffer_.Enqueue(std::move(acl), module_.GetHandler());
   }
 
   void scoDataReceived(hal::HciPacket data_bytes) override {
-    auto packet = packet::PacketView<packet::kLittleEndian>(std::make_shared<std::vector<uint8_t>>(move(data_bytes)));
+    auto packet = packet::PacketView<packet::kLittleEndian>(
+        std::make_shared<std::vector<uint8_t>>(std::move(data_bytes)));
     auto sco = std::make_unique<ScoView>(ScoView::Create(packet));
-    module_.impl_->incoming_sco_buffer_.Enqueue(move(sco), module_.GetHandler());
+    module_.impl_->incoming_sco_buffer_.Enqueue(std::move(sco), module_.GetHandler());
   }
 
   void isoDataReceived(hal::HciPacket data_bytes) override {
-    auto packet = packet::PacketView<packet::kLittleEndian>(std::make_shared<std::vector<uint8_t>>(move(data_bytes)));
+    auto packet = packet::PacketView<packet::kLittleEndian>(
+        std::make_shared<std::vector<uint8_t>>(std::move(data_bytes)));
     auto iso = std::make_unique<IsoView>(IsoView::Create(packet));
-    module_.impl_->incoming_iso_buffer_.Enqueue(move(iso), module_.GetHandler());
+    module_.impl_->incoming_iso_buffer_.Enqueue(std::move(iso), module_.GetHandler());
   }
 
   HciLayer& module_;
@@ -449,8 +479,7 @@ struct HciLayer::hal_callbacks : public hal::HciHalCallbacks {
 
 HciLayer::HciLayer() : impl_(nullptr), hal_callbacks_(nullptr) {}
 
-HciLayer::~HciLayer() {
-}
+HciLayer::~HciLayer() {}
 
 common::BidiQueueEnd<AclBuilder, AclView>* HciLayer::GetAclQueueEnd() {
   return impl_->acl_queue_.GetUpEnd();
@@ -466,12 +495,17 @@ common::BidiQueueEnd<IsoBuilder, IsoView>* HciLayer::GetIsoQueueEnd() {
 
 void HciLayer::EnqueueCommand(
     unique_ptr<CommandBuilder> command, ContextualOnceCallback<void(CommandCompleteView)> on_complete) {
-  CallOn(impl_, &impl::enqueue_command<CommandCompleteView>, move(command), move(on_complete));
+  CallOn(
+      impl_,
+      &impl::enqueue_command<CommandCompleteView>,
+      std::move(command),
+      std::move(on_complete));
 }
 
 void HciLayer::EnqueueCommand(
     unique_ptr<CommandBuilder> command, ContextualOnceCallback<void(CommandStatusView)> on_status) {
-  CallOn(impl_, &impl::enqueue_command<CommandStatusView>, move(command), move(on_status));
+  CallOn(
+      impl_, &impl::enqueue_command<CommandStatusView>, std::move(command), std::move(on_status));
 }
 
 void HciLayer::RegisterEventHandler(EventCode event, ContextualCallback<void(EventView)> handler) {
