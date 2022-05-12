@@ -56,6 +56,8 @@
  */
 package com.android.bluetooth.bass_client;
 
+import static android.Manifest.permission.BLUETOOTH_CONNECT;
+
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
@@ -65,6 +67,7 @@ import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothLeAudioCodecConfigMetadata;
 import android.bluetooth.BluetoothLeAudioContentMetadata;
+import android.bluetooth.BluetoothLeBroadcastAssistant;
 import android.bluetooth.BluetoothLeBroadcastChannel;
 import android.bluetooth.BluetoothLeBroadcastMetadata;
 import android.bluetooth.BluetoothLeBroadcastReceiveState;
@@ -76,6 +79,7 @@ import android.bluetooth.le.PeriodicAdvertisingManager;
 import android.bluetooth.le.PeriodicAdvertisingReport;
 import android.bluetooth.le.ScanRecord;
 import android.bluetooth.le.ScanResult;
+import android.content.Intent;
 import android.os.Binder;
 import android.os.Looper;
 import android.os.Message;
@@ -83,6 +87,7 @@ import android.os.ParcelUuid;
 import android.provider.DeviceConfig;
 import android.util.Log;
 
+import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.btservice.ServiceFactory;
 import com.android.internal.annotations.VisibleForTesting;
@@ -136,6 +141,7 @@ public class BassClientStateMachine extends StateMachine {
     private final Map<Integer, BluetoothLeBroadcastReceiveState>
             mBluetoothLeBroadcastReceiveStates =
             new HashMap<Integer, BluetoothLeBroadcastReceiveState>();
+    private final Map<Integer, BluetoothLeBroadcastMetadata> mCurrentMetadata = new HashMap();
     private final Disconnected mDisconnected = new Disconnected();
     private final Connected mConnected = new Connected();
     private final Connecting mConnecting = new Connecting();
@@ -236,6 +242,20 @@ public class BassClientStateMachine extends StateMachine {
         mPendingOperation = -1;
         mPendingSourceId = -1;
         mPendingMetadata = null;
+        mCurrentMetadata.clear();
+    }
+
+    BluetoothLeBroadcastMetadata getCurrentBroadcastMetadata(Integer sourceId) {
+        return mCurrentMetadata.getOrDefault(sourceId, null);
+    }
+
+    private void setCurrentBroadcastMetadata(Integer sourceId,
+            BluetoothLeBroadcastMetadata metadata) {
+        if (metadata != null) {
+            mCurrentMetadata.put(sourceId, metadata);
+        } else {
+            mCurrentMetadata.remove(sourceId);
+        }
     }
 
     BluetoothLeBroadcastReceiveState getBroadcastReceiveStateForSourceDevice(
@@ -720,7 +740,7 @@ public class BassClientStateMachine extends StateMachine {
                 mService.getCallbacks().notifySourceAdded(mDevice,
                         recvState.getSourceId(), BluetoothStatusCodes.REASON_LOCAL_APP_REQUEST);
                 if (mPendingMetadata != null) {
-                    mService.updateSourceInternal(recvState.getSourceId(), mPendingMetadata);
+                    setCurrentBroadcastMetadata(recvState.getSourceId(), mPendingMetadata);
                 }
                 checkAndUpdateBroadcastCode(recvState);
                 processPASyncState(recvState);
@@ -730,13 +750,13 @@ public class BassClientStateMachine extends StateMachine {
                     BluetoothDevice removedDevice = oldRecvState.getSourceDevice();
                     log("sourceInfo removal" + removedDevice);
                     cancelActiveSync(removedDevice);
-                    mService.updateSourceInternal(oldRecvState.getSourceId(), null);
+                    setCurrentBroadcastMetadata(oldRecvState.getSourceId(), null);
                     mService.getCallbacks().notifySourceRemoved(mDevice,
                             oldRecvState.getSourceId(),
                             BluetoothStatusCodes.REASON_LOCAL_APP_REQUEST);
                 } else {
                     log("update to an existing recvState");
-                    mService.updateSourceInternal(recvState.getSourceId(), mPendingMetadata);
+                    setCurrentBroadcastMetadata(recvState.getSourceId(), mPendingMetadata);
                     mService.getCallbacks().notifySourceModified(mDevice,
                             recvState.getSourceId(), BluetoothStatusCodes.REASON_LOCAL_APP_REQUEST);
                     checkAndUpdateBroadcastCode(recvState);
@@ -955,6 +975,7 @@ public class BassClientStateMachine extends StateMachine {
         }
         mPendingOperation = -1;
         mPendingMetadata = null;
+        mCurrentMetadata.clear();
     }
 
     @VisibleForTesting
@@ -1285,8 +1306,8 @@ public class BassClientStateMachine extends StateMachine {
         res[1] = (byte) recvState.getSourceId();
         log("convertRecvStateToSetBroadcastCodeByteArray: Source device : "
                 + recvState.getSourceDevice());
-        BluetoothLeBroadcastMetadata metaData = mService.getSourceInternal(
-                recvState.getSourceId());
+        BluetoothLeBroadcastMetadata metaData =
+                getCurrentBroadcastMetadata(recvState.getSourceId());
         if (metaData == null) {
             Log.e(TAG, "Fail to find broadcast source, sourceId = "
                     + recvState.getSourceId());
@@ -1346,7 +1367,7 @@ public class BassClientStateMachine extends StateMachine {
                     + messageWhatToString(getCurrentMessage().what));
             removeDeferredMessages(CONNECT);
             if (mLastConnectionState == BluetoothProfile.STATE_CONNECTED) {
-                log("CONNECTED->CONNTECTED: Ignore");
+                log("CONNECTED->CONNECTED: Ignore");
             } else {
                 broadcastConnectionState(mDevice, mLastConnectionState,
                         BluetoothProfile.STATE_CONNECTED);
@@ -1743,9 +1764,17 @@ public class BassClientStateMachine extends StateMachine {
         log("broadcastConnectionState " + device + ": " + fromState + "->" + toState);
         if (fromState == BluetoothProfile.STATE_CONNECTED
                 && toState == BluetoothProfile.STATE_CONNECTED) {
-            log("CONNECTED->CONNTECTED: Ignore");
+            log("CONNECTED->CONNECTED: Ignore");
             return;
         }
+
+        Intent intent = new Intent(BluetoothLeBroadcastAssistant.ACTION_CONNECTION_STATE_CHANGED);
+        intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, fromState);
+        intent.putExtra(BluetoothProfile.EXTRA_STATE, toState);
+        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mDevice);
+        intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT
+                    | Intent.FLAG_RECEIVER_INCLUDE_BACKGROUND);
+        mService.sendBroadcast(intent, BLUETOOTH_CONNECT, Utils.getTempAllowlistBroadcastOptions());
     }
 
     int getConnectionState() {
