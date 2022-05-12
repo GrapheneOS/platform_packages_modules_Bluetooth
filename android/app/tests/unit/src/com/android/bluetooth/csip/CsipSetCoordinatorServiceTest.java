@@ -259,10 +259,12 @@ public class CsipSetCoordinatorServiceTest {
                         anyLong());
         mCsipSetCoordinatorNativeInterface.onDeviceAvailable(
                 getByteAddress(mTestDevice), group_id, group_size, 1, uuidLsb, uuidMsb);
+        Assert.assertFalse(mService.isGroupLocked(group_id));
 
         UUID lock_uuid = mService.lockGroup(group_id, mCsipSetCoordinatorLockCallback);
         Assert.assertNotNull(lock_uuid);
         verify(mCsipSetCoordinatorNativeInterface, times(1)).groupLockSet(eq(group_id), eq(true));
+        Assert.assertTrue(mService.isGroupLocked(group_id));
 
         doCallRealMethod()
                 .when(mCsipSetCoordinatorNativeInterface)
@@ -283,6 +285,7 @@ public class CsipSetCoordinatorServiceTest {
 
         mCsipSetCoordinatorNativeInterface.onGroupLockChanged(
                 group_id, false, IBluetoothCsipSetCoordinator.CSIS_GROUP_LOCK_SUCCESS);
+        Assert.assertFalse(mService.isGroupLocked(group_id));
 
         try {
             verify(mCsipSetCoordinatorLockCallback, times(1))
@@ -311,10 +314,12 @@ public class CsipSetCoordinatorServiceTest {
                         anyLong());
         mCsipSetCoordinatorNativeInterface.onDeviceAvailable(
                 getByteAddress(mTestDevice), group_id, group_size, 1, uuidLsb, uuidMsb);
+        Assert.assertFalse(mService.isGroupLocked(group_id));
 
         UUID lock_uuid = mService.lockGroup(group_id, mCsipSetCoordinatorLockCallback);
         verify(mCsipSetCoordinatorNativeInterface, times(1)).groupLockSet(eq(group_id), eq(true));
         Assert.assertNotNull(lock_uuid);
+        Assert.assertTrue(mService.isGroupLocked(group_id));
 
         lock_uuid = mService.lockGroup(group_id, mCsipSetCoordinatorLockCallback);
         verify(mCsipSetCoordinatorNativeInterface, times(1)).groupLockSet(eq(group_id), eq(true));

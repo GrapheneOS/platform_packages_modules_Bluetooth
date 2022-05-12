@@ -554,6 +554,17 @@ public class CsipSetCoordinatorService extends ProfileService {
     }
 
     /**
+     * Check whether a given group is currently locked.
+     * @param groupId unique group identifier
+     * @return true if group is currently locked, otherwise false.
+     *
+     * @hide
+     */
+    public boolean isGroupLocked(int groupId) {
+        return mLocks.containsKey(groupId);
+    }
+
+    /**
      * Get collection of group IDs for a given UUID
      * @param uuid
      * @return list of group IDs
