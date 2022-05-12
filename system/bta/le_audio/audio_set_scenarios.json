@@ -49,6 +49,8 @@
                 "DualDev_OneChanDoubleStereoSnk_OneChanMonoSrc_16_2_1",
                 "DualDev_OneChanDoubleStereoSnk_OneChanMonoSrc_16_1_Server_Preferred",
                 "DualDev_OneChanDoubleStereoSnk_OneChanMonoSrc_16_1_1",
+                "SingleDev_TwoChanStereoSnk_TwoChanStereoSrc_32_2_Server_Preferred",
+                "SingleDev_TwoChanStereoSnk_TwoChanStereoSrc_32_2_1",
                 "SingleDev_TwoChanStereoSnk_TwoChanStereoSrc_16_2_Server_Preferred",
                 "SingleDev_TwoChanStereoSnk_TwoChanStereoSrc_16_2_1",
                 "SingleDev_TwoChanStereoSnk_TwoChanStereoSrc_16_2_2",
