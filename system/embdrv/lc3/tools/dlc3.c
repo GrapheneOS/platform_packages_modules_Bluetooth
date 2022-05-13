@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright 2021 Google, Inc.
+ *  Copyright 2022 Google LLC
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 
 #define _POSIX_C_SOURCE 199309L
 
+#include <stdalign.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
@@ -65,6 +66,7 @@ static void error(int status, const char *format, ...)
 struct parameters {
     const char *fname_in;
     const char *fname_out;
+    int bitdepth;
     int srate_hz;
 };
 
@@ -78,10 +80,11 @@ static struct parameters parse_args(int argc, char *argv[])
         "\n"
         "Options:\n"
         "\t-h\t"     "Display help\n"
-        "\t-r\t"     "Output samplerate (default is LC3 stream samplerate)\n"
+        "\t-b\t"     "Output bitdepth, 16 bits (default) or 24 bits\n"
+        "\t-r\t"     "Output samplerate, default is LC3 stream samplerate\n"
         "\n";
 
-    struct parameters p = { };
+    struct parameters p = { .bitdepth = 16 };
 
     for (int iarg = 1; iarg < argc; ) {
         const char *arg = argv[iarg++];
@@ -94,7 +97,7 @@ static struct parameters parse_args(int argc, char *argv[])
             const char *optarg;
 
             switch (opt) {
-                case 'r':
+                case 'b': case 'r':
                     if (iarg >= argc)
                         error(EINVAL, "Argument %s", arg);
                     optarg = argv[iarg++];
@@ -102,6 +105,7 @@ static struct parameters parse_args(int argc, char *argv[])
 
             switch (opt) {
                 case 'h': fprintf(stderr, usage, argv[0]); exit(0);
+                case 'b': p.bitdepth = atoi(optarg); break;
                 case 'r': p.srate_hz = atoi(optarg); break;
                 default:
                     error(EINVAL, "Option %s", arg);
@@ -122,7 +126,7 @@ static struct parameters parse_args(int argc, char *argv[])
 }
 
 /**
- * Return time in (us) from unspecied point in the past
+ * Return time in (us) from unspecified point in the past
  */
 static unsigned clock_us(void)
 {
@@ -152,6 +156,9 @@ int main(int argc, char *argv[])
     if (p.srate_hz && !LC3_CHECK_SR_HZ(p.srate_hz))
         error(EINVAL, "Samplerate %d Hz", p.srate_hz);
 
+    if (p.bitdepth && p.bitdepth != 16 && p.bitdepth != 24)
+        error(EINVAL, "Bitdepth %d", p.bitdepth);
+
     /* --- Check parameters --- */
 
     int frame_us, srate_hz, nch, nsamples;
@@ -168,11 +175,15 @@ int main(int argc, char *argv[])
     if (!LC3_CHECK_SR_HZ(srate_hz) || (p.srate_hz && p.srate_hz < srate_hz))
          error(EINVAL, "Samplerate %d Hz", srate_hz);
 
+    int pcm_sbits = p.bitdepth;
+    int pcm_sbytes = 2 + 2*(pcm_sbits > 16);
+
     int pcm_srate_hz = !p.srate_hz ? srate_hz : p.srate_hz;
     int pcm_samples = !p.srate_hz ? nsamples :
         ((int64_t)nsamples * pcm_srate_hz) / srate_hz;
 
-    wave_write_header(fp_out, pcm_srate_hz, nch, pcm_samples);
+    wave_write_header(fp_out,
+          pcm_sbits, pcm_sbytes, pcm_srate_hz, nch, pcm_samples);
 
     /* --- Setup decoding --- */
 
@@ -182,7 +193,9 @@ int main(int argc, char *argv[])
 
     lc3_decoder_t dec[nch];
     uint8_t in[nch * LC3_MAX_FRAME_BYTES];
-    int16_t pcm[nch * frame_samples];
+    int8_t alignas(int32_t) pcm[nch * frame_samples * pcm_sbytes];
+    enum lc3_pcm_format pcm_fmt =
+        pcm_sbits == 24 ? LC3_PCM_FORMAT_S24 : LC3_PCM_FORMAT_S16;
 
     for (int ich = 0; ich < nch; ich++)
         dec[ich] = lc3_setup_decoder(frame_us, srate_hz, p.srate_hz,
@@ -211,17 +224,18 @@ int main(int argc, char *argv[])
         }
 
         if (frame_bytes <= 0)
-            memset(pcm, 0, nch * frame_samples * sizeof(int16_t));
+            memset(pcm, 0, nch * frame_samples * pcm_sbytes);
         else
             for (int ich = 0; ich < nch; ich++)
                 lc3_decode(dec[ich],
-                    in + ich * frame_bytes, frame_bytes, pcm + ich, nch);
+                    in + ich * frame_bytes, frame_bytes,
+                    pcm_fmt, pcm + ich * pcm_sbytes, nch);
 
         int pcm_offset = i > 0 ? 0 : encode_samples - pcm_samples;
         int pcm_nwrite = MIN(frame_samples - pcm_offset,
             encode_samples - i*frame_samples);
 
-        wave_write_pcm(fp_out, pcm, nch, pcm_offset, pcm_nwrite);
+        wave_write_pcm(fp_out, pcm_sbytes, pcm, nch, pcm_offset, pcm_nwrite);
     }
 
     unsigned t = (clock_us() - t0) / 1000;
