@@ -341,6 +341,7 @@ class BleScannerInterfaceImpl : public BleScannerInterface {
       uint8_t status_no_resource = 2;
       callbacks_->OnPeriodicSyncStarted(reg_id, status_no_resource, -1, sid, 1,
                                         address, 0, 0);
+      return;
     }
     StartSyncCb start_sync_cb =
         base::Bind(&ScanningCallbacks::OnPeriodicSyncStarted,
@@ -362,6 +363,7 @@ class BleScannerInterfaceImpl : public BleScannerInterface {
     const controller_t* controller = controller_get_interface();
     if (!controller->supports_ble_periodic_advertising_sync_transfer_sender()) {
       LOG_ERROR("PAST not supported by controller");
+      return;
     }
     do_in_main_thread(FROM_HERE, base::Bind(&BTM_BleStopPeriodicSync, handle));
   }
@@ -374,6 +376,7 @@ class BleScannerInterfaceImpl : public BleScannerInterface {
     const controller_t* controller = controller_get_interface();
     if (!controller->supports_ble_periodic_advertising_sync_transfer_sender()) {
       LOG_ERROR("PAST not supported by controller");
+      return;
     }
     do_in_main_thread(FROM_HERE,
                       base::Bind(&BTM_BleCancelPeriodicSync, sid, address));
@@ -388,6 +391,7 @@ class BleScannerInterfaceImpl : public BleScannerInterface {
       LOG_ERROR("PAST not supported by controller");
       callbacks_->OnPeriodicSyncTransferred(pa_source, status_no_resource,
                                             address);
+      return;
     }
     SyncTransferCb sync_transfer_cb =
         base::Bind(&ScanningCallbacks::OnPeriodicSyncTransferred,
@@ -408,6 +412,7 @@ class BleScannerInterfaceImpl : public BleScannerInterface {
       LOG_ERROR(" PAST not supported by controller");
       callbacks_->OnPeriodicSyncTransferred(pa_source, status_no_resource,
                                             address);
+      return;
     }
     SyncTransferCb sync_transfer_cb =
         base::Bind(&ScanningCallbacks::OnPeriodicSyncTransferred,
@@ -428,6 +433,7 @@ class BleScannerInterfaceImpl : public BleScannerInterface {
       LOG_ERROR(" PAST not supported by controller");
       callbacks_->OnPeriodicSyncStarted(reg_id, status_no_resource, -1, -1, 1,
                                         addr, 0, 0);
+      return;
     }
     StartSyncCb start_sync_cb =
         base::Bind(&ScanningCallbacks::OnPeriodicSyncStarted,
