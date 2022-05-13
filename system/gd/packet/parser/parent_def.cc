@@ -613,6 +613,8 @@ void ParentDef::GenRustConformanceCheck(std::ostream& s) const {
       FixedScalarField::kFieldType,
   });
 
+  s << "if bytes.len() < " << this->GetSize(false).bytes() << " { return false; }";
+
   for (auto const& field : fields) {
     auto start_offset = GetOffsetForField(field->GetName(), false);
     auto end_offset = GetOffsetForField(field->GetName(), true);
