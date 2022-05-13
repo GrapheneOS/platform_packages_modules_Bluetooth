@@ -181,6 +181,9 @@ public class TbsGeneric {
             mTbsGatt.clearSilentModeFlag();
         }
 
+        // Android supports inband ringtone
+        mTbsGatt.setInbandRingtoneFlag();
+
         mReceiver = new Receiver();
         mTbsGatt.getContext().registerReceiver(mReceiver,
                 new IntentFilter(AudioManager.RINGER_MODE_CHANGED_ACTION));
