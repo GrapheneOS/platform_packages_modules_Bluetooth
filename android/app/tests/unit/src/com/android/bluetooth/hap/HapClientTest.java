@@ -659,6 +659,9 @@ public class HapClientTest {
         doReturn(new ParcelUuid[]{BluetoothUuid.HAS}).when(mAdapterService)
                 .getRemoteUuids(any(BluetoothDevice.class));
 
+        doCallRealMethod()
+                .when(mNativeInterface)
+                .onDeviceAvailable(any(byte[].class), anyInt());
         mNativeInterface.onDeviceAvailable(getByteAddress(mDevice), 0x03);
 
         Intent intent = TestUtils.waitForIntent(TIMEOUT_MS, mIntentQueue.get(mDevice));
@@ -677,6 +680,9 @@ public class HapClientTest {
         doReturn(new ParcelUuid[]{BluetoothUuid.HAS}).when(mAdapterService)
                 .getRemoteUuids(any(BluetoothDevice.class));
 
+        doCallRealMethod()
+                .when(mNativeInterface)
+                .onActivePresetSelected(any(byte[].class), anyInt());
         mNativeInterface.onActivePresetSelected(getByteAddress(mDevice), 0x01);
 
         try {
@@ -698,6 +704,10 @@ public class HapClientTest {
         doReturn(new ParcelUuid[]{BluetoothUuid.HAS}).when(mAdapterService)
                 .getRemoteUuids(any(BluetoothDevice.class));
 
+
+        doCallRealMethod()
+                .when(mNativeInterface)
+                .onActivePresetSelectError(any(byte[].class), anyInt());
         /* Send INVALID_PRESET_INDEX error */
         mNativeInterface.onActivePresetSelectError(getByteAddress(mDevice), 0x05);
 
@@ -726,6 +736,10 @@ public class HapClientTest {
                         .setWritable(true)
                         .setAvailable(false)
                         .build()};
+
+        doCallRealMethod()
+                .when(mNativeInterface)
+                .onPresetInfo(any(byte[].class), anyInt(), any());
         mNativeInterface.onPresetInfo(getByteAddress(mDevice), info_reason, info);
 
         ArgumentCaptor<List<BluetoothHapPresetInfo>> presetsCaptor =
@@ -757,6 +771,9 @@ public class HapClientTest {
         doReturn(new ParcelUuid[]{BluetoothUuid.HAS}).when(mAdapterService)
                 .getRemoteUuids(any(BluetoothDevice.class));
 
+        doCallRealMethod()
+                .when(mNativeInterface)
+                .onPresetNameSetError(any(byte[].class), anyInt(), anyInt());
         /* Not a valid name length */
         mNativeInterface.onPresetNameSetError(getByteAddress(mDevice), 0x01,
                 HapClientStackEvent.STATUS_INVALID_PRESET_NAME_LENGTH);
@@ -815,6 +832,10 @@ public class HapClientTest {
     public void testStackEventOnGroupPresetNameSetError() {
         doReturn(new ParcelUuid[]{BluetoothUuid.HAS}).when(mAdapterService)
                 .getRemoteUuids(any(BluetoothDevice.class));
+
+        doCallRealMethod()
+                .when(mNativeInterface)
+                .onGroupPresetNameSetError(anyInt(), anyInt(), anyInt());
 
         /* Not a valid name length */
         mNativeInterface.onGroupPresetNameSetError(0x01, 0x01,
