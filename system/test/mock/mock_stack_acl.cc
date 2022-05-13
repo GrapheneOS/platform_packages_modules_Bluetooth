@@ -76,6 +76,7 @@ struct sco_peer_supports_esco_3m_phy sco_peer_supports_esco_3m_phy;
 struct acl_create_classic_connection acl_create_classic_connection;
 struct IsEprAvailable IsEprAvailable;
 struct acl_get_connection_from_address acl_get_connection_from_address;
+struct btm_acl_for_bda btm_acl_for_bda;
 struct acl_get_connection_from_handle acl_get_connection_from_handle;
 struct BTM_GetLinkSuperTout BTM_GetLinkSuperTout;
 struct BTM_GetRole BTM_GetRole;
@@ -313,6 +314,10 @@ tACL_CONN* acl_get_connection_from_address(const RawAddress& bd_addr,
   mock_function_count_map[__func__]++;
   return test::mock::stack_acl::acl_get_connection_from_address(bd_addr,
                                                                 transport);
+}
+tACL_CONN* btm_acl_for_bda(const RawAddress& bd_addr, tBT_TRANSPORT transport) {
+  mock_function_count_map[__func__]++;
+  return test::mock::stack_acl::btm_acl_for_bda(bd_addr, transport);
 }
 tACL_CONN* acl_get_connection_from_handle(uint16_t handle) {
   mock_function_count_map[__func__]++;
