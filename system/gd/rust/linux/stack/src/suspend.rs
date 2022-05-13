@@ -124,7 +124,7 @@ impl ISuspend for Suspend {
             }
         }
         self.intf.lock().unwrap().clear_filter_accept_list();
-        // TODO(231435700): self.intf.lock().unwrap().disconnect_all_acls();
+        self.intf.lock().unwrap().disconnect_all_acls();
         self.intf.lock().unwrap().le_rand();
         self.callbacks.for_all_callbacks(|callback| {
             callback.on_suspend_ready(suspend_id);

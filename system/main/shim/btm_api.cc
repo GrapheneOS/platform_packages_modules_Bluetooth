@@ -1348,9 +1348,7 @@ tBTM_STATUS bluetooth::shim::BTM_ClearFilterAcceptList() {
 }
 
 tBTM_STATUS bluetooth::shim::BTM_DisconnectAllAcls() {
-  for (uint16_t i = 0; i < 0xfffe; i++) {
-    btm_sec_disconnect(i, HCI_SUCCESS, "");
-  }
+  Stack::GetInstance()->GetAcl()->Shutdown();
   return BTM_SUCCESS;
 }
 

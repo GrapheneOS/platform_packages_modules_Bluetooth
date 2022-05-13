@@ -30,8 +30,7 @@ class SuspendTest(TopshimBaseTest):
         await self.dut_adapter.clear_event_filter()
         await self.dut_adapter.clear_event_mask()
         await self.dut_adapter.clear_filter_accept_list()
-        # TODO(optedoblivion): Find a better way to disconnect active ACLs
-        # await self.dut_adapter.disconnect_all_acls()
+        await self.dut_adapter.disconnect_all_acls()
         random = await self.dut_adapter.le_rand()
         return random
 
