@@ -41,6 +41,10 @@ class MockScanningCallback : public ScanningCallback {
   MOCK_METHOD(void, OnFilterEnable, (Enable, uint8_t));
   MOCK_METHOD(void, OnFilterParamSetup, (uint8_t, ApcfAction, uint8_t));
   MOCK_METHOD(void, OnFilterConfigCallback, (ApcfFilterType, uint8_t, ApcfAction, uint8_t));
+  MOCK_METHOD(void, OnPeriodicSyncStarted, (int, uint8_t, uint16_t, uint8_t, AddressWithType, uint8_t, uint16_t));
+  MOCK_METHOD(void, OnPeriodicSyncReport, (uint16_t, int8_t, int8_t, uint8_t, std::vector<uint8_t>));
+  MOCK_METHOD(void, OnPeriodicSyncLost, (uint16_t));
+  MOCK_METHOD(void, OnPeriodicSyncTransferred, (int, uint8_t, Address));
 };
 
 class MockLeScanningManager : public LeScanningManager {
@@ -58,6 +62,12 @@ class MockLeScanningManager : public LeScanningManager {
   MOCK_METHOD(void, BatchScanReadReport, (ScannerId, BatchScanMode));
   MOCK_METHOD(void, TrackAdvertiser, (uint8_t, ScannerId));
   MOCK_METHOD(void, RegisterScanningCallback, (ScanningCallback*));
+  MOCK_METHOD(void, StartSync, (uint8_t, const AddressWithType&, uint16_t, uint16_t, int));
+  MOCK_METHOD(void, StopSync, (uint16_t));
+  MOCK_METHOD(void, CancelCreateSync, (uint8_t, const Address&));
+  MOCK_METHOD(void, TransferSync, (const Address&, uint16_t, uint16_t sync_handle, int pa_source));
+  MOCK_METHOD(void, TransferSetInfo, (const Address&, uint16_t, uint8_t, int));
+  MOCK_METHOD(void, SyncTxParameters, (const Address&, uint8_t, uint16_t, uint16_t, int));
 };
 
 }  // namespace testing
