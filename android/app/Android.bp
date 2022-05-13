@@ -152,7 +152,7 @@ android_app {
         "android.hardware.bluetooth@1.1",
         "android.hardware.bluetooth.audio@2.0",
         "android.hardware.bluetooth.audio@2.1",
-        "android.hardware.bluetooth.audio-V1-ndk",
+        "android.hardware.bluetooth.audio-V2-ndk",
     ],
     apex_available: [
         "com.android.bluetooth",
