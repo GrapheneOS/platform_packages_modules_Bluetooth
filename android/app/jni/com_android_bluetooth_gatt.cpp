@@ -992,6 +992,64 @@ class JniScanningCallbacks : ScanningCallbacks {
     sCallbackEnv->CallVoidMethod(mCallbacksObj,
                                  method_onBatchScanThresholdCrossed, client_if);
   }
+
+  void OnPeriodicSyncStarted(int reg_id, uint8_t status, uint16_t sync_handle,
+                             uint8_t sid, uint8_t address_type,
+                             RawAddress address, uint8_t phy,
+                             uint16_t interval) override {
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
+    if (!mPeriodicScanCallbacksObj) {
+      ALOGE("mPeriodicScanCallbacksObj is NULL. Return.");
+      return;
+    }
+    ScopedLocalRef<jstring> addr(sCallbackEnv.get(),
+                                 bdaddr2newjstr(sCallbackEnv.get(), &address));
+
+    sCallbackEnv->CallVoidMethod(
+        mPeriodicScanCallbacksObj, method_onSyncStarted, reg_id, sync_handle,
+        sid, address_type, addr.get(), phy, interval, status);
+  }
+
+  void OnPeriodicSyncReport(uint16_t sync_handle, int8_t tx_power, int8_t rssi,
+                            uint8_t data_status,
+                            std::vector<uint8_t> data) override {
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
+
+    ScopedLocalRef<jbyteArray> jb(sCallbackEnv.get(),
+                                  sCallbackEnv->NewByteArray(data.size()));
+    sCallbackEnv->SetByteArrayRegion(jb.get(), 0, data.size(),
+                                     (jbyte*)data.data());
+
+    sCallbackEnv->CallVoidMethod(mPeriodicScanCallbacksObj, method_onSyncReport,
+                                 sync_handle, tx_power, rssi, data_status,
+                                 jb.get());
+  }
+
+  void OnPeriodicSyncLost(uint16_t sync_handle) override {
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
+
+    sCallbackEnv->CallVoidMethod(mPeriodicScanCallbacksObj, method_onSyncLost,
+                                 sync_handle);
+  }
+
+  void OnPeriodicSyncTransferred(int pa_source, uint8_t status,
+                                 RawAddress address) override {
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
+    if (!mPeriodicScanCallbacksObj) {
+      ALOGE("mPeriodicScanCallbacksObj is NULL. Return.");
+      return;
+    }
+    ScopedLocalRef<jstring> addr(sCallbackEnv.get(),
+                                 bdaddr2newjstr(sCallbackEnv.get(), &address));
+
+    sCallbackEnv->CallVoidMethod(mPeriodicScanCallbacksObj,
+                                 method_onSyncTransferredCallback, pa_source,
+                                 status, addr.get());
+  }
 };
 
 /**
@@ -2249,54 +2307,12 @@ static void periodicScanCleanupNative(JNIEnv* env, jobject object) {
   }
 }
 
-static void onSyncStarted(int reg_id, uint8_t status, uint16_t sync_handle,
-                          uint8_t sid, uint8_t address_type, RawAddress address,
-                          uint8_t phy, uint16_t interval) {
-  CallbackEnv sCallbackEnv(__func__);
-  if (!sCallbackEnv.valid()) return;
-  if (!mPeriodicScanCallbacksObj) {
-    ALOGE("mPeriodicScanCallbacksObj is NULL. Return.");
-    return;
-  }
-  ScopedLocalRef<jstring> addr(sCallbackEnv.get(),
-                               bdaddr2newjstr(sCallbackEnv.get(), &address));
-
-  sCallbackEnv->CallVoidMethod(mPeriodicScanCallbacksObj, method_onSyncStarted,
-                               reg_id, sync_handle, sid, address_type,
-                               addr.get(), phy, interval, status);
-}
-
-static void onSyncReport(uint16_t sync_handle, int8_t tx_power, int8_t rssi,
-                         uint8_t data_status, std::vector<uint8_t> data) {
-  CallbackEnv sCallbackEnv(__func__);
-  if (!sCallbackEnv.valid()) return;
-
-  ScopedLocalRef<jbyteArray> jb(sCallbackEnv.get(),
-                                sCallbackEnv->NewByteArray(data.size()));
-  sCallbackEnv->SetByteArrayRegion(jb.get(), 0, data.size(),
-                                   (jbyte*)data.data());
-
-  sCallbackEnv->CallVoidMethod(mPeriodicScanCallbacksObj, method_onSyncReport,
-                               sync_handle, tx_power, rssi, data_status,
-                               jb.get());
-}
-
-static void onSyncLost(uint16_t sync_handle) {
-  CallbackEnv sCallbackEnv(__func__);
-  if (!sCallbackEnv.valid()) return;
-
-  sCallbackEnv->CallVoidMethod(mPeriodicScanCallbacksObj, method_onSyncLost,
-                               sync_handle);
-}
-
 static void startSyncNative(JNIEnv* env, jobject object, jint sid,
                             jstring address, jint skip, jint timeout,
                             jint reg_id) {
   if (!sGattIf) return;
   sGattIf->scanner->StartSync(sid, str2addr(env, address), skip, timeout,
-                              base::Bind(&onSyncStarted, reg_id),
-                              base::Bind(&onSyncReport),
-                              base::Bind(&onSyncLost));
+                              reg_id);
 }
 
 static void stopSyncNative(JNIEnv* env, jobject object, jint sync_handle) {
@@ -2310,37 +2326,20 @@ static void cancelSyncNative(JNIEnv* env, jobject object, jint sid,
   sGattIf->scanner->CancelCreateSync(sid, str2addr(env, address));
 }
 
-static void onSyncTransferredCb(int pa_source, uint8_t status,
-                                RawAddress address) {
-  CallbackEnv sCallbackEnv(__func__);
-  if (!sCallbackEnv.valid()) return;
-  if (!mPeriodicScanCallbacksObj) {
-    ALOGE("mPeriodicScanCallbacksObj is NULL. Return.");
-    return;
-  }
-  ScopedLocalRef<jstring> addr(sCallbackEnv.get(),
-                               bdaddr2newjstr(sCallbackEnv.get(), &address));
-
-  sCallbackEnv->CallVoidMethod(mPeriodicScanCallbacksObj,
-                               method_onSyncTransferredCallback, pa_source,
-                               status, addr.get());
-}
-
 static void syncTransferNative(JNIEnv* env, jobject object, jint pa_source,
                                jstring addr, jint service_data,
                                jint sync_handle) {
   if (!sGattIf) return;
   sGattIf->scanner->TransferSync(str2addr(env, addr), service_data, sync_handle,
-                                 base::Bind(&onSyncTransferredCb, pa_source));
+                                 pa_source);
 }
 
 static void transferSetInfoNative(JNIEnv* env, jobject object, jint pa_source,
                                   jstring addr, jint service_data,
                                   jint adv_handle) {
   if (!sGattIf) return;
-  sGattIf->scanner->TransferSetInfo(
-      str2addr(env, addr), service_data, adv_handle,
-      base::Bind(&onSyncTransferredCb, pa_source));
+  sGattIf->scanner->TransferSetInfo(str2addr(env, addr), service_data,
+                                    adv_handle, pa_source);
 }
 
 static void gattTestNative(JNIEnv* env, jobject object, jint command,
