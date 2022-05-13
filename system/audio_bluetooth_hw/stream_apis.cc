@@ -465,6 +465,9 @@ static char* out_get_parameters(const struct audio_stream* stream,
     if (audio_cfg.format == AUDIO_FORMAT_PCM_24_BIT_PACKED) {
       param = "AUDIO_FORMAT_PCM_24_BIT_PACKED";
     }
+    if (audio_cfg.format == AUDIO_FORMAT_PCM_8_24_BIT) {
+      param = "AUDIO_FORMAT_PCM_8_24_BIT";
+    }
     if (audio_cfg.format == AUDIO_FORMAT_PCM_32_BIT) {
       param = "AUDIO_FORMAT_PCM_32_BIT";
     }
