@@ -210,28 +210,41 @@ class Btm {
   class ScanningCallbacks : public hci::ScanningCallback {
     void OnScannerRegistered(const bluetooth::hci::Uuid app_uuid,
                              bluetooth::hci::ScannerId scanner_id,
-                             ScanningStatus status);
+                             ScanningStatus status) override;
     void OnSetScannerParameterComplete(bluetooth::hci::ScannerId scanner_id,
-                                       ScanningStatus status);
+                                       ScanningStatus status) override;
     void OnScanResult(uint16_t event_type, uint8_t address_type,
                       bluetooth::hci::Address address, uint8_t primary_phy,
                       uint8_t secondary_phy, uint8_t advertising_sid,
                       int8_t tx_power, int8_t rssi,
                       uint16_t periodic_advertising_interval,
-                      std::vector<uint8_t> advertising_data);
+                      std::vector<uint8_t> advertising_data) override;
     void OnTrackAdvFoundLost(bluetooth::hci::AdvertisingFilterOnFoundOnLostInfo
-                                 on_found_on_lost_info);
+                                 on_found_on_lost_info) override;
     void OnBatchScanReports(int client_if, int status, int report_format,
-                            int num_records, std::vector<uint8_t> data);
-    void OnBatchScanThresholdCrossed(int client_if);
-    void OnTimeout();
-    void OnFilterEnable(bluetooth::hci::Enable enable, uint8_t status);
+                            int num_records,
+                            std::vector<uint8_t> data) override;
+    void OnBatchScanThresholdCrossed(int client_if) override;
+    void OnTimeout() override;
+    void OnFilterEnable(bluetooth::hci::Enable enable, uint8_t status) override;
     void OnFilterParamSetup(uint8_t available_spaces,
-                            bluetooth::hci::ApcfAction action, uint8_t status);
+                            bluetooth::hci::ApcfAction action,
+                            uint8_t status) override;
     void OnFilterConfigCallback(bluetooth::hci::ApcfFilterType filter_type,
                                 uint8_t available_spaces,
                                 bluetooth::hci::ApcfAction action,
-                                uint8_t status);
+                                uint8_t status) override;
+    void OnPeriodicSyncStarted(
+        int reg_id, uint8_t status, uint16_t sync_handle,
+        uint8_t advertising_sid,
+        bluetooth::hci::AddressWithType address_with_type, uint8_t phy,
+        uint16_t interval) override;
+    void OnPeriodicSyncReport(uint16_t sync_handle, int8_t tx_power,
+                              int8_t rssi, uint8_t status,
+                              std::vector<uint8_t> data) override;
+    void OnPeriodicSyncLost(uint16_t sync_handle) override;
+    void OnPeriodicSyncTransferred(int pa_source, uint8_t status,
+                                   bluetooth::hci::Address address) override;
   };
   ScanningCallbacks scanning_callbacks_;
 
