@@ -1223,8 +1223,10 @@ static void btif_dm_search_devices_evt(tBTA_DM_SEARCH_EVT event,
       uint8_t num_uuids = 0, max_num_uuid = 32;
       uint8_t uuid_list[32 * Uuid::kNumBytes16];
 
-      p_search_data->inq_res.remt_name_not_required =
-          check_eir_remote_name(p_search_data, NULL, NULL);
+      if (p_search_data->inq_res.inq_result_type != BTM_INQ_RESULT_BLE) {
+        p_search_data->inq_res.remt_name_not_required =
+            check_eir_remote_name(p_search_data, NULL, NULL);
+      }
       RawAddress& bdaddr = p_search_data->inq_res.bd_addr;
 
       BTIF_TRACE_DEBUG("%s() %s device_type = 0x%x\n", __func__,
