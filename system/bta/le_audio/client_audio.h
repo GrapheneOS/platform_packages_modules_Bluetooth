@@ -37,6 +37,9 @@ class LeAudioClientAudioSourceReceiver {
   virtual ~LeAudioClientAudioSourceReceiver() = default;
   virtual void OnAudioSuspend(std::promise<void> do_suspend_promise) = 0;
   virtual void OnAudioResume(void) = 0;
+  virtual void OnAudioMetadataUpdate(
+      std::promise<void> do_update_metadata_promise,
+      const sink_metadata_t& sink_metadata) = 0;
 };
 
 /* Represents configuration of audio codec, as exchanged between le audio and
@@ -173,6 +176,7 @@ class LeAudioUnicastClientAudioSink {
  private:
   bool SourceOnResumeReq(bool start_media_task);
   bool SourceOnSuspendReq();
+  bool SourceOnMetadataUpdateReq(const sink_metadata_t& sink_metadata);
 
   LeAudioClientAudioSourceReceiver* audioSourceReceiver_;
   bluetooth::audio::le_audio::LeAudioClientInterface::Source*
