@@ -506,7 +506,8 @@ TEST_F(LeAudioClientAudioTest,
             std::future_status::ready);
 
   // Check agains expected payload size
-  const uint32_t channel_bytes_per_sample = (24 /*bps*/ / 8);
+  // 24 bit audio stream is sent as unpacked, each sample takes 4 bytes.
+  const uint32_t channel_bytes_per_sample = 4;
   const uint32_t channel_bytes_per_10ms_at_16000Hz =
       ((10ms).count() * channel_bytes_per_sample * 16000 /*Hz*/) /
       (1000ms).count();
