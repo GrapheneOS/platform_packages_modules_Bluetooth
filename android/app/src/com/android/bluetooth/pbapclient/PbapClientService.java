@@ -60,12 +60,6 @@ public class PbapClientService extends ProfileService {
     private static final String TAG = "PbapClientService";
     private static final String SERVICE_NAME = "Phonebook Access PCE";
 
-    /**
-     * The component names for the owned authenticator service
-     */
-    private static final String AUTHENTICATOR_SERVICE =
-            AuthenticationService.class.getCanonicalName();
-
     // MAXIMUM_DEVICES set to 10 to prevent an excessive number of simultaneous devices.
     private static final int MAXIMUM_DEVICES = 10;
     private Map<BluetoothDevice, PbapClientStateMachine> mPbapClientStateMachineMap =
@@ -93,8 +87,6 @@ public class PbapClientService extends ProfileService {
 
         mDatabaseManager = Objects.requireNonNull(AdapterService.getAdapterService().getDatabase(),
                 "DatabaseManager cannot be null when PbapClientService starts");
-
-        setComponentAvailable(AUTHENTICATOR_SERVICE, true);
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
@@ -128,7 +120,6 @@ public class PbapClientService extends ProfileService {
             pbapClientStateMachine.doQuit();
         }
         removeUncleanAccounts();
-        setComponentAvailable(AUTHENTICATOR_SERVICE, false);
         return true;
     }
 
