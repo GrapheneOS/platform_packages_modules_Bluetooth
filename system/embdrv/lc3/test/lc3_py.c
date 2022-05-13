@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright 2021 Google, Inc.
+ *  Copyright 2022 Google LLC
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -68,7 +68,7 @@ static PyObject *encode_py(PyObject *m, PyObject *args)
 
     uint8_t out[nbytes];
 
-    lc3_encode(encoder, pcm, 1, nbytes, out);
+    lc3_encode(encoder, LC3_PCM_FORMAT_S16, pcm, 1, nbytes, out);
 
     from_encoder(encoder_obj, encoder);
 
@@ -98,24 +98,26 @@ static PyObject *setup_decoder_py(PyObject *m, PyObject *args)
 
 static PyObject *decode_py(PyObject *m, PyObject *args)
 {
-    PyObject *decoder_obj, *pcm_obj;
-    uint8_t *in;
-    int nbytes;
+    PyObject *decoder_obj, *pcm_obj, *in_obj;
     int16_t *pcm;
 
-    if (!PyArg_ParseTuple(args, "Oy#", &decoder_obj, &in, &nbytes))
+    if (!PyArg_ParseTuple(args, "OO", &decoder_obj, &in_obj))
         return NULL;
+
+    CTYPES_CHECK("in", in_obj == Py_None || PyBytes_Check(in_obj));
+
+    char *in = in_obj == Py_None ? NULL : PyBytes_AsString(in_obj);
+    int nbytes = in_obj == Py_None ? 0 : PyBytes_Size(in_obj);
 
     lc3_decoder_t decoder =
         lc3_setup_decoder(10000, 48000, 0, &(lc3_decoder_mem_48k_t){ });
 
     CTYPES_CHECK(NULL, decoder_obj = to_decoder(decoder_obj, decoder));
-    CTYPES_CHECK("nbytes", nbytes >= 20 && nbytes <= 400);
 
     int ns = LC3_NS(decoder->dt, decoder->sr);
     pcm_obj = new_1d_ptr(NPY_INT16, ns, &pcm);
 
-    lc3_decode(decoder, in, nbytes, pcm, 1);
+    lc3_decode(decoder, in, nbytes, LC3_PCM_FORMAT_S16, pcm, 1);
 
     from_decoder(decoder_obj, decoder);
 
