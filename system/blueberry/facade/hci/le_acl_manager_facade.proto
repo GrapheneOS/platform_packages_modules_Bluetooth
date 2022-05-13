@@ -7,8 +7,6 @@ import "blueberry/facade/common.proto";
 
 service LeAclManagerFacade {
   rpc CreateConnection(CreateConnectionMsg) returns (stream LeConnectionEvent) {}
-  rpc CreateBackgroundAndDirectConnection(blueberry.facade.BluetoothAddressWithType)
-      returns (stream LeConnectionEvent) {}
   rpc CancelConnection(blueberry.facade.BluetoothAddressWithType) returns (google.protobuf.Empty) {}
   rpc Disconnect(LeHandleMsg) returns (google.protobuf.Empty) {}
   rpc ConnectionCommand(LeConnectionCommandMsg) returns (google.protobuf.Empty) {}
