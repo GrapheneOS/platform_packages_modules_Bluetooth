@@ -16,29 +16,22 @@
  *
  ******************************************************************************/
 
-/**
- * LC3 - Time domain attack detector
- *
- * Reference : Low Complexity Communication Codec (LC3)
- *             Bluetooth Specification v1.0
- */
+#include <stdio.h>
 
-#ifndef __LC3_ATTDET_H
-#define __LC3_ATTDET_H
+int check_ltpf(void);
+int check_mdct(void);
 
-#include "common.h"
+int main()
+{
+    int r, ret = 0;
 
+    printf("Checking LTPF Neon... "); fflush(stdout);
+    printf("%s\n", (r = check_ltpf()) == 0 ? "OK" : "Failed");
+    ret = ret || r;
 
-/**
- * Time domain attack detector
- * dt, sr          Duration and samplerate of the frame
- * nbytes          Size in bytes of the frame
- * attdet          Context of the Attack Detector
- * x               [-6..-1] Previous, [0..ns-1] Current samples
- * return          1: Attack detected  0: Otherwise
- */
-bool lc3_attdet_run(enum lc3_dt dt, enum lc3_srate sr,
-    int nbytes, lc3_attdet_analysis_t *attdet, const int16_t *x);
+    printf("Checking MDCT Neon... "); fflush(stdout);
+    printf("%s\n", (r = check_mdct()) == 0 ? "OK" : "Failed");
+    ret = ret || r;
 
-
-#endif /* __LC3_ATTDET_H */
+    return ret;
+}
