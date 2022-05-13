@@ -109,15 +109,6 @@ static size_t aptx_hd_encode_24bit(tAPTX_HD_FRAMING_PARAMS* framing_params,
                                    size_t* data_out_index, uint32_t* data32_in,
                                    uint8_t* data_out);
 
-static const std::vector<std::string> APTX_HD_ENCODER_LIB_PATHS = {
-    APTX_HD_ENCODER_LIB_NAME,
-#ifdef __LP64__
-    "/system_ext/lib64/" + APTX_HD_ENCODER_LIB_NAME,
-#else
-    "/system_ext/lib/" + APTX_HD_ENCODER_LIB_NAME,
-#endif
-};
-
 /*******************************************************************************
  *
  * Function         A2DP_VendorLoadEncoderAptxHd
@@ -135,7 +126,7 @@ tLOADING_CODEC_STATUS A2DP_VendorLoadEncoderAptxHd(void) {
 
   // Open the encoder library
   aptx_hd_encoder_lib_handle = A2DP_VendorCodecLoadExternalLib(
-      APTX_HD_ENCODER_LIB_PATHS, "aptX-HD encoder");
+      APTX_HD_ENCODER_LIB_NAME, "AptX-HD encoder");
   if (!aptx_hd_encoder_lib_handle) return LOAD_ERROR_MISSING_CODEC;
 
   aptx_hd_api.init_func =

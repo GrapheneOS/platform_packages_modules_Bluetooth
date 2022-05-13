@@ -42,22 +42,15 @@ int A2DP_VendorGetTrackChannelCountAptx(unsigned char const*) { return 0; }
 int A2DP_VendorGetTrackSampleRateAptxHd(unsigned char const*) { return 0; }
 int A2DP_VendorGetTrackChannelCountAptxHd(unsigned char const*) { return 0; }
 
-void* A2DP_VendorCodecLoadExternalLib(const std::vector<std::string>& lib_paths,
+void* A2DP_VendorCodecLoadExternalLib(const std::string& lib_name,
                                       const std::string& friendly_name) {
-  std::string lib_path_error_list = "";
-  for (auto lib_path : lib_paths) {
-    void* lib_handle = dlopen(lib_path.c_str(), RTLD_NOW);
-    if (lib_handle != NULL) {
-      LOG(INFO) << __func__ << "Library found: " << friendly_name << " with ["
-                << lib_path << "]."
-                << " (Tested libs: " << lib_path_error_list << ")";
-      return lib_handle;
-    }
-    lib_path_error_list += "[ Err: ";
-    lib_path_error_list += dlerror();
-    lib_path_error_list += " ], ";
+  void* lib_handle = dlopen(lib_name.c_str(), RTLD_NOW);
+  if (lib_handle == NULL) {
+    LOG(ERROR) << __func__
+               << ": Failed to load codec library: " << friendly_name
+               << ". Err: [" << dlerror() << "]";
+    return nullptr;
   }
-  LOG(ERROR) << __func__ << "Failed to open library: " << friendly_name
-             << ". (Tested libs: " << lib_path_error_list << ")";
-  return nullptr;
+  LOG(INFO) << __func__ << ": Codec library loaded: " << friendly_name;
+  return lib_handle;
 }
