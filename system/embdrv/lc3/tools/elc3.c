@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright 2021 Google, Inc.
+ *  Copyright 2022 Google LLC
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 
 #define _POSIX_C_SOURCE 199309L
 
+#include <stdalign.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
@@ -121,7 +122,7 @@ static struct parameters parse_args(int argc, char *argv[])
 
 
 /**
- * Return time in (us) from unspecied point in the past
+ * Return time in (us) from unspecified point in the past
  */
 
 static unsigned clock_us(void)
@@ -158,8 +159,10 @@ int main(int argc, char *argv[])
 
     int frame_us = p.frame_ms * 1000;
     int srate_hz, nch, nsamples;
+    int pcm_sbits, pcm_sbytes;
 
-    if (wave_read_header(fp_in, &srate_hz, &nch, &nsamples) < 0)
+    if (wave_read_header(fp_in,
+            &pcm_sbits, &pcm_sbytes, &srate_hz, &nch, &nsamples) < 0)
         error(EINVAL, "Bad or unsupported WAVE input file");
 
     if (p.bitrate <= 0)
@@ -170,6 +173,12 @@ int main(int argc, char *argv[])
 
     if (!LC3_CHECK_SR_HZ(srate_hz) || (p.srate_hz && p.srate_hz > srate_hz))
         error(EINVAL, "Samplerate %d Hz", srate_hz);
+
+    if (pcm_sbits != 16 && pcm_sbits != 24)
+        error(EINVAL, "Bitdepth %d", pcm_sbits);
+
+    if (pcm_sbytes != (pcm_sbits == 16 ? 2 : 4))
+        error(EINVAL, "Sample storage on %d bytes", pcm_sbytes);
 
     if (nch  < 1 || nch  > 2)
         error(EINVAL, "Number of channels %d", nch);
@@ -188,7 +197,9 @@ int main(int argc, char *argv[])
     int encode_samples = nsamples + lc3_delay_samples(frame_us, srate_hz);
 
     lc3_encoder_t enc[nch];
-    int16_t pcm[nch * frame_samples];
+    int8_t alignas(int32_t) pcm[nch * frame_samples * pcm_sbytes];
+    enum lc3_pcm_format pcm_fmt =
+        pcm_sbits == 24 ? LC3_PCM_FORMAT_S24 : LC3_PCM_FORMAT_S16;
     uint8_t out[nch][frame_bytes];
 
     for (int ich = 0; ich < nch; ich++)
@@ -204,10 +215,10 @@ int main(int argc, char *argv[])
 
     for (int i = 0; i * frame_samples < encode_samples; i++) {
 
-        int nread = wave_read_pcm(fp_in, nch, frame_samples, pcm);
+        int nread = wave_read_pcm(fp_in, pcm_sbytes, nch, frame_samples, pcm);
 
         memset(pcm + nread * nch, 0,
-            nch * (frame_samples - nread) * sizeof(*pcm));
+            nch * (frame_samples - nread) * pcm_sbytes);
 
         if (floorf(i * frame_us * 1e-6) > nsec) {
             float progress = fminf(
@@ -221,7 +232,9 @@ int main(int argc, char *argv[])
         }
 
         for (int ich = 0; ich < nch; ich++)
-            lc3_encode(enc[ich], pcm + ich, nch, frame_bytes, out[ich]);
+            lc3_encode(enc[ich],
+                pcm_fmt, pcm + ich * pcm_sbytes, nch,
+                frame_bytes, out[ich]);
 
         lc3bin_write_data(fp_out, out, nch, frame_bytes);
     }
