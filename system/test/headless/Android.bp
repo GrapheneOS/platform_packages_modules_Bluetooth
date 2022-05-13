@@ -72,7 +72,7 @@ cc_test {
         "android.hardware.bluetooth@1.1",
         "android.hardware.bluetooth.audio@2.0",
         "android.hardware.bluetooth.audio@2.1",
-        "android.hardware.bluetooth.audio-V1-ndk",
+        "android.hardware.bluetooth.audio-V2-ndk",
         "android.system.suspend-V1-ndk",
         "libaaudio",
         "libbase",
