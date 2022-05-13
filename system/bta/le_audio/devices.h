@@ -255,6 +255,7 @@ class LeAudioDeviceGroup {
   types::AudioContexts GetActiveContexts(void);
   std::optional<LeAudioCodecConfiguration> GetCodecConfigurationByDirection(
       types::LeAudioContextType group_context_type, uint8_t direction);
+  bool IsContextSupported(types::LeAudioContextType group_context_type);
   bool IsMetadataChanged(types::LeAudioContextType group_context_type);
 
   inline types::AseState GetState(void) const { return current_state_; }
