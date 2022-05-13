@@ -519,9 +519,12 @@
                 <action android:name="android.bluetooth.IBluetoothPbapClient"/>
             </intent-filter>
         </service>
+        <!--  Note: This service doesn't get started, it just indicates to the Authentication
+              framework that we can create accounts of a specific type. As such, its safe to
+              have as enabled on all targets and not just the ones that use PBAP Client  -->
         <service android:process="@string/process"
              android:name="com.android.bluetooth.pbapclient.AuthenticationService"
-             android:enabled="false"
+             android:enabled="true"
              android:exported="true">
             <intent-filter>
                 <action android:name="android.accounts.AccountAuthenticator"/>
