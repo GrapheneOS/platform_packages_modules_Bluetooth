@@ -175,7 +175,7 @@ public class MetricsLogger {
     protected void drainBufferedCounters() {
         Log.i(TAG, "drainBufferedCounters().");
         synchronized (mLock) {
-            // send mCounters to westworld
+            // send mCounters to statsd
             for (int key : mCounters.keySet()) {
                 writeCounter(key, mCounters.get(key));
             }
