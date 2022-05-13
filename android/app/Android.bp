@@ -142,7 +142,10 @@ android_app {
     javacflags: ["-Aroom.schemaLocation=packages/modules/Bluetooth/android/app/tests/unit/src/com/android/bluetooth/btservice/storage/schemas"],
 
     optimize: {
-        enabled: false,
+        enabled: true,
+        shrink: true,
+        optimize: false,
+        proguard_flags_files: ["proguard.flags"],
     },
     required: [
         "android.hardware.bluetooth@1.0",
