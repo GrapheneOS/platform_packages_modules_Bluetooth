@@ -2922,6 +2922,15 @@ class LeAudioClientImpl : public LeAudioClient {
                << " audio_sender_state_: " << audio_sender_state_;
   }
 
+  bool IsAudioSourceAvailableForCurrentContentType() {
+    if (current_context_type_ == LeAudioContextType::CONVERSATIONAL ||
+        current_context_type_ == LeAudioContextType::VOICEASSISTANTS) {
+      return true;
+    }
+
+    return false;
+  }
+
   void OnAudioSourceResume() {
     LOG(INFO) << __func__;
 
@@ -2973,6 +2982,11 @@ class LeAudioClientImpl : public LeAudioClient {
              */
             if (group->GetState() ==
                 AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
+              if (!IsAudioSourceAvailableForCurrentContentType()) {
+                StopStreamIfNeeded(group, LeAudioContextType::VOICEASSISTANTS);
+                break;
+              }
+
               StartReceivingAudio(active_group_id_);
             }
             break;
@@ -3153,6 +3167,59 @@ class LeAudioClientImpl : public LeAudioClient {
        */
       GroupStream(active_group_id_, static_cast<uint16_t>(new_context));
     }
+  }
+
+  void OnAudioSourceMetadataUpdate(const sink_metadata_t& sink_metadata) {
+    auto tracks = sink_metadata.tracks;
+    auto track_count = sink_metadata.track_count;
+    bool is_audio_source_invalid = true;
+
+    while (track_count) {
+      LOG_INFO(
+          "%s: source=%d, gain=%f, destination device=%d, "
+          "destination device address=%.32s",
+          __func__, tracks->source, tracks->gain, tracks->dest_device,
+          tracks->dest_device_address);
+
+      /* Don't differentiate source types, just check if it's valid */
+      if (is_audio_source_invalid && tracks->source != AUDIO_SOURCE_INVALID)
+        is_audio_source_invalid = false;
+
+      --track_count;
+      ++tracks;
+    }
+
+    auto group = aseGroups_.FindById(active_group_id_);
+    if (!group) {
+      LOG(ERROR) << __func__
+                 << ", Invalid group: " << static_cast<int>(active_group_id_);
+      return;
+    }
+
+    /* Do nothing, since audio source is not valid and if voice assistant
+     * scenario is currently not supported by group
+     */
+    if (is_audio_source_invalid ||
+        !group->IsContextSupported(LeAudioContextType::VOICEASSISTANTS) ||
+        IsAudioSourceAvailableForCurrentContentType()) {
+      return;
+    }
+
+    auto new_context = LeAudioContextType::VOICEASSISTANTS;
+
+    if (StopStreamIfNeeded(group, new_context)) return;
+
+    if (group->GetTargetState() == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
+      /* Configuration is the same for new context, just will do update
+       * metadata of stream
+       */
+      GroupStream(active_group_id_, static_cast<uint16_t>(new_context));
+    }
+
+    /* Audio sessions are not resumed yet and not streaming, let's pick voice
+     * assistant as possible current context type.
+     */
+    current_context_type_ = new_context;
   }
 
   static void OnGattReadRspStatic(uint16_t conn_id, tGATT_STATUS status,
@@ -3620,6 +3687,12 @@ class LeAudioClientAudioSourceReceiverImpl
   }
   void OnAudioResume(void) override {
     if (instance) instance->OnAudioSourceResume();
+  }
+
+  void OnAudioMetadataUpdate(std::promise<void> do_metadata_update_promise,
+                             const sink_metadata_t& sink_metadata) override {
+    if (instance) instance->OnAudioSourceMetadataUpdate(sink_metadata);
+    do_metadata_update_promise.set_value();
   }
 };
 
