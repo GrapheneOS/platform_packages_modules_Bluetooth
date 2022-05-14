@@ -23,7 +23,7 @@ import argparse
 
 ALL_TESTS = [
     GattConnectTest,
-    GattConnectWithIrk,
+    GattConnectWithIrkTest,
     GattNotifyTest,
 ]
 

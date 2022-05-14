@@ -50,7 +50,6 @@ import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.btservice.ServiceFactory;
 import com.android.bluetooth.csip.CsipSetCoordinatorService;
-import com.android.bluetooth.le_audio.LeAudioService;
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.modules.utils.SynchronousResultReceiver;
 
@@ -1047,11 +1046,10 @@ public class HapClientService extends ProfileService {
     private List<BluetoothDevice> getGroupDevices(int groupId) {
         List<BluetoothDevice> devices = new ArrayList<>();
 
-        // TODO: Fix missing CSIS service API to decouple from LeAudioService
-        LeAudioService le_audio_service = mFactory.getLeAudioService();
-        if (le_audio_service != null) {
+        CsipSetCoordinatorService csipClient = mFactory.getCsipSetCoordinatorService();
+        if (csipClient != null) {
             if (groupId != BluetoothLeAudio.GROUP_ID_INVALID) {
-                devices = le_audio_service.getGroupDevices(groupId);
+                devices = csipClient.getGroupDevicesOrdered(groupId);
             }
         }
         return devices;

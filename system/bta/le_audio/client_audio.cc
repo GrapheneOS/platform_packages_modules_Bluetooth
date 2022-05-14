@@ -82,10 +82,14 @@ bool LeAudioClientAudioSource::SinkOnResumeReq(bool start_media_task) {
 }
 
 void LeAudioClientAudioSource::SendAudioData() {
+  // 24 bit audio is aligned to 32bit
+  int bytes_per_sample = (source_codec_config_.bits_per_sample == 24)
+                             ? 4
+                             : (source_codec_config_.bits_per_sample / 8);
+
   uint32_t bytes_per_tick =
       (source_codec_config_.num_channels * source_codec_config_.sample_rate *
-       source_codec_config_.data_interval_us / 1000 *
-       (source_codec_config_.bits_per_sample / 8)) /
+       source_codec_config_.data_interval_us / 1000 * bytes_per_sample) /
       1000;
 
   std::vector<uint8_t> data(bytes_per_tick);
@@ -248,6 +252,33 @@ bool LeAudioUnicastClientAudioSink::SourceOnSuspendReq() {
     LOG(ERROR) << __func__
                << ": LE_AUDIO_CTRL_CMD_SUSPEND: audio receiver not started";
   }
+  return false;
+}
+
+bool LeAudioUnicastClientAudioSink::SourceOnMetadataUpdateReq(
+    const sink_metadata_t& sink_metadata) {
+  if (audioSourceReceiver_ == nullptr) {
+    LOG(ERROR) << __func__ << ", audio receiver not started";
+    return false;
+  }
+
+  // Call OnAudioSuspend and block till it returns.
+  std::promise<void> do_update_metadata_promise;
+  std::future<void> do_update_metadata_future =
+      do_update_metadata_promise.get_future();
+  bt_status_t status = do_in_main_thread(
+      FROM_HERE,
+      base::BindOnce(&LeAudioClientAudioSourceReceiver::OnAudioMetadataUpdate,
+                     base::Unretained(audioSourceReceiver_),
+                     std::move(do_update_metadata_promise), sink_metadata));
+
+  if (status == BT_STATUS_SUCCESS) {
+    do_update_metadata_future.wait();
+    return true;
+  }
+
+  LOG(ERROR) << __func__ << ", do_in_main_thread err=" << status;
+
   return false;
 }
 
@@ -546,7 +577,9 @@ const void* LeAudioUnicastClientAudioSink::Acquire() {
                               this, std::placeholders::_1),
       .on_suspend_ =
           std::bind(&LeAudioUnicastClientAudioSink::SourceOnSuspendReq, this),
-      .on_sink_metadata_update_ = le_audio_source_on_metadata_update_req,
+      .on_sink_metadata_update_ =
+          std::bind(&LeAudioUnicastClientAudioSink::SourceOnMetadataUpdateReq,
+                    this, std::placeholders::_1),
   };
 
   sourceClientInterface_ =

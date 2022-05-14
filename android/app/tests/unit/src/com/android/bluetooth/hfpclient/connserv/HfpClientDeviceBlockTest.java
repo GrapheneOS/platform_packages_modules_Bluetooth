@@ -18,8 +18,7 @@ package com.android.bluetooth.hfpclient;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -147,6 +146,9 @@ public class HfpClientDeviceBlockTest {
 
     private HfpClientConnection createOutgoingConnectionWithScoState(int scoState) {
         when(mHeadsetClientService.getAudioState(mBluetoothDevice)).thenReturn(scoState);
+        doCallRealMethod()
+                .when(mConnServ)
+                .createAccount(any());
         mHfpClientDeviceBlock =
                 new HfpClientDeviceBlock(mBluetoothDevice, mConnServ, mMockServiceInterface);
         return mHfpClientDeviceBlock.onCreateOutgoingConnection(

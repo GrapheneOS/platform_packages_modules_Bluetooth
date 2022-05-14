@@ -51,6 +51,7 @@ public class CsipSetCoordinatorStackEvent {
     public BluetoothDevice device;
     public int valueInt1 = 0;
     public int valueInt2 = 0;
+    public int valueInt3 = 0;
     public UUID valueUuid1;
 
     public boolean valueBool1 = false;
@@ -67,6 +68,7 @@ public class CsipSetCoordinatorStackEvent {
         result.append(", device:" + device);
         result.append(", " + eventTypeValueInt1ToString(type, valueInt1));
         result.append(", " + eventTypeValueInt2ToString(type, valueInt2));
+        result.append(", " + eventTypeValueInt3ToString(type, valueInt3));
         result.append(", " + eventTypeValueBool1ToString(type, valueBool1));
         result.append(", " + eventTypeValueUuid1ToString(type, valueUuid1));
         result.append("}");
@@ -142,6 +144,15 @@ public class CsipSetCoordinatorStackEvent {
                 return "group size: " + value;
             case EVENT_TYPE_GROUP_LOCK_CHANGED:
                 return "status:" + csipLockStatusToString(value);
+            default:
+                return "<unused>";
+        }
+    }
+
+    private static String eventTypeValueInt3ToString(int evType, int value) {
+        switch (evType) {
+            case EVENT_TYPE_DEVICE_AVAILABLE:
+                return "rank: " + value;
             default:
                 return "<unused>";
         }

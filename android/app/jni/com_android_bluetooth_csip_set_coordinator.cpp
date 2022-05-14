@@ -95,7 +95,8 @@ class CsisClientCallbacksImpl : public CsisClientCallbacks {
   }
 
   void OnDeviceAvailable(const RawAddress& bd_addr, int group_id,
-                         int group_size, const bluetooth::Uuid& uuid) override {
+                         int group_size, int rank,
+                         const bluetooth::Uuid& uuid) override {
     std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
     CallbackEnv sCallbackEnv(__func__);
     if (!sCallbackEnv.valid() || mCallbacksObj == nullptr) return;
@@ -111,7 +112,7 @@ class CsisClientCallbacksImpl : public CsisClientCallbacks {
 
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onDeviceAvailable,
                                  addr.get(), (jint)group_id, (jint)group_size,
-                                 UUID_PARAMS(uuid));
+                                 (jint)rank, UUID_PARAMS(uuid));
   }
 
   void OnSetMemberAvailable(const RawAddress& bd_addr, int group_id) override {
@@ -156,7 +157,7 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
       env->GetMethodID(clazz, "onConnectionStateChanged", "([BI)V");
 
   method_onDeviceAvailable =
-      env->GetMethodID(clazz, "onDeviceAvailable", "([BIIJJ)V");
+      env->GetMethodID(clazz, "onDeviceAvailable", "([BIIIJJ)V");
 
   method_onSetMemberAvailable =
       env->GetMethodID(clazz, "onSetMemberAvailable", "([BI)V");
