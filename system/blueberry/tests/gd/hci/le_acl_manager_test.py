@@ -68,14 +68,14 @@ class LeAclManagerTest(gd_base_test.GdBaseTestClass):
         acl = hci_packets.AclBuilder(handle, pb_flag, b_flag, RawBuilder(data))
         self.cert.hci.SendAcl(common.Data(payload=bytes(acl.Serialize())))
 
-    def dut_connects(self, check_address):
+    def dut_connects(self, check_address, cert_addr='0C:05:04:03:02:01'):
         # Cert Advertises
         advertising_handle = 0
         py_hci_adv = PyHciAdvertisement(advertising_handle, self.cert_hci)
 
         self.cert_hci.create_advertisement(
             advertising_handle,
-            '0C:05:04:03:02:01',
+            cert_addr,
             hci_packets.LegacyAdvertisingProperties.ADV_IND,
         )
 
@@ -85,7 +85,7 @@ class LeAclManagerTest(gd_base_test.GdBaseTestClass):
 
         self.dut_le_acl = self.dut_le_acl_manager.connect_to_remote(
             remote_addr=common.BluetoothAddressWithType(
-                address=common.BluetoothAddress(address=bytes('0C:05:04:03:02:01', 'utf8')),
+                address=common.BluetoothAddress(address=bytes(cert_addr, 'utf8')),
                 type=int(hci_packets.AddressType.RANDOM_DEVICE_ADDRESS)))
 
         py_hci_le_acl_connection = self.cert_hci.incoming_le_connection()
