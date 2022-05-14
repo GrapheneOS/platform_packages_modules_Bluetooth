@@ -584,6 +584,16 @@ class TestScanningCallbacks : public ::ScanningCallbacks {
                           int num_records, std::vector<uint8_t> data) override {
   }
   void OnBatchScanThresholdCrossed(int client_if) override {}
+  void OnPeriodicSyncStarted(int reg_id, uint8_t status, uint16_t sync_handle,
+                             uint8_t advertising_sid, uint8_t address_type,
+                             RawAddress address, uint8_t phy,
+                             uint16_t interval) override{};
+  void OnPeriodicSyncReport(uint16_t sync_handle, int8_t tx_power, int8_t rssi,
+                            uint8_t status,
+                            std::vector<uint8_t> data) override{};
+  void OnPeriodicSyncLost(uint16_t sync_handle) override{};
+  void OnPeriodicSyncTransferred(int pa_source, uint8_t status,
+                                 RawAddress address) override{};
 };
 
 TEST_F(MainShimTest, DISABLED_BleScannerInterfaceImpl_OnScanResult) {
