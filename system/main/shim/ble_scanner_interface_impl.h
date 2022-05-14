@@ -63,16 +63,15 @@ class BleScannerInterfaceImpl : public ::BleScannerInterface,
   void BatchscanDisable(Callback cb) override;
   void BatchscanReadReports(int client_if, int scan_mode) override;
   void StartSync(uint8_t sid, RawAddress address, uint16_t skip,
-                 uint16_t timeout, StartSyncCb start_cb, SyncReportCb report_cb,
-                 SyncLostCb lost_cb) override;
+                 uint16_t timeout, int reg_id) override;
   void StopSync(uint16_t handle) override;
   void CancelCreateSync(uint8_t sid, RawAddress address) override;
   void TransferSync(RawAddress address, uint16_t service_data,
-                    uint16_t sync_handle, SyncTransferCb cb) override;
+                    uint16_t sync_handle, int pa_source) override;
   void TransferSetInfo(RawAddress address, uint16_t service_data,
-                       uint8_t adv_handle, SyncTransferCb cb) override;
+                       uint8_t adv_handle, int pa_source) override;
   void SyncTxParameters(RawAddress addr, uint8_t mode, uint16_t skip,
-                        uint16_t timeout, StartSyncCb start_cb) override;
+                        uint16_t timeout, int reg_id) override;
 
   // bluetooth::hci::ScanningCallback
   void RegisterCallbacks(ScanningCallbacks* callbacks);

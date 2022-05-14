@@ -335,19 +335,27 @@ class BleScannerInterfaceImpl : public BleScannerInterface {
   }
 
   void StartSync(uint8_t sid, RawAddress address, uint16_t skip,
-                 uint16_t timeout, StartSyncCb start_cb, SyncReportCb report_cb,
-                 SyncLostCb lost_cb) override {
+                 uint16_t timeout, int reg_id) override {
     const controller_t* controller = controller_get_interface();
     if (!controller->supports_ble_periodic_advertising_sync_transfer_sender()) {
       uint8_t status_no_resource = 2;
-      start_cb.Run(status_no_resource, -1, sid, 1, address, 0, 0);
+      callbacks_->OnPeriodicSyncStarted(reg_id, status_no_resource, -1, sid, 1,
+                                        address, 0, 0);
+      return;
     }
+    StartSyncCb start_sync_cb =
+        base::Bind(&ScanningCallbacks::OnPeriodicSyncStarted,
+                   base::Unretained(callbacks_), reg_id);
+    SyncReportCb sync_report_cb = base::Bind(
+        &ScanningCallbacks::OnPeriodicSyncReport, base::Unretained(callbacks_));
+    SyncLostCb sync_lost_cb = base::Bind(&ScanningCallbacks::OnPeriodicSyncLost,
+                                         base::Unretained(callbacks_));
     do_in_main_thread(
         FROM_HERE,
         base::Bind(&BTM_BleStartPeriodicSync, sid, address, skip, timeout,
-                   jni_thread_wrapper(FROM_HERE, std::move(start_cb)),
-                   jni_thread_wrapper(FROM_HERE, std::move(report_cb)),
-                   jni_thread_wrapper(FROM_HERE, std::move(lost_cb))));
+                   jni_thread_wrapper(FROM_HERE, std::move(start_sync_cb)),
+                   jni_thread_wrapper(FROM_HERE, std::move(sync_report_cb)),
+                   jni_thread_wrapper(FROM_HERE, std::move(sync_lost_cb))));
   }
 
   void StopSync(uint16_t handle) override {
@@ -355,68 +363,88 @@ class BleScannerInterfaceImpl : public BleScannerInterface {
     const controller_t* controller = controller_get_interface();
     if (!controller->supports_ble_periodic_advertising_sync_transfer_sender()) {
       LOG_ERROR("PAST not supported by controller");
+      return;
     }
     do_in_main_thread(FROM_HERE, base::Bind(&BTM_BleStopPeriodicSync, handle));
   }
 
-  void RegisterCallbacks(ScanningCallbacks* callbacks) {
-    // For GD only
+  void RegisterCallbacks(ScanningCallbacks* callbacks) override {
+    callbacks_ = callbacks;
   }
 
   void CancelCreateSync(uint8_t sid, RawAddress address) override {
     const controller_t* controller = controller_get_interface();
     if (!controller->supports_ble_periodic_advertising_sync_transfer_sender()) {
       LOG_ERROR("PAST not supported by controller");
+      return;
     }
     do_in_main_thread(FROM_HERE,
                       base::Bind(&BTM_BleCancelPeriodicSync, sid, address));
   }
 
   void TransferSync(RawAddress address, uint16_t service_data,
-                    uint16_t sync_handle, SyncTransferCb cb) override {
+                    uint16_t sync_handle, int pa_source) override {
     LOG_DEBUG("address:%s", address.ToString().c_str());
     const controller_t* controller = controller_get_interface();
     if (!controller->supports_ble_periodic_advertising_sync_transfer_sender()) {
       uint8_t status_no_resource = 2;
       LOG_ERROR("PAST not supported by controller");
-      cb.Run(status_no_resource, address);
+      callbacks_->OnPeriodicSyncTransferred(pa_source, status_no_resource,
+                                            address);
+      return;
     }
+    SyncTransferCb sync_transfer_cb =
+        base::Bind(&ScanningCallbacks::OnPeriodicSyncTransferred,
+                   base::Unretained(callbacks_), pa_source);
     do_in_main_thread(
         FROM_HERE,
         base::Bind(&BTM_BlePeriodicSyncTransfer, address, service_data,
-                   sync_handle, jni_thread_wrapper(FROM_HERE, std::move(cb))));
+                   sync_handle,
+                   jni_thread_wrapper(FROM_HERE, std::move(sync_transfer_cb))));
   }
 
   void TransferSetInfo(RawAddress address, uint16_t service_data,
-                       uint8_t adv_handle, SyncTransferCb cb) override {
+                       uint8_t adv_handle, int pa_source) override {
     LOG_DEBUG("address: %s", address.ToString().c_str());
     const controller_t* controller = controller_get_interface();
     if (!controller->supports_ble_periodic_advertising_sync_transfer_sender()) {
       uint8_t status_no_resource = 2;
       LOG_ERROR(" PAST not supported by controller");
-      cb.Run(status_no_resource, address);
+      callbacks_->OnPeriodicSyncTransferred(pa_source, status_no_resource,
+                                            address);
+      return;
     }
-
+    SyncTransferCb sync_transfer_cb =
+        base::Bind(&ScanningCallbacks::OnPeriodicSyncTransferred,
+                   base::Unretained(callbacks_), pa_source);
     do_in_main_thread(
         FROM_HERE,
         base::Bind(&BTM_BlePeriodicSyncSetInfo, address, service_data,
-                   adv_handle, jni_thread_wrapper(FROM_HERE, std::move(cb))));
+                   adv_handle,
+                   jni_thread_wrapper(FROM_HERE, std::move(sync_transfer_cb))));
   }
 
   void SyncTxParameters(RawAddress addr, uint8_t mode, uint16_t skip,
-                        uint16_t timeout, StartSyncCb cb) {
+                        uint16_t timeout, int reg_id) override {
     LOG_DEBUG("address: %s", addr.ToString().c_str());
     const controller_t* controller = controller_get_interface();
     if (!controller->supports_ble_periodic_advertising_sync_transfer_sender()) {
       uint8_t status_no_resource = 2;
       LOG_ERROR(" PAST not supported by controller");
-      cb.Run(status_no_resource, -1, -1, 1, addr, 0, 0);
+      callbacks_->OnPeriodicSyncStarted(reg_id, status_no_resource, -1, -1, 1,
+                                        addr, 0, 0);
+      return;
     }
+    StartSyncCb start_sync_cb =
+        base::Bind(&ScanningCallbacks::OnPeriodicSyncStarted,
+                   base::Unretained(callbacks_), reg_id);
     do_in_main_thread(
         FROM_HERE,
         base::Bind(&BTM_BlePeriodicSyncTxParameters, addr, mode, skip, timeout,
-                   jni_thread_wrapper(FROM_HERE, std::move(cb))));
+                   jni_thread_wrapper(FROM_HERE, std::move(start_sync_cb))));
   }
+
+  ScanningCallbacks* callbacks_ = nullptr;
 };
 
 }  // namespace
