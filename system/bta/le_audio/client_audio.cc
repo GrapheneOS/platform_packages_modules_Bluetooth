@@ -82,10 +82,14 @@ bool LeAudioClientAudioSource::SinkOnResumeReq(bool start_media_task) {
 }
 
 void LeAudioClientAudioSource::SendAudioData() {
+  // 24 bit audio is aligned to 32bit
+  int bytes_per_sample = (source_codec_config_.bits_per_sample == 24)
+                             ? 4
+                             : (source_codec_config_.bits_per_sample / 8);
+
   uint32_t bytes_per_tick =
       (source_codec_config_.num_channels * source_codec_config_.sample_rate *
-       source_codec_config_.data_interval_us / 1000 *
-       (source_codec_config_.bits_per_sample / 8)) /
+       source_codec_config_.data_interval_us / 1000 * bytes_per_sample) /
       1000;
 
   std::vector<uint8_t> data(bytes_per_tick);

@@ -221,11 +221,12 @@ bool A2DP_VendorInitCodecConfig(btav_a2dp_codec_index_t codec_index,
 std::string A2DP_VendorCodecInfoString(const uint8_t* p_codec_info);
 
 // Try to dlopen external codec library
-// Will iterate over |lib_paths| to return the first successfully dlopen library
+//
+// |lib_name| is the name of the library to load
 // |friendly_name| is only use for logging purpose
 // Return pointer to the handle if the library is successfully dlopen,
 // nullptr otherwise
-void* A2DP_VendorCodecLoadExternalLib(const std::vector<std::string>& lib_paths,
+void* A2DP_VendorCodecLoadExternalLib(const std::string& lib_name,
                                       const std::string& friendly_name);
 
 #define LOAD_CODEC_SYMBOL(codec_name, handle, error_fn, symbol_name, api_type) \
