@@ -100,6 +100,15 @@ class BleScannerInterfaceImpl : public ::BleScannerInterface,
                               uint8_t available_spaces,
                               bluetooth::hci::ApcfAction action,
                               uint8_t status) override;
+  void OnPeriodicSyncStarted(int reg_id, uint8_t status, uint16_t sync_handle,
+                             uint8_t advertising_sid,
+                             bluetooth::hci::AddressWithType address_with_type,
+                             uint8_t phy, uint16_t interval) override;
+  void OnPeriodicSyncReport(uint16_t sync_handle, int8_t tx_power, int8_t rssi,
+                            uint8_t status, std::vector<uint8_t> data) override;
+  void OnPeriodicSyncLost(uint16_t sync_handle) override;
+  void OnPeriodicSyncTransferred(int pa_source, uint8_t status,
+                                 bluetooth::hci::Address address) override;
   ::ScanningCallbacks* scanning_callbacks_ = default_scanning_callback;
 
  private:
