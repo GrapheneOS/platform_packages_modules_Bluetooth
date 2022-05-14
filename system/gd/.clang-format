@@ -22,7 +22,7 @@
 BasedOnStyle: Google
 CommentPragmas: NOLINT:.*
 DerivePointerAlignment: false
-ColumnLimit: 100
+ColumnLimit: 120
 AllowShortFunctionsOnASingleLine: Empty
 ConstructorInitializerAllOnOneLineOrOnePerLine: true
 BreakConstructorInitializers: BeforeColon
