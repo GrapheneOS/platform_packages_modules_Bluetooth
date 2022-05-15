@@ -236,6 +236,13 @@ impl PowerdSuspendManager {
                 Box::new(move |path| {
                     let tx_clone = tx1.clone();
                     tokio::spawn(async move {
+                        // When dbus-rs announces that an interface is added, it does not guarantee
+                        // that the interface is ready to accept calls. The workaround is to wait
+                        // for a non-zero short amount of time.
+                        // TODO(b/232565047): Ideally dbus-rs should be fixed to reliably announce
+                        // the availability of an interface.
+                        tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+
                         let _ = tx_clone.send(SuspendManagerMessage::AdapterFound(path)).await;
                     });
                 }),

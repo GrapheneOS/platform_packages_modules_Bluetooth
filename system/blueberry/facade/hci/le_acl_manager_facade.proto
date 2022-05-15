@@ -6,7 +6,7 @@ import "google/protobuf/empty.proto";
 import "blueberry/facade/common.proto";
 
 service LeAclManagerFacade {
-  rpc CreateConnection(blueberry.facade.BluetoothAddressWithType) returns (stream LeConnectionEvent) {}
+  rpc CreateConnection(CreateConnectionMsg) returns (stream LeConnectionEvent) {}
   rpc CreateBackgroundAndDirectConnection(blueberry.facade.BluetoothAddressWithType)
       returns (stream LeConnectionEvent) {}
   rpc CancelConnection(blueberry.facade.BluetoothAddressWithType) returns (google.protobuf.Empty) {}
@@ -32,5 +32,10 @@ message LeConnectionCommandMsg {
 message LeAclData {
   uint32 handle = 1;
   bytes payload = 2;
+}
+
+message CreateConnectionMsg {
+  blueberry.facade.BluetoothAddressWithType peer_address = 1;
+  bool is_direct = 2;
 }
 
