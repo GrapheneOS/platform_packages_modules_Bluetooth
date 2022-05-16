@@ -70,11 +70,7 @@ class BleScannerIntf : public ScanningCallbacks {
       uint8_t phy,
       uint16_t interval) override;
   void OnPeriodicSyncReport(
-      uint16_t sync_handle,
-      int8_t tx_power,
-      int8_t rssi,
-      uint8_t status,
-      std::vector<uint8_t> data) override;
+      uint16_t sync_handle, int8_t tx_power, int8_t rssi, uint8_t status, std::vector<uint8_t> data) override;
   void OnPeriodicSyncLost(uint16_t sync_handle) override;
   void OnPeriodicSyncTransferred(int pa_source, uint8_t status, RawAddress address) override;
 
@@ -165,11 +161,7 @@ class BleScannerIntf : public ScanningCallbacks {
   void OnEnableCallback(uint8_t action, uint8_t btm_status);
   void OnFilterParamSetupCallback(uint8_t scanner_id, uint8_t avbl_space, uint8_t action_type, uint8_t btm_status);
   void OnFilterConfigCallback(
-      uint8_t filt_index,
-      uint8_t filt_type,
-      uint8_t avbl_space,
-      uint8_t action,
-      uint8_t btm_status);
+      uint8_t filt_index, uint8_t filt_type, uint8_t avbl_space, uint8_t action, uint8_t btm_status);
 
   BleScannerInterface* scanner_intf_;
 };
