@@ -22,6 +22,7 @@
  *  This file contains the HID device action functions.
  *
  ******************************************************************************/
+#include <frameworks/proto_logging/stats/enums/bluetooth/enums.pb.h>
 
 #include <cstdint>
 #include <string>
@@ -32,6 +33,7 @@
 
 #include "bta/hd/bta_hd_int.h"
 #include "include/hardware/bt_hd.h"
+#include "main/shim/metrics_api.h"
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "stack/include/bt_hdr.h"
@@ -172,6 +174,10 @@ void bta_hd_register_act(tBTA_HD_DATA* p_data) {
     APPL_TRACE_ERROR("%s: Descriptor is too long or malformed", __func__);
     ret.reg_status.status = BTA_HD_ERROR;
     (*bta_hd_cb.p_cback)(BTA_HD_REGISTER_APP_EVT, &ret);
+    bluetooth::shim::CountCounterMetrics(
+        android::bluetooth::CodePathCounterKeyEnum::
+            HIDD_REGISTER_DESCRIPTOR_MALFORMED,
+        1);
     return;
   }
 
