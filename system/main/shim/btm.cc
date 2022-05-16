@@ -157,6 +157,17 @@ void Btm::ScanningCallbacks::OnFilterParamSetup(
 void Btm::ScanningCallbacks::OnFilterConfigCallback(
     bluetooth::hci::ApcfFilterType filter_type, uint8_t available_spaces,
     bluetooth::hci::ApcfAction action, uint8_t status){};
+void Btm::ScanningCallbacks::OnPeriodicSyncStarted(
+    int reg_id, uint8_t status, uint16_t sync_handle, uint8_t advertising_sid,
+    bluetooth::hci::AddressWithType address_with_type, uint8_t phy,
+    uint16_t interval) {}
+void Btm::ScanningCallbacks::OnPeriodicSyncReport(uint16_t sync_handle,
+                                                  int8_t tx_power, int8_t rssi,
+                                                  uint8_t status,
+                                                  std::vector<uint8_t> data) {}
+void Btm::ScanningCallbacks::OnPeriodicSyncLost(uint16_t sync_handle) {}
+void Btm::ScanningCallbacks::OnPeriodicSyncTransferred(
+    int pa_source, uint8_t status, bluetooth::hci::Address address) {}
 
 Btm::Btm(os::Handler* handler, neighbor::InquiryModule* inquiry)
     : scanning_timer_(handler), observing_timer_(handler) {
