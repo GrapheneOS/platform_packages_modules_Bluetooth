@@ -16,14 +16,13 @@
 #include "hci/le_scanning_manager.h"
 
 #include <memory>
-#include <mutex>
-#include <set>
 #include <unordered_map>
 
 #include "hci/acl_manager.h"
 #include "hci/controller.h"
 #include "hci/hci_layer.h"
 #include "hci/hci_packets.h"
+#include "hci/le_periodic_sync_manager.h"
 #include "hci/le_scanning_interface.h"
 #include "hci/vendor_specific_event_manager.h"
 #include "module.h"
@@ -240,10 +239,12 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
     module_handler_ = handler;
     hci_layer_ = hci_layer;
     controller_ = controller;
+    acl_manager_ = acl_manager;
     vendor_specific_event_manager_ = vendor_specific_event_manager;
     le_address_manager_ = acl_manager->GetLeAddressManager();
     le_scanning_interface_ = hci_layer_->GetLeScanningInterface(
         module_handler_->BindOn(this, &LeScanningManager::impl::handle_scan_results));
+    periodic_sync_manager_.Init(le_scanning_interface_, module_handler_);
     /* Check to see if the opcode is supported and C19 (support for extended advertising). */
     if (controller_->IsSupported(OpCode::LE_SET_EXTENDED_SCAN_PARAMETERS) &&
         controller->SupportsBleExtendedAdvertising()) {
@@ -288,6 +289,7 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
     batch_scan_config_.current_state = BatchScanState::DISABLED_STATE;
     batch_scan_config_.ref_value = kInvalidScannerId;
     scanning_callbacks_ = &null_scanning_callback_;
+    periodic_sync_manager_.SetScanningCallback(scanning_callbacks_);
   }
 
   void handle_scan_results(LeMetaEventView event) {
@@ -300,6 +302,21 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
         break;
       case hci::SubeventCode::EXTENDED_ADVERTISING_REPORT:
         handle_extended_advertising_report(LeExtendedAdvertisingReportView::Create(event));
+        break;
+      case hci::SubeventCode::PERIODIC_ADVERTISING_SYNC_ESTABLISHED:
+        LePeriodicAdvertisingSyncEstablishedView::Create(event);
+        periodic_sync_manager_.HandleLePeriodicAdvertisingSyncEstablished(
+            LePeriodicAdvertisingSyncEstablishedView::Create(event));
+        break;
+      case hci::SubeventCode::PERIODIC_ADVERTISING_REPORT:
+        periodic_sync_manager_.HandleLePeriodicAdvertisingReport(LePeriodicAdvertisingReportView::Create(event));
+        break;
+      case hci::SubeventCode::PERIODIC_ADVERTISING_SYNC_LOST:
+        periodic_sync_manager_.HandleLePeriodicAdvertisingSyncLost(LePeriodicAdvertisingSyncLostView::Create(event));
+        break;
+      case hci::SubeventCode::PERIODIC_ADVERTISING_SYNC_TRANSFER_RECEIVED:
+        periodic_sync_manager_.HandleLePeriodicAdvertisingSyncTransferReceived(
+            LePeriodicAdvertisingSyncTransferReceivedView::Create(event));
         break;
       case hci::SubeventCode::SCAN_TIMEOUT:
         scanning_callbacks_->OnTimeout();
@@ -1076,6 +1093,14 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
       scanning_callbacks_->OnPeriodicSyncStarted(request_id, status, -1, sid, address_with_type, 0, 0);
       return;
     }
+    PeriodicSyncStates request{
+        .request_id = request_id,
+        .advertiser_sid = sid,
+        .address_with_type = address_with_type,
+        .sync_handle = 0,
+        .sync_state = PeriodicSyncState::PERIODIC_SYNC_STATE_IDLE,
+    };
+    periodic_sync_manager_.StartSync(request, skip, timeout);
   }
 
   void stop_sync(uint16_t handle) {
@@ -1083,6 +1108,7 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
       LOG_WARN("PAST sender not supported on this device");
       return;
     }
+    periodic_sync_manager_.StopSync(handle);
   }
 
   void cancel_create_sync(uint8_t sid, const Address& address) {
@@ -1090,6 +1116,7 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
       LOG_WARN("PAST sender not supported on this device");
       return;
     }
+    periodic_sync_manager_.CancelCreateSync(sid, address);
   }
 
   void transfer_sync(const Address& address, uint16_t service_data, uint16_t sync_handle, int pa_source) {
@@ -1099,6 +1126,14 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
       scanning_callbacks_->OnPeriodicSyncTransferred(pa_source, status, address);
       return;
     }
+    uint16_t connection_handle = acl_manager_->HACK_GetLeHandle(address);
+    if (connection_handle == 0xFFFF) {
+      LOG_ERROR("[PAST]: Invalid connection handle or no LE ACL link");
+      int status = static_cast<int>(ErrorCode::UNKNOWN_CONNECTION);
+      scanning_callbacks_->OnPeriodicSyncTransferred(pa_source, status, address);
+      return;
+    }
+    periodic_sync_manager_.TransferSync(address, service_data, sync_handle, pa_source, connection_handle);
   }
 
   void transfer_set_info(const Address& address, uint16_t service_data, uint8_t adv_handle, int pa_source) {
@@ -1108,6 +1143,14 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
       scanning_callbacks_->OnPeriodicSyncTransferred(pa_source, status, address);
       return;
     }
+    uint16_t connection_handle = acl_manager_->HACK_GetLeHandle(address);
+    if (connection_handle == 0xFFFF) {
+      LOG_ERROR("[PAST]:Invalid connection handle or no LE ACL link");
+      int status = static_cast<int>(ErrorCode::UNKNOWN_CONNECTION);
+      scanning_callbacks_->OnPeriodicSyncTransferred(pa_source, status, address);
+      return;
+    }
+    periodic_sync_manager_.SyncSetInfo(address, service_data, adv_handle, pa_source, connection_handle);
   }
 
   void sync_tx_parameters(const Address& address, uint8_t mode, uint16_t skip, uint16_t timeout, int reg_id) {
@@ -1118,6 +1161,7 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
       scanning_callbacks_->OnPeriodicSyncStarted(reg_id, status, -1, -1, address_with_type, 0, 0);
       return;
     }
+    periodic_sync_manager_.SyncTxParameters(address, mode, skip, timeout, reg_id);
   }
 
   void track_advertiser(uint8_t filter_index, ScannerId scanner_id) {
@@ -1141,6 +1185,7 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
 
   void register_scanning_callback(ScanningCallback* scanning_callbacks) {
     scanning_callbacks_ = scanning_callbacks;
+    periodic_sync_manager_.SetScanningCallback(scanning_callbacks_);
   }
 
   void on_set_scan_parameter_complete(CommandCompleteView view) {
@@ -1387,12 +1432,14 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
   os::Handler* module_handler_;
   hci::HciLayer* hci_layer_;
   hci::Controller* controller_;
+  hci::AclManager* acl_manager_;
   hci::VendorSpecificEventManager* vendor_specific_event_manager_;
   hci::LeScanningInterface* le_scanning_interface_;
   hci::LeAddressManager* le_address_manager_;
   bool address_manager_registered_ = false;
   NullScanningCallback null_scanning_callback_;
   ScanningCallback* scanning_callbacks_ = &null_scanning_callback_;
+  PeriodicSyncManager periodic_sync_manager_{&null_scanning_callback_};
   std::vector<Scanner> scanners_;
   bool is_scanning_ = false;
   bool scan_on_resume_ = false;
