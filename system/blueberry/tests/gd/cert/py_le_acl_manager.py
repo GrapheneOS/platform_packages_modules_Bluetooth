@@ -115,20 +115,9 @@ class PyLeAclManager(Closable):
 
     def initiate_connection(self, remote_addr, is_direct=True):
         assertThat(self.next_token in self.outgoing_connection_event_streams).isFalse()
-        create_connection_msg = le_acl_manager_facade.CreateConnectionMsg(
-            peer_address=remote_addr,
-            is_direct=is_direct
-        )
+        create_connection_msg = le_acl_manager_facade.CreateConnectionMsg(peer_address=remote_addr, is_direct=is_direct)
         self.outgoing_connection_event_streams[self.next_token] = EventStream(
             self.le_acl_manager.CreateConnection(create_connection_msg)), remote_addr
-        token = self.next_token
-        self.next_token += 1
-        return token
-
-    def initiate_background_and_direct_connection(self, remote_addr):
-        assertThat(self.next_token in self.outgoing_connection_event_streams).isFalse()
-        self.outgoing_connection_event_streams[self.next_token] = EventStream(
-            self.le_acl_manager.CreateBackgroundAndDirectConnection(remote_addr)), remote_addr
         token = self.next_token
         self.next_token += 1
         return token
