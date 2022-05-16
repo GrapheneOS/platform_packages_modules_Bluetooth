@@ -1165,6 +1165,14 @@ LeAudioDeviceGroup::GetCodecConfigurationByDirection(
   return group_config;
 }
 
+bool LeAudioDeviceGroup::IsContextSupported(
+    types::LeAudioContextType group_context_type) {
+  auto iter = active_context_to_configuration_map.find(group_context_type);
+  if (iter == active_context_to_configuration_map.end()) return false;
+
+  return active_context_to_configuration_map[group_context_type] != nullptr;
+}
+
 bool LeAudioDeviceGroup::IsMetadataChanged(
     types::LeAudioContextType context_type) {
   for (auto* leAudioDevice = GetFirstActiveDevice(); leAudioDevice;
