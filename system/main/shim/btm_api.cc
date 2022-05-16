@@ -1357,6 +1357,12 @@ tBTM_STATUS bluetooth::shim::BTM_LeRand(LeRandCallback cb) {
   return BTM_SUCCESS;
 }
 
+tBTM_STATUS bluetooth::shim::BTM_SetEventFilterConnectionSetupAllDevices() {
+  // Autoplumbed
+  controller_get_interface()->set_event_filter_connection_setup_all_devices();
+  return BTM_SUCCESS;
+}
+
 tBTM_STATUS bluetooth::shim::BTM_AllowWakeByHid() {
   // Autoplumbed
   controller_get_interface()->allow_wake_by_hid();

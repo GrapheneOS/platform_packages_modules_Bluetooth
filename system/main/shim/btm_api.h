@@ -1871,6 +1871,17 @@ tBTM_STATUS BTM_LeRand(LeRandCallback);
 
 /*******************************************************************************
  *
+ * Function        BTM_SetEventFilterConnectionSetupAllDevices
+ *
+ * Description    Tell the controller to allow all devices
+ *
+ * Parameters
+ *
+ *******************************************************************************/
+tBTM_STATUS BTM_SetEventFilterConnectionSetupAllDevices(void);
+
+/*******************************************************************************
+ *
  * Function        BTM_AllowWakeByHid
  *
  * Description    Allow the device to be woken by HID devices
