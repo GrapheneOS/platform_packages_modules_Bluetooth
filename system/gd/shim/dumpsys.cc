@@ -123,13 +123,8 @@ void Dumpsys::impl::DumpWithArgsAsync(int fd, const char** args) {
   std::string dumpsys_data;
   dumper.DumpState(&dumpsys_data);
 
-  if (parsed_dumpsys_args.IsDeveloper() || IsDebuggable()) {
-    dprintf(fd, " ----- Filtering as Developer -----\n");
-    FilterAsDeveloper(&dumpsys_data);
-  } else {
-    dprintf(fd, " ----- Filtering as User -----\n");
-    FilterAsUser(&dumpsys_data);
-  }
+  dprintf(fd, " ----- Filtering as Developer -----\n");
+  FilterAsDeveloper(&dumpsys_data);
 
   dprintf(fd, "%s", PrintAsJson(&dumpsys_data).c_str());
 }
