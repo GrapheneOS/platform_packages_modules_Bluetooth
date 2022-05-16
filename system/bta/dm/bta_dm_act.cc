@@ -4107,6 +4107,20 @@ void bta_dm_le_rand(LeRandCallback cb) {
 
 /*******************************************************************************
  *
+ * Function        BTA_DmSetEventFilterConnectionSetupAllDevices
+ *
+ * Description    Tell the controller to allow all devices
+ *
+ * Parameters
+ *
+ *******************************************************************************/
+void bta_dm_set_event_filter_connection_setup_all_devices() {
+  // Autoplumbed
+  bluetooth::shim::BTM_SetEventFilterConnectionSetupAllDevices();
+}
+
+/*******************************************************************************
+ *
  * Function        BTA_DmAllowWakeByHid
  *
  * Description    Allow the device to be woken by HID devices

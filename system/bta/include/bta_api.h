@@ -1225,6 +1225,17 @@ extern void BTA_DmLeRand(LeRandCallback cb);
 
 /*******************************************************************************
  *
+ * Function        BTA_DmSetEventFilterConnectionSetupAllDevices
+ *
+ * Description    Tell the controller to allow all devices
+ *
+ * Parameters
+ *
+ *******************************************************************************/
+extern void BTA_DmSetEventFilterConnectionSetupAllDevices();
+
+/*******************************************************************************
+ *
  * Function        BTA_DmAllowWakeByHid
  *
  * Description    Allow the device to be woken by HID devices
