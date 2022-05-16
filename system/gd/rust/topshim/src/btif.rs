@@ -1116,6 +1116,10 @@ impl BluetoothInterface {
         ccall!(self, set_event_filter_inquiry_result_all_devices)
     }
 
+    pub fn set_event_filter_connection_setup_all_devices(&self) -> i32 {
+        ccall!(self, set_event_filter_connection_setup_all_devices)
+    }
+
     pub(crate) fn get_profile_interface(
         &self,
         profile: SupportedProfiles,

@@ -839,6 +839,13 @@ typedef struct {
    *
    */
   int (*allow_wake_by_hid)();
+
+  /**
+   *
+   * Tell the controller to allow all devices
+   *
+   */
+  int (*set_event_filter_connection_setup_all_devices)();
 } bt_interface_t;
 
 #define BLUETOOTH_INTERFACE_STRING "bluetoothInterface"
