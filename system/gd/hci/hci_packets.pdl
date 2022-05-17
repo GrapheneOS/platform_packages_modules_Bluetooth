@@ -3995,23 +3995,43 @@ test LeExtendedCreateConnection {
 packet LeExtendedCreateConnectionStatus : CommandStatus (command_op_code = LE_EXTENDED_CREATE_CONNECTION) {
 }
 
-packet LePeriodicAdvertisingCreateSync : LeAdvertisingCommand (op_code = LE_PERIODIC_ADVERTISING_CREATE_SYNC) {
-  _payload_,  // placeholder (unimplemented)
+enum PeriodicSyncCteType : 8 {
+  AVOID_AOA_CONSTANT_TONE_EXTENSION = 0x01,
+  AVOID_AOD_CONSTANT_TONE_EXTENSION_WITH_ONE_US_SLOTS = 0x02,
+  AVOID_AOD_CONSTANT_TONE_EXTENSION_WITH_TWO_US_SLOTS = 0x04,
+  AVOID_TYPE_THREE_CONSTANT_TONE_EXTENSION = 0x08,
+  AVOID_NO_CONSTANT_TONE_EXTENSION = 0x10,
+}
+
+enum PeriodicAdvertisingOptions : 8 {
+  USE_PERIODIC_ADVERTISER_LIST_SELECT_ADVERTISER = 0x01,
+  ENABLE_REPORTING = 0x02,
+  ENABLE_DUPLICATE_FILTERING = 0x04,
+}
+
+packet LePeriodicAdvertisingCreateSync : LeScanningCommand (op_code = LE_PERIODIC_ADVERTISING_CREATE_SYNC) {
+  options : PeriodicAdvertisingOptions,
+  advertising_sid : 8,
+  advertiser_address_type : AddressType,
+  advertiser_address : Address,
+  skip : 16,
+  sync_timeout : 16,
+  sync_cte_type : PeriodicSyncCteType,
 }
 
 packet LePeriodicAdvertisingCreateSyncStatus : CommandStatus (command_op_code = LE_PERIODIC_ADVERTISING_CREATE_SYNC) {
 }
 
-packet LePeriodicAdvertisingCreateSyncCancel : LeAdvertisingCommand (op_code = LE_PERIODIC_ADVERTISING_CREATE_SYNC_CANCEL) {
-  _payload_,  // placeholder (unimplemented)
+packet LePeriodicAdvertisingCreateSyncCancel : LeScanningCommand (op_code = LE_PERIODIC_ADVERTISING_CREATE_SYNC_CANCEL) {
 }
 
 packet LePeriodicAdvertisingCreateSyncCancelComplete : CommandComplete (command_op_code = LE_PERIODIC_ADVERTISING_CREATE_SYNC_CANCEL) {
   status : ErrorCode,
 }
 
-packet LePeriodicAdvertisingTerminateSync : LeAdvertisingCommand (op_code = LE_PERIODIC_ADVERTISING_TERMINATE_SYNC) {
-  _payload_,  // placeholder (unimplemented)
+packet LePeriodicAdvertisingTerminateSync : LeScanningCommand (op_code = LE_PERIODIC_ADVERTISING_TERMINATE_SYNC) {
+  sync_handle : 12,
+  _reserved_ : 4,
 }
 
 packet LePeriodicAdvertisingTerminateSyncComplete : CommandComplete (command_op_code = LE_PERIODIC_ADVERTISING_TERMINATE_SYNC) {
@@ -4023,7 +4043,7 @@ enum AdvertisingAddressType : 8 {
   RANDOM_ADDRESS = 0x01,
 }
 
-packet LeAddDeviceToPeriodicAdvertisingList : LeAdvertisingCommand (op_code = LE_ADD_DEVICE_TO_PERIODIC_ADVERTISING_LIST) {
+packet LeAddDeviceToPeriodicAdvertisingList : LeScanningCommand (op_code = LE_ADD_DEVICE_TO_PERIODIC_ADVERTISING_LIST) {
   advertising_address_type : AdvertisingAddressType,
   advertiser_address : Address,
   advertising_sid : 4,
@@ -4034,15 +4054,17 @@ packet LeAddDeviceToPeriodicAdvertisingListComplete : CommandComplete (command_o
   status : ErrorCode,
 }
 
-packet LeRemoveDeviceFromPeriodicAdvertisingList : LeAdvertisingCommand (op_code = LE_REMOVE_DEVICE_FROM_PERIODIC_ADVERTISING_LIST) {
-  _payload_,  // placeholder (unimplemented)
+packet LeRemoveDeviceFromPeriodicAdvertisingList : LeScanningCommand (op_code = LE_REMOVE_DEVICE_FROM_PERIODIC_ADVERTISING_LIST) {
+  advertiser_address_type : AddressType,
+  advertiser_address : Address,
+  advertising_sid : 8,
 }
 
 packet LeRemoveDeviceFromPeriodicAdvertisingListComplete : CommandComplete (command_op_code = LE_REMOVE_DEVICE_FROM_PERIODIC_ADVERTISING_LIST) {
   status : ErrorCode,
 }
 
-packet LeClearPeriodicAdvertisingList : LeAdvertisingCommand (op_code = LE_CLEAR_PERIODIC_ADVERTISING_LIST) {
+packet LeClearPeriodicAdvertisingList : LeScanningCommand (op_code = LE_CLEAR_PERIODIC_ADVERTISING_LIST) {
 }
 
 packet LeClearPeriodicAdvertisingListComplete : CommandComplete (command_op_code = LE_CLEAR_PERIODIC_ADVERTISING_LIST) {
@@ -4099,7 +4121,7 @@ packet LeSetPrivacyModeComplete : CommandComplete (command_op_code = LE_SET_PRIV
   status : ErrorCode,
 }
 
-packet LeSetPeriodicAdvertisingReceiveEnable : Command (op_code = LE_SET_PERIODIC_ADVERTISING_RECEIVE_ENABLE) {
+packet LeSetPeriodicAdvertisingReceiveEnable : LeScanningCommand (op_code = LE_SET_PERIODIC_ADVERTISING_RECEIVE_ENABLE) {
   sync_handle : 12,
   _reserved_ : 4,
   enable : 8,
@@ -4109,7 +4131,7 @@ packet LeSetPeriodicAdvertisingReceiveEnableComplete : CommandComplete (command_
   status : ErrorCode,
 }
 
-packet LePeriodicAdvertisingSyncTransfer : Command (op_code = LE_PERIODIC_ADVERTISING_SYNC_TRANSFER) {
+packet LePeriodicAdvertisingSyncTransfer : LeScanningCommand (op_code = LE_PERIODIC_ADVERTISING_SYNC_TRANSFER) {
   connection_handle : 12,
   _reserved_ : 4,
   service_data : 16,
@@ -4123,7 +4145,7 @@ packet LePeriodicAdvertisingSyncTransferComplete : CommandComplete (command_op_c
   _reserved_ : 4,
 }
 
-packet LePeriodicAdvertisingSetInfoTransfer : Command (op_code = LE_PERIODIC_ADVERTISING_SET_INFO_TRANSFER) {
+packet LePeriodicAdvertisingSetInfoTransfer : LeScanningCommand (op_code = LE_PERIODIC_ADVERTISING_SET_INFO_TRANSFER) {
   connection_handle : 12,
   _reserved_ : 4,
   service_data : 16,
@@ -4142,13 +4164,20 @@ enum SyncTransferMode : 8 {
   SEND_SYNC_RECEIVED_SEND_REPORTS = 2,
 }
 
-packet LeSetPeriodicAdvertisingSyncTransferParameters : Command (op_code = LE_SET_PERIODIC_ADVERTISING_SYNC_TRANSFER_PARAMETERS) {
+enum CteType : 8 {
+  AOA_CONSTANT_TONE_EXTENSION = 0x00,
+  AOD_CONSTANT_TONE_EXTENSION_ONE_US_SLOTS = 0x01,
+  AOD_CONSTANT_TONE_EXTENSION_TWO_US_SLOTS = 0x02,
+  NO_CONSTANT_TONE_EXTENSION = 0xFF,
+}
+
+packet LeSetPeriodicAdvertisingSyncTransferParameters : LeScanningCommand (op_code = LE_SET_PERIODIC_ADVERTISING_SYNC_TRANSFER_PARAMETERS) {
   connection_handle : 12,
   _reserved_ : 4,
   mode : SyncTransferMode,
   skip: 16,
   sync_timeout : 16,
-  cte_type : 8,
+  cte_type : CteType,
 }
 
 packet LeSetPeriodicAdvertisingSyncTransferParametersComplete : CommandComplete (command_op_code = LE_SET_PERIODIC_ADVERTISING_SYNC_TRANSFER_PARAMETERS) {
@@ -4157,14 +4186,15 @@ packet LeSetPeriodicAdvertisingSyncTransferParametersComplete : CommandComplete 
   _reserved_ : 4,
 }
 
-packet LeSetDefaultPeriodicAdvertisingSyncTransferParameters : Command (op_code = LE_SET_DEFAULT_PERIODIC_ADVERTISING_SYNC_TRANSFER_PARAMETERS) {
+packet LeSetDefaultPeriodicAdvertisingSyncTransferParameters : LeScanningCommand (op_code = LE_SET_DEFAULT_PERIODIC_ADVERTISING_SYNC_TRANSFER_PARAMETERS) {
   mode : SyncTransferMode,
   skip: 16,
   sync_timeout : 16,
-  cte_type : 8,
+  cte_type : CteType,
 }
 
 packet LeSetDefaultPeriodicAdvertisingSyncTransferParametersComplete : CommandComplete (command_op_code = LE_SET_DEFAULT_PERIODIC_ADVERTISING_SYNC_TRANSFER_PARAMETERS) {
+  status : ErrorCode,
 }
 
 enum UseDebugKey : 8 {
@@ -5623,15 +5653,37 @@ packet LeExtendedAdvertisingReport : LeMetaEvent (subevent_code = EXTENDED_ADVER
 }
 
 packet LePeriodicAdvertisingSyncEstablished : LeMetaEvent (subevent_code = PERIODIC_ADVERTISING_SYNC_ESTABLISHED) {
-  _payload_, // placeholder (unimplemented)
+  status : ErrorCode,
+  sync_handle : 12,
+  _reserved_ : 4,
+  advertising_sid : 8,
+  advertiser_address_type : AddressType,
+  advertiser_address : Address,
+  advertiser_phy : SecondaryPhyType,
+  periodic_advertising_interval : 16,
+  advertiser_clock_accuracy : ClockAccuracy,
+}
+
+enum PeriodicAdvertisingDataStatus : 8 {
+  DATA_COMPLETE = 0,
+  DATA_INCOMPLETE_MORE_TO_COME = 1,
+  DATA_INCOMPLETE_TRUNCATED_NO_MORE_DATA = 2,
 }
 
 packet LePeriodicAdvertisingReport : LeMetaEvent (subevent_code = PERIODIC_ADVERTISING_REPORT) {
-  _payload_, // placeholder (unimplemented)
+  sync_handle : 12,
+  _reserved_ : 4,
+  tx_power : 8,
+  rssi : 8,
+  cte_type : CteType,
+  data_status : PeriodicAdvertisingDataStatus,
+  _size_(data) : 8,
+  data : 8[],
 }
 
 packet LePeriodicAdvertisingSyncLost : LeMetaEvent (subevent_code = PERIODIC_ADVERTISING_SYNC_LOST) {
-  _payload_, // placeholder (unimplemented)
+  sync_handle : 12,
+  _reserved_ : 4,
 }
 
 packet LeScanTimeout : LeMetaEvent (subevent_code = SCAN_TIMEOUT) {

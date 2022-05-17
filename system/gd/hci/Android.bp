@@ -41,6 +41,7 @@ filegroup {
         "class_of_device_unittest.cc",
         "hci_packets_test.cc",
         "uuid_unittest.cc",
+        "le_periodic_sync_manager_test.cc"
     ],
 }
 
