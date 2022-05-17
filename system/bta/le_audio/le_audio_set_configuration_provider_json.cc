@@ -475,6 +475,8 @@ struct AudioSetConfigurationProviderJson {
         return "Media";
       case types::LeAudioContextType::CONVERSATIONAL:
         return "Conversational";
+      case types::LeAudioContextType::VOICEASSISTANTS:
+        return "VoiceAssinstants";
       case types::LeAudioContextType::RINGTONE:
         return "Ringtone";
       default:
@@ -491,6 +493,7 @@ struct AudioSetConfigurationProviderJson {
             {"Ringtone", types::LeAudioContextType::RINGTONE},
             {"Recording", types::LeAudioContextType::LIVE},
             {"Game", types::LeAudioContextType::GAME},
+            {"VoiceAssistants", types::LeAudioContextType::VOICEASSISTANTS},
             {"Default", types::LeAudioContextType::UNSPECIFIED},
         };
     return scenarios.count(scenario) ? scenarios.at(scenario)
