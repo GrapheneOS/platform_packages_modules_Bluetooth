@@ -47,6 +47,10 @@ std::vector<uint8_t> kAvdtpSuspend = {0x02, 0x02, 0x00, 0x07, 0x00, 0x03, 0x00, 
 std::vector<uint8_t> kHfpAtNrec0 = {0x02, 0x02, 0x20, 0x13, 0x00, 0x0f, 0x00, 0x41, 0x00, 0x09, 0xff, 0x15,
                                     0x01, 0x41, 0x54, 0x2b, 0x4e, 0x52, 0x45, 0x43, 0x3d, 0x30, 0x0d, 0x5c};
 
+std::vector<uint8_t> kQualcommConnectionRequest = {0xdc, 0x2e, 0x54, 0x00, 0x50, 0x00, 0xff,
+                                                   0x00, 0x00, 0x0a, 0x0f, 0x09, 0x01, 0x00,
+                                                   0x5c, 0x93, 0x01, 0x00, 0x42, 0x00};
+
 }  // namespace
 
 using bluetooth::TestModuleRegistry;
@@ -60,13 +64,15 @@ class TestSnoopLoggerModule : public SnoopLogger {
       std::string snoop_log_path,
       std::string snooz_log_path,
       size_t max_packets_per_file,
-      const std::string& btsnoop_mode)
+      const std::string& btsnoop_mode,
+      bool qualcomm_debug_log_enabled)
       : SnoopLogger(
             std::move(snoop_log_path),
             std::move(snooz_log_path),
             max_packets_per_file,
             SnoopLogger::GetMaxPacketsPerBuffer(),
             btsnoop_mode,
+            qualcomm_debug_log_enabled,
             20ms,
             5ms) {}
 
@@ -128,10 +134,14 @@ class SnoopLoggerModuleTest : public Test {
 
 TEST_F(SnoopLoggerModuleTest, empty_snoop_log_test) {
   // Actual test
-  auto* snoop_looger = new TestSnoopLoggerModule(
-      temp_snoop_log_.string(), temp_snooz_log_.string(), 10, SnoopLogger::kBtSnoopLogModeFull);
+  auto* snoop_logger = new TestSnoopLoggerModule(
+      temp_snoop_log_.string(),
+      temp_snooz_log_.string(),
+      10,
+      SnoopLogger::kBtSnoopLogModeFull,
+      false);
   TestModuleRegistry test_registry;
-  test_registry.InjectTestModule(&SnoopLogger::Factory, snoop_looger);
+  test_registry.InjectTestModule(&SnoopLogger::Factory, snoop_logger);
   test_registry.StopAll();
 
   // Verify states after test
@@ -142,10 +152,14 @@ TEST_F(SnoopLoggerModuleTest, empty_snoop_log_test) {
 
 TEST_F(SnoopLoggerModuleTest, disable_snoop_log_test) {
   // Actual test
-  auto* snoop_looger = new TestSnoopLoggerModule(
-      temp_snoop_log_.string(), temp_snooz_log_.string(), 10, SnoopLogger::kBtSnoopLogModeDisabled);
+  auto* snoop_logger = new TestSnoopLoggerModule(
+      temp_snoop_log_.string(),
+      temp_snooz_log_.string(),
+      10,
+      SnoopLogger::kBtSnoopLogModeDisabled,
+      false);
   TestModuleRegistry test_registry;
-  test_registry.InjectTestModule(&SnoopLogger::Factory, snoop_looger);
+  test_registry.InjectTestModule(&SnoopLogger::Factory, snoop_logger);
   test_registry.StopAll();
 
   // Verify states after test
@@ -156,12 +170,17 @@ TEST_F(SnoopLoggerModuleTest, disable_snoop_log_test) {
 
 TEST_F(SnoopLoggerModuleTest, capture_one_packet_test) {
   // Actual test
-  auto* snoop_looger = new TestSnoopLoggerModule(
-      temp_snoop_log_.string(), temp_snooz_log_.string(), 10, SnoopLogger::kBtSnoopLogModeFull);
+  auto* snoop_logger = new TestSnoopLoggerModule(
+      temp_snoop_log_.string(),
+      temp_snooz_log_.string(),
+      10,
+      SnoopLogger::kBtSnoopLogModeFull,
+      false);
   TestModuleRegistry test_registry;
-  test_registry.InjectTestModule(&SnoopLogger::Factory, snoop_looger);
+  test_registry.InjectTestModule(&SnoopLogger::Factory, snoop_logger);
 
-  snoop_looger->Capture(kInformationRequest, SnoopLogger::Direction::OUTGOING, SnoopLogger::PacketType::CMD);
+  snoop_logger->Capture(
+      kInformationRequest, SnoopLogger::Direction::OUTGOING, SnoopLogger::PacketType::CMD);
 
   test_registry.StopAll();
 
@@ -175,13 +194,18 @@ TEST_F(SnoopLoggerModuleTest, capture_one_packet_test) {
 
 TEST_F(SnoopLoggerModuleTest, capture_hci_cmd_btsnooz_test) {
   // Actual test
-  auto* snoop_looger = new TestSnoopLoggerModule(
-      temp_snoop_log_.string(), temp_snooz_log_.string(), 10, SnoopLogger::kBtSnoopLogModeDisabled);
+  auto* snoop_logger = new TestSnoopLoggerModule(
+      temp_snoop_log_.string(),
+      temp_snooz_log_.string(),
+      10,
+      SnoopLogger::kBtSnoopLogModeDisabled,
+      false);
   TestModuleRegistry test_registry;
-  test_registry.InjectTestModule(&SnoopLogger::Factory, snoop_looger);
+  test_registry.InjectTestModule(&SnoopLogger::Factory, snoop_logger);
 
-  snoop_looger->Capture(kInformationRequest, SnoopLogger::Direction::OUTGOING, SnoopLogger::PacketType::CMD);
-  snoop_looger->CallGetDumpsysData(builder_);
+  snoop_logger->Capture(
+      kInformationRequest, SnoopLogger::Direction::OUTGOING, SnoopLogger::PacketType::CMD);
+  snoop_logger->CallGetDumpsysData(builder_);
 
   ASSERT_TRUE(std::filesystem::exists(temp_snooz_log_));
   ASSERT_EQ(
@@ -198,13 +222,18 @@ TEST_F(SnoopLoggerModuleTest, capture_hci_cmd_btsnooz_test) {
 
 TEST_F(SnoopLoggerModuleTest, capture_l2cap_signal_packet_btsnooz_test) {
   // Actual test
-  auto* snoop_looger = new TestSnoopLoggerModule(
-      temp_snoop_log_.string(), temp_snooz_log_.string(), 10, SnoopLogger::kBtSnoopLogModeDisabled);
+  auto* snoop_logger = new TestSnoopLoggerModule(
+      temp_snoop_log_.string(),
+      temp_snooz_log_.string(),
+      10,
+      SnoopLogger::kBtSnoopLogModeDisabled,
+      false);
   TestModuleRegistry test_registry;
-  test_registry.InjectTestModule(&SnoopLogger::Factory, snoop_looger);
+  test_registry.InjectTestModule(&SnoopLogger::Factory, snoop_logger);
 
-  snoop_looger->Capture(kSdpConnectionRequest, SnoopLogger::Direction::OUTGOING, SnoopLogger::PacketType::ACL);
-  snoop_looger->CallGetDumpsysData(builder_);
+  snoop_logger->Capture(
+      kSdpConnectionRequest, SnoopLogger::Direction::OUTGOING, SnoopLogger::PacketType::ACL);
+  snoop_logger->CallGetDumpsysData(builder_);
 
   ASSERT_TRUE(std::filesystem::exists(temp_snooz_log_));
   ASSERT_EQ(
@@ -221,13 +250,18 @@ TEST_F(SnoopLoggerModuleTest, capture_l2cap_signal_packet_btsnooz_test) {
 
 TEST_F(SnoopLoggerModuleTest, capture_l2cap_short_data_packet_btsnooz_test) {
   // Actual test
-  auto* snoop_looger = new TestSnoopLoggerModule(
-      temp_snoop_log_.string(), temp_snooz_log_.string(), 10, SnoopLogger::kBtSnoopLogModeDisabled);
+  auto* snoop_logger = new TestSnoopLoggerModule(
+      temp_snoop_log_.string(),
+      temp_snooz_log_.string(),
+      10,
+      SnoopLogger::kBtSnoopLogModeDisabled,
+      false);
   TestModuleRegistry test_registry;
-  test_registry.InjectTestModule(&SnoopLogger::Factory, snoop_looger);
+  test_registry.InjectTestModule(&SnoopLogger::Factory, snoop_logger);
 
-  snoop_looger->Capture(kAvdtpSuspend, SnoopLogger::Direction::OUTGOING, SnoopLogger::PacketType::ACL);
-  snoop_looger->CallGetDumpsysData(builder_);
+  snoop_logger->Capture(
+      kAvdtpSuspend, SnoopLogger::Direction::OUTGOING, SnoopLogger::PacketType::ACL);
+  snoop_logger->CallGetDumpsysData(builder_);
 
   ASSERT_TRUE(std::filesystem::exists(temp_snooz_log_));
   ASSERT_EQ(
@@ -244,13 +278,18 @@ TEST_F(SnoopLoggerModuleTest, capture_l2cap_short_data_packet_btsnooz_test) {
 
 TEST_F(SnoopLoggerModuleTest, capture_l2cap_long_data_packet_btsnooz_test) {
   // Actual test
-  auto* snoop_looger = new TestSnoopLoggerModule(
-      temp_snoop_log_.string(), temp_snooz_log_.string(), 10, SnoopLogger::kBtSnoopLogModeDisabled);
+  auto* snoop_logger = new TestSnoopLoggerModule(
+      temp_snoop_log_.string(),
+      temp_snooz_log_.string(),
+      10,
+      SnoopLogger::kBtSnoopLogModeDisabled,
+      false);
   TestModuleRegistry test_registry;
-  test_registry.InjectTestModule(&SnoopLogger::Factory, snoop_looger);
+  test_registry.InjectTestModule(&SnoopLogger::Factory, snoop_logger);
 
-  snoop_looger->Capture(kHfpAtNrec0, SnoopLogger::Direction::OUTGOING, SnoopLogger::PacketType::ACL);
-  snoop_looger->CallGetDumpsysData(builder_);
+  snoop_logger->Capture(
+      kHfpAtNrec0, SnoopLogger::Direction::OUTGOING, SnoopLogger::PacketType::ACL);
+  snoop_logger->CallGetDumpsysData(builder_);
 
   ASSERT_TRUE(std::filesystem::exists(temp_snooz_log_));
   ASSERT_EQ(
@@ -267,10 +306,14 @@ TEST_F(SnoopLoggerModuleTest, capture_l2cap_long_data_packet_btsnooz_test) {
 
 TEST_F(SnoopLoggerModuleTest, delete_old_snooz_log_files) {
   // Actual test
-  auto* snoop_looger = new TestSnoopLoggerModule(
-      temp_snoop_log_.string(), temp_snooz_log_.string(), 10, SnoopLogger::kBtSnoopLogModeDisabled);
+  auto* snoop_logger = new TestSnoopLoggerModule(
+      temp_snoop_log_.string(),
+      temp_snooz_log_.string(),
+      10,
+      SnoopLogger::kBtSnoopLogModeDisabled,
+      false);
   TestModuleRegistry test_registry;
-  test_registry.InjectTestModule(&SnoopLogger::Factory, snoop_looger);
+  test_registry.InjectTestModule(&SnoopLogger::Factory, snoop_logger);
 
   std::filesystem::create_directories(temp_snooz_log_);
 
@@ -285,11 +328,16 @@ TEST_F(SnoopLoggerModuleTest, delete_old_snooz_log_files) {
 TEST_F(SnoopLoggerModuleTest, rotate_file_at_new_session_test) {
   // Start once
   {
-    auto* snoop_looger = new TestSnoopLoggerModule(
-        temp_snoop_log_.string(), temp_snooz_log_.string(), 10, SnoopLogger::kBtSnoopLogModeFull);
+    auto* snoop_logger = new TestSnoopLoggerModule(
+        temp_snoop_log_.string(),
+        temp_snooz_log_.string(),
+        10,
+        SnoopLogger::kBtSnoopLogModeFull,
+        false);
     TestModuleRegistry test_registry;
-    test_registry.InjectTestModule(&SnoopLogger::Factory, snoop_looger);
-    snoop_looger->Capture(kInformationRequest, SnoopLogger::Direction::OUTGOING, SnoopLogger::PacketType::CMD);
+    test_registry.InjectTestModule(&SnoopLogger::Factory, snoop_logger);
+    snoop_logger->Capture(
+        kInformationRequest, SnoopLogger::Direction::OUTGOING, SnoopLogger::PacketType::CMD);
     test_registry.StopAll();
   }
 
@@ -302,12 +350,18 @@ TEST_F(SnoopLoggerModuleTest, rotate_file_at_new_session_test) {
 
   // Start again
   {
-    auto* snoop_looger = new TestSnoopLoggerModule(
-        temp_snoop_log_.string(), temp_snooz_log_.string(), 10, SnoopLogger::kBtSnoopLogModeFull);
+    auto* snoop_logger = new TestSnoopLoggerModule(
+        temp_snoop_log_.string(),
+        temp_snooz_log_.string(),
+        10,
+        SnoopLogger::kBtSnoopLogModeFull,
+        false);
     TestModuleRegistry test_registry;
-    test_registry.InjectTestModule(&SnoopLogger::Factory, snoop_looger);
-    snoop_looger->Capture(kInformationRequest, SnoopLogger::Direction::OUTGOING, SnoopLogger::PacketType::CMD);
-    snoop_looger->Capture(kInformationRequest, SnoopLogger::Direction::OUTGOING, SnoopLogger::PacketType::CMD);
+    test_registry.InjectTestModule(&SnoopLogger::Factory, snoop_logger);
+    snoop_logger->Capture(
+        kInformationRequest, SnoopLogger::Direction::OUTGOING, SnoopLogger::PacketType::CMD);
+    snoop_logger->Capture(
+        kInformationRequest, SnoopLogger::Direction::OUTGOING, SnoopLogger::PacketType::CMD);
     test_registry.StopAll();
   }
 
@@ -324,13 +378,18 @@ TEST_F(SnoopLoggerModuleTest, rotate_file_at_new_session_test) {
 
 TEST_F(SnoopLoggerModuleTest, rotate_file_after_full_test) {
   // Actual test
-  auto* snoop_looger = new TestSnoopLoggerModule(
-      temp_snoop_log_.string(), temp_snooz_log_.string(), 10, SnoopLogger::kBtSnoopLogModeFull);
+  auto* snoop_logger = new TestSnoopLoggerModule(
+      temp_snoop_log_.string(),
+      temp_snooz_log_.string(),
+      10,
+      SnoopLogger::kBtSnoopLogModeFull,
+      false);
   TestModuleRegistry test_registry;
-  test_registry.InjectTestModule(&SnoopLogger::Factory, snoop_looger);
+  test_registry.InjectTestModule(&SnoopLogger::Factory, snoop_logger);
 
   for (int i = 0; i < 11; i++) {
-    snoop_looger->Capture(kInformationRequest, SnoopLogger::Direction::OUTGOING, SnoopLogger::PacketType::CMD);
+    snoop_logger->Capture(
+        kInformationRequest, SnoopLogger::Direction::OUTGOING, SnoopLogger::PacketType::CMD);
   }
 
   test_registry.StopAll();
@@ -344,6 +403,85 @@ TEST_F(SnoopLoggerModuleTest, rotate_file_after_full_test) {
   ASSERT_EQ(
       std::filesystem::file_size(temp_snoop_log_last_),
       sizeof(SnoopLogger::FileHeaderType) + (sizeof(SnoopLogger::PacketHeaderType) + kInformationRequest.size()) * 10);
+}
+
+TEST_F(SnoopLoggerModuleTest, qualcomm_debug_log_test) {
+  auto* snoop_logger = new TestSnoopLoggerModule(
+      temp_snoop_log_.string(),
+      temp_snooz_log_.string(),
+      10,
+      SnoopLogger::kBtSnoopLogModeDisabled,
+      true);
+  TestModuleRegistry test_registry;
+  test_registry.InjectTestModule(&SnoopLogger::Factory, snoop_logger);
+  snoop_logger->Capture(
+      kQualcommConnectionRequest, SnoopLogger::Direction::OUTGOING, SnoopLogger::PacketType::ACL);
+  snoop_logger->CallGetDumpsysData(builder_);
+
+  ASSERT_TRUE(std::filesystem::exists(temp_snooz_log_));
+  ASSERT_EQ(
+      std::filesystem::file_size(temp_snooz_log_),
+      sizeof(SnoopLogger::FileHeaderType) + sizeof(SnoopLogger::PacketHeaderType) +
+          kQualcommConnectionRequest.size());
+
+  test_registry.StopAll();
+
+  // Verify states after test
+  ASSERT_FALSE(std::filesystem::exists(temp_snoop_log_));
+  ASSERT_FALSE(std::filesystem::exists(temp_snoop_log_last_));
+  ASSERT_FALSE(std::filesystem::exists(temp_snooz_log_));
+}
+
+TEST_F(SnoopLoggerModuleTest, qualcomm_debug_log_regression_test) {
+  {
+    auto* snoop_logger = new TestSnoopLoggerModule(
+        temp_snoop_log_.string(),
+        temp_snooz_log_.string(),
+        10,
+        SnoopLogger::kBtSnoopLogModeDisabled,
+        true);
+    TestModuleRegistry test_registry;
+    test_registry.InjectTestModule(&SnoopLogger::Factory, snoop_logger);
+    snoop_logger->Capture(
+        kHfpAtNrec0, SnoopLogger::Direction::OUTGOING, SnoopLogger::PacketType::ACL);
+    snoop_logger->CallGetDumpsysData(builder_);
+
+    ASSERT_TRUE(std::filesystem::exists(temp_snooz_log_));
+    ASSERT_EQ(
+        std::filesystem::file_size(temp_snooz_log_),
+        sizeof(SnoopLogger::FileHeaderType) + sizeof(SnoopLogger::PacketHeaderType) + 14);
+    test_registry.StopAll();
+  }
+
+  // Verify states after test
+  ASSERT_FALSE(std::filesystem::exists(temp_snoop_log_));
+  ASSERT_FALSE(std::filesystem::exists(temp_snoop_log_last_));
+  ASSERT_FALSE(std::filesystem::exists(temp_snooz_log_));
+
+  {
+    auto* snoop_logger = new TestSnoopLoggerModule(
+        temp_snoop_log_.string(),
+        temp_snooz_log_.string(),
+        10,
+        SnoopLogger::kBtSnoopLogModeDisabled,
+        false);
+    TestModuleRegistry test_registry;
+    test_registry.InjectTestModule(&SnoopLogger::Factory, snoop_logger);
+    snoop_logger->Capture(
+        kQualcommConnectionRequest, SnoopLogger::Direction::OUTGOING, SnoopLogger::PacketType::ACL);
+    snoop_logger->CallGetDumpsysData(builder_);
+
+    ASSERT_TRUE(std::filesystem::exists(temp_snooz_log_));
+    ASSERT_EQ(
+        std::filesystem::file_size(temp_snooz_log_),
+        sizeof(SnoopLogger::FileHeaderType) + sizeof(SnoopLogger::PacketHeaderType) + 14);
+    test_registry.StopAll();
+  }
+
+  // Verify states after test
+  ASSERT_FALSE(std::filesystem::exists(temp_snoop_log_));
+  ASSERT_FALSE(std::filesystem::exists(temp_snoop_log_last_));
+  ASSERT_FALSE(std::filesystem::exists(temp_snooz_log_));
 }
 
 }  // namespace testing
