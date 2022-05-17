@@ -275,6 +275,8 @@ class LeAclManagerFacadeService : public LeAclManagerFacade::Service, public LeC
       direct_connection_address_ = AddressWithType();
       per_connection_events_.emplace(peer, direct_connection_events_);
       direct_connection_events_.reset();
+    } else {
+      ASSERT_LOG(per_connection_events_.count(peer) > 0, "No connection request for %s", peer.ToString().c_str());
     }
     acl_connections_.emplace(
         std::piecewise_construct,
