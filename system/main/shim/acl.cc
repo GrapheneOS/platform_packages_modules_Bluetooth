@@ -716,8 +716,7 @@ class LeShimAclConnection
   }
 
   void ReadRemoteControllerInformation() override {
-    connection_->LeReadRemoteFeatures();
-    connection_->ReadRemoteVersionInformation();
+    // TODO Issue LeReadRemoteFeatures Command
   }
 
   bluetooth::hci::AddressWithType GetLocalAddressWithType() {
