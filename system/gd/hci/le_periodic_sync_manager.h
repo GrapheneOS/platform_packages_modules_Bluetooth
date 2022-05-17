@@ -268,7 +268,7 @@ class PeriodicSyncManager {
 
     auto address_with_type = AddressWithType(event_view.GetAdvertiserAddress(), event_view.GetAdvertiserAddressType());
 
-    auto periodic_sync = GetSyncFromAddressWithTypeAndSid(address_with_type, event_view.GetAdvertisingSid());
+    auto periodic_sync = GetSyncFromAddressAndSid(address_with_type.GetAddress(), event_view.GetAdvertisingSid());
     if (periodic_sync == periodic_syncs_.end()) {
       LOG_WARN("[PSync]: Invalid address and sid for sync established");
       if (event_view.GetStatus() == ErrorCode::SUCCESS) {
