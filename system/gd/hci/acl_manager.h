@@ -29,6 +29,7 @@
 #include "hci/hci_layer.h"
 #include "hci/hci_packets.h"
 #include "hci/le_address_manager.h"
+#include "hci/le_scanning_manager.h"
 #include "module.h"
 #include "os/handler.h"
 
@@ -54,6 +55,7 @@ class AclManager : public Module {
  friend class bluetooth::shim::legacy::Acl;
  friend void bluetooth::shim::L2CA_UseLegacySecurityModule();
  friend bool bluetooth::shim::L2CA_SetAclPriority(uint16_t, bool);
+ friend class bluetooth::hci::LeScanningManager;
 
 public:
  AclManager();
