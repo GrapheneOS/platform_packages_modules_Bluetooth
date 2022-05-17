@@ -30,6 +30,7 @@ constexpr hci::SubeventCode LeScanningEvents[] = {
     hci::SubeventCode::PERIODIC_ADVERTISING_REPORT,
     hci::SubeventCode::PERIODIC_ADVERTISING_SYNC_ESTABLISHED,
     hci::SubeventCode::PERIODIC_ADVERTISING_SYNC_LOST,
+    hci::SubeventCode::PERIODIC_ADVERTISING_SYNC_TRANSFER_RECEIVED,
 };
 
 typedef CommandInterface<LeScanningCommandBuilder> LeScanningInterface;
