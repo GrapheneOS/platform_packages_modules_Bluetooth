@@ -434,7 +434,6 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
     connection->supervision_timeout_ = supervision_timeout;
     connection->local_resolvable_private_address_ = connection_complete.GetLocalResolvablePrivateAddress();
     connection->peer_resolvable_private_address_ = connection_complete.GetPeerResolvablePrivateAddress();
-    connection_complete.GetLocalResolvablePrivateAddress();
     connections.add(
         handle, remote_address, queue_down_end, handler_, connection->GetEventCallbacks([this](uint16_t handle) {
           this->connections.invalidate(handle);
