@@ -36,11 +36,13 @@ class SnoopLogger : public ::bluetooth::Module {
   static const std::string kBtSnoopLogModeDisabled;
   static const std::string kBtSnoopLogModeFiltered;
   static const std::string kBtSnoopLogModeFull;
+  static const std::string kSoCManufacturerQualcomm;
 
   static const std::string kBtSnoopMaxPacketsPerFileProperty;
   static const std::string kIsDebuggableProperty;
   static const std::string kBtSnoopLogModeProperty;
   static const std::string kBtSnoopDefaultLogModeProperty;
+  static const std::string kSoCManufacturerProperty;
 
   // Put in header for test
   struct PacketHeaderType {
@@ -68,6 +70,10 @@ class SnoopLogger : public ::bluetooth::Module {
   // Get snoop logger mode based on current system setup
   // Changes to this values is only effective after restarting Bluetooth
   static std::string GetBtSnoopMode();
+
+  // Returns whether the soc manufacturer is Qualcomm
+  // Changes to this value is only effective after restarting Bluetooth
+  static bool IsQualcommDebugLogEnabled();
 
   // Has to be defined from 1 to 4 per btsnoop format
   enum PacketType {
@@ -101,6 +107,7 @@ class SnoopLogger : public ::bluetooth::Module {
       size_t max_packets_per_file,
       size_t max_packets_per_buffer,
       const std::string& btsnoop_mode,
+      bool qualcomm_debug_log_enabled,
       const std::chrono::milliseconds snooz_log_life_time,
       const std::chrono::milliseconds snooz_log_delete_alarm_interval);
   void CloseCurrentSnoopLogFile();
@@ -115,6 +122,7 @@ class SnoopLogger : public ::bluetooth::Module {
   bool is_filtered_ = false;
   size_t max_packets_per_file_;
   common::CircularBuffer<std::string> btsnooz_buffer_;
+  bool qualcomm_debug_log_enabled_ = false;
   size_t packet_counter_ = 0;
   mutable std::recursive_mutex file_mutex_;
   std::unique_ptr<os::RepeatingAlarm> alarm_;
