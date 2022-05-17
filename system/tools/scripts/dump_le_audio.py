@@ -215,6 +215,10 @@ def parse_codec_information(connection_handle, ase_id, packet):
 
 def parse_att_read_by_type_rsp(packet, connection_handle):
     length, packet = unpack_data(packet, 1, False)
+    if length != 7:
+        #ignore the packet, we're only interested in this packet for the characteristic type UUID
+        return
+
     if length > len(packet):
         debug_print("Invalid att packet length")
         return
