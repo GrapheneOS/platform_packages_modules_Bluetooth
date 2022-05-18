@@ -103,7 +103,7 @@ class CsisClientImpl : public CsisClient {
       sizeof(uint8_t); /* num_of_sets */
   static constexpr size_t CSIS_STORAGE_ENTRY_SZ =
       sizeof(uint8_t) /* set_id */ + sizeof(uint8_t) /* desired_size */ +
-      Octet16().size();
+      sizeof(uint8_t) /* rank */ + Octet16().size();
 
  public:
   CsisClientImpl(bluetooth::csis::CsisClientCallbacks* callbacks,
@@ -211,7 +211,16 @@ class CsisClientImpl : public CsisClient {
       csis_group->SetUuid(uuid);
     }
 
+    auto csis_instance = device->GetCsisInstanceByGroupId(group_id);
+    if (!csis_instance) {
+      LOG(ERROR) << __func__ << " device: " << address
+                 << " does not have the rank info for group (id:" << group_id
+                 << " )";
+      return;
+    }
+
     callbacks_->OnDeviceAvailable(device->addr, csis_group->GetGroupId(),
+                                  csis_instance->GetRank(),
                                   csis_group->GetDesiredSize(), uuid);
   }
 
@@ -539,6 +548,7 @@ class CsisClientImpl : public CsisClient {
 
           UINT8_TO_STREAM(ptr, gid);
           UINT8_TO_STREAM(ptr, csis_group->GetDesiredSize());
+          UINT8_TO_STREAM(ptr, csis_inst->GetRank());
           Octet16 sirk = csis_group->GetSirk();
           memcpy(ptr, sirk.data(), sirk.size());
           ptr += sirk.size();
@@ -547,8 +557,12 @@ class CsisClientImpl : public CsisClient {
     return true;
   }
 
-  void DeserializeSets(const RawAddress& addr, const std::vector<uint8_t>& in) {
-    if (in.size() < CSIS_STORAGE_HEADER_SZ + CSIS_STORAGE_ENTRY_SZ) return;
+  std::map<uint8_t, uint8_t> DeserializeSets(const RawAddress& addr,
+                                             const std::vector<uint8_t>& in) {
+    std::map<uint8_t, uint8_t> group_rank_map;
+
+    if (in.size() < CSIS_STORAGE_HEADER_SZ + CSIS_STORAGE_ENTRY_SZ)
+      return group_rank_map;
     auto* ptr = in.data();
 
     uint8_t magic;
@@ -561,7 +575,7 @@ class CsisClientImpl : public CsisClient {
       if (in.size() <
           CSIS_STORAGE_HEADER_SZ + (num_sets * CSIS_STORAGE_ENTRY_SZ)) {
         LOG(ERROR) << "Invalid persistent storage data";
-        return;
+        return group_rank_map;
       }
 
       /* sets entries */
@@ -569,22 +583,29 @@ class CsisClientImpl : public CsisClient {
         uint8_t gid;
         Octet16 sirk;
         uint8_t size;
+        uint8_t rank;
 
         STREAM_TO_UINT8(gid, ptr);
         STREAM_TO_UINT8(size, ptr);
+        STREAM_TO_UINT8(rank, ptr);
         STREAM_TO_ARRAY(sirk.data(), ptr, (int)sirk.size());
 
         // Set grouping and SIRK
         auto csis_group = AssignCsisGroup(addr, gid, true, Uuid::kEmpty);
         csis_group->SetDesiredSize(size);
         csis_group->SetSirk(sirk);
+
+        // TODO: Save it for later, so we won't have to read it using GATT
+        group_rank_map[gid] = rank;
       }
     }
+
+    return group_rank_map;
   }
 
   void AddFromStorage(const RawAddress& addr, const std::vector<uint8_t>& in,
                       bool autoconnect) {
-    DeserializeSets(addr, in);
+    auto group_rank_map = DeserializeSets(addr, in);
 
     auto device = FindDeviceByAddress(addr);
     if (device == nullptr) {
@@ -596,8 +617,14 @@ class CsisClientImpl : public CsisClient {
       if (!csis_group->IsDeviceInTheGroup(device)) continue;
 
       if (csis_group->GetUuid() != Uuid::kEmpty) {
-        callbacks_->OnDeviceAvailable(device->addr, csis_group->GetGroupId(),
-                                      csis_group->GetDesiredSize(),
+        auto group_id = csis_group->GetGroupId();
+        uint8_t rank = bluetooth::csis::CSIS_RANK_INVALID;
+        if (group_rank_map.count(group_id) != 0) {
+          rank = group_rank_map.at(group_id);
+        }
+
+        callbacks_->OnDeviceAvailable(device->addr, group_id,
+                                      csis_group->GetDesiredSize(), rank,
                                       csis_group->GetUuid());
       }
     }
@@ -762,9 +789,9 @@ class CsisClientImpl : public CsisClient {
         continue;
       }
 
-      callbacks_->OnDeviceAvailable(device->addr, group_id,
-                                    csis_group->GetDesiredSize(),
-                                    csis_instance->GetUuid());
+      callbacks_->OnDeviceAvailable(
+          device->addr, group_id, csis_group->GetDesiredSize(),
+          csis_instance->GetRank(), csis_instance->GetUuid());
       notify_connected = true;
     }
     if (notify_connected)
