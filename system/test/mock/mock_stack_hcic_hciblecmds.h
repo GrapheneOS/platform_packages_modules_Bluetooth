@@ -255,21 +255,6 @@ struct btsnd_hcic_ble_create_ll_conn {
 };
 extern struct btsnd_hcic_ble_create_ll_conn btsnd_hcic_ble_create_ll_conn;
 
-// Name: btsnd_hcic_ble_encrypt
-// Params: uint8_t* key, uint8_t key_len, uint8_t* plain_text, uint8_t pt_len,
-// void* p_cmd_cplt_cback Return: void
-struct btsnd_hcic_ble_encrypt {
-  std::function<void(uint8_t* key, uint8_t key_len, uint8_t* plain_text,
-                     uint8_t pt_len, void* p_cmd_cplt_cback)>
-      body{[](uint8_t* key, uint8_t key_len, uint8_t* plain_text,
-              uint8_t pt_len, void* p_cmd_cplt_cback) {}};
-  void operator()(uint8_t* key, uint8_t key_len, uint8_t* plain_text,
-                  uint8_t pt_len, void* p_cmd_cplt_cback) {
-    body(key, key_len, plain_text, pt_len, p_cmd_cplt_cback);
-  };
-};
-extern struct btsnd_hcic_ble_encrypt btsnd_hcic_ble_encrypt;
-
 // Name: btsnd_hcic_ble_enh_rx_test
 // Params: uint8_t rx_chan, uint8_t phy, uint8_t mod_index
 // Return: void
