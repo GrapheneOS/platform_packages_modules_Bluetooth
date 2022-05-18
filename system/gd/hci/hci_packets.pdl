@@ -4013,10 +4013,15 @@ enum PeriodicAdvertisingOptions : 8 {
   ENABLE_DUPLICATE_FILTERING = 0x04,
 }
 
+enum AdvertisingAddressType : 8 {
+  PUBLIC_ADDRESS = 0x00,
+  RANDOM_ADDRESS = 0x01,
+}
+
 packet LePeriodicAdvertisingCreateSync : LeScanningCommand (op_code = LE_PERIODIC_ADVERTISING_CREATE_SYNC) {
   options : PeriodicAdvertisingOptions,
   advertising_sid : 8,
-  advertiser_address_type : AddressType,
+  advertiser_address_type : AdvertisingAddressType,
   advertiser_address : Address,
   skip : 16,
   sync_timeout : 16,
@@ -4042,11 +4047,6 @@ packet LePeriodicAdvertisingTerminateSyncComplete : CommandComplete (command_op_
   status : ErrorCode,
 }
 
-enum AdvertisingAddressType : 8 {
-  PUBLIC_ADDRESS = 0x00,
-  RANDOM_ADDRESS = 0x01,
-}
-
 packet LeAddDeviceToPeriodicAdvertisingList : LeScanningCommand (op_code = LE_ADD_DEVICE_TO_PERIODIC_ADVERTISING_LIST) {
   advertising_address_type : AdvertisingAddressType,
   advertiser_address : Address,
@@ -4059,7 +4059,7 @@ packet LeAddDeviceToPeriodicAdvertisingListComplete : CommandComplete (command_o
 }
 
 packet LeRemoveDeviceFromPeriodicAdvertisingList : LeScanningCommand (op_code = LE_REMOVE_DEVICE_FROM_PERIODIC_ADVERTISING_LIST) {
-  advertiser_address_type : AddressType,
+  advertiser_address_type : AdvertisingAddressType,
   advertiser_address : Address,
   advertising_sid : 8,
 }
