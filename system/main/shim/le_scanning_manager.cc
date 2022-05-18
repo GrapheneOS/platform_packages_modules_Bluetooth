@@ -110,6 +110,8 @@ class DefaultScanningCallback : public ::ScanningCallbacks {
     static_cast<::ScanningCallbacks*>(&default_scanning_callback_);
 extern ::ScanningCallbacks* bluetooth::shim::default_scanning_callback;
 
+extern tBTM_CB btm_cb;
+
 extern void btm_ble_process_adv_pkt_cont_for_inquiry(
     uint16_t event_type, tBLE_ADDR_TYPE address_type,
     const RawAddress& raw_address, uint8_t primary_phy, uint8_t secondary_phy,
@@ -146,11 +148,16 @@ void BleScannerInterfaceImpl::Unregister(int scanner_id) {
 
   /** Start or stop LE device scanning */
 void BleScannerInterfaceImpl::Scan(bool start) {
-  LOG(INFO) << __func__ << " in shim layer";
+  LOG(INFO) << __func__ << " in shim layer " <<  ((start) ? "started" : "stopped");
   bluetooth::shim::GetScanning()->Scan(start);
   BTM_LogHistory(
       kBtmLogTag, RawAddress::kEmpty,
       base::StringPrintf("Le scan %s", (start) ? "started" : "stopped"));
+  if (start) {
+    btm_cb.ble_ctr_cb.set_ble_observe_active();
+  } else {
+    btm_cb.ble_ctr_cb.reset_ble_observe();
+  }
   do_in_jni_thread(FROM_HERE,
                    base::Bind(&BleScannerInterfaceImpl::AddressCache::init,
                               base::Unretained(&address_cache_)));
@@ -238,6 +245,16 @@ void BleScannerInterfaceImpl::SetScanParameters(int scanner_id,
                                                 int scan_interval,
                                                 int scan_window, Callback cb) {
   LOG(INFO) << __func__ << " in shim layer";
+  tBTM_BLE_INQ_CB* p_cb = &btm_cb.ble_ctr_cb.inq_var;
+  if (BTM_BLE_ISVALID_PARAM(scan_interval, BTM_BLE_SCAN_INT_MIN,
+                            BTM_BLE_EXT_SCAN_INT_MAX) &&
+      BTM_BLE_ISVALID_PARAM(scan_window, BTM_BLE_SCAN_WIN_MIN,
+                            BTM_BLE_EXT_SCAN_WIN_MAX)) {
+    p_cb->scan_type = BTM_BLE_SCAN_MODE_ACTI;
+    p_cb->scan_interval = scan_interval;
+    p_cb->scan_window = scan_window;
+  }
+
   // use active scan
   auto scan_type = static_cast<bluetooth::hci::LeScanType>(0x01);
   bluetooth::shim::GetScanning()->SetScanParameters(scanner_id, scan_type,

@@ -45,3 +45,23 @@ class StackL2capTest : public ::testing::Test {
 
   void TearDown() override {}
 };
+
+TEST_F(StackL2capTest, l2cble_process_data_length_change_event) {
+  l2cb.lcb_pool[0].tx_data_len = 0xdead;
+
+  // ACL unknown and legal inputs
+  l2cble_process_data_length_change_event(0x1234, 0x001b, 0x001b);
+  ASSERT_EQ(0xdead, l2cb.lcb_pool[0].tx_data_len);
+
+  l2cb.lcb_pool[0].in_use = true;
+  l2cu_set_lcb_handle(l2cb.lcb_pool[0], 0x1234);
+  ASSERT_EQ(0x1234, l2cb.lcb_pool[0].Handle());
+
+  // ACL known and illegal inputs
+  l2cble_process_data_length_change_event(0x1234, 1, 1);
+  ASSERT_EQ(0xdead, l2cb.lcb_pool[0].tx_data_len);
+
+  // ACL known and legal inputs
+  l2cble_process_data_length_change_event(0x1234, 0x001b, 0x001b);
+  ASSERT_EQ(0x001b, l2cb.lcb_pool[0].tx_data_len);
+}
