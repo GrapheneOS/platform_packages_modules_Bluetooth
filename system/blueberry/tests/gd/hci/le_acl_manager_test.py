@@ -227,7 +227,7 @@ class LeAclManagerTest(gd_base_test.GdBaseTestClass):
         # Check background connection complete
         self.dut_le_acl_manager.complete_outgoing_connection(token_background)
 
-    def test_multiple_background_connections(self):
+    def skip_flaky_test_multiple_background_connections(self):
         self.set_privacy_policy_static()
 
         # Start two background connections
