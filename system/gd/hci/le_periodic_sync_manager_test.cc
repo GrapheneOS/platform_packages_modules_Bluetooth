@@ -230,7 +230,7 @@ TEST_F(PeriodicSyncManagerTest, start_sync_test) {
   auto packet_view = LePeriodicAdvertisingCreateSyncView::Create(LeScanningCommandView::Create(packet));
   ASSERT_TRUE(packet_view.IsValid());
   ASSERT_EQ(advertiser_sid, packet_view.GetAdvertisingSid());
-  ASSERT_EQ(AddressType::PUBLIC_DEVICE_ADDRESS, packet_view.GetAdvertiserAddressType());
+  ASSERT_EQ(AdvertisingAddressType::PUBLIC_ADDRESS, packet_view.GetAdvertiserAddressType());
   ASSERT_EQ(address, packet_view.GetAdvertiserAddress());
   ASSERT_EQ(skip, packet_view.GetSkip());
   ASSERT_EQ(sync_timeout, packet_view.GetSyncTimeout());
