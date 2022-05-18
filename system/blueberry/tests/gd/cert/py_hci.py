@@ -13,6 +13,7 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
+from datetime import timedelta
 
 from google.protobuf import empty_pb2 as empty_proto
 from blueberry.tests.gd.cert.event_stream import EventStream
@@ -72,10 +73,11 @@ class PyHciAclConnection(IEventStream):
 
 class PyHciLeAclConnection(IEventStream):
 
-    def __init__(self, handle, acl_stream, device, peer, peer_resolvable, local_resolvable):
+    def __init__(self, handle, acl_stream, device, peer, peer_type, peer_resolvable, local_resolvable):
         self.handle = int(handle)
         self.device = device
         self.peer = peer
+        self.peer_type = peer_type
         self.peer_resolvable = peer_resolvable
         self.local_resolvable = local_resolvable
         # todo, handle we got is 0, so doesn't match - fix before enabling filtering
@@ -250,11 +252,21 @@ class PyHci(Closable):
 
         handle = connection_complete.get().GetConnectionHandle()
         peer = connection_complete.get().GetPeerAddress()
+        peer_type = connection_complete.get().GetPeerAddressType()
         local_resolvable = connection_complete.get().GetLocalResolvablePrivateAddress()
         peer_resolvable = connection_complete.get().GetPeerResolvablePrivateAddress()
         if self.acl_stream is None:
             raise Exception("Please construct '%s' with acl_streaming=True!" % self.__class__.__name__)
-        return PyHciLeAclConnection(handle, self.acl_stream, self.device, peer, peer_resolvable, local_resolvable)
+        return PyHciLeAclConnection(handle, self.acl_stream, self.device, peer, peer_type, peer_resolvable,
+                                    local_resolvable)
+
+    def incoming_le_connection_fails(self):
+        connection_complete = HciCaptures.LeConnectionCompleteCapture()
+        assertThat(self.le_event_stream).emitsNone(connection_complete, timeout=timedelta(seconds=5))
+
+    def add_device_to_resolving_list(self, peer_address_type, peer_address, peer_irk, local_irk):
+        self.send_command(
+            hci_packets.LeAddDeviceToResolvingListBuilder(peer_address_type, peer_address, peer_irk, local_irk))
 
     def create_advertisement(self,
                              handle,
