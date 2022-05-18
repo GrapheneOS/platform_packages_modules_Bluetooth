@@ -200,13 +200,19 @@ class LeAclManagerTest(gd_base_test.GdBaseTestClass):
         self.set_privacy_policy_static()
 
         # Start background and direct connection
-        token = self.dut_le_acl_manager.initiate_background_and_direct_connection(
+        token_direct = self.dut_le_acl_manager.initiate_connection(
             remote_addr=common.BluetoothAddressWithType(
-                address=common.BluetoothAddress(address=bytes('0C:05:04:03:02:01', 'utf8')),
+                address=common.BluetoothAddress(address=bytes('0C:05:04:03:02:02', 'utf8')),
                 type=int(hci_packets.AddressType.RANDOM_DEVICE_ADDRESS)))
 
+        token_background = self.dut_le_acl_manager.initiate_connection(
+            remote_addr=common.BluetoothAddressWithType(
+                address=common.BluetoothAddress(address=bytes('0C:05:04:03:02:01', 'utf8')),
+                type=int(hci_packets.AddressType.RANDOM_DEVICE_ADDRESS)),
+            is_direct=False)
+
         # Wait for direct connection timeout
-        self.dut_le_acl_manager.wait_for_connection_fail(token)
+        self.dut_le_acl_manager.wait_for_connection_fail(token_direct)
 
         # Cert Advertises
         advertising_handle = 0
@@ -219,7 +225,51 @@ class LeAclManagerTest(gd_base_test.GdBaseTestClass):
         py_hci_adv.start()
 
         # Check background connection complete
-        self.dut_le_acl_manager.complete_outgoing_connection(token)
+        self.dut_le_acl_manager.complete_outgoing_connection(token_background)
+
+    def skip_flaky_test_multiple_background_connections(self):
+        self.set_privacy_policy_static()
+
+        # Start two background connections
+        token_1 = self.dut_le_acl_manager.initiate_connection(
+            remote_addr=common.BluetoothAddressWithType(
+                address=common.BluetoothAddress(address=bytes('0C:05:04:03:02:01', 'utf8')),
+                type=int(hci_packets.AddressType.RANDOM_DEVICE_ADDRESS)),
+            is_direct=False)
+
+        token_2 = self.dut_le_acl_manager.initiate_connection(
+            remote_addr=common.BluetoothAddressWithType(
+                address=common.BluetoothAddress(address=bytes('0C:05:04:03:02:02', 'utf8')),
+                type=int(hci_packets.AddressType.RANDOM_DEVICE_ADDRESS)),
+            is_direct=False)
+
+        # Cert Advertises
+        advertising_handle = 0
+
+        py_hci_adv = self.cert_hci.create_advertisement(advertising_handle, '0C:05:04:03:02:01',
+                                                        hci_packets.LegacyAdvertisingProperties.ADV_IND, 155, 165)
+
+        py_hci_adv.set_data(b'Im_A_Cert')
+        py_hci_adv.set_scan_response(b'Im_A_C')
+        py_hci_adv.start()
+
+        # First background connection completes
+        connection = self.dut_le_acl_manager.complete_outgoing_connection(token_1)
+        connection.close()
+
+        # Cert Advertises again
+        advertising_handle = 0
+
+        py_hci_adv = self.cert_hci.create_advertisement(advertising_handle, '0C:05:04:03:02:02',
+                                                        hci_packets.LegacyAdvertisingProperties.ADV_IND, 155, 165)
+
+        py_hci_adv.set_data(b'Im_A_Cert')
+        py_hci_adv.set_scan_response(b'Im_A_C')
+        py_hci_adv.start()
+
+        # Second background connection completes
+        connection = self.dut_le_acl_manager.complete_outgoing_connection(token_2)
+        connection.close()
 
     def test_direct_connection(self):
         self.set_privacy_policy_static()
