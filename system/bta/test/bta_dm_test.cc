@@ -272,3 +272,54 @@ TEST_F(BtaDmTest, bta_dm_set_encryption) {
   test::mock::stack_btm_sec::BTM_SetEncryption = {};
   BTA_DM_ENCRYPT_CBACK_queue = {};
 }
+
+extern void bta_dm_encrypt_cback(const RawAddress* bd_addr,
+                                 tBT_TRANSPORT transport,
+                                 UNUSED_ATTR void* p_ref_data,
+                                 tBTM_STATUS result);
+
+TEST_F(BtaDmTest, bta_dm_encrypt_cback) {
+  const RawAddress bd_addr{{0x11, 0x22, 0x33, 0x44, 0x55, 0x66}};
+  const tBT_TRANSPORT transport{BT_TRANSPORT_LE};
+
+  // Setup a connected device
+  tBTA_DM_PEER_DEVICE* device =
+      bluetooth::legacy::testing::allocate_device_for(bd_addr, transport);
+  ASSERT_TRUE(device != nullptr);
+  device->conn_state = BTA_DM_CONNECTED;
+
+  // Encryption with no callback set
+  device->p_encrypt_cback = nullptr;
+  bta_dm_encrypt_cback(&bd_addr, transport, nullptr, BTM_SUCCESS);
+  ASSERT_EQ(0UL, BTA_DM_ENCRYPT_CBACK_queue.size());
+
+  // Encryption with callback
+  device->p_encrypt_cback = BTA_DM_ENCRYPT_CBACK;
+  bta_dm_encrypt_cback(&bd_addr, transport, nullptr, BTM_SUCCESS);
+  device->p_encrypt_cback = BTA_DM_ENCRYPT_CBACK;
+  bta_dm_encrypt_cback(&bd_addr, transport, nullptr, BTM_WRONG_MODE);
+  device->p_encrypt_cback = BTA_DM_ENCRYPT_CBACK;
+  bta_dm_encrypt_cback(&bd_addr, transport, nullptr, BTM_NO_RESOURCES);
+  device->p_encrypt_cback = BTA_DM_ENCRYPT_CBACK;
+  bta_dm_encrypt_cback(&bd_addr, transport, nullptr, BTM_BUSY);
+  device->p_encrypt_cback = BTA_DM_ENCRYPT_CBACK;
+  bta_dm_encrypt_cback(&bd_addr, transport, nullptr, BTM_ILLEGAL_VALUE);
+
+  ASSERT_EQ(5UL, BTA_DM_ENCRYPT_CBACK_queue.size());
+
+  auto params_BTM_SUCCESS = BTA_DM_ENCRYPT_CBACK_queue.front();
+  BTA_DM_ENCRYPT_CBACK_queue.pop();
+  ASSERT_EQ(BTA_SUCCESS, params_BTM_SUCCESS.result);
+  auto params_BTM_WRONG_MODE = BTA_DM_ENCRYPT_CBACK_queue.front();
+  BTA_DM_ENCRYPT_CBACK_queue.pop();
+  ASSERT_EQ(BTA_WRONG_MODE, params_BTM_WRONG_MODE.result);
+  auto params_BTM_NO_RESOURCES = BTA_DM_ENCRYPT_CBACK_queue.front();
+  BTA_DM_ENCRYPT_CBACK_queue.pop();
+  ASSERT_EQ(BTA_NO_RESOURCES, params_BTM_NO_RESOURCES.result);
+  auto params_BTM_BUSY = BTA_DM_ENCRYPT_CBACK_queue.front();
+  BTA_DM_ENCRYPT_CBACK_queue.pop();
+  ASSERT_EQ(BTA_BUSY, params_BTM_BUSY.result);
+  auto params_BTM_ILLEGAL_VALUE = BTA_DM_ENCRYPT_CBACK_queue.front();
+  BTA_DM_ENCRYPT_CBACK_queue.pop();
+  ASSERT_EQ(BTA_FAILURE, params_BTM_ILLEGAL_VALUE.result);
+}
