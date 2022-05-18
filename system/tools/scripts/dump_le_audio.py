@@ -215,6 +215,10 @@ def parse_codec_information(connection_handle, ase_id, packet):
 
 def parse_att_read_by_type_rsp(packet, connection_handle):
     length, packet = unpack_data(packet, 1, False)
+    if length != 7:
+        #ignore the packet, we're only interested in this packet for the characteristic type UUID
+        return
+
     if length > len(packet):
         debug_print("Invalid att packet length")
         return
@@ -234,7 +238,7 @@ def parse_att_write_cmd(packet, connection_handle, timestamp):
     attribute_handle, packet = unpack_data(packet, 2, False)
     global ase_handle
     if ase_handle != 0xFFFF:
-       connection_map[connection_handle].ase_handle = ase_handle
+        connection_map[connection_handle].ase_handle = ase_handle
 
     if connection_map[connection_handle].ase_handle == attribute_handle:
         if debug_enable:
@@ -448,7 +452,7 @@ def parse_iso_packet(packet, flags):
     packet = unpack_data(packet, 6, True)
     iso_sdu_length, packet = unpack_data(packet, 2, False)
     if len(packet) == 0:
-       debug_print("The iso data is empty")
+        debug_print("The iso data is empty")
     elif iso_sdu_length != len(packet):
         debug_print("Invalid iso sdu length")
         return
@@ -504,9 +508,7 @@ def main():
         "--header",
         help="Add the header for LC3 Conformance Interoperability Test Software V.1.0.3.",
         action="store_true")
-    parser.add_argument(
-        "--ase_handle", help="Set the ASE handle manually.",
-        type=int)
+    parser.add_argument("--ase_handle", help="Set the ASE handle manually.", type=int)
 
     argv = parser.parse_args()
     BTSNOOP_FILE_NAME = argv.btsnoop_file

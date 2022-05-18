@@ -214,6 +214,8 @@ static bool subevent_already_registered_in_le_hci_layer(
     case bluetooth::hci::SubeventCode::PERIODIC_ADVERTISING_REPORT:
     case bluetooth::hci::SubeventCode::PERIODIC_ADVERTISING_SYNC_ESTABLISHED:
     case bluetooth::hci::SubeventCode::PERIODIC_ADVERTISING_SYNC_LOST:
+    case bluetooth::hci::SubeventCode::
+        PERIODIC_ADVERTISING_SYNC_TRANSFER_RECEIVED:
       return true;
     case bluetooth::hci::SubeventCode::READ_REMOTE_FEATURES_COMPLETE:
     case bluetooth::hci::SubeventCode::READ_LOCAL_P256_PUBLIC_KEY_COMPLETE:
@@ -222,8 +224,6 @@ static bool subevent_already_registered_in_le_hci_layer(
     case bluetooth::hci::SubeventCode::CONNECTIONLESS_IQ_REPORT:
     case bluetooth::hci::SubeventCode::CONNECTION_IQ_REPORT:
     case bluetooth::hci::SubeventCode::CTE_REQUEST_FAILED:
-    case bluetooth::hci::SubeventCode::
-        PERIODIC_ADVERTISING_SYNC_TRANSFER_RECEIVED:
     case bluetooth::hci::SubeventCode::CIS_ESTABLISHED:
     case bluetooth::hci::SubeventCode::CIS_REQUEST:
     case bluetooth::hci::SubeventCode::CREATE_BIG_COMPLETE:
