@@ -73,7 +73,7 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface,
 
   void GetOwnAddress(uint8_t advertiser_id, GetAddressCallback cb) override {
     LOG(INFO) << __func__ << " in shim layer";
-    address_callbacks_[advertiser_id] = cb;
+    address_callbacks_[advertiser_id] = jni_thread_wrapper(FROM_HERE, cb);
     bluetooth::shim::GetAdvertising()->GetOwnAddress(advertiser_id);
   }
 
