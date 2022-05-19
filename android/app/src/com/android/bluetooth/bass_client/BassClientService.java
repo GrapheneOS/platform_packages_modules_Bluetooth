@@ -22,6 +22,7 @@ import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermission;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothLeBroadcastAssistant;
 import android.bluetooth.BluetoothLeBroadcastMetadata;
 import android.bluetooth.BluetoothLeBroadcastReceiveState;
 import android.bluetooth.BluetoothProfile;
@@ -34,7 +35,10 @@ import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanRecord;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
@@ -101,6 +105,9 @@ public class BassClientService extends ProfileService {
     private Map<BluetoothDevice, PeriodicAdvertisementResult> mPeriodicAdvertisementResultMap;
     private ScanCallback mSearchScanCallback;
     private Callbacks mCallbacks;
+
+    private BroadcastReceiver mBondStateChangedReceiver;
+    private BroadcastReceiver mConnectionStateChangedReceiver;
 
     @VisibleForTesting
     ServiceFactory mServiceFactory = new ServiceFactory();
@@ -242,6 +249,16 @@ public class BassClientService extends ProfileService {
         mCallbackHandlerThread = new HandlerThread(TAG);
         mCallbackHandlerThread.start();
         mCallbacks = new Callbacks(mCallbackHandlerThread.getLooper());
+
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
+        mBondStateChangedReceiver = new BondStateChangedReceiver();
+        registerReceiver(mBondStateChangedReceiver, filter);
+        filter = new IntentFilter();
+        filter.addAction(BluetoothLeBroadcastAssistant.ACTION_CONNECTION_STATE_CHANGED);
+        mConnectionStateChangedReceiver = new ConnectionStateChangedReceiver();
+        registerReceiver(mConnectionStateChangedReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
+
         setBassClientService(this);
         mBassUtils = new BassUtils(this);
         // Saving PSync stuff for future addition
@@ -273,6 +290,18 @@ public class BassClientService extends ProfileService {
             mStateMachinesThread.quitSafely();
             mStateMachinesThread = null;
         }
+
+        // Unregister broadcast receivers
+        if (mBondStateChangedReceiver != null) {
+            unregisterReceiver(mBondStateChangedReceiver);
+            mBondStateChangedReceiver = null;
+        }
+
+        if (mConnectionStateChangedReceiver != null) {
+            unregisterReceiver(mConnectionStateChangedReceiver);
+            mConnectionStateChangedReceiver = null;
+        }
+
         setBassClientService(null);
         if (mDeviceToSyncHandleMap != null) {
             mDeviceToSyncHandleMap.clear();
@@ -548,6 +577,69 @@ public class BassClientService extends ProfileService {
             return null;
         }
         return sService;
+    }
+
+    private void removeStateMachine(BluetoothDevice device) {
+        synchronized (mStateMachines) {
+            BassClientStateMachine sm = mStateMachines.get(device);
+            if (sm == null) {
+                Log.w(TAG, "removeStateMachine: device " + device
+                        + " does not have a state machine");
+                return;
+            }
+            log("removeStateMachine: removing state machine for device: " + device);
+            sm.doQuit();
+            sm.cleanup();
+            mStateMachines.remove(device);
+        }
+
+        // Cleanup device cache
+        mPendingGroupOp.remove(device);
+        mGroupManagedSources.remove(device);
+        mActiveSourceMap.remove(device);
+        mDeviceToSyncHandleMap.remove(device);
+        mPeriodicAdvertisementResultMap.remove(device);
+    }
+
+    synchronized void connectionStateChanged(BluetoothDevice device, int fromState,
+                                             int toState) {
+        if ((device == null) || (fromState == toState)) {
+            Log.e(TAG, "connectionStateChanged: unexpected invocation. device=" + device
+                    + " fromState=" + fromState + " toState=" + toState);
+            return;
+        }
+
+        // Check if the device is disconnected - if unbond, remove the state machine
+        if (toState == BluetoothProfile.STATE_DISCONNECTED) {
+            mPendingGroupOp.remove(device);
+
+            int bondState = mAdapterService.getBondState(device);
+            if (bondState == BluetoothDevice.BOND_NONE) {
+                log("Unbonded " + device + ". Removing state machine");
+                removeStateMachine(device);
+            }
+        }
+    }
+
+    @VisibleForTesting
+    void bondStateChanged(BluetoothDevice device, int bondState) {
+        log("Bond state changed for device: " + device + " state: " + bondState);
+
+        // Remove state machine if the bonding for a device is removed
+        if (bondState != BluetoothDevice.BOND_NONE) {
+            return;
+        }
+
+        synchronized (mStateMachines) {
+            BassClientStateMachine sm = mStateMachines.get(device);
+            if (sm == null) {
+                return;
+            }
+            if (sm.getConnectionState() != BluetoothProfile.STATE_DISCONNECTED) {
+                return;
+            }
+            removeStateMachine(device);
+        }
     }
 
     /**
@@ -1579,6 +1671,35 @@ public class BassClientService extends ProfileService {
                 Log.e(TAG, "Exception happened", e);
                 return 0;
             }
+        }
+    }
+
+    // Remove state machine if the bonding for a device is removed
+    private class BondStateChangedReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (!BluetoothDevice.ACTION_BOND_STATE_CHANGED.equals(intent.getAction())) {
+                return;
+            }
+            int state = intent.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE,
+                    BluetoothDevice.ERROR);
+            BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+            Objects.requireNonNull(device, "ACTION_BOND_STATE_CHANGED with no EXTRA_DEVICE");
+            bondStateChanged(device, state);
+        }
+    }
+
+    private class ConnectionStateChangedReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (!BluetoothLeBroadcastAssistant.ACTION_CONNECTION_STATE_CHANGED.equals(
+                    intent.getAction())) {
+                return;
+            }
+            BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+            int toState = intent.getIntExtra(BluetoothProfile.EXTRA_STATE, -1);
+            int fromState = intent.getIntExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, -1);
+            connectionStateChanged(device, fromState, toState);
         }
     }
 }
