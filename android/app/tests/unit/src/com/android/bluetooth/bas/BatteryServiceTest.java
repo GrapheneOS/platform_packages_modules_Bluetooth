@@ -130,7 +130,6 @@ public class BatteryServiceTest {
      */
     @Test
     public void testGetSetPolicy() {
-        when(mAdapterService.getDatabase()).thenReturn(mDatabaseManager);
         when(mDatabaseManager
                 .getProfileConnectionPolicy(mDevice, BluetoothProfile.BATTERY))
                 .thenReturn(BluetoothProfile.CONNECTION_POLICY_UNKNOWN);
@@ -138,7 +137,6 @@ public class BatteryServiceTest {
                 BluetoothProfile.CONNECTION_POLICY_UNKNOWN,
                 mService.getConnectionPolicy(mDevice));
 
-        when(mAdapterService.getDatabase()).thenReturn(mDatabaseManager);
         when(mDatabaseManager
                 .getProfileConnectionPolicy(mDevice, BluetoothProfile.BATTERY))
                 .thenReturn(BluetoothProfile.CONNECTION_POLICY_FORBIDDEN);
@@ -146,12 +144,25 @@ public class BatteryServiceTest {
                 BluetoothProfile.CONNECTION_POLICY_FORBIDDEN,
                 mService.getConnectionPolicy(mDevice));
 
-        when(mAdapterService.getDatabase()).thenReturn(mDatabaseManager);
         when(mDatabaseManager
                 .getProfileConnectionPolicy(mDevice, BluetoothProfile.BATTERY))
                 .thenReturn(BluetoothProfile.CONNECTION_POLICY_ALLOWED);
         Assert.assertEquals("Setting device policy to POLICY_ALLOWED",
                 BluetoothProfile.CONNECTION_POLICY_ALLOWED,
+                mService.getConnectionPolicy(mDevice));
+    }
+
+    /**
+     * Test if getProfileConnectionPolicy works after the service is stopped.
+     */
+    @Test
+    public void testGetPolicyAfterStopped() {
+        mService.stop();
+        when(mDatabaseManager
+                .getProfileConnectionPolicy(mDevice, BluetoothProfile.BATTERY))
+                .thenReturn(BluetoothProfile.CONNECTION_POLICY_UNKNOWN);
+        Assert.assertEquals("Initial device policy",
+                BluetoothProfile.CONNECTION_POLICY_UNKNOWN,
                 mService.getConnectionPolicy(mDevice));
     }
 
