@@ -1081,6 +1081,13 @@ impl IBluetooth for Bluetooth {
     }
 
     fn cancel_discovery(&self) -> bool {
+        // Reject the cancel discovery request if the underlying stack is not in a discovering
+        // state. For example, previous start discovery was enqueued for ongoing discovery.
+        if !self.is_discovering {
+            debug!("Reject cancel_discovery as it's not in discovering state.");
+            return false;
+        }
+
         self.intf.lock().unwrap().cancel_discovery() == 0
     }
 
