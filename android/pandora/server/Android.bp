@@ -27,6 +27,8 @@ android_test_helper_app {
     optimize: {
         enabled: false,
     },
+
+    test_suites: ["general-tests"],
 }
 
 android_test {
@@ -34,6 +36,7 @@ android_test {
     required: ["PandoraServer"],
     test_config: "configs/PtsBotTest.xml",
     data: ["configs/pts_bot_tests_config.json"],
+    test_suites: ["general-tests"],
 }
 
 java_library {
