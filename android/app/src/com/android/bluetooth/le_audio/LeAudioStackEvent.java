@@ -36,8 +36,9 @@ public class LeAudioStackEvent {
     public static final int EVENT_TYPE_SINK_AUDIO_LOCATION_AVAILABLE = 5;
     public static final int EVENT_TYPE_AUDIO_LOCAL_CODEC_CONFIG_CAPA_CHANGED = 6;
     public static final int EVENT_TYPE_AUDIO_GROUP_CODEC_CONFIG_CHANGED = 7;
+    public static final int EVENT_TYPE_NATIVE_INITIALIZED = 8;
         // -------- DO NOT PUT ANY NEW UNICAST EVENTS BELOW THIS LINE-------------
-    public static final int EVENT_TYPE_UNICAST_MAX = 8;
+    public static final int EVENT_TYPE_UNICAST_MAX = 9;
 
     // Broadcast related events
     public static final int EVENT_TYPE_BROADCAST_CREATED = EVENT_TYPE_UNICAST_MAX + 1;
@@ -136,6 +137,8 @@ public class LeAudioStackEvent {
                 return "EVENT_TYPE_AUDIO_LOCAL_CODEC_CONFIG_CAPA_CHANGED";
             case EVENT_TYPE_AUDIO_GROUP_CODEC_CONFIG_CHANGED:
                 return "EVENT_TYPE_AUDIO_GROUP_CODEC_CONFIG_CHANGED";
+            case EVENT_TYPE_NATIVE_INITIALIZED:
+                return "EVENT_TYPE_NATIVE_INITIALIZED";
             default:
                 return "EVENT_TYPE_UNKNOWN:" + type;
         }
