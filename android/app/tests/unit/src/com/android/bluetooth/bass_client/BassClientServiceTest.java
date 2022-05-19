@@ -35,6 +35,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothLeAudioCodecConfigMetadata;
 import android.bluetooth.BluetoothLeAudioContentMetadata;
 import android.bluetooth.BluetoothLeBroadcast;
+import android.bluetooth.BluetoothLeBroadcastAssistant;
 import android.bluetooth.BluetoothLeBroadcastChannel;
 import android.bluetooth.BluetoothLeBroadcastMetadata;
 import android.bluetooth.BluetoothLeBroadcastReceiveState;
@@ -44,7 +45,10 @@ import android.bluetooth.BluetoothStatusCodes;
 import android.bluetooth.BluetoothUuid;
 import android.bluetooth.IBluetoothLeBroadcastAssistantCallback;
 import android.bluetooth.le.ScanFilter;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Binder;
 import android.os.Message;
 import android.os.ParcelUuid;
@@ -79,6 +83,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Tests for {@link BassClientService}
@@ -119,12 +124,14 @@ public class BassClientServiceTest {
 
     private final HashMap<BluetoothDevice, BassClientStateMachine> mStateMachines = new HashMap<>();
     private final List<BassClientStateMachine> mStateMachinePool = new ArrayList<>();
+    private HashMap<BluetoothDevice, LinkedBlockingQueue<Intent>> mIntentQueue;
 
     private Context mTargetContext;
     private BassClientService mBassClientService;
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothDevice mCurrentDevice;
     private BluetoothDevice mCurrentDevice1;
+    private BassIntentReceiver mBassIntentReceiver;
 
     @Rule public final ServiceTestRule mServiceRule = new ServiceTestRule();
 
@@ -231,6 +238,17 @@ public class BassClientServiceTest {
 
         when(mCallback.asBinder()).thenReturn(mBinder);
         mBassClientService.registerCallback(mCallback);
+
+        mIntentQueue = new HashMap<>();
+        mIntentQueue.put(mCurrentDevice, new LinkedBlockingQueue<>());
+        mIntentQueue.put(mCurrentDevice1, new LinkedBlockingQueue<>());
+
+        // Set up the Connection State Changed receiver
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(BluetoothLeBroadcastAssistant.ACTION_CONNECTION_STATE_CHANGED);
+
+        mBassIntentReceiver = new BassIntentReceiver();
+        mTargetContext.registerReceiver(mBassIntentReceiver, filter);
     }
 
     @After
@@ -246,11 +264,29 @@ public class BassClientServiceTest {
         mStateMachines.clear();
         mCurrentDevice = null;
         mCurrentDevice1 = null;
+        mTargetContext.unregisterReceiver(mBassIntentReceiver);
+        mIntentQueue.clear();
         BassObjectsFactory.setInstanceForTesting(null);
         TestUtils.clearAdapterService(mAdapterService);
 
         if (!mFlagDexmarker.equals("true")) {
             System.setProperty("dexmaker.share_classloader", mFlagDexmarker);
+        }
+    }
+
+    private class BassIntentReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            try {
+                BluetoothDevice device = intent.getParcelableExtra(
+                        BluetoothDevice.EXTRA_DEVICE);
+                assertThat(device).isNotNull();
+                LinkedBlockingQueue<Intent> queue = mIntentQueue.get(device);
+                assertThat(queue).isNotNull();
+                queue.put(intent);
+            } catch (InterruptedException e) {
+                throw new AssertionError("Cannot add Intent to the queue: " + e.getMessage());
+            }
         }
     }
 
@@ -362,6 +398,10 @@ public class BassClientServiceTest {
         mCurrentDevice = TestUtils.getTestDevice(mBluetoothAdapter, 0);
         mCurrentDevice1 = TestUtils.getTestDevice(mBluetoothAdapter, 1);
 
+        // Prepare intent queues
+        mIntentQueue.put(mCurrentDevice, new LinkedBlockingQueue<>());
+        mIntentQueue.put(mCurrentDevice1, new LinkedBlockingQueue<>());
+
         // Mock the CSIP group
         List<BluetoothDevice> groupDevices = new ArrayList<>();
         groupDevices.add(mCurrentDevice);
@@ -377,6 +417,18 @@ public class BassClientServiceTest {
 
         assertThat(mStateMachines.size()).isEqualTo(2);
         for (BassClientStateMachine sm: mStateMachines.values()) {
+            // Verify the call
+            verify(sm).sendMessage(eq(BassClientStateMachine.CONNECT));
+
+            // Notify the service about the connection event
+            BluetoothDevice dev = sm.getDevice();
+            doCallRealMethod().when(sm)
+                .broadcastConnectionState(eq(dev), any(Integer.class), any(Integer.class));
+            sm.mService = mBassClientService;
+            sm.mDevice = dev;
+            sm.broadcastConnectionState(dev, BluetoothProfile.STATE_CONNECTING,
+                    BluetoothProfile.STATE_CONNECTED);
+
             doReturn(BluetoothProfile.STATE_CONNECTED).when(sm).getConnectionState();
             doReturn(true).when(sm).isConnected();
 
@@ -398,6 +450,18 @@ public class BassClientServiceTest {
                 null);
             injectRemoteSourceStateRemoval(sm, TEST_SOURCE_ID + 1);
         }
+    }
+
+    private void verifyConnectionStateIntent(int timeoutMs, BluetoothDevice device, int newState,
+            int prevState) {
+        Intent intent = TestUtils.waitForIntent(timeoutMs, mIntentQueue.get(device));
+        assertThat(intent).isNotNull();
+        assertThat(BluetoothLeBroadcastAssistant.ACTION_CONNECTION_STATE_CHANGED)
+                .isEqualTo(intent.getAction());
+        assertThat(device).isEqualTo(intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE));
+        assertThat(newState).isEqualTo(intent.getIntExtra(BluetoothProfile.EXTRA_STATE, -1));
+        assertThat(prevState).isEqualTo(intent.getIntExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE,
+                -1));
     }
 
     private void verifyAddSourceForGroup(BluetoothLeBroadcastMetadata meta) {
@@ -906,5 +970,25 @@ public class BassClientServiceTest {
                 throw e.rethrowFromSystemServer();
             }
         }
+    }
+
+    /**
+     * Test that an outgoing connection to two device that have BASS UUID is successful
+     * and a connection state change intent is sent
+     */
+    @Test
+    public void testConnectedIntent() {
+        prepareConnectedDeviceGroup();
+
+        assertThat(mStateMachines.size()).isEqualTo(2);
+        for (BassClientStateMachine sm: mStateMachines.values()) {
+            BluetoothDevice dev = sm.getDevice();
+            verifyConnectionStateIntent(TIMEOUT_MS, dev, BluetoothProfile.STATE_CONNECTED,
+                    BluetoothProfile.STATE_CONNECTING);
+        }
+
+        List<BluetoothDevice> devices = mBassClientService.getConnectedDevices();
+        assertThat(devices.contains(mCurrentDevice)).isTrue();
+        assertThat(devices.contains(mCurrentDevice1)).isTrue();
     }
 }
