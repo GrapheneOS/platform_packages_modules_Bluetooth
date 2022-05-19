@@ -97,6 +97,11 @@ class PeriodicSyncManager {
           request.request_id, status, 0, request.advertiser_sid, request.address_with_type, 0, 0);
       return;
     }
+    auto address_type = request.address_with_type.GetAddressType();
+    ASSERT_LOG(
+        (address_type == AddressType::PUBLIC_DEVICE_ADDRESS || address_type == AddressType::RANDOM_DEVICE_ADDRESS),
+        "Invalid address type %s",
+        AddressTypeText(address_type).c_str());
     periodic_syncs_.emplace_back(request);
     LOG_DEBUG("address = %s, sid = %d", request.address_with_type.ToString().c_str(), request.advertiser_sid);
     pending_sync_requests_.emplace_back(
@@ -268,7 +273,14 @@ class PeriodicSyncManager {
 
     auto address_with_type = AddressWithType(event_view.GetAdvertiserAddress(), event_view.GetAdvertiserAddressType());
 
-    auto periodic_sync = GetSyncFromAddressWithTypeAndSid(address_with_type, event_view.GetAdvertisingSid());
+    auto temp_address_type = address_with_type.GetAddressType();
+    // If the create sync command uses 0x01, Random or Random ID, the result can be 0x01, 0x02, or 0x03,
+    // because a Random Address, if it is an RPA, can be resolved to either Public Identity or Random Identity.
+    if (temp_address_type != AddressType::PUBLIC_DEVICE_ADDRESS) {
+      temp_address_type = AddressType::RANDOM_DEVICE_ADDRESS;
+    }
+    auto periodic_sync = GetSyncFromAddressWithTypeAndSid(
+        AddressWithType(event_view.GetAdvertiserAddress(), temp_address_type), event_view.GetAdvertisingSid());
     if (periodic_sync == periodic_syncs_.end()) {
       LOG_WARN("[PSync]: Invalid address and sid for sync established");
       if (event_view.GetStatus() == ErrorCode::SUCCESS) {
@@ -440,15 +452,11 @@ class PeriodicSyncManager {
         static_cast<uint8_t>(PeriodicSyncCteType::AVOID_AOD_CONSTANT_TONE_EXTENSION_WITH_TWO_US_SLOTS));
     auto sync = GetSyncFromAddressWithTypeAndSid(address_with_type, sid);
     sync->sync_state = PERIODIC_SYNC_STATE_PENDING;
+    AdvertisingAddressType advertisingAddressType =
+        static_cast<AdvertisingAddressType>(address_with_type.GetAddressType());
     le_scanning_interface_->EnqueueCommand(
         hci::LePeriodicAdvertisingCreateSyncBuilder::Create(
-            options,
-            sid,
-            address_with_type.GetAddressType(),
-            address_with_type.GetAddress(),
-            skip,
-            timeout,
-            sync_cte_type),
+            options, sid, advertisingAddressType, address_with_type.GetAddress(), skip, timeout, sync_cte_type),
         handler_->BindOnceOn(this, &PeriodicSyncManager::HandlePeriodicAdvertisingCreateSyncStatus));
   }
 

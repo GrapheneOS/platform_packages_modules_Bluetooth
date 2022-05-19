@@ -83,7 +83,6 @@ public class BassClientService extends ProfileService {
     private Map<BluetoothDevice, Integer> mDeviceToSyncHandleMap;
     /*syncHandle, parsed BaseData data*/
     private Map<Integer, BaseData> mSyncHandleToBaseDataMap;
-    private Map<Integer, BluetoothLeBroadcastMetadata> mBroadcastSources;
     /*bcastSrcDevice, corresponding PeriodicAdvertisementResult*/
     private Map<BluetoothDevice, PeriodicAdvertisementResult> mPeriodicAdvertisementResultMap;
     private ScanCallback mSearchScanCallback;
@@ -181,25 +180,6 @@ public class BassClientService extends ProfileService {
         return base;
     }
 
-    void updateSourceInternal(int sourceId, BluetoothLeBroadcastMetadata metaData) {
-        if (mBroadcastSources == null) {
-            return;
-        }
-        if (metaData != null) {
-            // This will replace old metadata with new one
-            mBroadcastSources.put(sourceId, metaData);
-        } else {
-            mBroadcastSources.remove(sourceId);
-        }
-    }
-
-    BluetoothLeBroadcastMetadata getSourceInternal(int sourceId) {
-        if (mBroadcastSources != null) {
-            return mBroadcastSources.get(sourceId);
-        }
-        return null;
-    }
-
     void setActiveSyncedSource(BluetoothDevice scanDelegator, BluetoothDevice sourceDevice) {
         log("setActiveSyncedSource: scanDelegator" + scanDelegator
                 + ":: sourceDevice:" + sourceDevice);
@@ -282,10 +262,6 @@ public class BassClientService extends ProfileService {
         if (mActiveSourceMap != null) {
             mActiveSourceMap.clear();
             mActiveSourceMap = null;
-        }
-        if (mBroadcastSources != null) {
-            mBroadcastSources.clear();
-            mBroadcastSources = null;
         }
         if (mBassUtils != null) {
             mBassUtils.cleanUp();
@@ -765,6 +741,9 @@ public class BassClientService extends ProfileService {
                     BluetoothStatusCodes.ERROR_REMOTE_LINK_ERROR);
             return;
         }
+        if (stateMachine.hasPendingSourceOperation()) {
+            throw new IllegalStateException("addSource: source operation already pending");
+        }
         if (!hasRoomForBroadcastSourceAddition(sink)) {
             log("addSource: device has no room");
             mCallbacks.notifySourceAddFailed(sink, sourceMetadata,
@@ -807,6 +786,9 @@ public class BassClientService extends ProfileService {
             mCallbacks.notifySourceModifyFailed(sink, sourceId,
                     BluetoothStatusCodes.ERROR_REMOTE_LINK_ERROR);
             return;
+        }
+        if (stateMachine.hasPendingSourceOperation()) {
+            throw new IllegalStateException("modifySource: source operation already pending");
         }
         Message message = stateMachine.obtainMessage(BassClientStateMachine.UPDATE_BCAST_SOURCE);
         message.arg1 = sourceId;

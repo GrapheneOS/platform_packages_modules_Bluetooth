@@ -102,7 +102,7 @@ class MockCsisCallbacks : public CsisClientCallbacks {
               (const RawAddress& address, ConnectionState state), (override));
   MOCK_METHOD((void), OnDeviceAvailable,
               (const RawAddress& address, int group_id, int group_size,
-               const bluetooth::Uuid& uuid),
+               int rank, const bluetooth::Uuid& uuid),
               (override));
   MOCK_METHOD((void), OnSetMemberAvailable,
               (const RawAddress& address, int group_id), (override));
@@ -448,7 +448,7 @@ class CsisClientTest : public ::testing::Test {
     EXPECT_CALL(*callbacks,
                 OnConnectionState(address, ConnectionState::CONNECTED))
         .Times(1);
-    EXPECT_CALL(*callbacks, OnDeviceAvailable(address, _, _, _)).Times(1);
+    EXPECT_CALL(*callbacks, OnDeviceAvailable(address, _, _, _, _)).Times(1);
     EXPECT_CALL(gatt_interface, Open(gatt_if, address, false, _))
         .WillOnce(Invoke([this, conn_id](tGATT_IF client_if,
                                          const RawAddress& remote_bda,
@@ -647,7 +647,7 @@ TEST_F(CsisClientTest, test_discovery_csis_found) {
   TestConnect(test_address);
   EXPECT_CALL(*callbacks,
               OnConnectionState(test_address, ConnectionState::CONNECTED));
-  EXPECT_CALL(*callbacks, OnDeviceAvailable(test_address, _, _, _));
+  EXPECT_CALL(*callbacks, OnDeviceAvailable(test_address, _, _, _, _));
   InjectConnectedEvent(test_address, 1);
   GetSearchCompleteEvent(1);
   Mock::VerifyAndClearExpectations(callbacks.get());
@@ -733,7 +733,7 @@ TEST_F(CsisClientTest, test_get_group_id) {
   TestConnect(test_address);
   EXPECT_CALL(*callbacks,
               OnConnectionState(test_address, ConnectionState::CONNECTED));
-  EXPECT_CALL(*callbacks, OnDeviceAvailable(test_address, _, _, _));
+  EXPECT_CALL(*callbacks, OnDeviceAvailable(test_address, _, _, _, _));
   InjectConnectedEvent(test_address, 1);
   GetSearchCompleteEvent(1);
   int group_id = CsisClient::Get()->GetGroupId(test_address);
@@ -1028,7 +1028,7 @@ TEST_F(CsisMultiClientTest, test_discover_multiple_instances) {
   EXPECT_CALL(*callbacks,
               OnConnectionState(test_address, ConnectionState::CONNECTED))
       .Times(1);
-  EXPECT_CALL(*callbacks, OnDeviceAvailable(test_address, _, _, _)).Times(2);
+  EXPECT_CALL(*callbacks, OnDeviceAvailable(test_address, _, _, _, _)).Times(2);
   InjectConnectedEvent(test_address, 1);
   GetSearchCompleteEvent(1);
   Mock::VerifyAndClearExpectations(callbacks.get());
