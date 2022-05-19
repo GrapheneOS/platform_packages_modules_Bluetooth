@@ -148,8 +148,7 @@ void BleScannerInterfaceImpl::Unregister(int scanner_id) {
 
   /** Start or stop LE device scanning */
 void BleScannerInterfaceImpl::Scan(bool start) {
-  LOG(INFO) << __func__ << " in shim layer "
-            << ((start) ? "started" : "stopped");
+  LOG(INFO) << __func__ << " in shim layer " <<  ((start) ? "started" : "stopped");
   bluetooth::shim::GetScanning()->Scan(start);
   BTM_LogHistory(
       kBtmLogTag, RawAddress::kEmpty,
