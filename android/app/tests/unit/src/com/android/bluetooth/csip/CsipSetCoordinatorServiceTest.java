@@ -205,6 +205,20 @@ public class CsipSetCoordinatorServiceTest {
     }
 
     /**
+     * Test if getProfileConnectionPolicy works after the service is stopped.
+     */
+    @Test
+    public void testGetPolicyAfterStopped() {
+        mService.stop();
+        when(mDatabaseManager
+                .getProfileConnectionPolicy(mTestDevice, BluetoothProfile.CSIP_SET_COORDINATOR))
+                .thenReturn(BluetoothProfile.CONNECTION_POLICY_UNKNOWN);
+        Assert.assertEquals("Initial device policy",
+                BluetoothProfile.CONNECTION_POLICY_UNKNOWN,
+                mService.getConnectionPolicy(mTestDevice));
+    }
+
+    /**
      * Test okToConnect method using various test cases
      */
     @Test
