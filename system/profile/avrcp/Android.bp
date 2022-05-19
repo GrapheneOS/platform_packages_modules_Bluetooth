@@ -48,6 +48,7 @@ cc_test {
         "fluoride_defaults",
         "clang_coverage_bin",
         "libchrome_support_defaults",
+        "mts_defaults",
     ],
     host_supported: true,
     test_options: {

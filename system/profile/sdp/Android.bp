@@ -32,6 +32,7 @@ cc_test {
     defaults: [
         "fluoride_defaults",
         "clang_coverage_bin",
+        "mts_defaults",
     ],
     host_supported: true,
     include_dirs: [
