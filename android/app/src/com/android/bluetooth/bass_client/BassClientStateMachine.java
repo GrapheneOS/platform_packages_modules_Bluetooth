@@ -150,13 +150,15 @@ public class BassClientStateMachine extends StateMachine {
     private final ConnectedProcessing mConnectedProcessing = new ConnectedProcessing();
     private final List<BluetoothGattCharacteristic> mBroadcastCharacteristics =
             new ArrayList<BluetoothGattCharacteristic>();
-    private final BluetoothDevice mDevice;
+    @VisibleForTesting
+    BluetoothDevice mDevice;
 
     private boolean mIsAllowedList = false;
     private int mLastConnectionState = -1;
     private boolean mMTUChangeRequested = false;
     private boolean mDiscoveryInitiated = false;
-    private BassClientService mService;
+    @VisibleForTesting
+    BassClientService mService;
     private BluetoothGatt mBluetoothGatt = null;
 
     private BluetoothGattCharacteristic mBroadcastScanControlPoint;
