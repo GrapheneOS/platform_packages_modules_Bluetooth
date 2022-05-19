@@ -167,7 +167,6 @@
   "ixit": {"default": {}, "A2DP": {}, "AVDTP": {}},
   "skip": [
     "A2DP/SNK/SYN/BV-01-C",
-    "A2DP/SRC/CC/BV-09-I",
     "A2DP/SRC/SET/BV-05-I",
     "A2DP/SRC/SET/BV-06-I",
     "AVDTP/SNK/INT/SIG/SMG/BV-19-C",
