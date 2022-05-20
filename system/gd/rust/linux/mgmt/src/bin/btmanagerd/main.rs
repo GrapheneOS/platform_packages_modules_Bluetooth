@@ -3,6 +3,9 @@
 // apply certain linker flags (which is applied to the library but not the binary).
 // Please keep main.rs logic light and write the heavy logic in the manager_service library instead.
 
+extern crate clap;
+
+use clap::{App, Arg};
 use dbus::channel::MatchingReceiver;
 use dbus::message::MatchRule;
 use dbus_crossroads::Crossroads;
@@ -18,6 +21,14 @@ use syslog::{BasicLogger, Facility, Formatter3164};
 
 #[tokio::main]
 pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let matches = App::new("Bluetooth Manager")
+        .arg(Arg::with_name("systemd").long("systemd").help("If btadapterd uses systemd init"))
+        .arg(Arg::with_name("debug").long("debug").short("d").help("Enables debug level logs"))
+        .get_matches();
+
+    let is_debug = matches.is_present("debug");
+    let is_systemd = matches.is_present("systemd");
+
     let formatter = Formatter3164 {
         facility: Facility::LOG_USER,
         hostname: None,
@@ -26,8 +37,13 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
 
     let logger = syslog::unix(formatter).expect("could not connect to syslog");
-    let _ = log::set_boxed_logger(Box::new(BasicLogger::new(logger)))
-        .map(|()| log::set_max_level(config_util::get_log_level().unwrap_or(LevelFilter::Info)));
+    let _ = log::set_boxed_logger(Box::new(BasicLogger::new(logger))).map(|()| {
+        log::set_max_level(config_util::get_log_level().unwrap_or(if is_debug {
+            LevelFilter::Debug
+        } else {
+            LevelFilter::Info
+        }))
+    });
 
     // Initialize config util
     config_util::fix_config_file_format();
@@ -41,12 +57,8 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
     conn.set_signal_match_mode(true);
 
     // Determine whether to use upstart or systemd
-    let args: Vec<String> = std::env::args().collect();
-    let invoker = if args.len() > 1 {
-        match &args[1][0..] {
-            "--systemd" | "-s" => state_machine::Invoker::SystemdInvoker,
-            _ => state_machine::Invoker::UpstartInvoker,
-        }
+    let invoker = if is_systemd {
+        state_machine::Invoker::SystemdInvoker
     } else {
         state_machine::Invoker::UpstartInvoker
     };
