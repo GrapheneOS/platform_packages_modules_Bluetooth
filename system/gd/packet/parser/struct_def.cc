@@ -342,7 +342,7 @@ void StructDef::GenRustFieldNames(std::ostream& s) const {
 }
 
 void StructDef::GenRustDeclarations(std::ostream& s) const {
-  s << "#[derive(Debug, Clone)] ";
+  s << "#[derive(Debug, Clone, PartialEq)] ";
   s << "pub struct " << name_ << "{";
 
   // Generate struct fields
