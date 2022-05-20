@@ -125,9 +125,9 @@
     <string name="bluetooth_map_settings_app_icon" msgid="3501432663809664982">"ಅಪ್ಲಿಕೇಶನ್‌ ಐಕಾನ್‌"</string>
     <string name="bluetooth_map_settings_title" msgid="4226030082708590023">"ಬ್ಲೂಟೂತ್ ಸಂದೇಶ ಹಂಚಿಕೆ ಸೆಟ್ಟಿಂಗ್‌ಗಳು"</string>
     <string name="bluetooth_map_settings_no_account_slots_left" msgid="755024228476065757">"ಖಾತೆಯನ್ನು ಆಯ್ಕೆಮಾಡಲು ಸಾಧ್ಯವಿಲ್ಲ. 0 ಸ್ಲಾಟ್‌ಗಳು ಉಳಿದಿವೆ"</string>
-    <string name="bluetooth_connected" msgid="5687474377090799447">"ಬ್ಲೂಟೂತ್‌ ಆಡಿಯೊ ಸಂಪರ್ಕಗೊಂಡಿದೆ"</string>
-    <string name="bluetooth_disconnected" msgid="6841396291728343534">"ಬ್ಲೂಟೂತ್‌ ಆಡಿಯೊ ಸಂಪರ್ಕ ಕಡಿತಗೊಂಡಿದೆ"</string>
-    <string name="a2dp_sink_mbs_label" msgid="6035366346569127155">"ಬ್ಲೂಟೂತ್‌ ಆಡಿಯೊ"</string>
+    <string name="bluetooth_connected" msgid="5687474377090799447">"ಬ್ಲೂಟೂತ್‌ ಆಡಿಯೋ ಸಂಪರ್ಕಗೊಂಡಿದೆ"</string>
+    <string name="bluetooth_disconnected" msgid="6841396291728343534">"ಬ್ಲೂಟೂತ್‌ ಆಡಿಯೋ ಸಂಪರ್ಕ ಕಡಿತಗೊಂಡಿದೆ"</string>
+    <string name="a2dp_sink_mbs_label" msgid="6035366346569127155">"ಬ್ಲೂಟೂತ್‌ ಆಡಿಯೋ"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"4GB ಗಿಂತ ದೊಡ್ಡದಾದ ಫೈಲ್‌ಗಳನ್ನು ವರ್ಗಾಯಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"ಬ್ಲೂಟೂತ್‌ಗೆ ಕನೆಕ್ಟ್ ಮಾಡಿ"</string>
 </resources>
