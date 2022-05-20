@@ -1,3 +1,6 @@
+extern crate clap;
+
+use clap::{App, AppSettings, Arg};
 use dbus::{channel::MatchingReceiver, message::MatchRule};
 use dbus_crossroads::Crossroads;
 use dbus_tokio::connection;
@@ -25,27 +28,42 @@ mod iface_suspend;
 
 const DBUS_SERVICE_NAME: &str = "org.chromium.bluetooth";
 
-/// Check command line arguments for target hci adapter (--hci=N). If no adapter
-/// is set, default to 0.
-fn get_adapter_index(args: &Vec<String>) -> i32 {
-    for arg in args {
-        if arg.starts_with("--hci=") {
-            let num = (&arg[6..]).parse::<i32>();
-            if num.is_ok() {
-                return num.unwrap();
-            }
-        }
-    }
-
-    0
-}
-
 fn make_object_name(idx: i32, name: &str) -> String {
     String::from(format!("/org/chromium/bluetooth/hci{}/{}", idx, name))
 }
 
 /// Runs the Bluetooth daemon serving D-Bus IPC.
 fn main() -> Result<(), Box<dyn Error>> {
+    let matches = App::new("Bluetooth Adapter Daemon")
+        // Allows multiple INIT_ flags to be given at the end of the arguments.
+        .setting(AppSettings::TrailingVarArg)
+        .arg(
+            Arg::with_name("hci")
+                .long("hci")
+                .value_name("HCI")
+                .takes_value(true)
+                .help("The HCI index"),
+        )
+        .arg(Arg::with_name("debug").long("debug").short("d").help("Enables debug level logs"))
+        .arg(Arg::from_usage("[init-flags] 'Fluoride INIT_ flags'").multiple(true))
+        .get_matches();
+
+    let is_debug = matches.is_present("debug");
+
+    let adapter_index = match matches.value_of("hci") {
+        Some(idx) => idx.parse::<i32>().unwrap_or(0),
+        None => 0,
+    };
+
+    // The remaining flags are passed down to Fluoride as is.
+    let mut init_flags: Vec<String> = match matches.values_of("init-flags") {
+        Some(args) => args.map(|s| String::from(s)).collect(),
+        None => vec![],
+    };
+
+    // Forward --hci to Fluoride.
+    init_flags.push(format!("--hci={}", adapter_index));
+
     let formatter = Formatter3164 {
         facility: Facility::LOG_USER,
         hostname: None,
@@ -54,8 +72,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     };
 
     let logger = syslog::unix(formatter).expect("could not connect to syslog");
-    let _ = log::set_boxed_logger(Box::new(BasicLogger::new(logger)))
-        .map(|()| log::set_max_level(LevelFilter::Info));
+    let _ = log::set_boxed_logger(Box::new(BasicLogger::new(logger))).map(|()| {
+        log::set_max_level(if is_debug { LevelFilter::Debug } else { LevelFilter::Info })
+    });
 
     let (tx, rx) = Stack::create_channel();
 
@@ -69,12 +88,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         intf.clone(),
         bluetooth_media.clone(),
     ))));
-
-    // Args don't include arg[0] which is the binary name
-    let all_args = std::env::args().collect::<Vec<String>>();
-    let args = all_args[1..].to_vec();
-
-    let adapter_index = get_adapter_index(&args);
 
     topstack::get_runtime().block_on(async {
         // Connect to D-Bus system bus.
@@ -153,7 +166,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         // Hold locks and initialize all interfaces. This must be done AFTER DBus is
         // initialized so DBus can properly enforce user policies.
         {
-            intf.lock().unwrap().initialize(get_bt_dispatcher(tx.clone()), args);
+            intf.lock().unwrap().initialize(get_bt_dispatcher(tx.clone()), init_flags);
 
             bluetooth_media.lock().unwrap().set_adapter(bluetooth.clone());
 
@@ -178,22 +191,4 @@ fn main() -> Result<(), Box<dyn Error>> {
         future::pending::<()>().await;
         unreachable!()
     })
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::get_adapter_index;
-
-    #[test]
-    fn device_index_parsed() {
-        // A few failing cases
-        assert_eq!(get_adapter_index(&vec! {}), 0);
-        assert_eq!(get_adapter_index(&vec! {"--bar".to_string(), "--hci".to_string()}), 0);
-        assert_eq!(get_adapter_index(&vec! {"--hci=foo".to_string()}), 0);
-        assert_eq!(get_adapter_index(&vec! {"--hci=12t".to_string()}), 0);
-
-        // Some passing cases
-        assert_eq!(get_adapter_index(&vec! {"--hci=12".to_string()}), 12);
-        assert_eq!(get_adapter_index(&vec! {"--hci=1".to_string(), "--hci=2".to_string()}), 1);
-    }
 }
