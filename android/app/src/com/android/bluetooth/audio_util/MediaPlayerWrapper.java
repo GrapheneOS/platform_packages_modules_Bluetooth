@@ -252,6 +252,14 @@ public class MediaPlayerWrapper {
                     Log.d(TAG, "  └ Current queueItem: " + qitem);
                     Log.d(TAG, "  └ Current metadata : " + mdata);
                 }
+
+                // Some player do not provide full song info in queue item, allow case
+                // that only title and artist match.
+                if (Objects.equals(qitem.title, mdata.title)
+                        && Objects.equals(qitem.artist, mdata.artist)) {
+                    Log.d(TAG, mPackageName + " Only Title and Artist info sync for metadata");
+                    return true;
+                }
                 return false;
             }
         }
