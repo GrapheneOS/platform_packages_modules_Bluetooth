@@ -103,6 +103,7 @@ public class BluetoothInCallService extends InCallService {
     private BluetoothCall mOldHeldCall = null;
     private boolean mHeadsetUpdatedRecently = false;
     private boolean mIsDisconnectedTonePlaying = false;
+    private boolean mIsTerminatedByClient = false;
 
     private static final Object LOCK = new Object();
     private BluetoothHeadsetProxy mBluetoothHeadset;
@@ -1287,6 +1288,10 @@ public class BluetoothInCallService extends InCallService {
         case DisconnectCause.REJECTED:
             return BluetoothLeCallControl.TERMINATION_REASON_REMOTE_HANGUP;
         case DisconnectCause.LOCAL:
+            if (mIsTerminatedByClient) {
+                mIsTerminatedByClient = false;
+                return BluetoothLeCallControl.TERMINATION_REASON_CLIENT_HANGUP;
+            }
             return BluetoothLeCallControl.TERMINATION_REASON_SERVER_HANGUP;
         case DisconnectCause.ERROR:
             return BluetoothLeCallControl.TERMINATION_REASON_NETWORK_CONGESTION;
@@ -1413,6 +1418,7 @@ public class BluetoothInCallService extends InCallService {
                 if (mCallInfo.isNullCall(call)) {
                     result = BluetoothLeCallControl.RESULT_ERROR_UNKNOWN_CALL_ID;
                 } else {
+                    mIsTerminatedByClient = true;
                     call.disconnect();
                 }
                 mBluetoothLeCallControl.requestResult(requestId, result);
