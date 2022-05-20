@@ -57,7 +57,6 @@ public class CsipSetCoordinatorStateMachine extends StateMachine {
     private Disconnecting mDisconnecting;
     private Connected mConnected;
     private int mLastConnectionState = -1;
-    private int mNumReceivers = 0;
 
     private CsipSetCoordinatorService mService;
     private CsipSetCoordinatorNativeInterface mNativeInterface;
@@ -511,14 +510,6 @@ public class CsipSetCoordinatorStateMachine extends StateMachine {
                 Log.e(TAG, "Bad currentState: " + currentState);
                 return BluetoothProfile.STATE_DISCONNECTED;
         }
-    }
-
-    public void setNumReceivers(int numReceivers) {
-        mNumReceivers = numReceivers;
-    }
-
-    public int getNumReceivers() {
-        return mNumReceivers;
     }
 
     // This method does not check for error condition (newState == prevState)
