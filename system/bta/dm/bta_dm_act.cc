@@ -873,9 +873,11 @@ void bta_dm_search_start(tBTA_DM_MSG* p_data) {
  ******************************************************************************/
 void bta_dm_search_cancel() {
   if (BTM_IsInquiryActive()) {
-    BTM_CancelInquiry();
-    bta_dm_search_cancel_notify();
-    bta_dm_search_cmpl();
+    LOG_DEBUG("Cancelling search with inquiry active");
+    BTM_CancelInquiryNotifyWhenComplete([]() {
+      bta_dm_search_cancel_notify();
+      bta_dm_search_cmpl();
+    });
   }
   /* If no Service Search going on then issue cancel remote name in case it is
      active */
@@ -3230,41 +3232,50 @@ static tBTA_DM_PEER_DEVICE* find_connected_device(
  ******************************************************************************/
 void bta_dm_encrypt_cback(const RawAddress* bd_addr, tBT_TRANSPORT transport,
                           UNUSED_ATTR void* p_ref_data, tBTM_STATUS result) {
+  tBTA_DM_ENCRYPT_CBACK* p_callback = nullptr;
+  tBTA_DM_PEER_DEVICE* device = find_connected_device(*bd_addr, transport);
+  if (device != nullptr) {
+    p_callback = device->p_encrypt_cback;
+    device->p_encrypt_cback = nullptr;
+  }
+
   tBTA_STATUS bta_status = BTA_SUCCESS;
-  tBTA_DM_ENCRYPT_CBACK* p_callback = NULL;
-  uint8_t i;
-
-  for (i = 0; i < bta_dm_cb.device_list.count; i++) {
-    if (bta_dm_cb.device_list.peer_device[i].peer_bdaddr == *bd_addr &&
-        bta_dm_cb.device_list.peer_device[i].conn_state == BTA_DM_CONNECTED)
-      break;
-  }
-
-  if (i < bta_dm_cb.device_list.count) {
-    p_callback = bta_dm_cb.device_list.peer_device[i].p_encrypt_cback;
-    bta_dm_cb.device_list.peer_device[i].p_encrypt_cback = NULL;
-  }
-
   switch (result) {
     case BTM_SUCCESS:
+      LOG_WARN("Encrypted link peer:%s transport:%s status:%s callback:%c",
+               PRIVATE_ADDRESS((*bd_addr)),
+               bt_transport_text(transport).c_str(),
+               btm_status_text(result).c_str(), (p_callback) ? 'T' : 'F');
       break;
     case BTM_WRONG_MODE:
+      LOG_WARN(
+          "Unable to encrypt link peer:%s transport:%s status:%s callback:%c",
+          PRIVATE_ADDRESS((*bd_addr)), bt_transport_text(transport).c_str(),
+          btm_status_text(result).c_str(), (p_callback) ? 'T' : 'F');
       bta_status = BTA_WRONG_MODE;
       break;
     case BTM_NO_RESOURCES:
+      LOG_WARN(
+          "Unable to encrypt link peer:%s transport:%s status:%s callback:%c",
+          PRIVATE_ADDRESS((*bd_addr)), bt_transport_text(transport).c_str(),
+          btm_status_text(result).c_str(), (p_callback) ? 'T' : 'F');
       bta_status = BTA_NO_RESOURCES;
       break;
     case BTM_BUSY:
+      LOG_WARN(
+          "Unable to encrypt link peer:%s transport:%s status:%s callback:%c",
+          PRIVATE_ADDRESS((*bd_addr)), bt_transport_text(transport).c_str(),
+          btm_status_text(result).c_str(), (p_callback) ? 'T' : 'F');
       bta_status = BTA_BUSY;
       break;
     default:
+      LOG_ERROR(
+          "Failed to encrypt link peer:%s transport:%s status:%s callback:%c",
+          PRIVATE_ADDRESS((*bd_addr)), bt_transport_text(transport).c_str(),
+          btm_status_text(result).c_str(), (p_callback) ? 'T' : 'F');
       bta_status = BTA_FAILURE;
       break;
   }
-
-  APPL_TRACE_DEBUG("bta_dm_encrypt_cback status =%d p_callback=0x%x",
-                   bta_status, p_callback);
-
   if (p_callback) {
     (*p_callback)(*bd_addr, transport, bta_status);
   }
