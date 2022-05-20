@@ -1854,13 +1854,10 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
         /* Cache current set up metadata values for for further possible
          * reconfiguration
          */
-        for (struct ase* ase = leAudioDevice->GetFirstActiveAse();
-             ase != nullptr; ase = leAudioDevice->GetNextActiveAse(ase)) {
+        if (!rsp.metadata.empty()) {
           ase->metadata = rsp.metadata;
         }
 
-        PrepareAndSendUpdateMetadata(group, leAudioDevice,
-                                     group->GetContextType());
         break;
       }
       default:
