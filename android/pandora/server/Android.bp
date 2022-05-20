@@ -28,15 +28,15 @@ android_test_helper_app {
         enabled: false,
     },
 
-    test_suites: ["general-tests"],
+    test_suites: ["device-tests"],
 }
 
 android_test {
     name: "pts-bot",
     required: ["PandoraServer"],
     test_config: "configs/PtsBotTest.xml",
-    data: ["configs/pts_bot_tests_config.json"],
-    test_suites: ["general-tests"],
+    data: ["configs/pts_bot_tests_config.json", ":mmi2grpc"],
+    test_suites: ["device-tests"],
 }
 
 java_library {
@@ -82,4 +82,29 @@ java_library {
             "external/protobuf/src",
         ],
     },
+}
+
+genrule {
+    name: "pandora-grpc-python",
+    tools: [
+        "aprotoc",
+        "protoc-gen-mmi2grpc-python"
+    ],
+    cmd: "$(location aprotoc)" +
+         "    -Ipackages/modules/Bluetooth/android/pandora/server/proto" +
+         "    -Iexternal/protobuf/src" +
+         "    --plugin=protoc-gen-grpc=$(location protoc-gen-mmi2grpc-python)" +
+         "    --grpc_out=$(genDir)" +
+         "    --python_out=$(genDir)" +
+         "    $(in)",
+    srcs: [
+        "proto/pandora/host.proto",
+        "proto/pandora/a2dp.proto"
+    ],
+    out: [
+        "pandora/host_pb2.py",
+        "pandora/host_grpc.py",
+        "pandora/a2dp_pb2.py",
+        "pandora/a2dp_grpc.py",
+    ]
 }
