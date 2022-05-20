@@ -19,17 +19,13 @@ version = "0.0.1"
 edition = "2018"
 
 [dependencies]
-cxx = { version = "=1.0.42", features = ["c++17"] }
+cxx = "*"
 env_logger = "*"
 grpcio = "*"
 lazy_static = "*"
 log = "*"
 nix = "*"
 tokio = { version = "*", features = ['bytes', 'macros', 'net', 'rt-multi-thread', 'time'] }
-futures = "*"
-
-[build-dependencies]
-cxx-build = "1.0"
 
 # Proc Macro dependency
 paste = "*"
