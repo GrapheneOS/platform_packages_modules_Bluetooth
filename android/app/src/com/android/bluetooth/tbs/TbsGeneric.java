@@ -18,6 +18,7 @@
 package com.android.bluetooth.tbs;
 
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothLeAudio;
 import android.bluetooth.BluetoothLeCall;
 import android.bluetooth.BluetoothLeCallControl;
 import android.bluetooth.IBluetoothLeCallControlCallback;
@@ -151,7 +152,8 @@ public class TbsGeneric {
         }
         mTbsGatt = tbsGatt;
 
-        int ccid = ContentControlIdKeeper.acquireCcid();
+        int ccid = ContentControlIdKeeper.acquireCcid(new ParcelUuid(TbsGatt.UUID_GTBS),
+                BluetoothLeAudio.CONTEXT_TYPE_COMMUNICATION);
         if (!isCcidValid(ccid)) {
             Log.e(TAG, " CCID is not valid");
             cleanup();
@@ -273,7 +275,8 @@ public class TbsGeneric {
 
         // Acquire CCID for TbsObject. The CCID is released on remove()
         Bearer bearer = new Bearer(token, callback, uci, uriSchemes, capabilities, providerName,
-                technology, ContentControlIdKeeper.acquireCcid());
+                technology, ContentControlIdKeeper.acquireCcid(new ParcelUuid(UUID.randomUUID()),
+                        BluetoothLeAudio.CONTEXT_TYPE_COMMUNICATION));
         if (isCcidValid(bearer.ccid)) {
             mBearerList.add(bearer);
 
