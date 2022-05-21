@@ -23,17 +23,14 @@ import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattServerCallback;
 import android.bluetooth.BluetoothGattService;
-import android.bluetooth.BluetoothLeCall;
+import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
-import android.content.Context;
 import android.util.Log;
 
 import com.android.internal.annotations.VisibleForTesting;
 
 import java.io.ByteArrayOutputStream;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -52,7 +49,7 @@ public class TbsGatt {
     @VisibleForTesting
     static final UUID UUID_TBS = makeUuid("184B");
     @VisibleForTesting
-    static final UUID UUID_GTBS = makeUuid("184C");
+    public static final UUID UUID_GTBS = makeUuid("184C");
     @VisibleForTesting
     static final UUID UUID_BEARER_PROVIDER_NAME = makeUuid("2BB3");
     @VisibleForTesting
