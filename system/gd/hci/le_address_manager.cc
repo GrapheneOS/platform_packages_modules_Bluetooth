@@ -130,6 +130,7 @@ void LeAddressManager::SetPrivacyPolicyForInitiatorAddressForTest(
       minimum_rotation_time_ = minimum_rotation_time;
       maximum_rotation_time_ = maximum_rotation_time;
       address_rotation_alarm_ = std::make_unique<os::Alarm>(handler_);
+      set_random_address();
       break;
     case AddressPolicy::POLICY_NOT_SET:
       LOG_ALWAYS_FATAL("invalid parameters");
