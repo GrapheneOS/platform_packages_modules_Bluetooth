@@ -26,6 +26,8 @@ import android.content.AttributionSource;
 
 import com.android.modules.utils.SynchronousResultReceiver;
 
+import android.os.ParcelUuid;
+
 /**
  * APIs for Bluetooth LE Audio service
  *
@@ -61,6 +63,8 @@ oneway interface IBluetoothLeAudio {
     void registerCallback(in IBluetoothLeAudioCallback callback, in AttributionSource attributionSource, in SynchronousResultReceiver receiver);
     @JavaPassthrough(annotation="@android.annotation.RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT,android.Manifest.permission.BLUETOOTH_PRIVILEGED})")
     void unregisterCallback(in IBluetoothLeAudioCallback callback, in AttributionSource attributionSource, in SynchronousResultReceiver receiver);
+    @JavaPassthrough(annotation="@android.annotation.RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT,android.Manifest.permission.BLUETOOTH_PRIVILEGED})")
+    void setCcidInformation(in ParcelUuid userUuid, in int ccid, in int contextType, in AttributionSource attributionSource, in SynchronousResultReceiver receiver);
 
     /* Same value as bluetooth::groups::kGroupUnknown */
     const int LE_AUDIO_GROUP_ID_INVALID = -1;

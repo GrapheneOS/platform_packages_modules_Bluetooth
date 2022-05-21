@@ -90,6 +90,16 @@ public class LeAudioNativeInterface {
     // Callbacks from the native stack back into the Java framework.
     // All callbacks are routed via the Service which will disambiguate which
     // state machine the message should be routed to.
+    private void onInitialized() {
+        LeAudioStackEvent event =
+                new LeAudioStackEvent(LeAudioStackEvent.EVENT_TYPE_NATIVE_INITIALIZED);
+
+        if (DBG) {
+            Log.d(TAG, "onInitialized: " + event);
+        }
+        sendMessageToService(event);
+    }
+
     private void onConnectionStateChanged(int state, byte[] address) {
         LeAudioStackEvent event =
                 new LeAudioStackEvent(LeAudioStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED);
