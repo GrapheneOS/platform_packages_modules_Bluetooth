@@ -174,6 +174,11 @@ public class LeAudioServiceTest {
         mService.mLeAudioNativeInterface = mNativeInterface;
         mService.mAudioManager = mAudioManager;
 
+        LeAudioStackEvent stackEvent =
+        new LeAudioStackEvent(LeAudioStackEvent.EVENT_TYPE_NATIVE_INITIALIZED);
+        mService.messageFromNative(stackEvent);
+        assertThat(mService.mLeAudioNativeIsInitialized).isTrue();
+
         // Override the timeout value to speed up the test
         LeAudioStateMachine.sConnectTimeoutMs = TIMEOUT_MS;    // 1s
 

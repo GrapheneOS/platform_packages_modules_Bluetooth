@@ -82,6 +82,9 @@ class LeAudioClientCallbacks {
  public:
   virtual ~LeAudioClientCallbacks() = default;
 
+  /* Callback to notify Java that stack is ready */
+  virtual void OnInitialized(void) = 0;
+
   /** Callback for profile connection state change */
   virtual void OnConnectionState(ConnectionState state,
                                  const RawAddress& address) = 0;
@@ -146,6 +149,9 @@ class LeAudioClientInterface {
   virtual void SetCodecConfigPreference(
       int group_id, btle_audio_codec_config_t input_codec_config,
       btle_audio_codec_config_t output_codec_config) = 0;
+
+  /* Set Ccid for context type */
+  virtual void SetCcidInformation(int ccid, int context_type) = 0;
 };
 
 /* Represents the broadcast source state. */
