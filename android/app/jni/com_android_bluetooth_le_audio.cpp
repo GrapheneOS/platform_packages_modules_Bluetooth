@@ -512,6 +512,17 @@ static void setCodecConfigPreferenceNative(JNIEnv* env, jobject object,
       group_id, input_codec_config, output_codec_config);
 }
 
+static void setCcidInformationNative(JNIEnv* env, jobject object, jint ccid,
+                                     jint contextType) {
+  std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
+  if (!sLeAudioClientInterface) {
+    LOG(ERROR) << __func__ << ": Failed to get the Bluetooth LeAudio Interface";
+    return;
+  }
+
+  sLeAudioClientInterface->SetCcidInformation(ccid, contextType);
+}
+
 static JNINativeMethod sMethods[] = {
     {"classInitNative", "()V", (void*)classInitNative},
     {"initNative", "([Landroid/bluetooth/BluetoothLeAudioCodecConfig;)V",
@@ -526,6 +537,7 @@ static JNINativeMethod sMethods[] = {
      "(ILandroid/bluetooth/BluetoothLeAudioCodecConfig;Landroid/bluetooth/"
      "BluetoothLeAudioCodecConfig;)V",
      (void*)setCodecConfigPreferenceNative},
+    {"setCcidInformationNative", "(II)V", (void*)setCcidInformationNative},
 };
 
 /* Le Audio Broadcaster */
