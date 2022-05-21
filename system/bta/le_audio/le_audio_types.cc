@@ -392,34 +392,18 @@ std::string LeAudioLtvMap::ToString() const {
 }  // namespace types
 
 void AppendMetadataLtvEntryForCcidList(std::vector<uint8_t>& metadata,
-                                       LeAudioContextType context_type) {
+                                       int ccid) {
+  if (ccid < 0) return;
+
   std::vector<uint8_t> ccid_ltv_entry;
-  /* TODO: Get CCID values from Service */
-  std::vector<uint8_t> ccid_conversational = {0x12};
-  std::vector<uint8_t> ccid_media = {0x56};
+  std::vector<uint8_t> ccid_value = {static_cast<uint8_t>(ccid)};
 
-  std::vector<uint8_t>* ccid_value = nullptr;
-
-  /* CCID list */
-  switch (context_type) {
-    case LeAudioContextType::CONVERSATIONAL:
-      ccid_value = &ccid_conversational;
-      break;
-    case LeAudioContextType::MEDIA:
-      ccid_value = &ccid_media;
-      break;
-    default:
-      break;
-  }
-
-  if (!ccid_value) return;
-
-  ccid_ltv_entry.push_back(static_cast<uint8_t>(types::kLeAudioMetadataTypeLen +
-                                                ccid_value->size()));
+  ccid_ltv_entry.push_back(
+      static_cast<uint8_t>(types::kLeAudioMetadataTypeLen + ccid_value.size()));
   ccid_ltv_entry.push_back(
       static_cast<uint8_t>(types::kLeAudioMetadataTypeCcidList));
-  ccid_ltv_entry.insert(ccid_ltv_entry.end(), ccid_value->begin(),
-                        ccid_value->end());
+  ccid_ltv_entry.insert(ccid_ltv_entry.end(), ccid_value.begin(),
+                        ccid_value.end());
 
   metadata.insert(metadata.end(), ccid_ltv_entry.begin(), ccid_ltv_entry.end());
 }
