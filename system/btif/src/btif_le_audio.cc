@@ -43,6 +43,11 @@ class LeAudioClientInterfaceImpl : public LeAudioClientInterface,
                                    public LeAudioClientCallbacks {
   ~LeAudioClientInterfaceImpl() = default;
 
+  void OnInitialized(void) {
+    do_in_jni_thread(FROM_HERE, Bind(&LeAudioClientCallbacks::OnInitialized,
+                                     Unretained(callbacks)));
+  }
+
   void OnConnectionState(ConnectionState state,
                          const RawAddress& address) override {
     do_in_jni_thread(FROM_HERE, Bind(&LeAudioClientCallbacks::OnConnectionState,
