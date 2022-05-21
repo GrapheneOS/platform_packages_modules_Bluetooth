@@ -964,7 +964,8 @@ bool LeAudioDevice::ConfigureAses(
     types::LeAudioContextType context_type,
     uint8_t* number_of_already_active_group_ase,
     types::AudioLocations& group_snk_audio_locations,
-    types::AudioLocations& group_src_audio_locations, bool reuse_cis_id) {
+    types::AudioLocations& group_src_audio_locations, bool reuse_cis_id,
+    int ccid) {
   struct ase* ase = GetFirstInactiveAse(ent.direction, reuse_cis_id);
   if (!ase) return false;
 
@@ -1019,7 +1020,7 @@ bool LeAudioDevice::ConfigureAses(
     ase->retrans_nb = ent.qos.retransmission_number;
     ase->max_transport_latency = ent.qos.max_transport_latency;
 
-    ase->metadata = GetMetadata(context_type);
+    ase->metadata = GetMetadata(context_type, ccid);
 
     DLOG(INFO) << __func__ << " device=" << address_
                << ", activated ASE id=" << +ase->id
@@ -1040,7 +1041,7 @@ bool LeAudioDevice::ConfigureAses(
  */
 bool LeAudioDeviceGroup::ConfigureAses(
     const set_configurations::AudioSetConfiguration* audio_set_conf,
-    types::LeAudioContextType context_type) {
+    types::LeAudioContextType context_type, int ccid) {
   if (!set_configurations::check_if_may_cover_scenario(
           audio_set_conf, NumOfConnected(context_type)))
     return false;
@@ -1086,7 +1087,7 @@ bool LeAudioDeviceGroup::ConfigureAses(
 
       if (!device->ConfigureAses(ent, context_type, &active_ase_num,
                                  group_snk_audio_locations,
-                                 group_src_audio_locations, reuse_cis_id))
+                                 group_src_audio_locations, reuse_cis_id, ccid))
         continue;
 
       required_device_cnt--;
@@ -1174,10 +1175,10 @@ bool LeAudioDeviceGroup::IsContextSupported(
 }
 
 bool LeAudioDeviceGroup::IsMetadataChanged(
-    types::LeAudioContextType context_type) {
+    types::LeAudioContextType context_type, int ccid) {
   for (auto* leAudioDevice = GetFirstActiveDevice(); leAudioDevice;
        leAudioDevice = GetNextActiveDevice(leAudioDevice)) {
-    if (leAudioDevice->IsMetadataChanged(context_type)) return true;
+    if (leAudioDevice->IsMetadataChanged(context_type, ccid)) return true;
   }
 
   return false;
@@ -1226,7 +1227,7 @@ LeAudioDeviceGroup::FindFirstSupportedConfiguration(
 /* This method should choose aproperiate ASEs to be active and set a cached
  * configuration for codec and qos.
  */
-bool LeAudioDeviceGroup::Configure(LeAudioContextType context_type) {
+bool LeAudioDeviceGroup::Configure(LeAudioContextType context_type, int ccid) {
   const set_configurations::AudioSetConfiguration* conf =
       active_context_to_configuration_map[context_type];
 
@@ -1241,7 +1242,7 @@ bool LeAudioDeviceGroup::Configure(LeAudioContextType context_type) {
 
   DLOG(INFO) << __func__ << " setting context type: " << int(context_type);
 
-  if (!ConfigureAses(conf, context_type)) {
+  if (!ConfigureAses(conf, context_type, ccid)) {
     LOG(ERROR) << __func__ << ", requested pick ASE config context type: "
                << loghex(static_cast<uint16_t>(context_type))
                << ", is in mismatch with cached active contexts";
@@ -1776,20 +1777,21 @@ void LeAudioDevice::DeactivateAllAses(void) {
   }
 }
 
-std::vector<uint8_t> LeAudioDevice::GetMetadata(
-    LeAudioContextType context_type) {
+std::vector<uint8_t> LeAudioDevice::GetMetadata(LeAudioContextType context_type,
+                                                int ccid) {
   std::vector<uint8_t> metadata;
 
   AppendMetadataLtvEntryForStreamingContext(metadata, context_type);
-  AppendMetadataLtvEntryForCcidList(metadata, context_type);
+  AppendMetadataLtvEntryForCcidList(metadata, ccid);
 
   return std::move(metadata);
 }
 
-bool LeAudioDevice::IsMetadataChanged(types::LeAudioContextType context_type) {
+bool LeAudioDevice::IsMetadataChanged(types::LeAudioContextType context_type,
+                                      int ccid) {
   for (auto* ase = this->GetFirstActiveAse(); ase;
        ase = this->GetNextActiveAse(ase)) {
-    if (this->GetMetadata(context_type) != ase->metadata) return true;
+    if (this->GetMetadata(context_type, ccid) != ase->metadata) return true;
   }
 
   return false;
