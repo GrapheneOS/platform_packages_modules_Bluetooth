@@ -146,7 +146,8 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
   }
 
   bool StartStream(LeAudioDeviceGroup* group,
-                   le_audio::types::LeAudioContextType context_type) override {
+                   le_audio::types::LeAudioContextType context_type,
+                   int ccid) override {
     LOG_INFO(" current state: %s", ToString(group->GetState()).c_str());
 
     switch (group->GetState()) {
@@ -161,7 +162,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
         /* If configuration is needed */
         FALLTHROUGH;
       case AseState::BTA_LE_AUDIO_ASE_STATE_IDLE:
-        if (!group->Configure(context_type)) {
+        if (!group->Configure(context_type, ccid)) {
           LOG(ERROR) << __func__ << ", failed to set ASE configuration";
           return false;
         }
@@ -189,7 +190,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
         /* This case just updates the metadata for the stream, in case
          * stream configuration is satisfied
          */
-        if (!group->IsMetadataChanged(context_type)) return true;
+        if (!group->IsMetadataChanged(context_type, ccid)) return true;
 
         LeAudioDevice* leAudioDevice = group->GetFirstActiveDevice();
         if (!leAudioDevice) {
@@ -197,7 +198,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
           return false;
         }
 
-        PrepareAndSendUpdateMetadata(group, leAudioDevice, context_type);
+        PrepareAndSendUpdateMetadata(group, leAudioDevice, context_type, ccid);
         break;
       }
 
@@ -210,9 +211,9 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     return true;
   }
 
-  bool ConfigureStream(
-      LeAudioDeviceGroup* group,
-      le_audio::types::LeAudioContextType context_type) override {
+  bool ConfigureStream(LeAudioDeviceGroup* group,
+                       le_audio::types::LeAudioContextType context_type,
+                       int ccid) override {
     if (group->GetState() > AseState::BTA_LE_AUDIO_ASE_STATE_CODEC_CONFIGURED) {
       LOG_ERROR(
           "Stream should be stopped or in configured stream. Current state: %s",
@@ -220,7 +221,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
       return false;
     }
 
-    if (!group->Configure(context_type)) {
+    if (!group->Configure(context_type, ccid)) {
       LOG_ERROR("Could not configure ASEs for group %d content type %d",
                 group->group_id_, int(context_type));
 
@@ -1678,15 +1679,15 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
 
   void PrepareAndSendUpdateMetadata(
       LeAudioDeviceGroup* group, LeAudioDevice* leAudioDevice,
-      le_audio::types::LeAudioContextType context_type) {
+      le_audio::types::LeAudioContextType context_type, int ccid) {
     std::vector<struct le_audio::client_parser::ascs::ctp_update_metadata>
         confs;
 
     for (; leAudioDevice;
          leAudioDevice = group->GetNextActiveDevice(leAudioDevice)) {
-      if (!leAudioDevice->IsMetadataChanged(context_type)) continue;
+      if (!leAudioDevice->IsMetadataChanged(context_type, ccid)) continue;
 
-      auto new_metadata = leAudioDevice->GetMetadata(context_type);
+      auto new_metadata = leAudioDevice->GetMetadata(context_type, ccid);
 
       /* Request server to update ASEs with new metadata */
       for (struct ase* ase = leAudioDevice->GetFirstActiveAse(); ase != nullptr;
@@ -1854,13 +1855,10 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
         /* Cache current set up metadata values for for further possible
          * reconfiguration
          */
-        for (struct ase* ase = leAudioDevice->GetFirstActiveAse();
-             ase != nullptr; ase = leAudioDevice->GetNextActiveAse(ase)) {
+        if (!rsp.metadata.empty()) {
           ase->metadata = rsp.metadata;
         }
 
-        PrepareAndSendUpdateMetadata(group, leAudioDevice,
-                                     group->GetContextType());
         break;
       }
       default:

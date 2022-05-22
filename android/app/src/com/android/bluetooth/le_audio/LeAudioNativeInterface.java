@@ -90,6 +90,16 @@ public class LeAudioNativeInterface {
     // Callbacks from the native stack back into the Java framework.
     // All callbacks are routed via the Service which will disambiguate which
     // state machine the message should be routed to.
+    private void onInitialized() {
+        LeAudioStackEvent event =
+                new LeAudioStackEvent(LeAudioStackEvent.EVENT_TYPE_NATIVE_INITIALIZED);
+
+        if (DBG) {
+            Log.d(TAG, "onInitialized: " + event);
+        }
+        sendMessageToService(event);
+    }
+
     private void onConnectionStateChanged(int state, byte[] address) {
         LeAudioStackEvent event =
                 new LeAudioStackEvent(LeAudioStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED);
@@ -265,6 +275,18 @@ public class LeAudioNativeInterface {
         setCodecConfigPreferenceNative(groupId, inputCodecConfig, outputCodecConfig);
     }
 
+    /**
+     * Set content control id (Ccid) along with context type.
+     * @param ccid content control id
+     * @param contextType assigned contextType
+     */
+    public void setCcidInformation(int ccid, int contextType) {
+        if (DBG) {
+            Log.d(TAG, "setCcidInformation ccid: " + ccid + " context type: " + contextType);
+        }
+        setCcidInformationNative(ccid, contextType);
+    }
+
     // Native methods that call into the JNI interface
     private static native void classInitNative();
     private native void initNative(BluetoothLeAudioCodecConfig[] codecConfigOffloading);
@@ -277,4 +299,5 @@ public class LeAudioNativeInterface {
     private native void setCodecConfigPreferenceNative(int groupId,
             BluetoothLeAudioCodecConfig inputCodecConfig,
             BluetoothLeAudioCodecConfig outputCodecConfig);
+    private native void setCcidInformationNative(int ccid, int contextType);
 }

@@ -65,6 +65,7 @@ class LeAudioClient {
       int group_id,
       bluetooth::le_audio::btle_audio_codec_config_t input_codec_config,
       bluetooth::le_audio::btle_audio_codec_config_t output_codec_config) = 0;
+  virtual void SetCcidInformation(int ccid, int context_type) = 0;
   virtual std::vector<RawAddress> GetGroupDevices(const int group_id) = 0;
   static void AddFromStorage(const RawAddress& addr, bool autoconnect);
   static bool IsLeAudioClientRunning();
