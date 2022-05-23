@@ -35,6 +35,7 @@ import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentat
 
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AdapterService;
+import com.android.bluetooth.le_audio.LeAudioService;
 
 import org.junit.After;
 import org.junit.Before;
@@ -282,6 +283,9 @@ public class TbsGenericTest {
         Integer ccid = prepareTestBearer();
         reset(mTbsGatt);
 
+        LeAudioService leAudioService = mock(LeAudioService.class);
+        mTbsGeneric.setLeAudioServiceForTesting(leAudioService);
+
         // Prepare the incoming call
         UUID callUuid = UUID.randomUUID();
         List<BluetoothLeCall> tbsCalls = new ArrayList<>();
@@ -310,6 +314,8 @@ public class TbsGenericTest {
             throw e.rethrowFromSystemServer();
         }
         assertThat(callUuidCaptor.getValue().getUuid()).isEqualTo(callUuid);
+        // Active device should be changed
+        verify(leAudioService).setActiveDevice(mCurrentDevice);
 
         // Respond with requestComplete...
         mTbsGeneric.requestResult(ccid, requestIdCaptor.getValue(), BluetoothLeCallControl.RESULT_SUCCESS);
@@ -462,6 +468,9 @@ public class TbsGenericTest {
         Integer ccid = prepareTestBearer();
         reset(mTbsGatt);
 
+        LeAudioService leAudioService = mock(LeAudioService.class);
+        mTbsGeneric.setLeAudioServiceForTesting(leAudioService);
+
         // Act as if peer originates a call via Gtbs
         String uri = "xmpp:123456789";
         mTbsGattCallback.getValue().onCallControlPointRequest(mCurrentDevice,
@@ -475,6 +484,9 @@ public class TbsGenericTest {
         } catch (RemoteException e) {
             throw e.rethrowFromSystemServer();
         }
+
+        // Active device should be changed
+        verify(leAudioService).setActiveDevice(mCurrentDevice);
 
         // Respond with requestComplete...
         mTbsGeneric.requestResult(ccid, requestIdCaptor.getValue(), BluetoothLeCallControl.RESULT_SUCCESS);
