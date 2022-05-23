@@ -64,7 +64,10 @@ cc_library_headers {
 cc_test {
     name: "net_test_btcore",
     test_suites: ["device-tests"],
-    defaults: ["fluoride_defaults"],
+    defaults: [
+        "fluoride_defaults",
+        "mts_defaults",
+    ],
     local_include_dirs: ["include"],
     include_dirs: ["packages/modules/Bluetooth/system"],
     srcs: [
