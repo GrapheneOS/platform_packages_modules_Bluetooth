@@ -146,6 +146,11 @@ class LeAclManagerTest(gd_base_test.GdBaseTestClass):
         self.dut.hci_le_initiator_address.SetPrivacyPolicyForInitiatorAddress(privacy_policy)
         dut_le_acl, cert_le_acl = self.dut_connects()
 
+        assertThat(cert_le_acl.handle).isNotNone()
+        assertThat(cert_le_acl.peer).isNotEqualTo(self.dut_public_address)
+        assertThat(cert_le_acl.peer).isNotEqualTo(self.dut_random_address)
+        assertThat(cert_le_acl.peer_type).isEqualTo(hci_packets.AddressType.RANDOM_DEVICE_ADDRESS)
+
         assertThat(dut_le_acl.handle).isNotNone()
         assertThat(dut_le_acl.remote_address).isEqualTo(self.cert_random_address)
         assertThat(dut_le_acl.remote_address_type).isEqualTo(hci_packets.AddressType.RANDOM_DEVICE_ADDRESS)
