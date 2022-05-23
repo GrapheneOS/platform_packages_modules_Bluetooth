@@ -186,6 +186,14 @@ class LeAudioClientInterfaceImpl : public LeAudioClientInterface,
                            input_codec_config, output_codec_config));
   }
 
+  void SetCcidInformation(int ccid, int context_type) {
+    DVLOG(2) << __func__ << " ccid: " << ccid << " context_type"
+             << context_type;
+    do_in_main_thread(
+        FROM_HERE, Bind(&LeAudioClient::SetCcidInformation,
+                        Unretained(LeAudioClient::Get()), ccid, context_type));
+  }
+
  private:
   LeAudioClientCallbacks* callbacks;
 };
