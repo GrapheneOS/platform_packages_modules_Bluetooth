@@ -177,6 +177,7 @@ cc_library {
 cc_test {
     name: "bluetooth_flatbuffer_tests",
     test_suites: ["device-tests"],
+    defaults: ["mts_defaults"],
     host_supported: true,
     test_options: {
         unit_test: true,

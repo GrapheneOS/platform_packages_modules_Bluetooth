@@ -40,7 +40,10 @@ cc_library {
 cc_test {
     name: "net_test_audio_hearing_aid_hw",
     test_suites: ["device-tests"],
-    defaults: ["audio_hearing_aid_hw_defaults"],
+    defaults: [
+        "audio_hearing_aid_hw_defaults",
+        "mts_defaults",
+    ],
     srcs: [
         "test/audio_hearing_aid_hw_test.cc",
     ],
