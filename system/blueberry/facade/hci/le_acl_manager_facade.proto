@@ -13,6 +13,7 @@ service LeAclManagerFacade {
   rpc SendAclData(LeAclData) returns (google.protobuf.Empty) {}
   rpc FetchAclData(LeHandleMsg) returns (stream LeAclData) {}
   rpc FetchIncomingConnection(google.protobuf.Empty) returns (stream LeConnectionEvent) {}
+  rpc AddDeviceToResolvingList(IrkMsg) returns (google.protobuf.Empty) {}
 }
 
 message LeHandleMsg {
@@ -35,5 +36,11 @@ message LeAclData {
 message CreateConnectionMsg {
   blueberry.facade.BluetoothAddressWithType peer_address = 1;
   bool is_direct = 2;
+}
+
+message IrkMsg {
+  blueberry.facade.BluetoothAddressWithType peer = 1;
+  bytes peer_irk = 2;
+  bytes local_irk = 3;
 }
 
