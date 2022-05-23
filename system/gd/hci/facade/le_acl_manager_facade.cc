@@ -169,6 +169,36 @@ class LeAclManagerFacadeService : public LeAclManagerFacade::Service, public LeC
     return incoming_connection_events_->RunLoop(context, writer);
   }
 
+  ::grpc::Status AddDeviceToResolvingList(
+      ::grpc::ServerContext* context, const IrkMsg* request, ::google::protobuf::Empty* response) override {
+    Address peer_address;
+    ASSERT(Address::FromString(request->peer().address().address(), peer_address));
+    AddressWithType peer(peer_address, static_cast<AddressType>(request->peer().type()));
+
+    auto request_peer_irk_length = request->peer_irk().end() - request->peer_irk().begin();
+
+    if (request_peer_irk_length != crypto_toolbox::OCTET16_LEN) {
+      return ::grpc::Status(::grpc::StatusCode::INVALID_ARGUMENT, "Invalid Peer IRK");
+    }
+
+    auto request_local_irk_length = request->local_irk().end() - request->local_irk().begin();
+    if (request_local_irk_length != crypto_toolbox::OCTET16_LEN) {
+      return ::grpc::Status(::grpc::StatusCode::INVALID_ARGUMENT, "Invalid Local IRK");
+    }
+
+    crypto_toolbox::Octet16 peer_irk = {};
+    crypto_toolbox::Octet16 local_irk = {};
+
+    std::vector<uint8_t> peer_irk_data(request->peer_irk().begin(), request->peer_irk().end());
+    std::copy_n(peer_irk_data.begin(), crypto_toolbox::OCTET16_LEN, peer_irk.begin());
+
+    std::vector<uint8_t> local_irk_data(request->local_irk().begin(), request->local_irk().end());
+    std::copy_n(local_irk_data.begin(), crypto_toolbox::OCTET16_LEN, local_irk.begin());
+
+    acl_manager_->AddDeviceToResolvingList(peer, peer_irk, local_irk);
+    return ::grpc::Status::OK;
+  }
+
   ::grpc::Status SendAclData(
       ::grpc::ServerContext* context, const LeAclData* request, ::google::protobuf::Empty* response) override {
     std::promise<void> promise;
