@@ -51,6 +51,7 @@ import android.os.RemoteCallbackList;
 import android.os.RemoteException;
 import android.sysprop.BluetoothProperties;
 import android.util.Log;
+import android.util.Pair;
 
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
@@ -58,6 +59,7 @@ import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.btservice.ServiceFactory;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 import com.android.bluetooth.mcp.McpService;
+import com.android.bluetooth.tbs.TbsGatt;
 import com.android.bluetooth.vc.VolumeControlService;
 import com.android.internal.annotations.GuardedBy;
 import com.android.internal.annotations.VisibleForTesting;
@@ -118,6 +120,7 @@ public class LeAudioService extends ProfileService {
     ServiceFactory mServiceFactory = new ServiceFactory();
 
     LeAudioNativeInterface mLeAudioNativeInterface;
+    boolean mLeAudioNativeIsInitialized = false;
     LeAudioBroadcasterNativeInterface mLeAudioBroadcasterNativeInterface = null;
     @VisibleForTesting
     AudioManager mAudioManager;
@@ -327,6 +330,7 @@ public class LeAudioService extends ProfileService {
         // Cleanup native interfaces
         mLeAudioNativeInterface.cleanup();
         mLeAudioNativeInterface = null;
+        mLeAudioNativeIsInitialized = false;
 
         // Set the service and BLE devices as inactive
         setLeAudioService(null);
@@ -552,6 +556,10 @@ public class LeAudioService extends ProfileService {
      * @return true on success, otherwise false
      */
     boolean groupAddNode(int groupId, BluetoothDevice device) {
+        if (!mLeAudioNativeIsInitialized) {
+            Log.e(TAG, "Le Audio not initialized properly.");
+            return false;
+        }
         return mLeAudioNativeInterface.groupAddNode(groupId, device);
     }
 
@@ -562,6 +570,10 @@ public class LeAudioService extends ProfileService {
      * @return true on success, otherwise false
      */
     boolean groupRemoveNode(int groupId, BluetoothDevice device) {
+        if (!mLeAudioNativeIsInitialized) {
+            Log.e(TAG, "Le Audio not initialized properly.");
+            return false;
+        }
         return mLeAudioNativeInterface.groupRemoveNode(groupId, device);
     }
 
@@ -951,6 +963,10 @@ public class LeAudioService extends ProfileService {
             return;
         }
 
+        if (!mLeAudioNativeIsInitialized) {
+            Log.e(TAG, "Le Audio not initialized properly.");
+            return;
+        }
         mLeAudioNativeInterface.groupSetActive(groupId);
     }
 
@@ -1336,6 +1352,14 @@ public class LeAudioService extends ProfileService {
                 mBroadcastMetadataList.put(broadcastId, stackEvent.broadcastMetadata);
                 notifyBroadcastMetadataChanged(broadcastId, stackEvent.broadcastMetadata);
             }
+        } else if (stackEvent.type == LeAudioStackEvent.EVENT_TYPE_NATIVE_INITIALIZED) {
+            mLeAudioNativeIsInitialized = true;
+            for (Map.Entry<ParcelUuid, Pair<Integer, Integer>> entry :
+                    ContentControlIdKeeper.getUserCcidMap().entrySet()) {
+                ParcelUuid userUuid = entry.getKey();
+                Pair<Integer, Integer> ccidInformation = entry.getValue();
+                setCcidInformation(userUuid, ccidInformation.first, ccidInformation.second);
+            }
         }
 
         if (intent != null) {
@@ -1685,6 +1709,25 @@ public class LeAudioService extends ProfileService {
     }
 
     /**
+     * Set the user application ccid along with used context type
+     * @param userUuid user uuid
+     * @param ccid content control id
+     * @param contextType context type
+     */
+    public void setCcidInformation(ParcelUuid userUuid, int ccid, int contextType) {
+        /* for the moment we care only for GMCS and GTBS */
+        if (userUuid != BluetoothUuid.GENERIC_MEDIA_CONTROL
+                && userUuid.getUuid() != TbsGatt.UUID_GTBS) {
+            return;
+        }
+        if (!mLeAudioNativeIsInitialized) {
+            Log.e(TAG, "Le Audio not initialized properly.");
+            return;
+        }
+        mLeAudioNativeInterface.setCcidInformation(ccid, contextType);
+    }
+
+    /**
      * Set volume for streaming devices
      * @param volume volume to set
      */
@@ -1977,6 +2020,11 @@ public class LeAudioService extends ProfileService {
             return;
         }
 
+        if (!mLeAudioNativeIsInitialized) {
+            Log.e(TAG, "Le Audio not initialized properly.");
+            return;
+        }
+
         mLeAudioNativeInterface.setCodecConfigPreference(groupId,
                                 inputCodecConfig, outputCodecConfig);
     }
@@ -2209,6 +2257,27 @@ public class LeAudioService extends ProfileService {
                 enforceBluetoothPrivilegedPermission(service);
                 defaultValue = service.getConnectionPolicy(device);
                 receiver.send(defaultValue);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
+            }
+        }
+
+        @Override
+        public void setCcidInformation(ParcelUuid userUuid, int ccid, int contextType,
+                AttributionSource source,
+                SynchronousResultReceiver receiver) {
+            try {
+                Objects.requireNonNull(userUuid, "userUuid cannot be null");
+                Objects.requireNonNull(source, "source cannot be null");
+                Objects.requireNonNull(receiver, "receiver cannot be null");
+
+                LeAudioService service = getService(source);
+                if (service == null) {
+                    throw new IllegalStateException("service is null");
+                }
+                enforceBluetoothPrivilegedPermission(service);
+                service.setCcidInformation(userUuid, ccid, contextType);
+                receiver.send(null);
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }

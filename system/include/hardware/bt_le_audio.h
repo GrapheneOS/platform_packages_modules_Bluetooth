@@ -82,6 +82,9 @@ class LeAudioClientCallbacks {
  public:
   virtual ~LeAudioClientCallbacks() = default;
 
+  /* Callback to notify Java that stack is ready */
+  virtual void OnInitialized(void) = 0;
+
   /** Callback for profile connection state change */
   virtual void OnConnectionState(ConnectionState state,
                                  const RawAddress& address) = 0;
