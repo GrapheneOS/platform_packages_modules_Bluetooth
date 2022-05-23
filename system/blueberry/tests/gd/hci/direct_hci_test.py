@@ -205,7 +205,6 @@ class DirectHciTest(gd_base_test.GdBaseTestClass):
 
     def test_le_connection_dut_advertises(self):
         self.dut_hci.register_for_le_events(SubeventCode.CONNECTION_COMPLETE, SubeventCode.ADVERTISING_SET_TERMINATED,
-                                            SubeventCode.ENHANCED_CONNECTION_COMPLETE,
                                             SubeventCode.READ_REMOTE_FEATURES_COMPLETE)
         # Cert Connects
         self.cert_hal.unmask_event(EventCode.LE_META_EVENT)
@@ -239,7 +238,6 @@ class DirectHciTest(gd_base_test.GdBaseTestClass):
             lambda packet: logging.debug(packet.payload) or b'SomeMoreAclData' in packet.payload)
 
     def test_le_filter_accept_list_connection_cert_advertises(self):
-        self.dut_hci.register_for_le_events(SubeventCode.CONNECTION_COMPLETE, SubeventCode.ENHANCED_CONNECTION_COMPLETE)
         # DUT Connects
         self.dut_hci.send_command(LeSetRandomAddressBuilder('0D:05:04:03:02:01'))
         self.dut_hci.send_command(

@@ -317,6 +317,7 @@ cc_test {
         "gd_defaults",
         "gd_clang_coverage_bin",
         "libchrome_support_defaults",
+        "mts_defaults",
     ],
     host_supported: true,
     test_options: {
@@ -406,6 +407,7 @@ cc_test {
         "gd_defaults",
         "gd_clang_coverage_bin",
         "libchrome_support_defaults",
+        "mts_defaults",
     ],
     include_dirs: ["packages/modules/Bluetooth/system/gd"],
     host_supported: true,
@@ -612,7 +614,10 @@ rust_library {
 
 rust_test_host {
     name: "libbt_packets_test",
-    defaults: ["gd_rust_defaults"],
+    defaults: [
+        "gd_rust_defaults",
+        "mts_defaults",
+    ],
     srcs: ["rust/packets/lib.rs", ":BluetoothGeneratedPackets_rust"],
     test_suites: ["general-tests"],
     edition: "2018",
@@ -642,7 +647,10 @@ genrule {
 
 rust_test_host {
     name: "packets_test_rust",
-    defaults: ["gd_rust_defaults"],
+    defaults: [
+        "gd_rust_defaults",
+        "mts_defaults",
+    ],
     srcs: ["rust/packets/test_lib.rs", ":TestGeneratedPackets_rust"],
     test_suites: ["general-tests"],
     edition: "2018",
