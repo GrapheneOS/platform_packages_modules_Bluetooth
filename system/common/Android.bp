@@ -47,6 +47,7 @@ cc_test {
     defaults: [
         "fluoride_defaults",
         "clang_coverage_bin",
+        "mts_defaults",
     ],
     host_supported: true,
     test_options: {
@@ -92,7 +93,10 @@ cc_test {
 
 cc_test {
     name: "net_test_performance",
-    defaults: ["fluoride_defaults"],
+    defaults: [
+        "fluoride_defaults",
+        "mts_defaults",
+    ],
     test_suites: ["device-tests"],
     include_dirs: ["packages/modules/Bluetooth/system"],
     host_supported: true,

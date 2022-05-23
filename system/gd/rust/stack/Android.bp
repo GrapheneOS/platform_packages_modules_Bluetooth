@@ -54,7 +54,10 @@ rust_library {
 
 rust_test_host {
     name: "libbluetooth_rs_test",
-    defaults: ["gd_rust_defaults"],
+    defaults: [
+        "gd_rust_defaults",
+        "mts_defaults",
+    ],
     srcs: ["src/lib.rs"],
     test_suites: ["general-tests"],
     edition: "2018",
