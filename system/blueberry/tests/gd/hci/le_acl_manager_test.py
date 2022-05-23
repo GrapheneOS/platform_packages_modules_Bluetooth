@@ -221,6 +221,25 @@ class LeAclManagerTest(gd_base_test.GdBaseTestClass):
         # Check background connection complete
         self.dut_le_acl_manager.complete_outgoing_connection(token)
 
+    def test_direct_connection(self):
+        self.set_privacy_policy_static()
+
+        advertising_handle = 0
+        py_hci_adv = self.cert_hci.create_advertisement(advertising_handle, '0C:05:04:03:02:01',
+                                                        hci_packets.LegacyAdvertisingProperties.ADV_IND, 155, 165)
+
+        py_hci_adv.set_data(b'Im_A_Cert')
+        py_hci_adv.set_scan_response(b'Im_A_C')
+        py_hci_adv.start()
+
+        # Start direct connection
+        token = self.dut_le_acl_manager.initiate_connection(
+            remote_addr=common.BluetoothAddressWithType(
+                address=common.BluetoothAddress(address=bytes('0C:05:04:03:02:01', 'utf8')),
+                type=int(hci_packets.AddressType.RANDOM_DEVICE_ADDRESS)),
+            is_direct=True)
+        self.dut_le_acl_manager.complete_outgoing_connection(token)
+
 
 if __name__ == '__main__':
     test_runner.main()
