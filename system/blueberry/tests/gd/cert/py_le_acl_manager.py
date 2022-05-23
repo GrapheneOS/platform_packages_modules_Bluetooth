@@ -29,12 +29,13 @@ from blueberry.facade.hci import le_acl_manager_facade_pb2 as le_acl_manager_fac
 
 class PyLeAclManagerAclConnection(IEventStream, Closable):
 
-    def __init__(self, le_acl_manager, address, remote_addr, handle, event_stream):
+    def __init__(self, le_acl_manager, address, remote_addr, remote_addr_type, handle, event_stream):
         """
         An abstract representation for an LE ACL connection in GD certification test
         :param le_acl_manager: The LeAclManager from this GD device
         :param address: The local device address
         :param remote_addr: Remote device address
+        :param remote_addr_type: Remote device address type
         :param handle: Connection handle
         :param event_stream: The connection event stream for this connection
         """
@@ -46,6 +47,7 @@ class PyLeAclManagerAclConnection(IEventStream, Closable):
         self.acl_stream = EventStream(
             self.le_acl_manager.FetchAclData(le_acl_manager_facade.LeHandleMsg(handle=self.handle)))
         self.remote_address = remote_addr
+        self.remote_address_type = remote_addr_type
         self.own_address = address
         self.disconnect_reason = None
 
@@ -128,11 +130,13 @@ class PyLeAclManager(Closable):
         complete = connection_complete.get()
         handle = complete.GetConnectionHandle()
         remote = complete.GetPeerAddress()
+        remote_address_type = complete.GetPeerAddressType()
         if complete.GetSubeventCode() == hci_packets.SubeventCode.ENHANCED_CONNECTION_COMPLETE:
             address = complete.GetLocalResolvablePrivateAddress()
         else:
             address = None
-        connection = PyLeAclManagerAclConnection(self.le_acl_manager, address, remote, handle, event_stream)
+        connection = PyLeAclManagerAclConnection(self.le_acl_manager, address, remote, remote_address_type, handle,
+                                                 event_stream)
         self.active_connections.append(connection)
         return connection
 
