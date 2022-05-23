@@ -63,12 +63,14 @@ class LeAclManagerFacadeService : public LeAclManagerFacade::Service, public LeC
 
   ::grpc::Status CreateConnection(
       ::grpc::ServerContext* context,
-      const ::blueberry::facade::BluetoothAddressWithType* request,
+      const CreateConnectionMsg* request,
       ::grpc::ServerWriter<LeConnectionEvent>* writer) override {
     Address peer_address;
-    ASSERT(Address::FromString(request->address().address(), peer_address));
-    AddressWithType peer(peer_address, static_cast<AddressType>(request->type()));
-    acl_manager_->CreateLeConnection(peer, /* is_direct */ true);
+    ASSERT(Address::FromString(request->peer_address().address().address(), peer_address));
+    AddressWithType peer(peer_address, static_cast<AddressType>(request->peer_address().type()));
+    bool is_direct = request->is_direct();
+    acl_manager_->CreateLeConnection(peer, is_direct);
+
     if (per_connection_events_.size() > current_connection_request_) {
       return ::grpc::Status(::grpc::StatusCode::RESOURCE_EXHAUSTED, "Only one outstanding request is supported");
     }
