@@ -58,7 +58,11 @@ cc_library_static {
 cc_test {
     name: "net_test_hci",
     test_suites: ["device-tests"],
-    defaults: ["fluoride_basic_defaults", "fluoride_test_defaults"],
+    defaults: [
+        "fluoride_basic_defaults",
+        "fluoride_test_defaults",
+        "mts_defaults",
+    ],
     host_supported: false,
     local_include_dirs: [
         "include",
@@ -91,7 +95,10 @@ cc_test {
 cc_test {
     name: "net_test_hci_native",
     test_suites: ["device-tests"],
-    defaults: ["fluoride_unit_test_defaults"],
+    defaults: [
+        "fluoride_unit_test_defaults",
+        "mts_defaults",
+    ],
     local_include_dirs: [
         "include",
     ],
@@ -109,7 +116,10 @@ cc_test {
 cc_test {
     name: "net_test_hci_fragmenter_native",
     test_suites: ["device-tests"],
-    defaults: ["fluoride_unit_test_defaults"],
+    defaults: [
+        "fluoride_unit_test_defaults",
+        "mts_defaults",
+    ],
     local_include_dirs: [
         "include",
     ],
