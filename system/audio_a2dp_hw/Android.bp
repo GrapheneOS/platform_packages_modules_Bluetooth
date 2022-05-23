@@ -52,7 +52,10 @@ cc_library_static {
 cc_test {
     name: "net_test_audio_a2dp_hw",
     test_suites: ["device-tests"],
-    defaults: ["audio_a2dp_hw_defaults"],
+    defaults: [
+        "audio_a2dp_hw_defaults",
+        "mts_defaults",
+    ],
     srcs: [
         "test/audio_a2dp_hw_test.cc",
     ],

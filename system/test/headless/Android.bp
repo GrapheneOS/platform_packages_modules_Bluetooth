@@ -10,7 +10,10 @@ package {
 cc_test {
     name: "bt_headless",
     test_suites: ["device-tests"],
-    defaults: ["fluoride_defaults"],
+    defaults: [
+        "fluoride_defaults",
+        "mts_defaults",
+    ],
     srcs: [
         "connect/connect.cc",
         "get_options.cc",
