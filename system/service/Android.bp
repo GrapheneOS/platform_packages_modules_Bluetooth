@@ -156,7 +156,10 @@ cc_binary {
 cc_test {
     name: "bluetoothtbd_test",
     test_suites: ["device-tests"],
-    defaults: ["fluoride_service_defaults"],
+    defaults: [
+        "fluoride_service_defaults",
+        "mts_defaults",
+    ],
     srcs: btserviceBaseTestSrc +
         btserviceDaemonSrc + [
             "test/main.cc",
