@@ -33,7 +33,10 @@ cc_library_static {
 cc_test {
     name: "net_test_device",
     test_suites: ["device-tests"],
-    defaults: ["fluoride_defaults"],
+    defaults: [
+        "fluoride_defaults",
+        "mts_defaults",
+    ],
     include_dirs: ["packages/modules/Bluetooth/system"],
     srcs: [
         "test/interop_test.cc",
