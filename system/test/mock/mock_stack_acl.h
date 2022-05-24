@@ -1185,15 +1185,6 @@ struct btm_read_remote_version_complete {
   };
 };
 extern struct btm_read_remote_version_complete btm_read_remote_version_complete;
-// Name: btm_read_remote_version_complete_raw
-// Params: uint8_t* p
-// Returns: void
-struct btm_read_remote_version_complete_raw {
-  std::function<void(uint8_t* p)> body{[](uint8_t* p) { ; }};
-  void operator()(uint8_t* p) { body(p); };
-};
-extern struct btm_read_remote_version_complete_raw
-    btm_read_remote_version_complete_raw;
 // Name: btm_read_rssi_complete
 // Params: uint8_t* p
 // Returns: void
