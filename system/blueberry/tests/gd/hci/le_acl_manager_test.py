@@ -16,16 +16,14 @@
 
 from blueberry.tests.gd.cert import gd_base_test
 from blueberry.tests.gd.cert.closable import safeClose
-from blueberry.tests.gd.cert.event_stream import EventStream
 from blueberry.tests.gd.cert.truth import assertThat
+from blueberry.tests.gd.cert.py_hci import PyHci, PyHciAdvertisement
 from blueberry.tests.gd.cert.py_le_acl_manager import PyLeAclManager
-from google.protobuf import empty_pb2 as empty_proto
 from blueberry.facade import common_pb2 as common
 from blueberry.facade.hci import le_acl_manager_facade_pb2 as le_acl_manager_facade
 from blueberry.facade.hci import le_advertising_manager_facade_pb2 as le_advertising_facade
 from blueberry.facade.hci import le_initiator_address_facade_pb2 as le_initiator_address_facade
 from blueberry.facade.hci import hci_facade_pb2 as hci_facade
-import bluetooth_packets_python3 as bt_packets
 from bluetooth_packets_python3 import hci_packets
 from bluetooth_packets_python3 import RawBuilder
 from mobly import test_runner
@@ -38,22 +36,24 @@ class LeAclManagerTest(gd_base_test.GdBaseTestClass):
 
     def setup_test(self):
         gd_base_test.GdBaseTestClass.setup_test(self)
+        self.cert_hci = PyHci(self.cert, acl_streaming=True)
         self.dut_le_acl_manager = PyLeAclManager(self.dut)
-        self.cert_hci_le_event_stream = EventStream(self.cert.hci.StreamLeSubevents(empty_proto.Empty()))
-        self.cert_acl_data_stream = EventStream(self.cert.hci.StreamAcl(empty_proto.Empty()))
+        self.cert_public_address = self.cert_hci.read_own_address()
+        self.dut_public_address = self.dut.hci_controller.GetMacAddressSimple().decode("utf-8")
+        self.dut_random_address = 'd0:05:04:03:02:01'
+        self.cert_random_address = 'c0:05:04:03:02:01'
 
     def teardown_test(self):
-        safeClose(self.cert_hci_le_event_stream)
-        safeClose(self.cert_acl_data_stream)
         safeClose(self.dut_le_acl_manager)
+        self.cert_hci.close()
         gd_base_test.GdBaseTestClass.teardown_test(self)
 
     def set_privacy_policy_static(self):
-        self.dut_address = b'd0:05:04:03:02:01'
         private_policy = le_initiator_address_facade.PrivacyPolicy(
             address_policy=le_initiator_address_facade.AddressPolicy.USE_STATIC_ADDRESS,
             address_with_type=common.BluetoothAddressWithType(
-                address=common.BluetoothAddress(address=bytes(self.dut_address)), type=common.RANDOM_DEVICE_ADDRESS))
+                address=common.BluetoothAddress(address=bytes(self.dut_random_address, "utf-8")),
+                type=common.RANDOM_DEVICE_ADDRESS))
         self.dut.hci_le_initiator_address.SetPrivacyPolicyForInitiatorAddress(private_policy)
 
     def register_for_event(self, event_code):
@@ -73,104 +73,91 @@ class LeAclManagerTest(gd_base_test.GdBaseTestClass):
         acl = hci_packets.AclBuilder(handle, pb_flag, b_flag, RawBuilder(data))
         self.cert.hci.SendAcl(common.Data(payload=bytes(acl.Serialize())))
 
-    def dut_connects(self, check_address):
-        self.register_for_le_event(hci_packets.SubeventCode.CONNECTION_COMPLETE)
-        self.register_for_le_event(hci_packets.SubeventCode.ENHANCED_CONNECTION_COMPLETE)
+    def dut_connects(self):
+        # Cert Advertises
+        advertising_handle = 0
+        py_hci_adv = PyHciAdvertisement(advertising_handle, self.cert_hci)
+
+        self.cert_hci.create_advertisement(
+            advertising_handle,
+            self.cert_random_address,
+            hci_packets.LegacyAdvertisingProperties.ADV_IND,
+        )
+
+        py_hci_adv.set_data(b'Im_A_Cert')
+        py_hci_adv.set_scan_response(b'Im_A_C')
+        py_hci_adv.start()
+
+        dut_le_acl = self.dut_le_acl_manager.connect_to_remote(
+            remote_addr=common.BluetoothAddressWithType(
+                address=common.BluetoothAddress(address=bytes(self.cert_random_address, 'utf8')),
+                type=int(hci_packets.AddressType.RANDOM_DEVICE_ADDRESS)))
+
+        cert_le_acl = self.cert_hci.incoming_le_connection()
+        return dut_le_acl, cert_le_acl
+
+    def cert_advertises_resolvable(self):
+        self.cert_hci.add_device_to_resolving_list(hci_packets.PeerAddressType.PUBLIC_DEVICE_OR_IDENTITY_ADDRESS,
+                                                   self.dut_public_address,
+                                                   b'\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f',
+                                                   b'\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f')
 
         # Cert Advertises
         advertising_handle = 0
-        self.enqueue_hci_command(
-            hci_packets.LeSetExtendedAdvertisingLegacyParametersBuilder(
-                advertising_handle,
-                hci_packets.LegacyAdvertisingProperties.ADV_IND,
-                400,
-                450,
-                7,
-                hci_packets.OwnAddressType.RANDOM_DEVICE_ADDRESS,
-                hci_packets.PeerAddressType.PUBLIC_DEVICE_OR_IDENTITY_ADDRESS,
-                '00:00:00:00:00:00',
-                hci_packets.AdvertisingFilterPolicy.ALL_DEVICES,
-                0xF8,
-                1,  #SID
-                hci_packets.Enable.DISABLED  # Scan request notification
+        py_hci_adv = PyHciAdvertisement(advertising_handle, self.cert_hci)
+
+        self.cert_hci.create_advertisement(
+            advertising_handle,
+            self.cert_random_address,
+            hci_packets.LegacyAdvertisingProperties.ADV_IND,
+            own_address_type=hci_packets.OwnAddressType.RESOLVABLE_OR_PUBLIC_ADDRESS,
+            peer_address=self.dut_public_address,
+            peer_address_type=hci_packets.PeerAddressType.PUBLIC_DEVICE_OR_IDENTITY_ADDRESS)
+
+        py_hci_adv.set_data(b'Im_A_Cert')
+        py_hci_adv.set_scan_response(b'Im_A_C')
+        py_hci_adv.start()
+
+    def dut_connects_cert_resolvable(self):
+        self.dut.hci_le_acl_manager.AddDeviceToResolvingList(
+            le_acl_manager_facade.IrkMsg(
+                peer=common.BluetoothAddressWithType(
+                    address=common.BluetoothAddress(address=bytes(self.cert_public_address, "utf-8")),
+                    type=int(hci_packets.AddressType.PUBLIC_DEVICE_ADDRESS)),
+                peer_irk=b'\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f',
+                local_irk=b'\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f',
             ))
 
-        self.enqueue_hci_command(
-            hci_packets.LeSetExtendedAdvertisingRandomAddressBuilder(advertising_handle, '0C:05:04:03:02:01'))
-
-        gap_name = hci_packets.GapData()
-        gap_name.data_type = hci_packets.GapDataType.COMPLETE_LOCAL_NAME
-        gap_name.data = list(bytes(b'Im_A_Cert'))
-
-        self.enqueue_hci_command(
-            hci_packets.LeSetExtendedAdvertisingDataBuilder(
-                advertising_handle, hci_packets.Operation.COMPLETE_ADVERTISEMENT,
-                hci_packets.FragmentPreference.CONTROLLER_SHOULD_NOT, [gap_name]))
-
-        gap_short_name = hci_packets.GapData()
-        gap_short_name.data_type = hci_packets.GapDataType.SHORTENED_LOCAL_NAME
-        gap_short_name.data = list(bytes(b'Im_A_C'))
-
-        self.enqueue_hci_command(
-            hci_packets.LeSetExtendedAdvertisingScanResponseBuilder(
-                advertising_handle, hci_packets.Operation.COMPLETE_ADVERTISEMENT,
-                hci_packets.FragmentPreference.CONTROLLER_SHOULD_NOT, [gap_short_name]))
-
-        enabled_set = hci_packets.EnabledSet()
-        enabled_set.advertising_handle = advertising_handle
-        enabled_set.duration = 0
-        enabled_set.max_extended_advertising_events = 0
-        self.enqueue_hci_command(
-            hci_packets.LeSetExtendedAdvertisingEnableBuilder(hci_packets.Enable.ENABLED, [enabled_set]))
-
-        self.dut_le_acl = self.dut_le_acl_manager.connect_to_remote(
+        dut_le_acl = self.dut_le_acl_manager.connect_to_remote(
             remote_addr=common.BluetoothAddressWithType(
-                address=common.BluetoothAddress(address=bytes('0C:05:04:03:02:01', 'utf8')),
-                type=int(hci_packets.AddressType.RANDOM_DEVICE_ADDRESS)))
+                address=common.BluetoothAddress(address=bytes(self.cert_public_address, "utf-8")),
+                type=int(hci_packets.AddressType.PUBLIC_DEVICE_ADDRESS)))
 
-        # Cert gets ConnectionComplete with a handle and sends ACL data
-        handle = 0xfff
-        address = hci_packets.Address()
+        cert_le_acl = self.cert_hci.incoming_le_connection()
+        return dut_le_acl, cert_le_acl
 
-        def get_handle(packet):
-            packet_bytes = packet.payload
-            nonlocal handle
-            nonlocal address
-            if b'\x3e\x13\x01\x00' in packet_bytes:
-                cc_view = hci_packets.LeConnectionCompleteView(
-                    hci_packets.LeMetaEventView(
-                        hci_packets.EventView(bt_packets.PacketViewLittleEndian(list(packet_bytes)))))
-                handle = cc_view.GetConnectionHandle()
-                address = cc_view.GetPeerAddress()
-                return True
-            if b'\x3e\x1f\x0A\x00' in packet_bytes:
-                cc_view = hci_packets.LeEnhancedConnectionCompleteView(
-                    hci_packets.LeMetaEventView(
-                        hci_packets.EventView(bt_packets.PacketViewLittleEndian(list(packet_bytes)))))
-                handle = cc_view.GetConnectionHandle()
-                address = cc_view.GetPeerAddress()
-                return True
-            return False
-
-        self.cert_hci_le_event_stream.assert_event_occurs(get_handle)
-        self.cert_handle = handle
-        dut_address_from_complete = address
-        if check_address:
-            assertThat(dut_address_from_complete).isEqualTo(self.dut_address.decode())
-
-    def send_receive_and_check(self):
-        self.enqueue_acl_data(self.cert_handle, hci_packets.PacketBoundaryFlag.FIRST_NON_AUTOMATICALLY_FLUSHABLE,
+    def send_receive_and_check(self, dut_le_acl, cert_le_acl):
+        self.enqueue_acl_data(cert_le_acl.handle, hci_packets.PacketBoundaryFlag.FIRST_NON_AUTOMATICALLY_FLUSHABLE,
                               hci_packets.BroadcastFlag.POINT_TO_POINT,
                               bytes(b'\x19\x00\x07\x00SomeAclData from the Cert'))
 
-        self.dut_le_acl.send(b'\x1C\x00\x07\x00SomeMoreAclData from the DUT')
-        self.cert_acl_data_stream.assert_event_occurs(lambda packet: b'SomeMoreAclData' in packet.payload)
-        assertThat(self.dut_le_acl).emits(lambda packet: b'SomeAclData' in packet.payload)
+        dut_le_acl.send(b'\x1C\x00\x07\x00SomeMoreAclData from the DUT')
+        assertThat(cert_le_acl.our_acl_stream).emits(lambda packet: b'SomeMoreAclData' in packet.payload)
+        assertThat(dut_le_acl).emits(lambda packet: b'SomeAclData' in packet.payload)
 
     def test_dut_connects(self):
         self.set_privacy_policy_static()
-        self.dut_connects(check_address=True)
-        self.send_receive_and_check()
+        dut_le_acl, cert_le_acl = self.dut_connects()
+
+        assertThat(cert_le_acl.handle).isNotNone()
+        assertThat(cert_le_acl.peer).isEqualTo(self.dut_random_address)
+        assertThat(cert_le_acl.peer_type).isEqualTo(hci_packets.AddressType.RANDOM_DEVICE_ADDRESS)
+
+        assertThat(dut_le_acl.handle).isNotNone()
+        assertThat(dut_le_acl.remote_address).isEqualTo(self.cert_random_address)
+        assertThat(dut_le_acl.remote_address_type).isEqualTo(hci_packets.AddressType.RANDOM_DEVICE_ADDRESS)
+
+        self.send_receive_and_check(dut_le_acl, cert_le_acl)
 
     def test_dut_connects_resolvable_address(self):
         privacy_policy = le_initiator_address_facade.PrivacyPolicy(
@@ -179,8 +166,39 @@ class LeAclManagerTest(gd_base_test.GdBaseTestClass):
             minimum_rotation_time=7 * 60 * 1000,
             maximum_rotation_time=15 * 60 * 1000)
         self.dut.hci_le_initiator_address.SetPrivacyPolicyForInitiatorAddress(privacy_policy)
-        self.dut_connects(check_address=False)
-        self.send_receive_and_check()
+        dut_le_acl, cert_le_acl = self.dut_connects()
+
+        assertThat(cert_le_acl.handle).isNotNone()
+        assertThat(cert_le_acl.peer).isNotEqualTo(self.dut_public_address)
+        assertThat(cert_le_acl.peer).isNotEqualTo(self.dut_random_address)
+        assertThat(cert_le_acl.peer_type).isEqualTo(hci_packets.AddressType.RANDOM_DEVICE_ADDRESS)
+
+        assertThat(dut_le_acl.handle).isNotNone()
+        assertThat(dut_le_acl.remote_address).isEqualTo(self.cert_random_address)
+        assertThat(dut_le_acl.remote_address_type).isEqualTo(hci_packets.AddressType.RANDOM_DEVICE_ADDRESS)
+
+        self.send_receive_and_check(dut_le_acl, cert_le_acl)
+
+    def test_dut_connects_resolvable_address_public(self):
+        privacy_policy = le_initiator_address_facade.PrivacyPolicy(
+            address_policy=le_initiator_address_facade.AddressPolicy.USE_RESOLVABLE_ADDRESS,
+            rotation_irk=b'\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f',
+            minimum_rotation_time=7 * 60 * 1000,
+            maximum_rotation_time=15 * 60 * 1000)
+        self.dut.hci_le_initiator_address.SetPrivacyPolicyForInitiatorAddress(privacy_policy)
+        self.cert_advertises_resolvable()
+        dut_le_acl, cert_le_acl = self.dut_connects_cert_resolvable()
+
+        assertThat(cert_le_acl.handle).isNotNone()
+        assertThat(cert_le_acl.peer).isNotEqualTo(self.dut_public_address)
+        assertThat(cert_le_acl.peer).isNotEqualTo(self.dut_random_address)
+        assertThat(cert_le_acl.peer_type).isEqualTo(hci_packets.AddressType.RANDOM_DEVICE_ADDRESS)
+
+        assertThat(dut_le_acl.handle).isNotNone()
+        assertThat(dut_le_acl.remote_address).isEqualTo(self.cert_public_address)
+        assertThat(dut_le_acl.remote_address_type).isEqualTo(hci_packets.AddressType.PUBLIC_DEVICE_ADDRESS)
+
+        self.send_receive_and_check(dut_le_acl, cert_le_acl)
 
     def test_dut_connects_non_resolvable_address(self):
         privacy_policy = le_initiator_address_facade.PrivacyPolicy(
@@ -189,28 +207,54 @@ class LeAclManagerTest(gd_base_test.GdBaseTestClass):
             minimum_rotation_time=8 * 60 * 1000,
             maximum_rotation_time=14 * 60 * 1000)
         self.dut.hci_le_initiator_address.SetPrivacyPolicyForInitiatorAddress(privacy_policy)
-        self.dut_connects(check_address=False)
-        self.send_receive_and_check()
+        dut_le_acl, cert_le_acl = self.dut_connects()
+
+        assertThat(cert_le_acl.handle).isNotNone()
+        assertThat(cert_le_acl.peer).isNotEqualTo(self.dut_public_address)
+        assertThat(cert_le_acl.peer).isNotEqualTo(self.dut_random_address)
+        assertThat(cert_le_acl.peer_type).isEqualTo(hci_packets.AddressType.RANDOM_DEVICE_ADDRESS)
+
+        assertThat(dut_le_acl.handle).isNotNone()
+        assertThat(dut_le_acl.remote_address).isEqualTo(self.cert_random_address)
+        assertThat(dut_le_acl.remote_address_type).isEqualTo(hci_packets.AddressType.RANDOM_DEVICE_ADDRESS)
+
+        self.send_receive_and_check(dut_le_acl, cert_le_acl)
 
     def test_dut_connects_public_address(self):
         self.dut.hci_le_initiator_address.SetPrivacyPolicyForInitiatorAddress(
             le_initiator_address_facade.PrivacyPolicy(
                 address_policy=le_initiator_address_facade.AddressPolicy.USE_PUBLIC_ADDRESS))
-        self.dut_connects(check_address=False)
-        self.send_receive_and_check()
+        dut_le_acl, cert_le_acl = self.dut_connects()
+
+        assertThat(cert_le_acl.handle).isNotNone()
+        assertThat(cert_le_acl.peer).isEqualTo(self.dut_public_address)
+        assertThat(cert_le_acl.peer_type).isEqualTo(hci_packets.AddressType.PUBLIC_DEVICE_ADDRESS)
+
+        assertThat(dut_le_acl.handle).isNotNone()
+        assertThat(dut_le_acl.remote_address).isEqualTo(self.cert_random_address)
+        assertThat(dut_le_acl.remote_address_type).isEqualTo(hci_packets.AddressType.RANDOM_DEVICE_ADDRESS)
+
+        self.send_receive_and_check(dut_le_acl, cert_le_acl)
 
     def test_dut_connects_public_address_cancelled(self):
+        # TODO (Add cancel)
         self.dut.hci_le_initiator_address.SetPrivacyPolicyForInitiatorAddress(
             le_initiator_address_facade.PrivacyPolicy(
                 address_policy=le_initiator_address_facade.AddressPolicy.USE_PUBLIC_ADDRESS))
-        self.dut_connects(check_address=False)
-        self.send_receive_and_check()
+        dut_le_acl, cert_le_acl = self.dut_connects()
+
+        assertThat(cert_le_acl.handle).isNotNone()
+        assertThat(cert_le_acl.peer).isEqualTo(self.dut_public_address)
+        assertThat(cert_le_acl.peer_type).isEqualTo(hci_packets.AddressType.PUBLIC_DEVICE_ADDRESS)
+
+        assertThat(dut_le_acl.handle).isNotNone()
+        assertThat(dut_le_acl.remote_address).isEqualTo(self.cert_random_address)
+        assertThat(dut_le_acl.remote_address_type).isEqualTo(hci_packets.AddressType.RANDOM_DEVICE_ADDRESS)
+
+        self.send_receive_and_check(dut_le_acl, cert_le_acl)
 
     def test_cert_connects(self):
         self.set_privacy_policy_static()
-        self.register_for_le_event(hci_packets.SubeventCode.CONNECTION_COMPLETE)
-        self.register_for_le_event(hci_packets.SubeventCode.ENHANCED_CONNECTION_COMPLETE)
-
         self.dut_le_acl_manager.listen_for_incoming_connections()
 
         # DUT Advertises
@@ -233,127 +277,130 @@ class LeAclManagerTest(gd_base_test.GdBaseTestClass):
         self.dut.hci_le_advertising_manager.CreateAdvertiser(request)
 
         # Cert Connects
-        self.enqueue_hci_command(hci_packets.LeSetRandomAddressBuilder('0C:05:04:03:02:01'))
-        phy_scan_params = hci_packets.LeCreateConnPhyScanParameters()
-        phy_scan_params.scan_interval = 0x60
-        phy_scan_params.scan_window = 0x30
-        phy_scan_params.conn_interval_min = 0x18
-        phy_scan_params.conn_interval_max = 0x28
-        phy_scan_params.conn_latency = 0
-        phy_scan_params.supervision_timeout = 0x1f4
-        phy_scan_params.min_ce_length = 0
-        phy_scan_params.max_ce_length = 0
-        self.enqueue_hci_command(
-            hci_packets.LeExtendedCreateConnectionBuilder(hci_packets.InitiatorFilterPolicy.USE_PEER_ADDRESS,
-                                                          hci_packets.OwnAddressType.RANDOM_DEVICE_ADDRESS,
-                                                          hci_packets.AddressType.RANDOM_DEVICE_ADDRESS,
-                                                          self.dut_address.decode(), 1, [phy_scan_params]))
+        self.cert_hci.set_random_le_address(self.cert_random_address)
+        self.cert_hci.initiate_le_connection(self.dut_random_address)
 
         # Cert gets ConnectionComplete with a handle and sends ACL data
-        handle = 0xfff
+        cert_le_acl = self.cert_hci.incoming_le_connection()
 
-        def get_handle(packet):
-            packet_bytes = packet.payload
-            nonlocal handle
-            if b'\x3e\x13\x01\x00' in packet_bytes:
-                cc_view = hci_packets.LeConnectionCompleteView(
-                    hci_packets.LeMetaEventView(
-                        hci_packets.EventView(bt_packets.PacketViewLittleEndian(list(packet_bytes)))))
-                handle = cc_view.GetConnectionHandle()
-                return True
-            if b'\x3e\x1f\x0A\x00' in packet_bytes:
-                cc_view = hci_packets.LeEnhancedConnectionCompleteView(
-                    hci_packets.LeMetaEventView(
-                        hci_packets.EventView(bt_packets.PacketViewLittleEndian(list(packet_bytes)))))
-                handle = cc_view.GetConnectionHandle()
-                return True
-            return False
-
-        self.cert_hci_le_event_stream.assert_event_occurs(get_handle)
-        self.cert_handle = handle
-
-        self.enqueue_acl_data(self.cert_handle, hci_packets.PacketBoundaryFlag.FIRST_NON_AUTOMATICALLY_FLUSHABLE,
-                              hci_packets.BroadcastFlag.POINT_TO_POINT,
-                              bytes(b'\x19\x00\x07\x00SomeAclData from the Cert'))
+        cert_le_acl.send(hci_packets.PacketBoundaryFlag.FIRST_NON_AUTOMATICALLY_FLUSHABLE,
+                         hci_packets.BroadcastFlag.POINT_TO_POINT, b'\x19\x00\x07\x00SomeAclData from the Cert')
 
         # DUT gets a connection complete event and sends and receives
-        handle = 0xfff
-        self.dut_le_acl = self.dut_le_acl_manager.complete_incoming_connection()
+        dut_le_acl = self.dut_le_acl_manager.complete_incoming_connection()
+        assertThat(cert_le_acl.handle).isNotNone()
+        assertThat(cert_le_acl.peer).isEqualTo(self.dut_random_address)
+        assertThat(cert_le_acl.peer_type).isEqualTo(hci_packets.AddressType.RANDOM_DEVICE_ADDRESS)
 
-        self.send_receive_and_check()
+        assertThat(dut_le_acl.handle).isNotNone()
+        assertThat(dut_le_acl.remote_address).isEqualTo(self.cert_random_address)
+        assertThat(dut_le_acl.remote_address_type).isEqualTo(hci_packets.AddressType.RANDOM_DEVICE_ADDRESS)
+
+        self.send_receive_and_check(dut_le_acl, cert_le_acl)
 
     def test_recombination_l2cap_packet(self):
         self.set_privacy_policy_static()
-        self.dut_connects(check_address=True)
-
-        self.enqueue_acl_data(self.cert_handle, hci_packets.PacketBoundaryFlag.FIRST_NON_AUTOMATICALLY_FLUSHABLE,
+        dut_le_acl, cert_le_acl = self.dut_connects()
+        cert_handle = cert_le_acl.handle
+        self.enqueue_acl_data(cert_handle, hci_packets.PacketBoundaryFlag.FIRST_NON_AUTOMATICALLY_FLUSHABLE,
                               hci_packets.BroadcastFlag.POINT_TO_POINT, bytes(b'\x06\x00\x07\x00Hello'))
-        self.enqueue_acl_data(self.cert_handle, hci_packets.PacketBoundaryFlag.CONTINUING_FRAGMENT,
+        self.enqueue_acl_data(cert_handle, hci_packets.PacketBoundaryFlag.CONTINUING_FRAGMENT,
                               hci_packets.BroadcastFlag.POINT_TO_POINT, bytes(b'!'))
 
-        assertThat(self.dut_le_acl).emits(lambda packet: b'Hello!' in packet.payload)
+        assertThat(dut_le_acl).emits(lambda packet: b'Hello!' in packet.payload)
 
     def test_background_connection(self):
-        self.register_for_le_event(hci_packets.SubeventCode.CONNECTION_COMPLETE)
-        self.register_for_le_event(hci_packets.SubeventCode.ENHANCED_CONNECTION_COMPLETE)
         self.set_privacy_policy_static()
 
         # Start background and direct connection
-        token = self.dut_le_acl_manager.initiate_background_and_direct_connection(
+        token_direct = self.dut_le_acl_manager.initiate_connection(
             remote_addr=common.BluetoothAddressWithType(
-                address=common.BluetoothAddress(address=bytes('0C:05:04:03:02:01', 'utf8')),
+                address=common.BluetoothAddress(address=bytes('0C:05:04:03:02:02', 'utf8')),
                 type=int(hci_packets.AddressType.RANDOM_DEVICE_ADDRESS)))
 
+        token_background = self.dut_le_acl_manager.initiate_connection(
+            remote_addr=common.BluetoothAddressWithType(
+                address=common.BluetoothAddress(address=bytes(self.cert_random_address, 'utf8')),
+                type=int(hci_packets.AddressType.RANDOM_DEVICE_ADDRESS)),
+            is_direct=False)
+
         # Wait for direct connection timeout
-        self.dut_le_acl_manager.wait_for_connection_fail(token)
+        self.dut_le_acl_manager.wait_for_connection_fail(token_direct)
 
         # Cert Advertises
         advertising_handle = 0
-        self.enqueue_hci_command(
-            hci_packets.LeSetExtendedAdvertisingLegacyParametersBuilder(
-                advertising_handle,
-                hci_packets.LegacyAdvertisingProperties.ADV_IND,
-                155,  # 100ms = 160 * .625ms "LOW_LATENCY"
-                165,
-                7,
-                hci_packets.OwnAddressType.RANDOM_DEVICE_ADDRESS,
-                hci_packets.PeerAddressType.PUBLIC_DEVICE_OR_IDENTITY_ADDRESS,
-                '00:00:00:00:00:00',
-                hci_packets.AdvertisingFilterPolicy.ALL_DEVICES,
-                0xF8,
-                1,  #SID
-                hci_packets.Enable.DISABLED  # Scan request notification
-            ))
 
-        self.enqueue_hci_command(
-            hci_packets.LeSetExtendedAdvertisingRandomAddressBuilder(advertising_handle, '0C:05:04:03:02:01'))
+        py_hci_adv = self.cert_hci.create_advertisement(advertising_handle, self.cert_random_address,
+                                                        hci_packets.LegacyAdvertisingProperties.ADV_IND, 155, 165)
 
-        gap_name = hci_packets.GapData()
-        gap_name.data_type = hci_packets.GapDataType.COMPLETE_LOCAL_NAME
-        gap_name.data = list(bytes(b'Im_A_Cert'))
-
-        self.enqueue_hci_command(
-            hci_packets.LeSetExtendedAdvertisingDataBuilder(
-                advertising_handle, hci_packets.Operation.COMPLETE_ADVERTISEMENT,
-                hci_packets.FragmentPreference.CONTROLLER_SHOULD_NOT, [gap_name]))
-
-        gap_short_name = hci_packets.GapData()
-        gap_short_name.data_type = hci_packets.GapDataType.SHORTENED_LOCAL_NAME
-        gap_short_name.data = list(bytes(b'Im_A_C'))
-
-        self.enqueue_hci_command(
-            hci_packets.LeSetExtendedAdvertisingScanResponseBuilder(
-                advertising_handle, hci_packets.Operation.COMPLETE_ADVERTISEMENT,
-                hci_packets.FragmentPreference.CONTROLLER_SHOULD_NOT, [gap_short_name]))
-
-        enabled_set = hci_packets.EnabledSet()
-        enabled_set.advertising_handle = advertising_handle
-        enabled_set.duration = 0
-        enabled_set.max_extended_advertising_events = 0
-        self.enqueue_hci_command(
-            hci_packets.LeSetExtendedAdvertisingEnableBuilder(hci_packets.Enable.ENABLED, [enabled_set]))
+        py_hci_adv.set_data(b'Im_A_Cert')
+        py_hci_adv.set_scan_response(b'Im_A_C')
+        py_hci_adv.start()
 
         # Check background connection complete
+        self.dut_le_acl_manager.complete_outgoing_connection(token_background)
+
+    def skip_flaky_test_multiple_background_connections(self):
+        self.set_privacy_policy_static()
+
+        # Start two background connections
+        token_1 = self.dut_le_acl_manager.initiate_connection(
+            remote_addr=common.BluetoothAddressWithType(
+                address=common.BluetoothAddress(address=bytes(self.cert_random_address, 'utf8')),
+                type=int(hci_packets.AddressType.RANDOM_DEVICE_ADDRESS)),
+            is_direct=False)
+
+        token_2 = self.dut_le_acl_manager.initiate_connection(
+            remote_addr=common.BluetoothAddressWithType(
+                address=common.BluetoothAddress(address=bytes('0C:05:04:03:02:02', 'utf8')),
+                type=int(hci_packets.AddressType.RANDOM_DEVICE_ADDRESS)),
+            is_direct=False)
+
+        # Cert Advertises
+        advertising_handle = 0
+
+        py_hci_adv = self.cert_hci.create_advertisement(advertising_handle, self.cert_random_address,
+                                                        hci_packets.LegacyAdvertisingProperties.ADV_IND, 155, 165)
+
+        py_hci_adv.set_data(b'Im_A_Cert')
+        py_hci_adv.set_scan_response(b'Im_A_C')
+        py_hci_adv.start()
+
+        # First background connection completes
+        connection = self.dut_le_acl_manager.complete_outgoing_connection(token_1)
+        connection.close()
+
+        # Cert Advertises again
+        advertising_handle = 0
+
+        py_hci_adv = self.cert_hci.create_advertisement(advertising_handle, '0C:05:04:03:02:02',
+                                                        hci_packets.LegacyAdvertisingProperties.ADV_IND, 155, 165)
+
+        py_hci_adv.set_data(b'Im_A_Cert')
+        py_hci_adv.set_scan_response(b'Im_A_C')
+        py_hci_adv.start()
+
+        # Second background connection completes
+        connection = self.dut_le_acl_manager.complete_outgoing_connection(token_2)
+        connection.close()
+
+    def test_direct_connection(self):
+        self.set_privacy_policy_static()
+
+        advertising_handle = 0
+        py_hci_adv = self.cert_hci.create_advertisement(advertising_handle, self.cert_random_address,
+                                                        hci_packets.LegacyAdvertisingProperties.ADV_IND, 155, 165)
+
+        py_hci_adv.set_data(b'Im_A_Cert')
+        py_hci_adv.set_scan_response(b'Im_A_C')
+        py_hci_adv.start()
+
+        # Start direct connection
+        token = self.dut_le_acl_manager.initiate_connection(
+            remote_addr=common.BluetoothAddressWithType(
+                address=common.BluetoothAddress(address=bytes(self.cert_random_address, 'utf8')),
+                type=int(hci_packets.AddressType.RANDOM_DEVICE_ADDRESS)),
+            is_direct=True)
         self.dut_le_acl_manager.complete_outgoing_connection(token)
 
 
