@@ -1030,9 +1030,14 @@ public final class BluetoothGatt implements BluetoothProfile {
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public boolean connect() {
         try {
+            if (DBG) {
+                Log.d(TAG, "connect(void) - device: " + mDevice.getAddress()
+                        + ", auto=" + mAutoConnect);
+            }
+
             // autoConnect is inverse of "isDirect"
             final SynchronousResultReceiver recv = new SynchronousResultReceiver();
-            mService.clientConnect(mClientIf, mDevice.getAddress(), false, mTransport,
+            mService.clientConnect(mClientIf, mDevice.getAddress(), !mAutoConnect, mTransport,
                     mOpportunistic, mPhy, mAttributionSource, recv);
             recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
             return true;
