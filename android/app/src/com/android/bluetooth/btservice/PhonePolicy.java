@@ -174,6 +174,7 @@ class PhonePolicy {
                     break;
                 case BluetoothDevice.ACTION_ACL_CONNECTED:
                     mHandler.obtainMessage(MESSAGE_DEVICE_CONNECTED, intent).sendToTarget();
+                    break;
                 default:
                     Log.e(TAG, "Received unexpected intent, action=" + action);
                     break;
