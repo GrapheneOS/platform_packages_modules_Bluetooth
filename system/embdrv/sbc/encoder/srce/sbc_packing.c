@@ -79,8 +79,12 @@ uint32_t EncPacking(SBC_ENC_PARAMS* pstrEncParams, uint8_t* output) {
 #endif
 #endif
 
-  pu8PacketPtr = output;           /*Initialize the ptr*/
-  *pu8PacketPtr++ = (uint8_t)0x9C; /*Sync word*/
+  pu8PacketPtr = output; /*Initialize the ptr*/
+  if (!pstrEncParams->SyncWord) {
+    *pu8PacketPtr++ = (uint8_t)0x9C; /*Sync word*/
+  } else {
+    *pu8PacketPtr++ = pstrEncParams->SyncWord; /*Sync word*/
+  }
   *pu8PacketPtr++ = (uint8_t)(pstrEncParams->FrameHeader);
 
   *pu8PacketPtr = (uint8_t)(pstrEncParams->s16BitPool & 0x00FF);
