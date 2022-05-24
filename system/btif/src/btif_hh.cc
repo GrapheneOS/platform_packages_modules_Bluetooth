@@ -586,6 +586,12 @@ bt_status_t btif_hh_connect(const RawAddress* bd_addr) {
     }
   }
 
+  if (dev && dev->dev_status == BTHH_CONN_STATE_CONNECTED) {
+    LOG_DEBUG("HidHost profile already connected for %s",
+              PRIVATE_ADDRESS((*bd_addr)));
+    return BT_STATUS_SUCCESS;
+  }
+
   /* Not checking the NORMALLY_Connectible flags from sdp record, and anyways
    sending this
    request from host, for subsequent user initiated connection. If the remote is
