@@ -553,6 +553,7 @@ pub enum SupportedProfiles {
     A2dp,
     Gatt,
     Sdp,
+    Socket,
 }
 
 impl From<SupportedProfiles> for Vec<u8> {
@@ -563,6 +564,7 @@ impl From<SupportedProfiles> for Vec<u8> {
             SupportedProfiles::A2dp => "a2dp",
             SupportedProfiles::Gatt => "gatt",
             SupportedProfiles::Sdp => "sdp",
+            SupportedProfiles::Socket => "socket",
         }
         .bytes()
         .chain("\0".bytes())
