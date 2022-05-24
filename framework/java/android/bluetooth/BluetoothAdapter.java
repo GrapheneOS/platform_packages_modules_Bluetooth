@@ -3601,10 +3601,7 @@ public final class BluetoothAdapter {
         if (context == null || listener == null) {
             return false;
         }
-        // Do not create proxies when BT is OFF
-        if (getState() != STATE_ON) {
-            return false;
-        }
+
         if (profile == BluetoothProfile.HEADSET) {
             BluetoothHeadset headset = new BluetoothHeadset(context, listener, this);
             return true;
