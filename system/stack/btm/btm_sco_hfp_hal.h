@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "bt_target.h"
+#include "device/include/esco_parameters.h"
 #include "raw_address.h"
 
 // Used by the Bluetooth stack to get WBS supported and codec, or notify SCO
@@ -47,6 +48,20 @@ struct bt_codecs {
 
 // Use default packet size for codec if this value is given.
 constexpr int kDefaultPacketSize = 0;
+
+constexpr inline int esco_coding_to_codec(esco_coding_format_t esco_coding) {
+  switch (esco_coding) {
+    case ESCO_CODING_FORMAT_TRANSPNT:
+      return codec::MSBC_TRANSPARENT;
+    case ESCO_CODING_FORMAT_MSBC:
+      return codec::MSBC;
+
+    // Default to CVSD encoding if unknown format.
+    case ESCO_CODING_FORMAT_CVSD:
+    default:
+      return codec::CVSD;
+  }
+}
 
 // Initialize the SCO HFP HAL module
 void init();
