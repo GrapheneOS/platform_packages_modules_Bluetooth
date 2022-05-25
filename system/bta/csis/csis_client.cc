@@ -1558,9 +1558,15 @@ class CsisClientImpl : public CsisClient {
         OnGattNotification(p_data->notify);
         break;
 
-      case BTA_GATTC_ENC_CMPL_CB_EVT:
-        OnLeEncryptionComplete(p_data->enc_cmpl.remote_bda, BTM_SUCCESS);
-        break;
+      case BTA_GATTC_ENC_CMPL_CB_EVT: {
+        uint8_t encryption_status;
+        if (BTM_IsEncrypted(p_data->enc_cmpl.remote_bda, BT_TRANSPORT_LE)) {
+          encryption_status = BTM_SUCCESS;
+        } else {
+          encryption_status = BTM_FAILED_ON_SECURITY;
+        }
+        OnLeEncryptionComplete(p_data->enc_cmpl.remote_bda, encryption_status);
+      } break;
 
       case BTA_GATTC_SRVC_CHG_EVT:
         OnGattServiceChangeEvent(p_data->remote_bda);
