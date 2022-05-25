@@ -148,13 +148,14 @@ import java.time.Duration;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executor;
 import java.util.function.Predicate;
@@ -282,8 +283,7 @@ public class AdapterService extends Service {
     private boolean mQuietmode = false;
     private HashMap<String, CallerInfo> mBondAttemptCallerInfo = new HashMap<>();
 
-    private final Map<UUID, RfcommListenerData> mBluetoothServerSockets =
-            Collections.synchronizedMap(new HashMap<>());
+    private final Map<UUID, RfcommListenerData> mBluetoothServerSockets = new ConcurrentHashMap<>();
     private final Executor mSocketServersExecutor = r -> new Thread(r).start();
 
     private AlarmManager mAlarmManager;
@@ -1491,11 +1491,11 @@ public class AdapterService extends Service {
     }
 
     private void stopRfcommServerSockets() {
-        synchronized (mBluetoothServerSockets) {
-            mBluetoothServerSockets.forEach((key, value) -> {
-                mBluetoothServerSockets.remove(key);
-                value.closeServerAndPendingSockets(mHandler);
-            });
+        Iterator<Map.Entry<UUID, RfcommListenerData>> socketsIterator =
+                mBluetoothServerSockets.entrySet().iterator();
+        while (socketsIterator.hasNext()) {
+            socketsIterator.next().getValue().closeServerAndPendingSockets(mHandler);
+            socketsIterator.remove();
         }
     }
 
