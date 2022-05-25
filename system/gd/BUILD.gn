@@ -63,7 +63,6 @@ static_library("libbluetooth_gd") {
   include_dirs = [ "." ]
   configs += [ ":gd_defaults" ]
   deps = [
-    "//bt/system/gd/rust/common:libbt_keystore_cc",
     "//bt/system/gd/rust/topshim:libbluetooth_topshim",
     "//bt/system/gd/rust/shim:libbluetooth_rust_interop",
     "//bt/system/gd:BluetoothGeneratedPackets_h",
