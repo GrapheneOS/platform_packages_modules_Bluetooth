@@ -226,7 +226,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         if !context.lock().unwrap().manager_dbus.is_valid() {
             println!("Bluetooth manager doesn't seem to be working correctly.");
             println!("Check if service is running.");
-            println!("...");
+            return Ok(());
         }
 
         // TODO: Registering the callback should be done when btmanagerd is ready (detect with
@@ -241,8 +241,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         // Check if the default adapter is enabled. If yes, we should create the adapter proxy
         // right away.
         let default_adapter = context.lock().unwrap().default_adapter;
-        if context.lock().unwrap().manager_dbus.get_adapter_enabled(default_adapter) {
-            context.lock().unwrap().set_adapter_enabled(default_adapter, true);
+
+        {
+            let mut context_locked = context.lock().unwrap();
+            match context_locked.manager_dbus.rpc.get_adapter_enabled(default_adapter).await {
+                Ok(ret) => {
+                    if ret {
+                        context_locked.set_adapter_enabled(default_adapter, true);
+                    }
+                }
+                Err(e) => {
+                    panic!("Bluetooth Manager is not available. Exiting. D-Bus error: {}", e);
+                }
+            }
         }
 
         let mut handler = CommandHandler::new(context.clone());
@@ -325,26 +336,36 @@ async fn start_interactive_shell(
                 let dbus_connection = context.lock().unwrap().dbus_connection.clone();
                 let dbus_crossroads = context.lock().unwrap().dbus_crossroads.clone();
 
-                context.lock().unwrap().adapter_dbus.as_mut().unwrap().register_callback(Box::new(
-                    BtCallback::new(
-                        cb_objpath.clone(),
-                        context.clone(),
-                        dbus_connection.clone(),
-                        dbus_crossroads.clone(),
-                    ),
-                ));
                 context
                     .lock()
                     .unwrap()
                     .adapter_dbus
                     .as_mut()
                     .unwrap()
+                    .rpc
+                    .register_callback(Box::new(BtCallback::new(
+                        cb_objpath.clone(),
+                        context.clone(),
+                        dbus_connection.clone(),
+                        dbus_crossroads.clone(),
+                    )))
+                    .await
+                    .expect("D-Bus error on IBluetooth::RegisterCallback");
+                context
+                    .lock()
+                    .unwrap()
+                    .adapter_dbus
+                    .as_mut()
+                    .unwrap()
+                    .rpc
                     .register_connection_callback(Box::new(BtConnectionCallback::new(
                         conn_cb_objpath,
                         context.clone(),
                         dbus_connection.clone(),
                         dbus_crossroads.clone(),
-                    )));
+                    )))
+                    .await
+                    .expect("D-Bus error on IBluetooth::RegisterConnectionCallback");
 
                 // When adapter is ready, Suspend API is also ready. Register as an observer.
                 // TODO(b/224606285): Implement suspend debug utils in btclient.

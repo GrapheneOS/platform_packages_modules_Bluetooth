@@ -185,6 +185,29 @@ impl ClientDBusProxy {
         )
     }
 
+    /// Asynchronously calls the method and returns the D-Bus result and lets the caller unwrap.
+    pub async fn async_method<
+        A: AppendAll,
+        T: 'static + dbus::arg::Arg + for<'z> dbus::arg::Get<'z>,
+    >(
+        &self,
+        member: &str,
+        args: A,
+    ) -> Result<(T,), dbus::Error> {
+        let proxy = self.create_proxy();
+        proxy.method_call(self.interface.clone(), member, args).await
+    }
+
+    /// Asynchronously calls the method and returns the D-Bus result with empty return data.
+    pub async fn async_method_noreturn<A: AppendAll>(
+        &self,
+        member: &str,
+        args: A,
+    ) -> Result<(), dbus::Error> {
+        let proxy = self.create_proxy();
+        proxy.method_call(self.interface.clone(), member, args).await
+    }
+
     /// Calls the method and returns the D-Bus result and lets the caller unwrap.
     pub fn method_withresult<
         A: AppendAll,
