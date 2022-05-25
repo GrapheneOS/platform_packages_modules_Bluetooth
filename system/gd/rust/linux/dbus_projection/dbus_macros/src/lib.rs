@@ -221,11 +221,22 @@ pub fn generate_dbus_exporter(attr: TokenStream, item: TokenStream) -> TokenStre
 /// Generates a client implementation of a D-Bus interface.
 ///
 /// Example:
-///   #[generate_dbus_interface_client()]
+///   #[generate_dbus_interface_client]
 ///
 /// The impl containing #[dbus_method()] will contain a generated code to call the method via D-Bus.
+///
+/// Example:
+///   #[generate_dbus_interface_client(SomeRPC)]
+///
+/// When the RPC wrapper struct name is specified, it also generates the more RPC-friendly struct:
+/// * All methods are async, allowing clients to await (yield) without blocking. Even methods that
+///   are sync at the server side requires clients to "wait" for the return.
+/// * All method returns are wrapped with `Result`, allowing clients to detect D-Bus level errors in
+///   addition to API-level errors.
 #[proc_macro_attribute]
-pub fn generate_dbus_interface_client(_attr: TokenStream, item: TokenStream) -> TokenStream {
+pub fn generate_dbus_interface_client(attr: TokenStream, item: TokenStream) -> TokenStream {
+    let rpc_struct_name = attr.to_string();
+
     let ast: ItemImpl = syn::parse(item.clone()).unwrap();
     let trait_path = ast.trait_.unwrap().1;
     let struct_path = match *ast.self_ty {
@@ -233,7 +244,11 @@ pub fn generate_dbus_interface_client(_attr: TokenStream, item: TokenStream) -> 
         _ => panic!("Struct path not available"),
     };
 
+    // Generated methods
     let mut methods = quote! {};
+
+    // Generated RPC-friendly methods (async and Result-wrapped).
+    let mut rpc_methods = quote! {};
 
     // Iterate on every methods of a trait impl
     for item in ast.items {
@@ -255,6 +270,22 @@ pub fn generate_dbus_interface_client(_attr: TokenStream, item: TokenStream) -> 
             }
 
             let sig = &method.sig;
+
+            // For RPC-friendly method, copy the original signature but add public, async, and wrap
+            // the return with Result.
+            let mut rpc_sig = sig.clone();
+            rpc_sig.asyncness = Some(<syn::Token![async]>::default());
+            rpc_sig.output = match rpc_sig.output {
+                syn::ReturnType::Default => {
+                    syn::parse(quote! {-> Result<(), dbus::Error>}.into()).unwrap()
+                }
+                syn::ReturnType::Type(_arrow, path) => {
+                    syn::parse(quote! {-> Result<#path, dbus::Error>}.into()).unwrap()
+                }
+            };
+            let rpc_sig = quote! {
+                pub #rpc_sig
+            };
 
             let dbus_method_name = if let Meta::List(meta_list) = attr.parse_meta().unwrap() {
                 Some(meta_list.nested[0].clone())
@@ -343,6 +374,26 @@ pub fn generate_dbus_interface_client(_attr: TokenStream, item: TokenStream) -> 
                     }
                 }
             };
+            let rpc_body = match &method.sig.output {
+                // Build the async method call to `self.client_proxy`.
+                ReturnType::Default => {
+                    quote! {
+                        self.client_proxy
+                            .async_method_noreturn(#dbus_method_name, #input_tuple)
+                            .await
+                    }
+                }
+                _ => {
+                    quote! {
+                        self.client_proxy
+                            .async_method(#dbus_method_name, #input_tuple)
+                            .await
+                            .map(|(x,)| {
+                                #output_as_dbus_arg::from_dbus(x, None, None, None).unwrap()
+                            })
+                    }
+                }
+            };
 
             // Assemble the method body. May have object conversions if there is a param that is
             // a proxy object (`Box<dyn>` type).
@@ -351,11 +402,21 @@ pub fn generate_dbus_interface_client(_attr: TokenStream, item: TokenStream) -> 
 
                 #body
             };
+            let rpc_body = quote! {
+                #object_conversions
+
+                #rpc_body
+            };
 
             // The method definition is its signature and the body.
             let generated_method = quote! {
                 #sig {
                     #body
+                }
+            };
+            let generated_rpc_method = quote! {
+                #rpc_sig {
+                    #rpc_body
                 }
             };
 
@@ -365,13 +426,33 @@ pub fn generate_dbus_interface_client(_attr: TokenStream, item: TokenStream) -> 
 
                 #generated_method
             };
+            rpc_methods = quote! {
+                #rpc_methods
+
+                #generated_rpc_method
+            };
         }
     }
 
+    // Generated code for the RPC wrapper struct.
+    let rpc_gen = if rpc_struct_name.is_empty() {
+        quote! {}
+    } else {
+        let rpc_struct = format_ident!("{}", rpc_struct_name);
+        quote! {
+            impl #rpc_struct {
+                #rpc_methods
+            }
+        }
+    };
+
+    // The final generated code.
     let gen = quote! {
         impl #trait_path for #struct_path {
             #methods
         }
+
+        #rpc_gen
     };
 
     debug_output_to_file(
