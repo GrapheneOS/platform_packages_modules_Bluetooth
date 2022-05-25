@@ -104,8 +104,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         conn.request_name(DBUS_SERVICE_NAME, false, true, false).await?;
 
         // Prepare D-Bus interfaces.
-        let mut cr = Crossroads::new();
-        cr.set_async_support(Some((
+        let cr = Arc::new(Mutex::new(Crossroads::new()));
+        cr.lock().unwrap().set_async_support(Some((
             conn.clone(),
             Box::new(|x| {
                 tokio::spawn(x);
@@ -114,8 +114,9 @@ fn main() -> Result<(), Box<dyn Error>> {
 
         // Announce the exported adapter objects so that clients can properly detect the readiness
         // of the adapter APIs.
-        cr.set_object_manager_support(Some(conn.clone()));
-        cr.insert("/", &[cr.object_manager()], {});
+        cr.lock().unwrap().set_object_manager_support(Some(conn.clone()));
+        let object_manager = cr.lock().unwrap().object_manager();
+        cr.lock().unwrap().insert("/", &[object_manager], {});
 
         // Run the stack main dispatch loop.
         topstack::get_runtime().spawn(Stack::dispatch(
@@ -130,11 +131,23 @@ fn main() -> Result<(), Box<dyn Error>> {
         let disconnect_watcher = Arc::new(Mutex::new(DisconnectWatcher::new()));
         disconnect_watcher.lock().unwrap().setup_watch(conn.clone()).await;
 
+        // Set up handling of D-Bus methods. This must be done before exporting interfaces so that
+        // clients that rely on InterfacesAdded signal can rely on us being ready to handle methods
+        // on those exported interfaces.
+        let cr_clone = cr.clone();
+        conn.start_receive(
+            MatchRule::new_method_call(),
+            Box::new(move |msg, conn| {
+                cr_clone.lock().unwrap().handle_message(msg, conn).unwrap();
+                true
+            }),
+        );
+
         // Register D-Bus method handlers of IBluetooth.
         iface_bluetooth::export_bluetooth_dbus_obj(
             make_object_name(adapter_index, "adapter"),
             conn.clone(),
-            &mut cr,
+            &mut cr.lock().unwrap(),
             bluetooth.clone(),
             disconnect_watcher.clone(),
         );
@@ -142,7 +155,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         iface_bluetooth_gatt::export_bluetooth_gatt_dbus_obj(
             make_object_name(adapter_index, "gatt"),
             conn.clone(),
-            &mut cr,
+            &mut cr.lock().unwrap(),
             bluetooth_gatt.clone(),
             disconnect_watcher.clone(),
         );
@@ -150,7 +163,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         iface_bluetooth_media::export_bluetooth_media_dbus_obj(
             make_object_name(adapter_index, "media"),
             conn.clone(),
-            &mut cr,
+            &mut cr.lock().unwrap(),
             bluetooth_media.clone(),
             disconnect_watcher.clone(),
         );
@@ -158,7 +171,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         iface_suspend::export_suspend_dbus_obj(
             make_object_name(adapter_index, "suspend"),
             conn.clone(),
-            &mut cr,
+            &mut cr.lock().unwrap(),
             suspend,
             disconnect_watcher.clone(),
         );
@@ -176,16 +189,6 @@ fn main() -> Result<(), Box<dyn Error>> {
 
             bluetooth_gatt.lock().unwrap().init_profiles(tx.clone());
         }
-
-        // Start listening on DBus after exporting interfaces and initializing
-        // all bluetooth objects.
-        conn.start_receive(
-            MatchRule::new_method_call(),
-            Box::new(move |msg, conn| {
-                cr.handle_message(msg, conn).unwrap();
-                true
-            }),
-        );
 
         // Serve clients forever.
         future::pending::<()>().await;
