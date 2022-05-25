@@ -19,6 +19,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <sys/cdefs.h>
 
 #include <bluetooth/uuid.h>
 

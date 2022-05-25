@@ -35,6 +35,7 @@
 #include "gd/common/strings.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
+#include "stack/btm/btm_sec.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
@@ -1014,9 +1015,15 @@ class VolumeControlImpl : public VolumeControl {
         OnNotificationEvent(n.conn_id, n.handle, n.len, n.value);
       } break;
 
-      case BTA_GATTC_ENC_CMPL_CB_EVT:
-        OnEncryptionComplete(p_data->enc_cmpl.remote_bda, BTM_SUCCESS);
-        break;
+      case BTA_GATTC_ENC_CMPL_CB_EVT: {
+        uint8_t encryption_status;
+        if (!BTM_IsEncrypted(p_data->enc_cmpl.remote_bda, BT_TRANSPORT_LE)) {
+          encryption_status = BTM_SUCCESS;
+        } else {
+          encryption_status = BTM_FAILED_ON_SECURITY;
+        }
+        OnEncryptionComplete(p_data->enc_cmpl.remote_bda, encryption_status);
+      } break;
 
       case BTA_GATTC_SRVC_CHG_EVT:
         OnServiceChangeEvent(p_data->remote_bda);
