@@ -19,6 +19,7 @@ package com.android.bluetooth.bas;
 import static android.bluetooth.BluetoothGatt.GATT_SUCCESS;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.after;
@@ -157,6 +158,7 @@ public class BatteryStateMachineTest {
         // Check that we are in Disconnected state
         Assert.assertThat(mBatteryStateMachine.getCurrentState(),
                 IsInstanceOf.instanceOf(BatteryStateMachine.Disconnected.class));
+        assertNull(mBatteryStateMachine.mBluetoothGatt);
     }
 
     @Test
