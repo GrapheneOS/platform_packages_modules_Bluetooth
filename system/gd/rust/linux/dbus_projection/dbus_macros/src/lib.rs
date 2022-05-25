@@ -42,13 +42,28 @@ pub fn dbus_method(_attr: TokenStream, item: TokenStream) -> TokenStream {
     gen.into()
 }
 
-/// Generates a function to export a Rust object to D-Bus.
+/// Generates a function to export a Rust object to D-Bus. The result will provide an IFaceToken
+/// that must then be registered to an object.
 ///
 /// Example:
-///   `#[generate_dbus_exporter(export_foo_dbus_obj, "org.example.FooInterface")]`
+///   `#[generate_dbus_exporter(export_foo_dbus_intf, "org.example.FooInterface")]`
+///   `#[generate_dbus_exporter(export_foo_dbus_intf, "org.example.FooInterface", FooMixin, foo]`
 ///
-/// This generates a method called `export_foo_dbus_obj` that will export a Rust object into a
-/// D-Bus object having interface `org.example.FooInterface`.
+/// This generates a method called `export_foo_dbus_intf` that will export a Rust object type into a
+/// interface token for `org.example.FooInterface`. This interface must then be inserted to an
+/// object in order to be exported.
+///
+/// If the mixin parameter is provided, you must provide the mixin class when registering with
+/// crossroads (and that's the one that should be Arc<Mutex<...>>.
+///
+/// # Args
+///
+/// `exporter`: Function name for outputted interface exporter.
+/// `interface`: Name of the interface where this object should be exported.
+/// `mixin_type`: The name of the Mixin struct. Mixins should be used when
+///               exporting multiple interfaces and objects under a single object
+///               path.
+/// `mixin`: Name of this object in the mixin where it's implemented.
 #[proc_macro_attribute]
 pub fn generate_dbus_exporter(attr: TokenStream, item: TokenStream) -> TokenStream {
     let ori_item: proc_macro2::TokenStream = item.clone().into();
@@ -67,12 +82,28 @@ pub fn generate_dbus_exporter(attr: TokenStream, item: TokenStream) -> TokenStre
         panic!("D-Bus interface name must be specified");
     };
 
+    // Must provide both a mixin type and name.
+    let (mixin_type, mixin_name) = if args.len() > 3 {
+        match (&args[2], &args[3]) {
+            (Expr::Path(t), Expr::Path(n)) => (Some(t), Some(n)),
+            (_, _) => (None, None),
+        }
+    } else {
+        (None, None)
+    };
+
     let ast: ItemImpl = syn::parse(item.clone()).unwrap();
     let api_iface_ident = ast.trait_.unwrap().1.to_token_stream();
 
     let mut register_methods = quote! {};
 
-    let obj_type = quote! { std::sync::Arc<std::sync::Mutex<Box<T>>> };
+    // If the object isn't expected to be part of a mixin, expect the object
+    // type to be Arc<Mutex<Box<T>>>. Otherwise, we accept any type T and depend
+    // on the field name lookup to throw an error.
+    let obj_type = match mixin_type {
+        None => quote! { std::sync::Arc<std::sync::Mutex<Box<T>>> },
+        Some(t) => quote! { Box<#t> },
+    };
 
     for item in ast.items {
         if let ImplItem::Method(method) = item {
@@ -165,6 +196,19 @@ pub fn generate_dbus_exporter(attr: TokenStream, item: TokenStream) -> TokenStre
                 output_names = quote! { "out", };
             }
 
+            let method_call = match mixin_name {
+                Some(name) => {
+                    quote! {
+                        let ret = obj.#name.lock().unwrap().#method_name(#method_args);
+                    }
+                }
+                None => {
+                    quote! {
+                        let ret = obj.lock().unwrap().#method_name(#method_args);
+                    }
+                }
+            };
+
             register_methods = quote! {
                 #register_methods
 
@@ -175,7 +219,7 @@ pub fn generate_dbus_exporter(attr: TokenStream, item: TokenStream) -> TokenStre
                                           #dbus_input_args |
                       -> Result<(#output_type), dbus_crossroads::MethodErr> {
                     #make_args
-                    let ret = obj.lock().unwrap().#method_name(#method_args);
+                    #method_call
                     #ret
                 };
                 ibuilder.method(
@@ -188,28 +232,23 @@ pub fn generate_dbus_exporter(attr: TokenStream, item: TokenStream) -> TokenStre
         }
     }
 
+    // If mixin is not given, we enforce the API trait is implemented when exporting.
+    let type_t = match mixin_type {
+        None => quote! { <T: 'static + #api_iface_ident + Send + ?Sized> },
+        Some(_) => quote! {},
+    };
+
     let gen = quote! {
         #ori_item
 
-        pub fn #fn_ident<T: 'static + #api_iface_ident + Send + ?Sized, P: Into<dbus::Path<'static>>>(
-            path: P,
+        pub fn #fn_ident #type_t(
             conn: std::sync::Arc<dbus::nonblock::SyncConnection>,
             cr: &mut dbus_crossroads::Crossroads,
-            obj: #obj_type,
             disconnect_watcher: std::sync::Arc<std::sync::Mutex<dbus_projection::DisconnectWatcher>>,
-        ) {
-            fn get_iface_token<T: #api_iface_ident + Send + ?Sized>(
-                conn: std::sync::Arc<dbus::nonblock::SyncConnection>,
-                cr: &mut dbus_crossroads::Crossroads,
-                disconnect_watcher: std::sync::Arc<std::sync::Mutex<dbus_projection::DisconnectWatcher>>,
-            ) -> dbus_crossroads::IfaceToken<#obj_type> {
-                cr.register(#dbus_iface_name, |ibuilder| {
-                    #register_methods
-                })
-            }
-
-            let iface_token = get_iface_token(conn, cr, disconnect_watcher);
-            cr.insert(path, &[iface_token], obj);
+        ) -> dbus_crossroads::IfaceToken<#obj_type> {
+            cr.register(#dbus_iface_name, |ibuilder| {
+                #register_methods
+            })
         }
     };
 
