@@ -428,26 +428,31 @@ impl PowerdSuspendManager {
 
         self.context.lock().unwrap().pending_suspend_imminent = Some(suspend_imminent.clone());
 
-        if let Some(adapter_suspend_dbus) = &self.context.lock().unwrap().adapter_suspend_dbus {
-            let adapter_suspend_id =
-                adapter_suspend_dbus.suspend(match suspend_imminent.get_reason() {
-                    SuspendImminent_Reason::IDLE => SuspendType::Connected,
-                    SuspendImminent_Reason::LID_CLOSED => SuspendType::Disconnected,
-                    SuspendImminent_Reason::OTHER => SuspendType::Other,
-                });
-            log::debug!("Adapter suspend id = {}", adapter_suspend_id);
-        } else {
-            // If there is no adapter, that means Bluetooth is not active and we should always tell
-            // powerd that we are ready to suspend.
-            log::debug!("Adapter not available, suspend is ready.");
-            if let Some(session) = &self.context.lock().unwrap().powerd_session {
-                send_handle_suspend_readiness(
-                    session.powerd_proxy.clone(),
-                    session.delay_id,
-                    suspend_imminent.get_suspend_id(),
-                );
+        {
+            // Anonymous block to contain locked `self.context` which needs to be called multiple
+            // times in the `if let` block below. Prevent deadlock by locking only once.
+            let context_locked = self.context.lock().unwrap();
+            if let Some(adapter_suspend_dbus) = &context_locked.adapter_suspend_dbus {
+                let adapter_suspend_id =
+                    adapter_suspend_dbus.suspend(match suspend_imminent.get_reason() {
+                        SuspendImminent_Reason::IDLE => SuspendType::Connected,
+                        SuspendImminent_Reason::LID_CLOSED => SuspendType::Disconnected,
+                        SuspendImminent_Reason::OTHER => SuspendType::Other,
+                    });
+                log::debug!("Adapter suspend id = {}", adapter_suspend_id);
             } else {
-                log::warn!("SuspendImminent is received when there is no powerd session");
+                // If there is no adapter, that means Bluetooth is not active and we should always
+                // tell powerd that we are ready to suspend.
+                log::debug!("Adapter not available, suspend is ready.");
+                if let Some(session) = &context_locked.powerd_session {
+                    send_handle_suspend_readiness(
+                        session.powerd_proxy.clone(),
+                        session.delay_id,
+                        suspend_imminent.get_suspend_id(),
+                    );
+                } else {
+                    log::warn!("SuspendImminent is received when there is no powerd session");
+                }
             }
         }
     }
