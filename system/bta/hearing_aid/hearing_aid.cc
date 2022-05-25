@@ -1868,7 +1868,9 @@ void hearingaid_gattc_callback(tBTA_GATTC_EVT event, tBTA_GATTC* p_data) {
 
     case BTA_GATTC_ENC_CMPL_CB_EVT:
       if (!instance) return;
-      instance->OnEncryptionComplete(p_data->enc_cmpl.remote_bda, true);
+      instance->OnEncryptionComplete(
+          p_data->enc_cmpl.remote_bda,
+          BTM_IsEncrypted(p_data->enc_cmpl.remote_bda, BT_TRANSPORT_LE));
       break;
 
     case BTA_GATTC_CONN_UPDATE_EVT:
