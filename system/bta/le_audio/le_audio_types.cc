@@ -469,6 +469,49 @@ std::ostream& operator<<(std::ostream& os,
      << ", AudioChanLoc=" << loghex(*config.audio_channel_allocation) << ")";
   return os;
 }
+std::ostream& operator<<(std::ostream& os, const LeAudioContextType& context) {
+  switch (context) {
+    case LeAudioContextType::UNINITIALIZED:
+      os << "UNINITIALIZED";
+      break;
+    case LeAudioContextType::UNSPECIFIED:
+      os << "UNSPECIFIED";
+      break;
+    case LeAudioContextType::CONVERSATIONAL:
+      os << "CONVERSATIONAL";
+      break;
+    case LeAudioContextType::MEDIA:
+      os << "MEDIA";
+      break;
+    case LeAudioContextType::GAME:
+      os << "GAME";
+      break;
+    case LeAudioContextType::INSTRUCTIONAL:
+      os << "INSTRUCTIONAL";
+      break;
+    case LeAudioContextType::VOICEASSISTANTS:
+      os << "VOICEASSISTANTS";
+      break;
+    case LeAudioContextType::LIVE:
+      os << "LIVE";
+      break;
+    case LeAudioContextType::SOUNDEFFECTS:
+      os << "SOUNDEFFECTS";
+      break;
+    case LeAudioContextType::NOTIFICATIONS:
+      os << "NOTIFICATIONS";
+      break;
+    case LeAudioContextType::RINGTONE:
+      os << "RINGTONE";
+      break;
+    case LeAudioContextType::EMERGENCYALARM:
+      os << "EMERGENCYALARM";
+      break;
+    default:
+      os << "UNKNOWN";
+      break;
+  }
+  return os;
+}
 }  // namespace types
-
 }  // namespace le_audio
