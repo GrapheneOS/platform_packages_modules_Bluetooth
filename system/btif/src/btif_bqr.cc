@@ -395,6 +395,7 @@ void CategorizeBqrEvent(uint8_t length, const uint8_t* p_bqr_event) {
     case QUALITY_REPORT_ID_APPROACH_LSTO:
     case QUALITY_REPORT_ID_A2DP_AUDIO_CHOPPY:
     case QUALITY_REPORT_ID_SCO_VOICE_CHOPPY:
+    case QUALITY_REPORT_ID_LE_AUDIO_CHOPPY:
       if (length < kLinkQualityParamTotalLen) {
         LOG(FATAL) << __func__
                    << ": Parameter total length: " << std::to_string(length)
