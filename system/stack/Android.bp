@@ -213,7 +213,10 @@ cc_library_static {
 // Bluetooth stack unit tests for target
 cc_test {
     name: "net_test_stack",
-    defaults: ["fluoride_defaults"],
+    defaults: [
+        "fluoride_defaults",
+        "mts_defaults",
+    ],
     test_suites: ["device-tests"],
     local_include_dirs: [
         "include",
@@ -276,7 +279,10 @@ cc_test {
 
 cc_test {
     name: "net_test_stack_rfcomm",
-    defaults: ["fluoride_defaults"],
+    defaults: [
+        "fluoride_defaults",
+        "mts_defaults",
+    ],
     test_suites: ["device-tests"],
     host_supported: true,
     local_include_dirs: [
@@ -335,7 +341,10 @@ cc_test {
 // Bluetooth stack smp unit tests for target
 cc_test {
     name: "net_test_stack_smp",
-    defaults: ["fluoride_defaults"],
+    defaults: [
+        "fluoride_defaults",
+        "mts_defaults",
+    ],
     host_supported: true,
     test_suites: ["device-tests"],
     local_include_dirs: [
@@ -395,7 +404,10 @@ cc_test {
 // Bluetooth stack multi-advertising unit tests for target
 cc_test {
     name: "net_test_stack_multi_adv",
-    defaults: ["fluoride_defaults"],
+    defaults: [
+        "fluoride_defaults",
+        "mts_defaults",
+    ],
     test_suites: ["device-tests"],
     local_include_dirs: [
         "include",
@@ -434,7 +446,10 @@ cc_test {
 // Bluetooth stack advertise data parsing unit tests for target
 cc_test {
     name: "net_test_stack_ad_parser",
-    defaults: ["fluoride_defaults"],
+    defaults: [
+        "fluoride_defaults",
+        "mts_defaults",
+    ],
     test_suites: ["device-tests"],
     local_include_dirs: [
         "include",
@@ -490,7 +505,10 @@ cc_test {
 
 cc_test {
     name: "net_test_stack_gatt_native",
-    defaults: ["fluoride_defaults"],
+    defaults: [
+        "fluoride_defaults",
+        "mts_defaults",
+    ],
     test_suites: ["device-tests"],
     host_supported: true,
     test_options: {
@@ -535,7 +553,10 @@ cc_test {
 
 cc_test {
     name: "net_test_stack_avdtp",
-    defaults: ["fluoride_defaults"],
+    defaults: [
+        "fluoride_defaults",
+        "mts_defaults",
+    ],
     test_suites: ["device-tests"],
     host_supported: true,
     test_options: {
@@ -586,7 +607,10 @@ cc_test {
 
 cc_test {
     name: "net_test_stack_a2dp_native",
-    defaults: ["fluoride_defaults"],
+    defaults: [
+        "fluoride_defaults",
+        "mts_defaults",
+    ],
     test_suites: ["device-tests"],
     host_supported: true,
     test_options: {
@@ -629,7 +653,10 @@ cc_test {
 // gatt sr hash test
 cc_test {
     name: "net_test_stack_gatt_sr_hash_native",
-    defaults: ["fluoride_defaults"],
+    defaults: [
+        "fluoride_defaults",
+        "mts_defaults",
+    ],
     test_suites: ["device-tests"],
     host_supported: true,
     include_dirs: [
@@ -673,7 +700,10 @@ cc_test {
     test_options: {
         unit_test: true,
     },
-    defaults: ["fluoride_defaults"],
+    defaults: [
+        "fluoride_defaults",
+        "mts_defaults",
+    ],
     local_include_dirs: [
         "btm",
         "include",
@@ -719,6 +749,7 @@ cc_test {
     defaults: [
         "fluoride_defaults",
         "clang_coverage_bin",
+        "mts_defaults",
     ],
     local_include_dirs: [
         "include",
@@ -766,7 +797,10 @@ cc_test {
     test_options: {
         unit_test: true,
     },
-    defaults: ["fluoride_defaults"],
+    defaults: [
+        "fluoride_defaults",
+        "mts_defaults",
+    ],
     local_include_dirs: [
         "include",
         "btm",
@@ -860,7 +894,10 @@ cc_test {
     name: "net_test_stack_hci",
     test_suites: ["device-tests"],
     host_supported: true,
-    defaults: ["fluoride_defaults"],
+    defaults: [
+        "fluoride_defaults",
+        "mts_defaults",
+    ],
     local_include_dirs: [
         "include",
         "btm",
@@ -903,7 +940,10 @@ cc_test {
     name: "net_test_stack_hid",
     test_suites: ["device-tests"],
     host_supported: true,
-    defaults: ["fluoride_defaults"],
+    defaults: [
+        "fluoride_defaults",
+        "mts_defaults",
+    ],
     local_include_dirs: [
         "include",
         "test/common",
@@ -952,7 +992,10 @@ cc_test {
     name: "net_test_stack_btu",
     test_suites: ["device-tests"],
     host_supported: true,
-    defaults: ["fluoride_defaults"],
+    defaults: [
+        "fluoride_defaults",
+        "mts_defaults",
+    ],
     local_include_dirs: [
         "include",
         "test/common",
@@ -1011,7 +1054,10 @@ cc_test {
     name: "net_test_stack_gatt",
     test_suites: ["device-tests"],
     host_supported: true,
-    defaults: ["fluoride_defaults"],
+    defaults: [
+        "fluoride_defaults",
+        "mts_defaults",
+    ],
     local_include_dirs: [
         "include",
         "test/common",
@@ -1082,7 +1128,10 @@ cc_test {
     name: "net_test_stack_l2cap",
     test_suites: ["device-tests"],
     host_supported: true,
-    defaults: ["fluoride_defaults"],
+    defaults: [
+        "fluoride_defaults",
+        "mts_defaults",
+    ],
     local_include_dirs: [
         "include",
         "test/common",
@@ -1151,7 +1200,10 @@ cc_test {
     name: "net_test_stack_acl",
     test_suites: ["device-tests"],
     host_supported: true,
-    defaults: ["fluoride_defaults"],
+    defaults: [
+        "fluoride_defaults",
+        "mts_defaults",
+    ],
     local_include_dirs: [
         "include",
         "test/common",

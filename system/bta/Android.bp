@@ -101,6 +101,7 @@ cc_library_static {
         "le_audio/le_audio_set_configuration_provider.cc",
         "le_audio/le_audio_set_configuration_provider_json.cc",
         "le_audio/le_audio_types.cc",
+        "le_audio/metrics_collector.cc",
         "has/has_client.cc",
         "has/has_ctp.cc",
         "has/has_journal.cc",
@@ -153,7 +154,10 @@ cc_library_static {
 // bta unit tests for target
 cc_test {
     name: "net_test_bta",
-    defaults: ["fluoride_bta_defaults"],
+    defaults: [
+        "fluoride_bta_defaults",
+        "mts_defaults"
+    ],
     test_suites: ["device-tests"],
     srcs: [
         ":TestMockStackBtm",
@@ -192,7 +196,10 @@ cc_test {
 
 cc_test {
     name: "bt_host_test_bta",
-    defaults: ["fluoride_bta_defaults"],
+    defaults: [
+        "fluoride_bta_defaults",
+        "mts_defaults",
+    ],
     test_suites: ["device-tests"],
     host_supported: true,
     include_dirs: [
@@ -266,7 +273,10 @@ cc_test {
 // bta hf client add record tests for target
 cc_test {
     name: "net_test_hf_client_add_record",
-    defaults: ["fluoride_defaults"],
+    defaults: [
+        "fluoride_defaults",
+        "mts_defaults",
+    ],
     test_suites: ["device-tests"],
     include_dirs: [
         "packages/modules/Bluetooth/system",
@@ -300,6 +310,7 @@ cc_test {
     defaults: [
         "fluoride_bta_defaults",
         "clang_coverage_bin",
+        "mts_defaults",
     ],
     host_supported: true,
     include_dirs: [
@@ -353,6 +364,7 @@ cc_test {
     defaults: [
         "fluoride_bta_defaults",
         "clang_coverage_bin",
+        "mts_defaults",
     ],
     host_supported: true,
     include_dirs: [
@@ -394,6 +406,7 @@ cc_test {
     defaults: [
         "fluoride_bta_defaults",
         "clang_coverage_bin",
+        "mts_defaults",
     ],
     host_supported: true,
     include_dirs: [
@@ -512,6 +525,7 @@ cc_test {
     defaults: [
         "fluoride_defaults",
         "clang_coverage_bin",
+        "mts_defaults",
     ],
     host_supported: true,
     target: {
@@ -550,6 +564,7 @@ cc_test {
         "le_audio/le_audio_set_configuration_provider_json.cc",
         "le_audio/le_audio_types.cc",
         "le_audio/le_audio_types_test.cc",
+        "le_audio/metrics_collector_linux.cc",
         "le_audio/mock_iso_manager.cc",
         "test/common/mock_controller.cc",
         "le_audio/state_machine.cc",
@@ -591,6 +606,7 @@ cc_test {
     defaults: [
         "fluoride_bta_defaults",
         "clang_coverage_bin",
+        "mts_defaults",
     ],
     host_supported: true,
     include_dirs: [
@@ -611,6 +627,8 @@ cc_test {
         "le_audio/le_audio_client_test.cc",
         "le_audio/le_audio_set_configuration_provider_json.cc",
         "le_audio/le_audio_types.cc",
+        "le_audio/metrics_collector.cc",
+        "le_audio/metrics_collector_test.cc",
         "le_audio/mock_iso_manager.cc",
         "le_audio/mock_state_machine.cc",
         "test/common/btm_api_mock.cc",
@@ -677,6 +695,7 @@ cc_test {
     defaults: [
         "fluoride_bta_defaults",
         "clang_coverage_bin",
+        "mts_defaults",
     ],
     host_supported: true,
     include_dirs: [
@@ -724,6 +743,7 @@ cc_test {
     defaults: [
         "fluoride_bta_defaults",
         "clang_coverage_bin",
+        "mts_defaults",
     ],
     host_supported: true,
     include_dirs: [
@@ -791,6 +811,7 @@ cc_test {
     defaults: [
         "fluoride_bta_defaults",
         "clang_coverage_bin",
+        "mts_defaults",
     ],
     host_supported: true,
     include_dirs: [
