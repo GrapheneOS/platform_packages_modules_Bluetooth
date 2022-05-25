@@ -3119,11 +3119,15 @@ class LeAudioClientImpl : public LeAudioClient {
 
   LeAudioContextType ChooseContextType(
       std::vector<LeAudioContextType>& available_contents) {
-    /* Mini policy. Voice is prio 1, media is prio 2 */
+    /* Mini policy. Voice is prio 1, game prio 2, media is prio 3 */
     auto iter = find(available_contents.begin(), available_contents.end(),
                      LeAudioContextType::CONVERSATIONAL);
     if (iter != available_contents.end())
       return LeAudioContextType::CONVERSATIONAL;
+
+    iter = find(available_contents.begin(), available_contents.end(),
+                LeAudioContextType::GAME);
+    if (iter != available_contents.end()) return LeAudioContextType::GAME;
 
     iter = find(available_contents.begin(), available_contents.end(),
                 LeAudioContextType::MEDIA);
