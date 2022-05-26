@@ -54,7 +54,7 @@ class GattClient():
         """
         await self.__gatt_stub.RegisterAdvertiser(empty_proto.Empty())
 
-    async def unregister_advertiser(self):
+    async def unregister_advertiser(self, advertiser_id):
         """
         Stop advertising for advertiser id
         """
@@ -76,10 +76,15 @@ class GattClient():
         """
         await self.__gatt_stub.SetData(empty_proto.Empty())
 
-    async def enable(self):
+    async def advertising_enable(self):
         """
         """
-        await self.__gatt_stub.Enable(empty_proto.Empty())
+        await self.__gatt_stub.AdvertisingEnable(empty_proto.Empty())
+
+    async def advertising_disable(self):
+        """
+        """
+        await self.__gatt_stub.AdvertisingDisable(empty_proto.Empty())
 
     async def set_periodic_advertising_parameters(self):
         """
