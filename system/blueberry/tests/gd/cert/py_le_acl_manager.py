@@ -55,9 +55,12 @@ class PyLeAclManagerAclConnection(IEventStream, Closable):
         safeClose(self.connection_event_stream)
         safeClose(self.acl_stream)
 
-    def wait_for_disconnection_complete(self):
+    def disconnect(self):
+        self.le_acl_manager.Disconnect(le_acl_manager_facade.LeHandleMsg(handle=self.handle))
+
+    def wait_for_disconnection_complete(self, timeout=timedelta(seconds=30)):
         disconnection_complete = HciCaptures.DisconnectionCompleteCapture()
-        assertThat(self.connection_event_stream).emits(disconnection_complete)
+        assertThat(self.connection_event_stream).emits(disconnection_complete, timeout=timeout)
         self.disconnect_reason = disconnection_complete.get().GetReason()
 
     def send(self, data):
