@@ -30,11 +30,9 @@ class SuspendTest(TopshimBaseTest):
         await self.dut_adapter.clear_event_mask()
         await self.dut_adapter.clear_event_filter()
         await self.dut_adapter.clear_filter_accept_list()
-        await self.dut_adapter.disconnect_all_acls()
-        # In the real module it will iterate advertiser ids
-        await self.dut_gatt.unregister_advertiser()
-        # In the real module it will iterate scanner ids
+        await self.dut_gatt.advertising_disable()
         await self.dut_gatt.stop_scan()
+        await self.dut_adapter.disconnect_all_acls()
         return await self.dut_adapter.le_rand()
 
     async def __verify_no_wake_resume(self):
@@ -48,13 +46,12 @@ class SuspendTest(TopshimBaseTest):
         await self.dut_adapter.clear_event_mask()
         await self.dut_adapter.clear_event_filter()
         await self.dut_adapter.clear_filter_accept_list()
-        await self.dut_adapter.disconnect_all_acls()
-        # In the real module it will iterate advertiser ids
-        await self.dut_gatt.unregister_advertiser()
+        await self.dut_gatt.advertising_disable()
         await self.dut_gatt.stop_scan()
         if is_a2dp_connected:
-            # await self.dut_adapter.disconnect_a2dp()
+            # await self.media_server.disconnect_a2dp()
             pass
+        await self.dut_adapter.disconnect_all_acls()
         await self.dut_adapter.allow_wake_by_hid()
         return await self.dut_adapter.le_rand()
 
@@ -67,8 +64,9 @@ class SuspendTest(TopshimBaseTest):
             # restore filter accept list?
             await self.dut_adapter.restore_filter_accept_list()
             # reconnect a2dp
-            # await self.dut_adapter.reconnect_last_a2dp()
-            # await self.dut_adapter.restart_all_advertising()
+            # await self.media_server.reconnect_last_a2dp()
+            # await self.gatt.restart_all_previous_advertising()
+        await self.dut_gatt.advertising_enable()
         return await self.dut_adapter.le_rand()
 
     def test_no_wake_suspend(self):

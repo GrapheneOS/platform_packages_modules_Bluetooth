@@ -98,7 +98,6 @@ fn main() -> Result<(), Box<dyn Error>> {
     let (tx, rx) = Stack::create_channel();
 
     let intf = Arc::new(Mutex::new(get_btinterface().unwrap()));
-    let suspend = Arc::new(Mutex::new(Box::new(Suspend::new(intf.clone(), tx.clone()))));
     let bluetooth_gatt =
         Arc::new(Mutex::new(Box::new(BluetoothGatt::new(intf.clone(), tx.clone()))));
     let bluetooth_media =
@@ -108,6 +107,13 @@ fn main() -> Result<(), Box<dyn Error>> {
         intf.clone(),
         bluetooth_media.clone(),
     ))));
+    let suspend = Arc::new(Mutex::new(Box::new(Suspend::new(
+        bluetooth.clone(),
+        intf.clone(),
+        bluetooth_gatt.clone(),
+        tx.clone(),
+    ))));
+
     let bt_sock_mgr =
         Arc::new(Mutex::new(Box::new(BluetoothSocketManager::new(intf.clone(), tx.clone()))));
 
