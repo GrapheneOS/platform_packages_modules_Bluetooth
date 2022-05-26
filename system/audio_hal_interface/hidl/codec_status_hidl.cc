@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#define LOG_TAG "BtAudioCodecStatus_HIDL"
+#define LOG_TAG "BTAudioCodecStatusHIDL"
 
 #include "codec_status_hidl.h"
 
