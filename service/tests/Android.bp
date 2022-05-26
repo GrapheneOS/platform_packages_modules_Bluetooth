@@ -76,6 +76,5 @@ android_test {
 
     test_suites: [
         "general-tests",
-        "mts-bluetooth",
     ],
 }
