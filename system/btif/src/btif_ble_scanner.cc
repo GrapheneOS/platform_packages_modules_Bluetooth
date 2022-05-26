@@ -162,8 +162,6 @@ void bta_scan_results_cb_impl(RawAddress bd_addr, tBT_DEVICE_TYPE device_type,
 }
 
 void bta_scan_results_cb(tBTA_DM_SEARCH_EVT event, tBTA_DM_SEARCH* p_data) {
-  uint8_t len;
-
   if (event == BTA_DM_INQ_CMPL_EVT) {
     BTIF_TRACE_DEBUG("%s  BLE observe complete. Num Resp %d", __func__,
                      p_data->inq_cmpl.num_resps);
@@ -179,11 +177,6 @@ void bta_scan_results_cb(tBTA_DM_SEARCH_EVT event, tBTA_DM_SEARCH* p_data) {
   if (p_data->inq_res.p_eir) {
     value.insert(value.begin(), p_data->inq_res.p_eir,
                  p_data->inq_res.p_eir + p_data->inq_res.eir_len);
-
-    if (AdvertiseDataParser::GetFieldByType(
-            value, HCI_EIR_COMPLETE_LOCAL_NAME_TYPE, &len)) {
-      p_data->inq_res.remt_name_not_required = true;
-    }
   }
 
   tBTA_DM_INQ_RES* r = &p_data->inq_res;
