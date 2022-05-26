@@ -145,8 +145,7 @@ void acl_ble_enhanced_connection_complete_from_shim(
 
   // The legacy stack continues the LE connection after the read remote version
   // complete has been received.
-  l2cble_notify_le_connection(address_with_type.bda);
-  l2cble_use_preferred_conn_params(address_with_type.bda);
+  // maybe_chain_more_commands_after_read_remote_version_complete
 }
 
 void acl_ble_connection_fail(const tBLE_BD_ADDR& address_with_type,
