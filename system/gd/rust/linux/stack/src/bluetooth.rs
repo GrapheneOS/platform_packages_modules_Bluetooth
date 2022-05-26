@@ -566,6 +566,9 @@ pub(crate) trait BtifBluetoothCallbacks {
         link_type: BtTransport,
         hci_reason: BtHciErrorCode,
     );
+
+    #[btif_callback(LeRandCallback)]
+    fn le_rand_cb(&mut self, random: u64);
 }
 
 #[btif_callbacks_dispatcher(Bluetooth, dispatch_sdp_callbacks, SdpCallbacks)]
@@ -593,6 +596,10 @@ pub fn get_bt_dispatcher(tx: Sender<Message>) -> BaseCallbacksDispatcher {
 }
 
 impl BtifBluetoothCallbacks for Bluetooth {
+    fn le_rand_cb(&mut self, random: u64) {
+        println!("Random: {:?}", random);
+    }
+
     fn adapter_state_changed(&mut self, state: BtState) {
         let prev_state = self.state.clone();
         self.state = state;
