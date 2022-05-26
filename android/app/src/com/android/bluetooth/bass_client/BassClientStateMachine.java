@@ -436,7 +436,13 @@ public class BassClientStateMachine extends StateMachine {
                 channel.setSelected(false);
                 subGroup.addChannel(channel.build());
             }
-            subGroup.setCodecId(ByteBuffer.wrap(baseLevel2.codecId).getLong());
+            byte[] arrayCodecId = baseLevel2.codecId;
+            long codeId = (long) ((arrayCodecId[4] & 0xff) << 32
+                    | (arrayCodecId[3] & 0xff) << 24
+                    | (arrayCodecId[2] & 0xff) << 16
+                    | (arrayCodecId[1] & 0xff) << 8
+                    | (arrayCodecId[0] & 0xff));
+            subGroup.setCodecId(codeId);
             subGroup.setCodecSpecificConfig(BluetoothLeAudioCodecConfigMetadata.
                     fromRawBytes(baseLevel2.codecConfigInfo));
             subGroup.setContentMetadata(BluetoothLeAudioContentMetadata.
@@ -444,6 +450,18 @@ public class BassClientStateMachine extends StateMachine {
             metaData.addSubgroup(subGroup.build());
         }
         metaData.setSourceDevice(device, device.getAddressType());
+        byte[] arrayPresentationDelay = baseData.getLevelOne().presentationDelay;
+        int presentationDelay = (int) ((arrayPresentationDelay[2] & 0xff) << 16
+                | (arrayPresentationDelay[1] & 0xff)
+                | (arrayPresentationDelay[0] & 0xff));
+        metaData.setPresentationDelayMicros(presentationDelay);
+        PeriodicAdvertisementResult result =
+                mService.getPeriodicAdvertisementResult(device);
+        if (result != null) {
+            int broadcastId = result.getBroadcastId();
+            log("broadcast ID: " + broadcastId);
+            metaData.setBroadcastId(broadcastId);
+        }
         return metaData.build();
     }
 
@@ -634,6 +652,7 @@ public class BassClientStateMachine extends StateMachine {
             byte metaDataSyncState = receiverState[BassConstants.BCAST_RCVR_STATE_PA_SYNC_IDX];
             byte encryptionStatus = receiverState[BassConstants.BCAST_RCVR_STATE_ENC_STATUS_IDX];
             byte[] badBroadcastCode = null;
+            int badBroadcastCodeLen = 0;
             if (encryptionStatus
                     == BluetoothLeBroadcastReceiveState.BIG_ENCRYPTION_STATE_BAD_CODE) {
                 badBroadcastCode = new byte[BassConstants.BCAST_RCVR_STATE_BADCODE_SIZE];
@@ -644,11 +663,12 @@ public class BassClientStateMachine extends StateMachine {
                         0,
                         BassConstants.BCAST_RCVR_STATE_BADCODE_SIZE);
                 badBroadcastCode = reverseBytes(badBroadcastCode);
+                badBroadcastCodeLen = BassConstants.BCAST_RCVR_STATE_BADCODE_SIZE;
             }
             byte numSubGroups = receiverState[BassConstants.BCAST_RCVR_STATE_BADCODE_START_IDX
-                    + BassConstants.BCAST_RCVR_STATE_BADCODE_SIZE];
+                    + badBroadcastCodeLen];
             int offset = BassConstants.BCAST_RCVR_STATE_BADCODE_START_IDX
-                    + BassConstants.BCAST_RCVR_STATE_BADCODE_SIZE + 1;
+                    + badBroadcastCodeLen + 1;
             ArrayList<BluetoothLeAudioContentMetadata> metadataList =
                     new ArrayList<BluetoothLeAudioContentMetadata>();
             ArrayList<Long> audioSyncState = new ArrayList<Long>();
@@ -660,7 +680,7 @@ public class BassClientStateMachine extends StateMachine {
                 log("BIS index byte array: ");
                 BassUtils.printByteArray(audioSyncIndex);
                 ByteBuffer wrapped = ByteBuffer.wrap(reverseBytes(audioSyncIndex));
-                audioSyncState.add(wrapped.getLong());
+                audioSyncState.add((long) wrapped.getInt());
 
                 byte metaDataLength = receiverState[offset++];
                 if (metaDataLength > 0) {
@@ -1251,7 +1271,7 @@ public class BassClientStateMachine extends StateMachine {
     }
 
     private byte[] convertBroadcastMetadataToUpdateSourceByteArray(int sourceId,
-            BluetoothLeBroadcastMetadata metaData) {
+            BluetoothLeBroadcastMetadata metaData, int paSync) {
         BluetoothLeBroadcastReceiveState existingState =
                 getBroadcastReceiveStateForSourceId(sourceId);
         if (existingState == null) {
@@ -1283,7 +1303,9 @@ public class BassClientStateMachine extends StateMachine {
         // Source_ID
         res[offset++] = (byte) sourceId;
         // PA_Sync
-        if (existingState.getPaSyncState()
+        if (paSync != BluetoothLeBroadcastReceiveState.PA_SYNC_STATE_INVALID) {
+            res[offset++] = (byte) paSync;
+        } else if (existingState.getPaSyncState()
                 == BluetoothLeBroadcastReceiveState.PA_SYNC_STATE_SYNCHRONIZED) {
             res[offset++] = (byte) (0x01);
         } else {
@@ -1295,7 +1317,12 @@ public class BassClientStateMachine extends StateMachine {
         // Num_Subgroups
         res[offset++] = numSubGroups;
         for (int i = 0; i < numSubGroups; i++) {
-            int bisIndexValue = existingState.getBisSyncState().get(i).intValue();
+            int bisIndexValue;
+            if (paSync != BluetoothLeBroadcastReceiveState.PA_SYNC_STATE_INVALID) {
+                bisIndexValue = 0;
+            } else {
+                bisIndexValue = existingState.getBisSyncState().get(i).intValue();
+            }
             log("UPDATE_BCAST_SOURCE: bisIndexValue : " + bisIndexValue);
             // BIS_Sync
             res[offset++] = (byte) (bisIndexValue & 0x00000000000000FF);
@@ -1493,9 +1520,10 @@ public class BassClientStateMachine extends StateMachine {
                 case UPDATE_BCAST_SOURCE:
                     metaData = (BluetoothLeBroadcastMetadata) message.obj;
                     int sourceId = message.arg1;
+                    int paSync = message.arg2;
                     log("Updating Broadcast source" + metaData);
                     byte[] updateSourceInfo = convertBroadcastMetadataToUpdateSourceByteArray(
-                            sourceId, metaData);
+                            sourceId, metaData, paSync);
                     if (updateSourceInfo == null) {
                         Log.e(TAG, "update source: source Info is NULL");
                         break;
