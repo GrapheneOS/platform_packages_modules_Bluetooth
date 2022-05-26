@@ -31,6 +31,7 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 
 /**
  * Creates a cold flow of intents based on an intent filter. If used multiple times in a same class,
@@ -43,11 +44,11 @@ import kotlinx.coroutines.runBlocking
 @kotlinx.coroutines.ExperimentalCoroutinesApi
 fun intentFlow(context: Context, intentFilter: IntentFilter) = callbackFlow {
   val broadcastReceiver: BroadcastReceiver =
-    object : BroadcastReceiver() {
-      override fun onReceive(context: Context, intent: Intent) {
-        trySendBlocking(intent)
+      object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+          trySendBlocking(intent)
+        }
       }
-    }
   context.registerReceiver(broadcastReceiver, intentFilter)
 
   awaitClose { context.unregisterReceiver(broadcastReceiver) }
@@ -60,6 +61,8 @@ fun intentFlow(context: Context, intentFilter: IntentFilter) = callbackFlow {
  * @param T the type of gRPC response.
  * @param scope coroutine scope used to run the coroutine.
  * @param responseObserver the gRPC stream observer on which to send the response.
+ * @param timeout the duration in seconds after which the coroutine is automatically cancelled and
+ * returns a timeout error. Default: 60s.
  * @param block the suspended function to execute to get the response.
  * @return reference to the coroutine as a Job.
  *
@@ -77,15 +80,18 @@ fun intentFlow(context: Context, intentFilter: IntentFilter) = callbackFlow {
  */
 @kotlinx.coroutines.ExperimentalCoroutinesApi
 fun <T> grpcUnary(
-  scope: CoroutineScope,
-  responseObserver: StreamObserver<T>,
-  block: suspend () -> T
+    scope: CoroutineScope,
+    responseObserver: StreamObserver<T>,
+    timeout: Long = 60,
+    block: suspend () -> T
 ): Job {
   return scope.launch {
     try {
-      val response = block()
-      responseObserver.onNext(response)
-      responseObserver.onCompleted()
+      withTimeout(timeout * 1000) {
+        val response = block()
+        responseObserver.onNext(response)
+        responseObserver.onCompleted()
+      }
     } catch (e: Throwable) {
       e.printStackTrace()
       responseObserver.onError(e)
@@ -112,12 +118,12 @@ fun <T> getProfileProxy(context: Context, profile: Int): T {
 
     val flow = callbackFlow {
       val serviceListener =
-        object : BluetoothProfile.ServiceListener {
-          override fun onServiceConnected(profile: Int, proxy: BluetoothProfile) {
-            trySendBlocking(proxy)
+          object : BluetoothProfile.ServiceListener {
+            override fun onServiceConnected(profile: Int, proxy: BluetoothProfile) {
+              trySendBlocking(proxy)
+            }
+            override fun onServiceDisconnected(profile: Int) {}
           }
-          override fun onServiceDisconnected(profile: Int) {}
-        }
 
       bluetoothAdapter.getProfileProxy(context, serviceListener, profile)
 
