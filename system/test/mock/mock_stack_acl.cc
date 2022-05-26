@@ -161,8 +161,6 @@ struct btm_read_remote_ext_features_complete_raw
 struct btm_read_remote_ext_features_failed btm_read_remote_ext_features_failed;
 struct btm_read_remote_features_complete btm_read_remote_features_complete;
 struct btm_read_remote_version_complete btm_read_remote_version_complete;
-struct btm_read_remote_version_complete_raw
-    btm_read_remote_version_complete_raw;
 struct btm_read_rssi_complete btm_read_rssi_complete;
 struct btm_read_rssi_timeout btm_read_rssi_timeout;
 struct btm_read_tx_power_complete btm_read_tx_power_complete;
@@ -666,10 +664,6 @@ void btm_read_remote_version_complete(tHCI_STATUS status, uint16_t handle,
   mock_function_count_map[__func__]++;
   test::mock::stack_acl::btm_read_remote_version_complete(
       status, handle, lmp_version, manufacturer, lmp_subversion);
-}
-void btm_read_remote_version_complete_raw(uint8_t* p) {
-  mock_function_count_map[__func__]++;
-  test::mock::stack_acl::btm_read_remote_version_complete_raw(p);
 }
 void btm_read_rssi_complete(uint8_t* p) {
   mock_function_count_map[__func__]++;
