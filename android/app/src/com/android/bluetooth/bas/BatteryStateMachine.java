@@ -223,14 +223,16 @@ public class BatteryStateMachine extends StateMachine {
             return false;
         }
 
-        if (mBluetoothGatt == null) {
+        if (mGattCallback == null) {
             mGattCallback = new GattCallback();
-            mBluetoothGatt = mDevice.connectGatt(service, /*autoConnect=*/false,
-                    mGattCallback, TRANSPORT_AUTO, /*opportunistic=*/true,
-                    PHY_LE_1M_MASK | PHY_LE_2M_MASK, getHandler());
-        } else {
-            mBluetoothGatt.connect();
         }
+        if (mBluetoothGatt != null) {
+            Log.w(TAG, "Trying connectGatt with existing BluetoothGatt instance.");
+            mBluetoothGatt.close();
+        }
+        mBluetoothGatt = mDevice.connectGatt(service, /*autoConnect=*/false,
+                mGattCallback, TRANSPORT_AUTO, /*opportunistic=*/true,
+                PHY_LE_1M_MASK | PHY_LE_2M_MASK, getHandler());
         return mBluetoothGatt != null;
     }
 
@@ -255,6 +257,11 @@ public class BatteryStateMachine extends StateMachine {
         public void enter() {
             log(TAG, "Enter (" + mDevice + "): " + messageWhatToString(
                         getCurrentMessage().what));
+
+            if (mBluetoothGatt != null) {
+                mBluetoothGatt.close();
+                mBluetoothGatt = null;
+            }
 
             if (mLastConnectionState != BluetoothProfile.STATE_DISCONNECTED) {
                 // Don't broadcast during startup
@@ -575,7 +582,9 @@ public class BatteryStateMachine extends StateMachine {
             int batteryLevel = value[0] & 0xFF;
 
             BatteryService service = mServiceRef.get();
-            service.handleBatteryChanged(mDevice, batteryLevel);
+            if (service != null) {
+                service.handleBatteryChanged(mDevice, batteryLevel);
+            }
         }
     }
 }

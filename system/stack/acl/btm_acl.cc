@@ -91,7 +91,6 @@ struct StackAclBtmAcl {
   bool change_connection_packet_types(tACL_CONN& link,
                                       const uint16_t new_packet_type_bitmask);
   void btm_establish_continue(tACL_CONN* p_acl_cb);
-  void btm_read_remote_features(uint16_t handle);
   void btm_set_default_link_policy(tLINK_POLICY settings);
   void btm_acl_role_changed(tHCI_STATUS hci_status, const RawAddress& bd_addr,
                             tHCI_ROLE new_role);
@@ -834,24 +833,6 @@ void btm_process_remote_version_complete(uint8_t status, uint16_t handle,
   }
 }
 
-void btm_read_remote_version_complete_raw(uint8_t* p) {
-  uint8_t status;
-  uint16_t handle;
-  uint8_t lmp_version;
-  uint16_t manufacturer;
-  uint16_t lmp_subversion;
-
-  STREAM_TO_UINT8(status, p);
-  STREAM_TO_UINT16(handle, p);
-  STREAM_TO_UINT8(lmp_version, p);
-  STREAM_TO_UINT16(manufacturer, p);
-  STREAM_TO_UINT16(lmp_subversion, p);
-
-  ASSERT_LOG(false, "gd acl layer should be receiving this completion");
-  btm_read_remote_version_complete(static_cast<tHCI_STATUS>(status), handle,
-                                   lmp_version, manufacturer, lmp_version);
-}
-
 void btm_read_remote_version_complete(tHCI_STATUS status, uint16_t handle,
                                       uint8_t lmp_version,
                                       uint16_t manufacturer,
@@ -898,40 +879,6 @@ void btm_process_remote_ext_features(tACL_CONN* p_acl_cb,
 
 /*******************************************************************************
  *
- * Function         btm_read_remote_features
- *
- * Description      Local function called to send a read remote supported
- *                  features/remote extended features page[0].
- *
- * Returns          void
- *
- ******************************************************************************/
-void StackAclBtmAcl::btm_read_remote_features(uint16_t handle) {
-  uint8_t acl_idx;
-  tACL_CONN* p_acl_cb;
-
-  acl_idx = btm_handle_to_acl_index(handle);
-  if (acl_idx >= MAX_L2CAP_LINKS) {
-    LOG_WARN("Unable to find active acl");
-    return;
-  }
-
-  p_acl_cb = &btm_cb.acl_cb_.acl_db[acl_idx];
-  memset(p_acl_cb->peer_lmp_feature_pages, 0,
-         sizeof(p_acl_cb->peer_lmp_feature_pages));
-
-  /* first send read remote supported features HCI command */
-  /* because we don't know whether the remote support extended feature command
-   */
-  if (bluetooth::shim::is_gd_l2cap_enabled()) {
-    // GD L2cap reads this automatically
-    return;
-  }
-  btsnd_hcic_rmt_features_req(handle);
-}
-
-/*******************************************************************************
- *
  * Function         btm_read_remote_ext_features
  *
  * Description      Local function called to send a read remote extended
@@ -946,33 +893,6 @@ void btm_read_remote_ext_features(uint16_t handle, uint8_t page_number) {
     return;
   }
   btsnd_hcic_rmt_ext_features(handle, page_number);
-}
-
-/*******************************************************************************
- *
- * Function         btm_read_remote_features_complete
- *
- * Description      This function is called when the remote supported features
- *                  complete event is received from the HCI.
- *
- * Returns          void
- *
- ******************************************************************************/
-void btm_read_remote_features_complete_raw(uint8_t* p) {
-  uint8_t status;
-  uint16_t handle;
-
-  STREAM_TO_UINT8(status, p);
-
-  if (status != HCI_SUCCESS) {
-    LOG_WARN("Uanble to read remote features status:%s",
-             hci_error_code_text(static_cast<tHCI_STATUS>(status)).c_str());
-    return;
-  }
-
-  STREAM_TO_UINT16(handle, p);
-
-  btm_read_remote_features_complete(handle, p);
 }
 
 void btm_read_remote_features_complete(uint16_t handle, uint8_t* features) {
