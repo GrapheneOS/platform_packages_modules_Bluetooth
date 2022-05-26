@@ -61,9 +61,10 @@ class GdSl4aBaseTestClass(BaseTestClass):
         # Enable full btsnoop log
         self.dut.adb.root()
         self.dut.adb.shell("setprop persist.bluetooth.btsnooplogmode full")
-        getprop_result = self.dut.adb.shell("getprop persist.bluetooth.btsnooplogmode") == "full"
-        if not getprop_result:
-            self.dut.log.warning("Failed to enable Bluetooth Hci Snoop Logging.")
+        getprop_result = self.dut.adb.getprop("persist.bluetooth.btsnooplogmode")
+        if getprop_result is None or ("full" not in getprop_result.lower()):
+            self.dut.log.warning(
+                "Failed to enable Bluetooth Hci Snoop Logging, getprop returned {}".format(getprop_result))
 
         self.ble = BleLib(dut=self.dut)
 
@@ -95,7 +96,10 @@ class GdSl4aBaseTestClass(BaseTestClass):
         # Make sure BLE is disabled and Bluetooth is disabled after test
         self.dut.sl4a.bluetoothDisableBLE()
         disable_bluetooth(self.dut.sl4a, self.dut.ed)
-        self.cert.rootservice.StopStack(facade_rootservice.StopStackRequest())
+        try:
+            self.cert.rootservice.StopStack(facade_rootservice.StopStackRequest())
+        except Exception:
+            logging.error("Failed to stop CERT stack")
 
         # TODO: split cert logcat logs into individual tests
         current_test_dir = get_current_context().get_full_output_path()
