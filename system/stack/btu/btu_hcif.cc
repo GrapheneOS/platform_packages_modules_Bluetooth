@@ -265,14 +265,8 @@ void btu_hcif_process_event(UNUSED_ATTR uint8_t controller_id,
     case HCI_ENCRYPTION_KEY_REFRESH_COMP_EVT:
       btu_hcif_encryption_key_refresh_cmpl_evt(p);
       break;
-    case HCI_READ_RMT_FEATURES_COMP_EVT:
-      btm_read_remote_features_complete_raw(p);
-      break;
     case HCI_READ_RMT_EXT_FEATURES_COMP_EVT:
       btu_hcif_read_rmt_ext_features_comp_evt(p, hci_evt_len);
-      break;
-    case HCI_READ_RMT_VERSION_COMP_EVT:
-      btm_read_remote_version_complete_raw(p);
       break;
     case HCI_COMMAND_COMPLETE_EVT:
       LOG_ERROR(
@@ -434,6 +428,8 @@ void btu_hcif_process_event(UNUSED_ATTR uint8_t controller_id,
 
       // Events now captured by gd::hci_layer module
     case HCI_CONNECTION_COMP_EVT:  // EventCode::CONNECTION_COMPLETE
+    case HCI_READ_RMT_FEATURES_COMP_EVT:  // EventCode::READ_REMOTE_SUPPORTED_FEATURES_COMPLETE
+    case HCI_READ_RMT_VERSION_COMP_EVT:  // EventCode::READ_REMOTE_VERSION_INFORMATION_COMPLETE
     default:
       LOG_ERROR(
           "Unexpectedly received event_code:0x%02x that should not be "
