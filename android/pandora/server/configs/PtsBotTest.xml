@@ -11,7 +11,7 @@
 
     <target_preparer class="com.android.tradefed.targetprep.PythonVirtualenvPreparer">
         <option name="dep-module" value="grpcio" />
-        <option name="dep-module" value="protobuf" />
+        <option name="dep-module" value="protobuf==3.20.1" />
     </target_preparer>
 
     <test class="com.android.tradefed.testtype.pandora.PtsBotTest" >
