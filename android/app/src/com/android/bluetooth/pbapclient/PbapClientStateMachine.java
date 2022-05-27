@@ -301,10 +301,7 @@ final class PbapClientStateMachine extends StateMachine {
             onConnectionStateChanged(mCurrentDevice, mMostRecentState,
                     BluetoothProfile.STATE_CONNECTED);
             mMostRecentState = BluetoothProfile.STATE_CONNECTED;
-            if (mUserManager.isUserUnlocked()) {
-                mConnectionHandler.obtainMessage(PbapClientConnectionHandler.MSG_DOWNLOAD)
-                        .sendToTarget();
-            }
+            downloadIfReady();
         }
 
         @Override
@@ -321,8 +318,7 @@ final class PbapClientStateMachine extends StateMachine {
                     break;
 
                 case MSG_RESUME_DOWNLOAD:
-                    mConnectionHandler.obtainMessage(PbapClientConnectionHandler.MSG_DOWNLOAD)
-                            .sendToTarget();
+                    downloadIfReady();
                     break;
 
                 default:
@@ -331,6 +327,21 @@ final class PbapClientStateMachine extends StateMachine {
             }
             return HANDLED;
         }
+    }
+
+    /**
+     * Trigger a contacts download if the user is unlocked and our accounts are available to us
+     */
+    private void downloadIfReady() {
+        boolean userReady = mUserManager.isUserUnlocked();
+        boolean accountServiceReady = mService.isAuthenticationServiceReady();
+        if (!userReady || !accountServiceReady) {
+            Log.w(TAG, "Cannot download contacts yet, userReady=" + userReady
+                    + ", accountServiceReady=" + accountServiceReady);
+            return;
+        }
+        mConnectionHandler.obtainMessage(PbapClientConnectionHandler.MSG_DOWNLOAD)
+                .sendToTarget();
     }
 
     private void onConnectionStateChanged(BluetoothDevice device, int prevState, int state) {
@@ -357,7 +368,7 @@ final class PbapClientStateMachine extends StateMachine {
         sendMessage(MSG_DISCONNECT, device);
     }
 
-    public void resumeDownload() {
+    public void tryDownloadIfConnected() {
         sendMessage(MSG_RESUME_DOWNLOAD);
     }
 
