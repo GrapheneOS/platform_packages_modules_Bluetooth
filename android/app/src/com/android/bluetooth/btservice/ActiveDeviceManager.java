@@ -217,7 +217,7 @@ class ActiveDeviceManager {
                             break;      // The device is already connected
                         }
                         mA2dpConnectedDevices.add(device);
-                        if (mHearingAidActiveDevice == null) {
+                        if (mHearingAidActiveDevice == null && mLeAudioActiveDevice == null) {
                             // New connected device: select it as active
                             setA2dpActiveDevice(device);
                             break;
@@ -277,7 +277,7 @@ class ActiveDeviceManager {
                             break;      // The device is already connected
                         }
                         mHfpConnectedDevices.add(device);
-                        if (mHearingAidActiveDevice == null) {
+                        if (mHearingAidActiveDevice == null && mLeAudioActiveDevice == null) {
                             // New connected device: select it as active
                             setHfpActiveDevice(device);
                             break;
