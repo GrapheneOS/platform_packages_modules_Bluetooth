@@ -572,6 +572,7 @@ using AudioContexts = std::bitset<16>;
 std::ostream& operator<<(std::ostream& os, const AseState& state);
 std::ostream& operator<<(std::ostream& os, const CigState& state);
 std::ostream& operator<<(std::ostream& os, const LeAudioLc3Config& config);
+std::ostream& operator<<(std::ostream& os, const LeAudioContextType& context);
 }  // namespace types
 
 namespace set_configurations {
