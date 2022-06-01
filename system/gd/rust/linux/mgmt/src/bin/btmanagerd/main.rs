@@ -12,10 +12,9 @@ use dbus_crossroads::Crossroads;
 use dbus_projection::DisconnectWatcher;
 use dbus_tokio::connection;
 use log::LevelFilter;
-use manager_service::bluetooth_manager::{BluetoothManager, ManagerContext};
+use manager_service::bluetooth_manager::BluetoothManager;
 use manager_service::powerd_suspend_manager::PowerdSuspendManager;
 use manager_service::{bluetooth_manager_dbus, config_util, state_machine};
-use std::sync::atomic::AtomicBool;
 use std::sync::{Arc, Mutex};
 use syslog::{BasicLogger, Facility, Formatter3164};
 
@@ -63,10 +62,9 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
         state_machine::Invoker::UpstartInvoker
     };
 
-    let context = state_machine::start_new_state_machine_context(invoker);
+    let context =
+        state_machine::create_new_state_machine_context(invoker, config_util::is_floss_enabled());
     let proxy = context.get_proxy();
-    let manager_context =
-        ManagerContext::new(proxy, Arc::new(AtomicBool::new(config_util::is_floss_enabled())));
 
     // The resource is a task that should be spawned onto a tokio compatible
     // reactor ASAP. If the resource ever finishes, you lost connection to D-Bus.
@@ -99,7 +97,7 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let om = cr.lock().unwrap().object_manager();
     cr.lock().unwrap().insert("/", &[om], {});
 
-    let bluetooth_manager = Arc::new(Mutex::new(Box::new(BluetoothManager::new(manager_context))));
+    let bluetooth_manager = Arc::new(Mutex::new(Box::new(BluetoothManager::new(proxy))));
 
     // Set up the disconnect watcher to monitor client disconnects.
     let disconnect_watcher = Arc::new(Mutex::new(DisconnectWatcher::new()));
