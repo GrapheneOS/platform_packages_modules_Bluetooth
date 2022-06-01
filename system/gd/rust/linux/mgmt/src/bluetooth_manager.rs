@@ -109,13 +109,9 @@ impl IBluetoothManager for BluetoothManager {
         self.manager_context.proxy.stop_bluetooth(hci_interface);
     }
 
-    fn get_adapter_enabled(&mut self, _hci_interface: i32) -> bool {
-        let proxy = self.manager_context.proxy.clone();
-
-        // TODO(b/189501676) - State should depend on given adapter.
-        let state = proxy.get_state();
-        let result = state_machine::state_to_enabled(state);
-        result
+    fn get_adapter_enabled(&mut self, hci_interface: i32) -> bool {
+        let state = self.manager_context.proxy.get_state(hci_interface);
+        state_machine::state_to_enabled(state)
     }
 
     fn register_callback(&mut self, mut callback: Box<dyn IBluetoothManagerCallback + Send>) {
@@ -142,15 +138,17 @@ impl IBluetoothManager for BluetoothManager {
             if let Err(e) = Command::new("initctl").args(&["stop", BLUEZ_INIT_TARGET]).output() {
                 warn!("Failed to stop bluetoothd: {}", e);
             }
-            // TODO: Implement multi-hci case
-            let default_device = config_util::list_hci_devices()[0];
-            if config_util::is_hci_n_enabled(default_device) {
-                let _ = self.manager_context.proxy.start_bluetooth(default_device);
+            for hci in config_util::list_hci_devices() {
+                if config_util::is_hci_n_enabled(hci) {
+                    let _ = self.manager_context.proxy.start_bluetooth(hci);
+                }
             }
         } else if prev != enabled {
-            // TODO: Implement multi-hci case
-            let default_device = config_util::list_hci_devices()[0];
-            self.manager_context.proxy.stop_bluetooth(default_device);
+            for hci in config_util::list_hci_devices() {
+                if config_util::is_hci_n_enabled(hci) {
+                    let _ = self.manager_context.proxy.stop_bluetooth(hci);
+                }
+            }
             if let Err(e) = Command::new("initctl").args(&["start", BLUEZ_INIT_TARGET]).output() {
                 warn!("Failed to start bluetoothd: {}", e);
             }
