@@ -551,8 +551,8 @@ uint16_t LeAudioDeviceGroup::GetRemoteDelay(uint8_t direction) {
 
 /* This method returns AudioContext value if support for any type has changed */
 std::optional<AudioContexts> LeAudioDeviceGroup::UpdateActiveContextsMap(void) {
-  DLOG(INFO) << __func__ << " group id: " << group_id_ << " active contexts: "
-             << loghex(active_contexts_mask_.to_ulong());
+  LOG_DEBUG(" group id: %d, active contexts: 0x%04lx", group_id_,
+            active_contexts_mask_.to_ulong());
   return UpdateActiveContextsMap(active_contexts_mask_);
 }
 
@@ -562,10 +562,19 @@ std::optional<AudioContexts> LeAudioDeviceGroup::UpdateActiveContextsMap(
   AudioContexts contexts = 0x0000;
   bool active_contexts_has_been_modified = false;
 
+  if (update_contexts.none()) {
+    LOG_DEBUG("No context updated");
+    return contexts;
+  }
+
   for (LeAudioContextType ctx_type : types::kLeAudioContextAllTypesArray) {
     AudioContexts type_set = static_cast<uint16_t>(ctx_type);
-
+    LOG_DEBUG("Taking context: %s, 0x%04lx",
+              bluetooth::common::ToString(ctx_type).c_str(),
+              update_contexts.to_ulong());
     if ((type_set & update_contexts).none()) {
+      LOG_INFO("Configuration not in updated context %s",
+               bluetooth::common::ToString(ctx_type).c_str());
       /* Fill context bitset for possible returned value if updated */
       if (active_context_to_configuration_map.count(ctx_type) > 0)
         contexts |= type_set;
@@ -575,9 +584,11 @@ std::optional<AudioContexts> LeAudioDeviceGroup::UpdateActiveContextsMap(
 
     auto new_conf = FindFirstSupportedConfiguration(ctx_type);
 
+    bool ctx_previously_not_supported =
+        (active_context_to_configuration_map.count(ctx_type) == 0 ||
+         active_context_to_configuration_map[ctx_type] == nullptr);
     /* Check if support for context type has changed */
-    if (active_context_to_configuration_map.count(ctx_type) == 0 ||
-        active_context_to_configuration_map[ctx_type] == nullptr) {
+    if (ctx_previously_not_supported) {
       /* Current configuration for context type is empty */
       if (new_conf == nullptr) {
         /* Configuration remains empty */
@@ -604,12 +615,14 @@ std::optional<AudioContexts> LeAudioDeviceGroup::UpdateActiveContextsMap(
       }
     }
 
-    LOG(INFO) << __func__ << ", updated context: " << loghex(int(ctx_type))
-              << ", "
-              << (active_context_to_configuration_map[ctx_type] != nullptr
-                      ? active_context_to_configuration_map[ctx_type]->name
-                      : "empty")
-              << " -> " << (new_conf != nullptr ? new_conf->name : "empty");
+    LOG_INFO(
+        "updated context: %s, %s -> %s",
+        bluetooth::common::ToString(ctx_type).c_str(),
+        (ctx_previously_not_supported
+             ? "empty"
+             : active_context_to_configuration_map[ctx_type]->name.c_str()),
+        (new_conf != nullptr ? new_conf->name.c_str() : "empty"));
+
     active_context_to_configuration_map[ctx_type] = new_conf;
   }
 
@@ -744,10 +757,9 @@ bool LeAudioDeviceGroup::IsConfigurationSupported(
     types::LeAudioContextType context_type) {
   if (!set_configurations::check_if_may_cover_scenario(
           audio_set_conf, NumOfConnected(context_type))) {
-    DLOG(INFO) << __func__ << " cannot cover scenario "
-               << static_cast<int>(context_type)
-               << " size of for context type: "
-               << +NumOfConnected(context_type);
+    LOG_DEBUG(" cannot cover scenario  %s: size of for context type %d",
+              bluetooth::common::ToString(context_type).c_str(),
+              +NumOfConnected(context_type));
     return false;
   }
 
@@ -759,11 +771,9 @@ bool LeAudioDeviceGroup::IsConfigurationSupported(
    * 3) ASEs should be filled according to performance profile.
    */
   for (const auto& ent : (*audio_set_conf).confs) {
-    DLOG(INFO) << __func__
-               << " Looking for configuration: " << audio_set_conf->name
-               << " - "
-               << (ent.direction == types::kLeAudioDirectionSink ? "snk"
-                                                                 : "src");
+    LOG_DEBUG(" Looking for configuration: %s - %s",
+              audio_set_conf->name.c_str(),
+              (ent.direction == types::kLeAudioDirectionSink ? "snk" : "src"));
 
     uint8_t required_device_cnt = ent.device_cnt;
     uint8_t max_required_ase_per_dev =
@@ -771,10 +781,11 @@ bool LeAudioDeviceGroup::IsConfigurationSupported(
     uint8_t active_ase_num = 0;
     auto strategy = ent.strategy;
 
-    DLOG(INFO) << __func__ << " Number of devices: " << +required_device_cnt
-               << " number of ASEs: " << +ent.ase_cnt
-               << " Max ASE per device: " << +max_required_ase_per_dev
-               << " strategy: " << static_cast<int>(strategy);
+    LOG_DEBUG(
+        " Number of devices: %d, number of ASEs: %d,  Max ASE per device: %d "
+        "strategy: %d",
+        +required_device_cnt, +ent.ase_cnt, +max_required_ase_per_dev,
+        static_cast<int>(strategy));
 
     for (auto* device = GetFirstDeviceWithActiveContext(context_type);
          device != nullptr && required_device_cnt > 0;
@@ -806,8 +817,8 @@ bool LeAudioDeviceGroup::IsConfigurationSupported(
               strategy, audio_locations,
               std::get<LeAudioLc3Config>(ent.codec.config).GetChannelCount(),
               device->GetLc3SupportedChannelCount(ent.direction))) {
-        DLOG(INFO) << __func__ << " insufficient device audio allocation: "
-                   << audio_locations;
+        LOG_DEBUG(" insufficient device audio allocation: %lu",
+                  audio_locations.to_ulong());
         continue;
       }
 
@@ -825,13 +836,13 @@ bool LeAudioDeviceGroup::IsConfigurationSupported(
 
     if (required_device_cnt > 0) {
       /* Don't left any active devices if requirements are not met */
-      DLOG(INFO) << __func__ << " could not configure all the devices";
+      LOG_DEBUG(" could not configure all the devices");
       return false;
     }
   }
 
-  DLOG(INFO) << "Choosed ASE Configuration for group: " << this->group_id_
-             << " configuration: " << audio_set_conf->name;
+  LOG_DEBUG("Chosen ASE Configuration for group: %d, configuration: %s",
+            this->group_id_, audio_set_conf->name.c_str());
   return true;
 }
 
@@ -1205,13 +1216,14 @@ LeAudioDeviceGroup::FindFirstSupportedConfiguration(
   const set_configurations::AudioSetConfigurations* confs =
       AudioSetConfigurationProvider::Get()->GetConfigurations(context_type);
 
-  DLOG(INFO) << __func__ << " context type: " << (int)context_type
-             << " number of connected devices: " << NumOfConnected();
+  LOG_DEBUG("context type: %s,  number of connected devices: %d",
+            bluetooth::common::ToString(context_type).c_str(),
+            +NumOfConnected());
 
   /* Filter out device set for all scenarios */
   if (!set_configurations::check_if_may_cover_scenario(confs,
                                                        NumOfConnected())) {
-    LOG(ERROR) << __func__ << ", group is unable to cover scenario";
+    LOG_ERROR(", group is unable to cover scenario");
     return nullptr;
   }
 
@@ -1219,7 +1231,7 @@ LeAudioDeviceGroup::FindFirstSupportedConfiguration(
 
   for (const auto& conf : *confs) {
     if (IsConfigurationSupported(conf, context_type)) {
-      DLOG(INFO) << __func__ << " found: " << conf->name;
+      LOG_DEBUG("found: %s", conf->name.c_str());
       return conf;
     }
   }
@@ -1656,7 +1668,7 @@ LeAudioDevice::GetCodecConfigurationSupportedPac(
       direction == types::kLeAudioDirectionSink ? snk_pacs_ : src_pacs_;
 
   if (pacs.size() == 0) {
-    LOG(ERROR) << __func__ << " missing PAC for direction " << +direction;
+    LOG_ERROR("missing PAC for direction %d", direction);
     return nullptr;
   }
 
@@ -1738,12 +1750,12 @@ AudioContexts LeAudioDevice::SetAvailableContexts(AudioContexts snk_contexts,
   updated_contexts = snk_contexts ^ avail_snk_contexts_;
   updated_contexts |= src_contexts ^ avail_src_contexts_;
 
-  DLOG(INFO) << __func__
-             << "\n\t avail_snk_contexts_: " << avail_snk_contexts_.to_string()
-             << "\n\t avail_src_contexts_: " << avail_src_contexts_.to_string()
-             << "\n\t snk_contexts:" << snk_contexts.to_string()
-             << "\n\t src_contexts: " << src_contexts.to_string()
-             << "\n\t updated_contexts: " << updated_contexts.to_string();
+  LOG_DEBUG(
+      "\n\t avail_snk_contexts_: %s \n\t avail_src_contexts_: %s  \n\t "
+      "snk_contexts: %s \n\t src_contexts: %s \n\t updated_contexts: %s",
+      avail_snk_contexts_.to_string().c_str(),
+      avail_src_contexts_.to_string().c_str(), snk_contexts.to_string().c_str(),
+      src_contexts.to_string().c_str(), updated_contexts.to_string().c_str());
 
   avail_snk_contexts_ = snk_contexts;
   avail_src_contexts_ = src_contexts;
