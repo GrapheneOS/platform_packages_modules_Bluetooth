@@ -2,68 +2,46 @@ use log::{error, info, warn};
 
 use std::collections::HashMap;
 use std::process::Command;
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::Arc;
 
+use crate::config_util;
 use crate::iface_bluetooth_manager::{
     AdapterWithEnabled, IBluetoothManager, IBluetoothManagerCallback,
 };
-use crate::{config_util, state_machine};
+use crate::state_machine::{state_to_enabled, AdapterState, Message, StateMachineProxy};
 
 const BLUEZ_INIT_TARGET: &str = "bluetoothd";
 
-#[derive(Clone)]
-pub struct ManagerContext {
-    proxy: state_machine::StateMachineProxy,
-    floss_enabled: Arc<AtomicBool>,
-}
-
-impl ManagerContext {
-    pub fn new(proxy: state_machine::StateMachineProxy, floss_enabled: Arc<AtomicBool>) -> Self {
-        Self { proxy, floss_enabled }
-    }
-}
-
 /// Implementation of IBluetoothManager.
 pub struct BluetoothManager {
-    manager_context: ManagerContext,
+    proxy: StateMachineProxy,
     callbacks: HashMap<u32, Box<dyn IBluetoothManagerCallback + Send>>,
-    cached_devices: HashMap<i32, bool>,
 }
 
 impl BluetoothManager {
-    pub fn new(manager_context: ManagerContext) -> BluetoothManager {
-        BluetoothManager {
-            manager_context,
-            callbacks: HashMap::new(),
-            cached_devices: HashMap::new(),
-        }
+    pub fn new(proxy: StateMachineProxy) -> BluetoothManager {
+        BluetoothManager { proxy, callbacks: HashMap::new() }
+    }
+
+    fn is_adapter_enabled(&self, hci_device: i32) -> bool {
+        state_to_enabled(self.proxy.get_process_state(hci_device))
+    }
+
+    fn is_adapter_present(&self, hci_device: i32) -> bool {
+        self.proxy.get_state(hci_device, move |a| Some(a.present)).unwrap_or(false)
     }
 
     pub(crate) fn callback_hci_device_change(&mut self, hci_device: i32, present: bool) {
-        if present {
-            // Default device to false or whatever was already existing in cache
-            self.cached_devices.entry(hci_device).or_insert(false);
-        } else {
-            // Remove device and ignore if it's not there
-            self.cached_devices.remove(&hci_device);
-        }
-
         for (_, callback) in &self.callbacks {
             callback.on_hci_device_changed(hci_device, present);
         }
     }
 
     pub(crate) fn callback_hci_enabled_change(&mut self, hci_device: i32, enabled: bool) {
-        // Update existing entry or insert new one
-        match self.cached_devices.get_mut(&hci_device) {
-            Some(dev) => {
-                *dev = enabled;
-            }
-            _ => {
-                self.cached_devices.insert(hci_device, enabled);
-            }
-        };
+        if enabled {
+            info!("Started {}", hci_device);
+        } else {
+            info!("Stopped {}", hci_device);
+        }
 
         for (_, callback) in &self.callbacks {
             callback.on_hci_enabled_changed(hci_device, enabled);
@@ -73,26 +51,25 @@ impl BluetoothManager {
     pub(crate) fn callback_disconnected(&mut self, id: u32) {
         self.callbacks.remove(&id);
     }
-
-    pub(crate) fn get_floss_enabled_internal(&mut self) -> bool {
-        let enabled = self.manager_context.floss_enabled.load(Ordering::Relaxed);
-        enabled
-    }
 }
 
 impl IBluetoothManager for BluetoothManager {
     fn start(&mut self, hci_interface: i32) {
         info!("Starting {}", hci_interface);
+
         if !config_util::modify_hci_n_enabled(hci_interface, true) {
             error!("Config is not successfully modified");
         }
 
-        // Ignore the request if adapter is already enabled.
-        if *self.cached_devices.get(&hci_interface).unwrap_or(&false) {
+        // Store that this adapter is meant to be started in state machine.
+        self.proxy.modify_state(hci_interface, move |a: &mut AdapterState| a.config_enabled = true);
+
+        // Ignore the request if adapter is already enabled or not present.
+        if self.is_adapter_enabled(hci_interface) || !self.is_adapter_present(hci_interface) {
             return;
         }
 
-        self.manager_context.proxy.start_bluetooth(hci_interface);
+        self.proxy.start_bluetooth(hci_interface);
     }
 
     fn stop(&mut self, hci_interface: i32) {
@@ -101,30 +78,29 @@ impl IBluetoothManager for BluetoothManager {
             error!("Config is not successfully modified");
         }
 
+        // Store that this adapter is meant to be stopped in state machine.
+        self.proxy
+            .modify_state(hci_interface, move |a: &mut AdapterState| a.config_enabled = false);
+
         // Ignore the request if adapter is already disabled.
-        if !*self.cached_devices.get(&hci_interface).unwrap_or(&false) {
+        if !self.is_adapter_enabled(hci_interface) {
             return;
         }
 
-        self.manager_context.proxy.stop_bluetooth(hci_interface);
+        self.proxy.stop_bluetooth(hci_interface);
     }
 
-    fn get_adapter_enabled(&mut self, _hci_interface: i32) -> bool {
-        let proxy = self.manager_context.proxy.clone();
-
-        // TODO(b/189501676) - State should depend on given adapter.
-        let state = proxy.get_state();
-        let result = state_machine::state_to_enabled(state);
-        result
+    fn get_adapter_enabled(&mut self, hci_interface: i32) -> bool {
+        self.is_adapter_enabled(hci_interface)
     }
 
     fn register_callback(&mut self, mut callback: Box<dyn IBluetoothManagerCallback + Send>) {
-        let tx = self.manager_context.proxy.get_tx();
+        let tx = self.proxy.get_tx();
 
         let id = callback.register_disconnect(Box::new(move |cb_id| {
             let tx = tx.clone();
             tokio::spawn(async move {
-                let _result = tx.send(state_machine::Message::CallbackDisconnected(cb_id)).await;
+                let _result = tx.send(Message::CallbackDisconnected(cb_id)).await;
             });
         }));
 
@@ -132,25 +108,28 @@ impl IBluetoothManager for BluetoothManager {
     }
 
     fn get_floss_enabled(&mut self) -> bool {
-        self.get_floss_enabled_internal()
+        self.proxy.get_floss_enabled()
     }
 
     fn set_floss_enabled(&mut self, enabled: bool) {
-        let prev = self.manager_context.floss_enabled.swap(enabled, Ordering::Relaxed);
+        let prev = self.proxy.set_floss_enabled(enabled);
         config_util::write_floss_enabled(enabled);
+
         if prev != enabled && enabled {
             if let Err(e) = Command::new("initctl").args(&["stop", BLUEZ_INIT_TARGET]).output() {
                 warn!("Failed to stop bluetoothd: {}", e);
             }
-            // TODO: Implement multi-hci case
-            let default_device = config_util::list_hci_devices()[0];
-            if config_util::is_hci_n_enabled(default_device) {
-                let _ = self.manager_context.proxy.start_bluetooth(default_device);
+            for hci in config_util::list_hci_devices() {
+                if config_util::is_hci_n_enabled(hci) {
+                    let _ = self.proxy.start_bluetooth(hci);
+                }
             }
         } else if prev != enabled {
-            // TODO: Implement multi-hci case
-            let default_device = config_util::list_hci_devices()[0];
-            self.manager_context.proxy.stop_bluetooth(default_device);
+            for hci in config_util::list_hci_devices() {
+                if config_util::is_hci_n_enabled(hci) {
+                    let _ = self.proxy.stop_bluetooth(hci);
+                }
+            }
             if let Err(e) = Command::new("initctl").args(&["start", BLUEZ_INIT_TARGET]).output() {
                 warn!("Failed to start bluetoothd: {}", e);
             }
@@ -158,14 +137,13 @@ impl IBluetoothManager for BluetoothManager {
     }
 
     fn get_available_adapters(&mut self) -> Vec<AdapterWithEnabled> {
-        let adapters = config_util::list_hci_devices()
+        self.proxy
+            .get_valid_adapters()
             .iter()
-            .map(|hci_interface| {
-                let enabled: bool = *self.cached_devices.get(&hci_interface).unwrap_or(&false);
-                AdapterWithEnabled { hci_interface: *hci_interface, enabled }
+            .map(|a| AdapterWithEnabled {
+                hci_interface: a.hci,
+                enabled: state_to_enabled(a.state),
             })
-            .collect::<Vec<AdapterWithEnabled>>();
-
-        adapters
+            .collect::<Vec<AdapterWithEnabled>>()
     }
 }
