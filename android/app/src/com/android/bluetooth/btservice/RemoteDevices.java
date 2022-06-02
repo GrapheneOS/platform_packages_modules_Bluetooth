@@ -889,7 +889,7 @@ final class RemoteDevices {
             }
             BatteryService batteryService = BatteryService.getBatteryService();
             if (batteryService != null) {
-                batteryService.connect(device);
+                batteryService.connectIfPossible(device);
             }
             debugLog(
                     "aclStateChangeCallback: Adapter State: " + BluetoothAdapter.nameForState(state)
@@ -913,7 +913,9 @@ final class RemoteDevices {
             // Reset battery level on complete disconnection
             if (mAdapterService.getConnectionState(device) == 0) {
                 BatteryService batteryService = BatteryService.getBatteryService();
-                if (batteryService != null) {
+                if (batteryService != null
+                        && batteryService.getConnectionState(device)
+                        != BluetoothProfile.STATE_DISCONNECTED) {
                     batteryService.disconnect(device);
                 }
                 resetBatteryLevel(device);
