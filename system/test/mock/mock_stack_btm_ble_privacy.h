@@ -116,24 +116,13 @@ struct btm_ble_read_resolving_list_entry {
 };
 extern struct btm_ble_read_resolving_list_entry
     btm_ble_read_resolving_list_entry;
-// Name: btm_ble_disable_resolving_list
-// Params: uint8_t rl_mask, bool to_resume
-// Returns: bool
-struct btm_ble_disable_resolving_list {
-  std::function<bool(uint8_t rl_mask, bool to_resume)> body{
-      [](uint8_t rl_mask, bool to_resume) { return false; }};
-  bool operator()(uint8_t rl_mask, bool to_resume) {
-    return body(rl_mask, to_resume);
-  };
-};
-extern struct btm_ble_disable_resolving_list btm_ble_disable_resolving_list;
 // Name: btm_ble_resolving_list_load_dev
 // Params: tBTM_SEC_DEV_REC* p_dev_rec
-// Returns: bool
+// Returns: void
 struct btm_ble_resolving_list_load_dev {
-  std::function<bool(tBTM_SEC_DEV_REC* p_dev_rec)> body{
-      [](tBTM_SEC_DEV_REC* p_dev_rec) { return false; }};
-  bool operator()(tBTM_SEC_DEV_REC* p_dev_rec) { return body(p_dev_rec); };
+  std::function<void(const tBTM_SEC_DEV_REC& p_dev_rec)> body{
+      [](const tBTM_SEC_DEV_REC& p_dev_rec) {}};
+  void operator()(const tBTM_SEC_DEV_REC& p_dev_rec) { body(p_dev_rec); };
 };
 extern struct btm_ble_resolving_list_load_dev btm_ble_resolving_list_load_dev;
 // Name: btm_ble_resolving_list_remove_dev
@@ -146,14 +135,6 @@ struct btm_ble_resolving_list_remove_dev {
 };
 extern struct btm_ble_resolving_list_remove_dev
     btm_ble_resolving_list_remove_dev;
-// Name: btm_ble_enable_resolving_list
-// Params: uint8_t rl_mask
-// Returns: void
-struct btm_ble_enable_resolving_list {
-  std::function<void(uint8_t rl_mask)> body{[](uint8_t rl_mask) {}};
-  void operator()(uint8_t rl_mask) { body(rl_mask); };
-};
-extern struct btm_ble_enable_resolving_list btm_ble_enable_resolving_list;
 // Name: btm_ble_enable_resolving_list_for_platform
 // Params: uint8_t rl_mask
 // Returns: void
