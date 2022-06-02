@@ -15,6 +15,7 @@
  */
 
 #pragma once
+#include <frameworks/proto_logging/stats/enums/bluetooth/enums.pb.h>
 
 #include "hci/hci_packets.h"
 #include "storage/storage_module.h"
@@ -34,6 +35,10 @@ void log_classic_pairing_command_complete(EventView event, std::unique_ptr<Comma
 void log_classic_pairing_other_hci_event(EventView packet);
 
 void log_remote_device_information(
-    const Address& address, uint32_t connection_handle, ErrorCode status, storage::StorageModule* storage_module);
+    const Address& address,
+    android::bluetooth::AddressTypeEnum address_type,
+    uint32_t connection_handle,
+    ErrorCode status,
+    storage::StorageModule* storage_module);
 }  // namespace hci
 }  // namespace bluetooth
