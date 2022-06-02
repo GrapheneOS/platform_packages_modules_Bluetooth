@@ -1,11 +1,11 @@
 //! Adapter service facade
 
 use bt_topshim::btif;
-use bt_topshim::btif::{BaseCallbacks, BaseCallbacksDispatcher, BluetoothInterface};
+use bt_topshim::btif::{BaseCallbacks, BaseCallbacksDispatcher, BluetoothInterface, RawAddress};
 
 use bt_topshim_facade_protobuf::empty::Empty;
 use bt_topshim_facade_protobuf::facade::{
-    EventType, FetchEventsRequest, FetchEventsResponse, SetDiscoveryModeRequest,
+    EventType, FetchEventsRequest, FetchEventsResponse, RemoveBondRequest, SetDiscoveryModeRequest,
     SetDiscoveryModeResponse, ToggleStackRequest, ToggleStackResponse,
 };
 use bt_topshim_facade_protobuf::facade_grpc::{create_adapter_service, AdapterService};
@@ -168,6 +168,14 @@ impl AdapterService for AdapterServiceImpl {
 
     fn allow_wake_by_hid(&mut self, ctx: RpcContext<'_>, _req: Empty, sink: UnarySink<Empty>) {
         self.btif_intf.lock().unwrap().allow_wake_by_hid();
+        ctx.spawn(async move {
+            sink.success(Empty::default()).await.unwrap();
+        })
+    }
+
+    fn remove_bond(&mut self, ctx: RpcContext<'_>, req: RemoveBondRequest, sink: UnarySink<Empty>) {
+        let raw_address = RawAddress::from_string(req.address).unwrap();
+        self.btif_intf.lock().unwrap().remove_bond(&raw_address);
         ctx.spawn(async move {
             sink.success(Empty::default()).await.unwrap();
         })
