@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#define LOG_TAG "BTAudioClientIf"
+#define LOG_TAG "BTAudioClientAIDL"
 
 #include "client_interface_aidl.h"
 

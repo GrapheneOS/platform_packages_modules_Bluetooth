@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-#define LOG_TAG "BTAudioClientLEA_HIDL"
+#define LOG_TAG "BTAudioLeAudioHIDL"
 
 #include "le_audio_software_hidl.h"
 
