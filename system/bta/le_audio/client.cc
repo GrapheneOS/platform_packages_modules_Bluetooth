@@ -3095,9 +3095,13 @@ class LeAudioClientImpl : public LeAudioClient {
       case AUDIO_USAGE_MEDIA:
         return LeAudioContextType::MEDIA;
       case AUDIO_USAGE_VOICE_COMMUNICATION:
-      case AUDIO_USAGE_VOICE_COMMUNICATION_SIGNALLING:
       case AUDIO_USAGE_CALL_ASSISTANT:
         return LeAudioContextType::CONVERSATIONAL;
+      case AUDIO_USAGE_VOICE_COMMUNICATION_SIGNALLING:
+        if (content_type == AUDIO_CONTENT_TYPE_SPEECH)
+          return LeAudioContextType::CONVERSATIONAL;
+        else
+          return LeAudioContextType::MEDIA;
       case AUDIO_USAGE_GAME:
         return LeAudioContextType::GAME;
       case AUDIO_USAGE_NOTIFICATION:
