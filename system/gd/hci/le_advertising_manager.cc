@@ -801,6 +801,11 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
     std::vector<EnabledSet> enabled_sets = {curr_set};
     Enable enable_value = enable ? Enable::ENABLED : Enable::DISABLED;
 
+    if (!advertising_sets_.count(advertiser_id)) {
+      LOG_WARN("No advertising set with key: %d", advertiser_id);
+      return;
+    }
+
     switch (advertising_api_type_) {
       case (AdvertisingApiType::LEGACY): {
         le_advertising_interface_->EnqueueCommand(
