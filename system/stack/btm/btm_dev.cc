@@ -136,6 +136,9 @@ void wipe_secrets_and_remove(tBTM_SEC_DEV_REC* p_dev_rec) {
   list_remove(btm_cb.sec_dev_rec, p_dev_rec);
 }
 
+/** Removes the device from acceptlist */
+extern void BTM_AcceptlistRemove(const RawAddress& address);
+
 /** Free resources associated with the device associated with |bd_addr| address.
  *
  * *** WARNING ***
@@ -161,6 +164,12 @@ bool BTM_SecDeleteDevice(const RawAddress& bd_addr) {
   tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(bd_addr);
   if (p_dev_rec != NULL) {
     RawAddress bda = p_dev_rec->bd_addr;
+
+    if (p_dev_rec->ble.in_controller_list & BTM_ACCEPTLIST_BIT) {
+      LOG_INFO("Remove device %s from filter accept list before delete record",
+               PRIVATE_ADDRESS(bd_addr));
+      BTM_AcceptlistRemove(p_dev_rec->bd_addr);
+    }
 
     /* Clear out any saved BLE keys */
     btm_sec_clear_ble_keys(p_dev_rec);
