@@ -31,7 +31,7 @@ constexpr audio_format_t kBluetoothDefaultAudioFormatBitsPerSample =
 constexpr unsigned int kBluetoothDefaultInputBufferMs = 20;
 constexpr unsigned int kBluetoothDefaultInputStateTimeoutMs = 20;
 
-constexpr unsigned int kBluetoothDefaultOutputBufferMs = 2;
+constexpr unsigned int kBluetoothDefaultOutputBufferMs = 10;
 constexpr unsigned int kBluetoothSpatializerOutputBufferMs = 10;
 
 constexpr audio_channel_mask_t kBluetoothDefaultOutputChannelModeMask =
