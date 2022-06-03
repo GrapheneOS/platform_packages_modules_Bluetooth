@@ -86,3 +86,10 @@ filegroup {
         "fuzz/fuzz_hci_layer.cc",
     ],
 }
+
+filegroup {
+    name: "BluetoothHciPackets",
+    srcs: [
+        "hci_packets.pdl",
+    ]
+}

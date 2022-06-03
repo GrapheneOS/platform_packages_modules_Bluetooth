@@ -221,6 +221,13 @@ genrule {
     ],
 }
 
+filegroup {
+    name: "RootCanalLinkLayerPackets",
+    srcs: [
+        "packets/link_layer_packets.pdl",
+    ],
+}
+
 // bt_vhci_forwarder in cuttlefish depends on this H4Packetizer implementation.
 cc_library_static {
     name: "h4_packetizer_lib",
