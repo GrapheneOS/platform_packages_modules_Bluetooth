@@ -239,7 +239,5 @@ void BTM_AcceptlistClear() {
     LOG_WARN("Controller does not support Le");
     return;
   }
-
-    bluetooth::shim::ACL_IgnoreAllLeConnections();
-    return;
+  bluetooth::shim::ACL_IgnoreAllLeConnections();
 }
