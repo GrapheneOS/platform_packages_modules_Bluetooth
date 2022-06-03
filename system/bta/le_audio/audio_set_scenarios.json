@@ -128,7 +128,8 @@
                 "VND_SingleDev_TwoChanStereoSnk_48khz_75octs_TwoChanStereoSrc_16khz_30octs_Server_Preferred_1",
                 "VND_SingleDev_TwoChanStereoSnk_48khz_75octs_R5_L12_TwoChanStereoSrc_16khz_30octs_R3_L12_1",
                 "VND_SingleDev_TwoChanStereoSnk_48khz_75octs_Server_Preferred_1",
-                "VND_SingleDev_TwoChanStereoSnk_48khz_75octs_R5_L12_1"
+                "VND_SingleDev_TwoChanStereoSnk_48khz_75octs_R5_L12_1",
+                "DualDev_OneChanStereoSnk_48_4_Server_Preferred"
             ]
         },
         {

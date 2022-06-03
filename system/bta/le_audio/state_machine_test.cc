@@ -27,6 +27,7 @@
 #include "btm_api_mock.h"
 #include "client_parser.h"
 #include "fake_osi.h"
+#include "gd/common/init_flags.h"
 #include "le_audio_set_configuration_provider.h"
 #include "mock_codec_manager.h"
 #include "mock_controller.h"
