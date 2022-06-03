@@ -516,7 +516,7 @@ bool PORT_IsOpening(RawAddress* bd_addr) {
       }
 
       LOG_INFO("RFC_MX_STATE_CONNECTED, found_port=%d, tRFC_PORT_STATE=%d",
-               found_port, p_port->rfc.state);
+               found_port, p_port != nullptr ? p_port->rfc.state : 0);
       if ((!found_port) ||
           (found_port && (p_port->rfc.state < RFC_STATE_OPENED))) {
         /* Port is not established yet. */
