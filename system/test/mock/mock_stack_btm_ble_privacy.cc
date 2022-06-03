@@ -59,12 +59,8 @@ struct btm_ble_read_resolving_list_entry_complete
 struct btm_ble_remove_resolving_list_entry btm_ble_remove_resolving_list_entry;
 struct btm_ble_clear_resolving_list btm_ble_clear_resolving_list;
 struct btm_ble_read_resolving_list_entry btm_ble_read_resolving_list_entry;
-struct btm_ble_disable_resolving_list btm_ble_disable_resolving_list;
 struct btm_ble_resolving_list_load_dev btm_ble_resolving_list_load_dev;
 struct btm_ble_resolving_list_remove_dev btm_ble_resolving_list_remove_dev;
-struct btm_ble_enable_resolving_list btm_ble_enable_resolving_list;
-struct btm_ble_enable_resolving_list_for_platform
-    btm_ble_enable_resolving_list_for_platform;
 struct btm_ble_resolving_list_init btm_ble_resolving_list_init;
 
 }  // namespace stack_btm_ble_privacy
@@ -108,16 +104,6 @@ bool btm_ble_read_resolving_list_entry(tBTM_SEC_DEV_REC* p_dev_rec) {
   return test::mock::stack_btm_ble_privacy::btm_ble_read_resolving_list_entry(
       p_dev_rec);
 }
-bool btm_ble_disable_resolving_list(uint8_t rl_mask, bool to_resume) {
-  mock_function_count_map[__func__]++;
-  return test::mock::stack_btm_ble_privacy::btm_ble_disable_resolving_list(
-      rl_mask, to_resume);
-}
-bool btm_ble_resolving_list_load_dev(tBTM_SEC_DEV_REC* p_dev_rec) {
-  mock_function_count_map[__func__]++;
-  return test::mock::stack_btm_ble_privacy::btm_ble_resolving_list_load_dev(
-      p_dev_rec);
-}
 void btm_ble_resolving_list_load_dev(tBTM_SEC_DEV_REC& p_dev_rec) {
   mock_function_count_map[__func__]++;
 }
@@ -125,15 +111,6 @@ void btm_ble_resolving_list_remove_dev(tBTM_SEC_DEV_REC* p_dev_rec) {
   mock_function_count_map[__func__]++;
   test::mock::stack_btm_ble_privacy::btm_ble_resolving_list_remove_dev(
       p_dev_rec);
-}
-void btm_ble_enable_resolving_list(uint8_t rl_mask) {
-  mock_function_count_map[__func__]++;
-  test::mock::stack_btm_ble_privacy::btm_ble_enable_resolving_list(rl_mask);
-}
-void btm_ble_enable_resolving_list_for_platform(uint8_t rl_mask) {
-  mock_function_count_map[__func__]++;
-  test::mock::stack_btm_ble_privacy::btm_ble_enable_resolving_list_for_platform(
-      rl_mask);
 }
 void btm_ble_resolving_list_init(uint8_t max_irk_list_sz) {
   mock_function_count_map[__func__]++;
