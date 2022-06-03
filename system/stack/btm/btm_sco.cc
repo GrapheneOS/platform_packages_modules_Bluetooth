@@ -134,7 +134,8 @@ static void btm_esco_conn_rsp(uint16_t sco_inx, uint8_t hci_status,
       *p_setup = *p_parms;
     } else if (p_sco->esco.data.link_type == BTM_LINK_TYPE_SCO ||
                !sco_peer_supports_esco_ev3(bda)) {
-      *p_setup = esco_parameters_for_codec(SCO_CODEC_CVSD_D1);
+      *p_setup = esco_parameters_for_codec(
+          SCO_CODEC_CVSD_D1, hfp_hal_interface::get_offload_enabled());
     } else {
       /* Use the last setup passed thru BTM_SetEscoMode (or defaults) */
       *p_setup = btm_cb.sco_cb.def_esco_parms;
@@ -1076,7 +1077,8 @@ tBTM_STATUS BTM_SetEScoMode(enh_esco_params_t* p_parms) {
         p_def->retransmission_effort);
   } else {
     /* Load defaults for SCO only */
-    *p_def = esco_parameters_for_codec(SCO_CODEC_CVSD_D1);
+    *p_def = esco_parameters_for_codec(
+        SCO_CODEC_CVSD_D1, hfp_hal_interface::get_offload_enabled());
     LOG_WARN("eSCO not supported so setting SCO parameters instead");
     LOG_DEBUG(
         "Setting SCO mode parameters txbw:0x%08x rxbw:0x%08x max_lat:0x%04x"
@@ -1403,6 +1405,7 @@ static uint16_t btm_sco_voice_settings_to_legacy(enh_esco_params_t* p_params) {
       voice_settings |= HCI_AIR_CODING_FORMAT_A_LAW;
       break;
 
+    case ESCO_CODING_FORMAT_TRANSPNT:
     case ESCO_CODING_FORMAT_MSBC:
       voice_settings |= HCI_AIR_CODING_FORMAT_TRANSPNT;
       break;

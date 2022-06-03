@@ -24,11 +24,11 @@
 
 #include <base/bind.h>
 #include <base/logging.h>
+
 #include <cstdint>
 
 #include "bt_target.h"  // Must be first to define build configuration
 #include "bt_trace.h"   // Legacy trace logging
-
 #include "bta/ag/bta_ag_int.h"
 #include "device/include/controller.h"
 #include "main/shim/dumpsys.h"
@@ -385,24 +385,25 @@ static void bta_ag_create_sco(tBTA_AG_SCB* p_scb, bool is_orig) {
     p_scb->codec_msbc_settings = BTA_AG_SCO_MSBC_SETTINGS_T2;
   }
 
+  bool offload = hfp_hal_interface::get_offload_enabled();
   /* Initialize eSCO parameters */
   enh_esco_params_t params = {};
   /* If WBS included, use CVSD by default, index is 0 for CVSD by
    * initialization. If eSCO codec is mSBC, index is T2 or T1 */
   if (esco_codec == BTM_SCO_CODEC_MSBC) {
     if (p_scb->codec_msbc_settings == BTA_AG_SCO_MSBC_SETTINGS_T2) {
-      params = esco_parameters_for_codec(ESCO_CODEC_MSBC_T2);
+      params = esco_parameters_for_codec(ESCO_CODEC_MSBC_T2, offload);
     } else {
-      params = esco_parameters_for_codec(ESCO_CODEC_MSBC_T1);
+      params = esco_parameters_for_codec(ESCO_CODEC_MSBC_T1, offload);
     }
   } else {
     if (p_scb->features & BTA_AG_PEER_FEAT_ESCO_S4 &&
         (p_scb->peer_features & BTA_AG_PEER_FEAT_ESCO_S4)) {
       // HFP >=1.7 eSCO
-      params = esco_parameters_for_codec(ESCO_CODEC_CVSD_S4);
+      params = esco_parameters_for_codec(ESCO_CODEC_CVSD_S4, offload);
     } else {
       // HFP <=1.6 eSCO
-      params = esco_parameters_for_codec(ESCO_CODEC_CVSD_S3);
+      params = esco_parameters_for_codec(ESCO_CODEC_CVSD_S3, offload);
     }
   }
 
@@ -452,6 +453,7 @@ static void bta_ag_create_sco(tBTA_AG_SCB* p_scb, bool is_orig) {
 static void bta_ag_create_pending_sco(tBTA_AG_SCB* p_scb, bool is_local) {
   tBTA_AG_PEER_CODEC esco_codec = p_scb->inuse_codec;
   enh_esco_params_t params = {};
+  bool offload = hfp_hal_interface::get_offload_enabled();
   bta_ag_cb.sco.p_curr_scb = p_scb;
   bta_ag_cb.sco.cur_idx = p_scb->sco_idx;
 
@@ -459,18 +461,18 @@ static void bta_ag_create_pending_sco(tBTA_AG_SCB* p_scb, bool is_local) {
   if (is_local) {
     if (esco_codec == BTM_SCO_CODEC_MSBC) {
       if (p_scb->codec_msbc_settings == BTA_AG_SCO_MSBC_SETTINGS_T2) {
-        params = esco_parameters_for_codec(ESCO_CODEC_MSBC_T2);
+        params = esco_parameters_for_codec(ESCO_CODEC_MSBC_T2, offload);
       } else {
-        params = esco_parameters_for_codec(ESCO_CODEC_MSBC_T1);
+        params = esco_parameters_for_codec(ESCO_CODEC_MSBC_T1, offload);
       }
     } else {
       if (p_scb->features & BTA_AG_PEER_FEAT_ESCO_S4 &&
           (p_scb->peer_features & BTA_AG_PEER_FEAT_ESCO_S4)) {
         // HFP >=1.7 eSCO
-        params = esco_parameters_for_codec(ESCO_CODEC_CVSD_S4);
+        params = esco_parameters_for_codec(ESCO_CODEC_CVSD_S4, offload);
       } else {
         // HFP <=1.6 eSCO
-        params = esco_parameters_for_codec(ESCO_CODEC_CVSD_S3);
+        params = esco_parameters_for_codec(ESCO_CODEC_CVSD_S3, offload);
       }
     }
 
@@ -489,6 +491,8 @@ static void bta_ag_create_pending_sco(tBTA_AG_SCB* p_scb, bool is_local) {
                       bta_ag_sco_disc_cback) == BTM_CMD_STARTED) {
       /* Initiating the connection, set the current sco handle */
       bta_ag_cb.sco.cur_idx = p_scb->sco_idx;
+      /* Configure input/output data. */
+      hfp_hal_interface::set_codec_datapath(esco_codec);
     }
     APPL_TRACE_DEBUG("%s: initiated SCO connection", __func__);
   } else {
@@ -500,10 +504,10 @@ static void bta_ag_create_pending_sco(tBTA_AG_SCB* p_scb, bool is_local) {
     if (p_scb->features & BTA_AG_PEER_FEAT_ESCO_S4 &&
         (p_scb->peer_features & BTA_AG_PEER_FEAT_ESCO_S4)) {
       // HFP >=1.7 eSCO
-      params = esco_parameters_for_codec(ESCO_CODEC_CVSD_S4);
+      params = esco_parameters_for_codec(ESCO_CODEC_CVSD_S4, offload);
     } else {
       // HFP <=1.6 eSCO
-      params = esco_parameters_for_codec(ESCO_CODEC_CVSD_S3);
+      params = esco_parameters_for_codec(ESCO_CODEC_CVSD_S3, offload);
     }
 
     BTM_EScoConnRsp(p_scb->sco_idx, HCI_SUCCESS, &params);

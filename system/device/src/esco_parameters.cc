@@ -211,9 +211,25 @@ static const enh_esco_params_t default_esco_parameters[ESCO_NUM_CODECS] = {
     },
 };
 
-enh_esco_params_t esco_parameters_for_codec(esco_codec_t codec) {
+enh_esco_params_t esco_parameters_for_codec(esco_codec_t codec, bool offload) {
   CHECK(codec >= 0) << "codec index " << (int)codec << "< 0";
-  CHECK(codec < ESCO_NUM_CODECS) << "codec index " << (int)codec << " > "
-                                 << ESCO_NUM_CODECS;
-  return default_esco_parameters[codec];
+  CHECK(codec < ESCO_NUM_CODECS)
+      << "codec index " << (int)codec << " > " << ESCO_NUM_CODECS;
+  if (offload) {
+    return default_esco_parameters[codec];
+  }
+
+  enh_esco_params_t param = default_esco_parameters[codec];
+  param.input_data_path = param.output_data_path = ESCO_DATA_PATH_HCI;
+
+  if (codec >= ESCO_CODEC_MSBC_T1) {
+    param.transmit_coding_format.coding_format = ESCO_CODING_FORMAT_TRANSPNT;
+    param.receive_coding_format.coding_format = ESCO_CODING_FORMAT_TRANSPNT;
+    param.input_coding_format.coding_format = ESCO_CODING_FORMAT_TRANSPNT;
+    param.output_coding_format.coding_format = ESCO_CODING_FORMAT_TRANSPNT;
+    param.input_bandwidth = TXRX_64KBITS_RATE;
+    param.output_bandwidth = TXRX_64KBITS_RATE;
+  }
+
+  return param;
 }
