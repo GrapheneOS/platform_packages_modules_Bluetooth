@@ -585,6 +585,7 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
       return;
     }
     connect_list.erase(address_with_type);
+    connecting_le_.erase(address_with_type);
     direct_connections_.erase(address_with_type);
     register_with_address_manager();
     le_address_manager_->RemoveDeviceFromFilterAcceptList(
@@ -641,6 +642,10 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
       LOG_ERROR(
           "Attempting to re-arm le connection state machine in unexpected state:%s",
           connectability_state_machine_text(connectability_state_).c_str());
+      return;
+    }
+    if (connect_list.empty()) {
+      LOG_ERROR("Attempting to re-arm le connection state machine when filter accept list is empty");
       return;
     }
     AddressWithType empty(Address::kEmpty, AddressType::RANDOM_DEVICE_ADDRESS);
