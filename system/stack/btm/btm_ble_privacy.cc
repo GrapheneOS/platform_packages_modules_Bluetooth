@@ -434,10 +434,9 @@ tBTM_STATUS btm_ble_remove_resolving_list_entry(tBTM_SEC_DEV_REC* p_dev_rec) {
     BTM_VendorSpecificCommand(HCI_VENDOR_BLE_RPA_VSC,
                               BTM_BLE_META_REMOVE_IRK_LEN, param,
                               btm_ble_resolving_list_vsc_op_cmpl);
+    btm_ble_enq_resolving_list_pending(p_dev_rec->bd_addr,
+                                       BTM_BLE_META_REMOVE_IRK_ENTRY);
   }
-
-  btm_ble_enq_resolving_list_pending(p_dev_rec->bd_addr,
-                                     BTM_BLE_META_REMOVE_IRK_ENTRY);
   return BTM_CMD_STARTED;
 }
 
@@ -495,11 +494,10 @@ bool btm_ble_read_resolving_list_entry(tBTM_SEC_DEV_REC* p_dev_rec) {
 
     BTM_VendorSpecificCommand(HCI_VENDOR_BLE_RPA_VSC, BTM_BLE_META_READ_IRK_LEN,
                               param, btm_ble_resolving_list_vsc_op_cmpl);
+
+    btm_ble_enq_resolving_list_pending(p_dev_rec->bd_addr,
+                                       BTM_BLE_META_READ_IRK_ENTRY);
   }
-
-  btm_ble_enq_resolving_list_pending(p_dev_rec->bd_addr,
-                                     BTM_BLE_META_READ_IRK_ENTRY);
-
   return true;
 }
 
