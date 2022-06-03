@@ -94,6 +94,7 @@ import com.android.internal.annotations.VisibleForTesting;
 import com.android.internal.util.State;
 import com.android.internal.util.StateMachine;
 
+import java.io.ByteArrayOutputStream;
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -1183,91 +1184,77 @@ public class BassClientStateMachine extends StateMachine {
         return addressBytes;
     }
 
-    private byte[] convertMetadataToAddSourceByteArray(BluetoothLeBroadcastMetadata metaData) {
-        log("Get PeriodicAdvertisementResult for :" + metaData.getSourceDevice());
-        BluetoothDevice broadcastSource = metaData.getSourceDevice();
-        PeriodicAdvertisementResult paRes =
-                mService.getPeriodicAdvertisementResult(broadcastSource);
-        if (paRes == null) {
-            Log.e(TAG, "No matching psync, scan res for this addition");
-            mService.getCallbacks().notifySourceAddFailed(
-                    mDevice, metaData, BluetoothStatusCodes.ERROR_UNKNOWN);
-            return null;
-        }
-        // populate metadata from BASE levelOne
-        BaseData base = mService.getBase(paRes.getSyncHandle());
-        if (base == null) {
-            Log.e(TAG, "No valid base data populated for this device");
-            mService.getCallbacks().notifySourceAddFailed(
-                    mDevice, metaData, BluetoothStatusCodes.ERROR_UNKNOWN);
-            return null;
-        }
-        int numSubGroups = base.getNumberOfSubgroupsofBIG();
-        byte[] metaDataLength = new byte[numSubGroups];
-        int totalMetadataLength = 0;
-        for (int i = 0; i < numSubGroups; i++) {
-            if (base.getMetadata(i) == null) {
-                Log.w(TAG, "no valid metadata from BASE");
-                metaDataLength[i] = 0;
-            } else {
-                metaDataLength[i] = (byte) base.getMetadata(i).length;
-                log("metaDataLength updated:" + metaDataLength[i]);
+    private static int getBisSyncFromChannelPreference(
+                List<BluetoothLeBroadcastChannel> channels) {
+        int bisSync = 0;
+        for (BluetoothLeBroadcastChannel channel : channels) {
+            if (channel.isSelected()) {
+                bisSync |= 1 << channel.getChannelIndex();
             }
-            totalMetadataLength = totalMetadataLength + metaDataLength[i];
         }
-        byte[] res = new byte[ADD_SOURCE_FIXED_LENGTH
-                + numSubGroups * 5 + totalMetadataLength];
-        int offset = 0;
+
+        return bisSync;
+    }
+
+    private byte[] convertMetadataToAddSourceByteArray(BluetoothLeBroadcastMetadata metaData) {
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        BluetoothDevice advSource = metaData.getSourceDevice();
+
         // Opcode
-        res[offset++] = OPCODE_ADD_SOURCE;
+        stream.write(OPCODE_ADD_SOURCE);
+
         // Advertiser_Address_Type
-        if (paRes.getAddressType() != (byte) BassConstants.INVALID_ADV_ADDRESS_TYPE) {
-            res[offset++] = (byte) paRes.getAddressType();
-        } else {
-            res[offset++] = (byte) BassConstants.BROADCAST_ASSIST_ADDRESS_TYPE_PUBLIC;
-        }
-        String address = broadcastSource.getAddress();
-        byte[] addrByteVal = bluetoothAddressToBytes(address);
-        log("Address bytes: " + Arrays.toString(addrByteVal));
-        byte[] revAddress = reverseBytes(addrByteVal);
-        log("reverse Address bytes: " + Arrays.toString(revAddress));
+        stream.write(metaData.getSourceAddressType());
+
         // Advertiser_Address
-        System.arraycopy(revAddress, 0, res, offset, 6);
-        offset += 6;
+        stream.write(Utils.getBytesFromAddress(advSource.getAddress()), 0, 6);
+        log("Address bytes: " + advSource.getAddress());
+
         // Advertising_SID
-        res[offset++] = (byte) paRes.getAdvSid();
-        log("mBroadcastId: " + paRes.getBroadcastId());
+        stream.write(metaData.getSourceAdvertisingSid());
+
         // Broadcast_ID
-        res[offset++] = (byte) (paRes.getBroadcastId() & 0x00000000000000FF);
-        res[offset++] = (byte) ((paRes.getBroadcastId() & 0x000000000000FF00) >>> 8);
-        res[offset++] = (byte) ((paRes.getBroadcastId() & 0x0000000000FF0000) >>> 16);
+        stream.write(metaData.getBroadcastId() & 0x00000000000000FF);
+        stream.write((metaData.getBroadcastId() & 0x000000000000FF00) >>> 8);
+        stream.write((metaData.getBroadcastId() & 0x0000000000FF0000) >>> 16);
+        log("mBroadcastId: " + metaData.getBroadcastId());
+
         // PA_Sync
         if (!mDefNoPAS) {
-            res[offset++] = (byte) (0x01);
+            stream.write(0x01);
         } else {
             log("setting PA sync to ZERO");
-            res[offset++] = (byte) 0x00;
+            stream.write(0x00);
         }
+
         // PA_Interval
-        res[offset++] = (byte) (paRes.getAdvInterval() & 0x00000000000000FF);
-        res[offset++] = (byte) ((paRes.getAdvInterval() & 0x000000000000FF00) >>> 8);
+        stream.write((metaData.getPaSyncInterval() & 0x00000000000000FF));
+        stream.write((metaData.getPaSyncInterval() & 0x000000000000FF00) >>> 8);
+
         // Num_Subgroups
-        res[offset++] = base.getNumberOfSubgroupsofBIG();
-        for (int i = 0; i < base.getNumberOfSubgroupsofBIG(); i++) {
+        List<BluetoothLeBroadcastSubgroup> subGroups = metaData.getSubgroups();
+        stream.write(metaData.getSubgroups().size());
+
+        for (BluetoothLeBroadcastSubgroup subGroup : subGroups) {
             // BIS_Sync
-            res[offset++] = (byte) 0xFF;
-            res[offset++] = (byte) 0xFF;
-            res[offset++] = (byte) 0xFF;
-            res[offset++] = (byte) 0xFF;
-            // Metadata_Length
-            res[offset++] = metaDataLength[i];
-            if (metaDataLength[i] != 0) {
-                byte[] revMetadata = reverseBytes(base.getMetadata(i));
-                // Metadata
-                System.arraycopy(revMetadata, 0, res, offset, metaDataLength[i]);
+            int bisSync = getBisSyncFromChannelPreference(subGroup.getChannels());
+            if (bisSync == 0) {
+                bisSync = 0xFFFFFFFF;
             }
-            offset = offset + metaDataLength[i];
+            stream.write(bisSync & 0x00000000000000FF);
+            stream.write((bisSync & 0x000000000000FF00) >>> 8);
+            stream.write((bisSync & 0x0000000000FF0000) >>> 16);
+            stream.write((bisSync & 0x00000000FF000000) >>> 24);
+
+            // Metadata_Length
+            BluetoothLeAudioContentMetadata metadata = subGroup.getContentMetadata();
+            stream.write(metadata.getRawMetadata().length);
+
+            // Metadata
+            stream.write(metadata.getRawMetadata(), 0, metadata.getRawMetadata().length);
         }
+
+        byte[] res = stream.toByteArray();
         log("ADD_BCAST_SOURCE in Bytes");
         BassUtils.printByteArray(res);
         return res;
