@@ -489,18 +489,20 @@ void bta_gatts_close(UNUSED_ATTR tBTA_GATTS_CB* p_cb, tBTA_GATTS_DATA* p_msg) {
 
   if (GATT_GetConnectionInfor(p_msg->hdr.layer_specific, &gatt_if, remote_bda,
                               &transport)) {
-    if (GATT_Disconnect(p_msg->hdr.layer_specific) != GATT_SUCCESS) {
-      LOG(ERROR) << __func__
-                 << ": fail conn_id=" << loghex(p_msg->hdr.layer_specific);
-    } else {
-      status = GATT_SUCCESS;
+    LOG_DEBUG("Disconnecting gatt_if=%d, remote_bda=%s, transport=%d", +gatt_if,
+              remote_bda.ToString().c_str(), transport);
+    status = GATT_Disconnect(p_msg->hdr.layer_specific);
+    if (status != GATT_SUCCESS) {
+      LOG_ERROR("fail conn_id=%d", +p_msg->hdr.layer_specific);
+      status = GATT_ERROR;
     }
 
     p_rcb = bta_gatts_find_app_rcb_by_app_if(gatt_if);
 
     if (p_rcb && p_rcb->p_cback) {
-      if (transport == BT_TRANSPORT_BR_EDR)
+      if (transport == BT_TRANSPORT_BR_EDR) {
         bta_sys_conn_close(BTA_ID_GATTS, BTA_ALL_APP_ID, remote_bda);
+      }
 
       tBTA_GATTS bta_gatts;
       bta_gatts.status = status;
