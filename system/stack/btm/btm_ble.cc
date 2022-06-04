@@ -65,7 +65,7 @@ void BTM_SecAddBleDevice(const RawAddress& bd_addr, tBT_DEVICE_TYPE dev_type,
     return bluetooth::shim::BTM_SecAddBleDevice(bd_addr, dev_type, addr_type);
   }
 
-  BTM_TRACE_DEBUG("%s: dev_type=0x%x", __func__, dev_type);
+  LOG_DEBUG("dev_type=0x%x", dev_type);
 
   tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(bd_addr);
   if (!p_dev_rec) {
@@ -81,27 +81,27 @@ void BTM_SecAddBleDevice(const RawAddress& bd_addr, tBT_DEVICE_TYPE dev_type,
     p_dev_rec->conn_params.supervision_tout = BTM_BLE_CONN_PARAM_UNDEF;
     p_dev_rec->conn_params.peripheral_latency = BTM_BLE_CONN_PARAM_UNDEF;
 
-    BTM_TRACE_DEBUG("%s: Device added, handle=0x%x, p_dev_rec=%p, bd_addr=%s",
-                    __func__, p_dev_rec->ble_hci_handle, p_dev_rec,
-                    bd_addr.ToString().c_str());
+    LOG_DEBUG("Device added, handle=0x%x, p_dev_rec=%p, bd_addr=%s",
+              p_dev_rec->ble_hci_handle, p_dev_rec, bd_addr.ToString().c_str());
   }
 
   memset(p_dev_rec->sec_bd_name, 0, sizeof(tBTM_BD_NAME));
 
   p_dev_rec->device_type |= dev_type;
-  if (is_ble_addr_type_known(addr_type))
+  if (is_ble_addr_type_known(addr_type)) {
     p_dev_rec->ble.SetAddressType(addr_type);
-  else
+  } else {
     LOG_WARN(
         "Please do not update device record from anonymous le advertisement");
+  }
 
   /* sync up with the Inq Data base*/
   tBTM_INQ_INFO* p_info = BTM_InqDbRead(bd_addr);
   if (p_info) {
     p_info->results.ble_addr_type = p_dev_rec->ble.AddressType();
     p_info->results.device_type = p_dev_rec->device_type;
-    BTM_TRACE_DEBUG("InqDb  device_type =0x%x  addr_type=0x%x",
-                    p_info->results.device_type, p_info->results.ble_addr_type);
+    LOG_DEBUG("InqDb device_type =0x%x  addr_type=0x%x",
+              p_info->results.device_type, p_info->results.ble_addr_type);
   }
 }
 
