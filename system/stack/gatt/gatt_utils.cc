@@ -409,7 +409,7 @@ tGATT_TCB* gatt_get_tcb_by_idx(uint8_t tcb_idx) {
  ******************************************************************************/
 tGATT_TCB* gatt_find_tcb_by_addr(const RawAddress& bda,
                                  tBT_TRANSPORT transport) {
-  tGATT_TCB* p_tcb = NULL;
+  tGATT_TCB* p_tcb = nullptr;
   uint8_t i = 0;
 
   i = gatt_find_i_tcb_by_addr(bda, transport);

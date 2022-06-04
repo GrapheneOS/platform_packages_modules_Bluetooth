@@ -344,12 +344,15 @@ void btif_gattc_open_impl(int client_if, RawAddress address, bool is_direct,
         else
           transport = BT_TRANSPORT_BR_EDR;
         break;
+      default:
+        LOG_ERROR("Unknown device type %d", +device_type);
+        break;
     }
   }
 
   // Connect!
-  LOG_INFO("%s Transport=%d, device type=%d, address type =%d, phy=%d",
-           __func__, transport, device_type, addr_type, initiating_phys);
+  LOG_INFO("Transport=%d, device type=%d, address type =%d, phy=%d", transport,
+           device_type, addr_type, initiating_phys);
   BTA_GATTC_Open(client_if, address, is_direct, transport, opportunistic,
                  initiating_phys);
 }
@@ -365,11 +368,14 @@ static bt_status_t btif_gattc_open(int client_if, const RawAddress& bd_addr,
 }
 
 void btif_gattc_close_impl(int client_if, RawAddress address, int conn_id) {
+  LOG_INFO("client_if=%d, conn_id=%d, address=%s", client_if, conn_id,
+           PRIVATE_ADDRESS(address));
   // Disconnect established connections
-  if (conn_id != 0)
+  if (conn_id != 0) {
     BTA_GATTC_Close(conn_id);
-  else
+  } else {
     BTA_GATTC_CancelOpen(client_if, address, true);
+  }
 
   // Cancel pending background connections (remove from acceptlist)
   BTA_GATTC_CancelOpen(client_if, address, false);
