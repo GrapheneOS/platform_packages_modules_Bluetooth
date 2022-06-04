@@ -121,12 +121,7 @@ extern bool btm_ble_addr_resolvable(const RawAddress& rpa,
                                     tBTM_SEC_DEV_REC* p_dev_rec);
 
 extern void btm_ble_resolving_list_load_dev(tBTM_SEC_DEV_REC& p_dev_rec);
-extern bool btm_ble_resolving_list_load_dev(
-    tBTM_SEC_DEV_REC* p_dev_rec);  // DEPRECATED
 extern void btm_ble_resolving_list_remove_dev(tBTM_SEC_DEV_REC* p_dev_rec);
-extern void btm_ble_enable_resolving_list(uint8_t);
-extern bool btm_ble_disable_resolving_list(uint8_t rl_mask, bool to_resume);
-extern void btm_ble_enable_resolving_list_for_platform(uint8_t rl_mask);
 extern void btm_ble_resolving_list_init(uint8_t max_irk_list_sz);
 
 extern void btm_ble_adv_init(void);
