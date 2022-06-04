@@ -33,6 +33,7 @@ import io.grpc.stub.StreamObserver
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.filter
@@ -87,6 +88,10 @@ class Host(private val context: Context, private val server: Server) : HostImplB
         bluetoothAdapter.disable()
         stateFlow.filter { it == BluetoothAdapter.STATE_OFF }.first()
       }
+
+      //TODO: b/234892968
+      delay(2000L)
+
       bluetoothAdapter.enable()
       stateFlow.filter { it == BluetoothAdapter.STATE_ON }.first()
 
