@@ -29,7 +29,7 @@ force_install = False
 install_requires = [
     'grpcio',
     'psutil',
-    'protobuf>=3.14.0',
+    'protobuf>=3.14.0, <4.0',
     'mobly',
 ]
 
