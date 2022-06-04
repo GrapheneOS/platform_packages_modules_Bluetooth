@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-#define LOG_TAG "BTAudioClientLeAudio"
+#define LOG_TAG "BTAudioClientLeAudioStub"
 
 #include "le_audio_software.h"
 

@@ -434,10 +434,9 @@ tBTM_STATUS btm_ble_remove_resolving_list_entry(tBTM_SEC_DEV_REC* p_dev_rec) {
     BTM_VendorSpecificCommand(HCI_VENDOR_BLE_RPA_VSC,
                               BTM_BLE_META_REMOVE_IRK_LEN, param,
                               btm_ble_resolving_list_vsc_op_cmpl);
+    btm_ble_enq_resolving_list_pending(p_dev_rec->bd_addr,
+                                       BTM_BLE_META_REMOVE_IRK_ENTRY);
   }
-
-  btm_ble_enq_resolving_list_pending(p_dev_rec->bd_addr,
-                                     BTM_BLE_META_REMOVE_IRK_ENTRY);
   return BTM_CMD_STARTED;
 }
 
@@ -495,136 +494,10 @@ bool btm_ble_read_resolving_list_entry(tBTM_SEC_DEV_REC* p_dev_rec) {
 
     BTM_VendorSpecificCommand(HCI_VENDOR_BLE_RPA_VSC, BTM_BLE_META_READ_IRK_LEN,
                               param, btm_ble_resolving_list_vsc_op_cmpl);
+
+    btm_ble_enq_resolving_list_pending(p_dev_rec->bd_addr,
+                                       BTM_BLE_META_READ_IRK_ENTRY);
   }
-
-  btm_ble_enq_resolving_list_pending(p_dev_rec->bd_addr,
-                                     BTM_BLE_META_READ_IRK_ENTRY);
-
-  return true;
-}
-
-/*******************************************************************************
- *
- * Function         btm_ble_disable_resolving_list
- *
- * Description      Disable LE Address resolution
- *
- * Returns          none
- *
- ******************************************************************************/
-bool btm_ble_disable_resolving_list(uint8_t rl_mask, bool to_resume) {
-  LOG_DEBUG("GD automatically disables Address Resolution list");
-  return true;
-}
-
-/*******************************************************************************
- *
- * Function         btm_ble_resolving_list_load_dev
- *
- * Description      This function adds a device which is using RPA into the
- *                  acceptlist.
- *
- * Parameters       pointer to device security record
- *
- * Returns          true if device added, otherwise falase.
- *
- ******************************************************************************/
-bool btm_ble_resolving_list_load_dev(tBTM_SEC_DEV_REC* p_dev_rec) {
-  ASSERT_LOG(false,
-             "API is disabled...use signature <void(tBTM_SEC_DEV_REC&)>");
-
-  const uint8_t rl_state = btm_cb.ble_ctr_cb.rl_state;
-
-  if (controller_get_interface()->get_ble_resolving_list_max_size() == 0) {
-    BTM_TRACE_DEBUG(
-        "%s: Controller does not support RPA offloading or privacy 1.2",
-        __func__);
-    return false;
-  }
-
-  BTM_TRACE_DEBUG("%s: btm_cb.ble_ctr_cb.privacy_mode = %d", __func__,
-                  btm_cb.ble_ctr_cb.privacy_mode);
-
-  if (!p_dev_rec) {
-    BTM_TRACE_DEBUG("%s: No device security record", __func__);
-    return false;
-  }
-
-  /* only add RPA enabled device into resolving list */
-  if (controller_get_interface()->supports_ble_privacy()) {
-    if ((p_dev_rec->ble.key_type & (BTM_LE_KEY_PID | BTM_LE_KEY_LID)) == 0) {
-      BTM_TRACE_DEBUG("%s: privacy 1.2: Device not a RPA enabled device",
-                      __func__);
-      return false;
-    }
-  } else if ((p_dev_rec->ble.key_type & BTM_LE_KEY_PID) == 0) {
-    BTM_TRACE_DEBUG("%s: RPA offloading: Device not a RPA enabled device",
-                    __func__);
-    return false;
-  }
-
-  if ((p_dev_rec->ble.in_controller_list & BTM_RESOLVING_LIST_BIT) ||
-      btm_ble_brcm_find_resolving_pending_entry(p_dev_rec->bd_addr,
-                                                BTM_BLE_META_ADD_IRK_ENTRY)) {
-    BTM_TRACE_ERROR("%s: Device already in Resolving list", __func__);
-    return true;
-  }
-
-  if (btm_cb.ble_ctr_cb.resolving_list_avail_size == 0) {
-    return false;
-  }
-
-  if (rl_state && !btm_ble_disable_resolving_list(rl_state, false)) {
-    return false;
-  }
-
-  if (controller_get_interface()->supports_ble_privacy()) {
-    const Octet16& peer_irk = p_dev_rec->ble.keys.irk;
-    const Octet16& local_irk = btm_cb.devcb.id_keys.irk;
-
-    if (p_dev_rec->ble.identity_address_with_type.bda.IsEmpty()) {
-      p_dev_rec->ble.identity_address_with_type.bda = p_dev_rec->bd_addr;
-      p_dev_rec->ble.identity_address_with_type.type =
-          p_dev_rec->ble.AddressType();
-    }
-
-    BTM_TRACE_DEBUG(
-        "%s: adding device %s to controller resolving list", __func__,
-        p_dev_rec->ble.identity_address_with_type.bda.ToString().c_str());
-
-    // use identical IRK for now
-    btsnd_hcic_ble_add_device_resolving_list(
-        p_dev_rec->ble.identity_address_with_type.type,
-        p_dev_rec->ble.identity_address_with_type.bda, peer_irk, local_irk);
-
-    if (controller_get_interface()->supports_ble_set_privacy_mode()) {
-      BTM_TRACE_DEBUG("%s: adding device privacy mode", __func__);
-      btsnd_hcic_ble_set_privacy_mode(
-          p_dev_rec->ble.identity_address_with_type.type,
-          p_dev_rec->ble.identity_address_with_type.bda, 0x01);
-    }
-  } else {
-    uint8_t param[40] = {0};
-    uint8_t* p = param;
-
-    UINT8_TO_STREAM(p, BTM_BLE_META_ADD_IRK_ENTRY);
-    ARRAY_TO_STREAM(p, p_dev_rec->ble.keys.irk, OCTET16_LEN);
-    UINT8_TO_STREAM(p, p_dev_rec->ble.identity_address_with_type.type);
-    BDADDR_TO_STREAM(p, p_dev_rec->ble.identity_address_with_type.bda);
-
-    BTM_VendorSpecificCommand(HCI_VENDOR_BLE_RPA_VSC, BTM_BLE_META_ADD_IRK_LEN,
-                              param, btm_ble_resolving_list_vsc_op_cmpl);
-  }
-
-  btm_ble_enq_resolving_list_pending(p_dev_rec->bd_addr,
-                                     BTM_BLE_META_ADD_IRK_ENTRY);
-
-  /* if resolving list has been turned on, re-enable it */
-  if (rl_state)
-    btm_ble_enable_resolving_list(rl_state);
-  else
-    btm_ble_enable_resolving_list(BTM_BLE_RL_INIT);
-
   return true;
 }
 
@@ -707,12 +580,7 @@ void btm_ble_resolving_list_load_dev(tBTM_SEC_DEV_REC& dev_rec) {
  *
  ******************************************************************************/
 void btm_ble_resolving_list_remove_dev(tBTM_SEC_DEV_REC* p_dev_rec) {
-  uint8_t rl_mask = btm_cb.ble_ctr_cb.rl_state;
-
   BTM_TRACE_EVENT("%s", __func__);
-  if (rl_mask) {
-    if (!btm_ble_disable_resolving_list(rl_mask, false)) return;
-  }
 
   if ((p_dev_rec->ble.in_controller_list & BTM_RESOLVING_LIST_BIT) &&
       !btm_ble_brcm_find_resolving_pending_entry(
@@ -722,63 +590,6 @@ void btm_ble_resolving_list_remove_dev(tBTM_SEC_DEV_REC* p_dev_rec) {
   } else {
     BTM_TRACE_DEBUG("Device not in resolving list");
   }
-
-  /* if resolving list has been turned on, re-enable it */
-  if (rl_mask) btm_ble_enable_resolving_list(rl_mask);
-}
-
-/*******************************************************************************
- *
- * Function         btm_ble_enable_resolving_list
- *
- * Description      enable LE resolve address list
- *
- * Returns          none
- *
- ******************************************************************************/
-void btm_ble_enable_resolving_list(uint8_t rl_mask) {
-  LOG_DEBUG("GD automatically enables Address Resolution list");
-}
-
-static bool is_on_resolving_list(void* data, void* context) {
-  tBTM_SEC_DEV_REC* p_dev = static_cast<tBTM_SEC_DEV_REC*>(data);
-  if ((p_dev->ble.in_controller_list & BTM_RESOLVING_LIST_BIT) &&
-      (p_dev->ble.in_controller_list & BTM_ACCEPTLIST_BIT))
-    return false;
-
-  return true;
-}
-
-/*******************************************************************************
- *
- * Function         btm_ble_enable_resolving_list_for_platform
- *
- * Description      enable/disable resolving list feature depending on if any
- *                  resolving list is empty and acceptlist is involoved in the
- *                  operation.
- *
- * Returns          none
- *
- ******************************************************************************/
-void btm_ble_enable_resolving_list_for_platform(uint8_t rl_mask) {
-  /* if controller does not support, skip */
-  if (controller_get_interface()->get_ble_resolving_list_max_size() == 0)
-    return;
-
-  if (btm_cb.ble_ctr_cb.wl_state == BTM_BLE_WL_IDLE) {
-    if (controller_get_interface()->get_ble_resolving_list_max_size() >
-        btm_cb.ble_ctr_cb.resolving_list_avail_size)
-      btm_ble_enable_resolving_list(rl_mask);
-    else
-      btm_ble_disable_resolving_list(rl_mask, true);
-    return;
-  }
-
-  list_node_t* n = list_foreach(btm_cb.sec_dev_rec, is_on_resolving_list, NULL);
-  if (n)
-    btm_ble_enable_resolving_list(rl_mask);
-  else
-    btm_ble_disable_resolving_list(rl_mask, true);
 }
 
 /*******************************************************************************

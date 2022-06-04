@@ -1338,12 +1338,16 @@ void shim::legacy::Acl::CancelClassicConnection(const hci::Address& address) {
 void shim::legacy::Acl::AcceptLeConnectionFrom(
     const hci::AddressWithType& address_with_type, bool is_direct,
     std::promise<bool> promise) {
+  LOG_DEBUG("AcceptLeConnectionFrom %s",
+            PRIVATE_ADDRESS(address_with_type.GetAddress()));
   handler_->CallOn(pimpl_.get(), &Acl::impl::accept_le_connection_from,
                    address_with_type, is_direct, std::move(promise));
 }
 
 void shim::legacy::Acl::IgnoreLeConnectionFrom(
     const hci::AddressWithType& address_with_type) {
+  LOG_DEBUG("IgnoreLeConnectionFrom %s",
+            PRIVATE_ADDRESS(address_with_type.GetAddress()));
   handler_->CallOn(pimpl_.get(), &Acl::impl::ignore_le_connection_from,
                    address_with_type);
 }
