@@ -463,11 +463,6 @@ extern void btsnd_hcic_ble_set_data_length(uint16_t conn_handle,
                                            uint16_t tx_octets,
                                            uint16_t tx_time);
 
-extern void btsnd_hcic_ble_add_device_resolving_list(uint8_t addr_type_peer,
-                                                     const RawAddress& bda_peer,
-                                                     const Octet16& irk_peer,
-                                                     const Octet16& irk_local);
-
 struct scanning_phy_cfg {
   uint8_t scan_type;
   uint16_t scan_int;
@@ -500,15 +495,6 @@ extern void btsnd_hcic_ble_ext_create_conn(uint8_t init_filter_policy,
                                            const RawAddress& bda_peer,
                                            uint8_t initiating_phys,
                                            EXT_CONN_PHY_CFG* phy_cfg);
-
-extern void btsnd_hcic_ble_rm_device_resolving_list(
-    tBLE_ADDR_TYPE addr_type_peer, const RawAddress& bda_peer);
-
-extern void btsnd_hcic_ble_set_privacy_mode(tBLE_ADDR_TYPE addr_type_peer,
-                                            const RawAddress& bda_peer,
-                                            uint8_t privacy_type);
-
-extern void btsnd_hcic_ble_clear_resolving_list(void);
 
 extern void btsnd_hcic_ble_read_resolvable_addr_peer(
     uint8_t addr_type_peer, const RawAddress& bda_peer);
