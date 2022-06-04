@@ -49,10 +49,7 @@ struct btsnd_hcic_accept_cis_req btsnd_hcic_accept_cis_req;
 struct btsnd_hcic_big_create_sync btsnd_hcic_big_create_sync;
 struct btsnd_hcic_big_term_sync btsnd_hcic_big_term_sync;
 struct btsnd_hcic_ble_add_acceptlist btsnd_hcic_ble_add_acceptlist;
-struct btsnd_hcic_ble_add_device_resolving_list
-    btsnd_hcic_ble_add_device_resolving_list;
 struct btsnd_hcic_ble_clear_acceptlist btsnd_hcic_ble_clear_acceptlist;
-struct btsnd_hcic_ble_clear_resolving_list btsnd_hcic_ble_clear_resolving_list;
 struct btsnd_hcic_ble_create_conn_cancel btsnd_hcic_ble_create_conn_cancel;
 struct btsnd_hcic_ble_create_ll_conn btsnd_hcic_ble_create_ll_conn;
 struct btsnd_hcic_ble_enh_rx_test btsnd_hcic_ble_enh_rx_test;
@@ -86,8 +83,6 @@ struct btsnd_hcic_ble_read_resolvable_addr_peer
 struct btsnd_hcic_ble_receiver_test btsnd_hcic_ble_receiver_test;
 struct btsnd_hcic_ble_remove_from_acceptlist
     btsnd_hcic_ble_remove_from_acceptlist;
-struct btsnd_hcic_ble_rm_device_resolving_list
-    btsnd_hcic_ble_rm_device_resolving_list;
 struct btsnd_hcic_ble_set_addr_resolution_enable
     btsnd_hcic_ble_set_addr_resolution_enable;
 struct btsnd_hcic_ble_set_adv_data btsnd_hcic_ble_set_adv_data;
@@ -194,23 +189,11 @@ void btsnd_hcic_ble_add_acceptlist(
   test::mock::stack_hcic_hciblecmds::btsnd_hcic_ble_add_acceptlist(
       addr_type, bda, std::move(cb));
 }
-void btsnd_hcic_ble_add_device_resolving_list(uint8_t addr_type_peer,
-                                              const RawAddress& bda_peer,
-                                              const Octet16& irk_peer,
-                                              const Octet16& irk_local) {
-  mock_function_count_map[__func__]++;
-  test::mock::stack_hcic_hciblecmds::btsnd_hcic_ble_add_device_resolving_list(
-      addr_type_peer, bda_peer, irk_peer, irk_local);
-}
 void btsnd_hcic_ble_clear_acceptlist(
     base::OnceCallback<void(uint8_t*, uint16_t)> cb) {
   mock_function_count_map[__func__]++;
   test::mock::stack_hcic_hciblecmds::btsnd_hcic_ble_clear_acceptlist(
       std::move(cb));
-}
-void btsnd_hcic_ble_clear_resolving_list(void) {
-  mock_function_count_map[__func__]++;
-  test::mock::stack_hcic_hciblecmds::btsnd_hcic_ble_clear_resolving_list();
 }
 void btsnd_hcic_ble_create_conn_cancel(void) {
   mock_function_count_map[__func__]++;
@@ -358,12 +341,6 @@ void btsnd_hcic_ble_remove_from_acceptlist(
   mock_function_count_map[__func__]++;
   test::mock::stack_hcic_hciblecmds::btsnd_hcic_ble_remove_from_acceptlist(
       addr_type, bda, std::move(cb));
-}
-void btsnd_hcic_ble_rm_device_resolving_list(uint8_t addr_type_peer,
-                                             const RawAddress& bda_peer) {
-  mock_function_count_map[__func__]++;
-  test::mock::stack_hcic_hciblecmds::btsnd_hcic_ble_rm_device_resolving_list(
-      addr_type_peer, bda_peer);
 }
 void btsnd_hcic_ble_set_addr_resolution_enable(uint8_t addr_resolution_enable) {
   mock_function_count_map[__func__]++;
