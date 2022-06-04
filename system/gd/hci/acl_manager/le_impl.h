@@ -305,7 +305,7 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
       return;
     }
 
-    canceled_connections_.erase(remote_address);
+    arm_on_resume_ = false;
     ready_to_unregister = true;
     remove_device_from_connect_list(remote_address);
 
@@ -390,7 +390,7 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
       return;
     }
 
-    canceled_connections_.erase(remote_address);
+    arm_on_resume_ = false;
     ready_to_unregister = true;
     remove_device_from_connect_list(remote_address);
 
@@ -795,7 +795,7 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
     }
 
     if (pause_connection) {
-      canceled_connections_.insert(address_with_type);
+      arm_on_resume_ = true;
       return;
     }
 
@@ -811,7 +811,7 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
         // If we added to filter accept list then the arming of the le state machine
         // must wait until the filter accept list command as completed
         if (add_to_connect_list) {
-          canceled_connections_.insert(address_with_type);
+          arm_on_resume_ = true;
           LOG_DEBUG("Deferred until filter accept list has completed");
         } else {
           handler_->CallOn(this, &le_impl::arm_connectability);
@@ -930,16 +930,16 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
       le_address_manager_->AckPause(this);
       return;
     }
-    canceled_connections_ = connecting_le_;
+    arm_on_resume_ = !connecting_le_.empty();
     disarm_connectability();
   }
 
   void OnResume() override {  // bluetooth::hci::LeAddressManagerCallback
     pause_connection = false;
-    if (!canceled_connections_.empty()) {
+    if (arm_on_resume_) {
       arm_connectability();
     }
-    canceled_connections_.clear();
+    arm_on_resume_ = false;
     le_address_manager_->AckResume(this);
     check_for_unregister();
   }
@@ -987,7 +987,7 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
   LeConnectionCallbacks* le_client_callbacks_ = nullptr;
   os::Handler* le_client_handler_ = nullptr;
   std::unordered_set<AddressWithType> connecting_le_;
-  std::unordered_set<AddressWithType> canceled_connections_;
+  bool arm_on_resume_;
   std::unordered_set<AddressWithType> direct_connections_;
   // Set of devices that will not be removed from connect list after direct connect timeout
   std::unordered_set<AddressWithType> background_connections_;
