@@ -491,8 +491,6 @@ class GdAndroidDevice(GdDeviceBase):
 
         # Push test binaries
         self.push_or_die(os.path.join(get_gd_root(), "target", "bluetooth_stack_with_facade"), "system/bin")
-        self.push_or_die(
-            os.path.join(get_gd_root(), "target", "android.system.suspend.control-V1-ndk.so"), "system/lib64")
         self.push_or_die(os.path.join(get_gd_root(), "target", "libbluetooth_gd.so"), "system/lib64")
         self.push_or_die(os.path.join(get_gd_root(), "target", "libgrpc++_unsecure.so"), "system/lib64")
         self.push_or_die(os.path.join(get_gd_root(), "target", "libgrpc++.so"), "system/lib64")
@@ -529,7 +527,8 @@ class GdAndroidDevice(GdDeviceBase):
         self.ensure_no_output(self.adb.shell("settings put global ble_scan_always_enabled 0"))
         self.adb.shell("cmd bluetooth_manager disable")
         device_bt_state = int(self.adb.shell("settings get global bluetooth_on"))
-        asserts.assert_equal(device_bt_state, 0, "Failed to disable Bluetooth on device %s %s" % (self.label, self.serial_number))
+        asserts.assert_equal(device_bt_state, 0,
+                             "Failed to disable Bluetooth on device %s %s" % (self.label, self.serial_number))
         logging.info("Bluetooth disabled on device %s %s" % (self.label, self.serial_number))
 
         # Start logcat logging
