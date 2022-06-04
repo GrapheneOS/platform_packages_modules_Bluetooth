@@ -961,16 +961,17 @@ void GATT_SetIdleTimeout(const RawAddress& bd_addr, uint16_t idle_tout,
   bool status = false;
 
   tGATT_TCB* p_tcb = gatt_find_tcb_by_addr(bd_addr, transport);
-  if (p_tcb != NULL) {
+  if (p_tcb != nullptr) {
     status = L2CA_SetLeGattTimeout(bd_addr, idle_tout);
 
-    if (idle_tout == GATT_LINK_IDLE_TIMEOUT_WHEN_NO_APP)
+    if (idle_tout == GATT_LINK_IDLE_TIMEOUT_WHEN_NO_APP) {
       L2CA_SetIdleTimeoutByBdAddr(
           p_tcb->peer_bda, GATT_LINK_IDLE_TIMEOUT_WHEN_NO_APP, BT_TRANSPORT_LE);
+    }
   }
 
-  VLOG(1) << __func__ << " idle_tout=" << idle_tout << ", status=" << +status
-          << " (1-OK 0-not performed)";
+  LOG_INFO("idle_timeout=%d, status=%d, (1-OK 0-not performed)", idle_tout,
+           +status);
 }
 
 /*******************************************************************************
@@ -1162,22 +1163,18 @@ bool GATT_Connect(tGATT_IF gatt_if, const RawAddress& bd_addr, bool is_direct,
   /* Make sure app is registered */
   tGATT_REG* p_reg = gatt_get_regcb(gatt_if);
   if (!p_reg) {
-    LOG(ERROR) << __func__
-               << ": Unable to find registered app gatt_if=" << +gatt_if;
+    LOG_ERROR("Unable to find registered app gatt_if=%d", +gatt_if);
     return false;
   }
 
   if (!is_direct && transport != BT_TRANSPORT_LE) {
-    LOG(ERROR) << __func__
-               << ": Unsupported transport for background connection gatt_if="
-               << +gatt_if;
+    LOG_WARN("Unsupported transport for background connection gatt_if=%d",
+             +gatt_if);
     return false;
   }
 
   if (opportunistic) {
-    LOG(INFO) << __func__
-              << ": Registered for opportunistic connection gatt_if="
-              << +gatt_if;
+    LOG_INFO("Registered for opportunistic connection gatt_if=%d", +gatt_if);
     return true;
   }
 
@@ -1193,20 +1190,27 @@ bool GATT_Connect(tGATT_IF gatt_if, const RawAddress& bd_addr, bool is_direct,
       //  RPA can rotate, causing address to "expire" in the background
       //  connection list. RPA is allowed for direct connect, as such request
       //  times out after 30 seconds
-      LOG(INFO) << __func__
-                << ": Unable to add RPA to background connection gatt_if="
-                << +gatt_if;
-      ret = true;
+      LOG_WARN("Unable to add RPA %s to background connection gatt_if=%d",
+               bd_addr.ToString().c_str(), +gatt_if);
+      ret = false;
     } else {
-      LOG_DEBUG("Adding to acceptlist device:%s", PRIVATE_ADDRESS(bd_addr));
+      LOG_DEBUG("Adding to accept list device:%s", PRIVATE_ADDRESS(bd_addr));
       ret = connection_manager::background_connect_add(gatt_if, bd_addr);
     }
   }
 
   tGATT_TCB* p_tcb = gatt_find_tcb_by_addr(bd_addr, transport);
   // background connections don't necessarily create tcb
-  if (p_tcb && ret)
+  if (p_tcb && ret) {
     gatt_update_app_use_link_flag(p_reg->gatt_if, p_tcb, true, !is_direct);
+  } else {
+    if (p_tcb == nullptr) {
+      LOG_DEBUG("p_tcb is null");
+    }
+    if (!ret) {
+      LOG_DEBUG("Previous step returned false");
+    }
+  }
 
   return ret;
 }
@@ -1239,10 +1243,11 @@ bool GATT_CancelConnect(tGATT_IF gatt_if, const RawAddress& bd_addr,
       return false;
     }
 
-    if (is_direct)
+    if (is_direct) {
       return gatt_cancel_open(gatt_if, bd_addr);
-    else
+    } else {
       return gatt_auto_connect_dev_remove(p_reg->gatt_if, bd_addr);
+    }
   }
 
   VLOG(1) << " unconditional";
@@ -1283,11 +1288,14 @@ bool GATT_CancelConnect(tGATT_IF gatt_if, const RawAddress& bd_addr,
  *
  ******************************************************************************/
 tGATT_STATUS GATT_Disconnect(uint16_t conn_id) {
-  LOG(INFO) << __func__ << " conn_id=" << loghex(conn_id);
+  LOG_INFO("conn_id=%d", +conn_id);
 
   uint8_t tcb_idx = GATT_GET_TCB_IDX(conn_id);
   tGATT_TCB* p_tcb = gatt_get_tcb_by_idx(tcb_idx);
-  if (!p_tcb) return GATT_ILLEGAL_PARAMETER;
+  if (!p_tcb) {
+    LOG_WARN("Cannot find TCB for connection %d", conn_id);
+    return GATT_ILLEGAL_PARAMETER;
+  }
 
   tGATT_IF gatt_if = GATT_GET_GATT_IF(conn_id);
   gatt_update_app_use_link_flag(gatt_if, p_tcb, false, true);
@@ -1351,6 +1359,6 @@ bool GATT_GetConnIdIfConnected(tGATT_IF gatt_if, const RawAddress& bd_addr,
     status = true;
   }
 
-  VLOG(1) << __func__ << " status= " << +status;
+  LOG_DEBUG("status=%d", status);
   return status;
 }
