@@ -44,11 +44,11 @@ import kotlinx.coroutines.withTimeout
 @kotlinx.coroutines.ExperimentalCoroutinesApi
 fun intentFlow(context: Context, intentFilter: IntentFilter) = callbackFlow {
   val broadcastReceiver: BroadcastReceiver =
-      object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-          trySendBlocking(intent)
-        }
+    object : BroadcastReceiver() {
+      override fun onReceive(context: Context, intent: Intent) {
+        trySendBlocking(intent)
       }
+    }
   context.registerReceiver(broadcastReceiver, intentFilter)
 
   awaitClose { context.unregisterReceiver(broadcastReceiver) }
@@ -80,10 +80,10 @@ fun intentFlow(context: Context, intentFilter: IntentFilter) = callbackFlow {
  */
 @kotlinx.coroutines.ExperimentalCoroutinesApi
 fun <T> grpcUnary(
-    scope: CoroutineScope,
-    responseObserver: StreamObserver<T>,
-    timeout: Long = 60,
-    block: suspend () -> T
+  scope: CoroutineScope,
+  responseObserver: StreamObserver<T>,
+  timeout: Long = 60,
+  block: suspend () -> T
 ): Job {
   return scope.launch {
     try {
@@ -118,12 +118,12 @@ fun <T> getProfileProxy(context: Context, profile: Int): T {
 
     val flow = callbackFlow {
       val serviceListener =
-          object : BluetoothProfile.ServiceListener {
-            override fun onServiceConnected(profile: Int, proxy: BluetoothProfile) {
-              trySendBlocking(proxy)
-            }
-            override fun onServiceDisconnected(profile: Int) {}
+        object : BluetoothProfile.ServiceListener {
+          override fun onServiceConnected(profile: Int, proxy: BluetoothProfile) {
+            trySendBlocking(proxy)
           }
+          override fun onServiceDisconnected(profile: Int) {}
+        }
 
       bluetoothAdapter.getProfileProxy(context, serviceListener, profile)
 

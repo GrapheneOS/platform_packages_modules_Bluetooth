@@ -24,8 +24,6 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.net.MacAddress
 import android.util.Log
-import pandora.HostGrpc.HostImplBase
-import pandora.HostProto.*
 import com.google.protobuf.ByteString
 import com.google.protobuf.Empty
 import io.grpc.Status
@@ -41,6 +39,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
+import pandora.HostGrpc.HostImplBase
+import pandora.HostProto.*
 
 @kotlinx.coroutines.ExperimentalCoroutinesApi
 class Host(private val context: Context, private val server: Server) : HostImplBase() {
@@ -89,7 +89,7 @@ class Host(private val context: Context, private val server: Server) : HostImplB
         stateFlow.filter { it == BluetoothAdapter.STATE_OFF }.first()
       }
 
-      //TODO: b/234892968
+      // TODO: b/234892968
       delay(2000L)
 
       bluetoothAdapter.enable()
