@@ -4,6 +4,7 @@ pub mod config_util;
 pub mod dbus_arg;
 pub mod dbus_iface;
 pub mod iface_bluetooth_manager;
+pub mod migrate;
 pub mod powerd_suspend_manager;
 pub mod service_watcher;
 pub mod state_machine;
