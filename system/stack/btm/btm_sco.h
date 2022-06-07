@@ -25,14 +25,6 @@
 
 constexpr uint16_t kMaxScoLinks = static_cast<uint16_t>(BTM_MAX_SCO_LINKS);
 
-#ifndef ESCO_DATA_PATH
-#ifdef OS_ANDROID
-#define ESCO_DATA_PATH ESCO_DATA_PATH_PCM
-#else
-#define ESCO_DATA_PATH ESCO_DATA_PATH_HCI
-#endif
-#endif
-
 // SCO-over-HCI audio related definitions
 namespace bluetooth::audio::sco {
 
