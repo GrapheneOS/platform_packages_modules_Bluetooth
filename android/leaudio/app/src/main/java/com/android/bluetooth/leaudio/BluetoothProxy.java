@@ -1121,8 +1121,10 @@ public class BluetoothProxy {
     }
 
     public void setVolume(BluetoothDevice device, int volume) {
-        if (bluetoothLeAudio != null) {
+        if (bluetoothLeAudio != null && !bluetoothLeAudio.getConnectedDevices().isEmpty()) {
             bluetoothLeAudio.setVolume(volume);
+        } else if (bluetoothVolumeControl != null) {
+            bluetoothVolumeControl.setVolumeOffset(device, volume);
         }
     }
 
