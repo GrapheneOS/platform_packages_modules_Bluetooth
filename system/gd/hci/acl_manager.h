@@ -103,8 +103,12 @@ public:
  // Generates OnConnectFail with error code "terminated by local host 0x16" if cancelled, or OnConnectSuccess if not
  // successfully cancelled and already connected
  virtual void CancelConnect(Address address);
+ virtual void RemoveFromBackgroundList(AddressWithType address_with_type);
+ virtual void IsOnBackgroundList(AddressWithType address_with_type, std::promise<bool> promise);
 
  virtual void CancelLeConnect(AddressWithType address_with_type);
+ virtual void CancelLeConnectAndRemoveFromBackgroundList(AddressWithType address_with_type);
+
  virtual void AddDeviceToFilterAcceptList(AddressWithType address_with_type);
  virtual void RemoveDeviceFromFilterAcceptList(AddressWithType address_with_type);
  virtual void ClearFilterAcceptList();
