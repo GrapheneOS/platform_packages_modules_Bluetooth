@@ -95,7 +95,7 @@ class IUT:
             description: MMI description.
             style: MMI popup style, unused for now.
         """
-        print(f'{profile} mmi: {description}', file=sys.stderr)
+        print(f'{profile} mmi: {interaction}', file=sys.stderr)
 
         # Handles A2DP and AVDTP MMIs.
         if profile in ('A2DP', 'AVDTP'):
