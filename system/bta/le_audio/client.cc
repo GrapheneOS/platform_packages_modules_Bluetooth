@@ -2018,8 +2018,8 @@ class LeAudioClientImpl : public LeAudioClient {
 
     if (bytes_per_sample == 2) {
       int16_t* out = (int16_t*)mono_out.data();
+      const int16_t* in = (int16_t*)(buf.data());
       for (size_t i = 0; i < frames; ++i) {
-        const int16_t* in = (int16_t*)(buf.data());
         int accum = 0;
         accum += *in++;
         accum += *in++;
@@ -2028,8 +2028,8 @@ class LeAudioClientImpl : public LeAudioClient {
       }
     } else if (bytes_per_sample == 4) {
       int32_t* out = (int32_t*)mono_out.data();
+      const int32_t* in = (int32_t*)(buf.data());
       for (size_t i = 0; i < frames; ++i) {
-        const int32_t* in = (int32_t*)(buf.data());
         int accum = 0;
         accum += *in++;
         accum += *in++;
