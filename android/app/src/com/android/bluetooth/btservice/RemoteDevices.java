@@ -724,7 +724,7 @@ final class RemoteDevices {
                             break;
                         case AbstractionLayer.BT_PROPERTY_TYPE_OF_DEVICE:
                             if (device.isConsolidated()) {
-                                return;
+                                break;
                             }
                             // The device type from hal layer, defined in bluetooth.h,
                             // matches the type defined in BluetoothDevice.java
