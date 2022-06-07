@@ -23,26 +23,38 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let matches = App::new("Bluetooth Manager")
         .arg(Arg::with_name("systemd").long("systemd").help("If btadapterd uses systemd init"))
         .arg(Arg::with_name("debug").long("debug").short("d").help("Enables debug level logs"))
+        .arg(
+            Arg::with_name("log-output")
+                .long("log-output")
+                .takes_value(true)
+                .possible_values(&["syslog", "stderr"])
+                .default_value("syslog")
+                .help("Select log output"),
+        )
         .get_matches();
 
     let is_debug = matches.is_present("debug");
     let is_systemd = matches.is_present("systemd");
 
-    let formatter = Formatter3164 {
-        facility: Facility::LOG_USER,
-        hostname: None,
-        process: "btmanagerd".into(),
-        pid: 0,
-    };
+    let level_filter = if is_debug { LevelFilter::Debug } else { LevelFilter::Info };
 
-    let logger = syslog::unix(formatter).expect("could not connect to syslog");
-    let _ = log::set_boxed_logger(Box::new(BasicLogger::new(logger))).map(|()| {
-        log::set_max_level(config_util::get_log_level().unwrap_or(if is_debug {
-            LevelFilter::Debug
-        } else {
-            LevelFilter::Info
-        }))
-    });
+    let log_output = matches.value_of("log-output").unwrap_or("syslog");
+
+    if log_output == "stderr" {
+        env_logger::Builder::new().filter(None, level_filter).init();
+    } else {
+        // syslog is the default log output.
+        let formatter = Formatter3164 {
+            facility: Facility::LOG_USER,
+            hostname: None,
+            process: "btmanagerd".into(),
+            pid: 0,
+        };
+
+        let logger = syslog::unix(formatter).expect("could not connect to syslog");
+        let _ = log::set_boxed_logger(Box::new(BasicLogger::new(logger)))
+            .map(|()| log::set_max_level(config_util::get_log_level().unwrap_or(level_filter)));
+    }
 
     // Initialize config util
     config_util::fix_config_file_format();
