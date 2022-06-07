@@ -160,6 +160,10 @@ void AclManager::CreateLeConnection(AddressWithType address_with_type, bool is_d
   CallOn(pimpl_->le_impl_, &le_impl::create_le_connection, address_with_type, true, is_direct);
 }
 
+void AclManager::IsOnBackgroundList(AddressWithType address_with_type, std::promise<bool> promise) {
+  CallOn(pimpl_->le_impl_, &le_impl::is_on_background_connection_list, address_with_type, std::move(promise));
+}
+
 void AclManager::SetLeSuggestedDefaultDataParameters(uint16_t octets, uint16_t time) {
   CallOn(pimpl_->le_impl_, &le_impl::set_le_suggested_default_data_parameters, octets, time);
 }
@@ -208,6 +212,17 @@ void AclManager::CancelConnect(Address address) {
 void AclManager::CancelLeConnect(AddressWithType address_with_type) {
   CallOn(pimpl_->le_impl_, &le_impl::remove_device_from_background_connection_list, address_with_type);
   CallOn(pimpl_->le_impl_, &le_impl::cancel_connect, address_with_type);
+}
+
+void AclManager::RemoveFromBackgroundList(AddressWithType address_with_type) {
+  CallOn(pimpl_->le_impl_, &le_impl::remove_device_from_background_connection_list, address_with_type);
+}
+
+void AclManager::CancelLeConnectAndRemoveFromBackgroundList(AddressWithType address_with_type) {
+  CallOn(
+      pimpl_->le_impl_,
+      &le_impl::cancel_connection_and_remove_device_from_background_connection_list,
+      address_with_type);
 }
 
 void AclManager::AddDeviceToFilterAcceptList(AddressWithType address_with_type) {
