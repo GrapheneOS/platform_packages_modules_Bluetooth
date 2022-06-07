@@ -2042,7 +2042,7 @@ class LeAudioClientImpl : public LeAudioClient {
     return mono_out;
   }
 
-  void PrepareAndSendToTwoDevices(
+  void PrepareAndSendToTwoCises(
       const std::vector<uint8_t>& data,
       struct le_audio::stream_configuration* stream_conf) {
     uint16_t byte_count = stream_conf->sink_octets_per_codec_frame;
@@ -2112,7 +2112,7 @@ class LeAudioClientImpl : public LeAudioClient {
           right_cis_handle, chan_right_enc.data(), chan_right_enc.size());
   }
 
-  void PrepareAndSendToSingleDevice(
+  void PrepareAndSendToSingleCis(
       const std::vector<uint8_t>& data,
       struct le_audio::stream_configuration* stream_conf) {
     int num_channels = stream_conf->sink_num_of_channels;
@@ -2295,9 +2295,12 @@ class LeAudioClientImpl : public LeAudioClient {
     }
 
     if (stream_conf.sink_num_of_devices == 2) {
-      PrepareAndSendToTwoDevices(data, &stream_conf);
+      PrepareAndSendToTwoCises(data, &stream_conf);
+    } else if (stream_conf.sink_streams.size() == 2 ) {
+      /* Streaming to one device but 2 CISes */
+      PrepareAndSendToTwoCises(data, &stream_conf);
     } else {
-      PrepareAndSendToSingleDevice(data, &stream_conf);
+      PrepareAndSendToSingleCis(data, &stream_conf);
     }
   }
 
