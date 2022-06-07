@@ -807,7 +807,7 @@ pub fn dbus_proxy_obj(attr: TokenStream, item: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn generate_dbus_arg(_item: TokenStream) -> TokenStream {
     let gen = quote! {
-        use dbus::arg::PropMap;
+        use dbus::arg::{PropMap, RefArg};
         use dbus::nonblock::SyncConnection;
         use dbus::strings::BusName;
         use dbus_projection::DisconnectWatcher;
@@ -815,6 +815,9 @@ pub fn generate_dbus_arg(_item: TokenStream) -> TokenStream {
         use std::error::Error;
         use std::fmt;
         use std::sync::{Arc, Mutex};
+
+        // Key for serialized Option<T> in propmap
+        const OPTION_KEY: &'static str = "optional_value";
 
         #[derive(Debug)]
         pub(crate) struct DBusArgError {
@@ -843,7 +846,7 @@ pub fn generate_dbus_arg(_item: TokenStream) -> TokenStream {
             ) -> Result<Self::RustType, Box<dyn Error>>;
         }
 
-        impl<T: 'static + Clone + DirectDBus> RefArgToRust for T {
+        impl<T: 'static + DirectDBus> RefArgToRust for T {
             type RustType = T;
             fn ref_arg_to_rust(
                 arg: &(dyn dbus::arg::RefArg + 'static),
@@ -859,6 +862,31 @@ pub fn generate_dbus_arg(_item: TokenStream) -> TokenStream {
                     )))));
                 }
                 let arg = (*any.downcast_ref::<<Self as DBusArg>::DBusType>().unwrap()).clone();
+                return Ok(arg);
+            }
+        }
+
+        impl RefArgToRust for std::fs::File {
+            type RustType = std::fs::File;
+
+            fn ref_arg_to_rust(
+                arg: &(dyn dbus::arg::RefArg + 'static),
+                name: String,
+            ) -> Result<Self::RustType, Box<dyn Error>> {
+                let any = arg.as_any();
+                if !any.is::<<Self as DBusArg>::DBusType>() {
+                    return Err(Box::new(DBusArgError::new(String::from(format!(
+                        "{} type does not match: expected {}, found {}",
+                        name,
+                        std::any::type_name::<<Self as DBusArg>::DBusType>(),
+                        arg.arg_type().as_str(),
+                    )))));
+                }
+                let arg = match (*any.downcast_ref::<<Self as DBusArg>::DBusType>().unwrap()).try_clone() {
+                    Ok(foo) => foo,
+                    Err(_) => return Err(Box::new(DBusArgError::new(String::from(format!("{} cannot clone file.", name))))),
+                };
+
                 return Ok(arg);
             }
         }
@@ -929,7 +957,7 @@ pub fn generate_dbus_arg(_item: TokenStream) -> TokenStream {
         }
 
         // Types that implement dbus::arg::Append do not need any conversion.
-        pub(crate) trait DirectDBus {}
+        pub(crate) trait DirectDBus: Clone {}
         impl DirectDBus for bool {}
         impl DirectDBus for i32 {}
         impl DirectDBus for u32 {}
@@ -951,6 +979,23 @@ pub fn generate_dbus_arg(_item: TokenStream) -> TokenStream {
             }
 
             fn to_dbus(data: T) -> Result<T, Box<dyn Error>> {
+                return Ok(data);
+            }
+        }
+
+        impl DBusArg for std::fs::File {
+            type DBusType = std::fs::File;
+
+            fn from_dbus(
+                data: std::fs::File,
+                _conn: Option<Arc<dbus::nonblock::SyncConnection>>,
+                _remote: Option<BusName<'static>>,
+                _disconnect_watcher: Option<Arc<Mutex<DisconnectWatcher>>>,
+            ) -> Result<std::fs::File, Box<dyn Error>> {
+                return Ok(data);
+            }
+
+            fn to_dbus(data: std::fs::File) -> Result<std::fs::File, Box<dyn Error>> {
                 return Ok(data);
             }
         }
@@ -984,6 +1029,64 @@ pub fn generate_dbus_arg(_item: TokenStream) -> TokenStream {
                     list.push(t);
                 }
                 Ok(list)
+            }
+        }
+
+        impl<T: DBusArg> DBusArg for Option<T>
+            where <T as DBusArg>::DBusType: dbus::arg::RefArg + 'static + RefArgToRust<RustType = <T as DBusArg>::DBusType> {
+            type DBusType = dbus::arg::PropMap;
+
+            fn from_dbus(
+                data: dbus::arg::PropMap,
+                conn: Option<Arc<dbus::nonblock::SyncConnection>>,
+                remote: Option<BusName<'static>>,
+                disconnect_watcher: Option<Arc<Mutex<DisconnectWatcher>>>)
+                -> Result<Option<T>, Box<dyn Error>> {
+                let mut result: Option<T> = None;
+
+                // It's Ok if the key doesn't exist. That just means we have an empty option (i.e.
+                // None).
+                let prop_value = match data.get(OPTION_KEY) {
+                    Some(data) => data,
+                    None => {
+                        return Ok(None);
+                    }
+                };
+
+                // Make sure the option type was encoded correctly. If the key exists but the value
+                // is not right, we return an Err type.
+                match prop_value.arg_type() {
+                    dbus::arg::ArgType::Variant => (),
+                    _ => {
+                        return Err(Box::new(DBusArgError::new(String::from(format!("{} must be a variant", OPTION_KEY)))));
+                    }
+                };
+
+                // Convert the Variant into the target type and return an Err if that fails.
+                let ref_value: <T as DBusArg>::DBusType = match <<T as DBusArg>::DBusType as RefArgToRust>::ref_arg_to_rust(
+                    prop_value.as_static_inner(0).unwrap(),
+                    OPTION_KEY.to_string()) {
+                    Ok(v) => v,
+                    Err(e) => return Err(e),
+                };
+
+                let value = match T::from_dbus(ref_value, conn, remote, disconnect_watcher) {
+                    Ok(v) => Some(v),
+                    Err(_) => None,
+                };
+
+                Ok(value)
+            }
+
+            fn to_dbus(data: Option<T>) -> Result<dbus::arg::PropMap, Box<dyn Error>> {
+                let mut props = dbus::arg::PropMap::new();
+
+                if let Some(d) = data {
+                    let b = T::to_dbus(d)?;
+                    props.insert(OPTION_KEY.to_string(), dbus::arg::Variant(Box::new(b)));
+                }
+
+                Ok(props)
             }
         }
     };
