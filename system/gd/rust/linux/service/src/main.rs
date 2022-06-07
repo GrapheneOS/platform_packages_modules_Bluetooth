@@ -15,6 +15,7 @@ use btstack::{
     bluetooth::{get_bt_dispatcher, Bluetooth, IBluetooth},
     bluetooth_gatt::BluetoothGatt,
     bluetooth_media::BluetoothMedia,
+    socket_manager::BluetoothSocketManager,
     suspend::Suspend,
     Stack,
 };
@@ -87,6 +88,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         intf.clone(),
         bluetooth_media.clone(),
     ))));
+    let bt_sock_mgr = Arc::new(Mutex::new(Box::new(BluetoothSocketManager::new(intf.clone()))));
 
     topstack::get_runtime().block_on(async {
         // Connect to D-Bus system bus.
@@ -148,6 +150,11 @@ fn main() -> Result<(), Box<dyn Error>> {
             &mut cr.lock().unwrap(),
             disconnect_watcher.clone(),
         );
+        let socket_mgr_iface = iface_bluetooth::export_socket_mgr_intf(
+            conn.clone(),
+            &mut cr.lock().unwrap(),
+            disconnect_watcher.clone(),
+        );
         let suspend_iface = iface_bluetooth::export_suspend_dbus_intf(
             conn.clone(),
             &mut cr.lock().unwrap(),
@@ -171,11 +178,12 @@ fn main() -> Result<(), Box<dyn Error>> {
         let mixin = Box::new(iface_bluetooth::BluetoothMixin {
             adapter: bluetooth.clone(),
             suspend: suspend.clone(),
+            socket_mgr: bt_sock_mgr.clone(),
         });
 
         cr.lock().unwrap().insert(
             make_object_name(adapter_index, "adapter"),
-            &[adapter_iface, suspend_iface],
+            &[adapter_iface, socket_mgr_iface, suspend_iface],
             mixin,
         );
 

@@ -291,9 +291,9 @@ macro_rules! impl_dbus_arg_from_into {
                     Arc<std::sync::Mutex<dbus_projection::DisconnectWatcher>>,
                 >,
             ) -> Result<$rust_type, Box<dyn std::error::Error>> {
-                match <$rust_type>::try_from(data) {
+                match <$rust_type>::try_from(data.clone()) {
                     Err(e) => Err(Box::new(DBusArgError::new(String::from(format!(
-                        "error converting {} to {}",
+                        "error converting {:?} to {:?}",
                         data,
                         stringify!($rust_type),
                     ))))),
@@ -302,9 +302,9 @@ macro_rules! impl_dbus_arg_from_into {
             }
 
             fn to_dbus(data: $rust_type) -> Result<$dbus_type, Box<dyn std::error::Error>> {
-                match data.try_into() {
+                match data.clone().try_into() {
                     Err(e) => Err(Box::new(DBusArgError::new(String::from(format!(
-                        "error converting {:?} to {}",
+                        "error converting {:?} to {:?}",
                         data,
                         stringify!($dbus_type)
                     ))))),

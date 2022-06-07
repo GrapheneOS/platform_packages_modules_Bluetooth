@@ -9,7 +9,7 @@ use std::ffi::CString;
 use std::fs::File;
 use std::os::unix::io::FromRawFd;
 
-#[derive(Debug, FromPrimitive, ToPrimitive)]
+#[derive(Clone, Debug, FromPrimitive, ToPrimitive)]
 #[repr(u32)]
 /// Socket interface type.
 pub enum SocketType {
