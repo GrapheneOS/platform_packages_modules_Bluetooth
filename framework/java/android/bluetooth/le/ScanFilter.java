@@ -742,11 +742,11 @@ public final class ScanFilter implements Parcelable {
          * address can be validated using {@link BluetoothAdapter#checkBluetoothAddress}.
          * <p>
          * The IRK is used to resolve a static address from a private address. The IRK must be
-         * provided in big endian byte order.
+         * provided in little endian byte order.
          *
          * @param deviceAddress the remote device Bluetooth address for the filter
          * @param addressType indication of the type of address
-         * @param irk non-null byte array representing the Identity Resolving Key
+         * @param irk non-null little endian byte array representing the Identity Resolving Key
          *
          * @throws IllegalArgumentException If the {@code deviceAddress} is invalid
          * @throws IllegalArgumentException if the {@code irk} is invalid length
@@ -777,9 +777,8 @@ public final class ScanFilter implements Parcelable {
          * format of "01:02:03:AB:CD:EF". The device address can be validated using {@link
          * BluetoothAdapter#checkBluetoothAddress}.
          * @param addressType indication of the type of address
-         * e.g. {@link BluetoothDevice#ADDRESS_TYPE_PUBLIC}
-         * @param irk non-null byte array representing the Identity Resolving Address; nullable
-         * internally.
+         * @param irk non-null little endian byte array representing the Identity Resolving Key;
+         *            nullable internally.
          *
          * @throws IllegalArgumentException if the {@code deviceAddress} is invalid
          * @throws IllegalArgumentException if the {@code addressType} is not PUBLIC or RANDOM
