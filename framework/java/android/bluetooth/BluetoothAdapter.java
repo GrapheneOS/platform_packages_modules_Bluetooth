@@ -3365,7 +3365,7 @@ public final class BluetoothAdapter {
      * can use the same UUID to query our SDP server and discover which channel
      * to connect to. This SDP record will be removed when this socket is
      * closed, or if this application closes unexpectedly.
-     * <p>Use {@link BluetoothDevice#createRfcommSocketToServiceRecord} to
+     * <p>Use {@link BluetoothDevice#createInsecureRfcommSocketToServiceRecord} to
      * connect to this socket from another device using the same {@link UUID}.
      *
      * @param name service name for SDP record
