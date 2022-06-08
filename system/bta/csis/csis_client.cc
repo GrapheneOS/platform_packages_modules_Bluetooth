@@ -142,6 +142,7 @@ class CsisClientImpl : public CsisClient {
     if (!csis_group) {
       if (create_group_if_non_existing) {
         /* Let's create a group */
+        LOG(INFO) << __func__ << ": Create a new group";
         auto g = std::make_shared<CsisGroup>(group_id, uuid);
         csis_groups_.push_back(g);
         csis_group = FindCsisGroup(group_id);
@@ -1340,11 +1341,6 @@ class CsisClientImpl : public CsisClient {
         group_id =
             dev_groups_->AddDevice(device->addr, csis_instance->GetUuid());
         LOG_ASSERT(group_id != -1);
-
-        /* Create new group */
-        auto g =
-            std::make_shared<CsisGroup>(group_id, csis_instance->GetUuid());
-        csis_groups_.push_back(g);
       } else {
         dev_groups_->AddDevice(device->addr, csis_instance->GetUuid(),
                                group_id);
