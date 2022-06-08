@@ -26,19 +26,20 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.media.*
 import android.util.Log
-import pandora.A2DPGrpc.A2DPImplBase
-import pandora.A2dpProto.*
 import io.grpc.Status
 import io.grpc.stub.StreamObserver
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
+import pandora.A2DPGrpc.A2DPImplBase
+import pandora.A2dpProto.*
 
 @kotlinx.coroutines.ExperimentalCoroutinesApi
 class A2dp(val context: Context) : A2DPImplBase() {
@@ -55,24 +56,7 @@ class A2dp(val context: Context) : A2DPImplBase() {
   private val bluetoothAdapter = bluetoothManager.adapter
   private val bluetoothA2dp = getProfileProxy<BluetoothA2dp>(context, BluetoothProfile.A2DP)
 
-  private val audioTrack: AudioTrack =
-    AudioTrack.Builder()
-      .setAudioAttributes(
-        AudioAttributes.Builder()
-          .setUsage(AudioAttributes.USAGE_MEDIA)
-          .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-          .build()
-      )
-      .setAudioFormat(
-        AudioFormat.Builder()
-          .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
-          .setSampleRate(44100)
-          .setChannelMask(AudioFormat.CHANNEL_OUT_STEREO)
-          .build()
-      )
-      .setTransferMode(AudioTrack.MODE_STREAM)
-      .setBufferSizeInBytes(44100 * 2 * 2)
-      .build()
+  private var audioTrack: AudioTrack? = null
 
   init {
     scope = CoroutineScope(Dispatchers.Default)
@@ -86,6 +70,28 @@ class A2dp(val context: Context) : A2DPImplBase() {
   fun deinit() {
     bluetoothAdapter.closeProfileProxy(BluetoothProfile.A2DP, bluetoothA2dp)
     scope.cancel()
+  }
+
+  fun buildAudioTrack(): AudioTrack? {
+    audioTrack =
+      AudioTrack.Builder()
+        .setAudioAttributes(
+          AudioAttributes.Builder()
+            .setUsage(AudioAttributes.USAGE_MEDIA)
+            .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+            .build()
+        )
+        .setAudioFormat(
+          AudioFormat.Builder()
+            .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+            .setSampleRate(44100)
+            .setChannelMask(AudioFormat.CHANNEL_OUT_STEREO)
+            .build()
+        )
+        .setTransferMode(AudioTrack.MODE_STREAM)
+        .setBufferSizeInBytes(44100 * 2 * 2)
+        .build()
+    return audioTrack
   }
 
   override fun openSource(
@@ -118,6 +124,10 @@ class A2dp(val context: Context) : A2DPImplBase() {
           throw Status.UNKNOWN.asException()
         }
       }
+
+      // TODO: b/234891800, AVDTP start request sometimes never sent if playback starts too early.
+      delay(2000L)
+
       val source = Source.newBuilder().setCookie(request.connection.cookie).build()
       OpenSourceResponse.newBuilder().setSource(source).build()
     }
@@ -152,6 +162,10 @@ class A2dp(val context: Context) : A2DPImplBase() {
           throw Status.UNKNOWN.asException()
         }
       }
+
+      // TODO: b/234891800, AVDTP start request sometimes never sent if playback starts too early.
+      delay(2000L)
+
       val source = Source.newBuilder().setCookie(request.connection.cookie).build()
       WaitSourceResponse.newBuilder().setSource(source).build()
     }
@@ -159,6 +173,9 @@ class A2dp(val context: Context) : A2DPImplBase() {
 
   override fun start(request: StartRequest, responseObserver: StreamObserver<StartResponse>) {
     grpcUnary<StartResponse>(scope, responseObserver) {
+      if (audioTrack == null) {
+        audioTrack = buildAudioTrack()
+      }
       val address = request.source.cookie.toByteArray().decodeToString()
       val device = bluetoothAdapter.getRemoteDevice(address)
       Log.i(TAG, "start: address=$address")
@@ -168,7 +185,7 @@ class A2dp(val context: Context) : A2DPImplBase() {
         throw Status.UNKNOWN.asException()
       }
 
-      audioTrack.play()
+      audioTrack!!.play()
 
       // If A2dp is not already playing, wait for it
       if (!bluetoothA2dp.isA2dpPlaying(device)) {
@@ -209,7 +226,7 @@ class A2dp(val context: Context) : A2DPImplBase() {
           }
           .map { it.getIntExtra(BluetoothA2dp.EXTRA_STATE, BluetoothAdapter.ERROR) }
 
-      audioTrack.pause()
+      audioTrack!!.pause()
       a2dpPlayingStateFlow.filter { it == BluetoothA2dp.STATE_NOT_PLAYING }.first()
       SuspendResponse.getDefaultInstance()
     }
@@ -265,8 +282,10 @@ class A2dp(val context: Context) : A2DPImplBase() {
   ): StreamObserver<PlaybackAudioRequest> {
     Log.i(TAG, "playbackAudio")
 
-    if (audioTrack.getPlayState() != AudioTrack.PLAYSTATE_PLAYING) {
-      responseObserver.onError(Status.UNKNOWN.withDescription("AudioTrack is not started").asException())
+    if (audioTrack!!.getPlayState() != AudioTrack.PLAYSTATE_PLAYING) {
+      responseObserver.onError(
+        Status.UNKNOWN.withDescription("AudioTrack is not started").asException()
+      )
     }
 
     // Volume is maxed out to avoid any amplitude modification of the provided audio data,
@@ -288,9 +307,7 @@ class A2dp(val context: Context) : A2DPImplBase() {
     return object : StreamObserver<PlaybackAudioRequest> {
       override fun onNext(request: PlaybackAudioRequest) {
         val data = request.data.toByteArray()
-        val written = synchronized(audioTrack) {
-          audioTrack.write(data, 0, data.size)
-        }
+        val written = synchronized(audioTrack!!) { audioTrack!!.write(data, 0, data.size) }
         if (written != data.size) {
           responseObserver.onError(
             Status.UNKNOWN.withDescription("AudioTrack write failed").asException()
