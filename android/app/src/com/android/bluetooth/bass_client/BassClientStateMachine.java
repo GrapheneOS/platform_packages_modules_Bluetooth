@@ -105,7 +105,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.stream.IntStream;
@@ -664,7 +663,6 @@ public class BassClientStateMachine extends StateMachine {
                         badBroadcastCode,
                         0,
                         BassConstants.BCAST_RCVR_STATE_BADCODE_SIZE);
-                badBroadcastCode = reverseBytes(badBroadcastCode);
                 badBroadcastCodeLen = BassConstants.BCAST_RCVR_STATE_BADCODE_SIZE;
             }
             byte numSubGroups = receiverState[BassConstants.BCAST_RCVR_STATE_BADCODE_START_IDX
@@ -681,7 +679,7 @@ public class BassClientStateMachine extends StateMachine {
                 offset += BassConstants.BCAST_RCVR_STATE_BIS_SYNC_SIZE;
                 log("BIS index byte array: ");
                 BassUtils.printByteArray(audioSyncIndex);
-                ByteBuffer wrapped = ByteBuffer.wrap(reverseBytes(audioSyncIndex));
+                ByteBuffer wrapped = ByteBuffer.wrap(audioSyncIndex);
                 audioSyncState.add((long) wrapped.getInt());
 
                 byte metaDataLength = receiverState[offset++];
@@ -690,7 +688,6 @@ public class BassClientStateMachine extends StateMachine {
                     byte[] metaData = new byte[metaDataLength];
                     System.arraycopy(receiverState, offset, metaData, 0, metaDataLength);
                     offset += metaDataLength;
-                    metaData = reverseBytes(metaData);
                     metadataList.add(BluetoothLeAudioContentMetadata.fromRawBytes(metaData));
                 } else {
                     metadataList.add(BluetoothLeAudioContentMetadata.fromRawBytes(new byte[0]));
@@ -713,10 +710,7 @@ public class BassClientStateMachine extends StateMachine {
                     BassConstants.BCAST_RCVR_STATE_SRC_ADDR_SIZE);
             byte sourceAddressType = receiverState[BassConstants
                     .BCAST_RCVR_STATE_SRC_ADDR_TYPE_IDX];
-            byte[] revAddress = reverseBytes(sourceAddress);
-            String address = String.format(Locale.US, "%02X:%02X:%02X:%02X:%02X:%02X",
-                    revAddress[0], revAddress[1], revAddress[2],
-                    revAddress[3], revAddress[4], revAddress[5]);
+            String address = Utils.getAddressStringFromByte(sourceAddress);
             BluetoothDevice device = btAdapter.getRemoteLeDevice(
                     address, sourceAddressType);
             byte sourceAdvSid = receiverState[BassConstants.BCAST_RCVR_STATE_SRC_ADV_SID_IDX];
@@ -1161,15 +1155,6 @@ public class BassClientStateMachine extends StateMachine {
             }
             return HANDLED;
         }
-    }
-
-    private byte[] reverseBytes(byte[] a) {
-        for (int i = 0; i < a.length / 2; i++) {
-            byte tmp = a[i];
-            a[i] = a[a.length - i - 1];
-            a[a.length - i - 1] = tmp;
-        }
-        return a;
     }
 
     private byte[] bluetoothAddressToBytes(String s) {
