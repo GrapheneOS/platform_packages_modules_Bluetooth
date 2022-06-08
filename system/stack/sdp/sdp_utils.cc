@@ -22,6 +22,9 @@
  *
  ******************************************************************************/
 
+#include <base/logging.h>
+#include <log/log.h>
+
 #include <array>
 #include <cstdint>
 #include <cstring>
@@ -39,8 +42,6 @@
 #include "stack/sdp/sdpint.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
-
-#include <base/logging.h>
 
 using bluetooth::Uuid;
 static const uint8_t sdp_base_uuid[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -126,6 +127,10 @@ static uint16_t sdpu_find_most_specific_service_uuid(tSDP_DISC_REC* p_rec) {
     if (p_attr->attr_id == ATTR_ID_SERVICE_CLASS_ID_LIST &&
         SDP_DISC_ATTR_TYPE(p_attr->attr_len_type) == DATA_ELE_SEQ_DESC_TYPE) {
       tSDP_DISC_ATTR* p_first_attr = p_attr->attr_value.v.p_sub_attr;
+      if (p_first_attr == nullptr) {
+        android_errorWriteLog(0x534e4554, "227203684");
+        return 0;
+      }
       if (SDP_DISC_ATTR_TYPE(p_first_attr->attr_len_type) == UUID_DESC_TYPE &&
           SDP_DISC_ATTR_LEN(p_first_attr->attr_len_type) == 2) {
         return p_first_attr->attr_value.v.u16;
