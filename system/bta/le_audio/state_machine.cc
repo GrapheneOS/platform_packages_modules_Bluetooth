@@ -1116,6 +1116,8 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
       LeAudioDeviceGroup* group, LeAudioDevice* leAudioDevice) {
     switch (ase->state) {
       case AseState::BTA_LE_AUDIO_ASE_STATE_IDLE:
+      case AseState::BTA_LE_AUDIO_ASE_STATE_CODEC_CONFIGURED:
+      case AseState::BTA_LE_AUDIO_ASE_STATE_QOS_CONFIGURED:
         if (ase->id == 0x00) {
           /* Initial state of Ase - update id */
           LOG(INFO) << __func__
