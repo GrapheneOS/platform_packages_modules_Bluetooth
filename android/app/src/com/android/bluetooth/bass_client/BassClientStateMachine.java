@@ -1673,6 +1673,7 @@ public class BassClientStateMachine extends StateMachine {
         }
         @Override
         public void exit() {
+            mPendingMetadata = null;
             log("Exit ConnectedProcessing(" + mDevice + "): "
                     + messageWhatToString(getCurrentMessage().what));
         }
