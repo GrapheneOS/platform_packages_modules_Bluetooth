@@ -3397,6 +3397,7 @@ public class GattService extends ProfileService {
             Log.d(TAG, "clientConnect() - address=" + address + ", isDirect=" + isDirect
                     + ", opportunistic=" + opportunistic + ", phy=" + phy);
         }
+        statsLogAppPackage(address, attributionSource.getPackageName());
         statsLogGattConnectionStateChange(
                 BluetoothProfile.GATT, address, clientIf,
                 BluetoothProtoEnums.CONNECTION_STATE_CONNECTING);
@@ -3988,6 +3989,7 @@ public class GattService extends ProfileService {
         }
 
         app.callback.onServerConnectionState((byte) 0, serverIf, connected, address);
+        statsLogAppPackage(address, app.name);
         statsLogGattConnectionStateChange(
                 BluetoothProfile.GATT_SERVER, address, serverIf, connectionState);
     }
@@ -4660,6 +4662,17 @@ public class GattService extends ProfileService {
                 mScanEvents.remove();
             }
             mScanEvents.add(event);
+        }
+    }
+
+    private void statsLogAppPackage(String address, String app) {
+        BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
+        BluetoothStatsLog.write(
+                BluetoothStatsLog.BLUETOOTH_DEVICE_NAME_REPORTED,
+                mAdapterService.getMetricId(device), app);
+        if (DBG) {
+            Log.d(TAG, "Gatt Logging: metric_id=" + mAdapterService.getMetricId(device)
+                    + ", app=" + app);
         }
     }
 
