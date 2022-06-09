@@ -39,6 +39,7 @@
 #include <string.h>
 #include <time.h>
 
+#include <unordered_set>
 #include <vector>
 
 #include "bta_csis_api.h"
