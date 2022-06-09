@@ -258,24 +258,27 @@ extern struct LogMetricSocketConnectionState LogMetricSocketConnectionState;
 // std::string& software_version Returns: void
 struct LogMetricManufacturerInfo {
   std::function<void(const RawAddress& raw_address,
+                     android::bluetooth::AddressTypeEnum address_type,
                      android::bluetooth::DeviceInfoSrcEnum source_type,
                      const std::string& source_name,
                      const std::string& manufacturer, const std::string& model,
                      const std::string& hardware_version,
                      const std::string& software_version)>
       body{[](const RawAddress& raw_address,
+              android::bluetooth::AddressTypeEnum address_type,
               android::bluetooth::DeviceInfoSrcEnum source_type,
               const std::string& source_name, const std::string& manufacturer,
               const std::string& model, const std::string& hardware_version,
               const std::string& software_version) {}};
   void operator()(const RawAddress& raw_address,
+                  android::bluetooth::AddressTypeEnum address_type,
                   android::bluetooth::DeviceInfoSrcEnum source_type,
                   const std::string& source_name,
                   const std::string& manufacturer, const std::string& model,
                   const std::string& hardware_version,
                   const std::string& software_version) {
-    body(raw_address, source_type, source_name, manufacturer, model,
-         hardware_version, software_version);
+    body(raw_address, address_type, source_type, source_name, manufacturer,
+         model, hardware_version, software_version);
   };
 };
 extern struct LogMetricManufacturerInfo LogMetricManufacturerInfo;
