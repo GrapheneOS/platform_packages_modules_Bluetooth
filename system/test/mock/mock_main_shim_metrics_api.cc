@@ -165,13 +165,14 @@ void bluetooth::shim::LogMetricSocketConnectionState(
 }
 void bluetooth::shim::LogMetricManufacturerInfo(
     const RawAddress& raw_address,
+    android::bluetooth::AddressTypeEnum address_type,
     android::bluetooth::DeviceInfoSrcEnum source_type,
     const std::string& source_name, const std::string& manufacturer,
     const std::string& model, const std::string& hardware_version,
     const std::string& software_version) {
   mock_function_count_map[__func__]++;
   test::mock::main_shim_metrics_api::LogMetricManufacturerInfo(
-      raw_address, source_type, source_name, manufacturer, model,
+      raw_address, address_type, source_type, source_name, manufacturer, model,
       hardware_version, software_version);
 }
 bool bluetooth::shim::CountCounterMetrics(int32_t key, int64_t count) {
