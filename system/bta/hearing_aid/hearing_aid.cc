@@ -584,6 +584,7 @@ class HearingAidImpl : public HearingAid {
     }
   }
 
+  // Just take care phy update successful case to avoid loop excuting.
   void OnPhyUpdateEvent(uint16_t conn_id, uint8_t tx_phys, uint8_t rx_phys,
                         tGATT_STATUS status) {
     HearingDevice* hearingDevice = hearingDevices.FindByConnId(conn_id);
@@ -591,14 +592,19 @@ class HearingAidImpl : public HearingAid {
       DVLOG(2) << "Skipping unknown device, conn_id=" << loghex(conn_id);
       return;
     }
-    if (status == GATT_SUCCESS && tx_phys == PHY_LE_2M &&
-        rx_phys == PHY_LE_2M) {
+    if (status != GATT_SUCCESS) {
+      LOG(WARNING) << hearingDevice->address
+                   << " phy update fail with status: " << status;
+      return;
+    }
+    if (tx_phys == PHY_LE_2M && rx_phys == PHY_LE_2M) {
       LOG(INFO) << hearingDevice->address << " phy update to 2M successful";
       return;
     }
-    LOG(INFO) << hearingDevice->address
-              << " phy update to 2M fail, try again. status: " << status
-              << ", tx_phys: " << tx_phys << ", rx_phys: " << rx_phys;
+    LOG(INFO)
+        << hearingDevice->address
+        << " phy update successful but not target phy, try again. tx_phys: "
+        << tx_phys << ", rx_phys: " << rx_phys;
     BTM_BleSetPhy(hearingDevice->address, PHY_LE_2M, PHY_LE_2M, 0);
   }
 
