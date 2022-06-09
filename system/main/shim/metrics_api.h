@@ -202,7 +202,7 @@ void LogMetricSocketConnectionState(
  * @param software_version software version of this device
  */
 void LogMetricManufacturerInfo(
-    const RawAddress& address,
+    const RawAddress& address, android::bluetooth::AddressTypeEnum address_type,
     android::bluetooth::DeviceInfoSrcEnum source_type,
     const std::string& source_name, const std::string& manufacturer,
     const std::string& model, const std::string& hardware_version,

@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <frameworks/proto_logging/stats/enums/bluetooth/enums.pb.h>
 #include <frameworks/proto_logging/stats/enums/bluetooth/hci/enums.pb.h>
 
 #include "common/strings.h"
@@ -512,7 +511,12 @@ void log_link_layer_connection_other_hci_event(EventView packet, storage::Storag
       status = connection_complete_view.GetStatus();
 
       // besides log link layer connection events, also log remote device manufacturer info
-      log_remote_device_information(address, connection_handle, status, storage_module);
+      log_remote_device_information(
+          address,
+          android::bluetooth::ADDRESS_TYPE_PUBLIC,
+          connection_handle,
+          status,
+          storage_module);
       break;
     }
     case EventCode::CONNECTION_REQUEST: {
@@ -1048,7 +1052,11 @@ void log_classic_pairing_command_complete(EventView event_view, std::unique_ptr<
 }
 
 void log_remote_device_information(
-    const Address& address, uint32_t connection_handle, ErrorCode status, storage::StorageModule* storage_module) {
+    const Address& address,
+    android::bluetooth::AddressTypeEnum address_type,
+    uint32_t connection_handle,
+    ErrorCode status,
+    storage::StorageModule* storage_module) {
   if (address.IsEmpty()) {
     return;
   }
@@ -1059,6 +1067,7 @@ void log_remote_device_information(
   sdp_di_vendor_id_source << "N:SDP::DIP::" << common::ToHexString(device.GetSdpDiVendorIdSource().value_or(0)).c_str();
   os::LogMetricManufacturerInfo(
       address,
+      address_type,
       android::bluetooth::DeviceInfoSrcEnum::DEVICE_INFO_INTERNAL,
       sdp_di_vendor_id_source.str(),
       common::ToHexString(device.GetSdpDiManufacturer().value_or(0)).c_str(),
