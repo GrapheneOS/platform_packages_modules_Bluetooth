@@ -1,6 +1,6 @@
 //! D-Bus proxy implementations of the APIs.
 
-use bt_topshim::btif::{BtDeviceType, BtSspVariant, BtTransport, Uuid128Bit};
+use bt_topshim::btif::{BtDeviceType, BtPropertyType, BtSspVariant, BtTransport, Uuid128Bit};
 use bt_topshim::profiles::gatt::GattStatus;
 
 use btstack::bluetooth::{
@@ -41,6 +41,7 @@ fn make_object_path(idx: i32, name: &str) -> dbus::Path {
 }
 
 impl_dbus_arg_enum!(BtDeviceType);
+impl_dbus_arg_enum!(BtPropertyType);
 impl_dbus_arg_enum!(BtSspVariant);
 impl_dbus_arg_enum!(BtTransport);
 impl_dbus_arg_enum!(GattStatus);
@@ -123,6 +124,9 @@ impl RPCProxy for IBluetoothCallbackDBus {
     "org.chromium.bluetooth.BluetoothCallback"
 )]
 impl IBluetoothCallback for IBluetoothCallbackDBus {
+    #[dbus_method("OnAdapterPropertyChanged")]
+    fn on_adapter_property_changed(&self, prop: BtPropertyType) {}
+
     #[dbus_method("OnAddressChanged")]
     fn on_address_changed(&self, addr: String) {}
 

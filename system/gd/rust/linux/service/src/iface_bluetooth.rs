@@ -1,6 +1,6 @@
 extern crate bt_shim;
 
-use bt_topshim::btif::{BtDeviceType, BtSspVariant, BtTransport, Uuid128Bit};
+use bt_topshim::btif::{BtDeviceType, BtPropertyType, BtSspVariant, BtTransport, Uuid128Bit};
 
 use btstack::bluetooth::{
     BluetoothDevice, IBluetooth, IBluetoothCallback, IBluetoothConnectionCallback,
@@ -35,6 +35,10 @@ struct BluetoothCallbackDBus {}
 
 #[dbus_proxy_obj(BluetoothCallback, "org.chromium.bluetooth.BluetoothCallback")]
 impl IBluetoothCallback for BluetoothCallbackDBus {
+    #[dbus_method("OnAdapterPropertyChanged")]
+    fn on_adapter_property_changed(&self, prop: BtPropertyType) {
+        dbus_generated!()
+    }
     #[dbus_method("OnAddressChanged")]
     fn on_address_changed(&self, addr: String) {
         dbus_generated!()
@@ -76,6 +80,7 @@ impl IBluetoothCallback for BluetoothCallbackDBus {
 }
 
 impl_dbus_arg_enum!(BtDeviceType);
+impl_dbus_arg_enum!(BtPropertyType);
 impl_dbus_arg_enum!(BtSspVariant);
 impl_dbus_arg_enum!(BtTransport);
 impl_dbus_arg_enum!(Profile);
