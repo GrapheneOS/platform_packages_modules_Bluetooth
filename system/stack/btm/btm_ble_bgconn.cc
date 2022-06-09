@@ -205,8 +205,14 @@ bool BTM_AcceptlistAdd(const RawAddress& address) {
     LOG_WARN("Controller does not support Le");
     return false;
   }
+
+  tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(address);
+  if (p_dev_rec != NULL && p_dev_rec->device_type & BT_DEVICE_TYPE_BLE) {
+    p_dev_rec->ble.in_controller_list |= BTM_ACCEPTLIST_BIT;
+  }
+
   return bluetooth::shim::ACL_AcceptLeConnectionFrom(
-      convert_to_address_with_type(address, btm_find_dev(address)),
+      convert_to_address_with_type(address, p_dev_rec),
       /* is_direct */ false);
 }
 
@@ -216,8 +222,15 @@ void BTM_AcceptlistRemove(const RawAddress& address) {
     LOG_WARN("Controller does not support Le");
     return;
   }
+
+  tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(address);
+  if (p_dev_rec != NULL && p_dev_rec->device_type & BT_DEVICE_TYPE_BLE) {
+    p_dev_rec->ble.in_controller_list &= ~BTM_ACCEPTLIST_BIT;
+  }
+
   bluetooth::shim::ACL_IgnoreLeConnectionFrom(
-      convert_to_address_with_type(address, btm_find_dev(address)));
+      convert_to_address_with_type(address, p_dev_rec));
+  return;
 }
 
 /** Clear the acceptlist, end any pending acceptlist connections */
