@@ -71,11 +71,6 @@ bool connection_manager::remove_unconditional(const RawAddress& address) {
   mock_function_count_map[__func__]++;
   return false;
 }
-bool connection_manager::remove_unconditional_from_shim(
-    const RawAddress& address) {
-  mock_function_count_map[__func__]++;
-  return false;
-}
 std::set<tAPP_ID> connection_manager::get_apps_connecting_to(
     const RawAddress& address) {
   mock_function_count_map[__func__]++;
