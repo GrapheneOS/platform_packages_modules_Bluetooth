@@ -125,12 +125,7 @@ void acl_ble_enhanced_connection_complete_from_shim(
     uint16_t conn_interval, uint16_t conn_latency, uint16_t conn_timeout,
     const RawAddress& local_rpa, const RawAddress& peer_rpa,
     tBLE_ADDR_TYPE peer_addr_type) {
-  if (!connection_manager::remove_unconditional_from_shim(
-          address_with_type.bda)) {
-    LOG_WARN(
-        "Unable to remove from legacy connection manager accept list addr:%s",
-        PRIVATE_ADDRESS(address_with_type.bda));
-  }
+  connection_manager::on_connection_complete(address_with_type.bda);
 
   tBLE_BD_ADDR resolved_address_with_type;
   const bool is_in_security_db = maybe_resolve_received_address(
