@@ -2702,7 +2702,7 @@ public class AdapterService extends Service {
 
             ParcelUuid[] parcels = service.getRemoteUuids(device);
             if (parcels == null) {
-                parcels = new ParcelUuid[0];
+                return null;
             }
             return Arrays.asList(parcels);
         }
