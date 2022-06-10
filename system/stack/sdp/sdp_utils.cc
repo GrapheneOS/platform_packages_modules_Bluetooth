@@ -273,8 +273,9 @@ void sdpu_log_attribute_metrics(const RawAddress& bda,
       // [N - native]::SDP::[DIP - Device ID Profile]
       ss << "N:SDP::DIP::" << loghex(di_record.rec.vendor_id_source);
       log_manufacturer_info(
-          bda, android::bluetooth::DeviceInfoSrcEnum::DEVICE_INFO_INTERNAL,
-          ss.str(), loghex(di_record.rec.vendor), loghex(di_record.rec.product),
+          bda, android::bluetooth::AddressTypeEnum::ADDRESS_TYPE_PUBLIC,
+          android::bluetooth::DeviceInfoSrcEnum::DEVICE_INFO_INTERNAL, ss.str(),
+          loghex(di_record.rec.vendor), loghex(di_record.rec.product),
           loghex(di_record.rec.version), "");
 
       std::string bda_string = bda.ToString();
