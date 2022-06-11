@@ -214,8 +214,11 @@ impl BluetoothMedia {
                     }
                     BthfConnectionState::SlcConnected => {
                         info!("[{}]: hfp slc connected.", addr.to_string());
-                        // TODO(b/214148074): Support WBS
-                        self.hfp_caps.insert(addr, HfpCodecCapability::CVSD);
+                        let mut hfp_caps = HfpCodecCapability::CVSD;
+                        if self.hfp.as_mut().unwrap().get_wbs_supported() {
+                            hfp_caps = hfp_caps | HfpCodecCapability::MSBC;
+                        }
+                        self.hfp_caps.insert(addr, hfp_caps);
                         self.notify_media_capability_added(addr);
                     }
                     BthfConnectionState::Disconnected => {
