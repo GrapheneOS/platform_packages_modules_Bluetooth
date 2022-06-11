@@ -859,6 +859,7 @@ void LogSocketConnectionState(
 }
 
 void LogManufacturerInfo(const RawAddress& address,
+                         android::bluetooth::AddressTypeEnum address_type,
                          android::bluetooth::DeviceInfoSrcEnum source_type,
                          const std::string& source_name,
                          const std::string& manufacturer,
@@ -875,16 +876,20 @@ void LogManufacturerInfo(const RawAddress& address,
   BytesField obfuscated_id_field(
       address.IsEmpty() ? nullptr : obfuscated_id.c_str(),
       address.IsEmpty() ? 0 : obfuscated_id.size());
-  int ret = stats_write(BLUETOOTH_DEVICE_INFO_REPORTED, obfuscated_id_field,
-                        source_type, source_name.c_str(), manufacturer.c_str(),
-                        model.c_str(), hardware_version.c_str(),
-                        software_version.c_str(), metric_id);
+  int ret = stats_write(
+      BLUETOOTH_DEVICE_INFO_REPORTED, obfuscated_id_field, source_type,
+      source_name.c_str(), manufacturer.c_str(), model.c_str(),
+      hardware_version.c_str(), software_version.c_str(), metric_id,
+      address_type, address.address[5], address.address[4], address.address[3]);
   if (ret < 0) {
     LOG(WARNING) << __func__ << ": failed for " << address << ", source_type "
                  << source_type << ", source_name " << source_name
                  << ", manufacturer " << manufacturer << ", model " << model
                  << ", hardware_version " << hardware_version
-                 << ", software_version " << software_version << ", error "
+                 << ", software_version " << software_version
+                 << " MAC address type " << address_type
+                 << " MAC address prefix " << address.address[5] << " "
+                 << address.address[4] << " " << address.address[3] << ", error "
                  << ret;
   }
 }

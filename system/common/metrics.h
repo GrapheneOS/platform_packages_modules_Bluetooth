@@ -487,6 +487,7 @@ void LogSocketConnectionState(
  * @param software_version software version of this device
  */
 void LogManufacturerInfo(const RawAddress& address,
+                         android::bluetooth::AddressTypeEnum address_type,
                          android::bluetooth::DeviceInfoSrcEnum source_type,
                          const std::string& source_name,
                          const std::string& manufacturer,
