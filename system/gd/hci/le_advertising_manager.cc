@@ -223,6 +223,7 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
         id++;
       }
       if (id == num_instances_) {
+        LOG_WARN("Number of max instances %d reached", (uint16_t)num_instances_);
         return kInvalidId;
       }
       advertising_sets_[id].in_use = true;
@@ -1259,6 +1260,11 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
           ErrorCodeText(status_view.GetStatus()).c_str());
     }
   }
+
+  void start_advertising_fail(int reg_id, AdvertisingCallback::AdvertisingStatus status) {
+    ASSERT(status != AdvertisingCallback::AdvertisingStatus::SUCCESS);
+    advertising_callbacks_->OnAdvertisingSetStarted(reg_id, kInvalidId, 0, status);
+  }
 };
 
 LeAdvertisingManager::LeAdvertisingManager() {
@@ -1298,16 +1304,26 @@ AdvertiserId LeAdvertisingManager::create_advertiser(
     if (config.own_address_type == hci::OwnAddressType::RESOLVABLE_OR_PUBLIC_ADDRESS ||
         config.own_address_type == hci::OwnAddressType::RESOLVABLE_OR_RANDOM_ADDRESS) {
       LOG_WARN("Peer address can not be empty");
+      CallOn(
+          pimpl_.get(), &impl::start_advertising_fail, reg_id, AdvertisingCallback::AdvertisingStatus::INTERNAL_ERROR);
       return kInvalidId;
     }
     if (config.advertising_type == hci::AdvertisingType::ADV_DIRECT_IND ||
         config.advertising_type == hci::AdvertisingType::ADV_DIRECT_IND_LOW) {
       LOG_WARN("Peer address can not be empty for directed advertising");
+      CallOn(
+          pimpl_.get(), &impl::start_advertising_fail, reg_id, AdvertisingCallback::AdvertisingStatus::INTERNAL_ERROR);
       return kInvalidId;
     }
   }
   AdvertiserId id = pimpl_->allocate_advertiser();
   if (id == kInvalidId) {
+    LOG_WARN("Number of max instances reached");
+    CallOn(
+        pimpl_.get(),
+        &impl::start_advertising_fail,
+        reg_id,
+        AdvertisingCallback::AdvertisingStatus::TOO_MANY_ADVERTISERS);
     return id;
   }
   GetHandler()->Post(common::BindOnce(
@@ -1338,29 +1354,43 @@ AdvertiserId LeAdvertisingManager::ExtendedCreateAdvertiser(
   if (config.directed) {
     if (config.peer_address == Address::kEmpty) {
       LOG_INFO("Peer address can not be empty for directed advertising");
+      CallOn(
+          pimpl_.get(), &impl::start_advertising_fail, reg_id, AdvertisingCallback::AdvertisingStatus::INTERNAL_ERROR);
       return kInvalidId;
     }
   }
   if (config.channel_map == 0) {
     LOG_INFO("At least one channel must be set in the map");
+    CallOn(pimpl_.get(), &impl::start_advertising_fail, reg_id, AdvertisingCallback::AdvertisingStatus::INTERNAL_ERROR);
     return kInvalidId;
   }
   if (!config.legacy_pdus) {
     if (config.connectable && config.scannable) {
       LOG_INFO("Extended advertising PDUs can not be connectable and scannable");
+      CallOn(
+          pimpl_.get(), &impl::start_advertising_fail, reg_id, AdvertisingCallback::AdvertisingStatus::INTERNAL_ERROR);
       return kInvalidId;
     }
     if (config.high_duty_directed_connectable) {
       LOG_INFO("Extended advertising PDUs can not be high duty cycle");
+      CallOn(
+          pimpl_.get(), &impl::start_advertising_fail, reg_id, AdvertisingCallback::AdvertisingStatus::INTERNAL_ERROR);
       return kInvalidId;
     }
   }
   if (config.interval_min > config.interval_max) {
     LOG_INFO("Advertising interval: min (%hu) > max (%hu)", config.interval_min, config.interval_max);
+    CallOn(pimpl_.get(), &impl::start_advertising_fail, reg_id, AdvertisingCallback::AdvertisingStatus::INTERNAL_ERROR);
     return kInvalidId;
   }
   AdvertiserId id = pimpl_->allocate_advertiser();
   if (id == kInvalidId) {
+    LOG_WARN("Number of max instances reached");
+    CallOn(
+        pimpl_.get(),
+        &impl::start_advertising_fail,
+        reg_id,
+        AdvertisingCallback::AdvertisingStatus::TOO_MANY_ADVERTISERS);
     return id;
   }
   CallOn(

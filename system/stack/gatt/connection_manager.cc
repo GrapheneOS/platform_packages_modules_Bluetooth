@@ -149,21 +149,6 @@ bool remove_unconditional(const RawAddress& address) {
   return true;
 }
 
-/** Removes the registrations for connection for given device.
- * but does not change the controller acceptlist.  Used for
- * shim purposes.
- * Returns true if anything was removed, false otherwise */
-bool remove_unconditional_from_shim(const RawAddress& address) {
-  LOG_DEBUG("address=%s", address.ToString().c_str());
-  auto it = bgconn_dev.find(address);
-  if (it == bgconn_dev.end()) {
-    LOG_WARN("address %s is not found", address.ToString().c_str());
-    return false;
-  }
-  bgconn_dev.erase(it);
-  return true;
-}
-
 /** Remove device from the background connection device list or listening to
  * advertising list.  Returns true if device was on the list and was
  * successfully removed */

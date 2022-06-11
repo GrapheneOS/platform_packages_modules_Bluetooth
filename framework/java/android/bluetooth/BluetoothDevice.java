@@ -53,7 +53,6 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeoutException;
@@ -2228,8 +2227,8 @@ public final class BluetoothDevice implements Parcelable, Attributable {
                         new SynchronousResultReceiver();
                 service.getRemoteUuids(this, mAttributionSource, recv);
                 List<ParcelUuid> parcels = recv.awaitResultNoInterrupt(getSyncTimeout())
-                        .getValue(new ArrayList<>());
-                return parcels.toArray(new ParcelUuid[parcels.size()]);
+                        .getValue(null);
+                return parcels != null ? parcels.toArray(new ParcelUuid[parcels.size()]) : null;
             } catch (RemoteException | TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
             }
