@@ -50,8 +50,12 @@ public class BluetoothService extends SystemService {
         if (phase == SystemService.PHASE_SYSTEM_SERVICES_READY) {
             publishBinderService(BluetoothAdapter.BLUETOOTH_MANAGER_SERVICE,
                     mBluetoothManagerService);
-        } else if (phase == SystemService.PHASE_ACTIVITY_MANAGER_READY &&
-                !UserManager.isHeadlessSystemUserMode()) {
+        }
+    }
+
+    @Override
+    public void onUserStarting(@NonNull TargetUser user) {
+        if (!UserManager.isHeadlessSystemUserMode()) {
             initialize();
         }
     }
