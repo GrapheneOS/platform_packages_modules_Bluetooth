@@ -355,6 +355,7 @@ void LogMetricSocketConnectionState(
 
 void LogMetricManufacturerInfo(
     const Address& address,
+    android::bluetooth::AddressTypeEnum address_type,
     android::bluetooth::DeviceInfoSrcEnum source_type,
     const std::string& source_name,
     const std::string& manufacturer,
@@ -374,11 +375,16 @@ void LogMetricManufacturerInfo(
       model.c_str(),
       hardware_version.c_str(),
       software_version.c_str(),
-      metric_id);
+      metric_id,
+      address_type,
+      address.address[5],
+      address.address[4],
+      address.address[3]);
   if (ret < 0) {
     LOG_WARN(
-        "Failed for %s, source_type %d, source_name %s, manufacturer %s, model %s, hardware_version %s, "
-        "software_version %s, error %d",
+        "Failed for %s, source_type %d, source_name %s, manufacturer %s, model %s, "
+        "hardware_version %s, "
+        "software_version %s, MAC address type %d MAC address prefix %d %d %d, error %d",
         address.ToString().c_str(),
         source_type,
         source_name.c_str(),
@@ -386,6 +392,10 @@ void LogMetricManufacturerInfo(
         model.c_str(),
         hardware_version.c_str(),
         software_version.c_str(),
+        address_type,
+        address.address[5],
+        address.address[4],
+        address.address[3],
         ret);
   }
 }
