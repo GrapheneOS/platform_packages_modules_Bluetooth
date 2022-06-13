@@ -65,7 +65,7 @@ public final class BluetoothLeAudioContentMetadata implements Parcelable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(mProgramInfo, mLanguage, mRawMetadata);
+        return Objects.hash(mProgramInfo, mLanguage, Arrays.hashCode(mRawMetadata));
     }
 
     /**
