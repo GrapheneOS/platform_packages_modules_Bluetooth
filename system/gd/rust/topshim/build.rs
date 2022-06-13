@@ -46,7 +46,8 @@ fn main() {
         .clang_args(clang_args)
         .enable_cxx_namespaces()
         .size_t_is_usize(true)
-        .allowlist_type("(bt_|bthh_|btgatt_|btsdp|bluetooth_sdp).*")
+        .allowlist_type("(bt_|bthh_|btgatt_|btsdp|bluetooth_sdp|btsock_).*")
+        .allowlist_type("sock_connect_signal_t")
         .allowlist_function("(bt_|bthh_|btgatt_|btsdp).*")
         .allowlist_function("hal_util_.*")
         // We must opaque out std:: in order to prevent bindgen from choking
