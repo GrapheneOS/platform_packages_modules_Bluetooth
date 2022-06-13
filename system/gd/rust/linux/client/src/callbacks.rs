@@ -5,7 +5,7 @@ use crate::dbus_iface::{
 };
 use crate::ClientContext;
 use crate::{console_yellow, print_info};
-use bt_topshim::btif::{BtBondState, BtSspVariant};
+use bt_topshim::btif::{BtBondState, BtPropertyType, BtSspVariant};
 use bt_topshim::profiles::gatt::GattStatus;
 use btstack::bluetooth::{
     BluetoothDevice, IBluetooth, IBluetoothCallback, IBluetoothConnectionCallback,
@@ -101,6 +101,8 @@ impl BtCallback {
 }
 
 impl IBluetoothCallback for BtCallback {
+    fn on_adapter_property_changed(&self, prop: BtPropertyType) {}
+
     fn on_address_changed(&self, addr: String) {
         print_info!("Address changed to {}", &addr);
         self.context.lock().unwrap().adapter_address = Some(addr);
