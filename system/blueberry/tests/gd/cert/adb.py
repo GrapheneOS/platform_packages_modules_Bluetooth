@@ -157,3 +157,19 @@ class BlueberryAdbProxy(AdbProxy):
             # The actual port we need to disable via adb is on the remote host.
             host_port = remote_port
         self.forward(["--remove", "tcp:%d" % host_port])
+
+    def path_exists(self, path):
+        """Check if a file path exists on an Android device
+
+        :param path: file path, could be a directory
+        :return: True if file path exists
+        """
+        try:
+            ret = self.shell("ls {}".format(path))
+            if ret is not None and len(ret) > 0:
+                return True
+            else:
+                return False
+        except AdbError as e:
+            logging.debug("path {} does not exist, error={}".format(path, e))
+            return False
