@@ -517,7 +517,7 @@ static void l2c_csm_term_w4_sec_comp(tL2C_CCB* p_ccb, tL2CEVT event,
 
             (*p_ccb->p_rcb->api.pL2CA_CreditBasedConnectInd_Cb)(
                 p_ccb->p_lcb->remote_bd_addr, pending_cids, p_ccb->p_rcb->psm,
-                p_ccb->peer_cfg.mtu, p_ccb->remote_id);
+                p_ccb->peer_conn_cfg.mtu, p_ccb->remote_id);
           } else {
             /* Handle BLE CoC */
             LOG_DEBUG("Calling Connect_Ind_Cb(), CID: 0x%04x",
