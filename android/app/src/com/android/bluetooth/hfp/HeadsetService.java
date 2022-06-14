@@ -330,8 +330,10 @@ public class HeadsetService extends ProfileService {
 
     private void doForEachConnectedStateMachine(List<StateMachineTask> tasks) {
         synchronized (mStateMachines) {
-            for (StateMachineTask task : tasks) {
-                doForEachConnectedStateMachine(task);
+            for (BluetoothDevice device : getConnectedDevices()) {
+                for (StateMachineTask task : tasks) {
+                    task.execute(mStateMachines.get(device));
+                }
             }
         }
     }
@@ -1866,7 +1868,7 @@ public class HeadsetService extends ProfileService {
     }
 
     @RequiresPermission(android.Manifest.permission.MODIFY_PHONE_STATE)
-    private void clccResponse(int index, int direction, int status, int mode, boolean mpty,
+    void clccResponse(int index, int direction, int status, int mode, boolean mpty,
             String number, int type) {
         enforceCallingOrSelfPermission(MODIFY_PHONE_STATE, "Need MODIFY_PHONE_STATE permission");
         mPendingClccResponses.add(

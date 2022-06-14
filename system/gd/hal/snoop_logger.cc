@@ -437,7 +437,7 @@ size_t SnoopLogger::GetMaxPacketsPerBuffer() {
   // and 512 KB memory for userdebug/eng builds
   auto is_debuggable = os::GetSystemProperty(kIsDebuggableProperty);
   size_t btsnooz_max_memory_usage_bytes =
-      ((is_debuggable.has_value() && common::StringTrim(is_debuggable.value()) == "1") ? 512 : 256) * 1024;
+      ((is_debuggable.has_value() && common::StringTrim(is_debuggable.value()) == "1") ? 1024 : 256) * 1024;
   // Calculate max number of packets based on max memory usage and max packet size
   return btsnooz_max_memory_usage_bytes / kDefaultBtSnoozMaxBytesPerPacket;
 }
