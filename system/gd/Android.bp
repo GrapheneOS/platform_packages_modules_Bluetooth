@@ -270,13 +270,13 @@ cc_binary {
         "libbluetooth_rust_interop",
     ],
     shared_libs: [
-        "libbacktrace",
         "libchrome",
         "libcrypto",
         "libgrpc++",
         "libgrpc++_unsecure",
         "libgrpc_wrap",
         "libprotobuf-cpp-full",
+        "libunwindstack",
     ],
     target: {
         android: {
