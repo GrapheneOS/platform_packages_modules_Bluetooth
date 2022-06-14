@@ -682,7 +682,7 @@ impl BtifBluetoothCallbacks for Bluetooth {
                 _ => {}
             }
 
-            self.properties.insert(prop.get_type(), prop);
+            self.properties.insert(prop.get_type(), prop.clone());
 
             self.for_all_callbacks(|callback| {
                 callback.on_adapter_property_changed(prop.get_type());
