@@ -86,6 +86,7 @@ pub mod ffi {
     extern "Rust" {
         fn hfp_connection_state_callback(state: u32, addr: RustRawAddress);
         fn hfp_audio_state_callback(state: u32, addr: RustRawAddress);
+        fn hfp_volume_update_callback(volume: u32, addr: RustRawAddress);
     }
 }
 
@@ -105,6 +106,7 @@ impl Into<RawAddress> for ffi::RustRawAddress {
 pub enum HfpCallbacks {
     ConnectionState(BthfConnectionState, RawAddress),
     AudioState(BthfAudioState, RawAddress),
+    VolumeUpdate(u32, RawAddress),
 }
 
 pub struct HfpCallbacksDispatcher {
@@ -125,6 +127,14 @@ cb_variant!(
     HfpCb,
     hfp_audio_state_callback -> HfpCallbacks::AudioState,
     u32 -> BthfAudioState, ffi::RustRawAddress -> RawAddress, {
+        let _1 = _1.into();
+    }
+);
+
+cb_variant!(
+    HfpCb,
+    hfp_volume_update_callback -> HfpCallbacks::VolumeUpdate,
+    u32, ffi::RustRawAddress -> RawAddress, {
         let _1 = _1.into();
     }
 );
