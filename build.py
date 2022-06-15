@@ -249,6 +249,7 @@ class HostBuild():
         self.env['RUSTFLAGS'] = self._generate_rustflags()
         self.env['CXX_ROOT_PATH'] = os.path.join(self.platform_dir, 'bt')
         self.env['CROS_SYSTEM_API_ROOT'] = os.path.join(self.platform_dir, 'system_api')
+        self.env['CXX_OUTDIR'] = self._gn_default_output()
 
     def run_command(self, target, args, cwd=None, env=None):
         """ Run command and stream the output.
