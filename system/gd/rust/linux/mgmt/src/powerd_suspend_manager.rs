@@ -9,7 +9,7 @@ use protobuf::{CodedInputStream, CodedOutputStream, Message};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
-use crate::dbus_iface::{export_suspend_callback_dbus_obj, SuspendDBus};
+use crate::dbus_iface::{export_suspend_callback_dbus_intf, SuspendDBus};
 use crate::service_watcher::ServiceWatcher;
 use crate::suspend::{
     RegisterSuspendDelayReply, RegisterSuspendDelayRequest, SuspendDone, SuspendImminent,
@@ -157,13 +157,12 @@ impl RPCProxy for SuspendCallback {
 
     fn export_for_rpc(self: Box<Self>) {
         let cr = self.dbus_crossroads.clone();
-        export_suspend_callback_dbus_obj(
-            self.get_object_id(),
+        let iface = export_suspend_callback_dbus_intf(
             self.dbus_connection.clone(),
             &mut cr.lock().unwrap(),
-            Arc::new(Mutex::new(self)),
             Arc::new(Mutex::new(DisconnectWatcher::new())),
         );
+        cr.lock().unwrap().insert(self.get_object_id(), &[iface], Arc::new(Mutex::new(self)));
     }
 }
 

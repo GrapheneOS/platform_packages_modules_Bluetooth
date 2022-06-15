@@ -200,7 +200,7 @@ struct ScanFilterDBus {}
 #[allow(dead_code)]
 struct IBluetoothGattDBus {}
 
-#[generate_dbus_exporter(export_bluetooth_gatt_dbus_obj, "org.chromium.bluetooth.BluetoothGatt")]
+#[generate_dbus_exporter(export_bluetooth_gatt_dbus_intf, "org.chromium.bluetooth.BluetoothGatt")]
 impl IBluetoothGatt for IBluetoothGattDBus {
     #[dbus_method("RegisterScanner")]
     fn register_scanner(&self, callback: Box<dyn IScannerCallback + Send>) {
