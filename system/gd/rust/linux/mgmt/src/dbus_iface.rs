@@ -70,7 +70,7 @@ impl RPCProxy for ISuspendCallbackDBus {
 }
 
 #[generate_dbus_exporter(
-    export_suspend_callback_dbus_obj,
+    export_suspend_callback_dbus_intf,
     "org.chromium.bluetooth.SuspendCallback"
 )]
 impl ISuspendCallback for ISuspendCallbackDBus {

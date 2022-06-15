@@ -1,5 +1,6 @@
 use dbus::arg::RefArg;
 use dbus::strings::Path;
+use dbus_crossroads;
 use dbus_macros::{dbus_method, dbus_propmap, dbus_proxy_obj, generate_dbus_exporter};
 use dbus_projection::{dbus_generated, DisconnectWatcher};
 
@@ -19,7 +20,7 @@ pub struct AdapterWithEnabledDbus {
 /// D-Bus projection of IBluetoothManager.
 struct BluetoothManagerDBus {}
 
-#[generate_dbus_exporter(export_bluetooth_manager_dbus_obj, "org.chromium.bluetooth.Manager")]
+#[generate_dbus_exporter(export_bluetooth_manager_dbus_intf, "org.chromium.bluetooth.Manager")]
 impl IBluetoothManager for BluetoothManagerDBus {
     #[dbus_method("Start")]
     fn start(&mut self, hci_interface: i32) {
