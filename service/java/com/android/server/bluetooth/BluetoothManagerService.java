@@ -115,6 +115,7 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
     private static final int ACTIVE_LOG_MAX_SIZE = 20;
     private static final int CRASH_LOG_MAX_SIZE = 100;
 
+    private static final int DEFAULT_REBIND_COUNT = 3;
     private static final int TIMEOUT_BIND_MS = 3000; //Maximum msec to wait for a bind
 
     /**
@@ -1461,7 +1462,7 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
                 }
 
                 psc = new ProfileServiceConnections(intent);
-                if (!psc.bindService()) {
+                if (!psc.bindService(DEFAULT_REBIND_COUNT)) {
                     return false;
                 }
 
@@ -1590,7 +1591,7 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
             mIntent = intent;
         }
 
-        private boolean bindService() {
+        private boolean bindService(int rebindCount) {
             int state = BluetoothAdapter.STATE_OFF;
             try {
                 mBluetoothLock.readLock().lock();
@@ -1613,6 +1614,7 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
                     && doBind(mIntent, this, 0, USER_HANDLE_CURRENT_OR_SELF)) {
                 Message msg = mHandler.obtainMessage(MESSAGE_BIND_PROFILE_SERVICE);
                 msg.obj = this;
+                msg.arg1 = rebindCount;
                 mHandler.sendMessageDelayed(msg, TIMEOUT_BIND_MS);
                 return true;
             }
@@ -1632,6 +1634,7 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
                 if (!mHandler.hasMessages(MESSAGE_BIND_PROFILE_SERVICE, this)) {
                     Message msg = mHandler.obtainMessage(MESSAGE_BIND_PROFILE_SERVICE);
                     msg.obj = this;
+                    msg.arg1 = DEFAULT_REBIND_COUNT;
                     mHandler.sendMessage(msg);
                 }
             }
@@ -2185,7 +2188,10 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
                     if (psc == null) {
                         break;
                     }
-                    psc.bindService();
+                    if (msg.arg1 > 0) {
+                        mContext.unbindService(psc);
+                        psc.bindService(msg.arg1 - 1);
+                    }
                     break;
                 }
                 case MESSAGE_BLUETOOTH_SERVICE_CONNECTED: {
@@ -2885,9 +2891,14 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
         final ComponentName oppLauncherComponent = new ComponentName(
                 mContext.getPackageManager().getPackagesForUid(Process.BLUETOOTH_UID)[0],
                 "com.android.bluetooth.opp.BluetoothOppLauncherActivity");
-        final int newState =
-                bluetoothSharingDisallowed ? PackageManager.COMPONENT_ENABLED_STATE_DISABLED
-                        : PackageManager.COMPONENT_ENABLED_STATE_DEFAULT;
+        int newState;
+        if (bluetoothSharingDisallowed) {
+            newState = PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
+        } else if (BluetoothProperties.isProfileOppEnabled().orElse(false)) {
+            newState = PackageManager.COMPONENT_ENABLED_STATE_ENABLED;
+        } else {
+            newState = PackageManager.COMPONENT_ENABLED_STATE_DEFAULT;
+        }
         try {
             mContext.createContextAsUser(userHandle, 0)
                 .getPackageManager()
