@@ -1,9 +1,9 @@
 //! Suspend/Resume API.
 
+use crate::callbacks::Callbacks;
 use crate::{Message, RPCProxy};
 use bt_topshim::btif::BluetoothInterface;
 use log::warn;
-use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use tokio::sync::mpsc::Sender;
 
@@ -60,7 +60,7 @@ pub enum SuspendType {
 pub struct Suspend {
     intf: Arc<Mutex<BluetoothInterface>>,
     tx: Sender<Message>,
-    callbacks: HashMap<u32, Box<dyn ISuspendCallback + Send>>,
+    callbacks: Callbacks<dyn ISuspendCallback + Send>,
     is_connected_suspend: bool,
     was_a2dp_connected: bool,
 }
@@ -69,55 +69,34 @@ impl Suspend {
     pub fn new(intf: Arc<Mutex<BluetoothInterface>>, tx: Sender<Message>) -> Suspend {
         Self {
             intf: intf,
-            tx,
-            callbacks: HashMap::new(),
+            tx: tx.clone(),
+            callbacks: Callbacks::new(tx.clone(), Message::SuspendCallbackDisconnected),
             is_connected_suspend: false,
             was_a2dp_connected: false,
         }
     }
 
     pub(crate) fn callback_registered(&mut self, id: u32) {
-        match self.callbacks.get(&id) {
+        match self.callbacks.get_by_id(id) {
             Some(callback) => callback.on_callback_registered(id),
             None => warn!("Suspend callback {} does not exist", id),
         }
     }
 
     pub(crate) fn remove_callback(&mut self, id: u32) -> bool {
-        match self.callbacks.get_mut(&id) {
-            Some(callback) => {
-                callback.unregister(id);
-                self.callbacks.remove(&id);
-                true
-            }
-            None => false,
-        }
-    }
-
-    fn for_all_callbacks<F: Fn(&Box<dyn ISuspendCallback + Send>)>(&self, f: F) {
-        for (_, callback) in self.callbacks.iter() {
-            f(&callback);
-        }
+        self.callbacks.remove_callback(id)
     }
 }
 
 impl ISuspend for Suspend {
-    fn register_callback(&mut self, mut callback: Box<dyn ISuspendCallback + Send>) -> bool {
-        let tx = self.tx.clone();
-
-        let id = callback.register_disconnect(Box::new(move |cb_id| {
-            let tx = tx.clone();
-            tokio::spawn(async move {
-                let _result = tx.send(Message::SuspendCallbackDisconnected(cb_id)).await;
-            });
-        }));
+    fn register_callback(&mut self, callback: Box<dyn ISuspendCallback + Send>) -> bool {
+        let id = self.callbacks.add_callback(callback);
 
         let tx = self.tx.clone();
         tokio::spawn(async move {
             let _result = tx.send(Message::SuspendCallbackRegistered(id)).await;
         });
 
-        self.callbacks.insert(id, callback);
         true
     }
 
@@ -147,7 +126,7 @@ impl ISuspend for Suspend {
         self.intf.lock().unwrap().clear_filter_accept_list();
         // TODO(231435700): self.intf.lock().unwrap().disconnect_all_acls();
         self.intf.lock().unwrap().le_rand();
-        self.for_all_callbacks(|callback| {
+        self.callbacks.for_all_callbacks(|callback| {
             callback.on_suspend_ready(suspend_id);
         });
         return 1;
@@ -165,7 +144,7 @@ impl ISuspend for Suspend {
             // TODO(224603198): start all advertising again
         }
         self.intf.lock().unwrap().le_rand();
-        self.for_all_callbacks(|callback| {
+        self.callbacks.for_all_callbacks(|callback| {
             callback.on_resumed(suspend_id);
         });
         return true;
