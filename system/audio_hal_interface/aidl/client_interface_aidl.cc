@@ -46,6 +46,7 @@ std::ostream& operator<<(std::ostream& os, const BluetoothAudioCtrlAck& ack) {
 BluetoothAudioClientInterface::BluetoothAudioClientInterface(
     IBluetoothTransportInstance* instance)
     : provider_(nullptr),
+      provider_factory_(nullptr),
       session_started_(false),
       data_mq_(nullptr),
       transport_(instance) {
@@ -154,9 +155,9 @@ BluetoothAudioSinkClientInterface::BluetoothAudioSinkClientInterface(
 }
 
 BluetoothAudioSinkClientInterface::~BluetoothAudioSinkClientInterface() {
-  if (provider_ != nullptr) {
-    AIBinder_unlinkToDeath(provider_factory_->asBinder().get(),
-                           death_recipient_.get(), nullptr);
+  if (provider_factory_ != nullptr) {
+    AIBinder_unlinkToDeath(provider_factory_->asBinder().get(), death_recipient_.get(),
+                           nullptr);
   }
 }
 
@@ -168,9 +169,9 @@ BluetoothAudioSourceClientInterface::BluetoothAudioSourceClientInterface(
 }
 
 BluetoothAudioSourceClientInterface::~BluetoothAudioSourceClientInterface() {
-  if (provider_ != nullptr) {
-    AIBinder_unlinkToDeath(provider_factory_->asBinder().get(),
-                           death_recipient_.get(), nullptr);
+  if (provider_factory_ != nullptr) {
+    AIBinder_unlinkToDeath(provider_factory_->asBinder().get(), death_recipient_.get(),
+                           nullptr);
   }
 }
 
