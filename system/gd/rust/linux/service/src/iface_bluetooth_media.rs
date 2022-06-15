@@ -121,7 +121,7 @@ impl IBluetoothMedia for IBluetoothMediaDBus {
     }
 
     #[dbus_method("SetVolume")]
-    fn set_volume(&mut self, volume: i32) {
+    fn set_volume(&mut self, volume: u8) {
         dbus_generated!()
     }
 
