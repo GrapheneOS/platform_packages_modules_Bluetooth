@@ -65,6 +65,11 @@ impl IBluetoothMediaCallback for BluetoothMediaCallbackDBus {
     fn on_absolute_volume_changed(&self, volume: i32) {
         dbus_generated!()
     }
+
+    #[dbus_method("OnHfpVolumeChanged")]
+    fn on_hfp_volume_changed(&self, volume: u32, addr: String) {
+        dbus_generated!()
+    }
 }
 
 #[allow(dead_code)]
