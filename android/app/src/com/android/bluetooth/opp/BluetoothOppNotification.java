@@ -437,8 +437,8 @@ class BluetoothOppNotification {
         outboundNum = outboundSuccNumber + outboundFailNumber;
         // create the outbound notification
         if (outboundNum > 0) {
-            String caption = mContext.getString(R.string.noti_caption_success, outboundSuccNumber)
-                    + mContext.getString(R.string.noti_caption_unsuccessful, outboundFailNumber);
+            String caption = BluetoothOppUtility.formatResultText(outboundSuccNumber,
+                    outboundFailNumber, mContext);
             Intent contentIntent = new Intent(Constants.ACTION_OPEN_OUTBOUND_TRANSFER).setClassName(
                     mContext, BluetoothOppReceiver.class.getName());
             Intent deleteIntent = new Intent(Constants.ACTION_COMPLETE_HIDE).setClassName(
@@ -501,8 +501,8 @@ class BluetoothOppNotification {
         inboundNum = inboundSuccNumber + inboundFailNumber;
         // create the inbound notification
         if (inboundNum > 0) {
-            String caption = mContext.getString(R.string.noti_caption_success, inboundSuccNumber)
-                    + mContext.getString(R.string.noti_caption_unsuccessful, inboundFailNumber);
+            String caption = BluetoothOppUtility.formatResultText(inboundSuccNumber,
+                    inboundFailNumber, mContext);
             Intent contentIntent = new Intent(Constants.ACTION_OPEN_INBOUND_TRANSFER).setClassName(
                     mContext, BluetoothOppReceiver.class.getName());
             Intent deleteIntent = new Intent(Constants.ACTION_COMPLETE_HIDE).setClassName(

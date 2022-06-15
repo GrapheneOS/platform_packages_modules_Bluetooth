@@ -43,6 +43,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.database.Cursor;
+import android.icu.text.MessageFormat;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.ParcelFileDescriptor;
@@ -57,7 +58,10 @@ import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -312,6 +316,26 @@ public class BluetoothOppUtility {
             percent = currentBytes / (double) totalBytes;
         }
         return df.format(percent);
+    }
+
+    /**
+     * Helper function to build the result notification text content.
+     */
+    static String formatResultText(int countSuccess, int countUnsuccessful, Context context) {
+        if (context == null) {
+            return null;
+        }
+        Map<String, Object> mapUnsuccessful = new HashMap<>();
+        mapUnsuccessful.put("count", countUnsuccessful);
+
+        Map<String, Object> mapSuccess = new HashMap<>();
+        mapSuccess.put("count", countSuccess);
+
+        return new MessageFormat(context.getResources().getString(R.string.noti_caption_success,
+                new MessageFormat(context.getResources().getString(
+                        R.string.noti_caption_unsuccessful),
+                        Locale.getDefault()).format(mapUnsuccessful)),
+                Locale.getDefault()).format(mapSuccess);
     }
 
     /**
