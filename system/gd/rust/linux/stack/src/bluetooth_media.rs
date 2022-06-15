@@ -72,6 +72,11 @@ pub trait IBluetoothMediaCallback {
 
     ///
     fn on_absolute_volume_changed(&self, volume: i32);
+
+    /// Triggered when a Bluetooth device triggers a HFP AT command (AT+VGS) to
+    /// notify AG about its speaker volume change. We need to notify audio
+    /// client to reflect the change on the audio stack.
+    fn on_hfp_volume_changed(&self, volume: u32, addr: String);
 }
 
 /// Serializable device used in.
@@ -262,6 +267,11 @@ impl BluetoothMedia {
                         info!("[{}]: hfp audio disconnecting.", addr.to_string());
                     }
                 }
+            }
+            HfpCallbacks::VolumeUpdate(volume, addr) => {
+                self.for_all_callbacks(|callback| {
+                    callback.on_hfp_volume_changed(volume, addr.to_string());
+                });
             }
         }
     }
