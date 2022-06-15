@@ -101,7 +101,7 @@ impl BtCallback {
 }
 
 impl IBluetoothCallback for BtCallback {
-    fn on_adapter_property_changed(&self, prop: BtPropertyType) {}
+    fn on_adapter_property_changed(&self, _prop: BtPropertyType) {}
 
     fn on_address_changed(&self, addr: String) {
         print_info!("Address changed to {}", &addr);
