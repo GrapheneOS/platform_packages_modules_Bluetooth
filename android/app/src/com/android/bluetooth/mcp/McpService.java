@@ -176,6 +176,11 @@ public class McpService extends ProfileService {
     }
 
     public void onDeviceUnauthorized(BluetoothDevice device) {
+        if (Utils.isPtsTestMode()) {
+            Log.d(TAG, "PTS test: setDeviceAuthorized");
+            setDeviceAuthorized(device, true);
+            return;
+        }
         Log.w(TAG, "onDeviceUnauthorized - authorization notification not implemented yet ");
     }
 
@@ -194,9 +199,10 @@ public class McpService extends ProfileService {
     }
 
     public int getDeviceAuthorization(BluetoothDevice device) {
-        // TODO: For now just reject authorization for other than LeAudio device already authorized.
-        //       Consider intent based authorization mechanism for non-LeAudio devices.
-        return mDeviceAuthorizations.getOrDefault(device, BluetoothDevice.ACCESS_UNKNOWN);
+        // TODO: For now just reject authorization for other than LeAudio device already authorized
+        // except for PTS. Consider intent based authorization mechanism for non-LeAudio devices.
+        return mDeviceAuthorizations.getOrDefault(device, Utils.isPtsTestMode()
+                ? BluetoothDevice.ACCESS_ALLOWED : BluetoothDevice.ACCESS_UNKNOWN);
     }
 
     @GuardedBy("mLock")

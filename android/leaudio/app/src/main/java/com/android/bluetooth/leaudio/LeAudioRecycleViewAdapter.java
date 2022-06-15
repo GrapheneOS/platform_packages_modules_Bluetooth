@@ -1262,19 +1262,43 @@ public class LeAudioRecycleViewAdapter
             });
 
             leAudioSetLockButton.setOnClickListener(view -> {
-                final Integer group_id =
-                        Integer.parseInt(ViewHolder.this.leAudioGroupIdText.getText().toString());
-                if (leAudioInteractionListener != null)
-                    leAudioInteractionListener.onGroupSetLockClicked(
+                AlertDialog.Builder alert = new AlertDialog.Builder(itemView.getContext());
+                alert.setTitle("Pick a group ID");
+                final EditText input = new EditText(itemView.getContext());
+                input.setInputType(InputType.TYPE_CLASS_NUMBER);
+                input.setRawInputType(Configuration.KEYBOARD_12KEY);
+                alert.setView(input);
+                alert.setPositiveButton("Ok", (dialog, whichButton) -> {
+                    final Integer group_id = Integer.valueOf(input.getText().toString());
+                    if (leAudioInteractionListener != null)
+                        leAudioInteractionListener.onGroupSetLockClicked(
                             devices.get(ViewHolder.this.getAdapterPosition()), group_id, true);
+
+                });
+                alert.setNegativeButton("Cancel", (dialog, whichButton) -> {
+                    // Do nothing
+                });
+                alert.show();
             });
 
             leAudioSetUnlockButton.setOnClickListener(view -> {
-                final Integer group_id =
-                        Integer.parseInt(ViewHolder.this.leAudioGroupIdText.getText().toString());
-                if (leAudioInteractionListener != null)
-                    leAudioInteractionListener.onGroupSetLockClicked(
+                AlertDialog.Builder alert = new AlertDialog.Builder(itemView.getContext());
+                alert.setTitle("Pick a group ID");
+                final EditText input = new EditText(itemView.getContext());
+                input.setInputType(InputType.TYPE_CLASS_NUMBER);
+                input.setRawInputType(Configuration.KEYBOARD_12KEY);
+                alert.setView(input);
+                alert.setPositiveButton("Ok", (dialog, whichButton) -> {
+                    final Integer group_id = Integer.valueOf(input.getText().toString());
+                    if (leAudioInteractionListener != null)
+                        leAudioInteractionListener.onGroupSetLockClicked(
                             devices.get(ViewHolder.this.getAdapterPosition()), group_id, false);
+
+                });
+                alert.setNegativeButton("Cancel", (dialog, whichButton) -> {
+                    // Do nothing
+                });
+                alert.show();
             });
 
             leAudioGroupMicrophoneSwitch.setOnCheckedChangeListener((compoundButton, b) -> {
