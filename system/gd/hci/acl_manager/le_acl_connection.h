@@ -78,6 +78,12 @@ class LeAclConnection : public AclConnection {
   // Time Range: 100 ms to 32 s
   uint16_t supervision_timeout_;
 
+  // True if connection address was in the filter accept list, false otherwise
+  bool in_filter_accept_list_;
+  bool IsInFilterAcceptList() const {
+    return in_filter_accept_list_;
+  }
+
   Address local_resolvable_private_address_ = Address::kEmpty;
   Address peer_resolvable_private_address_ = Address::kEmpty;
 
