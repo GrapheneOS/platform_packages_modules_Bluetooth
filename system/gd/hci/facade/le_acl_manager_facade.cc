@@ -269,7 +269,11 @@ class LeAclManagerFacadeService : public LeAclManagerFacade::Service, public LeC
     auto role = shared_connection->GetRole();
     if (role == Role::PERIPHERAL) {
       ASSERT(incoming_connection_events_ != nullptr);
-      per_connection_events_.emplace(peer, incoming_connection_events_);
+      if (per_connection_events_.find(peer) == per_connection_events_.end()) {
+        per_connection_events_.emplace(peer, incoming_connection_events_);
+      } else {
+        per_connection_events_[peer] = incoming_connection_events_;
+      }
       incoming_connection_events_.reset();
     } else if (direct_connection_address_ == peer) {
       direct_connection_address_ = AddressWithType();
