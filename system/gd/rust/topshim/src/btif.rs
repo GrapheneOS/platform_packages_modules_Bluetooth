@@ -6,6 +6,7 @@ use crate::bindings::root as bindings;
 use crate::topstack::get_dispatchers;
 use num_traits::cast::{FromPrimitive, ToPrimitive};
 use std::cmp;
+use std::convert::TryFrom;
 use std::fmt::{Debug, Formatter, Result};
 use std::mem;
 use std::os::raw::c_char;
@@ -288,6 +289,28 @@ pub type BtPinCode = bindings::bt_pin_code_t;
 pub type BtRemoteVersion = bindings::bt_remote_version_t;
 pub type Uuid = bindings::bluetooth::Uuid;
 pub type Uuid128Bit = bindings::bluetooth::Uuid_UUID128Bit;
+
+impl TryFrom<Uuid> for Vec<u8> {
+    type Error = &'static str;
+
+    fn try_from(value: Uuid) -> std::result::Result<Self, Self::Error> {
+        Ok((&value.uu).to_vec())
+    }
+}
+
+impl TryFrom<Vec<u8>> for Uuid {
+    type Error = &'static str;
+
+    fn try_from(value: Vec<u8>) -> std::result::Result<Self, Self::Error> {
+        if value.len() != 16 {
+            Err("Vector size must be exactly 16.")
+        } else {
+            let mut uu: [u8; 16] = Default::default();
+            uu.copy_from_slice(&value[0..16]);
+            Ok(Uuid { uu })
+        }
+    }
+}
 
 /// All supported Bluetooth properties after conversion.
 #[derive(Debug, Clone)]
