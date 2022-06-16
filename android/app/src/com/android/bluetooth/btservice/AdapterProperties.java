@@ -691,6 +691,10 @@ class AdapterProperties {
         BluetoothDevice device = connIntent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
         int prevState = connIntent.getIntExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, -1);
         int state = connIntent.getIntExtra(BluetoothProfile.EXTRA_STATE, -1);
+        if (state == BluetoothProfile.STATE_CONNECTING) {
+            BluetoothStatsLog.write(BluetoothStatsLog.BLUETOOTH_DEVICE_NAME_REPORTED,
+                    mService.getMetricId(device), device.getName());
+        }
         Log.d(TAG,
                 "PROFILE_CONNECTION_STATE_CHANGE: profile=" + profile + ", device=" + device + ", "
                         + prevState + " -> " + state);
