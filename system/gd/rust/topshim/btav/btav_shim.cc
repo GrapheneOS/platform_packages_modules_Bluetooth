@@ -81,6 +81,8 @@ class VolumeInterfaceImpl : public VolumeInterface {
 
   // Set TG's (Android, ChromeOS) volume.
   void SetVolume(int8_t volume) override {
+    if (volume < 0) return;
+
     rusty::avrcp_absolute_volume_update(volume);
   }
 
