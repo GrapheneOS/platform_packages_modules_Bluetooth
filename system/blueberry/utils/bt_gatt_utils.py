@@ -60,12 +60,9 @@ def setup_gatt_connection(central: AndroidDevice,
         close_gatt_client(central, bluetooth_gatt)
         raise GattTestUtilsError("Could not establish a connection to "
                                  "peripheral. Expected event: {}".format(expected_event))
+    logging.info("Got connection event {}".format(event))
     if event['data']['State'] != GattConnectionState.STATE_CONNECTED:
         close_gatt_client(central, bluetooth_gatt)
-        try:
-            central.sl4a.gattClientClose(bluetooth_gatt)
-        except Exception:
-            logging.debug("Failed to close gatt client.")
         raise GattTestUtilsError("Could not establish a connection to "
                                  "peripheral. Event Details: {}".format(pprint.pformat(event)))
     return bluetooth_gatt, gatt_callback
