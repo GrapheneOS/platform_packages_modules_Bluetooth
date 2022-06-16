@@ -137,6 +137,10 @@ class MapClientContent {
         SubscriptionManager subscriptionManager =
                 context.getSystemService(SubscriptionManager.class);
         List<SubscriptionInfo> subscriptions = subscriptionManager.getActiveSubscriptionInfoList();
+        if (subscriptions == null) {
+            Log.w(TAG, "Active subscription list is missing");
+            return;
+        }
         for (SubscriptionInfo info : subscriptions) {
             if (info.getSubscriptionType() == SubscriptionManager.SUBSCRIPTION_TYPE_REMOTE_SIM) {
                 clearMessages(context, info.getSubscriptionId());
