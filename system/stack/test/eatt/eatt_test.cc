@@ -185,13 +185,15 @@ TEST_F(EattTest, ConnectSucceed) {
 TEST_F(EattTest, IncomingEattConnectionByUnknownDevice) {
   std::vector<uint16_t> incoming_cids{71, 72, 73, 74, 75};
 
-  EXPECT_CALL(l2cap_interface_,
-              ConnectCreditBasedRsp(test_address, 1, incoming_cids,
-                                    L2CAP_CONN_NO_RESOURCES, _))
+  EXPECT_CALL(
+      l2cap_interface_,
+      ConnectCreditBasedRsp(test_address, 1, incoming_cids, L2CAP_CONN_OK, _))
       .WillOnce(Return(true));
 
   l2cap_app_info_.pL2CA_CreditBasedConnectInd_Cb(
       test_address, incoming_cids, BT_PSM_EATT, EATT_MIN_MTU_MPS, 1);
+
+  DisconnectEattDevice(incoming_cids);
 }
 
 TEST_F(EattTest, IncomingEattConnectionByKnownDevice) {
