@@ -51,13 +51,15 @@ extern "C" const char* __asan_default_options() {
 namespace {
 ::bluetooth::facade::GrpcRootServer grpc_root_server;
 
+std::promise<void> interrupt_promise;
+std::future<void> interrupt_future;
 bool interrupted = false;
 struct sigaction old_act = {};
 void interrupt_handler(int signal_number) {
   if (!interrupted) {
     interrupted = true;
     LOG_INFO("Stopping gRPC root server due to signal: %s[%d]", strsignal(signal_number), signal_number);
-    grpc_root_server.StopServer();
+    interrupt_promise.set_value();
   } else {
     LOG_WARN("Already interrupted by signal: %s[%d]", strsignal(signal_number), signal_number);
   }
@@ -89,6 +91,15 @@ bool crash_callback(const void* crash_context, size_t crash_context_size, void* 
     LOG_ERROR("%s", unwinder.FormatFrame(frame).c_str());
   }
   return true;
+}
+
+// Need to stop server on a thread that is not part of a signal handler due to an issue with gRPC
+// See: https://github.com/grpc/grpc/issues/24884
+void thread_check_shutdown() {
+  LOG_INFO("shutdown thread waiting for interruption");
+  interrupt_future.wait();
+  LOG_INFO("interrupted, stopping server");
+  grpc_root_server.StopServer();
 }
 
 }  // namespace
@@ -145,9 +156,16 @@ int main(int argc, const char** argv) {
     LOG_ERROR("sigaction error: %s", strerror(errno));
   }
 
+  LOG_INFO("Starting Server");
   grpc_root_server.StartServer("0.0.0.0", root_server_port, grpc_port);
+  LOG_INFO("Server started");
   auto wait_thread = std::thread([] { grpc_root_server.RunGrpcLoop(); });
+  interrupt_future = interrupt_promise.get_future();
+  auto shutdown_thread = std::thread{thread_check_shutdown};
   wait_thread.join();
+  LOG_INFO("Server terminated");
+  shutdown_thread.join();
+  LOG_INFO("Shutdown thread terminated");
 
   return 0;
 }
