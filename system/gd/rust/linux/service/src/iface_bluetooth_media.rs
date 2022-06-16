@@ -101,17 +101,17 @@ impl IBluetoothMedia for IBluetoothMediaDBus {
     }
 
     #[dbus_method("Connect")]
-    fn connect(&mut self, device: String) {
+    fn connect(&mut self, address: String) {
         dbus_generated!()
     }
 
     #[dbus_method("SetActiveDevice")]
-    fn set_active_device(&mut self, device: String) {
+    fn set_active_device(&mut self, address: String) {
         dbus_generated!()
     }
 
     #[dbus_method("Disconnect")]
-    fn disconnect(&mut self, device: String) {
+    fn disconnect(&mut self, address: String) {
         dbus_generated!()
     }
 
@@ -146,12 +146,12 @@ impl IBluetoothMedia for IBluetoothMediaDBus {
     }
 
     #[dbus_method("StartScoCall")]
-    fn start_sco_call(&mut self, device: String) {
+    fn start_sco_call(&mut self, address: String) {
         dbus_generated!()
     }
 
     #[dbus_method("StopScoCall")]
-    fn stop_sco_call(&mut self, device: String) {
+    fn stop_sco_call(&mut self, address: String) {
         dbus_generated!()
     }
 
