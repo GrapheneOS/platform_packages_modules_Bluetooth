@@ -2,7 +2,7 @@ use core::any::Any;
 
 use dbus_macros::{dbus_propmap, generate_dbus_arg};
 
-use dbus::arg::{Arg, ArgType, IterAppend, RefArg};
+use dbus::arg::{Arg, ArgType, IterAppend};
 use dbus::Signature;
 
 generate_dbus_arg!();

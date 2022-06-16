@@ -1,7 +1,7 @@
 use crate::dbus_iface::{
-    export_bluetooth_callback_dbus_obj, export_bluetooth_connection_callback_dbus_obj,
-    export_bluetooth_gatt_callback_dbus_obj, export_bluetooth_manager_callback_dbus_obj,
-    export_suspend_callback_dbus_obj,
+    export_bluetooth_callback_dbus_intf, export_bluetooth_connection_callback_dbus_intf,
+    export_bluetooth_gatt_callback_dbus_intf, export_bluetooth_manager_callback_dbus_intf,
+    export_suspend_callback_dbus_intf,
 };
 use crate::ClientContext;
 use crate::{console_yellow, print_info};
@@ -70,13 +70,12 @@ impl RPCProxy for BtManagerCallback {
 
     fn export_for_rpc(self: Box<Self>) {
         let cr = self.dbus_crossroads.clone();
-        export_bluetooth_manager_callback_dbus_obj(
-            self.get_object_id(),
+        let iface = export_bluetooth_manager_callback_dbus_intf(
             self.dbus_connection.clone(),
             &mut cr.lock().unwrap(),
-            Arc::new(Mutex::new(self)),
             Arc::new(Mutex::new(DisconnectWatcher::new())),
         );
+        cr.lock().unwrap().insert(self.get_object_id(), &[iface], Arc::new(Mutex::new(self)));
     }
 }
 
@@ -232,13 +231,12 @@ impl RPCProxy for BtCallback {
 
     fn export_for_rpc(self: Box<Self>) {
         let cr = self.dbus_crossroads.clone();
-        export_bluetooth_callback_dbus_obj(
-            self.get_object_id(),
+        let iface = export_bluetooth_callback_dbus_intf(
             self.dbus_connection.clone(),
             &mut cr.lock().unwrap(),
-            Arc::new(Mutex::new(self)),
             Arc::new(Mutex::new(DisconnectWatcher::new())),
         );
+        cr.lock().unwrap().insert(self.get_object_id(), &[iface], Arc::new(Mutex::new(self)));
     }
 }
 
@@ -286,13 +284,12 @@ impl RPCProxy for BtConnectionCallback {
 
     fn export_for_rpc(self: Box<Self>) {
         let cr = self.dbus_crossroads.clone();
-        export_bluetooth_connection_callback_dbus_obj(
-            self.get_object_id(),
+        let iface = export_bluetooth_connection_callback_dbus_intf(
             self.dbus_connection.clone(),
             &mut cr.lock().unwrap(),
-            Arc::new(Mutex::new(self)),
             Arc::new(Mutex::new(DisconnectWatcher::new())),
         );
+        cr.lock().unwrap().insert(self.get_object_id(), &[iface], Arc::new(Mutex::new(self)));
     }
 }
 
@@ -458,13 +455,13 @@ impl RPCProxy for BtGattCallback {
 
     fn export_for_rpc(self: Box<Self>) {
         let cr = self.dbus_crossroads.clone();
-        export_bluetooth_gatt_callback_dbus_obj(
-            self.get_object_id(),
+        let iface = export_bluetooth_gatt_callback_dbus_intf(
             self.dbus_connection.clone(),
             &mut cr.lock().unwrap(),
-            Arc::new(Mutex::new(self)),
             Arc::new(Mutex::new(DisconnectWatcher::new())),
         );
+
+        cr.lock().unwrap().insert(self.get_object_id(), &[iface], Arc::new(Mutex::new(self)));
     }
 }
 
@@ -508,12 +505,11 @@ impl RPCProxy for SuspendCallback {
 
     fn export_for_rpc(self: Box<Self>) {
         let cr = self.dbus_crossroads.clone();
-        export_suspend_callback_dbus_obj(
-            self.get_object_id(),
+        let iface = export_suspend_callback_dbus_intf(
             self.dbus_connection.clone(),
             &mut cr.lock().unwrap(),
-            Arc::new(Mutex::new(self)),
             Arc::new(Mutex::new(DisconnectWatcher::new())),
         );
+        cr.lock().unwrap().insert(self.get_object_id(), &[iface], Arc::new(Mutex::new(self)));
     }
 }
