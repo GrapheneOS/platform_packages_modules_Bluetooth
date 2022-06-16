@@ -48,7 +48,10 @@ pub trait IBluetoothMedia {
         bits_per_sample: i32,
         channel_mode: i32,
     ) -> bool;
-    fn set_volume(&mut self, volume: i32);
+
+    // Set the A2DP/AVRCP volume. Valid volume specified by the spec should be
+    // in the range of 0-127.
+    fn set_volume(&mut self, volume: u8);
 
     // Set the HFP speaker volume. Valid volume specified by the HFP spec should
     // be in the range of 0-15.
@@ -541,11 +544,12 @@ impl IBluetoothMedia for BluetoothMedia {
         true
     }
 
-    fn set_volume(&mut self, volume: i32) {
+    fn set_volume(&mut self, volume: u8) {
+        // Guard the range 0-127 by the try_from cast from u8 to i8.
         match i8::try_from(volume) {
             Ok(val) => self.avrcp.as_mut().unwrap().set_volume(val),
-            _ => (),
-        };
+            _ => warn!("Ignore invalid volume {}", volume),
+        }
     }
 
     fn set_hfp_volume(&mut self, volume: u8, address: String) {
