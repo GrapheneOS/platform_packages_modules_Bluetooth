@@ -29,26 +29,15 @@
 #include "hci/facade/le_advertising_manager_facade.h"
 #include "hci/facade/le_initiator_address_facade.h"
 #include "hci/facade/le_scanning_manager_facade.h"
-#include "hci/hci_layer.h"
-#include "hci/le_advertising_manager.h"
-#include "hci/le_scanning_manager.h"
 #include "iso/facade.h"
 #include "l2cap/classic/facade.h"
 #include "l2cap/le/facade.h"
-#include "neighbor/connectability.h"
-#include "neighbor/discoverability.h"
 #include "neighbor/facade/facade.h"
-#include "neighbor/inquiry.h"
-#include "neighbor/name.h"
-#include "neighbor/page.h"
 #include "os/log.h"
 #include "os/thread.h"
 #include "security/facade.h"
-#include "security/security_module.h"
-#include "shim/dumpsys.h"
 #include "shim/facade/facade.h"
 #include "stack_manager.h"
-#include "storage/storage_module.h"
 
 namespace bluetooth {
 namespace facade {
@@ -57,10 +46,9 @@ using ::blueberry::facade::BluetoothModule;
 using ::bluetooth::grpc::GrpcModule;
 using ::bluetooth::os::Thread;
 
-namespace {
 class RootFacadeService : public ::blueberry::facade::RootFacade::Service {
  public:
-  RootFacadeService(int grpc_port) : grpc_port_(grpc_port) {}
+  explicit RootFacadeService(int grpc_port) : grpc_port_(grpc_port) {}
 
   ::grpc::Status StartStack(
       ::grpc::ServerContext* context,
@@ -123,13 +111,13 @@ class RootFacadeService : public ::blueberry::facade::RootFacade::Service {
         return ::grpc::Status(::grpc::StatusCode::INVALID_ARGUMENT, "invalid module under test");
     }
 
-    stack_thread_ = new Thread("stack_thread", Thread::Priority::NORMAL);
-    stack_manager_.StartUp(&modules, stack_thread_);
+    stack_thread_ = std::make_unique<Thread>("stack_thread", Thread::Priority::NORMAL);
+    stack_manager_.StartUp(&modules, stack_thread_.get());
 
     GrpcModule* grpc_module = stack_manager_.GetInstance<GrpcModule>();
     grpc_module->StartServer("0.0.0.0", grpc_port_);
 
-    grpc_loop_thread_ = new std::thread([grpc_module] { grpc_module->RunGrpcLoop(); });
+    grpc_loop_thread_ = std::make_unique<std::thread>([grpc_module] { grpc_module->RunGrpcLoop(); });
     is_running_ = true;
 
     return ::grpc::Status::OK;
@@ -145,50 +133,56 @@ class RootFacadeService : public ::blueberry::facade::RootFacade::Service {
 
     stack_manager_.GetInstance<GrpcModule>()->StopServer();
     grpc_loop_thread_->join();
-    delete grpc_loop_thread_;
+    grpc_loop_thread_.reset();
 
     stack_manager_.ShutDown();
-    delete stack_thread_;
+    stack_thread_.reset();
     is_running_ = false;
     return ::grpc::Status::OK;
   }
 
  private:
-  Thread* stack_thread_ = nullptr;
+  std::unique_ptr<Thread> stack_thread_ = nullptr;
   bool is_running_ = false;
-  std::thread* grpc_loop_thread_ = nullptr;
+  std::unique_ptr<std::thread> grpc_loop_thread_ = nullptr;
   StackManager stack_manager_;
   int grpc_port_ = 8898;
 };
 
-RootFacadeService* root_facade_service;
-}  // namespace
+struct GrpcRootServer::impl {
+  bool started_ = false;
+  std::unique_ptr<RootFacadeService> root_facade_service_ = nullptr;
+  std::unique_ptr<::grpc::Server> server_ = nullptr;
+};
+
+GrpcRootServer::GrpcRootServer() : pimpl_(new impl()) {}
+
+GrpcRootServer::~GrpcRootServer() = default;
 
 void GrpcRootServer::StartServer(const std::string& address, int grpc_root_server_port, int grpc_port) {
-  ASSERT(!started_);
-  started_ = true;
+  ASSERT(!pimpl_->started_);
+  pimpl_->started_ = true;
 
   std::string listening_port = address + ":" + std::to_string(grpc_root_server_port);
   ::grpc::ServerBuilder builder;
-  root_facade_service = new RootFacadeService(grpc_port);
-  builder.RegisterService(root_facade_service);
-  builder.AddListeningPort(listening_port, ::grpc::InsecureServerCredentials());
-  server_ = builder.BuildAndStart();
 
-  ASSERT(server_ != nullptr);
+  pimpl_->root_facade_service_ = std::make_unique<RootFacadeService>(grpc_port);
+  builder.RegisterService(pimpl_->root_facade_service_.get());
+  builder.AddListeningPort(listening_port, ::grpc::InsecureServerCredentials());
+  pimpl_->server_ = builder.BuildAndStart();
+
+  ASSERT(pimpl_->server_ != nullptr);
 }
 
 void GrpcRootServer::StopServer() {
-  ASSERT(started_);
-  server_->Shutdown();
-  started_ = false;
-  server_.reset();
-  delete root_facade_service;
+  ASSERT(pimpl_->started_);
+  pimpl_->server_->Shutdown();
+  pimpl_->started_ = false;
 }
 
 void GrpcRootServer::RunGrpcLoop() {
-  ASSERT(started_);
-  server_->Wait();
+  ASSERT(pimpl_->started_);
+  pimpl_->server_->Wait();
 }
 
 }  // namespace facade
