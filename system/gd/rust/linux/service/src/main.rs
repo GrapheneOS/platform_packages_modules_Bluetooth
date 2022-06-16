@@ -15,6 +15,7 @@ use btstack::{
     bluetooth::{get_bt_dispatcher, Bluetooth, IBluetooth},
     bluetooth_gatt::BluetoothGatt,
     bluetooth_media::BluetoothMedia,
+    socket_manager::BluetoothSocketManager,
     suspend::Suspend,
     Stack,
 };
@@ -24,7 +25,6 @@ mod dbus_arg;
 mod iface_bluetooth;
 mod iface_bluetooth_gatt;
 mod iface_bluetooth_media;
-mod iface_suspend;
 
 const DBUS_SERVICE_NAME: &str = "org.chromium.bluetooth";
 
@@ -88,6 +88,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         intf.clone(),
         bluetooth_media.clone(),
     ))));
+    let bt_sock_mgr = Arc::new(Mutex::new(Box::new(BluetoothSocketManager::new(intf.clone()))));
 
     topstack::get_runtime().block_on(async {
         // Connect to D-Bus system bus.
@@ -144,36 +145,57 @@ fn main() -> Result<(), Box<dyn Error>> {
         );
 
         // Register D-Bus method handlers of IBluetooth.
-        iface_bluetooth::export_bluetooth_dbus_obj(
-            make_object_name(adapter_index, "adapter"),
+        let adapter_iface = iface_bluetooth::export_bluetooth_dbus_intf(
             conn.clone(),
             &mut cr.lock().unwrap(),
-            bluetooth.clone(),
             disconnect_watcher.clone(),
         );
+        let socket_mgr_iface = iface_bluetooth::export_socket_mgr_intf(
+            conn.clone(),
+            &mut cr.lock().unwrap(),
+            disconnect_watcher.clone(),
+        );
+        let suspend_iface = iface_bluetooth::export_suspend_dbus_intf(
+            conn.clone(),
+            &mut cr.lock().unwrap(),
+            disconnect_watcher.clone(),
+        );
+
         // Register D-Bus method handlers of IBluetoothGatt.
-        iface_bluetooth_gatt::export_bluetooth_gatt_dbus_obj(
+        let gatt_iface = iface_bluetooth_gatt::export_bluetooth_gatt_dbus_intf(
+            conn.clone(),
+            &mut cr.lock().unwrap(),
+            disconnect_watcher.clone(),
+        );
+
+        let media_iface = iface_bluetooth_media::export_bluetooth_media_dbus_intf(
+            conn.clone(),
+            &mut cr.lock().unwrap(),
+            disconnect_watcher.clone(),
+        );
+
+        // Create mixin object for Bluetooth + Suspend interfaces.
+        let mixin = Box::new(iface_bluetooth::BluetoothMixin {
+            adapter: bluetooth.clone(),
+            suspend: suspend.clone(),
+            socket_mgr: bt_sock_mgr.clone(),
+        });
+
+        cr.lock().unwrap().insert(
+            make_object_name(adapter_index, "adapter"),
+            &[adapter_iface, socket_mgr_iface, suspend_iface],
+            mixin,
+        );
+
+        cr.lock().unwrap().insert(
             make_object_name(adapter_index, "gatt"),
-            conn.clone(),
-            &mut cr.lock().unwrap(),
+            &[gatt_iface],
             bluetooth_gatt.clone(),
-            disconnect_watcher.clone(),
         );
-
-        iface_bluetooth_media::export_bluetooth_media_dbus_obj(
+        cr.lock().unwrap().insert(
             make_object_name(adapter_index, "media"),
-            conn.clone(),
-            &mut cr.lock().unwrap(),
+            &[media_iface],
             bluetooth_media.clone(),
-            disconnect_watcher.clone(),
-        );
-
-        iface_suspend::export_suspend_dbus_obj(
-            make_object_name(adapter_index, "suspend"),
-            conn.clone(),
-            &mut cr.lock().unwrap(),
-            suspend,
-            disconnect_watcher.clone(),
         );
 
         // Hold locks and initialize all interfaces. This must be done AFTER DBus is

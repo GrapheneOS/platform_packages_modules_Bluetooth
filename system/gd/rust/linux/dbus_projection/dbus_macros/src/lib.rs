@@ -42,13 +42,28 @@ pub fn dbus_method(_attr: TokenStream, item: TokenStream) -> TokenStream {
     gen.into()
 }
 
-/// Generates a function to export a Rust object to D-Bus.
+/// Generates a function to export a Rust object to D-Bus. The result will provide an IFaceToken
+/// that must then be registered to an object.
 ///
 /// Example:
-///   `#[generate_dbus_exporter(export_foo_dbus_obj, "org.example.FooInterface")]`
+///   `#[generate_dbus_exporter(export_foo_dbus_intf, "org.example.FooInterface")]`
+///   `#[generate_dbus_exporter(export_foo_dbus_intf, "org.example.FooInterface", FooMixin, foo]`
 ///
-/// This generates a method called `export_foo_dbus_obj` that will export a Rust object into a
-/// D-Bus object having interface `org.example.FooInterface`.
+/// This generates a method called `export_foo_dbus_intf` that will export a Rust object type into a
+/// interface token for `org.example.FooInterface`. This interface must then be inserted to an
+/// object in order to be exported.
+///
+/// If the mixin parameter is provided, you must provide the mixin class when registering with
+/// crossroads (and that's the one that should be Arc<Mutex<...>>.
+///
+/// # Args
+///
+/// `exporter`: Function name for outputted interface exporter.
+/// `interface`: Name of the interface where this object should be exported.
+/// `mixin_type`: The name of the Mixin struct. Mixins should be used when
+///               exporting multiple interfaces and objects under a single object
+///               path.
+/// `mixin`: Name of this object in the mixin where it's implemented.
 #[proc_macro_attribute]
 pub fn generate_dbus_exporter(attr: TokenStream, item: TokenStream) -> TokenStream {
     let ori_item: proc_macro2::TokenStream = item.clone().into();
@@ -67,12 +82,28 @@ pub fn generate_dbus_exporter(attr: TokenStream, item: TokenStream) -> TokenStre
         panic!("D-Bus interface name must be specified");
     };
 
+    // Must provide both a mixin type and name.
+    let (mixin_type, mixin_name) = if args.len() > 3 {
+        match (&args[2], &args[3]) {
+            (Expr::Path(t), Expr::Path(n)) => (Some(t), Some(n)),
+            (_, _) => (None, None),
+        }
+    } else {
+        (None, None)
+    };
+
     let ast: ItemImpl = syn::parse(item.clone()).unwrap();
     let api_iface_ident = ast.trait_.unwrap().1.to_token_stream();
 
     let mut register_methods = quote! {};
 
-    let obj_type = quote! { std::sync::Arc<std::sync::Mutex<Box<T>>> };
+    // If the object isn't expected to be part of a mixin, expect the object
+    // type to be Arc<Mutex<Box<T>>>. Otherwise, we accept any type T and depend
+    // on the field name lookup to throw an error.
+    let obj_type = match mixin_type {
+        None => quote! { std::sync::Arc<std::sync::Mutex<Box<T>>> },
+        Some(t) => quote! { Box<#t> },
+    };
 
     for item in ast.items {
         if let ImplItem::Method(method) = item {
@@ -165,6 +196,19 @@ pub fn generate_dbus_exporter(attr: TokenStream, item: TokenStream) -> TokenStre
                 output_names = quote! { "out", };
             }
 
+            let method_call = match mixin_name {
+                Some(name) => {
+                    quote! {
+                        let ret = obj.#name.lock().unwrap().#method_name(#method_args);
+                    }
+                }
+                None => {
+                    quote! {
+                        let ret = obj.lock().unwrap().#method_name(#method_args);
+                    }
+                }
+            };
+
             register_methods = quote! {
                 #register_methods
 
@@ -175,7 +219,7 @@ pub fn generate_dbus_exporter(attr: TokenStream, item: TokenStream) -> TokenStre
                                           #dbus_input_args |
                       -> Result<(#output_type), dbus_crossroads::MethodErr> {
                     #make_args
-                    let ret = obj.lock().unwrap().#method_name(#method_args);
+                    #method_call
                     #ret
                 };
                 ibuilder.method(
@@ -188,28 +232,23 @@ pub fn generate_dbus_exporter(attr: TokenStream, item: TokenStream) -> TokenStre
         }
     }
 
+    // If mixin is not given, we enforce the API trait is implemented when exporting.
+    let type_t = match mixin_type {
+        None => quote! { <T: 'static + #api_iface_ident + Send + ?Sized> },
+        Some(_) => quote! {},
+    };
+
     let gen = quote! {
         #ori_item
 
-        pub fn #fn_ident<T: 'static + #api_iface_ident + Send + ?Sized, P: Into<dbus::Path<'static>>>(
-            path: P,
+        pub fn #fn_ident #type_t(
             conn: std::sync::Arc<dbus::nonblock::SyncConnection>,
             cr: &mut dbus_crossroads::Crossroads,
-            obj: #obj_type,
             disconnect_watcher: std::sync::Arc<std::sync::Mutex<dbus_projection::DisconnectWatcher>>,
-        ) {
-            fn get_iface_token<T: #api_iface_ident + Send + ?Sized>(
-                conn: std::sync::Arc<dbus::nonblock::SyncConnection>,
-                cr: &mut dbus_crossroads::Crossroads,
-                disconnect_watcher: std::sync::Arc<std::sync::Mutex<dbus_projection::DisconnectWatcher>>,
-            ) -> dbus_crossroads::IfaceToken<#obj_type> {
-                cr.register(#dbus_iface_name, |ibuilder| {
-                    #register_methods
-                })
-            }
-
-            let iface_token = get_iface_token(conn, cr, disconnect_watcher);
-            cr.insert(path, &[iface_token], obj);
+        ) -> dbus_crossroads::IfaceToken<#obj_type> {
+            cr.register(#dbus_iface_name, |ibuilder| {
+                #register_methods
+            })
         }
     };
 
@@ -768,7 +807,7 @@ pub fn dbus_proxy_obj(attr: TokenStream, item: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn generate_dbus_arg(_item: TokenStream) -> TokenStream {
     let gen = quote! {
-        use dbus::arg::PropMap;
+        use dbus::arg::{PropMap, RefArg};
         use dbus::nonblock::SyncConnection;
         use dbus::strings::BusName;
         use dbus_projection::DisconnectWatcher;
@@ -776,6 +815,9 @@ pub fn generate_dbus_arg(_item: TokenStream) -> TokenStream {
         use std::error::Error;
         use std::fmt;
         use std::sync::{Arc, Mutex};
+
+        // Key for serialized Option<T> in propmap
+        const OPTION_KEY: &'static str = "optional_value";
 
         #[derive(Debug)]
         pub(crate) struct DBusArgError {
@@ -804,7 +846,7 @@ pub fn generate_dbus_arg(_item: TokenStream) -> TokenStream {
             ) -> Result<Self::RustType, Box<dyn Error>>;
         }
 
-        impl<T: 'static + Clone + DirectDBus> RefArgToRust for T {
+        impl<T: 'static + DirectDBus> RefArgToRust for T {
             type RustType = T;
             fn ref_arg_to_rust(
                 arg: &(dyn dbus::arg::RefArg + 'static),
@@ -820,6 +862,31 @@ pub fn generate_dbus_arg(_item: TokenStream) -> TokenStream {
                     )))));
                 }
                 let arg = (*any.downcast_ref::<<Self as DBusArg>::DBusType>().unwrap()).clone();
+                return Ok(arg);
+            }
+        }
+
+        impl RefArgToRust for std::fs::File {
+            type RustType = std::fs::File;
+
+            fn ref_arg_to_rust(
+                arg: &(dyn dbus::arg::RefArg + 'static),
+                name: String,
+            ) -> Result<Self::RustType, Box<dyn Error>> {
+                let any = arg.as_any();
+                if !any.is::<<Self as DBusArg>::DBusType>() {
+                    return Err(Box::new(DBusArgError::new(String::from(format!(
+                        "{} type does not match: expected {}, found {}",
+                        name,
+                        std::any::type_name::<<Self as DBusArg>::DBusType>(),
+                        arg.arg_type().as_str(),
+                    )))));
+                }
+                let arg = match (*any.downcast_ref::<<Self as DBusArg>::DBusType>().unwrap()).try_clone() {
+                    Ok(foo) => foo,
+                    Err(_) => return Err(Box::new(DBusArgError::new(String::from(format!("{} cannot clone file.", name))))),
+                };
+
                 return Ok(arg);
             }
         }
@@ -890,7 +957,7 @@ pub fn generate_dbus_arg(_item: TokenStream) -> TokenStream {
         }
 
         // Types that implement dbus::arg::Append do not need any conversion.
-        pub(crate) trait DirectDBus {}
+        pub(crate) trait DirectDBus: Clone {}
         impl DirectDBus for bool {}
         impl DirectDBus for i32 {}
         impl DirectDBus for u32 {}
@@ -912,6 +979,23 @@ pub fn generate_dbus_arg(_item: TokenStream) -> TokenStream {
             }
 
             fn to_dbus(data: T) -> Result<T, Box<dyn Error>> {
+                return Ok(data);
+            }
+        }
+
+        impl DBusArg for std::fs::File {
+            type DBusType = std::fs::File;
+
+            fn from_dbus(
+                data: std::fs::File,
+                _conn: Option<Arc<dbus::nonblock::SyncConnection>>,
+                _remote: Option<BusName<'static>>,
+                _disconnect_watcher: Option<Arc<Mutex<DisconnectWatcher>>>,
+            ) -> Result<std::fs::File, Box<dyn Error>> {
+                return Ok(data);
+            }
+
+            fn to_dbus(data: std::fs::File) -> Result<std::fs::File, Box<dyn Error>> {
                 return Ok(data);
             }
         }
@@ -945,6 +1029,64 @@ pub fn generate_dbus_arg(_item: TokenStream) -> TokenStream {
                     list.push(t);
                 }
                 Ok(list)
+            }
+        }
+
+        impl<T: DBusArg> DBusArg for Option<T>
+            where <T as DBusArg>::DBusType: dbus::arg::RefArg + 'static + RefArgToRust<RustType = <T as DBusArg>::DBusType> {
+            type DBusType = dbus::arg::PropMap;
+
+            fn from_dbus(
+                data: dbus::arg::PropMap,
+                conn: Option<Arc<dbus::nonblock::SyncConnection>>,
+                remote: Option<BusName<'static>>,
+                disconnect_watcher: Option<Arc<Mutex<DisconnectWatcher>>>)
+                -> Result<Option<T>, Box<dyn Error>> {
+                let mut result: Option<T> = None;
+
+                // It's Ok if the key doesn't exist. That just means we have an empty option (i.e.
+                // None).
+                let prop_value = match data.get(OPTION_KEY) {
+                    Some(data) => data,
+                    None => {
+                        return Ok(None);
+                    }
+                };
+
+                // Make sure the option type was encoded correctly. If the key exists but the value
+                // is not right, we return an Err type.
+                match prop_value.arg_type() {
+                    dbus::arg::ArgType::Variant => (),
+                    _ => {
+                        return Err(Box::new(DBusArgError::new(String::from(format!("{} must be a variant", OPTION_KEY)))));
+                    }
+                };
+
+                // Convert the Variant into the target type and return an Err if that fails.
+                let ref_value: <T as DBusArg>::DBusType = match <<T as DBusArg>::DBusType as RefArgToRust>::ref_arg_to_rust(
+                    prop_value.as_static_inner(0).unwrap(),
+                    OPTION_KEY.to_string()) {
+                    Ok(v) => v,
+                    Err(e) => return Err(e),
+                };
+
+                let value = match T::from_dbus(ref_value, conn, remote, disconnect_watcher) {
+                    Ok(v) => Some(v),
+                    Err(_) => None,
+                };
+
+                Ok(value)
+            }
+
+            fn to_dbus(data: Option<T>) -> Result<dbus::arg::PropMap, Box<dyn Error>> {
+                let mut props = dbus::arg::PropMap::new();
+
+                if let Some(d) = data {
+                    let b = T::to_dbus(d)?;
+                    props.insert(OPTION_KEY.to_string(), dbus::arg::Variant(Box::new(b)));
+                }
+
+                Ok(props)
             }
         }
     };
