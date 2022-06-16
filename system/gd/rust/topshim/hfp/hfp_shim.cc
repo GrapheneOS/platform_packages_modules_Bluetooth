@@ -42,7 +42,7 @@ static void audio_state_cb(bluetooth::headset::bthf_audio_state_t state, RawAddr
   rusty::hfp_audio_state_callback(state, raddr);
 }
 
-static void volume_update_cb(uint32_t volume, RawAddress* addr) {
+static void volume_update_cb(uint8_t volume, RawAddress* addr) {
   RustRawAddress raddr = rusty::CopyToRustAddress(*addr);
   rusty::hfp_volume_update_callback(volume, raddr);
 }
