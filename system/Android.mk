@@ -46,13 +46,42 @@ LOCAL_target_executables := \
 	$(TARGET_OUT_EXECUTABLES)/bluetooth_stack_with_facade
 
 LOCAL_target_libraries := \
+	$(TARGET_OUT_SHARED_LIBRARIES)/android.hardware.bluetooth@1.0.so \
+	$(TARGET_OUT_SHARED_LIBRARIES)/android.hardware.bluetooth@1.1.so \
+	$(TARGET_OUT_SHARED_LIBRARIES)/libandroid_runtime_lazy.so \
+	$(TARGET_OUT_SHARED_LIBRARIES)/libbacktrace.so \
+	$(TARGET_OUT_SHARED_LIBRARIES)/libbase.so \
+	$(TARGET_OUT_SHARED_LIBRARIES)/libbinder_ndk.so \
+	$(TARGET_OUT_SHARED_LIBRARIES)/libbinder.so \
+	$(TARGET_OUT_SHARED_LIBRARIES)/libc++.so \
 	$(TARGET_OUT_SHARED_LIBRARIES)/libcrypto.so \
-	$(TARGET_OUT_SHARED_LIBRARIES)/libbluetooth_gd.so \
+	$(TARGET_OUT_SHARED_LIBRARIES)/libcutils.so \
+	$(TARGET_OUT_SHARED_LIBRARIES)/libgrpc_wrap.so \
 	$(TARGET_OUT_SHARED_LIBRARIES)/libgrpc++_unsecure.so \
 	$(TARGET_OUT_SHARED_LIBRARIES)/libgrpc++.so \
-	$(TARGET_OUT_SHARED_LIBRARIES)/libgrpc_wrap.so \
-	$(TARGET_OUT_SHARED_LIBRARIES)/libstatslog_bt.so
-#LINT.ThenChange(gd/cert/run)
+	$(TARGET_OUT_SHARED_LIBRARIES)/libhidlbase.so \
+	$(TARGET_OUT_SHARED_LIBRARIES)/liblog.so \
+	$(TARGET_OUT_SHARED_LIBRARIES)/liblzma.so \
+	$(TARGET_OUT_SHARED_LIBRARIES)/libprotobuf-cpp-full.so \
+	$(TARGET_OUT_SHARED_LIBRARIES)/libssl.so \
+	$(TARGET_OUT_SHARED_LIBRARIES)/libstatslog_bt.so \
+	$(TARGET_OUT_SHARED_LIBRARIES)/libunwindstack.so \
+	$(TARGET_OUT_SHARED_LIBRARIES)/libutils.so \
+	$(TARGET_OUT_SHARED_LIBRARIES)/libz.so
+	# libclang_rt.asan-aarch64-android.so is only generated for ASAN build and included automatically
+	# on devices
+	# $(TARGET_OUT_SHARED_LIBRARIES)/libclang_rt.asan-aarch64-android.so \
+	# libc.so, libdl_android.so, libdl.so, and libm.so are provided by com.android.runtime APEX
+	# Hence we cannot manually add them here
+	# $(TARGET_OUT_SHARED_LIBRARIES)/libc.so \
+	# $(TARGET_OUT_SHARED_LIBRARIES)/libdl_android.so \
+	# $(TARGET_OUT_SHARED_LIBRARIES)/libdl.so \
+	# $(TARGET_OUT_SHARED_LIBRARIES)/libm.so \
+	# libstatssocket.so is provided by co.android.os.statsd APEX
+	# $(TARGET_OUT_SHARED_LIBRARIES)/libstatssocket.so
+	# linux-vdso.so.1 is always provided by OS
+	# $(TARGET_OUT_SHARED_LIBRARIES)/linux-vdso.so.1
+#LINT.ThenChange(blueberry/tests/gd/cert/gd_device.py)
 
 bluetooth_cert_src_and_bin_zip := \
 	$(call intermediates-dir-for,PACKAGING,bluetooth_cert_src_and_bin,HOST)/bluetooth_cert_src_and_bin.zip
