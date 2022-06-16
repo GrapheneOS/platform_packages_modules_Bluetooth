@@ -25,12 +25,13 @@
 extern std::map<std::string, int> mock_function_count_map;
 
 #include <base/strings/stringprintf.h>
+
 #include <cstdint>
 #include <unordered_map>
+
 #include "bt_target.h"
 #include "device/include/controller.h"
 #include "main/shim/dumpsys.h"
-#include "main/shim/link_policy.h"
 #include "main/shim/shim.h"
 #include "osi/include/log.h"
 #include "stack/btm/btm_int_types.h"
