@@ -34,6 +34,7 @@ from blueberry.tests.gd.cert.gd_device import MOBLY_CONTROLLER_CONFIG_NAME as GD
 from blueberry.tests.gd_sl4a.lib.ble_lib import enable_bluetooth, disable_bluetooth, BleLib
 from blueberry.facade import rootservice_pb2 as facade_rootservice
 from blueberry.tests.gd.cert import gd_device
+from blueberry.utils.bt_test_utils import clear_bonded_devices
 
 
 class GdSl4aBaseTestClass(BaseTestClass):
@@ -90,9 +91,11 @@ class GdSl4aBaseTestClass(BaseTestClass):
         # Then enable Bluetooth
         enable_bluetooth(self.dut.sl4a, self.dut.ed)
         self.dut.sl4a.bluetoothDisableBLE()
+        clear_bonded_devices(self.dut)
         return True
 
     def teardown_test(self):
+        clear_bonded_devices(self.dut)
         # Make sure BLE is disabled and Bluetooth is disabled after test
         self.dut.sl4a.bluetoothDisableBLE()
         disable_bluetooth(self.dut.sl4a, self.dut.ed)
