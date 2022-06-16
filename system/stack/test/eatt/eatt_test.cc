@@ -93,6 +93,7 @@ class EattTest : public testing::Test {
         connected_cids_.push_back(cid);
 
         ASSERT_TRUE(channel->state_ == EattChannelState::EATT_CHANNEL_OPENED);
+        ASSERT_TRUE(channel->tx_mtu_ == EATT_MIN_MTU_MPS);
       } else {
         l2cap_app_info_.pL2CA_Error_Cb(cid, L2CAP_CONN_NO_RESOURCES);
 
