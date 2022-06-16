@@ -344,6 +344,7 @@ class AclManagerFacadeService : public AclManagerFacade::Service, public Connect
     std::unique_lock<std::mutex> lock(acl_connections_mutex_);
     std::shared_ptr<ClassicAclConnection> shared_connection = std::move(connection);
     uint16_t handle = to_handle(current_connection_request_);
+    acl_connections_.erase(handle);
     acl_connections_.emplace(
         std::piecewise_construct,
         std::forward_as_tuple(handle),
