@@ -51,8 +51,8 @@ class GrpcEventQueue {
     using namespace std::chrono_literals;
     LOG_INFO("%s: Entering Loop", log_name_.c_str());
     while (!context->IsCancelled()) {
-      // Wait for 500 ms so that cancellation can be caught in amortized 250 ms latency
-      if (pending_events_.wait_to_take(500ms)) {
+      // Wait for 100 ms so that cancellation can be caught in amortized 50 ms latency
+      if (pending_events_.wait_to_take(100ms)) {
         LOG_INFO("%s: Got event from queue", log_name_.c_str());
         writer->Write(pending_events_.take());
       }
