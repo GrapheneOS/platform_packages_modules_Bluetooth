@@ -130,6 +130,11 @@ impl IBluetoothMedia for IBluetoothMediaDBus {
         dbus_generated!()
     }
 
+    #[dbus_method("SetHfpVolume")]
+    fn set_hfp_volume(&mut self, volume: u8, address: String) {
+        dbus_generated!()
+    }
+
     #[dbus_method("StartAudioRequest")]
     fn start_audio_request(&mut self) {
         dbus_generated!()

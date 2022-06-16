@@ -49,6 +49,10 @@ pub trait IBluetoothMedia {
         channel_mode: i32,
     ) -> bool;
     fn set_volume(&mut self, volume: i32);
+
+    // Set the HFP speaker volume. Valid volume specified by the HFP spec should
+    // be in the range of 0-15.
+    fn set_hfp_volume(&mut self, volume: u8, address: String);
     fn start_audio_request(&mut self);
     fn stop_audio_request(&mut self);
     fn get_presentation_position(&mut self) -> PresentationPosition;
@@ -542,6 +546,26 @@ impl IBluetoothMedia for BluetoothMedia {
             Ok(val) => self.avrcp.as_mut().unwrap().set_volume(val),
             _ => (),
         };
+    }
+
+    fn set_hfp_volume(&mut self, volume: u8, address: String) {
+        if let Some(addr) = RawAddress::from_string(address.clone()) {
+            if !self.hfp_states.get(&addr).is_none() {
+                match i8::try_from(volume) {
+                    Ok(val) if val <= 15 => {
+                        self.hfp.as_mut().unwrap().set_volume(val, addr);
+                    }
+                    _ => warn!("[{}]: Ignore invalid volume {}", address, volume),
+                }
+            } else {
+                warn!(
+                    "[{}]: Ignore volume event for unconnected or disconnected HFP device",
+                    address
+                );
+            }
+        } else {
+            warn!("[{}]: Invalid address", address);
+        }
     }
 
     fn start_audio_request(&mut self) {
