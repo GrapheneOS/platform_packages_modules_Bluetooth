@@ -927,6 +927,15 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
     background_connections_.erase(address_with_type);
   }
 
+  void is_on_background_connection_list(AddressWithType address_with_type, std::promise<bool> promise) {
+    promise.set_value(background_connections_.find(address_with_type) != background_connections_.end());
+  }
+
+  void cancel_connection_and_remove_device_from_background_connection_list(AddressWithType address_with_type) {
+    remove_device_from_background_connection_list(address_with_type);
+    cancel_connect(address_with_type);
+  }
+
   void OnPause() override {  // bluetooth::hci::LeAddressManagerCallback
     pause_connection = true;
     if (connectability_state_ == ConnectabilityState::DISARMED) {
