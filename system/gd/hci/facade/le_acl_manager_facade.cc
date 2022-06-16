@@ -378,6 +378,31 @@ class LeAclManagerFacadeService : public LeAclManagerFacade::Service, public LeC
                                                                    std::to_string(handle_)};
   };
 
+  ::grpc::Status IsOnBackgroundList(
+      ::grpc::ServerContext* context,
+      const ::blueberry::facade::hci::BackgroundRequestMsg* request,
+      ::blueberry::facade::hci::BackgroundResultMsg* msg) {
+    Address peer_address;
+    ASSERT(Address::FromString(request->peer_address().address().address(), peer_address));
+    AddressWithType peer(peer_address, static_cast<AddressType>(request->peer_address().type()));
+    std::promise<bool> promise;
+    auto future = promise.get_future();
+    acl_manager_->IsOnBackgroundList(peer, std::move(promise));
+    msg->set_is_on_background_list(future.get());
+    return ::grpc::Status::OK;
+  }
+
+  ::grpc::Status RemoveFromBackgroundList(
+      ::grpc::ServerContext* context,
+      const ::blueberry::facade::hci::BackgroundRequestMsg* request,
+      ::google::protobuf::Empty* response) {
+    Address peer_address;
+    ASSERT(Address::FromString(request->peer_address().address().address(), peer_address));
+    AddressWithType peer(peer_address, static_cast<AddressType>(request->peer_address().type()));
+    acl_manager_->RemoveFromBackgroundList(peer);
+    return ::grpc::Status::OK;
+  }
+
  private:
   AclManager* acl_manager_;
   ::bluetooth::os::Handler* facade_handler_;
