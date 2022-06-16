@@ -331,6 +331,8 @@ final class BondStateMachine extends StateMachine {
             } else {
                 result = mAdapterService.createBondNative(addr, transport);
             }
+            BluetoothStatsLog.write(BluetoothStatsLog.BLUETOOTH_DEVICE_NAME_REPORTED,
+                    mAdapterService.getMetricId(dev), dev.getName());
             BluetoothStatsLog.write(BluetoothStatsLog.BLUETOOTH_BOND_STATE_CHANGED,
                     mAdapterService.obfuscateAddress(dev), transport, dev.getType(),
                     BluetoothDevice.BOND_BONDING,
