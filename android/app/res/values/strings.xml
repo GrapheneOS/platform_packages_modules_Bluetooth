@@ -212,9 +212,11 @@
     <string name="outbound_noti_title">Bluetooth share: Sent files</string>
     <string name="inbound_noti_title">Bluetooth share: Received files</string>
     <string name="noti_caption_unsuccessful"> {count, plural,
+        =1    {# unsuccessful.}
         other {# unsuccessful.}
     }</string>
     <string name="noti_caption_success"> {count, plural,
+        =1    {# successful, %1$s}
         other {# successful, %1$s}
     }</string>
 

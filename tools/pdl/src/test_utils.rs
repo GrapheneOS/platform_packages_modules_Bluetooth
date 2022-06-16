@@ -8,18 +8,23 @@ use tempfile::NamedTempFile;
 
 /// Search for a binary in `$PATH` or as a sibling to the current
 /// executable (typically the test binary).
-fn find_binary(name: &str) -> Option<std::path::PathBuf> {
+fn find_binary(name: &str) -> Result<std::path::PathBuf, String> {
     let mut current_exe = std::env::current_exe().unwrap();
     current_exe.pop();
     let paths = std::env::var_os("PATH").unwrap();
-    for mut path in std::iter::once(current_exe).chain(std::env::split_paths(&paths)) {
+    for mut path in std::iter::once(current_exe.clone()).chain(std::env::split_paths(&paths)) {
         path.push(name);
         if path.exists() {
-            return Some(path);
+            return Ok(path);
         }
     }
 
-    None
+    Err(format!(
+        "could not find '{}' in the directory of the binary ({}) or in $PATH ({})",
+        name,
+        current_exe.to_string_lossy(),
+        paths.to_string_lossy(),
+    ))
 }
 
 /// Parse a string fragment as a PDL file.
@@ -58,7 +63,7 @@ pub fn rustfmt(input: &str) -> String {
     String::from_utf8(output.stdout).expect("rustfmt output was not UTF-8")
 }
 
-/// Compare two strings using `diff`
+/// Find the unified diff between two strings using `diff`.
 ///
 /// # Panics
 ///
@@ -73,6 +78,7 @@ pub fn diff(left: &str, right: &str) -> String {
     // We expect `diff` to be available on PATH.
     let output = Command::new("diff")
         .arg("--unified")
+        .arg("--color=always")
         .arg("--label")
         .arg("left")
         .arg("--label")
