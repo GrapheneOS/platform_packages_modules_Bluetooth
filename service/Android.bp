@@ -47,8 +47,6 @@ java_library {
     defaults: ["service-bluetooth-common-defaults"],
     srcs: [
         ":services.bluetooth-sources",
-        ":bluetooth-proto-enums-java-gen",
-        ":bluetooth-manager-service-proto-java-gen",
     ],
     // java_api_finder must accompany `srcs`
     plugins: ["java_api_finder"],
@@ -68,6 +66,8 @@ java_library {
         "androidx.annotation_annotation",
         "androidx.appcompat_appcompat",
         "modules-utils-shell-command-handler",
+        "bluetooth-manager-service-proto-java-gen",
+        "bluetooth-proto-enums-java-gen",
     ],
 
     apex_available: [
@@ -109,28 +109,21 @@ java_library {
     min_sdk_version: "Tiramisu"
 }
 
-gensrcs {
+java_library {
     name: "bluetooth-manager-service-proto-java-gen",
-    depfile: true,
-
-    tools: [
-        "aprotoc",
-        "protoc-gen-javastream",
-        "soong_zip",
-    ],
-
-    cmd: "mkdir -p $(genDir)/$(in) " +
-        "&& $(location aprotoc) " +
-        "  --plugin=$(location protoc-gen-javastream) " +
-        "  --dependency_out=$(depfile) " +
-        "  --javastream_out=$(genDir)/$(in) " +
-        "  -Iexternal/protobuf/src " +
-        "  -I . " +
-        "  $(in) " +
-        "&& $(location soong_zip) -jar -o $(out) -C $(genDir)/$(in) -D $(genDir)/$(in)",
-
+    installable: false,
+    proto: {
+        type: "stream",
+        include_dirs: [
+             "external/protobuf/src",
+        ],
+    },
     srcs: [
         ":srcs_bluetooth_manager_service_proto",
     ],
-    output_extension: "srcjar",
+    sdk_version: "system_server_current",
+    apex_available: [
+        "com.android.bluetooth",
+    ],
+    min_sdk_version: "Tiramisu"
 }
