@@ -89,7 +89,7 @@ extern const btgatt_callbacks_t* bt_gatt_callbacks;
       LOG_WARN("%s: BTGATT not initialized", __func__); \
       return BT_STATUS_NOT_READY;                       \
     } else {                                            \
-      LOG_VERBOSE("%s", __func__);                      \
+      LOG_DEBUG("%s", __func__);                        \
     }                                                   \
   } while (0)
 
@@ -173,7 +173,8 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param) {
     }
 
     case BTA_GATTC_OPEN_EVT: {
-      DVLOG(1) << "BTA_GATTC_OPEN_EVT " << p_data->open.remote_bda;
+      LOG_DEBUG("BTA_GATTC_OPEN_EVT %s",
+                p_data->open.remote_bda.ToString().c_str());
       HAL_CBACK(bt_gatt_callbacks, client->open_cb, p_data->open.conn_id,
                 p_data->open.status, p_data->open.client_if,
                 p_data->open.remote_bda);
