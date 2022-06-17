@@ -1416,6 +1416,8 @@ void StackAclBtmAcl::btm_acl_role_changed(tHCI_STATUS hci_status,
 
 void btm_acl_role_changed(tHCI_STATUS hci_status, const RawAddress& bd_addr,
                           tHCI_ROLE new_role) {
+  btm_rejectlist_role_change_device(bd_addr, hci_status);
+
   if (hci_status == HCI_SUCCESS) {
     l2c_link_role_changed(&bd_addr, new_role, hci_status);
   } else {
