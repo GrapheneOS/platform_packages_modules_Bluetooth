@@ -15,6 +15,7 @@
 #   limitations under the License.
 import time
 from abc import ABC, abstractmethod
+import logging
 
 
 class Closable(ABC):
@@ -23,11 +24,17 @@ class Closable(ABC):
         return self
 
     def __exit__(self, type, value, traceback):
-        self.close()
+        try:
+            self.close()
+        except Exception:
+            logging.warning("Failed to close or already closed")
         return traceback is None
 
     def __del__(self):
-        self.close()
+        try:
+            self.close()
+        except Exception:
+            logging.warning("Failed to close or already closed")
 
     @abstractmethod
     def close(self):
