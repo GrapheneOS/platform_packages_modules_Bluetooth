@@ -124,6 +124,14 @@ class PyLeAclManager(Closable):
         self.next_token += 1
         return token
 
+    def is_on_background_list(self, remote_addr):
+        return self.le_acl_manager.IsOnBackgroundList(
+            le_acl_manager_facade.BackgroundRequestMsg(peer_address=remote_addr))
+
+    def remove_from_background_list(self, remote_addr):
+        self.le_acl_manager.RemoveFromBackgroundList(
+            le_acl_manager_facade.BackgroundRequestMsg(peer_address=remote_addr))
+
     def complete_connection(self, event_stream):
         connection_complete = HciCaptures.LeConnectionCompleteCapture()
         assertThat(event_stream).emits(connection_complete)
