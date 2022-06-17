@@ -181,14 +181,14 @@ public class BassClientServiceTest {
     }
 
     /**
-     * Test connecting to a device when the connection policy is unknown.
+     * Test connecting to a device when the connection policy is forbidden.
      *  - service.connect() should return false.
      */
     @Test
-    public void testConnect_whenConnectionPolicyIsUnknown() {
+    public void testConnect_whenConnectionPolicyIsForbidden() {
         when(mDatabaseManager.getProfileConnectionPolicy(any(BluetoothDevice.class),
                 eq(BluetoothProfile.LE_AUDIO_BROADCAST_ASSISTANT)))
-                .thenReturn(BluetoothProfile.CONNECTION_POLICY_UNKNOWN);
+                .thenReturn(BluetoothProfile.CONNECTION_POLICY_FORBIDDEN);
         mCurrentDevice = TestUtils.getTestDevice(mBluetoothAdapter, 0);
         assertThat(mCurrentDevice).isNotNull();
 
