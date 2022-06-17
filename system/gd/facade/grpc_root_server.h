@@ -26,6 +26,9 @@ namespace facade {
 
 class GrpcRootServer {
  public:
+  GrpcRootServer();
+  ~GrpcRootServer();
+
   void StartServer(const std::string& address, int grpc_root_server_port, int grpc_port);
 
   void StopServer();
@@ -33,8 +36,8 @@ class GrpcRootServer {
   void RunGrpcLoop();
 
  private:
-  bool started_ = false;
-  std::unique_ptr<::grpc::Server> server_ = nullptr;
+  struct impl;
+  std::unique_ptr<impl> pimpl_;
 };
 
 }  // namespace facade
