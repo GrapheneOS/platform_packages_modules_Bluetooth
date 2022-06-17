@@ -70,7 +70,8 @@ class IUT:
                 try:
                     return Host(channel).ReadLocalAddress(
                         wait_for_ready=True).address
-                except grpc.RpcError:
+                except grpc.RpcError or grpc._channel._InactiveRpcError:
+                    tries += 1
                     if tries >= MAX_RETRIES:
                         raise
                     else:
