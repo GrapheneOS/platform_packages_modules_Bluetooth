@@ -998,8 +998,8 @@ tGATT_IF GATT_Register(const Uuid& app_uuid128, std::string name,
   for (i_gatt_if = 0, p_reg = gatt_cb.cl_rcb; i_gatt_if < GATT_MAX_APPS;
        i_gatt_if++, p_reg++) {
     if (p_reg->in_use && p_reg->app_uuid128 == app_uuid128) {
-      LOG(ERROR) << __func__ << ": Application already registered "
-                 << app_uuid128;
+      LOG_ERROR("Application already registered, uuid=%s",
+                app_uuid128.ToString().c_str());
       return 0;
     }
   }
@@ -1022,9 +1022,8 @@ tGATT_IF GATT_Register(const Uuid& app_uuid128, std::string name,
     }
   }
 
-  LOG(ERROR) << __func__
-             << ": Unable to register GATT client, MAX client reached: "
-             << GATT_MAX_APPS;
+  LOG_ERROR("Unable to register GATT client, MAX client reached: %d",
+            GATT_MAX_APPS);
   return 0;
 }
 
@@ -1111,7 +1110,7 @@ void GATT_Deregister(tGATT_IF gatt_if) {
 void GATT_StartIf(tGATT_IF gatt_if) {
   tGATT_REG* p_reg;
   tGATT_TCB* p_tcb;
-  RawAddress bda;
+  RawAddress bda = {};
   uint8_t start_idx, found_idx;
   uint16_t conn_id;
   tBT_TRANSPORT transport;
@@ -1124,10 +1123,15 @@ void GATT_StartIf(tGATT_IF gatt_if) {
     while (
         gatt_find_the_connected_bda(start_idx, bda, &found_idx, &transport)) {
       p_tcb = gatt_find_tcb_by_addr(bda, transport);
+      LOG_INFO("GATT interface %d already has connected device %s", +gatt_if,
+               bda.ToString().c_str());
       if (p_reg->app_cb.p_conn_cb && p_tcb) {
         conn_id = GATT_CREATE_CONN_ID(p_tcb->tcb_idx, gatt_if);
+        LOG_INFO("Invoking callback with connection id %d", conn_id);
         (*p_reg->app_cb.p_conn_cb)(gatt_if, bda, conn_id, true, GATT_CONN_OK,
                                    transport);
+      } else {
+        LOG_INFO("Skipping callback as none is registered");
       }
       start_idx = ++found_idx;
     }
