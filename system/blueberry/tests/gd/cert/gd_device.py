@@ -727,7 +727,7 @@ class GdAndroidDevice(GdDeviceBase):
             push_timeout: How long to wait for the push to finish in seconds
         """
         if not overwrite_existing and self.adb.path_exists(dst_file_path):
-            logging.info("Skip pushing {} to {} as it already exists on device".format(src_file_path, dst_file_path))
+            logging.debug("Skip pushing {} to {} as it already exists on device".format(src_file_path, dst_file_path))
             return
         out = self.adb.push([src_file_path, dst_file_path], timeout=push_timeout).decode(UTF_8).rstrip()
         if 'error' in out:
