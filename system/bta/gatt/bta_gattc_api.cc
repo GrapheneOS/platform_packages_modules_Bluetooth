@@ -22,6 +22,8 @@
  *
  ******************************************************************************/
 
+#define LOG_TAG "bta_gattc_api"
+
 #include <base/bind.h>
 #include <base/logging.h>
 
@@ -34,6 +36,7 @@
 #include "bta/gatt/bta_gattc_int.h"
 #include "device/include/controller.h"
 #include "osi/include/allocator.h"
+#include "osi/include/log.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/btu.h"  // do_in_main_thread
 #include "types/bluetooth/uuid.h"
@@ -77,8 +80,11 @@ void BTA_GATTC_Disable(void) {
  */
 void BTA_GATTC_AppRegister(tBTA_GATTC_CBACK* p_client_cb,
                            BtaAppRegisterCallback cb, bool eatt_support) {
-  if (!bta_sys_is_register(BTA_ID_GATTC))
+  LOG_DEBUG("eatt_support=%d", eatt_support);
+  if (!bta_sys_is_register(BTA_ID_GATTC)) {
+    LOG_DEBUG("BTA_ID_GATTC not registered in BTA, registering it");
     bta_sys_register(BTA_ID_GATTC, &bta_gattc_reg);
+  }
 
   do_in_main_thread(
       FROM_HERE, base::Bind(&bta_gattc_register, Uuid::GetRandom(), p_client_cb,
