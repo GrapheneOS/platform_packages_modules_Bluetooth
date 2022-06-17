@@ -403,6 +403,46 @@ class LeAclManagerTest(gd_base_test.GdBaseTestClass):
             is_direct=True)
         self.dut_le_acl_manager.complete_outgoing_connection(token)
 
+    def test_background_connection_list(self):
+        self.set_privacy_policy_static()
+
+        # Start background connection
+        token_background = self.dut_le_acl_manager.initiate_connection(
+            remote_addr=common.BluetoothAddressWithType(
+                address=common.BluetoothAddress(address=bytes(self.cert_random_address, 'utf8')),
+                type=int(hci_packets.AddressType.RANDOM_DEVICE_ADDRESS)),
+            is_direct=False)
+
+        # Cert Advertises
+        advertising_handle = 0
+
+        py_hci_adv = self.cert_hci.create_advertisement(advertising_handle, self.cert_random_address,
+                                                        hci_packets.LegacyAdvertisingProperties.ADV_IND, 155, 165)
+
+        py_hci_adv.set_data(b'Im_A_Cert')
+        py_hci_adv.set_scan_response(b'Im_A_C')
+        py_hci_adv.start()
+
+        # Check background connection complete
+        self.dut_le_acl_manager.complete_outgoing_connection(token_background)
+
+        msg = self.dut_le_acl_manager.is_on_background_list(
+            remote_addr=common.BluetoothAddressWithType(
+                address=common.BluetoothAddress(address=bytes(self.cert_random_address, 'utf8')),
+                type=int(hci_packets.AddressType.RANDOM_DEVICE_ADDRESS)))
+        assertThat(msg.is_on_background_list).isEqualTo(True)
+
+        self.dut_le_acl_manager.remove_from_background_list(
+            remote_addr=common.BluetoothAddressWithType(
+                address=common.BluetoothAddress(address=bytes(self.cert_random_address, 'utf8')),
+                type=int(hci_packets.AddressType.RANDOM_DEVICE_ADDRESS)))
+
+        msg = self.dut_le_acl_manager.is_on_background_list(
+            remote_addr=common.BluetoothAddressWithType(
+                address=common.BluetoothAddress(address=bytes(self.cert_random_address, 'utf8')),
+                type=int(hci_packets.AddressType.RANDOM_DEVICE_ADDRESS)))
+        assertThat(msg.is_on_background_list).isEqualTo(False)
+
 
 if __name__ == '__main__':
     test_runner.main()
