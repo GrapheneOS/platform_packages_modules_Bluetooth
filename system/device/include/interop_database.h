@@ -129,6 +129,9 @@ static const interop_addr_entry_t interop_addr_database[] = {
     // OBU II Bluetooth dongle
     {{{0x00, 0x04, 0x3e, 0, 0, 0}}, 3, INTEROP_DISABLE_ROLE_SWITCH},
 
+    // Visteon carkit
+    {{{0x00, 0x0a, 0x30, 0, 0, 0}}, 3, INTEROP_DISABLE_ROLE_SWITCH},
+
     // Roman R9020
     {{{0x00, 0x23, 0x01, 0, 0, 0}}, 3, INTEROP_DISABLE_ROLE_SWITCH},
 
