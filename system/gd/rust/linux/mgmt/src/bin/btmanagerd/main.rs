@@ -117,12 +117,15 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Let's add the "/org/chromium/bluetooth/Manager" path, which implements
     // the org.chromium.bluetooth.Manager interface, to the crossroads instance.
-    bluetooth_manager_dbus::export_bluetooth_manager_dbus_obj(
-        "/org/chromium/bluetooth/Manager",
+    let iface = bluetooth_manager_dbus::export_bluetooth_manager_dbus_intf(
         conn.clone(),
         &mut cr.lock().unwrap(),
-        bluetooth_manager.clone(),
         disconnect_watcher.clone(),
+    );
+    cr.lock().unwrap().insert(
+        "/org/chromium/bluetooth/Manager",
+        &[iface],
+        bluetooth_manager.clone(),
     );
 
     // We add the Crossroads instance to the connection so that incoming method calls will be handled.

@@ -449,7 +449,12 @@ static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, uint8_t id,
   }
 
   if (p_bta_dm_ssr_spec[index].max_lat || index == BTA_DM_PM_SSR_HH) {
-    bta_dm_pm_ssr(peer_addr, index);
+    /* do not perform ssr for AVDTP start */
+    if (id != BTA_ID_AV || status != BTA_SYS_CONN_BUSY) {
+      bta_dm_pm_ssr(peer_addr, index);
+    } else {
+      LOG_DEBUG("%s: Do not perform SSR when AVDTP start", __func__);
+    }
   } else {
     const controller_t* controller = controller_get_interface();
     uint8_t* p = NULL;

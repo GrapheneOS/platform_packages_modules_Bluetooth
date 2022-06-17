@@ -29,10 +29,8 @@ fn main() {
     let bt_searches =
         paths.iter().map(|tail| format!("-I{}{}", search_root, tail)).collect::<Vec<String>>();
 
-    // Also re-run the build if anything in the C++ build changes
-    for path in bt_searches.iter() {
-        println!("cargo:rerun-if-changed={}", path);
-    }
+    // Also re-run bindgen if anything in the C++ source changes
+    println!("cargo:rerun-if-changed={}{}", search_root, "/system/");
 
     // "-x" and "c++" must be separate due to a bug
     let clang_args: Vec<&str> = vec!["-x", "c++", "-std=c++17"];

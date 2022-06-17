@@ -42,6 +42,10 @@ static void audio_state_cb(bluetooth::headset::bthf_audio_state_t state, RawAddr
   rusty::hfp_audio_state_callback(state, raddr);
 }
 
+static void volume_update_cb(uint8_t volume, RawAddress* addr) {
+  RustRawAddress raddr = rusty::CopyToRustAddress(*addr);
+  rusty::hfp_volume_update_callback(volume, raddr);
+}
 }  // namespace internal
 
 class DBusHeadsetCallbacks : public headset::Callbacks {
@@ -68,11 +72,6 @@ class DBusHeadsetCallbacks : public headset::Callbacks {
     switch (state) {
       case headset::bthf_audio_state_t::BTHF_AUDIO_STATE_CONNECTED:
         SetCallStatus(1, bd_addr);
-        // This triggers a +VGS command to set the speaker volume for HFP
-        // devices.
-        // TODO(b/215089433): Add a set volume API and have client to handle the
-        // set volume when start.
-        headset_->VolumeControl(headset::bthf_volume_type_t::BTHF_VOLUME_TYPE_SPK, 5, bd_addr);
         return;
       case headset::bthf_audio_state_t::BTHF_AUDIO_STATE_DISCONNECTED:
         SetCallStatus(0, bd_addr);
@@ -89,10 +88,12 @@ class DBusHeadsetCallbacks : public headset::Callbacks {
 
   void HangupCallCallback([[maybe_unused]] RawAddress* bd_addr) override {}
 
-  void VolumeControlCallback(
-      [[maybe_unused]] headset::bthf_volume_type_t type,
-      [[maybe_unused]] int volume,
-      [[maybe_unused]] RawAddress* bd_addr) override {}
+  void VolumeControlCallback(headset::bthf_volume_type_t type, int volume, RawAddress* bd_addr) override {
+    if (type != headset::bthf_volume_type_t::BTHF_VOLUME_TYPE_SPK || volume < 0) return;
+    if (volume > 15) volume = 15;
+    LOG_INFO("VolumeControlCallback %d from %s", volume, bd_addr->ToString().c_str());
+    topshim::rust::internal::volume_update_cb(volume, bd_addr);
+  }
 
   void DialCallCallback([[maybe_unused]] char* number, [[maybe_unused]] RawAddress* bd_addr) override {}
 
@@ -217,6 +218,11 @@ int HfpIntf::connect(RustRawAddress bt_addr) {
 int HfpIntf::connect_audio(RustRawAddress bt_addr) {
   RawAddress addr = rusty::CopyFromRustAddress(bt_addr);
   return intf_->ConnectAudio(&addr);
+}
+
+int HfpIntf::set_volume(int8_t volume, RustRawAddress bt_addr) {
+  RawAddress addr = rusty::CopyFromRustAddress(bt_addr);
+  return intf_->VolumeControl(headset::bthf_volume_type_t::BTHF_VOLUME_TYPE_SPK, volume, &addr);
 }
 
 int HfpIntf::disconnect(RustRawAddress bt_addr) {

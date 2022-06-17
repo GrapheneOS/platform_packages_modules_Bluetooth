@@ -39,22 +39,29 @@ pub trait IBluetoothMedia {
     /// clean up media stack
     fn cleanup(&mut self) -> bool;
 
-    fn connect(&mut self, device: String);
-    fn set_active_device(&mut self, device: String);
-    fn disconnect(&mut self, device: String);
+    fn connect(&mut self, address: String);
+    fn set_active_device(&mut self, address: String);
+    fn disconnect(&mut self, address: String);
     fn set_audio_config(
         &mut self,
         sample_rate: i32,
         bits_per_sample: i32,
         channel_mode: i32,
     ) -> bool;
-    fn set_volume(&mut self, volume: i32);
+
+    // Set the A2DP/AVRCP volume. Valid volume specified by the spec should be
+    // in the range of 0-127.
+    fn set_volume(&mut self, volume: u8);
+
+    // Set the HFP speaker volume. Valid volume specified by the HFP spec should
+    // be in the range of 0-15.
+    fn set_hfp_volume(&mut self, volume: u8, address: String);
     fn start_audio_request(&mut self);
     fn stop_audio_request(&mut self);
     fn get_presentation_position(&mut self) -> PresentationPosition;
 
-    fn start_sco_call(&mut self, device: String);
-    fn stop_sco_call(&mut self, device: String);
+    fn start_sco_call(&mut self, address: String);
+    fn stop_sco_call(&mut self, address: String);
 }
 
 pub trait IBluetoothMediaCallback {
@@ -70,8 +77,16 @@ pub trait IBluetoothMediaCallback {
     ///
     fn on_absolute_volume_supported_changed(&self, supported: bool);
 
-    ///
-    fn on_absolute_volume_changed(&self, volume: i32);
+    /// Triggered when a Bluetooth device triggers an AVRCP/A2DP volume change
+    /// event. We need to notify audio client to reflect the change on the audio
+    /// stack. The volume should be in the range of 0 to 127.
+    fn on_absolute_volume_changed(&self, volume: u8);
+
+    /// Triggered when a Bluetooth device triggers a HFP AT command (AT+VGS) to
+    /// notify AG about its speaker volume change. We need to notify audio
+    /// client to reflect the change on the audio stack. The volume should be
+    /// in the range of 0 to 15.
+    fn on_hfp_volume_changed(&self, volume: u8, addr: String);
 }
 
 /// Serializable device used in.
@@ -187,7 +202,7 @@ impl BluetoothMedia {
             }
             AvrcpCallbacks::AvrcpAbsoluteVolumeUpdate(volume) => {
                 self.for_all_callbacks(|callback| {
-                    callback.on_absolute_volume_changed(i32::from(volume));
+                    callback.on_absolute_volume_changed(volume);
                 });
             }
         }
@@ -262,6 +277,11 @@ impl BluetoothMedia {
                         info!("[{}]: hfp audio disconnecting.", addr.to_string());
                     }
                 }
+            }
+            HfpCallbacks::VolumeUpdate(volume, addr) => {
+                self.for_all_callbacks(|callback| {
+                    callback.on_hfp_volume_changed(volume, addr.to_string());
+                });
             }
         }
     }
@@ -481,12 +501,12 @@ impl IBluetoothMedia for BluetoothMedia {
         true
     }
 
-    fn connect(&mut self, device: String) {
-        if let Some(addr) = RawAddress::from_string(device.clone()) {
+    fn connect(&mut self, address: String) {
+        if let Some(addr) = RawAddress::from_string(address.clone()) {
             self.a2dp.as_mut().unwrap().connect(addr);
             self.hfp.as_mut().unwrap().connect(addr);
         } else {
-            warn!("Invalid device string {}", device);
+            warn!("Invalid device string {}", address);
         }
     }
 
@@ -494,20 +514,20 @@ impl IBluetoothMedia for BluetoothMedia {
         true
     }
 
-    fn set_active_device(&mut self, device: String) {
-        if let Some(addr) = RawAddress::from_string(device.clone()) {
+    fn set_active_device(&mut self, address: String) {
+        if let Some(addr) = RawAddress::from_string(address.clone()) {
             self.a2dp.as_mut().unwrap().set_active_device(addr);
         } else {
-            warn!("Invalid device string {}", device);
+            warn!("Invalid device string {}", address);
         }
     }
 
-    fn disconnect(&mut self, device: String) {
-        if let Some(addr) = RawAddress::from_string(device.clone()) {
+    fn disconnect(&mut self, address: String) {
+        if let Some(addr) = RawAddress::from_string(address.clone()) {
             self.a2dp.as_mut().unwrap().disconnect(addr);
             self.hfp.as_mut().unwrap().disconnect(addr);
         } else {
-            warn!("Invalid device string {}", device);
+            warn!("Invalid device string {}", address);
         }
     }
 
@@ -527,11 +547,32 @@ impl IBluetoothMedia for BluetoothMedia {
         true
     }
 
-    fn set_volume(&mut self, volume: i32) {
+    fn set_volume(&mut self, volume: u8) {
+        // Guard the range 0-127 by the try_from cast from u8 to i8.
         match i8::try_from(volume) {
             Ok(val) => self.avrcp.as_mut().unwrap().set_volume(val),
-            _ => (),
-        };
+            _ => warn!("Ignore invalid volume {}", volume),
+        }
+    }
+
+    fn set_hfp_volume(&mut self, volume: u8, address: String) {
+        if let Some(addr) = RawAddress::from_string(address.clone()) {
+            if !self.hfp_states.get(&addr).is_none() {
+                match i8::try_from(volume) {
+                    Ok(val) if val <= 15 => {
+                        self.hfp.as_mut().unwrap().set_volume(val, addr);
+                    }
+                    _ => warn!("[{}]: Ignore invalid volume {}", address, volume),
+                }
+            } else {
+                warn!(
+                    "[{}]: Ignore volume event for unconnected or disconnected HFP device",
+                    address
+                );
+            }
+        } else {
+            warn!("[{}]: Invalid address", address);
+        }
     }
 
     fn start_audio_request(&mut self) {
@@ -542,9 +583,9 @@ impl IBluetoothMedia for BluetoothMedia {
         self.a2dp.as_mut().unwrap().stop_audio_request();
     }
 
-    fn start_sco_call(&mut self, device: String) {
-        if let Some(addr) = RawAddress::from_string(device.clone()) {
-            info!("Start sco call for {}", device);
+    fn start_sco_call(&mut self, address: String) {
+        if let Some(addr) = RawAddress::from_string(address.clone()) {
+            info!("Start sco call for {}", address);
             match self.hfp.as_mut().unwrap().connect_audio(addr) {
                 0 => {
                     info!("SCO connect_audio status success.");
@@ -554,16 +595,16 @@ impl IBluetoothMedia for BluetoothMedia {
                 }
             };
         } else {
-            warn!("Can't start sco call with: {}", device);
+            warn!("Can't start sco call with: {}", address);
         }
     }
 
-    fn stop_sco_call(&mut self, device: String) {
-        if let Some(addr) = RawAddress::from_string(device.clone()) {
-            info!("Stop sco call for {}", device);
+    fn stop_sco_call(&mut self, address: String) {
+        if let Some(addr) = RawAddress::from_string(address.clone()) {
+            info!("Stop sco call for {}", address);
             self.hfp.as_mut().unwrap().disconnect_audio(addr);
         } else {
-            warn!("Can't stop sco call with: {}", device);
+            warn!("Can't stop sco call with: {}", address);
         }
     }
 

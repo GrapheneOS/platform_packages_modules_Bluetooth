@@ -64,6 +64,7 @@ class AclManagerFacadeService : public AclManagerFacade::Service, public Connect
       ::grpc::ServerContext* context,
       const ConnectionMsg* request,
       ::grpc::ServerWriter<ConnectionEvent>* writer) override {
+    LOG_INFO("peer=%s", request->address().c_str());
     Address peer;
     ASSERT(Address::FromString(request->address(), peer));
     acl_manager_->CreateConnection(peer);
@@ -77,6 +78,7 @@ class AclManagerFacadeService : public AclManagerFacade::Service, public Connect
 
   ::grpc::Status Disconnect(
       ::grpc::ServerContext* context, const HandleMsg* request, ::google::protobuf::Empty* response) override {
+    LOG_INFO("handle=%d", request->handle());
     std::unique_lock<std::mutex> lock(acl_connections_mutex_);
     auto connection = acl_connections_.find(request->handle());
     if (connection == acl_connections_.end()) {
@@ -90,6 +92,7 @@ class AclManagerFacadeService : public AclManagerFacade::Service, public Connect
 
   ::grpc::Status AuthenticationRequested(
       ::grpc::ServerContext* context, const HandleMsg* request, ::google::protobuf::Empty* response) override {
+    LOG_INFO("handle=%d", request->handle());
     std::unique_lock<std::mutex> lock(acl_connections_mutex_);
     auto connection = acl_connections_.find(request->handle());
     if (connection == acl_connections_.end()) {
@@ -118,12 +121,14 @@ class AclManagerFacadeService : public AclManagerFacade::Service, public Connect
       ::grpc::ServerContext* context,
       const ConnectionCommandMsg* request,
       ::google::protobuf::Empty* response) override {
+    LOG_INFO("size=%zu", request->packet().size());
     auto command_view =
         ConnectionManagementCommandView::Create(AclCommandView::Create(CommandView::Create(PacketView<kLittleEndian>(
             std::make_shared<std::vector<uint8_t>>(request->packet().begin(), request->packet().end())))));
     if (!command_view.IsValid()) {
       return ::grpc::Status(::grpc::StatusCode::INVALID_ARGUMENT, "Invalid command packet");
     }
+    LOG_INFO("opcode=%s", OpCodeText(command_view.GetOpCode()).c_str());
     switch (command_view.GetOpCode()) {
       case OpCode::AUTHENTICATION_REQUESTED: {
         GET_CONNECTION(AuthenticationRequestedView::Create(command_view));
@@ -266,6 +271,7 @@ class AclManagerFacadeService : public AclManagerFacade::Service, public Connect
       ::grpc::ServerContext* context,
       const google::protobuf::Empty* request,
       ::grpc::ServerWriter<ConnectionEvent>* writer) override {
+    LOG_INFO("wait for one incoming connection");
     if (per_connection_events_.size() > current_connection_request_) {
       return ::grpc::Status(::grpc::StatusCode::RESOURCE_EXHAUSTED, "Only one outstanding connection is supported");
     }
@@ -276,6 +282,7 @@ class AclManagerFacadeService : public AclManagerFacade::Service, public Connect
 
   ::grpc::Status SendAclData(
       ::grpc::ServerContext* context, const AclData* request, ::google::protobuf::Empty* response) override {
+    LOG_INFO("handle=%d, size=%zu", request->handle(), request->payload().size());
     std::promise<void> promise;
     auto future = promise.get_future();
     {
@@ -312,6 +319,7 @@ class AclManagerFacadeService : public AclManagerFacade::Service, public Connect
 
   ::grpc::Status FetchAclData(
       ::grpc::ServerContext* context, const HandleMsg* request, ::grpc::ServerWriter<AclData>* writer) override {
+    LOG_INFO("handle=%d", request->handle());
     auto connection = acl_connections_.find(request->handle());
     if (connection == acl_connections_.end()) {
       return ::grpc::Status(::grpc::StatusCode::INVALID_ARGUMENT, "Invalid handle");
@@ -331,19 +339,23 @@ class AclManagerFacadeService : public AclManagerFacade::Service, public Connect
   }
 
   void on_incoming_acl(std::shared_ptr<ClassicAclConnection> connection, uint16_t handle) {
+    LOG_INFO("handle=%d, addr=%s", connection->GetHandle(), connection->GetAddress().ToString().c_str());
     auto packet = connection->GetAclQueueEnd()->TryDequeue();
     auto connection_tracker = acl_connections_.find(handle);
     ASSERT_LOG(connection_tracker != acl_connections_.end(), "handle %d", handle);
     AclData acl_data;
     acl_data.set_handle(handle);
     acl_data.set_payload(std::string(packet->begin(), packet->end()));
+    LOG_INFO("length=%zu", acl_data.payload().size());
     connection_tracker->second.pending_acl_data_.OnIncomingEvent(acl_data);
   }
 
   void OnConnectSuccess(std::unique_ptr<ClassicAclConnection> connection) override {
+    LOG_INFO("handle=%d, addr=%s", connection->GetHandle(), connection->GetAddress().ToString().c_str());
     std::unique_lock<std::mutex> lock(acl_connections_mutex_);
     std::shared_ptr<ClassicAclConnection> shared_connection = std::move(connection);
     uint16_t handle = to_handle(current_connection_request_);
+    acl_connections_.erase(handle);
     acl_connections_.emplace(
         std::piecewise_construct,
         std::forward_as_tuple(handle),
@@ -363,6 +375,7 @@ class AclManagerFacadeService : public AclManagerFacade::Service, public Connect
   }
 
   void OnConnectFail(Address address, ErrorCode reason) override {
+    LOG_INFO("addr=%s, reason=%s", address.ToString().c_str(), ErrorCodeText(reason).c_str());
     std::unique_ptr<BasePacketBuilder> builder =
         ConnectionCompleteBuilder::Create(reason, 0, address, LinkType::ACL, Enable::DISABLED);
     ConnectionEvent fail;
@@ -516,7 +529,7 @@ class AclManagerFacadeService : public AclManagerFacade::Service, public Connect
     }
 
     void OnDisconnection(ErrorCode reason) override {
-      LOG_INFO("OnDisconnection reason: %s", ErrorCodeText(reason).c_str());
+      LOG_INFO("reason: %s", ErrorCodeText(reason).c_str());
       std::unique_ptr<BasePacketBuilder> builder =
           DisconnectionCompleteBuilder::Create(ErrorCode::SUCCESS, handle_, reason);
       ConnectionEvent disconnection;

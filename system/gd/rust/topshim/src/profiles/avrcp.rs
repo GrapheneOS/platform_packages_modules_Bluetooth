@@ -20,14 +20,14 @@ pub mod ffi {
     }
     extern "Rust" {
         fn avrcp_absolute_volume_enabled(enabled: bool);
-        fn avrcp_absolute_volume_update(volume: i8);
+        fn avrcp_absolute_volume_update(volume: u8);
     }
 }
 
 #[derive(Debug)]
 pub enum AvrcpCallbacks {
     AvrcpAbsoluteVolumeEnabled(bool),
-    AvrcpAbsoluteVolumeUpdate(i8),
+    AvrcpAbsoluteVolumeUpdate(u8),
 }
 
 pub struct AvrcpCallbacksDispatcher {
@@ -45,7 +45,7 @@ cb_variant!(
 cb_variant!(
     AvrcpCb,
     avrcp_absolute_volume_update -> AvrcpCallbacks::AvrcpAbsoluteVolumeUpdate,
-    i8, {}
+    u8, {}
 );
 
 pub struct Avrcp {

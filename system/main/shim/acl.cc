@@ -779,6 +779,10 @@ class LeShimAclConnection
     return connection_->locally_initiated_;
   }
 
+  bool IsInFilterAcceptList() const {
+    return connection_->IsInFilterAcceptList();
+  }
+
  private:
   OnDisconnect on_disconnect_;
   const shim::legacy::acl_le_link_interface_t interface_;
@@ -930,6 +934,7 @@ struct shim::legacy::Acl::impl {
     if (connection != handle_to_le_connection_map_.end()) {
       auto remote_address_with_type =
           connection->second->GetRemoteAddressWithType();
+      GetAclManager()->RemoveFromBackgroundList(remote_address_with_type);
       connection->second->InitiateDisconnect(
           ToDisconnectReasonFromLegacy(reason));
       LOG_DEBUG("Disconnection initiated le remote:%s handle:%hu",
@@ -966,7 +971,8 @@ struct shim::legacy::Acl::impl {
   void ignore_le_connection_from(
       const hci::AddressWithType& address_with_type) {
     shadow_acceptlist_.Remove(address_with_type);
-    GetAclManager()->CancelLeConnect(address_with_type);
+    GetAclManager()->CancelLeConnectAndRemoveFromBackgroundList(
+        address_with_type);
     LOG_DEBUG("Ignore Le connection from remote:%s",
               PRIVATE_ADDRESS(address_with_type));
     BTM_LogHistory(kBtmLogTag, ToLegacyAddressWithType(address_with_type),
@@ -1520,12 +1526,6 @@ void shim::legacy::Acl::OnLeConnectSuccess(
                   std::chrono::system_clock::now()));
   pimpl_->handle_to_le_connection_map_[handle]->RegisterCallbacks();
 
-  pimpl_->handle_to_le_connection_map_[handle]
-      ->ReadRemoteControllerInformation();
-
-  tBLE_BD_ADDR legacy_address_with_type =
-      ToLegacyAddressWithType(address_with_type);
-
   // Once an le connection has successfully been established
   // the device address is removed from the controller accept list.
 
@@ -1539,6 +1539,22 @@ void shim::legacy::Acl::OnLeConnectSuccess(
               PRIVATE_ADDRESS(address_with_type));
     pimpl_->shadow_acceptlist_.Remove(address_with_type);
   }
+
+  if (!pimpl_->handle_to_le_connection_map_[handle]->IsInFilterAcceptList() &&
+      connection_role == hci::Role::CENTRAL) {
+    pimpl_->handle_to_le_connection_map_[handle]->InitiateDisconnect(
+        hci::DisconnectReason::REMOTE_USER_TERMINATED_CONNECTION);
+    LOG_INFO("Disconnected ACL after connection canceled");
+    BTM_LogHistory(kBtmLogTag, ToLegacyAddressWithType(address_with_type),
+                   "Connection canceled", "Le");
+    return;
+  }
+
+  pimpl_->handle_to_le_connection_map_[handle]
+      ->ReadRemoteControllerInformation();
+
+  tBLE_BD_ADDR legacy_address_with_type =
+      ToLegacyAddressWithType(address_with_type);
 
   TRY_POSTING_ON_MAIN(
       acl_interface_.connection.le.on_connected, legacy_address_with_type,

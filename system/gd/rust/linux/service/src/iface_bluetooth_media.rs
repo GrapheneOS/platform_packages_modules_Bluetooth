@@ -62,7 +62,12 @@ impl IBluetoothMediaCallback for BluetoothMediaCallbackDBus {
     }
 
     #[dbus_method("OnAbsoluteVolumeChanged")]
-    fn on_absolute_volume_changed(&self, volume: i32) {
+    fn on_absolute_volume_changed(&self, volume: u8) {
+        dbus_generated!()
+    }
+
+    #[dbus_method("OnHfpVolumeChanged")]
+    fn on_hfp_volume_changed(&self, volume: u8, addr: String) {
         dbus_generated!()
     }
 }
@@ -78,7 +83,7 @@ pub struct PresentationPositionDBus {
     data_position_nsec: i32,
 }
 
-#[generate_dbus_exporter(export_bluetooth_media_dbus_obj, "org.chromium.bluetooth.BluetoothMedia")]
+#[generate_dbus_exporter(export_bluetooth_media_dbus_intf, "org.chromium.bluetooth.BluetoothMedia")]
 impl IBluetoothMedia for IBluetoothMediaDBus {
     #[dbus_method("RegisterCallback")]
     fn register_callback(&mut self, callback: Box<dyn IBluetoothMediaCallback + Send>) -> bool {
@@ -96,17 +101,17 @@ impl IBluetoothMedia for IBluetoothMediaDBus {
     }
 
     #[dbus_method("Connect")]
-    fn connect(&mut self, device: String) {
+    fn connect(&mut self, address: String) {
         dbus_generated!()
     }
 
     #[dbus_method("SetActiveDevice")]
-    fn set_active_device(&mut self, device: String) {
+    fn set_active_device(&mut self, address: String) {
         dbus_generated!()
     }
 
     #[dbus_method("Disconnect")]
-    fn disconnect(&mut self, device: String) {
+    fn disconnect(&mut self, address: String) {
         dbus_generated!()
     }
 
@@ -121,7 +126,12 @@ impl IBluetoothMedia for IBluetoothMediaDBus {
     }
 
     #[dbus_method("SetVolume")]
-    fn set_volume(&mut self, volume: i32) {
+    fn set_volume(&mut self, volume: u8) {
+        dbus_generated!()
+    }
+
+    #[dbus_method("SetHfpVolume")]
+    fn set_hfp_volume(&mut self, volume: u8, address: String) {
         dbus_generated!()
     }
 
@@ -136,12 +146,12 @@ impl IBluetoothMedia for IBluetoothMediaDBus {
     }
 
     #[dbus_method("StartScoCall")]
-    fn start_sco_call(&mut self, device: String) {
+    fn start_sco_call(&mut self, address: String) {
         dbus_generated!()
     }
 
     #[dbus_method("StopScoCall")]
-    fn stop_sco_call(&mut self, device: String) {
+    fn stop_sco_call(&mut self, address: String) {
         dbus_generated!()
     }
 
