@@ -1446,21 +1446,21 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
         }
         synchronized (mProfileServices) {
             ProfileServiceConnections psc = mProfileServices.get(new Integer(bluetoothProfile));
+            Intent intent;
+            if (bluetoothProfile == BluetoothProfile.HEADSET
+                    && BluetoothProperties.isProfileHfpAgEnabled().orElse(false)) {
+                intent = new Intent(IBluetoothHeadset.class.getName());
+            } else if (bluetoothProfile == BluetoothProfile.LE_CALL_CONTROL
+                    && BluetoothProperties.isProfileCcpServerEnabled().orElse(false)) {
+                intent = new Intent(IBluetoothLeCallControl.class.getName());
+            } else {
+                return false;
+            }
             if (psc == null) {
                 if (DBG) {
                     Log.d(TAG, "Creating new ProfileServiceConnections object for" + " profile: "
                             + bluetoothProfile);
                 }
-
-                Intent intent;
-                if (bluetoothProfile == BluetoothProfile.HEADSET) {
-                    intent = new Intent(IBluetoothHeadset.class.getName());
-                } else if (bluetoothProfile== BluetoothProfile.LE_CALL_CONTROL) {
-                    intent = new Intent(IBluetoothLeCallControl.class.getName());
-                } else {
-                    return false;
-                }
-
                 psc = new ProfileServiceConnections(intent);
                 if (!psc.bindService(DEFAULT_REBIND_COUNT)) {
                     return false;
