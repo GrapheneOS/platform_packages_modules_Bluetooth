@@ -308,6 +308,7 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
 
     arm_on_resume_ = false;
     ready_to_unregister = true;
+    const bool in_filter_accept_list = is_device_in_connect_list(remote_address);
     remove_device_from_connect_list(remote_address);
 
     if (!connect_list.empty()) {
@@ -345,6 +346,7 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
     connection->interval_ = conn_interval;
     connection->latency_ = conn_latency;
     connection->supervision_timeout_ = supervision_timeout;
+    connection->in_filter_accept_list_ = in_filter_accept_list;
     connections.add(
         handle, remote_address, queue_down_end, handler_, connection->GetEventCallbacks([this](uint16_t handle) {
           this->connections.invalidate(handle);
@@ -393,6 +395,7 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
 
     arm_on_resume_ = false;
     ready_to_unregister = true;
+    const bool in_filter_accept_list = is_device_in_connect_list(remote_address);
     remove_device_from_connect_list(remote_address);
 
     if (!connect_list.empty()) {
@@ -440,6 +443,7 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
     connection->supervision_timeout_ = supervision_timeout;
     connection->local_resolvable_private_address_ = connection_complete.GetLocalResolvablePrivateAddress();
     connection->peer_resolvable_private_address_ = connection_complete.GetPeerResolvablePrivateAddress();
+    connection->in_filter_accept_list_ = in_filter_accept_list;
     connections.add(
         handle, remote_address, queue_down_end, handler_, connection->GetEventCallbacks([this](uint16_t handle) {
           this->connections.invalidate(handle);
@@ -925,6 +929,15 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
 
   void remove_device_from_background_connection_list(AddressWithType address_with_type) {
     background_connections_.erase(address_with_type);
+  }
+
+  void is_on_background_connection_list(AddressWithType address_with_type, std::promise<bool> promise) {
+    promise.set_value(background_connections_.find(address_with_type) != background_connections_.end());
+  }
+
+  void cancel_connection_and_remove_device_from_background_connection_list(AddressWithType address_with_type) {
+    remove_device_from_background_connection_list(address_with_type);
+    cancel_connect(address_with_type);
   }
 
   void OnPause() override {  // bluetooth::hci::LeAddressManagerCallback

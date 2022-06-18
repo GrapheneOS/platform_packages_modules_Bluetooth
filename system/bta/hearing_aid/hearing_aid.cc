@@ -570,7 +570,7 @@ class HearingAidImpl : public HearingAid {
       return;
     }
 
-    DVLOG(2) << __func__ << " " << address;
+    LOG(INFO) << __func__ << ": " << address;
 
     if (hearingDevice->audio_control_point_handle &&
         hearingDevice->audio_status_handle &&
@@ -579,6 +579,8 @@ class HearingAidImpl : public HearingAid {
       // Use cached data, jump to read PSM
       ReadPSM(hearingDevice);
     } else {
+      LOG(INFO) << __func__ << ": " << address
+                << ": do BTA_GATTC_ServiceSearchRequest";
       hearingDevice->first_connection = true;
       BTA_GATTC_ServiceSearchRequest(hearingDevice->conn_id, &HEARING_AID_UUID);
     }
@@ -630,7 +632,14 @@ class HearingAidImpl : public HearingAid {
       VLOG(2) << "Skipping unknown device" << address;
       return;
     }
-    if (hearingDevice->service_changed_rcvd) {
+    LOG(INFO) << __func__ << ": " << address;
+    if (hearingDevice->service_changed_rcvd ||
+        !(hearingDevice->audio_control_point_handle &&
+          hearingDevice->audio_status_handle &&
+          hearingDevice->audio_status_ccc_handle &&
+          hearingDevice->volume_handle && hearingDevice->read_psm_handle)) {
+      LOG(INFO) << __func__ << ": " << address
+                << ": do BTA_GATTC_ServiceSearchRequest";
       BTA_GATTC_ServiceSearchRequest(hearingDevice->conn_id, &HEARING_AID_UUID);
     }
   }
@@ -897,7 +906,8 @@ class HearingAidImpl : public HearingAid {
     uint16_t psm = *((uint16_t*)value);
     VLOG(2) << "read psm:" << loghex(psm);
 
-    if (hearingDevice->gap_handle == GAP_INVALID_HANDLE) {
+    if (hearingDevice->gap_handle == GAP_INVALID_HANDLE &&
+        BTM_IsEncrypted(hearingDevice->address, BT_TRANSPORT_LE)) {
       ConnectSocket(hearingDevice, psm);
     }
   }

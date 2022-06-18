@@ -13,8 +13,9 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
+import time
 from abc import ABC, abstractmethod
+import logging
 
 
 class Closable(ABC):
@@ -23,11 +24,17 @@ class Closable(ABC):
         return self
 
     def __exit__(self, type, value, traceback):
-        self.close()
+        try:
+            self.close()
+        except Exception:
+            logging.warning("Failed to close or already closed")
         return traceback is None
 
     def __del__(self):
-        self.close()
+        try:
+            self.close()
+        except Exception:
+            logging.warning("Failed to close or already closed")
 
     @abstractmethod
     def close(self):
@@ -37,3 +44,5 @@ class Closable(ABC):
 def safeClose(closable):
     if closable is not None:
         closable.close()
+        # sleep for 100ms because GrpcEventQueue takes at most 100 ms to close
+        time.sleep(0.1)
