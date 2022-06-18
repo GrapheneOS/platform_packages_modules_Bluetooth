@@ -83,7 +83,6 @@ static void btu_hcif_command_complete_evt(BT_HDR* response, void* context);
 static void btu_hcif_command_status_evt(uint8_t status, BT_HDR* command,
                                         void* context);
 static void btu_hcif_hardware_error_evt(uint8_t* p);
-static void btu_hcif_role_change_evt(const uint8_t* p);
 static void btu_hcif_mode_change_evt(uint8_t* p);
 static void btu_hcif_link_key_notification_evt(const uint8_t* p);
 static void btu_hcif_read_clock_off_comp_evt(uint8_t* p);
@@ -283,9 +282,6 @@ void btu_hcif_process_event(UNUSED_ATTR uint8_t controller_id,
     case HCI_HARDWARE_ERROR_EVT:
       btu_hcif_hardware_error_evt(p);
       break;
-    case HCI_ROLE_CHANGE_EVT:
-      btu_hcif_role_change_evt(p);
-      break;
     case HCI_NUM_COMPL_DATA_PKTS_EVT:
       acl_process_num_completed_pkts(p, hci_evt_len);
       break;
@@ -430,6 +426,7 @@ void btu_hcif_process_event(UNUSED_ATTR uint8_t controller_id,
     case HCI_CONNECTION_COMP_EVT:  // EventCode::CONNECTION_COMPLETE
     case HCI_READ_RMT_FEATURES_COMP_EVT:  // EventCode::READ_REMOTE_SUPPORTED_FEATURES_COMPLETE
     case HCI_READ_RMT_VERSION_COMP_EVT:  // EventCode::READ_REMOTE_VERSION_INFORMATION_COMPLETE
+    case HCI_ROLE_CHANGE_EVT:            // EventCode::ROLE_CHANGE
     default:
       LOG_ERROR(
           "Unexpectedly received event_code:0x%02x that should not be "
@@ -1486,28 +1483,6 @@ static void btu_hcif_command_status_evt(uint8_t status, BT_HDR* command,
 static void btu_hcif_hardware_error_evt(uint8_t* p) {
   LOG_ERROR("UNHANDLED Ctlr H/w error event - code:0x%x", *p);
   BTA_sys_signal_hw_error();
-}
-
-/*******************************************************************************
- *
- * Function         btu_hcif_role_change_evt
- *
- * Description      Process event HCI_ROLE_CHANGE_EVT
- *
- * Returns          void
- *
- ******************************************************************************/
-static void btu_hcif_role_change_evt(const uint8_t* p) {
-  uint8_t status;
-  RawAddress bda;
-  uint8_t role;
-
-  STREAM_TO_UINT8(status, p);
-  STREAM_TO_BDADDR(bda, p);
-  STREAM_TO_UINT8(role, p);
-
-  btm_rejectlist_role_change_device(bda, status);
-  btm_acl_role_changed(to_hci_status_code(status), bda, to_hci_role(role));
 }
 
 /*******************************************************************************
