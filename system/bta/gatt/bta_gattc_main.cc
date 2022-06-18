@@ -21,12 +21,14 @@
  *  This file contains the GATT client main functions and state machine.
  *
  ******************************************************************************/
+#define LOG_TAG "bta_gattc_main"
 
 #include <base/logging.h>
 #include <base/strings/stringprintf.h>
 
 #include "bt_target.h"  // Must be first to define build configuration"
 #include "bta/gatt/bta_gattc_int.h"
+#include "osi/include/log.h"
 #include "stack/include/bt_hdr.h"
 
 using base::StringPrintf;
@@ -386,11 +388,11 @@ bool bta_gattc_hdl_event(BT_HDR_RIGID* p_msg) {
       else
         p_clcb = bta_gattc_find_clcb_by_conn_id(p_msg->layer_specific);
 
-      if (p_clcb != NULL) {
+      if (p_clcb != nullptr) {
         rt = bta_gattc_sm_execute(p_clcb, p_msg->event,
                                   (const tBTA_GATTC_DATA*)p_msg);
       } else {
-        VLOG(1) << "Ignore unknown conn ID: " << +p_msg->layer_specific;
+        LOG_ERROR("Ignore unknown conn ID: %d", +p_msg->layer_specific);
       }
 
       break;

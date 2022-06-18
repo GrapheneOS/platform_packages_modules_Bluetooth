@@ -3,11 +3,11 @@ use log::{error, info, warn};
 use std::collections::HashMap;
 use std::process::Command;
 
-use crate::config_util;
 use crate::iface_bluetooth_manager::{
     AdapterWithEnabled, IBluetoothManager, IBluetoothManagerCallback,
 };
 use crate::state_machine::{state_to_enabled, AdapterState, Message, StateMachineProxy};
+use crate::{config_util, migrate};
 
 const BLUEZ_INIT_TARGET: &str = "bluetoothd";
 
@@ -119,6 +119,7 @@ impl IBluetoothManager for BluetoothManager {
             if let Err(e) = Command::new("initctl").args(&["stop", BLUEZ_INIT_TARGET]).output() {
                 warn!("Failed to stop bluetoothd: {}", e);
             }
+            migrate::migrate_bluez_devices();
             for hci in config_util::list_hci_devices() {
                 if config_util::is_hci_n_enabled(hci) {
                     let _ = self.proxy.start_bluetooth(hci);
@@ -130,6 +131,7 @@ impl IBluetoothManager for BluetoothManager {
                     let _ = self.proxy.stop_bluetooth(hci);
                 }
             }
+            migrate::migrate_floss_devices();
             if let Err(e) = Command::new("initctl").args(&["start", BLUEZ_INIT_TARGET]).output() {
                 warn!("Failed to start bluetoothd: {}", e);
             }
