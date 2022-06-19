@@ -109,10 +109,8 @@
     <string name="transfer_clear_dlg_msg" msgid="586117930961007311">"सूची से सभी आइटम साफ़ कर दिए जाएंगे."</string>
     <string name="outbound_noti_title" msgid="2045560896819618979">"ब्लूटूथ शेयर: भेजी गई फ़ाइलें"</string>
     <string name="inbound_noti_title" msgid="3730993443609581977">"ब्लूटूथ शेयर: पाई गई फ़ाइलें"</string>
-    <!-- no translation found for noti_caption_unsuccessful (8321968345160824888) -->
-    <skip />
-    <!-- no translation found for noti_caption_success (7914987425717863454) -->
-    <skip />
+    <string name="noti_caption_unsuccessful" msgid="6679288016450410835">"{count,plural, =1{# फ़ाइल शेयर नहीं की जा सकी.}one{# फ़ाइल शेयर नहीं की जा सकी.}other{# फ़ाइलें शेयर नहीं की जा सकीं.}}"</string>
+    <string name="noti_caption_success" msgid="7652777514009569713">"{count,plural, =1{# फ़ाइल शेयर की गई, %1$s}one{# फ़ाइल शेयर की गई, %1$s}other{# फ़ाइलें शेयर की गईं, %1$s}}"</string>
     <string name="transfer_menu_clear_all" msgid="3014459758656427076">"सूची साफ़ करें"</string>
     <string name="transfer_menu_open" msgid="5193344638774400131">"खोलें"</string>
     <string name="transfer_menu_clear" msgid="7213491281898188730">"सूची से साफ़ करें"</string>

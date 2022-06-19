@@ -109,10 +109,8 @@
     <string name="transfer_clear_dlg_msg" msgid="586117930961007311">"รายการทั้งหมดจะถูกล้างจากรายการ"</string>
     <string name="outbound_noti_title" msgid="2045560896819618979">"การแชร์ทางบลูทูธ: ส่งไฟล์แล้ว"</string>
     <string name="inbound_noti_title" msgid="3730993443609581977">"การแชร์ทางบลูทูธ: รับไฟล์แล้ว"</string>
-    <!-- no translation found for noti_caption_unsuccessful (8321968345160824888) -->
-    <skip />
-    <!-- no translation found for noti_caption_success (7914987425717863454) -->
-    <skip />
+    <string name="noti_caption_unsuccessful" msgid="6679288016450410835">"{count,plural, =1{ไม่สำเร็จ # รายการ}other{ไม่สำเร็จ # รายการ}}"</string>
+    <string name="noti_caption_success" msgid="7652777514009569713">"{count,plural, =1{สำเร็จ # รายการ, %1$s}other{สำเร็จ # รายการ, %1$s}}"</string>
     <string name="transfer_menu_clear_all" msgid="3014459758656427076">"ล้างรายการ"</string>
     <string name="transfer_menu_open" msgid="5193344638774400131">"เปิด"</string>
     <string name="transfer_menu_clear" msgid="7213491281898188730">"ล้างจากรายการ"</string>
