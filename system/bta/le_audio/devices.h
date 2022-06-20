@@ -241,6 +241,8 @@ class LeAudioDeviceGroup {
   uint16_t GetMaxTransportLatencyStom(void);
   uint16_t GetMaxTransportLatencyMtos(void);
   void SetTransportLatency(uint8_t direction, uint32_t transport_latency_us);
+  uint8_t GetRtn(uint8_t direction, uint8_t cis_id);
+  uint16_t GetMaxSduSize(uint8_t direction, uint8_t cis_id);
   uint8_t GetPhyBitmask(uint8_t direction);
   uint8_t GetTargetPhy(uint8_t direction);
   bool GetPresentationDelay(uint32_t* delay, uint8_t direction);
