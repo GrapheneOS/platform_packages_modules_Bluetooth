@@ -388,7 +388,7 @@ class LeAudioClientImpl : public LeAudioClient {
       callbacks_->OnAudioConf(group->audio_directions_, group->group_id_,
                               group->snk_audio_locations_.to_ulong(),
                               group->src_audio_locations_.to_ulong(),
-                              new_group_updated_contexts->to_ulong());
+                              group->GetActiveContexts().to_ulong());
     }
   }
 
@@ -1106,9 +1106,13 @@ class LeAudioClientImpl : public LeAudioClient {
        * Read of available context during initial attribute discovery.
        * Group would be assigned once service search is completed.
        */
-      if (group)
-        group->UpdateActiveContextsMap(leAudioDevice->GetAvailableContexts());
-
+      if (group && group->UpdateActiveContextsMap(
+                       leAudioDevice->GetAvailableContexts())) {
+        callbacks_->OnAudioConf(group->audio_directions_, group->group_id_,
+                                group->snk_audio_locations_.to_ulong(),
+                                group->src_audio_locations_.to_ulong(),
+                                group->GetActiveContexts().to_ulong());
+      }
       return;
     }
 
@@ -1133,9 +1137,13 @@ class LeAudioClientImpl : public LeAudioClient {
        * Read of available context during initial attribute discovery.
        * Group would be assigned once service search is completed.
        */
-      if (group)
-        group->UpdateActiveContextsMap(leAudioDevice->GetAvailableContexts());
-
+      if (group && group->UpdateActiveContextsMap(
+                       leAudioDevice->GetAvailableContexts())) {
+        callbacks_->OnAudioConf(group->audio_directions_, group->group_id_,
+                                group->snk_audio_locations_.to_ulong(),
+                                group->src_audio_locations_.to_ulong(),
+                                group->GetActiveContexts().to_ulong());
+      }
       return;
     }
 
@@ -3466,7 +3474,7 @@ class LeAudioClientImpl : public LeAudioClient {
         callbacks_->OnAudioConf(group->audio_directions_, group->group_id_,
                                 group->snk_audio_locations_.to_ulong(),
                                 group->src_audio_locations_.to_ulong(),
-                                updated_contexts->to_ulong());
+                                group->GetActiveContexts().to_ulong());
       }
 
       group->SetPendingUpdateAvailableContexts(std::nullopt);
