@@ -25,7 +25,6 @@
 #include "com_android_bluetooth.h"
 #include "hardware/bt_le_audio.h"
 
-using bluetooth::le_audio::BroadcastAudioProfile;
 using bluetooth::le_audio::BroadcastId;
 using bluetooth::le_audio::BroadcastState;
 using bluetooth::le_audio::btle_audio_codec_config_t;
@@ -1125,7 +1124,7 @@ static void BroadcasterCleanupNative(JNIEnv* env, jobject object) {
 }
 
 static void CreateBroadcastNative(JNIEnv* env, jobject object,
-                                  jbyteArray metadata, jint audio_profile,
+                                  jbyteArray metadata,
                                   jbyteArray broadcast_code) {
   LOG(INFO) << __func__;
   std::shared_lock<std::shared_timed_mutex> lock(sBroadcasterInterfaceMutex);
@@ -1138,7 +1137,6 @@ static void CreateBroadcastNative(JNIEnv* env, jobject object,
   jbyte* meta = env->GetByteArrayElements(metadata, nullptr);
   sLeAudioBroadcasterInterface->CreateBroadcast(
       std::vector<uint8_t>(meta, meta + env->GetArrayLength(metadata)),
-      static_cast<BroadcastAudioProfile>(audio_profile),
       broadcast_code ? std::optional<std::array<uint8_t, 16>>(code_array)
                      : std::nullopt);
   env->ReleaseByteArrayElements(metadata, meta, 0);
@@ -1198,7 +1196,7 @@ static JNINativeMethod sBroadcasterMethods[] = {
     {"initNative", "()V", (void*)BroadcasterInitNative},
     {"stopNative", "()V", (void*)BroadcasterStopNative},
     {"cleanupNative", "()V", (void*)BroadcasterCleanupNative},
-    {"createBroadcastNative", "([BI[B)V", (void*)CreateBroadcastNative},
+    {"createBroadcastNative", "([B[B)V", (void*)CreateBroadcastNative},
     {"updateMetadataNative", "(I[B)V", (void*)UpdateMetadataNative},
     {"startBroadcastNative", "(I)V", (void*)StartBroadcastNative},
     {"stopBroadcastNative", "(I)V", (void*)StopBroadcastNative},
