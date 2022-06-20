@@ -109,10 +109,8 @@
     <string name="transfer_clear_dlg_msg" msgid="586117930961007311">"ലിസ്റ്റിൽ നിന്നും എല്ലാ ഇനങ്ങളും മായ്‌ക്കും."</string>
     <string name="outbound_noti_title" msgid="2045560896819618979">"ബ്ലൂടൂത്ത് പങ്കിടൽ: അയച്ച ഫയലുകൾ"</string>
     <string name="inbound_noti_title" msgid="3730993443609581977">"ബ്ലൂടൂത്ത് പങ്കിടൽ: ലഭിച്ച ഫയലുകൾ"</string>
-    <!-- no translation found for noti_caption_unsuccessful (8321968345160824888) -->
-    <skip />
-    <!-- no translation found for noti_caption_success (7914987425717863454) -->
-    <skip />
+    <string name="noti_caption_unsuccessful" msgid="6679288016450410835">"{count,plural, =1{# എണ്ണം അയയ്ക്കാനായില്ല.}other{# എണ്ണം അയയ്ക്കാനായില്ല.}}"</string>
+    <string name="noti_caption_success" msgid="7652777514009569713">"{count,plural, =1{# എണ്ണം അയച്ചു, %1$s}other{# എണ്ണം അയച്ചു, %1$s}}"</string>
     <string name="transfer_menu_clear_all" msgid="3014459758656427076">"ലിസ്റ്റ് മായ്‌ക്കുക"</string>
     <string name="transfer_menu_open" msgid="5193344638774400131">"തുറക്കുക"</string>
     <string name="transfer_menu_clear" msgid="7213491281898188730">"ലിസ്റ്റിൽ നിന്നും മായ്‌ക്കുക"</string>
