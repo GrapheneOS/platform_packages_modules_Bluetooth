@@ -579,6 +579,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     if ((group->GetState() == AseState::BTA_LE_AUDIO_ASE_STATE_IDLE) &&
         (group->GetTargetState() == AseState::BTA_LE_AUDIO_ASE_STATE_IDLE)) {
       LOG(INFO) << __func__ << " group: " << group->group_id_ << " is in IDLE";
+      group->UpdateActiveContextsMap();
       return;
     }
 
@@ -609,10 +610,10 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     /* mark ASEs as not used. */
     leAudioDevice->DeactivateAllAses();
 
-    DLOG(INFO) << __func__ << " device: " << leAudioDevice->address_
-               << " group connected: " << group->IsAnyDeviceConnected()
-               << " all active ase disconnected: "
-               << group->HaveAllActiveDevicesCisDisc();
+    LOG_DEBUG(
+        " device: %s, group connected: %d, all active ase disconnected:: %d",
+        leAudioDevice->address_.ToString().c_str(),
+        group->IsAnyDeviceConnected(), group->HaveAllActiveDevicesCisDisc());
 
     /* Group has changed. Lets update available contexts */
     group->UpdateActiveContextsMap();
