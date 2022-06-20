@@ -23,10 +23,13 @@
 #include "bta/include/bta_le_audio_api.h"
 #include "bta/include/bta_le_audio_broadcaster_api.h"
 #include "bta/le_audio/broadcaster/mock_state_machine.h"
+#include "bta/le_audio/le_audio_types.h"
 #include "bta/le_audio/mock_iso_manager.h"
 #include "bta/test/common/mock_controller.h"
 #include "device/include/controller.h"
 #include "stack/include/btm_iso_api.h"
+
+using le_audio::types::LeAudioContextType;
 
 using testing::_;
 using testing::AtLeast;
@@ -104,12 +107,24 @@ static void cleanup_message_loop_thread() {
 namespace le_audio {
 namespace broadcaster {
 namespace {
-static constexpr LeAudioBroadcaster::AudioProfile default_profile =
-    LeAudioBroadcaster::AudioProfile::SONIFICATION;
+static constexpr auto default_context =
+    static_cast<std::underlying_type<LeAudioContextType>::type>(
+        LeAudioContextType::ALERTS);
 static constexpr BroadcastCode default_code = {
     0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
     0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10};
-static const std::vector<uint8_t> default_metadata = {0x03, 0x02, 0x01, 0x00};
+static const std::vector<uint8_t> default_metadata = {
+    le_audio::types::kLeAudioMetadataStreamingAudioContextLen + 1,
+    le_audio::types::kLeAudioMetadataTypeStreamingAudioContext,
+    default_context & 0x00FF, (default_context & 0xFF00) >> 8};
+
+static constexpr auto media_context =
+    static_cast<std::underlying_type<LeAudioContextType>::type>(
+        LeAudioContextType::MEDIA);
+static const std::vector<uint8_t> media_metadata = {
+    le_audio::types::kLeAudioMetadataStreamingAudioContextLen + 1,
+    le_audio::types::kLeAudioMetadataTypeStreamingAudioContext,
+    media_context & 0x00FF, (media_context & 0xFF00) >> 8};
 
 class MockLeAudioBroadcasterCallbacks
     : public bluetooth::le_audio::LeAudioBroadcasterCallbacks {
@@ -208,13 +223,12 @@ class BroadcasterTest : public Test {
   }
 
   uint32_t InstantiateBroadcast(
-      LeAudioBroadcaster::AudioProfile profile = default_profile,
       std::vector<uint8_t> metadata = default_metadata,
       BroadcastCode code = default_code) {
     uint32_t broadcast_id = LeAudioBroadcaster::kInstanceIdUndefined;
     EXPECT_CALL(mock_broadcaster_callbacks_, OnBroadcastCreated(_, true))
         .WillOnce(SaveArg<0>(&broadcast_id));
-    LeAudioBroadcaster::Get()->CreateAudioBroadcast(metadata, profile, code);
+    LeAudioBroadcaster::Get()->CreateAudioBroadcast(metadata, code);
 
     return broadcast_id;
   }
@@ -230,13 +244,6 @@ class BroadcasterTest : public Test {
 TEST_F(BroadcasterTest, Initialize) {
   ASSERT_NE(LeAudioBroadcaster::Get(), nullptr);
   ASSERT_TRUE(LeAudioBroadcaster::IsLeAudioBroadcasterRunning());
-}
-
-TEST_F(BroadcasterTest, GetNumRetransmit) {
-  LeAudioBroadcaster::Get()->SetNumRetransmit(8);
-  ASSERT_EQ(LeAudioBroadcaster::Get()->GetNumRetransmit(), 8);
-  LeAudioBroadcaster::Get()->SetNumRetransmit(12);
-  ASSERT_EQ(LeAudioBroadcaster::Get()->GetNumRetransmit(), 12);
 }
 
 TEST_F(BroadcasterTest, GetStreamingPhy) {
@@ -306,8 +313,7 @@ TEST_F(BroadcasterTest, StartAudioBroadcast) {
 }
 
 TEST_F(BroadcasterTest, StartAudioBroadcastMedia) {
-  auto broadcast_id =
-      InstantiateBroadcast(LeAudioBroadcaster::AudioProfile::MEDIA);
+  auto broadcast_id = InstantiateBroadcast(media_metadata);
   LeAudioBroadcaster::Get()->StopAudioBroadcast(broadcast_id);
 
   EXPECT_CALL(mock_broadcaster_callbacks_,
@@ -478,15 +484,6 @@ TEST_F(BroadcasterTest, GetMetadata) {
   ASSERT_EQ(sm->GetAdvertisingSid(), metadata.adv_sid);
 }
 
-TEST_F(BroadcasterTest, SetNumRetransmit) {
-  auto broadcast_id = InstantiateBroadcast();
-  LeAudioBroadcaster::Get()->SetNumRetransmit(9);
-  ASSERT_EQ(MockBroadcastStateMachine::GetLastInstance()->cb->GetNumRetransmit(
-                broadcast_id),
-            9);
-  ASSERT_EQ(LeAudioBroadcaster::Get()->GetNumRetransmit(), 9);
-}
-
 TEST_F(BroadcasterTest, SetStreamingPhy) {
   LeAudioBroadcaster::Get()->SetStreamingPhy(2);
   // From now on new streams should be using Phy = 2.
@@ -500,10 +497,9 @@ TEST_F(BroadcasterTest, SetStreamingPhy) {
   ASSERT_EQ(LeAudioBroadcaster::Get()->GetStreamingPhy(), 1);
 }
 
-TEST_F(BroadcasterTest, StreamParamsSonification) {
+TEST_F(BroadcasterTest, StreamParamsAlerts) {
   uint8_t expected_channels = 1u;
-
-  InstantiateBroadcast(LeAudioBroadcaster::AudioProfile::SONIFICATION);
+  InstantiateBroadcast();
   auto config = MockBroadcastStateMachine::GetLastInstance()->cfg;
 
   // Check audio configuration
@@ -516,8 +512,7 @@ TEST_F(BroadcasterTest, StreamParamsSonification) {
 
 TEST_F(BroadcasterTest, StreamParamsMedia) {
   uint8_t expected_channels = 2u;
-
-  InstantiateBroadcast(LeAudioBroadcaster::AudioProfile::MEDIA);
+  InstantiateBroadcast(media_metadata);
   auto config = MockBroadcastStateMachine::GetLastInstance()->cfg;
 
   // Check audio configuration

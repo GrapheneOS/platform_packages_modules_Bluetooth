@@ -1224,7 +1224,7 @@ public class BluetoothProxy {
 
             switchToPreviousPresetMethod.invoke(bluetoothHapClient, device);
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            // Do nothing
+            return false;
         }
         return true;
     }
@@ -1241,7 +1241,7 @@ public class BluetoothProxy {
 
             switchToNextPresetMethod.invoke(bluetoothHapClient, device);
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            // Do nothing
+            return false;
         }
         return true;
     }
@@ -1258,7 +1258,7 @@ public class BluetoothProxy {
 
             switchToPreviousPresetForGroupMethod.invoke(bluetoothHapClient, group_id);
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            // Do nothing
+            return false;
         }
         return true;
     }
@@ -1275,7 +1275,7 @@ public class BluetoothProxy {
 
             switchToNextPresetForGroupMethod.invoke(bluetoothHapClient, group_id);
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            // Do nothing
+            return false;
         }
         return true;
     }
