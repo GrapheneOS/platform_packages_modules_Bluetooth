@@ -109,10 +109,8 @@
     <string name="transfer_clear_dlg_msg" msgid="586117930961007311">"سيتم محو جميع العناصر من القائمة."</string>
     <string name="outbound_noti_title" msgid="2045560896819618979">"مشاركة البلوتوث: الملفات المرسلة"</string>
     <string name="inbound_noti_title" msgid="3730993443609581977">"مشاركة البلوتوث: الملفات المستلمة"</string>
-    <!-- no translation found for noti_caption_unsuccessful (8321968345160824888) -->
-    <skip />
-    <!-- no translation found for noti_caption_success (7914987425717863454) -->
-    <skip />
+    <string name="noti_caption_unsuccessful" msgid="6679288016450410835">"{count,plural, =1{وتعذّر إرسال ملف واحد.}zero{وتعذّر إرسال # ملف.}two{وتعذّر إرسال ملفين.}few{وتعذّر إرسال # ملفات.}many{وتعذّر إرسال # ملفًا.}other{وتعذّر إرسال # ملف.}}"</string>
+    <string name="noti_caption_success" msgid="7652777514009569713">"{count,plural, =1{‏تم إرسال ملف واحد بنجاح، %1$s}zero{‏تم إرسال # ملف بنجاح، %1$s}two{‏تم إرسال ملفين بنجاح، %1$s}few{‏تم إرسال # ملفات بنجاح، %1$s}many{‏تم إرسال # ملفًا بنجاح، %1$s}other{‏تم إرسال # ملف بنجاح، %1$s}}"</string>
     <string name="transfer_menu_clear_all" msgid="3014459758656427076">"محو القائمة"</string>
     <string name="transfer_menu_open" msgid="5193344638774400131">"فتح"</string>
     <string name="transfer_menu_clear" msgid="7213491281898188730">"محو من القائمة"</string>

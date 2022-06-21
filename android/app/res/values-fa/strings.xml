@@ -109,10 +109,8 @@
     <string name="transfer_clear_dlg_msg" msgid="586117930961007311">"همهٔ موارد از فهرست پاک می‌شوند."</string>
     <string name="outbound_noti_title" msgid="2045560896819618979">"اشتراک بلوتوث: فایل‌های ارسال شده"</string>
     <string name="inbound_noti_title" msgid="3730993443609581977">"اشتراک بلوتوث: فایل‌های دریافت شده"</string>
-    <!-- no translation found for noti_caption_unsuccessful (8321968345160824888) -->
-    <skip />
-    <!-- no translation found for noti_caption_success (7914987425717863454) -->
-    <skip />
+    <string name="noti_caption_unsuccessful" msgid="6679288016450410835">"{count,plural, =1{# مورد ناموفق.}one{# مورد ناموفق.}other{# مورد ناموفق.}}"</string>
+    <string name="noti_caption_success" msgid="7652777514009569713">"{count,plural, =1{‏# مورد موفق، %1$s}one{‏# مورد موفق، %1$s}other{‏# مورد موفق، %1$s}}"</string>
     <string name="transfer_menu_clear_all" msgid="3014459758656427076">"پاک کردن فهرست"</string>
     <string name="transfer_menu_open" msgid="5193344638774400131">"باز کردن"</string>
     <string name="transfer_menu_clear" msgid="7213491281898188730">"پاک کردن از فهرست"</string>
