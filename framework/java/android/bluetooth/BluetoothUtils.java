@@ -175,4 +175,16 @@ public final class BluetoothUtils {
         }
         return result;
     }
+
+    /**
+     * Convert an address to an obfuscate one for logging purpose
+     * @param address Mac address to be log
+     * @return Loggable mac address
+     */
+    public static String toAnonymizedAddress(String address) {
+        if (address == null || address.length() != 17) {
+            return null;
+        }
+        return "XX:XX:XX" + address.substring(8);
+    }
 }
