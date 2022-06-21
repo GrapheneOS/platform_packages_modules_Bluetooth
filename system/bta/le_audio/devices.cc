@@ -447,6 +447,44 @@ void LeAudioDeviceGroup::SetTransportLatency(uint8_t direction,
   *transport_latency_us = new_transport_latency_us;
 }
 
+uint8_t LeAudioDeviceGroup::GetRtn(uint8_t direction, uint8_t cis_id) {
+  LeAudioDevice* leAudioDevice = GetFirstActiveDevice();
+  LOG_ASSERT(leAudioDevice)
+      << __func__ << " Shouldn't be called without an active device.";
+
+  do {
+    auto ases_pair = leAudioDevice->GetAsesByCisId(cis_id);
+
+    if (ases_pair.sink && direction == types::kLeAudioDirectionSink) {
+      return ases_pair.sink->retrans_nb;
+    } else if (ases_pair.source &&
+               direction == types::kLeAudioDirectionSource) {
+      return ases_pair.source->retrans_nb;
+    }
+  } while ((leAudioDevice = GetNextActiveDevice(leAudioDevice)));
+
+  return 0;
+}
+
+uint16_t LeAudioDeviceGroup::GetMaxSduSize(uint8_t direction, uint8_t cis_id) {
+  LeAudioDevice* leAudioDevice = GetFirstActiveDevice();
+  LOG_ASSERT(leAudioDevice)
+      << __func__ << " Shouldn't be called without an active device.";
+
+  do {
+    auto ases_pair = leAudioDevice->GetAsesByCisId(cis_id);
+
+    if (ases_pair.sink && direction == types::kLeAudioDirectionSink) {
+      return ases_pair.sink->max_sdu_size;
+    } else if (ases_pair.source &&
+               direction == types::kLeAudioDirectionSource) {
+      return ases_pair.source->max_sdu_size;
+    }
+  } while ((leAudioDevice = GetNextActiveDevice(leAudioDevice)));
+
+  return 0;
+}
+
 uint8_t LeAudioDeviceGroup::GetPhyBitmask(uint8_t direction) {
   LeAudioDevice* leAudioDevice = GetFirstActiveDevice();
   LOG_ASSERT(leAudioDevice)
