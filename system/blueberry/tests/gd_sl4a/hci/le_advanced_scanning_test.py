@@ -16,8 +16,6 @@
 
 import queue
 import logging
-import _thread
-import time
 
 from google.protobuf import empty_pb2 as empty_proto
 
@@ -698,7 +696,7 @@ class LeAdvancedScanningTest(gd_sl4a_base_test.GdSl4aBaseTestClass):
                      (RANDOM_ADDRESS, addr_type, self.__get_test_irk().decode("utf-8")))
         self.dut.sl4a.bleSetScanSettingsScanMode(ble_scan_settings_modes['low_latency'])
         self.dut.sl4a.bleSetScanSettingsLegacy(False)
-        self.dut.sl4a.bleSetScanSettingsCallbackType(ble_scan_settings_callback_types['match_lost'])
+        self.dut.sl4a.bleSetScanSettingsCallbackType(ble_scan_settings_callback_types['found_and_lost'])
         filter_list, scan_settings, scan_callback = generate_ble_scan_objects(self.dut.sl4a)
         expected_event_name = scan_result.format(scan_callback)
 
@@ -709,16 +707,16 @@ class LeAdvancedScanningTest(gd_sl4a_base_test.GdSl4aBaseTestClass):
         self.dut.sl4a.bleStartBleScan(filter_list, scan_settings, scan_callback)
         logging.info("Started scanning")
 
-        def run(test, delay):
-            time.sleep(delay)
-            # Stop advertising to trigger the lost event
-            test._stop_advertising(create_response.advertiser_id)
+        # Wait for found event to ensure scanning is started before stopping the advertiser
+        # to trigger lost event, else the lost event might not be caught by the test
+        got_found_result = self._wait_for_scan_result_event(expected_event_name)
+        assertThat(got_found_result).isTrue()
 
-        _thread.start_new_thread(run, (self, 3))
+        self._stop_advertising(create_response.advertiser_id)
 
-        # Wait for results
-        got_result = self._wait_for_scan_result_event(expected_event_name)
-        assertThat(got_result).isTrue()
+        # Wait for lost event
+        got_lost_result = self._wait_for_scan_result_event(expected_event_name)
+        assertThat(got_lost_result).isTrue()
 
         # Test over
         self._stop_scanning(scan_callback)
