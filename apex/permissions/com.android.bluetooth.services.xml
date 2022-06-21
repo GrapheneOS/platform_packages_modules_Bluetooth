@@ -19,7 +19,6 @@
     <privapp-permissions package="com.android.bluetooth.services">
         <permission name="android.permission.BLUETOOTH_PRIVILEGED" />
         <permission name="android.permission.CONTROL_INCALL_EXPERIENCE" />
-        <permission name="android.permission.DUMP" />
         <permission name="android.permission.READ_PRIVILEGED_PHONE_STATE" />
         <permission name="android.permission.NFC_HANDOVER_STATUS" />
         <permission name="android.permission.WRITE_SECURE_SETTINGS" />
