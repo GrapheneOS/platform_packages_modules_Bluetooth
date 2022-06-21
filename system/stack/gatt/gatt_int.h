@@ -495,7 +495,7 @@ extern tGATT_STATUS attp_send_cl_confirmation_msg(tGATT_TCB& tcb, uint16_t cid);
 extern tGATT_STATUS attp_send_cl_msg(tGATT_TCB& tcb, tGATT_CLCB* p_clcb,
                                      uint8_t op_code, tGATT_CL_MSG* p_msg);
 extern BT_HDR* attp_build_sr_msg(tGATT_TCB& tcb, uint8_t op_code,
-                                 tGATT_SR_MSG* p_msg);
+                                 tGATT_SR_MSG* p_msg, uint16_t payload_size);
 extern tGATT_STATUS attp_send_sr_msg(tGATT_TCB& tcb, uint16_t cid,
                                      BT_HDR* p_msg);
 extern tGATT_STATUS attp_send_msg_to_l2cap(tGATT_TCB& tcb, uint16_t cid,
