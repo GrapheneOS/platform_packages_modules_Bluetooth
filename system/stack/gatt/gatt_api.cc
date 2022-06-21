@@ -468,8 +468,10 @@ tGATT_STATUS GATTS_HandleValueIndication(uint16_t conn_id, uint16_t attr_handle,
 
   tGATT_SR_MSG gatt_sr_msg;
   gatt_sr_msg.attr_value = indication;
-  BT_HDR* p_msg =
-      attp_build_sr_msg(*p_tcb, GATT_HANDLE_VALUE_IND, &gatt_sr_msg);
+
+  uint16_t payload_size = gatt_tcb_get_payload_size_tx(*p_tcb, cid);
+  BT_HDR* p_msg = attp_build_sr_msg(*p_tcb, GATT_HANDLE_VALUE_IND, &gatt_sr_msg,
+                                    payload_size);
   if (!p_msg) return GATT_NO_RESOURCES;
 
   tGATT_STATUS cmd_status = attp_send_sr_msg(*p_tcb, cid, p_msg);
@@ -526,9 +528,9 @@ tGATT_STATUS GATTS_HandleValueNotification(uint16_t conn_id,
   gatt_sr_msg.attr_value = notif;
 
   uint16_t cid = gatt_tcb_get_att_cid(*p_tcb, p_reg->eatt_support);
-
-  BT_HDR* p_buf =
-      attp_build_sr_msg(*p_tcb, GATT_HANDLE_VALUE_NOTIF, &gatt_sr_msg);
+  uint16_t payload_size = gatt_tcb_get_payload_size_tx(*p_tcb, cid);
+  BT_HDR* p_buf = attp_build_sr_msg(*p_tcb, GATT_HANDLE_VALUE_NOTIF,
+                                    &gatt_sr_msg, payload_size);
   if (p_buf != NULL) {
     cmd_sent = attp_send_sr_msg(*p_tcb, cid, p_buf);
   } else
