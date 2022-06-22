@@ -82,12 +82,6 @@ bool bta_dm_search_sm_execute(BT_HDR_RIGID* p_msg) {
         case BTA_DM_DISC_CLOSE_TOUT_EVT:
           bta_dm_close_gatt_conn(message);
           break;
-        case BTA_DM_API_QUEUE_SEARCH_EVT:
-          bta_dm_queue_search(message);
-          break;
-        case BTA_DM_API_QUEUE_DISCOVER_EVT:
-          bta_dm_queue_disc(message);
-          break;
       }
       break;
     case BTA_DM_SEARCH_ACTIVE:
@@ -107,20 +101,14 @@ bool bta_dm_search_sm_execute(BT_HDR_RIGID* p_msg) {
         case BTA_DM_DISC_CLOSE_TOUT_EVT:
           bta_dm_close_gatt_conn(message);
           break;
-        case BTA_DM_API_DISCOVER_EVT:
-        case BTA_DM_API_QUEUE_DISCOVER_EVT:
-          bta_dm_queue_disc(message);
-          break;
       }
       break;
     case BTA_DM_SEARCH_CANCELLING:
       switch (p_msg->event) {
         case BTA_DM_API_SEARCH_EVT:
-        case BTA_DM_API_QUEUE_SEARCH_EVT:
           bta_dm_queue_search(message);
           break;
         case BTA_DM_API_DISCOVER_EVT:
-        case BTA_DM_API_QUEUE_DISCOVER_EVT:
           bta_dm_queue_disc(message);
           break;
         case BTA_DM_SDP_RESULT_EVT:
@@ -130,7 +118,7 @@ bool bta_dm_search_sm_execute(BT_HDR_RIGID* p_msg) {
           bta_dm_search_set_state(BTA_DM_SEARCH_IDLE);
           bta_dm_free_sdp_db();
           bta_dm_search_cancel_notify();
-          bta_dm_execute_queued_request();
+          bta_dm_search_cancel_cmpl();
           break;
       }
       break;
@@ -147,14 +135,6 @@ bool bta_dm_search_sm_execute(BT_HDR_RIGID* p_msg) {
           break;
         case BTA_DM_DISCOVERY_RESULT_EVT:
           bta_dm_disc_result(message);
-          break;
-        case BTA_DM_API_SEARCH_EVT:
-        case BTA_DM_API_QUEUE_SEARCH_EVT:
-          bta_dm_queue_search(message);
-          break;
-        case BTA_DM_API_DISCOVER_EVT:
-        case BTA_DM_API_QUEUE_DISCOVER_EVT:
-          bta_dm_queue_disc(message);
           break;
       }
       break;
