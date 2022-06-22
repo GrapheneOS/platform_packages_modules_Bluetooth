@@ -816,7 +816,6 @@ public class BassClientService extends ProfileService {
         }
         Message message = stateMachine.obtainMessage(BassClientStateMachine.UPDATE_BCAST_SOURCE);
         message.arg1 = sourceId;
-        message.arg2 = BluetoothLeBroadcastReceiveState.PA_SYNC_STATE_INVALID;
         message.obj = updatedMetadata;
         stateMachine.sendMessage(message);
     }
@@ -844,20 +843,6 @@ public class BassClientService extends ProfileService {
             mCallbacks.notifySourceRemoveFailed(sink, sourceId,
                     BluetoothStatusCodes.ERROR_REMOTE_LINK_ERROR);
             return;
-        }
-        BluetoothLeBroadcastReceiveState recvState =
-                stateMachine.getBroadcastReceiveStateForSourceId(sourceId);
-        BluetoothLeBroadcastMetadata metaData =
-                stateMachine.getCurrentBroadcastMetadata(sourceId);
-        if (metaData != null && recvState != null && recvState.getPaSyncState() ==
-                BluetoothLeBroadcastReceiveState.PA_SYNC_STATE_SYNCHRONIZED) {
-            log("Force source to lost PA sync");
-            Message message = stateMachine.obtainMessage(
-                    BassClientStateMachine.UPDATE_BCAST_SOURCE);
-            message.arg1 = sourceId;
-            message.arg2 = BluetoothLeBroadcastReceiveState.PA_SYNC_STATE_IDLE;
-            message.obj = metaData;
-            stateMachine.sendMessage(message);
         }
         Message message = stateMachine.obtainMessage(BassClientStateMachine.REMOVE_BCAST_SOURCE);
         message.arg1 = sourceId;
