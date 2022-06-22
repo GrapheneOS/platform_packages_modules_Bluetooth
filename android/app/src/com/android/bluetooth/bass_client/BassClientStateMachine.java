@@ -691,6 +691,8 @@ public class BassClientStateMachine extends StateMachine {
                     offset += metaDataLength;
                     metaData = reverseBytes(metaData);
                     metadataList.add(BluetoothLeAudioContentMetadata.fromRawBytes(metaData));
+                } else {
+                    metadataList.add(BluetoothLeAudioContentMetadata.fromRawBytes(new byte[0]));
                 }
             }
             byte[] broadcastIdBytes = new byte[mBroadcastSourceIdLength];
