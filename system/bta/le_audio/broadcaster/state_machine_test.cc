@@ -856,12 +856,13 @@ TEST_F(StateMachineTest, GetBroadcastAnnouncement) {
             broadcasts_[broadcast_id]->GetBroadcastAnnouncement());
 }
 
-TEST_F(StateMachineTest, AnnouncementUUIDs) {
+TEST_F(StateMachineTest, AnnouncementTest) {
+  tBTM_BLE_ADV_PARAMS adv_params;
   std::vector<uint8_t> a_data;
   std::vector<uint8_t> p_data;
 
   EXPECT_CALL(*mock_ble_advertising_manager_, StartAdvertisingSet)
-      .WillOnce([&p_data, &a_data](
+      .WillOnce([&p_data, &a_data, &adv_params](
                     base::Callback<void(uint8_t, int8_t, uint8_t)> cb,
                     tBTM_BLE_ADV_PARAMS* params,
                     std::vector<uint8_t> advertise_data,
@@ -878,6 +879,8 @@ TEST_F(StateMachineTest, AnnouncementUUIDs) {
         // move them.
         a_data = std::move(advertise_data);
         p_data = std::move(periodic_data);
+
+        adv_params = *params;
 
         cb.Run(advertiser_id, tx_power, status);
       });
@@ -900,6 +903,9 @@ TEST_F(StateMachineTest, AnnouncementUUIDs) {
   ASSERT_EQ(p_data[1], 0x16);  // BTM_BLE_AD_TYPE_SERVICE_DATA_TYPE
   ASSERT_EQ(p_data[2], (kBasicAudioAnnouncementServiceUuid & 0x00FF));
   ASSERT_EQ(p_data[3], ((kBasicAudioAnnouncementServiceUuid >> 8) & 0x00FF));
+
+  // Check advertising parameters
+  ASSERT_EQ(adv_params.own_address_type, BLE_ADDR_RANDOM);
 }
 
 }  // namespace
