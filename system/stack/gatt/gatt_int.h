@@ -485,6 +485,7 @@ extern void gatt_cl_init_sr_status(tGATT_TCB& tcb);
 extern bool gatt_cl_read_sr_supp_feat_req(
     const RawAddress& peer_bda,
     base::OnceCallback<void(const RawAddress&, uint8_t)> cb);
+extern bool gatt_sr_is_cl_multi_variable_len_notif_supported(tGATT_TCB& tcb);
 
 extern bool gatt_sr_is_cl_change_aware(tGATT_TCB& tcb);
 extern void gatt_sr_init_cl_status(tGATT_TCB& tcb);
