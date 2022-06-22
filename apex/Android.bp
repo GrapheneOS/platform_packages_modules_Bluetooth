@@ -13,7 +13,8 @@ linker_config {
     installable: false,
 }
 
-//Mainline bluetooth apex module.
+// Mainline bluetooth apex module (legacy, do not use).
+// TODO: Remove
 apex {
     name: "com.android.bluetooth",
     defaults: ["t-launched-apex-module"],
@@ -39,26 +40,57 @@ apex {
         "bluetooth-linker-config",
         "bt_did.conf",
         "bt_stack.conf",
-        "privapp_allowlist_com.android.bluetooth.services.xml",
+        "privapp_allowlist_com.android.bluetooth.xml",
     ],
+    key: "com.android.btservices.key",
+    certificate: ":com.android.btservices.certificate",
+    updatable: false,
+    compressible: false,
+}
 
-    key: "com.android.bluetooth.key",
-    certificate: ":com.android.bluetooth.certificate",
-    updatable: true,
-    // Indicates that pre-installed version of this apex can be compressed.
-    // Whether it actually will be compressed is controlled on per-device basis.
-    compressible: true,
+// Mainline bluetooth apex module.
+apex {
+    name: "com.android.btservices",
+    defaults: ["t-launched-apex-module"],
+    manifest: "apex_manifest.json",
+    bootclasspath_fragments: ["com.android.bluetooth-bootclasspath-fragment"],
+    systemserverclasspath_fragments: ["com.android.bluetooth-systemserverclasspath-fragment"],
+    apps: ["Bluetooth"],
+
+    multilib: {
+        first: {
+            // Extractor process runs only with the primary ABI.
+            jni_libs: [
+                "libbluetooth_jni",
+            ],
+        },
+    },
+
+    prebuilts: [
+        "audio_set_configurations_bfbs",
+        "audio_set_configurations_json",
+        "audio_set_scenarios_bfbs",
+        "audio_set_scenarios_json",
+        "bluetooth-linker-config",
+        "bt_did.conf",
+        "bt_stack.conf",
+        "privapp_allowlist_com.android.bluetooth.xml",
+    ],
+    key: "com.android.btservices.key",
+    certificate: ":com.android.btservices.certificate",
+    updatable: false,
+    compressible: false,
 }
 
 apex_key {
-    name: "com.android.bluetooth.key",
-    public_key: "com.android.bluetooth.avbpubkey",
-    private_key: "com.android.bluetooth.pem",
+    name: "com.android.btservices.key",
+    public_key: "com.android.btservices.avbpubkey",
+    private_key: "com.android.btservices.pem",
 }
 
 android_app_certificate {
-    name: "com.android.bluetooth.certificate",
-    certificate: "com.android.bluetooth",
+    name: "com.android.btservices.certificate",
+    certificate: "com.android.btservices",
 }
 
 sdk {
