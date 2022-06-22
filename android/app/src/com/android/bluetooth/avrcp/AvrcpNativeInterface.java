@@ -196,7 +196,7 @@ public class AvrcpNativeInterface {
     }
 
     void playItem(int playerId, boolean nowPlaying, String mediaId) {
-        d("playItem: playerId=" + playerId + " nowPlaying=" + nowPlaying + " mediaId" + mediaId);
+        d("playItem: playerId=" + playerId + " nowPlaying=" + nowPlaying + " mediaId=" + mediaId);
         if (mAvrcpService == null) {
             Log.d(TAG, "playItem: AvrcpTargetService is null");
             return;
