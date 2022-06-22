@@ -247,7 +247,7 @@ inline std::string gatt_disconnection_reason_text(
 /* max legth of an attribute value
 */
 #ifndef GATT_MAX_ATTR_LEN
-#define GATT_MAX_ATTR_LEN 600
+#define GATT_MAX_ATTR_LEN 512
 #endif
 
 /* default GATT MTU size over LE link
