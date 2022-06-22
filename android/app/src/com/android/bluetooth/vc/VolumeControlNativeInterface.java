@@ -113,8 +113,8 @@ public class VolumeControlNativeInterface {
      * @param volume
      */
     @VisibleForTesting(visibility = VisibleForTesting.Visibility.PACKAGE)
-    public void setVolumeGroup(int groupId, int volume) {
-        setVolumeGroupNative(groupId, volume);
+    public void setGroupVolume(int groupId, int volume) {
+        setGroupVolumeNative(groupId, volume);
     }
 
      /**
@@ -370,7 +370,7 @@ public class VolumeControlNativeInterface {
     private native boolean connectVolumeControlNative(byte[] address);
     private native boolean disconnectVolumeControlNative(byte[] address);
     private native void setVolumeNative(byte[] address, int volume);
-    private native void setVolumeGroupNative(int groupId, int volume);
+    private native void setGroupVolumeNative(int groupId, int volume);
     private native void muteNative(byte[] address);
     private native void muteGroupNative(int groupId);
     private native void unmuteNative(byte[] address);
