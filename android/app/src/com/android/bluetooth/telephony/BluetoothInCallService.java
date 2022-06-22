@@ -417,6 +417,62 @@ public class BluetoothInCallService extends InCallService {
         }
     }
 
+    /**
+     * Gets the brearer technology.
+     *
+     * @return bearer technology as defined in Bluetooth Assigned Numbers
+     */
+    @RequiresPermission(android.Manifest.permission.MODIFY_PHONE_STATE)
+    public int getBearerTechnology()  {
+        synchronized (LOCK) {
+            enforceModifyPermission();
+            Log.i(TAG, "getBearerTechnology");
+            // Get the network name from telephony.
+            int dataNetworkType = mTelephonyManager.getDataNetworkType();
+            switch (dataNetworkType) {
+                case TelephonyManager.NETWORK_TYPE_UNKNOWN:
+                case TelephonyManager.NETWORK_TYPE_GSM:
+                    return BluetoothLeCallControlProxy.BEARER_TECHNOLOGY_GSM;
+
+                case TelephonyManager.NETWORK_TYPE_GPRS:
+                    return BluetoothLeCallControlProxy.BEARER_TECHNOLOGY_2G;
+
+                case TelephonyManager.NETWORK_TYPE_EDGE :
+                case TelephonyManager.NETWORK_TYPE_EVDO_0:
+                case TelephonyManager.NETWORK_TYPE_EVDO_A:
+                case TelephonyManager.NETWORK_TYPE_HSDPA:
+                case TelephonyManager.NETWORK_TYPE_HSUPA:
+                case TelephonyManager.NETWORK_TYPE_HSPA:
+                case TelephonyManager.NETWORK_TYPE_IDEN:
+                case TelephonyManager.NETWORK_TYPE_EVDO_B:
+                    return BluetoothLeCallControlProxy.BEARER_TECHNOLOGY_3G;
+
+                case TelephonyManager.NETWORK_TYPE_UMTS:
+                case TelephonyManager.NETWORK_TYPE_TD_SCDMA:
+                    return BluetoothLeCallControlProxy.BEARER_TECHNOLOGY_WCDMA;
+
+                case TelephonyManager.NETWORK_TYPE_LTE:
+                    return BluetoothLeCallControlProxy.BEARER_TECHNOLOGY_LTE;
+
+                case TelephonyManager.NETWORK_TYPE_EHRPD:
+                case TelephonyManager.NETWORK_TYPE_CDMA:
+                case TelephonyManager.NETWORK_TYPE_1xRTT:
+                    return BluetoothLeCallControlProxy.BEARER_TECHNOLOGY_CDMA;
+
+                case TelephonyManager.NETWORK_TYPE_HSPAP:
+                    return BluetoothLeCallControlProxy.BEARER_TECHNOLOGY_4G;
+
+                case TelephonyManager.NETWORK_TYPE_IWLAN:
+                    return BluetoothLeCallControlProxy.BEARER_TECHNOLOGY_WIFI;
+
+                case TelephonyManager.NETWORK_TYPE_NR:
+                    return BluetoothLeCallControlProxy.BEARER_TECHNOLOGY_5G;
+            }
+
+            return BluetoothLeCallControlProxy.BEARER_TECHNOLOGY_GSM;
+        }
+    }
+
     @RequiresPermission(android.Manifest.permission.MODIFY_PHONE_STATE)
     public String getSubscriberNumber() {
         synchronized (LOCK) {
@@ -1241,9 +1297,10 @@ public class BluetoothInCallService extends InCallService {
         mBluetoothLeCallControl = bluetoothTbs;
 
         if ((mBluetoothLeCallControl) != null && (mTelecomManager != null)) {
-            mBluetoothLeCallControl.registerBearer(TAG, new ArrayList<String>(Arrays.asList("tel")),
-                    BluetoothLeCallControl.CAPABILITY_HOLD_CALL, getNetworkOperator(), 0x01, mExecutor,
-                    mBluetoothLeCallControlCallback);
+            mBluetoothLeCallControl.registerBearer(TAG,
+                    new ArrayList<String>(Arrays.asList("tel")),
+                    BluetoothLeCallControl.CAPABILITY_HOLD_CALL, getNetworkOperator(),
+                    getBearerTechnology(), mExecutor, mBluetoothLeCallControlCallback);
         }
     }
 

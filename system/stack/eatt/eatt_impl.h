@@ -118,10 +118,14 @@ struct eatt_impl {
      */
     eatt_device* eatt_dev = this->find_device_by_address(bda);
     if (!eatt_dev) {
-      LOG(ERROR) << __func__ << " unknown device: " << bda;
-      L2CA_ConnectCreditBasedRsp(bda, identifier, lcids,
-                                 L2CAP_CONN_NO_RESOURCES, NULL);
-      return;
+      /* If there is no device it means, Android did not read yet Server
+       * supported features, but according to Core 5.3, Vol 3,  Part G, 6.2.1,
+       * for LE case it is not necessary to read it before establish connection.
+       * Therefore assume, device supports EATT since we got request to create
+       * EATT channels. Just create device here. */
+      LOG(INFO) << __func__ << " Adding device: " << bda
+                << " on incoming EATT creation request";
+      eatt_dev = add_eatt_device(bda);
     }
 
     uint16_t max_mps = controller_get_interface()->get_acl_data_size_ble();
