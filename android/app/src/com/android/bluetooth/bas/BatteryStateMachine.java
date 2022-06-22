@@ -73,7 +73,7 @@ public class BatteryStateMachine extends StateMachine {
     WeakReference<BatteryService> mServiceRef;
 
     BluetoothGatt mBluetoothGatt;
-    BluetoothGattCallback mGattCallback;
+    GattCallback mGattCallback;
     final BluetoothDevice mDevice;
 
     BatteryStateMachine(BluetoothDevice device, BatteryService service, Looper looper) {
@@ -578,7 +578,11 @@ public class BatteryStateMachine extends StateMachine {
             }
         }
 
-        private void updateBatteryLevel(byte[] value) {
+        @VisibleForTesting
+        void updateBatteryLevel(byte[] value) {
+            if (value.length <= 0) {
+                return;
+            }
             int batteryLevel = value[0] & 0xFF;
 
             BatteryService service = mServiceRef.get();
