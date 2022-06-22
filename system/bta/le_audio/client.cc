@@ -1304,10 +1304,6 @@ class LeAudioClientImpl : public LeAudioClient {
       BtaGattQueue::ConfigureMtu(leAudioDevice->conn_id_, 240);
     }
 
-    /* If we know services, register for notifications */
-    if (leAudioDevice->known_service_handles_)
-      RegisterKnownNotifications(leAudioDevice);
-
     if (BTM_SecIsSecurityPending(address)) {
       /* if security collision happened, wait for encryption done
        * (BTA_GATTC_ENC_CMPL_CB_EVT) */
@@ -1400,6 +1396,10 @@ class LeAudioClientImpl : public LeAudioClient {
       }
       return;
     }
+
+    /* If we know services, register for notifications */
+    if (leAudioDevice->known_service_handles_)
+      RegisterKnownNotifications(leAudioDevice);
 
     if (leAudioDevice->encrypted_) {
       LOG(INFO) << __func__ << " link already encrypted, nothing to do";
