@@ -416,8 +416,11 @@ public class BatteryService extends ProfileService {
         return mAdapterService.getDatabase()
                 .getProfileConnectionPolicy(device, BluetoothProfile.BATTERY);
     }
-
-    void handleBatteryChanged(BluetoothDevice device, int batteryLevel) {
+    /**
+     * Called when the battery level of the device is notified.
+     */
+    @VisibleForTesting(visibility = VisibleForTesting.Visibility.PACKAGE)
+    public void handleBatteryChanged(BluetoothDevice device, int batteryLevel) {
         mAdapterService.setBatteryLevel(device, batteryLevel);
     }
 
