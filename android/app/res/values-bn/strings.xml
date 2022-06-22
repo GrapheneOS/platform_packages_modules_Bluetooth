@@ -109,10 +109,8 @@
     <string name="transfer_clear_dlg_msg" msgid="586117930961007311">"তালিকা থেকে সমস্ত আইটেম সাফ করা হবে।"</string>
     <string name="outbound_noti_title" msgid="2045560896819618979">"ব্লুটুথ share: পাঠানো ফাইলগুলি"</string>
     <string name="inbound_noti_title" msgid="3730993443609581977">"ব্লুটুথ share: প্রাপ্ত করা ফাইলগুলি"</string>
-    <!-- no translation found for noti_caption_unsuccessful (8321968345160824888) -->
-    <skip />
-    <!-- no translation found for noti_caption_success (7914987425717863454) -->
-    <skip />
+    <string name="noti_caption_unsuccessful" msgid="6679288016450410835">"{count,plural, =1{#টি ফাইল পাঠানো যায়নি।}one{#টি ফাইল পাঠানো যায়নি।}other{#টি ফাইল পাঠানো যায়নি।}}"</string>
+    <string name="noti_caption_success" msgid="7652777514009569713">"{count,plural, =1{#টি ফাইল পাঠানো হয়েছে, %1$s}one{#টি ফাইল পাঠানো হয়েছে, %1$s}other{#টি ফাইল পাঠানো হয়েছে, %1$s}}"</string>
     <string name="transfer_menu_clear_all" msgid="3014459758656427076">"তালিকা সাফ করুন"</string>
     <string name="transfer_menu_open" msgid="5193344638774400131">"খুলুন"</string>
     <string name="transfer_menu_clear" msgid="7213491281898188730">"তালিকা থেকে সাফ করুন"</string>

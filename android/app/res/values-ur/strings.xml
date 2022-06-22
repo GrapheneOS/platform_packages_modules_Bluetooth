@@ -109,10 +109,8 @@
     <string name="transfer_clear_dlg_msg" msgid="586117930961007311">"سبھی آئٹمز فہرست سے صاف کر دیے جائیں گے۔"</string>
     <string name="outbound_noti_title" msgid="2045560896819618979">"بلوٹوتھ اشتراک: ارسال کردہ فائلیں"</string>
     <string name="inbound_noti_title" msgid="3730993443609581977">"بلوٹوتھ اشتراک: فائلیں موصول ہو گئیں"</string>
-    <!-- no translation found for noti_caption_unsuccessful (8321968345160824888) -->
-    <skip />
-    <!-- no translation found for noti_caption_success (7914987425717863454) -->
-    <skip />
+    <string name="noti_caption_unsuccessful" msgid="6679288016450410835">"{count,plural, =1{# ناکام۔}other{# ناکام۔}}"</string>
+    <string name="noti_caption_success" msgid="7652777514009569713">"{count,plural, =1{‏# کامیاب، ‎%1$s‎}other{‏# کامیاب، ‎%1$s‎}}"</string>
     <string name="transfer_menu_clear_all" msgid="3014459758656427076">"فہرست صاف کریں"</string>
     <string name="transfer_menu_open" msgid="5193344638774400131">"کھولیں"</string>
     <string name="transfer_menu_clear" msgid="7213491281898188730">"فہرست سے صاف کریں"</string>

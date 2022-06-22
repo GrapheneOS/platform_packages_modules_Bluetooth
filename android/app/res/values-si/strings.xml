@@ -109,10 +109,8 @@
     <string name="transfer_clear_dlg_msg" msgid="586117930961007311">"ලැයිස්තුව වෙතින් සියලු අයිතම හිස් කරනු ඇත."</string>
     <string name="outbound_noti_title" msgid="2045560896819618979">"බ්ලූටූත් බෙදා ගන්න: ගොනු යැවිණි"</string>
     <string name="inbound_noti_title" msgid="3730993443609581977">"බ්ලූටූත් බෙදා ගැනීම: ගොනු ලැබිණි"</string>
-    <!-- no translation found for noti_caption_unsuccessful (8321968345160824888) -->
-    <skip />
-    <!-- no translation found for noti_caption_success (7914987425717863454) -->
-    <skip />
+    <string name="noti_caption_unsuccessful" msgid="6679288016450410835">"{count,plural, =1{# අසාර්ථකයි.}one{# අසාර්ථකයි.}other{# අසාර්ථකයි.}}"</string>
+    <string name="noti_caption_success" msgid="7652777514009569713">"{count,plural, =1{# සාර්ථකයි, %1$s}one{# සාර්ථකයි, %1$s}other{# සාර්ථකයි, %1$s}}"</string>
     <string name="transfer_menu_clear_all" msgid="3014459758656427076">"ලැයිස්තුව හිස් කරන්න"</string>
     <string name="transfer_menu_open" msgid="5193344638774400131">"විවෘත කරන්න"</string>
     <string name="transfer_menu_clear" msgid="7213491281898188730">"ලැයිස්තුව වෙතින් හිස් කරන්න"</string>

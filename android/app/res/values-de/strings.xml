@@ -109,10 +109,8 @@
     <string name="transfer_clear_dlg_msg" msgid="586117930961007311">"Alle Elemente werden aus der Liste gelöscht."</string>
     <string name="outbound_noti_title" msgid="2045560896819618979">"Bluetooth-Freigabe: Gesendete Dateien"</string>
     <string name="inbound_noti_title" msgid="3730993443609581977">"Bluetooth-Freigabe: Empfangene Dateien"</string>
-    <!-- no translation found for noti_caption_unsuccessful (8321968345160824888) -->
-    <skip />
-    <!-- no translation found for noti_caption_success (7914987425717863454) -->
-    <skip />
+    <string name="noti_caption_unsuccessful" msgid="6679288016450410835">"{count,plural, =1{# fehlgeschlagen.}other{# fehlgeschlagen.}}"</string>
+    <string name="noti_caption_success" msgid="7652777514009569713">"{count,plural, =1{# erfolgreich, %1$s}other{# erfolgreich, %1$s}}"</string>
     <string name="transfer_menu_clear_all" msgid="3014459758656427076">"Liste löschen"</string>
     <string name="transfer_menu_open" msgid="5193344638774400131">"Öffnen"</string>
     <string name="transfer_menu_clear" msgid="7213491281898188730">"Aus Liste löschen"</string>
