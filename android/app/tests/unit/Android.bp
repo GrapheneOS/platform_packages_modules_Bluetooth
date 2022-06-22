@@ -6,7 +6,7 @@ android_test {
     name: "BluetoothInstrumentationTests",
 
     // We only want this apk build for tests.
-    certificate: ":com.android.bluetooth.services.certificate",
+    certificate: ":com.android.bluetooth.certificate",
     defaults: ["framework-bluetooth-tests-defaults"],
 
     min_sdk_version: "current",
