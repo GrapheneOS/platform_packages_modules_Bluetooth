@@ -33,6 +33,7 @@
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
+#include "stack/btm/btm_sco_hfp_hal.h"
 #include "stack/btm/btm_sec.h"
 #include "stack/btm/security_device_record.h"
 #include "stack/include/acl_api.h"
@@ -763,6 +764,11 @@ void btm_sco_connected(const RawAddress& bda, uint16_t hci_handle,
 
       (*p->p_conn_cb)(xx);
 
+      hfp_hal_interface::notify_sco_connection_change(
+          bda, /*is_connected=*/true,
+          hfp_hal_interface::esco_coding_to_codec(
+              p->esco.setup.transmit_coding_format.coding_format));
+
       bluetooth::audio::sco::open();
 
       return;
@@ -917,11 +923,18 @@ bool btm_sco_removed(uint16_t hci_handle, tHCI_REASON reason) {
   for (xx = 0; xx < BTM_MAX_SCO_LINKS; xx++, p++) {
     if ((p->state != SCO_ST_UNUSED) && (p->state != SCO_ST_LISTENING) &&
         (p->hci_handle == hci_handle)) {
+      RawAddress bda(p->esco.data.bd_addr);
       p->state = SCO_ST_UNUSED;
       p->hci_handle = HCI_INVALID_HANDLE;
       p->rem_bd_known = false;
       p->esco.p_esco_cback = NULL; /* Deregister eSCO callback */
       (*p->p_disc_cb)(xx);
+
+      hfp_hal_interface::notify_sco_connection_change(
+          bda, /*is_connected=*/false,
+          hfp_hal_interface::esco_coding_to_codec(
+              p->esco.setup.transmit_coding_format.coding_format));
+
       LOG_DEBUG("Disconnected SCO link handle:%hu reason:%s", hci_handle,
                 hci_reason_code_text(reason).c_str());
       return true;
@@ -975,6 +988,11 @@ void btm_sco_on_disconnected(uint16_t hci_handle, tHCI_REASON reason) {
   BTM_LogHistory(kBtmLogTag, bd_addr, "Disconnected",
                  base::StringPrintf("handle:0x%04x reason:%s", hci_handle,
                                     hci_reason_code_text(reason).c_str()));
+
+  hfp_hal_interface::notify_sco_connection_change(
+      bd_addr, /*is_connected=*/false,
+      hfp_hal_interface::esco_coding_to_codec(
+          p_sco->esco.setup.transmit_coding_format.coding_format));
 
   bluetooth::audio::sco::cleanup();
 }
