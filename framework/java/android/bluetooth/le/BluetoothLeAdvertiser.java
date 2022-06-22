@@ -463,7 +463,7 @@ public final class BluetoothLeAdvertiser {
         }
 
         try {
-            final SynchronousResultReceiver recv = new SynchronousResultReceiver();
+            final SynchronousResultReceiver recv = SynchronousResultReceiver.get();
             gatt.startAdvertisingSet(parameters, advertiseData, scanResponse, periodicParameters,
                     periodicData, duration, maxExtendedAdvertisingEvents, wrapped,
                     mAttributionSource, recv);
@@ -496,7 +496,7 @@ public final class BluetoothLeAdvertiser {
         IBluetoothGatt gatt;
         try {
             gatt = mBluetoothManager.getBluetoothGatt();
-            final SynchronousResultReceiver recv = new SynchronousResultReceiver();
+            final SynchronousResultReceiver recv = SynchronousResultReceiver.get();
             gatt.stopAdvertisingSet(wrapped, mAttributionSource, recv);
             recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
         } catch (TimeoutException | RemoteException e) {
