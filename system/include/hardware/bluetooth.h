@@ -598,7 +598,8 @@ typedef struct {
    */
   int (*init)(bt_callbacks_t* callbacks, bool guest_mode,
               bool is_common_criteria_mode, int config_compare_result,
-              const char** init_flags, bool is_atv);
+              const char** init_flags, bool is_atv,
+              const char* user_data_directory);
 
   /** Enable Bluetooth. */
   int (*enable)();
