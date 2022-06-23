@@ -274,8 +274,14 @@ int BluetoothAudioClientInterface::StartSession() {
   auto aidl_retval = provider_->startSession(
       stack_if, transport_->GetAudioConfiguration(), latency_modes, &mq_desc);
   if (!aidl_retval.isOk()) {
-    LOG(FATAL) << __func__ << ": BluetoothAudioHal failure: "
-               << aidl_retval.getDescription();
+    if (aidl_retval.getExceptionCode() == EX_ILLEGAL_ARGUMENT) {
+      LOG(ERROR) << __func__ << ": BluetoothAudioHal Error: "
+                 << aidl_retval.getDescription() << ", audioConfig="
+                 << transport_->GetAudioConfiguration().toString();
+    } else {
+      LOG(FATAL) << __func__ << ": BluetoothAudioHal failure: "
+                 << aidl_retval.getDescription();
+    }
     return -EPROTO;
   }
   data_mq.reset(new DataMQ(mq_desc));
