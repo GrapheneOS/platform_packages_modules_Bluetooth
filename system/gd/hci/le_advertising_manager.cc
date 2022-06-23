@@ -262,6 +262,13 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
       const common::Callback<void(Address, AddressType)>& scan_callback,
       const common::Callback<void(ErrorCode, uint8_t, uint8_t)>& set_terminated_callback,
       os::Handler* handler) {
+    // check advertising data is valid before start advertising
+    if (!check_advertising_data(config.advertisement) || !check_advertising_data(config.scan_response)) {
+      advertising_callbacks_->OnAdvertisingSetStarted(
+          reg_id, id, le_physical_channel_tx_power_, AdvertisingCallback::AdvertisingStatus::DATA_TOO_LARGE);
+      return;
+    }
+
     id_map_[id] = reg_id;
     advertising_sets_[id].scan_callback = scan_callback;
     advertising_sets_[id].set_terminated_callback = set_terminated_callback;
@@ -639,6 +646,21 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
       } break;
     }
   }
+
+  bool check_advertising_data(std::vector<GapData> data) {
+    uint16_t data_len = 0;
+    // check data size
+    for (size_t i = 0; i < data.size(); i++) {
+      data_len += data[i].size();
+    }
+
+    if (data_len > le_maximum_advertising_data_length_) {
+      LOG_WARN(
+          "advertising data len exceeds le_maximum_advertising_data_length_ %d", le_maximum_advertising_data_length_);
+      return false;
+    }
+    return true;
+  };
 
   bool check_extended_advertising_data(std::vector<GapData> data) {
     uint16_t data_len = 0;
