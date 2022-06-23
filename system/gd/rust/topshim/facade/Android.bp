@@ -64,6 +64,7 @@ rust_binary_host {
         "libbt_topshim_cxx",
         "libbt-audio-hal-interface",
         "libaudio-a2dp-hw-utils",
+        "libc++fs",
     ],
     shared_libs: [
         "libcrypto",
