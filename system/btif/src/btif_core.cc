@@ -77,7 +77,7 @@ static void bt_jni_msg_ready(void* context);
 #define BTE_DID_CONF_FILE "bt_did.conf"
 #else  // !defined(OS_GENERIC)
 #define BTE_DID_CONF_FILE \
-  "/apex/com.android.bluetooth/etc/bluetooth/bt_did.conf"
+  "/apex/com.android.btservices/etc/bluetooth/bt_did.conf"
 #endif  // defined(OS_GENERIC)
 #endif  // BTE_DID_CONF_FILE
 
