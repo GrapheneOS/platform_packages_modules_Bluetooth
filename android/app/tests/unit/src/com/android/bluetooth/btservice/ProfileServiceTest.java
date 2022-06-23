@@ -115,7 +115,7 @@ public class ProfileServiceTest {
 
         mMockAdapterService.initNative(false /* is_restricted */,
                 false /* is_common_criteria_mode */, 0 /* config_compare_result */,
-                new String[0], false);
+                new String[0], false, "");
 
         TestUtils.setAdapterService(mMockAdapterService);
         doReturn(mDatabaseManager).when(mMockAdapterService).getDatabase();
