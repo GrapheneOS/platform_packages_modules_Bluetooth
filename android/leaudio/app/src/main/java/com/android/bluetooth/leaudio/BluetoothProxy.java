@@ -669,18 +669,30 @@ public class BluetoothProxy {
                         break;
                     case BluetoothProfile.HAP_CLIENT:
                         bluetoothHapClient = (BluetoothHapClient) bluetoothProfile;
-                        bluetoothHapClient.registerCallback(mExecutor, hapCallback);
+                        try {
+                            bluetoothHapClient.registerCallback(mExecutor, hapCallback);
+                        } catch (IllegalArgumentException e) {
+                            Log.e("HAP", "Application callback already registered.");
+                        }
                         break;
                     case BluetoothProfile.LE_AUDIO_BROADCAST:
                         mBluetoothLeBroadcast = (BluetoothLeBroadcast) bluetoothProfile;
-                        mBluetoothLeBroadcast.registerCallback(mExecutor, mBroadcasterCallback);
+                        try {
+                            mBluetoothLeBroadcast.registerCallback(mExecutor, mBroadcasterCallback);
+                        } catch (IllegalArgumentException e) {
+                            Log.e("Broadcast", "Application callback already registered.");
+                        }
                         break;
                     case BluetoothProfile.LE_AUDIO_BROADCAST_ASSISTANT:
                         Log.d("BluetoothProxy", "LE_AUDIO_BROADCAST_ASSISTANT Service connected");
                         mBluetoothLeBroadcastAssistant = (BluetoothLeBroadcastAssistant)
                                 bluetoothProfile;
-                        mBluetoothLeBroadcastAssistant.registerCallback(mExecutor,
+                        try {
+                            mBluetoothLeBroadcastAssistant.registerCallback(mExecutor,
                                 mBroadcastAssistantCallback);
+                        } catch (IllegalArgumentException e) {
+                            Log.e("BASS", "Application callback already registered.");
+                        }
                         break;
                 }
                 queryLeAudioDevices();
