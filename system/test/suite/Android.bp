@@ -92,6 +92,7 @@ cc_defaults {
         "liblc3",
         "libosi",
         "libstatslog_bt",
+        "libc++fs",
     ],
     header_libs: [
         "libhardware_headers",
