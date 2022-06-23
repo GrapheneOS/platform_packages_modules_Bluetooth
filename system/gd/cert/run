@@ -362,7 +362,6 @@ function incremental_venv {
     cp {$HOST_LIB,$DEST_LIB_DIR}/libprotobuf-cpp-full.so
     cp {$HOST_LIB,$DEST_LIB_DIR}/libunwindstack.so
     cp {$HOST_LIB,$DEST_LIB_DIR}/liblzma.so
-    cp {$HOST_LIB,$DEST_LIB_DIR}/libbacktrace.so
 
     i="${ANDROID_BUILD_TOP}/packages/modules/Bluetooth/system/setup.py"
     cp {${ANDROID_BUILD_TOP}/packages/modules/Bluetooth/system,$DEST_DIR}${i#${ANDROID_BUILD_TOP}/packages/modules/Bluetooth/system}
