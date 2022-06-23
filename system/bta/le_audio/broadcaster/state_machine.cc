@@ -293,6 +293,7 @@ class BroadcastStateMachineImpl : public BroadcastStateMachine {
       adv_params.primary_advertising_phy = PHY_LE_1M;
       adv_params.secondary_advertising_phy = streaming_phy;
       adv_params.scan_request_notification_enable = 0;
+      adv_params.own_address_type = BLE_ADDR_RANDOM;
 
       periodic_params.max_interval = BroadcastStateMachine::kPaIntervalMax;
       periodic_params.min_interval = BroadcastStateMachine::kPaIntervalMin;

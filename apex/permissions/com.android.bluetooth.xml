@@ -16,7 +16,7 @@
 -->
 
 <permissions>
-    <privapp-permissions package="com.android.bluetooth.services">
+    <privapp-permissions package="com.android.bluetooth">
         <permission name="android.permission.BLUETOOTH_PRIVILEGED" />
         <permission name="android.permission.CONTROL_INCALL_EXPERIENCE" />
         <permission name="android.permission.READ_PRIVILEGED_PHONE_STATE" />
