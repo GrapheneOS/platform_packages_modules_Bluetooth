@@ -81,7 +81,7 @@ public final class AdvertisingSet {
     public void enableAdvertising(boolean enable, int duration,
             int maxExtendedAdvertisingEvents) {
         try {
-            final SynchronousResultReceiver recv = new SynchronousResultReceiver();
+            final SynchronousResultReceiver recv = SynchronousResultReceiver.get();
             mGatt.enableAdvertisingSet(mAdvertiserId, enable, duration,
                     maxExtendedAdvertisingEvents, mAttributionSource, recv);
             recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
@@ -107,7 +107,7 @@ public final class AdvertisingSet {
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_ADVERTISE)
     public void setAdvertisingData(AdvertiseData advertiseData) {
         try {
-            final SynchronousResultReceiver recv = new SynchronousResultReceiver();
+            final SynchronousResultReceiver recv = SynchronousResultReceiver.get();
             mGatt.setAdvertisingData(mAdvertiserId, advertiseData, mAttributionSource, recv);
             recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
         } catch (TimeoutException | RemoteException e) {
@@ -129,7 +129,7 @@ public final class AdvertisingSet {
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_ADVERTISE)
     public void setScanResponseData(AdvertiseData scanResponse) {
         try {
-            final SynchronousResultReceiver recv = new SynchronousResultReceiver();
+            final SynchronousResultReceiver recv = SynchronousResultReceiver.get();
             mGatt.setScanResponseData(mAdvertiserId, scanResponse, mAttributionSource, recv);
             recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
         } catch (TimeoutException | RemoteException e) {
@@ -149,7 +149,7 @@ public final class AdvertisingSet {
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_ADVERTISE)
     public void setAdvertisingParameters(AdvertisingSetParameters parameters) {
         try {
-            final SynchronousResultReceiver recv = new SynchronousResultReceiver();
+            final SynchronousResultReceiver recv = SynchronousResultReceiver.get();
             mGatt.setAdvertisingParameters(mAdvertiserId, parameters, mAttributionSource, recv);
             recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
         } catch (TimeoutException | RemoteException e) {
@@ -167,7 +167,7 @@ public final class AdvertisingSet {
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_ADVERTISE)
     public void setPeriodicAdvertisingParameters(PeriodicAdvertisingParameters parameters) {
         try {
-            final SynchronousResultReceiver recv = new SynchronousResultReceiver();
+            final SynchronousResultReceiver recv = SynchronousResultReceiver.get();
             mGatt.setPeriodicAdvertisingParameters(mAdvertiserId, parameters, mAttributionSource,
                     recv);
             recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
@@ -191,7 +191,7 @@ public final class AdvertisingSet {
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_ADVERTISE)
     public void setPeriodicAdvertisingData(AdvertiseData periodicData) {
         try {
-            final SynchronousResultReceiver recv = new SynchronousResultReceiver();
+            final SynchronousResultReceiver recv = SynchronousResultReceiver.get();
             mGatt.setPeriodicAdvertisingData(mAdvertiserId, periodicData, mAttributionSource, recv);
             recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
         } catch (TimeoutException | RemoteException e) {
@@ -211,7 +211,7 @@ public final class AdvertisingSet {
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_ADVERTISE)
     public void setPeriodicAdvertisingEnabled(boolean enable) {
         try {
-            final SynchronousResultReceiver recv = new SynchronousResultReceiver();
+            final SynchronousResultReceiver recv = SynchronousResultReceiver.get();
             mGatt.setPeriodicAdvertisingEnable(mAdvertiserId, enable, mAttributionSource, recv);
             recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
         } catch (TimeoutException | RemoteException e) {
@@ -233,7 +233,7 @@ public final class AdvertisingSet {
     })
     public void getOwnAddress() {
         try {
-            final SynchronousResultReceiver recv = new SynchronousResultReceiver();
+            final SynchronousResultReceiver recv = SynchronousResultReceiver.get();
             mGatt.getOwnAddress(mAdvertiserId, mAttributionSource, recv);
             recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
         } catch (TimeoutException | RemoteException e) {
