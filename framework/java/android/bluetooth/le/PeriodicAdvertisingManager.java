@@ -177,7 +177,7 @@ public final class PeriodicAdvertisingManager {
         mCallbackWrappers.put(callback, wrapped);
 
         try {
-            final SynchronousResultReceiver recv = new SynchronousResultReceiver();
+            final SynchronousResultReceiver recv = SynchronousResultReceiver.get();
             gatt.registerSync(scanResult, skip, timeout, wrapped, mAttributionSource, recv);
             recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
         } catch (TimeoutException | RemoteException e) {
@@ -215,7 +215,7 @@ public final class PeriodicAdvertisingManager {
         }
 
         try {
-            final SynchronousResultReceiver recv = new SynchronousResultReceiver();
+            final SynchronousResultReceiver recv = SynchronousResultReceiver.get();
             gatt.unregisterSync(wrapper, mAttributionSource, recv);
             recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
         } catch (TimeoutException | RemoteException e) {
@@ -246,7 +246,7 @@ public final class PeriodicAdvertisingManager {
             return;
         }
         try {
-            final SynchronousResultReceiver recv = new SynchronousResultReceiver();
+            final SynchronousResultReceiver recv = SynchronousResultReceiver.get();
             gatt.transferSync(bda, serviceData , syncHandle, mAttributionSource, recv);
             recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
         } catch (TimeoutException | RemoteException e) {
@@ -291,7 +291,7 @@ public final class PeriodicAdvertisingManager {
             throw new IllegalArgumentException("callback was not properly registered");
         }
         try {
-            final SynchronousResultReceiver recv = new SynchronousResultReceiver();
+            final SynchronousResultReceiver recv = SynchronousResultReceiver.get();
             gatt.transferSetInfo(bda, serviceData , advHandle, wrapper, mAttributionSource, recv);
             recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
         } catch (RemoteException | TimeoutException e) {
