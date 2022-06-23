@@ -67,6 +67,9 @@ cc_library_static {
     cflags: [
         "-DBUILDCFG",
     ],
+    apex_available: [
+        "com.android.bluetooth",
+    ],
     min_sdk_version: "Tiramisu"
 }
 

@@ -45,6 +45,9 @@ cc_library_static {
         "src/audio_a2dp_hw_utils.cc",
     ],
     host_supported: true,
+    apex_available: [
+        "com.android.bluetooth",
+    ],
     min_sdk_version: "29",
 }
 
