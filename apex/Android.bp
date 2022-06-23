@@ -8,7 +8,7 @@ package {
 }
 
 linker_config {
-    name: "bluetooth-linker-config",
+    name: "btservices-linker-config",
     src: "linker.config.json",
     installable: false,
 }
@@ -19,8 +19,8 @@ apex {
     name: "com.android.bluetooth",
     defaults: ["t-launched-apex-module"],
     manifest: "apex_manifest.json",
-    bootclasspath_fragments: ["com.android.bluetooth-bootclasspath-fragment"],
-    systemserverclasspath_fragments: ["com.android.bluetooth-systemserverclasspath-fragment"],
+    bootclasspath_fragments: ["com.android.btservices-bootclasspath-fragment"],
+    systemserverclasspath_fragments: ["com.android.btservices-systemserverclasspath-fragment"],
     apps: ["Bluetooth"],
 
     multilib: {
@@ -37,7 +37,7 @@ apex {
         "audio_set_configurations_json",
         "audio_set_scenarios_bfbs",
         "audio_set_scenarios_json",
-        "bluetooth-linker-config",
+        "btservices-linker-config",
         "bt_did.conf",
         "bt_stack.conf",
         "privapp_allowlist_com.android.bluetooth.xml",
@@ -53,8 +53,8 @@ apex {
     name: "com.android.btservices",
     defaults: ["t-launched-apex-module"],
     manifest: "apex_manifest.json",
-    bootclasspath_fragments: ["com.android.bluetooth-bootclasspath-fragment"],
-    systemserverclasspath_fragments: ["com.android.bluetooth-systemserverclasspath-fragment"],
+    bootclasspath_fragments: ["com.android.btservices-bootclasspath-fragment"],
+    systemserverclasspath_fragments: ["com.android.btservices-systemserverclasspath-fragment"],
     apps: ["Bluetooth"],
 
     multilib: {
@@ -71,7 +71,7 @@ apex {
         "audio_set_configurations_json",
         "audio_set_scenarios_bfbs",
         "audio_set_scenarios_json",
-        "bluetooth-linker-config",
+        "btservices-linker-config",
         "bt_did.conf",
         "bt_stack.conf",
         "privapp_allowlist_com.android.bluetooth.xml",
@@ -94,14 +94,14 @@ android_app_certificate {
 }
 
 sdk {
-    name: "bluetooth-module-sdk",
-    bootclasspath_fragments: ["com.android.bluetooth-bootclasspath-fragment"],
-    systemserverclasspath_fragments: ["com.android.bluetooth-systemserverclasspath-fragment"],
+    name: "btservices-module-sdk",
+    bootclasspath_fragments: ["com.android.btservices-bootclasspath-fragment"],
+    systemserverclasspath_fragments: ["com.android.btservices-systemserverclasspath-fragment"],
 }
 
 // Encapsulate the contributions made by the com.android.bluetooth to the bootclasspath.
 bootclasspath_fragment {
-    name: "com.android.bluetooth-bootclasspath-fragment",
+    name: "com.android.btservices-bootclasspath-fragment",
     contents: ["framework-bluetooth"],
     apex_available: ["com.android.bluetooth"],
 
@@ -151,7 +151,7 @@ bootclasspath_fragment {
 }
 
 systemserverclasspath_fragment {
-    name: "com.android.bluetooth-systemserverclasspath-fragment",
+    name: "com.android.btservices-systemserverclasspath-fragment",
     standalone_contents: ["service-bluetooth"],
     apex_available: ["com.android.bluetooth"],
 }
