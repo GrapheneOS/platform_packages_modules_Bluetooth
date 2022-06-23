@@ -5,7 +5,7 @@
   "provideSharedApexLibs": false,
   "requireSharedApexLibs": [
   ],
-  "name": "com.android.bluetooth",
+  "name": "com.android.btservices",
   "requireNativeLibs": [
     "libaptX_encoder.so",
     "libaptXHD_encoder.so"
