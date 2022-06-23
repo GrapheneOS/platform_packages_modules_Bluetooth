@@ -19,6 +19,7 @@
 #include <cstdint>
 #include <string>
 
+#include "btm_sco_hfp_hal.h"
 #include "device/include/esco_parameters.h"
 #include "stack/include/btm_api_types.h"
 
@@ -137,6 +138,7 @@ typedef struct {
 
   void Init() {
     def_esco_parms = esco_parameters_for_codec(ESCO_CODEC_CVSD_S3);
+    hfp_hal_interface::init();
   }
 
   void Free() { bluetooth::audio::sco::cleanup(); }
