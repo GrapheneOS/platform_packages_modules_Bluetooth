@@ -354,7 +354,8 @@ class BluetoothInterfaceImpl : public BluetoothInterface {
 
     // Initialize the Bluetooth interface. Set up the adapter (Bluetooth DM) API
     // callbacks.
-    status = hal_iface_->init(&bt_callbacks, false, false, 0, nullptr, false);
+    status = hal_iface_->init(&bt_callbacks, false, false, 0, nullptr, false,
+                              nullptr);
     if (status != BT_STATUS_SUCCESS) {
       LOG(ERROR) << "Failed to initialize Bluetooth stack";
       return false;
