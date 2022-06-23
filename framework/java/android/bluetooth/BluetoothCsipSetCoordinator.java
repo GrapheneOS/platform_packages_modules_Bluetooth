@@ -278,7 +278,7 @@ public final class BluetoothCsipSetCoordinator implements BluetoothProfile, Auto
             IBluetoothCsipSetCoordinatorLockCallback delegate =
                     new BluetoothCsipSetCoordinatorLockCallbackDelegate(executor, callback);
             try {
-                final SynchronousResultReceiver<ParcelUuid> recv = new SynchronousResultReceiver();
+                final SynchronousResultReceiver<ParcelUuid> recv = SynchronousResultReceiver.get();
                 service.lockGroup(groupId, delegate, mAttributionSource, recv);
                 final ParcelUuid ret = recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
                 return ret == null ? defaultValue : ret.getUuid();
@@ -311,7 +311,7 @@ public final class BluetoothCsipSetCoordinator implements BluetoothProfile, Auto
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else if (isEnabled()) {
             try {
-                final SynchronousResultReceiver recv = new SynchronousResultReceiver();
+                final SynchronousResultReceiver recv = SynchronousResultReceiver.get();
                 service.unlockGroup(new ParcelUuid(lockUuid), mAttributionSource, recv);
                 recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
                 return true;
@@ -343,7 +343,7 @@ public final class BluetoothCsipSetCoordinator implements BluetoothProfile, Auto
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else if (isEnabled()) {
             try {
-                final SynchronousResultReceiver<Map> recv = new SynchronousResultReceiver();
+                final SynchronousResultReceiver<Map> recv = SynchronousResultReceiver.get();
                 service.getGroupUuidMapByDevice(device, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (TimeoutException e) {
@@ -374,7 +374,7 @@ public final class BluetoothCsipSetCoordinator implements BluetoothProfile, Auto
         } else if (isEnabled()) {
             try {
                 final SynchronousResultReceiver<List<Integer>> recv =
-                        new SynchronousResultReceiver();
+                        SynchronousResultReceiver.get();
                 service.getAllGroupIds(uuid, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (TimeoutException e) {
@@ -400,7 +400,7 @@ public final class BluetoothCsipSetCoordinator implements BluetoothProfile, Auto
         } else if (isEnabled()) {
             try {
                 final SynchronousResultReceiver<List<BluetoothDevice>> recv =
-                        new SynchronousResultReceiver();
+                        SynchronousResultReceiver.get();
                 service.getConnectedDevices(mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (TimeoutException e) {
@@ -427,7 +427,7 @@ public final class BluetoothCsipSetCoordinator implements BluetoothProfile, Auto
         } else if (isEnabled()) {
             try {
                 final SynchronousResultReceiver<List<BluetoothDevice>> recv =
-                        new SynchronousResultReceiver();
+                        SynchronousResultReceiver.get();
                 service.getDevicesMatchingConnectionStates(states, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (TimeoutException e) {
@@ -453,7 +453,7 @@ public final class BluetoothCsipSetCoordinator implements BluetoothProfile, Auto
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else if (isEnabled()) {
             try {
-                final SynchronousResultReceiver<Integer> recv = new SynchronousResultReceiver();
+                final SynchronousResultReceiver<Integer> recv = SynchronousResultReceiver.get();
                 service.getConnectionState(device, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (TimeoutException e) {
@@ -492,7 +492,7 @@ public final class BluetoothCsipSetCoordinator implements BluetoothProfile, Auto
                 && (connectionPolicy == BluetoothProfile.CONNECTION_POLICY_FORBIDDEN
                     || connectionPolicy == BluetoothProfile.CONNECTION_POLICY_ALLOWED)) {
             try {
-                final SynchronousResultReceiver<Boolean> recv = new SynchronousResultReceiver();
+                final SynchronousResultReceiver<Boolean> recv = SynchronousResultReceiver.get();
                 service.setConnectionPolicy(device, connectionPolicy, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (TimeoutException e) {
@@ -527,7 +527,7 @@ public final class BluetoothCsipSetCoordinator implements BluetoothProfile, Auto
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else if (isEnabled() && isValidDevice(device)) {
             try {
-                final SynchronousResultReceiver<Integer> recv = new SynchronousResultReceiver();
+                final SynchronousResultReceiver<Integer> recv = SynchronousResultReceiver.get();
                 service.getConnectionPolicy(device, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (TimeoutException e) {
