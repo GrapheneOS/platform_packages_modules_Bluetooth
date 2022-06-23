@@ -88,7 +88,7 @@ public class BluetoothProxy {
                                                 .equals(groupId))
                                 .collect(Collectors.toList());
             for (LeAudioDeviceStateWrapper dev : valid_devices) {
-                dev.leAudioData.groupStatusMutable.setValue(
+                dev.leAudioData.groupStatusMutable.postValue(
                         new Pair<>(groupId, new Pair<>(groupStatus, 0)));
             }
         }
@@ -112,8 +112,8 @@ public class BluetoothProxy {
             LeAudioDeviceStateWrapper valid_device = valid_device_opt.get();
             LeAudioDeviceStateWrapper.LeAudioData svc_data = valid_device.leAudioData;
 
-            svc_data.nodeStatusMutable.setValue(new Pair<>(groupId, GROUP_NODE_ADDED));
-            svc_data.groupStatusMutable.setValue(new Pair<>(groupId, new Pair<>(-1, -1)));
+            svc_data.nodeStatusMutable.postValue(new Pair<>(groupId, GROUP_NODE_ADDED));
+            svc_data.groupStatusMutable.postValue(new Pair<>(groupId, new Pair<>(-1, -1)));
         }
         @Override
         public void onGroupNodeRemoved(BluetoothDevice device, int groupId) {
@@ -141,8 +141,8 @@ public class BluetoothProxy {
             LeAudioDeviceStateWrapper valid_device = valid_device_opt.get();
             LeAudioDeviceStateWrapper.LeAudioData svc_data = valid_device.leAudioData;
 
-            svc_data.nodeStatusMutable.setValue(new Pair<>(groupId, GROUP_NODE_REMOVED));
-            svc_data.groupStatusMutable.setValue(new Pair<>(groupId, new Pair<>(-1, -1)));
+            svc_data.nodeStatusMutable.postValue(new Pair<>(groupId, GROUP_NODE_REMOVED));
+            svc_data.groupStatusMutable.postValue(new Pair<>(groupId, new Pair<>(-1, -1)));
         }
     };
 
@@ -155,9 +155,9 @@ public class BluetoothProxy {
                 int toState =
                         intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
                 if (toState == BluetoothAdapter.STATE_ON) {
-                    enabledBluetoothMutable.setValue(true);
+                    enabledBluetoothMutable.postValue(true);
                 } else if (toState == BluetoothAdapter.STATE_OFF) {
-                    enabledBluetoothMutable.setValue(false);
+                    enabledBluetoothMutable.postValue(false);
                 }
             }
         }
@@ -192,10 +192,10 @@ public class BluetoothProxy {
                                             .postValue(toState == BluetoothLeAudio.STATE_CONNECTED);
 
                                 group_id = bluetoothLeAudio.getGroupId(device);
-                                svc_data.nodeStatusMutable.setValue(
+                                svc_data.nodeStatusMutable.postValue(
                                         new Pair<>(group_id, GROUP_NODE_ADDED));
                                 svc_data.groupStatusMutable
-                                        .setValue(new Pair<>(group_id, new Pair<>(-1, -1)));
+                                        .postValue(new Pair<>(group_id, new Pair<>(-1, -1)));
                                 break;
                             }
                         }
