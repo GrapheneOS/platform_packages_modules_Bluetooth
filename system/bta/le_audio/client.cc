@@ -851,11 +851,24 @@ class LeAudioClientImpl : public LeAudioClient {
       }
     }
 
-    /* Configure audio HAL sessions with most frequent context.
-     * If reconfiguration is not needed it means, context type is not supported
+    /* Try configure audio HAL sessions with most frequent context.
+     * If reconfiguration is not needed it means, context type is not supported.
+     * If most frequest scenario is not supported, try to find first supported.
      */
+    LeAudioContextType default_context_type = LeAudioContextType::UNSPECIFIED;
+    if (group->IsContextSupported(LeAudioContextType::MEDIA)) {
+      default_context_type = LeAudioContextType::MEDIA;
+    } else {
+      for (LeAudioContextType context_type :
+           le_audio::types::kLeAudioContextAllTypesArray) {
+        if (group->IsContextSupported(context_type)) {
+          default_context_type = context_type;
+          break;
+        }
+      }
+    }
     UpdateConfigAndCheckIfReconfigurationIsNeeded(group_id,
-                                                  LeAudioContextType::MEDIA);
+                                                  default_context_type);
     if (current_source_codec_config.IsInvalid() &&
         current_sink_codec_config.IsInvalid()) {
       LOG(WARNING) << __func__ << ", unsupported device configurations";
