@@ -385,6 +385,16 @@ void bta_gattc_open(tBTA_GATTC_CLCB* p_clcb, const tBTA_GATTC_DATA* p_data) {
     return;
   }
 
+  tBTA_GATTC_RCB* p_clreg = p_clcb->p_rcb;
+  /* Re-enable notification registration for closed connection */
+  for (int i = 0; i < BTA_GATTC_NOTIF_REG_MAX; i++) {
+    if (p_clreg->notif_reg[i].in_use &&
+        p_clreg->notif_reg[i].remote_bda == p_clcb->bda &&
+        p_clreg->notif_reg[i].app_disconnected) {
+      p_clreg->notif_reg[i].app_disconnected = false;
+    }
+  }
+
   /* a connected remote device */
   if (GATT_GetConnIdIfConnected(
           p_clcb->p_rcb->client_if, p_data->api_conn.remote_bda,
@@ -511,6 +521,16 @@ void bta_gattc_conn(tBTA_GATTC_CLCB* p_clcb, const tBTA_GATTC_DATA* p_data) {
 
   if (p_clcb->p_srcb->mtu == 0) p_clcb->p_srcb->mtu = GATT_DEF_BLE_MTU_SIZE;
 
+  tBTA_GATTC_RCB* p_clreg = p_clcb->p_rcb;
+  /* Re-enable notification registration for closed connection */
+  for (int i = 0; i < BTA_GATTC_NOTIF_REG_MAX; i++) {
+    if (p_clreg->notif_reg[i].in_use &&
+        p_clreg->notif_reg[i].remote_bda == p_clcb->bda &&
+        p_clreg->notif_reg[i].app_disconnected) {
+      p_clreg->notif_reg[i].app_disconnected = false;
+    }
+  }
+
   /* start database cache if needed */
   if (p_clcb->p_srcb->gatt_database.IsEmpty() ||
       p_clcb->p_srcb->state != BTA_GATTC_SERV_IDLE) {
@@ -602,6 +622,14 @@ void bta_gattc_close(tBTA_GATTC_CLCB* p_clcb, const tBTA_GATTC_DATA* p_data) {
 
   if (p_clcb->transport == BT_TRANSPORT_BR_EDR) {
     bta_sys_conn_close(BTA_ID_GATTC, BTA_ALL_APP_ID, p_clcb->bda);
+  }
+
+  /* Disable notification registration for closed connection */
+  for (int i = 0; i < BTA_GATTC_NOTIF_REG_MAX; i++) {
+    if (p_clreg->notif_reg[i].in_use &&
+        p_clreg->notif_reg[i].remote_bda == p_clcb->bda) {
+      p_clreg->notif_reg[i].app_disconnected = true;
+    }
   }
 
   bta_gattc_clcb_dealloc(p_clcb);
