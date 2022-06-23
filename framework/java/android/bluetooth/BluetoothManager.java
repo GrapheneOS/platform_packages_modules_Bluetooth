@@ -172,7 +172,7 @@ public final class BluetoothManager {
             IBluetoothGatt iGatt = managerService.getBluetoothGatt();
             if (iGatt == null) return devices;
             final SynchronousResultReceiver<List<BluetoothDevice>> recv =
-                    new SynchronousResultReceiver();
+                    SynchronousResultReceiver.get();
             iGatt.getDevicesMatchingConnectionStates(states, mAttributionSource, recv);
             devices = Attributable.setAttributionSource(
                     recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(devices),
