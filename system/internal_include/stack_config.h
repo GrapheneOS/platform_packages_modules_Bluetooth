@@ -34,6 +34,7 @@ typedef struct {
   const std::string* (*get_pts_smp_options)(void);
   int (*get_pts_smp_failure_case)(void);
   bool (*get_pts_force_eatt_for_notifications)(void);
+  bool (*get_pts_connect_eatt_unconditionally)(void);
   config_t* (*get_all)(void);
 } stack_config_t;
 
