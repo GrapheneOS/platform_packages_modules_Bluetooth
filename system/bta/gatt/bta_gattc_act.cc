@@ -588,14 +588,6 @@ void bta_gattc_close(tBTA_GATTC_CLCB* p_clcb, const tBTA_GATTC_DATA* p_data) {
   if (p_clcb->transport == BT_TRANSPORT_BR_EDR)
     bta_sys_conn_close(BTA_ID_GATTC, BTA_ALL_APP_ID, p_clcb->bda);
 
-  /* Clean up notification registration for closed client */
-  for (int i = 0; i < BTA_GATTC_NOTIF_REG_MAX; i++) {
-    if (p_clreg->notif_reg[i].in_use &&
-        p_clreg->notif_reg[i].remote_bda == p_clcb->bda) {
-      p_clreg->notif_reg[i] = {};
-    }
-  }
-
   bta_gattc_clcb_dealloc(p_clcb);
 
   if (p_data->hdr.event == BTA_GATTC_API_CLOSE_EVT) {
