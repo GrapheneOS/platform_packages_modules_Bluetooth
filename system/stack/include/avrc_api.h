@@ -138,6 +138,17 @@
 #define AVRC_DEFAULT_VERSION AVRC_1_5_STRING
 #endif
 
+/* Configurable dynamic avrcp version enable key*/
+#ifndef AVRC_DYNAMIC_AVRCP_ENABLE_PROPERTY
+#define AVRC_DYNAMIC_AVRCP_ENABLE_PROPERTY \
+  "persist.bluetooth.dynamic_avrcp.enable"
+#endif
+
+/* Avrcp controller version key for bt_config.conf */
+#ifndef AVRCP_CONTROLLER_VERSION_CONFIG_KEY
+#define AVRCP_CONTROLLER_VERSION_CONFIG_KEY "AvrcpControllerVersion"
+#endif
+
 /* Supported categories */
 #define AVRC_SUPF_CT_CAT1 0x0001         /* Category 1 */
 #define AVRC_SUPF_CT_CAT2 0x0002         /* Category 2 */
@@ -465,6 +476,28 @@ extern uint16_t AVRC_CloseBrowse(uint8_t handle);
  *****************************************************************************/
 extern uint16_t AVRC_MsgReq(uint8_t handle, uint8_t label, uint8_t ctype,
                             BT_HDR* p_pkt);
+
+/******************************************************************************
+ *
+ * Function         AVRC_SaveControllerVersion
+ *
+ * Description      Save AVRC controller version of peer device into bt_config.
+ *                  This version is used to send same AVRC target version to
+ *                  peer device to avoid version mismatch IOP issue.
+ *
+ *                  Input Parameters:
+ *                      bdaddr: BD address of peer device.
+ *
+ *                      version: AVRC controller version of peer device.
+ *
+ *                  Output Parameters:
+ *                      None.
+ *
+ * Returns          Nothing
+ *
+ *****************************************************************************/
+extern void AVRC_SaveControllerVersion(const RawAddress& bdaddr,
+                                       uint16_t new_version);
 
 /******************************************************************************
  *
