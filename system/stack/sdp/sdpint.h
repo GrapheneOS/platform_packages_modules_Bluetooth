@@ -232,6 +232,10 @@ extern uint8_t* sdpu_build_partial_attrib_entry(uint8_t* p_out,
                                                 uint16_t len, uint16_t* offset);
 extern uint16_t sdpu_is_avrcp_profile_description_list(
     const tSDP_ATTRIBUTE* p_attr);
+extern bool sdpu_is_service_id_avrc_target(const tSDP_ATTRIBUTE* p_attr);
+extern bool spdu_is_avrcp_version_valid(const uint16_t version);
+extern void sdpu_set_avrc_target_version(const tSDP_ATTRIBUTE* p_attr,
+                                         const RawAddress* bdaddr);
 
 /* Functions provided by sdp_db.cc
  */
