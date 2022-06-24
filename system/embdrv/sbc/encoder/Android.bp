@@ -30,5 +30,8 @@ cc_library_static {
         "packages/modules/Bluetooth/system/stack/include",
     ],
     host_supported: true,
+    apex_available: [
+        "com.android.bluetooth",
+    ],
     min_sdk_version: "Tiramisu"
 }
