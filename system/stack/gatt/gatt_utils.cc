@@ -813,7 +813,8 @@ tGATT_STATUS gatt_send_error_rsp(tGATT_TCB& tcb, uint16_t cid, uint8_t err_code,
   msg.error.reason = err_code;
   msg.error.handle = handle;
 
-  p_buf = attp_build_sr_msg(tcb, GATT_RSP_ERROR, &msg);
+  uint16_t payload_size = gatt_tcb_get_payload_size_tx(tcb, cid);
+  p_buf = attp_build_sr_msg(tcb, GATT_RSP_ERROR, &msg, payload_size);
   if (p_buf != NULL) {
     status = attp_send_sr_msg(tcb, cid, p_buf);
   } else
