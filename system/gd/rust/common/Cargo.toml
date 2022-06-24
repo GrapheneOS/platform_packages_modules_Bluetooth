@@ -21,6 +21,7 @@ edition = "2018"
 [dependencies]
 cxx = "*"
 env_logger = "*"
+futures = "0.3.13"
 grpcio = "*"
 lazy_static = "*"
 log = "*"
