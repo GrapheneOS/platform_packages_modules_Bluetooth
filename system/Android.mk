@@ -39,8 +39,7 @@ LOCAL_host_libraries := \
 	$(HOST_OUT_SHARED_LIBRARIES)/libz-host.so \
 	$(HOST_OUT_SHARED_LIBRARIES)/libprotobuf-cpp-full.so \
 	$(HOST_OUT_SHARED_LIBRARIES)/libunwindstack.so \
-	$(HOST_OUT_SHARED_LIBRARIES)/liblzma.so \
-	$(HOST_OUT_SHARED_LIBRARIES)/libbacktrace.so
+	$(HOST_OUT_SHARED_LIBRARIES)/liblzma.so
 
 LOCAL_target_executables := \
 	$(TARGET_OUT_EXECUTABLES)/bluetooth_stack_with_facade
