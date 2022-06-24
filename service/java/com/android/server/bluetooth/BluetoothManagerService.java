@@ -229,6 +229,7 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
     private final ReentrantReadWriteLock mBluetoothLock = new ReentrantReadWriteLock();
     private boolean mBinding;
     private boolean mUnbinding;
+    private List<Integer> mSupportedProfileList = new ArrayList<>();
 
     private BluetoothModeChangeHelper mBluetoothModeChangeHelper;
 
@@ -931,6 +932,25 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
         recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
     }
 
+    @GuardedBy("mBluetoothLock")
+    private List<Integer> synchronousGetSupportedProfiles(AttributionSource attributionSource)
+            throws RemoteException, TimeoutException {
+        final ArrayList<Integer> supportedProfiles = new ArrayList<Integer>();
+        if (mBluetooth == null) return supportedProfiles;
+        final SynchronousResultReceiver<Long> recv = SynchronousResultReceiver.get();
+        mBluetooth.getSupportedProfiles(attributionSource, recv);
+        final long supportedProfilesBitMask =
+                recv.awaitResultNoInterrupt(getSyncTimeout()).getValue((long) 0);
+
+        for (int i = 0; i <= BluetoothProfile.MAX_PROFILE_ID; i++) {
+            if ((supportedProfilesBitMask & (1 << i)) != 0) {
+                supportedProfiles.add(i);
+            }
+        }
+
+        return supportedProfiles;
+    }
+
     /**
      * Sends the current foreground user id to the Bluetooth process. This user id is used to
      * determine if Binder calls are coming from the active user.
@@ -1534,10 +1554,10 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
             ProfileServiceConnections psc = mProfileServices.get(new Integer(bluetoothProfile));
             Intent intent;
             if (bluetoothProfile == BluetoothProfile.HEADSET
-                    && BluetoothProperties.isProfileHfpAgEnabled().orElse(false)) {
+                    && mSupportedProfileList.contains(BluetoothProfile.HEADSET)) {
                 intent = new Intent(IBluetoothHeadset.class.getName());
             } else if (bluetoothProfile == BluetoothProfile.LE_CALL_CONTROL
-                    && BluetoothProperties.isProfileCcpServerEnabled().orElse(false)) {
+                    && mSupportedProfileList.contains(BluetoothProfile.LE_CALL_CONTROL)) {
                 intent = new Intent(IBluetoothLeCallControl.class.getName());
             } else {
                 return false;
@@ -2326,6 +2346,14 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
                         //Inform BluetoothAdapter instances that service is up
                         sendBluetoothServiceUpCallback();
 
+                        // Get the supported profiles list
+                        try {
+                            mSupportedProfileList = synchronousGetSupportedProfiles(
+                                    mContext.getAttributionSource());
+                        } catch (RemoteException | TimeoutException e) {
+                            Log.e(TAG, "Unable to get the supported profiles list", e);
+                        }
+
                         //Do enable request
                         try {
                             if (!synchronousEnable(mQuietEnable, mContext.getAttributionSource())) {
@@ -2404,6 +2432,7 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
                                 break;
                             }
                             mBluetooth = null;
+                            mSupportedProfileList.clear();
                         } else if (msg.arg1 == SERVICE_IBLUETOOTHGATT) {
                             mBluetoothGatt = null;
                             break;
