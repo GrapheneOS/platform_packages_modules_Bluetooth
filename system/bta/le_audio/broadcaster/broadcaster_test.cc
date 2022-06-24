@@ -23,6 +23,7 @@
 #include "bta/include/bta_le_audio_api.h"
 #include "bta/include/bta_le_audio_broadcaster_api.h"
 #include "bta/le_audio/broadcaster/mock_state_machine.h"
+#include "bta/le_audio/content_control_id_keeper.h"
 #include "bta/le_audio/le_audio_types.h"
 #include "bta/le_audio/mock_iso_manager.h"
 #include "bta/test/common/mock_controller.h"
@@ -118,6 +119,7 @@ static const std::vector<uint8_t> default_metadata = {
     le_audio::types::kLeAudioMetadataTypeStreamingAudioContext,
     default_context & 0x00FF, (default_context & 0xFF00) >> 8};
 
+static constexpr uint8_t media_ccid = 0xC0;
 static constexpr auto media_context =
     static_cast<std::underlying_type<LeAudioContextType>::type>(
         LeAudioContextType::MEDIA);
@@ -199,6 +201,8 @@ class BroadcasterTest : public Test {
     LeAudioBroadcaster::InitializeAudioClient(mock_audio_source_);
     LeAudioBroadcaster::Initialize(&mock_broadcaster_callbacks_,
                                    base::Bind([]() -> bool { return true; }));
+
+    ContentControlIdKeeper::GetInstance()->Start();
 
     /* Simulate random generator */
     uint8_t random[] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
@@ -512,14 +516,24 @@ TEST_F(BroadcasterTest, StreamParamsAlerts) {
 
 TEST_F(BroadcasterTest, StreamParamsMedia) {
   uint8_t expected_channels = 2u;
+  ContentControlIdKeeper::GetInstance()->SetCcid(media_context, media_ccid);
   InstantiateBroadcast(media_metadata);
   auto config = MockBroadcastStateMachine::GetLastInstance()->cfg;
 
   // Check audio configuration
   ASSERT_EQ(config.codec_wrapper.GetNumChannels(), expected_channels);
+
+  auto& subgroup = config.announcement.subgroup_configs[0];
+
   // Matches number of bises in the announcement
-  ASSERT_EQ(config.announcement.subgroup_configs[0].bis_configs.size(),
-            expected_channels);
+  ASSERT_EQ(subgroup.bis_configs.size(), expected_channels);
+  // Verify CCID for Media
+  auto ccid_list_opt = types::LeAudioLtvMap(subgroup.metadata)
+                           .Find(le_audio::types::kLeAudioMetadataTypeCcidList);
+  ASSERT_TRUE(ccid_list_opt.has_value());
+  auto ccid_list = ccid_list_opt.value();
+  ASSERT_EQ(1u, ccid_list.size());
+  ASSERT_EQ(media_ccid, ccid_list[0]);
   // Note: Num of bises at IsoManager level is verified by state machine tests
 }
 
