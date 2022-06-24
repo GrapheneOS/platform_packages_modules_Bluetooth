@@ -1,6 +1,12 @@
 {
-  "name": "com.android.bluetooth",
+
   "version": 990090000,
+  "provideNativeLibs": [
+  ],
+  "provideSharedApexLibs": false,
+  "requireSharedApexLibs": [
+  ],
+  "name": "com.android.btservices",
   "requireNativeLibs": [
     "libaptX_encoder.so",
     "libaptXHD_encoder.so"
