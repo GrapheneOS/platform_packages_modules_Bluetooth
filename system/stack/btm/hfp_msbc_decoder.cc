@@ -20,6 +20,8 @@
 
 #include <base/logging.h>
 
+#include <cstring>
+
 #include "embdrv/sbc/decoder/include/oi_codec_sbc.h"
 #include "embdrv/sbc/decoder/include/oi_status.h"
 #include "osi/include/log.h"
