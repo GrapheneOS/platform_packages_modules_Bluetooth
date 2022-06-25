@@ -352,7 +352,8 @@ bool bta_gattc_check_notif_registry(tBTA_GATTC_RCB* p_clreg,
   for (i = 0; i < BTA_GATTC_NOTIF_REG_MAX; i++) {
     if (p_clreg->notif_reg[i].in_use &&
         p_clreg->notif_reg[i].remote_bda == p_srcb->server_bda &&
-        p_clreg->notif_reg[i].handle == p_notify->handle) {
+        p_clreg->notif_reg[i].handle == p_notify->handle &&
+        !p_clreg->notif_reg[i].app_disconnected) {
       VLOG(1) << "Notification registered!";
       return true;
     }
