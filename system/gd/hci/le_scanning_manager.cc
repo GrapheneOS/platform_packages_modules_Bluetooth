@@ -501,6 +501,16 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
       return;
     }
 
+    switch (address_type) {
+      case (uint8_t)AddressType::PUBLIC_DEVICE_ADDRESS:
+      case (uint8_t)AddressType::PUBLIC_IDENTITY_ADDRESS:
+        address_type = (uint8_t)AddressType::PUBLIC_DEVICE_ADDRESS;
+        break;
+      case (uint8_t)AddressType::RANDOM_DEVICE_ADDRESS:
+      case (uint8_t)AddressType::RANDOM_IDENTITY_ADDRESS:
+        address_type = (uint8_t)AddressType::RANDOM_DEVICE_ADDRESS;
+        break;
+    }
     scanning_callbacks_->OnScanResult(
         event_type,
         address_type,
