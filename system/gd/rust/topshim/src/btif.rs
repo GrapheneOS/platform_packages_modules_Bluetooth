@@ -895,7 +895,8 @@ impl BluetoothInterface {
             is_common_criteria_mode,
             config_compare_result,
             flags,
-            is_atv
+            is_atv,
+            std::ptr::null()
         );
 
         self.is_init = init == 0;
