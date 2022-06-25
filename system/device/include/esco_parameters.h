@@ -135,4 +135,4 @@ typedef struct {
 } enh_esco_params_t;
 
 // Get the enhanced eSCO configuration parameters for the provided |codec|
-enh_esco_params_t esco_parameters_for_codec(esco_codec_t codec);
+enh_esco_params_t esco_parameters_for_codec(esco_codec_t codec, bool offload);
