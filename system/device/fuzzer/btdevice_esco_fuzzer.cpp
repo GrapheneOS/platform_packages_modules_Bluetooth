@@ -71,6 +71,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
       interopFeature,
       mFuzzedDataProvider.ConsumeRandomLengthString(kMaxStringLength).c_str());
   esco_codec_t escoCodec = mFuzzedDataProvider.PickValueInArray(kEscoCodec);
-  esco_parameters_for_codec(escoCodec);
+  esco_parameters_for_codec(escoCodec, true);
   return 0;
 }
