@@ -25,6 +25,7 @@ import android.app.AlarmManager;
 import android.app.admin.DevicePolicyManager;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothManager;
 import android.bluetooth.IBluetoothCallback;
 import android.content.AttributionSource;
 import android.content.Context;
@@ -144,6 +145,7 @@ public class AdapterServiceTest {
     private final AttributionSource mAttributionSource = new AttributionSource.Builder(
             Process.myUid()).build();
 
+    private BluetoothManager mBluetoothManager;
     private PowerManager mPowerManager;
     private PermissionCheckerManager mPermissionCheckerManager;
     private PermissionManager mPermissionManager;
@@ -238,6 +240,9 @@ public class AdapterServiceTest {
         mPermissionManager = InstrumentationRegistry.getTargetContext()
                 .getSystemService(PermissionManager.class);
 
+        mBluetoothManager = InstrumentationRegistry.getTargetContext()
+                .getSystemService(BluetoothManager.class);
+
         when(mMockContext.getApplicationInfo()).thenReturn(mMockApplicationInfo);
         when(mMockContext.getContentResolver()).thenReturn(mMockContentResolver);
         when(mMockContext.getApplicationContext()).thenReturn(mMockContext);
@@ -273,6 +278,11 @@ public class AdapterServiceTest {
                 .thenReturn(mBatteryStatsManager);
         when(mMockContext.getSystemServiceName(BatteryStatsManager.class))
                 .thenReturn(Context.BATTERY_STATS_SERVICE);
+        when(mMockContext.getSystemService(Context.BLUETOOTH_SERVICE))
+                .thenReturn(mBluetoothManager);
+        when(mMockContext.getSystemServiceName(BluetoothManager.class))
+                .thenReturn(Context.BLUETOOTH_SERVICE);
+
         when(mMockContext.getAttributionSource()).thenReturn(mAttributionSource);
         doAnswer(invocation -> {
             Object[] args = invocation.getArguments();
