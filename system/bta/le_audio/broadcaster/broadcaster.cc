@@ -21,6 +21,7 @@
 #include "bta/include/bta_le_audio_broadcaster_api.h"
 #include "bta/le_audio/broadcaster/state_machine.h"
 #include "bta/le_audio/le_audio_types.h"
+#include "bta/le_audio/metrics_collector.h"
 #include "device/include/controller.h"
 #include "embdrv/lc3/include/lc3.h"
 #include "gd/common/strings.h"
@@ -278,6 +279,7 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
 
       broadcasts_[broadcast_id]->ProcessMessage(
           BroadcastStateMachine::Message::START, nullptr);
+      le_audio::MetricsCollector::Get()->OnBroadcastStateChanged(true);
     } else {
       LOG_ERROR("No such broadcast_id=%d", broadcast_id);
     }
@@ -295,6 +297,7 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
     broadcasts_[broadcast_id]->SetMuted(true);
     broadcasts_[broadcast_id]->ProcessMessage(
         BroadcastStateMachine::Message::STOP, nullptr);
+    le_audio::MetricsCollector::Get()->OnBroadcastStateChanged(false);
   }
 
   void DestroyAudioBroadcast(uint32_t broadcast_id) override {

@@ -219,5 +219,9 @@ void LogLeAudioConnectionSessionReported(
   mock_function_count_map[__func__]++;
 }
 
+void LogLeAudioBroadcastSessionReported(int64_t duration_nanos) {
+  mock_function_count_map[__func__]++;
+}
+
 }  // namespace common
 }  // namespace bluetooth
