@@ -37,7 +37,7 @@ const DUAL_TYPE: &str = "BR/EDR;LE;";
 
 /// Represents LTK info since in Floss,
 /// LE_KEY_PENC = LTK + RAND (64) + EDIV (16) + Security Level (8) + Key Length (8)
-#[derive(Default)]
+#[derive(Debug, Default)]
 struct LtkInfo {
     key: u128,
     rand: u64,
@@ -787,5 +787,250 @@ pub fn migrate_floss_devices() {
 
     for entry in globbed {
         convert_floss_conf(entry.unwrap_or_default().to_str().unwrap_or_default());
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_device_key_wrapok() {
+        let test_str = String::from("do_nothing");
+        let mut key = DeviceKey::new("", KeyAction::WrapOk);
+        assert_eq!(key.apply_action(test_str.clone()), Ok(test_str));
+    }
+
+    #[test]
+    fn test_device_key_to_section() {
+        let test_str = String::from("do_nothing");
+        let mut key = DeviceKey::new("", KeyAction::ToSection(LINKKEY_SECTION_NAME));
+        assert_eq!(key.apply_action(test_str.clone()), Ok(test_str));
+        assert_eq!(key.section, LINKKEY_SECTION_NAME)
+    }
+
+    #[test]
+    fn test_device_key_apply_dec_to_hex() {
+        // DevClass example
+        let mut key = DeviceKey::new("", KeyAction::Apply(Converter::DecToHex));
+        assert_eq!(key.apply_action("2360344".to_string()), Ok("0x240418".to_string()));
+        assert_eq!(
+            key.apply_action("236034B".to_string()),
+            Err("Error converting from dec string to hex string: invalid digit found in string"
+                .to_string())
+        );
+    }
+
+    #[test]
+    fn test_device_key_apply_to_section_hex_to_dec() {
+        // DevClass example
+        let mut key = DeviceKey::new(
+            "",
+            KeyAction::ApplyToSection(Converter::HexToDec, GENERAL_SECTION_NAME),
+        );
+        assert_eq!(key.apply_action("0x240418".to_string()), Ok("2360344".to_string()));
+        assert_eq!(key.section, GENERAL_SECTION_NAME);
+        assert_eq!(
+            key.apply_action("236034T".to_string()),
+            Err("Error converting from hex string to dec string: invalid digit found in string"
+                .to_string())
+        );
+    }
+
+    #[test]
+    fn test_hex_to_base64() {
+        // HID report map example taken from real HID mouse conversion
+        let mut key = DeviceKey::new("", KeyAction::Apply(Converter::HexToBase64));
+        assert_eq!(
+            key.apply_action("05010906a1018501050719e029e71500250175019508810295067508150026a400050719002aa4008100c005010902a10185020901a1009510750115002501050919012910810205011601f826ff07750c95020930093181061581257f75089501093881069501050c0a38028106c0c00643ff0a0202a101851175089513150026ff000902810009029100c0".to_string()),
+            Ok("BQEJBqEBhQEFBxngKecVACUBdQGVCIEClQZ1CBUAJqQABQcZACqkAIEAwAUBCQKhAYUCCQGhAJUQdQEVACUBBQkZASkQgQIFARYB+Cb/B3UMlQIJMAkxgQYVgSV/dQiVAQk4gQaVAQUMCjgCgQbAwAZD/woCAqEBhRF1CJUTFQAm/wAJAoEACQKRAMA=".to_string())
+        );
+        assert_eq!(
+            key.apply_action("x5010906a1018501050719e029e71500250175019508810295067508150026a400050719002aa4008100c005010902a10185020901a1009510750115002501050919012910810205011601f826ff07750c95020930093181061581257f75089501093881069501050c0a38028106c0c00643ff0a0202a101851175089513150026ff000902810009029100c0".to_string()),
+            Err("Error converting from hex string to base64 string: invalid digit found in string".to_string())
+        );
+    }
+
+    #[test]
+    fn test_hex_to_base64_to_hex() {
+        // HID report map example taken from real HID mouse conversion
+        let mut key = DeviceKey::new("", KeyAction::Apply(Converter::Base64ToHex));
+        assert_eq!(
+            key.apply_action("BQEJBqEBhQEFBxngKecVACUBdQGVCIEClQZ1CBUAJqQABQcZACqkAIEAwAUBCQKhAYUCCQGhAJUQdQEVACUBBQkZASkQgQIFARYB+Cb/B3UMlQIJMAkxgQYVgSV/dQiVAQk4gQaVAQUMCjgCgQbAwAZD/woCAqEBhRF1CJUTFQAm/wAJAoEACQKRAMA=".to_string()),
+            Ok("05010906a1018501050719e029e71500250175019508810295067508150026a400050719002aa4008100c005010902a10185020901a1009510750115002501050919012910810205011601f826ff07750c95020930093181061581257f75089501093881069501050c0a38028106c0c00643ff0a0202a101851175089513150026ff000902810009029100c0".to_string())
+        );
+        assert_eq!(
+            key.apply_action("!BQEJBqEBhQEFBxngKecVACUBdQGVCIEClQZ1CBUAJqQABQcZACqkAIEAwAUBCQKhAYUCCQGhAJUQdQEVACUBBQkZASkQgQIFARYB+Cb/B3UMlQIJMAkxgQYVgSV/dQiVAQk4gQaVAQUMCjgCgQbAwAZD/woCAqEBhRF1CJUTFQAm/wAJAoEACQKRAMA=".to_string()),
+            Err("Error converting from base64 string to hex string: Encoded text cannot have a 6-bit remainder.".to_string())
+        );
+    }
+
+    #[test]
+    fn test_typeb2f() {
+        let mut key = DeviceKey::new("", KeyAction::Apply(Converter::TypeB2F));
+        assert_eq!(key.apply_action(CLASSIC_TYPE.to_string()), Ok("1".to_string()));
+        assert_eq!(key.apply_action(LE_TYPE.to_string()), Ok("2".to_string()));
+        assert_eq!(key.apply_action(DUAL_TYPE.to_string()), Ok("3".to_string()));
+        assert_eq!(
+            key.apply_action("FAKE_TYPE".to_string()),
+            Err("Error converting type. Unknown type: FAKE_TYPE".to_string())
+        );
+    }
+
+    #[test]
+    fn test_typef2b() {
+        let mut key = DeviceKey::new("", KeyAction::Apply(Converter::TypeF2B));
+        assert_eq!(key.apply_action("1".to_string()), Ok(CLASSIC_TYPE.to_string()));
+        assert_eq!(key.apply_action("2".to_string()), Ok(LE_TYPE.to_string()));
+        assert_eq!(key.apply_action("3".to_string()), Ok(DUAL_TYPE.to_string()));
+        assert_eq!(
+            key.apply_action("FAKE_TYPE".to_string()),
+            Err("Error converting type. Unknown type: FAKE_TYPE".to_string())
+        );
+    }
+
+    #[test]
+    fn test_addrtypeb2f() {
+        let mut key = DeviceKey::new("", KeyAction::Apply(Converter::AddrTypeB2F));
+        assert_eq!(key.apply_action("public".to_string()), Ok("0".to_string()));
+        assert_eq!(key.apply_action("static".to_string()), Ok("1".to_string()));
+        assert_eq!(
+            key.apply_action("FAKE_TYPE".to_string()),
+            Err("Error converting address type. Unknown type: FAKE_TYPE".to_string())
+        );
+    }
+
+    #[test]
+    fn test_addrtypef2b() {
+        let mut key = DeviceKey::new("", KeyAction::Apply(Converter::AddrTypeF2B));
+        assert_eq!(key.apply_action("0".to_string()), Ok("public".to_string()));
+        assert_eq!(key.apply_action("1".to_string()), Ok("static".to_string()));
+        assert_eq!(
+            key.apply_action("FAKE_TYPE".to_string()),
+            Err("Error converting address type. Unknown type: FAKE_TYPE".to_string())
+        );
+    }
+
+    #[test]
+    fn test_replacespacewithsemicolon() {
+        // UUID example
+        let mut key = DeviceKey::new("", KeyAction::Apply(Converter::ReplaceSpaceWithSemiColon));
+        assert_eq!(
+            key.apply_action(
+                "00001800-0000-1000-8000-00805f9b34fb 00001801-0000-1000-8000-00805f9b34fb "
+                    .to_string()
+            ),
+            Ok("00001800-0000-1000-8000-00805f9b34fb;00001801-0000-1000-8000-00805f9b34fb;"
+                .to_string())
+        );
+    }
+
+    #[test]
+    fn test_replacesemicolonwithspace() {
+        // UUID example
+        let mut key = DeviceKey::new("", KeyAction::Apply(Converter::ReplaceSemiColonWithSpace));
+        assert_eq!(
+            key.apply_action(
+                "00001800-0000-1000-8000-00805f9b34fb;00001801-0000-1000-8000-00805f9b34fb;"
+                    .to_string()
+            ),
+            Ok("00001800-0000-1000-8000-00805f9b34fb 00001801-0000-1000-8000-00805f9b34fb "
+                .to_string())
+        );
+    }
+
+    #[test]
+    fn test_irk_conversion() {
+        let mut key = DeviceKey::new("", KeyAction::Apply(Converter::ReverseEndianUppercase));
+        assert_eq!(
+            key.apply_action("d584da72ceccfdf462405b558441ed4401e260f9ee9fb8".to_string()),
+            Ok("44ED4184555B4062F4FDCCCE72DA84D5".to_string())
+        );
+        assert_eq!(
+            key.apply_action("td584da72ceccfdf462405b558441ed4401e260f9ee9fb8".to_string()),
+            Err("Error converting link key: invalid digit found in string".to_string())
+        );
+    }
+
+    #[test]
+    fn test_ltk_conversion() {
+        let floss_key = String::from("48fdc93d776cd8cc918f31e422ece00d2322924fa9a09fb30eb20110");
+        let ltk = LtkInfo::try_from(floss_key).unwrap_or_default();
+        assert_eq!(ltk.key, 0x48FDC93D776CD8CC918F31E422ECE00D);
+        assert_eq!(ltk.rand, 12943240503130989091);
+        assert_eq!(ltk.ediv, 45582);
+        assert_eq!(ltk.auth, 1);
+        assert_eq!(ltk.len, 16);
+        assert_eq!(
+            LtkInfo::try_from(
+                "48fdc93d776cd8cc918f31e422ece00d2322924fa9a09fb30eb2011".to_string()
+            )
+            .unwrap_err(),
+            "String provided to LtkInfo is not the right size"
+        );
+    }
+
+    #[test]
+    fn test_convert_from_bluez_device() {
+        let test_addr = "00:11:22:33:44:55";
+        let mut conf = Ini::new_cs();
+        assert_eq!(
+            convert_from_bluez_device(
+                "test/migrate/fake_bluez_info.toml",
+                test_addr,
+                &mut conf,
+                false
+            ),
+            true
+        );
+        assert_eq!(
+            convert_from_bluez_device(
+                "test/migrate/fake_bluez_hid.toml",
+                test_addr,
+                &mut conf,
+                true
+            ),
+            true
+        );
+
+        assert_eq!(conf.get(test_addr, "Name"), Some(String::from("Test Device")));
+        assert_eq!(conf.get(test_addr, "DevClass"), Some(String::from("2360344")));
+        assert_eq!(conf.get(test_addr, "DevType"), Some(String::from("1")));
+        assert_eq!(
+            conf.get(test_addr, "Service"),
+            Some(String::from(
+                "0000110b-0000-1000-8000-00805f9b34fb 0000110c-0000-1000-8000-00805f9b34fb "
+            ))
+        );
+        assert_eq!(conf.get(test_addr, "AddrType"), Some(String::from("1")));
+
+        assert_eq!(
+            conf.get(test_addr, "LinkKey"),
+            Some(String::from("ffeeddccbbaa99887766554433221100"))
+        );
+        assert_eq!(conf.get(test_addr, "LinkKeyType"), Some(String::from("4")));
+        assert_eq!(conf.get(test_addr, "PinLength"), Some(String::from("0")));
+
+        assert_eq!(conf.get(test_addr, "SdpDiVendorIdSource"), Some(String::from("1")));
+        assert_eq!(conf.get(test_addr, "SdpDiManufacturer"), Some(String::from("100")));
+        assert_eq!(conf.get(test_addr, "SdpDiModel"), Some(String::from("22222")));
+        assert_eq!(conf.get(test_addr, "SdpDiHardwareVersion"), Some(String::from("3")));
+
+        assert_eq!(
+            conf.get(test_addr, "LE_KEY_PID"),
+            Some(String::from("ffeeddccbbaa9988776655443322110001001122334455"))
+        );
+        assert_eq!(
+            conf.get(test_addr, "LE_KEY_PENC"),
+            Some(String::from("00112233445566778899aabbccddeeff8877665544332211bbaa0110"))
+        );
+
+        assert_eq!(conf.get(test_addr, "HidAttrMask"), Some(String::from("0")));
+        assert_eq!(
+            conf.get(test_addr, "HidDescriptor"),
+            Some(String::from("05010906a1018501050719e029e7150025017501950881029505050819012905910295017503910195067508150026a400050719002aa4008100c005010902a10185020901a1009510750115002501050919012910810205011601f826ff07750c95020930093181061581257f75089501093881069501050c0a38028106c0c0050c0901a1018503751095021501268c0219012a8c028160c00643ff0a0202a101851175089513150026ff000902810009029100c0"))
+        );
+        assert_eq!(conf.get(test_addr, "HidVersion"), Some(String::from("273")));
+        assert_eq!(conf.get(test_addr, "HidCountryCode"), Some(String::from("3")));
     }
 }
