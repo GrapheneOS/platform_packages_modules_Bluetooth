@@ -832,6 +832,7 @@ cc_test {
         "metrics/stack_metrics_logging.cc",
         "test/btm/stack_btm_test.cc",
         "test/btm/peer_packet_types_test.cc",
+        "test/common/mock_eatt.cc",
     ],
     static_libs: [
         "libbt-common",
