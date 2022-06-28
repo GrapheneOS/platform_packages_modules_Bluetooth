@@ -963,13 +963,28 @@ static void bta_gattc_write_cmpl(tBTA_GATTC_CLCB* p_clcb,
   GATT_WRITE_OP_CB cb = p_clcb->p_q_cmd->api_write.write_cb;
   void* my_cb_data = p_clcb->p_q_cmd->api_write.write_cb_data;
 
-  osi_free_and_reset((void**)&p_clcb->p_q_cmd);
-
   if (cb) {
-    cb(p_clcb->bta_conn_id, p_data->status, p_data->p_cmpl->att_value.handle,
-       p_data->p_cmpl->att_value.len, p_data->p_cmpl->att_value.value,
-       my_cb_data);
+    if (p_data->status == 0 &&
+        p_clcb->p_q_cmd->api_write.write_type == BTA_GATTC_WRITE_PREPARE) {
+      LOG_DEBUG("Handling prepare write success response: handle 0x%04x",
+                p_data->p_cmpl->att_value.handle);
+      /* If this is successful Prepare write, lets provide to the callback the
+       * data provided by server */
+      cb(p_clcb->bta_conn_id, p_data->status, p_data->p_cmpl->att_value.handle,
+         p_data->p_cmpl->att_value.len, p_data->p_cmpl->att_value.value,
+         my_cb_data);
+    } else {
+      LOG_DEBUG("Handling write response type: %d: handle 0x%04x",
+                p_clcb->p_q_cmd->api_write.write_type,
+                p_data->p_cmpl->att_value.handle);
+      /* Otherwise, provide data which were intended to write. */
+      cb(p_clcb->bta_conn_id, p_data->status, p_data->p_cmpl->att_value.handle,
+         p_clcb->p_q_cmd->api_write.len, p_clcb->p_q_cmd->api_write.p_value,
+         my_cb_data);
+    }
   }
+
+  osi_free_and_reset((void**)&p_clcb->p_q_cmd);
 }
 
 /** execute write complete */
