@@ -1494,7 +1494,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
             Log.e(TAG, "BT not enabled. Cannot get identity address");
         } else {
             try {
-                final SynchronousResultReceiver<String> recv = SynchronousResultReceiver.get();
+                final SynchronousResultReceiver<String> recv = new SynchronousResultReceiver();
                 service.getIdentityAddress(mAddress, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
             } catch (RemoteException | TimeoutException e) {
@@ -1525,7 +1525,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else {
             try {
-                final SynchronousResultReceiver<String> recv = SynchronousResultReceiver.get();
+                final SynchronousResultReceiver<String> recv = new SynchronousResultReceiver();
                 service.getRemoteName(this, mAttributionSource, recv);
                 String name = recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
                 if (name != null) {
@@ -1560,7 +1560,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else {
             try {
-                final SynchronousResultReceiver<Integer> recv = SynchronousResultReceiver.get();
+                final SynchronousResultReceiver<Integer> recv = new SynchronousResultReceiver();
                 service.getRemoteType(this, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (RemoteException | TimeoutException e) {
@@ -1589,7 +1589,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else {
             try {
-                final SynchronousResultReceiver<String> recv = SynchronousResultReceiver.get();
+                final SynchronousResultReceiver<String> recv = new SynchronousResultReceiver();
                 service.getRemoteAliasWithAttribution(this, mAttributionSource, recv);
                 String alias = recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
                 if (alias == null) {
@@ -1650,7 +1650,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else {
             try {
-                final SynchronousResultReceiver<Integer> recv = SynchronousResultReceiver.get();
+                final SynchronousResultReceiver<Integer> recv = new SynchronousResultReceiver();
                 service.setRemoteAlias(this, alias, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (TimeoutException e) {
@@ -1684,7 +1684,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else {
             try {
-                final SynchronousResultReceiver<Integer> recv = SynchronousResultReceiver.get();
+                final SynchronousResultReceiver<Integer> recv = new SynchronousResultReceiver();
                 service.getBatteryLevel(this, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (RemoteException | TimeoutException e) {
@@ -1781,7 +1781,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
             Log.e(TAG, "Unable to create bond, invalid address " + mAddress);
         } else {
             try {
-                final SynchronousResultReceiver<Boolean> recv = SynchronousResultReceiver.get();
+                final SynchronousResultReceiver<Boolean> recv = new SynchronousResultReceiver();
                 service.createBond(this, transport, remoteP192Data, remoteP256Data,
                         mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
@@ -1812,7 +1812,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else {
             try {
-                final SynchronousResultReceiver<Boolean> recv = SynchronousResultReceiver.get();
+                final SynchronousResultReceiver<Boolean> recv = new SynchronousResultReceiver();
                 service.isBondingInitiatedLocally(this, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (RemoteException | TimeoutException e) {
@@ -1842,7 +1842,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
                     + " called by pid: " + Process.myPid()
                     + " tid: " + Process.myTid());
             try {
-                final SynchronousResultReceiver<Boolean> recv = SynchronousResultReceiver.get();
+                final SynchronousResultReceiver<Boolean> recv = new SynchronousResultReceiver();
                 service.cancelBondProcess(this, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (RemoteException | TimeoutException e) {
@@ -1875,7 +1875,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
                     + " called by pid: " + Process.myPid()
                     + " tid: " + Process.myTid());
             try {
-                final SynchronousResultReceiver<Boolean> recv = SynchronousResultReceiver.get();
+                final SynchronousResultReceiver<Boolean> recv = new SynchronousResultReceiver();
                 service.removeBond(this, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (RemoteException | TimeoutException e) {
@@ -1916,7 +1916,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
                     }
                     try {
                         final SynchronousResultReceiver<Integer> recv =
-                                SynchronousResultReceiver.get();
+                                new SynchronousResultReceiver();
                         pairQuery.first.getBondState(pairQuery.second, mAttributionSource, recv);
                         return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(BOND_NONE);
                     } catch (RemoteException | TimeoutException e) {
@@ -1995,7 +1995,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else {
             try {
-                final SynchronousResultReceiver<Boolean> recv = SynchronousResultReceiver.get();
+                final SynchronousResultReceiver<Boolean> recv = new SynchronousResultReceiver();
                 service.canBondWithoutDialog(this, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (RemoteException | TimeoutException e) {
@@ -2049,7 +2049,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else {
             try {
-                final SynchronousResultReceiver<Integer> recv = SynchronousResultReceiver.get();
+                final SynchronousResultReceiver<Integer> recv = new SynchronousResultReceiver();
                 service.connectAllEnabledProfiles(this, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (TimeoutException e) {
@@ -2096,7 +2096,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else {
             try {
-                final SynchronousResultReceiver<Integer> recv = SynchronousResultReceiver.get();
+                final SynchronousResultReceiver<Integer> recv = new SynchronousResultReceiver();
                 service.disconnectAllEnabledProfiles(this, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (TimeoutException e) {
@@ -2128,7 +2128,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else {
             try {
-                final SynchronousResultReceiver<Integer> recv = SynchronousResultReceiver.get();
+                final SynchronousResultReceiver<Integer> recv = new SynchronousResultReceiver();
                 service.getConnectionStateWithAttribution(this, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue)
                         != CONNECTION_STATE_DISCONNECTED;
@@ -2160,7 +2160,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else {
             try {
-                final SynchronousResultReceiver<Integer> recv = SynchronousResultReceiver.get();
+                final SynchronousResultReceiver<Integer> recv = new SynchronousResultReceiver();
                 service.getConnectionStateWithAttribution(this, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue)
                         > CONNECTION_STATE_CONNECTED;
@@ -2189,7 +2189,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else {
             try {
-                final SynchronousResultReceiver<Integer> recv = SynchronousResultReceiver.get();
+                final SynchronousResultReceiver<Integer> recv = new SynchronousResultReceiver();
                 service.getRemoteClass(this, mAttributionSource, recv);
                 int classInt = recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
                 if (classInt == BluetoothClass.ERROR) return null;
@@ -2224,7 +2224,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
         } else {
             try {
                 final SynchronousResultReceiver<List<ParcelUuid>> recv =
-                        SynchronousResultReceiver.get();
+                        new SynchronousResultReceiver();
                 service.getRemoteUuids(this, mAttributionSource, recv);
                 List<ParcelUuid> parcels = recv.awaitResultNoInterrupt(getSyncTimeout())
                         .getValue(null);
@@ -2290,7 +2290,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else {
             try {
-                final SynchronousResultReceiver<Boolean> recv = SynchronousResultReceiver.get();
+                final SynchronousResultReceiver<Boolean> recv = new SynchronousResultReceiver();
                 service.fetchRemoteUuidsWithAttribution(this, transport, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (RemoteException | TimeoutException e) {
@@ -2332,7 +2332,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else {
             try {
-                final SynchronousResultReceiver<Boolean> recv = SynchronousResultReceiver.get();
+                final SynchronousResultReceiver<Boolean> recv = new SynchronousResultReceiver();
                 service.sdpSearch(this, uuid, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (RemoteException | TimeoutException e) {
@@ -2359,7 +2359,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else {
             try {
-                final SynchronousResultReceiver<Boolean> recv = SynchronousResultReceiver.get();
+                final SynchronousResultReceiver<Boolean> recv = new SynchronousResultReceiver();
                 service.setPin(this, true, pin.length, pin, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (RemoteException | TimeoutException e) {
@@ -2405,7 +2405,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else {
             try {
-                final SynchronousResultReceiver<Boolean> recv = SynchronousResultReceiver.get();
+                final SynchronousResultReceiver<Boolean> recv = new SynchronousResultReceiver();
                 service.setPairingConfirmation(this, confirm, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (RemoteException | TimeoutException e) {
@@ -2444,7 +2444,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else {
             try {
-                final SynchronousResultReceiver<Integer> recv = SynchronousResultReceiver.get();
+                final SynchronousResultReceiver<Integer> recv = new SynchronousResultReceiver();
                 service.getPhonebookAccessPermission(this, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (RemoteException | TimeoutException e) {
@@ -2490,7 +2490,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
             throw new IllegalStateException("Bluetooth is not turned ON");
         } else {
             try {
-                final SynchronousResultReceiver<Boolean> recv = SynchronousResultReceiver.get();
+                final SynchronousResultReceiver<Boolean> recv = new SynchronousResultReceiver();
                 service.setSilenceMode(this, silence, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (RemoteException | TimeoutException e) {
@@ -2520,7 +2520,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
             throw new IllegalStateException("Bluetooth is not turned ON");
         } else {
             try {
-                final SynchronousResultReceiver<Boolean> recv = SynchronousResultReceiver.get();
+                final SynchronousResultReceiver<Boolean> recv = new SynchronousResultReceiver();
                 service.getSilenceMode(this, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (RemoteException | TimeoutException e) {
@@ -2552,7 +2552,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else {
             try {
-                final SynchronousResultReceiver<Boolean> recv = SynchronousResultReceiver.get();
+                final SynchronousResultReceiver<Boolean> recv = new SynchronousResultReceiver();
                 service.setPhonebookAccessPermission(this, value, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (RemoteException | TimeoutException e) {
@@ -2581,7 +2581,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else {
             try {
-                final SynchronousResultReceiver<Integer> recv = SynchronousResultReceiver.get();
+                final SynchronousResultReceiver<Integer> recv = new SynchronousResultReceiver();
                 service.getMessageAccessPermission(this, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (RemoteException | TimeoutException e) {
@@ -2618,7 +2618,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else {
             try {
-                final SynchronousResultReceiver<Boolean> recv = SynchronousResultReceiver.get();
+                final SynchronousResultReceiver<Boolean> recv = new SynchronousResultReceiver();
                 service.setMessageAccessPermission(this, value, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (RemoteException | TimeoutException e) {
@@ -2647,7 +2647,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else {
             try {
-                final SynchronousResultReceiver<Integer> recv = SynchronousResultReceiver.get();
+                final SynchronousResultReceiver<Integer> recv = new SynchronousResultReceiver();
                 service.getSimAccessPermission(this, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (RemoteException | TimeoutException e) {
@@ -2680,7 +2680,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else {
             try {
-                final SynchronousResultReceiver<Boolean> recv = SynchronousResultReceiver.get();
+                final SynchronousResultReceiver<Boolean> recv = new SynchronousResultReceiver();
                 service.setSimAccessPermission(this, value, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (RemoteException | TimeoutException e) {
@@ -3194,7 +3194,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
                     + ", should not over " + METADATA_MAX_LENGTH);
         } else {
             try {
-                final SynchronousResultReceiver<Boolean> recv = SynchronousResultReceiver.get();
+                final SynchronousResultReceiver<Boolean> recv = new SynchronousResultReceiver();
                 service.setMetadata(this, key, value, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (RemoteException | TimeoutException e) {
@@ -3226,7 +3226,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else {
             try {
-                final SynchronousResultReceiver<byte[]> recv = SynchronousResultReceiver.get();
+                final SynchronousResultReceiver<byte[]> recv = new SynchronousResultReceiver();
                 service.getMetadata(this, key, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (RemoteException | TimeoutException e) {
@@ -3269,7 +3269,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else {
             try {
-                final SynchronousResultReceiver<Boolean> recv = SynchronousResultReceiver.get();
+                final SynchronousResultReceiver<Boolean> recv = new SynchronousResultReceiver();
                 service.allowLowLatencyAudio(allowed, this, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (RemoteException | TimeoutException e) {
