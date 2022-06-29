@@ -48,13 +48,13 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import com.android.bluetooth.R;
-import com.android.bluetooth.obex.Authenticator;
-import com.android.bluetooth.obex.HeaderSet;
-import com.android.bluetooth.obex.ObexTransport;
-import com.android.bluetooth.obex.Operation;
-import com.android.bluetooth.obex.ResponseCodes;
-import com.android.bluetooth.obex.ServerRequestHandler;
-import com.android.bluetooth.obex.ServerSession;
+import com.android.obex.Authenticator;
+import com.android.obex.HeaderSet;
+import com.android.obex.ObexTransport;
+import com.android.obex.Operation;
+import com.android.obex.ResponseCodes;
+import com.android.obex.ServerRequestHandler;
+import com.android.obex.ServerSession;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;

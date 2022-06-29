@@ -5,6 +5,10 @@ package {
     // to get the below license kinds:
     //   SPDX-license-identifier-Apache-2.0
     default_applicable_licenses: ["system_bt_license"],
+    default_visibility: [
+        "//device:__subpackages__",
+        "//packages/modules/Bluetooth:__subpackages__",
+    ],
 }
 
 subdirs = [

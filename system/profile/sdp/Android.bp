@@ -32,6 +32,7 @@ cc_test {
     defaults: [
         "fluoride_defaults",
         "clang_coverage_bin",
+        "mts_defaults",
     ],
     host_supported: true,
     include_dirs: [
@@ -44,6 +45,8 @@ cc_test {
         "libgmock",
         "sdp_service",
         "lib-bt-packets",
+        "lib-bt-packets-base",
+        "lib-bt-packets-avrcp",
         "libbluetooth-types",
     ],
 }

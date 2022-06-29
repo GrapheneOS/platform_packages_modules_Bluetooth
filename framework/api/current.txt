@@ -17,13 +17,14 @@ package android.bluetooth {
     method @RequiresPermission(android.Manifest.permission.BLUETOOTH_SCAN) public boolean cancelDiscovery();
     method public static boolean checkBluetoothAddress(String);
     method public void closeProfileProxy(int, android.bluetooth.BluetoothProfile);
-    method @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public boolean disable();
-    method @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public boolean enable();
+    method @Deprecated @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public boolean disable();
+    method @Deprecated @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public boolean enable();
     method public String getAddress();
     method public android.bluetooth.le.BluetoothLeAdvertiser getBluetoothLeAdvertiser();
     method public android.bluetooth.le.BluetoothLeScanner getBluetoothLeScanner();
     method @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public java.util.Set<android.bluetooth.BluetoothDevice> getBondedDevices();
     method @Deprecated public static android.bluetooth.BluetoothAdapter getDefaultAdapter();
+    method @Nullable @RequiresPermission(android.Manifest.permission.BLUETOOTH_SCAN) public java.time.Duration getDiscoverableTimeout();
     method public int getLeMaximumAdvertisingDataLength();
     method @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public int getMaxConnectedAudioDevices();
     method @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public String getName();
@@ -321,11 +322,15 @@ package android.bluetooth {
 
   public final class BluetoothClass implements android.os.Parcelable {
     method public int describeContents();
+    method public boolean doesClassMatch(int);
     method public int getDeviceClass();
     method public int getMajorDeviceClass();
     method public boolean hasService(int);
     method public void writeToParcel(android.os.Parcel, int);
     field @NonNull public static final android.os.Parcelable.Creator<android.bluetooth.BluetoothClass> CREATOR;
+    field public static final int PROFILE_A2DP = 1; // 0x1
+    field public static final int PROFILE_HEADSET = 0; // 0x0
+    field public static final int PROFILE_HID = 3; // 0x3
   }
 
   public static class BluetoothClass.Device {

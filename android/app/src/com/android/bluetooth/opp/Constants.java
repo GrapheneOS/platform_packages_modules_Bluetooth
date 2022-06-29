@@ -38,7 +38,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.util.Log;
 
-import com.android.bluetooth.obex.HeaderSet;
+import com.android.obex.HeaderSet;
 
 import java.io.IOException;
 import java.util.regex.Pattern;
@@ -163,8 +163,6 @@ public class Constants {
     /** the intent that gets sent when clicking a incoming file confirm notification */
     static final String ACTION_INCOMING_FILE_CONFIRM = "android.btopp.intent.action.CONFIRM";
 
-    static final String THIS_PACKAGE_NAME = "com.android.bluetooth";
-
     /** The column that is used to remember whether the media scanner was invoked */
     static final String MEDIA_SCANNED = "scanned";
 
@@ -239,7 +237,7 @@ public class Constants {
     static void sendIntentIfCompleted(Context context, Uri contentUri, int status) {
         if (BluetoothShare.isStatusCompleted(status)) {
             Intent intent = new Intent(BluetoothShare.TRANSFER_COMPLETED_ACTION);
-            intent.setClassName(THIS_PACKAGE_NAME, BluetoothOppReceiver.class.getName());
+            intent.setClassName(context, BluetoothOppReceiver.class.getName());
             intent.setDataAndNormalize(contentUri);
             context.sendBroadcast(intent);
         }

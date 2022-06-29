@@ -461,7 +461,7 @@ bool A2dpCodecConfigAptx::init() {
   if (!isValid()) return false;
 
   // Load the encoder
-  if (!A2DP_VendorLoadEncoderAptx()) {
+  if (A2DP_VendorLoadEncoderAptx() != LOAD_SUCCESS) {
     LOG_ERROR("%s: cannot load the encoder", __func__);
     return false;
   }

@@ -102,12 +102,12 @@ TEST(ClassOfDeviceTest, classOfDeviceFromUint32Legacy) {
   auto cod = ClassOfDevice::FromUint32Legacy(0);
   ASSERT_TRUE(cod);
   ASSERT_THAT(cod->cod, testing::ElementsAre(0x00, 0x00, 0x00));
-  ASSERT_EQ(cod->ToUint32Legacy(), 0);
+  ASSERT_EQ(cod->ToUint32Legacy(), 0ul);
 
   cod = ClassOfDevice::FromUint32Legacy(0xab214c);
   ASSERT_TRUE(cod);
   ASSERT_THAT(cod->cod, testing::ElementsAre(0xab, 0x21, 0x4c));
-  ASSERT_EQ(cod->ToUint32Legacy(), 0xab214c);
+  ASSERT_EQ(cod->ToUint32Legacy(), 0xab214cul);
 
   ASSERT_FALSE(ClassOfDevice::FromUint32Legacy(0x1ab214c));
 }

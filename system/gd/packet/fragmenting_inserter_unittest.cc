@@ -41,7 +41,7 @@ TEST(FragmentingInserterTest, addMoreBits) {
 
   it.finalize();
 
-  ASSERT_EQ(1, fragments.size());
+  ASSERT_EQ(1ul, fragments.size());
 
   std::vector<uint8_t> bytes;
   BitInserter bit_inserter(bytes);
@@ -71,7 +71,7 @@ TEST(FragmentingInserterTest, observerTest) {
   it.insert_bits(static_cast<uint8_t>(0b1010), 4);
   it.finalize();
 
-  ASSERT_EQ(1, fragments.size());
+  ASSERT_EQ(1ul, fragments.size());
 
   std::vector<uint8_t> bytes;
   BitInserter bit_inserter(bytes);
@@ -102,22 +102,22 @@ TEST(FragmentingInserterTest, testMtuBoundaries) {
   FragmentingInserter it(kPacketSize, std::back_insert_iterator(fragments_mtu_is_kPacketSize));
   counts.Serialize(it);
   it.finalize();
-  ASSERT_EQ(1, fragments_mtu_is_kPacketSize.size());
+  ASSERT_EQ(1ul, fragments_mtu_is_kPacketSize.size());
   ASSERT_EQ(kPacketSize, fragments_mtu_is_kPacketSize[0]->size());
 
   std::vector<std::unique_ptr<RawBuilder>> fragments_mtu_is_less;
   FragmentingInserter it_less(kPacketSize - 1, std::back_insert_iterator(fragments_mtu_is_less));
   counts.Serialize(it_less);
   it_less.finalize();
-  ASSERT_EQ(2, fragments_mtu_is_less.size());
-  ASSERT_EQ(kPacketSize - 1, fragments_mtu_is_less[0]->size());
-  ASSERT_EQ(1, fragments_mtu_is_less[1]->size());
+  ASSERT_EQ(2ul, fragments_mtu_is_less.size());
+  ASSERT_EQ(kPacketSize - 1ul, fragments_mtu_is_less[0]->size());
+  ASSERT_EQ(1ul, fragments_mtu_is_less[1]->size());
 
   std::vector<std::unique_ptr<RawBuilder>> fragments_mtu_is_more;
   FragmentingInserter it_more(kPacketSize + 1, std::back_insert_iterator(fragments_mtu_is_more));
   counts.Serialize(it_more);
   it_more.finalize();
-  ASSERT_EQ(1, fragments_mtu_is_more.size());
+  ASSERT_EQ(1ul, fragments_mtu_is_more.size());
   ASSERT_EQ(kPacketSize, fragments_mtu_is_more[0]->size());
 }
 

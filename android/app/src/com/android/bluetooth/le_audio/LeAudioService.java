@@ -46,6 +46,7 @@ import android.media.BluetoothProfileConnectionInfo;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
+import android.os.Parcel;
 import android.os.ParcelUuid;
 import android.os.RemoteCallbackList;
 import android.os.RemoteException;
@@ -1053,6 +1054,17 @@ public class LeAudioService extends ProfileService {
         }
     }
 
+    BluetoothProfileConnectionInfo getBroadcastProfile(boolean suppressNoisyIntent) {
+        Parcel parcel = Parcel.obtain();
+        parcel.writeInt(BluetoothProfile.LE_AUDIO_BROADCAST);
+        parcel.writeBoolean(suppressNoisyIntent);
+        parcel.writeInt(-1 /* mVolume */);
+        parcel.writeBoolean(true /* mIsLeOutput */);
+        parcel.setDataPosition(0);
+
+        return BluetoothProfileConnectionInfo.CREATOR.createFromParcel(parcel);
+    }
+
     private void clearLostDevicesWhileStreaming(LeAudioGroupDescriptor descriptor) {
         if (DBG) {
             Log.d(TAG, " lost dev: " + descriptor.mLostLeadDeviceWhileStreaming);
@@ -1061,7 +1073,7 @@ public class LeAudioService extends ProfileService {
         LeAudioStateMachine sm = mStateMachines.get(descriptor.mLostLeadDeviceWhileStreaming);
         if (sm != null) {
             LeAudioStackEvent stackEvent =
-                    new LeAudioStackEvent(LeAudioStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED);
+                new LeAudioStackEvent(LeAudioStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED);
             stackEvent.device = descriptor.mLostLeadDeviceWhileStreaming;
             stackEvent.valueInt1 = LeAudioStackEvent.CONNECTION_STATE_DISCONNECTED;
             sm.sendMessage(LeAudioStateMachine.STACK_EVENT, stackEvent);
@@ -1310,8 +1322,7 @@ public class LeAudioService extends ProfileService {
                         mActiveAudioOutDevice = null;
                         mAudioManager.handleBluetoothActiveDeviceChanged(mActiveAudioOutDevice,
                                 previousDevice,
-                                // TODO: implement createLeAudioBroadcastInfo()
-                                BluetoothProfileConnectionInfo.createLeAudioInfo(false, true));
+                                getBroadcastProfile(true));
                     }
                 }
 
@@ -1344,8 +1355,7 @@ public class LeAudioService extends ProfileService {
                         mActiveAudioOutDevice = device;
                         mAudioManager.handleBluetoothActiveDeviceChanged(mActiveAudioOutDevice,
                                 previousDevice,
-                                // TODO: implement createLeAudioBroadcastInfo()
-                                BluetoothProfileConnectionInfo.createLeAudioInfo(true, true));
+                                getBroadcastProfile(false));
                     }
                 }
             }

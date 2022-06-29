@@ -36,6 +36,7 @@ import androidx.test.filters.SmallTest;
 import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.R;
+import com.android.bluetooth.TestUtils;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -57,7 +58,6 @@ import java.util.List;
 public class MediaPlayerWrapperTest {
     private static final int MSG_TIMEOUT = 0;
 
-    private Context mTargetContext;
     private Resources mTestResources;
     private HandlerThread mThread;
     private MediaMetadata.Builder mTestMetadata;
@@ -90,13 +90,8 @@ public class MediaPlayerWrapperTest {
     public void setUp() {
         MockitoAnnotations.initMocks(this);
 
-        mTargetContext = InstrumentationRegistry.getTargetContext();
-        try {
-            mTestResources = mTargetContext.getPackageManager()
-                    .getResourcesForApplication("com.android.bluetooth.tests");
-        } catch (PackageManager.NameNotFoundException e) {
-            Assert.fail("Setup Failure Unable to get resources" + e.toString());
-        }
+        mTestResources = TestUtils.getTestApplicationResources(
+                InstrumentationRegistry.getTargetContext());
         mTestBitmap = loadImage(com.android.bluetooth.tests.R.raw.image_200_200);
 
         when(mMockResources.getBoolean(R.bool.avrcp_target_cover_art_uri_images)).thenReturn(true);

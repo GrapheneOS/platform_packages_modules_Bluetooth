@@ -111,7 +111,7 @@ class LeAudioClientInterfaceImpl : public LeAudioClientInterface,
     this->callbacks = callbacks;
 
     for (auto codec : offloading_preference) {
-      LOG_DEBUG("supported codec: %s", codec.ToString().c_str());
+      LOG_INFO("supported codec: %s", codec.ToString().c_str());
     }
 
     LeAudioClient::InitializeAudioSetConfigurationProvider();
