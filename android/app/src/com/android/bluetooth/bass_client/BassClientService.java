@@ -48,6 +48,7 @@ import android.util.Log;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
+import com.android.bluetooth.btservice.storage.DatabaseManager;
 import com.android.internal.annotations.VisibleForTesting;
 
 import java.util.ArrayList;
@@ -74,6 +75,7 @@ public class BassClientService extends ProfileService {
     private HandlerThread mStateMachinesThread;
     private HandlerThread mCallbackHandlerThread;
     private AdapterService mAdapterService;
+    private DatabaseManager mDatabaseManager;
     private BluetoothAdapter mBluetoothAdapter = null;
     private BassUtils mBassUtils = null;
     private Map<BluetoothDevice, BluetoothDevice> mActiveSourceMap;
@@ -218,6 +220,8 @@ public class BassClientService extends ProfileService {
         }
         mAdapterService = Objects.requireNonNull(AdapterService.getAdapterService(),
                 "AdapterService cannot be null when BassClientService starts");
+        mDatabaseManager = Objects.requireNonNull(mAdapterService.getDatabase(),
+                "DatabaseManager cannot be null when BassClientService starts");
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         mStateMachines.clear();
         mStateMachinesThread = new HandlerThread("BassClientService.StateMachines");
@@ -545,7 +549,7 @@ public class BassClientService extends ProfileService {
             Log.d(TAG, "Saved connectionPolicy " + device + " = " + connectionPolicy);
         }
         boolean setSuccessfully =
-                mAdapterService.getDatabase().setProfileConnectionPolicy(device,
+                mDatabaseManager.setProfileConnectionPolicy(device,
                         BluetoothProfile.LE_AUDIO_BROADCAST_ASSISTANT, connectionPolicy);
         if (setSuccessfully && connectionPolicy == BluetoothProfile.CONNECTION_POLICY_ALLOWED) {
             connect(device);
@@ -568,8 +572,7 @@ public class BassClientService extends ProfileService {
      * @return connection policy of the device
      */
     public int getConnectionPolicy(BluetoothDevice device) {
-        return mAdapterService
-                .getDatabase()
+        return mDatabaseManager
                 .getProfileConnectionPolicy(device, BluetoothProfile.LE_AUDIO_BROADCAST_ASSISTANT);
     }
 
