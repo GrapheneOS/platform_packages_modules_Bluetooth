@@ -171,6 +171,7 @@ public class BassClientStateMachine extends StateMachine {
     private BluetoothLeBroadcastMetadata mPendingMetadata = null;
     private BluetoothLeBroadcastReceiveState mSetBroadcastPINRcvState = null;
     private boolean mSetBroadcastCodePending = false;
+    private final Map<Integer, Boolean> mPendingRemove = new HashMap();
     // Psync and PAST interfaces
     private PeriodicAdvertisingManager mPeriodicAdvManager;
     private boolean mAutoAssist = false;
@@ -243,6 +244,7 @@ public class BassClientStateMachine extends StateMachine {
         mPendingSourceId = -1;
         mPendingMetadata = null;
         mCurrentMetadata.clear();
+        mPendingRemove.clear();
     }
 
     Boolean hasPendingSourceOperation() {
@@ -259,6 +261,18 @@ public class BassClientStateMachine extends StateMachine {
             mCurrentMetadata.put(sourceId, metadata);
         } else {
             mCurrentMetadata.remove(sourceId);
+        }
+    }
+
+    boolean isPendingRemove(Integer sourceId) {
+        return mPendingRemove.getOrDefault(sourceId, false);
+    }
+
+    private void setPendingRemove(Integer sourceId, boolean remove) {
+        if (remove) {
+            mPendingRemove.put(sourceId, remove);
+        } else {
+            mPendingRemove.remove(sourceId);
         }
     }
 
@@ -389,16 +403,10 @@ public class BassClientStateMachine extends StateMachine {
 
     private void cancelActiveSync(BluetoothDevice sourceDev) {
         log("cancelActiveSync");
-        boolean isCancelSyncNeeded = false;
         BluetoothDevice activeSyncedSrc = mService.getActiveSyncedSource(mDevice);
-        if (activeSyncedSrc != null) {
-            if (sourceDev == null) {
-                isCancelSyncNeeded = true;
-            } else if (activeSyncedSrc.equals(sourceDev)) {
-                isCancelSyncNeeded = true;
-            }
-        }
-        if (isCancelSyncNeeded) {
+
+        /* Stop sync if there is some running */
+        if (activeSyncedSrc != null && (sourceDev == null || activeSyncedSrc.equals(sourceDev))) {
             removeMessages(PSYNC_ACTIVE_TIMEOUT);
             try {
                 log("calling unregisterSync");
@@ -796,6 +804,12 @@ public class BassClientStateMachine extends StateMachine {
                             recvState.getSourceId(), BluetoothStatusCodes.REASON_LOCAL_APP_REQUEST);
                     checkAndUpdateBroadcastCode(recvState);
                     processPASyncState(recvState);
+
+                    if (isPendingRemove(recvState.getSourceId())) {
+                        Message message = obtainMessage(REMOVE_BCAST_SOURCE);
+                        message.arg1 = recvState.getSourceId();
+                        sendMessage(message);
+                    }
                 }
             }
         }
@@ -1011,6 +1025,7 @@ public class BassClientStateMachine extends StateMachine {
         mPendingOperation = -1;
         mPendingMetadata = null;
         mCurrentMetadata.clear();
+        mPendingRemove.clear();
     }
 
     @VisibleForTesting
@@ -1521,6 +1536,9 @@ public class BassClientStateMachine extends StateMachine {
                         mBluetoothGatt.writeCharacteristic(mBroadcastScanControlPoint);
                         mPendingOperation = message.what;
                         mPendingSourceId = (byte) sourceId;
+                        if (paSync == BluetoothLeBroadcastReceiveState.PA_SYNC_STATE_IDLE) {
+                            setPendingRemove(sourceId, true);
+                        }
                         mPendingMetadata = metaData;
                         transitionTo(mConnectedProcessing);
                         sendMessageDelayed(GATT_TXN_TIMEOUT, BassConstants.GATT_TXN_TIMEOUT_MS);
@@ -1563,6 +1581,10 @@ public class BassClientStateMachine extends StateMachine {
                     removeSourceInfo[0] = OPCODE_REMOVE_SOURCE;
                     removeSourceInfo[1] = sid;
                     if (mBluetoothGatt != null && mBroadcastScanControlPoint != null) {
+                        if (isPendingRemove((int) sid)) {
+                            setPendingRemove((int) sid, false);
+                        }
+
                         mBroadcastScanControlPoint.setValue(removeSourceInfo);
                         mBluetoothGatt.writeCharacteristic(mBroadcastScanControlPoint);
                         mPendingOperation = message.what;
@@ -1657,7 +1679,11 @@ public class BassClientStateMachine extends StateMachine {
         }
         @Override
         public void exit() {
-            mPendingMetadata = null;
+            /* Pending Metadata will be used to bond with source ID in receiver state notify */
+            if (mPendingOperation == REMOVE_BCAST_SOURCE) {
+                    mPendingMetadata = null;
+            }
+
             log("Exit ConnectedProcessing(" + mDevice + "): "
                     + messageWhatToString(getCurrentMessage().what));
         }
