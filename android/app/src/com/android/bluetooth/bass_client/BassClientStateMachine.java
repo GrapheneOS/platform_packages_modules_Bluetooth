@@ -602,10 +602,17 @@ public class BassClientStateMachine extends StateMachine {
                 && mSetBroadcastCodePending) {
             log("Update the Broadcast now");
             Message m = obtainMessage(BassClientStateMachine.SET_BCAST_CODE);
-            m.obj = mSetBroadcastPINRcvState;
+
+            /* Use cached receiver state if previousely didn't finished setting broadcast code or
+             * use current receiver state if this is a first check and update
+             */
+            if (mSetBroadcastPINRcvState != null) {
+                m.obj = mSetBroadcastPINRcvState;
+            } else {
+                m.obj = recvState;
+            }
+
             sendMessage(m);
-            mSetBroadcastCodePending = false;
-            mSetBroadcastPINRcvState = null;
         }
     }
 
@@ -1579,6 +1586,8 @@ public class BassClientStateMachine extends StateMachine {
                             mPendingSourceId = (byte) recvState.getSourceId();
                             transitionTo(mConnectedProcessing);
                             sendMessageDelayed(GATT_TXN_TIMEOUT, BassConstants.GATT_TXN_TIMEOUT_MS);
+                            mSetBroadcastCodePending = false;
+                            mSetBroadcastPINRcvState = null;
                         }
                     }
                     break;
