@@ -183,7 +183,7 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
                                     final IBluetoothLeAudio service = getService();
                                     if (service != null) {
                                         final SynchronousResultReceiver<Integer> recv =
-                                                SynchronousResultReceiver.get();
+                                                new SynchronousResultReceiver();
                                         service.registerLeBroadcastCallback(mCallback,
                                                 mAttributionSource, recv);
                                         recv.awaitResultNoInterrupt(getSyncTimeout())
@@ -442,7 +442,7 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
                     final IBluetoothLeAudio service = getService();
                     if (service != null) {
                         final SynchronousResultReceiver<Integer> recv =
-                                SynchronousResultReceiver.get();
+                                new SynchronousResultReceiver();
                         service.registerLeBroadcastCallback(mCallback, mAttributionSource, recv);
                         recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
                     }
@@ -495,7 +495,7 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
             try {
                 final IBluetoothLeAudio service = getService();
                 if (service != null) {
-                    final SynchronousResultReceiver<Integer> recv = SynchronousResultReceiver.get();
+                    final SynchronousResultReceiver<Integer> recv = new SynchronousResultReceiver();
                     service.unregisterLeBroadcastCallback(mCallback, mAttributionSource, recv);
                     recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
                 }
@@ -662,7 +662,7 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else if (isEnabled()) {
             try {
-                final SynchronousResultReceiver<Boolean> recv = SynchronousResultReceiver.get();
+                final SynchronousResultReceiver<Boolean> recv = new SynchronousResultReceiver();
                 service.isPlaying(broadcastId, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (TimeoutException e) {
@@ -696,7 +696,7 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
         } else if (isEnabled()) {
             try {
                 final SynchronousResultReceiver<List<BluetoothLeBroadcastMetadata>> recv =
-                        SynchronousResultReceiver.get();
+                        new SynchronousResultReceiver();
                 service.getAllBroadcastMetadata(mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (TimeoutException e) {
@@ -723,7 +723,7 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else if (isEnabled()) {
             try {
-                final SynchronousResultReceiver<Integer> recv = SynchronousResultReceiver.get();
+                final SynchronousResultReceiver<Integer> recv = new SynchronousResultReceiver();
                 service.getMaximumNumberOfBroadcasts(mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (TimeoutException e) {
