@@ -350,9 +350,9 @@ public class BassClientStateMachine extends StateMachine {
         mPASyncRetryCounter = 1;
         // Cache Scan res for Retrys
         mScanRes = scanRes;
-        /*This is an override case
-        if Previous sync is still active, cancel It
-        But don't stop the Scan offload as we still trying to assist remote*/
+        /*This is an override case if Previous sync is still active, cancel It, but don't stop the
+         * Scan offload as we still trying to assist remote
+         */
         mNoStopScanOffload = true;
         cancelActiveSync(null);
         try {
@@ -477,11 +477,12 @@ public class BassClientStateMachine extends StateMachine {
                         int skip,
                         int timeout,
                         int status) {
-                    log("onSyncEstablished syncHandle" + syncHandle
-                            + "device" + device
-                            + "advertisingSid" + advertisingSid
-                            + "skip" + skip + "timeout" + timeout
-                            + "status" + status);
+                    log("onSyncEstablished syncHandle: " + syncHandle
+                            + ", device: " + device
+                            + ", advertisingSid: " + advertisingSid
+                            + ", skip: " + skip
+                            + ", timeout: " + timeout
+                            + ", status: " + status);
                     if (status == BluetoothGatt.GATT_SUCCESS) {
                         // updates syncHandle, advSid
                         mService.updatePeriodicAdvertisementResultMap(
@@ -495,7 +496,7 @@ public class BassClientStateMachine extends StateMachine {
                                 BassConstants.PSYNC_ACTIVE_TIMEOUT_MS);
                         mService.setActiveSyncedSource(mDevice, device);
                     } else {
-                        log("failed to sync to PA" + mPASyncRetryCounter);
+                        log("failed to sync to PA: " + mPASyncRetryCounter);
                         mScanRes = null;
                         if (!mAutoTriggered) {
                             Message message = obtainMessage(STOP_SCAN_OFFLOAD);
@@ -565,7 +566,7 @@ public class BassClientStateMachine extends StateMachine {
                             & (~BassConstants.ADV_ADDRESS_DONT_MATCHES_EXT_ADV_ADDRESS);
                     serviceData = serviceData
                             & (~BassConstants.ADV_ADDRESS_DONT_MATCHES_SOURCE_ADV_ADDRESS);
-                    log("Initiate PAST for :" + mDevice + "syncHandle:" +  syncHandle
+                    log("Initiate PAST for: " + mDevice + ", syncHandle: " +  syncHandle
                             + "serviceData" + serviceData);
                     mPeriodicAdvManager.transferSync(mDevice, serviceData, syncHandle);
                 }
@@ -726,6 +727,18 @@ public class BassClientStateMachine extends StateMachine {
                     numSubGroups,
                     audioSyncState,
                     metadataList);
+            log("Receiver state: " +
+                "\n\tSource ID: " + sourceId +
+                "\n\tSource Address Type: " + (int) sourceAddressType +
+                "\n\tDevice: " + device +
+                "\n\tSource Adv SID: " + sourceAdvSid +
+                "\n\tBroadcast ID: " + broadcastId +
+                "\n\tMetadata Sync State: " + (int) metaDataSyncState +
+                "\n\tEncryption Status: " + (int) encryptionStatus +
+                "\n\tBad Broadcast Code: " + badBroadcastCode +
+                "\n\tNumber Of Subgroups: " + numSubGroups +
+                "\n\tAudio Sync State: " + audioSyncState +
+                "\n\tMetadata: " + metadataList);
         }
         return recvState;
     }
@@ -1545,8 +1558,7 @@ public class BassClientStateMachine extends StateMachine {
                     break;
                 case REMOVE_BCAST_SOURCE:
                     byte sid = (byte) message.arg1;
-                    log("Removing Broadcast source: audioSource:" + "sourceId:"
-                            + sid);
+                    log("Removing Broadcast source, sourceId: " + sid);
                     byte[] removeSourceInfo = new byte[2];
                     removeSourceInfo[0] = OPCODE_REMOVE_SOURCE;
                     removeSourceInfo[1] = sid;
