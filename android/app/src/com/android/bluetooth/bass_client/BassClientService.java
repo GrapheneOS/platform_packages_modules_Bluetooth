@@ -862,6 +862,8 @@ public class BassClientService extends ProfileService {
             /* Pending remove set. Remove source once not synchronized to PA */
             message.obj = metaData;
             stateMachine.sendMessage(message);
+
+            return;
         }
         Message message = stateMachine.obtainMessage(BassClientStateMachine.REMOVE_BCAST_SOURCE);
         message.arg1 = sourceId;
