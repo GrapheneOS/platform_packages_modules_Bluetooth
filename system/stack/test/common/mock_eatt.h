@@ -35,7 +35,7 @@ class MockEattExtension : public EattExtension {
   static MockEattExtension* GetInstance();
 
   MOCK_METHOD((void), Connect, (const RawAddress& bd_addr));
-  MOCK_METHOD((void), Disconnect, (const RawAddress& bd_addr));
+  MOCK_METHOD((void), Disconnect, (const RawAddress& bd_addr, uint16_t cid));
   MOCK_METHOD((void), Reconfigure,
               (const RawAddress& bd_addr, uint16_t cid, uint16_t mtu));
   MOCK_METHOD((void), ReconfigureAll,
