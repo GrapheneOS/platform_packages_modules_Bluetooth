@@ -681,7 +681,15 @@ struct eatt_impl {
       eatt_device* eatt_dev = add_eatt_device(bd_addr);
       connect_eatt(eatt_dev);
     } else {
-      /* For new device, first read GATT server supported features. */
+      if (gatt_profile_get_eatt_support(bd_addr)) {
+        LOG_DEBUG("Eatt is supported for device %s",
+                  bd_addr.ToString().c_str());
+        supported_features_cb(role, bd_addr,
+                              BLE_GATT_SVR_SUP_FEAT_EATT_BITMASK);
+        return;
+      }
+
+      /* If we don't know yet, read GATT server supported features. */
       if (gatt_cl_read_sr_supp_feat_req(
               bd_addr, base::BindOnce(&eatt_impl::supported_features_cb,
                                       base::Unretained(this), role)) == false) {
