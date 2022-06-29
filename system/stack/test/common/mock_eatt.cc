@@ -46,8 +46,8 @@ void EattExtension::Connect(const RawAddress& bd_addr) {
   pimpl_->Connect(bd_addr);
 }
 
-void EattExtension::Disconnect(const RawAddress& bd_addr) {
-  pimpl_->Disconnect(bd_addr);
+void EattExtension::Disconnect(const RawAddress& bd_addr, uint16_t cid) {
+  pimpl_->Disconnect(bd_addr, cid);
 }
 
 void EattExtension::Reconfigure(const RawAddress& bd_addr, uint16_t cid,
