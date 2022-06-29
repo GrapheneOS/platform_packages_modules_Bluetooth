@@ -80,7 +80,7 @@ TEST(L2capPacketsTest, testConfigRequestOptions) {
     PacketView<kLittleEndian> packet_bytes_view(view_bytes);
     auto view = ConfigurationRequestView::Create(ControlView::Create(packet_bytes_view));
     ASSERT_TRUE(view.IsValid());
-    ASSERT_EQ(1, view.GetConfig().size());
+    ASSERT_EQ(1ul, view.GetConfig().size());
   }
 
   {
@@ -90,7 +90,7 @@ TEST(L2capPacketsTest, testConfigRequestOptions) {
     PacketView<kLittleEndian> packet_bytes_view(view_bytes);
     auto view = ConfigurationRequestView::Create(ControlView::Create(packet_bytes_view));
     ASSERT_TRUE(view.IsValid());
-    ASSERT_EQ(2, view.GetConfig().size());
+    ASSERT_EQ(2ul, view.GetConfig().size());
   }
 
   {
@@ -100,7 +100,7 @@ TEST(L2capPacketsTest, testConfigRequestOptions) {
     PacketView<kLittleEndian> packet_bytes_view(view_bytes);
     auto view = ConfigurationRequestView::Create(ControlView::Create(packet_bytes_view));
     ASSERT_TRUE(view.IsValid());
-    ASSERT_EQ(2, view.GetConfig().size());
+    ASSERT_EQ(2ul, view.GetConfig().size());
   }
 
   {
@@ -110,7 +110,7 @@ TEST(L2capPacketsTest, testConfigRequestOptions) {
     PacketView<kLittleEndian> packet_bytes_view(view_bytes);
     auto view = ConfigurationRequestView::Create(ControlView::Create(packet_bytes_view));
     ASSERT_TRUE(view.IsValid());
-    ASSERT_EQ(1, view.GetConfig().size());
+    ASSERT_EQ(1ul, view.GetConfig().size());
   }
 
   {
@@ -120,7 +120,7 @@ TEST(L2capPacketsTest, testConfigRequestOptions) {
     PacketView<kLittleEndian> packet_bytes_view(view_bytes);
     auto view = ConfigurationRequestView::Create(ControlView::Create(packet_bytes_view));
     ASSERT_TRUE(view.IsValid());
-    ASSERT_EQ(2, view.GetConfig().size());
+    ASSERT_EQ(2ul, view.GetConfig().size());
   }
 }
 

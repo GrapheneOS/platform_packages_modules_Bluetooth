@@ -73,15 +73,15 @@ TEST(HciPacketsTest, testWriteExtendedInquiryResponse) {
   auto view = WriteExtendedInquiryResponseView::Create(CommandView::Create(packet_bytes_view));
   ASSERT_TRUE(view.IsValid());
   auto gap_data = view.GetExtendedInquiryResponse();
-  ASSERT_GE(gap_data.size(), 4);
+  ASSERT_GE(gap_data.size(), 4ul);
   ASSERT_EQ(gap_data[0].data_type_, GapDataType::COMPLETE_LOCAL_NAME);
-  ASSERT_EQ(gap_data[0].data_.size(), 10);
+  ASSERT_EQ(gap_data[0].data_.size(), 10ul);
   ASSERT_EQ(gap_data[1].data_type_, GapDataType::COMPLETE_LIST_16_BIT_UUIDS);
-  ASSERT_EQ(gap_data[1].data_.size(), 24);
+  ASSERT_EQ(gap_data[1].data_.size(), 24ul);
   ASSERT_EQ(gap_data[2].data_type_, GapDataType::COMPLETE_LIST_32_BIT_UUIDS);
-  ASSERT_EQ(gap_data[2].data_.size(), 0);
+  ASSERT_EQ(gap_data[2].data_.size(), 0ul);
   ASSERT_EQ(gap_data[3].data_type_, GapDataType::COMPLETE_LIST_128_BIT_UUIDS);
-  ASSERT_EQ(gap_data[3].data_.size(), 128);
+  ASSERT_EQ(gap_data[3].data_.size(), 128ul);
 
   std::vector<GapData> no_padding{gap_data.begin(), gap_data.begin() + 4};
   auto builder = WriteExtendedInquiryResponseBuilder::Create(view.GetFecRequired(), no_padding);
@@ -171,7 +171,7 @@ TEST(HciPacketsTest, testLeSetExtendedScanParameters) {
   ASSERT_TRUE(view.IsValid());
   ASSERT_EQ(1, view.GetScanningPhys());
   auto params = view.GetParameters();
-  ASSERT_EQ(1, params.size());
+  ASSERT_EQ(1ul, params.size());
   ASSERT_EQ(LeScanType::ACTIVE, params[0].le_scan_type_);
   ASSERT_EQ(18, params[0].le_scan_interval_);
   ASSERT_EQ(18, params[0].le_scan_window_);
@@ -190,7 +190,7 @@ TEST(HciPacketsTest, testLeSetExtendedScanParameters_6553) {
   ASSERT_TRUE(view.IsValid());
   ASSERT_EQ(1, view.GetScanningPhys());
   auto params = view.GetParameters();
-  ASSERT_EQ(1, params.size());
+  ASSERT_EQ(1ul, params.size());
   ASSERT_EQ(LeScanType::ACTIVE, params[0].le_scan_type_);
   ASSERT_EQ(6553, params[0].le_scan_interval_);
   ASSERT_EQ(6553, params[0].le_scan_window_);
@@ -291,8 +291,8 @@ TEST(HciPacketsTest, testLeSetExtendedAdvertisingParametersLegacySet0) {
       LeAdvertisingCommandView::Create(CommandView::Create(packet_bytes_view)));
   ASSERT_TRUE(view.IsValid());
   ASSERT_EQ(0, view.GetAdvertisingHandle());
-  ASSERT_EQ(400, view.GetPrimaryAdvertisingIntervalMin());
-  ASSERT_EQ(450, view.GetPrimaryAdvertisingIntervalMax());
+  ASSERT_EQ(400ul, view.GetPrimaryAdvertisingIntervalMin());
+  ASSERT_EQ(450ul, view.GetPrimaryAdvertisingIntervalMax());
   ASSERT_EQ(0x7, view.GetPrimaryAdvertisingChannelMap());
   ASSERT_EQ(OwnAddressType::RANDOM_DEVICE_ADDRESS, view.GetOwnAddressType());
   ASSERT_EQ(PeerAddressType::PUBLIC_DEVICE_OR_IDENTITY_ADDRESS, view.GetPeerAddressType());
@@ -314,8 +314,8 @@ TEST(HciPacketsTest, testLeSetExtendedAdvertisingParametersSet1) {
       LeAdvertisingCommandView::Create(CommandView::Create(packet_bytes_view)));
   ASSERT_TRUE(view.IsValid());
   ASSERT_EQ(1, view.GetAdvertisingHandle());
-  ASSERT_EQ(400, view.GetPrimaryAdvertisingIntervalMin());
-  ASSERT_EQ(450, view.GetPrimaryAdvertisingIntervalMax());
+  ASSERT_EQ(400ul, view.GetPrimaryAdvertisingIntervalMin());
+  ASSERT_EQ(450ul, view.GetPrimaryAdvertisingIntervalMax());
   ASSERT_EQ(0x7, view.GetPrimaryAdvertisingChannelMap());
   ASSERT_EQ(OwnAddressType::RANDOM_DEVICE_ADDRESS, view.GetOwnAddressType());
   ASSERT_EQ(PeerAddressType::PUBLIC_DEVICE_OR_IDENTITY_ADDRESS, view.GetPeerAddressType());
@@ -363,7 +363,7 @@ TEST(HciPacketsTest, testLeSetExtendedAdvertisingDisable1) {
       LeAdvertisingCommandView::Create(CommandView::Create(packet_bytes_view)));
   ASSERT_TRUE(view.IsValid());
   auto disabled_set = view.GetDisabledSets();
-  ASSERT_EQ(1, disabled_set.size());
+  ASSERT_EQ(1ul, disabled_set.size());
   ASSERT_EQ(1, disabled_set[0].advertising_handle_);
 }
 
@@ -372,7 +372,7 @@ TEST(HciPacketsTest, testLeSetAdvertisingDataBuilderLength) {
   gap_data.data_type_ = GapDataType::COMPLETE_LOCAL_NAME;
   gap_data.data_ = std::vector<uint8_t>({'A', ' ', 'g', 'o', 'o', 'd', ' ', 'n', 'a', 'm', 'e'});
   auto builder = LeSetAdvertisingDataBuilder::Create({gap_data});
-  ASSERT_EQ(2 /*opcode*/ + 1 /* parameter size */ + 1 /* data_length */ + 31 /* data */, builder->size());
+  ASSERT_EQ(2ul /*opcode*/ + 1ul /* parameter size */ + 1ul /* data_length */ + 31ul /* data */, builder->size());
 
   auto packet_bytes = std::make_shared<std::vector<uint8_t>>();
   packet_bytes->reserve(builder->size());
@@ -380,7 +380,7 @@ TEST(HciPacketsTest, testLeSetAdvertisingDataBuilderLength) {
   builder->Serialize(bit_inserter);
   auto command_view = LeAdvertisingCommandView::Create(CommandView::Create(PacketView<kLittleEndian>(packet_bytes)));
   ASSERT_TRUE(command_view.IsValid());
-  ASSERT_EQ(1 /* data_length */ + 31 /* data */, command_view.GetPayload().size());
+  ASSERT_EQ(1ul /* data_length */ + 31ul /* data */, command_view.GetPayload().size());
   auto view = LeSetAdvertisingDataView::Create(command_view);
   ASSERT_TRUE(view.IsValid());
 }
@@ -390,7 +390,7 @@ TEST(HciPacketsTest, testLeSetScanResponseDataBuilderLength) {
   gap_data.data_type_ = GapDataType::COMPLETE_LOCAL_NAME;
   gap_data.data_ = std::vector<uint8_t>({'A', ' ', 'g', 'o', 'o', 'd', ' ', 'n', 'a', 'm', 'e'});
   auto builder = LeSetScanResponseDataBuilder::Create({gap_data});
-  ASSERT_EQ(2 /*opcode*/ + 1 /* parameter size */ + 1 /*data_length */ + 31 /* data */, builder->size());
+  ASSERT_EQ(2ul /*opcode*/ + 1ul /* parameter size */ + 1ul /*data_length */ + 31ul /* data */, builder->size());
 
   auto packet_bytes = std::make_shared<std::vector<uint8_t>>();
   packet_bytes->reserve(builder->size());
@@ -398,7 +398,7 @@ TEST(HciPacketsTest, testLeSetScanResponseDataBuilderLength) {
   builder->Serialize(bit_inserter);
   auto command_view = LeAdvertisingCommandView::Create(CommandView::Create(PacketView<kLittleEndian>(packet_bytes)));
   ASSERT_TRUE(command_view.IsValid());
-  ASSERT_EQ(1 /* data_length */ + 31 /* data */, command_view.GetPayload().size());
+  ASSERT_EQ(1ul /* data_length */ + 31ul /* data */, command_view.GetPayload().size());
   auto view = LeSetScanResponseDataView::Create(command_view);
   ASSERT_TRUE(view.IsValid());
 }
@@ -419,7 +419,7 @@ TEST(HciPacketsTest, testLeMultiAdvSetAdvertisingDataBuilderLength) {
   ASSERT_TRUE(command_view.IsValid());
   auto view = LeMultiAdvtSetDataView::Create(command_view);
   ASSERT_TRUE(view.IsValid());
-  ASSERT_TRUE(view.GetAdvertisingData().size() > 0);
+  ASSERT_TRUE(view.GetAdvertisingData().size() > 0ul);
   ASSERT_EQ(view.GetAdvertisingData()[0].data_, gap_data.data_);
   ASSERT_EQ(view.GetAdvertisingInstance(), 3);
 }

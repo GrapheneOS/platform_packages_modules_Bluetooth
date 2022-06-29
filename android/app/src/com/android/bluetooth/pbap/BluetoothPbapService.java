@@ -126,7 +126,6 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
      */
     static final String EXTRA_SESSION_KEY = "com.android.bluetooth.pbap.sessionkey";
     static final String EXTRA_DEVICE = "com.android.bluetooth.pbap.device";
-    static final String THIS_PACKAGE_NAME = "com.android.bluetooth";
 
     static final int MSG_ACQUIRE_WAKE_LOCK = 5004;
     static final int MSG_RELEASE_WAKE_LOCK = 5005;

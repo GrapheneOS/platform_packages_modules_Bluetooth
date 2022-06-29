@@ -22,8 +22,8 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 
-import com.android.bluetooth.obex.HeaderSet;
-import com.android.bluetooth.obex.ServerRequestHandler;
+import com.android.obex.HeaderSet;
+import com.android.obex.ServerRequestHandler;
 
 import java.io.IOException;
 

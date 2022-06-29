@@ -34,6 +34,7 @@ import android.graphics.BitmapFactory;
 import androidx.test.InstrumentationRegistry;
 import androidx.test.runner.AndroidJUnit4;
 
+import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.audio_util.Image;
 import com.android.bluetooth.avrcpcontroller.BipEncoding;
 import com.android.bluetooth.avrcpcontroller.BipImageDescriptor;
@@ -47,9 +48,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import com.android.bluetooth.obex.HeaderSet;
-import com.android.bluetooth.obex.Operation;
-import com.android.bluetooth.obex.ResponseCodes;
+import com.android.obex.HeaderSet;
+import com.android.obex.Operation;
+import com.android.obex.ResponseCodes;
 
 @RunWith(AndroidJUnit4.class)
 public class AvrcpBipObexServerTest {
@@ -103,7 +104,6 @@ public class AvrcpBipObexServerTest {
     private static final String IMAGE_HANDLE_UNSTORED = "0000256";
     private static final String IMAGE_HANDLE_INVALID = "abc1234"; // no non-numeric characters
 
-    private Context mTargetContext;
     private Resources mTestResources;
     private CoverArt mCoverArt;
 
@@ -118,13 +118,8 @@ public class AvrcpBipObexServerTest {
 
     @Before
     public void setUp() throws Exception {
-        mTargetContext = InstrumentationRegistry.getTargetContext();
-        try {
-            mTestResources = mTargetContext.getPackageManager()
-                    .getResourcesForApplication("com.android.bluetooth.tests");
-        } catch (PackageManager.NameNotFoundException e) {
-            assertWithMessage("Setup Failure Unable to get resources" + e.toString()).fail();
-        }
+        mTestResources = TestUtils.getTestApplicationResources(
+                InstrumentationRegistry.getTargetContext());
 
         mCoverArt = loadCoverArt(com.android.bluetooth.tests.R.raw.image_200_200);
 
@@ -147,7 +142,6 @@ public class AvrcpBipObexServerTest {
         mCallback = null;
         mAvrcpCoverArtService = null;
         mCoverArt = null;
-        mTargetContext = null;
         mTestResources = null;
     }
 

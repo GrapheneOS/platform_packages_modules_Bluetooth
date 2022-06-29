@@ -200,7 +200,7 @@ class AdapterProperties {
     AdapterProperties(AdapterService service) {
         mService = service;
         mAdapter = BluetoothAdapter.getDefaultAdapter();
-        //invalidateBluetoothCaches();
+        invalidateBluetoothCaches();
     }
 
     public void init(RemoteDevices remoteDevices) {
@@ -242,7 +242,7 @@ class AdapterProperties {
         filter.addAction(BluetoothPbapClient.ACTION_CONNECTION_STATE_CHANGED);
         mService.registerReceiver(mReceiver, filter);
         mReceiverRegistered = true;
-        //invalidateBluetoothCaches();
+        invalidateBluetoothCaches();
     }
 
     public void cleanup() {
@@ -254,14 +254,18 @@ class AdapterProperties {
         }
         mService = null;
         mBondedDevices.clear();
-        //invalidateBluetoothCaches();
+        invalidateBluetoothCaches();
     }
-    /*
+
     private static void invalidateGetProfileConnectionStateCache() {
         BluetoothAdapter.invalidateGetProfileConnectionStateCache();
     }
     private static void invalidateIsOffloadedFilteringSupportedCache() {
         BluetoothAdapter.invalidateIsOffloadedFilteringSupportedCache();
+    }
+    private static void invalidateBluetoothGetConnectionStateCache() {
+        BluetoothMap.invalidateBluetoothGetConnectionStateCache();
+        BluetoothSap.invalidateBluetoothGetConnectionStateCache();
     }
     private static void invalidateGetConnectionStateCache() {
         BluetoothAdapter.invalidateGetAdapterConnectionStateCache();
@@ -274,8 +278,8 @@ class AdapterProperties {
         invalidateIsOffloadedFilteringSupportedCache();
         invalidateGetConnectionStateCache();
         invalidateGetBondStateCache();
+        invalidateBluetoothGetConnectionStateCache();
     }
-     */
 
     @Override
     public Object clone() throws CloneNotSupportedException {
@@ -413,7 +417,7 @@ class AdapterProperties {
      */
     void setConnectionState(int connectionState) {
         mConnectionState = connectionState;
-        //invalidateGetConnectionStateCache();
+        invalidateGetConnectionStateCache();
     }
 
     /**
@@ -647,7 +651,7 @@ class AdapterProperties {
                     debugLog("Failed to remove device: " + device);
                 }
             }
-            //invalidateGetBondStateCache();
+            invalidateGetBondStateCache();
         } catch (Exception ee) {
             Log.w(TAG, "onBondStateChanged: Exception ", ee);
         }
@@ -687,6 +691,10 @@ class AdapterProperties {
         BluetoothDevice device = connIntent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
         int prevState = connIntent.getIntExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, -1);
         int state = connIntent.getIntExtra(BluetoothProfile.EXTRA_STATE, -1);
+        if (state == BluetoothProfile.STATE_CONNECTING) {
+            BluetoothStatsLog.write(BluetoothStatsLog.BLUETOOTH_DEVICE_NAME_REPORTED,
+                    mService.getMetricId(device), device.getName());
+        }
         Log.d(TAG,
                 "PROFILE_CONNECTION_STATE_CHANGE: profile=" + profile + ", device=" + device + ", "
                         + prevState + " -> " + state);
@@ -876,7 +884,7 @@ class AdapterProperties {
 
         if (update) {
             mProfileConnectionState.put(profile, new Pair<Integer, Integer>(newHashState, numDev));
-            //invalidateGetProfileConnectionStateCache();
+            invalidateGetProfileConnectionStateCache();
         }
     }
 
@@ -1027,7 +1035,7 @@ class AdapterProperties {
                 + mIsLeIsochronousBroadcasterSupported
                 + " mIsLePeriodicAdvertisingSyncTransferRecipientSupported = "
                 + mIsLePeriodicAdvertisingSyncTransferRecipientSupported);
-        //invalidateIsOffloadedFilteringSupportedCache();
+        invalidateIsOffloadedFilteringSupportedCache();
     }
 
     private void updateDynamicAudioBufferSupport(byte[] val) {
@@ -1060,7 +1068,7 @@ class AdapterProperties {
             // Reset adapter and profile connection states
             setConnectionState(BluetoothAdapter.STATE_DISCONNECTED);
             mProfileConnectionState.clear();
-            //invalidateGetProfileConnectionStateCache();
+            invalidateGetProfileConnectionStateCache();
             mProfilesConnected = 0;
             mProfilesConnecting = 0;
             mProfilesDisconnecting = 0;

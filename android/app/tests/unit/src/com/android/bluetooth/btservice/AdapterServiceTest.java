@@ -146,9 +146,11 @@ public class AdapterServiceTest {
 
     private PowerManager mPowerManager;
     private PermissionCheckerManager mPermissionCheckerManager;
+    private PermissionManager mPermissionManager;
     private PackageManager mMockPackageManager;
     private MockContentResolver mMockContentResolver;
     private HashMap<String, HashMap<String, String>> mAdapterConfig;
+    private int mForegroundUserId;
 
     private void configureEnabledProfiles() {
         Log.e("AdapterServiceTest", "configureEnabledProfiles");
@@ -190,7 +192,7 @@ public class AdapterServiceTest {
         Assert.assertNotNull(Looper.myLooper());
         AdapterService adapterService = new AdapterService();
         adapterService.initNative(false /* is_restricted */, false /* is_common_criteria_mode */,
-                0 /* config_compare_result */, new String[0], false);
+                0 /* config_compare_result */, new String[0], false, "");
         adapterService.cleanupNative();
         HashMap<String, HashMap<String, String>> adapterConfig = TestUtils.readAdapterConfig();
         Assert.assertNotNull(adapterConfig);
@@ -233,6 +235,9 @@ public class AdapterServiceTest {
         mPermissionCheckerManager = InstrumentationRegistry.getTargetContext()
                 .getSystemService(PermissionCheckerManager.class);
 
+        mPermissionManager = InstrumentationRegistry.getTargetContext()
+                .getSystemService(PermissionManager.class);
+
         when(mMockContext.getApplicationInfo()).thenReturn(mMockApplicationInfo);
         when(mMockContext.getContentResolver()).thenReturn(mMockContentResolver);
         when(mMockContext.getApplicationContext()).thenReturn(mMockContext);
@@ -254,6 +259,10 @@ public class AdapterServiceTest {
                 .thenReturn(Context.PERMISSION_CHECKER_SERVICE);
         when(mMockContext.getSystemService(Context.PERMISSION_CHECKER_SERVICE))
                 .thenReturn(mPermissionCheckerManager);
+        when(mMockContext.getSystemServiceName(PermissionManager.class))
+                .thenReturn(Context.PERMISSION_SERVICE);
+        when(mMockContext.getSystemService(Context.PERMISSION_SERVICE))
+                .thenReturn(mPermissionManager);
         when(mMockContext.getSystemService(Context.ALARM_SERVICE)).thenReturn(mMockAlarmManager);
         when(mMockContext.getSystemServiceName(AlarmManager.class))
                 .thenReturn(Context.ALARM_SERVICE);
@@ -269,6 +278,12 @@ public class AdapterServiceTest {
             Object[] args = invocation.getArguments();
             return InstrumentationRegistry.getTargetContext().getDatabasePath((String) args[0]);
         }).when(mMockContext).getDatabasePath(anyString());
+
+        // Sets the foreground user id to match that of the tests (restored in tearDown)
+        mForegroundUserId = Utils.getForegroundUserId();
+        int callingUid = Binder.getCallingUid();
+        UserHandle callingUser = UserHandle.getUserHandleForUid(callingUid);
+        Utils.setForegroundUserId(callingUser.getIdentifier());
 
         when(mMockDevicePolicyManager.isCommonCriteriaModeEnabled(any())).thenReturn(false);
 
@@ -305,6 +320,10 @@ public class AdapterServiceTest {
     @After
     public void tearDown() {
         Log.e("AdapterServiceTest", "tearDown()");
+
+        // Restores the foregroundUserId to the ID prior to the test setup
+        Utils.setForegroundUserId(mForegroundUserId);
+
         mServiceBinder.unregisterCallback(mIBluetoothCallback, mAttributionSource);
         mAdapterService.cleanup();
     }

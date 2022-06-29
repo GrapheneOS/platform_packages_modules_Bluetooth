@@ -1,10 +1,13 @@
+#include "osi/include/array.h"
+
+#include <android-base/silent_death_test.h>
 #include <gtest/gtest.h>
 
 #include "AllocationTestHarness.h"
 
-#include "osi/include/array.h"
-
 class ArrayTest : public AllocationTestHarness {};
+
+using ArrayDeathTest = ArrayTest;
 
 TEST_F(ArrayTest, test_new_free_simple) {
   array_t* array = array_new(4);
@@ -14,17 +17,27 @@ TEST_F(ArrayTest, test_new_free_simple) {
 
 TEST_F(ArrayTest, test_free_null) { array_free(NULL); }
 
-TEST_F(ArrayTest, test_invalid_ptr) {
+TEST_F(ArrayDeathTest, test_invalid_ptr) {
   ::testing::FLAGS_gtest_death_test_style = "threadsafe";
   array_t* array = array_new(4);
-  EXPECT_DEATH(array_ptr(array), "");
+  {
+    // this will silent SIGABRT sent in EXPECT_DEATH below
+    ScopedSilentDeath _silentDeath;
+
+    ASSERT_DEATH(array_ptr(array), "");
+  }
   array_free(array);
 }
 
-TEST_F(ArrayTest, test_invalid_at) {
+TEST_F(ArrayDeathTest, test_invalid_at) {
   ::testing::FLAGS_gtest_death_test_style = "threadsafe";
   array_t* array = array_new(4);
-  EXPECT_DEATH(array_at(array, 1), "");
+  {
+    // this will silent SIGABRT sent in EXPECT_DEATH below
+    ScopedSilentDeath _silentDeath;
+
+    ASSERT_DEATH(array_at(array, 1), "");
+  }
   array_free(array);
 }
 

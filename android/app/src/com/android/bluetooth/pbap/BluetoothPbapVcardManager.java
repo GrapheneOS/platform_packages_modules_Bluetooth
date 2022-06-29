@@ -52,10 +52,10 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.android.bluetooth.R;
-import com.android.bluetooth.obex.Operation;
-import com.android.bluetooth.obex.ResponseCodes;
-import com.android.bluetooth.obex.ServerOperation;
 import com.android.bluetooth.util.DevicePolicyUtils;
+import com.android.obex.Operation;
+import com.android.obex.ResponseCodes;
+import com.android.obex.ServerOperation;
 import com.android.vcard.VCardComposer;
 import com.android.vcard.VCardConfig;
 import com.android.vcard.VCardPhoneNumberTranslationCallback;

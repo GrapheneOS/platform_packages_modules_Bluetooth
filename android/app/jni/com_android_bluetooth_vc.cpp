@@ -17,8 +17,6 @@
 
 #define LOG_TAG "BluetoothVolumeControlServiceJni"
 
-#define LOG_NDEBUG 0
-
 #include <string.h>
 #include <shared_mutex>
 

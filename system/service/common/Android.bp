@@ -44,6 +44,10 @@ cc_library_static {
 // Bluetooth Binder shared library
 cc_library_static {
     name: "libbluetooth-binder-common",
+    visibility:[
+        "//packages/apps/Test/connectivity/sl4n",
+        "//packages/modules/Bluetooth:__subpackages__",
+    ],
     defaults: ["fluoride_defaults"],
     cflags: [
         /* we export all classes, so change default visibility, instead of having EXPORT_SYMBOL on each class*/

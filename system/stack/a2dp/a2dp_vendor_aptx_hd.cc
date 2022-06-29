@@ -479,7 +479,7 @@ bool A2dpCodecConfigAptxHd::init() {
   if (!isValid()) return false;
 
   // Load the encoder
-  if (!A2DP_VendorLoadEncoderAptxHd()) {
+  if (A2DP_VendorLoadEncoderAptxHd() != LOAD_SUCCESS) {
     LOG_ERROR("%s: cannot load the encoder", __func__);
     return false;
   }

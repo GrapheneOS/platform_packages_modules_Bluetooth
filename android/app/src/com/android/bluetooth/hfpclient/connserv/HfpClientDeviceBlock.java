@@ -213,7 +213,7 @@ public class HfpClientDeviceBlock {
                 // This is an incoming call.
                 b.putParcelable(TelecomManager.EXTRA_INCOMING_CALL_EXTRAS,
                         new ParcelUuid(call.getUUID()));
-                b.putBoolean(TelecomManager.EXTRA_CALL_EXTERNAL_RINGER, call.isInBandRing());
+                b.putBoolean(TelecomManager.EXTRA_CALL_HAS_IN_BAND_RINGTONE, call.isInBandRing());
                 mTelecomManager.addNewIncomingCall(mPhoneAccount.getAccountHandle(), b);
             }
         } else if (call.getState() == HfpClientCall.CALL_STATE_TERMINATED) {

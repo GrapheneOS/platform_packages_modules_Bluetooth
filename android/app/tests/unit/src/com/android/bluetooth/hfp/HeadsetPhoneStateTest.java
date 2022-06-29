@@ -18,12 +18,12 @@ package com.android.bluetooth.hfp;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-import android.app.PropertyInvalidatedCache;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.os.HandlerThread;
 import android.os.IBinder;
+import android.os.IpcDataCache;
 import android.os.Looper;
 import android.os.ServiceManager;
 import android.telephony.PhoneStateListener;
@@ -68,7 +68,7 @@ public class HeadsetPhoneStateTest {
         if (Looper.myLooper() == null) {
             Looper.prepare();
         }
-        PropertyInvalidatedCache.disableForTestMode();
+        IpcDataCache.disableForTestMode();
         MockitoAnnotations.initMocks(this);
         SubscriptionManager.disableCaching();
         TelephonyManager.disableServiceHandleCaching();

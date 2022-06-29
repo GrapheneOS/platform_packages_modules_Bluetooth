@@ -451,3 +451,22 @@ filegroup {
       "mock/mock_legacy_hci_iterface.cc"
   ],
 }
+
+cc_defaults {
+    name: "mts_defaults",
+    target: {
+        android: {
+            test_config_template: ":BluetoothTestConfigTemplate",
+            test_suites: ["mts-bluetooth",],
+        },
+    },
+    compile_multilib: "both",
+    multilib: {
+        lib32: {
+            suffix: "32",
+        },
+        lib64: {
+            suffix: "64",
+        },
+    },
+}

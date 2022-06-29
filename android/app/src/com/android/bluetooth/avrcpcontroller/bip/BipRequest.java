@@ -18,10 +18,10 @@ package com.android.bluetooth.avrcpcontroller;
 
 import android.util.Log;
 
-import com.android.bluetooth.obex.ClientOperation;
-import com.android.bluetooth.obex.ClientSession;
-import com.android.bluetooth.obex.HeaderSet;
-import com.android.bluetooth.obex.ResponseCodes;
+import com.android.obex.ClientOperation;
+import com.android.obex.ClientSession;
+import com.android.obex.HeaderSet;
+import com.android.obex.ResponseCodes;
 
 import java.io.DataOutputStream;
 import java.io.IOException;

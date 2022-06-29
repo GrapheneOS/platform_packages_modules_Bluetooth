@@ -33,7 +33,6 @@ import static com.android.bluetooth.Utils.isPackageNameAccurate;
 import android.annotation.NonNull;
 import android.annotation.RequiresPermission;
 import android.annotation.SuppressLint;
-import android.app.ActivityManager;
 import android.app.AlarmManager;
 import android.app.AppOpsManager;
 import android.app.PendingIntent;
@@ -46,8 +45,11 @@ import android.bluetooth.BluetoothAdapter.ActiveDeviceProfile;
 import android.bluetooth.BluetoothAdapter.ActiveDeviceUse;
 import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothFrameworkInitializer;
+import android.bluetooth.BluetoothMap;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothProtoEnums;
+import android.bluetooth.BluetoothSap;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.bluetooth.BluetoothStatusCodes;
@@ -66,7 +68,6 @@ import android.bluetooth.UidTraffic;
 import android.companion.CompanionDeviceManager;
 import android.content.AttributionSource;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -131,7 +132,6 @@ import com.android.bluetooth.telephony.BluetoothInCallService;
 import com.android.bluetooth.vc.VolumeControlService;
 import com.android.internal.annotations.GuardedBy;
 import com.android.internal.annotations.VisibleForTesting;
-import com.android.internal.os.BinderCallsStats;
 import com.android.modules.utils.BackgroundThread;
 import com.android.modules.utils.BytesMatcher;
 import com.android.modules.utils.SynchronousResultReceiver;
@@ -211,10 +211,6 @@ public class AdapterService extends Service {
     private static final String SIM_ACCESS_PERMISSION_PREFERENCE_FILE = "sim_access_permission";
 
     private static final int CONTROLLER_ENERGY_UPDATE_TIMEOUT_MILLIS = 30;
-
-    private static final ComponentName BLUETOOTH_INCALLSERVICE_COMPONENT =
-            new ComponentName("com.android.bluetooth",
-                    BluetoothInCallService.class.getCanonicalName());
 
     public static final String ACTIVITY_ATTRIBUTION_NO_ACTIVE_DEVICE_ADDRESS =
             "no_active_device_address";
@@ -328,8 +324,6 @@ public class AdapterService extends Service {
     private LeAudioService mLeAudioService;
     private BassClientService mBassClientService;
     private BatteryService mBatteryService;
-
-    private BinderCallsStats.SettingsObserver mBinderCallsSettingsObserver;
 
     private volatile boolean mTestModeEnabled = false;
 
@@ -495,18 +489,14 @@ public class AdapterService extends Service {
         int configCompareResult = mBluetoothKeystoreService.getCompareResult();
 
         // Start tracking Binder latency for the bluetooth process.
-        mBinderCallsSettingsObserver = new BinderCallsStats.SettingsObserver(
-                getApplicationContext(),
-                new BinderCallsStats(
-                        new BinderCallsStats.Injector(),
-                        com.android.internal.os.BinderLatencyProto.Dims.BLUETOOTH));
+        BluetoothFrameworkInitializer.initializeBinderCallsStats(getApplicationContext());
 
         // Android TV doesn't show consent dialogs for just works and encryption only le pairing
         boolean isAtvDevice = getApplicationContext().getPackageManager().hasSystemFeature(
                 PackageManager.FEATURE_LEANBACK_ONLY);
         mUserManager = getSystemService(UserManager.class);
         initNative(mUserManager.isGuestUser(), isCommonCriteriaMode(), configCompareResult,
-                getInitFlags(), isAtvDevice);
+                getInitFlags(), isAtvDevice, getApplicationInfo().dataDir);
         mNativeAvailable = true;
         mCallbacks = new RemoteCallbackList<IBluetoothCallback>();
         mAppOps = getSystemService(AppOpsManager.class);
@@ -527,9 +517,16 @@ public class AdapterService extends Service {
         mDatabaseManager = new DatabaseManager(this);
         mDatabaseManager.start(MetadataDatabase.createDatabase(this));
 
-        // Phone policy is specific to phone implementations and hence if a device wants to exclude
-        // it out then it can be disabled by using the flag below.
-        if (getResources().getBoolean(R.bool.enable_phone_policy)) {
+        boolean isAutomotiveDevice = getApplicationContext().getPackageManager().hasSystemFeature(
+                PackageManager.FEATURE_AUTOMOTIVE);
+
+        /*
+         * Phone policy is specific to phone implementations and hence if a device wants to exclude
+         * it out then it can be disabled by using the flag below. Phone policy is never used on
+         * Android Automotive OS builds, in favor of a policy currently located in
+         * CarBluetoothService.
+         */
+        if (!isAutomotiveDevice && getResources().getBoolean(R.bool.enable_phone_policy)) {
             Log.i(TAG, "Phone policy enabled");
             mPhonePolicy = new PhonePolicy(this, new ServiceFactory());
             mPhonePolicy.start();
@@ -551,7 +548,7 @@ public class AdapterService extends Service {
 
         setAdapterService(this);
 
-        //invalidateBluetoothCaches();
+        invalidateBluetoothCaches();
 
         // First call to getSharedPreferences will result in a file read into
         // memory cache. Call it here asynchronously to avoid potential ANR
@@ -579,11 +576,6 @@ public class AdapterService extends Service {
             // Some platforms, such as wearables do not have a system ui.
             Log.w(TAG, "Unable to resolve SystemUI's UID.", e);
         }
-
-        IntentFilter filter = new IntentFilter(Intent.ACTION_USER_SWITCHED);
-        getApplicationContext().registerReceiverForAllUsers(sUserSwitchedReceiver, filter, null, null);
-        int fuid = ActivityManager.getCurrentUser();
-        Utils.setForegroundUserId(fuid);
     }
 
     @Override
@@ -608,16 +600,6 @@ public class AdapterService extends Service {
             System.exit(0);
         }
     }
-
-    public static final BroadcastReceiver sUserSwitchedReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (Intent.ACTION_USER_SWITCHED.equals(intent.getAction())) {
-                int fuid = intent.getIntExtra(Intent.EXTRA_USER_HANDLE, 0);
-                Utils.setForegroundUserId(fuid);
-            }
-        }
-    };
 
     private boolean initMetricsLogger() {
         if (mMetricsLogger != null) {
@@ -752,11 +734,9 @@ public class AdapterService extends Service {
         setProfileServiceState(GattService.class, BluetoothAdapter.STATE_OFF);
     }
 
-    /*
     private void invalidateBluetoothGetStateCache() {
         BluetoothAdapter.invalidateBluetoothGetStateCache();
     }
-     */
 
     void updateLeAudioProfileServiceState() {
         HashSet<Class> nonSupportedProfiles = new HashSet<>();
@@ -789,7 +769,7 @@ public class AdapterService extends Service {
 
     void updateAdapterState(int prevState, int newState) {
         mAdapterProperties.setState(newState);
-        //invalidateBluetoothGetStateCache();
+        invalidateBluetoothGetStateCache();
         if (mCallbacks != null) {
             int n = mCallbacks.beginBroadcast();
             debugLog("updateAdapterState() - Broadcasting state " + BluetoothAdapter.nameForState(
@@ -904,7 +884,7 @@ public class AdapterService extends Service {
         clearAdapterService(this);
 
         mCleaningUp = true;
-        //invalidateBluetoothCaches();
+        invalidateBluetoothCaches();
 
         unregisterReceiver(mAlarmBroadcastReceiver);
 
@@ -1001,15 +981,15 @@ public class AdapterService extends Service {
         }
     }
 
-    /*
     private void invalidateBluetoothCaches() {
         BluetoothAdapter.invalidateGetProfileConnectionStateCache();
         BluetoothAdapter.invalidateIsOffloadedFilteringSupportedCache();
         BluetoothDevice.invalidateBluetoothGetBondStateCache();
         BluetoothAdapter.invalidateBluetoothGetStateCache();
         BluetoothAdapter.invalidateGetAdapterConnectionStateCache();
+        BluetoothMap.invalidateBluetoothGetConnectionStateCache();
+        BluetoothSap.invalidateBluetoothGetConnectionStateCache();
     }
-     */
 
     private void setProfileServiceState(Class service, int state) {
         if (state == BluetoothAdapter.STATE_ON) {
@@ -1593,8 +1573,8 @@ public class AdapterService extends Service {
 
         AdapterServiceBinder(AdapterService svc) {
             mService = svc;
-            //mService.invalidateBluetoothGetStateCache();
-            //BluetoothAdapter.getDefaultAdapter().disableBluetoothGetStateCache();
+            mService.invalidateBluetoothGetStateCache();
+            BluetoothAdapter.getDefaultAdapter().disableBluetoothGetStateCache();
         }
 
         public void cleanup() {
@@ -1719,6 +1699,13 @@ public class AdapterService extends Service {
         }
 
         @Override
+        public void getIdentityAddress(String address, SynchronousResultReceiver receiver) {
+            try {
+                receiver.send(getIdentityAddress(address));
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
+            }
+        }
         public String getIdentityAddress(String address) {
             AdapterService service = getService();
             if (service == null || !callerIsSystemOrActiveUser(TAG, "getIdentityAddress")
@@ -1739,8 +1726,7 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
-
-        public String getName(AttributionSource attributionSource) {
+        private String getName(AttributionSource attributionSource) {
             AdapterService service = getService();
             if (service == null || !callerIsSystemOrActiveUser(TAG, "getName")
                     || !Utils.checkConnectPermissionForDataDelivery(
@@ -1952,24 +1938,25 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void setScanMode(int mode, int duration, AttributionSource source,
+        public void setScanMode(int mode, AttributionSource source,
                 SynchronousResultReceiver receiver) {
             try {
-                receiver.send(setScanMode(mode, duration, source));
+                receiver.send(setScanMode(mode, source));
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
         }
-        private boolean setScanMode(int mode, int duration, AttributionSource attributionSource) {
+        private int setScanMode(int mode, AttributionSource attributionSource) {
             AdapterService service = getService();
             if (service == null || !callerIsSystemOrActiveUser(TAG, "setScanMode")
                     || !Utils.checkScanPermissionForDataDelivery(
                             service, attributionSource, "AdapterService setScanMode")) {
-                return false;
+                return BluetoothStatusCodes.ERROR_MISSING_BLUETOOTH_SCAN_PERMISSION;
             }
+            enforceBluetoothPrivilegedPermission(service);
 
-            service.mAdapterProperties.setDiscoverableTimeout(duration);
-            return service.mAdapterProperties.setScanMode(convertScanModeToHal(mode));
+            return service.mAdapterProperties.setScanMode(convertScanModeToHal(mode))
+                    ? BluetoothStatusCodes.SUCCESS : BluetoothStatusCodes.ERROR_UNKNOWN;
         }
 
         @Override
@@ -1981,19 +1968,19 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
-        private int getDiscoverableTimeout(AttributionSource attributionSource) {
+        private long getDiscoverableTimeout(AttributionSource attributionSource) {
             AdapterService service = getService();
             if (service == null || !callerIsSystemOrActiveUser(TAG, "getDiscoverableTimeout")
                     || !Utils.checkScanPermissionForDataDelivery(
                             service, attributionSource, "AdapterService getDiscoverableTimeout")) {
-                return 0;
+                return -1;
             }
 
             return service.mAdapterProperties.getDiscoverableTimeout();
         }
 
         @Override
-        public void setDiscoverableTimeout(int timeout, AttributionSource source,
+        public void setDiscoverableTimeout(long timeout, AttributionSource source,
                 SynchronousResultReceiver receiver) {
             try {
                 receiver.send(setDiscoverableTimeout(timeout, source));
@@ -2001,15 +1988,17 @@ public class AdapterService extends Service {
                 receiver.propagateException(e);
             }
         }
-        private boolean setDiscoverableTimeout(int timeout, AttributionSource attributionSource) {
+        private int setDiscoverableTimeout(long timeout, AttributionSource attributionSource) {
             AdapterService service = getService();
             if (service == null || !callerIsSystemOrActiveUser(TAG, "setDiscoverableTimeout")
                     || !Utils.checkScanPermissionForDataDelivery(
                             service, attributionSource, "AdapterService setDiscoverableTimeout")) {
-                return false;
+                return BluetoothStatusCodes.ERROR_MISSING_BLUETOOTH_SCAN_PERMISSION;
             }
+            enforceBluetoothPrivilegedPermission(service);
 
-            return service.mAdapterProperties.setDiscoverableTimeout(timeout);
+            return service.mAdapterProperties.setDiscoverableTimeout((int) timeout)
+                    ? BluetoothStatusCodes.SUCCESS : BluetoothStatusCodes.ERROR_UNKNOWN;
         }
 
         @Override
@@ -3742,6 +3731,18 @@ public class AdapterService extends Service {
                 ParcelUuid uuid, AttributionSource attributionSource) {
             return mService.retrievePendingSocketForServiceRecord(uuid, attributionSource);
         }
+
+        @Override
+        public void setForegroundUserId(int userId, AttributionSource attributionSource) {
+            AdapterService service = getService();
+            if (service == null || !Utils.checkConnectPermissionForDataDelivery(
+                    service, Utils.getCallingAttributionSource(mService),
+                    "AdapterService setForegroundUserId")) {
+                return;
+            }
+            enforceBluetoothPrivilegedPermission(service);
+            Utils.setForegroundUserId(userId);
+        }
     }
 
     // ----API Methods--------
@@ -4761,8 +4762,6 @@ public class AdapterService extends Service {
                     : AlarmManager.ELAPSED_REALTIME;
 
             Intent intent = new Intent(ACTION_ALARM_WAKEUP);
-            // TODO(b/171825892) Please replace FLAG_MUTABLE_UNAUDITED below
-            // with either FLAG_IMMUTABLE (recommended) or FLAG_MUTABLE.
             mPendingAlarm =
                     PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_ONE_SHOT
                             | PendingIntent.FLAG_IMMUTABLE);
@@ -5088,7 +5087,8 @@ public class AdapterService extends Service {
         if (DeviceConfig.getBoolean(DeviceConfig.NAMESPACE_BLUETOOTH, GD_LINK_POLICY_FLAG, false)) {
             initFlags.add(String.format("%s=%s", GD_LINK_POLICY_FLAG, "true"));
         }
-        if (DeviceConfig.getBoolean(DeviceConfig.NAMESPACE_BLUETOOTH, GATT_ROBUST_CACHING_FLAG, true)) {
+        if (DeviceConfig.getBoolean(DeviceConfig.NAMESPACE_BLUETOOTH,
+                GATT_ROBUST_CACHING_FLAG, false)) {
             initFlags.add(String.format("%s=%s", GATT_ROBUST_CACHING_FLAG, "true"));
         }
         if (DeviceConfig.getBoolean(DeviceConfig.NAMESPACE_BLUETOOTH,
@@ -5176,21 +5176,33 @@ public class AdapterService extends Service {
         }
     }
 
-    public int getScanQuotaCount() {
-        synchronized (mDeviceConfigLock) {
-            return mScanQuotaCount;
+    public static int getScanQuotaCount() {
+        if (sAdapterService == null) {
+            return DeviceConfigListener.DEFAULT_SCAN_QUOTA_COUNT;
+        }
+
+        synchronized (sAdapterService.mDeviceConfigLock) {
+            return sAdapterService.mScanQuotaCount;
         }
     }
 
-    public long getScanQuotaWindowMillis() {
-        synchronized (mDeviceConfigLock) {
-            return mScanQuotaWindowMillis;
+    public static long getScanQuotaWindowMillis() {
+        if (sAdapterService == null) {
+            return DeviceConfigListener.DEFAULT_SCAN_QUOTA_WINDOW_MILLIS;
+        }
+
+        synchronized (sAdapterService.mDeviceConfigLock) {
+            return sAdapterService.mScanQuotaWindowMillis;
         }
     }
 
-    public long getScanTimeoutMillis() {
-        synchronized (mDeviceConfigLock) {
-            return mScanTimeoutMillis;
+    public static long getScanTimeoutMillis() {
+        if (sAdapterService == null) {
+            return DeviceConfigListener.DEFAULT_SCAN_TIMEOUT_MILLIS;
+        }
+
+        synchronized (sAdapterService.mDeviceConfigLock) {
+            return sAdapterService.mScanTimeoutMillis;
         }
     }
 
@@ -5398,7 +5410,8 @@ public class AdapterService extends Service {
     static native void classInitNative();
 
     native boolean initNative(boolean startRestricted, boolean isCommonCriteriaMode,
-            int configCompareResult, String[] initFlags, boolean isAtvDevice);
+            int configCompareResult, String[] initFlags, boolean isAtvDevice,
+            String userDataDirectory);
 
     native void cleanupNative();
 

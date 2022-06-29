@@ -16,7 +16,6 @@
  */
 
 #define LOG_TAG "BluetoothHeadsetClientServiceJni"
-#define LOG_NDEBUG 0
 
 #include "com_android_bluetooth.h"
 #include "hardware/bt_hf_client.h"
