@@ -1397,7 +1397,12 @@ void gatt_sr_update_prep_cnt(tGATT_TCB& tcb, tGATT_IF gatt_if, bool is_inc,
 /** Cancel LE Create Connection request */
 bool gatt_cancel_open(tGATT_IF gatt_if, const RawAddress& bda) {
   tGATT_TCB* p_tcb = gatt_find_tcb_by_addr(bda, BT_TRANSPORT_LE);
-  if (!p_tcb) return true;
+  if (!p_tcb) {
+    LOG_WARN(
+        "Unable to cancel open for unknown connection gatt_if:%hhu peer:%s",
+        gatt_if, PRIVATE_ADDRESS(bda));
+    return true;
+  }
 
   if (gatt_get_ch_state(p_tcb) == GATT_CH_OPEN) {
     LOG(ERROR) << __func__ << ": link connected Too late to cancel";
@@ -1406,9 +1411,21 @@ bool gatt_cancel_open(tGATT_IF gatt_if, const RawAddress& bda) {
 
   gatt_update_app_use_link_flag(gatt_if, p_tcb, false, false);
 
-  if (p_tcb->app_hold_link.empty()) gatt_disconnect(p_tcb);
+  if (p_tcb->app_hold_link.empty()) {
+    LOG_DEBUG(
+        "Client reference count is zero disconnecting device gatt_if:%hhu "
+        "peer:%s",
+        gatt_if, PRIVATE_ADDRESS(bda));
+    gatt_disconnect(p_tcb);
+  }
 
-  connection_manager::direct_connect_remove(gatt_if, bda);
+  if (!connection_manager::direct_connect_remove(gatt_if, bda)) {
+    BTM_AcceptlistRemove(bda);
+    LOG_INFO(
+        "GATT connection manager has no record but removed filter acceptlist "
+        "gatt_if:%hhu peer:%s",
+        gatt_if, PRIVATE_ADDRESS(bda));
+  }
   return true;
 }
 
