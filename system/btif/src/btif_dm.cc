@@ -1572,19 +1572,18 @@ void BTIF_dm_enable() {
 
   /* Enable or disable local privacy */
   bool ble_privacy_enabled = true;
-  #ifdef OS_ANDROID
-    ble_privacy_enabled =
-        android::sysprop::BluetoothProperties::isGapLePrivacyEnabled().value_or(
-            true);
-  #else
-    char ble_privacy_text[PROPERTY_VALUE_MAX] = "true";  // default is enabled
-    if (osi_property_get(PROPERTY_BLE_PRIVACY_ENABLED, ble_privacy_text,
-                         "true") &&
-        !strcmp(ble_privacy_text, "false")) {
-      ble_privacy_enabled = false;
-    }
-  #endif
-
+#ifdef OS_ANDROID
+  ble_privacy_enabled =
+      android::sysprop::BluetoothProperties::isGapLePrivacyEnabled().value_or(
+          true);
+#else
+  char ble_privacy_text[PROPERTY_VALUE_MAX] = "true";  // default is enabled
+  if (osi_property_get(PROPERTY_BLE_PRIVACY_ENABLED, ble_privacy_text,
+                       "true") &&
+      !strcmp(ble_privacy_text, "false")) {
+    ble_privacy_enabled = false;
+  }
+#endif
   LOG_INFO("%s BLE Privacy: %d", __func__, ble_privacy_enabled);
   BTA_DmBleConfigLocalPrivacy(ble_privacy_enabled);
 

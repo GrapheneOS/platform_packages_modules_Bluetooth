@@ -80,6 +80,7 @@ static_library("libbluetooth_gd") {
     "//bt/system/gd/security:BluetoothSecuritySources",
     "//bt/system/gd/shim:BluetoothShimSources",
     "//bt/system/gd/storage:BluetoothStorageSources",
+    "//bt/system/gd/sysprops:BluetoothSyspropsSources",
   ]
 }
 
