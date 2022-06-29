@@ -99,6 +99,7 @@ import java.io.FileDescriptor;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -686,10 +687,7 @@ public class BassClientStateMachine extends StateMachine {
                 System.arraycopy(receiverState, offset, audioSyncIndex, 0,
                         BassConstants.BCAST_RCVR_STATE_BIS_SYNC_SIZE);
                 offset += BassConstants.BCAST_RCVR_STATE_BIS_SYNC_SIZE;
-                log("BIS index byte array: ");
-                BassUtils.printByteArray(audioSyncIndex);
-                ByteBuffer wrapped = ByteBuffer.wrap(audioSyncIndex);
-                audioSyncState.add((long) wrapped.getInt());
+                audioSyncState.add((long) Utils.byteArrayToInt(audioSyncIndex));
 
                 byte metaDataLength = receiverState[offset++];
                 if (metaDataLength > 0) {
