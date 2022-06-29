@@ -1265,6 +1265,16 @@ public class BassClientStateMachine extends StateMachine {
             stream.write(metadata.getRawMetadata(), 0, metadata.getRawMetadata().length);
         }
 
+        if (metaData.isEncrypted() && metaData.getBroadcastCode().length == 16) {
+            if (metaData.getBroadcastCode().length != 16) {
+                Log.e(TAG, "Delivered invalid length of broadcast code: " +
+                      metaData.getBroadcastCode().length + ", should be 16");
+                return null;
+            }
+
+            mSetBroadcastCodePending = true;
+        }
+
         byte[] res = stream.toByteArray();
         log("ADD_BCAST_SOURCE in Bytes");
         BassUtils.printByteArray(res);
