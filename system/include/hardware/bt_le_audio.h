@@ -163,12 +163,6 @@ enum class BroadcastState {
   STREAMING,
 };
 
-/* A general hint for the codec configuration process. */
-enum class BroadcastAudioProfile {
-  SONIFICATION = 0,
-  MEDIA,
-};
-
 using BroadcastId = uint32_t;
 static constexpr BroadcastId kBroadcastIdInvalid = 0x00000000;
 using BroadcastCode = std::array<uint8_t, 16>;
@@ -259,7 +253,6 @@ class LeAudioBroadcasterInterface {
   virtual void Cleanup(void) = 0;
   /* Create Broadcast instance */
   virtual void CreateBroadcast(std::vector<uint8_t> metadata,
-                               BroadcastAudioProfile profile,
                                std::optional<BroadcastCode> broadcast_code) = 0;
   /* Update the ongoing Broadcast metadata */
   virtual void UpdateMetadata(uint32_t broadcast_id,

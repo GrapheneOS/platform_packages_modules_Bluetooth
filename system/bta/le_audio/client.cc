@@ -32,6 +32,7 @@
 #include "client_parser.h"
 #include "codec_manager.h"
 #include "common/time_util.h"
+#include "content_control_id_keeper.h"
 #include "device/include/controller.h"
 #include "devices.h"
 #include "embdrv/lc3/include/lc3.h"
@@ -61,6 +62,7 @@ using bluetooth::le_audio::GroupNodeStatus;
 using bluetooth::le_audio::GroupStatus;
 using bluetooth::le_audio::GroupStreamStatus;
 using le_audio::CodecManager;
+using le_audio::ContentControlIdKeeper;
 using le_audio::LeAudioDevice;
 using le_audio::LeAudioDeviceGroup;
 using le_audio::LeAudioDeviceGroups;
@@ -333,12 +335,8 @@ class LeAudioClientImpl : public LeAudioClient {
     group_remove_node(group, address);
   }
 
-  int GetCcid(le_audio::types::LeAudioContextType context_type) {
-    if (ccids_.count(context_type) == 0) {
-      return -1;
-    }
-
-    return ccids_[context_type];
+  int GetCcid(uint16_t context_type) {
+    return ContentControlIdKeeper::GetInstance()->GetCcid(context_type);
   }
 
   /* This callback happens if kLeAudioDeviceSetStateTimeoutMs timeout happens
@@ -655,7 +653,7 @@ class LeAudioClientImpl : public LeAudioClient {
 
     bool result = groupStateMachine_->StartStream(
         group, static_cast<LeAudioContextType>(final_context_type),
-        GetCcid(static_cast<LeAudioContextType>(final_context_type)));
+        GetCcid(final_context_type));
     if (result)
       stream_setup_start_timestamp_ =
           bluetooth::common::time_get_os_boottime_us();
@@ -746,17 +744,7 @@ class LeAudioClientImpl : public LeAudioClient {
 
   void SetCcidInformation(int ccid, int context_type) override {
     LOG_DEBUG("Ccid: %d, context type %d", ccid, context_type);
-
-    std::bitset<16> test{static_cast<uint16_t>(context_type)};
-    auto ctx_type =
-        static_cast<le_audio::types::LeAudioContextType>(context_type);
-    if (test.count() > 1 ||
-        ctx_type >= le_audio::types::LeAudioContextType::RFU) {
-      LOG_ERROR("Unknownd context type %d", context_type);
-      return;
-    }
-
-    ccids_[ctx_type] = ccid;
+    ContentControlIdKeeper::GetInstance()->SetCcid(context_type, ccid);
   }
 
   void StartAudioSession(LeAudioDeviceGroup* group,
@@ -3591,7 +3579,9 @@ class LeAudioClientImpl : public LeAudioClient {
           SuspendedForReconfiguration();
           if (groupStateMachine_->ConfigureStream(
                   group, current_context_type_,
-                  GetCcid(current_context_type_))) {
+                  GetCcid(static_cast<
+                          std::underlying_type<LeAudioContextType>::type>(
+                      current_context_type_)))) {
             /* If configuration succeed wait for new status. */
             return;
           }
@@ -3632,10 +3622,6 @@ class LeAudioClientImpl : public LeAudioClient {
   AudioState audio_receiver_state_;
   /* Speaker(s) */
   AudioState audio_sender_state_;
-
-  /* Ccid informations */
-  std::map<le_audio::types::LeAudioContextType /* context */, int /*ccid */>
-      ccids_;
 
   /* Current stream configuration */
   LeAudioCodecConfiguration current_source_codec_config;
@@ -3938,6 +3924,7 @@ void LeAudioClient::Initialize(
 
   IsoManager::GetInstance()->RegisterCigCallbacks(stateMachineHciCallbacks);
   CodecManager::GetInstance()->Start(offloading_preference);
+  ContentControlIdKeeper::GetInstance()->Start();
 
   callbacks_->OnInitialized();
 }
@@ -3980,6 +3967,7 @@ void LeAudioClient::Cleanup(base::Callback<void()> cleanupCb) {
   }
 
   CodecManager::GetInstance()->Stop();
+  ContentControlIdKeeper::GetInstance()->Stop();
   LeAudioGroupStateMachine::Cleanup();
   IsoManager::GetInstance()->Stop();
   le_audio::MetricsCollector::Get()->Flush();

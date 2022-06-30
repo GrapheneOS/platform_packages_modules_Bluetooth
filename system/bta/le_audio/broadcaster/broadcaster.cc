@@ -20,6 +20,7 @@
 #include "bta/include/bta_le_audio_api.h"
 #include "bta/include/bta_le_audio_broadcaster_api.h"
 #include "bta/le_audio/broadcaster/state_machine.h"
+#include "bta/le_audio/content_control_id_keeper.h"
 #include "bta/le_audio/le_audio_types.h"
 #include "device/include/controller.h"
 #include "embdrv/lc3/include/lc3.h"
@@ -36,12 +37,15 @@ using bluetooth::hci::iso_manager::big_terminate_cmpl_evt;
 using bluetooth::hci::iso_manager::BigCallbacks;
 using bluetooth::le_audio::BasicAudioAnnouncementData;
 using bluetooth::le_audio::BroadcastId;
+using le_audio::ContentControlIdKeeper;
 using le_audio::broadcaster::BigConfig;
 using le_audio::broadcaster::BroadcastCodecWrapper;
+using le_audio::broadcaster::BroadcastQosConfig;
 using le_audio::broadcaster::BroadcastStateMachine;
 using le_audio::broadcaster::BroadcastStateMachineConfig;
 using le_audio::broadcaster::IBroadcastStateMachineCallbacks;
 using le_audio::types::kLeAudioCodingFormatLC3;
+using le_audio::types::LeAudioContextType;
 using le_audio::types::LeAudioLtvMap;
 
 namespace {
@@ -69,7 +73,6 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
       bluetooth::le_audio::LeAudioBroadcasterCallbacks* callbacks_)
       : callbacks_(callbacks_),
         current_phy_(PHY_LE_2M),
-        num_retransmit_(3),
         audio_data_path_state_(AudioDataPathState::INACTIVE),
         audio_instance_(nullptr) {
     LOG_INFO();
@@ -188,17 +191,8 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
   }
 
   void CreateAudioBroadcast(std::vector<uint8_t> metadata,
-                            LeAudioBroadcaster::AudioProfile profile,
                             std::optional<bluetooth::le_audio::BroadcastCode>
                                 broadcast_code) override {
-    LOG_INFO("Audio profile: %s",
-             profile == LeAudioBroadcaster::AudioProfile::MEDIA
-                 ? "Media"
-                 : "Sonification");
-
-    auto& codec_wrapper =
-        BroadcastCodecWrapper::getCodecConfigForProfile(profile);
-
     auto broadcast_id = available_broadcast_ids_.back();
     available_broadcast_ids_.pop_back();
     if (available_broadcast_ids_.size() == 0) GenerateBroadcastIds();
@@ -212,12 +206,37 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
       return;
     }
 
+    uint16_t context_type =
+        static_cast<std::underlying_type<LeAudioContextType>::type>(
+            LeAudioContextType::MEDIA);
+    auto stream_context_vec =
+        ltv.Find(le_audio::types::kLeAudioMetadataTypeStreamingAudioContext);
+    if (stream_context_vec) {
+      auto pp = stream_context_vec.value().data();
+      STREAM_TO_UINT16(context_type, pp);
+    }
+
+    // Append the CCID list
+    // TODO: We currently support only one context (and CCID) at a time for both
+    //       Unicast and broadcast.
+    auto ccid = ContentControlIdKeeper::GetInstance()->GetCcid(context_type);
+    if (ccid != -1) {
+      ltv.Add(le_audio::types::kLeAudioMetadataTypeCcidList,
+              {static_cast<uint8_t>(ccid)});
+    }
+
+    auto codec_qos_pair =
+        le_audio::broadcaster::getStreamConfigForContext(context_type);
     BroadcastStateMachineConfig msg = {
         .broadcast_id = broadcast_id,
         .streaming_phy = GetStreamingPhy(),
-        .codec_wrapper = codec_wrapper,
-        .announcement = prepareAnnouncement(codec_wrapper, std::move(ltv)),
+        .codec_wrapper = codec_qos_pair.first,
+        .qos_config = codec_qos_pair.second,
+        .announcement =
+            prepareAnnouncement(codec_qos_pair.first, std::move(ltv)),
         .broadcast_code = std::move(broadcast_code)};
+
+    LOG_INFO("CreateAudioBroadcast");
 
     /* Create the broadcaster instance - we'll receive it's init state in the
      * async callback
@@ -372,10 +391,6 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
         broadcast_id, addr_type, addr, std::move(cb)));
   }
 
-  void SetNumRetransmit(uint8_t count) override { num_retransmit_ = count; }
-
-  uint8_t GetNumRetransmit(void) const override { return num_retransmit_; }
-
   void SetStreamingPhy(uint8_t phy) override { current_phy_ = phy; }
 
   uint8_t GetStreamingPhy(void) const override { return current_phy_; }
@@ -443,25 +458,6 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
   }
 
  private:
-  uint8_t GetNumRetransmit(uint32_t broadcast_id) {
-    /* TODO: Should be based on QOS settings */
-    return GetNumRetransmit();
-  }
-
-  uint32_t GetSduItv(uint32_t broadcast_id) {
-    /* TODO: Should be based on QOS settings
-     * currently tuned for media profile (music band)
-     */
-    return 0x002710;
-  }
-
-  uint16_t GetMaxTransportLatency(uint32_t broadcast_id) {
-    /* TODO: Should be based on QOS settings
-     * currently tuned for media profile (music band)
-     */
-    return 0x3C;
-  }
-
   static class BroadcastStateMachineCallbacks
       : public IBroadcastStateMachineCallbacks {
     void OnStateMachineCreateStatus(uint32_t broadcast_id,
@@ -561,26 +557,17 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
                               RawAddress addr) override {
       /* Not used currently */
     }
-
-    uint8_t GetNumRetransmit(uint32_t broadcast_id) override {
-      return instance->GetNumRetransmit(broadcast_id);
-    }
-
-    uint32_t GetSduItv(uint32_t broadcast_id) override {
-      return instance->GetSduItv(broadcast_id);
-    }
-
-    uint16_t GetMaxTransportLatency(uint32_t broadcast_id) override {
-      return instance->GetMaxTransportLatency(broadcast_id);
-    }
   } state_machine_callbacks_;
 
   static class LeAudioClientAudioSinkReceiverImpl
       : public LeAudioClientAudioSinkReceiver {
    public:
     LeAudioClientAudioSinkReceiverImpl()
-        : codec_wrapper_(BroadcastCodecWrapper::getCodecConfigForProfile(
-              LeAudioBroadcaster::AudioProfile::SONIFICATION)) {}
+        : codec_wrapper_(
+              le_audio::broadcaster::getStreamConfigForContext(
+                  static_cast<std::underlying_type<LeAudioContextType>::type>(
+                      le_audio::types::LeAudioContextType::UNSPECIFIED))
+                  .first) {}
 
     void CheckAndReconfigureEncoders() {
       auto const& codec_id = codec_wrapper_.GetLeAudioCodecId();
@@ -737,7 +724,6 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
 
   /* Some BIG params are set globally */
   uint8_t current_phy_;
-  uint8_t num_retransmit_;
   AudioDataPathState audio_data_path_state_;
   const void* audio_instance_;
   std::vector<BroadcastId> available_broadcast_ids_;
