@@ -200,6 +200,11 @@ void gatt_act_read(tGATT_CLCB* p_clcb, uint16_t offset) {
       memcpy(&msg.read_multi, p_clcb->p_attr_buf, sizeof(tGATT_READ_MULTI));
       break;
 
+    case GATT_READ_MULTIPLE_VAR_LEN:
+      op_code = GATT_REQ_READ_MULTI_VAR;
+      memcpy(&msg.read_multi, p_clcb->p_attr_buf, sizeof(tGATT_READ_MULTI));
+      break;
+
     case GATT_READ_INC_SRV_UUID128:
       op_code = GATT_REQ_READ;
       msg.handle = p_clcb->s_handle;
