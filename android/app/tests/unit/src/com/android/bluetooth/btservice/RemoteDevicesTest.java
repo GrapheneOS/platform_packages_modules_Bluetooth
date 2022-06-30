@@ -9,7 +9,9 @@ import android.bluetooth.BluetoothAssignedNumbers;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadset;
 import android.bluetooth.BluetoothHeadsetClient;
+import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.HandlerThread;
@@ -46,17 +48,31 @@ public class RemoteDevicesTest {
     private HandlerThread mHandlerThread;
     private TestLooperManager mTestLooperManager;
 
+    private Context mTargetContext;
+    private BluetoothManager mBluetoothManager;
+
     @Mock private AdapterService mAdapterService;
 
     @Before
     public void setUp() {
+        mTargetContext = InstrumentationRegistry.getTargetContext();
+
         MockitoAnnotations.initMocks(this);
         mDevice1 = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(TEST_BT_ADDR_1);
         mHandlerThread = new HandlerThread("RemoteDevicesTestHandlerThread");
         mHandlerThread.start();
         mTestLooperManager = InstrumentationRegistry.getInstrumentation()
                 .acquireLooperManager(mHandlerThread.getLooper());
+
+        mBluetoothManager = mTargetContext.getSystemService(BluetoothManager.class);
+        when(mAdapterService.getSystemService(Context.BLUETOOTH_SERVICE))
+                .thenReturn(mBluetoothManager);
+        when(mAdapterService.getSystemServiceName(BluetoothManager.class))
+                .thenReturn(Context.BLUETOOTH_SERVICE);
+
         mRemoteDevices = new RemoteDevices(mAdapterService, mHandlerThread.getLooper());
+        verify(mAdapterService, times(1)).getSystemService(Context.BLUETOOTH_SERVICE);
+        verify(mAdapterService, times(1)).getSystemService(BluetoothManager.class);
     }
 
     @After
