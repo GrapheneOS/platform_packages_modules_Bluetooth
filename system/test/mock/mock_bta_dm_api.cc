@@ -163,9 +163,10 @@ void BTA_DmConfirm(const RawAddress& bd_addr, bool accept) {
   test::mock::bta_dm_api::BTA_DmConfirm(bd_addr, accept);
 }
 void BTA_DmDiscover(const RawAddress& bd_addr, tBTA_DM_SEARCH_CBACK* p_cback,
-                    tBT_TRANSPORT transport) {
+                    tBT_TRANSPORT transport, bool is_bonding_or_sd) {
   mock_function_count_map[__func__]++;
-  test::mock::bta_dm_api::BTA_DmDiscover(bd_addr, p_cback, transport);
+  test::mock::bta_dm_api::BTA_DmDiscover(bd_addr, p_cback, transport,
+                                         is_bonding_or_sd);
 }
 bool BTA_DmGetConnectionState(const RawAddress& bd_addr) {
   mock_function_count_map[__func__]++;
@@ -184,9 +185,9 @@ tBTA_STATUS BTA_DmRemoveDevice(const RawAddress& bd_addr) {
   mock_function_count_map[__func__]++;
   return test::mock::bta_dm_api::BTA_DmRemoveDevice(bd_addr);
 }
-void BTA_DmSearch(tBTA_DM_SEARCH_CBACK* p_cback) {
+void BTA_DmSearch(tBTA_DM_SEARCH_CBACK* p_cback, bool is_bonding_or_sdp) {
   mock_function_count_map[__func__]++;
-  test::mock::bta_dm_api::BTA_DmSearch(p_cback);
+  test::mock::bta_dm_api::BTA_DmSearch(p_cback, is_bonding_or_sdp);
 }
 void BTA_DmSearchCancel(void) {
   mock_function_count_map[__func__]++;
