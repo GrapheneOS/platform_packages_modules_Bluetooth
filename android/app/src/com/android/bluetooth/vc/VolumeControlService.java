@@ -47,6 +47,7 @@ import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.btservice.ServiceFactory;
+import com.android.bluetooth.btservice.storage.DatabaseManager;
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.modules.utils.SynchronousResultReceiver;
 
@@ -71,6 +72,7 @@ public class VolumeControlService extends ProfileService {
     private static VolumeControlService sVolumeControlService;
 
     private AdapterService mAdapterService;
+    private DatabaseManager mDatabaseManager;
     private HandlerThread mStateMachinesThread;
     private BluetoothDevice mPreviousAudioDevice;
 
@@ -211,10 +213,12 @@ public class VolumeControlService extends ProfileService {
             throw new IllegalStateException("start() called twice");
         }
 
-        // Get AdapterService, VolumeControlNativeInterface, AudioManager.
+        // Get AdapterService, VolumeControlNativeInterface, DatabaseManager, AudioManager.
         // None of them can be null.
         mAdapterService = Objects.requireNonNull(AdapterService.getAdapterService(),
                 "AdapterService cannot be null when VolumeControlService starts");
+        mDatabaseManager = Objects.requireNonNull(mAdapterService.getDatabase(),
+                "DatabaseManager cannot be null when VolumeControlService starts");
         mVolumeControlNativeInterface = Objects.requireNonNull(
                 VolumeControlNativeInterface.getInstance(),
                 "VolumeControlNativeInterface cannot be null when VolumeControlService starts");
@@ -532,8 +536,7 @@ public class VolumeControlService extends ProfileService {
         if (DBG) {
             Log.d(TAG, "Saved connectionPolicy " + device + " = " + connectionPolicy);
         }
-        mAdapterService.getDatabase()
-                .setProfileConnectionPolicy(device, BluetoothProfile.VOLUME_CONTROL,
+        mDatabaseManager.setProfileConnectionPolicy(device, BluetoothProfile.VOLUME_CONTROL,
                         connectionPolicy);
         if (connectionPolicy == BluetoothProfile.CONNECTION_POLICY_ALLOWED) {
             connect(device);
@@ -547,8 +550,7 @@ public class VolumeControlService extends ProfileService {
     public int getConnectionPolicy(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED,
                 "Need BLUETOOTH_PRIVILEGED permission");
-        return mAdapterService.getDatabase()
-                .getProfileConnectionPolicy(device, BluetoothProfile.VOLUME_CONTROL);
+        return mDatabaseManager.getProfileConnectionPolicy(device, BluetoothProfile.VOLUME_CONTROL);
     }
 
     boolean isVolumeOffsetAvailable(BluetoothDevice device) {
