@@ -1011,7 +1011,10 @@ public class BluetoothProxy {
 
         Log.d("Lock", "lock: " + lock);
         if (lock) {
-            if (mGroupLocks.containsKey(group_id)) return;
+            if (mGroupLocks.containsKey(group_id)) {
+                Log.e("Lock", "group" + group_id + " is already in locking process or locked: " + lock);
+                return;
+            }
 
             UUID uuid = bluetoothCsis.lockGroup(group_id, mExecutor,
                     (int group, int op_status, boolean is_locked) -> {
