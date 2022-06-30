@@ -23,11 +23,13 @@
 #include "bta_le_audio_broadcaster_api.h"
 #include "btm_ble_api_types.h"
 #include "embdrv/lc3/include/lc3.h"
+#include "osi/include/properties.h"
 
 using bluetooth::le_audio::BasicAudioAnnouncementBisConfig;
 using bluetooth::le_audio::BasicAudioAnnouncementCodecConfig;
 using bluetooth::le_audio::BasicAudioAnnouncementData;
 using bluetooth::le_audio::BasicAudioAnnouncementSubgroup;
+using le_audio::types::LeAudioContextType;
 
 namespace le_audio {
 namespace broadcaster {
@@ -197,6 +199,18 @@ static const BroadcastCodecWrapper lc3_mono_16_2 = BroadcastCodecWrapper(
     // Frame len.
     40);
 
+static const BroadcastCodecWrapper lc3_stereo_16_2 = BroadcastCodecWrapper(
+    kLeAudioCodecIdLc3,
+    // LeAudioCodecConfiguration
+    {.num_channels = LeAudioCodecConfiguration::kChannelNumberStereo,
+     .sample_rate = LeAudioCodecConfiguration::kSampleRate16000,
+     .bits_per_sample = LeAudioCodecConfiguration::kBitsPerSample16,
+     .data_interval_us = LeAudioCodecConfiguration::kInterval10000Us},
+    // Bitrate
+    32000,
+    // Frame len.
+    40);
+
 static const BroadcastCodecWrapper lc3_stereo_24_2 = BroadcastCodecWrapper(
     kLeAudioCodecIdLc3,
     // LeAudioCodecConfiguration
@@ -208,16 +222,6 @@ static const BroadcastCodecWrapper lc3_stereo_24_2 = BroadcastCodecWrapper(
     48000,
     // Frame len.
     60);
-
-const BroadcastCodecWrapper& BroadcastCodecWrapper::getCodecConfigForProfile(
-    LeAudioBroadcaster::AudioProfile profile) {
-  switch (profile) {
-    case LeAudioBroadcaster::AudioProfile::SONIFICATION:
-      return lc3_mono_16_2;
-    case LeAudioBroadcaster::AudioProfile::MEDIA:
-      return lc3_stereo_24_2;
-  };
-}
 
 const std::map<uint32_t, uint8_t> sample_rate_to_sampling_freq_map = {
     {LeAudioCodecConfiguration::kSampleRate8000,
@@ -310,6 +314,77 @@ std::ostream& operator<<(
   os << ", Bitrate=" << +config.GetBitrate();
   os << "]";
   return os;
+}
+
+static const BroadcastQosConfig qos_config_2_10 = BroadcastQosConfig(2, 10);
+
+static const BroadcastQosConfig qos_config_4_60 = BroadcastQosConfig(4, 60);
+
+std::ostream& operator<<(
+    std::ostream& os, const le_audio::broadcaster::BroadcastQosConfig& config) {
+  os << " BroadcastQosConfig=[";
+  os << "RTN=" << +config.getRetransmissionNumber();
+  os << ", MaxTransportLatency=" << config.getMaxTransportLatency();
+  os << "]";
+  return os;
+}
+
+static const std::pair<const BroadcastCodecWrapper&, const BroadcastQosConfig&>
+    lc3_mono_16_2_1 = {lc3_mono_16_2, qos_config_2_10};
+
+static const std::pair<const BroadcastCodecWrapper&, const BroadcastQosConfig&>
+    lc3_mono_16_2_2 = {lc3_mono_16_2, qos_config_4_60};
+
+static const std::pair<const BroadcastCodecWrapper&, const BroadcastQosConfig&>
+    lc3_stereo_16_2_2 = {lc3_stereo_16_2, qos_config_4_60};
+
+static const std::pair<const BroadcastCodecWrapper&, const BroadcastQosConfig&>
+    lc3_stereo_24_2_1 = {lc3_stereo_24_2, qos_config_2_10};
+
+static const std::pair<const BroadcastCodecWrapper&, const BroadcastQosConfig&>
+    lc3_stereo_24_2_2 = {lc3_stereo_24_2, qos_config_4_60};
+
+std::pair<const BroadcastCodecWrapper&, const BroadcastQosConfig&>
+getStreamConfigForContext(uint16_t context) {
+  // High quality, Low Latency
+  auto contexts_stereo_24_2_1 =
+      static_cast<std::underlying_type<LeAudioContextType>::type>(
+          LeAudioContextType::GAME) |
+      static_cast<std::underlying_type<LeAudioContextType>::type>(
+          LeAudioContextType::LIVE);
+  if (context & contexts_stereo_24_2_1) return lc3_stereo_24_2_1;
+
+  // Low quality, Low Latency
+  auto contexts_mono_16_2_1 =
+      static_cast<std::underlying_type<LeAudioContextType>::type>(
+          LeAudioContextType::INSTRUCTIONAL);
+  if (context & contexts_mono_16_2_1) return lc3_mono_16_2_1;
+
+  // Low quality, High Reliability
+  auto contexts_stereo_16_2_2 =
+      static_cast<std::underlying_type<LeAudioContextType>::type>(
+          LeAudioContextType::SOUNDEFFECTS) |
+      static_cast<std::underlying_type<LeAudioContextType>::type>(
+          LeAudioContextType::UNSPECIFIED);
+  if (context & contexts_stereo_16_2_2) return lc3_stereo_16_2_2;
+
+  auto contexts_mono_16_2_2 =
+      static_cast<std::underlying_type<LeAudioContextType>::type>(
+          LeAudioContextType::ALERTS) |
+      static_cast<std::underlying_type<LeAudioContextType>::type>(
+          LeAudioContextType::NOTIFICATIONS) |
+      static_cast<std::underlying_type<LeAudioContextType>::type>(
+          LeAudioContextType::EMERGENCYALARM);
+  if (context & contexts_mono_16_2_2) return lc3_mono_16_2_2;
+
+  // High quality, High Reliability
+  auto contexts_stereo_24_2_2 =
+      static_cast<std::underlying_type<LeAudioContextType>::type>(
+          LeAudioContextType::MEDIA);
+  if (context & contexts_stereo_24_2_2) return lc3_stereo_24_2_2;
+
+  // Defaults: Low quality, High Reliability
+  return lc3_mono_16_2_2;
 }
 
 } /* namespace broadcaster */
