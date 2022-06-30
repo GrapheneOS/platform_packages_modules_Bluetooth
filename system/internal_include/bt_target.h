@@ -551,6 +551,10 @@
 #define GATT_CONFORMANCE_TESTING FALSE
 #endif
 
+/* Used only for GATT Multiple Variable Length Notifications PTS tests */
+#ifndef GATT_UPPER_TESTER_MULT_VARIABLE_LENGTH_NOTIF
+#define GATT_UPPER_TESTER_MULT_VARIABLE_LENGTH_NOTIF FALSE
+#endif
 /******************************************************************************
  *
  * SMP
