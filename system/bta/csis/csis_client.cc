@@ -371,6 +371,7 @@ class CsisClientImpl : public CsisClient {
       if (next_dev) {
         auto next_csis_inst = next_dev->GetCsisInstanceByGroupId(group_id);
         LOG_ASSERT(csis_instance) << " csis_instance does not exist!";
+#if CSIP_UPPER_TESTER_FORCE_TO_SEND_LOCK == FALSE
         if (next_csis_inst->GetLockState() ==
             CsisLockState::CSIS_STATE_LOCKED) {
           /* Somebody else managed to lock it.
@@ -379,6 +380,7 @@ class CsisClientImpl : public CsisClient {
           HandleCsisLockProcedureError(csis_group, device);
           return;
         }
+#endif
         SetLock(next_dev, next_csis_inst, CsisLockState::CSIS_STATE_LOCKED);
       }
     }
@@ -474,6 +476,7 @@ class CsisClientImpl : public CsisClient {
       return;
     }
 
+#if CSIP_UPPER_TESTER_FORCE_TO_SEND_LOCK == FALSE
     if (lock && !csis_group->IsAvailableForCsisLockOperation()) {
       DLOG(INFO) << __func__ << " Group " << group_id << " locked by other";
       NotifyGroupStatus(group_id, false,
@@ -481,6 +484,7 @@ class CsisClientImpl : public CsisClient {
                         std::move(cb));
       return;
     }
+#endif
 
     csis_group->SetTargetLockState(new_lock_state, std::move(cb));
 
