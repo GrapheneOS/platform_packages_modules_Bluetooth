@@ -185,6 +185,9 @@ TEST_F(EattTest, ConnectSucceed) {
 TEST_F(EattTest, IncomingEattConnectionByUnknownDevice) {
   std::vector<uint16_t> incoming_cids{71, 72, 73, 74, 75};
 
+  ON_CALL(btm_api_interface_, IsEncrypted)
+      .WillByDefault(
+          [](const RawAddress& addr, tBT_TRANSPORT transport) { return true; });
   EXPECT_CALL(
       l2cap_interface_,
       ConnectCreditBasedRsp(test_address, 1, incoming_cids, L2CAP_CONN_OK, _))
@@ -198,6 +201,9 @@ TEST_F(EattTest, IncomingEattConnectionByUnknownDevice) {
 
 TEST_F(EattTest, IncomingEattConnectionByKnownDevice) {
   hci_role_ = HCI_ROLE_PERIPHERAL;
+  ON_CALL(btm_api_interface_, IsEncrypted)
+      .WillByDefault(
+          [](const RawAddress& addr, tBT_TRANSPORT transport) { return true; });
   ON_CALL(gatt_interface_, ClientReadSupportedFeatures)
       .WillByDefault(
           [](const RawAddress& addr,
@@ -224,10 +230,68 @@ TEST_F(EattTest, IncomingEattConnectionByKnownDevice) {
   hci_role_ = HCI_ROLE_CENTRAL;
 }
 
+TEST_F(EattTest, IncomingEattConnectionByKnownDeviceEncryptionOff) {
+  hci_role_ = HCI_ROLE_PERIPHERAL;
+  ON_CALL(btm_api_interface_, IsEncrypted)
+      .WillByDefault([](const RawAddress& addr, tBT_TRANSPORT transport) {
+        return false;
+      });
+  ON_CALL(btm_api_interface_, IsLinkKeyKnown)
+      .WillByDefault(
+          [](const RawAddress& addr, tBT_TRANSPORT transport) { return true; });
+  ON_CALL(gatt_interface_, ClientReadSupportedFeatures)
+      .WillByDefault(
+          [](const RawAddress& addr,
+             base::OnceCallback<void(const RawAddress&, uint8_t)> cb) {
+            std::move(cb).Run(addr, BLE_GATT_SVR_SUP_FEAT_EATT_BITMASK);
+            return true;
+          });
+  ON_CALL(gatt_interface_, GetEattSupport)
+      .WillByDefault([](const RawAddress& addr) { return true; });
+
+  eatt_instance_->Connect(test_address);
+  std::vector<uint16_t> incoming_cids{71, 72, 73, 74, 75};
+
+  EXPECT_CALL(l2cap_interface_,
+              ConnectCreditBasedRsp(test_address, 1, _,
+                                    L2CAP_LE_RESULT_INSUFFICIENT_ENCRYP, _))
+      .WillOnce(Return(true));
+
+  l2cap_app_info_.pL2CA_CreditBasedConnectInd_Cb(
+      test_address, incoming_cids, BT_PSM_EATT, EATT_MIN_MTU_MPS, 1);
+
+  hci_role_ = HCI_ROLE_CENTRAL;
+}
+
+TEST_F(EattTest, IncomingEattConnectionByUnknownDeviceEncryptionOff) {
+  std::vector<uint16_t> incoming_cids{71, 72, 73, 74, 75};
+
+  ON_CALL(btm_api_interface_, IsEncrypted)
+      .WillByDefault([](const RawAddress& addr, tBT_TRANSPORT transport) {
+        return false;
+      });
+  ON_CALL(btm_api_interface_, IsLinkKeyKnown)
+      .WillByDefault([](const RawAddress& addr, tBT_TRANSPORT transport) {
+        return false;
+      });
+  EXPECT_CALL(
+      l2cap_interface_,
+      ConnectCreditBasedRsp(test_address, 1, _,
+                            L2CAP_LE_RESULT_INSUFFICIENT_AUTHENTICATION, _))
+      .WillOnce(Return(true));
+
+  l2cap_app_info_.pL2CA_CreditBasedConnectInd_Cb(
+      test_address, incoming_cids, BT_PSM_EATT, EATT_MIN_MTU_MPS, 1);
+}
+
 TEST_F(EattTest, ReconnectInitiatedByRemoteSucceed) {
   ConnectDeviceEattSupported(1);
   DisconnectEattDevice(connected_cids_);
   std::vector<uint16_t> incoming_cids{71, 72, 73, 74, 75};
+
+  ON_CALL(btm_api_interface_, IsEncrypted)
+      .WillByDefault(
+          [](const RawAddress& addr, tBT_TRANSPORT transport) { return true; });
 
   EXPECT_CALL(
       l2cap_interface_,
