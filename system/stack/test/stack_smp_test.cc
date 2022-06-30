@@ -45,6 +45,9 @@ bool get_pts_conn_updates_disabled(void) { return false; }
 bool get_pts_crosskey_sdp_disable(void) { return false; }
 const std::string* get_pts_smp_options(void) { return &kSmpOptions; }
 int get_pts_smp_failure_case(void) { return 123; }
+bool get_pts_force_eatt_for_notifications(void) { return false; }
+bool get_pts_connect_eatt_unconditionally(void) { return false; }
+bool get_pts_connect_eatt_before_encryption(void) { return false; }
 config_t* get_all(void) { return nullptr; }
 const packet_fragmenter_t* packet_fragmenter_get_interface() { return nullptr; }
 
@@ -56,6 +59,12 @@ stack_config_t mock_stack_config{
     .get_pts_crosskey_sdp_disable = get_pts_crosskey_sdp_disable,
     .get_pts_smp_options = get_pts_smp_options,
     .get_pts_smp_failure_case = get_pts_smp_failure_case,
+    .get_pts_force_eatt_for_notifications =
+        get_pts_force_eatt_for_notifications,
+    .get_pts_connect_eatt_unconditionally =
+        get_pts_connect_eatt_unconditionally,
+    .get_pts_connect_eatt_before_encryption =
+        get_pts_connect_eatt_before_encryption,
     .get_all = get_all,
 };
 const stack_config_t* stack_config_get_interface(void) {
