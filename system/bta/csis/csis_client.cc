@@ -292,14 +292,14 @@ class CsisClientImpl : public CsisClient {
     csis_group->SetTargetLockState(CsisLockState::CSIS_STATE_UNSET);
 
     int group_id = csis_group->GetGroupId();
-    CsisLockState current_lock_state = csis_group->GetCurrentLockState();
     /* Send unlock to previous devices. It shall be done in reverse order. */
     auto prev_dev = csis_group->GetPrevDevice(csis_device);
     while (prev_dev) {
       if (prev_dev->IsConnected()) {
         auto prev_csis_instance = prev_dev->GetCsisInstanceByGroupId(group_id);
         LOG_ASSERT(prev_csis_instance) << " prev_csis_instance does not exist!";
-        SetLock(prev_dev, prev_csis_instance, current_lock_state);
+        SetLock(prev_dev, prev_csis_instance,
+                CsisLockState::CSIS_STATE_UNLOCKED);
       }
       prev_dev = csis_group->GetPrevDevice(prev_dev);
     }
@@ -381,7 +381,7 @@ class CsisClientImpl : public CsisClient {
           /* Somebody else managed to lock it.
            * Unlock previous devices
            */
-          HandleCsisLockProcedureError(csis_group, device);
+          HandleCsisLockProcedureError(csis_group, next_dev);
           return;
         }
         SetLock(next_dev, next_csis_inst, CsisLockState::CSIS_STATE_LOCKED);
