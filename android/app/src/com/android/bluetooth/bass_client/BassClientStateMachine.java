@@ -1271,7 +1271,7 @@ public class BassClientStateMachine extends StateMachine {
     }
 
     private byte[] convertBroadcastMetadataToUpdateSourceByteArray(int sourceId,
-            BluetoothLeBroadcastMetadata metaData) {
+            BluetoothLeBroadcastMetadata metaData, int paSync) {
         BluetoothLeBroadcastReceiveState existingState =
                 getBroadcastReceiveStateForSourceId(sourceId);
         if (existingState == null) {
@@ -1303,7 +1303,9 @@ public class BassClientStateMachine extends StateMachine {
         // Source_ID
         res[offset++] = (byte) sourceId;
         // PA_Sync
-        if (existingState.getPaSyncState()
+        if (paSync != BluetoothLeBroadcastReceiveState.PA_SYNC_STATE_INVALID) {
+            res[offset++] = (byte) paSync;
+        } else if (existingState.getPaSyncState()
                 == BluetoothLeBroadcastReceiveState.PA_SYNC_STATE_SYNCHRONIZED) {
             res[offset++] = (byte) (0x01);
         } else {
@@ -1315,7 +1317,12 @@ public class BassClientStateMachine extends StateMachine {
         // Num_Subgroups
         res[offset++] = numSubGroups;
         for (int i = 0; i < numSubGroups; i++) {
-            int bisIndexValue = existingState.getBisSyncState().get(i).intValue();
+            int bisIndexValue;
+            if (paSync != BluetoothLeBroadcastReceiveState.PA_SYNC_STATE_INVALID) {
+                bisIndexValue = 0;
+            } else {
+                bisIndexValue = existingState.getBisSyncState().get(i).intValue();
+            }
             log("UPDATE_BCAST_SOURCE: bisIndexValue : " + bisIndexValue);
             // BIS_Sync
             res[offset++] = (byte) (bisIndexValue & 0x00000000000000FF);
@@ -1513,9 +1520,10 @@ public class BassClientStateMachine extends StateMachine {
                 case UPDATE_BCAST_SOURCE:
                     metaData = (BluetoothLeBroadcastMetadata) message.obj;
                     int sourceId = message.arg1;
+                    int paSync = message.arg2;
                     log("Updating Broadcast source" + metaData);
                     byte[] updateSourceInfo = convertBroadcastMetadataToUpdateSourceByteArray(
-                            sourceId, metaData);
+                            sourceId, metaData, paSync);
                     if (updateSourceInfo == null) {
                         Log.e(TAG, "update source: source Info is NULL");
                         break;
