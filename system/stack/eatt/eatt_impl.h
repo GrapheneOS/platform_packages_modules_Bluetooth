@@ -326,6 +326,7 @@ struct eatt_impl {
         .mtu = eatt_dev->rx_mtu_,
         .mps = eatt_dev->rx_mps_,
         .credits = L2CAP_LE_CREDIT_DEFAULT,
+        .number_of_channels = L2CAP_CREDIT_BASED_MAX_CIDS,
     };
 
     /* Warning! CIDs in Android are unique across the ACL connections */
