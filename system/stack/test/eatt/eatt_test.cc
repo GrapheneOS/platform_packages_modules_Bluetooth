@@ -62,7 +62,8 @@ const RawAddress test_address({0x11, 0x11, 0x11, 0x11, 0x11, 0x11});
 
 class EattTest : public testing::Test {
  protected:
-  void ConnectDeviceEattSupported(int num_of_accepted_connections) {
+  void ConnectDeviceEattSupported(int num_of_accepted_connections,
+                                  bool collision = false) {
     ON_CALL(gatt_interface_, ClientReadSupportedFeatures)
         .WillByDefault(
             [](const RawAddress& addr,
@@ -79,6 +80,14 @@ class EattTest : public testing::Test {
         .WillOnce(Return(test_local_cids));
 
     eatt_instance_->Connect(test_address);
+
+    if (collision) {
+      EXPECT_CALL(l2cap_interface_,
+                  ConnectCreditBasedReq(BT_PSM_EATT, test_address, _))
+          .Times(1);
+
+      l2cap_app_info_.pL2CA_CreditBasedCollisionInd_Cb(test_address);
+    }
 
     int i = 0;
     for (uint16_t cid : test_local_cids) {
@@ -509,4 +518,10 @@ TEST_F(EattTest, DoubleDisconnect) {
   /* Force second disconnect */
   eatt_instance_->Disconnect(test_address);
 }
+
+TEST_F(EattTest, TestCollisionHandling) {
+  ConnectDeviceEattSupported(0, true /* collision*/);
+  ConnectDeviceEattSupported(5, true /* collision*/);
+}
+
 }  // namespace
