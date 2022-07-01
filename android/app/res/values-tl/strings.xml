@@ -41,7 +41,7 @@
     <string name="notification_receiving" msgid="8445265771083510696">"Pagbahagi sa Bluetooth: Tinatanggap ang <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received" msgid="2330252358543000567">"Pagbahagi sa Bluetooth: Natanggap ang <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received_fail" msgid="9059153354809379374">"Pagbahagi sa Bluetooth: Hindi natanggap ang file na <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_sending" msgid="8269912843286868700">"Pagbahagi sa Bluetooth: Ipinapadala ang <xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <string name="notification_sending" msgid="8269912843286868700">"Pagbabahagi sa Bluetooth: Ipinapadala ang <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_sent" msgid="2685202778935769332">"Pagbahagi sa Bluetooth: Ipinadala ang <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_sent_complete" msgid="6293391081175517098">"100% kumpleto"</string>
     <string name="notification_sent_fail" msgid="7449832660578001579">"Pagbahagi sa Bluetooth: Hindi naipadala ang file na <xliff:g id="FILE">%1$s</xliff:g>"</string>
@@ -108,7 +108,7 @@
     <string name="no_transfers" msgid="740521199933899821">"Walang laman ang history ng paglilipat."</string>
     <string name="transfer_clear_dlg_msg" msgid="586117930961007311">"Iki-clear ang lahat ng mga item mula sa listahan."</string>
     <string name="outbound_noti_title" msgid="2045560896819618979">"Bluetooth share: Mga naipadalang file"</string>
-    <string name="inbound_noti_title" msgid="3730993443609581977">"Bluetooth share: Mga natanggap na file"</string>
+    <string name="inbound_noti_title" msgid="3730993443609581977">"Pagbabahagi sa Bluetooth: Mga natanggap na file"</string>
     <string name="noti_caption_unsuccessful" msgid="6679288016450410835">"{count,plural, =1{# ang hindi matagumpay.}one{# ang hindi matagumpay.}other{# ang hindi matagumpay.}}"</string>
     <string name="noti_caption_success" msgid="7652777514009569713">"{count,plural, =1{# ang matagumpay, %1$s}one{# ang matagumpay, %1$s}other{# ang matagumpay, %1$s}}"</string>
     <string name="transfer_menu_clear_all" msgid="3014459758656427076">"I-clear ang listahan"</string>
