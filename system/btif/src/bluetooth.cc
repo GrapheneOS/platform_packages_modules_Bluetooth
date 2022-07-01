@@ -951,6 +951,16 @@ void invoke_address_consolidate_cb(RawAddress main_bd_addr,
                      main_bd_addr, secondary_bd_addr));
 }
 
+void invoke_le_address_associate_cb(RawAddress main_bd_addr,
+                                    RawAddress secondary_bd_addr) {
+  do_in_jni_thread(
+      FROM_HERE, base::BindOnce(
+                     [](RawAddress main_bd_addr, RawAddress secondary_bd_addr) {
+                       HAL_CBACK(bt_hal_cbacks, le_address_associate_cb,
+                                 &main_bd_addr, &secondary_bd_addr);
+                     },
+                     main_bd_addr, secondary_bd_addr));
+}
 void invoke_acl_state_changed_cb(bt_status_t status, RawAddress bd_addr,
                                  bt_acl_state_t state, int transport_link_type,
                                  bt_hci_error_code_t hci_reason) {
