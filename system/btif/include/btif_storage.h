@@ -171,15 +171,17 @@ bt_status_t btif_storage_remove_bonded_device(const RawAddress* remote_bd_addr);
 
 /*******************************************************************************
  *
- * Function         btif_storage_load_consolidate_devices
+ * Function         btif_storage_load_le_devices
  *
- * Description      BTIF storage API - Load the consolidate devices from NVRAM
- *                  Additionally, this API also invokes the adaper_properties_cb
- *                  and invoke_address_consolidate_cb for each of the
- *                  consolidate devices.
+ * Description      BTIF storage API - Loads all LE-only and Dual Mode devices
+ *                  from NVRAM. This API invokes the adaper_properties_cb.
+ *                  It also invokes invoke_address_consolidate_cb
+ *                  to consolidate each Dual Mode device and
+ *                  invoke_le_address_associate_cb to associate each LE-only
+ *                  device between its RPA and identity address.
  *
  ******************************************************************************/
-void btif_storage_load_consolidate_devices(void);
+void btif_storage_load_le_devices(void);
 
 /*******************************************************************************
  *
