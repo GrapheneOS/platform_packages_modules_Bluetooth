@@ -38,11 +38,11 @@
     <string name="incoming_file_confirm_timeout_content" msgid="3221412098281076974">"\"<xliff:g id="SENDER">%1$s</xliff:g>\" -ൽ നിന്നും ഇൻകമിംഗ് ഫയൽ സ്വീകരിക്കുമ്പോൾ സമയപരിധി കഴിഞ്ഞിരുന്നു"</string>
     <string name="incoming_file_confirm_Notification_title" msgid="5381395500920804895">"ഇൻകമിംഗ് ഫയൽ"</string>
     <string name="incoming_file_confirm_Notification_content" msgid="2669135531488877921">"<xliff:g id="SENDER">%1$s</xliff:g>, ഫയൽ അയയ്‌ക്കാൻ തയ്യാറാണ്: <xliff:g id="FILE">%2$s</xliff:g>"</string>
-    <string name="notification_receiving" msgid="8445265771083510696">"ബ്ലൂടൂത്ത് പങ്കിടൽ: <xliff:g id="FILE">%1$s</xliff:g> എന്ന ഫയൽ ലഭിക്കുന്നു"</string>
+    <string name="notification_receiving" msgid="8445265771083510696">"Bluetooth പങ്കിടൽ: <xliff:g id="FILE">%1$s</xliff:g> എന്നത് സ്വീകരിക്കുന്നു"</string>
     <string name="notification_received" msgid="2330252358543000567">"ബ്ലൂടൂത്ത് പങ്കിടൽ: <xliff:g id="FILE">%1$s</xliff:g> ലഭിച്ചു"</string>
     <string name="notification_received_fail" msgid="9059153354809379374">"ബ്ലൂടൂത്ത് പങ്കിടൽ: <xliff:g id="FILE">%1$s</xliff:g> എന്ന ഫയൽ ലഭിച്ചില്ല."</string>
-    <string name="notification_sending" msgid="8269912843286868700">"ബ്ലൂടൂത്ത് പങ്കിടൽ: <xliff:g id="FILE">%1$s</xliff:g> എന്ന ഫയൽ അയയ്‌ക്കുന്നു"</string>
-    <string name="notification_sent" msgid="2685202778935769332">"ബ്ലൂടൂത്ത് പങ്കിടൽ: <xliff:g id="FILE">%1$s</xliff:g> എന്ന ഫയൽ അയച്ചു"</string>
+    <string name="notification_sending" msgid="8269912843286868700">"Bluetooth പങ്കിടൽ: <xliff:g id="FILE">%1$s</xliff:g> എന്ന ഫയൽ അയയ്‌ക്കുന്നു"</string>
+    <string name="notification_sent" msgid="2685202778935769332">"Bluetooth പങ്കിടൽ: <xliff:g id="FILE">%1$s</xliff:g> എന്ന ഫയൽ അയച്ചു"</string>
     <string name="notification_sent_complete" msgid="6293391081175517098">"100% പൂർത്തിയായി"</string>
     <string name="notification_sent_fail" msgid="7449832660578001579">"ബ്ലൂടൂത്ത് പങ്കിടൽ: <xliff:g id="FILE">%1$s</xliff:g> എന്ന ഫയൽ അയച്ചില്ല"</string>
     <string name="download_title" msgid="6449408649671518102">"ഫയൽ കൈമാറൽ"</string>
@@ -107,10 +107,10 @@
     <string name="outbound_history_title" msgid="7614166584551065036">"ഔട്ട്‌ബൗണ്ട് കൈമാറലുകൾ"</string>
     <string name="no_transfers" msgid="740521199933899821">"കൈമാറൽ ചരിത്രം ശൂന്യമാണ്."</string>
     <string name="transfer_clear_dlg_msg" msgid="586117930961007311">"ലിസ്റ്റിൽ നിന്നും എല്ലാ ഇനങ്ങളും മായ്‌ക്കും."</string>
-    <string name="outbound_noti_title" msgid="2045560896819618979">"ബ്ലൂടൂത്ത് പങ്കിടൽ: അയച്ച ഫയലുകൾ"</string>
-    <string name="inbound_noti_title" msgid="3730993443609581977">"ബ്ലൂടൂത്ത് പങ്കിടൽ: ലഭിച്ച ഫയലുകൾ"</string>
-    <string name="noti_caption_unsuccessful" msgid="6679288016450410835">"{count,plural, =1{# എണ്ണം അയയ്ക്കാനായില്ല.}other{# എണ്ണം അയയ്ക്കാനായില്ല.}}"</string>
-    <string name="noti_caption_success" msgid="7652777514009569713">"{count,plural, =1{# എണ്ണം അയച്ചു, %1$s}other{# എണ്ണം അയച്ചു, %1$s}}"</string>
+    <string name="outbound_noti_title" msgid="2045560896819618979">"Bluetooth പങ്കിടൽ: അയച്ച ഫയലുകൾ"</string>
+    <string name="inbound_noti_title" msgid="3730993443609581977">"Bluetooth പങ്കിടൽ: ലഭിച്ച ഫയലുകൾ"</string>
+    <string name="noti_caption_unsuccessful" msgid="6679288016450410835">"{count,plural, =1{# എണ്ണം പരാജയപ്പെട്ടു.}other{# എണ്ണം പരാജയപ്പെട്ടു.}}"</string>
+    <string name="noti_caption_success" msgid="7652777514009569713">"{count,plural, =1{# എണ്ണം വിജയകരം, %1$s}other{# എണ്ണം വിജയകരം, %1$s}}"</string>
     <string name="transfer_menu_clear_all" msgid="3014459758656427076">"ലിസ്റ്റ് മായ്‌ക്കുക"</string>
     <string name="transfer_menu_open" msgid="5193344638774400131">"തുറക്കുക"</string>
     <string name="transfer_menu_clear" msgid="7213491281898188730">"ലിസ്റ്റിൽ നിന്നും മായ്‌ക്കുക"</string>

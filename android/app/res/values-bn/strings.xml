@@ -41,8 +41,8 @@
     <string name="notification_receiving" msgid="8445265771083510696">"ব্লুটুথ share: <xliff:g id="FILE">%1$s</xliff:g> প্রাপ্ত করা হচ্ছে"</string>
     <string name="notification_received" msgid="2330252358543000567">"ব্লুটুথ share: <xliff:g id="FILE">%1$s</xliff:g> প্রাপ্ত করা হয়েছে"</string>
     <string name="notification_received_fail" msgid="9059153354809379374">"ব্লুটুথ share: <xliff:g id="FILE">%1$s</xliff:g> ফাইল প্রাপ্ত করা হয়নি"</string>
-    <string name="notification_sending" msgid="8269912843286868700">"ব্লুটুথ share: <xliff:g id="FILE">%1$s</xliff:g> পাঠানো হচ্ছে"</string>
-    <string name="notification_sent" msgid="2685202778935769332">"ব্লুটুথ share: <xliff:g id="FILE">%1$s</xliff:g> পাঠানো হয়েছে"</string>
+    <string name="notification_sending" msgid="8269912843286868700">"ব্লুটুথ শেয়ার: <xliff:g id="FILE">%1$s</xliff:g> পাঠানো হচ্ছে"</string>
+    <string name="notification_sent" msgid="2685202778935769332">"ব্লুটুথ শেয়ার: <xliff:g id="FILE">%1$s</xliff:g> পাঠানো হয়েছে"</string>
     <string name="notification_sent_complete" msgid="6293391081175517098">"১০০% সম্পূর্ণ"</string>
     <string name="notification_sent_fail" msgid="7449832660578001579">"ব্লুটুথ share: <xliff:g id="FILE">%1$s</xliff:g> ফাইল পাঠানো হয়নি"</string>
     <string name="download_title" msgid="6449408649671518102">"ফাইল ট্রান্সফার"</string>
@@ -107,8 +107,8 @@
     <string name="outbound_history_title" msgid="7614166584551065036">"বহির্গামী স্থানান্তরগুলি"</string>
     <string name="no_transfers" msgid="740521199933899821">"ট্রান্সফার করার ইতিহাস খালি।"</string>
     <string name="transfer_clear_dlg_msg" msgid="586117930961007311">"তালিকা থেকে সমস্ত আইটেম সাফ করা হবে।"</string>
-    <string name="outbound_noti_title" msgid="2045560896819618979">"ব্লুটুথ share: পাঠানো ফাইলগুলি"</string>
-    <string name="inbound_noti_title" msgid="3730993443609581977">"ব্লুটুথ share: প্রাপ্ত করা ফাইলগুলি"</string>
+    <string name="outbound_noti_title" msgid="2045560896819618979">"ব্লুটুথ শেয়ার: পাঠানো ফাইল"</string>
+    <string name="inbound_noti_title" msgid="3730993443609581977">"ব্লুটুথ শেয়ার: গ্রহন করা ফাইল"</string>
     <string name="noti_caption_unsuccessful" msgid="6679288016450410835">"{count,plural, =1{#টি ফাইল পাঠানো যায়নি।}one{#টি ফাইল পাঠানো যায়নি।}other{#টি ফাইল পাঠানো যায়নি।}}"</string>
     <string name="noti_caption_success" msgid="7652777514009569713">"{count,plural, =1{#টি ফাইল পাঠানো হয়েছে, %1$s}one{#টি ফাইল পাঠানো হয়েছে, %1$s}other{#টি ফাইল পাঠানো হয়েছে, %1$s}}"</string>
     <string name="transfer_menu_clear_all" msgid="3014459758656427076">"তালিকা সাফ করুন"</string>
