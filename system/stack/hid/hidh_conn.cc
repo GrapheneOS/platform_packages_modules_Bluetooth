@@ -78,6 +78,7 @@ static const tL2CAP_APPL_INFO hst_reg_info = {
     .pL2CA_CreditBasedConnectInd_Cb = nullptr,
     .pL2CA_CreditBasedConnectCfm_Cb = nullptr,
     .pL2CA_CreditBasedReconfigCompleted_Cb = nullptr,
+    .pL2CA_CreditBasedCollisionInd_Cb = nullptr,
 };
 static void hidh_try_repage(uint8_t dhandle);
 
