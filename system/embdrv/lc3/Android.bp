@@ -59,3 +59,29 @@ cc_fuzz {
   ],
 }
 
+
+cc_binary {
+    name: "lc3_encoder",
+    host_supported: true,
+    srcs: [
+        "tools/elc3.c",
+        "tools/lc3bin.c",
+        "tools/wave.c",
+    ],
+    static_libs: [
+        "liblc3",
+    ],
+}
+
+cc_binary {
+    name: "lc3_decoder",
+    host_supported: true,
+    srcs: [
+        "tools/dlc3.c",
+        "tools/lc3bin.c",
+        "tools/wave.c",
+    ],
+    static_libs: [
+        "liblc3",
+    ],
+}

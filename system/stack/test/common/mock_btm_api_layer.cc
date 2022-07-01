@@ -31,3 +31,13 @@ bool BTM_SetSecurityLevel(bool is_originator, const char* p_name,
                                              sec_level, psm, mx_proto_id,
                                              mx_chan_id);
 }
+
+bool BTM_IsEncrypted(const RawAddress& remote_bd_addr,
+                     tBT_TRANSPORT transport) {
+  return btm_api_interface->IsEncrypted(remote_bd_addr, transport);
+}
+
+bool BTM_IsLinkKeyKnown(const RawAddress& remote_bd_addr,
+                        tBT_TRANSPORT transport) {
+  return btm_api_interface->IsLinkKeyKnown(remote_bd_addr, transport);
+}
