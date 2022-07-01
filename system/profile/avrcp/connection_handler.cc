@@ -18,6 +18,7 @@
 
 #include <base/bind.h>
 #include <base/logging.h>
+
 #include <map>
 
 #include "avrc_defs.h"
@@ -487,6 +488,10 @@ void ConnectionHandler::SdpCb(RawAddress bdaddr, SdpCallback cb,
             peer_features |= (BTA_AV_FEAT_BROWSE);
           }
         }
+      }
+
+      if (osi_property_get_bool(AVRC_DYNAMIC_AVRCP_ENABLE_PROPERTY, true)) {
+        avrc_->SaveControllerVersion(bdaddr, peer_avrcp_version);
       }
     }
   }
