@@ -1293,7 +1293,7 @@ void sdpu_set_avrc_target_version(const tSDP_ATTRIBUTE* p_attr,
 
   // Dynamic ACRCP version. If our version high than remote device's version,
   // reply version same as its. Otherwise, reply default version.
-  if (!osi_property_get_bool(AVRC_DYNAMIC_AVRCP_ENABLE_PROPERTY, false)) {
+  if (!osi_property_get_bool(AVRC_DYNAMIC_AVRCP_ENABLE_PROPERTY, true)) {
     LOG_INFO(
         "Dynamic AVRCP version feature is not enabled, skipping this method");
     return;
