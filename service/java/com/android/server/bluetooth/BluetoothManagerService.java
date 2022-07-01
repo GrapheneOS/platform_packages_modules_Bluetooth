@@ -2189,7 +2189,11 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
                         break;
                     }
                     if (msg.arg1 > 0) {
-                        mContext.unbindService(psc);
+                        try {
+                            mContext.unbindService(psc);
+                        } catch (IllegalArgumentException e) {
+                            Log.e(TAG, "Unable to unbind service with intent: " + psc.mIntent, e);
+                        }
                         psc.bindService(msg.arg1 - 1);
                     }
                     break;

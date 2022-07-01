@@ -1917,10 +1917,16 @@ static void bta_energy_info_cb(tBTM_BLE_TX_TIME_MS tx_time,
 void btif_dm_start_discovery(void) {
   BTIF_TRACE_EVENT("%s", __func__);
 
+  if (bta_dm_is_search_request_queued()) {
+    LOG_INFO("%s skipping start discovery because a request is queued",
+             __func__);
+    return;
+  }
+
   /* Will be enabled to true once inquiry busy level has been received */
   btif_dm_inquiry_in_progress = false;
   /* find nearby devices */
-  BTA_DmSearch(btif_dm_search_devices_evt);
+  BTA_DmSearch(btif_dm_search_devices_evt, is_bonding_or_sdp());
 }
 
 /*******************************************************************************
@@ -2400,7 +2406,10 @@ void btif_dm_get_remote_services(RawAddress remote_addr, const int transport) {
   BTIF_TRACE_EVENT("%s: transport=%d, remote_addr=%s", __func__, transport,
                    remote_addr.ToString().c_str());
 
-  BTA_DmDiscover(remote_addr, btif_dm_search_services_evt, transport);
+  BTA_DmDiscover(remote_addr, btif_dm_search_services_evt, transport,
+                 remote_addr != pairing_cb.bd_addr &&
+                     remote_addr != pairing_cb.static_bdaddr &&
+                     is_bonding_or_sdp());
 }
 
 void btif_dm_enable_service(tBTA_SERVICE_ID service_id, bool enable) {
