@@ -805,6 +805,27 @@ final class RemoteDevices {
         mDualDevicesMap.put(deviceProperties.getIdentityAddress(), Utils.getAddressStringFromByte(mainAddress));
     }
 
+    /**
+     * Callback to associate an LE-only device's RPA with its identity address
+     *
+     * @param mainAddress the device's RPA
+     * @param secondaryAddress the device's identity address
+     */
+    void leAddressAssociateCallback(byte[] mainAddress, byte[] secondaryAddress) {
+        BluetoothDevice device = getDevice(mainAddress);
+        if (device == null) {
+            errorLog("leAddressAssociateCallback: device is NULL, address="
+                    + Utils.getAddressStringFromByte(mainAddress) + ", secondaryAddress="
+                    + Utils.getAddressStringFromByte(secondaryAddress));
+            return;
+        }
+        Log.d(TAG, "leAddressAssociateCallback device: " + device + ", secondaryAddress:"
+                + Utils.getAddressStringFromByte(secondaryAddress));
+
+        DeviceProperties deviceProperties = getDeviceProperties(device);
+        deviceProperties.mIdentityAddress = Utils.getAddressStringFromByte(secondaryAddress);
+    }
+
     void aclStateChangeCallback(int status, byte[] address, int newState,
                                 int transportLinkType, int hciReason) {
         BluetoothDevice device = getDevice(address);
