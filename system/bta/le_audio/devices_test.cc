@@ -526,6 +526,13 @@ class LeAudioAseConfigurationTest : public Test {
     for (const auto& audio_set_conf : *configurations) {
       // the configuration should fail if there are no active ases expected
       bool success_expected = data_size > 0;
+      bool not_matching_scenario = false;
+      uint8_t snk_ases_cnt = 0;
+      uint8_t src_ases_cnt = 0;
+      PublishedAudioCapabilitiesBuilder snk_pac_builder, src_pac_builder;
+      snk_pac_builder.Reset();
+      src_pac_builder.Reset();
+
       for (int i = 0; i < data_size; i++) {
         success_expected &= (data[i].active_channel_num_snk +
                              data[i].active_channel_num_src) > 0;
@@ -536,18 +543,33 @@ class LeAudioAseConfigurationTest : public Test {
          * DualDev). This is just how the test is created and this limitation
          * should be removed b/230107540
          */
-        PublishedAudioCapabilitiesBuilder snk_pac_builder, src_pac_builder;
         for (const auto& entry : (*audio_set_conf).confs) {
+          /* Configuration requires more devices than are supplied */
+          if (entry.device_cnt > data_size) {
+            not_matching_scenario = true;
+            break;
+          }
           if (entry.direction == kLeAudioDirectionSink) {
+            snk_ases_cnt += entry.ase_cnt;
             snk_pac_builder.Add(entry.codec, data[i].audio_channel_counts_snk);
           } else {
             src_pac_builder.Add(entry.codec, data[i].audio_channel_counts_src);
           }
         }
 
+        /* Scenario requires more ASEs than defined requirement */
+        if (snk_ases_cnt < data[i].audio_channel_counts_snk ||
+            src_ases_cnt < data[i].audio_channel_counts_src) {
+          not_matching_scenario = true;
+        }
+
+        if (not_matching_scenario) break;
+
         data[i].device->snk_pacs_ = snk_pac_builder.Get();
         data[i].device->src_pacs_ = src_pac_builder.Get();
       }
+
+      if (not_matching_scenario) continue;
 
       /* Stimulate update of active context map */
       group_->UpdateActiveContextsMap(static_cast<uint16_t>(context_type));

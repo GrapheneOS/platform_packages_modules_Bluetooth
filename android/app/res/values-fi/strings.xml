@@ -42,7 +42,7 @@
     <string name="notification_received" msgid="2330252358543000567">"Bluetooth-jako: <xliff:g id="FILE">%1$s</xliff:g> vastaanotettu"</string>
     <string name="notification_received_fail" msgid="9059153354809379374">"Bluetooth-jako: tiedostoa <xliff:g id="FILE">%1$s</xliff:g> ei vastaanotettu"</string>
     <string name="notification_sending" msgid="8269912843286868700">"Bluetooth-jako: lähetetään tiedostoa <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_sent" msgid="2685202778935769332">"Bluetooth-jako: lähetä <xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <string name="notification_sent" msgid="2685202778935769332">"Bluetooth-jako: <xliff:g id="FILE">%1$s</xliff:g> lähetetty"</string>
     <string name="notification_sent_complete" msgid="6293391081175517098">"100 % valmis"</string>
     <string name="notification_sent_fail" msgid="7449832660578001579">"Bluetooth-jako: tiedostoa <xliff:g id="FILE">%1$s</xliff:g> ei lähetetty"</string>
     <string name="download_title" msgid="6449408649671518102">"Tiedostonsiirto"</string>

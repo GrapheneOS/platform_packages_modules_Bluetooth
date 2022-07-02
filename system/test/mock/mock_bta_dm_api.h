@@ -280,15 +280,15 @@ extern struct BTA_DmConfirm BTA_DmConfirm;
 
 // Name: BTA_DmDiscover
 // Params: const RawAddress& bd_addr, tBTA_DM_SEARCH_CBACK* p_cback,
-// tBT_TRANSPORT transport Return: void
+// tBT_TRANSPORT transport, bool is_bonding_or_sd Return: void
 struct BTA_DmDiscover {
   std::function<void(const RawAddress& bd_addr, tBTA_DM_SEARCH_CBACK* p_cback,
-                     tBT_TRANSPORT transport)>
+                     tBT_TRANSPORT transport, bool is_bonding_or_sd)>
       body{[](const RawAddress& bd_addr, tBTA_DM_SEARCH_CBACK* p_cback,
-              tBT_TRANSPORT transport) {}};
+              tBT_TRANSPORT transport, bool is_bonding_or_sd) {}};
   void operator()(const RawAddress& bd_addr, tBTA_DM_SEARCH_CBACK* p_cback,
-                  tBT_TRANSPORT transport) {
-    body(bd_addr, p_cback, transport);
+                  tBT_TRANSPORT transport, bool is_bonding_or_sd) {
+    body(bd_addr, p_cback, transport, is_bonding_or_sd);
   };
 };
 extern struct BTA_DmDiscover BTA_DmDiscover;
@@ -340,12 +340,14 @@ struct BTA_DmRemoveDevice {
 extern struct BTA_DmRemoveDevice BTA_DmRemoveDevice;
 
 // Name: BTA_DmSearch
-// Params: tBTA_DM_SEARCH_CBACK* p_cback
+// Params: tBTA_DM_SEARCH_CBACK* p_cback, bool is_bonding_or_sdp
 // Return: void
 struct BTA_DmSearch {
-  std::function<void(tBTA_DM_SEARCH_CBACK* p_cback)> body{
-      [](tBTA_DM_SEARCH_CBACK* p_cback) {}};
-  void operator()(tBTA_DM_SEARCH_CBACK* p_cback) { body(p_cback); };
+  std::function<void(tBTA_DM_SEARCH_CBACK* p_cback, bool is_bonding_or_sdp)>
+      body{[](tBTA_DM_SEARCH_CBACK* p_cback, bool is_bonding_or_sdp) {}};
+  void operator()(tBTA_DM_SEARCH_CBACK* p_cback, bool is_bonding_or_sdp) {
+    body(p_cback, is_bonding_or_sdp);
+  };
 };
 extern struct BTA_DmSearch BTA_DmSearch;
 
