@@ -498,6 +498,9 @@ public class CsipSetCoordinatorService extends ProfileService {
     public @Nullable UUID lockGroup(
             int groupId, @NonNull IBluetoothCsipSetCoordinatorLockCallback callback) {
         if (callback == null) {
+            if (DBG) {
+                Log.d(TAG, "lockGroup(): " + groupId + ", callback not provided ");
+            }
             return null;
         }
 
@@ -524,12 +527,18 @@ public class CsipSetCoordinatorService extends ProfileService {
                 } catch (RemoteException e) {
                     throw e.rethrowFromSystemServer();
                 }
+                if (DBG) {
+                    Log.d(TAG, "lockGroup(): " + groupId + ", ERROR_CSIP_GROUP_LOCKED_BY_OTHER ");
+                }
                 return null;
             }
 
             mLocks.put(groupId, new Pair<>(uuid, callback));
         }
 
+        if (DBG) {
+            Log.d(TAG, "lockGroup(): locking group: " + groupId);
+        }
         mCsipSetCoordinatorNativeInterface.groupLockSet(groupId, true);
         return uuid;
     }
@@ -542,6 +551,9 @@ public class CsipSetCoordinatorService extends ProfileService {
      */
     public void unlockGroup(@NonNull UUID lockUuid) {
         if (lockUuid == null) {
+            if (DBG) {
+                Log.d(TAG, "unlockGroup(): lockUuid is null");
+            }
             return;
         }
 
@@ -550,6 +562,9 @@ public class CsipSetCoordinatorService extends ProfileService {
                     mLocks.entrySet()) {
                 Pair<UUID, IBluetoothCsipSetCoordinatorLockCallback> uuidCbPair = entry.getValue();
                 if (uuidCbPair.first.equals(lockUuid)) {
+                    if (DBG) {
+                        Log.d(TAG, "unlockGroup(): unlocking ... " + lockUuid);
+                    }
                     mCsipSetCoordinatorNativeInterface.groupLockSet(entry.getKey(), false);
                     return;
                 }
