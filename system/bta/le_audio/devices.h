@@ -249,6 +249,7 @@ class LeAudioDeviceGroup {
       types::AudioContexts contexts);
   std::optional<types::AudioContexts> UpdateActiveContextsMap(void);
   bool ReloadAudioLocations(void);
+  bool ReloadAudioDirections(void);
   const set_configurations::AudioSetConfiguration* GetActiveConfiguration(void);
   types::LeAudioContextType GetCurrentContextType(void);
   bool IsPendingConfiguration(void);

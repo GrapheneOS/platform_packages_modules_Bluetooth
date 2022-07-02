@@ -512,7 +512,11 @@ class LeAudioClientImpl : public LeAudioClient {
       std::optional<AudioContexts> old_group_updated_contexts =
           old_group->UpdateActiveContextsMap(old_group->GetActiveContexts());
 
-      if (old_group_updated_contexts || old_group->ReloadAudioLocations()) {
+      bool group_conf_changed = old_group->ReloadAudioLocations();
+      group_conf_changed |= old_group->ReloadAudioDirections();
+      group_conf_changed |= old_group_updated_contexts.has_value();
+
+      if (group_conf_changed) {
         callbacks_->OnAudioConf(old_group->audio_directions_, old_group_id,
                                 old_group->snk_audio_locations_.to_ulong(),
                                 old_group->src_audio_locations_.to_ulong(),
@@ -575,7 +579,11 @@ class LeAudioClientImpl : public LeAudioClient {
     std::optional<AudioContexts> updated_contexts =
         group->UpdateActiveContextsMap(group->GetActiveContexts());
 
-    if (updated_contexts || group->ReloadAudioLocations())
+    bool group_conf_changed = group->ReloadAudioLocations();
+    group_conf_changed |= group->ReloadAudioDirections();
+    group_conf_changed |= updated_contexts.has_value();
+
+    if (group_conf_changed)
       callbacks_->OnAudioConf(group->audio_directions_, group->group_id_,
                               group->snk_audio_locations_.to_ulong(),
                               group->src_audio_locations_.to_ulong(),
@@ -852,11 +860,24 @@ class LeAudioClientImpl : public LeAudioClient {
       }
     }
 
-    /* Configure audio HAL sessions with most frequent context.
-     * If reconfiguration is not needed it means, context type is not supported
+    /* Try configure audio HAL sessions with most frequent context.
+     * If reconfiguration is not needed it means, context type is not supported.
+     * If most frequest scenario is not supported, try to find first supported.
      */
+    LeAudioContextType default_context_type = LeAudioContextType::UNSPECIFIED;
+    if (group->IsContextSupported(LeAudioContextType::MEDIA)) {
+      default_context_type = LeAudioContextType::MEDIA;
+    } else {
+      for (LeAudioContextType context_type :
+           le_audio::types::kLeAudioContextAllTypesArray) {
+        if (group->IsContextSupported(context_type)) {
+          default_context_type = context_type;
+          break;
+        }
+      }
+    }
     UpdateConfigAndCheckIfReconfigurationIsNeeded(group_id,
-                                                  LeAudioContextType::MEDIA);
+                                                  default_context_type);
     if (current_source_codec_config.IsInvalid() &&
         current_sink_codec_config.IsInvalid()) {
       LOG(WARNING) << __func__ << ", unsupported device configurations";
@@ -1169,7 +1190,12 @@ class LeAudioClientImpl : public LeAudioClient {
       /* Read of source audio locations during initial attribute discovery.
        * Group would be assigned once service search is completed.
        */
-      if (group && group->ReloadAudioLocations()) {
+      if (!group) return;
+
+      bool group_conf_changed = group->ReloadAudioLocations();
+      group_conf_changed |= group->ReloadAudioDirections();
+
+      if (group_conf_changed) {
         callbacks_->OnAudioConf(group->audio_directions_, group->group_id_,
                                 group->snk_audio_locations_.to_ulong(),
                                 group->src_audio_locations_.to_ulong(),
@@ -1198,7 +1224,12 @@ class LeAudioClientImpl : public LeAudioClient {
       /* Read of source audio locations during initial attribute discovery.
        * Group would be assigned once service search is completed.
        */
-      if (group && group->ReloadAudioLocations()) {
+      if (!group) return;
+
+      bool group_conf_changed = group->ReloadAudioLocations();
+      group_conf_changed |= group->ReloadAudioDirections();
+
+      if (group_conf_changed) {
         callbacks_->OnAudioConf(group->audio_directions_, group->group_id_,
                                 group->snk_audio_locations_.to_ulong(),
                                 group->src_audio_locations_.to_ulong(),

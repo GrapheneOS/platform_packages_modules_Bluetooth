@@ -23,19 +23,20 @@
  *
  ******************************************************************************/
 
+#include <base/logging.h>
 #include <log/log.h>
 #include <string.h>  // memcpy
 
 #include <cstdint>
 
+#include "btif/include/btif_config.h"
 #include "device/include/interop.h"
 #include "osi/include/allocator.h"
+#include "stack/include/avrc_api.h"
 #include "stack/include/avrc_defs.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/sdp_api.h"
 #include "stack/sdp/sdpint.h"
-
-#include <base/logging.h>
 
 /* Maximum number of bytes to reserve out of SDP MTU for response data */
 #define SDP_MAX_SERVICE_RSPHDR_LEN 12
@@ -400,12 +401,22 @@ static void process_service_attr_req(tCONN_CB* p_ccb, uint16_t trans_num,
     p_ccb->cont_info.attr_offset = 0;
   }
 
+  bool is_service_avrc_target = false;
+  const tSDP_ATTRIBUTE* p_attr_service_id;
+  p_attr_service_id = sdp_db_find_attr_in_rec(
+      p_rec, ATTR_ID_SERVICE_CLASS_ID_LIST, ATTR_ID_SERVICE_CLASS_ID_LIST);
+  if (p_attr_service_id) {
+    is_service_avrc_target = sdpu_is_service_id_avrc_target(p_attr_service_id);
+  }
   /* Search for attributes that match the list given to us */
   for (xx = p_ccb->cont_info.next_attr_index; xx < attr_seq.num_attr; xx++) {
     p_attr = sdp_db_find_attr_in_rec(p_rec, attr_seq.attr_entry[xx].start,
                                      attr_seq.attr_entry[xx].end);
 
     if (p_attr) {
+      if (is_service_avrc_target) {
+        sdpu_set_avrc_target_version(p_attr, &(p_ccb->device_address));
+      }
       /* Check if attribute fits. Assume 3-byte value type/length */
       rem_len = max_list_len - (int16_t)(p_rsp - &p_ccb->rsp_list[0]);
 
@@ -554,7 +565,6 @@ static void process_service_search_attr_req(tCONN_CB* p_ccb, uint16_t trans_num,
   const tSDP_RECORD* p_rec;
   tSDP_ATTR_SEQ attr_seq, attr_seq_sav;
   const tSDP_ATTRIBUTE* p_attr;
-  tSDP_ATTRIBUTE attr_sav;
   bool maxxed_out = false, is_cont = false;
   uint8_t* p_seq_start;
   uint16_t seq_len, attr_len;
@@ -647,24 +657,22 @@ static void process_service_search_attr_req(tCONN_CB* p_ccb, uint16_t trans_num,
       p_rsp += 3;
     }
 
+    bool is_service_avrc_target = false;
+    const tSDP_ATTRIBUTE* p_attr_service_id;
+    p_attr_service_id = sdp_db_find_attr_in_rec(
+        p_rec, ATTR_ID_SERVICE_CLASS_ID_LIST, ATTR_ID_SERVICE_CLASS_ID_LIST);
+    if (p_attr_service_id) {
+      is_service_avrc_target =
+          sdpu_is_service_id_avrc_target(p_attr_service_id);
+    }
     /* Get a list of handles that match the UUIDs given to us */
     for (xx = p_ccb->cont_info.next_attr_index; xx < attr_seq.num_attr; xx++) {
       p_attr = sdp_db_find_attr_in_rec(p_rec, attr_seq.attr_entry[xx].start,
                                        attr_seq.attr_entry[xx].end);
 
       if (p_attr) {
-        // Check if the attribute contain AVRCP profile description list
-        uint16_t avrcp_version = sdpu_is_avrcp_profile_description_list(p_attr);
-        if (avrcp_version > AVRC_REV_1_4 &&
-            interop_match_addr(INTEROP_AVRCP_1_4_ONLY,
-                               &(p_ccb->device_address))) {
-          SDP_TRACE_DEBUG(
-              "%s, device=%s is only accept AVRCP 1.4, reply AVRCP 1.4 "
-              "instead.",
-              __func__, p_ccb->device_address.ToString().c_str());
-          memcpy(&attr_sav, p_attr, sizeof(tSDP_ATTRIBUTE));
-          attr_sav.value_ptr[attr_sav.len - 1] = 0x04;
-          p_attr = &attr_sav;
+        if (is_service_avrc_target) {
+          sdpu_set_avrc_target_version(p_attr, &(p_ccb->device_address));
         }
         /* Check if attribute fits. Assume 3-byte value type/length */
         rem_len = max_list_len - (int16_t)(p_rsp - &p_ccb->rsp_list[0]);
