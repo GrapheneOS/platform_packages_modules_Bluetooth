@@ -143,8 +143,8 @@ public class BluetoothPbapVcardManager {
         BluetoothPbapCallLogComposer composer = new BluetoothPbapCallLogComposer(mContext);
         String name = BluetoothPbapService.getLocalPhoneName();
         String number = BluetoothPbapService.getLocalPhoneNum();
-        String vcard = composer.composeVCardForPhoneOwnNumber(Phone.TYPE_MOBILE, name, number,
-                vcardType21);
+        String vcard = BluetoothPbapCallLogComposer.composeVCardForPhoneOwnNumber(
+                Phone.TYPE_MOBILE, name, number, vcardType21);
         return vcard;
     }
 
