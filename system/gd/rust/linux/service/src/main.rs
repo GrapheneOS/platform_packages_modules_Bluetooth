@@ -80,7 +80,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let intf = Arc::new(Mutex::new(get_btinterface().unwrap()));
     let suspend = Arc::new(Mutex::new(Box::new(Suspend::new(intf.clone(), tx.clone()))));
-    let bluetooth_gatt = Arc::new(Mutex::new(Box::new(BluetoothGatt::new(intf.clone()))));
+    let bluetooth_gatt =
+        Arc::new(Mutex::new(Box::new(BluetoothGatt::new(intf.clone(), tx.clone()))));
     let bluetooth_media =
         Arc::new(Mutex::new(Box::new(BluetoothMedia::new(tx.clone(), intf.clone()))));
     let bluetooth = Arc::new(Mutex::new(Box::new(Bluetooth::new(

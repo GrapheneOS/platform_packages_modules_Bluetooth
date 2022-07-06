@@ -202,13 +202,13 @@ struct IBluetoothGattDBus {}
 
 #[generate_dbus_exporter(export_bluetooth_gatt_dbus_intf, "org.chromium.bluetooth.BluetoothGatt")]
 impl IBluetoothGatt for IBluetoothGattDBus {
-    #[dbus_method("RegisterScanner")]
-    fn register_scanner(&self, callback: Box<dyn IScannerCallback + Send>) {
+    #[dbus_method("RegisterScannerCallback")]
+    fn register_scanner_callback(&mut self, callback: Box<dyn IScannerCallback + Send>) -> u32 {
         dbus_generated!()
     }
 
-    #[dbus_method("UnregisterScanner")]
-    fn unregister_scanner(&self, scanner_id: i32) {
+    #[dbus_method("UnregisterScannerCallback")]
+    fn unregister_scanner_callback(&mut self, scanner_id: u32) -> bool {
         dbus_generated!()
     }
 
