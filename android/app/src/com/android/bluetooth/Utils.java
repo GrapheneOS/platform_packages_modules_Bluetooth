@@ -34,7 +34,6 @@ import android.annotation.NonNull;
 import android.annotation.Nullable;
 import android.annotation.RequiresPermission;
 import android.annotation.SuppressLint;
-import android.app.AppOpsManager;
 import android.app.BroadcastOptions;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -242,7 +241,6 @@ public final class Utils {
     public static ParcelUuid[] byteArrayToUuid(byte[] val) {
         int numUuids = val.length / BD_UUID_LEN;
         ParcelUuid[] puuids = new ParcelUuid[numUuids];
-        UUID uuid;
         int offset = 0;
 
         ByteBuffer converter = ByteBuffer.wrap(val);
@@ -344,6 +342,7 @@ public final class Utils {
      * @throws SecurityException if the package name does not match the uid or the association
      *                           doesn't exist
      */
+    @RequiresPermission("android.permission.MANAGE_COMPANION_DEVICES")
     public static boolean enforceCdmAssociation(CompanionDeviceManager cdm, Context context,
             String callingPackage, int callingUid, BluetoothDevice device) {
         if (!isPackageNameAccurate(context, callingPackage, callingUid)) {
@@ -874,14 +873,8 @@ public final class Utils {
         return true;
     }
 
-    private static boolean isAppOppAllowed(AppOpsManager appOps, String op, String callingPackage,
-            @NonNull String callingFeatureId) {
-        return appOps.noteOp(op, Binder.getCallingUid(), callingPackage, callingFeatureId, null)
-                == AppOpsManager.MODE_ALLOWED;
-    }
-
     /**
-     * Converts {@code millisecond} to unit. Each unit is 0.625 millisecond.
+     * Converts {@code milliseconds} to unit. Each unit is 0.625 millisecond.
      */
     public static int millsToUnit(int milliseconds) {
         return (int) (TimeUnit.MILLISECONDS.toMicros(milliseconds) / MICROS_PER_UNIT);
@@ -1015,9 +1008,9 @@ public final class Utils {
      * Returns broadcast options.
      */
     public static @NonNull BroadcastOptions getTempBroadcastOptions() {
+        final BroadcastOptions bOptions = BroadcastOptions.makeBasic();
         // Use the Bluetooth process identity to pass permission check when reading DeviceConfig
         final long ident = Binder.clearCallingIdentity();
-        final BroadcastOptions bOptions = BroadcastOptions.makeBasic();
         try {
             final long durationMs = DeviceConfig.getLong(DeviceConfig.NAMESPACE_BLUETOOTH,
                     KEY_TEMP_ALLOW_LIST_DURATION_MS, DEFAULT_TEMP_ALLOW_LIST_DURATION_MS);
