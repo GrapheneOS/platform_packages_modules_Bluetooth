@@ -784,7 +784,7 @@ if __name__ == '__main__':
         help='Run bootstrap code to verify build env is ok to build.',
         default=False,
         action='store_true')
-    parser.add_argument('--no-clang', help='Use clang compiler.', default=False, action='store_true')
+    parser.add_argument('--no-clang', help='Don\'t use clang compiler.', default=False, action='store_true')
     parser.add_argument(
         '--no-strip', help='Skip stripping binaries during install.', default=False, action='store_true')
     parser.add_argument('--use', help='Set a specific use flag.')
