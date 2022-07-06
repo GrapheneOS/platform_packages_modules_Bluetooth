@@ -176,6 +176,8 @@ cc_binary_host {
     shared_libs: [
         "liblog",
         "libunwindstack",
+        "libcrypto",
+        "libssl",
     ],
     whole_static_libs: [
         "libbt-rootcanal",

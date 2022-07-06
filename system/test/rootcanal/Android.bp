@@ -44,6 +44,8 @@ cc_binary {
         "liblog",
         "libutils",
         "libprotobuf-cpp-lite",
+        "libcrypto",
+        "libssl",
     ],
     cflags: [
         "-fvisibility=hidden",
@@ -96,6 +98,8 @@ cc_library_shared {
         "liblog",
         "libutils",
         "libprotobuf-cpp-lite",
+        "libcrypto",
+        "libssl",
     ],
     cflags: [
         "-Wall",
