@@ -436,13 +436,7 @@ public class BassClientStateMachine extends StateMachine {
                 channel.setSelected(false);
                 subGroup.addChannel(channel.build());
             }
-            byte[] arrayCodecId = baseLevel2.codecId;
-            long codeId = (long) ((arrayCodecId[4] & 0xff) << 32
-                    | (arrayCodecId[3] & 0xff) << 24
-                    | (arrayCodecId[2] & 0xff) << 16
-                    | (arrayCodecId[1] & 0xff) << 8
-                    | (arrayCodecId[0] & 0xff));
-            subGroup.setCodecId(codeId);
+            subGroup.setCodecId(ByteBuffer.wrap(baseLevel2.codecId).getLong());
             subGroup.setCodecSpecificConfig(BluetoothLeAudioCodecConfigMetadata.
                     fromRawBytes(baseLevel2.codecConfigInfo));
             subGroup.setContentMetadata(BluetoothLeAudioContentMetadata.
@@ -450,19 +444,6 @@ public class BassClientStateMachine extends StateMachine {
             metaData.addSubgroup(subGroup.build());
         }
         metaData.setSourceDevice(device, device.getAddressType());
-        byte[] arrayPresentationDelay = baseData.getLevelOne().presentationDelay;
-        int presentationDelay = (int) ((arrayPresentationDelay[2] & 0xff) << 16
-                | (arrayPresentationDelay[1] & 0xff)
-                | (arrayPresentationDelay[0] & 0xff));
-        metaData.setPresentationDelayMicros(presentationDelay);
-        PeriodicAdvertisementResult result =
-                mService.getPeriodicAdvertisementResult(device);
-        if (result != null) {
-            int broadcastId = result.getBroadcastId();
-            log("broadcast ID: " + broadcastId);
-            metaData.setBroadcastId(broadcastId);
-            metaData.setSourceAdvertisingSid(result.getAdvSid());
-        }
         return metaData.build();
     }
 
@@ -653,7 +634,6 @@ public class BassClientStateMachine extends StateMachine {
             byte metaDataSyncState = receiverState[BassConstants.BCAST_RCVR_STATE_PA_SYNC_IDX];
             byte encryptionStatus = receiverState[BassConstants.BCAST_RCVR_STATE_ENC_STATUS_IDX];
             byte[] badBroadcastCode = null;
-            int badBroadcastCodeLen = 0;
             if (encryptionStatus
                     == BluetoothLeBroadcastReceiveState.BIG_ENCRYPTION_STATE_BAD_CODE) {
                 badBroadcastCode = new byte[BassConstants.BCAST_RCVR_STATE_BADCODE_SIZE];
@@ -663,12 +643,11 @@ public class BassClientStateMachine extends StateMachine {
                         badBroadcastCode,
                         0,
                         BassConstants.BCAST_RCVR_STATE_BADCODE_SIZE);
-                badBroadcastCodeLen = BassConstants.BCAST_RCVR_STATE_BADCODE_SIZE;
             }
             byte numSubGroups = receiverState[BassConstants.BCAST_RCVR_STATE_BADCODE_START_IDX
-                    + badBroadcastCodeLen];
+                    + BassConstants.BCAST_RCVR_STATE_BADCODE_SIZE];
             int offset = BassConstants.BCAST_RCVR_STATE_BADCODE_START_IDX
-                    + badBroadcastCodeLen + 1;
+                    + BassConstants.BCAST_RCVR_STATE_BADCODE_SIZE + 1;
             ArrayList<BluetoothLeAudioContentMetadata> metadataList =
                     new ArrayList<BluetoothLeAudioContentMetadata>();
             ArrayList<Long> audioSyncState = new ArrayList<Long>();
@@ -679,8 +658,6 @@ public class BassClientStateMachine extends StateMachine {
                 offset += BassConstants.BCAST_RCVR_STATE_BIS_SYNC_SIZE;
                 log("BIS index byte array: ");
                 BassUtils.printByteArray(audioSyncIndex);
-                ByteBuffer wrapped = ByteBuffer.wrap(audioSyncIndex);
-                audioSyncState.add((long) wrapped.getInt());
 
                 byte metaDataLength = receiverState[offset++];
                 if (metaDataLength > 0) {
