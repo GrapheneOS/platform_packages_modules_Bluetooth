@@ -243,6 +243,7 @@ mod tests {
         assert_eq!(now, "/data/misc/bluetooth/logs/btsnooz_hci.log");
     }
 
+    #[ignore]
     #[tokio::test]
     async fn test_bt_keystore_interface() {
         let prefix: String = (*(*MISC).lock().unwrap()).clone();
