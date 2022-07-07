@@ -1,8 +1,9 @@
 //! Collection of Profile UUIDs and helpers to use them.
 
 use std::collections::{HashMap, HashSet};
+use std::fmt::{Display, Formatter};
 
-use bt_topshim::btif::Uuid128Bit;
+use bt_topshim::btif::{Uuid, Uuid128Bit};
 
 // List of profile uuids
 pub const A2DP_SINK: &str = "0000110B-0000-1000-8000-00805F9B34FB";
@@ -67,6 +68,17 @@ pub enum Profile {
     GenericMediaControl,
     MediaControl,
     CoordinatedSet,
+}
+
+/// Wraps a reference of Uuid128Bit, which is the raw array of bytes of UUID.
+/// This is useful in implementing standard Rust traits which can't be implemented directly on
+/// built-in types (Rust's Orphan Rule).
+pub struct UuidWrapper<'a>(pub &'a Uuid128Bit);
+
+impl<'a> Display for UuidWrapper<'a> {
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        Uuid::format(&self.0, f)
+    }
 }
 
 pub struct UuidHelper {
@@ -150,12 +162,7 @@ impl UuidHelper {
 
     /// Converts a UUID byte array into a formatted string.
     pub fn to_string(uuid: &Uuid128Bit) -> String {
-        return String::from(format!("{:02x}{:02x}{:02x}{:02x}-{:02x}{:02x}-{:02x}{:02x}-{:02x}{:02x}-{:02X}{:02X}{:02X}{:02X}{:02X}{:02X}",
-            uuid[0], uuid[1], uuid[2], uuid[3],
-            uuid[4], uuid[5],
-            uuid[6], uuid[7],
-            uuid[8], uuid[9],
-            uuid[10], uuid[11], uuid[12], uuid[13], uuid[14], uuid[15]));
+        UuidWrapper(&uuid).to_string()
     }
 
     /// Converts a well-formatted UUID string to a UUID byte array.
