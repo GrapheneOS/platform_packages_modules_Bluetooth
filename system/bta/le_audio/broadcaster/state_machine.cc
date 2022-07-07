@@ -39,6 +39,9 @@ using bluetooth::hci::IsoManager;
 using bluetooth::hci::iso_manager::big_create_cmpl_evt;
 using bluetooth::hci::iso_manager::big_terminate_cmpl_evt;
 
+using le_audio::CodecManager;
+using le_audio::types::CodecLocation;
+
 using namespace le_audio::broadcaster;
 
 namespace {
@@ -469,6 +472,11 @@ class BroadcastStateMachineImpl : public BroadcastStateMachine {
      * to the controller. 'codec_id_company' and 'codec_id_vendor' shall be
      * ignored if 'codec_id_format' is not set to 'Vendor'.
      */
+    auto data_path_id = bluetooth::hci::iso_manager::kIsoDataPathHci;
+    if (CodecManager::GetInstance()->GetCodecLocation() !=
+        CodecLocation::HOST) {
+      data_path_id = bluetooth::hci::iso_manager::kIsoDataPathPlatformDefault;
+    }
     auto codec_id = sm_config_.codec_wrapper.GetLeAudioCodecId();
     uint8_t hci_coding_format =
         (codec_id.coding_format == le_audio::types::kLeAudioCodingFormatLC3)
@@ -476,7 +484,7 @@ class BroadcastStateMachineImpl : public BroadcastStateMachine {
             : bluetooth::hci::kIsoCodingFormatVendorSpecific;
     bluetooth::hci::iso_manager::iso_data_path_params param = {
         .data_path_dir = bluetooth::hci::iso_manager::kIsoDataPathDirectionIn,
-        .data_path_id = bluetooth::hci::iso_manager::kIsoDataPathHci,
+        .data_path_id = data_path_id,
         .codec_id_format = hci_coding_format,
         .codec_id_company = codec_id.vendor_company_id,
         .codec_id_vendor = codec_id.vendor_codec_id,
