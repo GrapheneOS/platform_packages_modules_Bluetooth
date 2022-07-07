@@ -102,7 +102,6 @@ pub struct BluetoothDeviceDBus {
     name: String,
 }
 
-#[allow(dead_code)]
 struct IBluetoothCallbackDBus {}
 
 impl RPCProxy for IBluetoothCallbackDBus {
@@ -159,7 +158,6 @@ impl IBluetoothCallback for IBluetoothCallbackDBus {
     fn on_bond_state_changed(&self, status: u32, address: String, state: u32) {}
 }
 
-#[allow(dead_code)]
 struct IBluetoothConnectionCallbackDBus {}
 
 impl RPCProxy for IBluetoothConnectionCallbackDBus {
@@ -501,7 +499,6 @@ impl IBluetoothManager for BluetoothManagerDBus {
     }
 }
 
-#[allow(dead_code)]
 struct IBluetoothManagerCallbackDBus {}
 
 impl RPCProxy for IBluetoothManagerCallbackDBus {
@@ -549,11 +546,13 @@ impl BluetoothGattDBus {
 
 #[generate_dbus_interface_client]
 impl IBluetoothGatt for BluetoothGattDBus {
+    #[dbus_method("RegisterScannerCallback")]
     fn register_scanner_callback(&mut self, _callback: Box<dyn IScannerCallback + Send>) -> u32 {
         dbus_generated!()
     }
 
-    fn unregister_scanner_callback(&mut self, _scanner_id: u32) -> bool {
+    #[dbus_method("UnregisterScannerCallback")]
+    fn unregister_scanner_callback(&mut self, _callback_id: u32) -> bool {
         dbus_generated!()
     }
 
@@ -719,7 +718,6 @@ impl IBluetoothGatt for BluetoothGattDBus {
     }
 }
 
-#[allow(dead_code)]
 struct IBluetoothGattCallbackDBus {}
 
 impl RPCProxy for IBluetoothGattCallbackDBus {
@@ -842,7 +840,6 @@ impl ISuspend for SuspendDBus {
     }
 }
 
-#[allow(dead_code)]
 struct ISuspendCallbackDBus {}
 
 impl RPCProxy for ISuspendCallbackDBus {
