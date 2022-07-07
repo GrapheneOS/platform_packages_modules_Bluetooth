@@ -25,6 +25,7 @@ const SUSPEND_IMMINENT_SIGNAL: &str = "SuspendImminent";
 const SUSPEND_DONE_SIGNAL: &str = "SuspendDone";
 const BTMANAGERD_NAME: &str = "Bluetooth Manager";
 const DBUS_TIMEOUT: Duration = Duration::from_secs(2);
+const BLUEZ_SERVICE: &str = "org.bluez";
 
 #[derive(Debug)]
 enum SuspendManagerMessage {
@@ -231,6 +232,30 @@ impl PowerdSuspendManager {
         let tx1 = self.tx.clone();
         let tx2 = self.tx.clone();
         adapter_watcher
+            .start_watch_interface(
+                String::from(ADAPTER_SUSPEND_INTERFACE),
+                Box::new(move |path| {
+                    let tx_clone = tx1.clone();
+                    tokio::spawn(async move {
+                        let _ = tx_clone.send(SuspendManagerMessage::AdapterFound(path)).await;
+                    });
+                }),
+                Box::new(move || {
+                    let tx_clone = tx2.clone();
+                    tokio::spawn(async move {
+                        let _ = tx_clone.send(SuspendManagerMessage::AdapterRemoved).await;
+                    });
+                }),
+            )
+            .await;
+
+        // Watch events of bluez appearing or disappearing.
+        // This is with the assumption that only one instance of btadapterd and bluez can be alive
+        // at a time.
+        let mut bluez_watcher = ServiceWatcher::new(self.conn.clone(), String::from(BLUEZ_SERVICE));
+        let tx1 = self.tx.clone();
+        let tx2 = self.tx.clone();
+        bluez_watcher
             .start_watch_interface(
                 String::from(ADAPTER_SUSPEND_INTERFACE),
                 Box::new(move |path| {

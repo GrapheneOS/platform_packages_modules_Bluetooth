@@ -41,8 +41,8 @@
     <string name="notification_receiving" msgid="8445265771083510696">"Μοιραστείτε μέσω Bluetooth: Λήψη του <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received" msgid="2330252358543000567">"Μοιραστείτε μέσω Bluetooth: Ελήφθη το <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received_fail" msgid="9059153354809379374">"Μοιραστείτε μέσω Bluetooth: Το αρχείο <xliff:g id="FILE">%1$s</xliff:g> δεν ελήφθη"</string>
-    <string name="notification_sending" msgid="8269912843286868700">"Μοιραστείτε μέσω Bluetooth: Αποστολή του <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_sent" msgid="2685202778935769332">"Μοιραστείτε μέσω Bluetooth: Εστάλη το <xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <string name="notification_sending" msgid="8269912843286868700">"Μοιραστείτε με Bluetooth: Αποστολή του <xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <string name="notification_sent" msgid="2685202778935769332">"Μοιραστείτε με Bluetooth: <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_sent_complete" msgid="6293391081175517098">"Ολοκληρώθηκε το 100%"</string>
     <string name="notification_sent_fail" msgid="7449832660578001579">"Μοιραστείτε μέσω Bluetooth: Το αρχείο <xliff:g id="FILE">%1$s</xliff:g> δεν εστάλη"</string>
     <string name="download_title" msgid="6449408649671518102">"Μεταφορά αρχείου"</string>

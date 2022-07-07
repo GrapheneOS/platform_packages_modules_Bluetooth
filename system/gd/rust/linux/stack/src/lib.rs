@@ -9,6 +9,7 @@ extern crate num_derive;
 pub mod bluetooth;
 pub mod bluetooth_gatt;
 pub mod bluetooth_media;
+pub mod callbacks;
 pub mod socket_manager;
 pub mod suspend;
 pub mod uuid;
@@ -30,12 +31,6 @@ use bt_topshim::{
     },
 };
 
-#[derive(Clone, Debug)]
-pub enum BluetoothCallbackType {
-    Adapter,
-    Connection,
-}
-
 /// Message types that are sent to the stack main dispatch loop.
 pub enum Message {
     // Callbacks from libbluetooth
@@ -50,9 +45,11 @@ pub enum Message {
 
     // Actions within the stack
     Media(MediaActions),
+    MediaCallbackDisconnected(u32),
 
     // Client callback disconnections
-    BluetoothCallbackDisconnected(u32, BluetoothCallbackType),
+    AdapterCallbackDisconnected(u32),
+    ConnectionCallbackDisconnected(u32),
 
     // Update list of found devices and remove old instances.
     DeviceFreshnessCheck,
@@ -60,6 +57,9 @@ pub enum Message {
     // Suspend related
     SuspendCallbackRegistered(u32),
     SuspendCallbackDisconnected(u32),
+
+    // Scanner related
+    ScannerCallbackDisconnected(u32),
 }
 
 /// Umbrella class for the Bluetooth stack.
@@ -126,8 +126,16 @@ impl Stack {
                     bluetooth_media.lock().unwrap().dispatch_media_actions(action);
                 }
 
-                Message::BluetoothCallbackDisconnected(id, cb_type) => {
-                    bluetooth.lock().unwrap().callback_disconnected(id, cb_type);
+                Message::MediaCallbackDisconnected(cb_id) => {
+                    bluetooth_media.lock().unwrap().remove_callback(cb_id);
+                }
+
+                Message::AdapterCallbackDisconnected(id) => {
+                    bluetooth.lock().unwrap().adapter_callback_disconnected(id);
+                }
+
+                Message::ConnectionCallbackDisconnected(id) => {
+                    bluetooth.lock().unwrap().connection_callback_disconnected(id);
                 }
 
                 Message::DeviceFreshnessCheck => {
@@ -140,6 +148,10 @@ impl Stack {
 
                 Message::SuspendCallbackDisconnected(id) => {
                     suspend.lock().unwrap().remove_callback(id);
+                }
+
+                Message::ScannerCallbackDisconnected(id) => {
+                    bluetooth_gatt.lock().unwrap().remove_scanner_callback(id);
                 }
             }
         }

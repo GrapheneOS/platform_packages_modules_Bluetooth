@@ -19,7 +19,7 @@ use btstack::uuid::Profile;
 use dbus::arg::RefArg;
 use dbus::nonblock::SyncConnection;
 
-use dbus_projection::{impl_dbus_arg_enum, ClientDBusProxy, DisconnectWatcher};
+use dbus_projection::{dbus_generated, impl_dbus_arg_enum, ClientDBusProxy, DisconnectWatcher};
 
 use dbus_macros::{
     dbus_method, dbus_propmap, generate_dbus_exporter, generate_dbus_interface_client,
@@ -549,20 +549,20 @@ impl BluetoothGattDBus {
 
 #[generate_dbus_interface_client]
 impl IBluetoothGatt for BluetoothGattDBus {
-    fn register_scanner(&self, _callback: Box<dyn IScannerCallback + Send>) {
-        // TODO(b/200066804): implement
+    fn register_scanner_callback(&mut self, _callback: Box<dyn IScannerCallback + Send>) -> u32 {
+        dbus_generated!()
     }
 
-    fn unregister_scanner(&self, _scanner_id: i32) {
-        // TODO(b/200066804): implement
+    fn unregister_scanner_callback(&mut self, _scanner_id: u32) -> bool {
+        dbus_generated!()
     }
 
     fn start_scan(&self, _scanner_id: i32, _settings: ScanSettings, _filters: Vec<ScanFilter>) {
-        // TODO(b/200066804): implement
+        dbus_generated!()
     }
 
     fn stop_scan(&self, _scanner_id: i32) {
-        // TODO(b/200066804): implement
+        dbus_generated!()
     }
 
     #[dbus_method("RegisterClient")]
