@@ -18,6 +18,8 @@
 
 #include "hfp_msbc_encoder.h"
 
+#include <cstring>
+
 #include "embdrv/sbc/encoder/include/sbc_encoder.h"
 #include "osi/include/log.h"
 
@@ -25,9 +27,9 @@ typedef struct {
   SBC_ENC_PARAMS sbc_encoder_params;
 } tHFP_MSBC_ENCODER;
 
-static tHFP_MSBC_ENCODER hfp_msbc_encoder;
+static tHFP_MSBC_ENCODER hfp_msbc_encoder = {};
 
-bool hfp_msbc_encoder_init(void) {
+void hfp_msbc_encoder_init(void) {
   SBC_ENC_PARAMS* p_encoder_params = &hfp_msbc_encoder.sbc_encoder_params;
   p_encoder_params->s16SamplingFreq = SBC_sf16000;
   p_encoder_params->s16ChannelMode = SBC_MONO;
@@ -36,15 +38,10 @@ bool hfp_msbc_encoder_init(void) {
   p_encoder_params->s16NumOfBlocks = 15;
   p_encoder_params->s16AllocationMethod = SBC_LOUDNESS;
   p_encoder_params->s16BitPool = 26;
-  p_encoder_params->FrameHeader = 0;
-  p_encoder_params->SyncWord = SBC_MSBC_SYNCWORD;
-
-  return true;
+  p_encoder_params->Format = SBC_FORMAT_MSBC;
 }
 
-void hfp_msbc_encoder_cleanup(void) {
-  memset(&hfp_msbc_encoder, 0, sizeof(hfp_msbc_encoder));
-}
+void hfp_msbc_encoder_cleanup(void) { hfp_msbc_encoder = {}; }
 
 // Get the HFP MSBC encoded maximum frame size
 uint32_t hfp_msbc_encode_frames(int16_t* input, uint8_t* output) {
