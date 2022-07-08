@@ -32,6 +32,6 @@ bool hfp_msbc_decoder_init(void);
 void hfp_msbc_decoder_cleanup(void);
 
 // Decodes |p_buf|. |o_buf| will be assigned to the decoded frames if available.
-bool hfp_msbc_decoder_decode_packet(BT_HDR* p_buf, uint8_t** o_buf);
+bool hfp_msbc_decoder_decode_packet(BT_HDR* p_buf, const uint8_t** o_buf);
 
 #endif  // HFP_MSBC_DECODER_H
