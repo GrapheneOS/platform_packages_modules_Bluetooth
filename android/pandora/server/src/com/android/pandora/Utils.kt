@@ -16,6 +16,7 @@
 
 package com.android.pandora
 
+import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothProfile
 import android.content.BroadcastReceiver
@@ -133,3 +134,6 @@ fun <T> getProfileProxy(context: Context, profile: Int): T {
   }
   return proxy
 }
+
+fun Intent.getBluetoothDeviceExtra(): BluetoothDevice =
+  this.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE, BluetoothDevice::class.java)
