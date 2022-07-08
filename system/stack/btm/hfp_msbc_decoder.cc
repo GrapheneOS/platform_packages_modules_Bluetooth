@@ -59,7 +59,7 @@ void hfp_msbc_decoder_cleanup(void) {
   memset(&hfp_msbc_decoder, 0, sizeof(hfp_msbc_decoder));
 }
 
-bool hfp_msbc_decoder_decode_packet(BT_HDR* p_buf, uint8_t** out_buf) {
+bool hfp_msbc_decoder_decode_packet(BT_HDR* p_buf, const uint8_t** out_buf) {
   const OI_BYTE* oi_data;
   uint32_t oi_size, out_avail;
   int16_t* out_ptr;
@@ -84,6 +84,6 @@ bool hfp_msbc_decoder_decode_packet(BT_HDR* p_buf, uint8_t** out_buf) {
     return false;
   }
 
-  *out_buf = (uint8_t*)&hfp_msbc_decoder.decode_buf;
+  *out_buf = (const uint8_t*)&hfp_msbc_decoder.decode_buf;
   return true;
 }
