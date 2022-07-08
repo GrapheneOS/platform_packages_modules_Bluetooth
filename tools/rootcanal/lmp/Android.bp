@@ -41,3 +41,22 @@ genrule {
         "lmp_packets.rs",
     ],
 }
+
+rust_test_host {
+    name: "liblmp_tests",
+    crate_name: "lmp",
+    srcs: [
+        "src/lib.rs",
+        ":LmpGeneratedPackets_rust",
+    ],
+    auto_gen_config: true,
+    edition: "2018",
+    proc_macros: ["libnum_derive", "libpaste"],
+    rustlibs: [
+        "libbt_packets",
+        "libbytes",
+        "libnum_traits",
+        "libthiserror",
+        "libpin_utils",
+    ],
+}
