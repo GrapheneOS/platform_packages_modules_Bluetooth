@@ -659,6 +659,22 @@ bool LeAudioDeviceGroup::ReloadAudioLocations(void) {
   return true;
 }
 
+bool LeAudioDeviceGroup::ReloadAudioDirections(void) {
+  uint8_t updated_audio_directions = 0x00;
+
+  for (const auto& device : leAudioDevices_) {
+    if (device.expired()) continue;
+    updated_audio_directions |= device.lock().get()->audio_directions_;
+  }
+
+  /* Nothing has changed */
+  if (updated_audio_directions == audio_directions_) return false;
+
+  audio_directions_ = updated_audio_directions;
+
+  return true;
+}
+
 bool LeAudioDeviceGroup::IsInTransition(void) {
   return target_state_ != current_state_;
 }
