@@ -311,6 +311,21 @@ public class LeAudioServiceTest {
     }
 
     /**
+     * Test if stop during init is ok.
+     */
+    @Test
+    public void testStopStartStopService() throws Exception {
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(new Runnable() {
+            public void run() {
+                assertThat(mService.stop()).isTrue();
+                assertThat(mService.start()).isTrue();
+                assertThat(mService.stop()).isTrue();
+                assertThat(mService.start()).isTrue();
+            }
+        });
+    }
+
+    /**
      * Test get/set priority for BluetoothDevice
      */
     @Test
