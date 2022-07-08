@@ -134,3 +134,9 @@ gensrcs {
     ],
     output_extension: "srcjar",
 }
+
+platform_compat_config
+{
+    name: "bluetooth-compat-config",
+    src: ":service-bluetooth-pre-jarjar",
+}
