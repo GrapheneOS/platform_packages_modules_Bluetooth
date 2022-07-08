@@ -68,7 +68,8 @@
 
 #define SBC_NULL 0
 
-#define SBC_MSBC_SYNCWORD 0xAD
+#define SBC_FORMAT_GENERAL 0
+#define SBC_FORMAT_MSBC 1
 
 #ifndef SBC_MAX_NUM_FRAME
 #define SBC_MAX_NUM_FRAME 1
@@ -189,8 +190,8 @@ typedef struct SBC_ENC_PARAMS_TAG {
   int16_t as16Bits[SBC_MAX_NUM_OF_CHANNELS * SBC_MAX_NUM_OF_SUBBANDS];
 
   uint16_t FrameHeader;
-  uint8_t SyncWord; /* Default to be 0x9C for SBC if not assigned.
-                       Assigning to 0xAD for mSBC */
+  uint8_t Format; /* Default to be SBC_FORMAT_GENERAL for SBC if not assigned.
+                    Assigning to SBC_FORMAT_MSBC for mSBC */
 
 } SBC_ENC_PARAMS;
 
