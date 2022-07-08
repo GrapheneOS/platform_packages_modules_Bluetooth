@@ -136,14 +136,10 @@ class Host(private val context: Context, private val server: Server) : HostImplB
           val pairingRequestIntent =
             flow
               .filter { it.getAction() == BluetoothDevice.ACTION_PAIRING_REQUEST }
-              .filter {
-                it.getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE).address ==
-                  address
-              }
+              .filter { it.getBluetoothDeviceExtra().address == address }
               .first()
 
-          val bluetoothDevice =
-            pairingRequestIntent.getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE)
+          val bluetoothDevice = pairingRequestIntent.getBluetoothDeviceExtra()
           val pairingVariant =
             pairingRequestIntent.getIntExtra(
               BluetoothDevice.EXTRA_PAIRING_VARIANT,
@@ -163,9 +159,7 @@ class Host(private val context: Context, private val server: Server) : HostImplB
       // have been connected).
       flow
         .filter { it.getAction() == BluetoothDevice.ACTION_BOND_STATE_CHANGED }
-        .filter {
-          it.getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE).address == address
-        }
+        .filter { it.getBluetoothDeviceExtra().address == address }
         .map { it.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, BluetoothAdapter.ERROR) }
         .filter { it == BluetoothDevice.BOND_BONDED }
         .first()
@@ -199,9 +193,7 @@ class Host(private val context: Context, private val server: Server) : HostImplB
       val connectionStateChangedFlow =
         flow
           .filter { it.getAction() == BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED }
-          .filter {
-            it.getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE).address == address
-          }
+          .filter { it.getBluetoothDeviceExtra().address == address }
           .map { it.getIntExtra(BluetoothAdapter.EXTRA_CONNECTION_STATE, BluetoothAdapter.ERROR) }
 
       bluetoothDevice.disconnect()
