@@ -102,7 +102,7 @@ static const uint8_t btm_msbc_zero_packet[] = {
     0xb6, 0xdd, 0xdb, 0x6d, 0xb7, 0x76, 0xdb, 0x6d, 0xdd, 0xb6, 0xdb, 0x77,
     0x6d, 0xb6, 0xdd, 0xdb, 0x6d, 0xb7, 0x76, 0xdb, 0x6c};
 
-static uint8_t btm_msbc_zero_frames[BTM_MSBC_CODE_SIZE];
+static const uint8_t btm_msbc_zero_frames[BTM_MSBC_CODE_SIZE] = {0};
 
 /* Second octet of H2 header is composed by 4 bits fixed 0x8 and 4 bits
  * sequence number 0000, 0011, 1100, 1111. */
@@ -222,7 +222,7 @@ static bool verify_h2_header_seq_num(const uint8_t num) {
 void btm_route_sco_data(BT_HDR* p_msg) {
   uint8_t* payload = p_msg->data;
   uint16_t handle_with_flags = 0;
-  uint8_t* out_data;
+  const uint8_t* out_data;
   uint8_t length = 0;
   uint8_t read_buf[BTM_SCO_DATA_SIZE_MAX];
   if (p_msg->len < 3) {
@@ -299,17 +299,20 @@ void btm_route_sco_data(BT_HDR* p_msg) {
         BTM_MSBC_H2_HEADER_0,
         btm_h2_header_frames_count[btm_msbc_num_out_frames % 4]};
 
-    uint32_t encoded_size;
     if (size_read != BTM_MSBC_CODE_SIZE) {
       LOG_WARN("Read partial data: %zu", size_read);
-      memcpy(&encoded[BTM_MSBC_H2_HEADER_LEN], btm_msbc_zero_packet,
-             BTM_MSBC_PKT_FRAME_LEN);
+      std::copy(std::begin(btm_msbc_zero_packet),
+                std::end(btm_msbc_zero_packet),
+                &encoded[BTM_MSBC_H2_HEADER_LEN]);
     } else {
+      uint32_t encoded_size;
       encoded_size = hfp_msbc_encode_frames((int16_t*)read_buf, encoded + 2);
       if (encoded_size != BTM_MSBC_PKT_FRAME_LEN) {
-        LOG_WARN("Read partial data: %zu", size_read);
-        memcpy(&encoded[BTM_MSBC_H2_HEADER_LEN], btm_msbc_zero_packet,
-               BTM_MSBC_PKT_FRAME_LEN);
+        LOG_WARN("Encode invalid packet size: %lu",
+                 (unsigned long)encoded_size);
+        std::copy(std::begin(btm_msbc_zero_packet),
+                  std::end(btm_msbc_zero_packet),
+                  &encoded[BTM_MSBC_H2_HEADER_LEN]);
       }
     }
 
@@ -875,9 +878,8 @@ void btm_sco_connected(const RawAddress& bda, uint16_t hci_handle,
               p->esco.setup.transmit_coding_format.coding_format));
 
       /* In-band (non-offload) data path */
-      if (p->esco.setup.input_data_path == ESCO_DATA_PATH_HCI) {
-        if (p->esco.setup.transmit_coding_format.coding_format ==
-            ESCO_CODING_FORMAT_TRANSPNT) {
+      if (p->is_inband()) {
+        if (p->is_wbs()) {
           btm_msbc_num_out_frames = 0;
           hfp_msbc_decoder_init();
           hfp_msbc_encoder_init();
@@ -1108,9 +1110,8 @@ void btm_sco_on_disconnected(uint16_t hci_handle, tHCI_REASON reason) {
       hfp_hal_interface::esco_coding_to_codec(
           p_sco->esco.setup.transmit_coding_format.coding_format));
 
-  if (p_sco->esco.setup.input_data_path == ESCO_DATA_PATH_HCI) {
-    if (p_sco->esco.setup.transmit_coding_format.coding_format ==
-        ESCO_CODING_FORMAT_TRANSPNT) {
+  if (p_sco->is_inband()) {
+    if (p_sco->is_wbs()) {
       hfp_msbc_decoder_cleanup();
       hfp_msbc_encoder_cleanup();
     }
