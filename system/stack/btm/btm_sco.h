@@ -101,6 +101,15 @@ typedef struct {
   uint16_t hci_handle;    /* HCI Handle                   */
  public:
   bool is_active() const { return state != SCO_ST_UNUSED; }
+  bool is_inband() const {
+    return esco.setup.input_data_path == ESCO_DATA_PATH_HCI;
+  }
+  bool is_wbs() const {
+    return esco.setup.transmit_coding_format.coding_format ==
+               ESCO_CODING_FORMAT_TRANSPNT ||
+           esco.setup.transmit_coding_format.coding_format ==
+               ESCO_CODING_FORMAT_MSBC;
+  }
   uint16_t Handle() const { return hci_handle; }
 
   bool is_orig;           /* true if the originator       */
