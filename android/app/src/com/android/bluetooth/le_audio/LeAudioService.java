@@ -287,6 +287,7 @@ public class LeAudioService extends ProfileService {
         LeAudioNativeInterface nativeInterface = mLeAudioNativeInterface;
         if (nativeInterface == null) {
             Log.w(TAG, "the service is stopped. ignore init()");
+            return;
         }
         nativeInterface.init(mLeAudioCodecConfig.getCodecConfigOffloading());
     }
@@ -299,6 +300,7 @@ public class LeAudioService extends ProfileService {
             return true;
         }
 
+        mHandler.removeCallbacks(this::init);
         setActiveDevice(null);
 
         if (mTmapGattServer == null) {

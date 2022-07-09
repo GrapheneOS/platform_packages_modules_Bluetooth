@@ -24,7 +24,7 @@
 #include <stdint.h>
 
 // Initialize the HFP MSBC encoder.
-bool hfp_msbc_encoder_init();
+void hfp_msbc_encoder_init();
 
 // Cleanup the HFP MSBC encoder.
 void hfp_msbc_encoder_cleanup(void);
