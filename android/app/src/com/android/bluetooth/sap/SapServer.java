@@ -25,6 +25,7 @@ import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import com.android.bluetooth.R;
+import com.android.internal.annotations.VisibleForTesting;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -99,7 +100,8 @@ public class SapServer extends Thread implements Callback {
     /* We store the mMaxMessageSize, as we need a copy of it when the init. sequence completes */
     private int mMaxMsgSize = 0;
     /* keep track of the current RIL test mode */
-    private int mTestMode = SapMessage.INVALID_VALUE; // used to set the RIL in test mode
+    @VisibleForTesting
+    int mTestMode = SapMessage.INVALID_VALUE; // used to set the RIL in test mode
 
     /**
      * SapServer constructor
