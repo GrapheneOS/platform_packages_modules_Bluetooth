@@ -303,7 +303,10 @@ int BluetoothAudioClientInterface::StartSession() {
              transport_->GetSessionType() ==
                  SessionType::LE_AUDIO_HARDWARE_OFFLOAD_DECODING_DATAPATH ||
              transport_->GetSessionType() ==
-                 SessionType::LE_AUDIO_HARDWARE_OFFLOAD_ENCODING_DATAPATH) {
+                 SessionType::LE_AUDIO_HARDWARE_OFFLOAD_ENCODING_DATAPATH ||
+             transport_->GetSessionType() ==
+                 SessionType::
+                     LE_AUDIO_BROADCAST_HARDWARE_OFFLOAD_ENCODING_DATAPATH) {
     transport_->ResetPresentationPosition();
     session_started_ = true;
     return 0;
@@ -392,7 +395,9 @@ void BluetoothAudioClientInterface::FlushAudioData() {
   if (transport_->GetSessionType() ==
           SessionType::LE_AUDIO_HARDWARE_OFFLOAD_ENCODING_DATAPATH ||
       transport_->GetSessionType() ==
-          SessionType::LE_AUDIO_HARDWARE_OFFLOAD_DECODING_DATAPATH) {
+          SessionType::LE_AUDIO_HARDWARE_OFFLOAD_DECODING_DATAPATH ||
+      transport_->GetSessionType() ==
+          SessionType::LE_AUDIO_BROADCAST_HARDWARE_OFFLOAD_ENCODING_DATAPATH) {
     return;
   }
 
