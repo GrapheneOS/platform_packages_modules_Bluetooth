@@ -6,6 +6,7 @@ use bt_topshim::btif::{
     BtScanMode, BtSspVariant, BtState, BtStatus, BtTransport, RawAddress, Uuid, Uuid128Bit,
 };
 use bt_topshim::{
+    metrics,
     profiles::hid_host::{HHCallbacksDispatcher, HidHost},
     profiles::sdp::{BtSdpRecord, Sdp, SdpCallbacks, SdpCallbacksDispatcher},
     topstack,
@@ -595,6 +596,7 @@ impl BtifBluetoothCallbacks for Bluetooth {
     fn adapter_state_changed(&mut self, state: BtState) {
         let prev_state = self.state.clone();
         self.state = state;
+        metrics::adapter_state_changed(self.state.clone());
 
         // If it's the same state as before, no further action
         if self.state == prev_state {
