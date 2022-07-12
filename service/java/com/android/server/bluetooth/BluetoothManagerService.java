@@ -56,6 +56,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.database.ContentObserver;
@@ -2892,24 +2893,56 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
      */
     private void updateOppLauncherComponentState(UserHandle userHandle,
             boolean bluetoothSharingDisallowed) {
-        final ComponentName oppLauncherComponent = new ComponentName(
-                mContext.getPackageManager().getPackagesForUid(Process.BLUETOOTH_UID)[0],
-                "com.android.bluetooth.opp.BluetoothOppLauncherActivity");
-        int newState;
-        if (bluetoothSharingDisallowed) {
-            newState = PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
-        } else if (BluetoothProperties.isProfileOppEnabled().orElse(false)) {
-            newState = PackageManager.COMPONENT_ENABLED_STATE_ENABLED;
-        } else {
-            newState = PackageManager.COMPONENT_ENABLED_STATE_DEFAULT;
-        }
         try {
-            mContext.createContextAsUser(userHandle, 0)
-                .getPackageManager()
-                .setComponentEnabledSetting(oppLauncherComponent, newState,
-                        PackageManager.DONT_KILL_APP);
+            int newState;
+            if (bluetoothSharingDisallowed) {
+                newState = PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
+            } else if (BluetoothProperties.isProfileOppEnabled().orElse(false)) {
+                newState = PackageManager.COMPONENT_ENABLED_STATE_ENABLED;
+            } else {
+                newState = PackageManager.COMPONENT_ENABLED_STATE_DEFAULT;
+            }
+
+            String launcherActivity = "com.android.bluetooth.opp.BluetoothOppLauncherActivity";
+
+            PackageManager packageManager = mContext.createContextAsUser(userHandle, 0)
+                                                        .getPackageManager();
+            var allPackages = packageManager.getPackagesForUid(Process.BLUETOOTH_UID);
+            for (String candidatePackage : allPackages) {
+                PackageInfo packageInfo;
+                try {
+                    // note: we need the package manager for the SYSTEM user, not our userHandle
+                    packageInfo = mContext.getPackageManager().getPackageInfo(
+                        candidatePackage,
+                        PackageManager.PackageInfoFlags.of(PackageManager.GET_ACTIVITIES));
+                } catch (PackageManager.NameNotFoundException e) {
+                    // ignore, try next package
+                    Log.e(TAG, "Could not find package " + candidatePackage);
+                    continue;
+                } catch (Exception e) {
+                    Log.e(TAG, "Error while loading package" + e);
+                    continue;
+                }
+                if (packageInfo.activities == null) {
+                    continue;
+                }
+                for (var activity : packageInfo.activities) {
+                    if (launcherActivity.equals(activity.name)) {
+                        final ComponentName oppLauncherComponent = new ComponentName(
+                                candidatePackage, launcherActivity
+                        );
+                        packageManager.setComponentEnabledSetting(
+                                oppLauncherComponent, newState, PackageManager.DONT_KILL_APP
+                        );
+                        return;
+                    }
+                }
+            }
+
+            Log.e(TAG,
+                    "Cannot toggle BluetoothOppLauncherActivity, could not find it in any package");
         } catch (Exception e) {
-            // The component was not found, do nothing.
+            Log.e(TAG, "updateOppLauncherComponentState failed: " + e);
         }
     }
 
