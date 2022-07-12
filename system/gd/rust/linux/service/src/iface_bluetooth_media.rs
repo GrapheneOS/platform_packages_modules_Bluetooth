@@ -140,6 +140,11 @@ impl IBluetoothMedia for IBluetoothMediaDBus {
         dbus_generated!()
     }
 
+    #[dbus_method("GetA2dpAudioStarted")]
+    fn get_a2dp_audio_started(&mut self) -> bool {
+        dbus_generated!()
+    }
+
     #[dbus_method("StopAudioRequest")]
     fn stop_audio_request(&mut self) {
         dbus_generated!()
