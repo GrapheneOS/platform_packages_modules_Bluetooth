@@ -3881,7 +3881,7 @@ public class AdapterService extends Service {
         if (deviceProp != null && deviceProp.isConsolidated()) {
             return deviceProp.getIdentityAddress();
         } else {
-            return address;
+            return null;
         }
     }
 
