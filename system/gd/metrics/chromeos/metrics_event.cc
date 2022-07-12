@@ -13,31 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#define LOG_TAG "BluetoothMetrics"
-
-#include "gd/metrics/metrics.h"
-
-#include <metrics/structured_events.h>
-
-#include "common/time_util.h"
 #include "gd/metrics/chromeos/metrics_event.h"
-#include "gd/metrics/utils.h"
 
 namespace bluetooth {
 namespace metrics {
 
-void LogMetricsAdapterStateChanged(uint32_t state) {
-  std::string boot_id;
-
-  if (!GetBootId(&boot_id)) return;
-
-  ::metrics::structured::events::bluetooth::BluetoothAdapterStateChanged()
-      .SetBootId(boot_id)
-      .SetSystemTime(bluetooth::common::time_get_os_boottime_us())
-      .SetIsFloss(true)
-      .SetAdapterState((int64_t)ToAdapterState(state))
-      .Record();
-};
+AdapterState ToAdapterState(uint32_t state) {
+  return state == 1 ? AdapterState::ON : AdapterState::OFF;
+}
 
 }  // namespace metrics
 }  // namespace bluetooth

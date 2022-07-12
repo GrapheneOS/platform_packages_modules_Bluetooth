@@ -13,31 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#define LOG_TAG "BluetoothMetrics"
+#pragma once
 
-#include "gd/metrics/metrics.h"
-
-#include <metrics/structured_events.h>
-
-#include "common/time_util.h"
-#include "gd/metrics/chromeos/metrics_event.h"
-#include "gd/metrics/utils.h"
+#include <cstdint>
 
 namespace bluetooth {
 namespace metrics {
 
-void LogMetricsAdapterStateChanged(uint32_t state) {
-  std::string boot_id;
+// ENUM definitaion for adapter state that in sync with ChromeOS strcutured metrics
+// BluetoothAdapterStateChanged/AdapterState.
+enum class AdapterState : int64_t { OFF = 0, ON = 1 };
 
-  if (!GetBootId(&boot_id)) return;
-
-  ::metrics::structured::events::bluetooth::BluetoothAdapterStateChanged()
-      .SetBootId(boot_id)
-      .SetSystemTime(bluetooth::common::time_get_os_boottime_us())
-      .SetIsFloss(true)
-      .SetAdapterState((int64_t)ToAdapterState(state))
-      .Record();
-};
+// Convert topshim::btif::BtState to AdapterState.
+AdapterState ToAdapterState(uint32_t state);
 
 }  // namespace metrics
 }  // namespace bluetooth
