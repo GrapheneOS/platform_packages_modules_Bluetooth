@@ -2847,20 +2847,20 @@ static void btif_dm_ble_auth_cmpl_evt(tBTA_DM_AUTH_CMPL* p_auth_cmpl) {
     status = BT_STATUS_SUCCESS;
     state = BT_BOND_STATE_BONDED;
     tBLE_ADDR_TYPE addr_type;
-    RawAddress bdaddr = p_auth_cmpl->bd_addr;
-    if (btif_storage_get_remote_addr_type(&bdaddr, &addr_type) !=
+
+    if (btif_storage_get_remote_addr_type(&bd_addr, &addr_type) !=
         BT_STATUS_SUCCESS)
-      btif_storage_set_remote_addr_type(&bdaddr, p_auth_cmpl->addr_type);
+      btif_storage_set_remote_addr_type(&bd_addr, p_auth_cmpl->addr_type);
 
     /* Test for temporary bonding */
-    if (btm_get_bond_type_dev(p_auth_cmpl->bd_addr) ==
+    if (btm_get_bond_type_dev(bd_addr) ==
         tBTM_SEC_DEV_REC::BOND_TYPE_TEMPORARY) {
       BTIF_TRACE_DEBUG("%s: sending BT_BOND_STATE_NONE for Temp pairing",
                        __func__);
-      btif_storage_remove_bonded_device(&bdaddr);
+      btif_storage_remove_bonded_device(&bd_addr);
       state = BT_BOND_STATE_NONE;
     } else {
-      btif_dm_save_ble_bonding_keys(bdaddr);
+      btif_dm_save_ble_bonding_keys(bd_addr);
       btif_dm_get_remote_services(bd_addr, BT_TRANSPORT_LE);
     }
   } else {
