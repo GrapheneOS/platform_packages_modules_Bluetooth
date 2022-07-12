@@ -122,18 +122,12 @@ void rfc_port_sm_execute(tPORT* p_port, tRFC_PORT_EVENT event, void* p_data) {
  ******************************************************************************/
 void rfc_port_sm_state_closed(tPORT* p_port, tRFC_PORT_EVENT event,
                               void* p_data) {
-  uint32_t scn = (uint32_t)(p_port->dlci / 2);
   switch (event) {
     case RFC_PORT_EVENT_OPEN:
       p_port->rfc.state = RFC_STATE_ORIG_WAIT_SEC_CHECK;
-      if (rfcomm_security_records.count(scn) == 0) {
-        rfc_sec_check_complete(nullptr, BT_TRANSPORT_BR_EDR, p_port,
-                               BTM_NO_RESOURCES);
-        return;
-      }
       btm_sec_mx_access_request(p_port->rfc.p_mcb->bd_addr, true,
-                                rfcomm_security_records[scn],
-                                &rfc_sec_check_complete, p_port);
+                                p_port->sec_mask, &rfc_sec_check_complete,
+                                p_port);
       return;
 
     case RFC_PORT_EVENT_CLOSE:
@@ -153,14 +147,9 @@ void rfc_port_sm_state_closed(tPORT* p_port, tRFC_PORT_EVENT event,
 
       /* Open will be continued after security checks are passed */
       p_port->rfc.state = RFC_STATE_TERM_WAIT_SEC_CHECK;
-      if (rfcomm_security_records.count(scn) == 0) {
-        rfc_sec_check_complete(nullptr, BT_TRANSPORT_BR_EDR, p_port,
-                               BTM_NO_RESOURCES);
-        return;
-      }
       btm_sec_mx_access_request(p_port->rfc.p_mcb->bd_addr, true,
-                                rfcomm_security_records[scn],
-                                &rfc_sec_check_complete, p_port);
+                                p_port->sec_mask, &rfc_sec_check_complete,
+                                p_port);
       return;
 
     case RFC_PORT_EVENT_UA:
