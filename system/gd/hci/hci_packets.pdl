@@ -2746,9 +2746,9 @@ packet ReadLocalSupportedCodecsV1 : Command (op_code = READ_LOCAL_SUPPORTED_CODE
 
 packet ReadLocalSupportedCodecsV1Complete : CommandComplete (command_op_code = READ_LOCAL_SUPPORTED_CODECS_V1) {
   status : ErrorCode,
-  _size_(supported_codecs) : 8,
+  _count_(supported_codecs) : 8,
   supported_codecs : 8[],
-  _size_(vendor_specific_codecs) : 8,
+  _count_(vendor_specific_codecs) : 8,
   vendor_specific_codecs : 32[],
 }
 
@@ -2776,9 +2776,9 @@ struct VendorCodecConfiguration {
 
 packet ReadLocalSupportedCodecsV2Complete : CommandComplete (command_op_code = READ_LOCAL_SUPPORTED_CODECS_V2) {
   status : ErrorCode,
-  _size_(supported_codecs) : 8,
+  _count_(supported_codecs) : 8,
   supported_codecs : CodecConfiguration[],
-  _size_(vendor_specific_codecs) : 8,
+  _count_(vendor_specific_codecs) : 8,
   vendor_specific_codecs : VendorCodecConfiguration[],
 }
 
