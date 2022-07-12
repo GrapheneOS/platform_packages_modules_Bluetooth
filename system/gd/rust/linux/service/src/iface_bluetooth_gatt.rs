@@ -208,7 +208,7 @@ impl IBluetoothGatt for IBluetoothGattDBus {
     }
 
     #[dbus_method("UnregisterScannerCallback")]
-    fn unregister_scanner_callback(&mut self, scanner_id: u32) -> bool {
+    fn unregister_scanner_callback(&mut self, callback_id: u32) -> bool {
         dbus_generated!()
     }
 
