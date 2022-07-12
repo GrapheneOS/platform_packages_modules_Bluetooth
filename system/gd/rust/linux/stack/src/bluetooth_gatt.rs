@@ -144,7 +144,7 @@ pub trait IBluetoothGatt {
     fn register_scanner_callback(&mut self, callback: Box<dyn IScannerCallback + Send>) -> u32;
 
     /// Unregisters an LE scanner callback identified by the given id.
-    fn unregister_scanner_callback(&mut self, scanner_id: u32) -> bool;
+    fn unregister_scanner_callback(&mut self, callback_id: u32) -> bool;
 
     fn start_scan(&self, scanner_id: i32, settings: ScanSettings, filters: Vec<ScanFilter>);
     fn stop_scan(&self, scanner_id: i32);
@@ -491,7 +491,7 @@ pub struct BluetoothGatt {
 
     context_map: ContextMap,
     reliable_queue: HashSet<String>,
-    callbacks: Callbacks<dyn IScannerCallback + Send>,
+    scanner_callbacks: Callbacks<dyn IScannerCallback + Send>,
 }
 
 impl BluetoothGatt {
@@ -502,7 +502,7 @@ impl BluetoothGatt {
             gatt: None,
             context_map: ContextMap::new(),
             reliable_queue: HashSet::new(),
-            callbacks: Callbacks::new(tx.clone(), Message::ScannerCallbackDisconnected),
+            scanner_callbacks: Callbacks::new(tx.clone(), Message::ScannerCallbackDisconnected),
         }
     }
 
@@ -532,7 +532,7 @@ impl BluetoothGatt {
     }
 
     pub fn remove_scanner_callback(&mut self, id: u32) -> bool {
-        self.callbacks.remove_callback(id)
+        self.scanner_callbacks.remove_callback(id)
     }
 }
 
@@ -569,11 +569,11 @@ pub enum GattWriteRequestStatus {
 
 impl IBluetoothGatt for BluetoothGatt {
     fn register_scanner_callback(&mut self, callback: Box<dyn IScannerCallback + Send>) -> u32 {
-        self.callbacks.add_callback(callback)
+        self.scanner_callbacks.add_callback(callback)
     }
 
-    fn unregister_scanner_callback(&mut self, scanner_id: u32) -> bool {
-        self.callbacks.remove_callback(scanner_id)
+    fn unregister_scanner_callback(&mut self, callback_id: u32) -> bool {
+        self.scanner_callbacks.remove_callback(callback_id)
     }
 
     fn start_scan(&self, _scanner_id: i32, _settings: ScanSettings, _filters: Vec<ScanFilter>) {
