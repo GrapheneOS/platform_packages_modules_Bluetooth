@@ -3,7 +3,8 @@
 use bt_topshim::btif::{BluetoothInterface, RawAddress};
 use bt_topshim::profiles::a2dp::{
     A2dp, A2dpCallbacks, A2dpCallbacksDispatcher, A2dpCodecBitsPerSample, A2dpCodecChannelMode,
-    A2dpCodecConfig, A2dpCodecSampleRate, BtavConnectionState, PresentationPosition,
+    A2dpCodecConfig, A2dpCodecSampleRate, BtavAudioState, BtavConnectionState,
+    PresentationPosition,
 };
 use bt_topshim::profiles::avrcp::{Avrcp, AvrcpCallbacks, AvrcpCallbacksDispatcher};
 use bt_topshim::profiles::hfp::{
@@ -59,6 +60,7 @@ pub trait IBluetoothMedia {
     fn set_hfp_volume(&mut self, volume: u8, address: String);
     fn start_audio_request(&mut self);
     fn stop_audio_request(&mut self);
+    fn get_a2dp_audio_started(&mut self) -> bool;
     fn get_presentation_position(&mut self) -> PresentationPosition;
 
     fn start_sco_call(&mut self, address: String);
@@ -126,6 +128,7 @@ pub struct BluetoothMedia {
     a2dp: Option<A2dp>,
     avrcp: Option<Avrcp>,
     a2dp_states: HashMap<RawAddress, BtavConnectionState>,
+    a2dp_audio_state: BtavAudioState,
     hfp: Option<Hfp>,
     hfp_states: HashMap<RawAddress, BthfConnectionState>,
     selectable_caps: HashMap<RawAddress, Vec<A2dpCodecConfig>>,
@@ -148,6 +151,7 @@ impl BluetoothMedia {
             a2dp: None,
             avrcp: None,
             a2dp_states: HashMap::new(),
+            a2dp_audio_state: BtavAudioState::RemoteSuspend,
             hfp: None,
             hfp_states: HashMap::new(),
             selectable_caps: HashMap::new(),
@@ -175,18 +179,23 @@ impl BluetoothMedia {
                         self.notify_media_capability_added(addr);
                         self.a2dp_states.insert(addr, state);
                     }
-                    BtavConnectionState::Disconnected => match self.a2dp_states.remove(&addr) {
-                        Some(_) => self.notify_media_capability_removed(addr),
-                        None => {
-                            warn!("[{}]: Unknown address a2dp disconnected.", addr.to_string());
+                    BtavConnectionState::Disconnected => {
+                        self.a2dp_audio_state = BtavAudioState::RemoteSuspend;
+                        match self.a2dp_states.remove(&addr) {
+                            Some(_) => self.notify_media_capability_removed(addr),
+                            None => {
+                                warn!("[{}]: Unknown address a2dp disconnected.", addr.to_string());
+                            }
                         }
-                    },
+                    }
                     _ => {
                         self.a2dp_states.insert(addr, state);
                     }
                 }
             }
-            A2dpCallbacks::AudioState(_addr, _state) => {}
+            A2dpCallbacks::AudioState(_addr, state) => {
+                self.a2dp_audio_state = state;
+            }
             A2dpCallbacks::AudioConfig(addr, _config, _local_caps, selectable_caps) => {
                 self.selectable_caps.insert(addr, selectable_caps);
             }
@@ -604,6 +613,13 @@ impl IBluetoothMedia for BluetoothMedia {
             self.hfp.as_mut().unwrap().disconnect_audio(addr);
         } else {
             warn!("Can't stop sco call with: {}", address);
+        }
+    }
+
+    fn get_a2dp_audio_started(&mut self) -> bool {
+        match self.a2dp_audio_state {
+            BtavAudioState::Started => true,
+            _ => false,
         }
     }
 
