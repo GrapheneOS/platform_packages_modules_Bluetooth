@@ -669,6 +669,7 @@ void l2cble_process_sig_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
        * all the channels has been rejected
        */
       if (con_info.l2cap_result == L2CAP_LE_RESULT_NO_PSM ||
+          con_info.l2cap_result == L2CAP_LE_RESULT_NO_RESOURCES ||
           con_info.l2cap_result ==
               L2CAP_LE_RESULT_INSUFFICIENT_AUTHENTICATION ||
           con_info.l2cap_result == L2CAP_LE_RESULT_INSUFFICIENT_ENCRYP ||
