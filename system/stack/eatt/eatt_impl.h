@@ -619,8 +619,8 @@ struct eatt_impl {
 
   void disconnect_channel(uint16_t cid) { L2CA_DisconnectReq(cid); }
 
-  void disconnect(const RawAddress& bd_addr) {
-    LOG(INFO) << __func__ << " " << bd_addr;
+  void disconnect(const RawAddress& bd_addr, uint16_t cid) {
+    LOG_INFO(" Device: %s, cid: 0x%04x", bd_addr.ToString().c_str(), cid);
 
     eatt_device* eatt_dev = find_device_by_address(bd_addr);
     if (!eatt_dev) {
@@ -631,6 +631,19 @@ struct eatt_impl {
     if (!eatt_dev->eatt_tcb_) {
       LOG_ASSERT(eatt_dev->eatt_channels.size() == 0);
       LOG(WARNING) << __func__ << " no eatt channels found";
+      return;
+    }
+
+    if (cid != EATT_ALL_CIDS) {
+      auto chan = find_channel_by_cid(cid);
+      if (!chan) {
+        LOG_WARN("Cid %d not found for device %s", cid,
+                 bd_addr.ToString().c_str());
+        return;
+      }
+      LOG_INFO("Disconnecting cid %d", cid);
+      disconnect_channel(cid);
+      remove_channel_by_cid(cid);
       return;
     }
 
