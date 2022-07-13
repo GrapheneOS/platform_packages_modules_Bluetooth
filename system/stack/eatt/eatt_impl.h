@@ -24,6 +24,9 @@
 #include "bind_helpers.h"
 #include "device/include/controller.h"
 #include "eatt.h"
+#include "gd/common/init_flags.h"
+#include "gd/common/strings.h"
+#include "internal_include/stack_config.h"
 #include "l2c_api.h"
 #include "osi/include/alarm.h"
 #include "osi/include/allocator.h"
@@ -658,12 +661,19 @@ struct eatt_impl {
       return;
     }
 
-    /* For new device, first read GATT server supported features. */
-    if (gatt_cl_read_sr_supp_feat_req(
-            bd_addr, base::BindOnce(&eatt_impl::supported_features_cb,
-                                    base::Unretained(this), role)) == false) {
-      LOG(INFO) << __func__ << "Eatt is not supported. Checked for device "
-                << bd_addr;
+    /* This is needed for L2CAP test cases */
+    if (stack_config_get_interface()->get_pts_connect_eatt_unconditionally()) {
+      /* For PTS just start connecting EATT right away, */
+      eatt_device* eatt_dev = add_eatt_device(bd_addr);
+      connect_eatt(eatt_dev);
+    } else {
+      /* For new device, first read GATT server supported features. */
+      if (gatt_cl_read_sr_supp_feat_req(
+              bd_addr, base::BindOnce(&eatt_impl::supported_features_cb,
+                                      base::Unretained(this), role)) == false) {
+        LOG_INFO("Read server supported features failed for device %s",
+                 bd_addr.ToString().c_str());
+      }
     }
   }
 
