@@ -842,6 +842,20 @@ static bool gatt_sr_is_cl_robust_caching_supported(tGATT_TCB& tcb) {
 
 /*******************************************************************************
  *
+ * Function         gatt_sr_is_cl_multi_variable_len_notif_supported
+ *
+ * Description      Check if Multiple Variable Length Notifications
+ *                  supported for the connection
+ *
+ * Returns          true if enabled by client side, otherwise false
+ *
+ ******************************************************************************/
+bool gatt_sr_is_cl_multi_variable_len_notif_supported(tGATT_TCB& tcb) {
+  return (tcb.cl_supp_feat & BLE_GATT_CL_SUP_FEAT_MULTI_NOTIF_BITMASK);
+}
+
+/*******************************************************************************
+ *
  * Function         gatt_sr_is_cl_change_aware
  *
  * Description      Check if the connection is change-aware
