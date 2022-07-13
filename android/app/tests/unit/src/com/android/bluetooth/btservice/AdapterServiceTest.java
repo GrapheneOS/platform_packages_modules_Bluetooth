@@ -853,22 +853,19 @@ public class AdapterServiceTest {
 
     @Test
     public void testAddressConsolidation() {
-        // Verify that we return null when the device property for this address does not exist
-        Assert.assertNull(mAdapterService.getIdentityAddress(TEST_BT_ADDR_1));
-
-        // Create device property
+        // Create device properties
         RemoteDevices remoteDevices = mAdapterService.getRemoteDevices();
         remoteDevices.addDeviceProperties(Utils.getBytesFromAddress((TEST_BT_ADDR_1)));
-
-        // Verify that we return null when the identity address is not known
-        Assert.assertNull(mAdapterService.getIdentityAddress(TEST_BT_ADDR_1));
+        String identityAddress = mAdapterService.getIdentityAddress(TEST_BT_ADDR_1);
+        Assert.assertEquals(identityAddress, TEST_BT_ADDR_1);
 
         // Trigger address consolidate callback
         remoteDevices.addressConsolidateCallback(Utils.getBytesFromAddress(TEST_BT_ADDR_1),
                 Utils.getBytesFromAddress(TEST_BT_ADDR_2));
 
         // Verify we can get correct identity address
-        Assert.assertEquals(TEST_BT_ADDR_2, mAdapterService.getIdentityAddress(TEST_BT_ADDR_1));
+        identityAddress = mAdapterService.getIdentityAddress(TEST_BT_ADDR_1);
+        Assert.assertEquals(identityAddress, TEST_BT_ADDR_2);
     }
 
     private static byte[] getMetricsSalt(HashMap<String, HashMap<String, String>> adapterConfig) {
