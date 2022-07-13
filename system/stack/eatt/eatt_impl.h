@@ -116,6 +116,20 @@ struct eatt_impl {
   void eatt_l2cap_connect_ind(const RawAddress& bda,
                               std::vector<uint16_t>& lcids, uint16_t psm,
                               uint16_t peer_mtu, uint8_t identifier) {
+    if (!stack_config_get_interface()
+             ->get_pts_connect_eatt_before_encryption() &&
+        !BTM_IsEncrypted(bda, BT_TRANSPORT_LE)) {
+      /* If Link is not encrypted, we shall not accept EATT channel creation. */
+      std::vector<uint16_t> empty;
+      uint16_t result = L2CAP_LE_RESULT_INSUFFICIENT_AUTHENTICATION;
+      if (BTM_IsLinkKeyKnown(bda, BT_TRANSPORT_LE)) {
+        result = L2CAP_LE_RESULT_INSUFFICIENT_ENCRYP;
+      }
+      LOG_ERROR("ACL to device %s is unencrypted.", bda.ToString().c_str());
+      L2CA_ConnectCreditBasedRsp(bda, identifier, empty, result, nullptr);
+      return;
+    }
+
     /* The assumption is that L2CAP layer already check parameters etc.
      * Get our capabilities and accept all the channels.
      */
