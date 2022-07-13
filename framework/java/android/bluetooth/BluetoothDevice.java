@@ -1477,8 +1477,7 @@ public final class BluetoothDevice implements Parcelable, Attributable {
      * Returns the identity address of this BluetoothDevice.
      * <p> For example, "00:11:22:AA:BB:CC".
      *
-     * @return this device's identity address as a string or {@code null} if the identity
-     *         address is either not known or is unable to be retrieved
+     * @return Bluetooth identity address as a string
      * @hide
      */
     @SystemApi
