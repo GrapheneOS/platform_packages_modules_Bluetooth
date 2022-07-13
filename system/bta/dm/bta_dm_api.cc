@@ -80,11 +80,16 @@ void BTA_DmSetDeviceName(const char* p_name) {
  * Returns          void
  *
  ******************************************************************************/
-void BTA_DmSearch(tBTA_DM_SEARCH_CBACK* p_cback) {
+void BTA_DmSearch(tBTA_DM_SEARCH_CBACK* p_cback, bool is_bonding_or_sdp) {
   tBTA_DM_API_SEARCH* p_msg =
       (tBTA_DM_API_SEARCH*)osi_calloc(sizeof(tBTA_DM_API_SEARCH));
 
-  p_msg->hdr.event = BTA_DM_API_SEARCH_EVT;
+  /* Queue request if a device is bonding or performing service discovery */
+  if (is_bonding_or_sdp) {
+    p_msg->hdr.event = BTA_DM_API_QUEUE_SEARCH_EVT;
+  } else {
+    p_msg->hdr.event = BTA_DM_API_SEARCH_EVT;
+  }
   p_msg->p_cback = p_cback;
 
   bta_sys_sendmsg(p_msg);
@@ -101,6 +106,8 @@ void BTA_DmSearch(tBTA_DM_SEARCH_CBACK* p_cback) {
  *
  ******************************************************************************/
 void BTA_DmSearchCancel(void) {
+  bta_dm_search_clear_queue();
+
   switch (bta_dm_search_get_state()) {
     case BTA_DM_SEARCH_IDLE:
       bta_dm_search_cancel_notify();
@@ -110,7 +117,6 @@ void BTA_DmSearchCancel(void) {
       bta_dm_search_cancel();
       break;
     case BTA_DM_SEARCH_CANCELLING:
-      bta_dm_search_clear_queue();
       bta_dm_search_cancel_notify();
       break;
     case BTA_DM_DISCOVER_ACTIVE:
@@ -132,11 +138,15 @@ void BTA_DmSearchCancel(void) {
  *
  ******************************************************************************/
 void BTA_DmDiscover(const RawAddress& bd_addr, tBTA_DM_SEARCH_CBACK* p_cback,
-                    tBT_TRANSPORT transport) {
+                    tBT_TRANSPORT transport, bool is_bonding_or_sdp) {
   tBTA_DM_API_DISCOVER* p_msg =
       (tBTA_DM_API_DISCOVER*)osi_calloc(sizeof(tBTA_DM_API_DISCOVER));
 
-  p_msg->hdr.event = BTA_DM_API_DISCOVER_EVT;
+  if (is_bonding_or_sdp) {
+    p_msg->hdr.event = BTA_DM_API_QUEUE_DISCOVER_EVT;
+  } else {
+    p_msg->hdr.event = BTA_DM_API_DISCOVER_EVT;
+  }
   p_msg->bd_addr = bd_addr;
   p_msg->transport = transport;
   p_msg->p_cback = p_cback;
