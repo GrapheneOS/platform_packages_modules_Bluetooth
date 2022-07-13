@@ -4,9 +4,12 @@ use std::process::Command;
 // The integration test in this file is not part of the pdl crate, and
 // so we cannot directly depend on anything from pdl. However, we can
 // include the test_utils.rs file directly.
+//
+// The module is public to avoid an "function is never used" error,
+// which is triggered because we don't use all test_utils functions.
 
 #[path = "../src/test_utils.rs"]
-mod test_utils;
+pub mod test_utils;
 use test_utils::{assert_eq_with_diff, find_binary, rustfmt};
 
 fn strip_blank_lines(text: &str) -> String {
@@ -67,7 +70,12 @@ fn bluetooth_packetgen(code: &str) -> String {
 fn assert_equal_compilation(pdl_code: &str) {
     let old_rust = rustfmt(&bluetooth_packetgen(pdl_code));
     let new_rust = rustfmt(&pdl(pdl_code));
-    assert_eq_with_diff(&strip_blank_lines(&old_rust), &strip_blank_lines(&new_rust));
+    assert_eq_with_diff(
+        "bluetooth_packetgen output",
+        &strip_blank_lines(&old_rust),
+        "pdl output",
+        &strip_blank_lines(&new_rust),
+    );
 }
 
 #[test]
