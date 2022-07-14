@@ -461,6 +461,7 @@ public class BassClientStateMachine extends StateMachine {
             int broadcastId = result.getBroadcastId();
             log("broadcast ID: " + broadcastId);
             metaData.setBroadcastId(broadcastId);
+            metaData.setSourceAdvertisingSid(result.getAdvSid());
         }
         return metaData.build();
     }
