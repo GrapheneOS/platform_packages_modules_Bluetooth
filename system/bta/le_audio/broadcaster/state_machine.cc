@@ -466,17 +466,18 @@ class BroadcastStateMachineImpl : public BroadcastStateMachine {
   void TriggerIsoDatapathSetup(uint16_t conn_handle) {
     LOG_INFO("conn_hdl=%d", conn_handle);
     LOG_ASSERT(active_config_ != std::nullopt);
-
-    /* Note: For the LC3 software encoding on the Host side, the coding format
-     * should be set to 'Transparent' and no codec configuration shall be sent
-     * to the controller. 'codec_id_company' and 'codec_id_vendor' shall be
-     * ignored if 'codec_id_format' is not set to 'Vendor'.
-     */
     auto data_path_id = bluetooth::hci::iso_manager::kIsoDataPathHci;
     if (CodecManager::GetInstance()->GetCodecLocation() !=
         CodecLocation::HOST) {
       data_path_id = bluetooth::hci::iso_manager::kIsoDataPathPlatformDefault;
     }
+
+    /* Note: If the LC3 encoding isn't in the controller side, the coding format
+     * should be set to 'Transparent' and no codec configuration shall be sent
+     * to the controller. 'codec_id_company' and 'codec_id_vendor' shall be
+     * ignored if 'codec_id_format' is not set to 'Vendor'. We currently only
+     * support the codecLocation in the Host or ADSP side.
+     */
     auto codec_id = sm_config_.codec_wrapper.GetLeAudioCodecId();
     uint8_t hci_coding_format =
         (codec_id.coding_format == le_audio::types::kLeAudioCodingFormatLC3)
