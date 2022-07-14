@@ -397,8 +397,6 @@ typedef struct {
 #define L2CAP_GET_PRIORITY_QUOTA(pri) \
   ((L2CAP_NUM_CHNL_PRIORITY - (pri)) * L2CAP_CHNL_PRIORITY_WEIGHT)
 
-#define L2CAP_CREDIT_BASED_MAX_CIDS 5
-
 /* CCBs within the same LCB are served in round robin with priority It will make
  * sure that low priority channel (for example, HF signaling on RFCOMM) can be
  * sent to the headset even if higher priority channel (for example, AV media
