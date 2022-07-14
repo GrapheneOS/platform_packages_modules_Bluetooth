@@ -23,6 +23,9 @@ import android.util.Log;
 
 import com.android.bluetooth.Utils;
 import com.android.internal.annotations.VisibleForTesting;
+import com.android.obex.HeaderSet;
+
+import java.io.IOException;
 
 /**
  * Proxy class for method calls to help with unit testing
@@ -63,11 +66,26 @@ public class BluetoothPbapMethodProxy {
     }
 
     /**
-     * Return the result of {@link ContentResolver#query(Uri, String[], String, String[], String)}.
+     * Proxies {@link ContentResolver#query(Uri, String[], String, String[], String)}.
      */
     public Cursor contentResolverQuery(ContentResolver contentResolver, final Uri contentUri,
             final String[] projection, final String selection, final String[] selectionArgs,
             final String sortOrder) {
         return contentResolver.query(contentUri, projection, selection, selectionArgs, sortOrder);
+    }
+
+    /**
+     * Proxies {@link HeaderSet#setHeader}.
+     */
+    public void setHeader(HeaderSet headerSet, int headerId, Object headerValue)
+            throws IOException {
+        headerSet.setHeader(headerId, headerValue);
+    }
+
+    /**
+     * Proxies {@link HeaderSet#getHeader}.
+     */
+    public Object getHeader(HeaderSet headerSet, int headerId) throws IOException {
+        return headerSet.getHeader(headerId);
     }
 }
