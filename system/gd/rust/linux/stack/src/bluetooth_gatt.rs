@@ -989,7 +989,7 @@ impl BtifGattClientCallbacks for BluetoothGatt {
 
         let client = self.context_map.get_by_uuid(&app_uuid.uu);
         if client.is_none() {
-            warn!("Warning: Client not registered for UUID {:?}", app_uuid.uu);
+            warn!("Warning: Client not registered for UUID {}", app_uuid);
             return;
         }
 
