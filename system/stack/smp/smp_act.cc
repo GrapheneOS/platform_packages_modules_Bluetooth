@@ -544,6 +544,14 @@ void smp_proc_pair_cmd(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
   STREAM_TO_UINT8(p_cb->peer_i_key, p);
   STREAM_TO_UINT8(p_cb->peer_r_key, p);
 
+  tSMP_STATUS reason = p_cb->cert_failure;
+  if (reason == SMP_ENC_KEY_SIZE) {
+    tSMP_INT_DATA smp_int_data;
+    smp_int_data.status = reason;
+    smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &smp_int_data);
+    return;
+  }
+
   if (smp_command_has_invalid_parameters(p_cb)) {
     tSMP_INT_DATA smp_int_data;
     smp_int_data.status = SMP_INVALID_PARAMETERS;
