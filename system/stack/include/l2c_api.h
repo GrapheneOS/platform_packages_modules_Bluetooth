@@ -181,6 +181,9 @@ constexpr uint16_t L2CAP_LE_CREDIT_THRESHOLD = 0x0040;
 static_assert(L2CAP_LE_CREDIT_THRESHOLD < L2CAP_LE_CREDIT_DEFAULT,
               "Threshold must be smaller than default credits");
 
+// Max number of CIDs in the L2CAP CREDIT BASED CONNECTION REQUEST
+constexpr uint16_t L2CAP_CREDIT_BASED_MAX_CIDS = 5;
+
 /* Define a structure to hold the configuration parameter for LE L2CAP
  * connection oriented channels.
  */
@@ -189,6 +192,7 @@ struct tL2CAP_LE_CFG_INFO {
   uint16_t mtu = 100;
   uint16_t mps = 100;
   uint16_t credits = L2CAP_LE_CREDIT_DEFAULT;
+  uint8_t number_of_channels = L2CAP_CREDIT_BASED_MAX_CIDS;
 };
 
 /*********************************
