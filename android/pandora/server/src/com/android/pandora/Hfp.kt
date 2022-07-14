@@ -23,6 +23,7 @@ import android.bluetooth.BluetoothProfile
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import com.google.protobuf.Empty
 import io.grpc.stub.StreamObserver
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -56,16 +57,23 @@ class Hfp(val context: Context) : HFPImplBase() {
     scope.cancel()
   }
 
-  override fun disableSlc(
-    request: DisableSlcRequest,
-    responseObserver: StreamObserver<DisableSlcResponse>
-  ) {
-    grpcUnary<DisableSlcResponse>(scope, responseObserver) {
-      val device = request.address.toBluetoothDevice(bluetoothAdapter)
+  override fun enableSlc(request: EnableSlcRequest, responseObserver: StreamObserver<Empty>) {
+    grpcUnary<Empty>(scope, responseObserver) {
+      val device = request.connection.toBluetoothDevice(bluetoothAdapter)
+
+      bluetoothHfp.setConnectionPolicy(device, BluetoothProfile.CONNECTION_POLICY_ALLOWED)
+
+      Empty.getDefaultInstance()
+    }
+  }
+
+  override fun disableSlc(request: DisableSlcRequest, responseObserver: StreamObserver<Empty>) {
+    grpcUnary<Empty>(scope, responseObserver) {
+      val device = request.connection.toBluetoothDevice(bluetoothAdapter)
 
       bluetoothHfp.setConnectionPolicy(device, BluetoothProfile.CONNECTION_POLICY_FORBIDDEN)
 
-      DisableSlcResponse.getDefaultInstance()
+      Empty.getDefaultInstance()
     }
   }
 }

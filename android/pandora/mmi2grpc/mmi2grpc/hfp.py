@@ -30,6 +30,8 @@ class HFPProxy(ProfileProxy):
         self.hfp = HFP(channel)
         self.host = Host(channel)
 
+        self.connection = None
+
     @assert_description
     def TSC_delete_pairing_iut(self, pts_addr: bytes, **kwargs):
         """
@@ -38,6 +40,18 @@ class HFPProxy(ProfileProxy):
         """
 
         self.host.DeletePairing(address=pts_addr)
+        return "OK"
+
+    @assert_description
+    def TSC_iut_enable_slc(self, pts_addr: bytes, **kwargs):
+        """
+        Click Ok, then initiate a service level connection from the
+        Implementation Under Test (IUT) to the PTS.
+        """
+
+        if not self.connection:
+            self.connection = self.host.Connect(address=pts_addr).connection
+        self.hfp.EnableSlc(connection=self.connection)
         return "OK"
 
     @assert_description
@@ -66,5 +80,5 @@ class HFPProxy(ProfileProxy):
         Implementation Under Test (IUT).
         """
 
-        self.hfp.DisableSlc(address=pts_addr)
+        self.hfp.DisableSlc(connection=self.connection)
         return "OK"
