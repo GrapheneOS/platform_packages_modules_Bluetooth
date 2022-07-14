@@ -782,7 +782,13 @@ std::vector<uint16_t> L2CA_ConnectCreditBasedReq(uint16_t psm,
 
   tL2C_CCB* p_ccb_primary;
 
-  for (int i = 0; i < 5; i++) {
+  /* Make sure user set proper value for number of cids */
+  if (p_cfg->number_of_channels > L2CAP_CREDIT_BASED_MAX_CIDS ||
+      p_cfg->number_of_channels == 0) {
+    p_cfg->number_of_channels = L2CAP_CREDIT_BASED_MAX_CIDS;
+  }
+
+  for (int i = 0; i < p_cfg->number_of_channels; i++) {
     /* Allocate a channel control block */
     tL2C_CCB* p_ccb = l2cu_allocate_ccb(p_lcb, 0);
     if (p_ccb == NULL) {
