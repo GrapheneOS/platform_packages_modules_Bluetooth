@@ -2,11 +2,20 @@ package {
     default_applicable_licenses: ["Android-Apache-2.0"],
 }
 
-android_test_helper_app {
-    name: "PandoraServer",
+java_library_static {
+    name: "PandoraServerLib",
+
     srcs: ["src/**/*.kt"],
+
     platform_apis: true,
-    certificate: "platform",
+
+    sdk_version: "core_platform",
+
+    libs: [
+        // Access to hidden apis in Bluetooth:
+        "framework-bluetooth.impl",
+        "framework",
+    ],
 
     static_libs: [
         "androidx.test.runner",
@@ -20,6 +29,15 @@ android_test_helper_app {
         "pandora-proto-java",
         "opencensus-java-contrib-grpc-metrics",
     ],
+}
+
+android_test_helper_app {
+    name: "PandoraServer",
+    certificate: "platform",
+
+    static_libs: [
+        "PandoraServerLib",
+    ],
 
     dex_preopt: {
         enabled: false,
@@ -27,8 +45,6 @@ android_test_helper_app {
     optimize: {
         enabled: false,
     },
-
-    test_suites: ["device-tests"],
 }
 
 android_test {
