@@ -83,6 +83,7 @@ static const tL2CAP_APPL_INFO dyn_info = {gatt_l2cif_connect_ind_cback,
                                           gatt_on_l2cap_error,
                                           NULL,
                                           NULL,
+                                          NULL,
                                           NULL};
 
 tGATT_CB gatt_cb;
