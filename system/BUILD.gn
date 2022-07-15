@@ -103,12 +103,15 @@ config("target_defaults") {
     "-Wno-unknown-warning-option",
     "-Wno-final-dtor-non-final-class",
 
-    string_join("", ["-ffile-prefix-map=", rebase_path(".", "${root_build_dir}", "."), "/= "])
+    string_join("",
+                [
+                  "-ffile-prefix-map=",
+                  rebase_path(".", "${root_build_dir}", "."),
+                  "/= ",
+                ]),
   ]
 
-  cflags_cc = [
-    "-std=c++17",
-  ]
+  cflags_cc = [ "-std=c++17" ]
 
   defines = [
     "HAS_NO_BDROID_BUILDCFG",
@@ -117,7 +120,7 @@ config("target_defaults") {
     "TARGET_FLOSS",
     "EXPORT_SYMBOL=__attribute__((visibility(\"default\")))",
     "FALLTHROUGH_INTENDED=[[clang::fallthrough]]",
-    "BTIF_HF_FEATURES=0x00000640"
+    "BTIF_HF_FEATURES=0x00000640",
   ]
 
   if (!(defined(use.bt_nonstandard_codecs) && use.bt_nonstandard_codecs)) {
@@ -125,6 +128,10 @@ config("target_defaults") {
   }
 
   configs = [ ":external_libchrome" ]
+
+  if (target_os == "chromeos") {
+    configs += [ ":external_chromeos" ]
+  }
 }
 
 group("libbt-platform-protos-lite") {
@@ -221,5 +228,16 @@ if (defined(use.bt_nonstandard_codecs) && use.bt_nonstandard_codecs) {
 
   pkg_config("pkg_libldacBT_abr") {
     pkg_deps = [ "ldacBT-abr" ]
+  }
+}
+
+# To include ChroemOS-specific libraries and build dependencies.
+if (target_os == "chromeos") {
+  config("external_chromeos") {
+    configs = [ ":pkgpkg_libstructuredmetrics" ]
+  }
+
+  pkg_config("pkgpkg_libstructuredmetrics") {
+    pkg_deps = [ "libstructuredmetrics" ]
   }
 }
