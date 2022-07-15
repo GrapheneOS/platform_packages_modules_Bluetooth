@@ -221,6 +221,10 @@ public class LeAudioServiceTest {
 
     @After
     public void tearDown() throws Exception {
+        if ((mService == null) || (mAdapter == null)) {
+            return;
+        }
+
         mBondedDevices.clear();
         mGroupIntentQueue.clear();
         stopService();
