@@ -138,6 +138,7 @@ class CsisClientImpl : public CsisClient {
   std::shared_ptr<bluetooth::csis::CsisGroup> AssignCsisGroup(
       const RawAddress& address, int group_id,
       bool create_group_if_non_existing, const bluetooth::Uuid& uuid) {
+    LOG_DEBUG("Device: %s, group_id: %d", address.ToString().c_str(), group_id);
     auto csis_group = FindCsisGroup(group_id);
     if (!csis_group) {
       if (create_group_if_non_existing) {
@@ -291,14 +292,14 @@ class CsisClientImpl : public CsisClient {
     csis_group->SetTargetLockState(CsisLockState::CSIS_STATE_UNSET);
 
     int group_id = csis_group->GetGroupId();
-    CsisLockState current_lock_state = csis_group->GetCurrentLockState();
     /* Send unlock to previous devices. It shall be done in reverse order. */
     auto prev_dev = csis_group->GetPrevDevice(csis_device);
     while (prev_dev) {
       if (prev_dev->IsConnected()) {
         auto prev_csis_instance = prev_dev->GetCsisInstanceByGroupId(group_id);
         LOG_ASSERT(prev_csis_instance) << " prev_csis_instance does not exist!";
-        SetLock(prev_dev, prev_csis_instance, current_lock_state);
+        SetLock(prev_dev, prev_csis_instance,
+                CsisLockState::CSIS_STATE_UNLOCKED);
       }
       prev_dev = csis_group->GetPrevDevice(prev_dev);
     }
@@ -322,6 +323,10 @@ class CsisClientImpl : public CsisClient {
     }
 
     CsisLockState target_lock_state = csis_group->GetTargetLockState();
+
+    LOG_DEBUG("Device %s, target lock: %d, status: 0x%02x",
+              device->addr.ToString().c_str(), (int)target_lock_state,
+              (int)status);
     if (target_lock_state == CsisLockState::CSIS_STATE_UNSET) return;
 
     if (status != GATT_SUCCESS &&
@@ -376,7 +381,7 @@ class CsisClientImpl : public CsisClient {
           /* Somebody else managed to lock it.
            * Unlock previous devices
            */
-          HandleCsisLockProcedureError(csis_group, device);
+          HandleCsisLockProcedureError(csis_group, next_dev);
           return;
         }
         SetLock(next_dev, next_csis_inst, CsisLockState::CSIS_STATE_LOCKED);
@@ -490,6 +495,10 @@ class CsisClientImpl : public CsisClient {
        * can revert lock previously locked devices as per specification.
        */
       auto csis_device = csis_group->GetFirstDevice();
+      while (!csis_device->IsConnected()) {
+        csis_device = csis_group->GetNextDevice(csis_device);
+      }
+
       auto csis_instance = csis_device->GetCsisInstanceByGroupId(group_id);
       LOG_ASSERT(csis_instance) << " csis_instance does not exist!";
       SetLock(csis_device, csis_instance, new_lock_state);
@@ -676,7 +685,9 @@ class CsisClientImpl : public CsisClient {
         if (!instance) {
           stream << "          No csis instance available\n";
         } else {
-          stream << "          rank: " << instance->GetRank() << "\n";
+          stream << "          service handle: "
+                 << loghex(instance->svc_data.start_handle)
+                 << "          rank: " << +instance->GetRank() << "\n";
         }
 
         if (!device->IsConnected()) {
