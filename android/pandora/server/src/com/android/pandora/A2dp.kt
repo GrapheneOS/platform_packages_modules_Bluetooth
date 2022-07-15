@@ -48,11 +48,9 @@ class A2dp(val context: Context) : A2DPImplBase() {
   private val scope: CoroutineScope
   private val flow: Flow<Intent>
 
-  private val audioManager: AudioManager =
-    context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+  private val audioManager = context.getSystemService(AudioManager::class.java)!!
 
-  private val bluetoothManager =
-    context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+  private val bluetoothManager = context.getSystemService(BluetoothManager::class.java)!!
   private val bluetoothAdapter = bluetoothManager.adapter
   private val bluetoothA2dp = getProfileProxy<BluetoothA2dp>(context, BluetoothProfile.A2DP)
 
