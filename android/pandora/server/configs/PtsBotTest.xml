@@ -12,6 +12,7 @@
     <target_preparer class="com.android.tradefed.targetprep.PythonVirtualenvPreparer">
         <option name="dep-module" value="grpcio" />
         <option name="dep-module" value="protobuf==3.20.1" />
+        <option name="dep-module" value="scipy" />
     </target_preparer>
 
     <test class="com.android.tradefed.testtype.pandora.PtsBotTest" >
@@ -21,5 +22,6 @@
         <option name="physical" value="false" />
         <option name="profile" value="A2DP/SRC" />
         <option name="profile" value="AVDTP/SRC" />
+        <option name="profile" value="HFP/AG/DIS" />
     </test>
 </configuration>
