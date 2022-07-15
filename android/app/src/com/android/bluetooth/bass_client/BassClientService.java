@@ -185,8 +185,8 @@ public class BassClientService extends ProfileService {
     }
 
     void setActiveSyncedSource(BluetoothDevice scanDelegator, BluetoothDevice sourceDevice) {
-        log("setActiveSyncedSource: scanDelegator" + scanDelegator
-                + ":: sourceDevice:" + sourceDevice);
+        log("setActiveSyncedSource, scanDelegator: " + scanDelegator + ", sourceDevice: " +
+            sourceDevice);
         if (sourceDevice == null) {
             mActiveSourceMap.remove(scanDelegator);
         } else {
@@ -859,8 +859,11 @@ public class BassClientService extends ProfileService {
                     BassClientStateMachine.UPDATE_BCAST_SOURCE);
             message.arg1 = sourceId;
             message.arg2 = BluetoothLeBroadcastReceiveState.PA_SYNC_STATE_IDLE;
+            /* Pending remove set. Remove source once not synchronized to PA */
             message.obj = metaData;
             stateMachine.sendMessage(message);
+
+            return;
         }
         Message message = stateMachine.obtainMessage(BassClientStateMachine.REMOVE_BCAST_SOURCE);
         message.arg1 = sourceId;
