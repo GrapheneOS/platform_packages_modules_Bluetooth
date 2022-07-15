@@ -49,8 +49,7 @@ class Host(private val context: Context, private val server: Server) : HostImplB
   private val scope: CoroutineScope
   private val flow: Flow<Intent>
 
-  private val bluetoothManager =
-    context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+  private val bluetoothManager = context.getSystemService(BluetoothManager::class.java)!!
   private val bluetoothAdapter = bluetoothManager.adapter
 
   init {
@@ -75,29 +74,29 @@ class Host(private val context: Context, private val server: Server) : HostImplB
 
   override fun reset(request: Empty, responseObserver: StreamObserver<Empty>) {
     grpcUnary<Empty>(scope, responseObserver) {
-      Log.i(TAG, "reset")
+        Log.i(TAG, "reset")
 
-      bluetoothAdapter.clearBluetooth()
+        bluetoothAdapter.clearBluetooth()
 
-      val stateFlow =
-        flow.filter { it.getAction() == BluetoothAdapter.ACTION_STATE_CHANGED }.map {
-          it.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR)
+        val stateFlow =
+          flow
+            .filter { it.getAction() == BluetoothAdapter.ACTION_STATE_CHANGED }
+            .map { it.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR) }
+
+        if (bluetoothAdapter.isEnabled) {
+          bluetoothAdapter.disable()
+          stateFlow.filter { it == BluetoothAdapter.STATE_OFF }.first()
         }
 
-      if (bluetoothAdapter.isEnabled) {
-        bluetoothAdapter.disable()
-        stateFlow.filter { it == BluetoothAdapter.STATE_OFF }.first()
+        // TODO: b/234892968
+        delay(2000L)
+
+        bluetoothAdapter.enable()
+        stateFlow.filter { it == BluetoothAdapter.STATE_ON }.first()
+
+        // The last expression is the return value.
+        Empty.getDefaultInstance()
       }
-
-      // TODO: b/234892968
-      delay(2000L)
-
-      bluetoothAdapter.enable()
-      stateFlow.filter { it == BluetoothAdapter.STATE_ON }.first()
-
-      // The last expression is the return value.
-      Empty.getDefaultInstance()
-    }
       .invokeOnCompletion {
         Log.i(TAG, "Shutdown the gRPC Server")
         server.shutdownNow()
@@ -117,12 +116,55 @@ class Host(private val context: Context, private val server: Server) : HostImplB
     }
   }
 
+  private suspend fun waitPairingRequestIntent(address: String) {
+    Log.i(TAG, "waitPairingRequestIntent: address=$address")
+    var pairingRequestIntent =
+      flow
+        .filter { it.getAction() == BluetoothDevice.ACTION_PAIRING_REQUEST }
+        .filter { it.getBluetoothDeviceExtra().address == address }
+        .first()
+
+    val bluetoothDevice = pairingRequestIntent.getBluetoothDeviceExtra()
+    val pairingVariant =
+      pairingRequestIntent.getIntExtra(BluetoothDevice.EXTRA_PAIRING_VARIANT, BluetoothDevice.ERROR)
+
+    if (
+      pairingVariant == BluetoothDevice.PAIRING_VARIANT_PASSKEY_CONFIRMATION ||
+        pairingVariant == BluetoothDevice.PAIRING_VARIANT_CONSENT ||
+        pairingVariant == BluetoothDevice.PAIRING_VARIANT_PIN
+    ) {
+      bluetoothDevice.setPairingConfirmation(true)
+    }
+  }
+
+  private suspend fun waitBondIntent(address: String) {
+    // We only wait for bonding to be completed since we only need the ACL connection to be
+    // established with the peer device (on Android state connected is sent when all profiles
+    // have been connected).
+    Log.i(TAG, "waitBondIntent: address=$address")
+    flow
+      .filter { it.getAction() == BluetoothDevice.ACTION_BOND_STATE_CHANGED }
+      .filter { it.getBluetoothDeviceExtra().address == address }
+      .map { it.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, BluetoothAdapter.ERROR) }
+      .filter { it == BluetoothDevice.BOND_BONDED }
+      .first()
+  }
+
+  private suspend fun waitConnectionIntent(address: String) {
+    val acceptPairingJob = scope.launch { waitPairingRequestIntent(address) }
+    waitBondIntent(address)
+    if (acceptPairingJob.isActive) {
+      acceptPairingJob.cancel()
+    }
+  }
+
   override fun waitConnection(
     request: WaitConnectionRequest,
     responseObserver: StreamObserver<WaitConnectionResponse>
   ) {
     grpcUnary<WaitConnectionResponse>(scope, responseObserver) {
-      val address = MacAddress.fromBytes(request.address.toByteArray()).toString().uppercase()
+      val address = request.address.decodeToString()
+
       Log.i(TAG, "waitConnection: address=$address")
 
       if (!bluetoothAdapter.isEnabled) {
@@ -130,48 +172,59 @@ class Host(private val context: Context, private val server: Server) : HostImplB
         throw Status.UNKNOWN.asException()
       }
 
-      // Start a new coroutine that will accept any pairing request from the device.
-      val acceptPairingJob =
-        scope.launch {
-          val pairingRequestIntent =
-            flow
-              .filter { it.getAction() == BluetoothDevice.ACTION_PAIRING_REQUEST }
-              .filter { it.getBluetoothDeviceExtra().address == address }
-              .first()
-
-          val bluetoothDevice = pairingRequestIntent.getBluetoothDeviceExtra()
-          val pairingVariant =
-            pairingRequestIntent.getIntExtra(
-              BluetoothDevice.EXTRA_PAIRING_VARIANT,
-              BluetoothDevice.ERROR
-            )
-
-          if (pairingVariant == BluetoothDevice.PAIRING_VARIANT_PASSKEY_CONFIRMATION ||
-              pairingVariant == BluetoothDevice.PAIRING_VARIANT_CONSENT ||
-              pairingVariant == BluetoothDevice.PAIRING_VARIANT_PIN
-          ) {
-            bluetoothDevice.setPairingConfirmation(true)
-          }
-        }
-
-      // We only wait for bonding to be completed since we only need the ACL connection to be
-      // established with the peer device (on Android state connected is sent when all profiles
-      // have been connected).
-      flow
-        .filter { it.getAction() == BluetoothDevice.ACTION_BOND_STATE_CHANGED }
-        .filter { it.getBluetoothDeviceExtra().address == address }
-        .map { it.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, BluetoothAdapter.ERROR) }
-        .filter { it == BluetoothDevice.BOND_BONDED }
-        .first()
-
-      // Cancel the accept pairing coroutine if still active.
-      if (acceptPairingJob.isActive) {
-        acceptPairingJob.cancel()
-      }
+      waitConnectionIntent(address)
 
       WaitConnectionResponse.newBuilder()
         .setConnection(Connection.newBuilder().setCookie(ByteString.copyFromUtf8(address)).build())
         .build()
+    }
+  }
+
+  override fun connect(request: ConnectRequest, responseObserver: StreamObserver<ConnectResponse>) {
+    grpcUnary<ConnectResponse>(scope, responseObserver) {
+      val bluetoothDevice = request.address.toBluetoothDevice(bluetoothAdapter)
+
+      Log.i(TAG, "connect: address=$bluetoothDevice")
+
+      if (!bluetoothDevice.isConnected()) {
+        bluetoothDevice.createBond()
+        waitConnectionIntent(bluetoothDevice.address)
+      }
+
+      ConnectResponse.newBuilder()
+        .setConnection(
+          Connection.newBuilder()
+            .setCookie(ByteString.copyFromUtf8(bluetoothDevice.address))
+            .build()
+        )
+        .build()
+    }
+  }
+
+  override fun deletePairing(
+    request: DeletePairingRequest,
+    responseObserver: StreamObserver<DeletePairingResponse>
+  ) {
+    grpcUnary<DeletePairingResponse>(scope, responseObserver) {
+      val device = request.address.toBluetoothDevice(bluetoothAdapter)
+      Log.i(TAG, "DeletePairing: device=$device")
+
+      if (device.removeBond()) {
+        Log.i(TAG, "DeletePairing: device=$device - wait BOND_NONE intent")
+        flow
+          .filter {
+            it.getAction() == BluetoothDevice.ACTION_BOND_STATE_CHANGED &&
+              it.getBluetoothDeviceExtra() == device &&
+              it.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, BluetoothAdapter.ERROR) ==
+                BluetoothDevice.BOND_NONE &&
+              it.getIntExtra(BluetoothDevice.EXTRA_REASON, BluetoothAdapter.ERROR) ==
+                BluetoothDevice.BOND_SUCCESS
+          }
+          .first()
+      } else {
+        Log.i(TAG, "DeletePairing: device=$device - Already unpaired")
+      }
+      DeletePairingResponse.getDefaultInstance()
     }
   }
 
