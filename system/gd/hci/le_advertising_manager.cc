@@ -650,6 +650,15 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
     }
   }
 
+  bool data_has_flags(std::vector<GapData> data) {
+    for (auto& gap_data : data) {
+      if (gap_data.data_type_ == GapDataType::FLAGS) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   bool check_advertising_data(std::vector<GapData> data, bool include_flag) {
     uint16_t data_len = 0;
     // check data size
@@ -659,17 +668,8 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
 
     // The Flags data type shall be included when any of the Flag bits are non-zero and the advertising packet
     // is connectable. It will be added by set_data() function, we should count it here.
-    if (include_flag) {
-      bool flag_exist = false;
-      for (auto& gap_data : data) {
-        if (gap_data.data_type_ == GapDataType::FLAGS) {
-          flag_exist = true;
-          break;
-        }
-      }
-      if (!flag_exist) {
-        data_len += kLenOfFlags;
-      }
+    if (include_flag && !data_has_flags(data)) {
+      data_len += kLenOfFlags;
     }
 
     if (data_len > le_maximum_advertising_data_length_) {
@@ -695,17 +695,8 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
 
     // The Flags data type shall be included when any of the Flag bits are non-zero and the advertising packet
     // is connectable. It will be added by set_data() function, we should count it here.
-    if (include_flag) {
-      bool flag_exist = false;
-      for (auto& gap_data : data) {
-        if (gap_data.data_type_ == GapDataType::FLAGS) {
-          flag_exist = true;
-          break;
-        }
-      }
-      if (!flag_exist) {
-        data_len += kLenOfFlags;
-      }
+    if (include_flag && !data_has_flags(data)) {
+      data_len += kLenOfFlags;
     }
 
     if (data_len > le_maximum_advertising_data_length_) {
@@ -721,24 +712,15 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
   void set_data(AdvertiserId advertiser_id, bool set_scan_rsp, std::vector<GapData> data) {
     // The Flags data type shall be included when any of the Flag bits are non-zero and the advertising packet
     // is connectable.
-    if (!set_scan_rsp && advertising_sets_[advertiser_id].connectable) {
-      bool flag_exist = false;
-      for (auto& gap_data : data) {
-        if (gap_data.data_type_ == GapDataType::FLAGS) {
-          flag_exist = true;
-          break;
-        }
+    if (!set_scan_rsp && advertising_sets_[advertiser_id].connectable && !data_has_flags(data)) {
+      GapData gap_data;
+      gap_data.data_type_ = GapDataType::FLAGS;
+      if (advertising_sets_[advertiser_id].duration == 0) {
+        gap_data.data_.push_back(static_cast<uint8_t>(AdvertisingFlag::LE_GENERAL_DISCOVERABLE));
+      } else {
+        gap_data.data_.push_back(static_cast<uint8_t>(AdvertisingFlag::LE_LIMITED_DISCOVERABLE));
       }
-      if (!flag_exist) {
-        GapData gap_data;
-        gap_data.data_type_ = GapDataType::FLAGS;
-        if (advertising_sets_[advertiser_id].duration == 0) {
-          gap_data.data_.push_back(static_cast<uint8_t>(AdvertisingFlag::LE_GENERAL_DISCOVERABLE));
-        } else {
-          gap_data.data_.push_back(static_cast<uint8_t>(AdvertisingFlag::LE_LIMITED_DISCOVERABLE));
-        }
-        data.insert(data.begin(), gap_data);
-      }
+      data.insert(data.begin(), gap_data);
     }
 
     // Find and fill TX Power with the correct value.
