@@ -28,13 +28,7 @@ class LeAudioBroadcastClientAudioSource;
 /* Interface class */
 class LeAudioBroadcaster {
  public:
-  enum class AudioProfile {
-    SONIFICATION = 0,
-    MEDIA = 1,
-  };
-
   static constexpr uint8_t kInstanceIdUndefined = 0xFF;
-  static constexpr AudioProfile kDefaultAudioProfile = AudioProfile::MEDIA;
 
   virtual ~LeAudioBroadcaster(void) = default;
 
@@ -50,7 +44,7 @@ class LeAudioBroadcaster {
   static void DebugDump(int fd);
 
   virtual void CreateAudioBroadcast(
-      std::vector<uint8_t> metadata, AudioProfile profile,
+      std::vector<uint8_t> metadata,
       std::optional<bluetooth::le_audio::BroadcastCode> broadcast_code =
           std::nullopt) = 0;
   virtual void SuspendAudioBroadcast(uint32_t broadcast_id) = 0;
@@ -67,8 +61,6 @@ class LeAudioBroadcaster {
                           RawAddress /* addr */, bool /* is_valid */)>
           cb) = 0;
 
-  virtual void SetNumRetransmit(uint8_t count) = 0;
-  virtual uint8_t GetNumRetransmit(void) const = 0;
   virtual void SetStreamingPhy(uint8_t phy) = 0;
   virtual uint8_t GetStreamingPhy(void) const = 0;
 };
