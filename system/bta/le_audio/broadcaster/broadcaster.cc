@@ -20,6 +20,7 @@
 #include "bta/include/bta_le_audio_api.h"
 #include "bta/include/bta_le_audio_broadcaster_api.h"
 #include "bta/le_audio/broadcaster/state_machine.h"
+#include "bta/le_audio/content_control_id_keeper.h"
 #include "bta/le_audio/le_audio_types.h"
 #include "device/include/controller.h"
 #include "embdrv/lc3/include/lc3.h"
@@ -36,6 +37,7 @@ using bluetooth::hci::iso_manager::big_terminate_cmpl_evt;
 using bluetooth::hci::iso_manager::BigCallbacks;
 using bluetooth::le_audio::BasicAudioAnnouncementData;
 using bluetooth::le_audio::BroadcastId;
+using le_audio::ContentControlIdKeeper;
 using le_audio::broadcaster::BigConfig;
 using le_audio::broadcaster::BroadcastCodecWrapper;
 using le_audio::broadcaster::BroadcastQosConfig;
@@ -212,6 +214,15 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
     if (stream_context_vec) {
       auto pp = stream_context_vec.value().data();
       STREAM_TO_UINT16(context_type, pp);
+    }
+
+    // Append the CCID list
+    // TODO: We currently support only one context (and CCID) at a time for both
+    //       Unicast and broadcast.
+    auto ccid = ContentControlIdKeeper::GetInstance()->GetCcid(context_type);
+    if (ccid != -1) {
+      ltv.Add(le_audio::types::kLeAudioMetadataTypeCcidList,
+              {static_cast<uint8_t>(ccid)});
     }
 
     auto codec_qos_pair =
