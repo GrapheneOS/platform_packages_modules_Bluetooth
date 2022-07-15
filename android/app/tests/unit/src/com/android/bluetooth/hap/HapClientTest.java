@@ -170,6 +170,10 @@ public class HapClientTest {
 
     @After
     public void tearDown() throws Exception {
+        if (mService == null) {
+            return;
+        }
+
         mService.mCallbacks.unregister(mCallback);
 
         stopService();
