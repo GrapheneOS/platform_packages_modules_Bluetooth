@@ -24,6 +24,9 @@
 #include "bind_helpers.h"
 #include "device/include/controller.h"
 #include "eatt.h"
+#include "gd/common/init_flags.h"
+#include "gd/common/strings.h"
+#include "internal_include/stack_config.h"
 #include "l2c_api.h"
 #include "osi/include/alarm.h"
 #include "osi/include/allocator.h"
@@ -113,6 +116,20 @@ struct eatt_impl {
   void eatt_l2cap_connect_ind(const RawAddress& bda,
                               std::vector<uint16_t>& lcids, uint16_t psm,
                               uint16_t peer_mtu, uint8_t identifier) {
+    if (!stack_config_get_interface()
+             ->get_pts_connect_eatt_before_encryption() &&
+        !BTM_IsEncrypted(bda, BT_TRANSPORT_LE)) {
+      /* If Link is not encrypted, we shall not accept EATT channel creation. */
+      std::vector<uint16_t> empty;
+      uint16_t result = L2CAP_LE_RESULT_INSUFFICIENT_AUTHENTICATION;
+      if (BTM_IsLinkKeyKnown(bda, BT_TRANSPORT_LE)) {
+        result = L2CAP_LE_RESULT_INSUFFICIENT_ENCRYP;
+      }
+      LOG_ERROR("ACL to device %s is unencrypted.", bda.ToString().c_str());
+      L2CA_ConnectCreditBasedRsp(bda, identifier, empty, result, nullptr);
+      return;
+    }
+
     /* The assumption is that L2CAP layer already check parameters etc.
      * Get our capabilities and accept all the channels.
      */
@@ -602,8 +619,8 @@ struct eatt_impl {
 
   void disconnect_channel(uint16_t cid) { L2CA_DisconnectReq(cid); }
 
-  void disconnect(const RawAddress& bd_addr) {
-    LOG(INFO) << __func__ << " " << bd_addr;
+  void disconnect(const RawAddress& bd_addr, uint16_t cid) {
+    LOG_INFO(" Device: %s, cid: 0x%04x", bd_addr.ToString().c_str(), cid);
 
     eatt_device* eatt_dev = find_device_by_address(bd_addr);
     if (!eatt_dev) {
@@ -614,6 +631,19 @@ struct eatt_impl {
     if (!eatt_dev->eatt_tcb_) {
       LOG_ASSERT(eatt_dev->eatt_channels.size() == 0);
       LOG(WARNING) << __func__ << " no eatt channels found";
+      return;
+    }
+
+    if (cid != EATT_ALL_CIDS) {
+      auto chan = find_channel_by_cid(cid);
+      if (!chan) {
+        LOG_WARN("Cid %d not found for device %s", cid,
+                 bd_addr.ToString().c_str());
+        return;
+      }
+      LOG_INFO("Disconnecting cid %d", cid);
+      disconnect_channel(cid);
+      remove_channel_by_cid(cid);
       return;
     }
 
@@ -658,12 +688,27 @@ struct eatt_impl {
       return;
     }
 
-    /* For new device, first read GATT server supported features. */
-    if (gatt_cl_read_sr_supp_feat_req(
-            bd_addr, base::BindOnce(&eatt_impl::supported_features_cb,
-                                    base::Unretained(this), role)) == false) {
-      LOG(INFO) << __func__ << "Eatt is not supported. Checked for device "
-                << bd_addr;
+    /* This is needed for L2CAP test cases */
+    if (stack_config_get_interface()->get_pts_connect_eatt_unconditionally()) {
+      /* For PTS just start connecting EATT right away, */
+      eatt_device* eatt_dev = add_eatt_device(bd_addr);
+      connect_eatt(eatt_dev);
+    } else {
+      if (gatt_profile_get_eatt_support(bd_addr)) {
+        LOG_DEBUG("Eatt is supported for device %s",
+                  bd_addr.ToString().c_str());
+        supported_features_cb(role, bd_addr,
+                              BLE_GATT_SVR_SUP_FEAT_EATT_BITMASK);
+        return;
+      }
+
+      /* If we don't know yet, read GATT server supported features. */
+      if (gatt_cl_read_sr_supp_feat_req(
+              bd_addr, base::BindOnce(&eatt_impl::supported_features_cb,
+                                      base::Unretained(this), role)) == false) {
+        LOG_INFO("Read server supported features failed for device %s",
+                 bd_addr.ToString().c_str());
+      }
     }
   }
 

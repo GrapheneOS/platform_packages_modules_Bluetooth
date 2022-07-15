@@ -32,6 +32,7 @@
 #include "bt_target.h"
 #include "device/include/controller.h"
 #include "gatt_int.h"
+#include "internal_include/stack_config.h"
 #include "l2c_api.h"
 #include "main/shim/dumpsys.h"
 #include "osi/include/allocator.h"
@@ -482,6 +483,39 @@ tGATT_STATUS GATTS_HandleValueIndication(uint16_t conn_id, uint16_t attr_handle,
   return cmd_status;
 }
 
+#if (GATT_UPPER_TESTER_MULT_VARIABLE_LENGTH_NOTIF == TRUE)
+static tGATT_STATUS GATTS_HandleMultileValueNotification(
+    tGATT_TCB* p_tcb, std::vector<tGATT_VALUE> gatt_notif_vector) {
+  LOG(INFO) << __func__;
+
+  uint16_t cid = gatt_tcb_get_att_cid(*p_tcb, true /* eatt support */);
+  uint16_t payload_size = gatt_tcb_get_payload_size_tx(*p_tcb, cid);
+
+  /* TODO Handle too big packet size here. Not needed now for testing. */
+  /* Just build the message. */
+  BT_HDR* p_buf =
+      (BT_HDR*)osi_malloc(sizeof(BT_HDR) + payload_size + L2CAP_MIN_OFFSET);
+
+  uint8_t* p = (uint8_t*)(p_buf + 1) + L2CAP_MIN_OFFSET;
+  UINT8_TO_STREAM(p, GATT_HANDLE_MULTI_VALUE_NOTIF);
+  p_buf->offset = L2CAP_MIN_OFFSET;
+  p_buf->len = 1;
+  for (auto notif : gatt_notif_vector) {
+    LOG(INFO) << __func__ << "Adding handle: " << loghex(notif.handle)
+              << "val len: " << +notif.len;
+    UINT16_TO_STREAM(p, notif.handle);
+    p_buf->len += 2;
+    UINT16_TO_STREAM(p, notif.len);
+    p_buf->len += 2;
+    ARRAY_TO_STREAM(p, notif.value, notif.len);
+    p_buf->len += notif.len;
+  }
+
+  LOG(INFO) << __func__ << "Total len: " << +p_buf->len;
+
+  return attp_send_sr_msg(*p_tcb, cid, p_buf);
+}
+#endif
 /*******************************************************************************
  *
  * Function         GATTS_HandleValueNotification
@@ -505,6 +539,11 @@ tGATT_STATUS GATTS_HandleValueNotification(uint16_t conn_id,
   uint8_t tcb_idx = GATT_GET_TCB_IDX(conn_id);
   tGATT_REG* p_reg = gatt_get_regcb(gatt_if);
   tGATT_TCB* p_tcb = gatt_get_tcb_by_idx(tcb_idx);
+#if (GATT_UPPER_TESTER_MULT_VARIABLE_LENGTH_NOTIF == TRUE)
+  static uint8_t cached_tcb_idx = 0xFF;
+  static std::vector<tGATT_VALUE> gatt_notif_vector(2);
+  tGATT_VALUE* p_gatt_notif;
+#endif
 
   VLOG(1) << __func__;
 
@@ -516,6 +555,43 @@ tGATT_STATUS GATTS_HandleValueNotification(uint16_t conn_id,
   if (!GATT_HANDLE_IS_VALID(attr_handle)) {
     return GATT_ILLEGAL_PARAMETER;
   }
+
+#if (GATT_UPPER_TESTER_MULT_VARIABLE_LENGTH_NOTIF == TRUE)
+  /* Upper tester for Multiple Value length notifications */
+  if (stack_config_get_interface()->get_pts_force_eatt_for_notifications() &&
+      gatt_sr_is_cl_multi_variable_len_notif_supported(*p_tcb)) {
+    if (cached_tcb_idx == 0xFF) {
+      LOG(INFO) << __func__ << " Storing first notification";
+      p_gatt_notif = &gatt_notif_vector[0];
+
+      p_gatt_notif->handle = attr_handle;
+      p_gatt_notif->len = val_len;
+      std::copy(p_val, p_val + val_len, p_gatt_notif->value);
+
+      notif.auth_req = GATT_AUTH_REQ_NONE;
+
+      cached_tcb_idx = tcb_idx;
+      return GATT_SUCCESS;
+    }
+
+    if (cached_tcb_idx == tcb_idx) {
+      LOG(INFO) << __func__ << " Storing second notification";
+      cached_tcb_idx = 0xFF;
+      p_gatt_notif = &gatt_notif_vector[1];
+
+      p_gatt_notif->handle = attr_handle;
+      p_gatt_notif->len = val_len;
+      std::copy(p_val, p_val + val_len, p_gatt_notif->value);
+
+      notif.auth_req = GATT_AUTH_REQ_NONE;
+
+      return GATTS_HandleMultileValueNotification(p_tcb, gatt_notif_vector);
+    }
+
+    LOG(ERROR) << __func__ << "PTS Mode: Invalid tcb_idx: " << tcb_idx
+               << " cached_tcb_idx: " << cached_tcb_idx;
+  }
+#endif
 
   memset(&notif, 0, sizeof(notif));
   notif.handle = attr_handle;
@@ -531,10 +607,12 @@ tGATT_STATUS GATTS_HandleValueNotification(uint16_t conn_id,
   uint16_t payload_size = gatt_tcb_get_payload_size_tx(*p_tcb, cid);
   BT_HDR* p_buf = attp_build_sr_msg(*p_tcb, GATT_HANDLE_VALUE_NOTIF,
                                     &gatt_sr_msg, payload_size);
+
   if (p_buf != NULL) {
     cmd_sent = attp_send_sr_msg(*p_tcb, cid, p_buf);
-  } else
+  } else {
     cmd_sent = GATT_NO_RESOURCES;
+  }
   return cmd_sent;
 }
 
@@ -742,6 +820,10 @@ tGATT_STATUS GATTC_Read(uint16_t conn_id, tGATT_READ_TYPE type,
   uint8_t tcb_idx = GATT_GET_TCB_IDX(conn_id);
   tGATT_TCB* p_tcb = gatt_get_tcb_by_idx(tcb_idx);
   tGATT_REG* p_reg = gatt_get_regcb(gatt_if);
+#if (GATT_UPPER_TESTER_MULT_VARIABLE_LENGTH_READ == TRUE)
+  static uint16_t cached_read_handle;
+  static int cached_tcb_idx = -1;
+#endif
 
   VLOG(1) << __func__ << ": conn_id=" << loghex(conn_id)
           << ", type=" << loghex(type);
@@ -785,6 +867,34 @@ tGATT_STATUS GATTC_Read(uint16_t conn_id, tGATT_READ_TYPE type,
       break;
     }
     case GATT_READ_BY_HANDLE:
+#if (GATT_UPPER_TESTER_MULT_VARIABLE_LENGTH_READ == TRUE)
+      LOG_INFO("Upper tester: Handle read 0x%04x", p_read->by_handle.handle);
+      /* This is upper tester for the  Multi Read stuff as this is mandatory for
+       * EATT, even Android is not making use of this operation :/ */
+      if (cached_tcb_idx < 0) {
+        cached_tcb_idx = tcb_idx;
+        LOG_INFO("Upper tester: Read multiple  - first read");
+        cached_read_handle = p_read->by_handle.handle;
+      } else if (cached_tcb_idx == tcb_idx) {
+        LOG_INFO("Upper tester: Read multiple  - second read");
+        cached_tcb_idx = -1;
+        tGATT_READ_MULTI* p_read_multi =
+            (tGATT_READ_MULTI*)osi_malloc(sizeof(tGATT_READ_MULTI));
+        p_read_multi->num_handles = 2;
+        p_read_multi->handles[0] = cached_read_handle;
+        p_read_multi->handles[1] = p_read->by_handle.handle;
+        p_read_multi->variable_len = true;
+
+        p_clcb->s_handle = 0;
+        p_clcb->op_subtype = GATT_READ_MULTIPLE_VAR_LEN;
+        p_clcb->p_attr_buf = (uint8_t*)p_read_multi;
+        p_clcb->cid = gatt_tcb_get_att_cid(*p_tcb, true /* eatt support */);
+
+        break;
+      }
+
+      FALLTHROUGH_INTENDED;
+#endif
     case GATT_READ_PARTIAL:
       p_clcb->uuid = Uuid::kEmpty;
       p_clcb->s_handle = p_read->by_handle.handle;

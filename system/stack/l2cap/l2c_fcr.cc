@@ -681,8 +681,12 @@ void l2c_lcc_proc_pdu(tL2C_CCB* p_ccb, BT_HDR* p_buf) {
 
   /* Buffer length should not exceed local mps */
   if (p_buf->len > p_ccb->local_conn_cfg.mps) {
-    /* Discard the buffer */
+    LOG_ERROR("buffer length=%d exceeds local mps=%d. Drop and disconnect.",
+              p_buf->len, p_ccb->local_conn_cfg.mps);
+
+    /* Discard the buffer and disconnect*/
     osi_free(p_buf);
+    l2cu_disconnect_chnl(p_ccb);
     return;
   }
 
@@ -699,8 +703,11 @@ void l2c_lcc_proc_pdu(tL2C_CCB* p_ccb, BT_HDR* p_buf) {
 
     /* Check the SDU Length with local MTU size */
     if (sdu_length > p_ccb->local_conn_cfg.mtu) {
-      /* Discard the buffer */
+      LOG_ERROR("sdu length=%d exceeds local mtu=%d. Drop and disconnect.",
+                sdu_length, p_ccb->local_conn_cfg.mtu);
+      /* Discard the buffer and disconnect*/
       osi_free(p_buf);
+      l2cu_disconnect_chnl(p_ccb);
       return;
     }
 
