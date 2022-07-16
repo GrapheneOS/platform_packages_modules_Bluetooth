@@ -105,12 +105,6 @@ public class LeAudioService extends ProfileService {
      */
     private static final int ACTIVE_CONTEXTS_NONE = 0;
 
-    /*
-     * Brodcast profile used by the lower layers
-     */
-    private static final int BROADCAST_PROFILE_SONIFICATION = 0;
-    private static final int BROADCAST_PROFILE_MEDIA = 1;
-
     private AdapterService mAdapterService;
     private DatabaseManager mDatabaseManager;
     private HandlerThread mStateMachinesThread;
@@ -664,8 +658,6 @@ public class LeAudioService extends ProfileService {
     /**
      * Creates LeAudio Broadcast instance.
      * @param metadata metadata buffer with TLVs
-     * @param audioProfile broadcast audio profile
-     * @param broadcastCode optional code if broadcast should be encrypted
      */
     public void createBroadcast(BluetoothLeAudioContentMetadata metadata, byte[] broadcastCode) {
         if (mLeAudioBroadcasterNativeInterface == null) {
@@ -673,7 +665,7 @@ public class LeAudioService extends ProfileService {
             return;
         }
         mLeAudioBroadcasterNativeInterface.createBroadcast(metadata.getRawMetadata(),
-                BROADCAST_PROFILE_MEDIA, broadcastCode);
+                broadcastCode);
     }
 
     /**
