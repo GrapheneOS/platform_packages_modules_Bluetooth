@@ -127,9 +127,7 @@ pub fn cb_variant(input: TokenStream) -> TokenStream {
         extern "C" fn #ident(#params) {
             #stmts
 
-            unsafe {
-                (get_dispatchers().lock().unwrap().get::<#dispatcher>().unwrap().clone().lock().unwrap().dispatch)(#rpath(#args));
-            }
+            (get_dispatchers().lock().unwrap().get::<#dispatcher>().unwrap().lock().unwrap().dispatch)(#rpath(#args));
         }
     };
 
