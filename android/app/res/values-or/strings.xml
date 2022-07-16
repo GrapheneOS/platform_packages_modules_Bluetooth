@@ -28,7 +28,7 @@
     <string name="bt_enable_title" msgid="4484289159118416315"></string>
     <string name="bt_enable_line1" msgid="8429910585843481489">"ବ୍ଲୁଟୂଥ୍‍‌ ସେବା ବ୍ୟବହାର କରିବା ପାଇଁ, ଆପଣଙ୍କୁ ପ୍ରଥମେ ବ୍ଲୁଟୂଥ୍‍‌ ଅନ୍‌ କରିବାକୁ ପଡ଼ିବ।"</string>
     <string name="bt_enable_line2" msgid="1466367120348920892">"ବ୍ଲୁ-ଟୁଥ୍‌କୁ ଏବେ ଅନ୍‌ କରିବେ?"</string>
-    <string name="bt_enable_cancel" msgid="6770180540581977614">"ବାତିଲ୍ କରନ୍ତୁ"</string>
+    <string name="bt_enable_cancel" msgid="6770180540581977614">"ବାତିଲ କରନ୍ତୁ"</string>
     <string name="bt_enable_ok" msgid="4224374055813566166">"ଚାଲୁ କରନ୍ତୁ"</string>
     <string name="incoming_file_confirm_title" msgid="938251186275547290">"ଫାଇଲ୍‌ ଟ୍ରାନ୍ସଫର୍‌ କରନ୍ତୁ"</string>
     <string name="incoming_file_confirm_content" msgid="6573502088511901157">"ଆସୁଥିବା ଫାଇଲକୁ ଗ୍ରହଣ କରିବେ?"</string>
@@ -117,7 +117,7 @@
     <string name="transfer_clear_dlg_title" msgid="128904516163257225">"ଖାଲି କରନ୍ତୁ"</string>
     <string name="bluetooth_a2dp_sink_queue_name" msgid="7521243473328258997">"ବର୍ତ୍ତମାନ ଚାଲୁଛି"</string>
     <string name="bluetooth_map_settings_save" msgid="8309113239113961550">"ସେଭ୍‌ କରନ୍ତୁ"</string>
-    <string name="bluetooth_map_settings_cancel" msgid="3374494364625947793">"ବାତିଲ୍ କରନ୍ତୁ"</string>
+    <string name="bluetooth_map_settings_cancel" msgid="3374494364625947793">"ବାତିଲ କରନ୍ତୁ"</string>
     <string name="bluetooth_map_settings_intro" msgid="4748160773998753325">"ବ୍ଲୁଟୂଥ୍‍‌ ମାଧ୍ୟମରେ ସେୟାର୍‌ କରିବାକୁ ଚାହୁଁଥିବା ଆକାଉଣ୍ଟଗୁଡ଼ିକୁ ଚୟନ କରନ୍ତୁ। ଆପଣଙ୍କୁ ତଥାପି ସଂଯୋଗ କରୁଥିବା ସମୟରେ ଆକାଉଣ୍ଟଗୁଡ଼ିକ ପ୍ରତି ଯେକୌଣସି ଆକ୍ସେସ୍‌କୁ ସ୍ୱୀକାର କରିବାକୁ ପଡ଼ିବ।"</string>
     <string name="bluetooth_map_settings_count" msgid="183013143617807702">"ବଳକା ସ୍ଲଟ୍‌:"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="3501432663809664982">"ଆପ୍ଲିକେଶନ୍‌ ଆଇକନ୍‌"</string>
