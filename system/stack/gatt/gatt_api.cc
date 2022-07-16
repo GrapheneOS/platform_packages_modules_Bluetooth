@@ -820,6 +820,10 @@ tGATT_STATUS GATTC_Read(uint16_t conn_id, tGATT_READ_TYPE type,
   uint8_t tcb_idx = GATT_GET_TCB_IDX(conn_id);
   tGATT_TCB* p_tcb = gatt_get_tcb_by_idx(tcb_idx);
   tGATT_REG* p_reg = gatt_get_regcb(gatt_if);
+#if (GATT_UPPER_TESTER_MULT_VARIABLE_LENGTH_READ == TRUE)
+  static uint16_t cached_read_handle;
+  static int cached_tcb_idx = -1;
+#endif
 
   VLOG(1) << __func__ << ": conn_id=" << loghex(conn_id)
           << ", type=" << loghex(type);
@@ -863,6 +867,34 @@ tGATT_STATUS GATTC_Read(uint16_t conn_id, tGATT_READ_TYPE type,
       break;
     }
     case GATT_READ_BY_HANDLE:
+#if (GATT_UPPER_TESTER_MULT_VARIABLE_LENGTH_READ == TRUE)
+      LOG_INFO("Upper tester: Handle read 0x%04x", p_read->by_handle.handle);
+      /* This is upper tester for the  Multi Read stuff as this is mandatory for
+       * EATT, even Android is not making use of this operation :/ */
+      if (cached_tcb_idx < 0) {
+        cached_tcb_idx = tcb_idx;
+        LOG_INFO("Upper tester: Read multiple  - first read");
+        cached_read_handle = p_read->by_handle.handle;
+      } else if (cached_tcb_idx == tcb_idx) {
+        LOG_INFO("Upper tester: Read multiple  - second read");
+        cached_tcb_idx = -1;
+        tGATT_READ_MULTI* p_read_multi =
+            (tGATT_READ_MULTI*)osi_malloc(sizeof(tGATT_READ_MULTI));
+        p_read_multi->num_handles = 2;
+        p_read_multi->handles[0] = cached_read_handle;
+        p_read_multi->handles[1] = p_read->by_handle.handle;
+        p_read_multi->variable_len = true;
+
+        p_clcb->s_handle = 0;
+        p_clcb->op_subtype = GATT_READ_MULTIPLE_VAR_LEN;
+        p_clcb->p_attr_buf = (uint8_t*)p_read_multi;
+        p_clcb->cid = gatt_tcb_get_att_cid(*p_tcb, true /* eatt support */);
+
+        break;
+      }
+
+      FALLTHROUGH_INTENDED;
+#endif
     case GATT_READ_PARTIAL:
       p_clcb->uuid = Uuid::kEmpty;
       p_clcb->s_handle = p_read->by_handle.handle;

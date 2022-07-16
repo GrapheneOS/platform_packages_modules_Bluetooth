@@ -29,6 +29,7 @@
 #include "bta/le_audio/le_audio_types.h"
 #include "gd/common/strings.h"
 #include "osi/include/log.h"
+#include "osi/include/properties.h"
 #include "service/common/bluetooth/low_energy_constants.h"
 #include "stack/include/ble_advertiser.h"
 #include "stack/include/btm_iso_api.h"
@@ -365,11 +366,10 @@ class BroadcastStateMachineImpl : public BroadcastStateMachine {
     struct bluetooth::hci::iso_manager::big_create_params big_params = {
         .adv_handle = GetAdvertisingSid(),
         .num_bis = sm_config_.codec_wrapper.GetNumChannels(),
-        .sdu_itv = callbacks_->GetSduItv(GetBroadcastId()),
+        .sdu_itv = sm_config_.codec_wrapper.GetDataIntervalUs(),
         .max_sdu_size = sm_config_.codec_wrapper.GetMaxSduSize(),
-        .max_transport_latency =
-            callbacks_->GetMaxTransportLatency(GetBroadcastId()),
-        .rtn = callbacks_->GetNumRetransmit(GetBroadcastId()),
+        .max_transport_latency = sm_config_.qos_config.getMaxTransportLatency(),
+        .rtn = sm_config_.qos_config.getRetransmissionNumber(),
         .phy = sm_config_.streaming_phy,
         .packing = 0x00, /* Sequencial */
         .framing = 0x00, /* Unframed */
@@ -655,6 +655,7 @@ std::ostream& operator<<(
                                     : PHYS[config.streaming_phy])
      << "\n";
   os << "        Codec Wrapper: " << config.codec_wrapper << "\n";
+  os << "        Qos Config: " << config.qos_config << "\n";
   if (config.broadcast_code) {
     os << "        Broadcast Code: [";
     for (auto& el : *config.broadcast_code) {

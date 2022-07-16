@@ -178,6 +178,10 @@ public class VolumeControlNativeInterface {
     @VisibleForTesting(visibility = VisibleForTesting.Visibility.PACKAGE)
     public boolean setExtAudioOutVolumeOffset(BluetoothDevice device, int externalOutputId,
                                                     int offset) {
+        if (Utils.isPtsTestMode()) {
+            setVolumeNative(getByteAddress(device), offset);
+            return true;
+        }
         return setExtAudioOutVolumeOffsetNative(getByteAddress(device), externalOutputId, offset);
     }
 

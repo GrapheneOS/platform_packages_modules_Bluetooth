@@ -88,7 +88,7 @@ public class BluetoothProxy {
                                                 .equals(groupId))
                                 .collect(Collectors.toList());
             for (LeAudioDeviceStateWrapper dev : valid_devices) {
-                dev.leAudioData.groupStatusMutable.setValue(
+                dev.leAudioData.groupStatusMutable.postValue(
                         new Pair<>(groupId, new Pair<>(groupStatus, 0)));
             }
         }
@@ -112,8 +112,8 @@ public class BluetoothProxy {
             LeAudioDeviceStateWrapper valid_device = valid_device_opt.get();
             LeAudioDeviceStateWrapper.LeAudioData svc_data = valid_device.leAudioData;
 
-            svc_data.nodeStatusMutable.setValue(new Pair<>(groupId, GROUP_NODE_ADDED));
-            svc_data.groupStatusMutable.setValue(new Pair<>(groupId, new Pair<>(-1, -1)));
+            svc_data.nodeStatusMutable.postValue(new Pair<>(groupId, GROUP_NODE_ADDED));
+            svc_data.groupStatusMutable.postValue(new Pair<>(groupId, new Pair<>(-1, -1)));
         }
         @Override
         public void onGroupNodeRemoved(BluetoothDevice device, int groupId) {
@@ -141,8 +141,8 @@ public class BluetoothProxy {
             LeAudioDeviceStateWrapper valid_device = valid_device_opt.get();
             LeAudioDeviceStateWrapper.LeAudioData svc_data = valid_device.leAudioData;
 
-            svc_data.nodeStatusMutable.setValue(new Pair<>(groupId, GROUP_NODE_REMOVED));
-            svc_data.groupStatusMutable.setValue(new Pair<>(groupId, new Pair<>(-1, -1)));
+            svc_data.nodeStatusMutable.postValue(new Pair<>(groupId, GROUP_NODE_REMOVED));
+            svc_data.groupStatusMutable.postValue(new Pair<>(groupId, new Pair<>(-1, -1)));
         }
     };
 
@@ -155,9 +155,9 @@ public class BluetoothProxy {
                 int toState =
                         intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
                 if (toState == BluetoothAdapter.STATE_ON) {
-                    enabledBluetoothMutable.setValue(true);
+                    enabledBluetoothMutable.postValue(true);
                 } else if (toState == BluetoothAdapter.STATE_OFF) {
-                    enabledBluetoothMutable.setValue(false);
+                    enabledBluetoothMutable.postValue(false);
                 }
             }
         }
@@ -192,10 +192,10 @@ public class BluetoothProxy {
                                             .postValue(toState == BluetoothLeAudio.STATE_CONNECTED);
 
                                 group_id = bluetoothLeAudio.getGroupId(device);
-                                svc_data.nodeStatusMutable.setValue(
+                                svc_data.nodeStatusMutable.postValue(
                                         new Pair<>(group_id, GROUP_NODE_ADDED));
                                 svc_data.groupStatusMutable
-                                        .setValue(new Pair<>(group_id, new Pair<>(-1, -1)));
+                                        .postValue(new Pair<>(group_id, new Pair<>(-1, -1)));
                                 break;
                             }
                         }
@@ -669,18 +669,30 @@ public class BluetoothProxy {
                         break;
                     case BluetoothProfile.HAP_CLIENT:
                         bluetoothHapClient = (BluetoothHapClient) bluetoothProfile;
-                        bluetoothHapClient.registerCallback(mExecutor, hapCallback);
+                        try {
+                            bluetoothHapClient.registerCallback(mExecutor, hapCallback);
+                        } catch (IllegalArgumentException e) {
+                            Log.e("HAP", "Application callback already registered.");
+                        }
                         break;
                     case BluetoothProfile.LE_AUDIO_BROADCAST:
                         mBluetoothLeBroadcast = (BluetoothLeBroadcast) bluetoothProfile;
-                        mBluetoothLeBroadcast.registerCallback(mExecutor, mBroadcasterCallback);
+                        try {
+                            mBluetoothLeBroadcast.registerCallback(mExecutor, mBroadcasterCallback);
+                        } catch (IllegalArgumentException e) {
+                            Log.e("Broadcast", "Application callback already registered.");
+                        }
                         break;
                     case BluetoothProfile.LE_AUDIO_BROADCAST_ASSISTANT:
                         Log.d("BluetoothProxy", "LE_AUDIO_BROADCAST_ASSISTANT Service connected");
                         mBluetoothLeBroadcastAssistant = (BluetoothLeBroadcastAssistant)
                                 bluetoothProfile;
-                        mBluetoothLeBroadcastAssistant.registerCallback(mExecutor,
+                        try {
+                            mBluetoothLeBroadcastAssistant.registerCallback(mExecutor,
                                 mBroadcastAssistantCallback);
+                        } catch (IllegalArgumentException e) {
+                            Log.e("BASS", "Application callback already registered.");
+                        }
                         break;
                 }
                 queryLeAudioDevices();
@@ -999,7 +1011,10 @@ public class BluetoothProxy {
 
         Log.d("Lock", "lock: " + lock);
         if (lock) {
-            if (mGroupLocks.containsKey(group_id)) return;
+            if (mGroupLocks.containsKey(group_id)) {
+                Log.e("Lock", "group" + group_id + " is already in locking process or locked: " + lock);
+                return;
+            }
 
             UUID uuid = bluetoothCsis.lockGroup(group_id, mExecutor,
                     (int group, int op_status, boolean is_locked) -> {
@@ -1121,8 +1136,10 @@ public class BluetoothProxy {
     }
 
     public void setVolume(BluetoothDevice device, int volume) {
-        if (bluetoothLeAudio != null) {
+        if (bluetoothLeAudio != null && !bluetoothLeAudio.getConnectedDevices().isEmpty()) {
             bluetoothLeAudio.setVolume(volume);
+        } else if (bluetoothVolumeControl != null) {
+            bluetoothVolumeControl.setVolumeOffset(device, volume);
         }
     }
 
@@ -1222,7 +1239,7 @@ public class BluetoothProxy {
 
             switchToPreviousPresetMethod.invoke(bluetoothHapClient, device);
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            // Do nothing
+            return false;
         }
         return true;
     }
@@ -1239,7 +1256,7 @@ public class BluetoothProxy {
 
             switchToNextPresetMethod.invoke(bluetoothHapClient, device);
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            // Do nothing
+            return false;
         }
         return true;
     }
@@ -1256,7 +1273,7 @@ public class BluetoothProxy {
 
             switchToPreviousPresetForGroupMethod.invoke(bluetoothHapClient, group_id);
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            // Do nothing
+            return false;
         }
         return true;
     }
@@ -1273,7 +1290,7 @@ public class BluetoothProxy {
 
             switchToNextPresetForGroupMethod.invoke(bluetoothHapClient, group_id);
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            // Do nothing
+            return false;
         }
         return true;
     }
@@ -1335,16 +1352,10 @@ public class BluetoothProxy {
         return mBroadcastStatusMutableLive;
     }
 
-    public boolean startBroadcast(String programInfo, byte[] code) {
+    public boolean startBroadcast(BluetoothLeAudioContentMetadata meta, byte[] code) {
         if (mBluetoothLeBroadcast == null)
             return false;
-
-        BluetoothLeAudioContentMetadata.Builder contentBuilder =
-                new BluetoothLeAudioContentMetadata.Builder();
-        if (!programInfo.isEmpty()) {
-            contentBuilder.setProgramInfo(programInfo);
-        }
-        mBluetoothLeBroadcast.startBroadcast(contentBuilder.build(), code);
+        mBluetoothLeBroadcast.startBroadcast(meta, code);
         return true;
     }
 
