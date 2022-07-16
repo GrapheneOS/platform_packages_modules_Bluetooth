@@ -22,9 +22,14 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothLeBroadcastMetadata;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.EditText;
 import android.text.TextUtils;
+import android.view.LayoutInflater;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -72,9 +77,54 @@ public class BroadcastScanActivity extends AppCompatActivity {
 
             // Set broadcast source on peer only if scan delegator device context is available
             if (device != null) {
-                Toast.makeText(recyclerView.getContext(), "Adding broadcast source"
-                                + " broadcastId=" + broadcastId, Toast.LENGTH_SHORT).show();
-                mViewModel.addBroadcastSource(device, broadcast);
+                // Start Dialog with the broadcast input details
+                AlertDialog.Builder alert = new AlertDialog.Builder(this);
+                LayoutInflater inflater = getLayoutInflater();
+                alert.setTitle("Add the Broadcast:");
+
+                View alertView =
+                        inflater.inflate(R.layout.broadcast_scan_add_encrypted_source_dialog,
+                                         null);
+                final EditText code_input_text =
+                        alertView.findViewById(R.id.broadcast_code_input);
+                BluetoothLeBroadcastMetadata.Builder builder = new
+                        BluetoothLeBroadcastMetadata.Builder(broadcast);
+
+                alert.setView(alertView).setNegativeButton("Cancel", (dialog, which) -> {
+                    // Do nothing
+                }).setPositiveButton("Add", (dialog, which) -> {
+                    BluetoothLeBroadcastMetadata metadata;
+                    if (code_input_text.getText() == null) {
+                        Toast.makeText(recyclerView.getContext(), "Invalid broadcast code",
+                                Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    if (code_input_text.getText().length() == 0) {
+                        Toast.makeText(recyclerView.getContext(), "Adding not encrypted broadcast "
+                                       + "source broadcastId="
+                                       + broadcastId, Toast.LENGTH_SHORT).show();
+                        metadata = builder.setEncrypted(false).build();
+                    } else {
+                        if (code_input_text.getText().length() != 16) {
+                            Toast.makeText(recyclerView.getContext(),
+                                           "Invalid Broadcast code length",
+                                           Toast.LENGTH_SHORT).show();
+
+                            return;
+                        }
+
+                        metadata = builder.setBroadcastCode(
+                                        code_input_text.getText().toString().getBytes())
+                               .setEncrypted(true)
+                               .build();
+                    }
+
+                    Toast.makeText(recyclerView.getContext(), "Adding broadcast source"
+                                    + " broadcastId=" + broadcastId, Toast.LENGTH_SHORT).show();
+                    mViewModel.addBroadcastSource(device, metadata);
+                });
+
+                alert.show();
             }
         });
         recyclerView.setAdapter(adapter);
