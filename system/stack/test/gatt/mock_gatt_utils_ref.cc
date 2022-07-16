@@ -21,9 +21,6 @@
 #include "types/raw_address.h"
 #include "utils/include/bt_utils.h"
 
-/** stack/btu/btu_task.cc, indirect reference, gatt_utils.cc -> libosi */
-bluetooth::common::MessageLoopThread* get_main_thread() { return nullptr; }
-
 /** stack/gatt/connection_manager.cc */
 namespace connection_manager {
 bool background_connect_remove(uint8_t app_id, const RawAddress& address) {
