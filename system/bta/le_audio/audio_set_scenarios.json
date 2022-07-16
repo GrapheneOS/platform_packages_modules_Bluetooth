@@ -75,6 +75,10 @@
                 "SingleDev_OneChanMonoSnk_OneChanMonoSrc_16_2_1",
                 "SingleDev_OneChanMonoSnk_OneChanMonoSrc_16_1_Server_Preferred",
                 "SingleDev_OneChanMonoSnk_OneChanMonoSrc_16_1_1",
+                "DualDev_OneChanMonoSrc_16_2_Server_Preferred",
+                "SingleDev_OneChanStereoSrc_16_2_Server_Preferred",
+                "SingleDev_OneChanMonoSrc_24_2_Server_Preferred",
+                "SingleDev_OneChanMonoSrc_16_2_Server_Preferred",
                 "VND_SingleDev_TwoChanStereoSnk_TwoChanStereoSrc_32khz_Server_Prefered_1",
                 "VND_SingleDev_TwoChanStereoSnk_TwoChanStereoSrc_32khz_60oct_R3_L22_1"
             ]
