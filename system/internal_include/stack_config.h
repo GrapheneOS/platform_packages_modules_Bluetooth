@@ -37,6 +37,7 @@ typedef struct {
   bool (*get_pts_connect_eatt_unconditionally)(void);
   bool (*get_pts_connect_eatt_before_encryption)(void);
   bool (*get_pts_unencrypt_broadcast)(void);
+  bool (*get_pts_eatt_peripheral_collision_support)(void);
   config_t* (*get_all)(void);
 } stack_config_t;
 
