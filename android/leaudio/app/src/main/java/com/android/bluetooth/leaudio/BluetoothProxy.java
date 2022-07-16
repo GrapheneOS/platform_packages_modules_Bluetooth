@@ -985,7 +985,7 @@ public class BluetoothProxy {
 
         try {
             Method groupAddNodeMethod = BluetoothLeAudio.class.getDeclaredMethod("groupAddNode",
-                    Integer.class, BluetoothDevice.class);
+                    int.class, BluetoothDevice.class);
             groupAddNodeMethod.setAccessible(true);
             groupAddNodeMethod.invoke(bluetoothLeAudio, group_id, device);
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
@@ -998,7 +998,7 @@ public class BluetoothProxy {
 
         try {
             Method groupRemoveNodeMethod = BluetoothLeAudio.class
-                    .getDeclaredMethod("groupRemoveNode", Integer.class, BluetoothDevice.class);
+                    .getDeclaredMethod("groupRemoveNode", int.class, BluetoothDevice.class);
             groupRemoveNodeMethod.setAccessible(true);
             groupRemoveNodeMethod.invoke(bluetoothLeAudio, group_id, device);
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
@@ -1172,7 +1172,7 @@ public class BluetoothProxy {
         // Use hidden API
         try {
             Method getPresetInfoMethod = BluetoothHapClient.class.getDeclaredMethod("getPresetInfo",
-                    BluetoothDevice.class, Integer.class);
+                    BluetoothDevice.class, int.class);
             getPresetInfoMethod.setAccessible(true);
 
             new_preset = (BluetoothHapPresetInfo) getPresetInfoMethod.invoke(bluetoothHapClient,
@@ -1268,7 +1268,7 @@ public class BluetoothProxy {
         // Use hidden API
         try {
             Method switchToPreviousPresetForGroupMethod = BluetoothHapClient.class
-                    .getDeclaredMethod("switchToPreviousPresetForGroup", Integer.class);
+                    .getDeclaredMethod("switchToPreviousPresetForGroup", int.class);
             switchToPreviousPresetForGroupMethod.setAccessible(true);
 
             switchToPreviousPresetForGroupMethod.invoke(bluetoothHapClient, group_id);
@@ -1285,7 +1285,7 @@ public class BluetoothProxy {
         // Use hidden API
         try {
             Method switchToNextPresetForGroupMethod = BluetoothHapClient.class
-                    .getDeclaredMethod("switchToNextPresetForGroup", Integer.class);
+                    .getDeclaredMethod("switchToNextPresetForGroup", int.class);
             switchToNextPresetForGroupMethod.setAccessible(true);
 
             switchToNextPresetForGroupMethod.invoke(bluetoothHapClient, group_id);
