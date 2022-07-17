@@ -97,8 +97,11 @@ android_app_certificate {
 
 sdk {
     name: "btservices-module-sdk",
-    bootclasspath_fragments: ["com.android.btservices-bootclasspath-fragment"],
-    systemserverclasspath_fragments: ["com.android.btservices-systemserverclasspath-fragment"],
+    apexes: [
+        // Adds exportable dependencies of the APEX to the sdk,
+        // e.g. *classpath_fragments.
+        "com.android.btservices",
+    ],
 }
 
 // Encapsulate the contributions made by the com.android.bluetooth to the bootclasspath.

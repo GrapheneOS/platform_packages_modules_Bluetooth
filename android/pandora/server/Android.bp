@@ -2,11 +2,20 @@ package {
     default_applicable_licenses: ["Android-Apache-2.0"],
 }
 
-android_test_helper_app {
-    name: "PandoraServer",
+java_library_static {
+    name: "PandoraServerLib",
+
     srcs: ["src/**/*.kt"],
+
     platform_apis: true,
-    certificate: "platform",
+
+    sdk_version: "core_platform",
+
+    libs: [
+        // Access to hidden apis in Bluetooth:
+        "framework-bluetooth.impl",
+        "framework",
+    ],
 
     static_libs: [
         "androidx.test.runner",
@@ -20,6 +29,15 @@ android_test_helper_app {
         "pandora-proto-java",
         "opencensus-java-contrib-grpc-metrics",
     ],
+}
+
+android_test_helper_app {
+    name: "PandoraServer",
+    certificate: "platform",
+
+    static_libs: [
+        "PandoraServerLib",
+    ],
 
     dex_preopt: {
         enabled: false,
@@ -27,8 +45,6 @@ android_test_helper_app {
     optimize: {
         enabled: false,
     },
-
-    test_suites: ["device-tests"],
 }
 
 android_test {
@@ -46,17 +62,17 @@ java_library {
         "proto/pandora/*.proto",
     ],
     static_libs: [
-        "pandora-proto-java",
         "grpc-java-lite",
         "guava",
-        "opencensus-java-api",
-        "libprotobuf-java-lite",
         "javax_annotation-api_1.3.2",
+        "libprotobuf-java-lite",
+        "opencensus-java-api",
+        "pandora-proto-java",
     ],
     proto: {
         include_dirs: [
-            "packages/modules/Bluetooth/android/pandora/server/proto",
             "external/protobuf/src",
+            "packages/modules/Bluetooth/android/pandora/server/proto",
         ],
         plugin: "grpc-java-plugin",
         output_params: [
@@ -78,8 +94,8 @@ java_library {
     proto: {
         type: "lite",
         include_dirs: [
-            "packages/modules/Bluetooth/android/pandora/server/proto",
             "external/protobuf/src",
+            "packages/modules/Bluetooth/android/pandora/server/proto",
         ],
     },
 }
@@ -98,13 +114,16 @@ genrule {
          "    --python_out=$(genDir)" +
          "    $(in)",
     srcs: [
+        "proto/pandora/a2dp.proto",
+        "proto/pandora/hfp.proto",
         "proto/pandora/host.proto",
-        "proto/pandora/a2dp.proto"
     ],
     out: [
-        "pandora/host_pb2.py",
-        "pandora/host_grpc.py",
-        "pandora/a2dp_pb2.py",
         "pandora/a2dp_grpc.py",
+        "pandora/a2dp_pb2.py",
+        "pandora/hfp_grpc.py",
+        "pandora/hfp_pb2.py",
+        "pandora/host_grpc.py",
+        "pandora/host_pb2.py",
     ]
 }

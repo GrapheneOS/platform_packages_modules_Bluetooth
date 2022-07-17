@@ -671,6 +671,7 @@ cc_test {
         "packages/modules/Bluetooth/system/utils/include",
     ],
     srcs: crypto_toolbox_srcs + [
+        ":TestCommonMainHandler",
         ":TestMockStackBtm",
         "gatt/gatt_db.cc",
         "gatt/gatt_sr_hash.cc",
@@ -777,6 +778,7 @@ cc_test {
         "test/common/mock_l2cap_layer.cc",
         "test/gatt/mock_gatt_utils_ref.cc",
         "test/eatt/eatt_test.cc",
+        ":TestCommonMainHandler",
         ":TestCommonStackConfig",
     ],
     shared_libs: [
@@ -1086,6 +1088,7 @@ cc_test {
     ],
     srcs: [
         ":OsiCompatSources",
+        ":TestCommonMainHandler",
         ":TestCommonStackConfig",
         ":TestMockBta",
         ":TestMockBtif",
