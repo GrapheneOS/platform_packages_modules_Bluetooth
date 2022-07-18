@@ -8,6 +8,7 @@ use num_traits::cast::{FromPrimitive, ToPrimitive};
 use std::cmp;
 use std::convert::TryFrom;
 use std::fmt::{Debug, Display, Formatter, Result};
+use std::hash::{Hash, Hasher};
 use std::mem;
 use std::os::raw::c_char;
 use std::sync::{Arc, Mutex};
@@ -309,6 +310,12 @@ impl TryFrom<Vec<u8>> for Uuid {
             uu.copy_from_slice(&value[0..16]);
             Ok(Uuid { uu })
         }
+    }
+}
+
+impl Hash for Uuid {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.uu.hash(state);
     }
 }
 
