@@ -15,7 +15,10 @@
 #
 
 source_set("BluetoothMetricsSources_chromeos") {
-  sources = [ "chromeos/metrics.cc" ]
+  sources = [
+    "chromeos/metrics.cc",
+    "chromeos/metrics_event.cc",
+  ]
   configs += [ "//bt/system/gd:gd_defaults" ]
 }
 
@@ -25,7 +28,10 @@ source_set("BluetoothMetricsSources_linux") {
 }
 
 source_set("BluetoothMetricsSources") {
-  sources = [ "counter_metrics.cc" ]
+  sources = [
+    "counter_metrics.cc",
+    "utils.cc",
+  ]
 
   configs += [ "//bt/system/gd:gd_defaults" ]
   deps = [ "//bt/system/gd:gd_default_deps" ]
