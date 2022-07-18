@@ -318,9 +318,11 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
           set_data(id, true, config.scan_response);
         }
         set_data(id, false, config.advertisement);
-        le_advertising_interface_->EnqueueCommand(
-            hci::LeMultiAdvtSetRandomAddrBuilder::Create(advertising_sets_[id].current_address.GetAddress(), id),
-            module_handler_->BindOnce(impl::check_status<LeMultiAdvtCompleteView>));
+        if (address_policy != LeAddressManager::AddressPolicy::USE_PUBLIC_ADDRESS) {
+          le_advertising_interface_->EnqueueCommand(
+              hci::LeMultiAdvtSetRandomAddrBuilder::Create(advertising_sets_[id].current_address.GetAddress(), id),
+              module_handler_->BindOnce(impl::check_status<LeMultiAdvtCompleteView>));
+        }
         if (!paused) {
           enable_advertiser(id, true, 0, 0);
         } else {
