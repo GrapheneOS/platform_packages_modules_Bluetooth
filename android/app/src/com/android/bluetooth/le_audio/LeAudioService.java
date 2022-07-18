@@ -1053,7 +1053,10 @@ public class LeAudioService extends ProfileService {
         parcel.writeBoolean(true /* mIsLeOutput */);
         parcel.setDataPosition(0);
 
-        return BluetoothProfileConnectionInfo.CREATOR.createFromParcel(parcel);
+        BluetoothProfileConnectionInfo profileInfo =
+                BluetoothProfileConnectionInfo.CREATOR.createFromParcel(parcel);
+        parcel.recycle();
+        return profileInfo;
     }
 
     private void clearLostDevicesWhileStreaming(LeAudioGroupDescriptor descriptor) {
