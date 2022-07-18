@@ -1645,5 +1645,25 @@ TEST(LeAudioClientParserTest, testPrepareAseCtpReleaseMultiple) {
 
 }  // namespace ascs
 
+namespace tmap {
+
+TEST(LeAudioClientParserTest, testParseTmapRoleValid) {
+  std::bitset<16> role;
+  const uint8_t value[] = {0x3F, 0x00};
+
+  ASSERT_TRUE(ParseTmapRole(role, 2, value));
+
+  ASSERT_EQ(role, 0x003F);  // All possible TMAP roles
+}
+
+TEST(LeAudioClientParserTest, testParseTmapRoleInvalidLen) {
+  std::bitset<16> role;
+  const uint8_t value[] = {0x00, 0x3F};
+
+  ASSERT_FALSE(ParseTmapRole(role, 3, value));
+}
+
+}  // namespace tmap
+
 }  // namespace client_parser
 }  // namespace le_audio
