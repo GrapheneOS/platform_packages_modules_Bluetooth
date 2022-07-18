@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,26 @@
  * limitations under the License.
  */
 
-#pragma once
+#include "metrics/utils.h"
 
-#include <memory>
-
-#include "rust/cxx.h"
-#include "types/raw_address.h"
+#include <base/files/file_util.h>
+#include <base/strings/string_util.h>
 
 namespace bluetooth {
-namespace topshim {
-namespace rust {
+namespace metrics {
 
-struct RustRawAddress;
+namespace {
+// The path to the kernel's boot_id.
+const char kBootIdPath[] = "/proc/sys/kernel/random/boot_id";
+}  // namespace
 
-void adapter_state_changed(uint32_t state);
-void bond_state_changed(
-    RustRawAddress bt_addr, uint32_t device_type, uint32_t status, uint32_t bond_state, int32_t fail_reason);
-void bond_create_attempt(RustRawAddress bt_addr, uint32_t device_type);
+bool GetBootId(std::string* boot_id) {
+  if (!base::ReadFileToString(base::FilePath(kBootIdPath), boot_id)) {
+    return false;
+  }
+  base::TrimWhitespaceASCII(*boot_id, base::TRIM_TRAILING, boot_id);
+  return true;
+}
 
-}  // namespace rust
-}  // namespace topshim
+}  // namespace metrics
 }  // namespace bluetooth
