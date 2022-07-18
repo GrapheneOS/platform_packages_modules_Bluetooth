@@ -45,6 +45,7 @@ struct EattExtension::impl {
     reg_info_.pL2CA_DisconnectInd_Cb = eatt_disconnect_ind;
     reg_info_.pL2CA_Error_Cb = eatt_error_cb;
     reg_info_.pL2CA_DataInd_Cb = eatt_data_ind;
+    reg_info_.pL2CA_CreditBasedCollisionInd_Cb = eatt_collision_ind;
 
     if (L2CA_RegisterLECoc(BT_PSM_EATT, reg_info_, BTM_SEC_NONE, {}) == 0) {
       LOG(ERROR) << __func__ << " cannot register EATT";
@@ -92,6 +93,11 @@ struct EattExtension::impl {
     if (p_eatt_impl)
       p_eatt_impl->eatt_l2cap_reconfig_completed(bda, lcid, is_local_cfg,
                                                  p_cfg);
+  }
+
+  static void eatt_collision_ind(const RawAddress& bd_addr) {
+    auto p_eatt_impl = GetImplInstance();
+    if (p_eatt_impl) p_eatt_impl->eatt_l2cap_collision_ind(bd_addr);
   }
 
   static void eatt_error_cb(uint16_t lcid, uint16_t reason) {
