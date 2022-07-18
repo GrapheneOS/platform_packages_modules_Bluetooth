@@ -6,14 +6,16 @@ use bt_topshim::bindings::root::bluetooth::Uuid;
 use bt_topshim::btif::{BluetoothInterface, RawAddress, Uuid128Bit};
 use bt_topshim::profiles::gatt::{
     BtGattDbElement, BtGattNotifyParams, BtGattReadParams, Gatt, GattClientCallbacks,
-    GattClientCallbacksDispatcher, GattScannerCallbacksDispatcher, GattServerCallbacksDispatcher,
-    GattStatus,
+    GattClientCallbacksDispatcher, GattScannerCallbacks, GattScannerCallbacksDispatcher,
+    GattServerCallbacksDispatcher, GattStatus,
 };
 use bt_topshim::topstack;
 
 use log::{debug, warn};
 use num_traits::cast::{FromPrimitive, ToPrimitive};
-use std::collections::HashSet;
+use rand::rngs::SmallRng;
+use rand::{RngCore, SeedableRng};
+use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, Mutex};
 use tokio::sync::mpsc::Sender;
 
@@ -145,6 +147,15 @@ pub trait IBluetoothGatt {
 
     /// Unregisters an LE scanner callback identified by the given id.
     fn unregister_scanner_callback(&mut self, callback_id: u32) -> bool;
+
+    /// Registers LE scanner.
+    ///
+    /// `callback_id`: The callback to receive updates about the scanner state.
+    /// Returns the UUID of the registered scanner.
+    fn register_scanner(&mut self, callback_id: u32) -> Uuid128Bit;
+
+    /// Unregisters an LE scanner identified by the given scanner id.
+    fn unregister_scanner(&mut self, scanner_id: u8) -> bool;
 
     fn start_scan(&self, scanner_id: i32, settings: ScanSettings, filters: Vec<ScanFilter>);
     fn stop_scan(&self, scanner_id: i32);
@@ -409,7 +420,7 @@ pub trait IBluetoothGattCallback: RPCProxy {
 /// `IBluetoothGatt::register_scanner_callback`.
 pub trait IScannerCallback: RPCProxy {
     /// When the `register_scanner` request is done.
-    fn on_scanner_registered(&self, status: i32, scanner_id: i32);
+    fn on_scanner_registered(&self, status: u8, scanner_id: u8);
 }
 
 #[derive(Debug, FromPrimitive, ToPrimitive)]
@@ -492,6 +503,11 @@ pub struct BluetoothGatt {
     context_map: ContextMap,
     reliable_queue: HashSet<String>,
     scanner_callbacks: Callbacks<dyn IScannerCallback + Send>,
+    scanners: HashMap<Uuid, ScannerInfo>,
+
+    // Used for generating random UUIDs. SmallRng is chosen because it is fast, don't use this for
+    // cryptography.
+    small_rng: SmallRng,
 }
 
 impl BluetoothGatt {
@@ -503,36 +519,65 @@ impl BluetoothGatt {
             context_map: ContextMap::new(),
             reliable_queue: HashSet::new(),
             scanner_callbacks: Callbacks::new(tx.clone(), Message::ScannerCallbackDisconnected),
+            scanners: HashMap::new(),
+            small_rng: SmallRng::from_entropy(),
         }
     }
 
     pub fn init_profiles(&mut self, tx: Sender<Message>) {
         self.gatt = Gatt::new(&self.intf.lock().unwrap());
+
+        let tx_clone = tx.clone();
+        let gatt_client_callbacks_dispatcher = GattClientCallbacksDispatcher {
+            dispatch: Box::new(move |cb| {
+                let tx_clone = tx_clone.clone();
+                topstack::get_runtime().spawn(async move {
+                    let _ = tx_clone.send(Message::GattClient(cb)).await;
+                });
+            }),
+        };
+
+        let gatt_server_callbacks_dispatcher = GattServerCallbacksDispatcher {
+            dispatch: Box::new(move |cb| {
+                // TODO(b/193685149): Implement the callbacks
+                debug!("received Gatt server callback: {:?}", cb);
+            }),
+        };
+
+        let tx_clone = tx.clone();
+        let gatt_scanner_callbacks_dispatcher = GattScannerCallbacksDispatcher {
+            dispatch: Box::new(move |cb| {
+                let tx_clone = tx_clone.clone();
+                topstack::get_runtime().spawn(async move {
+                    let _ = tx_clone.send(Message::LeScanner(cb)).await;
+                });
+            }),
+        };
+
         self.gatt.as_mut().unwrap().initialize(
-            GattClientCallbacksDispatcher {
-                dispatch: Box::new(move |cb| {
-                    let tx_clone = tx.clone();
-                    topstack::get_runtime().spawn(async move {
-                        let _ = tx_clone.send(Message::GattClient(cb)).await;
-                    });
-                }),
-            },
-            GattServerCallbacksDispatcher {
-                dispatch: Box::new(move |cb| {
-                    // TODO(b/193685149): Implement the callbacks
-                    debug!("received Gatt server callback: {:?}", cb);
-                }),
-            },
-            GattScannerCallbacksDispatcher {
-                dispatch: Box::new(move |cb| {
-                    debug!("received Gatt scanner callback: {:?}", cb);
-                }),
-            },
+            gatt_client_callbacks_dispatcher,
+            gatt_server_callbacks_dispatcher,
+            gatt_scanner_callbacks_dispatcher,
         );
     }
 
-    pub fn remove_scanner_callback(&mut self, id: u32) -> bool {
-        self.scanner_callbacks.remove_callback(id)
+    /// Remove a scanner callback and unregisters all scanners associated with that callback.
+    pub fn remove_scanner_callback(&mut self, callback_id: u32) -> bool {
+        // Could be written in a more Rust idiomatic way once HashMap::drain_filter stabilizes.
+        for (uuid, scanner) in
+            self.scanners.iter_mut().filter(|(_uuid, scanner)| scanner.callback_id == callback_id)
+        {
+            if let Some(scanner_id) = scanner.scanner_id {
+                log::debug!("Unregistering scanner UUID {}", scanner.uuid);
+                self.gatt.as_mut().unwrap().scanner.unregister(scanner_id);
+            } else {
+                log::warn!("Cannot unregister a scanner without id UUID={}", uuid);
+            }
+        }
+
+        self.scanners.retain(|_uuid, scanner| scanner.callback_id != callback_id);
+
+        self.scanner_callbacks.remove_callback(callback_id)
     }
 }
 
@@ -567,13 +612,46 @@ pub enum GattWriteRequestStatus {
     Busy = 2,
 }
 
+// This structure keeps track of the lifecycle of a scanner.
+struct ScannerInfo {
+    // The app ID associated with the registration of the scanner.
+    uuid: Uuid,
+    // The callback to which events about this scanner needs to be sent to.
+    // Another purpose of keeping track of the callback id is that when a callback is disconnected
+    // or unregistered we need to also unregister all scanners associated with that callback to
+    // prevent dangling unowned scanners.
+    callback_id: u32,
+    // If the scanner is registered successfully, this contains the scanner id, otherwise None.
+    scanner_id: Option<u8>,
+}
+
 impl IBluetoothGatt for BluetoothGatt {
     fn register_scanner_callback(&mut self, callback: Box<dyn IScannerCallback + Send>) -> u32 {
         self.scanner_callbacks.add_callback(callback)
     }
 
     fn unregister_scanner_callback(&mut self, callback_id: u32) -> bool {
-        self.scanner_callbacks.remove_callback(callback_id)
+        self.remove_scanner_callback(callback_id)
+    }
+
+    fn register_scanner(&mut self, callback_id: u32) -> Uuid128Bit {
+        let mut bytes: [u8; 16] = [0; 16];
+        self.small_rng.fill_bytes(&mut bytes);
+        let uuid = Uuid { uu: bytes };
+
+        self.scanners.insert(uuid, ScannerInfo { uuid, callback_id, scanner_id: None });
+
+        // libbluetooth's register_scanner takes a UUID of the scanning application. This UUID does
+        // not correspond to higher level concept of "application" so we use random UUID that
+        // functions as a unique identifier of the scanner.
+        self.gatt.as_mut().unwrap().scanner.register_scanner(uuid);
+
+        uuid.uu
+    }
+
+    fn unregister_scanner(&mut self, scanner_id: u8) -> bool {
+        self.gatt.as_mut().unwrap().scanner.unregister(scanner_id);
+        true
     }
 
     fn start_scan(&self, _scanner_id: i32, _settings: ScanSettings, _filters: Vec<ScanFilter>) {
@@ -1377,6 +1455,46 @@ impl BtifGattClientCallbacks for BluetoothGatt {
         }
 
         client.unwrap().callback.on_service_changed(address.unwrap());
+    }
+}
+
+#[btif_callbacks_dispatcher(BluetoothGatt, dispatch_le_scanner_callbacks, GattScannerCallbacks)]
+pub(crate) trait BtifGattScannerCallbacks {
+    #[btif_callback(OnScannerRegistered)]
+    fn on_scanner_registered(&mut self, uuid: Uuid, scanner_id: u8, status: u8);
+}
+
+impl BtifGattScannerCallbacks for BluetoothGatt {
+    fn on_scanner_registered(&mut self, uuid: Uuid, scanner_id: u8, status: u8) {
+        log::debug!(
+            "on_scanner_registered UUID = {}, scanner_id = {}, status = {}",
+            uuid,
+            scanner_id,
+            status
+        );
+
+        if status != 0 {
+            log::error!("Error registering scanner UUID {}", uuid);
+            self.scanners.remove(&uuid);
+            return;
+        }
+
+        let scanner_info = self.scanners.get_mut(&uuid);
+
+        if let Some(info) = scanner_info {
+            info.scanner_id = Some(scanner_id);
+            let callback = self.scanner_callbacks.get_by_id(info.callback_id);
+            if let Some(cb) = callback {
+                cb.on_scanner_registered(status, scanner_id);
+            } else {
+                log::warn!("There is no callback for scanner UUID {}", uuid);
+            }
+        } else {
+            log::warn!(
+                "Scanner registered callback for non-existent scanner info, UUID = {}",
+                uuid
+            );
+        }
     }
 }
 

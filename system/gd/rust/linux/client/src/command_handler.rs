@@ -8,7 +8,7 @@ use crate::{console_red, console_yellow, print_error, print_info};
 use bt_topshim::btif::BtTransport;
 use btstack::bluetooth::{BluetoothDevice, IBluetooth};
 use btstack::bluetooth_gatt::IBluetoothGatt;
-use btstack::uuid::{Profile, UuidHelper};
+use btstack::uuid::{Profile, UuidHelper, UuidWrapper};
 use manager_service::iface_bluetooth_manager::IBluetoothManager;
 
 const INDENT_CHAR: &str = " ";
@@ -124,6 +124,13 @@ fn build_commands() -> HashMap<String, CommandOption> {
         CommandOption {
             description: String::from("GATT tools"),
             function_pointer: CommandHandler::cmd_gatt,
+        },
+    );
+    command_options.insert(
+        String::from("le-scan"),
+        CommandOption {
+            description: String::from("LE scanning utilities."),
+            function_pointer: CommandHandler::cmd_le_scan,
         },
     );
     command_options.insert(
@@ -656,6 +663,49 @@ impl CommandHandler {
                     .as_ref()
                     .unwrap()
                     .discover_services(client_id.unwrap(), addr);
+            }
+            _ => {
+                println!("Invalid argument '{}'", args[0]);
+            }
+        });
+    }
+
+    fn cmd_le_scan(&mut self, args: &Vec<String>) {
+        if !self.context.lock().unwrap().adapter_ready {
+            self.adapter_not_ready();
+            return;
+        }
+
+        enforce_arg_len(args, 1, "le-scan <commands>", || match &args[0][0..] {
+            "register-scanner" => {
+                let scanner_callback_id = self.context.lock().unwrap().scanner_callback_id;
+                if let Some(id) = scanner_callback_id {
+                    let uuid = self
+                        .context
+                        .lock()
+                        .unwrap()
+                        .gatt_dbus
+                        .as_mut()
+                        .unwrap()
+                        .register_scanner(id);
+                    print_info!("Scanner to be registered with UUID = {}", UuidWrapper(&uuid));
+                } else {
+                    print_error!("Cannot register scanner before registering scanner callback");
+                }
+            }
+            "unregister-scanner" => {
+                if args.len() < 2 {
+                    println!("usage: le-scan unregister-scanner <scanner-id>");
+                    return;
+                }
+
+                let scanner_id = String::from(&args[1]).parse::<u8>();
+
+                if let Ok(id) = scanner_id {
+                    self.context.lock().unwrap().gatt_dbus.as_mut().unwrap().unregister_scanner(id);
+                } else {
+                    print_error!("Failed parsing scanner id");
+                }
             }
             _ => {
                 println!("Invalid argument '{}'", args[0]);
