@@ -199,7 +199,8 @@ bool IsLc3SettingSupported(LeAudioContextType context_type, Lc3SettingId id) {
   /* Update those values, on any change of codec linked with content type */
   switch (context_type) {
     case LeAudioContextType::RINGTONE:
-      if (id == Lc3SettingId::LC3_16_1 || id == Lc3SettingId::LC3_16_2)
+      if (id == Lc3SettingId::LC3_16_2 || id == Lc3SettingId::LC3_16_1 ||
+          id == Lc3SettingId::LC3_32_2)
         return true;
 
       break;
@@ -694,10 +695,10 @@ class LeAudioAseConfigurationTest : public Test {
 };
 
 TEST_F(LeAudioAseConfigurationTest, test_mono_speaker_ringtone) {
-  LeAudioDevice* mono_speaker = AddTestDevice(1, 0);
-  TestGroupAseConfigurationData data({mono_speaker,
-                                      kLeAudioCodecLC3ChannelCountSingleChannel,
-                                      kLeAudioCodecLC3ChannelCountNone, 1, 0});
+  LeAudioDevice* mono_speaker = AddTestDevice(1, 1);
+  TestGroupAseConfigurationData data(
+      {mono_speaker, kLeAudioCodecLC3ChannelCountSingleChannel,
+       kLeAudioCodecLC3ChannelCountSingleChannel, 1, 0});
 
   TestGroupAseConfiguration(LeAudioContextType::RINGTONE, &data, 1);
 }
@@ -721,10 +722,10 @@ TEST_F(LeAudioAseConfigurationTest, test_mono_speaker_media) {
 }
 
 TEST_F(LeAudioAseConfigurationTest, test_bounded_headphones_ringtone) {
-  LeAudioDevice* bounded_headphones = AddTestDevice(2, 0);
-  TestGroupAseConfigurationData data({bounded_headphones,
-                                      kLeAudioCodecLC3ChannelCountTwoChannel,
-                                      kLeAudioCodecLC3ChannelCountNone, 2, 0});
+  LeAudioDevice* bounded_headphones = AddTestDevice(2, 1);
+  TestGroupAseConfigurationData data(
+      {bounded_headphones, kLeAudioCodecLC3ChannelCountTwoChannel,
+       kLeAudioCodecLC3ChannelCountSingleChannel, 2, 0});
 
   TestGroupAseConfiguration(LeAudioContextType::RINGTONE, &data, 1);
 }
@@ -857,7 +858,7 @@ TEST_F(LeAudioAseConfigurationTest, test_handsfree_media) {
 }
 
 TEST_F(LeAudioAseConfigurationTest, test_lc3_config_ringtone) {
-  AddTestDevice(1, 0);
+  AddTestDevice(1, 1);
 
   TestLc3CodecConfig(LeAudioContextType::RINGTONE);
 }
