@@ -541,15 +541,6 @@ void l2cble_process_sig_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
           "num_of_channels = %d",
           mtu, mps, initial_credit, num_of_channels);
 
-      if (p_lcb->pending_ecoc_conn_cnt > 0) {
-        LOG_WARN("L2CAP - L2CAP_CMD_CREDIT_BASED_CONN_REQ collision:");
-        l2cu_reject_credit_based_conn_req(p_lcb, id, num_of_channels,
-                                          L2CAP_LE_RESULT_NO_RESOURCES);
-        return;
-      }
-
-      p_lcb->pending_ecoc_conn_cnt = num_of_channels;
-
       /* Check PSM Support */
       p_rcb = l2cu_find_ble_rcb_by_psm(con_info.psm);
       if (p_rcb == NULL) {
@@ -558,6 +549,19 @@ void l2cble_process_sig_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
                                           L2CAP_LE_RESULT_NO_PSM);
         return;
       }
+
+      if (p_lcb->pending_ecoc_conn_cnt > 0) {
+        LOG_WARN("L2CAP - L2CAP_CMD_CREDIT_BASED_CONN_REQ collision:");
+        if (p_rcb->api.pL2CA_CreditBasedCollisionInd_Cb &&
+            con_info.psm == BT_PSM_EATT) {
+          (*p_rcb->api.pL2CA_CreditBasedCollisionInd_Cb)(p_lcb->remote_bd_addr);
+        }
+        l2cu_reject_credit_based_conn_req(p_lcb, id, num_of_channels,
+                                          L2CAP_LE_RESULT_NO_RESOURCES);
+        return;
+      }
+
+      p_lcb->pending_ecoc_conn_cnt = num_of_channels;
 
       if (!p_rcb->api.pL2CA_CreditBasedConnectInd_Cb) {
         LOG_WARN("L2CAP - rcvd conn req for outgoing-only connection PSM: %d",

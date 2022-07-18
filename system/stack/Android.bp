@@ -719,6 +719,7 @@ cc_test {
         "test/common/mock_controller.cc",
         "test/common/mock_gatt_layer.cc",
         "test/common/mock_hcic_layer.cc",
+        ":TestCommonStackConfig"
     ],
     static_libs: [
         "libbt-common",
