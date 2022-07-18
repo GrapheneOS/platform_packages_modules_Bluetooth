@@ -47,6 +47,7 @@ import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -144,6 +145,21 @@ public class BassClientServiceTest {
         mCurrentDevice = TestUtils.getTestDevice(mBluetoothAdapter, 0);
         assertThat(mBassClientService.getConnectionState(mCurrentDevice))
                 .isEqualTo(BluetoothProfile.STATE_DISCONNECTED);
+    }
+
+    /**
+     * Test if getProfileConnectionPolicy works after the service is stopped.
+     */
+    @Test
+    public void testGetPolicyAfterStopped() {
+        mBassClientService.stop();
+        when(mDatabaseManager
+                .getProfileConnectionPolicy(mCurrentDevice,
+                        BluetoothProfile.LE_AUDIO_BROADCAST_ASSISTANT))
+                .thenReturn(BluetoothProfile.CONNECTION_POLICY_UNKNOWN);
+        Assert.assertEquals("Initial device policy",
+                BluetoothProfile.CONNECTION_POLICY_UNKNOWN,
+                mBassClientService.getConnectionPolicy(mCurrentDevice));
     }
 
     /**
