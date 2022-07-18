@@ -7,7 +7,9 @@ use dbus::nonblock::SyncConnection;
 use dbus_crossroads::Crossroads;
 use tokio::sync::mpsc;
 
-use crate::callbacks::{BtCallback, BtConnectionCallback, BtManagerCallback, SuspendCallback};
+use crate::callbacks::{
+    BtCallback, BtConnectionCallback, BtManagerCallback, ScannerCallback, SuspendCallback,
+};
 use crate::command_handler::CommandHandler;
 use crate::dbus_iface::{BluetoothDBus, BluetoothGattDBus, BluetoothManagerDBus, SuspendDBus};
 use crate::editor::AsyncEditor;
@@ -76,6 +78,9 @@ pub(crate) struct ClientContext {
 
     /// Internal DBus crossroads object.
     dbus_crossroads: Arc<Mutex<Crossroads>>,
+
+    /// Identifies the callback to receive IScannerCallback method calls.
+    scanner_callback_id: Option<u32>,
 }
 
 impl ClientContext {
@@ -105,6 +110,7 @@ impl ClientContext {
             fg: tx,
             dbus_connection,
             dbus_crossroads,
+            scanner_callback_id: None,
         }
     }
 
@@ -366,6 +372,24 @@ async fn start_interactive_shell(
                     )))
                     .await
                     .expect("D-Bus error on IBluetooth::RegisterConnectionCallback");
+
+                // Register callback listener for le-scan`commands.
+                let scanner_callback_id = context
+                    .lock()
+                    .unwrap()
+                    .gatt_dbus
+                    .as_mut()
+                    .unwrap()
+                    .rpc
+                    .register_scanner_callback(Box::new(ScannerCallback::new(
+                        cb_objpath.clone(),
+                        context.clone(),
+                        dbus_connection.clone(),
+                        dbus_crossroads.clone(),
+                    )))
+                    .await
+                    .expect("D-Bus error on IBluetoothGatt::RegisterScannerCallback");
+                context.lock().unwrap().scanner_callback_id = Some(scanner_callback_id);
 
                 // When adapter is ready, Suspend API is also ready. Register as an observer.
                 // TODO(b/224606285): Implement suspend debug utils in btclient.

@@ -27,7 +27,8 @@ use bt_topshim::{
     btif::BaseCallbacks,
     profiles::{
         a2dp::A2dpCallbacks, avrcp::AvrcpCallbacks, gatt::GattClientCallbacks,
-        gatt::GattServerCallbacks, hfp::HfpCallbacks, hid_host::HHCallbacks, sdp::SdpCallbacks,
+        gatt::GattScannerCallbacks, gatt::GattServerCallbacks, hfp::HfpCallbacks,
+        hid_host::HHCallbacks, sdp::SdpCallbacks,
     },
 };
 
@@ -39,6 +40,7 @@ pub enum Message {
     Base(BaseCallbacks),
     GattClient(GattClientCallbacks),
     GattServer(GattServerCallbacks),
+    LeScanner(GattScannerCallbacks),
     HidHost(HHCallbacks),
     Hfp(HfpCallbacks),
     Sdp(SdpCallbacks),
@@ -107,6 +109,10 @@ impl Stack {
                 Message::GattServer(m) => {
                     // TODO(b/193685149): dispatch GATT server callbacks.
                     debug!("Unhandled Message::GattServer: {:?}", m);
+                }
+
+                Message::LeScanner(m) => {
+                    bluetooth_gatt.lock().unwrap().dispatch_le_scanner_callbacks(m);
                 }
 
                 Message::Hfp(hf) => {
