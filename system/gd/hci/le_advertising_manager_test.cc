@@ -493,6 +493,64 @@ class LeAndroidHciAdvertisingAPITest : public LeAndroidHciAdvertisingManagerTest
   AdvertiserId advertiser_id_;
 };
 
+class LeAndroidHciAdvertisingAPIPublicAddressTest : public LeAndroidHciAdvertisingManagerTest {
+ protected:
+  void SetUp() override {
+    LeAndroidHciAdvertisingManagerTest::SetUp();
+
+    ExtendedAdvertisingConfig advertising_config{};
+    advertising_config.advertising_type = AdvertisingType::ADV_IND;
+    advertising_config.own_address_type = OwnAddressType::PUBLIC_DEVICE_ADDRESS;
+    std::vector<GapData> gap_data{};
+    GapData data_item{};
+    data_item.data_type_ = GapDataType::FLAGS;
+    data_item.data_ = {0x34};
+    gap_data.push_back(data_item);
+    data_item.data_type_ = GapDataType::COMPLETE_LOCAL_NAME;
+    data_item.data_ = {'r', 'a', 'n', 'd', 'o', 'm', ' ', 'd', 'e', 'v', 'i', 'c', 'e'};
+    gap_data.push_back(data_item);
+    advertising_config.advertisement = gap_data;
+    advertising_config.scan_response = gap_data;
+
+    hci::Address address;
+    Address::FromString("D0:05:04:03:02:01", address);
+    hci::AddressWithType address_with_type(address, hci::AddressType::RANDOM_DEVICE_ADDRESS);
+    auto minimum_rotation_time = std::chrono::milliseconds(7 * 60 * 1000);
+    auto maximum_rotation_time = std::chrono::milliseconds(15 * 60 * 1000);
+    test_acl_manager_->SetPrivacyPolicyForInitiatorAddress(
+        LeAddressManager::AddressPolicy::USE_PUBLIC_ADDRESS,
+        address_with_type,
+        minimum_rotation_time,
+        maximum_rotation_time);
+
+    test_hci_layer_->SetSubCommandFuture(SubOcf::SET_PARAM);
+    advertiser_id_ = le_advertising_manager_->ExtendedCreateAdvertiser(
+        0x00, advertising_config, scan_callback, set_terminated_callback, 0, 0, client_handler_);
+    ASSERT_NE(LeAdvertisingManager::kInvalidId, advertiser_id_);
+    std::vector<SubOcf> sub_ocf = {
+        SubOcf::SET_PARAM,
+        SubOcf::SET_DATA,
+        SubOcf::SET_SCAN_RESP,
+        SubOcf::SET_ENABLE,
+    };
+    EXPECT_CALL(
+        mock_advertising_callback_,
+        OnAdvertisingSetStarted(0, advertiser_id_, 0, AdvertisingCallback::AdvertisingStatus::SUCCESS));
+    for (size_t i = 0; i < sub_ocf.size(); i++) {
+      auto packet = test_hci_layer_->GetCommand(OpCode::LE_MULTI_ADVT);
+      auto sub_packet = LeMultiAdvtView::Create(LeAdvertisingCommandView::Create(packet));
+      ASSERT_TRUE(sub_packet.IsValid());
+      test_hci_layer_->IncomingEvent(LeMultiAdvtCompleteBuilder::Create(uint8_t{1}, ErrorCode::SUCCESS, sub_ocf[i]));
+      if ((i + 1) < sub_ocf.size()) {
+        test_hci_layer_->SetSubCommandFuture(sub_ocf[i + 1]);
+      }
+    }
+    sync_client_handler();
+  }
+
+  AdvertiserId advertiser_id_;
+};
+
 class LeExtendedAdvertisingManagerTest : public LeAdvertisingManagerTest {
  protected:
   void SetUp() override {
@@ -717,6 +775,8 @@ TEST_F(LeExtendedAdvertisingManagerTest, create_advertiser_test) {
 TEST_F(LeAdvertisingAPITest, startup_teardown) {}
 
 TEST_F(LeAndroidHciAdvertisingAPITest, startup_teardown) {}
+
+TEST_F(LeAndroidHciAdvertisingAPIPublicAddressTest, startup_teardown) {}
 
 TEST_F(LeExtendedAdvertisingAPITest, startup_teardown) {}
 
