@@ -108,7 +108,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         intf.clone(),
         bluetooth_media.clone(),
     ))));
-    let bt_sock_mgr = Arc::new(Mutex::new(Box::new(BluetoothSocketManager::new(intf.clone()))));
+    let bt_sock_mgr =
+        Arc::new(Mutex::new(Box::new(BluetoothSocketManager::new(intf.clone(), tx.clone()))));
 
     topstack::get_runtime().block_on(async {
         // Connect to D-Bus system bus.
@@ -146,6 +147,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             bluetooth_gatt.clone(),
             bluetooth_media.clone(),
             suspend.clone(),
+            bt_sock_mgr.clone(),
         ));
 
         // Set up the disconnect watcher to monitor client disconnects.
