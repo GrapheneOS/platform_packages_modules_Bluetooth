@@ -22,6 +22,7 @@ use tokio::sync::mpsc::{Receiver, Sender};
 use crate::bluetooth::Bluetooth;
 use crate::bluetooth_gatt::BluetoothGatt;
 use crate::bluetooth_media::{BluetoothMedia, MediaActions};
+use crate::socket_manager::{BluetoothSocketManager, SocketActions};
 use crate::suspend::Suspend;
 use bt_topshim::{
     btif::BaseCallbacks,
@@ -62,6 +63,9 @@ pub enum Message {
 
     // Scanner related
     ScannerCallbackDisconnected(u32),
+
+    SocketManagerActions(SocketActions),
+    SocketManagerCallbackDisconnected(u32),
 }
 
 /// Umbrella class for the Bluetooth stack.
@@ -80,6 +84,7 @@ impl Stack {
         bluetooth_gatt: Arc<Mutex<Box<BluetoothGatt>>>,
         bluetooth_media: Arc<Mutex<Box<BluetoothMedia>>>,
         suspend: Arc<Mutex<Box<Suspend>>>,
+        bluetooth_socketmgr: Arc<Mutex<Box<BluetoothSocketManager>>>,
     ) {
         loop {
             let m = rx.recv().await;
@@ -158,6 +163,13 @@ impl Stack {
 
                 Message::ScannerCallbackDisconnected(id) => {
                     bluetooth_gatt.lock().unwrap().remove_scanner_callback(id);
+                }
+
+                Message::SocketManagerActions(action) => {
+                    bluetooth_socketmgr.lock().unwrap().handle_actions(action);
+                }
+                Message::SocketManagerCallbackDisconnected(id) => {
+                    bluetooth_socketmgr.lock().unwrap().remove_callback(id);
                 }
             }
         }
