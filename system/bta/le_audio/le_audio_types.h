@@ -529,6 +529,7 @@ struct ase {
         active(false),
         reconfigure(false),
         data_path_state(AudioStreamDataPathState::IDLE),
+        configured_for_context_type(LeAudioContextType::UNINITIALIZED),
         preferred_phy(0),
         state(AseState::BTA_LE_AUDIO_ASE_STATE_IDLE) {}
 
@@ -542,6 +543,7 @@ struct ase {
   bool active;
   bool reconfigure;
   AudioStreamDataPathState data_path_state;
+  LeAudioContextType configured_for_context_type;
 
   /* Codec configuration */
   LeAudioCodecId codec_id;
