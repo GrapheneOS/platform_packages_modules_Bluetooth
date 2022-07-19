@@ -1,12 +1,17 @@
 extern crate bt_shim;
 
-use bt_topshim::btif::{BtDeviceType, BtPropertyType, BtSspVariant, BtTransport, Uuid, Uuid128Bit};
+use bt_topshim::btif::{
+    BtDeviceType, BtPropertyType, BtSspVariant, BtStatus, BtTransport, Uuid, Uuid128Bit,
+};
 use bt_topshim::profiles::socket::SocketType;
 
 use btstack::bluetooth::{
     Bluetooth, BluetoothDevice, IBluetooth, IBluetoothCallback, IBluetoothConnectionCallback,
 };
-use btstack::socket_manager::{BluetoothSocketManager, IBluetoothSocketManager};
+use btstack::socket_manager::{
+    BluetoothServerSocket, BluetoothSocket, BluetoothSocketManager, CallbackId,
+    IBluetoothSocketManager, IBluetoothSocketManagerCallbacks, SocketId, SocketResult,
+};
 use btstack::suspend::{ISuspend, ISuspendCallback, Suspend, SuspendType};
 use btstack::uuid::Profile;
 use btstack::RPCProxy;
@@ -39,6 +44,8 @@ impl RefArgToRust for Uuid {
         <Vec<u8> as RefArgToRust>::ref_arg_to_rust(arg, name)
     }
 }
+
+impl_dbus_arg_from_into!(BtStatus, u32);
 
 /// A mixin of the several interfaces. The naming of the fields in the mixin must match
 /// what is listed in the `generate_dbus_exporter` invocation.
@@ -342,7 +349,70 @@ impl IBluetooth for IBluetoothDBus {
 
 impl_dbus_arg_enum!(SocketType);
 
-#[allow(dead_code)]
+#[dbus_propmap(BluetoothServerSocket)]
+pub struct BluetoothServerSocketDBus {
+    id: SocketId,
+    sock_type: SocketType,
+    flags: i32,
+    psm: Option<i32>,
+    channel: Option<i32>,
+    name: Option<String>,
+    uuid: Option<Uuid>,
+}
+
+#[dbus_propmap(BluetoothSocket)]
+pub struct BluetoothSocketDBus {
+    id: SocketId,
+    remote_device: BluetoothDevice,
+    sock_type: SocketType,
+    flags: i32,
+    fd: Option<std::fs::File>,
+    port: i32,
+    uuid: Option<Uuid>,
+    max_rx_size: i32,
+    max_tx_size: i32,
+}
+
+#[dbus_propmap(SocketResult)]
+pub struct SocketResultDBus {
+    status: BtStatus,
+    id: u64,
+}
+
+struct IBluetoothSocketManagerCallbacksDBus {}
+
+#[dbus_proxy_obj(BluetoothSocketCallback, "org.chromium.bluetooth.SocketManagerCallback")]
+impl IBluetoothSocketManagerCallbacks for IBluetoothSocketManagerCallbacksDBus {
+    #[dbus_method("OnIncomingSocketReady")]
+    fn on_incoming_socket_ready(&mut self, socket: BluetoothServerSocket, status: BtStatus) {
+        dbus_generated!()
+    }
+
+    #[dbus_method("OnIncomingSocketClosed")]
+    fn on_incoming_socket_closed(&mut self, listener_id: SocketId, reason: BtStatus) {
+        dbus_generated!()
+    }
+
+    #[dbus_method("OnHandleIncomingConnection")]
+    fn on_handle_incoming_connection(
+        &mut self,
+        listener_id: SocketId,
+        connection: BluetoothSocket,
+    ) {
+        dbus_generated!()
+    }
+
+    #[dbus_method("OnOutgoingConnectionResult")]
+    fn on_outgoing_connection_result(
+        &mut self,
+        connecting_id: SocketId,
+        result: BtStatus,
+        socket: Option<BluetoothSocket>,
+    ) {
+        dbus_generated!()
+    }
+}
+
 struct IBluetoothSocketManagerDBus {}
 
 #[generate_dbus_exporter(
@@ -352,32 +422,91 @@ struct IBluetoothSocketManagerDBus {}
     socket_mgr
 )]
 impl IBluetoothSocketManager for IBluetoothSocketManagerDBus {
-    #[dbus_method("ConnectSocket")]
-    fn connect_socket(
+    #[dbus_method("RegisterCallback")]
+    fn register_callback(
         &mut self,
+        callback: Box<dyn IBluetoothSocketManagerCallbacks + Send>,
+    ) -> CallbackId {
+        dbus_generated!()
+    }
+
+    #[dbus_method("ListenUsingInsecureL2capChannel")]
+    fn listen_using_insecure_l2cap_channel(&mut self, callback: CallbackId) -> SocketResult {
+        dbus_generated!()
+    }
+
+    #[dbus_method("ListenUsingL2capChannel")]
+    fn listen_using_l2cap_channel(&mut self, callback: CallbackId) -> SocketResult {
+        dbus_generated!()
+    }
+
+    #[dbus_method("ListenUsingInsecureRfcommWithServiceRecord")]
+    fn listen_using_insecure_rfcomm_with_service_record(
+        &mut self,
+        callback: CallbackId,
+        name: String,
+        uuid: Uuid,
+    ) -> SocketResult {
+        dbus_generated!()
+    }
+
+    #[dbus_method("ListenUsingRfcommWithServiceRecord")]
+    fn listen_using_rfcomm_with_service_record(
+        &mut self,
+        callback: CallbackId,
+        name: String,
+        uuid: Uuid,
+    ) -> SocketResult {
+        dbus_generated!()
+    }
+
+    #[dbus_method("CreateInsecureL2capChannel")]
+    fn create_insecure_l2cap_channel(
+        &mut self,
+        callback: CallbackId,
         device: BluetoothDevice,
-        sock_type: SocketType,
-        uuid: Option<Uuid>,
-        port: i32,
-        flags: i32,
-    ) -> Option<std::fs::File> {
+        psm: i32,
+    ) -> SocketResult {
         dbus_generated!()
     }
 
-    #[dbus_method("CreateSocketChannel")]
-    fn create_socket_channel(
+    #[dbus_method("CreateL2capChannel")]
+    fn create_l2cap_channel(
         &mut self,
-        sock_type: SocketType,
-        service_name: String,
-        uuid: Option<Uuid>,
-        port: i32,
-        flags: i32,
-    ) -> Option<std::fs::File> {
+        callback: CallbackId,
+        device: BluetoothDevice,
+        psm: i32,
+    ) -> SocketResult {
         dbus_generated!()
     }
 
-    #[dbus_method("RequestMaximumTxDataLength")]
-    fn request_maximum_tx_data_length(&mut self, device: BluetoothDevice) {
+    #[dbus_method("CreateInsecureRfcommSocketToServiceRecord")]
+    fn create_insecure_rfcomm_socket_to_service_record(
+        &mut self,
+        callback: CallbackId,
+        device: BluetoothDevice,
+        uuid: Uuid,
+    ) -> SocketResult {
+        dbus_generated!()
+    }
+
+    #[dbus_method("CreateRfcommSocketToServiceRecord")]
+    fn create_rfcomm_socket_to_service_record(
+        &mut self,
+        callback: CallbackId,
+        device: BluetoothDevice,
+        uuid: Uuid,
+    ) -> SocketResult {
+        dbus_generated!()
+    }
+
+    #[dbus_method("Accept")]
+    fn accept(&mut self, callback: CallbackId, id: SocketId, timeout_ms: Option<u32>) -> BtStatus {
+        dbus_generated!()
+    }
+
+    #[dbus_method("Close")]
+    fn close(&mut self, callback: CallbackId, id: SocketId) -> BtStatus {
         dbus_generated!()
     }
 }
