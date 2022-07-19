@@ -5,7 +5,7 @@ use crate::dbus_iface::{
 };
 use crate::ClientContext;
 use crate::{console_red, console_yellow, print_error, print_info};
-use bt_topshim::btif::{BtBondState, BtPropertyType, BtSspVariant};
+use bt_topshim::btif::{BtBondState, BtPropertyType, BtSspVariant, Uuid128Bit};
 use bt_topshim::profiles::gatt::GattStatus;
 use btstack::bluetooth::{
     BluetoothDevice, IBluetooth, IBluetoothCallback, IBluetoothConnectionCallback,
@@ -14,6 +14,7 @@ use btstack::bluetooth_gatt::{
     BluetoothGattService, IBluetoothGattCallback, IScannerCallback, LePhy,
 };
 use btstack::suspend::ISuspendCallback;
+use btstack::uuid::UuidWrapper;
 use btstack::RPCProxy;
 use dbus::nonblock::SyncConnection;
 use dbus_crossroads::Crossroads;
@@ -315,13 +316,17 @@ impl ScannerCallback {
 }
 
 impl IScannerCallback for ScannerCallback {
-    fn on_scanner_registered(&self, status: u8, scanner_id: u8) {
+    fn on_scanner_registered(&self, uuid: Uuid128Bit, status: u8, scanner_id: u8) {
         if status != 0 {
             print_error!("Failed registering scanner, status = {}", status);
             return;
         }
 
-        print_info!("Scanner callback registered, id = {}", scanner_id);
+        print_info!(
+            "Scanner callback registered, uuid = {}, id = {}",
+            UuidWrapper(&uuid),
+            scanner_id
+        );
     }
 }
 
