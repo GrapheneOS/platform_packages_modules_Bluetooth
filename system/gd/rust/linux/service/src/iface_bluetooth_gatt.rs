@@ -142,7 +142,7 @@ struct ScannerCallbackDBus {}
 #[dbus_proxy_obj(ScannerCallback, "org.chromium.bluetooth.ScannerCallback")]
 impl IScannerCallback for ScannerCallbackDBus {
     #[dbus_method("OnScannerRegistered")]
-    fn on_scanner_registered(&self, status: u8, scanner_id: u8) {
+    fn on_scanner_registered(&self, uuid: Uuid128Bit, status: u8, scanner_id: u8) {
         dbus_generated!()
     }
 }
