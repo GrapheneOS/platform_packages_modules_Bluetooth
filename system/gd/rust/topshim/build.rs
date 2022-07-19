@@ -29,8 +29,18 @@ fn main() {
     let bt_searches =
         paths.iter().map(|tail| format!("-I{}{}", search_root, tail)).collect::<Vec<String>>();
 
-    // Also re-run bindgen if anything in the C++ source changes
-    println!("cargo:rerun-if-changed={}{}", search_root, "/system/");
+    // Also re-run bindgen if anything in the C++ source changes. Unfortunately the Rust source
+    // files also reside in the same directory so any changes of Rust files (and other non-C files
+    // actually) will cause topshim to be rebuild. The TOPSHIM_SHOULD_REBUILD env variable is a
+    // development tool to speed up build that can be set to "no" if topshim is not expected to be
+    // change.
+    let topshim_should_rebuild = match env::var("TOPSHIM_SHOULD_REBUILD") {
+        Err(_) => true,
+        Ok(should_rebuild) => should_rebuild != "no",
+    };
+    if topshim_should_rebuild {
+        println!("cargo:rerun-if-changed={}{}", search_root, "/system/");
+    }
 
     // "-x" and "c++" must be separate due to a bug
     let clang_args: Vec<&str> = vec!["-x", "c++", "-std=c++17"];
