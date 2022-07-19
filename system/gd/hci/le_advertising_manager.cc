@@ -34,6 +34,7 @@ namespace hci {
 
 const ModuleFactory LeAdvertisingManager::Factory = ModuleFactory([]() { return new LeAdvertisingManager(); });
 constexpr int kIdLocal = 0xff;  // Id for advertiser not register from Java layer
+constexpr uint16_t kLenOfFlags = 0x03;
 
 enum class AdvertisingApiType {
   LEGACY = 1,
@@ -263,7 +264,9 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
       const common::Callback<void(ErrorCode, uint8_t, uint8_t)>& set_terminated_callback,
       os::Handler* handler) {
     // check advertising data is valid before start advertising
-    if (!check_advertising_data(config.advertisement) || !check_advertising_data(config.scan_response)) {
+    ExtendedAdvertisingConfig extended_config = static_cast<ExtendedAdvertisingConfig>(config);
+    if (!check_advertising_data(config.advertisement, extended_config.connectable) ||
+        !check_advertising_data(config.scan_response, false)) {
       advertising_callbacks_->OnAdvertisingSetStarted(
           reg_id, id, le_physical_channel_tx_power_, AdvertisingCallback::AdvertisingStatus::DATA_TOO_LARGE);
       return;
@@ -362,8 +365,8 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
     }
 
     // check extended advertising data is valid before start advertising
-    if (!check_extended_advertising_data(config.advertisement) ||
-        !check_extended_advertising_data(config.scan_response)) {
+    if (!check_extended_advertising_data(config.advertisement, config.connectable) ||
+        !check_extended_advertising_data(config.scan_response, false)) {
       advertising_callbacks_->OnAdvertisingSetStarted(
           reg_id, id, le_physical_channel_tx_power_, AdvertisingCallback::AdvertisingStatus::DATA_TOO_LARGE);
       return;
@@ -647,22 +650,39 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
     }
   }
 
-  bool check_advertising_data(std::vector<GapData> data) {
+  bool data_has_flags(std::vector<GapData> data) {
+    for (auto& gap_data : data) {
+      if (gap_data.data_type_ == GapDataType::FLAGS) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool check_advertising_data(std::vector<GapData> data, bool include_flag) {
     uint16_t data_len = 0;
     // check data size
     for (size_t i = 0; i < data.size(); i++) {
       data_len += data[i].size();
     }
 
+    // The Flags data type shall be included when any of the Flag bits are non-zero and the advertising packet
+    // is connectable. It will be added by set_data() function, we should count it here.
+    if (include_flag && !data_has_flags(data)) {
+      data_len += kLenOfFlags;
+    }
+
     if (data_len > le_maximum_advertising_data_length_) {
       LOG_WARN(
-          "advertising data len exceeds le_maximum_advertising_data_length_ %d", le_maximum_advertising_data_length_);
+          "advertising data len %d exceeds le_maximum_advertising_data_length_ %d",
+          data_len,
+          le_maximum_advertising_data_length_);
       return false;
     }
     return true;
   };
 
-  bool check_extended_advertising_data(std::vector<GapData> data) {
+  bool check_extended_advertising_data(std::vector<GapData> data, bool include_flag) {
     uint16_t data_len = 0;
     // check data size
     for (size_t i = 0; i < data.size(); i++) {
@@ -673,16 +693,26 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
       data_len += data[i].size();
     }
 
+    // The Flags data type shall be included when any of the Flag bits are non-zero and the advertising packet
+    // is connectable. It will be added by set_data() function, we should count it here.
+    if (include_flag && !data_has_flags(data)) {
+      data_len += kLenOfFlags;
+    }
+
     if (data_len > le_maximum_advertising_data_length_) {
       LOG_WARN(
-          "advertising data len exceeds le_maximum_advertising_data_length_ %d", le_maximum_advertising_data_length_);
+          "advertising data len %d exceeds le_maximum_advertising_data_length_ %d",
+          data_len,
+          le_maximum_advertising_data_length_);
       return false;
     }
     return true;
   };
 
   void set_data(AdvertiserId advertiser_id, bool set_scan_rsp, std::vector<GapData> data) {
-    if (!set_scan_rsp && advertising_sets_[advertiser_id].connectable) {
+    // The Flags data type shall be included when any of the Flag bits are non-zero and the advertising packet
+    // is connectable.
+    if (!set_scan_rsp && advertising_sets_[advertiser_id].connectable && !data_has_flags(data)) {
       GapData gap_data;
       gap_data.data_type_ = GapDataType::FLAGS;
       if (advertising_sets_[advertiser_id].duration == 0) {
@@ -699,6 +729,17 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
         gap_data.data_[0] = advertising_sets_[advertiser_id].tx_power;
         break;
       }
+    }
+
+    if (advertising_api_type_ != AdvertisingApiType::EXTENDED && !check_advertising_data(data, false)) {
+      if (set_scan_rsp) {
+        advertising_callbacks_->OnScanResponseDataSet(
+            advertiser_id, AdvertisingCallback::AdvertisingStatus::DATA_TOO_LARGE);
+      } else {
+        advertising_callbacks_->OnAdvertisingDataSet(
+            advertiser_id, AdvertisingCallback::AdvertisingStatus::DATA_TOO_LARGE);
+      }
+      return;
     }
 
     switch (advertising_api_type_) {

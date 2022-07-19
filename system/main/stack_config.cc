@@ -37,6 +37,9 @@ const char* PTS_FORCE_EATT_FOR_NOTIFICATIONS = "PTS_ForceEattForNotifications";
 const char* PTS_CONNECT_EATT_UNCONDITIONALLY =
     "PTS_ConnectEattUncondictionally";
 const char* PTS_CONNECT_EATT_UNENCRYPTED = "PTS_ConnectEattUnencrypted";
+const char* PTS_BROADCAST_UNENCRYPTED = "PTS_BroadcastUnencrypted";
+const char* PTS_EATT_PERIPHERAL_COLLISION_SUPPORT =
+    "PTS_EattPeripheralCollionSupport";
 
 static std::unique_ptr<config_t> config;
 }  // namespace
@@ -129,6 +132,16 @@ static bool get_pts_connect_eatt_before_encryption(void) {
                          PTS_CONNECT_EATT_UNENCRYPTED, false);
 }
 
+static bool get_pts_unencrypt_broadcast(void) {
+  return config_get_bool(*config, CONFIG_DEFAULT_SECTION,
+                         PTS_BROADCAST_UNENCRYPTED, false);
+}
+
+static bool get_pts_eatt_peripheral_collision_support(void) {
+  return config_get_bool(*config, CONFIG_DEFAULT_SECTION,
+                         PTS_EATT_PERIPHERAL_COLLISION_SUPPORT, false);
+}
+
 static config_t* get_all(void) { return config.get(); }
 
 const stack_config_t interface = {get_trace_config_enabled,
@@ -141,6 +154,8 @@ const stack_config_t interface = {get_trace_config_enabled,
                                   get_pts_force_eatt_for_notifications,
                                   get_pts_connect_eatt_unconditionally,
                                   get_pts_connect_eatt_before_encryption,
+                                  get_pts_unencrypt_broadcast,
+                                  get_pts_eatt_peripheral_collision_support,
                                   get_all};
 
 const stack_config_t* stack_config_get_interface(void) { return &interface; }

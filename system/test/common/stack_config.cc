@@ -33,6 +33,8 @@ int get_pts_smp_failure_case(void) { return 123; }
 bool get_pts_force_eatt_for_notifications(void) { return false; }
 bool get_pts_connect_eatt_unconditionally(void) { return false; }
 bool get_pts_connect_eatt_before_encryption(void) { return false; }
+bool get_pts_unencrypt_broadcast(void) { return false; }
+bool get_pts_eatt_peripheral_collision_support(void) { return false; }
 struct config_t;
 config_t* get_all(void) { return nullptr; }
 struct packet_fragmenter_t;
@@ -52,6 +54,9 @@ stack_config_t mock_stack_config{
         get_pts_connect_eatt_unconditionally,
     .get_pts_connect_eatt_before_encryption =
         get_pts_connect_eatt_before_encryption,
+    .get_pts_unencrypt_broadcast = get_pts_unencrypt_broadcast,
+    .get_pts_eatt_peripheral_collision_support =
+        get_pts_eatt_peripheral_collision_support,
     .get_all = get_all,
 };
 

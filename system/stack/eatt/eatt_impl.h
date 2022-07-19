@@ -33,6 +33,7 @@
 #include "stack/btm/btm_sec.h"
 #include "stack/gatt/gatt_int.h"
 #include "stack/include/bt_hdr.h"
+#include "stack/include/btu.h"  // do_in_main_thread
 #include "stack/l2cap/l2c_int.h"
 #include "types/raw_address.h"
 
@@ -50,9 +51,9 @@ class eatt_device {
   tGATT_TCB* eatt_tcb_;
 
   std::map<uint16_t, std::shared_ptr<EattChannel>> eatt_channels;
-
+  bool collision;
   eatt_device(const RawAddress& bd_addr, uint16_t mtu, uint16_t mps)
-      : rx_mtu_(mtu), rx_mps_(mps), eatt_tcb_(nullptr) {
+      : rx_mtu_(mtu), rx_mps_(mps), eatt_tcb_(nullptr), collision(false) {
     bda_ = bd_addr;
   }
 };
@@ -175,6 +176,49 @@ struct eatt_impl {
 
       LOG(INFO) << __func__ << " Channel connected CID " << loghex(cid);
     }
+
+    /* Android let Central to create EATT (PTS initiates EATT). Some PTS test
+     * cases wants Android to do it anyway (Android initiates EATT).
+     */
+    if (stack_config_get_interface()
+            ->get_pts_eatt_peripheral_collision_support()) {
+      connect_eatt_wrap(eatt_dev);
+    }
+  }
+
+  void eatt_retry_after_collision_if_needed(eatt_device* eatt_dev) {
+    if (!eatt_dev->collision) {
+      LOG_DEBUG("No collision.");
+      return;
+    }
+    /* We are here, because remote device wanted to create channels when
+     * Android proceed its own EATT creation. How to handle it is described
+     * here: BT Core 5.3, Volume 3, Part G, 5.4
+     */
+    LOG_INFO(
+        "EATT collision detected. If we are Central we will retry right "
+        "away");
+
+    eatt_dev->collision = false;
+    uint8_t role = L2CA_GetBleConnRole(eatt_dev->bda_);
+    if (role == HCI_ROLE_CENTRAL) {
+      LOG_INFO("Retrying EATT setup due to previous collision for device %s",
+               eatt_dev->bda_.ToString().c_str());
+      connect_eatt_wrap(eatt_dev);
+    } else if (stack_config_get_interface()
+                   ->get_pts_eatt_peripheral_collision_support()) {
+      /* This is only for the PTS. Android does not setup EATT when is a
+       * peripheral.
+       */
+      bt_status_t status = do_in_main_thread_delayed(
+          FROM_HERE,
+          base::BindOnce(&eatt_impl::connect_eatt_wrap, base::Unretained(this),
+                         std::move(eatt_dev)),
+          base::TimeDelta::FromMilliseconds(500));
+
+      LOG_INFO("Scheduled peripheral connect eatt for device with status: %d",
+               (int)status);
+    }
   }
 
   void eatt_l2cap_connect_cfm(const RawAddress& bda, uint16_t lcid,
@@ -209,6 +253,7 @@ struct eatt_impl {
     eatt_dev->eatt_tcb_->eatt++;
 
     LOG(INFO) << __func__ << " Channel connected CID " << loghex(lcid);
+    eatt_retry_after_collision_if_needed(eatt_dev);
   }
 
   void eatt_l2cap_reconfig_completed(const RawAddress& bda, uint16_t lcid,
@@ -235,6 +280,17 @@ struct eatt_impl {
 
     /* Go back to open state */
     channel->EattChannelSetState(EattChannelState::EATT_CHANNEL_OPENED);
+  }
+
+  void eatt_l2cap_collision_ind(const RawAddress& bda) {
+    eatt_device* eatt_dev = find_device_by_address(bda);
+    if (!eatt_dev) {
+      LOG_ERROR("Device %s not available anymore:", bda.ToString().c_str());
+      return;
+    }
+    /* Remote wanted to setup channels as well. Let's retry remote's request
+     * when we are done with ours.*/
+    eatt_dev->collision = true;
   }
 
   void eatt_l2cap_error_cb(uint16_t lcid, uint16_t reason) {
@@ -266,6 +322,8 @@ struct eatt_impl {
                    << static_cast<uint8_t>(channel->state_);
         break;
     }
+
+    eatt_retry_after_collision_if_needed(eatt_dev);
   }
 
   void eatt_l2cap_disconnect_ind(uint16_t lcid, bool please_confirm) {
@@ -317,7 +375,22 @@ struct eatt_impl {
     return eatt_dev;
   }
 
-  void connect_eatt(eatt_device* eatt_dev) {
+  void connect_eatt_wrap(eatt_device* eatt_dev) {
+    if (stack_config_get_interface()
+            ->get_pts_eatt_peripheral_collision_support()) {
+      /* For PTS case, lets assume we support only 5 channels */
+      LOG_INFO("Number of existing channels %d",
+               (int)eatt_dev->eatt_channels.size());
+      connect_eatt(eatt_dev, L2CAP_CREDIT_BASED_MAX_CIDS -
+                                 (int)eatt_dev->eatt_channels.size());
+      return;
+    }
+
+    connect_eatt(eatt_dev);
+  }
+
+  void connect_eatt(eatt_device* eatt_dev,
+                    uint8_t num_of_channels = L2CAP_CREDIT_BASED_MAX_CIDS) {
     /* Let us use maximum possible mps */
     if (eatt_dev->rx_mps_ == EATT_MIN_MTU_MPS)
       eatt_dev->rx_mps_ = controller_get_interface()->get_acl_data_size_ble();
@@ -326,7 +399,11 @@ struct eatt_impl {
         .mtu = eatt_dev->rx_mtu_,
         .mps = eatt_dev->rx_mps_,
         .credits = L2CAP_LE_CREDIT_DEFAULT,
+        .number_of_channels = num_of_channels,
     };
+
+    LOG_INFO("Connecting device %s, cnt count %d",
+             eatt_dev->bda_.ToString().c_str(), num_of_channels);
 
     /* Warning! CIDs in Android are unique across the ACL connections */
     std::vector<uint16_t> connecting_cids =
@@ -614,7 +691,7 @@ struct eatt_impl {
       return;
     }
 
-    connect_eatt(eatt_dev);
+    connect_eatt_wrap(eatt_dev);
   }
 
   void disconnect_channel(uint16_t cid) { L2CA_DisconnectReq(cid); }
@@ -658,6 +735,7 @@ struct eatt_impl {
     }
     eatt_dev->eatt_tcb_->eatt = 0;
     eatt_dev->eatt_tcb_ = nullptr;
+    eatt_dev->collision = false;
   }
 
   void connect(const RawAddress& bd_addr) {
@@ -669,8 +747,8 @@ struct eatt_impl {
       return;
     }
 
-    LOG(INFO) << __func__ << " device " << bd_addr << " role"
-              << (role == HCI_ROLE_CENTRAL ? "central" : "peripheral");
+    LOG_INFO("Device %s, role %s", bd_addr.ToString().c_str(),
+             (role == HCI_ROLE_CENTRAL ? "central" : "peripheral"));
 
     if (eatt_dev) {
       /* We are reconnecting device we know that support EATT.
@@ -684,31 +762,30 @@ struct eatt_impl {
         return;
       }
 
-      connect_eatt(eatt_dev);
+      connect_eatt_wrap(eatt_dev);
       return;
     }
 
     /* This is needed for L2CAP test cases */
     if (stack_config_get_interface()->get_pts_connect_eatt_unconditionally()) {
-      /* For PTS just start connecting EATT right away, */
+      /* For PTS just start connecting EATT right away */
       eatt_device* eatt_dev = add_eatt_device(bd_addr);
-      connect_eatt(eatt_dev);
-    } else {
-      if (gatt_profile_get_eatt_support(bd_addr)) {
-        LOG_DEBUG("Eatt is supported for device %s",
-                  bd_addr.ToString().c_str());
-        supported_features_cb(role, bd_addr,
-                              BLE_GATT_SVR_SUP_FEAT_EATT_BITMASK);
-        return;
-      }
+      connect_eatt_wrap(eatt_dev);
+      return;
+    }
 
-      /* If we don't know yet, read GATT server supported features. */
-      if (gatt_cl_read_sr_supp_feat_req(
-              bd_addr, base::BindOnce(&eatt_impl::supported_features_cb,
-                                      base::Unretained(this), role)) == false) {
-        LOG_INFO("Read server supported features failed for device %s",
-                 bd_addr.ToString().c_str());
-      }
+    if (gatt_profile_get_eatt_support(bd_addr)) {
+      LOG_DEBUG("Eatt is supported for device %s", bd_addr.ToString().c_str());
+      supported_features_cb(role, bd_addr, BLE_GATT_SVR_SUP_FEAT_EATT_BITMASK);
+      return;
+    }
+
+    /* If we don't know yet, read GATT server supported features. */
+    if (gatt_cl_read_sr_supp_feat_req(
+            bd_addr, base::BindOnce(&eatt_impl::supported_features_cb,
+                                    base::Unretained(this), role)) == false) {
+      LOG_INFO("Read server supported features failed for device %s",
+               bd_addr.ToString().c_str());
     }
   }
 

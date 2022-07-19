@@ -181,6 +181,9 @@ constexpr uint16_t L2CAP_LE_CREDIT_THRESHOLD = 0x0040;
 static_assert(L2CAP_LE_CREDIT_THRESHOLD < L2CAP_LE_CREDIT_DEFAULT,
               "Threshold must be smaller than default credits");
 
+// Max number of CIDs in the L2CAP CREDIT BASED CONNECTION REQUEST
+constexpr uint16_t L2CAP_CREDIT_BASED_MAX_CIDS = 5;
+
 /* Define a structure to hold the configuration parameter for LE L2CAP
  * connection oriented channels.
  */
@@ -189,6 +192,7 @@ struct tL2CAP_LE_CFG_INFO {
   uint16_t mtu = 100;
   uint16_t mps = 100;
   uint16_t credits = L2CAP_LE_CREDIT_DEFAULT;
+  uint8_t number_of_channels = L2CAP_CREDIT_BASED_MAX_CIDS;
 };
 
 /*********************************
@@ -283,6 +287,14 @@ typedef void(tL2CA_CREDIT_BASED_CONNECT_IND_CB)(const RawAddress& bdaddr,
                                                 uint16_t psm, uint16_t peer_mtu,
                                                 uint8_t identifier);
 
+/* Collision Indication callback prototype. Used to notify upper layer that
+ * remote devices sent Credit Based Connection Request but it was rejected due
+ * to ongoing local request. Upper layer might want to sent another request when
+ * local request is completed. Parameters are:
+ *              BD Address of remote
+ */
+typedef void(tL2CA_CREDIT_BASED_COLLISION_IND_CB)(const RawAddress& bdaddr);
+
 /* Credit based connection confirmation callback prototype. Parameters are
  *              BD Address of remote
  *              Connected Local CIDs
@@ -324,6 +336,7 @@ typedef struct {
   tL2CA_CREDIT_BASED_CONNECT_CFM_CB* pL2CA_CreditBasedConnectCfm_Cb;
   tL2CA_CREDIT_BASED_RECONFIG_COMPLETED_CB*
       pL2CA_CreditBasedReconfigCompleted_Cb;
+  tL2CA_CREDIT_BASED_COLLISION_IND_CB* pL2CA_CreditBasedCollisionInd_Cb;
 } tL2CAP_APPL_INFO;
 
 /* Define the structure that applications use to create or accept
