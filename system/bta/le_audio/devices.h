@@ -62,6 +62,7 @@ class LeAudioDevice {
   bool encrypted_;
   int group_id_;
   bool csis_member_;
+  std::bitset<16> tmap_role_;
 
   uint8_t audio_directions_;
   types::AudioLocations snk_audio_locations_;
@@ -76,6 +77,7 @@ class LeAudioDevice {
   struct types::hdl_pair audio_supp_cont_hdls_;
   std::vector<struct types::ase> ases_;
   struct types::hdl_pair ctp_hdls_;
+  uint16_t tmap_role_hdl_;
 
   alarm_t* link_quality_timer;
   uint16_t link_quality_timer_data;
@@ -141,7 +143,7 @@ class LeAudioDevice {
   types::AudioContexts SetAvailableContexts(types::AudioContexts snk_cont_val,
                                             types::AudioContexts src_cont_val);
   void DeactivateAllAses(void);
-  void ActivateConfiguredAses(void);
+  void ActivateConfiguredAses(types::LeAudioContextType context_type);
   void Dump(int fd);
   void DisconnectAcl(void);
   std::vector<uint8_t> GetMetadata(types::LeAudioContextType context_type,
@@ -215,7 +217,7 @@ class LeAudioDeviceGroup {
   int Size(void);
   int NumOfConnected(
       types::LeAudioContextType context_type = types::LeAudioContextType::RFU);
-  void Activate(void);
+  void Activate(types::LeAudioContextType context_type);
   void Deactivate(void);
   void Cleanup(void);
   LeAudioDevice* GetFirstDevice(void);

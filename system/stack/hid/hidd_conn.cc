@@ -58,6 +58,7 @@ static const tL2CAP_APPL_INFO dev_reg_info = {hidd_l2cif_connect_ind,
                                               hidd_on_l2cap_error,
                                               NULL,
                                               NULL,
+                                              NULL,
                                               NULL};
 
 /*******************************************************************************

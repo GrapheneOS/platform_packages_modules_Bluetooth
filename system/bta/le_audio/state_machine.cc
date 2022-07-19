@@ -153,7 +153,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     switch (group->GetState()) {
       case AseState::BTA_LE_AUDIO_ASE_STATE_CODEC_CONFIGURED:
         if (group->GetCurrentContextType() == context_type) {
-          group->Activate();
+          group->Activate(context_type);
           SetTargetState(group, AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING);
           CigCreate(group);
           return true;
@@ -1116,6 +1116,8 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
       LeAudioDeviceGroup* group, LeAudioDevice* leAudioDevice) {
     switch (ase->state) {
       case AseState::BTA_LE_AUDIO_ASE_STATE_IDLE:
+      case AseState::BTA_LE_AUDIO_ASE_STATE_CODEC_CONFIGURED:
+      case AseState::BTA_LE_AUDIO_ASE_STATE_QOS_CONFIGURED:
         if (ase->id == 0x00) {
           /* Initial state of Ase - update id */
           LOG(INFO) << __func__
@@ -1127,6 +1129,8 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
         LeAudioDevice* leAudioDeviceNext;
         ase->state = AseState::BTA_LE_AUDIO_ASE_STATE_IDLE;
         ase->active = false;
+        ase->configured_for_context_type =
+            le_audio::types::LeAudioContextType::UNINITIALIZED;
 
         if (!leAudioDevice->HaveAllActiveAsesSameState(
                 AseState::BTA_LE_AUDIO_ASE_STATE_IDLE)) {
