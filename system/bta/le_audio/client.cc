@@ -1278,6 +1278,9 @@ class LeAudioClientImpl : public LeAudioClient {
 
       if (ParseAseCtpNotification(*ntf, len, value))
         ControlPointNotificationHandler(*ntf);
+    } else if (hdl == leAudioDevice->tmap_role_hdl_) {
+      le_audio::client_parser::tmap::ParseTmapRole(leAudioDevice->tmap_role_,
+                                                   len, value);
     } else {
       LOG(ERROR) << __func__ << ", Unknown attribute read: " << loghex(hdl);
     }
@@ -1573,6 +1576,7 @@ class LeAudioClientImpl : public LeAudioClient {
 
     const gatt::Service* pac_svc = nullptr;
     const gatt::Service* ase_svc = nullptr;
+    const gatt::Service* tmas_svc = nullptr;
 
     std::vector<uint16_t> csis_primary_handles;
     uint16_t cas_csis_included_handle = 0;
@@ -1603,6 +1607,10 @@ class LeAudioClientImpl : public LeAudioClient {
             break;
           }
         }
+      } else if (tmp.uuid == le_audio::uuid::kTelephonyMediaAudioServiceUuid) {
+        LOG_INFO(", Found Telephony and Media Audio service, handle: %04x",
+                 tmp.handle);
+        tmas_svc = &tmp;
       }
     }
 
@@ -1856,6 +1864,25 @@ class LeAudioClientImpl : public LeAudioClient {
         LOG(INFO) << "Found ASE Control Point characteristic, handle: "
                   << loghex(charac.value_handle) << ", ccc handle: "
                   << loghex(leAudioDevice->ctp_hdls_.ccc_hdl);
+      }
+    }
+
+    if (tmas_svc) {
+      for (const gatt::Characteristic& charac : tmas_svc->characteristics) {
+        if (charac.uuid ==
+            le_audio::uuid::kTelephonyMediaAudioProfileRoleCharacteristicUuid) {
+          leAudioDevice->tmap_role_hdl_ = charac.value_handle;
+
+          /* Obtain initial state of TMAP role */
+          BtaGattQueue::ReadCharacteristic(conn_id,
+                                           leAudioDevice->tmap_role_hdl_,
+                                           OnGattReadRspStatic, NULL);
+
+          LOG_INFO(
+              ", Found Telephony and Media Profile characteristic, "
+              "handle: %04x",
+              leAudioDevice->tmap_role_hdl_);
+        }
       }
     }
 
