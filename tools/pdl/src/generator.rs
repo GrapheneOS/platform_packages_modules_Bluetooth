@@ -1,7 +1,14 @@
+// The `format-push-string` lint was briefly enabled present in Rust
+// 1.62. It is now moved the disabled "restriction" category instead.
+// See https://github.com/rust-lang/rust-clippy/issues/9077 for the
+// problems with this lint.
+//
+// Remove this when we use Rust 1.63 or later.
+#![allow(clippy::format_push_string)]
+
 use crate::ast;
 use quote::{format_ident, quote};
 use std::collections::HashMap;
-use std::fmt::Write;
 use std::path::Path;
 use syn::parse_quote;
 
@@ -19,70 +26,50 @@ macro_rules! quote_block {
 fn generate_preamble(path: &Path) -> String {
     let mut code = String::new();
     let filename = path.file_name().unwrap().to_str().expect("non UTF-8 filename");
-    let _ = write!(code, "// @generated rust packets from {filename}\n\n");
+    code.push_str(&format!("// @generated rust packets from {filename}\n\n"));
 
-    let _ = write!(
-        code,
-        "{}",
-        &quote_block! {
-            use bytes::{BufMut, Bytes, BytesMut};
-            use num_derive::{FromPrimitive, ToPrimitive};
-            use num_traits::{FromPrimitive, ToPrimitive};
-            use std::convert::{TryFrom, TryInto};
-            use std::fmt;
-            use std::sync::Arc;
-            use thiserror::Error;
-        }
-    );
+    code.push_str(&quote_block! {
+        use bytes::{BufMut, Bytes, BytesMut};
+        use num_derive::{FromPrimitive, ToPrimitive};
+        use num_traits::{FromPrimitive, ToPrimitive};
+        use std::convert::{TryFrom, TryInto};
+        use std::fmt;
+        use std::sync::Arc;
+        use thiserror::Error;
+    });
 
-    let _ = write!(
-        code,
-        "{}",
-        &quote_block! {
-            type Result<T> = std::result::Result<T, Error>;
-        }
-    );
+    code.push_str(&quote_block! {
+        type Result<T> = std::result::Result<T, Error>;
+    });
 
-    let _ = write!(
-        code,
-        "{}",
-        &quote_block! {
-            #[derive(Debug, Error)]
-            pub enum Error {
-                #[error("Packet parsing failed")]
-                InvalidPacketError,
-                #[error("{field} was {value:x}, which is not known")]
-                ConstraintOutOfBounds { field: String, value: u64 },
-                #[error("when parsing {obj}.{field} needed length of {wanted} but got {got}")]
-                InvalidLengthError { obj: String, field: String, wanted: usize, got: usize },
-                #[error("Due to size restrictions a struct could not be parsed.")]
-                ImpossibleStructError,
-                #[error("when parsing field {obj}.{field}, {value} is not a valid {type_} value")]
-                InvalidEnumValueError { obj: String, field: String, value: u64, type_: String },
-            }
+    code.push_str(&quote_block! {
+        #[derive(Debug, Error)]
+        pub enum Error {
+            #[error("Packet parsing failed")]
+            InvalidPacketError,
+            #[error("{field} was {value:x}, which is not known")]
+            ConstraintOutOfBounds { field: String, value: u64 },
+            #[error("when parsing {obj}.{field} needed length of {wanted} but got {got}")]
+            InvalidLengthError { obj: String, field: String, wanted: usize, got: usize },
+            #[error("Due to size restrictions a struct could not be parsed.")]
+            ImpossibleStructError,
+            #[error("when parsing field {obj}.{field}, {value} is not a valid {type_} value")]
+            InvalidEnumValueError { obj: String, field: String, value: u64, type_: String },
         }
-    );
+    });
 
-    let _ = write!(
-        code,
-        "{}",
-        &quote_block! {
-            #[derive(Debug, Error)]
-            #[error("{0}")]
-            pub struct TryFromError(&'static str);
-        }
-    );
+    code.push_str(&quote_block! {
+        #[derive(Debug, Error)]
+        #[error("{0}")]
+        pub struct TryFromError(&'static str);
+    });
 
-    let _ = write!(
-        code,
-        "{}",
-        &quote_block! {
-            pub trait Packet {
-                fn to_bytes(self) -> Bytes;
-                fn to_vec(self) -> Vec<u8>;
-            }
+    code.push_str(&quote_block! {
+        pub trait Packet {
+            fn to_bytes(self) -> Bytes;
+            fn to_vec(self) -> Vec<u8>;
         }
-    );
+    });
 
     code
 }
@@ -152,9 +139,17 @@ fn generate_field_parser(
                 ast::EndiannessValue::LittleEndian => format_ident!("from_le_bytes"),
             };
 
+            // We need the padding on the MSB side of the payload, so
+            // for big-endian, we need to padding on the left, for
+            // little-endian we need it on the right.
+            let padding = vec![syn::Index::from(0); (type_width - width) / 8];
+            let (padding_before, padding_after) = match endianness_value {
+                ast::EndiannessValue::BigEndian => (padding, vec![]),
+                ast::EndiannessValue::LittleEndian => (vec![], padding),
+            };
+
             let wanted_len = syn::Index::from(offset + width / 8);
             let indices = (offset..offset + width / 8).map(syn::Index::from);
-            let padding = vec![syn::Index::from(0); (type_width - width) / 8];
             let mask = if *width != type_width {
                 Some(quote! {
                     let #field_name = #field_name & 0xfff;
@@ -174,7 +169,9 @@ fn generate_field_parser(
                         got: bytes.len(),
                     });
                 }
-                let #field_name = #field_type::#getter([#(bytes[#indices]),* #(, #padding)*]);
+                let #field_name = #field_type::#getter([
+                    #(#padding_before,)* #(bytes[#indices]),* #(, #padding_after)*
+                ]);
                 #mask
             }
         }
@@ -237,33 +234,29 @@ fn generate_packet_decl(
     let child_name = format_ident!("{id}Child");
     if has_children {
         let child_data_idents = child_idents.iter().map(|ident| format_ident!("{ident}Data"));
-        let _ = write!(
-            code,
-            "{}",
-            &quote_block! {
-                #[derive(Debug)]
-                enum #data_child_ident {
-                    #(#child_idents(Arc<#child_data_idents>),)*
-                    None,
-                }
+        code.push_str(&quote_block! {
+            #[derive(Debug)]
+            enum #data_child_ident {
+                #(#child_idents(Arc<#child_data_idents>),)*
+                None,
+            }
 
-                impl #data_child_ident {
-                    fn get_total_size(&self) -> usize {
-                        // TODO(mgeisler): use Self instad of #data_child_ident.
-                        match self {
-                            #(#data_child_ident::#child_idents(value) => value.get_total_size(),)*
-                            #data_child_ident::None => 0,
-                        }
+            impl #data_child_ident {
+                fn get_total_size(&self) -> usize {
+                    // TODO(mgeisler): use Self instad of #data_child_ident.
+                    match self {
+                        #(#data_child_ident::#child_idents(value) => value.get_total_size(),)*
+                        #data_child_ident::None => 0,
                     }
                 }
-
-                #[derive(Debug)]
-                pub enum #child_name {
-                    #(#child_idents(#child_decl_packet_name),)*
-                    None,
-                }
             }
-        );
+
+            #[derive(Debug)]
+            pub enum #child_name {
+                #(#child_idents(#child_decl_packet_name),)*
+                None,
+            }
+        });
     }
 
     let data_name = format_ident!("{id}Data");
@@ -273,17 +266,13 @@ fn generate_packet_decl(
         }
     });
     let plain_fields = fields.iter().map(|field| generate_field(field, parse_quote!()));
-    let _ = write!(
-        code,
-        "{}",
-        &quote_block! {
-            #[derive(Debug)]
-            struct #data_name {
-                #(#plain_fields,)*
-                #child_field
-            }
+    code.push_str(&quote_block! {
+        #[derive(Debug)]
+        struct #data_name {
+            #(#plain_fields,)*
+            #child_field
         }
-    );
+    });
 
     let parent = parent_id.as_ref().map(|parent_id| match packets.get(parent_id.as_str()) {
         Some(ast::Decl::Packet { id, .. }) => {
@@ -297,30 +286,22 @@ fn generate_packet_decl(
     });
 
     let packet_name = format_ident!("{id}Packet");
-    let _ = write!(
-        code,
-        "{}",
-        &quote_block! {
-            #[derive(Debug, Clone)]
-            pub struct #packet_name {
-                #parent
-                #ident: Arc<#data_name>,
-            }
+    code.push_str(&quote_block! {
+        #[derive(Debug, Clone)]
+        pub struct #packet_name {
+            #parent
+            #ident: Arc<#data_name>,
         }
-    );
+    });
 
     let builder_name = format_ident!("{id}Builder");
     let pub_fields = fields.iter().map(|field| generate_field(field, parse_quote!(pub)));
-    let _ = write!(
-        code,
-        "{}",
-        &quote_block! {
-            #[derive(Debug)]
-            pub struct #builder_name {
-                #(#pub_fields,)*
-            }
+    code.push_str(&quote_block! {
+        #[derive(Debug)]
+        pub struct #builder_name {
+            #(#pub_fields,)*
         }
-    );
+    });
 
     // TODO(mgeisler): use the `Buf` trait instead of tracking
     // the offset manually.
@@ -351,69 +332,61 @@ fn generate_packet_decl(
         })
     });
 
-    let _ = write!(
-        code,
-        "{}",
-        &quote_block! {
-            impl #data_name {
-                fn conforms(bytes: &[u8]) -> bool {
-                    // TODO(mgeisler): return Boolean expression directly.
-                    // TODO(mgeisler): skip when total_field_size == 0.
-                    if bytes.len() < #total_field_size {
-                        return false;
-                    }
-                    true
+    code.push_str(&quote_block! {
+        impl #data_name {
+            fn conforms(bytes: &[u8]) -> bool {
+                // TODO(mgeisler): return Boolean expression directly.
+                // TODO(mgeisler): skip when total_field_size == 0.
+                if bytes.len() < #total_field_size {
+                    return false;
                 }
+                true
+            }
 
-                fn parse(bytes: &[u8]) -> Result<Self> {
-                    #(#field_parsers)*
-                    Ok(Self { #(#field_names),* })
-                }
+            fn parse(bytes: &[u8]) -> Result<Self> {
+                #(#field_parsers)*
+                Ok(Self { #(#field_names),* })
+            }
 
-                fn write_to(&self, buffer: &mut BytesMut) {
-                    #(#field_writers)*
-                }
+            fn write_to(&self, buffer: &mut BytesMut) {
+                #(#field_writers)*
+            }
 
-                fn get_total_size(&self) -> usize {
-                    self.get_size()
-                }
+            fn get_total_size(&self) -> usize {
+                self.get_size()
+            }
 
-                fn get_size(&self) -> usize {
-                    let ret = 0;
-                    #get_size_adjustment
-                    ret
-                }
+            fn get_size(&self) -> usize {
+                let ret = 0;
+                #get_size_adjustment
+                ret
             }
         }
-    );
+    });
 
-    let _ = write!(
-        code,
-        "{}",
-        &quote_block! {
-            impl Packet for #packet_name {
-                fn to_bytes(self) -> Bytes {
-                    let mut buffer = BytesMut::new();
-                    buffer.resize(self.#ident.get_total_size(), 0);
-                    self.#ident.write_to(&mut buffer);
-                    buffer.freeze()
-                }
-                fn to_vec(self) -> Vec<u8> {
-                    self.to_bytes().to_vec()
-                }
+    code.push_str(&quote_block! {
+        impl Packet for #packet_name {
+            fn to_bytes(self) -> Bytes {
+                let mut buffer = BytesMut::new();
+                buffer.resize(self.#ident.get_total_size(), 0);
+                self.#ident.write_to(&mut buffer);
+                buffer.freeze()
             }
-            impl From<#packet_name> for Bytes {
-                fn from(packet: #packet_name) -> Self {
-                    packet.to_bytes()
-                }
-            }
-            impl From<#packet_name> for Vec<u8> {
-                fn from(packet: #packet_name) -> Self {
-                    packet.to_vec()
-                }
+            fn to_vec(self) -> Vec<u8> {
+                self.to_bytes().to_vec()
             }
         }
-    );
+        impl From<#packet_name> for Bytes {
+            fn from(packet: #packet_name) -> Self {
+                packet.to_bytes()
+            }
+        }
+        impl From<#packet_name> for Vec<u8> {
+            fn from(packet: #packet_name) -> Self {
+                packet.to_vec()
+            }
+        }
+    });
 
     let specialize = has_children.then(|| {
         quote! {
@@ -428,47 +401,39 @@ fn generate_packet_decl(
         }
     });
     let field_getters = fields.iter().map(|field| generate_field_getter(&ident, field));
-    let _ = write!(
-        code,
-        "{}",
-        &quote_block! {
-            impl #packet_name {
-                pub fn parse(bytes: &[u8]) -> Result<Self> {
-                    Ok(Self::new(Arc::new(#data_name::parse(bytes)?)).unwrap())
-                }
-
-                #specialize
-
-                fn new(root: Arc<#data_name>) -> std::result::Result<Self, &'static str> {
-                    let #ident = root;
-                    Ok(Self { #ident })
-                }
-
-                #(#field_getters)*
+    code.push_str(&quote_block! {
+        impl #packet_name {
+            pub fn parse(bytes: &[u8]) -> Result<Self> {
+                Ok(Self::new(Arc::new(#data_name::parse(bytes)?)).unwrap())
             }
+
+            #specialize
+
+            fn new(root: Arc<#data_name>) -> std::result::Result<Self, &'static str> {
+                let #ident = root;
+                Ok(Self { #ident })
+            }
+
+            #(#field_getters)*
         }
-    );
+    });
 
     let child = has_children.then(|| {
         quote! {
             child: #data_child_ident::None,
         }
     });
-    let _ = write!(
-        code,
-        "{}",
-        &quote_block! {
-            impl #builder_name {
-                pub fn build(self) -> #packet_name {
-                    let #ident = Arc::new(#data_name {
-                        #(#field_names: self.#field_names,)*
-                        #child
-                    });
-                    #packet_name::new(#ident).unwrap()
-                }
+    code.push_str(&quote_block! {
+        impl #builder_name {
+            pub fn build(self) -> #packet_name {
+                let #ident = Arc::new(#data_name {
+                    #(#field_names: self.#field_names,)*
+                    #child
+                });
+                #packet_name::new(#ident).unwrap()
             }
         }
-    );
+    });
 
     code
 }
@@ -528,7 +493,7 @@ mod tests {
     use super::*;
     use crate::ast;
     use crate::parser::parse_inline;
-    use crate::test_utils::{assert_snapshot_eq, rustfmt};
+    use crate::test_utils::{assert_eq_with_diff, assert_snapshot_eq, rustfmt};
 
     /// Parse a string fragment as a PDL file.
     ///
@@ -602,6 +567,92 @@ mod tests {
         assert_snapshot_eq(
             "tests/generated/packet_decl_simple_big_endian.rs",
             &rustfmt(&actual_code),
+        );
+    }
+
+    // Assert that an expression equals the given expression.
+    //
+    // Both expressions are wrapped in a `main` function (so we can
+    // format it with `rustfmt`) and a diff is be shown if they
+    // differ.
+    #[track_caller]
+    fn assert_expr_eq(left: proc_macro2::TokenStream, right: proc_macro2::TokenStream) {
+        let left = quote! {
+            fn main() { #left }
+        };
+        let right = quote! {
+            fn main() { #right }
+        };
+        assert_eq_with_diff(
+            "left",
+            &rustfmt(&left.to_string()),
+            "right",
+            &rustfmt(&right.to_string()),
+        );
+    }
+
+    #[test]
+    fn test_generate_field_parser_no_padding() {
+        let loc = ast::SourceRange::default();
+        let field = ast::Field::Scalar { loc, id: String::from("a"), width: 8 };
+
+        assert_expr_eq(
+            generate_field_parser(&ast::EndiannessValue::BigEndian, "Foo", &field, 10),
+            quote! {
+                if bytes.len() < 11 {
+                    return Err(Error::InvalidLengthError {
+                        obj: "Foo".to_string(),
+                        field: "a".to_string(),
+                        wanted: 11,
+                        got: bytes.len(),
+                    });
+                }
+                let a = u8::from_be_bytes([bytes[10]]);
+            },
+        );
+    }
+
+    #[test]
+    fn test_generate_field_parser_little_endian_padding() {
+        // Test with width != type width.
+        let loc = ast::SourceRange::default();
+        let field = ast::Field::Scalar { loc, id: String::from("a"), width: 24 };
+        assert_expr_eq(
+            generate_field_parser(&ast::EndiannessValue::LittleEndian, "Foo", &field, 10),
+            quote! {
+                if bytes.len() < 13 {
+                    return Err(Error::InvalidLengthError {
+                        obj: "Foo".to_string(),
+                        field: "a".to_string(),
+                        wanted: 13,
+                        got: bytes.len(),
+                    });
+                }
+                let a = u32::from_le_bytes([bytes[10], bytes[11], bytes[12], 0]);
+                let a = a & 0xfff;
+            },
+        );
+    }
+
+    #[test]
+    fn test_generate_field_parser_big_endian_padding() {
+        // Test with width != type width.
+        let loc = ast::SourceRange::default();
+        let field = ast::Field::Scalar { loc, id: String::from("a"), width: 24 };
+        assert_expr_eq(
+            generate_field_parser(&ast::EndiannessValue::BigEndian, "Foo", &field, 10),
+            quote! {
+                if bytes.len() < 13 {
+                    return Err(Error::InvalidLengthError {
+                        obj: "Foo".to_string(),
+                        field: "a".to_string(),
+                        wanted: 13,
+                        got: bytes.len(),
+                    });
+                }
+                let a = u32::from_be_bytes([0, bytes[10], bytes[11], bytes[12]]);
+                let a = a & 0xfff;
+            },
         );
     }
 }

@@ -240,5 +240,13 @@ bool ParseAvailableAudioContexts(struct acs_available_audio_contexts& rsp,
 bool ParseSupportedAudioContexts(struct acs_supported_audio_contexts& rsp,
                                  uint16_t len, const uint8_t* value);
 }  // namespace pacs
+
+namespace tmap {
+
+constexpr uint16_t kTmapRoleLen = 2;
+
+bool ParseTmapRole(std::bitset<16>& role, uint16_t len, const uint8_t* value);
+
+}  // namespace tmap
 }  // namespace client_parser
 }  // namespace le_audio

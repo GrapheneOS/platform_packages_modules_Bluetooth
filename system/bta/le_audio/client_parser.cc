@@ -657,5 +657,26 @@ bool ParseAvailableAudioContexts(struct acs_available_audio_contexts& contexts,
 }
 }  // namespace pacs
 
+namespace tmap {
+
+bool ParseTmapRole(std::bitset<16>& role, uint16_t len, const uint8_t* value) {
+  if (len != kTmapRoleLen) {
+    LOG_ERROR(
+        ", Wrong len of Telephony Media Audio Profile Role, "
+        "characteristic");
+    return false;
+  }
+
+  STREAM_TO_UINT16(role, value);
+
+  LOG_INFO(
+      ", Telephony Media Audio Profile Role:"
+      "\n\tRole: %s",
+      role.to_string().c_str());
+
+  return true;
+}
+}  // namespace tmap
+
 }  // namespace client_parser
 }  // namespace le_audio

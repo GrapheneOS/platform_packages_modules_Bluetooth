@@ -21,7 +21,7 @@
     <option name="test-suite-tag" value="apct" />
     <option name="test-tag" value="ServiceBluetoothTests" />
     <option name="config-descriptor:metadata" key="mainline-param"
-            value="com.google.android.bluetooth.apex" />
+            value="com.google.android.btservices.apex" />
     <test class="com.android.tradefed.testtype.AndroidJUnitTest" >
         <option name="package" value="com.android.server.bluetooth.test" />
         <option name="runner" value="com.android.server.bluetooth.CustomTestRunner" />
@@ -31,6 +31,6 @@
     <!-- Only run ServiceBluetoothTests in MTS if the Bluetooth Mainline module is installed. -->
     <object type="module_controller"
             class="com.android.tradefed.testtype.suite.module.MainlineTestModuleController">
-        <option name="mainline-module-package-name" value="com.google.android.bluetooth" />
+        <option name="mainline-module-package-name" value="com.android.btservices" />
     </object>
 </configuration>
