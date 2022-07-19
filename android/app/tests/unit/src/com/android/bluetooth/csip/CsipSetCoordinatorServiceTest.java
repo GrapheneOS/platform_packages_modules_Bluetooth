@@ -132,6 +132,14 @@ public class CsipSetCoordinatorServiceTest {
 
     @After
     public void tearDown() throws Exception {
+        if (mService == null) {
+            return;
+        }
+
+        if (Looper.myLooper() == null) {
+            return;
+        }
+
         stopService();
         mTargetContext.unregisterReceiver(mCsipSetCoordinatorIntentReceiver);
         TestUtils.clearAdapterService(mAdapterService);
