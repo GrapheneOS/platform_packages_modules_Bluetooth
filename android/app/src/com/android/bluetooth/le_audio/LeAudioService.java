@@ -122,6 +122,9 @@ public class LeAudioService extends ProfileService {
     LeAudioTmapGattServer mTmapGattServer;
 
     @VisibleForTesting
+    VolumeControlService mVolumeControlService;
+
+    @VisibleForTesting
     RemoteCallbackList<IBluetoothLeBroadcastCallback> mBroadcastCallbacks;
 
     @VisibleForTesting
@@ -379,6 +382,7 @@ public class LeAudioService extends ProfileService {
 
         mAdapterService = null;
         mAudioManager = null;
+        mVolumeControlService = null;
 
         return true;
     }
@@ -405,6 +409,18 @@ public class LeAudioService extends ProfileService {
             Log.d(TAG, "setLeAudioService(): set to: " + instance);
         }
         sLeAudioService = instance;
+    }
+
+    private int getGroupVolume(int groupId) {
+        if (mVolumeControlService == null) {
+            mVolumeControlService = mServiceFactory.getVolumeControlService();
+        }
+        if (mVolumeControlService == null) {
+            Log.e(TAG, "Volume control service is not available");
+            return -1;
+        }
+
+        return mVolumeControlService.getGroupVolume(groupId);
     }
 
     public boolean connect(BluetoothDevice device) {
@@ -822,6 +838,7 @@ public class LeAudioService extends ProfileService {
                         + previousInDevice + ", mActiveAudioInDevice" + mActiveAudioInDevice
                         + " isLeOutput: false");
             }
+
             mAudioManager.handleBluetoothActiveDeviceChanged(mActiveAudioInDevice,previousInDevice,
                     BluetoothProfileConnectionInfo.createLeAudioInfo(false, false));
 
@@ -890,9 +907,14 @@ public class LeAudioService extends ProfileService {
                         + previousOutDevice + ", mActiveOutDevice: " + mActiveAudioOutDevice
                         + " isLeOutput: true");
             }
+            int volume = -1;
+            if (mActiveAudioOutDevice != null) {
+                volume = getGroupVolume(groupId);
+            }
+
             mAudioManager.handleBluetoothActiveDeviceChanged(mActiveAudioOutDevice,
                     previousOutDevice,
-                    BluetoothProfileConnectionInfo.createLeAudioInfo(suppressNoisyIntent, true));
+                    getLeAudioOutputProfile(suppressNoisyIntent, volume));
             return true;
         }
         Log.d(TAG, "updateActiveOutDevice: Nothing to do.");
@@ -1051,6 +1073,22 @@ public class LeAudioService extends ProfileService {
         parcel.writeBoolean(suppressNoisyIntent);
         parcel.writeInt(-1 /* mVolume */);
         parcel.writeBoolean(true /* mIsLeOutput */);
+        parcel.setDataPosition(0);
+
+        BluetoothProfileConnectionInfo profileInfo =
+                BluetoothProfileConnectionInfo.CREATOR.createFromParcel(parcel);
+        parcel.recycle();
+        return profileInfo;
+    }
+
+    BluetoothProfileConnectionInfo getLeAudioOutputProfile(boolean suppressNoisyIntent,
+            int volume) {
+        /* TODO - b/236618595 */
+        Parcel parcel = Parcel.obtain();
+        parcel.writeInt(BluetoothProfile.LE_AUDIO);
+        parcel.writeBoolean(suppressNoisyIntent);
+        parcel.writeInt(volume);
+        parcel.writeBoolean(true /* isLeOutput */);
         parcel.setDataPosition(0);
 
         BluetoothProfileConnectionInfo profileInfo =
@@ -1757,9 +1795,11 @@ public class LeAudioService extends ProfileService {
             return;
         }
 
-        VolumeControlService service = mServiceFactory.getVolumeControlService();
-        if (service != null) {
-            service.setVolumeGroup(currentlyActiveGroupId, volume);
+        if (mVolumeControlService == null) {
+            mVolumeControlService = mServiceFactory.getVolumeControlService();
+        }
+        if (mVolumeControlService != null) {
+            mVolumeControlService.setGroupVolume(currentlyActiveGroupId, volume);
         }
     }
 
