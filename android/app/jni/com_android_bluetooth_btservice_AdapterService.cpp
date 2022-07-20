@@ -71,6 +71,7 @@ static jmethodID method_pinRequestCallback;
 static jmethodID method_sspRequestCallback;
 static jmethodID method_bondStateChangeCallback;
 static jmethodID method_addressConsolidateCallback;
+static jmethodID method_leAddressAssociateCallback;
 static jmethodID method_aclStateChangeCallback;
 static jmethodID method_discoveryStateChangeCallback;
 static jmethodID method_linkQualityReportCallback;
@@ -333,6 +334,34 @@ static void address_consolidate_callback(RawAddress* main_bd_addr,
 
   sCallbackEnv->CallVoidMethod(sJniCallbacksObj,
                                method_addressConsolidateCallback,
+                               main_addr.get(), secondary_addr.get());
+}
+
+static void le_address_associate_callback(RawAddress* main_bd_addr,
+                                          RawAddress* secondary_bd_addr) {
+  CallbackEnv sCallbackEnv(__func__);
+
+  ScopedLocalRef<jbyteArray> main_addr(
+      sCallbackEnv.get(), sCallbackEnv->NewByteArray(sizeof(RawAddress)));
+  if (!main_addr.get()) {
+    ALOGE("Address allocation failed in %s", __func__);
+    return;
+  }
+  sCallbackEnv->SetByteArrayRegion(main_addr.get(), 0, sizeof(RawAddress),
+                                   (jbyte*)main_bd_addr);
+
+  ScopedLocalRef<jbyteArray> secondary_addr(
+      sCallbackEnv.get(), sCallbackEnv->NewByteArray(sizeof(RawAddress)));
+  if (!secondary_addr.get()) {
+    ALOGE("Address allocation failed in %s", __func__);
+    return;
+  }
+
+  sCallbackEnv->SetByteArrayRegion(secondary_addr.get(), 0, sizeof(RawAddress),
+                                   (jbyte*)secondary_bd_addr);
+
+  sCallbackEnv->CallVoidMethod(sJniCallbacksObj,
+                               method_leAddressAssociateCallback,
                                main_addr.get(), secondary_addr.get());
 }
 
@@ -696,6 +725,7 @@ static bt_callbacks_t sBluetoothCallbacks = {sizeof(sBluetoothCallbacks),
                                              ssp_request_callback,
                                              bond_state_changed_callback,
                                              address_consolidate_callback,
+                                             le_address_associate_callback,
                                              acl_state_changed_callback,
                                              callback_thread_event,
                                              dut_mode_recv_callback,
@@ -921,6 +951,9 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
 
   method_addressConsolidateCallback = env->GetMethodID(
       jniCallbackClass, "addressConsolidateCallback", "([B[B)V");
+
+  method_leAddressAssociateCallback = env->GetMethodID(
+      jniCallbackClass, "leAddressAssociateCallback", "([B[B)V");
 
   method_aclStateChangeCallback =
       env->GetMethodID(jniCallbackClass, "aclStateChangeCallback", "(I[BIII)V");
