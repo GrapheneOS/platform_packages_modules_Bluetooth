@@ -702,6 +702,7 @@ pub enum BaseCallbacks {
     SspRequest(RawAddress, String, u32, BtSspVariant, u32),
     BondState(BtStatus, RawAddress, BtBondState, i32),
     AddressConsolidate(RawAddress, RawAddress),
+    LeAddressAssociate(RawAddress, RawAddress),
     AclState(BtStatus, RawAddress, BtAclState, BtTransport, BtHciErrorCode),
     // Unimplemented so far:
     // thread_evt_cb
@@ -752,6 +753,12 @@ u32 -> BtStatus, *mut FfiAddress, bindings::bt_bond_state_t -> BtBondState, i32,
 });
 
 cb_variant!(BaseCb, address_consolidate_cb -> BaseCallbacks::AddressConsolidate,
+*mut FfiAddress, *mut FfiAddress, {
+    let _0 = unsafe { *(_0 as *const RawAddress) };
+    let _1 = unsafe { *(_1 as *const RawAddress) };
+});
+
+cb_variant!(BaseCb, le_address_associate_cb -> BaseCallbacks::LeAddressAssociate,
 *mut FfiAddress, *mut FfiAddress, {
     let _0 = unsafe { *(_0 as *const RawAddress) };
     let _1 = unsafe { *(_1 as *const RawAddress) };
@@ -871,6 +878,7 @@ impl BluetoothInterface {
             ssp_request_cb: Some(ssp_request_cb),
             bond_state_changed_cb: Some(bond_state_cb),
             address_consolidate_cb: Some(address_consolidate_cb),
+            le_address_associate_cb: Some(le_address_associate_cb),
             acl_state_changed_cb: Some(acl_state_cb),
             thread_evt_cb: None,
             dut_mode_recv_cb: None,

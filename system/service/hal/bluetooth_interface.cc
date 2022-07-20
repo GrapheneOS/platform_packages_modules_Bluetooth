@@ -156,6 +156,11 @@ void AddressConsolidateCallback(RawAddress* main_bd_addr,
   // Do nothing
 }
 
+void LeAddressAssociateCallback(RawAddress* main_bd_addr,
+                                RawAddress* secondary_bd_addr) {
+  // Do nothing
+}
+
 void AclStateChangedCallback(bt_status_t status, RawAddress* remote_bd_addr,
                              bt_acl_state_t state, int transport_link_type,
                              bt_hci_error_code_t hci_reason) {
@@ -250,6 +255,7 @@ bt_callbacks_t bt_callbacks = {
     SSPRequestCallback,
     BondStateChangedCallback,
     AddressConsolidateCallback,
+    LeAddressAssociateCallback,
     AclStateChangedCallback,
     ThreadEventCallback,
     nullptr, /* dut_mode_recv_cb */

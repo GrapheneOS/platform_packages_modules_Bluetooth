@@ -71,6 +71,10 @@ final class JniCallbacks {
         mRemoteDevices.addressConsolidateCallback(mainAddress, secondaryAddress);
     }
 
+    void leAddressAssociateCallback(byte[] mainAddress, byte[] secondaryAddress) {
+        mRemoteDevices.leAddressAssociateCallback(mainAddress, secondaryAddress);
+    }
+
     void aclStateChangeCallback(int status, byte[] address, int newState,
             int transportLinkType, int hciReason) {
         mRemoteDevices.aclStateChangeCallback(status, address, newState,
