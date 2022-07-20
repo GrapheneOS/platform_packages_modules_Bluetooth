@@ -152,11 +152,11 @@ void LeAudioDeviceGroup::Deactivate(void) {
   }
 }
 
-void LeAudioDeviceGroup::Activate(void) {
+void LeAudioDeviceGroup::Activate(LeAudioContextType context_type) {
   for (auto leAudioDevice : leAudioDevices_) {
     if (leAudioDevice.expired()) continue;
 
-    leAudioDevice.lock()->ActivateConfiguredAses();
+    leAudioDevice.lock()->ActivateConfiguredAses(context_type);
   }
 }
 
@@ -1023,6 +1023,7 @@ bool LeAudioDevice::ConfigureAses(
 
   for (; needed_ase && ase; needed_ase--) {
     ase->active = true;
+    ase->configured_for_context_type = context_type;
     active_ases++;
 
     if (ase->state == AseState::BTA_LE_AUDIO_ASE_STATE_CODEC_CONFIGURED)
@@ -1779,7 +1780,7 @@ AudioContexts LeAudioDevice::SetAvailableContexts(AudioContexts snk_contexts,
   return updated_contexts;
 }
 
-void LeAudioDevice::ActivateConfiguredAses(void) {
+void LeAudioDevice::ActivateConfiguredAses(LeAudioContextType context_type) {
   if (conn_id_ == GATT_INVALID_CONN_ID) {
     LOG_DEBUG(" Device %s is not connected ", address_.ToString().c_str());
     return;
@@ -1788,7 +1789,8 @@ void LeAudioDevice::ActivateConfiguredAses(void) {
   LOG_DEBUG(" Configuring device %s", address_.ToString().c_str());
   for (auto& ase : ases_) {
     if (!ase.active &&
-        ase.state == AseState::BTA_LE_AUDIO_ASE_STATE_CODEC_CONFIGURED) {
+        ase.state == AseState::BTA_LE_AUDIO_ASE_STATE_CODEC_CONFIGURED &&
+        ase.configured_for_context_type == context_type) {
       LOG_DEBUG(" Ase id %d, cis id %d activated.", ase.id, ase.cis_id);
       ase.active = true;
     }

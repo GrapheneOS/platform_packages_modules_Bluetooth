@@ -51,7 +51,6 @@ import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 import com.android.internal.annotations.VisibleForTesting;
 
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -186,8 +185,8 @@ public class BassClientService extends ProfileService {
     }
 
     void setActiveSyncedSource(BluetoothDevice scanDelegator, BluetoothDevice sourceDevice) {
-        log("setActiveSyncedSource: scanDelegator" + scanDelegator
-                + ":: sourceDevice:" + sourceDevice);
+        log("setActiveSyncedSource, scanDelegator: " + scanDelegator + ", sourceDevice: " +
+            sourceDevice);
         if (sourceDevice == null) {
             mActiveSourceMap.remove(scanDelegator);
         } else {
@@ -399,8 +398,8 @@ public class BassClientService extends ProfileService {
             Log.e(TAG, "connect: device is null");
             return false;
         }
-        if (getConnectionPolicy(device) == BluetoothProfile.CONNECTION_POLICY_UNKNOWN) {
-            Log.e(TAG, "connect: unknown connection policy");
+        if (getConnectionPolicy(device) == BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
+            Log.e(TAG, "connect: connection policy set to forbidden");
             return false;
         }
         synchronized (mStateMachines) {
@@ -860,8 +859,11 @@ public class BassClientService extends ProfileService {
                     BassClientStateMachine.UPDATE_BCAST_SOURCE);
             message.arg1 = sourceId;
             message.arg2 = BluetoothLeBroadcastReceiveState.PA_SYNC_STATE_IDLE;
+            /* Pending remove set. Remove source once not synchronized to PA */
             message.obj = metaData;
             stateMachine.sendMessage(message);
+
+            return;
         }
         Message message = stateMachine.obtainMessage(BassClientStateMachine.REMOVE_BCAST_SOURCE);
         message.arg1 = sourceId;
