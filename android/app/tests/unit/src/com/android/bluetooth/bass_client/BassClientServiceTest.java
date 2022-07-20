@@ -126,6 +126,10 @@ public class BassClientServiceTest {
 
     @After
     public void tearDown() throws Exception {
+        if (mBassClientService == null) {
+            return;
+        }
+
         TestUtils.stopService(mServiceRule, BassClientService.class);
         mBassClientService = BassClientService.getBassClientService();
         assertThat(mBassClientService).isNull();

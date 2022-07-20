@@ -146,6 +146,10 @@ public class MediaControlProfileTest {
     public void tearDown() throws Exception {
         TestUtils.clearAdapterService(mAdapterService);
 
+        if (mMediaControlProfile == null) {
+            return;
+        }
+
         mMediaControlProfile.cleanup();
         mMediaControlProfile = null;
         reset(mMockMediaPlayerList);
