@@ -2985,16 +2985,21 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
 
             String launcherActivity = "com.android.bluetooth.opp.BluetoothOppLauncherActivity";
 
-            PackageManager packageManager = mContext.createContextAsUser(userHandle, 0)
+            PackageManager systemPackageManager = mContext.getPackageManager();
+            PackageManager userPackageManager = mContext.createContextAsUser(userHandle, 0)
                                                         .getPackageManager();
-            var allPackages = packageManager.getPackagesForUid(Process.BLUETOOTH_UID);
+            var allPackages = systemPackageManager.getPackagesForUid(Process.BLUETOOTH_UID);
             for (String candidatePackage : allPackages) {
+                Log.v(TAG, "Searching package " + candidatePackage);
                 PackageInfo packageInfo;
                 try {
-                    // note: we need the package manager for the SYSTEM user, not our userHandle
-                    packageInfo = mContext.getPackageManager().getPackageInfo(
+                    packageInfo = systemPackageManager.getPackageInfo(
                         candidatePackage,
-                        PackageManager.PackageInfoFlags.of(PackageManager.GET_ACTIVITIES));
+                        PackageManager.PackageInfoFlags.of(
+                            PackageManager.GET_ACTIVITIES
+                            | PackageManager.MATCH_ANY_USER
+                            | PackageManager.MATCH_UNINSTALLED_PACKAGES
+                            | PackageManager.MATCH_DISABLED_COMPONENTS));
                 } catch (PackageManager.NameNotFoundException e) {
                     // ignore, try next package
                     Log.e(TAG, "Could not find package " + candidatePackage);
@@ -3007,11 +3012,12 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
                     continue;
                 }
                 for (var activity : packageInfo.activities) {
+                    Log.v(TAG, "Checking activity " + activity.name);
                     if (launcherActivity.equals(activity.name)) {
                         final ComponentName oppLauncherComponent = new ComponentName(
                                 candidatePackage, launcherActivity
                         );
-                        packageManager.setComponentEnabledSetting(
+                        userPackageManager.setComponentEnabledSetting(
                                 oppLauncherComponent, newState, PackageManager.DONT_KILL_APP
                         );
                         return;
