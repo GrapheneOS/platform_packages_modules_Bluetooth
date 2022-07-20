@@ -214,7 +214,12 @@ struct eatt_impl {
           FROM_HERE,
           base::BindOnce(&eatt_impl::connect_eatt_wrap, base::Unretained(this),
                          std::move(eatt_dev)),
-          base::TimeDelta::FromMilliseconds(500));
+#if BASE_VER < 931007
+          base::TimeDelta::FromMilliseconds(500)
+#else
+          base::Milliseconds(500)
+#endif
+      );
 
       LOG_INFO("Scheduled peripheral connect eatt for device with status: %d",
                (int)status);
