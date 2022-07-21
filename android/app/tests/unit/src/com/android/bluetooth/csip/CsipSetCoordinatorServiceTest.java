@@ -57,6 +57,8 @@ import org.mockito.MockitoAnnotations;
 @MediumTest
 @RunWith(AndroidJUnit4.class)
 public class CsipSetCoordinatorServiceTest {
+    private final String mFlagDexmarker = System.getProperty("dexmaker.share_classloader", "false");
+
     public final ServiceTestRule mServiceRule = new ServiceTestRule();
     private Context mTargetContext;
     private BluetoothAdapter mAdapter;
@@ -73,11 +75,14 @@ public class CsipSetCoordinatorServiceTest {
     @Mock private AdapterService mAdapterService;
     @Mock private DatabaseManager mDatabaseManager;
     @Mock private CsipSetCoordinatorNativeInterface mCsipSetCoordinatorNativeInterface;
-    @Mock private CsipSetCoordinatorService mCsipSetCoordinatorService;
     @Mock private IBluetoothCsipSetCoordinatorLockCallback mCsipSetCoordinatorLockCallback;
 
     @Before
     public void setUp() throws Exception {
+        if (!mFlagDexmarker.equals("true")) {
+            System.setProperty("dexmaker.share_classloader", "true");
+        }
+
         mTargetContext = InstrumentationRegistry.getTargetContext();
         if (Looper.myLooper() == null) {
             Looper.prepare();
@@ -132,11 +137,15 @@ public class CsipSetCoordinatorServiceTest {
 
     @After
     public void tearDown() throws Exception {
-        if (mService == null) {
-            return;
+        if (!mFlagDexmarker.equals("true")) {
+            System.setProperty("dexmaker.share_classloader", mFlagDexmarker);
         }
 
         if (Looper.myLooper() == null) {
+            return;
+        }
+
+        if (mService == null) {
             return;
         }
 
