@@ -563,7 +563,7 @@ bt_status_t btif_hh_connect(const RawAddress* bd_addr) {
     BTIF_TRACE_WARNING(
         "%s: Error, exceeded the maximum supported HID device number %d",
         __func__, BTIF_HH_MAX_HID);
-    return BT_STATUS_FAIL;
+    return BT_STATUS_NOMEM;
   }
 
   for (int i = 0; i < BTIF_HH_MAX_ADDED_DEV; i++) {
@@ -582,7 +582,7 @@ bt_status_t btif_hh_connect(const RawAddress* bd_addr) {
                  << " added but addition failed";
       added_dev->bd_addr = RawAddress::kEmpty;
       added_dev->dev_handle = BTA_HH_INVALID_HANDLE;
-      return BT_STATUS_FAIL;
+      return BT_STATUS_NOMEM;
     }
   }
 
