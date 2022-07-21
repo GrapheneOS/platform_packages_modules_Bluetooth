@@ -66,6 +66,8 @@ import java.util.concurrent.TimeoutException;
 @MediumTest
 @RunWith(AndroidJUnit4.class)
 public class HapClientTest {
+    private final String mFlagDexmarker = System.getProperty("dexmaker.share_classloader", "false");
+
     private static final int TIMEOUT_MS = 1000;
     @Rule
     public final ServiceTestRule mServiceRule = new ServiceTestRule();
@@ -95,6 +97,10 @@ public class HapClientTest {
 
     @Before
     public void setUp() throws Exception {
+        if (!mFlagDexmarker.equals("true")) {
+            System.setProperty("dexmaker.share_classloader", "true");
+        }
+
         mTargetContext = InstrumentationRegistry.getTargetContext();
         // Set up mocks and test assets
         MockitoAnnotations.initMocks(this);
@@ -134,6 +140,21 @@ public class HapClientTest {
         mDevice3 = TestUtils.getTestDevice(mAdapter, 2);
         when(mNativeInterface.getDevice(getByteAddress(mDevice3))).thenReturn(mDevice3);
 
+        doCallRealMethod().when(mNativeInterface)
+                .sendMessageToService(any(HapClientStackEvent.class));
+        doCallRealMethod().when(mNativeInterface).onFeaturesUpdate(any(byte[].class), anyInt());
+        doCallRealMethod().when(mNativeInterface).onDeviceAvailable(any(byte[].class), anyInt());
+        doCallRealMethod().when(mNativeInterface)
+                .onActivePresetSelected(any(byte[].class), anyInt());
+        doCallRealMethod().when(mNativeInterface)
+                .onActivePresetSelectError(any(byte[].class), anyInt());
+        doCallRealMethod().when(mNativeInterface)
+                .onPresetNameSetError(any(byte[].class), anyInt(), anyInt());
+        doCallRealMethod().when(mNativeInterface)
+                .onPresetInfo(any(byte[].class), anyInt(), any(BluetoothHapPresetInfo[].class));
+        doCallRealMethod().when(mNativeInterface)
+                .onGroupPresetNameSetError(anyInt(), anyInt(), anyInt());
+
         /* Prepare CAS groups */
         doReturn(Arrays.asList(0x02, 0x03)).when(mCsipService).getAllGroupIds(BluetoothUuid.CAP);
 
@@ -170,6 +191,10 @@ public class HapClientTest {
 
     @After
     public void tearDown() throws Exception {
+        if (!mFlagDexmarker.equals("true")) {
+            System.setProperty("dexmaker.share_classloader", mFlagDexmarker);
+        }
+
         if (mService == null) {
             return;
         }
@@ -177,11 +202,19 @@ public class HapClientTest {
         mService.mCallbacks.unregister(mCallback);
 
         stopService();
-        mTargetContext.unregisterReceiver(mHasIntentReceiver);
+
+        if (mHasIntentReceiver != null) {
+            mTargetContext.unregisterReceiver(mHasIntentReceiver);
+        }
 
         mAdapter = null;
-        TestUtils.clearAdapterService(mAdapterService);
-        mIntentQueue.clear();
+
+        if (mAdapterService != null) {
+            TestUtils.clearAdapterService(mAdapterService);
+        }
+
+        if (mIntentQueue != null)
+            mIntentQueue.clear();
     }
 
     private void startService() throws TimeoutException {
