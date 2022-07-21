@@ -55,6 +55,9 @@ pub(crate) struct ClientContext {
     /// session starts so that previous results don't pollute current search.
     pub(crate) found_devices: HashMap<String, BluetoothDevice>,
 
+    /// List of bonded devices.
+    pub(crate) bonded_devices: HashMap<String, BluetoothDevice>,
+
     /// If set, the registered GATT client id. None otherwise.
     pub(crate) gatt_client_id: Option<i32>,
 
@@ -102,6 +105,7 @@ impl ClientContext {
             bonding_attempt: None,
             discovering_state: false,
             found_devices: HashMap::new(),
+            bonded_devices: HashMap::new(),
             gatt_client_id: None,
             manager_dbus,
             adapter_dbus: None,
@@ -163,6 +167,15 @@ impl ClientContext {
         address
     }
 
+    // Foreground-only: Updates bonded devices.
+    fn update_bonded_devices(&mut self) {
+        let bonded_devices = self.adapter_dbus.as_ref().unwrap().get_bonded_devices();
+
+        for device in bonded_devices {
+            self.bonded_devices.insert(device.address.clone(), device.clone());
+        }
+    }
+
     fn connect_all_enabled_profiles(&mut self, device: BluetoothDevice) {
         let fg = self.fg.clone();
         tokio::spawn(async move {
@@ -175,6 +188,23 @@ impl ClientContext {
         tokio::spawn(async move {
             let _ = fg.send(ForegroundActions::RunCallback(callback)).await;
         });
+    }
+
+    fn get_devices(&self) -> Vec<String> {
+        let mut result: Vec<String> = vec![];
+
+        result.extend(
+            self.found_devices.keys().map(|key| String::from(key)).collect::<Vec<String>>(),
+        );
+        result.extend(
+            self.bonded_devices
+                .keys()
+                .filter(|key| !self.found_devices.contains_key(&String::from(*key)))
+                .map(|key| String::from(key))
+                .collect::<Vec<String>>(),
+        );
+
+        result
     }
 }
 
@@ -282,14 +312,15 @@ async fn start_interactive_shell(
     mut rx: mpsc::Receiver<ForegroundActions>,
     context: Arc<Mutex<ClientContext>>,
 ) {
-    let command_list = handler.get_command_list().clone();
+    let command_rule_list = handler.get_command_rule_list().clone();
+    let context_for_closure = context.clone();
 
     let semaphore_fg = Arc::new(tokio::sync::Semaphore::new(1));
 
     // Async task to keep reading new lines from user
     let semaphore = semaphore_fg.clone();
     tokio::spawn(async move {
-        let editor = AsyncEditor::new(command_list);
+        let editor = AsyncEditor::new(command_rule_list, context_for_closure);
 
         loop {
             // Wait until ForegroundAction::Readline finishes its task.
@@ -403,6 +434,8 @@ async fn start_interactive_shell(
 
                 context.lock().unwrap().adapter_ready = true;
                 let adapter_address = context.lock().unwrap().update_adapter_address();
+                context.lock().unwrap().update_bonded_devices();
+
                 print_info!("Adapter {} is ready", adapter_address);
             }
             ForegroundActions::Readline(result) => match result {
