@@ -25,6 +25,7 @@ fn _noop(_handler: &mut CommandHandler, _args: &Vec<String>) {
 }
 
 pub struct CommandOption {
+    rules: Vec<String>,
     description: String,
     function_pointer: CommandFunction,
 }
@@ -84,6 +85,7 @@ fn build_commands() -> HashMap<String, CommandOption> {
     command_options.insert(
         String::from("adapter"),
         CommandOption {
+            rules: vec![String::from("adapter <enable|disable|show>")],
             description: String::from(
                 "Enable/Disable/Show default bluetooth adapter. (e.g. adapter enable)\n
                  Discoverable On/Off (e.g. adapter discoverable on)",
@@ -94,6 +96,7 @@ fn build_commands() -> HashMap<String, CommandOption> {
     command_options.insert(
         String::from("bond"),
         CommandOption {
+            rules: vec![String::from("bond <add|remove|cancel> <address>")],
             description: String::from("Creates a bond with a device."),
             function_pointer: CommandHandler::cmd_bond,
         },
@@ -101,6 +104,7 @@ fn build_commands() -> HashMap<String, CommandOption> {
     command_options.insert(
         String::from("device"),
         CommandOption {
+            rules: vec![String::from("device <connect|disconnect|info|set-alias> <address>")],
             description: String::from("Take action on a remote device. (i.e. info)"),
             function_pointer: CommandHandler::cmd_device,
         },
@@ -108,6 +112,7 @@ fn build_commands() -> HashMap<String, CommandOption> {
     command_options.insert(
         String::from("discovery"),
         CommandOption {
+            rules: vec![String::from("discovery <start|stop>")],
             description: String::from("Start and stop device discovery. (e.g. discovery start)"),
             function_pointer: CommandHandler::cmd_discovery,
         },
@@ -115,6 +120,7 @@ fn build_commands() -> HashMap<String, CommandOption> {
     command_options.insert(
         String::from("floss"),
         CommandOption {
+            rules: vec![String::from("floss <enable|disable>")],
             description: String::from("Enable or disable Floss for dogfood."),
             function_pointer: CommandHandler::cmd_floss,
         },
@@ -122,6 +128,12 @@ fn build_commands() -> HashMap<String, CommandOption> {
     command_options.insert(
         String::from("gatt"),
         CommandOption {
+            rules: vec![
+                String::from("gatt register-client"),
+                String::from("gatt client-connect <address>"),
+                String::from("gatt client-read-phy <address>"),
+                String::from("gatt client-discover-services <address>"),
+            ],
             description: String::from("GATT tools"),
             function_pointer: CommandHandler::cmd_gatt,
         },
@@ -129,6 +141,10 @@ fn build_commands() -> HashMap<String, CommandOption> {
     command_options.insert(
         String::from("le-scan"),
         CommandOption {
+            rules: vec![
+                String::from("le-scan register-scanner"),
+                String::from("le-scan unregister-scanner <scanner-id>"),
+            ],
             description: String::from("LE scanning utilities."),
             function_pointer: CommandHandler::cmd_le_scan,
         },
@@ -136,6 +152,7 @@ fn build_commands() -> HashMap<String, CommandOption> {
     command_options.insert(
         String::from("get-address"),
         CommandOption {
+            rules: vec![String::from("get-address")],
             description: String::from("Gets the local device address."),
             function_pointer: CommandHandler::cmd_get_address,
         },
@@ -143,6 +160,7 @@ fn build_commands() -> HashMap<String, CommandOption> {
     command_options.insert(
         String::from("help"),
         CommandOption {
+            rules: vec![String::from("help")],
             description: String::from("Shows this menu."),
             function_pointer: CommandHandler::cmd_help,
         },
@@ -150,6 +168,7 @@ fn build_commands() -> HashMap<String, CommandOption> {
     command_options.insert(
         String::from("list"),
         CommandOption {
+            rules: vec![String::from("list <bonded|found>")],
             description: String::from(
                 "List bonded or found remote devices. Use: list <bonded|found>",
             ),
@@ -159,6 +178,7 @@ fn build_commands() -> HashMap<String, CommandOption> {
     command_options.insert(
         String::from("quit"),
         CommandOption {
+            rules: vec![String::from("quit")],
             description: String::from("Quit out of the interactive shell."),
             function_pointer: _noop,
         },
@@ -713,9 +733,9 @@ impl CommandHandler {
         });
     }
 
-    /// Get the list of currently supported commands
-    pub fn get_command_list(&self) -> Vec<String> {
-        self.command_options.keys().map(|key| String::from(key)).collect::<Vec<String>>()
+    /// Get the list of rules of supported commands
+    pub fn get_command_rule_list(&self) -> Vec<String> {
+        self.command_options.values().flat_map(|cmd| cmd.rules.clone()).collect()
     }
 
     fn cmd_list_devices(&mut self, args: &Vec<String>) {
