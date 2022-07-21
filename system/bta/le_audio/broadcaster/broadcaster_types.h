@@ -87,7 +87,7 @@ struct BroadcastCodecWrapper {
   }
 
   uint16_t GetMaxSduSize() const {
-    return GetNumChannels() * GetMaxSduSizePerChannel();
+    return GetNumChannelsPerBis() * GetMaxSduSizePerChannel();
   }
 
   const LeAudioCodecConfiguration& GetLeAudioCodecConfiguration() const {
@@ -110,6 +110,11 @@ struct BroadcastCodecWrapper {
 
   uint32_t GetDataIntervalUs() const {
     return source_codec_config.data_interval_us;
+  }
+
+  uint8_t GetNumChannelsPerBis() const {
+    // TODO: Need to handle each BIS has more than one channel case
+    return 1;
   }
 
  private:
