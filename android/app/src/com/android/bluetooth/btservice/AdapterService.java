@@ -3860,7 +3860,7 @@ public class AdapterService extends Service {
 
     public byte[] getByteIdentityAddress(BluetoothDevice device) {
         DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
-        if (deviceProp != null && deviceProp.isConsolidated()) {
+        if (deviceProp != null && deviceProp.getIdentityAddress() != null) {
             return Utils.getBytesFromAddress(deviceProp.getIdentityAddress());
         } else {
             return Utils.getByteAddress(device);
@@ -3878,7 +3878,7 @@ public class AdapterService extends Service {
     public String getIdentityAddress(String address) {
         BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address.toUpperCase());
         DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
-        if (deviceProp != null && deviceProp.isConsolidated()) {
+        if (deviceProp != null && deviceProp.getIdentityAddress() != null) {
             return deviceProp.getIdentityAddress();
         } else {
             return address;
