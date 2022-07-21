@@ -34,11 +34,15 @@
 #include "main/shim/dumpsys.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
+#include "stack/btm/btm_int_types.h"
 #include "stack/btm/btm_sco.h"
 #include "stack/btm/btm_sco_hfp_hal.h"
+#include "stack/include/acl_api.h"
 #include "stack/include/btm_api.h"
 #include "stack/include/btu.h"  // do_in_main_thread
 #include "types/raw_address.h"
+
+extern tBTM_CB btm_cb;
 
 /* Codec negotiation timeout */
 #ifndef BTA_AG_CODEC_NEGOTIATION_TIMEOUT_MS
@@ -510,6 +514,15 @@ static void bta_ag_create_pending_sco(tBTA_AG_SCB* p_scb, bool is_local) {
     } else {
       // HFP <=1.6 eSCO
       params = esco_parameters_for_codec(ESCO_CODEC_CVSD_S3, offload);
+    }
+
+    // HFP v1.8 5.7.3 CVSD coding
+    tSCO_CONN* p_sco = NULL;
+    if (p_scb->sco_idx < BTM_MAX_SCO_LINKS)
+      p_sco = &btm_cb.sco_cb.sco_db[p_scb->sco_idx];
+    if (p_sco && (p_sco->esco.data.link_type == BTM_LINK_TYPE_SCO ||
+                  !sco_peer_supports_esco_ev3(p_sco->esco.data.bd_addr))) {
+      params = esco_parameters_for_codec(SCO_CODEC_CVSD_D1, offload);
     }
 
     BTM_EScoConnRsp(p_scb->sco_idx, HCI_SUCCESS, &params);
