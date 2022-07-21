@@ -47,6 +47,8 @@ import org.mockito.MockitoAnnotations;
 @MediumTest
 @RunWith(AndroidJUnit4.class)
 public class CsipSetCoordinatorStateMachineTest {
+    private final String mFlagDexmarker = System.getProperty("dexmaker.share_classloader", "false");
+
     private Context mTargetContext;
     private BluetoothAdapter mAdapter;
     private BluetoothDevice mTestDevice;
@@ -60,6 +62,10 @@ public class CsipSetCoordinatorStateMachineTest {
 
     @Before
     public void setUp() throws Exception {
+        if (!mFlagDexmarker.equals("true")) {
+            System.setProperty("dexmaker.share_classloader", "true");
+        }
+
         mTargetContext = InstrumentationRegistry.getTargetContext();
         // Set up mocks and test assets
         MockitoAnnotations.initMocks(this);
@@ -83,6 +89,9 @@ public class CsipSetCoordinatorStateMachineTest {
 
     @After
     public void tearDown() throws Exception {
+        if (!mFlagDexmarker.equals("true")) {
+            System.setProperty("dexmaker.share_classloader", mFlagDexmarker);
+        }
         mStateMachine.doQuit();
         mHandlerThread.quit();
         TestUtils.clearAdapterService(mAdapterService);
