@@ -619,7 +619,6 @@ pub fn dbus_propmap(attr: TokenStream, item: TokenStream) -> TokenStream {
 
                 return Ok(#struct_ident {
                     #field_idents
-                    ..Default::default()
                 });
             }
 

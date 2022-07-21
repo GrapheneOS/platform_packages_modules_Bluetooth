@@ -175,7 +175,7 @@ impl From<u32> for BtDiscoveryState {
     }
 }
 
-#[derive(Clone, Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
 #[repr(u32)]
 pub enum BtStatus {
     Success = 0,
@@ -224,6 +224,12 @@ impl From<bindings::bt_status_t> for BtStatus {
             Some(x) => x,
             _ => BtStatus::Unknown,
         }
+    }
+}
+
+impl Into<u32> for BtStatus {
+    fn into(self) -> u32 {
+        self.to_u32().unwrap_or_default()
     }
 }
 
