@@ -329,7 +329,7 @@ cc_defaults {
     name: "clang_file_coverage",
     target: {
         glibc: {
-            clang_cflags: [
+            cflags: [
                 "-fprofile-instr-generate",
                 "-fcoverage-mapping",
             ],
