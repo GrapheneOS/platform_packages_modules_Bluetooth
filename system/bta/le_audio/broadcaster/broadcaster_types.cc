@@ -23,6 +23,7 @@
 #include "bta_le_audio_broadcaster_api.h"
 #include "btm_ble_api_types.h"
 #include "embdrv/lc3/include/lc3.h"
+#include "internal_include/stack_config.h"
 #include "osi/include/properties.h"
 
 using bluetooth::le_audio::BasicAudioAnnouncementBisConfig;
@@ -223,6 +224,54 @@ static const BroadcastCodecWrapper lc3_stereo_24_2 = BroadcastCodecWrapper(
     // Frame len.
     60);
 
+static const BroadcastCodecWrapper lc3_stereo_48_1 = BroadcastCodecWrapper(
+    kLeAudioCodecIdLc3,
+    // LeAudioCodecConfiguration
+    {.num_channels = LeAudioCodecConfiguration::kChannelNumberStereo,
+     .sample_rate = LeAudioCodecConfiguration::kSampleRate48000,
+     .bits_per_sample = LeAudioCodecConfiguration::kBitsPerSample16,
+     .data_interval_us = LeAudioCodecConfiguration::kInterval7500Us},
+    // Bitrate
+    80000,
+    // Frame len.
+    75);
+
+static const BroadcastCodecWrapper lc3_stereo_48_2 = BroadcastCodecWrapper(
+    kLeAudioCodecIdLc3,
+    // LeAudioCodecConfiguration
+    {.num_channels = LeAudioCodecConfiguration::kChannelNumberStereo,
+     .sample_rate = LeAudioCodecConfiguration::kSampleRate48000,
+     .bits_per_sample = LeAudioCodecConfiguration::kBitsPerSample16,
+     .data_interval_us = LeAudioCodecConfiguration::kInterval10000Us},
+    // Bitrate
+    80000,
+    // Frame len.
+    100);
+
+static const BroadcastCodecWrapper lc3_stereo_48_3 = BroadcastCodecWrapper(
+    kLeAudioCodecIdLc3,
+    // LeAudioCodecConfiguration
+    {.num_channels = LeAudioCodecConfiguration::kChannelNumberStereo,
+     .sample_rate = LeAudioCodecConfiguration::kSampleRate48000,
+     .bits_per_sample = LeAudioCodecConfiguration::kBitsPerSample16,
+     .data_interval_us = LeAudioCodecConfiguration::kInterval7500Us},
+    // Bitrate
+    96000,
+    // Frame len.
+    90);
+
+static const BroadcastCodecWrapper lc3_stereo_48_4 = BroadcastCodecWrapper(
+    kLeAudioCodecIdLc3,
+    // LeAudioCodecConfiguration
+    {.num_channels = LeAudioCodecConfiguration::kChannelNumberStereo,
+     .sample_rate = LeAudioCodecConfiguration::kSampleRate48000,
+     .bits_per_sample = LeAudioCodecConfiguration::kBitsPerSample16,
+     .data_interval_us = LeAudioCodecConfiguration::kInterval10000Us},
+    // Bitrate
+    96000,
+    // Frame len.
+    120);
+
 const std::map<uint32_t, uint8_t> sample_rate_to_sampling_freq_map = {
     {LeAudioCodecConfiguration::kSampleRate8000,
      codec_spec_conf::kLeAudioSamplingFreq8000Hz},
@@ -318,7 +367,11 @@ std::ostream& operator<<(
 
 static const BroadcastQosConfig qos_config_2_10 = BroadcastQosConfig(2, 10);
 
+static const BroadcastQosConfig qos_config_4_50 = BroadcastQosConfig(4, 50);
+
 static const BroadcastQosConfig qos_config_4_60 = BroadcastQosConfig(4, 60);
+
+static const BroadcastQosConfig qos_config_4_65 = BroadcastQosConfig(4, 65);
 
 std::ostream& operator<<(
     std::ostream& os, const le_audio::broadcaster::BroadcastQosConfig& config) {
@@ -344,8 +397,28 @@ static const std::pair<const BroadcastCodecWrapper&, const BroadcastQosConfig&>
 static const std::pair<const BroadcastCodecWrapper&, const BroadcastQosConfig&>
     lc3_stereo_24_2_2 = {lc3_stereo_24_2, qos_config_4_60};
 
+static const std::pair<const BroadcastCodecWrapper&, const BroadcastQosConfig&>
+    lc3_stereo_48_1_2 = {lc3_stereo_48_1, qos_config_4_50};
+
+static const std::pair<const BroadcastCodecWrapper&, const BroadcastQosConfig&>
+    lc3_stereo_48_2_2 = {lc3_stereo_48_2, qos_config_4_65};
+
+static const std::pair<const BroadcastCodecWrapper&, const BroadcastQosConfig&>
+    lc3_stereo_48_3_2 = {lc3_stereo_48_3, qos_config_4_50};
+
+static const std::pair<const BroadcastCodecWrapper&, const BroadcastQosConfig&>
+    lc3_stereo_48_4_2 = {lc3_stereo_48_4, qos_config_4_65};
+
 std::pair<const BroadcastCodecWrapper&, const BroadcastQosConfig&>
 getStreamConfigForContext(uint16_t context) {
+  const std::string* options =
+      stack_config_get_interface()->get_pts_broadcast_audio_config_options();
+  if (options) {
+    if (!options->compare("lc3_stereo_48_1_2")) return lc3_stereo_48_1_2;
+    if (!options->compare("lc3_stereo_48_2_2")) return lc3_stereo_48_2_2;
+    if (!options->compare("lc3_stereo_48_3_2")) return lc3_stereo_48_3_2;
+    if (!options->compare("lc3_stereo_48_4_2")) return lc3_stereo_48_4_2;
+  }
   // High quality, Low Latency
   auto contexts_stereo_24_2_1 =
       static_cast<std::underlying_type<LeAudioContextType>::type>(

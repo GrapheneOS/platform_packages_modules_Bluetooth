@@ -38,6 +38,8 @@ tBTM_CB btm_cb;
 std::map<std::string, int> mock_function_count_map;
 
 const std::string kSmpOptions("mock smp options");
+const std::string kBroadcastAudioConfigOptions(
+    "mock broadcast audio config options");
 bool get_trace_config_enabled(void) { return false; }
 bool get_pts_avrcp_test(void) { return false; }
 bool get_pts_secure_only_mode(void) { return false; }
@@ -50,6 +52,9 @@ bool get_pts_connect_eatt_unconditionally(void) { return false; }
 bool get_pts_connect_eatt_before_encryption(void) { return false; }
 bool get_pts_unencrypt_broadcast(void) { return false; }
 bool get_pts_eatt_peripheral_collision_support(void) { return false; }
+const std::string* get_pts_broadcast_audio_config_options(void) {
+  return &kBroadcastAudioConfigOptions;
+}
 config_t* get_all(void) { return nullptr; }
 const packet_fragmenter_t* packet_fragmenter_get_interface() { return nullptr; }
 
@@ -70,6 +75,8 @@ stack_config_t mock_stack_config{
     .get_pts_unencrypt_broadcast = get_pts_unencrypt_broadcast,
     .get_pts_eatt_peripheral_collision_support =
         get_pts_eatt_peripheral_collision_support,
+    .get_pts_broadcast_audio_config_options =
+        get_pts_broadcast_audio_config_options,
     .get_all = get_all,
 };
 const stack_config_t* stack_config_get_interface(void) {
