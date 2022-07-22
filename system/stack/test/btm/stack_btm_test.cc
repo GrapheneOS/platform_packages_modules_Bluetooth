@@ -62,6 +62,8 @@ const hci_t* hci_layer_get_interface() { return nullptr; }
 void LogMsg(uint32_t trace_set_mask, const char* fmt_str, ...) {}
 
 const std::string kSmpOptions("mock smp options");
+const std::string kBroadcastAudioConfigOptions(
+    "mock broadcast audio config options");
 
 bool get_trace_config_enabled(void) { return false; }
 bool get_pts_avrcp_test(void) { return false; }
@@ -82,6 +84,9 @@ int get_pts_l2cap_ecoc_initial_chan_cnt(void) { return -1; }
 bool get_pts_l2cap_ecoc_connect_remaining(void) { return false; }
 int get_pts_l2cap_ecoc_send_num_of_sdu(void) { return -1; }
 bool get_pts_l2cap_ecoc_reconfigure(void) { return false; }
+const std::string* get_pts_broadcast_audio_config_options(void) {
+  return &kBroadcastAudioConfigOptions;
+}
 config_t* get_all(void) { return nullptr; }
 const packet_fragmenter_t* packet_fragmenter_get_interface() { return nullptr; }
 
@@ -109,6 +114,8 @@ stack_config_t mock_stack_config{
         get_pts_l2cap_ecoc_connect_remaining,
     .get_pts_l2cap_ecoc_send_num_of_sdu = get_pts_l2cap_ecoc_send_num_of_sdu,
     .get_pts_l2cap_ecoc_reconfigure = get_pts_l2cap_ecoc_reconfigure,
+    .get_pts_broadcast_audio_config_options =
+        get_pts_broadcast_audio_config_options,
     .get_all = get_all,
 };
 const stack_config_t* stack_config_get_interface(void) {
