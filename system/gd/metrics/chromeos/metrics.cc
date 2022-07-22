@@ -22,26 +22,90 @@
 #include "common/time_util.h"
 #include "gd/metrics/chromeos/metrics_event.h"
 #include "gd/metrics/utils.h"
+#include "gd/os/log.h"
 
 namespace bluetooth {
 namespace metrics {
 
 void LogMetricsAdapterStateChanged(uint32_t state) {
+  int64_t adapter_state;
+  int64_t boot_time;
   std::string boot_id;
 
   if (!GetBootId(&boot_id)) return;
 
+  adapter_state = (int64_t)ToAdapterState(state);
+  boot_time = bluetooth::common::time_get_os_boottime_us();
+
+  LOG_DEBUG("AdapterStateChanged: %s, %d, %d", boot_id.c_str(), boot_time, adapter_state);
+
   ::metrics::structured::events::bluetooth::BluetoothAdapterStateChanged()
       .SetBootId(boot_id)
-      .SetSystemTime(bluetooth::common::time_get_os_boottime_us())
+      .SetSystemTime(boot_time)
       .SetIsFloss(true)
-      .SetAdapterState((int64_t)ToAdapterState(state))
+      .SetAdapterState(adapter_state)
       .Record();
 }
 
-void LogMetricsBondCreateAttempt(RawAddress* addr, uint32_t device_type) {}
+void LogMetricsBondCreateAttempt(RawAddress* addr, uint32_t device_type) {
+  int64_t boot_time;
+  std::string addr_string;
+  std::string boot_id;
+
+  if (!GetBootId(&boot_id)) return;
+
+  addr_string = addr->ToString();
+  boot_time = bluetooth::common::time_get_os_boottime_us();
+
+  LOG_DEBUG(
+      "PairingStateChanged: %s, %d, %s, %d, %d",
+      boot_id.c_str(),
+      boot_time,
+      addr_string.c_str(),
+      device_type,
+      PairingState::PAIR_STARTING);
+
+  ::metrics::structured::events::bluetooth::BluetoothPairingStateChanged()
+      .SetBootId(boot_id)
+      .SetSystemTime(boot_time)
+      .SetDeviceId(addr_string)
+      .SetDeviceType(device_type)
+      .SetPairingState((int64_t)PairingState::PAIR_STARTING)
+      .Record();
+}
 
 void LogMetricsBondStateChanged(
-    RawAddress* addr, uint32_t device_type, uint32_t status, uint32_t bond_state, int32_t fail_reason) {}
+    RawAddress* addr, uint32_t device_type, uint32_t status, uint32_t bond_state, int32_t fail_reason) {
+  int64_t boot_time;
+  PairingState pairing_state;
+  std::string addr_string;
+  std::string boot_id;
+
+  if (!GetBootId(&boot_id)) return;
+
+  addr_string = addr->ToString();
+  boot_time = bluetooth::common::time_get_os_boottime_us();
+  pairing_state = ToPairingState(status, bond_state, fail_reason);
+
+  // Ignore the start of pairing event as its logged separated above.
+  if (pairing_state == PairingState::PAIR_STARTING) return;
+
+  LOG_DEBUG(
+      "PairingStateChanged: %s, %d, %s, %d, %d",
+      boot_id.c_str(),
+      boot_time,
+      addr_string.c_str(),
+      device_type,
+      pairing_state);
+
+  ::metrics::structured::events::bluetooth::BluetoothPairingStateChanged()
+      .SetBootId(boot_id)
+      .SetSystemTime(boot_time)
+      .SetDeviceId(addr_string)
+      .SetDeviceType(device_type)
+      .SetPairingState((int64_t)pairing_state)
+      .Record();
+}
+
 }  // namespace metrics
 }  // namespace bluetooth
