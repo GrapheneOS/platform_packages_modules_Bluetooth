@@ -34,6 +34,7 @@
         <option name="profile" value="GATT/CL/GAW" />
         <option name="profile" value="HFP/AG/DIS" />
         <option name="profile" value="HFP/AG/HFI" />
+        <option name="profile" value="HFP/AG/PSI" />
         <option name="profile" value="HFP/AG/SLC" />
         <option name="profile" value="HFP/AG/TCA" />
         <option name="profile" value="HID/HOS" />
