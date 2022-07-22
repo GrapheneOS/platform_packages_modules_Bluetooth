@@ -37,6 +37,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
+import pandora.HostProto.Connection
 
 /**
  * Creates a cold flow of intents based on an intent filter. If used multiple times in a same class,
@@ -147,6 +148,9 @@ fun ByteString.decodeToString(): String =
 
 fun ByteString.toBluetoothDevice(adapter: BluetoothAdapter): BluetoothDevice =
   adapter.getRemoteDevice(this.decodeToString())
+
+fun Connection.toBluetoothDevice(adapter: BluetoothAdapter): BluetoothDevice =
+  adapter.getRemoteDevice(this.cookie.toByteArray().decodeToString())
 
 fun String.toByteArray(): ByteArray = MacAddress.fromString(this).toByteArray()
 
