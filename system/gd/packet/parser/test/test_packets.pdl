@@ -91,7 +91,7 @@ packet ChildWithNestedSum : ParentWithSum {
 
 packet ParentSizeModifier {
   _size_(_payload_) : 8,
-  _payload_ : [+2*8], // Include two_bytes in the size
+  _payload_ : [+2], // Include two_bytes in the size
   two_bytes : 16,
 }
 
@@ -131,7 +131,7 @@ packet CountArrayEnum {
 packet SizedArrayCustom {
   _size_(six_bytes_array) : 8,
   an_extra_byte : 8,
-  six_bytes_array : SixBytes[+1*8],
+  six_bytes_array : SixBytes[+1],
 }
 
 packet FixedArrayCustom {
@@ -378,7 +378,7 @@ enum DataType : 8 {
 struct LengthTypeValueStruct {
   _size_(value) : 16,
   type : DataType,
-  value : 8[+1*8],
+  value : 8[+1],
 }
 
 packet OneLengthTypeValueStruct {
