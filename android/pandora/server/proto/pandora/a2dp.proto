@@ -5,7 +5,6 @@ option java_outer_classname = "A2dpProto";
 package pandora;
 
 import "pandora/host.proto";
-import "google/protobuf/wrappers.proto";
 
 // Service to trigger A2DP (Advanced Audio Distribution Profile) procedures.
 //
@@ -86,7 +85,7 @@ enum AudioEncoding {
 message Source {
   // Opaque value filled by the GRPC server, must not
   // be modified nor crafted.
-  bytes cookie = 1;
+  Connection connection = 1;
 }
 
 // A Token representing a Sink stream (see [A2DP] 2.2).
@@ -94,7 +93,7 @@ message Source {
 message Sink {
   // Opaque value filled by the GRPC server, must not
   // be modified nor crafted.
-  bytes cookie = 1;
+  Connection connection = 1;
 }
 
 // Request for the `OpenSource` method.
