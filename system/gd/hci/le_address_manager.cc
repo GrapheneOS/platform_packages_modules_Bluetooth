@@ -251,7 +251,7 @@ void LeAddressManager::ack_pause(LeAddressManagerCallback* callback) {
   }
 
   if (address_policy_ != AddressPolicy::POLICY_NOT_SET) {
-    handle_next_command();
+    check_cached_commands();
   }
 }
 
