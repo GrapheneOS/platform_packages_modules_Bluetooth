@@ -5,19 +5,24 @@ option java_outer_classname = "HfpProto";
 package pandora;
 
 import "pandora/host.proto";
-import "google/protobuf/wrappers.proto";
+import "google/protobuf/empty.proto";
 
 // Service to trigger HFP (Hands Free Profile) procedures.
 service HFP {
+  // Enable Service level connection
+  rpc EnableSlc(EnableSlcRequest) returns (google.protobuf.Empty);
   // Disable Service level connection
-  rpc DisableSlc(DisableSlcRequest) returns (DisableSlcResponse);
+  rpc DisableSlc(DisableSlcRequest) returns (google.protobuf.Empty);
+}
+
+// Request of the `EnableSlc` method.
+message EnableSlcRequest {
+  // Connection crafted by grpc server
+  Connection connection = 1;
 }
 
 // Request of the `DisableSlc` method.
 message DisableSlcRequest {
-  // Local Bluetooth Device Address as array of 6 bytes.
-  bytes address = 1;
+  // Connection crafted by grpc server
+  Connection connection = 1;
 }
-
-// Response of the `DisableSlc` method.
-message DisableSlcResponse {}
