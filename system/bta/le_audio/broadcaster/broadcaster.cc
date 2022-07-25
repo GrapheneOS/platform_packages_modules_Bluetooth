@@ -37,6 +37,7 @@ using bluetooth::hci::iso_manager::big_terminate_cmpl_evt;
 using bluetooth::hci::iso_manager::BigCallbacks;
 using bluetooth::le_audio::BasicAudioAnnouncementData;
 using bluetooth::le_audio::BroadcastId;
+using le_audio::CodecManager;
 using le_audio::ContentControlIdKeeper;
 using le_audio::broadcaster::BigConfig;
 using le_audio::broadcaster::BroadcastCodecWrapper;
@@ -44,6 +45,7 @@ using le_audio::broadcaster::BroadcastQosConfig;
 using le_audio::broadcaster::BroadcastStateMachine;
 using le_audio::broadcaster::BroadcastStateMachineConfig;
 using le_audio::broadcaster::IBroadcastStateMachineCallbacks;
+using le_audio::types::CodecLocation;
 using le_audio::types::kLeAudioCodingFormatLC3;
 using le_audio::types::LeAudioContextType;
 using le_audio::types::LeAudioLtvMap;
@@ -225,24 +227,54 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
               {static_cast<uint8_t>(ccid)});
     }
 
-    auto codec_qos_pair =
-        le_audio::broadcaster::getStreamConfigForContext(context_type);
-    BroadcastStateMachineConfig msg = {
-        .broadcast_id = broadcast_id,
-        .streaming_phy = GetStreamingPhy(),
-        .codec_wrapper = codec_qos_pair.first,
-        .qos_config = codec_qos_pair.second,
-        .announcement =
-            prepareAnnouncement(codec_qos_pair.first, std::move(ltv)),
-        .broadcast_code = std::move(broadcast_code)};
+    if (CodecManager::GetInstance()->GetCodecLocation() ==
+        CodecLocation::ADSP) {
+      auto offload_config =
+          CodecManager::GetInstance()->GetBroadcastOffloadConfig();
+      BroadcastCodecWrapper codec_config(
+          {.coding_format = le_audio::types::kLeAudioCodingFormatLC3,
+           .vendor_company_id =
+               le_audio::types::kLeAudioVendorCompanyIdUndefined,
+           .vendor_codec_id = le_audio::types::kLeAudioVendorCodecIdUndefined},
+          {.num_channels =
+               static_cast<uint8_t>(offload_config->stream_map.size()),
+           .sample_rate = offload_config->sampling_rate,
+           .bits_per_sample = offload_config->bits_per_sample,
+           .data_interval_us = offload_config->frame_duration},
+          offload_config->codec_bitrate, offload_config->octets_per_frame);
+      BroadcastQosConfig qos_config(offload_config->retransmission_number,
+                                    offload_config->max_transport_latency);
+
+      BroadcastStateMachineConfig msg = {
+          .broadcast_id = broadcast_id,
+          .streaming_phy = GetStreamingPhy(),
+          .codec_wrapper = codec_config,
+          .qos_config = qos_config,
+          .announcement = prepareAnnouncement(codec_config, std::move(ltv)),
+          .broadcast_code = std::move(broadcast_code)};
+
+      pending_broadcasts_.push_back(
+          std::move(BroadcastStateMachine::CreateInstance(std::move(msg))));
+    } else {
+      auto codec_qos_pair =
+          le_audio::broadcaster::getStreamConfigForContext(context_type);
+      BroadcastStateMachineConfig msg = {
+          .broadcast_id = broadcast_id,
+          .streaming_phy = GetStreamingPhy(),
+          .codec_wrapper = codec_qos_pair.first,
+          .qos_config = codec_qos_pair.second,
+          .announcement =
+              prepareAnnouncement(codec_qos_pair.first, std::move(ltv)),
+          .broadcast_code = std::move(broadcast_code)};
+
+      /* Create the broadcaster instance - we'll receive it's init state in the
+       * async callback
+       */
+      pending_broadcasts_.push_back(
+          std::move(BroadcastStateMachine::CreateInstance(std::move(msg))));
+    }
 
     LOG_INFO("CreateAudioBroadcast");
-
-    /* Create the broadcaster instance - we'll receive it's init state in the
-     * async callback
-     */
-    pending_broadcasts_.push_back(
-        std::move(BroadcastStateMachine::CreateInstance(std::move(msg))));
 
     // Notify the error instead just fail silently
     if (!pending_broadcasts_.back()->Initialize()) {
@@ -556,6 +588,14 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
     void OnOwnAddressResponse(uint32_t broadcast_id, uint8_t addr_type,
                               RawAddress addr) override {
       /* Not used currently */
+    }
+
+    void OnBigCreated(const std::vector<uint16_t>& conn_handle) {
+      CodecManager::GetInstance()->UpdateBroadcastConnHandle(
+          conn_handle,
+          std::bind(
+              &LeAudioUnicastClientAudioSource::UpdateBroadcastAudioConfigToHal,
+              leAudioClientAudioSource, std::placeholders::_1));
     }
   } state_machine_callbacks_;
 
