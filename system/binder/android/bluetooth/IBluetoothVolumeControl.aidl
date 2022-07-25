@@ -29,6 +29,9 @@ import com.android.modules.utils.SynchronousResultReceiver;
  * @hide
  */
 oneway interface IBluetoothVolumeControl {
+
+    const int VOLUME_CONTROL_UNKNOWN_VOLUME = -1;
+
     /* Public API */
     @JavaPassthrough(annotation="@android.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)")
     void connect(in BluetoothDevice device, in AttributionSource attributionSource, in SynchronousResultReceiver receiver);
