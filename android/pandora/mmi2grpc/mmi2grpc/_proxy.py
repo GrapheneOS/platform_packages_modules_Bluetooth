@@ -11,18 +11,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Profile proxy base module."""
 
 from mmi2grpc._helpers import format_function
+from mmi2grpc._helpers import assert_description
+
+import sys
 
 
 class ProfileProxy:
     """Profile proxy base class."""
 
-    def interact(
-            self, test: str, mmi_name: str, mmi_description: str,
-            pts_addr: bytes):
+    def interact(self, test: str, mmi_name: str, mmi_description: str, pts_addr: bytes):
         """Translate a MMI call to its corresponding implementation.
 
         Args:
@@ -37,8 +37,10 @@ class ProfileProxy:
         try:
             if not mmi_name.isidentifier():
                 mmi_name = "_mmi_" + mmi_name
-            return getattr(self, mmi_name)(
-                test=test, description=mmi_description, pts_addr=pts_addr)
+            return getattr(self, mmi_name)(test=test, description=mmi_description, pts_addr=pts_addr)
         except AttributeError:
             code = format_function(mmi_name, mmi_description)
             assert False, f'Unhandled mmi {id}\n{code}'
+
+    def test_started(self, test: str, description: str, pts_addr: bytes):
+        return "OK"
