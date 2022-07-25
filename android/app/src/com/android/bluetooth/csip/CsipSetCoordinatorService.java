@@ -586,7 +586,7 @@ public class CsipSetCoordinatorService extends ProfileService {
 
     /**
      * Get collection of group IDs for a given UUID
-     * @param uuid
+     * @param uuid profile context UUID
      * @return list of group IDs
      */
     public List<Integer> getAllGroupIds(ParcelUuid uuid) {
@@ -599,7 +599,7 @@ public class CsipSetCoordinatorService extends ProfileService {
 
     /**
      * Get device's groups/
-     * @param device
+     * @param device group member device
      * @return map of group id and related uuids.
      */
     public Map<Integer, ParcelUuid> getGroupUuidMapByDevice(BluetoothDevice device) {
@@ -637,7 +637,7 @@ public class CsipSetCoordinatorService extends ProfileService {
     /**
      * Get grouped devices
      * @param device group member device
-     * @param uuid
+     * @param uuid profile context UUID
      * @return related list of devices sorted from the lowest to the highest rank value.
      */
     public @NonNull List<BluetoothDevice> getGroupDevicesOrdered(BluetoothDevice device,
