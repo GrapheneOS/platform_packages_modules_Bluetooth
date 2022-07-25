@@ -2527,11 +2527,35 @@ TEST_F(UnicastTestNoInit, LoadStoredEarbudsCsisGrouped) {
 
   // Load devices from the storage when storage API is called
   bool autoconnect = true;
+
+  /* Common storage values */
+  std::vector<uint8_t> handles;
+  LeAudioClient::GetHandlesForStorage(test_address0, handles);
+
+  std::vector<uint8_t> ases;
+  LeAudioClient::GetAsesForStorage(test_address0, ases);
+
+  std::vector<uint8_t> src_pacs;
+  LeAudioClient::GetSourcePacsForStorage(test_address0, src_pacs);
+
+  std::vector<uint8_t> snk_pacs;
+  LeAudioClient::GetSinkPacsForStorage(test_address0, snk_pacs);
+
   EXPECT_CALL(mock_storage_load, Call()).WillOnce([&]() {
-    do_in_main_thread(FROM_HERE, base::Bind(&LeAudioClient::AddFromStorage,
-                                            test_address0, autoconnect));
-    do_in_main_thread(FROM_HERE, base::Bind(&LeAudioClient::AddFromStorage,
-                                            test_address1, autoconnect));
+    do_in_main_thread(
+        FROM_HERE,
+        base::Bind(&LeAudioClient::AddFromStorage, test_address0, autoconnect,
+                   codec_spec_conf::kLeAudioLocationFrontLeft,
+                   codec_spec_conf::kLeAudioLocationFrontLeft, 0xff, 0xff,
+                   std::move(handles), std::move(snk_pacs), std::move(src_pacs),
+                   std::move(ases)));
+    do_in_main_thread(
+        FROM_HERE,
+        base::Bind(&LeAudioClient::AddFromStorage, test_address1, autoconnect,
+                   codec_spec_conf::kLeAudioLocationFrontRight,
+                   codec_spec_conf::kLeAudioLocationFrontRight, 0xff, 0xff,
+                   std::move(handles), std::move(snk_pacs), std::move(src_pacs),
+                   std::move(ases)));
   });
 
   // Expect stored device0 to connect automatically
@@ -2632,12 +2656,35 @@ TEST_F(UnicastTestNoInit, LoadStoredEarbudsCsisGroupedDifferently) {
   ON_CALL(mock_groups_module_, GetGroupId(test_address1, _))
       .WillByDefault(DoAll(Return(group_id1)));
 
+  /* Commont storage values */
+  std::vector<uint8_t> handles;
+  LeAudioClient::GetHandlesForStorage(test_address0, handles);
+
+  std::vector<uint8_t> ases;
+  LeAudioClient::GetAsesForStorage(test_address0, ases);
+
+  std::vector<uint8_t> src_pacs;
+  LeAudioClient::GetSourcePacsForStorage(test_address0, src_pacs);
+
+  std::vector<uint8_t> snk_pacs;
+  LeAudioClient::GetSinkPacsForStorage(test_address0, snk_pacs);
+
   // Load devices from the storage when storage API is called
   EXPECT_CALL(mock_storage_load, Call()).WillOnce([&]() {
-    do_in_main_thread(FROM_HERE, base::Bind(&LeAudioClient::AddFromStorage,
-                                            test_address0, autoconnect0));
-    do_in_main_thread(FROM_HERE, base::Bind(&LeAudioClient::AddFromStorage,
-                                            test_address1, autoconnect1));
+    do_in_main_thread(
+        FROM_HERE,
+        base::Bind(&LeAudioClient::AddFromStorage, test_address0, autoconnect0,
+                   codec_spec_conf::kLeAudioLocationFrontLeft,
+                   codec_spec_conf::kLeAudioLocationFrontLeft, 0xff, 0xff,
+                   std::move(handles), std::move(snk_pacs), std::move(src_pacs),
+                   std::move(ases)));
+    do_in_main_thread(
+        FROM_HERE,
+        base::Bind(&LeAudioClient::AddFromStorage, test_address1, autoconnect1,
+                   codec_spec_conf::kLeAudioLocationFrontRight,
+                   codec_spec_conf::kLeAudioLocationFrontRight, 0xff, 0xff,
+                   std::move(handles), std::move(snk_pacs), std::move(src_pacs),
+                   std::move(ases)));
   });
 
   // Expect stored device0 to connect automatically
