@@ -461,18 +461,6 @@ void BTM_CancelInquiry(void) {
   }
 }
 
-void BTM_CancelInquiryNotifyWhenComplete(
-    std::function<void()> notify_when_complete_cb) {
-  if (btm_cb.notify_when_complete_cb) {
-    LOG_ERROR(
-        "Please do not overwrite a previous cancel inquiry notification "
-        "callback");
-    return;
-  }
-  btm_cb.notify_when_complete_cb = notify_when_complete_cb;
-  BTM_CancelInquiry();
-}
-
 /*******************************************************************************
  *
  * Function         BTM_StartInquiry
@@ -1275,26 +1263,7 @@ void btm_sort_inq_result(void) {
  *
  ******************************************************************************/
 void btm_process_inq_complete(tHCI_STATUS status, uint8_t mode) {
-  if (mode == 0) {
-    LOG_WARN("Inquiry completed but no modes were specified");
-    return;
-  }
-
-  // The mode parameters may be a bitmask with only 2 valid bits indicating
-  // completion
-  if (mode & ~(BTM_INQUIRY_ACTIVE_MASK)) {
-    LOG_WARN("Calling with illegal mode:0x%02x", mode);
-  }
-
-  if (mode == BTM_GENERAL_INQUIRY && btm_cb.notify_when_complete_cb) {
-    LOG_DEBUG(
-        "Cleaning up previous inquiry cancel with proper completion callback "
-        "inq_active:0x%02x inqparms.mode:0x%02x",
-        btm_cb.btm_inq_vars.inq_active, btm_cb.btm_inq_vars.inqparms.mode);
-    btm_cb.notify_when_complete_cb();
-    btm_cb.notify_when_complete_cb = {};
-    return;
-  }
+  tBTM_CMPL_CB* p_inq_cb = btm_cb.btm_inq_vars.p_inq_cmpl_cb;
   tBTM_INQUIRY_VAR_ST* p_inq = &btm_cb.btm_inq_vars;
 
   p_inq->inqparms.mode &= ~(mode);
@@ -1328,7 +1297,6 @@ void btm_process_inq_complete(tHCI_STATUS status, uint8_t mode) {
       /* Clear the results callback if set */
       p_inq->p_inq_results_cb = NULL;
       p_inq->inq_active = BTM_INQUIRY_INACTIVE;
-      tBTM_CMPL_CB* p_inq_cb = btm_cb.btm_inq_vars.p_inq_cmpl_cb;
       p_inq->p_inq_cmpl_cb = NULL;
 
       /* If we have a callback registered for inquiry complete, call it */
