@@ -36,6 +36,7 @@ import android.bluetooth.BluetoothUuid;
 import android.bluetooth.IBluetoothLeAudio;
 import android.bluetooth.IBluetoothLeAudioCallback;
 import android.bluetooth.IBluetoothLeBroadcastCallback;
+import android.bluetooth.IBluetoothVolumeControl;
 import android.content.AttributionSource;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -414,10 +415,10 @@ public class LeAudioService extends ProfileService {
     private int getGroupVolume(int groupId) {
         if (mVolumeControlService == null) {
             mVolumeControlService = mServiceFactory.getVolumeControlService();
-        }
-        if (mVolumeControlService == null) {
-            Log.e(TAG, "Volume control service is not available");
-            return -1;
+            if (mVolumeControlService == null) {
+                Log.e(TAG, "Volume control service is not available");
+                return IBluetoothVolumeControl.VOLUME_CONTROL_UNKNOWN_VOLUME;
+            }
         }
 
         return mVolumeControlService.getGroupVolume(groupId);
@@ -907,7 +908,7 @@ public class LeAudioService extends ProfileService {
                         + previousOutDevice + ", mActiveOutDevice: " + mActiveAudioOutDevice
                         + " isLeOutput: true");
             }
-            int volume = -1;
+            int volume = IBluetoothVolumeControl.VOLUME_CONTROL_UNKNOWN_VOLUME;
             if (mActiveAudioOutDevice != null) {
                 volume = getGroupVolume(groupId);
             }
