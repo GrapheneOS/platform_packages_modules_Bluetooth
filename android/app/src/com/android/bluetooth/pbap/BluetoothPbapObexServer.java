@@ -223,6 +223,8 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
 
     private PbapStateMachine mStateMachine;
 
+    private BluetoothPbapMethodProxy mPbapMethodProxy;
+
     private enum ContactsType {
         TYPE_PHONEBOOK , TYPE_SIM ;
     }
@@ -251,6 +253,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         mVcardManager = new BluetoothPbapVcardManager(mContext);
         mVcardSimManager = new BluetoothPbapSimVcardManager(mContext);
         mStateMachine = stateMachine;
+        mPbapMethodProxy = BluetoothPbapMethodProxy.getInstance();
     }
 
     @Override
@@ -260,7 +263,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         }
         notifyUpdateWakeLock();
         try {
-            byte[] uuid = (byte[]) request.getHeader(HeaderSet.TARGET);
+            byte[] uuid = (byte[]) mPbapMethodProxy.getHeader(request, HeaderSet.TARGET);
             if (uuid == null) {
                 return ResponseCodes.OBEX_HTTP_NOT_ACCEPTABLE;
             }
@@ -278,19 +281,19 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
                     return ResponseCodes.OBEX_HTTP_NOT_ACCEPTABLE;
                 }
             }
-            reply.setHeader(HeaderSet.WHO, uuid);
+            mPbapMethodProxy.setHeader(reply, HeaderSet.WHO, uuid);
         } catch (IOException e) {
             Log.e(TAG, e.toString());
             return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
         }
 
         try {
-            byte[] remote = (byte[]) request.getHeader(HeaderSet.WHO);
+            byte[] remote = (byte[]) mPbapMethodProxy.getHeader(request, HeaderSet.WHO);
             if (remote != null) {
                 if (D) {
                     Log.d(TAG, "onConnect(): remote=" + Arrays.toString(remote));
                 }
-                reply.setHeader(HeaderSet.TARGET, remote);
+                mPbapMethodProxy.setHeader(reply, HeaderSet.TARGET, remote);
             }
         } catch (IOException e) {
             Log.e(TAG, e.toString());
@@ -300,7 +303,8 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         try {
             byte[] appParam = null;
             mConnAppParamValue = new AppParamValue();
-            appParam = (byte[]) request.getHeader(HeaderSet.APPLICATION_PARAMETER);
+            appParam = (byte[])
+                    mPbapMethodProxy.getHeader(request, HeaderSet.APPLICATION_PARAMETER);
             if ((appParam != null) && !parseApplicationParameter(appParam, mConnAppParamValue)) {
                 return ResponseCodes.OBEX_HTTP_BAD_REQUEST;
             }
