@@ -593,7 +593,8 @@ public class VolumeControlService extends ProfileService {
      * @param groupId
      */
     public int getGroupVolume(int groupId) {
-        return mGroupVolumeCache.getOrDefault(groupId, -1);
+        return mGroupVolumeCache.getOrDefault(groupId,
+                        IBluetoothVolumeControl.VOLUME_CONTROL_UNKNOWN_VOLUME);
     }
 
     /**
