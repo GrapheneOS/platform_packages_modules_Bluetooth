@@ -34,6 +34,10 @@ service Host {
   // Read the local Bluetooth device address.
   // This should return the same value as a Read BD_ADDR HCI command.
   rpc ReadLocalAddress(google.protobuf.Empty) returns (ReadLocalAddressResponse);
+  // Create a LE connection
+  rpc ConnectLE(ConnectLERequest) returns (ConnectLEResponse);
+  // Disconnect ongoing LE connection
+  rpc DisconnectLE(DisconnectLERequest) returns (google.protobuf.Empty);
 }
 
 // A Token representing an ACL connection.
@@ -111,4 +115,21 @@ message DisconnectResponse {}
 message ReadLocalAddressResponse {
   // Local Bluetooth Device Address as array of 6 bytes.
   bytes address = 1;
+}
+
+// Request of the `ConnectLE` method
+message ConnectLERequest {
+    bytes address = 1;
+}
+
+// Response of the `ConnectLE` method
+message ConnectLEResponse {
+    oneof result {
+        Connection connection = 1;
+    }
+}
+
+// Request of the `DisconnectLE` method
+message DisconnectLERequest {
+    Connection connection = 1;
 }
