@@ -40,6 +40,7 @@
 #include "gd/common/strings.h"
 #include "le_audio_set_configuration_provider.h"
 #include "le_audio_types.h"
+#include "le_audio_utils.h"
 #include "metrics_collector.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
@@ -76,6 +77,7 @@ using le_audio::types::AudioStreamDataPathState;
 using le_audio::types::hdl_pair;
 using le_audio::types::kDefaultScanDurationS;
 using le_audio::types::LeAudioContextType;
+using le_audio::utils::AudioContentToLeAudioContext;
 
 using le_audio::client_parser::ascs::
     kCtpResponseCodeInvalidConfigurationParameterValue;
@@ -3103,39 +3105,6 @@ class LeAudioClientImpl : public LeAudioClient {
         /* Wait until releasing is completed */
         break;
     }
-  }
-
-  LeAudioContextType AudioContentToLeAudioContext(
-      audio_content_type_t content_type, audio_usage_t usage) {
-    /* Check audio attribute usage of stream */
-    switch (usage) {
-      case AUDIO_USAGE_MEDIA:
-        return LeAudioContextType::MEDIA;
-      case AUDIO_USAGE_VOICE_COMMUNICATION:
-      case AUDIO_USAGE_CALL_ASSISTANT:
-        return LeAudioContextType::CONVERSATIONAL;
-      case AUDIO_USAGE_VOICE_COMMUNICATION_SIGNALLING:
-        if (content_type == AUDIO_CONTENT_TYPE_SPEECH)
-          return LeAudioContextType::CONVERSATIONAL;
-        else
-          return LeAudioContextType::MEDIA;
-      case AUDIO_USAGE_GAME:
-        return LeAudioContextType::GAME;
-      case AUDIO_USAGE_NOTIFICATION:
-        return LeAudioContextType::NOTIFICATIONS;
-      case AUDIO_USAGE_NOTIFICATION_TELEPHONY_RINGTONE:
-        return LeAudioContextType::RINGTONE;
-      case AUDIO_USAGE_ALARM:
-        return LeAudioContextType::ALERTS;
-      case AUDIO_USAGE_EMERGENCY:
-        return LeAudioContextType::EMERGENCYALARM;
-      case AUDIO_USAGE_ASSISTANCE_NAVIGATION_GUIDANCE:
-        return LeAudioContextType::INSTRUCTIONAL;
-      default:
-        break;
-    }
-
-    return LeAudioContextType::MEDIA;
   }
 
   LeAudioContextType ChooseContextType(
