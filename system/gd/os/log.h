@@ -78,6 +78,7 @@ static_assert(LOG_TAG != nullptr, "LOG_TAG is null after header inclusion");
     abort();                                                                        \
   } while (false)
 #elif defined(TARGET_FLOSS)
+#include "gd/common/init_flags.h"
 #include "gd/os/syslog.h"
 
 // Prefix the log with tag, file, line and function

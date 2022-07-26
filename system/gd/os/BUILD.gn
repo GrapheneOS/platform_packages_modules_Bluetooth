@@ -22,7 +22,10 @@ source_set("BluetoothOsSources_linux") {
   ]
 
   configs += [ "//bt/system/gd:gd_defaults" ]
-  deps = [ "//bt/system:libbt-platform-protos-lite" ]
+  deps = [
+    "//bt/system:libbt-platform-protos-lite",
+    "//bt/system/gd/rust/shim:init_flags_bridge_header",
+  ]
 }
 
 source_set("BluetoothOsSources_linux_generic") {
