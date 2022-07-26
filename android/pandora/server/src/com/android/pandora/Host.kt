@@ -20,9 +20,7 @@ import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothDevice.TRANSPORT_LE
 import android.bluetooth.BluetoothManager
-import android.bluetooth.BluetoothGatt
-import android.bluetooth.BluetoothGatt.GATT_SUCCESS
-import android.bluetooth.BluetoothGattCallback
+import android.bluetooth.BluetoothProfile
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
 import android.content.Context
@@ -61,9 +59,6 @@ class Host(private val context: Context, private val server: Server) : HostImplB
 
   private val bluetoothManager = context.getSystemService(BluetoothManager::class.java)!!
   private val bluetoothAdapter = bluetoothManager.adapter
-
-  private val gattClients: MutableMap<String, BluetoothGatt> = mutableMapOf<String, BluetoothGatt>()
-
 
   init {
     scope = CoroutineScope(Dispatchers.Default)
@@ -277,7 +272,7 @@ class Host(private val context: Context, private val server: Server) : HostImplB
       val ptsAddress = request.address.decodeToString()
       Log.i(TAG, "connect: $ptsAddress")
       val device = scanLeDevice(ptsAddress)
-      gattConnect(device!!)
+      GattInstance(device!!, TRANSPORT_LE, context).waitForState(BluetoothProfile.STATE_CONNECTED)
       ConnectLEResponse.newBuilder()
         .setConnection(
           Connection.newBuilder()
@@ -292,10 +287,7 @@ class Host(private val context: Context, private val server: Server) : HostImplB
     grpcUnary<Empty>(scope, responseObserver) {
       val ptsAddress = request.connection.cookie.toByteArray().decodeToString()
       Log.i(TAG, "disconnect: $ptsAddress")
-      val gatt = gattClients[ptsAddress]
-      gatt?.close()
-      gatt?.disconnect()
-      gattClients.remove(ptsAddress)
+      GattInstance.get(ptsAddress).disconnectInstance()
       Empty.getDefaultInstance()
     }
   }
@@ -328,31 +320,5 @@ class Host(private val context: Context, private val server: Server) : HostImplB
       bluetoothDevice = flow.first()
     }
     return bluetoothDevice
-  }
-
-  private fun gattConnect(device: BluetoothDevice): Boolean {
-    Log.d(TAG, "gattConnect")
-    var isConnected = false
-    runBlocking {
-      val flow = callbackFlow {
-        val gattCallback =
-          object : BluetoothGattCallback() {
-            override fun onConnectionStateChange(
-              bluetoothGatt: BluetoothGatt?,
-              status: Int,
-              newState: Int
-            ) {
-              Log.d(TAG, "status: $status newState: $newState")
-              trySendBlocking(status == GATT_SUCCESS)
-            }
-          }
-        val bluetoothGatt: BluetoothGatt =
-          device.connectGatt(context, false, gattCallback, TRANSPORT_LE)
-        gattClients[device.address] = bluetoothGatt
-        awaitClose {}
-      }
-      isConnected = flow.first()
-    }
-    return isConnected
   }
 }
