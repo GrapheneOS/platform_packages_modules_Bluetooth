@@ -22,6 +22,8 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteException;
 import android.net.Uri;
+
+import com.android.internal.annotations.VisibleForTesting;
 import com.android.vcard.VCardBuilder;
 import com.android.vcard.VCardConfig;
 import com.android.vcard.VCardConstants;
@@ -73,7 +75,9 @@ public class BluetoothPbapSimVcardManager {
     private static final String NO_ERROR = "No error";
 
     private final String SIM_URI = "content://icc/adn";
-    private final  String SIM_PATH = "/SIM1/telecom";
+
+    @VisibleForTesting
+    public static final String SIM_PATH = "/SIM1/telecom";
 
     private static final String[] SIM_PROJECTION = new String[] {
         Contacts.DISPLAY_NAME,

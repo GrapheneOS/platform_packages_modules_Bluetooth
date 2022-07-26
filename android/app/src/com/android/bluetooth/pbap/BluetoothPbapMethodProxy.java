@@ -17,6 +17,7 @@
 package com.android.bluetooth.pbap;
 
 import android.content.ContentResolver;
+import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.util.Log;
@@ -75,17 +76,16 @@ public class BluetoothPbapMethodProxy {
     }
 
     /**
-     * Proxies {@link HeaderSet#setHeader}.
-     */
-    public void setHeader(HeaderSet headerSet, int headerId, Object headerValue)
-            throws IOException {
-        headerSet.setHeader(headerId, headerValue);
-    }
-
-    /**
      * Proxies {@link HeaderSet#getHeader}.
      */
     public Object getHeader(HeaderSet headerSet, int headerId) throws IOException {
         return headerSet.getHeader(headerId);
+    }
+
+    /**
+     * Proxies {@link Context#getSystemService(Class)}.
+     */
+    public <T> T getSystemService(Context context, Class<T> serviceClass) {
+        return context.getSystemService(serviceClass);
     }
 }
