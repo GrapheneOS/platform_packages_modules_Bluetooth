@@ -52,6 +52,7 @@ import com.android.internal.annotations.VisibleForTesting;
 import com.android.modules.utils.SynchronousResultReceiver;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -585,7 +586,7 @@ public class CsipSetCoordinatorService extends ProfileService {
 
     /**
      * Get collection of group IDs for a given UUID
-     * @param uuid
+     * @param uuid profile context UUID
      * @return list of group IDs
      */
     public List<Integer> getAllGroupIds(ParcelUuid uuid) {
@@ -598,7 +599,7 @@ public class CsipSetCoordinatorService extends ProfileService {
 
     /**
      * Get device's groups/
-     * @param device
+     * @param device group member device
      * @return map of group id and related uuids.
      */
     public Map<Integer, ParcelUuid> getGroupUuidMapByDevice(BluetoothDevice device) {
@@ -631,6 +632,24 @@ public class CsipSetCoordinatorService extends ProfileService {
                 .sorted(Map.Entry.comparingByValue())
                 .map(e -> e.getKey())
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Get grouped devices
+     * @param device group member device
+     * @param uuid profile context UUID
+     * @return related list of devices sorted from the lowest to the highest rank value.
+     */
+    public @NonNull List<BluetoothDevice> getGroupDevicesOrdered(BluetoothDevice device,
+            ParcelUuid uuid) {
+        List<Integer> groupIds = getAllGroupIds(uuid);
+        for (Integer id : groupIds) {
+            List<BluetoothDevice> devices = getGroupDevicesOrdered(id);
+            if (devices.contains(device)) {
+                return devices;
+            }
+        }
+        return Collections.emptyList();
     }
 
     /**
