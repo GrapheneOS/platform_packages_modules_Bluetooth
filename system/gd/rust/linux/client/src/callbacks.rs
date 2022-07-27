@@ -316,7 +316,7 @@ impl ScannerCallback {
 }
 
 impl IScannerCallback for ScannerCallback {
-    fn on_scanner_registered(&self, uuid: Uuid128Bit, status: u8, scanner_id: u8) {
+    fn on_scanner_registered(&self, uuid: Uuid128Bit, scanner_id: u8, status: u8) {
         if status != 0 {
             print_error!("Failed registering scanner, status = {}", status);
             return;

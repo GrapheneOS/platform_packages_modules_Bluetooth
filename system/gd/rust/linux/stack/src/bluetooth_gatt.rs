@@ -420,7 +420,7 @@ pub trait IBluetoothGattCallback: RPCProxy {
 /// `IBluetoothGatt::register_scanner_callback`.
 pub trait IScannerCallback: RPCProxy {
     /// When the `register_scanner` request is done.
-    fn on_scanner_registered(&self, uuid: Uuid128Bit, status: u8, scanner_id: u8);
+    fn on_scanner_registered(&self, uuid: Uuid128Bit, scanner_id: u8, status: u8);
 }
 
 #[derive(Debug, FromPrimitive, ToPrimitive)]
@@ -1485,7 +1485,7 @@ impl BtifGattScannerCallbacks for BluetoothGatt {
             info.scanner_id = Some(scanner_id);
             let callback = self.scanner_callbacks.get_by_id(info.callback_id);
             if let Some(cb) = callback {
-                cb.on_scanner_registered(uuid.uu, status, scanner_id);
+                cb.on_scanner_registered(uuid.uu, scanner_id, status);
             } else {
                 log::warn!("There is no callback for scanner UUID {}", uuid);
             }
