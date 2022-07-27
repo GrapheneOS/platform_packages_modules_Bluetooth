@@ -39,7 +39,7 @@ void LogMetricsAdapterStateChanged(uint32_t state) {
       .Record();
 }
 
-void LogMetricsBondCreateAttempt(RawAddress* addr) {}
+void LogMetricsBondCreateAttempt(RawAddress* addr, uint32_t device_type) {}
 
 void LogMetricsBondStateChanged(
     RawAddress* addr, uint32_t device_type, uint32_t status, uint32_t bond_state, int32_t fail_reason) {}

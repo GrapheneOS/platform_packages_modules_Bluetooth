@@ -12,7 +12,7 @@ origtar=libchrome_930012.orig.tar.gz
 scriptdir="$( cd "$( dirname "$0" )" && pwd )"
 
 # Pin the libchrome branch + commit
-libchrome_branch=master
+libchrome_branch=main
 libchrome_commit=4b86c42f09b7c8d88b0233c60f59bafeb4d8df19
 
 # Pin the platform2 branch + commit
@@ -32,7 +32,7 @@ cd "${pkgdir}"
 cp -a ../platform2/{common-mk,.gn} .
 
 # Download libchrome source and apply Chrome OS's patches.
-git clone --branch "${libchrome_branch}" https://chromium.googlesource.com/aosp/platform/external/libchrome || exit 1
+git clone --branch "${libchrome_branch}" https://chromium.googlesource.com/chromiumos/platform/libchrome || exit 1
 cd libchrome
 git checkout "${libchrome_commit}"
 rm -rf .git
