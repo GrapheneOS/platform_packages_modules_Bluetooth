@@ -98,8 +98,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -140,7 +138,7 @@ public class BassClientStateMachine extends StateMachine {
 
     // NOTE: the value is not "final" - it is modified in the unit tests
     @VisibleForTesting
-    static int sConnectTimeoutMs = BassConstants.CONNECT_TIMEOUT_MS;
+    private int mConnectTimeoutMs;
 
     /*key is combination of sourceId, Address and advSid for this hashmap*/
     private final Map<Integer, BluetoothLeBroadcastReceiveState>
@@ -191,10 +189,12 @@ public class BassClientStateMachine extends StateMachine {
     BluetoothGatt mBluetoothGatt = null;
     BluetoothGattCallback mGattCallback = null;
 
-    BassClientStateMachine(BluetoothDevice device, BassClientService svc, Looper looper) {
+    BassClientStateMachine(BluetoothDevice device, BassClientService svc, Looper looper,
+            int connectTimeoutMs) {
         super(TAG + "(" + device.toString() + ")", looper);
         mDevice = device;
         mService = svc;
+        mConnectTimeoutMs = connectTimeoutMs;
         addState(mDisconnected);
         addState(mDisconnecting);
         addState(mConnected);
@@ -219,7 +219,8 @@ public class BassClientStateMachine extends StateMachine {
     static BassClientStateMachine make(BluetoothDevice device,
             BassClientService svc, Looper looper) {
         Log.d(TAG, "make for device " + device);
-        BassClientStateMachine BassclientSm = new BassClientStateMachine(device, svc, looper);
+        BassClientStateMachine BassclientSm = new BassClientStateMachine(device, svc, looper,
+                BassConstants.CONNECT_TIMEOUT_MS);
         BassclientSm.start();
         return BassclientSm;
     }
@@ -1147,7 +1148,7 @@ public class BassClientStateMachine extends StateMachine {
         public void enter() {
             log("Enter Connecting(" + mDevice + "): "
                     + messageWhatToString(getCurrentMessage().what));
-            sendMessageDelayed(CONNECT_TIMEOUT, mDevice, sConnectTimeoutMs);
+            sendMessageDelayed(CONNECT_TIMEOUT, mDevice, mConnectTimeoutMs);
             broadcastConnectionState(
                     mDevice, mLastConnectionState, BluetoothProfile.STATE_CONNECTING);
         }
@@ -1803,7 +1804,7 @@ public class BassClientStateMachine extends StateMachine {
         public void enter() {
             log("Enter Disconnecting(" + mDevice + "): "
                     + messageWhatToString(getCurrentMessage().what));
-            sendMessageDelayed(CONNECT_TIMEOUT, mDevice, sConnectTimeoutMs);
+            sendMessageDelayed(CONNECT_TIMEOUT, mDevice, mConnectTimeoutMs);
             broadcastConnectionState(
                     mDevice, mLastConnectionState, BluetoothProfile.STATE_DISCONNECTING);
         }
