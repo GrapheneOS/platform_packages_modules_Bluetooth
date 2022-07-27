@@ -338,6 +338,8 @@ async fn start_interactive_shell(
                     format!("/org/chromium/bluetooth/client/{}/bluetooth_conn_callback", adapter);
                 let suspend_cb_objpath: String =
                     format!("/org/chromium/bluetooth/client/{}/suspend_callback", adapter);
+                let scanner_cb_objpath: String =
+                    format!("/org/chromium/bluetooth/client/{}/scanner_callback", adapter);
 
                 let dbus_connection = context.lock().unwrap().dbus_connection.clone();
                 let dbus_crossroads = context.lock().unwrap().dbus_crossroads.clone();
@@ -382,7 +384,7 @@ async fn start_interactive_shell(
                     .unwrap()
                     .rpc
                     .register_scanner_callback(Box::new(ScannerCallback::new(
-                        cb_objpath.clone(),
+                        scanner_cb_objpath.clone(),
                         context.clone(),
                         dbus_connection.clone(),
                         dbus_crossroads.clone(),
