@@ -175,7 +175,7 @@ class CsisInstance {
   uint8_t GetRank(void) const { return rank_; }
   void SetRank(uint8_t rank) {
     DLOG(INFO) << __func__ << " current rank state: " << loghex(rank_)
-               << " new lock state: " << loghex(rank);
+               << " new rank state: " << loghex(rank);
     rank_ = rank;
   }
 
