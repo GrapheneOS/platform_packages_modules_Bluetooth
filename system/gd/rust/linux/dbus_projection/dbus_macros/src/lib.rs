@@ -1,3 +1,7 @@
+//! Macros to make working with dbus-rs easier.
+//!
+//! This crate provides several macros to make it easier to project Rust types
+//! and traits onto D-Bus.
 extern crate proc_macro;
 
 use quote::{format_ident, quote, ToTokens};
@@ -520,6 +524,43 @@ fn copy_without_attributes(item: &TokenStream) -> TokenStream {
 }
 
 /// Generates a DBusArg implementation to transform Rust plain structs to a D-Bus data structure.
+///
+/// The D-Bus structure constructed by this macro has the signature `a{sv}`.
+///
+/// # Examples
+///
+/// Assume you have a struct as follows:
+/// ```
+///     struct FooBar {
+///         foo: i32,
+///         bar: u8,
+///     }
+/// ```
+///
+/// In order to serialize this into D-Bus (and deserialize it), you must re-declare this struct
+/// as follows. Note that the field names must match but the struct name does not.
+/// ```ignore
+///     #[dbus_propmap(FooBar)]
+///     struct AnyNameIsFineHere {
+///         foo: i32,
+///         bar: u8
+///     }
+/// ```
+///
+/// The resulting serialized D-Bus data will look like the following:
+///
+/// ```text
+/// array [
+///     dict {
+///         key: "foo",
+///         value: Variant(Int32(0))
+///     }
+///     dict {
+///         key: "bar",
+///         value: Variant(Byte(0))
+///     }
+/// ]
+/// ```
 // TODO: Support more data types of struct fields (currently only supports integers and enums).
 #[proc_macro_attribute]
 pub fn dbus_propmap(attr: TokenStream, item: TokenStream) -> TokenStream {
@@ -837,6 +878,16 @@ pub fn generate_dbus_arg(_item: TokenStream) -> TokenStream {
 
         impl Error for DBusArgError {}
 
+        /// Trait for converting `dbus::arg::RefArg` to a Rust type.
+        ///
+        /// This trait needs to be implemented for all types that need to be
+        /// converted from the D-Bus representation (`dbus::arg::RefArg`) to
+        /// a Rust representation.
+        ///
+        /// These implementations should be provided as part of this macros
+        /// library since the reference types are defined by the D-Bus specification
+        /// (look under Basic Types, Container Types, etc) in
+        /// https://dbus.freedesktop.org/doc/dbus-specification.html.
         pub(crate) trait RefArgToRust {
             type RustType;
             fn ref_arg_to_rust(
@@ -940,6 +991,20 @@ pub fn generate_dbus_arg(_item: TokenStream) -> TokenStream {
             }
         }
 
+        /// Trait describing how to convert to and from a D-Bus type.
+        ///
+        /// All Rust structs that need to be serialized to and from D-Bus need
+        /// to implement this trait. Basic and container types will have their
+        /// implementation provided by this macros crate.
+        ///
+        /// For Rust objects, implement the std::convert::TryFrom and std::convert::TryInto
+        /// traits into the relevant basic or container types for serialization. A
+        /// helper macro is provided in the `dbus_projection` macro (impl_dbus_arg_from_into).
+        /// For enums, use `impl_dbus_arg_enum`.
+        ///
+        /// When implementing this trait for Rust container types (i.e. Option<T>),
+        /// you must first select the D-Bus container type used (i.e. array, property map, etc) and
+        /// then implement the `from_dbus` and `to_dbus` functions.
         pub(crate) trait DBusArg {
             type DBusType;
 
