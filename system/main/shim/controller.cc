@@ -42,8 +42,6 @@ constexpr uint8_t kPhyLe1M = 0x01;
  * Interesting commands supported by controller
  */
 constexpr int kReadRemoteExtendedFeatures = 0x41c;
-constexpr int kEnhancedSetupSynchronousConnection = 0x428;
-constexpr int kEnhancedAcceptSynchronousConnection = 0x429;
 constexpr int kLeSetPrivacyMode = 0x204e;
 constexpr int kConfigureDataPath = 0x0c83;
 
@@ -222,13 +220,16 @@ FORWARD_IF_RUST(
 FORWARD_IF_RUST(supports_reading_remote_extended_features,
                 GetController()->IsSupported((bluetooth::hci::OpCode)
                                                  kReadRemoteExtendedFeatures))
-FORWARD_IF_RUST(supports_enhanced_setup_synchronous_connection,
-                GetController()->IsSupported((
-                    bluetooth::hci::OpCode)kEnhancedSetupSynchronousConnection))
+FORWARD_IF_RUST(
+    supports_enhanced_setup_synchronous_connection,
+    GetController()->IsSupported(
+        bluetooth::hci::OpCode::ENHANCED_SETUP_SYNCHRONOUS_CONNECTION))
+
 FORWARD_IF_RUST(
     supports_enhanced_accept_synchronous_connection,
-    GetController()->IsSupported((bluetooth::hci::OpCode)
-                                     kEnhancedAcceptSynchronousConnection))
+    GetController()->IsSupported(
+        bluetooth::hci::OpCode::ENHANCED_ACCEPT_SYNCHRONOUS_CONNECTION))
+
 FORWARD_IF_RUST(
     supports_ble_set_privacy_mode,
     GetController()->IsSupported((bluetooth::hci::OpCode)kLeSetPrivacyMode))
