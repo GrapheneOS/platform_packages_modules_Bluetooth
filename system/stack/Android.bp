@@ -1290,6 +1290,7 @@ cc_test {
         "libbt-common",
         "libbt-protos-lite",
         "libbtdevice",
+        "libflatbuffers-cpp",
         "libgmock",
         "liblog",
         "libosi",
@@ -1297,7 +1298,6 @@ cc_test {
     shared_libs: [
         "libbinder_ndk",
         "libcrypto",
-        "libflatbuffers-cpp",
         "libprotobuf-cpp-lite",
     ],
     sanitize: {
@@ -1360,6 +1360,7 @@ cc_test {
     static_libs: [
         "libbt-common",
         "libbt-protos-lite",
+        "libflatbuffers-cpp",
         "libgmock",
         "liblog",
         "libosi",
@@ -1367,7 +1368,6 @@ cc_test {
     shared_libs: [
         "libbinder_ndk",
         "libcrypto",
-        "libflatbuffers-cpp",
         "libprotobuf-cpp-lite",
     ],
     sanitize: {
