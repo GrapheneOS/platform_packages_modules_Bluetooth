@@ -179,9 +179,6 @@ typedef struct {
 
 extern tRFC_CB rfc_cb;
 
-extern std::unordered_map<uint32_t /* scn */, uint16_t /* sec_mask */>
-    rfcomm_security_records;
-
 /* MCB based on the L2CAP's lcid */
 extern std::unordered_map<uint16_t /* cid */, tRFC_MCB*> rfc_lcid_mcb;
 
