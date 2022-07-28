@@ -271,7 +271,6 @@ void bta_ag_del_records(tBTA_AG_SCB* p_scb) {
         bta_ag_cb.profile[i].sdp_handle = 0;
       }
       BTM_FreeSCN(bta_ag_cb.profile[i].scn);
-      RFCOMM_ClearSecurityRecord(bta_ag_cb.profile[i].scn);
       bta_sys_remove_uuid(bta_ag_uuid[i]);
     }
   }
