@@ -283,6 +283,7 @@ inline std::string security_mode_text(const tSECURITY_MODE& security_mode) {
   }
 }
 
+/* BTM_SEC security masks */
 enum : uint16_t {
   /* Nothing required */
   BTM_SEC_NONE = 0x0000,

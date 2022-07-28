@@ -204,7 +204,6 @@ void bta_hf_client_del_record(tBTA_HF_CLIENT_CB_ARR* client_cb) {
     SDP_DeleteRecord(client_cb->sdp_handle);
     client_cb->sdp_handle = 0;
     BTM_FreeSCN(client_cb->scn);
-    RFCOMM_ClearSecurityRecord(client_cb->scn);
     bta_sys_remove_uuid(UUID_SERVCLASS_HF_HANDSFREE);
   }
 }
