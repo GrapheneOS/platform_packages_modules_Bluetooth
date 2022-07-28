@@ -189,6 +189,8 @@ typedef struct {
   bool keep_port_handle;    /* true if port is not deallocated when closing */
   /* it is set to true for server when allocating port */
   uint16_t keep_mtu; /* Max MTU that port can receive by server */
+  uint16_t sec_mask; /* Bitmask of security requirements for this port */
+                     /* see the BTM_SEC_* values in btm_api_types.h */
 } tPORT;
 
 /* Define the PORT/RFCOMM control structure
