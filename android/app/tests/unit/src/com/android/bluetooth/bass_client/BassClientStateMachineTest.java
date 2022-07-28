@@ -39,8 +39,6 @@ import android.os.Bundle;
 import android.os.HandlerThread;
 import android.os.Looper;
 
-import androidx.test.InstrumentationRegistry;
-import androidx.test.filters.LargeTest;
 import androidx.test.filters.MediumTest;
 
 import com.android.bluetooth.R;
@@ -68,7 +66,6 @@ public class BassClientStateMachineTest {
     public final MockitoRule mockito = MockitoJUnit.rule();
 
     private BluetoothAdapter mAdapter;
-    private Context mTargetContext;
     private HandlerThread mHandlerThread;
     private StubBassClientStateMachine mBassClientStateMachine;
     private static final int CONNECTION_TIMEOUT_MS = 1_000;
@@ -81,7 +78,6 @@ public class BassClientStateMachineTest {
 
     @Before
     public void setUp() throws Exception {
-        mTargetContext = InstrumentationRegistry.getTargetContext();
         TestUtils.setAdapterService(mAdapterService);
 
         mAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -93,9 +89,7 @@ public class BassClientStateMachineTest {
         mHandlerThread = new HandlerThread("BassClientStateMachineTestHandlerThread");
         mHandlerThread.start();
         mBassClientStateMachine = new StubBassClientStateMachine(mTestDevice,
-                mBassClientService, mHandlerThread.getLooper());
-        // Override the timeout value to speed up the test
-        BassClientStateMachine.sConnectTimeoutMs = CONNECTION_TIMEOUT_MS;
+                mBassClientService, mHandlerThread.getLooper(), CONNECTION_TIMEOUT_MS);
         mBassClientStateMachine.start();
     }
 
@@ -228,11 +222,12 @@ public class BassClientStateMachineTest {
     }
 
     // It simulates GATT connection for testing.
-    public class StubBassClientStateMachine extends BassClientStateMachine {
+    public static class StubBassClientStateMachine extends BassClientStateMachine {
         boolean mShouldAllowGatt = true;
 
-        StubBassClientStateMachine(BluetoothDevice device, BassClientService service, Looper looper) {
-            super(device, service, looper);
+        StubBassClientStateMachine(BluetoothDevice device, BassClientService service, Looper looper,
+                int connectTimeout) {
+            super(device, service, looper, connectTimeout);
         }
 
         @Override

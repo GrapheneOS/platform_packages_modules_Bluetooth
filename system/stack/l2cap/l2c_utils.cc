@@ -2214,6 +2214,58 @@ bool l2cu_lcb_disconnecting(void) {
 
 /*******************************************************************************
  *
+ * Function         l2cu_set_acl_priority_brcm
+ *
+ * Description      Sends a VSC to set the ACL priority on Broadcom chip.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+
+static void l2cu_set_acl_priority_brcm(uint16_t handle,
+                                       tL2CAP_PRIORITY priority) {
+  uint8_t* pp;
+  uint8_t command[HCI_BRCM_ACL_PRIORITY_PARAM_SIZE];
+  uint8_t vs_param;
+
+  pp = command;
+  vs_param = (priority == L2CAP_PRIORITY_HIGH) ? HCI_BRCM_ACL_PRIORITY_HIGH
+                                               : HCI_BRCM_ACL_PRIORITY_LOW;
+  UINT16_TO_STREAM(pp, handle);
+  UINT8_TO_STREAM(pp, vs_param);
+
+  BTM_VendorSpecificCommand(HCI_BRCM_SET_ACL_PRIORITY,
+                            HCI_BRCM_ACL_PRIORITY_PARAM_SIZE, command, NULL);
+}
+
+/*******************************************************************************
+ *
+ * Function         l2cu_set_acl_priority_syna
+ *
+ * Description      Sends a VSC to set the ACL priority on Synaptics chip.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+
+static void l2cu_set_acl_priority_syna(uint16_t handle,
+                                       tL2CAP_PRIORITY priority) {
+  uint8_t* pp;
+  uint8_t command[HCI_SYNA_ACL_PRIORITY_PARAM_SIZE];
+  uint8_t vs_param;
+
+  pp = command;
+  vs_param = (priority == L2CAP_PRIORITY_HIGH) ? HCI_SYNA_ACL_PRIORITY_HIGH
+                                               : HCI_SYNA_ACL_PRIORITY_LOW;
+  UINT16_TO_STREAM(pp, handle);
+  UINT8_TO_STREAM(pp, vs_param);
+
+  BTM_VendorSpecificCommand(HCI_SYNA_SET_ACL_PRIORITY,
+                            HCI_SYNA_ACL_PRIORITY_PARAM_SIZE, command, NULL);
+}
+
+/*******************************************************************************
+ *
  * Function         l2cu_set_acl_priority
  *
  * Description      Sets the transmission priority for a channel.
@@ -2227,9 +2279,6 @@ bool l2cu_lcb_disconnecting(void) {
 bool l2cu_set_acl_priority(const RawAddress& bd_addr, tL2CAP_PRIORITY priority,
                            bool reset_after_rs) {
   tL2C_LCB* p_lcb;
-  uint8_t* pp;
-  uint8_t command[HCI_BRCM_ACL_PRIORITY_PARAM_SIZE];
-  uint8_t vs_param;
 
   APPL_TRACE_EVENT("SET ACL PRIORITY %d", priority);
 
@@ -2240,24 +2289,22 @@ bool l2cu_set_acl_priority(const RawAddress& bd_addr, tL2CAP_PRIORITY priority,
     return (false);
   }
 
-  if (controller_get_interface()->get_bt_version()->manufacturer ==
-      LMP_COMPID_BROADCOM) {
-    /* Called from above L2CAP through API; send VSC if changed */
-    if ((!reset_after_rs && (priority != p_lcb->acl_priority)) ||
-        /* Called because of a central/peripheral role switch; if high resend
-           VSC */
-        (reset_after_rs && p_lcb->acl_priority == L2CAP_PRIORITY_HIGH)) {
-      pp = command;
-
-      vs_param = (priority == L2CAP_PRIORITY_HIGH) ? HCI_BRCM_ACL_PRIORITY_HIGH
-                                                   : HCI_BRCM_ACL_PRIORITY_LOW;
-
-      UINT16_TO_STREAM(pp, p_lcb->Handle());
-      UINT8_TO_STREAM(pp, vs_param);
-
-      BTM_VendorSpecificCommand(HCI_BRCM_SET_ACL_PRIORITY,
-                                HCI_BRCM_ACL_PRIORITY_PARAM_SIZE, command,
-                                NULL);
+  /* Link priority is set if:
+   * 1. Change in priority requested from above L2CAP through API, Or
+   * 2. High priority requested because of central/peripheral role switch */
+  if ((!reset_after_rs && (priority != p_lcb->acl_priority)) ||
+      (reset_after_rs && p_lcb->acl_priority == L2CAP_PRIORITY_HIGH)) {
+    /* Use vendor specific commands to set the link priority */
+    switch (controller_get_interface()->get_bt_version()->manufacturer) {
+      case LMP_COMPID_BROADCOM:
+        l2cu_set_acl_priority_brcm(p_lcb->Handle(), priority);
+        break;
+      case LMP_COMPID_SYNAPTICS:
+        l2cu_set_acl_priority_syna(p_lcb->Handle(), priority);
+        break;
+      default:
+        /* Not supported/required for other vendors */
+        break;
     }
   }
 
