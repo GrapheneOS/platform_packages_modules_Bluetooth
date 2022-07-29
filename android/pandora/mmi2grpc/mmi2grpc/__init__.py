@@ -22,6 +22,7 @@ import sys
 import grpc
 
 from mmi2grpc.a2dp import A2DPProxy
+from mmi2grpc.avrcp import AVRCPProxy
 from mmi2grpc.gatt import GATTProxy
 from mmi2grpc.hfp import HFPProxy
 from mmi2grpc.sdp import SDPProxy
@@ -54,6 +55,7 @@ class IUT:
 
         # Profile proxies.
         self._a2dp = None
+        self._avrcp = None
         self._gatt = None
         self._hfp = None
         self._sdp = None
@@ -68,6 +70,7 @@ class IUT:
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
         self._a2dp = None
+        self._avrcp = None
         self._gatt = None
         self._hfp = None
         self._sdp = None
@@ -115,6 +118,11 @@ class IUT:
             if not self._a2dp:
                 self._a2dp = A2DPProxy(grpc.insecure_channel(f'localhost:{self.port}'))
             return self._a2dp.interact(test, interaction, description, pts_address)
+        # Handles AVRCP and AVCTP MMIs.
+        if profile in ('AVRCP', 'AVCTP'):
+            if not self._avrcp:
+                self._avrcp = AVRCPProxy(grpc.insecure_channel(f'localhost:{self.port}'))
+            return self._avrcp.interact(test, interaction, description, pts_address)
         # Handles GATT MMIs.
         if profile in ('GATT'):
             if not self._gatt:
