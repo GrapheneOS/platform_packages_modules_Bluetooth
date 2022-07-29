@@ -252,6 +252,7 @@ cc_test {
         "libtinyxml2",
         "libz",
         "libcrypto",
+        "PlatformProperties",
     ],
     static_libs: [
         "android.hardware.bluetooth.a2dp@1.0",
@@ -1201,6 +1202,13 @@ cc_test {
         "libcrypto",
         "libprotobuf-cpp-lite",
     ],
+    target: {
+        android: {
+            shared_libs: [
+                "PlatformProperties",
+            ],
+        },
+    },
     sanitize: {
         address: true,
         all_undefined: true,

@@ -61,6 +61,7 @@ cc_defaults {
         "libstatssocket",
         "libtinyxml2",
         "libutils",
+        "PlatformProperties",
     ],
     static_libs: [
         "android.hardware.bluetooth.a2dp@1.0",
