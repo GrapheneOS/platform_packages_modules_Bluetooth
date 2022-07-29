@@ -60,7 +60,6 @@ struct btm_client_interface_t {
   // Neighbor
   struct {
     void (*BTM_CancelInquiry)();
-    void (*BTM_CancelInquiryNotifyWhenComplete)();
     tBTM_INQ_INFO* (*BTM_InqDbNext)(tBTM_INQ_INFO* p_cur);
     tBTM_STATUS (*BTM_ClearInqDb)(const RawAddress* p_bda);
     tBTM_STATUS (*BTM_SetDiscoverability)(uint16_t inq_mode);
