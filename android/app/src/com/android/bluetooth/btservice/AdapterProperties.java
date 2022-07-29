@@ -19,6 +19,7 @@ package com.android.bluetooth.btservice;
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
 import static android.Manifest.permission.BLUETOOTH_SCAN;
 
+import android.annotation.RequiresPermission;
 import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothA2dpSink;
 import android.bluetooth.BluetoothAdapter;
@@ -428,7 +429,7 @@ class AdapterProperties {
     }
 
     /**
-     * @param mState the mState to set
+     * @param state the mState to set
      */
     void setState(int state) {
         debugLog("Setting state to " + BluetoothAdapter.nameForState(state));
@@ -602,8 +603,8 @@ class AdapterProperties {
      * @param codec the codecs to set
      * @param size the size to set
      */
-    boolean setBufferLengthMillis(int codec, int value) {
-        return mService.setBufferLengthMillisNative(codec, value);
+    boolean setBufferLengthMillis(int codec, int size) {
+        return mService.setBufferLengthMillisNative(codec, size);
     }
 
     /**
@@ -687,6 +688,7 @@ class AdapterProperties {
         return mDiscovering;
     }
 
+    @RequiresPermission(android.Manifest.permission.INTERACT_ACROSS_USERS)
     private void sendConnectionStateChange(int profile, Intent connIntent) {
         BluetoothDevice device = connIntent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
         int prevState = connIntent.getIntExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, -1);
@@ -710,6 +712,7 @@ class AdapterProperties {
         sendConnectionStateChange(device, profile, state, prevState);
     }
 
+    @RequiresPermission(android.Manifest.permission.INTERACT_ACROSS_USERS)
     void sendConnectionStateChange(BluetoothDevice device, int profile, int state, int prevState) {
         if (!validateProfileConnectionState(state) || !validateProfileConnectionState(prevState)) {
             // Previously, an invalid state was broadcast anyway,
@@ -888,6 +891,7 @@ class AdapterProperties {
         }
     }
 
+    @RequiresPermission(android.Manifest.permission.INTERACT_ACROSS_USERS)
     void adapterPropertyChangedCallback(int[] types, byte[][] values) {
         Intent intent;
         int type;
@@ -1107,6 +1111,7 @@ class AdapterProperties {
         }
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     protected void dump(FileDescriptor fd, PrintWriter writer, String[] args) {
         writer.println(TAG);
         writer.println("  " + "Name: " + getName());
