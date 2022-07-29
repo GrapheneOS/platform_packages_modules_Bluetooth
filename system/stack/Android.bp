@@ -311,6 +311,7 @@ cc_test {
         "test/stack_avrcp_test.cc",
     ],
     shared_libs: [
+        "PlatformProperties",
         "android.hardware.bluetooth.audio-V3-ndk",
         "android.hardware.bluetooth.audio@2.0",
         "android.hardware.bluetooth.audio@2.1",
@@ -1430,6 +1431,13 @@ cc_test {
         "libbinder_ndk",
         "libcrypto",
     ],
+    target: {
+        android: {
+            shared_libs: [
+                "PlatformProperties",
+            ],
+        },
+    },
     sanitize: {
         address: true,
         all_undefined: true,
