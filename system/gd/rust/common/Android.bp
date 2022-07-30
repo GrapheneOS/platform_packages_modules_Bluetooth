@@ -125,7 +125,7 @@ cc_library_static {
 
 cc_library_static {
     name: "libbt_keystore_cc",
-    defaults: ["gd_ffi_defaults"],
+    defaults: ["rust_static_cc_lib_defaults", "gd_ffi_defaults"],
     header_libs: ["libbt_keystore_cc_headers"],
     srcs: ["keystore/fake_bt_keystore.cc"],
     generated_headers: ["libbt_common_bridge_header", "cxx-bridge-header"],
