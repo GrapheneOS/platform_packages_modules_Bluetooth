@@ -38,13 +38,6 @@ constexpr int kMaxSupportedCodecs = 8;  // MAX_LOCAL_SUPPORTED_CODECS_SIZE
 
 constexpr uint8_t kPhyLe1M = 0x01;
 
-/**
- * Interesting commands supported by controller
- */
-constexpr int kReadRemoteExtendedFeatures = 0x41c;
-constexpr int kLeSetPrivacyMode = 0x204e;
-constexpr int kConfigureDataPath = 0x0c83;
-
 constexpr int kHciDataPreambleSize = 4;  // #define HCI_DATA_PREAMBLE_SIZE 4
 
 // Module lifecycle functions
@@ -215,11 +208,12 @@ MAP_TO_GD(supports_synchronized_receiver, SupportsBleSynchronizedReceiver)
 
 FORWARD_IF_RUST(
     supports_configure_data_path,
-    GetController()->IsSupported((bluetooth::hci::OpCode)kConfigureDataPath))
+    GetController()->IsSupported(bluetooth::hci::OpCode::CONFIGURE_DATA_PATH))
 
 FORWARD_IF_RUST(supports_reading_remote_extended_features,
-                GetController()->IsSupported((bluetooth::hci::OpCode)
-                                                 kReadRemoteExtendedFeatures))
+                GetController()->IsSupported(
+                    bluetooth::hci::OpCode::READ_REMOTE_EXTENDED_FEATURES))
+
 FORWARD_IF_RUST(
     supports_enhanced_setup_synchronous_connection,
     GetController()->IsSupported(
@@ -232,7 +226,7 @@ FORWARD_IF_RUST(
 
 FORWARD_IF_RUST(
     supports_ble_set_privacy_mode,
-    GetController()->IsSupported((bluetooth::hci::OpCode)kLeSetPrivacyMode))
+    GetController()->IsSupported(bluetooth::hci::OpCode::LE_SET_PRIVACY_MODE))
 
 #define FORWARD_GETTER_IF_RUST(type, legacy, gd)                         \
   static type legacy(void) {                                             \
