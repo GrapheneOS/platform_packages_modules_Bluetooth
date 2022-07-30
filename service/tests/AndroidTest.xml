@@ -27,10 +27,4 @@
         <option name="runner" value="com.android.server.bluetooth.CustomTestRunner" />
         <option name="hidden-api-checks" value="false"/>
     </test>
-
-    <!-- Only run ServiceBluetoothTests in MTS if the Bluetooth Mainline module is installed. -->
-    <object type="module_controller"
-            class="com.android.tradefed.testtype.suite.module.MainlineTestModuleController">
-        <option name="mainline-module-package-name" value="com.android.btservices" />
-    </object>
 </configuration>
