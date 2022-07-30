@@ -31,7 +31,7 @@ rust_binary {
     srcs: ["src/main.rs"],
     edition: "2018",
     rustlibs: [
-      "libclap_deprecated",
+      "libclap",
       "libbluetooth_with_facades",
       "libfutures",
       "libgrpcio",
