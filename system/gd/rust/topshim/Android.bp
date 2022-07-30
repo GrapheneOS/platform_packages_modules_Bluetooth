@@ -20,7 +20,7 @@ rust_library_host_rlib {
         "libbluetooth_rs",
         "libbt_common",
         "libbt_facade_helpers",
-        "libclap_deprecated",
+        "libclap",
         "libcxx",
         "libgrpcio",
         "libtokio",
