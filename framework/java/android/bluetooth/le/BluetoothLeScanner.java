@@ -18,6 +18,7 @@ package android.bluetooth.le;
 
 import static android.bluetooth.le.BluetoothLeUtils.getSyncTimeout;
 
+import android.Manifest;
 import android.annotation.NonNull;
 import android.annotation.Nullable;
 import android.annotation.RequiresNoPermission;
@@ -25,6 +26,7 @@ import android.annotation.RequiresPermission;
 import android.annotation.SuppressLint;
 import android.annotation.SystemApi;
 import android.app.PendingIntent;
+import android.app.compat.gms.GmsCompat;
 import android.bluetooth.Attributable;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothGatt;
@@ -243,9 +245,15 @@ public final class BluetoothLeScanner {
     private int startScan(
             List<ScanFilter> filters,
             ScanSettings settings,
-            final WorkSource workSource,
+            WorkSource workSource,
             final ScanCallback callback,
             final PendingIntent callbackIntent) {
+        if (GmsCompat.isEnabled()) {
+            if (workSource != null && !GmsCompat.hasPermission(Manifest.permission.UPDATE_DEVICE_STATS)) {
+                workSource = null;
+            }
+        }
+
         BluetoothLeUtils.checkAdapterStateOn(mBluetoothAdapter);
         if (callback == null && callbackIntent == null) {
             throw new IllegalArgumentException("callback is null");
