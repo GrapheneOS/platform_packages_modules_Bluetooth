@@ -32,6 +32,8 @@ import android.annotation.SdkConstant.SdkConstantType;
 import android.annotation.SuppressLint;
 import android.annotation.SystemApi;
 import android.app.PendingIntent;
+import android.app.compat.gms.GmsCompat;
+import android.app.compat.gms.GmsModuleHooks;
 import android.bluetooth.BluetoothDevice.AddressType;
 import android.bluetooth.BluetoothDevice.Transport;
 import android.bluetooth.BluetoothProfile.ConnectionPolicy;
@@ -1242,6 +1244,13 @@ public final class BluetoothAdapter {
         if (!isBleScanAlwaysAvailable()) {
             return false;
         }
+
+        if (GmsCompat.isEnabled()) {
+            if (!GmsModuleHooks.canEnableBluetoothAdapter()) {
+                return false;
+            }
+        }
+
         try {
             return mManagerService.enableBle(mAttributionSource, mToken);
         } catch (RemoteException e) {
@@ -1307,6 +1316,13 @@ public final class BluetoothAdapter {
      * OFF.
      */
     private @InternalAdapterState int getStateInternal() {
+        if (GmsCompat.isEnabled()) {
+            if (!GmsCompat.hasPermission(android.Manifest.permission.BLUETOOTH_SCAN)) {
+                // called by both getState() and getLeState()
+                return BluetoothAdapter.STATE_OFF;
+            }
+        }
+
         mServiceLock.readLock().lock();
         try {
             if (mService != null) {
@@ -1440,6 +1456,13 @@ public final class BluetoothAdapter {
             }
             return true;
         }
+
+        if (GmsCompat.isEnabled()) {
+            if (!GmsModuleHooks.canEnableBluetoothAdapter()) {
+                return false;
+            }
+        }
+
         try {
             return mManagerService.enable(mAttributionSource);
         } catch (RemoteException e) {
@@ -1530,6 +1553,12 @@ public final class BluetoothAdapter {
     @RequiresLegacyBluetoothPermission
     @RequiresBluetoothConnectPermission
     public String getAddress() {
+        if (GmsCompat.isEnabled()){
+            if (!GmsCompat.hasPermission(android.Manifest.permission.BLUETOOTH_CONNECT)) {
+                return DEFAULT_MAC_ADDRESS;
+            }
+        }
+
         try {
             return mManagerService.getAddress(mAttributionSource);
         } catch (RemoteException e) {
@@ -1548,6 +1577,12 @@ public final class BluetoothAdapter {
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public String getName() {
+        if (GmsCompat.isEnabled()) {
+            if (!GmsCompat.hasPermission(android.Manifest.permission.BLUETOOTH_CONNECT)) {
+                return null;
+            }
+        }
+
         try {
             return mManagerService.getName(mAttributionSource);
         } catch (RemoteException e) {
@@ -1917,6 +1952,12 @@ public final class BluetoothAdapter {
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_SCAN)
     @ScanMode
     public int getScanMode() {
+        if (GmsCompat.isEnabled()) {
+            if (!GmsCompat.hasPermission(android.Manifest.permission.BLUETOOTH_SCAN)) {
+                return SCAN_MODE_NONE;
+            }
+        }
+
         if (getState() != STATE_ON) {
             return SCAN_MODE_NONE;
         }
