@@ -2041,7 +2041,8 @@ uint8_t bta_hh_le_add_device(tBTA_HH_DEV_CB* p_cb,
   /* update DI information */
   bta_hh_update_di_info(
       p_cb, p_dev_info->dscp_info.vendor_id, p_dev_info->dscp_info.product_id,
-      p_dev_info->dscp_info.version, p_dev_info->dscp_info.flag);
+      p_dev_info->dscp_info.version, p_dev_info->dscp_info.flag,
+      p_dev_info->dscp_info.ctry_code);
 
   /* add to BTA device list */
   bta_hh_add_device_to_list(
