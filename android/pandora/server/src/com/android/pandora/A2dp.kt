@@ -97,9 +97,8 @@ class A2dp(val context: Context) : A2DPImplBase() {
     responseObserver: StreamObserver<OpenSourceResponse>
   ) {
     grpcUnary<OpenSourceResponse>(scope, responseObserver) {
-      val address = request.connection.cookie.toByteArray().decodeToString()
-      val device = bluetoothAdapter.getRemoteDevice(address)
-      Log.i(TAG, "openSource: address=$address")
+      val device = request.connection.toBluetoothDevice(bluetoothAdapter)
+      Log.i(TAG, "openSource: device=$device")
 
       if (device.getBondState() != BluetoothDevice.BOND_BONDED) {
         Log.e(TAG, "Device is not bonded, cannot openSource")
@@ -111,6 +110,7 @@ class A2dp(val context: Context) : A2DPImplBase() {
         val state =
           flow
             .filter { it.getAction() == BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED }
+            .filter { it.getBluetoothDeviceExtra() == device }
             .map { it.getIntExtra(BluetoothProfile.EXTRA_STATE, BluetoothAdapter.ERROR) }
             .filter {
               it == BluetoothProfile.STATE_CONNECTED || it == BluetoothProfile.STATE_DISCONNECTED
@@ -126,7 +126,7 @@ class A2dp(val context: Context) : A2DPImplBase() {
       // TODO: b/234891800, AVDTP start request sometimes never sent if playback starts too early.
       delay(2000L)
 
-      val source = Source.newBuilder().setCookie(request.connection.cookie).build()
+      val source = Source.newBuilder().setConnection(request.connection).build()
       OpenSourceResponse.newBuilder().setSource(source).build()
     }
   }
@@ -136,9 +136,8 @@ class A2dp(val context: Context) : A2DPImplBase() {
     responseObserver: StreamObserver<WaitSourceResponse>
   ) {
     grpcUnary<WaitSourceResponse>(scope, responseObserver) {
-      val address = request.connection.cookie.toByteArray().decodeToString()
-      val device = bluetoothAdapter.getRemoteDevice(address)
-      Log.i(TAG, "waitSource: address=$address")
+      val device = request.connection.toBluetoothDevice(bluetoothAdapter)
+      Log.i(TAG, "waitSource: device=$device")
 
       if (device.getBondState() != BluetoothDevice.BOND_BONDED) {
         Log.e(TAG, "Device is not bonded, cannot openSource")
@@ -149,6 +148,7 @@ class A2dp(val context: Context) : A2DPImplBase() {
         val state =
           flow
             .filter { it.getAction() == BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED }
+            .filter { it.getBluetoothDeviceExtra() == device }
             .map { it.getIntExtra(BluetoothProfile.EXTRA_STATE, BluetoothAdapter.ERROR) }
             .filter {
               it == BluetoothProfile.STATE_CONNECTED || it == BluetoothProfile.STATE_DISCONNECTED
@@ -164,7 +164,7 @@ class A2dp(val context: Context) : A2DPImplBase() {
       // TODO: b/234891800, AVDTP start request sometimes never sent if playback starts too early.
       delay(2000L)
 
-      val source = Source.newBuilder().setCookie(request.connection.cookie).build()
+      val source = Source.newBuilder().setConnection(request.connection).build()
       WaitSourceResponse.newBuilder().setSource(source).build()
     }
   }
@@ -174,9 +174,8 @@ class A2dp(val context: Context) : A2DPImplBase() {
       if (audioTrack == null) {
         audioTrack = buildAudioTrack()
       }
-      val address = request.source.cookie.toByteArray().decodeToString()
-      val device = bluetoothAdapter.getRemoteDevice(address)
-      Log.i(TAG, "start: address=$address")
+      val device = request.source.connection.toBluetoothDevice(bluetoothAdapter)
+      Log.i(TAG, "start: device=$device")
 
       if (bluetoothA2dp.getConnectionState(device) != BluetoothA2dp.STATE_CONNECTED) {
         Log.e(TAG, "Device is not connected, cannot start")
@@ -189,7 +188,7 @@ class A2dp(val context: Context) : A2DPImplBase() {
       if (!bluetoothA2dp.isA2dpPlaying(device)) {
         flow
           .filter { it.getAction() == BluetoothA2dp.ACTION_PLAYING_STATE_CHANGED }
-          .filter { it.getBluetoothDeviceExtra().address == address }
+          .filter { it.getBluetoothDeviceExtra() == device }
           .map { it.getIntExtra(BluetoothA2dp.EXTRA_STATE, BluetoothAdapter.ERROR) }
           .filter { it == BluetoothA2dp.STATE_PLAYING }
           .first()
@@ -200,9 +199,8 @@ class A2dp(val context: Context) : A2DPImplBase() {
 
   override fun suspend(request: SuspendRequest, responseObserver: StreamObserver<SuspendResponse>) {
     grpcUnary<SuspendResponse>(scope, responseObserver) {
-      val address = request.source.cookie.toByteArray().decodeToString()
-      val device = bluetoothAdapter.getRemoteDevice(address)
-      Log.i(TAG, "suspend: address=$address")
+      val device = request.source.connection.toBluetoothDevice(bluetoothAdapter)
+      Log.i(TAG, "suspend: device=$device")
 
       if (bluetoothA2dp.getConnectionState(device) != BluetoothA2dp.STATE_CONNECTED) {
         Log.e(TAG, "Device is not connected, cannot suspend")
@@ -217,7 +215,7 @@ class A2dp(val context: Context) : A2DPImplBase() {
       val a2dpPlayingStateFlow =
         flow
           .filter { it.getAction() == BluetoothA2dp.ACTION_PLAYING_STATE_CHANGED }
-          .filter { it.getBluetoothDeviceExtra().address == address }
+          .filter { it.getBluetoothDeviceExtra() == device }
           .map { it.getIntExtra(BluetoothA2dp.EXTRA_STATE, BluetoothAdapter.ERROR) }
 
       audioTrack!!.pause()
@@ -231,9 +229,8 @@ class A2dp(val context: Context) : A2DPImplBase() {
     responseObserver: StreamObserver<IsSuspendedResponse>
   ) {
     grpcUnary<IsSuspendedResponse>(scope, responseObserver) {
-      val address = request.source.cookie.toByteArray().decodeToString()
-      val device = bluetoothAdapter.getRemoteDevice(address)
-      Log.i(TAG, "isSuspended: address=$address")
+      val device = request.source.connection.toBluetoothDevice(bluetoothAdapter)
+      Log.i(TAG, "isSuspended: device=$device")
 
       if (bluetoothA2dp.getConnectionState(device) != BluetoothA2dp.STATE_CONNECTED) {
         Log.e(TAG, "Device is not connected, cannot get suspend state")
@@ -247,9 +244,8 @@ class A2dp(val context: Context) : A2DPImplBase() {
 
   override fun close(request: CloseRequest, responseObserver: StreamObserver<CloseResponse>) {
     grpcUnary<CloseResponse>(scope, responseObserver) {
-      val address = request.source.cookie.toByteArray().decodeToString()
-      val device = bluetoothAdapter.getRemoteDevice(address)
-      Log.i(TAG, "close: address=$address")
+      val device = request.source.connection.toBluetoothDevice(bluetoothAdapter)
+      Log.i(TAG, "close: device=$device")
 
       if (bluetoothA2dp.getConnectionState(device) != BluetoothA2dp.STATE_CONNECTED) {
         Log.e(TAG, "Device is not connected, cannot close")
@@ -259,7 +255,7 @@ class A2dp(val context: Context) : A2DPImplBase() {
       val a2dpConnectionStateChangedFlow =
         flow
           .filter { it.getAction() == BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED }
-          .filter { it.getBluetoothDeviceExtra().address == address }
+          .filter { it.getBluetoothDeviceExtra() == device }
           .map { it.getIntExtra(BluetoothA2dp.EXTRA_STATE, BluetoothAdapter.ERROR) }
 
       bluetoothA2dp.disconnect(device)
@@ -322,9 +318,8 @@ class A2dp(val context: Context) : A2DPImplBase() {
     responseObserver: StreamObserver<GetAudioEncodingResponse>
   ) {
     grpcUnary<GetAudioEncodingResponse>(scope, responseObserver) {
-      val address = request.source.cookie.toByteArray().decodeToString()
-      val device = bluetoothAdapter.getRemoteDevice(address)
-      Log.i(TAG, "getAudioEncoding: address=$address")
+      val device = request.source.connection.toBluetoothDevice(bluetoothAdapter)
+      Log.i(TAG, "getAudioEncoding: device=$device")
 
       if (bluetoothA2dp.getConnectionState(device) != BluetoothA2dp.STATE_CONNECTED) {
         Log.e(TAG, "Device is not connected, cannot getAudioEncoding")
