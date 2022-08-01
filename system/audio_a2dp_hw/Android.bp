@@ -36,7 +36,10 @@ cc_library {
         "liblog",
         "libcutils",
     ],
-    static_libs: ["libosi"],
+    static_libs: [
+        "libbluetooth_gd",
+        "libosi",
+    ],
 }
 
 cc_library_static {

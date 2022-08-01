@@ -16,17 +16,15 @@
  *
  ******************************************************************************/
 
-#include <string.h>
-
 #include "osi/include/properties.h"
 
-#ifdef TARGET_FLOSS
+#include <string.h>
+
 #include <algorithm>
 #include <optional>
 #include <string>
 
 #include "gd/os/system_properties.h"
-#endif
 
 #if !defined(OS_GENERIC)
 #undef PROPERTY_VALUE_MAX
@@ -37,7 +35,6 @@
 #endif  // !defined(OS_GENERIC)
 
 int osi_property_get(const char* key, char* value, const char* default_value) {
-#if defined(TARGET_FLOSS)
   std::optional<std::string> result = bluetooth::os::GetSystemProperty(key);
   if (result) {
     memcpy(value, result->data(), result->size());
@@ -51,59 +48,27 @@ int osi_property_get(const char* key, char* value, const char* default_value) {
   } else {
     return 0;
   }
-#elif defined(OS_GENERIC)
-  /* For linux right now just return default value, if present */
-  int len = 0;
-  if (!default_value) return len;
-
-  len = strlen(default_value);
-  if (len >= PROPERTY_VALUE_MAX) len = PROPERTY_VALUE_MAX - 1;
-
-  memcpy(value, default_value, len);
-  value[len] = '\0';
-  return len;
-#else
-  return property_get(key, value, default_value);
-#endif  // defined(OS_GENERIC)
 }
 
 int osi_property_set(const char* key, const char* value) {
-#if defined(TARGET_FLOSS)
   bool success = bluetooth::os::SetSystemProperty(key, value);
   return success ? 0 : -1;
-#elif defined(OS_GENERIC)
-  return -1;
-#else
-  return property_set(key, value);
-#endif  // defined(OS_GENERIC)
 }
 
 int32_t osi_property_get_int32(const char* key, int32_t default_value) {
-#if defined(TARGET_FLOSS)
   std::optional<std::string> result = bluetooth::os::GetSystemProperty(key);
   if (result) {
     return stoi(*result, nullptr);
   } else {
     return default_value;
   }
-#elif defined(OS_GENERIC)
-  return default_value;
-#else
-  return property_get_int32(key, default_value);
-#endif  // defined(OS_GENERIC)
 }
 
 bool osi_property_get_bool(const char* key, bool default_value) {
-#if defined(TARGET_FLOSS)
   std::optional<std::string> result = bluetooth::os::GetSystemProperty(key);
   if (result) {
     return *result == std::string("true");
   } else {
     return default_value;
   }
-#elif defined(OS_GENERIC)
-  return default_value;
-#else
-  return property_get_bool(key, default_value);
-#endif  // defined(OS_GENERIC)
 }

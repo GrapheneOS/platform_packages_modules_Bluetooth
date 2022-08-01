@@ -188,6 +188,7 @@ cc_defaults {
         ":BluetoothShimSources",
         ":BluetoothSecuritySources",
         ":BluetoothStorageSources",
+        ":BluetoothSyspropsSources",
     ],
     generated_headers: [
         "BluetoothGeneratedBundlerSchema_h_bfbs",
@@ -198,6 +199,9 @@ cc_defaults {
         "libchrome",
         "libcrypto",
         "libflatbuffers-cpp",
+    ],
+    whole_static_libs: [
+        "libc++fs",
     ],
     static_libs: [
         "libbluetooth-dumpsys",

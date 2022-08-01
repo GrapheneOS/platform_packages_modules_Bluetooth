@@ -29,10 +29,6 @@
 
 #include "btif_dm.h"
 
-#ifdef OS_ANDROID
-#include <android/sysprop/BluetoothProperties.sysprop.h>
-#endif
-
 #include <base/bind.h>
 #include <base/logging.h>
 #include <bluetooth/uuid.h>
@@ -50,10 +46,6 @@
 #include <unistd.h>
 
 #include <mutex>
-
-#ifdef OS_ANDROID
-#include <android/sysprop/BluetoothProperties.sysprop.h>
-#endif
 
 #include "advertise_data_parser.h"
 #include "bta_csis_api.h"
@@ -1571,19 +1563,8 @@ void BTIF_dm_enable() {
   }
 
   /* Enable or disable local privacy */
-  bool ble_privacy_enabled = true;
-  #ifdef OS_ANDROID
-    ble_privacy_enabled =
-        android::sysprop::BluetoothProperties::isGapLePrivacyEnabled().value_or(
-            true);
-  #else
-    char ble_privacy_text[PROPERTY_VALUE_MAX] = "true";  // default is enabled
-    if (osi_property_get(PROPERTY_BLE_PRIVACY_ENABLED, ble_privacy_text,
-                         "true") &&
-        !strcmp(ble_privacy_text, "false")) {
-      ble_privacy_enabled = false;
-    }
-  #endif
+  bool ble_privacy_enabled =
+      osi_property_get_bool(PROPERTY_BLE_PRIVACY_ENABLED, /*default=*/true);
 
   LOG_INFO("%s BLE Privacy: %d", __func__, ble_privacy_enabled);
   BTA_DmBleConfigLocalPrivacy(ble_privacy_enabled);
@@ -2247,27 +2228,6 @@ void btif_dm_get_local_class_of_device(DEV_CLASS device_class) {
   device_class[1] = BTM_COD_MAJOR_UNCLASSIFIED;
   device_class[2] = BTM_COD_MINOR_UNCLASSIFIED;
 
-#ifdef OS_ANDROID
-  std::vector<std::optional<std::uint32_t>> local_device_class =
-          android::sysprop::BluetoothProperties::getClassOfDevice();
-  // Error check the inputs. Use the default if problems are found
-  if (local_device_class.size() != 3) {
-    LOG_ERROR("COD malformed, must have unsigned 3 integers.");
-  } else if (!local_device_class[0].has_value()
-      || local_device_class[0].value() > 0xFF) {
-    LOG_ERROR("COD malformed, first value is missing or too large.");
-  } else if (!local_device_class[1].has_value()
-      || local_device_class[1].value() > 0xFF) {
-    LOG_ERROR("COD malformed, second value is missing or too large.");
-  } else if (!local_device_class[2].has_value()
-      || local_device_class[2].value() > 0xFF) {
-    LOG_ERROR("COD malformed, third value is missing or too large.");
-  } else {
-    device_class[0] = (uint8_t) local_device_class[0].value();
-    device_class[1] = (uint8_t) local_device_class[1].value();
-    device_class[2] = (uint8_t) local_device_class[2].value();
-  }
-#else
   char prop_cod[PROPERTY_VALUE_MAX];
   osi_property_get(PROPERTY_CLASS_OF_DEVICE, prop_cod, "");
 
@@ -2345,7 +2305,6 @@ void btif_dm_get_local_class_of_device(DEV_CLASS device_class) {
   } else {
     LOG_ERROR("%s: COD malformed, fewer than three numbers", __func__);
   }
-#endif
 
   LOG_DEBUG("%s: Using class of device '0x%x, 0x%x, 0x%x'", __func__,
       device_class[0], device_class[1], device_class[2]);
@@ -3274,19 +3233,9 @@ static const char* btif_get_default_local_name() {
   if (btif_default_local_name[0] == '\0') {
     int max_len = sizeof(btif_default_local_name) - 1;
 
-    // Use the stable sysprop on Android devices, otherwise use osi_property_get
-#ifdef OS_ANDROID
-    std::optional<std::string> default_local_name =
-        android::sysprop::BluetoothProperties::getDefaultDeviceName();
-    if (default_local_name.has_value() && default_local_name.value() != "") {
-      strncpy(btif_default_local_name, default_local_name.value().c_str(),
-              max_len);
-    }
-#else
     char prop_name[PROPERTY_VALUE_MAX];
     osi_property_get(PROPERTY_DEFAULT_DEVICE_NAME, prop_name, "");
     strncpy(btif_default_local_name, prop_name, max_len);
-#endif
 
     // If no value was placed in the btif_default_local_name then use model name
     if (btif_default_local_name[0] == '\0') {
