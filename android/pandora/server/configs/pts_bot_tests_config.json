@@ -45,7 +45,8 @@
     "HFP/AG/HFI/BI-03-I",
     "HFP/AG/HFI/BV-02-I",
     "HFP/AG/SLC/BV-09-I",
-    "HFP/AG/SLC/BV-10-I"
+    "HFP/AG/SLC/BV-10-I",
+    "HFP/AG/WBS/BV-01-I"
   ],
   "skip": [
     "A2DP/SRC/AS/BV-01-I",
