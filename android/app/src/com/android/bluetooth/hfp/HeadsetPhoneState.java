@@ -173,6 +173,7 @@ public class HeadsetPhoneState {
 
     private void stopListenForPhoneState() {
         synchronized (mPhoneStateListenerLock) {
+            mTelephonyManager.clearSignalStrengthUpdateRequest(mSignalStrengthUpdateRequest);
             if (mPhoneStateListener == null) {
                 Log.i(TAG, "stopListenForPhoneState(), no listener indicates nothing is listening");
                 return;
@@ -181,7 +182,6 @@ public class HeadsetPhoneState {
                     + getTelephonyEventsToListen());
             mTelephonyManager.listen(mPhoneStateListener, PhoneStateListener.LISTEN_NONE);
             mPhoneStateListener = null;
-            mTelephonyManager.clearSignalStrengthUpdateRequest(mSignalStrengthUpdateRequest);
         }
     }
 
