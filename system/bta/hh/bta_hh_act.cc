@@ -265,12 +265,12 @@ static void bta_hh_di_sdp_cback(tSDP_RESULT result) {
       /* always update information with primary DI record */
       if (SDP_GetDiRecord(1, &di_rec, bta_hh_cb.p_disc_db) == SDP_SUCCESS) {
         bta_hh_update_di_info(p_cb, di_rec.rec.vendor, di_rec.rec.product,
-                              di_rec.rec.version, 0);
+                              di_rec.rec.version, 0, 0);
       }
 
     } else /* no DI recrod available */
     {
-      bta_hh_update_di_info(p_cb, BTA_HH_VENDOR_ID_INVALID, 0, 0, 0);
+      bta_hh_update_di_info(p_cb, BTA_HH_VENDOR_ID_INVALID, 0, 0, 0, 0);
     }
 
     ret = HID_HostGetSDPRecord(p_cb->addr, bta_hh_cb.p_disc_db,
@@ -949,10 +949,11 @@ void bta_hh_maint_dev_act(tBTA_HH_DEV_CB* p_cb, const tBTA_HH_DATA* p_data) {
           dev_info.status = BTA_HH_OK;
 
           /* update DI information */
-          bta_hh_update_di_info(p_cb, p_dev_info->dscp_info.vendor_id,
-                                p_dev_info->dscp_info.product_id,
-                                p_dev_info->dscp_info.version,
-                                p_dev_info->dscp_info.flag);
+          bta_hh_update_di_info(
+              p_cb, p_dev_info->dscp_info.vendor_id,
+              p_dev_info->dscp_info.product_id, p_dev_info->dscp_info.version,
+              p_dev_info->dscp_info.flag, p_dev_info->dscp_info.ctry_code);
+
           /* add to BTA device list */
           bta_hh_add_device_to_list(
               p_cb, dev_handle, p_dev_info->attr_mask,

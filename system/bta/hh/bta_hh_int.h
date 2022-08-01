@@ -293,7 +293,7 @@ extern void bta_hh_add_device_to_list(tBTA_HH_DEV_CB* p_cb, uint8_t handle,
                                       uint16_t min_tout, uint8_t app_id);
 extern void bta_hh_update_di_info(tBTA_HH_DEV_CB* p_cb, uint16_t vendor_id,
                                   uint16_t product_id, uint16_t version,
-                                  uint8_t flag);
+                                  uint8_t flag, uint8_t ctry_code);
 extern void bta_hh_cleanup_disable(tBTA_HH_STATUS status);
 
 extern uint8_t bta_hh_dev_handle_to_cb_idx(uint8_t dev_handle);
