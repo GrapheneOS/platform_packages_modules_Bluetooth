@@ -64,7 +64,20 @@ std::string SyspropsModule::ToString() const {
 }
 
 void SyspropsModule::parse_config(std::string file_path) {
-  const std::list<std::string> supported_sysprops = {"bluetooth.core.gap.le.privacy.enabled"};
+  const std::list<std::string> supported_sysprops = {
+      // General
+      "bluetooth.core.gap.le.privacy.enabled",
+      "bluetooth.device.class_of_device",
+      // BR/EDR
+      "bluetooth.core.classic.page_scan_type",
+      "bluetooth.core.classic.page_scan_interval",
+      "bluetooth.core.classic.page_scan_window",
+      "bluetooth.core.classic.inq_scan_type",
+      "bluetooth.core.classic.inq_scan_interval",
+      "bluetooth.core.classic.inq_scan_window",
+      "bluetooth.core.acl.link_supervision_timeout",
+      "bluetooth.core.classic.page_timeout",
+  };
 
   auto config = storage::LegacyConfigFile::FromPath(file_path).Read(kDefaultCapacity);
   if (!config) {
