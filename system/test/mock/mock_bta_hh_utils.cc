@@ -101,11 +101,11 @@ void bta_hh_trace_dev_db(void) {
   test::mock::bta_hh_utils::bta_hh_trace_dev_db();
 }
 void bta_hh_update_di_info(tBTA_HH_DEV_CB* p_cb, uint16_t vendor_id,
-                           uint16_t product_id, uint16_t version,
-                           uint8_t flag) {
+                           uint16_t product_id, uint16_t version, uint8_t flag,
+                           uint8_t ctry_code) {
   mock_function_count_map[__func__]++;
   test::mock::bta_hh_utils::bta_hh_update_di_info(p_cb, vendor_id, product_id,
-                                                  version, flag);
+                                                  version, flag, ctry_code);
 }
 // Mocked functions complete
 // END mockcify generation
