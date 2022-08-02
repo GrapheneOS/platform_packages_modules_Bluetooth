@@ -92,8 +92,10 @@ public class BluetoothPbapSimVcardManager {
         CommonDataKinds.Phone.LABEL
     };
 
-    private static final int NAME_COLUMN_INDEX = 0;
-    private static final int NUMBER_COLUMN_INDEX = 1;
+    @VisibleForTesting
+    public static final int NAME_COLUMN_INDEX = 0;
+    @VisibleForTesting
+    public static final int NUMBER_COLUMN_INDEX = 1;
     private static final int NUMBERTYPE_COLUMN_INDEX = 2;
     private static final int NUMBERLABEL_COLUMN_INDEX = 3;
 
@@ -377,7 +379,7 @@ public class BluetoothPbapSimVcardManager {
         return nameList;
     }
 
-    public final int composeAndSendSIMPhonebookVcards(Operation op,
+    public static final int composeAndSendSIMPhonebookVcards(Context context, Operation op,
             final int startPoint, final int endPoint, final boolean vcardType21,
             String ownerVCard) {
         if (startPoint < 1 || startPoint > endPoint) {
@@ -387,10 +389,10 @@ public class BluetoothPbapSimVcardManager {
         BluetoothPbapSimVcardManager composer = null;
         HandlerForStringBuffer buffer = null;
         try {
-            composer = new BluetoothPbapSimVcardManager(mContext);
+            composer = new BluetoothPbapSimVcardManager(context);
             buffer = new HandlerForStringBuffer(op, ownerVCard);
 
-            if (!composer.init(SIM_URI, null, null, null) || !buffer.onInit(mContext)) {
+            if (!composer.init(SIM_URI, null, null, null) || !buffer.onInit(context)) {
                 return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
             }
             composer.moveToPosition(startPoint -1, false);
@@ -422,7 +424,7 @@ public class BluetoothPbapSimVcardManager {
     /**
      * Handler to emit vCards to PCE.
      */
-    public class HandlerForStringBuffer {
+    public static class HandlerForStringBuffer {
         private Operation operation;
 
         private OutputStream outputStream;
@@ -475,7 +477,7 @@ public class BluetoothPbapSimVcardManager {
         }
     }
 
-    public final int composeAndSendSIMPhonebookOneVcard(Operation op,
+    public static final int composeAndSendSIMPhonebookOneVcard(Context context, Operation op,
             final int offset, final boolean vcardType21, String ownerVCard,
             int orderByWhat) {
         if (offset < 1) {
@@ -486,10 +488,9 @@ public class BluetoothPbapSimVcardManager {
         BluetoothPbapSimVcardManager composer = null;
         HandlerForStringBuffer buffer = null;
         try {
-            composer = new BluetoothPbapSimVcardManager(mContext);
+            composer = new BluetoothPbapSimVcardManager(context);
             buffer = new HandlerForStringBuffer(op, ownerVCard);
-            if (!composer.init(SIM_URI, null, null,null)||
-                               !buffer.onInit(mContext)) {
+            if (!composer.init(SIM_URI, null, null, null) || !buffer.onInit(context)) {
                 return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
             }
             if (orderByWhat == BluetoothPbapObexServer.ORDER_BY_INDEXED) {
