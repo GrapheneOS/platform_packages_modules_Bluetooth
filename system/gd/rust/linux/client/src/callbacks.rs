@@ -1,7 +1,8 @@
 use crate::dbus_iface::{
-    export_bluetooth_callback_dbus_intf, export_bluetooth_connection_callback_dbus_intf,
-    export_bluetooth_gatt_callback_dbus_intf, export_bluetooth_manager_callback_dbus_intf,
-    export_scanner_callback_dbus_intf, export_suspend_callback_dbus_intf,
+    export_advertising_set_callback_dbus_intf, export_bluetooth_callback_dbus_intf,
+    export_bluetooth_connection_callback_dbus_intf, export_bluetooth_gatt_callback_dbus_intf,
+    export_bluetooth_manager_callback_dbus_intf, export_scanner_callback_dbus_intf,
+    export_suspend_callback_dbus_intf,
 };
 use crate::ClientContext;
 use crate::{console_red, console_yellow, print_error, print_info};
@@ -11,7 +12,7 @@ use btstack::bluetooth::{
     BluetoothDevice, IBluetooth, IBluetoothCallback, IBluetoothConnectionCallback,
 };
 use btstack::bluetooth_gatt::{
-    BluetoothGattService, IBluetoothGattCallback, IScannerCallback, LePhy,
+    BluetoothGattService, IAdvertisingSetCallback, IBluetoothGattCallback, IScannerCallback, LePhy,
 };
 use btstack::suspend::ISuspendCallback;
 use btstack::uuid::UuidWrapper;
@@ -321,6 +322,131 @@ impl RPCProxy for ScannerCallback {
     fn export_for_rpc(self: Box<Self>) {
         let cr = self.dbus_crossroads.clone();
         let iface = export_scanner_callback_dbus_intf(
+            self.dbus_connection.clone(),
+            &mut cr.lock().unwrap(),
+            Arc::new(Mutex::new(DisconnectWatcher::new())),
+        );
+        cr.lock().unwrap().insert(self.get_object_id(), &[iface], Arc::new(Mutex::new(self)));
+    }
+}
+
+pub(crate) struct AdvertisingSetCallback {
+    objpath: String,
+    _context: Arc<Mutex<ClientContext>>,
+
+    dbus_connection: Arc<SyncConnection>,
+    dbus_crossroads: Arc<Mutex<Crossroads>>,
+}
+
+impl AdvertisingSetCallback {
+    pub(crate) fn new(
+        objpath: String,
+        _context: Arc<Mutex<ClientContext>>,
+        dbus_connection: Arc<SyncConnection>,
+        dbus_crossroads: Arc<Mutex<Crossroads>>,
+    ) -> Self {
+        Self { objpath, _context, dbus_connection, dbus_crossroads }
+    }
+}
+
+impl IAdvertisingSetCallback for AdvertisingSetCallback {
+    fn on_advertising_set_started(
+        &self,
+        reg_id: i32,
+        advertiser_id: i32,
+        tx_power: i32,
+        status: i32,
+    ) {
+        print_info!(
+            "on_advertising_set_started: reg_id = {}, advertiser_id = {}, tx_power = {}, status = {}",
+            reg_id,
+            advertiser_id,
+            tx_power,
+            status
+        );
+    }
+
+    fn on_own_address_read(&self, advertiser_id: i32, address_type: i32, address: String) {
+        print_info!(
+            "on_own_address_read: advertiser_id = {}, address_type = {}, address = {}",
+            advertiser_id,
+            address_type,
+            address
+        );
+    }
+
+    fn on_advertising_set_stopped(&self, advertiser_id: i32) {
+        print_info!("on_advertising_set_stopped: advertiser_id = {}", advertiser_id);
+    }
+
+    fn on_advertising_enabled(&self, advertiser_id: i32, enable: bool, status: i32) {
+        print_info!(
+            "on_advertising_enabled: advertiser_id = {}, enable = {}, status = {}",
+            advertiser_id,
+            enable,
+            status
+        );
+    }
+
+    fn on_advertising_data_set(&self, advertiser_id: i32, status: i32) {
+        print_info!(
+            "on_advertising_data_set: advertiser_id = {}, status = {}",
+            advertiser_id,
+            status
+        );
+    }
+
+    fn on_scan_response_data_set(&self, advertiser_id: i32, status: i32) {
+        print_info!(
+            "on_scan_response_data_set: advertiser_id = {}, status = {}",
+            advertiser_id,
+            status
+        );
+    }
+
+    fn on_advertising_parameters_updated(&self, advertiser_id: i32, tx_power: i32, status: i32) {
+        print_info!(
+            "on_advertising_parameters_updated: advertiser_id = {}, tx_power: {}, status = {}",
+            advertiser_id,
+            tx_power,
+            status
+        );
+    }
+
+    fn on_periodic_advertising_parameters_updated(&self, advertiser_id: i32, status: i32) {
+        print_info!(
+            "on_periodic_advertising_parameters_updated: advertiser_id = {}, status = {}",
+            advertiser_id,
+            status
+        );
+    }
+
+    fn on_periodic_advertising_data_set(&self, advertiser_id: i32, status: i32) {
+        print_info!(
+            "on_periodic_advertising_data_set: advertiser_id = {}, status = {}",
+            advertiser_id,
+            status
+        );
+    }
+
+    fn on_periodic_advertising_enabled(&self, advertiser_id: i32, enable: bool, status: i32) {
+        print_info!(
+            "on_periodic_advertising_enabled: advertiser_id = {}, enable = {}, status = {}",
+            advertiser_id,
+            enable,
+            status
+        );
+    }
+}
+
+impl RPCProxy for AdvertisingSetCallback {
+    fn get_object_id(&self) -> String {
+        self.objpath.clone()
+    }
+
+    fn export_for_rpc(self: Box<Self>) {
+        let cr = self.dbus_crossroads.clone();
+        let iface = export_advertising_set_callback_dbus_intf(
             self.dbus_connection.clone(),
             &mut cr.lock().unwrap(),
             Arc::new(Mutex::new(DisconnectWatcher::new())),
