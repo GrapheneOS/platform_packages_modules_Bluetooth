@@ -222,6 +222,11 @@ static void process_service_search(tCONN_CB* p_ccb, uint16_t trans_num,
   }
 
   /* Check if this is a continuation request */
+  if (p_req + 1 > p_req_end) {
+    sdpu_build_n_send_error(p_ccb, trans_num, SDP_INVALID_CONT_STATE,
+                            SDP_TEXT_BAD_CONT_LEN);
+    return;
+  }
   if (*p_req) {
     if (*p_req++ != SDP_CONTINUATION_LEN ||
         (p_req + sizeof(cont_offset) > p_req_end)) {
@@ -371,6 +376,11 @@ static void process_service_attr_req(tCONN_CB* p_ccb, uint16_t trans_num,
   p_ccb->rsp_list = (uint8_t*)osi_malloc(max_list_len);
 
   /* Check if this is a continuation request */
+  if (p_req + 1 > p_req_end) {
+    sdpu_build_n_send_error(p_ccb, trans_num, SDP_INVALID_CONT_STATE,
+                            SDP_TEXT_BAD_CONT_LEN);
+    return;
+  }
   if (*p_req) {
     if (*p_req++ != SDP_CONTINUATION_LEN ||
         (p_req + sizeof(cont_offset) > p_req_end)) {
@@ -608,6 +618,11 @@ static void process_service_search_attr_req(tCONN_CB* p_ccb, uint16_t trans_num,
   p_ccb->rsp_list = (uint8_t*)osi_malloc(max_list_len);
 
   /* Check if this is a continuation request */
+  if (p_req + 1 > p_req_end) {
+    sdpu_build_n_send_error(p_ccb, trans_num, SDP_INVALID_CONT_STATE,
+                            SDP_TEXT_BAD_CONT_LEN);
+    return;
+  }
   if (*p_req) {
     if (*p_req++ != SDP_CONTINUATION_LEN ||
         (p_req + sizeof(uint16_t) > p_req_end)) {
