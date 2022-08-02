@@ -103,7 +103,7 @@ genrule {
 
 cc_library_static {
     name: "libbt_hidl_hal_cxx",
-    defaults: ["gd_ffi_defaults"],
+    defaults: ["rust_static_cc_lib_defaults", "gd_ffi_defaults"],
     srcs: ["src/hal/ffi/hidl.cc"],
     local_include_dirs: ["src/hal/ffi"],
     include_dirs: ["packages/modules/Bluetooth/system"],
