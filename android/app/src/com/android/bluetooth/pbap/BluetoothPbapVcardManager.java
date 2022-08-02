@@ -278,7 +278,9 @@ public class BluetoothPbapVcardManager {
         if (ownerName == null || ownerName.length() == 0) {
             ownerName = BluetoothPbapService.getLocalPhoneName();
         }
-        nameList.add(ownerName);
+        if (ownerName != null) {
+            nameList.add(ownerName);
+        }
         //End enhancement
 
         final Uri myUri = DevicePolicyUtils.getEnterprisePhoneUri(mContext);
