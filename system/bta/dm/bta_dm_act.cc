@@ -47,6 +47,7 @@
 #include "osi/include/fixed_queue.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
+#include "osi/include/properties.h"
 #include "stack/btm/btm_ble_int.h"
 #include "stack/btm/btm_dev.h"
 #include "stack/btm/btm_sec.h"
@@ -152,6 +153,11 @@ static void bta_dm_ctrl_features_rd_cmpl_cback(tHCI_STATUS result);
 /* Switch delay timer (in milliseconds) */
 #ifndef BTA_DM_SWITCH_DELAY_TIMER_MS
 #define BTA_DM_SWITCH_DELAY_TIMER_MS 500
+#endif
+
+/* Sysprop path for page timeout */
+#ifndef PROPERTY_PAGE_TIMEOUT
+#define PROPERTY_PAGE_TIMEOUT "bluetooth.core.classic.page_timeout"
 #endif
 
 namespace {
@@ -387,7 +393,8 @@ void BTA_dm_on_hw_on() {
     get_btm_client_interface().security.BTM_SecRegister(&bta_security);
   }
 
-  BTM_WritePageTimeout(p_bta_dm_cfg->page_timeout);
+  BTM_WritePageTimeout(osi_property_get_int32(PROPERTY_PAGE_TIMEOUT,
+                                              p_bta_dm_cfg->page_timeout));
 
 #if (BLE_VND_INCLUDED == TRUE)
   BTM_BleReadControllerFeatures(bta_dm_ctrl_features_rd_cmpl_cback);
