@@ -43,7 +43,6 @@ import android.bluetooth.BluetoothSocket;
 import android.bluetooth.IBluetoothPbap;
 import android.content.AttributionSource;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -553,6 +552,11 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
 
     static String getLocalPhoneNum() {
         return sLocalPhoneNum;
+    }
+
+    @VisibleForTesting
+    static void setLocalPhoneName(String localPhoneName) {
+        sLocalPhoneName = localPhoneName;
     }
 
     static String getLocalPhoneName() {
