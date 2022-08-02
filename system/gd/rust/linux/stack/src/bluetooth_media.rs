@@ -61,6 +61,7 @@ pub trait IBluetoothMedia {
     fn start_audio_request(&mut self);
     fn stop_audio_request(&mut self);
     fn get_a2dp_audio_started(&mut self) -> bool;
+    fn get_hfp_audio_started(&mut self) -> bool;
     fn get_presentation_position(&mut self) -> PresentationPosition;
 
     fn start_sco_call(&mut self, address: String);
@@ -131,6 +132,7 @@ pub struct BluetoothMedia {
     a2dp_audio_state: BtavAudioState,
     hfp: Option<Hfp>,
     hfp_states: HashMap<RawAddress, BthfConnectionState>,
+    hfp_audio_state: BthfAudioState,
     selectable_caps: HashMap<RawAddress, Vec<A2dpCodecConfig>>,
     hfp_caps: HashMap<RawAddress, HfpCodecCapability>,
     device_added_tasks: Arc<Mutex<HashMap<RawAddress, Option<JoinHandle<()>>>>>,
@@ -154,6 +156,7 @@ impl BluetoothMedia {
             a2dp_audio_state: BtavAudioState::RemoteSuspend,
             hfp: None,
             hfp_states: HashMap::new(),
+            hfp_audio_state: BthfAudioState::Disconnected,
             selectable_caps: HashMap::new(),
             hfp_caps: HashMap::new(),
             device_added_tasks: Arc::new(Mutex::new(HashMap::new())),
@@ -274,6 +277,7 @@ impl BluetoothMedia {
                     warn!("[{}]: Unknown address hfp or slc not ready", addr.to_string());
                     return;
                 }
+
                 match state {
                     BthfAudioState::Connected => {
                         info!("[{}]: hfp audio connected.", addr.to_string());
@@ -288,6 +292,8 @@ impl BluetoothMedia {
                         info!("[{}]: hfp audio disconnecting.", addr.to_string());
                     }
                 }
+
+                self.hfp_audio_state = state;
             }
             HfpCallbacks::VolumeUpdate(volume, addr) => {
                 self.callbacks.lock().unwrap().for_all_callbacks(|callback| {
@@ -619,6 +625,13 @@ impl IBluetoothMedia for BluetoothMedia {
     fn get_a2dp_audio_started(&mut self) -> bool {
         match self.a2dp_audio_state {
             BtavAudioState::Started => true,
+            _ => false,
+        }
+    }
+
+    fn get_hfp_audio_started(&mut self) -> bool {
+        match self.hfp_audio_state {
+            BthfAudioState::Connected => true,
             _ => false,
         }
     }
