@@ -53,6 +53,7 @@
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
+#include "osi/include/properties.h"
 #include "stack/acl/acl.h"
 #include "stack/acl/peer_packet_types.h"
 #include "stack/btm/btm_dev.h"
@@ -71,6 +72,11 @@
 #include "stack/include/sco_hci_link_interface.h"
 #include "types/hci_role.h"
 #include "types/raw_address.h"
+
+#ifndef PROPERTY_LINK_SUPERVISION_TIMEOUT
+#define PROPERTY_LINK_SUPERVISION_TIMEOUT \
+  "bluetooth.core.acl.link_supervision_timeout"
+#endif
 
 void BTM_update_version_info(const RawAddress& bd_addr,
                              const remote_version_info& remote_version_info);
@@ -1398,7 +1404,8 @@ void StackAclBtmAcl::btm_acl_role_changed(tHCI_STATUS hci_status,
     /* Reload LSTO: link supervision timeout is reset in the LM after a role
      * switch */
     if (new_role == HCI_ROLE_CENTRAL) {
-      constexpr uint16_t link_supervision_timeout = 8000;
+      uint16_t link_supervision_timeout =
+          osi_property_get_int32(PROPERTY_LINK_SUPERVISION_TIMEOUT, 8000);
       BTM_SetLinkSuperTout(bd_addr, link_supervision_timeout);
     }
   } else {
@@ -2532,7 +2539,8 @@ void on_acl_br_edr_connected(const RawAddress& bda, uint16_t handle,
   delayed_role_change_ = nullptr;
   btm_acl_set_paging(false);
   l2c_link_hci_conn_comp(HCI_SUCCESS, handle, bda);
-  constexpr uint16_t link_supervision_timeout = 8000;
+  uint16_t link_supervision_timeout =
+      osi_property_get_int32(PROPERTY_LINK_SUPERVISION_TIMEOUT, 8000);
   BTM_SetLinkSuperTout(bda, link_supervision_timeout);
 
   tACL_CONN* p_acl = internal_.acl_get_connection_from_handle(handle);
