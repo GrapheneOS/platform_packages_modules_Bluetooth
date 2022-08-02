@@ -309,7 +309,6 @@ typedef struct tBTM_CB {
   tACL_CB acl_cb_;
 
   std::shared_ptr<TimestampedStringCircularBuffer> history_{nullptr};
-  std::function<void()> notify_when_complete_cb;
 
   void Init(uint8_t initial_security_mode) {
     memset(&cfg, 0, sizeof(cfg));
@@ -354,7 +353,6 @@ typedef struct tBTM_CB {
         kBtmLogHistoryBufferSize);
     CHECK(history_ != nullptr);
     history_->Push(std::string("Initialized btm history"));
-    notify_when_complete_cb = {};
   }
 
   void Free() {
