@@ -299,7 +299,7 @@ public class LeAudioBroadcastServiceTest {
     @Test
     public void testCreateBroadcastNative() {
         int broadcastId = 243;
-        byte[] code = {0x00, 0x01, 0x00};
+        byte[] code = {0x00, 0x01, 0x00, 0x02};
 
         mService.mBroadcastCallbacks.register(mCallbacks);
 
@@ -314,7 +314,7 @@ public class LeAudioBroadcastServiceTest {
     @Test
     public void testCreateBroadcastNativeFailed() {
         int broadcastId = 243;
-        byte[] code = {0x00, 0x01, 0x00};
+        byte[] code = {0x00, 0x01, 0x00, 0x02};
 
         mService.mBroadcastCallbacks.register(mCallbacks);
 
@@ -340,7 +340,7 @@ public class LeAudioBroadcastServiceTest {
     @Test
     public void testStartStopBroadcastNative() {
         int broadcastId = 243;
-        byte[] code = {0x00, 0x01, 0x00};
+        byte[] code = {0x00, 0x01, 0x00, 0x02};
 
         mService.mBroadcastCallbacks.register(mCallbacks);
 
