@@ -1402,10 +1402,8 @@ public class BassClientStateMachine extends StateMachine {
                     + recvState.getSourceId());
             return null;
         }
-        // Can Keep as ASCII as is
-        String reversePIN = new StringBuffer(new String(metaData.getBroadcastCode()))
-                .reverse().toString();
-        byte[] actualPIN = reversePIN.getBytes();
+        // Broadcast Code
+        byte[] actualPIN = metaData.getBroadcastCode();
         if (actualPIN == null) {
             Log.e(TAG, "actual PIN is null");
             return null;
