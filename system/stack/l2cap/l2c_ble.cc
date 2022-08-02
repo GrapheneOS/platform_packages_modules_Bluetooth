@@ -27,6 +27,10 @@
 #include <base/logging.h>
 #include <base/strings/stringprintf.h>
 
+#ifdef OS_ANDROID
+#include <android/sysprop/BluetoothProperties.sysprop.h>
+#endif
+
 #include "bt_target.h"
 #include "bta/include/bta_hearing_aid_api.h"
 #include "device/include/controller.h"
@@ -35,6 +39,7 @@
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
+#include "osi/include/properties.h"
 #include "stack/btm/btm_dev.h"
 #include "stack/btm/btm_sec.h"
 #include "stack/include/acl_api.h"
@@ -1582,7 +1587,16 @@ tL2CAP_LE_RESULT_CODE l2ble_sec_access_req(const RawAddress& bd_addr,
 void L2CA_AdjustConnectionIntervals(uint16_t* min_interval,
                                     uint16_t* max_interval,
                                     uint16_t floor_interval) {
+  // Allow for customization by systemprops for mainline
   uint16_t phone_min_interval = floor_interval;
+  #ifdef OS_ANDROID
+    phone_min_interval =
+        android::sysprop::BluetoothProperties::getGapLeConnMinLimit().value_or(
+            floor_interval);
+  #else
+    phone_min_interval = (uint16_t)osi_property_get_int32(
+      "bluetooth.core.gap.le.conn.min.limit", (int32_t)floor_interval);
+  #endif
 
   if (HearingAid::GetDeviceCount() > 0) {
     // When there are bonded Hearing Aid devices, we will constrained this
