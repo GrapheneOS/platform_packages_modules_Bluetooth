@@ -39,6 +39,7 @@ import android.util.Log;
 import com.android.bluetooth.BluetoothStatsLog;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
+import com.android.internal.annotations.GuardedBy;
 import com.android.internal.annotations.VisibleForTesting;
 
 import com.google.common.collect.EvictingQueue;
@@ -64,7 +65,8 @@ public class DatabaseManager {
     private AdapterService mAdapterService = null;
     private HandlerThread mHandlerThread = null;
     private Handler mHandler = null;
-    private MetadataDatabase mDatabase = null;
+    private final Object mDatabaseLock = new Object();
+    private @GuardedBy("mDatabaseLock") MetadataDatabase mDatabase = null;
     private boolean mMigratedFromSettingsGlobal = false;
 
     @VisibleForTesting
@@ -80,8 +82,6 @@ public class DatabaseManager {
     private static final int MSG_CLEAR_DATABASE = 100;
     private static final String LOCAL_STORAGE = "LocalStorage";
 
-    private static final String
-            LEGACY_BTSNOOP_DEFAULT_MODE = "bluetooth_btsnoop_default_mode";
     private static final String
             LEGACY_HEADSET_PRIORITY_PREFIX = "bluetooth_headset_priority_";
     private static final String
@@ -124,7 +124,7 @@ public class DatabaseManager {
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case MSG_LOAD_DATABASE: {
-                    synchronized (mDatabase) {
+                    synchronized (mDatabaseLock) {
                         List<Metadata> list;
                         try {
                             list = mDatabase.load();
@@ -141,20 +141,20 @@ public class DatabaseManager {
                 }
                 case MSG_UPDATE_DATABASE: {
                     Metadata data = (Metadata) msg.obj;
-                    synchronized (mDatabase) {
+                    synchronized (mDatabaseLock) {
                         mDatabase.insert(data);
                     }
                     break;
                 }
                 case MSG_DELETE_DATABASE: {
                     String address = (String) msg.obj;
-                    synchronized (mDatabase) {
+                    synchronized (mDatabaseLock) {
                         mDatabase.delete(address);
                     }
                     break;
                 }
                 case MSG_CLEAR_DATABASE: {
-                    synchronized (mDatabase) {
+                    synchronized (mDatabaseLock) {
                         mDatabase.deleteAll();
                     }
                     break;
@@ -554,7 +554,9 @@ public class DatabaseManager {
             }
             // Updates last_active_time to the current counter value and increments the counter
             Metadata metadata = mMetadataCache.get(address);
-            metadata.last_active_time = MetadataDatabase.sCurrentConnectionNumber++;
+            synchronized (MetadataDatabase.class) {
+                metadata.last_active_time = MetadataDatabase.sCurrentConnectionNumber++;
+            }
 
             // Only update is_active_a2dp_device if an a2dp device is connected
             if (isA2dpDevice) {
@@ -666,17 +668,19 @@ public class DatabaseManager {
      */
     private void compactLastConnectionTime(List<Metadata> metadataList) {
         Log.d(TAG, "compactLastConnectionTime: Compacting metadata after load");
-        MetadataDatabase.sCurrentConnectionNumber = 0;
-        // Have to go in reverse order as list is ordered by descending last_active_time
-        for (int index = metadataList.size() - 1; index >= 0; index--) {
-            Metadata metadata = metadataList.get(index);
-            if (metadata.last_active_time != MetadataDatabase.sCurrentConnectionNumber) {
-                Log.d(TAG, "compactLastConnectionTime: Setting last_active_item for device: "
-                        + metadata.getAnonymizedAddress() + " from " + metadata.last_active_time
-                        + " to " + MetadataDatabase.sCurrentConnectionNumber);
-                metadata.last_active_time = MetadataDatabase.sCurrentConnectionNumber;
-                updateDatabase(metadata);
-                MetadataDatabase.sCurrentConnectionNumber++;
+        synchronized (MetadataDatabase.class) {
+            MetadataDatabase.sCurrentConnectionNumber = 0;
+            // Have to go in reverse order as list is ordered by descending last_active_time
+            for (int index = metadataList.size() - 1; index >= 0; index--) {
+                Metadata metadata = metadataList.get(index);
+                if (metadata.last_active_time != MetadataDatabase.sCurrentConnectionNumber) {
+                    Log.d(TAG, "compactLastConnectionTime: Setting last_active_item for device: "
+                            + metadata.getAnonymizedAddress() + " from " + metadata.last_active_time
+                            + " to " + MetadataDatabase.sCurrentConnectionNumber);
+                    metadata.last_active_time = MetadataDatabase.sCurrentConnectionNumber;
+                    updateDatabase(metadata);
+                    MetadataDatabase.sCurrentConnectionNumber++;
+                }
             }
         }
     }
@@ -712,7 +716,9 @@ public class DatabaseManager {
             return;
         }
 
-        mDatabase = database;
+        synchronized (mDatabaseLock) {
+            mDatabase = database;
+        }
 
         mHandlerThread = new HandlerThread("BluetoothDatabaseManager");
         mHandlerThread.start();
@@ -1075,7 +1081,7 @@ public class DatabaseManager {
             writer.println("    " + log);
         }
         writer.println("\nMetadata:");
-        for (HashMap.Entry<String, Metadata> entry : mMetadataCache.entrySet()) {
+        for (Map.Entry<String, Metadata> entry : mMetadataCache.entrySet()) {
             if (entry.getKey().equals(LOCAL_STORAGE)) {
                 // No need to dump local storage
                 continue;
