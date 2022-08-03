@@ -854,7 +854,6 @@ pub fn generate_dbus_arg(_item: TokenStream) -> TokenStream {
 
         use std::error::Error;
         use std::fmt;
-        use std::hash::Hash;
         use std::sync::{Arc, Mutex};
 
         // Key for serialized Option<T> in propmap
@@ -989,34 +988,6 @@ pub fn generate_dbus_arg(_item: TokenStream) -> TokenStream {
                     val = iter.next();
                 }
                 return Ok(vec);
-            }
-        }
-
-        impl<
-                K: 'static + Eq + Hash + RefArgToRust<RustType = K>,
-                V: 'static + RefArgToRust<RustType = V>
-            > RefArgToRust for std::collections::HashMap<K, V>
-        {
-            type RustType = std::collections::HashMap<K, V>;
-
-            fn ref_arg_to_rust(
-                arg: &(dyn dbus::arg::RefArg + 'static),
-                name: String,
-            ) -> Result<Self::RustType, Box<dyn Error>> {
-                let mut map: std::collections::HashMap<K, V> = std::collections::HashMap::new();
-                let mut iter = arg.as_iter().unwrap();
-                let mut key = iter.next();
-                let mut val = iter.next();
-                while !key.is_none() && !val.is_none() {
-                    let k = key.unwrap().box_clone();
-                    let k = <K as RefArgToRust>::ref_arg_to_rust(&k, name.clone() + " key")?;
-                    let v = val.unwrap().box_clone();
-                    let v = <V as RefArgToRust>::ref_arg_to_rust(&v, name.clone() + " value")?;
-                    map.insert(k, v);
-                    key = iter.next();
-                    val = iter.next();
-                }
-                Ok(map)
             }
         }
 
@@ -1180,56 +1151,6 @@ pub fn generate_dbus_arg(_item: TokenStream) -> TokenStream {
                 }
 
                 Ok(props)
-            }
-        }
-
-        impl<K: Eq + Hash + DBusArg, V: DBusArg> DBusArg for std::collections::HashMap<K, V>
-            where
-                <K as DBusArg>::DBusType: 'static
-                    + Eq
-                    + Hash
-                    + dbus::arg::RefArg
-                    + RefArgToRust<RustType = <K as DBusArg>::DBusType>,
-        {
-            type DBusType = std::collections::HashMap<K::DBusType, V::DBusType>;
-
-            fn from_dbus(
-                data: std::collections::HashMap<K::DBusType, V::DBusType>,
-                conn: Option<std::sync::Arc<dbus::nonblock::SyncConnection>>,
-                remote: Option<dbus::strings::BusName<'static>>,
-                disconnect_watcher: Option<
-                    std::sync::Arc<std::sync::Mutex<dbus_projection::DisconnectWatcher>>>,
-            ) -> Result<std::collections::HashMap<K, V>, Box<dyn std::error::Error>> {
-                let mut map = std::collections::HashMap::new();
-                for (key, val) in data {
-                    let k = K::from_dbus(
-                        key,
-                        conn.clone(),
-                        remote.clone(),
-                        disconnect_watcher.clone()
-                    )?;
-                    let v = V::from_dbus(
-                        val,
-                        conn,
-                        remote,
-                        disconnect_watcher
-                    )?;
-                    map.insert(k, v);
-                }
-                Ok(map)
-            }
-
-            fn to_dbus(
-                data: std::collections::HashMap<K, V>,
-            ) -> Result<std::collections::HashMap<K::DBusType, V::DBusType>, Box<dyn std::error::Error>>
-            {
-                let mut map = std::collections::HashMap::new();
-                for (key, val) in data {
-                    let k = K::to_dbus(key)?;
-                    let v = V::to_dbus(val)?;
-                    map.insert(k, v);
-                }
-                Ok(map)
             }
         }
     };
