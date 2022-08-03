@@ -63,6 +63,12 @@ typedef enum : uint8_t {
   L2CAP_PRIORITY_HIGH = 1,
 } tL2CAP_PRIORITY;
 
+/* Values for priority parameter to L2CA_SetAclLatency */
+typedef enum : uint8_t {
+  L2CAP_LATENCY_NORMAL = 0,
+  L2CAP_LATENCY_LOW = 1,
+} tL2CAP_LATENCY;
+
 /* Values for priority parameter to L2CA_SetTxPriority */
 #define L2CAP_CHNL_PRIORITY_HIGH 0
 #define L2CAP_CHNL_PRIORITY_LOW 2
@@ -659,6 +665,18 @@ extern bool L2CA_UseLatencyMode(const RawAddress& bd_addr,
  ******************************************************************************/
 extern bool L2CA_SetAclPriority(const RawAddress& bd_addr,
                                 tL2CAP_PRIORITY priority);
+
+/*******************************************************************************
+ *
+ * Function         L2CA_SetAclLatency
+ *
+ * Description      Sets the transmission latency for a channel.
+ *
+ * Returns          true if a valid channel, else false
+ *
+ ******************************************************************************/
+extern bool L2CA_SetAclLatency(const RawAddress& bd_addr,
+                               tL2CAP_LATENCY latency);
 
 /*******************************************************************************
  *

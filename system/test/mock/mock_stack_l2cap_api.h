@@ -314,7 +314,7 @@ struct L2CA_UseLatencyMode {
 };
 extern struct L2CA_UseLatencyMode L2CA_UseLatencyMode;
 // Name: L2CA_SetAclPriority
-// Params: const RawAddress& bd_addr, tL2CAP_PRIORITY priority
+// Params: const RawAddress& bd_addr, tL2CAP_PRIORITY priority,
 // Returns: bool
 struct L2CA_SetAclPriority {
   std::function<bool(const RawAddress& bd_addr, tL2CAP_PRIORITY priority)> body{
@@ -326,6 +326,17 @@ struct L2CA_SetAclPriority {
   };
 };
 extern struct L2CA_SetAclPriority L2CA_SetAclPriority;
+// Name: L2CA_SetAclLatency
+// Params: const RawAddress& bd_addr, tL2CAP_LATENCY latency
+// Returns: bool
+struct L2CA_SetAclLatency {
+  std::function<bool(const RawAddress& bd_addr, tL2CAP_LATENCY latency)> body{
+      [](const RawAddress& bd_addr, tL2CAP_LATENCY latency) { return false; }};
+  bool operator()(const RawAddress& bd_addr, tL2CAP_LATENCY latency) {
+    return body(bd_addr, latency);
+  };
+};
+extern struct L2CA_SetAclLatency L2CA_SetAclLatency;
 // Name: L2CA_SetTxPriority
 // Params: uint16_t cid, tL2CAP_CHNL_PRIORITY priority
 // Returns: bool

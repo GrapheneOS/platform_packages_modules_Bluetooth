@@ -741,6 +741,7 @@ extern bool bta_av_link_role_ok(tBTA_AV_SCB* p_scb, uint8_t bits);
 extern void bta_av_api_disconnect(tBTA_AV_DATA* p_data);
 extern void bta_av_set_use_latency_mode(tBTA_AV_SCB* p_scb,
                                         bool use_latency_mode);
+extern void bta_av_api_set_latency(tBTA_AV_DATA* p_data);
 extern void bta_av_sig_chg(tBTA_AV_DATA* p_data);
 extern void bta_av_signalling_timer(tBTA_AV_DATA* p_data);
 extern void bta_av_rc_disc_done(tBTA_AV_DATA* p_data);

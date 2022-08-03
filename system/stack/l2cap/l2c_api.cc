@@ -1073,6 +1073,21 @@ bool L2CA_SetAclPriority(const RawAddress& bd_addr, tL2CAP_PRIORITY priority) {
 
 /*******************************************************************************
  *
+ * Function         L2CA_SetAclLatency
+ *
+ * Description      Sets the transmission latency for a channel.
+ *
+ * Returns          true if a valid channel, else false
+ *
+ ******************************************************************************/
+bool L2CA_SetAclLatency(const RawAddress& bd_addr, tL2CAP_LATENCY latency) {
+  LOG_INFO("BDA: %s, latency: %s", bd_addr.ToString().c_str(),
+           std::to_string(latency).c_str());
+  return l2cu_set_acl_latency(bd_addr, latency);
+}
+
+/*******************************************************************************
+ *
  * Function         L2CA_SetTxPriority
  *
  * Description      Sets the transmission priority for a channel.
