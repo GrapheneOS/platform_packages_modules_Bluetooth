@@ -135,8 +135,9 @@ class StackRfcommTest : public Test {
                        tPORT_CALLBACK* event_callback,
                        uint16_t* server_handle) {
     VLOG(1) << "Step 1";
-    ASSERT_EQ(RFCOMM_CreateConnection(uuid, scn, true, mtu, RawAddress::kAny,
-                                      server_handle, management_callback),
+    ASSERT_EQ(RFCOMM_CreateConnectionWithSecurity(
+                  uuid, scn, true, mtu, RawAddress::kAny, server_handle,
+                  management_callback, 0),
               PORT_SUCCESS);
     ASSERT_EQ(PORT_SetEventMask(*server_handle, PORT_EV_RXCHAR), PORT_SUCCESS);
     ASSERT_EQ(PORT_SetEventCallback(*server_handle, event_callback),
@@ -280,8 +281,9 @@ class StackRfcommTest : public Test {
                   DataWrite(lcid, BtHdrEqual(uih_pn_channel_3)))
           .WillOnce(Return(L2CAP_DW_SUCCESS));
     }
-    ASSERT_EQ(RFCOMM_CreateConnection(uuid, scn, false, mtu, peer_bd_addr,
-                                      client_handle, management_callback),
+    ASSERT_EQ(RFCOMM_CreateConnectionWithSecurity(uuid, scn, false, mtu,
+                                                  peer_bd_addr, client_handle,
+                                                  management_callback, 0),
               PORT_SUCCESS);
     ASSERT_EQ(PORT_SetEventMask(*client_handle, PORT_EV_RXCHAR), PORT_SUCCESS);
     ASSERT_EQ(PORT_SetEventCallback(*client_handle, event_callback),
@@ -724,9 +726,9 @@ TEST_F(StackRfcommTest, TestConnectionCollision) {
   uint16_t server_handle = 0;
   VLOG(1) << "Step 1";
   // Prepare a server port
-  int status = RFCOMM_CreateConnection(test_uuid, test_server_scn, true,
-                                       test_mtu, RawAddress::kAny,
-                                       &server_handle, port_mgmt_cback_0);
+  int status = RFCOMM_CreateConnectionWithSecurity(
+      test_uuid, test_server_scn, true, test_mtu, RawAddress::kAny,
+      &server_handle, port_mgmt_cback_0, 0);
   ASSERT_EQ(status, PORT_SUCCESS);
   status = PORT_SetEventMask(server_handle, PORT_EV_RXCHAR);
   ASSERT_EQ(status, PORT_SUCCESS);
@@ -739,9 +741,9 @@ TEST_F(StackRfcommTest, TestConnectionCollision) {
   EXPECT_CALL(l2cap_interface_, ConnectRequest(BT_PSM_RFCOMM, test_address))
       .Times(1)
       .WillOnce(Return(old_lcid));
-  status = RFCOMM_CreateConnection(test_uuid, test_peer_scn, false, test_mtu,
-                                   test_address, &client_handle_1,
-                                   port_mgmt_cback_1);
+  status = RFCOMM_CreateConnectionWithSecurity(
+      test_uuid, test_peer_scn, false, test_mtu, test_address, &client_handle_1,
+      port_mgmt_cback_1, 0);
   ASSERT_EQ(status, PORT_SUCCESS);
   status = PORT_SetEventMask(client_handle_1, PORT_EV_RXCHAR);
   ASSERT_EQ(status, PORT_SUCCESS);

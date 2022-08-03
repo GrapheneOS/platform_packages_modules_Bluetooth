@@ -317,14 +317,10 @@ static tBTA_JV_STATUS bta_jv_free_rfc_cb(tBTA_JV_RFC_CB* p_cb,
     p_pcb->handle = 0;
     p_cb->curr_sess--;
     if (p_cb->curr_sess == 0) {
-      RFCOMM_ClearSecurityRecord(p_cb->scn);
       p_cb->scn = 0;
       p_cb->p_cback = NULL;
       p_cb->handle = 0;
       p_cb->curr_sess = -1;
-    }
-    if (remove_server) {
-      RFCOMM_ClearSecurityRecord(p_cb->scn);
     }
   }
   return status;
@@ -1356,7 +1352,6 @@ void bta_jv_rfcomm_connect(tBTA_SEC sec_mask, uint8_t remote_scn,
   bta_jv.rfc_cl_init = evt_data;
   p_cback(BTA_JV_RFCOMM_CL_INIT_EVT, &bta_jv, rfcomm_slot_id);
   if (bta_jv.rfc_cl_init.status == BTA_JV_FAILURE) {
-    RFCOMM_ClearSecurityRecord(remote_scn);
     if (handle) RFCOMM_RemoveConnection(handle);
   }
 }
@@ -1532,6 +1527,7 @@ static tBTA_JV_PCB* bta_jv_add_rfc_port(tBTA_JV_RFC_CB* p_cb,
   tPORT_STATE port_state;
   uint32_t event_mask = BTA_JV_RFC_EV_MASK;
   tBTA_JV_PCB* p_pcb = NULL;
+  tBTA_SEC sec_mask;
   if (p_cb->max_sess > 1) {
     for (i = 0; i < p_cb->max_sess; i++) {
       if (p_cb->rfc_hdl[i] != 0) {
@@ -1562,10 +1558,16 @@ static tBTA_JV_PCB* bta_jv_add_rfc_port(tBTA_JV_RFC_CB* p_cb,
             << ", si=" << si;
     if (used < p_cb->max_sess && listen == 1 && si) {
       si--;
-      if (RFCOMM_CreateConnection(p_cb->sec_id, p_cb->scn, true,
-                                  BTA_JV_DEF_RFC_MTU, RawAddress::kAny,
-                                  &(p_cb->rfc_hdl[si]),
-                                  bta_jv_port_mgmt_sr_cback) == PORT_SUCCESS) {
+      if (PORT_GetSecurityMask(p_pcb_open->port_handle, &sec_mask) !=
+          PORT_SUCCESS) {
+        LOG(ERROR) << __func__
+                   << ": RFCOMM_CreateConnection failed: invalid port_handle";
+      }
+
+      if (RFCOMM_CreateConnectionWithSecurity(
+              p_cb->sec_id, p_cb->scn, true, BTA_JV_DEF_RFC_MTU,
+              RawAddress::kAny, &(p_cb->rfc_hdl[si]), bta_jv_port_mgmt_sr_cback,
+              sec_mask) == PORT_SUCCESS) {
         p_cb->curr_sess++;
         p_pcb = &bta_jv_cb.port_cb[p_cb->rfc_hdl[si] - 1];
         p_pcb->state = BTA_JV_ST_SR_LISTEN;
@@ -1652,7 +1654,6 @@ void bta_jv_rfcomm_start_server(tBTA_SEC sec_mask, uint8_t local_scn,
   if (bta_jv.rfc_start.status == BTA_JV_SUCCESS) {
     PORT_SetDataCOCallback(handle, bta_jv_port_data_co_cback);
   } else {
-    RFCOMM_ClearSecurityRecord(local_scn);
     if (handle) RFCOMM_RemoveConnection(handle);
   }
 }
