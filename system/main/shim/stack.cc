@@ -16,13 +16,15 @@
 
 #define LOG_TAG "bt_gd_shim"
 
-#include "device/include/controller.h"
+#include "main/shim/stack.h"
 
 #include <fcntl.h>
 #include <stdio.h>
 #include <unistd.h>
+
 #include <string>
 
+#include "device/include/controller.h"
 #include "gd/att/att_module.h"
 #include "gd/btaa/activity_attribution.h"
 #include "gd/common/init_flags.h"
@@ -48,7 +50,7 @@
 #include "gd/security/security_module.h"
 #include "gd/shim/dumpsys.h"
 #include "gd/storage/storage_module.h"
-
+#include "gd/sysprops/sysprops_module.h"
 #include "main/shim/acl_legacy_interface.h"
 #include "main/shim/activity_attribution.h"
 #include "main/shim/hci_layer.h"
@@ -57,7 +59,6 @@
 #include "main/shim/le_advertising_manager.h"
 #include "main/shim/le_scanning_manager.h"
 #include "main/shim/shim.h"
-#include "main/shim/stack.h"
 
 namespace bluetooth {
 namespace shim {
@@ -142,6 +143,7 @@ void Stack::StartEverything() {
   modules.add<storage::StorageModule>();
   modules.add<shim::Dumpsys>();
   modules.add<hci::VendorSpecificEventManager>();
+  modules.add<sysprops::SyspropsModule>();
 
   modules.add<hci::Controller>();
   modules.add<hci::AclManager>();

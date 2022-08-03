@@ -1307,8 +1307,8 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
                         appParamValue.ignorefilter ? null : appParamValue.propertySelector);
                 return pushBytes(op, ownerVcard);
             } else {
-                return mVcardSimManager.composeAndSendSIMPhonebookOneVcard(op, intIndex,
-                        vcard21, null, mOrderBy);
+                return BluetoothPbapSimVcardManager.composeAndSendSIMPhonebookOneVcard(
+                        mContext, op, intIndex, vcard21, null, mOrderBy);
             }
         } else {
             if (intIndex <= 0 || intIndex > size) {
@@ -1425,12 +1425,12 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
                 if (endPoint == 0) {
                     return pushBytes(op, ownerVcard);
                 } else {
-                    return mVcardSimManager.composeAndSendSIMPhonebookVcards(op, 1, endPoint,
-                        vcard21, ownerVcard);
+                    return BluetoothPbapSimVcardManager.composeAndSendSIMPhonebookVcards(
+                            mContext, op, 1, endPoint, vcard21, ownerVcard);
                 }
             } else {
-                return mVcardSimManager.composeAndSendSIMPhonebookVcards(op, startPoint,
-                        endPoint, vcard21, null);
+                return BluetoothPbapSimVcardManager.composeAndSendSIMPhonebookVcards(
+                        mContext, op, startPoint, endPoint, vcard21, null);
             }
         } else {
             return mVcardManager.composeAndSendSelectedCallLogVcards(appParamValue.needTag, op,

@@ -124,6 +124,7 @@ class GattInstance(val mDevice: BluetoothDevice, val mTransport: Int, val mConte
     }
     mGatt.close()
     mGatt.disconnect()
+    gattInstances.remove(mDevice.address)
   }
 
   override fun toString(): String {

@@ -46,6 +46,7 @@
     "HFP/AG/HFI/BV-02-I",
     "HFP/AG/SLC/BV-09-I",
     "HFP/AG/SLC/BV-10-I",
+    "HFP/AG/TCA/BV-04-I",
     "HFP/AG/WBS/BV-01-I"
   ],
   "skip": [
@@ -74,7 +75,11 @@
     "HFP/AG/SLC/BV-04-C",
     "HFP/AG/SLC/BV-05-I",
     "HFP/AG/SLC/BV-06-I",
-    "HFP/AG/SLC/BV-07-I"
+    "HFP/AG/SLC/BV-07-I",
+    "HFP/AG/TCA/BV-01-I",
+    "HFP/AG/TCA/BV-02-I",
+    "HFP/AG/TCA/BV-03-I",
+    "HFP/AG/TCA/BV-05-I"
   ],
   "ics": {
     "TSPC_4.0HCI_1a_2": true,
