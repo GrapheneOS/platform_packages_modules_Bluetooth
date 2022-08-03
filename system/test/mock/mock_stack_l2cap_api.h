@@ -302,6 +302,17 @@ struct L2CA_SetTraceLevel {
   uint8_t operator()(uint8_t new_level) { return body(new_level); };
 };
 extern struct L2CA_SetTraceLevel L2CA_SetTraceLevel;
+// Name: L2CA_UseLatencyMode
+// Params: const RawAddress& bd_addr, bool use_latency_mode
+// Returns: bool
+struct L2CA_UseLatencyMode {
+  std::function<bool(const RawAddress& bd_addr, bool use_latency_mode)> body{
+      [](const RawAddress& bd_addr, bool use_latency_mode) { return false; }};
+  bool operator()(const RawAddress& bd_addr, bool use_latency_mode) {
+    return body(bd_addr, use_latency_mode);
+  };
+};
+extern struct L2CA_UseLatencyMode L2CA_UseLatencyMode;
 // Name: L2CA_SetAclPriority
 // Params: const RawAddress& bd_addr, tL2CAP_PRIORITY priority
 // Returns: bool

@@ -90,7 +90,7 @@ BluetoothAudioCtrlAck A2dpTransport::StartRequest(bool is_low_latency) {
      * procedure is completed, othewise send it now.
      */
     a2dp_pending_cmd_ = A2DP_CTRL_CMD_START;
-    btif_av_stream_start();
+    btif_av_stream_start_with_latency(is_low_latency);
     if (btif_av_get_peer_sep() != AVDT_TSEP_SRC) {
       LOG(INFO) << __func__ << ": accepted";
       return a2dp_ack_to_bt_audio_ctrl_ack(A2DP_CTRL_ACK_PENDING);
@@ -136,6 +136,10 @@ void A2dpTransport::StopRequest() {
   LOG(INFO) << __func__ << ": handling";
   a2dp_pending_cmd_ = A2DP_CTRL_CMD_STOP;
   btif_av_stream_stop(RawAddress::kEmpty);
+}
+
+void A2dpTransport::SetLowLatency(bool is_low_latency) {
+  btif_av_set_low_latency(is_low_latency);
 }
 
 bool A2dpTransport::GetPresentationPosition(uint64_t* remote_delay_report_ns,

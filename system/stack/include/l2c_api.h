@@ -636,6 +636,18 @@ extern uint16_t L2CA_FlushChannel(uint16_t lcid, uint16_t num_to_flush);
 
 /*******************************************************************************
  *
+ * Function         L2CA_UseLatencyMode
+ *
+ * Description      Sets use latency mode for an ACL channel.
+ *
+ * Returns          true if a valid channel, else false
+ *
+ ******************************************************************************/
+extern bool L2CA_UseLatencyMode(const RawAddress& bd_addr,
+                                bool use_latency_mode);
+
+/*******************************************************************************
+ *
  * Function         L2CA_SetAclPriority
  *
  * Description      Sets the transmission priority for an ACL channel.

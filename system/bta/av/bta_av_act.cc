@@ -1339,6 +1339,19 @@ void bta_av_api_disconnect(tBTA_AV_DATA* p_data) {
   alarm_cancel(p_scb->link_signalling_timer);
 }
 
+/*******************************************************************************
+ *
+ * Function         bta_av_set_use_latency_mode
+ *
+ * Description      Sets stream use latency mode.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+void bta_av_set_use_latency_mode(tBTA_AV_SCB* p_scb, bool use_latency_mode) {
+  L2CA_UseLatencyMode(p_scb->PeerAddress(), use_latency_mode);
+}
+
 /**
  * Find the index for the free LCB entry to use.
  *

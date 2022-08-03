@@ -497,6 +497,8 @@ typedef struct t_l2c_linkcb {
     return false;
   }
 
+  bool use_latency_mode = false;
+
   tL2C_CCB* p_fixed_ccbs[L2CAP_NUM_FIXED_CHNLS];
 
  private:
