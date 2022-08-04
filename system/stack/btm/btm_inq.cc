@@ -27,6 +27,7 @@
 
 #define LOG_TAG "bluetooth"
 
+#include <base/logging.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -40,6 +41,7 @@
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
+#include "osi/include/properties.h"
 #include "stack/btm/btm_ble_int.h"
 #include "stack/btm/btm_int_types.h"
 #include "stack/include/acl_api.h"
@@ -49,8 +51,6 @@
 #include "stack/include/inq_hci_link_interface.h"
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
-
-#include <base/logging.h>
 
 namespace {
 constexpr char kBtmLogTag[] = "SCAN";
@@ -76,6 +76,30 @@ using bluetooth::Uuid;
 /* TRUE to enable DEBUG traces for btm_inq */
 #ifndef BTM_INQ_DEBUG
 #define BTM_INQ_DEBUG FALSE
+#endif
+
+#ifndef PROPERTY_PAGE_SCAN_TYPE
+#define PROPERTY_PAGE_SCAN_TYPE "bluetooth.core.classic.page_scan_type"
+#endif
+
+#ifndef PROPERTY_PAGE_SCAN_INTERVAL
+#define PROPERTY_PAGE_SCAN_INTERVAL "bluetooth.core.classic.page_scan_interval"
+#endif
+
+#ifndef PROPERTY_PAGE_SCAN_WINDOW
+#define PROPERTY_PAGE_SCAN_WINDOW "bluetooth.core.classic.page_scan_window"
+#endif
+
+#ifndef PROPERTY_INQ_SCAN_TYPE
+#define PROPERTY_INQ_SCAN_TYPE "bluetooth.core.classic.inq_scan_type"
+#endif
+
+#ifndef PROPERTY_INQ_SCAN_INTERVAL
+#define PROPERTY_INQ_SCAN_INTERVAL "bluetooth.core.classic.inq_scan_interval"
+#endif
+
+#ifndef PROPERTY_INQ_SCAN_WINDOW
+#define PROPERTY_INQ_SCAN_WINDOW "bluetooth.core.classic.inq_scan_window"
 #endif
 
 #define BTIF_DM_DEFAULT_INQ_MAX_DURATION 10
@@ -228,6 +252,11 @@ tBTM_STATUS BTM_SetDiscoverability(uint16_t inq_mode) {
     scan_mode |= HCI_INQUIRY_SCAN_ENABLED;
   }
 
+  window =
+      osi_property_get_int32(PROPERTY_INQ_SCAN_WINDOW, BTM_DEFAULT_DISC_WINDOW);
+  interval = osi_property_get_int32(PROPERTY_INQ_SCAN_INTERVAL,
+                                    BTM_DEFAULT_DISC_INTERVAL);
+
   /* Send down the inquiry scan window and period if changed */
   if ((window != btm_cb.btm_inq_vars.inq_scan_window) ||
       (interval != btm_cb.btm_inq_vars.inq_scan_period)) {
@@ -269,7 +298,12 @@ void BTM_EnableInterlacedInquiryScan() {
   }
 
   BTM_TRACE_API("BTM_EnableInterlacedInquiryScan");
+
+  uint16_t inq_scan_type =
+      osi_property_get_int32(PROPERTY_INQ_SCAN_TYPE, BTM_SCAN_TYPE_INTERLACED);
+
   if (!controller_get_interface()->supports_interlaced_inquiry_scan() ||
+      inq_scan_type != BTM_SCAN_TYPE_INTERLACED ||
       btm_cb.btm_inq_vars.inq_scan_type == BTM_SCAN_TYPE_INTERLACED) {
     return;
   }
@@ -285,7 +319,12 @@ void BTM_EnableInterlacedPageScan() {
   }
 
   BTM_TRACE_API("BTM_EnableInterlacedPageScan");
+
+  uint16_t page_scan_type =
+      osi_property_get_int32(PROPERTY_PAGE_SCAN_TYPE, BTM_SCAN_TYPE_INTERLACED);
+
   if (!controller_get_interface()->supports_interlaced_inquiry_scan() ||
+      page_scan_type != BTM_SCAN_TYPE_INTERLACED ||
       btm_cb.btm_inq_vars.page_scan_type == BTM_SCAN_TYPE_INTERLACED) {
     return;
   }
@@ -383,6 +422,11 @@ tBTM_STATUS BTM_SetConnectability(uint16_t page_mode) {
   if (page_mode == BTM_CONNECTABLE) {
     scan_mode |= HCI_PAGE_SCAN_ENABLED;
   }
+
+  window = osi_property_get_int32(PROPERTY_PAGE_SCAN_WINDOW,
+                                  BTM_DEFAULT_CONN_WINDOW);
+  interval = osi_property_get_int32(PROPERTY_PAGE_SCAN_INTERVAL,
+                                    BTM_DEFAULT_CONN_INTERVAL);
 
   if ((window != p_inq->page_scan_window) ||
       (interval != p_inq->page_scan_period)) {
