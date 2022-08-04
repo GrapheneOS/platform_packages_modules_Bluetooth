@@ -105,7 +105,6 @@ cc_defaults {
         "co/bta_gatts_co.cc",
         // HAL layer
         "src/bluetooth.cc",
-        "src/bluetooth_data_migration.cc",
         // BTIF implementation
         "src/btif_a2dp.cc",
         "src/btif_a2dp_control.cc",
