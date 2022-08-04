@@ -19,7 +19,9 @@ package com.android.bluetooth.leaudio;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothLeBroadcastChannel;
 import android.bluetooth.BluetoothLeBroadcastMetadata;
+import android.bluetooth.BluetoothLeBroadcastSubgroup;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -36,6 +38,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.Objects;
+import java.util.List;
 
 
 public class BroadcastScanActivity extends AppCompatActivity {
@@ -85,6 +88,10 @@ public class BroadcastScanActivity extends AppCompatActivity {
                 View alertView =
                         inflater.inflate(R.layout.broadcast_scan_add_encrypted_source_dialog,
                                          null);
+
+                final EditText channels_input_text =
+                        alertView.findViewById(R.id.broadcast_channel_map);
+
                 final EditText code_input_text =
                         alertView.findViewById(R.id.broadcast_code_input);
                 BluetoothLeBroadcastMetadata.Builder builder = new
@@ -117,6 +124,27 @@ public class BroadcastScanActivity extends AppCompatActivity {
                                         code_input_text.getText().toString().getBytes())
                                .setEncrypted(true)
                                .build();
+                    }
+
+                    if ((channels_input_text.getText() != null)
+                            && (channels_input_text.getText().length() != 0)) {
+                        int channelMap = Integer.parseInt(channels_input_text.getText().toString());
+                        // Apply a single channel map preference to all subgroups
+                        for (BluetoothLeBroadcastSubgroup subGroup : metadata.getSubgroups()) {
+                            List<BluetoothLeBroadcastChannel> channels = subGroup.getChannels();
+                            for (int i = 0; i < channels.size(); i++) {
+                                BluetoothLeBroadcastChannel channel = channels.get(i);
+                                // Set the channel preference value according to the map
+                                if (channel.getChannelIndex() != 0) {
+                                    if ((channelMap & (1 << (channel.getChannelIndex() - 1))) != 0) {
+                                        BluetoothLeBroadcastChannel.Builder bob
+                                                = new BluetoothLeBroadcastChannel.Builder(channel);
+                                        bob.setSelected(true);
+                                        channels.set(i, bob.build());
+                                    }
+                                }
+                            }
+                        }
                     }
 
                     Toast.makeText(recyclerView.getContext(), "Adding broadcast source"
