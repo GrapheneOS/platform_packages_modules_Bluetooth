@@ -141,6 +141,72 @@ std::ostream& operator<<(std::ostream& os, const AudioState& audio_state) {
   return os;
 }
 
+static std::string usageToString(audio_usage_t usage) {
+  switch (usage) {
+    case AUDIO_USAGE_UNKNOWN:
+      return "USAGE_UNKNOWN";
+    case AUDIO_USAGE_MEDIA:
+      return "USAGE_MEDIA";
+    case AUDIO_USAGE_VOICE_COMMUNICATION:
+      return "USAGE_VOICE_COMMUNICATION";
+    case AUDIO_USAGE_VOICE_COMMUNICATION_SIGNALLING:
+      return "USAGE_VOICE_COMMUNICATION_SIGNALLING";
+    case AUDIO_USAGE_ALARM:
+      return "USAGE_ALARM";
+    case AUDIO_USAGE_NOTIFICATION:
+      return "USAGE_NOTIFICATION";
+    case AUDIO_USAGE_NOTIFICATION_TELEPHONY_RINGTONE:
+      return "USAGE_NOTIFICATION_TELEPHONY_RINGTONE";
+    case AUDIO_USAGE_NOTIFICATION_COMMUNICATION_REQUEST:
+      return "USAGE_NOTIFICATION_COMMUNICATION_REQUEST";
+    case AUDIO_USAGE_NOTIFICATION_COMMUNICATION_INSTANT:
+      return "USAGE_NOTIFICATION_COMMUNICATION_INSTANT";
+    case AUDIO_USAGE_NOTIFICATION_COMMUNICATION_DELAYED:
+      return "USAGE_NOTIFICATION_COMMUNICATION_DELAYED";
+    case AUDIO_USAGE_NOTIFICATION_EVENT:
+      return "USAGE_NOTIFICATION_EVENT";
+    case AUDIO_USAGE_ASSISTANCE_ACCESSIBILITY:
+      return "USAGE_ASSISTANCE_ACCESSIBILITY";
+    case AUDIO_USAGE_ASSISTANCE_NAVIGATION_GUIDANCE:
+      return "USAGE_ASSISTANCE_NAVIGATION_GUIDANCE";
+    case AUDIO_USAGE_ASSISTANCE_SONIFICATION:
+      return "USAGE_ASSISTANCE_SONIFICATION";
+    case AUDIO_USAGE_GAME:
+      return "USAGE_GAME";
+    case AUDIO_USAGE_ASSISTANT:
+      return "USAGE_ASSISTANT";
+    case AUDIO_USAGE_CALL_ASSISTANT:
+      return "USAGE_CALL_ASSISTANT";
+    case AUDIO_USAGE_EMERGENCY:
+      return "USAGE_EMERGENCY";
+    case AUDIO_USAGE_SAFETY:
+      return "USAGE_SAFETY";
+    case AUDIO_USAGE_VEHICLE_STATUS:
+      return "USAGE_VEHICLE_STATUS";
+    case AUDIO_USAGE_ANNOUNCEMENT:
+      return "USAGE_ANNOUNCEMENT";
+    default:
+      return "unknown usage ";
+  }
+}
+
+static std::string contentTypeToString(audio_content_type_t content_type) {
+  switch (content_type) {
+    case AUDIO_CONTENT_TYPE_UNKNOWN:
+      return "CONTENT_TYPE_UNKNOWN";
+    case AUDIO_CONTENT_TYPE_SPEECH:
+      return "CONTENT_TYPE_SPEECH";
+    case AUDIO_CONTENT_TYPE_MUSIC:
+      return "CONTENT_TYPE_MUSIC";
+    case AUDIO_CONTENT_TYPE_MOVIE:
+      return "CONTENT_TYPE_MOVIE";
+    case AUDIO_CONTENT_TYPE_SONIFICATION:
+      return "CONTENT_TYPE_SONIFICATION";
+    default:
+      return "unknown content type ";
+  }
+}
+
 namespace {
 void le_audio_gattc_callback(tBTA_GATTC_EVT event, tBTA_GATTC* p_data);
 
@@ -3218,6 +3284,10 @@ class LeAudioClientImpl : public LeAudioClient {
       return LeAudioContextType::CONVERSATIONAL;
 
     iter = find(available_contents.begin(), available_contents.end(),
+                LeAudioContextType::RINGTONE);
+    if (iter != available_contents.end()) return LeAudioContextType::RINGTONE;
+
+    iter = find(available_contents.begin(), available_contents.end(),
                 LeAudioContextType::GAME);
     if (iter != available_contents.end()) return LeAudioContextType::GAME;
 
@@ -3289,8 +3359,10 @@ class LeAudioClientImpl : public LeAudioClient {
         continue;
       }
 
-      LOG_INFO("%s: usage=%d, content_type=%d, gain=%f", __func__,
-               tracks->usage, tracks->content_type, tracks->gain);
+      LOG_INFO("%s: usage=%s(%d), content_type=%s(%d), gain=%f", __func__,
+               usageToString(tracks->usage).c_str(), tracks->usage,
+               contentTypeToString(tracks->content_type).c_str(),
+               tracks->content_type, tracks->gain);
 
       auto new_context =
           AudioContentToLeAudioContext(tracks->content_type, tracks->usage);
