@@ -30,6 +30,7 @@
 #include "hal/snoop_logger.h"
 #include "os/alarm.h"
 #include "os/log.h"
+#include "os/system_properties.h"
 
 using ::android::hardware::hidl_vec;
 using ::android::hardware::Return;
@@ -210,6 +211,15 @@ class HciHalHidl : public HciHal {
     auto get_service_alarm = new os::Alarm(GetHandler());
     get_service_alarm->Schedule(
         BindOnce([] {
+          const std::string kBoardProperty = "ro.product.board";
+          const std::string kCuttlefishBoard = "cutf";
+          auto board_name = os::GetSystemProperty(kBoardProperty);
+          bool emulator = board_name.has_value() && board_name.value() == kCuttlefishBoard;
+          if (emulator) {
+            LOG_ERROR("board_name: %s", board_name.value().c_str());
+            LOG_ERROR("Unable to get a Bluetooth service after 500ms, start the HAL before starting Bluetooth");
+            return;
+          }
           LOG_ALWAYS_FATAL("Unable to get a Bluetooth service after 500ms, start the HAL before starting Bluetooth");
         }),
         std::chrono::milliseconds(500));
