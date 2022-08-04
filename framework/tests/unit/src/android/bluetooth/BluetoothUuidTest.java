@@ -23,9 +23,6 @@ import junit.framework.TestCase;
 
 /**
  * Unit test cases for {@link BluetoothUuid}.
- * <p>
- * To run this test, use adb shell am instrument -e class 'android.bluetooth.BluetoothUuidTest' -w
- * 'com.android.bluetooth.tests/android.bluetooth.BluetoothTestRunner'
  */
 public class BluetoothUuidTest extends TestCase {
 

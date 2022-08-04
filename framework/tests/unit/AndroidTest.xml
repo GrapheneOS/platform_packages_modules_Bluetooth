@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright 2020 The Android Open Source Project
+<!-- Copyright 2022 The Android Open Source Project
 
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -14,23 +14,21 @@
      limitations under the License.
 -->
 <configuration description="Config for Bluetooth test cases">
-    <option name="test-suite-tag" value="apct"/>
-    <option name="test-suite-tag" value="apct-instrumentation"/>
     <target_preparer class="com.android.tradefed.targetprep.suite.SuiteApkInstaller">
         <option name="cleanup-apks" value="true" />
-        <option name="test-file-name" value="BluetoothTests.apk" />
+        <option name="test-file-name" value="FrameworkBluetoothTests.apk" />
     </target_preparer>
 
     <option name="test-suite-tag" value="apct"/>
-    <option name="test-tag" value="BluetoothTests"/>
+    <option name="test-tag" value="FrameworkBluetoothTests"/>
 
     <test class="com.android.tradefed.testtype.AndroidJUnitTest" >
-        <option name="package" value="com.android.bluetooth.tests" />
+        <option name="package" value="com.android.framework.bluetooth.tests" />
         <option name="hidden-api-checks" value="false"/>
-        <option name="runner" value="android.bluetooth.BluetoothTestRunner"/>
+        <option name="runner" value="androidx.test.runner.AndroidJUnitRunner"/>
     </test>
 
-    <!-- Only run BluetoothTests in MTS if the Bluetooth Mainline module is installed. -->
+    <!-- Only run FrameworkBluetoothTests in MTS if the Bluetooth Mainline module is installed. -->
     <object type="module_controller"
             class="com.android.tradefed.testtype.suite.module.MainlineTestModuleController">
         <option name="mainline-module-package-name" value="com.google.android.bluetooth" />
