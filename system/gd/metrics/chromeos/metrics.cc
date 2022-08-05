@@ -20,6 +20,7 @@
 #include <metrics/structured_events.h>
 
 #include "common/time_util.h"
+#include "gd/metrics/chromeos/metrics_allowlist.h"
 #include "gd/metrics/chromeos/metrics_event.h"
 #include "gd/metrics/utils.h"
 #include "gd/os/log.h"
@@ -147,6 +148,13 @@ void LogMetricsDeviceInfoReport(
       vendor_id_src,
       product_id,
       version);
+
+  if (!IsDeviceInfoInAllowlist(vendor_id_src, vendor_id, product_id)) {
+    vendor_id_src = 0;
+    vendor_id = 0;
+    product_id = 0;
+    version = 0;
+  }
 
   ::metrics::structured::events::bluetooth::BluetoothDeviceInfoReport()
       .SetBootId(boot_id)
