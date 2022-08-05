@@ -94,6 +94,8 @@ class MockLeAudioClientInterfaceSink : public LeAudioClientInterface::Sink {
   MOCK_METHOD((void), CancelStreamingRequest, (), (override));
   MOCK_METHOD((void), UpdateAudioConfigToHal,
               (const ::le_audio::offload_config&));
+  MOCK_METHOD((void), UpdateBroadcastAudioConfigToHal,
+              (const ::le_audio::broadcast_offload_config&));
   MOCK_METHOD((size_t), Read, (uint8_t * p_buf, uint32_t len));
 };
 
@@ -170,6 +172,8 @@ void LeAudioClientInterface::Sink::ConfirmStreamingRequest(){};
 void LeAudioClientInterface::Sink::CancelStreamingRequest(){};
 void LeAudioClientInterface::Sink::UpdateAudioConfigToHal(
     const ::le_audio::offload_config& config){};
+void LeAudioClientInterface::Sink::UpdateBroadcastAudioConfigToHal(
+    const ::le_audio::broadcast_offload_config& config){};
 void LeAudioClientInterface::Sink::SuspendedForReconfiguration() {}
 
 void LeAudioClientInterface::Source::Cleanup() {}

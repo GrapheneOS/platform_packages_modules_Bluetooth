@@ -1210,9 +1210,9 @@ pub fn generate_dbus_arg(_item: TokenStream) -> TokenStream {
                     )?;
                     let v = V::from_dbus(
                         val,
-                        conn,
-                        remote,
-                        disconnect_watcher
+                        conn.clone(),
+                        remote.clone(),
+                        disconnect_watcher.clone()
                     )?;
                     map.insert(k, v);
                 }
