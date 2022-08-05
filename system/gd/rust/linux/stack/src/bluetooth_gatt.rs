@@ -5,9 +5,10 @@ use btif_macros::{btif_callback, btif_callbacks_dispatcher};
 use bt_topshim::bindings::root::bluetooth::Uuid;
 use bt_topshim::btif::{BluetoothInterface, RawAddress, Uuid128Bit};
 use bt_topshim::profiles::gatt::{
-    BtGattDbElement, BtGattNotifyParams, BtGattReadParams, Gatt, GattClientCallbacks,
-    GattClientCallbacksDispatcher, GattScannerCallbacks, GattScannerCallbacksDispatcher,
-    GattServerCallbacksDispatcher, GattStatus,
+    BtGattDbElement, BtGattNotifyParams, BtGattReadParams, Gatt, GattAdvCallbacksDispatcher,
+    GattAdvInbandCallbacksDispatcher, GattClientCallbacks, GattClientCallbacksDispatcher,
+    GattScannerCallbacks, GattScannerCallbacksDispatcher, GattServerCallbacksDispatcher,
+    GattStatus,
 };
 use bt_topshim::topstack;
 
@@ -823,10 +824,32 @@ impl BluetoothGatt {
             }),
         };
 
+        let tx_clone = tx.clone();
+        let gatt_adv_inband_callbacks_dispatcher = GattAdvInbandCallbacksDispatcher {
+            dispatch: Box::new(move |cb| {
+                let tx_clone = tx_clone.clone();
+                topstack::get_runtime().spawn(async move {
+                    let _ = tx_clone.send(Message::LeAdvInband(cb)).await;
+                });
+            }),
+        };
+
+        let tx_clone = tx.clone();
+        let gatt_adv_callbacks_dispatcher = GattAdvCallbacksDispatcher {
+            dispatch: Box::new(move |cb| {
+                let tx_clone = tx_clone.clone();
+                topstack::get_runtime().spawn(async move {
+                    let _ = tx_clone.send(Message::LeAdv(cb)).await;
+                });
+            }),
+        };
+
         self.gatt.as_mut().unwrap().initialize(
             gatt_client_callbacks_dispatcher,
             gatt_server_callbacks_dispatcher,
             gatt_scanner_callbacks_dispatcher,
+            gatt_adv_inband_callbacks_dispatcher,
+            gatt_adv_callbacks_dispatcher,
         );
     }
 
