@@ -61,6 +61,20 @@ CodecManager::GetOffloadCodecConfig(types::LeAudioContextType ctx_type) {
   return pimpl_->GetOffloadCodecConfig(ctx_type);
 }
 
+const ::le_audio::broadcast_offload_config*
+CodecManager::GetBroadcastOffloadConfig() {
+  if (!pimpl_) return nullptr;
+  return pimpl_->GetBroadcastOffloadConfig();
+}
+
+void CodecManager::UpdateBroadcastConnHandle(
+    const std::vector<uint16_t>& conn_handle,
+    std::function<void(const ::le_audio::broadcast_offload_config& config)>
+        update_receiver) {
+  if (pimpl_)
+    return pimpl_->UpdateBroadcastConnHandle(conn_handle, update_receiver);
+}
+
 void CodecManager::Start(
     const std::vector<bluetooth::le_audio::btle_audio_codec_config_t>&
         offloading_preference) {
