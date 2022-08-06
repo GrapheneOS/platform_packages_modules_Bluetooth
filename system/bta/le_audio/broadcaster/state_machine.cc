@@ -549,6 +549,10 @@ class BroadcastStateMachineImpl : public BroadcastStateMachine {
               .iso_interval = evt->iso_interval,
               .connection_handles = evt->conn_handles,
           };
+          if (CodecManager::GetInstance()->GetCodecLocation() ==
+              CodecLocation::ADSP) {
+            callbacks_->OnBigCreated(evt->conn_handles);
+          }
           TriggerIsoDatapathSetup(evt->conn_handles[0]);
         } else {
           LOG_ERROR(
