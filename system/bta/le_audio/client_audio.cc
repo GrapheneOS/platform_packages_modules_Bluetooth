@@ -502,6 +502,17 @@ void LeAudioClientAudioSource::UpdateAudioConfigToHal(
   sinkClientInterface_->UpdateAudioConfigToHal(config);
 }
 
+void LeAudioClientAudioSource::UpdateBroadcastAudioConfigToHal(
+    const ::le_audio::broadcast_offload_config& config) {
+  LOG(INFO) << __func__;
+  if (sinkClientInterface_ == nullptr) {
+    LOG(ERROR) << "sinkClientInterface is not Acquired!";
+    return;
+  }
+
+  sinkClientInterface_->UpdateBroadcastAudioConfigToHal(config);
+}
+
 bool LeAudioUnicastClientAudioSink::Start(
     const LeAudioCodecConfiguration& codec_configuration,
     LeAudioClientAudioSourceReceiver* audioReceiver) {
