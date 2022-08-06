@@ -92,6 +92,8 @@ class LeAudioClientInterface {
     void CancelStreamingRequest() override;
     void UpdateAudioConfigToHal(
         const ::le_audio::offload_config& config) override;
+    void UpdateBroadcastAudioConfigToHal(
+        const ::le_audio::broadcast_offload_config& config);
     void SuspendedForReconfiguration() override;
     // Read the stream of bytes sinked to us by the upper layers
     size_t Read(uint8_t* p_buf, uint32_t len);
