@@ -20,8 +20,6 @@ import android.app.Instrumentation;
 import android.content.Context;
 import android.os.Bundle;
 
-import junit.framework.Assert;
-
 import java.util.Set;
 
 public class BluetoothInstrumentation extends Instrumentation {
@@ -41,7 +39,7 @@ public class BluetoothInstrumentation extends Instrumentation {
 
     private BluetoothAdapter getBluetoothAdapter() {
         if (mAdapter == null) {
-            mAdapter = ((BluetoothManager)getContext().getSystemService(
+            mAdapter = ((BluetoothManager) getContext().getSystemService(
                     Context.BLUETOOTH_SERVICE)).getAdapter();
         }
         return mAdapter;

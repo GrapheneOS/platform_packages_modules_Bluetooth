@@ -39,15 +39,24 @@ public class ScanRecordTest extends TestCase {
     /**
      * Example raw beacons captured from a Blue Charm BC011
      */
-    private static final String RECORD_URL = "0201060303AAFE1716AAFE10EE01626C7565636861726D626561636F6E730009168020691E0EFE13551109426C7565436861726D5F313639363835000000";
-    private static final String RECORD_UUID = "0201060303AAFE1716AAFE00EE626C7565636861726D31000000000001000009168020691E0EFE13551109426C7565436861726D5F313639363835000000";
-    private static final String RECORD_TLM = "0201060303AAFE1116AAFE20000BF017000008874803FB93540916802069080EFE13551109426C7565436861726D5F313639363835000000000000000000";
-    private static final String RECORD_IBEACON = "0201061AFF4C000215426C7565436861726D426561636F6E730EFE1355C509168020691E0EFE13551109426C7565436861726D5F31363936383500000000";
+    private static final String RECORD_URL =
+            "0201060303AAFE1716AAFE10EE01626C7565636861726D626561636F6E730"
+            + "009168020691E0EFE13551109426C7565436861726D5F313639363835000000";
+    private static final String RECORD_UUID =
+            "0201060303AAFE1716AAFE00EE626C7565636861726D3100000000000100000"
+            + "9168020691E0EFE13551109426C7565436861726D5F313639363835000000";
+    private static final String RECORD_TLM =
+            "0201060303AAFE1116AAFE20000BF017000008874803FB93540916802069080"
+            + "EFE13551109426C7565436861726D5F313639363835000000000000000000";
+    private static final String RECORD_IBEACON =
+            "0201061AFF4C000215426C7565436861726D426561636F6E730EFE1355C5091"
+            + "68020691E0EFE13551109426C7565436861726D5F31363936383500000000";
 
     /**
      * Example Eddystone E2EE-EID beacon from design doc
      */
-    private static final String RECORD_E2EE_EID = "0201061816AAFE400000000000000000000000000000000000000000";
+    private static final String RECORD_E2EE_EID =
+            "0201061816AAFE400000000000000000000000000000000000000000";
 
     @SmallTest
     public void testMatchesAnyField_Eddystone_Parser() {
@@ -148,8 +157,8 @@ public class ScanRecordTest extends TestCase {
     // Assert two byte arrays are equal.
     private static void assertArrayEquals(byte[] expected, byte[] actual) {
         if (!Arrays.equals(expected, actual)) {
-            fail("expected:<" + Arrays.toString(expected) +
-                    "> but was:<" + Arrays.toString(actual) + ">");
+            fail("expected:<" + Arrays.toString(expected)
+                    + "> but was:<" + Arrays.toString(actual) + ">");
         }
 
     }
