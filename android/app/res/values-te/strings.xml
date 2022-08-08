@@ -111,10 +111,10 @@
     <string name="inbound_noti_title" msgid="3730993443609581977">"బ్లూటూత్ షేర్: స్వీకరించబడిన ఫైళ్లు"</string>
     <string name="noti_caption_unsuccessful" msgid="6679288016450410835">"{count,plural, =1{# విజయవంతం కాలేదు.}other{# విజయవంతం కాలేదు.}}"</string>
     <string name="noti_caption_success" msgid="7652777514009569713">"{count,plural, =1{# విజయవంతం అయింది, %1$s}other{# విజయవంతం అయింది, %1$s}}"</string>
-    <string name="transfer_menu_clear_all" msgid="3014459758656427076">"లిస్ట్‌ను క్లియర్ చేయి"</string>
+    <string name="transfer_menu_clear_all" msgid="3014459758656427076">"లిస్ట్‌ను క్లియర్ చేయండి"</string>
     <string name="transfer_menu_open" msgid="5193344638774400131">"తెరువు"</string>
-    <string name="transfer_menu_clear" msgid="7213491281898188730">"లిస్ట్‌ నుండి క్లియర్ చేయి"</string>
-    <string name="transfer_clear_dlg_title" msgid="128904516163257225">"క్లియర్ చేయి"</string>
+    <string name="transfer_menu_clear" msgid="7213491281898188730">"లిస్ట్‌ నుండి క్లియర్ చేయండి"</string>
+    <string name="transfer_clear_dlg_title" msgid="128904516163257225">"క్లియర్ చేయండి"</string>
     <string name="bluetooth_a2dp_sink_queue_name" msgid="7521243473328258997">"ప్రస్తుతం ప్లే అవుతున్నవి"</string>
     <string name="bluetooth_map_settings_save" msgid="8309113239113961550">"సేవ్ చేయి"</string>
     <string name="bluetooth_map_settings_cancel" msgid="3374494364625947793">"రద్దు చేయి"</string>
