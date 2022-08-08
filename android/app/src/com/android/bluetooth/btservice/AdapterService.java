@@ -5226,33 +5226,30 @@ public class AdapterService extends Service {
         }
     }
 
-    public static int getScanQuotaCount() {
-        if (sAdapterService == null) {
-            return DeviceConfigListener.DEFAULT_SCAN_QUOTA_COUNT;
-        }
-
-        synchronized (sAdapterService.mDeviceConfigLock) {
-            return sAdapterService.mScanQuotaCount;
-        }
-    }
-
-    public static long getScanQuotaWindowMillis() {
-        if (sAdapterService == null) {
-            return DeviceConfigListener.DEFAULT_SCAN_QUOTA_WINDOW_MILLIS;
-        }
-
-        synchronized (sAdapterService.mDeviceConfigLock) {
-            return sAdapterService.mScanQuotaWindowMillis;
+    /**
+     * Returns scan quota count.
+     */
+    public int getScanQuotaCount() {
+        synchronized (mDeviceConfigLock) {
+            return mScanQuotaCount;
         }
     }
 
-    public static long getScanTimeoutMillis() {
-        if (sAdapterService == null) {
-            return DeviceConfigListener.DEFAULT_SCAN_TIMEOUT_MILLIS;
+    /**
+     * Returns scan quota window in millis.
+     */
+    public long getScanQuotaWindowMillis() {
+        synchronized (mDeviceConfigLock) {
+            return mScanQuotaWindowMillis;
         }
+    }
 
-        synchronized (sAdapterService.mDeviceConfigLock) {
-            return sAdapterService.mScanTimeoutMillis;
+    /**
+     * Returns scan timeout in millis.
+     */
+    public long getScanTimeoutMillis() {
+        synchronized (mDeviceConfigLock) {
+            return mScanTimeoutMillis;
         }
     }
 
