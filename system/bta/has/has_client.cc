@@ -39,6 +39,7 @@
 #include "gap_api.h"
 #include "gatt_api.h"
 #include "has_types.h"
+#include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "osi/include/properties.h"
 
@@ -1538,9 +1539,22 @@ class HasClientImpl : public HasClient {
                      << ": no HAS Control Point CCC descriptor found!";
           return false;
         }
+        uint8_t ccc_val = 0;
+        if (charac.properties & GATT_CHAR_PROP_BIT_NOTIFY)
+          ccc_val |= GATT_CHAR_CLIENT_CONFIG_NOTIFICATION;
+
+        if (charac.properties & GATT_CHAR_PROP_BIT_INDICATE)
+          ccc_val |= GATT_CHAR_CLIENT_CONFIG_INDICTION;
+
+        if (ccc_val == 0) {
+          LOG_ERROR("Invalid properties for the control point 0x%02x",
+                    charac.properties);
+          return false;
+        }
 
         device->cp_ccc_handle = ccc_handle;
         device->cp_handle = charac.value_handle;
+        device->cp_ccc_val = ccc_val;
       } else if (charac.uuid == kUuidHearingAidFeatures) {
         /* Find the optional CCC descriptor */
         uint16_t ccc_handle =
@@ -1653,13 +1667,9 @@ class HasClientImpl : public HasClient {
      * mandatory active preset index notifications.
      */
     if (device->SupportsPresets()) {
-      uint16_t ccc_val = gatt_profile_get_eatt_support(device->addr)
-                             ? GATT_CHAR_CLIENT_CONFIG_INDICTION |
-                                   GATT_CHAR_CLIENT_CONFIG_NOTIFICATION
-                             : GATT_CHAR_CLIENT_CONFIG_INDICTION;
       SubscribeForNotifications(device->conn_id, device->addr,
                                 device->cp_handle, device->cp_ccc_handle,
-                                ccc_val);
+                                device->cp_ccc_val);
 
       /* Get all the presets */
       CpReadAllPresetsOperation(HasCtpOp(
