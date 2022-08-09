@@ -60,8 +60,14 @@ pub trait IBluetoothMedia {
     fn set_hfp_volume(&mut self, volume: u8, address: String);
     fn start_audio_request(&mut self);
     fn stop_audio_request(&mut self);
-    fn get_a2dp_audio_started(&mut self) -> bool;
-    fn get_hfp_audio_started(&mut self) -> bool;
+
+    /// Returns non-zero value iff A2DP audio has started.
+    fn get_a2dp_audio_started(&mut self, address: String) -> u8;
+
+    /// Returns the negotiated codec (CVSD=1, mSBC=2) to use if HFP audio has started.
+    /// Returns 0 if HFP audio hasn't started.
+    fn get_hfp_audio_started(&mut self, address: String) -> u8;
+
     fn get_presentation_position(&mut self) -> PresentationPosition;
 
     fn start_sco_call(&mut self, address: String);
@@ -129,10 +135,10 @@ pub struct BluetoothMedia {
     a2dp: Option<A2dp>,
     avrcp: Option<Avrcp>,
     a2dp_states: HashMap<RawAddress, BtavConnectionState>,
-    a2dp_audio_state: BtavAudioState,
+    a2dp_audio_state: HashMap<RawAddress, BtavAudioState>,
     hfp: Option<Hfp>,
     hfp_states: HashMap<RawAddress, BthfConnectionState>,
-    hfp_audio_state: BthfAudioState,
+    hfp_audio_state: HashMap<RawAddress, BthfAudioState>,
     selectable_caps: HashMap<RawAddress, Vec<A2dpCodecConfig>>,
     hfp_caps: HashMap<RawAddress, HfpCodecCapability>,
     device_added_tasks: Arc<Mutex<HashMap<RawAddress, Option<JoinHandle<()>>>>>,
@@ -153,10 +159,10 @@ impl BluetoothMedia {
             a2dp: None,
             avrcp: None,
             a2dp_states: HashMap::new(),
-            a2dp_audio_state: BtavAudioState::RemoteSuspend,
+            a2dp_audio_state: HashMap::new(),
             hfp: None,
             hfp_states: HashMap::new(),
-            hfp_audio_state: BthfAudioState::Disconnected,
+            hfp_audio_state: HashMap::new(),
             selectable_caps: HashMap::new(),
             hfp_caps: HashMap::new(),
             device_added_tasks: Arc::new(Mutex::new(HashMap::new())),
@@ -183,7 +189,7 @@ impl BluetoothMedia {
                         self.a2dp_states.insert(addr, state);
                     }
                     BtavConnectionState::Disconnected => {
-                        self.a2dp_audio_state = BtavAudioState::RemoteSuspend;
+                        self.a2dp_audio_state.remove(&addr);
                         match self.a2dp_states.remove(&addr) {
                             Some(_) => self.notify_media_capability_removed(addr),
                             None => {
@@ -196,8 +202,8 @@ impl BluetoothMedia {
                     }
                 }
             }
-            A2dpCallbacks::AudioState(_addr, state) => {
-                self.a2dp_audio_state = state;
+            A2dpCallbacks::AudioState(addr, state) => {
+                self.a2dp_audio_state.insert(addr, state);
             }
             A2dpCallbacks::AudioConfig(addr, _config, _local_caps, selectable_caps) => {
                 self.selectable_caps.insert(addr, selectable_caps);
@@ -253,6 +259,7 @@ impl BluetoothMedia {
                     BthfConnectionState::Disconnected => {
                         info!("[{}]: hfp disconnected.", addr.to_string());
                         self.hfp_caps.remove(&addr);
+                        self.hfp_audio_state.remove(&addr);
                         match self.hfp_states.remove(&addr) {
                             Some(_) => self.notify_media_capability_removed(addr),
                             None => {
@@ -294,7 +301,7 @@ impl BluetoothMedia {
                     }
                 }
 
-                self.hfp_audio_state = state;
+                self.hfp_audio_state.insert(addr, state);
             }
             HfpCallbacks::VolumeUpdate(volume, addr) => {
                 self.callbacks.lock().unwrap().for_all_callbacks(|callback| {
@@ -631,17 +638,42 @@ impl IBluetoothMedia for BluetoothMedia {
         }
     }
 
-    fn get_a2dp_audio_started(&mut self) -> bool {
-        match self.a2dp_audio_state {
-            BtavAudioState::Started => true,
-            _ => false,
+    fn get_a2dp_audio_started(&mut self, address: String) -> u8 {
+        if let Some(addr) = RawAddress::from_string(address.clone()) {
+            match self.a2dp_audio_state.get(&addr) {
+                Some(BtavAudioState::Started) => 1,
+                _ => 0,
+            }
+        } else {
+            warn!("Invalid device string {}", address);
+            0
         }
     }
 
-    fn get_hfp_audio_started(&mut self) -> bool {
-        match self.hfp_audio_state {
-            BthfAudioState::Connected => true,
-            _ => false,
+    fn get_hfp_audio_started(&mut self, address: String) -> u8 {
+        if let Some(addr) = RawAddress::from_string(address.clone()) {
+            match self.hfp_audio_state.get(&addr) {
+                Some(BthfAudioState::Connected) => match self.hfp_caps.get(&addr) {
+                    Some(caps)
+                        if (*caps & HfpCodecCapability::MSBC) == HfpCodecCapability::MSBC =>
+                    {
+                        2
+                    }
+                    Some(caps)
+                        if (*caps & HfpCodecCapability::CVSD) == HfpCodecCapability::CVSD =>
+                    {
+                        1
+                    }
+                    _ => {
+                        warn!("hfp_caps not found, fallback to CVSD.");
+                        1
+                    }
+                },
+                _ => 0,
+            }
+        } else {
+            warn!("Invalid device string {}", address);
+            0
         }
     }
 

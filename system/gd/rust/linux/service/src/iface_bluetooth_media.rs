@@ -141,7 +141,7 @@ impl IBluetoothMedia for IBluetoothMediaDBus {
     }
 
     #[dbus_method("GetA2dpAudioStarted")]
-    fn get_a2dp_audio_started(&mut self) -> bool {
+    fn get_a2dp_audio_started(&mut self, address: String) -> u8 {
         dbus_generated!()
     }
 
@@ -156,7 +156,7 @@ impl IBluetoothMedia for IBluetoothMediaDBus {
     }
 
     #[dbus_method("GetHfpAudioStarted")]
-    fn get_hfp_audio_started(&mut self) -> bool {
+    fn get_hfp_audio_started(&mut self, address: String) -> u8 {
         dbus_generated!()
     }
 
