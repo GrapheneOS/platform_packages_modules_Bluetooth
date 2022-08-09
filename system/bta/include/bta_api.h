@@ -1203,4 +1203,15 @@ extern void BTA_VendorInit(void);
  ******************************************************************************/
 extern void BTA_DmClearEventFilter(void);
 
+/*******************************************************************************
+ *
+ * Function         BTA_DmBleResetId
+ *
+ * Description      This function resets the ble keys such as IRK
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+extern void BTA_DmBleResetId(void);
+
 #endif /* BTA_API_H */
