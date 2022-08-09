@@ -109,7 +109,6 @@ android_app {
         "modules-utils-statemachine",
         "sap-api-java-static",
         "services.net",
-        "PlatformProperties"
     ],
 
     plugins: [
