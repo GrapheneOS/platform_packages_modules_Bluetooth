@@ -464,8 +464,3 @@ tBTM_STATUS bluetooth::shim::BTM_SetEventFilterInquiryResultAllDevices() {
   mock_function_count_map[__func__]++;
   return BTM_SUCCESS;
 }
-
-tBTM_STATUS bluetooth::shim::BTM_BleResetId() {
-  mock_function_count_map[__func__]++;
-  return BTM_SUCCESS;
-}
