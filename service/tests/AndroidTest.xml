@@ -24,7 +24,7 @@
             value="com.google.android.bluetooth.apex" />
     <test class="com.android.tradefed.testtype.AndroidJUnitTest" >
         <option name="package" value="com.android.server.bluetooth.test" />
-        <option name="runner" value="com.android.server.bluetooth.CustomTestRunner" />
+        <option name="runner" value="androidx.test.runner.AndroidJUnitRunner" />
         <option name="hidden-api-checks" value="false"/>
     </test>
 
