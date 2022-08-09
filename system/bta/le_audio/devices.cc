@@ -847,6 +847,11 @@ bool LeAudioDeviceGroup::IsConfigurationSupported(
         if (needed_ase == 0) break;
       }
 
+      if (needed_ase > 0) {
+        LOG_DEBUG("Device has too less ASEs. Still needed ases %d", needed_ase);
+        return false;
+      }
+
       required_device_cnt--;
     }
 
