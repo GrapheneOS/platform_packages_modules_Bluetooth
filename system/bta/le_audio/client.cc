@@ -2551,13 +2551,6 @@ class LeAudioClientImpl : public LeAudioClient {
           lc3_setup_encoder(dt_us, sr_hz, af_hz, lc3_encoder_left_mem);
       lc3_encoder_right =
           lc3_setup_encoder(dt_us, sr_hz, af_hz, lc3_encoder_right_mem);
-
-    } else if (CodecManager::GetInstance()->GetCodecLocation() ==
-               le_audio::types::CodecLocation::ADSP) {
-      CodecManager::GetInstance()->UpdateActiveSourceAudioConfig(
-          *stream_conf, remote_delay_ms,
-          std::bind(&LeAudioUnicastClientAudioSource::UpdateAudioConfigToHal,
-                    leAudioClientAudioSource, std::placeholders::_1));
     }
 
     leAudioClientAudioSource->UpdateRemoteDelay(remote_delay_ms);
@@ -2617,14 +2610,7 @@ class LeAudioClientImpl : public LeAudioClient {
           lc3_setup_decoder(dt_us, sr_hz, af_hz, lc3_decoder_left_mem);
       lc3_decoder_right =
           lc3_setup_decoder(dt_us, sr_hz, af_hz, lc3_decoder_right_mem);
-    } else if (CodecManager::GetInstance()->GetCodecLocation() ==
-               le_audio::types::CodecLocation::ADSP) {
-      CodecManager::GetInstance()->UpdateActiveSinkAudioConfig(
-          *stream_conf, remote_delay_ms,
-          std::bind(&LeAudioUnicastClientAudioSink::UpdateAudioConfigToHal,
-                    leAudioClientAudioSink, std::placeholders::_1));
     }
-
     leAudioClientAudioSink->UpdateRemoteDelay(remote_delay_ms);
     leAudioClientAudioSink->ConfirmStreamingRequest();
     audio_receiver_state_ = AudioState::STARTED;
@@ -3515,16 +3501,52 @@ class LeAudioClientImpl : public LeAudioClient {
     }
   }
 
+  void updateOffloaderIfNeeded(LeAudioDeviceGroup* group) {
+    if (CodecManager::GetInstance()->GetCodecLocation() !=
+        le_audio::types::CodecLocation::ADSP) {
+      return;
+    }
+
+    LOG_INFO("Group %p, group_id %d", group, group->group_id_);
+
+    const auto* stream_conf = &group->stream_conf;
+
+    if (stream_conf->sink_offloader_changed) {
+      LOG_INFO("Update sink offloader streams");
+      uint16_t remote_delay_ms =
+          group->GetRemoteDelay(le_audio::types::kLeAudioDirectionSink);
+      CodecManager::GetInstance()->UpdateActiveSourceAudioConfig(
+          *stream_conf, remote_delay_ms,
+          std::bind(&LeAudioUnicastClientAudioSource::UpdateAudioConfigToHal,
+                    leAudioClientAudioSource, std::placeholders::_1));
+      group->StreamOffloaderUpdated(le_audio::types::kLeAudioDirectionSink);
+    }
+
+    if (stream_conf->source_offloader_changed) {
+      LOG_INFO("Update source offloader streams");
+      uint16_t remote_delay_ms =
+          group->GetRemoteDelay(le_audio::types::kLeAudioDirectionSource);
+      CodecManager::GetInstance()->UpdateActiveSinkAudioConfig(
+          *stream_conf, remote_delay_ms,
+          std::bind(&LeAudioUnicastClientAudioSink::UpdateAudioConfigToHal,
+                    leAudioClientAudioSink, std::placeholders::_1));
+      group->StreamOffloaderUpdated(le_audio::types::kLeAudioDirectionSource);
+    }
+  }
+
   void StatusReportCb(int group_id, GroupStreamStatus status) {
-    LOG(INFO) << __func__ << "status: " << static_cast<int>(status)
-              << " audio_sender_state_: " << audio_sender_state_
-              << " audio_receiver_state_: " << audio_receiver_state_;
+    LOG_INFO("status: %d , audio_sender_state %s, audio_receiver_state %s",
+             static_cast<int>(status),
+             bluetooth::common::ToString(audio_sender_state_).c_str(),
+             bluetooth::common::ToString(audio_receiver_state_).c_str());
     LeAudioDeviceGroup* group = aseGroups_.FindById(group_id);
     switch (status) {
       case GroupStreamStatus::STREAMING:
-        LOG_ASSERT(group_id == active_group_id_)
-            << __func__ << " invalid group id " << group_id
-            << " active_group_id_ " << active_group_id_;
+        ASSERT_LOG(group_id == active_group_id_, "invalid group id %d!=%d",
+                   group_id, active_group_id_);
+
+        updateOffloaderIfNeeded(group);
+
         if (audio_sender_state_ == AudioState::READY_TO_START)
           StartSendingAudio(group_id);
         if (audio_receiver_state_ == AudioState::READY_TO_START)

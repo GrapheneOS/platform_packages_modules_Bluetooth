@@ -592,6 +592,13 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
      */
     if (group->IsAnyDeviceConnected() &&
         !group->HaveAllActiveDevicesCisDisc()) {
+      if (group->GetState() == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
+        /* We keep streaming but want others to let know user that it might be
+         * need to update offloader with new CIS configuration
+         */
+        state_machine_callbacks_->StatusReportCb(group->group_id_,
+                                                 GroupStreamStatus::STREAMING);
+      }
       return;
     }
 
@@ -978,6 +985,9 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
           stream_conf->source_num_of_devices,
           stream_conf->source_num_of_channels);
     }
+
+    /* Update offloader streams */
+    group->CreateStreamVectorForOffloader(ase->direction);
   }
 
   void RemoveCisFromStreamConfiguration(LeAudioDeviceGroup* group,
@@ -986,6 +996,9 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     auto* stream_conf = &group->stream_conf;
 
     LOG_INFO(" CIS Connection Handle: %d", cis_conn_hdl);
+
+    auto sink_channels = stream_conf->sink_num_of_channels;
+    auto source_channels = stream_conf->source_num_of_channels;
 
     if (!stream_conf->sink_streams.empty() ||
         !stream_conf->source_streams.empty()) {
@@ -1045,6 +1058,16 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
 
     if (stream_conf->source_num_of_channels == 0) {
       group->ClearSourcesFromConfiguration();
+    }
+
+    /* Update offloader streams if needed */
+    if (sink_channels > stream_conf->sink_num_of_channels) {
+      group->CreateStreamVectorForOffloader(
+          le_audio::types::kLeAudioDirectionSink);
+    }
+    if (source_channels > stream_conf->source_num_of_channels) {
+      group->CreateStreamVectorForOffloader(
+          le_audio::types::kLeAudioDirectionSource);
     }
 
     group->CigUnassignCis(leAudioDevice);
