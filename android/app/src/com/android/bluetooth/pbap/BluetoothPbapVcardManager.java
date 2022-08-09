@@ -1016,7 +1016,8 @@ public class BluetoothPbapVcardManager {
     }
 
     public String stripTelephoneNumber(String vCard) {
-        String[] attr = vCard.split(System.getProperty("line.separator"));
+        String separator = System.getProperty("line.separator");
+        String[] attr = vCard.split(separator);
         String stripedVCard = "";
         for (int i = 0; i < attr.length; i++) {
             if (attr[i].startsWith("TEL")) {
@@ -1039,7 +1040,7 @@ public class BluetoothPbapVcardManager {
 
         for (int i = 0; i < attr.length; i++) {
             if (!attr[i].isEmpty()) {
-                stripedVCard = stripedVCard.concat(attr[i] + "\n");
+                stripedVCard = stripedVCard.concat(attr[i] + separator);
             }
         }
         if (V) {

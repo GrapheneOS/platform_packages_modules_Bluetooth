@@ -280,4 +280,57 @@ public class BluetoothPbapVcardManagerTest {
         assertThat(mManager.getPhonebookNameList(BluetoothPbapObexServer.ORDER_BY_ALPHABETICAL))
                 .isEqualTo(expectedResult);
     }
+
+    @Test
+    public void testGetContactNamesByNumber_whenNumberIsNull() {
+        Cursor cursor = mock(Cursor.class);
+        doReturn(cursor).when(mPbapMethodProxy)
+                .contentResolverQuery(any(), any(), any(), any(), any(), any());
+
+        List<String> nameList = Arrays.asList("A", "B", "C", "");
+        List<Integer> contactIdList = Arrays.asList(0, 1, 2, 3);
+
+        List<String> expectedResult = Arrays.asList(
+                "A,0",
+                "B,1",
+                "C,2",
+                mContext.getString(android.R.string.unknownName) + ",3");
+
+        // Implement Cursor iteration
+        final int size = nameList.size();
+        AtomicInteger currentPosition = new AtomicInteger(0);
+        when(cursor.moveToPosition(anyInt())).then((Answer<Boolean>) i -> {
+            int position = i.getArgument(0);
+            currentPosition.set(position);
+            return true;
+        });
+        when(cursor.moveToNext()).then((Answer<Boolean>) i -> {
+            int pos = currentPosition.addAndGet(1);
+            return pos < size;
+        });
+
+        final int contactIdColumn = 0;
+        final int nameColumn = 1;
+        when(cursor.getColumnIndex(ContactsContract.Data.CONTACT_ID)).thenReturn(contactIdColumn);
+        when(cursor.getColumnIndex(ContactsContract.Data.DISPLAY_NAME)).thenReturn(nameColumn);
+
+        when(cursor.getLong(contactIdColumn)).then((Answer<Long>) i -> {
+            return (long) contactIdList.get(currentPosition.get());
+        });
+        when(cursor.getString(nameColumn)).then((Answer<String>) i -> {
+            return nameList.get(currentPosition.get());
+        });
+
+        assertThat(mManager.getContactNamesByNumber(null))
+                .isEqualTo(expectedResult);
+    }
+
+    @Test
+    public void testStripTelephoneNumber() {
+        final String separator = System.getProperty("line.separator");
+        final String vCard = "SomeRandomLine" + separator + "TEL:+1-(588)-328-382" + separator;
+        final String expectedResult = "SomeRandomLine" + separator + "TEL:+1588328382" + separator;
+
+        assertThat(mManager.stripTelephoneNumber(vCard)).isEqualTo(expectedResult);
+    }
 }
