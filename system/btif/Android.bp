@@ -163,7 +163,7 @@ cc_defaults {
     target: {
         android: {
             whole_static_libs: [
-                "PlatformProperties",
+                "libPlatformProperties",
             ],
             srcs: ["src/btif_avrcp_audio_track.cc"],
         },
