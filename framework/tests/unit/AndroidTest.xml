@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (C) 2017 The Android Open Source Project
+<!-- Copyright 2022 The Android Open Source Project
 
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -13,18 +13,24 @@
      See the License for the specific language governing permissions and
      limitations under the License.
 -->
-<configuration description="Runs Service Bluetooth Tests.">
+<configuration description="Config for Bluetooth test cases">
     <target_preparer class="com.android.tradefed.targetprep.suite.SuiteApkInstaller">
-        <option name="test-file-name" value="ServiceBluetoothTests.apk" />
+        <option name="cleanup-apks" value="true" />
+        <option name="test-file-name" value="FrameworkBluetoothTests.apk" />
     </target_preparer>
 
-    <option name="test-suite-tag" value="apct" />
-    <option name="test-tag" value="ServiceBluetoothTests" />
-    <option name="config-descriptor:metadata" key="mainline-param"
-            value="com.google.android.btservices.apex" />
+    <option name="test-suite-tag" value="apct"/>
+    <option name="test-tag" value="FrameworkBluetoothTests"/>
+
     <test class="com.android.tradefed.testtype.AndroidJUnitTest" >
-        <option name="package" value="com.android.server.bluetooth.test" />
-        <option name="runner" value="androidx.test.runner.AndroidJUnitRunner" />
+        <option name="package" value="com.android.framework.bluetooth.tests" />
         <option name="hidden-api-checks" value="false"/>
+        <option name="runner" value="androidx.test.runner.AndroidJUnitRunner"/>
     </test>
+
+    <!-- Only run FrameworkBluetoothTests in MTS if the Bluetooth Mainline module is installed. -->
+    <object type="module_controller"
+            class="com.android.tradefed.testtype.suite.module.MainlineTestModuleController">
+        <option name="mainline-module-package-name" value="com.google.android.bluetooth" />
+    </object>
 </configuration>
