@@ -1219,6 +1219,15 @@ public class BluetoothProxy {
         return true;
     }
 
+    public boolean hapSetActivePresetForGroup(BluetoothDevice device, int preset_index) {
+        if (bluetoothHapClient == null)
+            return false;
+
+        int groupId = bluetoothLeAudio.getGroupId(device);
+        bluetoothHapClient.selectPresetForGroup(groupId, preset_index);
+        return true;
+    }
+
     public boolean hapChangePresetName(BluetoothDevice device, int preset_index, String name) {
         if (bluetoothHapClient == null)
             return false;
