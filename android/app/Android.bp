@@ -131,7 +131,6 @@ android_app {
         "sap-api-java-static",
         "net-utils-services-common",
         "networkstack-client",
-        "PlatformProperties",
         "bluetooth-proto-enums-java-gen",
     ],
 
