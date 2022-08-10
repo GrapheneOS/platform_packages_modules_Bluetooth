@@ -365,6 +365,10 @@ class HasClientImpl : public HasClient {
     auto op = op_opt.value();
     callbacks_->OnPresetInfoError(device->addr, op.index,
                                   GattStatus2SvcErrorCode(status));
+
+    LOG_ERROR("Devices %s: Control point not usable. Disconnecting!",
+              device->addr.ToString().c_str());
+    BTA_GATTC_Close(conn_id);
   }
 
   void OnHasPresetIndexOperation(uint16_t conn_id, tGATT_STATUS status,
@@ -404,6 +408,9 @@ class HasClientImpl : public HasClient {
       callbacks_->OnActivePresetSelectError(op.addr_or_group,
                                             GattStatus2SvcErrorCode(status));
     }
+    LOG_ERROR("Devices %s: Control point not usable. Disconnecting!",
+              device->addr.ToString().c_str());
+    BTA_GATTC_Close(conn_id);
   }
 
   void CpReadAllPresetsOperation(HasCtpOp operation) {
