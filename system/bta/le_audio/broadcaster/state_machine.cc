@@ -293,7 +293,7 @@ class BroadcastStateMachineImpl : public BroadcastStateMachine {
       adv_params.advertising_event_properties = 0;
       adv_params.channel_map = bluetooth::kAdvertisingChannelAll;
       adv_params.adv_filter_policy = 0;
-      adv_params.tx_power = -15;
+      adv_params.tx_power = 8;
       adv_params.primary_advertising_phy = PHY_LE_1M;
       adv_params.secondary_advertising_phy = streaming_phy;
       adv_params.scan_request_notification_enable = 0;
