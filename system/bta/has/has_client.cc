@@ -1891,7 +1891,7 @@ class HasClientImpl : public HasClient {
       LOG(ERROR) << __func__ << ": rejected BTA_GATTC_NOTIF_EVT. is_notify = "
                  << evt.is_notify << ", len=" << static_cast<int>(evt.len);
     }
-    if (!evt.is_notify) BTA_GATTC_SendIndConfirm(evt.conn_id, evt.handle);
+    if (!evt.is_notify) BTA_GATTC_SendIndConfirm(evt.conn_id, evt.cid);
 
     OnHasNotification(evt.conn_id, evt.handle, evt.len, evt.value);
   }
