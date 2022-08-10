@@ -61,6 +61,6 @@ cc_defaults {
         "libprotobuf-cpp-lite",
         "libutils",
         "libcrypto",
-        "PlatformProperties",
+        "libPlatformProperties",
     ],
 }

@@ -147,7 +147,7 @@ cc_binary {
         android: {
             shared_libs: [
                 "android.hardware.bluetooth.audio-V2-ndk",
-                "PlatformProperties",
+                "libPlatformProperties",
             ],
         },
     },
@@ -239,7 +239,7 @@ cc_test {
                 "android.system.suspend-V1-ndk",
                 "libbinder",
                 "libvndksupport",
-                "PlatformProperties",
+                "libPlatformProperties",
             ],
         },
         host: {

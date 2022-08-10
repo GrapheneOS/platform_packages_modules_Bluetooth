@@ -248,7 +248,7 @@ cc_test {
             shared_libs: [
                 "libbinder_ndk",
                 "android.hardware.bluetooth.audio-V2-ndk",
-                "PlatformProperties",
+                "libPlatformProperties",
             ],
         },
     },
