@@ -84,6 +84,8 @@ BluetoothAudioCtrlAck A2dpTransport::StartRequest(bool is_low_latency) {
     return a2dp_ack_to_bt_audio_ctrl_ack(A2DP_CTRL_ACK_SUCCESS);
   }
   if (btif_av_stream_ready()) {
+    // check if codec needs to be switched prior to stream start
+    invoke_switch_codec_cb(is_low_latency);
     /*
      * Post start event and wait for audio path to open.
      * If we are the source, the ACK will be sent after the start
@@ -96,7 +98,6 @@ BluetoothAudioCtrlAck A2dpTransport::StartRequest(bool is_low_latency) {
       return a2dp_ack_to_bt_audio_ctrl_ack(A2DP_CTRL_ACK_PENDING);
     }
     a2dp_pending_cmd_ = A2DP_CTRL_CMD_NONE;
-    invoke_switch_codec_cb(is_low_latency);
     return a2dp_ack_to_bt_audio_ctrl_ack(A2DP_CTRL_ACK_SUCCESS);
   }
   LOG(ERROR) << __func__ << ": AV stream is not ready to start";
