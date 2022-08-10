@@ -26,8 +26,6 @@ import static android.bluetooth.BluetoothLeBroadcastReceiveState.PA_SYNC_STATE_I
 import static android.bluetooth.BluetoothLeBroadcastReceiveState.PA_SYNC_STATE_SYNCHRONIZED;
 import static android.bluetooth.BluetoothLeBroadcastReceiveState.PA_SYNC_STATE_SYNCINFO_REQUEST;
 
-import static com.android.bluetooth.leaudio.BroadcastScanActivity.EXTRA_BASS_RECEIVER_ID;
-
 import android.animation.ObjectAnimator;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHapClient;
@@ -1810,27 +1808,27 @@ public class LeAudioRecycleViewAdapter
                     alert.setTitle("Scan and add a source or remove the currently set one.");
 
                     BluetoothDevice device = devices.get(ViewHolder.this.getAdapterPosition()).device;
-                    if (bassReceiverIdSpinner.getSelectedItem() == null) {
-                        Toast.makeText(view.getContext(), "Not available",
-                                Toast.LENGTH_SHORT).show();
-                        return;
+                    int receiver_id = -1;
+                    if (bassReceiverIdSpinner.getSelectedItem() != null) {
+                        receiver_id = Integer.parseInt(bassReceiverIdSpinner.getSelectedItem().toString());
                     }
-                    int receiver_id = Integer.parseInt(bassReceiverIdSpinner.getSelectedItem().toString());
 
                     alert.setPositiveButton("Scan", (dialog, whichButton) -> {
                         // Scan for new announcements
                         Intent intent = new Intent(this.itemView.getContext(), BroadcastScanActivity.class);
                         intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-                        intent.putExtra(EXTRA_BASS_RECEIVER_ID, receiver_id);
                         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, devices.get(ViewHolder.this.getAdapterPosition()).device);
                         parent.startActivityForResult(intent, 666);
                     });
                     alert.setNeutralButton("Cancel", (dialog, whichButton) -> {
                         // Do nothing
                     });
-                    alert.setNegativeButton("Remove", (dialog, whichButton) -> {
-                        bassInteractionListener.onRemoveSourceReq(device, receiver_id);
-                    });
+                    if (receiver_id != -1) {
+                        final int remove_receiver_id = receiver_id;
+                        alert.setNegativeButton("Remove", (dialog, whichButton) -> {
+                            bassInteractionListener.onRemoveSourceReq(device, remove_receiver_id);
+                        });
+                    }
                     alert.show();
 
                 } else if (bassReceiverStateText.getText().equals(res.getString(R.string.broadcast_state_code_required))) {
@@ -1887,16 +1885,9 @@ public class LeAudioRecycleViewAdapter
                     AlertDialog.Builder alert = new AlertDialog.Builder(itemView.getContext());
                     alert.setTitle("Retry broadcast audio announcement scan?");
 
-                    if (bassReceiverIdSpinner.getSelectedItem() == null) {
-                        Toast.makeText(view.getContext(), "Not available",
-                                Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                    int receiver_id = Integer.parseInt(bassReceiverIdSpinner.getSelectedItem().toString());
                     alert.setPositiveButton("Yes", (dialog, whichButton) -> {
                         // Scan for new announcements
                         Intent intent = new Intent(view.getContext(), BroadcastScanActivity.class);
-                        intent.putExtra(EXTRA_BASS_RECEIVER_ID, receiver_id);
                         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, devices.get(ViewHolder.this.getAdapterPosition()).device);
                         parent.startActivityForResult(intent, 666);
                     });
