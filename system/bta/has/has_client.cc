@@ -919,6 +919,13 @@ class HasClientImpl : public HasClient {
                                 device.active_preset_handle,
                                 device.active_preset_ccc_handle);
     }
+
+    if (osi_property_get_bool("persist.bluetooth.has.always_use_preset_cache",
+                              true) == false) {
+      CpReadAllPresetsOperation(HasCtpOp(
+          device.addr, PresetCtpOpcode::READ_PRESETS,
+          le_audio::has::kStartPresetIndex, le_audio::has::kMaxNumOfPresets));
+    }
   }
 
   void OnEncrypted(HasDevice& device) {
