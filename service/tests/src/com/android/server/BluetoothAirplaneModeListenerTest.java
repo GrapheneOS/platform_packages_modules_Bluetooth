@@ -40,6 +40,7 @@ public class BluetoothAirplaneModeListenerTest {
     private BluetoothAirplaneModeListener mBluetoothAirplaneModeListener;
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothModeChangeHelper mHelper;
+    private BluetoothNotificationManager mBluetoothNotificationManager;
 
     @Mock BluetoothManagerService mBluetoothManagerService;
 
@@ -55,7 +56,8 @@ public class BluetoothAirplaneModeListenerTest {
         doNothing().when(mHelper).onAirplaneModeChanged(any(BluetoothManagerService.class));
 
         mBluetoothAirplaneModeListener = new BluetoothAirplaneModeListener(
-                    mBluetoothManagerService, Looper.getMainLooper(), mContext);
+                mBluetoothManagerService, Looper.getMainLooper(), mContext,
+                mBluetoothNotificationManager);
         mBluetoothAirplaneModeListener.start(mHelper);
     }
 
