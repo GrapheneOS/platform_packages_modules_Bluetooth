@@ -39,11 +39,6 @@ import java.util.Objects;
 
 
 public class BroadcastScanActivity extends AppCompatActivity {
-    // Integer key used for sending/receiving receiver ID.
-    public static final String EXTRA_BASS_RECEIVER_ID = "receiver_id";
-
-    private static final int BIS_ALL = 0xFFFFFFFF;
-
     private BluetoothDevice device;
     private BroadcastScanViewModel mViewModel;
     private BroadcastItemsAdapter adapter;
