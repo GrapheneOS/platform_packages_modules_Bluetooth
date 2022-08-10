@@ -48,10 +48,10 @@ cc_defaults {
         "adapter/bluetooth_test.cc",
     ],
     shared_libs: [
-        "PlatformProperties",
         "android.hardware.bluetooth.audio@2.0",
         "android.hardware.bluetooth.audio@2.1",
         "android.system.suspend-V1-ndk",
+        "libPlatformProperties",
         "libbinder",
         "libbinder_ndk",
         "libcrypto",
