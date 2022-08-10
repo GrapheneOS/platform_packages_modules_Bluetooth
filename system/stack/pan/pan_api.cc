@@ -541,6 +541,7 @@ tPAN_RESULT PAN_WriteBuf(uint16_t handle, const RawAddress& dst,
     return PAN_FAILURE;
   }
 
+  uint16_t len = p_buf->len;
   result = BNEP_WriteBuf(pcb->handle, dst, p_buf, protocol, &src, ext);
   if (result == BNEP_IGNORE_CMD) {
     PAN_TRACE_DEBUG("PAN ignored data buf write to PANU");
@@ -552,7 +553,7 @@ tPAN_RESULT PAN_WriteBuf(uint16_t handle, const RawAddress& dst,
     return (tPAN_RESULT)result;
   }
 
-  pcb->write.octets += p_buf->len;
+  pcb->write.octets += len;
   pcb->write.packets++;
 
   PAN_TRACE_DEBUG("PAN successfully sent data buf to the PANU");
