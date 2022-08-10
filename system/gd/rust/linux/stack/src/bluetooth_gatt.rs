@@ -159,9 +159,11 @@ pub trait IBluetoothGatt {
     /// Unregisters an LE scanner identified by the given scanner id.
     fn unregister_scanner(&mut self, scanner_id: u8) -> bool;
 
-    fn start_scan(&self, scanner_id: i32, settings: ScanSettings, filters: Vec<ScanFilter>);
+    /// Activate scan of the given scanner id.
+    fn start_scan(&mut self, scanner_id: u8, settings: ScanSettings, filters: Vec<ScanFilter>);
 
-    fn stop_scan(&self, scanner_id: i32);
+    /// Deactivate scan of the given scanner id.
+    fn stop_scan(&mut self, scanner_id: u8);
 
     fn scan_filter_setup(&self);
 
@@ -581,6 +583,11 @@ pub trait IBluetoothGattCallback: RPCProxy {
 pub trait IScannerCallback: RPCProxy {
     /// When the `register_scanner` request is done.
     fn on_scanner_registered(&self, uuid: Uuid128Bit, scanner_id: u8, status: GattStatus);
+
+    /// When an LE advertisement matching aggregate filters is detected. Since this callback is
+    /// shared among all scanner callbacks, clients may receive more advertisements than what is
+    /// requested to be filtered in.
+    fn on_scan_result(&self, scan_result: ScanResult);
 }
 
 /// Interface for advertiser callbacks to clients, passed to
@@ -765,6 +772,21 @@ pub struct PeriodicAdvertisingParameters {
     pub interval: i32,
 }
 
+/// Represents scan result
+#[derive(Debug)]
+pub struct ScanResult {
+    pub address: String,
+    pub addr_type: u8,
+    pub event_type: u16,
+    pub primary_phy: u8,
+    pub secondary_phy: u8,
+    pub advertising_sid: u8,
+    pub tx_power: i8,
+    pub rssi: i8,
+    pub periodic_adv_int: u16,
+    pub adv_data: Vec<u8>,
+}
+
 /// Represents a scan filter to be passed to `IBluetoothGatt::start_scan`.
 #[derive(Debug, Default)]
 pub struct ScanFilter {}
@@ -873,8 +895,23 @@ impl BluetoothGatt {
         }
 
         self.scanners.retain(|_uuid, scanner| scanner.callback_id != callback_id);
+        self.update_scan();
 
         self.scanner_callbacks.remove_callback(callback_id)
+    }
+
+    // Update the topshim's scan state depending on the states of registered scanners. Scan is
+    // enabled if there is at least 1 active registered scanner.
+    fn update_scan(&mut self) {
+        if self.scanners.values().find(|scanner| scanner.is_active).is_some() {
+            self.gatt.as_mut().unwrap().scanner.start_scan();
+        } else {
+            self.gatt.as_mut().unwrap().scanner.stop_scan();
+        }
+    }
+
+    fn find_scanner_by_id(&mut self, scanner_id: u8) -> Option<&mut ScannerInfo> {
+        self.scanners.values_mut().find(|scanner| scanner.scanner_id == Some(scanner_id))
     }
 }
 
@@ -920,6 +957,8 @@ struct ScannerInfo {
     callback_id: u32,
     // If the scanner is registered successfully, this contains the scanner id, otherwise None.
     scanner_id: Option<u8>,
+    // If one of scanners is active, we scan.
+    is_active: bool,
 }
 
 impl IBluetoothGatt for BluetoothGatt {
@@ -936,7 +975,8 @@ impl IBluetoothGatt for BluetoothGatt {
         self.small_rng.fill_bytes(&mut bytes);
         let uuid = Uuid { uu: bytes };
 
-        self.scanners.insert(uuid, ScannerInfo { uuid, callback_id, scanner_id: None });
+        self.scanners
+            .insert(uuid, ScannerInfo { uuid, callback_id, scanner_id: None, is_active: false });
 
         // libbluetooth's register_scanner takes a UUID of the scanning application. This UUID does
         // not correspond to higher level concept of "application" so we use random UUID that
@@ -951,16 +991,33 @@ impl IBluetoothGatt for BluetoothGatt {
         true
     }
 
-    // Scanning
-    fn start_scan(&self, _scanner_id: i32, _settings: ScanSettings, _filters: Vec<ScanFilter>) {
-        // TODO(b/200066804): implement
-        todo!()
+    fn start_scan(&mut self, scanner_id: u8, _settings: ScanSettings, _filters: Vec<ScanFilter>) {
+        // Multiplexing scanners happens at this layer. The implementations of start_scan
+        // and stop_scan maintains the state of all registered scanners and based on the states
+        // update the scanning and/or filter states of libbluetooth.
+        // TODO(b/217274432): Honor settings and filters.
+        if let Some(scanner) = self.find_scanner_by_id(scanner_id) {
+            scanner.is_active = true;
+        } else {
+            log::warn!("Scanner {} not found", scanner_id);
+            return;
+        }
+
+        self.update_scan();
     }
 
-    fn stop_scan(&self, _scanner_id: i32) {
-        // TODO(b/200066804): implement
-        todo!()
+    fn stop_scan(&mut self, scanner_id: u8) {
+        if let Some(scanner) = self.find_scanner_by_id(scanner_id) {
+            scanner.is_active = false;
+        } else {
+            log::warn!("Scanner {} not found", scanner_id);
+            return;
+        }
+
+        self.update_scan();
     }
+
+    // Scanning
 
     fn scan_filter_setup(&self) {
         // TODO(b/200066804): implement
@@ -2023,6 +2080,21 @@ impl BtifGattClientCallbacks for BluetoothGatt {
 pub(crate) trait BtifGattScannerCallbacks {
     #[btif_callback(OnScannerRegistered)]
     fn on_scanner_registered(&mut self, uuid: Uuid, scanner_id: u8, status: GattStatus);
+
+    #[btif_callback(OnScanResult)]
+    fn on_scan_result(
+        &mut self,
+        event_type: u16,
+        addr_type: u8,
+        bda: RawAddress,
+        primary_phy: u8,
+        secondary_phy: u8,
+        advertising_sid: u8,
+        tx_power: i8,
+        rssi: i8,
+        periodic_adv_int: u16,
+        adv_data: Vec<u8>,
+    );
 }
 
 impl BtifGattScannerCallbacks for BluetoothGatt {
@@ -2056,6 +2128,35 @@ impl BtifGattScannerCallbacks for BluetoothGatt {
                 uuid
             );
         }
+    }
+
+    fn on_scan_result(
+        &mut self,
+        event_type: u16,
+        addr_type: u8,
+        address: RawAddress,
+        primary_phy: u8,
+        secondary_phy: u8,
+        advertising_sid: u8,
+        tx_power: i8,
+        rssi: i8,
+        periodic_adv_int: u16,
+        adv_data: Vec<u8>,
+    ) {
+        self.scanner_callbacks.for_all_callbacks(|callback| {
+            callback.on_scan_result(ScanResult {
+                address: address.to_string(),
+                addr_type,
+                event_type,
+                primary_phy,
+                secondary_phy,
+                advertising_sid,
+                tx_power,
+                rssi,
+                periodic_adv_int,
+                adv_data: adv_data.clone(),
+            });
+        });
     }
 }
 

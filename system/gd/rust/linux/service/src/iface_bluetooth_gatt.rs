@@ -4,7 +4,7 @@ use btstack::bluetooth_gatt::{
     AdvertiseData, AdvertisingSetParameters, BluetoothGattCharacteristic, BluetoothGattDescriptor,
     BluetoothGattService, GattWriteRequestStatus, GattWriteType, IAdvertisingSetCallback,
     IBluetoothGatt, IBluetoothGattCallback, IScannerCallback, LePhy, PeriodicAdvertisingParameters,
-    RSSISettings, ScanFilter, ScanSettings, ScanType,
+    RSSISettings, ScanFilter, ScanResult, ScanSettings, ScanType,
 };
 use btstack::RPCProxy;
 
@@ -158,6 +158,11 @@ impl IScannerCallback for ScannerCallbackDBus {
     fn on_scanner_registered(&self, uuid: Uuid128Bit, scanner_id: u8, status: GattStatus) {
         dbus_generated!()
     }
+
+    #[dbus_method("OnScanResult")]
+    fn on_scan_result(&self, scan_result: ScanResult) {
+        dbus_generated!()
+    }
 }
 
 #[dbus_propmap(BluetoothGattDescriptor)]
@@ -199,6 +204,20 @@ struct ScanSettingsDBus {
     window: i32,
     scan_type: ScanType,
     rssi_settings: RSSISettings,
+}
+
+#[dbus_propmap(ScanResult)]
+struct ScanResultDBus {
+    address: String,
+    addr_type: u8,
+    event_type: u16,
+    primary_phy: u8,
+    secondary_phy: u8,
+    advertising_sid: u8,
+    tx_power: i8,
+    rssi: i8,
+    periodic_adv_int: u16,
+    adv_data: Vec<u8>,
 }
 
 impl_dbus_arg_enum!(GattStatus);
@@ -330,12 +349,12 @@ impl IBluetoothGatt for IBluetoothGattDBus {
     }
 
     #[dbus_method("StartScan")]
-    fn start_scan(&self, scanner_id: i32, settings: ScanSettings, filters: Vec<ScanFilter>) {
+    fn start_scan(&mut self, scanner_id: u8, settings: ScanSettings, filters: Vec<ScanFilter>) {
         dbus_generated!()
     }
 
     #[dbus_method("StopScan")]
-    fn stop_scan(&self, scanner_id: i32) {
+    fn stop_scan(&mut self, scanner_id: u8) {
         dbus_generated!()
     }
 
