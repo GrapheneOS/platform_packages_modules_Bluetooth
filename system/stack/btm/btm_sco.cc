@@ -33,7 +33,6 @@
 #include "device/include/controller.h"
 #include "embdrv/sbc/decoder/include/oi_codec_sbc.h"
 #include "embdrv/sbc/decoder/include/oi_status.h"
-#include "hfp_msbc_encoder.h"
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
@@ -93,28 +92,6 @@ static int16_t btm_pcm_buf[BTM_SCO_DATA_SIZE_MAX] = {0};
  * They are only used for WBS and the unit is byte. */
 static size_t btm_pcm_buf_read_offset = 0;
 static size_t btm_pcm_buf_write_offset = 0;
-
-/* Per Bluetooth Core v5.0 and HFP 1.7 specification. */
-#define BTM_MSBC_H2_HEADER_0 0x01
-#define BTM_MSBC_H2_HEADER_LEN 2
-#define BTM_MSBC_PKT_LEN 60
-#define BTM_MSBC_PKT_FRAME_LEN 57 /* Packet length without the header */
-#define BTM_MSBC_CODE_SIZE 240
-
-/* The pre-computed zero input bit stream of mSBC codec, per HFP 1.7 spec.
- * This mSBC frame will be decoded into all-zero input PCM. */
-static const uint8_t btm_msbc_zero_packet[] = {
-    0xad, 0x00, 0x00, 0xc5, 0x00, 0x00, 0x00, 0x00, 0x77, 0x6d, 0xb6, 0xdd,
-    0xdb, 0x6d, 0xb7, 0x76, 0xdb, 0x6d, 0xdd, 0xb6, 0xdb, 0x77, 0x6d, 0xb6,
-    0xdd, 0xdb, 0x6d, 0xb7, 0x76, 0xdb, 0x6d, 0xdd, 0xb6, 0xdb, 0x77, 0x6d,
-    0xb6, 0xdd, 0xdb, 0x6d, 0xb7, 0x76, 0xdb, 0x6d, 0xdd, 0xb6, 0xdb, 0x77,
-    0x6d, 0xb6, 0xdd, 0xdb, 0x6d, 0xb7, 0x76, 0xdb, 0x6c};
-
-/* Second octet of H2 header is composed by 4 bits fixed 0x8 and 4 bits
- * sequence number 0000, 0011, 1100, 1111. */
-static const uint8_t btm_h2_header_frames_count[] = {0x08, 0x38, 0xc8, 0xf8};
-
-static uint8_t btm_msbc_num_out_frames;
 /******************************************************************************/
 /*            L O C A L    F U N C T I O N     P R O T O T Y P E S            */
 /******************************************************************************/
@@ -271,6 +248,7 @@ void btm_route_sco_data(BT_HDR* p_msg) {
   /* For Chrome OS, we send the outgoing data after receiving an incoming one.
    * server, so that we can keep the data read/write rate balanced */
   size_t read = 0, avail = 0;
+  const uint8_t* encoded = nullptr;
   if (active_sco->is_wbs()) {
     while (written) {
       avail = BTM_SCO_DATA_SIZE_MAX - btm_pcm_buf_write_offset;
@@ -311,34 +289,33 @@ void btm_route_sco_data(BT_HDR* p_msg) {
       }
 
       btm_pcm_buf_write_offset += read;
-      if (btm_pcm_buf_write_offset - btm_pcm_buf_read_offset <
-          BTM_MSBC_CODE_SIZE) {
-        continue;
-      }
+      rc = bluetooth::audio::sco::wbs::encode(
+          &btm_pcm_buf[btm_pcm_buf_read_offset / sizeof(*btm_pcm_buf)],
+          btm_pcm_buf_write_offset - btm_pcm_buf_read_offset);
 
-      uint8_t encoded[BTM_MSBC_PKT_LEN] = {
-          BTM_MSBC_H2_HEADER_0,
-          btm_h2_header_frames_count[btm_msbc_num_out_frames % 4]};
-      uint32_t encoded_size;
-      encoded_size = hfp_msbc_encode_frames(btm_pcm_buf, encoded + 2);
-      if (encoded_size != BTM_MSBC_PKT_FRAME_LEN) {
-        LOG_WARN("Encode invalid packet size: %lu",
-                 (unsigned long)encoded_size);
-        std::copy(std::begin(btm_msbc_zero_packet),
-                  std::end(btm_msbc_zero_packet),
-                  &encoded[BTM_MSBC_H2_HEADER_LEN]);
-      }
-
-      auto data = std::vector<uint8_t>(encoded, encoded + BTM_MSBC_PKT_LEN);
-      btm_send_sco_packet(std::move(data));
-      btm_msbc_num_out_frames++;
+      if (!rc)
+        LOG_DEBUG(
+            "Failed to encode data starting at ReadOffset:%lu to "
+            "WriteOffset:%lu",
+            (unsigned long)btm_pcm_buf_read_offset,
+            (unsigned long)btm_pcm_buf_write_offset);
 
       /* The offsets should reset some time as the buffer length should always
-       * divisible by BTM_MSBC_CODE_SIZE(240) */
-      btm_pcm_buf_read_offset += BTM_MSBC_CODE_SIZE;
+       * divisible by BTM_MSBC_CODE_SIZE(240) and wbs::encode only returns
+       * BTM_MSBC_CODE_SIZE or 0 */
+      btm_pcm_buf_read_offset += rc;
       if (btm_pcm_buf_write_offset == btm_pcm_buf_read_offset) {
         btm_pcm_buf_write_offset = 0;
         btm_pcm_buf_read_offset = 0;
+      }
+
+      /* Send all of the available SCO packets buffered in the queue */
+      while (1) {
+        rc = bluetooth::audio::sco::wbs::dequeue_packet(&encoded);
+        if (!rc) break;
+
+        auto data = std::vector<uint8_t>(encoded, encoded + rc);
+        btm_send_sco_packet(std::move(data));
       }
     }
   } else {
@@ -923,8 +900,6 @@ void btm_sco_connected(const RawAddress& bda, uint16_t hci_handle,
         if (p->is_wbs()) {
           btm_pcm_buf_read_offset = 0;
           btm_pcm_buf_write_offset = 0;
-          btm_msbc_num_out_frames = 0;
-          hfp_msbc_encoder_init();
           bluetooth::audio::sco::wbs::init(
               hfp_hal_interface::get_packet_size(codec));
         }
@@ -1157,7 +1132,6 @@ void btm_sco_on_disconnected(uint16_t hci_handle, tHCI_REASON reason) {
 
   if (p_sco->is_inband()) {
     if (p_sco->is_wbs()) {
-      hfp_msbc_encoder_cleanup();
       bluetooth::audio::sco::wbs::cleanup();
     }
 

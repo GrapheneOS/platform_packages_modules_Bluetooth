@@ -60,6 +60,7 @@ void hfp_msbc_decoder_cleanup(void) {
   memset(&hfp_msbc_decoder, 0, sizeof(hfp_msbc_decoder));
 }
 
+// Get the HFP MSBC encoded maximum frame size
 bool hfp_msbc_decoder_decode_packet(const uint8_t* i_buf,
                                     const uint8_t** o_buf) {
   const OI_BYTE* oi_data;

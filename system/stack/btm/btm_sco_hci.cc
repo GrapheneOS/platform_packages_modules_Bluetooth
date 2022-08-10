@@ -22,6 +22,7 @@
 #include <memory>
 
 #include "hfp_msbc_decoder.h"
+#include "hfp_msbc_encoder.h"
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "stack/btm/btm_sco.h"
@@ -32,9 +33,11 @@
 // TODO(b/198260375): Make SCO data owner group configurable.
 #define SCO_HOST_DATA_GROUP "bluetooth-audio"
 
+/* Per Bluetooth Core v5.0 and HFP 1.7 specification. */
 #define BTM_MSBC_H2_HEADER_0 0x01
-#define BTM_MSBC_CODE_SIZE 240
+#define BTM_MSBC_H2_HEADER_LEN 2
 #define BTM_MSBC_PKT_LEN 60
+#define BTM_MSBC_PKT_FRAME_LEN 57 /* Packet length without the header */
 #define BTM_MSBC_SYNC_WORD 0xAD
 
 namespace {
@@ -119,6 +122,15 @@ constexpr size_t btm_wbs_supported_pkt_size[] = {BTM_MSBC_PKT_LEN, 72, 0};
  * BTM_MSBC_PKT_LEN for optimizing buffer copy. */
 constexpr size_t btm_wbs_msbc_buffer_size[] = {BTM_MSBC_PKT_LEN, 360, 0};
 
+/* The pre-computed zero input bit stream of mSBC codec, per HFP 1.7 spec.
+ * This mSBC frame will be decoded into all-zero input PCM. */
+static const uint8_t btm_msbc_zero_packet[] = {
+    0xad, 0x00, 0x00, 0xc5, 0x00, 0x00, 0x00, 0x00, 0x77, 0x6d, 0xb6, 0xdd,
+    0xdb, 0x6d, 0xb7, 0x76, 0xdb, 0x6d, 0xdd, 0xb6, 0xdb, 0x77, 0x6d, 0xb6,
+    0xdd, 0xdb, 0x6d, 0xb7, 0x76, 0xdb, 0x6d, 0xdd, 0xb6, 0xdb, 0x77, 0x6d,
+    0xb6, 0xdd, 0xdb, 0x6d, 0xb7, 0x76, 0xdb, 0x6d, 0xdd, 0xb6, 0xdb, 0x77,
+    0x6d, 0xb6, 0xdd, 0xdb, 0x6d, 0xb7, 0x76, 0xdb, 0x6c};
+
 static const uint8_t btm_msbc_zero_frames[BTM_MSBC_CODE_SIZE] = {0};
 
 /* Define the structure that contains mSBC data */
@@ -131,6 +143,11 @@ typedef struct {
   size_t decode_buf_wo;     /* Write offset of the decode buffer */
   size_t decode_buf_ro;     /* Read offset of the decode buffer */
 
+  uint8_t* msbc_encode_buf; /* Buffer to store the encoded SCO packets */
+  size_t encode_buf_wo;     /* Write offset of the encode buffer */
+  size_t encode_buf_ro;     /* Read offset of the encode buffer */
+
+  uint8_t num_encoded_msbc_pkts; /* Number of the encoded mSBC packets */
   static size_t get_supported_packet_size(size_t pkt_size,
                                           size_t* buffer_size) {
     int i;
@@ -164,6 +181,8 @@ typedef struct {
   void init(size_t pkt_size) {
     decode_buf_wo = 0;
     decode_buf_ro = 0;
+    encode_buf_wo = 0;
+    encode_buf_ro = 0;
 
     pkt_size = get_supported_packet_size(pkt_size, &buf_size);
     if (pkt_size != BTM_MSBC_PKT_LEN) check_alignment = true;
@@ -172,13 +191,30 @@ typedef struct {
 
     if (msbc_decode_buf) osi_free(msbc_decode_buf);
     msbc_decode_buf = (uint8_t*)osi_calloc(buf_size);
+
+    if (msbc_encode_buf) osi_free(msbc_encode_buf);
+    msbc_encode_buf = (uint8_t*)osi_calloc(buf_size);
   }
 
   void deinit() {
     if (msbc_decode_buf) osi_free(msbc_decode_buf);
+    if (msbc_encode_buf) osi_free(msbc_encode_buf);
   }
 
   size_t decodable() { return decode_buf_wo - decode_buf_ro; }
+
+  void mark_pkt_decoded() {
+    if (decode_buf_ro + BTM_MSBC_PKT_LEN > decode_buf_wo) {
+      LOG_ERROR("Trying to mark read offset beyond write offset.");
+      return;
+    }
+
+    decode_buf_ro += BTM_MSBC_PKT_LEN;
+    if (decode_buf_ro == decode_buf_wo) {
+      decode_buf_ro = 0;
+      decode_buf_wo = 0;
+    }
+  }
 
   size_t write(const uint8_t* input, size_t len) {
     if (len > buf_size - decode_buf_wo) {
@@ -206,17 +242,49 @@ typedef struct {
     return nullptr;
   }
 
-  void mark_pkt_decoded() {
-    if (decode_buf_ro + BTM_MSBC_PKT_LEN > decode_buf_wo) {
-      LOG_ERROR("Trying to mark read offset beyond write offset.");
-      return;
+  /* Fill in the mSBC header and update the buffer's write offset to guard the
+   * buffer space to be written. Return a pointer to the start of mSBC packet's
+   * body for the caller to fill the encoded mSBC data if there is enough space
+   * in the buffer to fill in a new packet, otherwise return a nullptr. */
+  uint8_t* fill_msbc_pkt_template() {
+    uint8_t* wp = &msbc_encode_buf[encode_buf_wo];
+    if (buf_size - encode_buf_wo < BTM_MSBC_PKT_LEN) {
+      LOG_DEBUG("Packet queue can't accommodate more packets.");
+      return nullptr;
     }
 
-    decode_buf_ro += BTM_MSBC_PKT_LEN;
-    if (decode_buf_ro == decode_buf_wo) {
-      decode_buf_ro = 0;
-      decode_buf_wo = 0;
+    wp[0] = BTM_MSBC_H2_HEADER_0;
+    wp[1] = btm_h2_header_frames_count[num_encoded_msbc_pkts % 4];
+    encode_buf_wo += BTM_MSBC_PKT_LEN;
+
+    num_encoded_msbc_pkts++;
+    return wp + BTM_MSBC_H2_HEADER_LEN;
+  }
+
+  size_t mark_pkt_dequeued() {
+    LOG_DEBUG(
+        "Try to mark an encoded packet dequeued: ro:%lu wo:%lu pkt_size:%lu",
+        (unsigned long)encode_buf_ro, (unsigned long)encode_buf_wo,
+        (unsigned long)packet_size);
+
+    if (encode_buf_wo - encode_buf_ro < packet_size) return 0;
+
+    encode_buf_ro += packet_size;
+    if (encode_buf_ro == encode_buf_wo) {
+      encode_buf_ro = 0;
+      encode_buf_wo = 0;
     }
+
+    return packet_size;
+  }
+
+  const uint8_t* sco_pkt_read_ptr() {
+    if (encode_buf_wo - encode_buf_ro < packet_size) {
+      LOG_DEBUG("Insufficient data as a SCO packet to read.");
+      return nullptr;
+    }
+
+    return &msbc_encode_buf[encode_buf_ro];
   }
 
 } tBTM_MSBC_INFO;
@@ -225,6 +293,7 @@ static tBTM_MSBC_INFO* msbc_info = nullptr;
 
 void init(size_t pkt_size) {
   hfp_msbc_decoder_init();
+  hfp_msbc_encoder_init();
 
   if (msbc_info) {
     LOG_WARN("Re-initiating mSBC buffer that is active or not cleaned");
@@ -238,6 +307,7 @@ void init(size_t pkt_size) {
 
 void cleanup() {
   hfp_msbc_decoder_cleanup();
+  hfp_msbc_encoder_cleanup();
 
   if (msbc_info == nullptr) return;
 
@@ -312,6 +382,53 @@ packet_loss:
   *out_data = btm_msbc_zero_frames;
   msbc_info->mark_pkt_decoded();
   return BTM_MSBC_CODE_SIZE;
+}
+
+size_t encode(int16_t* data, size_t len) {
+  uint8_t* pkt_body = nullptr;
+  uint32_t encoded_size = 0;
+  if (msbc_info == nullptr) {
+    LOG_WARN("mSBC buffer uninitialized or cleaned");
+    return 0;
+  }
+
+  if (len < BTM_MSBC_CODE_SIZE) {
+    LOG_DEBUG(
+        "PCM frames with size %lu is insufficient to be encoded into a mSBC "
+        "packet",
+        (unsigned long)len);
+    return 0;
+  }
+
+  pkt_body = msbc_info->fill_msbc_pkt_template();
+  if (pkt_body == nullptr) {
+    LOG_DEBUG("Failed to fill the template to fill the mSBC packet");
+    return 0;
+  }
+
+  encoded_size = hfp_msbc_encode_frames(data, pkt_body);
+  if (encoded_size != BTM_MSBC_PKT_FRAME_LEN) {
+    LOG_WARN("Encoding invalid packet size: %lu", (unsigned long)encoded_size);
+    std::copy(std::begin(btm_msbc_zero_packet), std::end(btm_msbc_zero_packet),
+              pkt_body);
+  }
+
+  return BTM_MSBC_CODE_SIZE;
+}
+
+size_t dequeue_packet(const uint8_t** output) {
+  if (msbc_info == nullptr) {
+    LOG_WARN("mSBC buffer uninitialized or cleaned");
+    return 0;
+  }
+
+  *output = msbc_info->sco_pkt_read_ptr();
+  if (*output == nullptr) {
+    LOG_DEBUG("Insufficient data to dequeue.");
+    return 0;
+  }
+
+  return msbc_info->mark_pkt_dequeued();
 }
 
 }  // namespace wbs
