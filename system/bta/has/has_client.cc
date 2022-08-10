@@ -891,6 +891,29 @@ class HasClientImpl : public HasClient {
   }
 
  private:
+  void WriteAllNeededCcc(const HasDevice& device) {
+    if (device.conn_id == GATT_INVALID_CONN_ID) {
+      LOG_ERROR("Device %s is not connected", device.addr.ToString().c_str());
+      return;
+    }
+
+    /* Write CCC values even remote should have it */
+    LOG_INFO("Subscribing for notification/indications");
+    if (device.SupportsFeaturesNotification()) {
+      SubscribeForNotifications(device.conn_id, device.addr,
+                                device.features_handle,
+                                device.features_ccc_handle);
+    }
+
+    if (device.SupportsPresets()) {
+      SubscribeForNotifications(device.conn_id, device.addr, device.cp_handle,
+                                device.cp_ccc_handle, device.cp_ccc_val);
+      SubscribeForNotifications(device.conn_id, device.addr,
+                                device.active_preset_handle,
+                                device.active_preset_ccc_handle);
+    }
+  }
+
   void OnEncrypted(HasDevice& device) {
     DLOG(INFO) << __func__ << ": " << device.addr;
 
@@ -901,7 +924,7 @@ class HasClientImpl : public HasClient {
                                device.GetAllPresetInfo());
       callbacks_->OnActivePresetSelected(device.addr,
                                          device.currently_active_preset);
-
+      WriteAllNeededCcc(device);
     } else {
       BTA_GATTC_ServiceSearchRequest(device.conn_id,
                                      &kUuidHearingAccessService);
@@ -1584,30 +1607,6 @@ class HasClientImpl : public HasClient {
 
     device->currently_active_preset = active_preset;
 
-    /* Register for optional features notifications */
-    if (device->features_ccc_handle != GAP_INVALID_HANDLE) {
-      tGATT_STATUS register_status = BTA_GATTC_RegisterForNotifications(
-          gatt_if_, device->addr, device->features_handle);
-      DLOG(INFO) << __func__ << " Registering for notifications, status="
-                 << loghex(+register_status);
-    }
-
-    /* Register for presets control point notifications */
-    if (device->cp_ccc_handle != GAP_INVALID_HANDLE) {
-      tGATT_STATUS register_status = BTA_GATTC_RegisterForNotifications(
-          gatt_if_, device->addr, device->cp_handle);
-      DLOG(INFO) << __func__ << " Registering for notifications, status="
-                 << loghex(+register_status);
-    }
-
-    /* Register for active presets notifications if presets exist */
-    if (device->active_preset_ccc_handle != GAP_INVALID_HANDLE) {
-      tGATT_STATUS register_status = BTA_GATTC_RegisterForNotifications(
-          gatt_if_, device->addr, device->active_preset_handle);
-      DLOG(INFO) << __func__ << " Registering for notifications, status="
-                 << loghex(+register_status);
-    }
-
     /* Update features and refresh opcode support map */
     uint8_t val;
     if (btif_storage_get_leaudio_has_features(device->addr, val))
@@ -1622,6 +1621,12 @@ class HasClientImpl : public HasClient {
                              device->GetAllPresetInfo());
     callbacks_->OnActivePresetSelected(device->addr,
                                        device->currently_active_preset);
+    if (device->conn_id == GATT_INVALID_CONN_ID) return true;
+
+    /* Be mistrustful here: write CCC values even remote should have it */
+    LOG_INFO("Subscribing for notification/indications");
+    WriteAllNeededCcc(*device);
+
     return true;
   }
 
