@@ -207,6 +207,7 @@ fluoride_defaults {
         "libFraunhoferAAC",
         "libg722codec",
         "liblc3",
+        "libopus",
         "libprotobuf-cpp-lite",
         "libstatslog_bt",
         "libudrv-uipc",

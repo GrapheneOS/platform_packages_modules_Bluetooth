@@ -3211,6 +3211,9 @@ static void bta_av_offload_codec_builder(tBTA_AV_SCB* p_scb,
     case BTAV_A2DP_CODEC_INDEX_SOURCE_LDAC:
       codec_type = BTA_AV_CODEC_TYPE_LDAC;
       break;
+    case BTAV_A2DP_CODEC_INDEX_SOURCE_OPUS:
+      codec_type = BTA_AV_CODEC_TYPE_OPUS;
+      break;
     default:
       APPL_TRACE_ERROR("%s: Unknown Codec type ", __func__);
       return;
