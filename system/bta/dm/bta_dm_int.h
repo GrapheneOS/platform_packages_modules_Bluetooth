@@ -543,6 +543,8 @@ extern tBTA_DM_PEER_DEVICE* bta_dm_find_peer_device(
 
 extern void bta_dm_clear_event_filter(void);
 
+extern void bta_dm_ble_reset_id(void);
+
 uint8_t bta_dm_search_get_state();
 void bta_dm_search_set_state(uint8_t state);
 
