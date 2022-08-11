@@ -72,6 +72,7 @@ cc_defaults {
         "libudrv-uipc",
         "libbt-common",
         "liblc3",
+        "libopus",
         "libstatslog_bt",
         "libvndksupport",
         "libprocessgroup",

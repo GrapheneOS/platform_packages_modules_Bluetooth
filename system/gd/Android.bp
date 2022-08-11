@@ -280,12 +280,12 @@ cc_binary {
         "libbt_shim_ffi",
     ],
     shared_libs: [
-        "libbacktrace",
         "libcrypto",
         "libgrpc++",
         "libgrpc++_unsecure",
         "libgrpc_wrap",
         "libprotobuf-cpp-full",
+        "libunwindstack",
     ],
     target: {
         android: {
@@ -325,9 +325,8 @@ cc_test {
         "mts_defaults",
     ],
     host_supported: true,
-    test_options: {
-        unit_test: true,
-    },
+    // TODO(b/231993739): Reenable isolated:true by deleting the explicit disable below
+    isolated: false,
     target: {
         linux: {
             srcs: [
@@ -603,6 +602,7 @@ rust_library {
     crate_name: "bt_packets",
     srcs: ["rust/packets/lib.rs", ":BluetoothGeneratedPackets_rust"],
     edition: "2018",
+    vendor_available : true,
     host_supported: true,
     proc_macros: ["libnum_derive"],
     rustlibs: [
