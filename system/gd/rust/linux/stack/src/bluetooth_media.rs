@@ -243,15 +243,16 @@ impl BluetoothMedia {
                     }
                     BthfConnectionState::SlcConnected => {
                         info!("[{}]: hfp slc connected.", addr.to_string());
-                        let mut hfp_caps = HfpCodecCapability::CVSD;
-                        if self.hfp.as_mut().unwrap().get_wbs_supported() {
-                            hfp_caps = hfp_caps | HfpCodecCapability::MSBC;
+                        // The device may not support codec-negotiation,
+                        // in which case we shall assume it supports CVSD at this point.
+                        if !self.hfp_caps.contains_key(&addr) {
+                            self.hfp_caps.insert(addr, HfpCodecCapability::CVSD);
                         }
-                        self.hfp_caps.insert(addr, hfp_caps);
                         self.notify_media_capability_added(addr);
                     }
                     BthfConnectionState::Disconnected => {
                         info!("[{}]: hfp disconnected.", addr.to_string());
+                        self.hfp_caps.remove(&addr);
                         match self.hfp_states.remove(&addr) {
                             Some(_) => self.notify_media_capability_removed(addr),
                             None => {
@@ -299,6 +300,14 @@ impl BluetoothMedia {
                 self.callbacks.lock().unwrap().for_all_callbacks(|callback| {
                     callback.on_hfp_volume_changed(volume, addr.to_string());
                 });
+            }
+            HfpCallbacks::CapsUpdate(wbs_supported, addr) => {
+                let hfp_caps = match wbs_supported {
+                    true => HfpCodecCapability::CVSD | HfpCodecCapability::MSBC,
+                    false => HfpCodecCapability::CVSD,
+                };
+
+                self.hfp_caps.insert(addr, hfp_caps);
             }
         }
     }
