@@ -1821,6 +1821,15 @@ tBTM_STATUS BTM_BleGetEnergyInfo(tBTM_BLE_ENERGY_INFO_CBACK* p_ener_cback);
  ******************************************************************************/
 tBTM_STATUS BTM_ClearEventFilter(void);
 
+/*******************************************************************************
+ *
+ * Function         BTM_BleResetId
+ *
+ * Description      Resets the local BLE keys
+ *
+ *******************************************************************************/
+tBTM_STATUS BTM_BleResetId(void);
+
 /**
  * Send remote name request to GD shim Name module
  */
