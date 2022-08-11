@@ -91,7 +91,7 @@ cc_test {
         "libprocessgroup",
         "libtinyxml2",
         "libutils",
-        "PlatformProperties",
+        "libPlatformProperties",
     ],
     ldflags: ["-rdynamic"],
     sanitize: {
