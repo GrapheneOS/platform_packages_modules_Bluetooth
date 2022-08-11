@@ -233,7 +233,7 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
      * Indicates conversation between humans as, for example, in telephony or video calls.
      * @hide
      */
-    public static final int CONTEXT_TYPE_COMMUNICATION = 0x0002;
+    public static final int CONTEXT_TYPE_CONVERSATIONAL = 0x0002;
 
     /**
      * Indicates media as, for example, in music, public radio, podcast or video soundtrack.
@@ -242,64 +242,66 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
     public static final int CONTEXT_TYPE_MEDIA = 0x0004;
 
     /**
-     * Indicates instructional audio as, for example, in navigation, traffic announcements
-     * or user guidance.
+     * Indicates audio associated with a video gaming.
      * @hide
      */
-    public static final int CONTEXT_TYPE_INSTRUCTIONAL = 0x0008;
+    public static final int CONTEXT_TYPE_GAME = 0x0008;
 
     /**
-     * Indicates attention seeking audio as, for example, in beeps signalling arrival of a message
-     * or keyboard clicks.
+     * Indicates instructional audio as, for example, in navigation, announcements or user
+     * guidance.
      * @hide
      */
-    public static final int CONTEXT_TYPE_ATTENTION_SEEKING = 0x0010;
-
-    /**
-     * Indicates immediate alerts as, for example, in a low battery alarm, timer expiry or alarm
-     * clock.
-     * @hide
-     */
-    public static final int CONTEXT_TYPE_IMMEDIATE_ALERT = 0x0020;
+    public static final int CONTEXT_TYPE_INSTRUCTIONAL = 0x0010;
 
     /**
      * Indicates man machine communication as, for example, with voice recognition or virtual
      * assistant.
      * @hide
      */
-    public static final int CONTEXT_TYPE_MAN_MACHINE = 0x0040;
+    public static final int CONTEXT_TYPE_VOICE_ASSISTANTS = 0x0020;
 
     /**
-     * Indicates emergency alerts as, for example, with fire alarms or other urgent alerts.
+     * Indicates audio associated with a live audio stream.
+     *
      * @hide
      */
-    public static final int CONTEXT_TYPE_EMERGENCY_ALERT = 0x0080;
+    public static final int CONTEXT_TYPE_LIVE = 0x0040;
+
+    /**
+     * Indicates sound effects as, for example, in keyboard, touch feedback; menu and user
+     * interface sounds, and other system sounds.
+     * @hide
+     */
+    public static final int CONTEXT_TYPE_SOUND_EFFECTS = 0x0080;
+
+    /**
+     * Indicates notification and reminder sounds, attention-seeking audio, for example, in beeps
+     * signaling the arrival of a message.
+     * @hide
+     */
+    public static final int CONTEXT_TYPE_NOTIFICATIONS = 0x0100;
+
 
     /**
      * Indicates ringtone as in a call alert.
      * @hide
      */
-    public static final int CONTEXT_TYPE_RINGTONE = 0x0100;
+    public static final int CONTEXT_TYPE_RINGTONE = 0x0200;
 
     /**
-     * Indicates audio associated with a television program and/or with metadata conforming to the
-     * Bluetooth Broadcast TV profile.
+     * Indicates alerts and timers, immediate alerts as, for example, in a low battery alarm,
+     * timer expiry or alarm clock.
      * @hide
      */
-    public static final int CONTEXT_TYPE_TV = 0x0200;
+    public static final int CONTEXT_TYPE_ALERTS = 0x0400;
+
 
     /**
-     * Indicates audio associated with a low latency live audio stream.
-     *
+     * Indicates emergency alarm as, for example, with fire alarms or other urgent alerts.
      * @hide
      */
-    public static final int CONTEXT_TYPE_LIVE = 0x0400;
-
-    /**
-     * Indicates audio associated with a video game stream.
-     * @hide
-     */
-    public static final int CONTEXT_TYPE_GAME = 0x0800;
+    public static final int CONTEXT_TYPE_EMERGENCY_ALARM = 0x0800;
 
     /**
      * This represents an invalid group ID.
