@@ -45,8 +45,6 @@ class IPCHandlerLinux : public IPCHandler {
   void Stop() override;
 
  private:
-  IPCHandlerLinux() = default;
-
   // Starts listening for incoming connections. Posted on |thread_| by Run().
   void StartListeningOnThread();
 
