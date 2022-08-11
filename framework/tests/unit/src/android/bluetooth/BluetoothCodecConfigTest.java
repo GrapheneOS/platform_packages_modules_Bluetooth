@@ -24,13 +24,16 @@ import junit.framework.TestCase;
  * Unit test cases for {@link BluetoothCodecConfig}.
  */
 public class BluetoothCodecConfigTest extends TestCase {
+    // TODO(b/240635097): remove in U
+    private static final int SOURCE_CODEC_TYPE_OPUS = 6;
+
     private static final int[] sCodecTypeArray = new int[] {
         BluetoothCodecConfig.SOURCE_CODEC_TYPE_SBC,
         BluetoothCodecConfig.SOURCE_CODEC_TYPE_AAC,
         BluetoothCodecConfig.SOURCE_CODEC_TYPE_APTX,
         BluetoothCodecConfig.SOURCE_CODEC_TYPE_APTX_HD,
         BluetoothCodecConfig.SOURCE_CODEC_TYPE_LDAC,
-        BluetoothCodecConfig.SOURCE_CODEC_TYPE_LC3,
+        SOURCE_CODEC_TYPE_OPUS, // TODO(b/240635097): update in U
         BluetoothCodecConfig.SOURCE_CODEC_TYPE_INVALID,
     };
     private static final int[] sCodecPriorityArray = new int[] {
@@ -213,8 +216,9 @@ public class BluetoothCodecConfigTest extends TestCase {
             if (codec_type == BluetoothCodecConfig.SOURCE_CODEC_TYPE_LDAC) {
                 assertEquals("LDAC", BluetoothCodecConfig.getCodecName(codec_type));
             }
-            if (codec_type == BluetoothCodecConfig.SOURCE_CODEC_TYPE_LC3) {
-                assertEquals("LC3", BluetoothCodecConfig.getCodecName(codec_type));
+            // TODO(b/240635097): update in U
+            if (codec_type == SOURCE_CODEC_TYPE_OPUS) {
+                assertEquals("Opus", BluetoothCodecConfig.getCodecName(codec_type));
             }
             if (codec_type == BluetoothCodecConfig.SOURCE_CODEC_TYPE_INVALID) {
                 assertEquals("INVALID CODEC", BluetoothCodecConfig.getCodecName(codec_type));

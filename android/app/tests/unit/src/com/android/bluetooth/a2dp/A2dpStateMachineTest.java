@@ -53,6 +53,9 @@ import java.util.Arrays;
 @MediumTest
 @RunWith(AndroidJUnit4.class)
 public class A2dpStateMachineTest {
+    // TODO(b/240635097): remove in U
+    private static final int SOURCE_CODEC_TYPE_OPUS = 6;
+
     private BluetoothAdapter mAdapter;
     private Context mTargetContext;
     private HandlerThread mHandlerThread;
@@ -62,6 +65,7 @@ public class A2dpStateMachineTest {
 
     private BluetoothCodecConfig mCodecConfigSbc;
     private BluetoothCodecConfig mCodecConfigAac;
+    private BluetoothCodecConfig mCodecConfigOpus;
 
     @Mock private AdapterService mAdapterService;
     @Mock private A2dpService mA2dpService;
@@ -93,6 +97,18 @@ public class A2dpStateMachineTest {
                     .build();
         mCodecConfigAac = new BluetoothCodecConfig.Builder()
                     .setCodecType(BluetoothCodecConfig.SOURCE_CODEC_TYPE_AAC)
+                    .setCodecPriority(BluetoothCodecConfig.CODEC_PRIORITY_DEFAULT)
+                    .setSampleRate(BluetoothCodecConfig.SAMPLE_RATE_48000)
+                    .setBitsPerSample(BluetoothCodecConfig.BITS_PER_SAMPLE_16)
+                    .setChannelMode(BluetoothCodecConfig.CHANNEL_MODE_STEREO)
+                    .setCodecSpecific1(0)
+                    .setCodecSpecific2(0)
+                    .setCodecSpecific3(0)
+                    .setCodecSpecific4(0)
+                    .build();
+
+        mCodecConfigOpus = new BluetoothCodecConfig.Builder()
+                    .setCodecType(SOURCE_CODEC_TYPE_OPUS) // TODO(b/240635097): update in U
                     .setCodecPriority(BluetoothCodecConfig.CODEC_PRIORITY_DEFAULT)
                     .setSampleRate(BluetoothCodecConfig.SAMPLE_RATE_48000)
                     .setBitsPerSample(BluetoothCodecConfig.BITS_PER_SAMPLE_16)
@@ -326,12 +342,21 @@ public class A2dpStateMachineTest {
         codecsSelectableSbcAac[0] = mCodecConfigSbc;
         codecsSelectableSbcAac[1] = mCodecConfigAac;
 
+        BluetoothCodecConfig[] codecsSelectableSbcAacOpus;
+        codecsSelectableSbcAacOpus = new BluetoothCodecConfig[3];
+        codecsSelectableSbcAacOpus[0] = mCodecConfigSbc;
+        codecsSelectableSbcAacOpus[1] = mCodecConfigAac;
+        codecsSelectableSbcAacOpus[2] = mCodecConfigOpus;
+
         BluetoothCodecStatus codecStatusSbcAndSbc = new BluetoothCodecStatus(mCodecConfigSbc,
                 Arrays.asList(codecsSelectableSbcAac), Arrays.asList(codecsSelectableSbc));
         BluetoothCodecStatus codecStatusSbcAndSbcAac = new BluetoothCodecStatus(mCodecConfigSbc,
                 Arrays.asList(codecsSelectableSbcAac), Arrays.asList(codecsSelectableSbcAac));
         BluetoothCodecStatus codecStatusAacAndSbcAac = new BluetoothCodecStatus(mCodecConfigAac,
                 Arrays.asList(codecsSelectableSbcAac), Arrays.asList(codecsSelectableSbcAac));
+        BluetoothCodecStatus codecStatusOpusAndSbcAacOpus = new BluetoothCodecStatus(
+                mCodecConfigOpus, Arrays.asList(codecsSelectableSbcAacOpus),
+                Arrays.asList(codecsSelectableSbcAacOpus));
 
         // Set default codec status when device disconnected
         // Selected codec = SBC, selectable codec = SBC
@@ -368,5 +393,13 @@ public class A2dpStateMachineTest {
         mA2dpStateMachine.processCodecConfigEvent(codecStatusAacAndSbcAac);
         verify(mA2dpService).codecConfigUpdated(mTestDevice, codecStatusAacAndSbcAac, false);
         verify(mA2dpService, times(2)).updateOptionalCodecsSupport(mTestDevice);
+
+        // Update selected codec
+        // Selected codec = OPUS, selectable codec = SBC+AAC+OPUS
+        mA2dpStateMachine.processCodecConfigEvent(codecStatusOpusAndSbcAacOpus);
+        if (!offloadEnabled) {
+            verify(mA2dpService).codecConfigUpdated(mTestDevice, codecStatusOpusAndSbcAacOpus, true);
+        }
+        verify(mA2dpService, times(3)).updateOptionalCodecsSupport(mTestDevice);
     }
 }

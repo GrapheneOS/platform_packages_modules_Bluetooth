@@ -33,6 +33,7 @@
 #include "a2dp_vendor_aptx.h"
 #include "a2dp_vendor_aptx_hd.h"
 #include "a2dp_vendor_ldac.h"
+#include "a2dp_vendor_opus.h"
 #endif
 
 #include "bta/av/bta_av_int.h"
@@ -111,7 +112,7 @@ void A2dpCodecConfig::setDefaultCodecPriority() {
 A2dpCodecConfig* A2dpCodecConfig::createCodec(
     btav_a2dp_codec_index_t codec_index,
     btav_a2dp_codec_priority_t codec_priority) {
-  LOG_INFO("%s: codec %s", __func__, A2DP_CodecIndexStr(codec_index));
+  LOG_INFO("%s", A2DP_CodecIndexStr(codec_index));
 
   A2dpCodecConfig* codec_config = nullptr;
   switch (codec_index) {
@@ -139,6 +140,12 @@ A2dpCodecConfig* A2dpCodecConfig::createCodec(
       break;
     case BTAV_A2DP_CODEC_INDEX_SINK_LDAC:
       codec_config = new A2dpCodecConfigLdacSink(codec_priority);
+      break;
+    case BTAV_A2DP_CODEC_INDEX_SOURCE_OPUS:
+      codec_config = new A2dpCodecConfigOpusSource(codec_priority);
+      break;
+    case BTAV_A2DP_CODEC_INDEX_SINK_OPUS:
+      codec_config = new A2dpCodecConfigOpusSink(codec_priority);
       break;
 #endif
     case BTAV_A2DP_CODEC_INDEX_MAX:
@@ -586,6 +593,9 @@ bool A2dpCodecs::init() {
       } else if (strcmp(tok, "ldac") == 0) {
         LOG_INFO("%s: LDAC offload supported", __func__);
         offload_codec_support[BTAV_A2DP_CODEC_INDEX_SOURCE_LDAC] = true;
+      } else if (strcmp(tok, "opus") == 0) {
+        LOG_INFO("%s: Opus offload supported", __func__);
+        offload_codec_support[BTAV_A2DP_CODEC_INDEX_SOURCE_OPUS] = true;
 #endif
       }
       tok = strtok_r(NULL, "-", &tmp_token);
