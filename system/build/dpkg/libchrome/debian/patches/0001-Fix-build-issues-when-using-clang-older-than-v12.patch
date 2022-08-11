@@ -1,0 +1,25 @@
+From 3841f20ab4c505dacc3bafb5348af79abe211849 Mon Sep 17 00:00:00 2001
+From: Andre Braga <andrebraga@google.com>
+Date: Mon, 8 Aug 2022 21:13:05 +0000
+Subject: [PATCH] Fix build issues when using clang older than v12
+
+---
+ base/compiler_specific.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libchrome/base/compiler_specific.h b/libchrome/base/compiler_specific.h
+index 8660018dc7..ad0e72eb84 100644
+--- a/libchrome//base/compiler_specific.h
++++ b/libchrome//base/compiler_specific.h
+@@ -370,7 +370,7 @@ inline constexpr bool AnalyzerAssumeTrue(bool arg) {
+ #endif  // defined(__clang_analyzer__)
+ 
+ // Use nomerge attribute to disable optimization of merging multiple same calls.
+-#if defined(__clang__) && __has_attribute(nomerge)
++#if defined(__clang__) && __has_attribute(nomerge) && (__clang_major__ >= 12)
+ #define NOMERGE [[clang::nomerge]]
+ #else
+ #define NOMERGE
+-- 
+2.37.1.559.g78731f0fdb-goog
+
