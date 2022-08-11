@@ -1225,7 +1225,11 @@ public class BassClientStateMachine extends StateMachine {
         int bisSync = 0;
         for (BluetoothLeBroadcastChannel channel : channels) {
             if (channel.isSelected()) {
-                bisSync |= 1 << channel.getChannelIndex();
+                if (channel.getChannelIndex() == 0) {
+                    Log.e(TAG, "getBisSyncFromChannelPreference: invalid channel index=0");
+                    continue;
+                }
+                bisSync |= 1 << (channel.getChannelIndex() - 1);
             }
         }
 
