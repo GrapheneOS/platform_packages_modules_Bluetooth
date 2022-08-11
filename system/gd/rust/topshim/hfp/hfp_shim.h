@@ -38,7 +38,6 @@ class HfpIntf {
   int set_volume(int8_t volume, RustRawAddress bt_addr);
   int disconnect(RustRawAddress bt_addr);
   int disconnect_audio(RustRawAddress bt_addr);
-  bool get_wbs_supported();
   void cleanup();
 
  private:
