@@ -33,7 +33,6 @@
 #include "device/include/controller.h"
 #include "embdrv/sbc/decoder/include/oi_codec_sbc.h"
 #include "embdrv/sbc/decoder/include/oi_status.h"
-#include "hfp_msbc_decoder.h"
 #include "hfp_msbc_encoder.h"
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
@@ -110,8 +109,6 @@ static const uint8_t btm_msbc_zero_packet[] = {
     0xdd, 0xdb, 0x6d, 0xb7, 0x76, 0xdb, 0x6d, 0xdd, 0xb6, 0xdb, 0x77, 0x6d,
     0xb6, 0xdd, 0xdb, 0x6d, 0xb7, 0x76, 0xdb, 0x6d, 0xdd, 0xb6, 0xdb, 0x77,
     0x6d, 0xb6, 0xdd, 0xdb, 0x6d, 0xb7, 0x76, 0xdb, 0x6c};
-
-static const uint8_t btm_msbc_zero_frames[BTM_MSBC_CODE_SIZE] = {0};
 
 /* Second octet of H2 header is composed by 4 bits fixed 0x8 and 4 bits
  * sequence number 0000, 0011, 1100, 1111. */
@@ -210,15 +207,6 @@ static tSCO_CONN* btm_get_active_sco() {
   return nullptr;
 }
 
-static bool verify_h2_header_seq_num(const uint8_t num) {
-  for (int i = 0; i < 4; i++) {
-    if (num == btm_h2_header_frames_count[i]) {
-      return true;
-    }
-  }
-  return false;
-}
-
 /*******************************************************************************
  *
  * Function         btm_route_sco_data
@@ -261,40 +249,20 @@ void btm_route_sco_data(BT_HDR* p_msg) {
   }
 
   const uint8_t* decoded = nullptr;
-  size_t written = 0;
+  size_t written = 0, rc = 0;
   if (active_sco->is_wbs()) {
-    /* TODO(b/235901463): Support packet size != BTM_MSBC_PKT_LEN */
-    if (data_len != BTM_MSBC_PKT_LEN) {
-      LOG_ERROR("Received invalid mSBC packet with invalid length:%hhu",
-                data_len);
-      osi_free(p_msg);
-      return;
-    }
+    rc = bluetooth::audio::sco::wbs::enqueue_packet(payload, data_len);
+    if (rc != data_len) LOG_DEBUG("Failed to enqueue packet");
 
-    uint8_t h2_header;
-    STREAM_TO_UINT8(h2_header, payload);
-    if (h2_header != BTM_MSBC_H2_HEADER_0) {
-      LOG_ERROR("Received invalid mSBC packet with invalid h2 header:%x",
-                h2_header);
-      osi_free(p_msg);
-      return;
-    }
+    while (rc) {
+      rc = bluetooth::audio::sco::wbs::decode(&decoded);
+      if (rc == 0) {
+        LOG_DEBUG("Failed to decode frames");
+        break;
+      }
 
-    uint8_t seq_num;
-    STREAM_TO_UINT8(seq_num, payload);
-    if (!verify_h2_header_seq_num(seq_num)) {
-      LOG_ERROR("Received invalid mSBC packet with invalid sequence number :%x",
-                seq_num);
-      osi_free(p_msg);
-      return;
+      written += bluetooth::audio::sco::write(decoded, rc);
     }
-
-    if (!hfp_msbc_decoder_decode_packet(p_msg, &decoded)) {
-      LOG_ERROR("Decode mSBC packet failed");
-      decoded = btm_msbc_zero_frames;
-    }
-
-    written = bluetooth::audio::sco::write(decoded, BTM_MSBC_CODE_SIZE);
   } else {
     written = bluetooth::audio::sco::write(payload, data_len);
   }
@@ -910,6 +878,7 @@ void btm_sco_connected(const RawAddress& bda, uint16_t hci_handle,
   uint16_t xx;
   bool spt = false;
   tBTM_CHG_ESCO_PARAMS parms = {};
+  int codec;
 
   for (xx = 0; xx < BTM_MAX_SCO_LINKS; xx++, p++) {
     if (((p->state == SCO_ST_CONNECTING) || (p->state == SCO_ST_LISTENING) ||
@@ -944,10 +913,10 @@ void btm_sco_connected(const RawAddress& bda, uint16_t hci_handle,
 
       (*p->p_conn_cb)(xx);
 
+      codec = hfp_hal_interface::esco_coding_to_codec(
+          p->esco.setup.transmit_coding_format.coding_format);
       hfp_hal_interface::notify_sco_connection_change(
-          bda, /*is_connected=*/true,
-          hfp_hal_interface::esco_coding_to_codec(
-              p->esco.setup.transmit_coding_format.coding_format));
+          bda, /*is_connected=*/true, codec);
 
       /* In-band (non-offload) data path */
       if (p->is_inband()) {
@@ -955,8 +924,9 @@ void btm_sco_connected(const RawAddress& bda, uint16_t hci_handle,
           btm_pcm_buf_read_offset = 0;
           btm_pcm_buf_write_offset = 0;
           btm_msbc_num_out_frames = 0;
-          hfp_msbc_decoder_init();
           hfp_msbc_encoder_init();
+          bluetooth::audio::sco::wbs::init(
+              hfp_hal_interface::get_packet_size(codec));
         }
 
         std::fill(std::begin(btm_pcm_buf), std::end(btm_pcm_buf), 0);
@@ -1187,8 +1157,8 @@ void btm_sco_on_disconnected(uint16_t hci_handle, tHCI_REASON reason) {
 
   if (p_sco->is_inband()) {
     if (p_sco->is_wbs()) {
-      hfp_msbc_decoder_cleanup();
       hfp_msbc_encoder_cleanup();
+      bluetooth::audio::sco::wbs::cleanup();
     }
 
     bluetooth::audio::sco::cleanup();

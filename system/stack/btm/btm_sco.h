@@ -44,6 +44,41 @@ size_t read(uint8_t* p_buf, uint32_t len);
 size_t write(const uint8_t* buf, uint32_t len);
 }  // namespace bluetooth::audio::sco
 
+/* SCO-over-HCI audio HFP WBS related definitions */
+namespace bluetooth::audio::sco::wbs {
+
+/* Initialize struct used for storing WBS related information.
+ * Args:
+ *    pkt_size - Length of the SCO packet. It is determined based on the BT-USB
+ *    adapter's capability and alt mode setting. The value should be queried
+ *    from HAL interface. It will be used to determine the size of the SCO
+ *    packet buffer.
+ */
+void init(size_t pkt_size);
+
+/* Clean up when the SCO connection is done */
+void cleanup();
+
+/* Try to enqueue a packet to a buffer.
+ * Args:
+ *    data - Pointer to received packet data bytes.
+ *    pkt_size - Length of input packet. Passing packet with inconsistent size
+ *        from the pkt_size set in init() will trigger a reset of the buffer.
+ * Returns:
+ *    The length of enqueued bytes. 0 if failed.
+ */
+size_t enqueue_packet(const uint8_t* data, size_t pkt_size);
+
+/* Try to decode mSBC frames from the packets in the buffer.
+ * Args:
+ *    output - Pointer to the decoded PCM bytes caller can read from.
+ * Returns:
+ *    The length of decoded bytes. 0 if failed.
+ */
+size_t decode(const uint8_t** output);
+
+}  // namespace bluetooth::audio::sco::wbs
+
 /* Define the structures needed by sco */
 typedef enum : uint16_t {
   SCO_ST_UNUSED = 0,
