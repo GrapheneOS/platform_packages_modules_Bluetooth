@@ -51,14 +51,17 @@ void LeAddressManager::SetPrivacyPolicyForInitiatorAddress(
     bool supports_ble_privacy,
     std::chrono::milliseconds minimum_rotation_time,
     std::chrono::milliseconds maximum_rotation_time) {
-  // Need to update some parameteres like IRK
-  if (supports_ble_privacy && address_policy_ != AddressPolicy::POLICY_NOT_SET) {
+  // Handle repeated calls to the function
+  if (address_policy_ != AddressPolicy::POLICY_NOT_SET) {
+    // Need to update some parameteres like IRK if privacy is supported
+    if (supports_ble_privacy) {
       LOG_INFO("Updating rotation parameters.");
       rotation_irk_ = rotation_irk;
       minimum_rotation_time_ = minimum_rotation_time;
       maximum_rotation_time_ = maximum_rotation_time;
       set_random_address();
-      return;
+    }
+    return;
   }
   ASSERT(address_policy_ == AddressPolicy::POLICY_NOT_SET);
   ASSERT(address_policy != AddressPolicy::POLICY_NOT_SET);
