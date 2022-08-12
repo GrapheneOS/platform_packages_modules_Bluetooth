@@ -30,6 +30,7 @@ vendor repository as well.
 import argparse
 import multiprocessing
 import os
+import platform
 import shutil
 import six
 import subprocess
@@ -801,6 +802,11 @@ if __name__ == '__main__':
 
     # Make sure we get absolute path + expanded path for bootstrap directory
     args.bootstrap_dir = os.path.abspath(os.path.expanduser(args.bootstrap_dir))
+
+    # Possible values for machine() come from 'uname -m'
+    # Since this script only runs on Linux, x86_64 machines must have this value
+    if platform.machine() != 'x86_64':
+        raise Exception("Only x86_64 machines are currently supported by this build script.")
 
     if args.run_bootstrap:
         bootstrap = Bootstrap(args.bootstrap_dir, os.path.dirname(__file__))
