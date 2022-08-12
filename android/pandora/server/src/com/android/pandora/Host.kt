@@ -274,7 +274,7 @@ class Host(private val context: Context, private val server: Server) : HostImplB
   ) {
     grpcUnary<ConnectLEResponse>(scope, responseObserver) {
       val ptsAddress = request.address.decodeToString()
-      Log.i(TAG, "connect: $ptsAddress")
+      Log.i(TAG, "connect LE: $ptsAddress")
       val device = scanLeDevice(ptsAddress)
       GattInstance(device!!, TRANSPORT_LE, context).waitForState(BluetoothProfile.STATE_CONNECTED)
       ConnectLEResponse.newBuilder()
