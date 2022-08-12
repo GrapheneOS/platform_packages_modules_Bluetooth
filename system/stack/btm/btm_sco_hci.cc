@@ -94,7 +94,7 @@ size_t write(const uint8_t* p_buf, uint32_t len) {
     LOG_WARN("Write to uninitialized or closed UIPC");
     return 0;
   }
-  return UIPC_Send(*sco_uipc, UIPC_CH_ID_AV_AUDIO, 0, p_buf, len);
+  return UIPC_Send(*sco_uipc, UIPC_CH_ID_AV_AUDIO, 0, p_buf, len) ? len : 0;
 }
 
 }  // namespace sco
