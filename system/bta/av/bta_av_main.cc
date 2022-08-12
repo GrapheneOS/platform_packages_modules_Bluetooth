@@ -1105,6 +1105,9 @@ static void bta_av_non_state_machine_event(uint16_t event,
     case BTA_AV_API_DISCONNECT_EVT:
       bta_av_api_disconnect(p_data);
       break;
+    case BTA_AV_API_SET_LATENCY_EVT:
+      bta_av_api_set_latency(p_data);
+      break;
     case BTA_AV_CI_SRC_DATA_READY_EVT:
       bta_av_ci_data(p_data);
       break;
