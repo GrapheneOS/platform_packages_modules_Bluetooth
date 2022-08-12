@@ -45,7 +45,7 @@ cc_defaults {
         "android.hardware.bluetooth.audio@2.1",
         "android.system.suspend.control-V1-ndk",
         "android.system.suspend-V1-ndk",
-        "PlatformProperties",
+        "libPlatformProperties",
     ],
     static_libs: [
         "libbte",
@@ -73,6 +73,7 @@ cc_defaults {
         "libudrv-uipc",
         "libbt-common",
         "liblc3",
+        "libopus",
         "libstatslog_bt",
         "libvndksupport",
         "libprocessgroup",

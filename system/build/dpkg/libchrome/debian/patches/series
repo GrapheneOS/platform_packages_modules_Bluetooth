@@ -2,3 +2,4 @@
 0001-rebase_path-for-write_args.patch
 0001-Remove-absl-from-pkgconfig.patch
 0001-Fix-build-issues-on-930012.patch
+0001-Fix-build-issues-when-using-clang-older-than-v12.patch

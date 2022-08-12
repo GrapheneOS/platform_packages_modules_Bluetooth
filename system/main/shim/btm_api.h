@@ -1902,6 +1902,15 @@ tBTM_STATUS BTM_SetDefaultEventMask(void);
  *******************************************************************************/
 tBTM_STATUS BTM_SetEventFilterInquiryResultAllDevices(void);
 
+/*******************************************************************************
+ *
+ * Function         BTM_BleResetId
+ *
+ * Description      Resets the local BLE keys
+ *
+ *******************************************************************************/
+tBTM_STATUS BTM_BleResetId(void);
+
 /**
  * Send remote name request to GD shim Name module
  */
