@@ -549,7 +549,7 @@ impl CommandHandler {
                     );
                 }
                 "set-alias" => {
-                    if args.len() < 3 {
+                    if args.len() < 4 {
                         println!("usage: device set-alias <address> <new-alias>");
                         return;
                     }
@@ -623,7 +623,7 @@ impl CommandHandler {
                 );
             }
             "client-connect" => {
-                if args.len() < 2 {
+                if args.len() < 3 {
                     println!("usage: gatt client-connect <addr>");
                     return;
                 }
@@ -666,7 +666,7 @@ impl CommandHandler {
                     .client_disconnect(client_id.unwrap(), addr);
             }
             "client-read-phy" => {
-                if args.len() < 2 {
+                if args.len() < 3 {
                     println!("usage: gatt client-read-phy <addr>");
                     return;
                 }
@@ -687,7 +687,7 @@ impl CommandHandler {
                     .client_read_phy(client_id.unwrap(), addr);
             }
             "client-discover-services" => {
-                if args.len() < 2 {
+                if args.len() < 3 {
                     println!("usage: gatt client-discover-services <addr>");
                     return;
                 }
@@ -761,7 +761,7 @@ impl CommandHandler {
                 }
             }
             "unregister-scanner" => {
-                if args.len() < 2 {
+                if args.len() < 3 {
                     println!("usage: le-scan unregister-scanner <scanner-id>");
                     return;
                 }
