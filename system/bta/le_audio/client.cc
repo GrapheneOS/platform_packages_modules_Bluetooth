@@ -38,6 +38,7 @@
 #include "embdrv/lc3/include/lc3.h"
 #include "gatt/bta_gattc_int.h"
 #include "gd/common/strings.h"
+#include "internal_include/stack_config.h"
 #include "le_audio_set_configuration_provider.h"
 #include "le_audio_types.h"
 #include "le_audio_utils.h"
@@ -3140,6 +3141,40 @@ class LeAudioClientImpl : public LeAudioClient {
     metadata_context_types_ = GetAllowedAudioContextsFromSourceMetadata(
         source_metadata, group->GetActiveContexts());
 
+    if (stack_config_get_interface()
+            ->get_pts_force_le_audio_multiple_contexts_metadata()) {
+      // Use common audio stream contexts exposed by the PTS
+      metadata_context_types_ = 0xFFFF;
+      for (auto device = group->GetFirstDevice(); device != nullptr;
+           device = group->GetNextDevice(device)) {
+        metadata_context_types_ &= device->GetAvailableContexts();
+      }
+      if (metadata_context_types_ == 0xFFFF) {
+        metadata_context_types_ =
+            static_cast<uint16_t>(LeAudioContextType::UNSPECIFIED);
+      }
+      LOG_WARN("Overriding metadata_context_types_ with: %lu",
+               metadata_context_types_.to_ulong());
+
+      /* Configuration is the same for new context, just will do update
+       * metadata of stream
+       */
+      auto new_configuration_context =
+          ChooseConfigurationContextType(metadata_context_types_);
+      GroupStream(active_group_id_,
+                  static_cast<uint16_t>(new_configuration_context),
+                  metadata_context_types_);
+      return;
+    }
+
+    if (metadata_context_types_.none()) {
+      LOG_WARN(
+          " invalid/unknown context metadata, using 'UNSPECIFIED' instead");
+      metadata_context_types_ =
+          static_cast<std::underlying_type<LeAudioContextType>::type>(
+              LeAudioContextType::UNSPECIFIED);
+    }
+
     auto new_configuration_context =
         ChooseConfigurationContextType(metadata_context_types_);
     LOG_DEBUG("new_configuration_context_type: %s",
@@ -3190,6 +3225,25 @@ class LeAudioClientImpl : public LeAudioClient {
       LOG(ERROR) << __func__
                  << ", Invalid group: " << static_cast<int>(active_group_id_);
       return;
+    }
+
+    if (stack_config_get_interface()
+            ->get_pts_force_le_audio_multiple_contexts_metadata()) {
+      // Use common audio stream contexts exposed by the PTS
+      metadata_context_types_ = 0xFFFF;
+      for (auto device = group->GetFirstDevice(); device != nullptr;
+           device = group->GetNextDevice(device)) {
+        metadata_context_types_ &= device->GetAvailableContexts();
+      }
+      if (metadata_context_types_ == 0xFFFF) {
+        metadata_context_types_ =
+            static_cast<uint16_t>(LeAudioContextType::UNSPECIFIED);
+      }
+      metadata_context_types_ =
+          metadata_context_types_.to_ulong() |
+          static_cast<uint16_t>(LeAudioContextType::VOICEASSISTANTS);
+      LOG_WARN("Overriding metadata_context_types_ with: %lu",
+               metadata_context_types_.to_ulong());
     }
 
     /* Do nothing, since audio source is not valid and if voice assistant
