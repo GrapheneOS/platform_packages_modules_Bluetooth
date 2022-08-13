@@ -119,17 +119,17 @@ message ReadLocalAddressResponse {
 
 // Request of the `ConnectLE` method
 message ConnectLERequest {
-    bytes address = 1;
+  bytes address = 1;
 }
 
 // Response of the `ConnectLE` method
 message ConnectLEResponse {
-    oneof result {
-        Connection connection = 1;
-    }
+  oneof result {
+      Connection connection = 1;
+  }
 }
 
 // Request of the `DisconnectLE` method
 message DisconnectLERequest {
-    Connection connection = 1;
+  Connection connection = 1;
 }

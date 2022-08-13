@@ -1,4 +1,4 @@
-// Copyright 2022 Google Inc. All rights reserved.
+// Copyright 2022, The Android Open Source Project
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,20 +16,19 @@ package {
     default_applicable_licenses: ["Android-Apache-2.0"],
 }
 
-python_binary_host {
-    name: "pypdl",
-    main: "pdl.py",
-    srcs: ["pdl.py"],
-}
-
 python_test_host {
-    name: "pypdl_test",
-    main: "pdl_test.py",
-    srcs: ["pdl_test.py"],
-    data: [
-        ":pdl",
-        ":pypdl",
-        ":BluetoothHciPackets",
-        ":RootCanalLinkLayerPackets",
+    name: "avatar",
+    main: "connect.py",
+    srcs: [
+        "connect.py",
     ],
+    libs: [
+        "libavatar",
+    ],
+    required: ["PandoraServer"],
+    test_suites: ["general-tests"],
+    test_options: {
+        unit_test: false,
+    },
+    data: ["config.yml"],
 }
