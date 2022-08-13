@@ -23,6 +23,7 @@
         <option name="profile" value="A2DP/SRC" />
         <option name="profile" value="AVDTP/SRC" />
         <option name="profile" value="GATT/CL/GAC" />
+        <option name="profile" value="GATT/CL/GAD" />
         <option name="profile" value="HFP/AG/DIS" />
         <option name="profile" value="HFP/AG/HFI" />
         <option name="profile" value="HFP/AG/SLC" />
