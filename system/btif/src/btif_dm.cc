@@ -1369,6 +1369,10 @@ static void btif_get_existing_uuids(RawAddress* bd_addr, Uuid* existing_uuids) {
   btif_storage_get_remote_device_property(bd_addr, &tmp_prop);
 }
 
+static bool btif_should_ignore_uuid(const Uuid& uuid) {
+  return uuid.IsEmpty() || uuid.IsBase();
+}
+
 /*******************************************************************************
  *
  * Function         btif_dm_search_services_evt
@@ -1411,7 +1415,7 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
         LOG_INFO("New UUIDs for %s:", bd_addr.ToString().c_str());
         for (i = 0; i < p_data->disc_res.num_uuids; i++) {
           auto uuid = p_data->disc_res.p_uuid_list + i;
-          if (uuid->IsEmpty()) {
+          if (btif_should_ignore_uuid(*uuid)) {
             continue;
           }
           LOG_INFO("index:%d uuid:%s", i, uuid->ToString().c_str());
@@ -1423,7 +1427,7 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
 
         for (int i = 0; i < BT_MAX_NUM_UUIDS; i++) {
           Uuid uuid = existing_uuids[i];
-          if (uuid.IsEmpty()) {
+          if (btif_should_ignore_uuid(uuid)) {
             continue;
           }
           if (btif_is_interesting_le_service(uuid)) {
@@ -1511,7 +1515,7 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
       LOG_INFO("New BLE UUIDs for %s:", bd_addr.ToString().c_str());
       for (Uuid uuid : *p_data->disc_ble_res.services) {
         if (btif_is_interesting_le_service(uuid)) {
-          if (uuid.IsEmpty()) {
+          if (btif_should_ignore_uuid(uuid)) {
             continue;
           }
           LOG_INFO("index:%d uuid:%s", static_cast<int>(uuids.size()),
