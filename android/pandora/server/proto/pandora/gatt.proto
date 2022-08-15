@@ -13,17 +13,85 @@ service GATT {
 
   // Writes on a characteristic.
   rpc WriteCharacteristicFromHandle(WriteCharacteristicRequest) returns (google.protobuf.Empty);
+
+  // Starts service discovery for given uuid.
+  rpc DiscoverServiceByUuid(DiscoverServiceByUuidRequest) returns (DiscoverServicesResponse);
+
+  // Starts services discovery.
+  rpc DiscoverServices(DiscoverServicesRequest) returns (DiscoverServicesResponse);
+
+  // Starts services discovery using SDP.
+  rpc DiscoverServicesSdp(DiscoverServicesSdpRequest) returns (DiscoverServicesSdpResponse);
+
+  // Clears DUT GATT cache.
+  rpc ClearCache(ClearCacheRequest) returns (google.protobuf.Empty);
 }
 
-// Request for the `ExchangeMTU` method.
+// A message representing a GATT service.
+message GattService {
+  uint32 handle = 1;
+  uint32 type = 2;
+  string uuid = 3;
+  repeated GattService included_services = 4;
+  repeated GattCharacteristic characteristics = 5;
+}
+
+// A message representing a GATT characteristic.
+message GattCharacteristic {
+  uint32 properties = 1;
+  uint32 permissions = 2;
+  string uuid = 3;
+  uint32 handle = 4;
+  repeated GattDescriptor descriptors = 5;
+}
+
+// A message representing a GATT descriptors.
+message GattDescriptor {
+  uint32 handle = 1;
+  uint32 permissions = 2;
+  string uuid = 3;
+}
+
+// Request for the `ExchangeMTU` rpc.
 message ExchangeMTURequest {
   Connection connection = 1;
   int32 mtu = 2;
 }
 
-// Request for the `writeCharacteristicFromHandle` method.
+// Request for the `writeCharacteristicFromHandle` rpc.
 message WriteCharacteristicRequest {
   Connection connection = 1;
   uint32 handle = 2;
   bytes value = 3;
+}
+
+// Request for the `DiscoverServiceByUuid` rpc.
+message DiscoverServiceByUuidRequest {
+  Connection connection = 1;
+  string uuid = 2;
+}
+
+// Request for the `DiscoverServices` rpc.
+message DiscoverServicesRequest {
+  Connection connection = 1;
+}
+
+// Response for the `DiscoverServices` rpc.
+message DiscoverServicesResponse {
+  repeated GattService services = 1;
+}
+
+// Request for the `DiscoverServicesSdp` rpc.
+message DiscoverServicesSdpRequest {
+  bytes address = 1;
+}
+
+// Response for the `DiscoverServicesSdp` rpc.
+message DiscoverServicesSdpResponse {
+  repeated string service_uuids = 1;
+}
+
+// Request for the `ClearCache` rpc.
+message ClearCacheRequest {
+  Connection connection = 1;
 }
