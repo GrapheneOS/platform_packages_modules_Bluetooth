@@ -21,6 +21,7 @@ use btstack::{
     battery_provider_manager::BatteryProviderManager,
     battery_service::BatteryService,
     bluetooth::{get_bt_dispatcher, Bluetooth, IBluetooth},
+    bluetooth_admin::BluetoothAdmin,
     bluetooth_gatt::BluetoothGatt,
     bluetooth_media::BluetoothMedia,
     socket_manager::BluetoothSocketManager,
@@ -125,6 +126,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         battery_provider_manager.clone(),
         tx.clone(),
     ))));
+    let bluetooth_admin = Arc::new(Mutex::new(Box::new(BluetoothAdmin::new())));
     let bluetooth = Arc::new(Mutex::new(Box::new(Bluetooth::new(
         tx.clone(),
         intf.clone(),
@@ -288,6 +290,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
             let adapter = bluetooth.clone();
             bluetooth_media.lock().unwrap().set_adapter(adapter.clone());
+            bluetooth_admin.lock().unwrap().set_adapter(adapter.clone());
 
             let mut bluetooth = bluetooth.lock().unwrap();
             bluetooth.init_profiles();
