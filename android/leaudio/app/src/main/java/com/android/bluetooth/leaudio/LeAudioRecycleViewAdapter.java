@@ -890,6 +890,8 @@ public class LeAudioRecycleViewAdapter
 
         void onSetActivePresetClicked(BluetoothDevice device, int preset_index);
 
+        void onSetActivePresetForGroupClicked(BluetoothDevice device, int preset_index);
+
         void onNextDevicePresetClicked(BluetoothDevice device);
 
         void onPreviousDevicePresetClicked(BluetoothDevice device);
@@ -947,6 +949,7 @@ public class LeAudioRecycleViewAdapter
         private Spinner leAudioHapPresetsSpinner;
         private Button leAudioHapChangePresetNameButton;
         private Button leAudioHapSetActivePresetButton;
+        private Button leAudioHapSetActivePresetForGroupButton;
         private Button leAudioHapReadPresetInfoButton;
         private Button leAudioHapNextDevicePresetButton;
         private Button leAudioHapPreviousDevicePresetButton;
@@ -1041,6 +1044,8 @@ public class LeAudioRecycleViewAdapter
                     itemView.findViewById(R.id.hap_change_preset_name_button);
             leAudioHapSetActivePresetButton =
                     itemView.findViewById(R.id.hap_set_active_preset_button);
+            leAudioHapSetActivePresetForGroupButton =
+                    itemView.findViewById(R.id.hap_set_active_preset_for_group_button);
             leAudioHapReadPresetInfoButton =
                     itemView.findViewById(R.id.hap_read_preset_info_button);
             leAudioHapNextDevicePresetButton =
@@ -1106,6 +1111,21 @@ public class LeAudioRecycleViewAdapter
                     Integer index = Integer.valueOf(
                             leAudioHapPresetsSpinner.getSelectedItem().toString().split("\\s")[0]);
                     hapInteractionListener.onSetActivePresetClicked(
+                            devices.get(ViewHolder.this.getAdapterPosition()).device, index);
+                }
+            });
+
+            leAudioHapSetActivePresetForGroupButton.setOnClickListener(view -> {
+                if (hapInteractionListener != null) {
+                    if (leAudioHapPresetsSpinner.getSelectedItem() == null) {
+                        Toast.makeText(view.getContext(), "No known preset, please reconnect.",
+                                Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    Integer index = Integer.valueOf(
+                            leAudioHapPresetsSpinner.getSelectedItem().toString().split("\\s")[0]);
+                    hapInteractionListener.onSetActivePresetForGroupClicked(
                             devices.get(ViewHolder.this.getAdapterPosition()).device, index);
                 }
             });
