@@ -76,23 +76,25 @@ public class HeadsetPhoneState {
     private final Object mPhoneStateListenerLock = new Object();
 
     HeadsetPhoneState(HeadsetService headsetService) {
-        Objects.requireNonNull(headsetService, "headsetService is null");
-        mHeadsetService = headsetService;
-        mTelephonyManager = mHeadsetService.getSystemService(TelephonyManager.class);
-        Objects.requireNonNull(mTelephonyManager, "TELEPHONY_SERVICE is null");
-        // Register for SubscriptionInfo list changes which is guaranteed to invoke
-        // onSubscriptionInfoChanged and which in turns calls loadInBackgroud.
-        mSubscriptionManager = SubscriptionManager.from(mHeadsetService);
-        Objects.requireNonNull(mSubscriptionManager, "TELEPHONY_SUBSCRIPTION_SERVICE is null");
-        // Initialize subscription on the handler thread
-        mHandler = new Handler(headsetService.getStateMachinesThreadLooper());
-        mOnSubscriptionsChangedListener = new HeadsetPhoneStateOnSubscriptionChangedListener();
-        mSubscriptionManager.addOnSubscriptionsChangedListener(command -> mHandler.post(command),
-                mOnSubscriptionsChangedListener);
-        mSignalStrengthUpdateRequest = new SignalStrengthUpdateRequest.Builder()
-                .setSignalThresholdInfos(Collections.EMPTY_LIST)
-                .setSystemThresholdReportingRequestedWhileIdle(true)
-                .build();
+        synchronized (mPhoneStateListenerLock) {
+            Objects.requireNonNull(headsetService, "headsetService is null");
+            mHeadsetService = headsetService;
+            mTelephonyManager = mHeadsetService.getSystemService(TelephonyManager.class);
+            Objects.requireNonNull(mTelephonyManager, "TELEPHONY_SERVICE is null");
+            // Register for SubscriptionInfo list changes which is guaranteed to invoke
+            // onSubscriptionInfoChanged and which in turns calls loadInBackgroud.
+            mSubscriptionManager = SubscriptionManager.from(mHeadsetService);
+            Objects.requireNonNull(mSubscriptionManager, "TELEPHONY_SUBSCRIPTION_SERVICE is null");
+            // Initialize subscription on the handler thread
+            mHandler = new Handler(headsetService.getStateMachinesThreadLooper());
+            mOnSubscriptionsChangedListener = new HeadsetPhoneStateOnSubscriptionChangedListener();
+            mSubscriptionManager.addOnSubscriptionsChangedListener(
+                    command -> mHandler.post(command), mOnSubscriptionsChangedListener);
+            mSignalStrengthUpdateRequest = new SignalStrengthUpdateRequest.Builder()
+                    .setSignalThresholdInfos(Collections.EMPTY_LIST)
+                    .setSystemThresholdReportingRequestedWhileIdle(true)
+                    .build();
+        }
     }
 
     /**
