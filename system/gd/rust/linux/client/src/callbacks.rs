@@ -59,16 +59,8 @@ impl IBluetoothManagerCallback for BtManagerCallback {
 }
 
 impl RPCProxy for BtManagerCallback {
-    fn register_disconnect(&mut self, _f: Box<dyn Fn(u32) + Send>) -> u32 {
-        0
-    }
-
     fn get_object_id(&self) -> String {
         self.objpath.clone()
-    }
-
-    fn unregister(&mut self, _id: u32) -> bool {
-        false
     }
 
     fn export_for_rpc(self: Box<Self>) {
@@ -227,16 +219,8 @@ impl IBluetoothCallback for BtCallback {
 }
 
 impl RPCProxy for BtCallback {
-    fn register_disconnect(&mut self, _f: Box<dyn Fn(u32) + Send>) -> u32 {
-        0
-    }
-
     fn get_object_id(&self) -> String {
         self.objpath.clone()
-    }
-
-    fn unregister(&mut self, _id: u32) -> bool {
-        false
     }
 
     fn export_for_rpc(self: Box<Self>) {
@@ -280,16 +264,8 @@ impl IBluetoothConnectionCallback for BtConnectionCallback {
 }
 
 impl RPCProxy for BtConnectionCallback {
-    fn register_disconnect(&mut self, _f: Box<dyn Fn(u32) + Send>) -> u32 {
-        0
-    }
-
     fn get_object_id(&self) -> String {
         self.objpath.clone()
-    }
-
-    fn unregister(&mut self, _id: u32) -> bool {
-        false
     }
 
     fn export_for_rpc(self: Box<Self>) {
@@ -338,16 +314,8 @@ impl IScannerCallback for ScannerCallback {
 }
 
 impl RPCProxy for ScannerCallback {
-    fn register_disconnect(&mut self, _f: Box<dyn Fn(u32) + Send>) -> u32 {
-        0
-    }
-
     fn get_object_id(&self) -> String {
         self.objpath.clone()
-    }
-
-    fn unregister(&mut self, _id: u32) -> bool {
-        false
     }
 
     fn export_for_rpc(self: Box<Self>) {
@@ -509,16 +477,8 @@ impl IBluetoothGattCallback for BtGattCallback {
 }
 
 impl RPCProxy for BtGattCallback {
-    fn register_disconnect(&mut self, _f: Box<dyn Fn(u32) + Send>) -> u32 {
-        0
-    }
-
     fn get_object_id(&self) -> String {
         self.objpath.clone()
-    }
-
-    fn unregister(&mut self, _id: u32) -> bool {
-        false
     }
 
     fn export_for_rpc(self: Box<Self>) {
@@ -559,16 +519,8 @@ impl ISuspendCallback for SuspendCallback {
 }
 
 impl RPCProxy for SuspendCallback {
-    fn register_disconnect(&mut self, _f: Box<dyn Fn(u32) + Send>) -> u32 {
-        0
-    }
-
     fn get_object_id(&self) -> String {
         self.objpath.clone()
-    }
-
-    fn unregister(&mut self, _id: u32) -> bool {
-        false
     }
 
     fn export_for_rpc(self: Box<Self>) {
