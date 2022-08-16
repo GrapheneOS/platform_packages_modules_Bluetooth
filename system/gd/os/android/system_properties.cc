@@ -36,6 +36,15 @@ std::optional<std::string> GetSystemProperty(const std::string& property) {
   return std::string(value_array.data(), value_len);
 }
 
+uint32_t GetSystemPropertyUint32(const std::string& property, uint32_t default_value) {
+  std::optional<std::string> result = GetSystemProperty(property);
+  if (result) {
+    return static_cast<uint32_t>(std::stoul(*result));
+  } else {
+    return default_value;
+  }
+}
+
 bool SetSystemProperty(const std::string& property, const std::string& value) {
   if (value.size() >= PROPERTY_VALUE_MAX) {
     LOG_ERROR("Property value's maximum size is %d, but %zu chars were given", PROPERTY_VALUE_MAX - 1, value.size());
