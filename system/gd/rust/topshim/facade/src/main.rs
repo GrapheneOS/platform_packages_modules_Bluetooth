@@ -19,6 +19,7 @@ use std::sync::{Arc, Mutex};
 use tokio::runtime::Runtime;
 
 mod adapter_service;
+mod gatt_service;
 mod media_service;
 
 // This is needed for linking, libbt_shim_bridge needs symbols defined by
@@ -78,6 +79,8 @@ async fn async_main(rt: Arc<Runtime>, mut sigint: mpsc::UnboundedReceiver<()>) {
     let adapter_service_impl =
         adapter_service::AdapterServiceImpl::create(rt.clone(), btif_intf.clone());
 
+    let gatt_service_impl = gatt_service::GattServiceImpl::create(rt.clone(), btif_intf.clone());
+
     let media_service_impl = media_service::MediaServiceImpl::create(rt.clone(), btif_intf.clone());
 
     let start_stack_now = value_t!(matches, "start-stack-now", bool).unwrap();
@@ -88,6 +91,7 @@ async fn async_main(rt: Arc<Runtime>, mut sigint: mpsc::UnboundedReceiver<()>) {
 
     let mut server = ServerBuilder::new(env)
         .register_service(adapter_service_impl)
+        .register_service(gatt_service_impl)
         .register_service(media_service_impl)
         .bind("0.0.0.0", grpc_port)
         .build()

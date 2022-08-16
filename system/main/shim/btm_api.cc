@@ -1348,14 +1348,24 @@ tBTM_STATUS bluetooth::shim::BTM_ClearFilterAcceptList() {
 }
 
 tBTM_STATUS bluetooth::shim::BTM_DisconnectAllAcls() {
-  for (uint16_t i = 0; i < 0xfffe; i++) {
-    btm_sec_disconnect(i, HCI_SUCCESS, "");
-  }
+  Stack::GetInstance()->GetAcl()->Shutdown();
   return BTM_SUCCESS;
 }
 
 tBTM_STATUS bluetooth::shim::BTM_LeRand(LeRandCallback cb) {
   controller_get_interface()->le_rand(cb);
+  return BTM_SUCCESS;
+}
+
+tBTM_STATUS bluetooth::shim::BTM_SetEventFilterConnectionSetupAllDevices() {
+  // Autoplumbed
+  controller_get_interface()->set_event_filter_connection_setup_all_devices();
+  return BTM_SUCCESS;
+}
+
+tBTM_STATUS bluetooth::shim::BTM_AllowWakeByHid() {
+  // Autoplumbed
+  controller_get_interface()->allow_wake_by_hid();
   return BTM_SUCCESS;
 }
 

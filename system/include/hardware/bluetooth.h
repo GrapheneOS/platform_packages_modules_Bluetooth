@@ -833,6 +833,20 @@ typedef struct {
    *
    */
   int (*restore_filter_accept_list)();
+
+  /**
+   *
+   * Allow the device to be woken by HID devices
+   *
+   */
+  int (*allow_wake_by_hid)();
+
+  /**
+   *
+   * Tell the controller to allow all devices
+   *
+   */
+  int (*set_event_filter_connection_setup_all_devices)();
 } bt_interface_t;
 
 #define BLUETOOTH_INTERFACE_STRING "bluetoothInterface"
