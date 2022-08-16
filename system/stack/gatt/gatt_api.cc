@@ -1114,6 +1114,11 @@ tGATT_IF GATT_Register(const Uuid& app_uuid128, std::string name,
     }
   }
 
+  if (stack_config_get_interface()->get_pts_use_eatt_for_all_services()) {
+    LOG_INFO("PTS: Force to use EATT for servers");
+    eatt_support = true;
+  }
+
   for (i_gatt_if = 0, p_reg = gatt_cb.cl_rcb; i_gatt_if < GATT_MAX_APPS;
        i_gatt_if++, p_reg++) {
     if (!p_reg->in_use) {
