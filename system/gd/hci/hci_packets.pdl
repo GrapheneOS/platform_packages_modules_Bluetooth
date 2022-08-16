@@ -1168,6 +1168,26 @@ packet ReadLmpHandleComplete : CommandComplete (command_op_code = READ_LMP_HANDL
   _reserved_ : 32,
 }
 
+enum SynchronousPacketTypeBits : 16 {
+  HV1_ALLOWED = 0x0001,
+  HV2_ALLOWED = 0x0002,
+  HV3_ALLOWED = 0x0004,
+  EV3_ALLOWED = 0x0008,
+  EV4_ALLOWED = 0x0010,
+  EV5_ALLOWED = 0x0020,
+  NO_2_EV3_ALLOWED = 0x0040,
+  NO_3_EV3_ALLOWED = 0x0080,
+  NO_2_EV5_ALLOWED = 0x0100,
+  NO_3_EV5_ALLOWED = 0x0200,
+}
+
+enum RetransmissionEffort : 8 {
+  NO_RETRANSMISSION = 0x00,
+  OPTIMIZED_FOR_POWER = 0x01,
+  OPTIMIZED_FOR_LINK_QUALITY = 0x02,
+  DO_NOT_CARE = 0xFF,
+}
+
 packet SetupSynchronousConnection : ScoConnectionCommand (op_code = SETUP_SYNCHRONOUS_CONNECTION) {
   connection_handle : 12,
   _reserved_ : 4,
@@ -1176,8 +1196,8 @@ packet SetupSynchronousConnection : ScoConnectionCommand (op_code = SETUP_SYNCHR
   max_latency : 16, // 0-3 reserved, 0xFFFF = don't care
   voice_setting : 10,
   _reserved_ : 6,
-  retransmission_effort : 8,
-  packet_type : 16,
+  retransmission_effort : RetransmissionEffort,
+  packet_type : 16, // See SynchronousPacketTypeBits
 }
 
 packet SetupSynchronousConnectionStatus : CommandStatus (command_op_code = SETUP_SYNCHRONOUS_CONNECTION) {
@@ -1190,8 +1210,8 @@ packet AcceptSynchronousConnection : ScoConnectionCommand (op_code = ACCEPT_SYNC
   max_latency : 16, // 0-3 reserved, 0xFFFF = don't care
   voice_setting : 10,
   _reserved_ : 6,
-  retransmission_effort : 8,
-  packet_type : 16,
+  retransmission_effort : RetransmissionEffort,
+  packet_type : 16, // See SynchronousPacketTypeBits
 }
 
 packet AcceptSynchronousConnectionStatus : CommandStatus (command_op_code = ACCEPT_SYNCHRONOUS_CONNECTION) {
@@ -1342,34 +1362,14 @@ enum ScoDataPath : 8 {
   AUDIO_TEST_MODE = 0xFF,
 }
 
-enum SynchronousPacketTypeBits : 16 {
-  HV1_ALLOWED = 0x0001,
-  HV2_ALLOWED = 0x0002,
-  HV3_ALLOWED = 0x0004,
-  EV3_ALLOWED = 0x0008,
-  EV4_ALLOWED = 0x0010,
-  EV5_ALLOWED = 0x0020,
-  NO_2_EV3_ALLOWED = 0x0040,
-  NO_3_EV3_ALLOWED = 0x0080,
-  NO_2_EV5_ALLOWED = 0x0100,
-  NO_3_EV5_ALLOWED = 0x0200,
-}
-
-enum RetransmissionEffort : 8 {
-  NO_RETRANSMISSION = 0x00,
-  OPTIMIZED_FOR_POWER = 0x01,
-  OPTIMIZED_FOR_LINK_QUALITY = 0x02,
-  DO_NOT_CARE = 0xFF,
-}
-
 packet EnhancedSetupSynchronousConnection : ScoConnectionCommand (op_code = ENHANCED_SETUP_SYNCHRONOUS_CONNECTION) {
   connection_handle: 12,
   _reserved_ : 4,
   // Next two items
   // [0x00000000, 0xFFFFFFFE] Bandwidth in octets per second.
   // [0xFFFFFFFF]: Don't care
-  transmit_bandwidth_octets_per_second : 32,
-  receive_bandwidth_octets_per_second : 32,
+  transmit_bandwidth : 32,
+  receive_bandwidth : 32,
   transmit_coding_format : ScoCodingFormat,
   receive_coding_format : ScoCodingFormat,
   // Next two items
@@ -1379,8 +1379,8 @@ packet EnhancedSetupSynchronousConnection : ScoConnectionCommand (op_code = ENHA
   receive_codec_frame_size : 16,
   // Next two items
   // Host to Controller nominal data rate in octets per second.
-  input_bandwidth_octets_per_second : 32,
-  output_bandwidth_octets_per_second : 32,
+  input_bandwidth : 32,
+  output_bandwidth : 32,
   input_coding_format : ScoCodingFormat,
   output_coding_format : ScoCodingFormat,
   // Next two items
@@ -1407,9 +1407,13 @@ packet EnhancedSetupSynchronousConnection : ScoConnectionCommand (op_code = ENHA
   //     of the eSCO window, where the eSCO window is reserved slots plus the
   //     retransmission window
   // [0xFFFF]: don't care
-  max_latency_ms: 16,
-  packet_type : 16, // Or together SynchronousPacketTypeBits
+  max_latency: 16,
+  packet_type : 16, // See SynchronousPacketTypeBits
   retransmission_effort : RetransmissionEffort,
+}
+
+test EnhancedSetupSynchronousConnection {
+  "\x3d\x04\x3b\x02\x00\x40\x1f\x00\x00\x40\x1f\x00\x00\x05\x00\x00\x00\x00\x05\x00\x00\x00\x00\x3c\x00\x3c\x00\x00\x7d\x00\x00\x00\x7d\x00\x00\x04\x00\x00\x00\x00\x04\x00\x00\x00\x00\x10\x00\x10\x00\x02\x02\x00\x00\x01\x01\x00\x00\x0d\x00\x88\x03\x02",
 }
 
 packet EnhancedSetupSynchronousConnectionStatus : CommandStatus (command_op_code = ENHANCED_SETUP_SYNCHRONOUS_CONNECTION) {
@@ -1460,7 +1464,7 @@ packet EnhancedAcceptSynchronousConnection : ScoConnectionCommand (op_code = ENH
   //     retransmission window
   // [0xFFFF]: don't care
   max_latency : 16,
-  packet_type : 16, // Or together SynchronousPacketTypeBits
+  packet_type : 16, // See SynchronousPacketTypeBits
   retransmission_effort : RetransmissionEffort,
 }
 
@@ -5342,6 +5346,10 @@ packet SynchronousConnectionComplete : Event (event_code = SYNCHRONOUS_CONNECTIO
   air_mode : ScoAirMode,
 }
 
+test SynchronousConnectionComplete {
+  "\x2c\x11\x00\x03\x00\x1d\xdf\xed\x2b\x1a\xf8\x02\x0c\x04\x3c\x00\x3c\x00\x03",
+}
+
 packet SynchronousConnectionChanged : Event (event_code = SYNCHRONOUS_CONNECTION_CHANGED) {
   status : ErrorCode,
   connection_handle : 12,
@@ -5435,12 +5443,20 @@ packet EnhancedFlush : Command (op_code = ENHANCED_FLUSH) {
   packet_type : FlushablePacketType,
 }
 
+test EnhancedFlush {
+  "\x5f\x0c\x03\x02\x00\x00",
+}
+
 packet EnhancedFlushStatus : CommandStatus (command_op_code = ENHANCED_FLUSH) {
 }
 
 packet EnhancedFlushComplete : Event (event_code = ENHANCED_FLUSH_COMPLETE) {
   connection_handle : 12,
   _reserved_ : 4,
+}
+
+test EnhancedFlushComplete {
+  "\x39\x02\x02\x00",
 }
 
 packet UserPasskeyNotification : Event (event_code = USER_PASSKEY_NOTIFICATION) {
