@@ -61,6 +61,11 @@ int32_t osi_property_get_int32(const char* key, int32_t default_value) {
   mock_function_count_map[__func__]++;
   return test::mock::osi_properties::osi_property_get_int32(key, default_value);
 }
+std::vector<uint32_t> osi_property_get_uintlist(
+    const char* key, std::vector<uint32_t> default_value) {
+  mock_function_count_map[__func__]++;
+  return default_value;
+}
 int osi_property_set(const char* key, const char* value) {
   mock_function_count_map[__func__]++;
   return test::mock::osi_properties::osi_property_set(key, value);
