@@ -1106,7 +1106,7 @@ public class LeAudioService extends ProfileService {
         LeAudioStateMachine sm = mStateMachines.get(descriptor.mLostLeadDeviceWhileStreaming);
         if (sm != null) {
             LeAudioStackEvent stackEvent =
-                    new LeAudioStackEvent(LeAudioStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED);
+                new LeAudioStackEvent(LeAudioStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED);
             stackEvent.device = descriptor.mLostLeadDeviceWhileStreaming;
             stackEvent.valueInt1 = LeAudioStackEvent.CONNECTION_STATE_DISCONNECTED;
             sm.sendMessage(LeAudioStateMachine.STACK_EVENT, stackEvent);

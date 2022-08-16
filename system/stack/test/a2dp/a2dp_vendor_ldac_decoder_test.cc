@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#include "stack/include/a2dp_vendor_ldac_decoder.h"
+
 #include <base/logging.h>
 #include <gtest/gtest.h>
 #include <stdio.h>
@@ -24,8 +26,6 @@
 #include "osi/test/AllocationTestHarness.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/ldacBT_bco_for_fluoride.h"
-#undef LOG_TAG
-#include "stack/a2dp/a2dp_vendor_ldac_decoder.cc"
 
 extern void allocation_tracker_uninit(void);
 namespace {

@@ -38,23 +38,16 @@
 //
 // The aptX-HD encoder shared library, and the functions to use
 //
-static const char* APTX_HD_ENCODER_LIB_NAME = "libaptXHD_encoder.so";
+static const std::string APTX_HD_ENCODER_LIB_NAME = "libaptXHD_encoder.so";
 static void* aptx_hd_encoder_lib_handle = NULL;
 
-static const char* APTX_HD_ENCODER_INIT_NAME = "aptxhdbtenc_init";
-typedef int (*tAPTX_HD_ENCODER_INIT)(void* state, short endian);
-
-static const char* APTX_HD_ENCODER_ENCODE_STEREO_NAME =
+static const std::string APTX_HD_ENCODER_INIT_NAME = "aptxhdbtenc_init";
+static const std::string APTX_HD_ENCODER_ENCODE_STEREO_NAME =
     "aptxhdbtenc_encodestereo";
-typedef int (*tAPTX_HD_ENCODER_ENCODE_STEREO)(void* state, void* pcmL,
-                                              void* pcmR, void* buffer);
+static const std::string APTX_HD_ENCODER_SIZEOF_PARAMS_NAME =
+    "SizeofAptxhdbtenc";
 
-static const char* APTX_HD_ENCODER_SIZEOF_PARAMS_NAME = "SizeofAptxhdbtenc";
-typedef int (*tAPTX_HD_ENCODER_SIZEOF_PARAMS)(void);
-
-static tAPTX_HD_ENCODER_INIT aptx_hd_encoder_init_func;
-static tAPTX_HD_ENCODER_ENCODE_STEREO aptx_hd_encoder_encode_stereo_func;
-static tAPTX_HD_ENCODER_SIZEOF_PARAMS aptx_hd_encoder_sizeof_params_func;
+static tAPTX_HD_API aptx_hd_api;
 
 // offset
 #if (BTA_AV_CO_CP_SCMS_T == TRUE)
@@ -62,6 +55,10 @@ static tAPTX_HD_ENCODER_SIZEOF_PARAMS aptx_hd_encoder_sizeof_params_func;
 #else
 #define A2DP_APTX_HD_OFFSET AVDT_MEDIA_OFFSET
 #endif
+
+#define LOAD_APTX_HD_SYMBOL(symbol_name, api_type)        \
+  LOAD_CODEC_SYMBOL("AptXHd", aptx_hd_encoder_lib_handle, \
+                    A2DP_VendorUnloadEncoderAptxHd, symbol_name, api_type)
 
 #define A2DP_APTX_HD_MAX_PCM_BYTES_PER_READ 4096
 
@@ -112,51 +109,46 @@ static size_t aptx_hd_encode_24bit(tAPTX_HD_FRAMING_PARAMS* framing_params,
                                    size_t* data_out_index, uint32_t* data32_in,
                                    uint8_t* data_out);
 
-bool A2DP_VendorLoadEncoderAptxHd(void) {
-  if (aptx_hd_encoder_lib_handle != NULL) return true;  // Already loaded
+/*******************************************************************************
+ *
+ * Function         A2DP_VendorLoadEncoderAptxHd
+ *
+ * Description      This function will try to load the aptx HD encoder library.
+ *
+ * Returns          LOAD_SUCCESS on success
+ *                  LOAD_ERROR_MISSING_CODEC on missing library
+ *                  LOAD_ERROR_VERSION_MISMATCH on symbol loading error
+ *
+ ******************************************************************************/
+tLOADING_CODEC_STATUS A2DP_VendorLoadEncoderAptxHd(void) {
+  if (aptx_hd_encoder_lib_handle != NULL)
+    return LOAD_SUCCESS;  // Already loaded
 
   // Open the encoder library
-  aptx_hd_encoder_lib_handle = dlopen(APTX_HD_ENCODER_LIB_NAME, RTLD_NOW);
-  if (aptx_hd_encoder_lib_handle == NULL) {
-    LOG_ERROR("%s: cannot open aptX-HD encoder library %s: %s", __func__,
-              APTX_HD_ENCODER_LIB_NAME, dlerror());
-    return false;
-  }
+  aptx_hd_encoder_lib_handle = A2DP_VendorCodecLoadExternalLib(
+      APTX_HD_ENCODER_LIB_NAME, "AptX-HD encoder");
+  if (!aptx_hd_encoder_lib_handle) return LOAD_ERROR_MISSING_CODEC;
 
-  aptx_hd_encoder_init_func = (tAPTX_HD_ENCODER_INIT)dlsym(
-      aptx_hd_encoder_lib_handle, APTX_HD_ENCODER_INIT_NAME);
-  if (aptx_hd_encoder_init_func == NULL) {
-    LOG_ERROR("%s: cannot find function '%s' in the encoder library: %s",
-              __func__, APTX_HD_ENCODER_INIT_NAME, dlerror());
-    A2DP_VendorUnloadEncoderAptxHd();
-    return false;
-  }
+  aptx_hd_api.init_func =
+      LOAD_APTX_HD_SYMBOL(APTX_HD_ENCODER_INIT_NAME, tAPTX_HD_ENCODER_INIT);
 
-  aptx_hd_encoder_encode_stereo_func = (tAPTX_HD_ENCODER_ENCODE_STEREO)dlsym(
-      aptx_hd_encoder_lib_handle, APTX_HD_ENCODER_ENCODE_STEREO_NAME);
-  if (aptx_hd_encoder_encode_stereo_func == NULL) {
-    LOG_ERROR("%s: cannot find function '%s' in the encoder library: %s",
-              __func__, APTX_HD_ENCODER_ENCODE_STEREO_NAME, dlerror());
-    A2DP_VendorUnloadEncoderAptxHd();
-    return false;
-  }
+  aptx_hd_api.encode_stereo_func = LOAD_APTX_HD_SYMBOL(
+      APTX_HD_ENCODER_ENCODE_STEREO_NAME, tAPTX_HD_ENCODER_ENCODE_STEREO);
 
-  aptx_hd_encoder_sizeof_params_func = (tAPTX_HD_ENCODER_SIZEOF_PARAMS)dlsym(
-      aptx_hd_encoder_lib_handle, APTX_HD_ENCODER_SIZEOF_PARAMS_NAME);
-  if (aptx_hd_encoder_sizeof_params_func == NULL) {
-    LOG_ERROR("%s: cannot find function '%s' in the encoder library: %s",
-              __func__, APTX_HD_ENCODER_SIZEOF_PARAMS_NAME, dlerror());
-    A2DP_VendorUnloadEncoderAptxHd();
-    return false;
-  }
+  aptx_hd_api.sizeof_params_func = LOAD_APTX_HD_SYMBOL(
+      APTX_HD_ENCODER_SIZEOF_PARAMS_NAME, tAPTX_HD_ENCODER_SIZEOF_PARAMS);
 
+  return LOAD_SUCCESS;
+}
+
+bool A2DP_VendorCopyAptxHdApi(tAPTX_HD_API& external_api) {
+  if (aptx_hd_encoder_lib_handle == NULL) return false;  // not loaded
+  external_api = aptx_hd_api;
   return true;
 }
 
 void A2DP_VendorUnloadEncoderAptxHd(void) {
-  aptx_hd_encoder_init_func = NULL;
-  aptx_hd_encoder_encode_stereo_func = NULL;
-  aptx_hd_encoder_sizeof_params_func = NULL;
+  memset(&aptx_hd_api, 0, sizeof(aptx_hd_api));
 
   if (aptx_hd_encoder_lib_handle != NULL) {
     dlclose(aptx_hd_encoder_lib_handle);
@@ -186,9 +178,9 @@ void a2dp_vendor_aptx_hd_encoder_init(
 #endif
 
   a2dp_aptx_hd_encoder_cb.aptx_hd_encoder_state =
-      osi_malloc(aptx_hd_encoder_sizeof_params_func());
+      osi_malloc(aptx_hd_api.sizeof_params_func());
   if (a2dp_aptx_hd_encoder_cb.aptx_hd_encoder_state != NULL) {
-    aptx_hd_encoder_init_func(a2dp_aptx_hd_encoder_cb.aptx_hd_encoder_state, 0);
+    aptx_hd_api.init_func(a2dp_aptx_hd_encoder_cb.aptx_hd_encoder_state, 0);
   } else {
     LOG_ERROR("%s: Cannot allocate aptX-HD encoder state", __func__);
     // TODO: Return an error?
@@ -429,7 +421,7 @@ static size_t aptx_hd_encode_24bit(tAPTX_HD_FRAMING_PARAMS* framing_params,
       p += 3;
     }
 
-    aptx_hd_encoder_encode_stereo_func(
+    aptx_hd_api.encode_stereo_func(
         a2dp_aptx_hd_encoder_cb.aptx_hd_encoder_state, &pcmL, &pcmR,
         &encoded_sample);
 

@@ -76,6 +76,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeoutException;
 
@@ -484,12 +485,6 @@ public class LeAudioServiceTest {
                 BluetoothProfile.STATE_CONNECTING);
         assertThat(mService.getConnectionState(mLeftDevice))
                 .isEqualTo(BluetoothProfile.STATE_DISCONNECTED);
-    }
-
-    private void injectAndVerifyDeviceConnected(BluetoothDevice device) {
-        generateConnectionMessageFromNative(device,
-                LeAudioStackEvent.CONNECTION_STATE_CONNECTED,
-                LeAudioStackEvent.CONNECTION_STATE_DISCONNECTED);
     }
 
     private void injectNoVerifyDeviceConnected(BluetoothDevice device) {
@@ -1291,7 +1286,6 @@ public class LeAudioServiceTest {
         int snkAudioLocation = 3;
         int srcAudioLocation = 4;
         int availableContexts = 5;
-        int nodeStatus = LeAudioStackEvent.GROUP_NODE_ADDED;
         int groupStatus = LeAudioStackEvent.GROUP_STATUS_ACTIVE;
         BluetoothDevice leadDevice;
         BluetoothDevice memberDevice = mLeftDevice;
@@ -1301,7 +1295,7 @@ public class LeAudioServiceTest {
         connectTestDevice(mRightDevice, groupId);
 
         leadDevice = mService.getConnectedGroupLeadDevice(groupId);
-        if (leadDevice == mLeftDevice) {
+        if (Objects.equals(leadDevice, mLeftDevice)) {
                 memberDevice = mRightDevice;
         }
 
@@ -1332,8 +1326,8 @@ public class LeAudioServiceTest {
         injectNoVerifyDeviceDisconnected(leadDevice);
 
         // We should not change the audio device
-        assertThat(BluetoothProfile.STATE_CONNECTED)
-                .isEqualTo(mService.getConnectionState(leadDevice));
+        assertThat(mService.getConnectionState(leadDevice))
+                .isEqualTo(BluetoothProfile.STATE_CONNECTED);
 
         injectAndVerifyDeviceDisconnected(memberDevice);
 
@@ -1356,7 +1350,6 @@ public class LeAudioServiceTest {
         int snkAudioLocation = 3;
         int srcAudioLocation = 4;
         int availableContexts = 5;
-        int nodeStatus = LeAudioStackEvent.GROUP_NODE_ADDED;
         int groupStatus = LeAudioStackEvent.GROUP_STATUS_ACTIVE;
         BluetoothDevice leadDevice;
         BluetoothDevice memberDevice = mLeftDevice;
@@ -1366,7 +1359,7 @@ public class LeAudioServiceTest {
         connectTestDevice(mRightDevice, groupId);
 
         leadDevice = mService.getConnectedGroupLeadDevice(groupId);
-        if (leadDevice == mLeftDevice) {
+        if (Objects.equals(leadDevice, mLeftDevice)) {
                 memberDevice = mRightDevice;
         }
 
@@ -1398,8 +1391,8 @@ public class LeAudioServiceTest {
          * (in native)
          */
         injectNoVerifyDeviceDisconnected(leadDevice);
-        assertThat(BluetoothProfile.STATE_CONNECTED)
-                .isEqualTo(mService.getConnectionState(leadDevice));
+        assertThat(mService.getConnectionState(leadDevice))
+                .isEqualTo(BluetoothProfile.STATE_CONNECTED);
 
         /* Reconnect device, there should be no intent about that, as device was pretending
          * connected

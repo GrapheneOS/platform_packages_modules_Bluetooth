@@ -259,19 +259,24 @@ void avdt_scb_hdl_pkt_no_frag(AvdtpScb* p_scb, tAVDT_SCB_EVT* p_data) {
     if (offset > len) goto length_error;
     p += 2;
     BE_STREAM_TO_UINT16(ex_len, p);
-    offset += ex_len * 4;
     p += ex_len * 4;
   }
+
+  if ((p - p_start) > len) {
+    android_errorWriteLog(0x534e4554, "142546355");
+    osi_free_and_reset((void**)&p_data->p_pkt);
+    return;
+  }
+  offset = p - p_start;
 
   /* adjust length for any padding at end of packet */
   if (o_p) {
     /* padding length in last byte of packet */
-    pad_len = *(p_start + p_data->p_pkt->len);
+    pad_len = *(p_start + len);
   }
 
   /* do sanity check */
-  if ((offset > p_data->p_pkt->len) ||
-      ((pad_len + offset) > p_data->p_pkt->len)) {
+  if (pad_len > (len - offset)) {
     AVDT_TRACE_WARNING("Got bad media packet");
     osi_free_and_reset((void**)&p_data->p_pkt);
   }
@@ -389,7 +394,8 @@ uint8_t* avdt_scb_hdl_report(AvdtpScb* p_scb, uint8_t* p, uint16_t len) {
             goto avdt_scb_hdl_report_exit;
           }
           BE_STREAM_TO_UINT8(name_length, p);
-          if (name_length > len - 2 || name_length > AVDT_MAX_CNAME_SIZE) {
+          if (name_length > len - min_len ||
+              name_length > AVDT_MAX_CNAME_SIZE) {
             result = AVDT_BAD_PARAMS;
           } else {
             BE_STREAM_TO_ARRAY(p, &(report.cname[0]), name_length);
@@ -402,8 +408,8 @@ uint8_t* avdt_scb_hdl_report(AvdtpScb* p_scb, uint8_t* p, uint16_t len) {
                 __func__, len, min_len);
             goto avdt_scb_hdl_report_exit;
           }
-          AVDT_TRACE_WARNING(" - SDES SSRC=0x%08x sc=%d %d len=%d %s", ssrc,
-                             o_cc, *p, *(p + 1), p + 2);
+          AVDT_TRACE_WARNING("%s: SDES SSRC=0x%08x sc=%d %d len=%d", __func__,
+                             ssrc, o_cc, sdes_type, *p);
           result = AVDT_BUSY;
         }
         break;

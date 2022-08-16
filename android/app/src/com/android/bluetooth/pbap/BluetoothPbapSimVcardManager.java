@@ -47,9 +47,9 @@ import java.util.List;
 import java.util.Collections;
 import java.util.Comparator;
 
-import com.android.bluetooth.obex.Operation;
-import com.android.bluetooth.obex.ResponseCodes;
-import com.android.bluetooth.obex.ServerOperation;
+import com.android.obex.Operation;
+import com.android.obex.ResponseCodes;
+import com.android.obex.ServerOperation;
 
 /**
  * VCard composer especially for Call Log used in Bluetooth.

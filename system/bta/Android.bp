@@ -9,7 +9,7 @@ package {
 
 cc_defaults {
     name: "fluoride_bta_defaults",
-    defaults: ["fluoride_defaults"],
+    defaults: ["fluoride_basic_defaults"],
     local_include_dirs: [
         "include",
         "sys",
@@ -30,9 +30,6 @@ cc_defaults {
         "packages/modules/Bluetooth/system/vnd/include",
         "packages/modules/Bluetooth/system/utils/include",
         "packages/modules/Bluetooth/system/gd/rust/shim",
-    ],
-    shared_libs: [
-        "libcutils",
     ],
     header_libs: ["libbluetooth_headers"],
     cflags: ["-DBUILDCFG"],
@@ -146,31 +143,22 @@ cc_library_static {
     ],
     static_libs: [
         "avrcp-target-service",
-        "libflatbuffers-cpp",
         "lib-bt-packets",
-        "libbt-platform-protos-lite",
     ],
-    shared_libs: [
-        "android.hardware.bluetooth.audio@2.0",
-        "android.hardware.bluetooth.audio@2.1",
-    ],
-    target: {
-        android: {
-            shared_libs: [
-                "android.hardware.bluetooth.audio-V1-ndk",
-            ],
-        },
-    },
     generated_headers: [
         "LeAudioSetConfigSchemas_h",
     ],
     host_supported: true,
+    min_sdk_version: "Tiramisu"
 }
 
 // bta unit tests for target
 cc_test {
     name: "net_test_bta",
-    defaults: ["fluoride_bta_defaults"],
+    defaults: [
+        "fluoride_bta_defaults",
+        "mts_defaults"
+    ],
     test_suites: ["device-tests"],
     srcs: [
         ":TestMockStackBtm",
@@ -183,6 +171,8 @@ cc_test {
         "test/gatt/database_test.cc",
     ],
     shared_libs: [
+        "android.hardware.bluetooth.audio@2.0",
+        "android.hardware.bluetooth.audio@2.1",
         "libcrypto",
         "liblog",
         "libprotobuf-cpp-lite",
@@ -207,7 +197,10 @@ cc_test {
 
 cc_test {
     name: "bt_host_test_bta",
-    defaults: ["fluoride_bta_defaults"],
+    defaults: [
+        "fluoride_bta_defaults",
+        "mts_defaults",
+    ],
     test_suites: ["device-tests"],
     host_supported: true,
     include_dirs: [
@@ -260,7 +253,6 @@ cc_test {
     shared_libs: [
         "libbase",
         "libcrypto",
-        "libflatbuffers-cpp",
         "liblog",
         "libprotobuf-cpp-lite",
     ],
@@ -269,6 +261,7 @@ cc_test {
         "libbt-common",
         "libbt-protos-lite",
         "libbtcore",
+        "libflatbuffers-cpp",
         "libgmock",
     ],
     sanitize: {
@@ -281,7 +274,10 @@ cc_test {
 // bta hf client add record tests for target
 cc_test {
     name: "net_test_hf_client_add_record",
-    defaults: ["fluoride_defaults"],
+    defaults: [
+        "fluoride_defaults",
+        "mts_defaults",
+    ],
     test_suites: ["device-tests"],
     include_dirs: [
         "packages/modules/Bluetooth/system",
@@ -315,6 +311,7 @@ cc_test {
     defaults: [
         "fluoride_bta_defaults",
         "clang_coverage_bin",
+        "mts_defaults",
     ],
     host_supported: true,
     include_dirs: [
@@ -368,6 +365,7 @@ cc_test {
     defaults: [
         "fluoride_bta_defaults",
         "clang_coverage_bin",
+        "mts_defaults",
     ],
     host_supported: true,
     include_dirs: [
@@ -409,6 +407,7 @@ cc_test {
     defaults: [
         "fluoride_bta_defaults",
         "clang_coverage_bin",
+        "mts_defaults",
     ],
     host_supported: true,
     include_dirs: [
@@ -527,6 +526,7 @@ cc_test {
     defaults: [
         "fluoride_defaults",
         "clang_coverage_bin",
+        "mts_defaults",
     ],
     host_supported: true,
     target: {
@@ -607,6 +607,7 @@ cc_test {
     defaults: [
         "fluoride_bta_defaults",
         "clang_coverage_bin",
+        "mts_defaults",
     ],
     host_supported: true,
     // TODO(b/231993739): Reenable isolated:true by deleting the explicit disable below
@@ -676,7 +677,7 @@ cc_test {
         android: {
             shared_libs: [
                 "libbinder_ndk",
-                "android.hardware.bluetooth.audio-V1-ndk",
+                "android.hardware.bluetooth.audio-V2-ndk",
             ],
         },
     },
@@ -698,6 +699,7 @@ cc_test {
     defaults: [
         "fluoride_bta_defaults",
         "clang_coverage_bin",
+        "mts_defaults",
     ],
     host_supported: true,
     // TODO(b/231993739): Reenable isolated:true by deleting the explicit disable below
@@ -747,6 +749,7 @@ cc_test {
     defaults: [
         "fluoride_bta_defaults",
         "clang_coverage_bin",
+        "mts_defaults",
     ],
     host_supported: true,
     include_dirs: [
@@ -793,7 +796,7 @@ cc_test {
         android: {
             shared_libs: [
                 "libbinder_ndk",
-                "android.hardware.bluetooth.audio-V1-ndk",
+                "android.hardware.bluetooth.audio-V2-ndk",
             ],
         },
     },
@@ -815,6 +818,7 @@ cc_test {
     defaults: [
         "fluoride_bta_defaults",
         "clang_coverage_bin",
+        "mts_defaults",
     ],
     host_supported: true,
     // TODO(b/231993739): Reenable isolated:true by deleting the explicit disable below

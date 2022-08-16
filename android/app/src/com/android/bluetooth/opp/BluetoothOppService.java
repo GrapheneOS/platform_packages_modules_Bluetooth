@@ -37,7 +37,6 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothDevicePicker;
 import android.bluetooth.BluetoothSocket;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
@@ -53,6 +52,8 @@ import android.os.Binder;
 import android.os.Handler;
 import android.os.Message;
 import android.os.Process;
+import android.os.UserHandle;
+import android.os.UserManager;
 import android.sysprop.BluetoothProperties;
 import android.util.Log;
 
@@ -61,9 +62,9 @@ import com.android.bluetooth.IObexConnectionHandler;
 import com.android.bluetooth.ObexServerSockets;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
-import com.android.bluetooth.obex.ObexTransport;
 import com.android.bluetooth.sdp.SdpManager;
 import com.android.internal.annotations.VisibleForTesting;
+import com.android.obex.ObexTransport;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -251,9 +252,15 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
             Log.v(TAG, "start()");
         }
 
+        //Check for user restrictions before enabling component
+        UserManager mUserManager = getSystemService(UserManager.class);
+        if (!mUserManager.hasUserRestrictionForUser(
+                UserManager.DISALLOW_BLUETOOTH_SHARING, UserHandle.CURRENT)) {
+            setComponentAvailable(LAUNCHER_ACTIVITY, true);
+        }
+
         setComponentAvailable(OPP_PROVIDER, true);
         setComponentAvailable(OPP_FILE_PROVIDER, true);
-        setComponentAvailable(LAUNCHER_ACTIVITY, true);
         setComponentAvailable(BT_ENABLE_ACTIVITY, true);
         setComponentAvailable(BT_ERROR_ACTIVITY, true);
         setComponentAvailable(BT_ENABLING_ACTIVITY, true);
@@ -602,7 +609,7 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
                                 in1.putExtra(BluetoothDevicePicker.EXTRA_FILTER_TYPE,
                                         BluetoothDevicePicker.FILTER_TYPE_TRANSFER);
                                 in1.putExtra(BluetoothDevicePicker.EXTRA_LAUNCH_PACKAGE,
-                                        Constants.THIS_PACKAGE_NAME);
+                                        getPackageName());
                                 in1.putExtra(BluetoothDevicePicker.EXTRA_LAUNCH_CLASS,
                                         BluetoothOppReceiver.class.getName());
 

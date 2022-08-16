@@ -1,7 +1,16 @@
 {
-  "name": "com.android.bluetooth",
-
   // Placeholder module version to be replaced during build.
   // Do not change!
-  "version": 0
+  "version": 0,
+
+  "provideNativeLibs": [
+  ],
+  "provideSharedApexLibs": false,
+  "requireSharedApexLibs": [
+  ],
+  "name": "com.android.btservices",
+  "requireNativeLibs": [
+    "libaptX_encoder.so",
+    "libaptXHD_encoder.so"
+  ]
 }

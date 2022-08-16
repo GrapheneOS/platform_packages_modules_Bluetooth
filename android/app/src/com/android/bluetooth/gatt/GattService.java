@@ -48,9 +48,9 @@ import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanRecord;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
-import android.companion.ICompanionDeviceManager;
+import android.companion.AssociationInfo;
+import android.companion.CompanionDeviceManager;
 import android.content.AttributionSource;
-import android.content.Context;
 import android.content.Intent;
 import android.net.MacAddress;
 import android.os.Binder;
@@ -60,7 +60,6 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.ParcelUuid;
 import android.os.RemoteException;
-import android.os.ServiceManager;
 import android.os.SystemClock;
 import android.os.UserHandle;
 import android.os.WorkSource;
@@ -269,7 +268,7 @@ public class GattService extends ProfileService {
     private PeriodicScanManager mPeriodicScanManager;
     private ScanManager mScanManager;
     private AppOpsManager mAppOps;
-    private ICompanionDeviceManager mCompanionManager;
+    private CompanionDeviceManager mCompanionManager;
     private String mExposureNotificationPackage;
     private Handler mTestModeHandler;
     private final Object mTestModeLock = new Object();
@@ -323,8 +322,7 @@ public class GattService extends ProfileService {
         initializeNative();
         mAdapterService = AdapterService.getAdapterService();
         mBluetoothAdapterProxy = BluetoothAdapterProxy.getInstance();
-        mCompanionManager = ICompanionDeviceManager.Stub.asInterface(
-                ServiceManager.getService(Context.COMPANION_DEVICE_SERVICE));
+        mCompanionManager = getSystemService(CompanionDeviceManager.class);
         mAppOps = getSystemService(AppOpsManager.class);
         mAdvertiseManager = new AdvertiseManager(this, mAdapterService);
         mAdvertiseManager.start();
@@ -2052,8 +2050,7 @@ public class GattService extends ProfileService {
         mClientMap.removeConnection(clientIf, connId);
         ClientMap.App app = mClientMap.getById(clientIf);
 
-        // Remove AtomicBoolean representing permit if no other connections rely on
-        // this remote device.
+        // Remove AtomicBoolean representing permit if no other connections rely on this remote device.
         if (!mClientMap.getConnectedDevices().contains(address)) {
             synchronized (mPermits) {
                 Log.d(TAG, "onDisconnected() - removing permit for address="
@@ -2951,24 +2948,29 @@ public class GattService extends ProfileService {
         mScanManager.unregisterScanner(scannerId);
     }
 
-    private List<String> getAssociatedDevices(String callingPackage, UserHandle userHandle) {
+    private List<String> getAssociatedDevices(String callingPackage) {
         if (mCompanionManager == null) {
-            return new ArrayList<String>();
+            return Collections.emptyList();
         }
+
+        List<String> macAddresses = new ArrayList();
+
         final long identity = Binder.clearCallingIdentity();
         try {
-            return mCompanionManager.getAssociations(
-                    callingPackage, userHandle.getIdentifier());
+            for (AssociationInfo info : mCompanionManager.getAllAssociations()) {
+                if (info.getPackageName().equals(callingPackage) && !info.isSelfManaged()
+                    && info.getDeviceMacAddress() != null) {
+                    macAddresses.add(info.getDeviceMacAddress().toString());
+                }
+            }
         } catch (SecurityException se) {
             // Not an app with associated devices
-        } catch (RemoteException re) {
-            Log.e(TAG, "Cannot reach companion device service", re);
         } catch (Exception e) {
             Log.e(TAG, "Cannot check device associations for " + callingPackage, e);
         } finally {
             Binder.restoreCallingIdentity(identity);
         }
-        return new ArrayList<String>();
+        return macAddresses;
     }
 
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_SCAN)
@@ -3012,7 +3014,7 @@ public class GattService extends ProfileService {
                 Utils.checkCallerHasNetworkSetupWizardPermission(this);
         scanClient.hasScanWithoutLocationPermission =
                 Utils.checkCallerHasScanWithoutLocationPermission(this);
-        scanClient.associatedDevices = getAssociatedDevices(callingPackage, scanClient.userHandle);
+        scanClient.associatedDevices = getAssociatedDevices(callingPackage);
 
         AppScanStats app = mScannerMap.getAppScanStatsById(scannerId);
         ScannerMap.App cbApp = mScannerMap.getById(scannerId);
@@ -3092,7 +3094,7 @@ public class GattService extends ProfileService {
                 Utils.checkCallerHasNetworkSetupWizardPermission(this);
         app.mHasScanWithoutLocationPermission =
                 Utils.checkCallerHasScanWithoutLocationPermission(this);
-        app.mAssociatedDevices = getAssociatedDevices(callingPackage, app.mUserHandle);
+        app.mAssociatedDevices = getAssociatedDevices(callingPackage);
         mScanManager.registerScanner(uuid);
 
         // If this fails, we should stop the scan immediately.
@@ -3407,6 +3409,7 @@ public class GattService extends ProfileService {
             Log.d(TAG, "clientConnect() - address=" + address + ", isDirect=" + isDirect
                     + ", opportunistic=" + opportunistic + ", phy=" + phy);
         }
+        statsLogAppPackage(address, attributionSource.getPackageName());
         statsLogGattConnectionStateChange(
                 BluetoothProfile.GATT, address, clientIf,
                 BluetoothProtoEnums.CONNECTION_STATE_CONNECTING);
@@ -3998,6 +4001,7 @@ public class GattService extends ProfileService {
         }
 
         app.callback.onServerConnectionState((byte) 0, serverIf, connected, address);
+        statsLogAppPackage(address, app.name);
         statsLogGattConnectionStateChange(
                 BluetoothProfile.GATT_SERVER, address, serverIf, connectionState);
     }
@@ -4670,6 +4674,17 @@ public class GattService extends ProfileService {
                 mScanEvents.remove();
             }
             mScanEvents.add(event);
+        }
+    }
+
+    private void statsLogAppPackage(String address, String app) {
+        BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
+        BluetoothStatsLog.write(
+                BluetoothStatsLog.BLUETOOTH_DEVICE_NAME_REPORTED,
+                mAdapterService.getMetricId(device), app);
+        if (DBG) {
+            Log.d(TAG, "Gatt Logging: metric_id=" + mAdapterService.getMetricId(device)
+                    + ", app=" + app);
         }
     }
 

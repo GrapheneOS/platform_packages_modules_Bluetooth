@@ -21,8 +21,8 @@ import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.util.Log;
 
-import com.android.bluetooth.obex.ResponseCodes;
-import com.android.bluetooth.obex.ServerSession;
+import com.android.obex.ResponseCodes;
+import com.android.obex.ServerSession;
 
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;

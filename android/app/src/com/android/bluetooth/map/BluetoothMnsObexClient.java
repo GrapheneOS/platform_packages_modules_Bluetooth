@@ -26,11 +26,11 @@ import android.util.Log;
 import android.util.SparseBooleanArray;
 
 import com.android.bluetooth.BluetoothObexTransport;
-import com.android.bluetooth.obex.ClientOperation;
-import com.android.bluetooth.obex.ClientSession;
-import com.android.bluetooth.obex.HeaderSet;
-import com.android.bluetooth.obex.ObexTransport;
-import com.android.bluetooth.obex.ResponseCodes;
+import com.android.obex.ClientOperation;
+import com.android.obex.ClientSession;
+import com.android.obex.HeaderSet;
+import com.android.obex.ObexTransport;
+import com.android.obex.ResponseCodes;
 
 import java.io.IOException;
 import java.io.OutputStream;
