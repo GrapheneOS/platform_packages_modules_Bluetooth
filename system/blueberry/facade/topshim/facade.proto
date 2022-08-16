@@ -13,9 +13,87 @@ service AdapterService {
   rpc ClearFilterAcceptList(google.protobuf.Empty) returns (google.protobuf.Empty) {}
   rpc DisconnectAllAcls(google.protobuf.Empty) returns (google.protobuf.Empty) {}
   rpc LeRand(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc SetEventFilterConnectionSetupAllDevices(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc AllowWakeByHid(google.protobuf.Empty) returns (google.protobuf.Empty) {}
   rpc RestoreFilterAcceptList(google.protobuf.Empty) returns (google.protobuf.Empty) {}
   rpc SetDefaultEventMask(google.protobuf.Empty) returns (google.protobuf.Empty) {}
   rpc SetEventFilterInquiryResultAllDevices(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+}
+
+service GattService {
+  // Advertiser
+  rpc RegisterAdvertiser(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc UnregisterAdvertiser(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc GetOwnAddress(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc SetParameters(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc SetData(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc AdvertisingEnable(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc AdvertisingDisable(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc SetPeriodicAdvertisingParameters(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc SetPeriodicAdvertisingData(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc SetPeriodicAdvertisingEnable(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc StartAdvertising(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc StartAdvertisingSet(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+
+  // Scanner
+  rpc RegisterScanner(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc UnregisterScanner(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc StartScan(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc StopScan(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc ScanFilterSetup(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc ScanFilterAdd(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc ScanFilterClear(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc ScanFilterEnable(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc ScanFilterDisable(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc SetScanParameters(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc BatchScanConfigStorage(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc BatchScanEnable(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc BatchScanDisable(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc BatchScanReadReports(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc StartSync(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc StopSync(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc CancelCreateSync(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc TransferSync(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc TransferSetInfo(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc SyncTxParameters(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+
+  // Gatt Client
+  rpc RegisterClient(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc UnregisterClient(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc ClientConnect(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc ClientDisconnect(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc Refresh(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc SearchService(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc BtifGattcDiscoverServiceByUuid(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc ReadCharacteristic(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc ReadUsingCharacteristicUuid(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc WriteCharacteristic(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc ReadDescriptor(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc WriteDescriptor(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc ExecuteWrite(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc RegisterForNotification(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc DeregisterForNotification(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc ReadRemoteRssi(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc GetDeviceType(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc ConfigureMtu(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc ConnParameterUpdate(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc ClientSetPreferredPhy(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc ClientReadPhy(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc TestCommand(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc GetGattDb(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+
+  // Gatt Server
+  rpc RegisterServer(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc UnregisterServer(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc ServerConnect(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc ServerDisconnect(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc AddService(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc StopService(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc DeleteService(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc SendIndication(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc SendResponse(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc ServerSetPreferredPhy(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc ServerReadPhy(google.protobuf.Empty) returns (google.protobuf.Empty) {}
 }
 
 enum EventType {

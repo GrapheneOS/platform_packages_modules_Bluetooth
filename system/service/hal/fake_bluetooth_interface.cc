@@ -86,6 +86,8 @@ bt_interface_t fake_bt_iface = {
     nullptr, /* clear_filter_accept_list */
     nullptr, /* disconnect_all_acls */
     nullptr, /* le_rand */
+    nullptr, /* set_event_filter_connection_setup_all_devices */
+    nullptr, /* allow_wake_by_hid */
     nullptr, /* restore_filter_accept_list */
     nullptr, /* set_default_event_mask */
     nullptr, /* set_event_filter_inquiry_result_all_devices */

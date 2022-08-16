@@ -94,7 +94,6 @@ class AdapterClient():
     async def le_rand(self):
         await self.__adapter_stub.LeRand(empty_proto.Empty())
         future = await self._listen_for_event(facade_pb2.EventType.LE_RAND)
-        #        await asyncio.wait_for(future, AdapterClient.DEFAULT_TIMEOUT)
         return future.result()
 
     async def restore_filter_accept_list(self):
@@ -105,6 +104,12 @@ class AdapterClient():
 
     async def set_event_filter_inquiry_result_all_devices(self):
         await self.__adapter_stub.SetEventFilterInquiryResultAllDevices(empty_proto.Empty())
+
+    async def set_event_filter_connection_setup_all_devices(self):
+        await self.__adapter_stub.SetEventFilterConnectionSetupAllDevices(empty_proto.Empty())
+
+    async def allow_wake_by_hid(self):
+        await self.__adapter_stub.AllowWakeByHid(empty_proto.Empty())
 
 
 class A2dpAutomationHelper():
