@@ -6,8 +6,11 @@ android_test {
     name: "BluetoothInstrumentationTests",
 
     // We only want this apk build for tests.
-    certificate: "platform",
+    certificate: ":com.android.bluetooth.certificate",
+    defaults: ["framework-bluetooth-tests-defaults"],
 
+    min_sdk_version: "current",
+    target_sdk_version: "current",
     libs: [
         "javax.obex",
         "android.test.runner",
@@ -27,18 +30,24 @@ android_test {
         "androidx.room_room-runtime",
         "androidx.room_room-testing",
         "truth-prebuilt",
-        "PlatformProperties"
+        "PlatformProperties",
+        "framework-bluetooth-pre-jarjar",
     ],
 
     asset_dirs: ["src/com/android/bluetooth/btservice/storage/schemas"],
 
     // Include all test java files.
     srcs: ["src/**/*.java"],
-
+    jacoco: {
+        include_filter: ["android.bluetooth.*"],
+        exclude_filter: [],
+    },
     platform_apis: true,
 
-    test_suites: ["device-tests"],
+    test_suites: [
+        "device-tests",
+        "mts-bluetooth",
+    ],
 
     instrumentation_for: "Bluetooth",
-
 }

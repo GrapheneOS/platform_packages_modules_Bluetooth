@@ -16,8 +16,6 @@
 
 #define LOG_TAG "BtGatt.JNI"
 
-#define LOG_NDEBUG 0
-
 #include <base/bind.h>
 #include <base/callback.h>
 #include <cutils/log.h>

@@ -412,6 +412,11 @@ static void process_service_attr_rsp(tCONN_CB* p_ccb, uint8_t* p_reply,
       return;
     }
 
+    if (p_reply + list_byte_count + 1 /* continuation */ > p_reply_end) {
+      sdp_disconnect(p_ccb, SDP_INVALID_PDU_SIZE);
+      return;
+    }
+
     if (p_ccb->rsp_list == NULL)
       p_ccb->rsp_list = (uint8_t*)osi_malloc(SDP_MAX_LIST_BYTE_COUNT);
     memcpy(&p_ccb->rsp_list[p_ccb->list_len], p_reply, list_byte_count);
@@ -636,6 +641,8 @@ static void process_service_search_attr_rsp(tCONN_CB* p_ccb, uint8_t* p_reply,
 
   if ((type >> 3) != DATA_ELE_SEQ_DESC_TYPE) {
     LOG_WARN("Wrong element in attr_rsp type:0x%02x", type);
+    android_errorWriteLog(0x534e4554, "224545125");
+    sdp_disconnect(p_ccb, SDP_ILLEGAL_PARAMETER);
     return;
   }
   p = sdpu_get_len_from_type(p, p + p_ccb->list_len, type, &seq_len);

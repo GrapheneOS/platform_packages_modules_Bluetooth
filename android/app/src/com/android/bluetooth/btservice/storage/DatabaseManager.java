@@ -370,16 +370,17 @@ public class DatabaseManager {
             String address = device.getAddress();
 
             if (!mMetadataCache.containsKey(address)) {
-                Log.d(TAG, "getProfileConnectionPolicy: device " + address + " is not in cache");
+                Log.d(TAG, "getProfileConnectionPolicy: device " + device.getAnonymizedAddress()
+                        + " is not in cache");
                 return BluetoothProfile.CONNECTION_POLICY_UNKNOWN;
             }
 
             Metadata data = mMetadataCache.get(address);
             int connectionPolicy = data.getProfileConnectionPolicy(profile);
 
-            Log.v(TAG, "getProfileConnectionPolicy: " + address + ", profile="
-                    + BluetoothProfile.getProfileName(profile)
-                    + ", connectionPolicy = " + connectionPolicy);
+            Log.v(TAG, "getProfileConnectionPolicy: device " + device.getAnonymizedAddress()
+                    + " profile=" + BluetoothProfile.getProfileName(profile)
+                    + ", connectionPolicy=" + connectionPolicy);
             return connectionPolicy;
         }
     }
@@ -533,7 +534,8 @@ public class DatabaseManager {
      */
     public void setConnection(BluetoothDevice device, boolean isA2dpDevice) {
         synchronized (mMetadataCache) {
-            Log.d(TAG, "setConnection: device=" + device + " and isA2dpDevice=" + isA2dpDevice);
+            Log.d(TAG, "setConnection: device " + device.getAnonymizedAddress()
+                    + " and isA2dpDevice=" + isA2dpDevice);
             if (device == null) {
                 Log.e(TAG, "setConnection: device is null");
                 return;
@@ -561,8 +563,8 @@ public class DatabaseManager {
                 metadata.is_active_a2dp_device = true;
             }
 
-            Log.d(TAG, "Updating last connected time for device: " + device + " to "
-                    + metadata.last_active_time);
+            Log.d(TAG, "Updating last connected time for device: " + device.getAnonymizedAddress()
+                    + " to " + metadata.last_active_time);
             updateDatabase(metadata);
         }
     }
@@ -673,8 +675,8 @@ public class DatabaseManager {
                 Metadata metadata = metadataList.get(index);
                 if (metadata.last_active_time != MetadataDatabase.sCurrentConnectionNumber) {
                     Log.d(TAG, "compactLastConnectionTime: Setting last_active_item for device: "
-                            + metadata.getAddress() + " from " + metadata.last_active_time + " to "
-                            + MetadataDatabase.sCurrentConnectionNumber);
+                            + metadata.getAnonymizedAddress() + " from " + metadata.last_active_time
+                            + " to " + MetadataDatabase.sCurrentConnectionNumber);
                     metadata.last_active_time = MetadataDatabase.sCurrentConnectionNumber;
                     updateDatabase(metadata);
                     MetadataDatabase.sCurrentConnectionNumber++;
@@ -799,7 +801,7 @@ public class DatabaseManager {
             mMigratedFromSettingsGlobal = true;
             for (Metadata data : list) {
                 String address = data.getAddress();
-                Log.v(TAG, "cacheMetadata: found device " + address);
+                Log.v(TAG, "cacheMetadata: found device " + data.getAnonymizedAddress());
                 mMetadataCache.put(address, data);
             }
             Log.i(TAG, "cacheMetadata: Database is ready");
@@ -1006,7 +1008,7 @@ public class DatabaseManager {
             Log.e(TAG, "updateDatabase: address is null");
             return;
         }
-        Log.d(TAG, "updateDatabase " + data.getAddress());
+        Log.d(TAG, "updateDatabase " + data.getAnonymizedAddress());
         Message message = mHandler.obtainMessage(MSG_UPDATE_DATABASE);
         message.obj = data;
         mHandler.sendMessage(message);

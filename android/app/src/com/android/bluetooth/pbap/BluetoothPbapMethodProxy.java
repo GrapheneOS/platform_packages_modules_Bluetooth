@@ -23,8 +23,8 @@ import android.net.Uri;
 import android.util.Log;
 
 import com.android.bluetooth.Utils;
-import com.android.bluetooth.obex.HeaderSet;
 import com.android.internal.annotations.VisibleForTesting;
+import com.android.obex.HeaderSet;
 
 import java.io.IOException;
 

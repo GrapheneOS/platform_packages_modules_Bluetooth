@@ -22,6 +22,8 @@
  *
  ******************************************************************************/
 
+#include <base/logging.h>
+#include <log/log.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -36,8 +38,6 @@
 #include "stack/include/acl_api.h"
 #include "stack/include/bt_hdr.h"
 #include "types/bluetooth/uuid.h"
-
-#include <base/logging.h>
 
 using base::StringPrintf;
 using bluetooth::Uuid;
@@ -237,6 +237,12 @@ static tGATT_STATUS read_attr_value(tGATT_ATTR& attr16, uint16_t offset,
     uint16_t char_ext_prop =
         attr16.p_value ? attr16.p_value->char_ext_prop : 0x0000;
     *p_len = 2;
+
+    if (mtu < *p_len) {
+      android_errorWriteWithInfoLog(0x534e4554, "228078096", -1, NULL, 0);
+      return GATT_NO_RESOURCES;
+    }
+
     UINT16_TO_STREAM(p, char_ext_prop);
     *p_data = p;
     return GATT_SUCCESS;

@@ -34,7 +34,7 @@ cc_library_static {
             shared_libs: [
                 "libfmq",
                 "libbinder_ndk",
-                "android.hardware.bluetooth.audio-V1-ndk",
+                "android.hardware.bluetooth.audio-V2-ndk",
             ],
             srcs: [
                 "aidl/a2dp_encoding_aidl.cc",
@@ -67,6 +67,7 @@ cc_library_static {
     cflags: [
         "-DBUILDCFG",
     ],
+    min_sdk_version: "Tiramisu"
 }
 
 // Bluetooth Audio client interface library unit tests for target and host
@@ -84,7 +85,7 @@ cc_test {
     shared_libs: [
         "android.hardware.bluetooth.audio@2.0",
         "android.hardware.bluetooth.audio@2.1",
-        "android.hardware.bluetooth.audio-V1-ndk",
+        "android.hardware.bluetooth.audio-V2-ndk",
         "libbinder_ndk",
         "libcutils",
         "libfmq",

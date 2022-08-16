@@ -35,8 +35,8 @@ import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.SmallTest;
 import androidx.test.runner.AndroidJUnit4;
 
-import com.android.bluetooth.obex.Operation;
-import com.android.bluetooth.obex.ResponseCodes;
+import com.android.obex.Operation;
+import com.android.obex.ResponseCodes;
 
 import org.junit.After;
 import org.junit.Before;

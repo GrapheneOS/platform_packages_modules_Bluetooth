@@ -41,12 +41,12 @@ import com.android.bluetooth.ObexRejectServer;
 import com.android.bluetooth.R;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.MetricsLogger;
-import com.android.bluetooth.obex.ResponseCodes;
-import com.android.bluetooth.obex.ServerSession;
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.internal.annotations.VisibleForTesting.Visibility;
 import com.android.internal.util.State;
 import com.android.internal.util.StateMachine;
+import com.android.obex.ResponseCodes;
+import com.android.obex.ServerSession;
 
 import java.io.IOException;
 
@@ -404,8 +404,6 @@ public class PbapStateMachine extends StateMachine {
                                             mService.getTheme()))
                             .setFlag(Notification.FLAG_AUTO_CANCEL, true)
                             .setFlag(Notification.FLAG_ONLY_ALERT_ONCE, true)
-                            // TODO(b/171825892) Please replace FLAG_MUTABLE_UNAUDITED below
-                            // with either FLAG_IMMUTABLE (recommended) or FLAG_MUTABLE.
                             .setContentIntent(
                                     PendingIntent.getActivity(mService, 0, clickIntent,
                                         PendingIntent.FLAG_IMMUTABLE))

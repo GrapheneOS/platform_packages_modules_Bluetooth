@@ -18,12 +18,12 @@ package com.android.bluetooth;
 
 import java.io.IOException;
 
-import com.android.bluetooth.obex.HeaderSet;
-import com.android.bluetooth.obex.ObexTransport;
-import com.android.bluetooth.obex.Operation;
-import com.android.bluetooth.obex.ResponseCodes;
-import com.android.bluetooth.obex.ServerRequestHandler;
-import com.android.bluetooth.obex.ServerSession;
+import com.android.obex.HeaderSet;
+import com.android.obex.ObexTransport;
+import com.android.obex.Operation;
+import com.android.obex.ResponseCodes;
+import com.android.obex.ServerRequestHandler;
+import com.android.obex.ServerSession;
 
 /**
  * A fake obex server for testing obex clients. Test cases should implement *Validator functions to

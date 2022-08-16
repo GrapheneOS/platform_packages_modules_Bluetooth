@@ -38,22 +38,15 @@
 //
 // The aptX encoder shared library, and the functions to use
 //
-static const char* APTX_ENCODER_LIB_NAME = "libaptX_encoder.so";
+const std::string APTX_ENCODER_LIB_NAME = "libaptX_encoder.so";
 static void* aptx_encoder_lib_handle = NULL;
 
-static const char* APTX_ENCODER_INIT_NAME = "aptxbtenc_init";
-typedef int (*tAPTX_ENCODER_INIT)(void* state, short endian);
+static const std::string APTX_ENCODER_INIT_NAME = "aptxbtenc_init";
+static const std::string APTX_ENCODER_ENCODE_STEREO_NAME =
+    "aptxbtenc_encodestereo";
+static const std::string APTX_ENCODER_SIZEOF_PARAMS_NAME = "SizeofAptxbtenc";
 
-static const char* APTX_ENCODER_ENCODE_STEREO_NAME = "aptxbtenc_encodestereo";
-typedef int (*tAPTX_ENCODER_ENCODE_STEREO)(void* state, void* pcmL, void* pcmR,
-                                           void* buffer);
-
-static const char* APTX_ENCODER_SIZEOF_PARAMS_NAME = "SizeofAptxbtenc";
-typedef int (*tAPTX_ENCODER_SIZEOF_PARAMS)(void);
-
-static tAPTX_ENCODER_INIT aptx_encoder_init_func;
-static tAPTX_ENCODER_ENCODE_STEREO aptx_encoder_encode_stereo_func;
-static tAPTX_ENCODER_SIZEOF_PARAMS aptx_encoder_sizeof_params_func;
+static tAPTX_API aptx_api;
 
 // offset
 #if (BTA_AV_CO_CP_SCMS_T == TRUE)
@@ -62,6 +55,10 @@ static tAPTX_ENCODER_SIZEOF_PARAMS aptx_encoder_sizeof_params_func;
 // no RTP header for aptX classic
 #define A2DP_APTX_OFFSET (AVDT_MEDIA_OFFSET - AVDT_MEDIA_HDR_SIZE)
 #endif
+
+#define LOAD_APTX_SYMBOL(symbol_name, api_type)      \
+  LOAD_CODEC_SYMBOL("AptX", aptx_encoder_lib_handle, \
+                    A2DP_VendorUnloadEncoderAptx, symbol_name, api_type)
 
 #define A2DP_APTX_MAX_PCM_BYTES_PER_READ 4096
 
@@ -111,51 +108,46 @@ static size_t aptx_encode_16bit(tAPTX_FRAMING_PARAMS* framing_params,
                                 size_t* data_out_index, uint16_t* data16_in,
                                 uint8_t* data_out);
 
-bool A2DP_VendorLoadEncoderAptx(void) {
-  if (aptx_encoder_lib_handle != NULL) return true;  // Already loaded
+/*******************************************************************************
+ *
+ * Function         A2DP_VendorLoadEncoderAptx
+ *
+ * Description      This function will try to load the aptx encoder library.
+ *
+ * Returns          LOAD_SUCCESS on success
+ *                  LOAD_ERROR_MISSING_CODEC on missing library
+ *                  LOAD_ERROR_VERSION_MISMATCH on symbol loading error
+ *
+ ******************************************************************************/
+tLOADING_CODEC_STATUS A2DP_VendorLoadEncoderAptx(void) {
+  if (aptx_encoder_lib_handle != NULL) return LOAD_SUCCESS;  // Already loaded
 
   // Open the encoder library
-  aptx_encoder_lib_handle = dlopen(APTX_ENCODER_LIB_NAME, RTLD_NOW);
-  if (aptx_encoder_lib_handle == NULL) {
-    LOG_ERROR("%s: cannot open aptX encoder library %s: %s", __func__,
-              APTX_ENCODER_LIB_NAME, dlerror());
-    return false;
-  }
+  aptx_encoder_lib_handle =
+      A2DP_VendorCodecLoadExternalLib(APTX_ENCODER_LIB_NAME, "AptX encoder");
 
-  aptx_encoder_init_func = (tAPTX_ENCODER_INIT)dlsym(aptx_encoder_lib_handle,
-                                                     APTX_ENCODER_INIT_NAME);
-  if (aptx_encoder_init_func == NULL) {
-    LOG_ERROR("%s: cannot find function '%s' in the encoder library: %s",
-              __func__, APTX_ENCODER_INIT_NAME, dlerror());
-    A2DP_VendorUnloadEncoderAptx();
-    return false;
-  }
+  if (!aptx_encoder_lib_handle) return LOAD_ERROR_MISSING_CODEC;
 
-  aptx_encoder_encode_stereo_func = (tAPTX_ENCODER_ENCODE_STEREO)dlsym(
-      aptx_encoder_lib_handle, APTX_ENCODER_ENCODE_STEREO_NAME);
-  if (aptx_encoder_encode_stereo_func == NULL) {
-    LOG_ERROR("%s: cannot find function '%s' in the encoder library: %s",
-              __func__, APTX_ENCODER_ENCODE_STEREO_NAME, dlerror());
-    A2DP_VendorUnloadEncoderAptx();
-    return false;
-  }
+  aptx_api.init_func =
+      LOAD_APTX_SYMBOL(APTX_ENCODER_INIT_NAME, tAPTX_ENCODER_INIT);
 
-  aptx_encoder_sizeof_params_func = (tAPTX_ENCODER_SIZEOF_PARAMS)dlsym(
-      aptx_encoder_lib_handle, APTX_ENCODER_SIZEOF_PARAMS_NAME);
-  if (aptx_encoder_sizeof_params_func == NULL) {
-    LOG_ERROR("%s: cannot find function '%s' in the encoder library: %s",
-              __func__, APTX_ENCODER_SIZEOF_PARAMS_NAME, dlerror());
-    A2DP_VendorUnloadEncoderAptx();
-    return false;
-  }
+  aptx_api.encode_stereo_func = LOAD_APTX_SYMBOL(
+      APTX_ENCODER_ENCODE_STEREO_NAME, tAPTX_ENCODER_ENCODE_STEREO);
 
+  aptx_api.sizeof_params_func = LOAD_APTX_SYMBOL(
+      APTX_ENCODER_SIZEOF_PARAMS_NAME, tAPTX_ENCODER_SIZEOF_PARAMS);
+
+  return LOAD_SUCCESS;
+}
+
+bool A2DP_VendorCopyAptxApi(tAPTX_API& external_api) {
+  if (aptx_encoder_lib_handle == NULL) return false;  // not loaded
+  external_api = aptx_api;
   return true;
 }
 
 void A2DP_VendorUnloadEncoderAptx(void) {
-  aptx_encoder_init_func = NULL;
-  aptx_encoder_encode_stereo_func = NULL;
-  aptx_encoder_sizeof_params_func = NULL;
+  memset(&aptx_api, 0, sizeof(aptx_api));
 
   if (aptx_encoder_lib_handle != NULL) {
     dlclose(aptx_encoder_lib_handle);
@@ -185,9 +177,9 @@ void a2dp_vendor_aptx_encoder_init(
 #endif
 
   a2dp_aptx_encoder_cb.aptx_encoder_state =
-      osi_malloc(aptx_encoder_sizeof_params_func());
+      osi_malloc(aptx_api.sizeof_params_func());
   if (a2dp_aptx_encoder_cb.aptx_encoder_state != NULL) {
-    aptx_encoder_init_func(a2dp_aptx_encoder_cb.aptx_encoder_state, 0);
+    aptx_api.init_func(a2dp_aptx_encoder_cb.aptx_encoder_state, 0);
   } else {
     LOG_ERROR("%s: Cannot allocate aptX encoder state", __func__);
     // TODO: Return an error?
@@ -435,8 +427,8 @@ static size_t aptx_encode_16bit(tAPTX_FRAMING_PARAMS* framing_params,
       pcmR[i] = (uint16_t) * (data16_in + ((2 * j) + 1));
     }
 
-    aptx_encoder_encode_stereo_func(a2dp_aptx_encoder_cb.aptx_encoder_state,
-                                    &pcmL, &pcmR, &encoded_sample);
+    aptx_api.encode_stereo_func(a2dp_aptx_encoder_cb.aptx_encoder_state, &pcmL,
+                                &pcmR, &encoded_sample);
 
     data_out[*data_out_index + 0] = (uint8_t)((encoded_sample[0] >> 8) & 0xff);
     data_out[*data_out_index + 1] = (uint8_t)((encoded_sample[0] >> 0) & 0xff);

@@ -25,6 +25,7 @@ import android.bluetooth.BluetoothAssignedNumbers;
 import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadset;
+import android.bluetooth.BluetoothHeadsetClient;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.IBluetoothConnectionCallback;
@@ -73,6 +74,24 @@ final class RemoteDevices {
     private final HashMap<String, String> mDualDevicesMap;
     private ArrayDeque<String> mDeviceQueue;
 
+    /**
+     * Bluetooth HFP v1.8 specifies the Battery Charge indicator of AG can take values from
+     * {@code 0} to {@code 5}, but it does not specify how to map the values back to percentages.
+     * The following mapping is used:
+     *   - Level 0:                 0%
+     *   - Level 1: midpoint of  1-25%
+     *   - Level 2: midpoint of 26-50%
+     *   - Level 3: midpoint of 51-75%
+     *   - Level 4: midpoint of 76-99%
+     *   - Level 5:               100%
+     */
+    private static final int HFP_BATTERY_CHARGE_INDICATOR_0 = 0;
+    private static final int HFP_BATTERY_CHARGE_INDICATOR_1 = 13;
+    private static final int HFP_BATTERY_CHARGE_INDICATOR_2 = 38;
+    private static final int HFP_BATTERY_CHARGE_INDICATOR_3 = 63;
+    private static final int HFP_BATTERY_CHARGE_INDICATOR_4 = 88;
+    private static final int HFP_BATTERY_CHARGE_INDICATOR_5 = 100;
+
     private final Handler mHandler;
     private class RemoteDevicesHandler extends Handler {
 
@@ -111,6 +130,12 @@ final class RemoteDevices {
                     break;
                 case BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED:
                     onHeadsetConnectionStateChanged(intent);
+                    break;
+                case BluetoothHeadsetClient.ACTION_CONNECTION_STATE_CHANGED:
+                    onHeadsetClientConnectionStateChanged(intent);
+                    break;
+                case BluetoothHeadsetClient.ACTION_AG_EVENT:
+                    onAgIndicatorValueChanged(intent);
                     break;
                 default:
                     Log.w(TAG, "Unhandled intent: " + intent);
@@ -159,6 +184,8 @@ final class RemoteDevices {
         filter.addCategory(BluetoothHeadset.VENDOR_SPECIFIC_HEADSET_EVENT_COMPANY_ID_CATEGORY + "."
                 + BluetoothAssignedNumbers.APPLE);
         filter.addAction(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED);
+        filter.addAction(BluetoothHeadsetClient.ACTION_CONNECTION_STATE_CHANGED);
+        filter.addAction(BluetoothHeadsetClient.ACTION_AG_EVENT);
         mAdapterService.registerReceiver(mReceiver, filter);
     }
 
@@ -661,6 +688,38 @@ final class RemoteDevices {
         intent.addFlags(Intent.FLAG_RECEIVER_INCLUDE_BACKGROUND);
         mAdapterService.sendBroadcast(intent, BLUETOOTH_CONNECT,
                 Utils.getTempAllowlistBroadcastOptions());
+    }
+
+    /**
+     * Converts HFP's Battery Charge indicator values of {@code 0 -- 5} to an integer percentage.
+     */
+    @VisibleForTesting
+    static int batteryChargeIndicatorToPercentge(int indicator) {
+        int percent;
+        switch (indicator) {
+            case 5:
+                percent = HFP_BATTERY_CHARGE_INDICATOR_5;
+                break;
+            case 4:
+                percent = HFP_BATTERY_CHARGE_INDICATOR_4;
+                break;
+            case 3:
+                percent = HFP_BATTERY_CHARGE_INDICATOR_3;
+                break;
+            case 2:
+                percent = HFP_BATTERY_CHARGE_INDICATOR_2;
+                break;
+            case 1:
+                percent = HFP_BATTERY_CHARGE_INDICATOR_1;
+                break;
+            case 0:
+                percent = HFP_BATTERY_CHARGE_INDICATOR_0;
+                break;
+            default:
+                percent = BluetoothDevice.BATTERY_LEVEL_UNKNOWN;
+        }
+        Log.d(TAG, "Battery charge indicator: " + indicator + "; converted to: " + percent + "%");
+        return percent;
     }
 
     private static boolean areUuidsEqual(ParcelUuid[] uuids1, ParcelUuid[] uuids2) {
@@ -1181,6 +1240,38 @@ final class RemoteDevices {
             return BluetoothDevice.BATTERY_LEVEL_UNKNOWN;
         }
         return batteryLevel * 100 / (numberOfLevels - 1);
+    }
+
+    /**
+     * Handles headset client connection state change event
+     * @param intent must be {@link BluetoothHeadsetClient#ACTION_CONNECTION_STATE_CHANGED} intent
+     */
+    @VisibleForTesting
+    void onHeadsetClientConnectionStateChanged(Intent intent) {
+        BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+        if (device == null) {
+            Log.e(TAG, "onHeadsetClientConnectionStateChanged() remote device is null");
+            return;
+        }
+        if (intent.getIntExtra(BluetoothProfile.EXTRA_STATE, BluetoothProfile.STATE_DISCONNECTED)
+                == BluetoothProfile.STATE_DISCONNECTED) {
+            // TODO: Rework this when non-HFP sources of battery level indication is added
+            resetBatteryLevel(device);
+        }
+    }
+
+    @VisibleForTesting
+    void onAgIndicatorValueChanged(Intent intent) {
+        BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+        if (device == null) {
+            Log.e(TAG, "onAgIndicatorValueChanged() remote device is null");
+            return;
+        }
+
+        if (intent.hasExtra(BluetoothHeadsetClient.EXTRA_BATTERY_LEVEL)) {
+            int batteryLevel = intent.getIntExtra(BluetoothHeadsetClient.EXTRA_BATTERY_LEVEL, -1);
+            updateBatteryLevel(device, batteryChargeIndicatorToPercentge(batteryLevel));
+        }
     }
 
     private static void errorLog(String msg) {

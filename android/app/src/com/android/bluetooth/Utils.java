@@ -23,12 +23,11 @@ import static android.Manifest.permission.BLUETOOTH_CONNECT;
 import static android.Manifest.permission.BLUETOOTH_SCAN;
 import static android.Manifest.permission.RENOUNCE_PERMISSIONS;
 import static android.bluetooth.BluetoothUtils.USER_HANDLE_NULL;
-import static android.content.PermissionChecker.PERMISSION_HARD_DENIED;
-import static android.content.PermissionChecker.PID_UNKNOWN;
 import static android.content.pm.PackageManager.GET_PERMISSIONS;
 import static android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES;
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 import static android.os.PowerExemptionManager.TEMPORARY_ALLOW_LIST_TYPE_FOREGROUND_SERVICE_ALLOWED;
+import static android.permission.PermissionManager.PERMISSION_HARD_DENIED;
 
 import android.Manifest;
 import android.annotation.NonNull;
@@ -38,12 +37,11 @@ import android.annotation.SuppressLint;
 import android.app.BroadcastOptions;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.companion.Association;
+import android.companion.AssociationInfo;
 import android.companion.CompanionDeviceManager;
 import android.content.AttributionSource;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.PermissionChecker;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
@@ -57,6 +55,7 @@ import android.os.Process;
 import android.os.SystemProperties;
 import android.os.UserHandle;
 import android.os.UserManager;
+import android.permission.PermissionManager;
 import android.provider.DeviceConfig;
 import android.provider.Telephony;
 import android.util.Log;
@@ -84,7 +83,6 @@ import java.util.concurrent.TimeUnit;
 /**
  * @hide
  */
-
 public final class Utils {
     private static final String TAG = "BluetoothUtils";
     private static final int MICROS_PER_UNIT = 625;
@@ -322,8 +320,13 @@ public final class Utils {
     }
 
     static int sForegroundUserId = USER_HANDLE_NULL.getIdentifier();
-    public static void setForegroundUserId(int uid) {
-        Utils.sForegroundUserId = uid;
+
+    public static int getForegroundUserId() {
+        return Utils.sForegroundUserId;
+    }
+
+    public static void setForegroundUserId(int userId) {
+        Utils.sForegroundUserId = userId;
     }
 
     /**
@@ -347,9 +350,12 @@ public final class Utils {
                     + " is inaccurate for calling uid " + callingUid);
         }
 
-        for (Association association : cdm.getAllAssociations()) {
+        for (AssociationInfo association : cdm.getAllAssociations()) {
             if (association.getPackageName().equals(callingPackage)
-                    && association.getDeviceMacAddress().equals(device.getAddress())) {
+                    && !association.isSelfManaged() && device.getAddress() != null
+                    && association.getDeviceMacAddress() != null
+                    && device.getAddress().equalsIgnoreCase(
+                            association.getDeviceMacAddress().toString())) {
                 return true;
             }
         }
@@ -431,8 +437,12 @@ public final class Utils {
 
     @SuppressLint("AndroidFrameworkRequiresPermission")
     private static boolean checkPermissionForPreflight(Context context, String permission) {
-        final int result = PermissionChecker.checkCallingOrSelfPermissionForPreflight(
-                context, permission);
+        PermissionManager pm = context.getSystemService(PermissionManager.class);
+        if (pm == null) {
+            return false;
+        }
+        final int result = pm.checkPermissionForPreflight(permission,
+                context.getAttributionSource());
         if (result == PERMISSION_GRANTED) {
             return true;
         }
@@ -455,8 +465,12 @@ public final class Utils {
                 .Builder(context.getAttributionSource())
                 .setNext(attributionSource)
                 .build();
-        final int result = PermissionChecker.checkPermissionForDataDeliveryFromDataSource(
-                context, permission, PID_UNKNOWN, currentAttribution, message);
+        PermissionManager pm = context.getSystemService(PermissionManager.class);
+        if (pm == null) {
+            return false;
+        }
+        final int result = pm.checkPermissionForDataDeliveryFromDataSource(permission,
+                    currentAttribution, message);
         if (result == PERMISSION_GRANTED) {
             return true;
         }
@@ -702,9 +716,12 @@ public final class Utils {
                 .build();
         // STOPSHIP(b/188391719): enable this security enforcement
         // attributionSource.enforceCallingUid();
-        if (PermissionChecker.checkPermissionForDataDeliveryFromDataSource(
-                context, ACCESS_COARSE_LOCATION, PID_UNKNOWN, currentAttribution,
-                "Bluetooth location check") == PERMISSION_GRANTED) {
+        PermissionManager pm = context.getSystemService(PermissionManager.class);
+        if (pm == null) {
+            return false;
+        }
+        if (pm.checkPermissionForDataDeliveryFromDataSource(ACCESS_COARSE_LOCATION,
+                        currentAttribution, "Bluetooth location check") == PERMISSION_GRANTED) {
             return true;
         }
 
@@ -733,15 +750,17 @@ public final class Utils {
                 .build();
         // STOPSHIP(b/188391719): enable this security enforcement
         // attributionSource.enforceCallingUid();
-        if (PermissionChecker.checkPermissionForDataDeliveryFromDataSource(
-                context, ACCESS_FINE_LOCATION, PID_UNKNOWN, currentAttribution,
-                "Bluetooth location check") == PERMISSION_GRANTED) {
+        PermissionManager pm = context.getSystemService(PermissionManager.class);
+        if (pm == null) {
+            return false;
+        }
+        if (pm.checkPermissionForDataDeliveryFromDataSource(ACCESS_FINE_LOCATION,
+                        currentAttribution, "Bluetooth location check") == PERMISSION_GRANTED) {
             return true;
         }
 
-        if (PermissionChecker.checkPermissionForDataDeliveryFromDataSource(
-                context, ACCESS_COARSE_LOCATION, PID_UNKNOWN, currentAttribution,
-                "Bluetooth location check") == PERMISSION_GRANTED) {
+        if (pm.checkPermissionForDataDeliveryFromDataSource(ACCESS_COARSE_LOCATION,
+                        currentAttribution, "Bluetooth location check") == PERMISSION_GRANTED) {
             return true;
         }
 
@@ -769,9 +788,12 @@ public final class Utils {
                 .build();
         // STOPSHIP(b/188391719): enable this security enforcement
         // attributionSource.enforceCallingUid();
-        if (PermissionChecker.checkPermissionForDataDeliveryFromDataSource(
-                context, ACCESS_FINE_LOCATION, PID_UNKNOWN, currentAttribution,
-                "Bluetooth location check") == PERMISSION_GRANTED) {
+        PermissionManager pm = context.getSystemService(PermissionManager.class);
+        if (pm == null) {
+            return false;
+        }
+        if (pm.checkPermissionForDataDeliveryFromDataSource(ACCESS_FINE_LOCATION,
+                        currentAttribution, "Bluetooth location check") == PERMISSION_GRANTED) {
             return true;
         }
 

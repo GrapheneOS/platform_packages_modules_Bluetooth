@@ -1250,7 +1250,7 @@ static void l2c_csm_open(tL2C_CCB* p_ccb, tL2CEVT event, void* p_data) {
   tL2CAP_CFG_INFO* p_cfg;
   tL2C_CHNL_STATE tempstate;
   uint8_t tempcfgdone;
-  uint8_t cfg_result;
+  uint8_t cfg_result = L2CAP_PEER_CFG_DISCONNECT;
   uint16_t credit = 0;
   tL2CAP_LE_CFG_INFO* p_le_cfg = (tL2CAP_LE_CFG_INFO*)p_data;
 
@@ -1270,11 +1270,12 @@ static void l2c_csm_open(tL2C_CCB* p_ccb, tL2CEVT event, void* p_data) {
       /* For ecoc reconfig is handled below in l2c_ble. In case of success
        * let us notify upper layer about the reconfig
        */
-      LOG_DEBUG("Calling LeReconfigCompleted_Cb(), CID: 0x%04x",
-                p_ccb->local_cid);
-
-      (*p_ccb->p_rcb->api.pL2CA_CreditBasedReconfigCompleted_Cb)(
-          p_ccb->p_lcb->remote_bd_addr, p_ccb->local_cid, false, p_le_cfg);
+      if (p_le_cfg) {
+        LOG_DEBUG("Calling LeReconfigCompleted_Cb(), CID: 0x%04x",
+                  p_ccb->local_cid);
+        (*p_ccb->p_rcb->api.pL2CA_CreditBasedReconfigCompleted_Cb)(
+            p_ccb->p_lcb->remote_bd_addr, p_ccb->local_cid, false, p_le_cfg);
+      }
       break;
 
     case L2CEVT_L2CAP_CONFIG_REQ: /* Peer config request   */
@@ -1291,8 +1292,9 @@ static void l2c_csm_open(tL2C_CCB* p_ccb, tL2CEVT event, void* p_data) {
 
       alarm_set_on_mloop(p_ccb->l2c_ccb_timer, L2CAP_CHNL_CFG_TIMEOUT_MS,
                          l2c_ccb_timer_timeout, p_ccb);
-
-      cfg_result = l2cu_process_peer_cfg_req(p_ccb, p_cfg);
+      if (p_cfg) {
+        cfg_result = l2cu_process_peer_cfg_req(p_ccb, p_cfg);
+      }
       if (cfg_result == L2CAP_PEER_CFG_OK) {
         (*p_ccb->p_rcb->api.pL2CA_ConfigInd_Cb)(p_ccb->local_cid, p_cfg);
         l2c_csm_send_config_rsp_ok(p_ccb);
@@ -1331,7 +1333,7 @@ static void l2c_csm_open(tL2C_CCB* p_ccb, tL2CEVT event, void* p_data) {
       break;
 
     case L2CEVT_L2CAP_DATA: /* Peer data packet rcvd    */
-      if ((p_ccb->p_rcb) && (p_ccb->p_rcb->api.pL2CA_DataInd_Cb)) {
+      if (p_data && (p_ccb->p_rcb) && (p_ccb->p_rcb->api.pL2CA_DataInd_Cb)) {
         p_ccb->metrics.rx(static_cast<BT_HDR*>(p_data)->len);
         (*p_ccb->p_rcb->api.pL2CA_DataInd_Cb)(p_ccb->local_cid,
                                               (BT_HDR*)p_data);
@@ -1357,18 +1359,22 @@ static void l2c_csm_open(tL2C_CCB* p_ccb, tL2CEVT event, void* p_data) {
       break;
 
     case L2CEVT_L2CA_DATA_WRITE: /* Upper layer data to send */
-      l2c_enqueue_peer_data(p_ccb, (BT_HDR*)p_data);
-      l2c_link_check_send_pkts(p_ccb->p_lcb, 0, NULL);
+      if (p_data) {
+        l2c_enqueue_peer_data(p_ccb, (BT_HDR*)p_data);
+        l2c_link_check_send_pkts(p_ccb->p_lcb, 0, NULL);
+      }
       break;
 
     case L2CEVT_L2CA_CREDIT_BASED_RECONFIG_REQ:
       p_ccb->chnl_state = CST_CONFIG;
       p_ccb->config_done &= ~OB_CFG_DONE;
 
-      l2cu_send_credit_based_reconfig_req(p_ccb, (tL2CAP_LE_CFG_INFO*)p_data);
+      if (p_data) {
+        l2cu_send_credit_based_reconfig_req(p_ccb, (tL2CAP_LE_CFG_INFO*)p_data);
 
-      alarm_set_on_mloop(p_ccb->l2c_ccb_timer, L2CAP_CHNL_CFG_TIMEOUT_MS,
-                         l2c_ccb_timer_timeout, p_ccb);
+        alarm_set_on_mloop(p_ccb->l2c_ccb_timer, L2CAP_CHNL_CFG_TIMEOUT_MS,
+                           l2c_ccb_timer_timeout, p_ccb);
+      }
       break;
 
     case L2CEVT_L2CA_CONFIG_REQ: /* Upper layer config req   */
@@ -1389,22 +1395,26 @@ static void l2c_csm_open(tL2C_CCB* p_ccb, tL2CEVT event, void* p_data) {
       break;
 
     case L2CEVT_L2CA_SEND_FLOW_CONTROL_CREDIT:
-      LOG_DEBUG("Sending credit");
-      credit = *(uint16_t*)p_data;
-      l2cble_send_flow_control_credit(p_ccb, credit);
+      if (p_data) {
+        LOG_DEBUG("Sending credit");
+        credit = *(uint16_t*)p_data;
+        l2cble_send_flow_control_credit(p_ccb, credit);
+      }
       break;
 
     case L2CEVT_L2CAP_RECV_FLOW_CONTROL_CREDIT:
-      credit = *(uint16_t*)p_data;
-      LOG_DEBUG("Credits received %d", credit);
-      if ((p_ccb->peer_conn_cfg.credits + credit) > L2CAP_LE_CREDIT_MAX) {
-        /* we have received credits more than max coc credits,
-         * so disconnecting the Le Coc Channel
-         */
-        l2cble_send_peer_disc_req(p_ccb);
-      } else {
-        p_ccb->peer_conn_cfg.credits += credit;
-        l2c_link_check_send_pkts(p_ccb->p_lcb, 0, NULL);
+      if (p_data) {
+        credit = *(uint16_t*)p_data;
+        LOG_DEBUG("Credits received %d", credit);
+        if ((p_ccb->peer_conn_cfg.credits + credit) > L2CAP_LE_CREDIT_MAX) {
+          /* we have received credits more than max coc credits,
+           * so disconnecting the Le Coc Channel
+           */
+          l2cble_send_peer_disc_req(p_ccb);
+        } else {
+          p_ccb->peer_conn_cfg.credits += credit;
+          l2c_link_check_send_pkts(p_ccb->p_lcb, 0, NULL);
+        }
       }
       break;
     default:

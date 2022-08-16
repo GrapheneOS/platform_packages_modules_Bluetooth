@@ -55,7 +55,11 @@ filegroup {
 // libosi static library for target
 cc_library_static {
     name: "libosi",
-    defaults: ["fluoride_osi_defaults"],
+    visibility:[
+        "//packages/apps/Test/connectivity/sl4n",
+        "//packages/modules/Bluetooth:__subpackages__",
+    ],
+    defaults: ["fluoride_osi_defaults", "fluoride_basic_defaults"],
     // TODO(mcchou): Remove socket_utils sources after platform specific
     // dependencies are abstracted.
     srcs: [
@@ -83,10 +87,6 @@ cc_library_static {
         "src/thread_scheduler.cc",
         "src/wakelock.cc",
     ],
-    shared_libs: [
-        "liblog",
-    ],
-    static_libs: ["libbt-protos-lite"],
     host_supported: true,
     // TODO(armansito): Setting _GNU_SOURCE isn't very platform-independent but
     // should be compatible for a Linux host OS. We should figure out what to do for
@@ -99,8 +99,8 @@ cc_library_static {
             ],
         },
     },
+    min_sdk_version: "Tiramisu",
     apex_available: [
-        "//apex_available:platform",
         "com.android.bluetooth",
     ],
 }
@@ -109,7 +109,10 @@ cc_library_static {
 cc_test {
     name: "net_test_osi",
     test_suites: ["device-tests"],
-    defaults: ["fluoride_osi_defaults"],
+    defaults: [
+        "fluoride_osi_defaults",
+        "mts_defaults",
+    ],
     host_supported: true,
     srcs: [
         "test/AlarmTestHarness.cc",
@@ -132,6 +135,9 @@ cc_test {
         "test/wakelock_test.cc",
     ],
     shared_libs: [
+        "android.hardware.bluetooth@1.0",
+        "android.hardware.bluetooth@1.1",
+        "libbase",
         "liblog",
         "libprotobuf-cpp-lite",
         "libcutils",

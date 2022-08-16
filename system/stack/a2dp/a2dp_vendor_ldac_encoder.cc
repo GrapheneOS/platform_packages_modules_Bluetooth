@@ -24,13 +24,12 @@
 #endif
 #include <dlfcn.h>
 #include <inttypes.h>
-#include <ldacBT.h>
+#include <ldacBT_abr.h>
 #include <stdio.h>
 #include <string.h>
 
 #include "a2dp_vendor.h"
 #include "a2dp_vendor_ldac.h"
-#include "a2dp_vendor_ldac_abr.h"
 #include "common/time_util.h"
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
@@ -41,67 +40,8 @@
 // Encoder for LDAC Source Codec
 //
 
-//
-// The LDAC encoder shared library, and the functions to use
-//
-static const char* LDAC_ENCODER_LIB_NAME = "libldacBT_enc.so";
-static void* ldac_encoder_lib_handle = NULL;
-
-static const char* LDAC_GET_HANDLE_NAME = "ldacBT_get_handle";
-typedef HANDLE_LDAC_BT (*tLDAC_GET_HANDLE)(void);
-
-static const char* LDAC_FREE_HANDLE_NAME = "ldacBT_free_handle";
-typedef void (*tLDAC_FREE_HANDLE)(HANDLE_LDAC_BT hLdacParam);
-
-static const char* LDAC_CLOSE_HANDLE_NAME = "ldacBT_close_handle";
-typedef void (*tLDAC_CLOSE_HANDLE)(HANDLE_LDAC_BT hLdacParam);
-
-static const char* LDAC_GET_VERSION_NAME = "ldacBT_get_version";
-typedef int (*tLDAC_GET_VERSION)(void);
-
-static const char* LDAC_GET_BITRATE_NAME = "ldacBT_get_bitrate";
-typedef int (*tLDAC_GET_BITRATE)(HANDLE_LDAC_BT hLdacParam);
-
-static const char* LDAC_GET_SAMPLING_FREQ_NAME = "ldacBT_get_sampling_freq";
-typedef int (*tLDAC_GET_SAMPLING_FREQ)(HANDLE_LDAC_BT hLdacParam);
-
-static const char* LDAC_INIT_HANDLE_ENCODE_NAME = "ldacBT_init_handle_encode";
-typedef int (*tLDAC_INIT_HANDLE_ENCODE)(HANDLE_LDAC_BT hLdacParam, int mtu,
-                                        int eqmid, int channel_mode,
-                                        LDACBT_SMPL_FMT_T fmt,
-                                        int sampling_freq);
-
-static const char* LDAC_ENCODE_NAME = "ldacBT_encode";
-typedef int (*tLDAC_ENCODE)(HANDLE_LDAC_BT hLdacParam, void* p_pcm,
-                            int* p_pcm_encoded_byte, unsigned char* p_stream,
-                            int* pframe_length_wrote, int* pframe_num);
-
-static const char* LDAC_SET_EQMID_NAME = "ldacBT_set_eqmid";
-typedef int (*tLDAC_SET_EQMID)(HANDLE_LDAC_BT hLdacParam, int eqmid);
-
-static const char* LDAC_ALTER_EQMID_PRIORITY_NAME =
-    "ldacBT_alter_eqmid_priority";
-typedef int (*tLDAC_ALTER_EQMID_PRIORITY)(HANDLE_LDAC_BT hLdacParam,
-                                          int priority);
-
-static const char* LDAC_GET_EQMID_NAME = "ldacBT_get_eqmid";
-typedef int (*tLDAC_GET_EQMID)(HANDLE_LDAC_BT hLdacParam);
-
-static const char* LDAC_GET_ERROR_CODE_NAME = "ldacBT_get_error_code";
-typedef int (*tLDAC_GET_ERROR_CODE)(HANDLE_LDAC_BT hLdacParam);
-
-static tLDAC_GET_HANDLE ldac_get_handle_func;
-static tLDAC_FREE_HANDLE ldac_free_handle_func;
-static tLDAC_CLOSE_HANDLE ldac_close_handle_func;
-static tLDAC_GET_VERSION ldac_get_version_func;
-static tLDAC_GET_BITRATE ldac_get_bitrate_func;
-static tLDAC_GET_SAMPLING_FREQ ldac_get_sampling_freq_func;
-static tLDAC_INIT_HANDLE_ENCODE ldac_init_handle_encode_func;
-static tLDAC_ENCODE ldac_encode_func;
-static tLDAC_SET_EQMID ldac_set_eqmid_func;
-static tLDAC_ALTER_EQMID_PRIORITY ldac_alter_eqmid_priority_func;
-static tLDAC_GET_EQMID ldac_get_eqmid_func;
-static tLDAC_GET_ERROR_CODE ldac_get_error_code_func;
+// Initial EQMID for ABR mode.
+#define LDAC_ABR_MODE_EQMID LDACBT_EQMID_SQ
 
 // A2DP LDAC encoder interval in milliseconds
 #define A2DP_LDAC_ENCODER_INTERVAL_MS 20
@@ -166,7 +106,7 @@ typedef struct {
   a2dp_ldac_encoder_stats_t stats;
 } tA2DP_LDAC_ENCODER_CB;
 
-static bool ldac_abr_loaded = false;
+static bool ldac_abr_loaded = true;  // the library is statically linked
 
 static tA2DP_LDAC_ENCODER_CB a2dp_ldac_encoder_cb;
 
@@ -183,94 +123,14 @@ static uint16_t adjust_effective_mtu(
     const tA2DP_ENCODER_INIT_PEER_PARAMS& peer_params);
 static std::string quality_mode_index_to_name(int quality_mode_index);
 
-static void* load_func(const char* func_name) {
-  void* func_ptr = dlsym(ldac_encoder_lib_handle, func_name);
-  if (func_ptr == NULL) {
-    LOG_ERROR("%s: cannot find function '%s' in the encoder library: %s",
-              __func__, func_name, dlerror());
-    A2DP_VendorUnloadEncoderLdac();
-    return NULL;
-  }
-  return func_ptr;
-}
-
 bool A2DP_VendorLoadEncoderLdac(void) {
-  if (ldac_encoder_lib_handle != NULL) return true;  // Already loaded
-
-  // Initialize the control block
-  memset(&a2dp_ldac_encoder_cb, 0, sizeof(a2dp_ldac_encoder_cb));
-
-  // Open the encoder library
-  ldac_encoder_lib_handle = dlopen(LDAC_ENCODER_LIB_NAME, RTLD_NOW);
-  if (ldac_encoder_lib_handle == NULL) {
-    LOG_ERROR("%s: cannot open LDAC encoder library %s: %s", __func__,
-              LDAC_ENCODER_LIB_NAME, dlerror());
-    return false;
-  }
-
-  // Load all functions
-  ldac_get_handle_func = (tLDAC_GET_HANDLE)load_func(LDAC_GET_HANDLE_NAME);
-  if (ldac_get_handle_func == NULL) return false;
-  ldac_free_handle_func = (tLDAC_FREE_HANDLE)load_func(LDAC_FREE_HANDLE_NAME);
-  if (ldac_free_handle_func == NULL) return false;
-  ldac_close_handle_func =
-      (tLDAC_CLOSE_HANDLE)load_func(LDAC_CLOSE_HANDLE_NAME);
-  if (ldac_close_handle_func == NULL) return false;
-  ldac_get_version_func = (tLDAC_GET_VERSION)load_func(LDAC_GET_VERSION_NAME);
-  if (ldac_get_version_func == NULL) return false;
-  ldac_get_bitrate_func = (tLDAC_GET_BITRATE)load_func(LDAC_GET_BITRATE_NAME);
-  if (ldac_get_bitrate_func == NULL) return false;
-  ldac_get_sampling_freq_func =
-      (tLDAC_GET_SAMPLING_FREQ)load_func(LDAC_GET_SAMPLING_FREQ_NAME);
-  if (ldac_get_sampling_freq_func == NULL) return false;
-  ldac_init_handle_encode_func =
-      (tLDAC_INIT_HANDLE_ENCODE)load_func(LDAC_INIT_HANDLE_ENCODE_NAME);
-  if (ldac_init_handle_encode_func == NULL) return false;
-  ldac_encode_func = (tLDAC_ENCODE)load_func(LDAC_ENCODE_NAME);
-  if (ldac_encode_func == NULL) return false;
-  ldac_set_eqmid_func = (tLDAC_SET_EQMID)load_func(LDAC_SET_EQMID_NAME);
-  if (ldac_set_eqmid_func == NULL) return false;
-  ldac_alter_eqmid_priority_func =
-      (tLDAC_ALTER_EQMID_PRIORITY)load_func(LDAC_ALTER_EQMID_PRIORITY_NAME);
-  if (ldac_alter_eqmid_priority_func == NULL) return false;
-  ldac_get_eqmid_func = (tLDAC_GET_EQMID)load_func(LDAC_GET_EQMID_NAME);
-  if (ldac_get_eqmid_func == NULL) return false;
-  ldac_get_error_code_func =
-      (tLDAC_GET_ERROR_CODE)load_func(LDAC_GET_ERROR_CODE_NAME);
-  if (ldac_get_error_code_func == NULL) return false;
-
-  if (!A2DP_VendorLoadLdacAbr()) {
-    LOG_WARN("%s: cannot load the LDAC ABR library", __func__);
-    ldac_abr_loaded = false;
-  } else {
-    ldac_abr_loaded = true;
-  }
+  // Nothing to do - the library is statically linked
   return true;
 }
 
 void A2DP_VendorUnloadEncoderLdac(void) {
   // Cleanup any LDAC-related state
-  if (a2dp_ldac_encoder_cb.has_ldac_handle && ldac_free_handle_func != NULL)
-    ldac_free_handle_func(a2dp_ldac_encoder_cb.ldac_handle);
-  memset(&a2dp_ldac_encoder_cb, 0, sizeof(a2dp_ldac_encoder_cb));
-
-  ldac_get_handle_func = NULL;
-  ldac_free_handle_func = NULL;
-  ldac_close_handle_func = NULL;
-  ldac_get_version_func = NULL;
-  ldac_get_bitrate_func = NULL;
-  ldac_get_sampling_freq_func = NULL;
-  ldac_init_handle_encode_func = NULL;
-  ldac_encode_func = NULL;
-  ldac_set_eqmid_func = NULL;
-  ldac_alter_eqmid_priority_func = NULL;
-  ldac_get_eqmid_func = NULL;
-  ldac_get_error_code_func = NULL;
-
-  if (ldac_encoder_lib_handle != NULL) {
-    dlclose(ldac_encoder_lib_handle);
-    ldac_encoder_lib_handle = NULL;
-  }
+  a2dp_vendor_ldac_encoder_cleanup();
 }
 
 void a2dp_vendor_ldac_encoder_init(
@@ -278,11 +138,7 @@ void a2dp_vendor_ldac_encoder_init(
     A2dpCodecConfig* a2dp_codec_config,
     a2dp_source_read_callback_t read_callback,
     a2dp_source_enqueue_callback_t enqueue_callback) {
-  if (a2dp_ldac_encoder_cb.has_ldac_handle)
-    ldac_free_handle_func(a2dp_ldac_encoder_cb.ldac_handle);
-  if (a2dp_ldac_encoder_cb.has_ldac_abr_handle)
-    a2dp_ldac_abr_free_handle(a2dp_ldac_encoder_cb.ldac_abr_handle);
-  memset(&a2dp_ldac_encoder_cb, 0, sizeof(a2dp_ldac_encoder_cb));
+  a2dp_vendor_ldac_encoder_cleanup();
 
   a2dp_ldac_encoder_cb.stats.session_start_us =
       bluetooth::common::time_get_os_boottime_us();
@@ -325,7 +181,7 @@ static void a2dp_vendor_ldac_encoder_update(A2dpCodecConfig* a2dp_codec_config,
   *p_config_updated = false;
 
   if (!a2dp_ldac_encoder_cb.has_ldac_handle) {
-    a2dp_ldac_encoder_cb.ldac_handle = ldac_get_handle_func();
+    a2dp_ldac_encoder_cb.ldac_handle = ldacBT_get_handle();
     if (a2dp_ldac_encoder_cb.ldac_handle == NULL) {
       LOG_ERROR("%s: Cannot get LDAC encoder handle", __func__);
       return;  // TODO: Return an error?
@@ -396,13 +252,13 @@ static void a2dp_vendor_ldac_encoder_update(A2dpCodecConfig* a2dp_codec_config,
         LOG_INFO("%s: already in LDAC ABR mode, do nothing.", __func__);
       } else {
         LOG_INFO("%s: get and init LDAC ABR handle.", __func__);
-        a2dp_ldac_encoder_cb.ldac_abr_handle = a2dp_ldac_abr_get_handle();
+        a2dp_ldac_encoder_cb.ldac_abr_handle = ldac_ABR_get_handle();
         if (a2dp_ldac_encoder_cb.ldac_abr_handle != NULL) {
           a2dp_ldac_encoder_cb.has_ldac_abr_handle = true;
           a2dp_ldac_encoder_cb.last_ldac_abr_eqmid = -1;
           a2dp_ldac_encoder_cb.ldac_abr_adjustments = 0;
-          a2dp_ldac_abr_init(a2dp_ldac_encoder_cb.ldac_abr_handle,
-                             A2DP_LDAC_ENCODER_INTERVAL_MS);
+          ldac_ABR_Init(a2dp_ldac_encoder_cb.ldac_abr_handle,
+                        A2DP_LDAC_ENCODER_INTERVAL_MS);
         } else {
           p_encoder_params->quality_mode_index = A2DP_LDAC_QUALITY_MID;
           LOG_INFO(
@@ -419,7 +275,7 @@ static void a2dp_vendor_ldac_encoder_update(A2dpCodecConfig* a2dp_codec_config,
     LOG_INFO("%s: in %s mode, free LDAC ABR handle.", __func__,
              quality_mode_index_to_name(ldac_eqmid).c_str());
     if (a2dp_ldac_encoder_cb.has_ldac_abr_handle) {
-      a2dp_ldac_abr_free_handle(a2dp_ldac_encoder_cb.ldac_abr_handle);
+      ldac_ABR_free_handle(a2dp_ldac_encoder_cb.ldac_abr_handle);
       a2dp_ldac_encoder_cb.ldac_abr_handle = NULL;
       a2dp_ldac_encoder_cb.has_ldac_abr_handle = false;
       a2dp_ldac_encoder_cb.last_ldac_abr_eqmid = -1;
@@ -455,13 +311,13 @@ static void a2dp_vendor_ldac_encoder_update(A2dpCodecConfig* a2dp_codec_config,
 
   // Initialize the encoder.
   // NOTE: MTU in the initialization must include the AVDT media header size.
-  int result = ldac_init_handle_encode_func(
+  int result = ldacBT_init_handle_encode(
       a2dp_ldac_encoder_cb.ldac_handle,
       a2dp_ldac_encoder_cb.TxAaMtuSize + AVDT_MEDIA_HDR_SIZE, ldac_eqmid,
       p_encoder_params->channel_mode, p_encoder_params->pcm_fmt,
       p_encoder_params->sample_rate);
   if (result != 0) {
-    int err_code = ldac_get_error_code_func(a2dp_ldac_encoder_cb.ldac_handle);
+    int err_code = ldacBT_get_error_code(a2dp_ldac_encoder_cb.ldac_handle);
     LOG_ERROR(
         "%s: error initializing the LDAC encoder: %d api_error = %d "
         "handle_error = %d block_error = %d error_code = 0x%x",
@@ -471,10 +327,12 @@ static void a2dp_vendor_ldac_encoder_update(A2dpCodecConfig* a2dp_codec_config,
 }
 
 void a2dp_vendor_ldac_encoder_cleanup(void) {
-  if (a2dp_ldac_encoder_cb.has_ldac_abr_handle)
-    a2dp_ldac_abr_free_handle(a2dp_ldac_encoder_cb.ldac_abr_handle);
-  if (a2dp_ldac_encoder_cb.has_ldac_handle)
-    ldac_free_handle_func(a2dp_ldac_encoder_cb.ldac_handle);
+  if (a2dp_ldac_encoder_cb.has_ldac_abr_handle) {
+    ldac_ABR_free_handle(a2dp_ldac_encoder_cb.ldac_abr_handle);
+  }
+  if (a2dp_ldac_encoder_cb.has_ldac_handle) {
+    ldacBT_free_handle(a2dp_ldac_encoder_cb.ldac_handle);
+  }
   memset(&a2dp_ldac_encoder_cb, 0, sizeof(a2dp_ldac_encoder_cb));
 }
 
@@ -520,9 +378,9 @@ void a2dp_vendor_ldac_send_frames(uint64_t timestamp_us) {
       int flag_enable = 1;
       int prev_eqmid = a2dp_ldac_encoder_cb.last_ldac_abr_eqmid;
       a2dp_ldac_encoder_cb.last_ldac_abr_eqmid =
-          a2dp_ldac_abr_proc(a2dp_ldac_encoder_cb.ldac_handle,
-                             a2dp_ldac_encoder_cb.ldac_abr_handle,
-                             a2dp_ldac_encoder_cb.TxQueueLength, flag_enable);
+          ldac_ABR_Proc(a2dp_ldac_encoder_cb.ldac_handle,
+                        a2dp_ldac_encoder_cb.ldac_abr_handle,
+                        a2dp_ldac_encoder_cb.TxQueueLength, flag_enable);
       if (prev_eqmid != a2dp_ldac_encoder_cb.last_ldac_abr_eqmid)
         a2dp_ldac_encoder_cb.ldac_abr_adjustments++;
 #ifndef OS_GENERIC
@@ -625,12 +483,12 @@ static void a2dp_ldac_encode_frames(uint8_t nb_frame) {
           osi_free(p_buf);
           return;
         }
-        int result = ldac_encode_func(
+        int result = ldacBT_encode(
             a2dp_ldac_encoder_cb.ldac_handle, read_buffer, (int*)&encode_count,
             packet + count, (int*)&written, (int*)&out_frames);
         if (result != 0) {
           int err_code =
-              ldac_get_error_code_func(a2dp_ldac_encoder_cb.ldac_handle);
+              ldacBT_get_error_code(a2dp_ldac_encoder_cb.ldac_handle);
           LOG_ERROR(
               "%s: LDAC encoding error: %d api_error = %d "
               "handle_error = %d block_error = %d error_code = 0x%x",
@@ -751,7 +609,7 @@ void A2dpCodecConfigLdacSource::debug_codec_dump(int fd) {
 
   dprintf(fd,
           "  LDAC transmission bitrate (Kbps)                        : %d\n",
-          ldac_get_bitrate_func(a2dp_ldac_encoder_cb.ldac_handle));
+          ldacBT_get_bitrate(a2dp_ldac_encoder_cb.ldac_handle));
 
   dprintf(fd,
           "  LDAC saved transmit queue length                        : %zu\n",

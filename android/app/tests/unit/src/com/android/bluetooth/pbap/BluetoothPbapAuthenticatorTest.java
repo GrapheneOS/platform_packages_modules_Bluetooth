@@ -24,7 +24,7 @@ import static org.mockito.Mockito.verify;
 import androidx.test.filters.MediumTest;
 import androidx.test.runner.AndroidJUnit4;
 
-import com.android.bluetooth.obex.PasswordAuthentication;
+import com.android.obex.PasswordAuthentication;
 
 import org.junit.Before;
 import org.junit.Test;

@@ -17,10 +17,10 @@
 package com.android.bluetooth.mapclient;
 
 import com.android.bluetooth.mapclient.MasClient.CharsetType;
-import com.android.bluetooth.obex.ClientSession;
-import com.android.bluetooth.obex.HeaderSet;
-import com.android.bluetooth.obex.ResponseCodes;
 import com.android.internal.annotations.VisibleForTesting;
+import com.android.obex.ClientSession;
+import com.android.obex.HeaderSet;
+import com.android.obex.ResponseCodes;
 
 import java.io.IOException;
 import java.math.BigInteger;
