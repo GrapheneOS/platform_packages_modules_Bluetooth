@@ -75,8 +75,7 @@ const bluetooth::legacy::hci::Interface& GetLegacyHciInterface() {
 #define BTM_ESCO_2_SCO(escotype) \
   ((uint16_t)(((escotype)&BTM_ESCO_PKT_TYPE_MASK) << 5))
 
-/* Define masks for supported and exception 2.0 SCO packet types
- */
+/* Define masks for supported and exception 2.0 SCO packet types */
 #define BTM_SCO_SUPPORTED_PKTS_MASK                    \
   (ESCO_PKT_TYPES_MASK_HV1 | ESCO_PKT_TYPES_MASK_HV2 | \
    ESCO_PKT_TYPES_MASK_HV3 | ESCO_PKT_TYPES_MASK_EV3 | \
@@ -191,7 +190,7 @@ static void btm_esco_conn_rsp(uint16_t sco_inx, uint8_t hci_status,
   }
 }
 
-// Return the active (first connected) SCO connection block
+/* Return the active (first connected) SCO connection block */
 static tSCO_CONN* btm_get_active_sco() {
   for (auto& link : btm_cb.sco_cb.sco_db) {
     if (link.state == SCO_ST_CONNECTED) {
@@ -247,9 +246,8 @@ void btm_route_sco_data(BT_HDR* p_msg) {
     return;
   }
 
-  if (active_sco->esco.setup.transmit_coding_format.coding_format ==
-      ESCO_CODING_FORMAT_TRANSPNT /* Inband MSBC */) {
-    // TODO(b/235901463): Support packet size != BTM_MSBC_PKT_LEN
+  if (active_sco->is_wbs()) {
+    /* TODO(b/235901463): Support packet size != BTM_MSBC_PKT_LEN */
     if (length != BTM_MSBC_PKT_LEN) {
       LOG_ERROR("Received invalid mSBC packet with invalid length:%hhu",
                 length);
@@ -288,13 +286,10 @@ void btm_route_sco_data(BT_HDR* p_msg) {
   bluetooth::audio::sco::write(out_data, length);
   osi_free(p_msg);
 
-  // For Chrome OS, we send the outgoing data after receiving an incoming one
+  /* For Chrome OS, we send the outgoing data after receiving an incoming one */
   auto size_read = bluetooth::audio::sco::read(read_buf, length);
 
-  if (active_sco->esco.setup.transmit_coding_format.coding_format ==
-      ESCO_CODING_FORMAT_TRANSPNT /* Inband MSBC */) {
-    /* The pre-computed zero input bit stream of mSBC codec, per HFP 1.7 spec.
-     * This mSBC frame will be decoded into all-zero input PCM. */
+  if (active_sco->is_wbs()) {
     uint8_t encoded[BTM_MSBC_PKT_LEN] = {
         BTM_MSBC_H2_HEADER_0,
         btm_h2_header_frames_count[btm_msbc_num_out_frames % 4]};
