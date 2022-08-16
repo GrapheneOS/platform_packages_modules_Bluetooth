@@ -77,6 +77,10 @@ void SyspropsModule::parse_config(std::string file_path) {
       "bluetooth.core.classic.inq_scan_window",
       "bluetooth.core.acl.link_supervision_timeout",
       "bluetooth.core.classic.page_timeout",
+      "bluetooth.core.classic.sniff_max_intervals",
+      "bluetooth.core.classic.sniff_min_intervals",
+      "bluetooth.core.classic.sniff_attempts",
+      "bluetooth.core.classic.sniff_timeouts",
   };
 
   auto config = storage::LegacyConfigFile::FromPath(file_path).Read(kDefaultCapacity);
