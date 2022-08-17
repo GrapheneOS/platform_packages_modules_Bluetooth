@@ -548,7 +548,7 @@ enum {
 
 #ifndef BTA_DM_PM_PARK_IDX
 #define BTA_DM_PM_PARK_IDX \
-  6 /* the actual index to bta_dm_pm_md[] for PARK mode */
+  7 /* the actual index to bta_dm_pm_md[] for PARK mode */
 #endif
 
 #ifndef BTA_DM_PM_SNIFF_A2DP_IDX
