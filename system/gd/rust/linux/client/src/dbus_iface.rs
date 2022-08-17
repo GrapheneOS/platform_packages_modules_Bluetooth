@@ -7,7 +7,7 @@ use bt_topshim::profiles::gatt::GattStatus;
 use bt_topshim::profiles::socket::SocketType;
 
 use btstack::bluetooth::{
-    BluetoothDevice, IBluetooth, IBluetoothCallback, IBluetoothConnectionCallback,
+    BluetoothDevice, IBluetooth, IBluetoothCallback, IBluetoothConnectionCallback, IBluetoothQA,
 };
 use btstack::bluetooth_gatt::{
     BluetoothGattCharacteristic, BluetoothGattDescriptor, BluetoothGattService,
@@ -470,6 +470,36 @@ impl IBluetooth for BluetoothDBus {
 
     #[dbus_method("DisconnectAllEnabledProfiles")]
     fn disconnect_all_enabled_profiles(&mut self, device: BluetoothDevice) -> bool {
+        dbus_generated!()
+    }
+}
+
+pub(crate) struct BluetoothQADBus {
+    client_proxy: ClientDBusProxy,
+}
+
+impl BluetoothQADBus {
+    pub(crate) fn new(conn: Arc<SyncConnection>, index: i32) -> BluetoothQADBus {
+        BluetoothQADBus {
+            client_proxy: ClientDBusProxy::new(
+                conn.clone(),
+                String::from("org.chromium.bluetooth"),
+                make_object_path(index, "adapter"),
+                String::from("org.chromium.bluetooth.BluetoothQA"),
+            ),
+        }
+    }
+}
+
+#[generate_dbus_interface_client]
+impl IBluetoothQA for BluetoothQADBus {
+    #[dbus_method("GetConnectable")]
+    fn get_connectable(&self) -> bool {
+        dbus_generated!()
+    }
+
+    #[dbus_method("SetConnectable")]
+    fn set_connectable(&mut self, mode: bool) -> bool {
         dbus_generated!()
     }
 }
