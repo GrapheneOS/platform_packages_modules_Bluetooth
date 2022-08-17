@@ -258,9 +258,9 @@ public class GattService extends ProfileService {
 
     /**
      * HashMap used to synchronize writeCharacteristic calls mapping remote device address to
-     * available permit (either 1 or 0).
+     * available permit (connectId or -1).
      */
-    private final HashMap<String, AtomicBoolean> mPermits = new HashMap<>();
+    private final HashMap<String, Integer> mPermits = new HashMap<>();
 
     private AdapterService mAdapterService;
     private BluetoothAdapterProxy mBluetoothAdapterProxy;
@@ -2025,7 +2025,7 @@ public class GattService extends ProfileService {
             synchronized (mPermits) {
                 Log.d(TAG, "onConnected() - adding permit for address="
                     + address);
-                mPermits.putIfAbsent(address, new AtomicBoolean(true));
+                mPermits.putIfAbsent(address, -1);
             }
             connectionState = BluetoothProtoEnums.CONNECTION_STATE_CONNECTED;
 
@@ -2056,6 +2056,13 @@ public class GattService extends ProfileService {
                 Log.d(TAG, "onDisconnected() - removing permit for address="
                     + address);
                 mPermits.remove(address);
+            }
+        } else {
+            synchronized (mPermits) {
+                if (mPermits.get(address) == connId) {
+                    Log.d(TAG, "onDisconnected() - set permit -1 for address=" + address);
+                    mPermits.put(address, -1);
+                }
             }
         }
 
@@ -2362,7 +2369,7 @@ public class GattService extends ProfileService {
         synchronized (mPermits) {
             Log.d(TAG, "onWriteCharacteristic() - increasing permit for address="
                     + address);
-            mPermits.get(address).set(true);
+            mPermits.put(address, -1);
         }
 
         if (VDBG) {
@@ -3655,18 +3662,18 @@ public class GattService extends ProfileService {
         Log.d(TAG, "writeCharacteristic() - trying to acquire permit.");
         // Lock the thread until onCharacteristicWrite callback comes back.
         synchronized (mPermits) {
-            AtomicBoolean atomicBoolean = mPermits.get(address);
-            if (atomicBoolean == null) {
+            Integer permit = mPermits.get(address);
+            if (permit == null) {
                 Log.d(TAG, "writeCharacteristic() -  atomicBoolean uninitialized!");
                 return BluetoothStatusCodes.ERROR_DEVICE_NOT_CONNECTED;
             }
 
-            boolean success = atomicBoolean.get();
+            boolean success = (permit == -1);
             if (!success) {
                 Log.d(TAG, "writeCharacteristic() - no permit available.");
                 return BluetoothStatusCodes.ERROR_GATT_WRITE_REQUEST_BUSY;
             }
-            atomicBoolean.set(false);
+            mPermits.put(address, connId);
         }
 
         gattClientWriteCharacteristicNative(connId, handle, writeType, authReq, value);
