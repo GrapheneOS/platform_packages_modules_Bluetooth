@@ -24,8 +24,10 @@
  ******************************************************************************/
 
 #include <base/bind.h>
+
 #include <cstdint>
 #include <mutex>
+#include <vector>
 
 #include "bta/dm/bta_dm_int.h"
 #include "bta/include/bta_api.h"
@@ -34,6 +36,7 @@
 #include "device/include/controller.h"
 #include "main/shim/dumpsys.h"
 #include "osi/include/log.h"
+#include "osi/include/properties.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/btu.h"  // do_in_main_thread
 #include "types/raw_address.h"
@@ -62,6 +65,16 @@ static void bta_dm_pm_ssr(const RawAddress& peer_addr, const int ssr);
 tBTA_DM_CONNECTED_SRVCS bta_dm_conn_srvcs;
 static std::recursive_mutex pm_timer_schedule_mutex;
 static std::recursive_mutex pm_timer_state_mutex;
+
+/* Sysprop paths for sniff parameters */
+static const char kPropertySniffMaxIntervals[] =
+    "bluetooth.core.classic.sniff_max_intervals";
+static const char kPropertySniffMinIntervals[] =
+    "bluetooth.core.classic.sniff_min_intervals";
+static const char kPropertySniffAttempts[] =
+    "bluetooth.core.classic.sniff_attempts";
+static const char kPropertySniffTimeouts[] =
+    "bluetooth.core.classic.sniff_timeouts";
 
 /*******************************************************************************
  *
@@ -689,7 +702,60 @@ static bool bta_dm_pm_park(const RawAddress& peer_addr) {
   }
   return true;
 }
+/*******************************************************************************
+ *
+ * Function         get_sniff_entry
+ *
+ * Description      Helper function to get sniff entry from sysprop or
+ *                  default table.
+ *
+ *
+ * Returns          tBTM_PM_PWR_MD with specified |index|.
+ *
+ ******************************************************************************/
+tBTM_PM_PWR_MD get_sniff_entry(uint8_t index) {
+  static std::vector<tBTM_PM_PWR_MD> pwr_mds_cache;
+  if (pwr_mds_cache.size() == BTA_DM_PM_PARK_IDX) {
+    if (index >= BTA_DM_PM_PARK_IDX) {
+      return pwr_mds_cache[0];
+    }
+    return pwr_mds_cache[index];
+  }
 
+  std::vector<uint32_t> invalid_list(BTA_DM_PM_PARK_IDX, 0);
+  std::vector<uint32_t> max =
+      osi_property_get_uintlist(kPropertySniffMaxIntervals, invalid_list);
+  std::vector<uint32_t> min =
+      osi_property_get_uintlist(kPropertySniffMinIntervals, invalid_list);
+  std::vector<uint32_t> attempt =
+      osi_property_get_uintlist(kPropertySniffAttempts, invalid_list);
+  std::vector<uint32_t> timeout =
+      osi_property_get_uintlist(kPropertySniffTimeouts, invalid_list);
+
+  // If any of the sysprops are malformed or don't exist, use default table
+  // value
+  bool use_defaults =
+      (max.size() < BTA_DM_PM_PARK_IDX || max == invalid_list ||
+       min.size() < BTA_DM_PM_PARK_IDX || min == invalid_list ||
+       attempt.size() < BTA_DM_PM_PARK_IDX || attempt == invalid_list ||
+       timeout.size() < BTA_DM_PM_PARK_IDX || timeout == invalid_list);
+
+  for (auto i = 0; i < BTA_DM_PM_PARK_IDX; i++) {
+    if (use_defaults) {
+      pwr_mds_cache.push_back(p_bta_dm_pm_md[i]);
+    } else {
+      pwr_mds_cache.push_back(tBTM_PM_PWR_MD{
+          static_cast<uint16_t>(max[i]), static_cast<uint16_t>(min[i]),
+          static_cast<uint16_t>(attempt[i]), static_cast<uint16_t>(timeout[i]),
+          BTM_PM_MD_SNIFF});
+    }
+  }
+
+  if (index >= BTA_DM_PM_PARK_IDX) {
+    return pwr_mds_cache[0];
+  }
+  return pwr_mds_cache[index];
+}
 /*******************************************************************************
  *
  * Function         bta_ag_pm_sniff
@@ -734,7 +800,8 @@ void bta_dm_pm_sniff(tBTA_DM_PEER_DEVICE* p_peer_dev, uint8_t index) {
   }
   /* if the current mode is not sniff, issue the sniff command.
    * If sniff, but SSR is not used in this link, still issue the command */
-  memcpy(&pwr_md, &p_bta_dm_pm_md[index], sizeof(tBTM_PM_PWR_MD));
+  tBTM_PM_PWR_MD sniff_entry = get_sniff_entry(index);
+  memcpy(&pwr_md, &sniff_entry, sizeof(tBTM_PM_PWR_MD));
   if (p_peer_dev->Info() & BTA_DM_DI_INT_SNIFF) {
     LOG_DEBUG("Trying to force power mode");
     pwr_md.mode |= BTM_PM_MD_FORCE;
