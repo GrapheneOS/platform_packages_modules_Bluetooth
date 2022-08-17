@@ -379,7 +379,7 @@ static void a2dp_opus_encode_frames(uint8_t nb_frame) {
                       p_encoder_params->channel_mode];
 
   int32_t out_frames = 0;
-  uint32_t written = 0;
+  int32_t written = 0;
 
   uint32_t bytes_read = 0;
   while (nb_frame) {
