@@ -9,6 +9,7 @@ package {
     default_visibility: [
         "//device:__subpackages__",
         "//packages/modules/Bluetooth:__subpackages__",
+        "//tools/netsim:__subpackages__"
     ],
 }
 
