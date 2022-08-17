@@ -32,6 +32,7 @@ from blueberry.tests.gd.cert.os_utils import TerminalColor
 from blueberry.tests.gd.cert.tracelogger import TraceLogger
 from blueberry.tests.gd.cert.truth import assertThat
 from blueberry.tests.topshim.lib.adapter_client import AdapterClient
+from blueberry.tests.topshim.lib.gatt_client import GattClient
 
 from mobly import asserts
 from mobly import base_test
@@ -156,16 +157,29 @@ def dump_crashes_core(dut, cert, rootcanal_running, rootcanal_process, rootcanal
 
 class TopshimBaseTest(base_test.BaseTestClass):
 
+    # TODO(optedoblivion): Make TopshimTestStack class
     dut_adapter = None
+    dut_gatt = None
+
+    cert_adapter = None
+    cert_gatt = None
 
     async def _setup_adapter(self):
         self.dut_adapter = AdapterClient(port=self.dut_port)
+        self.cert_adapter = AdapterClient(port=self.cert_port)
         started = await self.dut_adapter._verify_adapter_started()
         assertThat(started).isTrue()
+        started = await self.cert_adapter._verify_adapter_started()
+        assertThat(started).isTrue()
+        self.dut_gatt = GattClient(port=self.dut_port)
+        self.cert_gatt = GattClient(port=self.cert_port)
         return started
 
     async def _teardown_adapter(self):
         await self.dut_adapter.terminate()
+        await self.dut_gatt.terminate()
+        await self.cert_adapter.terminate()
+        await self.cert_gatt.terminate()
 
     def setup_class(self):
         """

@@ -555,7 +555,7 @@ impl ISuspendCallback for SuspendCallback {
     // TODO(b/224606285): Implement suspend utils in btclient.
     fn on_callback_registered(&self, _callback_id: u32) {}
     fn on_suspend_ready(&self, _suspend_id: u32) {}
-    fn on_resumed(&self, _suspend_id: u32) {}
+    fn on_resumed(&self, _suspend_id: i32) {}
 }
 
 impl RPCProxy for SuspendCallback {

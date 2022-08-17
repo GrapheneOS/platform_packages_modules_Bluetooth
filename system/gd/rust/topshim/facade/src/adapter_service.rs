@@ -166,6 +166,13 @@ impl AdapterService for AdapterServiceImpl {
         })
     }
 
+    fn allow_wake_by_hid(&mut self, ctx: RpcContext<'_>, _req: Empty, sink: UnarySink<Empty>) {
+        self.btif_intf.lock().unwrap().allow_wake_by_hid();
+        ctx.spawn(async move {
+            sink.success(Empty::default()).await.unwrap();
+        })
+    }
+
     fn restore_filter_accept_list(
         &mut self,
         ctx: RpcContext<'_>,
@@ -192,6 +199,18 @@ impl AdapterService for AdapterServiceImpl {
         sink: UnarySink<Empty>,
     ) {
         self.btif_intf.lock().unwrap().set_event_filter_inquiry_result_all_devices();
+        ctx.spawn(async move {
+            sink.success(Empty::default()).await.unwrap();
+        })
+    }
+
+    fn set_event_filter_connection_setup_all_devices(
+        &mut self,
+        ctx: RpcContext<'_>,
+        _req: Empty,
+        sink: UnarySink<Empty>,
+    ) {
+        self.btif_intf.lock().unwrap().set_event_filter_connection_setup_all_devices();
         ctx.spawn(async move {
             sink.success(Empty::default()).await.unwrap();
         })
