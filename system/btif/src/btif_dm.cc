@@ -1306,6 +1306,19 @@ static void btif_dm_search_devices_evt(tBTA_DM_SEARCH_EVT event,
             pairing_cb.eir_uuids[i] = uuid.To128BitBE();
             pairing_cb.num_eir_uuids++;
           }
+
+#if TARGET_FLOSS
+          // Floss expects that EIR uuids are immediately reported when the
+          // device is found and doesn't wait for the pairing intent.
+          //
+          // If a subsequent SDP is completed, the new UUIDs should replace the
+          // existing UUIDs.
+          BTIF_STORAGE_FILL_PROPERTY(
+              &properties[num_properties], BT_PROPERTY_UUIDS,
+              pairing_cb.num_eir_uuids * Uuid::kNumBytes128,
+              pairing_cb.eir_uuids);
+          num_properties++;
+#endif
         }
 
         status =
