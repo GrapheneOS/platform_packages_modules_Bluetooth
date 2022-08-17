@@ -126,9 +126,16 @@ pub fn cb_variant(input: TokenStream) -> TokenStream {
         #[no_mangle]
         extern "C" fn #ident(#params) {
             #stmts
-
-            (get_dispatchers().lock().unwrap().get::<#dispatcher>().unwrap().lock().unwrap().dispatch)(#rpath(#args));
-        }
+                (get_dispatchers()
+                    .lock()
+                    .expect("Couldn't lock dispatchers!")
+                    .get::<#dispatcher>()
+                    .expect("Couldn't find dispatcher type: #dispatcher")
+                    .clone()
+                    .lock()
+                    .expect("Couldn't lock specific dispatcher: #dispatcher")
+                    .dispatch)(#rpath(#args));
+            }
     };
 
     TokenStream::from(tokens)

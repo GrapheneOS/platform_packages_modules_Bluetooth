@@ -474,6 +474,10 @@ TEST_F(ControllerTest, leRandTest) {
   le_rand_set.get_future().wait();
 }
 
+TEST_F(ControllerTest, AllowWakeByHidTest) {
+  controller->AllowWakeByHid();
+}
+
 }  // namespace
 }  // namespace hci
 }  // namespace bluetooth
