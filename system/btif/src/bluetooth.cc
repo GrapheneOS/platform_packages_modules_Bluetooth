@@ -172,9 +172,11 @@ static bool is_profile(const char* p1, const char* p2) {
  *
  ****************************************************************************/
 
+#ifdef OS_ANDROID
 const std::vector<std::string> get_allowed_bt_package_name(void);
 void handle_migration(const std::string& dst,
                       const std::vector<std::string>& allowed_bt_package_name);
+#endif
 
 static int init(bt_callbacks_t* callbacks, bool start_restricted,
                 bool is_common_criteria_mode, int config_compare_result,
@@ -186,10 +188,12 @@ static int init(bt_callbacks_t* callbacks, bool start_restricted,
       __func__, start_restricted, is_common_criteria_mode,
       config_compare_result);
 
+#ifdef OS_ANDROID
   if (user_data_directory != nullptr) {
     handle_migration(std::string(user_data_directory),
                      get_allowed_bt_package_name());
   }
+#endif
 
   bluetooth::common::InitFlags::Load(init_flags);
 
