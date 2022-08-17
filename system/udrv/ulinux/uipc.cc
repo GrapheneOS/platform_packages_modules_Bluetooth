@@ -588,9 +588,10 @@ bool UIPC_Send(tUIPC_STATE& uipc, tUIPC_CH_ID ch_id,
   OSI_NO_INTR(ret = write(uipc.ch[ch_id].fd, p_buf, msglen));
   if (ret < 0) {
     LOG_ERROR("failed to write (%s)", strerror(errno));
+    return false;
   }
 
-  return false;
+  return true;
 }
 
 /*******************************************************************************
