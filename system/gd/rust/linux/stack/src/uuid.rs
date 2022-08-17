@@ -81,6 +81,15 @@ impl<'a> Display for UuidWrapper<'a> {
     }
 }
 
+pub struct KnownUuidWrapper<'a>(pub &'a Uuid128Bit, pub &'a Profile);
+
+impl<'a> Display for KnownUuidWrapper<'a> {
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        let _ = Uuid::format(&self.0, f);
+        write!(f, ": {:?}", self.1)
+    }
+}
+
 pub struct UuidHelper {
     /// A list of enabled profiles on the system. These may be modified by policy.
     pub enabled_profiles: HashSet<Profile>,
@@ -163,6 +172,16 @@ impl UuidHelper {
     /// Converts a UUID byte array into a formatted string.
     pub fn to_string(uuid: &Uuid128Bit) -> String {
         UuidWrapper(&uuid).to_string()
+    }
+
+    /// If a uuid is known to be a certain service, convert it into a formatted
+    /// string that shows the service name. Else just format the uuid.
+    pub fn known_uuid_to_string(&self, uuid: &Uuid128Bit) -> String {
+        if let Some(p) = self.is_known_profile(uuid) {
+            return KnownUuidWrapper(&uuid, &p).to_string();
+        }
+
+        UuidHelper::to_string(uuid)
     }
 
     /// Converts a well-formatted UUID string to a UUID byte array.
