@@ -25,28 +25,26 @@
 
 constexpr uint16_t kMaxScoLinks = static_cast<uint16_t>(BTM_MAX_SCO_LINKS);
 
-// SCO-over-HCI audio related definitions
+/* SCO-over-HCI audio related definitions */
 namespace bluetooth::audio::sco {
 
-// Initialize SCO-over-HCI socket (UIPC); the client is audio server.
+/* Initialize SCO-over-HCI socket (UIPC); the client is audio server */
 void init();
 
-// Open the socket when there is SCO connection open
+/* Open the socket when there is SCO connection open */
 void open();
 
-// Clean up the socket when the SCO connection is done
+/* Clean up the socket when the SCO connection is done */
 void cleanup();
 
-// Read from the socket (audio server) for SCO Tx
+/* Read from the socket (audio server) for SCO Tx */
 size_t read(uint8_t* p_buf, uint32_t len);
 
-// Write to the socket from SCO Rx
+/* Write to the socket from SCO Rx */
 size_t write(const uint8_t* buf, uint32_t len);
 }  // namespace bluetooth::audio::sco
 
-/* Define the structures needed by sco
- */
-
+/* Define the structures needed by sco */
 typedef enum : uint16_t {
   SCO_ST_UNUSED = 0,
   SCO_ST_LISTENING = 1,
@@ -90,8 +88,7 @@ typedef struct {
   uint8_t hci_status;
 } tBTM_ESCO_INFO;
 
-/* Define the structure used for SCO Management
- */
+/* Define the structure used for SCO Management */
 typedef struct {
   tBTM_ESCO_INFO esco;    /* Current settings             */
   tBTM_SCO_CB* p_conn_cb; /* Callback for when connected  */
@@ -161,8 +158,8 @@ typedef struct {
 extern void btm_sco_chk_pend_rolechange(uint16_t hci_handle);
 extern void btm_sco_disc_chk_pend_for_modechange(uint16_t hci_handle);
 
-// Visible for test only
+/* Visible for test only */
 BT_HDR* btm_sco_make_packet(std::vector<uint8_t> data, uint16_t sco_handle);
 
-// Send a SCO packet
+/* Send a SCO packet */
 void btm_send_sco_packet(std::vector<uint8_t> data);
