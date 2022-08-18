@@ -45,14 +45,33 @@ android_test_helper_app {
     optimize: {
         enabled: false,
     },
+
+    test_suites: [
+        "device-tests",
+        "mts-bluetooth",
+    ],
 }
 
 android_test {
     name: "pts-bot",
     required: ["PandoraServer"],
     test_config: "configs/PtsBotTest.xml",
-    data: ["configs/pts_bot_tests_config.json", ":mmi2grpc"],
+    data: [
+        "configs/pts_bot_tests_config.json",
+        ":mmi2grpc"
+    ],
     test_suites: ["device-tests"],
+}
+
+android_test {
+    name: "pts-bot-mts",
+    required: ["PandoraServer"],
+    test_config: "configs/PtsBotTestMts.xml",
+    data: [
+        "configs/pts_bot_tests_config.json",
+        ":mmi2grpc"
+    ],
+    test_suites: ["mts-bluetooth"],
 }
 
 java_library {
