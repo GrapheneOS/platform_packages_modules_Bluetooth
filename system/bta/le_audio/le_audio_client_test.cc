@@ -1493,7 +1493,7 @@ class UnicastTestNoInit : public Test {
     if (reconfigure_existing_stream) {
       EXPECT_CALL(*mock_unicast_audio_source_, SuspendedForReconfiguration())
           .Times(1);
-      EXPECT_CALL(*mock_unicast_audio_source_, ConfirmStreamingRequest())
+      EXPECT_CALL(*mock_unicast_audio_source_, CancelStreamingRequest())
           .Times(1);
     } else {
       EXPECT_CALL(*mock_unicast_audio_source_, SuspendedForReconfiguration())
@@ -3152,7 +3152,7 @@ TEST_F(UnicastTest, TwoEarbudsStreaming) {
   Mock::VerifyAndClearExpectations(mock_audio_sink_);
 }
 
-TEST_F(UnicastTest, TwoEarbudsStreamingContextSwitchSimple) {
+TEST_F(UnicastTest, TwoEarbudsStreamingContextSwitchNoReconfigure) {
   uint8_t group_size = 2;
   int group_id = 2;
 
@@ -3218,6 +3218,20 @@ TEST_F(UnicastTest, TwoEarbudsStreamingContextSwitchSimple) {
       StartStream(_, le_audio::types::LeAudioContextType::EMERGENCYALARM, _, _))
       .Times(1);
   UpdateMetadata(AUDIO_USAGE_EMERGENCY, AUDIO_CONTENT_TYPE_UNKNOWN);
+  Mock::VerifyAndClearExpectations(&mock_client_callbacks_);
+  Mock::VerifyAndClearExpectations(mock_unicast_audio_source_);
+
+  // Do a content switch to INSTRUCTIONAL
+  EXPECT_CALL(*mock_unicast_audio_source_, Release).Times(0);
+  EXPECT_CALL(*mock_unicast_audio_source_, Stop).Times(0);
+  EXPECT_CALL(*mock_unicast_audio_source_, Start).Times(0);
+  EXPECT_CALL(
+      mock_state_machine_,
+      StartStream(_, le_audio::types::LeAudioContextType::INSTRUCTIONAL, _, _))
+      .Times(1);
+  UpdateMetadata(AUDIO_USAGE_ASSISTANCE_NAVIGATION_GUIDANCE,
+                 AUDIO_CONTENT_TYPE_UNKNOWN);
+  Mock::VerifyAndClearExpectations(&mock_client_callbacks_);
   Mock::VerifyAndClearExpectations(mock_unicast_audio_source_);
 }
 
@@ -3593,8 +3607,13 @@ TEST_F(UnicastTest, StartNotSupportedContextType) {
   // Verify Data transfer on one audio source cis
   TestAudioDataTransfer(group_id, cis_count_out, cis_count_in, 1920);
 
-  EXPECT_CALL(mock_state_machine_, StopStream(_)).Times(0);
-  UpdateMetadata(AUDIO_USAGE_GAME, AUDIO_CONTENT_TYPE_UNKNOWN);
+  // Fallback scenario now supports 48Khz just like Media so we will reconfigure
+  EXPECT_CALL(mock_state_machine_, StopStream(_)).Times(1);
+  UpdateMetadata(AUDIO_USAGE_GAME, AUDIO_CONTENT_TYPE_UNKNOWN, true);
+
+  /* The above will trigger reconfiguration. After that Audio Hal action
+   * is needed to restart the stream */
+  SinkAudioResume();
 }
 }  // namespace
 }  // namespace le_audio
