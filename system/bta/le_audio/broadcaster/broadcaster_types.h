@@ -153,7 +153,7 @@ std::ostream& operator<<(
     std::ostream& os, const le_audio::broadcaster::BroadcastQosConfig& config);
 
 std::pair<const BroadcastCodecWrapper&, const BroadcastQosConfig&>
-getStreamConfigForContext(uint16_t context);
+getStreamConfigForContext(types::AudioContexts context);
 
 }  // namespace broadcaster
 }  // namespace le_audio
