@@ -748,8 +748,17 @@ void l2cble_process_sig_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
 
       con_info.peer_mtu = mtu;
 
-      for (int i = 0; i < p_lcb->pending_ecoc_conn_cnt; i++) {
-        uint16_t cid = p_lcb->pending_ecoc_connection_cids[i];
+      /* Copy request data and clear it so user can perform another connect if
+       * needed in the callback. */
+      p_lcb->pending_ecoc_conn_cnt = 0;
+      uint16_t cids[L2CAP_CREDIT_BASED_MAX_CIDS];
+      std::copy_n(p_lcb->pending_ecoc_connection_cids,
+                  L2CAP_CREDIT_BASED_MAX_CIDS, cids);
+      std::fill_n(p_lcb->pending_ecoc_connection_cids,
+                  L2CAP_CREDIT_BASED_MAX_CIDS, 0);
+
+      for (int i = 0; i < num_of_channels; i++) {
+        uint16_t cid = cids[i];
         STREAM_TO_UINT16(rcid, p);
 
         if (rcid != 0) {
@@ -803,10 +812,6 @@ void l2cble_process_sig_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
                           &con_info);
         }
       }
-
-      p_lcb->pending_ecoc_conn_cnt = 0;
-      memset(p_lcb->pending_ecoc_connection_cids, 0,
-             L2CAP_CREDIT_BASED_MAX_CIDS);
 
       break;
     case L2CAP_CMD_CREDIT_BASED_RECONFIG_REQ: {
