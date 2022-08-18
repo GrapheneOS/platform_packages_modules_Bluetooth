@@ -127,13 +127,13 @@ enum {
 
 /* events that do not go through state machine */
 #define BTA_AV_FIRST_NSM_EVT BTA_AV_API_ENABLE_EVT
-#define BTA_AV_LAST_NSM_EVT BTA_AV_API_STOP_EVT
+#define BTA_AV_LAST_NSM_EVT BTA_AV_API_SET_LATENCY_EVT
 
 /* API events passed to both SSMs (by bta_av_api_to_ssm) */
 #define BTA_AV_FIRST_A2S_API_EVT BTA_AV_API_START_EVT
 #define BTA_AV_FIRST_A2S_SSM_EVT BTA_AV_AP_START_EVT
 
-#define BTA_AV_LAST_EVT BTA_AV_API_STOP_EVT
+#define BTA_AV_LAST_EVT BTA_AV_API_SET_LATENCY_EVT
 
 /* maximum number of SEPS in stream discovery results */
 #define BTA_AV_NUM_SEPS 32
