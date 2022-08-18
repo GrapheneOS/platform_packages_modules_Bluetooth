@@ -127,6 +127,7 @@ class MockController : public Controller {
   MOCK_METHOD(VendorCapabilities, GetVendorCapabilities, (), (const));
   MOCK_METHOD(bool, IsSupported, (OpCode op_code), (const));
   MOCK_METHOD(void, LeRand, (LeRandCallback cb));
+  MOCK_METHOD(void, AllowWakeByHid, ());
 };
 
 }  // namespace testing

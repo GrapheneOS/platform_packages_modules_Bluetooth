@@ -99,32 +99,36 @@ mod tests {
         assert_eq!("Some Variable is not iterable", result.unwrap_err().to_string());
     }
 
+    fn wrap_variant<T: 'static + dbus::arg::RefArg>(data: T) -> Box<dyn RefArg> {
+        Box::new(dbus::arg::Variant(data))
+    }
+
     #[test]
     fn test_dbus_propmap_success() {
         let data_dbus = FakeDictionary {
             items: vec![
-                (String::from("name"), Box::new(String::from("foo"))),
-                (String::from("number"), Box::new(100)),
+                (String::from("name"), wrap_variant(String::from("foo"))),
+                (String::from("number"), wrap_variant(100)),
                 (
                     String::from("other_struct"),
-                    Box::new(FakeDictionary {
+                    wrap_variant(FakeDictionary {
                         items: vec![(
                             String::from("address"),
-                            Box::new(String::from("aa:bb:cc:dd:ee:ff")),
+                            wrap_variant(String::from("aa:bb:cc:dd:ee:ff")),
                         )],
                     }),
                 ),
-                (String::from("bytes"), Box::new(vec![1 as u8, 2, 3])),
+                (String::from("bytes"), wrap_variant(vec![1 as u8, 2, 3])),
                 (
                     String::from("dict"),
-                    Box::new(HashMap::from([
+                    wrap_variant(HashMap::from([
                         (String::from("key-0"), Box::new(vec![5, 6, 7, 8])),
                         (String::from("key-1"), Box::new(vec![-5, -6, -7, -8])),
                     ])),
                 ),
                 (
                     String::from("nested"),
-                    Box::new(vec![
+                    wrap_variant(vec![
                         vec![
                             String::from("string a"),
                             String::from("string b"),
@@ -135,29 +139,29 @@ mod tests {
                 ),
                 (
                     String::from("recursive"),
-                    Box::new(vec![FakeDictionary {
+                    wrap_variant(vec![FakeDictionary {
                         items: vec![
-                            (String::from("name"), Box::new(String::from("bar"))),
-                            (String::from("number"), Box::new(200)),
+                            (String::from("name"), wrap_variant(String::from("bar"))),
+                            (String::from("number"), wrap_variant(200)),
                             (
                                 String::from("other_struct"),
-                                Box::new(FakeDictionary {
+                                wrap_variant(FakeDictionary {
                                     items: vec![(
                                         String::from("address"),
-                                        Box::new(String::from("xx")),
+                                        wrap_variant(String::from("xx")),
                                     )],
                                 }),
                             ),
-                            (String::from("bytes"), Box::new(Vec::<u8>::new())),
+                            (String::from("bytes"), wrap_variant(Vec::<u8>::new())),
                             (
                                 String::from("dict"),
-                                Box::new(HashMap::from([
+                                wrap_variant(HashMap::from([
                                     (String::from("key-2"), Box::new(vec![5, 5, 6, 8, 8])),
                                     (String::from("key-3"), Box::new(vec![])),
                                 ])),
                             ),
-                            (String::from("nested"), Box::new(Vec::<Vec<u8>>::new())),
-                            (String::from("recursive"), Box::new(Vec::<FakeDictionary>::new())),
+                            (String::from("nested"), wrap_variant(Vec::<Vec<u8>>::new())),
+                            (String::from("recursive"), wrap_variant(Vec::<FakeDictionary>::new())),
                         ],
                     }]),
                 ),
