@@ -839,6 +839,33 @@ uint8_t LeAudioDeviceGroup::GetFirstFreeCisId(CisType cis_type) {
   return kInvalidCisId;
 }
 
+types::LeAudioConfigurationStrategy LeAudioDeviceGroup::GetGroupStrategy(void) {
+  /* Simple strategy picker */
+  LOG_INFO(" Group %d size %d", group_id_, Size());
+  if (Size() > 1) {
+    return types::LeAudioConfigurationStrategy::MONO_ONE_CIS_PER_DEVICE;
+  }
+
+  LOG_INFO("audio location 0x%04lx", snk_audio_locations_.to_ulong());
+  if (!(snk_audio_locations_.to_ulong() &
+        codec_spec_conf::kLeAudioLocationAnyLeft) ||
+      !(snk_audio_locations_.to_ulong() &
+        codec_spec_conf::kLeAudioLocationAnyRight)) {
+    return types::LeAudioConfigurationStrategy::MONO_ONE_CIS_PER_DEVICE;
+  }
+
+  auto device = GetFirstDevice();
+  auto channel_cnt =
+      device->GetLc3SupportedChannelCount(types::kLeAudioDirectionSink);
+  LOG_INFO("Channel count for group %d is %d (device %s)", group_id_,
+           channel_cnt, device->address_.ToString().c_str());
+  if (channel_cnt == 1) {
+    return types::LeAudioConfigurationStrategy::STEREO_TWO_CISES_PER_DEVICE;
+  }
+
+  return types::LeAudioConfigurationStrategy::STEREO_ONE_CIS_PER_DEVICE;
+}
+
 void LeAudioDeviceGroup::CigGenerateCisIds(
     types::LeAudioContextType context_type) {
   LOG_INFO("Group %p, group_id: %d, context_type: %s", this, group_id_,
@@ -855,8 +882,8 @@ void LeAudioDeviceGroup::CigGenerateCisIds(
   uint8_t cis_count_bidir = 0;
   uint8_t cis_count_unidir_sink = 0;
   uint8_t cis_count_unidir_source = 0;
-  get_cis_count(confs, &cis_count_bidir, &cis_count_unidir_sink,
-                &cis_count_unidir_source);
+  get_cis_count(confs, GetGroupStrategy(), &cis_count_bidir,
+                &cis_count_unidir_sink, &cis_count_unidir_source);
 
   uint8_t idx = 0;
   while (cis_count_bidir > 0) {
