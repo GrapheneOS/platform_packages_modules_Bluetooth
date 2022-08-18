@@ -60,7 +60,7 @@ enum GapDataType : 8 {
 struct GapData {
   _size_(data) : 8, // Including one byte for data_type
   data_type : GapDataType,
-  data : 8[+1*8],
+  data : 8[+1],
 }
 
 // HCI ACL Packets
