@@ -227,6 +227,7 @@ class LeAudioDeviceGroup {
   LeAudioDevice* GetFirstDevice(void);
   LeAudioDevice* GetFirstDeviceWithActiveContext(
       types::LeAudioContextType context_type);
+  le_audio::types::LeAudioConfigurationStrategy GetGroupStrategy(void);
   LeAudioDevice* GetNextDevice(LeAudioDevice* leAudioDevice);
   LeAudioDevice* GetNextDeviceWithActiveContext(
       LeAudioDevice* leAudioDevice, types::LeAudioContextType context_type);

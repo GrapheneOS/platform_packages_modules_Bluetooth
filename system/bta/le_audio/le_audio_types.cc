@@ -70,6 +70,7 @@ static uint8_t min_req_devices_cnt(
 }
 
 void get_cis_count(const AudioSetConfigurations* audio_set_confs,
+                   types::LeAudioConfigurationStrategy strategy,
                    uint8_t* cis_count_bidir, uint8_t* cis_count_unidir_sink,
                    uint8_t* cis_count_unidir_source) {
   for (auto audio_set_conf : *audio_set_confs) {
@@ -78,13 +79,25 @@ void get_cis_count(const AudioSetConfigurations* audio_set_confs,
     uint8_t unidir_sink_count = 0;
     uint8_t unidir_source_count = 0;
 
+    LOG_INFO("%s ", audio_set_conf->name.c_str());
+    bool stategy_mismatch = false;
     for (auto ent : (*audio_set_conf).confs) {
+      if (ent.strategy != strategy) {
+        LOG_INFO("Strategy does not match (%d != %d)- skip this configuration",
+                 static_cast<int>(ent.strategy), static_cast<int>(strategy));
+        stategy_mismatch = true;
+        break;
+      }
       if (ent.direction == kLeAudioDirectionSink) {
         snk_src_pair.first += ent.device_cnt;
       }
       if (ent.direction == kLeAudioDirectionSource) {
         snk_src_pair.second += ent.device_cnt;
       }
+    }
+
+    if (stategy_mismatch) {
+      continue;
     }
 
     bidir_count = std::min(snk_src_pair.first, snk_src_pair.second);
