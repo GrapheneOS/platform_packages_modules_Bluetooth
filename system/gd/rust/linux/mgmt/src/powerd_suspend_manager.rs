@@ -144,16 +144,8 @@ impl ISuspendCallback for SuspendCallback {
 }
 
 impl RPCProxy for SuspendCallback {
-    fn register_disconnect(&mut self, _f: Box<dyn Fn(u32) + Send>) -> u32 {
-        0
-    }
-
     fn get_object_id(&self) -> String {
         self.objpath.clone()
-    }
-
-    fn unregister(&mut self, _id: u32) -> bool {
-        false
     }
 
     fn export_for_rpc(self: Box<Self>) {
