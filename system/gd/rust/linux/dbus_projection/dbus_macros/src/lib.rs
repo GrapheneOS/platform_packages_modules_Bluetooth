@@ -774,14 +774,7 @@ pub fn dbus_proxy_obj(attr: TokenStream, item: TokenStream) -> TokenStream {
     let gen = quote! {
         #ori_item
 
-        impl RPCProxy for #self_ty {
-            fn register_disconnect(&mut self, _disconnect_callback: Box<dyn Fn(u32) + Send>) -> u32 { 0 }
-            fn get_object_id(&self) -> String {
-                String::from("")
-            }
-            fn unregister(&mut self, _id: u32) -> bool { false }
-            fn export_for_rpc(self: Box<Self>) {}
-        }
+        impl RPCProxy for #self_ty {}
 
         struct #struct_ident {
             conn: std::sync::Arc<dbus::nonblock::SyncConnection>,
@@ -806,7 +799,6 @@ pub fn dbus_proxy_obj(attr: TokenStream, item: TokenStream) -> TokenStream {
             fn unregister(&mut self, id: u32) -> bool {
                 self.disconnect_watcher.lock().unwrap().remove(self.remote.clone(), id)
             }
-            fn export_for_rpc(self: Box<Self>) {}
         }
 
         impl DBusArg for Box<dyn #trait_ + Send> {
