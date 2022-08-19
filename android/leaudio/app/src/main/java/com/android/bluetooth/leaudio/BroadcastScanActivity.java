@@ -112,7 +112,8 @@ public class BroadcastScanActivity extends AppCompatActivity {
                                        + broadcastId, Toast.LENGTH_SHORT).show();
                         metadata = builder.setEncrypted(false).build();
                     } else {
-                        if (code_input_text.getText().length() != 16) {
+                        if ((code_input_text.getText().length() > 16) ||
+                                (code_input_text.getText().length() < 4)) {
                             Toast.makeText(recyclerView.getContext(),
                                            "Invalid Broadcast code length",
                                            Toast.LENGTH_SHORT).show();
