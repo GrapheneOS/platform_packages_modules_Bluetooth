@@ -20,7 +20,6 @@
  */
 
 #include <cstdint>
-#include <functional>
 #include <map>
 #include <string>
 
@@ -427,6 +426,11 @@ void btm_api_process_inquiry_result_with_rssi(RawAddress raw_address,
 }
 
 tBTM_STATUS bluetooth::shim::BTM_ClearEventFilter() {
+  mock_function_count_map[__func__]++;
+  return BTM_SUCCESS;
+}
+
+tBTM_STATUS bluetooth::shim::BTM_BleResetId() {
   mock_function_count_map[__func__]++;
   return BTM_SUCCESS;
 }

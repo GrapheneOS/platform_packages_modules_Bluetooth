@@ -1567,7 +1567,13 @@ void gatt_cleanup_upon_disc(const RawAddress& bda, tGATT_DISCONN_REASON reason,
   VLOG(1) << __func__;
 
   tGATT_TCB* p_tcb = gatt_find_tcb_by_addr(bda, transport);
-  if (!p_tcb) return;
+  if (!p_tcb) {
+    LOG_ERROR(
+        "Disconnect for unknown connection bd_addr:%s reason:%s transport:%s",
+        PRIVATE_ADDRESS(bda), gatt_disconnection_reason_text(reason).c_str(),
+        bt_transport_text(transport).c_str());
+    return;
+  }
 
   gatt_set_ch_state(p_tcb, GATT_CH_CLOSE);
   for (uint8_t i = 0; i < GATT_CL_MAX_LCB; i++) {

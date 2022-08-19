@@ -1355,6 +1355,14 @@ static bool btif_is_interesting_le_service(bluetooth::Uuid uuid) {
           uuid == UUID_BATTERY);
 }
 
+static void btif_get_existing_uuids(RawAddress* bd_addr, Uuid* existing_uuids) {
+  bt_property_t tmp_prop;
+  BTIF_STORAGE_FILL_PROPERTY(&tmp_prop, BT_PROPERTY_UUIDS,
+                             sizeof(existing_uuids), existing_uuids);
+
+  btif_storage_get_remote_device_property(bd_addr, &tmp_prop);
+}
+
 /*******************************************************************************
  *
  * Function         btif_dm_search_services_evt
@@ -1372,6 +1380,7 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
       uint32_t i = 0;
       bt_status_t ret;
       std::vector<uint8_t> property_value;
+      std::set<Uuid> uuids;
 
       RawAddress& bd_addr = p_data->disc_res.bd_addr;
 
@@ -1393,18 +1402,37 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
       prop.len = 0;
       if ((p_data->disc_res.result == BTA_SUCCESS) &&
           (p_data->disc_res.num_uuids > 0)) {
-        LOG_INFO("New UUIDs:");
+        LOG_INFO("New UUIDs for %s:", bd_addr.ToString().c_str());
         for (i = 0; i < p_data->disc_res.num_uuids; i++) {
           auto uuid = p_data->disc_res.p_uuid_list + i;
+          if (uuid->IsEmpty()) {
+            continue;
+          }
           LOG_INFO("index:%d uuid:%s", i, uuid->ToString().c_str());
-          auto valAsBe = uuid->To128BitBE();
-          pairing_cb.uuids.insert(valAsBe);
+          uuids.insert(*uuid);
         }
-        for (auto uuid : pairing_cb.uuids) {
-          property_value.insert(property_value.end(), uuid.begin(), uuid.end());
+
+        Uuid existing_uuids[BT_MAX_NUM_UUIDS] = {};
+        btif_get_existing_uuids(&bd_addr, existing_uuids);
+
+        for (int i = 0; i < BT_MAX_NUM_UUIDS; i++) {
+          Uuid uuid = existing_uuids[i];
+          if (uuid.IsEmpty()) {
+            continue;
+          }
+          if (btif_is_interesting_le_service(uuid)) {
+            LOG_INFO("interesting le service %s insert",
+                     uuid.ToString().c_str());
+            uuids.insert(uuid);
+          }
+        }
+        for (auto& uuid : uuids) {
+          auto uuid_128bit = uuid.To128BitBE();
+          property_value.insert(property_value.end(), uuid_128bit.begin(),
+                                uuid_128bit.end());
         }
         prop.val = (void*)property_value.data();
-        prop.len = Uuid::kNumBytes128 * pairing_cb.uuids.size();
+        prop.len = Uuid::kNumBytes128 * uuids.size();
       }
 
       /* onUuidChanged requires getBondedDevices to be populated.
@@ -1469,30 +1497,45 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
       int num_properties = 0;
       bt_property_t prop[2];
       std::vector<uint8_t> property_value;
-      int num_uuids = 0;
+      std::set<Uuid> uuids;
+      RawAddress& bd_addr = p_data->disc_ble_res.bd_addr;
 
-      LOG_INFO("New BLE UUIDs:");
+      LOG_INFO("New BLE UUIDs for %s:", bd_addr.ToString().c_str());
       for (Uuid uuid : *p_data->disc_ble_res.services) {
-        LOG_INFO("index:%d uuid:%s", num_uuids, uuid.ToString().c_str());
         if (btif_is_interesting_le_service(uuid)) {
-          num_uuids++;
-          auto valAsBe = uuid.To128BitBE();
-          pairing_cb.uuids.insert(valAsBe);
+          if (uuid.IsEmpty()) {
+            continue;
+          }
+          LOG_INFO("index:%d uuid:%s", static_cast<int>(uuids.size()),
+                   uuid.ToString().c_str());
+          uuids.insert(uuid);
         }
       }
-      for (auto uuid : pairing_cb.uuids) {
-        property_value.insert(property_value.end(), uuid.begin(), uuid.end());
-      }
 
-      if (num_uuids == 0) {
+      if (uuids.empty()) {
         LOG_INFO("No well known BLE services discovered");
         return;
       }
 
-      RawAddress& bd_addr = p_data->disc_ble_res.bd_addr;
+      Uuid existing_uuids[BT_MAX_NUM_UUIDS] = {};
+      btif_get_existing_uuids(&bd_addr, existing_uuids);
+      for (int i = 0; i < BT_MAX_NUM_UUIDS; i++) {
+        Uuid uuid = existing_uuids[i];
+        if (uuid.IsEmpty()) {
+          continue;
+        }
+        uuids.insert(uuid);
+      }
+
+      for (auto& uuid : uuids) {
+        auto uuid_128bit = uuid.To128BitBE();
+        property_value.insert(property_value.end(), uuid_128bit.begin(),
+                              uuid_128bit.end());
+      }
+
       prop[0].type = BT_PROPERTY_UUIDS;
       prop[0].val = (void*)property_value.data();
-      prop[0].len = Uuid::kNumBytes128 * pairing_cb.uuids.size();
+      prop[0].len = Uuid::kNumBytes128 * uuids.size();
 
       /* Also write this to the NVRAM */
       bt_status_t ret =
