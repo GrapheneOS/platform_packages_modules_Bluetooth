@@ -2051,52 +2051,13 @@ class LeAudioClientImpl : public LeAudioClient {
     auto num_of_devices =
         get_num_of_devices_in_configuration(stream_conf->conf);
 
-    if (num_of_devices < group->NumOfConnected()) {
-      /* Second device got just paired. We need to reconfigure CIG */
+    if (num_of_devices < group->NumOfConnected() &&
+        !group->IsConfigurationSupported(leAudioDevice, stream_conf->conf)) {
+      /* Reconfigure if newly connected member device cannot support current
+       * codec configuration */
       group->SetPendingConfiguration();
       groupStateMachine_->StopStream(group);
       return;
-    }
-
-    /* Second device got reconnect. Try to get it to the stream seamlessly */
-    le_audio::types::AudioLocations sink_group_audio_locations = 0;
-    uint8_t sink_num_of_active_ases = 0;
-
-    for (auto [cis_handle, audio_location] : stream_conf->sink_streams) {
-      sink_group_audio_locations |= audio_location;
-      sink_num_of_active_ases++;
-    }
-
-    le_audio::types::AudioLocations source_group_audio_locations = 0;
-    uint8_t source_num_of_active_ases = 0;
-
-    for (auto [cis_handle, audio_location] : stream_conf->source_streams) {
-      source_group_audio_locations |= audio_location;
-      source_num_of_active_ases++;
-    }
-
-    for (auto& ent : stream_conf->conf->confs) {
-      if (ent.direction == le_audio::types::kLeAudioDirectionSink) {
-        /* Sink*/
-        if (!leAudioDevice->ConfigureAses(ent, group->GetCurrentContextType(),
-                                          &sink_num_of_active_ases,
-                                          sink_group_audio_locations,
-                                          source_group_audio_locations, true)) {
-          LOG(INFO) << __func__ << " Could not set sink configuration of "
-                    << stream_conf->conf->name;
-          return;
-        }
-      } else {
-        /* Source*/
-        if (!leAudioDevice->ConfigureAses(ent, group->GetCurrentContextType(),
-                                          &source_num_of_active_ases,
-                                          sink_group_audio_locations,
-                                          source_group_audio_locations, true)) {
-          LOG(INFO) << __func__ << " Could not set source configuration of "
-                    << stream_conf->conf->name;
-          return;
-        }
-      }
     }
 
     groupStateMachine_->AttachToStream(group, leAudioDevice);
@@ -2283,8 +2244,6 @@ class LeAudioClientImpl : public LeAudioClient {
   struct le_audio::stream_configuration* GetStreamConfigurationByDirection(
       LeAudioDeviceGroup* group, uint8_t direction) {
     struct le_audio::stream_configuration* stream_conf = &group->stream_conf;
-    int num_of_devices = 0;
-    int num_of_channels = 0;
     uint32_t sample_freq_hz = 0;
     uint32_t frame_duration_us = 0;
     uint32_t audio_channel_allocation = 0;
@@ -2300,17 +2259,11 @@ class LeAudioClientImpl : public LeAudioClient {
          device = group->GetNextActiveDevice(device)) {
       auto* ase = device->GetFirstActiveAseByDirection(direction);
 
-      if (ase) {
-        LOG(INFO) << __func__ << "device: " << device->address_;
-        num_of_devices++;
-      }
-
       for (; ase != nullptr;
            ase = device->GetNextActiveAseWithSameDirection(ase)) {
         streams.emplace_back(std::make_pair(
             ase->cis_conn_hdl, *ase->codec_config.audio_channel_allocation));
         audio_channel_allocation |= *ase->codec_config.audio_channel_allocation;
-        num_of_channels += ase->codec_config.channel_count;
         if (sample_freq_hz == 0) {
           sample_freq_hz = ase->codec_config.GetSamplingFrequencyHz();
         } else {
@@ -2364,8 +2317,6 @@ class LeAudioClientImpl : public LeAudioClient {
 
     if (direction == le_audio::types::kLeAudioDirectionSource) {
       stream_conf->source_streams = std::move(streams);
-      stream_conf->source_num_of_devices = num_of_devices;
-      stream_conf->source_num_of_channels = num_of_channels;
       stream_conf->source_sample_frequency_hz = sample_freq_hz;
       stream_conf->source_frame_duration_us = frame_duration_us;
       stream_conf->source_audio_channel_allocation = audio_channel_allocation;
@@ -2374,8 +2325,6 @@ class LeAudioClientImpl : public LeAudioClient {
           codec_frames_blocks_per_sdu;
     } else if (direction == le_audio::types::kLeAudioDirectionSink) {
       stream_conf->sink_streams = std::move(streams);
-      stream_conf->sink_num_of_devices = num_of_devices;
-      stream_conf->sink_num_of_channels = num_of_channels;
       stream_conf->sink_sample_frequency_hz = sample_freq_hz;
       stream_conf->sink_frame_duration_us = frame_duration_us;
       stream_conf->sink_audio_channel_allocation = audio_channel_allocation;
@@ -2655,6 +2604,19 @@ class LeAudioClientImpl : public LeAudioClient {
       return false;
     }
 
+    LOG_DEBUG("Sink stream config (#%d):\n",
+              static_cast<int>(stream_conf->sink_streams.size()));
+    for (auto stream : stream_conf->sink_streams) {
+      LOG_DEBUG("Cis handle: 0x%02x, allocation 0x%04x\n", stream.first,
+                stream.second);
+    }
+    LOG_DEBUG("Source stream config (#%d):\n",
+              static_cast<int>(stream_conf->source_streams.size()));
+    for (auto stream : stream_conf->source_streams) {
+      LOG_DEBUG("Cis handle: 0x%02x, allocation 0x%04x\n", stream.first,
+                stream.second);
+    }
+
     uint16_t remote_delay_ms =
         group->GetRemoteDelay(le_audio::types::kLeAudioDirectionSink);
     if (CodecManager::GetInstance()->GetCodecLocation() ==
@@ -2829,7 +2791,7 @@ class LeAudioClientImpl : public LeAudioClient {
     dprintf(fd, "  ----------------\n ");
     dprintf(fd, "  LE Audio Groups:\n");
     aseGroups_.Dump(fd);
-    dprintf(fd, "  Not grouped devices:\n");
+    dprintf(fd, "\n  Not grouped devices:\n");
     leAudioDevices_.Dump(fd, bluetooth::groups::kGroupUnknown);
   }
 
