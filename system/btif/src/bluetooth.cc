@@ -172,9 +172,11 @@ static bool is_profile(const char* p1, const char* p2) {
  *
  ****************************************************************************/
 
+#ifdef OS_ANDROID
 const std::vector<std::string> get_allowed_bt_package_name(void);
 void handle_migration(const std::string& dst,
                       const std::vector<std::string>& allowed_bt_package_name);
+#endif
 
 static int init(bt_callbacks_t* callbacks, bool start_restricted,
                 bool is_common_criteria_mode, int config_compare_result,
@@ -186,10 +188,12 @@ static int init(bt_callbacks_t* callbacks, bool start_restricted,
       __func__, start_restricted, is_common_criteria_mode,
       config_compare_result);
 
+#ifdef OS_ANDROID
   if (user_data_directory != nullptr) {
     handle_migration(std::string(user_data_directory),
                      get_allowed_bt_package_name());
   }
+#endif
 
   bluetooth::common::InitFlags::Load(init_flags);
 
@@ -495,6 +499,20 @@ static int restore_filter_accept_list() {
   return BT_STATUS_SUCCESS;
 }
 
+static int allow_wake_by_hid() {
+  if (!interface_ready()) return BT_STATUS_NOT_READY;
+  do_in_main_thread(FROM_HERE, base::BindOnce(btif_dm_allow_wake_by_hid));
+  return BT_STATUS_SUCCESS;
+}
+
+static int set_event_filter_connection_setup_all_devices() {
+  if (!interface_ready()) return BT_STATUS_NOT_READY;
+  do_in_main_thread(
+      FROM_HERE,
+      base::BindOnce(btif_dm_set_event_filter_connection_setup_all_devices));
+  return BT_STATUS_SUCCESS;
+}
+
 static void dump(int fd, const char** arguments) {
   btif_debug_conn_dump(fd);
   btif_debug_bond_event_dump(fd);
@@ -754,6 +772,8 @@ EXPORT_SYMBOL bt_interface_t bluetoothInterface = {
     clear_filter_accept_list,
     disconnect_all_acls,
     le_rand,
+    set_event_filter_connection_setup_all_devices,
+    allow_wake_by_hid,
     restore_filter_accept_list,
     set_default_event_mask,
     set_event_filter_inquiry_result_all_devices};

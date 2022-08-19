@@ -548,7 +548,7 @@ enum {
 
 #ifndef BTA_DM_PM_PARK_IDX
 #define BTA_DM_PM_PARK_IDX \
-  6 /* the actual index to bta_dm_pm_md[] for PARK mode */
+  7 /* the actual index to bta_dm_pm_md[] for PARK mode */
 #endif
 
 #ifndef BTA_DM_PM_SNIFF_A2DP_IDX
@@ -1222,6 +1222,28 @@ using LeRandCallback = base::Callback<void(uint64_t)>;
  *
  ******************************************************************************/
 extern void BTA_DmLeRand(LeRandCallback cb);
+
+/*******************************************************************************
+ *
+ * Function        BTA_DmSetEventFilterConnectionSetupAllDevices
+ *
+ * Description    Tell the controller to allow all devices
+ *
+ * Parameters
+ *
+ *******************************************************************************/
+extern void BTA_DmSetEventFilterConnectionSetupAllDevices();
+
+/*******************************************************************************
+ *
+ * Function        BTA_DmAllowWakeByHid
+ *
+ * Description    Allow the device to be woken by HID devices
+ *
+ * Parameters
+ *
+ *******************************************************************************/
+extern void BTA_DmAllowWakeByHid();
 
 /*******************************************************************************
  *

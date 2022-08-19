@@ -212,6 +212,69 @@ impl IBluetoothGatt for IBluetoothGattDBus {
         dbus_generated!()
     }
 
+    // Advertising
+    fn register_advertiser(&self) {
+        // TODO(b/233128294): implement
+        todo!()
+    }
+
+    fn unregister_advertiser(&self) {
+        // TODO(b/233128294): implement
+        todo!()
+    }
+
+    /// Get the address currently being advertised
+    fn get_own_address(&self) {
+        // TODO(b/233128294): implement
+        todo!()
+    }
+
+    fn set_parameters(&self) {
+        // TODO(b/233128294): implement
+        todo!()
+    }
+
+    fn set_data(&self) {
+        // TODO(b/233128294): implement
+        todo!()
+    }
+
+    fn advertising_enable(&self) {
+        // TODO(b/233128294): implement
+        todo!()
+    }
+
+    fn advertising_disable(&self) {
+        // TODO(b/233128294): implement
+        todo!()
+    }
+
+    fn set_periodic_advertising_parameters(&self) {
+        // TODO(b/233128294): implement
+        todo!()
+    }
+
+    fn set_periodic_advertising_data(&self) {
+        // TODO(b/233128294): implement
+        todo!()
+    }
+
+    fn set_periodic_advertising_enable(&self) {
+        // TODO(b/233128294): implement
+        todo!()
+    }
+
+    fn start_advertising(&self) {
+        // TODO(b/233128294): implement
+        todo!()
+    }
+
+    fn start_advertising_set(&self) {
+        // TODO(b/233128294): implement
+        todo!()
+    }
+
+    // Scanning
     #[dbus_method("RegisterScanner")]
     fn register_scanner(&mut self, callback_id: u32) -> Uuid128Bit {
         dbus_generated!()
@@ -230,6 +293,87 @@ impl IBluetoothGatt for IBluetoothGattDBus {
     #[dbus_method("StopScan")]
     fn stop_scan(&self, scanner_id: i32) {
         dbus_generated!()
+    }
+
+    fn scan_filter_setup(&self) {
+        // TODO(b/200066804): implement
+        todo!()
+    }
+
+    fn scan_filter_add(&self) {
+        // TODO(b/200066804): implement
+        todo!()
+    }
+
+    fn scan_filter_clear(&self) {
+        // TODO(b/200066804): implement
+        todo!()
+    }
+
+    fn scan_filter_enable(&self) {
+        // TODO(b/200066804): implement
+        todo!()
+    }
+
+    fn scan_filter_disable(&self) {
+        // TODO(b/200066804): implement
+        todo!()
+    }
+
+    fn set_scan_parameters(&self) {
+        // TODO(b/200066804): implement
+        todo!()
+    }
+
+    fn batch_scan_config_storage(&self) {
+        // TODO(b/200066804): implement
+        todo!()
+    }
+
+    fn batch_scan_enable(&self) {
+        // TODO(b/200066804): implement
+        todo!()
+    }
+
+    fn batch_scan_disable(&self) {
+        // TODO(b/200066804): implement
+        todo!()
+    }
+
+    fn batch_scan_read_reports(&self) {
+        // TODO(b/200066804): implement
+        todo!()
+    }
+
+    // GATT Client
+    fn start_sync(&self) {
+        // TODO(b/193686094): implement
+        todo!()
+    }
+
+    fn stop_sync(&self) {
+        // TODO(b/193686094): implement
+        todo!()
+    }
+
+    fn cancel_create_sync(&self) {
+        // TODO(b/193686094): implement
+        todo!()
+    }
+
+    fn transfer_sync(&self) {
+        // TODO(b/193686094): implement
+        todo!()
+    }
+
+    fn transfer_set_info(&self) {
+        // TODO(b/193686094): implement
+        todo!()
+    }
+
+    fn sync_tx_parameters(&self) {
+        // TODO(b/193686094): implement
+        todo!()
     }
 
     #[dbus_method("RegisterClient")]
@@ -262,23 +406,6 @@ impl IBluetoothGatt for IBluetoothGattDBus {
 
     #[dbus_method("ClientDisconnect")]
     fn client_disconnect(&self, client_id: i32, addr: String) {
-        dbus_generated!()
-    }
-
-    #[dbus_method("ClientSetPreferredPhy")]
-    fn client_set_preferred_phy(
-        &self,
-        client_id: i32,
-        addr: String,
-        tx_phy: LePhy,
-        rx_phy: LePhy,
-        phy_options: i32,
-    ) {
-        dbus_generated!()
-    }
-
-    #[dbus_method("ClientReadPhy")]
-    fn client_read_phy(&mut self, client_id: i32, addr: String) {
         dbus_generated!()
     }
 
@@ -383,5 +510,103 @@ impl IBluetoothGatt for IBluetoothGattDBus {
         max_ce_len: u16,
     ) {
         dbus_generated!()
+    }
+
+    fn execute_write(&self) {
+        // TODO(b/193686094): implement
+        todo!()
+    }
+
+    fn deregister_for_notification(&self) {
+        // TODO(b/193686094): implement
+        todo!()
+    }
+
+    fn get_device_type(&self) {
+        // TODO(b/193686094): implement
+        todo!()
+    }
+
+    #[dbus_method("ClientSetPreferredPhy")]
+    fn client_set_preferred_phy(
+        &self,
+        client_id: i32,
+        addr: String,
+        tx_phy: LePhy,
+        rx_phy: LePhy,
+        phy_options: i32,
+    ) {
+        dbus_generated!()
+    }
+
+    #[dbus_method("ClientReadPhy")]
+    fn client_read_phy(&mut self, client_id: i32, addr: String) {
+        dbus_generated!()
+    }
+
+    fn test_command(&self) {
+        // TODO(b/193686094): implement
+        todo!()
+    }
+
+    fn get_gatt_db(&self) {
+        // TODO(b/193686094): implement
+        todo!()
+    }
+
+    // GATT Server
+    fn register_server(&self) {
+        // TODO(b/193686564): implement
+        todo!()
+    }
+
+    fn unregister_server(&self) {
+        // TODO(b/193686564): implement
+        todo!()
+    }
+
+    fn server_connect(&self) {
+        // TODO(b/193686564): implement
+        todo!()
+    }
+
+    fn server_disconnect(&self) {
+        // TODO(b/193686564): implement
+        todo!()
+    }
+
+    fn add_service(&self) {
+        // TODO(b/193686564): implement
+        todo!()
+    }
+
+    fn stop_service(&self) {
+        // TODO(b/193686564): implement
+        todo!()
+    }
+
+    fn delete_service(&self) {
+        // TODO(b/193686564): implement
+        todo!()
+    }
+
+    fn send_indication(&self) {
+        // TODO(b/193686564): implement
+        todo!()
+    }
+
+    fn send_response(&self) {
+        // TODO(b/193686564): implement
+        todo!()
+    }
+
+    fn server_set_preferred_phy(&self) {
+        // TODO(b/193686564): implement
+        todo!()
+    }
+
+    fn server_read_phy(&self) {
+        // TODO(b/193686564): implement
+        todo!()
     }
 }
