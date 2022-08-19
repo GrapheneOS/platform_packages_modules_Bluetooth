@@ -321,7 +321,7 @@ impl CommandHandler {
                         DisplayList(
                             uuids
                                 .iter()
-                                .map(|&x| UuidHelper::to_string(&x))
+                                .map(|&x| uuid_helper.known_uuid_to_string(&x))
                                 .collect::<Vec<String>>()
                         )
                     );
@@ -529,6 +529,7 @@ impl CommandHandler {
                         (name, alias, device_type, class, bonded, connected, uuids)
                     };
 
+                    let uuid_helper = UuidHelper::new();
                     print_info!("Address: {}", &device.address);
                     print_info!("Name: {}", name);
                     print_info!("Alias: {}", alias);
@@ -541,7 +542,7 @@ impl CommandHandler {
                         DisplayList(
                             uuids
                                 .iter()
-                                .map(|&x| UuidHelper::to_string(&x))
+                                .map(|&x| uuid_helper.known_uuid_to_string(&x))
                                 .collect::<Vec<String>>()
                         )
                     );
