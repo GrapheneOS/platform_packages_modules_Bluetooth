@@ -24,6 +24,17 @@ NEEDS_PAIRING_CONFIRMATION = {
     "SM/CEN/EKS/BV-01-C",
     "SM/CEN/JW/BI-04-C",
     "SM/CEN/JW/BI-01-C",
+    "SM/CEN/KDU/BV-04-C",
+    "SM/CEN/KDU/BV-05-C",
+    "SM/CEN/KDU/BV-06-C",
+    "SM/CEN/KDU/BV-10-C",
+    "SM/CEN/KDU/BV-11-C",
+}
+
+ACCEPTS_REMOTE_PAIRING_CONFIRMATION = {
+    "SM/CEN/KDU/BI-01-C",
+    "SM/CEN/KDU/BI-02-C",
+    "SM/CEN/KDU/BI-03-C",
 }
 
 
@@ -36,11 +47,13 @@ class SMProxy(ProfileProxy):
         self.connection = None
 
     @assert_description
-    def MMI_IUT_ENABLE_CONNECTION_SM(self, pts_addr: bytes, **kwargs):
+    def MMI_IUT_ENABLE_CONNECTION_SM(self, test, pts_addr: bytes, **kwargs):
         """
         Initiate an connection from the IUT to the PTS.
         """
         self.connection = self.host.ConnectLE(address=pts_addr).connection
+        if self.connection and test in ACCEPTS_REMOTE_PAIRING_CONFIRMATION:
+            self.sm.ProvidePairingConfirmation(connection=self.connection, pairing_confirmation_value=True)
         return "OK"
 
     @assert_description
@@ -53,7 +66,7 @@ class SMProxy(ProfileProxy):
             if test in NEEDS_PAIRING_CONFIRMATION:
                 self.sm.ProvidePairingConfirmation(connection=self.connection, pairing_confirmation_value=True)
 
-            return "OK"
+        return "OK"
 
     @assert_description
     def MMI_IUT_SEND_DISCONNECTION_REQUEST(self, **kwargs):
@@ -67,4 +80,19 @@ class SMProxy(ProfileProxy):
         if self.connection:
             self.host.DisconnectLE(connection=self.connection)
             self.connection = None
-            return "OK"
+        return "OK"
+
+    def MMI_LESC_NUMERIC_COMPARISON(self, **kwargs):
+        """
+        Please confirm the following number matches IUT: 385874.
+        """
+
+        return "OK"
+
+    @assert_description
+    def MMI_ASK_IUT_PERFORM_RESET(self, **kwargs):
+        """
+        Please reset your device.
+        """
+        self.host.Reset()
+        return "OK"
