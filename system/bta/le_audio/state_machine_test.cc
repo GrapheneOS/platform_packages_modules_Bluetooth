@@ -22,6 +22,7 @@
 
 #include <functional>
 
+#include "bta/le_audio/content_control_id_keeper.h"
 #include "bta_gatt_api_mock.h"
 #include "bta_gatt_queue_mock.h"
 #include "btm_api_mock.h"
@@ -47,6 +48,11 @@ using ::testing::Test;
 std::map<std::string, int> mock_function_count_map;
 
 extern struct fake_osi_alarm_set_on_mloop fake_osi_alarm_set_on_mloop_;
+
+constexpr uint8_t media_ccid = 0xC0;
+constexpr auto media_context = static_cast<
+    std::underlying_type<le_audio::types::LeAudioContextType>::type>(
+    le_audio::types::LeAudioContextType::MEDIA);
 
 namespace le_audio {
 namespace internal {
@@ -165,6 +171,8 @@ class StateMachineTest : public Test {
     additional_ases = 0;
     ::le_audio::AudioSetConfigurationProvider::Initialize();
     LeAudioGroupStateMachine::Initialize(&mock_callbacks_);
+
+    ContentControlIdKeeper::GetInstance()->Start();
 
     // Support 2M Phy
     ON_CALL(mock_controller_, SupportsBle2mPhy()).WillByDefault(Return(true));
@@ -2399,7 +2407,8 @@ TEST_F(StateMachineTest, testConfigureDataPathForHost) {
   PrepareEnableHandler(group, 1);
 
   EXPECT_CALL(*mock_codec_manager_, GetCodecLocation())
-      .WillOnce(Return(types::CodecLocation::HOST));
+      .Times(2)
+      .WillRepeatedly(Return(types::CodecLocation::HOST));
 
   EXPECT_CALL(
       *mock_iso_manager_,
@@ -2428,7 +2437,8 @@ TEST_F(StateMachineTest, testConfigureDataPathForAdsp) {
   PrepareEnableHandler(group, 1);
 
   EXPECT_CALL(*mock_codec_manager_, GetCodecLocation())
-      .WillOnce(Return(types::CodecLocation::ADSP));
+      .Times(2)
+      .WillRepeatedly(Return(types::CodecLocation::ADSP));
 
   EXPECT_CALL(
       *mock_iso_manager_,
@@ -2471,6 +2481,8 @@ TEST_F(StateMachineTest, testAttachDeviceToTheStream) {
   const auto leaudio_group_id = 6;
   const auto num_devices = 2;
 
+  ContentControlIdKeeper::GetInstance()->SetCcid(media_context, media_ccid);
+
   // Prepare multiple fake connected devices in a group
   auto* group =
       PrepareSingleTestDeviceGroup(leaudio_group_id, context_type, num_devices);
@@ -2505,7 +2517,7 @@ TEST_F(StateMachineTest, testAttachDeviceToTheStream) {
 
   EXPECT_CALL(*mock_iso_manager_, CreateCig(_, _)).Times(1);
   EXPECT_CALL(*mock_iso_manager_, EstablishCis(_)).Times(2);
-  EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(2);
+  EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(3);
 
   InjectInitialIdleNotification(group);
 
