@@ -69,6 +69,86 @@ static uint8_t min_req_devices_cnt(
   return curr_min_req_devices_cnt;
 }
 
+void get_cis_count(const AudioSetConfigurations* audio_set_confs,
+                   types::LeAudioConfigurationStrategy strategy,
+                   uint8_t* cis_count_bidir, uint8_t* cis_count_unidir_sink,
+                   uint8_t* cis_count_unidir_source) {
+  for (auto audio_set_conf : *audio_set_confs) {
+    std::pair<uint8_t /* sink */, uint8_t /* source */> snk_src_pair(0, 0);
+    uint8_t bidir_count = 0;
+    uint8_t unidir_sink_count = 0;
+    uint8_t unidir_source_count = 0;
+
+    LOG_INFO("%s ", audio_set_conf->name.c_str());
+    bool stategy_mismatch = false;
+    for (auto ent : (*audio_set_conf).confs) {
+      if (ent.strategy != strategy) {
+        LOG_INFO("Strategy does not match (%d != %d)- skip this configuration",
+                 static_cast<int>(ent.strategy), static_cast<int>(strategy));
+        stategy_mismatch = true;
+        break;
+      }
+      if (ent.direction == kLeAudioDirectionSink) {
+        snk_src_pair.first += ent.device_cnt;
+      }
+      if (ent.direction == kLeAudioDirectionSource) {
+        snk_src_pair.second += ent.device_cnt;
+      }
+    }
+
+    if (stategy_mismatch) {
+      continue;
+    }
+
+    bidir_count = std::min(snk_src_pair.first, snk_src_pair.second);
+    unidir_sink_count = ((snk_src_pair.first - bidir_count) > 0)
+                            ? (snk_src_pair.first - bidir_count)
+                            : 0;
+    unidir_source_count = ((snk_src_pair.second - bidir_count) > 0)
+                              ? (snk_src_pair.second - bidir_count)
+                              : 0;
+
+    *cis_count_bidir = std::max(bidir_count, *cis_count_bidir);
+
+    /* Check if we can reduce a number of unicast CISes in case bidirectional
+     * are use in other or this scenario */
+    if (bidir_count < *cis_count_bidir) {
+      /* Since we already have bidirectional cises available from other
+       * scenarios, let's decrease number of unicast sinks in this scenario.
+       */
+      uint8_t available_bidir = *cis_count_bidir - bidir_count;
+      unidir_sink_count =
+          unidir_sink_count - std::min(unidir_sink_count, available_bidir);
+      unidir_source_count =
+          unidir_source_count - std::min(unidir_source_count, available_bidir);
+    } else if (bidir_count > *cis_count_bidir) {
+      /* Lets decrease number of the unicast cises from previouse scenarios */
+      uint8_t available_bidir = bidir_count - *cis_count_bidir;
+      *cis_count_unidir_sink =
+          *cis_count_unidir_sink -
+          std::min(*cis_count_unidir_sink, available_bidir);
+      *cis_count_unidir_source =
+          *cis_count_unidir_source -
+          std::min(*cis_count_unidir_source, available_bidir);
+    }
+
+    *cis_count_unidir_sink =
+        std::max(unidir_sink_count, *cis_count_unidir_sink);
+    *cis_count_unidir_source =
+        std::max(unidir_source_count, *cis_count_unidir_source);
+
+    LOG_INFO(
+        "Intermediate step:  Bi-Directional: %d,"
+        " Uni-Directional Sink: %d, Uni-Directional Source: %d ",
+        *cis_count_bidir, *cis_count_unidir_sink, *cis_count_unidir_source);
+  }
+
+  LOG_INFO(
+      " Maximum CIS count, Bi-Directional: %d,"
+      " Uni-Directional Sink: %d, Uni-Directional Source: %d",
+      *cis_count_bidir, *cis_count_unidir_sink, *cis_count_unidir_source);
+}
+
 bool check_if_may_cover_scenario(const AudioSetConfigurations* audio_set_confs,
                                  uint8_t group_size) {
   if (!audio_set_confs) {
