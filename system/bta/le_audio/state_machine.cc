@@ -448,52 +448,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
       return;
     }
 
-    uint16_t cis_conn_hdl = ase->cis_conn_hdl;
-    auto* stream_conf = &group->stream_conf;
-    if (ase->direction == le_audio::types::kLeAudioDirectionSink) {
-      auto iter = std::find_if(
-          stream_conf->sink_streams.begin(), stream_conf->sink_streams.end(),
-          [cis_conn_hdl](auto& pair) { return cis_conn_hdl == pair.first; });
-
-      if (iter == stream_conf->sink_streams.end()) {
-        stream_conf->sink_streams.emplace_back(std::make_pair(
-            ase->cis_conn_hdl, *ase->codec_config.audio_channel_allocation));
-
-        stream_conf->sink_num_of_devices++;
-        stream_conf->sink_num_of_channels += ase->codec_config.channel_count;
-
-        LOG_INFO(
-            " Added Sink Stream Configuration. CIS Connection Handle: %d"
-            ", Audio Channel Allocation: %d"
-            ", Sink Number Of Devices: %d"
-            ", Sink Number Of Channels: %d",
-            +ase->cis_conn_hdl, +(*ase->codec_config.audio_channel_allocation),
-            +stream_conf->sink_num_of_devices,
-            +stream_conf->sink_num_of_channels);
-      }
-    } else {
-      auto iter = std::find_if(
-          stream_conf->source_streams.begin(),
-          stream_conf->source_streams.end(),
-          [cis_conn_hdl](auto& pair) { return cis_conn_hdl == pair.first; });
-
-      if (iter == stream_conf->source_streams.end()) {
-        stream_conf->source_streams.emplace_back(std::make_pair(
-            ase->cis_conn_hdl, *ase->codec_config.audio_channel_allocation));
-
-        stream_conf->source_num_of_devices++;
-        stream_conf->source_num_of_channels += ase->codec_config.channel_count;
-
-        LOG_INFO(
-            " Added Source Stream Configuration. CIS Connection Handle: %d"
-            ", Audio Channel Allocation: %d"
-            ", Source Number Of Devices: %d"
-            ", Source Number Of Channels: %d",
-            +ase->cis_conn_hdl, +(*ase->codec_config.audio_channel_allocation),
-            +stream_conf->source_num_of_devices,
-            +stream_conf->source_num_of_channels);
-      }
-    }
+    AddCisToStreamConfiguration(group, ase);
 
     ase = leAudioDevice->GetFirstActiveAseByDataPathState(
         AudioStreamDataPathState::CIS_ESTABLISHED);
@@ -619,8 +574,6 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
       group->UpdateActiveContextsMap();
       return;
     }
-
-    RemoveCisFromStreamConfiguration(group, leAudioDevice, 0);
 
     /* mark ASEs as not used. */
     leAudioDevice->DeactivateAllAses();
@@ -904,12 +857,139 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
         INT_TO_PTR(group->group_id_));
   }
 
+  void AddCisToStreamConfiguration(LeAudioDeviceGroup* group,
+                                   const struct ase* ase) {
+    uint16_t cis_conn_hdl = ase->cis_conn_hdl;
+    LOG_INFO("Adding cis handle 0x%04x (%s) to stream list", cis_conn_hdl,
+             ase->direction == le_audio::types::kLeAudioDirectionSink
+                 ? "sink"
+                 : "source");
+    auto* stream_conf = &group->stream_conf;
+    if (ase->direction == le_audio::types::kLeAudioDirectionSink) {
+      auto iter = std::find_if(
+          stream_conf->sink_streams.begin(), stream_conf->sink_streams.end(),
+          [cis_conn_hdl](auto& pair) { return cis_conn_hdl == pair.first; });
+
+      ASSERT_LOG(iter == stream_conf->sink_streams.end(),
+                 "Stream is already there 0x%04x", cis_conn_hdl);
+
+      stream_conf->sink_streams.emplace_back(std::make_pair(
+          ase->cis_conn_hdl, *ase->codec_config.audio_channel_allocation));
+
+      stream_conf->sink_num_of_devices++;
+      stream_conf->sink_num_of_channels += ase->codec_config.channel_count;
+      stream_conf->sink_audio_channel_allocation |=
+          *ase->codec_config.audio_channel_allocation;
+
+      if (stream_conf->sink_sample_frequency_hz == 0) {
+        stream_conf->sink_sample_frequency_hz =
+            ase->codec_config.GetSamplingFrequencyHz();
+      } else {
+        ASSERT_LOG(stream_conf->sink_sample_frequency_hz ==
+                       ase->codec_config.GetSamplingFrequencyHz(),
+                   "sample freq mismatch: %d!=%d",
+                   stream_conf->sink_sample_frequency_hz,
+                   ase->codec_config.GetSamplingFrequencyHz());
+      }
+
+      if (stream_conf->sink_octets_per_codec_frame == 0) {
+        stream_conf->sink_octets_per_codec_frame =
+            *ase->codec_config.octets_per_codec_frame;
+      } else {
+        ASSERT_LOG(stream_conf->sink_octets_per_codec_frame ==
+                       *ase->codec_config.octets_per_codec_frame,
+                   "octets per frame mismatch: %d!=%d",
+                   stream_conf->sink_octets_per_codec_frame,
+                   *ase->codec_config.octets_per_codec_frame);
+      }
+
+      if (stream_conf->sink_codec_frames_blocks_per_sdu == 0) {
+        stream_conf->sink_codec_frames_blocks_per_sdu =
+            *ase->codec_config.codec_frames_blocks_per_sdu;
+      } else {
+        ASSERT_LOG(stream_conf->sink_codec_frames_blocks_per_sdu ==
+                       *ase->codec_config.codec_frames_blocks_per_sdu,
+                   "codec_frames_blocks_per_sdu: %d!=%d",
+                   stream_conf->sink_codec_frames_blocks_per_sdu,
+                   *ase->codec_config.codec_frames_blocks_per_sdu);
+      }
+
+      LOG_INFO(
+          " Added Sink Stream Configuration. CIS Connection Handle: %d"
+          ", Audio Channel Allocation: %d"
+          ", Sink Number Of Devices: %d"
+          ", Sink Number Of Channels: %d",
+          ase->cis_conn_hdl, *ase->codec_config.audio_channel_allocation,
+          stream_conf->sink_num_of_devices, stream_conf->sink_num_of_channels);
+
+    } else {
+      /* Source case */
+      auto iter = std::find_if(
+          stream_conf->source_streams.begin(),
+          stream_conf->source_streams.end(),
+          [cis_conn_hdl](auto& pair) { return cis_conn_hdl == pair.first; });
+
+      ASSERT_LOG(iter == stream_conf->source_streams.end(),
+                 "Stream is already there 0x%04x", cis_conn_hdl);
+
+      stream_conf->source_streams.emplace_back(std::make_pair(
+          ase->cis_conn_hdl, *ase->codec_config.audio_channel_allocation));
+
+      stream_conf->source_num_of_devices++;
+      stream_conf->source_num_of_channels += ase->codec_config.channel_count;
+      stream_conf->source_audio_channel_allocation |=
+          *ase->codec_config.audio_channel_allocation;
+
+      if (stream_conf->source_sample_frequency_hz == 0) {
+        stream_conf->source_sample_frequency_hz =
+            ase->codec_config.GetSamplingFrequencyHz();
+      } else {
+        ASSERT_LOG(stream_conf->source_sample_frequency_hz ==
+                       ase->codec_config.GetSamplingFrequencyHz(),
+                   "sample freq mismatch: %d!=%d",
+                   stream_conf->source_sample_frequency_hz,
+                   ase->codec_config.GetSamplingFrequencyHz());
+      }
+
+      if (stream_conf->source_octets_per_codec_frame == 0) {
+        stream_conf->source_octets_per_codec_frame =
+            *ase->codec_config.octets_per_codec_frame;
+      } else {
+        ASSERT_LOG(stream_conf->source_octets_per_codec_frame ==
+                       *ase->codec_config.octets_per_codec_frame,
+                   "octets per frame mismatch: %d!=%d",
+                   stream_conf->source_octets_per_codec_frame,
+                   *ase->codec_config.octets_per_codec_frame);
+      }
+
+      if (stream_conf->source_codec_frames_blocks_per_sdu == 0) {
+        stream_conf->source_codec_frames_blocks_per_sdu =
+            *ase->codec_config.codec_frames_blocks_per_sdu;
+      } else {
+        ASSERT_LOG(stream_conf->source_codec_frames_blocks_per_sdu ==
+                       *ase->codec_config.codec_frames_blocks_per_sdu,
+                   "codec_frames_blocks_per_sdu: %d!=%d",
+                   stream_conf->source_codec_frames_blocks_per_sdu,
+                   *ase->codec_config.codec_frames_blocks_per_sdu);
+      }
+
+      LOG_INFO(
+          " Added Source Stream Configuration. CIS Connection Handle: %d"
+          ", Audio Channel Allocation: %d"
+          ", Source Number Of Devices: %d"
+          ", Source Number Of Channels: %d",
+          ase->cis_conn_hdl, *ase->codec_config.audio_channel_allocation,
+          stream_conf->source_num_of_devices,
+          stream_conf->source_num_of_channels);
+    }
+  }
+
   void RemoveCisFromStreamConfiguration(LeAudioDeviceGroup* group,
                                         LeAudioDevice* leAudioDevice,
                                         uint16_t cis_conn_hdl) {
     auto* stream_conf = &group->stream_conf;
 
-    LOG_INFO(" CIS Connection Handle: %d", +cis_conn_hdl);
+    LOG_INFO(" CIS Connection Handle: %d", cis_conn_hdl);
 
     if (!stream_conf->sink_streams.empty() ||
         !stream_conf->source_streams.empty()) {
@@ -927,6 +1007,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
                   stream_conf->sink_num_of_devices--;
                   stream_conf->sink_num_of_channels -=
                       ases_pair.sink->codec_config.channel_count;
+                  stream_conf->sink_audio_channel_allocation &= ~pair.second;
                 }
                 return (ases_pair.sink && cis_conn_hdl == pair.first);
               }),
@@ -946,6 +1027,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
                   stream_conf->source_num_of_devices--;
                   stream_conf->source_num_of_channels -=
                       ases_pair.source->codec_config.channel_count;
+                  stream_conf->source_audio_channel_allocation &= ~pair.second;
                 }
                 return (ases_pair.source && cis_conn_hdl == pair.first);
               }),
@@ -960,6 +1042,15 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
           stream_conf->source_num_of_devices,
           stream_conf->source_num_of_channels);
     }
+
+    if (stream_conf->sink_num_of_channels == 0) {
+      group->ClearSinksFromConfiguration();
+    }
+
+    if (stream_conf->source_num_of_channels == 0) {
+      group->ClearSourcesFromConfiguration();
+    }
+
     group->CigUnassignCis(leAudioDevice);
   }
 
