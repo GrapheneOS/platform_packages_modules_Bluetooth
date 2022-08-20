@@ -525,6 +525,21 @@ uint8_t GetMaxCodecFramesPerSduFromPac(const acs_ac_record* pac) {
   return 1;
 }
 
+uint32_t AdjustAllocationForOffloader(uint32_t allocation) {
+  if ((allocation & codec_spec_conf::kLeAudioLocationAnyLeft) &&
+      (allocation & codec_spec_conf::kLeAudioLocationAnyRight)) {
+    return codec_spec_conf::kLeAudioLocationStereo;
+  }
+  if (allocation & codec_spec_conf::kLeAudioLocationAnyLeft) {
+    return codec_spec_conf::kLeAudioLocationFrontLeft;
+  }
+
+  if (allocation & codec_spec_conf::kLeAudioLocationAnyRight) {
+    return codec_spec_conf::kLeAudioLocationFrontRight;
+  }
+  return 0;
+}
+
 namespace types {
 std::ostream& operator<<(std::ostream& os, const types::CigState& state) {
   static const char* char_value_[4] = {"NONE", "CREATING", "CREATED",

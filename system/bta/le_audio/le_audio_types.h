@@ -701,6 +701,8 @@ struct stream_configuration {
   int sink_num_of_devices;
   /* cis_handle, audio location*/
   std::vector<std::pair<uint16_t, uint32_t>> sink_streams;
+  std::vector<std::pair<uint16_t, uint32_t>> sink_offloader_streams;
+  bool sink_offloader_changed;
 
   /* Source configuration */
   /* For now we have always same frequency for all the channels */
@@ -714,6 +716,8 @@ struct stream_configuration {
   int source_num_of_devices;
   /* cis_handle, audio location*/
   std::vector<std::pair<uint16_t, uint32_t>> source_streams;
+  std::vector<std::pair<uint16_t, uint32_t>> source_offloader_streams;
+  bool source_offloader_changed;
 };
 
 void AppendMetadataLtvEntryForCcidList(std::vector<uint8_t>& metadata,
@@ -721,4 +725,5 @@ void AppendMetadataLtvEntryForCcidList(std::vector<uint8_t>& metadata,
 void AppendMetadataLtvEntryForStreamingContext(
     std::vector<uint8_t>& metadata, types::LeAudioContextType context_type);
 uint8_t GetMaxCodecFramesPerSduFromPac(const types::acs_ac_record* pac_record);
+uint32_t AdjustAllocationForOffloader(uint32_t allocation);
 }  // namespace le_audio
