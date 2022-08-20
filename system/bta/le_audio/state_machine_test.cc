@@ -22,6 +22,7 @@
 
 #include <functional>
 
+#include "bta/le_audio/content_control_id_keeper.h"
 #include "bta_gatt_api_mock.h"
 #include "bta_gatt_queue_mock.h"
 #include "btm_api_mock.h"
@@ -47,6 +48,11 @@ using ::testing::Test;
 std::map<std::string, int> mock_function_count_map;
 
 extern struct fake_osi_alarm_set_on_mloop fake_osi_alarm_set_on_mloop_;
+
+constexpr uint8_t media_ccid = 0xC0;
+constexpr auto media_context = static_cast<
+    std::underlying_type<le_audio::types::LeAudioContextType>::type>(
+    le_audio::types::LeAudioContextType::MEDIA);
 
 namespace le_audio {
 namespace internal {
@@ -165,6 +171,8 @@ class StateMachineTest : public Test {
     additional_ases = 0;
     ::le_audio::AudioSetConfigurationProvider::Initialize();
     LeAudioGroupStateMachine::Initialize(&mock_callbacks_);
+
+    ContentControlIdKeeper::GetInstance()->Start();
 
     // Support 2M Phy
     ON_CALL(mock_controller_, SupportsBle2mPhy()).WillByDefault(Return(true));
@@ -2472,6 +2480,8 @@ TEST_F(StateMachineTest, testAttachDeviceToTheStream) {
   const auto context_type = kContextTypeMedia;
   const auto leaudio_group_id = 6;
   const auto num_devices = 2;
+
+  ContentControlIdKeeper::GetInstance()->SetCcid(media_context, media_ccid);
 
   // Prepare multiple fake connected devices in a group
   auto* group =

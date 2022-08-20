@@ -28,6 +28,7 @@
 #include "btm_iso_api.h"
 #include "client_parser.h"
 #include "codec_manager.h"
+#include "content_control_id_keeper.h"
 #include "devices.h"
 #include "gd/common/strings.h"
 #include "hcimsgs.h"
@@ -141,7 +142,10 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
       return false;
     }
 
-    if (!group->Configure(group->GetContextType())) {
+    auto context_type = group->GetCurrentContextType();
+    auto ccid = le_audio::ContentControlIdKeeper::GetInstance()->GetCcid(
+        static_cast<uint16_t>(context_type));
+    if (!group->Configure(context_type, ccid)) {
       LOG_ERROR(" failed to set ASE configuration");
       return false;
     }

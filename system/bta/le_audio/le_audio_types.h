@@ -667,6 +667,7 @@ static constexpr uint32_t kChannelAllocationStereo =
 
 /* Declarations */
 void get_cis_count(const AudioSetConfigurations* audio_set_configurations,
+                   types::LeAudioConfigurationStrategy strategy,
                    uint8_t* cis_count_bidir, uint8_t* cis_count_unidir_sink,
                    uint8_t* cis_count_unidir_source);
 bool check_if_may_cover_scenario(
