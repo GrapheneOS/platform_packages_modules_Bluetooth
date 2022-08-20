@@ -223,6 +223,8 @@ class LeAudioDeviceGroup {
   bool Activate(types::LeAudioContextType context_type);
   void Deactivate(void);
   void CigClearCis(void);
+  void ClearSinksFromConfiguration(void);
+  void ClearSourcesFromConfiguration(void);
   void Cleanup(void);
   LeAudioDevice* GetFirstDevice(void);
   LeAudioDevice* GetFirstDeviceWithActiveContext(
