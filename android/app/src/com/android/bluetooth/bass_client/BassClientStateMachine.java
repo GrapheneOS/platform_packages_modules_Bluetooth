@@ -1295,16 +1295,6 @@ public class BassClientStateMachine extends StateMachine {
             stream.write(metadata.getRawMetadata(), 0, metadata.getRawMetadata().length);
         }
 
-        if (metaData.isEncrypted() && metaData.getBroadcastCode().length == 16) {
-            if (metaData.getBroadcastCode().length != 16) {
-                Log.e(TAG, "Delivered invalid length of broadcast code: " +
-                      metaData.getBroadcastCode().length + ", should be 16");
-                return null;
-            }
-
-            mSetBroadcastCodePending = true;
-        }
-
         byte[] res = stream.toByteArray();
         log("ADD_BCAST_SOURCE in Bytes");
         BassUtils.printByteArray(res);
@@ -1403,10 +1393,8 @@ public class BassClientStateMachine extends StateMachine {
                     + recvState.getSourceId());
             return null;
         }
-        // Can Keep as ASCII as is
-        String reversePIN = new StringBuffer(new String(metaData.getBroadcastCode()))
-                .reverse().toString();
-        byte[] actualPIN = reversePIN.getBytes();
+        // Broadcast Code
+        byte[] actualPIN = metaData.getBroadcastCode();
         if (actualPIN == null) {
             Log.e(TAG, "actual PIN is null");
             return null;
@@ -1414,6 +1402,8 @@ public class BassClientStateMachine extends StateMachine {
             log("byte array broadcast Code:" + Arrays.toString(actualPIN));
             log("pinLength:" + actualPIN.length);
             // Broadcast_Code, Fill the PIN code in the Last Position
+            // This effectively adds padding zeros to LSB positions when the broadcast code
+            // is shorter than 16 octets
             System.arraycopy(
                     actualPIN, 0, res,
                     (BassConstants.PIN_CODE_CMD_LEN - actualPIN.length), actualPIN.length);
@@ -1550,6 +1540,9 @@ public class BassClientStateMachine extends StateMachine {
                         mBluetoothGatt.writeCharacteristic(mBroadcastScanControlPoint);
                         mPendingOperation = message.what;
                         mPendingMetadata = metaData;
+                        if (metaData.isEncrypted() && (metaData.getBroadcastCode() != null)) {
+                            mSetBroadcastCodePending = true;
+                        }
                         transitionTo(mConnectedProcessing);
                         sendMessageDelayed(GATT_TXN_TIMEOUT, BassConstants.GATT_TXN_TIMEOUT_MS);
                     } else {
@@ -1576,6 +1569,9 @@ public class BassClientStateMachine extends StateMachine {
                         mPendingSourceId = (byte) sourceId;
                         if (paSync == BluetoothLeBroadcastReceiveState.PA_SYNC_STATE_IDLE) {
                             setPendingRemove(sourceId, true);
+                        }
+                        if (metaData.isEncrypted() && (metaData.getBroadcastCode() != null)) {
+                            mSetBroadcastCodePending = true;
                         }
                         mPendingMetadata = metaData;
                         transitionTo(mConnectedProcessing);

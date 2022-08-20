@@ -55,19 +55,7 @@ impl ISuspend for SuspendDBus {
 #[allow(dead_code)]
 struct ISuspendCallbackDBus {}
 
-impl RPCProxy for ISuspendCallbackDBus {
-    // Placeholder implementations just to satisfy impl RPCProxy requirements.
-    fn register_disconnect(&mut self, _f: Box<dyn Fn(u32) + Send>) -> u32 {
-        0
-    }
-    fn get_object_id(&self) -> String {
-        String::from("")
-    }
-    fn unregister(&mut self, _id: u32) -> bool {
-        false
-    }
-    fn export_for_rpc(self: Box<Self>) {}
-}
+impl RPCProxy for ISuspendCallbackDBus {}
 
 #[generate_dbus_exporter(
     export_suspend_callback_dbus_intf,

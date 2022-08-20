@@ -134,6 +134,7 @@ genrule {
          "    $(in)",
     srcs: [
         "proto/pandora/a2dp.proto",
+        "proto/pandora/avrcp.proto",
         "proto/pandora/gatt.proto",
         "proto/pandora/hfp.proto",
         "proto/pandora/host.proto",
@@ -142,6 +143,8 @@ genrule {
     out: [
         "pandora/a2dp_grpc.py",
         "pandora/a2dp_pb2.py",
+        "pandora/avrcp_grpc.py",
+        "pandora/avrcp_pb2.py",
         "pandora/gatt_grpc.py",
         "pandora/gatt_pb2.py",
         "pandora/hfp_grpc.py",
