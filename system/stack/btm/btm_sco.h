@@ -37,10 +37,10 @@ void open();
 /* Clean up the socket when the SCO connection is done */
 void cleanup();
 
-/* Read from the socket (audio server) for SCO Tx */
+/* Read PCM data from the socket (audio server) for SCO Tx */
 size_t read(uint8_t* p_buf, uint32_t len);
 
-/* Write to the socket from SCO Rx */
+/* Write PCM data to the socket from SCO Rx */
 size_t write(const uint8_t* buf, uint32_t len);
 }  // namespace bluetooth::audio::sco
 
