@@ -85,6 +85,16 @@ const bluetooth::legacy::hci::Interface& GetLegacyHciInterface() {
   (ESCO_PKT_TYPES_MASK_NO_2_EV3 | ESCO_PKT_TYPES_MASK_NO_3_EV3 | \
    ESCO_PKT_TYPES_MASK_NO_2_EV5 | ESCO_PKT_TYPES_MASK_NO_3_EV5)
 
+/* Buffer used for reading PCM data from audio server that will be encoded into
+ * mSBC packet. The BTM_SCO_DATA_SIZE_MAX should be set to a number divisible by
+ * BTM_MSBC_CODE_SIZE(240) */
+static int16_t btm_pcm_buf[BTM_SCO_DATA_SIZE_MAX] = {0};
+
+/* The read and write offset for btm_pcm_buf.
+ * They are only used for WBS and the unit is byte. */
+static size_t btm_pcm_buf_read_offset = 0;
+static size_t btm_pcm_buf_write_offset = 0;
+
 /* Per Bluetooth Core v5.0 and HFP 1.7 specification. */
 #define BTM_MSBC_H2_HEADER_0 0x01
 #define BTM_MSBC_H2_HEADER_LEN 2
@@ -214,43 +224,49 @@ static bool verify_h2_header_seq_num(const uint8_t num) {
  * Function         btm_route_sco_data
  *
  * Description      Route received SCO data.
+ *                  This function is triggered when we receive a packet of SCO
+ *                  data. It regards the received SCO packet as a clock tick to
+ *                  start the write and read to and from the audio server. It
+ *                  also tries to balance the write/read data rate between the
+ *                  Bluetooth and Audio stack by sending and receiving the same
+ *                  amount of PCM data to and from the audio server.
  *
  * Returns          void
  *
  ******************************************************************************/
 void btm_route_sco_data(BT_HDR* p_msg) {
   uint8_t* payload = p_msg->data;
-  uint16_t handle_with_flags = 0;
-  const uint8_t* out_data;
-  uint8_t length = 0;
-  uint8_t read_buf[BTM_SCO_DATA_SIZE_MAX];
   if (p_msg->len < 3) {
     LOG_ERROR("Received incomplete SCO header");
     osi_free(p_msg);
     return;
   }
 
+  uint8_t data_len = 0;
+  uint16_t handle_with_flags = 0;
   STREAM_TO_UINT16(handle_with_flags, payload);
-  STREAM_TO_UINT8(length, payload);
-  if (p_msg->len != length + 3) {
-    LOG_ERROR("Received invalid SCO data of size: %hhu, dropping", length);
+  STREAM_TO_UINT8(data_len, payload);
+  if (p_msg->len != data_len + 3) {
+    LOG_ERROR("Received invalid SCO data of size: %hhu, dropping", data_len);
     osi_free(p_msg);
     return;
   }
   uint16_t handle = handle_with_flags & 0xFFF;
   ASSERT_LOG(handle <= 0xEFF, "Require handle <= 0xEFF, but is 0x%X", handle);
 
-  auto* active_sco = btm_get_active_sco();
+  tSCO_CONN* active_sco = btm_get_active_sco();
   if (active_sco == nullptr || active_sco->hci_handle != handle) {
     osi_free(p_msg);
     return;
   }
 
+  const uint8_t* decoded = nullptr;
+  size_t written = 0;
   if (active_sco->is_wbs()) {
     /* TODO(b/235901463): Support packet size != BTM_MSBC_PKT_LEN */
-    if (length != BTM_MSBC_PKT_LEN) {
+    if (data_len != BTM_MSBC_PKT_LEN) {
       LOG_ERROR("Received invalid mSBC packet with invalid length:%hhu",
-                length);
+                data_len);
       osi_free(p_msg);
       return;
     }
@@ -273,35 +289,70 @@ void btm_route_sco_data(BT_HDR* p_msg) {
       return;
     }
 
-    if (!hfp_msbc_decoder_decode_packet(p_msg, &out_data)) {
+    if (!hfp_msbc_decoder_decode_packet(p_msg, &decoded)) {
       LOG_ERROR("Decode mSBC packet failed");
-      out_data = btm_msbc_zero_frames;
+      decoded = btm_msbc_zero_frames;
     }
 
-    length = BTM_MSBC_CODE_SIZE;
-
+    written = bluetooth::audio::sco::write(decoded, BTM_MSBC_CODE_SIZE);
   } else {
-    out_data = payload;
+    written = bluetooth::audio::sco::write(payload, data_len);
   }
-  bluetooth::audio::sco::write(out_data, length);
   osi_free(p_msg);
 
-  /* For Chrome OS, we send the outgoing data after receiving an incoming one */
-  auto size_read = bluetooth::audio::sco::read(read_buf, length);
-
+  /* For Chrome OS, we send the outgoing data after receiving an incoming one.
+   * server, so that we can keep the data read/write rate balanced */
+  size_t read = 0, avail = 0;
   if (active_sco->is_wbs()) {
-    uint8_t encoded[BTM_MSBC_PKT_LEN] = {
-        BTM_MSBC_H2_HEADER_0,
-        btm_h2_header_frames_count[btm_msbc_num_out_frames % 4]};
+    while (written) {
+      avail = BTM_SCO_DATA_SIZE_MAX - btm_pcm_buf_write_offset;
+      if (avail) {
+        data_len = written < avail ? written : avail;
+        read = bluetooth::audio::sco::read(
+            (uint8_t*)btm_pcm_buf + btm_pcm_buf_write_offset, data_len);
+        if (read != data_len) {
+          ASSERT_LOG(btm_pcm_buf_write_offset + read <= BTM_SCO_DATA_SIZE_MAX,
+                     "Read more data (%lu) than available buffer (%lu) guarded "
+                     "by read",
+                     (unsigned long)read,
+                     (unsigned long)(BTM_SCO_DATA_SIZE_MAX -
+                                     btm_pcm_buf_write_offset));
 
-    if (size_read != BTM_MSBC_CODE_SIZE) {
-      LOG_WARN("Read partial data: %zu", size_read);
-      std::copy(std::begin(btm_msbc_zero_packet),
-                std::end(btm_msbc_zero_packet),
-                &encoded[BTM_MSBC_H2_HEADER_LEN]);
-    } else {
+          LOG_INFO(
+              "Requested to read %lu bytes of data but got %lu bytes of PCM "
+              "data from audio server: WriteOffset:%lu ReadOffset:%lu",
+              (unsigned long)data_len, (unsigned long)read,
+              (unsigned long)btm_pcm_buf_write_offset,
+              (unsigned long)btm_pcm_buf_read_offset);
+          if (read == 0) break;
+        }
+
+        written -= read;
+      } else {
+        /* We don't break here so that we can still decode the data in the
+         * buffer to spare the buffer space when the buffer is full */
+        LOG_WARN("Buffer is full when we try to read from audio server");
+        ASSERT_LOG(btm_pcm_buf_write_offset - btm_pcm_buf_read_offset >=
+                       BTM_MSBC_CODE_SIZE,
+                   "PCM buffer is full but fails to encode a mSBC packet. "
+                   "This is abnormal and can cause busy loop: "
+                   "WriteOffset:%lu, ReadOffset:%lu, BufferSize:%lu",
+                   (unsigned long)btm_pcm_buf_write_offset,
+                   (unsigned long)btm_pcm_buf_read_offset,
+                   (unsigned long)sizeof(btm_pcm_buf));
+      }
+
+      btm_pcm_buf_write_offset += read;
+      if (btm_pcm_buf_write_offset - btm_pcm_buf_read_offset <
+          BTM_MSBC_CODE_SIZE) {
+        continue;
+      }
+
+      uint8_t encoded[BTM_MSBC_PKT_LEN] = {
+          BTM_MSBC_H2_HEADER_0,
+          btm_h2_header_frames_count[btm_msbc_num_out_frames % 4]};
       uint32_t encoded_size;
-      encoded_size = hfp_msbc_encode_frames((int16_t*)read_buf, encoded + 2);
+      encoded_size = hfp_msbc_encode_frames(btm_pcm_buf, encoded + 2);
       if (encoded_size != BTM_MSBC_PKT_FRAME_LEN) {
         LOG_WARN("Encode invalid packet size: %lu",
                  (unsigned long)encoded_size);
@@ -309,15 +360,41 @@ void btm_route_sco_data(BT_HDR* p_msg) {
                   std::end(btm_msbc_zero_packet),
                   &encoded[BTM_MSBC_H2_HEADER_LEN]);
       }
+
+      auto data = std::vector<uint8_t>(encoded, encoded + BTM_MSBC_PKT_LEN);
+      btm_send_sco_packet(std::move(data));
+      btm_msbc_num_out_frames++;
+
+      /* The offsets should reset some time as the buffer length should always
+       * divisible by BTM_MSBC_CODE_SIZE(240) */
+      btm_pcm_buf_read_offset += BTM_MSBC_CODE_SIZE;
+      if (btm_pcm_buf_write_offset == btm_pcm_buf_read_offset) {
+        btm_pcm_buf_write_offset = 0;
+        btm_pcm_buf_read_offset = 0;
+      }
     }
-
-    auto data = std::vector<uint8_t>(encoded, encoded + BTM_MSBC_PKT_LEN);
-    btm_send_sco_packet(std::move(data));
-
-    btm_msbc_num_out_frames++;
   } else {
-    auto data = std::vector<uint8_t>(read_buf, read_buf + size_read);
-    btm_send_sco_packet(std::move(data));
+    while (written) {
+      read = bluetooth::audio::sco::read(
+          (uint8_t*)btm_pcm_buf,
+          written < BTM_SCO_DATA_SIZE_MAX ? written : BTM_SCO_DATA_SIZE_MAX);
+      if (read == 0) {
+        LOG_INFO("Failed to read %lu bytes of PCM data from audio server",
+                 (unsigned long)(written < BTM_SCO_DATA_SIZE_MAX
+                                     ? written
+                                     : BTM_SCO_DATA_SIZE_MAX));
+        break;
+      }
+      written -= read;
+
+      /* In narrow-band, the CVSD encode is offloaded to controller so we can
+       * send PCM data directly to SCO.
+       * We don't maintain buffer read/write offset for NB as we send all data
+       * that we read from the audio server. */
+      auto data = std::vector<uint8_t>((uint8_t*)btm_pcm_buf,
+                                       (uint8_t*)btm_pcm_buf + read);
+      btm_send_sco_packet(std::move(data));
+    }
   }
 }
 
@@ -332,8 +409,8 @@ void btm_send_sco_packet(std::vector<uint8_t> data) {
 
 // Build a SCO packet from uint8
 BT_HDR* btm_sco_make_packet(std::vector<uint8_t> data, uint16_t sco_handle) {
-  ASSERT_LOG(data.size() <= BTM_SCO_DATA_SIZE_MAX, "Invalid SCO data size: %zu",
-             data.size());
+  ASSERT_LOG(data.size() <= BTM_SCO_DATA_SIZE_MAX, "Invalid SCO data size: %lu",
+             (unsigned long)data.size());
   BT_HDR* p_buf = (BT_HDR*)osi_calloc(BT_SMALL_BUFFER_SIZE);
   p_buf->event = BT_EVT_TO_LM_HCI_SCO;
   // SCO header size is 3 per Core 5.2 Vol 4 Part E 5.4.3 figure 5.3
@@ -875,11 +952,14 @@ void btm_sco_connected(const RawAddress& bda, uint16_t hci_handle,
       /* In-band (non-offload) data path */
       if (p->is_inband()) {
         if (p->is_wbs()) {
+          btm_pcm_buf_read_offset = 0;
+          btm_pcm_buf_write_offset = 0;
           btm_msbc_num_out_frames = 0;
           hfp_msbc_decoder_init();
           hfp_msbc_encoder_init();
         }
 
+        std::fill(std::begin(btm_pcm_buf), std::end(btm_pcm_buf), 0);
         bluetooth::audio::sco::open();
       }
       return;
