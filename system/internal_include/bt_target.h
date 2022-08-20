@@ -262,7 +262,8 @@
 /**************************
  * Initial SCO TX credit
  ************************/
-/* max TX SCO data packet size */
+/* The size of buffer used for TX SCO data packets. The size should be divisible
+ * by BTM_MSBC_CODE_SIZE(240) */
 #ifndef BTM_SCO_DATA_SIZE_MAX
 #define BTM_SCO_DATA_SIZE_MAX 240
 #endif
