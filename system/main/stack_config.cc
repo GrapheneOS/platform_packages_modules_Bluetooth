@@ -47,6 +47,8 @@ const char* PTS_L2CAP_ECOC_INITIAL_CHAN_CNT = "PTS_L2capEcocInitialChanCnt";
 const char* PTS_L2CAP_ECOC_CONNECT_REMAINING = "PTS_L2capEcocConnectRemaining";
 const char* PTS_L2CAP_ECOC_SEND_NUM_OF_SDU = "PTS_L2capEcocSendNumOfSdu";
 const char* PTS_L2CAP_ECOC_RECONFIGURE = "PTS_L2capEcocReconfigure";
+const char* PTS_BROADCAST_AUDIO_CONFIG_OPTION =
+    "PTS_BroadcastAudioConfigOption";
 
 static std::unique_ptr<config_t> config;
 }  // namespace
@@ -184,6 +186,15 @@ static bool get_pts_l2cap_ecoc_reconfigure(void) {
                          PTS_L2CAP_ECOC_RECONFIGURE, false);
 }
 
+static const std::string* get_pts_broadcast_audio_config_options(void) {
+  if (!config) {
+    LOG_INFO("Config isn't ready, use default option");
+    return NULL;
+  }
+  return config_get_string(*config, CONFIG_DEFAULT_SECTION,
+                           PTS_BROADCAST_AUDIO_CONFIG_OPTION, NULL);
+}
+
 static config_t* get_all(void) { return config.get(); }
 
 const stack_config_t interface = {get_trace_config_enabled,
@@ -205,6 +216,7 @@ const stack_config_t interface = {get_trace_config_enabled,
                                   get_pts_l2cap_ecoc_connect_remaining,
                                   get_pts_l2cap_ecoc_send_num_of_sdu,
                                   get_pts_l2cap_ecoc_reconfigure,
+                                  get_pts_broadcast_audio_config_options,
                                   get_all};
 
 const stack_config_t* stack_config_get_interface(void) { return &interface; }
