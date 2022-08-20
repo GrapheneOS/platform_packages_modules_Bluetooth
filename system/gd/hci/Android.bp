@@ -39,6 +39,7 @@ filegroup {
         "address_unittest.cc",
         "address_with_type_test.cc",
         "class_of_device_unittest.cc",
+        "controller_unittest.cc",
         "hci_packets_test.cc",
         "uuid_unittest.cc",
         "le_periodic_sync_manager_test.cc"
