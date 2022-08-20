@@ -333,6 +333,19 @@ enum class AudioStreamDataPathState {
   DATA_PATH_ESTABLISHED,
 };
 
+enum class CisType {
+  CIS_TYPE_BIDIRECTIONAL,
+  CIS_TYPE_UNIDIRECTIONAL_SINK,
+  CIS_TYPE_UNIDIRECTIONAL_SOURCE,
+};
+
+struct cis {
+  uint8_t id;
+  CisType type;
+  uint16_t conn_handle;
+  RawAddress addr;
+};
+
 enum class CodecLocation {
   HOST,
   ADSP,
@@ -653,6 +666,10 @@ static constexpr uint32_t kChannelAllocationStereo =
     codec_spec_conf::kLeAudioLocationFrontRight;
 
 /* Declarations */
+void get_cis_count(const AudioSetConfigurations* audio_set_configurations,
+                   types::LeAudioConfigurationStrategy strategy,
+                   uint8_t* cis_count_bidir, uint8_t* cis_count_unidir_sink,
+                   uint8_t* cis_count_unidir_source);
 bool check_if_may_cover_scenario(
     const AudioSetConfigurations* audio_set_configurations, uint8_t group_size);
 bool check_if_may_cover_scenario(

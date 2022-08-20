@@ -222,6 +222,20 @@ public class BatteryService extends ProfileService {
     }
 
     /**
+     * Connects to the battery service of the given device if possible.
+     * If it's impossible, it doesn't try without logging errors.
+     */
+    public boolean connectIfPossible(BluetoothDevice device) {
+        if (device == null
+                || getConnectionPolicy(device) == BluetoothProfile.CONNECTION_POLICY_FORBIDDEN
+                || !Utils.arrayContains(
+                        mAdapterService.getRemoteUuids(device), BluetoothUuid.BATTERY)) {
+            return false;
+        }
+        return connect(device);
+    }
+
+    /**
      * Disconnects from the battery service of the given device.
      */
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)

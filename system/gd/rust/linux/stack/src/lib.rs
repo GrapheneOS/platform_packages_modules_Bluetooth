@@ -183,14 +183,20 @@ impl Stack {
 /// `register_disconnect` to let others observe the disconnection event.
 pub trait RPCProxy {
     /// Registers disconnect observer that will be notified when the remote object is disconnected.
-    fn register_disconnect(&mut self, f: Box<dyn Fn(u32) + Send>) -> u32;
+    fn register_disconnect(&mut self, _f: Box<dyn Fn(u32) + Send>) -> u32 {
+        0
+    }
 
     /// Returns the ID of the object. For example this would be an object path in D-Bus RPC.
-    fn get_object_id(&self) -> String;
+    fn get_object_id(&self) -> String {
+        String::from("")
+    }
 
     /// Unregisters callback with this id.
-    fn unregister(&mut self, id: u32) -> bool;
+    fn unregister(&mut self, _id: u32) -> bool {
+        false
+    }
 
     /// Makes this object available for remote call.
-    fn export_for_rpc(self: Box<Self>);
+    fn export_for_rpc(self: Box<Self>) {}
 }
