@@ -106,9 +106,35 @@ int LeAudioDeviceGroup::NumOfConnected(types::LeAudioContextType context_type) {
       });
 }
 
+void LeAudioDeviceGroup::ClearSinksFromConfiguration(void) {
+  LOG_INFO("Group %p, group_id %d", this, group_id_);
+  stream_conf.sink_streams.clear();
+  stream_conf.sink_audio_channel_allocation = 0;
+  stream_conf.sink_num_of_channels = 0;
+  stream_conf.sink_num_of_devices = 0;
+  stream_conf.sink_sample_frequency_hz = 0;
+  stream_conf.sink_codec_frames_blocks_per_sdu = 0;
+  stream_conf.sink_octets_per_codec_frame = 0;
+  stream_conf.sink_frame_duration_us = 0;
+}
+
+void LeAudioDeviceGroup::ClearSourcesFromConfiguration(void) {
+  LOG_INFO("Group %p, group_id %d", this, group_id_);
+  stream_conf.source_streams.clear();
+  stream_conf.source_audio_channel_allocation = 0;
+  stream_conf.source_num_of_channels = 0;
+  stream_conf.source_num_of_devices = 0;
+  stream_conf.source_sample_frequency_hz = 0;
+  stream_conf.source_codec_frames_blocks_per_sdu = 0;
+  stream_conf.source_octets_per_codec_frame = 0;
+  stream_conf.source_frame_duration_us = 0;
+}
+
 void LeAudioDeviceGroup::CigClearCis(void) {
   LOG_INFO("group_id: %d", group_id_);
   cises_.clear();
+  ClearSinksFromConfiguration();
+  ClearSourcesFromConfiguration();
 }
 
 void LeAudioDeviceGroup::Cleanup(void) {
