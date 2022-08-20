@@ -612,6 +612,37 @@ class VolumeControlImpl : public VolumeControl {
     }
   }
 
+  void RemovePendingVolumeControlOperations(std::vector<RawAddress>& devices,
+                                            int group_id) {
+    for (auto op = ongoing_operations_.begin();
+         op != ongoing_operations_.end();) {
+      // We only remove operations that don't affect the mute field.
+      if (op->IsStarted() ||
+          (op->opcode_ != kControlPointOpcodeSetAbsoluteVolume &&
+           op->opcode_ != kControlPointOpcodeVolumeUp &&
+           op->opcode_ != kControlPointOpcodeVolumeDown)) {
+        op++;
+        continue;
+      }
+      if (group_id != bluetooth::groups::kGroupUnknown &&
+          op->group_id_ == group_id) {
+        op = ongoing_operations_.erase(op);
+        continue;
+      }
+      for (auto const& addr : devices) {
+        auto it = find(op->devices_.begin(), op->devices_.end(), addr);
+        if (it != op->devices_.end()) {
+          op->devices_.erase(it);
+        }
+      }
+      if (op->devices_.empty()) {
+        op = ongoing_operations_.erase(op);
+      } else {
+        op++;
+      }
+    }
+  }
+
   void OnWriteControlResponse(uint16_t connection_id, tGATT_STATUS status,
                               uint16_t handle, void* data) {
     VolumeControlDevice* device =
@@ -781,6 +812,8 @@ class VolumeControlImpl : public VolumeControl {
       std::vector<RawAddress> devices = {
           std::get<RawAddress>(addr_or_group_id)};
 
+      RemovePendingVolumeControlOperations(devices,
+                                           bluetooth::groups::kGroupUnknown);
       PrepareVolumeControlOperation(devices, bluetooth::groups::kGroupUnknown,
                                     false, opcode, arg);
     } else {
@@ -809,6 +842,7 @@ class VolumeControlImpl : public VolumeControl {
         return;
       }
 
+      RemovePendingVolumeControlOperations(devices, group_id);
       PrepareVolumeControlOperation(devices, group_id, false, opcode, arg);
     }
 

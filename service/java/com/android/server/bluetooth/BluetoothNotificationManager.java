@@ -26,6 +26,8 @@ import android.os.UserHandle;
 import android.service.notification.StatusBarNotification;
 import android.util.Log;
 
+import com.android.internal.messages.nano.SystemMessageProto.SystemMessage;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,9 +39,6 @@ public class BluetoothNotificationManager {
     private static final String NOTIFICATION_TAG = "com.android.bluetooth";
     public static final String APM_NOTIFICATION_CHANNEL = "apm_notification_channel";
     private static final String APM_NOTIFICATION_GROUP = "apm_notification_group";
-
-    //TODO: b/239983569 remove hardcoded notification ID
-    private static final int NOTE_BT_APM_NOTIFICATION = -1000007;
 
     private final Context mContext;
     private NotificationManager mNotificationManager;
@@ -137,7 +136,7 @@ public class BluetoothNotificationManager {
                         .setStyle(new Notification.BigTextStyle().bigText(message))
                         .setSmallIcon(android.R.drawable.stat_sys_data_bluetooth)
                         .build();
-        notify(NOTE_BT_APM_NOTIFICATION, notification);
+        notify(SystemMessage.NOTE_BT_APM_NOTIFICATION, notification);
     }
 
     /**
