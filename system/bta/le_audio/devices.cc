@@ -974,8 +974,17 @@ bool LeAudioDeviceGroup::CigAssignCisIds(LeAudioDevice* leAudioDevice) {
       }
 
       if (cis_id == kInvalidCisId) {
-        LOG_ERROR(" Unable to get free Uni-Directional Sink CIS ID");
-        return false;
+        LOG_WARN(
+            " Unable to get free Uni-Directional Sink CIS ID - maybe there is "
+            "bi-directional available");
+        /* This could happen when scenarios for given context type allows for
+         * Sink and Source configuration but also only Sink configuration.
+         */
+        cis_id = GetFirstFreeCisId(CisType::CIS_TYPE_BIDIRECTIONAL);
+        if (cis_id == kInvalidCisId) {
+          LOG_ERROR("Unable to get free Uni-Directional Sink CIS ID");
+          return false;
+        }
       }
 
       ase->cis_id = cis_id;
@@ -994,8 +1003,17 @@ bool LeAudioDeviceGroup::CigAssignCisIds(LeAudioDevice* leAudioDevice) {
     }
 
     if (cis_id == kInvalidCisId) {
-      LOG_ERROR("Unable to get free Uni-Directional Source CIS ID");
-      return false;
+      /* This could happen when scenarios for given context type allows for
+       * Sink and Source configuration but also only Sink configuration.
+       */
+      LOG_WARN(
+          "Unable to get free Uni-Directional Source CIS ID - maybe there "
+          "is bi-directional available");
+      cis_id = GetFirstFreeCisId(CisType::CIS_TYPE_BIDIRECTIONAL);
+      if (cis_id == kInvalidCisId) {
+        LOG_ERROR("Unable to get free Uni-Directional Source CIS ID");
+        return false;
+      }
     }
 
     ase->cis_id = cis_id;

@@ -109,10 +109,38 @@ void get_cis_count(const AudioSetConfigurations* audio_set_confs,
                               : 0;
 
     *cis_count_bidir = std::max(bidir_count, *cis_count_bidir);
+
+    /* Check if we can reduce a number of unicast CISes in case bidirectional
+     * are use in other or this scenario */
+    if (bidir_count < *cis_count_bidir) {
+      /* Since we already have bidirectional cises available from other
+       * scenarios, let's decrease number of unicast sinks in this scenario.
+       */
+      uint8_t available_bidir = *cis_count_bidir - bidir_count;
+      unidir_sink_count =
+          unidir_sink_count - std::min(unidir_sink_count, available_bidir);
+      unidir_source_count =
+          unidir_source_count - std::min(unidir_source_count, available_bidir);
+    } else if (bidir_count > *cis_count_bidir) {
+      /* Lets decrease number of the unicast cises from previouse scenarios */
+      uint8_t available_bidir = bidir_count - *cis_count_bidir;
+      *cis_count_unidir_sink =
+          *cis_count_unidir_sink -
+          std::min(*cis_count_unidir_sink, available_bidir);
+      *cis_count_unidir_source =
+          *cis_count_unidir_source -
+          std::min(*cis_count_unidir_source, available_bidir);
+    }
+
     *cis_count_unidir_sink =
         std::max(unidir_sink_count, *cis_count_unidir_sink);
     *cis_count_unidir_source =
         std::max(unidir_source_count, *cis_count_unidir_source);
+
+    LOG_INFO(
+        "Intermediate step:  Bi-Directional: %d,"
+        " Uni-Directional Sink: %d, Uni-Directional Source: %d ",
+        *cis_count_bidir, *cis_count_unidir_sink, *cis_count_unidir_source);
   }
 
   LOG_INFO(
