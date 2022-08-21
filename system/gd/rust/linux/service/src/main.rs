@@ -178,6 +178,11 @@ fn main() -> Result<(), Box<dyn Error>> {
             &mut cr.lock().unwrap(),
             disconnect_watcher.clone(),
         );
+        let qa_iface = iface_bluetooth::export_bluetooth_qa_dbus_intf(
+            conn.clone(),
+            &mut cr.lock().unwrap(),
+            disconnect_watcher.clone(),
+        );
         let socket_mgr_iface = iface_bluetooth::export_socket_mgr_intf(
             conn.clone(),
             &mut cr.lock().unwrap(),
@@ -205,13 +210,14 @@ fn main() -> Result<(), Box<dyn Error>> {
         // Create mixin object for Bluetooth + Suspend interfaces.
         let mixin = Box::new(iface_bluetooth::BluetoothMixin {
             adapter: bluetooth.clone(),
+            qa: bluetooth.clone(),
             suspend: suspend.clone(),
             socket_mgr: bt_sock_mgr.clone(),
         });
 
         cr.lock().unwrap().insert(
             make_object_name(adapter_index, "adapter"),
-            &[adapter_iface, socket_mgr_iface, suspend_iface],
+            &[adapter_iface, qa_iface, socket_mgr_iface, suspend_iface],
             mixin,
         );
 
