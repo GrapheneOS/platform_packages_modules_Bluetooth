@@ -11,7 +11,9 @@ use crate::callbacks::{
     BtCallback, BtConnectionCallback, BtManagerCallback, ScannerCallback, SuspendCallback,
 };
 use crate::command_handler::CommandHandler;
-use crate::dbus_iface::{BluetoothDBus, BluetoothGattDBus, BluetoothManagerDBus, SuspendDBus};
+use crate::dbus_iface::{
+    BluetoothDBus, BluetoothGattDBus, BluetoothManagerDBus, BluetoothQADBus, SuspendDBus,
+};
 use crate::editor::AsyncEditor;
 use bt_topshim::topstack;
 use btstack::bluetooth::{BluetoothDevice, IBluetooth};
@@ -67,6 +69,9 @@ pub(crate) struct ClientContext {
     /// Proxy for adapter interface. Only exists when the default adapter is enabled.
     pub(crate) adapter_dbus: Option<BluetoothDBus>,
 
+    /// Proxy for adapter QA interface. Only exists when the default adapter is enabled.
+    pub(crate) qa_dbus: Option<BluetoothQADBus>,
+
     /// Proxy for GATT interface.
     pub(crate) gatt_dbus: Option<BluetoothGattDBus>,
 
@@ -109,6 +114,7 @@ impl ClientContext {
             gatt_client_id: None,
             manager_dbus,
             adapter_dbus: None,
+            qa_dbus: None,
             gatt_dbus: None,
             suspend_dbus: None,
             fg: tx,
@@ -145,6 +151,7 @@ impl ClientContext {
 
         let dbus = BluetoothDBus::new(conn.clone(), idx);
         self.adapter_dbus = Some(dbus);
+        self.qa_dbus = Some(BluetoothQADBus::new(conn.clone(), idx));
 
         let gatt_dbus = BluetoothGattDBus::new(conn.clone(), idx);
         self.gatt_dbus = Some(gatt_dbus);
