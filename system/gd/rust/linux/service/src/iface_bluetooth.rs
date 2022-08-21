@@ -7,6 +7,7 @@ use bt_topshim::profiles::socket::SocketType;
 
 use btstack::bluetooth::{
     Bluetooth, BluetoothDevice, IBluetooth, IBluetoothCallback, IBluetoothConnectionCallback,
+    IBluetoothQA,
 };
 use btstack::socket_manager::{
     BluetoothServerSocket, BluetoothSocket, BluetoothSocketManager, CallbackId,
@@ -51,6 +52,7 @@ impl_dbus_arg_from_into!(BtStatus, u32);
 /// what is listed in the `generate_dbus_exporter` invocation.
 pub struct BluetoothMixin {
     pub adapter: Arc<Mutex<Box<Bluetooth>>>,
+    pub qa: Arc<Mutex<Box<Bluetooth>>>,
     pub suspend: Arc<Mutex<Box<Suspend>>>,
     pub socket_mgr: Arc<Mutex<Box<BluetoothSocketManager>>>,
 }
@@ -559,6 +561,27 @@ impl ISuspendCallback for SuspendCallbackDBus {
     }
     #[dbus_method("OnResumed")]
     fn on_resumed(&self, suspend_id: i32) {
+        dbus_generated!()
+    }
+}
+
+#[allow(dead_code)]
+struct IBluetoothQADBus {}
+
+#[generate_dbus_exporter(
+    export_bluetooth_qa_dbus_intf,
+    "org.chromium.bluetooth.BluetoothQA",
+    BluetoothMixin,
+    qa
+)]
+impl IBluetoothQA for IBluetoothQADBus {
+    #[dbus_method("GetConnectable")]
+    fn get_connectable(&self) -> bool {
+        dbus_generated!()
+    }
+
+    #[dbus_method("SetConnectable")]
+    fn set_connectable(&mut self, mode: bool) -> bool {
         dbus_generated!()
     }
 }
