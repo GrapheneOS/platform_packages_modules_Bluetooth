@@ -772,6 +772,42 @@ class UnicastTestNoInit : public Test {
                   stream_conf->source_num_of_devices++;
                   stream_conf->source_num_of_channels +=
                       ase.codec_config.channel_count;
+                  stream_conf->source_audio_channel_allocation |=
+                      *ase.codec_config.audio_channel_allocation;
+
+                  if (stream_conf->source_sample_frequency_hz == 0) {
+                    stream_conf->source_sample_frequency_hz =
+                        ase.codec_config.GetSamplingFrequencyHz();
+                  } else {
+                    ASSERT_LOG(stream_conf->source_sample_frequency_hz ==
+                                   ase.codec_config.GetSamplingFrequencyHz(),
+                               "sample freq mismatch: %d!=%d",
+                               stream_conf->source_sample_frequency_hz,
+                               ase.codec_config.GetSamplingFrequencyHz());
+                  }
+
+                  if (stream_conf->source_octets_per_codec_frame == 0) {
+                    stream_conf->source_octets_per_codec_frame =
+                        *ase.codec_config.octets_per_codec_frame;
+                  } else {
+                    ASSERT_LOG(stream_conf->source_octets_per_codec_frame ==
+                                   *ase.codec_config.octets_per_codec_frame,
+                               "octets per frame mismatch: %d!=%d",
+                               stream_conf->source_octets_per_codec_frame,
+                               *ase.codec_config.octets_per_codec_frame);
+                  }
+
+                  if (stream_conf->source_codec_frames_blocks_per_sdu == 0) {
+                    stream_conf->source_codec_frames_blocks_per_sdu =
+                        *ase.codec_config.codec_frames_blocks_per_sdu;
+                  } else {
+                    ASSERT_LOG(
+                        stream_conf->source_codec_frames_blocks_per_sdu ==
+                            *ase.codec_config.codec_frames_blocks_per_sdu,
+                        "codec_frames_blocks_per_sdu: %d!=%d",
+                        stream_conf->source_codec_frames_blocks_per_sdu,
+                        *ase.codec_config.codec_frames_blocks_per_sdu);
+                  }
 
                   LOG_INFO(
                       " Added Source Stream Configuration. CIS Connection "
@@ -799,6 +835,43 @@ class UnicastTestNoInit : public Test {
                   stream_conf->sink_num_of_devices++;
                   stream_conf->sink_num_of_channels +=
                       ase.codec_config.channel_count;
+
+                  stream_conf->sink_audio_channel_allocation |=
+                      *ase.codec_config.audio_channel_allocation;
+
+                  if (stream_conf->sink_sample_frequency_hz == 0) {
+                    stream_conf->sink_sample_frequency_hz =
+                        ase.codec_config.GetSamplingFrequencyHz();
+                  } else {
+                    ASSERT_LOG(stream_conf->sink_sample_frequency_hz ==
+                                   ase.codec_config.GetSamplingFrequencyHz(),
+                               "sample freq mismatch: %d!=%d",
+                               stream_conf->sink_sample_frequency_hz,
+                               ase.codec_config.GetSamplingFrequencyHz());
+                  }
+
+                  if (stream_conf->sink_octets_per_codec_frame == 0) {
+                    stream_conf->sink_octets_per_codec_frame =
+                        *ase.codec_config.octets_per_codec_frame;
+                  } else {
+                    ASSERT_LOG(stream_conf->sink_octets_per_codec_frame ==
+                                   *ase.codec_config.octets_per_codec_frame,
+                               "octets per frame mismatch: %d!=%d",
+                               stream_conf->sink_octets_per_codec_frame,
+                               *ase.codec_config.octets_per_codec_frame);
+                  }
+
+                  if (stream_conf->sink_codec_frames_blocks_per_sdu == 0) {
+                    stream_conf->sink_codec_frames_blocks_per_sdu =
+                        *ase.codec_config.codec_frames_blocks_per_sdu;
+                  } else {
+                    ASSERT_LOG(
+                        stream_conf->sink_codec_frames_blocks_per_sdu ==
+                            *ase.codec_config.codec_frames_blocks_per_sdu,
+                        "codec_frames_blocks_per_sdu: %d!=%d",
+                        stream_conf->sink_codec_frames_blocks_per_sdu,
+                        *ase.codec_config.codec_frames_blocks_per_sdu);
+                  }
 
                   LOG_INFO(
                       " Added Sink Stream Configuration. CIS Connection "
