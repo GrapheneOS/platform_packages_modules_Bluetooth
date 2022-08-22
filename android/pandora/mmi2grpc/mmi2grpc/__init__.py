@@ -26,11 +26,13 @@ from mmi2grpc.a2dp import A2DPProxy
 from mmi2grpc.avrcp import AVRCPProxy
 from mmi2grpc.gatt import GATTProxy
 from mmi2grpc.hfp import HFPProxy
+from mmi2grpc.hid import HIDProxy
 from mmi2grpc.hogp import HOGPProxy
 from mmi2grpc.sdp import SDPProxy
 from mmi2grpc.sm import SMProxy
 from mmi2grpc._rootcanal import RootCanal
 from mmi2grpc._helpers import format_proxy
+from mmi2grpc._rootcanal import RootCanal
 
 from pandora_experimental.host_grpc import Host
 
@@ -56,18 +58,23 @@ class IUT:
         """
         self.port = port
         self.test = test
+        self.rootcanal = None
 
         # Profile proxies.
         self._a2dp = None
         self._avrcp = None
         self._gatt = None
         self._hfp = None
+        self._hid = None
+        self._hogp = None
         self._sdp = None
         self._sm = None
-        self._hogp = None
 
     def __enter__(self):
         """Resets the IUT when starting a PTS test."""
+        self.rootcanal = RootCanal()
+        self.rootcanal.reconnect_phone()
+
         # Note: we don't keep a single gRPC channel instance in the IUT class
         # because reset is allowed to close the gRPC server.
         RootCanal().reconnect_phone()
@@ -75,13 +82,17 @@ class IUT:
             self._retry(Host(channel).HardReset)(wait_for_ready=True)
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
+        self.rootcanal.close()
+        self.rootcanal = None
+
         self._a2dp = None
         self._avrcp = None
         self._gatt = None
         self._hfp = None
+        self._hid = None
+        self._hogp = None
         self._sdp = None
         self._sm = None
-        self._hogp = None
 
     def _retry(self, func):
 
@@ -156,6 +167,16 @@ class IUT:
             if not self._hfp:
                 self._hfp = HFPProxy(grpc.insecure_channel(f'localhost:{self.port}'))
             return self._hfp.interact(test, interaction, description, pts_address)
+        # Handles HID MMIs.
+        if profile in ('HID'):
+            if not self._hid:
+                self._hid = HIDProxy(grpc.insecure_channel(f'localhost:{self.port}'), self.rootcanal)
+            return self._hid.interact(test, interaction, description, pts_address)
+        # Handles HOGP MMIs.
+        if profile in ('HOGP'):
+            if not self._hogp:
+                self._hogp = HOGPProxy(grpc.insecure_channel(f'localhost:{self.port}'))
+            return self._hogp.interact(test, interaction, description, pts_address)
         # Handles SDP MMIs.
         if profile in ('SDP'):
             if not self._sdp:
@@ -166,11 +187,6 @@ class IUT:
             if not self._sm:
                 self._sm = SMProxy(grpc.insecure_channel(f'localhost:{self.port}'))
             return self._sm.interact(test, interaction, description, pts_address)
-        # Handles HOGP MMIs.
-        if profile in ('HOGP'):
-            if not self._hogp:
-                self._hogp = HOGPProxy(grpc.insecure_channel(f'localhost:{self.port}'))
-            return self._hogp.interact(test, interaction, description, pts_address)
 
         # Handles unsupported profiles.
         code = format_proxy(profile, interaction, description)

@@ -84,6 +84,9 @@ class RootCanal:
         # discard initialization messages
         self.channel.receive_response()
 
+    def close(self):
+        self.channel.close()
+
     @staticmethod
     def _parse_device_list(raw):
         # time for some cursed parsing!
