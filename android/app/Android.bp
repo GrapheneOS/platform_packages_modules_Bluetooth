@@ -33,7 +33,7 @@ java_library {
 
     srcs: ["lib/mapapi/**/*.java"],
     apex_available: [
-        "com.android.bluetooth",
+        "com.android.btservices",
     ],
     min_sdk_version: "Tiramisu",
     sdk_version: "module_current",
@@ -45,7 +45,7 @@ java_library {
     srcs: [":framework-mms-shared-srcs"],
     libs: ["unsupportedappusage"],
     apex_available: [
-        "com.android.bluetooth",
+        "com.android.btservices",
     ],
     min_sdk_version: "Tiramisu",
     sdk_version: "module_current",
@@ -79,7 +79,7 @@ cc_library_shared {
         scs: true,
     },
     apex_available: [
-        "com.android.bluetooth",
+        "com.android.btservices",
     ],
     min_sdk_version: "Tiramisu",
 }
@@ -155,7 +155,7 @@ android_app {
         "android.hardware.bluetooth.audio-V2-ndk",
     ],
     apex_available: [
-        "com.android.bluetooth",
+        "com.android.btservices",
     ],
     errorprone: {
         javacflags: [
@@ -176,7 +176,7 @@ java_library {
         ":srcs_bluetooth_protos",
     ],
     apex_available: [
-        "com.android.bluetooth",
+        "com.android.btservices",
     ],
     min_sdk_version: "Tiramisu",
     sdk_version: "module_current",
