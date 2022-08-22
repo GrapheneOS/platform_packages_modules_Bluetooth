@@ -616,7 +616,7 @@ rust_library {
         "liblog_rust",
     ],
     apex_available: [
-        "com.android.bluetooth",
+        "com.android.btservices",
     ],
     min_sdk_version: "30",
 }

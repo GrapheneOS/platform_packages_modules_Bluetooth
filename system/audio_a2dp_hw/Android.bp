@@ -29,7 +29,7 @@ cc_library {
         "src/audio_a2dp_hw_utils.cc",
     ],
     apex_available: [
-        "com.android.bluetooth",
+        "com.android.btservices",
     ],
     shared_libs: [
         "liblog",
