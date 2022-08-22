@@ -128,14 +128,9 @@
     <string name="a2dp_sink_mbs_label" msgid="6035366346569127155">"藍牙音訊"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"無法轉移大於 4GB 的檔案"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"使用藍牙連線"</string>
-    <!-- no translation found for bluetooth_enabled_apm_title (1623939715492599179) -->
-    <skip />
-    <!-- no translation found for bluetooth_enabled_apm_message (4745310982235821141) -->
-    <skip />
-    <!-- no translation found for bluetooth_stays_on_title (39720820955212918) -->
-    <skip />
-    <!-- no translation found for bluetooth_and_wifi_stays_on_title (4886917707417592398) -->
-    <skip />
-    <!-- no translation found for bluetooth_and_wifi_stays_on_message (1790370141941913341) -->
-    <skip />
+    <string name="bluetooth_enabled_apm_title" msgid="1623939715492599179">"你已開啟藍牙"</string>
+    <string name="bluetooth_enabled_apm_message" msgid="4745310982235821141">"除非你在飛航模式下關閉藍牙，否則在這個模式下，手機的藍牙將保持開啟"</string>
+    <string name="bluetooth_stays_on_title" msgid="39720820955212918">"藍牙會保持開啟"</string>
+    <string name="bluetooth_and_wifi_stays_on_title" msgid="4886917707417592398">"藍牙和 Wi-Fi 會保持開啟"</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="1790370141941913341">"除非你在飛航模式下關閉這兩項功能，否則在這個模式下，手機的這兩項功能都將保持開啟"</string>
 </resources>

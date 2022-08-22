@@ -128,14 +128,9 @@
     <string name="a2dp_sink_mbs_label" msgid="6035366346569127155">"ব্লুটুথ অডিঅ\'"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"৪ জি. বি. তকৈ ডাঙৰ ফাইল স্থানান্তৰ কৰিব নোৱাৰি"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"ব্লুটুথৰ সৈতে সংযোগ কৰক"</string>
-    <!-- no translation found for bluetooth_enabled_apm_title (1623939715492599179) -->
-    <skip />
-    <!-- no translation found for bluetooth_enabled_apm_message (4745310982235821141) -->
-    <skip />
-    <!-- no translation found for bluetooth_stays_on_title (39720820955212918) -->
-    <skip />
-    <!-- no translation found for bluetooth_and_wifi_stays_on_title (4886917707417592398) -->
-    <skip />
-    <!-- no translation found for bluetooth_and_wifi_stays_on_message (1790370141941913341) -->
-    <skip />
+    <string name="bluetooth_enabled_apm_title" msgid="1623939715492599179">"আপুনি ব্লুটুথ অন কৰিছে"</string>
+    <string name="bluetooth_enabled_apm_message" msgid="4745310982235821141">"আপোনাৰ ফ’নটোৱে এয়াৰপ্লেন ম’ডত ব্লুটুথ অন কৰি ৰাখিব, যদিহে আপুনি এই ম’ডত থকাৰ সময়ত এইটো অফ নকৰে"</string>
+    <string name="bluetooth_stays_on_title" msgid="39720820955212918">"ব্লুটুথ অন হৈ থাকে"</string>
+    <string name="bluetooth_and_wifi_stays_on_title" msgid="4886917707417592398">"ব্লুটুথ আৰু ৱাই-ফাই অন হৈ থাকে"</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="1790370141941913341">"আপোনাৰ ফ’নটোৱে এয়াৰপ্লেন ম’ডত দুয়োটা অন কৰি ৰাখিব, যদিহে আপুনি এই ম’ডত থকাৰ সময়ত এইটো অফ নকৰে"</string>
 </resources>
