@@ -185,7 +185,7 @@ fluoride_defaults {
     defaults: ["fluoride_test_prod_shared_defaults", "libchrome_support_defaults"],
     apex_available: [
         "//apex_available:platform",
-        "com.android.bluetooth",
+        "com.android.btservices",
     ],
     shared_libs: [
         "libcrypto",

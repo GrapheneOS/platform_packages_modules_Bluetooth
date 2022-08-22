@@ -78,7 +78,7 @@ java_sdk_library {
     ],
 
     apex_available: [
-        "com.android.bluetooth",
+        "com.android.btservices",
     ],
 
     permitted_packages: [
