@@ -1130,10 +1130,17 @@ static void CreateBroadcastNative(JNIEnv* env, jobject object,
   std::shared_lock<std::shared_timed_mutex> lock(sBroadcasterInterfaceMutex);
   if (!sLeAudioBroadcasterInterface) return;
 
-  std::array<uint8_t, 16> code_array{};
+  std::array<uint8_t, 16> code_array{0};
   if (broadcast_code) {
     jsize size = env->GetArrayLength(broadcast_code);
-    env->GetByteArrayRegion(broadcast_code, 0, size, (jbyte*)code_array.data());
+    if (size > 16) {
+      ALOGE("%s: broadcast code to long", __func__);
+      return;
+    }
+
+    // Padding with zeros on LSB positions if code is shorter than 16 octets
+    env->GetByteArrayRegion(broadcast_code, code_array.size() - size, size,
+                            (jbyte*)code_array.data());
   }
 
   jbyte* meta = env->GetByteArrayElements(metadata, nullptr);
