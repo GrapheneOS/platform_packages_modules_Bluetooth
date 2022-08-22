@@ -1845,6 +1845,11 @@ public class LeAudioService extends ProfileService {
     }
 
     private void handleGroupNodeRemoved(BluetoothDevice device, int groupId) {
+        LeAudioGroupDescriptor descriptor = getGroupDescriptor(groupId);
+        if (Objects.equals(device, descriptor.mLostLeadDeviceWhileStreaming)) {
+            clearLostDevicesWhileStreaming(descriptor);
+        }
+
         synchronized (mGroupLock) {
             mDeviceGroupIdMap.remove(device);
             if (!mDeviceGroupIdMap.containsValue(groupId)) {
