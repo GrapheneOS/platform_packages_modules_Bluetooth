@@ -37,7 +37,7 @@ rust_library {
   },
   apex_available: [
        "//apex_available:platform",
-       "com.android.bluetooth",
+       "com.android.btservices",
   ],
   min_sdk_version: "Tiramisu",
 }
@@ -82,7 +82,7 @@ rust_ffi_static {
           },
      },
     apex_available: [
-        "com.android.bluetooth",
+        "com.android.btservices",
     ],
     min_sdk_version: "30",
 }
@@ -113,7 +113,7 @@ cc_library_static {
     host_supported: true,
     apex_available: [
         "//apex_available:platform",
-        "com.android.bluetooth",
+        "com.android.btservices",
     ],
     shared_libs: [
         "libchrome",
@@ -135,7 +135,7 @@ cc_library_static {
     host_supported: true,
     apex_available: [
         "//apex_available:platform",
-        "com.android.bluetooth",
+        "com.android.btservices",
     ],
     min_sdk_version: "30",
 }
@@ -146,7 +146,7 @@ cc_library_headers {
     host_supported: true,
     apex_available: [
         "//apex_available:platform",
-        "com.android.bluetooth",
+        "com.android.btservices",
     ],
     min_sdk_version: "30",
 }
@@ -161,7 +161,7 @@ cc_library_static {
     host_supported: true,
     apex_available: [
         "//apex_available:platform",
-        "com.android.bluetooth",
+        "com.android.btservices",
     ],
     min_sdk_version: "30",
 }

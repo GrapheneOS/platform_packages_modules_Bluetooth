@@ -59,7 +59,7 @@ rust_library {
         "libcxx",
     ],
     apex_available: [
-        "com.android.bluetooth",
+        "com.android.btservices",
     ],
     min_sdk_version: "30",
 }

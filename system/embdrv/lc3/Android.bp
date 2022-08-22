@@ -12,7 +12,7 @@ cc_library_static {
     host_supported: true,
     apex_available: [
 
-        "com.android.bluetooth"
+        "com.android.btservices"
     ],
     defaults: ["fluoride_defaults"],
     srcs: [
