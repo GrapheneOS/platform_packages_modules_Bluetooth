@@ -28,6 +28,7 @@
 #include <mutex>
 #include <queue>
 
+#include "gd/common/init_flags.h"
 #include "hal/hci_hal.h"
 #include "hal/snoop_logger.h"
 #include "metrics/counter_metrics.h"
@@ -61,8 +62,8 @@ constexpr uint16_t HCI_DEV_NONE = 0xffff;
 #define MGMT_EV_INDEX_ADDED 0x0004
 #define MGMT_EV_COMMAND_COMP 0x0001
 #define MGMT_EV_SIZE_MAX 1024
-#define WRITE_NO_INTR(fn) \
-  do {                    \
+#define REPEAT_ON_INTR(fn) \
+  do {                     \
   } while ((fn) == -1 && errno == EINTR)
 
 struct sockaddr_hci {
@@ -90,6 +91,7 @@ int waitHciDev(int hci_interface) {
   struct pollfd fds[1];
   struct mgmt_pkt ev;
   int fd;
+  int ret;
 
   fd = socket(PF_BLUETOOTH, SOCK_RAW, BTPROTO_HCI);
   if (fd < 0) {
@@ -100,8 +102,10 @@ int waitHciDev(int hci_interface) {
   addr.hci_family = AF_BLUETOOTH;
   addr.hci_dev = HCI_DEV_NONE;
   addr.hci_channel = HCI_CHANNEL_CONTROL;
-  if (bind(fd, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
-    LOG_ERROR("HCI Channel Control: %s", strerror(errno));
+
+  ret = bind(fd, (struct sockaddr*)&addr, sizeof(addr));
+  if (ret < 0) {
+    LOG_ERROR("HCI Channel Control: %d %s", errno, strerror(errno));
     close(fd);
     return -1;
   }
@@ -115,7 +119,7 @@ int waitHciDev(int hci_interface) {
   ev.len = 0;
 
   ssize_t wrote;
-  WRITE_NO_INTR(wrote = write(fd, &ev, 6));
+  REPEAT_ON_INTR(wrote = write(fd, &ev, 6));
   if (wrote != 6) {
     LOG_ERROR("Unable to write mgmt command: %s", strerror(errno));
     close(fd);
@@ -124,7 +128,7 @@ int waitHciDev(int hci_interface) {
   /* validate mentioned hci interface is present and registered with sock system */
   while (1) {
     int n;
-    WRITE_NO_INTR(n = poll(fds, 1, -1));
+    REPEAT_ON_INTR(n = poll(fds, 1, -1));
     if (n == -1) {
       LOG_ERROR("Poll error: %s", strerror(errno));
       break;
@@ -134,7 +138,7 @@ int waitHciDev(int hci_interface) {
     }
 
     if (fds[0].revents & POLLIN) {
-      WRITE_NO_INTR(n = read(fd, &ev, sizeof(struct mgmt_pkt)));
+      REPEAT_ON_INTR(n = read(fd, &ev, sizeof(struct mgmt_pkt)));
       if (n < 0) {
         LOG_ERROR("Error reading control channel: %s", strerror(errno));
         break;
@@ -167,13 +171,16 @@ int waitHciDev(int hci_interface) {
 
 // Connect to Linux HCI socket
 int ConnectToSocket() {
+  int ret = 0;
+
   int socket_fd = socket(AF_BLUETOOTH, SOCK_RAW, BTPROTO_HCI);
-  if (socket_fd < 1) {
+  if (socket_fd < 0) {
     LOG_ERROR("can't create socket: %s", strerror(errno));
     return INVALID_FD;
   }
 
-  int hci_interface = 0;  // Assume we only have HCI 0
+  // Determine which hci index we should connect to.
+  int hci_interface = bluetooth::common::InitFlags::GetAdapterIndex();
 
   if (waitHciDev(hci_interface) != 0) {
     ::close(socket_fd);
@@ -185,8 +192,10 @@ int ConnectToSocket() {
   addr.hci_family = AF_BLUETOOTH;
   addr.hci_dev = hci_interface;
   addr.hci_channel = HCI_CHANNEL_USER;
-  if (bind(socket_fd, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
-    LOG_ERROR("HCI Channel Control: %s", strerror(errno));
+
+  ret = bind(socket_fd, (struct sockaddr*)&addr, sizeof(addr));
+  if (ret < 0) {
+    LOG_ERROR("HCI Channel Control: %d %s", errno, strerror(errno));
     ::close(socket_fd);
     return INVALID_FD;
   }
