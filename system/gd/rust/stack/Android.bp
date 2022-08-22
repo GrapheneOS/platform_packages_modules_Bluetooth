@@ -36,7 +36,7 @@ rust_library {
         "libnum_derive",
     ],
     apex_available: [
-        "com.android.bluetooth",
+        "com.android.btservices",
     ],
     min_sdk_version: "30",
     target: {
@@ -116,7 +116,7 @@ cc_library_static {
         "libutils",
     ],
     apex_available: [
-        "com.android.bluetooth",
+        "com.android.btservices",
     ],
     min_sdk_version: "30",
 }

@@ -18,7 +18,7 @@ java_library_static {
         "bluetooth/bluetoothKeystore/keystore.proto",
     ],
     apex_available: [
-        "com.android.bluetooth",
+        "com.android.btservices",
     ],
     min_sdk_version: "30",
     sdk_version: "current",
@@ -36,7 +36,7 @@ cc_library_static {
         "bluetooth/bluetoothKeystore/keystore.proto",
     ],
     apex_available: [
-        "com.android.bluetooth",
+        "com.android.btservices",
     ],
     min_sdk_version: "30",
 }
@@ -54,7 +54,7 @@ cc_library_static {
         "bluetooth/bluetoothKeystore/keystore.proto",
     ],
     apex_available: [
-        "com.android.bluetooth",
+        "com.android.btservices",
     ],
     min_sdk_version: "30",
 }
