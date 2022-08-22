@@ -93,7 +93,15 @@
     "SM/CEN/EKS/BV-01-C",
     "SM/CEN/JW/BI-01-C",
     "SM/CEN/JW/BI-04-C",
-    "SM/CEN/JW/BV-05-C"
+    "SM/CEN/JW/BV-05-C",
+    "SM/CEN/KDU/BI-01-C",
+    "SM/CEN/KDU/BV-04-C",
+    "SM/CEN/KDU/BV-05-C",
+    "SM/CEN/KDU/BI-02-C",
+    "SM/CEN/KDU/BV-06-C",
+    "SM/CEN/KDU/BV-10-C",
+    "SM/CEN/KDU/BI-03-C",
+    "SM/CEN/KDU/BV-11-C"
   ],
   "skip": [
     "A2DP/SRC/AS/BV-01-I",
