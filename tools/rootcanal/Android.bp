@@ -97,6 +97,9 @@ cc_library_static {
         "include",
         ".",
     ],
+    export_generated_headers: [
+        "BluetoothGeneratedPackets_h"
+    ],
     shared_libs: [
         "liblog",
     ],
