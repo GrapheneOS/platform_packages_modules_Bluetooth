@@ -49,16 +49,17 @@ class LeAdvertiser(Closable):
             return False
         return True
 
-    def advertise_rpa_public_extended_pdu(self, name="SL4A Device"):
+    def advertise_public_extended_pdu(self, address_type=common.RANDOM_DEVICE_ADDRESS, name="SL4A Device"):
         if self.is_advertising:
             logging.info("Already advertising!")
             return
+        logging.info("Configuring advertisement with address type %d", address_type)
         self.is_advertising = True
         self.device.sl4a.bleSetScanSettingsLegacy(False)
         self.device.sl4a.bleSetAdvertiseSettingsIsConnectable(True)
         self.device.sl4a.bleSetAdvertiseDataIncludeDeviceName(True)
         self.device.sl4a.bleSetAdvertiseSettingsAdvertiseMode(ble_advertise_settings_modes['low_latency'])
-        self.device.sl4a.bleSetAdvertiseSettingsOwnAddressType(common.RANDOM_DEVICE_ADDRESS)
+        self.device.sl4a.bleSetAdvertiseSettingsOwnAddressType(address_type)
         self.advertise_callback, self.advertise_data, self.advertise_settings = generate_ble_advertise_objects(
             self.device.sl4a)
         self.device.sl4a.bleStartBleAdvertising(self.advertise_callback, self.advertise_data, self.advertise_settings)
