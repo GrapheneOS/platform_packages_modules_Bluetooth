@@ -83,7 +83,7 @@ public class NativeInterface {
     /**
      * Connect to the specified paired device
      *
-     * @param address target device's address
+     * @param device target device
      * @return True on success, False on failure
      */
     @VisibleForTesting
@@ -94,7 +94,7 @@ public class NativeInterface {
     /**
      * Disconnect from the specified paired device
      *
-     * @param address target device's address
+     * @param device target device
      * @return True on success, False on failure
      */
     @VisibleForTesting
@@ -105,7 +105,7 @@ public class NativeInterface {
     /**
      * Initiate audio connection to the specified paired device
      *
-     * @param address target device's address
+     * @param device target device
      * @return True on success, False on failure
      */
     @VisibleForTesting
@@ -116,7 +116,7 @@ public class NativeInterface {
     /**
      * Close audio connection from the specified paired device
      *
-     * @param address target device's address
+     * @param device target device
      * @return True on success, False on failure
      */
     public boolean disconnectAudio(BluetoothDevice device) {
@@ -126,7 +126,7 @@ public class NativeInterface {
     /**
      * Initiate voice recognition to the specified paired device
      *
-     * @param address target device's address
+     * @param device target device
      * @return True on success, False on failure
      */
     @VisibleForTesting
@@ -137,7 +137,7 @@ public class NativeInterface {
     /**
      * Close voice recognition to the specified paired device
      *
-     * @param address target device's address
+     * @param device target device
      * @return True on success, False on failure
      */
     @VisibleForTesting
@@ -148,10 +148,10 @@ public class NativeInterface {
     /**
      * Set volume to the specified paired device
      *
+     * @param device target device
      * @param volumeType type of volume as in
      *                  HeadsetClientHalConstants.VOLUME_TYPE_xxxx
      * @param volume  volume level
-     * @param address target device's address
      * @return True on success, False on failure
      */
     @VisibleForTesting
@@ -162,8 +162,8 @@ public class NativeInterface {
     /**
      * dial number from the specified paired device
      *
+     * @param device target device
      * @param number  phone number to be dialed
-     * @param address target device's address
      * @return True on success, False on failure
      */
     @VisibleForTesting
@@ -174,8 +174,8 @@ public class NativeInterface {
     /**
      * Memory dialing from the specified paired device
      *
+     * @param device target device
      * @param location  memory location
-     * @param address target device's address
      * @return True on success, False on failure
      */
     @VisibleForTesting
@@ -186,9 +186,9 @@ public class NativeInterface {
     /**
      * Apply action to call
      *
-     * @action action (e.g. hold, terminate etc)
-     * @index call index
-     * @param address target device's address
+     * @param device target device
+     * @param action action (e.g. hold, terminate etc)
+     * @param index call index
      * @return True on success, False on failure
      */
     @VisibleForTesting
@@ -199,7 +199,7 @@ public class NativeInterface {
     /**
      * Query current call status from the specified paired device
      *
-     * @param address target device's address
+     * @param device target device
      * @return True on success, False on failure
      */
     @VisibleForTesting
@@ -210,7 +210,7 @@ public class NativeInterface {
     /**
      * Query operator name from the specified paired device
      *
-     * @param address target device's address
+     * @param device target device
      * @return True on success, False on failure
      */
     @VisibleForTesting
@@ -221,7 +221,7 @@ public class NativeInterface {
     /**
      * Retrieve subscriber number from the specified paired device
      *
-     * @param address target device's address
+     * @param device target device
      * @return True on success, False on failure
      */
     @VisibleForTesting
@@ -232,8 +232,8 @@ public class NativeInterface {
     /**
      * Transmit DTMF code
      *
+     * @param device target device
      * @param code DTMF code
-     * @param address target device's address
      * @return True on success, False on failure
      */
     @VisibleForTesting
@@ -244,7 +244,7 @@ public class NativeInterface {
     /**
      * Request last voice tag
      *
-     * @param address target device's address
+     * @param device target device
      * @return True on success, False on failure
      */
     @VisibleForTesting
@@ -255,6 +255,7 @@ public class NativeInterface {
     /**
      * Send an AT command
      *
+     * @param device target device
      * @param atCmd command code
      * @param val1 command specific argurment1
      * @param val2 command specific argurment2
