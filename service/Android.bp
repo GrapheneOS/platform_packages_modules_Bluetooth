@@ -71,7 +71,7 @@ java_library {
     ],
 
     apex_available: [
-        "com.android.bluetooth",
+        "com.android.btservices",
     ],
     min_sdk_version: "Tiramisu"
 }
@@ -104,7 +104,7 @@ java_library {
         "//packages/modules/Bluetooth/apex",
     ],
     apex_available: [
-        "com.android.bluetooth",
+        "com.android.btservices",
     ],
     min_sdk_version: "Tiramisu"
 }
@@ -123,7 +123,7 @@ java_library {
     ],
     sdk_version: "system_server_current",
     apex_available: [
-        "com.android.bluetooth",
+        "com.android.btservices",
     ],
     min_sdk_version: "Tiramisu"
 }
