@@ -780,6 +780,12 @@ std::vector<uint16_t> L2CA_ConnectCreditBasedReq(uint16_t psm,
 
   L2CAP_TRACE_DEBUG("%s LE Link is up", __func__);
 
+  /* Check if there is no ongoing connection request */
+  if (p_lcb->pending_ecoc_conn_cnt > 0) {
+    LOG_WARN("There is ongoing connection request, PSM: 0x%04x", psm);
+    return allocated_cids;
+  }
+
   tL2C_CCB* p_ccb_primary;
 
   /* Make sure user set proper value for number of cids */

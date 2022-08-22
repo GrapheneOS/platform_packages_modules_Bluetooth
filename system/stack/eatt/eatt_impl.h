@@ -93,6 +93,15 @@ struct eatt_impl {
     return (it == eatt_dev->eatt_channels.end()) ? nullptr : it->second.get();
   }
 
+  bool is_channel_connection_pending(eatt_device* eatt_dev) {
+    for (const std::pair<uint16_t, std::shared_ptr<EattChannel>>& el :
+         eatt_dev->eatt_channels) {
+      if (el.second->state_ == EattChannelState::EATT_CHANNEL_PENDING)
+        return true;
+    }
+    return false;
+  }
+
   EattChannel* find_channel_by_cid(const RawAddress& bdaddr, uint16_t lcid) {
     eatt_device* eatt_dev = find_device_by_address(bdaddr);
     if (!eatt_dev) return nullptr;
@@ -242,6 +251,11 @@ struct eatt_impl {
       LOG(ERROR) << __func__
                  << " Could not connect CoC result: " << loghex(result);
       remove_channel_by_cid(eatt_dev, lcid);
+
+      /* If there is no channels connected, check if there was collision */
+      if (!is_channel_connection_pending(eatt_dev)) {
+        eatt_retry_after_collision_if_needed(eatt_dev);
+      }
       return;
     }
 
@@ -252,8 +266,7 @@ struct eatt_impl {
     CHECK(eatt_dev->bda_ == channel->bda_);
     eatt_dev->eatt_tcb_->eatt++;
 
-    LOG(INFO) << __func__ << " Channel connected CID " << loghex(lcid);
-    eatt_retry_after_collision_if_needed(eatt_dev);
+    LOG_INFO("Channel connected CID 0x%04x", lcid);
   }
 
   void eatt_l2cap_reconfig_completed(const RawAddress& bda, uint16_t lcid,
@@ -323,7 +336,9 @@ struct eatt_impl {
         break;
     }
 
-    eatt_retry_after_collision_if_needed(eatt_dev);
+    if (!is_channel_connection_pending(eatt_dev)) {
+      eatt_retry_after_collision_if_needed(eatt_dev);
+    }
   }
 
   void eatt_l2cap_disconnect_ind(uint16_t lcid, bool please_confirm) {

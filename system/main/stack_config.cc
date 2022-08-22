@@ -40,6 +40,8 @@ const char* PTS_CONNECT_EATT_UNENCRYPTED = "PTS_ConnectEattUnencrypted";
 const char* PTS_BROADCAST_UNENCRYPTED = "PTS_BroadcastUnencrypted";
 const char* PTS_EATT_PERIPHERAL_COLLISION_SUPPORT =
     "PTS_EattPeripheralCollionSupport";
+const char* PTS_BROADCAST_AUDIO_CONFIG_OPTION =
+    "PTS_BroadcastAudioConfigOption";
 
 static std::unique_ptr<config_t> config;
 }  // namespace
@@ -142,6 +144,15 @@ static bool get_pts_eatt_peripheral_collision_support(void) {
                          PTS_EATT_PERIPHERAL_COLLISION_SUPPORT, false);
 }
 
+static const std::string* get_pts_broadcast_audio_config_options(void) {
+  if (!config) {
+    LOG_INFO("Config isn't ready, use default option");
+    return NULL;
+  }
+  return config_get_string(*config, CONFIG_DEFAULT_SECTION,
+                           PTS_BROADCAST_AUDIO_CONFIG_OPTION, NULL);
+}
+
 static config_t* get_all(void) { return config.get(); }
 
 const stack_config_t interface = {get_trace_config_enabled,
@@ -156,6 +167,7 @@ const stack_config_t interface = {get_trace_config_enabled,
                                   get_pts_connect_eatt_before_encryption,
                                   get_pts_unencrypt_broadcast,
                                   get_pts_eatt_peripheral_collision_support,
+                                  get_pts_broadcast_audio_config_options,
                                   get_all};
 
 const stack_config_t* stack_config_get_interface(void) { return &interface; }

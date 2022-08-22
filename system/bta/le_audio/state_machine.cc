@@ -520,11 +520,11 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
                                         uint8_t status,
                                         uint16_t conn_hdl) override {
     if (status != HCI_SUCCESS) {
-      LOG(ERROR) << __func__ << ", failed to remove ISO data path, reason: "
-                 << loghex(status);
-      StopStream(group);
-
-      return;
+      LOG_ERROR(
+          "failed to remove ISO data path, reason: 0x%0x - contining stream "
+          "closing",
+          status);
+      /* Just continue - disconnecting CIS removes data path as well.*/
     }
 
     bool do_disconnect = false;
@@ -755,14 +755,18 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
   static void RemoveDataPathByCisHandle(LeAudioDevice* leAudioDevice,
                                         uint16_t cis_conn_hdl) {
     auto ases_pair = leAudioDevice->GetAsesByCisConnHdl(cis_conn_hdl);
-    IsoManager::GetInstance()->RemoveIsoDataPath(
-        cis_conn_hdl,
-        (ases_pair.sink
-             ? bluetooth::hci::iso_manager::kRemoveIsoDataPathDirectionInput
-             : 0x00) |
-            (ases_pair.source ? bluetooth::hci::iso_manager::
-                                    kRemoveIsoDataPathDirectionOutput
-                              : 0x00));
+    uint8_t value = 0;
+
+    if (ases_pair.sink && ases_pair.sink->data_path_state ==
+                              AudioStreamDataPathState::CIS_ESTABLISHED) {
+      value |= bluetooth::hci::iso_manager::kRemoveIsoDataPathDirectionInput;
+    }
+
+    if (ases_pair.source && ases_pair.source->data_path_state ==
+                              AudioStreamDataPathState::CIS_ESTABLISHED) {
+      value |= bluetooth::hci::iso_manager::kRemoveIsoDataPathDirectionOutput;
+    }
+    IsoManager::GetInstance()->RemoveIsoDataPath(cis_conn_hdl, value);
   }
 
   void ProcessHciNotifCisDisconnected(
