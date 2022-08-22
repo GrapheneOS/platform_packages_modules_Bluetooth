@@ -1106,7 +1106,7 @@ public class LeAudioServiceTest {
         doReturn(true).when(mNativeInterface).connectLeAudio(any(BluetoothDevice.class));
         connectTestDevice(mSingleDevice, testGroupId);
         injectAudioConfChanged(testGroupId, BluetoothLeAudio.CONTEXT_TYPE_MEDIA |
-                         BluetoothLeAudio.CONTEXT_TYPE_COMMUNICATION);
+                         BluetoothLeAudio.CONTEXT_TYPE_CONVERSATIONAL);
         injectGroupStatusChange(testGroupId, BluetoothLeAudio.GROUP_STATUS_ACTIVE);
 
         String action = BluetoothLeAudio.ACTION_LE_AUDIO_ACTIVE_DEVICE_CHANGED;
@@ -1127,7 +1127,7 @@ public class LeAudioServiceTest {
 
         String action = BluetoothLeAudio.ACTION_LE_AUDIO_ACTIVE_DEVICE_CHANGED;
         Integer contexts = BluetoothLeAudio.CONTEXT_TYPE_MEDIA |
-        BluetoothLeAudio.CONTEXT_TYPE_COMMUNICATION;
+        BluetoothLeAudio.CONTEXT_TYPE_CONVERSATIONAL;
         injectAudioConfChanged(testGroupId, contexts);
 
         Intent intent = TestUtils.waitForNoIntent(TIMEOUT_MS, mDeviceQueueMap.get(mSingleDevice));
@@ -1189,7 +1189,7 @@ public class LeAudioServiceTest {
         connectTestDevice(mSingleDevice, testGroupId);
 
         injectAudioConfChanged(testGroupId, BluetoothLeAudio.CONTEXT_TYPE_MEDIA |
-                                 BluetoothLeAudio.CONTEXT_TYPE_COMMUNICATION);
+                                 BluetoothLeAudio.CONTEXT_TYPE_CONVERSATIONAL);
 
         sendEventAndVerifyIntentForGroupStatusChanged(testGroupId, LeAudioStackEvent.GROUP_STATUS_ACTIVE);
         sendEventAndVerifyIntentForGroupStatusChanged(testGroupId, LeAudioStackEvent.GROUP_STATUS_INACTIVE);
