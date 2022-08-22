@@ -42,9 +42,9 @@ void log_link_layer_connection_event(
       hci_ble_event, cmd_status, reason_code);
 }
 
-void log_smp_pairing_event(const RawAddress& address, uint8_t smp_cmd,
+void log_smp_pairing_event(const RawAddress& address, uint16_t smp_cmd,
                            android::bluetooth::DirectionEnum direction,
-                           uint8_t smp_fail_reason) {
+                           uint16_t smp_fail_reason) {
   bluetooth::shim::LogMetricSmpPairingEvent(address, smp_cmd, direction,
                                             smp_fail_reason);
 }
