@@ -718,12 +718,13 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     uint8_t value = 0;
 
     if (ases_pair.sink && ases_pair.sink->data_path_state ==
-                              AudioStreamDataPathState::CIS_ESTABLISHED) {
+                              AudioStreamDataPathState::DATA_PATH_ESTABLISHED) {
       value |= bluetooth::hci::iso_manager::kRemoveIsoDataPathDirectionInput;
     }
 
-    if (ases_pair.source && ases_pair.source->data_path_state ==
-                              AudioStreamDataPathState::CIS_ESTABLISHED) {
+    if (ases_pair.source &&
+        ases_pair.source->data_path_state ==
+            AudioStreamDataPathState::DATA_PATH_ESTABLISHED) {
       value |= bluetooth::hci::iso_manager::kRemoveIsoDataPathDirectionOutput;
     }
     IsoManager::GetInstance()->RemoveIsoDataPath(cis_conn_hdl, value);
