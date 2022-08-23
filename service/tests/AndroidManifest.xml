@@ -31,10 +31,9 @@
         </activity>
     </application>
 
-    <instrumentation android:name="com.android.server.bluetooth.CustomTestRunner"
+     <instrumentation android:name="androidx.test.runner.AndroidJUnitRunner"
          android:targetPackage="com.android.server.bluetooth.test"
-         android:label="Service Bluetooth Tests">
-    </instrumentation>
+         android:label="Service Bluetooth Tests"/>
 
     <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
     <uses-permission android:name="android.permission.INTERNET"/>
