@@ -5,7 +5,7 @@ use std::sync::{Arc, Mutex};
 use crate::callbacks::BtGattCallback;
 use crate::ClientContext;
 use crate::{console_red, console_yellow, print_error, print_info};
-use bt_topshim::btif::BtTransport;
+use bt_topshim::btif::{BtConnectionState, BtTransport};
 use btstack::bluetooth::{BluetoothDevice, IBluetooth, IBluetoothQA};
 use btstack::bluetooth_gatt::IBluetoothGatt;
 use btstack::uuid::{Profile, UuidHelper, UuidWrapper};
@@ -171,7 +171,7 @@ fn build_commands() -> HashMap<String, CommandOption> {
     command_options.insert(
         String::from("list"),
         CommandOption {
-            rules: vec![String::from("list <bonded|found>")],
+            rules: vec![String::from("list <bonded|found|connected>")],
             description: String::from(
                 "List bonded or found remote devices. Use: list <bonded|found>",
             ),
@@ -552,7 +552,7 @@ impl CommandHandler {
                         name: String::from("Classic Device"),
                     };
 
-                    let (name, alias, device_type, class, bonded, connected, uuids) = {
+                    let (name, alias, device_type, class, bonded, connection_state, uuids) = {
                         let ctx = self.context.lock().unwrap();
                         let adapter = ctx.adapter_dbus.as_ref().unwrap();
 
@@ -561,10 +561,14 @@ impl CommandHandler {
                         let alias = adapter.get_remote_alias(device.clone());
                         let class = adapter.get_remote_class(device.clone());
                         let bonded = adapter.get_bond_state(device.clone());
-                        let connected = adapter.get_connection_state(device.clone());
+                        let connection_state = match adapter.get_connection_state(device.clone()) {
+                            BtConnectionState::NotConnected => "Not Connected",
+                            BtConnectionState::ConnectedOnly => "Connected",
+                            _ => "Connected and Paired",
+                        };
                         let uuids = adapter.get_remote_uuids(device.clone());
 
-                        (name, alias, device_type, class, bonded, connected, uuids)
+                        (name, alias, device_type, class, bonded, connection_state, uuids)
                     };
 
                     let uuid_helper = UuidHelper::new();
@@ -573,8 +577,8 @@ impl CommandHandler {
                     print_info!("Alias: {}", alias);
                     print_info!("Type: {:?}", device_type);
                     print_info!("Class: {}", class);
-                    print_info!("Bonded: {}", bonded);
-                    print_info!("Connected: {}", connected);
+                    print_info!("Bond State: {:?}", bonded);
+                    print_info!("Connection State: {}", connection_state);
                     print_info!(
                         "Uuids: {}",
                         DisplayList(
@@ -828,7 +832,7 @@ impl CommandHandler {
             return;
         }
 
-        enforce_arg_len(args, 1, "list <bonded|found>", || match &args[0][0..] {
+        enforce_arg_len(args, 1, "list <bonded|found|connected>", || match &args[0][0..] {
             "bonded" => {
                 print_info!("Known bonded devices:");
                 let devices = self
@@ -847,6 +851,20 @@ impl CommandHandler {
                 print_info!("Devices found in most recent discovery session:");
                 for (key, val) in self.context.lock().unwrap().found_devices.iter() {
                     print_info!("[{:17}] {}", key, val.name);
+                }
+            }
+            "connected" => {
+                print_info!("Connected devices:");
+                let devices = self
+                    .context
+                    .lock()
+                    .unwrap()
+                    .adapter_dbus
+                    .as_ref()
+                    .unwrap()
+                    .get_connected_devices();
+                for device in devices.iter() {
+                    print_info!("[{:17}] {}", device.address, device.name);
                 }
             }
             _ => {

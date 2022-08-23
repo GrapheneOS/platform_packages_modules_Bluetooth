@@ -114,8 +114,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         tx.clone(),
     ))));
 
-    let bt_sock_mgr =
-        Arc::new(Mutex::new(Box::new(BluetoothSocketManager::new(intf.clone(), tx.clone()))));
+    let bt_sock_mgr = Arc::new(Mutex::new(Box::new(BluetoothSocketManager::new(tx.clone()))));
 
     topstack::get_runtime().block_on(async {
         // Connect to D-Bus system bus.
@@ -244,6 +243,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             bluetooth.enable();
 
             bluetooth_gatt.lock().unwrap().init_profiles(tx.clone());
+            bt_sock_mgr.lock().unwrap().initialize(intf.clone());
         }
 
         // Serve clients forever.
