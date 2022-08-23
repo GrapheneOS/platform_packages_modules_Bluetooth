@@ -1574,7 +1574,11 @@ TEST_F(StateMachineTest, testDisableSingle) {
   EXPECT_CALL(*mock_iso_manager_, CreateCig(_, _)).Times(1);
   EXPECT_CALL(*mock_iso_manager_, EstablishCis(_)).Times(1);
   EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(1);
-  EXPECT_CALL(*mock_iso_manager_, RemoveIsoDataPath(_, _)).Times(1);
+  EXPECT_CALL(
+      *mock_iso_manager_,
+      RemoveIsoDataPath(
+          _, bluetooth::hci::iso_manager::kRemoveIsoDataPathDirectionInput))
+      .Times(1);
   EXPECT_CALL(*mock_iso_manager_, DisconnectCis(_, _)).Times(1);
   EXPECT_CALL(*mock_iso_manager_, RemoveCig(_)).Times(0);
 
@@ -1637,7 +1641,11 @@ TEST_F(StateMachineTest, testDisableMultiple) {
   EXPECT_CALL(*mock_iso_manager_, CreateCig(_, _)).Times(1);
   EXPECT_CALL(*mock_iso_manager_, EstablishCis(_)).Times(1);
   EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(2);
-  EXPECT_CALL(*mock_iso_manager_, RemoveIsoDataPath(_, _)).Times(2);
+  EXPECT_CALL(
+      *mock_iso_manager_,
+      RemoveIsoDataPath(
+          _, bluetooth::hci::iso_manager::kRemoveIsoDataPathDirectionInput))
+      .Times(2);
   EXPECT_CALL(*mock_iso_manager_, DisconnectCis(_, _)).Times(2);
   EXPECT_CALL(*mock_iso_manager_, RemoveCig(_)).Times(0);
 
@@ -1695,7 +1703,13 @@ TEST_F(StateMachineTest, testDisableBidirectional) {
   EXPECT_CALL(*mock_iso_manager_, CreateCig(_, _)).Times(1);
   EXPECT_CALL(*mock_iso_manager_, EstablishCis(_)).Times(1);
   EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(2);
-  EXPECT_CALL(*mock_iso_manager_, RemoveIsoDataPath(_, _)).Times(1);
+  EXPECT_CALL(
+      *mock_iso_manager_,
+      RemoveIsoDataPath(
+          _,
+          bluetooth::hci::iso_manager::kRemoveIsoDataPathDirectionInput |
+              bluetooth::hci::iso_manager::kRemoveIsoDataPathDirectionOutput))
+      .Times(1);
   EXPECT_CALL(*mock_iso_manager_, DisconnectCis(_, _)).Times(1);
   EXPECT_CALL(*mock_iso_manager_, RemoveCig(_)).Times(0);
 
