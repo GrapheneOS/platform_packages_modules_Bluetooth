@@ -134,6 +134,8 @@ fn build_commands() -> HashMap<String, CommandOption> {
                 String::from("gatt client-connect <address>"),
                 String::from("gatt client-read-phy <address>"),
                 String::from("gatt client-discover-services <address>"),
+                String::from("gatt client-disconnect <address>"),
+                String::from("gatt configure-mtu <address> <mtu>"),
             ],
             description: String::from("GATT tools"),
             function_pointer: CommandHandler::cmd_gatt,
@@ -584,7 +586,7 @@ impl CommandHandler {
                     );
                 }
                 "set-alias" => {
-                    if args.len() < 3 {
+                    if args.len() < 4 {
                         println!("usage: device set-alias <address> <new-alias>");
                         return;
                     }
@@ -658,7 +660,7 @@ impl CommandHandler {
                 );
             }
             "client-connect" => {
-                if args.len() < 2 {
+                if args.len() < 3 {
                     println!("usage: gatt client-connect <addr>");
                     return;
                 }
@@ -679,8 +681,29 @@ impl CommandHandler {
                     1,
                 );
             }
+            "client-disconnect" => {
+                if args.len() < 3 {
+                    println!("usage: gatt client-disconnect <addr>");
+                    return;
+                }
+
+                let client_id = self.context.lock().unwrap().gatt_client_id;
+                if client_id.is_none() {
+                    println!("GATT client is not yet registered.");
+                    return;
+                }
+
+                let addr = String::from(&args[1]);
+                self.context
+                    .lock()
+                    .unwrap()
+                    .gatt_dbus
+                    .as_ref()
+                    .unwrap()
+                    .client_disconnect(client_id.unwrap(), addr);
+            }
             "client-read-phy" => {
-                if args.len() < 2 {
+                if args.len() < 3 {
                     println!("usage: gatt client-read-phy <addr>");
                     return;
                 }
@@ -701,7 +724,7 @@ impl CommandHandler {
                     .client_read_phy(client_id.unwrap(), addr);
             }
             "client-discover-services" => {
-                if args.len() < 2 {
+                if args.len() < 3 {
                     println!("usage: gatt client-discover-services <addr>");
                     return;
                 }
@@ -720,6 +743,30 @@ impl CommandHandler {
                     .as_ref()
                     .unwrap()
                     .discover_services(client_id.unwrap(), addr);
+            }
+            "configure-mtu" => {
+                if args.len() < 4 {
+                    println!("usage: gatt configure-mtu <addr> <mtu>");
+                    return;
+                }
+
+                let client_id = self.context.lock().unwrap().gatt_client_id;
+                if client_id.is_none() {
+                    println!("GATT client is not yet registered.");
+                    return;
+                }
+
+                let addr = String::from(&args[1]);
+                let mtu = String::from(&args[2]).parse::<i32>();
+                if let Ok(m) = mtu {
+                    self.context.lock().unwrap().gatt_dbus.as_ref().unwrap().configure_mtu(
+                        client_id.unwrap(),
+                        addr,
+                        m,
+                    );
+                } else {
+                    print_error!("Failed parsing mtu");
+                }
             }
             _ => {
                 println!("Invalid argument '{}'", args[0]);
@@ -751,7 +798,7 @@ impl CommandHandler {
                 }
             }
             "unregister-scanner" => {
-                if args.len() < 2 {
+                if args.len() < 3 {
                     println!("usage: le-scan unregister-scanner <scanner-id>");
                     return;
                 }
