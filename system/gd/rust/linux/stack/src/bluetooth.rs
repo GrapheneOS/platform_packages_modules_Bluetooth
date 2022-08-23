@@ -2,8 +2,9 @@
 
 use bt_topshim::btif::{
     BaseCallbacks, BaseCallbacksDispatcher, BluetoothInterface, BluetoothProperty, BtAclState,
-    BtBondState, BtDeviceType, BtDiscoveryState, BtHciErrorCode, BtPinCode, BtPropertyType,
-    BtScanMode, BtSspVariant, BtState, BtStatus, BtTransport, RawAddress, Uuid, Uuid128Bit,
+    BtBondState, BtConnectionState, BtDeviceType, BtDiscoveryState, BtHciErrorCode, BtPinCode,
+    BtPropertyType, BtScanMode, BtSspVariant, BtState, BtStatus, BtTransport, RawAddress, Uuid,
+    Uuid128Bit,
 };
 use bt_topshim::{
     metrics,
@@ -127,7 +128,7 @@ pub trait IBluetooth {
     fn get_bonded_devices(&self) -> Vec<BluetoothDevice>;
 
     /// Gets the bond state of a single device.
-    fn get_bond_state(&self, device: BluetoothDevice) -> u32;
+    fn get_bond_state(&self, device: BluetoothDevice) -> BtBondState;
 
     /// Set pin on bonding device.
     fn set_pin(&self, device: BluetoothDevice, accept: bool, pin_code: Vec<u8>) -> bool;
@@ -153,8 +154,14 @@ pub trait IBluetooth {
     /// Gets the class of the remote device.
     fn get_remote_class(&self, device: BluetoothDevice) -> u32;
 
+    /// Gets whether the remote device is connected.
+    fn get_remote_connected(&self, device: BluetoothDevice) -> bool;
+
+    /// Returns a list of connected devices.
+    fn get_connected_devices(&self) -> Vec<BluetoothDevice>;
+
     /// Gets the connection state of a single device.
-    fn get_connection_state(&self, device: BluetoothDevice) -> u32;
+    fn get_connection_state(&self, device: BluetoothDevice) -> BtConnectionState;
 
     /// Gets the connection state of a specific profile.
     fn get_profile_connection_state(&self, profile: Profile) -> u32;
@@ -1181,10 +1188,10 @@ impl IBluetooth for Bluetooth {
         devices
     }
 
-    fn get_bond_state(&self, device: BluetoothDevice) -> u32 {
+    fn get_bond_state(&self, device: BluetoothDevice) -> BtBondState {
         match self.bonded_devices.get(&device.address) {
-            Some(device) => device.bond_state.to_u32().unwrap(),
-            None => BtBondState::NotBonded.to_u32().unwrap(),
+            Some(device) => device.bond_state.clone(),
+            None => BtBondState::NotBonded,
         }
     }
 
@@ -1309,14 +1316,44 @@ impl IBluetooth for Bluetooth {
         }
     }
 
-    fn get_connection_state(&self, device: BluetoothDevice) -> u32 {
+    fn get_remote_connected(&self, device: BluetoothDevice) -> bool {
+        self.get_connection_state(device) != BtConnectionState::NotConnected
+    }
+
+    fn get_connected_devices(&self) -> Vec<BluetoothDevice> {
+        let bonded_connected: HashMap<String, BluetoothDevice> = self
+            .bonded_devices
+            .iter()
+            .filter(|(_, v)| v.acl_state == BtAclState::Connected)
+            .map(|(k, v)| (k.clone(), v.info.clone()))
+            .collect();
+        let mut found_connected: Vec<BluetoothDevice> = self
+            .found_devices
+            .iter()
+            .filter(|(k, v)| {
+                v.acl_state == BtAclState::Connected
+                    && !bonded_connected.contains_key(&k.to_string())
+            })
+            .map(|(_, v)| v.info.clone())
+            .collect();
+
+        let mut all =
+            bonded_connected.iter().map(|(_, v)| v.clone()).collect::<Vec<BluetoothDevice>>();
+        all.append(&mut found_connected);
+
+        all
+    }
+
+    fn get_connection_state(&self, device: BluetoothDevice) -> BtConnectionState {
         let addr = RawAddress::from_string(device.address.clone());
 
         if addr.is_none() {
             warn!("Can't check connection state. Address {} is not valid.", device.address);
-            return 0;
+            return BtConnectionState::NotConnected;
         }
 
+        // The underlying api adds whether this is ENCRYPTED_BREDR or ENCRYPTED_LE.
+        // As long as it is non-zero, it is connected.
         self.intf.lock().unwrap().get_connection_state(&addr.unwrap())
     }
 

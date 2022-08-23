@@ -90,6 +90,7 @@ pub enum BtConnectionState {
     ConnectedOnly = 1,
     EncryptedBredr = 3,
     EncryptedLe = 5,
+    EncryptedBoth = 7,
 }
 
 impl From<i32> for BtConnectionState {
@@ -1053,9 +1054,9 @@ impl BluetoothInterface {
         ccall!(self, cancel_bond, ffi_addr)
     }
 
-    pub fn get_connection_state(&self, addr: &RawAddress) -> u32 {
+    pub fn get_connection_state(&self, addr: &RawAddress) -> BtConnectionState {
         let ffi_addr = cast_to_const_ffi_address!(addr as *const RawAddress);
-        ccall!(self, get_connection_state, ffi_addr).to_u32().unwrap()
+        ccall!(self, get_connection_state, ffi_addr).into()
     }
 
     pub fn pin_reply(

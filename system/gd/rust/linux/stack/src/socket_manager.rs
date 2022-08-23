@@ -423,8 +423,8 @@ pub struct BluetoothSocketManager {
     /// same runtime as RPC).
     runtime: Arc<Runtime>,
 
-    /// Topshim interface for socket.
-    sock: socket::BtSocket,
+    /// Topshim interface for socket. Must call initialize for this to be valid.
+    sock: Option<socket::BtSocket>,
 
     /// Monotonically increasing counter for socket id. Always access using
     /// `next_socket_id`.
@@ -436,8 +436,7 @@ pub struct BluetoothSocketManager {
 
 impl BluetoothSocketManager {
     /// Constructs the IBluetooth implementation.
-    pub fn new(intf: Arc<Mutex<BluetoothInterface>>, tx: Sender<Message>) -> Self {
-        let sock = socket::BtSocket::new(&intf.lock().unwrap());
+    pub fn new(tx: Sender<Message>) -> Self {
         let callbacks = Callbacks::new(tx.clone(), Message::SocketManagerCallbackDisconnected);
         let socket_counter: u64 = 1000;
         let futures = HashMap::new();
@@ -451,7 +450,22 @@ impl BluetoothSocketManager {
                 .expect("Failed to make socket runtime."),
         );
 
-        BluetoothSocketManager { callbacks, futures, listening, runtime, sock, socket_counter, tx }
+        BluetoothSocketManager {
+            callbacks,
+            futures,
+            listening,
+            runtime,
+            sock: None,
+            socket_counter,
+            tx,
+        }
+    }
+
+    /// In order to access the underlying socket apis, we must initialize after
+    /// the btif layer has initialized. Thus, this must be called after intf is
+    /// init.
+    pub fn initialize(&mut self, intf: Arc<Mutex<BluetoothInterface>>) {
+        self.sock = Some(socket::BtSocket::new(&intf.lock().unwrap()));
     }
 
     // TODO(abps) - We need to save information about who the caller is so that
@@ -476,23 +490,24 @@ impl BluetoothSocketManager {
         cbid: CallbackId,
     ) -> SocketResult {
         // Create listener socket pair
-        let (mut status, result) = self.sock.listen(
-            socket_info.sock_type.clone(),
-            socket_info.name.as_ref().unwrap_or(&String::new()).clone(),
-            match socket_info.uuid {
-                Some(u) => Some(u.uu.clone()),
-                None => None,
-            },
-            match socket_info.sock_type {
-                SocketType::Rfcomm => socket_info.channel.unwrap_or(DYNAMIC_CHANNEL),
-                SocketType::L2cap | SocketType::L2capLe => {
-                    socket_info.psm.unwrap_or(DYNAMIC_PSM_NO_SDP)
-                }
-                _ => 0,
-            },
-            socket_info.flags,
-            self.get_caller_uid(),
-        );
+        let (mut status, result) =
+            self.sock.as_ref().expect("Socket Manager not initialized").listen(
+                socket_info.sock_type.clone(),
+                socket_info.name.as_ref().unwrap_or(&String::new()).clone(),
+                match socket_info.uuid {
+                    Some(u) => Some(u.uu.clone()),
+                    None => None,
+                },
+                match socket_info.sock_type {
+                    SocketType::Rfcomm => socket_info.channel.unwrap_or(DYNAMIC_CHANNEL),
+                    SocketType::L2cap | SocketType::L2capLe => {
+                        socket_info.psm.unwrap_or(DYNAMIC_PSM_NO_SDP)
+                    }
+                    _ => 0,
+                },
+                socket_info.flags,
+                self.get_caller_uid(),
+            );
 
         // Put socket into listening list and return result.
         match result {
@@ -582,17 +597,18 @@ impl BluetoothSocketManager {
         };
 
         // Create connecting socket pair.
-        let (mut status, result) = self.sock.connect(
-            addr,
-            socket_info.sock_type.clone(),
-            match socket_info.uuid {
-                Some(u) => Some(u.uu.clone()),
-                None => None,
-            },
-            socket_info.port,
-            socket_info.flags,
-            self.get_caller_uid(),
-        );
+        let (mut status, result) =
+            self.sock.as_ref().expect("Socket manager not initialized").connect(
+                addr,
+                socket_info.sock_type.clone(),
+                match socket_info.uuid {
+                    Some(u) => Some(u.uu.clone()),
+                    None => None,
+                },
+                socket_info.port,
+                socket_info.flags,
+                self.get_caller_uid(),
+            );
 
         // Put socket into connecting list and return result. Connecting sockets
         // need to be listening for a completion event at which point they will
