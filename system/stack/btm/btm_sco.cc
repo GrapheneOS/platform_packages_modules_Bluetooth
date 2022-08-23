@@ -143,10 +143,6 @@ static void btm_esco_conn_rsp(uint16_t sco_inx, uint8_t hci_status,
     /* If parameters not specified use the default */
     if (p_parms) {
       *p_setup = *p_parms;
-    } else if (p_sco->esco.data.link_type == BTM_LINK_TYPE_SCO ||
-               !sco_peer_supports_esco_ev3(bda)) {
-      *p_setup = esco_parameters_for_codec(
-          SCO_CODEC_CVSD_D1, hfp_hal_interface::get_offload_enabled());
     } else {
       /* Use the last setup passed thru BTM_SetEscoMode (or defaults) */
       *p_setup = btm_cb.sco_cb.def_esco_parms;
