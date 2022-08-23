@@ -106,9 +106,37 @@ int LeAudioDeviceGroup::NumOfConnected(types::LeAudioContextType context_type) {
       });
 }
 
+void LeAudioDeviceGroup::ClearSinksFromConfiguration(void) {
+  LOG_INFO("Group %p, group_id %d", this, group_id_);
+  stream_conf.sink_streams.clear();
+  stream_conf.sink_offloader_streams.clear();
+  stream_conf.sink_audio_channel_allocation = 0;
+  stream_conf.sink_num_of_channels = 0;
+  stream_conf.sink_num_of_devices = 0;
+  stream_conf.sink_sample_frequency_hz = 0;
+  stream_conf.sink_codec_frames_blocks_per_sdu = 0;
+  stream_conf.sink_octets_per_codec_frame = 0;
+  stream_conf.sink_frame_duration_us = 0;
+}
+
+void LeAudioDeviceGroup::ClearSourcesFromConfiguration(void) {
+  LOG_INFO("Group %p, group_id %d", this, group_id_);
+  stream_conf.source_streams.clear();
+  stream_conf.source_offloader_streams.clear();
+  stream_conf.source_audio_channel_allocation = 0;
+  stream_conf.source_num_of_channels = 0;
+  stream_conf.source_num_of_devices = 0;
+  stream_conf.source_sample_frequency_hz = 0;
+  stream_conf.source_codec_frames_blocks_per_sdu = 0;
+  stream_conf.source_octets_per_codec_frame = 0;
+  stream_conf.source_frame_duration_us = 0;
+}
+
 void LeAudioDeviceGroup::CigClearCis(void) {
   LOG_INFO("group_id: %d", group_id_);
   cises_.clear();
+  ClearSinksFromConfiguration();
+  ClearSourcesFromConfiguration();
 }
 
 void LeAudioDeviceGroup::Cleanup(void) {
@@ -1590,6 +1618,108 @@ bool LeAudioDeviceGroup::IsMetadataChanged(
   }
 
   return false;
+}
+
+void LeAudioDeviceGroup::StreamOffloaderUpdated(uint8_t direction) {
+  if (direction == le_audio::types::kLeAudioDirectionSource) {
+    stream_conf.source_offloader_changed = false;
+  } else {
+    stream_conf.sink_offloader_changed = false;
+  }
+}
+
+void LeAudioDeviceGroup::CreateStreamVectorForOffloader(uint8_t direction) {
+  if (CodecManager::GetInstance()->GetCodecLocation() !=
+      le_audio::types::CodecLocation::ADSP) {
+    return;
+  }
+
+  CisType cis_type;
+  std::vector<std::pair<uint16_t, uint32_t>>* streams;
+  std::vector<std::pair<uint16_t, uint32_t>>* offloader_streams;
+  std::string tag;
+  uint32_t available_allocations = 0;
+  bool* changed_flag;
+  if (direction == le_audio::types::kLeAudioDirectionSource) {
+    changed_flag = &stream_conf.source_offloader_changed;
+    cis_type = CisType::CIS_TYPE_UNIDIRECTIONAL_SOURCE;
+    streams = &stream_conf.source_streams;
+    offloader_streams = &stream_conf.source_offloader_streams;
+    tag = "Source";
+    available_allocations = AdjustAllocationForOffloader(
+        stream_conf.source_audio_channel_allocation);
+  } else {
+    changed_flag = &stream_conf.sink_offloader_changed;
+    cis_type = CisType::CIS_TYPE_UNIDIRECTIONAL_SINK;
+    streams = &stream_conf.sink_streams;
+    offloader_streams = &stream_conf.sink_offloader_streams;
+    tag = "Sink";
+    available_allocations =
+        AdjustAllocationForOffloader(stream_conf.sink_audio_channel_allocation);
+  }
+
+  if (available_allocations == 0) {
+    LOG_ERROR("There is no CIS connected");
+    return;
+  }
+
+  if (offloader_streams->size() > 0) {
+    /* We are here because of the CIS modification during streaming.
+     * this makes sense only when downmixing is enabled so we can notify
+     * offloader about connected / disconnected CISes. If downmixing is disabled
+     * then there is not need to notify offloader as it has all the informations
+     * already */
+    if (!downmix_fallback_) {
+      LOG_INFO("Downmixing disabled - nothing to do");
+      return;
+    }
+  }
+
+  offloader_streams->clear();
+  *changed_flag = true;
+
+  bool not_all_cises_connected = false;
+  if (available_allocations != codec_spec_conf::kLeAudioLocationStereo) {
+    not_all_cises_connected = true;
+  }
+
+  /* Note: For the offloader case we simplify allocation to only Left and Right.
+   * If we need 2 CISes and only one is connected, the connected one will have
+   * allocation set to stereo (left | right) and other one will have allocation
+   * set to 0. Offloader in this case shall mix left and right and send it on
+   * connected CIS. If there is only single CIS with stereo allocation, it means
+   * that peer device support channel count 2 and offloader shall send two
+   * channels in the single CIS.
+   */
+
+  for (auto& cis_entry : cises_) {
+    if ((cis_entry.type == CisType::CIS_TYPE_BIDIRECTIONAL ||
+         cis_entry.type == cis_type) &&
+        cis_entry.conn_handle != 0) {
+      uint32_t allocation = 0;
+      for (const auto& s : *streams) {
+        if (s.first == cis_entry.conn_handle) {
+          allocation = AdjustAllocationForOffloader(s.second);
+          if (not_all_cises_connected && downmix_fallback_) {
+            /* Tell offloader to mix on this CIS.*/
+            allocation = codec_spec_conf::kLeAudioLocationStereo;
+          }
+          break;
+        }
+      }
+
+      if (allocation == 0 && !downmix_fallback_) {
+        /* Take missing allocation for that one .*/
+        allocation =
+            codec_spec_conf::kLeAudioLocationStereo & ~available_allocations;
+      }
+
+      LOG_INFO("%s: Cis handle 0x%04x, allocation  0x%08x", tag.c_str(),
+               cis_entry.conn_handle, allocation);
+      offloader_streams->emplace_back(
+          std::make_pair(cis_entry.conn_handle, allocation));
+    }
+  }
 }
 
 types::LeAudioContextType LeAudioDeviceGroup::GetCurrentContextType(void) {
