@@ -16,12 +16,12 @@
 
 package android.bluetooth;
 
-import junit.framework.TestSuite;
-
 import android.os.Bundle;
 import android.test.InstrumentationTestRunner;
 import android.test.InstrumentationTestSuite;
 import android.util.Log;
+
+import junit.framework.TestSuite;
 
 /**
  * Instrumentation test runner for Bluetooth tests.

@@ -3,7 +3,7 @@ package {
 }
 
 android_test {
-    name: "BluetoothTests",
+    name: "FrameworkBluetoothTests",
 
     defaults: ["framework-bluetooth-tests-defaults"],
 
@@ -21,6 +21,7 @@ android_test {
         "android.test.base",
     ],
     static_libs: [
+        "androidx.test.rules",
         "junit",
         "modules-utils-bytesmatcher",
     ],
@@ -28,4 +29,5 @@ android_test {
         "general-tests",
         "mts-bluetooth",
     ],
+    certificate: ":com.android.bluetooth.certificate",
 }
