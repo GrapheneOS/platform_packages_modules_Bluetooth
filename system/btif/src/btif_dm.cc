@@ -1475,6 +1475,7 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
               property_value.insert(property_value.end(), uuid_128bit.begin(),
                                     uuid_128bit.end());
             }
+            eir_uuids_cache.erase(uuids_iter);
           }
           if (num_eir_uuids > 0) {
             prop.val = (void*)property_value.data();
@@ -1484,7 +1485,6 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
             prop.val = &uuid;
             prop.len = Uuid::kNumBytes128;
           }
-          eir_uuids_cache.erase(uuids_iter);
         }
         // Both SDP and bonding are done, clear pairing control block in case
         // it is not already cleared
