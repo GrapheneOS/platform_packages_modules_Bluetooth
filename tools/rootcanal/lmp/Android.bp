@@ -19,7 +19,7 @@ rust_ffi {
     edition: "2018",
     proc_macros: ["libnum_derive"],
     rustlibs: [
-        "libbt_packets",
+        "libbt_packets_nonapex",
         "libbytes",
         "libnum_bigint",
         "libnum_integer",
