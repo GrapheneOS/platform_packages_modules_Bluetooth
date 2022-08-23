@@ -94,5 +94,5 @@ class SMProxy(ProfileProxy):
         """
         Please reset your device.
         """
-        self.host.Reset()
+        self.host.SoftReset()
         return "OK"
