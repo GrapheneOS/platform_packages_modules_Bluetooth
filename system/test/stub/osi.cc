@@ -51,6 +51,13 @@ extern std::map<std::string, int> mock_function_count_map;
 #define UNUSED_ATTR
 #endif
 
+struct StringComparison {
+  bool operator()(char const* lhs, char const* rhs) const {
+    return strcmp(lhs, rhs) < 0;
+  }
+};
+std::map<const char*, bool, StringComparison> fake_osi_bool_props_map;
+
 std::list<entry_t>::iterator section_t::Find(const std::string& key) {
   mock_function_count_map[__func__]++;
   return std::find_if(
@@ -597,8 +604,15 @@ void ringbuffer_free(ringbuffer_t* rb) { mock_function_count_map[__func__]++; }
 
 bool osi_property_get_bool(const char* key, bool default_value) {
   mock_function_count_map[__func__]++;
+  if (fake_osi_bool_props_map.count(key))
+    return fake_osi_bool_props_map.at(key);
   return default_value;
 }
+
+void osi_property_set_bool(const char* key, bool value) {
+  fake_osi_bool_props_map.insert_or_assign(key, value);
+}
+
 int osi_property_get(const char* key, char* value, const char* default_value) {
   mock_function_count_map[__func__]++;
   return 0;

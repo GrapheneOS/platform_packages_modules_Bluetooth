@@ -128,14 +128,9 @@
     <string name="a2dp_sink_mbs_label" msgid="6035366346569127155">"Ήχος Bluetooth"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"Δεν είναι δυνατή η μεταφορά αρχείων που ξεπερνούν τα 4 GB"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Σύνδεση σε Bluetooth"</string>
-    <!-- no translation found for bluetooth_enabled_apm_title (1623939715492599179) -->
-    <skip />
-    <!-- no translation found for bluetooth_enabled_apm_message (4745310982235821141) -->
-    <skip />
-    <!-- no translation found for bluetooth_stays_on_title (39720820955212918) -->
-    <skip />
-    <!-- no translation found for bluetooth_and_wifi_stays_on_title (4886917707417592398) -->
-    <skip />
-    <!-- no translation found for bluetooth_and_wifi_stays_on_message (1790370141941913341) -->
-    <skip />
+    <string name="bluetooth_enabled_apm_title" msgid="1623939715492599179">"Ενεργοποιήσατε το Bluetooth"</string>
+    <string name="bluetooth_enabled_apm_message" msgid="4745310982235821141">"Το τηλέφωνό σας θα διατηρήσει ενεργό το Bluetooth στη λειτουργία πτήσης, εκτός και αν το απενεργοποιήσετε ενώ το τηλέφωνο βρίσκεται σε αυτήν τη λειτουργία"</string>
+    <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Το Bluetooth παραμένει ενεργό"</string>
+    <string name="bluetooth_and_wifi_stays_on_title" msgid="4886917707417592398">"Το Bluetooth και το Wi-Fi παραμένουν ενεργά"</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="1790370141941913341">"Το τηλέφωνό σας θα διατηρήσει ενεργές και τις δύο λειτουργίες στη λειτουργία πτήσης, εκτός και αν τις απενεργοποιήσετε ενώ το τηλέφωνο βρίσκεται σε αυτήν τη λειτουργία"</string>
 </resources>

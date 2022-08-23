@@ -695,7 +695,7 @@ cc_test {
 }
 
 cc_test {
-    name: "bluetooth_test_broadcaster_sm",
+    name: "bluetooth_test_broadcaster_state_machine",
     test_suites: ["device-tests"],
     defaults: [
         "fluoride_bta_defaults",

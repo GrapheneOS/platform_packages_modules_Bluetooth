@@ -128,14 +128,9 @@
     <string name="a2dp_sink_mbs_label" msgid="6035366346569127155">"蓝牙音频"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"无法传输 4GB 以上的文件"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"连接到蓝牙"</string>
-    <!-- no translation found for bluetooth_enabled_apm_title (1623939715492599179) -->
-    <skip />
-    <!-- no translation found for bluetooth_enabled_apm_message (4745310982235821141) -->
-    <skip />
-    <!-- no translation found for bluetooth_stays_on_title (39720820955212918) -->
-    <skip />
-    <!-- no translation found for bluetooth_and_wifi_stays_on_title (4886917707417592398) -->
-    <skip />
-    <!-- no translation found for bluetooth_and_wifi_stays_on_message (1790370141941913341) -->
-    <skip />
+    <string name="bluetooth_enabled_apm_title" msgid="1623939715492599179">"您已开启蓝牙"</string>
+    <string name="bluetooth_enabled_apm_message" msgid="4745310982235821141">"在飞行模式下手机将使蓝牙保持开启状态，除非您在此模式下关闭此功能"</string>
+    <string name="bluetooth_stays_on_title" msgid="39720820955212918">"蓝牙保持开启状态"</string>
+    <string name="bluetooth_and_wifi_stays_on_title" msgid="4886917707417592398">"蓝牙和 WLAN 保持开启状态"</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="1790370141941913341">"在飞行模式下手机将使二者保持开启状态，除非您在此模式下关闭这两项功能"</string>
 </resources>

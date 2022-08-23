@@ -30,6 +30,7 @@
 #include "gatt_api.h"
 #include "le_audio_types.h"
 #include "osi/include/alarm.h"
+#include "osi/include/properties.h"
 #include "raw_address.h"
 
 namespace le_audio {
@@ -210,7 +211,9 @@ class LeAudioDeviceGroup {
         pending_update_available_contexts_(std::nullopt),
         target_state_(types::AseState::BTA_LE_AUDIO_ASE_STATE_IDLE),
         current_state_(types::AseState::BTA_LE_AUDIO_ASE_STATE_IDLE),
-        context_type_(types::LeAudioContextType::UNINITIALIZED) {}
+        context_type_(types::LeAudioContextType::UNINITIALIZED) {
+    downmix_fallback_ = osi_property_get_bool(kDownmixFallback, false);
+  }
   ~LeAudioDeviceGroup(void);
 
   void AddNode(const std::shared_ptr<LeAudioDevice>& leAudioDevice);
@@ -223,6 +226,8 @@ class LeAudioDeviceGroup {
   bool Activate(types::LeAudioContextType context_type);
   void Deactivate(void);
   void CigClearCis(void);
+  void ClearSinksFromConfiguration(void);
+  void ClearSourcesFromConfiguration(void);
   void Cleanup(void);
   LeAudioDevice* GetFirstDevice(void);
   LeAudioDevice* GetFirstDeviceWithActiveContext(
@@ -284,6 +289,8 @@ class LeAudioDeviceGroup {
   bool IsContextSupported(types::LeAudioContextType group_context_type);
   bool IsMetadataChanged(types::LeAudioContextType group_context_type,
                          int ccid);
+  void CreateStreamVectorForOffloader(uint8_t direction);
+  void StreamOffloaderUpdated(uint8_t direction);
 
   inline types::AseState GetState(void) const { return current_state_; }
   void SetState(types::AseState state) {
@@ -334,6 +341,9 @@ class LeAudioDeviceGroup {
            const set_configurations::AudioSetConfiguration*>
       active_context_to_configuration_map;
 
+  static constexpr char kDownmixFallback[] =
+      "persist.bluetooth.leaudio.offloader.downmix_fallback";
+  bool downmix_fallback_;
   types::AseState target_state_;
   types::AseState current_state_;
   types::LeAudioContextType context_type_;
