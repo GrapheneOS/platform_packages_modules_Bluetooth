@@ -35,17 +35,17 @@ import io.grpc.stub.StreamObserver
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.channels.trySendBlocking
-import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.runBlocking
 import pandora.HostGrpc.HostImplBase
 import pandora.HostProto.*
@@ -80,35 +80,51 @@ class Host(private val context: Context, private val server: Server) : HostImplB
     scope.cancel()
   }
 
-  override fun reset(request: Empty, responseObserver: StreamObserver<Empty>) {
-    grpcUnary<Empty>(scope, responseObserver) {
-        Log.i(TAG, "reset")
+  private suspend fun rebootBluetooth() {
+    Log.i(TAG, "rebootBluetooth")
 
-        bluetoothAdapter.clearBluetooth()
-
-        val stateFlow =
-          flow
-            .filter { it.getAction() == BluetoothAdapter.ACTION_STATE_CHANGED }
-            .map { it.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR) }
-
-        if (bluetoothAdapter.isEnabled) {
-          bluetoothAdapter.disable()
-          stateFlow.filter { it == BluetoothAdapter.STATE_OFF }.first()
-        }
-
-        // TODO: b/234892968
-        delay(2000L)
-
-        bluetoothAdapter.enable()
-        stateFlow.filter { it == BluetoothAdapter.STATE_ON }.first()
-
-        // The last expression is the return value.
-        Empty.getDefaultInstance()
+    val stateFlow =
+      flow.filter { it.getAction() == BluetoothAdapter.ACTION_STATE_CHANGED }.map {
+        it.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR)
       }
+
+    if (bluetoothAdapter.isEnabled) {
+      bluetoothAdapter.disable()
+      stateFlow.filter { it == BluetoothAdapter.STATE_OFF }.first()
+    }
+
+    // TODO: b/234892968
+    delay(2000L)
+
+    bluetoothAdapter.enable()
+    stateFlow.filter { it == BluetoothAdapter.STATE_ON }.first()
+  }
+
+  override fun hardReset(request: Empty, responseObserver: StreamObserver<Empty>) {
+    grpcUnary<Empty>(scope, responseObserver) {
+      Log.i(TAG, "hardReset")
+
+      bluetoothAdapter.clearBluetooth()
+
+      rebootBluetooth()
+
+      // The last expression is the return value.
+      Empty.getDefaultInstance()
+    }
       .invokeOnCompletion {
         Log.i(TAG, "Shutdown the gRPC Server")
         server.shutdownNow()
       }
+  }
+
+  override fun softReset(request: Empty, responseObserver: StreamObserver<Empty>) {
+    grpcUnary<Empty>(scope, responseObserver) {
+      Log.i(TAG, "softReset")
+
+      rebootBluetooth()
+
+      Empty.getDefaultInstance()
+    }
   }
 
   override fun readLocalAddress(
@@ -269,8 +285,8 @@ class Host(private val context: Context, private val server: Server) : HostImplB
   }
 
   override fun connectLE(
-      request: ConnectLERequest,
-      responseObserver: StreamObserver<ConnectLEResponse>
+    request: ConnectLERequest,
+    responseObserver: StreamObserver<ConnectLEResponse>
   ) {
     grpcUnary<ConnectLEResponse>(scope, responseObserver) {
       val ptsAddress = request.address.decodeToString()
@@ -279,9 +295,7 @@ class Host(private val context: Context, private val server: Server) : HostImplB
       GattInstance(device!!, TRANSPORT_LE, context).waitForState(BluetoothProfile.STATE_CONNECTED)
       ConnectLEResponse.newBuilder()
         .setConnection(
-          Connection.newBuilder()
-            .setCookie(ByteString.copyFromUtf8(device.address))
-            .build()
+          Connection.newBuilder().setCookie(ByteString.copyFromUtf8(device.address)).build()
         )
         .build()
     }
@@ -317,9 +331,9 @@ class Host(private val context: Context, private val server: Server) : HostImplB
               }
             }
           }
-          val bluetoothLeScanner = bluetoothAdapter.bluetoothLeScanner
-          bluetoothLeScanner?.startScan(leScanCallback) ?: run { trySendBlocking(null) }
-          awaitClose { bluetoothLeScanner?.stopScan(leScanCallback) }
+        val bluetoothLeScanner = bluetoothAdapter.bluetoothLeScanner
+        bluetoothLeScanner?.startScan(leScanCallback) ?: run { trySendBlocking(null) }
+        awaitClose { bluetoothLeScanner?.stopScan(leScanCallback) }
       }
       bluetoothDevice = flow.first()
     }

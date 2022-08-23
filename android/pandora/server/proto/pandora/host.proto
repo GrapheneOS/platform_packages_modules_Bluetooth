@@ -11,13 +11,16 @@ import "google/protobuf/empty.proto";
 // At startup, the Host must be in BR/EDR connectable mode
 // (see GAP connectability modes)
 service Host {
-  // Reset the host.
-  // **After** responding to this command, the GRPC server should loose
+  // Hard reset the host.
+  // **After** responding to this command, the gRPC server should loose
   // all its state.
   // This is comparable to a process restart or an hardware reset.
-  // The GRPC server might take some time to be available after
+  // The gRPC server might take some time to be available after
   // this command.
-  rpc Reset(google.protobuf.Empty) returns (google.protobuf.Empty);
+  rpc HardReset(google.protobuf.Empty) returns (google.protobuf.Empty);
+  // Soft reset the host by performing an HCI reset. Previous bonds must
+  // not be removed and the gRPC server must not be restarted.
+  rpc SoftReset(google.protobuf.Empty) returns (google.protobuf.Empty);
   // Read the local Bluetooth device address.
   // This should return the same value as a Read BD_ADDR HCI command.
   rpc ReadLocalAddress(google.protobuf.Empty) returns (ReadLocalAddressResponse);
@@ -56,7 +59,7 @@ message ReadLocalAddressResponse {
 // A Token representing an ACL connection.
 // It's acquired via a Connect on the Host service.
 message Connection {
-  // Opaque value filled by the GRPC server, must not
+  // Opaque value filled by the gRPC server, must not
   // be modified nor crafted.
   bytes cookie = 1;
 }
