@@ -128,14 +128,9 @@
     <string name="a2dp_sink_mbs_label" msgid="6035366346569127155">"බ්ලූටූත් ශ්‍රව්‍යය"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"4GBට වඩා විශාල ගොනු මාරු කළ නොහැකිය"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"බ්ලූටූත් වෙත සබඳින්න"</string>
-    <!-- no translation found for bluetooth_enabled_apm_title (1623939715492599179) -->
-    <skip />
-    <!-- no translation found for bluetooth_enabled_apm_message (4745310982235821141) -->
-    <skip />
-    <!-- no translation found for bluetooth_stays_on_title (39720820955212918) -->
-    <skip />
-    <!-- no translation found for bluetooth_and_wifi_stays_on_title (4886917707417592398) -->
-    <skip />
-    <!-- no translation found for bluetooth_and_wifi_stays_on_message (1790370141941913341) -->
-    <skip />
+    <string name="bluetooth_enabled_apm_title" msgid="1623939715492599179">"ඔබ බ්ලූටූත් ක්‍රියාත්මක කළා"</string>
+    <string name="bluetooth_enabled_apm_message" msgid="4745310982235821141">"ඔබ මෙම ප්‍රකාරයේ එය ක්‍රියාවිරහිත කරන්නේ නම් මිස, ඔබේ දුරකථනය ගුවන් යානා ප්‍රකාරයේ බ්ලූටූත් ක්‍රියාත්මකව තබනු ඇත"</string>
+    <string name="bluetooth_stays_on_title" msgid="39720820955212918">"බ්ලූටූත් ක්‍රියාත්මකව පවතී"</string>
+    <string name="bluetooth_and_wifi_stays_on_title" msgid="4886917707417592398">"බ්ලූටූත් සහ Wi-Fi ක්‍රියාත්මකව පවතී"</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="1790370141941913341">"ඔබ මෙම ප්‍රකාරයේ එය ක්‍රියාවිරහිත කරන්නේ නම් මිස, ඔබේ දුරකථනය ගුවන් යානා ප්‍රකාරයේ දෙකම ක්‍රියාත්මකව තබනු ඇත"</string>
 </resources>

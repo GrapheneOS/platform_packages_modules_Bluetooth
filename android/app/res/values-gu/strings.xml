@@ -128,14 +128,9 @@
     <string name="a2dp_sink_mbs_label" msgid="6035366346569127155">"બ્લૂટૂથ ઑડિઓ"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"4GB કરતા મોટી ફાઇલ ટ્રાન્સફર કરી શકાતી નથી"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"બ્લૂટૂથ સાથે કનેક્ટ કરો"</string>
-    <!-- no translation found for bluetooth_enabled_apm_title (1623939715492599179) -->
-    <skip />
-    <!-- no translation found for bluetooth_enabled_apm_message (4745310982235821141) -->
-    <skip />
-    <!-- no translation found for bluetooth_stays_on_title (39720820955212918) -->
-    <skip />
-    <!-- no translation found for bluetooth_and_wifi_stays_on_title (4886917707417592398) -->
-    <skip />
-    <!-- no translation found for bluetooth_and_wifi_stays_on_message (1790370141941913341) -->
-    <skip />
+    <string name="bluetooth_enabled_apm_title" msgid="1623939715492599179">"તમે બ્લૂટૂથ ચાલુ કર્યું"</string>
+    <string name="bluetooth_enabled_apm_message" msgid="4745310982235821141">"તમારો ફોન બ્લૂટૂથને એરપ્લેન મોડમાં ચાલુ રાખશે, સિવાય કે તમે આ મોડમાં હો ત્યારે તેને બંધ કરો"</string>
+    <string name="bluetooth_stays_on_title" msgid="39720820955212918">"બ્લૂટૂથ ચાલુ રહેશે"</string>
+    <string name="bluetooth_and_wifi_stays_on_title" msgid="4886917707417592398">"બ્લૂટૂથ અને વાઇ-ફાઇ ચાલુ રહેશે"</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="1790370141941913341">"તમારો ફોન એરપ્લેન મોડમાં બન્નેને ચાલુ રાખશે, સિવાય કે તમે આ મોડમાં હો ત્યારે તેને બંધ કરો"</string>
 </resources>

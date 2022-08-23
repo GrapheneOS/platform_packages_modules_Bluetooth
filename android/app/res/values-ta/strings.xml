@@ -128,14 +128,9 @@
     <string name="a2dp_sink_mbs_label" msgid="6035366346569127155">"புளூடூத் ஆடியோ"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"4ஜி.பை.க்கு மேலிருக்கும் ஃபைல்களை இடமாற்ற முடியாது"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"புளூடூத் உடன் இணை"</string>
-    <!-- no translation found for bluetooth_enabled_apm_title (1623939715492599179) -->
-    <skip />
-    <!-- no translation found for bluetooth_enabled_apm_message (4745310982235821141) -->
-    <skip />
-    <!-- no translation found for bluetooth_stays_on_title (39720820955212918) -->
-    <skip />
-    <!-- no translation found for bluetooth_and_wifi_stays_on_title (4886917707417592398) -->
-    <skip />
-    <!-- no translation found for bluetooth_and_wifi_stays_on_message (1790370141941913341) -->
-    <skip />
+    <string name="bluetooth_enabled_apm_title" msgid="1623939715492599179">"புளூடூத்தை இயக்கியுள்ளீர்கள்"</string>
+    <string name="bluetooth_enabled_apm_message" msgid="4745310982235821141">"உங்கள் மொபைல் விமானப் பயன்முறையில் இருக்கும்போது புளூடூத்தை நீங்கள் முடக்கவில்லை எனில் அது இயக்கத்திலேயே இருக்கும்"</string>
+    <string name="bluetooth_stays_on_title" msgid="39720820955212918">"புளூடூத் இயக்கத்திலேயே இருக்கும்"</string>
+    <string name="bluetooth_and_wifi_stays_on_title" msgid="4886917707417592398">"புளூடூத் மற்றும் வைஃபை இயக்கத்திலேயே இருக்கும்"</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="1790370141941913341">"உங்கள் மொபைல் விமானப் பயன்முறையில் இருக்கும்போது புளூடூத்தையும் வைஃபையையும் நீங்கள் முடக்கவில்லை எனில் அவை இரண்டும் இயக்கத்திலேயே இருக்கும்"</string>
 </resources>

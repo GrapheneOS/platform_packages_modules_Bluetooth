@@ -128,14 +128,9 @@
     <string name="a2dp_sink_mbs_label" msgid="6035366346569127155">"Bluetooth-lyd"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"File, der er større end 4 GB, kan ikke overføres"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Opret forbindelse til Bluetooth"</string>
-    <!-- no translation found for bluetooth_enabled_apm_title (1623939715492599179) -->
-    <skip />
-    <!-- no translation found for bluetooth_enabled_apm_message (4745310982235821141) -->
-    <skip />
-    <!-- no translation found for bluetooth_stays_on_title (39720820955212918) -->
-    <skip />
-    <!-- no translation found for bluetooth_and_wifi_stays_on_title (4886917707417592398) -->
-    <skip />
-    <!-- no translation found for bluetooth_and_wifi_stays_on_message (1790370141941913341) -->
-    <skip />
+    <string name="bluetooth_enabled_apm_title" msgid="1623939715492599179">"Du har aktiveret Bluetooth"</string>
+    <string name="bluetooth_enabled_apm_message" msgid="4745310982235821141">"Din telefon beholder Bluetooth aktiveret i flytilstand, medmindre du deaktiverer det, mens flytilstand er slået til"</string>
+    <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Bluetooth forbliver aktiveret"</string>
+    <string name="bluetooth_and_wifi_stays_on_title" msgid="4886917707417592398">"Bluetooth og Wi-Fi forbliver aktiveret"</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="1790370141941913341">"Din telefon beholder begge aktiveret i flytilstand, medmindre du deaktiverer dem, mens flytilstand er slået til"</string>
 </resources>
