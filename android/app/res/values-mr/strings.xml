@@ -90,7 +90,7 @@
     <string name="status_pending" msgid="4781040740237733479">"फाइल स्थानांतरणाचा अद्याप सुरू झाला नाही."</string>
     <string name="status_running" msgid="7419075903776657351">"फाइल स्थानांतर सुरू आहे."</string>
     <string name="status_success" msgid="7963589000098719541">"फाइल स्थानांतरण यशस्वीरित्या पूर्ण झाले."</string>
-    <string name="status_not_accept" msgid="1165798802740579658">"आशय समर्थित नाही."</string>
+    <string name="status_not_accept" msgid="1165798802740579658">"आशयाला सपोर्ट नाही."</string>
     <string name="status_forbidden" msgid="4017060451358837245">"लक्ष्‍य डिव्‍हाइसद्वारे स्‍थानांतरण निषिद्ध केले."</string>
     <string name="status_canceled" msgid="8441679418717978515">"वापरकर्त्याने स्‍थानांतरण रद्द केले."</string>
     <string name="status_file_error" msgid="5379018888714679311">"संचयन समस्‍या."</string>
