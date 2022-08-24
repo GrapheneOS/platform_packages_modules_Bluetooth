@@ -780,6 +780,18 @@ impl BtifBluetoothCallbacks for Bluetooth {
     ) {
         let address = addr.to_string();
 
+        // Get the device type before the device is potentially deleted.
+        let device_type = match self.get_remote_device_if_found(&address) {
+            Some(d) => match d.properties.get(&BtPropertyType::TypeOfDevice) {
+                Some(prop) => match prop {
+                    BluetoothProperty::TypeOfDevice(type_of_device) => type_of_device.clone(),
+                    _ => BtDeviceType::Unknown,
+                },
+                _ => BtDeviceType::Unknown,
+            },
+            _ => BtDeviceType::Unknown,
+        };
+
         // Easy case of not bonded -- we remove the device from the bonded list and change the bond
         // state in the found list (in case it was previously bonding).
         if &bond_state == &BtBondState::NotBonded {
@@ -823,17 +835,6 @@ impl BtifBluetoothCallbacks for Bluetooth {
                 bond_state.to_u32().unwrap(),
             );
         });
-
-        let device_type = match self.get_remote_device_if_found(&address) {
-            Some(d) => match d.properties.get(&BtPropertyType::TypeOfDevice) {
-                Some(prop) => match prop {
-                    BluetoothProperty::TypeOfDevice(type_of_device) => type_of_device.clone(),
-                    _ => BtDeviceType::Unknown,
-                },
-                _ => BtDeviceType::Unknown,
-            },
-            _ => BtDeviceType::Unknown,
-        };
 
         metrics::bond_state_changed(addr, device_type, status, bond_state, fail_reason);
     }
