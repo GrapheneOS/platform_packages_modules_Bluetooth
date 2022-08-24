@@ -1269,7 +1269,7 @@ public final class BluetoothAdapter {
         IpcDataCache.invalidateCache(IpcDataCache.MODULE_BLUETOOTH, api);
     }
 
-    private final IpcDataCache.QueryHandler<IBluetooth, Integer> mBluetoothGetStateQuery =
+    private static final IpcDataCache.QueryHandler<IBluetooth, Integer> sBluetoothGetStateQuery =
             new IpcDataCache.QueryHandler<>() {
             @RequiresLegacyBluetoothPermission
             @RequiresNoPermission
@@ -1288,13 +1288,13 @@ public final class BluetoothAdapter {
 
     private static final String GET_STATE_API = "BluetoothAdapter_getState";
 
-    private final IpcDataCache<IBluetooth, Integer> mBluetoothGetStateCache =
-            new BluetoothCache<>(GET_STATE_API, mBluetoothGetStateQuery);
+    private static final IpcDataCache<IBluetooth, Integer> sBluetoothGetStateCache =
+            new BluetoothCache<>(GET_STATE_API, sBluetoothGetStateQuery);
 
     /** @hide */
     @RequiresNoPermission
     public void disableBluetoothGetStateCache() {
-        mBluetoothGetStateCache.disableForCurrentProcess();
+        sBluetoothGetStateCache.disableForCurrentProcess();
     }
 
     /** @hide */
@@ -1310,7 +1310,7 @@ public final class BluetoothAdapter {
         mServiceLock.readLock().lock();
         try {
             if (mService != null) {
-                return mBluetoothGetStateCache.query(mService);
+                return sBluetoothGetStateCache.query(mService);
             }
         } catch (RuntimeException e) {
             if (!(e.getCause() instanceof TimeoutException)
@@ -2422,7 +2422,7 @@ public final class BluetoothAdapter {
         }
     }
 
-    private final IpcDataCache.QueryHandler<IBluetooth, Boolean> mBluetoothFilteringQuery =
+    private static final IpcDataCache.QueryHandler<IBluetooth, Boolean> sBluetoothFilteringQuery =
             new IpcDataCache.QueryHandler<>() {
         @RequiresLegacyBluetoothPermission
         @RequiresNoPermission
@@ -2439,13 +2439,13 @@ public final class BluetoothAdapter {
 
     private static final String FILTERING_API = "BluetoothAdapter_isOffloadedFilteringSupported";
 
-    private final IpcDataCache<IBluetooth, Boolean> mBluetoothFilteringCache =
-            new BluetoothCache<>(FILTERING_API, mBluetoothFilteringQuery);
+    private static final IpcDataCache<IBluetooth, Boolean> sBluetoothFilteringCache =
+            new BluetoothCache<>(FILTERING_API, sBluetoothFilteringQuery);
 
     /** @hide */
     @RequiresNoPermission
     public void disableIsOffloadedFilteringSupportedCache() {
-        mBluetoothFilteringCache.disableForCurrentProcess();
+        sBluetoothFilteringCache.disableForCurrentProcess();
     }
 
     /** @hide */
@@ -2466,7 +2466,7 @@ public final class BluetoothAdapter {
         }
         mServiceLock.readLock().lock();
         try {
-            if (mService != null) return mBluetoothFilteringCache.query(mService);
+            if (mService != null) return sBluetoothFilteringCache.query(mService);
         } catch (RuntimeException e) {
             if (!(e.getCause() instanceof TimeoutException)
                     && !(e.getCause() instanceof RemoteException)) {
@@ -2982,8 +2982,8 @@ public final class BluetoothAdapter {
         return supportedProfiles;
     }
 
-    private final IpcDataCache.QueryHandler<IBluetooth, Integer>
-            mBluetoothGetAdapterConnectionStateQuery = new IpcDataCache.QueryHandler<>() {
+    private static final IpcDataCache.QueryHandler<IBluetooth, Integer>
+            sBluetoothGetAdapterConnectionStateQuery = new IpcDataCache.QueryHandler<>() {
                 @RequiresLegacyBluetoothPermission
                 @RequiresNoPermission
                 @Override
@@ -3002,13 +3002,14 @@ public final class BluetoothAdapter {
 
     private static final String GET_CONNECTION_API = "BluetoothAdapter_getConnectionState";
 
-    private final IpcDataCache<IBluetooth, Integer> mBluetoothGetAdapterConnectionStateCache =
-            new BluetoothCache<>(GET_CONNECTION_API, mBluetoothGetAdapterConnectionStateQuery);
+    private static final IpcDataCache<IBluetooth, Integer>
+            sBluetoothGetAdapterConnectionStateCache = new BluetoothCache<>(GET_CONNECTION_API,
+                    sBluetoothGetAdapterConnectionStateQuery);
 
     /** @hide */
     @RequiresNoPermission
     public void disableGetAdapterConnectionStateCache() {
-        mBluetoothGetAdapterConnectionStateCache.disableForCurrentProcess();
+        sBluetoothGetAdapterConnectionStateCache.disableForCurrentProcess();
     }
 
     /** @hide */
@@ -3035,7 +3036,7 @@ public final class BluetoothAdapter {
         }
         mServiceLock.readLock().lock();
         try {
-            if (mService != null) return mBluetoothGetAdapterConnectionStateCache.query(mService);
+            if (mService != null) return sBluetoothGetAdapterConnectionStateCache.query(mService);
         } catch (RuntimeException e) {
             if (!(e.getCause() instanceof TimeoutException)
                     && !(e.getCause() instanceof RemoteException)) {
@@ -3048,8 +3049,8 @@ public final class BluetoothAdapter {
         return STATE_DISCONNECTED;
     }
 
-    private final IpcDataCache.QueryHandler<Pair<IBluetooth, Integer>, Integer>
-            mBluetoothProfileQuery = new IpcDataCache.QueryHandler<>() {
+    private static final IpcDataCache.QueryHandler<Pair<IBluetooth, Integer>, Integer>
+            sBluetoothProfileQuery = new IpcDataCache.QueryHandler<>() {
                 @RequiresNoPermission
                 @Override
                 public Integer apply(Pair<IBluetooth, Integer> pairQuery) {
@@ -3067,15 +3068,16 @@ public final class BluetoothAdapter {
 
     private static final String PROFILE_API = "BluetoothAdapter_getProfileConnectionState";
 
-    private final IpcDataCache<Pair<IBluetooth, Integer>, Integer> mGetProfileConnectionStateCache =
-            new BluetoothCache<>(PROFILE_API, mBluetoothProfileQuery);
+    private static final IpcDataCache<Pair<IBluetooth, Integer>, Integer>
+            sGetProfileConnectionStateCache = new BluetoothCache<>(PROFILE_API,
+                    sBluetoothProfileQuery);
 
     /**
      * @hide
      */
     @RequiresNoPermission
     public void disableGetProfileConnectionStateCache() {
-        mGetProfileConnectionStateCache.disableForCurrentProcess();
+        sGetProfileConnectionStateCache.disableForCurrentProcess();
     }
 
     /**
@@ -3104,7 +3106,7 @@ public final class BluetoothAdapter {
         mServiceLock.readLock().lock();
         try {
             if (mService != null) {
-                return mGetProfileConnectionStateCache.query(new Pair<>(mService, profile));
+                return sGetProfileConnectionStateCache.query(new Pair<>(mService, profile));
             }
         } catch (RuntimeException e) {
             if (!(e.getCause() instanceof TimeoutException)
