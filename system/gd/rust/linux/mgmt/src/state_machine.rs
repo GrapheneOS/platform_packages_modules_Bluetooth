@@ -1,7 +1,9 @@
 use crate::bluetooth_manager::BluetoothManager;
 use crate::config_util;
 use bt_common::time::Alarm;
-use bt_socket::{BtSocket, HciChannels, MgmtCommand, MgmtCommandResponse, MgmtEvent, HCI_DEV_NONE};
+use bt_utils::socket::{
+    BtSocket, HciChannels, MgmtCommand, MgmtCommandResponse, MgmtEvent, HCI_DEV_NONE,
+};
 
 use log::{debug, error, info, warn};
 use nix::sys::signal::{self, Signal};

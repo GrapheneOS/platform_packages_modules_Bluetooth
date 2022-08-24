@@ -4,9 +4,6 @@
 use std::mem;
 use std::os::unix::io::{AsRawFd, RawFd};
 
-#[macro_use]
-extern crate num_derive;
-
 use libc;
 use log::debug;
 use num_traits::cast::{FromPrimitive, ToPrimitive};
