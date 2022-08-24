@@ -19,7 +19,7 @@ cc_library_static {
         "packet_builder.cc",
     ],
     apex_available: [
-        "com.android.bluetooth",
+        "com.android.btservices",
     ],
     min_sdk_version: "30",
 }

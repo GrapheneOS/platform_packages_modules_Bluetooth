@@ -26,7 +26,7 @@ cc_defaults {
     header_libs: ["libbluetooth_headers"],
     host_supported: true,
     apex_available: [
-        "com.android.bluetooth",
+        "com.android.btservices",
     ],
     target: {
         host_linux: {
@@ -53,7 +53,7 @@ cc_library_headers {
     host_supported: true,
     apex_available: [
         "//apex_available:platform",
-        "com.android.bluetooth",
+        "com.android.btservices",
     ],
     min_sdk_version: "30",
 }
