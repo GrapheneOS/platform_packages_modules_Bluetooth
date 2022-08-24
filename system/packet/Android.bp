@@ -20,7 +20,7 @@ cc_library_static {
         "lib-bt-packets-avrcp",
     ],
     apex_available: [
-        "com.android.bluetooth",
+        "com.android.btservices",
     ],
     min_sdk_version: "30",
 }
