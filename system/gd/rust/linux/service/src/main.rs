@@ -35,6 +35,7 @@ mod dbus_arg;
 mod iface_battery_manager;
 mod iface_battery_provider_manager;
 mod iface_bluetooth;
+mod iface_bluetooth_admin;
 mod iface_bluetooth_gatt;
 mod iface_bluetooth_media;
 
@@ -248,6 +249,12 @@ fn main() -> Result<(), Box<dyn Error>> {
             disconnect_watcher.clone(),
         );
 
+        let admin_iface = iface_bluetooth_admin::export_bluetooth_admin_dbus_intf(
+            conn.clone(),
+            &mut cr.lock().unwrap(),
+            disconnect_watcher.clone(),
+        );
+
         // Create mixin object for Bluetooth + Suspend interfaces.
         let mixin = Box::new(iface_bluetooth::BluetoothMixin {
             adapter: bluetooth.clone(),
@@ -267,6 +274,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             &[gatt_iface],
             bluetooth_gatt.clone(),
         );
+
         cr.lock().unwrap().insert(
             make_object_name(adapter_index, "media"),
             &[media_iface],
@@ -281,6 +289,12 @@ fn main() -> Result<(), Box<dyn Error>> {
             make_object_name(adapter_index, "battery_manager"),
             &[battery_manager_iface],
             battery_manager.clone(),
+        );
+
+        cr.lock().unwrap().insert(
+            make_object_name(adapter_index, "admin"),
+            &[admin_iface],
+            bluetooth_admin.clone(),
         );
 
         // Hold locks and initialize all interfaces. This must be done AFTER DBus is
