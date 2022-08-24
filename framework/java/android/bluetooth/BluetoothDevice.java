@@ -1903,21 +1903,25 @@ public final class BluetoothDevice implements Parcelable, Attributable {
         IpcDataCache.invalidateCache(IpcDataCache.MODULE_BLUETOOTH, api);
     }
 
-    private final IpcDataCache.QueryHandler<Pair<IBluetooth, BluetoothDevice>, Integer>
-            mBluetoothBondQuery = new IpcDataCache.QueryHandler<>() {
+    private static final IpcDataCache
+            .QueryHandler<Pair<IBluetooth, Pair<AttributionSource, BluetoothDevice>>, Integer>
+            sBluetoothBondQuery = new IpcDataCache.QueryHandler<>() {
                 @RequiresLegacyBluetoothPermission
                 @RequiresBluetoothConnectPermission
                 @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
                 @Override
-                public Integer apply(Pair<IBluetooth, BluetoothDevice> pairQuery) {
+                public Integer apply(Pair<IBluetooth,
+                        Pair<AttributionSource, BluetoothDevice>> pairQuery) {
+                    IBluetooth service = pairQuery.first;
+                    AttributionSource source = pairQuery.second.first;
+                    BluetoothDevice device = pairQuery.second.second;
                     if (DBG) {
-                        log("getConnectionState(" + pairQuery.second.getAnonymizedAddress()
-                                + ") uncached");
+                        log("getBondState(" + device.getAnonymizedAddress() + ") uncached");
                     }
                     try {
                         final SynchronousResultReceiver<Integer> recv =
                                 SynchronousResultReceiver.get();
-                        pairQuery.first.getBondState(pairQuery.second, mAttributionSource, recv);
+                        service.getBondState(device, source, recv);
                         return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(BOND_NONE);
                     } catch (RemoteException | TimeoutException e) {
                         throw new RuntimeException(e);
@@ -1927,12 +1931,13 @@ public final class BluetoothDevice implements Parcelable, Attributable {
 
     private static final String GET_BOND_STATE_API = "BluetoothDevice_getBondState";
 
-    private final BluetoothCache<Pair<IBluetooth, BluetoothDevice>, Integer> mBluetoothBondCache =
-            new BluetoothCache<>(GET_BOND_STATE_API, mBluetoothBondQuery);
+    private static final
+            BluetoothCache<Pair<IBluetooth, Pair<AttributionSource, BluetoothDevice>>, Integer>
+            sBluetoothBondCache = new BluetoothCache<>(GET_BOND_STATE_API, sBluetoothBondQuery);
 
     /** @hide */
     public void disableBluetoothGetBondStateCache() {
-        mBluetoothBondCache.disableForCurrentProcess();
+        sBluetoothBondCache.disableForCurrentProcess();
     }
 
     /** @hide */
@@ -1961,7 +1966,8 @@ public final class BluetoothDevice implements Parcelable, Attributable {
             if (DBG) log(Log.getStackTraceString(new Throwable()));
         } else {
             try {
-                return mBluetoothBondCache.query(new Pair<>(service, BluetoothDevice.this));
+                return sBluetoothBondCache.query(
+                        new Pair<>(service, new Pair<>(mAttributionSource, BluetoothDevice.this)));
             } catch (RuntimeException e) {
                 if (!(e.getCause() instanceof TimeoutException)
                         && !(e.getCause() instanceof RemoteException)) {
