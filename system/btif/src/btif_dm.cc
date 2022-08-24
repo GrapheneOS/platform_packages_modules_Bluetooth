@@ -1314,6 +1314,13 @@ static void btif_dm_search_devices_evt(tBTA_DM_SEARCH_EVT event,
           }
 
 #if TARGET_FLOSS
+          std::vector<uint8_t> property_value;
+          for (auto uuid : uuid_iter->second) {
+            auto uuid_128bit = uuid.To128BitBE();
+            property_value.insert(property_value.end(), uuid_128bit.begin(),
+                                  uuid_128bit.end());
+          }
+
           // Floss expects that EIR uuids are immediately reported when the
           // device is found and doesn't wait for the pairing intent.
           //
@@ -1321,8 +1328,8 @@ static void btif_dm_search_devices_evt(tBTA_DM_SEARCH_EVT event,
           // existing UUIDs.
           BTIF_STORAGE_FILL_PROPERTY(
               &properties[num_properties], BT_PROPERTY_UUIDS,
-              pairing_cb.num_eir_uuids * Uuid::kNumBytes128,
-              pairing_cb.eir_uuids);
+              uuid_iter->second.size() * Uuid::kNumBytes128,
+              (void*)property_value.data());
           num_properties++;
 #endif
         }
