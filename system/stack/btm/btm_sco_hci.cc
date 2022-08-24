@@ -134,7 +134,7 @@ static const uint8_t btm_msbc_zero_packet[] = {
 static const uint8_t btm_msbc_zero_frames[BTM_MSBC_CODE_SIZE] = {0};
 
 /* Define the structure that contains mSBC data */
-typedef struct {
+struct tBTM_MSBC_INFO {
   size_t packet_size;   /* SCO mSBC packet size supported by lower layer */
   bool check_alignment; /* True to wait for mSBC packet to align */
   size_t buf_size; /* The size of the buffer, determined by the packet_size. */
@@ -286,8 +286,7 @@ typedef struct {
 
     return &msbc_encode_buf[encode_buf_ro];
   }
-
-} tBTM_MSBC_INFO;
+};
 
 static tBTM_MSBC_INFO* msbc_info = nullptr;
 
