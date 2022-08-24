@@ -726,10 +726,10 @@ class LeAudioAseConfigurationTest : public Test {
 };
 
 TEST_F(LeAudioAseConfigurationTest, test_mono_speaker_ringtone) {
-  LeAudioDevice* mono_speaker = AddTestDevice(1, 1);
+  LeAudioDevice* mono_speaker = AddTestDevice(1, 0);
   TestGroupAseConfigurationData data(
       {mono_speaker, kLeAudioCodecLC3ChannelCountSingleChannel,
-       kLeAudioCodecLC3ChannelCountSingleChannel, 1, 1});
+       kLeAudioCodecLC3ChannelCountSingleChannel, 1, 0});
 
   TestGroupAseConfiguration(LeAudioContextType::RINGTONE, &data, 1);
 }
@@ -753,10 +753,10 @@ TEST_F(LeAudioAseConfigurationTest, test_mono_speaker_media) {
 }
 
 TEST_F(LeAudioAseConfigurationTest, test_bounded_headphones_ringtone) {
-  LeAudioDevice* bounded_headphones = AddTestDevice(2, 1);
+  LeAudioDevice* bounded_headphones = AddTestDevice(2, 0);
   TestGroupAseConfigurationData data(
       {bounded_headphones, kLeAudioCodecLC3ChannelCountTwoChannel,
-       kLeAudioCodecLC3ChannelCountSingleChannel, 2, 1});
+       kLeAudioCodecLC3ChannelCountSingleChannel, 2, 0});
 
   TestGroupAseConfiguration(LeAudioContextType::RINGTONE, &data, 1);
 }
