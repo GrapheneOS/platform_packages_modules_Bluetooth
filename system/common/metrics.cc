@@ -962,6 +962,13 @@ void LogLeAudioConnectionSessionReported(
   }
 }
 
+void LogLeAudioBroadcastSessionReported(int64_t duration_nanos) {
+  int ret = stats_write(LE_AUDIO_BROADCAST_SESSION_REPORTED, duration_nanos);
+  if (ret < 0) {
+    LOG(WARNING) << __func__ << ": failed for duration=" << duration_nanos;
+  }
+}
+
 }  // namespace common
 
 }  // namespace bluetooth
