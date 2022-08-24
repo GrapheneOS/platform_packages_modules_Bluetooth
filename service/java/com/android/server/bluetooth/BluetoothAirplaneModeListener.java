@@ -161,7 +161,7 @@ public class BluetoothAirplaneModeListener {
                 } else if (!isWifiEnabledOnApm() && isFirstTimeNotification(APM_BT_NOTIFICATION)) {
                     try {
                         sendApmNotification("bluetooth_stays_on_title",
-                                "bluetooth_enabled_apm_message",
+                                "bluetooth_stays_on_message",
                                 APM_BT_NOTIFICATION);
                     } catch (Exception e) {
                         Log.e(TAG, "APM enhancement BT stays on notification not shown");
