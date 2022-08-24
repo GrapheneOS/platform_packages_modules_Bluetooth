@@ -34,7 +34,7 @@ __BEGIN_DECLS
 /** GATT ID adding instance id tracking to the UUID */
 typedef struct {
   bluetooth::Uuid uuid;
-  uint8_t inst_id;
+  uint16_t inst_id;
 } btgatt_gatt_id_t;
 
 /** GATT Service ID also identifies the service type (primary/secondary) */
