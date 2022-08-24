@@ -68,6 +68,7 @@ java_library {
         "modules-utils-shell-command-handler",
         "bluetooth-manager-service-proto-java-gen",
         "bluetooth-proto-enums-java-gen",
+        "bluetooth-nano-protos",
     ],
 
     apex_available: [
@@ -126,6 +127,23 @@ java_library {
         "com.android.btservices",
     ],
     min_sdk_version: "Tiramisu"
+}
+
+java_library {
+    name: "bluetooth-nano-protos",
+    sdk_version: "system_current",
+    min_sdk_version: "Tiramisu",
+    proto: {
+        type: "nano",
+    },
+    srcs: [
+        ":system-messages-proto-src",
+    ],
+    libs: ["libprotobuf-java-nano"],
+    apex_available: [
+        "com.android.bluetooth",
+    ],
+    lint: { strict_updatability_linting: true },
 }
 
 platform_compat_config
