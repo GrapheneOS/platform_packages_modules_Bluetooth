@@ -1224,7 +1224,7 @@ class CsisClientImpl : public CsisClient {
 
     auto csis_device = FindDeviceByAddress(result->bd_addr);
     if (csis_device) {
-      DLOG(INFO) << __func__ << " Drop same device .." << result->bd_addr;
+      LOG_DEBUG("Drop known device %s", result->bd_addr.ToString().c_str());
       return;
     }
 
@@ -1235,8 +1235,15 @@ class CsisClientImpl : public CsisClient {
     for (auto& group : csis_groups_) {
       for (auto& rsi : all_rsi) {
         if (group->IsRsiMatching(rsi)) {
-          DLOG(INFO) << " Found set member in background scan "
-                     << result->bd_addr;
+          LOG_INFO("Device %s match to group id %d",
+                   result->bd_addr.ToString().c_str(), group->GetGroupId());
+          if (group->GetDesiredSize() > 0 &&
+              (group->GetCurrentSize() == group->GetDesiredSize())) {
+            LOG_WARN(
+                "Group is already completed. Some other device use same SIRK");
+            break;
+          }
+
           callbacks_->OnSetMemberAvailable(result->bd_addr,
                                            group->GetGroupId());
           break;
