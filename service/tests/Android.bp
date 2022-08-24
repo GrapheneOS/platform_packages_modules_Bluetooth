@@ -32,6 +32,8 @@ android_test {
         "androidx.test.rules",
         "mockito-target-extended-minus-junit4",
         "platform-test-annotations",
+        "frameworks-base-testutils",
+        "truth-prebuilt",
 
         // Statically link service-bluetooth-pre-jarjar since we want to test the working copy of
         // service-uwb, not the on-device copy.
