@@ -8,7 +8,7 @@ edition = "2018"
 [dependencies]
 bt_common = { path = "../../common" }
 bt_topshim = { path = "../../topshim" }
-bt_socket = { path = "../socket" }
+bt_utils = { path = "../utils" }
 btstack = { path = "../stack" }
 
 # external deps
