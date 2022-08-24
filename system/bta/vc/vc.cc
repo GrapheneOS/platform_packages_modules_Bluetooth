@@ -1051,7 +1051,7 @@ class VolumeControlImpl : public VolumeControl {
 
       case BTA_GATTC_ENC_CMPL_CB_EVT: {
         uint8_t encryption_status;
-        if (!BTM_IsEncrypted(p_data->enc_cmpl.remote_bda, BT_TRANSPORT_LE)) {
+        if (BTM_IsEncrypted(p_data->enc_cmpl.remote_bda, BT_TRANSPORT_LE)) {
           encryption_status = BTM_SUCCESS;
         } else {
           encryption_status = BTM_FAILED_ON_SECURITY;
