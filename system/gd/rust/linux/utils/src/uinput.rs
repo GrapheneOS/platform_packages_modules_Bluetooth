@@ -35,6 +35,8 @@ const EV_KEY: libc::c_int = 0x01;
 const EV_REL: libc::c_int = 0x02;
 const EV_REP: libc::c_int = 0x14;
 
+const SYN_REPORT: libc::c_int = 0;
+
 const UI_DEV_CREATE: u64 = nix::request_code_none!(UINPUT_IOCTL_BASE, 1);
 const UI_DEV_DESTROY: u64 = nix::request_code_none!(UINPUT_IOCTL_BASE, 2);
 const UI_SET_EVBIT: u64 =
@@ -69,6 +71,12 @@ struct UInputId {
     version: libc::c_ushort,
 }
 
+impl Default for UInputId {
+    fn default() -> Self {
+        UInputId { bustype: BUS_BLUETOOTH, vendor: 0, product: 0, version: 0 }
+    }
+}
+
 #[repr(C, packed)]
 struct UInputDev {
     name: [libc::c_char; UINPUT_MAX_NAME_SIZE],
@@ -80,13 +88,45 @@ struct UInputDev {
     absflat: [libc::c_int; ABS_MAX + 1],
 }
 
-#[allow(dead_code)]
+impl Default for UInputDev {
+    fn default() -> Self {
+        UInputDev {
+            name: [0; UINPUT_MAX_NAME_SIZE],
+            id: UInputId::default(),
+            ff_effects_max: 0,
+            absmax: [0; ABS_MAX + 1],
+            absmin: [0; ABS_MAX + 1],
+            absfuzz: [0; ABS_MAX + 1],
+            absflat: [0; ABS_MAX + 1],
+        }
+    }
+}
+
 impl UInputDev {
     pub fn serialize(&mut self) -> &[u8] {
         unsafe {
             slice::from_raw_parts(
                 (self as *const UInputDev) as *const u8,
                 mem::size_of::<UInputDev>(),
+            )
+        }
+    }
+}
+
+#[repr(C, packed)]
+struct UInputEvent {
+    time: libc::timeval,
+    event_type: libc::c_ushort,
+    code: libc::c_ushort,
+    value: libc::c_int,
+}
+
+impl UInputEvent {
+    pub fn serialize(&mut self) -> &[u8] {
+        unsafe {
+            slice::from_raw_parts(
+                (self as *const UInputEvent) as *const u8,
+                mem::size_of::<UInputEvent>(),
             )
         }
     }
@@ -108,18 +148,7 @@ impl Drop for UInput {
 impl UInput {
     /// Create a new UInput object.
     pub fn new() -> Self {
-        UInput {
-            fd: -1,
-            device: UInputDev {
-                name: [0; UINPUT_MAX_NAME_SIZE],
-                id: UInputId { bustype: BUS_BLUETOOTH, vendor: 0, product: 0, version: 0 },
-                ff_effects_max: 0,
-                absmax: [0; ABS_MAX + 1],
-                absmin: [0; ABS_MAX + 1],
-                absfuzz: [0; ABS_MAX + 1],
-                absflat: [0; ABS_MAX + 1],
-            },
-        }
+        UInput { fd: -1, device: UInputDev::default() }
     }
 
     /// Return true if uinput is open and a valid fd is retrieved.
@@ -194,6 +223,61 @@ impl UInput {
                 libc::close(self.fd);
             }
             self.fd = -1;
+            self.device = UInputDev::default();
         }
+    }
+
+    fn send_event(
+        &mut self,
+        event_type: libc::c_ushort,
+        code: libc::c_ushort,
+        value: libc::c_int,
+    ) -> i32 {
+        let mut event = UInputEvent {
+            time: libc::timeval { tv_sec: 0, tv_usec: 0 },
+            event_type: event_type,
+            code: code,
+            value: value,
+        };
+
+        unsafe {
+            libc::write(
+                self.fd,
+                event.serialize().as_ptr() as *const libc::c_void,
+                mem::size_of::<UInputDev>(),
+            )
+            .try_into()
+            .unwrap()
+        }
+    }
+
+    /// Send key event to the uinput if the device is initialized.
+    pub fn send_key(&mut self, key: u8, value: u8) -> Result<(), String> {
+        let mut uinput_key: libc::c_ushort = 0;
+
+        for key_map in KEY_MAP {
+            if key_map.avc == key {
+                uinput_key = key_map.uinput.try_into().unwrap();
+            }
+        }
+
+        if uinput_key == 0 {
+            return Err(format!("AVRCP key: {} is not supported", key));
+        }
+
+        if self.is_initialized() {
+            if self.send_event(EV_KEY.try_into().unwrap(), uinput_key, value.into()) < 0
+                || self.send_event(EV_SYN.try_into().unwrap(), SYN_REPORT.try_into().unwrap(), 0)
+                    < 0
+            {
+                return Err(format!(
+                    "Failed to send uinput event: {}",
+                    std::io::Error::last_os_error()
+                ));
+            }
+            return Ok(());
+        }
+
+        Err(format!("uinput is not initialized"))
     }
 }
