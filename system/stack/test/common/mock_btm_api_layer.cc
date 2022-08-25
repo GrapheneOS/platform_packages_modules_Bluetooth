@@ -41,3 +41,7 @@ bool BTM_IsLinkKeyKnown(const RawAddress& remote_bd_addr,
                         tBT_TRANSPORT transport) {
   return btm_api_interface->IsLinkKeyKnown(remote_bd_addr, transport);
 }
+
+uint8_t btm_ble_read_sec_key_size(const RawAddress& bd_addr) {
+  return btm_api_interface->ReadSecKeySize(bd_addr);
+}
