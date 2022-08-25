@@ -102,6 +102,11 @@ using bluetooth::groups::DeviceGroups;
 #define BTIF_STORAGE_CSIS_SET_INFO_BIN "CsisSetInfoBin"
 #define BTIF_STORAGE_LEAUDIO_AUTOCONNECT "LeAudioAutoconnect"
 
+#define BTIF_STORAGE_PATH_VENDOR_ID_SOURCE "VendorIdSource"
+#define BTIF_STORAGE_PATH_VENDOR_ID "VendorId"
+#define BTIF_STORAGE_PATH_PRODUCT_ID "ProductId"
+#define BTIF_STORAGE_PATH_VERSION "ProductVersion"
+
 /* This is a local property to add a device found */
 #define BT_PROPERTY_REMOTE_DEVICE_TIMESTAMP 0xFF
 
@@ -286,6 +291,17 @@ static int prop2cfg(const RawAddress* remote_bd_addr, bt_property_t* prop) {
       int val = *(uint16_t*)prop->val;
       btif_config_set_int(bdstr, BTIF_STORAGE_PATH_REMOTE_APPEARANCE, val);
     } break;
+    case BT_PROPERTY_VENDOR_PRODUCT_INFO: {
+      bt_vendor_product_info_t* info = (bt_vendor_product_info_t*)prop->val;
+      if (!info) return false;
+
+      btif_config_set_int(bdstr, BTIF_STORAGE_PATH_VENDOR_ID_SOURCE,
+                          info->vendor_id_src);
+      btif_config_set_int(bdstr, BTIF_STORAGE_PATH_VENDOR_ID, info->vendor_id);
+      btif_config_set_int(bdstr, BTIF_STORAGE_PATH_PRODUCT_ID,
+                          info->product_id);
+      btif_config_set_int(bdstr, BTIF_STORAGE_PATH_VERSION, info->version);
+    } break;
 
     default:
       BTIF_TRACE_ERROR("Unknown prop type:%d", prop->type);
@@ -419,6 +435,30 @@ static int cfg2prop(const RawAddress* remote_bd_addr, bt_property_t* prop) {
         ret = btif_config_get_int(bdstr, BTIF_STORAGE_PATH_REMOTE_APPEARANCE,
                                   &val);
         *(uint16_t*)prop->val = (uint16_t)val;
+      }
+    } break;
+
+    case BT_PROPERTY_VENDOR_PRODUCT_INFO: {
+      bt_vendor_product_info_t* info = (bt_vendor_product_info_t*)prop->val;
+      int val;
+
+      if (prop->len >= (int)sizeof(bt_vendor_product_info_t)) {
+        ret = btif_config_get_int(bdstr, BTIF_STORAGE_PATH_VENDOR_ID_SOURCE,
+                                  &val);
+        info->vendor_id_src = (uint8_t)val;
+
+        if (ret) {
+          ret = btif_config_get_int(bdstr, BTIF_STORAGE_PATH_VENDOR_ID, &val);
+          info->vendor_id = (uint16_t)val;
+        }
+        if (ret) {
+          ret = btif_config_get_int(bdstr, BTIF_STORAGE_PATH_PRODUCT_ID, &val);
+          info->product_id = (uint16_t)val;
+        }
+        if (ret) {
+          ret = btif_config_get_int(bdstr, BTIF_STORAGE_PATH_VERSION, &val);
+          info->version = (uint16_t)val;
+        }
       }
     } break;
 
@@ -1036,7 +1076,7 @@ bt_status_t btif_storage_load_bonded_devices(void) {
   uint32_t i = 0;
   bt_property_t adapter_props[6];
   uint32_t num_props = 0;
-  bt_property_t remote_properties[8];
+  bt_property_t remote_properties[9];
   RawAddress addr;
   bt_bdname_t name, alias;
   bt_scan_mode_t mode;
@@ -1153,6 +1193,15 @@ bt_status_t btif_storage_load_bonded_devices(void) {
                                    &appearance, sizeof(appearance),
                                    remote_properties[num_props]);
       num_props++;
+
+#if TARGET_FLOSS
+      // Floss needs VID:PID for metrics purposes
+      bt_vendor_product_info_t vp_info;
+      BTIF_STORAGE_GET_REMOTE_PROP(
+          p_remote_addr, BT_PROPERTY_VENDOR_PRODUCT_INFO, &vp_info,
+          sizeof(vp_info), remote_properties[num_props]);
+      num_props++;
+#endif
 
       btif_remote_properties_evt(BT_STATUS_SUCCESS, p_remote_addr, num_props,
                                  remote_properties);
