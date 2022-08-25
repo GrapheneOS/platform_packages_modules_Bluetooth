@@ -25,7 +25,9 @@ class MockLeAudioGroupStateMachine : public le_audio::LeAudioGroupStateMachine {
  public:
   MOCK_METHOD((bool), StartStream,
               (le_audio::LeAudioDeviceGroup * group,
-               le_audio::types::LeAudioContextType context_type, int ccid),
+               le_audio::types::LeAudioContextType context_type,
+               le_audio::types::AudioContexts metadata_context_type,
+               std::vector<uint8_t> ccid_list),
               (override));
   MOCK_METHOD((bool), AttachToStream,
               (le_audio::LeAudioDeviceGroup * group,
@@ -35,7 +37,9 @@ class MockLeAudioGroupStateMachine : public le_audio::LeAudioGroupStateMachine {
               (override));
   MOCK_METHOD((bool), ConfigureStream,
               (le_audio::LeAudioDeviceGroup * group,
-               le_audio::types::LeAudioContextType context_type, int ccid),
+               le_audio::types::LeAudioContextType context_type,
+               le_audio::types::AudioContexts metadata_context_type,
+               std::vector<uint8_t> ccid_list),
               (override));
   MOCK_METHOD((void), StopStream, (le_audio::LeAudioDeviceGroup * group),
               (override));
