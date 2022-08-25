@@ -1,4 +1,4 @@
-use crate::btif::BluetoothInterface;
+use crate::btif::{BluetoothInterface, RawAddress};
 use crate::topstack::get_dispatchers;
 
 use std::sync::{Arc, Mutex};
@@ -6,6 +6,11 @@ use topshim_macros::cb_variant;
 
 #[cxx::bridge(namespace = bluetooth::topshim::rust)]
 pub mod ffi {
+    #[derive(Debug, Copy, Clone)]
+    pub struct RustRawAddress {
+        address: [u8; 6],
+    }
+
     unsafe extern "C++" {
         include!("btav/btav_shim.h");
 
@@ -19,15 +24,33 @@ pub mod ffi {
 
     }
     extern "Rust" {
-        fn avrcp_absolute_volume_enabled(enabled: bool);
+        fn avrcp_device_connected(addr: RustRawAddress, absolute_volume_enabled: bool);
+        fn avrcp_device_disconnected(addr: RustRawAddress);
         fn avrcp_absolute_volume_update(volume: u8);
+        fn avrcp_send_key_event(key: u8, state: u8);
+    }
+}
+
+impl Into<RawAddress> for ffi::RustRawAddress {
+    fn into(self) -> RawAddress {
+        RawAddress { val: self.address }
     }
 }
 
 #[derive(Debug)]
 pub enum AvrcpCallbacks {
-    AvrcpAbsoluteVolumeEnabled(bool),
+    /// Emitted when avrcp completes connection.
+    /// Params: Device address, Absolute Volume Enabled
+    AvrcpDeviceConnected(RawAddress, bool),
+    /// Emitted when avrcp device disconnected.
+    /// Params: Device address
+    AvrcpDeviceDisconnected(RawAddress),
+    /// Emitted when the absolute volume of a connected AVRCP device changed
+    /// Params: Volume
     AvrcpAbsoluteVolumeUpdate(u8),
+    /// Emitted when received a key event from a connected AVRCP device
+    /// Params: Key, Value
+    AvrcpSendKeyEvent(u8, u8),
 }
 
 pub struct AvrcpCallbacksDispatcher {
@@ -38,14 +61,28 @@ type AvrcpCb = Arc<Mutex<AvrcpCallbacksDispatcher>>;
 
 cb_variant!(
     AvrcpCb,
-    avrcp_absolute_volume_enabled -> AvrcpCallbacks::AvrcpAbsoluteVolumeEnabled,
-    bool, {}
-);
+    avrcp_device_connected -> AvrcpCallbacks::AvrcpDeviceConnected,
+    ffi::RustRawAddress -> RawAddress, bool, {
+        let _0 = _0.into();
+});
+
+cb_variant!(
+    AvrcpCb,
+    avrcp_device_disconnected -> AvrcpCallbacks::AvrcpDeviceDisconnected,
+    ffi::RustRawAddress -> RawAddress, {
+        let _0 = _0.into();
+});
 
 cb_variant!(
     AvrcpCb,
     avrcp_absolute_volume_update -> AvrcpCallbacks::AvrcpAbsoluteVolumeUpdate,
     u8, {}
+);
+
+cb_variant!(
+    AvrcpCb,
+    avrcp_send_key_event -> AvrcpCallbacks::AvrcpSendKeyEvent,
+    u8, u8, {}
 );
 
 pub struct Avrcp {
