@@ -25,6 +25,26 @@ service GATT {
 
   // Clears DUT GATT cache.
   rpc ClearCache(ClearCacheRequest) returns (google.protobuf.Empty);
+
+  // Reads characteristic with given handle.
+  rpc ReadCharacteristicFromHandle(ReadCharacteristicRequest) returns (ReadCharacteristicResponse);
+
+  // Reads characteristic with given uuid, start and end handles.
+  rpc ReadCharacteristicFromUuid(ReadCharacteristicFromUuidRequest) returns (ReadCharacteristicResponse);
+
+  // Reads characteristic with given descriptor handle.
+  rpc ReadCharacteristicDescriptorFromHandle(ReadCharacteristicDescriptorRequest) returns (ReadCharacteristicDescriptorResponse);
+}
+
+enum AttStatusCode {
+  SUCCESS = 0x00;
+  UNKNOWN_ERROR = 0x101;
+  INVALID_HANDLE = 0x01;
+  READ_NOT_PERMITTED = 0x02;
+  INSUFFICIENT_AUTHENTICATION = 0x05;
+  INVALID_OFFSET = 0x07;
+  ATTRIBUTE_NOT_FOUND = 0x0A;
+  APPLICATION_ERROR = 0x80;
 }
 
 // A message representing a GATT service.
@@ -58,7 +78,7 @@ message ExchangeMTURequest {
   int32 mtu = 2;
 }
 
-// Request for the `writeCharacteristicFromHandle` rpc.
+// Request for the `WriteCharacteristicFromHandle` rpc.
 message WriteCharacteristicRequest {
   Connection connection = 1;
   uint32 handle = 2;
@@ -94,4 +114,36 @@ message DiscoverServicesSdpResponse {
 // Request for the `ClearCache` rpc.
 message ClearCacheRequest {
   Connection connection = 1;
+}
+
+// Request for the `ReadCharacteristicFromHandle` rpc.
+message ReadCharacteristicRequest {
+  Connection connection = 1;
+  uint32 handle = 2;
+}
+
+// Request for the `ReadCharacteristicFromUuid` rpc.
+message ReadCharacteristicFromUuidRequest {
+  Connection connection = 1;
+  string uuid = 2;
+  uint32 start_handle = 3;
+  uint32 end_handle = 4;
+}
+
+// Response for the `ReadCharacteristicFromHandle` and `ReadCharacteristicFromUuid` rpc.
+message ReadCharacteristicResponse {
+  bytes value = 1;
+  AttStatusCode status = 2;
+}
+
+// Request for the `ReadCharacteristicDescriptorFromHandle` rpc.
+message ReadCharacteristicDescriptorRequest {
+  Connection connection = 1;
+  uint32 handle = 2;
+}
+
+// Response for the `ReadCharacteristicDescriptorFromHandle` rpc.
+message ReadCharacteristicDescriptorResponse {
+  bytes value = 1;
+  AttStatusCode status = 2;
 }
