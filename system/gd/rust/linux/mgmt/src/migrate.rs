@@ -235,7 +235,13 @@ fn floss_to_bluez_addr_type(str: String) -> Result<String, String> {
 fn reverse_endianness(str: String, uppercase: bool) -> Result<String, String> {
     // Handling for LE_KEY_PID
     // In Floss, LE_KEY_PID = IRK + Identity Address Type (8) + Identity Address
-    let s = String::from(&str[0..32]);
+    let mut len = 32;
+    if str.len() < len {
+        // Logging to observe crash behavior, can clean up and remove if not an error
+        warn!("Link key too small: {}", str);
+        len = str.len();
+    }
+    let s = String::from(&str[0..len]);
 
     match u128::from_str_radix(&s, 16) {
         Ok(x) => {
@@ -908,6 +914,20 @@ mod tests {
         assert_eq!(
             key.apply_action("FAKE_TYPE".to_string()),
             Err("Error converting address type. Unknown type: FAKE_TYPE".to_string())
+        );
+    }
+
+    #[test]
+    fn test_reverseendian() {
+        let mut key = DeviceKey::new("", KeyAction::Apply(Converter::ReverseEndianLowercase));
+        assert_eq!(
+            key.apply_action("00112233445566778899AABBCCDDEEFF".to_string()),
+            Ok("ffeeddccbbaa99887766554433221100".to_string())
+        );
+        // Link key too small shouldn't panic
+        assert_eq!(
+            key.apply_action("00112233445566778899AABBCCDDEE".to_string()),
+            Ok("eeddccbbaa9988776655443322110000".to_string())
         );
     }
 
