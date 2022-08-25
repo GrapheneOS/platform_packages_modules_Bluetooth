@@ -128,9 +128,15 @@
     <string name="a2dp_sink_mbs_label" msgid="6035366346569127155">"Bluetooth-oudio"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"Lêers groter as 4 GB kan nie oorgedra word nie"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Koppel aan Bluetooth"</string>
-    <string name="bluetooth_enabled_apm_title" msgid="1623939715492599179">"Jy het Bluetooth aangeskakel"</string>
-    <string name="bluetooth_enabled_apm_message" msgid="4745310982235821141">"Jou foon sal Bluetooth in vliegtuigmodus aanhou, tensy jy dit afskakel terwyl dit in hierdie modus is"</string>
+    <!-- no translation found for bluetooth_enabled_apm_title (6914461147844949044) -->
+    <skip />
+    <!-- no translation found for bluetooth_enabled_apm_message (8990667142380927316) -->
+    <skip />
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Bluetooth bly aan"</string>
-    <string name="bluetooth_and_wifi_stays_on_title" msgid="4886917707417592398">"Bluetooth en wi-fi bly aan"</string>
-    <string name="bluetooth_and_wifi_stays_on_message" msgid="1790370141941913341">"Jou foon sal Bluetooth en wi-fi albei in vliegtuigmodus aanhou, tensy jy dit afskakel terwyl dit in hierdie modus is"</string>
+    <!-- no translation found for bluetooth_stays_on_message (2770176686603189536) -->
+    <skip />
+    <!-- no translation found for bluetooth_and_wifi_stays_on_title (5821932798860821244) -->
+    <skip />
+    <!-- no translation found for bluetooth_and_wifi_stays_on_message (4120501683284996436) -->
+    <skip />
 </resources>

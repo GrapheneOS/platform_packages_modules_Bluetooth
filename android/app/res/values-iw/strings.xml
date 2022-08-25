@@ -128,9 +128,15 @@
     <string name="a2dp_sink_mbs_label" msgid="6035366346569127155">"‏אודיו Bluetooth"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"‏לא ניתן להעביר קבצים שגדולים מ-4GB"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"‏התחברות באמצעות Bluetooth"</string>
-    <string name="bluetooth_enabled_apm_title" msgid="1623939715492599179">"‏הפעלת את ה-Bluetooth"</string>
-    <string name="bluetooth_enabled_apm_message" msgid="4745310982235821141">"‏חיבור ה-Bluetooth בטלפון יישאר במצב טיסה, אלא אם הוא יושבת במצב הטיסה"</string>
+    <!-- no translation found for bluetooth_enabled_apm_title (6914461147844949044) -->
+    <skip />
+    <!-- no translation found for bluetooth_enabled_apm_message (8990667142380927316) -->
+    <skip />
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"‏Bluetooth יישאר מופעל"</string>
-    <string name="bluetooth_and_wifi_stays_on_title" msgid="4886917707417592398">"‏Bluetooth ו-Wi-Fi נשארים במצב מופעל"</string>
-    <string name="bluetooth_and_wifi_stays_on_message" msgid="1790370141941913341">"‏חיבורי ה-Wi-Fi ו-Bluetooth בטלפון יישארו במצב טיסה, אלא אם הם יושבתו במצב הטיסה"</string>
+    <!-- no translation found for bluetooth_stays_on_message (2770176686603189536) -->
+    <skip />
+    <!-- no translation found for bluetooth_and_wifi_stays_on_title (5821932798860821244) -->
+    <skip />
+    <!-- no translation found for bluetooth_and_wifi_stays_on_message (4120501683284996436) -->
+    <skip />
 </resources>
