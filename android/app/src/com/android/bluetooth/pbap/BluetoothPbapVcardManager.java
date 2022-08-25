@@ -143,8 +143,8 @@ public class BluetoothPbapVcardManager {
         BluetoothPbapCallLogComposer composer = new BluetoothPbapCallLogComposer(mContext);
         String name = BluetoothPbapService.getLocalPhoneName();
         String number = BluetoothPbapService.getLocalPhoneNum();
-        String vcard = composer.composeVCardForPhoneOwnNumber(Phone.TYPE_MOBILE, name, number,
-                vcardType21);
+        String vcard = BluetoothPbapCallLogComposer.composeVCardForPhoneOwnNumber(
+                Phone.TYPE_MOBILE, name, number, vcardType21);
         return vcard;
     }
 
@@ -278,7 +278,9 @@ public class BluetoothPbapVcardManager {
         if (ownerName == null || ownerName.length() == 0) {
             ownerName = BluetoothPbapService.getLocalPhoneName();
         }
-        nameList.add(ownerName);
+        if (ownerName != null) {
+            nameList.add(ownerName);
+        }
         //End enhancement
 
         final Uri myUri = DevicePolicyUtils.getEnterprisePhoneUri(mContext);
