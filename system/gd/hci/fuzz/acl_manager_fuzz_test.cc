@@ -21,7 +21,7 @@
 #include "hci/fuzz/fuzz_hci_layer.h"
 #include "hci/hci_layer.h"
 #include "module.h"
-#include "os/fuzz/fake_timerfd.h"
+#include "os/fake_timer/fake_timerfd.h"
 #include "os/log.h"
 
 #include <fuzzer/FuzzedDataProvider.h>
@@ -31,9 +31,9 @@ using bluetooth::fuzz::GetArbitraryBytes;
 using bluetooth::hci::AclManager;
 using bluetooth::hci::HciLayer;
 using bluetooth::hci::fuzz::FuzzHciLayer;
-using bluetooth::os::fuzz::fake_timerfd_advance;
-using bluetooth::os::fuzz::fake_timerfd_cap_at;
-using bluetooth::os::fuzz::fake_timerfd_reset;
+using bluetooth::os::fake_timer::fake_timerfd_advance;
+using bluetooth::os::fake_timer::fake_timerfd_cap_at;
+using bluetooth::os::fake_timer::fake_timerfd_reset;
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   FuzzedDataProvider dataProvider(data, size);
