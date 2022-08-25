@@ -702,13 +702,15 @@ public class BluetoothInCallServiceTest {
         Integer parentId = parentCall.getId();
         when(childCall1.getParentId()).thenReturn(parentId);
         when(childCall2.getParentId()).thenReturn(parentId);
+        List<Integer> childrenIds = Arrays.asList(childCall1.getId(),
+                childCall2.getId());
+        when(parentCall.getChildrenIds()).thenReturn(childrenIds);
 
         when(parentCall.isConference()).thenReturn(true);
         when(parentCall.getState()).thenReturn(Call.STATE_HOLDING);
         when(childCall1.getState()).thenReturn(Call.STATE_ACTIVE);
         when(childCall2.getState()).thenReturn(Call.STATE_ACTIVE);
         when(parentCall.hasProperty(Call.Details.PROPERTY_GENERIC_CONFERENCE)).thenReturn(true);
-
         when(parentCall.isIncoming()).thenReturn(true);
         when(mMockCallInfo.getBluetoothCalls()).thenReturn(calls);
 
@@ -720,6 +722,29 @@ public class BluetoothInCallServiceTest {
         verify(mMockBluetoothHeadset).clccResponse(eq(2), eq(0), eq(CALL_STATE_HELD), eq(0),
                 eq(true), eq("5550002"), eq(PhoneNumberUtils.TOA_Unknown));
         verify(mMockBluetoothHeadset).clccResponse(0, 0, 0, 0, false, null, 0);
+    }
+
+    @Test
+    public void testListCurrentCallsConferenceGetChildrenIsEmpty() throws Exception {
+        ArrayList<BluetoothCall> calls = new ArrayList<>();
+        BluetoothCall conferenceCall = createActiveCall();
+        when(conferenceCall.getHandle()).thenReturn(Uri.parse("tel:555-1234"));
+        calls.add(conferenceCall);
+
+        mBluetoothInCallService.onCallAdded(conferenceCall);
+        addCallCapability(conferenceCall, Connection.CAPABILITY_MANAGE_CONFERENCE);
+        when(conferenceCall.isConference()).thenReturn(true);
+        when(conferenceCall.getState()).thenReturn(Call.STATE_ACTIVE);
+        when(conferenceCall.hasProperty(Call.Details.PROPERTY_GENERIC_CONFERENCE)).thenReturn(true);
+        when(conferenceCall.can(Connection.CAPABILITY_CONFERENCE_HAS_NO_CHILDREN))
+          .thenReturn(false);
+        when(conferenceCall.isIncoming()).thenReturn(true);
+        when(mMockCallInfo.getBluetoothCalls()).thenReturn(calls);
+
+        clearInvocations(mMockBluetoothHeadset);
+        mBluetoothInCallService.listCurrentCalls();
+        verify(mMockBluetoothHeadset).clccResponse(
+                eq(1), eq(1), eq(0), eq(0), eq(true), eq("5551234"), eq(129));
     }
 
     @Test
