@@ -16,7 +16,7 @@
 from mmi2grpc._helpers import assert_description
 from mmi2grpc._proxy import ProfileProxy
 
-from pandora.sm_grpc import SM
+from pandora.security_grpc import Security
 from pandora.host_grpc import Host
 
 # The tests needs the MMI to accept pairing confirmation request.
@@ -42,7 +42,7 @@ class SMProxy(ProfileProxy):
 
     def __init__(self, channel):
         super().__init__()
-        self.sm = SM(channel)
+        self.security = Security(channel)
         self.host = Host(channel)
         self.connection = None
 
@@ -53,7 +53,7 @@ class SMProxy(ProfileProxy):
         """
         self.connection = self.host.ConnectLE(address=pts_addr).connection
         if self.connection and test in ACCEPTS_REMOTE_PAIRING_CONFIRMATION:
-            self.sm.ProvidePairingConfirmation(connection=self.connection, pairing_confirmation_value=True)
+            self.security.ProvidePairingConfirmation(connection=self.connection, pairing_confirmation_value=True)
         return "OK"
 
     @assert_description
@@ -62,9 +62,9 @@ class SMProxy(ProfileProxy):
         Please start pairing process.
         """
         if self.connection:
-            self.sm.Pair(connection=self.connection)
+            self.security.Pair(connection=self.connection)
             if test in NEEDS_PAIRING_CONFIRMATION:
-                self.sm.ProvidePairingConfirmation(connection=self.connection, pairing_confirmation_value=True)
+                self.security.ProvidePairingConfirmation(connection=self.connection, pairing_confirmation_value=True)
 
         return "OK"
 
