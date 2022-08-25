@@ -397,6 +397,39 @@ static bool check_eir_remote_name(tBTA_DM_SEARCH* p_search_data,
 
 /*******************************************************************************
  *
+ * Function         check_eir_appearance
+ *
+ * Description      Check if appearance is in the EIR data
+ *
+ * Returns          true if appearance found
+ *                  Populate p_appearance, if provided and appearance found
+ *
+ ******************************************************************************/
+static bool check_eir_appearance(tBTA_DM_SEARCH* p_search_data,
+                                 uint16_t* p_appearance) {
+  const uint8_t* p_eir_appearance = NULL;
+  uint8_t appearance_len = 0;
+
+  /* Check EIR for remote name and services */
+  if (p_search_data->inq_res.p_eir) {
+    p_eir_appearance = AdvertiseDataParser::GetFieldByType(
+        p_search_data->inq_res.p_eir, p_search_data->inq_res.eir_len,
+        HCI_EIR_APPEARANCE_TYPE, &appearance_len);
+
+    if (p_eir_appearance) {
+      if (p_appearance) {
+        *p_appearance = *((uint16_t*)p_eir_appearance);
+      }
+
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/*******************************************************************************
+ *
  * Function         check_cached_remote_name
  *
  * Description      Check if remote name is in the NVRAM cache
@@ -1234,7 +1267,7 @@ static void btif_dm_search_devices_evt(tBTA_DM_SEARCH_EVT event,
       }
 
       {
-        bt_property_t properties[7];
+        bt_property_t properties[8];
         bt_device_type_t dev_type;
         uint32_t num_properties = 0;
         bt_status_t status;
@@ -1332,6 +1365,15 @@ static void btif_dm_search_devices_evt(tBTA_DM_SEARCH_EVT event,
               (void*)property_value.data());
           num_properties++;
 #endif
+        }
+
+        // Floss needs appearance for metrics purposes
+        uint16_t appearance = 0;
+        if (check_eir_appearance(p_search_data, &appearance)) {
+          BTIF_STORAGE_FILL_PROPERTY(&properties[num_properties],
+                                     BT_PROPERTY_APPEARANCE, sizeof(appearance),
+                                     &appearance);
+          num_properties++;
         }
 
         status =

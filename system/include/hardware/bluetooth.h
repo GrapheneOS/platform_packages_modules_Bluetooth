@@ -340,6 +340,13 @@ typedef enum {
    */
   BT_PROPERTY_REMOTE_IS_COORDINATED_SET_MEMBER,
 
+  /**
+   * Description - Appearance as specified in Assigned Numbers.
+   * Access mode - GET.
+   * Data Type - uint16_t.
+   */
+  BT_PROPERTY_APPEARANCE,
+
   BT_PROPERTY_REMOTE_DEVICE_TIMESTAMP = 0xFF,
 } bt_property_type_t;
 
