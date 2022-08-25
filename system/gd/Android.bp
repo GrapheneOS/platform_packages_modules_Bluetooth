@@ -229,10 +229,11 @@ cc_library {
         "libbluetooth_gd_defaults",
     ],
     srcs: [
-        ":BluetoothOsSources_fuzz",
+        ":BluetoothOsSources_fake_timer",
     ],
     cflags: [
         "-DFUZZ_TARGET",
+        "-DUSE_FAKE_TIMERS",
     ],
 }
 
@@ -490,6 +491,7 @@ cc_defaults {
     ],
     cflags: [
         "-DFUZZ_TARGET",
+        "-DUSE_FAKE_TIMERS",
     ],
     target: {
         android: {
