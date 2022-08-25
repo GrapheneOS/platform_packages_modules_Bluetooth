@@ -938,6 +938,17 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
                    *ase->codec_config.codec_frames_blocks_per_sdu);
       }
 
+      if (stream_conf->sink_frame_duration_us == 0) {
+        stream_conf->sink_frame_duration_us =
+            ase->codec_config.GetFrameDurationUs();
+      } else {
+        ASSERT_LOG(stream_conf->sink_frame_duration_us ==
+                       ase->codec_config.GetFrameDurationUs(),
+                   "frame_duration_us: %d!=%d",
+                   stream_conf->sink_frame_duration_us,
+                   ase->codec_config.GetFrameDurationUs());
+      }
+
       LOG_INFO(
           " Added Sink Stream Configuration. CIS Connection Handle: %d"
           ", Audio Channel Allocation: %d"
@@ -995,6 +1006,17 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
                    "codec_frames_blocks_per_sdu: %d!=%d",
                    stream_conf->source_codec_frames_blocks_per_sdu,
                    *ase->codec_config.codec_frames_blocks_per_sdu);
+      }
+
+      if (stream_conf->source_frame_duration_us == 0) {
+        stream_conf->source_frame_duration_us =
+            ase->codec_config.GetFrameDurationUs();
+      } else {
+        ASSERT_LOG(stream_conf->source_frame_duration_us ==
+                       ase->codec_config.GetFrameDurationUs(),
+                   "frame_duration_us: %d!=%d",
+                   stream_conf->source_frame_duration_us,
+                   ase->codec_config.GetFrameDurationUs());
       }
 
       LOG_INFO(
