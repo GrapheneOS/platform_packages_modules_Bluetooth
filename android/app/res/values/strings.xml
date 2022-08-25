@@ -248,9 +248,10 @@
     <string name="a2dp_sink_mbs_label">Bluetooth Audio</string>
     <string name="bluetooth_opp_file_limit_exceeded">Files bigger than 4GB cannot be transferred</string>
     <string name="bluetooth_connect_action">Connect to Bluetooth</string>
-    <string name="bluetooth_enabled_apm_title">You turned on Bluetooth</string>
-    <string name="bluetooth_enabled_apm_message">Your phone will keep Bluetooth on in airplane mode, unless you turn it off while in this mode</string>
+    <string name="bluetooth_enabled_apm_title">Bluetooth on in airplane mode</string>
+    <string name="bluetooth_enabled_apm_message">If you keep Bluetooth on, it will stay on the next time you\'re in airplane mode</string>
     <string name="bluetooth_stays_on_title">Bluetooth stays on</string>
-    <string name="bluetooth_and_wifi_stays_on_title">Bluetooth and Wi-Fi stays on</string>
-    <string name="bluetooth_and_wifi_stays_on_message">Your phone will keep both on in airplane mode, unless you turn it off while in this mode</string>
+    <string name="bluetooth_stays_on_message">Your phone remembers to keep Bluetooth on in airplane mode. To change this, turn off Bluetooth.</string>
+    <string name="bluetooth_and_wifi_stays_on_title">Wi-Fi and Bluetooth stay on</string>
+    <string name="bluetooth_and_wifi_stays_on_message">Your phone remembers to keep Wi-Fi and Bluetooth on in airplane mode. To change this, turn them off.</string>
 </resources>

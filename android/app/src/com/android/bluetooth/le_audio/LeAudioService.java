@@ -633,7 +633,11 @@ public class LeAudioService extends ProfileService {
     private Integer getAudioDirectionsFromActiveContextsMap(Integer activeContexts) {
         Integer supportedAudioDirections = 0;
 
-        if ((activeContexts & mContextSupportingInputAudio) != 0) {
+        if (((activeContexts & mContextSupportingInputAudio) != 0)
+                || (Utils.isPtsTestMode()
+                && (activeContexts
+                & (BluetoothLeAudio.CONTEXT_TYPE_RINGTONE
+                | BluetoothLeAudio.CONTEXT_TYPE_MEDIA)) != 0)) {
             supportedAudioDirections |= AUDIO_DIRECTION_INPUT_BIT;
         }
         if ((activeContexts & mContextSupportingOutputAudio) != 0) {

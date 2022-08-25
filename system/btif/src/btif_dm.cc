@@ -1314,6 +1314,13 @@ static void btif_dm_search_devices_evt(tBTA_DM_SEARCH_EVT event,
           }
 
 #if TARGET_FLOSS
+          std::vector<uint8_t> property_value;
+          for (auto uuid : uuid_iter->second) {
+            auto uuid_128bit = uuid.To128BitBE();
+            property_value.insert(property_value.end(), uuid_128bit.begin(),
+                                  uuid_128bit.end());
+          }
+
           // Floss expects that EIR uuids are immediately reported when the
           // device is found and doesn't wait for the pairing intent.
           //
@@ -1321,8 +1328,8 @@ static void btif_dm_search_devices_evt(tBTA_DM_SEARCH_EVT event,
           // existing UUIDs.
           BTIF_STORAGE_FILL_PROPERTY(
               &properties[num_properties], BT_PROPERTY_UUIDS,
-              pairing_cb.num_eir_uuids * Uuid::kNumBytes128,
-              pairing_cb.eir_uuids);
+              uuid_iter->second.size() * Uuid::kNumBytes128,
+              (void*)property_value.data());
           num_properties++;
 #endif
         }
@@ -1378,6 +1385,10 @@ static void btif_get_existing_uuids(RawAddress* bd_addr, Uuid* existing_uuids) {
   btif_storage_get_remote_device_property(bd_addr, &tmp_prop);
 }
 
+static bool btif_should_ignore_uuid(const Uuid& uuid) {
+  return uuid.IsEmpty() || uuid.IsBase();
+}
+
 /*******************************************************************************
  *
  * Function         btif_dm_search_services_evt
@@ -1420,7 +1431,7 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
         LOG_INFO("New UUIDs for %s:", bd_addr.ToString().c_str());
         for (i = 0; i < p_data->disc_res.num_uuids; i++) {
           auto uuid = p_data->disc_res.p_uuid_list + i;
-          if (uuid->IsEmpty()) {
+          if (btif_should_ignore_uuid(*uuid)) {
             continue;
           }
           LOG_INFO("index:%d uuid:%s", i, uuid->ToString().c_str());
@@ -1432,7 +1443,7 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
 
         for (int i = 0; i < BT_MAX_NUM_UUIDS; i++) {
           Uuid uuid = existing_uuids[i];
-          if (uuid.IsEmpty()) {
+          if (btif_should_ignore_uuid(uuid)) {
             continue;
           }
           if (btif_is_interesting_le_service(uuid)) {
@@ -1475,6 +1486,7 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
               property_value.insert(property_value.end(), uuid_128bit.begin(),
                                     uuid_128bit.end());
             }
+            eir_uuids_cache.erase(uuids_iter);
           }
           if (num_eir_uuids > 0) {
             prop.val = (void*)property_value.data();
@@ -1484,7 +1496,6 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
             prop.val = &uuid;
             prop.len = Uuid::kNumBytes128;
           }
-          eir_uuids_cache.erase(uuids_iter);
         }
         // Both SDP and bonding are done, clear pairing control block in case
         // it is not already cleared
@@ -1520,7 +1531,7 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
       LOG_INFO("New BLE UUIDs for %s:", bd_addr.ToString().c_str());
       for (Uuid uuid : *p_data->disc_ble_res.services) {
         if (btif_is_interesting_le_service(uuid)) {
-          if (uuid.IsEmpty()) {
+          if (btif_should_ignore_uuid(uuid)) {
             continue;
           }
           LOG_INFO("index:%d uuid:%s", static_cast<int>(uuids.size()),

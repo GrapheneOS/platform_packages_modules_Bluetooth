@@ -13,7 +13,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 [package]
-name = "bt_socket"
+name = "bt_utils"
 version = "0.0.1"
 edition = "2021"
 
