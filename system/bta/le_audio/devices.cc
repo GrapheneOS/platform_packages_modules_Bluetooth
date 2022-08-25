@@ -894,6 +894,15 @@ types::LeAudioConfigurationStrategy LeAudioDeviceGroup::GetGroupStrategy(void) {
   return types::LeAudioConfigurationStrategy::STEREO_ONE_CIS_PER_DEVICE;
 }
 
+int LeAudioDeviceGroup::GetAseCount(uint8_t direction) {
+  int result = 0;
+  for (const auto& device_iter : leAudioDevices_) {
+    result += device_iter.lock()->GetAseCount(direction);
+  }
+
+  return result;
+}
+
 void LeAudioDeviceGroup::CigGenerateCisIds(
     types::LeAudioContextType context_type) {
   LOG_INFO("Group %p, group_id: %d, context_type: %s", this, group_id_,
@@ -910,7 +919,9 @@ void LeAudioDeviceGroup::CigGenerateCisIds(
   uint8_t cis_count_bidir = 0;
   uint8_t cis_count_unidir_sink = 0;
   uint8_t cis_count_unidir_source = 0;
-  get_cis_count(confs, GetGroupStrategy(), &cis_count_bidir,
+  get_cis_count(confs, GetGroupStrategy(),
+                GetAseCount(types::kLeAudioDirectionSink),
+                GetAseCount(types::kLeAudioDirectionSource), &cis_count_bidir,
                 &cis_count_unidir_sink, &cis_count_unidir_source);
 
   uint8_t idx = 0;
@@ -1926,6 +1937,12 @@ struct ase* LeAudioDevice::GetAseByValHandle(uint16_t val_hdl) {
       [&val_hdl](const auto& ase) { return ase.hdls.val_hdl == val_hdl; });
 
   return (iter == ases_.end()) ? nullptr : &(*iter);
+}
+
+int LeAudioDevice::GetAseCount(uint8_t direction) {
+  return std::count_if(ases_.begin(), ases_.end(), [direction](const auto& a) {
+    return a.direction == direction;
+  });
 }
 
 struct ase* LeAudioDevice::GetFirstInactiveAseWithState(uint8_t direction,
