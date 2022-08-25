@@ -872,7 +872,7 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
             throws RemoteException, TimeoutException {
         if (mBluetooth == null) return null;
         final SynchronousResultReceiver<String> recv = SynchronousResultReceiver.get();
-        mBluetooth.getAddressWithAttribution(attributionSource, recv);
+        mBluetooth.getAddress(attributionSource, recv);
         return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
     }
 
