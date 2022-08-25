@@ -773,6 +773,7 @@ cc_test {
         "le_audio/content_control_id_keeper.cc",
         "le_audio/client_audio.cc",
         "le_audio/le_audio_types.cc",
+        "le_audio/metrics_collector_linux.cc",
         "le_audio/mock_iso_manager.cc",
         "test/common/mock_controller.cc",
         "le_audio/mock_codec_manager.cc",
