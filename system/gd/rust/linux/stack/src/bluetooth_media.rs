@@ -29,7 +29,10 @@ use crate::bluetooth::{Bluetooth, BluetoothDevice, IBluetooth};
 use crate::callbacks::Callbacks;
 use crate::{Message, RPCProxy};
 
-const DEFAULT_PROFILE_DISCOVERY_TIMEOUT_SEC: u64 = 5;
+// The timeout we have to wait for all supported profiles to connect after we
+// receive the first profile connected event. In the worst scenario, we'll have
+// 2 * PROFILE_DISCOVERY_TIMEOUT_SEC of waiting time.
+const PROFILE_DISCOVERY_TIMEOUT_SEC: u64 = 5;
 
 pub trait IBluetoothMedia {
     ///
@@ -214,11 +217,37 @@ impl BluetoothMedia {
 
     pub fn dispatch_avrcp_callbacks(&mut self, cb: AvrcpCallbacks) {
         match cb {
-            AvrcpCallbacks::AvrcpDeviceConnected(_addr, supported) => {
+            AvrcpCallbacks::AvrcpDeviceConnected(addr, supported) => {
+                if self.absolute_volume == supported {
+                    return;
+                }
+
                 self.absolute_volume = supported;
-                self.callbacks.lock().unwrap().for_all_callbacks(|callback| {
-                    callback.on_absolute_volume_supported_changed(supported);
-                });
+                let mut guard = self.device_added_tasks.lock().unwrap();
+                if let Some(task) = guard.get(&addr) {
+                    match task {
+                        // There is a device added event waiting for other
+                        // profiles (A2DP or HFP) to connect. We need to cancel
+                        // the pending event to update the absolute volume
+                        // capability.
+                        // This refreshes the timeout waiting for potential
+                        // profile connection and makes the worst case total
+                        // waiting time to 2 * PROFILE_DISCOVERY_TIMEOUT_SEC.
+                        Some(handler) => {
+                            handler.abort();
+                            guard.remove(&addr);
+                            drop(guard);
+                            self.notify_media_capability_added(addr);
+                        }
+                        // This addr has been added so trigger the absolute
+                        // volume supported changed callback.
+                        None => self.callbacks.lock().unwrap().for_all_callbacks(|callback| {
+                            callback.on_absolute_volume_supported_changed(supported);
+                        }),
+                    }
+                } else {
+                    info!("[{}]: Device's avrcp connected before a2dp and hfp", addr.to_string());
+                }
             }
             AvrcpCallbacks::AvrcpDeviceDisconnected(_addr) => {}
             AvrcpCallbacks::AvrcpAbsoluteVolumeUpdate(volume) => {
@@ -409,7 +438,7 @@ impl BluetoothMedia {
                         absolute_volume,
                     );
                     let task = topstack::get_runtime().spawn(async move {
-                        sleep(Duration::from_secs(DEFAULT_PROFILE_DISCOVERY_TIMEOUT_SEC)).await;
+                        sleep(Duration::from_secs(PROFILE_DISCOVERY_TIMEOUT_SEC)).await;
                         if dedup_added_cb(device_added_tasks, addr, callbacks, device, true) {
                             warn!(
                                 "[{}]: Add a device with only hfp or a2dp capability after timeout.",
