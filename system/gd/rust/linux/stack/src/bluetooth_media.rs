@@ -214,17 +214,19 @@ impl BluetoothMedia {
 
     pub fn dispatch_avrcp_callbacks(&mut self, cb: AvrcpCallbacks) {
         match cb {
-            AvrcpCallbacks::AvrcpAbsoluteVolumeEnabled(supported) => {
+            AvrcpCallbacks::AvrcpDeviceConnected(_addr, supported) => {
                 self.absolute_volume = supported;
                 self.callbacks.lock().unwrap().for_all_callbacks(|callback| {
                     callback.on_absolute_volume_supported_changed(supported);
                 });
             }
+            AvrcpCallbacks::AvrcpDeviceDisconnected(_addr) => {}
             AvrcpCallbacks::AvrcpAbsoluteVolumeUpdate(volume) => {
                 self.callbacks.lock().unwrap().for_all_callbacks(|callback| {
                     callback.on_absolute_volume_changed(volume);
                 });
             }
+            AvrcpCallbacks::AvrcpSendKeyEvent(_key, _value) => {}
         }
     }
 
