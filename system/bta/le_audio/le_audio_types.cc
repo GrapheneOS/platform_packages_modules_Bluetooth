@@ -519,24 +519,21 @@ std::string LeAudioLtvMap::ToString() const {
 }  // namespace types
 
 void AppendMetadataLtvEntryForCcidList(std::vector<uint8_t>& metadata,
-                                       int ccid) {
-  if (ccid < 0) return;
+                                       const std::vector<uint8_t>& ccid_list) {
+  if (ccid_list.size() == 0) {
+    LOG_WARN("Empty CCID list.");
+    return;
+  }
 
-  std::vector<uint8_t> ccid_ltv_entry;
-  std::vector<uint8_t> ccid_value = {static_cast<uint8_t>(ccid)};
+  metadata.push_back(
+      static_cast<uint8_t>(types::kLeAudioMetadataTypeLen + ccid_list.size()));
+  metadata.push_back(static_cast<uint8_t>(types::kLeAudioMetadataTypeCcidList));
 
-  ccid_ltv_entry.push_back(
-      static_cast<uint8_t>(types::kLeAudioMetadataTypeLen + ccid_value.size()));
-  ccid_ltv_entry.push_back(
-      static_cast<uint8_t>(types::kLeAudioMetadataTypeCcidList));
-  ccid_ltv_entry.insert(ccid_ltv_entry.end(), ccid_value.begin(),
-                        ccid_value.end());
-
-  metadata.insert(metadata.end(), ccid_ltv_entry.begin(), ccid_ltv_entry.end());
+  metadata.insert(metadata.end(), ccid_list.begin(), ccid_list.end());
 }
 
 void AppendMetadataLtvEntryForStreamingContext(
-    std::vector<uint8_t>& metadata, LeAudioContextType context_type) {
+    std::vector<uint8_t>& metadata, types::AudioContexts context_type) {
   std::vector<uint8_t> streaming_context_ltv_entry;
 
   streaming_context_ltv_entry.resize(
@@ -550,7 +547,7 @@ void AppendMetadataLtvEntryForStreamingContext(
   UINT8_TO_STREAM(streaming_context_ltv_entry_buf,
                   types::kLeAudioMetadataTypeStreamingAudioContext);
   UINT16_TO_STREAM(streaming_context_ltv_entry_buf,
-                   static_cast<uint16_t>(context_type));
+                   static_cast<uint16_t>(context_type.to_ulong()));
 
   metadata.insert(metadata.end(), streaming_context_ltv_entry.begin(),
                   streaming_context_ltv_entry.end());
