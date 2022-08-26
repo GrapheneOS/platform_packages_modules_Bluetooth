@@ -21,6 +21,8 @@ from mmi2grpc._proxy import ProfileProxy
 from pandora.gatt_grpc import GATT
 from pandora.host_grpc import Host
 from pandora.gatt_pb2 import AttStatusCode
+from pandora.gatt_pb2 import ReadCharacteristicResponse
+from pandora.gatt_pb2 import ReadCharacteristicsFromUuidResponse
 
 # Tests that need GATT cache cleared before discovering services.
 NEEDS_CACHE_CLEARED = {
@@ -39,7 +41,7 @@ class GATTProxy(ProfileProxy):
         self.services = None
         self.characteristics = None
         self.descriptors = None
-        self.read_value = None
+        self.read_response = None
 
     @assert_description
     def MMI_IUT_INITIATE_CONNECTION(self, test, pts_addr: bytes, **kwargs):
@@ -72,7 +74,7 @@ class GATTProxy(ProfileProxy):
         self.services = None
         self.characteristics = None
         self.descriptors = None
-        self.read_value = None
+        self.read_response = None
         return "OK"
 
     @assert_description
@@ -266,9 +268,8 @@ class GATTProxy(ProfileProxy):
                         stringHandleToInt(all_matches[i + 1]),\
                         formatUuid(all_matches[i + 3])):
                     found_services += 1
-        if found_services == (len(all_matches) / 4):
-            return "Yes"
-        return "No"
+        assert found_services == (len(all_matches) / 4)
+        return "Yes"
 
     def MMI_IUT_DISCOVER_SERVICE_UUID(self, description: str, **kwargs):
         """
@@ -344,7 +345,7 @@ class GATTProxy(ProfileProxy):
             if characteristic.handle == stringHandleToInt(all_matches[0])\
                     and characteristic.uuid == formatUuid(all_matches[1]):
                 return "Yes"
-        return "No"
+        raise ValueError
 
     @assert_description
     def MMI_CONFIRM_NO_CHARACTERISTICSUUID_SMALL(self, **kwargs):
@@ -394,7 +395,7 @@ class GATTProxy(ProfileProxy):
         for descriptor in self.descriptors:
             if descriptor.handle == handle and descriptor.uuid == uuid:
                 return "Yes"
-        return "No"
+        raise ValueError
 
     def MMI_IUT_DISCOVER_ALL_SERVICE_RECORD(self, pts_addr: bytes, description: str, **kwargs):
         """
@@ -404,11 +405,10 @@ class GATTProxy(ProfileProxy):
         discover basic rate all primary services.
         """
 
-        uuid = formatUuid(re.findall("'([a0-Z9]*)'O", description))
+        uuid = formatSdpUuid(re.findall("'([a0-Z9]*)'O", description)[0])
         self.services = self.gatt.DiscoverServicesSdp(address=pts_addr).service_uuids
-        if uuid in self.services:
-            return "Yes"
-        return "No"
+        assert uuid in self.services
+        return "Yes"
 
     def MMI_IUT_SEND_READ_CHARACTERISTIC_HANDLE(self, description: str, **kwargs):
         """
@@ -419,7 +419,7 @@ class GATTProxy(ProfileProxy):
 
         assert self.connection is not None
         handle = stringHandleToInt(re.findall("'([a0-Z9]*)'O", description)[0])
-        self.read_value = self.gatt.ReadCharacteristicFromHandle(\
+        self.read_response = self.gatt.ReadCharacteristicFromHandle(\
                 connection=self.connection, handle=handle)
         return "OK"
 
@@ -434,10 +434,14 @@ class GATTProxy(ProfileProxy):
         a characteristic.
         """
 
-        assert self.read_value is not None
-        if self.read_value.status == AttStatusCode.INVALID_HANDLE:
-            return "Yes"
-        return "No"
+        if type(self.read_response) is ReadCharacteristicResponse:
+            assert self.read_response.readValue is not None
+            assert self.read_response.readValue.status == AttStatusCode.INVALID_HANDLE
+        elif type(self.read_response) is ReadCharacteristicsFromUuidResponse:
+            assert self.read_response.readValues is not None
+            assert AttStatusCode.INVALID_HANDLE in\
+                    list(map(lambda read_value: read_value.status, self.read_response.readValues))
+        return "Yes"
 
     @assert_description
     def MMI_IUT_CONFIRM_READ_NOT_PERMITTED(self, **kwargs):
@@ -450,13 +454,19 @@ class GATTProxy(ProfileProxy):
         when read a characteristic.
         """
 
-        assert self.read_value is not None
         # Android read error doesn't return an error code so we have to also
         # compare to the generic error code here.
-        if self.read_value.status == AttStatusCode.READ_NOT_PERMITTED or\
-                self.read_value.status == AttStatusCode.UNKNOWN_ERROR:
-            return "Yes"
-        return "No"
+        if type(self.read_response) is ReadCharacteristicResponse:
+            assert self.read_response.readValue is not None
+            assert self.read_response.readValue.status == AttStatusCode.READ_NOT_PERMITTED or\
+                    self.read_response.readValue.status == AttStatusCode.UNKNOWN_ERROR
+        elif type(self.read_response) is ReadCharacteristicsFromUuidResponse:
+            assert self.read_response.readValues is not None
+            assert AttStatusCode.READ_NOT_PERMITTED in\
+                    list(map(lambda read_value: read_value.status, self.read_response.readValues)) or\
+                    AttStatusCode.UNKNOWN_ERROR in\
+                    list(map(lambda read_value: read_value.status, self.read_response.readValues))
+        return "Yes"
 
     @assert_description
     def MMI_IUT_CONFIRM_READ_AUTHENTICATION(self, **kwargs):
@@ -469,10 +479,14 @@ class GATTProxy(ProfileProxy):
         a characteristic.
         """
 
-        assert self.read_value is not None
-        if self.read_value.status == AttStatusCode.INSUFFICIENT_AUTHENTICATION:
-            return "Yes"
-        return "No"
+        if type(self.read_response) is ReadCharacteristicResponse:
+            assert self.read_response.readValue is not None
+            assert self.read_response.readValue.status == AttStatusCode.INSUFFICIENT_AUTHENTICATION
+        elif type(self.read_response) is ReadCharacteristicsFromUuidResponse:
+            assert self.read_response.readValues is not None
+            assert AttStatusCode.INSUFFICIENT_AUTHENTICATION in\
+                    list(map(lambda read_value: read_value.status, self.read_response.readValues))
+        return "Yes"
 
     def MMI_IUT_SEND_READ_CHARACTERISTIC_UUID(self, description: str, **kwargs):
         """
@@ -485,7 +499,7 @@ class GATTProxy(ProfileProxy):
 
         assert self.connection is not None
         matches = re.findall("'([a0-Z9]*)'O", description)
-        self.read_value = self.gatt.ReadCharacteristicFromUuid(\
+        self.read_response = self.gatt.ReadCharacteristicsFromUuid(\
                 connection=self.connection, uuid=formatUuid(matches[0]),\
                 start_handle=stringHandleToInt(matches[1]),\
                 end_handle=stringHandleToInt(matches[2]))
@@ -502,13 +516,19 @@ class GATTProxy(ProfileProxy):
         read a characteristic.
         """
 
-        assert self.read_value is not None
         # Android read error doesn't return an error code so we have to also
         # compare to the generic error code here.
-        if self.read_value.status == AttStatusCode.ATTRIBUTE_NOT_FOUND or\
-                self.read_value.status == AttStatusCode.UNKNOWN_ERROR:
-            return "Yes"
-        return "No"
+        if type(self.read_response) is ReadCharacteristicResponse:
+            assert self.read_response.readValue is not None
+            assert self.read_response.readValue.status == AttStatusCode.ATTRIBUTE_NOT_FOUND or\
+                    self.read_response.readValue.status == AttStatusCode.UNKNOWN_ERROR
+        elif type(self.read_response) is ReadCharacteristicsFromUuidResponse:
+            assert self.read_response.readValues is not None
+            assert AttStatusCode.ATTRIBUTE_NOT_FOUND in\
+                    list(map(lambda read_value: read_value.status, self.read_response.readValues)) or\
+                    AttStatusCode.UNKNOWN_ERROR in\
+                    list(map(lambda read_value: read_value.status, self.read_response.readValues))
+        return "Yes"
 
     def MMI_IUT_SEND_READ_GREATER_OFFSET(self, description: str, **kwargs):
         """
@@ -523,7 +543,7 @@ class GATTProxy(ProfileProxy):
         # Unfortunately for testing, this will always work.
         assert self.connection is not None
         handle = stringHandleToInt(re.findall("'([a0-Z9]*)'O", description)[0])
-        self.read_value = self.gatt.ReadCharacteristicFromHandle(\
+        self.read_response = self.gatt.ReadCharacteristicFromHandle(\
                 connection=self.connection, handle=handle)
         return "OK"
 
@@ -551,10 +571,14 @@ class GATTProxy(ProfileProxy):
         Under Test (IUT) indicate Application error when read a characteristic.
         """
 
-        assert self.read_value is not None
-        if self.read_value.status == AttStatusCode.APPLICATION_ERROR:
-            return "Yes"
-        return "No"
+        if type(self.read_response) is ReadCharacteristicResponse:
+            assert self.read_response.readValue is not None
+            assert self.read_response.readValue.status == AttStatusCode.APPLICATION_ERROR
+        elif type(self.read_response) is ReadCharacteristicsFromUuidResponse:
+            assert self.read_response.readValues is not None
+            assert AttStatusCode.APPLICATION_ERROR in\
+                    list(map(lambda read_value: read_value.status, self.read_response.readValues))
+        return "Yes"
 
     def MMI_IUT_CONFIRM_READ_CHARACTERISTIC_VALUE(self, description: str, **kwargs):
         """
@@ -566,11 +590,14 @@ class GATTProxy(ProfileProxy):
         send Read characteristic to PTS random select adopted database.
         """
 
-        assert self.read_value is not None
         characteristic_value = bytes.fromhex(re.findall("'([a0-Z9]*)'O", description)[0])
-        if characteristic_value[0] in self.read_value.value:
-            return "Yes"
-        return "No"
+        if type(self.read_response) is ReadCharacteristicResponse:
+            assert self.read_response.readValue is not None
+            assert characteristic_value in self.read_response.readValue.value
+        elif type(self.read_response) is ReadCharacteristicsFromUuidResponse:
+            assert self.read_response.readValues is not None
+            assert characteristic_value in list(map(lambda read_value: read_value.value, self.read_response.readValues))
+        return "Yes"
 
     def MMI_IUT_READ_BY_TYPE_UUID(self, description: str, **kwargs):
         """
@@ -581,7 +608,7 @@ class GATTProxy(ProfileProxy):
 
         assert self.connection is not None
         matches = re.findall("'([a0-Z9]*)'O", description)
-        self.read_value = self.gatt.ReadCharacteristicFromUuid(\
+        self.read_response = self.gatt.ReadCharacteristicsFromUuid(\
                 connection=self.connection, uuid=formatUuid(matches[0]),\
                 start_handle=0x0001,\
                 end_handle=0xffff)
@@ -599,7 +626,7 @@ class GATTProxy(ProfileProxy):
 
         assert self.connection is not None
         uuid = formatUuid(re.findall("'([a0-Z9-]*)'O", description)[0])
-        self.read_value = self.gatt.ReadCharacteristicFromUuid(\
+        self.read_response = self.gatt.ReadCharacteristicsFromUuid(\
                 connection=self.connection, uuid=uuid, start_handle=0x0001, end_handle=0xffff)
         return "OK"
 
@@ -614,11 +641,15 @@ class GATTProxy(ProfileProxy):
         can send Read long characteristic to PTS random select adopted database.
         """
 
-        assert self.read_value is not None
         bytes_value = bytes.fromhex(re.search("value='(.*)'O", description)[1])
-        if self.read_value.value == bytes_value:
-            return "Yes"
-        return "No"
+        if type(self.read_response) is ReadCharacteristicResponse:
+            assert self.read_response.readValue is not None
+            assert self.read_response.readValue.value == bytes_value
+        elif type(self.read_response) is ReadCharacteristicsFromUuidResponse:
+            assert self.read_response.readValues is not None
+            assert bytes_value in\
+                    list(map(lambda read_value: read_value.value, self.read_response.readValues))
+        return "Yes"
 
     def MMI_IUT_SEND_READ_DESCIPTOR_HANDLE(self, description: str, **kwargs):
         """
@@ -629,7 +660,7 @@ class GATTProxy(ProfileProxy):
 
         assert self.connection is not None
         handle = stringHandleToInt(re.findall("'([a0-Z9]*)'O", description)[0])
-        self.read_value = self.gatt.ReadCharacteristicDescriptorFromHandle(\
+        self.read_response = self.gatt.ReadCharacteristicDescriptorFromHandle(\
                 connection=self.connection, handle=handle)
         return "OK"
 
@@ -643,11 +674,10 @@ class GATTProxy(ProfileProxy):
         send Read Descriptor to PTS random select adopted database.
         """
 
-        assert self.read_value is not None
+        assert self.read_response.readValue is not None
         bytes_value = bytes.fromhex(re.search("value='(.*)'O", description)[1])
-        if self.read_value.value == bytes_value:
-            return "Yes"
-        return "No"
+        assert self.read_response.readValue.value == bytes_value
+        return "Yes"
 
 
 common_uuid = "0000XXXX-0000-1000-8000-00805f9b34fb"
@@ -683,6 +713,13 @@ def formatUuid(uuid: str):
         return ''.join(uuidCharList)
     else:
         return uuid
+
+
+# PTS asks wrong uuid for services discovered by SDP in some tests
+def formatSdpUuid(uuid: str):
+    if uuid[3] == '1':
+        uuid = uuid[:3] + 'f'
+    return common_uuid.replace(common_uuid[4:8], uuid.lower())
 
 
 def compareIncludedServices(service, service_handle, included_handle, included_uuid):
