@@ -319,7 +319,6 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
                 UserManager.DISALLOW_BLUETOOTH, userHandle);
         boolean newBluetoothSharingDisallowed = mUserManager.hasUserRestrictionForUser(
                 UserManager.DISALLOW_BLUETOOTH_SHARING, userHandle);
-
         // DISALLOW_BLUETOOTH can only be set by DO or PO on the system user.
         if (userHandle == UserHandle.SYSTEM) {
             if (newBluetoothDisallowed) {
@@ -3014,6 +3013,7 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
             }
 
             String launcherActivity = "com.android.bluetooth.opp.BluetoothOppLauncherActivity";
+            String btEnableActivity = "com.android.bluetooth.opp.BluetoothOppBtEnableActivity";
 
             PackageManager systemPackageManager = mContext.getPackageManager();
             PackageManager userPackageManager = mContext.createContextAsUser(userHandle, 0)
@@ -3044,11 +3044,17 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
                 for (var activity : packageInfo.activities) {
                     Log.v(TAG, "Checking activity " + activity.name);
                     if (launcherActivity.equals(activity.name)) {
-                        final ComponentName oppLauncherComponent = new ComponentName(
-                                candidatePackage, launcherActivity
-                        );
                         userPackageManager.setComponentEnabledSetting(
-                                oppLauncherComponent, newState, PackageManager.DONT_KILL_APP
+                                new ComponentName(candidatePackage, launcherActivity),
+                                newState,
+                                PackageManager.DONT_KILL_APP
+                        );
+                        // Bluetooth enable Activity should also be turned on here so
+                        // when sharing with Bluetooth OFF, launcher Activity can turn it ON.
+                        userPackageManager.setComponentEnabledSetting(
+                                new ComponentName(candidatePackage, btEnableActivity),
+                                newState,
+                                PackageManager.DONT_KILL_APP
                         );
                         return;
                     }
