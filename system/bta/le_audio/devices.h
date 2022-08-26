@@ -104,6 +104,7 @@ class LeAudioDevice {
   void RegisterPACs(std::vector<struct types::acs_ac_record>* apr_db,
                     std::vector<struct types::acs_ac_record>* apr);
   struct types::ase* GetAseByValHandle(uint16_t val_hdl);
+  int GetAseCount(uint8_t direction);
   struct types::ase* GetFirstActiveAse(void);
   struct types::ase* GetFirstActiveAseByDirection(uint8_t direction);
   struct types::ase* GetNextActiveAseWithSameDirection(
@@ -233,6 +234,7 @@ class LeAudioDeviceGroup {
   LeAudioDevice* GetFirstDeviceWithActiveContext(
       types::LeAudioContextType context_type);
   le_audio::types::LeAudioConfigurationStrategy GetGroupStrategy(void);
+  int GetAseCount(uint8_t direction);
   LeAudioDevice* GetNextDevice(LeAudioDevice* leAudioDevice);
   LeAudioDevice* GetNextDeviceWithActiveContext(
       LeAudioDevice* leAudioDevice, types::LeAudioContextType context_type);
