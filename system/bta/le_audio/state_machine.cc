@@ -727,6 +727,12 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
             AudioStreamDataPathState::DATA_PATH_ESTABLISHED) {
       value |= bluetooth::hci::iso_manager::kRemoveIsoDataPathDirectionOutput;
     }
+
+    if (value == 0) {
+      LOG_INFO("Data path was not set. Nothing to do here.");
+      return;
+    }
+
     IsoManager::GetInstance()->RemoveIsoDataPath(cis_conn_hdl, value);
   }
 
@@ -736,6 +742,11 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     /* Reset the disconnected CIS states */
 
     FreeLinkQualityReports(leAudioDevice);
+
+    /* If this is peer disconnecting CIS, make sure to clear data path */
+    if (event->reason != HCI_ERR_CONN_CAUSE_LOCAL_HOST) {
+      RemoveDataPathByCisHandle(leAudioDevice, event->cis_conn_hdl);
+    }
 
     auto ases_pair = leAudioDevice->GetAsesByCisConnHdl(event->cis_conn_hdl);
     if (ases_pair.sink) {
