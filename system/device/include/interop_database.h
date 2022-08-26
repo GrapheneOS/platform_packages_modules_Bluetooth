@@ -187,6 +187,9 @@ static const interop_addr_entry_t interop_addr_database[] = {
 
     // Toyota Camry 2018 Carkit HFP AT+BIND missing
     {{{0x94, 0xb2, 0xcc, 0x30, 0, 0}}, 4, INTEROP_SLC_SKIP_BIND_COMMAND},
+
+    // BMW Carkit
+    {{{0x00, 0x0a, 0x08, 0, 0, 0}}, 3, INTEROP_AVRCP_1_3_ONLY},
 };
 
 typedef struct {

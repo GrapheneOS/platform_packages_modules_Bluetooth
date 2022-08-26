@@ -1277,17 +1277,25 @@ void sdpu_set_avrc_target_version(const tSDP_ATTRIBUTE* p_attr,
     return;
   }
 
-  // Some remote devices will have interoperation issue when receive AVRCP
-  // version 1.5. If those devices are in IOP database and our version high than
-  // 1.4, we reply version 1.4 to them.
+  // Some remote devices will have interoperation issue when receive higher
+  // AVRCP version. If those devices are in IOP database and our version higher
+  // than device, we reply a lower version to them.
+  uint16_t iop_version = 0;
   if (avrcp_version > AVRC_REV_1_4 &&
       interop_match_addr(INTEROP_AVRCP_1_4_ONLY, bdaddr)) {
+    iop_version = AVRC_REV_1_4;
+  } else if (avrcp_version > AVRC_REV_1_3 &&
+             interop_match_addr(INTEROP_AVRCP_1_3_ONLY, bdaddr)) {
+    iop_version = AVRC_REV_1_3;
+  }
+
+  if (iop_version != 0) {
     LOG_INFO(
         "device=%s is in IOP database. "
-        "Reply AVRC Target version 1.4 instead of %x.",
-        bdaddr->ToString().c_str(), avrcp_version);
+        "Reply AVRC Target version %x instead of %x.",
+        bdaddr->ToString().c_str(), iop_version, avrcp_version);
     uint8_t* p_version = p_attr->value_ptr + 6;
-    UINT16_TO_BE_FIELD(p_version, AVRC_REV_1_4);
+    UINT16_TO_BE_FIELD(p_version, iop_version);
     return;
   }
 
