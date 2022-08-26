@@ -33,7 +33,9 @@ namespace rusty = ::bluetooth::topshim::rust;
 namespace bluetooth::avrcp {
 class AvrcpMediaInterfaceImpl : public MediaInterface {
  public:
-  void SendKeyEvent([[maybe_unused]] uint8_t key, [[maybe_unused]] KeyState state) {}
+  void SendKeyEvent(uint8_t key, KeyState state) {
+    rusty::avrcp_send_key_event(key, state == KeyState::PUSHED);
+  }
 
   void GetSongInfo([[maybe_unused]] SongInfoCallback cb) override {}
 
@@ -65,18 +67,21 @@ class AvrcpMediaInterfaceImpl : public MediaInterface {
 
 class VolumeInterfaceImpl : public VolumeInterface {
  public:
-  void DeviceConnected([[maybe_unused]] const RawAddress& bdaddr) override {
-    rusty::avrcp_absolute_volume_enabled(false);
+  void DeviceConnected(const RawAddress& bdaddr) override {
+    topshim::rust::RustRawAddress addr = rusty::CopyToRustAddress(bdaddr);
+    rusty::avrcp_device_connected(addr, /*absolute_volume_enabled=*/false);
   }
 
-  void DeviceConnected([[maybe_unused]] const RawAddress& bdaddr, VolumeChangedCb cb) override {
+  void DeviceConnected(const RawAddress& bdaddr, VolumeChangedCb cb) override {
+    topshim::rust::RustRawAddress addr = rusty::CopyToRustAddress(bdaddr);
     volumeCb = std::move(cb);
-    rusty::avrcp_absolute_volume_enabled(true);
+    rusty::avrcp_device_connected(addr, /*absolute_volume_enabled=*/true);
   }
 
-  void DeviceDisconnected([[maybe_unused]] const RawAddress& bdaddr) override {
+  void DeviceDisconnected(const RawAddress& bdaddr) override {
+    topshim::rust::RustRawAddress addr = rusty::CopyToRustAddress(bdaddr);
     volumeCb.Reset();
-    rusty::avrcp_absolute_volume_enabled(false);
+    rusty::avrcp_device_disconnected(addr);
   }
 
   // Set TG's (Android, ChromeOS) volume.
@@ -107,15 +112,16 @@ static A2dpIntf* g_a2dpif;
 static AvrcpIntf* g_avrcpif;
 
 static A2dpCodecConfig to_rust_codec_config(const btav_a2dp_codec_config_t& config) {
-  A2dpCodecConfig rconfig = {.codec_type = static_cast<uint8_t>(config.codec_type),
-                             .codec_priority = config.codec_priority,
-                             .sample_rate = static_cast<uint8_t>(config.sample_rate),
-                             .bits_per_sample = static_cast<uint8_t>(config.bits_per_sample),
-                             .channel_mode = static_cast<uint8_t>(config.channel_mode),
-                             .codec_specific_1 = config.codec_specific_1,
-                             .codec_specific_2 = config.codec_specific_2,
-                             .codec_specific_3 = config.codec_specific_3,
-                             .codec_specific_4 = config.codec_specific_4};
+  A2dpCodecConfig rconfig = {
+      .codec_type = static_cast<uint8_t>(config.codec_type),
+      .codec_priority = config.codec_priority,
+      .sample_rate = static_cast<uint8_t>(config.sample_rate),
+      .bits_per_sample = static_cast<uint8_t>(config.bits_per_sample),
+      .channel_mode = static_cast<uint8_t>(config.channel_mode),
+      .codec_specific_1 = config.codec_specific_1,
+      .codec_specific_2 = config.codec_specific_2,
+      .codec_specific_3 = config.codec_specific_3,
+      .codec_specific_4 = config.codec_specific_4};
   return rconfig;
 }
 
