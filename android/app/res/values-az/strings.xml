@@ -128,14 +128,15 @@
     <string name="a2dp_sink_mbs_label" msgid="6035366346569127155">"Bluetooth audio"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"4GB-dən böyük olan faylları köçürmək mümkün deyil"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Bluetooth\'a qoşulun"</string>
-    <!-- no translation found for bluetooth_enabled_apm_title (1623939715492599179) -->
+    <!-- no translation found for bluetooth_enabled_apm_title (6914461147844949044) -->
     <skip />
-    <!-- no translation found for bluetooth_enabled_apm_message (4745310982235821141) -->
+    <!-- no translation found for bluetooth_enabled_apm_message (8990667142380927316) -->
     <skip />
-    <!-- no translation found for bluetooth_stays_on_title (39720820955212918) -->
+    <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Bluetooth aktiv qalacaq"</string>
+    <!-- no translation found for bluetooth_stays_on_message (2770176686603189536) -->
     <skip />
-    <!-- no translation found for bluetooth_and_wifi_stays_on_title (4886917707417592398) -->
+    <!-- no translation found for bluetooth_and_wifi_stays_on_title (5821932798860821244) -->
     <skip />
-    <!-- no translation found for bluetooth_and_wifi_stays_on_message (1790370141941913341) -->
+    <!-- no translation found for bluetooth_and_wifi_stays_on_message (4120501683284996436) -->
     <skip />
 </resources>
