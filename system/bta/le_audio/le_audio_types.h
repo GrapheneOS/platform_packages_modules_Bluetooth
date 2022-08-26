@@ -414,6 +414,7 @@ class LeAudioLtvMap {
   void Add(uint8_t type, std::vector<uint8_t> value) {
     values.insert_or_assign(type, std::move(value));
   }
+  void Remove(uint8_t type) { values.erase(type); }
   bool IsEmpty() const { return values.empty(); }
   void Clear() { values.clear(); }
   size_t Size() const { return values.size(); }
@@ -668,6 +669,7 @@ static constexpr uint32_t kChannelAllocationStereo =
 /* Declarations */
 void get_cis_count(const AudioSetConfigurations* audio_set_configurations,
                    types::LeAudioConfigurationStrategy strategy,
+                   int group_ase_snk_cnt, int group_ase_src_count,
                    uint8_t* cis_count_bidir, uint8_t* cis_count_unidir_sink,
                    uint8_t* cis_count_unidir_source);
 bool check_if_may_cover_scenario(
@@ -721,9 +723,9 @@ struct stream_configuration {
 };
 
 void AppendMetadataLtvEntryForCcidList(std::vector<uint8_t>& metadata,
-                                       int ccid);
+                                       const std::vector<uint8_t>& ccid_list);
 void AppendMetadataLtvEntryForStreamingContext(
-    std::vector<uint8_t>& metadata, types::LeAudioContextType context_type);
+    std::vector<uint8_t>& metadata, types::AudioContexts context_type);
 uint8_t GetMaxCodecFramesPerSduFromPac(const types::acs_ac_record* pac_record);
 uint32_t AdjustAllocationForOffloader(uint32_t allocation);
 }  // namespace le_audio

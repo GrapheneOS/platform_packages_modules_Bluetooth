@@ -471,7 +471,7 @@ void bta_ag_rfc_open(tBTA_AG_SCB* p_scb, const tBTA_AG_DATA& data) {
       bool sdp_wbs_support = p_scb->peer_sdp_features & BTA_AG_FEAT_WBS_SUPPORT;
       if (!p_scb->received_at_bac && sdp_wbs_support) {
         p_scb->codec_updated = true;
-        p_scb->peer_codecs = BTM_SCO_CODEC_CVSD & BTM_SCO_CODEC_MSBC;
+        p_scb->peer_codecs = BTM_SCO_CODEC_CVSD | BTM_SCO_CODEC_MSBC;
         p_scb->sco_codec = UUID_CODEC_MSBC;
       }
     } else {

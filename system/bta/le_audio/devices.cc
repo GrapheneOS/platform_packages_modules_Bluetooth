@@ -894,6 +894,15 @@ types::LeAudioConfigurationStrategy LeAudioDeviceGroup::GetGroupStrategy(void) {
   return types::LeAudioConfigurationStrategy::STEREO_ONE_CIS_PER_DEVICE;
 }
 
+int LeAudioDeviceGroup::GetAseCount(uint8_t direction) {
+  int result = 0;
+  for (const auto& device_iter : leAudioDevices_) {
+    result += device_iter.lock()->GetAseCount(direction);
+  }
+
+  return result;
+}
+
 void LeAudioDeviceGroup::CigGenerateCisIds(
     types::LeAudioContextType context_type) {
   LOG_INFO("Group %p, group_id: %d, context_type: %s", this, group_id_,
@@ -910,7 +919,9 @@ void LeAudioDeviceGroup::CigGenerateCisIds(
   uint8_t cis_count_bidir = 0;
   uint8_t cis_count_unidir_sink = 0;
   uint8_t cis_count_unidir_source = 0;
-  get_cis_count(confs, GetGroupStrategy(), &cis_count_bidir,
+  get_cis_count(confs, GetGroupStrategy(),
+                GetAseCount(types::kLeAudioDirectionSink),
+                GetAseCount(types::kLeAudioDirectionSource), &cis_count_bidir,
                 &cis_count_unidir_sink, &cis_count_unidir_source);
 
   uint8_t idx = 0;
@@ -1397,7 +1408,8 @@ bool LeAudioDevice::ConfigureAses(
     uint8_t* number_of_already_active_group_ase,
     types::AudioLocations& group_snk_audio_locations,
     types::AudioLocations& group_src_audio_locations, bool reuse_cis_id,
-    int ccid) {
+    AudioContexts metadata_context_type,
+    const std::vector<uint8_t>& ccid_list) {
   struct ase* ase = GetFirstInactiveAse(ent.direction, reuse_cis_id);
   if (!ase) return false;
 
@@ -1453,7 +1465,7 @@ bool LeAudioDevice::ConfigureAses(
     ase->retrans_nb = ent.qos.retransmission_number;
     ase->max_transport_latency = ent.qos.max_transport_latency;
 
-    ase->metadata = GetMetadata(context_type, ccid);
+    ase->metadata = GetMetadata(metadata_context_type, ccid_list);
 
     DLOG(INFO) << __func__ << " device=" << address_
                << ", activated ASE id=" << +ase->id
@@ -1474,7 +1486,8 @@ bool LeAudioDevice::ConfigureAses(
  */
 bool LeAudioDeviceGroup::ConfigureAses(
     const set_configurations::AudioSetConfiguration* audio_set_conf,
-    types::LeAudioContextType context_type, int ccid) {
+    types::LeAudioContextType context_type, AudioContexts metadata_context_type,
+    const std::vector<uint8_t>& ccid_list) {
   if (!set_configurations::check_if_may_cover_scenario(
           audio_set_conf, NumOfConnected(context_type)))
     return false;
@@ -1523,7 +1536,8 @@ bool LeAudioDeviceGroup::ConfigureAses(
 
       if (!device->ConfigureAses(ent, context_type, &active_ase_num,
                                  group_snk_audio_locations,
-                                 group_src_audio_locations, reuse_cis_id, ccid))
+                                 group_src_audio_locations, reuse_cis_id,
+                                 metadata_context_type, ccid_list))
         continue;
 
       required_device_cnt--;
@@ -1611,10 +1625,10 @@ bool LeAudioDeviceGroup::IsContextSupported(
 }
 
 bool LeAudioDeviceGroup::IsMetadataChanged(
-    types::LeAudioContextType context_type, int ccid) {
+    types::AudioContexts context_type, const std::vector<uint8_t>& ccid_list) {
   for (auto* leAudioDevice = GetFirstActiveDevice(); leAudioDevice;
        leAudioDevice = GetNextActiveDevice(leAudioDevice)) {
-    if (leAudioDevice->IsMetadataChanged(context_type, ccid)) return true;
+    if (leAudioDevice->IsMetadataChanged(context_type, ccid_list)) return true;
   }
 
   return false;
@@ -1786,7 +1800,9 @@ LeAudioDeviceGroup::FindFirstSupportedConfiguration(
 /* This method should choose aproperiate ASEs to be active and set a cached
  * configuration for codec and qos.
  */
-bool LeAudioDeviceGroup::Configure(LeAudioContextType context_type, int ccid) {
+bool LeAudioDeviceGroup::Configure(LeAudioContextType context_type,
+                                   AudioContexts metadata_context_type,
+                                   std::vector<uint8_t> ccid_list) {
   const set_configurations::AudioSetConfiguration* conf =
       active_context_to_configuration_map[context_type];
 
@@ -1801,7 +1817,7 @@ bool LeAudioDeviceGroup::Configure(LeAudioContextType context_type, int ccid) {
 
   DLOG(INFO) << __func__ << " setting context type: " << int(context_type);
 
-  if (!ConfigureAses(conf, context_type, ccid)) {
+  if (!ConfigureAses(conf, context_type, metadata_context_type, ccid_list)) {
     LOG(ERROR) << __func__ << ", requested pick ASE config context type: "
                << loghex(static_cast<uint16_t>(context_type))
                << ", is in mismatch with cached active contexts";
@@ -1926,6 +1942,12 @@ struct ase* LeAudioDevice::GetAseByValHandle(uint16_t val_hdl) {
       [&val_hdl](const auto& ase) { return ase.hdls.val_hdl == val_hdl; });
 
   return (iter == ases_.end()) ? nullptr : &(*iter);
+}
+
+int LeAudioDevice::GetAseCount(uint8_t direction) {
+  return std::count_if(ases_.begin(), ases_.end(), [direction](const auto& a) {
+    return a.direction == direction;
+  });
 }
 
 struct ase* LeAudioDevice::GetFirstInactiveAseWithState(uint8_t direction,
@@ -2390,21 +2412,22 @@ void LeAudioDevice::DeactivateAllAses(void) {
   }
 }
 
-std::vector<uint8_t> LeAudioDevice::GetMetadata(LeAudioContextType context_type,
-                                                int ccid) {
+std::vector<uint8_t> LeAudioDevice::GetMetadata(
+    AudioContexts context_type, const std::vector<uint8_t>& ccid_list) {
   std::vector<uint8_t> metadata;
 
   AppendMetadataLtvEntryForStreamingContext(metadata, context_type);
-  AppendMetadataLtvEntryForCcidList(metadata, ccid);
+  AppendMetadataLtvEntryForCcidList(metadata, ccid_list);
 
   return std::move(metadata);
 }
 
-bool LeAudioDevice::IsMetadataChanged(types::LeAudioContextType context_type,
-                                      int ccid) {
+bool LeAudioDevice::IsMetadataChanged(AudioContexts context_type,
+                                      const std::vector<uint8_t>& ccid_list) {
   for (auto* ase = this->GetFirstActiveAse(); ase;
        ase = this->GetNextActiveAse(ase)) {
-    if (this->GetMetadata(context_type, ccid) != ase->metadata) return true;
+    if (this->GetMetadata(context_type, ccid_list) != ase->metadata)
+      return true;
   }
 
   return false;

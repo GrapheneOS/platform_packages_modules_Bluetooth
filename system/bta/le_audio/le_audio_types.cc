@@ -71,8 +71,12 @@ static uint8_t min_req_devices_cnt(
 
 void get_cis_count(const AudioSetConfigurations* audio_set_confs,
                    types::LeAudioConfigurationStrategy strategy,
+                   int group_ase_snk_cnt, int group_ase_src_count,
                    uint8_t* cis_count_bidir, uint8_t* cis_count_unidir_sink,
                    uint8_t* cis_count_unidir_source) {
+  LOG_INFO(" strategy %d, sink ases: %d, source ases %d",
+           static_cast<int>(strategy), group_ase_snk_cnt, group_ase_src_count);
+
   for (auto audio_set_conf : *audio_set_confs) {
     std::pair<uint8_t /* sink */, uint8_t /* source */> snk_src_pair(0, 0);
     uint8_t bidir_count = 0;
@@ -83,8 +87,8 @@ void get_cis_count(const AudioSetConfigurations* audio_set_confs,
     bool stategy_mismatch = false;
     for (auto ent : (*audio_set_conf).confs) {
       if (ent.strategy != strategy) {
-        LOG_INFO("Strategy does not match (%d != %d)- skip this configuration",
-                 static_cast<int>(ent.strategy), static_cast<int>(strategy));
+        LOG_DEBUG("Strategy does not match (%d != %d)- skip this configuration",
+                  static_cast<int>(ent.strategy), static_cast<int>(strategy));
         stategy_mismatch = true;
         break;
       }
@@ -97,6 +101,42 @@ void get_cis_count(const AudioSetConfigurations* audio_set_confs,
     }
 
     if (stategy_mismatch) {
+      continue;
+    }
+
+    /* Before we start adding another CISes, ignore scenarios which cannot
+     * satisfied because of the number of ases
+     */
+
+    if (group_ase_snk_cnt == 0 && snk_src_pair.first > 0) {
+      LOG_DEBUG("Group does not have sink ASEs");
+      continue;
+    }
+
+    if (group_ase_src_count == 0 && snk_src_pair.second > 0) {
+      LOG_DEBUG("Group does not have source ASEs");
+      continue;
+    }
+
+    /* Configuration list is set in the prioritized order.
+     * it might happen that more prio configuration can be supported
+     * and is already taken into account.
+     * Now let's try to ignore ortogonal configuration which would just
+     * increase our demant on number of CISes but will never happen
+     */
+
+    if (snk_src_pair.first == 0 &&
+        (*cis_count_unidir_sink > 0 || *cis_count_bidir > 0)) {
+      LOG_DEBUG(
+          "More prio configuration using sink ASEs has been taken into "
+          "account");
+      continue;
+    }
+    if (snk_src_pair.second == 0 &&
+        (*cis_count_unidir_source > 0 || *cis_count_bidir > 0)) {
+      LOG_DEBUG(
+          "More prio configuration using source ASEs has been taken into "
+          "account");
       continue;
     }
 
@@ -479,24 +519,21 @@ std::string LeAudioLtvMap::ToString() const {
 }  // namespace types
 
 void AppendMetadataLtvEntryForCcidList(std::vector<uint8_t>& metadata,
-                                       int ccid) {
-  if (ccid < 0) return;
+                                       const std::vector<uint8_t>& ccid_list) {
+  if (ccid_list.size() == 0) {
+    LOG_WARN("Empty CCID list.");
+    return;
+  }
 
-  std::vector<uint8_t> ccid_ltv_entry;
-  std::vector<uint8_t> ccid_value = {static_cast<uint8_t>(ccid)};
+  metadata.push_back(
+      static_cast<uint8_t>(types::kLeAudioMetadataTypeLen + ccid_list.size()));
+  metadata.push_back(static_cast<uint8_t>(types::kLeAudioMetadataTypeCcidList));
 
-  ccid_ltv_entry.push_back(
-      static_cast<uint8_t>(types::kLeAudioMetadataTypeLen + ccid_value.size()));
-  ccid_ltv_entry.push_back(
-      static_cast<uint8_t>(types::kLeAudioMetadataTypeCcidList));
-  ccid_ltv_entry.insert(ccid_ltv_entry.end(), ccid_value.begin(),
-                        ccid_value.end());
-
-  metadata.insert(metadata.end(), ccid_ltv_entry.begin(), ccid_ltv_entry.end());
+  metadata.insert(metadata.end(), ccid_list.begin(), ccid_list.end());
 }
 
 void AppendMetadataLtvEntryForStreamingContext(
-    std::vector<uint8_t>& metadata, LeAudioContextType context_type) {
+    std::vector<uint8_t>& metadata, types::AudioContexts context_type) {
   std::vector<uint8_t> streaming_context_ltv_entry;
 
   streaming_context_ltv_entry.resize(
@@ -510,7 +547,7 @@ void AppendMetadataLtvEntryForStreamingContext(
   UINT8_TO_STREAM(streaming_context_ltv_entry_buf,
                   types::kLeAudioMetadataTypeStreamingAudioContext);
   UINT16_TO_STREAM(streaming_context_ltv_entry_buf,
-                   static_cast<uint16_t>(context_type));
+                   static_cast<uint16_t>(context_type.to_ulong()));
 
   metadata.insert(metadata.end(), streaming_context_ltv_entry.begin(),
                   streaming_context_ltv_entry.end());
