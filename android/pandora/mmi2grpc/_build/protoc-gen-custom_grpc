@@ -55,14 +55,27 @@ def generate_method(imports, file, service, method):
     output_type = import_type(imports, method.output_type)
 
     if input_mode == 'stream':
-        return (
-            f'def {method.name}(self, iterator, **kwargs):\n'
-            f'    return self.channel.{input_mode}_{output_mode}(\n'
-            f"        '/{file.package}.{service.name}/{method.name}',\n"
-            f'        request_serializer={input_type}.SerializeToString,\n'
-            f'        response_deserializer={output_type}.FromString\n'
-            f'    )(iterator, **kwargs)'
-        ).split('\n')
+        if output_mode == 'stream':
+            return (
+                f'def {method.name}(self):\n'
+                f'    from mmi2grpc._streaming import StreamWrapper\n'
+                f'    return StreamWrapper(\n'
+                f'        self.channel.{input_mode}_{output_mode}(\n'
+                f"            '/{file.package}.{service.name}/{method.name}',\n"
+                f'            request_serializer={input_type}.SerializeToString,\n'
+                f'            response_deserializer={output_type}.FromString\n'
+                f'        ),\n'
+                f'        {input_type})'
+            ).split('\n')
+        else:
+            return (
+                f'def {method.name}(self, iterator, **kwargs):\n'
+                f'    return self.channel.{input_mode}_{output_mode}(\n'
+                f"        '/{file.package}.{service.name}/{method.name}',\n"
+                f'        request_serializer={input_type}.SerializeToString,\n'
+                f'        response_deserializer={output_type}.FromString\n'
+                f'    )(iterator, **kwargs)'
+            ).split('\n')
     else:
         return (
             f'def {method.name}(self, wait_for_ready=None, **kwargs):\n'
