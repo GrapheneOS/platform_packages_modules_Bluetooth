@@ -30,7 +30,7 @@ service GATT {
   rpc ReadCharacteristicFromHandle(ReadCharacteristicRequest) returns (ReadCharacteristicResponse);
 
   // Reads characteristic with given uuid, start and end handles.
-  rpc ReadCharacteristicFromUuid(ReadCharacteristicFromUuidRequest) returns (ReadCharacteristicResponse);
+  rpc ReadCharacteristicsFromUuid(ReadCharacteristicsFromUuidRequest) returns (ReadCharacteristicsFromUuidResponse);
 
   // Reads characteristic with given descriptor handle.
   rpc ReadCharacteristicDescriptorFromHandle(ReadCharacteristicDescriptorRequest) returns (ReadCharacteristicDescriptorResponse);
@@ -70,6 +70,12 @@ message GattDescriptor {
   uint32 handle = 1;
   uint32 permissions = 2;
   string uuid = 3;
+}
+
+message GattReadValue {
+  uint32 handle = 1;
+  bytes value = 2;
+  AttStatusCode status = 3;
 }
 
 // Request for the `ExchangeMTU` rpc.
@@ -122,18 +128,22 @@ message ReadCharacteristicRequest {
   uint32 handle = 2;
 }
 
-// Request for the `ReadCharacteristicFromUuid` rpc.
-message ReadCharacteristicFromUuidRequest {
+// Request for the `ReadCharacteristicsFromUuid` rpc.
+message ReadCharacteristicsFromUuidRequest {
   Connection connection = 1;
   string uuid = 2;
   uint32 start_handle = 3;
   uint32 end_handle = 4;
 }
 
-// Response for the `ReadCharacteristicFromHandle` and `ReadCharacteristicFromUuid` rpc.
+// Response for the `ReadCharacteristicFromHandle` rpc.
 message ReadCharacteristicResponse {
-  bytes value = 1;
-  AttStatusCode status = 2;
+  GattReadValue readValue = 1;
+}
+
+// Response for the `ReadCharacteristicsFromUuid` rpc.
+message ReadCharacteristicsFromUuidResponse {
+  repeated GattReadValue readValues = 1;
 }
 
 // Request for the `ReadCharacteristicDescriptorFromHandle` rpc.
@@ -144,6 +154,5 @@ message ReadCharacteristicDescriptorRequest {
 
 // Response for the `ReadCharacteristicDescriptorFromHandle` rpc.
 message ReadCharacteristicDescriptorResponse {
-  bytes value = 1;
-  AttStatusCode status = 2;
+  GattReadValue readValue = 1;
 }
