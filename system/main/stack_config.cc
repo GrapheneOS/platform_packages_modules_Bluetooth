@@ -38,6 +38,8 @@ const char* PTS_CONNECT_EATT_UNCONDITIONALLY =
     "PTS_ConnectEattUncondictionally";
 const char* PTS_CONNECT_EATT_UNENCRYPTED = "PTS_ConnectEattUnencrypted";
 const char* PTS_BROADCAST_UNENCRYPTED = "PTS_BroadcastUnencrypted";
+const char* PTS_FORCE_LE_AUDIO_MULTIPLE_CONTEXTS_METADATA =
+    "PTS_ForceLeAudioMultipleContextsMetadata";
 const char* PTS_EATT_PERIPHERAL_COLLISION_SUPPORT =
     "PTS_EattPeripheralCollionSupport";
 const char* PTS_EATT_USE_FOR_ALL_SERVICES = "PTS_UseEattForAllServices";
@@ -156,6 +158,11 @@ static bool get_pts_use_eatt_for_all_services(void) {
                          PTS_EATT_USE_FOR_ALL_SERVICES, false);
 }
 
+static bool get_pts_force_le_audio_multiple_contexts_metadata(void) {
+  return config_get_bool(*config, CONFIG_DEFAULT_SECTION,
+                         PTS_FORCE_LE_AUDIO_MULTIPLE_CONTEXTS_METADATA, false);
+}
+
 static bool get_pts_l2cap_ecoc_upper_tester(void) {
   return config_get_bool(*config, CONFIG_DEFAULT_SECTION,
                          PTS_L2CAP_ECOC_UPPER_TESTER, false);
@@ -197,26 +204,28 @@ static const std::string* get_pts_broadcast_audio_config_options(void) {
 
 static config_t* get_all(void) { return config.get(); }
 
-const stack_config_t interface = {get_trace_config_enabled,
-                                  get_pts_avrcp_test,
-                                  get_pts_secure_only_mode,
-                                  get_pts_conn_updates_disabled,
-                                  get_pts_crosskey_sdp_disable,
-                                  get_pts_smp_options,
-                                  get_pts_smp_failure_case,
-                                  get_pts_force_eatt_for_notifications,
-                                  get_pts_connect_eatt_unconditionally,
-                                  get_pts_connect_eatt_before_encryption,
-                                  get_pts_unencrypt_broadcast,
-                                  get_pts_eatt_peripheral_collision_support,
-                                  get_pts_use_eatt_for_all_services,
-                                  get_pts_l2cap_ecoc_upper_tester,
-                                  get_pts_l2cap_ecoc_min_key_size,
-                                  get_pts_l2cap_ecoc_initial_chan_cnt,
-                                  get_pts_l2cap_ecoc_connect_remaining,
-                                  get_pts_l2cap_ecoc_send_num_of_sdu,
-                                  get_pts_l2cap_ecoc_reconfigure,
-                                  get_pts_broadcast_audio_config_options,
-                                  get_all};
+const stack_config_t interface = {
+    get_trace_config_enabled,
+    get_pts_avrcp_test,
+    get_pts_secure_only_mode,
+    get_pts_conn_updates_disabled,
+    get_pts_crosskey_sdp_disable,
+    get_pts_smp_options,
+    get_pts_smp_failure_case,
+    get_pts_force_eatt_for_notifications,
+    get_pts_connect_eatt_unconditionally,
+    get_pts_connect_eatt_before_encryption,
+    get_pts_unencrypt_broadcast,
+    get_pts_eatt_peripheral_collision_support,
+    get_pts_use_eatt_for_all_services,
+    get_pts_force_le_audio_multiple_contexts_metadata,
+    get_pts_l2cap_ecoc_upper_tester,
+    get_pts_l2cap_ecoc_min_key_size,
+    get_pts_l2cap_ecoc_initial_chan_cnt,
+    get_pts_l2cap_ecoc_connect_remaining,
+    get_pts_l2cap_ecoc_send_num_of_sdu,
+    get_pts_l2cap_ecoc_reconfigure,
+    get_pts_broadcast_audio_config_options,
+    get_all};
 
 const stack_config_t* stack_config_get_interface(void) { return &interface; }
