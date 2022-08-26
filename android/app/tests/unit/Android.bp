@@ -20,12 +20,12 @@ android_test {
     static_libs: [
         "androidx.test.ext.truth",
         "androidx.test.rules",
-        "mockito-target",
         "androidx.test.espresso.intents",
-        "gson-prebuilt-jar",
         "androidx.room_room-migration",
         "androidx.room_room-runtime",
         "androidx.room_room-testing",
+        "gson",
+        "mockito-target",
         "truth-prebuilt",
         "PlatformProperties"
     ],
