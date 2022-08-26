@@ -115,7 +115,10 @@ typedef enum {
 
   // Some car kits do not send the AT+BIND command while establishing the SLC
   // which causes an HFP profile connection failure
-  INTEROP_SLC_SKIP_BIND_COMMAND
+  INTEROP_SLC_SKIP_BIND_COMMAND,
+
+  // Respond AVRCP profile version only 1.3 for some device.
+  INTEROP_AVRCP_1_3_ONLY
 } interop_feature_t;
 
 // Check if a given |addr| matches a known interoperability workaround as
