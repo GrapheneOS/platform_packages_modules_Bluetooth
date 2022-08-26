@@ -540,6 +540,8 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
 
     if (le_address_manager_->GetAddressPolicy() != LeAddressManager::USE_PUBLIC_ADDRESS) {
       own_address_type_ = OwnAddressType::RANDOM_DEVICE_ADDRESS;
+    } else {
+      own_address_type_ = OwnAddressType::PUBLIC_DEVICE_ADDRESS;
     }
 
     switch (api_type_) {
