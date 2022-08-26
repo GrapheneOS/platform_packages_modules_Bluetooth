@@ -26,6 +26,7 @@
 #include "device/include/controller.h"
 #include "embdrv/lc3/include/lc3.h"
 #include "gd/common/strings.h"
+#include "internal_include/stack_config.h"
 #include "osi/include/log.h"
 #include "osi/include/properties.h"
 #include "stack/include/btm_api_types.h"
@@ -264,6 +265,27 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
     uint16_t context_type =
         static_cast<std::underlying_type<LeAudioContextType>::type>(
             LeAudioContextType::MEDIA);
+
+    /* Adds multiple contexts and CCIDs regardless of the incoming audio
+     * context. Android has only two CCIDs, one for Media and one for
+     * Conversational context. Even though we are not broadcasting
+     * Conversational streams, some PTS test cases wants multiple CCIDs.
+     */
+    if (stack_config_get_interface()
+            ->get_pts_force_le_audio_multiple_contexts_metadata()) {
+      context_type =
+          static_cast<std::underlying_type<LeAudioContextType>::type>(
+              LeAudioContextType::MEDIA) |
+          static_cast<std::underlying_type<LeAudioContextType>::type>(
+              LeAudioContextType::CONVERSATIONAL);
+      auto stream_context_vec =
+          ltv.Find(le_audio::types::kLeAudioMetadataTypeStreamingAudioContext);
+      if (stream_context_vec) {
+        auto pp = stream_context_vec.value().data();
+        UINT16_TO_STREAM(pp, context_type);
+      }
+    }
+
     auto stream_context_vec =
         ltv.Find(le_audio::types::kLeAudioMetadataTypeStreamingAudioContext);
     if (stream_context_vec) {
@@ -303,6 +325,27 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
     uint16_t context_type =
         static_cast<std::underlying_type<LeAudioContextType>::type>(
             LeAudioContextType::MEDIA);
+
+    /* Adds multiple contexts and CCIDs regardless of the incoming audio
+     * context. Android has only two CCIDs, one for Media and one for
+     * Conversational context. Even though we are not broadcasting
+     * Conversational streams, some PTS test cases wants multiple CCIDs.
+     */
+    if (stack_config_get_interface()
+            ->get_pts_force_le_audio_multiple_contexts_metadata()) {
+      context_type =
+          static_cast<std::underlying_type<LeAudioContextType>::type>(
+              LeAudioContextType::MEDIA) |
+          static_cast<std::underlying_type<LeAudioContextType>::type>(
+              LeAudioContextType::CONVERSATIONAL);
+      auto stream_context_vec =
+          ltv.Find(le_audio::types::kLeAudioMetadataTypeStreamingAudioContext);
+      if (stream_context_vec) {
+        auto pp = stream_context_vec.value().data();
+        UINT16_TO_STREAM(pp, context_type);
+      }
+    }
+
     auto stream_context_vec =
         ltv.Find(le_audio::types::kLeAudioMetadataTypeStreamingAudioContext);
     if (stream_context_vec) {
