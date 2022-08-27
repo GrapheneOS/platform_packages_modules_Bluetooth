@@ -199,12 +199,6 @@ bool IsLc3SettingSupported(LeAudioContextType context_type, Lc3SettingId id) {
   /* Update those values, on any change of codec linked with content type */
   switch (context_type) {
     case LeAudioContextType::RINGTONE:
-      if (id == Lc3SettingId::LC3_16_2 || id == Lc3SettingId::LC3_16_1 ||
-          id == Lc3SettingId::LC3_32_2)
-        return true;
-
-      break;
-
     case LeAudioContextType::CONVERSATIONAL:
       if (id == Lc3SettingId::LC3_16_1 || id == Lc3SettingId::LC3_16_2 ||
           id == Lc3SettingId::LC3_24_1 || id == Lc3SettingId::LC3_24_2 ||
@@ -217,6 +211,11 @@ bool IsLc3SettingSupported(LeAudioContextType context_type, Lc3SettingId id) {
       break;
 
     case LeAudioContextType::MEDIA:
+    case LeAudioContextType::ALERTS:
+    case LeAudioContextType::INSTRUCTIONAL:
+    case LeAudioContextType::NOTIFICATIONS:
+    case LeAudioContextType::EMERGENCYALARM:
+    case LeAudioContextType::UNSPECIFIED:
       if (id == Lc3SettingId::LC3_16_1 || id == Lc3SettingId::LC3_16_2 ||
           id == Lc3SettingId::LC3_32_1 || id == Lc3SettingId::LC3_32_2 ||
           id == Lc3SettingId::LC3_48_4 || id == Lc3SettingId::LC3_48_2 ||
