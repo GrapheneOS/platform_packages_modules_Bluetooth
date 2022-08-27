@@ -128,9 +128,15 @@
     <string name="a2dp_sink_mbs_label" msgid="6035366346569127155">"ब्लूटूथ ऑडियो"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"4 जीबी से बड़ी फ़ाइलें ट्रांसफ़र नहीं की जा सकतीं"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"ब्लूटूथ से कनेक्ट करें"</string>
-    <string name="bluetooth_enabled_apm_title" msgid="1623939715492599179">"आपने ब्लूटूथ चालू कर दिया है"</string>
-    <string name="bluetooth_enabled_apm_message" msgid="4745310982235821141">"आपके फ़ोन में हवाई जहाज़ मोड पर, ब्लूटूथ चालू रहेगा. ऐसा तब तक होगा, जब तक इस मोड में होने के दौरान ब्लूटूथ को बंद नहीं किया जाता"</string>
+    <!-- no translation found for bluetooth_enabled_apm_title (6914461147844949044) -->
+    <skip />
+    <!-- no translation found for bluetooth_enabled_apm_message (8990667142380927316) -->
+    <skip />
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"ब्लूटूथ चालू रहता है"</string>
-    <string name="bluetooth_and_wifi_stays_on_title" msgid="4886917707417592398">"ब्लूटूथ और वाई-फ़ाई चालू रहता है"</string>
-    <string name="bluetooth_and_wifi_stays_on_message" msgid="1790370141941913341">"आपके फ़ोन में हवाई जहाज़ मोड पर, ब्लूटूथ और वाई-फ़ाई दोनों चालू रहेंगे. ऐसा तब तक होगा, जब तक इस मोड में होने के दौरान वाई-फ़ाई या ब्लूटूथ को बंद नहीं किया जाता"</string>
+    <!-- no translation found for bluetooth_stays_on_message (2770176686603189536) -->
+    <skip />
+    <!-- no translation found for bluetooth_and_wifi_stays_on_title (5821932798860821244) -->
+    <skip />
+    <!-- no translation found for bluetooth_and_wifi_stays_on_message (4120501683284996436) -->
+    <skip />
 </resources>

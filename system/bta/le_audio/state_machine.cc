@@ -727,6 +727,12 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
             AudioStreamDataPathState::DATA_PATH_ESTABLISHED) {
       value |= bluetooth::hci::iso_manager::kRemoveIsoDataPathDirectionOutput;
     }
+
+    if (value == 0) {
+      LOG_INFO("Data path was not set. Nothing to do here.");
+      return;
+    }
+
     IsoManager::GetInstance()->RemoveIsoDataPath(cis_conn_hdl, value);
   }
 
@@ -736,6 +742,11 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     /* Reset the disconnected CIS states */
 
     FreeLinkQualityReports(leAudioDevice);
+
+    /* If this is peer disconnecting CIS, make sure to clear data path */
+    if (event->reason != HCI_ERR_CONN_CAUSE_LOCAL_HOST) {
+      RemoveDataPathByCisHandle(leAudioDevice, event->cis_conn_hdl);
+    }
 
     auto ases_pair = leAudioDevice->GetAsesByCisConnHdl(event->cis_conn_hdl);
     if (ases_pair.sink) {
@@ -922,6 +933,17 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
                    *ase->codec_config.codec_frames_blocks_per_sdu);
       }
 
+      if (stream_conf->sink_frame_duration_us == 0) {
+        stream_conf->sink_frame_duration_us =
+            ase->codec_config.GetFrameDurationUs();
+      } else {
+        ASSERT_LOG(stream_conf->sink_frame_duration_us ==
+                       ase->codec_config.GetFrameDurationUs(),
+                   "frame_duration_us: %d!=%d",
+                   stream_conf->sink_frame_duration_us,
+                   ase->codec_config.GetFrameDurationUs());
+      }
+
       LOG_INFO(
           " Added Sink Stream Configuration. CIS Connection Handle: %d"
           ", Audio Channel Allocation: %d"
@@ -979,6 +1001,17 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
                    "codec_frames_blocks_per_sdu: %d!=%d",
                    stream_conf->source_codec_frames_blocks_per_sdu,
                    *ase->codec_config.codec_frames_blocks_per_sdu);
+      }
+
+      if (stream_conf->source_frame_duration_us == 0) {
+        stream_conf->source_frame_duration_us =
+            ase->codec_config.GetFrameDurationUs();
+      } else {
+        ASSERT_LOG(stream_conf->source_frame_duration_us ==
+                       ase->codec_config.GetFrameDurationUs(),
+                   "frame_duration_us: %d!=%d",
+                   stream_conf->source_frame_duration_us,
+                   ase->codec_config.GetFrameDurationUs());
       }
 
       LOG_INFO(

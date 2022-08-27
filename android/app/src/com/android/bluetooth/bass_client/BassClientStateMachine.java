@@ -771,9 +771,11 @@ public class BassClientStateMachine extends StateMachine {
         log("processBroadcastReceiverState: characteristic:" + characteristic);
         BluetoothLeBroadcastReceiveState recvState = parseBroadcastReceiverState(
                 receiverState);
-        if (recvState == null || recvState.getSourceId() == -1) {
-            log("Null recvState or processBroadcastReceiverState: invalid index: "
-                    + recvState.getSourceId());
+        if (recvState == null) {
+            log("processBroadcastReceiverState: Null recvState");
+            return;
+        } else if (recvState.getSourceId() == -1) {
+            log("processBroadcastReceiverState: invalid index: " + recvState.getSourceId());
             return;
         }
         BluetoothLeBroadcastReceiveState oldRecvState =

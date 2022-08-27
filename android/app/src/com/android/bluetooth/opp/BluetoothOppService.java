@@ -52,8 +52,6 @@ import android.os.Binder;
 import android.os.Handler;
 import android.os.Message;
 import android.os.Process;
-import android.os.UserHandle;
-import android.os.UserManager;
 import android.sysprop.BluetoothProperties;
 import android.util.Log;
 
@@ -252,16 +250,8 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
             Log.v(TAG, "start()");
         }
 
-        //Check for user restrictions before enabling component
-        UserManager mUserManager = getSystemService(UserManager.class);
-        if (!mUserManager.hasUserRestrictionForUser(
-                UserManager.DISALLOW_BLUETOOTH_SHARING, UserHandle.CURRENT)) {
-            setComponentAvailable(LAUNCHER_ACTIVITY, true);
-        }
-
         setComponentAvailable(OPP_PROVIDER, true);
         setComponentAvailable(OPP_FILE_PROVIDER, true);
-        setComponentAvailable(BT_ENABLE_ACTIVITY, true);
         setComponentAvailable(BT_ERROR_ACTIVITY, true);
         setComponentAvailable(BT_ENABLING_ACTIVITY, true);
         setComponentAvailable(INCOMING_FILE_CONFIRM_ACTIVITY, true);
@@ -306,8 +296,6 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
 
         setComponentAvailable(OPP_PROVIDER, false);
         setComponentAvailable(OPP_FILE_PROVIDER, false);
-        setComponentAvailable(LAUNCHER_ACTIVITY, false);
-        setComponentAvailable(BT_ENABLE_ACTIVITY, false);
         setComponentAvailable(BT_ERROR_ACTIVITY, false);
         setComponentAvailable(BT_ENABLING_ACTIVITY, false);
         setComponentAvailable(INCOMING_FILE_CONFIRM_ACTIVITY, false);
