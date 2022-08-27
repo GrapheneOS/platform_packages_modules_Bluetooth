@@ -26,6 +26,12 @@ using le_audio::types::LeAudioContextType;
 
 namespace le_audio {
 namespace utils {
+
+/* The returned LeAudioContextType should have its entry in the
+ * AudioSetConfigurationProvider's ContextTypeToScenario mapping table.
+ * Otherwise the AudioSetConfigurationProvider will fall back
+ * to default scenario.
+ */
 LeAudioContextType AudioContentToLeAudioContext(
     audio_content_type_t content_type, audio_usage_t usage) {
   /* Check audio attribute usage of stream */
