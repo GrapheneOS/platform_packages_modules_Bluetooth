@@ -16,28 +16,19 @@
 
 package com.android.pandora
 
-import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
-import android.bluetooth.BluetoothGatt
-import android.bluetooth.BluetoothGattService
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattDescriptor
+import android.bluetooth.BluetoothGattService
 import android.bluetooth.BluetoothManager
-import android.bluetooth.BluetoothStatusCodes
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.util.Log
-
 import com.google.protobuf.Empty
-import com.google.protobuf.ByteString
-
 import io.grpc.Status
 import io.grpc.stub.StreamObserver
-
 import java.util.UUID
-
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -47,7 +38,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.shareIn
-
 import pandora.GATTGrpc.GATTImplBase
 import pandora.GattProto.*
 
@@ -74,8 +64,7 @@ class Gatt(private val context: Context) : GATTImplBase() {
     mScope.cancel()
   }
 
-  override fun exchangeMTU(request: ExchangeMTURequest,
-      responseObserver: StreamObserver<Empty>) {
+  override fun exchangeMTU(request: ExchangeMTURequest, responseObserver: StreamObserver<Empty>) {
     grpcUnary<Empty>(mScope, responseObserver) {
       val mtu = request.mtu
       Log.i(TAG, "exchangeMTU MTU=$mtu")
@@ -87,16 +76,21 @@ class Gatt(private val context: Context) : GATTImplBase() {
     }
   }
 
-  override fun writeCharacteristicFromHandle(request: WriteCharacteristicRequest,
-      responseObserver: StreamObserver<Empty>) {
+  override fun writeCharacteristicFromHandle(
+    request: WriteCharacteristicRequest,
+    responseObserver: StreamObserver<Empty>
+  ) {
     grpcUnary<Empty>(mScope, responseObserver) {
       val gattInstance = GattInstance.get(request.connection.cookie)
       val characteristic: BluetoothGattCharacteristic? =
-          getCharacteristicWithHandle(request.handle, gattInstance)
+        getCharacteristicWithHandle(request.handle, gattInstance)
       if (characteristic != null) {
         Log.i(TAG, "writeCharacteristicFromHandle handle=${request.handle}")
-        gattInstance.mGatt.writeCharacteristic(characteristic,
-            request.value.toByteArray(), BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT)
+        gattInstance.mGatt.writeCharacteristic(
+          characteristic,
+          request.value.toByteArray(),
+          BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
+        )
       } else {
         Log.e(TAG, "Characteristic handle ${request.handle} not found.")
         throw Status.UNKNOWN.asException()
@@ -105,8 +99,10 @@ class Gatt(private val context: Context) : GATTImplBase() {
     }
   }
 
-  override fun discoverServiceByUuid(request: DiscoverServiceByUuidRequest,
-      responseObserver: StreamObserver<DiscoverServicesResponse>) {
+  override fun discoverServiceByUuid(
+    request: DiscoverServiceByUuidRequest,
+    responseObserver: StreamObserver<DiscoverServicesResponse>
+  ) {
     grpcUnary<DiscoverServicesResponse>(mScope, responseObserver) {
       val gattInstance = GattInstance.get(request.connection.cookie)
       Log.i(TAG, "discoverServiceByUuid uuid=${request.uuid}")
@@ -122,20 +118,25 @@ class Gatt(private val context: Context) : GATTImplBase() {
     }
   }
 
-  override fun discoverServices(request: DiscoverServicesRequest,
-      responseObserver: StreamObserver<DiscoverServicesResponse>) {
+  override fun discoverServices(
+    request: DiscoverServicesRequest,
+    responseObserver: StreamObserver<DiscoverServicesResponse>
+  ) {
     grpcUnary<DiscoverServicesResponse>(mScope, responseObserver) {
       Log.i(TAG, "discoverServices")
       val gattInstance = GattInstance.get(request.connection.cookie)
       check(gattInstance.mGatt.discoverServices())
       gattInstance.waitForDiscoveryEnd()
       DiscoverServicesResponse.newBuilder()
-          .addAllServices(generateServicesList(gattInstance.mGatt.services, 1)).build()
+        .addAllServices(generateServicesList(gattInstance.mGatt.services, 1))
+        .build()
     }
   }
 
-  override fun discoverServicesSdp(request: DiscoverServicesSdpRequest,
-      responseObserver: StreamObserver<DiscoverServicesSdpResponse>) {
+  override fun discoverServicesSdp(
+    request: DiscoverServicesSdpRequest,
+    responseObserver: StreamObserver<DiscoverServicesSdpResponse>
+  ) {
     grpcUnary<DiscoverServicesSdpResponse>(mScope, responseObserver) {
       Log.i(TAG, "discoverServicesSdp")
       val bluetoothDevice = request.address.toBluetoothDevice(mBluetoothAdapter)
@@ -148,13 +149,11 @@ class Gatt(private val context: Context) : GATTImplBase() {
       for (parcelUuid in bluetoothDevice.getUuids()) {
         uuidsList.add(parcelUuid.toString())
       }
-      DiscoverServicesSdpResponse.newBuilder()
-          .addAllServiceUuids(uuidsList).build()
+      DiscoverServicesSdpResponse.newBuilder().addAllServiceUuids(uuidsList).build()
     }
   }
 
-  override fun clearCache(request: ClearCacheRequest,
-      responseObserver: StreamObserver<Empty>) {
+  override fun clearCache(request: ClearCacheRequest, responseObserver: StreamObserver<Empty>) {
     grpcUnary<Empty>(mScope, responseObserver) {
       Log.i(TAG, "clearCache")
       val gattInstance = GattInstance.get(request.connection.cookie)
@@ -163,62 +162,78 @@ class Gatt(private val context: Context) : GATTImplBase() {
     }
   }
 
-  override fun readCharacteristicFromHandle(request: ReadCharacteristicRequest,
-      responseObserver: StreamObserver<ReadCharacteristicResponse>) {
+  override fun readCharacteristicFromHandle(
+    request: ReadCharacteristicRequest,
+    responseObserver: StreamObserver<ReadCharacteristicResponse>
+  ) {
     grpcUnary<ReadCharacteristicResponse>(mScope, responseObserver) {
       Log.i(TAG, "readCharacteristicFromHandle handle=${request.handle}")
       val gattInstance = GattInstance.get(request.connection.cookie)
       val characteristic: BluetoothGattCharacteristic? =
-          getCharacteristicWithHandle(request.handle, gattInstance)
-      val readValue: GattInstance.GattInstanceValueRead?
-      checkNotNull(characteristic) {
-        "Characteristic handle ${request.handle} not found."
-      }
-      readValue = gattInstance.readCharacteristicBlocking(characteristic)
+        getCharacteristicWithHandle(request.handle, gattInstance)
+      checkNotNull(characteristic) { "Characteristic handle ${request.handle} not found." }
+      val readValue = gattInstance.readCharacteristicBlocking(characteristic)
       ReadCharacteristicResponse.newBuilder()
-          .setStatus(AttStatusCode.forNumber(readValue.status))
-          .setValue(ByteString.copyFrom(readValue.value)).build()
+        .setReadValue(
+          GattReadValue.newBuilder()
+            .setHandle(readValue.handle)
+            .setValue(readValue.value)
+            .setStatus(readValue.status)
+        )
+        .build()
     }
   }
 
-  override fun readCharacteristicFromUuid(request: ReadCharacteristicFromUuidRequest,
-      responseObserver: StreamObserver<ReadCharacteristicResponse>) {
-    grpcUnary<ReadCharacteristicResponse>(mScope, responseObserver) {
-      Log.i(TAG, "readCharacteristicFromUuid uuid=${request.uuid}")
+  override fun readCharacteristicsFromUuid(
+    request: ReadCharacteristicsFromUuidRequest,
+    responseObserver: StreamObserver<ReadCharacteristicsFromUuidResponse>
+  ) {
+    grpcUnary<ReadCharacteristicsFromUuidResponse>(mScope, responseObserver) {
+      Log.i(TAG, "readCharacteristicsFromUuid uuid=${request.uuid}")
       val gattInstance = GattInstance.get(request.connection.cookie)
       tryDiscoverServices(gattInstance)
-      val readValue = gattInstance.readCharacteristicUuidBlocking(UUID.fromString(request.uuid),
-          request.startHandle, request.endHandle)
-      ReadCharacteristicResponse.newBuilder()
-          .setStatus(AttStatusCode.forNumber(readValue.status))
-          .setValue(ByteString.copyFrom(readValue.value)).build()
+      val readValues =
+        gattInstance.readCharacteristicUuidBlocking(
+          UUID.fromString(request.uuid),
+          request.startHandle,
+          request.endHandle
+        )
+      ReadCharacteristicsFromUuidResponse.newBuilder()
+        .addAllReadValues(generateReadValuesList(readValues))
+        .build()
     }
   }
 
-  override fun readCharacteristicDescriptorFromHandle(request: ReadCharacteristicDescriptorRequest,
-      responseObserver: StreamObserver<ReadCharacteristicDescriptorResponse>) {
+  override fun readCharacteristicDescriptorFromHandle(
+    request: ReadCharacteristicDescriptorRequest,
+    responseObserver: StreamObserver<ReadCharacteristicDescriptorResponse>
+  ) {
     grpcUnary<ReadCharacteristicDescriptorResponse>(mScope, responseObserver) {
       Log.i(TAG, "readCharacteristicDescriptorFromHandle handle=${request.handle}")
       val gattInstance = GattInstance.get(request.connection.cookie)
       val descriptor: BluetoothGattDescriptor? =
-          getDescriptorWithHandle(request.handle, gattInstance)
-      val readValue: GattInstance.GattInstanceValueRead?
-      checkNotNull(descriptor) {
-        "Descriptor handle ${request.handle} not found."
-      }
-      readValue = gattInstance.readDescriptorBlocking(descriptor)
+        getDescriptorWithHandle(request.handle, gattInstance)
+      checkNotNull(descriptor) { "Descriptor handle ${request.handle} not found." }
+      val readValue = gattInstance.readDescriptorBlocking(descriptor)
       ReadCharacteristicDescriptorResponse.newBuilder()
-        .setStatus(AttStatusCode.forNumber(readValue.status))
-        .setValue(ByteString.copyFrom(readValue.value)).build()
+        .setReadValue(
+          GattReadValue.newBuilder()
+            .setHandle(readValue.handle)
+            .setValue(readValue.value)
+            .setStatus(readValue.status)
+        )
+        .build()
     }
   }
 
   /**
-   * Discovers services, then returns characteristic with given handle.
-   * BluetoothGatt API is package-private so we have to redefine it here.
+   * Discovers services, then returns characteristic with given handle. BluetoothGatt API is
+   * package-private so we have to redefine it here.
    */
-  private suspend fun getCharacteristicWithHandle(handle: Int,
-      gattInstance: GattInstance): BluetoothGattCharacteristic? {
+  private suspend fun getCharacteristicWithHandle(
+    handle: Int,
+    gattInstance: GattInstance
+  ): BluetoothGattCharacteristic? {
     tryDiscoverServices(gattInstance)
     for (service: BluetoothGattService in gattInstance.mGatt.services.orEmpty()) {
       for (characteristic: BluetoothGattCharacteristic in service.characteristics) {
@@ -231,11 +246,13 @@ class Gatt(private val context: Context) : GATTImplBase() {
   }
 
   /**
-   * Discovers services, then returns descriptor with given handle.
-   * BluetoothGatt API is package-private so we have to redefine it here.
+   * Discovers services, then returns descriptor with given handle. BluetoothGatt API is
+   * package-private so we have to redefine it here.
    */
-  private suspend fun getDescriptorWithHandle(handle: Int,
-      gattInstance: GattInstance): BluetoothGattDescriptor? {
+  private suspend fun getDescriptorWithHandle(
+    handle: Int,
+    gattInstance: GattInstance
+  ): BluetoothGattDescriptor? {
     tryDiscoverServices(gattInstance)
     for (service: BluetoothGattService in gattInstance.mGatt.services.orEmpty()) {
       for (characteristic: BluetoothGattCharacteristic in service.characteristics) {
@@ -249,32 +266,33 @@ class Gatt(private val context: Context) : GATTImplBase() {
     return null
   }
 
-  /**
-   * Generates a list of GattService from a list of BluetoothGattService.
-   */
-  private fun generateServicesList(servicesList: List<BluetoothGattService>, dpth: Int)
-      : ArrayList<GattService> {
+  /** Generates a list of GattService from a list of BluetoothGattService. */
+  private fun generateServicesList(
+    servicesList: List<BluetoothGattService>,
+    dpth: Int
+  ): ArrayList<GattService> {
     val newServicesList = arrayListOf<GattService>()
     for (service in servicesList) {
-      val serviceBuilder = GattService.newBuilder()
+      val serviceBuilder =
+        GattService.newBuilder()
           .setHandle(service.getInstanceId())
           .setType(service.getType())
           .setUuid(service.getUuid().toString())
-          .addAllIncludedServices(generateServicesList(service.getIncludedServices(), dpth+1))
+          .addAllIncludedServices(generateServicesList(service.getIncludedServices(), dpth + 1))
           .addAllCharacteristics(generateCharacteristicsList(service.characteristics))
       newServicesList.add(serviceBuilder.build())
     }
     return newServicesList
   }
 
-  /**
-   * Generates a list of GattCharacteristic from a list of BluetoothGattCharacteristic.
-   */
-  private fun generateCharacteristicsList(characteristicsList : List<BluetoothGattCharacteristic>)
-      : ArrayList<GattCharacteristic> {
+  /** Generates a list of GattCharacteristic from a list of BluetoothGattCharacteristic. */
+  private fun generateCharacteristicsList(
+    characteristicsList: List<BluetoothGattCharacteristic>
+  ): ArrayList<GattCharacteristic> {
     val newCharacteristicsList = arrayListOf<GattCharacteristic>()
     for (characteristic in characteristicsList) {
-      val characteristicBuilder = GattCharacteristic.newBuilder()
+      val characteristicBuilder =
+        GattCharacteristic.newBuilder()
           .setProperties(characteristic.getProperties())
           .setPermissions(characteristic.getPermissions())
           .setUuid(characteristic.getUuid().toString())
@@ -285,20 +303,36 @@ class Gatt(private val context: Context) : GATTImplBase() {
     return newCharacteristicsList
   }
 
-  /**
-   * Generates a list of GattDescriptor from a list of BluetoothGattDescriptor.
-   */
-  private fun generateDescriptorsList(descriptorsList : List<BluetoothGattDescriptor>)
-      : ArrayList<GattDescriptor> {
+  /** Generates a list of GattDescriptor from a list of BluetoothGattDescriptor. */
+  private fun generateDescriptorsList(
+    descriptorsList: List<BluetoothGattDescriptor>
+  ): ArrayList<GattDescriptor> {
     val newDescriptorsList = arrayListOf<GattDescriptor>()
     for (descriptor in descriptorsList) {
-      val descriptorBuilder = GattDescriptor.newBuilder()
+      val descriptorBuilder =
+        GattDescriptor.newBuilder()
           .setHandle(descriptor.getInstanceId())
           .setPermissions(descriptor.getPermissions())
           .setUuid(descriptor.getUuid().toString())
       newDescriptorsList.add(descriptorBuilder.build())
     }
     return newDescriptorsList
+  }
+
+  /** Generates a list of GattReadValue from a list of GattInstanceValueRead. */
+  private fun generateReadValuesList(
+    readValuesList: ArrayList<GattInstance.GattInstanceValueRead>
+  ): ArrayList<GattReadValue> {
+    val newReadValuesList = arrayListOf<GattReadValue>()
+    for (readValue in readValuesList) {
+      val readValueBuilder =
+        GattReadValue.newBuilder()
+          .setHandle(readValue.handle)
+          .setValue(readValue.value)
+          .setStatus(readValue.status)
+      newReadValuesList.add(readValueBuilder.build())
+    }
+    return newReadValuesList
   }
 
   private suspend fun tryDiscoverServices(gattInstance: GattInstance) {

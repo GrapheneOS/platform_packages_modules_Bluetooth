@@ -21,23 +21,17 @@ import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCallback
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattDescriptor
+import android.bluetooth.BluetoothGattService
 import android.bluetooth.BluetoothProfile
 import android.content.Context
 import android.util.Log
-
 import com.google.protobuf.ByteString
-
 import java.util.UUID
-
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.withTimeoutOrNull
+import pandora.GattProto.*
 
-/**
- * GattInstance extends and simplifies Android GATT APIs without re-implementing them.
- */
+/** GattInstance extends and simplifies Android GATT APIs without re-implementing them. */
 @kotlinx.coroutines.ExperimentalCoroutinesApi
 class GattInstance(val mDevice: BluetoothDevice, val mTransport: Int, val mContext: Context) {
   private val TAG = "GattInstance"
@@ -45,83 +39,98 @@ class GattInstance(val mDevice: BluetoothDevice, val mTransport: Int, val mConte
 
   private var mServiceDiscovered = MutableStateFlow(false)
   private var mConnectionState = MutableStateFlow(BluetoothProfile.STATE_DISCONNECTED)
-  private var mValueRead = MutableStateFlow(false)
+  private var mValuesRead = MutableStateFlow(0)
 
   /**
-   * Wrapper for characteristic and descriptor reading.
-   * Uuid, startHandle and endHandle are used to compare with the callback returned object.
-   * Value and status can be read once the read has been done.
+   * Wrapper for characteristic and descriptor reading. Uuid, startHandle and endHandle are used to
+   * compare with the callback returned object. Value and status can be read once the read has been
+   * done. ByteString and AttStatusCode are used to ensure compatibility with proto.
    */
-  class GattInstanceValueRead(var uuid: UUID?, var startHandle: Int, var endHandle: Int,
-      var value: ByteArray?, var status: Int) {}
-  private var mGattInstanceValueRead = GattInstanceValueRead(
-      null, 0, 0, byteArrayOf(), BluetoothGatt.GATT_FAILURE)
+  class GattInstanceValueRead(
+    var uuid: UUID?,
+    var handle: Int,
+    var value: ByteString?,
+    var status: AttStatusCode
+  ) {}
+  private var mGattInstanceValuesRead = arrayListOf<GattInstanceValueRead>()
 
   companion object GattManager {
     val gattInstances: MutableMap<String, GattInstance> = mutableMapOf<String, GattInstance>()
-    fun get(address: String):  GattInstance {
+    fun get(address: String): GattInstance {
       val instance = gattInstances.get(address)
-      requireNotNull(instance) {
-        "Unable to find GATT instance for $address"
-      }
+      requireNotNull(instance) { "Unable to find GATT instance for $address" }
       return instance
     }
-    fun get(address: ByteString):  GattInstance {
+    fun get(address: ByteString): GattInstance {
       val instance = gattInstances.get(address.toByteArray().decodeToString())
-      requireNotNull(instance) {
-        "Unable to find GATT instance for $address"
-      }
+      requireNotNull(instance) { "Unable to find GATT instance for $address" }
       return instance
     }
   }
 
-  private val mCallback = object : BluetoothGattCallback() {
-    override fun onConnectionStateChange(bluetoothGatt: BluetoothGatt,
-        status: Int, newState: Int) {
-      Log.i(TAG, "$mDevice connection state changed to $newState")
-      mConnectionState.value = newState
-      if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-        gattInstances.remove(mDevice.address)
+  private val mCallback =
+    object : BluetoothGattCallback() {
+      override fun onConnectionStateChange(
+        bluetoothGatt: BluetoothGatt,
+        status: Int,
+        newState: Int
+      ) {
+        Log.i(TAG, "$mDevice connection state changed to $newState")
+        mConnectionState.value = newState
+        if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+          gattInstances.remove(mDevice.address)
+        }
       }
-    }
 
-    override fun onServicesDiscovered(bluetoothGatt: BluetoothGatt, status: Int) {
-      if (status == BluetoothGatt.GATT_SUCCESS) {
-        Log.i(TAG, "Services have been discovered for $mDevice")
-        mServiceDiscovered.value = true
+      override fun onServicesDiscovered(bluetoothGatt: BluetoothGatt, status: Int) {
+        if (status == BluetoothGatt.GATT_SUCCESS) {
+          Log.i(TAG, "Services have been discovered for $mDevice")
+          mServiceDiscovered.value = true
+        }
       }
-    }
 
-    override fun onCharacteristicRead(bluetoothGatt: BluetoothGatt,
-        characteristic: BluetoothGattCharacteristic, value: ByteArray, status: Int) {
-      Log.i(TAG, "onCharacteristicRead, status: $status")
-      if (characteristic.getUuid() == mGattInstanceValueRead.uuid
-          && characteristic.getInstanceId() >= mGattInstanceValueRead.startHandle
-          && characteristic.getInstanceId() <= mGattInstanceValueRead.endHandle) {
-        mGattInstanceValueRead.value = value
-        mGattInstanceValueRead.status = status
-        mValueRead.value = true
+      override fun onCharacteristicRead(
+        bluetoothGatt: BluetoothGatt,
+        characteristic: BluetoothGattCharacteristic,
+        value: ByteArray,
+        status: Int
+      ) {
+        Log.i(TAG, "onCharacteristicRead, status: $status")
+        for (gattInstanceValueRead: GattInstanceValueRead in mGattInstanceValuesRead) {
+          if (
+            characteristic.getUuid() == gattInstanceValueRead.uuid &&
+              characteristic.getInstanceId() == gattInstanceValueRead.handle
+          ) {
+            gattInstanceValueRead.value = ByteString.copyFrom(value)
+            gattInstanceValueRead.status = AttStatusCode.forNumber(status)
+            mValuesRead.value++
+          }
+        }
       }
-    }
 
-    override fun onDescriptorRead(bluetoothGatt: BluetoothGatt,
-        descriptor: BluetoothGattDescriptor, status: Int, value: ByteArray) {
-      Log.i(TAG, "onDescriptorRead, status: $status")
-      if (descriptor.getUuid() == mGattInstanceValueRead.uuid
-          && descriptor.getInstanceId() >= mGattInstanceValueRead.startHandle
-          && descriptor.getInstanceId() <= mGattInstanceValueRead.endHandle) {
-        mGattInstanceValueRead.value = value
-        mGattInstanceValueRead.status = status
-        mValueRead.value = true
+      override fun onDescriptorRead(
+        bluetoothGatt: BluetoothGatt,
+        descriptor: BluetoothGattDescriptor,
+        status: Int,
+        value: ByteArray
+      ) {
+        Log.i(TAG, "onDescriptorRead, status: $status")
+        for (gattInstanceValueRead: GattInstanceValueRead in mGattInstanceValuesRead) {
+          if (
+            descriptor.getUuid() == gattInstanceValueRead.uuid &&
+              descriptor.getInstanceId() >= gattInstanceValueRead.handle
+          ) {
+            gattInstanceValueRead.value = ByteString.copyFrom(value)
+            gattInstanceValueRead.status = AttStatusCode.forNumber(status)
+            mValuesRead.value++
+          }
+        }
       }
     }
-  }
 
   init {
     if (!isBLETransport()) {
-      require(isBonded()) {
-        "Trying to connect non BLE GATT on a not bonded device $mDevice"
-      }
+      require(isBonded()) { "Trying to connect non BLE GATT on a not bonded device $mDevice" }
     }
     require(gattInstances.get(mDevice.address) == null) {
       "Trying to connect GATT on an already connected device $mDevice"
@@ -129,9 +138,7 @@ class GattInstance(val mDevice: BluetoothDevice, val mTransport: Int, val mConte
 
     mGatt = mDevice.connectGatt(mContext, false, mCallback, mTransport)
 
-    checkNotNull(mGatt) {
-      "Failed to connect GATT on $mDevice"
-    }
+    checkNotNull(mGatt) { "Failed to connect GATT on $mDevice" }
     gattInstances.put(mDevice.address, this)
   }
 
@@ -167,56 +174,109 @@ class GattInstance(val mDevice: BluetoothDevice, val mTransport: Int, val mConte
     }
   }
 
-  public suspend fun waitForValueReadEnd() {
-    if (mValueRead.value != true) {
-      mValueRead.first { it == true }
+  public suspend fun waitForValuesReadEnd() {
+    if (mValuesRead.value < mGattInstanceValuesRead.size) {
+      mValuesRead.first { it == mGattInstanceValuesRead.size }
     }
-    mValueRead.value = false
+    mValuesRead.value = 0
+  }
+
+  public suspend fun waitForValuesRead() {
+    if (mValuesRead.value < mGattInstanceValuesRead.size) {
+      mValuesRead.first { it == mGattInstanceValuesRead.size }
+    }
   }
 
   public suspend fun readCharacteristicBlocking(
-      characteristic: BluetoothGattCharacteristic): GattInstanceValueRead {
-    // Init mGattInstanceValueRead with characteristic values.
-    mGattInstanceValueRead = GattInstanceValueRead(
-        characteristic.getUuid(), characteristic.getInstanceId(), characteristic.getInstanceId(),
-        byteArrayOf(), BluetoothGatt.GATT_FAILURE)
-    if (mGatt.readCharacteristic(characteristic)){
-      waitForValueReadEnd()
+    characteristic: BluetoothGattCharacteristic
+  ): GattInstanceValueRead {
+    // Init mGattInstanceValuesRead with characteristic values.
+    mGattInstanceValuesRead =
+      arrayListOf(
+        GattInstanceValueRead(
+          characteristic.getUuid(),
+          characteristic.getInstanceId(),
+          ByteString.EMPTY,
+          AttStatusCode.UNKNOWN_ERROR
+        )
+      )
+    if (mGatt.readCharacteristic(characteristic)) {
+      waitForValuesReadEnd()
     }
-    return mGattInstanceValueRead
+    // This method read only one characteristic.
+    return mGattInstanceValuesRead.get(0)
   }
 
   public suspend fun readCharacteristicUuidBlocking(
-      uuid: UUID, startHandle: Int, endHandle: Int): GattInstanceValueRead {
-    // Init mGattInstanceValueRead with characteristic values.
-    mGattInstanceValueRead = GattInstanceValueRead(
-        uuid, startHandle, endHandle, byteArrayOf(), BluetoothGatt.GATT_FAILURE)
-    if (mGatt.readUsingCharacteristicUuid(uuid, startHandle, endHandle)){
-      // We have to timeout here as one test will try to read on an inexistant
-      // characteristic. We don't discover services when reading by uuid so we
-      // can't check if the characteristic exists beforehand. PTS is also waiting
-      // for the read to happen so we have to read anyway.
-      withTimeoutOrNull(1000L) { waitForValueReadEnd() }
+    uuid: UUID,
+    startHandle: Int,
+    endHandle: Int
+  ): ArrayList<GattInstanceValueRead> {
+    mGattInstanceValuesRead = arrayListOf()
+    // Init mGattInstanceValuesRead with characteristics values.
+    for (service: BluetoothGattService in mGatt.services.orEmpty()) {
+      for (characteristic: BluetoothGattCharacteristic in service.characteristics) {
+        if (
+          characteristic.getUuid() == uuid &&
+            characteristic.getInstanceId() >= startHandle &&
+            characteristic.getInstanceId() <= endHandle
+        ) {
+          mGattInstanceValuesRead.add(
+            GattInstanceValueRead(
+              uuid,
+              characteristic.getInstanceId(),
+              ByteString.EMPTY,
+              AttStatusCode.UNKNOWN_ERROR
+            )
+          )
+          check(
+            mGatt.readUsingCharacteristicUuid(
+              uuid,
+              characteristic.getInstanceId(),
+              characteristic.getInstanceId()
+            )
+          )
+          waitForValuesRead()
+        }
+      }
     }
-    return mGattInstanceValueRead
+    // All needed characteristics are read.
+    mValuesRead.value = 0
+
+    // When PTS tests with wrong UUID, we return an empty GattInstanceValueRead
+    // with UNKNOWN_ERROR so the MMI can confirm the fail. We also have to try
+    // and read the characteristic anyway for the PTS to validate the test.
+    if (mGattInstanceValuesRead.size == 0) {
+      mGattInstanceValuesRead.add(
+        GattInstanceValueRead(uuid, startHandle, ByteString.EMPTY, AttStatusCode.UNKNOWN_ERROR)
+      )
+      mGatt.readUsingCharacteristicUuid(uuid, startHandle, endHandle)
+    }
+    return mGattInstanceValuesRead
   }
 
   public suspend fun readDescriptorBlocking(
-      descriptor: BluetoothGattDescriptor): GattInstanceValueRead {
-    // Init mGattInstanceValueRead with descriptor values.
-    mGattInstanceValueRead = GattInstanceValueRead(
-        descriptor.getUuid(), descriptor.getInstanceId(), descriptor.getInstanceId(),
-        byteArrayOf(), BluetoothGatt.GATT_FAILURE)
-    if (mGatt.readDescriptor(descriptor)){
-      waitForValueReadEnd()
+    descriptor: BluetoothGattDescriptor
+  ): GattInstanceValueRead {
+    // Init mGattInstanceValuesRead with descriptor values.
+    mGattInstanceValuesRead =
+      arrayListOf(
+        GattInstanceValueRead(
+          descriptor.getUuid(),
+          descriptor.getInstanceId(),
+          ByteString.EMPTY,
+          AttStatusCode.UNKNOWN_ERROR
+        )
+      )
+    if (mGatt.readDescriptor(descriptor)) {
+      waitForValuesReadEnd()
     }
-    return mGattInstanceValueRead
+    // This method read only one descriptor.
+    return mGattInstanceValuesRead.get(0)
   }
 
   public fun disconnectInstance() {
-    require(isConnected()) {
-      "Trying to disconnect an already disconnected device $mDevice"
-    }
+    require(isConnected()) { "Trying to disconnect an already disconnected device $mDevice" }
     mGatt.disconnect()
     gattInstances.remove(mDevice.address)
   }
