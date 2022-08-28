@@ -404,6 +404,7 @@ extern void bta_ag_handle_collision(tBTA_AG_SCB* p_scb,
 extern void bta_ag_sco_codec_nego(tBTA_AG_SCB* p_scb, bool result);
 extern void bta_ag_codec_negotiate(tBTA_AG_SCB* p_scb);
 extern void bta_ag_send_bcs(tBTA_AG_SCB* p_scb);
+extern void bta_ag_set_sco_offload_enabled(bool value);
 extern void bta_ag_set_sco_allowed(bool value);
 extern const RawAddress& bta_ag_get_active_device();
 extern void bta_clear_active_device();
