@@ -10,8 +10,9 @@ use crate::profiles::gatt::bindings::{
 use crate::topstack::get_dispatchers;
 use crate::{cast_to_ffi_address, ccall, deref_ffi_address, mutcxxcall};
 
-use num_traits::cast::FromPrimitive;
+use num_traits::cast::{FromPrimitive, ToPrimitive};
 
+use std::fmt::{Display, Formatter, Result};
 use std::sync::{Arc, Mutex};
 
 use topshim_macros::cb_variant;
@@ -393,7 +394,7 @@ impl From<Uuid> for ffi::RustUuid {
     }
 }
 
-#[derive(Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
 #[repr(u32)]
 pub enum GattStatus {
     Success = 0x00,
@@ -446,27 +447,54 @@ pub enum GattStatus {
     OutOfRange = 0xFF,
 }
 
+impl From<u8> for GattStatus {
+    fn from(item: u8) -> Self {
+        match GattStatus::from_u8(item) {
+            Some(s) => s,
+            None => GattStatus::InternalError,
+        }
+    }
+}
+
+impl From<i32> for GattStatus {
+    fn from(item: i32) -> Self {
+        if item > 0xff {
+            GattStatus::OutOfRange
+        } else if let Some(s) = GattStatus::from_i32(item) {
+            s
+        } else {
+            GattStatus::InternalError
+        }
+    }
+}
+
+impl Display for GattStatus {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        write!(f, "{}", self.to_u32().unwrap_or(0))
+    }
+}
+
 #[derive(Debug)]
 pub enum GattClientCallbacks {
-    RegisterClient(i32, i32, Uuid),
-    Connect(i32, i32, i32, RawAddress),
-    Disconnect(i32, i32, i32, RawAddress),
-    SearchComplete(i32, i32),
-    RegisterForNotification(i32, i32, i32, u16),
+    RegisterClient(GattStatus, i32, Uuid),
+    Connect(i32, GattStatus, i32, RawAddress),
+    Disconnect(i32, GattStatus, i32, RawAddress),
+    SearchComplete(i32, GattStatus),
+    RegisterForNotification(i32, i32, GattStatus, u16),
     Notify(i32, BtGattNotifyParams),
-    ReadCharacteristic(i32, i32, BtGattReadParams),
-    WriteCharacteristic(i32, i32, u16, u16, *const u8),
-    ReadDescriptor(i32, i32, BtGattReadParams),
-    WriteDescriptor(i32, i32, u16, u16, *const u8),
-    ExecuteWrite(i32, i32),
-    ReadRemoteRssi(i32, RawAddress, i32, i32),
-    ConfigureMtu(i32, i32, i32),
+    ReadCharacteristic(i32, GattStatus, BtGattReadParams),
+    WriteCharacteristic(i32, GattStatus, u16, u16, *const u8),
+    ReadDescriptor(i32, GattStatus, BtGattReadParams),
+    WriteDescriptor(i32, GattStatus, u16, u16, *const u8),
+    ExecuteWrite(i32, GattStatus),
+    ReadRemoteRssi(i32, RawAddress, i32, GattStatus),
+    ConfigureMtu(i32, GattStatus, i32),
     Congestion(i32, bool),
     GetGattDb(i32, Vec<BtGattDbElement>, i32),
-    PhyUpdated(i32, u8, u8, u8),
-    ConnUpdated(i32, u16, u16, u16, u8),
+    PhyUpdated(i32, u8, u8, GattStatus),
+    ConnUpdated(i32, u16, u16, u16, GattStatus),
     ServiceChanged(i32),
-    ReadPhy(i32, RawAddress, u8, u8, u8),
+    ReadPhy(i32, RawAddress, u8, u8, GattStatus),
 }
 
 #[derive(Debug)]
@@ -503,7 +531,7 @@ type GattServerCb = Arc<Mutex<GattServerCallbacksDispatcher>>;
 cb_variant!(
     GattClientCb,
     gc_register_client_cb -> GattClientCallbacks::RegisterClient,
-    i32, i32, *const Uuid, {
+    i32 -> GattStatus, i32, *const Uuid, {
         let _2 = unsafe { *_2.clone() };
     }
 );
@@ -511,7 +539,7 @@ cb_variant!(
 cb_variant!(
     GattClientCb,
     gc_open_cb -> GattClientCallbacks::Connect,
-    i32, i32, i32, *const FfiAddress, {
+    i32, i32 -> GattStatus, i32, *const FfiAddress, {
         let _3 = unsafe { deref_ffi_address!(_3) };
     }
 );
@@ -519,7 +547,7 @@ cb_variant!(
 cb_variant!(
     GattClientCb,
     gc_close_cb -> GattClientCallbacks::Disconnect,
-    i32, i32, i32, *const FfiAddress, {
+    i32, i32 -> GattStatus, i32, *const FfiAddress, {
         let _3 = unsafe { deref_ffi_address!(_3) };
     }
 );
@@ -527,13 +555,13 @@ cb_variant!(
 cb_variant!(
     GattClientCb,
     gc_search_complete_cb -> GattClientCallbacks::SearchComplete,
-    i32, i32, {}
+    i32, i32 -> GattStatus, {}
 );
 
 cb_variant!(
     GattClientCb,
     gc_register_for_notification_cb -> GattClientCallbacks::RegisterForNotification,
-    i32, i32, i32, u16, {}
+    i32, i32, i32 -> GattStatus, u16, {}
 );
 
 cb_variant!(
@@ -547,7 +575,7 @@ cb_variant!(
 cb_variant!(
     GattClientCb,
     gc_read_characteristic_cb -> GattClientCallbacks::ReadCharacteristic,
-    i32, i32, *mut BtGattReadParams, {
+    i32, i32 -> GattStatus, *mut BtGattReadParams, {
         let _2 = unsafe { *_2.clone() };
     }
 );
@@ -555,13 +583,13 @@ cb_variant!(
 cb_variant!(
     GattClientCb,
     gc_write_characteristic_cb -> GattClientCallbacks::WriteCharacteristic,
-    i32, i32, u16, u16, *const u8, {}
+    i32, i32 -> GattStatus, u16, u16, *const u8, {}
 );
 
 cb_variant!(
     GattClientCb,
     gc_read_descriptor_cb -> GattClientCallbacks::ReadDescriptor,
-    i32, i32, *const BtGattReadParams, {
+    i32, i32 -> GattStatus, *const BtGattReadParams, {
         let _2 = unsafe { *_2.clone() };
     }
 );
@@ -569,19 +597,19 @@ cb_variant!(
 cb_variant!(
     GattClientCb,
     gc_write_descriptor_cb -> GattClientCallbacks::WriteDescriptor,
-    i32, i32, u16, u16, *const u8, {}
+    i32, i32 -> GattStatus, u16, u16, *const u8, {}
 );
 
 cb_variant!(
     GattClientCb,
     gc_execute_write_cb -> GattClientCallbacks::ExecuteWrite,
-    i32, i32, {}
+    i32, i32 -> GattStatus, {}
 );
 
 cb_variant!(
     GattClientCb,
     gc_read_remote_rssi_cb -> GattClientCallbacks::ReadRemoteRssi,
-    i32, *const FfiAddress, i32, i32, {
+    i32, *const FfiAddress, i32, i32 -> GattStatus, {
         let _1 = unsafe { deref_ffi_address!(_1) };
     }
 );
@@ -589,7 +617,7 @@ cb_variant!(
 cb_variant!(
     GattClientCb,
     gc_configure_mtu_cb -> GattClientCallbacks::ConfigureMtu,
-    i32, i32, i32, {}
+    i32, i32 -> GattStatus, i32, {}
 );
 
 cb_variant!(
@@ -609,13 +637,13 @@ cb_variant!(
 cb_variant!(
     GattClientCb,
     gc_phy_updated_cb -> GattClientCallbacks::PhyUpdated,
-    i32, u8, u8, u8, {}
+    i32, u8, u8, u8 -> GattStatus, {}
 );
 
 cb_variant!(
     GattClientCb,
     gc_conn_updated_cb -> GattClientCallbacks::ConnUpdated,
-    i32, u16, u16, u16, u8, {}
+    i32, u16, u16, u16, u8 -> GattStatus, {}
 );
 
 cb_variant!(
@@ -627,7 +655,7 @@ cb_variant!(
 cb_variant!(
     GattClientCb,
     read_phy_callback -> GattClientCallbacks::ReadPhy,
-    i32, ffi::RustRawAddress -> RawAddress, u8, u8, u8, {
+    i32, ffi::RustRawAddress -> RawAddress, u8, u8, u8 -> GattStatus, {
         let _1 = RawAddress { val: _1.address };
     }
 );
@@ -751,7 +779,7 @@ cb_variant!(
 /// `BleScannerInterface`.
 #[derive(Debug)]
 pub enum GattScannerCallbacks {
-    OnScannerRegistered(Uuid, u8, u8),
+    OnScannerRegistered(Uuid, u8, GattStatus),
     OnSetScannerParameterComplete(u8, u8),
     OnScanResult(u16, u8, RawAddress, u8, u8, u8, i8, i8, u16, Vec<u8>),
     OnTrackAdvFoundLost(AdvertisingTrackInfo),
@@ -768,7 +796,7 @@ type GDScannerCb = Arc<Mutex<GattScannerCallbacksDispatcher>>;
 cb_variant!(
     GDScannerCb,
     gdscan_on_scanner_registered -> GattScannerCallbacks::OnScannerRegistered,
-    *const i8, u8, u8, {
+    *const i8, u8, u8 -> GattStatus, {
         let _0 = unsafe { *(_0 as *const Uuid).clone() };
     }
 );

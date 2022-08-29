@@ -30,14 +30,14 @@ struct BluetoothGattCallbackDBus {}
 #[dbus_proxy_obj(BluetoothGattCallback, "org.chromium.bluetooth.BluetoothGattCallback")]
 impl IBluetoothGattCallback for BluetoothGattCallbackDBus {
     #[dbus_method("OnClientRegistered")]
-    fn on_client_registered(&self, status: i32, scanner_id: i32) {
+    fn on_client_registered(&self, status: GattStatus, scanner_id: i32) {
         dbus_generated!()
     }
 
     #[dbus_method("OnClientConnectionState")]
     fn on_client_connection_state(
         &self,
-        status: i32,
+        status: GattStatus,
         client_id: i32,
         connected: bool,
         addr: String,
@@ -56,32 +56,43 @@ impl IBluetoothGattCallback for BluetoothGattCallbackDBus {
     }
 
     #[dbus_method("OnSearchComplete")]
-    fn on_search_complete(&self, addr: String, services: Vec<BluetoothGattService>, status: i32) {
+    fn on_search_complete(
+        &self,
+        addr: String,
+        services: Vec<BluetoothGattService>,
+        status: GattStatus,
+    ) {
         dbus_generated!()
     }
 
     #[dbus_method("OnCharacteristicRead")]
-    fn on_characteristic_read(&self, addr: String, status: i32, handle: i32, value: Vec<u8>) {
+    fn on_characteristic_read(
+        &self,
+        addr: String,
+        status: GattStatus,
+        handle: i32,
+        value: Vec<u8>,
+    ) {
         dbus_generated!()
     }
 
     #[dbus_method("OnCharacteristicWrite")]
-    fn on_characteristic_write(&self, addr: String, status: i32, handle: i32) {
+    fn on_characteristic_write(&self, addr: String, status: GattStatus, handle: i32) {
         dbus_generated!()
     }
 
     #[dbus_method("OnExecuteWrite")]
-    fn on_execute_write(&self, addr: String, status: i32) {
+    fn on_execute_write(&self, addr: String, status: GattStatus) {
         dbus_generated!()
     }
 
     #[dbus_method("OnDescriptorRead")]
-    fn on_descriptor_read(&self, addr: String, status: i32, handle: i32, value: Vec<u8>) {
+    fn on_descriptor_read(&self, addr: String, status: GattStatus, handle: i32, value: Vec<u8>) {
         dbus_generated!()
     }
 
     #[dbus_method("OnDescriptorWrite")]
-    fn on_descriptor_write(&self, addr: String, status: i32, handle: i32) {
+    fn on_descriptor_write(&self, addr: String, status: GattStatus, handle: i32) {
         dbus_generated!()
     }
 
@@ -91,12 +102,12 @@ impl IBluetoothGattCallback for BluetoothGattCallbackDBus {
     }
 
     #[dbus_method("OnReadRemoteRssi")]
-    fn on_read_remote_rssi(&self, addr: String, rssi: i32, status: i32) {
+    fn on_read_remote_rssi(&self, addr: String, rssi: i32, status: GattStatus) {
         dbus_generated!()
     }
 
     #[dbus_method("OnConfigureMtu")]
-    fn on_configure_mtu(&self, addr: String, mtu: i32, status: i32) {
+    fn on_configure_mtu(&self, addr: String, mtu: i32, status: GattStatus) {
         dbus_generated!()
     }
 
@@ -107,7 +118,7 @@ impl IBluetoothGattCallback for BluetoothGattCallbackDBus {
         interval: i32,
         latency: i32,
         timeout: i32,
-        status: i32,
+        status: GattStatus,
     ) {
         dbus_generated!()
     }
@@ -142,7 +153,7 @@ struct ScannerCallbackDBus {}
 #[dbus_proxy_obj(ScannerCallback, "org.chromium.bluetooth.ScannerCallback")]
 impl IScannerCallback for ScannerCallbackDBus {
     #[dbus_method("OnScannerRegistered")]
-    fn on_scanner_registered(&self, uuid: Uuid128Bit, scanner_id: u8, status: u8) {
+    fn on_scanner_registered(&self, uuid: Uuid128Bit, scanner_id: u8, status: GattStatus) {
         dbus_generated!()
     }
 }
