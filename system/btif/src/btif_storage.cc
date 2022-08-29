@@ -110,24 +110,6 @@ using bluetooth::groups::DeviceGroups;
 /* This is a local property to add a device found */
 #define BT_PROPERTY_REMOTE_DEVICE_TIMESTAMP 0xFF
 
-// TODO: This macro should be converted to a function
-#define BTIF_STORAGE_GET_ADAPTER_PROP(s, t, v, l, p) \
-  do {                                               \
-    (p).type = (t);                                  \
-    (p).val = (v);                                   \
-    (p).len = (l);                                   \
-    (s) = btif_storage_get_adapter_property(&(p));   \
-  } while (0)
-
-// TODO: This macro should be converted to a function
-#define BTIF_STORAGE_GET_REMOTE_PROP(b, t, v, l, p)     \
-  do {                                                  \
-    (p).type = (t);                                     \
-    (p).val = (v);                                      \
-    (p).len = (l);                                      \
-    btif_storage_get_remote_device_property((b), &(p)); \
-  } while (0)
-
 #define STORAGE_BDADDR_STRING_SZ (18) /* 00:11:22:33:44:55 */
 #define STORAGE_UUID_STRING_SIZE \
   (36 + 1) /* 00001200-0000-1000-8000-00805f9b34fb; */
@@ -680,6 +662,15 @@ uint8_t btif_storage_get_local_io_caps_ble() {
                                           BTM_LOCAL_IO_CAPS_BLE);
 }
 
+/** Helper function for fetching a bt_property of the adapter. */
+bt_status_t btif_storage_get_adapter_prop(bt_property_type_t type, void* buf,
+                                          int size, bt_property_t* property) {
+  property->type = type;
+  property->val = buf;
+  property->len = size;
+  return btif_storage_get_adapter_property(property);
+}
+
 /*******************************************************************************
  *
  * Function         btif_storage_get_adapter_property
@@ -808,6 +799,16 @@ bt_status_t btif_storage_get_adapter_property(bt_property_t* property) {
  ******************************************************************************/
 bt_status_t btif_storage_set_adapter_property(bt_property_t* property) {
   return prop2cfg(NULL, property) ? BT_STATUS_SUCCESS : BT_STATUS_FAIL;
+}
+
+/** Helper function for fetching a bt_property of a remote device. */
+bt_status_t btif_storage_get_remote_prop(RawAddress* remote_addr,
+                                         bt_property_type_t type, void* buf,
+                                         int size, bt_property_t* property) {
+  property->type = type;
+  property->val = buf;
+  property->len = size;
+  return btif_storage_get_remote_device_property(remote_addr, property);
 }
 
 /*******************************************************************************
@@ -1094,8 +1095,8 @@ bt_status_t btif_storage_load_bonded_devices(void) {
     memset(adapter_props, 0, sizeof(adapter_props));
 
     /* address */
-    BTIF_STORAGE_GET_ADAPTER_PROP(status, BT_PROPERTY_BDADDR, &addr,
-                                  sizeof(addr), adapter_props[num_props]);
+    status = btif_storage_get_adapter_prop(
+        BT_PROPERTY_BDADDR, &addr, sizeof(addr), &adapter_props[num_props]);
     // Add BT_PROPERTY_BDADDR property into list only when successful.
     // Otherwise, skip this property entry.
     if (status == BT_STATUS_SUCCESS) {
@@ -1103,8 +1104,8 @@ bt_status_t btif_storage_load_bonded_devices(void) {
     }
 
     /* BD_NAME */
-    BTIF_STORAGE_GET_ADAPTER_PROP(status, BT_PROPERTY_BDNAME, &name,
-                                  sizeof(name), adapter_props[num_props]);
+    btif_storage_get_adapter_prop(BT_PROPERTY_BDNAME, &name, sizeof(name),
+                                  &adapter_props[num_props]);
     num_props++;
 
     /* SCAN_MODE */
@@ -1119,9 +1120,9 @@ bt_status_t btif_storage_load_bonded_devices(void) {
     num_props++;
 
     /* DISC_TIMEOUT */
-    BTIF_STORAGE_GET_ADAPTER_PROP(
-        status, BT_PROPERTY_ADAPTER_DISCOVERABLE_TIMEOUT, &disc_timeout,
-        sizeof(disc_timeout), adapter_props[num_props]);
+    btif_storage_get_adapter_prop(BT_PROPERTY_ADAPTER_DISCOVERABLE_TIMEOUT,
+                                  &disc_timeout, sizeof(disc_timeout),
+                                  &adapter_props[num_props]);
     num_props++;
 
     /* BONDED_DEVICES */
@@ -1137,9 +1138,9 @@ bt_status_t btif_storage_load_bonded_devices(void) {
     num_props++;
 
     /* LOCAL UUIDs */
-    BTIF_STORAGE_GET_ADAPTER_PROP(status, BT_PROPERTY_UUIDS, local_uuids,
+    btif_storage_get_adapter_prop(BT_PROPERTY_UUIDS, local_uuids,
                                   sizeof(local_uuids),
-                                  adapter_props[num_props]);
+                                  &adapter_props[num_props]);
     num_props++;
 
     btif_adapter_properties_evt(BT_STATUS_SUCCESS, num_props, adapter_props);
@@ -1163,44 +1164,48 @@ bt_status_t btif_storage_load_bonded_devices(void) {
       num_props = 0;
       p_remote_addr = &bonded_devices.devices[i];
       memset(remote_properties, 0, sizeof(remote_properties));
-      BTIF_STORAGE_GET_REMOTE_PROP(p_remote_addr, BT_PROPERTY_BDNAME, &name,
-                                   sizeof(name), remote_properties[num_props]);
+      btif_storage_get_remote_prop(p_remote_addr, BT_PROPERTY_BDNAME, &name,
+                                   sizeof(name), &remote_properties[num_props]);
       num_props++;
 
-      BTIF_STORAGE_GET_REMOTE_PROP(p_remote_addr,
-                                   BT_PROPERTY_REMOTE_FRIENDLY_NAME, &alias,
-                                   sizeof(alias), remote_properties[num_props]);
+      btif_storage_get_remote_prop(
+          p_remote_addr, BT_PROPERTY_REMOTE_FRIENDLY_NAME, &alias,
+          sizeof(alias), &remote_properties[num_props]);
       num_props++;
 
-      BTIF_STORAGE_GET_REMOTE_PROP(p_remote_addr, BT_PROPERTY_CLASS_OF_DEVICE,
+      btif_storage_get_remote_prop(p_remote_addr, BT_PROPERTY_CLASS_OF_DEVICE,
                                    &cod, sizeof(cod),
-                                   remote_properties[num_props]);
+                                   &remote_properties[num_props]);
       num_props++;
 
-      BTIF_STORAGE_GET_REMOTE_PROP(p_remote_addr, BT_PROPERTY_TYPE_OF_DEVICE,
+      btif_storage_get_remote_prop(p_remote_addr, BT_PROPERTY_TYPE_OF_DEVICE,
                                    &devtype, sizeof(devtype),
-                                   remote_properties[num_props]);
+                                   &remote_properties[num_props]);
       num_props++;
 
-      BTIF_STORAGE_GET_REMOTE_PROP(p_remote_addr, BT_PROPERTY_UUIDS,
+      btif_storage_get_remote_prop(p_remote_addr, BT_PROPERTY_UUIDS,
                                    remote_uuids, sizeof(remote_uuids),
-                                   remote_properties[num_props]);
+                                   &remote_properties[num_props]);
       num_props++;
 
       // Floss needs appearance for metrics purposes
       uint16_t appearance = 0;
-      BTIF_STORAGE_GET_REMOTE_PROP(p_remote_addr, BT_PROPERTY_APPEARANCE,
-                                   &appearance, sizeof(appearance),
-                                   remote_properties[num_props]);
-      num_props++;
+      if (btif_storage_get_remote_prop(p_remote_addr, BT_PROPERTY_APPEARANCE,
+                                       &appearance, sizeof(appearance),
+                                       &remote_properties[num_props]) ==
+          BT_STATUS_SUCCESS) {
+        num_props++;
+      }
 
 #if TARGET_FLOSS
       // Floss needs VID:PID for metrics purposes
       bt_vendor_product_info_t vp_info;
-      BTIF_STORAGE_GET_REMOTE_PROP(
-          p_remote_addr, BT_PROPERTY_VENDOR_PRODUCT_INFO, &vp_info,
-          sizeof(vp_info), remote_properties[num_props]);
-      num_props++;
+      if (btif_storage_get_remote_prop(
+              p_remote_addr, BT_PROPERTY_VENDOR_PRODUCT_INFO, &vp_info,
+              sizeof(vp_info),
+              &remote_properties[num_props]) == BT_STATUS_SUCCESS) {
+        num_props++;
+      }
 #endif
 
       btif_remote_properties_evt(BT_STATUS_SUCCESS, p_remote_addr, num_props,
