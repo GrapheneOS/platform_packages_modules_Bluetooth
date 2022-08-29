@@ -78,6 +78,7 @@ class InternalHciCallbacks : public IBluetoothHciCallbacks {
   }
 
   void ResetCallback() {
+    LOG_INFO("callbacks have been reset!");
     callback_ = nullptr;
   }
 
@@ -87,6 +88,7 @@ class InternalHciCallbacks : public IBluetoothHciCallbacks {
 
   Return<void> initializationComplete(HidlStatus status) {
     common::StopWatch stop_watch(__func__);
+    LOG_INFO("initialization complete with status: %d", status);
     ASSERT(status == HidlStatus::SUCCESS);
     init_promise_->set_value();
     return Void();
