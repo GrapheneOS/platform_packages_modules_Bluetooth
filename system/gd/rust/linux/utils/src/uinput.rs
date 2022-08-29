@@ -1,7 +1,6 @@
 //! This library provides access to Linux uinput.
 
 use libc;
-use log::error;
 use nix;
 use std::ffi::CString;
 use std::mem;
@@ -158,9 +157,9 @@ impl UInput {
 
     /// Initialize a uinput device with kernel.
     #[allow(temporary_cstring_as_ptr)]
-    pub fn init(&mut self, mut name: String, addr: String) {
+    pub fn init(&mut self, mut name: String, addr: String) -> Result<(), String> {
         if self.is_initialized() {
-            return;
+            return Ok(());
         }
 
         // Truncate the device name if over the max size allowed.
@@ -180,8 +179,7 @@ impl UInput {
             }
 
             if fd < -1 {
-                error!("Failed to open uinput: {}", std::io::Error::last_os_error());
-                return;
+                return Err(format!("Failed to open uinput: {}", std::io::Error::last_os_error()));
             }
 
             if libc::write(
@@ -190,9 +188,11 @@ impl UInput {
                 mem::size_of::<UInputDev>(),
             ) < 0
             {
-                error!("Can't write device information: {}", std::io::Error::last_os_error());
                 libc::close(fd);
-                return;
+                return Err(format!(
+                    "Can't write device information: {}",
+                    std::io::Error::last_os_error()
+                ));
             }
 
             libc::ioctl(fd, UI_SET_EVBIT, EV_KEY);
@@ -206,13 +206,16 @@ impl UInput {
             }
 
             if libc::ioctl(fd, UI_DEV_CREATE, 0) < 0 {
-                error!("Can't create uinput device: {}", std::io::Error::last_os_error());
                 libc::close(fd);
-                return;
+                return Err(format!(
+                    "Can't create uinput device: {}",
+                    std::io::Error::last_os_error()
+                ));
             }
         }
 
         self.fd = fd;
+        return Ok(());
     }
 
     /// Close the uinput device with kernel if there is one.
