@@ -39,6 +39,7 @@ typedef struct {
   bool (*get_pts_unencrypt_broadcast)(void);
   bool (*get_pts_eatt_peripheral_collision_support)(void);
   bool (*get_pts_use_eatt_for_all_services)(void);
+  bool (*get_pts_force_le_audio_multiple_contexts_metadata)(void);
   bool (*get_pts_l2cap_ecoc_upper_tester)(void);
   int (*get_pts_l2cap_ecoc_min_key_size)(void);
   int (*get_pts_l2cap_ecoc_initial_chan_cnt)(void);
