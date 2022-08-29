@@ -1676,18 +1676,10 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public String getAddress() {
-            if (mService == null) {
-                return null;
-            }
-            return getAddressWithAttribution(Utils.getCallingAttributionSource(mService));
-        }
-
-        @Override
-        public void getAddressWithAttribution(AttributionSource source,
+        public void getAddress(AttributionSource source,
                 SynchronousResultReceiver receiver) {
             try {
-                receiver.send(getAddressWithAttribution(source));
+                receiver.send(getAddress(source));
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
@@ -1696,7 +1688,7 @@ public class AdapterService extends Service {
                 android.Manifest.permission.BLUETOOTH_CONNECT,
                 android.Manifest.permission.LOCAL_MAC_ADDRESS,
         })
-        private String getAddressWithAttribution(AttributionSource attributionSource) {
+        private String getAddress(AttributionSource attributionSource) {
             AdapterService service = getService();
             if (service == null || !callerIsSystemOrActiveOrManagedUser(service, TAG, "getAddress")
                     || !Utils.checkConnectPermissionForDataDelivery(
@@ -2425,25 +2417,16 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public int getConnectionState(BluetoothDevice device) {
-            if (mService == null) {
-                return BluetoothProfile.STATE_DISCONNECTED;
-            }
-            return getConnectionStateWithAttribution(device,
-                        Utils.getCallingAttributionSource(mService));
-        }
-
-        @Override
-        public void getConnectionStateWithAttribution(BluetoothDevice device,
+        public void getConnectionState(BluetoothDevice device,
                 AttributionSource source, SynchronousResultReceiver receiver) {
             try {
-                receiver.send(getConnectionStateWithAttribution(device, source));
+                receiver.send(getConnectionState(device, source));
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
         }
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
-        private int getConnectionStateWithAttribution(
+        private int getConnectionState(
                 BluetoothDevice device, AttributionSource attributionSource) {
             AdapterService service = getService();
             if (service == null || !Utils.checkConnectPermissionForDataDelivery(
@@ -2693,25 +2676,16 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public String getRemoteAlias(BluetoothDevice device) {
-            if (mService == null) {
-                return null;
-            }
-            return getRemoteAliasWithAttribution(device,
-                    Utils.getCallingAttributionSource(mService));
-        }
-
-        @Override
-        public void getRemoteAliasWithAttribution(BluetoothDevice device, AttributionSource source,
+        public void getRemoteAlias(BluetoothDevice device, AttributionSource source,
                 SynchronousResultReceiver receiver) {
             try {
-                receiver.send(getRemoteAliasWithAttribution(device, source));
+                receiver.send(getRemoteAlias(device, source));
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
         }
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
-        private String getRemoteAliasWithAttribution(
+        private String getRemoteAlias(
                 BluetoothDevice device, AttributionSource attributionSource) {
             AdapterService service = getService();
             if (service == null
@@ -2816,19 +2790,10 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public boolean fetchRemoteUuids(BluetoothDevice device) {
-            if (mService == null) {
-                return false;
-            }
-            return fetchRemoteUuidsWithAttribution(device, TRANSPORT_AUTO,
-                    Utils.getCallingAttributionSource(mService));
-        }
-
-        @Override
-        public void fetchRemoteUuidsWithAttribution(BluetoothDevice device, int transport,
+        public void fetchRemoteUuids(BluetoothDevice device, int transport,
                 AttributionSource source, SynchronousResultReceiver receiver) {
             try {
-                receiver.send(fetchRemoteUuidsWithAttribution(device, transport, source));
+                receiver.send(fetchRemoteUuids(device, transport, source));
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
@@ -2837,7 +2802,7 @@ public class AdapterService extends Service {
                 android.Manifest.permission.BLUETOOTH_CONNECT,
                 android.Manifest.permission.BLUETOOTH_PRIVILEGED,
         })
-        private boolean fetchRemoteUuidsWithAttribution(
+        private boolean fetchRemoteUuids(
                 BluetoothDevice device, int transport, AttributionSource attributionSource) {
             AdapterService service = getService();
             if (service == null

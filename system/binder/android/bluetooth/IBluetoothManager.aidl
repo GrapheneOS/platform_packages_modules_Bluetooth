@@ -34,9 +34,7 @@ interface IBluetoothManager
     IBluetooth registerAdapter(in IBluetoothManagerCallback callback);
     @JavaPassthrough(annotation="@android.annotation.RequiresNoPermission")
     void unregisterAdapter(in IBluetoothManagerCallback callback);
-    @UnsupportedAppUsage
     void registerStateChangeCallback(in IBluetoothStateChangeCallback callback);
-    @UnsupportedAppUsage
     void unregisterStateChangeCallback(in IBluetoothStateChangeCallback callback);
     @JavaPassthrough(annotation="@android.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)")
     boolean enable(in AttributionSource attributionSource);
@@ -46,7 +44,6 @@ interface IBluetoothManager
     boolean disable(in AttributionSource attributionSource, boolean persist);
     @JavaPassthrough(annotation="@android.annotation.RequiresNoPermission")
     int getState();
-    @UnsupportedAppUsage
     @JavaPassthrough(annotation="@android.annotation.RequiresNoPermission")
     IBluetoothGatt getBluetoothGatt();
 

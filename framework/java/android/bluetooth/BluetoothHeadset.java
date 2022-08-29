@@ -495,7 +495,7 @@ public final class BluetoothHeadset implements BluetoothProfile {
         } else if (isEnabled() && isValidDevice(device)) {
             try {
                 final SynchronousResultReceiver<Boolean> recv = SynchronousResultReceiver.get();
-                service.connectWithAttribution(device, mAttributionSource, recv);
+                service.connect(device, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (RemoteException | TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
@@ -540,7 +540,7 @@ public final class BluetoothHeadset implements BluetoothProfile {
         } else if (isEnabled() && isValidDevice(device)) {
             try {
                 final SynchronousResultReceiver<Boolean> recv = SynchronousResultReceiver.get();
-                service.disconnectWithAttribution(device, mAttributionSource, recv);
+                service.disconnect(device, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (RemoteException | TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
@@ -566,7 +566,7 @@ public final class BluetoothHeadset implements BluetoothProfile {
             try {
                 final SynchronousResultReceiver<List<BluetoothDevice>> recv =
                         SynchronousResultReceiver.get();
-                service.getConnectedDevicesWithAttribution(mAttributionSource, recv);
+                service.getConnectedDevices(mAttributionSource, recv);
                 return Attributable.setAttributionSource(
                         recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue),
                         mAttributionSource);
@@ -621,7 +621,7 @@ public final class BluetoothHeadset implements BluetoothProfile {
         } else if (isEnabled() && isValidDevice(device)) {
             try {
                 final SynchronousResultReceiver<Integer> recv = SynchronousResultReceiver.get();
-                service.getConnectionStateWithAttribution(device, mAttributionSource, recv);
+                service.getConnectionState(device, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (RemoteException | TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));

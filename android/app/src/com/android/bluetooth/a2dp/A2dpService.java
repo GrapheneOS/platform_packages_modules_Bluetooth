@@ -1269,12 +1269,7 @@ public class A2dpService extends ProfileService {
         }
 
         @Override
-        public void connect(BluetoothDevice device, SynchronousResultReceiver receiver) {
-            connectWithAttribution(device, Utils.getCallingAttributionSource(mService), receiver);
-        }
-
-        @Override
-        public void connectWithAttribution(BluetoothDevice device, AttributionSource source,
+        public void connect(BluetoothDevice device, AttributionSource source,
                 SynchronousResultReceiver receiver) {
             try {
                 A2dpService service = getService(source);
@@ -1289,13 +1284,7 @@ public class A2dpService extends ProfileService {
         }
 
         @Override
-        public void disconnect(BluetoothDevice device, SynchronousResultReceiver receiver) {
-            disconnectWithAttribution(device, Utils.getCallingAttributionSource(mService),
-                    receiver);
-        }
-
-        @Override
-        public void disconnectWithAttribution(BluetoothDevice device, AttributionSource source,
+        public void disconnect(BluetoothDevice device, AttributionSource source,
                 SynchronousResultReceiver receiver) {
             try {
                 A2dpService service = getService(source);
@@ -1310,13 +1299,7 @@ public class A2dpService extends ProfileService {
         }
 
         @Override
-        public void getConnectedDevices(SynchronousResultReceiver receiver) {
-            getConnectedDevicesWithAttribution(Utils.getCallingAttributionSource(mService),
-                    receiver);
-        }
-
-        @Override
-        public void getConnectedDevicesWithAttribution(AttributionSource source,
+        public void getConnectedDevices(AttributionSource source,
                 SynchronousResultReceiver receiver) {
             try {
                 A2dpService service = getService(source);
@@ -1332,13 +1315,6 @@ public class A2dpService extends ProfileService {
 
         @Override
         public void getDevicesMatchingConnectionStates(int[] states,
-                SynchronousResultReceiver receiver) {
-            getDevicesMatchingConnectionStatesWithAttribution(states,
-                    Utils.getCallingAttributionSource(mService), receiver);
-        }
-
-        @Override
-        public void getDevicesMatchingConnectionStatesWithAttribution(int[] states,
                 AttributionSource source, SynchronousResultReceiver receiver) {
             try {
                 A2dpService service = getService(source);
@@ -1353,13 +1329,7 @@ public class A2dpService extends ProfileService {
         }
 
         @Override
-        public void getConnectionState(BluetoothDevice device, SynchronousResultReceiver receiver) {
-            getConnectionStateWithAttribution(device, Utils.getCallingAttributionSource(mService),
-                    receiver);
-        }
-
-        @Override
-        public void getConnectionStateWithAttribution(BluetoothDevice device,
+        public void getConnectionState(BluetoothDevice device,
                 AttributionSource source, SynchronousResultReceiver receiver) {
             try {
                 A2dpService service = getService(source);
