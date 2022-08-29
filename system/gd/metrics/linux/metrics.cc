@@ -27,5 +27,15 @@ void LogMetricsBondCreateAttempt(RawAddress* addr, uint32_t device_type) {}
 void LogMetricsBondStateChanged(
     RawAddress* addr, uint32_t device_type, uint32_t status, uint32_t bond_state, int32_t fail_reason) {}
 
+void LogMetricsDeviceInfoReport(
+    RawAddress* addr,
+    uint32_t device_type,
+    uint32_t class_of_device,
+    uint32_t appearance,
+    uint32_t vendor_id,
+    uint32_t vendor_id_src,
+    uint32_t product_id,
+    uint32_t version) {}
+
 }  // namespace metrics
 }  // namespace bluetooth
