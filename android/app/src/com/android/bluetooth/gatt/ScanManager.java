@@ -905,9 +905,7 @@ public class ScanManager {
         }
 
         private boolean isTimeoutScanClient(ScanClient client) {
-            return (client.stats != null)
-                    && (client.stats.getScanFromScannerId(client.scannerId) != null)
-                    && (client.stats.getScanFromScannerId(client.scannerId).isTimeout);
+            return (client.stats != null) && client.stats.isScanTimeout(client.scannerId);
         }
 
         private boolean isFirstMatchScanClient(ScanClient client) {
