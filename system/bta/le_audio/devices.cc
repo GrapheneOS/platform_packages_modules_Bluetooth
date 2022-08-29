@@ -976,7 +976,7 @@ bool LeAudioDeviceGroup::CigAssignCisIds(LeAudioDevice* leAudioDevice) {
     if (ase->cis_id != kInvalidCisId) {
       LOG_INFO("ASE ID: %d, is already assigned CIS ID: %d, type %d", ase->id,
                ase->cis_id, cises_[ase->cis_id].type);
-      if (!cises_[ase->id].addr.IsEmpty()) {
+      if (!cises_[ase->cis_id].addr.IsEmpty()) {
         LOG_INFO("Bidirectional ASE already assigned");
         continue;
       }
