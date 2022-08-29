@@ -239,7 +239,7 @@ public class Config {
         sSupportedMask |= (1 << supportedProfile);
     }
 
-    static HashSet<Class> geLeAudioUnicastProfiles() {
+    static HashSet<Class> getLeAudioUnicastProfiles() {
         return mLeAudioUnicastProfiles;
     }
 
