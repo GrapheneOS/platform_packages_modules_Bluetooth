@@ -85,7 +85,6 @@ public class MediaPlayerList {
 
     private Context mContext;
     private Looper mLooper; // Thread all media player callbacks and timeouts happen on
-    private PackageManager mPackageManager;
     private MediaSessionManager mMediaSessionManager;
     private MediaData mCurrMediaData = null;
     private final AudioManager mAudioManager;
@@ -731,7 +730,7 @@ public class MediaPlayerList {
         if (getActivePlayer() == null) {
             Log.d(TAG, "updateMediaForAudioPlayback: no active player");
             PlaybackState.Builder builder = new PlaybackState.Builder()
-                    .setState(PlaybackState.STATE_STOPPED, 0L, 0L);
+                    .setState(PlaybackState.STATE_STOPPED, 0L, 0f);
             List<Metadata> queue = new ArrayList<Metadata>();
             queue.add(Util.empty_data());
             currMediaData = new MediaData(
@@ -838,8 +837,7 @@ public class MediaPlayerList {
                         MediaSession.Token token) {
                     if (mMediaSessionManager == null) {
                         Log.w(TAG, "onMediaKeyEventSessionChanged(): Unexpected callback "
-                                + "from the MediaSessionManager, pkg" + packageName + ", token="
-                                + token);
+                                + "from the MediaSessionManager, pkg" + packageName);
                         return;
                     }
                     if (TextUtils.isEmpty(packageName)) {

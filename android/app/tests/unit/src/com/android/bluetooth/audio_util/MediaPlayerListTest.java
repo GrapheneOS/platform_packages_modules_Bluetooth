@@ -92,11 +92,8 @@ public class MediaPlayerListTest {
         when(mMockContext.getPackageManager()).thenReturn(mockPackageManager);
         when(mockPackageManager.queryIntentServices(any(), anyInt())).thenReturn(null);
 
-        Method method = BrowsablePlayerConnector.class.getDeclaredMethod("setInstanceForTesting",
-                BrowsablePlayerConnector.class);
         BrowsablePlayerConnector mockConnector = mock(BrowsablePlayerConnector.class);
-        method.setAccessible(true);
-        method.invoke(null, mockConnector);
+        BrowsablePlayerConnector.setInstanceForTesting(mockConnector);
         mMediaPlayerList.init(mMediaUpdateCallback);
 
         MediaControllerFactory.inject(mMockController);
@@ -112,10 +109,8 @@ public class MediaPlayerListTest {
 
     @After
     public void tearDown() throws Exception {
-        Method method = BrowsablePlayerConnector.class.getDeclaredMethod("setInstanceForTesting",
-                BrowsablePlayerConnector.class);
-        method.setAccessible(true);
-        method.invoke(null, (BrowsablePlayerConnector) null);
+        BrowsablePlayerConnector.setInstanceForTesting(null);
+
 
         MediaControllerFactory.inject(null);
         MediaPlayerWrapperFactory.inject(null);
