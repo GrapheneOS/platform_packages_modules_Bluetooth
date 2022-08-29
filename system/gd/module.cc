@@ -82,21 +82,21 @@ Module* ModuleRegistry::Start(const ModuleFactory* module, Thread* thread) {
     return started_instance->second;
   }
 
-  LOG_DEBUG("Constructing next module");
+  LOG_INFO("Constructing next module");
   Module* instance = module->ctor_();
   last_instance_ = "starting " + instance->ToString();
   set_registry_and_handler(instance, thread);
 
-  LOG_DEBUG("Starting dependencies of %s", instance->ToString().c_str());
+  LOG_INFO("Starting dependencies of %s", instance->ToString().c_str());
   instance->ListDependencies(&instance->dependencies_);
   Start(&instance->dependencies_, thread);
 
-  LOG_DEBUG("Finished starting dependencies and calling Start() of %s", instance->ToString().c_str());
+  LOG_INFO("Finished starting dependencies and calling Start() of %s", instance->ToString().c_str());
 
   instance->Start();
   start_order_.push_back(module);
   started_modules_[module] = instance;
-  LOG_DEBUG("Started %s", instance->ToString().c_str());
+  LOG_INFO("Started %s", instance->ToString().c_str());
   return instance;
 }
 
