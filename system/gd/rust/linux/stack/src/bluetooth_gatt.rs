@@ -29,7 +29,7 @@ struct Client {
     is_congested: bool,
 
     // Queued on_characteristic_write callback.
-    congestion_queue: Vec<(String, i32, i32)>,
+    congestion_queue: Vec<(String, GattStatus, i32)>,
 }
 
 struct Connection {
@@ -454,12 +454,12 @@ impl BluetoothGattService {
 /// Callback for GATT Client API.
 pub trait IBluetoothGattCallback: RPCProxy {
     /// When the `register_client` request is done.
-    fn on_client_registered(&self, status: i32, client_id: i32);
+    fn on_client_registered(&self, status: GattStatus, client_id: i32);
 
     /// When there is a change in the state of a GATT client connection.
     fn on_client_connection_state(
         &self,
-        status: i32,
+        status: GattStatus,
         client_id: i32,
         connected: bool,
         addr: String,
@@ -472,31 +472,36 @@ pub trait IBluetoothGattCallback: RPCProxy {
     fn on_phy_read(&self, addr: String, tx_phy: LePhy, rx_phy: LePhy, status: GattStatus);
 
     /// When GATT db is available.
-    fn on_search_complete(&self, addr: String, services: Vec<BluetoothGattService>, status: i32);
+    fn on_search_complete(
+        &self,
+        addr: String,
+        services: Vec<BluetoothGattService>,
+        status: GattStatus,
+    );
 
     /// The completion of IBluetoothGatt::read_characteristic.
-    fn on_characteristic_read(&self, addr: String, status: i32, handle: i32, value: Vec<u8>);
+    fn on_characteristic_read(&self, addr: String, status: GattStatus, handle: i32, value: Vec<u8>);
 
     /// The completion of IBluetoothGatt::write_characteristic.
-    fn on_characteristic_write(&self, addr: String, status: i32, handle: i32);
+    fn on_characteristic_write(&self, addr: String, status: GattStatus, handle: i32);
 
     /// When a reliable write is completed.
-    fn on_execute_write(&self, addr: String, status: i32);
+    fn on_execute_write(&self, addr: String, status: GattStatus);
 
     /// The completion of IBluetoothGatt::read_descriptor.
-    fn on_descriptor_read(&self, addr: String, status: i32, handle: i32, value: Vec<u8>);
+    fn on_descriptor_read(&self, addr: String, status: GattStatus, handle: i32, value: Vec<u8>);
 
     /// The completion of IBluetoothGatt::write_descriptor.
-    fn on_descriptor_write(&self, addr: String, status: i32, handle: i32);
+    fn on_descriptor_write(&self, addr: String, status: GattStatus, handle: i32);
 
     /// When notification or indication is received.
     fn on_notify(&self, addr: String, handle: i32, value: Vec<u8>);
 
     /// The completion of IBluetoothGatt::read_remote_rssi.
-    fn on_read_remote_rssi(&self, addr: String, rssi: i32, status: i32);
+    fn on_read_remote_rssi(&self, addr: String, rssi: i32, status: GattStatus);
 
     /// The completion of IBluetoothGatt::configure_mtu.
-    fn on_configure_mtu(&self, addr: String, mtu: i32, status: i32);
+    fn on_configure_mtu(&self, addr: String, mtu: i32, status: GattStatus);
 
     /// When a connection parameter changes.
     fn on_connection_updated(
@@ -505,7 +510,7 @@ pub trait IBluetoothGattCallback: RPCProxy {
         interval: i32,
         latency: i32,
         timeout: i32,
-        status: i32,
+        status: GattStatus,
     );
 
     /// When there is an addition, removal, or change of a GATT service.
@@ -516,7 +521,7 @@ pub trait IBluetoothGattCallback: RPCProxy {
 /// `IBluetoothGatt::register_scanner_callback`.
 pub trait IScannerCallback: RPCProxy {
     /// When the `register_scanner` request is done.
-    fn on_scanner_registered(&self, uuid: Uuid128Bit, scanner_id: u8, status: u8);
+    fn on_scanner_registered(&self, uuid: Uuid128Bit, scanner_id: u8, status: GattStatus);
 }
 
 #[derive(Debug, FromPrimitive, ToPrimitive)]
@@ -1301,23 +1306,23 @@ impl IBluetoothGatt for BluetoothGatt {
 #[btif_callbacks_dispatcher(BluetoothGatt, dispatch_gatt_client_callbacks, GattClientCallbacks)]
 pub(crate) trait BtifGattClientCallbacks {
     #[btif_callback(RegisterClient)]
-    fn register_client_cb(&mut self, status: i32, client_id: i32, app_uuid: Uuid);
+    fn register_client_cb(&mut self, status: GattStatus, client_id: i32, app_uuid: Uuid);
 
     #[btif_callback(Connect)]
-    fn connect_cb(&mut self, conn_id: i32, status: i32, client_id: i32, addr: RawAddress);
+    fn connect_cb(&mut self, conn_id: i32, status: GattStatus, client_id: i32, addr: RawAddress);
 
     #[btif_callback(Disconnect)]
-    fn disconnect_cb(&mut self, conn_id: i32, status: i32, client_id: i32, addr: RawAddress);
+    fn disconnect_cb(&mut self, conn_id: i32, status: GattStatus, client_id: i32, addr: RawAddress);
 
     #[btif_callback(SearchComplete)]
-    fn search_complete_cb(&mut self, conn_id: i32, status: i32);
+    fn search_complete_cb(&mut self, conn_id: i32, status: GattStatus);
 
     #[btif_callback(RegisterForNotification)]
     fn register_for_notification_cb(
         &mut self,
         conn_id: i32,
         registered: i32,
-        status: i32,
+        status: GattStatus,
         handle: u16,
     );
 
@@ -1325,39 +1330,45 @@ pub(crate) trait BtifGattClientCallbacks {
     fn notify_cb(&mut self, conn_id: i32, data: BtGattNotifyParams);
 
     #[btif_callback(ReadCharacteristic)]
-    fn read_characteristic_cb(&mut self, conn_id: i32, status: i32, data: BtGattReadParams);
+    fn read_characteristic_cb(&mut self, conn_id: i32, status: GattStatus, data: BtGattReadParams);
 
     #[btif_callback(WriteCharacteristic)]
     fn write_characteristic_cb(
         &mut self,
         conn_id: i32,
-        status: i32,
+        status: GattStatus,
         handle: u16,
         len: u16,
         value: *const u8,
     );
 
     #[btif_callback(ReadDescriptor)]
-    fn read_descriptor_cb(&mut self, conn_id: i32, status: i32, data: BtGattReadParams);
+    fn read_descriptor_cb(&mut self, conn_id: i32, status: GattStatus, data: BtGattReadParams);
 
     #[btif_callback(WriteDescriptor)]
     fn write_descriptor_cb(
         &mut self,
         conn_id: i32,
-        status: i32,
+        status: GattStatus,
         handle: u16,
         len: u16,
         value: *const u8,
     );
 
     #[btif_callback(ExecuteWrite)]
-    fn execute_write_cb(&mut self, conn_id: i32, status: i32);
+    fn execute_write_cb(&mut self, conn_id: i32, status: GattStatus);
 
     #[btif_callback(ReadRemoteRssi)]
-    fn read_remote_rssi_cb(&mut self, client_id: i32, addr: RawAddress, rssi: i32, status: i32);
+    fn read_remote_rssi_cb(
+        &mut self,
+        client_id: i32,
+        addr: RawAddress,
+        rssi: i32,
+        status: GattStatus,
+    );
 
     #[btif_callback(ConfigureMtu)]
-    fn configure_mtu_cb(&mut self, conn_id: i32, status: i32, mtu: i32);
+    fn configure_mtu_cb(&mut self, conn_id: i32, status: GattStatus, mtu: i32);
 
     #[btif_callback(Congestion)]
     fn congestion_cb(&mut self, conn_id: i32, congested: bool);
@@ -1366,7 +1377,7 @@ pub(crate) trait BtifGattClientCallbacks {
     fn get_gatt_db_cb(&mut self, conn_id: i32, elements: Vec<BtGattDbElement>, count: i32);
 
     #[btif_callback(PhyUpdated)]
-    fn phy_updated_cb(&mut self, conn_id: i32, tx_phy: u8, rx_phy: u8, status: u8);
+    fn phy_updated_cb(&mut self, conn_id: i32, tx_phy: u8, rx_phy: u8, status: GattStatus);
 
     #[btif_callback(ConnUpdated)]
     fn conn_updated_cb(
@@ -1375,18 +1386,25 @@ pub(crate) trait BtifGattClientCallbacks {
         interval: u16,
         latency: u16,
         timeout: u16,
-        status: u8,
+        status: GattStatus,
     );
 
     #[btif_callback(ServiceChanged)]
     fn service_changed_cb(&self, conn_id: i32);
 
     #[btif_callback(ReadPhy)]
-    fn read_phy_cb(&mut self, client_id: i32, addr: RawAddress, tx_phy: u8, rx_phy: u8, status: u8);
+    fn read_phy_cb(
+        &mut self,
+        client_id: i32,
+        addr: RawAddress,
+        tx_phy: u8,
+        rx_phy: u8,
+        status: GattStatus,
+    );
 }
 
 impl BtifGattClientCallbacks for BluetoothGatt {
-    fn register_client_cb(&mut self, status: i32, client_id: i32, app_uuid: Uuid) {
+    fn register_client_cb(&mut self, status: GattStatus, client_id: i32, app_uuid: Uuid) {
         self.context_map.set_client_id(&app_uuid.uu, client_id);
 
         let client = self.context_map.get_by_uuid(&app_uuid.uu);
@@ -1399,8 +1417,8 @@ impl BtifGattClientCallbacks for BluetoothGatt {
         callback.on_client_registered(status, client_id);
     }
 
-    fn connect_cb(&mut self, conn_id: i32, status: i32, client_id: i32, addr: RawAddress) {
-        if status == 0 {
+    fn connect_cb(&mut self, conn_id: i32, status: GattStatus, client_id: i32, addr: RawAddress) {
+        if status == GattStatus::Success {
             self.context_map.add_connection(client_id, conn_id, &addr.to_string());
         }
 
@@ -1412,15 +1430,18 @@ impl BtifGattClientCallbacks for BluetoothGatt {
         client.unwrap().callback.on_client_connection_state(
             status,
             client_id,
-            match GattStatus::from_i32(status) {
-                None => false,
-                Some(gatt_status) => gatt_status == GattStatus::Success,
-            },
+            status == GattStatus::Success,
             addr.to_string(),
         );
     }
 
-    fn disconnect_cb(&mut self, conn_id: i32, status: i32, client_id: i32, addr: RawAddress) {
+    fn disconnect_cb(
+        &mut self,
+        conn_id: i32,
+        status: GattStatus,
+        client_id: i32,
+        addr: RawAddress,
+    ) {
         self.context_map.remove_connection(client_id, conn_id);
         let client = self.context_map.get_by_client_id(client_id);
         if client.is_none() {
@@ -1430,15 +1451,12 @@ impl BtifGattClientCallbacks for BluetoothGatt {
         client.unwrap().callback.on_client_connection_state(
             status,
             client_id,
-            match GattStatus::from_i32(status) {
-                None => false,
-                Some(gatt_status) => gatt_status == GattStatus::Success,
-            },
+            status == GattStatus::Success,
             addr.to_string(),
         );
     }
 
-    fn search_complete_cb(&mut self, conn_id: i32, _status: i32) {
+    fn search_complete_cb(&mut self, conn_id: i32, _status: GattStatus) {
         // Gatt DB is ready!
         self.gatt.as_ref().unwrap().client.get_gatt_db(conn_id);
     }
@@ -1447,7 +1465,7 @@ impl BtifGattClientCallbacks for BluetoothGatt {
         &mut self,
         _conn_id: i32,
         _registered: i32,
-        _status: i32,
+        _status: GattStatus,
         _handle: u16,
     ) {
         // No-op.
@@ -1466,7 +1484,7 @@ impl BtifGattClientCallbacks for BluetoothGatt {
         );
     }
 
-    fn read_characteristic_cb(&mut self, conn_id: i32, status: i32, data: BtGattReadParams) {
+    fn read_characteristic_cb(&mut self, conn_id: i32, status: GattStatus, data: BtGattReadParams) {
         let address = self.context_map.get_address_by_conn_id(conn_id);
         if address.is_none() {
             return;
@@ -1488,7 +1506,7 @@ impl BtifGattClientCallbacks for BluetoothGatt {
     fn write_characteristic_cb(
         &mut self,
         conn_id: i32,
-        mut status: i32,
+        mut status: GattStatus,
         handle: u16,
         _len: u16,
         _value: *const u8,
@@ -1509,8 +1527,8 @@ impl BtifGattClientCallbacks for BluetoothGatt {
         let client = client.unwrap();
 
         if client.is_congested {
-            if status == GattStatus::Congested.to_i32().unwrap() {
-                status = GattStatus::Success.to_i32().unwrap();
+            if status == GattStatus::Congested {
+                status = GattStatus::Success;
             }
 
             client.congestion_queue.push((address.unwrap().to_string(), status, handle as i32));
@@ -1524,7 +1542,7 @@ impl BtifGattClientCallbacks for BluetoothGatt {
         );
     }
 
-    fn read_descriptor_cb(&mut self, conn_id: i32, status: i32, data: BtGattReadParams) {
+    fn read_descriptor_cb(&mut self, conn_id: i32, status: GattStatus, data: BtGattReadParams) {
         let address = self.context_map.get_address_by_conn_id(conn_id);
         if address.is_none() {
             return;
@@ -1546,7 +1564,7 @@ impl BtifGattClientCallbacks for BluetoothGatt {
     fn write_descriptor_cb(
         &mut self,
         conn_id: i32,
-        status: i32,
+        status: GattStatus,
         handle: u16,
         _len: u16,
         _value: *const u8,
@@ -1568,7 +1586,7 @@ impl BtifGattClientCallbacks for BluetoothGatt {
         );
     }
 
-    fn execute_write_cb(&mut self, conn_id: i32, status: i32) {
+    fn execute_write_cb(&mut self, conn_id: i32, status: GattStatus) {
         let address = self.context_map.get_address_by_conn_id(conn_id);
         if address.is_none() {
             return;
@@ -1582,7 +1600,13 @@ impl BtifGattClientCallbacks for BluetoothGatt {
         client.unwrap().callback.on_execute_write(address.unwrap().to_string(), status);
     }
 
-    fn read_remote_rssi_cb(&mut self, client_id: i32, addr: RawAddress, rssi: i32, status: i32) {
+    fn read_remote_rssi_cb(
+        &mut self,
+        client_id: i32,
+        addr: RawAddress,
+        rssi: i32,
+        status: GattStatus,
+    ) {
         let client = self.context_map.get_by_client_id(client_id);
         if client.is_none() {
             return;
@@ -1591,7 +1615,7 @@ impl BtifGattClientCallbacks for BluetoothGatt {
         client.unwrap().callback.on_read_remote_rssi(addr.to_string(), rssi, status);
     }
 
-    fn configure_mtu_cb(&mut self, conn_id: i32, status: i32, mtu: i32) {
+    fn configure_mtu_cb(&mut self, conn_id: i32, status: GattStatus, mtu: i32) {
         let client = self.context_map.get_client_by_conn_id(conn_id);
         if client.is_none() {
             return;
@@ -1697,10 +1721,14 @@ impl BtifGattClientCallbacks for BluetoothGatt {
             }
         }
 
-        client.unwrap().callback.on_search_complete(address.unwrap().to_string(), db_out, 0);
+        client.unwrap().callback.on_search_complete(
+            address.unwrap().to_string(),
+            db_out,
+            GattStatus::Success,
+        );
     }
 
-    fn phy_updated_cb(&mut self, conn_id: i32, tx_phy: u8, rx_phy: u8, status: u8) {
+    fn phy_updated_cb(&mut self, conn_id: i32, tx_phy: u8, rx_phy: u8, status: GattStatus) {
         let client = self.context_map.get_client_by_conn_id(conn_id);
         if client.is_none() {
             return;
@@ -1715,7 +1743,7 @@ impl BtifGattClientCallbacks for BluetoothGatt {
             address.unwrap(),
             LePhy::from_u8(tx_phy).unwrap(),
             LePhy::from_u8(rx_phy).unwrap(),
-            GattStatus::from_u8(status).unwrap(),
+            status,
         );
     }
 
@@ -1725,7 +1753,7 @@ impl BtifGattClientCallbacks for BluetoothGatt {
         addr: RawAddress,
         tx_phy: u8,
         rx_phy: u8,
-        status: u8,
+        status: GattStatus,
     ) {
         let client = self.context_map.get_by_client_id(client_id);
         if client.is_none() {
@@ -1736,7 +1764,7 @@ impl BtifGattClientCallbacks for BluetoothGatt {
             addr.to_string(),
             LePhy::from_u8(tx_phy).unwrap(),
             LePhy::from_u8(rx_phy).unwrap(),
-            GattStatus::from_u8(status).unwrap(),
+            status,
         );
     }
 
@@ -1746,7 +1774,7 @@ impl BtifGattClientCallbacks for BluetoothGatt {
         interval: u16,
         latency: u16,
         timeout: u16,
-        status: u8,
+        status: GattStatus,
     ) {
         let client = self.context_map.get_client_by_conn_id(conn_id);
         if client.is_none() {
@@ -1763,7 +1791,7 @@ impl BtifGattClientCallbacks for BluetoothGatt {
             interval as i32,
             latency as i32,
             timeout as i32,
-            status as i32,
+            status,
         );
     }
 
@@ -1785,11 +1813,11 @@ impl BtifGattClientCallbacks for BluetoothGatt {
 #[btif_callbacks_dispatcher(BluetoothGatt, dispatch_le_scanner_callbacks, GattScannerCallbacks)]
 pub(crate) trait BtifGattScannerCallbacks {
     #[btif_callback(OnScannerRegistered)]
-    fn on_scanner_registered(&mut self, uuid: Uuid, scanner_id: u8, status: u8);
+    fn on_scanner_registered(&mut self, uuid: Uuid, scanner_id: u8, status: GattStatus);
 }
 
 impl BtifGattScannerCallbacks for BluetoothGatt {
-    fn on_scanner_registered(&mut self, uuid: Uuid, scanner_id: u8, status: u8) {
+    fn on_scanner_registered(&mut self, uuid: Uuid, scanner_id: u8, status: GattStatus) {
         log::debug!(
             "on_scanner_registered UUID = {}, scanner_id = {}, status = {}",
             uuid,
@@ -1797,7 +1825,7 @@ impl BtifGattScannerCallbacks for BluetoothGatt {
             status
         );
 
-        if status != 0 {
+        if status != GattStatus::Success {
             log::error!("Error registering scanner UUID {}", uuid);
             self.scanners.remove(&uuid);
             return;
@@ -1835,10 +1863,10 @@ mod tests {
     }
 
     impl IBluetoothGattCallback for TestBluetoothGattCallback {
-        fn on_client_registered(&self, _status: i32, _client_id: i32) {}
+        fn on_client_registered(&self, _status: GattStatus, _client_id: i32) {}
         fn on_client_connection_state(
             &self,
-            _status: i32,
+            _status: GattStatus,
             _client_id: i32,
             _connected: bool,
             _addr: String,
@@ -1860,32 +1888,39 @@ mod tests {
             &self,
             _addr: String,
             _services: Vec<BluetoothGattService>,
-            _status: i32,
+            _status: GattStatus,
         ) {
         }
 
         fn on_characteristic_read(
             &self,
             _addr: String,
-            _status: i32,
+            _status: GattStatus,
             _handle: i32,
             _value: Vec<u8>,
         ) {
         }
 
-        fn on_characteristic_write(&self, _addr: String, _status: i32, _handle: i32) {}
+        fn on_characteristic_write(&self, _addr: String, _status: GattStatus, _handle: i32) {}
 
-        fn on_execute_write(&self, _addr: String, _status: i32) {}
+        fn on_execute_write(&self, _addr: String, _status: GattStatus) {}
 
-        fn on_descriptor_read(&self, _addr: String, _status: i32, _handle: i32, _value: Vec<u8>) {}
+        fn on_descriptor_read(
+            &self,
+            _addr: String,
+            _status: GattStatus,
+            _handle: i32,
+            _value: Vec<u8>,
+        ) {
+        }
 
-        fn on_descriptor_write(&self, _addr: String, _status: i32, _handle: i32) {}
+        fn on_descriptor_write(&self, _addr: String, _status: GattStatus, _handle: i32) {}
 
         fn on_notify(&self, _addr: String, _handle: i32, _value: Vec<u8>) {}
 
-        fn on_read_remote_rssi(&self, _addr: String, _rssi: i32, _status: i32) {}
+        fn on_read_remote_rssi(&self, _addr: String, _rssi: i32, _status: GattStatus) {}
 
-        fn on_configure_mtu(&self, _addr: String, _mtu: i32, _status: i32) {}
+        fn on_configure_mtu(&self, _addr: String, _mtu: i32, _status: GattStatus) {}
 
         fn on_connection_updated(
             &self,
@@ -1893,7 +1928,7 @@ mod tests {
             _interval: i32,
             _latency: i32,
             _timeout: i32,
-            _status: i32,
+            _status: GattStatus,
         ) {
         }
 
