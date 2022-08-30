@@ -6,44 +6,6 @@
     ],
     "scenarios": [
         {
-            "name": "Ringtone",
-            "configurations": [
-                "DualDev_OneChanStereoSnk_OneChanStereoSrc_32_2_Server_Preferred",
-                "DualDev_OneChanStereoSnk_OneChanStereoSrc_32_2_1",
-                "DualDev_OneChanStereoSnk_OneChanMonoSrc_32_2_Server_Preferred",
-                "DualDev_OneChanStereoSnk_OneChanMonoSrc_32_2_1",
-                "DualDev_OneChanDoubleStereoSnk_OneChanMonoSrc_32_2_Server_Preferred",
-                "DualDev_OneChanDoubleStereoSnk_OneChanMonoSrc_32_2_1",
-                "SingleDev_TwoChanStereoSnk_TwoChanStereoSrc_32_2_Server_Preferred",
-                "SingleDev_TwoChanStereoSnk_TwoChanStereoSrc_32_2_1",
-                "SingleDev_TwoChanStereoSnk_OneChanMonoSrc_32_2_Server_Preferred",
-                "SingleDev_TwoChanStereoSnk_OneChanMonoSrc_32_2_1",
-                "SingleDev_OneChanStereoSnk_OneChanMonoSrc_32_2_Server_Preferred",
-                "SingleDev_OneChanStereoSnk_OneChanMonoSrc_32_2_1",
-                "SingleDev_OneChanMonoSnk_OneChanMonoSrc_32_2_Server_Preferred",
-                "SingleDev_OneChanMonoSnk_OneChanMonoSrc_32_2_1",
-                "DualDev_OneChanStereoSnk_16_2_Server_Preferred",
-                "DualDev_OneChanStereoSnk_16_2_1",
-                "DualDev_OneChanStereoSnk_16_1_Server_Preferred",
-                "DualDev_OneChanStereoSnk_16_1_1",
-                "SingleDev_OneChanStereoSnk_16_2_Server_Preferred",
-                "SingleDev_OneChanStereoSnk_16_2_1",
-                "SingleDev_OneChanStereoSnk_16_1_Server_Preferred",
-                "SingleDev_OneChanStereoSnk_16_1_1",
-                "SingleDev_TwoChanStereoSnk_16_2_Server_Preferred",
-                "SingleDev_TwoChanStereoSnk_16_2_1",
-                "SingleDev_TwoChanStereoSnk_16_1_Server_Preferred",
-                "SingleDev_TwoChanStereoSnk_16_1_1",
-                "SingleDev_OneChanMonoSnk_16_2_Server_Preferred",
-                "SingleDev_OneChanMonoSnk_16_2_1",
-                "SingleDev_OneChanMonoSnk_16_1_Server_Preferred",
-                "SingleDev_OneChanMonoSnk_16_1_1",
-                "DualDev_OneChanMonoSrc_16_2_Server_Preferred",
-                "SingleDev_OneChanStereoSrc_16_2_Server_Preferred",
-                "SingleDev_OneChanMonoSrc_16_2_Server_Preferred"
-            ]
-        },
-        {
             "name": "Conversational",
             "configurations": [
                 "DualDev_OneChanStereoSnk_OneChanStereoSrc_32_2_Server_Preferred",
@@ -108,6 +70,7 @@
                 "VND_SingleDev_TwoChanStereoSnk_TwoChanStereoSrc_32khz_60oct_R3_L22_1",
                 "DualDev_OneChanMonoSnk_16_2_Server_Preferred",
                 "SingleDev_OneChanStereoSnk_16_2_Server_Preferred",
+                "SingleDev_TwoChanStereoSnk_16_2_Server_Preferred",
                 "SingleDev_OneChanMonoSnk_16_2_Server_Preferred"
             ]
         },
@@ -249,19 +212,6 @@
             "configurations": [
                 "VND_SingleDev_TwoChanStereoSrc_48khz_100octs_Server_Preferred_1",
                 "VND_SingleDev_TwoChanStereoSrc_48khz_100octs_R11_L40_1"
-            ]
-        },
-        {
-            "name": "Default",
-            "configurations": [
-                "DualDev_OneChanStereoSnk_16_2_Server_Preferred",
-                "DualDev_OneChanStereoSnk_16_2_1",
-                "SingleDev_OneChanStereoSnk_16_2_Server_Preferred",
-                "SingleDev_OneChanStereoSnk_16_2_1",
-                "SingleDev_TwoChanStereoSnk_16_2_Server_Preferred",
-                "SingleDev_TwoChanStereoSnk_16_2_1",
-                "SingleDev_OneChanMonoSnk_16_2_Server_Preferred",
-                "SingleDev_OneChanMonoSnk_16_2_1"
             ]
         }
     ]
