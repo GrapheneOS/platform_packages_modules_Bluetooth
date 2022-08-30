@@ -29,8 +29,7 @@ class LeAudioClientAudioSinkReceiver {
   virtual void OnAudioSuspend(std::promise<void> do_suspend_promise) = 0;
   virtual void OnAudioResume(void) = 0;
   virtual void OnAudioMetadataUpdate(
-      std::promise<void> do_update_metadata_promise,
-      const source_metadata_t& source_metadata) = 0;
+      std::vector<struct playback_track_metadata> source_metadata) = 0;
 };
 class LeAudioClientAudioSourceReceiver {
  public:
@@ -38,8 +37,7 @@ class LeAudioClientAudioSourceReceiver {
   virtual void OnAudioSuspend(std::promise<void> do_suspend_promise) = 0;
   virtual void OnAudioResume(void) = 0;
   virtual void OnAudioMetadataUpdate(
-      std::promise<void> do_update_metadata_promise,
-      const sink_metadata_t& sink_metadata) = 0;
+      std::vector<struct record_track_metadata> sink_metadata) = 0;
 };
 
 /* Represents configuration of audio codec, as exchanged between le audio and

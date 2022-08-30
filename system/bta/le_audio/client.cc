@@ -3163,7 +3163,8 @@ class LeAudioClientImpl : public LeAudioClient {
     return true;
   }
 
-  void OnAudioMetadataUpdate(const source_metadata_t& source_metadata) {
+  void OnAudioMetadataUpdate(
+      std::vector<struct playback_track_metadata> source_metadata) {
     if (active_group_id_ == bluetooth::groups::kGroupUnknown) {
       LOG(WARNING) << ", cannot start streaming if no active group set";
       return;
@@ -3240,24 +3241,20 @@ class LeAudioClientImpl : public LeAudioClient {
     }
   }
 
-  void OnAudioSourceMetadataUpdate(const sink_metadata_t& sink_metadata) {
-    auto tracks = sink_metadata.tracks;
-    auto track_count = sink_metadata.track_count;
+  void OnAudioSourceMetadataUpdate(
+      std::vector<struct record_track_metadata> sink_metadata) {
     bool is_audio_source_invalid = true;
 
-    while (track_count) {
+    for (auto& track : sink_metadata) {
       LOG_INFO(
           "%s: source=%d, gain=%f, destination device=%d, "
           "destination device address=%.32s",
-          __func__, tracks->source, tracks->gain, tracks->dest_device,
-          tracks->dest_device_address);
+          __func__, track.source, track.gain, track.dest_device,
+          track.dest_device_address);
 
       /* Don't differentiate source types, just check if it's valid */
-      if (is_audio_source_invalid && tracks->source != AUDIO_SOURCE_INVALID)
+      if (is_audio_source_invalid && track.source != AUDIO_SOURCE_INVALID)
         is_audio_source_invalid = false;
-
-      --track_count;
-      ++tracks;
     }
 
     auto group = aseGroups_.FindById(active_group_id_);
@@ -3822,10 +3819,8 @@ class LeAudioClientAudioSinkReceiverImpl
   }
 
   void OnAudioMetadataUpdate(
-      std::promise<void> do_metadata_update_promise,
-      const source_metadata_t& source_metadata) override {
+      std::vector<struct playback_track_metadata> source_metadata) override {
     if (instance) instance->OnAudioMetadataUpdate(source_metadata);
-    do_metadata_update_promise.set_value();
   }
 };
 
@@ -3840,10 +3835,9 @@ class LeAudioClientAudioSourceReceiverImpl
     if (instance) instance->OnAudioSourceResume();
   }
 
-  void OnAudioMetadataUpdate(std::promise<void> do_metadata_update_promise,
-                             const sink_metadata_t& sink_metadata) override {
+  void OnAudioMetadataUpdate(
+      std::vector<struct record_track_metadata> sink_metadata) override {
     if (instance) instance->OnAudioSourceMetadataUpdate(sink_metadata);
-    do_metadata_update_promise.set_value();
   }
 };
 
