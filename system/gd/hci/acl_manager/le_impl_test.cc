@@ -877,6 +877,94 @@ TEST_F(LeImplTest, disarm_connectability_DISARMING_extended) {
   ASSERT_TRUE(log_capture->Rewind()->Find("in unexpected state:ConnectabilityState::DISARMING"));
 }
 
+TEST_F(LeImplTest, register_with_address_manager__AddressPolicyPublicAddress) {
+  bluetooth::common::InitFlags::SetAllForTesting();
+  std::unique_ptr<LogCapture> log_capture = std::make_unique<LogCapture>();
+
+  set_privacy_policy_for_initiator_address(fixed_address_, LeAddressManager::AddressPolicy::USE_PUBLIC_ADDRESS);
+
+  le_impl_->register_with_address_manager();
+  sync_handler();  // Let |eAddressManager::register_client| execute on handler
+  ASSERT_TRUE(le_impl_->address_manager_registered);
+  ASSERT_TRUE(le_impl_->pause_connection);
+
+  le_impl_->ready_to_unregister = true;
+
+  le_impl_->check_for_unregister();
+  sync_handler();  // Let |LeAddressManager::unregister_client| execute on handler
+  ASSERT_FALSE(le_impl_->address_manager_registered);
+  ASSERT_FALSE(le_impl_->pause_connection);
+
+  ASSERT_TRUE(log_capture->Rewind()->Find("SetPrivacyPolicyForInitiatorAddress with policy 1"));
+  ASSERT_TRUE(log_capture->Rewind()->Find("Client unregistered"));
+}
+
+TEST_F(LeImplTest, register_with_address_manager__AddressPolicyStaticAddress) {
+  bluetooth::common::InitFlags::SetAllForTesting();
+  std::unique_ptr<LogCapture> log_capture = std::make_unique<LogCapture>();
+
+  set_privacy_policy_for_initiator_address(fixed_address_, LeAddressManager::AddressPolicy::USE_STATIC_ADDRESS);
+
+  le_impl_->register_with_address_manager();
+  sync_handler();  // Let |LeAddressManager::register_client| execute on handler
+  ASSERT_TRUE(le_impl_->address_manager_registered);
+  ASSERT_TRUE(le_impl_->pause_connection);
+
+  le_impl_->ready_to_unregister = true;
+
+  le_impl_->check_for_unregister();
+  sync_handler();  // Let |LeAddressManager::unregister_client| execute on handler
+  ASSERT_FALSE(le_impl_->address_manager_registered);
+  ASSERT_FALSE(le_impl_->pause_connection);
+
+  ASSERT_TRUE(log_capture->Rewind()->Find("SetPrivacyPolicyForInitiatorAddress with policy 2"));
+  ASSERT_TRUE(log_capture->Rewind()->Find("Client unregistered"));
+}
+
+TEST_F(LeImplTest, register_with_address_manager__AddressPolicyNonResolvableAddress) {
+  bluetooth::common::InitFlags::SetAllForTesting();
+  std::unique_ptr<LogCapture> log_capture = std::make_unique<LogCapture>();
+
+  set_privacy_policy_for_initiator_address(fixed_address_, LeAddressManager::AddressPolicy::USE_NON_RESOLVABLE_ADDRESS);
+
+  le_impl_->register_with_address_manager();
+  sync_handler();  // Let |LeAddressManager::register_client| execute on handler
+  ASSERT_TRUE(le_impl_->address_manager_registered);
+  ASSERT_TRUE(le_impl_->pause_connection);
+
+  le_impl_->ready_to_unregister = true;
+
+  le_impl_->check_for_unregister();
+  sync_handler();  // Let |LeAddressManager::unregister_client| execute on handler
+  ASSERT_FALSE(le_impl_->address_manager_registered);
+  ASSERT_FALSE(le_impl_->pause_connection);
+
+  ASSERT_TRUE(log_capture->Rewind()->Find("SetPrivacyPolicyForInitiatorAddress with policy 3"));
+  ASSERT_TRUE(log_capture->Rewind()->Find("Client unregistered"));
+}
+
+TEST_F(LeImplTest, register_with_address_manager__AddressPolicyResolvableAddress) {
+  bluetooth::common::InitFlags::SetAllForTesting();
+  std::unique_ptr<LogCapture> log_capture = std::make_unique<LogCapture>();
+
+  set_privacy_policy_for_initiator_address(fixed_address_, LeAddressManager::AddressPolicy::USE_RESOLVABLE_ADDRESS);
+
+  le_impl_->register_with_address_manager();
+  sync_handler();  // Let |LeAddressManager::register_client| execute on handler
+  ASSERT_TRUE(le_impl_->address_manager_registered);
+  ASSERT_TRUE(le_impl_->pause_connection);
+
+  le_impl_->ready_to_unregister = true;
+
+  le_impl_->check_for_unregister();
+  sync_handler();  // Let |LeAddressManager::unregister_client| execute on handler
+  ASSERT_FALSE(le_impl_->address_manager_registered);
+  ASSERT_FALSE(le_impl_->pause_connection);
+
+  ASSERT_TRUE(log_capture->Rewind()->Find("SetPrivacyPolicyForInitiatorAddress with policy 4"));
+  ASSERT_TRUE(log_capture->Rewind()->Find("Client unregistered"));
+}
+
 }  // namespace acl_manager
 }  // namespace hci
 }  // namespace bluetooth
