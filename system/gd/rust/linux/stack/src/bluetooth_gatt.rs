@@ -882,20 +882,23 @@ impl BluetoothGatt {
 
     /// Remove a scanner callback and unregisters all scanners associated with that callback.
     pub fn remove_scanner_callback(&mut self, callback_id: u32) -> bool {
-        // Could be written in a more Rust idiomatic way once HashMap::drain_filter stabilizes.
-        for (uuid, scanner) in
-            self.scanners.iter_mut().filter(|(_uuid, scanner)| scanner.callback_id == callback_id)
-        {
-            if let Some(scanner_id) = scanner.scanner_id {
-                log::debug!("Unregistering scanner UUID {}", scanner.uuid);
-                self.gatt.as_mut().unwrap().scanner.unregister(scanner_id);
-            } else {
-                log::warn!("Cannot unregister a scanner without id UUID={}", uuid);
-            }
-        }
+        let affected_scanner_ids: Vec<u8> = self
+            .scanners
+            .iter()
+            .filter(|(_uuid, scanner)| scanner.callback_id == callback_id)
+            .filter_map(|(_uuid, scanner)| {
+                if let Some(scanner_id) = scanner.scanner_id {
+                    Some(scanner_id)
+                } else {
+                    None
+                }
+            })
+            .collect();
 
-        self.scanners.retain(|_uuid, scanner| scanner.callback_id != callback_id);
-        self.update_scan();
+        // All scanners associated with the callback must be also unregistered.
+        for scanner_id in affected_scanner_ids {
+            self.unregister_scanner(scanner_id);
+        }
 
         self.scanner_callbacks.remove_callback(callback_id)
     }
@@ -948,8 +951,6 @@ pub enum GattWriteRequestStatus {
 
 // This structure keeps track of the lifecycle of a scanner.
 struct ScannerInfo {
-    // The app ID associated with the registration of the scanner.
-    uuid: Uuid,
     // The callback to which events about this scanner needs to be sent to.
     // Another purpose of keeping track of the callback id is that when a callback is disconnected
     // or unregistered we need to also unregister all scanners associated with that callback to
@@ -975,8 +976,7 @@ impl IBluetoothGatt for BluetoothGatt {
         self.small_rng.fill_bytes(&mut bytes);
         let uuid = Uuid { uu: bytes };
 
-        self.scanners
-            .insert(uuid, ScannerInfo { uuid, callback_id, scanner_id: None, is_active: false });
+        self.scanners.insert(uuid, ScannerInfo { callback_id, scanner_id: None, is_active: false });
 
         // libbluetooth's register_scanner takes a UUID of the scanning application. This UUID does
         // not correspond to higher level concept of "application" so we use random UUID that
@@ -988,6 +988,12 @@ impl IBluetoothGatt for BluetoothGatt {
 
     fn unregister_scanner(&mut self, scanner_id: u8) -> bool {
         self.gatt.as_mut().unwrap().scanner.unregister(scanner_id);
+
+        // The unregistered scanner must also be stopped.
+        self.stop_scan(scanner_id);
+
+        self.scanners.retain(|_uuid, scanner| scanner.scanner_id != Some(scanner_id));
+
         true
     }
 
