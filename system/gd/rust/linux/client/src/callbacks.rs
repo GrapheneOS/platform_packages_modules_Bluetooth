@@ -299,8 +299,8 @@ impl ScannerCallback {
 }
 
 impl IScannerCallback for ScannerCallback {
-    fn on_scanner_registered(&self, uuid: Uuid128Bit, scanner_id: u8, status: u8) {
-        if status != 0 {
+    fn on_scanner_registered(&self, uuid: Uuid128Bit, scanner_id: u8, status: GattStatus) {
+        if status != GattStatus::Success {
             print_error!("Failed registering scanner, status = {}", status);
             return;
         }
@@ -349,14 +349,14 @@ impl BtGattCallback {
 }
 
 impl IBluetoothGattCallback for BtGattCallback {
-    fn on_client_registered(&self, status: i32, client_id: i32) {
+    fn on_client_registered(&self, status: GattStatus, client_id: i32) {
         print_info!("GATT Client registered status = {}, client_id = {}", status, client_id);
         self.context.lock().unwrap().gatt_client_id = Some(client_id);
     }
 
     fn on_client_connection_state(
         &self,
-        status: i32,
+        status: GattStatus,
         client_id: i32,
         connected: bool,
         addr: String,
@@ -390,7 +390,12 @@ impl IBluetoothGattCallback for BtGattCallback {
         );
     }
 
-    fn on_search_complete(&self, addr: String, services: Vec<BluetoothGattService>, status: i32) {
+    fn on_search_complete(
+        &self,
+        addr: String,
+        services: Vec<BluetoothGattService>,
+        status: GattStatus,
+    ) {
         print_info!(
             "GATT DB Search complete: addr = {}, services = {:?}, status = {}",
             addr,
@@ -399,7 +404,13 @@ impl IBluetoothGattCallback for BtGattCallback {
         );
     }
 
-    fn on_characteristic_read(&self, addr: String, status: i32, handle: i32, value: Vec<u8>) {
+    fn on_characteristic_read(
+        &self,
+        addr: String,
+        status: GattStatus,
+        handle: i32,
+        value: Vec<u8>,
+    ) {
         print_info!(
             "GATT Characteristic read: addr = {}, status = {}, handle = {}, value = {:?}",
             addr,
@@ -409,7 +420,7 @@ impl IBluetoothGattCallback for BtGattCallback {
         );
     }
 
-    fn on_characteristic_write(&self, addr: String, status: i32, handle: i32) {
+    fn on_characteristic_write(&self, addr: String, status: GattStatus, handle: i32) {
         print_info!(
             "GATT Characteristic write: addr = {}, status = {}, handle = {}",
             addr,
@@ -418,11 +429,11 @@ impl IBluetoothGattCallback for BtGattCallback {
         );
     }
 
-    fn on_execute_write(&self, addr: String, status: i32) {
+    fn on_execute_write(&self, addr: String, status: GattStatus) {
         print_info!("GATT execute write addr = {}, status = {}", addr, status);
     }
 
-    fn on_descriptor_read(&self, addr: String, status: i32, handle: i32, value: Vec<u8>) {
+    fn on_descriptor_read(&self, addr: String, status: GattStatus, handle: i32, value: Vec<u8>) {
         print_info!(
             "GATT Descriptor read: addr = {}, status = {}, handle = {}, value = {:?}",
             addr,
@@ -432,7 +443,7 @@ impl IBluetoothGattCallback for BtGattCallback {
         );
     }
 
-    fn on_descriptor_write(&self, addr: String, status: i32, handle: i32) {
+    fn on_descriptor_write(&self, addr: String, status: GattStatus, handle: i32) {
         print_info!(
             "GATT Descriptor write: addr = {}, status = {}, handle = {}",
             addr,
@@ -445,11 +456,11 @@ impl IBluetoothGattCallback for BtGattCallback {
         print_info!("GATT Notification: addr = {}, handle = {}, value = {:?}", addr, handle, value);
     }
 
-    fn on_read_remote_rssi(&self, addr: String, rssi: i32, status: i32) {
+    fn on_read_remote_rssi(&self, addr: String, rssi: i32, status: GattStatus) {
         print_info!("Remote RSSI read: addr = {}, rssi = {}, status = {}", addr, rssi, status);
     }
 
-    fn on_configure_mtu(&self, addr: String, mtu: i32, status: i32) {
+    fn on_configure_mtu(&self, addr: String, mtu: i32, status: GattStatus) {
         print_info!("MTU configured: addr = {}, mtu = {}, status = {}", addr, mtu, status);
     }
 
@@ -459,7 +470,7 @@ impl IBluetoothGattCallback for BtGattCallback {
         interval: i32,
         latency: i32,
         timeout: i32,
-        status: i32,
+        status: GattStatus,
     ) {
         print_info!(
             "Connection updated: addr = {}, interval = {}, latency = {}, timeout = {}, status = {}",
