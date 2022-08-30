@@ -5,7 +5,8 @@ use bt_topshim::profiles::gatt::{
     AdvertiseParameters, Gatt, GattFilterParam, PeriodicAdvertisingParameters,
 };
 use bt_topshim::profiles::gatt::{
-    GattClientCallbacksDispatcher, GattScannerCallbacksDispatcher, GattServerCallbacksDispatcher,
+    GattAdvCallbacksDispatcher, GattAdvInbandCallbacksDispatcher, GattClientCallbacksDispatcher,
+    GattScannerCallbacksDispatcher, GattServerCallbacksDispatcher,
 };
 use bt_topshim_facade_protobuf::empty::Empty;
 //use bt_topshim_facade_protobuf::facade::{
@@ -65,6 +66,16 @@ impl GattServiceImpl {
             GattScannerCallbacksDispatcher {
                 dispatch: Box::new(move |cb| {
                     println!("received Gatt scanner callback: {:?}", cb);
+                }),
+            },
+            GattAdvInbandCallbacksDispatcher {
+                dispatch: Box::new(move |cb| {
+                    println!("received Gatt advertiser inband callback: {:?}", cb);
+                }),
+            },
+            GattAdvCallbacksDispatcher {
+                dispatch: Box::new(move |cb| {
+                    println!("received Gatt advertising callback: {:?}", cb);
                 }),
             },
         );

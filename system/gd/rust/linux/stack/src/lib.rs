@@ -27,9 +27,9 @@ use crate::suspend::Suspend;
 use bt_topshim::{
     btif::BaseCallbacks,
     profiles::{
-        a2dp::A2dpCallbacks, avrcp::AvrcpCallbacks, gatt::GattClientCallbacks,
-        gatt::GattScannerCallbacks, gatt::GattServerCallbacks, hfp::HfpCallbacks,
-        hid_host::HHCallbacks, sdp::SdpCallbacks,
+        a2dp::A2dpCallbacks, avrcp::AvrcpCallbacks, gatt::GattAdvCallbacks,
+        gatt::GattAdvInbandCallbacks, gatt::GattClientCallbacks, gatt::GattScannerCallbacks,
+        gatt::GattServerCallbacks, hfp::HfpCallbacks, hid_host::HHCallbacks, sdp::SdpCallbacks,
     },
 };
 
@@ -42,6 +42,8 @@ pub enum Message {
     GattClient(GattClientCallbacks),
     GattServer(GattServerCallbacks),
     LeScanner(GattScannerCallbacks),
+    LeAdvInband(GattAdvInbandCallbacks),
+    LeAdv(GattAdvCallbacks),
     HidHost(HHCallbacks),
     Hfp(HfpCallbacks),
     Sdp(SdpCallbacks),
@@ -118,6 +120,16 @@ impl Stack {
 
                 Message::LeScanner(m) => {
                     bluetooth_gatt.lock().unwrap().dispatch_le_scanner_callbacks(m);
+                }
+
+                Message::LeAdvInband(m) => {
+                    // TODO(b/233128394)
+                    debug!("Received LeAdvInband message: {:?}", m);
+                }
+
+                Message::LeAdv(m) => {
+                    // TODO(b/233128394)
+                    debug!("Received LeAdv message: {:?}", m);
                 }
 
                 Message::Hfp(hf) => {
