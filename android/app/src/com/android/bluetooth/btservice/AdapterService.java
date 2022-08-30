@@ -758,7 +758,7 @@ public class AdapterService extends Service {
         HashSet<Class> nonSupportedProfiles = new HashSet<>();
 
         if (!isLeConnectedIsochronousStreamCentralSupported()) {
-            nonSupportedProfiles.addAll(Config.getLeAudioUnicastProfiles());
+            nonSupportedProfiles.addAll(Config.geLeAudioUnicastProfiles());
         }
 
         if (!isLeAudioBroadcastAssistantSupported()) {
@@ -3517,7 +3517,7 @@ public class AdapterService extends Service {
 
             HashSet<Class> supportedProfileServices =
                     new HashSet<Class>(Arrays.asList(Config.getSupportedProfiles()));
-            HashSet<Class> leAudioUnicastProfiles = Config.getLeAudioUnicastProfiles();
+            HashSet<Class> leAudioUnicastProfiles = Config.geLeAudioUnicastProfiles();
 
             if (supportedProfileServices.containsAll(leAudioUnicastProfiles)) {
                 return BluetoothStatusCodes.FEATURE_SUPPORTED;
