@@ -1361,6 +1361,7 @@ impl BleScanner {
         mutcxxcall!(self, Unregister, scanner_id);
     }
 
+    // TODO(b/233124021): topshim should expose scan(enable) instead of start_scan and stop_scan.
     pub fn start_scan(&mut self) {
         mutcxxcall!(self, Scan, true);
     }
