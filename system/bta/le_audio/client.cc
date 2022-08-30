@@ -1999,7 +1999,35 @@ class LeAudioClientImpl : public LeAudioClient {
       return;
     }
 
-    groupStateMachine_->AttachToStream(group, leAudioDevice);
+    if (!groupStateMachine_->AttachToStream(group, leAudioDevice)) {
+      LOG_WARN("Could not add device %s to the group %d streaming. ",
+               leAudioDevice->address_.ToString().c_str(), group->group_id_);
+      scheduleAttachDeviceToTheStream(leAudioDevice->address_);
+    }
+  }
+
+  void restartAttachToTheStream(const RawAddress& addr) {
+    LeAudioDevice* leAudioDevice = leAudioDevices_.FindByAddress(addr);
+    if (leAudioDevice == nullptr ||
+        leAudioDevice->conn_id_ == GATT_INVALID_CONN_ID) {
+      LOG_INFO("Device %s not available anymore", addr.ToString().c_str());
+      return;
+    }
+    AttachToStreamingGroupIfNeeded(leAudioDevice);
+  }
+
+  void scheduleAttachDeviceToTheStream(const RawAddress& addr) {
+    LOG_INFO("Device %s scheduler for stream ", addr.ToString().c_str());
+    do_in_main_thread_delayed(
+        FROM_HERE,
+        base::BindOnce(&LeAudioClientImpl::restartAttachToTheStream,
+                       base::Unretained(this), addr),
+#if BASE_VER < 931007
+        base::TimeDelta::FromMilliseconds(kDeviceAttachDelayMs)
+#else
+        base::Milliseconds(kDeviceAttachDelayMs)
+#endif
+    );
   }
 
   void connectionReady(LeAudioDevice* leAudioDevice) {
@@ -3629,6 +3657,7 @@ class LeAudioClientImpl : public LeAudioClient {
   static constexpr char kAudioSuspentKeepIsoAliveTimeoutMsProp[] =
       "persist.bluetooth.leaudio.audio.suspend.timeoutms";
   alarm_t* suspend_timeout_;
+  static constexpr uint64_t kDeviceAttachDelayMs = 500;
 
   std::vector<int16_t> cached_channel_data_;
   uint32_t cached_channel_timestamp_ = 0;
