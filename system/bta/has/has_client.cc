@@ -1759,7 +1759,8 @@ class HasClientImpl : public HasClient {
         break;
 
       case BTA_GATTC_ENC_CMPL_CB_EVT:
-        OnLeEncryptionComplete(p_data->enc_cmpl.remote_bda, BTM_SUCCESS);
+        OnLeEncryptionComplete(p_data->enc_cmpl.remote_bda,
+            BTM_IsEncrypted(p_data->enc_cmpl.remote_bda, BT_TRANSPORT_LE));
         break;
 
       case BTA_GATTC_SRVC_CHG_EVT:
@@ -1825,7 +1826,8 @@ class HasClientImpl : public HasClient {
         evt.remote_bda, BT_TRANSPORT_LE,
         [](const RawAddress* bd_addr, tBT_TRANSPORT transport, void* p_ref_data,
            tBTM_STATUS status) {
-          if (instance) instance->OnLeEncryptionComplete(*bd_addr, status);
+          if (instance)
+            instance->OnLeEncryptionComplete(*bd_addr, status == BTM_SUCCESS);
         },
         nullptr, BTM_BLE_SEC_ENCRYPT);
 
@@ -1910,7 +1912,7 @@ class HasClientImpl : public HasClient {
     OnHasNotification(evt.conn_id, evt.handle, evt.len, evt.value);
   }
 
-  void OnLeEncryptionComplete(const RawAddress& address, uint8_t status) {
+  void OnLeEncryptionComplete(const RawAddress& address, bool success) {
     DLOG(INFO) << __func__ << ": " << address;
 
     auto device = std::find_if(devices_.begin(), devices_.end(),
@@ -1920,9 +1922,8 @@ class HasClientImpl : public HasClient {
       return;
     }
 
-    if (status != BTM_SUCCESS) {
-      LOG(ERROR) << "encryption failed"
-                 << " status: " << +status;
+    if (!success) {
+      LOG(ERROR) << "Encryption failed for device " << address;
 
       BTA_GATTC_Close(device->conn_id);
       return;
