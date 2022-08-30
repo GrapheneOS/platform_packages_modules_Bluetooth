@@ -27,7 +27,7 @@ const KEY_PREVIOUSSONG: libc::c_uint = 165;
 const UINPUT_MAX_NAME_SIZE: usize = 80;
 const ABS_MAX: usize = 0x3F;
 const BUS_BLUETOOTH: u16 = 0x05;
-const UINPUT_IOCTL_BASE: char = 'U';
+const UINPUT_IOCTL_BASE: libc::c_char = 'U' as libc::c_char;
 
 const EV_SYN: libc::c_int = 0x00;
 const EV_KEY: libc::c_int = 0x01;
@@ -36,13 +36,13 @@ const EV_REP: libc::c_int = 0x14;
 
 const SYN_REPORT: libc::c_int = 0;
 
-const UI_DEV_CREATE: u64 = nix::request_code_none!(UINPUT_IOCTL_BASE, 1);
-const UI_DEV_DESTROY: u64 = nix::request_code_none!(UINPUT_IOCTL_BASE, 2);
-const UI_SET_EVBIT: u64 =
+const UI_DEV_CREATE: libc::c_ulong = nix::request_code_none!(UINPUT_IOCTL_BASE, 1);
+const UI_DEV_DESTROY: libc::c_ulong = nix::request_code_none!(UINPUT_IOCTL_BASE, 2);
+const UI_SET_EVBIT: libc::c_ulong =
     nix::request_code_write!(UINPUT_IOCTL_BASE, 100, mem::size_of::<libc::c_int>());
-const UI_SET_PHYS: u64 =
+const UI_SET_PHYS: libc::c_ulong =
     nix::request_code_write!(UINPUT_IOCTL_BASE, 108, mem::size_of::<libc::c_char>());
-const UI_SET_KEYBIT: u64 =
+const UI_SET_KEYBIT: libc::c_ulong =
     nix::request_code_write!(UINPUT_IOCTL_BASE, 101, mem::size_of::<libc::c_int>());
 
 // Conversion key map from AVRCP keys to uinput keys.
