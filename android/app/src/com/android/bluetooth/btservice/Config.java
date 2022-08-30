@@ -91,8 +91,6 @@ public class Config {
     /**
      * List of profile services related to LE audio
      */
-    // TODO: Include LE_CALL_CONTROL. Be sure that we need to update BluetoothAdapter.java
-    //       for isLeAudioSupported and getProfileProxy accordingly
     private static final HashSet<Class> mLeAudioUnicastProfiles = new HashSet<Class>(
             Arrays.asList(LeAudioService.class,
                         VolumeControlService.class,
@@ -241,7 +239,7 @@ public class Config {
         sSupportedMask |= (1 << supportedProfile);
     }
 
-    static HashSet<Class> getLeAudioUnicastProfiles() {
+    static HashSet<Class> geLeAudioUnicastProfiles() {
         return mLeAudioUnicastProfiles;
     }
 
