@@ -163,12 +163,20 @@ import java.util.Objects;
         results++;
     }
 
-    boolean isScanning() {
+    synchronized boolean isScanning() {
         return !mOngoingScans.isEmpty();
     }
 
-    LastScan getScanFromScannerId(int scannerId) {
+    synchronized LastScan getScanFromScannerId(int scannerId) {
         return mOngoingScans.get(scannerId);
+    }
+
+    synchronized boolean isScanTimeout(int scannerId) {
+        LastScan onGoingScan = getScanFromScannerId(scannerId);
+        if (onGoingScan == null) {
+            return false;
+        }
+        return onGoingScan.isTimeout;
     }
 
     synchronized void recordScanStart(ScanSettings settings, List<ScanFilter> filters,
