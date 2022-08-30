@@ -66,7 +66,7 @@ int fake_timerfd_settime(int fd, int flags, const struct itimerspec* new_value, 
     return 0;
   }
 
-  uint64_t period_ms = timespec_to_ms(&new_value->it_value);
+  uint64_t period_ms = timespec_to_ms(&new_value->it_interval);
   entry->trigger_ms = clock + trigger_delta_ms;
   entry->period_ms = period_ms;
   return 0;
