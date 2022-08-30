@@ -209,8 +209,7 @@ class MockLeAudioClientAudioSinkEventReceiver
               (override));
   MOCK_METHOD((void), OnAudioResume, (), (override));
   MOCK_METHOD((void), OnAudioMetadataUpdate,
-              (std::promise<void> do_update_metadata_promise,
-               const source_metadata_t& source_metadata),
+              (std::vector<struct playback_track_metadata> source_metadata),
               (override));
 };
 
@@ -221,8 +220,7 @@ class MockLeAudioClientAudioSourceEventReceiver
               (override));
   MOCK_METHOD((void), OnAudioResume, (), (override));
   MOCK_METHOD((void), OnAudioMetadataUpdate,
-              (std::promise<void> do_update_metadata_promise,
-               const sink_metadata_t& sink_metadata),
+              (std::vector<struct record_track_metadata> sink_metadata),
               (override));
 };
 
