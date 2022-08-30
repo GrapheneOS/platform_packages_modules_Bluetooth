@@ -14,9 +14,11 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+from blueberry.tests.sl4a_sl4a.advertising.le_advertising import LeAdvertisingTest
 from blueberry.tests.sl4a_sl4a.gatt.gatt_connect_test import GattConnectTest
 from blueberry.tests.sl4a_sl4a.gatt.gatt_connect_with_irk_test import GattConnectWithIrkTest
 from blueberry.tests.sl4a_sl4a.gatt.gatt_notify_test import GattNotifyTest
+from blueberry.tests.sl4a_sl4a.security.oob_pairing_test import OobPairingTest
 
 from mobly import suite_runner
 import argparse
@@ -25,6 +27,8 @@ ALL_TESTS = [
     GattConnectTest,
     GattConnectWithIrkTest,
     GattNotifyTest,
+    LeAdvertisingTest,
+    OobPairingTest,
 ]
 
 
