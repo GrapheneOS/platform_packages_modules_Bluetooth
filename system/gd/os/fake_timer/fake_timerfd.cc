@@ -42,7 +42,7 @@ static uint64_t timespec_to_ms(const timespec* t) {
 }
 
 int fake_timerfd_create(int clockid, int flags) {
-  int fd = eventfd(0, 0);
+  int fd = eventfd(0, EFD_SEMAPHORE);
   if (fd == -1) {
     return fd;
   }
