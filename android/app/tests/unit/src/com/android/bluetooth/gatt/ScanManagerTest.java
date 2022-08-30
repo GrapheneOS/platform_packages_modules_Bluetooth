@@ -427,7 +427,7 @@ public class ScanManagerTest {
             // Wait for scan timeout
             testSleep(DELAY_SCAN_TIMEOUT_MS + DELAY_ASYNC_MS);
             assertThat(client.settings.getScanMode()).isEqualTo(expectedScanMode);
-            assertThat(client.stats.getScanFromScannerId(client.scannerId).isTimeout).isTrue();
+            assertThat(client.stats.isScanTimeout(client.scannerId)).isTrue();
             // Turn off screen
             sendMessageWaitForProcessed(createScreenOnOffMessage(false));
             assertThat(client.settings.getScanMode()).isEqualTo(expectedScanMode);
@@ -472,7 +472,7 @@ public class ScanManagerTest {
             // Wait for scan timeout
             testSleep(DELAY_SCAN_TIMEOUT_MS + DELAY_ASYNC_MS);
             assertThat(client.settings.getScanMode()).isEqualTo(expectedScanMode);
-            assertThat(client.stats.getScanFromScannerId(client.scannerId).isTimeout).isTrue();
+            assertThat(client.stats.isScanTimeout(client.scannerId)).isTrue();
             // Turn off screen
             sendMessageWaitForProcessed(createScreenOnOffMessage(false));
             assertThat(client.settings.getScanMode()).isEqualTo(expectedScanMode);
