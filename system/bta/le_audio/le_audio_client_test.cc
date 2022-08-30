@@ -95,6 +95,13 @@ bt_status_t do_in_main_thread(const base::Location& from_here,
   return BT_STATUS_SUCCESS;
 }
 
+bt_status_t do_in_main_thread_delayed(const base::Location& from_here,
+                                      base::OnceClosure task,
+                                      const base::TimeDelta& delay) {
+  /* For testing purpose it is ok to just skip delay */
+  return do_in_main_thread(from_here, std::move(task));
+}
+
 static base::MessageLoop* message_loop_;
 base::MessageLoop* get_main_message_loop() { return message_loop_; }
 
