@@ -7,7 +7,7 @@ use crate::ClientContext;
 use crate::{console_red, console_yellow, print_error, print_info};
 use bt_topshim::btif::{BtConnectionState, BtTransport};
 use btstack::bluetooth::{BluetoothDevice, IBluetooth, IBluetoothQA};
-use btstack::bluetooth_gatt::IBluetoothGatt;
+use btstack::bluetooth_gatt::{IBluetoothGatt, RSSISettings, ScanSettings, ScanType};
 use btstack::uuid::{Profile, UuidHelper, UuidWrapper};
 use manager_service::iface_bluetooth_manager::IBluetoothManager;
 
@@ -149,6 +149,8 @@ fn build_commands() -> HashMap<String, CommandOption> {
             rules: vec![
                 String::from("le-scan register-scanner"),
                 String::from("le-scan unregister-scanner <scanner-id>"),
+                String::from("le-scan start-scan <scanner-id>"),
+                String::from("le-scan stop-scan <scanner-id>"),
             ],
             description: String::from("LE scanning utilities."),
             function_pointer: CommandHandler::cmd_le_scan,
@@ -829,6 +831,44 @@ impl CommandHandler {
 
                 if let Ok(id) = scanner_id {
                     self.context.lock().unwrap().gatt_dbus.as_mut().unwrap().unregister_scanner(id);
+                } else {
+                    print_error!("Failed parsing scanner id");
+                }
+            }
+            "start-scan" => {
+                if args.len() < 2 {
+                    println!("usage: le-scan start-scan <scanner-id>");
+                    return;
+                }
+
+                let scanner_id = String::from(&args[1]).parse::<u8>();
+
+                if let Ok(id) = scanner_id {
+                    self.context.lock().unwrap().gatt_dbus.as_mut().unwrap().start_scan(
+                        id,
+                        // TODO(b/217274432): Construct real settings and filters.
+                        ScanSettings {
+                            interval: 0,
+                            window: 0,
+                            rssi_settings: RSSISettings { high_threshold: 0, low_threshold: 0 },
+                            scan_type: ScanType::Active,
+                        },
+                        vec![],
+                    );
+                } else {
+                    print_error!("Failed parsing scanner id");
+                }
+            }
+            "stop-scan" => {
+                if args.len() < 2 {
+                    println!("usage: le-scan stop-scan <scanner-id>");
+                    return;
+                }
+
+                let scanner_id = String::from(&args[1]).parse::<u8>();
+
+                if let Ok(id) = scanner_id {
+                    self.context.lock().unwrap().gatt_dbus.as_mut().unwrap().stop_scan(id);
                 } else {
                     print_error!("Failed parsing scanner id");
                 }

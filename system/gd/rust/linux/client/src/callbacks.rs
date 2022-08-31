@@ -13,6 +13,7 @@ use btstack::bluetooth::{
 };
 use btstack::bluetooth_gatt::{
     BluetoothGattService, IAdvertisingSetCallback, IBluetoothGattCallback, IScannerCallback, LePhy,
+    ScanResult,
 };
 use btstack::suspend::ISuspendCallback;
 use btstack::uuid::UuidWrapper;
@@ -311,6 +312,10 @@ impl IScannerCallback for ScannerCallback {
             UuidWrapper(&uuid),
             scanner_id
         );
+    }
+
+    fn on_scan_result(&self, scan_result: ScanResult) {
+        print_info!("Scan result: {:#?}", scan_result);
     }
 }
 
