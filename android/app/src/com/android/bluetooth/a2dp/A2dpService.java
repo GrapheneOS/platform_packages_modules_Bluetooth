@@ -1641,6 +1641,9 @@ public class A2dpService extends ProfileService {
     }
 
     public void switchCodecByBufferSize(BluetoothDevice device, boolean isLowLatency) {
+        if (getOptionalCodecsEnabled(device) != BluetoothA2dp.OPTIONAL_CODECS_PREF_ENABLED) {
+            return;
+        }
         mA2dpCodecConfig.switchCodecByBufferSize(
                 device, isLowLatency, getCodecStatus(device).getCodecConfig().getCodecType());
     }
