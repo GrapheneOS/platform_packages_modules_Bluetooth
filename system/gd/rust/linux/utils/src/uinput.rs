@@ -1,7 +1,6 @@
 //! This library provides access to Linux uinput.
 
 use libc;
-use log::error;
 use nix;
 use std::ffi::CString;
 use std::mem;
@@ -28,7 +27,7 @@ const KEY_PREVIOUSSONG: libc::c_uint = 165;
 const UINPUT_MAX_NAME_SIZE: usize = 80;
 const ABS_MAX: usize = 0x3F;
 const BUS_BLUETOOTH: u16 = 0x05;
-const UINPUT_IOCTL_BASE: char = 'U';
+const UINPUT_IOCTL_BASE: libc::c_char = 'U' as libc::c_char;
 
 const EV_SYN: libc::c_int = 0x00;
 const EV_KEY: libc::c_int = 0x01;
@@ -37,13 +36,13 @@ const EV_REP: libc::c_int = 0x14;
 
 const SYN_REPORT: libc::c_int = 0;
 
-const UI_DEV_CREATE: u64 = nix::request_code_none!(UINPUT_IOCTL_BASE, 1);
-const UI_DEV_DESTROY: u64 = nix::request_code_none!(UINPUT_IOCTL_BASE, 2);
-const UI_SET_EVBIT: u64 =
+const UI_DEV_CREATE: libc::c_ulong = nix::request_code_none!(UINPUT_IOCTL_BASE, 1);
+const UI_DEV_DESTROY: libc::c_ulong = nix::request_code_none!(UINPUT_IOCTL_BASE, 2);
+const UI_SET_EVBIT: libc::c_ulong =
     nix::request_code_write!(UINPUT_IOCTL_BASE, 100, mem::size_of::<libc::c_int>());
-const UI_SET_PHYS: u64 =
+const UI_SET_PHYS: libc::c_ulong =
     nix::request_code_write!(UINPUT_IOCTL_BASE, 108, mem::size_of::<libc::c_char>());
-const UI_SET_KEYBIT: u64 =
+const UI_SET_KEYBIT: libc::c_ulong =
     nix::request_code_write!(UINPUT_IOCTL_BASE, 101, mem::size_of::<libc::c_int>());
 
 // Conversion key map from AVRCP keys to uinput keys.
@@ -78,7 +77,7 @@ impl Default for UInputId {
 }
 
 #[repr(C, packed)]
-struct UInputDev {
+struct UInputDevInfo {
     name: [libc::c_char; UINPUT_MAX_NAME_SIZE],
     id: UInputId,
     ff_effects_max: libc::c_int,
@@ -88,9 +87,9 @@ struct UInputDev {
     absflat: [libc::c_int; ABS_MAX + 1],
 }
 
-impl Default for UInputDev {
+impl Default for UInputDevInfo {
     fn default() -> Self {
-        UInputDev {
+        UInputDevInfo {
             name: [0; UINPUT_MAX_NAME_SIZE],
             id: UInputId::default(),
             ff_effects_max: 0,
@@ -102,12 +101,12 @@ impl Default for UInputDev {
     }
 }
 
-impl UInputDev {
+impl UInputDevInfo {
     pub fn serialize(&mut self) -> &[u8] {
         unsafe {
             slice::from_raw_parts(
-                (self as *const UInputDev) as *const u8,
-                mem::size_of::<UInputDev>(),
+                (self as *const UInputDevInfo) as *const u8,
+                mem::size_of::<UInputDevInfo>(),
             )
         }
     }
@@ -134,23 +133,29 @@ impl UInputEvent {
 
 /// A struct that holds the uinput object. It consists of a file descriptor fetched from the kernel
 /// and a device struct which contains the information required to construct an uinput device.
-pub struct UInput {
+pub struct UInputDev {
     fd: i32,
-    device: UInputDev,
+    addr: String,
+    device: UInputDevInfo,
 }
 
-impl Drop for UInput {
+impl Default for UInputDev {
+    fn default() -> Self {
+        UInputDev {
+            fd: -1,
+            addr: String::from("00:00:00:00:00:00"),
+            device: UInputDevInfo::default(),
+        }
+    }
+}
+
+impl Drop for UInputDev {
     fn drop(&mut self) {
         self.close();
     }
 }
 
-impl UInput {
-    /// Create a new UInput object.
-    pub fn new() -> Self {
-        UInput { fd: -1, device: UInputDev::default() }
-    }
-
+impl UInputDev {
     /// Return true if uinput is open and a valid fd is retrieved.
     pub fn is_initialized(&self) -> bool {
         self.fd >= 0
@@ -158,9 +163,9 @@ impl UInput {
 
     /// Initialize a uinput device with kernel.
     #[allow(temporary_cstring_as_ptr)]
-    pub fn init(&mut self, mut name: String, addr: String) {
+    pub fn init(&mut self, mut name: String, addr: String) -> Result<(), String> {
         if self.is_initialized() {
-            return;
+            return Ok(());
         }
 
         // Truncate the device name if over the max size allowed.
@@ -180,39 +185,50 @@ impl UInput {
             }
 
             if fd < -1 {
-                error!("Failed to open uinput: {}", std::io::Error::last_os_error());
-                return;
+                return Err(format!(
+                    "Failed to open uinput for {}: {}",
+                    addr,
+                    std::io::Error::last_os_error()
+                ));
             }
 
             if libc::write(
                 fd,
                 self.device.serialize().as_ptr() as *const libc::c_void,
-                mem::size_of::<UInputDev>(),
+                mem::size_of::<UInputDevInfo>(),
             ) < 0
             {
-                error!("Can't write device information: {}", std::io::Error::last_os_error());
                 libc::close(fd);
-                return;
+                return Err(format!(
+                    "Can't write device information for {}: {}",
+                    addr,
+                    std::io::Error::last_os_error()
+                ));
             }
 
             libc::ioctl(fd, UI_SET_EVBIT, EV_KEY);
             libc::ioctl(fd, UI_SET_EVBIT, EV_REL);
             libc::ioctl(fd, UI_SET_EVBIT, EV_REP);
             libc::ioctl(fd, UI_SET_EVBIT, EV_SYN);
-            libc::ioctl(fd, UI_SET_PHYS, addr);
+            libc::ioctl(fd, UI_SET_PHYS, addr.clone());
 
             for key_map in KEY_MAP {
                 libc::ioctl(fd, UI_SET_KEYBIT, key_map.uinput);
             }
 
             if libc::ioctl(fd, UI_DEV_CREATE, 0) < 0 {
-                error!("Can't create uinput device: {}", std::io::Error::last_os_error());
                 libc::close(fd);
-                return;
+                return Err(format!(
+                    "Can't create uinput device for {}: {}",
+                    addr,
+                    std::io::Error::last_os_error()
+                ));
             }
         }
 
         self.fd = fd;
+        self.addr = addr;
+        return Ok(());
     }
 
     /// Close the uinput device with kernel if there is one.
@@ -223,7 +239,7 @@ impl UInput {
                 libc::close(self.fd);
             }
             self.fd = -1;
-            self.device = UInputDev::default();
+            self.device = UInputDevInfo::default();
         }
     }
 
@@ -244,7 +260,7 @@ impl UInput {
             libc::write(
                 self.fd,
                 event.serialize().as_ptr() as *const libc::c_void,
-                mem::size_of::<UInputDev>(),
+                mem::size_of::<UInputDevInfo>(),
             )
             .try_into()
             .unwrap()
@@ -262,7 +278,7 @@ impl UInput {
         }
 
         if uinput_key == 0 {
-            return Err(format!("AVRCP key: {} is not supported", key));
+            return Err(format!("AVRCP key: {} is not supported for device: {}", key, self.addr));
         }
 
         if self.is_initialized() {
@@ -271,8 +287,9 @@ impl UInput {
                     < 0
             {
                 return Err(format!(
-                    "Failed to send uinput event: {}",
-                    std::io::Error::last_os_error()
+                    "Failed to send uinput event: {} for device: {}",
+                    std::io::Error::last_os_error(),
+                    self.addr
                 ));
             }
             return Ok(());

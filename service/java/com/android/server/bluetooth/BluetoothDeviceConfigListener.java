@@ -52,17 +52,26 @@ public class BluetoothDeviceConfigListener {
         mService = service;
         mLogDebug = logDebug;
         mContext = context;
-        mPrevApmEnhancement = Settings.Global.getInt(mContext.getContentResolver(),
-                APM_ENHANCEMENT, DEFAULT_APM_ENHANCEMENT) == 1;
-        mPrevBtApmState = Settings.Global.getInt(mContext.getContentResolver(),
-                BT_DEFAULT_APM_STATE, DEFAULT_BT_APM_STATE) == 1;
         mConfigChangeTracker =
                 new BluetoothDeviceConfigChangeTracker(
                         DeviceConfig.getProperties(DeviceConfig.NAMESPACE_BLUETOOTH));
+        updateApmConfigs();
         DeviceConfig.addOnPropertiesChangedListener(
                 DeviceConfig.NAMESPACE_BLUETOOTH,
                 (Runnable r) -> r.run(),
                 mDeviceConfigChangedListener);
+    }
+
+    private void updateApmConfigs() {
+        mPrevApmEnhancement = DeviceConfig.getBoolean(DeviceConfig.NAMESPACE_BLUETOOTH,
+                APM_ENHANCEMENT, false);
+        mPrevBtApmState = DeviceConfig.getBoolean(DeviceConfig.NAMESPACE_BLUETOOTH,
+                BT_DEFAULT_APM_STATE, false);
+
+        Settings.Global.putInt(mContext.getContentResolver(),
+                APM_ENHANCEMENT, mPrevApmEnhancement ? 1 : 0);
+        Settings.Global.putInt(mContext.getContentResolver(),
+                BT_DEFAULT_APM_STATE, mPrevBtApmState ? 1 : 0);
     }
 
     private final DeviceConfig.OnPropertiesChangedListener mDeviceConfigChangedListener =

@@ -53,9 +53,6 @@ import java.util.Arrays;
 @MediumTest
 @RunWith(AndroidJUnit4.class)
 public class A2dpStateMachineTest {
-    // TODO(b/240635097): remove in U
-    private static final int SOURCE_CODEC_TYPE_OPUS = 6;
-
     private BluetoothAdapter mAdapter;
     private Context mTargetContext;
     private HandlerThread mHandlerThread;
@@ -108,7 +105,7 @@ public class A2dpStateMachineTest {
                     .build();
 
         mCodecConfigOpus = new BluetoothCodecConfig.Builder()
-                    .setCodecType(SOURCE_CODEC_TYPE_OPUS) // TODO(b/240635097): update in U
+                    .setCodecType(BluetoothCodecConfig.SOURCE_CODEC_TYPE_OPUS)
                     .setCodecPriority(BluetoothCodecConfig.CODEC_PRIORITY_DEFAULT)
                     .setSampleRate(BluetoothCodecConfig.SAMPLE_RATE_48000)
                     .setBitsPerSample(BluetoothCodecConfig.BITS_PER_SAMPLE_16)

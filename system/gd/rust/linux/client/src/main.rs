@@ -8,7 +8,8 @@ use dbus_crossroads::Crossroads;
 use tokio::sync::mpsc;
 
 use crate::callbacks::{
-    BtCallback, BtConnectionCallback, BtManagerCallback, ScannerCallback, SuspendCallback,
+    AdvertisingSetCallback, BtCallback, BtConnectionCallback, BtManagerCallback, ScannerCallback,
+    SuspendCallback,
 };
 use crate::command_handler::CommandHandler;
 use crate::dbus_iface::{
@@ -89,6 +90,9 @@ pub(crate) struct ClientContext {
 
     /// Identifies the callback to receive IScannerCallback method calls.
     scanner_callback_id: Option<u32>,
+
+    /// Identifies the callback to receive IAdvertisingSetCallback method calls.
+    advertiser_callback_id: Option<u32>,
 }
 
 impl ClientContext {
@@ -121,6 +125,7 @@ impl ClientContext {
             dbus_connection,
             dbus_crossroads,
             scanner_callback_id: None,
+            advertiser_callback_id: None,
         }
     }
 
@@ -378,6 +383,8 @@ async fn start_interactive_shell(
                     format!("/org/chromium/bluetooth/client/{}/suspend_callback", adapter);
                 let scanner_cb_objpath: String =
                     format!("/org/chromium/bluetooth/client/{}/scanner_callback", adapter);
+                let advertiser_cb_objpath: String =
+                    format!("/org/chromium/bluetooth/client/{}/advertising_set_callback", adapter);
 
                 let dbus_connection = context.lock().unwrap().dbus_connection.clone();
                 let dbus_crossroads = context.lock().unwrap().dbus_crossroads.clone();
@@ -430,6 +437,23 @@ async fn start_interactive_shell(
                     .await
                     .expect("D-Bus error on IBluetoothGatt::RegisterScannerCallback");
                 context.lock().unwrap().scanner_callback_id = Some(scanner_callback_id);
+
+                let advertiser_callback_id = context
+                    .lock()
+                    .unwrap()
+                    .gatt_dbus
+                    .as_mut()
+                    .unwrap()
+                    .rpc
+                    .register_advertiser_callback(Box::new(AdvertisingSetCallback::new(
+                        advertiser_cb_objpath.clone(),
+                        context.clone(),
+                        dbus_connection.clone(),
+                        dbus_crossroads.clone(),
+                    )))
+                    .await
+                    .expect("D-Bus error on IBluetoothGatt::RegisterAdvertiserCallback");
+                context.lock().unwrap().advertiser_callback_id = Some(advertiser_callback_id);
 
                 // When adapter is ready, Suspend API is also ready. Register as an observer.
                 // TODO(b/224606285): Implement suspend debug utils in btclient.

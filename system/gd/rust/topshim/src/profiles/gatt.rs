@@ -1635,6 +1635,8 @@ impl Gatt {
         gatt_client_callbacks_dispatcher: GattClientCallbacksDispatcher,
         gatt_server_callbacks_dispatcher: GattServerCallbacksDispatcher,
         gatt_scanner_callbacks_dispatcher: GattScannerCallbacksDispatcher,
+        gatt_adv_inband_callbacks_dispatcher: GattAdvInbandCallbacksDispatcher,
+        gatt_adv_callbacks_dispatcher: GattAdvCallbacksDispatcher,
     ) -> bool {
         // Register dispatcher
         if get_dispatchers()
@@ -1659,6 +1661,22 @@ impl Gatt {
             .set::<GDScannerCb>(Arc::new(Mutex::new(gatt_scanner_callbacks_dispatcher)))
         {
             panic!("Tried to set dispatcher for GattScannerCallbacks but it already existed");
+        }
+
+        if get_dispatchers()
+            .lock()
+            .unwrap()
+            .set::<GDAdvInbandCb>(Arc::new(Mutex::new(gatt_adv_inband_callbacks_dispatcher)))
+        {
+            panic!("Tried to set dispatcher for GattAdvInbandCallbacks but it already existed");
+        }
+
+        if get_dispatchers()
+            .lock()
+            .unwrap()
+            .set::<GDAdvCb>(Arc::new(Mutex::new(gatt_adv_callbacks_dispatcher)))
+        {
+            panic!("Tried to set dispatcher for GattAdvCallbacks but it already existed");
         }
 
         let mut gatt_client_callbacks = Box::new(btgatt_client_callbacks_t {
@@ -1713,7 +1731,7 @@ impl Gatt {
         });
 
         let mut callbacks = Box::new(btgatt_callbacks_t {
-            size: 4 * 8,
+            size: std::mem::size_of::<btgatt_callbacks_t>(),
             client: &mut *gatt_client_callbacks,
             server: &mut *gatt_server_callbacks,
             scanner: &mut *gatt_scanner_callbacks,
