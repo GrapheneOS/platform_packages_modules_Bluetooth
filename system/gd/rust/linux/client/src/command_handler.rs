@@ -346,7 +346,7 @@ impl CommandHandler {
                             .lock()
                             .unwrap()
                             .adapter_dbus
-                            .as_ref()
+                            .as_mut()
                             .unwrap()
                             .set_discoverable(true, 60);
                         print_info!(
@@ -360,7 +360,7 @@ impl CommandHandler {
                             .lock()
                             .unwrap()
                             .adapter_dbus
-                            .as_ref()
+                            .as_mut()
                             .unwrap()
                             .set_discoverable(false, 60);
                         print_info!(

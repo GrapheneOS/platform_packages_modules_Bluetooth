@@ -217,7 +217,7 @@ impl IBluetooth for IBluetoothDBus {
     }
 
     #[dbus_method("SetDiscoverable")]
-    fn set_discoverable(&self, mode: bool, duration: u32) -> bool {
+    fn set_discoverable(&mut self, mode: bool, duration: u32) -> bool {
         dbus_generated!()
     }
 

@@ -94,7 +94,7 @@ pub trait IBluetooth {
     fn get_discoverable_timeout(&self) -> u32;
 
     /// Sets discoverability. If discoverable, limits the duration with given value.
-    fn set_discoverable(&self, mode: bool, duration: u32) -> bool;
+    fn set_discoverable(&mut self, mode: bool, duration: u32) -> bool;
 
     /// Returns whether multi-advertisement is supported.
     /// A minimum number of 5 advertising instances is required for multi-advertisment support.
@@ -345,6 +345,7 @@ pub struct Bluetooth {
     wait_to_connect: bool,
     // Internal API members
     internal_le_rand_queue: VecDeque<OneShotSender<u64>>,
+    discoverable_timeout: Option<JoinHandle<()>>,
 }
 
 impl Bluetooth {
@@ -379,6 +380,7 @@ impl Bluetooth {
             wait_to_connect: false,
             // Internal API members
             internal_le_rand_queue: VecDeque::<OneShotSender<u64>>::new(),
+            discoverable_timeout: None,
         }
     }
 
@@ -1042,22 +1044,37 @@ impl IBluetooth for Bluetooth {
         }
     }
 
-    fn set_discoverable(&self, mode: bool, duration: u32) -> bool {
-        self.intf
-            .lock()
-            .unwrap()
-            .set_adapter_property(BluetoothProperty::AdapterDiscoverableTimeout(duration));
-        self.intf.lock().unwrap().set_adapter_property(BluetoothProperty::AdapterScanMode(
-            if mode {
-                BtScanMode::ConnectableDiscoverable
-            } else {
-                if self.is_connectable {
-                    BtScanMode::Connectable
-                } else {
-                    BtScanMode::None_
-                }
-            },
-        )) == 0
+    fn set_discoverable(&mut self, mode: bool, duration: u32) -> bool {
+        let intf = self.intf.lock().unwrap();
+
+        // The old timer should be overwritten regardless of what the new mode is.
+        if let Some(ref handle) = self.discoverable_timeout {
+            handle.abort();
+            self.discoverable_timeout = None;
+        }
+
+        let off_mode =
+            if self.is_connectable { BtScanMode::Connectable } else { BtScanMode::None_ };
+        let new_mode = if mode { BtScanMode::ConnectableDiscoverable } else { off_mode.clone() };
+
+        if intf.set_adapter_property(BluetoothProperty::AdapterDiscoverableTimeout(duration)) != 0
+            || intf.set_adapter_property(BluetoothProperty::AdapterScanMode(new_mode)) != 0
+        {
+            return false;
+        }
+
+        if mode && duration != 0 {
+            let intf_clone = self.intf.clone();
+            self.discoverable_timeout = Some(tokio::spawn(async move {
+                time::sleep(Duration::from_secs(duration.into())).await;
+                intf_clone
+                    .lock()
+                    .unwrap()
+                    .set_adapter_property(BluetoothProperty::AdapterScanMode(off_mode));
+            }));
+        }
+
+        true
     }
 
     fn is_multi_advertisement_supported(&self) -> bool {
