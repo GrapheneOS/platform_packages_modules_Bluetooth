@@ -425,6 +425,7 @@ void LeAudioClientAudioSource::Release(const void* instance) {
 }
 
 void LeAudioClientAudioSource::ConfirmStreamingRequest() {
+  std::lock_guard<std::mutex> guard(sinkInterfaceMutex_);
   LOG(INFO) << __func__;
   if ((sinkClientInterface_ == nullptr) ||
       (le_audio_sink_hal_state != HAL_STARTED)) {
@@ -451,6 +452,7 @@ void LeAudioClientAudioSource::SuspendedForReconfiguration() {
 }
 
 void LeAudioClientAudioSource::CancelStreamingRequest() {
+  std::lock_guard<std::mutex> guard(sinkInterfaceMutex_);
   LOG(INFO) << __func__;
   if ((sinkClientInterface_ == nullptr) ||
       (le_audio_sink_hal_state != HAL_STARTED)) {
