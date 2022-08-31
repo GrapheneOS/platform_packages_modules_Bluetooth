@@ -40,17 +40,17 @@ impl BatteryProviderManager {
 impl IBatteryProviderManager for BatteryProviderManager {
     fn register_battery_provider(
         &mut self,
-        battery_provider: BatteryProvider,
-        battery_provider_callback: Box<dyn IBatteryProviderCallback + Send>,
+        _battery_provider: BatteryProvider,
+        _battery_provider_callback: Box<dyn IBatteryProviderCallback + Send>,
     ) -> i32 {
         todo!()
     }
 
-    fn unregister_battery_provider(&mut self, battery_id: i32) {
+    fn unregister_battery_provider(&mut self, _battery_id: i32) {
         todo!()
     }
 
-    fn set_battery_percentage(&mut self, battery_id: i32, battery: Battery) {
+    fn set_battery_percentage(&mut self, _battery_id: i32, _battery: Battery) {
         todo!()
     }
 }
