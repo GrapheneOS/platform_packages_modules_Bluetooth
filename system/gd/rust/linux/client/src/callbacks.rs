@@ -11,9 +11,9 @@ use bt_topshim::profiles::gatt::GattStatus;
 use btstack::bluetooth::{
     BluetoothDevice, IBluetooth, IBluetoothCallback, IBluetoothConnectionCallback,
 };
+use btstack::bluetooth_adv::IAdvertisingSetCallback;
 use btstack::bluetooth_gatt::{
-    BluetoothGattService, IAdvertisingSetCallback, IBluetoothGattCallback, IScannerCallback, LePhy,
-    ScanResult,
+    BluetoothGattService, IBluetoothGattCallback, IScannerCallback, LePhy, ScanResult,
 };
 use btstack::suspend::ISuspendCallback;
 use btstack::uuid::UuidWrapper;
