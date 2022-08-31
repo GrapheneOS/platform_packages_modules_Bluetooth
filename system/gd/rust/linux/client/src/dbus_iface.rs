@@ -10,11 +10,13 @@ use bt_topshim::profiles::socket::SocketType;
 use btstack::bluetooth::{
     BluetoothDevice, IBluetooth, IBluetoothCallback, IBluetoothConnectionCallback, IBluetoothQA,
 };
+use btstack::bluetooth_adv::{
+    AdvertiseData, AdvertisingSetParameters, IAdvertisingSetCallback, PeriodicAdvertisingParameters,
+};
 use btstack::bluetooth_gatt::{
-    AdvertiseData, AdvertisingSetParameters, BluetoothGattCharacteristic, BluetoothGattDescriptor,
-    BluetoothGattService, GattWriteRequestStatus, GattWriteType, IAdvertisingSetCallback,
-    IBluetoothGatt, IBluetoothGattCallback, IScannerCallback, LePhy, PeriodicAdvertisingParameters,
-    RSSISettings, ScanFilter, ScanResult, ScanSettings, ScanType,
+    BluetoothGattCharacteristic, BluetoothGattDescriptor, BluetoothGattService,
+    GattWriteRequestStatus, GattWriteType, IBluetoothGatt, IBluetoothGattCallback,
+    IScannerCallback, LePhy, RSSISettings, ScanFilter, ScanResult, ScanSettings, ScanType,
 };
 use btstack::socket_manager::{
     BluetoothServerSocket, BluetoothSocket, CallbackId, IBluetoothSocketManager,
