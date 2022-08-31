@@ -4123,14 +4123,14 @@ void bta_dm_set_event_filter_connection_setup_all_devices() {
  *
  * Function        BTA_DmAllowWakeByHid
  *
- * Description    Allow the device to be woken by HID devices
+ * Description     Allow the device to be woken by HID devices
  *
- * Parameters
+ * Parameters      std::vector or RawAddress
  *
  *******************************************************************************/
-void bta_dm_allow_wake_by_hid() {
+void bta_dm_allow_wake_by_hid(std::vector<RawAddress> le_hid_devices) {
   // Autoplumbed
-  bluetooth::shim::BTM_AllowWakeByHid();
+  bluetooth::shim::BTM_AllowWakeByHid(le_hid_devices);
 }
 
 /*******************************************************************************
