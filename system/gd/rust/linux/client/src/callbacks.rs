@@ -283,7 +283,7 @@ impl RPCProxy for BtConnectionCallback {
 
 pub(crate) struct ScannerCallback {
     objpath: String,
-    _context: Arc<Mutex<ClientContext>>,
+    context: Arc<Mutex<ClientContext>>,
 
     dbus_connection: Arc<SyncConnection>,
     dbus_crossroads: Arc<Mutex<Crossroads>>,
@@ -292,11 +292,11 @@ pub(crate) struct ScannerCallback {
 impl ScannerCallback {
     pub(crate) fn new(
         objpath: String,
-        _context: Arc<Mutex<ClientContext>>,
+        context: Arc<Mutex<ClientContext>>,
         dbus_connection: Arc<SyncConnection>,
         dbus_crossroads: Arc<Mutex<Crossroads>>,
     ) -> Self {
-        Self { objpath, _context, dbus_connection, dbus_crossroads }
+        Self { objpath, context, dbus_connection, dbus_crossroads }
     }
 }
 
@@ -315,7 +315,9 @@ impl IScannerCallback for ScannerCallback {
     }
 
     fn on_scan_result(&self, scan_result: ScanResult) {
-        print_info!("Scan result: {:#?}", scan_result);
+        if self.context.lock().unwrap().active_scanner_ids.len() > 0 {
+            print_info!("Scan result: {:#?}", scan_result);
+        }
     }
 }
 
