@@ -180,6 +180,7 @@ cc_defaults {
         "lib-bt-packets-base",
         "lib-bt-packets-avrcp",
         "libbt-audio-hal-interface",
+        "libbt-stack",
         "libaudio-a2dp-hw-utils",
     ],
     cflags: [
@@ -486,6 +487,7 @@ cc_test {
           "libaudio-a2dp-hw-utils",
           "libbluetooth-types",
           "libbt-audio-hal-interface",
+          "libbt-stack",
           "libbtdevice",
           "lib-bt-packets",
           "lib-bt-packets-avrcp",
