@@ -1,4 +1,4 @@
-use btstack::battery_manager::{Battery, BatteryManager, IBatteryManager, IBatteryManagerCallback};
+use btstack::battery_manager::{Battery, IBatteryManager, IBatteryManagerCallback};
 use btstack::RPCProxy;
 use dbus::arg::RefArg;
 use dbus::strings::Path;

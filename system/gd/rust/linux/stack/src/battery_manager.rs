@@ -39,17 +39,17 @@ pub trait IBatteryManager {
 impl IBatteryManager for BatteryManager {
     fn register_battery_callback(
         &mut self,
-        remote_address: String,
-        battery_manager_callback: Box<dyn IBatteryManagerCallback + Send>,
+        _remote_address: String,
+        _battery_manager_callback: Box<dyn IBatteryManagerCallback + Send>,
     ) -> i32 {
         todo!()
     }
 
-    fn unregister_battery_callback(&mut self, callback_id: i32) {
+    fn unregister_battery_callback(&mut self, _callback_id: i32) {
         todo!()
     }
 
-    fn get_battery_information(&self, remote_address: String) -> Battery {
+    fn get_battery_information(&self, _remote_address: String) -> Battery {
         todo!()
     }
 }
