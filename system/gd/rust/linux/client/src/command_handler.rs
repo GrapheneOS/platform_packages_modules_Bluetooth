@@ -855,6 +855,7 @@ impl CommandHandler {
                         },
                         vec![],
                     );
+                    self.context.lock().unwrap().active_scanner_ids.insert(id);
                 } else {
                     print_error!("Failed parsing scanner id");
                 }
@@ -869,6 +870,7 @@ impl CommandHandler {
 
                 if let Ok(id) = scanner_id {
                     self.context.lock().unwrap().gatt_dbus.as_mut().unwrap().stop_scan(id);
+                    self.context.lock().unwrap().active_scanner_ids.remove(&id);
                 } else {
                     print_error!("Failed parsing scanner id");
                 }
