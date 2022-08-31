@@ -93,10 +93,10 @@ void get_cis_count(const AudioSetConfigurations* audio_set_confs,
         break;
       }
       if (ent.direction == kLeAudioDirectionSink) {
-        snk_src_pair.first += ent.device_cnt;
+        snk_src_pair.first += ent.ase_cnt;
       }
       if (ent.direction == kLeAudioDirectionSource) {
-        snk_src_pair.second += ent.device_cnt;
+        snk_src_pair.second += ent.ase_cnt;
       }
     }
 
