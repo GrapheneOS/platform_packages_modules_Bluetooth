@@ -86,14 +86,6 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
             BluetoothOppProvider.class.getCanonicalName();
     private static final String OPP_FILE_PROVIDER =
             BluetoothOppFileProvider.class.getCanonicalName();
-    private static final String LAUNCHER_ACTIVITY =
-            BluetoothOppLauncherActivity.class.getCanonicalName();
-    private static final String BT_ENABLE_ACTIVITY =
-            BluetoothOppBtEnableActivity.class.getCanonicalName();
-    private static final String BT_ERROR_ACTIVITY =
-            BluetoothOppBtErrorActivity.class.getCanonicalName();
-    private static final String BT_ENABLING_ACTIVITY =
-            BluetoothOppBtEnablingActivity.class.getCanonicalName();
     private static final String INCOMING_FILE_CONFIRM_ACTIVITY =
             BluetoothOppIncomingFileConfirmActivity.class.getCanonicalName();
     private static final String TRANSFER_ACTIVITY =
@@ -252,8 +244,6 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
 
         setComponentAvailable(OPP_PROVIDER, true);
         setComponentAvailable(OPP_FILE_PROVIDER, true);
-        setComponentAvailable(BT_ERROR_ACTIVITY, true);
-        setComponentAvailable(BT_ENABLING_ACTIVITY, true);
         setComponentAvailable(INCOMING_FILE_CONFIRM_ACTIVITY, true);
         setComponentAvailable(TRANSFER_ACTIVITY, true);
         setComponentAvailable(TRANSFER_HISTORY_ACTIVITY, true);
@@ -296,8 +286,6 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
 
         setComponentAvailable(OPP_PROVIDER, false);
         setComponentAvailable(OPP_FILE_PROVIDER, false);
-        setComponentAvailable(BT_ERROR_ACTIVITY, false);
-        setComponentAvailable(BT_ENABLING_ACTIVITY, false);
         setComponentAvailable(INCOMING_FILE_CONFIRM_ACTIVITY, false);
         setComponentAvailable(TRANSFER_ACTIVITY, false);
         setComponentAvailable(TRANSFER_HISTORY_ACTIVITY, false);

@@ -26,6 +26,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUuid;
 import android.bluetooth.BluetoothVolumeControl;
+import android.bluetooth.IBluetoothLeAudio;
 import android.bluetooth.IBluetoothVolumeControl;
 import android.bluetooth.IBluetoothVolumeControlCallback;
 import android.content.AttributionSource;
@@ -48,6 +49,7 @@ import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.btservice.ServiceFactory;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
+import com.android.bluetooth.le_audio.LeAudioService;
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.modules.utils.SynchronousResultReceiver;
 
@@ -627,20 +629,58 @@ public class VolumeControlService extends ProfileService {
 
     void handleVolumeControlChanged(BluetoothDevice device, int groupId,
                                     int volume, boolean mute, boolean isAutonomous) {
-        if (!isAutonomous) {
-            // If the change is triggered by Android device, the stream is already changed.
+
+        if (isAutonomous && device != null) {
+            Log.e(TAG, "We expect only group notification for autonomous updates");
             return;
         }
-        // TODO: Handle the other arguments: device, groupId, mute.
 
-        /* We are interested only in the group volume as any LeAudio device is a part of group */
-        if (device == null) {
-            mGroupVolumeCache.put(groupId, volume);
+        if (groupId == IBluetoothLeAudio.LE_AUDIO_GROUP_ID_INVALID) {
+            LeAudioService leAudioService = mFactory.getLeAudioService();
+            if (leAudioService == null) {
+                Log.e(TAG, "leAudioService not available");
+                return;
+            }
+            groupId = leAudioService.getGroupId(device);
         }
 
-        int streamType = getBluetoothContextualVolumeStream();
-        mAudioManager.setStreamVolume(streamType, getDeviceVolume(streamType, volume),
-                AudioManager.FLAG_SHOW_UI | AudioManager.FLAG_BLUETOOTH_ABS_VOLUME);
+        if (groupId == IBluetoothLeAudio.LE_AUDIO_GROUP_ID_INVALID) {
+            Log.e(TAG, "Device not a part of the group");
+            return;
+        }
+
+        int groupVolume = getGroupVolume(groupId);
+
+        if (!isAutonomous) {
+            /* If the change is triggered by Android device, the stream is already changed.
+             * However it might be called with isAutonomous, one the first read of after
+             * reconnection. Make sure device has group volume. Also it might happen that
+             * remote side send us wrong value - lets check it.
+             */
+
+            if (groupVolume == volume) {
+                Log.i(TAG, " Volume:" + volume + " confirmed by remote side.");
+                return;
+            }
+
+            if (device != null && groupVolume
+                            != IBluetoothVolumeControl.VOLUME_CONTROL_UNKNOWN_VOLUME) {
+                Log.i(TAG, "Setting value:" + groupVolume + " to " + device);
+                mVolumeControlNativeInterface.setVolume(device, groupVolume);
+            } else {
+                Log.e(TAG, "Volume changed did not succeed. Volume: " + volume
+                                + " expected volume: " + groupVolume);
+            }
+        } else {
+            // TODO: Handle the other arguments: mute.
+
+            /* Received group notification for autonomous change. Update cache and audio system. */
+            mGroupVolumeCache.put(groupId, volume);
+
+            int streamType = getBluetoothContextualVolumeStream();
+            mAudioManager.setStreamVolume(streamType, getDeviceVolume(streamType, volume),
+                    AudioManager.FLAG_SHOW_UI | AudioManager.FLAG_BLUETOOTH_ABS_VOLUME);
+        }
     }
 
     int getDeviceVolume(int streamType, int bleVolume) {

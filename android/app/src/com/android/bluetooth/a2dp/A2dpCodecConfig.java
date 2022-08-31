@@ -37,9 +37,6 @@ class A2dpCodecConfig {
     private static final boolean DBG = true;
     private static final String TAG = "A2dpCodecConfig";
 
-    // TODO(b/240635097): remove in U
-    private static final int SOURCE_CODEC_TYPE_OPUS = 6;
-
     private Context mContext;
     private A2dpNativeInterface mA2dpNativeInterface;
 
@@ -287,8 +284,7 @@ class A2dpCodecConfig {
                 .build();
         codecConfigArray[4] = codecConfig;
         codecConfig = new BluetoothCodecConfig.Builder()
-                // TODO(b/240635097): update in U
-                .setCodecType(SOURCE_CODEC_TYPE_OPUS)
+                .setCodecType(BluetoothCodecConfig.SOURCE_CODEC_TYPE_OPUS)
                 .setCodecPriority(mA2dpSourceCodecPriorityOpus)
                 .build();
         codecConfigArray[5] = codecConfig;
@@ -298,16 +294,16 @@ class A2dpCodecConfig {
 
     public void switchCodecByBufferSize(
             BluetoothDevice device, boolean isLowLatency, int currentCodecType) {
-        // TODO(b/240635097): update in U
-        if ((isLowLatency && currentCodecType == SOURCE_CODEC_TYPE_OPUS)
-                || (!isLowLatency && currentCodecType != SOURCE_CODEC_TYPE_OPUS)) {
+        if ((isLowLatency
+                && currentCodecType == BluetoothCodecConfig.SOURCE_CODEC_TYPE_OPUS)
+                || (!isLowLatency
+                    && currentCodecType != BluetoothCodecConfig.SOURCE_CODEC_TYPE_OPUS)) {
             return;
         }
         BluetoothCodecConfig[] codecConfigArray = assignCodecConfigPriorities();
         for (int i = 0; i < codecConfigArray.length; i++){
             BluetoothCodecConfig codecConfig = codecConfigArray[i];
-            // TODO(b/240635097): update in U
-            if (codecConfig.getCodecType() == SOURCE_CODEC_TYPE_OPUS) {
+            if (codecConfig.getCodecType() == BluetoothCodecConfig.SOURCE_CODEC_TYPE_OPUS) {
                 if (isLowLatency) {
                     codecConfig.setCodecPriority(BluetoothCodecConfig.CODEC_PRIORITY_HIGHEST);
                 } else {

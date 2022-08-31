@@ -874,7 +874,7 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
             throws RemoteException, TimeoutException {
         if (mBluetooth == null) return null;
         final SynchronousResultReceiver<String> recv = SynchronousResultReceiver.get();
-        mBluetooth.getAddressWithAttribution(attributionSource, recv);
+        mBluetooth.getAddress(attributionSource, recv);
         return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
     }
 
@@ -3012,8 +3012,18 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
                 newState = PackageManager.COMPONENT_ENABLED_STATE_DEFAULT;
             }
 
-            String launcherActivity = "com.android.bluetooth.opp.BluetoothOppLauncherActivity";
-            String btEnableActivity = "com.android.bluetooth.opp.BluetoothOppBtEnableActivity";
+            // Bluetooth OPP activities that should always be enabled,
+            // even when Bluetooth is turned OFF.
+            ArrayList<String> baseBluetoothOppActivities = new ArrayList<String>() {
+                {
+                    // Base sharing activity
+                    add("com.android.bluetooth.opp.BluetoothOppLauncherActivity");
+                    // BT enable activities
+                    add("com.android.bluetooth.opp.BluetoothOppBtEnableActivity");
+                    add("com.android.bluetooth.opp.BluetoothOppBtEnablingActivity");
+                    add("com.android.bluetooth.opp.BluetoothOppBtErrorActivity");
+                }
+            };
 
             PackageManager systemPackageManager = mContext.getPackageManager();
             PackageManager userPackageManager = mContext.createContextAsUser(userHandle, 0)
@@ -3043,26 +3053,21 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
                 }
                 for (var activity : packageInfo.activities) {
                     Log.v(TAG, "Checking activity " + activity.name);
-                    if (launcherActivity.equals(activity.name)) {
-                        userPackageManager.setComponentEnabledSetting(
-                                new ComponentName(candidatePackage, launcherActivity),
-                                newState,
-                                PackageManager.DONT_KILL_APP
-                        );
-                        // Bluetooth enable Activity should also be turned on here so
-                        // when sharing with Bluetooth OFF, launcher Activity can turn it ON.
-                        userPackageManager.setComponentEnabledSetting(
-                                new ComponentName(candidatePackage, btEnableActivity),
-                                newState,
-                                PackageManager.DONT_KILL_APP
-                        );
+                    if (baseBluetoothOppActivities.contains(activity.name)) {
+                        for (String activityName : baseBluetoothOppActivities) {
+                            userPackageManager.setComponentEnabledSetting(
+                                    new ComponentName(candidatePackage, activityName),
+                                    newState,
+                                    PackageManager.DONT_KILL_APP
+                            );
+                        }
                         return;
                     }
                 }
             }
 
             Log.e(TAG,
-                    "Cannot toggle BluetoothOppLauncherActivity, could not find it in any package");
+                    "Cannot toggle Bluetooth OPP activities, could not find them in any package");
         } catch (Exception e) {
             Log.e(TAG, "updateOppLauncherComponentState failed: " + e);
         }
