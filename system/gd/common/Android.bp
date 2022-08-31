@@ -20,6 +20,8 @@ filegroup {
 filegroup {
     name: "BluetoothCommonTestSources",
     srcs: [
+        ":BluetoothCommonTestingLogCapture",
+        ":BluetoothCommonTestingLogCaptureTest",
         "bidi_queue_unittest.cc",
         "blocking_queue_unittest.cc",
         "byte_array_test.cc",
