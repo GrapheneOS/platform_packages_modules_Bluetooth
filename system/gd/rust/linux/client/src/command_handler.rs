@@ -85,7 +85,9 @@ fn build_commands() -> HashMap<String, CommandOption> {
     command_options.insert(
         String::from("adapter"),
         CommandOption {
-            rules: vec![String::from("adapter <enable|disable|show|discoverable|connectable>")],
+            rules: vec![String::from(
+                "adapter <enable|disable|show|discoverable|connectable|set-name>",
+            )],
             description: String::from(
                 "Enable/Disable/Show default bluetooth adapter. (e.g. adapter enable)\n
                  Discoverable On/Off (e.g. adapter discoverable on)\n
@@ -275,8 +277,11 @@ impl CommandHandler {
         }
 
         let default_adapter = self.context.lock().unwrap().default_adapter;
-        enforce_arg_len(args, 1, "adapter <enable|disable|show|discoverable|connectable>", || {
-            match &args[0][0..] {
+        enforce_arg_len(
+            args,
+            1,
+            "adapter <enable|disable|show|discoverable|connectable|set-name>",
+            || match &args[0][0..] {
                 "enable" => {
                     self.context.lock().unwrap().manager_dbus.start(default_adapter);
                 }
@@ -394,12 +399,25 @@ impl CommandHandler {
                     }
                     _ => println!("Invalid argument for adapter connectable '{}'", args[1]),
                 },
+                "set-name" => {
+                    if let Some(name) = args.get(1) {
+                        self.context
+                            .lock()
+                            .unwrap()
+                            .adapter_dbus
+                            .as_ref()
+                            .unwrap()
+                            .set_name(name.to_string());
+                    } else {
+                        println!("usage: adapter set-name <name>");
+                    }
+                }
 
                 _ => {
                     println!("Invalid argument '{}'", args[0]);
                 }
-            }
-        });
+            },
+        );
     }
 
     fn cmd_get_address(&mut self, _args: &Vec<String>) {
