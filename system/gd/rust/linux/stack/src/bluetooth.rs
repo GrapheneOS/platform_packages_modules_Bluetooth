@@ -476,8 +476,11 @@ impl Bluetooth {
     /// Check whether found devices are still fresh. If they're outside the
     /// freshness window, send a notification to clear the device from clients.
     pub(crate) fn trigger_freshness_check(&mut self) {
-        // Drop previous joinhandle
-        self.freshness_check = None;
+        if let Some(ref handle) = self.freshness_check {
+            // Abort and drop the previous JoinHandle.
+            handle.abort();
+            self.freshness_check = None;
+        }
 
         // A found device is considered fresh if:
         // * It was last seen less than |FOUND_DEVICE_FRESHNESS| ago.
