@@ -9,6 +9,7 @@ extern crate num_derive;
 pub mod battery_manager;
 pub mod battery_provider_manager;
 pub mod bluetooth;
+pub mod bluetooth_adv;
 pub mod bluetooth_gatt;
 pub mod bluetooth_media;
 pub mod callbacks;

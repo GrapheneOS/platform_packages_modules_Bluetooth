@@ -12,6 +12,10 @@ use bt_topshim::profiles::gatt::{
 };
 use bt_topshim::topstack;
 
+use crate::bluetooth_adv::{
+    AdvertiseData, AdvertisingSetParameters, IAdvertisingSetCallback, PeriodicAdvertisingParameters,
+};
+
 use log::{debug, warn};
 use num_traits::cast::{FromPrimitive, ToPrimitive};
 use rand::rngs::SmallRng;
@@ -159,9 +163,11 @@ pub trait IBluetoothGatt {
     /// Unregisters an LE scanner identified by the given scanner id.
     fn unregister_scanner(&mut self, scanner_id: u8) -> bool;
 
-    fn start_scan(&self, scanner_id: i32, settings: ScanSettings, filters: Vec<ScanFilter>);
+    /// Activate scan of the given scanner id.
+    fn start_scan(&mut self, scanner_id: u8, settings: ScanSettings, filters: Vec<ScanFilter>);
 
-    fn stop_scan(&self, scanner_id: i32);
+    /// Deactivate scan of the given scanner id.
+    fn stop_scan(&mut self, scanner_id: u8);
 
     fn scan_filter_setup(&self);
 
@@ -581,60 +587,11 @@ pub trait IBluetoothGattCallback: RPCProxy {
 pub trait IScannerCallback: RPCProxy {
     /// When the `register_scanner` request is done.
     fn on_scanner_registered(&self, uuid: Uuid128Bit, scanner_id: u8, status: GattStatus);
-}
 
-/// Interface for advertiser callbacks to clients, passed to
-/// `IBluetoothGatt::start_advertising_set`.
-pub trait IAdvertisingSetCallback: RPCProxy {
-    /// Callback triggered in response to `start_advertising_set` indicating result of
-    /// the operation.
-    ///
-    /// * `reg_id` - Identifies the advertising set registered by `start_advertising_set`.
-    /// * `advertiser_id` - ID for the advertising set. It will be used in other advertising methods
-    ///     and callbacks.
-    /// * `tx_power` - Transmit power that will be used for this advertising set.
-    /// * `status` - Status of this operation.
-    fn on_advertising_set_started(
-        &self,
-        reg_id: i32,
-        advertiser_id: i32,
-        tx_power: i32,
-        status: i32,
-    );
-
-    /// Callback triggered in response to `get_own_address` indicating result of the operation.
-    fn on_own_address_read(&self, advertiser_id: i32, address_type: i32, address: String);
-
-    /// Callback triggered in response to `stop_advertising_set` indicating the advertising set
-    /// is stopped.
-    fn on_advertising_set_stopped(&self, advertiser_id: i32);
-
-    /// Callback triggered in response to `enable_advertising_set` indicating result of
-    /// the operation.
-    fn on_advertising_enabled(&self, advertiser_id: i32, enable: bool, status: i32);
-
-    /// Callback triggered in response to `set_advertising_data` indicating result of the operation.
-    fn on_advertising_data_set(&self, advertiser_id: i32, status: i32);
-
-    /// Callback triggered in response to `set_scan_response_data` indicating result of
-    /// the operation.
-    fn on_scan_response_data_set(&self, advertiser_id: i32, status: i32);
-
-    /// Callback triggered in response to `set_advertising_parameters` indicating result of
-    /// the operation.
-    fn on_advertising_parameters_updated(&self, advertiser_id: i32, tx_power: i32, status: i32);
-
-    /// Callback triggered in response to `set_periodic_advertising_parameters` indicating result of
-    /// the operation.
-    fn on_periodic_advertising_parameters_updated(&self, advertiser_id: i32, status: i32);
-
-    /// Callback triggered in response to `set_periodic_advertising_data` indicating result of
-    /// the operation.
-    fn on_periodic_advertising_data_set(&self, advertiser_id: i32, status: i32);
-
-    /// Callback triggered in response to `set_periodic_advertising_enable` indicating result of
-    /// the operation.
-    fn on_periodic_advertising_enabled(&self, advertiser_id: i32, enable: bool, status: i32);
+    /// When an LE advertisement matching aggregate filters is detected. Since this callback is
+    /// shared among all scanner callbacks, clients may receive more advertisements than what is
+    /// requested to be filtered in.
+    fn on_scan_result(&self, scan_result: ScanResult);
 }
 
 #[derive(Debug, FromPrimitive, ToPrimitive)]
@@ -705,64 +662,19 @@ pub struct ScanSettings {
     pub rssi_settings: RSSISettings,
 }
 
-/// Advertising parameters for each BLE advertising set.
-#[derive(Debug, Default)]
-pub struct AdvertisingSetParameters {
-    /// Whether the advertisement will be connectable.
-    pub connectable: bool,
-    /// Whether the advertisement will be scannable.
-    pub scannable: bool,
-    /// Whether the legacy advertisement will be used.
-    pub is_legacy: bool,
-    /// Whether the advertisement will be anonymous.
-    pub is_anonymous: bool,
-    /// Whether the TX Power will be included.
-    pub include_tx_power: bool,
-    /// Primary advertising phy. Valid values are: 1 (1M), 2 (2M), 3 (Coded).
-    pub primary_phy: i32,
-    /// Secondary advertising phy. Valid values are: 1 (1M), 2 (2M), 3 (Coded).
-    pub secondary_phy: i32,
-    /// The advertising interval. Bluetooth LE Advertising interval, in 0.625 ms unit.
-    /// The valid range is from 160 (100 ms) to 16777215 (10485.759375 sec).
-    /// Recommended values are: 160 (100 ms), 400 (250 ms), 1600 (1 sec).
-    pub interval: i32,
-    /// Transmission power of Bluetooth LE Advertising, in dBm. The valid range is [-127, 1].
-    /// Recommended values are: -21, -15, 7, 1.
-    pub tx_power_level: i32,
-    /// Own address type for advertising to control public or privacy mode.
-    /// The valid types are: -1 (default), 0 (public), 1 (random).
-    pub own_address_type: i32,
-}
-
-/// Represents the data to be advertised and the scan response data for active scans.
-#[derive(Debug, Default)]
-pub struct AdvertiseData {
-    /// A list of service UUIDs within the advertisement that are used to identify
-    /// the Bluetooth GATT services.
-    pub service_uuids: Vec<String>,
-    /// A list of service solicitation UUIDs within the advertisement that we invite to connect.
-    pub solicit_uuids: Vec<String>,
-    /// A list of transport discovery data.
-    pub transport_discovery_data: Vec<Vec<u8>>,
-    /// A collection of manufacturer Id and the corresponding manufacturer specific data.
-    pub manufacturer_data: HashMap<i32, Vec<u8>>,
-    /// A map of 128-bit UUID and its corresponding service data.
-    pub service_data: HashMap<String, Vec<u8>>,
-    /// Whether TX Power level will be included in the advertising packet.
-    pub include_tx_power_level: bool,
-    /// Whether the device name will be included in the advertisement packet.
-    pub include_device_name: bool,
-}
-
-/// Parameters of the periodic advertising packet for BLE advertising set.
-#[derive(Debug, Default)]
-pub struct PeriodicAdvertisingParameters {
-    /// Whether TX Power level will be included.
-    pub include_tx_power: bool,
-    /// Periodic advertising interval in 1.25 ms unit. Valid values are from 80 (100 ms) to
-    /// 65519 (81.89875 sec). Value from range [interval, interval+20ms] will be picked as
-    /// the actual value.
-    pub interval: i32,
+/// Represents scan result
+#[derive(Debug)]
+pub struct ScanResult {
+    pub address: String,
+    pub addr_type: u8,
+    pub event_type: u16,
+    pub primary_phy: u8,
+    pub secondary_phy: u8,
+    pub advertising_sid: u8,
+    pub tx_power: i8,
+    pub rssi: i8,
+    pub periodic_adv_int: u16,
+    pub adv_data: Vec<u8>,
 }
 
 /// Represents a scan filter to be passed to `IBluetoothGatt::start_scan`.
@@ -860,21 +772,39 @@ impl BluetoothGatt {
 
     /// Remove a scanner callback and unregisters all scanners associated with that callback.
     pub fn remove_scanner_callback(&mut self, callback_id: u32) -> bool {
-        // Could be written in a more Rust idiomatic way once HashMap::drain_filter stabilizes.
-        for (uuid, scanner) in
-            self.scanners.iter_mut().filter(|(_uuid, scanner)| scanner.callback_id == callback_id)
-        {
-            if let Some(scanner_id) = scanner.scanner_id {
-                log::debug!("Unregistering scanner UUID {}", scanner.uuid);
-                self.gatt.as_mut().unwrap().scanner.unregister(scanner_id);
-            } else {
-                log::warn!("Cannot unregister a scanner without id UUID={}", uuid);
-            }
+        let affected_scanner_ids: Vec<u8> = self
+            .scanners
+            .iter()
+            .filter(|(_uuid, scanner)| scanner.callback_id == callback_id)
+            .filter_map(|(_uuid, scanner)| {
+                if let Some(scanner_id) = scanner.scanner_id {
+                    Some(scanner_id)
+                } else {
+                    None
+                }
+            })
+            .collect();
+
+        // All scanners associated with the callback must be also unregistered.
+        for scanner_id in affected_scanner_ids {
+            self.unregister_scanner(scanner_id);
         }
 
-        self.scanners.retain(|_uuid, scanner| scanner.callback_id != callback_id);
-
         self.scanner_callbacks.remove_callback(callback_id)
+    }
+
+    // Update the topshim's scan state depending on the states of registered scanners. Scan is
+    // enabled if there is at least 1 active registered scanner.
+    fn update_scan(&mut self) {
+        if self.scanners.values().find(|scanner| scanner.is_active).is_some() {
+            self.gatt.as_mut().unwrap().scanner.start_scan();
+        } else {
+            self.gatt.as_mut().unwrap().scanner.stop_scan();
+        }
+    }
+
+    fn find_scanner_by_id(&mut self, scanner_id: u8) -> Option<&mut ScannerInfo> {
+        self.scanners.values_mut().find(|scanner| scanner.scanner_id == Some(scanner_id))
     }
 }
 
@@ -911,8 +841,6 @@ pub enum GattWriteRequestStatus {
 
 // This structure keeps track of the lifecycle of a scanner.
 struct ScannerInfo {
-    // The app ID associated with the registration of the scanner.
-    uuid: Uuid,
     // The callback to which events about this scanner needs to be sent to.
     // Another purpose of keeping track of the callback id is that when a callback is disconnected
     // or unregistered we need to also unregister all scanners associated with that callback to
@@ -920,6 +848,8 @@ struct ScannerInfo {
     callback_id: u32,
     // If the scanner is registered successfully, this contains the scanner id, otherwise None.
     scanner_id: Option<u8>,
+    // If one of scanners is active, we scan.
+    is_active: bool,
 }
 
 impl IBluetoothGatt for BluetoothGatt {
@@ -936,7 +866,7 @@ impl IBluetoothGatt for BluetoothGatt {
         self.small_rng.fill_bytes(&mut bytes);
         let uuid = Uuid { uu: bytes };
 
-        self.scanners.insert(uuid, ScannerInfo { uuid, callback_id, scanner_id: None });
+        self.scanners.insert(uuid, ScannerInfo { callback_id, scanner_id: None, is_active: false });
 
         // libbluetooth's register_scanner takes a UUID of the scanning application. This UUID does
         // not correspond to higher level concept of "application" so we use random UUID that
@@ -948,19 +878,42 @@ impl IBluetoothGatt for BluetoothGatt {
 
     fn unregister_scanner(&mut self, scanner_id: u8) -> bool {
         self.gatt.as_mut().unwrap().scanner.unregister(scanner_id);
+
+        // The unregistered scanner must also be stopped.
+        self.stop_scan(scanner_id);
+
+        self.scanners.retain(|_uuid, scanner| scanner.scanner_id != Some(scanner_id));
+
         true
     }
 
-    // Scanning
-    fn start_scan(&self, _scanner_id: i32, _settings: ScanSettings, _filters: Vec<ScanFilter>) {
-        // TODO(b/200066804): implement
-        todo!()
+    fn start_scan(&mut self, scanner_id: u8, _settings: ScanSettings, _filters: Vec<ScanFilter>) {
+        // Multiplexing scanners happens at this layer. The implementations of start_scan
+        // and stop_scan maintains the state of all registered scanners and based on the states
+        // update the scanning and/or filter states of libbluetooth.
+        // TODO(b/217274432): Honor settings and filters.
+        if let Some(scanner) = self.find_scanner_by_id(scanner_id) {
+            scanner.is_active = true;
+        } else {
+            log::warn!("Scanner {} not found", scanner_id);
+            return;
+        }
+
+        self.update_scan();
     }
 
-    fn stop_scan(&self, _scanner_id: i32) {
-        // TODO(b/200066804): implement
-        todo!()
+    fn stop_scan(&mut self, scanner_id: u8) {
+        if let Some(scanner) = self.find_scanner_by_id(scanner_id) {
+            scanner.is_active = false;
+        } else {
+            log::warn!("Scanner {} not found", scanner_id);
+            return;
+        }
+
+        self.update_scan();
     }
+
+    // Scanning
 
     fn scan_filter_setup(&self) {
         // TODO(b/200066804): implement
@@ -2023,6 +1976,21 @@ impl BtifGattClientCallbacks for BluetoothGatt {
 pub(crate) trait BtifGattScannerCallbacks {
     #[btif_callback(OnScannerRegistered)]
     fn on_scanner_registered(&mut self, uuid: Uuid, scanner_id: u8, status: GattStatus);
+
+    #[btif_callback(OnScanResult)]
+    fn on_scan_result(
+        &mut self,
+        event_type: u16,
+        addr_type: u8,
+        bda: RawAddress,
+        primary_phy: u8,
+        secondary_phy: u8,
+        advertising_sid: u8,
+        tx_power: i8,
+        rssi: i8,
+        periodic_adv_int: u16,
+        adv_data: Vec<u8>,
+    );
 }
 
 impl BtifGattScannerCallbacks for BluetoothGatt {
@@ -2056,6 +2024,35 @@ impl BtifGattScannerCallbacks for BluetoothGatt {
                 uuid
             );
         }
+    }
+
+    fn on_scan_result(
+        &mut self,
+        event_type: u16,
+        addr_type: u8,
+        address: RawAddress,
+        primary_phy: u8,
+        secondary_phy: u8,
+        advertising_sid: u8,
+        tx_power: i8,
+        rssi: i8,
+        periodic_adv_int: u16,
+        adv_data: Vec<u8>,
+    ) {
+        self.scanner_callbacks.for_all_callbacks(|callback| {
+            callback.on_scan_result(ScanResult {
+                address: address.to_string(),
+                addr_type,
+                event_type,
+                primary_phy,
+                secondary_phy,
+                advertising_sid,
+                tx_power,
+                rssi,
+                periodic_adv_int,
+                adv_data: adv_data.clone(),
+            });
+        });
     }
 }
 

@@ -843,7 +843,9 @@ pub fn generate_dbus_arg(_item: TokenStream) -> TokenStream {
         use dbus::nonblock::SyncConnection;
         use dbus::strings::BusName;
         use dbus_projection::DisconnectWatcher;
+        use dbus_projection::impl_dbus_arg_from_into;
 
+        use std::convert::{TryFrom, TryInto};
         use std::error::Error;
         use std::fmt;
         use std::hash::Hash;
@@ -1057,6 +1059,7 @@ pub fn generate_dbus_arg(_item: TokenStream) -> TokenStream {
         impl DirectDBus for u32 {}
         impl DirectDBus for i64 {}
         impl DirectDBus for u64 {}
+        impl DirectDBus for i16 {}
         impl DirectDBus for u16 {}
         impl DirectDBus for u8 {}
         impl DirectDBus for String {}
@@ -1076,6 +1079,9 @@ pub fn generate_dbus_arg(_item: TokenStream) -> TokenStream {
                 return Ok(data);
             }
         }
+
+        // Represent i8 as D-Bus's i16, since D-Bus only has unsigned type for BYTE.
+        impl_dbus_arg_from_into!(i8, i16);
 
         impl DBusArg for std::fs::File {
             type DBusType = std::fs::File;
