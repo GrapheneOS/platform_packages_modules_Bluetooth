@@ -14,6 +14,9 @@ service GATT {
   // Writes on a characteristic.
   rpc WriteCharacteristicFromHandle(WriteCharacteristicRequest) returns (google.protobuf.Empty);
 
+  // Writes on a characteristic with given descriptor handle.
+  rpc WriteCharacteristicDescriptorFromHandle(WriteCharacteristicDescriptorFromHandleRequest) returns (WriteCharacteristicDescriptorFromHandleResponse);
+
   // Starts service discovery for given uuid.
   rpc DiscoverServiceByUuid(DiscoverServiceByUuidRequest) returns (DiscoverServicesResponse);
 
@@ -90,6 +93,23 @@ message WriteCharacteristicRequest {
   uint32 handle = 2;
   bytes value = 3;
 }
+
+// Request for the `WriteCharacteristicDescriptorFromHandle` rpc.
+message WriteCharacteristicDescriptorFromHandleRequest {
+  Connection connection = 1;
+  uint32 handle = 2;
+  bytes value = 3;
+}
+
+// Response for the `WriteCharacteristicDescriptorFromHandle` rpc.
+message WriteCharacteristicDescriptorFromHandleResponse {
+  Connection connection = 1;
+  uint32 handle = 2;
+  bytes value = 3;
+}
+
+// Response for the `WriteAttribute` rpc.
+message WriteAttributeResponse {}
 
 // Request for the `DiscoverServiceByUuid` rpc.
 message DiscoverServiceByUuidRequest {
