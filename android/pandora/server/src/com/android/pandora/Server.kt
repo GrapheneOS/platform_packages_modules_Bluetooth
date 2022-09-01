@@ -57,15 +57,16 @@ class Server(context: Context) {
     Log.d(TAG, "Pandora Server started at $GRPC_PORT")
   }
 
-  fun shutdownNow() {
+  fun shutdown() = grpcServer.shutdown()
+
+  fun awaitTermination() = grpcServer.awaitTermination()
+
+  fun deinit() {
     host.deinit()
     a2dp.deinit()
     avrcp.deinit()
     gatt.deinit()
     hfp.deinit()
     security.deinit()
-    grpcServer.shutdownNow()
   }
-
-  fun awaitTermination() = grpcServer.awaitTermination()
 }

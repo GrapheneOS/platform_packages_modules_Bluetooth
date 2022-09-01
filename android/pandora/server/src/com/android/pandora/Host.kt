@@ -108,13 +108,12 @@ class Host(private val context: Context, private val server: Server) : HostImplB
 
       rebootBluetooth()
 
+      Log.i(TAG, "Shutdown the gRPC Server")
+      server.shutdown()
+
       // The last expression is the return value.
       Empty.getDefaultInstance()
     }
-      .invokeOnCompletion {
-        Log.i(TAG, "Shutdown the gRPC Server")
-        server.shutdownNow()
-      }
   }
 
   override fun softReset(request: Empty, responseObserver: StreamObserver<Empty>) {
