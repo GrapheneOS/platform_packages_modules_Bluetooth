@@ -236,7 +236,7 @@ fluoride_defaults {
                 "android.system.suspend.control-V1-ndk",
             ],
         },
-        linux_glibc: {
+        host_linux: {
             shared_libs: [
                 "android.hardware.bluetooth.audio@2.0",
                 "android.hardware.bluetooth.audio@2.1",
@@ -295,7 +295,7 @@ fluoride_defaults {
             // libstatslog_bt -> libbinder doesn't build on mac
             enabled: false,
         },
-        linux_glibc: {
+        host_linux: {
             shared_libs: [
                 "android.hardware.bluetooth@1.0",
                 "android.hardware.bluetooth@1.1",
