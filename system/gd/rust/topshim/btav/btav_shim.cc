@@ -62,7 +62,10 @@ class AvrcpMediaInterfaceImpl : public MediaInterface {
       [[maybe_unused]] bool now_playing,
       [[maybe_unused]] std::string media_id) override {}
 
-  void SetActiveDevice([[maybe_unused]] const RawAddress& address) override {}
+  void SetActiveDevice(const RawAddress& address) override {
+    topshim::rust::RustRawAddress addr = rusty::CopyToRustAddress(address);
+    rusty::avrcp_set_active_device(addr);
+  }
 };
 
 class VolumeInterfaceImpl : public VolumeInterface {
