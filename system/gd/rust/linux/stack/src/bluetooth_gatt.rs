@@ -5,27 +5,28 @@ use btif_macros::{btif_callback, btif_callbacks_dispatcher};
 use bt_topshim::bindings::root::bluetooth::Uuid;
 use bt_topshim::btif::{BluetoothInterface, RawAddress, Uuid128Bit};
 use bt_topshim::profiles::gatt::{
-    BtGattDbElement, BtGattNotifyParams, BtGattReadParams, Gatt, GattAdvCallbacksDispatcher,
-    GattAdvInbandCallbacksDispatcher, GattClientCallbacks, GattClientCallbacksDispatcher,
-    GattScannerCallbacks, GattScannerCallbacksDispatcher, GattServerCallbacksDispatcher,
-    GattStatus,
+    BtGattDbElement, BtGattNotifyParams, BtGattReadParams, Gatt, GattAdvCallbacks,
+    GattAdvCallbacksDispatcher, GattAdvInbandCallbacksDispatcher, GattClientCallbacks,
+    GattClientCallbacksDispatcher, GattScannerCallbacks, GattScannerCallbacksDispatcher,
+    GattServerCallbacksDispatcher, GattStatus,
 };
 use bt_topshim::topstack;
 
 use crate::bluetooth_adv::{
-    AdvertiseData, AdvertisingSetParameters, IAdvertisingSetCallback, PeriodicAdvertisingParameters,
+    AdvertiseData, Advertisers, AdvertisingSetInfo, AdvertisingSetParameters,
+    IAdvertisingSetCallback, PeriodicAdvertisingParameters,
 };
-
+use crate::callbacks::Callbacks;
+use crate::uuid::parse_uuid_string;
+use crate::{Message, RPCProxy};
 use log::{debug, warn};
 use num_traits::cast::{FromPrimitive, ToPrimitive};
+use num_traits::clamp;
 use rand::rngs::SmallRng;
 use rand::{RngCore, SeedableRng};
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, Mutex};
 use tokio::sync::mpsc::Sender;
-
-use crate::callbacks::Callbacks;
-use crate::{Message, RPCProxy};
 
 struct Client {
     id: Option<i32>,
@@ -690,6 +691,7 @@ pub struct BluetoothGatt {
     reliable_queue: HashSet<String>,
     scanner_callbacks: Callbacks<dyn IScannerCallback + Send>,
     scanners: HashMap<Uuid, ScannerInfo>,
+    advertisers: Advertisers,
 
     // Used for generating random UUIDs. SmallRng is chosen because it is fast, don't use this for
     // cryptography.
@@ -707,6 +709,7 @@ impl BluetoothGatt {
             scanner_callbacks: Callbacks::new(tx.clone(), Message::ScannerCallbackDisconnected),
             scanners: HashMap::new(),
             small_rng: SmallRng::from_entropy(),
+            advertisers: Advertisers::new(tx.clone()),
         }
     }
 
@@ -806,28 +809,17 @@ impl BluetoothGatt {
     fn find_scanner_by_id(&mut self, scanner_id: u8) -> Option<&mut ScannerInfo> {
         self.scanners.values_mut().find(|scanner| scanner.scanner_id == Some(scanner_id))
     }
-}
 
-// Temporary util that covers only basic string conversion.
-// TODO(b/193685325): Implement more UUID utils by using Uuid from gd/hci/uuid.h with cxx.
-fn parse_uuid_string<T: Into<String>>(uuid: T) -> Option<Uuid> {
-    let uuid = uuid.into();
-
-    if uuid.len() != 32 {
-        return None;
+    /// Remove an advertiser callback and unregisters all advertising sets associated with that callback.
+    pub fn remove_adv_callback(&mut self, callback_id: u32) -> bool {
+        self.advertisers.remove_callback(callback_id, self.gatt.as_mut().unwrap())
     }
 
-    let mut raw = [0; 16];
-
-    for i in 0..16 {
-        let byte = u8::from_str_radix(&uuid[i * 2..i * 2 + 2], 16);
-        if byte.is_err() {
-            return None;
-        }
-        raw[i] = byte.unwrap();
+    fn get_adapter_name(&self) -> String {
+        // TODO(b/233128394): initialize the adaptert from service and
+        // get local adapter name here.
+        String::new()
     }
-
-    Some(Uuid { uu: raw })
 }
 
 #[derive(Debug, FromPrimitive, ToPrimitive)]
@@ -998,78 +990,162 @@ impl IBluetoothGatt for BluetoothGatt {
 
     fn register_advertiser_callback(
         &mut self,
-        _callback: Box<dyn IAdvertisingSetCallback + Send>,
+        callback: Box<dyn IAdvertisingSetCallback + Send>,
     ) -> u32 {
-        0 // TODO(b/233128394)
+        self.advertisers.add_callback(callback)
     }
 
-    fn unregister_advertiser_callback(&mut self, _callback_id: u32) {
-        // TODO(b/233128394)
+    fn unregister_advertiser_callback(&mut self, callback_id: u32) {
+        self.advertisers.remove_callback(callback_id, self.gatt.as_mut().unwrap());
     }
 
     fn start_advertising_set(
         &mut self,
-        _parameters: AdvertisingSetParameters,
-        _advertise_data: AdvertiseData,
-        _scan_response: Option<AdvertiseData>,
-        _periodic_parameters: Option<PeriodicAdvertisingParameters>,
-        _periodic_data: Option<AdvertiseData>,
-        _duration: i32,
-        _max_ext_adv_events: i32,
-        _callback_id: u32,
+        parameters: AdvertisingSetParameters,
+        advertise_data: AdvertiseData,
+        scan_response: Option<AdvertiseData>,
+        periodic_parameters: Option<PeriodicAdvertisingParameters>,
+        periodic_data: Option<AdvertiseData>,
+        duration: i32,
+        max_ext_adv_events: i32,
+        callback_id: u32,
     ) -> i32 {
-        0 // TODO(b/233128394)
+        let device_name = self.get_adapter_name();
+        let params = parameters.into();
+        let adv_bytes = advertise_data.make_with(&device_name);
+        let scan_bytes =
+            if let Some(d) = scan_response { d.make_with(&device_name) } else { Vec::<u8>::new() };
+        let periodic_params = if let Some(p) = periodic_parameters {
+            p.into()
+        } else {
+            bt_topshim::profiles::gatt::PeriodicAdvertisingParameters::default()
+        };
+        let periodic_bytes =
+            if let Some(d) = periodic_data { d.make_with(&device_name) } else { Vec::<u8>::new() };
+        let adv_timeout = clamp(duration, 0, 0xffff) as u16;
+        let adv_events = clamp(max_ext_adv_events, 0, 0xff) as u8;
+
+        let s = AdvertisingSetInfo::new(callback_id);
+        let reg_id = s.reg_id();
+        self.advertisers.add(s);
+
+        self.gatt.as_mut().unwrap().advertiser.start_advertising_set(
+            reg_id,
+            params,
+            adv_bytes,
+            scan_bytes,
+            periodic_params,
+            periodic_bytes,
+            adv_timeout,
+            adv_events,
+        );
+        reg_id
     }
 
-    fn stop_advertising_set(&mut self, _advertiser_id: i32) {
-        // TODO(b/233128394)
+    fn stop_advertising_set(&mut self, advertiser_id: i32) {
+        let s = self.advertisers.get_by_advertiser_id(advertiser_id);
+        if None == s {
+            return;
+        }
+        let s = s.unwrap().clone();
+
+        self.gatt.as_mut().unwrap().advertiser.unregister(s.adv_id());
+
+        if let Some(cb) = self.advertisers.get_callback(&s) {
+            cb.on_advertising_set_stopped(advertiser_id);
+        }
+        self.advertisers.remove_by_advertiser_id(advertiser_id);
     }
 
-    fn get_own_address(&mut self, _advertiser_id: i32) {
-        // TODO(b/233128394)
+    fn get_own_address(&mut self, advertiser_id: i32) {
+        if let Some(s) = self.advertisers.get_by_advertiser_id(advertiser_id) {
+            self.gatt.as_mut().unwrap().advertiser.get_own_address(s.adv_id());
+        }
     }
 
     fn enable_advertising_set(
         &mut self,
-        _advertiser_id: i32,
-        _enable: bool,
-        _duration: i32,
-        _max_ext_adv_events: i32,
+        advertiser_id: i32,
+        enable: bool,
+        duration: i32,
+        max_ext_adv_events: i32,
     ) {
-        // TODO(b/233128394)
+        let adv_timeout = clamp(duration, 0, 0xffff) as u16;
+        let adv_events = clamp(max_ext_adv_events, 0, 0xff) as u8;
+
+        if let Some(s) = self.advertisers.get_by_advertiser_id(advertiser_id) {
+            self.gatt.as_mut().unwrap().advertiser.enable(
+                s.adv_id(),
+                enable,
+                adv_timeout,
+                adv_events,
+            );
+        }
     }
 
-    fn set_advertising_data(&mut self, _advertiser_id: i32, _data: AdvertiseData) {
-        // TODO(b/233128394)
+    fn set_advertising_data(&mut self, advertiser_id: i32, data: AdvertiseData) {
+        let device_name = self.get_adapter_name();
+        let bytes = data.make_with(&device_name);
+
+        if let Some(s) = self.advertisers.get_by_advertiser_id(advertiser_id) {
+            self.gatt.as_mut().unwrap().advertiser.set_data(s.adv_id(), false, bytes);
+        }
     }
 
-    fn set_scan_response_data(&mut self, _advertiser_id: i32, _data: AdvertiseData) {
-        // TODO(b/233128394)
+    fn set_scan_response_data(&mut self, advertiser_id: i32, data: AdvertiseData) {
+        let device_name = self.get_adapter_name();
+        let bytes = data.make_with(&device_name);
+
+        if let Some(s) = self.advertisers.get_by_advertiser_id(advertiser_id) {
+            self.gatt.as_mut().unwrap().advertiser.set_data(s.adv_id(), true, bytes);
+        }
     }
 
     fn set_advertising_parameters(
         &mut self,
-        _advertiser_id: i32,
-        _parameters: AdvertisingSetParameters,
+        advertiser_id: i32,
+        parameters: AdvertisingSetParameters,
     ) {
-        // TODO(b/233128394)
+        let params = parameters.into();
+
+        if let Some(s) = self.advertisers.get_by_advertiser_id(advertiser_id) {
+            self.gatt.as_mut().unwrap().advertiser.set_parameters(s.adv_id(), params);
+        }
     }
 
     fn set_periodic_advertising_parameters(
         &mut self,
-        _advertiser_id: i32,
-        _parameters: PeriodicAdvertisingParameters,
+        advertiser_id: i32,
+        parameters: PeriodicAdvertisingParameters,
     ) {
-        // TODO(b/233128394)
+        let params = parameters.into();
+
+        if let Some(s) = self.advertisers.get_by_advertiser_id(advertiser_id) {
+            self.gatt
+                .as_mut()
+                .unwrap()
+                .advertiser
+                .set_periodic_advertising_parameters(s.adv_id(), params);
+        }
     }
 
-    fn set_periodic_advertising_data(&mut self, _advertiser_id: i32, _data: AdvertiseData) {
-        // TODO(b/233128394)
+    fn set_periodic_advertising_data(&mut self, advertiser_id: i32, data: AdvertiseData) {
+        let device_name = self.get_adapter_name();
+        let bytes = data.make_with(&device_name);
+
+        if let Some(s) = self.advertisers.get_by_advertiser_id(advertiser_id) {
+            self.gatt.as_mut().unwrap().advertiser.set_periodic_advertising_data(s.adv_id(), bytes);
+        }
     }
 
-    /// Enable/Disable periodic advertising of the advertising set.
-    fn set_periodic_advertising_enable(&mut self, _advertiser_id: i32, _enable: bool) {
-        // TODO(b/233128394)
+    fn set_periodic_advertising_enable(&mut self, advertiser_id: i32, enable: bool) {
+        if let Some(s) = self.advertisers.get_by_advertiser_id(advertiser_id) {
+            self.gatt
+                .as_mut()
+                .unwrap()
+                .advertiser
+                .set_periodic_advertising_enable(s.adv_id(), enable);
+        }
     }
 
     fn register_client(
@@ -2053,6 +2129,203 @@ impl BtifGattScannerCallbacks for BluetoothGatt {
                 adv_data: adv_data.clone(),
             });
         });
+    }
+}
+
+#[btif_callbacks_dispatcher(BluetoothGatt, dispatch_le_adv_callbacks, GattAdvCallbacks)]
+pub(crate) trait BtifGattAdvCallbacks {
+    #[btif_callback(OnAdvertisingSetStarted)]
+    fn on_advertising_set_started(
+        &mut self,
+        reg_id: i32,
+        advertiser_id: u8,
+        tx_power: i8,
+        status: GattStatus,
+    );
+
+    #[btif_callback(OnAdvertisingEnabled)]
+    fn on_advertising_enabled(&mut self, adv_id: u8, enabled: bool, status: GattStatus);
+
+    #[btif_callback(OnAdvertisingDataSet)]
+    fn on_advertising_data_set(&mut self, adv_id: u8, status: GattStatus);
+
+    #[btif_callback(OnScanResponseDataSet)]
+    fn on_scan_response_data_set(&mut self, adv_id: u8, status: GattStatus);
+
+    #[btif_callback(OnAdvertisingParametersUpdated)]
+    fn on_advertising_parameters_updated(&mut self, adv_id: u8, tx_power: i8, status: GattStatus);
+
+    #[btif_callback(OnPeriodicAdvertisingParametersUpdated)]
+    fn on_periodic_advertising_parameters_updated(&mut self, adv_id: u8, status: GattStatus);
+
+    #[btif_callback(OnPeriodicAdvertisingDataSet)]
+    fn on_periodic_advertising_data_set(&mut self, adv_id: u8, status: GattStatus);
+
+    #[btif_callback(OnPeriodicAdvertisingEnabled)]
+    fn on_periodic_advertising_enabled(&mut self, adv_id: u8, enabled: bool, status: GattStatus);
+
+    #[btif_callback(OnOwnAddressRead)]
+    fn on_own_address_read(&mut self, adv_id: u8, addr_type: u8, address: RawAddress);
+}
+
+impl BtifGattAdvCallbacks for BluetoothGatt {
+    fn on_advertising_set_started(
+        &mut self,
+        reg_id: i32,
+        advertiser_id: u8,
+        tx_power: i8,
+        status: GattStatus,
+    ) {
+        debug!(
+            "on_advertising_set_started(): reg_id = {}, advertiser_id = {}, tx_power = {}, status = {:?}",
+            reg_id, advertiser_id, tx_power, status
+        );
+
+        if let Some(s) = self.advertisers.get_mut_by_reg_id(reg_id) {
+            s.advertiser_id = Some(advertiser_id.into());
+        } else {
+            return;
+        }
+        let s = self.advertisers.get_mut_by_reg_id(reg_id).unwrap().clone();
+
+        if let Some(cb) = self.advertisers.get_callback(&s) {
+            cb.on_advertising_set_started(reg_id, advertiser_id.into(), tx_power.into(), status);
+        }
+
+        if status != GattStatus::Success {
+            warn!(
+                "on_advertising_set_started(): failed! reg_id = {}, status = {:?}",
+                reg_id, status
+            );
+            self.advertisers.remove_by_reg_id(reg_id);
+        }
+    }
+
+    fn on_advertising_enabled(&mut self, adv_id: u8, enabled: bool, status: GattStatus) {
+        debug!(
+            "on_advertising_enabled(): adv_id = {}, enabled = {}, status = {:?}",
+            adv_id, enabled, status
+        );
+
+        let advertiser_id: i32 = adv_id.into();
+        if None == self.advertisers.get_by_advertiser_id(advertiser_id) {
+            return;
+        }
+        let s = self.advertisers.get_by_advertiser_id(advertiser_id).unwrap().clone();
+
+        if let Some(cb) = self.advertisers.get_callback(&s) {
+            cb.on_advertising_enabled(advertiser_id, enabled, status);
+        }
+    }
+
+    fn on_advertising_data_set(&mut self, adv_id: u8, status: GattStatus) {
+        debug!("on_advertising_data_set(): adv_id = {}, status = {:?}", adv_id, status);
+
+        let advertiser_id: i32 = adv_id.into();
+        if None == self.advertisers.get_by_advertiser_id(advertiser_id) {
+            return;
+        }
+        let s = self.advertisers.get_by_advertiser_id(advertiser_id).unwrap().clone();
+
+        if let Some(cb) = self.advertisers.get_callback(&s) {
+            cb.on_advertising_data_set(advertiser_id, status);
+        }
+    }
+
+    fn on_scan_response_data_set(&mut self, adv_id: u8, status: GattStatus) {
+        debug!("on_scan_response_data_set(): adv_id = {}, status = {:?}", adv_id, status);
+
+        let advertiser_id: i32 = adv_id.into();
+        if None == self.advertisers.get_by_advertiser_id(advertiser_id) {
+            return;
+        }
+        let s = self.advertisers.get_by_advertiser_id(advertiser_id).unwrap().clone();
+
+        if let Some(cb) = self.advertisers.get_callback(&s) {
+            cb.on_scan_response_data_set(advertiser_id, status);
+        }
+    }
+
+    fn on_advertising_parameters_updated(&mut self, adv_id: u8, tx_power: i8, status: GattStatus) {
+        debug!(
+            "on_advertising_parameters_updated(): adv_id = {}, tx_power = {}, status = {:?}",
+            adv_id, tx_power, status
+        );
+
+        let advertiser_id: i32 = adv_id.into();
+        if None == self.advertisers.get_by_advertiser_id(advertiser_id) {
+            return;
+        }
+        let s = self.advertisers.get_by_advertiser_id(advertiser_id).unwrap().clone();
+
+        if let Some(cb) = self.advertisers.get_callback(&s) {
+            cb.on_advertising_parameters_updated(advertiser_id, tx_power.into(), status);
+        }
+    }
+
+    fn on_periodic_advertising_parameters_updated(&mut self, adv_id: u8, status: GattStatus) {
+        debug!(
+            "on_periodic_advertising_parameters_updated(): adv_id = {}, status = {:?}",
+            adv_id, status
+        );
+
+        let advertiser_id: i32 = adv_id.into();
+        if None == self.advertisers.get_by_advertiser_id(advertiser_id) {
+            return;
+        }
+        let s = self.advertisers.get_by_advertiser_id(advertiser_id).unwrap().clone();
+
+        if let Some(cb) = self.advertisers.get_callback(&s) {
+            cb.on_periodic_advertising_parameters_updated(advertiser_id, status);
+        }
+    }
+
+    fn on_periodic_advertising_data_set(&mut self, adv_id: u8, status: GattStatus) {
+        debug!("on_periodic_advertising_data_set(): adv_id = {}, status = {:?}", adv_id, status);
+
+        let advertiser_id: i32 = adv_id.into();
+        if None == self.advertisers.get_by_advertiser_id(advertiser_id) {
+            return;
+        }
+        let s = self.advertisers.get_by_advertiser_id(advertiser_id).unwrap().clone();
+
+        if let Some(cb) = self.advertisers.get_callback(&s) {
+            cb.on_periodic_advertising_data_set(advertiser_id, status);
+        }
+    }
+
+    fn on_periodic_advertising_enabled(&mut self, adv_id: u8, enabled: bool, status: GattStatus) {
+        debug!(
+            "on_periodic_advertising_enabled(): adv_id = {}, enabled = {}, status = {:?}",
+            adv_id, enabled, status
+        );
+
+        let advertiser_id: i32 = adv_id.into();
+        if None == self.advertisers.get_by_advertiser_id(advertiser_id) {
+            return;
+        }
+        let s = self.advertisers.get_by_advertiser_id(advertiser_id).unwrap().clone();
+
+        if let Some(cb) = self.advertisers.get_callback(&s) {
+            cb.on_periodic_advertising_enabled(advertiser_id, enabled, status);
+        }
+    }
+
+    fn on_own_address_read(&mut self, adv_id: u8, addr_type: u8, address: RawAddress) {
+        debug!(
+            "on_own_address_read(): adv_id = {}, addr_type = {}, address = {:?}",
+            adv_id, addr_type, address
+        );
+
+        let advertiser_id: i32 = adv_id.into();
+        if None == self.advertisers.get_by_advertiser_id(advertiser_id) {
+            return;
+        }
+        let s = self.advertisers.get_by_advertiser_id(advertiser_id).unwrap().clone();
+
+        if let Some(cb) = self.advertisers.get_callback(&s) {
+            cb.on_own_address_read(advertiser_id, addr_type.into(), address.to_string());
+        }
     }
 }
 
