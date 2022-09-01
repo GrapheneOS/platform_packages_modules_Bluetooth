@@ -26,6 +26,7 @@ from mmi2grpc.a2dp import A2DPProxy
 from mmi2grpc.avrcp import AVRCPProxy
 from mmi2grpc.gatt import GATTProxy
 from mmi2grpc.hfp import HFPProxy
+from mmi2grpc.hogp import HOGPProxy
 from mmi2grpc.sdp import SDPProxy
 from mmi2grpc.sm import SMProxy
 from mmi2grpc._helpers import format_proxy
@@ -34,7 +35,7 @@ from pandora.host_grpc import Host
 
 GRPC_PORT = 8999
 MAX_RETRIES = 10
-GRPC_SERVER_INIT_TIMEOUT = 10 # seconds
+GRPC_SERVER_INIT_TIMEOUT = 10  # seconds
 
 
 class IUT:
@@ -62,6 +63,7 @@ class IUT:
         self._hfp = None
         self._sdp = None
         self._sm = None
+        self._hogp = None
 
     def __enter__(self):
         """Resets the IUT when starting a PTS test."""
@@ -77,6 +79,7 @@ class IUT:
         self._hfp = None
         self._sdp = None
         self._sm = None
+        self._hogp = None
 
     def _retry(self, func):
 
@@ -106,8 +109,7 @@ class IUT:
         def read_local_address():
             with grpc.insecure_channel(f'localhost:{self.port}') as channel:
                 nonlocal mut_address
-                mut_address = self._retry(
-                    Host(channel).ReadLocalAddress)(wait_for_ready=True).address
+                mut_address = self._retry(Host(channel).ReadLocalAddress)(wait_for_ready=True).address
 
         thread = Thread(target=read_local_address)
         thread.start()
@@ -117,7 +119,6 @@ class IUT:
             raise Exception("Pandora gRPC server timeout")
         else:
             return mut_address
-
 
     def interact(self, pts_address: bytes, profile: str, test: str, interaction: str, description: str, style: str,
                  **kwargs) -> str:
@@ -163,6 +164,11 @@ class IUT:
             if not self._sm:
                 self._sm = SMProxy(grpc.insecure_channel(f'localhost:{self.port}'))
             return self._sm.interact(test, interaction, description, pts_address)
+        # Handles HOGP MMIs.
+        if profile in ('HOGP'):
+            if not self._hogp:
+                self._hogp = HOGPProxy(grpc.insecure_channel(f'localhost:{self.port}'))
+            return self._hogp.interact(test, interaction, description, pts_address)
 
         # Handles unsupported profiles.
         code = format_proxy(profile, interaction, description)

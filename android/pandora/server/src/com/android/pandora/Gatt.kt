@@ -99,6 +99,33 @@ class Gatt(private val context: Context) : GATTImplBase() {
     }
   }
 
+  override fun writeCharacteristicDescriptorFromHandle(
+    request: WriteCharacteristicDescriptorFromHandleRequest,
+    responseObserver: StreamObserver<WriteCharacteristicDescriptorFromHandleResponse>
+  ) {
+    grpcUnary(mScope, responseObserver) {
+      val gattInstance = GattInstance.get(request.connection.cookie.toByteArray().decodeToString())
+      if (!gattInstance.servicesDiscovered() && !gattInstance.mGatt.discoverServices()) {
+        Log.e(TAG, "Error on discovering services for $gattInstance")
+        throw Status.UNKNOWN.asException()
+      } else {
+        gattInstance.waitForDiscoveryEnd()
+      }
+      for (service in gattInstance.mGatt.services.orEmpty()) {
+        for (characteristic in service.characteristics) {
+          for (descriptor in characteristic.descriptors) {
+            if (descriptor.instanceId == request.handle) {
+              Log.e(TAG, "descriptor.ID = ${descriptor.instanceId}")
+              gattInstance.mGatt.writeDescriptor(descriptor, request.value.toByteArray())
+              return@grpcUnary WriteCharacteristicDescriptorFromHandleResponse.getDefaultInstance()
+            }
+          }
+        }
+      }
+      error("could not find corresponding descriptor for ${request.handle}")
+    }
+  }
+
   override fun discoverServiceByUuid(
     request: DiscoverServiceByUuidRequest,
     responseObserver: StreamObserver<DiscoverServicesResponse>
