@@ -88,14 +88,12 @@ class HOGPProxy(ProfileProxy):
         """
 
         PATTERN = re.compile(
-            r"""
+            textwrap.dedent(r"""
                 Attribute Handle = (\S*)
                 Characteristic Properties = (?P<properties>\S*)
                 Handle = (?P<handle>\S*)
                 UUID = (?P<uuid>\S*)
-                """,
-            re.VERBOSE,
-        )
+                """).strip().replace("\n", " "))
 
         targets = set()
 
