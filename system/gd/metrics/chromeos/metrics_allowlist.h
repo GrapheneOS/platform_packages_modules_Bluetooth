@@ -13,29 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#define LOG_TAG "BluetoothMetrics"
+#pragma once
 
-#include "gd/metrics/metrics.h"
+#include <cstdint>
 
 namespace bluetooth {
 namespace metrics {
 
-void LogMetricsAdapterStateChanged(uint32_t state) {}
-
-void LogMetricsBondCreateAttempt(RawAddress* addr, uint32_t device_type) {}
-
-void LogMetricsBondStateChanged(
-    RawAddress* addr, uint32_t device_type, uint32_t status, uint32_t bond_state, int32_t fail_reason) {}
-
-void LogMetricsDeviceInfoReport(
-    RawAddress* addr,
-    uint32_t device_type,
-    uint32_t class_of_device,
-    uint32_t appearance,
-    uint32_t vendor_id,
-    uint32_t vendor_id_src,
-    uint32_t product_id,
-    uint32_t version) {}
+bool IsDeviceInfoInAllowlist(int vendor_id_source, int vendor_id, int product_id);
+bool IsChipsetInfoInAllowList(int vendor_id, int product_id, int transport, const char* chipset_string, uint64_t* hval);
 
 }  // namespace metrics
 }  // namespace bluetooth

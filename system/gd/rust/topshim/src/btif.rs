@@ -146,6 +146,9 @@ pub enum BtPropertyType {
     LocalIoCaps,
     LocalIoCapsBle,
     DynamicAudioBuffer,
+    RemoteIsCoordinatedSetMember,
+    Appearance,
+    VendorProductInfo,
 
     Unknown = 0xFE,
     RemoteDeviceTimestamp = 0xFF,
@@ -217,6 +220,13 @@ fn u32_from_bytes(item: &[u8]) -> u32 {
     let len = std::cmp::min(item.len(), 4);
     u[0..len].copy_from_slice(&item);
     u32::from_ne_bytes(u)
+}
+
+fn u16_from_bytes(item: &[u8]) -> u16 {
+    let mut u: [u8; 2] = [0; 2];
+    let len = std::cmp::min(item.len(), 2);
+    u[0..len].copy_from_slice(&item);
+    u16::from_ne_bytes(u)
 }
 
 impl From<bindings::bt_status_t> for BtStatus {
@@ -295,6 +305,7 @@ pub type BtHciErrorCode = u8;
 pub type BtLocalLeFeatures = bindings::bt_local_le_features_t;
 pub type BtPinCode = bindings::bt_pin_code_t;
 pub type BtRemoteVersion = bindings::bt_remote_version_t;
+pub type BtVendorProductInfo = bindings::bt_vendor_product_info_t;
 pub type Uuid = bindings::bluetooth::Uuid;
 pub type Uuid128Bit = bindings::bluetooth::Uuid_UUID128Bit;
 
@@ -363,6 +374,9 @@ pub enum BluetoothProperty {
     LocalIoCaps(BtIoCap),
     LocalIoCapsBle(BtIoCap),
     DynamicAudioBuffer(),
+    RemoteIsCoordinatedSetMember(bool),
+    Appearance(u16),
+    VendorProductInfo(BtVendorProductInfo),
     RemoteDeviceTimestamp(),
 
     Unknown(),
@@ -393,6 +407,11 @@ impl BluetoothProperty {
             BluetoothProperty::LocalIoCaps(_) => BtPropertyType::LocalIoCaps,
             BluetoothProperty::LocalIoCapsBle(_) => BtPropertyType::LocalIoCapsBle,
             BluetoothProperty::DynamicAudioBuffer() => BtPropertyType::DynamicAudioBuffer,
+            BluetoothProperty::RemoteIsCoordinatedSetMember(_) => {
+                BtPropertyType::RemoteIsCoordinatedSetMember
+            }
+            BluetoothProperty::Appearance(_) => BtPropertyType::Appearance,
+            BluetoothProperty::VendorProductInfo(_) => BtPropertyType::VendorProductInfo,
             BluetoothProperty::RemoteDeviceTimestamp() => BtPropertyType::RemoteDeviceTimestamp,
             BluetoothProperty::Unknown() => BtPropertyType::Unknown,
         }
@@ -421,6 +440,9 @@ impl BluetoothProperty {
             BluetoothProperty::LocalLeFeatures(_) => mem::size_of::<BtLocalLeFeatures>(),
             BluetoothProperty::LocalIoCaps(_) => mem::size_of::<BtIoCap>(),
             BluetoothProperty::LocalIoCapsBle(_) => mem::size_of::<BtIoCap>(),
+            BluetoothProperty::RemoteIsCoordinatedSetMember(_) => mem::size_of::<bool>(),
+            BluetoothProperty::Appearance(_) => mem::size_of::<u16>(),
+            BluetoothProperty::VendorProductInfo(_) => mem::size_of::<BtVendorProductInfo>(),
 
             // TODO(abps) - Figure out sizes for these
             BluetoothProperty::DynamicAudioBuffer() => 0,
@@ -513,6 +535,23 @@ impl BluetoothProperty {
             BluetoothProperty::LocalIoCapsBle(iocap) => {
                 data.copy_from_slice(&BtIoCap::to_u32(iocap).unwrap_or_default().to_ne_bytes());
             }
+            BluetoothProperty::RemoteIsCoordinatedSetMember(icsm) => {
+                data[0] = *icsm as u8;
+            }
+            BluetoothProperty::Appearance(appearance) => {
+                data.copy_from_slice(&appearance.to_ne_bytes());
+            }
+            BluetoothProperty::VendorProductInfo(vpi) => {
+                let ptr: *const BtVendorProductInfo = vpi;
+                let slice = unsafe {
+                    std::slice::from_raw_parts(
+                        ptr as *mut u8,
+                        mem::size_of::<BtVendorProductInfo>(),
+                    )
+                };
+                data.copy_from_slice(&slice);
+            }
+
             BluetoothProperty::DynamicAudioBuffer() => (),
             BluetoothProperty::RemoteDeviceTimestamp() => (),
             BluetoothProperty::Unknown() => (),
@@ -579,6 +618,14 @@ impl From<bindings::bt_property_t> for BluetoothProperty {
             BtPropertyType::LocalIoCapsBle => BluetoothProperty::LocalIoCapsBle(
                 BtIoCap::from_u32(u32_from_bytes(slice)).unwrap_or(BtIoCap::Unknown),
             ),
+            BtPropertyType::RemoteIsCoordinatedSetMember => {
+                BluetoothProperty::RemoteIsCoordinatedSetMember(slice[0] != 0)
+            }
+            BtPropertyType::Appearance => BluetoothProperty::Appearance(u16_from_bytes(slice)),
+            BtPropertyType::VendorProductInfo => {
+                let v = unsafe { *(prop.val as *const BtVendorProductInfo) };
+                BluetoothProperty::VendorProductInfo(BtVendorProductInfo::from(v))
+            }
 
             // TODO(abps) - Figure out if these values should actually have contents
             BtPropertyType::DynamicAudioBuffer => BluetoothProperty::DynamicAudioBuffer(),
