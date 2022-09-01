@@ -139,6 +139,9 @@
     "SM/CEN/EKS/BI-01-C",
     "SM/CEN/EKS/BV-01-C",
     "SM/CEN/JW/BV-05-C",
+    "SM/CEN/JW/BI-04-C",
+    "SM/CEN/JW/BI-01-C",
+    "SM/CEN/KDU/BV-01-C",
     "SM/CEN/KDU/BV-04-C",
     "SM/CEN/KDU/BV-05-C",
     "SM/CEN/KDU/BI-02-C",
@@ -253,10 +256,7 @@
     "HFP/AG/TCA/BV-02-I",
     "HFP/AG/TCA/BV-03-I",
     "HFP/AG/TCA/BV-04-I",
-    "HFP/AG/TCA/BV-05-I",
-    "SM/CEN/JW/BI-01-C",
-    "SM/CEN/JW/BI-04-C",
-    "SM/CEN/KDU/BI-01-C"
+    "HFP/AG/TCA/BV-05-I"
   ],
   "ics": {
     "TSPC_4.0HCI_1a_2": true,
