@@ -26,12 +26,14 @@
 #include "common/callback.h"
 #include "common/testing/log_capture.h"
 #include "hci/acl_manager.h"
+#include "hci/acl_manager/le_connection_callbacks.h"
 #include "hci/acl_manager/le_connection_management_callbacks.h"
 #include "hci/address_with_type.h"
 #include "hci/controller.h"
 #include "hci/hci_packets.h"
 #include "os/handler.h"
 #include "os/log.h"
+#include "packet/bit_inserter.h"
 #include "packet/raw_builder.h"
 
 using namespace bluetooth;
@@ -41,6 +43,8 @@ using ::bluetooth::common::BidiQueue;
 using ::bluetooth::common::Callback;
 using ::bluetooth::os::Handler;
 using ::bluetooth::os::Thread;
+using ::bluetooth::packet::BitInserter;
+using ::bluetooth::packet::RawBuilder;
 using ::bluetooth::testing::LogCapture;
 
 namespace {
@@ -53,6 +57,86 @@ constexpr char kRemoteAddress[] = "00:11:22:33:44:55";
 [[maybe_unused]] constexpr ::bluetooth::crypto_toolbox::Octet16 kRotationIrk = {};
 [[maybe_unused]] constexpr std::chrono::milliseconds kMinimumRotationTime(14 * 1000);
 [[maybe_unused]] constexpr std::chrono::milliseconds kMaximumRotationTime(16 * 1000);
+[[maybe_unused]] constexpr std::array<uint8_t, 16> kPeerIdentityResolvingKey({
+    0x00,
+    0x01,
+    0x02,
+    0x03,
+    0x04,
+    0x05,
+    0x06,
+    0x07,
+    0x08,
+    0x09,
+    0x0a,
+    0x0b,
+    0x0c,
+    0x0d,
+    0x0e,
+    0x0f,
+});
+[[maybe_unused]] constexpr std::array<uint8_t, 16> kLocalIdentityResolvingKey({
+    0x80,
+    0x81,
+    0x82,
+    0x83,
+    0x84,
+    0x85,
+    0x86,
+    0x87,
+    0x88,
+    0x89,
+    0x8a,
+    0x8b,
+    0x8c,
+    0x8d,
+    0x8e,
+    0x8f,
+});
+
+// Generic template for all commands
+template <typename T, typename U>
+T CreateCommand(U u) {
+  T command;
+  return command;
+}
+
+template <>
+[[maybe_unused]] hci::LeSetAddressResolutionEnableView CreateCommand(std::shared_ptr<std::vector<uint8_t>> bytes) {
+  return hci::LeSetAddressResolutionEnableView::Create(
+      hci::LeSecurityCommandView::Create(hci::CommandView::Create(hci::PacketView<hci::kLittleEndian>(bytes))));
+}
+
+template <>
+[[maybe_unused]] hci::LeAddDeviceToResolvingListView CreateCommand(std::shared_ptr<std::vector<uint8_t>> bytes) {
+  return hci::LeAddDeviceToResolvingListView::Create(
+      hci::LeSecurityCommandView::Create(hci::CommandView::Create(hci::PacketView<hci::kLittleEndian>(bytes))));
+}
+
+template <>
+[[maybe_unused]] hci::LeSetPrivacyModeView CreateCommand(std::shared_ptr<std::vector<uint8_t>> bytes) {
+  return hci::LeSetPrivacyModeView::Create(
+      hci::LeSecurityCommandView::Create(hci::CommandView::Create(hci::PacketView<hci::kLittleEndian>(bytes))));
+}
+
+[[maybe_unused]] hci::CommandCompleteView ReturnCommandComplete(hci::OpCode op_code, hci::ErrorCode error_code) {
+  std::vector<uint8_t> success_vector{static_cast<uint8_t>(error_code)};
+  auto bytes = std::make_shared<std::vector<uint8_t>>();
+  BitInserter bi(*bytes);
+  auto builder = hci::CommandCompleteBuilder::Create(uint8_t{1}, op_code, std::make_unique<RawBuilder>(success_vector));
+  builder->Serialize(bi);
+  return hci::CommandCompleteView::Create(hci::EventView::Create(hci::PacketView<hci::kLittleEndian>(bytes)));
+}
+
+[[maybe_unused]] hci::CommandStatusView ReturnCommandStatus(hci::OpCode op_code, hci::ErrorCode error_code) {
+  std::vector<uint8_t> success_vector{static_cast<uint8_t>(error_code)};
+  auto bytes = std::make_shared<std::vector<uint8_t>>();
+  BitInserter bi(*bytes);
+  auto builder = hci::CommandStatusBuilder::Create(
+      hci::ErrorCode::SUCCESS, uint8_t{1}, op_code, std::make_unique<RawBuilder>(success_vector));
+  builder->Serialize(bi);
+  return hci::CommandStatusView::Create(hci::EventView::Create(hci::PacketView<hci::kLittleEndian>(bytes)));
+}
 
 }  // namespace
 
@@ -107,6 +191,12 @@ class TestController : public Controller {
     acl_credits_callback_ = {};
   }
 
+  bool SupportsBlePrivacy() const override {
+    return supports_ble_privacy_;
+  }
+  bool supports_ble_privacy_{false};
+
+ public:
   const uint16_t max_acl_packet_credits_ = 10;
   const uint16_t hci_mtu_ = 1024;
   const uint16_t le_max_acl_packet_credits_ = 15;
@@ -162,6 +252,7 @@ class TestHciLayer : public HciLayer {
     }
   }
 
+ public:
   std::unique_ptr<CommandBuilder> DequeueCommand() {
     const std::lock_guard<std::mutex> lock(command_queue_mutex_);
     auto packet = std::move(command_queue_.front());
@@ -187,7 +278,6 @@ class TestHciLayer : public HciLayer {
     return command_queue_.size();
   }
 
- public:
   void SetCommandFuture() {
     ASSERT_LOG(command_promise_ == nullptr, "Promises, Promises, ... Only one at a time.");
     command_promise_ = std::make_unique<std::promise<void>>();
@@ -274,8 +364,16 @@ class TestHciLayer : public HciLayer {
   CommandInterfaceImpl<AclCommandBuilder> le_acl_connection_manager_interface_{*this};
 };
 
-class LeImplTest : public ::testing::Test {
+class LeConnectionCallbacksTest : public LeConnectionCallbacks {
  public:
+  virtual ~LeConnectionCallbacksTest() = default;
+  virtual void OnLeConnectSuccess(
+      AddressWithType address_with_type, std::unique_ptr<LeAclConnection> connection) override {}
+  virtual void OnLeConnectFail(AddressWithType address_with_type, ErrorCode reason) override {}
+};
+
+class LeImplTest : public ::testing::Test {
+ protected:
   void SetUp() override {
     thread_ = new Thread("thread", Thread::Priority::NORMAL);
     handler_ = new Handler(thread_);
@@ -316,6 +414,14 @@ class LeImplTest : public ::testing::Test {
   }
 
   void TearDown() override {
+    // We cannot teardown our structure without unregistering
+    // from our own structure we created.
+    if (le_impl_->address_manager_registered) {
+      le_impl_->ready_to_unregister = true;
+      le_impl_->check_for_unregister();
+      sync_handler();
+    }
+
     sync_handler();
     delete le_impl_;
 
@@ -391,7 +497,20 @@ class LeImplTest : public ::testing::Test {
   TestController* controller_;
   RoundRobinScheduler* round_robin_scheduler_{nullptr};
 
+  LeConnectionCallbacksTest connection_callbacks_;
   struct le_impl* le_impl_;
+};
+
+class LeImplWithCallbacksTest : public LeImplTest {
+ protected:
+  void SetUp() override {
+    LeImplTest::SetUp();
+    le_impl_->handle_register_le_callbacks(&connection_callbacks_, handler_);
+  }
+
+  void TearDown() override {
+    LeImplTest::TearDown();
+  }
 };
 
 TEST_F(LeImplTest, nop) {}
