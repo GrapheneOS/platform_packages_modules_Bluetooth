@@ -629,7 +629,7 @@ impl IAdvertisingSetCallback for IAdvertisingSetCallbackDBus {
         reg_id: i32,
         advertiser_id: i32,
         tx_power: i32,
-        status: i32,
+        status: GattStatus,
     ) {
     }
 
@@ -640,25 +640,37 @@ impl IAdvertisingSetCallback for IAdvertisingSetCallbackDBus {
     fn on_advertising_set_stopped(&self, advertiser_id: i32) {}
 
     #[dbus_method("OnAdvertisingEnabled")]
-    fn on_advertising_enabled(&self, advertiser_id: i32, enable: bool, status: i32) {}
+    fn on_advertising_enabled(&self, advertiser_id: i32, enable: bool, status: GattStatus) {}
 
     #[dbus_method("OnAdvertisingDataSet")]
-    fn on_advertising_data_set(&self, advertiser_id: i32, status: i32) {}
+    fn on_advertising_data_set(&self, advertiser_id: i32, status: GattStatus) {}
 
     #[dbus_method("OnScanResponseDataSet")]
-    fn on_scan_response_data_set(&self, advertiser_id: i32, status: i32) {}
+    fn on_scan_response_data_set(&self, advertiser_id: i32, status: GattStatus) {}
 
     #[dbus_method("OnAdvertisingParametersUpdated")]
-    fn on_advertising_parameters_updated(&self, advertiser_id: i32, tx_power: i32, status: i32) {}
+    fn on_advertising_parameters_updated(
+        &self,
+        advertiser_id: i32,
+        tx_power: i32,
+        status: GattStatus,
+    ) {
+    }
 
     #[dbus_method("OnPeriodicAdvertisingParametersUpdated")]
-    fn on_periodic_advertising_parameters_updated(&self, advertiser_id: i32, status: i32) {}
+    fn on_periodic_advertising_parameters_updated(&self, advertiser_id: i32, status: GattStatus) {}
 
     #[dbus_method("OnPeriodicAdvertisingDataSet")]
-    fn on_periodic_advertising_data_set(&self, advertiser_id: i32, status: i32) {}
+    fn on_periodic_advertising_data_set(&self, advertiser_id: i32, status: GattStatus) {}
 
     #[dbus_method("OnPeriodicAdvertisingEnabled")]
-    fn on_periodic_advertising_enabled(&self, advertiser_id: i32, enable: bool, status: i32) {}
+    fn on_periodic_advertising_enabled(
+        &self,
+        advertiser_id: i32,
+        enable: bool,
+        status: GattStatus,
+    ) {
+    }
 }
 
 #[dbus_propmap(AdvertisingSetParameters)]

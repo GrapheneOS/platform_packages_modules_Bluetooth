@@ -96,6 +96,9 @@ pub(crate) struct ClientContext {
 
     /// Keeps track of active LE scanners.
     active_scanner_ids: HashSet<u8>,
+
+    /// Advertising sets started/registered. Map from reg_id to advertiser_id.
+    adv_sets: HashMap<i32, Option<i32>>,
 }
 
 impl ClientContext {
@@ -130,6 +133,7 @@ impl ClientContext {
             scanner_callback_id: None,
             advertiser_callback_id: None,
             active_scanner_ids: HashSet::new(),
+            adv_sets: HashMap::new(),
         }
     }
 
