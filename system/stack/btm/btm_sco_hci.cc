@@ -147,6 +147,8 @@ struct tBTM_MSBC_INFO {
   size_t encode_buf_wo;     /* Write offset of the encode buffer */
   size_t encode_buf_ro;     /* Read offset of the encode buffer */
 
+  int16_t decoded_pcm_buf[120]; /* Buffer to store decoded PCM */
+
   uint8_t num_encoded_msbc_pkts; /* Number of the encoded mSBC packets */
   static size_t get_supported_packet_size(size_t pkt_size,
                                           size_t* buffer_size) {
@@ -369,11 +371,13 @@ size_t decode(const uint8_t** out_data) {
     goto packet_loss;
   }
 
-  if (!hfp_msbc_decoder_decode_packet(frame_head, out_data)) {
+  if (!hfp_msbc_decoder_decode_packet(frame_head, msbc_info->decoded_pcm_buf,
+                                      sizeof(msbc_info->decoded_pcm_buf))) {
     LOG_DEBUG("Decoding mSBC packet failed");
     goto packet_loss;
   }
 
+  *out_data = (const uint8_t*)msbc_info->decoded_pcm_buf;
   msbc_info->mark_pkt_decoded();
   return BTM_MSBC_CODE_SIZE;
 
