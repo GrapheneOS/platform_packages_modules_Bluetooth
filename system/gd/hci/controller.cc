@@ -557,8 +557,18 @@ struct Controller::impl {
 
   void le_set_event_mask(uint64_t le_event_mask) {
     std::unique_ptr<LeSetEventMaskBuilder> packet = LeSetEventMaskBuilder::Create(le_event_mask);
-    hci_->EnqueueCommand(std::move(packet), module_.GetHandler()->BindOnceOn(
-                                                this, &Controller::impl::check_status<LeSetEventMaskCompleteView>));
+    hci_->EnqueueCommand(
+        std::move(packet), module_.GetHandler()->BindOnceOn(this, &Controller::impl::check_le_set_event_mask_status));
+  }
+
+  void check_le_set_event_mask_status(CommandCompleteView view) {
+    ASSERT(view.IsValid());
+    auto status_view = LeSetEventMaskCompleteView::Create(view);
+    ASSERT(status_view.IsValid());
+    auto status = status_view.GetStatus();
+    if (status != ErrorCode::SUCCESS) {
+      LOG_WARN("Unexpected return status %s", ErrorCodeText(status).c_str());
+    }
   }
 
   template <class T>
