@@ -91,4 +91,6 @@ int get_packet_size(int codec);
 void notify_sco_connection_change(RawAddress device, bool is_connected,
                                   int codec);
 
+// Update eSCO parameters
+void update_esco_parameters(enh_esco_params_t* p_parms);
 }  // namespace hfp_hal_interface
