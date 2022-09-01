@@ -544,7 +544,7 @@ impl IBluetoothMedia for BluetoothMedia {
         }
         self.initialized = true;
 
-        // TEST A2dp
+        // A2DP
         let a2dp_dispatcher = get_a2dp_dispatcher(self.tx.clone());
         self.a2dp = Some(A2dp::new(&self.intf.lock().unwrap()));
         self.a2dp.as_mut().unwrap().initialize(a2dp_dispatcher);
@@ -563,12 +563,23 @@ impl IBluetoothMedia for BluetoothMedia {
     }
 
     fn connect(&mut self, address: String) {
-        if let Some(addr) = RawAddress::from_string(address.clone()) {
-            self.a2dp.as_mut().unwrap().connect(addr);
-            self.hfp.as_mut().unwrap().connect(addr);
-        } else {
-            warn!("Invalid device string {}", address);
-        }
+        let addr = match RawAddress::from_string(address.clone()) {
+            None => {
+                warn!("Invalid device address {}", address);
+                return;
+            }
+            Some(addr) => addr,
+        };
+
+        match self.a2dp.as_mut() {
+            Some(a2dp) => a2dp.connect(addr),
+            None => warn!("Uninitialized A2DP to connect {}", address),
+        };
+
+        match self.hfp.as_mut() {
+            Some(hfp) => hfp.connect(addr),
+            None => warn!("Uninitialized HFP to connect {}", address),
+        };
     }
 
     fn cleanup(&mut self) -> bool {
@@ -576,20 +587,38 @@ impl IBluetoothMedia for BluetoothMedia {
     }
 
     fn set_active_device(&mut self, address: String) {
-        if let Some(addr) = RawAddress::from_string(address.clone()) {
-            self.a2dp.as_mut().unwrap().set_active_device(addr);
-        } else {
-            warn!("Invalid device string {}", address);
+        let addr = match RawAddress::from_string(address.clone()) {
+            None => {
+                warn!("Invalid device address {}", address);
+                return;
+            }
+            Some(addr) => addr,
+        };
+
+        match self.a2dp.as_mut() {
+            Some(a2dp) => a2dp.set_active_device(addr),
+            None => warn!("Uninitialized A2DP to set active device"),
         }
     }
 
     fn disconnect(&mut self, address: String) {
-        if let Some(addr) = RawAddress::from_string(address.clone()) {
-            self.a2dp.as_mut().unwrap().disconnect(addr);
-            self.hfp.as_mut().unwrap().disconnect(addr);
-        } else {
-            warn!("Invalid device string {}", address);
-        }
+        let addr = match RawAddress::from_string(address.clone()) {
+            None => {
+                warn!("Invalid device address {}", address);
+                return;
+            }
+            Some(addr) => addr,
+        };
+
+        match self.a2dp.as_mut() {
+            Some(a2dp) => a2dp.disconnect(addr),
+            None => warn!("Uninitialized A2DP to disconnect {}", address),
+        };
+
+        match self.hfp.as_mut() {
+            Some(hfp) => hfp.disconnect(addr),
+            None => warn!("Uninitialized HFP to disconnect {}", address),
+        };
     }
 
     fn set_audio_config(
@@ -604,112 +633,170 @@ impl IBluetoothMedia for BluetoothMedia {
         {
             return false;
         }
-        self.a2dp.as_mut().unwrap().set_audio_config(sample_rate, bits_per_sample, channel_mode);
-        true
+
+        match self.a2dp.as_mut() {
+            Some(a2dp) => {
+                a2dp.set_audio_config(sample_rate, bits_per_sample, channel_mode);
+                true
+            }
+            None => {
+                warn!("Uninitialized A2DP to set audio config");
+                false
+            }
+        }
     }
 
     fn set_volume(&mut self, volume: u8) {
         // Guard the range 0-127 by the try_from cast from u8 to i8.
-        match i8::try_from(volume) {
-            Ok(val) => self.avrcp.as_mut().unwrap().set_volume(val),
-            _ => warn!("Ignore invalid volume {}", volume),
-        }
+        let vol = match i8::try_from(volume) {
+            Ok(val) => val,
+            _ => {
+                warn!("Ignore invalid volume {}", volume);
+                return;
+            }
+        };
+
+        match self.avrcp.as_mut() {
+            Some(avrcp) => avrcp.set_volume(vol),
+            None => warn!("Uninitialized AVRCP to set volume"),
+        };
     }
 
     fn set_hfp_volume(&mut self, volume: u8, address: String) {
-        if let Some(addr) = RawAddress::from_string(address.clone()) {
-            if !self.hfp_states.get(&addr).is_none() {
-                match i8::try_from(volume) {
-                    Ok(val) if val <= 15 => {
-                        self.hfp.as_mut().unwrap().set_volume(val, addr);
-                    }
-                    _ => warn!("[{}]: Ignore invalid volume {}", address, volume),
-                }
-            } else {
-                warn!(
-                    "[{}]: Ignore volume event for unconnected or disconnected HFP device",
-                    address
-                );
+        let addr = match RawAddress::from_string(address.clone()) {
+            None => {
+                warn!("Invalid device address {}", address);
+                return;
             }
-        } else {
-            warn!("[{}]: Invalid address", address);
+            Some(addr) => addr,
+        };
+
+        let vol = match i8::try_from(volume) {
+            Ok(val) if val <= 15 => val,
+            _ => {
+                warn!("[{}]: Ignore invalid volume {}", address, volume);
+                return;
+            }
+        };
+
+        if self.hfp_states.get(&addr).is_none() {
+            warn!("[{}]: Ignore volume event for unconnected or disconnected HFP device", address);
+            return;
         }
+
+        match self.hfp.as_mut() {
+            Some(hfp) => {
+                hfp.set_volume(vol, addr);
+            }
+            None => warn!("Uninitialized HFP to set volume"),
+        };
     }
 
     fn start_audio_request(&mut self) {
-        self.a2dp.as_mut().unwrap().start_audio_request();
+        match self.a2dp.as_mut() {
+            Some(a2dp) => a2dp.start_audio_request(),
+            None => warn!("Uninitialized A2DP to start audio request"),
+        };
     }
 
     fn stop_audio_request(&mut self) {
-        self.a2dp.as_mut().unwrap().stop_audio_request();
+        match self.a2dp.as_mut() {
+            Some(a2dp) => a2dp.stop_audio_request(),
+            None => warn!("Uninitialized A2DP to stop audio request"),
+        };
     }
 
     fn start_sco_call(&mut self, address: String) {
-        if let Some(addr) = RawAddress::from_string(address.clone()) {
-            info!("Start sco call for {}", address);
-            match self.hfp.as_mut().unwrap().connect_audio(addr) {
-                0 => {
-                    info!("SCO connect_audio status success.");
-                }
-                x => {
-                    warn!("SCO connect_audio status failed: {}", x);
-                }
-            };
-        } else {
-            warn!("Can't start sco call with: {}", address);
-        }
+        let addr = match RawAddress::from_string(address.clone()) {
+            None => {
+                warn!("Can't start sco call with: {}", address);
+                return;
+            }
+            Some(addr) => addr,
+        };
+
+        info!("Start sco call for {}", address);
+        let hfp = match self.hfp.as_mut() {
+            None => {
+                warn!("Uninitialized HFP to start the sco call");
+                return;
+            }
+            Some(hfp) => hfp,
+        };
+
+        match hfp.connect_audio(addr) {
+            0 => {
+                info!("SCO connect_audio status success.");
+            }
+            x => {
+                warn!("SCO connect_audio status failed: {}", x);
+            }
+        };
     }
 
     fn stop_sco_call(&mut self, address: String) {
-        if let Some(addr) = RawAddress::from_string(address.clone()) {
-            info!("Stop sco call for {}", address);
-            self.hfp.as_mut().unwrap().disconnect_audio(addr);
-        } else {
-            warn!("Can't stop sco call with: {}", address);
-        }
+        let addr = match RawAddress::from_string(address.clone()) {
+            None => {
+                warn!("Can't stop sco call with: {}", address);
+                return;
+            }
+            Some(addr) => addr,
+        };
+
+        info!("Stop sco call for {}", address);
+        match self.hfp.as_mut() {
+            Some(hfp) => {
+                hfp.disconnect_audio(addr);
+            }
+            None => warn!("Uninitialized HFP to stop the sco call"),
+        };
     }
 
     fn get_a2dp_audio_started(&mut self, address: String) -> u8 {
-        if let Some(addr) = RawAddress::from_string(address.clone()) {
-            match self.a2dp_audio_state.get(&addr) {
-                Some(BtavAudioState::Started) => 1,
-                _ => 0,
+        let addr = match RawAddress::from_string(address.clone()) {
+            None => {
+                warn!("Invalid device address {}", address);
+                return 0;
             }
-        } else {
-            warn!("Invalid device string {}", address);
-            0
+            Some(addr) => addr,
+        };
+
+        match self.a2dp_audio_state.get(&addr) {
+            Some(BtavAudioState::Started) => 1,
+            _ => 0,
         }
     }
 
     fn get_hfp_audio_started(&mut self, address: String) -> u8 {
-        if let Some(addr) = RawAddress::from_string(address.clone()) {
-            match self.hfp_audio_state.get(&addr) {
-                Some(BthfAudioState::Connected) => match self.hfp_caps.get(&addr) {
-                    Some(caps)
-                        if (*caps & HfpCodecCapability::MSBC) == HfpCodecCapability::MSBC =>
-                    {
-                        2
-                    }
-                    Some(caps)
-                        if (*caps & HfpCodecCapability::CVSD) == HfpCodecCapability::CVSD =>
-                    {
-                        1
-                    }
-                    _ => {
-                        warn!("hfp_caps not found, fallback to CVSD.");
-                        1
-                    }
-                },
-                _ => 0,
+        let addr = match RawAddress::from_string(address.clone()) {
+            None => {
+                warn!("Invalid device address {}", address);
+                return 0;
             }
-        } else {
-            warn!("Invalid device string {}", address);
-            0
+            Some(addr) => addr,
+        };
+
+        match self.hfp_audio_state.get(&addr) {
+            Some(BthfAudioState::Connected) => match self.hfp_caps.get(&addr) {
+                Some(caps) if (*caps & HfpCodecCapability::MSBC) == HfpCodecCapability::MSBC => 2,
+                Some(caps) if (*caps & HfpCodecCapability::CVSD) == HfpCodecCapability::CVSD => 1,
+                _ => {
+                    warn!("hfp_caps not found, fallback to CVSD.");
+                    1
+                }
+            },
+            _ => 0,
         }
     }
 
     fn get_presentation_position(&mut self) -> PresentationPosition {
-        let position = self.a2dp.as_mut().unwrap().get_presentation_position();
+        let position = match self.a2dp.as_mut() {
+            Some(a2dp) => a2dp.get_presentation_position(),
+            None => {
+                warn!("Uninitialized A2DP to get presentation position");
+                Default::default()
+            }
+        };
         PresentationPosition {
             remote_delay_report_ns: position.remote_delay_report_ns,
             total_bytes_read: position.total_bytes_read,
