@@ -214,6 +214,28 @@ impl UuidHelper {
     }
 }
 
+// Temporary util that covers only basic string conversion.
+// TODO(b/193685325): Implement more UUID utils by using Uuid from gd/hci/uuid.h with cxx.
+pub fn parse_uuid_string<T: Into<String>>(uuid: T) -> Option<Uuid> {
+    let uuid = uuid.into();
+
+    if uuid.len() != 32 {
+        return None;
+    }
+
+    let mut raw = [0; 16];
+
+    for i in 0..16 {
+        let byte = u8::from_str_radix(&uuid[i * 2..i * 2 + 2], 16);
+        if byte.is_err() {
+            return None;
+        }
+        raw[i] = byte.unwrap();
+    }
+
+    Some(Uuid { uu: raw })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
