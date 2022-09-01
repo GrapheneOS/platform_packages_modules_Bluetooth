@@ -20,12 +20,18 @@
 #include <metrics/structured_events.h>
 
 #include "common/time_util.h"
+#include "gd/metrics/chromeos/metrics_allowlist.h"
 #include "gd/metrics/chromeos/metrics_event.h"
 #include "gd/metrics/utils.h"
 #include "gd/os/log.h"
 
 namespace bluetooth {
 namespace metrics {
+
+static constexpr uint32_t DEVICE_MAJOR_CLASS_MASK = 0x1F00;
+static constexpr uint32_t DEVICE_MAJOR_CLASS_BIT_OFFSET = 8;
+static constexpr uint32_t DEVICE_CATEGORY_MASK = 0xFFC0;
+static constexpr uint32_t DEVICE_CATEGORY_BIT_OFFSET = 6;
 
 void LogMetricsAdapterStateChanged(uint32_t state) {
   int64_t adapter_state;
@@ -104,6 +110,63 @@ void LogMetricsBondStateChanged(
       .SetDeviceId(addr_string)
       .SetDeviceType(device_type)
       .SetPairingState((int64_t)pairing_state)
+      .Record();
+}
+
+void LogMetricsDeviceInfoReport(
+    RawAddress* addr,
+    uint32_t device_type,
+    uint32_t class_of_device,
+    uint32_t appearance,
+    uint32_t vendor_id,
+    uint32_t vendor_id_src,
+    uint32_t product_id,
+    uint32_t version) {
+  int64_t boot_time;
+  std::string addr_string;
+  std::string boot_id;
+  uint32_t major_class;
+  uint32_t category;
+
+  if (!GetBootId(&boot_id)) return;
+
+  addr_string = addr->ToString();
+  boot_time = bluetooth::common::time_get_os_boottime_us();
+
+  major_class = (class_of_device & DEVICE_MAJOR_CLASS_MASK) >> DEVICE_MAJOR_CLASS_BIT_OFFSET;
+  category = (appearance & DEVICE_CATEGORY_MASK) >> DEVICE_CATEGORY_BIT_OFFSET;
+
+  LOG_DEBUG(
+      "DeviceInfoReport %s %d %s %d %d %d %d %d %d %d",
+      boot_id.c_str(),
+      boot_time,
+      addr_string.c_str(),
+      device_type,
+      major_class,
+      category,
+      vendor_id,
+      vendor_id_src,
+      product_id,
+      version);
+
+  if (!IsDeviceInfoInAllowlist(vendor_id_src, vendor_id, product_id)) {
+    vendor_id_src = 0;
+    vendor_id = 0;
+    product_id = 0;
+    version = 0;
+  }
+
+  ::metrics::structured::events::bluetooth::BluetoothDeviceInfoReport()
+      .SetBootId(boot_id)
+      .SetSystemTime(boot_time)
+      .SetDeviceId(addr_string)
+      .SetDeviceType(device_type)
+      .SetDeviceClass(major_class)
+      .SetDeviceCategory(category)
+      .SetVendorId(vendor_id)
+      .SetVendorIdSource(vendor_id_src)
+      .SetProductId(product_id)
+      .SetProductVersion(version)
       .Record();
 }
 
