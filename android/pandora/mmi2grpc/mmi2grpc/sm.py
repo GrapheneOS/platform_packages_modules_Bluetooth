@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """SMP proxy module."""
+import sys
 
 from mmi2grpc._helpers import assert_description
 from mmi2grpc._proxy import ProfileProxy
+from mmi2grpc._streaming import StreamWrapper
 
 from pandora.security_grpc import Security
 from pandora.host_grpc import Host
@@ -38,6 +40,17 @@ ACCEPTS_REMOTE_PAIRING_CONFIRMATION = {
 }
 
 
+def debug(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
+
+
+def get_event(pairing_stream: StreamWrapper, addr: str):
+    for event in pairing_stream:
+        if event.address == addr:
+            return event
+    return None
+
+
 class SMProxy(ProfileProxy):
 
     def __init__(self, channel):
@@ -45,6 +58,7 @@ class SMProxy(ProfileProxy):
         self.security = Security(channel)
         self.host = Host(channel)
         self.connection = None
+        self.pairing_stream = None
 
     @assert_description
     def MMI_IUT_ENABLE_CONNECTION_SM(self, test, pts_addr: bytes, **kwargs):
@@ -52,21 +66,26 @@ class SMProxy(ProfileProxy):
         Initiate an connection from the IUT to the PTS.
         """
         self.connection = self.host.ConnectLE(address=pts_addr).connection
+        self.pairing_stream = self.security.OnPairing()
+
         if self.connection and test in ACCEPTS_REMOTE_PAIRING_CONFIRMATION:
-            self.security.ProvidePairingConfirmation(connection=self.connection, pairing_confirmation_value=True)
+            event = get_event(pairing_stream=self.pairing_stream, addr=pts_addr)
+            self.pairing_stream.send(event=event, confirm=True)
+            self.pairing_stream.close()
         return "OK"
 
     @assert_description
-    def MMI_ASK_IUT_PERFORM_PAIRING_PROCESS(self, test, **kwargs):
+    def MMI_ASK_IUT_PERFORM_PAIRING_PROCESS(self, test, pts_addr: bytes, **kwargs):
         """
         Please start pairing process.
         """
         if self.connection:
             self.security.Pair(connection=self.connection)
             if test in NEEDS_PAIRING_CONFIRMATION:
-                self.security.ProvidePairingConfirmation(connection=self.connection, pairing_confirmation_value=True)
-
-        return "OK"
+                event = get_event(pairing_stream=self.pairing_stream, addr=pts_addr)
+                self.pairing_stream.send(event=event, confirm=True)
+                self.pairing_stream.close()
+            return "OK"
 
     @assert_description
     def MMI_IUT_SEND_DISCONNECTION_REQUEST(self, **kwargs):
@@ -77,9 +96,8 @@ class SMProxy(ProfileProxy):
         the Implementation Under Test(IUT) can initiate a disconnect request to
         PTS.
         """
-        if self.connection:
-            self.host.DisconnectLE(connection=self.connection)
-            self.connection = None
+        self.host.DisconnectLE(connection=self.connection)
+        self.connection = None
         return "OK"
 
     def MMI_LESC_NUMERIC_COMPARISON(self, **kwargs):
