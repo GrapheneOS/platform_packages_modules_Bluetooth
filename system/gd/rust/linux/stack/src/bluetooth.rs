@@ -3,8 +3,8 @@
 use bt_topshim::btif::{
     BaseCallbacks, BaseCallbacksDispatcher, BluetoothInterface, BluetoothProperty, BtAclState,
     BtBondState, BtConnectionState, BtDeviceType, BtDiscoveryState, BtHciErrorCode, BtPinCode,
-    BtPropertyType, BtScanMode, BtSspVariant, BtState, BtStatus, BtTransport, RawAddress, Uuid,
-    Uuid128Bit,
+    BtPropertyType, BtScanMode, BtSspVariant, BtState, BtStatus, BtTransport, BtVendorProductInfo,
+    RawAddress, Uuid, Uuid128Bit,
 };
 use bt_topshim::{
     metrics,
@@ -527,6 +527,40 @@ impl Bluetooth {
             self.internal_le_rand_queue.push_back(promise);
         }
     }
+
+    fn send_metrics_remote_device_info(device: &BluetoothDeviceContext) {
+        if device.bond_state != BtBondState::Bonded && device.acl_state != BtAclState::Connected {
+            return;
+        }
+
+        let addr = RawAddress::from_string(device.info.address.clone()).unwrap();
+        let mut class_of_device = 0u32;
+        let mut device_type = BtDeviceType::Unknown;
+        let mut appearance = 0u16;
+        let mut vpi =
+            BtVendorProductInfo { vendor_id_src: 0, vendor_id: 0, product_id: 0, version: 0 };
+
+        for prop in device.properties.values() {
+            match prop {
+                BluetoothProperty::TypeOfDevice(p) => device_type = p.clone(),
+                BluetoothProperty::ClassOfDevice(p) => class_of_device = p.clone(),
+                BluetoothProperty::Appearance(p) => appearance = p.clone(),
+                BluetoothProperty::VendorProductInfo(p) => vpi = p.clone(),
+                _ => (),
+            }
+        }
+
+        metrics::device_info_report(
+            addr,
+            device_type,
+            class_of_device,
+            appearance,
+            vpi.vendor_id,
+            vpi.vendor_id_src,
+            vpi.product_id,
+            vpi.version,
+        );
+    }
 }
 
 #[btif_callbacks_dispatcher(Bluetooth, dispatch_base_callbacks, BaseCallbacks)]
@@ -870,6 +904,8 @@ impl BtifBluetoothCallbacks for Bluetooth {
                 d.update_properties(properties);
                 d.seen();
 
+                Bluetooth::send_metrics_remote_device_info(d);
+
                 let info = d.info.clone();
                 let uuids = self.get_remote_uuids(info.clone());
                 if self.wait_to_connect && uuids.len() > 0 {
@@ -922,6 +958,7 @@ impl BtifBluetoothCallbacks for Bluetooth {
 
                     match state {
                         BtAclState::Connected => {
+                            Bluetooth::send_metrics_remote_device_info(found);
                             self.connection_callbacks.for_all_callbacks(|callback| {
                                 callback.on_device_connected(device.clone());
                             });
