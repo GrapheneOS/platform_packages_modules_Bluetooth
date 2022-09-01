@@ -72,22 +72,6 @@ class Security(private val context: Context) : SecurityImplBase() {
     }
   }
 
-  override fun providePairingConfirmation(
-    request: PairingConfirmationRequest,
-    responseObserver: StreamObserver<Empty>
-  ) {
-    grpcUnary(globalScope, responseObserver) {
-      val bluetoothDevice = request.connection.toBluetoothDevice(bluetoothAdapter)
-      Log.i(TAG, "Confirm pairing for: address=${bluetoothDevice.address}")
-      flow
-        .filter { it.action == BluetoothDevice.ACTION_PAIRING_REQUEST }
-        .filter { it.getBluetoothDeviceExtra() == bluetoothDevice }
-        .first()
-      bluetoothDevice.setPairingConfirmation(request.pairingConfirmationValue)
-      Empty.getDefaultInstance()
-    }
-  }
-
   override fun deletePairing(
     request: DeletePairingRequest,
     responseObserver: StreamObserver<DeletePairingResponse>
