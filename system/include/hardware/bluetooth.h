@@ -214,6 +214,14 @@ typedef struct {
   bool le_periodic_advertising_sync_transfer_recipient_supported;
 } bt_local_le_features_t;
 
+/** Bluetooth Vendor and Product ID info */
+typedef struct {
+  uint8_t vendor_id_src;
+  uint16_t vendor_id;
+  uint16_t product_id;
+  uint16_t version;
+} bt_vendor_product_info_t;
+
 /* Stored the default/maximum/minimum buffer time for dynamic audio buffer.
  * For A2DP offload usage, the unit is millisecond.
  * For A2DP legacy usage, the unit is buffer queue size*/
@@ -339,6 +347,20 @@ typedef enum {
    * Data Type - bool.
    */
   BT_PROPERTY_REMOTE_IS_COORDINATED_SET_MEMBER,
+
+  /**
+   * Description - Appearance as specified in Assigned Numbers.
+   * Access mode - GET.
+   * Data Type - uint16_t.
+   */
+  BT_PROPERTY_APPEARANCE,
+
+  /**
+   * Description - Peer devices' vendor and product ID.
+   * Access mode - GET.
+   * Data Type - bt_vendor_product_info_t.
+   */
+  BT_PROPERTY_VENDOR_PRODUCT_INFO,
 
   BT_PROPERTY_REMOTE_DEVICE_TIMESTAMP = 0xFF,
 } bt_property_type_t;

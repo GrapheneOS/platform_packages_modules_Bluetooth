@@ -19,6 +19,16 @@ mod ffi {
             bond_state: u32,
             fail_reason: i32,
         );
+        fn device_info_report(
+            bt_addr: RustRawAddress,
+            device_type: u32,
+            class_of_device: u32,
+            appearance: u32,
+            vendor_id: u32,
+            vendor_id_src: u32,
+            product_id: u32,
+            version: u32,
+        );
     }
 }
 
@@ -55,5 +65,27 @@ pub fn bond_state_changed(
         status as u32,
         bond_state as u32,
         fail_reason as i32,
+    );
+}
+
+pub fn device_info_report(
+    addr: RawAddress,
+    device_type: BtDeviceType,
+    class_of_device: u32,
+    appearance: u16,
+    vendor_id: u16,
+    vendor_id_src: u8,
+    product_id: u16,
+    version: u16,
+) {
+    ffi::device_info_report(
+        addr.into(),
+        device_type as u32,
+        class_of_device as u32,
+        appearance as u32,
+        vendor_id as u32,
+        vendor_id_src as u32,
+        product_id as u32,
+        version as u32,
     );
 }

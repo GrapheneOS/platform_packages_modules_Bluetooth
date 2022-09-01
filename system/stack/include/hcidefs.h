@@ -734,6 +734,7 @@ typedef enum : uint16_t {
 #define HCI_EIR_OOB_SSP_HASH_C_TYPE 0x0E
 #define HCI_EIR_OOB_SSP_RAND_R_TYPE 0x0F
 #define HCI_EIR_RSI_TYPE 0x2E
+#define HCI_EIR_APPEARANCE_TYPE 0x19
 
 /* Definitions for Write Simple Pairing Mode */
 #define HCI_SP_MODE_ENABLED 0x01
