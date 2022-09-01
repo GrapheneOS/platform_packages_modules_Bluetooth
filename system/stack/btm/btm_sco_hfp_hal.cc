@@ -87,4 +87,6 @@ void notify_sco_connection_change(RawAddress device, bool is_connected,
   // Do nothing since this is handled by Android's audio hidl.
 }
 
+// On Android, this is a no-op because the settings default to work for Android.
+void update_esco_parameters(enh_esco_params_t* p_parms) {}
 }  // namespace hfp_hal_interface
