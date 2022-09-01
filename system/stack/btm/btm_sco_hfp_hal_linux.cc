@@ -23,6 +23,8 @@
 #include "btm_sco_hfp_hal.h"
 #include "gd/common/init_flags.h"
 #include "osi/include/log.h"
+#include "stack/acl/acl.h"
+#include "stack/include/acl_api.h"
 
 namespace hfp_hal_interface {
 namespace {
@@ -94,7 +96,7 @@ void cache_codec_capabilities(struct mgmt_rp_get_codec_capabilities* rp) {
     cached_codec_info c = {
         .inner =
             {
-                .codec = static_cast<codec>(1 << (mc->codec - 1)),
+                .codec = static_cast<codec>(mc->codec - 1),
                 .data_path = mc->data_path,
                 .data = mc->data_length == 0
                             ? std::vector<uint8_t>{}
@@ -242,6 +244,7 @@ int mgmt_notify_sco_connection_change(int fd, int hci, RawAddress device,
 
   struct mgmt_cp_notify_sco_connection_change* cp =
       reinterpret_cast<struct mgmt_cp_notify_sco_connection_change*>(ev.data);
+
   cp->hci_dev = hci;
   cp->connected = is_connected;
   cp->codec = codec;
@@ -332,8 +335,75 @@ bool enable_offload(bool enable) {
   return true;
 }
 
+static bool get_single_codec(int codec, bt_codec** out) {
+  for (cached_codec_info& c : cached_codecs) {
+    if (c.inner.codec == codec) {
+      *out = &c.inner;
+      return true;
+    }
+  }
+
+  return false;
+}
+
+constexpr uint8_t OFFLOAD_DATAPATH = 0x01;
+
 // Notify the codec datapath to lower layer for offload mode
-bool set_codec_datapath(int codec) { return true; }
+void set_codec_datapath(esco_coding_format_t coding_format) {
+  bool found;
+  bt_codec* codec;
+  uint8_t codec_id;
+
+  switch (coding_format) {
+    case BTM_SCO_CODEC_CVSD:
+      codec_id = codec::CVSD;
+      break;
+    case BTM_SCO_CODEC_MSBC:
+      codec_id = get_offload_enabled() ? codec::MSBC : codec::MSBC_TRANSPARENT;
+      break;
+    default:
+      LOG_WARN("Unsupported format (%u). Won't set datapath.", coding_format);
+      return;
+  }
+
+  found = get_single_codec(codec_id, &codec);
+  if (!found) {
+    LOG_ERROR(
+        "Failed to find codec config for format (%u). Won't set datapath.",
+        coding_format);
+    return;
+  }
+
+  LOG_INFO("Configuring datapath for codec (%u)", codec->codec);
+  if (codec->codec == codec::MSBC && !get_offload_enabled()) {
+    LOG_ERROR(
+        "Tried to configure offload data path for format (%u) with offload "
+        "disabled. Won't set datapath.",
+        coding_format);
+    return;
+  }
+
+  if (get_offload_enabled()) {
+    /* TODO(b/237373343): expect the data content to be represented differently
+     */
+    std::vector<uint8_t> data;
+    switch (coding_format) {
+      case BTM_SCO_CODEC_CVSD:
+        data = {0x00};
+        break;
+      case BTM_SCO_CODEC_MSBC:
+        data = {0x01};
+        break;
+      default:
+        break;
+    }
+
+    btm_configure_data_path(btm_data_direction::CONTROLLER_TO_HOST,
+                            OFFLOAD_DATAPATH, data);
+    btm_configure_data_path(btm_data_direction::HOST_TO_CONTROLLER,
+                            OFFLOAD_DATAPATH, data);
+  }
+}
 
 int get_packet_size(int codec) {
   for (const cached_codec_info& c : cached_codecs) {
