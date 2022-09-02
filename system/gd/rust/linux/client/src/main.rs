@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, Mutex};
 
 use dbus::channel::MatchingReceiver;
@@ -93,6 +93,12 @@ pub(crate) struct ClientContext {
 
     /// Identifies the callback to receive IAdvertisingSetCallback method calls.
     advertiser_callback_id: Option<u32>,
+
+    /// Keeps track of active LE scanners.
+    active_scanner_ids: HashSet<u8>,
+
+    /// Advertising sets started/registered. Map from reg_id to advertiser_id.
+    adv_sets: HashMap<i32, Option<i32>>,
 }
 
 impl ClientContext {
@@ -126,6 +132,8 @@ impl ClientContext {
             dbus_crossroads,
             scanner_callback_id: None,
             advertiser_callback_id: None,
+            active_scanner_ids: HashSet::new(),
+            adv_sets: HashMap::new(),
         }
     }
 

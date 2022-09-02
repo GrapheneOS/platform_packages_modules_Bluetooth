@@ -20,6 +20,8 @@ pub mod ffi {
 
         fn init(self: Pin<&mut AvrcpIntf>);
         fn cleanup(self: Pin<&mut AvrcpIntf>);
+        fn connect(self: Pin<&mut AvrcpIntf>, bt_addr: RustRawAddress) -> i32;
+        fn disconnect(self: Pin<&mut AvrcpIntf>, bt_addr: RustRawAddress) -> i32;
         fn set_volume(self: Pin<&mut AvrcpIntf>, volume: i8);
 
     }
@@ -28,6 +30,12 @@ pub mod ffi {
         fn avrcp_device_disconnected(addr: RustRawAddress);
         fn avrcp_absolute_volume_update(volume: u8);
         fn avrcp_send_key_event(key: u8, state: u8);
+    }
+}
+
+impl From<RawAddress> for ffi::RustRawAddress {
+    fn from(addr: RawAddress) -> Self {
+        ffi::RustRawAddress { address: addr.val }
     }
 }
 
@@ -114,6 +122,14 @@ impl Avrcp {
     pub fn cleanup(&mut self) -> bool {
         self.internal.pin_mut().cleanup();
         true
+    }
+
+    pub fn connect(&mut self, addr: RawAddress) {
+        self.internal.pin_mut().connect(addr.into());
+    }
+
+    pub fn disconnect(&mut self, addr: RawAddress) {
+        self.internal.pin_mut().disconnect(addr.into());
     }
 
     pub fn set_volume(&mut self, volume: i8) {

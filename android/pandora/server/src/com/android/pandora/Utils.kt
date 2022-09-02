@@ -173,7 +173,7 @@ fun <T, U> grpcBidirectionalStream(
     }
 
     override fun onCompleted() {
-      // no-op
+      job.cancel()
     }
 
     override fun onError(e: Throwable) {
