@@ -6,6 +6,7 @@ edition = "2018"
 [dependencies]
 bt_topshim = { path = "../../topshim" }
 bt_shim = { path = "../../shim" }
+bt_utils = { path = "../utils" }
 
 btif_macros = { path = "btif_macros" }
 
