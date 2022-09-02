@@ -34,8 +34,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.media.AudioDeviceAttributes;
-import android.media.AudioDeviceInfo;
 import android.media.AudioManager;
 import android.os.HandlerThread;
 import android.os.ParcelUuid;
@@ -170,11 +168,6 @@ public class VolumeControlService extends ProfileService {
         Map<Integer, Descriptor> mVolumeOffsets;
     }
 
-    private int mMusicMaxVolume = 0;
-    private int mMusicMinVolume = 0;
-    private int mVoiceCallMaxVolume = 0;
-    private int mVoiceCallMinVolume = 0;
-
     @VisibleForTesting
     VolumeControlNativeInterface mVolumeControlNativeInterface;
     @VisibleForTesting
@@ -227,11 +220,6 @@ public class VolumeControlService extends ProfileService {
         mAudioManager =  getSystemService(AudioManager.class);
         Objects.requireNonNull(mAudioManager,
                 "AudioManager cannot be null when VolumeControlService starts");
-
-        mMusicMaxVolume = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
-        mMusicMinVolume = mAudioManager.getStreamMinVolume(AudioManager.STREAM_MUSIC);
-        mVoiceCallMaxVolume = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_VOICE_CALL);
-        mVoiceCallMinVolume = mAudioManager.getStreamMinVolume(AudioManager.STREAM_VOICE_CALL);
 
         // Start handler thread for state machines
         mStateMachines.clear();
@@ -684,15 +672,11 @@ public class VolumeControlService extends ProfileService {
     }
 
     int getDeviceVolume(int streamType, int bleVolume) {
-        int bleMaxVolume = 255; // min volume is zero
-        int deviceMaxVolume = (streamType == AudioManager.STREAM_VOICE_CALL)
-                ? mVoiceCallMaxVolume : mMusicMaxVolume;
-        int deviceMinVolume = (streamType == AudioManager.STREAM_VOICE_CALL)
-                ? mVoiceCallMinVolume : mMusicMinVolume;
+        int deviceMaxVolume = mAudioManager.getStreamMaxVolume(streamType);
 
         // TODO: Investigate what happens in classic BT when BT volume is changed to zero.
-        return (int) Math.floor(
-                (double) bleVolume * (deviceMaxVolume - deviceMinVolume) / bleMaxVolume);
+        double deviceVolume = (double) (bleVolume * deviceMaxVolume) / LE_AUDIO_MAX_VOL;
+        return (int) Math.round(deviceVolume);
     }
 
     // Copied from AudioService.getBluetoothContextualVolumeStream() and modified it.
@@ -881,14 +865,6 @@ public class VolumeControlService extends ProfileService {
             sm = VolumeControlStateMachine.make(device, this,
                     mVolumeControlNativeInterface, mStateMachinesThread.getLooper());
             mStateMachines.put(device, sm);
-
-            mAudioManager.setDeviceVolumeBehavior(
-                    new AudioDeviceAttributes(
-                            AudioDeviceAttributes.ROLE_OUTPUT,
-                            // Currently, TYPE_BLUETOOTH_A2DP is the only thing that works.
-                            AudioDeviceInfo.TYPE_BLUETOOTH_A2DP,
-                            ""),
-                    AudioManager.DEVICE_VOLUME_BEHAVIOR_ABSOLUTE);
             return sm;
         }
     }
