@@ -1364,9 +1364,15 @@ tBTM_STATUS bluetooth::shim::BTM_SetEventFilterConnectionSetupAllDevices() {
   return BTM_SUCCESS;
 }
 
-tBTM_STATUS bluetooth::shim::BTM_AllowWakeByHid() {
+tBTM_STATUS bluetooth::shim::BTM_AllowWakeByHid(
+    std::vector<RawAddress> le_hid_devices) {
   // Autoplumbed
   controller_get_interface()->allow_wake_by_hid();
+  // Allow BLE HID
+  for (auto hid_address : le_hid_devices) {
+    Stack::GetInstance()->GetAcl()->AddDeviceToFilterAcceptList(
+        ToAddressWithType(hid_address, BLE_ADDR_PUBLIC));
+  }
   return BTM_SUCCESS;
 }
 
