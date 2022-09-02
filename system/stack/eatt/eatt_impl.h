@@ -618,9 +618,6 @@ struct eatt_impl {
   EattChannel* find_eatt_channel_by_cid(const RawAddress& bd_addr,
                                         uint16_t cid) {
     eatt_device* eatt_dev = find_device_by_address(bd_addr);
-
-    LOG(INFO) << __func__ << bd_addr << " " << +cid;
-
     if (!eatt_dev) return nullptr;
 
     auto iter = find_if(
