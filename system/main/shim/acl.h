@@ -111,6 +111,9 @@ class Acl : public hci::acl_manager::ConnectionCallbacks,
 
   void ClearFilterAcceptList();
 
+  void AddDeviceToFilterAcceptList(
+      const hci::AddressWithType& address_with_type);
+
  protected:
   void on_incoming_acl_credits(uint16_t handle, uint16_t credits);
   void write_data_sync(uint16_t hci_handle,
