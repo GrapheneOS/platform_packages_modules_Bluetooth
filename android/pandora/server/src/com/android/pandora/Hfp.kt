@@ -54,6 +54,7 @@ class Hfp(val context: Context) : HFPImplBase() {
   }
 
   fun deinit() {
+    bluetoothAdapter.closeProfileProxy(BluetoothProfile.HEADSET, bluetoothHfp)
     scope.cancel()
   }
 
