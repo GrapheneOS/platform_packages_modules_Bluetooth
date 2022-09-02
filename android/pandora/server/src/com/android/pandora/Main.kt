@@ -48,7 +48,9 @@ class Main : MonitoringInstrumentation() {
     val context: Context = getApplicationContext()
 
     while (true) {
-      Server(context).awaitTermination()
+      val server = Server(context)
+      server.awaitTermination()
+      server.deinit()
     }
   }
 }
