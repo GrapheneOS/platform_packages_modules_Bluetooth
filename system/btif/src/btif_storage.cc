@@ -30,6 +30,12 @@
 
 #define LOG_TAG "bt_btif_storage"
 
+constexpr char kPrivateAddressPrefix[] = "xx:xx:xx:xx";
+#define PRIVATE_ADDRESS(addr)                                            \
+  (addr.ToString()                                                       \
+       .replace(0, strlen(kPrivateAddressPrefix), kPrivateAddressPrefix) \
+       .c_str())
+
 #include "btif_storage.h"
 
 #include <alloca.h>
@@ -1678,6 +1684,27 @@ bt_status_t btif_storage_remove_hid_info(const RawAddress& remote_bd_addr) {
   btif_config_remove(bdstr, "HidDescriptor");
   btif_config_save();
   return BT_STATUS_SUCCESS;
+}
+
+/*******************************************************************************
+ *
+ * Function         btif_storage_get_hid_device_addresses
+ *
+ * Description      BTIF storage API - Finds all bonded HID devices
+ *
+ * Returns          std::vector of RawAddress
+ *
+ ******************************************************************************/
+std::vector<RawAddress> btif_storage_get_hid_device_addresses(void) {
+  std::vector<RawAddress> hid_addresses;
+  for (const auto& bd_addr : btif_config_get_paired_devices()) {
+    auto name = bd_addr.ToString();
+    int value;
+    if (!btif_config_get_int(name, "HidAttrMask", &value)) continue;
+    hid_addresses.push_back(bd_addr);
+    LOG_DEBUG("Remote device: %s", PRIVATE_ADDRESS(bd_addr));
+  }
+  return hid_addresses;
 }
 
 constexpr char HEARING_AID_READ_PSM_HANDLE[] = "HearingAidReadPsmHandle";

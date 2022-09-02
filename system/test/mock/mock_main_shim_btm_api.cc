@@ -455,7 +455,8 @@ tBTM_STATUS bluetooth::shim::BTM_SetEventFilterConnectionSetupAllDevices() {
   return BTM_SUCCESS;
 }
 
-tBTM_STATUS bluetooth::shim::BTM_AllowWakeByHid() {
+tBTM_STATUS bluetooth::shim::BTM_AllowWakeByHid(
+    std::vector<RawAddress> le_hid_devices) {
   mock_function_count_map[__func__]++;
   return BTM_SUCCESS;
 }
