@@ -140,9 +140,8 @@ impl Stack {
                     bluetooth_media.lock().unwrap().dispatch_hfp_callbacks(hf);
                 }
 
-                Message::HidHost(_h) => {
-                    // TODO(abps) - Handle hid host callbacks
-                    debug!("Received HH callback");
+                Message::HidHost(h) => {
+                    bluetooth.lock().unwrap().dispatch_hid_host_callbacks(h);
                 }
 
                 Message::Sdp(s) => {
