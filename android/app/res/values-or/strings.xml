@@ -128,15 +128,10 @@
     <string name="a2dp_sink_mbs_label" msgid="6035366346569127155">"ବ୍ଲୁଟୂଥ୍‍‌ ଅଡିଓ"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"4GBରୁ ବଡ଼ ଫାଇଲ୍‌ଗୁଡ଼ିକୁ ଟ୍ରାନ୍ସଫର୍‌ କରାଯାଇପାରିବ ନାହିଁ"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"ବ୍ଲୁଟୁଥ୍ ସହ ସଂଯୋଗ କରନ୍ତୁ"</string>
-    <!-- no translation found for bluetooth_enabled_apm_title (6914461147844949044) -->
-    <skip />
-    <!-- no translation found for bluetooth_enabled_apm_message (8990667142380927316) -->
-    <skip />
+    <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"ଏୟାରପ୍ଲେନ ମୋଡରେ ବ୍ଲୁଟୁଥ ଚାଲୁ ଅଛି"</string>
+    <string name="bluetooth_enabled_apm_message" msgid="8990667142380927316">"ଯଦି ଆପଣ ବ୍ଲୁଟୁଥ ଚାଲୁ ରଖନ୍ତି, ତେବେ ଆପଣ ପରବର୍ତ୍ତୀ ଥର ଏୟାରପ୍ଲେନ ମୋଡରେ ଥିବା ସମୟରେ ଏହା ଚାଲୁ ରହିବ"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"ବ୍ଲୁଟୁଥ ଚାଲୁ ରହେ"</string>
-    <!-- no translation found for bluetooth_stays_on_message (2770176686603189536) -->
-    <skip />
-    <!-- no translation found for bluetooth_and_wifi_stays_on_title (5821932798860821244) -->
-    <skip />
-    <!-- no translation found for bluetooth_and_wifi_stays_on_message (4120501683284996436) -->
-    <skip />
+    <string name="bluetooth_stays_on_message" msgid="2770176686603189536">"ଆପଣଙ୍କ ଫୋନ ଏୟାରପ୍ଲେନ ମୋଡରେ ବ୍ଲୁଟୁଥ ଚାଲୁ ରଖିବାକୁ ମନେ ରଖେ। ଏହାକୁ ପରିବର୍ତ୍ତନ କରିବା ପାଇଁ, ବ୍ଲୁଟୁଥ ବନ୍ଦ କରନ୍ତୁ।"</string>
+    <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"ୱାଇ-ଫାଇ ଏବଂ ବ୍ଲୁଟୁଥ ଚାଲୁ ରହେ"</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="4120501683284996436">"ଆପଣଙ୍କ ଫୋନ ଏୟାରପ୍ଲେନ ମୋଡରେ ୱାଇ-ଫାଇ ଏବଂ ବ୍ଲୁଟୁଥ ଚାଲୁ ରଖିବାକୁ ମନେ ରଖେ। ଏହାକୁ ପରିବର୍ତ୍ତନ କରିବା ପାଇଁ, ସେଗୁଡ଼ିକୁ ବନ୍ଦ କରନ୍ତୁ।"</string>
 </resources>
