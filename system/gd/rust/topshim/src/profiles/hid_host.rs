@@ -97,6 +97,7 @@ fn convert_report(count: i32, raw: *mut u8) -> Vec<u8> {
     return v;
 }
 
+#[derive(Debug)]
 pub enum HHCallbacks {
     ConnectionState(RawAddress, BthhConnectionState),
     VirtualUnplug(RawAddress, BthhStatus),

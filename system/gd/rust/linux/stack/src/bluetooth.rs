@@ -8,7 +8,10 @@ use bt_topshim::btif::{
 };
 use bt_topshim::{
     metrics,
-    profiles::hid_host::{HHCallbacksDispatcher, HidHost},
+    profiles::hid_host::{
+        BthhConnectionState, BthhHidInfo, BthhProtocolMode, BthhStatus, HHCallbacks,
+        HHCallbacksDispatcher, HidHost,
+    },
     profiles::sdp::{BtSdpRecord, Sdp, SdpCallbacks, SdpCallbacksDispatcher},
     topstack,
 };
@@ -624,6 +627,27 @@ pub(crate) trait BtifBluetoothCallbacks {
 
     #[btif_callback(LeRandCallback)]
     fn le_rand_cb(&mut self, random: u64);
+}
+
+#[btif_callbacks_dispatcher(Bluetooth, dispatch_hid_host_callbacks, HHCallbacks)]
+pub(crate) trait BtifHHCallbacks {
+    #[btif_callback(ConnectionState)]
+    fn connection_state(&mut self, address: RawAddress, state: BthhConnectionState);
+
+    #[btif_callback(HidInfo)]
+    fn hid_info(&mut self, address: RawAddress, info: BthhHidInfo);
+
+    #[btif_callback(ProtocolMode)]
+    fn protocol_mode(&mut self, address: RawAddress, status: BthhStatus, mode: BthhProtocolMode);
+
+    #[btif_callback(IdleTime)]
+    fn idle_time(&mut self, address: RawAddress, status: BthhStatus, idle_rate: i32);
+
+    #[btif_callback(GetReport)]
+    fn get_report(&mut self, address: RawAddress, status: BthhStatus, data: Vec<u8>, size: i32);
+
+    #[btif_callback(Handshake)]
+    fn handshake(&mut self, address: RawAddress, status: BthhStatus);
 }
 
 #[btif_callbacks_dispatcher(Bluetooth, dispatch_sdp_callbacks, SdpCallbacks)]
@@ -1573,6 +1597,41 @@ impl BtifSdpCallbacks for Bluetooth {
             "Sdp search result found: Status({:?}) Address({:?}) Uuid({:?})",
             status, address, uuid
         );
+    }
+}
+
+impl BtifHHCallbacks for Bluetooth {
+    fn connection_state(&mut self, address: RawAddress, state: BthhConnectionState) {
+        debug!("Hid host connection state updated: Address({:?}) State({:?})", address, state);
+    }
+
+    fn hid_info(&mut self, address: RawAddress, info: BthhHidInfo) {
+        debug!("Hid host info updated: Address({:?}) Info({:?})", address, info);
+    }
+
+    fn protocol_mode(&mut self, address: RawAddress, status: BthhStatus, mode: BthhProtocolMode) {
+        debug!(
+            "Hid host protocol mode updated: Address({:?}) Status({:?}) Mode({:?})",
+            address, status, mode
+        );
+    }
+
+    fn idle_time(&mut self, address: RawAddress, status: BthhStatus, idle_rate: i32) {
+        debug!(
+            "Hid host idle time updated: Address({:?}) Status({:?}) Idle Rate({:?})",
+            address, status, idle_rate
+        );
+    }
+
+    fn get_report(&mut self, address: RawAddress, status: BthhStatus, _data: Vec<u8>, size: i32) {
+        debug!(
+            "Hid host got report: Address({:?}) Status({:?}) Report Size({:?})",
+            address, status, size
+        );
+    }
+
+    fn handshake(&mut self, address: RawAddress, status: BthhStatus) {
+        debug!("Hid host handshake: Address({:?}) Status({:?})", address, status);
     }
 }
 
