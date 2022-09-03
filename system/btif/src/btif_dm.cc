@@ -397,6 +397,39 @@ static bool check_eir_remote_name(tBTA_DM_SEARCH* p_search_data,
 
 /*******************************************************************************
  *
+ * Function         check_eir_appearance
+ *
+ * Description      Check if appearance is in the EIR data
+ *
+ * Returns          true if appearance found
+ *                  Populate p_appearance, if provided and appearance found
+ *
+ ******************************************************************************/
+static bool check_eir_appearance(tBTA_DM_SEARCH* p_search_data,
+                                 uint16_t* p_appearance) {
+  const uint8_t* p_eir_appearance = NULL;
+  uint8_t appearance_len = 0;
+
+  /* Check EIR for remote name and services */
+  if (p_search_data->inq_res.p_eir) {
+    p_eir_appearance = AdvertiseDataParser::GetFieldByType(
+        p_search_data->inq_res.p_eir, p_search_data->inq_res.eir_len,
+        HCI_EIR_APPEARANCE_TYPE, &appearance_len);
+
+    if (p_eir_appearance) {
+      if (p_appearance) {
+        *p_appearance = *((uint16_t*)p_eir_appearance);
+      }
+
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/*******************************************************************************
+ *
  * Function         check_cached_remote_name
  *
  * Description      Check if remote name is in the NVRAM cache
@@ -1234,7 +1267,7 @@ static void btif_dm_search_devices_evt(tBTA_DM_SEARCH_EVT event,
       }
 
       {
-        bt_property_t properties[7];
+        bt_property_t properties[8];
         bt_device_type_t dev_type;
         uint32_t num_properties = 0;
         bt_status_t status;
@@ -1332,6 +1365,15 @@ static void btif_dm_search_devices_evt(tBTA_DM_SEARCH_EVT event,
               (void*)property_value.data());
           num_properties++;
 #endif
+        }
+
+        // Floss needs appearance for metrics purposes
+        uint16_t appearance = 0;
+        if (check_eir_appearance(p_search_data, &appearance)) {
+          BTIF_STORAGE_FILL_PROPERTY(&properties[num_properties],
+                                     BT_PROPERTY_APPEARANCE, sizeof(appearance),
+                                     &appearance);
+          num_properties++;
         }
 
         status =
@@ -1586,6 +1628,29 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
       /* Send the event to the BTIF */
       invoke_remote_device_properties_cb(BT_STATUS_SUCCESS, bd_addr,
                                          num_properties, prop);
+    } break;
+
+    case BTA_DM_DID_RES_EVT: {
+      bt_property_t prop_did;
+      RawAddress& bd_addr = p_data->did_res.bd_addr;
+      bt_vendor_product_info_t vp_info;
+
+      vp_info.vendor_id_src = p_data->did_res.vendor_id_src;
+      vp_info.vendor_id = p_data->did_res.vendor_id;
+      vp_info.product_id = p_data->did_res.product_id;
+      vp_info.version = p_data->did_res.version;
+
+      prop_did.type = BT_PROPERTY_VENDOR_PRODUCT_INFO;
+      prop_did.val = &vp_info;
+      prop_did.len = sizeof(vp_info);
+
+      bt_status_t ret =
+          btif_storage_set_remote_device_property(&bd_addr, &prop_did);
+      ASSERTC(ret == BT_STATUS_SUCCESS, "storing remote services failed", ret);
+
+      /* Send the event to the BTIF */
+      invoke_remote_device_properties_cb(BT_STATUS_SUCCESS, bd_addr, 1,
+                                         &prop_did);
     } break;
 
     default: { ASSERTC(0, "unhandled search services event", event); } break;
@@ -3486,7 +3551,8 @@ void btif_dm_set_event_filter_connection_setup_all_devices() {
 
 void btif_dm_allow_wake_by_hid() {
   // Autoplumbed
-  BTA_DmAllowWakeByHid();
+  auto le_hid_devices = btif_storage_get_hid_device_addresses();
+  BTA_DmAllowWakeByHid(le_hid_devices);
 }
 
 void btif_dm_restore_filter_accept_list() {

@@ -30,6 +30,7 @@ pub mod ffi {
         fn avrcp_device_disconnected(addr: RustRawAddress);
         fn avrcp_absolute_volume_update(volume: u8);
         fn avrcp_send_key_event(key: u8, state: u8);
+        fn avrcp_set_active_device(addr: RustRawAddress);
     }
 }
 
@@ -59,6 +60,9 @@ pub enum AvrcpCallbacks {
     /// Emitted when received a key event from a connected AVRCP device
     /// Params: Key, Value
     AvrcpSendKeyEvent(u8, u8),
+    /// Emitted when received request from AVRCP interface to set a device to active
+    /// Params: Device address
+    AvrcpSetActiveDevice(RawAddress),
 }
 
 pub struct AvrcpCallbacksDispatcher {
@@ -92,6 +96,13 @@ cb_variant!(
     avrcp_send_key_event -> AvrcpCallbacks::AvrcpSendKeyEvent,
     u8, u8, {}
 );
+
+cb_variant!(
+    AvrcpCb,
+    avrcp_set_active_device -> AvrcpCallbacks::AvrcpSetActiveDevice,
+    ffi::RustRawAddress -> RawAddress, {
+        let _0 = _0.into();
+});
 
 pub struct Avrcp {
     internal: cxx::UniquePtr<ffi::AvrcpIntf>,

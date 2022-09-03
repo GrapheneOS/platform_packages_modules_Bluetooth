@@ -54,7 +54,9 @@ import com.android.bluetooth.a2dp.A2dpService;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.MetricsLogger;
 import com.android.bluetooth.btservice.ProfileService;
+import com.android.bluetooth.btservice.ServiceFactory;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
+import com.android.bluetooth.le_audio.LeAudioService;
 import com.android.bluetooth.telephony.BluetoothInCallService;
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.modules.utils.SynchronousResultReceiver;
@@ -140,6 +142,8 @@ public class HeadsetService extends ProfileService {
     private boolean mStarted;
     private boolean mCreated;
     private static HeadsetService sHeadsetService;
+
+    private final ServiceFactory mFactory = new ServiceFactory();
 
     public static boolean isEnabled() {
         return BluetoothProperties.isProfileHfpAgEnabled().orElse(false);
@@ -1378,6 +1382,15 @@ public class HeadsetService extends ProfileService {
                 }
                 broadcastActiveDevice(mActiveDevice);
             } else if (shouldPersistAudio()) {
+                /* If HFP is getting active for a phonecall and there is LeAudio device active,
+                 * Lets inactive LeAudio device as soon as possible so there is no CISes connected
+                 * when SCO is created
+                 */
+                LeAudioService leAudioService = mFactory.getLeAudioService();
+                if (leAudioService != null) {
+                    Log.i(TAG, "Make sure there is no le audio device active.");
+                    leAudioService.setActiveDevice(null);
+                }
                 broadcastActiveDevice(mActiveDevice);
                 int connectStatus = connectAudio(mActiveDevice);
                 if (connectStatus != BluetoothStatusCodes.SUCCESS) {

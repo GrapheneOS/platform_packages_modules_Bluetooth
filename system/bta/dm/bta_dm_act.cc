@@ -59,6 +59,7 @@
 #include "stack/include/bt_types.h"
 #include "stack/include/btm_client_interface.h"
 #include "stack/include/btu.h"  // do_in_main_thread
+#include "stack/include/srvc_api.h"  // DIS_ReadDISInfo
 #include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
@@ -1191,6 +1192,21 @@ void bta_dm_sdp_result(tBTA_DM_MSG* p_data) {
         }
       } while (p_sdp_rec);
     }
+
+#if TARGET_FLOSS
+    tSDP_DI_GET_RECORD di_record;
+    if (SDP_GetDiRecord(1, &di_record, bta_dm_search_cb.p_sdp_db) ==
+        SDP_SUCCESS) {
+      tBTA_DM_SEARCH result;
+      result.did_res.bd_addr = bta_dm_search_cb.peer_bdaddr;
+      result.did_res.vendor_id_src = di_record.rec.vendor_id_source;
+      result.did_res.vendor_id = di_record.rec.vendor;
+      result.did_res.product_id = di_record.rec.product;
+      result.did_res.version = di_record.rec.version;
+      bta_dm_search_cb.p_search_cback(BTA_DM_DID_RES_EVT, &result);
+    }
+#endif
+
     /* if there are more services to search for */
     if (bta_dm_search_cb.services_to_search) {
       /* Free up the p_sdp_db before checking the next one */
@@ -1286,6 +1302,26 @@ void bta_dm_sdp_result(tBTA_DM_MSG* p_data) {
   }
 }
 
+/** Callback of peer's DIS reply. This is only called for floss */
+#if TARGET_FLOSS
+static void bta_dm_read_dis_cmpl(const RawAddress& addr,
+                                 tDIS_VALUE* p_dis_value) {
+  if (!p_dis_value) {
+    LOG_WARN("read DIS failed");
+  } else {
+    tBTA_DM_SEARCH result;
+    result.did_res.bd_addr = addr;
+    result.did_res.vendor_id_src = p_dis_value->pnp_id.vendor_id_src;
+    result.did_res.vendor_id = p_dis_value->pnp_id.vendor_id;
+    result.did_res.product_id = p_dis_value->pnp_id.product_id;
+    result.did_res.version = p_dis_value->pnp_id.product_version;
+    bta_dm_search_cb.p_search_cback(BTA_DM_DID_RES_EVT, &result);
+  }
+
+  bta_dm_execute_queued_request();
+}
+#endif
+
 /*******************************************************************************
  *
  * Function         bta_dm_search_cmpl
@@ -1339,6 +1375,13 @@ void bta_dm_search_cmpl() {
   bta_dm_search_cb.p_search_cback(BTA_DM_DISC_BLE_RES_EVT, &result);
 
   bta_dm_search_cb.p_search_cback(BTA_DM_DISC_CMPL_EVT, nullptr);
+
+#if TARGET_FLOSS
+  if (DIS_ReadDISInfo(bta_dm_search_cb.peer_bdaddr, bta_dm_read_dis_cmpl,
+                      DIS_ATTR_PNP_ID_BIT)) {
+    return;
+  }
+#endif
 
   bta_dm_execute_queued_request();
 }
@@ -4116,14 +4159,14 @@ void bta_dm_set_event_filter_connection_setup_all_devices() {
  *
  * Function        BTA_DmAllowWakeByHid
  *
- * Description    Allow the device to be woken by HID devices
+ * Description     Allow the device to be woken by HID devices
  *
- * Parameters
+ * Parameters      std::vector or RawAddress
  *
  *******************************************************************************/
-void bta_dm_allow_wake_by_hid() {
+void bta_dm_allow_wake_by_hid(std::vector<RawAddress> le_hid_devices) {
   // Autoplumbed
-  bluetooth::shim::BTM_AllowWakeByHid();
+  bluetooth::shim::BTM_AllowWakeByHid(le_hid_devices);
 }
 
 /*******************************************************************************
