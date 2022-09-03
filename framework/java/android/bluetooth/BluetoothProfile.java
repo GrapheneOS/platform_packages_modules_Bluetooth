@@ -359,7 +359,7 @@ public interface BluetoothProfile {
      *
      * @return List of devices. The list will be empty on error.
      */
-    public List<BluetoothDevice> getConnectedDevices();
+    List<BluetoothDevice> getConnectedDevices();
 
     /**
      * Get a list of devices that match any of the given connection
@@ -372,7 +372,7 @@ public interface BluetoothProfile {
      * #STATE_CONNECTING}, {@link #STATE_DISCONNECTED}, {@link #STATE_DISCONNECTING},
      * @return List of devices. The list will be empty on error.
      */
-    public List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states);
+    List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states);
 
     /**
      * Get the current connection state of the profile
@@ -396,7 +396,7 @@ public interface BluetoothProfile {
          * @param proxy - One of {@link BluetoothHeadset} or {@link BluetoothA2dp}
          */
         @RequiresNoPermission
-        public void onServiceConnected(int profile, BluetoothProfile proxy);
+        void onServiceConnected(int profile, BluetoothProfile proxy);
 
         /**
          * Called to notify the client that this proxy object has been
@@ -405,7 +405,7 @@ public interface BluetoothProfile {
          * @param profile - One of {@link #HEADSET} or {@link #A2DP}
          */
         @RequiresNoPermission
-        public void onServiceDisconnected(int profile);
+        void onServiceDisconnected(int profile);
     }
 
     /**

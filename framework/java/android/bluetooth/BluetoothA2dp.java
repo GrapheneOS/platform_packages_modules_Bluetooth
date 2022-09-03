@@ -941,7 +941,8 @@ public final class BluetoothA2dp implements BluetoothProfile {
             android.Manifest.permission.BLUETOOTH_CONNECT,
             android.Manifest.permission.BLUETOOTH_PRIVILEGED,
     })
-    public @OptionalCodecsSupportStatus int isOptionalCodecsSupported(
+    @OptionalCodecsSupportStatus
+    public int isOptionalCodecsSupported(
             @NonNull BluetoothDevice device) {
         if (DBG) log("isOptionalCodecsSupported(" + device + ")");
         verifyDeviceNotNull(device, "isOptionalCodecsSupported");
@@ -978,7 +979,8 @@ public final class BluetoothA2dp implements BluetoothProfile {
             android.Manifest.permission.BLUETOOTH_CONNECT,
             android.Manifest.permission.BLUETOOTH_PRIVILEGED,
     })
-    public @OptionalCodecsPreferenceStatus int isOptionalCodecsEnabled(
+    @OptionalCodecsPreferenceStatus
+    public int isOptionalCodecsEnabled(
             @NonNull BluetoothDevice device) {
         if (DBG) log("isOptionalCodecsEnabled(" + device + ")");
         verifyDeviceNotNull(device, "isOptionalCodecsEnabled");

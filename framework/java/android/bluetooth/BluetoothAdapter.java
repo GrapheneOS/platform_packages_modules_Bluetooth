@@ -1035,7 +1035,8 @@ public final class BluetoothAdapter {
      * @throws IllegalArgumentException if address is invalid
      */
     @RequiresNoPermission
-    public @NonNull BluetoothDevice getRemoteLeDevice(@NonNull String address,
+    @NonNull
+    public BluetoothDevice getRemoteLeDevice(@NonNull String address,
             @AddressType int addressType) {
         final BluetoothDevice res = new BluetoothDevice(address, addressType);
         res.setAttributionSource(mAttributionSource);
@@ -3594,8 +3595,8 @@ public final class BluetoothAdapter {
      * @return true on success, false on error
      */
     @SuppressLint({
-        "AndroidFrameworkRequiresPermission",
-        "AndroidFrameworkBluetoothPermission"
+            "AndroidFrameworkRequiresPermission",
+            "AndroidFrameworkBluetoothPermission"
     })
     public boolean getProfileProxy(Context context, BluetoothProfile.ServiceListener listener,
             int profile) {
