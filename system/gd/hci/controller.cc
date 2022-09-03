@@ -1061,9 +1061,6 @@ void Controller::AllowWakeByHid() {
       SetEventFilterConnectionSetupClassOfDeviceBuilder::Create(
           class_of_device, class_of_device_mask, auto_accept_flag);
   CallOn(impl_.get(), &impl::set_event_filter, std::move(packet));
-
-  // Allow BLE HID
-  // TODO(231345733): Set the FilterAccept List for HID devices only
 }
 
 void Controller::SetEventFilterClearAll() {

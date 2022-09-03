@@ -17,6 +17,7 @@
 source_set("BluetoothMetricsSources_chromeos") {
   sources = [
     "chromeos/metrics.cc",
+    "chromeos/metrics_allowlist.cc",
     "chromeos/metrics_event.cc",
   ]
 

@@ -81,7 +81,7 @@ std::vector<uint32_t> osi_property_get_uintlist(
   }
 
   std::vector<uint32_t> list;
-  for (uint i = 0; i < result->size(); i++) {
+  for (size_t i = 0; i < result->size(); i++) {
     // Build a string of all the chars until the next comma or end of the
     // string is reached. If any char is not a digit, then return the default.
     std::string value;

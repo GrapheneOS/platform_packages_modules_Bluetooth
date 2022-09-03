@@ -423,6 +423,7 @@ typedef void(tBTA_DM_SEC_CBACK)(tBTA_DM_SEC_EVT event, tBTA_DM_SEC* p_data);
   3 /* Discovery result for BLE GATT based servoce on a peer device. */
 #define BTA_DM_DISC_CMPL_EVT 4          /* Discovery complete. */
 #define BTA_DM_SEARCH_CANCEL_CMPL_EVT 6 /* Search cancelled */
+#define BTA_DM_DID_RES_EVT 7            /* Vendor/Product ID search result */
 
 typedef uint8_t tBTA_DM_SEARCH_EVT;
 
@@ -477,6 +478,15 @@ typedef struct {
       services; /* GATT based Services UUID found on peer device. */
 } tBTA_DM_DISC_BLE_RES;
 
+/* Structure associated with tBTA_DM_DID_RES */
+typedef struct {
+  RawAddress bd_addr; /* BD address peer device. */
+  uint8_t vendor_id_src;
+  uint16_t vendor_id;
+  uint16_t product_id;
+  uint16_t version;
+} tBTA_DM_DID_RES;
+
 /* Union of all search callback structures */
 typedef union {
   tBTA_DM_INQ_RES inq_res;   /* Inquiry result for a peer device. */
@@ -484,6 +494,7 @@ typedef union {
   tBTA_DM_DISC_RES disc_res; /* Discovery result for a peer device. */
   tBTA_DM_DISC_BLE_RES
       disc_ble_res;             /* discovery result for GATT based service */
+  tBTA_DM_DID_RES did_res;      /* Vendor and Product ID of peer device */
 } tBTA_DM_SEARCH;
 
 /* Search callback */
@@ -1243,7 +1254,7 @@ extern void BTA_DmSetEventFilterConnectionSetupAllDevices();
  * Parameters
  *
  *******************************************************************************/
-extern void BTA_DmAllowWakeByHid();
+extern void BTA_DmAllowWakeByHid(std::vector<RawAddress> le_hid_devices);
 
 /*******************************************************************************
  *

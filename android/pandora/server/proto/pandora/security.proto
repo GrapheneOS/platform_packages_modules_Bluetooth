@@ -11,10 +11,6 @@ service Security {
   // Begin pairing asynchronously with a device. Responses will be streamed
   // using the OnPairing rpc.
   rpc Pair(PairRequest) returns (google.protobuf.Empty);
-  // Acknowledge a pairing request and continue pairing
-  // TODO(240276298) remove, since PairingEventAnswers supersede these
-  rpc ProvidePairingConfirmation(PairingConfirmationRequest)
-      returns (google.protobuf.Empty);
   // Listen to pairing events.
   // This is handled independently from connections for several reasons:
   // - Pairing can be triggered at any time and multiple times during the
@@ -28,11 +24,6 @@ service Security {
 
 message PairRequest {
     Connection connection = 1;
-}
-
-message PairingConfirmationRequest {
-    Connection connection = 1;
-    bool pairing_confirmation_value = 2;
 }
 
 message PairingEvent {

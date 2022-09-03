@@ -1884,12 +1884,12 @@ tBTM_STATUS BTM_SetEventFilterConnectionSetupAllDevices(void);
  *
  * Function        BTM_AllowWakeByHid
  *
- * Description    Allow the device to be woken by HID devices
+ * Description     Allow the device to be woken by HID devices
  *
- * Parameters
+ * Parameters      std::vector of RawAddress
  *
  *******************************************************************************/
-tBTM_STATUS BTM_AllowWakeByHid(void);
+tBTM_STATUS BTM_AllowWakeByHid(std::vector<RawAddress> le_hid_devices);
 
 /*******************************************************************************
  *

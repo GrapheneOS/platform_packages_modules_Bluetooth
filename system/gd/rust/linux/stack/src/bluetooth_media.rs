@@ -270,6 +270,9 @@ impl BluetoothMedia {
                     Err(e) => warn!("{}", e),
                 }
             }
+            AvrcpCallbacks::AvrcpSetActiveDevice(addr) => {
+                self.uinput.set_active_device(addr.to_string());
+            }
         }
     }
 
