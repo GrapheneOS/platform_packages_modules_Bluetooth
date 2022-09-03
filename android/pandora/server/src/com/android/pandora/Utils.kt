@@ -36,13 +36,13 @@ import java.util.concurrent.CancellationException
 import java.util.stream.Collectors
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onCompletion
@@ -109,11 +109,11 @@ fun <T> grpcUnary(
   scope: CoroutineScope,
   responseObserver: StreamObserver<T>,
   timeout: Long = 60,
-  block: suspend CoroutineScope.() -> T
+  block: suspend () -> T
 ): Job {
   return scope.launch {
     try {
-      val response = withTimeout(timeout * 1000, block)
+      val response = withTimeout(timeout * 1000) { block() }
       responseObserver.onNext(response)
       responseObserver.onCompleted()
     } catch (e: Throwable) {
@@ -153,28 +153,29 @@ fun <T, U> grpcBidirectionalStream(
   block: CoroutineScope.(Flow<T>) -> Flow<U>
 ): StreamObserver<T> {
 
-  val inputFlow = MutableSharedFlow<T>(extraBufferCapacity = 8)
-  val outputFlow = scope.block(inputFlow.asSharedFlow())
+  val inputChannel = Channel<T>()
 
   val job =
-    outputFlow
-      .onEach { responseObserver.onNext(it) }
-      .onCompletion { error ->
-        if (error == null) {
-          responseObserver.onCompleted()
+    scope.launch {
+      block(inputChannel.consumeAsFlow())
+        .onEach { responseObserver.onNext(it) }
+        .onCompletion { error ->
+          if (error == null) {
+            responseObserver.onCompleted()
+          }
         }
-      }
-      .catch {
-        it.printStackTrace()
-        responseObserver.onError(it)
-      }
-      .launchIn(scope)
+        .catch {
+          it.printStackTrace()
+          responseObserver.onError(it)
+        }
+        .launchIn(this)
+    }
 
   return object : StreamObserver<T> {
     override fun onNext(req: T) {
       // Note: this should be made a blocking call, and the handler should run in a separate thread
       // so we get flow control - but for now we can live with this
-      if (!inputFlow.tryEmit(req)) {
+      if (!inputChannel.offer(req)) {
         job.cancel(CancellationException("too many incoming requests, buffer exceeded"))
         responseObserver.onError(
           CancellationException("too many incoming requests, buffer exceeded")
@@ -183,7 +184,8 @@ fun <T, U> grpcBidirectionalStream(
     }
 
     override fun onCompleted() {
-      job.cancel()
+      // stop the input flow, but keep the job running
+      inputChannel.close()
     }
 
     override fun onError(e: Throwable) {
