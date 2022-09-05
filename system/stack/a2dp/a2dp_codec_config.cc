@@ -44,9 +44,6 @@
 /* The Media Type offset within the codec info byte array */
 #define A2DP_MEDIA_TYPE_OFFSET 1
 
-/* A2DP Offload enabled in stack */
-static bool a2dp_offload_status;
-
 // Initializes the codec config.
 // |codec_config| is the codec config to initialize.
 // |codec_index| and |codec_priority| are the codec type and priority to use
@@ -561,46 +558,6 @@ A2dpCodecs::~A2dpCodecs() {
 bool A2dpCodecs::init() {
   LOG_INFO("%s", __func__);
   std::lock_guard<std::recursive_mutex> lock(codec_mutex_);
-  char* tok = NULL;
-  char* tmp_token = NULL;
-  bool offload_codec_support[BTAV_A2DP_CODEC_INDEX_MAX] = {false};
-  char value_sup[PROPERTY_VALUE_MAX], value_dis[PROPERTY_VALUE_MAX];
-
-  osi_property_get("ro.bluetooth.a2dp_offload.supported", value_sup, "false");
-  osi_property_get("persist.bluetooth.a2dp_offload.disabled", value_dis,
-                   "false");
-  a2dp_offload_status =
-      (strcmp(value_sup, "true") == 0) && (strcmp(value_dis, "false") == 0);
-
-  if (a2dp_offload_status) {
-    char value_cap[PROPERTY_VALUE_MAX];
-    osi_property_get("persist.bluetooth.a2dp_offload.cap", value_cap, "");
-    tok = strtok_r((char*)value_cap, "-", &tmp_token);
-    while (tok != NULL) {
-      if (strcmp(tok, "sbc") == 0) {
-        LOG_INFO("%s: SBC offload supported", __func__);
-        offload_codec_support[BTAV_A2DP_CODEC_INDEX_SOURCE_SBC] = true;
-#if !defined(EXCLUDE_NONSTANDARD_CODECS)
-      } else if (strcmp(tok, "aac") == 0) {
-        LOG_INFO("%s: AAC offload supported", __func__);
-        offload_codec_support[BTAV_A2DP_CODEC_INDEX_SOURCE_AAC] = true;
-      } else if (strcmp(tok, "aptx") == 0) {
-        LOG_INFO("%s: APTX offload supported", __func__);
-        offload_codec_support[BTAV_A2DP_CODEC_INDEX_SOURCE_APTX] = true;
-      } else if (strcmp(tok, "aptxhd") == 0) {
-        LOG_INFO("%s: APTXHD offload supported", __func__);
-        offload_codec_support[BTAV_A2DP_CODEC_INDEX_SOURCE_APTX_HD] = true;
-      } else if (strcmp(tok, "ldac") == 0) {
-        LOG_INFO("%s: LDAC offload supported", __func__);
-        offload_codec_support[BTAV_A2DP_CODEC_INDEX_SOURCE_LDAC] = true;
-      } else if (strcmp(tok, "opus") == 0) {
-        LOG_INFO("%s: Opus offload supported", __func__);
-        offload_codec_support[BTAV_A2DP_CODEC_INDEX_SOURCE_OPUS] = true;
-#endif
-      }
-      tok = strtok_r(NULL, "-", &tmp_token);
-    };
-  }
 
   for (int i = BTAV_A2DP_CODEC_INDEX_MIN; i < BTAV_A2DP_CODEC_INDEX_MAX; i++) {
     btav_a2dp_codec_index_t codec_index =
@@ -612,12 +569,6 @@ bool A2dpCodecs::init() {
     auto cp_iter = codec_priorities_.find(codec_index);
     if (cp_iter != codec_priorities_.end()) {
       codec_priority = cp_iter->second;
-    }
-
-    // In offload mode, disable the codecs based on the property
-    if ((codec_index < BTAV_A2DP_CODEC_INDEX_SOURCE_MAX) &&
-        a2dp_offload_status && (offload_codec_support[i] != true)) {
-      codec_priority = BTAV_A2DP_CODEC_PRIORITY_DISABLED;
     }
 
     A2dpCodecConfig* codec_config =
