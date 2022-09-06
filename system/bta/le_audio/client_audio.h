@@ -128,6 +128,7 @@ class LeAudioClientAudioSource {
   virtual void UpdateBroadcastAudioConfigToHal(
       const ::le_audio::broadcast_offload_config& config);
   virtual void SuspendedForReconfiguration();
+  virtual void ReconfigurationComplete();
 
   static void DebugDump(int fd);
 
@@ -172,6 +173,7 @@ class LeAudioUnicastClientAudioSink {
   virtual void UpdateRemoteDelay(uint16_t remote_delay_ms);
   virtual void UpdateAudioConfigToHal(const ::le_audio::offload_config& config);
   virtual void SuspendedForReconfiguration();
+  virtual void ReconfigurationComplete();
 
   static void DebugDump(int fd);
 

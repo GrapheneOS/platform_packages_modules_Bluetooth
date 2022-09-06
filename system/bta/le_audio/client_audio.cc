@@ -450,6 +450,17 @@ void LeAudioClientAudioSource::SuspendedForReconfiguration() {
   sinkClientInterface_->SuspendedForReconfiguration();
 }
 
+void LeAudioClientAudioSource::ReconfigurationComplete() {
+  LOG(INFO) << __func__;
+  if ((sinkClientInterface_ == nullptr) ||
+      (le_audio_sink_hal_state != HAL_STARTED)) {
+    LOG(ERROR) << "LE audio device HAL was not started!";
+    return;
+  }
+
+  sinkClientInterface_->ReconfigurationComplete();
+}
+
 void LeAudioClientAudioSource::CancelStreamingRequest() {
   LOG(INFO) << __func__;
   if ((sinkClientInterface_ == nullptr) ||
@@ -703,4 +714,15 @@ void LeAudioUnicastClientAudioSink::SuspendedForReconfiguration() {
   }
 
   sourceClientInterface_->SuspendedForReconfiguration();
+}
+
+void LeAudioUnicastClientAudioSink::ReconfigurationComplete() {
+  LOG(INFO) << __func__;
+  if ((sourceClientInterface_ == nullptr) ||
+      (le_audio_source_hal_state != HAL_STARTED)) {
+    LOG(ERROR) << "LE audio device HAL was not started!";
+    return;
+  }
+
+  sourceClientInterface_->ReconfigurationComplete();
 }
