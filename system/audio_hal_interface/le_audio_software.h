@@ -28,6 +28,14 @@ namespace bluetooth {
 namespace audio {
 namespace le_audio {
 
+enum class StartRequestState {
+  IDLE = 0x00,
+  PENDING_BEFORE_RESUME,
+  PENDING_AFTER_RESUME,
+  CONFIRMED,
+  CANCELED,
+};
+
 constexpr uint8_t kChannelNumberMono = 1;
 constexpr uint8_t kChannelNumberStereo = 2;
 

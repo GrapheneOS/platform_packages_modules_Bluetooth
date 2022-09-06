@@ -24,6 +24,7 @@
 
 #include "codec_status_aidl.h"
 #include "hal_version_manager.h"
+#include "osi/include/log.h"
 
 namespace bluetooth {
 namespace audio {
@@ -40,6 +41,7 @@ using ::aidl::android::hardware::bluetooth::audio::PcmConfiguration;
 using ::bluetooth::audio::aidl::AudioConfiguration;
 using ::bluetooth::audio::aidl::BluetoothAudioCtrlAck;
 using ::bluetooth::audio::le_audio::LeAudioClientInterface;
+using ::bluetooth::audio::le_audio::StartRequestState;
 using ::bluetooth::audio::le_audio::StreamCallbacks;
 using ::le_audio::set_configurations::SetConfiguration;
 using ::le_audio::types::LeAudioLc3Config;
@@ -63,16 +65,30 @@ LeAudioTransport::LeAudioTransport(void (*flush)(void),
       total_bytes_processed_(0),
       data_position_({}),
       pcm_config_(std::move(pcm_config)),
-      is_pending_start_request_(false){};
+      start_request_state_(StartRequestState::IDLE){};
 
 BluetoothAudioCtrlAck LeAudioTransport::StartRequest(bool is_low_latency) {
-  LOG(INFO) << __func__;
-
+  SetStartRequestState(StartRequestState::PENDING_BEFORE_RESUME);
   if (stream_cb_.on_resume_(true)) {
-    is_pending_start_request_ = true;
+    if (start_request_state_ == StartRequestState::CONFIRMED) {
+      LOG_INFO("Start completed.");
+      SetStartRequestState(StartRequestState::IDLE);
+      return BluetoothAudioCtrlAck::SUCCESS_FINISHED;
+    }
+
+    if (start_request_state_ == StartRequestState::CANCELED) {
+      LOG_INFO("Start request failed.");
+      SetStartRequestState(StartRequestState::IDLE);
+      return BluetoothAudioCtrlAck::FAILURE;
+    }
+
+    LOG_INFO("Start pending.");
+    SetStartRequestState(StartRequestState::PENDING_AFTER_RESUME);
     return BluetoothAudioCtrlAck::PENDING;
   }
 
+  LOG_ERROR("Start request failed.");
+  SetStartRequestState(StartRequestState::IDLE);
   return BluetoothAudioCtrlAck::FAILURE;
 }
 
@@ -195,11 +211,14 @@ LeAudioTransport::LeAudioGetBroadcastConfig() {
   return broadcast_config_;
 }
 
-bool LeAudioTransport::IsPendingStartStream(void) {
-  return is_pending_start_request_;
+StartRequestState LeAudioTransport::GetStartRequestState(void) {
+  return start_request_state_;
 }
-void LeAudioTransport::ClearPendingStartStream(void) {
-  is_pending_start_request_ = false;
+void LeAudioTransport::ClearStartRequestState(void) {
+  start_request_state_ = StartRequestState::IDLE;
+}
+void LeAudioTransport::SetStartRequestState(StartRequestState state) {
+  start_request_state_ = state;
 }
 
 inline void flush_unicast_sink() {
@@ -300,11 +319,14 @@ LeAudioSinkTransport::LeAudioGetBroadcastConfig() {
   return transport_->LeAudioGetBroadcastConfig();
 }
 
-bool LeAudioSinkTransport::IsPendingStartStream(void) {
-  return transport_->IsPendingStartStream();
+StartRequestState LeAudioSinkTransport::GetStartRequestState(void) {
+  return transport_->GetStartRequestState();
 }
-void LeAudioSinkTransport::ClearPendingStartStream(void) {
-  transport_->ClearPendingStartStream();
+void LeAudioSinkTransport::ClearStartRequestState(void) {
+  transport_->ClearStartRequestState();
+}
+void LeAudioSinkTransport::SetStartRequestState(StartRequestState state) {
+  transport_->SetStartRequestState(state);
 }
 
 void flush_source() {
@@ -378,11 +400,15 @@ void LeAudioSourceTransport::LeAudioSetSelectedHalPcmConfig(
                                              channels_count, data_interval);
 }
 
-bool LeAudioSourceTransport::IsPendingStartStream(void) {
-  return transport_->IsPendingStartStream();
+StartRequestState LeAudioSourceTransport::GetStartRequestState(void) {
+  return transport_->GetStartRequestState();
 }
-void LeAudioSourceTransport::ClearPendingStartStream(void) {
-  transport_->ClearPendingStartStream();
+void LeAudioSourceTransport::ClearStartRequestState(void) {
+  transport_->ClearStartRequestState();
+}
+
+void LeAudioSourceTransport::SetStartRequestState(StartRequestState state) {
+  transport_->SetStartRequestState(state);
 }
 
 std::unordered_map<int32_t, uint8_t> sampling_freq_map{
