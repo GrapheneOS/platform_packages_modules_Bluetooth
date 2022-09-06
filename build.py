@@ -542,7 +542,7 @@ class HostBuild():
 
         # Validate that the target is valid
         if self.target not in VALID_TARGETS:
-            print('Target {} is not valid. Must be in {}', self.target, VALID_TARGETS)
+            print('Target {} is not valid. Must be in {}'.format(self.target, VALID_TARGETS))
             return
 
         if self.target == 'prepare':

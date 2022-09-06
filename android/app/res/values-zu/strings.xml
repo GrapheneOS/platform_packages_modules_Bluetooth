@@ -128,15 +128,10 @@
     <string name="a2dp_sink_mbs_label" msgid="6035366346569127155">"Umsindo we-Bluetooth"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"Amafayela amakhulu kuno-4GB awakwazi ukudluliselwa"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Xhumeka ku-Bluetooth"</string>
-    <!-- no translation found for bluetooth_enabled_apm_title (6914461147844949044) -->
-    <skip />
-    <!-- no translation found for bluetooth_enabled_apm_message (8990667142380927316) -->
-    <skip />
+    <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"I-Bluetooth ivuliwe kumodi yendiza"</string>
+    <string name="bluetooth_enabled_apm_message" msgid="8990667142380927316">"Uma ugcina i-Bluetooth ivuliwe, izohlala ivuliwe esikhathini esizayo lapho ukumodi yendiza"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"I-Bluetooth ihlala ivuliwe"</string>
-    <!-- no translation found for bluetooth_stays_on_message (2770176686603189536) -->
-    <skip />
-    <!-- no translation found for bluetooth_and_wifi_stays_on_title (5821932798860821244) -->
-    <skip />
-    <!-- no translation found for bluetooth_and_wifi_stays_on_message (4120501683284996436) -->
-    <skip />
+    <string name="bluetooth_stays_on_message" msgid="2770176686603189536">"Ifoni yakho ikhumbula ukugcina i-Bluetooth ivuliwe kumodi yendiza. Ukuze ushintshe lokhu, vala i-Bluetooth."</string>
+    <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"I-Wi-Fi ne-Bluetooth kuhlala kuvuliwe"</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="4120501683284996436">"Ifoni yakho ikhumbula ukugcina i-Wi-Fi ne-Bluetooth kuvuliwe kumodi yendiza. Ukushintsha lokhu, kuvale."</string>
 </resources>
