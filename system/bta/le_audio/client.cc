@@ -228,6 +228,7 @@ class LeAudioClientImpl : public LeAudioClient {
         stream_setup_end_timestamp_(0),
         audio_receiver_state_(AudioState::IDLE),
         audio_sender_state_(AudioState::IDLE),
+        in_call_(false),
         current_source_codec_config({0, 0, 0, 0}),
         current_sink_codec_config({0, 0, 0, 0}),
         lc3_encoder_left_mem(nullptr),
@@ -750,6 +751,11 @@ class LeAudioClientImpl : public LeAudioClient {
   void SetCcidInformation(int ccid, int context_type) override {
     LOG_DEBUG("Ccid: %d, context type %d", ccid, context_type);
     ContentControlIdKeeper::GetInstance()->SetCcid(context_type, ccid);
+  }
+
+  void SetInCall(bool in_call) override {
+    LOG_DEBUG("in_call: %d", in_call);
+    in_call_ = in_call;
   }
 
   void StartAudioSession(LeAudioDeviceGroup* group,
@@ -2652,6 +2658,7 @@ class LeAudioClientImpl : public LeAudioClient {
     dprintf(fd, "  Active group: %d\n", active_group_id_);
     dprintf(fd, "    configuration content type: 0x%08hx\n",
             configuration_context_type_);
+    dprintf(fd, "    TBS state: %s\n", in_call_ ? " In call" : "No calls");
     dprintf(
         fd, "    stream setup time if started: %d ms\n",
         (int)((stream_setup_end_timestamp_ - stream_setup_start_timestamp_) /
@@ -3078,6 +3085,11 @@ class LeAudioClientImpl : public LeAudioClient {
 
   LeAudioContextType ChooseConfigurationContextType(
       le_audio::types::AudioContexts available_contexts) {
+    if (in_call_) {
+      LOG_DEBUG(" In Call preference used.");
+      return LeAudioContextType::CONVERSATIONAL;
+    }
+
     if (available_contexts.none()) {
       LOG_WARN(" invalid/unknown context, using 'UNSPECIFIED'");
       return LeAudioContextType::UNSPECIFIED;
@@ -3616,6 +3628,8 @@ class LeAudioClientImpl : public LeAudioClient {
   AudioState audio_receiver_state_;
   /* Speaker(s) */
   AudioState audio_sender_state_;
+  /* Keep in call state. */
+  bool in_call_;
 
   /* Current stream configuration */
   LeAudioCodecConfiguration current_source_codec_config;
