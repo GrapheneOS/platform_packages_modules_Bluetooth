@@ -490,6 +490,20 @@ public class A2dpService extends ProfileService {
                 if (mActiveDevice == null) return;
                 previousActiveDevice = mActiveDevice;
             }
+
+            int prevActiveConnectionState = getConnectionState(previousActiveDevice);
+
+            // As per b/202602952, if we remove the active device due to a disconnection,
+            // we need to check if another device is connected and set it active instead.
+            // Calling this before any other active related calls has the same effect as
+            // a classic active device switch.
+            BluetoothDevice fallbackdevice = getFallbackDevice();
+            if (fallbackdevice != null && prevActiveConnectionState
+                    != BluetoothProfile.STATE_CONNECTED) {
+                setActiveDevice(fallbackdevice);
+                return;
+            }
+
             // This needs to happen before we inform the audio manager that the device
             // disconnected. Please see comment in updateAndBroadcastActiveDevice() for why.
             updateAndBroadcastActiveDevice(null);
@@ -499,7 +513,7 @@ public class A2dpService extends ProfileService {
             // device, the user has explicitly switched the output to the local device and music
             // should continue playing. Otherwise, the remote device has been indeed disconnected
             // and audio should be suspended before switching the output to the local device.
-            boolean stopAudio = forceStopPlayingAudio || (getConnectionState(previousActiveDevice)
+            boolean stopAudio = forceStopPlayingAudio || (prevActiveConnectionState
                         != BluetoothProfile.STATE_CONNECTED);
             mAudioManager.handleBluetoothActiveDeviceChanged(null, previousActiveDevice,
                     BluetoothProfileConnectionInfo.createA2dpInfo(!stopAudio, -1));
@@ -1239,6 +1253,16 @@ public class A2dpService extends ProfileService {
             int fromState = intent.getIntExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, -1);
             connectionStateChanged(device, fromState, toState);
         }
+    }
+
+    /**
+     * Retrieves the most recently connected device in the A2DP connected devices list.
+     */
+    private BluetoothDevice getFallbackDevice() {
+        DatabaseManager dbManager = mAdapterService.getDatabase();
+        return dbManager != null ? dbManager
+            .getMostRecentlyConnectedDevicesInList(getConnectedDevices())
+            : null;
     }
 
     /**
