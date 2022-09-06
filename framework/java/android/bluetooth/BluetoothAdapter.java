@@ -1399,13 +1399,6 @@ public final class BluetoothAdapter {
         return state;
     }
 
-    // marking getLeState() as @SystemApi doesn't work, not clear why
-    /** @hide */
-    @SystemApi
-    public @InternalAdapterState int getLeStateSysApi() {
-        return getLeState();
-    }
-
     boolean getLeAccess() {
         if (getLeState() == STATE_ON) {
             return true;
