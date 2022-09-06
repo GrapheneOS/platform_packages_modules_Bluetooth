@@ -1828,11 +1828,19 @@ static void btif_dm_upstreams_evt(uint16_t event, char* p_param) {
           (int)p_data->link_up.transport_link_type, HCI_SUCCESS);
       break;
 
+    case BTA_DM_LINK_UP_FAILED_EVT:
+      invoke_acl_state_changed_cb(
+          BT_STATUS_FAIL, p_data->link_up_failed.bd_addr,
+          BT_ACL_STATE_DISCONNECTED, p_data->link_up_failed.transport_link_type,
+          p_data->link_up_failed.status);
+      break;
+
     case BTA_DM_LINK_DOWN_EVT:
       bd_addr = p_data->link_down.bd_addr;
       btm_set_bond_type_dev(p_data->link_down.bd_addr,
                             tBTM_SEC_DEV_REC::BOND_TYPE_UNKNOWN);
       btif_av_acl_disconnected(bd_addr);
+
       invoke_acl_state_changed_cb(
           BT_STATUS_SUCCESS, bd_addr, BT_ACL_STATE_DISCONNECTED,
           (int)p_data->link_down.transport_link_type,

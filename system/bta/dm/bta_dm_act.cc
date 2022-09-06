@@ -2506,6 +2506,23 @@ void BTA_dm_acl_up(const RawAddress bd_addr, tBT_TRANSPORT transport) {
   do_in_main_thread(FROM_HERE, base::Bind(bta_dm_acl_up, bd_addr, transport));
 }
 
+static void bta_dm_acl_up_failed(const RawAddress bd_addr,
+                                 tBT_TRANSPORT transport, tHCI_STATUS status) {
+  if (bta_dm_cb.p_sec_cback) {
+    tBTA_DM_SEC conn = {};
+    conn.link_up_failed.bd_addr = bd_addr;
+    conn.link_up_failed.transport_link_type = transport;
+    conn.link_up_failed.status = status;
+    bta_dm_cb.p_sec_cback(BTA_DM_LINK_UP_FAILED_EVT, &conn);
+  }
+}
+
+void BTA_dm_acl_up_failed(const RawAddress bd_addr, tBT_TRANSPORT transport,
+                          tHCI_STATUS status) {
+  do_in_main_thread(
+      FROM_HERE, base::Bind(bta_dm_acl_up_failed, bd_addr, transport, status));
+}
+
 static void bta_dm_acl_down(const RawAddress& bd_addr,
                             tBT_TRANSPORT transport) {
   bool issue_unpair_cb = false;
