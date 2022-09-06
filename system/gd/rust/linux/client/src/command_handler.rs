@@ -929,7 +929,7 @@ impl CommandHandler {
                     manufacturer_data: HashMap::<i32, Vec<u8>>::from([(0, vec![0, 1, 2])]),
                     service_data: HashMap::<String, Vec<u8>>::new(),
                     include_tx_power_level: true,
-                    include_device_name: false,
+                    include_device_name: true,
                 };
 
                 let reg_id = self
