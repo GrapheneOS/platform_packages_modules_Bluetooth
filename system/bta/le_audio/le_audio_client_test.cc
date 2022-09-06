@@ -3691,6 +3691,8 @@ TEST_F(UnicastTest, StartNotSupportedContextType) {
   uint8_t cis_count_out = 1;
   uint8_t cis_count_in = 0;
 
+  LeAudioClient::Get()->SetInCall(true);
+
   // Audio sessions are started only when device gets active
   EXPECT_CALL(*mock_unicast_audio_source_, Start(_, _)).Times(1);
   EXPECT_CALL(*mock_audio_sink_, Start(_, _)).Times(1);
@@ -3706,7 +3708,11 @@ TEST_F(UnicastTest, StartNotSupportedContextType) {
   // Verify Data transfer on one audio source cis
   TestAudioDataTransfer(group_id, cis_count_out, cis_count_in, 1920);
 
-  // Fallback scenario now supports 48Khz just like Media so we will reconfigure
+  LeAudioClient::Get()->SetInCall(false);
+
+  /* Fallback scenario now supports 48Khz just like Media so we will reconfigure
+   * Note: Fallback is forced by the frequency on the remote device.
+   */
   EXPECT_CALL(mock_state_machine_, StopStream(_)).Times(1);
   UpdateMetadata(AUDIO_USAGE_GAME, AUDIO_CONTENT_TYPE_UNKNOWN, true);
 
