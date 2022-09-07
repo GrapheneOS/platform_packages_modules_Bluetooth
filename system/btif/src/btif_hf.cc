@@ -759,6 +759,7 @@ class HeadsetInterface : Interface {
                                const char* name, RawAddress* bd_addr) override;
 
   void Cleanup() override;
+  bt_status_t SetScoOffloadEnabled(bool value) override;
   bt_status_t SetScoAllowed(bool value) override;
   bt_status_t SendBsir(bool value, RawAddress* bd_addr) override;
   bt_status_t SetActiveDevice(RawAddress* active_device_addr) override;
@@ -1428,6 +1429,12 @@ void HeadsetInterface::Cleanup() {
   }
 #endif
   do_in_jni_thread(FROM_HERE, base::Bind([]() { bt_hf_callbacks = nullptr; }));
+}
+
+bt_status_t HeadsetInterface::SetScoOffloadEnabled(bool value) {
+  CHECK_BTHF_INIT();
+  BTA_AgSetScoOffloadEnabled(value);
+  return BT_STATUS_SUCCESS;
 }
 
 bt_status_t HeadsetInterface::SetScoAllowed(bool value) {
