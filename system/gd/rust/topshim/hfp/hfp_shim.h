@@ -34,7 +34,7 @@ class HfpIntf {
 
   int init();
   int connect(RustRawAddress bt_addr);
-  int connect_audio(RustRawAddress bt_addr);
+  int connect_audio(RustRawAddress bt_addr, bool sco_offload);
   int set_volume(int8_t volume, RustRawAddress bt_addr);
   int disconnect(RustRawAddress bt_addr);
   int disconnect_audio(RustRawAddress bt_addr);

@@ -616,6 +616,8 @@ void BTA_AgResult(uint16_t handle, tBTA_AG_RES result,
  ******************************************************************************/
 void BTA_AgSetCodec(uint16_t handle, tBTA_AG_PEER_CODEC codec);
 
+void BTA_AgSetScoOffloadEnabled(bool value);
+
 void BTA_AgSetScoAllowed(bool value);
 
 void BTA_AgSetActiveDevice(const RawAddress& active_device_addr);
