@@ -70,6 +70,11 @@ impl IBluetoothMediaCallback for BluetoothMediaCallbackDBus {
     fn on_hfp_volume_changed(&self, volume: u8, addr: String) {
         dbus_generated!()
     }
+
+    #[dbus_method("OnHfpAudioDisconnected")]
+    fn on_hfp_audio_disconnected(&self, addr: String) {
+        dbus_generated!()
+    }
 }
 
 #[allow(dead_code)]
