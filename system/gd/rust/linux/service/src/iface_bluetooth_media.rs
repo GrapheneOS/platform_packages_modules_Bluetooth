@@ -105,13 +105,18 @@ impl IBluetoothMedia for IBluetoothMediaDBus {
         dbus_generated!()
     }
 
+    #[dbus_method("Disconnect")]
+    fn disconnect(&mut self, address: String) {
+        dbus_generated!()
+    }
+
     #[dbus_method("SetActiveDevice")]
     fn set_active_device(&mut self, address: String) {
         dbus_generated!()
     }
 
-    #[dbus_method("Disconnect")]
-    fn disconnect(&mut self, address: String) {
+    #[dbus_method("SetHfpActiveDevice")]
+    fn set_hfp_active_device(&mut self, address: String) {
         dbus_generated!()
     }
 
