@@ -1318,9 +1318,9 @@ public class BluetoothMapService extends ProfileService {
             }
             try {
                 BluetoothMapService service = getService(source);
-                enforceBluetoothPrivilegedPermission(service);
                 List<BluetoothDevice> connectedDevices = new ArrayList<>(0);
                 if (service != null) {
+                    enforceBluetoothPrivilegedPermission(service);
                     connectedDevices = service.getConnectedDevices();
                 }
                 receiver.send(connectedDevices);
