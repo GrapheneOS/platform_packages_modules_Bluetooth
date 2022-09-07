@@ -265,13 +265,14 @@ fn main() -> Result<(), Box<dyn Error>> {
         {
             intf.lock().unwrap().initialize(get_bt_dispatcher(tx.clone()), init_flags);
 
-            bluetooth_media.lock().unwrap().set_adapter(bluetooth.clone());
+            let adapter = bluetooth.clone();
+            bluetooth_media.lock().unwrap().set_adapter(adapter.clone());
 
             let mut bluetooth = bluetooth.lock().unwrap();
             bluetooth.init_profiles();
             bluetooth.enable();
 
-            bluetooth_gatt.lock().unwrap().init_profiles(tx.clone());
+            bluetooth_gatt.lock().unwrap().init_profiles(tx.clone(), adapter.clone());
             bt_sock_mgr.lock().unwrap().initialize(intf.clone());
         }
 
