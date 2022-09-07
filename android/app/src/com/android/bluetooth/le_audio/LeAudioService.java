@@ -1645,6 +1645,8 @@ public class LeAudioService extends ProfileService {
 
             final String action = intent.getAction();
             if (action.equals(AudioManager.RINGER_MODE_CHANGED_ACTION)) {
+                if (!Utils.isPtsTestMode()) return;
+
                 int ringerMode = intent.getIntExtra(AudioManager.EXTRA_RINGER_MODE, -1);
 
                 if (ringerMode < 0 || ringerMode == mStoredRingerMode) return;

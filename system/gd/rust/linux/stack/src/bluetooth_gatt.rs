@@ -12,6 +12,7 @@ use bt_topshim::profiles::gatt::{
 };
 use bt_topshim::topstack;
 
+use crate::bluetooth::{Bluetooth, IBluetooth};
 use crate::bluetooth_adv::{
     AdvertiseData, Advertisers, AdvertisingSetInfo, AdvertisingSetParameters,
     IAdvertisingSetCallback, PeriodicAdvertisingParameters,
@@ -686,6 +687,7 @@ pub struct ScanFilter {}
 pub struct BluetoothGatt {
     intf: Arc<Mutex<BluetoothInterface>>,
     gatt: Option<Gatt>,
+    adapter: Option<Arc<Mutex<Box<Bluetooth>>>>,
 
     context_map: ContextMap,
     reliable_queue: HashSet<String>,
@@ -704,6 +706,7 @@ impl BluetoothGatt {
         BluetoothGatt {
             intf: intf,
             gatt: None,
+            adapter: None,
             context_map: ContextMap::new(),
             reliable_queue: HashSet::new(),
             scanner_callbacks: Callbacks::new(tx.clone(), Message::ScannerCallbackDisconnected),
@@ -713,9 +716,10 @@ impl BluetoothGatt {
         }
     }
 
-    pub fn init_profiles(&mut self, tx: Sender<Message>) {
+    pub fn init_profiles(&mut self, tx: Sender<Message>, adapter: Arc<Mutex<Box<Bluetooth>>>) {
         println!("woot woot");
         self.gatt = Gatt::new(&self.intf.lock().unwrap());
+        self.adapter = Some(adapter);
 
         let tx_clone = tx.clone();
         let gatt_client_callbacks_dispatcher = GattClientCallbacksDispatcher {
@@ -816,9 +820,11 @@ impl BluetoothGatt {
     }
 
     fn get_adapter_name(&self) -> String {
-        // TODO(b/233128394): initialize the adaptert from service and
-        // get local adapter name here.
-        String::new()
+        if let Some(adapter) = &self.adapter {
+            adapter.lock().unwrap().get_name()
+        } else {
+            String::new()
+        }
     }
 }
 

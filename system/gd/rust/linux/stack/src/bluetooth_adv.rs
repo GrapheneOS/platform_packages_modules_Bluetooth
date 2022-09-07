@@ -459,10 +459,12 @@ impl Advertisers {
 
     /// Removes an advertiser callback and unregisters all advertising sets associated with that callback.
     pub(crate) fn remove_callback(&mut self, callback_id: CallbackId, gatt: &mut Gatt) -> bool {
-        for (_, s) in self.sets.iter_mut().filter(|(_, s)| s.callback_id() == callback_id) {
-            if None != s.advertiser_id {
-                gatt.advertiser.unregister(s.adv_id());
-            }
+        for (_, s) in self
+            .sets
+            .iter()
+            .filter(|(_, s)| s.callback_id() == callback_id && s.advertiser_id.is_some())
+        {
+            gatt.advertiser.unregister(s.adv_id());
         }
         self.sets.retain(|_, s| s.callback_id() != callback_id);
 
