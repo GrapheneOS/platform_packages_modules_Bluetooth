@@ -1352,6 +1352,10 @@ void bta_ag_sco_conn_rsp(tBTA_AG_SCB* p_scb,
   bta_ag_create_pending_sco(p_scb, bta_ag_cb.sco.is_local);
 }
 
+void bta_ag_set_sco_offload_enabled(bool value) {
+  hfp_hal_interface::enable_offload(value);
+}
+
 void bta_ag_set_sco_allowed(bool value) {
   sco_allowed = value;
   APPL_TRACE_DEBUG(sco_allowed ? "sco now allowed" : "sco now not allowed");

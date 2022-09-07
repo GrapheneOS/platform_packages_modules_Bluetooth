@@ -159,7 +159,7 @@ void BTA_AgClose(uint16_t handle) {
  * Function         BTA_AgAudioOpen
  *
  * Description      Opens an audio connection to the currently connected
- *                  headset or hnadsfree.
+ *                  headset or handsfree.
  *
  *
  * Returns          void
@@ -176,7 +176,7 @@ void BTA_AgAudioOpen(uint16_t handle) {
  * Function         BTA_AgAudioClose
  *
  * Description      Close the currently active audio connection to a headset
- *                  or hnadsfree. The data connection remains open
+ *                  or handsfree. The data connection remains open
  *
  *
  * Returns          void
@@ -223,6 +223,11 @@ void BTA_AgSetCodec(uint16_t handle, tBTA_AG_PEER_CODEC codec) {
   data.api_setcodec.codec = codec;
   do_in_main_thread(FROM_HERE, base::Bind(&bta_ag_sm_execute_by_handle, handle,
                                           BTA_AG_API_SETCODEC_EVT, data));
+}
+
+void BTA_AgSetScoOffloadEnabled(bool value) {
+  do_in_main_thread(FROM_HERE,
+                    base::Bind(&bta_ag_set_sco_offload_enabled, value));
 }
 
 void BTA_AgSetScoAllowed(bool value) {
