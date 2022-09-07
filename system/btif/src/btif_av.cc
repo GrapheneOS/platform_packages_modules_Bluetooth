@@ -3400,7 +3400,7 @@ uint8_t btif_av_get_peer_sep(void) {
   BtifAvPeer* peer = btif_av_find_active_peer();
   if (peer == nullptr) {
     LOG_INFO("No active sink or source peer found");
-    return AVDT_TSEP_SNK;
+    return AVDT_TSEP_INVALID;
   }
 
   uint8_t peer_sep = peer->PeerSep();
