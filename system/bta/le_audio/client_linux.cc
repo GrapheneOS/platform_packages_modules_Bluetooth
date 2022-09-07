@@ -39,6 +39,7 @@ class LeAudioClientImpl : public LeAudioClient {
       bluetooth::le_audio::btle_audio_codec_config_t output_codec_config)
       override {}
   void SetCcidInformation(int ccid, int context_type) override {}
+  void SetInCall(bool in_call) override {}
   std::vector<RawAddress> GetGroupDevices(const int group_id) override {
     return {};
   }
