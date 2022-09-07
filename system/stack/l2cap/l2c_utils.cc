@@ -2229,28 +2229,20 @@ static void l2cu_set_acl_priority_latency_brcm(tL2C_LCB* p_lcb,
                                                tL2CAP_PRIORITY priority) {
   uint8_t vs_param;
   if (priority == L2CAP_PRIORITY_HIGH) {
-    // priority normal to high, if using latency mode check preset latency
-    LOG_INFO(
-        "Set ACL from priority: %d latency: %d to priority: %d latency: %d",
-        p_lcb->acl_priority, p_lcb->acl_latency, priority,
-        p_lcb->use_latency_mode ? p_lcb->preset_acl_latency
-                                : L2CAP_LATENCY_NORMAL);
+    // priority to high, if using latency mode check preset latency
     if (p_lcb->use_latency_mode &&
         p_lcb->preset_acl_latency == L2CAP_LATENCY_LOW) {
-      vs_param = HCI_BRCM_ACL_NORMAL_PRIORITY_TO_HIGH_PRIORITY_LOW_LATENCY;
+      LOG_INFO("Set ACL priority: High Priority and Low Latency Mode");
+      vs_param = HCI_BRCM_ACL_HIGH_PRIORITY_LOW_LATENCY;
       p_lcb->set_latency(L2CAP_LATENCY_LOW);
     } else {
-      vs_param = HCI_BRCM_ACL_NORMAL_PRIORITY_TO_HIGH_PRIORITY;
+      LOG_INFO("Set ACL priority: High Priority Mode");
+      vs_param = HCI_BRCM_ACL_HIGH_PRIORITY;
     }
   } else {
-    // priority high to normal, check current latency
-    LOG_INFO(
-        "Set ACL from priority: %d latency: %d to priority: %d latency: %d",
-        p_lcb->acl_priority, p_lcb->acl_latency, priority,
-        L2CAP_LATENCY_NORMAL);
-    vs_param = p_lcb->is_low_latency()
-                   ? HCI_BRCM_ACL_HIGH_PRIORITY_LOW_LATENCY_TO_NORMAL_PRIORITY
-                   : HCI_BRCM_ACL_HIGH_PRIORITY_TO_NORMAL_PRIORITY;
+    // priority to normal
+    LOG_INFO("Set ACL priority: Normal Mode");
+    vs_param = HCI_BRCM_ACL_NORMAL_PRIORITY;
     p_lcb->set_latency(L2CAP_LATENCY_NORMAL);
   }
 
@@ -2354,14 +2346,14 @@ bool l2cu_set_acl_priority(const RawAddress& bd_addr, tL2CAP_PRIORITY priority,
  ******************************************************************************/
 
 static void l2cu_set_acl_latency_brcm(tL2C_LCB* p_lcb, tL2CAP_LATENCY latency) {
-  LOG_INFO("Set ACL latency from %d to %d", p_lcb->acl_latency, latency);
+  LOG_INFO("Set ACL latency: %s",
+           latency == L2CAP_LATENCY_LOW ? "Low Latancy" : "Normal Latency");
 
   uint8_t command[HCI_BRCM_ACL_PRIORITY_PARAM_SIZE];
   uint8_t* pp = command;
-  uint8_t vs_param =
-      latency == L2CAP_LATENCY_LOW
-          ? HCI_BRCM_ACL_HIGH_PRIORITY_TO_HIGH_PRIORITY_LOW_LATENCY
-          : HCI_BRCM_ACL_HIGH_PRIORITY_LOW_LATENCY_TO_HIGH_PRIORITY;
+  uint8_t vs_param = latency == L2CAP_LATENCY_LOW
+                         ? HCI_BRCM_ACL_HIGH_PRIORITY_LOW_LATENCY
+                         : HCI_BRCM_ACL_HIGH_PRIORITY;
   UINT16_TO_STREAM(pp, p_lcb->Handle());
   UINT8_TO_STREAM(pp, vs_param);
 
