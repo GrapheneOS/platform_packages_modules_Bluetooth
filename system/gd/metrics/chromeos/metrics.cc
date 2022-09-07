@@ -170,5 +170,10 @@ void LogMetricsDeviceInfoReport(
       .Record();
 }
 
+void LogMetricsProfileConnectionAttempt(RawAddress* addr, uint32_t intent, uint32_t profile) {}
+
+void LogMetricsProfileConnectionStateChanged(
+    RawAddress* addr, uint32_t intent, uint32_t profile, uint32_t status, uint32_t state) {}
+
 }  // namespace metrics
 }  // namespace bluetooth
