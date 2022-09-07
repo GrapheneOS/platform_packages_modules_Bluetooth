@@ -14,8 +14,6 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import asyncio
-
 from blueberry.tests.gd.cert.truth import assertThat
 from blueberry.tests.topshim.lib.topshim_base_test import TopshimBaseTest
 from blueberry.tests.topshim.lib.adapter_client import AdapterClient
@@ -32,7 +30,7 @@ class SecurityTest(TopshimBaseTest):
         return await self.dut_adapter.le_rand()
 
     def test_remove_bond_with_no_bonded_devices(self):
-        asyncio.get_event_loop().run_until_complete(self.__test_remove_bond(self.DEFAULT_ADDRESS))
+        self.post(self.__test_remove_bond(self.DEFAULT_ADDRESS))
 
 
 if __name__ == "__main__":

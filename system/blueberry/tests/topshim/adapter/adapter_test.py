@@ -33,7 +33,7 @@ class AdapterTest(TopshimBaseTest):
         print("Adapter is verified when test starts")
 
     def test_enable_page_scan(self):
-        asyncio.get_event_loop().run_until_complete(self.__verify_enable_page_scan())
+        self.post(self.__verify_enable_page_scan())
 
 
 if __name__ == "__main__":
