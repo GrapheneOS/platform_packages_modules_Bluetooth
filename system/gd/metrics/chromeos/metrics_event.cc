@@ -15,19 +15,22 @@
  */
 #include "gd/metrics/chromeos/metrics_event.h"
 
+#include <map>
 #include <utility>
 
 #include "hci/hci_packets.h"
 #include "include/hardware/bluetooth.h"
+#include "include/hardware/bt_hh.h"
 
 namespace bluetooth {
 namespace metrics {
 
-// topshim::btif::BtBondState is a copy of hardware/bluetooth.h/bt_bond_state_t
+// topshim::btif::BtBondState is a copy of hardware/bluetooth.h:bt_bond_state_t
 typedef bt_bond_state_t BtBondState;
-
-// topshim::btif::BtStatus is a copy of hardware/bluetooth.h/bt_bond_state_t
+// topshim::btif::BtStatus is a copy of hardware/bluetooth.h:bt_status_t
 typedef bt_status_t BtStatus;
+// topshim::profile::hid_host::BthhConnectionState is a copy of hardware/bluetooth.h:bthh_connection_state_t
+typedef bthh_connection_state_t BthhConnectionState;
 
 // A normalized connection state ENUM definition all profiles
 enum class ProfilesConnectionState {
@@ -298,8 +301,27 @@ static std::pair<uint32_t, uint32_t> ToProfileConnectionState(uint32_t profile, 
     // case ProfilesFloss::AvrcpController:
     // case ProfilesFloss::AvrcpTarget:
     // case ProfilesFloss::ObexObjectPush:
-    // case ProfilesFloss::Hid:
-    // case ProfilesFloss::Hogp:
+    case ProfilesFloss::Hid:
+    case ProfilesFloss::Hogp:
+      output.first = (uint32_t)Profile::HID;
+      switch ((BthhConnectionState)state) {
+        case BthhConnectionState::BTHH_CONN_STATE_CONNECTED:
+          output.second = (uint32_t)ProfilesConnectionState::CONNECTED;
+          break;
+        case BthhConnectionState::BTHH_CONN_STATE_CONNECTING:
+          output.second = (uint32_t)ProfilesConnectionState::CONNECTING;
+          break;
+        case BthhConnectionState::BTHH_CONN_STATE_DISCONNECTED:
+          output.second = (uint32_t)ProfilesConnectionState::DISCONNECTED;
+          break;
+        case BthhConnectionState::BTHH_CONN_STATE_DISCONNECTING:
+          output.second = (uint32_t)ProfilesConnectionState::DISCONNECTING;
+          break;
+        case BthhConnectionState::BTHH_CONN_STATE_UNKNOWN:
+          output.second = (uint32_t)ProfilesConnectionState::UNKNOWN;
+          break;
+      }
+      break;
     // case ProfilesFloss::Panu:
     // case ProfilesFloss::Nap:
     // case ProfilesFloss::Bnep:
@@ -325,7 +347,51 @@ static std::pair<uint32_t, uint32_t> ToProfileConnectionState(uint32_t profile, 
 }
 
 ProfileConnectionEvent ToProfileConnectionEvent(std::string addr, uint32_t profile, uint32_t status, uint32_t state) {
-  return ProfileConnectionEvent();
+  ProfileConnectionEvent event;
+  // A map stores the pending StateChangeType used to match a (dis)connection event with unknown type.
+  // map<std::pair<address, profile>, type>
+  static std::map<std::pair<std::string, uint32_t>, StateChangeType> pending_type;
+
+  auto profile_state_pair = ToProfileConnectionState(profile, state);
+  auto key = std::make_pair(addr, profile_state_pair.first);
+  event.profile = (int64_t)profile_state_pair.first;
+
+  switch ((ProfilesConnectionState)profile_state_pair.second) {
+    case ProfilesConnectionState::CONNECTED:
+      event.type = (int64_t)StateChangeType::STATE_CHANGE_TYPE_CONNECT;
+      event.state = (int64_t)MetricProfileConnectionStatus::PROFILE_CONN_STATE_SUCCEED;
+      pending_type.erase(key);
+      break;
+    case ProfilesConnectionState::CONNECTING:
+      event.type = (int64_t)StateChangeType::STATE_CHANGE_TYPE_CONNECT;
+      event.state = (int64_t)MetricProfileConnectionStatus::PROFILE_CONN_STATE_STARTING;
+      pending_type[key] = StateChangeType::STATE_CHANGE_TYPE_CONNECT;
+      break;
+    case ProfilesConnectionState::DISCONNECTED:
+      event.type = pending_type.find(key) != pending_type.end()
+                       ? (int64_t)pending_type[key]
+                       : (int64_t)StateChangeType::STATE_CHANGE_TYPE_DISCONNECT;
+      // If the profile successfully disconnected for a connect intent, i.e., a connection is attempted but received a
+      // disconnection state update. Report this as an unknown error.
+      if (StateChangeType::STATE_CHANGE_TYPE_CONNECT == (StateChangeType)event.type &&
+          BtStatus::BT_STATUS_SUCCESS == (BtStatus)status) {
+        event.state = (int64_t)MetricProfileConnectionStatus::PROFILE_CONN_STATE_UNKNOWN_ERROR;
+      } else {
+        event.state = StatusToProfileConnectionState(status, (StateChangeType)event.type);
+      }
+      pending_type.erase(key);
+      break;
+    case ProfilesConnectionState::DISCONNECTING:
+      event.type = (int64_t)StateChangeType::STATE_CHANGE_TYPE_DISCONNECT;
+      event.state = (int64_t)MetricProfileDisconnectionStatus::PROFILE_DISCONN_STATE_STARTING;
+      pending_type[key] = StateChangeType::STATE_CHANGE_TYPE_DISCONNECT;
+      break;
+    default:
+      event.profile = (int64_t)Profile::UNKNOWN;
+      break;
+  }
+
+  return event;
 }
 
 }  // namespace metrics
