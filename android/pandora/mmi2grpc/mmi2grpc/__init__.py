@@ -31,7 +31,7 @@ from mmi2grpc.sdp import SDPProxy
 from mmi2grpc.sm import SMProxy
 from mmi2grpc._helpers import format_proxy
 
-from pandora.host_grpc import Host
+from pandora_experimental.host_grpc import Host
 
 GRPC_PORT = 8999
 MAX_RETRIES = 10
