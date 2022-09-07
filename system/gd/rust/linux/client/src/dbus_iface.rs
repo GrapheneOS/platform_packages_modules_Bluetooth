@@ -1397,7 +1397,10 @@ struct IBluetoothSocketManagerCallbacksDBus {}
 
 impl RPCProxy for IBluetoothSocketManagerCallbacksDBus {}
 
-#[generate_dbus_exporter(export_socket_callback_dbus_intf, "org.chromium.bluetooth.SocketCallback")]
+#[generate_dbus_exporter(
+    export_socket_callback_dbus_intf,
+    "org.chromium.bluetooth.SocketManagerCallback"
+)]
 impl IBluetoothSocketManagerCallbacks for IBluetoothSocketManagerCallbacksDBus {
     #[dbus_method("OnIncomingSocketReady")]
     fn on_incoming_socket_ready(&mut self, socket: BluetoothServerSocket, status: BtStatus) {
