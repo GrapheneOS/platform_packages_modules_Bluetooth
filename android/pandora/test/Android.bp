@@ -24,6 +24,7 @@ python_test_host {
     ],
     libs: [
         "libavatar",
+        "pandora_experimental-python",
     ],
     required: ["PandoraServer"],
     test_suites: ["general-tests"],
