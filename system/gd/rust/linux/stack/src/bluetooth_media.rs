@@ -45,8 +45,14 @@ pub trait IBluetoothMedia {
     fn cleanup(&mut self) -> bool;
 
     fn connect(&mut self, address: String);
-    fn set_active_device(&mut self, address: String);
     fn disconnect(&mut self, address: String);
+
+    // Set the device as the active A2DP device
+    fn set_active_device(&mut self, address: String);
+
+    // Set the device as the active HFP device
+    fn set_hfp_active_device(&mut self, address: String);
+
     fn set_audio_config(
         &mut self,
         sample_rate: i32,
@@ -608,22 +614,6 @@ impl IBluetoothMedia for BluetoothMedia {
         true
     }
 
-    fn set_active_device(&mut self, address: String) {
-        let addr = match RawAddress::from_string(address.clone()) {
-            None => {
-                warn!("Invalid device address {}", address);
-                return;
-            }
-            Some(addr) => addr,
-        };
-
-        match self.a2dp.as_mut() {
-            Some(a2dp) => a2dp.set_active_device(addr),
-            None => warn!("Uninitialized A2DP to set active device"),
-        }
-        self.uinput.set_active_device(addr.to_string());
-    }
-
     fn disconnect(&mut self, address: String) {
         let addr = match RawAddress::from_string(address.clone()) {
             None => {
@@ -647,6 +637,39 @@ impl IBluetoothMedia for BluetoothMedia {
             Some(avrcp) => avrcp.disconnect(addr),
             None => warn!("Uninitialized AVRCP to disconnect {}", address),
         };
+    }
+
+    fn set_active_device(&mut self, address: String) {
+        let addr = match RawAddress::from_string(address.clone()) {
+            None => {
+                warn!("Invalid device address {}", address);
+                return;
+            }
+            Some(addr) => addr,
+        };
+
+        match self.a2dp.as_mut() {
+            Some(a2dp) => a2dp.set_active_device(addr),
+            None => warn!("Uninitialized A2DP to set active device"),
+        }
+        self.uinput.set_active_device(addr.to_string());
+    }
+
+    fn set_hfp_active_device(&mut self, address: String) {
+        let addr = match RawAddress::from_string(address.clone()) {
+            None => {
+                warn!("Invalid device address {}", address);
+                return;
+            }
+            Some(addr) => addr,
+        };
+
+        match self.hfp.as_mut() {
+            Some(hfp) => {
+                hfp.set_active_device(addr);
+            }
+            None => warn!("Uninitialized HFP to set active device"),
+        }
     }
 
     fn set_audio_config(
