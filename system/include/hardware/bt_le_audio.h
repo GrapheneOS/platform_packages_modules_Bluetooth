@@ -152,6 +152,9 @@ class LeAudioClientInterface {
 
   /* Set Ccid for context type */
   virtual void SetCcidInformation(int ccid, int context_type) = 0;
+
+  /* Set In call flag */
+  virtual void SetInCall(bool in_call) = 0;
 };
 
 /* Represents the broadcast source state. */
