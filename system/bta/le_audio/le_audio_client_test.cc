@@ -1488,17 +1488,12 @@ class UnicastTestNoInit : public Test {
 
   void UpdateMetadata(audio_usage_t usage, audio_content_type_t content_type,
                       bool reconfigure_existing_stream = false) {
-    std::promise<void> do_metadata_update_promise;
+    std::vector<struct playback_track_metadata> source_metadata = {
+        {{AUDIO_USAGE_UNKNOWN, AUDIO_CONTENT_TYPE_UNKNOWN, 0},
+         {AUDIO_USAGE_UNKNOWN, AUDIO_CONTENT_TYPE_UNKNOWN, 0}}};
 
-    struct playback_track_metadata tracks_[2] = {
-        {AUDIO_USAGE_UNKNOWN, AUDIO_CONTENT_TYPE_UNKNOWN, 0},
-        {AUDIO_USAGE_UNKNOWN, AUDIO_CONTENT_TYPE_UNKNOWN, 0}};
-
-    source_metadata_t source_metadata = {.track_count = 1,
-                                         .tracks = &tracks_[0]};
-
-    tracks_[0].usage = usage;
-    tracks_[0].content_type = content_type;
+    source_metadata[0].usage = usage;
+    source_metadata[0].content_type = content_type;
 
     if (reconfigure_existing_stream) {
       EXPECT_CALL(*mock_unicast_audio_source_, SuspendedForReconfiguration())
@@ -1510,28 +1505,17 @@ class UnicastTestNoInit : public Test {
           .Times(0);
     }
 
-    auto do_metadata_update_future = do_metadata_update_promise.get_future();
-    audio_unicast_sink_receiver_->OnAudioMetadataUpdate(
-        std::move(do_metadata_update_promise), source_metadata);
-    do_metadata_update_future.wait();
+    audio_unicast_sink_receiver_->OnAudioMetadataUpdate(source_metadata);
   }
 
   void UpdateSourceMetadata(audio_source_t audio_source) {
-    std::promise<void> do_metadata_update_promise;
+    std::vector<struct record_track_metadata> sink_metadata = {
+        {{AUDIO_SOURCE_INVALID, 0.5, AUDIO_DEVICE_NONE, "00:11:22:33:44:55"},
+         {AUDIO_SOURCE_MIC, 0.7, AUDIO_DEVICE_OUT_BLE_HEADSET,
+          "AA:BB:CC:DD:EE:FF"}}};
 
-    struct record_track_metadata tracks_[2] = {
-        {AUDIO_SOURCE_INVALID, 0.5, AUDIO_DEVICE_NONE, "00:11:22:33:44:55"},
-        {AUDIO_SOURCE_MIC, 0.7, AUDIO_DEVICE_OUT_BLE_HEADSET,
-         "AA:BB:CC:DD:EE:FF"}};
-
-    sink_metadata_t sink_metadata = {.track_count = 2, .tracks = tracks_};
-
-    tracks_[1].source = audio_source;
-
-    auto do_metadata_update_future = do_metadata_update_promise.get_future();
-    audio_source_receiver_->OnAudioMetadataUpdate(
-        std::move(do_metadata_update_promise), sink_metadata);
-    do_metadata_update_future.wait();
+    sink_metadata[1].source = audio_source;
+    audio_source_receiver_->OnAudioMetadataUpdate(sink_metadata);
   }
 
   void SinkAudioResume(void) {
@@ -3707,6 +3691,8 @@ TEST_F(UnicastTest, StartNotSupportedContextType) {
   uint8_t cis_count_out = 1;
   uint8_t cis_count_in = 0;
 
+  LeAudioClient::Get()->SetInCall(true);
+
   // Audio sessions are started only when device gets active
   EXPECT_CALL(*mock_unicast_audio_source_, Start(_, _)).Times(1);
   EXPECT_CALL(*mock_audio_sink_, Start(_, _)).Times(1);
@@ -3722,7 +3708,11 @@ TEST_F(UnicastTest, StartNotSupportedContextType) {
   // Verify Data transfer on one audio source cis
   TestAudioDataTransfer(group_id, cis_count_out, cis_count_in, 1920);
 
-  // Fallback scenario now supports 48Khz just like Media so we will reconfigure
+  LeAudioClient::Get()->SetInCall(false);
+
+  /* Fallback scenario now supports 48Khz just like Media so we will reconfigure
+   * Note: Fallback is forced by the frequency on the remote device.
+   */
   EXPECT_CALL(mock_state_machine_, StopStream(_)).Times(1);
   UpdateMetadata(AUDIO_USAGE_GAME, AUDIO_CONTENT_TYPE_UNKNOWN, true);
 

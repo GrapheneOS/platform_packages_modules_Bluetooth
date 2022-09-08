@@ -132,10 +132,10 @@ static std::string contentTypeToString(audio_content_type_t content_type) {
 }
 
 AudioContexts GetAllowedAudioContextsFromSourceMetadata(
-    const source_metadata_t& source_metadata, AudioContexts allowed_contexts) {
+    const std::vector<struct playback_track_metadata>& source_metadata,
+    AudioContexts allowed_contexts) {
   AudioContexts track_contexts(0);
-  for (auto idx = 0u; idx < source_metadata.track_count; ++idx) {
-    auto& track = source_metadata.tracks[idx];
+  for (auto& track : source_metadata) {
     if (track.content_type == 0 && track.usage == 0) continue;
 
     LOG_INFO("%s: usage=%s(%d), content_type=%s(%d), gain=%f", __func__,

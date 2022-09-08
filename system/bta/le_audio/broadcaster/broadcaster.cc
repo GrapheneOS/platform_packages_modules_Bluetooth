@@ -874,8 +874,7 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
     }
 
     virtual void OnAudioMetadataUpdate(
-        std::promise<void> do_update_metadata_promise,
-        const source_metadata_t& source_metadata) override {
+        std::vector<struct playback_track_metadata> source_metadata) override {
       LOG_INFO();
       if (!instance) return;
 
@@ -894,8 +893,6 @@ class LeAudioBroadcasterImpl : public LeAudioBroadcaster, public BigCallbacks {
          */
         instance->UpdateStreamingContextTypeOnAllSubgroups(contexts.to_ulong());
       }
-
-      do_update_metadata_promise.set_value();
     }
 
    private:
