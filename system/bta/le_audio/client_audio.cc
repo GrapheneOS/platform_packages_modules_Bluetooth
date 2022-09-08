@@ -191,18 +191,18 @@ bool LeAudioClientAudioSource::SinkOnMetadataUpdateReq(
     return false;
   }
 
+  std::vector<struct playback_track_metadata> metadata;
+  for (size_t i = 0; i < source_metadata.track_count; i++) {
+    metadata.push_back(source_metadata.tracks[i]);
+  }
+
   // Call OnAudioSuspend and block till it returns.
-  std::promise<void> do_update_metadata_promise;
-  std::future<void> do_update_metadata_future =
-      do_update_metadata_promise.get_future();
   bt_status_t status = do_in_main_thread(
       FROM_HERE,
       base::BindOnce(&LeAudioClientAudioSinkReceiver::OnAudioMetadataUpdate,
-                     base::Unretained(audioSinkReceiver_),
-                     std::move(do_update_metadata_promise), source_metadata));
+                     base::Unretained(audioSinkReceiver_), metadata));
 
   if (status == BT_STATUS_SUCCESS) {
-    do_update_metadata_future.wait();
     return true;
   }
 
@@ -262,18 +262,17 @@ bool LeAudioUnicastClientAudioSink::SourceOnMetadataUpdateReq(
     return false;
   }
 
-  // Call OnAudioSuspend and block till it returns.
-  std::promise<void> do_update_metadata_promise;
-  std::future<void> do_update_metadata_future =
-      do_update_metadata_promise.get_future();
+  std::vector<struct record_track_metadata> metadata;
+  for (size_t i = 0; i < sink_metadata.track_count; i++) {
+    metadata.push_back(sink_metadata.tracks[i]);
+  }
+
   bt_status_t status = do_in_main_thread(
       FROM_HERE,
       base::BindOnce(&LeAudioClientAudioSourceReceiver::OnAudioMetadataUpdate,
-                     base::Unretained(audioSourceReceiver_),
-                     std::move(do_update_metadata_promise), sink_metadata));
+                     base::Unretained(audioSourceReceiver_), metadata));
 
   if (status == BT_STATUS_SUCCESS) {
-    do_update_metadata_future.wait();
     return true;
   }
 
