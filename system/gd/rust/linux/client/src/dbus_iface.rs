@@ -1285,24 +1285,36 @@ pub struct SocketResultDBus {
     id: u64,
 }
 
-pub(crate) struct BluetoothSocketManagerDBus {
+pub(crate) struct BluetoothSocketManagerDBusRPC {
     client_proxy: ClientDBusProxy,
 }
 
+pub(crate) struct BluetoothSocketManagerDBus {
+    client_proxy: ClientDBusProxy,
+    pub rpc: BluetoothSocketManagerDBusRPC,
+}
+
 impl BluetoothSocketManagerDBus {
-    pub(crate) fn _new(conn: Arc<SyncConnection>, index: i32) -> Self {
+    fn make_client_proxy(conn: Arc<SyncConnection>, index: i32) -> ClientDBusProxy {
+        ClientDBusProxy::new(
+            conn,
+            String::from("org.chromium.bluetooth"),
+            make_object_path(index, "adapter"),
+            String::from("org.chromium.bluetooth.SocketManager"),
+        )
+    }
+
+    pub(crate) fn new(conn: Arc<SyncConnection>, index: i32) -> Self {
         BluetoothSocketManagerDBus {
-            client_proxy: ClientDBusProxy::new(
-                conn.clone(),
-                String::from("org.chromium.bluetooth"),
-                make_object_path(index, "adapter"),
-                String::from("org.chromium.bluetooth.SocketManager"),
-            ),
+            client_proxy: Self::make_client_proxy(conn.clone(), index),
+            rpc: BluetoothSocketManagerDBusRPC {
+                client_proxy: Self::make_client_proxy(conn.clone(), index),
+            },
         }
     }
 }
 
-#[generate_dbus_interface_client]
+#[generate_dbus_interface_client(BluetoothSocketManagerDBusRPC)]
 impl IBluetoothSocketManager for BluetoothSocketManagerDBus {
     #[dbus_method("RegisterCallback")]
     fn register_callback(
