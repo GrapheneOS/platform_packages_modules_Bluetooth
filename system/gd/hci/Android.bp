@@ -42,7 +42,8 @@ filegroup {
         "controller_unittest.cc",
         "hci_packets_test.cc",
         "uuid_unittest.cc",
-        "le_periodic_sync_manager_test.cc"
+        "le_periodic_sync_manager_test.cc",
+        "le_scanning_manager_test.cc",
     ],
 }
 
