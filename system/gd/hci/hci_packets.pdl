@@ -57,6 +57,11 @@ enum GapDataType : 8 {
   MANUFACTURER_SPECIFIC_DATA = 0xFF,
 }
 
+struct LengthAndData {
+  _size_(data) : 8,
+  data: 8[],
+}
+
 struct GapData {
   _size_(data) : 8, // Including one byte for data_type
   data_type : GapDataType,
@@ -5526,7 +5531,7 @@ struct LeAdvertisingResponse {
   address_type : AddressType,
   address : Address,
   _size_(advertising_data) : 8,
-  advertising_data : GapData[],
+  advertising_data : LengthAndData[],
   rssi : 8,
 }
 
@@ -5680,7 +5685,34 @@ struct LeExtendedAdvertisingResponse {
   direct_address_type : DirectAdvertisingAddressType,
   direct_address : Address,
   _size_(advertising_data) : 8,
-  advertising_data : 8[],
+  advertising_data: LengthAndData[],
+}
+
+struct LeExtendedAdvertisingResponseRaw {
+  connectable : 1,
+  scannable : 1,
+  directed : 1,
+  scan_response : 1,
+  legacy : 1,
+  data_status : DataStatus,
+  _reserved_ : 9,
+  address_type : DirectAdvertisingAddressType,
+  address : Address,
+  primary_phy : PrimaryPhyType,
+  secondary_phy : SecondaryPhyType,
+  advertising_sid : 8, // SID subfield in the ADI field
+  tx_power : 8,
+  rssi : 8, // -127 to +20 (0x7F means not available)
+  periodic_advertising_interval : 16, // 0x006 to 0xFFFF (7.5 ms to 82s)
+  direct_address_type : DirectAdvertisingAddressType,
+  direct_address : Address,
+  _size_(advertising_data) : 8,
+  advertising_data: 8[],
+}
+
+packet LeExtendedAdvertisingReportRaw : LeMetaEvent (subevent_code = EXTENDED_ADVERTISING_REPORT) {
+  _count_(responses) : 8,
+  responses : LeExtendedAdvertisingResponseRaw[],
 }
 
 packet LeExtendedAdvertisingReport : LeMetaEvent (subevent_code = EXTENDED_ADVERTISING_REPORT) {
