@@ -1105,7 +1105,9 @@ void DumpsysAcl(int fd) {
 
   LOG_DUMPSYS_TITLE(fd, DUMPSYS_TAG);
 
-  shim::Stack::GetInstance()->GetAcl()->DumpConnectionHistory(fd);
+  if (shim::Stack::GetInstance()->IsRunning()) {
+    shim::Stack::GetInstance()->GetAcl()->DumpConnectionHistory(fd);
+  }
 
   for (int i = 0; i < MAX_L2CAP_LINKS; i++) {
     const tACL_CONN& link = acl_cb.acl_db[i];
