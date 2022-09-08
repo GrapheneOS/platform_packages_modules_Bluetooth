@@ -66,4 +66,7 @@ void BTA_AgSetActiveDevice(const RawAddress& active_device_addr) {
 void BTA_AgSetCodec(uint16_t handle, tBTA_AG_PEER_CODEC codec) {
   mock_function_count_map[__func__]++;
 }
+void BTA_AgSetScoOffloadEnabled(bool value) {
+  mock_function_count_map[__func__]++;
+}
 void BTA_AgSetScoAllowed(bool value) { mock_function_count_map[__func__]++; }

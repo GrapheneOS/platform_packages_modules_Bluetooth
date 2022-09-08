@@ -151,7 +151,7 @@ impl IBluetoothMedia for IBluetoothMediaDBus {
     }
 
     #[dbus_method("StartScoCall")]
-    fn start_sco_call(&mut self, address: String) {
+    fn start_sco_call(&mut self, address: String, sco_offload: bool) {
         dbus_generated!()
     }
 
