@@ -109,7 +109,8 @@ int LeAudioDeviceGroup::NumOfConnected(types::LeAudioContextType context_type) {
 void LeAudioDeviceGroup::ClearSinksFromConfiguration(void) {
   LOG_INFO("Group %p, group_id %d", this, group_id_);
   stream_conf.sink_streams.clear();
-  stream_conf.sink_offloader_streams.clear();
+  stream_conf.sink_offloader_streams_target_allocation.clear();
+  stream_conf.sink_offloader_streams_current_allocation.clear();
   stream_conf.sink_audio_channel_allocation = 0;
   stream_conf.sink_num_of_channels = 0;
   stream_conf.sink_num_of_devices = 0;
@@ -122,7 +123,8 @@ void LeAudioDeviceGroup::ClearSinksFromConfiguration(void) {
 void LeAudioDeviceGroup::ClearSourcesFromConfiguration(void) {
   LOG_INFO("Group %p, group_id %d", this, group_id_);
   stream_conf.source_streams.clear();
-  stream_conf.source_offloader_streams.clear();
+  stream_conf.source_offloader_streams_target_allocation.clear();
+  stream_conf.source_offloader_streams_current_allocation.clear();
   stream_conf.source_audio_channel_allocation = 0;
   stream_conf.source_num_of_channels = 0;
   stream_conf.source_num_of_devices = 0;
@@ -1636,9 +1638,9 @@ bool LeAudioDeviceGroup::IsMetadataChanged(
 
 void LeAudioDeviceGroup::StreamOffloaderUpdated(uint8_t direction) {
   if (direction == le_audio::types::kLeAudioDirectionSource) {
-    stream_conf.source_offloader_changed = false;
+    stream_conf.source_is_initial = false;
   } else {
-    stream_conf.sink_offloader_changed = false;
+    stream_conf.sink_is_initial = false;
   }
 }
 
@@ -1650,23 +1652,35 @@ void LeAudioDeviceGroup::CreateStreamVectorForOffloader(uint8_t direction) {
 
   CisType cis_type;
   std::vector<std::pair<uint16_t, uint32_t>>* streams;
-  std::vector<std::pair<uint16_t, uint32_t>>* offloader_streams;
+  std::vector<std::pair<uint16_t, uint32_t>>*
+      offloader_streams_target_allocation;
+  std::vector<std::pair<uint16_t, uint32_t>>*
+      offloader_streams_current_allocation;
   std::string tag;
   uint32_t available_allocations = 0;
   bool* changed_flag;
+  bool* is_initial;
   if (direction == le_audio::types::kLeAudioDirectionSource) {
     changed_flag = &stream_conf.source_offloader_changed;
+    is_initial = &stream_conf.source_is_initial;
     cis_type = CisType::CIS_TYPE_UNIDIRECTIONAL_SOURCE;
     streams = &stream_conf.source_streams;
-    offloader_streams = &stream_conf.source_offloader_streams;
+    offloader_streams_target_allocation =
+        &stream_conf.source_offloader_streams_target_allocation;
+    offloader_streams_current_allocation =
+        &stream_conf.source_offloader_streams_current_allocation;
     tag = "Source";
     available_allocations = AdjustAllocationForOffloader(
         stream_conf.source_audio_channel_allocation);
   } else {
     changed_flag = &stream_conf.sink_offloader_changed;
+    is_initial = &stream_conf.sink_is_initial;
     cis_type = CisType::CIS_TYPE_UNIDIRECTIONAL_SINK;
     streams = &stream_conf.sink_streams;
-    offloader_streams = &stream_conf.sink_offloader_streams;
+    offloader_streams_target_allocation =
+        &stream_conf.sink_offloader_streams_target_allocation;
+    offloader_streams_current_allocation =
+        &stream_conf.sink_offloader_streams_current_allocation;
     tag = "Sink";
     available_allocations =
         AdjustAllocationForOffloader(stream_conf.sink_audio_channel_allocation);
@@ -1677,24 +1691,22 @@ void LeAudioDeviceGroup::CreateStreamVectorForOffloader(uint8_t direction) {
     return;
   }
 
-  if (offloader_streams->size() > 0) {
-    /* We are here because of the CIS modification during streaming.
-     * this makes sense only when downmixing is enabled so we can notify
-     * offloader about connected / disconnected CISes. If downmixing is disabled
-     * then there is not need to notify offloader as it has all the informations
-     * already */
-    if (!downmix_fallback_) {
-      LOG_INFO("Downmixing disabled - nothing to do");
-      return;
-    }
+  if (offloader_streams_target_allocation->size() == 0) {
+    *is_initial = true;
   }
 
-  offloader_streams->clear();
+  offloader_streams_current_allocation->clear();
   *changed_flag = true;
-
   bool not_all_cises_connected = false;
   if (available_allocations != codec_spec_conf::kLeAudioLocationStereo) {
     not_all_cises_connected = true;
+  }
+
+  /* If the all cises are connected as stream started, reset changed_flag that
+   * the bt stack wouldn't send another audio configuration for the connection
+   * status */
+  if (*is_initial && !not_all_cises_connected) {
+    *changed_flag = false;
   }
 
   /* Note: For the offloader case we simplify allocation to only Left and Right.
@@ -1710,28 +1722,37 @@ void LeAudioDeviceGroup::CreateStreamVectorForOffloader(uint8_t direction) {
     if ((cis_entry.type == CisType::CIS_TYPE_BIDIRECTIONAL ||
          cis_entry.type == cis_type) &&
         cis_entry.conn_handle != 0) {
-      uint32_t allocation = 0;
+      uint32_t target_allocation = 0;
+      uint32_t current_allocation = 0;
       for (const auto& s : *streams) {
         if (s.first == cis_entry.conn_handle) {
-          allocation = AdjustAllocationForOffloader(s.second);
-          if (not_all_cises_connected && downmix_fallback_) {
+          target_allocation = AdjustAllocationForOffloader(s.second);
+          current_allocation = target_allocation;
+          if (not_all_cises_connected) {
             /* Tell offloader to mix on this CIS.*/
-            allocation = codec_spec_conf::kLeAudioLocationStereo;
+            current_allocation = codec_spec_conf::kLeAudioLocationStereo;
           }
           break;
         }
       }
 
-      if (allocation == 0 && !downmix_fallback_) {
+      if (target_allocation == 0) {
         /* Take missing allocation for that one .*/
-        allocation =
+        target_allocation =
             codec_spec_conf::kLeAudioLocationStereo & ~available_allocations;
       }
 
-      LOG_INFO("%s: Cis handle 0x%04x, allocation  0x%08x", tag.c_str(),
-               cis_entry.conn_handle, allocation);
-      offloader_streams->emplace_back(
-          std::make_pair(cis_entry.conn_handle, allocation));
+      LOG_INFO(
+          "%s: Cis handle 0x%04x, target allocation  0x%08x, current "
+          "allocation 0x%08x",
+          tag.c_str(), cis_entry.conn_handle, target_allocation,
+          current_allocation);
+      if (*is_initial) {
+        offloader_streams_target_allocation->emplace_back(
+            std::make_pair(cis_entry.conn_handle, target_allocation));
+      }
+      offloader_streams_current_allocation->emplace_back(
+          std::make_pair(cis_entry.conn_handle, current_allocation));
     }
   }
 }

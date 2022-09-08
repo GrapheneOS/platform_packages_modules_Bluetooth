@@ -48,9 +48,6 @@ using ::testing::Test;
 std::map<std::string, int> mock_function_count_map;
 extern struct fake_osi_alarm_set_on_mloop fake_osi_alarm_set_on_mloop_;
 
-static constexpr char kDownmixFallback[] =
-    "persist.bluetooth.leaudio.offloader.downmix_fallback";
-
 void osi_property_set_bool(const char* key, bool value);
 
 constexpr uint8_t media_ccid = 0xC0;
@@ -2513,115 +2510,10 @@ TEST_F(StateMachineTest, testConfigureDataPathForAdsp) {
       context_type));
 }
 
-TEST_F(StateMachineTest, testStreamConfigurationAdsp) {
-  auto context_type = kContextTypeConversational;
-  const int leaudio_group_id = 4;
-  const int num_devices = 2;
-
-  /* Should be called 5 times because
-   * 1 - calling GetConfigurations just after connection
-   * (UpdateActiveContextsMap),
-   * 2 - when doing configuration of the context type
-   * 3,4 - AddCisToStreamConfiguration -> CreateStreamVectorForOffloader (sink)
-   * 5,6 - AddCisToStreamConfiguration -> CreateStreamVectorForOffloader
-   * (source) 7,8,9,10 - Data Path (sink/source)
-   */
-  EXPECT_CALL(*mock_codec_manager_, GetCodecLocation())
-      .Times(10)
-      .WillRepeatedly(Return(types::CodecLocation::ADSP));
-
-  // Prepare fake connected device group
-  auto* group =
-      PrepareSingleTestDeviceGroup(leaudio_group_id, context_type, num_devices);
-
-  PrepareConfigureCodecHandler(group);
-  PrepareConfigureQosHandler(group);
-  PrepareEnableHandler(group);
-  PrepareReceiverStartReady(group);
-
-  InjectInitialIdleNotification(group);
-
-  // Start the configuration and stream Media content
-  ASSERT_TRUE(LeAudioGroupStateMachine::Get()->StartStream(
-      group, static_cast<types::LeAudioContextType>(context_type),
-      context_type));
-
-  // Check if group has transitioned to a proper state
-  ASSERT_EQ(group->GetState(),
-            types::AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING);
-
-  ASSERT_EQ(static_cast<int>(group->stream_conf.sink_offloader_streams.size()),
-            2);
-  ASSERT_EQ(
-      static_cast<int>(group->stream_conf.source_offloader_streams.size()), 2);
-
-  testing::Mock::VerifyAndClearExpectations(&mock_codec_manager_);
-}
-
 static void InjectAclDisconnected(LeAudioDeviceGroup* group,
                                   LeAudioDevice* leAudioDevice) {
   LeAudioGroupStateMachine::Get()->ProcessHciNotifAclDisconnected(
       group, leAudioDevice);
-}
-
-TEST_F(StateMachineTest, testStreamConfigurationAdspNoDownMix) {
-  const auto context_type = kContextTypeConversational;
-  const int leaudio_group_id = 4;
-  const int num_devices = 2;
-
-  // Prepare fake connected device group
-  auto* group = PrepareSingleTestDeviceGroup(
-      leaudio_group_id, context_type, num_devices, kContextTypeConversational);
-
-  /* Should be called 5 times because
-   * 1 - calling GetConfigurations just after connection
-   * (UpdateActiveContextsMap),
-   * 2 - when doing configuration of the context type
-   * 3 - AddCisToStreamConfiguration -> CreateStreamVectorForOffloader (sink)
-   * 4 - AddCisToStreamConfiguration -> CreateStreamVectorForOffloader (source)
-   * 5,6 - Data Path
-   */
-  EXPECT_CALL(*mock_codec_manager_, GetCodecLocation())
-      .Times(6)
-      .WillRepeatedly(Return(types::CodecLocation::ADSP));
-
-  PrepareConfigureCodecHandler(group);
-  PrepareConfigureQosHandler(group);
-  PrepareEnableHandler(group);
-  PrepareReceiverStartReady(group);
-
-  InjectInitialIdleNotification(group);
-
-  auto* leAudioDevice = group->GetFirstDevice();
-  InjectAclDisconnected(group, leAudioDevice);
-
-  // Start the configuration and stream Media content
-  ASSERT_TRUE(LeAudioGroupStateMachine::Get()->StartStream(
-      group, static_cast<types::LeAudioContextType>(context_type),
-      context_type));
-
-  ASSERT_EQ(static_cast<int>(group->stream_conf.sink_offloader_streams.size()),
-            2);
-  ASSERT_EQ(
-      static_cast<int>(group->stream_conf.source_offloader_streams.size()), 2);
-
-  // Check if group has transitioned to a proper state
-  ASSERT_EQ(group->GetState(),
-            types::AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING);
-
-  uint32_t allocation = 0;
-  for (const auto& s : group->stream_conf.sink_offloader_streams) {
-    allocation |= s.second;
-    ASSERT_FALSE(allocation == 0);
-  }
-  ASSERT_TRUE(allocation == codec_spec_conf::kLeAudioLocationStereo);
-
-  allocation = 0;
-  for (const auto& s : group->stream_conf.source_offloader_streams) {
-    allocation |= s.second;
-    ASSERT_FALSE(allocation == 0);
-  }
-  ASSERT_TRUE(allocation == codec_spec_conf::kLeAudioLocationStereo);
 }
 
 TEST_F(StateMachineTest, testStreamConfigurationAdspDownMix) {
@@ -2629,8 +2521,6 @@ TEST_F(StateMachineTest, testStreamConfigurationAdspDownMix) {
   const int leaudio_group_id = 4;
   const int num_devices = 2;
 
-  osi_property_set_bool(kDownmixFallback, true);
-
   // Prepare fake connected device group
   auto* group = PrepareSingleTestDeviceGroup(
       leaudio_group_id, context_type, num_devices, kContextTypeConversational);
@@ -2662,21 +2552,52 @@ TEST_F(StateMachineTest, testStreamConfigurationAdspDownMix) {
       group, static_cast<types::LeAudioContextType>(context_type),
       context_type));
 
-  ASSERT_EQ(static_cast<int>(group->stream_conf.sink_offloader_streams.size()),
-            2);
   ASSERT_EQ(
-      static_cast<int>(group->stream_conf.source_offloader_streams.size()), 2);
+      static_cast<int>(
+          group->stream_conf.sink_offloader_streams_target_allocation.size()),
+      2);
+  ASSERT_EQ(
+      static_cast<int>(
+          group->stream_conf.source_offloader_streams_target_allocation.size()),
+      2);
+
+  ASSERT_EQ(
+      static_cast<int>(
+          group->stream_conf.sink_offloader_streams_current_allocation.size()),
+      2);
+  ASSERT_EQ(
+      static_cast<int>(group->stream_conf
+                           .source_offloader_streams_current_allocation.size()),
+      2);
 
   // Check if group has transitioned to a proper state
   ASSERT_EQ(group->GetState(),
             types::AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING);
 
-  for (const auto& s : group->stream_conf.sink_offloader_streams) {
+  uint32_t allocation = 0;
+  for (const auto& s :
+       group->stream_conf.sink_offloader_streams_target_allocation) {
+    allocation |= s.second;
+    ASSERT_FALSE(allocation == 0);
+  }
+  ASSERT_TRUE(allocation == codec_spec_conf::kLeAudioLocationStereo);
+
+  allocation = 0;
+  for (const auto& s :
+       group->stream_conf.source_offloader_streams_target_allocation) {
+    allocation |= s.second;
+    ASSERT_FALSE(allocation == 0);
+  }
+  ASSERT_TRUE(allocation == codec_spec_conf::kLeAudioLocationStereo);
+
+  for (const auto& s :
+       group->stream_conf.sink_offloader_streams_current_allocation) {
     ASSERT_TRUE((s.second == 0) ||
                 (s.second == codec_spec_conf::kLeAudioLocationStereo));
   }
 
-  for (const auto& s : group->stream_conf.source_offloader_streams) {
+  for (const auto& s :
+       group->stream_conf.source_offloader_streams_current_allocation) {
     ASSERT_TRUE((s.second == 0) ||
                 (s.second == codec_spec_conf::kLeAudioLocationStereo));
   }
