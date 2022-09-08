@@ -215,8 +215,9 @@ int HfpIntf::connect(RustRawAddress bt_addr) {
   return intf_->Connect(&addr);
 }
 
-int HfpIntf::connect_audio(RustRawAddress bt_addr) {
+int HfpIntf::connect_audio(RustRawAddress bt_addr, bool sco_offload) {
   RawAddress addr = rusty::CopyFromRustAddress(bt_addr);
+  intf_->SetScoOffloadEnabled(sco_offload);
   return intf_->ConnectAudio(&addr);
 }
 
