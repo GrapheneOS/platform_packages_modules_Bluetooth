@@ -42,6 +42,8 @@ class GATTProxy(ProfileProxy):
         self.characteristics = None
         self.descriptors = None
         self.read_response = None
+        self.write_response = None
+        self.written_over_length = False
 
     @assert_description
     def MMI_IUT_INITIATE_CONNECTION(self, test, pts_addr: bytes, **kwargs):
@@ -75,6 +77,8 @@ class GATTProxy(ProfileProxy):
         self.characteristics = None
         self.descriptors = None
         self.read_response = None
+        self.write_response = None
+        self.written_over_length = False
         return "OK"
 
     @assert_description
@@ -104,7 +108,7 @@ class GATTProxy(ProfileProxy):
         matches = re.findall("'([a0-Z9]*)'O and size = '([a0-Z9]*)'", description)
         handle = int(matches[0][0], 16)
         data = bytes([1]) * int(matches[0][1])
-        self.gatt.WriteCharacteristicFromHandle(connection=self.connection,\
+        self.gatt.WriteAttFromHandle(connection=self.connection,\
                 handle=handle, value=data)
         return "OK"
 
@@ -435,12 +439,12 @@ class GATTProxy(ProfileProxy):
         """
 
         if type(self.read_response) is ReadCharacteristicResponse:
-            assert self.read_response.readValue is not None
-            assert self.read_response.readValue.status == AttStatusCode.INVALID_HANDLE
+            assert self.read_response.status == AttStatusCode.INVALID_HANDLE
         elif type(self.read_response) is ReadCharacteristicsFromUuidResponse:
-            assert self.read_response.readValues is not None
+            assert self.read_response.characteristics_read is not None
             assert AttStatusCode.INVALID_HANDLE in\
-                    list(map(lambda read_value: read_value.status, self.read_response.readValues))
+                    list(map(lambda characteristic_read: characteristic_read.status,\
+                            self.read_response.characteristics_read))
         return "Yes"
 
     @assert_description
@@ -457,15 +461,14 @@ class GATTProxy(ProfileProxy):
         # Android read error doesn't return an error code so we have to also
         # compare to the generic error code here.
         if type(self.read_response) is ReadCharacteristicResponse:
-            assert self.read_response.readValue is not None
-            assert self.read_response.readValue.status == AttStatusCode.READ_NOT_PERMITTED or\
-                    self.read_response.readValue.status == AttStatusCode.UNKNOWN_ERROR
+            assert self.read_response.status == AttStatusCode.READ_NOT_PERMITTED or\
+                    self.read_response.status == AttStatusCode.UNKNOWN_ERROR
         elif type(self.read_response) is ReadCharacteristicsFromUuidResponse:
-            assert self.read_response.readValues is not None
-            assert AttStatusCode.READ_NOT_PERMITTED in\
-                    list(map(lambda read_value: read_value.status, self.read_response.readValues)) or\
-                    AttStatusCode.UNKNOWN_ERROR in\
-                    list(map(lambda read_value: read_value.status, self.read_response.readValues))
+            assert self.read_response.characteristics_read is not None
+            status_list = list(map(lambda characteristic_read: characteristic_read.status,\
+                    self.read_response.characteristics_read))
+            assert AttStatusCode.READ_NOT_PERMITTED in status_list or\
+                    AttStatusCode.UNKNOWN_ERROR in status_list
         return "Yes"
 
     @assert_description
@@ -480,12 +483,12 @@ class GATTProxy(ProfileProxy):
         """
 
         if type(self.read_response) is ReadCharacteristicResponse:
-            assert self.read_response.readValue is not None
-            assert self.read_response.readValue.status == AttStatusCode.INSUFFICIENT_AUTHENTICATION
+            assert self.read_response.status == AttStatusCode.INSUFFICIENT_AUTHENTICATION
         elif type(self.read_response) is ReadCharacteristicsFromUuidResponse:
-            assert self.read_response.readValues is not None
+            assert self.read_response.characteristics_read is not None
             assert AttStatusCode.INSUFFICIENT_AUTHENTICATION in\
-                    list(map(lambda read_value: read_value.status, self.read_response.readValues))
+                    list(map(lambda characteristic_read: characteristic_read.status,\
+                            self.read_response.characteristics_read))
         return "Yes"
 
     def MMI_IUT_SEND_READ_CHARACTERISTIC_UUID(self, description: str, **kwargs):
@@ -519,15 +522,14 @@ class GATTProxy(ProfileProxy):
         # Android read error doesn't return an error code so we have to also
         # compare to the generic error code here.
         if type(self.read_response) is ReadCharacteristicResponse:
-            assert self.read_response.readValue is not None
-            assert self.read_response.readValue.status == AttStatusCode.ATTRIBUTE_NOT_FOUND or\
-                    self.read_response.readValue.status == AttStatusCode.UNKNOWN_ERROR
+            assert self.read_response.status == AttStatusCode.ATTRIBUTE_NOT_FOUND or\
+                    self.read_response.status == AttStatusCode.UNKNOWN_ERROR
         elif type(self.read_response) is ReadCharacteristicsFromUuidResponse:
-            assert self.read_response.readValues is not None
-            assert AttStatusCode.ATTRIBUTE_NOT_FOUND in\
-                    list(map(lambda read_value: read_value.status, self.read_response.readValues)) or\
-                    AttStatusCode.UNKNOWN_ERROR in\
-                    list(map(lambda read_value: read_value.status, self.read_response.readValues))
+            assert self.read_response.characteristics_read is not None
+            status_list = list(map(lambda characteristic_read: characteristic_read.status,\
+                    self.read_response.characteristics_read))
+            assert AttStatusCode.ATTRIBUTE_NOT_FOUND in status_list or\
+                    AttStatusCode.UNKNOWN_ERROR in status_list
         return "Yes"
 
     def MMI_IUT_SEND_READ_GREATER_OFFSET(self, description: str, **kwargs):
@@ -572,12 +574,12 @@ class GATTProxy(ProfileProxy):
         """
 
         if type(self.read_response) is ReadCharacteristicResponse:
-            assert self.read_response.readValue is not None
-            assert self.read_response.readValue.status == AttStatusCode.APPLICATION_ERROR
+            assert self.read_response.status == AttStatusCode.APPLICATION_ERROR
         elif type(self.read_response) is ReadCharacteristicsFromUuidResponse:
-            assert self.read_response.readValues is not None
+            assert self.read_response.characteristics_read is not None
             assert AttStatusCode.APPLICATION_ERROR in\
-                    list(map(lambda read_value: read_value.status, self.read_response.readValues))
+                    list(map(lambda characteristic_read: characteristic_read.status,\
+                            self.read_response.characteristics_read))
         return "Yes"
 
     def MMI_IUT_CONFIRM_READ_CHARACTERISTIC_VALUE(self, description: str, **kwargs):
@@ -592,11 +594,13 @@ class GATTProxy(ProfileProxy):
 
         characteristic_value = bytes.fromhex(re.findall("'([a0-Z9]*)'O", description)[0])
         if type(self.read_response) is ReadCharacteristicResponse:
-            assert self.read_response.readValue is not None
-            assert characteristic_value in self.read_response.readValue.value
+            assert self.read_response.value is not None
+            assert characteristic_value in self.read_response.value.value
         elif type(self.read_response) is ReadCharacteristicsFromUuidResponse:
-            assert self.read_response.readValues is not None
-            assert characteristic_value in list(map(lambda read_value: read_value.value, self.read_response.readValues))
+            assert self.read_response.characteristics_read is not None
+            assert characteristic_value in list(map(\
+                    lambda characteristic_read: characteristic_read.value.value,\
+                    self.read_response.characteristics_read))
         return "Yes"
 
     def MMI_IUT_READ_BY_TYPE_UUID(self, description: str, **kwargs):
@@ -643,12 +647,13 @@ class GATTProxy(ProfileProxy):
 
         bytes_value = bytes.fromhex(re.search("value='(.*)'O", description)[1])
         if type(self.read_response) is ReadCharacteristicResponse:
-            assert self.read_response.readValue is not None
-            assert self.read_response.readValue.value == bytes_value
+            assert self.read_response.value is not None
+            assert self.read_response.value.value == bytes_value
         elif type(self.read_response) is ReadCharacteristicsFromUuidResponse:
-            assert self.read_response.readValues is not None
-            assert bytes_value in\
-                    list(map(lambda read_value: read_value.value, self.read_response.readValues))
+            assert self.read_response.characteristics_read is not None
+            assert bytes_value in list(map(\
+                    lambda characteristic_read: characteristic_read.value.value,\
+                    self.read_response.characteristics_read))
         return "Yes"
 
     def MMI_IUT_SEND_READ_DESCIPTOR_HANDLE(self, description: str, **kwargs):
@@ -674,10 +679,196 @@ class GATTProxy(ProfileProxy):
         send Read Descriptor to PTS random select adopted database.
         """
 
-        assert self.read_response.readValue is not None
+        assert self.read_response.value is not None
         bytes_value = bytes.fromhex(re.search("value='(.*)'O", description)[1])
-        assert self.read_response.readValue.value == bytes_value
+        assert self.read_response.value.value == bytes_value
         return "Yes"
+
+    def MMI_IUT_SEND_WRITE_REQUEST(self, description: str, **kwargs):
+        """
+        Please send write request with characteristic handle = 'XXXX'O with <=
+        'X' byte of any octet value to the PTS.
+
+        Description: Verify that the
+        Implementation Under Test (IUT) can send write request.
+        """
+
+        assert self.connection is not None
+        matches = re.findall("'([a0-Z9]*)'O with <= '([a0-Z9]*)'", description)
+        handle = stringHandleToInt(matches[0][0])
+        data = bytes([1]) * int(matches[0][1])
+        self.write_response = self.gatt.WriteAttFromHandle(connection=self.connection,\
+                handle=handle, value=data)
+        return "OK"
+
+    @assert_description
+    def MMI_IUT_CONFIRM_WRITE_INVALID_HANDLE(self, **kwargs):
+        """
+        Please confirm IUT received Invalid handle error. Click Yes if IUT
+        received it, otherwise click No.
+
+        Description: Verify that the
+        Implementation Under Test (IUT) indicate Invalid handle error when write
+        a characteristic.
+        """
+
+        assert self.write_response is not None
+        assert self.write_response.status == AttStatusCode.INVALID_HANDLE
+        return "Yes"
+
+    @assert_description
+    def MMI_IUT_CONFIRM_WRITE_NOT_PERMITTED(self, **kwargs):
+        """
+        Please confirm IUT received write is not permitted error. Click Yes if
+        IUT received it, otherwise click No.
+
+        Description: Verify that the
+        Implementation Under Test (IUT) indicate write is not permitted error
+        when write a characteristic.
+        """
+
+        assert self.write_response is not None
+        assert self.write_response.status == AttStatusCode.WRITE_NOT_PERMITTED
+        return "Yes"
+
+    def MMI_IUT_SEND_PREPARE_WRITE(self, description: str, **kwargs):
+        """
+        Please send prepare write request with handle = 'XXXX'O <= 'XX' byte of
+        any octet value to the PTS.
+
+        Description: Verify that the Implementation
+        Under Test (IUT) can send prepare write request.
+        """
+
+        assert self.connection is not None
+        matches = re.findall("'([a0-Z9]*)'O <= '([a0-Z9]*)'", description)
+        handle = stringHandleToInt(matches[0][0])
+        data = bytes([1]) * int(matches[0][1])
+        self.write_response = self.gatt.WriteAttFromHandle(connection=self.connection,\
+                handle=handle, value=data)
+        return "OK"
+
+    def MMI_IUT_SEND_PREPARE_WRITE_GREATER_OFFSET(self, description: str, **kwargs):
+        """
+        Please send prepare write request with handle = 'XXXX'O and offset
+        greater than 'XX' byte to the PTS.
+
+        Description: Verify that the
+        Implementation Under Test (IUT) can send prepare write request.
+        """
+
+        assert self.connection is not None
+        matches = re.findall("'([a0-Z9]*)'O and offset greater than '([a0-Z9]*)'", description)
+        handle = stringHandleToInt(matches[0][0])
+        # Android APIs does not permit offset write, however we can test this by writing a value
+        # longer than the characteristic's value size. As sometimes this MMI description will ask
+        # for values greater than 512 bytes, we have to check for this or Android Bluetooth will
+        # crash. Setting written_over_length to True in order to perform the check in next MMI.
+        offset = int(matches[0][1]) + 1
+        if offset <= 512:
+            data = bytes([1]) * offset
+            self.written_over_length = True
+        else:
+            data = bytes([1]) * 512
+        self.write_response = self.gatt.WriteAttFromHandle(connection=self.connection,\
+                handle=handle, value=data)
+        return "OK"
+
+    @assert_description
+    def MMI_IUT_SEND_EXECUTE_WRITE_REQUEST(self, **kwargs):
+        """
+        Please send execute write request to the PTS.
+
+        Description: Verify that
+        the Implementation Under Test (IUT) can send execute write request.
+        """
+
+        # PTS Sends this MMI after the MMI_IUT_SEND_PREPARE_WRITE_GREATER_OFFSET,
+        # nothing to do as we already wrote.
+        return "OK"
+
+    @assert_description
+    def MMI_IUT_CONFIRM_WRITE_INVALID_OFFSET(self, **kwargs):
+        """
+        Please confirm IUT received Invalid offset error. Click Yes if IUT
+        received it, otherwise click No.
+
+        Description: Verify that the
+        Implementation Under Test (IUT) indicate Invalid offset error when write
+        a characteristic.
+        """
+
+        assert self.write_response is not None
+        # See MMI_IUT_SEND_PREPARE_WRITE_GREATER_OFFSET
+        if self.written_over_length == True:
+            assert self.write_response.status == AttStatusCode.INVALID_ATTRIBUTE_LENGTH
+        return "OK"
+
+    def MMI_IUT_SEND_WRITE_REQUEST_GREATER(self, description: str, **kwargs):
+        """
+        Please send write request with characteristic handle = 'XXXX'O with
+        greater than 'X' byte of any octet value to the PTS.
+
+        Description:
+        Verify that the Implementation Under Test (IUT) can send write request.
+        """
+
+        assert self.connection is not None
+        matches = re.findall("'([a0-Z9]*)'O with greater than '([a0-Z9]*)'", description)
+        handle = stringHandleToInt(matches[0][0])
+        data = bytes([1]) * (int(matches[0][1]) + 1)
+        self.write_response = self.gatt.WriteAttFromHandle(connection=self.connection,\
+                handle=handle, value=data)
+        return "OK"
+
+    @assert_description
+    def MMI_IUT_CONFIRM_WRITE_INVALID_LENGTH(self, **kwargs):
+        """
+        Please confirm IUT received Invalid attribute value length error. Click
+        Yes if IUT received it, otherwise click No.
+
+        Description: Verify that
+        the Implementation Under Test (IUT) indicate Invalid attribute value
+        length error when write a characteristic.
+        """
+
+        assert self.write_response is not None
+        assert self.write_response.status == AttStatusCode.INVALID_ATTRIBUTE_LENGTH
+        return "OK"
+
+    def MMI_IUT_SEND_PREPARE_WRITE_REQUEST_GREATER(self, description: str, **kwargs):
+        """
+        Please send prepare write request with handle = 'XXXX'O with greater
+        than 'XX' byte of any octet value to the PTS.
+
+        Description: Verify that
+        the Implementation Under Test (IUT) can send prepare write request.
+        """
+
+        assert self.connection is not None
+        matches = re.findall("'([a0-Z9]*)'O with greater than '([a0-Z9]*)'", description)
+        handle = stringHandleToInt(matches[0][0])
+        data = bytes([1]) * (int(matches[0][1]) + 1)
+        self.write_response = self.gatt.WriteAttFromHandle(connection=self.connection,\
+                handle=handle, value=data)
+        return "OK"
+
+    def MMI_IUT_SEND_WRITE_COMMAND(self, description: str, **kwargs):
+        """
+        Please send write command with handle = 'XXXX'O with <= 'X' bytes of any
+        octet value to the PTS.
+
+        Description: Verify that the Implementation
+        Under Test (IUT) can send write request.
+        """
+
+        assert self.connection is not None
+        matches = re.findall("'([a0-Z9]*)'O with <= '([a0-Z9]*)'", description)
+        handle = stringHandleToInt(matches[0][0])
+        data = bytes([1]) * int(matches[0][1])
+        self.write_response = self.gatt.WriteAttFromHandle(connection=self.connection,\
+                handle=handle, value=data)
+        return "OK"
 
 
 common_uuid = "0000XXXX-0000-1000-8000-00805f9b34fb"
