@@ -39,6 +39,7 @@ import java.util.UUID;
     public static final int TYPE_LOCAL_NAME = 4;
     public static final int TYPE_MANUFACTURER_DATA = 5;
     public static final int TYPE_SERVICE_DATA = 6;
+    public static final int TYPE_ADVERTISING_DATA_TYPE = 7;
 
     // Max length is 31 - 3(flags) - 2 (one byte for length and one byte for type).
     private static final int MAX_LEN_PER_FIELD = 26;
@@ -56,6 +57,7 @@ import java.util.UUID;
         public String name;
         public int company;
         public int company_mask;
+        public int ad_type;
         public byte[] data;
         public byte[] data_mask;
     }
@@ -145,6 +147,15 @@ import java.util.UUID;
         mEntries.add(entry);
     }
 
+    void addAdvertisingDataType(int adType, byte[] data, byte[] dataMask) {
+        Entry entry = new Entry();
+        entry.type = TYPE_ADVERTISING_DATA_TYPE;
+        entry.ad_type = adType;
+        entry.data = data;
+        entry.data_mask = dataMask;
+        mEntries.add(entry);
+    }
+
     Entry pop() {
         if (mEntries.isEmpty()) {
             return null;
@@ -225,6 +236,10 @@ import java.util.UUID;
             if (serviceData != null && serviceDataMask != null) {
                 addServiceData(serviceData, serviceDataMask);
             }
+        }
+        if (filter.getAdvertisingDataType() > 0) {
+            addAdvertisingDataType(filter.getAdvertisingDataType(),
+                    filter.getAdvertisingData(), filter.getAdvertisingDataMask());
         }
     }
 
