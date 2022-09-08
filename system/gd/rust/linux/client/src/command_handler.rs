@@ -5,10 +5,11 @@ use std::sync::{Arc, Mutex};
 use crate::callbacks::BtGattCallback;
 use crate::ClientContext;
 use crate::{console_red, console_yellow, print_error, print_info};
-use bt_topshim::btif::{BtConnectionState, BtTransport};
+use bt_topshim::btif::{BtConnectionState, BtStatus, BtTransport};
 use btstack::bluetooth::{BluetoothDevice, IBluetooth, IBluetoothQA};
 use btstack::bluetooth_adv::{AdvertiseData, AdvertisingSetParameters};
 use btstack::bluetooth_gatt::{IBluetoothGatt, RSSISettings, ScanSettings, ScanType};
+use btstack::socket_manager::{IBluetoothSocketManager, SocketResult};
 use btstack::uuid::{Profile, UuidHelper, UuidWrapper};
 use manager_service::iface_bluetooth_manager::IBluetoothManager;
 
@@ -163,6 +164,14 @@ fn build_commands() -> HashMap<String, CommandOption> {
             rules: vec![String::from("advertise <on|off>")],
             description: String::from("Advertising utilities."),
             function_pointer: CommandHandler::cmd_advertise,
+        },
+    );
+    command_options.insert(
+        String::from("socket"),
+        CommandOption {
+            rules: vec![String::from("socket test")],
+            description: String::from("Socket manager utilities."),
+            function_pointer: CommandHandler::cmd_socket,
         },
     );
     command_options.insert(
@@ -957,6 +966,44 @@ impl CommandHandler {
                     }
                 }
                 self.context.lock().unwrap().adv_sets.clear();
+            }
+            _ => {
+                println!("Invalid argument '{}'", args[0]);
+            }
+        });
+    }
+
+    fn cmd_socket(&mut self, args: &Vec<String>) {
+        if !self.context.lock().unwrap().adapter_ready {
+            self.adapter_not_ready();
+            return;
+        }
+        let callback_id = match self.context.lock().unwrap().socket_manager_callback_id.clone() {
+            Some(id) => id,
+            None => {
+                return;
+            }
+        };
+
+        enforce_arg_len(args, 1, "socket <test>", || match &args[0][0..] {
+            "test" => {
+                let SocketResult { status, id } = self
+                    .context
+                    .lock()
+                    .unwrap()
+                    .socket_manager_dbus
+                    .as_mut()
+                    .unwrap()
+                    .listen_using_l2cap_channel(callback_id);
+
+                if status != BtStatus::Success {
+                    print_error!(
+                        "Failed to request for listening using l2cap channel, status = {:?}",
+                        status,
+                    );
+                    return;
+                }
+                print_info!("Requested for listening using l2cap channel on socket {}", id);
             }
             _ => {
                 println!("Invalid argument '{}'", args[0]);

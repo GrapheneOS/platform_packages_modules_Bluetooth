@@ -2,11 +2,11 @@ use crate::dbus_iface::{
     export_advertising_set_callback_dbus_intf, export_bluetooth_callback_dbus_intf,
     export_bluetooth_connection_callback_dbus_intf, export_bluetooth_gatt_callback_dbus_intf,
     export_bluetooth_manager_callback_dbus_intf, export_scanner_callback_dbus_intf,
-    export_suspend_callback_dbus_intf,
+    export_socket_callback_dbus_intf, export_suspend_callback_dbus_intf,
 };
 use crate::ClientContext;
 use crate::{console_red, console_yellow, print_error, print_info};
-use bt_topshim::btif::{BtBondState, BtPropertyType, BtSspVariant, Uuid128Bit};
+use bt_topshim::btif::{BtBondState, BtPropertyType, BtSspVariant, BtStatus, Uuid128Bit};
 use bt_topshim::profiles::gatt::GattStatus;
 use btstack::bluetooth::{
     BluetoothDevice, IBluetooth, IBluetoothCallback, IBluetoothConnectionCallback,
@@ -14,6 +14,10 @@ use btstack::bluetooth::{
 use btstack::bluetooth_adv::IAdvertisingSetCallback;
 use btstack::bluetooth_gatt::{
     BluetoothGattService, IBluetoothGattCallback, IScannerCallback, LePhy, ScanResult,
+};
+use btstack::socket_manager::{
+    BluetoothServerSocket, BluetoothSocket, IBluetoothSocketManager,
+    IBluetoothSocketManagerCallbacks, SocketId,
 };
 use btstack::suspend::ISuspendCallback;
 use btstack::uuid::UuidWrapper;
@@ -661,6 +665,105 @@ impl RPCProxy for BtGattCallback {
             Arc::new(Mutex::new(DisconnectWatcher::new())),
         );
 
+        cr.lock().unwrap().insert(self.get_object_id(), &[iface], Arc::new(Mutex::new(self)));
+    }
+}
+
+pub(crate) struct BtSocketManagerCallback {
+    objpath: String,
+    context: Arc<Mutex<ClientContext>>,
+
+    dbus_connection: Arc<SyncConnection>,
+    dbus_crossroads: Arc<Mutex<Crossroads>>,
+}
+
+impl BtSocketManagerCallback {
+    pub(crate) fn new(
+        objpath: String,
+        context: Arc<Mutex<ClientContext>>,
+        dbus_connection: Arc<SyncConnection>,
+        dbus_crossroads: Arc<Mutex<Crossroads>>,
+    ) -> Self {
+        Self { objpath, context, dbus_connection, dbus_crossroads }
+    }
+}
+
+impl IBluetoothSocketManagerCallbacks for BtSocketManagerCallback {
+    fn on_incoming_socket_ready(&mut self, socket: BluetoothServerSocket, status: BtStatus) {
+        if status != BtStatus::Success {
+            print_error!(
+                "Incoming socket {} failed to be ready, type = {:?}, flags = {}, status = {:?}",
+                socket.id,
+                socket.sock_type,
+                socket.flags,
+                status,
+            );
+            return;
+        }
+
+        print_info!(
+            "Socket {} ready, details: {:?}, flags = {}, psm = {:?}, channel = {:?}, name = {:?}, uuid = {:?}",
+            socket.id,
+            socket.sock_type,
+            socket.flags,
+            socket.psm,
+            socket.channel,
+            socket.name,
+            socket.uuid,
+        );
+
+        let callback_id = self.context.lock().unwrap().socket_manager_callback_id.clone().unwrap();
+
+        self.context.lock().unwrap().run_callback(Box::new(move |context| {
+            let status = context
+                .lock()
+                .unwrap()
+                .socket_manager_dbus
+                .as_mut()
+                .unwrap()
+                .close(callback_id, socket.id);
+            if status != BtStatus::Success {
+                print_error!("Failed to close socket {}, status = {:?}", socket.id, status);
+                return;
+            }
+            print_info!("Requested for closing socket {}", socket.id);
+        }));
+    }
+
+    fn on_incoming_socket_closed(&mut self, listener_id: SocketId, reason: BtStatus) {
+        print_info!("Socket {} closed, reason = {:?}", listener_id, reason);
+    }
+
+    fn on_handle_incoming_connection(
+        &mut self,
+        listener_id: SocketId,
+        connection: BluetoothSocket,
+    ) {
+        todo!();
+    }
+
+    fn on_outgoing_connection_result(
+        &mut self,
+        connecting_id: SocketId,
+        result: BtStatus,
+        socket: Option<BluetoothSocket>,
+    ) {
+        todo!();
+    }
+}
+
+impl RPCProxy for BtSocketManagerCallback {
+    fn get_object_id(&self) -> String {
+        self.objpath.clone()
+    }
+
+    fn export_for_rpc(self: Box<Self>) {
+        let cr = self.dbus_crossroads.clone();
+        let iface = export_socket_callback_dbus_intf(
+            self.dbus_connection.clone(),
+            &mut cr.lock().unwrap(),
+            Arc::new(Mutex::new(DisconnectWatcher::new())),
+        );
         cr.lock().unwrap().insert(self.get_object_id(), &[iface], Arc::new(Mutex::new(self)));
     }
 }
