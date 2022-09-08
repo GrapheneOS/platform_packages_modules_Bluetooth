@@ -29,10 +29,8 @@ mod ffi {
             product_id: u32,
             version: u32,
         );
-        fn profile_connection_attempt(bt_addr: RustRawAddress, intent: u32, profile: u32);
         fn profile_connection_state_changed(
             bt_addr: RustRawAddress,
-            intent: u32,
             profile: u32,
             status: u32,
             state: u32,
@@ -106,26 +104,11 @@ pub fn device_info_report(
     );
 }
 
-pub fn profile_connection_attempt(
-    addr: RawAddress,
-    intent: MetricsProfileConnectionIntent,
-    profile: u32,
-) {
-    ffi::profile_connection_attempt(addr.into(), intent as u32, profile);
-}
-
 pub fn profile_connection_state_changed(
     addr: RawAddress,
-    intent: MetricsProfileConnectionIntent,
     profile: u32,
     status: BtStatus,
     state: u32,
 ) {
-    ffi::profile_connection_state_changed(
-        addr.into(),
-        intent as u32,
-        profile,
-        status as u32,
-        state,
-    );
+    ffi::profile_connection_state_changed(addr.into(), profile, status as u32, state);
 }

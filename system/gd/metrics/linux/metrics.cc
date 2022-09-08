@@ -37,10 +37,7 @@ void LogMetricsDeviceInfoReport(
     uint32_t product_id,
     uint32_t version) {}
 
-void LogMetricsProfileConnectionAttempt(RawAddress* addr, uint32_t intent, uint32_t profile) {}
-
-void LogMetricsProfileConnectionStateChanged(
-    RawAddress* addr, uint32_t intent, uint32_t profile, uint32_t status, uint32_t state) {}
+void LogMetricsProfileConnectionStateChanged(RawAddress* addr, uint32_t profile, uint32_t status, uint32_t state) {}
 
 }  // namespace metrics
 }  // namespace bluetooth
