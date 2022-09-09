@@ -413,16 +413,15 @@ public final class BluetoothCodecConfig implements Parcelable {
         return 0;
     }
 
-    public static final @android.annotation.NonNull Parcelable.Creator<BluetoothCodecConfig> CREATOR =
-            new Parcelable.Creator<BluetoothCodecConfig>() {
-                public BluetoothCodecConfig createFromParcel(Parcel in) {
-                    return new BluetoothCodecConfig(in);
-                }
+    public static final @NonNull Creator<BluetoothCodecConfig> CREATOR = new Creator<>() {
+        public BluetoothCodecConfig createFromParcel(Parcel in) {
+            return new BluetoothCodecConfig(in);
+        }
 
-                public BluetoothCodecConfig[] newArray(int size) {
-                    return new BluetoothCodecConfig[size];
-                }
-            };
+        public BluetoothCodecConfig[] newArray(int size) {
+            return new BluetoothCodecConfig[size];
+        }
+    };
 
     /**
      * Flattens the object to a parcel
@@ -462,7 +461,7 @@ public final class BluetoothCodecConfig implements Parcelable {
             case SOURCE_CODEC_TYPE_LDAC:
                 return "LDAC";
             case SOURCE_CODEC_TYPE_LC3:
-              return "LC3";
+                return "LC3";
             case SOURCE_CODEC_TYPE_INVALID:
                 return "INVALID CODEC";
             default:
@@ -712,9 +711,10 @@ public final class BluetoothCodecConfig implements Parcelable {
             case SOURCE_CODEC_TYPE_AAC:
             case SOURCE_CODEC_TYPE_LDAC:
             case SOURCE_CODEC_TYPE_LC3:
-              if (mCodecSpecific1 != other.mCodecSpecific1) {
-                return false;
-              }
+                if (mCodecSpecific1 != other.mCodecSpecific1) {
+                    return false;
+                }
+            // fall through
             default:
                 return true;
         }
