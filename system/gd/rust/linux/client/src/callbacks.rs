@@ -736,17 +736,17 @@ impl IBluetoothSocketManagerCallbacks for BtSocketManagerCallback {
 
     fn on_handle_incoming_connection(
         &mut self,
-        listener_id: SocketId,
-        connection: BluetoothSocket,
+        _listener_id: SocketId,
+        _connection: BluetoothSocket,
     ) {
         todo!();
     }
 
     fn on_outgoing_connection_result(
         &mut self,
-        connecting_id: SocketId,
-        result: BtStatus,
-        socket: Option<BluetoothSocket>,
+        _connecting_id: SocketId,
+        _result: BtStatus,
+        _socket: Option<BluetoothSocket>,
     ) {
         todo!();
     }
