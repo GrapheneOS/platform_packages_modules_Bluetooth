@@ -983,7 +983,10 @@ pub fn generate_dbus_arg(_item: TokenStream) -> TokenStream {
                 _name: String,
             ) -> Result<Self::RustType, Box<dyn Error>> {
                 let mut vec: Vec<T> = vec![];
-                let mut iter = arg.as_iter().unwrap();
+                let mut iter = arg.as_iter().ok_or(Box::new(DBusArgError::new(format!(
+                    "Failed parsing array for `{}`",
+                    _name
+                ))))?;
                 let mut val = iter.next();
                 while !val.is_none() {
                     let arg = val.unwrap().box_clone();
