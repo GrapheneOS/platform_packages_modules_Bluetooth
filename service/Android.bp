@@ -141,7 +141,7 @@ java_library {
     ],
     libs: ["libprotobuf-java-nano"],
     apex_available: [
-        "com.android.bluetooth",
+        "com.android.btservices",
     ],
     lint: { strict_updatability_linting: true },
 }
