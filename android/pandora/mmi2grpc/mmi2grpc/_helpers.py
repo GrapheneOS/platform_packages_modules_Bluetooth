@@ -109,7 +109,7 @@ def format_proxy(profile, mmi_name, mmi_description):
     return (f'from mmi2grpc._helpers import assert_description\n'
             f'from mmi2grpc._proxy import ProfileProxy\n'
             f'\n'
-            f'from pandora.{profile.lower()}_grpc import {profile}\n'
+            f'from pandora_experimental.{profile.lower()}_grpc import {profile}\n'
             f'\n'
             f'\n'
             f'class {profile}Proxy(ProfileProxy):\n'
