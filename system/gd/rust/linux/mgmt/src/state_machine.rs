@@ -18,8 +18,11 @@ use tokio::io::unix::AsyncFd;
 use tokio::sync::mpsc;
 use tokio::time::{Duration, Instant};
 
-// Directory for Bluetooth pid file
+/// Directory for Bluetooth pid file
 pub const PID_DIR: &str = "/var/run/bluetooth";
+
+/// Number of times to try restarting before resetting the adapter.
+pub const RESET_ON_RESTART_COUNT: i32 = 2;
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 #[repr(u32)]
@@ -111,7 +114,10 @@ pub struct StateMachineProxy {
 }
 
 const TX_SEND_TIMEOUT_DURATION: Duration = Duration::from_secs(3);
-const COMMAND_TIMEOUT_DURATION: Duration = Duration::from_secs(3);
+
+/// Duration to use for timeouts when starting/stopping adapters.
+/// Some adapters take a while to load firmware so use a sufficiently long timeout here.
+const COMMAND_TIMEOUT_DURATION: Duration = Duration::from_secs(7);
 
 impl StateMachineProxy {
     pub fn start_bluetooth(&self, hci: i32) {
@@ -856,6 +862,13 @@ impl StateMachineInternal {
         self.floss_enabled.swap(enabled, Ordering::Relaxed)
     }
 
+    #[cfg(test)]
+    fn set_config_enabled(&mut self, hci: i32, enabled: bool) {
+        self.modify_state(hci, move |a: &mut AdapterState| {
+            a.config_enabled = enabled;
+        });
+    }
+
     fn get_process_state(&self, hci: i32) -> ProcessState {
         self.get_state(hci, move |a: &AdapterState| Some(a.state)).unwrap_or(ProcessState::Off)
     }
@@ -875,6 +888,14 @@ impl StateMachineInternal {
         F: Fn(&mut AdapterState),
     {
         call(&mut *self.state.lock().unwrap().entry(hci).or_insert(AdapterState::new(hci)))
+    }
+
+    /// Attempt to reset an hci device. Always set the state to ProcessState::Stopped
+    /// as we expect this device to disappear and reappear.
+    fn reset_hci(&mut self, hci: i32) {
+        if !config_util::reset_hci_device(hci) {
+            error!("Attempted reset recovery of hci{} and failed.", hci);
+        }
     }
 
     /// Returns true if we are starting bluetooth process.
@@ -943,7 +964,9 @@ impl StateMachineInternal {
     /// If unexpected, Bluetooth probably crashed, returning false and starting the timer for restart timeout.
     pub fn action_on_bluetooth_stopped(&mut self, hci: i32) -> CommandTimeoutAction {
         let state = self.get_process_state(hci);
-        let present = self.get_state(hci, move |a: &AdapterState| Some(a.present)).unwrap_or(false);
+        let (present, config_enabled) = self
+            .get_state(hci, move |a: &AdapterState| Some((a.present, a.config_enabled)))
+            .unwrap_or((false, false));
         let floss_enabled = self.get_floss_enabled();
 
         match state {
@@ -953,14 +976,34 @@ impl StateMachineInternal {
                 CommandTimeoutAction::CancelTimer
             }
             // Running bluetooth stopped unexpectedly.
-            ProcessState::On if present && floss_enabled => {
-                warn!("Bluetooth stopped unexpectedly, try restarting");
-                self.modify_state(hci, |s: &mut AdapterState| {
-                    s.state = ProcessState::TurningOn;
-                    s.restart_count = s.restart_count + 1;
-                });
-                self.process_manager.start(format!("{}", hci));
-                CommandTimeoutAction::ResetTimer
+            ProcessState::On if floss_enabled && config_enabled => {
+                let restart_count =
+                    self.get_state(hci, |a: &AdapterState| Some(a.restart_count)).unwrap_or(0);
+
+                // If we've restarted a number of times, attempt to use the reset mechanism instead
+                // of retrying a start.
+                if restart_count >= RESET_ON_RESTART_COUNT {
+                    warn!("Bluetooth stopped unexpectedly. After {} restarts, trying a reset recovery.",
+                        restart_count);
+                    // Reset the restart count since we're attempting a reset now.
+                    self.modify_state(hci, |s: &mut AdapterState| {
+                        s.state = ProcessState::Off;
+                        s.restart_count = 0;
+                    });
+                    self.reset_hci(hci);
+                    CommandTimeoutAction::CancelTimer
+                } else {
+                    warn!(
+                        "Bluetooth stopped unexpectedly, try restarting (attempt #{})",
+                        restart_count + 1
+                    );
+                    self.modify_state(hci, |s: &mut AdapterState| {
+                        s.state = ProcessState::TurningOn;
+                        s.restart_count = s.restart_count + 1;
+                    });
+                    self.process_manager.start(format!("{}", hci));
+                    CommandTimeoutAction::ResetTimer
+                }
             }
             ProcessState::On | ProcessState::TurningOn | ProcessState::Off => {
                 warn!(
@@ -978,7 +1021,8 @@ impl StateMachineInternal {
     pub fn action_on_command_timeout(&mut self, hci: i32) -> StateMachineTimeoutActions {
         let state = self.get_process_state(hci);
         let floss_enabled = self.get_floss_enabled();
-        let present = self.get_state(hci, |a: &AdapterState| Some(a.present)).unwrap_or(false);
+        let config_enabled =
+            self.get_state(hci, |a: &AdapterState| Some(a.config_enabled)).unwrap_or(false);
 
         match state {
             // If Floss is not enabled, just send |Stop| to process manager and end the state
@@ -989,20 +1033,39 @@ impl StateMachineInternal {
                 self.process_manager.stop(format! {"{}", hci});
                 StateMachineTimeoutActions::Noop
             }
-            // If turning on and hci is present, restart the process.
-            ProcessState::TurningOn if present => {
-                info!("Restarting bluetooth {}", hci);
-                self.modify_state(hci, |s: &mut AdapterState| s.state = ProcessState::TurningOn);
-                self.process_manager.stop(format! {"{}", hci});
-                self.process_manager.start(format! {"{}", hci});
-                StateMachineTimeoutActions::RetryStart
-            }
-            // If turning on but hci is not present, mark process as stopped. It will be
-            // automatically started (if configured to do so) when it next becomes present.
-            ProcessState::TurningOn if !present => {
-                info!("Device presence lost while turning on: {}", hci);
-                self.modify_state(hci, |s: &mut AdapterState| s.state = ProcessState::Off);
-                StateMachineTimeoutActions::Noop
+            // If turning on and hci is enabled, restart the process if we are below
+            // the restart count. Otherwise, reset and mark turned off.
+            ProcessState::TurningOn if config_enabled => {
+                let restart_count =
+                    self.get_state(hci, |a: &AdapterState| Some(a.restart_count)).unwrap_or(0);
+
+                // If we've restarted a number of times, attempt to use the reset mechanism instead
+                // of retrying a start.
+                if restart_count >= RESET_ON_RESTART_COUNT {
+                    warn!(
+                        "Timed out while starting. After {} restarts, trying a reset recovery.",
+                        restart_count
+                    );
+                    // Reset the restart count since we're attempting a reset now.
+                    self.modify_state(hci, |s: &mut AdapterState| {
+                        s.state = ProcessState::Off;
+                        s.restart_count = 0;
+                    });
+                    self.reset_hci(hci);
+                    StateMachineTimeoutActions::Noop
+                } else {
+                    warn!(
+                        "Timed out while starting, try restarting (attempt #{})",
+                        restart_count + 1
+                    );
+                    self.modify_state(hci, |s: &mut AdapterState| {
+                        s.state = ProcessState::TurningOn;
+                        s.restart_count = s.restart_count + 1;
+                    });
+                    self.process_manager.stop(format! {"{}", hci});
+                    self.process_manager.start(format! {"{}", hci});
+                    StateMachineTimeoutActions::RetryStart
+                }
             }
             ProcessState::TurningOff => {
                 info!("Killing bluetooth {}", hci);
@@ -1034,6 +1097,13 @@ impl StateMachineInternal {
         match self.get_state(hci, |a: &AdapterState| Some((a.state, a.config_enabled))) {
             // Start the adapter if present, config is enabled and floss is enabled.
             Some((ProcessState::Off, true)) if floss_enabled && present => {
+                // Restart count will increment for each time a Start doesn't succeed.
+                // Going from `off` -> `turning on` here usually means either
+                // a) Recovery from a previously unstartable state.
+                // b) Fresh device.
+                // Both should reset the restart count.
+                self.modify_state(hci, |a: &mut AdapterState| a.restart_count = 0);
+
                 self.action_start_bluetooth(hci);
                 ProcessState::TurningOn
             }
@@ -1055,7 +1125,7 @@ mod tests {
 
     struct MockProcessManager {
         last_command: VecDeque<ExecutedCommand>,
-        expectations: Vec<bool>,
+        expectations: Vec<Option<String>>,
     }
 
     impl MockProcessManager {
@@ -1075,15 +1145,27 @@ mod tests {
     impl ProcessManager for MockProcessManager {
         fn start(&mut self, _: String) {
             self.expectations.push(match self.last_command.pop_front() {
-                Some(x) => x == ExecutedCommand::Start,
-                None => false,
+                Some(x) => {
+                    if x == ExecutedCommand::Start {
+                        None
+                    } else {
+                        Some(format!("Got [Start], Expected: [{:?}]", x))
+                    }
+                }
+                None => Some(format!("Got [Start], Expected: None")),
             });
         }
 
         fn stop(&mut self, _: String) {
             self.expectations.push(match self.last_command.pop_front() {
-                Some(x) => x == ExecutedCommand::Stop,
-                None => false,
+                Some(x) => {
+                    if x == ExecutedCommand::Stop {
+                        None
+                    } else {
+                        Some(format!("Got [Stop], Expected: [{:?}]", x))
+                    }
+                }
+                None => Some(format!("Got [Stop], Expected: None")),
             });
         }
     }
@@ -1091,25 +1173,30 @@ mod tests {
     impl Drop for MockProcessManager {
         fn drop(&mut self) {
             assert_eq!(self.last_command.len(), 0);
-            let exp: &[bool] = &[];
+            let exp: &[String] = &[];
             // Check that we had 0 false expectations.
             assert_eq!(
                 self.expectations
                     .iter()
-                    .filter(|&v| !*v)
-                    .map(|v| *v)
-                    .collect::<Vec<bool>>()
+                    .filter(|&v| !v.is_none())
+                    .map(|v| v.as_ref().unwrap().clone())
+                    .collect::<Vec<String>>()
                     .as_slice(),
                 exp
             );
         }
     }
 
+    fn make_state_machine(process_manager: MockProcessManager) -> StateMachineInternal {
+        let mut state_machine = StateMachineInternal::new(Box::new(process_manager), true);
+        state_machine
+    }
+
     #[test]
     fn initial_state_is_off() {
         tokio::runtime::Runtime::new().unwrap().block_on(async {
             let process_manager = MockProcessManager::new();
-            let state_machine = StateMachineInternal::new(Box::new(process_manager), true);
+            let mut state_machine = make_state_machine(process_manager);
             assert_eq!(state_machine.get_process_state(0), ProcessState::Off);
         })
     }
@@ -1118,7 +1205,7 @@ mod tests {
     fn off_turnoff_should_noop() {
         tokio::runtime::Runtime::new().unwrap().block_on(async {
             let process_manager = MockProcessManager::new();
-            let mut state_machine = StateMachineInternal::new(Box::new(process_manager), true);
+            let mut state_machine = make_state_machine(process_manager);
             state_machine.action_stop_bluetooth(0);
             assert_eq!(state_machine.get_process_state(0), ProcessState::Off);
         })
@@ -1130,8 +1217,9 @@ mod tests {
             let mut process_manager = MockProcessManager::new();
             // Expect to send start command
             process_manager.expect_start();
-            let mut state_machine = StateMachineInternal::new(Box::new(process_manager), true);
+            let mut state_machine = make_state_machine(process_manager);
             state_machine.action_on_hci_presence_changed(0, true);
+            state_machine.set_config_enabled(0, true);
             state_machine.action_start_bluetooth(0);
             assert_eq!(state_machine.get_process_state(0), ProcessState::TurningOn);
         })
@@ -1144,8 +1232,9 @@ mod tests {
             // Expect to send start command just once
             process_manager.expect_start();
             process_manager.expect_start();
-            let mut state_machine = StateMachineInternal::new(Box::new(process_manager), true);
+            let mut state_machine = make_state_machine(process_manager);
             state_machine.action_on_hci_presence_changed(0, true);
+            state_machine.set_config_enabled(0, true);
             state_machine.action_start_bluetooth(0);
             assert_eq!(state_machine.action_start_bluetooth(0), CommandTimeoutAction::ResetTimer);
         })
@@ -1156,7 +1245,7 @@ mod tests {
         tokio::runtime::Runtime::new().unwrap().block_on(async {
             let mut process_manager = MockProcessManager::new();
             process_manager.expect_start();
-            let mut state_machine = StateMachineInternal::new(Box::new(process_manager), true);
+            let mut state_machine = make_state_machine(process_manager);
             state_machine.action_on_hci_presence_changed(0, true);
             state_machine.action_start_bluetooth(0);
             state_machine.action_on_bluetooth_started(0, 0);
@@ -1169,8 +1258,9 @@ mod tests {
         tokio::runtime::Runtime::new().unwrap().block_on(async {
             let mut process_manager = MockProcessManager::new();
             process_manager.expect_start();
-            let mut state_machine = StateMachineInternal::new(Box::new(process_manager), true);
+            let mut state_machine = make_state_machine(process_manager);
             state_machine.action_on_hci_presence_changed(1, true);
+            state_machine.set_config_enabled(0, true);
             state_machine.action_start_bluetooth(1);
             state_machine.action_on_bluetooth_started(1, 1);
             assert_eq!(state_machine.get_process_state(1), ProcessState::On);
@@ -1185,8 +1275,9 @@ mod tests {
             process_manager.expect_start();
             process_manager.expect_stop();
             process_manager.expect_start(); // start bluetooth again
-            let mut state_machine = StateMachineInternal::new(Box::new(process_manager), true);
+            let mut state_machine = make_state_machine(process_manager);
             state_machine.action_on_hci_presence_changed(0, true);
+            state_machine.set_config_enabled(0, true);
             state_machine.action_start_bluetooth(0);
             assert_eq!(
                 state_machine.action_on_command_timeout(0),
@@ -1203,7 +1294,7 @@ mod tests {
             process_manager.expect_start();
             // Expect to send stop command
             process_manager.expect_stop();
-            let mut state_machine = StateMachineInternal::new(Box::new(process_manager), true);
+            let mut state_machine = make_state_machine(process_manager);
             state_machine.action_on_hci_presence_changed(0, true);
             state_machine.action_start_bluetooth(0);
             state_machine.action_stop_bluetooth(0);
@@ -1218,8 +1309,9 @@ mod tests {
             process_manager.expect_start();
             // Expect to send stop command
             process_manager.expect_stop();
-            let mut state_machine = StateMachineInternal::new(Box::new(process_manager), true);
+            let mut state_machine = make_state_machine(process_manager);
             state_machine.action_on_hci_presence_changed(0, true);
+            state_machine.set_config_enabled(0, true);
             state_machine.action_start_bluetooth(0);
             state_machine.action_on_bluetooth_started(0, 0);
             state_machine.action_stop_bluetooth(0);
@@ -1235,8 +1327,9 @@ mod tests {
             process_manager.expect_start();
             // Expect to start again
             process_manager.expect_start();
-            let mut state_machine = StateMachineInternal::new(Box::new(process_manager), true);
+            let mut state_machine = make_state_machine(process_manager);
             state_machine.action_on_hci_presence_changed(0, true);
+            state_machine.set_config_enabled(0, true);
             state_machine.action_start_bluetooth(0);
             state_machine.action_on_bluetooth_started(0, 0);
             assert_eq!(
@@ -1246,27 +1339,30 @@ mod tests {
             assert_eq!(state_machine.get_process_state(0), ProcessState::TurningOn);
         });
 
-        // Stopped with no presence shouldn't restart.
+        // Stopped with no presence should restart if config enabled.
         tokio::runtime::Runtime::new().unwrap().block_on(async {
             let mut process_manager = MockProcessManager::new();
             process_manager.expect_start();
-            let mut state_machine = StateMachineInternal::new(Box::new(process_manager), true);
+            // Expect to start again.
+            process_manager.expect_start();
+            let mut state_machine = make_state_machine(process_manager);
             state_machine.action_on_hci_presence_changed(0, true);
+            state_machine.set_config_enabled(0, true);
             state_machine.action_start_bluetooth(0);
             state_machine.action_on_bluetooth_started(0, 0);
             state_machine.action_on_hci_presence_changed(0, false);
             assert_eq!(
                 state_machine.action_on_bluetooth_stopped(0),
-                CommandTimeoutAction::CancelTimer
+                CommandTimeoutAction::ResetTimer
             );
-            assert_eq!(state_machine.get_process_state(0), ProcessState::Off);
+            assert_eq!(state_machine.get_process_state(0), ProcessState::TurningOn);
         });
 
         // If floss was disabled and we see stopped, we shouldn't restart.
         tokio::runtime::Runtime::new().unwrap().block_on(async {
             let mut process_manager = MockProcessManager::new();
             process_manager.expect_start();
-            let mut state_machine = StateMachineInternal::new(Box::new(process_manager), true);
+            let mut state_machine = make_state_machine(process_manager);
             state_machine.action_on_hci_presence_changed(0, true);
             state_machine.action_start_bluetooth(0);
             state_machine.action_on_bluetooth_started(0, 0);
@@ -1285,8 +1381,9 @@ mod tests {
             let mut process_manager = MockProcessManager::new();
             process_manager.expect_start();
             process_manager.expect_stop();
-            let mut state_machine = StateMachineInternal::new(Box::new(process_manager), true);
+            let mut state_machine = make_state_machine(process_manager);
             state_machine.action_on_hci_presence_changed(0, true);
+            state_machine.set_config_enabled(0, true);
             state_machine.action_start_bluetooth(0);
             state_machine.action_on_bluetooth_started(0, 0);
             state_machine.action_stop_bluetooth(0);
@@ -1302,7 +1399,7 @@ mod tests {
             process_manager.expect_start();
             process_manager.expect_stop();
             process_manager.expect_start();
-            let mut state_machine = StateMachineInternal::new(Box::new(process_manager), true);
+            let mut state_machine = make_state_machine(process_manager);
             state_machine.action_on_hci_presence_changed(0, true);
             state_machine.action_start_bluetooth(0);
             state_machine.action_on_bluetooth_started(0, 0);
@@ -1318,7 +1415,7 @@ mod tests {
     fn start_bluetooth_without_device_fails() {
         tokio::runtime::Runtime::new().unwrap().block_on(async {
             let process_manager = MockProcessManager::new();
-            let mut state_machine = StateMachineInternal::new(Box::new(process_manager), true);
+            let mut state_machine = make_state_machine(process_manager);
             state_machine.action_start_bluetooth(0);
             assert_eq!(state_machine.get_process_state(0), ProcessState::Off);
         });
@@ -1328,8 +1425,10 @@ mod tests {
     fn start_bluetooth_without_floss_fails() {
         tokio::runtime::Runtime::new().unwrap().block_on(async {
             let process_manager = MockProcessManager::new();
-            let mut state_machine = StateMachineInternal::new(Box::new(process_manager), false);
+            let mut state_machine = make_state_machine(process_manager);
+            state_machine.set_floss_enabled(false);
             state_machine.action_on_hci_presence_changed(0, true);
+            state_machine.set_config_enabled(0, true);
             state_machine.action_start_bluetooth(0);
             assert_eq!(state_machine.get_process_state(0), ProcessState::Off);
         });
@@ -1347,8 +1446,9 @@ mod tests {
             // Expect another stop for stop timeout.
             process_manager.expect_stop();
             process_manager.expect_stop();
-            let mut state_machine = StateMachineInternal::new(Box::new(process_manager), true);
+            let mut state_machine = make_state_machine(process_manager);
             state_machine.action_on_hci_presence_changed(0, true);
+            state_machine.set_config_enabled(0, true);
             state_machine.action_start_bluetooth(0);
             assert_eq!(state_machine.get_process_state(0), ProcessState::TurningOn);
             assert_eq!(
@@ -1371,8 +1471,9 @@ mod tests {
             process_manager.expect_start();
             // Expect a stop for timeout since floss is disabled.
             process_manager.expect_stop();
-            let mut state_machine = StateMachineInternal::new(Box::new(process_manager), true);
+            let mut state_machine = make_state_machine(process_manager);
             state_machine.action_on_hci_presence_changed(0, true);
+            state_machine.set_config_enabled(0, true);
             state_machine.action_start_bluetooth(0);
             assert_eq!(state_machine.get_process_state(0), ProcessState::TurningOn);
             state_machine.set_floss_enabled(false);
@@ -1383,21 +1484,23 @@ mod tests {
             assert_eq!(state_machine.get_process_state(0), ProcessState::Off);
         });
 
-        // If a timeout occurs during TurningOn phase (present = true, Start, present = false,
-        // timeout)
+        // If a timeout occurs during TurningOn phase, use config_enabled to decide eventual state.
         tokio::runtime::Runtime::new().unwrap().block_on(async {
             let mut process_manager = MockProcessManager::new();
             process_manager.expect_start();
-            let mut state_machine = StateMachineInternal::new(Box::new(process_manager), true);
+            process_manager.expect_stop();
+            process_manager.expect_start();
+            let mut state_machine = make_state_machine(process_manager);
             state_machine.action_on_hci_presence_changed(0, true);
+            state_machine.set_config_enabled(0, true);
             state_machine.action_start_bluetooth(0);
             assert_eq!(state_machine.get_process_state(0), ProcessState::TurningOn);
             state_machine.action_on_hci_presence_changed(0, false);
             assert_eq!(
                 state_machine.action_on_command_timeout(0),
-                StateMachineTimeoutActions::Noop
+                StateMachineTimeoutActions::RetryStart
             );
-            assert_eq!(state_machine.get_process_state(0), ProcessState::Off);
+            assert_eq!(state_machine.get_process_state(0), ProcessState::TurningOn);
         });
     }
 

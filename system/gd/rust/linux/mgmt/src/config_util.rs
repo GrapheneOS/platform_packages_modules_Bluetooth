@@ -139,6 +139,12 @@ pub fn list_pid_files(pid_dir: &str) -> Vec<String> {
     }
 }
 
+/// Calls the reset sysfs entry for an hci device. Returns True if the write succeeds.
+pub fn reset_hci_device(hci: i32) -> bool {
+    let path = format!("/sys/class/bluetooth/hci{}/reset", hci);
+    std::fs::write(path, "1").is_ok()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
