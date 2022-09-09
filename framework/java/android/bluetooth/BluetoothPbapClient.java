@@ -266,8 +266,8 @@ public final class BluetoothPbapClient implements BluetoothProfile, AutoCloseabl
             android.Manifest.permission.BLUETOOTH_CONNECT,
             android.Manifest.permission.BLUETOOTH_PRIVILEGED,
     })
-    public
-    @NonNull List<BluetoothDevice> getDevicesMatchingConnectionStates(@NonNull int[] states) {
+    @NonNull
+    public List<BluetoothDevice> getDevicesMatchingConnectionStates(@NonNull int[] states) {
         if (DBG) {
             log("getDevicesMatchingStates()");
         }
