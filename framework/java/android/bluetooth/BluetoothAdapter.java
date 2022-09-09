@@ -4233,14 +4233,18 @@ public final class BluetoothAdapter {
 
     /*package*/ IBluetooth getBluetoothService() {
         synchronized (sServiceLock) {
-            if (sProxyServiceStateCallbacks.isEmpty()) {
-                throw new IllegalStateException(
-                        "Anonymous service access requires at least one lifecycle in process");
-            }
             return sService;
         }
     }
 
+    /**
+     * Registers a IBluetoothManagerCallback and returns the cached
+     * Bluetooth service proxy object.
+     *
+     * TODO: rename this API to registerBlueoothManagerCallback or something?
+     * the current name does not match what it does very well.
+     *
+     * /
     @UnsupportedAppUsage
     /*package*/ IBluetooth getBluetoothService(IBluetoothManagerCallback cb) {
         Objects.requireNonNull(cb);
