@@ -8,6 +8,7 @@ use bt_topshim::profiles::gatt::{
     BtGattDbElement, BtGattNotifyParams, BtGattReadParams, Gatt, GattAdvCallbacks,
     GattAdvCallbacksDispatcher, GattAdvInbandCallbacksDispatcher, GattClientCallbacks,
     GattClientCallbacksDispatcher, GattScannerCallbacks, GattScannerCallbacksDispatcher,
+    GattScannerInbandCallbacks, GattScannerInbandCallbacksDispatcher,
     GattServerCallbacksDispatcher, GattStatus,
 };
 use bt_topshim::topstack;
@@ -704,7 +705,7 @@ impl BluetoothGatt {
     /// Constructs a new IBluetoothGatt implementation.
     pub fn new(intf: Arc<Mutex<BluetoothInterface>>, tx: Sender<Message>) -> BluetoothGatt {
         BluetoothGatt {
-            intf: intf,
+            intf,
             gatt: None,
             adapter: None,
             context_map: ContextMap::new(),
@@ -748,6 +749,16 @@ impl BluetoothGatt {
         };
 
         let tx_clone = tx.clone();
+        let gatt_scanner_inband_callbacks_dispatcher = GattScannerInbandCallbacksDispatcher {
+            dispatch: Box::new(move |cb| {
+                let tx_clone = tx_clone.clone();
+                topstack::get_runtime().spawn(async move {
+                    let _ = tx_clone.send(Message::LeScannerInband(cb)).await;
+                });
+            }),
+        };
+
+        let tx_clone = tx.clone();
         let gatt_adv_inband_callbacks_dispatcher = GattAdvInbandCallbacksDispatcher {
             dispatch: Box::new(move |cb| {
                 let tx_clone = tx_clone.clone();
@@ -771,6 +782,7 @@ impl BluetoothGatt {
             gatt_client_callbacks_dispatcher,
             gatt_server_callbacks_dispatcher,
             gatt_scanner_callbacks_dispatcher,
+            gatt_scanner_inband_callbacks_dispatcher,
             gatt_adv_inband_callbacks_dispatcher,
             gatt_adv_callbacks_dispatcher,
         );
@@ -2072,6 +2084,188 @@ pub(crate) trait BtifGattScannerCallbacks {
         periodic_adv_int: u16,
         adv_data: Vec<u8>,
     );
+}
+
+#[btif_callbacks_dispatcher(
+    BluetoothGatt,
+    dispatch_le_scanner_inband_callbacks,
+    GattScannerInbandCallbacks
+)]
+pub(crate) trait BtifGattScannerInbandCallbacks {
+    #[btif_callback(RegisterCallback)]
+    fn inband_register_callback(&mut self, app_uuid: Uuid, scanner_id: u8, btm_status: u8);
+
+    #[btif_callback(StatusCallback)]
+    fn inband_status_callback(&mut self, scanner_id: u8, btm_status: u8);
+
+    #[btif_callback(EnableCallback)]
+    fn inband_enable_callback(&mut self, action: u8, btm_status: u8);
+
+    #[btif_callback(FilterParamSetupCallback)]
+    fn inband_filter_param_setup_callback(
+        &mut self,
+        scanner_id: u8,
+        available_space: u8,
+        action_type: u8,
+        btm_status: u8,
+    );
+
+    #[btif_callback(FilterConfigCallback)]
+    fn inband_filter_config_callback(
+        &mut self,
+        filter_index: u8,
+        filter_type: u8,
+        available_space: u8,
+        action: u8,
+        btm_status: u8,
+    );
+
+    #[btif_callback(StartSyncCallback)]
+    fn inband_start_sync_callback(
+        &mut self,
+        status: u8,
+        sync_handle: u16,
+        advertising_sid: u8,
+        address_type: u8,
+        address: RawAddress,
+        phy: u8,
+        interval: u16,
+    );
+
+    #[btif_callback(SyncReportCallback)]
+    fn inband_sync_report_callback(
+        &mut self,
+        sync_handle: u16,
+        tx_power: i8,
+        rssi: i8,
+        status: u8,
+        data: Vec<u8>,
+    );
+
+    #[btif_callback(SyncLostCallback)]
+    fn inband_sync_lost_callback(&mut self, sync_handle: u16);
+
+    #[btif_callback(SyncTransferCallback)]
+    fn inband_sync_transfer_callback(&mut self, status: u8, address: RawAddress);
+}
+
+impl BtifGattScannerInbandCallbacks for BluetoothGatt {
+    fn inband_register_callback(&mut self, app_uuid: Uuid, scanner_id: u8, btm_status: u8) {
+        log::debug!(
+            "Callback received: {:#?}",
+            GattScannerInbandCallbacks::RegisterCallback(app_uuid, scanner_id, btm_status)
+        );
+    }
+
+    fn inband_status_callback(&mut self, scanner_id: u8, btm_status: u8) {
+        log::debug!(
+            "Callback received: {:#?}",
+            GattScannerInbandCallbacks::StatusCallback(scanner_id, btm_status)
+        );
+    }
+
+    fn inband_enable_callback(&mut self, action: u8, btm_status: u8) {
+        log::debug!(
+            "Callback received: {:#?}",
+            GattScannerInbandCallbacks::EnableCallback(action, btm_status)
+        );
+    }
+
+    fn inband_filter_param_setup_callback(
+        &mut self,
+        scanner_id: u8,
+        available_space: u8,
+        action_type: u8,
+        btm_status: u8,
+    ) {
+        log::debug!(
+            "Callback received: {:#?}",
+            GattScannerInbandCallbacks::FilterParamSetupCallback(
+                scanner_id,
+                available_space,
+                action_type,
+                btm_status
+            )
+        );
+    }
+
+    fn inband_filter_config_callback(
+        &mut self,
+        filter_index: u8,
+        filter_type: u8,
+        available_space: u8,
+        action: u8,
+        btm_status: u8,
+    ) {
+        log::debug!(
+            "Callback received: {:#?}",
+            GattScannerInbandCallbacks::FilterConfigCallback(
+                filter_index,
+                filter_type,
+                available_space,
+                action,
+                btm_status,
+            )
+        );
+    }
+
+    fn inband_start_sync_callback(
+        &mut self,
+        status: u8,
+        sync_handle: u16,
+        advertising_sid: u8,
+        address_type: u8,
+        address: RawAddress,
+        phy: u8,
+        interval: u16,
+    ) {
+        log::debug!(
+            "Callback received: {:#?}",
+            GattScannerInbandCallbacks::StartSyncCallback(
+                status,
+                sync_handle,
+                advertising_sid,
+                address_type,
+                address,
+                phy,
+                interval,
+            )
+        );
+    }
+
+    fn inband_sync_report_callback(
+        &mut self,
+        sync_handle: u16,
+        tx_power: i8,
+        rssi: i8,
+        status: u8,
+        data: Vec<u8>,
+    ) {
+        log::debug!(
+            "Callback received: {:#?}",
+            GattScannerInbandCallbacks::SyncReportCallback(
+                sync_handle,
+                tx_power,
+                rssi,
+                status,
+                data
+            )
+        );
+    }
+
+    fn inband_sync_lost_callback(&mut self, sync_handle: u16) {
+        log::debug!(
+            "Callback received: {:#?}",
+            GattScannerInbandCallbacks::SyncLostCallback(sync_handle,)
+        );
+    }
+
+    fn inband_sync_transfer_callback(&mut self, status: u8, address: RawAddress) {
+        log::debug!(
+            "Callback received: {:#?}",
+            GattScannerInbandCallbacks::SyncTransferCallback(status, address)
+        );
+    }
 }
 
 impl BtifGattScannerCallbacks for BluetoothGatt {
