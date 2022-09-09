@@ -21,6 +21,14 @@ from grpc import RpcError
 
 from avatar.controllers import pandora_device
 
+import google.protobuf.descriptor_pool
+
+# Reset protobuf descriptor_pool as we are reimporting
+# a module with the same package
+google.protobuf.descriptor_pool.Default().__init__()
+
+from pandora_experimental.host_grpc import Host
+
 
 class ExampleTest(base_test.BaseTestClass):
 
@@ -30,7 +38,7 @@ class ExampleTest(base_test.BaseTestClass):
         self.ref = self.pandora_devices[1]
 
     def setup_test(self):
-        self.dut.host.HardReset()
+        Host(self.dut.channel).HardReset()
         # TODO: wait for server
         time.sleep(3)
 
