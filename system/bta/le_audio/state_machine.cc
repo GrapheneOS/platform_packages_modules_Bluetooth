@@ -538,6 +538,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     while (leAudioDevice != nullptr) {
       for (auto& ase : leAudioDevice->ases_) {
         ase.cis_id = le_audio::kInvalidCisId;
+        ase.cis_conn_hdl = 0;
       }
       leAudioDevice = group->GetNextDevice(leAudioDevice);
     }
