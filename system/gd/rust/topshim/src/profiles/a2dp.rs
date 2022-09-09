@@ -5,7 +5,7 @@ use num_traits::cast::FromPrimitive;
 use std::sync::{Arc, Mutex};
 use topshim_macros::cb_variant;
 
-#[derive(Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
+#[derive(Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd, Clone)]
 #[repr(u32)]
 pub enum BtavConnectionState {
     Disconnected = 0,
@@ -183,8 +183,8 @@ pub mod ffi {
         unsafe fn GetA2dpProfile(btif: *const u8) -> UniquePtr<A2dpIntf>;
 
         fn init(self: &A2dpIntf) -> i32;
-        fn connect(self: &A2dpIntf, bt_addr: RustRawAddress) -> i32;
-        fn disconnect(self: &A2dpIntf, bt_addr: RustRawAddress) -> i32;
+        fn connect(self: &A2dpIntf, bt_addr: RustRawAddress) -> u32;
+        fn disconnect(self: &A2dpIntf, bt_addr: RustRawAddress) -> u32;
         fn set_silence_device(self: &A2dpIntf, bt_addr: RustRawAddress, silent: bool) -> i32;
         fn set_active_device(self: &A2dpIntf, bt_addr: RustRawAddress) -> i32;
         fn config_codec(
@@ -323,16 +323,16 @@ impl A2dp {
         true
     }
 
-    pub fn connect(&mut self, addr: RawAddress) {
-        self.internal.connect(addr.into());
+    pub fn connect(&mut self, addr: RawAddress) -> BtStatus {
+        BtStatus::from(self.internal.connect(addr.into()))
     }
 
     pub fn set_active_device(&mut self, addr: RawAddress) {
         self.internal.set_active_device(addr.into());
     }
 
-    pub fn disconnect(&mut self, addr: RawAddress) {
-        self.internal.disconnect(addr.into());
+    pub fn disconnect(&mut self, addr: RawAddress) -> BtStatus {
+        BtStatus::from(self.internal.disconnect(addr.into()))
     }
 
     pub fn set_audio_config(&self, sample_rate: i32, bits_per_sample: i32, channel_mode: i32) {

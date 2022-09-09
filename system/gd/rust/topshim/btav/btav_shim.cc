@@ -217,11 +217,11 @@ int A2dpIntf::init() const {
   return intf_->init(&internal::g_callbacks, 1, a, b);
 }
 
-int A2dpIntf::connect(RustRawAddress bt_addr) const {
+uint32_t A2dpIntf::connect(RustRawAddress bt_addr) const {
   RawAddress addr = rusty::CopyFromRustAddress(bt_addr);
   return intf_->connect(addr);
 }
-int A2dpIntf::disconnect(RustRawAddress bt_addr) const {
+uint32_t A2dpIntf::disconnect(RustRawAddress bt_addr) const {
   RawAddress addr = rusty::CopyFromRustAddress(bt_addr);
   return intf_->disconnect(addr);
 }
