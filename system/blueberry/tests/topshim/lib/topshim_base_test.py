@@ -181,6 +181,9 @@ class TopshimBaseTest(base_test.BaseTestClass):
         await self.cert_adapter.terminate()
         await self.cert_gatt.terminate()
 
+    def post(self, async_fn):
+        asyncio.get_event_loop().run_until_complete(async_fn)
+
     def setup_class(self):
         """
         Configure rootcanal and setup test parameters

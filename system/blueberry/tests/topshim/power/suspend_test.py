@@ -14,8 +14,6 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import asyncio
-
 from blueberry.tests.gd.cert.truth import assertThat
 from blueberry.tests.topshim.lib.topshim_base_test import TopshimBaseTest
 from blueberry.tests.topshim.lib.adapter_client import AdapterClient
@@ -70,34 +68,34 @@ class SuspendTest(TopshimBaseTest):
         return await self.dut_adapter.le_rand()
 
     def test_no_wake_suspend(self):
-        asyncio.get_event_loop().run_until_complete(self.__verify_no_wake_suspend())
+        self.post(self.__verify_no_wake_suspend())
 
     def test_no_wake_resume(self):
-        asyncio.get_event_loop().run_until_complete(self.__verify_no_wake_resume())
+        self.post(self.__verify_no_wake_resume())
 
     def test_no_wake_suspend_then_resume(self):
-        asyncio.get_event_loop().run_until_complete(self.__verify_no_wake_suspend())
-        asyncio.get_event_loop().run_until_complete(self.__verify_no_wake_resume())
+        self.post(self.__verify_no_wake_suspend())
+        self.post(self.__verify_no_wake_resume())
 
     def test_no_wake_suspend_then_resume_then_suspend(self):
-        asyncio.get_event_loop().run_until_complete(self.__verify_no_wake_suspend())
-        asyncio.get_event_loop().run_until_complete(self.__verify_no_wake_resume())
-        asyncio.get_event_loop().run_until_complete(self.__verify_no_wake_suspend())
+        self.post(self.__verify_no_wake_suspend())
+        self.post(self.__verify_no_wake_resume())
+        self.post(self.__verify_no_wake_suspend())
 
     def test_wakeful_suspend_no_a2dp(self):
-        asyncio.get_event_loop().run_until_complete(self.__verify_wakeful_suspend(False))
+        self.post(self.__verify_wakeful_suspend(False))
 
     def test_wakeful_resume_no_a2dp(self):
-        asyncio.get_event_loop().run_until_complete(self.__verify_wakeful_resume(False))
+        self.post(self.__verify_wakeful_resume(False))
 
     def test_wakeful_suspend_then_resume_no_a2dp(self):
-        asyncio.get_event_loop().run_until_complete(self.__verify_wakeful_suspend(False))
-        asyncio.get_event_loop().run_until_complete(self.__verify_wakeful_resume(False))
+        self.post(self.__verify_wakeful_suspend(False))
+        self.post(self.__verify_wakeful_resume(False))
 
     def test_wakeful_suspend_then_resume_then_suspend_no_a2dp(self):
-        asyncio.get_event_loop().run_until_complete(self.__verify_wakeful_suspend(False))
-        asyncio.get_event_loop().run_until_complete(self.__verify_wakeful_resume(False))
-        asyncio.get_event_loop().run_until_complete(self.__verify_wakeful_suspend(False))
+        self.post(self.__verify_wakeful_suspend(False))
+        self.post(self.__verify_wakeful_resume(False))
+        self.post(self.__verify_wakeful_suspend(False))
 
 
 if __name__ == "__main__":
