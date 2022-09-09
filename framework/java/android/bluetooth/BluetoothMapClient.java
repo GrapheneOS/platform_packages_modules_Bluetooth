@@ -387,8 +387,8 @@ public final class BluetoothMapClient implements BluetoothProfile, AutoCloseable
             android.Manifest.permission.BLUETOOTH_CONNECT,
             android.Manifest.permission.BLUETOOTH_PRIVILEGED,
     })
-    public
-    @NonNull List<BluetoothDevice> getDevicesMatchingConnectionStates(@NonNull int[] states) {
+    @NonNull
+    public List<BluetoothDevice> getDevicesMatchingConnectionStates(@NonNull int[] states) {
         if (DBG) Log.d(TAG, "getDevicesMatchingStates()");
         final IBluetoothMapClient service = getService();
         final List<BluetoothDevice> defaultValue = new ArrayList<>();

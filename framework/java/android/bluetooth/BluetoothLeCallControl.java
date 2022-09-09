@@ -17,14 +17,13 @@
 
 package android.bluetooth;
 
-import android.Manifest;
 import android.annotation.IntDef;
 import android.annotation.NonNull;
 import android.annotation.Nullable;
 import android.annotation.RequiresPermission;
-import android.bluetooth.annotations.RequiresBluetoothConnectPermission;
-import android.content.ComponentName;
+import android.annotation.SuppressLint;
 import android.content.AttributionSource;
+import android.content.ComponentName;
 import android.content.Context;
 import android.os.Binder;
 import android.os.Handler;
@@ -34,16 +33,11 @@ import android.os.Message;
 import android.os.ParcelUuid;
 import android.os.RemoteException;
 import android.util.Log;
-import android.annotation.SuppressLint;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Executor;
 
@@ -397,10 +391,10 @@ public final class BluetoothLeCallControl implements BluetoothProfile {
     private Callback mCallback = null;
 
     private final IBluetoothStateChangeCallback mBluetoothStateChangeCallback =
-        new IBluetoothStateChangeCallback.Stub() {
+            new IBluetoothStateChangeCallback.Stub() {
         public void onBluetoothStateChange(boolean up) {
-            if (DBG)
-                Log.d(TAG, "onBluetoothStateChange: up=" + up);
+            if (DBG) Log.d(TAG, "onBluetoothStateChange: up=" + up);
+
             if (!up) {
                 doUnbind();
             } else {
@@ -434,12 +428,12 @@ public final class BluetoothLeCallControl implements BluetoothProfile {
     private boolean doBind() {
         synchronized (mConnection) {
             if (mService == null) {
-                if (VDBG)
-                    Log.d(TAG, "Binding service...");
+                if (VDBG) Log.d(TAG, "Binding service...");
+
                 try {
-                    return mAdapter.getBluetoothManager().
-                            bindBluetoothProfileService(BluetoothProfile.LE_CALL_CONTROL,
-                            mConnection);
+                    return mAdapter.getBluetoothManager()
+                            .bindBluetoothProfileService(BluetoothProfile.LE_CALL_CONTROL,
+                                mConnection);
                 } catch (RemoteException e) {
                     Log.e(TAG, "Unable to bind TelephoneBearerService", e);
                 }
@@ -451,12 +445,12 @@ public final class BluetoothLeCallControl implements BluetoothProfile {
     private void doUnbind() {
         synchronized (mConnection) {
             if (mService != null) {
-                if (VDBG)
-                    Log.d(TAG, "Unbinding service...");
+                if (VDBG) Log.d(TAG, "Unbinding service...");
+
                 try {
-                    mAdapter.getBluetoothManager().
-                        unbindBluetoothProfileService(BluetoothProfile.LE_CALL_CONTROL,
-                        mConnection);
+                    mAdapter.getBluetoothManager()
+                            .unbindBluetoothProfileService(BluetoothProfile.LE_CALL_CONTROL,
+                                mConnection);
                 } catch (RemoteException e) {
                     Log.e(TAG, "Unable to unbind TelephoneBearerService", e);
                 } finally {
@@ -467,8 +461,8 @@ public final class BluetoothLeCallControl implements BluetoothProfile {
     }
 
     /* package */ void close() {
-        if (VDBG)
-            log("close()");
+        if (VDBG) log("close()");
+
         unregisterBearer();
 
         IBluetoothManager mgr = mAdapter.getBluetoothManager();
@@ -513,8 +507,8 @@ public final class BluetoothLeCallControl implements BluetoothProfile {
      * @throws UnsupportedOperationException
      */
     @Override
-    public @NonNull List<BluetoothDevice> getDevicesMatchingConnectionStates(
-        @NonNull int[] states) {
+    @NonNull
+    public List<BluetoothDevice> getDevicesMatchingConnectionStates(@NonNull int[] states) {
         throw new UnsupportedOperationException("not supported");
     }
 
@@ -742,8 +736,7 @@ public final class BluetoothLeCallControl implements BluetoothProfile {
         }
 
         try {
-            service.callStateChanged(mCcid, new ParcelUuid(callId), state,
-                mAttributionSource);
+            service.callStateChanged(mCcid, new ParcelUuid(callId), state, mAttributionSource);
         } catch (RemoteException e) {
             Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
         }
@@ -889,19 +882,19 @@ public final class BluetoothLeCallControl implements BluetoothProfile {
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
-            case MESSAGE_TBS_SERVICE_CONNECTED: {
-                if (mServiceListener != null) {
-                    mServiceListener.onServiceConnected(BluetoothProfile.LE_CALL_CONTROL,
-                        BluetoothLeCallControl.this);
+                case MESSAGE_TBS_SERVICE_CONNECTED: {
+                    if (mServiceListener != null) {
+                        mServiceListener.onServiceConnected(BluetoothProfile.LE_CALL_CONTROL,
+                                BluetoothLeCallControl.this);
+                    }
+                    break;
                 }
-                break;
-            }
-            case MESSAGE_TBS_SERVICE_DISCONNECTED: {
-                if (mServiceListener != null) {
-                    mServiceListener.onServiceDisconnected(BluetoothProfile.LE_CALL_CONTROL);
+                case MESSAGE_TBS_SERVICE_DISCONNECTED: {
+                    if (mServiceListener != null) {
+                        mServiceListener.onServiceDisconnected(BluetoothProfile.LE_CALL_CONTROL);
+                    }
+                    break;
                 }
-                break;
-            }
             }
         }
     };
