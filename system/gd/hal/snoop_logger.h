@@ -29,6 +29,10 @@
 namespace bluetooth {
 namespace hal {
 
+#ifdef USE_FAKE_TIMERS
+static uint64_t file_creation_time;
+#endif
+
 class SnoopLogger : public ::bluetooth::Module {
  public:
   static const ModuleFactory Factory;
