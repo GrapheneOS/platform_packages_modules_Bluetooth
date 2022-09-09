@@ -19,7 +19,6 @@
     <target_preparer class="com.android.tradefed.targetprep.suite.SuiteApkInstaller">
         <option name="cleanup-apks" value="true" />
         <option name="test-file-name" value="BluetoothTests.apk" />
-        <option name="install-arg" value="-t" />
     </target_preparer>
 
     <option name="test-suite-tag" value="apct"/>
