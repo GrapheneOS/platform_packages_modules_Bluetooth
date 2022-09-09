@@ -2179,6 +2179,11 @@ bool LeAudioDevice::IsReadyToSuspendStream(void) {
 }
 
 bool LeAudioDevice::HaveAllActiveAsesCisEst(void) {
+  if (ases_.empty()) {
+    LOG_WARN("No ases for device %s", address_.ToString().c_str());
+    return false;
+  }
+
   auto iter = std::find_if(ases_.begin(), ases_.end(), [](const auto& ase) {
     return ase.active &&
            (ase.data_path_state != AudioStreamDataPathState::CIS_ESTABLISHED);
