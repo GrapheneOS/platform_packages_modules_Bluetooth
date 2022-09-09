@@ -237,6 +237,19 @@ cc_library {
     ],
 }
 
+cc_library {
+    name: "libbluetooth_gd_unit_tests",
+    defaults: [
+        "libbluetooth_gd_defaults",
+    ],
+    srcs: [
+        ":BluetoothOsSources_fake_timer",
+    ],
+    cflags: [
+        "-DUSE_FAKE_TIMERS",
+    ],
+}
+
 cc_binary {
     name: "bluetooth_stack_with_facade",
     defaults: [
@@ -389,7 +402,7 @@ cc_test {
         "libbluetooth-dumpsys-test",
         "libbluetooth-dumpsys-unittest",
         "libbluetooth-protos",
-        "libbluetooth_gd",
+        "libbluetooth_gd_unit_tests",
         "libc++fs",
         "libflatbuffers-cpp",
         "libgmock",
