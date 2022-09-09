@@ -134,6 +134,10 @@ void fake_timerfd_cap_at(uint64_t ms) {
   max_clock = ms;
 }
 
+uint64_t fake_timerfd_get_clock() {
+  return clock;
+}
+
 }  // namespace fake_timer
 }  // namespace os
 }  // namespace bluetooth
