@@ -36,6 +36,8 @@ void fake_timerfd_advance(uint64_t ms);
 
 void fake_timerfd_cap_at(uint64_t ms);
 
+uint64_t fake_timerfd_get_clock();
+
 }  // namespace fake_timer
 }  // namespace os
 }  // namespace bluetooth
