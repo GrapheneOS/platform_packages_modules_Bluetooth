@@ -78,7 +78,7 @@ java_library {
     name: "pandora-grpc-java",
     visibility: ["//visibility:private"],
     srcs: [
-        "proto/pandora/*.proto",
+        "proto/pandora_experimental/*.proto",
     ],
     static_libs: [
         "grpc-java-lite",
@@ -104,7 +104,7 @@ java_library {
     name: "pandora-proto-java",
     visibility: ["//visibility:private"],
     srcs: [
-        "proto/pandora/*.proto",
+        "proto/pandora_experimental/*.proto",
         ":libprotobuf-internal-protos",
     ],
     static_libs: [
@@ -120,7 +120,7 @@ java_library {
 }
 
 genrule {
-    name: "pandora-grpc-python",
+    name: "pandora_experimental-python-src",
     tools: [
         "aprotoc",
         "protoc-gen-mmi2grpc-python"
@@ -133,25 +133,32 @@ genrule {
          "    --python_out=$(genDir)" +
          "    $(in)",
     srcs: [
-        "proto/pandora/a2dp.proto",
-        "proto/pandora/avrcp.proto",
-        "proto/pandora/gatt.proto",
-        "proto/pandora/hfp.proto",
-        "proto/pandora/host.proto",
-        "proto/pandora/security.proto",
+        "proto/pandora_experimental/a2dp.proto",
+        "proto/pandora_experimental/avrcp.proto",
+        "proto/pandora_experimental/gatt.proto",
+        "proto/pandora_experimental/hfp.proto",
+        "proto/pandora_experimental/host.proto",
+        "proto/pandora_experimental/security.proto",
     ],
     out: [
-        "pandora/a2dp_grpc.py",
-        "pandora/a2dp_pb2.py",
-        "pandora/avrcp_grpc.py",
-        "pandora/avrcp_pb2.py",
-        "pandora/gatt_grpc.py",
-        "pandora/gatt_pb2.py",
-        "pandora/hfp_grpc.py",
-        "pandora/hfp_pb2.py",
-        "pandora/host_grpc.py",
-        "pandora/host_pb2.py",
-        "pandora/security_grpc.py",
-        "pandora/security_pb2.py",
+        "pandora_experimental/a2dp_grpc.py",
+        "pandora_experimental/a2dp_pb2.py",
+        "pandora_experimental/avrcp_grpc.py",
+        "pandora_experimental/avrcp_pb2.py",
+        "pandora_experimental/gatt_grpc.py",
+        "pandora_experimental/gatt_pb2.py",
+        "pandora_experimental/hfp_grpc.py",
+        "pandora_experimental/hfp_pb2.py",
+        "pandora_experimental/host_grpc.py",
+        "pandora_experimental/host_pb2.py",
+        "pandora_experimental/security_grpc.py",
+        "pandora_experimental/security_pb2.py",
     ]
+}
+
+python_library_host {
+    name: "pandora_experimental-python",
+    srcs: [
+        ":pandora_experimental-python-src",
+    ],
 }

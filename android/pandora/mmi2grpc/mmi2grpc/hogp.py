@@ -5,9 +5,9 @@ import re
 from mmi2grpc._helpers import assert_description, match_description
 from mmi2grpc._proxy import ProfileProxy
 
-from pandora.host_grpc import Host
-from pandora.security_grpc import Security
-from pandora.gatt_grpc import GATT
+from pandora_experimental.host_grpc import Host
+from pandora_experimental.security_grpc import Security
+from pandora_experimental.gatt_grpc import GATT
 
 BASE_UUID = uuid.UUID("00000000-0000-1000-8000-00805F9B34FB")
 
