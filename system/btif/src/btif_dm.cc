@@ -1331,6 +1331,18 @@ static void btif_dm_search_devices_evt(tBTA_DM_SEARCH_EVT event,
                                    &(p_search_data->inq_res.include_rsi));
         num_properties++;
 
+        // Floss expects that EIR uuids are immediately reported when the
+        // device is found and doesn't wait for the pairing intent.
+        //
+        // If a subsequent SDP is completed, the new UUIDs should replace
+        // the existing UUIDs.
+#if TARGET_FLOSS
+        bool report_eir_uuids = true;
+#else
+        bool report_eir_uuids = false;
+#endif
+        // Scope needs to persist until `invoke_device_found_cb` below.
+        std::vector<uint8_t> property_value;
         /* Cache EIR queried services */
         if (num_uuids > 0) {
           uint16_t* p_uuid16 = (uint16_t*)uuid_list;
@@ -1346,25 +1358,19 @@ static void btif_dm_search_devices_evt(tBTA_DM_SEARCH_EVT event,
             uuid_iter->second.insert(uuid);
           }
 
-#if TARGET_FLOSS
-          std::vector<uint8_t> property_value;
-          for (auto uuid : uuid_iter->second) {
-            auto uuid_128bit = uuid.To128BitBE();
-            property_value.insert(property_value.end(), uuid_128bit.begin(),
-                                  uuid_128bit.end());
-          }
+          if (report_eir_uuids) {
+            for (auto uuid : uuid_iter->second) {
+              auto uuid_128bit = uuid.To128BitBE();
+              property_value.insert(property_value.end(), uuid_128bit.begin(),
+                                    uuid_128bit.end());
+            }
 
-          // Floss expects that EIR uuids are immediately reported when the
-          // device is found and doesn't wait for the pairing intent.
-          //
-          // If a subsequent SDP is completed, the new UUIDs should replace the
-          // existing UUIDs.
-          BTIF_STORAGE_FILL_PROPERTY(
-              &properties[num_properties], BT_PROPERTY_UUIDS,
-              uuid_iter->second.size() * Uuid::kNumBytes128,
-              (void*)property_value.data());
-          num_properties++;
-#endif
+            BTIF_STORAGE_FILL_PROPERTY(
+                &properties[num_properties], BT_PROPERTY_UUIDS,
+                uuid_iter->second.size() * Uuid::kNumBytes128,
+                (void*)property_value.data());
+            num_properties++;
+          }
         }
 
         // Floss needs appearance for metrics purposes
