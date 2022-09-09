@@ -512,21 +512,14 @@ TEST_F(BroadcasterTest, UpdateMetadataFromAudioTrackMetadata) {
   ON_CALL(*sm, GetBroadcastAnnouncement())
       .WillByDefault(ReturnRef(announcement));
 
-  std::promise<void> do_update_metadata_promise;
-  struct playback_track_metadata tracks_[] = {
-      {AUDIO_USAGE_GAME, AUDIO_CONTENT_TYPE_SONIFICATION, 0},
-      {AUDIO_USAGE_MEDIA, AUDIO_CONTENT_TYPE_MUSIC, 0},
-      {AUDIO_USAGE_VOICE_COMMUNICATION_SIGNALLING, AUDIO_CONTENT_TYPE_SPEECH,
-       0},
-      {AUDIO_USAGE_UNKNOWN, AUDIO_CONTENT_TYPE_UNKNOWN, 0}};
+  std::vector<struct playback_track_metadata> multitrack_source_metadata = {
+      {{AUDIO_USAGE_GAME, AUDIO_CONTENT_TYPE_SONIFICATION, 0},
+       {AUDIO_USAGE_MEDIA, AUDIO_CONTENT_TYPE_MUSIC, 0},
+       {AUDIO_USAGE_VOICE_COMMUNICATION_SIGNALLING, AUDIO_CONTENT_TYPE_SPEECH,
+        0},
+       {AUDIO_USAGE_UNKNOWN, AUDIO_CONTENT_TYPE_UNKNOWN, 0}}};
 
-  source_metadata_t multitrack_source_metadata = {.track_count = 4,
-                                                  .tracks = &tracks_[0]};
-
-  auto do_update_metadata_future = do_update_metadata_promise.get_future();
-  audio_receiver->OnAudioMetadataUpdate(std::move(do_update_metadata_promise),
-                                        multitrack_source_metadata);
-  do_update_metadata_future.wait_for(3s);
+  audio_receiver->OnAudioMetadataUpdate(multitrack_source_metadata);
 
   // Verify ccid
   ASSERT_NE(ccid_list.size(), 0u);
