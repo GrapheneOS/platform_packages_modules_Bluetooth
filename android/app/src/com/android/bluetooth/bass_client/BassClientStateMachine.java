@@ -591,10 +591,24 @@ public class BassClientStateMachine extends StateMachine {
                     mPeriodicAdvManager.transferSync(mDevice, serviceData, syncHandle);
                 }
             } else {
-                Log.e(TAG, "There is no valid sync handle for this Source");
-                if (mAutoAssist) {
-                    //initiate Auto Assist procedure for this device
-                    mService.getBassUtils().triggerAutoAssist(recvState);
+                if (mService.isLocalBroadcast(mPendingMetadata)) {
+                    int advHandle = mPendingMetadata.getSourceAdvertisingSid();
+                    serviceData = 0x000000FF & recvState.getSourceId();
+                    serviceData = serviceData << 8;
+                    // Address we set in the Source Address can differ from the address in the air
+                    serviceData = serviceData
+                            | BassConstants.ADV_ADDRESS_DONT_MATCHES_SOURCE_ADV_ADDRESS;
+                    log("Initiate local broadcast PAST for: " + mDevice
+                            + ", advSID/Handle: " +  advHandle
+                            + ", serviceData: " + serviceData);
+                    mPeriodicAdvManager.transferSetInfo(mDevice, serviceData,
+                            advHandle, mPeriodicAdvCallback);
+                } else {
+                    Log.e(TAG, "There is no valid sync handle for this Source");
+                    if (mAutoAssist) {
+                        // Initiate Auto Assist procedure for this device
+                        mService.getBassUtils().triggerAutoAssist(recvState);
+                    }
                 }
             }
         } else if (state == BluetoothLeBroadcastReceiveState.PA_SYNC_STATE_SYNCHRONIZED
