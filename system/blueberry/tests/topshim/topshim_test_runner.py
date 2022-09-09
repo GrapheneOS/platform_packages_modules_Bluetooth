@@ -16,11 +16,12 @@
 
 from blueberry.tests.topshim.adapter.adapter_test import AdapterTest
 from blueberry.tests.topshim.power.suspend_test import SuspendTest
+from blueberry.tests.topshim.security.security_test import SecurityTest
 
 from mobly import suite_runner
 import argparse
 
-ALL_TESTS = [AdapterTest, SuspendTest]
+ALL_TESTS = [AdapterTest, SecurityTest, SuspendTest]
 
 
 def main():
