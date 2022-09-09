@@ -22,161 +22,160 @@ import junit.framework.TestCase;
 
 /**
  * Unit test cases for {@link BluetoothCodecConfig}.
- * <p>
- * To run this test, use:
- * runtest --path core/tests/bluetoothtests/src/android/bluetooth/BluetoothCodecConfigTest.java
  */
 public class BluetoothCodecConfigTest extends TestCase {
-  private static final int[] kCodecTypeArray = new int[] {
-      BluetoothCodecConfig.SOURCE_CODEC_TYPE_SBC,
-      BluetoothCodecConfig.SOURCE_CODEC_TYPE_AAC,
-      BluetoothCodecConfig.SOURCE_CODEC_TYPE_APTX,
-      BluetoothCodecConfig.SOURCE_CODEC_TYPE_APTX_HD,
-      BluetoothCodecConfig.SOURCE_CODEC_TYPE_LDAC,
-      BluetoothCodecConfig.SOURCE_CODEC_TYPE_LC3,
-      BluetoothCodecConfig.SOURCE_CODEC_TYPE_INVALID,
-  };
-  private static final int[] kCodecPriorityArray = new int[] {
-      BluetoothCodecConfig.CODEC_PRIORITY_DISABLED,
-      BluetoothCodecConfig.CODEC_PRIORITY_DEFAULT,
-      BluetoothCodecConfig.CODEC_PRIORITY_HIGHEST,
-  };
-  private static final int[] kSampleRateArray = new int[] {
-      BluetoothCodecConfig.SAMPLE_RATE_NONE,
-      BluetoothCodecConfig.SAMPLE_RATE_44100,
-      BluetoothCodecConfig.SAMPLE_RATE_48000,
-      BluetoothCodecConfig.SAMPLE_RATE_88200,
-      BluetoothCodecConfig.SAMPLE_RATE_96000,
-      BluetoothCodecConfig.SAMPLE_RATE_176400,
-      BluetoothCodecConfig.SAMPLE_RATE_192000,
-  };
-  private static final int[] kBitsPerSampleArray = new int[] {
-      BluetoothCodecConfig.BITS_PER_SAMPLE_NONE,
-      BluetoothCodecConfig.BITS_PER_SAMPLE_16,
-      BluetoothCodecConfig.BITS_PER_SAMPLE_24,
-      BluetoothCodecConfig.BITS_PER_SAMPLE_32,
-  };
-  private static final int[] kChannelModeArray = new int[] {
-      BluetoothCodecConfig.CHANNEL_MODE_NONE,
-      BluetoothCodecConfig.CHANNEL_MODE_MONO,
-      BluetoothCodecConfig.CHANNEL_MODE_STEREO,
-  };
-  private static final long[] kCodecSpecific1Array = new long[] {
-      1000,
-      1001,
-      1002,
-      1003,
-  };
-  private static final long[] kCodecSpecific2Array = new long[] {
-      2000,
-      2001,
-      2002,
-      2003,
-  };
-  private static final long[] kCodecSpecific3Array = new long[] {
-      3000,
-      3001,
-      3002,
-      3003,
-  };
-  private static final long[] kCodecSpecific4Array = new long[] {
-      4000,
-      4001,
-      4002,
-      4003,
-  };
+    private static final int[] sCodecTypeArray = new int[] {
+        BluetoothCodecConfig.SOURCE_CODEC_TYPE_SBC,
+        BluetoothCodecConfig.SOURCE_CODEC_TYPE_AAC,
+        BluetoothCodecConfig.SOURCE_CODEC_TYPE_APTX,
+        BluetoothCodecConfig.SOURCE_CODEC_TYPE_APTX_HD,
+        BluetoothCodecConfig.SOURCE_CODEC_TYPE_LDAC,
+        BluetoothCodecConfig.SOURCE_CODEC_TYPE_LC3,
+        BluetoothCodecConfig.SOURCE_CODEC_TYPE_INVALID,
+    };
+    private static final int[] sCodecPriorityArray = new int[] {
+        BluetoothCodecConfig.CODEC_PRIORITY_DISABLED,
+        BluetoothCodecConfig.CODEC_PRIORITY_DEFAULT,
+        BluetoothCodecConfig.CODEC_PRIORITY_HIGHEST,
+    };
+    private static final int[] sSampleRateArray = new int[] {
+        BluetoothCodecConfig.SAMPLE_RATE_NONE,
+        BluetoothCodecConfig.SAMPLE_RATE_44100,
+        BluetoothCodecConfig.SAMPLE_RATE_48000,
+        BluetoothCodecConfig.SAMPLE_RATE_88200,
+        BluetoothCodecConfig.SAMPLE_RATE_96000,
+        BluetoothCodecConfig.SAMPLE_RATE_176400,
+        BluetoothCodecConfig.SAMPLE_RATE_192000,
+    };
+    private static final int[] sBitsPerSampleArray = new int[] {
+        BluetoothCodecConfig.BITS_PER_SAMPLE_NONE,
+        BluetoothCodecConfig.BITS_PER_SAMPLE_16,
+        BluetoothCodecConfig.BITS_PER_SAMPLE_24,
+        BluetoothCodecConfig.BITS_PER_SAMPLE_32,
+    };
+    private static final int[] sChannelModeArray = new int[] {
+        BluetoothCodecConfig.CHANNEL_MODE_NONE,
+        BluetoothCodecConfig.CHANNEL_MODE_MONO,
+        BluetoothCodecConfig.CHANNEL_MODE_STEREO,
+    };
+    private static final long[] sCodecSpecific1Array = new long[] {
+        1000,
+        1001,
+        1002,
+        1003,
+    };
+    private static final long[] sCodecSpecific2Array = new long[] {
+        2000,
+        2001,
+        2002,
+        2003,
+    };
+    private static final long[] sCodecSpecific3Array = new long[] {
+        3000,
+        3001,
+        3002,
+        3003,
+    };
+    private static final long[] sCodecSpecific4Array = new long[] {
+        4000,
+        4001,
+        4002,
+        4003,
+    };
 
-  private static final int kTotalConfigs = kCodecTypeArray.length * kCodecPriorityArray.length
-      * kSampleRateArray.length * kBitsPerSampleArray.length * kChannelModeArray.length
-      * kCodecSpecific1Array.length * kCodecSpecific2Array.length * kCodecSpecific3Array.length
-      * kCodecSpecific4Array.length;
+    private static final int sTotalConfigs = sCodecTypeArray.length * sCodecPriorityArray.length
+            * sSampleRateArray.length * sBitsPerSampleArray.length * sChannelModeArray.length
+            * sCodecSpecific1Array.length * sCodecSpecific2Array.length
+            * sCodecSpecific3Array.length * sCodecSpecific4Array.length;
 
-  private int selectCodecType(int configId) {
-    int left = kCodecTypeArray.length;
-    int right = kTotalConfigs / left;
-    int index = configId / right;
-    index = index % kCodecTypeArray.length;
-    return kCodecTypeArray[index];
-  }
+    private int selectCodecType(int configId) {
+        int left = sCodecTypeArray.length;
+        int right = sTotalConfigs / left;
+        int index = configId / right;
+        index = index % sCodecTypeArray.length;
+        return sCodecTypeArray[index];
+    }
 
     private int selectCodecPriority(int configId) {
-        int left = kCodecTypeArray.length * kCodecPriorityArray.length;
-        int right = kTotalConfigs / left;
+        int left = sCodecTypeArray.length * sCodecPriorityArray.length;
+        int right = sTotalConfigs / left;
         int index = configId / right;
-        index = index % kCodecPriorityArray.length;
-        return kCodecPriorityArray[index];
+        index = index % sCodecPriorityArray.length;
+        return sCodecPriorityArray[index];
     }
 
     private int selectSampleRate(int configId) {
-        int left = kCodecTypeArray.length * kCodecPriorityArray.length * kSampleRateArray.length;
-        int right = kTotalConfigs / left;
+        int left = sCodecTypeArray.length * sCodecPriorityArray.length * sSampleRateArray.length;
+        int right = sTotalConfigs / left;
         int index = configId / right;
-        index = index % kSampleRateArray.length;
-        return kSampleRateArray[index];
+        index = index % sSampleRateArray.length;
+        return sSampleRateArray[index];
     }
 
     private int selectBitsPerSample(int configId) {
-        int left = kCodecTypeArray.length * kCodecPriorityArray.length * kSampleRateArray.length *
-            kBitsPerSampleArray.length;
-        int right = kTotalConfigs / left;
+        int left = sCodecTypeArray.length * sCodecPriorityArray.length * sSampleRateArray.length
+                * sBitsPerSampleArray.length;
+        int right = sTotalConfigs / left;
         int index = configId / right;
-        index = index % kBitsPerSampleArray.length;
-        return kBitsPerSampleArray[index];
+        index = index % sBitsPerSampleArray.length;
+        return sBitsPerSampleArray[index];
     }
 
     private int selectChannelMode(int configId) {
-        int left = kCodecTypeArray.length * kCodecPriorityArray.length * kSampleRateArray.length *
-            kBitsPerSampleArray.length * kChannelModeArray.length;
-        int right = kTotalConfigs / left;
+        int left = sCodecTypeArray.length * sCodecPriorityArray.length * sSampleRateArray.length
+                * sBitsPerSampleArray.length * sChannelModeArray.length;
+        int right = sTotalConfigs / left;
         int index = configId / right;
-        index = index % kChannelModeArray.length;
-        return kChannelModeArray[index];
+        index = index % sChannelModeArray.length;
+        return sChannelModeArray[index];
     }
 
     private long selectCodecSpecific1(int configId) {
-        int left = kCodecTypeArray.length * kCodecPriorityArray.length * kSampleRateArray.length *
-            kBitsPerSampleArray.length * kChannelModeArray.length * kCodecSpecific1Array.length;
-        int right = kTotalConfigs / left;
+        int left = sCodecTypeArray.length * sCodecPriorityArray.length * sSampleRateArray.length
+                * sBitsPerSampleArray.length * sChannelModeArray.length
+                * sCodecSpecific1Array.length;
+        int right = sTotalConfigs / left;
         int index = configId / right;
-        index = index % kCodecSpecific1Array.length;
-        return kCodecSpecific1Array[index];
+        index = index % sCodecSpecific1Array.length;
+        return sCodecSpecific1Array[index];
     }
 
     private long selectCodecSpecific2(int configId) {
-        int left = kCodecTypeArray.length * kCodecPriorityArray.length * kSampleRateArray.length *
-            kBitsPerSampleArray.length * kChannelModeArray.length * kCodecSpecific1Array.length *
-            kCodecSpecific2Array.length;
-        int right = kTotalConfigs / left;
+        int left = sCodecTypeArray.length * sCodecPriorityArray.length * sSampleRateArray.length
+                * sBitsPerSampleArray.length * sChannelModeArray.length
+                * sCodecSpecific1Array.length * sCodecSpecific2Array.length;
+        int right = sTotalConfigs / left;
         int index = configId / right;
-        index = index % kCodecSpecific2Array.length;
-        return kCodecSpecific2Array[index];
+        index = index % sCodecSpecific2Array.length;
+        return sCodecSpecific2Array[index];
     }
 
     private long selectCodecSpecific3(int configId) {
-        int left = kCodecTypeArray.length * kCodecPriorityArray.length * kSampleRateArray.length *
-            kBitsPerSampleArray.length * kChannelModeArray.length * kCodecSpecific1Array.length *
-            kCodecSpecific2Array.length * kCodecSpecific3Array.length;
-        int right = kTotalConfigs / left;
+        int left = sCodecTypeArray.length * sCodecPriorityArray.length * sSampleRateArray.length
+                * sBitsPerSampleArray.length * sChannelModeArray.length
+                * sCodecSpecific1Array.length * sCodecSpecific2Array.length
+                * sCodecSpecific3Array.length;
+        int right = sTotalConfigs / left;
         int index = configId / right;
-        index = index % kCodecSpecific3Array.length;
-        return kCodecSpecific3Array[index];
+        index = index % sCodecSpecific3Array.length;
+        return sCodecSpecific3Array[index];
     }
 
     private long selectCodecSpecific4(int configId) {
-        int left = kCodecTypeArray.length * kCodecPriorityArray.length * kSampleRateArray.length *
-            kBitsPerSampleArray.length * kChannelModeArray.length * kCodecSpecific1Array.length *
-            kCodecSpecific2Array.length * kCodecSpecific3Array.length *
-            kCodecSpecific4Array.length;
-        int right = kTotalConfigs / left;
+        int left = sCodecTypeArray.length * sCodecPriorityArray.length * sSampleRateArray.length
+                * sBitsPerSampleArray.length * sChannelModeArray.length
+                * sCodecSpecific1Array.length * sCodecSpecific2Array.length
+                * sCodecSpecific3Array.length * sCodecSpecific4Array.length;
+        int right = sTotalConfigs / left;
         int index = configId / right;
-        index = index % kCodecSpecific4Array.length;
-        return kCodecSpecific4Array[index];
+        index = index % sCodecSpecific4Array.length;
+        return sCodecSpecific4Array[index];
     }
 
     @SmallTest
     public void testBluetoothCodecConfig_valid_get_methods() {
 
-        for (int config_id = 0; config_id < kTotalConfigs; config_id++) {
+        for (int config_id = 0; config_id < sTotalConfigs; config_id++) {
             int codec_type = selectCodecType(config_id);
             int codec_priority = selectCodecPriority(config_id);
             int sample_rate = selectSampleRate(config_id);
