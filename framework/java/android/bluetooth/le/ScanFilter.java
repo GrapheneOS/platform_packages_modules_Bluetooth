@@ -183,7 +183,7 @@ public final class ScanFilter implements Parcelable {
             dest.writeInt(mAddressType);
             dest.writeInt(mIrk == null ? 0 : 1);
             if (mIrk != null) {
-                dest.writeByteArray(mIrk);
+                dest.writeByteArray(Arrays.copyOfRange(mIrk, 0, 16 + 1));
             }
         }
 
