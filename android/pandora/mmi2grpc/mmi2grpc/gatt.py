@@ -18,11 +18,11 @@ import sys
 from mmi2grpc._helpers import assert_description
 from mmi2grpc._proxy import ProfileProxy
 
-from pandora.gatt_grpc import GATT
-from pandora.host_grpc import Host
-from pandora.gatt_pb2 import AttStatusCode
-from pandora.gatt_pb2 import ReadCharacteristicResponse
-from pandora.gatt_pb2 import ReadCharacteristicsFromUuidResponse
+from pandora_experimental.gatt_grpc import GATT
+from pandora_experimental.host_grpc import Host
+from pandora_experimental.gatt_pb2 import AttStatusCode
+from pandora_experimental.gatt_pb2 import ReadCharacteristicResponse
+from pandora_experimental.gatt_pb2 import ReadCharacteristicsFromUuidResponse
 
 # Tests that need GATT cache cleared before discovering services.
 NEEDS_CACHE_CLEARED = {
