@@ -45,7 +45,7 @@ cc_library_static {
     export_header_lib_headers: ["libbluetooth-types-header"],
     apex_available: [
         "//apex_available:platform",
-        "com.android.bluetooth",
+        "com.android.btservices",
     ],
     min_sdk_version: "29",
 }
