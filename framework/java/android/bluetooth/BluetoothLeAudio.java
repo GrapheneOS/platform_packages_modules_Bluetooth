@@ -870,7 +870,8 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
     @Override
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
-    public @NonNull List<BluetoothDevice> getDevicesMatchingConnectionStates(
+    @NonNull
+    public List<BluetoothDevice> getDevicesMatchingConnectionStates(
             @NonNull int[] states) {
         if (VDBG) log("getDevicesMatchingStates()");
         final IBluetoothLeAudio service = getService();
@@ -1161,7 +1162,7 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
 
     /**
      * Add device to the given group.
-     * @param group_id group ID the device is being added to
+     * @param groupId group ID the device is being added to
      * @param device the active device
      * @return true on success, otherwise false
      * @hide
@@ -1171,7 +1172,7 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
             android.Manifest.permission.BLUETOOTH_CONNECT,
             android.Manifest.permission.BLUETOOTH_PRIVILEGED
     })
-    public boolean groupAddNode(int group_id, @NonNull BluetoothDevice device) {
+    public boolean groupAddNode(int groupId, @NonNull BluetoothDevice device) {
         if (VDBG) log("groupAddNode()");
         final IBluetoothLeAudio service = getService();
         final boolean defaultValue = false;
@@ -1181,7 +1182,7 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
         } else if (mAdapter.isEnabled()) {
             try {
                 final SynchronousResultReceiver<Boolean> recv = SynchronousResultReceiver.get();
-                service.groupAddNode(group_id, device, mAttributionSource, recv);
+                service.groupAddNode(groupId, device, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (RemoteException | TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));
@@ -1192,7 +1193,7 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
 
     /**
      * Remove device from a given group.
-     * @param group_id group ID the device is being removed from
+     * @param groupId group ID the device is being removed from
      * @param device the active device
      * @return true on success, otherwise false
      *
@@ -1203,7 +1204,7 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
             android.Manifest.permission.BLUETOOTH_CONNECT,
             android.Manifest.permission.BLUETOOTH_PRIVILEGED
     })
-    public boolean groupRemoveNode(int group_id, @NonNull BluetoothDevice device) {
+    public boolean groupRemoveNode(int groupId, @NonNull BluetoothDevice device) {
         if (VDBG) log("groupRemoveNode()");
         final IBluetoothLeAudio service = getService();
         final boolean defaultValue = false;
@@ -1213,7 +1214,7 @@ public final class BluetoothLeAudio implements BluetoothProfile, AutoCloseable {
         } else if (mAdapter.isEnabled()) {
             try {
                 final SynchronousResultReceiver<Boolean> recv = SynchronousResultReceiver.get();
-                service.groupRemoveNode(group_id, device, mAttributionSource, recv);
+                service.groupRemoveNode(groupId, device, mAttributionSource, recv);
                 return recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(defaultValue);
             } catch (RemoteException | TimeoutException e) {
                 Log.e(TAG, e.toString() + "\n" + Log.getStackTraceString(new Throwable()));

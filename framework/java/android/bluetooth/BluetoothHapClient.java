@@ -750,8 +750,8 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
             android.Manifest.permission.BLUETOOTH_PRIVILEGED,
     })
     @Override
-    public @NonNull List<BluetoothDevice> getDevicesMatchingConnectionStates(
-            @NonNull int[] states) {
+    @NonNull
+    public List<BluetoothDevice> getDevicesMatchingConnectionStates(@NonNull int[] states) {
         if (VDBG) Log.d(TAG, "getDevicesMatchingConnectionStates()");
         final IBluetoothHapClient service = getService();
         final List defaultValue = new ArrayList<BluetoothDevice>();
@@ -785,8 +785,8 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
             android.Manifest.permission.BLUETOOTH_PRIVILEGED,
     })
     @Override
-    public @BluetoothProfile.BtProfileState int getConnectionState(
-            @NonNull BluetoothDevice device) {
+    @BluetoothProfile.BtProfileState
+    public int getConnectionState(@NonNull BluetoothDevice device) {
         if (VDBG) Log.d(TAG, "getConnectionState(" + device + ")");
         final IBluetoothHapClient service = getService();
         final int defaultValue = BluetoothProfile.STATE_DISCONNECTED;
@@ -1113,8 +1113,8 @@ public final class BluetoothHapClient implements BluetoothProfile, AutoCloseable
             android.Manifest.permission.BLUETOOTH_CONNECT,
             android.Manifest.permission.BLUETOOTH_PRIVILEGED
     })
-    public @Nullable BluetoothHapPresetInfo getPresetInfo(@NonNull BluetoothDevice device,
-            int presetIndex) {
+    @Nullable
+    public BluetoothHapPresetInfo getPresetInfo(@NonNull BluetoothDevice device, int presetIndex) {
         final IBluetoothHapClient service = getService();
         final BluetoothHapPresetInfo defaultValue = null;
         if (service == null) {

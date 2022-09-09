@@ -380,7 +380,8 @@ public final class BluetoothLeBroadcast implements AutoCloseable, BluetoothProfi
             android.Manifest.permission.BLUETOOTH_CONNECT,
             android.Manifest.permission.BLUETOOTH_PRIVILEGED,
     })
-    public @NonNull List<BluetoothDevice> getDevicesMatchingConnectionStates(
+    @NonNull
+    public List<BluetoothDevice> getDevicesMatchingConnectionStates(
             @NonNull int[] states) {
         throw new UnsupportedOperationException("LE Audio Broadcasts are not connection-oriented.");
     }
