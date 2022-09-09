@@ -34,7 +34,7 @@
     <uses-permission android:name="android.permission.WRITE_SETTINGS" />
     <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS" />
 
-    <application >
+    <application android:testOnly="true">
         <uses-library android:name="android.test.runner" />
     </application>
     <instrumentation android:name="android.bluetooth.BluetoothTestRunner"
