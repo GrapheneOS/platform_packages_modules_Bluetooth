@@ -892,8 +892,8 @@ public final class BluetoothHeadsetClient implements BluetoothProfile, AutoClose
             android.Manifest.permission.BLUETOOTH_CONNECT,
             android.Manifest.permission.BLUETOOTH_PRIVILEGED,
     })
-    public @NonNull List<BluetoothDevice> getDevicesMatchingConnectionStates(
-            @NonNull int[] states) {
+    @NonNull
+    public List<BluetoothDevice> getDevicesMatchingConnectionStates(@NonNull int[] states) {
         if (VDBG) log("getDevicesMatchingStates()");
         final IBluetoothHeadsetClient service = getService();
         final List<BluetoothDevice> defaultValue = new ArrayList<BluetoothDevice>();

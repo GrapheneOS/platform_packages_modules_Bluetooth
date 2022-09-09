@@ -1420,16 +1420,15 @@ public final class BluetoothDevice implements Parcelable, Attributable {
         return 0;
     }
 
-    public static final @android.annotation.NonNull Parcelable.Creator<BluetoothDevice> CREATOR =
-            new Parcelable.Creator<BluetoothDevice>() {
-                public BluetoothDevice createFromParcel(Parcel in) {
-                    return new BluetoothDevice(in.readString());
-                }
+    public static final @NonNull Creator<BluetoothDevice> CREATOR = new Creator<>() {
+        public BluetoothDevice createFromParcel(Parcel in) {
+            return new BluetoothDevice(in.readString());
+        }
 
-                public BluetoothDevice[] newArray(int size) {
-                    return new BluetoothDevice[size];
-                }
-            };
+        public BluetoothDevice[] newArray(int size) {
+            return new BluetoothDevice[size];
+        }
+    };
 
     @Override
     public void writeToParcel(Parcel out, int flags) {
