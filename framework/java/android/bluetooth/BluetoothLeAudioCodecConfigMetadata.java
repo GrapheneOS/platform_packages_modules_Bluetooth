@@ -119,26 +119,25 @@ public final class BluetoothLeAudioCodecConfigMetadata implements Parcelable {
      * @hide
      */
     @SystemApi
-    public static final @NonNull Parcelable.Creator<BluetoothLeAudioCodecConfigMetadata> CREATOR =
-            new Parcelable.Creator<BluetoothLeAudioCodecConfigMetadata>() {
-                @NonNull
-                public BluetoothLeAudioCodecConfigMetadata createFromParcel(@NonNull Parcel in) {
-                    long audioLocation = in.readLong();
-                    int rawMetadataLen = in.readInt();
-                    byte[] rawMetadata;
-                    if (rawMetadataLen != -1) {
-                        rawMetadata = new byte[rawMetadataLen];
-                        in.readByteArray(rawMetadata);
-                    } else {
-                        rawMetadata = new byte[0];
-                    }
-                    return new BluetoothLeAudioCodecConfigMetadata(audioLocation, rawMetadata);
-                }
+    @NonNull
+    public static final Creator<BluetoothLeAudioCodecConfigMetadata> CREATOR = new Creator<>() {
+        public @NonNull BluetoothLeAudioCodecConfigMetadata createFromParcel(@NonNull Parcel in) {
+            long audioLocation = in.readLong();
+            int rawMetadataLen = in.readInt();
+            byte[] rawMetadata;
+            if (rawMetadataLen != -1) {
+                rawMetadata = new byte[rawMetadataLen];
+                in.readByteArray(rawMetadata);
+            } else {
+                rawMetadata = new byte[0];
+            }
+            return new BluetoothLeAudioCodecConfigMetadata(audioLocation, rawMetadata);
+        }
 
-                public @NonNull BluetoothLeAudioCodecConfigMetadata[] newArray(int size) {
-                    return new BluetoothLeAudioCodecConfigMetadata[size];
-                }
-            };
+        public @NonNull BluetoothLeAudioCodecConfigMetadata[] newArray(int size) {
+            return new BluetoothLeAudioCodecConfigMetadata[size];
+        }
+    };
 
     /**
      * Construct a {@link BluetoothLeAudioCodecConfigMetadata} from raw bytes.
@@ -155,8 +154,8 @@ public final class BluetoothLeAudioCodecConfigMetadata implements Parcelable {
      * @hide
      */
     @SystemApi
-    public static @NonNull BluetoothLeAudioCodecConfigMetadata fromRawBytes(
-            @NonNull byte[] rawBytes) {
+    @NonNull
+    public static BluetoothLeAudioCodecConfigMetadata fromRawBytes(@NonNull byte[] rawBytes) {
         if (rawBytes == null) {
             throw new IllegalArgumentException("Raw bytes cannot be null");
         }

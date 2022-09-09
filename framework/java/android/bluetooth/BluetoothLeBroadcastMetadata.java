@@ -267,43 +267,43 @@ public final class BluetoothLeBroadcastMetadata implements Parcelable {
      * @hide
      */
     @SystemApi
-    public static final @NonNull Parcelable.Creator<BluetoothLeBroadcastMetadata> CREATOR =
-            new Parcelable.Creator<BluetoothLeBroadcastMetadata>() {
-                public @NonNull BluetoothLeBroadcastMetadata createFromParcel(@NonNull Parcel in) {
-                    Builder builder = new Builder();
-                    final int sourceAddressType = in.readInt();
-                    final int deviceExist = in.readInt();
-                    BluetoothDevice sourceDevice = null;
-                    if (deviceExist == 1) {
-                        sourceDevice = in.readTypedObject(BluetoothDevice.CREATOR);
-                    }
-                    builder.setSourceDevice(sourceDevice, sourceAddressType);
-                    builder.setSourceAdvertisingSid(in.readInt());
-                    builder.setBroadcastId(in.readInt());
-                    builder.setPaSyncInterval(in.readInt());
-                    builder.setEncrypted(in.readBoolean());
-                    final int codeLen = in.readInt();
-                    byte[] broadcastCode = null;
-                    if (codeLen != -1) {
-                        broadcastCode = new byte[codeLen];
-                        if (codeLen > 0) {
-                            in.readByteArray(broadcastCode);
-                        }
-                    }
-                    builder.setBroadcastCode(broadcastCode);
-                    builder.setPresentationDelayMicros(in.readInt());
-                    final List<BluetoothLeBroadcastSubgroup> subgroups = new ArrayList<>();
-                    in.readTypedList(subgroups, BluetoothLeBroadcastSubgroup.CREATOR);
-                    for (BluetoothLeBroadcastSubgroup subgroup : subgroups) {
-                        builder.addSubgroup(subgroup);
-                    }
-                    return builder.build();
+    @NonNull
+    public static final Creator<BluetoothLeBroadcastMetadata> CREATOR = new Creator<>() {
+        public @NonNull BluetoothLeBroadcastMetadata createFromParcel(@NonNull Parcel in) {
+            Builder builder = new Builder();
+            final int sourceAddressType = in.readInt();
+            final int deviceExist = in.readInt();
+            BluetoothDevice sourceDevice = null;
+            if (deviceExist == 1) {
+                sourceDevice = in.readTypedObject(BluetoothDevice.CREATOR);
+            }
+            builder.setSourceDevice(sourceDevice, sourceAddressType);
+            builder.setSourceAdvertisingSid(in.readInt());
+            builder.setBroadcastId(in.readInt());
+            builder.setPaSyncInterval(in.readInt());
+            builder.setEncrypted(in.readBoolean());
+            final int codeLen = in.readInt();
+            byte[] broadcastCode = null;
+            if (codeLen != -1) {
+                broadcastCode = new byte[codeLen];
+                if (codeLen > 0) {
+                    in.readByteArray(broadcastCode);
                 }
+            }
+            builder.setBroadcastCode(broadcastCode);
+            builder.setPresentationDelayMicros(in.readInt());
+            final List<BluetoothLeBroadcastSubgroup> subgroups = new ArrayList<>();
+            in.readTypedList(subgroups, BluetoothLeBroadcastSubgroup.CREATOR);
+            for (BluetoothLeBroadcastSubgroup subgroup : subgroups) {
+                builder.addSubgroup(subgroup);
+            }
+            return builder.build();
+        }
 
-                public @NonNull BluetoothLeBroadcastMetadata[] newArray(int size) {
-                    return new BluetoothLeBroadcastMetadata[size];
-                }
-            };
+        public @NonNull BluetoothLeBroadcastMetadata[] newArray(int size) {
+            return new BluetoothLeBroadcastMetadata[size];
+        }
+    };
 
     private static final int UNKNOWN_VALUE_PLACEHOLDER = -1;
 
@@ -369,7 +369,8 @@ public final class BluetoothLeBroadcastMetadata implements Parcelable {
          * @hide
          */
         @SystemApi
-        public @NonNull Builder setSourceDevice(@NonNull BluetoothDevice sourceDevice,
+        @NonNull
+        public Builder setSourceDevice(@NonNull BluetoothDevice sourceDevice,
                 @BluetoothDevice.AddressType int sourceAddressType) {
             if (sourceAddressType == BluetoothDevice.ADDRESS_TYPE_UNKNOWN) {
                 throw new IllegalArgumentException(
@@ -478,7 +479,8 @@ public final class BluetoothLeBroadcastMetadata implements Parcelable {
          * @hide
          */
         @SystemApi
-        public @NonNull Builder setPresentationDelayMicros(
+        @NonNull
+        public Builder setPresentationDelayMicros(
                 @IntRange(from = 0, to = 0xFFFFFF) int presentationDelayMicros) {
             if (presentationDelayMicros < 0 || presentationDelayMicros >= 0xFFFFFF) {
                 throw new IllegalArgumentException("presentationDelayMicros "
