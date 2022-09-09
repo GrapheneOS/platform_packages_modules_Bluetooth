@@ -15,63 +15,84 @@
  */
 #include "gd/metrics/chromeos/metrics_event.h"
 
+#include <utility>
+
 #include "hci/hci_packets.h"
+#include "include/hardware/bluetooth.h"
 
 namespace bluetooth {
 namespace metrics {
 
-// ENUM definitaion for Bluetooth Bond State in sync with topshim::btif::BtBondState
-enum class BtBondState {
-  NotBonded = 0,
-  Bonding,
-  Bonded,
+// topshim::btif::BtBondState is a copy of hardware/bluetooth.h/bt_bond_state_t
+typedef bt_bond_state_t BtBondState;
+
+// topshim::btif::BtStatus is a copy of hardware/bluetooth.h/bt_bond_state_t
+typedef bt_status_t BtStatus;
+
+// A normalized connection state ENUM definition all profiles
+enum class ProfilesConnectionState {
+  DISCONNECTED = 0,
+  CONNECTING,
+  CONNECTED,
+  DISCONNECTING,
+  UNKNOWN,
 };
 
-// ENUM definitaion for Bluetooth action status in sync with topshim::btif::BtStatus
-enum class BtStatus {
-  Success = 0,
-  Fail,
-  NotReady,
-  NoMemory,
-  Busy,
-  Done,
-  Unsupported,
-  InvalidParam,
-  Unhandled,
-  AuthFailure,
-  RemoteDeviceDown,
-  AuthRejected,
-  JniEnvironmentError,
-  JniThreadAttachError,
-  WakeLockError,
-
-  // Any statuses that couldn't be cleanly converted
-  Unknown = 0xff,
+// ENUM definition for Bluetooth profiles in sync with ::uuid::Profiles
+enum class ProfilesFloss {
+  A2dpSink = 0,
+  A2dpSource,
+  AdvAudioDist,
+  Hsp,
+  HspAg,
+  Hfp,
+  HfpAg,
+  AvrcpController,
+  AvrcpTarget,
+  ObexObjectPush,
+  Hid,
+  Hogp,
+  Panu,
+  Nap,
+  Bnep,
+  PbapPce,
+  PbapPse,
+  Map,
+  Mns,
+  Mas,
+  Sap,
+  HearingAid,
+  LeAudio,
+  Dip,
+  VolumeControl,
+  GenericMediaControl,
+  MediaControl,
+  CoordinatedSet,
 };
 
 static PairingState StatusToPairingState(uint32_t status) {
   switch ((BtStatus)status) {
-    case BtStatus::Success:
+    case BtStatus::BT_STATUS_SUCCESS:
       return PairingState::PAIR_SUCCEED;
-    case BtStatus::Fail:
+    case BtStatus::BT_STATUS_FAIL:
       return PairingState::PAIR_FAIL_FAILED;
-    case BtStatus::NoMemory:
+    case BtStatus::BT_STATUS_NOMEM:
       return PairingState::PAIR_FAIL_NO_RESOURCES;
-    case BtStatus::Busy:
+    case BtStatus::BT_STATUS_BUSY:
       return PairingState::PAIR_FAIL_BUSY;
-    case BtStatus::Unsupported:
+    case BtStatus::BT_STATUS_UNSUPPORTED:
       return PairingState::PAIR_FAIL_NOT_SUPPORTED;
-    case BtStatus::InvalidParam:
+    case BtStatus::BT_STATUS_PARM_INVALID:
       return PairingState::PAIR_FAIL_INVALID_PARAMS;
-    case BtStatus::AuthFailure:
+    case BtStatus::BT_STATUS_AUTH_FAILURE:
       return PairingState::PAIR_FAIL_AUTH_FAILED;
-    case BtStatus::RemoteDeviceDown:
+    case BtStatus::BT_STATUS_RMT_DEV_DOWN:
       return PairingState::PAIR_FAIL_ESTABLISH_CONN;
-    case BtStatus::AuthRejected:
+    case BtStatus::BT_STATUS_AUTH_REJECTED:
       return PairingState::PAIR_FAIL_AUTH_FAILED;
-    case BtStatus::NotReady:
-    case BtStatus::Done:
-    case BtStatus::Unhandled:
+    case BtStatus::BT_STATUS_NOT_READY:
+    case BtStatus::BT_STATUS_DONE:
+    case BtStatus::BT_STATUS_UNHANDLED:
     default:
       return PairingState::PAIR_FAIL_UNKNOWN;
   }
@@ -172,10 +193,10 @@ PairingState ToPairingState(uint32_t status, uint32_t bond_state, int32_t fail_r
   PairingState pairing_state = PairingState::PAIR_FAIL_UNKNOWN;
 
   // The Bonding is a transitional state during the pairing process. Ignore it by returning the starting again.
-  if ((BtBondState)bond_state == BtBondState::Bonding) return PairingState::PAIR_STARTING;
+  if ((BtBondState)bond_state == BtBondState::BT_BOND_STATE_BONDING) return PairingState::PAIR_STARTING;
 
-  if ((BtStatus)status == BtStatus::Success && (hci::ErrorCode)fail_reason == hci::ErrorCode::SUCCESS) {
-    if ((BtBondState)bond_state == BtBondState::Bonded) {
+  if ((BtStatus)status == BtStatus::BT_STATUS_SUCCESS && (hci::ErrorCode)fail_reason == hci::ErrorCode::SUCCESS) {
+    if ((BtBondState)bond_state == BtBondState::BT_BOND_STATE_BONDED) {
       return PairingState::PAIR_SUCCEED;
     } else {
       return PairingState::PAIR_FAIL_CANCELLED;
@@ -188,6 +209,123 @@ PairingState ToPairingState(uint32_t status, uint32_t bond_state, int32_t fail_r
   if (fail_reason) pairing_state = FailReasonToPairingState(status);
 
   return pairing_state;
+}
+
+int64_t StatusToProfileConnectionState(uint32_t status, StateChangeType type) {
+  int64_t state;
+  if (StateChangeType::STATE_CHANGE_TYPE_CONNECT == type) {
+    switch ((BtStatus)status) {
+      case BtStatus::BT_STATUS_SUCCESS:
+        state = (int64_t)MetricProfileConnectionStatus::PROFILE_CONN_STATE_SUCCEED;
+        break;
+      case BtStatus::BT_STATUS_BUSY:
+        state = (int64_t)MetricProfileConnectionStatus::PROFILE_CONN_STATE_BUSY_CONNECTING;
+        break;
+      case BtStatus::BT_STATUS_DONE:
+        state = (int64_t)MetricProfileConnectionStatus::PROFILE_CONN_STATE_ALREADY_CONNECTED;
+        break;
+      case BtStatus::BT_STATUS_UNSUPPORTED:
+        state = (int64_t)MetricProfileConnectionStatus::PROFILE_CONN_STATE_PROFILE_NOT_SUPPORTED;
+        break;
+      case BtStatus::BT_STATUS_PARM_INVALID:
+        state = (int64_t)MetricProfileConnectionStatus::PROFILE_CONN_STATE_UNKNOWN_ERROR;
+        break;
+      case BtStatus::BT_STATUS_AUTH_FAILURE:
+        state = (int64_t)MetricProfileConnectionStatus::PROFILE_CONN_STATE_CONNECTION_REFUSED;
+        break;
+      case BtStatus::BT_STATUS_RMT_DEV_DOWN:
+        state = (int64_t)MetricProfileConnectionStatus::PROFILE_CONN_STATE_REMOTE_UNAVAILABLE;
+        break;
+      case BtStatus::BT_STATUS_AUTH_REJECTED:
+      case BtStatus::BT_STATUS_FAIL:
+      case BtStatus::BT_STATUS_NOT_READY:
+      case BtStatus::BT_STATUS_NOMEM:
+      case BtStatus::BT_STATUS_UNHANDLED:
+      default:
+        state = (int64_t)MetricProfileConnectionStatus::PROFILE_CONN_STATE_UNKNOWN_ERROR;
+        break;
+    }
+  } else {
+    switch ((BtStatus)status) {
+      case BtStatus::BT_STATUS_SUCCESS:
+        state = (int64_t)MetricProfileDisconnectionStatus::PROFILE_DISCONN_STATE_SUCCEED;
+        break;
+      case BtStatus::BT_STATUS_BUSY:
+        state = (int64_t)MetricProfileDisconnectionStatus::PROFILE_DISCONN_STATE_BUSY_DISCONNECTING;
+        break;
+      case BtStatus::BT_STATUS_DONE:
+        state = (int64_t)MetricProfileDisconnectionStatus::PROFILE_DISCONN_STATE_ALREADY_DISCONNECTED;
+        break;
+      case BtStatus::BT_STATUS_UNSUPPORTED:
+        state = (int64_t)MetricProfileDisconnectionStatus::PROFILE_DISCONN_STATE_UNKNOWN_ERROR;
+        break;
+      case BtStatus::BT_STATUS_PARM_INVALID:
+        state = (int64_t)MetricProfileDisconnectionStatus::PROFILE_DISCONN_STATE_INVALID_PARAMS;
+        break;
+      case BtStatus::BT_STATUS_AUTH_FAILURE:
+        state = (int64_t)MetricProfileDisconnectionStatus::PROFILE_DISCONN_STATE_DISCONNECTION_REFUSED;
+        break;
+      case BtStatus::BT_STATUS_RMT_DEV_DOWN:
+        state = (int64_t)MetricProfileDisconnectionStatus::PROFILE_DISCONN_STATE_UNKNOWN_ERROR;
+        break;
+      case BtStatus::BT_STATUS_AUTH_REJECTED:
+        state = (int64_t)MetricProfileDisconnectionStatus::PROFILE_DISCONN_STATE_DISCONNECTION_REFUSED;
+        break;
+      case BtStatus::BT_STATUS_FAIL:
+      case BtStatus::BT_STATUS_NOT_READY:
+      case BtStatus::BT_STATUS_NOMEM:
+      case BtStatus::BT_STATUS_UNHANDLED:
+      default:
+        state = (int64_t)MetricProfileDisconnectionStatus::PROFILE_DISCONN_STATE_UNKNOWN_ERROR;
+        break;
+    }
+  }
+
+  return state;
+}
+
+static std::pair<uint32_t, uint32_t> ToProfileConnectionState(uint32_t profile, uint32_t state) {
+  std::pair<uint32_t, uint32_t> output;
+
+  switch ((ProfilesFloss)profile) {
+    // case ProfilesFloss::A2dpSink:
+    // case ProfilesFloss::A2dpSource:
+    // case ProfilesFloss::AdvAudioDist:
+    // case ProfilesFloss::Hsp:
+    // case ProfilesFloss::HspAg:
+    // case ProfilesFloss::Hfp:
+    // case ProfilesFloss::HfpAg:
+    // case ProfilesFloss::AvrcpController:
+    // case ProfilesFloss::AvrcpTarget:
+    // case ProfilesFloss::ObexObjectPush:
+    // case ProfilesFloss::Hid:
+    // case ProfilesFloss::Hogp:
+    // case ProfilesFloss::Panu:
+    // case ProfilesFloss::Nap:
+    // case ProfilesFloss::Bnep:
+    // case ProfilesFloss::PbapPce:
+    // case ProfilesFloss::PbapPse:
+    // case ProfilesFloss::Map:
+    // case ProfilesFloss::Mns:
+    // case ProfilesFloss::Mas:
+    // case ProfilesFloss::Sap:
+    // case ProfilesFloss::HearingAid:
+    // case ProfilesFloss::LeAudio:
+    // case ProfilesFloss::Dip:
+    // case ProfilesFloss::VolumeControl:
+    // case ProfilesFloss::GenericMediaControl:
+    // case ProfilesFloss::MediaControl:
+    // case ProfilesFloss::CoordinatedSet:
+    default:
+      output = std::make_pair((uint32_t)Profile::UNKNOWN, state);
+      break;
+  }
+
+  return output;
+}
+
+ProfileConnectionEvent ToProfileConnectionEvent(std::string addr, uint32_t profile, uint32_t status, uint32_t state) {
+  return ProfileConnectionEvent();
 }
 
 }  // namespace metrics
