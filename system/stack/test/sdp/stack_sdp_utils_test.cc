@@ -24,6 +24,8 @@
 #include "stack/include/avrc_defs.h"
 #include "stack/include/sdp_api.h"
 #include "stack/sdp/sdpint.h"
+#include "test/mock/mock_btif_config.h"
+#include "test/mock/mock_osi_properties.h"
 
 using testing::_;
 using testing::DoAll;
@@ -50,8 +52,6 @@ bool interop_match_addr(const interop_feature_t feature,
                         const RawAddress* addr) {
   return localIopMock->InteropMatchAddr(feature, addr);
 }
-
-bool osi_property_get_bool(const char* key, bool default_value) { return true; }
 
 uint8_t avrc_value[8] = {
     ((DATA_ELE_SEQ_DESC_TYPE << 3) | SIZE_IN_NEXT_BYTE),  // data_element
@@ -88,14 +88,28 @@ uint16_t get_avrc_target_version(tSDP_ATTRIBUTE* p_attr) {
 class StackSdpUtilsTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    bluetooth::manager::SetMockBtifConfigInterface(&btif_config_interface_);
+    test::mock::btif_config::btif_config_get_bin.body =
+        [this](const std::string& section, const std::string& key,
+               uint8_t* value, size_t* length) {
+          return btif_config_interface_.GetBin(section, key, value, length);
+        };
+    test::mock::btif_config::btif_config_get_bin_length.body =
+        [this](const std::string& section, const std::string& key) {
+          return btif_config_interface_.GetBinLength(section, key);
+        };
+    test::mock::osi_properties::osi_property_get_bool.body =
+        [](const char* key, bool default_value) { return true; };
+
     localIopMock = std::make_unique<IopMock>();
     set_avrcp_attr(8, ATTR_ID_BT_PROFILE_DESC_LIST,
                    UUID_SERVCLASS_AV_REMOTE_CONTROL, AVRC_REV_1_5);
   }
 
   void TearDown() override {
-    bluetooth::manager::SetMockBtifConfigInterface(nullptr);
+    test::mock::btif_config::btif_config_get_bin_length = {};
+    test::mock::btif_config::btif_config_get_bin = {};
+    test::mock::osi_properties::osi_property_get_bool = {};
+
     localIopMock.reset();
   }
   bluetooth::manager::MockBtifConfigInterface btif_config_interface_;
