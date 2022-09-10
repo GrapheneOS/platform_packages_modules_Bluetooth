@@ -38,7 +38,7 @@ class LeAdvertisingTest(sl4a_sl4a_base_test.Sl4aSl4aBaseTestClass):
         super().teardown_test()
 
     def test_advertise_name(self):
-        rpa_address = self.cert_advertiser_.advertise_rpa_public_extended_pdu()
+        rpa_address = self.cert_advertiser_.advertise_public_extended_pdu()
         self.dut_scanner_.scan_for_name(self.cert_advertiser_.get_local_advertising_name())
         self.dut_scanner_.stop_scanning()
         self.cert_advertiser_.stop_advertising()
@@ -48,10 +48,10 @@ class LeAdvertisingTest(sl4a_sl4a_base_test.Sl4aSl4aBaseTestClass):
             self.test_advertise_name()
 
     def test_advertise_name_twice_no_stop(self):
-        rpa_address = self.cert_advertiser_.advertise_rpa_public_extended_pdu()
+        rpa_address = self.cert_advertiser_.advertise_public_extended_pdu()
         self.dut_scanner_.scan_for_name(self.cert_advertiser_.get_local_advertising_name())
         self.dut_scanner_.stop_scanning()
-        rpa_address = self.cert_advertiser_.advertise_rpa_public_extended_pdu()
+        rpa_address = self.cert_advertiser_.advertise_public_extended_pdu()
         self.dut_scanner_.scan_for_name(self.cert_advertiser_.get_local_advertising_name())
         self.dut_scanner_.stop_scanning()
         self.cert_advertiser_.stop_advertising()

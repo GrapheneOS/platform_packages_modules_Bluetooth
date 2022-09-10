@@ -142,6 +142,7 @@ class LeScanner(Closable):
         self.device.sl4a.bleSetScanSettingsLegacy(False)
         self.filter_list, self.scan_settings, self.scan_callback = generate_ble_scan_objects(self.device.sl4a)
         expected_event_name = scan_result.format(1)
+        self.device.ed.clear_events(expected_event_name)
 
         # Start scanning on SL4A DUT
         self.device.sl4a.bleSetScanFilterDeviceName(name)

@@ -5,9 +5,9 @@ import re
 from mmi2grpc._helpers import assert_description, match_description
 from mmi2grpc._proxy import ProfileProxy
 
-from pandora.host_grpc import Host
-from pandora.security_grpc import Security
-from pandora.gatt_grpc import GATT
+from pandora_experimental.host_grpc import Host
+from pandora_experimental.security_grpc import Security
+from pandora_experimental.gatt_grpc import GATT
 
 BASE_UUID = uuid.UUID("00000000-0000-1000-8000-00805F9B34FB")
 
@@ -70,7 +70,7 @@ class HOGPProxy(ProfileProxy):
              Properties: \[0x00(?P<properties>\S*)\]
         """
 
-        self.gatt.WriteCharacteristicDescriptorFromHandle(
+        self.gatt.WriteAttFromHandle(
             connection=self.connection,
             handle=int(handle, base=16),
             value=bytes([int(f"0x{properties}", base=16), 0]),
@@ -209,7 +209,7 @@ class HOGPProxy(ProfileProxy):
         Descriptor handle value: (?P<value>\S*)
         """
 
-        self.gatt.WriteCharacteristicDescriptorFromHandle(
+        self.gatt.WriteAttFromHandle(
             connection=self.connection,
             handle=int(value, base=16),
             value=bytes([0x01, 0x00]),
@@ -237,7 +237,7 @@ class HOGPProxy(ProfileProxy):
         self.characteristic_reads[handle] = action(
             connection=self.connection,
             handle=handle,
-        ).readValue.value
+        ).value.value
 
         return "OK"
 

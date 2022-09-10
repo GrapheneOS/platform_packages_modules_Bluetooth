@@ -18,8 +18,8 @@ from mmi2grpc._helpers import assert_description
 from mmi2grpc._proxy import ProfileProxy
 from mmi2grpc._streaming import StreamWrapper
 
-from pandora.security_grpc import Security
-from pandora.host_grpc import Host
+from pandora_experimental.security_grpc import Security
+from pandora_experimental.host_grpc import Host
 
 # The tests needs the MMI to accept pairing confirmation request.
 NEEDS_PAIRING_CONFIRMATION = {

@@ -36,6 +36,6 @@ filegroup {
     srcs: [
         "mmi2grpc/*.py",
         "pandora/*.py",
-        ":pandora-grpc-python",
+        ":pandora_experimental-python-src",
     ],
 }

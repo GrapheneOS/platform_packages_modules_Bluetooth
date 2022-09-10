@@ -83,6 +83,7 @@ class Security:
     def remove_all_bonded_devices(self):
         bonded_devices = self.__device.sl4a.bluetoothGetBondedDevices()
         for device in bonded_devices:
+            logging.info(device)
             self.remove_bond(device["address"])
 
     def remove_bond(self, address):

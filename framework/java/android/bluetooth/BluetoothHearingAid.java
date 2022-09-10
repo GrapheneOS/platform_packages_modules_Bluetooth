@@ -284,8 +284,8 @@ public final class BluetoothHearingAid implements BluetoothProfile {
     @Override
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
-    public @NonNull List<BluetoothDevice> getDevicesMatchingConnectionStates(
-    @NonNull int[] states) {
+    @NonNull
+    public List<BluetoothDevice> getDevicesMatchingConnectionStates(@NonNull int[] states) {
         if (VDBG) log("getDevicesMatchingStates()");
         final IBluetoothHearingAid service = getService();
         final List<BluetoothDevice> defaultValue = new ArrayList<BluetoothDevice>();
@@ -313,8 +313,8 @@ public final class BluetoothHearingAid implements BluetoothProfile {
     @Override
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
-    public @BluetoothProfile.BtProfileState int getConnectionState(
-    @NonNull BluetoothDevice device) {
+    @BluetoothProfile.BtProfileState
+    public int getConnectionState(@NonNull BluetoothDevice device) {
         if (VDBG) log("getState(" + device + ")");
         final IBluetoothHearingAid service = getService();
         final int defaultValue = BluetoothProfile.STATE_DISCONNECTED;

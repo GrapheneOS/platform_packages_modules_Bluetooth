@@ -828,6 +828,10 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
           update_service_data_filter(apcf_action, filter_index, filter.data, filter.data_mask);
           break;
         }
+        case ApcfFilterType::AD_TYPE: {
+          update_ad_type_filter(apcf_action, filter_index, filter.ad_type, filter.data, filter.data_mask);
+          break;
+        }
         default:
           LOG_ERROR("Unknown filter type: %d", (uint16_t)filter.filter_type);
           break;
@@ -1015,6 +1019,31 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
 
     le_scanning_interface_->EnqueueCommand(
         LeAdvFilterServiceDataBuilder::Create(action, filter_index, combined_data),
+        module_handler_->BindOnceOn(this, &impl::on_advertising_filter_complete));
+  }
+
+  void update_ad_type_filter(
+      ApcfAction action,
+      uint8_t filter_index,
+      uint8_t ad_type,
+      std::vector<uint8_t> data,
+      std::vector<uint8_t> data_mask) {
+    if (data.size() != data_mask.size()) {
+      LOG_ERROR("ad type mask should have the same length as ad type data");
+      return;
+    }
+    std::vector<uint8_t> combined_data = {};
+    if (action != ApcfAction::CLEAR) {
+      combined_data.push_back((uint8_t)ad_type);
+      combined_data.push_back((uint8_t)(data.size()));
+      if (data.size() != 0) {
+        combined_data.insert(combined_data.end(), data.begin(), data.end());
+        combined_data.insert(combined_data.end(), data_mask.begin(), data_mask.end());
+      }
+    }
+
+    le_scanning_interface_->EnqueueCommand(
+        LeAdvFilterADTypeBuilder::Create(action, filter_index, combined_data),
         module_handler_->BindOnceOn(this, &impl::on_advertising_filter_complete));
   }
 
@@ -1367,6 +1396,15 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
         ASSERT(complete_view.IsValid());
         scanning_callbacks_->OnFilterConfigCallback(
             ApcfFilterType::SERVICE_DATA,
+            complete_view.GetApcfAvailableSpaces(),
+            complete_view.GetApcfAction(),
+            (uint8_t)complete_view.GetStatus());
+      } break;
+      case ApcfOpcode::AD_TYPE: {
+        auto complete_view = LeAdvFilterADTypeCompleteView::Create(status_view);
+        ASSERT(complete_view.IsValid());
+        scanning_callbacks_->OnFilterConfigCallback(
+            ApcfFilterType::AD_TYPE,
             complete_view.GetApcfAvailableSpaces(),
             complete_view.GetApcfAction(),
             (uint8_t)complete_view.GetStatus());
