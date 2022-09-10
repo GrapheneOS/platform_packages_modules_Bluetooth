@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "os/fuzz/fake_timerfd.h"
+#include "os/fake_timer/fake_timerfd.h"
 
 #include <sys/eventfd.h>
 #include <unistd.h>
@@ -23,7 +23,7 @@
 
 namespace bluetooth {
 namespace os {
-namespace fuzz {
+namespace fake_timer {
 
 class FakeTimerFd {
  public:
@@ -42,7 +42,7 @@ static uint64_t timespec_to_ms(const timespec* t) {
 }
 
 int fake_timerfd_create(int clockid, int flags) {
-  int fd = eventfd(0, 0);
+  int fd = eventfd(0, EFD_SEMAPHORE);
   if (fd == -1) {
     return fd;
   }
@@ -134,6 +134,10 @@ void fake_timerfd_cap_at(uint64_t ms) {
   max_clock = ms;
 }
 
-}  // namespace fuzz
+uint64_t fake_timerfd_get_clock() {
+  return clock;
+}
+
+}  // namespace fake_timer
 }  // namespace os
 }  // namespace bluetooth

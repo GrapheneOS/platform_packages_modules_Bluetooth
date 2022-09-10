@@ -228,10 +228,24 @@ cc_library {
         "libbluetooth_gd_defaults",
     ],
     srcs: [
-        ":BluetoothOsSources_fuzz",
+        ":BluetoothOsSources_fake_timer",
     ],
     cflags: [
         "-DFUZZ_TARGET",
+        "-DUSE_FAKE_TIMERS",
+    ],
+}
+
+cc_library {
+    name: "libbluetooth_gd_unit_tests",
+    defaults: [
+        "libbluetooth_gd_defaults",
+    ],
+    srcs: [
+        ":BluetoothOsSources_fake_timer",
+    ],
+    cflags: [
+        "-DUSE_FAKE_TIMERS",
     ],
 }
 
@@ -387,7 +401,7 @@ cc_test {
         "libbluetooth-dumpsys-test",
         "libbluetooth-dumpsys-unittest",
         "libbluetooth-protos",
-        "libbluetooth_gd",
+        "libbluetooth_gd_unit_tests",
         "libc++fs",
         "libflatbuffers-cpp",
         "libgmock",
@@ -489,6 +503,7 @@ cc_defaults {
     ],
     cflags: [
         "-DFUZZ_TARGET",
+        "-DUSE_FAKE_TIMERS",
     ],
     target: {
         android: {

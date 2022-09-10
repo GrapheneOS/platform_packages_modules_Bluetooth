@@ -22,7 +22,7 @@
 
 namespace bluetooth {
 namespace os {
-namespace fuzz {
+namespace fake_timer {
 
 int fake_timerfd_create(int clockid, int flags);
 
@@ -36,6 +36,8 @@ void fake_timerfd_advance(uint64_t ms);
 
 void fake_timerfd_cap_at(uint64_t ms);
 
-}  // namespace fuzz
+uint64_t fake_timerfd_get_clock();
+
+}  // namespace fake_timer
 }  // namespace os
 }  // namespace bluetooth
