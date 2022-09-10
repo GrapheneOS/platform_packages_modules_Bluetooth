@@ -221,7 +221,7 @@ cc_library {
         "libbluetooth_gd_defaults",
     ],
     apex_available: [
-        "com.android.bluetooth",
+        "com.android.btservices",
     ],
     min_sdk_version: "31",
 }
@@ -236,6 +236,19 @@ cc_library {
     ],
     cflags: [
         "-DFUZZ_TARGET",
+        "-DUSE_FAKE_TIMERS",
+    ],
+}
+
+cc_library {
+    name: "libbluetooth_gd_unit_tests",
+    defaults: [
+        "libbluetooth_gd_defaults",
+    ],
+    srcs: [
+        ":BluetoothOsSources_fake_timer",
+    ],
+    cflags: [
         "-DUSE_FAKE_TIMERS",
     ],
 }
@@ -392,7 +405,7 @@ cc_test {
         "libbluetooth-dumpsys-test",
         "libbluetooth-dumpsys-unittest",
         "libbluetooth-protos",
-        "libbluetooth_gd",
+        "libbluetooth_gd_unit_tests",
         "libc++fs",
         "libflatbuffers-cpp",
         "libgmock",

@@ -67,7 +67,7 @@ class OobPairingTest(sl4a_sl4a_base_test.Sl4aSl4aBaseTestClass):
 
     def __test_scan(self, address_type="public"):
         cert_public_address, irk = self.__get_cert_public_address_and_irk_from_bt_config()
-        rpa_address = self.cert_advertiser_.advertise_rpa_public_extended_pdu()
+        rpa_address = self.cert_advertiser_.advertise_public_extended_pdu()
         self.dut_scanner_.start_identity_address_scan(cert_public_address, ble_address_types[address_type])
         self.dut_scanner_.stop_scanning()
         self.cert_advertiser_.stop_advertising()

@@ -56,6 +56,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.IntStream;
 
 @MediumTest
 @RunWith(AndroidJUnit4.class)
@@ -66,6 +67,11 @@ public class VolumeControlServiceTest {
     private BluetoothDevice mDevice;
     private HashMap<BluetoothDevice, LinkedBlockingQueue<Intent>> mDeviceQueueMap;
     private static final int TIMEOUT_MS = 1000;
+    private static final int BT_LE_AUDIO_MAX_VOL = 255;
+    private static final int MEDIA_MIN_VOL = 0;
+    private static final int MEDIA_MAX_VOL = 25;
+    private static final int CALL_MIN_VOL = 1;
+    private static final int CALL_MAX_VOL = 8;
 
     private BroadcastReceiver mVolumeControlIntentReceiver;
 
@@ -91,6 +97,15 @@ public class VolumeControlServiceTest {
         doReturn(true, false).when(mAdapterService).isStartedProfile(anyString());
 
         mAdapter = BluetoothAdapter.getDefaultAdapter();
+
+        doReturn(MEDIA_MIN_VOL).when(mAudioManager)
+                .getStreamMinVolume(eq(AudioManager.STREAM_MUSIC));
+        doReturn(MEDIA_MAX_VOL).when(mAudioManager)
+                .getStreamMaxVolume(eq(AudioManager.STREAM_MUSIC));
+        doReturn(CALL_MIN_VOL).when(mAudioManager)
+                .getStreamMinVolume(eq(AudioManager.STREAM_VOICE_CALL));
+        doReturn(CALL_MAX_VOL).when(mAudioManager)
+                .getStreamMaxVolume(eq(AudioManager.STREAM_VOICE_CALL));
 
         startService();
         mService.mVolumeControlNativeInterface = mNativeInterface;
@@ -512,6 +527,41 @@ public class VolumeControlServiceTest {
         stackEvent.valueInt2 = volume;
         stackEvent.valueBool1 = mute;
         mService.messageFromNative(stackEvent);
+    }
+
+    int getLeAudioVolume(int index, int minIndex, int maxIndex, int streamType) {
+        // Note: This has to be the same as mBtHelper.setLeAudioVolume()
+        return (int) Math.round((double) index * BT_LE_AUDIO_MAX_VOL / maxIndex);
+    }
+
+    void testVolumeCalculations(int streamType, int minIdx, int maxIdx) {
+        // Send a message to trigger volume state changed broadcast
+        final VolumeControlStackEvent stackEvent = new VolumeControlStackEvent(
+                VolumeControlStackEvent.EVENT_TYPE_VOLUME_STATE_CHANGED);
+        stackEvent.device = null;
+        stackEvent.valueInt1 = 1;       // groupId
+        stackEvent.valueBool1 = false;  // isMuted
+        stackEvent.valueBool2 = true;   // isAutonomous
+
+        IntStream.range(minIdx, maxIdx).forEach(idx -> {
+            // Given the reference volume index, set the LeAudio Volume
+            stackEvent.valueInt2 = getLeAudioVolume(idx,
+                            mAudioManager.getStreamMinVolume(streamType),
+                            mAudioManager.getStreamMaxVolume(streamType), streamType);
+            mService.messageFromNative(stackEvent);
+
+            // Verify that setting LeAudio Volume, sets the original volume index to Audio FW
+            verify(mAudioManager, times(1)).setStreamVolume(eq(streamType), eq(idx), anyInt());
+        });
+    }
+
+    @Test
+    public void testAutonomousVolumeStateChange() {
+        doReturn(AudioManager.MODE_IN_CALL).when(mAudioManager).getMode();
+        testVolumeCalculations(AudioManager.STREAM_VOICE_CALL, CALL_MIN_VOL, CALL_MAX_VOL);
+
+        doReturn(AudioManager.MODE_NORMAL).when(mAudioManager).getMode();
+        testVolumeCalculations(AudioManager.STREAM_MUSIC, MEDIA_MIN_VOL, MEDIA_MAX_VOL);
     }
 
     /**

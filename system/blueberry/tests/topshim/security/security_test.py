@@ -14,8 +14,6 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import asyncio
-
 from blueberry.tests.gd.cert.truth import assertThat
 from blueberry.tests.topshim.lib.topshim_base_test import TopshimBaseTest
 from blueberry.tests.topshim.lib.adapter_client import AdapterClient
@@ -23,17 +21,16 @@ from blueberry.tests.topshim.lib.adapter_client import AdapterClient
 from mobly import test_runner
 
 
-class AdapterTest(TopshimBaseTest):
+class SecurityTest(TopshimBaseTest):
 
-    async def __verify_enable_page_scan(self):
-        await self.dut_adapter.set_enable_page_scan()
+    DEFAULT_ADDRESS = "01:02:03:04:05:06"
+
+    async def __test_remove_bond(self, address):
+        await self.dut_adapter.remove_bond(address)
         return await self.dut_adapter.le_rand()
 
-    def test_verify_adapter_started(self):
-        print("Adapter is verified when test starts")
-
-    def test_enable_page_scan(self):
-        self.post(self.__verify_enable_page_scan())
+    def test_remove_bond_with_no_bonded_devices(self):
+        self.post(self.__test_remove_bond(self.DEFAULT_ADDRESS))
 
 
 if __name__ == "__main__":

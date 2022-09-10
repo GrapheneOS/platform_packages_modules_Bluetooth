@@ -894,7 +894,7 @@ public final class BluetoothGatt implements BluetoothProfile {
      * is used to notify success or failure if the function returns true.
      *
      * @param callback GATT callback handler that will receive asynchronous callbacks.
-     * @param eatt_support indicate to allow for eatt support
+     * @param eattSupport indicate to allow for eatt support
      * @return If true, the callback will be called to notify success or failure, false on immediate
      * error
      * @hide
@@ -903,7 +903,7 @@ public final class BluetoothGatt implements BluetoothProfile {
     @RequiresBluetoothConnectPermission
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     private boolean registerApp(BluetoothGattCallback callback, Handler handler,
-                                boolean eatt_support) {
+                                boolean eattSupport) {
         if (DBG) Log.d(TAG, "registerApp()");
         if (mService == null) return false;
 
@@ -914,7 +914,7 @@ public final class BluetoothGatt implements BluetoothProfile {
 
         try {
             final SynchronousResultReceiver recv = SynchronousResultReceiver.get();
-            mService.registerClient(new ParcelUuid(uuid), mBluetoothGattCallback, eatt_support,
+            mService.registerClient(new ParcelUuid(uuid), mBluetoothGattCallback, eattSupport,
                     mAttributionSource, recv);
             recv.awaitResultNoInterrupt(getSyncTimeout()).getValue(null);
         } catch (RemoteException | TimeoutException e) {
