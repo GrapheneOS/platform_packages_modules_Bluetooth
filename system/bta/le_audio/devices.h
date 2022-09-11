@@ -211,6 +211,7 @@ class LeAudioDeviceGroup {
         transport_latency_mtos_us_(0),
         transport_latency_stom_us_(0),
         active_context_type_(types::LeAudioContextType::UNINITIALIZED),
+        metadata_context_type_(0),
         pending_update_available_contexts_(std::nullopt),
         target_state_(types::AseState::BTA_LE_AUDIO_ASE_STATE_IDLE),
         current_state_(types::AseState::BTA_LE_AUDIO_ASE_STATE_IDLE),
@@ -321,6 +322,10 @@ class LeAudioDeviceGroup {
     pending_update_available_contexts_ = audio_contexts;
   }
 
+  inline types::AudioContexts GetMetadataContextType(void) const {
+    return metadata_context_type_;
+  }
+
   bool IsInTransition(void);
   bool IsReleasing(void);
   void Dump(int fd);
@@ -343,6 +348,7 @@ class LeAudioDeviceGroup {
 
   /* Mask and table of currently supported contexts */
   types::LeAudioContextType active_context_type_;
+  types::AudioContexts metadata_context_type_;
   types::AudioContexts active_contexts_mask_;
   std::optional<types::AudioContexts> pending_update_available_contexts_;
   std::map<types::LeAudioContextType,

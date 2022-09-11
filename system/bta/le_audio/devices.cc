@@ -1555,6 +1555,7 @@ bool LeAudioDeviceGroup::ConfigureAses(
             << " configuration: " << audio_set_conf->name;
 
   active_context_type_ = context_type;
+  metadata_context_type_ = metadata_context_type;
   return true;
 }
 
