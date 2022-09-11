@@ -671,8 +671,9 @@ class UnicastTestNoInit : public Test {
             return false;
           }
 
-          group->Configure(group->GetContextType(),
-                           static_cast<uint16_t>(group->GetContextType()), {});
+          group->Configure(
+              group->GetCurrentContextType(),
+              static_cast<uint16_t>(group->GetCurrentContextType()), {});
           if (!group->CigAssignCisIds(leAudioDevice)) return false;
           group->CigAssignCisConnHandlesToAses(leAudioDevice);
 
@@ -755,15 +756,6 @@ class UnicastTestNoInit : public Test {
                               types::LeAudioContextType context_type,
                               types::AudioContexts metadata_context_type,
                               std::vector<uint8_t> ccid_list) {
-          if (group->GetState() ==
-              types::AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING) {
-            if (group->GetContextType() != context_type) {
-              /* TODO: Switch context of group */
-              group->SetContextType(context_type);
-            }
-            return true;
-          }
-
           /* Do what ReleaseCisIds(group) does: start */
           LeAudioDevice* leAudioDevice = group->GetFirstDevice();
           while (leAudioDevice != nullptr) {
@@ -784,7 +776,6 @@ class UnicastTestNoInit : public Test {
           if (group->GetState() ==
               types::AseState::BTA_LE_AUDIO_ASE_STATE_IDLE) {
             group->CigGenerateCisIds(context_type);
-            group->SetContextType(context_type);
 
             std::vector<uint16_t> conn_handles;
             for (uint8_t i = 0; i < (uint8_t)(group->cises_.size()); i++) {
