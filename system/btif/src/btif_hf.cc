@@ -1428,7 +1428,8 @@ void HeadsetInterface::Cleanup() {
     btif_disable_service(BTA_HSP_SERVICE_ID);
   }
 #endif
-  do_in_jni_thread(FROM_HERE, base::Bind([]() { bt_hf_callbacks = nullptr; }));
+
+  bt_hf_callbacks = nullptr;
 }
 
 bt_status_t HeadsetInterface::SetScoOffloadEnabled(bool value) {
