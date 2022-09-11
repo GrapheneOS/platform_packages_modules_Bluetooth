@@ -84,7 +84,7 @@ std::string ParameterProvider::SyspropsFilePath() {
       return sysprops_file_path;
     }
   }
-  return "/etc/bluetooth/sysprops.conf";
+  return "/var/lib/bluetooth/sysprops.conf";
 }
 
 void ParameterProvider::OverrideSyspropsFilePath(const std::string& path) {
