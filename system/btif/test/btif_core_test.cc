@@ -69,7 +69,8 @@ void le_address_associate_callback(RawAddress* main_bd_addr,
                                    RawAddress* secondary_bd_addr) {}
 void acl_state_changed_callback(bt_status_t status, RawAddress* remote_bd_addr,
                                 bt_acl_state_t state, int transport_link_type,
-                                bt_hci_error_code_t hci_reason) {}
+                                bt_hci_error_code_t hci_reason,
+                                bt_conn_direction_t direction) {}
 void link_quality_report_callback(uint64_t timestamp, int report_id, int rssi,
                                   int snr, int retransmission_count,
                                   int packets_not_receive_count,

@@ -2,9 +2,9 @@
 
 use bt_topshim::btif::{
     BaseCallbacks, BaseCallbacksDispatcher, BluetoothInterface, BluetoothProperty, BtAclState,
-    BtBondState, BtConnectionState, BtDeviceType, BtDiscoveryState, BtHciErrorCode, BtPinCode,
-    BtPropertyType, BtScanMode, BtSspVariant, BtState, BtStatus, BtTransport, BtVendorProductInfo,
-    RawAddress, ToggleableProfile, Uuid, Uuid128Bit,
+    BtBondState, BtConnectionDirection, BtConnectionState, BtDeviceType, BtDiscoveryState,
+    BtHciErrorCode, BtPinCode, BtPropertyType, BtScanMode, BtSspVariant, BtState, BtStatus,
+    BtTransport, BtVendorProductInfo, RawAddress, ToggleableProfile, Uuid, Uuid128Bit,
 };
 use bt_topshim::{
     metrics,
@@ -724,6 +724,7 @@ pub(crate) trait BtifBluetoothCallbacks {
         state: BtAclState,
         link_type: BtTransport,
         hci_reason: BtHciErrorCode,
+        conn_direction: BtConnectionDirection,
     ) {
     }
 
@@ -1066,6 +1067,7 @@ impl BtifBluetoothCallbacks for Bluetooth {
         state: BtAclState,
         _link_type: BtTransport,
         _hci_reason: BtHciErrorCode,
+        _conn_direction: BtConnectionDirection,
     ) {
         if status != BtStatus::Success {
             warn!("Connection to [{}] failed. Status: {:?}", addr.to_string(), status);
