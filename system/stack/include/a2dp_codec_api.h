@@ -436,8 +436,7 @@ class A2dpCodecs {
   void debug_codec_dump(int fd);
 
  private:
-  struct CompareBtBdaddr
-      : public std::binary_function<RawAddress, RawAddress, bool> {
+  struct CompareBtBdaddr {
     bool operator()(const RawAddress& lhs, const RawAddress& rhs) const {
       return (memcmp(&lhs, &rhs, sizeof(lhs)) < 0);
     }
