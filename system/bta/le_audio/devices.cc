@@ -2079,7 +2079,7 @@ struct ase* LeAudioDevice::GetAseToMatchBidirectionCis(struct ase* base_ase) {
 }
 
 BidirectAsesPair LeAudioDevice::GetAsesByCisConnHdl(uint16_t conn_hdl) {
-  BidirectAsesPair ases;
+  BidirectAsesPair ases = {nullptr, nullptr};
 
   for (auto& ase : ases_) {
     if (ase.cis_conn_hdl == conn_hdl) {
@@ -2095,7 +2095,7 @@ BidirectAsesPair LeAudioDevice::GetAsesByCisConnHdl(uint16_t conn_hdl) {
 }
 
 BidirectAsesPair LeAudioDevice::GetAsesByCisId(uint8_t cis_id) {
-  BidirectAsesPair ases;
+  BidirectAsesPair ases = {nullptr, nullptr};
 
   for (auto& ase : ases_) {
     if (ase.cis_id == cis_id) {
@@ -2179,6 +2179,11 @@ bool LeAudioDevice::IsReadyToSuspendStream(void) {
 }
 
 bool LeAudioDevice::HaveAllActiveAsesCisEst(void) {
+  if (ases_.empty()) {
+    LOG_WARN("No ases for device %s", address_.ToString().c_str());
+    return false;
+  }
+
   auto iter = std::find_if(ases_.begin(), ases_.end(), [](const auto& ase) {
     return ase.active &&
            (ase.data_path_state != AudioStreamDataPathState::CIS_ESTABLISHED);
