@@ -62,6 +62,10 @@ impl IBluetoothManagerCallback for BtManagerCallback {
     fn on_hci_enabled_changed(&self, hci_interface: i32, enabled: bool) {
         self.context.lock().unwrap().set_adapter_enabled(hci_interface, enabled);
     }
+
+    fn on_default_adapter_changed(&self, hci_interface: i32) {
+        print_info!("hci{} is now the default", hci_interface);
+    }
 }
 
 impl RPCProxy for BtManagerCallback {
