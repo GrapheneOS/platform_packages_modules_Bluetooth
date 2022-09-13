@@ -56,6 +56,16 @@ impl IBluetoothManager for BluetoothManagerDBus {
     fn get_available_adapters(&mut self) -> Vec<AdapterWithEnabled> {
         dbus_generated!()
     }
+
+    #[dbus_method("GetDefaultAdapter")]
+    fn get_default_adapter(&mut self) -> i32 {
+        dbus_generated!()
+    }
+
+    #[dbus_method("SetDesiredDefaultAdapter")]
+    fn set_desired_default_adapter(&mut self, hci_interface: i32) {
+        dbus_generated!()
+    }
 }
 
 /// D-Bus projection of IBluetoothManagerCallback.
@@ -68,4 +78,7 @@ impl IBluetoothManagerCallback for BluetoothManagerCallbackDBus {
 
     #[dbus_method("OnHciEnabledChanged")]
     fn on_hci_enabled_changed(&self, hci_interface: i32, enabled: bool) {}
+
+    #[dbus_method("OnDefaultAdapterChanged")]
+    fn on_default_adapter_changed(&self, hci_interface: i32) {}
 }

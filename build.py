@@ -437,7 +437,8 @@ class HostBuild():
     def _target_rootcanal(self):
         """ Build rust artifacts for RootCanal in an already prepared environment.
         """
-        self.run_command('rust', ['cargo', 'build'], cwd=os.path.join(self.platform_dir, 'bt/tools/rootcanal'), env=self.env)
+        self.run_command(
+            'rust', ['cargo', 'build'], cwd=os.path.join(self.platform_dir, 'bt/tools/rootcanal'), env=self.env)
 
     def _target_main(self):
         """ Build the main GN artifacts in an already prepared environment.
@@ -450,7 +451,7 @@ class HostBuild():
         # Rust tests first
         rust_test_cmd = ['cargo', 'test']
         if self.args.test_name:
-            rust_test_cmd = rust_test_cmd + [self.args.test_name]
+            rust_test_cmd = rust_test_cmd + [self.args.test_name, "--", "--test-threads=1", "--nocapture"]
 
         self.run_command('test', rust_test_cmd, cwd=os.path.join(self.platform_dir, 'bt'), env=self.env)
         self.run_command('test', rust_test_cmd, cwd=os.path.join(self.platform_dir, 'bt/tools/rootcanal'), env=self.env)
