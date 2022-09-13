@@ -21,7 +21,7 @@ use btstack::socket_manager::{
 };
 use btstack::suspend::ISuspendCallback;
 use btstack::uuid::UuidWrapper;
-use btstack::RPCProxy;
+use btstack::{RPCProxy, SuspendMode};
 use dbus::nonblock::SyncConnection;
 use dbus_crossroads::Crossroads;
 use dbus_projection::DisconnectWatcher;
@@ -326,6 +326,10 @@ impl IScannerCallback for ScannerCallback {
         if self.context.lock().unwrap().active_scanner_ids.len() > 0 {
             print_info!("Scan result: {:#?}", scan_result);
         }
+    }
+
+    fn on_suspend_mode_change(&self, _suspend_mode: SuspendMode) {
+        // No-op, not interesting for btclient.
     }
 }
 
