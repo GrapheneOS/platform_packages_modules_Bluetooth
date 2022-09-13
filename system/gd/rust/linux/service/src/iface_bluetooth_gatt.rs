@@ -7,7 +7,8 @@ use btstack::bluetooth_adv::{
 use btstack::bluetooth_gatt::{
     BluetoothGattCharacteristic, BluetoothGattDescriptor, BluetoothGattService,
     GattWriteRequestStatus, GattWriteType, IBluetoothGatt, IBluetoothGattCallback,
-    IScannerCallback, RSSISettings, ScanFilter, ScanResult, ScanSettings, ScanType,
+    IScannerCallback, ScanFilter, ScanFilterCondition, ScanFilterPattern, ScanResult, ScanSettings,
+    ScanType,
 };
 use btstack::{RPCProxy, SuspendMode};
 
@@ -200,18 +201,11 @@ pub struct BluetoothGattServiceDBus {
     included_services: Vec<BluetoothGattService>,
 }
 
-#[dbus_propmap(RSSISettings)]
-pub struct RSSISettingsDBus {
-    low_threshold: i32,
-    high_threshold: i32,
-}
-
 #[dbus_propmap(ScanSettings)]
 struct ScanSettingsDBus {
     interval: i32,
     window: i32,
     scan_type: ScanType,
-    rssi_settings: RSSISettings,
 }
 
 #[dbus_propmap(ScanResult)]
@@ -235,8 +229,98 @@ impl_dbus_arg_enum!(LePhy);
 impl_dbus_arg_enum!(ScanType);
 impl_dbus_arg_enum!(SuspendMode);
 
+#[dbus_propmap(ScanFilterPattern)]
+struct ScanFilterPatternDBus {
+    start_position: u8,
+    ad_type: u8,
+    content: Vec<u8>,
+}
+
+// Manually converts enum variant from/into D-Bus.
+//
+// The ScanFilterCondition enum variant is represented as a D-Bus dictionary with one and only one
+// member which key determines which variant it refers to and the value determines the data.
+//
+// For example, ScanFilterCondition::Patterns(data: Vec<u8>) is represented as:
+//     array [
+//        dict entry(
+//           string "patterns"
+//           variant array [ ... ]
+//        )
+//     ]
+//
+// And ScanFilterCondition::All is represented as:
+//     array [
+//        dict entry(
+//           string "all"
+//           variant string "unit"
+//        )
+//     ]
+//
+// If enum variant is used many times, we should find a way to avoid boilerplate.
+impl DBusArg for ScanFilterCondition {
+    type DBusType = dbus::arg::PropMap;
+    fn from_dbus(
+        data: dbus::arg::PropMap,
+        _conn: Option<std::sync::Arc<dbus::nonblock::SyncConnection>>,
+        _remote: Option<dbus::strings::BusName<'static>>,
+        _disconnect_watcher: Option<
+            std::sync::Arc<std::sync::Mutex<dbus_projection::DisconnectWatcher>>,
+        >,
+    ) -> Result<ScanFilterCondition, Box<dyn std::error::Error>> {
+        let variant = match data.get("patterns") {
+            Some(variant) => variant,
+            None => {
+                return Err(Box::new(DBusArgError::new(String::from(format!(
+                    "ScanFilterCondition does not contain any enum variant",
+                )))));
+            }
+        };
+
+        match variant.arg_type() {
+            dbus::arg::ArgType::Variant => {}
+            _ => {
+                return Err(Box::new(DBusArgError::new(String::from(format!(
+                    "ScanFilterCondition::Patterns must be a variant",
+                )))));
+            }
+        };
+
+        let patterns =
+            <<Vec<ScanFilterPattern> as DBusArg>::DBusType as RefArgToRust>::ref_arg_to_rust(
+                variant.as_static_inner(0).unwrap(),
+                format!("ScanFilterCondition::Patterns"),
+            )?;
+
+        let patterns = Vec::<ScanFilterPattern>::from_dbus(patterns, None, None, None)?;
+        return Ok(ScanFilterCondition::Patterns(patterns));
+    }
+
+    fn to_dbus(
+        condition: ScanFilterCondition,
+    ) -> Result<dbus::arg::PropMap, Box<dyn std::error::Error>> {
+        let mut map: dbus::arg::PropMap = std::collections::HashMap::new();
+        match condition {
+            ScanFilterCondition::Patterns(patterns) => {
+                map.insert(
+                    String::from("patterns"),
+                    dbus::arg::Variant(Box::new(DBusArg::to_dbus(patterns)?)),
+                );
+            }
+            _ => {}
+        }
+        return Ok(map);
+    }
+}
+
 #[dbus_propmap(ScanFilter)]
-struct ScanFilterDBus {}
+struct ScanFilterDBus {
+    rssi_high_threshold: i16,
+    rssi_low_threshold: i16,
+    rssi_low_timeout: u16,
+    rssi_sampling_period: u16,
+    condition: ScanFilterCondition,
+}
 
 #[allow(dead_code)]
 struct AdvertisingSetCallbackDBus {}
@@ -373,7 +457,7 @@ impl IBluetoothGatt for IBluetoothGattDBus {
         &mut self,
         scanner_id: u8,
         settings: ScanSettings,
-        filters: Vec<ScanFilter>,
+        filter: ScanFilter,
     ) -> BtStatus {
         dbus_generated!()
     }
