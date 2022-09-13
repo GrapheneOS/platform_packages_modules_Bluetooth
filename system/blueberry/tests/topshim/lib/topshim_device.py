@@ -14,6 +14,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+import asyncio
 import logging
 
 from blueberry.tests.gd.cert.gd_device import GdHostOnlyDevice
@@ -62,3 +63,21 @@ def get_instances_with_configs(configs):
         device.setup()
         devices.append(device)
     return devices
+
+
+class TopshimDevice():
+    __adapter = None
+    __gatt = None
+
+    def __post(self, async_fn):
+        asyncio.get_event_loop().run_until_complete(async_fn)
+
+    def __init__(self, adapter, gatt):
+        self.__adapter = adapter
+        self.__gatt = gatt
+
+    def enable_page_scan(self):
+        self.__post(self.__adapter.enable_page_scan())
+
+    def disable_page_scan(self):
+        self.__post(self.__adapter.disable_page_scan())

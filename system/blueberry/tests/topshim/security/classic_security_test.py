@@ -21,7 +21,7 @@ from blueberry.tests.topshim.lib.adapter_client import AdapterClient
 from mobly import test_runner
 
 
-class SecurityTest(TopshimBaseTest):
+class ClassicSecurityTest(TopshimBaseTest):
 
     DEFAULT_ADDRESS = "01:02:03:04:05:06"
 
