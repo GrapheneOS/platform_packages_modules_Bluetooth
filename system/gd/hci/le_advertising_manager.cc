@@ -393,7 +393,7 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
           // start timer for random address
           advertising_sets_[id].address_rotation_alarm = std::make_unique<os::Alarm>(module_handler_);
           advertising_sets_[id].address_rotation_alarm->Schedule(
-              common::BindOnce(&impl::set_advertising_set_random_address, common::Unretained(this), id),
+              common::BindOnce(&impl::set_advertising_set_random_address_on_timer, common::Unretained(this), id),
               le_address_manager_->GetNextPrivateAddressIntervalMs());
         } else {
           advertising_sets_[id].current_address = le_address_manager_->GetCurrentAddress();
@@ -473,8 +473,21 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
     enabled_sets_[advertiser_id].advertising_handle_ = kInvalidHandle;
   }
 
-  void set_advertising_set_random_address(AdvertiserId advertiser_id) {
-    // This function should only be trigger by enabled advertising set
+  void rotate_advertiser_address(AdvertiserId advertiser_id) {
+    if (advertising_api_type_ == AdvertisingApiType::EXTENDED) {
+      AddressWithType address_with_type = le_address_manager_->GetAnotherAddress();
+      le_advertising_interface_->EnqueueCommand(
+          hci::LeSetExtendedAdvertisingRandomAddressBuilder::Create(advertiser_id, address_with_type.GetAddress()),
+          module_handler_->BindOnceOn(
+              this,
+              &impl::on_set_advertising_set_random_address_complete<LeSetExtendedAdvertisingRandomAddressCompleteView>,
+              advertiser_id,
+              address_with_type));
+    }
+  }
+
+  void set_advertising_set_random_address_on_timer(AdvertiserId advertiser_id) {
+    // This function should only be trigger by enabled advertising set or IRK rotation
     if (enabled_sets_[advertiser_id].advertising_handle_ == kInvalidHandle) {
       if (advertising_sets_[advertiser_id].address_rotation_alarm != nullptr) {
         advertising_sets_[advertiser_id].address_rotation_alarm->Cancel();
@@ -497,23 +510,20 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
           module_handler_->BindOnce(impl::check_status<LeSetExtendedAdvertisingEnableCompleteView>));
     }
 
-    AddressWithType address_with_type = le_address_manager_->GetAnotherAddress();
-    le_advertising_interface_->EnqueueCommand(
-        hci::LeSetExtendedAdvertisingRandomAddressBuilder::Create(advertiser_id, address_with_type.GetAddress()),
-        module_handler_->BindOnceOn(
-            this,
-            &impl::on_set_advertising_set_random_address_complete<LeSetExtendedAdvertisingRandomAddressCompleteView>,
-            advertiser_id,
-            address_with_type));
+    rotate_advertiser_address(advertiser_id);
 
-    if (advertising_sets_[advertiser_id].connectable) {
+    // If we are paused, we will be enabled in OnResume(), so don't resume now.
+    // Note that OnResume() can never re-enable us while we are changing our address, since the
+    // DISABLED and ENABLED commands are enqueued synchronously, so OnResume() doesn't need an
+    // analogous check.
+    if (advertising_sets_[advertiser_id].connectable && !paused) {
       le_advertising_interface_->EnqueueCommand(
           hci::LeSetExtendedAdvertisingEnableBuilder::Create(Enable::ENABLED, enabled_sets),
           module_handler_->BindOnce(impl::check_status<LeSetExtendedAdvertisingEnableCompleteView>));
     }
 
     advertising_sets_[advertiser_id].address_rotation_alarm->Schedule(
-        common::BindOnce(&impl::set_advertising_set_random_address, common::Unretained(this), advertiser_id),
+        common::BindOnce(&impl::set_advertising_set_random_address_on_timer, common::Unretained(this), advertiser_id),
         le_address_manager_->GetNextPrivateAddressIntervalMs());
   }
 
@@ -1007,6 +1017,22 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
     le_address_manager_->AckResume(this);
   }
 
+  // Note: this needs to be synchronous (i.e. NOT on a handler) for two reasons:
+  // 1. For parity with OnPause() and OnResume()
+  // 2. If we don't enqueue our HCI commands SYNCHRONOUSLY, then it is possible that we OnResume() in addressManager
+  // before our commands complete. So then our commands reach the HCI layer *after* the resume commands from address
+  // manager, which is racey (even if it might not matter).
+  //
+  // If you are a future developer making this asynchronous, you need to add some kind of ->AckIRKChange() method to the
+  // address manager so we can defer resumption to after this completes.
+  void NotifyOnIRKChange() override {
+    for (size_t i = 0; i < enabled_sets_.size(); i++) {
+      if (enabled_sets_[i].advertising_handle_ != kInvalidHandle) {
+        rotate_advertiser_address(i);
+      }
+    }
+  }
+
   common::Callback<void(Address, AddressType)> scan_callback_;
   common::ContextualCallback<void(ErrorCode, uint16_t, hci::AddressWithType)> set_terminated_callback_{};
   AdvertisingCallback* advertising_callbacks_ = nullptr;
@@ -1171,7 +1197,7 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
     auto complete_view = LeSetExtendedAdvertisingRandomAddressCompleteView::Create(view);
     ASSERT(complete_view.IsValid());
     if (complete_view.GetStatus() != ErrorCode::SUCCESS) {
-      LOG_INFO("Got a command complete with status %s", ErrorCodeText(complete_view.GetStatus()).c_str());
+      LOG_ERROR("Got a command complete with status %s", ErrorCodeText(complete_view.GetStatus()).c_str());
     } else {
       LOG_INFO(
           "update random address for advertising set %d : %s",
