@@ -295,11 +295,11 @@ void AvrcpIntf::cleanup() {
   intf_->Cleanup();
 }
 
-int AvrcpIntf::connect(RustRawAddress bt_addr) {
+uint32_t AvrcpIntf::connect(RustRawAddress bt_addr) {
   RawAddress addr = rusty::CopyFromRustAddress(bt_addr);
   return intf_->ConnectDevice(addr);
 }
-int AvrcpIntf::disconnect(RustRawAddress bt_addr) {
+uint32_t AvrcpIntf::disconnect(RustRawAddress bt_addr) {
   RawAddress addr = rusty::CopyFromRustAddress(bt_addr);
   return intf_->DisconnectDevice(addr);
 }

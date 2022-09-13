@@ -286,6 +286,13 @@ impl BluetoothMedia {
                     .insert(uuid::Profile::AvrcpController);
 
                 self.notify_media_capability_updated(addr);
+
+                metrics::profile_connection_state_changed(
+                    addr,
+                    Profile::AvrcpController as u32,
+                    BtStatus::Success,
+                    BtavConnectionState::Connected as u32,
+                );
             }
             AvrcpCallbacks::AvrcpDeviceDisconnected(addr) => {
                 info!("[{}]: avrcp disconnected.", addr.to_string());
@@ -307,6 +314,13 @@ impl BluetoothMedia {
                 }
 
                 self.notify_media_capability_updated(addr);
+
+                metrics::profile_connection_state_changed(
+                    addr,
+                    Profile::AvrcpController as u32,
+                    BtStatus::Success,
+                    BtavConnectionState::Disconnected as u32,
+                );
             }
             AvrcpCallbacks::AvrcpAbsoluteVolumeUpdate(volume) => {
                 self.callbacks.lock().unwrap().for_all_callbacks(|callback| {
@@ -340,6 +354,12 @@ impl BluetoothMedia {
                 {
                     return;
                 }
+                metrics::profile_connection_state_changed(
+                    addr,
+                    Profile::Hfp as u32,
+                    BtStatus::Success,
+                    state.clone() as u32,
+                );
                 match state {
                     BthfConnectionState::Connected => {
                         info!("[{}]: hfp connected.", addr.to_string());
@@ -762,15 +782,64 @@ impl IBluetoothMedia for BluetoothMedia {
                     };
                 }
                 uuid::Profile::Hfp => {
+                    metrics::profile_connection_state_changed(
+                        addr,
+                        Profile::Hfp as u32,
+                        BtStatus::Success,
+                        BtavConnectionState::Connecting as u32,
+                    );
                     match self.hfp.as_mut() {
-                        Some(hfp) => hfp.connect(addr),
-                        None => warn!("Uninitialized HFP to connect {}", address),
+                        Some(hfp) => {
+                            let status: BtStatus = hfp.connect(addr);
+                            if BtStatus::Success != status {
+                                metrics::profile_connection_state_changed(
+                                    addr,
+                                    Profile::Hfp as u32,
+                                    status,
+                                    BthfConnectionState::Disconnected as u32,
+                                );
+                            }
+                        }
+                        None => {
+                            warn!("Uninitialized HFP to connect {}", address);
+                            metrics::profile_connection_state_changed(
+                                addr,
+                                Profile::Hfp as u32,
+                                BtStatus::NotReady,
+                                BthfConnectionState::Disconnected as u32,
+                            );
+                        }
                     };
                 }
                 uuid::Profile::AvrcpController => {
+                    metrics::profile_connection_state_changed(
+                        addr,
+                        Profile::AvrcpController as u32,
+                        BtStatus::Success,
+                        BtavConnectionState::Connecting as u32,
+                    );
                     match self.avrcp.as_mut() {
-                        Some(avrcp) => avrcp.connect(addr),
-                        None => warn!("Uninitialized AVRCP to connect {}", address),
+                        Some(avrcp) => {
+                            let status: BtStatus = avrcp.connect(addr);
+                            if BtStatus::Success != status {
+                                metrics::profile_connection_state_changed(
+                                    addr,
+                                    Profile::AvrcpController as u32,
+                                    status,
+                                    BtavConnectionState::Disconnected as u32,
+                                );
+                            }
+                        }
+
+                        None => {
+                            warn!("Uninitialized AVRCP to connect {}", address);
+                            metrics::profile_connection_state_changed(
+                                addr,
+                                Profile::AvrcpController as u32,
+                                BtStatus::NotReady,
+                                BtavConnectionState::Disconnected as u32,
+                            );
+                        }
                     };
                 }
                 _ => warn!("Unknown profile: {:?}", profile),
@@ -835,15 +904,64 @@ impl IBluetoothMedia for BluetoothMedia {
                     };
                 }
                 uuid::Profile::Hfp => {
+                    metrics::profile_connection_state_changed(
+                        addr,
+                        Profile::Hfp as u32,
+                        BtStatus::Success,
+                        BthfConnectionState::Disconnecting as u32,
+                    );
                     match self.hfp.as_mut() {
-                        Some(hfp) => hfp.disconnect(addr),
-                        None => warn!("Uninitialized HFP to disconnect {}", address),
+                        Some(hfp) => {
+                            let status: BtStatus = hfp.disconnect(addr);
+                            if BtStatus::Success != status {
+                                metrics::profile_connection_state_changed(
+                                    addr,
+                                    Profile::Hfp as u32,
+                                    status,
+                                    BthfConnectionState::Disconnected as u32,
+                                );
+                            }
+                        }
+                        None => {
+                            warn!("Uninitialized HFP to disconnect {}", address);
+                            metrics::profile_connection_state_changed(
+                                addr,
+                                Profile::Hfp as u32,
+                                BtStatus::NotReady,
+                                BthfConnectionState::Disconnected as u32,
+                            );
+                        }
                     };
                 }
                 uuid::Profile::AvrcpController => {
+                    metrics::profile_connection_state_changed(
+                        addr,
+                        Profile::AvrcpController as u32,
+                        BtStatus::Success,
+                        BtavConnectionState::Disconnecting as u32,
+                    );
                     match self.avrcp.as_mut() {
-                        Some(avrcp) => avrcp.disconnect(addr),
-                        None => warn!("Uninitialized AVRCP to disconnect {}", address),
+                        Some(avrcp) => {
+                            let status: BtStatus = avrcp.disconnect(addr);
+                            if BtStatus::Success != status {
+                                metrics::profile_connection_state_changed(
+                                    addr,
+                                    Profile::AvrcpController as u32,
+                                    status,
+                                    BtavConnectionState::Disconnected as u32,
+                                );
+                            }
+                        }
+
+                        None => {
+                            warn!("Uninitialized AVRCP to disconnect {}", address);
+                            metrics::profile_connection_state_changed(
+                                addr,
+                                Profile::AvrcpController as u32,
+                                BtStatus::NotReady,
+                                BtavConnectionState::Disconnected as u32,
+                            );
+                        }
                     };
                 }
                 _ => warn!("Unknown profile: {:?}", profile),
