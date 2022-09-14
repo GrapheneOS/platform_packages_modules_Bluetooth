@@ -785,8 +785,10 @@ static void btif_hh_upstreams_evt(uint16_t event, char* p_param) {
       break;
 
     case BTA_HH_OPEN_EVT:
-      BTIF_TRACE_WARNING("%s: BTA_HH_OPN_EVT: handle=%d, status =%d", __func__,
-                         p_data->conn.handle, p_data->conn.status);
+      BTIF_TRACE_DEBUG("BTA_HH_OPEN_EVT: status = %d, handle = %d",
+                       p_data->dev_status.status, p_data->dev_status.handle);
+      HAL_CBACK(bt_hh_callbacks, connection_state_cb,
+                (RawAddress*)&p_data->conn.bda, BTHH_CONN_STATE_CONNECTING);
       btif_hh_cb.pending_conn_address = RawAddress::kEmpty;
       if (p_data->conn.status == BTA_HH_OK) {
         p_dev = btif_hh_find_connected_dev_by_handle(p_data->conn.handle);
@@ -849,6 +851,8 @@ static void btif_hh_upstreams_evt(uint16_t event, char* p_param) {
     case BTA_HH_CLOSE_EVT:
       BTIF_TRACE_DEBUG("BTA_HH_CLOSE_EVT: status = %d, handle = %d",
                        p_data->dev_status.status, p_data->dev_status.handle);
+      HAL_CBACK(bt_hh_callbacks, connection_state_cb,
+                (RawAddress*)&p_data->conn.bda, BTHH_CONN_STATE_DISCONNECTING);
       p_dev = btif_hh_find_connected_dev_by_handle(p_data->dev_status.handle);
       if (p_dev != NULL) {
         BTIF_TRACE_DEBUG("%s: uhid fd=%d local_vup=%d", __func__, p_dev->fd,
