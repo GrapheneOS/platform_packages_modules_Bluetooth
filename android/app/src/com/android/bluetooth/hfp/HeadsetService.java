@@ -1363,6 +1363,16 @@ public class HeadsetService extends ProfileService {
      */
     private void removeActiveDevice() {
         synchronized (mStateMachines) {
+            // As per b/202602952, if we remove the active device due to a disconnection,
+            // we need to check if another device is connected and set it active instead.
+            // Calling this before any other active related calls has the same effect as
+            // a classic active device switch.
+            BluetoothDevice fallbackDevice = getFallbackDevice();
+            if (fallbackDevice != null && mActiveDevice != null
+                    && getConnectionState(mActiveDevice) != BluetoothProfile.STATE_CONNECTED) {
+                setActiveDevice(fallbackDevice);
+                return;
+            }
             // Clear the active device
             if (mVoiceRecognitionStarted) {
                 if (!stopVoiceRecognition(mActiveDevice)) {
@@ -2160,6 +2170,16 @@ public class HeadsetService extends ProfileService {
         final Looper myLooper = Looper.myLooper();
         return myLooper != null && (mStateMachinesThread != null) && (myLooper.getThread().getId()
                 == mStateMachinesThread.getId());
+    }
+
+    /**
+     * Retrieves the most recently connected device in the A2DP connected devices list.
+     */
+    private BluetoothDevice getFallbackDevice() {
+        DatabaseManager dbManager = mAdapterService.getDatabase();
+        return dbManager != null ? dbManager
+            .getMostRecentlyConnectedDevicesInList(getConnectedDevices())
+            : null;
     }
 
     @Override

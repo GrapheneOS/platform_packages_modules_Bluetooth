@@ -405,6 +405,15 @@ class LeAudioClientImpl : public LeAudioClient {
     }
   }
 
+  static void ReconfigurationComplete(uint8_t directions) {
+    if (directions & le_audio::types::kLeAudioDirectionSink) {
+      leAudioClientAudioSource->ReconfigurationComplete();
+    }
+    if (directions & le_audio::types::kLeAudioDirectionSource) {
+      leAudioClientAudioSink->ReconfigurationComplete();
+    }
+  }
+
   void CancelStreamingRequest() {
     if (audio_sender_state_ >= AudioState::READY_TO_START) {
       leAudioClientAudioSource->CancelStreamingRequest();
@@ -3556,14 +3565,26 @@ class LeAudioClientImpl : public LeAudioClient {
         /** Stop Audio but don't release all the Audio resources */
         SuspendAudio();
         break;
-      case GroupStreamStatus::CONFIGURED_BY_USER:
+      case GroupStreamStatus::CONFIGURED_BY_USER: {
+        // Check which directions were suspended
+        uint8_t previously_active_directions = 0;
+        if (audio_sender_state_ >= AudioState::READY_TO_START) {
+          previously_active_directions |=
+              le_audio::types::kLeAudioDirectionSink;
+        }
+        if (audio_receiver_state_ >= AudioState::READY_TO_START) {
+          previously_active_directions |=
+              le_audio::types::kLeAudioDirectionSource;
+        }
+
         /* We are done with reconfiguration.
          * Clean state and if Audio HAL is waiting, cancel the request
          * so Audio HAL can Resume again.
          */
         CancelStreamingRequest();
         HandlePendingAvailableContexts(group);
-        break;
+        ReconfigurationComplete(previously_active_directions);
+      } break;
       case GroupStreamStatus::CONFIGURED_AUTONOMOUS:
         /* This state is notified only when
          * groups stays into CONFIGURED state after
