@@ -15,8 +15,10 @@
  */
 
 #include <unistd.h>
+
 #include <cerrno>
 #include <cstdio>
+#include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
@@ -27,10 +29,8 @@
 #include <vector>
 
 #include "declarations.h"
-#include "struct_parser_generator.h"
-
 #include "language_y.h"
-
+#include "struct_parser_generator.h"
 
 int yylex_init(void**);
 int yylex_destroy(void*);
