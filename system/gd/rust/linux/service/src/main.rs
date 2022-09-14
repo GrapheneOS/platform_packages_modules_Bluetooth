@@ -40,6 +40,7 @@ mod iface_bluetooth_gatt;
 mod iface_bluetooth_media;
 
 const DBUS_SERVICE_NAME: &str = "org.chromium.bluetooth";
+const ADMIN_SETTINGS_FILE_PATH: &str = "/var/lib/bluetooth/admin_policy.json";
 
 fn make_object_name(idx: i32, name: &str) -> String {
     String::from(format!("/org/chromium/bluetooth/hci{}/{}", idx, name))
@@ -127,7 +128,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         battery_provider_manager.clone(),
         tx.clone(),
     ))));
-    let bluetooth_admin = Arc::new(Mutex::new(Box::new(BluetoothAdmin::new())));
+    let bluetooth_admin =
+        Arc::new(Mutex::new(Box::new(BluetoothAdmin::new(String::from(ADMIN_SETTINGS_FILE_PATH)))));
     let bluetooth = Arc::new(Mutex::new(Box::new(Bluetooth::new(
         tx.clone(),
         intf.clone(),
