@@ -777,6 +777,7 @@ enum SubeventCode : 8 {
 // Vendor specific events
 enum VseSubeventCode : 8 {
   BLE_THRESHOLD = 0x54,
+  BLE_STCHANGE = 0x55,
   BLE_TRACKING = 0x56,
   DEBUG_INFO = 0x57,
   BQR_EVENT = 0x58,
@@ -5976,6 +5977,17 @@ packet LEAdvertisementTrackingEvent : VendorSpecificEvent (subevent_code = BLE_T
   advertiser_address : Address,
   advertiser_address_type : 8,
   _body_,
+}
+
+enum VseStateChangeReason : 8 {
+  CONNECTION_RECEIVED = 0x00,
+}
+
+packet LEAdvertiseStateChangeEvent : VendorSpecificEvent (subevent_code = BLE_STCHANGE) {
+  advertising_instance : 8,
+  state_change_reason : VseStateChangeReason,
+  connection_handle : 12,
+  reserved : 4,
 }
 
 packet LEAdvertisementTrackingWithInfoEvent : LEAdvertisementTrackingEvent {
