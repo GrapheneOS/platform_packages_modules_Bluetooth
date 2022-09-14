@@ -1,15 +1,19 @@
 //! Anything related to the Admin API (IBluetoothAdmin).
 
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::fs::File;
 use std::io::{Read, Result, Write};
 use std::sync::{Arc, Mutex};
 
 use crate::bluetooth::{Bluetooth, BluetoothDevice, IBluetooth};
+use crate::callbacks::Callbacks;
 use crate::uuid::UuidHelper;
-use bt_topshim::btif::Uuid128Bit;
+use crate::{Message, RPCProxy};
+
+use bt_topshim::btif::{BluetoothProperty, Uuid128Bit};
 use log::{info, warn};
 use serde_json::{json, Value};
+use tokio::sync::mpsc::Sender;
 
 /// Defines the Admin API
 pub trait IBluetoothAdmin {
@@ -21,26 +25,56 @@ pub trait IBluetoothAdmin {
     fn get_allowed_services(&self) -> Vec<Uuid128Bit>;
     /// Get the PolicyEffect struct of a device
     fn get_device_policy_effect(&self, device: BluetoothDevice) -> Option<PolicyEffect>;
+    /// Register client callback
+    fn register_admin_policy_callback(
+        &mut self,
+        callback: Box<dyn IBluetoothAdminPolicyCallback + Send>,
+    ) -> u32;
+    /// Unregister client callback via callback ID
+    fn unregister_admin_policy_callback(&mut self, callback_id: u32) -> bool;
 }
 
 /// Information of the effects to a remote device by the admin policies
+#[derive(PartialEq, Clone)]
 pub struct PolicyEffect {
+    /// Array of services that are blocked by policy
     pub service_blocked: Vec<Uuid128Bit>,
+    /// Indicate if the device has an adapter-supported profile that is blocked by the policy
+    pub affected: bool,
+}
+
+pub trait IBluetoothAdminPolicyCallback: RPCProxy {
+    /// This gets called when service allowlist changed.
+    fn on_service_allowlist_changed(&self, allowlist: Vec<Uuid128Bit>);
+    /// This gets called when
+    /// 1. a new device is found by adapter
+    /// 2. the policy effect to a device is changed due to
+    ///    the remote services changed or
+    ///    the service allowlist changed.
+    fn on_device_policy_effect_changed(
+        &self,
+        device: BluetoothDevice,
+        new_policy_effect: Option<PolicyEffect>,
+    );
 }
 
 pub struct BluetoothAdmin {
     path: String,
     adapter: Option<Arc<Mutex<Box<Bluetooth>>>>,
     allowed_services: HashSet<Uuid128Bit>,
+    callbacks: Callbacks<dyn IBluetoothAdminPolicyCallback + Send>,
+    device_policy_affect_cache: HashMap<BluetoothDevice, Option<PolicyEffect>>,
 }
 
 impl BluetoothAdmin {
-    pub fn new(path: String) -> BluetoothAdmin {
+    pub fn new(path: String, tx: Sender<Message>) -> BluetoothAdmin {
         // default admin settings
         let mut admin = BluetoothAdmin {
             path,
             adapter: None,
             allowed_services: HashSet::new(), //empty means allowed all services
+            callbacks: Callbacks::new(tx.clone(), Message::AdminCallbackDisconnected),
+            device_policy_affect_cache: HashMap::new(),
         };
 
         if admin.load_config().is_err() {
@@ -50,7 +84,7 @@ impl BluetoothAdmin {
     }
 
     pub fn set_adapter(&mut self, adapter: Arc<Mutex<Box<Bluetooth>>>) {
-        self.adapter = Some(adapter);
+        self.adapter = Some(adapter.clone());
     }
 
     fn get_blocked_services(&self, remote_uuids: &Vec<Uuid128Bit>) -> Vec<Uuid128Bit> {
@@ -59,6 +93,17 @@ impl BluetoothAdmin {
             .filter(|&s| !self.is_service_allowed(s.clone()))
             .cloned()
             .collect::<Vec<Uuid128Bit>>()
+    }
+
+    fn get_affected_status(&self, blocked_services: &Vec<Uuid128Bit>) -> bool {
+        // return true if a supported profile is in blocked services.
+        blocked_services
+            .iter()
+            .find(|&uuid| {
+                UuidHelper::is_known_profile(uuid)
+                    .map_or(false, |p| UuidHelper::is_profile_supported(&p))
+            })
+            .is_some()
     }
 
     fn load_config(&mut self) -> Result<()> {
@@ -102,6 +147,50 @@ impl BluetoothAdmin {
         .ok()
         .unwrap()
     }
+
+    fn new_device_policy_effect(&self, uuids: Option<Vec<Uuid128Bit>>) -> Option<PolicyEffect> {
+        uuids.map(|uuids| {
+            let service_blocked = self.get_blocked_services(&uuids);
+            let affected = self.get_affected_status(&service_blocked);
+            PolicyEffect { service_blocked, affected }
+        })
+    }
+
+    pub fn on_device_found(&mut self, remote_device: &BluetoothDevice) {
+        self.device_policy_affect_cache.insert(remote_device.clone(), None).or_else(|| {
+            self.callbacks.for_all_callbacks(|cb| {
+                cb.on_device_policy_effect_changed(remote_device.clone(), None);
+            });
+            None
+        });
+    }
+
+    pub fn on_device_cleared(&mut self, remote_device: &BluetoothDevice) {
+        self.device_policy_affect_cache.remove(remote_device);
+    }
+
+    pub fn on_remote_device_properties_changed(
+        &mut self,
+        remote_device: &BluetoothDevice,
+        properties: &Vec<BluetoothProperty>,
+    ) {
+        let new_uuids = properties.iter().find_map(|p| match p {
+            BluetoothProperty::Uuids(uuids) => {
+                Some(uuids.iter().map(|&x| x.uu.clone()).collect::<Vec<Uuid128Bit>>())
+            }
+            _ => None,
+        });
+
+        let new_effect = self.new_device_policy_effect(new_uuids);
+        let cur_effect = self.device_policy_affect_cache.get(remote_device);
+
+        if cur_effect.is_none() || *cur_effect.unwrap() != new_effect.clone() {
+            self.callbacks.for_all_callbacks(|cb| {
+                cb.on_device_policy_effect_changed(remote_device.clone(), new_effect.clone())
+            });
+            self.device_policy_affect_cache.insert(remote_device.clone(), new_effect.clone());
+        }
+    }
 }
 
 impl IBluetoothAdmin for BluetoothAdmin {
@@ -110,6 +199,11 @@ impl IBluetoothAdmin for BluetoothAdmin {
     }
 
     fn set_allowed_services(&mut self, services: Vec<Uuid128Bit>) -> bool {
+        if self.get_allowed_services() == services {
+            // Allowlist is not changed.
+            return true;
+        }
+
         self.allowed_services.clear();
 
         for service in services.iter() {
@@ -122,6 +216,22 @@ impl IBluetoothAdmin for BluetoothAdmin {
             if self.write_config().is_err() {
                 warn!("Failed to write config");
             }
+
+            self.callbacks.for_all_callbacks(|cb| {
+                cb.on_service_allowlist_changed(self.get_allowed_services());
+            });
+
+            for (device, effect) in self.device_policy_affect_cache.clone().iter() {
+                let uuids = adapter.lock().unwrap().get_remote_uuids(device.clone());
+                let new_effect = self.new_device_policy_effect(Some(uuids));
+
+                if new_effect.clone() != *effect {
+                    self.callbacks.for_all_callbacks(|cb| {
+                        cb.on_device_policy_effect_changed(device.clone(), new_effect.clone())
+                    });
+                    self.device_policy_affect_cache.insert(device.clone(), new_effect.clone());
+                }
+            }
             return true;
         }
 
@@ -133,19 +243,23 @@ impl IBluetoothAdmin for BluetoothAdmin {
     }
 
     fn get_device_policy_effect(&self, device: BluetoothDevice) -> Option<PolicyEffect> {
-        if let Some(adapter) = &self.adapter {
-            let service_blocked =
-                self.get_blocked_services(&adapter.lock().unwrap().get_remote_uuids(device));
-
-            if service_blocked.is_empty() {
-                None
-            } else {
-                Some(PolicyEffect { service_blocked })
-            }
+        if let Some(effect) = self.device_policy_affect_cache.get(&device) {
+            effect.clone()
         } else {
-            warn!("Adapter not found");
+            warn!("Device not found in cache");
             None
         }
+    }
+
+    fn register_admin_policy_callback(
+        &mut self,
+        callback: Box<dyn IBluetoothAdminPolicyCallback + Send>,
+    ) -> u32 {
+        self.callbacks.add_callback(callback)
+    }
+
+    fn unregister_admin_policy_callback(&mut self, callback_id: u32) -> bool {
+        self.callbacks.remove_callback(callback_id)
     }
 }
 
@@ -153,6 +267,7 @@ impl IBluetoothAdmin for BluetoothAdmin {
 mod tests {
     use crate::bluetooth_admin::{BluetoothAdmin, IBluetoothAdmin};
     use crate::uuid::UuidHelper;
+    use crate::Stack;
     use bt_topshim::btif::Uuid128Bit;
 
     // A workaround needed for linking. For more details, check the comment in
@@ -163,7 +278,8 @@ mod tests {
 
     #[test]
     fn test_set_service_allowed() {
-        let mut admin = BluetoothAdmin::new(String::from(""));
+        let (tx, _) = Stack::create_channel();
+        let mut admin = BluetoothAdmin::new(String::from(""), tx.clone());
         let uuid1: Uuid128Bit = [1; 16];
         let uuid2: Uuid128Bit = [2; 16];
         let uuid3: Uuid128Bit = [3; 16];
@@ -214,7 +330,8 @@ mod tests {
 
     #[test]
     fn test_config() {
-        let mut admin = BluetoothAdmin::new(String::from(""));
+        let (tx, _) = Stack::create_channel();
+        let mut admin = BluetoothAdmin::new(String::from(""), tx.clone());
         let a2dp_sink = "0000110b-0000-1000-8000-00805f9b34fb";
         let a2dp_source = "0000110a-0000-1000-8000-00805f9b34fb";
 
