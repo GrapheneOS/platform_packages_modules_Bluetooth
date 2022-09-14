@@ -40,9 +40,7 @@ void device_info_report(
     uint32_t vendor_id_src,
     uint32_t product_id,
     uint32_t version);
-void profile_connection_attempt(RustRawAddress bt_addr, uint32_t intent, uint32_t profile);
-void profile_connection_state_changed(
-    RustRawAddress bt_addr, uint32_t intent, uint32_t profile, uint32_t status, uint32_t state);
+void profile_connection_state_changed(RustRawAddress bt_addr, uint32_t profile, uint32_t status, uint32_t state);
 
 }  // namespace rust
 }  // namespace topshim
