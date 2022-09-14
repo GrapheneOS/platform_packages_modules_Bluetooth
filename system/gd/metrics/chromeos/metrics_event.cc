@@ -155,10 +155,13 @@ static PairingState FailReasonToPairingState(int32_t fail_reason) {
       return PairingState::PAIR_FAIL_ESTABLISH_CONN;
     case hci::ErrorCode::LIMIT_REACHED:
       return PairingState::PAIR_FAIL_NO_RESOURCES;
+    case hci::ErrorCode::PACKET_TOO_LONG:
+      return PairingState::PAIR_FAIL_INVALID_PARAMS;
     case hci::ErrorCode::SCO_OFFSET_REJECTED:
     case hci::ErrorCode::SCO_INTERVAL_REJECTED:
     case hci::ErrorCode::SCO_AIR_MODE_REJECTED:
     case hci::ErrorCode::ADVERTISING_TIMEOUT:
+    case hci::ErrorCode::UNKNOWN_ADVERTISING_IDENTIFIER:
     case hci::ErrorCode::STATUS_UNKNOWN:
       return PairingState::PAIR_FAIL_UNKNOWN;
   }
@@ -185,7 +188,7 @@ PairingState ToPairingState(uint32_t status, uint32_t bond_state, int32_t fail_r
   // When both status and fail reason are provided and disagree with each other, overwrite status with the fail reason
   // as fail reason is generated closer to the HCI and provides a more accurate description.
   if (status) pairing_state = StatusToPairingState(status);
-  if (fail_reason) pairing_state = FailReasonToPairingState(status);
+  if (fail_reason) pairing_state = FailReasonToPairingState(fail_reason);
 
   return pairing_state;
 }
