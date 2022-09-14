@@ -183,7 +183,7 @@ class HostBuild():
         self.jobs = self.args.jobs
         if not self.jobs:
             self.jobs = multiprocessing.cpu_count()
-            print("Number of jobs = {}".format(self.jobs))
+            sys.stderr.write("Number of jobs = {}\n".format(self.jobs))
 
         # Normalize bootstrap dir and make sure it exists
         self.bootstrap_dir = os.path.abspath(self.args.bootstrap_dir)
@@ -246,12 +246,23 @@ class HostBuild():
         os.makedirs(os.path.join(cargo_home, 'bin'), exist_ok=True)
 
         # Configure Rust env variables
-        self.env['CARGO_TARGET_DIR'] = self.output_dir
-        self.env['CARGO_HOME'] = os.path.join(self.output_dir, 'cargo_home')
-        self.env['RUSTFLAGS'] = self._generate_rustflags()
-        self.env['CXX_ROOT_PATH'] = os.path.join(self.platform_dir, 'bt')
-        self.env['CROS_SYSTEM_API_ROOT'] = os.path.join(self.platform_dir, 'system_api')
-        self.env['CXX_OUTDIR'] = self._gn_default_output()
+        self.custom_env = {}
+        self.custom_env['CARGO_TARGET_DIR'] = self.output_dir
+        self.custom_env['CARGO_HOME'] = os.path.join(self.output_dir, 'cargo_home')
+        self.custom_env['RUSTFLAGS'] = self._generate_rustflags()
+        self.custom_env['CXX_ROOT_PATH'] = os.path.join(self.platform_dir, 'bt')
+        self.custom_env['CROS_SYSTEM_API_ROOT'] = os.path.join(self.platform_dir, 'system_api')
+        self.custom_env['CXX_OUTDIR'] = self._gn_default_output()
+        self.env.update(self.custom_env)
+
+    def print_env(self):
+        """ Print the custom environment variables that are used in build.
+
+        Useful so that external tools can mimic the environment to be the same
+        as build.py, e.g. rust-analyzer.
+        """
+        for k, v in self.custom_env.items():
+            print("export {}='{}'".format(k, v))
 
     def run_command(self, target, args, cwd=None, env=None):
         """ Run command and stream the output.
@@ -795,6 +806,8 @@ if __name__ == '__main__':
         help='Run bootstrap code to verify build env is ok to build.',
         default=False,
         action='store_true')
+    parser.add_argument(
+        '--print-env', help='Print environment variables used for build.', default=False, action='store_true')
     parser.add_argument('--no-clang', help='Don\'t use clang compiler.', default=False, action='store_true')
     parser.add_argument(
         '--no-strip', help='Skip stripping binaries during install.', default=False, action='store_true')
@@ -821,6 +834,9 @@ if __name__ == '__main__':
     if args.run_bootstrap:
         bootstrap = Bootstrap(args.bootstrap_dir, os.path.dirname(__file__))
         bootstrap.bootstrap()
+    elif args.print_env:
+        build = HostBuild(args)
+        build.print_env()
     else:
         build = HostBuild(args)
         build.build()
