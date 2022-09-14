@@ -1,6 +1,5 @@
-use bt_topshim::profiles::gatt::GattStatus;
-
 use bt_topshim::btif::{BtStatus, BtTransport, Uuid128Bit};
+use bt_topshim::profiles::gatt::{GattStatus, LePhy};
 
 use btstack::bluetooth_adv::{
     AdvertiseData, AdvertisingSetParameters, IAdvertisingSetCallback, PeriodicAdvertisingParameters,
@@ -8,7 +7,7 @@ use btstack::bluetooth_adv::{
 use btstack::bluetooth_gatt::{
     BluetoothGattCharacteristic, BluetoothGattDescriptor, BluetoothGattService,
     GattWriteRequestStatus, GattWriteType, IBluetoothGatt, IBluetoothGattCallback,
-    IScannerCallback, LePhy, RSSISettings, ScanFilter, ScanResult, ScanSettings, ScanType,
+    IScannerCallback, RSSISettings, ScanFilter, ScanResult, ScanSettings, ScanType,
 };
 use btstack::{RPCProxy, SuspendMode};
 
@@ -318,8 +317,8 @@ struct AdvertisingSetParametersDBus {
     is_legacy: bool,
     is_anonymous: bool,
     include_tx_power: bool,
-    primary_phy: i32,
-    secondary_phy: i32,
+    primary_phy: LePhy,
+    secondary_phy: LePhy,
     interval: i32,
     tx_power_level: i32,
     own_address_type: i32,
