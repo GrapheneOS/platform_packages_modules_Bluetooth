@@ -170,10 +170,38 @@ void LogMetricsDeviceInfoReport(
       .Record();
 }
 
-void LogMetricsProfileConnectionAttempt(RawAddress* addr, uint32_t intent, uint32_t profile) {}
+void LogMetricsProfileConnectionStateChanged(RawAddress* addr, uint32_t profile, uint32_t status, uint32_t state) {
+  int64_t boot_time;
+  std::string addr_string;
+  std::string boot_id;
 
-void LogMetricsProfileConnectionStateChanged(
-    RawAddress* addr, uint32_t intent, uint32_t profile, uint32_t status, uint32_t state) {}
+  if (!GetBootId(&boot_id)) return;
+
+  addr_string = addr->ToString();
+  boot_time = bluetooth::common::time_get_os_boottime_us();
+
+  ProfileConnectionEvent event = ToProfileConnectionEvent(addr_string, profile, status, state);
+
+  if (Profile::UNKNOWN == (Profile)event.profile) return;
+
+  LOG_DEBUG(
+      "ProfileConnectionStateChanged: %s, %d, %s, %d, %d, %d",
+      boot_id.c_str(),
+      boot_time,
+      addr_string.c_str(),
+      event.type,
+      event.profile,
+      event.state);
+
+  ::metrics::structured::events::bluetooth::BluetoothProfileConnectionStateChanged()
+      .SetBootId(boot_id)
+      .SetSystemTime(boot_time)
+      .SetDeviceId(addr_string)
+      .SetStateChangeType((int64_t)event.type)
+      .SetProfile((int64_t)event.profile)
+      .SetProfileConnectionState((int64_t)event.state)
+      .Record();
+}
 
 }  // namespace metrics
 }  // namespace bluetooth
