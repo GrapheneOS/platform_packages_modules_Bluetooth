@@ -59,17 +59,10 @@ void device_info_report(
       &addr, device_type, class_of_device, appearance, vendor_id, vendor_id_src, product_id, version);
 }
 
-void profile_connection_attempt(RustRawAddress bt_addr, uint32_t intent, uint32_t profile) {
+void profile_connection_state_changed(RustRawAddress bt_addr, uint32_t profile, uint32_t status, uint32_t state) {
   RawAddress addr = rusty::CopyFromRustAddress(bt_addr);
 
-  metrics::LogMetricsProfileConnectionAttempt(&addr, intent, profile);
-}
-
-void profile_connection_state_changed(
-    RustRawAddress bt_addr, uint32_t intent, uint32_t profile, uint32_t status, uint32_t state) {
-  RawAddress addr = rusty::CopyFromRustAddress(bt_addr);
-
-  metrics::LogMetricsProfileConnectionStateChanged(&addr, intent, profile, status, state);
+  metrics::LogMetricsProfileConnectionStateChanged(&addr, profile, status, state);
 }
 
 }  // namespace rust
