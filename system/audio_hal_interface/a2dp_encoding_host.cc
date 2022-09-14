@@ -242,6 +242,8 @@ void end_session() {
 
   // Reset remote delay. New value will be set when new session starts.
   remote_delay_report_ = 0;
+
+  a2dp_pending_cmd_ = A2DP_CTRL_CMD_NONE;
 }
 
 void set_audio_low_latency_mode_allowed(bool allowed){

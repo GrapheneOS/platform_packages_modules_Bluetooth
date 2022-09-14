@@ -321,10 +321,10 @@ enum OpCode : 16 {
   LE_SET_PHY = 0x2032,
   LE_ENHANCED_RECEIVER_TEST = 0x2033,
   LE_ENHANCED_TRANSMITTER_TEST = 0x2034,
-  LE_SET_EXTENDED_ADVERTISING_RANDOM_ADDRESS = 0x2035,
+  LE_SET_ADVERTISING_SET_RANDOM_ADDRESS = 0x2035,
   LE_SET_EXTENDED_ADVERTISING_PARAMETERS = 0x2036,
   LE_SET_EXTENDED_ADVERTISING_DATA = 0x2037,
-  LE_SET_EXTENDED_ADVERTISING_SCAN_RESPONSE = 0x2038,
+  LE_SET_EXTENDED_SCAN_RESPONSE_DATA = 0x2038,
   LE_SET_EXTENDED_ADVERTISING_ENABLE = 0x2039,
   LE_READ_MAXIMUM_ADVERTISING_DATA_LENGTH = 0x203A,
   LE_READ_NUMBER_OF_SUPPORTED_ADVERTISING_SETS = 0x203B,
@@ -583,10 +583,10 @@ enum OpCodeIndex : 16 {
   LE_SET_PHY = 356,
   LE_ENHANCED_RECEIVER_TEST = 357,
   LE_ENHANCED_TRANSMITTER_TEST = 360,
-  LE_SET_EXTENDED_ADVERTISING_RANDOM_ADDRESS = 361,
+  LE_SET_ADVERTISING_SET_RANDOM_ADDRESS = 361,
   LE_SET_EXTENDED_ADVERTISING_PARAMETERS = 362,
   LE_SET_EXTENDED_ADVERTISING_DATA = 363,
-  LE_SET_EXTENDED_ADVERTISING_SCAN_RESPONSE = 364,
+  LE_SET_EXTENDED_SCAN_RESPONSE_DATA = 364,
   LE_SET_EXTENDED_ADVERTISING_ENABLE = 365,
   LE_READ_MAXIMUM_ADVERTISING_DATA_LENGTH = 366,
   LE_READ_NUMBER_OF_SUPPORTED_ADVERTISING_SETS = 367,
@@ -827,7 +827,9 @@ enum ErrorCode: 8 {
   CONTROLLER_BUSY = 0x3A,
   ADVERTISING_TIMEOUT = 0x3C,
   CONNECTION_FAILED_ESTABLISHMENT = 0x3E,
+  UNKNOWN_ADVERTISING_IDENTIFIER = 0x42,
   LIMIT_REACHED = 0x43,
+  PACKET_TOO_LONG = 0x45,
 }
 
 // Events that are defined with their respective commands
@@ -3082,7 +3084,7 @@ enum PeerAddressType : 8 {
 
 enum AdvertisingType : 8 {
   ADV_IND = 0x00,
-  ADV_DIRECT_IND = 0x01,
+  ADV_DIRECT_IND_HIGH = 0x01,
   ADV_SCAN_IND = 0x02,
   ADV_NONCONN_IND = 0x03,
   ADV_DIRECT_IND_LOW = 0x04,
@@ -3103,14 +3105,14 @@ enum OwnAddressType : 8 {
 }
 
 packet LeSetAdvertisingParameters : LeAdvertisingCommand (op_code = LE_SET_ADVERTISING_PARAMETERS) {
-  interval_min : 16,
-  interval_max : 16,
-  advt_type : AdvertisingType,
+  advertising_interval_min : 16,
+  advertising_interval_max : 16,
+  advertising_type : AdvertisingType,
   own_address_type : OwnAddressType,
   peer_address_type : PeerAddressType,
   peer_address : Address,
-  channel_map : 8,
-  filter_policy : AdvertisingFilterPolicy,
+  advertising_channel_map : 8,
+  advertising_filter_policy : AdvertisingFilterPolicy,
   _reserved_ : 6,
 }
 
@@ -3646,25 +3648,25 @@ packet LeEnhancedTransmitterTestComplete : CommandComplete (command_op_code = LE
   status : ErrorCode,
 }
 
-packet LeSetExtendedAdvertisingRandomAddress : LeAdvertisingCommand (op_code = LE_SET_EXTENDED_ADVERTISING_RANDOM_ADDRESS) {
+packet LeSetAdvertisingSetRandomAddress : LeAdvertisingCommand (op_code = LE_SET_ADVERTISING_SET_RANDOM_ADDRESS) {
   advertising_handle : 8,
-  advertising_random_address : Address,
+  random_address : Address,
 }
 
-test LeSetExtendedAdvertisingRandomAddress {
+test LeSetAdvertisingSetRandomAddress {
   "\x35\x20\x07\x00\x77\x58\xeb\xd3\x1c\x6e",
 }
 
-packet LeSetExtendedAdvertisingRandomAddressComplete : CommandComplete (command_op_code = LE_SET_EXTENDED_ADVERTISING_RANDOM_ADDRESS) {
+packet LeSetAdvertisingSetRandomAddressComplete : CommandComplete (command_op_code = LE_SET_ADVERTISING_SET_RANDOM_ADDRESS) {
   status : ErrorCode,
 }
 
-test LeSetExtendedAdvertisingRandomAddressComplete {
+test LeSetAdvertisingSetRandomAddressComplete {
   "\x0e\x04\x01\x35\x20\x00",
 }
 
 // The lower 4 bits of the advertising event properties
-enum LegacyAdvertisingProperties : 4 {
+enum LegacyAdvertisingEventProperties : 4 {
   ADV_IND = 0x3,
   ADV_DIRECT_IND_LOW = 0x5,
   ADV_DIRECT_IND_HIGH = 0xD,
@@ -3684,11 +3686,11 @@ enum SecondaryPhyType : 8 {
   LE_CODED = 0x03,
 }
 
-packet LeSetExtendedAdvertisingLegacyParameters : LeAdvertisingCommand (op_code = LE_SET_EXTENDED_ADVERTISING_PARAMETERS) {
+packet LeSetExtendedAdvertisingParametersLegacy : LeAdvertisingCommand (op_code = LE_SET_EXTENDED_ADVERTISING_PARAMETERS) {
   advertising_handle : 8,
-  advertising_event_legacy_properties : LegacyAdvertisingProperties,
+  legacy_advertising_event_properties : LegacyAdvertisingEventProperties,
   _fixed_ = 0x1 : 1, // legacy bit set
-  _reserved_ : 11, // advertising_event_properties
+  _reserved_ : 11, // advertising_event_properties reserved bits
   primary_advertising_interval_min : 24, // 0x20 - 0xFFFFFF N * 0.625 ms
   primary_advertising_interval_max : 24, // 0x20 - 0xFFFFFF N * 0.625 ms
   primary_advertising_channel_map : 3,  // bit 0 - Channel 37, bit 1 - 38, bit 2 - 39
@@ -3706,17 +3708,25 @@ packet LeSetExtendedAdvertisingLegacyParameters : LeAdvertisingCommand (op_code 
   scan_request_notification_enable : Enable,
 }
 
-test LeSetExtendedAdvertisingLegacyParameters {
+test LeSetExtendedAdvertisingParametersLegacy {
   "\x36\x20\x19\x00\x13\x00\x90\x01\x00\xc2\x01\x00\x07\x01\x00\x00\x00\x00\x00\x00\x00\x00\xf9\x01\x00\x01\x01\x00",
   "\x36\x20\x19\x01\x13\x00\x90\x01\x00\xc2\x01\x00\x07\x01\x00\x00\x00\x00\x00\x00\x00\x00\xf9\x01\x00\x01\x01\x00",
 }
 
+struct AdvertisingEventProperties {
+  connectable : 1,
+  scannable : 1,
+  directed : 1,
+  high_duty_cycle : 1,
+  legacy : 1,
+  anonymous : 1,
+  tx_power : 1,
+  _reserved_ : 9,
+}
+
 packet LeSetExtendedAdvertisingParameters : LeAdvertisingCommand (op_code = LE_SET_EXTENDED_ADVERTISING_PARAMETERS) {
   advertising_handle : 8,
-  advertising_event_legacy_properties : 4,
-  _fixed_ = 0 : 1, // legacy bit cleared
-  advertising_event_properties : 3,
-  _reserved_ : 8,
+  advertising_event_properties : AdvertisingEventProperties,
   primary_advertising_interval_min : 24, // 0x20 - 0xFFFFFF N * 0.625 ms
   primary_advertising_interval_max : 24, // 0x20 - 0xFFFFFF N * 0.625 ms
   primary_advertising_channel_map : 3,  // bit 0 - Channel 37, bit 1 - 38, bit 2 - 39
@@ -3784,7 +3794,7 @@ test LeSetExtendedAdvertisingDataComplete {
   "\x0e\x04\x01\x37\x20\x00",
 }
 
-packet LeSetExtendedAdvertisingScanResponse : LeAdvertisingCommand (op_code = LE_SET_EXTENDED_ADVERTISING_SCAN_RESPONSE) {
+packet LeSetExtendedScanResponseData : LeAdvertisingCommand (op_code = LE_SET_EXTENDED_SCAN_RESPONSE_DATA) {
   advertising_handle : 8,
   operation : Operation,
   _reserved_ : 5,
@@ -3794,7 +3804,7 @@ packet LeSetExtendedAdvertisingScanResponse : LeAdvertisingCommand (op_code = LE
   scan_response_data : GapData[],
 }
 
-packet LeSetExtendedAdvertisingScanResponseRaw : LeAdvertisingCommand (op_code = LE_SET_EXTENDED_ADVERTISING_SCAN_RESPONSE) {
+packet LeSetExtendedScanResponseDataRaw : LeAdvertisingCommand (op_code = LE_SET_EXTENDED_SCAN_RESPONSE_DATA) {
   advertising_handle : 8,
   operation : Operation,
   _reserved_ : 5,
@@ -3804,7 +3814,7 @@ packet LeSetExtendedAdvertisingScanResponseRaw : LeAdvertisingCommand (op_code =
   scan_response_data : 8[],
 }
 
-packet LeSetExtendedAdvertisingScanResponseComplete : CommandComplete (command_op_code = LE_SET_EXTENDED_ADVERTISING_SCAN_RESPONSE) {
+packet LeSetExtendedScanResponseDataComplete : CommandComplete (command_op_code = LE_SET_EXTENDED_SCAN_RESPONSE_DATA) {
   status : ErrorCode,
 }
 
@@ -4665,7 +4675,7 @@ packet LeMultiAdvtComplete : CommandComplete (command_op_code = LE_MULTI_ADVT) {
 packet LeMultiAdvtParam : LeMultiAdvt (sub_cmd = SET_PARAM) {
   interval_min : 16,
   interval_max : 16,
-  advt_type : AdvertisingType,
+  advertising_type : AdvertisingType,
   own_address_type : OwnAddressType,
   own_address : Address,
   peer_address_type : PeerAddressType,
