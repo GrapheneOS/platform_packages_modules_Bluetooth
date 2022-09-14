@@ -33,7 +33,7 @@ use tokio::time;
 
 use crate::bluetooth_media::{BluetoothMedia, IBluetoothMedia, MediaActions};
 use crate::callbacks::Callbacks;
-use crate::uuid::{Profile, UuidHelper};
+use crate::uuid::{Profile, UuidHelper, HOGP};
 use crate::{Message, RPCProxy};
 
 const DEFAULT_DISCOVERY_TIMEOUT_MS: u64 = 12800;
@@ -1512,7 +1512,22 @@ impl IBluetooth for Bluetooth {
                     if self.uuid_helper.is_profile_enabled(&p) {
                         match p {
                             Profile::Hid | Profile::Hogp => {
-                                self.hh.as_ref().unwrap().connect(&mut addr.unwrap());
+                                let status = self.hh.as_ref().unwrap().connect(&mut addr.unwrap());
+                                metrics::profile_connection_state_changed(
+                                    addr.unwrap(),
+                                    *p as u32,
+                                    BtStatus::Success,
+                                    BthhConnectionState::Connecting as u32,
+                                );
+
+                                if status != BtStatus::Success {
+                                    metrics::profile_connection_state_changed(
+                                        addr.unwrap(),
+                                        *p as u32,
+                                        status,
+                                        BthhConnectionState::Disconnected as u32,
+                                    );
+                                }
                             }
 
                             Profile::A2dpSink | Profile::A2dpSource | Profile::Hfp => {
@@ -1606,6 +1621,29 @@ impl BtifSdpCallbacks for Bluetooth {
 impl BtifHHCallbacks for Bluetooth {
     fn connection_state(&mut self, address: RawAddress, state: BthhConnectionState) {
         debug!("Hid host connection state updated: Address({:?}) State({:?})", address, state);
+
+        // HID or HOG is not differentiated by the hid host when callback this function. Assume HOG
+        // if the device is LE only and HID if classic only. And assume HOG if UUID said so when
+        // device type is dual or unknown.
+        let device = BluetoothDevice::new(address.to_string(), "".to_string());
+        let profile = match self.get_remote_type(device.clone()) {
+            BtDeviceType::Ble => Profile::Hogp,
+            BtDeviceType::Bredr => Profile::Hid,
+            _ => {
+                if self.get_remote_uuids(device).contains(&UuidHelper::from_string(HOGP).unwrap()) {
+                    Profile::Hogp
+                } else {
+                    Profile::Hid
+                }
+            }
+        };
+
+        metrics::profile_connection_state_changed(
+            address,
+            profile as u32,
+            BtStatus::Success,
+            state as u32,
+        );
     }
 
     fn hid_info(&mut self, address: RawAddress, info: BthhHidInfo) {
