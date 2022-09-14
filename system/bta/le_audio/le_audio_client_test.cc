@@ -48,6 +48,7 @@ using testing::AnyNumber;
 using testing::AtLeast;
 using testing::AtMost;
 using testing::DoAll;
+using testing::Expectation;
 using testing::Invoke;
 using testing::Mock;
 using testing::MockFunction;
@@ -219,6 +220,8 @@ class MockLeAudioClientAudioSink : public LeAudioUnicastClientAudioSink {
   MOCK_METHOD((void), DebugDump, (int fd));
   MOCK_METHOD((void), UpdateAudioConfigToHal,
               (const ::le_audio::offload_config&));
+  MOCK_METHOD((void), SuspendedForReconfiguration, (), (override));
+  MOCK_METHOD((void), ReconfigurationComplete, (), (override));
 };
 
 class MockLeAudioUnicastClientAudioSource
@@ -238,6 +241,7 @@ class MockLeAudioUnicastClientAudioSource
   MOCK_METHOD((void), UpdateAudioConfigToHal,
               (const ::le_audio::offload_config&), (override));
   MOCK_METHOD((void), SuspendedForReconfiguration, (), (override));
+  MOCK_METHOD((void), ReconfigurationComplete, (), (override));
 };
 
 class UnicastTestNoInit : public Test {
@@ -1496,12 +1500,18 @@ class UnicastTestNoInit : public Test {
     source_metadata[0].content_type = content_type;
 
     if (reconfigure_existing_stream) {
-      EXPECT_CALL(*mock_unicast_audio_source_, SuspendedForReconfiguration())
-          .Times(1);
+      Expectation reconfigure = EXPECT_CALL(*mock_unicast_audio_source_,
+                                            SuspendedForReconfiguration())
+                                    .Times(1);
       EXPECT_CALL(*mock_unicast_audio_source_, CancelStreamingRequest())
           .Times(1);
+      EXPECT_CALL(*mock_unicast_audio_source_, ReconfigurationComplete())
+          .Times(1)
+          .After(reconfigure);
     } else {
       EXPECT_CALL(*mock_unicast_audio_source_, SuspendedForReconfiguration())
+          .Times(0);
+      EXPECT_CALL(*mock_unicast_audio_source_, ReconfigurationComplete())
           .Times(0);
     }
 
