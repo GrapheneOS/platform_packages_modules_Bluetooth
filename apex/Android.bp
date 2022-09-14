@@ -13,42 +13,6 @@ linker_config {
     installable: false,
 }
 
-// Mainline bluetooth apex module (legacy, do not use).
-// TODO: Remove
-apex {
-    name: "com.android.bluetooth",
-    defaults: ["t-launched-apex-module"],
-    manifest: "apex_manifest.json",
-    bootclasspath_fragments: ["com.android.btservices-bootclasspath-fragment"],
-    systemserverclasspath_fragments: ["com.android.btservices-systemserverclasspath-fragment"],
-    compat_configs: ["bluetooth-compat-config"],
-    apps: ["Bluetooth"],
-
-    multilib: {
-        first: {
-            // Extractor process runs only with the primary ABI.
-            jni_libs: [
-                "libbluetooth_jni",
-            ],
-        },
-    },
-
-    prebuilts: [
-        "audio_set_configurations_bfbs",
-        "audio_set_configurations_json",
-        "audio_set_scenarios_bfbs",
-        "audio_set_scenarios_json",
-        "btservices-linker-config",
-        "bt_did.conf",
-        "bt_stack.conf",
-        "privapp_allowlist_com.android.bluetooth.xml",
-    ],
-    key: "com.android.btservices.key",
-    certificate: ":com.android.btservices.certificate",
-    updatable: false,
-    compressible: false,
-}
-
 // Mainline bluetooth apex module.
 apex {
     name: "com.android.btservices",
