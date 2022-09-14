@@ -2762,49 +2762,6 @@ TEST_F(StateMachineTest, testAttachDeviceToTheStream) {
 
   lastDevice->conn_id_ = 3;
   group->UpdateActiveContextsMap();
-  auto* stream_conf = &group->stream_conf;
-
-  /* Second device got reconnect. Try to get it to the stream seamlessly
-   * Code take from client.cc
-   */
-  le_audio::types::AudioLocations sink_group_audio_locations = 0;
-  uint8_t sink_num_of_active_ases = 0;
-
-  for (auto [cis_handle, audio_location] : stream_conf->sink_streams) {
-    sink_group_audio_locations |= audio_location;
-    sink_num_of_active_ases++;
-  }
-
-  le_audio::types::AudioLocations source_group_audio_locations = 0;
-  uint8_t source_num_of_active_ases = 0;
-
-  for (auto [cis_handle, audio_location] : stream_conf->source_streams) {
-    source_group_audio_locations |= audio_location;
-    source_num_of_active_ases++;
-  }
-
-  std::vector<uint8_t> ccid_list;
-  for (auto& ent : stream_conf->conf->confs) {
-    if (ent.direction == le_audio::types::kLeAudioDirectionSink) {
-      /* Sink*/
-      if (!lastDevice->ConfigureAses(
-              ent, group->GetCurrentContextType(), &sink_num_of_active_ases,
-              sink_group_audio_locations, source_group_audio_locations, true, 0,
-              ccid_list)) {
-        FAIL() << __func__ << " Could not set sink configuration of "
-               << stream_conf->conf->name;
-      }
-    } else {
-      /* Source*/
-      if (!lastDevice->ConfigureAses(
-              ent, group->GetCurrentContextType(), &source_num_of_active_ases,
-              sink_group_audio_locations, source_group_audio_locations, true, 0,
-              ccid_list)) {
-        FAIL() << __func__ << " Could not set source configuration of "
-               << stream_conf->conf->name;
-      }
-    }
-  }
 
   EXPECT_CALL(gatt_queue, WriteCharacteristic(lastDevice->conn_id_,
                                               lastDevice->ctp_hdls_.val_hdl, _,
@@ -2816,6 +2773,17 @@ TEST_F(StateMachineTest, testAttachDeviceToTheStream) {
   // Check if group keeps streaming
   ASSERT_EQ(group->GetState(),
             types::AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING);
+
+  // Verify that the joining device receives the right CCID list
+  auto lastMeta = lastDevice->GetFirstActiveAse()->metadata;
+  bool parsedOk = false;
+  auto ltv = le_audio::types::LeAudioLtvMap::Parse(lastMeta.data(),
+                                                   lastMeta.size(), parsedOk);
+  ASSERT_TRUE(parsedOk);
+
+  auto ccids = ltv.Find(le_audio::types::kLeAudioMetadataTypeCcidList);
+  ASSERT_TRUE(ccids.has_value());
+  ASSERT_NE(std::find(ccids->begin(), ccids->end(), media_ccid), ccids->end());
 }
 
 }  // namespace internal
