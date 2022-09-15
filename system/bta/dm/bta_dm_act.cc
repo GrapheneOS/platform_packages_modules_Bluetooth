@@ -38,6 +38,7 @@
 #include "btif/include/stack_manager.h"
 #include "device/include/controller.h"
 #include "device/include/interop.h"
+#include "gd/common/init_flags.h"
 #include "main/shim/acl_api.h"
 #include "main/shim/btm_api.h"
 #include "main/shim/dumpsys.h"
@@ -1564,7 +1565,10 @@ bool bta_dm_is_search_request_queued() {
  ******************************************************************************/
 void bta_dm_search_clear_queue() {
   osi_free_and_reset((void**)&bta_dm_search_cb.p_pending_search);
-  fixed_queue_flush(bta_dm_search_cb.pending_discovery_queue, osi_free);
+  if (bluetooth::common::InitFlags::
+          IsBtmDmFlushDiscoveryQueueOnSearchCancel()) {
+    fixed_queue_flush(bta_dm_search_cb.pending_discovery_queue, osi_free);
+  }
 }
 
 /*******************************************************************************
