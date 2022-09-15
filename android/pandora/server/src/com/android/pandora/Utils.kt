@@ -221,15 +221,13 @@ fun <T> getProfileProxy(context: Context, profile: Int): T {
 fun Intent.getBluetoothDeviceExtra(): BluetoothDevice =
   this.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE, BluetoothDevice::class.java)
 
-fun ByteString.decodeToString(): String =
+fun ByteString.decodeAsMacAddressToString(): String =
   MacAddress.fromBytes(this.toByteArray()).toString().uppercase()
 
 fun ByteString.toBluetoothDevice(adapter: BluetoothAdapter): BluetoothDevice =
-  adapter.getRemoteDevice(this.decodeToString())
+  adapter.getRemoteDevice(this.decodeAsMacAddressToString())
 
 fun Connection.toBluetoothDevice(adapter: BluetoothAdapter): BluetoothDevice =
   adapter.getRemoteDevice(this.cookie.toByteArray().decodeToString())
 
-fun String.toByteArray(): ByteArray = MacAddress.fromString(this).toByteArray()
-
-fun BluetoothDevice.toByteArray(): ByteArray = this.address.toByteArray()
+fun BluetoothDevice.toByteArray(): ByteArray = MacAddress.fromString(this.address).toByteArray()

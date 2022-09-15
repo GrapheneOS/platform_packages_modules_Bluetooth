@@ -15,63 +15,87 @@
  */
 #include "gd/metrics/chromeos/metrics_event.h"
 
+#include <map>
+#include <utility>
+
 #include "hci/hci_packets.h"
+#include "include/hardware/bluetooth.h"
+#include "include/hardware/bt_hh.h"
 
 namespace bluetooth {
 namespace metrics {
 
-// ENUM definitaion for Bluetooth Bond State in sync with topshim::btif::BtBondState
-enum class BtBondState {
-  NotBonded = 0,
-  Bonding,
-  Bonded,
+// topshim::btif::BtBondState is a copy of hardware/bluetooth.h:bt_bond_state_t
+typedef bt_bond_state_t BtBondState;
+// topshim::btif::BtStatus is a copy of hardware/bluetooth.h:bt_status_t
+typedef bt_status_t BtStatus;
+// topshim::profile::hid_host::BthhConnectionState is a copy of hardware/bluetooth.h:bthh_connection_state_t
+typedef bthh_connection_state_t BthhConnectionState;
+
+// A normalized connection state ENUM definition all profiles
+enum class ProfilesConnectionState {
+  DISCONNECTED = 0,
+  CONNECTING,
+  CONNECTED,
+  DISCONNECTING,
+  UNKNOWN,
 };
 
-// ENUM definitaion for Bluetooth action status in sync with topshim::btif::BtStatus
-enum class BtStatus {
-  Success = 0,
-  Fail,
-  NotReady,
-  NoMemory,
-  Busy,
-  Done,
-  Unsupported,
-  InvalidParam,
-  Unhandled,
-  AuthFailure,
-  RemoteDeviceDown,
-  AuthRejected,
-  JniEnvironmentError,
-  JniThreadAttachError,
-  WakeLockError,
-
-  // Any statuses that couldn't be cleanly converted
-  Unknown = 0xff,
+// ENUM definition for Bluetooth profiles in sync with ::uuid::Profiles
+enum class ProfilesFloss {
+  A2dpSink = 0,
+  A2dpSource,
+  AdvAudioDist,
+  Hsp,
+  HspAg,
+  Hfp,
+  HfpAg,
+  AvrcpController,
+  AvrcpTarget,
+  ObexObjectPush,
+  Hid,
+  Hogp,
+  Panu,
+  Nap,
+  Bnep,
+  PbapPce,
+  PbapPse,
+  Map,
+  Mns,
+  Mas,
+  Sap,
+  HearingAid,
+  LeAudio,
+  Dip,
+  VolumeControl,
+  GenericMediaControl,
+  MediaControl,
+  CoordinatedSet,
 };
 
 static PairingState StatusToPairingState(uint32_t status) {
   switch ((BtStatus)status) {
-    case BtStatus::Success:
+    case BtStatus::BT_STATUS_SUCCESS:
       return PairingState::PAIR_SUCCEED;
-    case BtStatus::Fail:
+    case BtStatus::BT_STATUS_FAIL:
       return PairingState::PAIR_FAIL_FAILED;
-    case BtStatus::NoMemory:
+    case BtStatus::BT_STATUS_NOMEM:
       return PairingState::PAIR_FAIL_NO_RESOURCES;
-    case BtStatus::Busy:
+    case BtStatus::BT_STATUS_BUSY:
       return PairingState::PAIR_FAIL_BUSY;
-    case BtStatus::Unsupported:
+    case BtStatus::BT_STATUS_UNSUPPORTED:
       return PairingState::PAIR_FAIL_NOT_SUPPORTED;
-    case BtStatus::InvalidParam:
+    case BtStatus::BT_STATUS_PARM_INVALID:
       return PairingState::PAIR_FAIL_INVALID_PARAMS;
-    case BtStatus::AuthFailure:
+    case BtStatus::BT_STATUS_AUTH_FAILURE:
       return PairingState::PAIR_FAIL_AUTH_FAILED;
-    case BtStatus::RemoteDeviceDown:
+    case BtStatus::BT_STATUS_RMT_DEV_DOWN:
       return PairingState::PAIR_FAIL_ESTABLISH_CONN;
-    case BtStatus::AuthRejected:
+    case BtStatus::BT_STATUS_AUTH_REJECTED:
       return PairingState::PAIR_FAIL_AUTH_FAILED;
-    case BtStatus::NotReady:
-    case BtStatus::Done:
-    case BtStatus::Unhandled:
+    case BtStatus::BT_STATUS_NOT_READY:
+    case BtStatus::BT_STATUS_DONE:
+    case BtStatus::BT_STATUS_UNHANDLED:
     default:
       return PairingState::PAIR_FAIL_UNKNOWN;
   }
@@ -155,10 +179,13 @@ static PairingState FailReasonToPairingState(int32_t fail_reason) {
       return PairingState::PAIR_FAIL_ESTABLISH_CONN;
     case hci::ErrorCode::LIMIT_REACHED:
       return PairingState::PAIR_FAIL_NO_RESOURCES;
+    case hci::ErrorCode::PACKET_TOO_LONG:
+      return PairingState::PAIR_FAIL_INVALID_PARAMS;
     case hci::ErrorCode::SCO_OFFSET_REJECTED:
     case hci::ErrorCode::SCO_INTERVAL_REJECTED:
     case hci::ErrorCode::SCO_AIR_MODE_REJECTED:
     case hci::ErrorCode::ADVERTISING_TIMEOUT:
+    case hci::ErrorCode::UNKNOWN_ADVERTISING_IDENTIFIER:
     case hci::ErrorCode::STATUS_UNKNOWN:
       return PairingState::PAIR_FAIL_UNKNOWN;
   }
@@ -172,10 +199,10 @@ PairingState ToPairingState(uint32_t status, uint32_t bond_state, int32_t fail_r
   PairingState pairing_state = PairingState::PAIR_FAIL_UNKNOWN;
 
   // The Bonding is a transitional state during the pairing process. Ignore it by returning the starting again.
-  if ((BtBondState)bond_state == BtBondState::Bonding) return PairingState::PAIR_STARTING;
+  if ((BtBondState)bond_state == BtBondState::BT_BOND_STATE_BONDING) return PairingState::PAIR_STARTING;
 
-  if ((BtStatus)status == BtStatus::Success && (hci::ErrorCode)fail_reason == hci::ErrorCode::SUCCESS) {
-    if ((BtBondState)bond_state == BtBondState::Bonded) {
+  if ((BtStatus)status == BtStatus::BT_STATUS_SUCCESS && (hci::ErrorCode)fail_reason == hci::ErrorCode::SUCCESS) {
+    if ((BtBondState)bond_state == BtBondState::BT_BOND_STATE_BONDED) {
       return PairingState::PAIR_SUCCEED;
     } else {
       return PairingState::PAIR_FAIL_CANCELLED;
@@ -185,9 +212,189 @@ PairingState ToPairingState(uint32_t status, uint32_t bond_state, int32_t fail_r
   // When both status and fail reason are provided and disagree with each other, overwrite status with the fail reason
   // as fail reason is generated closer to the HCI and provides a more accurate description.
   if (status) pairing_state = StatusToPairingState(status);
-  if (fail_reason) pairing_state = FailReasonToPairingState(status);
+  if (fail_reason) pairing_state = FailReasonToPairingState(fail_reason);
 
   return pairing_state;
+}
+
+int64_t StatusToProfileConnectionState(uint32_t status, StateChangeType type) {
+  int64_t state;
+  if (StateChangeType::STATE_CHANGE_TYPE_CONNECT == type) {
+    switch ((BtStatus)status) {
+      case BtStatus::BT_STATUS_SUCCESS:
+        state = (int64_t)MetricProfileConnectionStatus::PROFILE_CONN_STATE_SUCCEED;
+        break;
+      case BtStatus::BT_STATUS_BUSY:
+        state = (int64_t)MetricProfileConnectionStatus::PROFILE_CONN_STATE_BUSY_CONNECTING;
+        break;
+      case BtStatus::BT_STATUS_DONE:
+        state = (int64_t)MetricProfileConnectionStatus::PROFILE_CONN_STATE_ALREADY_CONNECTED;
+        break;
+      case BtStatus::BT_STATUS_UNSUPPORTED:
+        state = (int64_t)MetricProfileConnectionStatus::PROFILE_CONN_STATE_PROFILE_NOT_SUPPORTED;
+        break;
+      case BtStatus::BT_STATUS_PARM_INVALID:
+        state = (int64_t)MetricProfileConnectionStatus::PROFILE_CONN_STATE_UNKNOWN_ERROR;
+        break;
+      case BtStatus::BT_STATUS_AUTH_FAILURE:
+        state = (int64_t)MetricProfileConnectionStatus::PROFILE_CONN_STATE_CONNECTION_REFUSED;
+        break;
+      case BtStatus::BT_STATUS_RMT_DEV_DOWN:
+        state = (int64_t)MetricProfileConnectionStatus::PROFILE_CONN_STATE_REMOTE_UNAVAILABLE;
+        break;
+      case BtStatus::BT_STATUS_AUTH_REJECTED:
+      case BtStatus::BT_STATUS_FAIL:
+      case BtStatus::BT_STATUS_NOT_READY:
+      case BtStatus::BT_STATUS_NOMEM:
+      case BtStatus::BT_STATUS_UNHANDLED:
+      default:
+        state = (int64_t)MetricProfileConnectionStatus::PROFILE_CONN_STATE_UNKNOWN_ERROR;
+        break;
+    }
+  } else {
+    switch ((BtStatus)status) {
+      case BtStatus::BT_STATUS_SUCCESS:
+        state = (int64_t)MetricProfileDisconnectionStatus::PROFILE_DISCONN_STATE_SUCCEED;
+        break;
+      case BtStatus::BT_STATUS_BUSY:
+        state = (int64_t)MetricProfileDisconnectionStatus::PROFILE_DISCONN_STATE_BUSY_DISCONNECTING;
+        break;
+      case BtStatus::BT_STATUS_DONE:
+        state = (int64_t)MetricProfileDisconnectionStatus::PROFILE_DISCONN_STATE_ALREADY_DISCONNECTED;
+        break;
+      case BtStatus::BT_STATUS_UNSUPPORTED:
+        state = (int64_t)MetricProfileDisconnectionStatus::PROFILE_DISCONN_STATE_UNKNOWN_ERROR;
+        break;
+      case BtStatus::BT_STATUS_PARM_INVALID:
+        state = (int64_t)MetricProfileDisconnectionStatus::PROFILE_DISCONN_STATE_INVALID_PARAMS;
+        break;
+      case BtStatus::BT_STATUS_AUTH_FAILURE:
+        state = (int64_t)MetricProfileDisconnectionStatus::PROFILE_DISCONN_STATE_DISCONNECTION_REFUSED;
+        break;
+      case BtStatus::BT_STATUS_RMT_DEV_DOWN:
+        state = (int64_t)MetricProfileDisconnectionStatus::PROFILE_DISCONN_STATE_UNKNOWN_ERROR;
+        break;
+      case BtStatus::BT_STATUS_AUTH_REJECTED:
+        state = (int64_t)MetricProfileDisconnectionStatus::PROFILE_DISCONN_STATE_DISCONNECTION_REFUSED;
+        break;
+      case BtStatus::BT_STATUS_FAIL:
+      case BtStatus::BT_STATUS_NOT_READY:
+      case BtStatus::BT_STATUS_NOMEM:
+      case BtStatus::BT_STATUS_UNHANDLED:
+      default:
+        state = (int64_t)MetricProfileDisconnectionStatus::PROFILE_DISCONN_STATE_UNKNOWN_ERROR;
+        break;
+    }
+  }
+
+  return state;
+}
+
+static std::pair<uint32_t, uint32_t> ToProfileConnectionState(uint32_t profile, uint32_t state) {
+  std::pair<uint32_t, uint32_t> output;
+
+  switch ((ProfilesFloss)profile) {
+    // case ProfilesFloss::A2dpSink:
+    // case ProfilesFloss::A2dpSource:
+    // case ProfilesFloss::AdvAudioDist:
+    // case ProfilesFloss::Hsp:
+    // case ProfilesFloss::HspAg:
+    // case ProfilesFloss::Hfp:
+    // case ProfilesFloss::HfpAg:
+    // case ProfilesFloss::AvrcpController:
+    // case ProfilesFloss::AvrcpTarget:
+    // case ProfilesFloss::ObexObjectPush:
+    case ProfilesFloss::Hid:
+    case ProfilesFloss::Hogp:
+      output.first = (uint32_t)Profile::HID;
+      switch ((BthhConnectionState)state) {
+        case BthhConnectionState::BTHH_CONN_STATE_CONNECTED:
+          output.second = (uint32_t)ProfilesConnectionState::CONNECTED;
+          break;
+        case BthhConnectionState::BTHH_CONN_STATE_CONNECTING:
+          output.second = (uint32_t)ProfilesConnectionState::CONNECTING;
+          break;
+        case BthhConnectionState::BTHH_CONN_STATE_DISCONNECTED:
+          output.second = (uint32_t)ProfilesConnectionState::DISCONNECTED;
+          break;
+        case BthhConnectionState::BTHH_CONN_STATE_DISCONNECTING:
+          output.second = (uint32_t)ProfilesConnectionState::DISCONNECTING;
+          break;
+        case BthhConnectionState::BTHH_CONN_STATE_UNKNOWN:
+          output.second = (uint32_t)ProfilesConnectionState::UNKNOWN;
+          break;
+      }
+      break;
+    // case ProfilesFloss::Panu:
+    // case ProfilesFloss::Nap:
+    // case ProfilesFloss::Bnep:
+    // case ProfilesFloss::PbapPce:
+    // case ProfilesFloss::PbapPse:
+    // case ProfilesFloss::Map:
+    // case ProfilesFloss::Mns:
+    // case ProfilesFloss::Mas:
+    // case ProfilesFloss::Sap:
+    // case ProfilesFloss::HearingAid:
+    // case ProfilesFloss::LeAudio:
+    // case ProfilesFloss::Dip:
+    // case ProfilesFloss::VolumeControl:
+    // case ProfilesFloss::GenericMediaControl:
+    // case ProfilesFloss::MediaControl:
+    // case ProfilesFloss::CoordinatedSet:
+    default:
+      output = std::make_pair((uint32_t)Profile::UNKNOWN, state);
+      break;
+  }
+
+  return output;
+}
+
+ProfileConnectionEvent ToProfileConnectionEvent(std::string addr, uint32_t profile, uint32_t status, uint32_t state) {
+  ProfileConnectionEvent event;
+  // A map stores the pending StateChangeType used to match a (dis)connection event with unknown type.
+  // map<std::pair<address, profile>, type>
+  static std::map<std::pair<std::string, uint32_t>, StateChangeType> pending_type;
+
+  auto profile_state_pair = ToProfileConnectionState(profile, state);
+  auto key = std::make_pair(addr, profile_state_pair.first);
+  event.profile = (int64_t)profile_state_pair.first;
+
+  switch ((ProfilesConnectionState)profile_state_pair.second) {
+    case ProfilesConnectionState::CONNECTED:
+      event.type = (int64_t)StateChangeType::STATE_CHANGE_TYPE_CONNECT;
+      event.state = (int64_t)MetricProfileConnectionStatus::PROFILE_CONN_STATE_SUCCEED;
+      pending_type.erase(key);
+      break;
+    case ProfilesConnectionState::CONNECTING:
+      event.type = (int64_t)StateChangeType::STATE_CHANGE_TYPE_CONNECT;
+      event.state = (int64_t)MetricProfileConnectionStatus::PROFILE_CONN_STATE_STARTING;
+      pending_type[key] = StateChangeType::STATE_CHANGE_TYPE_CONNECT;
+      break;
+    case ProfilesConnectionState::DISCONNECTED:
+      event.type = pending_type.find(key) != pending_type.end()
+                       ? (int64_t)pending_type[key]
+                       : (int64_t)StateChangeType::STATE_CHANGE_TYPE_DISCONNECT;
+      // If the profile successfully disconnected for a connect intent, i.e., a connection is attempted but received a
+      // disconnection state update. Report this as an unknown error.
+      if (StateChangeType::STATE_CHANGE_TYPE_CONNECT == (StateChangeType)event.type &&
+          BtStatus::BT_STATUS_SUCCESS == (BtStatus)status) {
+        event.state = (int64_t)MetricProfileConnectionStatus::PROFILE_CONN_STATE_UNKNOWN_ERROR;
+      } else {
+        event.state = StatusToProfileConnectionState(status, (StateChangeType)event.type);
+      }
+      pending_type.erase(key);
+      break;
+    case ProfilesConnectionState::DISCONNECTING:
+      event.type = (int64_t)StateChangeType::STATE_CHANGE_TYPE_DISCONNECT;
+      event.state = (int64_t)MetricProfileDisconnectionStatus::PROFILE_DISCONN_STATE_STARTING;
+      pending_type[key] = StateChangeType::STATE_CHANGE_TYPE_DISCONNECT;
+      break;
+    default:
+      event.profile = (int64_t)Profile::UNKNOWN;
+      break;
+  }
+
+  return event;
 }
 
 }  // namespace metrics

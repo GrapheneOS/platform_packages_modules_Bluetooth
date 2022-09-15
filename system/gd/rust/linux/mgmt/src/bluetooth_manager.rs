@@ -48,6 +48,12 @@ impl BluetoothManager {
         }
     }
 
+    pub(crate) fn callback_default_adapter_change(&mut self, hci_device: i32) {
+        for (_, callback) in &self.callbacks {
+            callback.on_default_adapter_changed(hci_device);
+        }
+    }
+
     pub(crate) fn callback_disconnected(&mut self, id: u32) {
         self.callbacks.remove(&id);
     }
@@ -147,5 +153,13 @@ impl IBluetoothManager for BluetoothManager {
                 enabled: state_to_enabled(a.state),
             })
             .collect::<Vec<AdapterWithEnabled>>()
+    }
+
+    fn get_default_adapter(&mut self) -> i32 {
+        self.proxy.get_default_adapter()
+    }
+
+    fn set_desired_default_adapter(&mut self, adapter_index: i32) {
+        self.proxy.set_desired_default_adapter(adapter_index);
     }
 }

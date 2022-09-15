@@ -74,8 +74,7 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
         state_machine::Invoker::UpstartInvoker
     };
 
-    let context =
-        state_machine::create_new_state_machine_context(invoker, config_util::is_floss_enabled());
+    let context = state_machine::create_new_state_machine_context(invoker);
     let proxy = context.get_proxy();
 
     // The resource is a task that should be spawned onto a tokio compatible
