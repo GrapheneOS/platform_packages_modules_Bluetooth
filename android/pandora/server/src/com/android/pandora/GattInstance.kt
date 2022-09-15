@@ -23,6 +23,7 @@ import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattService
 import android.bluetooth.BluetoothProfile
+import android.bluetooth.BluetoothStatusCodes
 import android.content.Context
 import android.util.Log
 import com.google.protobuf.ByteString
@@ -40,6 +41,7 @@ class GattInstance(val mDevice: BluetoothDevice, val mTransport: Int, val mConte
   private var mServiceDiscovered = MutableStateFlow(false)
   private var mConnectionState = MutableStateFlow(BluetoothProfile.STATE_DISCONNECTED)
   private var mValuesRead = MutableStateFlow(0)
+  private var mValueWrote = MutableStateFlow(false)
 
   /**
    * Wrapper for characteristic and descriptor reading. Uuid, startHandle and endHandle are used to
@@ -53,6 +55,13 @@ class GattInstance(val mDevice: BluetoothDevice, val mTransport: Int, val mConte
     var status: AttStatusCode
   ) {}
   private var mGattInstanceValuesRead = arrayListOf<GattInstanceValueRead>()
+
+  class GattInstanceValueWrote(
+    var uuid: UUID?,
+    var handle: Int,
+    var status: AttStatusCode
+  ) {}
+  private var mGattInstanceValueWrote = GattInstanceValueWrote(null, 0, AttStatusCode.UNKNOWN_ERROR)
 
   companion object GattManager {
     val gattInstances: MutableMap<String, GattInstance> = mutableMapOf<String, GattInstance>()
@@ -126,6 +135,26 @@ class GattInstance(val mDevice: BluetoothDevice, val mTransport: Int, val mConte
           }
         }
       }
+
+      override fun onCharacteristicWrite(
+        bluetoothGatt: BluetoothGatt,
+        characteristic: BluetoothGattCharacteristic,
+        status: Int
+      ) {
+        Log.i(TAG, "onCharacteristicWrite, status: $status")
+        mGattInstanceValueWrote.status = AttStatusCode.forNumber(status)
+        mValueWrote.value = true
+      }
+
+      override fun onDescriptorWrite(
+        bluetoothGatt: BluetoothGatt,
+        descriptor: BluetoothGattDescriptor,
+        status: Int
+      ) {
+        Log.i(TAG, "onDescriptorWrite, status: $status")
+        mGattInstanceValueWrote.status = AttStatusCode.forNumber(status)
+        mValueWrote.value = true
+      }
     }
 
   init {
@@ -185,6 +214,13 @@ class GattInstance(val mDevice: BluetoothDevice, val mTransport: Int, val mConte
     if (mValuesRead.value < mGattInstanceValuesRead.size) {
       mValuesRead.first { it == mGattInstanceValuesRead.size }
     }
+  }
+
+  public suspend fun waitForWriteEnd() {
+    if (mValueWrote.value != true) {
+      mValueWrote.first { it == true }
+    }
+    mValueWrote.value = false
   }
 
   public suspend fun readCharacteristicBlocking(
@@ -273,6 +309,47 @@ class GattInstance(val mDevice: BluetoothDevice, val mTransport: Int, val mConte
     }
     // This method read only one descriptor.
     return mGattInstanceValuesRead.get(0)
+  }
+
+  public suspend fun writeCharacteristicBlocking(
+    characteristic: BluetoothGattCharacteristic,
+    value: ByteArray
+  ): GattInstanceValueWrote {
+    GattInstanceValueWrote(
+      characteristic.getUuid(),
+      characteristic.getInstanceId(),
+      AttStatusCode.UNKNOWN_ERROR
+    )
+    if (mGatt.writeCharacteristic(
+        characteristic,
+        value,
+        BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
+      ) == BluetoothStatusCodes.SUCCESS
+    ) {
+      waitForWriteEnd()
+    }
+    return mGattInstanceValueWrote
+
+  }
+
+  public suspend fun writeDescriptorBlocking(
+    descriptor: BluetoothGattDescriptor,
+    value: ByteArray
+  ): GattInstanceValueWrote {
+    GattInstanceValueWrote(
+      descriptor.getUuid(),
+      descriptor.getInstanceId(),
+      AttStatusCode.UNKNOWN_ERROR
+    )
+    if (mGatt.writeDescriptor(
+        descriptor,
+        value
+      ) == BluetoothStatusCodes.SUCCESS
+    ) {
+      waitForWriteEnd()
+    }
+    return mGattInstanceValueWrote
+
   }
 
   public fun disconnectInstance() {
