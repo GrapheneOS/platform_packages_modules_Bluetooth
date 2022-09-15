@@ -6,7 +6,7 @@
     </target_preparer>
 
     <target_preparer class="com.android.tradefed.targetprep.RunHostCommandTargetPreparer">
-        <option name="host-background-command" value="adb -s $SERIAL shell am instrument -w com.android.pandora/.Main" />
+        <option name="host-background-command" value="adb -s $SERIAL shell am instrument --no-hidden-api-checks -w com.android.pandora/.Main" />
     </target_preparer>
 
     <target_preparer class="com.android.tradefed.targetprep.PythonVirtualenvPreparer">
