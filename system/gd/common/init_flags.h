@@ -41,6 +41,10 @@ class InitFlags final {
     return logging_debug_enabled_for_all;
   }
 
+  inline static bool IsBtmDmFlushDiscoveryQueueOnSearchCancel() {
+    return btm_dm_flush_discovery_queue_on_search_cancel;
+  }
+
   inline static int GetAdapterIndex() {
     return hci_adapter;
   }
@@ -50,6 +54,7 @@ class InitFlags final {
  private:
   static void SetAll(bool value);
   static bool logging_debug_enabled_for_all;
+  static bool btm_dm_flush_discovery_queue_on_search_cancel;
   static int hci_adapter;
   // save both log allow list and block list in the map to save hashing time
   static std::unordered_map<std::string, bool> logging_debug_explicit_tag_settings;
