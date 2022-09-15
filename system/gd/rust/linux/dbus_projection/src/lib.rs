@@ -140,15 +140,11 @@ impl DisconnectWatcher {
             return false;
         }
 
-        match self.callbacks.lock().unwrap().get(&address).and_then(|m| m.get(&target_id)) {
+        let mut callbacks = self.callbacks.lock().unwrap();
+        match callbacks.get(&address).and_then(|m| m.get(&target_id)) {
             Some(cb) => {
                 cb(target_id);
-                let _ = self
-                    .callbacks
-                    .lock()
-                    .unwrap()
-                    .get_mut(&address)
-                    .and_then(|m| m.remove(&target_id));
+                let _ = callbacks.get_mut(&address).and_then(|m| m.remove(&target_id));
                 true
             }
             None => false,
