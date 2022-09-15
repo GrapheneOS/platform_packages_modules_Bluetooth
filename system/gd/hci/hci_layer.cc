@@ -238,8 +238,8 @@ struct HciLayer::impl {
     command_queue_.clear();
     command_credits_ = 1;
     waiting_command_ = OpCode::NONE;
-    enqueue_command(
-        ControllerDebugInfoBuilder::Create(), module_.GetHandler()->BindOnce(&fail_if_reset_complete_not_success));
+    // Ignore the response, since we don't know what might come back.
+    enqueue_command(ControllerDebugInfoBuilder::Create(), module_.GetHandler()->BindOnce([](CommandCompleteView) {}));
     // Don't time out for this one;
     if (hci_timeout_alarm_ != nullptr) {
       hci_timeout_alarm_->Cancel();
