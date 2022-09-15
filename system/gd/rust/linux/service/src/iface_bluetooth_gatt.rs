@@ -1,6 +1,6 @@
 use bt_topshim::profiles::gatt::GattStatus;
 
-use bt_topshim::btif::{BtStatus, Uuid128Bit};
+use bt_topshim::btif::{BtStatus, BtTransport, Uuid128Bit};
 
 use btstack::bluetooth_adv::{
     AdvertiseData, AdvertisingSetParameters, IAdvertisingSetCallback, PeriodicAdvertisingParameters,
@@ -502,9 +502,9 @@ impl IBluetoothGatt for IBluetoothGattDBus {
         client_id: i32,
         addr: String,
         is_direct: bool,
-        transport: i32,
+        transport: BtTransport,
         opportunistic: bool,
-        phy: i32,
+        phy: LePhy,
     ) {
         dbus_generated!()
     }

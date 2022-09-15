@@ -908,9 +908,9 @@ impl IBluetoothGatt for BluetoothGattDBus {
         client_id: i32,
         addr: String,
         is_direct: bool,
-        transport: i32,
+        transport: BtTransport,
         opportunistic: bool,
-        phy: i32,
+        phy: LePhy,
     ) {
         dbus_generated!()
     }

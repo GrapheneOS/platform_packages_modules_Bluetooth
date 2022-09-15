@@ -8,7 +8,7 @@ use crate::{console_red, console_yellow, print_error, print_info};
 use bt_topshim::btif::{BtConnectionState, BtStatus, BtTransport};
 use btstack::bluetooth::{BluetoothDevice, IBluetooth, IBluetoothQA};
 use btstack::bluetooth_adv::{AdvertiseData, AdvertisingSetParameters};
-use btstack::bluetooth_gatt::{IBluetoothGatt, RSSISettings, ScanSettings, ScanType};
+use btstack::bluetooth_gatt::{IBluetoothGatt, LePhy, RSSISettings, ScanSettings, ScanType};
 use btstack::socket_manager::{IBluetoothSocketManager, SocketResult};
 use btstack::uuid::{Profile, UuidHelper, UuidWrapper};
 use manager_service::iface_bluetooth_manager::IBluetoothManager;
@@ -718,9 +718,9 @@ impl CommandHandler {
                     client_id.unwrap(),
                     addr,
                     false,
-                    2,
+                    BtTransport::Le,
                     false,
-                    1,
+                    LePhy::Phy1m,
                 );
             }
             "client-disconnect" => {
