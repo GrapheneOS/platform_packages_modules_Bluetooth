@@ -36,6 +36,7 @@ import com.android.bluetooth.R;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.util.DevicePolicyUtils;
 import com.android.bluetooth.util.GsmAlphabet;
+import com.android.internal.annotations.VisibleForTesting;
 
 import java.util.HashMap;
 
@@ -632,7 +633,8 @@ public class AtPhonebook {
      * @return {@link BluetoothDevice#ACCESS_UNKNOWN}, {@link BluetoothDevice#ACCESS_ALLOWED} or
      *         {@link BluetoothDevice#ACCESS_REJECTED}.
      */
-    private int checkAccessPermission(BluetoothDevice remoteDevice) {
+    @VisibleForTesting
+    int checkAccessPermission(BluetoothDevice remoteDevice) {
         log("checkAccessPermission");
         int permission = remoteDevice.getPhonebookAccessPermission();
 
