@@ -106,6 +106,11 @@ pub trait IBluetoothMediaCallback: RPCProxy {
     /// client to reflect the change on the audio stack. The volume should be
     /// in the range of 0 to 15.
     fn on_hfp_volume_changed(&self, volume: u8, addr: String);
+
+    /// Triggered when HFP audio is disconnected, in which case it could be
+    /// waiting for the audio client to issue a reconnection request. We need
+    /// to notify audio client of this event for it to do appropriate handling.
+    fn on_hfp_audio_disconnected(&self, addr: String);
 }
 
 /// Serializable device used in.
@@ -346,6 +351,10 @@ impl BluetoothMedia {
                     }
                     BthfAudioState::Disconnected => {
                         info!("[{}]: hfp audio disconnected.", addr.to_string());
+
+                        self.callbacks.lock().unwrap().for_all_callbacks(|callback| {
+                            callback.on_hfp_audio_disconnected(addr.to_string());
+                        });
                     }
                     BthfAudioState::Connecting => {
                         info!("[{}]: hfp audio connecting.", addr.to_string());
