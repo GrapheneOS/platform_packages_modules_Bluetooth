@@ -658,7 +658,7 @@ static bt_status_t connect_int(RawAddress* bd_addr, uint16_t uuid) {
   if (is_connected(bd_addr)) {
     BTIF_TRACE_WARNING("%s: device %s is already connected", __func__,
                        bd_addr->ToString().c_str());
-    return BT_STATUS_BUSY;
+    return BT_STATUS_DONE;
   }
   btif_hf_cb_t* hf_cb = nullptr;
   for (int i = 0; i < btif_max_hf_clients; i++) {
