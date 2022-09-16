@@ -47,6 +47,10 @@ uint64_t time_gettimeofday_us() {
   mock_function_count_map[__func__]++;
   return 0;
 }
+uint64_t time_get_os_monotonic_raw_us() {
+  mock_function_count_map[__func__]++;
+  return 0;
+}
 
 }  // namespace common
 }  // namespace bluetooth
