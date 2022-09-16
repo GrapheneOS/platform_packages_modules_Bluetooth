@@ -3,7 +3,7 @@
 use btif_macros::{btif_callback, btif_callbacks_dispatcher};
 
 use bt_topshim::bindings::root::bluetooth::Uuid;
-use bt_topshim::btif::{BluetoothInterface, RawAddress, Uuid128Bit};
+use bt_topshim::btif::{BluetoothInterface, BtStatus, RawAddress, Uuid128Bit};
 use bt_topshim::profiles::gatt::{
     BtGattDbElement, BtGattNotifyParams, BtGattReadParams, Gatt, GattAdvCallbacks,
     GattAdvCallbacksDispatcher, GattAdvInbandCallbacksDispatcher, GattClientCallbacks,
@@ -20,7 +20,7 @@ use crate::bluetooth_adv::{
 };
 use crate::callbacks::Callbacks;
 use crate::uuid::parse_uuid_string;
-use crate::{Message, RPCProxy};
+use crate::{Message, RPCProxy, SuspendMode};
 use log::{debug, warn};
 use num_traits::cast::{FromPrimitive, ToPrimitive};
 use num_traits::clamp;
@@ -169,10 +169,18 @@ pub trait IBluetoothGatt {
     fn unregister_scanner(&mut self, scanner_id: u8) -> bool;
 
     /// Activate scan of the given scanner id.
-    fn start_scan(&mut self, scanner_id: u8, settings: ScanSettings, filters: Vec<ScanFilter>);
+    fn start_scan(
+        &mut self,
+        scanner_id: u8,
+        settings: ScanSettings,
+        filters: Vec<ScanFilter>,
+    ) -> BtStatus;
 
     /// Deactivate scan of the given scanner id.
-    fn stop_scan(&mut self, scanner_id: u8);
+    fn stop_scan(&mut self, scanner_id: u8) -> BtStatus;
+
+    /// Returns the current suspend mode.
+    fn get_scan_suspend_mode(&self) -> SuspendMode;
 
     // Advertising
 
@@ -533,6 +541,9 @@ pub trait IScannerCallback: RPCProxy {
     /// shared among all scanner callbacks, clients may receive more advertisements than what is
     /// requested to be filtered in.
     fn on_scan_result(&self, scan_result: ScanResult);
+
+    /// When LE Scan module changes suspend mode due to system suspend/resume.
+    fn on_suspend_mode_change(&self, suspend_mode: SuspendMode);
 }
 
 #[derive(Debug, FromPrimitive, ToPrimitive)]
@@ -749,6 +760,26 @@ impl BluetoothGatt {
         self.scanner_callbacks.remove_callback(callback_id)
     }
 
+    /// Enters suspend mode for LE Scan.
+    ///
+    /// This "pauses" all operations managed by this module to prepare for system suspend. A
+    /// callback is triggered to let clients know that this module is in suspend mode and some
+    /// subsequent API calls will be blocked in this mode.
+    pub fn scan_enter_suspend(&mut self) {
+        // TODO(b/224603540): Implement
+        todo!()
+    }
+
+    /// Exits suspend mode for LE Scan.
+    ///
+    /// To be called after system resume/wake up. This "unpauses" the operations that were "paused"
+    /// due to suspend. A callback is triggered to let clients when this module has exited suspend
+    /// mode.
+    pub fn scan_exit_suspend(&mut self) {
+        // TODO(b/224603540): Implement
+        todo!()
+    }
+
     // Update the topshim's scan state depending on the states of registered scanners. Scan is
     // enabled if there is at least 1 active registered scanner.
     fn update_scan(&mut self) {
@@ -834,7 +865,12 @@ impl IBluetoothGatt for BluetoothGatt {
         true
     }
 
-    fn start_scan(&mut self, scanner_id: u8, _settings: ScanSettings, _filters: Vec<ScanFilter>) {
+    fn start_scan(
+        &mut self,
+        scanner_id: u8,
+        _settings: ScanSettings,
+        _filters: Vec<ScanFilter>,
+    ) -> BtStatus {
         // Multiplexing scanners happens at this layer. The implementations of start_scan
         // and stop_scan maintains the state of all registered scanners and based on the states
         // update the scanning and/or filter states of libbluetooth.
@@ -843,21 +879,29 @@ impl IBluetoothGatt for BluetoothGatt {
             scanner.is_active = true;
         } else {
             log::warn!("Scanner {} not found", scanner_id);
-            return;
+            return BtStatus::Fail;
         }
 
         self.update_scan();
+        BtStatus::Success
     }
 
-    fn stop_scan(&mut self, scanner_id: u8) {
+    fn stop_scan(&mut self, scanner_id: u8) -> BtStatus {
         if let Some(scanner) = self.find_scanner_by_id(scanner_id) {
             scanner.is_active = false;
         } else {
             log::warn!("Scanner {} not found", scanner_id);
-            return;
+            // Clients can assume success of the removal since the scanner does not exist.
+            return BtStatus::Success;
         }
 
         self.update_scan();
+        BtStatus::Success
+    }
+
+    fn get_scan_suspend_mode(&self) -> SuspendMode {
+        // TODO(b/224603540): Implement.
+        return SuspendMode::Normal;
     }
 
     // Advertising
