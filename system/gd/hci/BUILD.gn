@@ -17,6 +17,7 @@ source_set("BluetoothHciSources") {
   sources = [
     "acl_manager.cc",
     "acl_manager/acl_connection.cc",
+    "acl_manager/acl_scheduler.cc",
     "acl_manager/acl_fragmenter.cc",
     "acl_manager/classic_acl_connection.cc",
     "acl_manager/le_acl_connection.cc",
