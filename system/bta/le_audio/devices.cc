@@ -21,12 +21,12 @@
 
 #include <map>
 
+#include "audio_hal_client/audio_hal_client.h"
 #include "bta_gatt_queue.h"
 #include "bta_groups.h"
 #include "bta_le_audio_api.h"
 #include "btm_iso_api.h"
 #include "btm_iso_api_types.h"
-#include "client_audio.h"
 #include "device/include/controller.h"
 #include "gd/common/strings.h"
 #include "le_audio_set_configuration_provider.h"

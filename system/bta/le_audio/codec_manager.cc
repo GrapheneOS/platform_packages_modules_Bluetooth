@@ -16,13 +16,13 @@
 
 #include "codec_manager.h"
 
-#include "client_audio.h"
+#include "audio_hal_client/audio_hal_client.h"
 #include "device/include/controller.h"
+#include "le_audio_set_configuration_provider.h"
 #include "osi/include/log.h"
 #include "osi/include/properties.h"
 #include "stack/acl/acl.h"
 #include "stack/include/acl_api.h"
-#include "le_audio_set_configuration_provider.h"
 
 namespace {
 
