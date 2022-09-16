@@ -78,6 +78,18 @@ pub enum Message {
     SocketManagerCallbackDisconnected(u32),
 }
 
+/// Represents suspend mode of a module.
+///
+/// Being in suspend mode means that the module pauses some activities if required for suspend and
+/// some subsequent API calls will be blocked with a retryable error.
+#[derive(FromPrimitive, ToPrimitive)]
+pub enum SuspendMode {
+    Normal = 0,
+    Suspending = 1,
+    Suspended = 2,
+    Resuming = 3,
+}
+
 /// Umbrella class for the Bluetooth stack.
 pub struct Stack {}
 
