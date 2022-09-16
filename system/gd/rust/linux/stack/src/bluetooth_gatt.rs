@@ -149,6 +149,8 @@ impl ContextMap {
 /// Defines the GATT API.
 // TODO(242083290): Split out interfaces.
 pub trait IBluetoothGatt {
+    // Scanning
+
     /// Registers an LE scanner callback.
     ///
     /// Returns the callback id.
@@ -171,26 +173,6 @@ pub trait IBluetoothGatt {
 
     /// Deactivate scan of the given scanner id.
     fn stop_scan(&mut self, scanner_id: u8);
-
-    fn scan_filter_setup(&self);
-
-    fn scan_filter_add(&self);
-
-    fn scan_filter_clear(&self);
-
-    fn scan_filter_enable(&self);
-
-    fn scan_filter_disable(&self);
-
-    fn set_scan_parameters(&self);
-
-    fn batch_scan_config_storage(&self);
-
-    fn batch_scan_enable(&self);
-
-    fn batch_scan_disable(&self);
-
-    fn batch_scan_read_reports(&self);
 
     // Advertising
 
@@ -279,17 +261,6 @@ pub trait IBluetoothGatt {
     fn set_periodic_advertising_enable(&mut self, advertiser_id: i32, enable: bool);
 
     // GATT Client
-    fn start_sync(&self);
-
-    fn stop_sync(&self);
-
-    fn cancel_create_sync(&self);
-
-    fn transfer_sync(&self);
-
-    fn transfer_set_info(&self);
-
-    fn sync_tx_parameters(&self);
 
     /// Registers a GATT Client.
     fn register_client(
@@ -391,12 +362,6 @@ pub trait IBluetoothGatt {
         max_ce_len: u16,
     );
 
-    fn execute_write(&self);
-
-    fn deregister_for_notification(&self);
-
-    fn get_device_type(&self);
-
     /// Sets preferred PHY.
     fn client_set_preferred_phy(
         &self,
@@ -409,33 +374,6 @@ pub trait IBluetoothGatt {
 
     /// Reads the PHY used by a peer.
     fn client_read_phy(&mut self, client_id: i32, addr: String);
-
-    fn test_command(&self);
-
-    fn get_gatt_db(&self);
-
-    // GATT Server
-    fn register_server(&self);
-
-    fn unregister_server(&self);
-
-    fn server_connect(&self);
-
-    fn server_disconnect(&self);
-
-    fn add_service(&self);
-
-    fn stop_service(&self);
-
-    fn delete_service(&self);
-
-    fn send_indication(&self);
-
-    fn send_response(&self);
-
-    fn server_set_preferred_phy(&self);
-
-    fn server_read_phy(&self);
 }
 
 #[derive(Debug, Default)]
@@ -922,88 +860,7 @@ impl IBluetoothGatt for BluetoothGatt {
         self.update_scan();
     }
 
-    // Scanning
-
-    fn scan_filter_setup(&self) {
-        // TODO(b/200066804): implement
-        todo!()
-    }
-
-    fn scan_filter_add(&self) {
-        // TODO(b/200066804): implement
-        todo!()
-    }
-
-    fn scan_filter_clear(&self) {
-        // TODO(b/200066804): implement
-        todo!()
-    }
-
-    fn scan_filter_enable(&self) {
-        // TODO(b/200066804): implement
-        todo!()
-    }
-
-    fn scan_filter_disable(&self) {
-        // TODO(b/200066804): implement
-        todo!()
-    }
-
-    fn set_scan_parameters(&self) {
-        // TODO(b/200066804): implement
-        todo!()
-    }
-
-    fn batch_scan_config_storage(&self) {
-        // TODO(b/200066804): implement
-        todo!()
-    }
-
-    fn batch_scan_enable(&self) {
-        // TODO(b/200066804): implement
-        todo!()
-    }
-
-    fn batch_scan_disable(&self) {
-        // TODO(b/200066804): implement
-        todo!()
-    }
-
-    fn batch_scan_read_reports(&self) {
-        // TODO(b/200066804): implement
-        todo!()
-    }
-
-    // GATT Client
-    fn start_sync(&self) {
-        // TODO(b/193686094): implement
-        todo!()
-    }
-
-    fn stop_sync(&self) {
-        // TODO(b/193686094): implement
-        todo!()
-    }
-
-    fn cancel_create_sync(&self) {
-        // TODO(b/193686094): implement
-        todo!()
-    }
-
-    fn transfer_sync(&self) {
-        // TODO(b/193686094): implement
-        todo!()
-    }
-
-    fn transfer_set_info(&self) {
-        // TODO(b/193686094): implement
-        todo!()
-    }
-
-    fn sync_tx_parameters(&self) {
-        // TODO(b/193686094): implement
-        todo!()
-    }
+    // Advertising
 
     fn register_advertiser_callback(
         &mut self,
@@ -1446,21 +1303,6 @@ impl IBluetoothGatt for BluetoothGatt {
         );
     }
 
-    fn execute_write(&self) {
-        // TODO(b/193686094): implement
-        todo!()
-    }
-
-    fn deregister_for_notification(&self) {
-        // TODO(b/193686094): implement
-        todo!()
-    }
-
-    fn get_device_type(&self) {
-        // TODO(b/193686094): implement
-        todo!()
-    }
-
     fn client_set_preferred_phy(
         &self,
         client_id: i32,
@@ -1489,72 +1331,6 @@ impl IBluetoothGatt for BluetoothGatt {
         };
 
         self.gatt.as_mut().unwrap().client.read_phy(client_id, &address);
-    }
-
-    fn test_command(&self) {
-        // TODO(b/193686094): implement
-        todo!()
-    }
-
-    fn get_gatt_db(&self) {
-        // TODO(b/193686094): implement
-        todo!()
-    }
-
-    // GATT Server
-    fn register_server(&self) {
-        // TODO(b/193686564): implement
-        todo!()
-    }
-
-    fn unregister_server(&self) {
-        // TODO(b/193686564): implement
-        todo!()
-    }
-
-    fn server_connect(&self) {
-        // TODO(b/193686564): implement
-        todo!()
-    }
-
-    fn server_disconnect(&self) {
-        // TODO(b/193686564): implement
-        todo!()
-    }
-
-    fn add_service(&self) {
-        // TODO(b/193686564): implement
-        todo!()
-    }
-
-    fn stop_service(&self) {
-        // TODO(b/193686564): implement
-        todo!()
-    }
-
-    fn delete_service(&self) {
-        // TODO(b/193686564): implement
-        todo!()
-    }
-
-    fn send_indication(&self) {
-        // TODO(b/193686564): implement
-        todo!()
-    }
-
-    fn send_response(&self) {
-        // TODO(b/193686564): implement
-        todo!()
-    }
-
-    fn server_set_preferred_phy(&self) {
-        // TODO(b/193686564): implement
-        todo!()
-    }
-
-    fn server_read_phy(&self) {
-        // TODO(b/193686564): implement
-        todo!()
     }
 }
 
