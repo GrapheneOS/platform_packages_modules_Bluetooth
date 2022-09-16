@@ -2128,7 +2128,7 @@ void LinkLayerController::IncomingLeScanResponsePacket(
 
   if (le_scan_enable_ == bluetooth::hci::OpCode::LE_SET_EXTENDED_SCAN_ENABLE &&
       IsLeEventUnmasked(SubeventCode::EXTENDED_ADVERTISING_REPORT)) {
-    bluetooth::hci::LeExtendedAdvertisingResponse report{};
+    bluetooth::hci::LeExtendedAdvertisingResponseRaw report{};
     report.address_ = incoming.GetSourceAddress();
     report.address_type_ =
         static_cast<bluetooth::hci::DirectAdvertisingAddressType>(address_type);
@@ -2141,8 +2141,8 @@ void LinkLayerController::IncomingLeScanResponsePacket(
     report.tx_power_ = 0x7F;
     report.advertising_data_ = ad;
     report.rssi_ = rssi;
-    send_event_(
-        bluetooth::hci::LeExtendedAdvertisingReportBuilder::Create({report}));
+    send_event_(bluetooth::hci::LeExtendedAdvertisingReportRawBuilder::Create(
+        {report}));
   }
 }
 
@@ -2426,8 +2426,11 @@ AsyncTaskId LinkLayerController::ScheduleTask(milliseconds delay_ms,
                                               const TaskCallback& callback) {
   if (schedule_task_) {
     return schedule_task_(delay_ms, callback);
-  } else {
+  } else if (delay_ms == milliseconds::zero()) {
     callback();
+    return 0;
+  } else {
+    LOG_ERROR("Unable to schedule task on delay");
     return 0;
   }
 }
@@ -4214,8 +4217,7 @@ void LinkLayerController::CheckExpiringConnection(uint16_t handle) {
   }
 
   if (connections_.HasLinkExpired(handle)) {
-    connections_.Disconnect(handle);
-    SendDisconnectionCompleteEvent(handle, ErrorCode::CONNECTION_TIMEOUT);
+    Disconnect(handle, ErrorCode::CONNECTION_TIMEOUT);
     return;
   }
 

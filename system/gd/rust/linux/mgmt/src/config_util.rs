@@ -1,5 +1,7 @@
 use log::LevelFilter;
 use serde_json::{Map, Value};
+use std::convert::TryInto;
+use std::path::Path;
 
 // Directory for Bluetooth hci devices
 pub const HCI_DEVICES_DIR: &str = "/sys/class/bluetooth";
@@ -9,6 +11,12 @@ const BLUETOOTH_DAEMON_CURRENT: &str = "/var/lib/bluetooth/bluetooth-daemon.curr
 
 // File to store the config for BluetoothManager
 const BTMANAGERD_CONF: &str = "/var/lib/bluetooth/btmanagerd.json";
+
+/// Key used for default adapter entry.
+const DEFAULT_ADAPTER_KEY: &str = "default_adapter";
+
+/// In the absence of other values, default to hci0.
+const DEFAULT_ADAPTER_VALUE: i32 = 0;
 
 pub fn is_floss_enabled() -> bool {
     match std::fs::read(BLUETOOTH_DAEMON_CURRENT) {
@@ -110,6 +118,26 @@ fn modify_hci_n_enabled_internal(config: String, n: i32, enabled: bool) -> Optio
     }
 }
 
+pub fn get_default_adapter() -> i32 {
+    match read_config().ok().and_then(|config| {
+        serde_json::from_str::<Value>(config.as_str()).ok()?.get(DEFAULT_ADAPTER_KEY)?.as_i64()
+    }) {
+        Some(v) => v.try_into().unwrap_or(DEFAULT_ADAPTER_VALUE),
+        None => DEFAULT_ADAPTER_VALUE,
+    }
+}
+
+pub fn set_default_adapter(adapter: i32) -> bool {
+    match read_config().ok().and_then(|config| {
+        let mut cfg = serde_json::from_str::<Value>(config.as_str()).ok()?;
+        cfg[DEFAULT_ADAPTER_KEY] = serde_json::to_value(adapter).ok().unwrap();
+        serde_json::ser::to_string_pretty(&cfg).ok()
+    }) {
+        Some(s) => std::fs::write(BTMANAGERD_CONF, s).is_ok(),
+        None => false,
+    }
+}
+
 pub fn list_hci_devices() -> Vec<i32> {
     hci_devices_string_to_int(list_hci_devices_string())
 }
@@ -121,6 +149,11 @@ fn list_hci_devices_string() -> Vec<String> {
             .collect::<Vec<_>>(),
         _ => Vec::new(),
     }
+}
+
+/// Check whether a certain hci device exists in sysfs.
+pub fn check_hci_device_exists(hci: i32) -> bool {
+    Path::new(format!("{}/hci{}", HCI_DEVICES_DIR, hci).as_str()).exists()
 }
 
 fn hci_devices_string_to_int(devices: Vec<String>) -> Vec<i32> {
@@ -137,6 +170,12 @@ pub fn list_pid_files(pid_dir: &str) -> Vec<String> {
             .collect::<Vec<_>>(),
         _ => Vec::new(),
     }
+}
+
+/// Calls the reset sysfs entry for an hci device. Returns True if the write succeeds.
+pub fn reset_hci_device(hci: i32) -> bool {
+    let path = format!("/sys/class/bluetooth/hci{}/reset", hci);
+    std::fs::write(path, "1").is_ok()
 }
 
 #[cfg(test)]
