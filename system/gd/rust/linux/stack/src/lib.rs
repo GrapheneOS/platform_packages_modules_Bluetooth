@@ -32,7 +32,8 @@ use bt_topshim::{
     profiles::{
         a2dp::A2dpCallbacks, avrcp::AvrcpCallbacks, gatt::GattAdvCallbacks,
         gatt::GattAdvInbandCallbacks, gatt::GattClientCallbacks, gatt::GattScannerCallbacks,
-        gatt::GattServerCallbacks, hfp::HfpCallbacks, hid_host::HHCallbacks, sdp::SdpCallbacks,
+        gatt::GattScannerInbandCallbacks, gatt::GattServerCallbacks, hfp::HfpCallbacks,
+        hid_host::HHCallbacks, sdp::SdpCallbacks,
     },
 };
 
@@ -45,6 +46,7 @@ pub enum Message {
     GattClient(GattClientCallbacks),
     GattServer(GattServerCallbacks),
     LeScanner(GattScannerCallbacks),
+    LeScannerInband(GattScannerInbandCallbacks),
     LeAdvInband(GattAdvInbandCallbacks),
     LeAdv(GattAdvCallbacks),
     HidHost(HHCallbacks),
@@ -126,6 +128,10 @@ impl Stack {
 
                 Message::LeScanner(m) => {
                     bluetooth_gatt.lock().unwrap().dispatch_le_scanner_callbacks(m);
+                }
+
+                Message::LeScannerInband(m) => {
+                    bluetooth_gatt.lock().unwrap().dispatch_le_scanner_inband_callbacks(m);
                 }
 
                 Message::LeAdvInband(m) => {
