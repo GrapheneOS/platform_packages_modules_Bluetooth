@@ -1648,6 +1648,7 @@ impl Gatt {
         gatt_client_callbacks_dispatcher: GattClientCallbacksDispatcher,
         gatt_server_callbacks_dispatcher: GattServerCallbacksDispatcher,
         gatt_scanner_callbacks_dispatcher: GattScannerCallbacksDispatcher,
+        gatt_scanner_inband_callbacks_dispatcher: GattScannerInbandCallbacksDispatcher,
         gatt_adv_inband_callbacks_dispatcher: GattAdvInbandCallbacksDispatcher,
         gatt_adv_callbacks_dispatcher: GattAdvCallbacksDispatcher,
     ) -> bool {
@@ -1674,6 +1675,12 @@ impl Gatt {
             .set::<GDScannerCb>(Arc::new(Mutex::new(gatt_scanner_callbacks_dispatcher)))
         {
             panic!("Tried to set dispatcher for GattScannerCallbacks but it already existed");
+        }
+
+        if get_dispatchers().lock().unwrap().set::<GDScannerInbandCb>(Arc::new(Mutex::new(
+            gatt_scanner_inband_callbacks_dispatcher,
+        ))) {
+            panic!("Tried to set dispatcher for GattScannerInbandCallbacks but it already existed");
         }
 
         if get_dispatchers()
