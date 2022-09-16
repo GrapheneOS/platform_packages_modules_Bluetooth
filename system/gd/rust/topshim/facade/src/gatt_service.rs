@@ -6,7 +6,8 @@ use bt_topshim::profiles::gatt::{
 };
 use bt_topshim::profiles::gatt::{
     GattAdvCallbacksDispatcher, GattAdvInbandCallbacksDispatcher, GattClientCallbacksDispatcher,
-    GattScannerCallbacksDispatcher, GattServerCallbacksDispatcher,
+    GattScannerCallbacksDispatcher, GattScannerInbandCallbacksDispatcher,
+    GattServerCallbacksDispatcher,
 };
 use bt_topshim_facade_protobuf::empty::Empty;
 //use bt_topshim_facade_protobuf::facade::{
@@ -66,6 +67,11 @@ impl GattServiceImpl {
             GattScannerCallbacksDispatcher {
                 dispatch: Box::new(move |cb| {
                     println!("received Gatt scanner callback: {:?}", cb);
+                }),
+            },
+            GattScannerInbandCallbacksDispatcher {
+                dispatch: Box::new(move |cb| {
+                    println!("received Gatt scanner inband callback: {:?}", cb);
                 }),
             },
             GattAdvInbandCallbacksDispatcher {
