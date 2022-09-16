@@ -41,6 +41,7 @@
 #include "main/shim/shim.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
+#include "osi/include/properties.h"
 #include "stack/acl/acl.h"
 #include "stack/btm/btm_ble_int.h"
 #include "stack/btm/btm_ble_int_types.h"
@@ -79,6 +80,12 @@ extern const tBLE_BD_ADDR convert_to_address_with_type(
   BTM_VSC_CHIP_CAPABILITY_RSP_LEN
 #define BTM_VSC_CHIP_CAPABILITY_RSP_LEN_M_RELEASE 15
 #define BTM_VSC_CHIP_CAPABILITY_RSP_LEN_S_RELEASE 25
+
+/* Sysprop paths for scan parameters */
+static const char kPropertyInquiryScanInterval[] =
+    "bluetooth.core.le.inquiry_scan_interval";
+static const char kPropertyInquiryScanWindow[] =
+    "bluetooth.core.le.inquiry_scan_window";
 
 namespace {
 
@@ -1994,23 +2001,25 @@ tBTM_STATUS btm_ble_start_inquiry(uint8_t duration) {
   BTM_BleAdvFilterParamSetup(BTM_BLE_SCAN_COND_ADD, static_cast<tBTM_BLE_PF_FILT_INDEX>(0),
                  std::move(adv_filt_param), base::Bind(btm_ble_scan_filt_param_cfg_evt));
 
+  uint16_t scan_interval = osi_property_get_int32(kPropertyInquiryScanInterval,
+                                                  BTM_BLE_LOW_LATENCY_SCAN_INT);
+  uint16_t scan_window = osi_property_get_int32(kPropertyInquiryScanWindow,
+                                                BTM_BLE_LOW_LATENCY_SCAN_WIN);
+
   if (!p_ble_cb->is_ble_scan_active()) {
     cache.ClearAll();
     btm_send_hci_set_scan_params(
-        BTM_BLE_SCAN_MODE_ACTI, BTM_BLE_LOW_LATENCY_SCAN_INT,
-        BTM_BLE_LOW_LATENCY_SCAN_WIN,
+        BTM_BLE_SCAN_MODE_ACTI, scan_interval, scan_window,
         btm_cb.ble_ctr_cb.addr_mgnt_cb.own_addr_type, SP_ADV_ALL);
     p_ble_cb->inq_var.scan_type = BTM_BLE_SCAN_MODE_ACTI;
     btm_ble_start_scan();
-  } else if ((p_ble_cb->inq_var.scan_interval !=
-              BTM_BLE_LOW_LATENCY_SCAN_INT) ||
-             (p_ble_cb->inq_var.scan_window != BTM_BLE_LOW_LATENCY_SCAN_WIN)) {
+  } else if ((p_ble_cb->inq_var.scan_interval != scan_interval) ||
+             (p_ble_cb->inq_var.scan_window != scan_window)) {
     BTM_TRACE_DEBUG("%s, restart LE scan with low latency scan params",
                     __func__);
     btm_send_hci_scan_enable(BTM_BLE_SCAN_DISABLE, BTM_BLE_DUPLICATE_ENABLE);
     btm_send_hci_set_scan_params(
-        BTM_BLE_SCAN_MODE_ACTI, BTM_BLE_LOW_LATENCY_SCAN_INT,
-        BTM_BLE_LOW_LATENCY_SCAN_WIN,
+        BTM_BLE_SCAN_MODE_ACTI, scan_interval, scan_window,
         btm_cb.ble_ctr_cb.addr_mgnt_cb.own_addr_type, SP_ADV_ALL);
     btm_send_hci_scan_enable(BTM_BLE_SCAN_ENABLE, BTM_BLE_DUPLICATE_DISABLE);
   }

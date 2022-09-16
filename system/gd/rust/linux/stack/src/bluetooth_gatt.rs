@@ -717,7 +717,6 @@ impl BluetoothGatt {
     }
 
     pub fn init_profiles(&mut self, tx: Sender<Message>, adapter: Arc<Mutex<Box<Bluetooth>>>) {
-        println!("woot woot");
         self.gatt = Gatt::new(&self.intf.lock().unwrap());
         self.adapter = Some(adapter);
 
