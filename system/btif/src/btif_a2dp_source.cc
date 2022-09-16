@@ -895,8 +895,15 @@ static void btif_a2dp_source_audio_tx_stop_event(void) {
 static void btif_a2dp_source_audio_handle_timer(void) {
   if (btif_av_is_a2dp_offload_running()) return;
 
+#ifndef TARGET_FLOSS
   uint64_t timestamp_us = bluetooth::common::time_get_os_boottime_us();
-  log_tstamps_us("A2DP Source tx timer", timestamp_us);
+  uint64_t stats_timestamp_us = timestamp_us;
+#else
+  uint64_t timestamp_us = bluetooth::common::time_get_os_monotonic_raw_us();
+  uint64_t stats_timestamp_us = bluetooth::common::time_get_os_boottime_us();
+#endif
+
+  log_tstamps_us("A2DP Source tx scheduling timer", timestamp_us);
 
   if (!btif_a2dp_source_cb.media_alarm.IsScheduled()) {
     LOG_ERROR("%s: ERROR Media task Scheduled after Suspend", __func__);
@@ -916,7 +923,7 @@ static void btif_a2dp_source_audio_handle_timer(void) {
   btif_a2dp_source_cb.encoder_interface->send_frames(timestamp_us);
   bta_av_ci_src_data_ready(BTA_AV_CHNL_AUDIO);
   update_scheduling_stats(&btif_a2dp_source_cb.stats.tx_queue_enqueue_stats,
-                          timestamp_us,
+                          stats_timestamp_us,
                           btif_a2dp_source_cb.encoder_interval_ms * 1000);
 }
 
