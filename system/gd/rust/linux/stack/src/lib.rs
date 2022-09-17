@@ -32,7 +32,8 @@ use bt_topshim::{
     profiles::{
         a2dp::A2dpCallbacks, avrcp::AvrcpCallbacks, gatt::GattAdvCallbacks,
         gatt::GattAdvInbandCallbacks, gatt::GattClientCallbacks, gatt::GattScannerCallbacks,
-        gatt::GattServerCallbacks, hfp::HfpCallbacks, hid_host::HHCallbacks, sdp::SdpCallbacks,
+        gatt::GattScannerInbandCallbacks, gatt::GattServerCallbacks, hfp::HfpCallbacks,
+        hid_host::HHCallbacks, sdp::SdpCallbacks,
     },
 };
 
@@ -45,6 +46,7 @@ pub enum Message {
     GattClient(GattClientCallbacks),
     GattServer(GattServerCallbacks),
     LeScanner(GattScannerCallbacks),
+    LeScannerInband(GattScannerInbandCallbacks),
     LeAdvInband(GattAdvInbandCallbacks),
     LeAdv(GattAdvCallbacks),
     HidHost(HHCallbacks),
@@ -74,6 +76,18 @@ pub enum Message {
 
     SocketManagerActions(SocketActions),
     SocketManagerCallbackDisconnected(u32),
+}
+
+/// Represents suspend mode of a module.
+///
+/// Being in suspend mode means that the module pauses some activities if required for suspend and
+/// some subsequent API calls will be blocked with a retryable error.
+#[derive(FromPrimitive, ToPrimitive)]
+pub enum SuspendMode {
+    Normal = 0,
+    Suspending = 1,
+    Suspended = 2,
+    Resuming = 3,
 }
 
 /// Umbrella class for the Bluetooth stack.
@@ -126,6 +140,10 @@ impl Stack {
 
                 Message::LeScanner(m) => {
                     bluetooth_gatt.lock().unwrap().dispatch_le_scanner_callbacks(m);
+                }
+
+                Message::LeScannerInband(m) => {
+                    bluetooth_gatt.lock().unwrap().dispatch_le_scanner_inband_callbacks(m);
                 }
 
                 Message::LeAdvInband(m) => {
