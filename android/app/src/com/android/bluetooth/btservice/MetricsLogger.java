@@ -97,7 +97,7 @@ public class MetricsLogger {
         return true;
     }
 
-    public boolean count(int key, long count) {
+    public boolean cacheCount(int key, long count) {
         if (!mInitialized) {
             Log.w(TAG, "MetricsLogger isn't initialized");
             return false;
@@ -167,9 +167,18 @@ public class MetricsLogger {
                 getDrainIntent());
     }
 
-    protected void writeCounter(int key, long count) {
+    public boolean count(int key, long count) {
+        if (!mInitialized) {
+            Log.w(TAG, "MetricsLogger isn't initialized");
+            return false;
+        }
+        if (count <= 0) {
+            Log.w(TAG, "count is not larger than 0. count: " + count + " key: " + key);
+            return false;
+        }
         BluetoothStatsLog.write(
                 BluetoothStatsLog.BLUETOOTH_CODE_PATH_COUNTER, key, count);
+        return true;
     }
 
     protected void drainBufferedCounters() {
@@ -177,7 +186,7 @@ public class MetricsLogger {
         synchronized (mLock) {
             // send mCounters to statsd
             for (int key : mCounters.keySet()) {
-                writeCounter(key, mCounters.get(key));
+                count(key, mCounters.get(key));
             }
             mCounters.clear();
         }

@@ -3,11 +3,12 @@
 use btif_macros::{btif_callback, btif_callbacks_dispatcher};
 
 use bt_topshim::bindings::root::bluetooth::Uuid;
-use bt_topshim::btif::{BluetoothInterface, RawAddress, Uuid128Bit};
+use bt_topshim::btif::{BluetoothInterface, BtStatus, RawAddress, Uuid128Bit};
 use bt_topshim::profiles::gatt::{
     BtGattDbElement, BtGattNotifyParams, BtGattReadParams, Gatt, GattAdvCallbacks,
     GattAdvCallbacksDispatcher, GattAdvInbandCallbacksDispatcher, GattClientCallbacks,
     GattClientCallbacksDispatcher, GattScannerCallbacks, GattScannerCallbacksDispatcher,
+    GattScannerInbandCallbacks, GattScannerInbandCallbacksDispatcher,
     GattServerCallbacksDispatcher, GattStatus,
 };
 use bt_topshim::topstack;
@@ -19,7 +20,7 @@ use crate::bluetooth_adv::{
 };
 use crate::callbacks::Callbacks;
 use crate::uuid::parse_uuid_string;
-use crate::{Message, RPCProxy};
+use crate::{Message, RPCProxy, SuspendMode};
 use log::{debug, warn};
 use num_traits::cast::{FromPrimitive, ToPrimitive};
 use num_traits::clamp;
@@ -148,6 +149,8 @@ impl ContextMap {
 /// Defines the GATT API.
 // TODO(242083290): Split out interfaces.
 pub trait IBluetoothGatt {
+    // Scanning
+
     /// Registers an LE scanner callback.
     ///
     /// Returns the callback id.
@@ -166,30 +169,18 @@ pub trait IBluetoothGatt {
     fn unregister_scanner(&mut self, scanner_id: u8) -> bool;
 
     /// Activate scan of the given scanner id.
-    fn start_scan(&mut self, scanner_id: u8, settings: ScanSettings, filters: Vec<ScanFilter>);
+    fn start_scan(
+        &mut self,
+        scanner_id: u8,
+        settings: ScanSettings,
+        filters: Vec<ScanFilter>,
+    ) -> BtStatus;
 
     /// Deactivate scan of the given scanner id.
-    fn stop_scan(&mut self, scanner_id: u8);
+    fn stop_scan(&mut self, scanner_id: u8) -> BtStatus;
 
-    fn scan_filter_setup(&self);
-
-    fn scan_filter_add(&self);
-
-    fn scan_filter_clear(&self);
-
-    fn scan_filter_enable(&self);
-
-    fn scan_filter_disable(&self);
-
-    fn set_scan_parameters(&self);
-
-    fn batch_scan_config_storage(&self);
-
-    fn batch_scan_enable(&self);
-
-    fn batch_scan_disable(&self);
-
-    fn batch_scan_read_reports(&self);
+    /// Returns the current suspend mode.
+    fn get_scan_suspend_mode(&self) -> SuspendMode;
 
     // Advertising
 
@@ -278,17 +269,6 @@ pub trait IBluetoothGatt {
     fn set_periodic_advertising_enable(&mut self, advertiser_id: i32, enable: bool);
 
     // GATT Client
-    fn start_sync(&self);
-
-    fn stop_sync(&self);
-
-    fn cancel_create_sync(&self);
-
-    fn transfer_sync(&self);
-
-    fn transfer_set_info(&self);
-
-    fn sync_tx_parameters(&self);
 
     /// Registers a GATT Client.
     fn register_client(
@@ -390,12 +370,6 @@ pub trait IBluetoothGatt {
         max_ce_len: u16,
     );
 
-    fn execute_write(&self);
-
-    fn deregister_for_notification(&self);
-
-    fn get_device_type(&self);
-
     /// Sets preferred PHY.
     fn client_set_preferred_phy(
         &self,
@@ -408,33 +382,6 @@ pub trait IBluetoothGatt {
 
     /// Reads the PHY used by a peer.
     fn client_read_phy(&mut self, client_id: i32, addr: String);
-
-    fn test_command(&self);
-
-    fn get_gatt_db(&self);
-
-    // GATT Server
-    fn register_server(&self);
-
-    fn unregister_server(&self);
-
-    fn server_connect(&self);
-
-    fn server_disconnect(&self);
-
-    fn add_service(&self);
-
-    fn stop_service(&self);
-
-    fn delete_service(&self);
-
-    fn send_indication(&self);
-
-    fn send_response(&self);
-
-    fn server_set_preferred_phy(&self);
-
-    fn server_read_phy(&self);
 }
 
 #[derive(Debug, Default)]
@@ -594,6 +541,9 @@ pub trait IScannerCallback: RPCProxy {
     /// shared among all scanner callbacks, clients may receive more advertisements than what is
     /// requested to be filtered in.
     fn on_scan_result(&self, scan_result: ScanResult);
+
+    /// When LE Scan module changes suspend mode due to system suspend/resume.
+    fn on_suspend_mode_change(&self, suspend_mode: SuspendMode);
 }
 
 #[derive(Debug, FromPrimitive, ToPrimitive)]
@@ -704,7 +654,7 @@ impl BluetoothGatt {
     /// Constructs a new IBluetoothGatt implementation.
     pub fn new(intf: Arc<Mutex<BluetoothInterface>>, tx: Sender<Message>) -> BluetoothGatt {
         BluetoothGatt {
-            intf: intf,
+            intf,
             gatt: None,
             adapter: None,
             context_map: ContextMap::new(),
@@ -748,6 +698,16 @@ impl BluetoothGatt {
         };
 
         let tx_clone = tx.clone();
+        let gatt_scanner_inband_callbacks_dispatcher = GattScannerInbandCallbacksDispatcher {
+            dispatch: Box::new(move |cb| {
+                let tx_clone = tx_clone.clone();
+                topstack::get_runtime().spawn(async move {
+                    let _ = tx_clone.send(Message::LeScannerInband(cb)).await;
+                });
+            }),
+        };
+
+        let tx_clone = tx.clone();
         let gatt_adv_inband_callbacks_dispatcher = GattAdvInbandCallbacksDispatcher {
             dispatch: Box::new(move |cb| {
                 let tx_clone = tx_clone.clone();
@@ -771,6 +731,7 @@ impl BluetoothGatt {
             gatt_client_callbacks_dispatcher,
             gatt_server_callbacks_dispatcher,
             gatt_scanner_callbacks_dispatcher,
+            gatt_scanner_inband_callbacks_dispatcher,
             gatt_adv_inband_callbacks_dispatcher,
             gatt_adv_callbacks_dispatcher,
         );
@@ -797,6 +758,26 @@ impl BluetoothGatt {
         }
 
         self.scanner_callbacks.remove_callback(callback_id)
+    }
+
+    /// Enters suspend mode for LE Scan.
+    ///
+    /// This "pauses" all operations managed by this module to prepare for system suspend. A
+    /// callback is triggered to let clients know that this module is in suspend mode and some
+    /// subsequent API calls will be blocked in this mode.
+    pub fn scan_enter_suspend(&mut self) {
+        // TODO(b/224603540): Implement
+        todo!()
+    }
+
+    /// Exits suspend mode for LE Scan.
+    ///
+    /// To be called after system resume/wake up. This "unpauses" the operations that were "paused"
+    /// due to suspend. A callback is triggered to let clients when this module has exited suspend
+    /// mode.
+    pub fn scan_exit_suspend(&mut self) {
+        // TODO(b/224603540): Implement
+        todo!()
     }
 
     // Update the topshim's scan state depending on the states of registered scanners. Scan is
@@ -884,7 +865,12 @@ impl IBluetoothGatt for BluetoothGatt {
         true
     }
 
-    fn start_scan(&mut self, scanner_id: u8, _settings: ScanSettings, _filters: Vec<ScanFilter>) {
+    fn start_scan(
+        &mut self,
+        scanner_id: u8,
+        _settings: ScanSettings,
+        _filters: Vec<ScanFilter>,
+    ) -> BtStatus {
         // Multiplexing scanners happens at this layer. The implementations of start_scan
         // and stop_scan maintains the state of all registered scanners and based on the states
         // update the scanning and/or filter states of libbluetooth.
@@ -893,105 +879,32 @@ impl IBluetoothGatt for BluetoothGatt {
             scanner.is_active = true;
         } else {
             log::warn!("Scanner {} not found", scanner_id);
-            return;
+            return BtStatus::Fail;
         }
 
         self.update_scan();
+        BtStatus::Success
     }
 
-    fn stop_scan(&mut self, scanner_id: u8) {
+    fn stop_scan(&mut self, scanner_id: u8) -> BtStatus {
         if let Some(scanner) = self.find_scanner_by_id(scanner_id) {
             scanner.is_active = false;
         } else {
             log::warn!("Scanner {} not found", scanner_id);
-            return;
+            // Clients can assume success of the removal since the scanner does not exist.
+            return BtStatus::Success;
         }
 
         self.update_scan();
+        BtStatus::Success
     }
 
-    // Scanning
-
-    fn scan_filter_setup(&self) {
-        // TODO(b/200066804): implement
-        todo!()
+    fn get_scan_suspend_mode(&self) -> SuspendMode {
+        // TODO(b/224603540): Implement.
+        return SuspendMode::Normal;
     }
 
-    fn scan_filter_add(&self) {
-        // TODO(b/200066804): implement
-        todo!()
-    }
-
-    fn scan_filter_clear(&self) {
-        // TODO(b/200066804): implement
-        todo!()
-    }
-
-    fn scan_filter_enable(&self) {
-        // TODO(b/200066804): implement
-        todo!()
-    }
-
-    fn scan_filter_disable(&self) {
-        // TODO(b/200066804): implement
-        todo!()
-    }
-
-    fn set_scan_parameters(&self) {
-        // TODO(b/200066804): implement
-        todo!()
-    }
-
-    fn batch_scan_config_storage(&self) {
-        // TODO(b/200066804): implement
-        todo!()
-    }
-
-    fn batch_scan_enable(&self) {
-        // TODO(b/200066804): implement
-        todo!()
-    }
-
-    fn batch_scan_disable(&self) {
-        // TODO(b/200066804): implement
-        todo!()
-    }
-
-    fn batch_scan_read_reports(&self) {
-        // TODO(b/200066804): implement
-        todo!()
-    }
-
-    // GATT Client
-    fn start_sync(&self) {
-        // TODO(b/193686094): implement
-        todo!()
-    }
-
-    fn stop_sync(&self) {
-        // TODO(b/193686094): implement
-        todo!()
-    }
-
-    fn cancel_create_sync(&self) {
-        // TODO(b/193686094): implement
-        todo!()
-    }
-
-    fn transfer_sync(&self) {
-        // TODO(b/193686094): implement
-        todo!()
-    }
-
-    fn transfer_set_info(&self) {
-        // TODO(b/193686094): implement
-        todo!()
-    }
-
-    fn sync_tx_parameters(&self) {
-        // TODO(b/193686094): implement
-        todo!()
-    }
+    // Advertising
 
     fn register_advertiser_callback(
         &mut self,
@@ -1434,21 +1347,6 @@ impl IBluetoothGatt for BluetoothGatt {
         );
     }
 
-    fn execute_write(&self) {
-        // TODO(b/193686094): implement
-        todo!()
-    }
-
-    fn deregister_for_notification(&self) {
-        // TODO(b/193686094): implement
-        todo!()
-    }
-
-    fn get_device_type(&self) {
-        // TODO(b/193686094): implement
-        todo!()
-    }
-
     fn client_set_preferred_phy(
         &self,
         client_id: i32,
@@ -1477,72 +1375,6 @@ impl IBluetoothGatt for BluetoothGatt {
         };
 
         self.gatt.as_mut().unwrap().client.read_phy(client_id, &address);
-    }
-
-    fn test_command(&self) {
-        // TODO(b/193686094): implement
-        todo!()
-    }
-
-    fn get_gatt_db(&self) {
-        // TODO(b/193686094): implement
-        todo!()
-    }
-
-    // GATT Server
-    fn register_server(&self) {
-        // TODO(b/193686564): implement
-        todo!()
-    }
-
-    fn unregister_server(&self) {
-        // TODO(b/193686564): implement
-        todo!()
-    }
-
-    fn server_connect(&self) {
-        // TODO(b/193686564): implement
-        todo!()
-    }
-
-    fn server_disconnect(&self) {
-        // TODO(b/193686564): implement
-        todo!()
-    }
-
-    fn add_service(&self) {
-        // TODO(b/193686564): implement
-        todo!()
-    }
-
-    fn stop_service(&self) {
-        // TODO(b/193686564): implement
-        todo!()
-    }
-
-    fn delete_service(&self) {
-        // TODO(b/193686564): implement
-        todo!()
-    }
-
-    fn send_indication(&self) {
-        // TODO(b/193686564): implement
-        todo!()
-    }
-
-    fn send_response(&self) {
-        // TODO(b/193686564): implement
-        todo!()
-    }
-
-    fn server_set_preferred_phy(&self) {
-        // TODO(b/193686564): implement
-        todo!()
-    }
-
-    fn server_read_phy(&self) {
-        // TODO(b/193686564): implement
-        todo!()
     }
 }
 
@@ -2072,6 +1904,188 @@ pub(crate) trait BtifGattScannerCallbacks {
         periodic_adv_int: u16,
         adv_data: Vec<u8>,
     );
+}
+
+#[btif_callbacks_dispatcher(
+    BluetoothGatt,
+    dispatch_le_scanner_inband_callbacks,
+    GattScannerInbandCallbacks
+)]
+pub(crate) trait BtifGattScannerInbandCallbacks {
+    #[btif_callback(RegisterCallback)]
+    fn inband_register_callback(&mut self, app_uuid: Uuid, scanner_id: u8, btm_status: u8);
+
+    #[btif_callback(StatusCallback)]
+    fn inband_status_callback(&mut self, scanner_id: u8, btm_status: u8);
+
+    #[btif_callback(EnableCallback)]
+    fn inband_enable_callback(&mut self, action: u8, btm_status: u8);
+
+    #[btif_callback(FilterParamSetupCallback)]
+    fn inband_filter_param_setup_callback(
+        &mut self,
+        scanner_id: u8,
+        available_space: u8,
+        action_type: u8,
+        btm_status: u8,
+    );
+
+    #[btif_callback(FilterConfigCallback)]
+    fn inband_filter_config_callback(
+        &mut self,
+        filter_index: u8,
+        filter_type: u8,
+        available_space: u8,
+        action: u8,
+        btm_status: u8,
+    );
+
+    #[btif_callback(StartSyncCallback)]
+    fn inband_start_sync_callback(
+        &mut self,
+        status: u8,
+        sync_handle: u16,
+        advertising_sid: u8,
+        address_type: u8,
+        address: RawAddress,
+        phy: u8,
+        interval: u16,
+    );
+
+    #[btif_callback(SyncReportCallback)]
+    fn inband_sync_report_callback(
+        &mut self,
+        sync_handle: u16,
+        tx_power: i8,
+        rssi: i8,
+        status: u8,
+        data: Vec<u8>,
+    );
+
+    #[btif_callback(SyncLostCallback)]
+    fn inband_sync_lost_callback(&mut self, sync_handle: u16);
+
+    #[btif_callback(SyncTransferCallback)]
+    fn inband_sync_transfer_callback(&mut self, status: u8, address: RawAddress);
+}
+
+impl BtifGattScannerInbandCallbacks for BluetoothGatt {
+    fn inband_register_callback(&mut self, app_uuid: Uuid, scanner_id: u8, btm_status: u8) {
+        log::debug!(
+            "Callback received: {:#?}",
+            GattScannerInbandCallbacks::RegisterCallback(app_uuid, scanner_id, btm_status)
+        );
+    }
+
+    fn inband_status_callback(&mut self, scanner_id: u8, btm_status: u8) {
+        log::debug!(
+            "Callback received: {:#?}",
+            GattScannerInbandCallbacks::StatusCallback(scanner_id, btm_status)
+        );
+    }
+
+    fn inband_enable_callback(&mut self, action: u8, btm_status: u8) {
+        log::debug!(
+            "Callback received: {:#?}",
+            GattScannerInbandCallbacks::EnableCallback(action, btm_status)
+        );
+    }
+
+    fn inband_filter_param_setup_callback(
+        &mut self,
+        scanner_id: u8,
+        available_space: u8,
+        action_type: u8,
+        btm_status: u8,
+    ) {
+        log::debug!(
+            "Callback received: {:#?}",
+            GattScannerInbandCallbacks::FilterParamSetupCallback(
+                scanner_id,
+                available_space,
+                action_type,
+                btm_status
+            )
+        );
+    }
+
+    fn inband_filter_config_callback(
+        &mut self,
+        filter_index: u8,
+        filter_type: u8,
+        available_space: u8,
+        action: u8,
+        btm_status: u8,
+    ) {
+        log::debug!(
+            "Callback received: {:#?}",
+            GattScannerInbandCallbacks::FilterConfigCallback(
+                filter_index,
+                filter_type,
+                available_space,
+                action,
+                btm_status,
+            )
+        );
+    }
+
+    fn inband_start_sync_callback(
+        &mut self,
+        status: u8,
+        sync_handle: u16,
+        advertising_sid: u8,
+        address_type: u8,
+        address: RawAddress,
+        phy: u8,
+        interval: u16,
+    ) {
+        log::debug!(
+            "Callback received: {:#?}",
+            GattScannerInbandCallbacks::StartSyncCallback(
+                status,
+                sync_handle,
+                advertising_sid,
+                address_type,
+                address,
+                phy,
+                interval,
+            )
+        );
+    }
+
+    fn inband_sync_report_callback(
+        &mut self,
+        sync_handle: u16,
+        tx_power: i8,
+        rssi: i8,
+        status: u8,
+        data: Vec<u8>,
+    ) {
+        log::debug!(
+            "Callback received: {:#?}",
+            GattScannerInbandCallbacks::SyncReportCallback(
+                sync_handle,
+                tx_power,
+                rssi,
+                status,
+                data
+            )
+        );
+    }
+
+    fn inband_sync_lost_callback(&mut self, sync_handle: u16) {
+        log::debug!(
+            "Callback received: {:#?}",
+            GattScannerInbandCallbacks::SyncLostCallback(sync_handle,)
+        );
+    }
+
+    fn inband_sync_transfer_callback(&mut self, status: u8, address: RawAddress) {
+        log::debug!(
+            "Callback received: {:#?}",
+            GattScannerInbandCallbacks::SyncTransferCallback(status, address)
+        );
+    }
 }
 
 impl BtifGattScannerCallbacks for BluetoothGatt {

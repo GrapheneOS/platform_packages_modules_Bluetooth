@@ -192,9 +192,13 @@ class HostBuild():
         # Output and platform directories are based on bootstrap
         self.output_dir = os.path.join(self.bootstrap_dir, 'output')
         self.platform_dir = os.path.join(self.bootstrap_dir, 'staging')
+        self.bt_dir = os.path.join(self.platform_dir, 'bt')
         self.sysroot = self.args.sysroot
         self.libdir = self.args.libdir
         self.install_dir = os.path.join(self.output_dir, 'install')
+
+        assert os.path.samefile(self.bt_dir,
+                                os.path.dirname(__file__)), "Please rerun bootstrap for the current project!"
 
         # If default target isn't set, build everything
         self.target = 'all'
