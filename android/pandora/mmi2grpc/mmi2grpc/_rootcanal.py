@@ -84,6 +84,9 @@ class RootCanal:
         # discard initialization messages
         self.channel.receive_response()
 
+    def close(self):
+        self.channel.close()
+
     @staticmethod
     def _parse_device_list(raw):
         # time for some cursed parsing!
@@ -112,21 +115,25 @@ class RootCanal:
         return transport, idxs
 
     def reconnect_phone(self):
-        devices = self.channel.send_command("list", [])
-        devices = self._parse_device_list(devices)
+        raw_devices = None
+        try:
+            raw_devices = self.channel.send_command("list", [])
+            devices = self._parse_device_list(raw_devices)
 
-        for dev_i, name in enumerate(devices["Devices"]):
-            # the default transports are always 0 and 1
-            classic_phy = 0
-            le_phy = 1
-            if "beacon" in name:
-                target_phys = [le_phy]
-            elif "hci_device" in name:
-                target_phys = [classic_phy, le_phy]
+            for dev_i, name in enumerate(devices["Devices"]):
+                # the default transports are always 0 and 1
+                classic_phy = 0
+                le_phy = 1
+                if "beacon" in name:
+                    target_phys = [le_phy]
+                elif "hci_device" in name:
+                    target_phys = [classic_phy, le_phy]
 
-            for phy in target_phys:
-                if dev_i not in self._parse_phy(devices["Phys"][phy])[1]:
-                    self.channel.send_command("add_device_to_phy", [dev_i, phy])
+                for phy in target_phys:
+                    if dev_i not in self._parse_phy(devices["Phys"][phy])[1]:
+                        self.channel.send_command("add_device_to_phy", [dev_i, phy])
+        except Exception as e:
+            print(raw_devices, e)
 
     def disconnect_phy(self):
         # first, list all devices
