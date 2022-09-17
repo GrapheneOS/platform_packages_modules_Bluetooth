@@ -103,16 +103,19 @@ struct AclScheduler::impl {
   bool stopped_ = false;
 };
 
+const ModuleFactory AclScheduler::Factory = ModuleFactory([]() { return new AclScheduler(); });
+
 AclScheduler::AclScheduler() : pimpl_(std::make_unique<impl>()){};
 AclScheduler::~AclScheduler() = default;
 
 void AclScheduler::EnqueueOutgoingAclConnection(
     Address address, common::ContextualOnceCallback<void()> start_connection) {
-  pimpl_->EnqueueOutgoingAclConnection(address, std::move(start_connection));
+  GetHandler()->Call(
+      &impl::EnqueueOutgoingAclConnection, common::Unretained(pimpl_.get()), address, std::move(start_connection));
 }
 
 void AclScheduler::RegisterPendingIncomingConnection(Address address) {
-  pimpl_->RegisterPendingIncomingConnection(address);
+  GetHandler()->Call(&impl::RegisterPendingIncomingConnection, common::Unretained(pimpl_.get()), address);
 }
 
 void AclScheduler::ReportAclConnectionCompletion(
@@ -120,7 +123,9 @@ void AclScheduler::ReportAclConnectionCompletion(
     common::ContextualOnceCallback<void()> handle_outgoing_connection,
     common::ContextualOnceCallback<void()> handle_incoming_connection,
     common::ContextualOnceCallback<void(std::string)> handle_unknown_connection) {
-  pimpl_->ReportAclConnectionCompletion(
+  GetHandler()->Call(
+      &impl::ReportAclConnectionCompletion,
+      common::Unretained(pimpl_.get()),
       address,
       std::move(handle_outgoing_connection),
       std::move(handle_incoming_connection),
@@ -128,15 +133,24 @@ void AclScheduler::ReportAclConnectionCompletion(
 }
 
 void AclScheduler::ReportOutgoingAclConnectionFailure() {
-  pimpl_->ReportOutgoingAclConnectionFailure();
+  GetHandler()->Call(&impl::ReportOutgoingAclConnectionFailure, common::Unretained(pimpl_.get()));
 }
 
 void AclScheduler::CancelAclConnection(
     Address address,
     common::ContextualOnceCallback<void()> cancel_connection,
     common::ContextualOnceCallback<void()> cancel_connection_completed) {
-  pimpl_->CancelAclConnection(address, std::move(cancel_connection), std::move(cancel_connection_completed));
+  GetHandler()->Call(
+      &impl::CancelAclConnection,
+      common::Unretained(pimpl_.get()),
+      address,
+      std::move(cancel_connection),
+      std::move(cancel_connection_completed));
 }
+
+void AclScheduler::ListDependencies(ModuleList* list) const {}
+
+void AclScheduler::Start() {}
 
 void AclScheduler::Stop() {
   pimpl_->Stop();

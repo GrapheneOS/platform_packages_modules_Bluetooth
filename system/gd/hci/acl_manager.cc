@@ -63,7 +63,7 @@ struct AclManager::impl {
     handler_ = acl_manager_.GetHandler();
     controller_ = acl_manager_.GetDependency<Controller>();
     round_robin_scheduler_ = new RoundRobinScheduler(handler_, controller_, hci_layer_->GetAclQueueEnd());
-    acl_scheduler_ = new AclScheduler();
+    acl_scheduler_ = acl_manager_.GetDependency<AclScheduler>();
 
     hci_queue_end_ = hci_layer_->GetAclQueueEnd();
     hci_queue_end_->RegisterDequeue(
@@ -78,8 +78,6 @@ struct AclManager::impl {
   }
 
   void Stop() {
-    acl_scheduler_->Stop();
-
     {
       const std::lock_guard<std::mutex> lock(dumpsys_mutex_);
       delete le_impl_;
@@ -87,9 +85,6 @@ struct AclManager::impl {
       le_impl_ = nullptr;
       classic_impl_ = nullptr;
     }
-
-    delete acl_scheduler_;
-    acl_scheduler_ = nullptr;
 
     hci_queue_end_->UnregisterDequeue();
     delete round_robin_scheduler_;
@@ -99,6 +94,7 @@ struct AclManager::impl {
     hci_queue_end_ = nullptr;
     handler_ = nullptr;
     hci_layer_ = nullptr;
+    acl_scheduler_ = nullptr;
   }
 
   // Invoked from some external Queue Reactable context 2
@@ -325,6 +321,7 @@ void AclManager::ListDependencies(ModuleList* list) const {
   list->add<HciLayer>();
   list->add<Controller>();
   list->add<storage::StorageModule>();
+  list->add<AclScheduler>();
 }
 
 void AclManager::Start() {

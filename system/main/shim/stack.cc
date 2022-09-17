@@ -31,6 +31,7 @@
 #include "gd/common/strings.h"
 #include "gd/hal/hci_hal.h"
 #include "gd/hci/acl_manager.h"
+#include "gd/hci/acl_manager/acl_scheduler.h"
 #include "gd/hci/controller.h"
 #include "gd/hci/hci_layer.h"
 #include "gd/hci/le_advertising_manager.h"
@@ -146,6 +147,7 @@ void Stack::StartEverything() {
   modules.add<sysprops::SyspropsModule>();
 
   modules.add<hci::Controller>();
+  modules.add<hci::acl_manager::AclScheduler>();
   modules.add<hci::AclManager>();
   if (common::init_flags::gd_l2cap_is_enabled()) {
     modules.add<l2cap::classic::L2capClassicModule>();
