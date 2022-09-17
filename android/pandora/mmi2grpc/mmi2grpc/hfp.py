@@ -16,8 +16,8 @@
 from mmi2grpc._helpers import assert_description
 from mmi2grpc._proxy import ProfileProxy
 
-from pandora.hfp_grpc import HFP
-from pandora.host_grpc import Host
+from pandora_experimental.hfp_grpc import HFP
+from pandora_experimental.host_grpc import Host
 
 import sys
 import threading

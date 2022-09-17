@@ -4,7 +4,7 @@ option java_outer_classname = "AvrcpProto";
 
 package pandora;
 
-import "pandora/host.proto";
+import "pandora_experimental/host.proto";
 
 
 service AVRCP {
