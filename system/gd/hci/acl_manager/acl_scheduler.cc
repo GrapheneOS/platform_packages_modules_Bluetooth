@@ -31,7 +31,7 @@ struct AclCreateConnectionQueueEntry {
 
 struct AclScheduler::impl {
   void EnqueueOutgoingAclConnection(Address address, common::ContextualOnceCallback<void()> start_connection) {
-    pending_outgoing_connections_.push({address, std::move(start_connection)});
+    pending_outgoing_connections_.push_back({address, std::move(start_connection)});
     try_dequeue_next_connection();
   }
 
@@ -69,7 +69,24 @@ struct AclScheduler::impl {
       Address address,
       common::ContextualOnceCallback<void()> cancel_connection,
       common::ContextualOnceCallback<void()> cancel_connection_completed) {
-    cancel_connection.Invoke();
+    // Check if relevant connection is currently outgoing
+    if (outgoing_connecting_address_ == address) {
+      cancel_connection.Invoke();
+      // as per method contract, we *don't* clear it from the queue
+      return;
+    }
+
+    // Otherwise, clear from the queue
+    auto it =
+        std::find_if(pending_outgoing_connections_.begin(), pending_outgoing_connections_.end(), [&](auto& entry) {
+          return entry.address == address;
+        });
+    if (it == pending_outgoing_connections_.end()) {
+      LOG_ERROR("Attempted to cancel connection to %s that does not exist", address.ToString().c_str());
+      return;
+    }
+    pending_outgoing_connections_.erase(it);
+    cancel_connection_completed.Invoke();
   }
 
   void Stop() {
@@ -85,7 +102,7 @@ struct AclScheduler::impl {
         !pending_outgoing_connections_.empty()) {
       LOG_INFO("Pending connections is not empty; so sending next connection");
       auto entry = std::move(pending_outgoing_connections_.front());
-      pending_outgoing_connections_.pop();
+      pending_outgoing_connections_.pop_front();
       outgoing_connecting_address_ = entry.address;
       entry.callback.Invoke();
     }
@@ -98,7 +115,7 @@ struct AclScheduler::impl {
   }
 
   Address outgoing_connecting_address_;
-  std::queue<AclCreateConnectionQueueEntry> pending_outgoing_connections_;
+  std::deque<AclCreateConnectionQueueEntry> pending_outgoing_connections_;
   std::unordered_set<Address> incoming_connecting_address_set_;
   bool stopped_ = false;
 };

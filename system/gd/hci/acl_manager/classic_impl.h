@@ -398,15 +398,13 @@ struct classic_impl : public security::ISecurityManagerListener {
 
   void cancel_connect(Address address) {
     acl_scheduler_->CancelAclConnection(
-        address, handler_->BindOnceOn(this, &classic_impl::actually_cancel_connect, address), {});
+        address,
+        handler_->BindOnceOn(this, &classic_impl::actually_cancel_connect, address),
+        client_handler_->BindOnceOn(
+            client_callbacks_, &ConnectionCallbacks::OnConnectFail, address, ErrorCode::UNKNOWN_CONNECTION));
   }
 
   void actually_cancel_connect(Address address) {
-    // NOTE: this will be fixed in a followup CL, commenting out to avoid build failure
-    // if (outgoing_connecting_address_ == address) {
-    //   LOG_INFO("Cannot cancel non-existent connection to %s", address.ToString().c_str());
-    //   return;
-    // }
     std::unique_ptr<CreateConnectionCancelBuilder> packet = CreateConnectionCancelBuilder::Create(address);
     acl_connection_interface_->EnqueueCommand(
         std::move(packet), handler_->BindOnce(&check_command_complete<CreateConnectionCancelCompleteView>));
