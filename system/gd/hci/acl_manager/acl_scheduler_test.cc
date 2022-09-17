@@ -359,6 +359,121 @@ TEST_F(AclSchedulerTest, CancelQueuedConnectionCallback) {
   EXPECT_THAT(future, IsSet());
 }
 
+TEST_F(AclSchedulerTest, RemoteNameRequestImmediatelyExecuted) {
+  auto promise = std::promise<void>{};
+  auto future = promise.get_future();
+
+  // start an outgoing request
+  acl_scheduler_->EnqueueRemoteNameRequest(address1, promiseCallback(std::move(promise)), emptyCallback());
+
+  // we expect the start callback to be invoked immediately
+  EXPECT_THAT(future, IsSet());
+}
+
+TEST_F(AclSchedulerTest, RemoteNameRequestQueuing) {
+  auto promise = std::promise<void>{};
+  auto future = promise.get_future();
+
+  // start an outgoing request
+  acl_scheduler_->EnqueueRemoteNameRequest(address1, emptyCallback(), impossibleCallback());
+  // enqueue a second one
+  acl_scheduler_->EnqueueRemoteNameRequest(address2, promiseCallback(std::move(promise)), impossibleCallback());
+
+  // we should still be queued
+  EXPECT_THAT(future.wait_for(timeout), std::future_status::timeout);
+
+  // the first request completes
+  acl_scheduler_->ReportRemoteNameRequestCompletion(address1);
+
+  // so the second request should now have started
+  EXPECT_THAT(future, IsSet());
+}
+
+TEST_F(AclSchedulerTest, RemoteNameRequestCancellationCallback) {
+  auto promise = std::promise<void>{};
+  auto future = promise.get_future();
+
+  // start an outgoing request
+  acl_scheduler_->EnqueueRemoteNameRequest(address1, emptyCallback(), impossibleCallback());
+
+  // cancel it
+  acl_scheduler_->CancelRemoteNameRequest(address1, promiseCallback(std::move(promise)));
+
+  // the cancel callback should be invoked
+  EXPECT_THAT(future, IsSet());
+}
+
+TEST_F(AclSchedulerTest, RemoteNameRequestCancellationWhileQueuedCallback) {
+  auto promise = std::promise<void>{};
+  auto future = promise.get_future();
+
+  // start an outgoing request
+  acl_scheduler_->EnqueueRemoteNameRequest(address1, emptyCallback(), impossibleCallback());
+  // enqueue a second one
+  acl_scheduler_->EnqueueRemoteNameRequest(address2, impossibleCallback(), promiseCallback(std::move(promise)));
+
+  // cancel the second one
+  acl_scheduler_->CancelRemoteNameRequest(address2, impossibleCallback());
+
+  // the cancel_request_completed calback should be invoked
+  EXPECT_THAT(future, IsSet());
+
+  // the first request completes
+  acl_scheduler_->ReportRemoteNameRequestCompletion(address1);
+
+  // we don't dequeue the second one, since it was cancelled
+  // implicitly assert that its callback was never invoked
+}
+
+TEST_F(AclSchedulerTest, CancelQueuedRemoteNameRequestRemoveFromQueue) {
+  auto promise = std::promise<void>{};
+  auto future = promise.get_future();
+
+  // start an outgoing connection
+  acl_scheduler_->EnqueueOutgoingAclConnection(address1, emptyCallback());
+  // start another connection that will queue
+  acl_scheduler_->EnqueueRemoteNameRequest(address2, impossibleCallback(), emptyCallback());
+  // start a third connection that will queue
+  acl_scheduler_->EnqueueRemoteNameRequest(address3, promiseCallback(std::move(promise)), impossibleCallback());
+
+  // cancel the first queued connection
+  acl_scheduler_->CancelRemoteNameRequest(address2, impossibleCallback());
+
+  // the second queued connection should remain enqueued, since another connection is in progress
+  EXPECT_THAT(future.wait_for(timeout), std::future_status::timeout);
+
+  // complete the outgoing connection
+  acl_scheduler_->ReportOutgoingAclConnectionFailure();
+
+  // only now can we dequeue the second queued connection
+  EXPECT_THAT(future, IsSet());
+}
+
+TEST_F(AclSchedulerTest, RemoteNameRequestCancellationShouldDequeueNext) {
+  auto promise = std::promise<void>{};
+  auto future = promise.get_future();
+
+  // start an outgoing request
+  acl_scheduler_->EnqueueRemoteNameRequest(address1, emptyCallback(), impossibleCallback());
+  // enqueue a second one
+  acl_scheduler_->EnqueueRemoteNameRequest(address2, promiseCallback(std::move(promise)), impossibleCallback());
+
+  // we should still be queued
+  EXPECT_THAT(future.wait_for(timeout), std::future_status::timeout);
+
+  // the first request is cancelled
+  acl_scheduler_->CancelRemoteNameRequest(address1, emptyCallback());
+
+  // we should still remain queued while we wait for the cancel to complete
+  EXPECT_THAT(future.wait_for(timeout), std::future_status::timeout);
+
+  // the cancel completes
+  acl_scheduler_->ReportRemoteNameRequestCompletion(address1);
+
+  // so the second request should now have started
+  EXPECT_THAT(future, IsSet());
+}
+
 }  // namespace
 }  // namespace acl_manager
 }  // namespace hci
