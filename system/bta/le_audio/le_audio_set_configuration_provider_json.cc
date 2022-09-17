@@ -553,7 +553,7 @@ struct AudioSetConfigurationProvider::impl {
       auto confs = Get()->GetConfigurations(context);
       stream << "\n  === Configurations for context type: " << (int)context
              << ", num: " << (confs == nullptr ? 0 : confs->size()) << " \n";
-      if (confs->size() > 0) {
+      if (confs && confs->size() > 0) {
         for (const auto& conf : *confs) {
           stream << "  name: " << conf->name << " \n";
           for (const auto& ent : conf->confs) {
