@@ -1,6 +1,6 @@
 //! BLE Advertising types and utilities
 
-use bt_topshim::profiles::gatt::{Gatt, GattStatus};
+use bt_topshim::profiles::gatt::{Gatt, GattStatus, LePhy};
 
 use log::warn;
 use num_traits::clamp;
@@ -30,9 +30,9 @@ pub struct AdvertisingSetParameters {
     /// Whether the TX Power will be included.
     pub include_tx_power: bool,
     /// Primary advertising phy. Valid values are: 1 (1M), 2 (2M), 3 (Coded).
-    pub primary_phy: i32,
+    pub primary_phy: LePhy,
     /// Secondary advertising phy. Valid values are: 1 (1M), 2 (2M), 3 (Coded).
-    pub secondary_phy: i32,
+    pub secondary_phy: LePhy,
     /// The advertising interval. Bluetooth LE Advertising interval, in 0.625 ms unit.
     /// The valid range is from 160 (100 ms) to 16777215 (10485.759375 sec).
     /// Recommended values are: 160 (100 ms), 400 (250 ms), 1600 (1 sec).
@@ -145,10 +145,6 @@ const PERIODIC_INTERVAL_MAX: i32 = 65519; // 81.89875 sec
 const PERIODIC_INTERVAL_MIN: i32 = 80; // 100 ms
 const PERIODIC_INTERVAL_DELTA: i32 = 16; // 20 ms gap between min and max
 
-// PHY range.
-const PHY_MIN: i32 = 1;
-const PHY_MAX: i32 = 3;
-
 // Device name length.
 const DEVICE_NAME_MAX: usize = 26;
 
@@ -185,8 +181,6 @@ impl Into<bt_topshim::profiles::gatt::AdvertiseParameters> for AdvertisingSetPar
         }
 
         let interval = clamp(self.interval, INTERVAL_MIN, INTERVAL_MAX - INTERVAL_DELTA);
-        let primary_phy = clamp(self.primary_phy, PHY_MIN, PHY_MAX);
-        let secondary_phy = clamp(self.secondary_phy, PHY_MIN, PHY_MAX);
 
         bt_topshim::profiles::gatt::AdvertiseParameters {
             advertising_event_properties: props,
@@ -194,8 +188,8 @@ impl Into<bt_topshim::profiles::gatt::AdvertiseParameters> for AdvertisingSetPar
             max_interval: (interval + INTERVAL_DELTA) as u32,
             channel_map: 0x07 as u8, // all channels
             tx_power: self.tx_power_level as i8,
-            primary_advertising_phy: primary_phy as u8,
-            secondary_advertising_phy: secondary_phy as u8,
+            primary_advertising_phy: self.primary_phy.into(),
+            secondary_advertising_phy: self.secondary_phy.into(),
             scan_request_notification_enable: 0 as u8, // false
             own_address_type: self.own_address_type as i8,
         }
