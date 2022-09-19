@@ -7,13 +7,13 @@ use crate::dbus_iface::{
 use crate::ClientContext;
 use crate::{console_red, console_yellow, print_error, print_info};
 use bt_topshim::btif::{BtBondState, BtPropertyType, BtSspVariant, BtStatus, Uuid128Bit};
-use bt_topshim::profiles::gatt::GattStatus;
+use bt_topshim::profiles::gatt::{GattStatus, LePhy};
 use btstack::bluetooth::{
     BluetoothDevice, IBluetooth, IBluetoothCallback, IBluetoothConnectionCallback,
 };
 use btstack::bluetooth_adv::IAdvertisingSetCallback;
 use btstack::bluetooth_gatt::{
-    BluetoothGattService, IBluetoothGattCallback, IScannerCallback, LePhy, ScanResult,
+    BluetoothGattService, IBluetoothGattCallback, IScannerCallback, ScanResult,
 };
 use btstack::socket_manager::{
     BluetoothServerSocket, BluetoothSocket, IBluetoothSocketManager,
