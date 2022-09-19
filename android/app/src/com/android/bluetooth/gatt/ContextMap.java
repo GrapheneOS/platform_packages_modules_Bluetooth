@@ -27,6 +27,8 @@ import android.os.UserHandle;
 import android.os.WorkSource;
 import android.util.Log;
 
+import com.android.internal.annotations.GuardedBy;
+
 import com.google.common.collect.EvictingQueue;
 
 import java.util.ArrayList;
@@ -183,6 +185,8 @@ import java.util.UUID;
     }
 
     /** Our internal application list */
+    private final Object mAppsLock = new Object();
+    @GuardedBy("mAppsLock")
     private List<App> mApps = new ArrayList<App>();
 
     /** Internal map to keep track of logging information by app name */
@@ -234,7 +238,7 @@ import java.util.UUID;
             appName = "Unknown App (UID: " + appUid + ")";
         }
 
-        synchronized (mApps) {
+        synchronized (mAppsLock) {
             AppAdvertiseStats appAdvertiseStats = mAppAdvertiseStats.get(id);
             if (appAdvertiseStats == null) {
                 appAdvertiseStats = new AppAdvertiseStats(appUid, id, appName, this, service);

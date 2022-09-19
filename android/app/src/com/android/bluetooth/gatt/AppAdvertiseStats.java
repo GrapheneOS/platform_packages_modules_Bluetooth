@@ -20,13 +20,13 @@ import android.bluetooth.le.AdvertiseData;
 import android.bluetooth.le.AdvertisingSetParameters;
 import android.bluetooth.le.PeriodicAdvertisingParameters;
 import android.os.ParcelUuid;
-import android.os.SystemClock;
 import android.util.SparseArray;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.LinkedList;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -38,9 +38,11 @@ import java.util.Map;
 /*package*/ class AppAdvertiseStats {
     private static final String TAG = AppAdvertiseStats.class.getSimpleName();
 
-    static final DateFormat DATE_FORMAT = new SimpleDateFormat("MM-dd HH:mm:ss");
+    private static DateTimeFormatter sDateFormat = DateTimeFormatter.ofPattern("MM-dd HH:mm:ss")
+            .withZone(ZoneId.systemDefault());
 
     static final String[] PHY_LE_STRINGS = {"LE_1M", "LE_2M", "LE_CODED"};
+    static final int UUID_STRING_FILTER_LEN = 8;
 
     // ContextMap here is needed to grab Apps and Connections
     ContextMap mContextMap;
@@ -48,7 +50,7 @@ import java.util.Map;
     // GattService is needed to add scan event protos to be dumped later
     GattService mGattService;
 
-    class AppAdvertiserData {
+    static class AppAdvertiserData {
         public boolean includeDeviceName = false;
         public boolean includeTxPowerLevel = false;
         public SparseArray<byte[]> manufacturerData;
@@ -65,12 +67,12 @@ import java.util.Map;
         }
     }
 
-    class AppAdvertiserRecord {
-        public long startTime = 0;
-        public long stopTime = 0;
+    static class AppAdvertiserRecord {
+        public Instant startTime = null;
+        public Instant stopTime = null;
         public int duration = 0;
         public int maxExtendedAdvertisingEvents = 0;
-        AppAdvertiserRecord(long startTime) {
+        AppAdvertiserRecord(Instant startTime) {
             this.startTime = startTime;
         }
     }
@@ -93,8 +95,8 @@ import java.util.Map;
     private AppAdvertiserData mPeriodicAdvertisingData = null;
     private boolean mPeriodicIncludeTxPower = false;
     private int mPeriodicInterval = 0;
-    public LinkedList<AppAdvertiserRecord> mAdvertiserRecords =
-            new LinkedList<AppAdvertiserRecord>();
+    public ArrayList<AppAdvertiserRecord> mAdvertiserRecords =
+            new ArrayList<AppAdvertiserRecord>();
 
     AppAdvertiseStats(int appUid, int id, String name, ContextMap map, GattService service) {
         this.mAppUid = appUid;
@@ -109,10 +111,14 @@ import java.util.Map;
             PeriodicAdvertisingParameters periodicParameters, AdvertiseData periodicData,
             int duration, int maxExtAdvEvents) {
         mAdvertisingEnabled = true;
-        AppAdvertiserRecord record = new AppAdvertiserRecord(SystemClock.elapsedRealtime());
+        AppAdvertiserRecord record = new AppAdvertiserRecord(Instant.now());
         record.duration = duration;
         record.maxExtendedAdvertisingEvents = maxExtAdvEvents;
         mAdvertiserRecords.add(record);
+        if (mAdvertiserRecords.size() > 5) {
+            mAdvertiserRecords.remove(0);
+        }
+
         if (parameters != null) {
             mPrimaryPhy = parameters.getPrimaryPhy();
             mSecondaryPhy = parameters.getSecondaryPhy();
@@ -156,29 +162,29 @@ import java.util.Map;
         }
     }
 
+    void recordAdvertiseStart(int duration, int maxExtAdvEvents) {
+        recordAdvertiseStart(null, null, null, null, null, duration, maxExtAdvEvents);
+    }
+
     void recordAdvertiseStop() {
         mAdvertisingEnabled = false;
         mPeriodicAdvertisingEnabled = false;
-        AppAdvertiserRecord record = mAdvertiserRecords.getLast();
-        record.stopTime = SystemClock.elapsedRealtime();
+        if (!mAdvertiserRecords.isEmpty()) {
+            AppAdvertiserRecord record = mAdvertiserRecords.get(mAdvertiserRecords.size() - 1);
+            record.stopTime = Instant.now();
+        }
     }
 
     void enableAdvertisingSet(boolean enable, int duration, int maxExtAdvEvents) {
-        AppAdvertiserRecord lastRecord = mAdvertiserRecords.getLast();
-        if (mAdvertisingEnabled) {
+        if (enable) {
             //if the advertisingSet have not been disabled, skip enabling.
-            if (lastRecord.stopTime != 0) {
-                AppAdvertiserRecord record = new AppAdvertiserRecord(SystemClock.elapsedRealtime());
-                record.duration = duration;
-                record.maxExtendedAdvertisingEvents = maxExtAdvEvents;
-                mAdvertiserRecords.add(record);
-                if (mAdvertiserRecords.size() > 5) {
-                    mAdvertiserRecords.removeFirst();
-                }
+            if (!mAdvertisingEnabled) {
+                recordAdvertiseStart(duration, maxExtAdvEvents);
             }
         } else {
-            if (lastRecord.stopTime == 0) {
-                lastRecord.stopTime = SystemClock.elapsedRealtime();
+            //if the advertisingSet have not been enabled, skip disabling.
+            if (mAdvertisingEnabled) {
+                recordAdvertiseStop();
             }
         }
     }
@@ -274,24 +280,23 @@ import java.util.Map;
                 + advData.includeTxPowerLevel);
 
         if (advData.manufacturerData.size() > 0) {
-            sb.append("\n          └Manufacturer Data                            : ");
-            for (int i = 0; i < advData.manufacturerData.size(); i++) {
-                sb.append("\n            [" + Integer.toHexString(advData.manufacturerData.keyAt(i))
-                        + ", " + printByteArrayInHex(advData.manufacturerData.valueAt(i)) + "]");
-            }
+            sb.append("\n          └Manufacturer Data (length of data)           : "
+                    + advData.manufacturerData.size());
         }
 
         if (!advData.serviceData.isEmpty()) {
             sb.append("\n          └Service Data(UUID, length of data)           : ");
             for (ParcelUuid uuid : advData.serviceData.keySet()) {
-                sb.append("\n            [" + uuid + ", "
+                sb.append("\n            [" + uuid.toString().substring(0, UUID_STRING_FILTER_LEN)
+                        + "-xxxx-xxxx-xxxx-xxxxxxxxxxxx, "
                         + advData.serviceData.get(uuid).length + "]");
             }
         }
 
         if (!advData.serviceUuids.isEmpty()) {
             sb.append("\n          └Service Uuids                                : \n            "
-                    + advData.serviceUuids.toString());
+                    + advData.serviceUuids.toString().substring(0, UUID_STRING_FILTER_LEN)
+                    + "-xxxx-xxxx-xxxx-xxxxxxxxxxxx");
         }
     }
 
@@ -350,28 +355,24 @@ import java.util.Map;
     }
 
     static void dumpToString(StringBuilder sb, AppAdvertiseStats stats) {
-        long currentTime = System.currentTimeMillis();
-        long currentRealTime = SystemClock.elapsedRealtime();
+        Instant currentTime = Instant.now();
 
         sb.append("\n    " + stats.mAppName);
         sb.append("\n     Advertising ID                                     : "
                 + stats.mId);
         for (int i = 0; i < stats.mAdvertiserRecords.size(); i++) {
             AppAdvertiserRecord record = stats.mAdvertiserRecords.get(i);
-            Date timestamp = new Date(currentTime - currentRealTime
-                    + record.startTime);
 
             sb.append("\n      " + (i + 1) + ":");
             sb.append("\n        └Start time                                     : "
-                    + DATE_FORMAT.format(timestamp));
-            if (record.stopTime == 0) {
+                    + sDateFormat.format(record.startTime));
+            if (record.stopTime == null) {
+                Duration timeElapsed = Duration.between(record.startTime, currentTime);
                 sb.append("\n        └Elapsed time                                   : "
-                        + (currentRealTime - record.startTime) + "ms");
+                        + timeElapsed.toMillis() + "ms");
             } else {
-                Date stopTimestamp = new Date(currentTime - currentRealTime
-                        + record.stopTime);
                 sb.append("\n        └Stop time                                      : "
-                        + DATE_FORMAT.format(stopTimestamp));
+                        + sDateFormat.format(record.stopTime));
             }
             sb.append("\n        └Duration(10ms unit)                            : "
                     + record.duration);
