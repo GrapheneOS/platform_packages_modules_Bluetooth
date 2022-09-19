@@ -114,11 +114,17 @@ fn main() -> Result<(), Box<dyn Error>> {
         Arc::new(Mutex::new(Box::new(BluetoothGatt::new(intf.clone(), tx.clone()))));
     let bluetooth_media =
         Arc::new(Mutex::new(Box::new(BluetoothMedia::new(tx.clone(), intf.clone()))));
-    let battery_provider_manager = Arc::new(Mutex::new(Box::new(BatteryProviderManager::new())));
-    let battery_service =
-        Arc::new(Mutex::new(Box::new(BatteryService::new(bluetooth_gatt.clone(), tx.clone()))));
-    let battery_manager =
-        Arc::new(Mutex::new(Box::new(BatteryManager::new(battery_service.clone(), tx.clone()))));
+    let battery_provider_manager =
+        Arc::new(Mutex::new(Box::new(BatteryProviderManager::new(tx.clone()))));
+    let battery_service = Arc::new(Mutex::new(Box::new(BatteryService::new(
+        bluetooth_gatt.clone(),
+        battery_provider_manager.clone(),
+        tx.clone(),
+    ))));
+    let battery_manager = Arc::new(Mutex::new(Box::new(BatteryManager::new(
+        battery_provider_manager.clone(),
+        tx.clone(),
+    ))));
     let bluetooth = Arc::new(Mutex::new(Box::new(Bluetooth::new(
         tx.clone(),
         intf.clone(),
@@ -170,6 +176,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             bluetooth_gatt.clone(),
             battery_service.clone(),
             battery_manager.clone(),
+            battery_provider_manager.clone(),
             bluetooth_media.clone(),
             suspend.clone(),
             bt_sock_mgr.clone(),

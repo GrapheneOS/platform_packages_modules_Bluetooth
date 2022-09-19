@@ -25,11 +25,12 @@ use std::sync::{Arc, Mutex};
 use tokio::sync::mpsc::channel;
 use tokio::sync::mpsc::{Receiver, Sender};
 
-use crate::battery_manager::BatteryManager;
+use crate::battery_manager::{BatteryManager, BatterySet};
+use crate::battery_provider_manager::BatteryProviderManager;
 use crate::battery_service::{BatteryService, GattBatteryCallbacks};
 use crate::bluetooth::{
     dispatch_base_callbacks, dispatch_hid_host_callbacks, dispatch_sdp_callbacks, Bluetooth,
-    IBluetooth,
+    BluetoothDevice, IBluetooth,
 };
 use crate::bluetooth_gatt::{
     dispatch_gatt_client_callbacks, dispatch_le_adv_callbacks, dispatch_le_scanner_callbacks,
@@ -78,6 +79,10 @@ pub enum Message {
     // Update list of found devices and remove old instances.
     DeviceFreshnessCheck,
 
+    // Sent whenever a device connects. Follows IBluetooth's on_device_connected
+    // callback but doesn't require depening on Bluetooth.
+    OnDeviceConnected(BluetoothDevice),
+
     // Suspend related
     SuspendCallbackRegistered(u32),
     SuspendCallbackDisconnected(u32),
@@ -93,8 +98,11 @@ pub enum Message {
     SocketManagerCallbackDisconnected(u32),
 
     // Battery related
+    BatteryProviderManagerCallbackDisconnected(u32),
+    BatteryProviderManagerBatteryUpdated(String, BatterySet),
     BatteryServiceCallbackDisconnected(u32),
     BatteryServiceCallbacks(GattBatteryCallbacks),
+    BatteryServiceRefresh,
     BatteryManagerCallbackDisconnected(u32),
 
     GattClientCallbackDisconnected(u32),
@@ -128,6 +136,7 @@ impl Stack {
         bluetooth_gatt: Arc<Mutex<Box<BluetoothGatt>>>,
         battery_service: Arc<Mutex<Box<BatteryService>>>,
         battery_manager: Arc<Mutex<Box<BatteryManager>>>,
+        battery_provider_manager: Arc<Mutex<Box<BatteryProviderManager>>>,
         bluetooth_media: Arc<Mutex<Box<BluetoothMedia>>>,
         suspend: Arc<Mutex<Box<Suspend>>>,
         bluetooth_socketmgr: Arc<Mutex<Box<BluetoothSocketManager>>>,
@@ -218,6 +227,13 @@ impl Stack {
                     bluetooth.lock().unwrap().trigger_freshness_check();
                 }
 
+                // Any service needing an updated list of devices can have an
+                // update method triggered from here rather than needing a
+                // reference to Bluetooth.
+                Message::OnDeviceConnected(device) => {
+                    battery_service.lock().unwrap().device_connected(device);
+                }
+
                 Message::SuspendCallbackRegistered(id) => {
                     suspend.lock().unwrap().callback_registered(id);
                 }
@@ -244,11 +260,23 @@ impl Stack {
                 Message::SocketManagerCallbackDisconnected(id) => {
                     bluetooth_socketmgr.lock().unwrap().remove_callback(id);
                 }
+                Message::BatteryProviderManagerBatteryUpdated(remote_address, battery_set) => {
+                    battery_manager
+                        .lock()
+                        .unwrap()
+                        .handle_battery_updated(remote_address, battery_set);
+                }
+                Message::BatteryProviderManagerCallbackDisconnected(id) => {
+                    battery_provider_manager.lock().unwrap().remove_battery_provider_callback(id);
+                }
                 Message::BatteryServiceCallbackDisconnected(id) => {
                     battery_service.lock().unwrap().remove_callback(id);
                 }
                 Message::BatteryServiceCallbacks(callback) => {
                     battery_service.lock().unwrap().handle_callback(callback);
+                }
+                Message::BatteryServiceRefresh => {
+                    battery_service.lock().unwrap().refresh_all_devices();
                 }
                 Message::BatteryManagerCallbackDisconnected(id) => {
                     battery_manager.lock().unwrap().remove_callback(id);
