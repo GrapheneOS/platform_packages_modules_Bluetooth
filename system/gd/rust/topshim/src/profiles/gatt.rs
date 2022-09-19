@@ -486,6 +486,34 @@ impl Display for GattStatus {
     }
 }
 
+#[derive(Debug, FromPrimitive, ToPrimitive)]
+#[repr(u8)]
+/// Represents LE PHY.
+pub enum LePhy {
+    Invalid = 0,
+    Phy1m = 1,
+    Phy2m = 2,
+    PhyCoded = 3,
+}
+
+impl From<LePhy> for i32 {
+    fn from(item: LePhy) -> Self {
+        item.to_i32().unwrap_or(0)
+    }
+}
+
+impl From<LePhy> for u8 {
+    fn from(item: LePhy) -> Self {
+        item.to_u8().unwrap_or(0)
+    }
+}
+
+impl Default for LePhy {
+    fn default() -> Self {
+        LePhy::Invalid
+    }
+}
+
 #[derive(Debug)]
 pub enum GattClientCallbacks {
     RegisterClient(GattStatus, i32, Uuid),
