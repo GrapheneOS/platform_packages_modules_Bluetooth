@@ -19,8 +19,11 @@ package com.android.server.bluetooth;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Binder;
 import android.os.UserHandle;
 import android.service.notification.StatusBarNotification;
@@ -39,6 +42,8 @@ public class BluetoothNotificationManager {
     private static final String NOTIFICATION_TAG = "com.android.bluetooth";
     public static final String APM_NOTIFICATION_CHANNEL = "apm_notification_channel";
     private static final String APM_NOTIFICATION_GROUP = "apm_notification_group";
+    private static final String HELP_PAGE_URL =
+            "https://support.google.com/pixelphone/answer/12639358";
 
     private final Context mContext;
     private NotificationManager mNotificationManager;
@@ -128,11 +133,21 @@ public class BluetoothNotificationManager {
             createNotificationChannels();
             mInitialized = true;
         }
+
+        Intent openLinkIntent = new Intent(Intent.ACTION_VIEW)
+                .setData(Uri.parse(HELP_PAGE_URL))
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        PendingIntent tapPendingIntent = PendingIntent.getActivity(
+                mContext.createContextAsUser(UserHandle.CURRENT, 0),
+                PendingIntent.FLAG_UPDATE_CURRENT, openLinkIntent, PendingIntent.FLAG_IMMUTABLE);
+
         Notification notification =  new Notification.Builder(mContext, APM_NOTIFICATION_CHANNEL)
                         .setAutoCancel(true)
                         .setLocalOnly(true)
                         .setContentTitle(title)
                         .setContentText(message)
+                        .setContentIntent(tapPendingIntent)
+                        .setVisibility(Notification.VISIBILITY_PUBLIC)
                         .setStyle(new Notification.BigTextStyle().bigText(message))
                         .setSmallIcon(android.R.drawable.stat_sys_data_bluetooth)
                         .build();
