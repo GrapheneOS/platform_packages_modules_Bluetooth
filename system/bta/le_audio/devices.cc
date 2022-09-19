@@ -1951,8 +1951,8 @@ int LeAudioDevice::GetAseCount(uint8_t direction) {
   });
 }
 
-struct ase* LeAudioDevice::GetFirstInactiveAseWithState(uint8_t direction,
-                                                        AseState state) {
+struct ase* LeAudioDevice::GetFirstAseWithState(uint8_t direction,
+                                                AseState state) {
   auto iter = std::find_if(
       ases_.begin(), ases_.end(), [direction, state](const auto& ase) {
         return ((ase.direction == direction) && (ase.state == state));
