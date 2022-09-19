@@ -20,8 +20,8 @@
 #include "hci/hci_packets.h"
 #include "include/phy.h"
 #include "model/controller/acl_connection_handler.h"
+#include "model/controller/controller_properties.h"
 #include "model/controller/le_advertiser.h"
-#include "model/devices/device_properties.h"
 #include "model/setup/async_manager.h"
 #include "packets/link_layer_packets.h"
 
@@ -44,7 +44,9 @@ class LinkLayerController {
  public:
   static constexpr size_t kIrkSize = 16;
 
-  LinkLayerController(const DeviceProperties& properties);
+  LinkLayerController(const Address& address,
+                      const ControllerProperties& properties);
+
   ErrorCode SendCommandToRemoteByAddress(
       OpCode opcode, bluetooth::packet::PacketView<true> args,
       const Address& remote);
@@ -114,6 +116,8 @@ class LinkLayerController {
                               uint8_t rssi);
 
  public:
+  const Address& GetAddress() const;
+
   void IncomingPacket(model::packets::LinkLayerPacketView incoming);
 
   void TimerTick();
@@ -356,8 +360,9 @@ class LinkLayerController {
   ErrorCode QosSetup(uint16_t handle, uint8_t service_type, uint32_t token_rate,
                      uint32_t peak_bandwidth, uint32_t latency,
                      uint32_t delay_variation);
-  ErrorCode RoleDiscovery(uint16_t handle);
-  ErrorCode SwitchRole(Address bd_addr, uint8_t role);
+  ErrorCode RoleDiscovery(uint16_t handle, bluetooth::hci::Role* role);
+  ErrorCode SwitchRole(Address bd_addr, bluetooth::hci::Role role);
+  ErrorCode ReadLinkPolicySettings(uint16_t handle, uint16_t* settings);
   ErrorCode WriteLinkPolicySettings(uint16_t handle, uint16_t settings);
   ErrorCode FlowSpecification(uint16_t handle, uint8_t flow_direction,
                               uint8_t service_type, uint32_t token_rate,
@@ -473,7 +478,9 @@ class LinkLayerController {
   void IncomingScoDisconnect(model::packets::LinkLayerPacketView packet);
 
  private:
-  const DeviceProperties& properties_;
+  const Address& address_;
+  const ControllerProperties& properties_;
+
   AclConnectionHandler connections_;
 
   // Callbacks to schedule tasks.

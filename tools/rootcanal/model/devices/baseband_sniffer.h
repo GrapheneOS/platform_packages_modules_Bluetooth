@@ -17,32 +17,42 @@
 #pragma once
 
 #include <cstdint>
-#include <vector>
+#include <fstream>
 
 #include "device.h"
 
 namespace rootcanal {
 
-class RemoteLoopbackDevice : public Device {
+namespace bredr_bb {
+namespace {
+class BaseBandPacketBuilder;
+}
+}  // namespace bredr_bb
+
+using ::bluetooth::hci::Address;
+
+class BaseBandSniffer : public Device {
  public:
-  RemoteLoopbackDevice();
-  virtual ~RemoteLoopbackDevice() = default;
+  BaseBandSniffer(const std::string& filename);
+  ~BaseBandSniffer() = default;
 
-  static std::shared_ptr<Device> Create(const std::vector<std::string>&) {
-    return std::make_shared<RemoteLoopbackDevice>();
+  static std::shared_ptr<BaseBandSniffer> Create(const std::string& filename) {
+    return std::make_shared<BaseBandSniffer>(filename);
   }
 
+  // Return a string representation of the type of device.
   virtual std::string GetTypeString() const override {
-    return "remote_loopback_device";
+    return "baseband_sniffer";
   }
-
-  virtual std::string ToString() const override;
 
   virtual void IncomingPacket(
       model::packets::LinkLayerPacketView packet) override;
 
+  virtual void TimerTick() override;
+
  private:
-  static bool registered_;
+  void AppendRecord(std::unique_ptr<bredr_bb::BaseBandPacketBuilder> record);
+  std::ofstream output_;
 };
 
 }  // namespace rootcanal
