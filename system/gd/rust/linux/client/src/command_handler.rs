@@ -331,6 +331,7 @@ impl CommandHandler {
                     let cod = adapter_dbus.get_bluetooth_class();
                     let multi_adv_supported = adapter_dbus.is_multi_advertisement_supported();
                     let le_ext_adv_supported = adapter_dbus.is_le_extended_advertising_supported();
+                    let wbs_supported = adapter_dbus.is_wbs_supported();
                     let uuid_helper = UuidHelper::new();
                     let enabled_profiles = uuid_helper.get_enabled_profiles();
                     let connected_profiles: Vec<Profile> = enabled_profiles
@@ -348,6 +349,7 @@ impl CommandHandler {
                     print_info!("IsMultiAdvertisementSupported: {}", multi_adv_supported);
                     print_info!("IsLeExtendedAdvertisingSupported: {}", le_ext_adv_supported);
                     print_info!("Connected profiles: {:?}", connected_profiles);
+                    print_info!("IsWbsSupported: {}", wbs_supported);
                     print_info!(
                         "Uuids: {}",
                         DisplayList(
