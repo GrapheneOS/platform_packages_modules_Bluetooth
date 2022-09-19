@@ -224,9 +224,9 @@ public class GattService extends ProfileService {
     /**
      * List of our registered advertisers.
      */
-    class AdvertiserMap extends ContextMap<IAdvertisingSetCallback, Void> {}
+    static class AdvertiserMap extends ContextMap<IAdvertisingSetCallback, Void> {}
 
-    AdvertiserMap mAdvertiserMap = new AdvertiserMap();
+    private AdvertiserMap mAdvertiserMap = new AdvertiserMap();
 
     /**
      * List of our registered clients.
@@ -330,7 +330,7 @@ public class GattService extends ProfileService {
         mBluetoothAdapterProxy = BluetoothAdapterProxy.getInstance();
         mCompanionManager = getSystemService(CompanionDeviceManager.class);
         mAppOps = getSystemService(AppOpsManager.class);
-        mAdvertiseManager = new AdvertiseManager(this, mAdapterService);
+        mAdvertiseManager = new AdvertiseManager(this, mAdapterService, mAdvertiserMap);
         mAdvertiseManager.start();
 
         mScanManager = new ScanManager(this, mAdapterService, mBluetoothAdapterProxy);
