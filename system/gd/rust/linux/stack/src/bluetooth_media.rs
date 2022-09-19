@@ -198,7 +198,7 @@ impl BluetoothMedia {
 
     pub fn dispatch_a2dp_callbacks(&mut self, cb: A2dpCallbacks) {
         match cb {
-            A2dpCallbacks::ConnectionState(addr, state) => {
+            A2dpCallbacks::ConnectionState(addr, state, _error) => {
                 if !self.a2dp_states.get(&addr).is_none()
                     && state == *self.a2dp_states.get(&addr).unwrap()
                 {
