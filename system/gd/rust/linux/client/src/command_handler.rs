@@ -6,6 +6,7 @@ use crate::callbacks::BtGattCallback;
 use crate::ClientContext;
 use crate::{console_red, console_yellow, print_error, print_info};
 use bt_topshim::btif::{BtConnectionState, BtStatus, BtTransport};
+use bt_topshim::profiles::gatt::LePhy;
 use btstack::bluetooth::{BluetoothDevice, IBluetooth, IBluetoothQA};
 use btstack::bluetooth_adv::{AdvertiseData, AdvertisingSetParameters};
 use btstack::bluetooth_gatt::{IBluetoothGatt, RSSISettings, ScanSettings, ScanType};
@@ -718,9 +719,9 @@ impl CommandHandler {
                     client_id.unwrap(),
                     addr,
                     false,
-                    2,
+                    BtTransport::Le,
                     false,
-                    1,
+                    LePhy::Phy1m,
                 );
             }
             "client-disconnect" => {
@@ -924,8 +925,8 @@ impl CommandHandler {
                     is_legacy: true,
                     is_anonymous: false,
                     include_tx_power: true,
-                    primary_phy: 1,
-                    secondary_phy: 1,
+                    primary_phy: LePhy::Phy1m,
+                    secondary_phy: LePhy::Phy1m,
                     interval: 160,
                     tx_power_level: -21,
                     own_address_type: 0, // random

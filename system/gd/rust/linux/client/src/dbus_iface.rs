@@ -4,7 +4,7 @@ use bt_topshim::btif::{
     BtBondState, BtConnectionState, BtDeviceType, BtPropertyType, BtSspVariant, BtStatus,
     BtTransport, Uuid, Uuid128Bit,
 };
-use bt_topshim::profiles::gatt::GattStatus;
+use bt_topshim::profiles::gatt::{GattStatus, LePhy};
 use bt_topshim::profiles::socket::SocketType;
 
 use btstack::bluetooth::{
@@ -16,7 +16,7 @@ use btstack::bluetooth_adv::{
 use btstack::bluetooth_gatt::{
     BluetoothGattCharacteristic, BluetoothGattDescriptor, BluetoothGattService,
     GattWriteRequestStatus, GattWriteType, IBluetoothGatt, IBluetoothGattCallback,
-    IScannerCallback, LePhy, RSSISettings, ScanFilter, ScanResult, ScanSettings, ScanType,
+    IScannerCallback, RSSISettings, ScanFilter, ScanResult, ScanSettings, ScanType,
 };
 use btstack::socket_manager::{
     BluetoothServerSocket, BluetoothSocket, CallbackId, IBluetoothSocketManager,
@@ -699,8 +699,8 @@ struct AdvertisingSetParametersDBus {
     is_legacy: bool,
     is_anonymous: bool,
     include_tx_power: bool,
-    primary_phy: i32,
-    secondary_phy: i32,
+    primary_phy: LePhy,
+    secondary_phy: LePhy,
     interval: i32,
     tx_power_level: i32,
     own_address_type: i32,
@@ -908,9 +908,9 @@ impl IBluetoothGatt for BluetoothGattDBus {
         client_id: i32,
         addr: String,
         is_direct: bool,
-        transport: i32,
+        transport: BtTransport,
         opportunistic: bool,
-        phy: i32,
+        phy: LePhy,
     ) {
         dbus_generated!()
     }
