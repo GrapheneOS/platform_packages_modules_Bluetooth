@@ -33,6 +33,7 @@ using ::bluetooth::hci::EventCode;
 using ::bluetooth::hci::LLFeaturesBits;
 using ::bluetooth::hci::LMPFeaturesPage0Bits;
 using ::bluetooth::hci::LMPFeaturesPage1Bits;
+using ::bluetooth::hci::LMPFeaturesPage2Bits;
 
 static constexpr uint64_t Page0LmpFeatures() {
   LMPFeaturesPage0Bits features[] = {
@@ -103,6 +104,17 @@ static constexpr uint64_t Page1LmpFeatures() {
   return value;
 }
 
+static constexpr uint64_t Page2LmpFeatures() {
+  LMPFeaturesPage2Bits features[] = {
+      LMPFeaturesPage2Bits::SECURE_CONNECTIONS_CONTROLLER_SUPPORT,
+  };
+
+  uint64_t value = 0;
+  for (unsigned i = 0; i < sizeof(features) / sizeof(*features); i++)
+    value |= static_cast<uint64_t>(features[i]);
+  return value;
+}
+
 static constexpr uint64_t LlFeatures() {
   LLFeaturesBits features[] = {
       LLFeaturesBits::LE_ENCRYPTION,
@@ -125,9 +137,9 @@ static constexpr uint64_t LlFeatures() {
   return value;
 }
 
-class DeviceProperties {
+class ControllerProperties {
  public:
-  explicit DeviceProperties(const std::string& file_name = "");
+  explicit ControllerProperties(const std::string& file_name = "");
 
   // Access private configuration data
 
@@ -224,10 +236,6 @@ class DeviceProperties {
   void SetSynchronousFlowControl(bool sco_flow_control) {
     sco_flow_control_ = sco_flow_control;
   }
-
-  const Address& GetAddress() const { return address_; }
-
-  void SetAddress(const Address& address) { address_ = address; }
 
   // Specification Version 4.2, Volume 2, Part E, Section 7.4.8
   const std::vector<uint8_t>& GetSupportedCodecs() const {
@@ -452,12 +460,11 @@ class DeviceProperties {
   std::vector<uint8_t> supported_codecs_;
   std::vector<uint32_t> vendor_specific_codecs_;
   std::array<uint8_t, 64> supported_commands_;
-  std::array<uint64_t, 2> extended_features_{
-      {Page0LmpFeatures(), Page1LmpFeatures()}};
+  std::array<uint64_t, 3> extended_features_{
+      {Page0LmpFeatures(), Page1LmpFeatures(), Page2LmpFeatures()}};
   ClassOfDevice class_of_device_{{0, 0, 0}};
   std::vector<uint8_t> extended_inquiry_data_;
   std::array<uint8_t, 248> name_{};
-  Address address_{};
   uint8_t page_scan_repetition_mode_{};
   uint16_t clock_offset_{};
   uint8_t encryption_key_size_{10};

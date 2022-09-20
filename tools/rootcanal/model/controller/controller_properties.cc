@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "device_properties.h"
+#include "controller_properties.h"
 
 #include <fstream>
 #include <memory>
@@ -46,14 +46,14 @@ static void ParseHex64(Json::Value value, uint64_t* field) {
 
 namespace rootcanal {
 
-DeviceProperties::DeviceProperties(const std::string& file_name)
+ControllerProperties::ControllerProperties(const std::string& file_name)
     : acl_data_packet_size_(1024),
       sco_data_packet_size_(255),
       num_acl_data_packets_(10),
       num_sco_data_packets_(10),
-      version_(static_cast<uint8_t>(bluetooth::hci::HciVersion::V_4_1)),
+      version_(static_cast<uint8_t>(bluetooth::hci::HciVersion::V_5_3)),
       revision_(0),
-      lmp_pal_version_(static_cast<uint8_t>(bluetooth::hci::LmpVersion::V_4_1)),
+      lmp_pal_version_(static_cast<uint8_t>(bluetooth::hci::LmpVersion::V_5_3)),
       manufacturer_name_(0),
       lmp_pal_subversion_(0),
       le_data_packet_length_(27),
@@ -62,7 +62,6 @@ DeviceProperties::DeviceProperties(const std::string& file_name)
       le_resolving_list_size_(15) {
   std::string properties_raw;
 
-  ASSERT(Address::FromString("BB:BB:BB:BB:BB:AD", address_));
   ASSERT(Address::FromString("BB:BB:BB:BB:AD:1E", le_address_));
   name_ = {'D', 'e', 'f', 'a', 'u', 'l', 't'};
 
@@ -121,7 +120,7 @@ DeviceProperties::DeviceProperties(const std::string& file_name)
                &le_resolving_list_ignore_reasons_);
 }
 
-bool DeviceProperties::SetLeHostFeature(uint8_t bit_number, uint8_t bit_value) {
+bool ControllerProperties::SetLeHostFeature(uint8_t bit_number, uint8_t bit_value) {
   if (bit_number >= 64 || bit_value > 1) return false;
 
   uint64_t bit_mask = UINT64_C(1) << bit_number;

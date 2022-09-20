@@ -26,6 +26,7 @@
 
 #include "hci/address.h"
 #include "hci/hci_packets.h"
+#include "controller_properties.h"
 #include "link_layer_controller.h"
 #include "model/devices/device.h"
 #include "model/setup/async_manager.h"
@@ -107,12 +108,6 @@ class DualModeController : public Device {
   void RegisterIsoChannel(
       const std::function<void(std::shared_ptr<std::vector<uint8_t>>)>&
           send_iso);
-
-  // Set the device's address.
-  void SetAddress(Address address) override;
-
-  // Get the device's address.
-  const Address& GetAddress();
 
   // Controller commands. For error codes, see the Bluetooth Core Specification,
   // Version 4.2, Volume 2, Part D (page 370).
@@ -222,6 +217,12 @@ class DualModeController : public Device {
   // 7.1.36
   void IoCapabilityRequestNegativeReply(CommandView args);
 
+  // 7.1.45
+  void EnhancedSetupSynchronousConnection(CommandView args);
+
+  // 7.1.46
+  void EnhancedAcceptSynchronousConnection(CommandView args);
+
   // 7.1.53
   void RemoteOobExtendedDataRequestReply(CommandView args);
 
@@ -242,6 +243,9 @@ class DualModeController : public Device {
 
   // 7.2.7
   void RoleDiscovery(CommandView args);
+
+  // 7.2.9
+  void ReadLinkPolicySettings(CommandView args);
 
   // 7.2.10
   void WriteLinkPolicySettings(CommandView args);
@@ -371,6 +375,9 @@ class DualModeController : public Device {
 
   // 7.3.63
   void SendKeypressNotification(CommandView args);
+
+  // 7.3.66
+  void EnhancedFlush(CommandView args);
 
   // 7.3.69
   void SetEventMaskPage2(CommandView args);
@@ -616,7 +623,11 @@ class DualModeController : public Device {
   void StopTimer();
 
  protected:
-  LinkLayerController link_layer_controller_{properties_};
+  // Controller configuration.
+  ControllerProperties properties_;
+
+  // Link Layer state.
+  LinkLayerController link_layer_controller_{address_, properties_};
 
  private:
   // Set a timer for a future action

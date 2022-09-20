@@ -558,7 +558,7 @@ public class MediaControlGattService implements MediaControlGattServiceInterface
             super.onCharacteristicReadRequest(device, requestId, offset, characteristic);
             if (VDBG) {
                 Log.d(TAG, "BluetoothGattServerCallback: onCharacteristicReadRequest offset= "
-                        + offset + " entire value= " + characteristic.getValue());
+                        + offset + " entire value= " + Arrays.toString(characteristic.getValue()));
             }
 
             if ((characteristic.getProperties() & PROPERTY_READ) == 0) {
