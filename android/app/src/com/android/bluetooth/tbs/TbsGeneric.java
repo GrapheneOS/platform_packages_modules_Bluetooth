@@ -35,6 +35,7 @@ import android.util.Log;
 import com.android.bluetooth.btservice.ServiceFactory;
 import com.android.bluetooth.le_audio.ContentControlIdKeeper;
 import com.android.bluetooth.le_audio.LeAudioService;
+import com.android.internal.annotations.VisibleForTesting;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -735,7 +736,7 @@ public class TbsGeneric {
             mLastIndexAssigned = requestId;
         }
 
-
+        setActiveLeDevice(device);
         return TbsGatt.CALL_CONTROL_POINT_RESULT_SUCCESS;
     }
 
@@ -794,6 +795,7 @@ public class TbsGeneric {
                         Request request = new Request(device, callId, opcode, callIndex);
                         try {
                             if (opcode == TbsGatt.CALL_CONTROL_POINT_OPCODE_ACCEPT) {
+                                setActiveLeDevice(device);
                                 bearer.callback.onAcceptCall(requestId, new ParcelUuid(callId));
                             } else if (opcode == TbsGatt.CALL_CONTROL_POINT_OPCODE_TERMINATE) {
                                 bearer.callback.onTerminateCall(requestId, new ParcelUuid(callId));
@@ -839,6 +841,7 @@ public class TbsGeneric {
 
                         Map.Entry<UUID, Bearer> firstEntry = null;
                         List<ParcelUuid> parcelUuids = new ArrayList<>();
+                        result = TbsGatt.CALL_CONTROL_POINT_RESULT_SUCCESS;
                         for (int callIndex : args) {
                             Map.Entry<UUID, Bearer> entry = getCallIdByIndex(callIndex);
                             if (entry == null) {
@@ -860,6 +863,10 @@ public class TbsGeneric {
                             }
 
                             parcelUuids.add(new ParcelUuid(entry.getKey()));
+                        }
+
+                        if (result != TbsGatt.CALL_CONTROL_POINT_RESULT_SUCCESS) {
+                            break;
                         }
 
                         Bearer bearer = firstEntry.getValue();
@@ -1023,6 +1030,11 @@ public class TbsGeneric {
         return true;
     }
 
+    @VisibleForTesting
+    void setLeAudioServiceForTesting(LeAudioService leAudioService) {
+        mLeAudioService = leAudioService;
+    }
+
     private synchronized void notifyCclc() {
         if (DBG) {
             Log.d(TAG, "notifyCclc");
@@ -1054,6 +1066,18 @@ public class TbsGeneric {
 
         mUriSchemes = new ArrayList<>(newUriSchemes);
         mTbsGatt.setBearerUriSchemesSupportedList(mUriSchemes);
+    }
+
+    private void setActiveLeDevice(BluetoothDevice device) {
+        if (device == null) {
+            Log.w(TAG, "setActiveLeDevice: ignore null device");
+            return;
+        }
+        if (!isLeAudioServiceAvailable()) {
+            Log.w(TAG, "mLeAudioService not available");
+            return;
+        }
+        mLeAudioService.setActiveDevice(device);
     }
 
     private static boolean isCallStateTransitionValid(int callState, int requestedOpcode) {
