@@ -31,7 +31,8 @@ static const btav_sink_interface_t* sBluetoothA2dpInterface = NULL;
 static jobject mCallbacksObj = NULL;
 
 static void bta2dp_connection_state_callback(const RawAddress& bd_addr,
-                                             btav_connection_state_t state) {
+                                             btav_connection_state_t state,
+                                             const btav_error_t& error) {
   ALOGI("%s", __func__);
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
