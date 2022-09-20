@@ -56,6 +56,7 @@ import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.btservice.ServiceFactory;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 import com.android.bluetooth.csip.CsipSetCoordinatorService;
+import com.android.bluetooth.le_audio.LeAudioService;
 import com.android.internal.annotations.VisibleForTesting;
 
 import java.util.ArrayList;
@@ -1258,6 +1259,25 @@ public class BassClientService extends ProfileService {
             return 0;
         }
         return stateMachine.getMaximumSourceCapacity();
+    }
+
+    boolean isLocalBroadcast(BluetoothLeBroadcastMetadata metaData) {
+        if (metaData == null) {
+            return false;
+        }
+
+        LeAudioService leAudioService = mServiceFactory.getLeAudioService();
+        if (leAudioService == null) {
+            return false;
+        }
+
+        boolean wasFound = leAudioService.getAllBroadcastMetadata()
+                .stream()
+                .anyMatch(meta -> {
+                    return meta.getSourceAdvertisingSid() == metaData.getSourceAdvertisingSid();
+                });
+        log("isLocalBroadcast=" + wasFound);
+        return wasFound;
     }
 
     static void log(String msg) {
