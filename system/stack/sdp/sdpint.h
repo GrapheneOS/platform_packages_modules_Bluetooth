@@ -241,7 +241,8 @@ extern bool spdu_is_avrcp_version_valid(const uint16_t version);
 extern void sdpu_set_avrc_target_version(const tSDP_ATTRIBUTE* p_attr,
                                          const RawAddress* bdaddr);
 extern uint16_t sdpu_get_active_ccb_cid(const RawAddress& remote_bd_addr);
-extern bool sdpu_process_pend_ccb(tCONN_CB& ccb, bool use_cur_chnl);
+extern bool sdpu_process_pend_ccb_same_cid(tCONN_CB& ccb);
+extern bool sdpu_process_pend_ccb_new_cid(tCONN_CB& ccb);
 extern void sdpu_clear_pend_ccb(tCONN_CB& ccb);
 extern void sdpu_callback(tCONN_CB& ccb, tSDP_REASON reason);
 
