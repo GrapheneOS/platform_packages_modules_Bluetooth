@@ -334,6 +334,7 @@ class VolumeControlTest : public ::testing::Test {
 
     EXPECT_CALL(gatt_interface, Open(gatt_if, address, true, _));
     VolumeControl::Get()->Connect(address);
+    Mock::VerifyAndClearExpectations(&gatt_interface);
   }
 
   void TestDisconnect(const RawAddress& address, uint16_t conn_id) {
@@ -343,6 +344,7 @@ class VolumeControlTest : public ::testing::Test {
       EXPECT_CALL(gatt_interface, CancelOpen(gatt_if, address, _));
     }
     VolumeControl::Get()->Disconnect(address);
+    Mock::VerifyAndClearExpectations(&gatt_interface);
   }
 
   void TestAddFromStorage(const RawAddress& address, bool auto_connect) {
@@ -1052,6 +1054,21 @@ TEST_F(VolumeControlCsis, autonomus_test_set_volume) {
   GetNotificationEvent(conn_id_1, test_address_1, 0x0021, value);
   GetNotificationEvent(conn_id_2, test_address_2, 0x0021, value);
 }
+
+TEST_F(VolumeControlCsis, autonomus_single_device_test_set_volume) {
+  /* Disconnect one device. */
+  EXPECT_CALL(*callbacks,
+              OnConnectionState(ConnectionState::DISCONNECTED, test_address_1));
+  GetDisconnectedEvent(test_address_1, conn_id_1);
+
+  /* Now inject notification and make sure callback is sent up to Java layer */
+  EXPECT_CALL(*callbacks,
+              OnGroupVolumeStateChanged(group_id, 0x03, false, true));
+
+  std::vector<uint8_t> value({0x03, 0x00, 0x02});
+  GetNotificationEvent(conn_id_2, test_address_2, 0x0021, value);
+}
+
 }  // namespace
 }  // namespace internal
 }  // namespace vc
