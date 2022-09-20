@@ -2527,6 +2527,12 @@ class LeAudioClientImpl : public LeAudioClient {
     leAudioClientAudioSource->UpdateRemoteDelay(remote_delay_ms);
     leAudioClientAudioSource->ConfirmStreamingRequest();
     audio_sender_state_ = AudioState::STARTED;
+    /* We update the target audio allocation before streamStarted that the
+     * offloder would know how to configure offloader encoder. We should check
+     * if we need to update the current
+     * allocation here as the target allocation and the current allocation is
+     * different */
+    updateOffloaderIfNeeded(group);
 
     return true;
   }
@@ -2585,6 +2591,12 @@ class LeAudioClientImpl : public LeAudioClient {
     leAudioClientAudioSink->UpdateRemoteDelay(remote_delay_ms);
     leAudioClientAudioSink->ConfirmStreamingRequest();
     audio_receiver_state_ = AudioState::STARTED;
+    /* We update the target audio allocation before streamStarted that the
+     * offloder would know how to configure offloader decoder. We should check
+     * if we need to update the current
+     * allocation here as the target allocation and the current allocation is
+     * different */
+    updateOffloaderIfNeeded(group);
   }
 
   void SuspendAudio(void) {
@@ -3511,7 +3523,7 @@ class LeAudioClientImpl : public LeAudioClient {
 
     const auto* stream_conf = &group->stream_conf;
 
-    if (stream_conf->sink_offloader_changed) {
+    if (stream_conf->sink_offloader_changed || stream_conf->sink_is_initial) {
       LOG_INFO("Update sink offloader streams");
       uint16_t remote_delay_ms =
           group->GetRemoteDelay(le_audio::types::kLeAudioDirectionSink);
@@ -3522,7 +3534,8 @@ class LeAudioClientImpl : public LeAudioClient {
       group->StreamOffloaderUpdated(le_audio::types::kLeAudioDirectionSink);
     }
 
-    if (stream_conf->source_offloader_changed) {
+    if (stream_conf->source_offloader_changed ||
+        stream_conf->source_is_initial) {
       LOG_INFO("Update source offloader streams");
       uint16_t remote_delay_ms =
           group->GetRemoteDelay(le_audio::types::kLeAudioDirectionSource);
