@@ -756,12 +756,22 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
 
     FreeLinkQualityReports(leAudioDevice);
 
+    auto ases_pair = leAudioDevice->GetAsesByCisConnHdl(event->cis_conn_hdl);
+
     /* If this is peer disconnecting CIS, make sure to clear data path */
     if (event->reason != HCI_ERR_CONN_CAUSE_LOCAL_HOST) {
       RemoveDataPathByCisHandle(leAudioDevice, event->cis_conn_hdl);
+      // Make sure we won't stay in STREAMING state
+      if (ases_pair.sink) {
+        ases_pair.sink->state =
+            AseState::BTA_LE_AUDIO_ASE_STATE_CODEC_CONFIGURED;
+      }
+      if (ases_pair.source) {
+        ases_pair.source->state =
+            AseState::BTA_LE_AUDIO_ASE_STATE_CODEC_CONFIGURED;
+      }
     }
 
-    auto ases_pair = leAudioDevice->GetAsesByCisConnHdl(event->cis_conn_hdl);
     if (ases_pair.sink) {
       ases_pair.sink->data_path_state = AudioStreamDataPathState::CIS_ASSIGNED;
     }
