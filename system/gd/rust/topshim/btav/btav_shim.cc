@@ -152,7 +152,8 @@ static ::rust::Vec<A2dpCodecConfig> to_rust_codec_config_vec(const std::vector<b
   return rconfigs;
 }
 
-static void connection_state_cb(const RawAddress& bd_addr, btav_connection_state_t state) {
+static void connection_state_cb(
+    const RawAddress& bd_addr, btav_connection_state_t state, [[maybe_unused]] const btav_error_t& error) {
   RustRawAddress addr = rusty::CopyToRustAddress(bd_addr);
   rusty::connection_state_callback(addr, state);
 }
