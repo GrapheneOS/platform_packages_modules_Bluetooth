@@ -59,7 +59,8 @@ GetA2dpSinkObservers();
 }  // namespace
 
 void SourceConnectionStateCallback(const RawAddress& bd_addr,
-                                   btav_connection_state_t state) {
+                                   btav_connection_state_t state,
+                                   const btav_error_t& error) {
   std::shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VERIFY_INTERFACE_OR_RETURN();
 
@@ -102,7 +103,8 @@ bool SourceMandatoryCodecPreferredCallback(const RawAddress& bd_addr) {
 }
 
 void SinkConnectionStateCallback(const RawAddress& bd_addr,
-                                 btav_connection_state_t state) {
+                                 btav_connection_state_t state,
+                                 const btav_error_t& error) {
   std::shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VERIFY_INTERFACE_OR_RETURN();
   for (auto& observer : *GetA2dpSinkObservers()) {
