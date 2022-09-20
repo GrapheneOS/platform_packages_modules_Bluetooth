@@ -115,8 +115,8 @@ class LeAudioDevice {
       types::AudioStreamDataPathState state);
   struct types::ase* GetFirstInactiveAse(uint8_t direction,
                                          bool reconnect = false);
-  struct types::ase* GetFirstInactiveAseWithState(uint8_t direction,
-                                                  types::AseState state);
+  struct types::ase* GetFirstAseWithState(uint8_t direction,
+                                          types::AseState state);
   struct types::ase* GetNextActiveAse(struct types::ase* ase);
   struct types::ase* GetAseToMatchBidirectionCis(struct types::ase* ase);
   types::BidirectAsesPair GetAsesByCisConnHdl(uint16_t conn_hdl);
