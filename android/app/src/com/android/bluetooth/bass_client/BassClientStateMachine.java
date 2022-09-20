@@ -352,7 +352,8 @@ public class BassClientStateMachine extends StateMachine {
         Map<ParcelUuid, byte[]> bmsAdvDataMap = record.getServiceData();
         if (bmsAdvDataMap != null) {
             for (Map.Entry<ParcelUuid, byte[]> entry : bmsAdvDataMap.entrySet()) {
-                log("ParcelUUid = " + entry.getKey() + ", Value = " + entry.getValue());
+                log("ParcelUUid = " + entry.getKey() + ", Value = "
+                        + Arrays.toString(entry.getValue()));
             }
         }
         byte[] advData = record.getServiceData(BassConstants.BASIC_AUDIO_UUID);
@@ -751,18 +752,18 @@ public class BassClientStateMachine extends StateMachine {
                     numSubGroups,
                     audioSyncState,
                     metadataList);
-            log("Receiver state: " +
-                "\n\tSource ID: " + sourceId +
-                "\n\tSource Address Type: " + (int) sourceAddressType +
-                "\n\tDevice: " + device +
-                "\n\tSource Adv SID: " + sourceAdvSid +
-                "\n\tBroadcast ID: " + broadcastId +
-                "\n\tMetadata Sync State: " + (int) metaDataSyncState +
-                "\n\tEncryption Status: " + (int) encryptionStatus +
-                "\n\tBad Broadcast Code: " + badBroadcastCode +
-                "\n\tNumber Of Subgroups: " + numSubGroups +
-                "\n\tAudio Sync State: " + audioSyncState +
-                "\n\tMetadata: " + metadataList);
+            log("Receiver state: "
+                    + "\n\tSource ID: " + sourceId
+                    + "\n\tSource Address Type: " + (int) sourceAddressType
+                    + "\n\tDevice: " + device
+                    + "\n\tSource Adv SID: " + sourceAdvSid
+                    + "\n\tBroadcast ID: " + broadcastId
+                    + "\n\tMetadata Sync State: " + (int) metaDataSyncState
+                    + "\n\tEncryption Status: " + (int) encryptionStatus
+                    + "\n\tBad Broadcast Code: " + Arrays.toString(badBroadcastCode)
+                    + "\n\tNumber Of Subgroups: " + numSubGroups
+                    + "\n\tAudio Sync State: " + audioSyncState
+                    + "\n\tMetadata: " + metadataList);
         }
         return recvState;
     }
