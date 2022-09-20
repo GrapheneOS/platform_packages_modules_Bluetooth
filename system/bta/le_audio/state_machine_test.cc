@@ -382,6 +382,12 @@ class StateMachineTest : public Test {
             return;
           }
 
+          // When we disconnect the remote with HCI_ERR_PEER_USER, we
+          // should be getting HCI_ERR_CONN_CAUSE_LOCAL_HOST from HCI.
+          if (reason == HCI_ERR_PEER_USER) {
+            reason = HCI_ERR_CONN_CAUSE_LOCAL_HOST;
+          }
+
           for (auto& kv_pair : le_audio_device_groups_) {
             auto& group = kv_pair.second;
             if (group->IsDeviceInTheGroup(dev_it->get())) {
@@ -2604,12 +2610,13 @@ TEST_F(StateMachineTest, testStreamConfigurationAdspDownMix) {
 }
 
 static void InjectCisDisconnected(LeAudioDeviceGroup* group,
-                                  LeAudioDevice* leAudioDevice) {
+                                  LeAudioDevice* leAudioDevice,
+                                  uint8_t reason) {
   bluetooth::hci::iso_manager::cis_disconnected_evt event;
 
   auto* ase = leAudioDevice->GetFirstActiveAse();
   while (ase) {
-    event.reason = 0x08;
+    event.reason = reason;
     event.cig_id = group->group_id_;
     event.cis_conn_hdl = ase->cis_conn_hdl;
     LeAudioGroupStateMachine::Get()->ProcessHciNotifCisDisconnected(
@@ -2659,8 +2666,8 @@ TEST_F(StateMachineTest, testAttachDeviceToTheStream) {
   ASSERT_EQ(expected_devices_written, num_devices);
 
   EXPECT_CALL(*mock_iso_manager_, CreateCig(_, _)).Times(1);
-  EXPECT_CALL(*mock_iso_manager_, EstablishCis(_)).Times(2);
-  EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(3);
+  EXPECT_CALL(*mock_iso_manager_, EstablishCis(_)).Times(1);
+  EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(2);
 
   InjectInitialIdleNotification(group);
 
@@ -2672,9 +2679,10 @@ TEST_F(StateMachineTest, testAttachDeviceToTheStream) {
   // Check if group has transitioned to a proper state
   ASSERT_EQ(group->GetState(),
             types::AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING);
+  testing::Mock::VerifyAndClearExpectations(&mock_iso_manager_);
 
   // Inject CIS and ACL disconnection of first device
-  InjectCisDisconnected(group, lastDevice);
+  InjectCisDisconnected(group, lastDevice, HCI_ERR_CONNECTION_TOUT);
   InjectAclDisconnected(group, lastDevice);
 
   // Check if group keeps streaming
@@ -2684,11 +2692,23 @@ TEST_F(StateMachineTest, testAttachDeviceToTheStream) {
   lastDevice->conn_id_ = 3;
   group->UpdateActiveContextsMap();
 
+  // Make sure ASE with disconnected CIS are not left in STREAMING
+  ASSERT_EQ(lastDevice->GetFirstAseWithState(
+                ::le_audio::types::kLeAudioDirectionSink,
+                types::AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING),
+            nullptr);
+  ASSERT_EQ(lastDevice->GetFirstAseWithState(
+                ::le_audio::types::kLeAudioDirectionSource,
+                types::AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING),
+            nullptr);
+
   EXPECT_CALL(gatt_queue, WriteCharacteristic(lastDevice->conn_id_,
                                               lastDevice->ctp_hdls_.val_hdl, _,
                                               GATT_WRITE_NO_RSP, _, _))
       .Times(AtLeast(3));
 
+  EXPECT_CALL(*mock_iso_manager_, EstablishCis(_)).Times(1);
+  EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(1);
   LeAudioGroupStateMachine::Get()->AttachToStream(group, lastDevice);
 
   // Check if group keeps streaming
