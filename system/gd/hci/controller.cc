@@ -878,6 +878,13 @@ struct Controller::impl {
         return vendor_capabilities_.a2dp_source_offload_capability_mask_ != 0x00;
       case OpCode::CONTROLLER_BQR:
         return vendor_capabilities_.bluetooth_quality_report_support_ == 0x01;
+      // Before MSFT extension is fully supported, return false for the following MSFT_OPCODE_XXXX for now.
+      case OpCode::MSFT_OPCODE_INTEL:
+        return false;
+      case OpCode::MSFT_OPCODE_MEDIATEK:
+        return false;
+      case OpCode::MSFT_OPCODE_QUALCOMM:
+        return false;
       // undefined in local_supported_commands_
       case OpCode::READ_LOCAL_SUPPORTED_COMMANDS:
         return true;
