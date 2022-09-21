@@ -39,17 +39,17 @@ from bluetooth_packets_python3.hci_packets import OwnAddressType
 from bluetooth_packets_python3.hci_packets import LeScanningFilterPolicy
 from bluetooth_packets_python3.hci_packets import Enable
 from bluetooth_packets_python3.hci_packets import FilterDuplicates
-from bluetooth_packets_python3.hci_packets import LeSetExtendedAdvertisingLegacyParametersBuilder
-from bluetooth_packets_python3.hci_packets import LegacyAdvertisingProperties
+from bluetooth_packets_python3.hci_packets import LeSetExtendedAdvertisingParametersLegacyBuilder
+from bluetooth_packets_python3.hci_packets import LegacyAdvertisingEventProperties
 from bluetooth_packets_python3.hci_packets import PeerAddressType
 from bluetooth_packets_python3.hci_packets import AdvertisingFilterPolicy
-from bluetooth_packets_python3.hci_packets import LeSetExtendedAdvertisingRandomAddressBuilder
+from bluetooth_packets_python3.hci_packets import LeSetAdvertisingSetRandomAddressBuilder
 from bluetooth_packets_python3.hci_packets import GapData
 from bluetooth_packets_python3.hci_packets import GapDataType
 from bluetooth_packets_python3.hci_packets import LeSetExtendedAdvertisingDataBuilder
 from bluetooth_packets_python3.hci_packets import Operation
 from bluetooth_packets_python3.hci_packets import FragmentPreference
-from bluetooth_packets_python3.hci_packets import LeSetExtendedAdvertisingScanResponseBuilder
+from bluetooth_packets_python3.hci_packets import LeSetExtendedScanResponseDataBuilder
 from bluetooth_packets_python3.hci_packets import LeSetExtendedAdvertisingEnableBuilder
 from bluetooth_packets_python3.hci_packets import LeSetExtendedScanEnableBuilder
 from bluetooth_packets_python3.hci_packets import EnabledSet
@@ -135,9 +135,9 @@ class DirectHciTest(gd_base_test.GdBaseTestClass):
         # CERT Advertises
         advertising_handle = 0
         self.cert_hal.send_hci_command(
-            LeSetExtendedAdvertisingLegacyParametersBuilder(
+            LeSetExtendedAdvertisingParametersLegacyBuilder(
                 advertising_handle,
-                LegacyAdvertisingProperties.ADV_IND,
+                LegacyAdvertisingEventProperties.ADV_IND,
                 512,
                 768,
                 7,
@@ -150,8 +150,7 @@ class DirectHciTest(gd_base_test.GdBaseTestClass):
                 Enable.DISABLED  # Scan request notification
             ))
 
-        self.cert_hal.send_hci_command(
-            LeSetExtendedAdvertisingRandomAddressBuilder(advertising_handle, '0C:05:04:03:02:01'))
+        self.cert_hal.send_hci_command(LeSetAdvertisingSetRandomAddressBuilder(advertising_handle, '0C:05:04:03:02:01'))
         gap_name = GapData()
         gap_name.data_type = GapDataType.COMPLETE_LOCAL_NAME
         gap_name.data = list(bytes(b'Im_A_Cert'))
@@ -165,8 +164,8 @@ class DirectHciTest(gd_base_test.GdBaseTestClass):
         gap_short_name.data = list(bytes(b'Im_A_C'))
 
         self.cert_hal.send_hci_command(
-            LeSetExtendedAdvertisingScanResponseBuilder(advertising_handle, Operation.COMPLETE_ADVERTISEMENT,
-                                                        FragmentPreference.CONTROLLER_SHOULD_NOT, [gap_short_name]))
+            LeSetExtendedScanResponseDataBuilder(advertising_handle, Operation.COMPLETE_ADVERTISEMENT,
+                                                 FragmentPreference.CONTROLLER_SHOULD_NOT, [gap_short_name]))
 
         enabled_set = EnabledSet()
         enabled_set.advertising_handle = 0

@@ -591,7 +591,7 @@ class LeExtendedAdvertisingAPITest : public LeExtendedAdvertisingManagerTest {
         OnAdvertisingSetStarted(0x00, advertiser_id_, -23, AdvertisingCallback::AdvertisingStatus::SUCCESS));
     std::vector<OpCode> adv_opcodes = {
         OpCode::LE_SET_EXTENDED_ADVERTISING_PARAMETERS,
-        OpCode::LE_SET_EXTENDED_ADVERTISING_SCAN_RESPONSE,
+        OpCode::LE_SET_EXTENDED_SCAN_RESPONSE_DATA,
         OpCode::LE_SET_EXTENDED_ADVERTISING_DATA,
         OpCode::LE_SET_EXTENDED_ADVERTISING_ENABLE,
     };
@@ -742,7 +742,7 @@ TEST_F(LeExtendedAdvertisingManagerTest, create_advertiser_test) {
       OnAdvertisingSetStarted(0x00, id, -23, AdvertisingCallback::AdvertisingStatus::SUCCESS));
   std::vector<OpCode> adv_opcodes = {
       OpCode::LE_SET_EXTENDED_ADVERTISING_PARAMETERS,
-      OpCode::LE_SET_EXTENDED_ADVERTISING_SCAN_RESPONSE,
+      OpCode::LE_SET_EXTENDED_SCAN_RESPONSE_DATA,
       OpCode::LE_SET_EXTENDED_ADVERTISING_DATA,
       OpCode::LE_SET_EXTENDED_ADVERTISING_ENABLE,
   };
@@ -902,12 +902,11 @@ TEST_F(LeExtendedAdvertisingAPITest, set_data_test) {
   response_data.push_back(data_item2);
   test_hci_layer_->SetCommandFuture();
   le_advertising_manager_->SetData(advertiser_id_, true, response_data);
-  test_hci_layer_->GetCommand(OpCode::LE_SET_EXTENDED_ADVERTISING_SCAN_RESPONSE);
+  test_hci_layer_->GetCommand(OpCode::LE_SET_EXTENDED_SCAN_RESPONSE_DATA);
   EXPECT_CALL(
       mock_advertising_callback_,
       OnScanResponseDataSet(advertiser_id_, AdvertisingCallback::AdvertisingStatus::SUCCESS));
-  test_hci_layer_->IncomingEvent(
-      LeSetExtendedAdvertisingScanResponseCompleteBuilder::Create(uint8_t{1}, ErrorCode::SUCCESS));
+  test_hci_layer_->IncomingEvent(LeSetExtendedScanResponseDataCompleteBuilder::Create(uint8_t{1}, ErrorCode::SUCCESS));
   sync_client_handler();
 }
 
@@ -998,25 +997,22 @@ TEST_F(LeExtendedAdvertisingAPITest, set_scan_response_fragments_test) {
 
   // First fragment
   test_hci_layer_->SetCommandFuture();
-  test_hci_layer_->GetCommand(OpCode::LE_SET_EXTENDED_ADVERTISING_SCAN_RESPONSE);
+  test_hci_layer_->GetCommand(OpCode::LE_SET_EXTENDED_SCAN_RESPONSE_DATA);
 
   // Intermediate fragment
   test_hci_layer_->SetCommandFuture();
-  test_hci_layer_->GetCommand(OpCode::LE_SET_EXTENDED_ADVERTISING_SCAN_RESPONSE);
+  test_hci_layer_->GetCommand(OpCode::LE_SET_EXTENDED_SCAN_RESPONSE_DATA);
 
   // Last fragment
   test_hci_layer_->SetCommandFuture();
-  test_hci_layer_->GetCommand(OpCode::LE_SET_EXTENDED_ADVERTISING_SCAN_RESPONSE);
+  test_hci_layer_->GetCommand(OpCode::LE_SET_EXTENDED_SCAN_RESPONSE_DATA);
 
   EXPECT_CALL(
       mock_advertising_callback_,
       OnScanResponseDataSet(advertiser_id_, AdvertisingCallback::AdvertisingStatus::SUCCESS));
-  test_hci_layer_->IncomingEvent(
-      LeSetExtendedAdvertisingScanResponseCompleteBuilder::Create(uint8_t{1}, ErrorCode::SUCCESS));
-  test_hci_layer_->IncomingEvent(
-      LeSetExtendedAdvertisingScanResponseCompleteBuilder::Create(uint8_t{1}, ErrorCode::SUCCESS));
-  test_hci_layer_->IncomingEvent(
-      LeSetExtendedAdvertisingScanResponseCompleteBuilder::Create(uint8_t{1}, ErrorCode::SUCCESS));
+  test_hci_layer_->IncomingEvent(LeSetExtendedScanResponseDataCompleteBuilder::Create(uint8_t{1}, ErrorCode::SUCCESS));
+  test_hci_layer_->IncomingEvent(LeSetExtendedScanResponseDataCompleteBuilder::Create(uint8_t{1}, ErrorCode::SUCCESS));
+  test_hci_layer_->IncomingEvent(LeSetExtendedScanResponseDataCompleteBuilder::Create(uint8_t{1}, ErrorCode::SUCCESS));
 
   sync_client_handler();
 }

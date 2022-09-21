@@ -268,7 +268,7 @@ CmdEvtActivityClassification lookup_cmd(hci::OpCode opcode) {
     case hci::OpCode::LE_SET_SCAN_RESPONSE_DATA:
     case hci::OpCode::LE_SET_ADVERTISING_ENABLE:
     case hci::OpCode::LE_SET_EXTENDED_ADVERTISING_DATA:
-    case hci::OpCode::LE_SET_EXTENDED_ADVERTISING_SCAN_RESPONSE:
+    case hci::OpCode::LE_SET_EXTENDED_SCAN_RESPONSE_DATA:
     case hci::OpCode::LE_SET_EXTENDED_ADVERTISING_ENABLE:
     case hci::OpCode::LE_READ_MAXIMUM_ADVERTISING_DATA_LENGTH:
     case hci::OpCode::LE_READ_NUMBER_OF_SUPPORTED_ADVERTISING_SETS:
@@ -277,7 +277,7 @@ CmdEvtActivityClassification lookup_cmd(hci::OpCode opcode) {
     case hci::OpCode::LE_SET_PERIODIC_ADVERTISING_PARAM:
     case hci::OpCode::LE_SET_PERIODIC_ADVERTISING_DATA:
     case hci::OpCode::LE_SET_PERIODIC_ADVERTISING_ENABLE:
-    case hci::OpCode::LE_SET_EXTENDED_ADVERTISING_RANDOM_ADDRESS:
+    case hci::OpCode::LE_SET_ADVERTISING_SET_RANDOM_ADDRESS:
       classification = {.activity = Activity::ADVERTISE, .connection_handle_pos = 0, .address_pos = 0};
       break;
 

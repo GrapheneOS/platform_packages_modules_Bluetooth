@@ -81,7 +81,7 @@ class LeAclManagerTest(gd_base_test.GdBaseTestClass):
         self.cert_hci.create_advertisement(
             advertising_handle,
             self.cert_random_address,
-            hci_packets.LegacyAdvertisingProperties.ADV_IND,
+            hci_packets.LegacyAdvertisingEventProperties.ADV_IND,
         )
 
         py_hci_adv.set_data(b'Im_A_Cert')
@@ -109,7 +109,7 @@ class LeAclManagerTest(gd_base_test.GdBaseTestClass):
         self.cert_hci.create_advertisement(
             advertising_handle,
             self.cert_random_address,
-            hci_packets.LegacyAdvertisingProperties.ADV_IND,
+            hci_packets.LegacyAdvertisingEventProperties.ADV_IND,
             own_address_type=hci_packets.OwnAddressType.RESOLVABLE_OR_PUBLIC_ADDRESS,
             peer_address=self.dut_public_address,
             peer_address_type=hci_packets.PeerAddressType.PUBLIC_DEVICE_OR_IDENTITY_ADDRESS)
@@ -331,7 +331,7 @@ class LeAclManagerTest(gd_base_test.GdBaseTestClass):
         advertising_handle = 0
 
         py_hci_adv = self.cert_hci.create_advertisement(advertising_handle, self.cert_random_address,
-                                                        hci_packets.LegacyAdvertisingProperties.ADV_IND, 155, 165)
+                                                        hci_packets.LegacyAdvertisingEventProperties.ADV_IND, 155, 165)
 
         py_hci_adv.set_data(b'Im_A_Cert')
         py_hci_adv.set_scan_response(b'Im_A_C')
@@ -360,7 +360,7 @@ class LeAclManagerTest(gd_base_test.GdBaseTestClass):
         advertising_handle = 0
 
         py_hci_adv = self.cert_hci.create_advertisement(advertising_handle, self.cert_random_address,
-                                                        hci_packets.LegacyAdvertisingProperties.ADV_IND, 155, 165)
+                                                        hci_packets.LegacyAdvertisingEventProperties.ADV_IND, 155, 165)
 
         py_hci_adv.set_data(b'Im_A_Cert')
         py_hci_adv.set_scan_response(b'Im_A_C')
@@ -374,7 +374,7 @@ class LeAclManagerTest(gd_base_test.GdBaseTestClass):
         advertising_handle = 0
 
         py_hci_adv = self.cert_hci.create_advertisement(advertising_handle, '0C:05:04:03:02:02',
-                                                        hci_packets.LegacyAdvertisingProperties.ADV_IND, 155, 165)
+                                                        hci_packets.LegacyAdvertisingEventProperties.ADV_IND, 155, 165)
 
         py_hci_adv.set_data(b'Im_A_Cert')
         py_hci_adv.set_scan_response(b'Im_A_C')
@@ -389,7 +389,7 @@ class LeAclManagerTest(gd_base_test.GdBaseTestClass):
 
         advertising_handle = 0
         py_hci_adv = self.cert_hci.create_advertisement(advertising_handle, self.cert_random_address,
-                                                        hci_packets.LegacyAdvertisingProperties.ADV_IND, 155, 165)
+                                                        hci_packets.LegacyAdvertisingEventProperties.ADV_IND, 155, 165)
 
         py_hci_adv.set_data(b'Im_A_Cert')
         py_hci_adv.set_scan_response(b'Im_A_C')
@@ -417,7 +417,7 @@ class LeAclManagerTest(gd_base_test.GdBaseTestClass):
         advertising_handle = 0
 
         py_hci_adv = self.cert_hci.create_advertisement(advertising_handle, self.cert_random_address,
-                                                        hci_packets.LegacyAdvertisingProperties.ADV_IND, 155, 165)
+                                                        hci_packets.LegacyAdvertisingEventProperties.ADV_IND, 155, 165)
 
         py_hci_adv.set_data(b'Im_A_Cert')
         py_hci_adv.set_scan_response(b'Im_A_C')

@@ -31,6 +31,9 @@
 #include "os/thread.h"
 #include "packet/raw_builder.h"
 
+using ::testing::_;
+using ::testing::Eq;
+
 namespace bluetooth {
 namespace hci {
 namespace {
@@ -412,15 +415,17 @@ TEST_F(LeScanningManagerTest, start_scan_test) {
   report.event_type_ = AdvertisingEventType::ADV_DIRECT_IND;
   report.address_type_ = AddressType::PUBLIC_DEVICE_ADDRESS;
   Address::FromString("12:34:56:78:9a:bc", report.address_);
-  std::vector<GapData> gap_data{};
-  GapData data_item{};
-  data_item.data_type_ = GapDataType::FLAGS;
-  data_item.data_ = {0x34};
-  gap_data.push_back(data_item);
-  data_item.data_type_ = GapDataType::COMPLETE_LOCAL_NAME;
-  data_item.data_ = {'r', 'a', 'n', 'd', 'o', 'm', ' ', 'd', 'e', 'v', 'i', 'c', 'e'};
-  gap_data.push_back(data_item);
-  report.advertising_data_ = gap_data;
+  std::vector<LengthAndData> adv_data{};
+  LengthAndData data_item{};
+  data_item.data_.push_back(static_cast<uint8_t>(GapDataType::FLAGS));
+  data_item.data_.push_back(0x34);
+  adv_data.push_back(data_item);
+  data_item.data_.push_back(static_cast<uint8_t>(GapDataType::COMPLETE_LOCAL_NAME));
+  for (auto octet : {'r', 'a', 'n', 'd', 'o', 'm', ' ', 'd', 'e', 'v', 'i', 'c', 'e'}) {
+    data_item.data_.push_back(octet);
+  }
+  adv_data.push_back(data_item);
+  report.advertising_data_ = adv_data;
 
   EXPECT_CALL(mock_callbacks_, OnScanResult);
 
@@ -442,15 +447,17 @@ TEST_F(LeAndroidHciScanningManagerTest, start_scan_test) {
   report.event_type_ = AdvertisingEventType::ADV_DIRECT_IND;
   report.address_type_ = AddressType::PUBLIC_DEVICE_ADDRESS;
   Address::FromString("12:34:56:78:9a:bc", report.address_);
-  std::vector<GapData> gap_data{};
-  GapData data_item{};
-  data_item.data_type_ = GapDataType::FLAGS;
-  data_item.data_ = {0x34};
-  gap_data.push_back(data_item);
-  data_item.data_type_ = GapDataType::COMPLETE_LOCAL_NAME;
-  data_item.data_ = {'r', 'a', 'n', 'd', 'o', 'm', ' ', 'd', 'e', 'v', 'i', 'c', 'e'};
-  gap_data.push_back(data_item);
-  report.advertising_data_ = gap_data;
+  std::vector<LengthAndData> adv_data{};
+  LengthAndData data_item{};
+  data_item.data_.push_back(static_cast<uint8_t>(GapDataType::FLAGS));
+  data_item.data_.push_back(0x34);
+  adv_data.push_back(data_item);
+  data_item.data_.push_back(static_cast<uint8_t>(GapDataType::COMPLETE_LOCAL_NAME));
+  for (auto octet : {'r', 'a', 'n', 'd', 'o', 'm', ' ', 'd', 'e', 'v', 'i', 'c', 'e'}) {
+    data_item.data_.push_back(octet);
+  }
+  adv_data.push_back(data_item);
+  report.advertising_data_ = adv_data;
 
   EXPECT_CALL(mock_callbacks_, OnScanResult);
 
@@ -667,26 +674,80 @@ TEST_F(LeExtendedScanningManagerTest, start_scan_test) {
   report.scannable_ = 0;
   report.address_type_ = DirectAdvertisingAddressType::PUBLIC_DEVICE_ADDRESS;
   Address::FromString("12:34:56:78:9a:bc", report.address_);
-  std::vector<GapData> gap_data{};
-  GapData data_item{};
-  data_item.data_type_ = GapDataType::FLAGS;
-  data_item.data_ = {0x34};
-  gap_data.push_back(data_item);
-  data_item.data_type_ = GapDataType::COMPLETE_LOCAL_NAME;
-  data_item.data_ = {'r', 'a', 'n', 'd', 'o', 'm', ' ', 'd', 'e', 'v', 'i', 'c', 'e'};
-  gap_data.push_back(data_item);
-  std::vector<uint8_t> advertising_data = {};
-  for (auto data : gap_data) {
-    advertising_data.push_back((uint8_t)data.size() - 1);
-    advertising_data.push_back((uint8_t)data.data_type_);
-    advertising_data.insert(advertising_data.end(), data.data_.begin(), data.data_.end());
+  std::vector<LengthAndData> adv_data{};
+  LengthAndData data_item{};
+  data_item.data_.push_back(static_cast<uint8_t>(GapDataType::FLAGS));
+  data_item.data_.push_back(0x34);
+  adv_data.push_back(data_item);
+  data_item.data_.push_back(static_cast<uint8_t>(GapDataType::COMPLETE_LOCAL_NAME));
+  for (auto octet : {'r', 'a', 'n', 'd', 'o', 'm', ' ', 'd', 'e', 'v', 'i', 'c', 'e'}) {
+    data_item.data_.push_back(octet);
   }
+  adv_data.push_back(data_item);
 
-  report.advertising_data_ = advertising_data;
+  report.advertising_data_ = adv_data;
 
   EXPECT_CALL(mock_callbacks_, OnScanResult);
 
   test_hci_layer_->IncomingLeMetaEvent(LeExtendedAdvertisingReportBuilder::Create({report}));
+}
+
+TEST_F(LeExtendedScanningManagerTest, drop_insignificant_bytes_test) {
+  // Enable scan
+  test_hci_layer_->SetCommandFuture(2);
+  le_scanning_manager->Scan(true);
+  ASSERT_EQ(param_opcode_, test_hci_layer_->GetCommand().GetOpCode());
+  test_hci_layer_->IncomingEvent(LeSetExtendedScanParametersCompleteBuilder::Create(uint8_t{1}, ErrorCode::SUCCESS));
+  ASSERT_EQ(enable_opcode_, test_hci_layer_->GetCommand().GetOpCode());
+  test_hci_layer_->IncomingEvent(LeSetExtendedScanEnableCompleteBuilder::Create(uint8_t{1}, ErrorCode::SUCCESS));
+
+  // Prepare advertisement report
+  LeExtendedAdvertisingResponse advertisement_report{};
+  advertisement_report.connectable_ = 1;
+  advertisement_report.scannable_ = 1;
+  advertisement_report.address_type_ = DirectAdvertisingAddressType::PUBLIC_DEVICE_ADDRESS;
+  Address::FromString("12:34:56:78:9a:bc", advertisement_report.address_);
+  std::vector<LengthAndData> adv_data{};
+  LengthAndData flags_data{};
+  flags_data.data_.push_back(static_cast<uint8_t>(GapDataType::FLAGS));
+  flags_data.data_.push_back(0x34);
+  adv_data.push_back(flags_data);
+  LengthAndData name_data{};
+  name_data.data_.push_back(static_cast<uint8_t>(GapDataType::COMPLETE_LOCAL_NAME));
+  for (auto octet : "random device") {
+    name_data.data_.push_back(octet);
+  }
+  adv_data.push_back(name_data);
+  for (int i = 0; i != 5; ++i) {
+    adv_data.push_back({});  // pad with a few insigificant zeros
+  }
+  advertisement_report.advertising_data_ = adv_data;
+
+  // Prepare scan response report
+  auto scan_response_report = advertisement_report;
+  scan_response_report.scan_response_ = true;
+  LengthAndData extra_data{};
+  extra_data.data_.push_back(static_cast<uint8_t>(GapDataType::MANUFACTURER_SPECIFIC_DATA));
+  for (auto octet : "manufacturer specific") {
+    extra_data.data_.push_back(octet);
+  }
+  adv_data = {extra_data};
+  for (int i = 0; i != 5; ++i) {
+    adv_data.push_back({});  // pad with a few insigificant zeros
+  }
+  scan_response_report.advertising_data_ = adv_data;
+
+  // We expect the two reports to be concatenated, excluding the zero-padding
+  auto result = std::vector<uint8_t>();
+  packet::BitInserter it(result);
+  flags_data.Serialize(it);
+  name_data.Serialize(it);
+  extra_data.Serialize(it);
+  EXPECT_CALL(mock_callbacks_, OnScanResult(_, _, _, _, _, _, _, _, _, result));
+
+  // Send both reports
+  test_hci_layer_->IncomingLeMetaEvent(LeExtendedAdvertisingReportBuilder::Create({advertisement_report}));
+  test_hci_layer_->IncomingLeMetaEvent(LeExtendedAdvertisingReportBuilder::Create({scan_response_report}));
 }
 
 }  // namespace
