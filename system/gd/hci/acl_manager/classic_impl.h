@@ -286,67 +286,6 @@ struct classic_impl : public security::ISecurityManagerListener {
     dequeue_next_connection();
   }
 
-  void on_connection_complete(EventView packet) {
-    ConnectionCompleteView connection_complete = ConnectionCompleteView::Create(packet);
-    ASSERT(connection_complete.IsValid());
-    auto status = connection_complete.GetStatus();
-    auto address = connection_complete.GetBdAddr();
-    if (client_callbacks_ == nullptr) {
-      LOG_WARN("No client callbacks registered for connection");
-      return;
-    }
-    Role current_role = Role::CENTRAL;
-    bool locally_initiated = true;
-    if (outgoing_connecting_address_ == address) {
-      outgoing_connecting_address_ = Address::kEmpty;
-    } else {
-      auto incoming_address = incoming_connecting_address_set_.find(address);
-      if (incoming_address == incoming_connecting_address_set_.end()) {
-        ASSERT_LOG(
-            status != ErrorCode::UNKNOWN_CONNECTION,
-            "No prior connection request for %s expecting:%s",
-            address.ToString().c_str(),
-            set_of_incoming_connecting_addresses().c_str());
-        LOG_WARN("No matching connection to %s (%s)", address.ToString().c_str(), ErrorCodeText(status).c_str());
-        LOG_WARN("Firmware error after RemoteNameRequestCancel?");
-        return;
-      }
-      incoming_connecting_address_set_.erase(incoming_address);
-      current_role = Role::PERIPHERAL;
-      locally_initiated = false;
-    }
-    if (status != ErrorCode::SUCCESS) {
-      client_handler_->Post(common::BindOnce(&ConnectionCallbacks::OnConnectFail, common::Unretained(client_callbacks_),
-                                             address, status));
-    } else {
-      uint16_t handle = connection_complete.GetConnectionHandle();
-      auto queue = std::make_shared<AclConnection::Queue>(10);
-      auto queue_down_end = queue->GetDownEnd();
-      round_robin_scheduler_->Register(RoundRobinScheduler::ConnectionType::CLASSIC, handle, queue);
-      std::unique_ptr<ClassicAclConnection> connection(
-          new ClassicAclConnection(std::move(queue), acl_connection_interface_, handle, address));
-      connection->locally_initiated_ = locally_initiated;
-      connections.add(
-          handle,
-          AddressWithType{address, AddressType::PUBLIC_DEVICE_ADDRESS},
-          queue_down_end,
-          handler_,
-          connection->GetEventCallbacks([this](uint16_t handle) { this->connections.invalidate(handle); }));
-      connections.execute(address, [=](ConnectionManagementCallbacks* callbacks) {
-        if (delayed_role_change_ == nullptr) {
-          callbacks->OnRoleChange(hci::ErrorCode::SUCCESS, current_role);
-        } else if (delayed_role_change_->GetBdAddr() == address) {
-          LOG_INFO("Sending delayed role change for %s", delayed_role_change_->GetBdAddr().ToString().c_str());
-          callbacks->OnRoleChange(delayed_role_change_->GetStatus(), delayed_role_change_->GetNewRole());
-          delayed_role_change_.reset();
-        }
-      });
-      client_handler_->Post(common::BindOnce(
-          &ConnectionCallbacks::OnConnectSuccess, common::Unretained(client_callbacks_), std::move(connection)));
-    }
-    dequeue_next_connection();
-  }
-
   void dequeue_next_connection() {
     if (incoming_connecting_address_set_.empty() && outgoing_connecting_address_.IsEmpty()) {
       while (!pending_outgoing_connections_.empty()) {
@@ -384,6 +323,79 @@ struct classic_impl : public security::ISecurityManagerListener {
       // everything is good, resume when a connection_complete event arrives
       return;
     }
+  }
+
+  enum class Initiator {
+    LOCALLY_INITIATED,
+    REMOTE_INITIATED,
+  };
+
+  void create_and_announce_connection(
+      ConnectionCompleteView connection_complete, Role current_role, Initiator initiator) {
+    auto status = connection_complete.GetStatus();
+    auto address = connection_complete.GetBdAddr();
+    if (client_callbacks_ == nullptr) {
+      LOG_WARN("No client callbacks registered for connection");
+      return;
+    }
+    if (status != ErrorCode::SUCCESS) {
+      client_handler_->Post(common::BindOnce(
+          &ConnectionCallbacks::OnConnectFail, common::Unretained(client_callbacks_), address, status));
+      return;
+    }
+    uint16_t handle = connection_complete.GetConnectionHandle();
+    auto queue = std::make_shared<AclConnection::Queue>(10);
+    auto queue_down_end = queue->GetDownEnd();
+    round_robin_scheduler_->Register(RoundRobinScheduler::ConnectionType::CLASSIC, handle, queue);
+    std::unique_ptr<ClassicAclConnection> connection(
+        new ClassicAclConnection(std::move(queue), acl_connection_interface_, handle, address));
+    connection->locally_initiated_ = initiator == Initiator::LOCALLY_INITIATED;
+    connections.add(
+        handle,
+        AddressWithType{address, AddressType::PUBLIC_DEVICE_ADDRESS},
+        queue_down_end,
+        handler_,
+        connection->GetEventCallbacks([this](uint16_t handle) { this->connections.invalidate(handle); }));
+    connections.execute(address, [=](ConnectionManagementCallbacks* callbacks) {
+      if (delayed_role_change_ == nullptr) {
+        callbacks->OnRoleChange(hci::ErrorCode::SUCCESS, current_role);
+      } else if (delayed_role_change_->GetBdAddr() == address) {
+        LOG_INFO("Sending delayed role change for %s", delayed_role_change_->GetBdAddr().ToString().c_str());
+        callbacks->OnRoleChange(delayed_role_change_->GetStatus(), delayed_role_change_->GetNewRole());
+        delayed_role_change_.reset();
+      }
+    });
+    client_handler_->Post(common::BindOnce(
+        &ConnectionCallbacks::OnConnectSuccess, common::Unretained(client_callbacks_), std::move(connection)));
+  }
+
+  void on_connection_complete(EventView packet) {
+    ConnectionCompleteView connection_complete = ConnectionCompleteView::Create(packet);
+    ASSERT(connection_complete.IsValid());
+    auto status = connection_complete.GetStatus();
+    auto address = connection_complete.GetBdAddr();
+    Role current_role = Role::CENTRAL;
+    auto initiator = Initiator::LOCALLY_INITIATED;
+    if (outgoing_connecting_address_ == address) {
+      outgoing_connecting_address_ = Address::kEmpty;
+    } else {
+      auto incoming_address = incoming_connecting_address_set_.find(address);
+      if (incoming_address == incoming_connecting_address_set_.end()) {
+        ASSERT_LOG(
+            status != ErrorCode::UNKNOWN_CONNECTION,
+            "No prior connection request for %s expecting:%s",
+            address.ToString().c_str(),
+            set_of_incoming_connecting_addresses().c_str());
+        LOG_WARN("No matching connection to %s (%s)", address.ToString().c_str(), ErrorCodeText(status).c_str());
+        LOG_WARN("Firmware error after RemoteNameRequestCancel?");
+        return;
+      }
+      incoming_connecting_address_set_.erase(incoming_address);
+      current_role = Role::PERIPHERAL;
+      initiator = Initiator::REMOTE_INITIATED;
+    }
+    create_and_announce_connection(connection_complete, current_role, initiator);
+    dequeue_next_connection();
   }
 
   void cancel_connect(Address address) {
