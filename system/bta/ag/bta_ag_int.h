@@ -134,6 +134,11 @@ typedef struct {
   RawAddress bd_addr;
 } tBTA_AG_API_OPEN;
 
+/* data type for BTA_AG_API_AUDIO_OPEN_EVT */
+typedef struct {
+  bool force_cvsd;
+} tBTA_AG_API_AUDIO_OPEN;
+
 /* data type for BTA_AG_API_RESULT_EVT */
 typedef struct {
   tBTA_AG_RES result;
@@ -162,6 +167,7 @@ typedef struct {
 union tBTA_AG_DATA {
   tBTA_AG_API_REGISTER api_register;
   tBTA_AG_API_OPEN api_open;
+  tBTA_AG_API_AUDIO_OPEN api_audio_open;
   tBTA_AG_API_RESULT api_result;
   tBTA_AG_API_SETCODEC api_setcodec;
   tBTA_AG_DISC_RESULT disc_result;
