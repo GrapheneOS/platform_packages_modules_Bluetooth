@@ -1112,19 +1112,23 @@ public class LeAudioService extends ProfileService {
     }
 
     private void clearLostDevicesWhileStreaming(LeAudioGroupDescriptor descriptor) {
-        if (DBG) {
-            Log.d(TAG, " lost dev: " + descriptor.mLostLeadDeviceWhileStreaming);
-        }
+        synchronized (mGroupLock) {
+            if (DBG) {
+                Log.d(TAG, "Clearing lost dev: " + descriptor.mLostLeadDeviceWhileStreaming);
+            }
 
-        LeAudioStateMachine sm = mStateMachines.get(descriptor.mLostLeadDeviceWhileStreaming);
-        if (sm != null) {
-            LeAudioStackEvent stackEvent =
-                new LeAudioStackEvent(LeAudioStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED);
-            stackEvent.device = descriptor.mLostLeadDeviceWhileStreaming;
-            stackEvent.valueInt1 = LeAudioStackEvent.CONNECTION_STATE_DISCONNECTED;
-            sm.sendMessage(LeAudioStateMachine.STACK_EVENT, stackEvent);
+            LeAudioStateMachine sm =
+                    mStateMachines.get(descriptor.mLostLeadDeviceWhileStreaming);
+            if (sm != null) {
+                LeAudioStackEvent stackEvent =
+                        new LeAudioStackEvent(
+                                LeAudioStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED);
+                stackEvent.device = descriptor.mLostLeadDeviceWhileStreaming;
+                stackEvent.valueInt1 = LeAudioStackEvent.CONNECTION_STATE_DISCONNECTED;
+                sm.sendMessage(LeAudioStateMachine.STACK_EVENT, stackEvent);
+            }
+            descriptor.mLostLeadDeviceWhileStreaming = null;
         }
-        descriptor.mLostLeadDeviceWhileStreaming = null;
     }
 
     // Suppressed since this is part of a local process
@@ -1153,10 +1157,14 @@ public class LeAudioService extends ProfileService {
                         switch (stackEvent.valueInt1) {
                             case LeAudioStackEvent.CONNECTION_STATE_DISCONNECTING:
                             case LeAudioStackEvent.CONNECTION_STATE_DISCONNECTED:
+                                boolean disconnectDueToUnbond =
+                                        (BluetoothDevice.BOND_NONE
+                                                == mAdapterService.getBondState(device));
                                 if (descriptor != null && (Objects.equals(device,
                                         mActiveAudioOutDevice)
                                         || Objects.equals(device, mActiveAudioInDevice))
-                                        && (getConnectedPeerDevices(groupId).size() > 1)) {
+                                        && (getConnectedPeerDevices(groupId).size() > 1)
+                                        && !disconnectDueToUnbond) {
 
                                     if (DBG) Log.d(TAG, "Adding to lost devices : " + device);
                                     descriptor.mLostLeadDeviceWhileStreaming = device;
@@ -1501,6 +1509,8 @@ public class LeAudioService extends ProfileService {
                 return;
             }
             if (sm.getConnectionState() != BluetoothProfile.STATE_DISCONNECTED) {
+                Log.w(TAG, "Device is not disconnected yet.");
+                disconnect(device);
                 return;
             }
             removeStateMachine(device);
@@ -1839,6 +1849,10 @@ public class LeAudioService extends ProfileService {
 
     private void handleGroupNodeAdded(BluetoothDevice device, int groupId) {
         synchronized (mGroupLock) {
+            if (DBG) {
+                Log.d(TAG, "Device " + device + " added to group " + groupId);
+            }
+
             mDeviceGroupIdMap.put(device, groupId);
             LeAudioGroupDescriptor descriptor = mGroupDescriptors.get(groupId);
             if (descriptor == null) {
@@ -1863,7 +1877,14 @@ public class LeAudioService extends ProfileService {
     }
 
     private void handleGroupNodeRemoved(BluetoothDevice device, int groupId) {
+        if (DBG) {
+            Log.d(TAG, "Removing device " + device + " grom group " + groupId);
+        }
+
         LeAudioGroupDescriptor descriptor = getGroupDescriptor(groupId);
+        if (DBG) {
+            Log.d(TAG, "Lost lead device is " + descriptor.mLostLeadDeviceWhileStreaming);
+        }
         if (Objects.equals(device, descriptor.mLostLeadDeviceWhileStreaming)) {
             clearLostDevicesWhileStreaming(descriptor);
         }
