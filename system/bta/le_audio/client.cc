@@ -1392,37 +1392,43 @@ class LeAudioClientImpl : public LeAudioClient {
 
     /* GATTC will ommit not registered previously handles */
     for (auto pac_tuple : leAudioDevice->snk_pacs_) {
-      BTA_GATTC_RegisterForNotifications(gatt_if_, leAudioDevice->address_,
-                                         std::get<0>(pac_tuple).val_hdl);
+      subscribe_for_notification(leAudioDevice->conn_id_,
+                                 leAudioDevice->address_,
+                                 std::get<0>(pac_tuple));
     }
     for (auto pac_tuple : leAudioDevice->src_pacs_) {
-      BTA_GATTC_RegisterForNotifications(gatt_if_, leAudioDevice->address_,
-                                         std::get<0>(pac_tuple).val_hdl);
+      subscribe_for_notification(leAudioDevice->conn_id_,
+                                 leAudioDevice->address_,
+                                 std::get<0>(pac_tuple));
     }
 
     if (leAudioDevice->snk_audio_locations_hdls_.val_hdl != 0)
-      BTA_GATTC_RegisterForNotifications(
-          gatt_if_, leAudioDevice->address_,
-          leAudioDevice->snk_audio_locations_hdls_.val_hdl);
+      subscribe_for_notification(leAudioDevice->conn_id_,
+                                 leAudioDevice->address_,
+                                 leAudioDevice->snk_audio_locations_hdls_);
     if (leAudioDevice->src_audio_locations_hdls_.val_hdl != 0)
-      BTA_GATTC_RegisterForNotifications(
-          gatt_if_, leAudioDevice->address_,
-          leAudioDevice->src_audio_locations_hdls_.val_hdl);
+      subscribe_for_notification(leAudioDevice->conn_id_,
+                                 leAudioDevice->address_,
+                                 leAudioDevice->src_audio_locations_hdls_);
+
     if (leAudioDevice->audio_avail_hdls_.val_hdl != 0)
-      BTA_GATTC_RegisterForNotifications(
-          gatt_if_, leAudioDevice->address_,
-          leAudioDevice->audio_avail_hdls_.val_hdl);
+      subscribe_for_notification(leAudioDevice->conn_id_,
+                                 leAudioDevice->address_,
+                                 leAudioDevice->audio_avail_hdls_);
+
     if (leAudioDevice->audio_supp_cont_hdls_.val_hdl != 0)
-      BTA_GATTC_RegisterForNotifications(
-          gatt_if_, leAudioDevice->address_,
-          leAudioDevice->audio_supp_cont_hdls_.val_hdl);
+      subscribe_for_notification(leAudioDevice->conn_id_,
+                                 leAudioDevice->address_,
+                                 leAudioDevice->audio_supp_cont_hdls_);
+
     if (leAudioDevice->ctp_hdls_.val_hdl != 0)
-      BTA_GATTC_RegisterForNotifications(gatt_if_, leAudioDevice->address_,
-                                         leAudioDevice->ctp_hdls_.val_hdl);
+      subscribe_for_notification(leAudioDevice->conn_id_,
+                                 leAudioDevice->address_,
+                                 leAudioDevice->ctp_hdls_);
 
     for (struct ase& ase : leAudioDevice->ases_)
-      BTA_GATTC_RegisterForNotifications(gatt_if_, leAudioDevice->address_,
-                                         ase.hdls.val_hdl);
+      subscribe_for_notification(leAudioDevice->conn_id_,
+                                 leAudioDevice->address_, ase.hdls);
   }
 
   void OnEncryptionComplete(const RawAddress& address, uint8_t status) {
@@ -2521,6 +2527,12 @@ class LeAudioClientImpl : public LeAudioClient {
     leAudioClientAudioSource->UpdateRemoteDelay(remote_delay_ms);
     leAudioClientAudioSource->ConfirmStreamingRequest();
     audio_sender_state_ = AudioState::STARTED;
+    /* We update the target audio allocation before streamStarted that the
+     * offloder would know how to configure offloader encoder. We should check
+     * if we need to update the current
+     * allocation here as the target allocation and the current allocation is
+     * different */
+    updateOffloaderIfNeeded(group);
 
     return true;
   }
@@ -2579,6 +2591,12 @@ class LeAudioClientImpl : public LeAudioClient {
     leAudioClientAudioSink->UpdateRemoteDelay(remote_delay_ms);
     leAudioClientAudioSink->ConfirmStreamingRequest();
     audio_receiver_state_ = AudioState::STARTED;
+    /* We update the target audio allocation before streamStarted that the
+     * offloder would know how to configure offloader decoder. We should check
+     * if we need to update the current
+     * allocation here as the target allocation and the current allocation is
+     * different */
+    updateOffloaderIfNeeded(group);
   }
 
   void SuspendAudio(void) {
@@ -3505,7 +3523,7 @@ class LeAudioClientImpl : public LeAudioClient {
 
     const auto* stream_conf = &group->stream_conf;
 
-    if (stream_conf->sink_offloader_changed) {
+    if (stream_conf->sink_offloader_changed || stream_conf->sink_is_initial) {
       LOG_INFO("Update sink offloader streams");
       uint16_t remote_delay_ms =
           group->GetRemoteDelay(le_audio::types::kLeAudioDirectionSink);
@@ -3516,7 +3534,8 @@ class LeAudioClientImpl : public LeAudioClient {
       group->StreamOffloaderUpdated(le_audio::types::kLeAudioDirectionSink);
     }
 
-    if (stream_conf->source_offloader_changed) {
+    if (stream_conf->source_offloader_changed ||
+        stream_conf->source_is_initial) {
       LOG_INFO("Update source offloader streams");
       uint16_t remote_delay_ms =
           group->GetRemoteDelay(le_audio::types::kLeAudioDirectionSource);
