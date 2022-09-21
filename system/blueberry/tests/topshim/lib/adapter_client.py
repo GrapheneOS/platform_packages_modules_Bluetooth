@@ -118,9 +118,6 @@ class AdapterClient(AsyncClosable):
     async def allow_wake_by_hid(self):
         await self.__adapter_stub.AllowWakeByHid(empty_proto.Empty())
 
-    async def remove_bond(self, address):
-        await self.__adapter_stub.RemoveBond(facade_pb2.RemoveBondRequest(address=address))
-
 
 class A2dpAutomationHelper():
     """Invoke gRPC on topshim for A2DP testing"""
