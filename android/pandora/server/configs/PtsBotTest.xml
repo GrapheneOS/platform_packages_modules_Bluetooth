@@ -5,6 +5,10 @@
         <option name="install-arg" value="-g" />
     </target_preparer>
 
+    <target_preparer class="com.android.tradefed.targetprep.RootTargetPreparer">
+      <option name="force-root" value="true"/>
+    </target_preparer>
+
     <target_preparer class="com.android.tradefed.targetprep.RunHostCommandTargetPreparer">
         <option name="host-background-command" value="adb -s $SERIAL shell am instrument --no-hidden-api-checks -w com.android.pandora/.Main" />
     </target_preparer>
@@ -30,6 +34,7 @@
         <option name="profile" value="GATT/CL/GAW" />
         <option name="profile" value="HFP/AG/DIS" />
         <option name="profile" value="HFP/AG/HFI" />
+        <option name="profile" value="HFP/AG/PSI" />
         <option name="profile" value="HFP/AG/SLC" />
         <option name="profile" value="HFP/AG/TCA" />
         <option name="profile" value="HID/HOS" />
