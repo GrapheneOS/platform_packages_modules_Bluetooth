@@ -125,6 +125,9 @@ cc_test_host {
         "rootcanal_defaults",
     ],
     srcs: [
+        "test/controller/le/le_clear_filter_accept_list_test.cc",
+        "test/controller/le/le_add_device_to_filter_accept_list_test.cc",
+        "test/controller/le/le_remove_device_from_filter_accept_list_test.cc",
         "test/controller/le/le_add_device_to_resolving_list_test.cc",
         "test/controller/le/le_clear_resolving_list_test.cc",
         "test/controller/le/le_remove_device_from_resolving_list_test.cc",
