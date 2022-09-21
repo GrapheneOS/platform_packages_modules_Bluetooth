@@ -240,6 +240,7 @@ extern void sdpu_set_avrc_target_version(const tSDP_ATTRIBUTE* p_attr,
 extern uint16_t sdpu_get_active_ccb_cid(const RawAddress& remote_bd_addr);
 extern bool sdpu_process_pend_ccb(uint16_t cid, bool use_cur_chnl);
 extern void sdpu_clear_pend_ccb(uint16_t cid);
+extern void sdpu_callback(tCONN_CB* p_ccb, tSDP_REASON reason);
 
 /* Functions provided by sdp_db.cc
  */
