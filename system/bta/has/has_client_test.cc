@@ -1343,7 +1343,7 @@ TEST_F(HasClientTest, test_reconnect_after_encryption_failed_from_storage) {
 
 TEST_F(HasClientTest, test_load_from_storage_and_connect) {
   const RawAddress test_address = GetTestAddress(1);
-  SetSampleDatabaseHasPresetsNtf(test_address, kFeatureBitDynamicPresets, {{}});
+  SetSampleDatabaseHasPresetsNtf(test_address, kFeatureBitDynamicPresets);
   SetEncryptionResult(test_address, true);
 
   std::set<HasPreset, HasPreset::ComparatorDesc> has_presets = {{
@@ -1413,7 +1413,7 @@ TEST_F(HasClientTest, test_load_from_storage_and_connect) {
 
 TEST_F(HasClientTest, test_load_from_storage) {
   const RawAddress test_address = GetTestAddress(1);
-  SetSampleDatabaseHasPresetsNtf(test_address, kFeatureBitDynamicPresets, {{}});
+  SetSampleDatabaseHasPresetsNtf(test_address, kFeatureBitDynamicPresets);
   SetEncryptionResult(test_address, true);
 
   std::set<HasPreset, HasPreset::ComparatorDesc> has_presets = {{
