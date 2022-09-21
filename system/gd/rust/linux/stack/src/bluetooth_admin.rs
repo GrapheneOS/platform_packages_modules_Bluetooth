@@ -35,7 +35,7 @@ pub trait IBluetoothAdmin {
 }
 
 /// Information of the effects to a remote device by the admin policies
-#[derive(PartialEq, Clone)]
+#[derive(PartialEq, Clone, Debug)]
 pub struct PolicyEffect {
     /// Array of services that are blocked by policy
     pub service_blocked: Vec<Uuid128Bit>,
