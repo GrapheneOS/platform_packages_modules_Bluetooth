@@ -282,19 +282,91 @@ struct classic_impl : public security::ISecurityManagerListener {
     std::unique_ptr<CreateConnectionBuilder> packet = CreateConnectionBuilder::Create(
         address, packet_type, page_scan_repetition_mode, clock_offset, clock_offset_valid, allow_role_switch);
 
-    if (incoming_connecting_address_set_.empty() && outgoing_connecting_address_ == Address::kEmpty) {
-      if (is_classic_link_already_connected(address)) {
-        LOG_WARN("already connected: %s", address.ToString().c_str());
-        return;
+    pending_outgoing_connections_.emplace(address, std::move(packet));
+    dequeue_next_connection();
+  }
+
+  void dequeue_next_connection() {
+    if (incoming_connecting_address_set_.empty() && outgoing_connecting_address_.IsEmpty()) {
+      while (!pending_outgoing_connections_.empty()) {
+        LOG_INFO("Pending connections is not empty; so sending next connection");
+        auto create_connection_packet_and_address = std::move(pending_outgoing_connections_.front());
+        pending_outgoing_connections_.pop();
+        if (!is_classic_link_already_connected(create_connection_packet_and_address.first)) {
+          outgoing_connecting_address_ = create_connection_packet_and_address.first;
+          acl_connection_interface_->EnqueueCommand(
+              std::move(create_connection_packet_and_address.second),
+              handler_->BindOnceOn(this, &classic_impl::on_create_connection_status));
+          break;
+        }
       }
-      outgoing_connecting_address_ = address;
-      acl_connection_interface_->EnqueueCommand(std::move(packet), handler_->BindOnce([](CommandStatusView status) {
-        ASSERT(status.IsValid());
-        ASSERT(status.GetCommandOpCode() == OpCode::CREATE_CONNECTION);
-      }));
-    } else {
-      pending_outgoing_connections_.emplace(address, std::move(packet));
     }
+  }
+
+  void on_create_connection_status(CommandStatusView status) {
+    ASSERT(status.IsValid());
+    ASSERT(status.GetCommandOpCode() == OpCode::CREATE_CONNECTION);
+    if (status.GetStatus() != hci::ErrorCode::SUCCESS /* = pending */) {
+      // something went wrong, but unblock queue and report to caller
+      LOG_ERROR(
+          "Failed to create connection to %s, reporting failure and continuing",
+          outgoing_connecting_address_.ToString().c_str());
+      ASSERT(client_callbacks_ != nullptr);
+      client_handler_->Post(common::BindOnce(
+          &ConnectionCallbacks::OnConnectFail,
+          common::Unretained(client_callbacks_),
+          outgoing_connecting_address_,
+          status.GetStatus()));
+      outgoing_connecting_address_ = Address::kEmpty;
+      dequeue_next_connection();
+    } else {
+      // everything is good, resume when a connection_complete event arrives
+      return;
+    }
+  }
+
+  enum class Initiator {
+    LOCALLY_INITIATED,
+    REMOTE_INITIATED,
+  };
+
+  void create_and_announce_connection(
+      ConnectionCompleteView connection_complete, Role current_role, Initiator initiator) {
+    auto status = connection_complete.GetStatus();
+    auto address = connection_complete.GetBdAddr();
+    if (client_callbacks_ == nullptr) {
+      LOG_WARN("No client callbacks registered for connection");
+      return;
+    }
+    if (status != ErrorCode::SUCCESS) {
+      client_handler_->Post(common::BindOnce(
+          &ConnectionCallbacks::OnConnectFail, common::Unretained(client_callbacks_), address, status));
+      return;
+    }
+    uint16_t handle = connection_complete.GetConnectionHandle();
+    auto queue = std::make_shared<AclConnection::Queue>(10);
+    auto queue_down_end = queue->GetDownEnd();
+    round_robin_scheduler_->Register(RoundRobinScheduler::ConnectionType::CLASSIC, handle, queue);
+    std::unique_ptr<ClassicAclConnection> connection(
+        new ClassicAclConnection(std::move(queue), acl_connection_interface_, handle, address));
+    connection->locally_initiated_ = initiator == Initiator::LOCALLY_INITIATED;
+    connections.add(
+        handle,
+        AddressWithType{address, AddressType::PUBLIC_DEVICE_ADDRESS},
+        queue_down_end,
+        handler_,
+        connection->GetEventCallbacks([this](uint16_t handle) { this->connections.invalidate(handle); }));
+    connections.execute(address, [=](ConnectionManagementCallbacks* callbacks) {
+      if (delayed_role_change_ == nullptr) {
+        callbacks->OnRoleChange(hci::ErrorCode::SUCCESS, current_role);
+      } else if (delayed_role_change_->GetBdAddr() == address) {
+        LOG_INFO("Sending delayed role change for %s", delayed_role_change_->GetBdAddr().ToString().c_str());
+        callbacks->OnRoleChange(delayed_role_change_->GetStatus(), delayed_role_change_->GetNewRole());
+        delayed_role_change_.reset();
+      }
+    });
+    client_handler_->Post(common::BindOnce(
+        &ConnectionCallbacks::OnConnectSuccess, common::Unretained(client_callbacks_), std::move(connection)));
   }
 
   void on_connection_complete(EventView packet) {
@@ -302,12 +374,8 @@ struct classic_impl : public security::ISecurityManagerListener {
     ASSERT(connection_complete.IsValid());
     auto status = connection_complete.GetStatus();
     auto address = connection_complete.GetBdAddr();
-    if (client_callbacks_ == nullptr) {
-      LOG_WARN("No client callbacks registered for connection");
-      return;
-    }
     Role current_role = Role::CENTRAL;
-    bool locally_initiated = true;
+    auto initiator = Initiator::LOCALLY_INITIATED;
     if (outgoing_connecting_address_ == address) {
       outgoing_connecting_address_ = Address::kEmpty;
     } else {
@@ -324,53 +392,10 @@ struct classic_impl : public security::ISecurityManagerListener {
       }
       incoming_connecting_address_set_.erase(incoming_address);
       current_role = Role::PERIPHERAL;
-      locally_initiated = false;
+      initiator = Initiator::REMOTE_INITIATED;
     }
-    if (status != ErrorCode::SUCCESS) {
-      client_handler_->Post(common::BindOnce(&ConnectionCallbacks::OnConnectFail, common::Unretained(client_callbacks_),
-                                             address, status));
-    } else {
-      uint16_t handle = connection_complete.GetConnectionHandle();
-      auto queue = std::make_shared<AclConnection::Queue>(10);
-      auto queue_down_end = queue->GetDownEnd();
-      round_robin_scheduler_->Register(RoundRobinScheduler::ConnectionType::CLASSIC, handle, queue);
-      std::unique_ptr<ClassicAclConnection> connection(
-          new ClassicAclConnection(std::move(queue), acl_connection_interface_, handle, address));
-      connection->locally_initiated_ = locally_initiated;
-      connections.add(
-          handle,
-          AddressWithType{address, AddressType::PUBLIC_DEVICE_ADDRESS},
-          queue_down_end,
-          handler_,
-          connection->GetEventCallbacks([this](uint16_t handle) { this->connections.invalidate(handle); }));
-      connections.execute(address, [=](ConnectionManagementCallbacks* callbacks) {
-        if (delayed_role_change_ == nullptr) {
-          callbacks->OnRoleChange(hci::ErrorCode::SUCCESS, current_role);
-        } else if (delayed_role_change_->GetBdAddr() == address) {
-          LOG_INFO("Sending delayed role change for %s", delayed_role_change_->GetBdAddr().ToString().c_str());
-          callbacks->OnRoleChange(delayed_role_change_->GetStatus(), delayed_role_change_->GetNewRole());
-          delayed_role_change_.reset();
-        }
-      });
-      client_handler_->Post(common::BindOnce(
-          &ConnectionCallbacks::OnConnectSuccess, common::Unretained(client_callbacks_), std::move(connection)));
-    }
-    if (outgoing_connecting_address_.IsEmpty()) {
-      while (!pending_outgoing_connections_.empty()) {
-        LOG_INFO("Pending connections is not empty; so sending next connection");
-        auto create_connection_packet_and_address = std::move(pending_outgoing_connections_.front());
-        pending_outgoing_connections_.pop();
-        if (!is_classic_link_already_connected(create_connection_packet_and_address.first)) {
-          outgoing_connecting_address_ = create_connection_packet_and_address.first;
-          acl_connection_interface_->EnqueueCommand(
-              std::move(create_connection_packet_and_address.second), handler_->BindOnce([](CommandStatusView status) {
-                ASSERT(status.IsValid());
-                ASSERT(status.GetCommandOpCode() == OpCode::CREATE_CONNECTION);
-              }));
-          break;
-        }
-      }
-    }
+    create_and_announce_connection(connection_complete, current_role, initiator);
+    dequeue_next_connection();
   }
 
   void cancel_connect(Address address) {
