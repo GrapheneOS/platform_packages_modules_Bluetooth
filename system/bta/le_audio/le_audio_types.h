@@ -703,8 +703,14 @@ struct stream_configuration {
   int sink_num_of_devices;
   /* cis_handle, audio location*/
   std::vector<std::pair<uint16_t, uint32_t>> sink_streams;
-  std::vector<std::pair<uint16_t, uint32_t>> sink_offloader_streams;
+  /* cis_handle, target allocation */
+  std::vector<std::pair<uint16_t, uint32_t>>
+      sink_offloader_streams_target_allocation;
+  /* cis_handle, current allocation */
+  std::vector<std::pair<uint16_t, uint32_t>>
+      sink_offloader_streams_current_allocation;
   bool sink_offloader_changed;
+  bool sink_is_initial;
 
   /* Source configuration */
   /* For now we have always same frequency for all the channels */
@@ -718,8 +724,14 @@ struct stream_configuration {
   int source_num_of_devices;
   /* cis_handle, audio location*/
   std::vector<std::pair<uint16_t, uint32_t>> source_streams;
-  std::vector<std::pair<uint16_t, uint32_t>> source_offloader_streams;
+  /* cis_handle, target allocation */
+  std::vector<std::pair<uint16_t, uint32_t>>
+      source_offloader_streams_target_allocation;
+  /* cis_handle, current allocation */
+  std::vector<std::pair<uint16_t, uint32_t>>
+      source_offloader_streams_current_allocation;
   bool source_offloader_changed;
+  bool source_is_initial;
 };
 
 void AppendMetadataLtvEntryForCcidList(std::vector<uint8_t>& metadata,

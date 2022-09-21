@@ -341,6 +341,13 @@ class VolumeControlImpl : public VolumeControl {
       }
     }
 
+    if (devices.empty() && (is_volume_change || is_mute_change)) {
+      LOG_INFO("No more devices in the group right now");
+      callbacks_->OnGroupVolumeStateChanged(group_id, device->volume,
+                                            device->mute, true);
+      return;
+    }
+
     if (is_volume_change) {
       std::vector<uint8_t> arg({device->volume});
       PrepareVolumeControlOperation(devices, group_id, true,
