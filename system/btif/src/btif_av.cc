@@ -1757,9 +1757,8 @@ bool BtifAvStateMachine::StateOpening::ProcessEvent(uint32_t event,
         state = BTAV_CONNECTION_STATE_DISCONNECTED;
         av_state = BtifAvStateMachine::kStateIdle;
         log_counter_metrics_btif(
-              android::bluetooth::CodePathCounterKeyEnum::
-              A2DP_CONNECTION_FAILURE,
-              1);
+            android::bluetooth::CodePathCounterKeyEnum::A2DP_CONNECTION_FAILURE,
+            1);
       }
 
       // Report the connection state to the application
@@ -2488,11 +2487,11 @@ static void btif_report_connection_state(const RawAddress& peer_address,
   if (btif_av_source.Enabled()) {
     do_in_jni_thread(FROM_HERE,
                      base::Bind(btif_av_source.Callbacks()->connection_state_cb,
-                                peer_address, state));
+                                peer_address, state, btav_error_t{}));
   } else if (btif_av_sink.Enabled()) {
     do_in_jni_thread(FROM_HERE,
                      base::Bind(btif_av_sink.Callbacks()->connection_state_cb,
-                                peer_address, state));
+                                peer_address, state, btav_error_t{}));
   }
 }
 
@@ -3521,7 +3520,8 @@ static void btif_debug_av_peer_dump(int fd, const BtifAvPeer& peer) {
   dprintf(fd, "    Support 3Mbps: %s\n", peer.Is3Mbps() ? "true" : "false");
   dprintf(fd, "    Self Initiated Connection: %s\n",
           peer.SelfInitiatedConnection() ? "true" : "false");
-  dprintf(fd, "    Delay Reporting: %u (in 1/10 milliseconds) \n", peer.GetDelayReport());
+  dprintf(fd, "    Delay Reporting: %u (in 1/10 milliseconds) \n",
+          peer.GetDelayReport());
   dprintf(fd, "    Codec Preferred: %s\n",
           peer.IsMandatoryCodecPreferred() ? "Mandatory" : "Optional");
 }
