@@ -869,6 +869,13 @@ typedef struct {
    *
    */
   int (*set_event_filter_connection_setup_all_devices)();
+
+  /**
+   *
+   * Is wbs supported by the controller
+   *
+   */
+  bool (*get_wbs_supported)();
 } bt_interface_t;
 
 #define BLUETOOTH_INTERFACE_STRING "bluetoothInterface"
