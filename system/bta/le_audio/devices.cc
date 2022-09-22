@@ -1694,6 +1694,11 @@ void LeAudioDeviceGroup::CreateStreamVectorForOffloader(uint8_t direction) {
 
   if (offloader_streams_target_allocation->size() == 0) {
     *is_initial = true;
+  } else if (*is_initial) {
+    // As multiple CISes phone call case, the target_allocation already have the
+    // previous data, but the is_initial flag not be cleared. We need to clear
+    // here to avoid make duplicated target allocation stream map.
+    offloader_streams_target_allocation->clear();
   }
 
   offloader_streams_current_allocation->clear();
