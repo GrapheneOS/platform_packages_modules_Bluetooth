@@ -343,7 +343,7 @@ impl AdvertisingSetInfo {
         AdvertisingSetInfo {
             advertiser_id: None,
             callback_id,
-            reg_id: REG_ID_COUNTER.fetch_and(1, Ordering::SeqCst) as RegId,
+            reg_id: REG_ID_COUNTER.fetch_add(1, Ordering::SeqCst) as RegId,
         }
     }
 
@@ -469,6 +469,7 @@ impl Advertisers {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::collections::HashSet;
     use std::iter::FromIterator;
 
     #[test]
@@ -492,5 +493,15 @@ mod tests {
         AdvertiseData::append_adv_data(&mut bytes, 100, &payload);
         AdvertiseData::append_adv_data(&mut bytes, 101, &[0]);
         assert_eq!(bytes, vec![6 as u8, 100, 0, 1, 2, 3, 4, 2, 101, 0]);
+    }
+
+    #[test]
+    fn test_new_advising_set_info() {
+        let mut uniq = HashSet::new();
+        for callback_id in 0..256 {
+            let s = AdvertisingSetInfo::new(callback_id);
+            assert_eq!(s.callback_id(), callback_id);
+            assert_eq!(uniq.insert(s.reg_id()), true);
+        }
     }
 }
