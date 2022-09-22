@@ -80,7 +80,8 @@ pub trait IBluetoothMedia {
 
     fn get_presentation_position(&mut self) -> PresentationPosition;
 
-    fn start_sco_call(&mut self, address: String, sco_offload: bool);
+    // Start the SCO setup to connect audio
+    fn start_sco_call(&mut self, address: String, sco_offload: bool, force_cvsd: bool);
     fn stop_sco_call(&mut self, address: String);
 }
 
@@ -918,7 +919,7 @@ impl IBluetoothMedia for BluetoothMedia {
         };
     }
 
-    fn start_sco_call(&mut self, address: String, sco_offload: bool) {
+    fn start_sco_call(&mut self, address: String, sco_offload: bool, force_cvsd: bool) {
         let addr = match RawAddress::from_string(address.clone()) {
             None => {
                 warn!("Can't start sco call with: {}", address);
@@ -936,7 +937,7 @@ impl IBluetoothMedia for BluetoothMedia {
             Some(hfp) => hfp,
         };
 
-        match hfp.connect_audio(addr, sco_offload) {
+        match hfp.connect_audio(addr, sco_offload, force_cvsd) {
             0 => {
                 info!("SCO connect_audio status success.");
             }

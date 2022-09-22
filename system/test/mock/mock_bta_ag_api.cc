@@ -44,7 +44,9 @@ tBTA_STATUS BTA_AgEnable(tBTA_AG_CBACK* p_cback) {
   return BTA_SUCCESS;
 }
 void BTA_AgAudioClose(uint16_t handle) { mock_function_count_map[__func__]++; }
-void BTA_AgAudioOpen(uint16_t handle) { mock_function_count_map[__func__]++; }
+void BTA_AgAudioOpen(uint16_t handle, bool force_cvsd) {
+  mock_function_count_map[__func__]++;
+}
 void BTA_AgClose(uint16_t handle) { mock_function_count_map[__func__]++; }
 void BTA_AgDeregister(uint16_t handle) { mock_function_count_map[__func__]++; }
 void BTA_AgDisable() { mock_function_count_map[__func__]++; }
