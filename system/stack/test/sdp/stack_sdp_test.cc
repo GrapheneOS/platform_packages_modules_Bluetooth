@@ -140,3 +140,35 @@ TEST_F(StackSdpMainTest, sdp_service_search_request_queuing) {
   ASSERT_EQ(p_ccb1->con_state, SDP_STATE_IDLE);
   ASSERT_EQ(p_ccb2->con_state, SDP_STATE_IDLE);
 }
+
+void sdp_callback(tSDP_RESULT result) {
+  if (result == SDP_SUCCESS) {
+    ASSERT_TRUE(SDP_ServiceSearchRequest(addr, sdp_db, nullptr));
+  }
+}
+
+TEST_F(StackSdpMainTest, sdp_service_search_request_queuing_race_condition) {
+  // start first request
+  ASSERT_TRUE(SDP_ServiceSearchRequest(addr, sdp_db, sdp_callback));
+  const int cid1 = L2CA_ConnectReq2_cid;
+  tCONN_CB* p_ccb1 = find_ccb(cid1, SDP_STATE_CONN_SETUP);
+  ASSERT_NE(p_ccb1, nullptr);
+  ASSERT_EQ(p_ccb1->con_state, SDP_STATE_CONN_SETUP);
+
+  tL2CAP_CFG_INFO cfg;
+  sdp_cb.reg_info.pL2CA_ConfigCfm_Cb(p_ccb1->connection_id, 0, &cfg);
+
+  ASSERT_EQ(p_ccb1->con_state, SDP_STATE_CONNECTED);
+
+  sdp_disconnect(p_ccb1, SDP_SUCCESS);
+  sdp_cb.reg_info.pL2CA_DisconnectCfm_Cb(p_ccb1->connection_id, 0);
+
+  const int cid2 = L2CA_ConnectReq2_cid;
+  ASSERT_NE(cid1, cid2);  // The callback a queued a new request
+  tCONN_CB* p_ccb2 = find_ccb(cid2, SDP_STATE_CONN_SETUP);
+  ASSERT_NE(p_ccb2, nullptr);
+  // If race condition, this will be stuck in PEND
+  ASSERT_EQ(p_ccb2->con_state, SDP_STATE_CONN_SETUP);
+
+  sdp_disconnect(p_ccb2, SDP_SUCCESS);
+}
