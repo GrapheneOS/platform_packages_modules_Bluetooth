@@ -282,19 +282,8 @@ struct classic_impl : public security::ISecurityManagerListener {
     std::unique_ptr<CreateConnectionBuilder> packet = CreateConnectionBuilder::Create(
         address, packet_type, page_scan_repetition_mode, clock_offset, clock_offset_valid, allow_role_switch);
 
-    if (incoming_connecting_address_set_.empty() && outgoing_connecting_address_ == Address::kEmpty) {
-      if (is_classic_link_already_connected(address)) {
-        LOG_WARN("already connected: %s", address.ToString().c_str());
-        return;
-      }
-      outgoing_connecting_address_ = address;
-      acl_connection_interface_->EnqueueCommand(std::move(packet), handler_->BindOnce([](CommandStatusView status) {
-        ASSERT(status.IsValid());
-        ASSERT(status.GetCommandOpCode() == OpCode::CREATE_CONNECTION);
-      }));
-    } else {
-      pending_outgoing_connections_.emplace(address, std::move(packet));
-    }
+    pending_outgoing_connections_.emplace(address, std::move(packet));
+    dequeue_next_connection();
   }
 
   void on_connection_complete(EventView packet) {
@@ -355,7 +344,11 @@ struct classic_impl : public security::ISecurityManagerListener {
       client_handler_->Post(common::BindOnce(
           &ConnectionCallbacks::OnConnectSuccess, common::Unretained(client_callbacks_), std::move(connection)));
     }
-    if (outgoing_connecting_address_.IsEmpty()) {
+    dequeue_next_connection();
+  }
+
+  void dequeue_next_connection() {
+    if (incoming_connecting_address_set_.empty() && outgoing_connecting_address_.IsEmpty()) {
       while (!pending_outgoing_connections_.empty()) {
         LOG_INFO("Pending connections is not empty; so sending next connection");
         auto create_connection_packet_and_address = std::move(pending_outgoing_connections_.front());
@@ -363,13 +356,33 @@ struct classic_impl : public security::ISecurityManagerListener {
         if (!is_classic_link_already_connected(create_connection_packet_and_address.first)) {
           outgoing_connecting_address_ = create_connection_packet_and_address.first;
           acl_connection_interface_->EnqueueCommand(
-              std::move(create_connection_packet_and_address.second), handler_->BindOnce([](CommandStatusView status) {
-                ASSERT(status.IsValid());
-                ASSERT(status.GetCommandOpCode() == OpCode::CREATE_CONNECTION);
-              }));
+              std::move(create_connection_packet_and_address.second),
+              handler_->BindOnceOn(this, &classic_impl::on_create_connection_status));
           break;
         }
       }
+    }
+  }
+
+  void on_create_connection_status(CommandStatusView status) {
+    ASSERT(status.IsValid());
+    ASSERT(status.GetCommandOpCode() == OpCode::CREATE_CONNECTION);
+    if (status.GetStatus() != hci::ErrorCode::SUCCESS /* = pending */) {
+      // something went wrong, but unblock queue and report to caller
+      LOG_ERROR(
+          "Failed to create connection to %s, reporting failure and continuing",
+          outgoing_connecting_address_.ToString().c_str());
+      ASSERT(client_callbacks_ != nullptr);
+      client_handler_->Post(common::BindOnce(
+          &ConnectionCallbacks::OnConnectFail,
+          common::Unretained(client_callbacks_),
+          outgoing_connecting_address_,
+          status.GetStatus()));
+      outgoing_connecting_address_ = Address::kEmpty;
+      dequeue_next_connection();
+    } else {
+      // everything is good, resume when a connection_complete event arrives
+      return;
     }
   }
 
