@@ -89,6 +89,12 @@ void LogCapture::Flush() {
   }
 }
 
+void LogCapture::Sync() {
+  if (fd_ != -1) {
+    fsync(fd_);
+  }
+}
+
 void LogCapture::Reset() {
   if (fd_ != -1) {
     if (ftruncate(fd_, 0UL) == -1) {
