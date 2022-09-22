@@ -203,7 +203,7 @@ pub trait IBluetoothGatt {
         &mut self,
         scanner_id: u8,
         settings: ScanSettings,
-        filters: Vec<ScanFilter>,
+        filter: ScanFilter,
     ) -> BtStatus;
 
     /// Deactivate scan of the given scanner id.
@@ -617,21 +617,15 @@ impl Default for ScanType {
     }
 }
 
-/// Represents RSSI configurations for hardware offloaded scanning.
-// TODO(b/200066804): This is still a placeholder struct, not yet complete.
-#[derive(Debug, Default)]
-pub struct RSSISettings {
-    pub low_threshold: i32,
-    pub high_threshold: i32,
-}
-
 /// Represents scanning configurations to be passed to `IBluetoothGatt::start_scan`.
+///
+/// This configuration is general and supported on all Bluetooth hardware, irrelevant of the
+/// hardware filter offload (APCF or MSFT).
 #[derive(Debug, Default)]
 pub struct ScanSettings {
     pub interval: i32,
     pub window: i32,
     pub scan_type: ScanType,
-    pub rssi_settings: RSSISettings,
 }
 
 /// Represents scan result
@@ -649,9 +643,64 @@ pub struct ScanResult {
     pub adv_data: Vec<u8>,
 }
 
+#[derive(Debug)]
+pub struct ScanFilterPattern {
+    /// Specifies the starting byte position of the pattern immediately following AD Type.
+    pub start_position: u8,
+
+    /// Advertising Data type (https://www.bluetooth.com/specifications/assigned-numbers/).
+    pub ad_type: u8,
+
+    /// The pattern to be matched for the specified AD Type within the advertisement packet from
+    /// the specified starting byte.
+    pub content: Vec<u8>,
+}
+
+/// Represents the condition for matching advertisements.
+///
+/// Only pattern-based matching is implemented.
+#[derive(Debug)]
+pub enum ScanFilterCondition {
+    /// All advertisements are matched.
+    All,
+
+    /// Match by pattern anywhere in the advertisement data. Multiple patterns are "OR"-ed.
+    Patterns(Vec<ScanFilterPattern>),
+
+    /// Match by UUID (not implemented).
+    Uuid,
+
+    /// Match if the IRK resolves an advertisement (not implemented).
+    Irk,
+
+    /// Match by Bluetooth address (not implemented).
+    BluetoothAddress,
+}
+
 /// Represents a scan filter to be passed to `IBluetoothGatt::start_scan`.
-#[derive(Debug, Default)]
-pub struct ScanFilter {}
+///
+/// This filter is intentionally modelled close to the MSFT hardware offload filter.
+/// Reference:
+/// https://learn.microsoft.com/en-us/windows-hardware/drivers/bluetooth/microsoft-defined-bluetooth-hci-commands-and-events
+#[derive(Debug)]
+pub struct ScanFilter {
+    /// Advertisements with RSSI above or equal this value is considered "found".
+    pub rssi_high_threshold: i16,
+
+    /// Advertisements with RSSI below or equal this value (for a period of rssi_low_timeout) is
+    /// considered "lost".
+    pub rssi_low_threshold: i16,
+
+    /// The time in seconds over which the RSSI value should be below rssi_low_threshold before
+    /// being considered "lost".
+    pub rssi_low_timeout: u16,
+
+    /// The sampling interval in milliseconds.
+    pub rssi_sampling_period: u16,
+
+    /// The condition to match advertisements with.
+    pub condition: ScanFilterCondition,
+}
 
 /// Implementation of the GATT API (IBluetoothGatt).
 pub struct BluetoothGatt {
@@ -901,7 +950,7 @@ impl IBluetoothGatt for BluetoothGatt {
         &mut self,
         scanner_id: u8,
         _settings: ScanSettings,
-        _filters: Vec<ScanFilter>,
+        _filter: ScanFilter,
     ) -> BtStatus {
         // Multiplexing scanners happens at this layer. The implementations of start_scan
         // and stop_scan maintains the state of all registered scanners and based on the states
