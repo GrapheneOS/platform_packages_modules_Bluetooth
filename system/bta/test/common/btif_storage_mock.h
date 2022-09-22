@@ -27,6 +27,14 @@ class BtifStorageInterface {
  public:
   virtual void AddLeaudioAutoconnect(RawAddress const& addr,
                                      bool autoconnect) = 0;
+  virtual void LeAudioUpdatePacs(RawAddress const& addr) = 0;
+  virtual void LeAudioUpdateAses(RawAddress const& addr) = 0;
+  virtual void LeAudioUpdateHandles(RawAddress const& addr) = 0;
+  virtual void SetLeAudioLocations(RawAddress const& addr,
+                                   uint32_t sink_location,
+                                   uint32_t source_location) = 0;
+  virtual void SetLeAudioContexts(RawAddress const& addr, uint16_t sink_context,
+                                  uint16_t source_context) = 0;
   virtual void RemoveLeaudio(RawAddress const& addr) = 0;
   virtual void AddLeaudioHasDevice(const RawAddress& address,
                                    std::vector<uint8_t> presets_bin,
@@ -50,6 +58,18 @@ class MockBtifStorageInterface : public BtifStorageInterface {
  public:
   MOCK_METHOD((void), AddLeaudioAutoconnect,
               (RawAddress const& addr, bool autoconnect), (override));
+  MOCK_METHOD((void), LeAudioUpdatePacs, (RawAddress const& addr), (override));
+  MOCK_METHOD((void), LeAudioUpdateAses, (RawAddress const& addr), (override));
+  MOCK_METHOD((void), LeAudioUpdateHandles, (RawAddress const& addr),
+              (override));
+  MOCK_METHOD((void), SetLeAudioLocations,
+              (RawAddress const& addr, uint32_t sink_location,
+               uint32_t source_location),
+              (override));
+  MOCK_METHOD((void), SetLeAudioContexts,
+              (RawAddress const& addr, uint16_t sink_context,
+               uint16_t source_context),
+              (override));
   MOCK_METHOD((void), RemoveLeaudio, (RawAddress const& addr), (override));
   MOCK_METHOD((void), AddLeaudioHasDevice,
               (const RawAddress& address, std::vector<uint8_t> presets_bin,

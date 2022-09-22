@@ -231,8 +231,10 @@ struct acs_supported_audio_contexts {
   std::bitset<16> src_supp_cont;
 };
 
-bool ParsePac(std::vector<struct types::acs_ac_record>& pac_recs, uint16_t len,
-              const uint8_t* value);
+int ParseSinglePac(std::vector<struct types::acs_ac_record>& pac_recs,
+                   uint16_t len, const uint8_t* value);
+bool ParsePacs(std::vector<struct types::acs_ac_record>& pac_recs, uint16_t len,
+               const uint8_t* value);
 bool ParseAudioLocations(types::AudioLocations& audio_locations, uint16_t len,
                          const uint8_t* value);
 bool ParseAvailableAudioContexts(struct acs_available_audio_contexts& rsp,
