@@ -79,7 +79,10 @@ public class VolumeControlService extends ProfileService {
     @VisibleForTesting
     RemoteCallbackList<IBluetoothVolumeControlCallback> mCallbacks;
 
-    private class VolumeControlOffsetDescriptor {
+    @VisibleForTesting
+    static class VolumeControlOffsetDescriptor {
+        Map<Integer, Descriptor> mVolumeOffsets;
+
         private class Descriptor {
             Descriptor() {
                 mValue = 0;
@@ -94,15 +97,18 @@ public class VolumeControlService extends ProfileService {
         VolumeControlOffsetDescriptor() {
             mVolumeOffsets = new HashMap<>();
         }
+
         int size() {
             return mVolumeOffsets.size();
         }
+
         void add(int id) {
             Descriptor d = mVolumeOffsets.get(id);
             if (d == null) {
                 mVolumeOffsets.put(id, new Descriptor());
             }
         }
+
         boolean setValue(int id, int value) {
             Descriptor d = mVolumeOffsets.get(id);
             if (d == null) {
@@ -111,6 +117,7 @@ public class VolumeControlService extends ProfileService {
             d.mValue = value;
             return true;
         }
+
         int getValue(int id) {
             Descriptor d = mVolumeOffsets.get(id);
             if (d == null) {
@@ -118,6 +125,7 @@ public class VolumeControlService extends ProfileService {
             }
             return d.mValue;
         }
+
         boolean setDescription(int id, String desc) {
             Descriptor d = mVolumeOffsets.get(id);
             if (d == null) {
@@ -126,6 +134,7 @@ public class VolumeControlService extends ProfileService {
             d.mDescription = desc;
             return true;
         }
+
         String getDescription(int id) {
             Descriptor d = mVolumeOffsets.get(id);
             if (d == null) {
@@ -133,6 +142,7 @@ public class VolumeControlService extends ProfileService {
             }
             return d.mDescription;
         }
+
         boolean setLocation(int id, int location) {
             Descriptor d = mVolumeOffsets.get(id);
             if (d == null) {
@@ -141,6 +151,7 @@ public class VolumeControlService extends ProfileService {
             d.mLocation = location;
             return true;
         }
+
         int getLocation(int id) {
             Descriptor d = mVolumeOffsets.get(id);
             if (d == null) {
@@ -148,12 +159,15 @@ public class VolumeControlService extends ProfileService {
             }
             return d.mLocation;
         }
+
         void remove(int id) {
             mVolumeOffsets.remove(id);
         }
+
         void clear() {
             mVolumeOffsets.clear();
         }
+
         void dump(StringBuilder sb) {
             for (Map.Entry<Integer, Descriptor> entry : mVolumeOffsets.entrySet()) {
                 Descriptor descriptor = entry.getValue();
@@ -164,8 +178,6 @@ public class VolumeControlService extends ProfileService {
                 ProfileService.println(sb, "        description: " + descriptor.mDescription);
             }
         }
-
-        Map<Integer, Descriptor> mVolumeOffsets;
     }
 
     @VisibleForTesting
