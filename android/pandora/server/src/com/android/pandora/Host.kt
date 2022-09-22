@@ -267,7 +267,6 @@ class Host(private val context: Context, private val server: Server) : HostImplB
 
       bluetoothDevice.disconnect()
       connectionStateChangedFlow.filter { it == BluetoothAdapter.STATE_DISCONNECTED }.first()
-
       DisconnectResponse.getDefaultInstance()
     }
   }
@@ -277,9 +276,9 @@ class Host(private val context: Context, private val server: Server) : HostImplB
     responseObserver: StreamObserver<ConnectLEResponse>
   ) {
     grpcUnary<ConnectLEResponse>(scope, responseObserver) {
-      val ptsAddress = request.address.decodeAsMacAddressToString()
-      Log.i(TAG, "connect LE: $ptsAddress")
-      val device = scanLeDevice(ptsAddress)
+      val address = request.address.decodeAsMacAddressToString()
+      Log.i(TAG, "connectLE: $address")
+      val device = scanLeDevice(address)
       GattInstance(device!!, TRANSPORT_LE, context).waitForState(BluetoothProfile.STATE_CONNECTED)
       ConnectLEResponse.newBuilder()
         .setConnection(
@@ -291,14 +290,22 @@ class Host(private val context: Context, private val server: Server) : HostImplB
 
   override fun disconnectLE(request: DisconnectLERequest, responseObserver: StreamObserver<Empty>) {
     grpcUnary<Empty>(scope, responseObserver) {
-      val ptsAddress = request.connection.cookie.toByteArray().decodeToString()
-      Log.i(TAG, "disconnect: $ptsAddress")
-      GattInstance.get(ptsAddress).disconnectInstance()
+      val address = request.connection.cookie.toByteArray().decodeToString()
+      Log.i(TAG, "disconnectLE: $address")
+      val gattInstance = GattInstance.get(address)
+
+      if (gattInstance.isDisconnected()) {
+        Log.e(TAG, "Device is not connected, cannot disconnect")
+        throw Status.UNKNOWN.asException()
+      }
+
+      gattInstance.disconnectInstance()
+      gattInstance.waitForState(BluetoothProfile.STATE_DISCONNECTED)
       Empty.getDefaultInstance()
     }
   }
 
-  private fun scanLeDevice(ptsAddress: String): BluetoothDevice? {
+  private fun scanLeDevice(address: String): BluetoothDevice? {
     Log.d(TAG, "scanLeDevice")
     var bluetoothDevice: BluetoothDevice? = null
     runBlocking {
@@ -313,7 +320,7 @@ class Host(private val context: Context, private val server: Server) : HostImplB
             override fun onScanResult(callbackType: Int, result: ScanResult) {
               super.onScanResult(callbackType, result)
               val deviceAddress = result.device.address
-              if (deviceAddress == ptsAddress) {
+              if (deviceAddress == address) {
                 Log.d(TAG, "found device address: $deviceAddress")
                 trySendBlocking(result.device)
               }
