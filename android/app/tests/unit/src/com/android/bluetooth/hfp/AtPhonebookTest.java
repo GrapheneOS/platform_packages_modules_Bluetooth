@@ -134,4 +134,44 @@ public class AtPhonebookTest {
         verify(mNativeInterface).atResponseCode(mTestDevice, HeadsetHalConstants.AT_RESPONSE_ERROR,
                 BluetoothCmeError.TEXT_HAS_INVALID_CHARS);
     }
+
+    @Test
+    public void handleCpbrCommand() {
+        mAtPhonebook.handleCpbrCommand(INVALID_COMMAND, AtPhonebook.TYPE_TEST, mTestDevice);
+        verify(mNativeInterface).atResponseString(mTestDevice, "+CPBR: (1-" + 1 + "),30,30");
+        verify(mNativeInterface).atResponseCode(mTestDevice, HeadsetHalConstants.AT_RESPONSE_OK,
+                -1);
+
+        mAtPhonebook.handleCpbrCommand(INVALID_COMMAND, AtPhonebook.TYPE_SET, mTestDevice);
+        verify(mNativeInterface).atResponseCode(mTestDevice, HeadsetHalConstants.AT_RESPONSE_ERROR,
+                -1);
+
+        mAtPhonebook.handleCpbrCommand("command=ERR", AtPhonebook.TYPE_SET, mTestDevice);
+        verify(mNativeInterface).atResponseCode(mTestDevice, HeadsetHalConstants.AT_RESPONSE_ERROR,
+                BluetoothCmeError.TEXT_HAS_INVALID_CHARS);
+
+        mAtPhonebook.handleCpbrCommand("command=123,123", AtPhonebook.TYPE_SET, mTestDevice);
+        assertThat(mAtPhonebook.getCheckingAccessPermission()).isTrue();
+
+        mAtPhonebook.handleCpbrCommand(INVALID_COMMAND, AtPhonebook.TYPE_UNKNOWN, mTestDevice);
+        verify(mNativeInterface, atLeastOnce()).atResponseCode(mTestDevice,
+                HeadsetHalConstants.AT_RESPONSE_ERROR, BluetoothCmeError.TEXT_HAS_INVALID_CHARS);
+    }
+
+    @Test
+    public void processCpbrCommand() {
+        mAtPhonebook.handleCpbsCommand("command=SM", AtPhonebook.TYPE_SET, mTestDevice);
+        assertThat(mAtPhonebook.processCpbrCommand(mTestDevice)).isEqualTo(
+                HeadsetHalConstants.AT_RESPONSE_OK);
+
+        mAtPhonebook.handleCpbsCommand("command=ME", AtPhonebook.TYPE_SET, mTestDevice);
+        assertThat(mAtPhonebook.processCpbrCommand(mTestDevice)).isEqualTo(
+                HeadsetHalConstants.AT_RESPONSE_OK);
+    }
+
+    @Test
+    public void resetAtState() {
+        mAtPhonebook.resetAtState();
+        assertThat(mAtPhonebook.getCheckingAccessPermission()).isFalse();
+    }
 }
