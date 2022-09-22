@@ -85,6 +85,7 @@
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "osi/include/wakelock.h"
+#include "stack/btm/btm_sco_hfp_hal.h"
 #include "stack/gatt/connection_manager.h"
 #include "stack/include/avdt_api.h"
 #include "stack/include/btm_api.h"
@@ -242,6 +243,11 @@ static int disable(void) {
 static void cleanup(void) { stack_manager_get_interface()->clean_up_stack(); }
 
 bool is_restricted_mode() { return restricted_mode; }
+
+static bool get_wbs_supported() {
+  return hfp_hal_interface::get_wbs_supported();
+}
+
 bool is_common_criteria_mode() {
   return is_bluetooth_uid() && common_criteria_mode;
 }
@@ -779,7 +785,8 @@ EXPORT_SYMBOL bt_interface_t bluetoothInterface = {
     allow_wake_by_hid,
     restore_filter_accept_list,
     set_default_event_mask,
-    set_event_filter_inquiry_result_all_devices};
+    set_event_filter_inquiry_result_all_devices,
+    get_wbs_supported};
 
 // callback reporting helpers
 

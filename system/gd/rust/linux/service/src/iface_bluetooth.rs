@@ -360,6 +360,11 @@ impl IBluetooth for IBluetoothDBus {
     fn disconnect_all_enabled_profiles(&mut self, device: BluetoothDevice) -> bool {
         dbus_generated!()
     }
+
+    #[dbus_method("IsWbsSupported")]
+    fn is_wbs_supported(&self) -> bool {
+        dbus_generated!()
+    }
 }
 
 impl_dbus_arg_enum!(SocketType);
