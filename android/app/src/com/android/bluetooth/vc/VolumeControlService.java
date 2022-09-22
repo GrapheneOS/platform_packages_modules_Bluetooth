@@ -970,10 +970,15 @@ public class VolumeControlService extends ProfileService {
     @VisibleForTesting
     static class BluetoothVolumeControlBinder extends IBluetoothVolumeControl.Stub
             implements IProfileServiceBinder {
+        @VisibleForTesting
+        boolean mIsTesting = false;
         private VolumeControlService mService;
 
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
         private VolumeControlService getService(AttributionSource source) {
+            if (mIsTesting) {
+                return mService;
+            }
             if (!Utils.checkCallerIsSystemOrActiveUser(TAG)
                     || !Utils.checkServiceAvailable(mService, TAG)
                     || !Utils.checkConnectPermissionForDataDelivery(mService, source, TAG)) {
@@ -1184,11 +1189,12 @@ public class VolumeControlService extends ProfileService {
                 Objects.requireNonNull(source, "source cannot be null");
                 Objects.requireNonNull(receiver, "receiver cannot be null");
 
+                int groupVolume = 0;
                 VolumeControlService service = getService(source);
                 if (service != null) {
-                    service.getGroupVolume(groupId);
+                    groupVolume = service.getGroupVolume(groupId);
                 }
-                receiver.send(null);
+                receiver.send(groupVolume);
             } catch (RuntimeException e) {
                 receiver.propagateException(e);
             }
