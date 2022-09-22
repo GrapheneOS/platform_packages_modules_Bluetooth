@@ -135,5 +135,15 @@ TEST_F(LogCaptureTest, with_logging_debug_enabled_for_all) {
   bluetooth::common::InitFlags::Load(nullptr);
 }
 
+TEST_F(LogCaptureTest, wait_until_log_contains) {
+  bluetooth::common::InitFlags::Load(test_flags);
+  std::unique_ptr<LogCapture> log_capture = std::make_unique<LogCapture>();
+
+  LOG_DEBUG("%s", kLogDebug);
+  std::promise<void> promise;
+  log_capture->WaitUntilLogContains(&promise, kLogDebug);
+  bluetooth::common::InitFlags::Load(nullptr);
+}
+
 }  // namespace testing
 }  // namespace bluetooth
