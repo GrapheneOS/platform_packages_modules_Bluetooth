@@ -44,6 +44,7 @@ filegroup {
         "uuid_unittest.cc",
         "le_periodic_sync_manager_test.cc",
         "le_scanning_manager_test.cc",
+        "le_advertising_manager_test.cc",
     ],
 }
 
