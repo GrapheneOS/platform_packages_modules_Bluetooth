@@ -534,9 +534,10 @@ struct hdl_pair {
 struct ase {
   static constexpr uint8_t kAseIdInvalid = 0x00;
 
-  ase(uint16_t val_hdl, uint16_t ccc_hdl, uint8_t direction)
+  ase(uint16_t val_hdl, uint16_t ccc_hdl, uint8_t direction,
+      uint8_t initial_id = kAseIdInvalid)
       : hdls(val_hdl, ccc_hdl),
-        id(kAseIdInvalid),
+        id(initial_id),
         cis_id(kInvalidCisId),
         direction(direction),
         target_latency(types::kTargetLatencyBalancedLatencyReliability),

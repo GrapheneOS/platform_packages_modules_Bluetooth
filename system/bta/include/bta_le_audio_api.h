@@ -69,7 +69,22 @@ class LeAudioClient {
   virtual void SetInCall(bool in_call) = 0;
 
   virtual std::vector<RawAddress> GetGroupDevices(const int group_id) = 0;
-  static void AddFromStorage(const RawAddress& addr, bool autoconnect);
+  static void AddFromStorage(const RawAddress& addr, bool autoconnect,
+                             int sink_audio_location, int source_audio_location,
+                             int sink_supported_context_types,
+                             int source_supported_context_types,
+                             const std::vector<uint8_t>& handles,
+                             const std::vector<uint8_t>& sink_pacs,
+                             const std::vector<uint8_t>& source_pacs,
+                             const std::vector<uint8_t>& ases);
+  static bool GetHandlesForStorage(const RawAddress& addr,
+                                   std::vector<uint8_t>& out);
+  static bool GetSinkPacsForStorage(const RawAddress& addr,
+                                    std::vector<uint8_t>& out);
+  static bool GetSourcePacsForStorage(const RawAddress& addr,
+                                      std::vector<uint8_t>& out);
+  static bool GetAsesForStorage(const RawAddress& addr,
+                                std::vector<uint8_t>& out);
   static bool IsLeAudioClientRunning();
 
   static void InitializeAudioSetConfigurationProvider(void);
