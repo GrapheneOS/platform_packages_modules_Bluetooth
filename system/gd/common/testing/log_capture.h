@@ -36,6 +36,8 @@ class LogCapture {
   std::string Read();
   // Flushes contents of log capture back to |stderr|
   void Flush();
+  // Synchronize buffer contents to file descriptor
+  void Sync();
   // Returns the backing store size in bytes
   size_t Size() const;
   // Truncates and resets the file pointer discarding all logs up to this point
