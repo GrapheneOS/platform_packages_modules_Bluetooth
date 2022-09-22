@@ -1149,6 +1149,10 @@ impl BluetoothInterface {
         ccall!(self, allow_wake_by_hid)
     }
 
+    pub fn get_wbs_supported(&self) -> bool {
+        ccall!(self, get_wbs_supported)
+    }
+
     pub fn le_rand(&self) -> i32 {
         ccall!(self, le_rand)
     }
