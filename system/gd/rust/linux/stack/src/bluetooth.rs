@@ -183,6 +183,9 @@ pub trait IBluetooth {
 
     /// Disconnect all profiles supported by device and enabled on adapter.
     fn disconnect_all_enabled_profiles(&mut self, device: BluetoothDevice) -> bool;
+
+    /// Returns whether WBS is supported.
+    fn is_wbs_supported(&self) -> bool;
 }
 
 /// Adapter API for Bluetooth qualification and verification.
@@ -1599,6 +1602,10 @@ impl IBluetooth for Bluetooth {
         }
 
         return true;
+    }
+
+    fn is_wbs_supported(&self) -> bool {
+        self.intf.lock().unwrap().get_wbs_supported()
     }
 }
 
