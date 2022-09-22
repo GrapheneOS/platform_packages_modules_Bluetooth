@@ -841,6 +841,7 @@ public class TbsGeneric {
 
                         Map.Entry<UUID, Bearer> firstEntry = null;
                         List<ParcelUuid> parcelUuids = new ArrayList<>();
+                        result = TbsGatt.CALL_CONTROL_POINT_RESULT_SUCCESS;
                         for (int callIndex : args) {
                             Map.Entry<UUID, Bearer> entry = getCallIdByIndex(callIndex);
                             if (entry == null) {
@@ -862,6 +863,10 @@ public class TbsGeneric {
                             }
 
                             parcelUuids.add(new ParcelUuid(entry.getKey()));
+                        }
+
+                        if (result != TbsGatt.CALL_CONTROL_POINT_RESULT_SUCCESS) {
+                            break;
                         }
 
                         Bearer bearer = firstEntry.getValue();
