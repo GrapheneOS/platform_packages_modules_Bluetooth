@@ -37,6 +37,7 @@ enum class ConnectionState {
 enum class GroupStatus {
   INACTIVE = 0,
   ACTIVE,
+  TURNED_IDLE_DURING_CALL,
 };
 
 enum class GroupStreamStatus {
