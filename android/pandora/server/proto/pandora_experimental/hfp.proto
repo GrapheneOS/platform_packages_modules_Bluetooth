@@ -13,6 +13,8 @@ service HFP {
   rpc EnableSlc(EnableSlcRequest) returns (google.protobuf.Empty);
   // Disable Service level connection
   rpc DisableSlc(DisableSlcRequest) returns (google.protobuf.Empty);
+  // Change the battery level to the one requested
+  rpc SetBatteryLevel(SetBatteryLevelRequest) returns (google.protobuf.Empty);
 }
 
 // Request of the `EnableSlc` method.
@@ -25,4 +27,12 @@ message EnableSlcRequest {
 message DisableSlcRequest {
   // Connection crafted by grpc server
   Connection connection = 1;
+}
+
+// Request of the `SetBatteryLevel` method.
+message SetBatteryLevelRequest {
+  // Connection crafted by grpc server
+  Connection connection = 1;
+  // Battery level to be set on the DUT
+  int32 battery_percentage = 2;
 }
