@@ -41,7 +41,7 @@ import java.util.Objects;
  */
 public class MediaPlayerWrapper {
     private static final String TAG = "AudioMediaPlayerWrapper";
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = Log.isLoggable(TAG, Log.DEBUG);
     static boolean sTesting = false;
     private static final int PLAYBACK_STATE_CHANGE_EVENT_LOGGER_SIZE = 5;
     private static final String PLAYBACK_STATE_CHANGE_LOGGER_EVENT_TITLE =
