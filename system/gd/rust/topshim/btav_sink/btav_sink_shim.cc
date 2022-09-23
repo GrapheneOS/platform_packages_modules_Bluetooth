@@ -32,7 +32,7 @@ namespace rust {
 namespace internal {
 static A2dpSinkIntf* g_a2dp_sink_if;
 
-static void connection_state_cb(const RawAddress&, btav_connection_state_t) {}
+static void connection_state_cb(const RawAddress&, btav_connection_state_t, const btav_error_t&) {}
 static void audio_state_cb(const RawAddress&, btav_audio_state_t) {}
 static void audio_config_cb(const RawAddress&, uint32_t, uint8_t) {}
 
