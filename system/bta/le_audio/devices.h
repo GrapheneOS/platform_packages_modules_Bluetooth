@@ -227,6 +227,8 @@ class LeAudioDeviceGroup {
       types::LeAudioContextType context_type = types::LeAudioContextType::RFU);
   bool Activate(types::LeAudioContextType context_type);
   void Deactivate(void);
+  types::CigState GetCigState(void);
+  void SetCigState(le_audio::types::CigState state);
   void CigClearCis(void);
   void ClearSinksFromConfiguration(void);
   void ClearSourcesFromConfiguration(void);
