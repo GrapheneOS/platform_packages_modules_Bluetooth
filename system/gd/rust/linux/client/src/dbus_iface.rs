@@ -237,6 +237,7 @@ struct ScanFilterDBus {
 
 #[dbus_propmap(ScanResult)]
 struct ScanResultDBus {
+    name: String,
     address: String,
     addr_type: u8,
     event_type: u16,
@@ -246,6 +247,10 @@ struct ScanResultDBus {
     tx_power: i8,
     rssi: i8,
     periodic_adv_int: u16,
+    flags: u8,
+    service_uuids: Vec<Uuid128Bit>,
+    service_data: HashMap<String, Vec<u8>>,
+    manufacturer_data: HashMap<u16, Vec<u8>>,
     adv_data: Vec<u8>,
 }
 
