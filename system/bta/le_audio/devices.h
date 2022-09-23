@@ -285,6 +285,7 @@ class LeAudioDeviceGroup {
   types::LeAudioContextType GetCurrentContextType(void);
   bool IsPendingConfiguration(void);
   void SetPendingConfiguration(void);
+  void ClearPendingConfiguration(void);
   bool IsConfigurationSupported(
       LeAudioDevice* leAudioDevice,
       const set_configurations::AudioSetConfiguration* audio_set_conf);
