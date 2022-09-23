@@ -649,6 +649,7 @@ class UnicastTestNoInit : public Test {
           group->SetTargetState(
               types::AseState::BTA_LE_AUDIO_ASE_STATE_CODEC_CONFIGURED);
           group->SetState(group->GetTargetState());
+          group->ClearPendingConfiguration();
           do_in_main_thread(
               FROM_HERE, base::BindOnce(
                              [](int group_id,
