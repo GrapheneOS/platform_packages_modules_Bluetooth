@@ -131,7 +131,7 @@
     <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Bluetooth activé en mode Avion"</string>
     <string name="bluetooth_enabled_apm_message" msgid="8990667142380927316">"Si vous laissez le Bluetooth activé, il le restera la prochaine fois que vous serez en mode Avion"</string>
     <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Le Bluetooth reste activé"</string>
-    <string name="bluetooth_stays_on_message" msgid="2770176686603189536">"Le Bluetooth de votre téléphone restera activé en mode Avion. Pour changer cela, désactivez le Bluetooth."</string>
+    <string name="bluetooth_stays_on_message" msgid="2770176686603189536">"Le Bluetooth de votre téléphone restera activé en mode Avion, mais vous pourrez le désactiver."</string>
     <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Le Wi-Fi et le Bluetooth restent activés"</string>
-    <string name="bluetooth_and_wifi_stays_on_message" msgid="4120501683284996436">"Le Wi‑Fi et le Bluetooth de votre téléphone resteront activés en mode Avion. Pour changer cela, désactivez-les."</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="4120501683284996436">"Le Wi‑Fi et le Bluetooth de votre téléphone resteront activés en mode Avion, mais vous pourrez les désactiver."</string>
 </resources>
