@@ -33,6 +33,7 @@ class Server(context: Context) {
   private var gatt: Gatt
   private var hfp: Hfp
   private var hid: Hid
+  private var l2cap: L2cap
   private var security: Security
   private var grpcServer: GrpcServer
 
@@ -43,6 +44,7 @@ class Server(context: Context) {
     gatt = Gatt(context)
     hfp = Hfp(context)
     hid = Hid(context)
+    l2cap = L2cap(context)
     security = Security(context)
     grpcServer =
       NettyServerBuilder.forPort(GRPC_PORT)
@@ -52,6 +54,7 @@ class Server(context: Context) {
         .addService(gatt)
         .addService(hfp)
         .addService(hid)
+        .addService(l2cap)
         .addService(security)
         .build()
 
@@ -71,6 +74,7 @@ class Server(context: Context) {
     gatt.deinit()
     hfp.deinit()
     hid.deinit()
+    l2cap.deinit()
     security.deinit()
   }
 }
