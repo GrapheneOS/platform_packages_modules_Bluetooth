@@ -37,12 +37,12 @@ namespace bluetooth {
 namespace testing {
 
 LogCapture::LogCapture() {
-  fd_ = create_backing_store();
-  if (fd_ == -1) {
+  std::tie(dup_fd_, fd_) = create_backing_store();
+  if (dup_fd_ == -1 || fd_ == -1) {
     LOG_ERROR("Unable to create backing storage : %s", strerror(errno));
     return;
   }
-  if (!set_non_blocking(fd_)) {
+  if (!set_non_blocking(dup_fd_)) {
     LOG_ERROR("Unable to set socket non-blocking : %s", strerror(errno));
     return;
   }
@@ -51,7 +51,7 @@ LogCapture::LogCapture() {
     LOG_ERROR("Unable to save original fd : %s", strerror(errno));
     return;
   }
-  if (dup3(fd_, kStandardErrorFd, O_CLOEXEC) == -1) {
+  if (dup3(dup_fd_, kStandardErrorFd, O_CLOEXEC) == -1) {
     LOG_ERROR("Unable to duplicate stderr fd : %s", strerror(errno));
     return;
   }
@@ -89,12 +89,24 @@ void LogCapture::Flush() {
   }
 }
 
+void LogCapture::Sync() {
+  if (fd_ != -1) {
+    fsync(fd_);
+  }
+}
+
 void LogCapture::Reset() {
   if (fd_ != -1) {
     if (ftruncate(fd_, 0UL) == -1) {
       LOG_ERROR("Unable to truncate backing storage : %s", strerror(errno));
     }
     this->Rewind();
+    // The only time we rewind the dup()'ed fd is during Reset()
+    if (dup_fd_ != -1) {
+      if (lseek(dup_fd_, 0, SEEK_SET) != 0) {
+        LOG_ERROR("Unable to rewind log capture : %s", strerror(errno));
+      }
+    }
   }
 }
 
@@ -123,14 +135,26 @@ size_t LogCapture::Size() const {
   return size;
 }
 
-int LogCapture::create_backing_store() const {
+void LogCapture::WaitUntilLogContains(std::promise<void>* promise, std::string text) {
+  std::async([this, promise, text]() {
+    bool found = false;
+    do {
+      found = this->Rewind()->Find(text);
+    } while (!found);
+    promise->set_value();
+  });
+  promise->get_future().wait();
+}
+
+std::pair<int, int> LogCapture::create_backing_store() const {
   char backing_store_filename[kTempFilenameMaxSize];
   strncpy(backing_store_filename, kTempFilename, kTempFilenameMaxSize);
-  int fd = mkstemp(backing_store_filename);
-  if (fd != -1) {
+  int dup_fd = mkstemp(backing_store_filename);
+  int fd = open(backing_store_filename, O_RDWR);
+  if (dup_fd != -1) {
     unlink(backing_store_filename);
   }
-  return fd;
+  return std::make_pair(dup_fd, fd);
 }
 
 bool LogCapture::set_non_blocking(int fd) const {
@@ -151,6 +175,10 @@ void LogCapture::clean_up() {
     if (dup3(original_stderr_fd_, kStandardErrorFd, O_CLOEXEC) != kStandardErrorFd) {
       LOG_ERROR("Unable to restore original fd : %s", strerror(errno));
     }
+  }
+  if (dup_fd_ != -1) {
+    close(dup_fd_);
+    dup_fd_ = -1;
   }
   if (fd_ != -1) {
     close(fd_);

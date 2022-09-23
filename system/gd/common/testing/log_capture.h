@@ -15,6 +15,7 @@
  */
 
 #include <cstddef>
+#include <future>
 #include <string>
 
 namespace bluetooth {
@@ -35,16 +36,21 @@ class LogCapture {
   std::string Read();
   // Flushes contents of log capture back to |stderr|
   void Flush();
+  // Synchronize buffer contents to file descriptor
+  void Sync();
   // Returns the backing store size in bytes
   size_t Size() const;
   // Truncates and resets the file pointer discarding all logs up to this point
   void Reset();
+  // Wait until the provided string shows up in the logs
+  void WaitUntilLogContains(std::promise<void>* promise, std::string text);
 
  private:
-  int create_backing_store() const;
+  std::pair<int, int> create_backing_store() const;
   bool set_non_blocking(int fd) const;
   void clean_up();
 
+  int dup_fd_{-1};
   int fd_{-1};
   int original_stderr_fd_{-1};
 };

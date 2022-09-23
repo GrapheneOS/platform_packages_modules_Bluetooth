@@ -1178,6 +1178,12 @@ void bta_ag_sco_open(tBTA_AG_SCB* p_scb, UNUSED_ATTR const tBTA_AG_DATA& data) {
     LOG(INFO) << __func__ << ": not opening sco, by policy";
     return;
   }
+
+  if (data.api_audio_open.force_cvsd) {
+    LOG(INFO) << __func__ << ": set to use fallback codec";
+    p_scb->codec_fallback = true;
+  }
+
   /* if another scb using sco, this is a transfer */
   if (bta_ag_cb.sco.p_curr_scb && bta_ag_cb.sco.p_curr_scb != p_scb) {
     LOG(INFO) << __func__ << ": transfer "

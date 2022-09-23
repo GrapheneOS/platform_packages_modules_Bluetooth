@@ -72,6 +72,7 @@ class SimpleHalTest(gd_base_test.GdBaseTestClass):
 
     def test_le_ad_scan_cert_advertises(self):
         self.dut_hal.unmask_event(hci_packets.EventCode.LE_META_EVENT)
+        self.dut_hal.unmask_le_event(hci_packets.SubeventCode.EXTENDED_ADVERTISING_REPORT)
         self.dut_hal.set_random_le_address('0D:05:04:03:02:01')
 
         self.dut_hal.set_scan_parameters()
