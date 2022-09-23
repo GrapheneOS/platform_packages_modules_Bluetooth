@@ -101,6 +101,7 @@ using le_audio::types::ase;
 using le_audio::types::AseState;
 using le_audio::types::AudioContexts;
 using le_audio::types::AudioStreamDataPathState;
+using le_audio::types::CigState;
 using le_audio::types::CodecLocation;
 
 namespace {
@@ -361,18 +362,18 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     }
 
     if (status != HCI_SUCCESS) {
-      group->cig_state_ = le_audio::types::CigState::NONE;
+      group->SetCigState(CigState::NONE);
       LOG_ERROR(", failed to create CIG, reason: 0x%02x, new cig state: %s",
                 +status, ToString(group->cig_state_).c_str());
       StopStream(group);
       return;
     }
 
-    ASSERT_LOG(group->cig_state_ == le_audio::types::CigState::CREATING,
+    ASSERT_LOG(group->GetCigState() == CigState::CREATING,
                "Unexpected CIG creation group id: %d, cig state: %s",
                group->group_id_, ToString(group->cig_state_).c_str());
 
-    group->cig_state_ = le_audio::types::CigState::CREATED;
+    group->SetCigState(CigState::CREATED);
     LOG_INFO("Group: %p, id: %d cig state: %s, number of cis handles: %d",
              group, group->group_id_, ToString(group->cig_state_).c_str(),
              static_cast<int>(conn_handles.size()));
@@ -406,19 +407,19 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
 
   void ProcessHciNotifOnCigRemove(uint8_t status,
                                   LeAudioDeviceGroup* group) override {
-    if (status) {
-      group->cig_state_ = le_audio::types::CigState::CREATED;
+    if (status != HCI_SUCCESS) {
+      group->SetCigState(CigState::CREATED);
       LOG_ERROR(
           "failed to remove cig, id: %d, status 0x%02x, new cig state: %s",
-          group->group_id_, +status, ToString(group->cig_state_).c_str());
+          group->group_id_, +status, ToString(group->GetCigState()).c_str());
       return;
     }
 
-    ASSERT_LOG(group->cig_state_ == le_audio::types::CigState::REMOVING,
+    ASSERT_LOG(group->GetCigState() == CigState::REMOVING,
                "Unexpected CIG remove group id: %d, cig state %s",
-               group->group_id_, ToString(group->cig_state_).c_str());
+               group->group_id_, ToString(group->GetCigState()).c_str());
 
-    group->cig_state_ = le_audio::types::CigState::NONE;
+    group->SetCigState(CigState::NONE);
 
     LeAudioDevice* leAudioDevice = group->GetFirstDevice();
     if (!leAudioDevice) return;
@@ -556,13 +557,13 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
   void RemoveCigForGroup(LeAudioDeviceGroup* group) {
     LOG_DEBUG("Group: %p, id: %d cig state: %s", group, group->group_id_,
               ToString(group->cig_state_).c_str());
-    if (group->cig_state_ != le_audio::types::CigState::CREATED) {
+    if (group->GetCigState() != CigState::CREATED) {
       LOG_WARN("Group: %p, id: %d cig state: %s cannot be removed", group,
                group->group_id_, ToString(group->cig_state_).c_str());
       return;
     }
 
-    group->cig_state_ = le_audio::types::CigState::REMOVING;
+    group->SetCigState(CigState::REMOVING);
     IsoManager::GetInstance()->RemoveCig(group->group_id_);
     LOG_DEBUG("Group: %p, id: %d cig state: %s", group, group->group_id_,
               ToString(group->cig_state_).c_str());
@@ -1143,7 +1144,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     LOG_DEBUG("Group: %p, id: %d cig state: %s", group, group->group_id_,
               ToString(group->cig_state_).c_str());
 
-    if (group->cig_state_ != le_audio::types::CigState::NONE) {
+    if (group->GetCigState() != CigState::NONE) {
       LOG_WARN(" Group %p, id: %d has invalid cig state: %s ", group,
                group->group_id_, ToString(group->cig_state_).c_str());
       return;
@@ -1233,7 +1234,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
         .max_trans_lat_mtos = max_trans_lat_mtos,
         .cis_cfgs = std::move(cis_cfgs),
     };
-    group->cig_state_ = le_audio::types::CigState::CREATING;
+    group->SetCigState(CigState::CREATING);
     IsoManager::GetInstance()->CreateCig(group->group_id_, std::move(param));
     LOG_DEBUG("Group: %p, id: %d cig state: %s", group, group->group_id_,
               ToString(group->cig_state_).c_str());
@@ -1447,7 +1448,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
       return;
     }
 
-    if (group->cig_state_ == le_audio::types::CigState::CREATED)
+    if (group->GetCigState() == CigState::CREATED)
       group->CigAssignCisConnHandlesToAses(leAudioDevice);
 
     ase = leAudioDevice->GetFirstActiveAse();
