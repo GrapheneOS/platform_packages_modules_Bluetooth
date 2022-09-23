@@ -12,6 +12,7 @@ use bt_topshim::profiles::gatt::{
     GattServerCallbacksDispatcher, GattStatus, LePhy,
 };
 use bt_topshim::topstack;
+use bt_utils::adv_parser;
 
 use crate::bluetooth::{Bluetooth, IBluetooth};
 use crate::bluetooth_adv::{
@@ -631,6 +632,7 @@ pub struct ScanSettings {
 /// Represents scan result
 #[derive(Debug)]
 pub struct ScanResult {
+    pub name: String,
     pub address: String,
     pub addr_type: u8,
     pub event_type: u16,
@@ -640,6 +642,11 @@ pub struct ScanResult {
     pub tx_power: i8,
     pub rssi: i8,
     pub periodic_adv_int: u16,
+    pub flags: u8,
+    pub service_uuids: Vec<Uuid128Bit>,
+    /// A map of 128-bit UUID and its corresponding service data.
+    pub service_data: HashMap<String, Vec<u8>>,
+    pub manufacturer_data: HashMap<u16, Vec<u8>>,
     pub adv_data: Vec<u8>,
 }
 
@@ -2314,6 +2321,7 @@ impl BtifGattScannerCallbacks for BluetoothGatt {
     ) {
         self.scanner_callbacks.for_all_callbacks(|callback| {
             callback.on_scan_result(ScanResult {
+                name: adv_parser::extract_name(adv_data.as_slice()),
                 address: address.to_string(),
                 addr_type,
                 event_type,
@@ -2323,6 +2331,10 @@ impl BtifGattScannerCallbacks for BluetoothGatt {
                 tx_power,
                 rssi,
                 periodic_adv_int,
+                flags: adv_parser::extract_flags(adv_data.as_slice()),
+                service_uuids: adv_parser::extract_service_uuids(adv_data.as_slice()),
+                service_data: adv_parser::extract_service_data(adv_data.as_slice()),
+                manufacturer_data: adv_parser::extract_manufacturer_data(adv_data.as_slice()),
                 adv_data: adv_data.clone(),
             });
         });
