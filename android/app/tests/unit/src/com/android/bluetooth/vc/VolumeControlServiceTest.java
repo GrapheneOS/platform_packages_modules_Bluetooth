@@ -24,11 +24,14 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUuid;
 import android.bluetooth.BluetoothVolumeControl;
+import android.bluetooth.IBluetoothVolumeControlCallback;
+import android.content.AttributionSource;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
+import android.os.Binder;
 import android.os.Looper;
 import android.os.ParcelUuid;
 
@@ -41,6 +44,7 @@ import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 import com.android.bluetooth.R;
 import com.android.bluetooth.TestUtils;
+import com.android.bluetooth.x.com.android.modules.utils.SynchronousResultReceiver;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -50,8 +54,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -62,8 +68,10 @@ import java.util.stream.IntStream;
 @RunWith(AndroidJUnit4.class)
 public class VolumeControlServiceTest {
     private BluetoothAdapter mAdapter;
+    private AttributionSource mAttributionSource;
     private Context mTargetContext;
     private VolumeControlService mService;
+    private VolumeControlService.BluetoothVolumeControlBinder mServiceBinder;
     private BluetoothDevice mDevice;
     private HashMap<BluetoothDevice, LinkedBlockingQueue<Intent>> mDeviceQueueMap;
     private static final int TIMEOUT_MS = 1000;
@@ -97,6 +105,7 @@ public class VolumeControlServiceTest {
         doReturn(true, false).when(mAdapterService).isStartedProfile(anyString());
 
         mAdapter = BluetoothAdapter.getDefaultAdapter();
+        mAttributionSource = mAdapter.getAttributionSource();
 
         doReturn(MEDIA_MIN_VOL).when(mAudioManager)
                 .getStreamMinVolume(eq(AudioManager.STREAM_MUSIC));
@@ -110,6 +119,8 @@ public class VolumeControlServiceTest {
         startService();
         mService.mVolumeControlNativeInterface = mNativeInterface;
         mService.mAudioManager = mAudioManager;
+        mServiceBinder = (VolumeControlService.BluetoothVolumeControlBinder) mService.initBinder();
+        mServiceBinder.mIsTesting = true;
 
         // Override the timeout value to speed up the test
         VolumeControlStateMachine.sConnectTimeoutMs = TIMEOUT_MS;    // 1s
@@ -202,7 +213,7 @@ public class VolumeControlServiceTest {
      * Test stop VolumeControl Service
      */
     @Test
-    public void testStopVolumeControlService() {
+    public void testStopVolumeControlService() throws Exception {
         // Prepare: connect
         connectDevice(mDevice);
         // VolumeControl Service is already running: test stop().
@@ -254,14 +265,18 @@ public class VolumeControlServiceTest {
      * Test if getProfileConnectionPolicy works after the service is stopped.
      */
     @Test
-    public void testGetPolicyAfterStopped() {
+    public void testGetPolicyAfterStopped() throws Exception {
         mService.stop();
         when(mDatabaseManager
                 .getProfileConnectionPolicy(mDevice, BluetoothProfile.VOLUME_CONTROL))
                 .thenReturn(BluetoothProfile.CONNECTION_POLICY_UNKNOWN);
+        final SynchronousResultReceiver<Integer> recv = SynchronousResultReceiver.get();
+        int defaultRecvValue = -1000;
+        mServiceBinder.getConnectionPolicy(mDevice, mAttributionSource, recv);
+        int policy = recv.awaitResultNoInterrupt(Duration.ofMillis(TIMEOUT_MS))
+                .getValue(defaultRecvValue);
         Assert.assertEquals("Initial device policy",
-                BluetoothProfile.CONNECTION_POLICY_UNKNOWN,
-                mService.getConnectionPolicy(mDevice));
+                BluetoothProfile.CONNECTION_POLICY_UNKNOWN, policy);
     }
 
     /**
@@ -330,7 +345,7 @@ public class VolumeControlServiceTest {
      * Test that an outgoing connection to device that have Volume Control UUID is successful
      */
     @Test
-    public void testOutgoingConnectExistingVolumeControlUuid() {
+    public void testOutgoingConnectDisconnectExistingVolumeControlUuid() throws Exception {
         // Update the device policy so okToConnect() returns true
         when(mAdapterService.getDatabase()).thenReturn(mDatabaseManager);
         when(mDatabaseManager
@@ -343,12 +358,25 @@ public class VolumeControlServiceTest {
         doReturn(new ParcelUuid[]{BluetoothUuid.VOLUME_CONTROL}).when(mAdapterService)
                 .getRemoteUuids(any(BluetoothDevice.class));
 
-        // Send a connect request
-        Assert.assertTrue("Connect expected to succeed", mService.connect(mDevice));
+        // Send a connect request via binder
+        SynchronousResultReceiver<Boolean> recv = SynchronousResultReceiver.get();
+        mServiceBinder.connect(mDevice, mAttributionSource, recv);
+        Assert.assertTrue("Connect expected to succeed",
+                recv.awaitResultNoInterrupt(Duration.ofMillis(TIMEOUT_MS)).getValue(false));
 
         // Verify the connection state broadcast, and that we are in Connecting state
         verifyConnectionStateIntent(TIMEOUT_MS, mDevice, BluetoothProfile.STATE_CONNECTING,
                 BluetoothProfile.STATE_DISCONNECTED);
+
+        // Send a disconnect request via binder
+        recv = SynchronousResultReceiver.get();
+        mServiceBinder.disconnect(mDevice, mAttributionSource, recv);
+        Assert.assertTrue("Disconnect expected to succeed",
+                recv.awaitResultNoInterrupt(Duration.ofMillis(TIMEOUT_MS)).getValue(false));
+
+        // Verify the connection state broadcast, and that we are in Connecting state
+        verifyConnectionStateIntent(TIMEOUT_MS, mDevice, BluetoothProfile.STATE_DISCONNECTED,
+                BluetoothProfile.STATE_CONNECTING);
     }
 
     /**
@@ -373,7 +401,7 @@ public class VolumeControlServiceTest {
      * Test that an outgoing connection times out
      */
     @Test
-    public void testOutgoingConnectTimeout() {
+    public void testOutgoingConnectTimeout() throws Exception {
         // Update the device policy so okToConnect() returns true
         when(mAdapterService.getDatabase()).thenReturn(mDatabaseManager);
         when(mDatabaseManager
@@ -395,8 +423,13 @@ public class VolumeControlServiceTest {
         verifyConnectionStateIntent(VolumeControlStateMachine.sConnectTimeoutMs * 2,
                 mDevice, BluetoothProfile.STATE_DISCONNECTED,
                 BluetoothProfile.STATE_CONNECTING);
-        Assert.assertEquals(BluetoothProfile.STATE_DISCONNECTED,
-                mService.getConnectionState(mDevice));
+
+        final SynchronousResultReceiver<Integer> recv = SynchronousResultReceiver.get();
+        int defaultRecvValue = -1000;
+        mServiceBinder.getConnectionState(mDevice, mAttributionSource, recv);
+        int state = recv.awaitResultNoInterrupt(Duration.ofMillis(TIMEOUT_MS))
+                .getValue(defaultRecvValue);
+        Assert.assertEquals(BluetoothProfile.STATE_DISCONNECTED, state);
     }
 
     /**
@@ -568,30 +601,165 @@ public class VolumeControlServiceTest {
      * Test Volume Control cache.
      */
     @Test
-    public void testVolumeCache() {
+    public void testVolumeCache() throws Exception {
         int groupId = 1;
         int volume = 6;
 
         Assert.assertEquals(-1, mService.getGroupVolume(groupId));
-        mService.setGroupVolume(groupId, volume);
-        Assert.assertEquals(volume, mService.getGroupVolume(groupId));
+        final SynchronousResultReceiver<Void> voidRecv = SynchronousResultReceiver.get();
+        mServiceBinder.setGroupVolume(groupId, volume, mAttributionSource, voidRecv);
+        voidRecv.awaitResultNoInterrupt(Duration.ofMillis(TIMEOUT_MS));
+
+        final SynchronousResultReceiver<Integer> intRecv = SynchronousResultReceiver.get();
+        int defaultRecvValue = -100;
+        mServiceBinder.getGroupVolume(groupId, mAttributionSource, intRecv);
+        int groupVolume = intRecv.awaitResultNoInterrupt(
+                Duration.ofMillis(TIMEOUT_MS)).getValue(defaultRecvValue);
+        Assert.assertEquals(volume, groupVolume);
 
         volume = 10;
-
-        // Send autonomus volume change.
+        // Send autonomous volume change.
         VolumeControlStackEvent stackEvent = new VolumeControlStackEvent(
                 VolumeControlStackEvent.EVENT_TYPE_VOLUME_STATE_CHANGED);
         stackEvent.device = null;
         stackEvent.valueInt1 = groupId;
         stackEvent.valueInt2 = volume;
         stackEvent.valueBool1 = false;
-        stackEvent.valueBool2 = true; /* autonomus */
+        stackEvent.valueBool2 = true; /* autonomous */
         mService.messageFromNative(stackEvent);
 
         Assert.assertEquals(volume, mService.getGroupVolume(groupId));
     }
 
-    private void connectDevice(BluetoothDevice device) {
+    @Test
+    public void testServiceBinderGetDevicesMatchingConnectionStates() throws Exception {
+        final SynchronousResultReceiver<List<BluetoothDevice>> recv =
+                SynchronousResultReceiver.get();
+        mServiceBinder.getDevicesMatchingConnectionStates(null, mAttributionSource, recv);
+        List<BluetoothDevice> devices = recv.awaitResultNoInterrupt(Duration.ofMillis(TIMEOUT_MS))
+                .getValue(null);
+        Assert.assertEquals(0, devices.size());
+    }
+
+    @Test
+    public void testServiceBinderSetConnectionPolicy() throws Exception {
+        final SynchronousResultReceiver<Boolean> recv = SynchronousResultReceiver.get();
+        boolean defaultRecvValue = false;
+        mServiceBinder.setConnectionPolicy(
+                mDevice, BluetoothProfile.CONNECTION_POLICY_UNKNOWN, mAttributionSource, recv);
+        Assert.assertTrue(recv.awaitResultNoInterrupt(Duration.ofMillis(TIMEOUT_MS))
+                .getValue(defaultRecvValue));
+        verify(mDatabaseManager).setProfileConnectionPolicy(
+                mDevice, BluetoothProfile.VOLUME_CONTROL, BluetoothProfile.CONNECTION_POLICY_UNKNOWN);
+    }
+
+    @Test
+    public void testServiceBinderVolumeOffsetMethods() throws Exception {
+        // Send a message to trigger connection completed
+        VolumeControlStackEvent event = new VolumeControlStackEvent(
+                VolumeControlStackEvent.EVENT_TYPE_DEVICE_AVAILABLE);
+        event.device = mDevice;
+        event.valueInt1 = 2; // number of external outputs
+        mService.messageFromNative(event);
+
+        final SynchronousResultReceiver<Boolean> boolRecv = SynchronousResultReceiver.get();
+        boolean defaultRecvValue = false;
+        mServiceBinder.isVolumeOffsetAvailable(mDevice, mAttributionSource, boolRecv);
+        Assert.assertTrue(boolRecv.awaitResultNoInterrupt(Duration.ofMillis(TIMEOUT_MS))
+                .getValue(defaultRecvValue));
+
+        int volumeOffset = 100;
+        final SynchronousResultReceiver<Void> voidRecv = SynchronousResultReceiver.get();
+        mServiceBinder.setVolumeOffset(mDevice, volumeOffset, mAttributionSource, voidRecv);
+        voidRecv.awaitResultNoInterrupt(Duration.ofMillis(TIMEOUT_MS));
+        verify(mNativeInterface).setExtAudioOutVolumeOffset(mDevice, 1, volumeOffset);
+    }
+
+    @Test
+    public void testServiceBinderRegisterUnregisterCallback() throws Exception {
+        IBluetoothVolumeControlCallback callback =
+                Mockito.mock(IBluetoothVolumeControlCallback.class);
+        Binder binder = Mockito.mock(Binder.class);
+        when(callback.asBinder()).thenReturn(binder);
+
+        int size = mService.mCallbacks.getRegisteredCallbackCount();
+        SynchronousResultReceiver<Void> recv = SynchronousResultReceiver.get();
+        mServiceBinder.registerCallback(callback, mAttributionSource, recv);
+        recv.awaitResultNoInterrupt(Duration.ofMillis(TIMEOUT_MS)).getValue(null);
+        Assert.assertEquals(size + 1, mService.mCallbacks.getRegisteredCallbackCount());
+
+        recv = SynchronousResultReceiver.get();
+        mServiceBinder.unregisterCallback(callback, mAttributionSource, recv);
+        recv.awaitResultNoInterrupt(Duration.ofMillis(TIMEOUT_MS)).getValue(null);
+        Assert.assertEquals(size, mService.mCallbacks.getRegisteredCallbackCount());
+    }
+
+    @Test
+    public void testServiceBinderMuteMethods() throws Exception {
+        SynchronousResultReceiver<Void> voidRecv = SynchronousResultReceiver.get();
+        mServiceBinder.mute(mDevice, mAttributionSource, voidRecv);
+        voidRecv.awaitResultNoInterrupt(Duration.ofMillis(TIMEOUT_MS));
+        verify(mNativeInterface).mute(mDevice);
+
+        voidRecv = SynchronousResultReceiver.get();
+        mServiceBinder.unmute(mDevice, mAttributionSource, voidRecv);
+        voidRecv.awaitResultNoInterrupt(Duration.ofMillis(TIMEOUT_MS));
+        verify(mNativeInterface).unmute(mDevice);
+
+        int groupId = 1;
+        voidRecv = SynchronousResultReceiver.get();
+        mServiceBinder.muteGroup(groupId, mAttributionSource, voidRecv);
+        voidRecv.awaitResultNoInterrupt(Duration.ofMillis(TIMEOUT_MS));
+        verify(mNativeInterface).muteGroup(groupId);
+
+        voidRecv = SynchronousResultReceiver.get();
+        mServiceBinder.unmuteGroup(groupId, mAttributionSource, voidRecv);
+        voidRecv.awaitResultNoInterrupt(Duration.ofMillis(TIMEOUT_MS));
+        verify(mNativeInterface).unmuteGroup(groupId);
+    }
+
+    @Test
+    public void testVolumeControlOffsetDescriptor() {
+        VolumeControlService.VolumeControlOffsetDescriptor descriptor =
+                new VolumeControlService.VolumeControlOffsetDescriptor();
+        int invalidId = -1;
+        int validId = 10;
+        int testValue = 100;
+        String testDesc = "testDescription";
+        int testLocation = 10000;
+
+        Assert.assertEquals(0, descriptor.size());
+        descriptor.add(validId);
+        Assert.assertEquals(1, descriptor.size());
+
+        Assert.assertFalse(descriptor.setValue(invalidId, testValue));
+        Assert.assertTrue(descriptor.setValue(validId, testValue));
+        Assert.assertEquals(0, descriptor.getValue(invalidId));
+        Assert.assertEquals(testValue, descriptor.getValue(validId));
+
+        Assert.assertFalse(descriptor.setDescription(invalidId, testDesc));
+        Assert.assertTrue(descriptor.setDescription(validId, testDesc));
+        Assert.assertEquals(null, descriptor.getDescription(invalidId));
+        Assert.assertEquals(testDesc, descriptor.getDescription(validId));
+
+        Assert.assertFalse(descriptor.setLocation(invalidId, testLocation));
+        Assert.assertTrue(descriptor.setLocation(validId, testLocation));
+        Assert.assertEquals(0, descriptor.getLocation(invalidId));
+        Assert.assertEquals(testLocation, descriptor.getLocation(validId));
+
+        StringBuilder sb = new StringBuilder();
+        descriptor.dump(sb);
+        Assert.assertTrue(sb.toString().contains(testDesc));
+
+        descriptor.add(validId + 1);
+        Assert.assertEquals(2, descriptor.size());
+        descriptor.remove(validId);
+        Assert.assertEquals(1, descriptor.size());
+        descriptor.clear();
+        Assert.assertEquals(0, descriptor.size());
+    }
+
+    private void connectDevice(BluetoothDevice device) throws Exception {
         VolumeControlStackEvent connCompletedEvent;
 
         List<BluetoothDevice> prevConnectedDevices = mService.getConnectedDevices();
@@ -626,10 +794,15 @@ public class VolumeControlServiceTest {
                 mService.getConnectionState(device));
 
         // Verify that the device is in the list of connected devices
-        Assert.assertTrue(mService.getConnectedDevices().contains(device));
+        final SynchronousResultReceiver<List<BluetoothDevice>> recv =
+                SynchronousResultReceiver.get();
+        mServiceBinder.getConnectedDevices(mAttributionSource, recv);
+        List<BluetoothDevice> connectedDevices =
+                recv.awaitResultNoInterrupt(Duration.ofMillis(TIMEOUT_MS)).getValue(null);
+        Assert.assertTrue(connectedDevices.contains(device));
         // Verify the list of previously connected devices
         for (BluetoothDevice prevDevice : prevConnectedDevices) {
-            Assert.assertTrue(mService.getConnectedDevices().contains(prevDevice));
+            Assert.assertTrue(connectedDevices.contains(prevDevice));
         }
     }
 
