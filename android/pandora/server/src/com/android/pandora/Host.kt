@@ -22,6 +22,10 @@ import android.bluetooth.BluetoothDevice.BOND_BONDED
 import android.bluetooth.BluetoothDevice.TRANSPORT_LE
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothProfile
+import android.bluetooth.le.AdvertiseCallback
+import android.bluetooth.le.AdvertiseData
+import android.bluetooth.le.AdvertiseSettings
+import android.bluetooth.le.AdvertisingSetParameters
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
 import android.content.Context
@@ -33,6 +37,9 @@ import com.google.protobuf.ByteString
 import com.google.protobuf.Empty
 import io.grpc.Status
 import io.grpc.stub.StreamObserver
+import kotlin.Result.Companion.failure
+import kotlin.Result.Companion.success
+import kotlin.coroutines.suspendCoroutine
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -54,7 +61,7 @@ import pandora.HostProto.*
 @kotlinx.coroutines.ExperimentalCoroutinesApi
 class Host(private val context: Context, private val server: Server) : HostImplBase() {
   private val TAG = "PandoraHost"
-
+  private val ADVERTISEMENT_DURATION_MILLIS: Int = 10000
   private val scope: CoroutineScope
   private val flow: Flow<Intent>
 
@@ -103,11 +110,11 @@ class Host(private val context: Context, private val server: Server) : HostImplB
 
   override fun hardReset(request: Empty, responseObserver: StreamObserver<Empty>) {
     grpcUnary<Empty>(scope, responseObserver) {
-        Log.i(TAG, "hardReset")
+      Log.i(TAG, "hardReset")
 
-        bluetoothAdapter.clearBluetooth()
+      bluetoothAdapter.clearBluetooth()
 
-        rebootBluetooth()
+      rebootBluetooth()
 
       Log.i(TAG, "Shutdown the gRPC Server")
       server.shutdown()
@@ -218,6 +225,48 @@ class Host(private val context: Context, private val server: Server) : HostImplB
     }
   }
 
+  /**
+   * Set the device in advertisement mode for #ADVERTISEMENT_DURATION_MILLIS milliseconds.
+   * @param request Request sent by the client.
+   * @param responseObserver Response to build and set back to the client.
+   */
+  override fun setLEConnectable(
+    request: Empty,
+    responseObserver: StreamObserver<Empty>,
+  ) {
+    // Creates a gRPC coroutine in a given coroutine scope which executes a given suspended function
+    // returning a gRPC response and sends it on a given gRPC stream observer.
+    grpcUnary<Empty>(scope, responseObserver) {
+      Log.i(TAG, "setLEConnectable")
+      val advertiser = bluetoothAdapter.getBluetoothLeAdvertiser()
+      val advertiseSettings =
+        AdvertiseSettings.Builder()
+          .setConnectable(true)
+          .setOwnAddressType(AdvertisingSetParameters.ADDRESS_TYPE_PUBLIC)
+          .setTimeout(ADVERTISEMENT_DURATION_MILLIS)
+          .build()
+      val advertiseData = AdvertiseData.Builder().build()
+      suspendCoroutine<Boolean> { continuation ->
+        val advertiseCallback =
+          object : AdvertiseCallback() {
+            override fun onStartFailure(errorCode: Int) {
+              Log.i(TAG, "Advertising failed: $errorCode")
+              continuation.resumeWith(failure(Exception("Advertising failed: $errorCode")))
+            }
+
+            override fun onStartSuccess(settingsInEffect: AdvertiseSettings) {
+              Log.i(TAG, "Advertising success")
+              continuation.resumeWith(success(true))
+            }
+          }
+        advertiser.startAdvertising(advertiseSettings, advertiseData, advertiseCallback)
+      }
+
+      // Response sent to client
+      Empty.getDefaultInstance()
+    }
+  }
+
   override fun connect(request: ConnectRequest, responseObserver: StreamObserver<ConnectResponse>) {
     grpcUnary(scope, responseObserver) {
       val bluetoothDevice = request.address.toBluetoothDevice(bluetoothAdapter)
@@ -285,6 +334,28 @@ class Host(private val context: Context, private val server: Server) : HostImplB
           Connection.newBuilder().setCookie(ByteString.copyFromUtf8(device.address)).build()
         )
         .build()
+    }
+  }
+
+  override fun getLEConnection(
+    request: GetLEConnectionRequest,
+    responseObserver: StreamObserver<GetLEConnectionResponse>,
+  ) {
+    grpcUnary<GetLEConnectionResponse>(scope, responseObserver) {
+      val address = request.address.decodeAsMacAddressToString()
+      Log.i(TAG, "getLEConnection: $address")
+      val device =
+        bluetoothAdapter.getRemoteLeDevice(address, BluetoothDevice.ADDRESS_TYPE_PUBLIC)
+      if (device.isConnected) {
+        GetLEConnectionResponse.newBuilder()
+          .setConnection(
+            Connection.newBuilder().setCookie(ByteString.copyFromUtf8(device.address)).build()
+          )
+          .build()
+      } else {
+        Log.e(TAG, "Device: $device is not connected")
+        throw Status.UNKNOWN.asException()
+      }
     }
   }
 
