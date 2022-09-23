@@ -26,9 +26,10 @@
         <option name="inconclusive-max-retries" value="3" />
         <option name="physical" value="false" />
         <option name="profile" value="A2DP/SRC" />
-        <option name="profile" value="A2DP/SNK/CC" />
+        <option name="profile" value="A2DP/SNK" />
         <option name="profile" value="AVCTP" />
         <option name="profile" value="AVDTP/SRC" />
+        <option name="profile" value="AVDTP/SNK" />
         <option name="profile" value="AVRCP" />
         <option name="profile" value="GATT/CL/GAC" />
         <option name="profile" value="GATT/CL/GAD" />
