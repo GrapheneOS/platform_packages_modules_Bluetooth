@@ -393,7 +393,7 @@ static bt_status_t register_app(bthd_app_param_t* p_app_param,
 
   if (btif_hd_cb.app_registered) {
     BTIF_TRACE_WARNING("%s: application already registered", __func__);
-    return BT_STATUS_BUSY;
+    return BT_STATUS_DONE;
   }
 
   if (strlen(p_app_param->name) >= BTIF_HD_APP_NAME_LEN ||
