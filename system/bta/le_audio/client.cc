@@ -671,6 +671,12 @@ class LeAudioClientImpl : public LeAudioClient {
       return false;
     }
 
+    if (group->IsPendingConfiguration()) {
+      LOG_WARN("Group %d is reconfiguring right now. Drop the update",
+               group->group_id_);
+      return false;
+    }
+
     bool result = groupStateMachine_->StartStream(
         group, static_cast<LeAudioContextType>(final_context_type),
         metadata_context_type, GetAllCcids(metadata_context_type));
