@@ -92,7 +92,7 @@ typedef enum {
   BT_STATUS_FAIL,
   BT_STATUS_NOT_READY,
   BT_STATUS_NOMEM,
-  BT_STATUS_BUSY,
+  BT_STATUS_BUSY, /* retryable error */
   BT_STATUS_DONE, /* request already completed */
   BT_STATUS_UNSUPPORTED,
   BT_STATUS_PARM_INVALID,

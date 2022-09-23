@@ -18,6 +18,7 @@
 
 #include <raw_address.h>
 
+#include "bluetooth.h"
 #include "bluetooth_headset_callbacks.h"
 #include "bt_hf.h"
 
