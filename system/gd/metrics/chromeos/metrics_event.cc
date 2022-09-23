@@ -23,12 +23,17 @@
 #include "include/hardware/bt_av.h"
 #include "include/hardware/bt_hf.h"
 #include "include/hardware/bt_hh.h"
+#include "stack/include/hci_error_code.h"
 
 namespace bluetooth {
 namespace metrics {
 
 // topshim::btif::BtBondState is a copy of hardware/bluetooth.h:bt_bond_state_t
 typedef bt_bond_state_t BtBondState;
+// topshim::btif::BtAclState is a copy of hardware/bluetooth.h:bt_acl_state_t
+typedef bt_acl_state_t BtAclState;
+// topshim::btif::BtConnectionDirection is a copy of hardware/bluetooth.h:bt_conn_direction_t
+typedef bt_conn_direction_t BtConnectionDirection;
 // topshim::btif::BtStatus is a copy of hardware/bluetooth.h:bt_status_t
 typedef bt_status_t BtStatus;
 // topshim::profile::a2dp::BtavConnectionState is a copy of hardware/bt_av.h:btav_connection_state_t
@@ -491,6 +496,118 @@ ProfileConnectionEvent ToProfileConnectionEvent(std::string addr, uint32_t profi
       event.profile = (int64_t)Profile::UNKNOWN;
       break;
   }
+
+  return event;
+}
+
+static int64_t ToAclConnectionStatus(uint32_t status, StateChangeType type, uint32_t hci_reason) {
+  int64_t state;
+  if (StateChangeType::STATE_CHANGE_TYPE_CONNECT == type) {
+    switch ((BtStatus)status) {
+      case BtStatus::BT_STATUS_SUCCESS:
+        state = (int64_t)MetricAclConnectionStatus::ACL_CONN_STATE_SUCCEED;
+        break;
+      case BtStatus::BT_STATUS_BUSY:
+        state = (int64_t)MetricAclConnectionStatus::ACL_CONN_STATE_BUSY;
+        break;
+      case BtStatus::BT_STATUS_DONE:
+        state = (int64_t)MetricAclConnectionStatus::ACL_CONN_STATE_ALREADY;
+        break;
+      case BtStatus::BT_STATUS_UNSUPPORTED:
+        state = (int64_t)MetricAclConnectionStatus::ACL_CONN_STATE_NOT_SUPPORTED;
+        break;
+      case BtStatus::BT_STATUS_PARM_INVALID:
+        state = (int64_t)MetricAclConnectionStatus::ACL_CONN_STATE_INVALID_PARAMS;
+        break;
+      case BtStatus::BT_STATUS_AUTH_FAILURE:
+        state = (int64_t)MetricAclConnectionStatus::ACL_CONN_STATE_AUTH_FAILED;
+        break;
+      case BtStatus::BT_STATUS_RMT_DEV_DOWN:
+        state = (int64_t)MetricAclConnectionStatus::ACL_CONN_STATE_DISCONNECTED;
+        break;
+      case BtStatus::BT_STATUS_AUTH_REJECTED:
+      case BtStatus::BT_STATUS_FAIL:
+      case BtStatus::BT_STATUS_NOT_READY:
+      case BtStatus::BT_STATUS_NOMEM:
+      case BtStatus::BT_STATUS_UNHANDLED:
+      default:
+        state = (int64_t)MetricAclConnectionStatus::ACL_CONN_STATE_UNKNOWN;
+        break;
+    }
+  } else {
+    switch (hci_reason) {
+      case HCI_ERR_CONNECTION_TOUT:
+        state = (int64_t)MetricAclDisconnectionStatus::ACL_DISCONN_STATE_TIMEOUT;
+        break;
+      case HCI_ERR_PEER_USER:
+      case HCI_ERR_REMOTE_LOW_RESOURCE:
+      case HCI_ERR_REMOTE_POWER_OFF:
+        state = (int64_t)MetricAclDisconnectionStatus::ACL_DISCONN_STATE_REMOTE;
+        break;
+      case HCI_ERR_CONN_CAUSE_LOCAL_HOST:
+        state = (int64_t)MetricAclDisconnectionStatus::ACL_DISCONN_STATE_LOCAL_HOST;
+        // TODO: distinguish from ACL_DISCONN_STATE_LOCAL_HOST_SUSPEND
+        break;
+      case HCI_ERR_AUTH_FAILURE:
+      case HCI_ERR_KEY_MISSING:
+      case HCI_ERR_HOST_REJECT_SECURITY:
+        state = (int64_t)MetricAclDisconnectionStatus::ACL_DISCONN_STATE_AUTH_FAILURE;
+        break;
+      default:
+        state = (int64_t)MetricAclDisconnectionStatus::ACL_DISCONN_STATE_UNKNOWN;
+        break;
+    }
+  }
+
+  return state;
+}
+
+// pending acl conn event is map<addr, pair<state, time>>
+static std::map<std::string, std::pair<uint32_t, int64_t>> pending_acl_events;
+
+void PendingAclConnectAttemptEvent(std::string addr, int64_t time, uint32_t acl_state) {
+  pending_acl_events[addr] = std::make_pair(acl_state, time);
+}
+
+AclConnectionEvent ToAclConnectionEvent(
+    std::string addr, int64_t time, uint32_t acl_status, uint32_t acl_state, uint32_t direction, uint32_t hci_reason) {
+  AclConnectionEvent event;
+
+  if (pending_acl_events.find(addr) == pending_acl_events.end()) {
+    // No attempt found! Assume initiated by system.
+    event.initiator = (int64_t)MetricAclConnectionInitiator::ACL_CONNECTION_INITIATOR_SYSTEM;
+    event.direction = direction;
+    event.start_time = time;
+
+    // There is no failed disconnection. Therefore on failure, assume it's a connection attempt.
+    if (acl_state == (uint32_t)BtAclState::BT_ACL_STATE_CONNECTED ||
+        acl_status != (uint32_t)BtStatus::BT_STATUS_SUCCESS) {
+      event.state = (int64_t)StateChangeType::STATE_CHANGE_TYPE_CONNECT;
+    } else {
+      event.state = (int64_t)StateChangeType::STATE_CHANGE_TYPE_DISCONNECT;
+    }
+  } else {
+    // connection attempt found. Assume initiated by client.
+    std::pair<uint32_t, int64_t> pending_event = pending_acl_events[addr];
+    pending_acl_events.erase(addr);
+    event.initiator = (int64_t)MetricAclConnectionInitiator::ACL_CONNECTION_INITIATOR_CLIENT;
+    event.direction = (int64_t)MetricAclConnectionDirection::ACL_CONNECTION_OUTGOING;
+    event.start_time = pending_event.second;
+
+    if (pending_event.first == (uint32_t)BtAclState::BT_ACL_STATE_CONNECTED) {
+      event.state = (int64_t)StateChangeType::STATE_CHANGE_TYPE_CONNECT;
+    } else {
+      event.state = (int64_t)StateChangeType::STATE_CHANGE_TYPE_DISCONNECT;
+    }
+  }
+
+  if (event.state == (int64_t)StateChangeType::STATE_CHANGE_TYPE_CONNECT) {
+    event.start_status = (int64_t)MetricAclConnectionStatus::ACL_CONN_STATE_STARTING;
+  } else {
+    event.start_status = (int64_t)MetricAclDisconnectionStatus::ACL_DISCONN_STATE_STARTING;
+  }
+
+  event.status = ToAclConnectionStatus(acl_status, (StateChangeType)event.state, hci_reason);
 
   return event;
 }

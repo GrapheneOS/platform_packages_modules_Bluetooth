@@ -207,5 +207,82 @@ void LogMetricsProfileConnectionStateChanged(RawAddress* addr, uint32_t profile,
       .Record();
 }
 
+void LogMetricsAclConnectAttempt(RawAddress* addr, uint32_t acl_state) {
+  int64_t boot_time = bluetooth::common::time_get_os_boottime_us();
+  std::string addr_string = addr->ToString();
+
+  // At this time we don't know the transport layer, therefore pending on sending the event
+  PendingAclConnectAttemptEvent(addr_string, boot_time, acl_state);
+}
+
+void LogMetricsAclConnectionStateChanged(
+    RawAddress* addr,
+    uint32_t transport,
+    uint32_t acl_status,
+    uint32_t acl_state,
+    uint32_t direction,
+    uint32_t hci_reason) {
+  int64_t boot_time;
+  std::string addr_string;
+  std::string boot_id;
+  bool attempt_found;
+  AclConnectionEvent event;
+
+  boot_time = bluetooth::common::time_get_os_boottime_us();
+  addr_string = addr->ToString();
+
+  event = ToAclConnectionEvent(addr_string, boot_time, acl_status, acl_state, direction, hci_reason);
+
+  if (!GetBootId(&boot_id)) {
+    return;
+  }
+
+  LOG_DEBUG(
+      "AclConnectionStateChanged: %s, %d, %s, %d, %d, %d, %d, %d",
+      boot_id.c_str(),
+      event.start_time,
+      addr_string.c_str(),
+      transport,
+      event.direction,
+      event.initiator,
+      event.state,
+      event.start_status);
+
+  ::metrics::structured::events::bluetooth::BluetoothAclConnectionStateChanged()
+      .SetBootId(boot_id)
+      .SetSystemTime(event.start_time)
+      .SetIsFloss(true)
+      .SetDeviceId(addr_string)
+      .SetDeviceType(transport)
+      .SetConnectionDirection(event.direction)
+      .SetConnectionInitiator(event.initiator)
+      .SetStateChangeType(event.state)
+      .SetAclConnectionState(event.start_status)
+      .Record();
+
+  LOG_DEBUG(
+      "AclConnectionStateChanged: %s, %d, %s, %d, %d, %d, %d, %d",
+      boot_id.c_str(),
+      boot_time,
+      addr_string.c_str(),
+      transport,
+      event.direction,
+      event.initiator,
+      event.state,
+      event.status);
+
+  ::metrics::structured::events::bluetooth::BluetoothAclConnectionStateChanged()
+      .SetBootId(boot_id)
+      .SetSystemTime(boot_time)
+      .SetIsFloss(true)
+      .SetDeviceId(addr_string)
+      .SetDeviceType(transport)
+      .SetConnectionDirection(event.direction)
+      .SetConnectionInitiator(event.initiator)
+      .SetStateChangeType(event.state)
+      .SetAclConnectionState(event.status)
+      .Record();
+}
+
 }  // namespace metrics
 }  // namespace bluetooth
