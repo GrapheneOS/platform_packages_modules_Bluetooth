@@ -1299,7 +1299,12 @@ cc_test {
 // Bluetooth stack connection multiplexing
 cc_test {
     name: "net_test_stack_sdp",
-    defaults: ["fluoride_defaults"],
+    test_suites: ["device-tests"],
+    host_supported: true,
+    defaults: [
+        "fluoride_defaults",
+        "mts_defaults",
+    ],
     local_include_dirs: [
         "include",
         "test/common",
@@ -1313,10 +1318,18 @@ cc_test {
     ],
     srcs: [
         ":TestCommonMockFunctions",
+        ":TestMockBtif",
+        ":TestMockOsi",
+        ":TestMockStackL2cap",
+        ":TestMockStackMetrics",
+        "sdp/sdp_api.cc",
+        "sdp/sdp_discovery.cc",
+        "sdp/sdp_server.cc",
+        "sdp/sdp_db.cc",
         "sdp/sdp_main.cc",
         "sdp/sdp_utils.cc",
-        "test/common/mock_btif_config.cc",
-        "test/stack_sdp_utils_test.cc",
+        "test/sdp/stack_sdp_test.cc",
+        "test/sdp/stack_sdp_utils_test.cc",
     ],
     shared_libs: [
         "libcutils",

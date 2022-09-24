@@ -718,6 +718,47 @@ public class VolumeControlServiceTest {
         verify(mNativeInterface).unmuteGroup(groupId);
     }
 
+    @Test
+    public void testVolumeControlOffsetDescriptor() {
+        VolumeControlService.VolumeControlOffsetDescriptor descriptor =
+                new VolumeControlService.VolumeControlOffsetDescriptor();
+        int invalidId = -1;
+        int validId = 10;
+        int testValue = 100;
+        String testDesc = "testDescription";
+        int testLocation = 10000;
+
+        Assert.assertEquals(0, descriptor.size());
+        descriptor.add(validId);
+        Assert.assertEquals(1, descriptor.size());
+
+        Assert.assertFalse(descriptor.setValue(invalidId, testValue));
+        Assert.assertTrue(descriptor.setValue(validId, testValue));
+        Assert.assertEquals(0, descriptor.getValue(invalidId));
+        Assert.assertEquals(testValue, descriptor.getValue(validId));
+
+        Assert.assertFalse(descriptor.setDescription(invalidId, testDesc));
+        Assert.assertTrue(descriptor.setDescription(validId, testDesc));
+        Assert.assertEquals(null, descriptor.getDescription(invalidId));
+        Assert.assertEquals(testDesc, descriptor.getDescription(validId));
+
+        Assert.assertFalse(descriptor.setLocation(invalidId, testLocation));
+        Assert.assertTrue(descriptor.setLocation(validId, testLocation));
+        Assert.assertEquals(0, descriptor.getLocation(invalidId));
+        Assert.assertEquals(testLocation, descriptor.getLocation(validId));
+
+        StringBuilder sb = new StringBuilder();
+        descriptor.dump(sb);
+        Assert.assertTrue(sb.toString().contains(testDesc));
+
+        descriptor.add(validId + 1);
+        Assert.assertEquals(2, descriptor.size());
+        descriptor.remove(validId);
+        Assert.assertEquals(1, descriptor.size());
+        descriptor.clear();
+        Assert.assertEquals(0, descriptor.size());
+    }
+
     private void connectDevice(BluetoothDevice device) throws Exception {
         VolumeControlStackEvent connCompletedEvent;
 

@@ -62,7 +62,7 @@ import java.util.regex.Pattern;
  */
 public class MediaPlayerList {
     private static final String TAG = "MediaPlayerList";
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = Log.isLoggable(TAG, Log.DEBUG);
     static boolean sTesting = false;
 
     private static final String PACKAGE_SCHEME = "package";

@@ -108,7 +108,6 @@ REQUIRED_APT_PACKAGES = [
     'libevent-dev',
     'libevent-dev',
     'libflatbuffers-dev',
-    'libflatbuffers1',
     'libgl1-mesa-dev',
     'libglib2.0-dev',
     'libgtest-dev',

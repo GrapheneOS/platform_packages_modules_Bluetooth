@@ -92,7 +92,7 @@ typedef enum {
   BT_STATUS_FAIL,
   BT_STATUS_NOT_READY,
   BT_STATUS_NOMEM,
-  BT_STATUS_BUSY,
+  BT_STATUS_BUSY, /* retryable error */
   BT_STATUS_DONE, /* request already completed */
   BT_STATUS_UNSUPPORTED,
   BT_STATUS_PARM_INVALID,
@@ -869,6 +869,13 @@ typedef struct {
    *
    */
   int (*set_event_filter_connection_setup_all_devices)();
+
+  /**
+   *
+   * Is wbs supported by the controller
+   *
+   */
+  bool (*get_wbs_supported)();
 } bt_interface_t;
 
 #define BLUETOOTH_INTERFACE_STRING "bluetoothInterface"

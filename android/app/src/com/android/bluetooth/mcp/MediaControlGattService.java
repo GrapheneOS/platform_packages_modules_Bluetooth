@@ -69,9 +69,9 @@ import java.util.UUID;
  * Implemented according to Media Control Service v1.0 specification.
  */
 public class MediaControlGattService implements MediaControlGattServiceInterface {
-    private static final String TAG = "BluetoothMediaControlGattService";
-    private static final boolean DBG = true;
-    private static final boolean VDBG = false;
+    private static final String TAG = "MediaControlGattService";
+    private static final boolean DBG = Log.isLoggable(TAG, Log.DEBUG);
+    private static final boolean VDBG = Log.isLoggable(TAG, Log.VERBOSE);
 
     /* MCS assigned UUIDs */
     public static final UUID UUID_PLAYER_NAME =
