@@ -588,5 +588,42 @@ TEST(HciPacketsTest, testMsftLeMonitorAdvPatterns) {
   ASSERT_EQ(expected_bytes, *packet_bytes);
 }
 
+std::vector<uint8_t> msft_read_supported_features_complete{
+    0x0e,  // command complete event code
+    0x10,  // event size
+    0x01,  // num_hci_command_packets
+    0x1e,
+    0xfc,  // vendor specific MSFT opcode assigned by Intel
+    0x00,  // status
+    0x00,  // MSFT subcommand opcode
+    0x7f,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,  // supported features
+    0x02,  // MSFT event prefix length
+    0x87,
+    0x80,  // prefix: MSFT event prefix provided by Intel
+};
+TEST(HciPacketsTest, testMsftReadSupportedFeaturesComplete) {
+  PacketView<kLittleEndian> packet_bytes_view(
+      std::make_shared<std::vector<uint8_t>>(msft_read_supported_features_complete));
+  auto view = MsftReadSupportedFeaturesCommandCompleteView::Create(
+      MsftCommandCompleteView::Create(CommandCompleteView::Create(EventView::Create(packet_bytes_view))));
+
+  ASSERT_TRUE(view.IsValid());
+  ASSERT_EQ(ErrorCode::SUCCESS, view.GetStatus());
+  ASSERT_EQ((uint8_t)0x00, (uint8_t)view.GetSubcommandOpcode());
+  ASSERT_EQ((uint64_t)0x000000000000007f, view.GetSupportedFeatures());
+  ASSERT_EQ(2ul, view.GetPrefix().size());
+
+  uint16_t prefix = 0;
+  for (auto p : view.GetPrefix()) prefix = (prefix << 8) + p;
+  ASSERT_EQ((uint16_t)0x8780, prefix);
+}
+
 }  // namespace hci
 }  // namespace bluetooth

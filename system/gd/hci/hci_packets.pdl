@@ -6301,6 +6301,13 @@ packet MsftCommandComplete : CommandComplete {
 
 packet MsftReadSupportedFeaturesCommandComplete : MsftCommandComplete (subcommand_opcode = MSFT_READ_SUPPORTED_FEATURES) {
   supported_features: 64,
+  _size_(prefix) : 8,
+  prefix: 8[],
+}
+
+test MsftReadSupportedFeaturesCommandComplete {
+  "\x0e\x10\x01\x1e\xfc\x00\x00\x7f\x00\x00\x00\x00\x00\x00\x00\x02\x87\x80", // Msft opcode by Intel
+  "\x0e\x12\x01\x70\xfd\x00\x00\x1f\x00\x00\x00\x00\x00\x00\x00\x04\x4d\x53\x46\x54", // Msft opcode by Qualcomm
 }
 
 packet MsftLeMonitorAdvCommandComplete : MsftCommandComplete (subcommand_opcode = MSFT_LE_MONITOR_ADV) {
