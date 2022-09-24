@@ -123,11 +123,12 @@ typedef struct {
 } tSDP_CONT_INFO;
 
 /* Define the SDP Connection Control Block */
-typedef struct {
+struct tCONN_CB {
 #define SDP_STATE_IDLE 0
 #define SDP_STATE_CONN_SETUP 1
 #define SDP_STATE_CFG_SETUP 2
 #define SDP_STATE_CONNECTED 3
+#define SDP_STATE_CONN_PEND 4
   uint8_t con_state;
 
 #define SDP_FLAGS_IS_ORIG 0x01
@@ -166,8 +167,11 @@ typedef struct {
   uint16_t cont_offset;     /* Continuation state data in the server response */
   tSDP_CONT_INFO cont_info; /* structure to hold continuation information for
                                the server response */
+  tCONN_CB() = default;
 
-} tCONN_CB;
+ private:
+  tCONN_CB(const tCONN_CB&) = delete;
+};
 
 /*  The main SDP control block */
 typedef struct {
@@ -199,7 +203,7 @@ extern void sdpu_log_attribute_metrics(const RawAddress& bda,
 extern tCONN_CB* sdpu_find_ccb_by_cid(uint16_t cid);
 extern tCONN_CB* sdpu_find_ccb_by_db(const tSDP_DISCOVERY_DB* p_db);
 extern tCONN_CB* sdpu_allocate_ccb(void);
-extern void sdpu_release_ccb(tCONN_CB* p_ccb);
+extern void sdpu_release_ccb(tCONN_CB& p_ccb);
 
 extern uint8_t* sdpu_build_attrib_seq(uint8_t* p_out, uint16_t* p_attr,
                                       uint16_t num_attrs);
@@ -236,6 +240,11 @@ extern bool sdpu_is_service_id_avrc_target(const tSDP_ATTRIBUTE* p_attr);
 extern bool spdu_is_avrcp_version_valid(const uint16_t version);
 extern void sdpu_set_avrc_target_version(const tSDP_ATTRIBUTE* p_attr,
                                          const RawAddress* bdaddr);
+extern uint16_t sdpu_get_active_ccb_cid(const RawAddress& remote_bd_addr);
+extern bool sdpu_process_pend_ccb_same_cid(tCONN_CB& ccb);
+extern bool sdpu_process_pend_ccb_new_cid(tCONN_CB& ccb);
+extern void sdpu_clear_pend_ccb(tCONN_CB& ccb);
+extern void sdpu_callback(tCONN_CB& ccb, tSDP_REASON reason);
 
 /* Functions provided by sdp_db.cc
  */

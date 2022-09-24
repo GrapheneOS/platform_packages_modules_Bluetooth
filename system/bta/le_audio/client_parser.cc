@@ -543,10 +543,61 @@ bool PrepareAseCtpRelease(const std::vector<uint8_t>& ase_ids,
 
 namespace pacs {
 
-bool ParsePac(std::vector<struct acs_ac_record>& pac_recs, uint16_t len,
-              const uint8_t* value) {
+int ParseSinglePac(std::vector<struct acs_ac_record>& pac_recs, uint16_t len,
+                   const uint8_t* value) {
+  struct acs_ac_record rec;
+  uint8_t codec_spec_cap_len, metadata_len;
+
+  if (len < kAcsPacRecordMinLen) {
+    LOG_ERROR("Wrong len of PAC record (%d!=%d)", len, kAcsPacRecordMinLen);
+    pac_recs.clear();
+    return -1;
+  }
+
+  STREAM_TO_UINT8(rec.codec_id.coding_format, value);
+  STREAM_TO_UINT16(rec.codec_id.vendor_company_id, value);
+  STREAM_TO_UINT16(rec.codec_id.vendor_codec_id, value);
+  STREAM_TO_UINT8(codec_spec_cap_len, value);
+  len -= kAcsPacRecordMinLen - kAcsPacMetadataLenLen;
+
+  if (len < codec_spec_cap_len + kAcsPacMetadataLenLen) {
+    LOG_ERROR("Wrong len of PAC record (codec specific capabilities) (%d!=%d)",
+              len, codec_spec_cap_len + kAcsPacMetadataLenLen);
+    pac_recs.clear();
+    return -1;
+  }
+
+  bool parsed;
+  rec.codec_spec_caps =
+      types::LeAudioLtvMap::Parse(value, codec_spec_cap_len, parsed);
+  if (!parsed) return -1;
+
+  value += codec_spec_cap_len;
+  len -= codec_spec_cap_len;
+
+  STREAM_TO_UINT8(metadata_len, value);
+  len -= kAcsPacMetadataLenLen;
+
+  if (len < metadata_len) {
+    LOG_ERROR("Wrong len of PAC record (metadata) (%d!=%d)", len, metadata_len);
+    pac_recs.clear();
+    return -1;
+  }
+
+  rec.metadata = std::vector<uint8_t>(value, value + metadata_len);
+  value += metadata_len;
+  len -= metadata_len;
+
+  pac_recs.push_back(std::move(rec));
+
+  return len;
+}
+
+bool ParsePacs(std::vector<struct acs_ac_record>& pac_recs, uint16_t len,
+               const uint8_t* value) {
   if (len < kAcsPacDiscoverRspMinLen) {
-    LOG(ERROR) << "Wrong len of PAC characteristic";
+    LOG_ERROR("Wrong len of PAC characteristic (%d!=%d)", len,
+              kAcsPacDiscoverRspMinLen);
     return false;
   }
 
@@ -556,49 +607,11 @@ bool ParsePac(std::vector<struct acs_ac_record>& pac_recs, uint16_t len,
 
   pac_recs.reserve(pac_rec_nb);
   for (int i = 0; i < pac_rec_nb; i++) {
-    struct acs_ac_record rec;
-    uint8_t codec_spec_cap_len, metadata_len;
+    int remaining_len = ParseSinglePac(pac_recs, len, value);
+    if (remaining_len < 0) return false;
 
-    if (len < kAcsPacRecordMinLen) {
-      LOG(ERROR) << "Wrong len of PAC record";
-      pac_recs.clear();
-      return false;
-    }
-
-    STREAM_TO_UINT8(rec.codec_id.coding_format, value);
-    STREAM_TO_UINT16(rec.codec_id.vendor_company_id, value);
-    STREAM_TO_UINT16(rec.codec_id.vendor_codec_id, value);
-    STREAM_TO_UINT8(codec_spec_cap_len, value);
-    len -= kAcsPacRecordMinLen - kAcsPacMetadataLenLen;
-
-    if (len < codec_spec_cap_len + kAcsPacMetadataLenLen) {
-      LOG(ERROR) << "Wrong len of PAC record (codec specific capabilities)";
-      pac_recs.clear();
-      return false;
-    }
-
-    bool parsed;
-    rec.codec_spec_caps =
-        types::LeAudioLtvMap::Parse(value, codec_spec_cap_len, parsed);
-    if (!parsed) return false;
-
-    value += codec_spec_cap_len;
-    len -= codec_spec_cap_len;
-
-    STREAM_TO_UINT8(metadata_len, value);
-    len -= kAcsPacMetadataLenLen;
-
-    if (len < metadata_len) {
-      LOG(ERROR) << "Wrong len of PAC record (metadata)";
-      pac_recs.clear();
-      return false;
-    }
-
-    rec.metadata = std::vector<uint8_t>(value, value + metadata_len);
-    value += metadata_len;
-    len -= metadata_len;
-
-    pac_recs.push_back(std::move(rec));
+    value += (len - remaining_len);
+    len = remaining_len;
   }
 
   return true;

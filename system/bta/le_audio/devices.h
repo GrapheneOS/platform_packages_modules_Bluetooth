@@ -227,6 +227,8 @@ class LeAudioDeviceGroup {
       types::LeAudioContextType context_type = types::LeAudioContextType::RFU);
   bool Activate(types::LeAudioContextType context_type);
   void Deactivate(void);
+  types::CigState GetCigState(void);
+  void SetCigState(le_audio::types::CigState state);
   void CigClearCis(void);
   void ClearSinksFromConfiguration(void);
   void ClearSourcesFromConfiguration(void);
@@ -285,6 +287,7 @@ class LeAudioDeviceGroup {
   types::LeAudioContextType GetCurrentContextType(void);
   bool IsPendingConfiguration(void);
   void SetPendingConfiguration(void);
+  void ClearPendingConfiguration(void);
   bool IsConfigurationSupported(
       LeAudioDevice* leAudioDevice,
       const set_configurations::AudioSetConfiguration* audio_set_conf);

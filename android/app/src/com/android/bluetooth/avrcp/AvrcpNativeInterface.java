@@ -35,7 +35,7 @@ import java.util.Objects;
  */
 public class AvrcpNativeInterface {
     private static final String TAG = "AvrcpNativeInterface";
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = Log.isLoggable(TAG, Log.DEBUG);
 
     private static AvrcpNativeInterface sInstance;
     private AvrcpTargetService mAvrcpService;

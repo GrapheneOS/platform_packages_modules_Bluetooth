@@ -136,6 +136,7 @@ genrule {
         "proto/pandora_experimental/hfp.proto",
         "proto/pandora_experimental/hid.proto",
         "proto/pandora_experimental/host.proto",
+        "proto/pandora_experimental/l2cap.proto",
         "proto/pandora_experimental/security.proto",
     ],
     out: [
@@ -151,6 +152,8 @@ genrule {
         "pandora_experimental/hid_pb2.py",
         "pandora_experimental/host_grpc.py",
         "pandora_experimental/host_pb2.py",
+        "pandora_experimental/l2cap_grpc.py",
+        "pandora_experimental/l2cap_pb2.py",
         "pandora_experimental/security_grpc.py",
         "pandora_experimental/security_pb2.py",
     ]

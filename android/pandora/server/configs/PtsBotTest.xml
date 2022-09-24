@@ -23,10 +23,13 @@
         <!-- mmi2grpc is contained inside pts-bot folder -->
         <option name="mmi2grpc" value="pts-bot" />
         <option name="tests-config-file" value="pts_bot_tests_config.json" />
+        <option name="inconclusive-max-retries" value="3" />
         <option name="physical" value="false" />
         <option name="profile" value="A2DP/SRC" />
+        <option name="profile" value="A2DP/SNK" />
         <option name="profile" value="AVCTP" />
         <option name="profile" value="AVDTP/SRC" />
+        <option name="profile" value="AVDTP/SNK" />
         <option name="profile" value="AVRCP" />
         <option name="profile" value="GATT/CL/GAC" />
         <option name="profile" value="GATT/CL/GAD" />
@@ -39,6 +42,7 @@
         <option name="profile" value="HFP/AG/TCA" />
         <option name="profile" value="HID/HOS" />
         <option name="profile" value="HOGP/RH" />
+        <option name="profile" value="L2CAP/LE/CFC" />
         <option name="profile" value="SDP/SR" />
         <option name="profile" value="SM/CEN/EKS" />
         <option name="profile" value="SM/CEN/JW" />
