@@ -22,8 +22,7 @@ use log::{debug, error, warn};
 use num_traits::cast::ToPrimitive;
 use std::collections::HashMap;
 use std::collections::VecDeque;
-use std::sync::Arc;
-use std::sync::Mutex;
+use std::sync::{Arc, Condvar, Mutex};
 use std::time::Duration;
 use std::time::Instant;
 use tokio::sync::mpsc::Sender;
@@ -352,6 +351,9 @@ pub struct Bluetooth {
     // Internal API members
     internal_le_rand_queue: VecDeque<OneShotSender<u64>>,
     discoverable_timeout: Option<JoinHandle<()>>,
+
+    /// Used to notify signal handler that we have turned off the stack.
+    sig_notifier: Arc<(Mutex<bool>, Condvar)>,
 }
 
 impl Bluetooth {
@@ -360,6 +362,7 @@ impl Bluetooth {
         tx: Sender<Message>,
         intf: Arc<Mutex<BluetoothInterface>>,
         bluetooth_media: Arc<Mutex<Box<BluetoothMedia>>>,
+        sig_notifier: Arc<(Mutex<bool>, Condvar)>,
     ) -> Bluetooth {
         Bluetooth {
             bonded_devices: HashMap::new(),
@@ -387,6 +390,7 @@ impl Bluetooth {
             // Internal API members
             internal_le_rand_queue: VecDeque::<OneShotSender<u64>>::new(),
             discoverable_timeout: None,
+            sig_notifier,
         }
     }
 
@@ -697,6 +701,10 @@ impl BtifBluetoothCallbacks for Bluetooth {
 
         if self.state == BtState::Off {
             self.properties.clear();
+
+            // Let the signal notifier know we are turned off.
+            *self.sig_notifier.0.lock().unwrap() = false;
+            self.sig_notifier.1.notify_all();
         } else {
             // Trigger properties update
             self.intf.lock().unwrap().get_adapter_properties();
@@ -706,6 +714,10 @@ impl BtifBluetoothCallbacks for Bluetooth {
 
             // Ensure device is connectable so that disconnected device can reconnect
             self.set_connectable(true);
+
+            // Notify the signal notifier that we are turned on.
+            *self.sig_notifier.0.lock().unwrap() = true;
+            self.sig_notifier.1.notify_all();
         }
     }
 
