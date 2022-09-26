@@ -2636,7 +2636,11 @@ void LeAudioDevices::Dump(int fd, int group_id) {
 
 void LeAudioDevices::Cleanup(void) {
   for (auto const& device : leAudioDevices_) {
-    device->DisconnectAcl();
+    if (device->conn_id_ != GATT_INVALID_CONN_ID) {
+      BtaGattQueue::Clean(device->conn_id_);
+      BTA_GATTC_Close(device->conn_id_);
+      device->DisconnectAcl();
+    }
   }
   leAudioDevices_.clear();
 }
