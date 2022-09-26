@@ -362,6 +362,8 @@ class HciHalHost : public HciHal {
     ASSERT_LOG(received_size != -1, "Can't receive from socket: %s", strerror(errno));
     if (received_size == 0) {
       LOG_WARN("Can't read H4 header. EOF received");
+      // First close sock fd before raising sigint
+      close(sock_fd_);
       raise(SIGINT);
       return;
     }
