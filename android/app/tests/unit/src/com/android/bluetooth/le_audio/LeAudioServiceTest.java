@@ -1428,7 +1428,7 @@ public class LeAudioServiceTest {
         //Add location support.
         injectAudioConfChanged(groupId, availableContexts);
 
-        doReturn(-1).when(mVolumeControlService).getGroupVolume(groupId);
+        doReturn(-1).when(mVolumeControlService).getAudioDeviceGroupVolume(groupId);
         //Set group and device as active.
         injectGroupStatusChange(groupId, LeAudioStackEvent.GROUP_STATUS_ACTIVE);
 
@@ -1445,7 +1445,7 @@ public class LeAudioServiceTest {
         verify(mAudioManager, times(1)).handleBluetoothActiveDeviceChanged(eq(null), any(),
                         any(BluetoothProfileConnectionInfo.class));
 
-        doReturn(100).when(mVolumeControlService).getGroupVolume(groupId);
+        doReturn(100).when(mVolumeControlService).getAudioDeviceGroupVolume(groupId);
 
         //Set back to active and check if last volume is restored.
         injectGroupStatusChange(groupId, LeAudioStackEvent.GROUP_STATUS_ACTIVE);
