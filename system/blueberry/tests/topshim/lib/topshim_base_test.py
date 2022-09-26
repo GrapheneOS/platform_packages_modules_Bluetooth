@@ -32,6 +32,7 @@ from blueberry.tests.gd.cert.os_utils import TerminalColor
 from blueberry.tests.gd.cert.tracelogger import TraceLogger
 from blueberry.tests.gd.cert.truth import assertThat
 from blueberry.tests.topshim.lib.adapter_client import AdapterClient
+from blueberry.tests.topshim.lib.async_closable import asyncSafeClose
 from blueberry.tests.topshim.lib.gatt_client import GattClient
 from blueberry.tests.topshim.lib.topshim_device import TopshimDevice
 
@@ -161,31 +162,28 @@ class TopshimBaseTest(base_test.BaseTestClass):
     __dut = None
     __cert = None
 
-    # TODO(optedoblivion): Make TopshimTestStack class
-    dut_adapter = None
-    dut_gatt = None
-
-    cert_adapter = None
-    cert_gatt = None
+    async def __safe_terminate(self, object):
+        if object != None:
+            return await object.terminate()
+        else:
+            self.log.warn("Object was already null!")
 
     async def _setup_adapter(self):
-        self.dut_adapter = AdapterClient(port=self.dut_port)
-        self.cert_adapter = AdapterClient(port=self.cert_port)
-        started = await self.dut_adapter._verify_adapter_started()
+        dut_adapter = AdapterClient(port=self.dut_port)
+        # TODO(optedoblivion): Remove hack
+        self.dut_adapter = dut_adapter
+        cert_adapter = AdapterClient(port=self.cert_port)
+        started = await dut_adapter._verify_adapter_started()
         assertThat(started).isTrue()
-        started = started and await self.cert_adapter._verify_adapter_started()
+        started = started and await cert_adapter._verify_adapter_started()
         assertThat(started).isTrue()
-        self.dut_gatt = GattClient(port=self.dut_port)
-        self.cert_gatt = GattClient(port=self.cert_port)
-        self.__dut = TopshimDevice(self.dut_adapter, self.dut_gatt)
-        self.__cert = TopshimDevice(self.cert_adapter, self.cert_gatt)
+        self.__dut = TopshimDevice(dut_adapter, GattClient(port=self.dut_port))
+        self.__cert = TopshimDevice(cert_adapter, GattClient(port=self.cert_port))
         return started
 
     async def _teardown_adapter(self):
-        await self.dut_adapter.terminate()
-        await self.dut_gatt.terminate()
-        await self.cert_adapter.terminate()
-        await self.cert_gatt.terminate()
+        await asyncSafeClose(self.__dut)
+        await asyncSafeClose(self.__cert)
 
     def dut(self):
         """

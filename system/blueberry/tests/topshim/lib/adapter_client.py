@@ -19,11 +19,12 @@ import grpc
 
 from blueberry.facade.topshim import facade_pb2
 from blueberry.facade.topshim import facade_pb2_grpc
+from blueberry.tests.topshim.lib.async_closable import AsyncClosable
 
 from google.protobuf import empty_pb2 as empty_proto
 
 
-class AdapterClient():
+class AdapterClient(AsyncClosable):
     """
     Wrapper gRPC interface to the Topshim/BTIF layer
     """
@@ -39,7 +40,7 @@ class AdapterClient():
         self.__adapter_stub = facade_pb2_grpc.AdapterServiceStub(self.__channel)
         self.__adapter_event_stream = self.__adapter_stub.FetchEvents(facade_pb2.FetchEventsRequest())
 
-    async def terminate(self):
+    async def close(self):
         for task in self.__task_list:
             task.cancel()
             task = None
