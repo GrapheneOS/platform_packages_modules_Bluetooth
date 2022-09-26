@@ -362,6 +362,18 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     }
 
     if (status != HCI_SUCCESS) {
+      if (status == HCI_ERR_COMMAND_DISALLOWED) {
+        /*
+         * We are here, because stack has no chance to remove CIG when it was
+         * shut during streaming. In the same time, controller probably was not
+         * Reseted, which creates the issue. Lets remove CIG and try to create
+         * it again.
+         */
+        group->SetCigState(CigState::RECOVERING);
+        IsoManager::GetInstance()->RemoveCig(group->group_id_, true);
+        return;
+      }
+
       group->SetCigState(CigState::NONE);
       LOG_ERROR(", failed to create CIG, reason: 0x%02x, new cig state: %s",
                 +status, ToString(group->cig_state_).c_str());
@@ -405,8 +417,29 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
     leAudioDevice->link_quality_timer = nullptr;
   }
 
+  void ProcessHciNotifyOnCigRemoveRecovering(uint8_t status,
+                                             LeAudioDeviceGroup* group) {
+    group->SetCigState(CigState::NONE);
+
+    if (status != HCI_SUCCESS) {
+      LOG_ERROR(
+          "Could not recover from the COMMAND DISALLOAD on CigCreate. Status "
+          "on CIG remove is 0x%02x",
+          status);
+      StopStream(group);
+      return;
+    }
+    LOG_INFO("Succeed on CIG Recover - back to creating CIG");
+    CigCreate(group);
+  }
+
   void ProcessHciNotifOnCigRemove(uint8_t status,
                                   LeAudioDeviceGroup* group) override {
+    if (group->GetCigState() == CigState::RECOVERING) {
+      ProcessHciNotifyOnCigRemoveRecovering(status, group);
+      return;
+    }
+
     if (status != HCI_SUCCESS) {
       group->SetCigState(CigState::CREATED);
       LOG_ERROR(

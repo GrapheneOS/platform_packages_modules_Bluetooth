@@ -134,7 +134,7 @@ class LeAudioClientAudioSource {
   const void* Acquire(bool is_broadcasting_session_type);
   bool InitAudioSinkThread(const std::string name);
 
-  bluetooth::common::MessageLoopThread* worker_thread_;
+  bluetooth::common::MessageLoopThread* worker_thread_ = nullptr;
 
  private:
   bool SinkOnResumeReq(bool start_media_task);
@@ -147,9 +147,9 @@ class LeAudioClientAudioSource {
 
   bluetooth::common::RepeatingTimer audio_timer_;
   LeAudioCodecConfiguration source_codec_config_;
-  LeAudioClientAudioSinkReceiver* audioSinkReceiver_;
+  LeAudioClientAudioSinkReceiver* audioSinkReceiver_ = nullptr;
   bluetooth::audio::le_audio::LeAudioClientInterface::Sink*
-      sinkClientInterface_;
+      sinkClientInterface_ = nullptr;
 
   /* Guard audio sink receiver mutual access from stack with internal mutex */
   std::mutex sinkInterfaceMutex_;
@@ -180,9 +180,9 @@ class LeAudioUnicastClientAudioSink {
   bool SourceOnSuspendReq();
   bool SourceOnMetadataUpdateReq(const sink_metadata_t& sink_metadata);
 
-  LeAudioClientAudioSourceReceiver* audioSourceReceiver_;
+  LeAudioClientAudioSourceReceiver* audioSourceReceiver_ = nullptr;
   bluetooth::audio::le_audio::LeAudioClientInterface::Source*
-      sourceClientInterface_;
+      sourceClientInterface_ = nullptr;
 };
 
 class LeAudioUnicastClientAudioSource : public LeAudioClientAudioSource {

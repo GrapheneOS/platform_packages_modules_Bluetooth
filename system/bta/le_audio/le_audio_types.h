@@ -311,7 +311,7 @@ constexpr uint16_t kMaxTransportLatencyMin = 0x0005;
 constexpr uint16_t kMaxTransportLatencyMax = 0x0FA0;
 
 /* Enums */
-enum class CigState : uint8_t { NONE, CREATING, CREATED, REMOVING };
+enum class CigState : uint8_t { NONE, CREATING, CREATED, REMOVING, RECOVERING };
 
 /* ASE states according to BAP defined state machine states */
 enum class AseState : uint8_t {
