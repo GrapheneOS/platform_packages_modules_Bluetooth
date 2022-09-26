@@ -60,6 +60,7 @@ class LeAudioDevice {
   bool connecting_actively_;
   bool closing_stream_for_disconnection_;
   uint16_t conn_id_;
+  uint16_t mtu_;
   bool encrypted_;
   int group_id_;
   bool csis_member_;
@@ -93,6 +94,7 @@ class LeAudioDevice {
         connecting_actively_(first_connection),
         closing_stream_for_disconnection_(false),
         conn_id_(GATT_INVALID_CONN_ID),
+        mtu_(0),
         encrypted_(false),
         group_id_(group_id),
         csis_member_(false),
