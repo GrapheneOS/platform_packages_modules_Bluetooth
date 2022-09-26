@@ -49,6 +49,7 @@ using std::unique_ptr;
 static void fail_if_reset_complete_not_success(CommandCompleteView complete) {
   auto reset_complete = ResetCompleteView::Create(complete);
   ASSERT(reset_complete.IsValid());
+  LOG_DEBUG("Reset completed with status: %s", ErrorCodeText(ErrorCode::SUCCESS).c_str());
   ASSERT(reset_complete.GetStatus() == ErrorCode::SUCCESS);
 }
 
