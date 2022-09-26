@@ -833,15 +833,16 @@ class LeAudioClientImpl : public LeAudioClient {
         return;
       }
 
+      auto group_id_to_close = active_group_id_;
+      active_group_id_ = bluetooth::groups::kGroupUnknown;
+
       if (alarm_is_scheduled(suspend_timeout_)) alarm_cancel(suspend_timeout_);
 
       StopAudio();
       ClientAudioIntefraceRelease();
 
-      GroupStop(active_group_id_);
-      callbacks_->OnGroupStatus(active_group_id_, GroupStatus::INACTIVE);
-      active_group_id_ = group_id;
-
+      GroupStop(group_id_to_close);
+      callbacks_->OnGroupStatus(group_id_to_close, GroupStatus::INACTIVE);
       return;
     }
 
@@ -3675,6 +3676,20 @@ class LeAudioClientImpl : public LeAudioClient {
     }
   }
 
+  void NotifyUpperLayerGroupTurnedIdleDuringCall(int group_id) {
+    if (!osi_property_get_bool(kNotifyUpperLayerAboutGroupBeingInIdleDuringCall,
+                               false)) {
+      return;
+    }
+    /* If group is inactive, phone is in call and Group is not having CIS
+     * connected, notify upper layer about it, so it can decide to create SCO if
+     * it is in the handover case
+     */
+    if (in_call_ && active_group_id_ == bluetooth::groups::kGroupUnknown) {
+      callbacks_->OnGroupStatus(group_id, GroupStatus::TURNED_IDLE_DURING_CALL);
+    }
+  }
+
   void StatusReportCb(int group_id, GroupStreamStatus status) {
     LOG_INFO("status: %d , audio_sender_state %s, audio_receiver_state %s",
              static_cast<int>(status),
@@ -3745,6 +3760,7 @@ class LeAudioClientImpl : public LeAudioClient {
         }
         CancelStreamingRequest();
         if (group) {
+          NotifyUpperLayerGroupTurnedIdleDuringCall(group->group_id_);
           HandlePendingAvailableContexts(group);
           HandlePendingDeviceDisconnection(group);
         }
@@ -3782,6 +3798,8 @@ class LeAudioClientImpl : public LeAudioClient {
   AudioState audio_sender_state_;
   /* Keep in call state. */
   bool in_call_;
+  static constexpr char kNotifyUpperLayerAboutGroupBeingInIdleDuringCall[] =
+      "persist.bluetooth.leaudio.notify.idle.during.call";
 
   /* Current stream configuration */
   LeAudioCodecConfiguration current_source_codec_config;
