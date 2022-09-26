@@ -46,6 +46,10 @@ std::optional<ConfigCache> LegacyConfigFile::Read(size_t temp_devices_capacity) 
   while (std::getline(config_file, line)) {
     ++line_num;
     line = common::StringTrim(std::move(line));
+    if (line.empty()) {
+      continue;
+    }
+
     if (line.front() == '\0' || line.front() == '#') {
       continue;
     }
