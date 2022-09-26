@@ -1,4 +1,6 @@
 extern crate clap;
+#[macro_use]
+extern crate lazy_static;
 
 use clap::{App, AppSettings, Arg};
 use dbus::{channel::MatchingReceiver, message::MatchRule};
@@ -6,8 +8,9 @@ use dbus_crossroads::Crossroads;
 use dbus_tokio::connection;
 use futures::future;
 use log::LevelFilter;
+use nix::sys::signal;
 use std::error::Error;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Condvar, Mutex};
 use syslog::{BasicLogger, Facility, Formatter3164};
 
 use bt_topshim::{btif::get_btinterface, topstack};
@@ -19,9 +22,10 @@ use btstack::{
     bluetooth_media::BluetoothMedia,
     socket_manager::BluetoothSocketManager,
     suspend::Suspend,
-    Stack,
+    Message, Stack,
 };
 use dbus_projection::DisconnectWatcher;
+use tokio::sync::mpsc::Sender;
 
 mod dbus_arg;
 mod iface_battery_manager;
@@ -100,6 +104,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
 
     let (tx, rx) = Stack::create_channel();
+    let sig_notifier = Arc::new((Mutex::new(false), Condvar::new()));
 
     let intf = Arc::new(Mutex::new(get_btinterface().unwrap()));
     let bluetooth_gatt =
@@ -112,6 +117,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         tx.clone(),
         intf.clone(),
         bluetooth_media.clone(),
+        sig_notifier.clone(),
     ))));
     let suspend = Arc::new(Mutex::new(Box::new(Suspend::new(
         bluetooth.clone(),
@@ -274,10 +280,49 @@ fn main() -> Result<(), Box<dyn Error>> {
 
             bluetooth_gatt.lock().unwrap().init_profiles(tx.clone(), adapter.clone());
             bt_sock_mgr.lock().unwrap().initialize(intf.clone());
+
+            // Install SIGTERM handler so that we can properly shutdown
+            *SIG_DATA.lock().unwrap() = Some((tx.clone(), sig_notifier.clone()));
+
+            let sig_action = signal::SigAction::new(
+                signal::SigHandler::Handler(handle_sigterm),
+                signal::SaFlags::empty(),
+                signal::SigSet::empty(),
+            );
+
+            unsafe {
+                signal::sigaction(signal::SIGTERM, &sig_action).unwrap();
+            }
         }
 
         // Serve clients forever.
         future::pending::<()>().await;
         unreachable!()
     })
+}
+
+lazy_static! {
+    /// Data needed for signal handling.
+    static ref SIG_DATA: Mutex<Option<(Sender<Message>, Arc<(Mutex<bool>, Condvar)>)>> = Mutex::new(None);
+}
+
+extern "C" fn handle_sigterm(_signum: i32) {
+    let guard = SIG_DATA.lock().unwrap();
+    if let Some((tx, notifier)) = guard.as_ref() {
+        log::debug!("Handling SIGTERM by disabling the adapter!");
+        let txl = tx.clone();
+        tokio::spawn(async move {
+            // Send the shutdown message here.
+            let _ = txl.send(Message::Shutdown).await;
+        });
+
+        let guard = notifier.0.lock().unwrap();
+        if *guard {
+            log::debug!("Waiting for stack to turn off for 2s");
+            let _ = notifier.1.wait_timeout(guard, std::time::Duration::from_millis(2000));
+        }
+    }
+
+    log::debug!("Sigterm completed");
+    std::process::exit(0);
 }
