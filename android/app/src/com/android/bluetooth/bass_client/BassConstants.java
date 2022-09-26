@@ -37,12 +37,7 @@ public class BassConstants {
             UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
     public static final ParcelUuid BASIC_AUDIO_UUID =
             ParcelUuid.fromString("00001851-0000-1000-8000-00805F9B34FB");
-    public static final int AA_START_SCAN = 1;
-    public static final int AA_SCAN_SUCCESS = 2;
-    public static final int AA_SCAN_FAILURE = 3;
-    public static final int AA_SCAN_TIMEOUT = 4;
-    // timeout for internal scan
-    public static final int AA_SCAN_TIMEOUT_MS = 1000;
+
     public static final int INVALID_SYNC_HANDLE = -1;
     public static final int INVALID_ADV_SID = -1;
     public static final int INVALID_ADV_ADDRESS_TYPE = -1;
