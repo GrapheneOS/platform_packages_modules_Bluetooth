@@ -92,7 +92,6 @@ public class BassClientService extends ProfileService {
     private AdapterService mAdapterService;
     private DatabaseManager mDatabaseManager;
     private BluetoothAdapter mBluetoothAdapter = null;
-    private BassUtils mBassUtils = null;
     private Map<BluetoothDevice, BluetoothDevice> mActiveSourceMap;
     /* Caching the PeriodicAdvertisementResult from Broadcast source */
     /* This is stored at service so that each device state machine can access
@@ -279,7 +278,6 @@ public class BassClientService extends ProfileService {
         registerReceiver(mIntentReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
 
         setBassClientService(this);
-        mBassUtils = new BassUtils(this);
         // Saving PSync stuff for future addition
         mDeviceToSyncHandleMap = new HashMap<BluetoothDevice, Integer>();
         mPeriodicAdvertisementResultMap = new HashMap<BluetoothDevice,
@@ -324,10 +322,6 @@ public class BassClientService extends ProfileService {
             mActiveSourceMap.clear();
             mActiveSourceMap = null;
         }
-        if (mBassUtils != null) {
-            mBassUtils.cleanUp();
-            mBassUtils = null;
-        }
         if (mPendingGroupOp != null) {
             mPendingGroupOp.clear();
         }
@@ -338,13 +332,6 @@ public class BassClientService extends ProfileService {
     public boolean onUnbind(Intent intent) {
         Log.d(TAG, "Need to unregister app");
         return super.onUnbind(intent);
-    }
-
-    /**
-     * getBassUtils
-     */
-    public BassUtils getBassUtils() {
-        return mBassUtils;
     }
 
     BluetoothDevice getDeviceForSyncHandle(int syncHandle) {
