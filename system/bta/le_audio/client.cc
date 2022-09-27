@@ -634,11 +634,72 @@ class LeAudioClientImpl : public LeAudioClient {
     group_remove_node(group, address, true);
   }
 
+  AudioContexts adjustMetadataContexts(AudioContexts metadata_context_type) {
+    /* This function takes already filtered contexts which we are plannig to use
+     * in the Enable or UpdateMetadata command.
+     * Note we are not changing stream configuration here, but just the list of
+     * the contexts in the Metadata which will be provide to remote side.
+     * Ideally, we should send all the bits we have, but not all headsets like
+     * it.
+     */
+    if (osi_property_get_bool(kAllowMultipleContextsInMetadata, false)) {
+      return metadata_context_type;
+    }
+
+    LOG_DEBUG("Converting to single context type: %lu",
+              metadata_context_type.to_ulong());
+
+    if (metadata_context_type.to_ulong() &
+        static_cast<uint16_t>(LeAudioContextType::CONVERSATIONAL)) {
+      return static_cast<uint16_t>(LeAudioContextType::CONVERSATIONAL);
+    }
+    if (metadata_context_type.to_ulong() &
+        static_cast<uint16_t>(LeAudioContextType::GAME)) {
+      return static_cast<uint16_t>(LeAudioContextType::GAME);
+    }
+    if (metadata_context_type.to_ulong() &
+        static_cast<uint16_t>(LeAudioContextType::EMERGENCYALARM)) {
+      return static_cast<uint16_t>(LeAudioContextType::EMERGENCYALARM);
+    }
+    if (metadata_context_type.to_ulong() &
+        static_cast<uint16_t>(LeAudioContextType::ALERTS)) {
+      return static_cast<uint16_t>(LeAudioContextType::ALERTS);
+    }
+    if (metadata_context_type.to_ulong() &
+        static_cast<uint16_t>(LeAudioContextType::RINGTONE)) {
+      return static_cast<uint16_t>(LeAudioContextType::RINGTONE);
+    }
+    if (metadata_context_type.to_ulong() &
+        static_cast<uint16_t>(LeAudioContextType::VOICEASSISTANTS)) {
+      return static_cast<uint16_t>(LeAudioContextType::VOICEASSISTANTS);
+    }
+    if (metadata_context_type.to_ulong() &
+        static_cast<uint16_t>(LeAudioContextType::INSTRUCTIONAL)) {
+      return static_cast<uint16_t>(LeAudioContextType::INSTRUCTIONAL);
+    }
+    if (metadata_context_type.to_ulong() &
+        static_cast<uint16_t>(LeAudioContextType::NOTIFICATIONS)) {
+      return static_cast<uint16_t>(LeAudioContextType::NOTIFICATIONS);
+    }
+    if (metadata_context_type.to_ulong() &
+        static_cast<uint16_t>(LeAudioContextType::LIVE)) {
+      return static_cast<uint16_t>(LeAudioContextType::LIVE);
+    }
+    if (metadata_context_type.to_ulong() &
+        static_cast<uint16_t>(LeAudioContextType::MEDIA)) {
+      return static_cast<uint16_t>(LeAudioContextType::MEDIA);
+    }
+
+    return static_cast<uint16_t>(LeAudioContextType::UNSPECIFIED);
+  }
+
   bool GroupStream(const int group_id, const uint16_t context_type,
                    AudioContexts metadata_context_type) {
     LeAudioDeviceGroup* group = aseGroups_.FindById(group_id);
     auto final_context_type = context_type;
 
+    auto adjusted_metadata_context_type =
+        adjustMetadataContexts(metadata_context_type);
     DLOG(INFO) << __func__;
     if (context_type >= static_cast<uint16_t>(LeAudioContextType::RFU)) {
       LOG(ERROR) << __func__ << ", stream context type is not supported: "
@@ -679,7 +740,8 @@ class LeAudioClientImpl : public LeAudioClient {
 
     bool result = groupStateMachine_->StartStream(
         group, static_cast<LeAudioContextType>(final_context_type),
-        metadata_context_type, GetAllCcids(metadata_context_type));
+        adjusted_metadata_context_type,
+        GetAllCcids(adjusted_metadata_context_type));
     if (result)
       stream_setup_start_timestamp_ =
           bluetooth::common::time_get_os_boottime_us();
@@ -833,15 +895,16 @@ class LeAudioClientImpl : public LeAudioClient {
         return;
       }
 
+      auto group_id_to_close = active_group_id_;
+      active_group_id_ = bluetooth::groups::kGroupUnknown;
+
       if (alarm_is_scheduled(suspend_timeout_)) alarm_cancel(suspend_timeout_);
 
       StopAudio();
       ClientAudioIntefraceRelease();
 
-      GroupStop(active_group_id_);
-      callbacks_->OnGroupStatus(active_group_id_, GroupStatus::INACTIVE);
-      active_group_id_ = group_id;
-
+      GroupStop(group_id_to_close);
+      callbacks_->OnGroupStatus(group_id_to_close, GroupStatus::INACTIVE);
       return;
     }
 
@@ -2903,8 +2966,8 @@ class LeAudioClientImpl : public LeAudioClient {
     timeoutMs = osi_property_get_int32(kAudioSuspentKeepIsoAliveTimeoutMsProp,
                                        timeoutMs);
 
-    DLOG(INFO) << __func__
-               << " Stream suspend_timeout_ started: " << suspend_timeout_;
+    LOG_DEBUG("Stream suspend_timeout_ started: %d ms",
+              static_cast<int>(timeoutMs));
     if (alarm_is_scheduled(suspend_timeout_)) alarm_cancel(suspend_timeout_);
 
     alarm_set_on_mloop(
@@ -2916,9 +2979,9 @@ class LeAudioClientImpl : public LeAudioClient {
   }
 
   void OnAudioSinkSuspend() {
-    DLOG(INFO) << __func__
-               << " IN: audio_receiver_state_: " << audio_receiver_state_
-               << " audio_sender_state_: " << audio_sender_state_;
+    LOG_DEBUG(" IN: audio_receiver_state_: %s,  audio_sender_state_: %s",
+              ToString(audio_receiver_state_).c_str(),
+              ToString(audio_sender_state_).c_str());
 
     /* Note: This callback is from audio hal driver.
      * Bluetooth peer is a Sink for Audio Framework.
@@ -3060,9 +3123,9 @@ class LeAudioClientImpl : public LeAudioClient {
   }
 
   void OnAudioSourceSuspend() {
-    DLOG(INFO) << __func__
-               << " IN: audio_receiver_state_: " << audio_receiver_state_
-               << " audio_sender_state_: " << audio_sender_state_;
+    LOG_DEBUG(" IN: audio_receiver_state_: %s,  audio_sender_state_: %s",
+              ToString(audio_receiver_state_).c_str(),
+              ToString(audio_sender_state_).c_str());
 
     /* Note: This callback is from audio hal driver.
      * Bluetooth peer is a Source for Audio Framework.
@@ -3223,20 +3286,22 @@ class LeAudioClientImpl : public LeAudioClient {
       return LeAudioContextType::UNSPECIFIED;
     }
 
+    auto adjusted_contexts = adjustMetadataContexts(available_contexts);
+
     using T = std::underlying_type<LeAudioContextType>::type;
 
     /* Mini policy. Voice is prio 1, game prio 2, media is prio 3 */
-    if ((available_contexts &
+    if ((adjusted_contexts &
          AudioContexts(static_cast<T>(LeAudioContextType::CONVERSATIONAL)))
             .any())
       return LeAudioContextType::CONVERSATIONAL;
 
-    if ((available_contexts &
+    if ((adjusted_contexts &
          AudioContexts(static_cast<T>(LeAudioContextType::GAME)))
             .any())
       return LeAudioContextType::GAME;
 
-    if ((available_contexts &
+    if ((adjusted_contexts &
          AudioContexts(static_cast<T>(LeAudioContextType::RINGTONE)))
             .any()) {
       if (!in_call_) {
@@ -3245,7 +3310,7 @@ class LeAudioClientImpl : public LeAudioClient {
       return LeAudioContextType::RINGTONE;
     }
 
-    if ((available_contexts &
+    if ((adjusted_contexts &
          AudioContexts(static_cast<T>(LeAudioContextType::MEDIA)))
             .any())
       return LeAudioContextType::MEDIA;
@@ -3253,8 +3318,8 @@ class LeAudioClientImpl : public LeAudioClient {
     /*TODO do something smarter here */
     /* Get context for the first non-zero bit */
     uint16_t context_type = 0b1;
-    while (available_contexts != 0b1) {
-      available_contexts = available_contexts >> 1;
+    while (adjusted_contexts != 0b1) {
+      adjusted_contexts = adjusted_contexts >> 1;
       context_type = context_type << 1;
     }
 
@@ -3311,7 +3376,14 @@ class LeAudioClientImpl : public LeAudioClient {
     bool is_group_streaming =
         (group->GetTargetState() == AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING);
 
-    metadata_context_types_ = GetAllowedAudioContextsFromSourceMetadata(
+    if (audio_receiver_state_ == AudioState::STARTED) {
+      /* If the receiver is starte. Take into account current context type */
+      metadata_context_types_ = adjustMetadataContexts(metadata_context_types_);
+    } else {
+      metadata_context_types_ = 0;
+    }
+
+    metadata_context_types_ |= GetAllowedAudioContextsFromSourceMetadata(
         source_metadata, group->GetActiveContexts());
 
     if (stack_config_get_interface()
@@ -3675,6 +3747,20 @@ class LeAudioClientImpl : public LeAudioClient {
     }
   }
 
+  void NotifyUpperLayerGroupTurnedIdleDuringCall(int group_id) {
+    if (!osi_property_get_bool(kNotifyUpperLayerAboutGroupBeingInIdleDuringCall,
+                               false)) {
+      return;
+    }
+    /* If group is inactive, phone is in call and Group is not having CIS
+     * connected, notify upper layer about it, so it can decide to create SCO if
+     * it is in the handover case
+     */
+    if (in_call_ && active_group_id_ == bluetooth::groups::kGroupUnknown) {
+      callbacks_->OnGroupStatus(group_id, GroupStatus::TURNED_IDLE_DURING_CALL);
+    }
+  }
+
   void StatusReportCb(int group_id, GroupStreamStatus status) {
     LOG_INFO("status: %d , audio_sender_state %s, audio_receiver_state %s",
              static_cast<int>(status),
@@ -3736,15 +3822,19 @@ class LeAudioClientImpl : public LeAudioClient {
         stream_setup_start_timestamp_ = 0;
         if (group && group->IsPendingConfiguration()) {
           SuspendedForReconfiguration();
+          auto adjusted_metedata_context_type =
+              adjustMetadataContexts(metadata_context_types_);
           if (groupStateMachine_->ConfigureStream(
-                  group, configuration_context_type_, metadata_context_types_,
-                  GetAllCcids(metadata_context_types_))) {
+                  group, configuration_context_type_,
+                  adjusted_metedata_context_type,
+                  GetAllCcids(adjusted_metedata_context_type))) {
             /* If configuration succeed wait for new status. */
             return;
           }
         }
         CancelStreamingRequest();
         if (group) {
+          NotifyUpperLayerGroupTurnedIdleDuringCall(group->group_id_);
           HandlePendingAvailableContexts(group);
           HandlePendingDeviceDisconnection(group);
         }
@@ -3772,6 +3862,8 @@ class LeAudioClientImpl : public LeAudioClient {
   LeAudioGroupStateMachine* groupStateMachine_;
   int active_group_id_;
   LeAudioContextType configuration_context_type_;
+  static constexpr char kAllowMultipleContextsInMetadata[] =
+      "persist.bluetooth.leaudio.allow.multiple.contexts";
   AudioContexts metadata_context_types_;
   uint64_t stream_setup_start_timestamp_;
   uint64_t stream_setup_end_timestamp_;
@@ -3782,6 +3874,8 @@ class LeAudioClientImpl : public LeAudioClient {
   AudioState audio_sender_state_;
   /* Keep in call state. */
   bool in_call_;
+  static constexpr char kNotifyUpperLayerAboutGroupBeingInIdleDuringCall[] =
+      "persist.bluetooth.leaudio.notify.idle.during.call";
 
   /* Current stream configuration */
   LeAudioCodecConfiguration current_source_codec_config;
