@@ -200,18 +200,22 @@ void LeAudioDeviceGroup::SetCigState(le_audio::types::CigState state) {
 }
 
 bool LeAudioDeviceGroup::Activate(LeAudioContextType context_type) {
+  bool is_activate = false;
   for (auto leAudioDevice : leAudioDevices_) {
     if (leAudioDevice.expired()) continue;
 
     bool activated = leAudioDevice.lock()->ActivateConfiguredAses(context_type);
-    LOG_INFO("Device %s is activated now: ",
-             leAudioDevice.lock().get()->address_.ToString().c_str());
+    LOG_INFO("Device %s is %s",
+             leAudioDevice.lock().get()->address_.ToString().c_str(),
+             activated ? "activated" : " not activated");
     if (activated) {
-      if (!CigAssignCisIds(leAudioDevice.lock().get())) return false;
+      if (!CigAssignCisIds(leAudioDevice.lock().get())) {
+        return false;
+      }
+      is_activate = true;
     }
   }
-
-  return true;
+  return is_activate;
 }
 
 LeAudioDevice* LeAudioDeviceGroup::GetFirstDevice(void) {
