@@ -1548,8 +1548,6 @@ bool BtifAvStateMachine::StateIdle::ProcessEvent(uint32_t event, void* p_data) {
 
     case BTA_AV_OPEN_EVT: {
       tBTA_AV* p_bta_data = (tBTA_AV*)p_data;
-      btav_connection_state_t state;
-      int av_state;
       tBTA_AV_STATUS status = p_bta_data->open.status;
       bool can_connect = true;
 
@@ -1560,44 +1558,51 @@ bool BtifAvStateMachine::StateIdle::ProcessEvent(uint32_t event, void* p_data) {
                (status == BTA_AV_SUCCESS) ? "SUCCESS" : "FAILED",
                p_bta_data->open.edr);
 
+      btif_report_connection_state(peer_.PeerAddress(),
+                                   BTAV_CONNECTION_STATE_CONNECTING);
+
       if (p_bta_data->open.status == BTA_AV_SUCCESS) {
-        state = BTAV_CONNECTION_STATE_CONNECTED;
-        av_state = BtifAvStateMachine::kStateOpened;
         peer_.SetEdr(p_bta_data->open.edr);
         CHECK(peer_.PeerSep() == p_bta_data->open.sep);
-        // Check whether connection is allowed
-        if (peer_.IsSink()) {
-          can_connect = btif_av_source.AllowedToConnect(peer_.PeerAddress());
-          if (!can_connect) src_disconnect_sink(peer_.PeerAddress());
-        } else if (peer_.IsSource()) {
-          can_connect = btif_av_sink.AllowedToConnect(peer_.PeerAddress());
-          if (!can_connect) sink_disconnect_src(peer_.PeerAddress());
-        }
-      } else {
-        state = BTAV_CONNECTION_STATE_DISCONNECTED;
-        av_state = BtifAvStateMachine::kStateIdle;
-      }
 
-      if (!can_connect) {
-        BTIF_TRACE_ERROR(
-            "%s: Cannot connect to peer %s: too many connected "
-            "peers",
-            __PRETTY_FUNCTION__, peer_.PeerAddress().ToString().c_str());
-      } else {
-        // Report the connection state to the application
-        btif_report_connection_state(peer_.PeerAddress(), state);
-        // Change state to Open/Idle based on the status
-        peer_.StateMachine().TransitionTo(av_state);
-        if (peer_.IsSink()) {
-          // If queued PLAY command, send it now
-          btif_rc_check_handle_pending_play(
-              p_bta_data->open.bd_addr,
-              (p_bta_data->open.status == BTA_AV_SUCCESS));
-        } else if (peer_.IsSource() &&
-                   (p_bta_data->open.status == BTA_AV_SUCCESS)) {
-          // Bring up AVRCP connection as well
-          BTA_AvOpenRc(peer_.BtaHandle());
+        can_connect = peer_.IsSink()
+                          ? btif_av_source.AllowedToConnect(peer_.PeerAddress())
+                          : btif_av_sink.AllowedToConnect(peer_.PeerAddress());
+
+        if (!can_connect) {
+          BTIF_TRACE_ERROR(
+              "%s: Cannot connect to peer %s: too many connected "
+              "peers",
+              __PRETTY_FUNCTION__, peer_.PeerAddress().ToString().c_str());
+
+          if (peer_.IsSink()) {
+            src_disconnect_sink(peer_.PeerAddress());
+          } else if (peer_.IsSource()) {
+            sink_disconnect_src(peer_.PeerAddress());
+          }
+
+          btif_report_connection_state(peer_.PeerAddress(),
+                                       BTAV_CONNECTION_STATE_DISCONNECTED);
+          peer_.StateMachine().TransitionTo(BtifAvStateMachine::kStateIdle);
+        } else {
+          if (peer_.IsSink()) {
+            // If queued PLAY command, send it now
+            btif_rc_check_handle_pending_play(
+                p_bta_data->open.bd_addr,
+                (p_bta_data->open.status == BTA_AV_SUCCESS));
+          } else if (peer_.IsSource() &&
+                     (p_bta_data->open.status == BTA_AV_SUCCESS)) {
+            // Bring up AVRCP connection as well
+            BTA_AvOpenRc(peer_.BtaHandle());
+          }
+          btif_report_connection_state(peer_.PeerAddress(),
+                                       BTAV_CONNECTION_STATE_CONNECTED);
+          peer_.StateMachine().TransitionTo(BtifAvStateMachine::kStateOpened);
         }
+      } else {
+        btif_report_connection_state(peer_.PeerAddress(),
+                                     BTAV_CONNECTION_STATE_DISCONNECTED);
+        peer_.StateMachine().TransitionTo(BtifAvStateMachine::kStateIdle);
       }
       btif_queue_advance();
     } break;
@@ -1675,7 +1680,8 @@ bool BtifAvStateMachine::StateOpening::ProcessEvent(uint32_t event,
       // it is in an intermediate state. In other states we can handle
       // incoming/outgoing connect/disconnect requests.
       BTIF_TRACE_WARNING(
-          "%s: Peer %s : event=%s: transitioning to Idle due to ACL Disconnect",
+          "%s: Peer %s : event=%s: transitioning to Idle due to ACL "
+          "Disconnect",
           __PRETTY_FUNCTION__, peer_.PeerAddress().ToString().c_str(),
           BtifAvEvent::EventName(event).c_str());
       log_counter_metrics_btif(android::bluetooth::CodePathCounterKeyEnum::
@@ -1706,7 +1712,6 @@ bool BtifAvStateMachine::StateOpening::ProcessEvent(uint32_t event,
 
     case BTA_AV_OPEN_EVT: {
       tBTA_AV* p_bta_data = (tBTA_AV*)p_data;
-      btav_connection_state_t state;
       int av_state;
       tBTA_AV_STATUS status = p_bta_data->open.status;
 
@@ -1718,10 +1723,12 @@ bool BtifAvStateMachine::StateOpening::ProcessEvent(uint32_t event,
                p_bta_data->open.edr);
 
       if (p_bta_data->open.status == BTA_AV_SUCCESS) {
-        state = BTAV_CONNECTION_STATE_CONNECTED;
         av_state = BtifAvStateMachine::kStateOpened;
         peer_.SetEdr(p_bta_data->open.edr);
         CHECK(peer_.PeerSep() == p_bta_data->open.sep);
+        // Report the connection state to the application
+        btif_report_connection_state(peer_.PeerAddress(),
+                                     BTAV_CONNECTION_STATE_CONNECTED);
         log_counter_metrics_btif(
             android::bluetooth::CodePathCounterKeyEnum::A2DP_CONNECTION_SUCCESS,
             1);
@@ -1738,15 +1745,15 @@ bool BtifAvStateMachine::StateOpening::ProcessEvent(uint32_t event,
             BTA_AvCloseRc(peer_handle);
           }
         }
-        state = BTAV_CONNECTION_STATE_DISCONNECTED;
         av_state = BtifAvStateMachine::kStateIdle;
+        // Report the connection state to the application
+        btif_report_connection_state(peer_.PeerAddress(),
+                                     BTAV_CONNECTION_STATE_DISCONNECTED);
         log_counter_metrics_btif(
             android::bluetooth::CodePathCounterKeyEnum::A2DP_CONNECTION_FAILURE,
             1);
       }
 
-      // Report the connection state to the application
-      btif_report_connection_state(peer_.PeerAddress(), state);
       // Change state to Open/Idle based on the status
       peer_.StateMachine().TransitionTo(av_state);
       if (peer_.IsSink()) {
@@ -1929,7 +1936,8 @@ bool BtifAvStateMachine::StateOpened::ProcessEvent(uint32_t event,
         return true;
 
       // If remote tries to start A2DP when DUT is A2DP Source, then Suspend.
-      // If A2DP is Sink and call is active, then disconnect the AVDTP channel.
+      // If A2DP is Sink and call is active, then disconnect the AVDTP
+      // channel.
       bool should_suspend = false;
       if (peer_.IsSink()) {
         if (!peer_.CheckFlags(BtifAvPeer::kFlagPendingStart |
@@ -1945,8 +1953,8 @@ bool BtifAvStateMachine::StateOpened::ProcessEvent(uint32_t event,
           should_suspend = true;
         }
 
-        // If peer is A2DP Source, do ACK commands to audio HAL and start media
-        // task
+        // If peer is A2DP Source, do ACK commands to audio HAL and start
+        // media task
         if (btif_a2dp_on_started(peer_.PeerAddress(), &p_av->start)) {
           // Only clear pending flag after acknowledgement
           peer_.ClearFlags(BtifAvPeer::kFlagPendingStart);
@@ -1986,6 +1994,9 @@ bool BtifAvStateMachine::StateOpened::ProcessEvent(uint32_t event,
 
     case BTA_AV_CLOSE_EVT:
       // AVDTP link is closed
+      // Inform the application that we are disconnecting
+      btif_report_connection_state(peer_.PeerAddress(),
+                                   BTAV_CONNECTION_STATE_DISCONNECTING);
       // Change state to Idle, send acknowledgement if start is pending
       if (peer_.CheckFlags(BtifAvPeer::kFlagPendingStart)) {
         BTIF_TRACE_WARNING("%s: Peer %s : failed pending start request",
@@ -2220,8 +2231,8 @@ bool BtifAvStateMachine::StateStarted::ProcessEvent(uint32_t event,
       peer_.SetFlags(BtifAvPeer::kFlagPendingStop);
       peer_.ClearFlags(BtifAvPeer::kFlagLocalSuspendPending);
 
-      // Don't change the encoder and audio provider state by a non-active peer
-      // since they are shared between peers
+      // Don't change the encoder and audio provider state by a non-active
+      // peer since they are shared between peers
       if (peer_.IsActivePeer() || !btif_av_stream_started_ready()) {
         btif_a2dp_on_stopped(&p_av->suspend);
       }
@@ -2239,6 +2250,9 @@ bool BtifAvStateMachine::StateStarted::ProcessEvent(uint32_t event,
                peer_.PeerAddress().ToString().c_str(),
                BtifAvEvent::EventName(event).c_str(),
                peer_.FlagsToString().c_str());
+      // Inform the application that we are disconnecting
+      btif_report_connection_state(peer_.PeerAddress(),
+                                   BTAV_CONNECTION_STATE_DISCONNECTING);
 
       peer_.SetFlags(BtifAvPeer::kFlagPendingStop);
 
@@ -2371,9 +2385,9 @@ bool BtifAvStateMachine::StateClosing::ProcessEvent(uint32_t event,
 }
 
 /**
- * Timer to trigger AV Open on the Source if the remote Sink device establishes
- * AVRCP connection without AV connection. The timer is needed to interoperate
- * with headsets that do establish AV after AVRCP connection.
+ * Timer to trigger AV Open on the Source if the remote Sink device
+ * establishes AVRCP connection without AV connection. The timer is needed to
+ * interoperate with headsets that do establish AV after AVRCP connection.
  */
 static void btif_av_source_initiate_av_open_timer_timeout(void* data) {
   BtifAvPeer* peer = (BtifAvPeer*)data;
@@ -2399,8 +2413,8 @@ static void btif_av_source_initiate_av_open_timer_timeout(void* data) {
 }
 
 /**
- * Timer to trigger AV Open on the Sink if the remote Source device establishes
- * AVRCP connection without AV connection.
+ * Timer to trigger AV Open on the Sink if the remote Source device
+ * establishes AVRCP connection without AV connection.
  */
 static void btif_av_sink_initiate_av_open_timer_timeout(void* data) {
   BtifAvPeer* peer = (BtifAvPeer*)data;
@@ -2528,8 +2542,8 @@ static void btif_av_report_sink_audio_config_state(
 }
 
 /**
- * Call out to JNI / JAVA layers to retrieve whether the mandatory codec is more
- * preferred than others.
+ * Call out to JNI / JAVA layers to retrieve whether the mandatory codec is
+ * more preferred than others.
  *
  * @param peer_address the peer address
  */
@@ -3252,8 +3266,8 @@ bt_status_t btif_av_source_execute_service(bool enable) {
     // Added BTA_AV_FEAT_NO_SCO_SSPD - this ensures that the BTA does not
     // auto-suspend av streaming on AG events(SCO or Call). The suspend shall
     // be initiated by the app/audioflinger layers.
-    // Support for browsing for SDP record should work only if we enable BROWSE
-    // while registering.
+    // Support for browsing for SDP record should work only if we enable
+    // BROWSE while registering.
     tBTA_AV_FEAT features = BTA_AV_FEAT_RCTG | BTA_AV_FEAT_METADATA |
                             BTA_AV_FEAT_VENDOR | BTA_AV_FEAT_NO_SCO_SSPD;
 
