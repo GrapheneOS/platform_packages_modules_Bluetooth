@@ -39,8 +39,14 @@ using namespace std::chrono_literals;
 
 namespace {
 constexpr size_t kBufSize = 512;
+constexpr char kOurAclEventHandlerWasInvoked[] = "Our ACL event handler was invoked.";
+constexpr char kOurDisconnectHandlerWasInvoked[] = "Our disconnect handler was invoked.";
 constexpr char kOurEventHandlerWasInvoked[] = "Our event handler was invoked.";
+constexpr char kOurLeAclEventHandlerWasInvoked[] = "Our LE ACL event handler was invoked.";
+constexpr char kOurLeDisconnectHandlerWasInvoked[] = "Our LE disconnect handler was invoked.";
 constexpr char kOurLeEventHandlerWasInvoked[] = "Our LE event handler was invoked.";
+constexpr char kOurLeReadRemoteVersionHandlerWasInvoked[] = "Our Read Remote Version complete handler was invoked.";
+constexpr char kOurReadRemoteVersionHandlerWasInvoked[] = "Our Read Remote Version complete handler was invoked.";
 }  // namespace
 
 namespace bluetooth {
@@ -317,6 +323,100 @@ TEST_F(HciLayerTest, abort_on_second_register_le_event_handler) {
         log_capture_->WaitUntilLogContains(&promise, "Can not register a second handler for");
       },
       "");
+}
+
+TEST_F(HciLayerTest, our_acl_event_callback_is_invoked) {
+  FailIfResetNotSent();
+  hci_->GetAclConnectionInterface(
+      hci_handler_->Bind([](EventView view) { LOG_DEBUG("%s", kOurAclEventHandlerWasInvoked); }),
+      hci_handler_->Bind([](uint16_t handle, ErrorCode reason) {}),
+      hci_handler_->Bind([](hci::ErrorCode hci_status,
+                            uint16_t handle,
+                            uint8_t version,
+                            uint16_t manufacturer_name,
+                            uint16_t sub_version) {}));
+  hal_->InjectEvent(ReadClockOffsetCompleteBuilder::Create(ErrorCode::SUCCESS, 0x0001, 0x0123));
+  std::promise<void> promise;
+  log_capture_->WaitUntilLogContains(&promise, kOurAclEventHandlerWasInvoked);
+}
+
+TEST_F(HciLayerTest, our_disconnect_callback_is_invoked) {
+  FailIfResetNotSent();
+  hci_->GetAclConnectionInterface(
+      hci_handler_->Bind([](EventView view) {}),
+      hci_handler_->Bind([](uint16_t handle, ErrorCode reason) { LOG_DEBUG("%s", kOurDisconnectHandlerWasInvoked); }),
+      hci_handler_->Bind([](hci::ErrorCode hci_status,
+                            uint16_t handle,
+                            uint8_t version,
+                            uint16_t manufacturer_name,
+                            uint16_t sub_version) {}));
+  hal_->InjectEvent(
+      DisconnectionCompleteBuilder::Create(ErrorCode::SUCCESS, 0x0001, ErrorCode::REMOTE_USER_TERMINATED_CONNECTION));
+  std::promise<void> promise;
+  log_capture_->WaitUntilLogContains(&promise, kOurDisconnectHandlerWasInvoked);
+}
+
+TEST_F(HciLayerTest, our_read_remote_version_callback_is_invoked) {
+  FailIfResetNotSent();
+  hci_->GetAclConnectionInterface(
+      hci_handler_->Bind([](EventView view) {}),
+      hci_handler_->Bind([](uint16_t handle, ErrorCode reason) {}),
+      hci_handler_->Bind([](hci::ErrorCode hci_status,
+                            uint16_t handle,
+                            uint8_t version,
+                            uint16_t manufacturer_name,
+                            uint16_t sub_version) { LOG_DEBUG("%s", kOurReadRemoteVersionHandlerWasInvoked); }));
+  hal_->InjectEvent(bluetooth::hci::ReadRemoteVersionInformationCompleteBuilder::Create(
+      ErrorCode::SUCCESS, 0x0001, 0x0b, 0x000f, 0x0000));
+  std::promise<void> promise;
+  log_capture_->WaitUntilLogContains(&promise, kOurReadRemoteVersionHandlerWasInvoked);
+}
+
+TEST_F(HciLayerTest, our_le_acl_event_callback_is_invoked) {
+  FailIfResetNotSent();
+  hci_->GetLeAclConnectionInterface(
+      hci_handler_->Bind([](LeMetaEventView view) { LOG_DEBUG("%s", kOurLeAclEventHandlerWasInvoked); }),
+      hci_handler_->Bind([](uint16_t handle, ErrorCode reason) {}),
+      hci_handler_->Bind([](hci::ErrorCode hci_status,
+                            uint16_t handle,
+                            uint8_t version,
+                            uint16_t manufacturer_name,
+                            uint16_t sub_version) {}));
+  hal_->InjectEvent(LeDataLengthChangeBuilder::Create(0x0001, 0x001B, 0x0148, 0x001B, 0x0148));
+  std::promise<void> promise;
+  log_capture_->WaitUntilLogContains(&promise, kOurLeAclEventHandlerWasInvoked);
+}
+
+TEST_F(HciLayerTest, our_le_disconnect_callback_is_invoked) {
+  FailIfResetNotSent();
+  hci_->GetLeAclConnectionInterface(
+      hci_handler_->Bind([](LeMetaEventView view) {}),
+      hci_handler_->Bind([](uint16_t handle, ErrorCode reason) { LOG_DEBUG("%s", kOurLeDisconnectHandlerWasInvoked); }),
+      hci_handler_->Bind([](hci::ErrorCode hci_status,
+                            uint16_t handle,
+                            uint8_t version,
+                            uint16_t manufacturer_name,
+                            uint16_t sub_version) {}));
+  hal_->InjectEvent(
+      DisconnectionCompleteBuilder::Create(ErrorCode::SUCCESS, 0x0001, ErrorCode::REMOTE_USER_TERMINATED_CONNECTION));
+  std::promise<void> promise;
+  log_capture_->WaitUntilLogContains(&promise, kOurLeDisconnectHandlerWasInvoked);
+}
+
+TEST_F(HciLayerTest, our_le_read_remote_version_callback_is_invoked) {
+  FailIfResetNotSent();
+  hci_->GetLeAclConnectionInterface(
+      hci_handler_->Bind([](LeMetaEventView view) {}),
+      hci_handler_->Bind([](uint16_t handle, ErrorCode reason) {}),
+      hci_handler_->Bind([](hci::ErrorCode hci_status,
+                            uint16_t handle,
+                            uint8_t version,
+                            uint16_t manufacturer_name,
+                            uint16_t sub_version) { LOG_DEBUG("%s", kOurLeReadRemoteVersionHandlerWasInvoked); }));
+  hal_->InjectEvent(bluetooth::hci::ReadRemoteVersionInformationCompleteBuilder::Create(
+      ErrorCode::SUCCESS, 0x0001, 0x0b, 0x000f, 0x0000));
+  std::promise<void> promise;
+  log_capture_->WaitUntilLogContains(&promise, kOurLeReadRemoteVersionHandlerWasInvoked);
 }
 
 }  // namespace hci
