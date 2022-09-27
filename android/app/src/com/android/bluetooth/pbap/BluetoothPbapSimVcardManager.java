@@ -15,41 +15,35 @@
 */
 package com.android.bluetooth.pbap;
 
-import com.android.bluetooth.R;
-
 import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteException;
 import android.net.Uri;
-
-import com.android.internal.annotations.VisibleForTesting;
-import com.android.vcard.VCardBuilder;
-import com.android.vcard.VCardConfig;
-import com.android.vcard.VCardConstants;
-import com.android.vcard.VCardUtils;
-
-import android.content.ContentValues;
-import android.provider.CallLog;
-import android.provider.CallLog.Calls;
-import android.text.TextUtils;
-import android.util.Log;
-import android.provider.ContactsContract.Contacts;
 import android.provider.ContactsContract.CommonDataKinds;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.CommonDataKinds.StructuredName;
+import android.provider.ContactsContract.Contacts;
+import android.text.TextUtils;
+import android.util.Log;
+
+import com.android.bluetooth.BluetoothMethodProxy;
+import com.android.bluetooth.R;
+import com.android.internal.annotations.VisibleForTesting;
+import com.android.obex.Operation;
+import com.android.obex.ResponseCodes;
+import com.android.obex.ServerOperation;
+import com.android.vcard.VCardBuilder;
+import com.android.vcard.VCardConfig;
+import com.android.vcard.VCardUtils;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Collections;
 import java.util.Comparator;
-
-import com.android.obex.Operation;
-import com.android.obex.ResponseCodes;
-import com.android.obex.ServerOperation;
+import java.util.List;
 
 /**
  * VCard composer especially for Call Log used in Bluetooth.
@@ -119,7 +113,7 @@ public class BluetoothPbapSimVcardManager {
         }
 
         //checkpoint Figure out if we can apply selection, projection and sort order.
-        mCursor = BluetoothPbapMethodProxy.getInstance().contentResolverQuery(mContentResolver,
+        mCursor = BluetoothMethodProxy.getInstance().contentResolverQuery(mContentResolver,
                 contentUri, SIM_PROJECTION, null, null, sortOrder);
 
         if (mCursor == null) {
@@ -273,7 +267,7 @@ public class BluetoothPbapSimVcardManager {
         int size = 0;
         Cursor contactCursor = null;
         try {
-            contactCursor = BluetoothPbapMethodProxy.getInstance().contentResolverQuery(
+            contactCursor = BluetoothMethodProxy.getInstance().contentResolverQuery(
                     mContentResolver, SIM_URI, SIM_PROJECTION, null,null, null);
             if (contactCursor != null) {
                 size = contactCursor.getCount();
@@ -293,7 +287,7 @@ public class BluetoothPbapSimVcardManager {
         ArrayList<String> allnames = new ArrayList<String>();
         Cursor contactCursor = null;
         try {
-            contactCursor = BluetoothPbapMethodProxy.getInstance().contentResolverQuery(
+            contactCursor = BluetoothMethodProxy.getInstance().contentResolverQuery(
                     mContentResolver, SIM_URI, SIM_PROJECTION, null,null,null);
             if (contactCursor != null) {
                 for (contactCursor.moveToFirst(); !contactCursor.isAfterLast(); contactCursor
@@ -334,7 +328,7 @@ public class BluetoothPbapSimVcardManager {
         Cursor contactCursor = null;
 
         try {
-            contactCursor = BluetoothPbapMethodProxy.getInstance().contentResolverQuery(
+            contactCursor = BluetoothMethodProxy.getInstance().contentResolverQuery(
                     mContentResolver, SIM_URI, SIM_PROJECTION, null, null, null);
 
             if (contactCursor != null) {

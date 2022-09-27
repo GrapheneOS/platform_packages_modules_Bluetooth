@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.bluetooth.pbap;
+package com.android.bluetooth;
 
 import android.content.ContentResolver;
 import android.content.Context;
@@ -22,7 +22,6 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.util.Log;
 
-import com.android.bluetooth.Utils;
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.obex.HeaderSet;
 
@@ -31,22 +30,22 @@ import java.io.IOException;
 /**
  * Proxy class for method calls to help with unit testing
  */
-public class BluetoothPbapMethodProxy {
-    private static final String TAG = BluetoothPbapMethodProxy.class.getSimpleName();
-    private static BluetoothPbapMethodProxy sInstance;
+public class BluetoothMethodProxy {
+    private static final String TAG = BluetoothMethodProxy.class.getSimpleName();
+    private static BluetoothMethodProxy sInstance;
     private static final Object INSTANCE_LOCK = new Object();
 
-    private BluetoothPbapMethodProxy() {}
+    private BluetoothMethodProxy() {}
 
     /**
      * Get the singleton instance of proxy
      *
      * @return the singleton instance, guaranteed not null
      */
-    public static BluetoothPbapMethodProxy getInstance() {
+    public static BluetoothMethodProxy getInstance() {
         synchronized (INSTANCE_LOCK) {
             if (sInstance == null) {
-                sInstance = new BluetoothPbapMethodProxy();
+                sInstance = new BluetoothMethodProxy();
             }
         }
         return sInstance;
@@ -58,7 +57,7 @@ public class BluetoothPbapMethodProxy {
      * @param proxy a test instance of the BluetoothPbapMethodCallProxy
      */
     @VisibleForTesting
-    public static void setInstanceForTesting(BluetoothPbapMethodProxy proxy) {
+    public static void setInstanceForTesting(BluetoothMethodProxy proxy) {
         Utils.enforceInstrumentationTestMode();
         synchronized (INSTANCE_LOCK) {
             Log.d(TAG, "setInstanceForTesting(), set to " + proxy);
