@@ -9,6 +9,7 @@ use bt_topshim::btif::{Uuid, Uuid128Bit};
 pub const A2DP_SINK: &str = "0000110B-0000-1000-8000-00805F9B34FB";
 pub const A2DP_SOURCE: &str = "0000110A-0000-1000-8000-00805F9B34FB";
 pub const ADV_AUDIO_DIST: &str = "0000110D-0000-1000-8000-00805F9B34FB";
+pub const BAS: &str = "0000180F-0000-1000-8000-00805F9B34FB";
 pub const HSP: &str = "00001108-0000-1000-8000-00805F9B34FB";
 pub const HSP_AG: &str = "00001112-0000-1000-8000-00805F9B34FB";
 pub const HFP: &str = "0000111E-0000-1000-8000-00805F9B34FB";
@@ -43,6 +44,7 @@ pub enum Profile {
     A2dpSink,
     A2dpSource,
     AdvAudioDist,
+    Bas,
     Hsp,
     HspAg,
     Hfp,
@@ -219,6 +221,11 @@ impl UuidHelper {
 pub fn parse_uuid_string<T: Into<String>>(uuid: T) -> Option<Uuid> {
     let uuid = uuid.into();
 
+    // Strip un-needed characters before parsing to handle the common
+    // case of including dashes in UUID strings. UUID expects only
+    // 0-9, a-f, A-F with no other characters. |is_digit| with radix
+    // 16 (hex) supports that exact behavior.
+    let uuid = uuid.chars().filter(|char| char.is_digit(16)).collect::<String>();
     if uuid.len() != 32 {
         return None;
     }
@@ -226,11 +233,7 @@ pub fn parse_uuid_string<T: Into<String>>(uuid: T) -> Option<Uuid> {
     let mut raw = [0; 16];
 
     for i in 0..16 {
-        let byte = u8::from_str_radix(&uuid[i * 2..i * 2 + 2], 16);
-        if byte.is_err() {
-            return None;
-        }
-        raw[i] = byte.unwrap();
+        raw[i] = u8::from_str_radix(&uuid[i * 2..i * 2 + 2], 16).ok()?;
     }
 
     Some(Uuid { uu: raw })
