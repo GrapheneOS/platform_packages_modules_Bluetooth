@@ -59,7 +59,7 @@ class AVRCPProxy(ProfileProxy):
         the IUT connects to PTS to establish pairing.
 
         """
-        if "CT" in test:
+        if ("TG" in test and "TG/VLH" not in test) or "CT/VLH" in test:
 
             self.connection = self.host.WaitConnection(address=pts_addr).connection
             try:
@@ -149,11 +149,7 @@ class AVRCPProxy(ProfileProxy):
         Take action to disconnect all A2DP and/or AVRCP connections.
 
         """
-        if self.connection is None:
-            self.connection = self.host.GetConnection(address=pts_addr).connection
-        self.host.Disconnect(connection=self.connection)
-        self.connection = None
-        self.sink = None
+        self.a2dp.Close(source=self.source)
         self.source = None
         return "OK"
 
@@ -202,6 +198,7 @@ class AVRCPProxy(ProfileProxy):
         The IUT should
         then initiate an L2CAP_ConnectRsp and L2CAP_ConfigRsp.
         """
+
         return "OK"
 
     @assert_description
@@ -241,6 +238,7 @@ class AVRCPProxy(ProfileProxy):
         Press 'OK' to
         continue once the IUT has responded.
         """
+
         return "OK"
 
     @assert_description
@@ -258,6 +256,7 @@ class AVRCPProxy(ProfileProxy):
         Press 'OK' to
         continue once the IUT has responded.
         """
+
         return "OK"
 
     @assert_description
@@ -275,6 +274,7 @@ class AVRCPProxy(ProfileProxy):
         the following parameter values:
            * BD_ADDR = BD_ADDRLower_Tester
         """
+
         return "OK"
 
     @assert_description
@@ -298,6 +298,7 @@ class AVRCPProxy(ProfileProxy):
         DATA[]Lower_Tester
            * Length = LengthOf(DATA[]Lower_Tester)
         """
+
         return "OK"
 
     @assert_description
@@ -327,6 +328,7 @@ class AVRCPProxy(ProfileProxy):
            * Length =
         LengthOf(DATA[]Lower_Tester)
         """
+
         return "OK"
 
     @assert_description
@@ -356,4 +358,187 @@ class AVRCPProxy(ProfileProxy):
         continue once the IUT has responded.
         """
         #TODO: Remove trailing space post "values:" from docstring description
+
+        return "OK"
+
+    @assert_description
+    def TSC_AVDTP_mmi_iut_initiate_connect(self, pts_addr: bytes, **kwargs):
+        """
+        Create an AVDTP signaling channel.
+
+        Action: Create an audio or video
+        connection with PTS.
+        """
+        self.connection = self.host.Connect(address=pts_addr).connection
+        self.source = self.a2dp.OpenSource(connection=self.connection).source
+        return "OK"
+
+    @assert_description
+    def _mmi_690(self, **kwargs):
+        """
+        Press 'YES' if the IUT indicated receiving the [PLAY] command.  Press
+        'NO' otherwise.
+
+        Description: Verify that the Implementation Under Test
+        (IUT) successfully indicated that the current operation was pressed. Not
+        all commands (fast forward and rewind for example) have a noticeable
+        effect when pressed for a short period of time.  For commands like that
+        it is acceptable to assume the effect took place and press 'YES'.
+        """
+
+        return "Yes"
+
+    @assert_description
+    def _mmi_691(self, **kwargs):
+        """
+        Press 'YES' if the IUT indicated receiving the [STOP] command.  Press
+        'NO' otherwise.
+
+        Description: Verify that the Implementation Under Test
+        (IUT) successfully indicated that the current operation was pressed. Not
+        all commands (fast forward and rewind for example) have a noticeable
+        effect when pressed for a short period of time.  For commands like that
+        it is acceptable to assume the effect took place and press 'YES'.
+        """
+
+        return "Yes"
+
+    @assert_description
+    def _mmi_540(self, **kwargs):
+        """
+        Press 'YES' if the IUT supports press and hold functionality for the
+        [PLAY] command.  Press 'NO' otherwise.
+
+        Description: Verify press and
+        hold functionality of passthrough operations that support press and
+        hold.  Not all operations support press and hold, pressing 'NO' will not
+        fail the test case.
+        """
+
+        return "Yes"
+
+    @assert_description
+    def _mmi_615(self, **kwargs):
+        """
+        Press 'YES' if the IUT indicated press and hold functionality for the
+        [PLAY] command.  Press 'NO' otherwise.
+
+        Description: Verify that the
+        Implementation Under Test (IUT) successfully indicated that the current
+        operation was held.
+        """
+
+        return "Yes"
+
+    @assert_description
+    def _mmi_541(self, **kwargs):
+        """
+        Press 'YES' if the IUT supports press and hold functionality for the
+        [STOP] command.  Press 'NO' otherwise.
+
+        Description: Verify press and
+        hold functionality of passthrough operations that support press and
+        hold.  Not all operations support press and hold, pressing 'NO' will not
+        fail the test case.
+        """
+
+        return "Yes"
+
+    @assert_description
+    def _mmi_616(self, **kwargs):
+        """
+        Press 'YES' if the IUT indicated press and hold functionality for the
+        [STOP] command.  Press 'NO' otherwise.
+
+        Description: Verify that the
+        Implementation Under Test (IUT) successfully indicated that the current
+        operation was held.
+        """
+
+        return "Yes"
+
+    @assert_description
+    def TSC_AVRCP_mmi_user_confirm_media_is_streaming(self, **kwargs):
+        """
+        Press 'OK' when the IUT is in a state where media is playing.
+        Description: PTS is preparing the streaming state for the next
+        passthrough command, if the current streaming state is not relevant to
+        this IUT, please press 'OK to continue.
+        """
+        if not self.a2dp.IsSuspended(source=self.source).is_suspended:
+            return "Yes"
+        else:
+            return "No"
+
+    @assert_description
+    def TSC_AVRCP_mmi_iut_reject_invalid_get_capabilities(self, **kwargs):
+        """
+        The IUT should reject the invalid Get Capabilities command sent by PTS.
+        Description: Verify that the IUT can properly reject a Get Capabilities
+        command that contains an invalid capability.
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_AVRCP_mmi_iut_accept_get_capabilities(self, **kwargs):
+        """
+        Take action to send a valid response to the [Get Capabilities] command
+        sent by the PTS.
+        """
+        # This will be done as part as the a2dp.OpenSource or a2dp.WaitSource
+
+        return "OK"
+
+    @assert_description
+    def TSC_AVRCP_mmi_iut_accept_get_element_attributes(self, **kwargs):
+        """
+        Take action to send a valid response to the [Get Element Attributes]
+        command sent by the PTS.
+        """
+        # This will be done as part as the a2dp.OpenSource or a2dp.WaitSource
+
+        return "OK"
+
+    @assert_description
+    def TSC_AVRCP_mmi_iut_reject_invalid_command_control_channel(self, **kwargs):
+        """
+        PTS has sent an invalid command over the control channel.  The IUT must
+        respond with a general reject on the control channel.
+
+        Description:
+        Verify that the IUT can properly reject an invalid command sent over the
+        control channel.
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_AVRCP_mmi_iut_reject_invalid_command_browsing_channel(self, **kwargs):
+        """
+        PTS has sent an invalid command over the browsing channel.  The IUT must
+        respond with a general reject on the browsing channel.
+
+        Description:
+        Verify that the IUT can properly reject an invalid command sent over the
+        browsing channel.
+        """
+
+        return "OK"
+
+    @assert_description
+    def TSC_AVCTP_mmi_register_ConnectCfm_CB(self, **kwargs):
+        """
+        Using the Upper Tester send an AVCT_EventRegistration command from the
+        AVCTP Upper Interface to the IUT with the following input parameter
+        values:
+           * Event = AVCT_Connect_Cfm
+           * Callback =
+        ConnectCfm_CBTest_System
+           * PID = PIDTest_System
+    
+        Press 'OK' to
+        continue once the IUT has responded.
+        """
+
         return "OK"
