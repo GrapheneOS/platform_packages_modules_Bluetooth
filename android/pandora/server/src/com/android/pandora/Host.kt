@@ -28,7 +28,6 @@ import android.bluetooth.BluetoothProfile
 import android.bluetooth.le.AdvertiseCallback
 import android.bluetooth.le.AdvertiseData
 import android.bluetooth.le.AdvertiseSettings
-import android.bluetooth.le.AdvertisingSetParameters
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
 import android.content.Context
@@ -44,9 +43,6 @@ import io.grpc.stub.StreamObserver
 import java.io.IOException
 import java.time.Duration
 import java.util.UUID
-import kotlin.Result.Companion.failure
-import kotlin.Result.Companion.success
-import kotlin.coroutines.suspendCoroutine
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.awaitCancellation
@@ -274,6 +270,21 @@ class Host(private val context: Context, private val server: Server) : HostImplB
     }
   }
 
+  override fun getConnection(
+    request: GetConnectionRequest,
+    responseObserver: StreamObserver<GetConnectionResponse>
+  ) {
+    grpcUnary(scope, responseObserver) {
+      val device = bluetoothAdapter.getRemoteDevice(request.address.toByteArray())
+      check(
+        device.isConnected() && device.type != BluetoothDevice.DEVICE_TYPE_LE
+      ) // either classic or dual
+      GetConnectionResponse.newBuilder()
+        .setConnection(newConnection(device, Transport.TRANSPORT_BREDR))
+        .build()
+    }
+  }
+
   override fun disconnect(
     request: DisconnectRequest,
     responseObserver: StreamObserver<DisconnectResponse>
@@ -424,7 +435,9 @@ class Host(private val context: Context, private val server: Server) : HostImplB
 
           bluetoothAdapter.bluetoothLeAdvertiser.startAdvertising(
             AdvertiseSettings.Builder()
-              .setConnectable(request.connectabilityMode == ConnectabilityMode.CONECTABILITY_CONNECTABLE)
+              .setConnectable(
+                request.connectabilityMode == ConnectabilityMode.CONECTABILITY_CONNECTABLE
+              )
               .setOwnAddressType(
                 when (request.ownAddressType!!) {
                   AddressType.PUBLIC -> ADDRESS_TYPE_PUBLIC
@@ -578,6 +591,16 @@ class Host(private val context: Context, private val server: Server) : HostImplB
 
         awaitClose { bluetoothAdapter.bluetoothLeScanner.stopScan(callback) }
       }
+    }
+  }
+
+  override fun getDeviceName(
+    request: GetDeviceNameRequest,
+    responseObserver: StreamObserver<GetDeviceNameResponse>
+  ) {
+    grpcUnary(scope, responseObserver) {
+      val device = request.connection.toBluetoothDevice(bluetoothAdapter)
+      GetDeviceNameResponse.newBuilder().setName(device.name).build()
     }
   }
 }
