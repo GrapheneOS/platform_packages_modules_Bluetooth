@@ -22,6 +22,8 @@ import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothDevice.ADDRESS_TYPE_PUBLIC
 import android.bluetooth.BluetoothDevice.ADDRESS_TYPE_RANDOM
 import android.bluetooth.BluetoothDevice.BOND_BONDED
+import android.bluetooth.BluetoothDevice.TRANSPORT_AUTO
+import android.bluetooth.BluetoothDevice.TRANSPORT_BREDR
 import android.bluetooth.BluetoothDevice.TRANSPORT_LE
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothProfile
@@ -88,6 +90,8 @@ class Host(private val context: Context, private val server: Server) : HostImplB
     intentFilter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED)
     intentFilter.addAction(BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED)
     intentFilter.addAction(BluetoothDevice.ACTION_PAIRING_REQUEST)
+    intentFilter.addAction(BluetoothDevice.ACTION_ACL_CONNECTED)
+    intentFilter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED)
     intentFilter.addAction(BluetoothDevice.ACTION_FOUND)
 
     // Creates a shared flow of intents that can be used in all methods in the coroutine scope.
@@ -306,6 +310,7 @@ class Host(private val context: Context, private val server: Server) : HostImplB
 
       bluetoothDevice.disconnect()
       connectionStateChangedFlow.filter { it == BluetoothAdapter.STATE_DISCONNECTED }.first()
+     
       DisconnectResponse.getDefaultInstance()
     }
   }
@@ -316,9 +321,15 @@ class Host(private val context: Context, private val server: Server) : HostImplB
   ) {
     grpcUnary<ConnectLEResponse>(scope, responseObserver) {
       val address = request.address.decodeAsMacAddressToString()
-      Log.i(TAG, "connectLE: $address")
-      val device = scanLeDevice(address)
-      GattInstance(device!!, TRANSPORT_LE, context).waitForState(BluetoothProfile.STATE_CONNECTED)
+      Log.i(TAG, "connect LE: $address")
+      val device = scanLeDevice(address)!!
+      GattInstance(device, TRANSPORT_LE, context)
+
+      flow
+        .filter { it.action == BluetoothDevice.ACTION_ACL_CONNECTED }
+        .filter { it.getBluetoothDeviceExtra() == device }
+        .first()
+
       ConnectLEResponse.newBuilder()
         .setConnection(newConnection(device, Transport.TRANSPORT_LE))
         .build()
