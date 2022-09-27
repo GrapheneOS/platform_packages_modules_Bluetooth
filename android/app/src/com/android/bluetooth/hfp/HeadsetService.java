@@ -1449,8 +1449,9 @@ public class HeadsetService extends ProfileService {
                 LeAudioService leAudioService = mFactory.getLeAudioService();
                 if (leAudioService != null) {
                     Log.i(TAG, "Make sure there is no le audio device active.");
-                    leAudioService.setActiveDevice(null);
+                    leAudioService.setInactiveForHfpHandover(mActiveDevice);
                 }
+
                 broadcastActiveDevice(mActiveDevice);
                 int connectStatus = connectAudio(mActiveDevice);
                 if (connectStatus != BluetoothStatusCodes.SUCCESS) {
@@ -1482,7 +1483,7 @@ public class HeadsetService extends ProfileService {
         }
     }
 
-    int connectAudio() {
+    public int connectAudio() {
         synchronized (mStateMachines) {
             BluetoothDevice device = mActiveDevice;
             if (device == null) {
