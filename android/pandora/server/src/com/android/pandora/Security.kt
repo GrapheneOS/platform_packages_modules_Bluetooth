@@ -125,19 +125,18 @@ class Security(private val context: Context) : SecurityImplBase() {
         }
         .launchIn(this)
 
-      flow.map { intent ->
-        val device = intent.getBluetoothDeviceExtra()
-        val variant = intent.getIntExtra(EXTRA_PAIRING_VARIANT, BluetoothDevice.ERROR)
-        Log.i(
-          TAG,
-          "OnPairing: Handling PairingEvent ${variant} for device ${device.address}"
-        )
-        val eventBuilder =
-          PairingEvent.newBuilder().setAddress(ByteString.copyFrom(device.toByteArray()))
-        when (variant) {
-          // SSP / LE Just Works
-          BluetoothDevice.PAIRING_VARIANT_CONSENT ->
-            eventBuilder.justWorks = Empty.getDefaultInstance()
+      flow
+        .filter { intent -> intent.action == ACTION_PAIRING_REQUEST }
+        .map { intent ->
+          val device = intent.getBluetoothDeviceExtra()
+          val variant = intent.getIntExtra(EXTRA_PAIRING_VARIANT, BluetoothDevice.ERROR)
+          Log.i(TAG, "OnPairing: Handling PairingEvent ${variant} for device ${device.address}")
+          val eventBuilder =
+            PairingEvent.newBuilder().setAddress(device.toByteString())
+          when (variant) {
+            // SSP / LE Just Works
+            BluetoothDevice.PAIRING_VARIANT_CONSENT ->
+              eventBuilder.justWorks = Empty.getDefaultInstance()
 
           // SSP / LE Numeric Comparison
           BluetoothDevice.PAIRING_VARIANT_PASSKEY_CONFIRMATION ->
