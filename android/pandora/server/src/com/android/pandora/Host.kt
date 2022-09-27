@@ -37,6 +37,9 @@ import com.google.protobuf.ByteString
 import com.google.protobuf.Empty
 import io.grpc.Status
 import io.grpc.stub.StreamObserver
+import java.io.IOException
+import java.time.Duration
+import java.util.UUID
 import kotlin.Result.Companion.failure
 import kotlin.Result.Companion.success
 import kotlin.coroutines.suspendCoroutine
@@ -57,6 +60,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import pandora.HostGrpc.HostImplBase
 import pandora.HostProto.*
 
@@ -219,11 +223,7 @@ class Host(private val context: Context, private val server: Server) : HostImplB
       acceptPairingAndAwaitBonded(bluetoothDevice)
 
       WaitConnectionResponse.newBuilder()
-        .setConnection(
-          Connection.newBuilder()
-            .setCookie(ByteString.copyFromUtf8(bluetoothDevice.address))
-            .build()
-        )
+        .setConnection(newConnection(bluetoothDevice, Transport.TRANSPORT_BREDR))
         .build()
     }
   }
@@ -276,24 +276,33 @@ class Host(private val context: Context, private val server: Server) : HostImplB
 
       Log.i(TAG, "connect: address=$bluetoothDevice")
 
+      bluetoothAdapter.cancelDiscovery()
+
       if (!bluetoothDevice.isConnected()) {
-        if (bluetoothDevice.bondState == BOND_BONDED) {
-          // already bonded, just reconnect
-          bluetoothDevice.connect()
-          waitConnectionIntent(bluetoothDevice)
+        if (request.skipPairing) {
+          // do an SDP request to trigger a temporary BREDR connection
+          try {
+            withTimeout(1500) { bluetoothDevice.createRfcommSocket(3).connect() }
+          } catch (e: IOException) {
+            // ignore
+          }
         } else {
-          // need to bond
-          bluetoothDevice.createBond()
-          acceptPairingAndAwaitBonded(bluetoothDevice)
+          if (bluetoothDevice.bondState == BOND_BONDED) {
+            // already bonded, just reconnect
+            bluetoothDevice.connect()
+            waitConnectionIntent(bluetoothDevice)
+          } else {
+            // need to bond
+            bluetoothDevice.createBond()
+            if (!request.manuallyConfirm) {
+              acceptPairingAndAwaitBonded(bluetoothDevice)
+            }
+          }
         }
       }
 
       ConnectResponse.newBuilder()
-        .setConnection(
-          Connection.newBuilder()
-            .setCookie(ByteString.copyFromUtf8(bluetoothDevice.address))
-            .build()
-        )
+        .setConnection(newConnection(bluetoothDevice, Transport.TRANSPORT_BREDR))
         .build()
     }
   }
@@ -333,9 +342,7 @@ class Host(private val context: Context, private val server: Server) : HostImplB
       val device = scanLeDevice(address)
       GattInstance(device!!, TRANSPORT_LE, context).waitForState(BluetoothProfile.STATE_CONNECTED)
       ConnectLEResponse.newBuilder()
-        .setConnection(
-          Connection.newBuilder().setCookie(ByteString.copyFromUtf8(device.address)).build()
-        )
+        .setConnection(newConnection(device, Transport.TRANSPORT_LE))
         .build()
     }
   }
@@ -351,9 +358,7 @@ class Host(private val context: Context, private val server: Server) : HostImplB
         bluetoothAdapter.getRemoteLeDevice(address, BluetoothDevice.ADDRESS_TYPE_PUBLIC)
       if (device.isConnected) {
         GetLEConnectionResponse.newBuilder()
-          .setConnection(
-            Connection.newBuilder().setCookie(ByteString.copyFromUtf8(device.address)).build()
-          )
+          .setConnection(newConnection(device, Transport.TRANSPORT_LE))
           .build()
       } else {
         Log.e(TAG, "Device: $device is not connected")
@@ -364,7 +369,7 @@ class Host(private val context: Context, private val server: Server) : HostImplB
 
   override fun disconnectLE(request: DisconnectLERequest, responseObserver: StreamObserver<Empty>) {
     grpcUnary<Empty>(scope, responseObserver) {
-      val address = request.connection.cookie.toByteArray().decodeToString()
+      val address = request.connection.address
       Log.i(TAG, "disconnectLE: $address")
       val gattInstance = GattInstance.get(address)
 
@@ -432,9 +437,7 @@ class Host(private val context: Context, private val server: Server) : HostImplB
             .addDevice(
               Device.newBuilder()
                 .setName(device.name)
-                .setAddress(
-                  ByteString.copyFrom(MacAddress.fromString(device.address).toByteArray())
-                )
+                .setAddress(device.toByteString())
             )
             .build()
         }

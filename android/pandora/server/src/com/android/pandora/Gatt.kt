@@ -74,7 +74,7 @@ class Gatt(private val context: Context) : GATTImplBase() {
     grpcUnary<ExchangeMTUResponse>(mScope, responseObserver) {
       val mtu = request.mtu
       Log.i(TAG, "exchangeMTU MTU=$mtu")
-      if (!GattInstance.get(request.connection.cookie).mGatt.requestMtu(mtu)) {
+      if (!GattInstance.get(request.connection.address).mGatt.requestMtu(mtu)) {
         Log.e(TAG, "Error on requesting MTU $mtu")
         throw Status.UNKNOWN.asException()
       }
@@ -88,7 +88,7 @@ class Gatt(private val context: Context) : GATTImplBase() {
   ) {
     grpcUnary<WriteResponse>(mScope, responseObserver) {
       Log.i(TAG, "writeAttFromHandle handle=${request.handle}")
-      val gattInstance = GattInstance.get(request.connection.cookie)
+      val gattInstance = GattInstance.get(request.connection.address)
       var characteristic: BluetoothGattCharacteristic? =
           getCharacteristicWithHandle(request.handle, gattInstance)
       if (characteristic == null) {
@@ -113,7 +113,7 @@ class Gatt(private val context: Context) : GATTImplBase() {
       responseObserver: StreamObserver<DiscoverServicesResponse>
   ) {
     grpcUnary<DiscoverServicesResponse>(mScope, responseObserver) {
-      val gattInstance = GattInstance.get(request.connection.cookie)
+      val gattInstance = GattInstance.get(request.connection.address)
       Log.i(TAG, "discoverServiceByUuid uuid=${request.uuid}")
       // In some cases, GATT starts a discovery immediately after being connected, so
       // we need to wait until the service discovery is finished to be able to discover again.
@@ -133,7 +133,7 @@ class Gatt(private val context: Context) : GATTImplBase() {
   ) {
     grpcUnary<DiscoverServicesResponse>(mScope, responseObserver) {
       Log.i(TAG, "discoverServices")
-      val gattInstance = GattInstance.get(request.connection.cookie)
+      val gattInstance = GattInstance.get(request.connection.address)
       check(gattInstance.mGatt.discoverServices())
       gattInstance.waitForDiscoveryEnd()
       DiscoverServicesResponse.newBuilder()
@@ -168,7 +168,7 @@ class Gatt(private val context: Context) : GATTImplBase() {
   ) {
     grpcUnary<ClearCacheResponse>(mScope, responseObserver) {
       Log.i(TAG, "clearCache")
-      val gattInstance = GattInstance.get(request.connection.cookie)
+      val gattInstance = GattInstance.get(request.connection.address)
       check(gattInstance.mGatt.refresh())
       ClearCacheResponse.newBuilder().build()
     }
@@ -180,7 +180,7 @@ class Gatt(private val context: Context) : GATTImplBase() {
   ) {
     grpcUnary<ReadCharacteristicResponse>(mScope, responseObserver) {
       Log.i(TAG, "readCharacteristicFromHandle handle=${request.handle}")
-      val gattInstance = GattInstance.get(request.connection.cookie)
+      val gattInstance = GattInstance.get(request.connection.address)
       val characteristic: BluetoothGattCharacteristic? =
           getCharacteristicWithHandle(request.handle, gattInstance)
       checkNotNull(characteristic) { "Characteristic handle ${request.handle} not found." }
@@ -198,7 +198,7 @@ class Gatt(private val context: Context) : GATTImplBase() {
   ) {
     grpcUnary<ReadCharacteristicsFromUuidResponse>(mScope, responseObserver) {
       Log.i(TAG, "readCharacteristicsFromUuid uuid=${request.uuid}")
-      val gattInstance = GattInstance.get(request.connection.cookie)
+      val gattInstance = GattInstance.get(request.connection.address)
       tryDiscoverServices(gattInstance)
       val readValues =
           gattInstance.readCharacteristicUuidBlocking(
@@ -215,7 +215,7 @@ class Gatt(private val context: Context) : GATTImplBase() {
   ) {
     grpcUnary<ReadCharacteristicDescriptorResponse>(mScope, responseObserver) {
       Log.i(TAG, "readCharacteristicDescriptorFromHandle handle=${request.handle}")
-      val gattInstance = GattInstance.get(request.connection.cookie)
+      val gattInstance = GattInstance.get(request.connection.address)
       val descriptor: BluetoothGattDescriptor? =
           getDescriptorWithHandle(request.handle, gattInstance)
       checkNotNull(descriptor) { "Descriptor handle ${request.handle} not found." }
