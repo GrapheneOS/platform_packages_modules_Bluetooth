@@ -230,7 +230,7 @@ fun <T> getProfileProxy(context: Context, profile: Int): T {
   if (proxy == null) {
     Log.w(TAG, "profile proxy $profile is null")
   }
-  return proxy as T
+  return proxy!! as T
 }
 
 fun Intent.getBluetoothDeviceExtra(): BluetoothDevice =
