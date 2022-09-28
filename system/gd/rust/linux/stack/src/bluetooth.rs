@@ -156,6 +156,9 @@ pub trait IBluetooth {
     /// Gets the class of the remote device.
     fn get_remote_class(&self, device: BluetoothDevice) -> u32;
 
+    /// Gets the appearance of the remote device.
+    fn get_remote_appearance(&self, device: BluetoothDevice) -> u16;
+
     /// Gets whether the remote device is connected.
     fn get_remote_connected(&self, device: BluetoothDevice) -> bool;
 
@@ -1409,6 +1412,13 @@ impl IBluetooth for Bluetooth {
     fn get_remote_class(&self, device: BluetoothDevice) -> u32 {
         match self.get_remote_device_property(&device, &BtPropertyType::ClassOfDevice) {
             Some(BluetoothProperty::ClassOfDevice(class)) => return class,
+            _ => 0,
+        }
+    }
+
+    fn get_remote_appearance(&self, device: BluetoothDevice) -> u16 {
+        match self.get_remote_device_property(&device, &BtPropertyType::Appearance) {
+            Some(BluetoothProperty::Appearance(appearance)) => appearance,
             _ => 0,
         }
     }
