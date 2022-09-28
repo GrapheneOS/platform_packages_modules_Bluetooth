@@ -282,6 +282,9 @@ public class ScanManager {
         if (client == null) {
             client = mScanNative.getRegularScanClient(scannerId);
         }
+        if (client == null) {
+            client = mScanNative.getSuspendedScanClient(scannerId);
+        }
         sendMessage(MSG_STOP_BLE_SCAN, client);
     }
 
@@ -1120,6 +1123,15 @@ public class ScanManager {
         // Find the regular scan client information.
         ScanClient getRegularScanClient(int scannerId) {
             for (ScanClient client : mRegularScanClients) {
+                if (client.scannerId == scannerId) {
+                    return client;
+                }
+            }
+            return null;
+        }
+
+        ScanClient getSuspendedScanClient(int scannerId) {
+            for (ScanClient client : mSuspendedScanClients) {
                 if (client.scannerId == scannerId) {
                     return client;
                 }
