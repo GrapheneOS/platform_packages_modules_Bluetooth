@@ -2432,14 +2432,13 @@ bool LeAudioDevice::ActivateConfiguredAses(LeAudioContextType context_type) {
 }
 
 void LeAudioDevice::DeactivateAllAses(void) {
-  /* Just clear states and keep previous configuration for use
-   * in case device will get reconnected
-   */
   for (auto& ase : ases_) {
     if (ase.active) {
       ase.state = AseState::BTA_LE_AUDIO_ASE_STATE_IDLE;
       ase.data_path_state = AudioStreamDataPathState::IDLE;
       ase.active = false;
+      ase.cis_id = le_audio::kInvalidCisId;
+      ase.cis_conn_hdl = 0;
     }
   }
 }
