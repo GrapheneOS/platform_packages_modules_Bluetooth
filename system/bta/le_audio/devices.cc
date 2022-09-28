@@ -189,6 +189,16 @@ void LeAudioDeviceGroup::Deactivate(void) {
   }
 }
 
+le_audio::types::CigState LeAudioDeviceGroup::GetCigState(void) {
+  return cig_state_;
+}
+
+void LeAudioDeviceGroup::SetCigState(le_audio::types::CigState state) {
+  LOG_VERBOSE("%s -> %s", bluetooth::common::ToString(cig_state_).c_str(),
+              bluetooth::common::ToString(state).c_str());
+  cig_state_ = state;
+}
+
 bool LeAudioDeviceGroup::Activate(LeAudioContextType context_type) {
   for (auto leAudioDevice : leAudioDevices_) {
     if (leAudioDevice.expired()) continue;
@@ -1775,6 +1785,10 @@ void LeAudioDeviceGroup::SetPendingConfiguration(void) {
   stream_conf.pending_configuration = true;
 }
 
+void LeAudioDeviceGroup::ClearPendingConfiguration(void) {
+  stream_conf.pending_configuration = false;
+}
+
 bool LeAudioDeviceGroup::IsConfigurationSupported(
     LeAudioDevice* leAudioDevice,
     const set_configurations::AudioSetConfiguration* audio_set_conf) {
@@ -2622,7 +2636,11 @@ void LeAudioDevices::Dump(int fd, int group_id) {
 
 void LeAudioDevices::Cleanup(void) {
   for (auto const& device : leAudioDevices_) {
-    device->DisconnectAcl();
+    if (device->conn_id_ != GATT_INVALID_CONN_ID) {
+      BtaGattQueue::Clean(device->conn_id_);
+      BTA_GATTC_Close(device->conn_id_);
+      device->DisconnectAcl();
+    }
   }
   leAudioDevices_.clear();
 }

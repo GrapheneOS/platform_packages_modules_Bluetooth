@@ -68,6 +68,11 @@ extern struct fake_osi_alarm_set_on_mloop fake_osi_alarm_set_on_mloop_;
 std::map<std::string, int> mock_function_count_map;
 constexpr int max_num_of_ases = 5;
 
+static constexpr char kNotifyUpperLayerAboutGroupBeingInIdleDuringCall[] =
+    "persist.bluetooth.leaudio.notify.idle.during.call";
+
+void osi_property_set_bool(const char* key, bool value);
+
 // Disables most likely false-positives from base::SplitString()
 extern "C" const char* __asan_default_options() {
   return "detect_container_overflow=0";
@@ -649,6 +654,7 @@ class UnicastTestNoInit : public Test {
           group->SetTargetState(
               types::AseState::BTA_LE_AUDIO_ASE_STATE_CODEC_CONFIGURED);
           group->SetState(group->GetTargetState());
+          group->ClearPendingConfiguration();
           do_in_main_thread(
               FROM_HERE, base::BindOnce(
                              [](int group_id,
@@ -3777,5 +3783,127 @@ TEST_F(UnicastTest, StartNotSupportedContextType) {
    * is needed to restart the stream */
   SinkAudioResume();
 }
+
+TEST_F(UnicastTest, NotifyAboutGroupTunrnedIdleEnabled) {
+  const RawAddress test_address0 = GetTestAddress(0);
+  int group_id = bluetooth::groups::kGroupUnknown;
+
+  osi_property_set_bool(kNotifyUpperLayerAboutGroupBeingInIdleDuringCall, true);
+
+  SetSampleDatabaseEarbudsValid(
+      1, test_address0, codec_spec_conf::kLeAudioLocationStereo,
+      codec_spec_conf::kLeAudioLocationStereo, default_channel_cnt,
+      default_channel_cnt, 0x0004, false /*add_csis*/, true /*add_cas*/,
+      true /*add_pacs*/, default_ase_cnt /*add_ascs_cnt*/, 1 /*set_size*/,
+      0 /*rank*/);
+  EXPECT_CALL(mock_client_callbacks_,
+              OnConnectionState(ConnectionState::CONNECTED, test_address0))
+      .Times(1);
+  EXPECT_CALL(mock_client_callbacks_,
+              OnGroupNodeStatus(test_address0, _, GroupNodeStatus::ADDED))
+      .WillOnce(DoAll(SaveArg<1>(&group_id)));
+
+  ConnectLeAudio(test_address0);
+  ASSERT_NE(group_id, bluetooth::groups::kGroupUnknown);
+
+  // Start streaming
+  uint8_t cis_count_out = 1;
+  uint8_t cis_count_in = 0;
+
+  LeAudioClient::Get()->SetInCall(true);
+
+  // Audio sessions are started only when device gets active
+  EXPECT_CALL(*mock_unicast_audio_source_, Start(_, _)).Times(1);
+  EXPECT_CALL(*mock_audio_sink_, Start(_, _)).Times(1);
+  LeAudioClient::Get()->GroupSetActive(group_id);
+
+  StartStreaming(AUDIO_USAGE_NOTIFICATION_TELEPHONY_RINGTONE,
+                 AUDIO_CONTENT_TYPE_UNKNOWN, group_id);
+
+  Mock::VerifyAndClearExpectations(&mock_client_callbacks_);
+  Mock::VerifyAndClearExpectations(mock_unicast_audio_source_);
+  SyncOnMainLoop();
+
+  // Verify Data transfer on one audio source cis
+  TestAudioDataTransfer(group_id, cis_count_out, cis_count_in, 1920);
+
+  // Release
+
+  /* To be called twice
+   * 1. GroupStatus::INACTIVE
+   * 2. GroupStatus::TURNED_IDLE_DURING_CALL
+   */
+  EXPECT_CALL(mock_client_callbacks_, OnGroupStatus(group_id, _)).Times(2);
+
+  EXPECT_CALL(*mock_unicast_audio_source_, Stop()).Times(1);
+  EXPECT_CALL(*mock_unicast_audio_source_, Release(_)).Times(1);
+  EXPECT_CALL(*mock_audio_sink_, Release(_)).Times(1);
+  LeAudioClient::Get()->GroupSetActive(bluetooth::groups::kGroupUnknown);
+
+  Mock::VerifyAndClearExpectations(mock_unicast_audio_source_);
+
+  LeAudioClient::Get()->SetInCall(false);
+  osi_property_set_bool(kNotifyUpperLayerAboutGroupBeingInIdleDuringCall,
+                        false);
+}
+
+TEST_F(UnicastTest, NotifyAboutGroupTunrnedIdleDisabled) {
+  const RawAddress test_address0 = GetTestAddress(0);
+  int group_id = bluetooth::groups::kGroupUnknown;
+
+  SetSampleDatabaseEarbudsValid(
+      1, test_address0, codec_spec_conf::kLeAudioLocationStereo,
+      codec_spec_conf::kLeAudioLocationStereo, default_channel_cnt,
+      default_channel_cnt, 0x0004, false /*add_csis*/, true /*add_cas*/,
+      true /*add_pacs*/, default_ase_cnt /*add_ascs_cnt*/, 1 /*set_size*/,
+      0 /*rank*/);
+  EXPECT_CALL(mock_client_callbacks_,
+              OnConnectionState(ConnectionState::CONNECTED, test_address0))
+      .Times(1);
+  EXPECT_CALL(mock_client_callbacks_,
+              OnGroupNodeStatus(test_address0, _, GroupNodeStatus::ADDED))
+      .WillOnce(DoAll(SaveArg<1>(&group_id)));
+
+  ConnectLeAudio(test_address0);
+  ASSERT_NE(group_id, bluetooth::groups::kGroupUnknown);
+
+  // Start streaming
+  uint8_t cis_count_out = 1;
+  uint8_t cis_count_in = 0;
+
+  LeAudioClient::Get()->SetInCall(true);
+
+  // Audio sessions are started only when device gets active
+  EXPECT_CALL(*mock_unicast_audio_source_, Start(_, _)).Times(1);
+  EXPECT_CALL(*mock_audio_sink_, Start(_, _)).Times(1);
+  LeAudioClient::Get()->GroupSetActive(group_id);
+
+  StartStreaming(AUDIO_USAGE_NOTIFICATION_TELEPHONY_RINGTONE,
+                 AUDIO_CONTENT_TYPE_UNKNOWN, group_id);
+
+  Mock::VerifyAndClearExpectations(&mock_client_callbacks_);
+  Mock::VerifyAndClearExpectations(mock_unicast_audio_source_);
+  SyncOnMainLoop();
+
+  // Verify Data transfer on one audio source cis
+  TestAudioDataTransfer(group_id, cis_count_out, cis_count_in, 1920);
+
+  // Release
+
+  /* To be called once only
+   * 1. GroupStatus::INACTIVE
+   */
+  EXPECT_CALL(mock_client_callbacks_, OnGroupStatus(group_id, _)).Times(1);
+
+  EXPECT_CALL(*mock_unicast_audio_source_, Stop()).Times(1);
+  EXPECT_CALL(*mock_unicast_audio_source_, Release(_)).Times(1);
+  EXPECT_CALL(*mock_audio_sink_, Release(_)).Times(1);
+  LeAudioClient::Get()->GroupSetActive(bluetooth::groups::kGroupUnknown);
+
+  Mock::VerifyAndClearExpectations(mock_unicast_audio_source_);
+
+  LeAudioClient::Get()->SetInCall(false);
+}
+
 }  // namespace
 }  // namespace le_audio

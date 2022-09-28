@@ -60,6 +60,7 @@ class LeAudioDevice {
   bool connecting_actively_;
   bool closing_stream_for_disconnection_;
   uint16_t conn_id_;
+  uint16_t mtu_;
   bool encrypted_;
   int group_id_;
   bool csis_member_;
@@ -93,6 +94,7 @@ class LeAudioDevice {
         connecting_actively_(first_connection),
         closing_stream_for_disconnection_(false),
         conn_id_(GATT_INVALID_CONN_ID),
+        mtu_(0),
         encrypted_(false),
         group_id_(group_id),
         csis_member_(false),
@@ -227,6 +229,8 @@ class LeAudioDeviceGroup {
       types::LeAudioContextType context_type = types::LeAudioContextType::RFU);
   bool Activate(types::LeAudioContextType context_type);
   void Deactivate(void);
+  types::CigState GetCigState(void);
+  void SetCigState(le_audio::types::CigState state);
   void CigClearCis(void);
   void ClearSinksFromConfiguration(void);
   void ClearSourcesFromConfiguration(void);
@@ -285,6 +289,7 @@ class LeAudioDeviceGroup {
   types::LeAudioContextType GetCurrentContextType(void);
   bool IsPendingConfiguration(void);
   void SetPendingConfiguration(void);
+  void ClearPendingConfiguration(void);
   bool IsConfigurationSupported(
       LeAudioDevice* leAudioDevice,
       const set_configurations::AudioSetConfiguration* audio_set_conf);
