@@ -25,6 +25,17 @@ namespace metrics {
 // BluetoothAdapterStateChanged/AdapterState.
 enum class AdapterState : int64_t { OFF = 0, ON = 1 };
 
+// ENUM definition for device/connection type that in sync with ChromeOS structured metrics
+// BluetoothPairingStateChanged/DeviceType and BlueZ metrics_conn_type. Note this is a non-optimal ENUM design that
+// mixed the connection transport type with the device type. The connection can only be LE or Classic, but the device
+// type can also be Dual.
+enum class ConnectionType : int64_t {
+  CONN_TYPE_UNKNOWN = 0,
+  CONN_TYPE_BREDR = 1,
+  CONN_TYPE_LE = 2,
+  CONN_TYPE_END = 3,
+};
+
 // ENUM definition for pairing state that in sync with ChromeOS structured metrics
 // BluetoothPairingStateChanged/PairingState and BlueZ metrics_pair_result.
 enum class PairingState : int64_t {
@@ -130,6 +141,9 @@ struct ProfileConnectionEvent {
 
 // Convert topshim::btif::BtState to AdapterState.
 AdapterState ToAdapterState(uint32_t state);
+
+// Convert topshim::btif::BtDeviceType to ConnectionType
+ConnectionType ToPairingDeviceType(std::string addr, uint32_t device_type);
 
 // Convert topshim::btif::bond_state info (status, addr, bond_state, and fail_reason) to PairingState
 PairingState ToPairingState(uint32_t status, uint32_t bond_state, int32_t fail_reason);
