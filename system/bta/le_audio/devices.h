@@ -34,6 +34,31 @@
 #include "raw_address.h"
 
 namespace le_audio {
+
+/* Enums */
+enum class DeviceConnectState : uint8_t {
+  /* Initial state */
+  DISCONNECTED,
+  /* When ACL connected, encrypted, CCC registered and initial characteristics
+     read is completed */
+  CONNECTED,
+  /* Used when device is unbonding (RemoveDevice() API is called) */
+  REMOVING,
+  /* Disconnecting */
+  DISCONNECTING,
+  /* 2 states below are used when user creates connection. Connect API is
+     called. */
+  CONNECTING_BY_USER,
+  /* Always used after CONNECTING_BY_USER */
+  CONNECTED_BY_USER_GETTING_READY,
+  /* 2 states are used when autoconnect was used for the connection.*/
+  CONNECTING_AUTOCONNECT,
+  /* Always used after CONNECTING_AUTOCONNECT */
+  CONNECTED_AUTOCONNECT_GETTING_READY,
+};
+
+std::ostream& operator<<(std::ostream& os, const DeviceConnectState& state);
+
 /* Class definitions */
 
 /* LeAudioDevice class represents GATT server device with ASCS, PAC services as
@@ -50,15 +75,11 @@ class LeAudioDevice {
  public:
   RawAddress address_;
 
+  DeviceConnectState connection_state_;
   bool known_service_handles_;
   bool notify_connected_after_read_;
-  bool removing_device_;
-
-  /* we are making active attempt to connect to this device, 'direct connect'.
-   * This is true only during initial phase of first connection. */
-  bool first_connection_;
-  bool connecting_actively_;
   bool closing_stream_for_disconnection_;
+  bool autoconnect_flag_;
   uint16_t conn_id_;
   uint16_t mtu_;
   bool encrypted_;
@@ -84,15 +105,14 @@ class LeAudioDevice {
   alarm_t* link_quality_timer;
   uint16_t link_quality_timer_data;
 
-  LeAudioDevice(const RawAddress& address_, bool first_connection,
+  LeAudioDevice(const RawAddress& address_, DeviceConnectState state,
                 int group_id = bluetooth::groups::kGroupUnknown)
       : address_(address_),
+        connection_state_(state),
         known_service_handles_(false),
         notify_connected_after_read_(false),
-        removing_device_(false),
-        first_connection_(first_connection),
-        connecting_actively_(first_connection),
         closing_stream_for_disconnection_(false),
+        autoconnect_flag_(false),
         conn_id_(GATT_INVALID_CONN_ID),
         mtu_(0),
         encrypted_(false),
@@ -102,6 +122,8 @@ class LeAudioDevice {
         link_quality_timer(nullptr) {}
   ~LeAudioDevice(void);
 
+  void SetConnectionState(DeviceConnectState state);
+  DeviceConnectState GetConnectionState(void);
   void ClearPACs(void);
   void RegisterPACs(std::vector<struct types::acs_ac_record>* apr_db,
                     std::vector<struct types::acs_ac_record>* apr);
@@ -171,7 +193,7 @@ class LeAudioDevice {
  */
 class LeAudioDevices {
  public:
-  void Add(const RawAddress& address, bool first_connection,
+  void Add(const RawAddress& address, le_audio::DeviceConnectState state,
            int group_id = bluetooth::groups::kGroupUnknown);
   void Remove(const RawAddress& address);
   LeAudioDevice* FindByAddress(const RawAddress& address);
