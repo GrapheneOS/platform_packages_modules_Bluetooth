@@ -20,6 +20,7 @@
 
 #include "hci/hci_packets.h"
 #include "include/hardware/bluetooth.h"
+#include "include/hardware/bt_av.h"
 #include "include/hardware/bt_hh.h"
 
 namespace bluetooth {
@@ -29,7 +30,9 @@ namespace metrics {
 typedef bt_bond_state_t BtBondState;
 // topshim::btif::BtStatus is a copy of hardware/bluetooth.h:bt_status_t
 typedef bt_status_t BtStatus;
-// topshim::profile::hid_host::BthhConnectionState is a copy of hardware/bluetooth.h:bthh_connection_state_t
+// topshim::profile::a2dp::BtavConnectionState is a copy of hardware/bt_av.h:btav_connection_state_t
+typedef btav_connection_state_t BtavConnectionState;
+// topshim::profile::hid_host::BthhConnectionState is a copy of hardware/bt_hh.h:bthh_connection_state_t
 typedef bthh_connection_state_t BthhConnectionState;
 
 // A normalized connection state ENUM definition all profiles
@@ -298,7 +301,26 @@ static std::pair<uint32_t, uint32_t> ToProfileConnectionState(uint32_t profile, 
   std::pair<uint32_t, uint32_t> output;
 
   switch ((ProfilesFloss)profile) {
-    // case ProfilesFloss::A2dpSink:
+    case ProfilesFloss::A2dpSink:
+      output.first = (uint32_t)Profile::A2DP;
+      switch ((BtavConnectionState)state) {
+        case BtavConnectionState::BTAV_CONNECTION_STATE_CONNECTED:
+          output.second = (uint32_t)ProfilesConnectionState::CONNECTED;
+          break;
+        case BtavConnectionState::BTAV_CONNECTION_STATE_CONNECTING:
+          output.second = (uint32_t)ProfilesConnectionState::CONNECTING;
+          break;
+        case BtavConnectionState::BTAV_CONNECTION_STATE_DISCONNECTED:
+          output.second = (uint32_t)ProfilesConnectionState::DISCONNECTED;
+          break;
+        case BtavConnectionState::BTAV_CONNECTION_STATE_DISCONNECTING:
+          output.second = (uint32_t)ProfilesConnectionState::DISCONNECTING;
+          break;
+        default:
+          output.second = (uint32_t)ProfilesConnectionState::UNKNOWN;
+          break;
+      }
+      break;
     // case ProfilesFloss::A2dpSource:
     // case ProfilesFloss::AdvAudioDist:
     // case ProfilesFloss::Hsp:

@@ -1,11 +1,11 @@
-use crate::btif::{BluetoothInterface, RawAddress};
+use crate::btif::{BluetoothInterface, BtStatus, RawAddress};
 use crate::topstack::get_dispatchers;
 
 use num_traits::cast::FromPrimitive;
 use std::sync::{Arc, Mutex};
 use topshim_macros::cb_variant;
 
-#[derive(Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
+#[derive(Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd, Clone)]
 #[repr(u32)]
 pub enum BtavConnectionState {
     Disconnected = 0,
@@ -75,6 +75,18 @@ impl From<i32> for A2dpCodecPriority {
     fn from(item: i32) -> Self {
         A2dpCodecPriority::from_i32(item).unwrap_or_else(|| A2dpCodecPriority::Default)
     }
+}
+
+#[derive(Debug)]
+pub struct A2dpError {
+    /// Standard BT status come from a function return or the cloest approximation to the real
+    /// error.
+    pub status: BtStatus,
+    /// An additional value to help explain the error. In the A2Dp context, this is often referring
+    /// to the BTA_AV_XXX status.
+    pub error: i32,
+    /// An optional error message that the lower layer wants to deliver.
+    pub error_message: Option<String>,
 }
 
 bitflags! {
@@ -154,6 +166,13 @@ pub mod ffi {
         data_position_nsec: i32,
     }
 
+    #[derive(Debug, Default)]
+    pub struct A2dpError {
+        status: u32,
+        error_code: u8,
+        error_msg: String,
+    }
+
     unsafe extern "C++" {
         include!("btav/btav_shim.h");
         include!("btav_sink/btav_sink_shim.h");
@@ -164,8 +183,8 @@ pub mod ffi {
         unsafe fn GetA2dpProfile(btif: *const u8) -> UniquePtr<A2dpIntf>;
 
         fn init(self: &A2dpIntf) -> i32;
-        fn connect(self: &A2dpIntf, bt_addr: RustRawAddress) -> i32;
-        fn disconnect(self: &A2dpIntf, bt_addr: RustRawAddress) -> i32;
+        fn connect(self: &A2dpIntf, bt_addr: RustRawAddress) -> u32;
+        fn disconnect(self: &A2dpIntf, bt_addr: RustRawAddress) -> u32;
         fn set_silence_device(self: &A2dpIntf, bt_addr: RustRawAddress, silent: bool) -> i32;
         fn set_active_device(self: &A2dpIntf, bt_addr: RustRawAddress) -> i32;
         fn config_codec(
@@ -189,7 +208,7 @@ pub mod ffi {
         fn cleanup(self: &A2dpSinkIntf);
     }
     extern "Rust" {
-        fn connection_state_callback(addr: RustRawAddress, state: u32);
+        fn connection_state_callback(addr: RustRawAddress, state: u32, error: A2dpError);
         fn audio_state_callback(addr: RustRawAddress, state: u32);
         fn audio_config_callback(
             addr: RustRawAddress,
@@ -204,6 +223,7 @@ pub mod ffi {
 pub type FfiAddress = ffi::RustRawAddress;
 pub type A2dpCodecConfig = ffi::A2dpCodecConfig;
 pub type PresentationPosition = ffi::RustPresentationPosition;
+pub type FfiA2dpError = ffi::A2dpError;
 
 impl From<RawAddress> for FfiAddress {
     fn from(addr: RawAddress) -> Self {
@@ -233,9 +253,18 @@ impl Default for A2dpCodecConfig {
     }
 }
 
+impl Into<A2dpError> for FfiA2dpError {
+    fn into(self) -> A2dpError {
+        A2dpError {
+            status: self.status.into(),
+            error: self.error_code as i32,
+            error_message: if self.error_msg == "" { None } else { Some(self.error_msg) },
+        }
+    }
+}
 #[derive(Debug)]
 pub enum A2dpCallbacks {
-    ConnectionState(RawAddress, BtavConnectionState),
+    ConnectionState(RawAddress, BtavConnectionState, A2dpError),
     AudioState(RawAddress, BtavAudioState),
     AudioConfig(RawAddress, A2dpCodecConfig, Vec<A2dpCodecConfig>, Vec<A2dpCodecConfig>),
     MandatoryCodecPreferred(RawAddress),
@@ -248,8 +277,9 @@ pub struct A2dpCallbacksDispatcher {
 type A2dpCb = Arc<Mutex<A2dpCallbacksDispatcher>>;
 
 cb_variant!(A2dpCb, connection_state_callback -> A2dpCallbacks::ConnectionState,
-FfiAddress -> RawAddress, u32 -> BtavConnectionState, {
+FfiAddress -> RawAddress, u32 -> BtavConnectionState, FfiA2dpError -> A2dpError,{
     let _0 = _0.into();
+    let _2 = _2.into();
 });
 
 cb_variant!(A2dpCb, audio_state_callback -> A2dpCallbacks::AudioState,
@@ -293,16 +323,16 @@ impl A2dp {
         true
     }
 
-    pub fn connect(&mut self, addr: RawAddress) {
-        self.internal.connect(addr.into());
+    pub fn connect(&mut self, addr: RawAddress) -> BtStatus {
+        BtStatus::from(self.internal.connect(addr.into()))
     }
 
     pub fn set_active_device(&mut self, addr: RawAddress) {
         self.internal.set_active_device(addr.into());
     }
 
-    pub fn disconnect(&mut self, addr: RawAddress) {
-        self.internal.disconnect(addr.into());
+    pub fn disconnect(&mut self, addr: RawAddress) -> BtStatus {
+        BtStatus::from(self.internal.disconnect(addr.into()))
     }
 
     pub fn set_audio_config(&self, sample_rate: i32, bits_per_sample: i32, channel_mode: i32) {
