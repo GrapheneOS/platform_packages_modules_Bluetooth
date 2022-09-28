@@ -1207,6 +1207,7 @@ class LeAudioClientImpl : public LeAudioClient {
     BtaGattQueue::Clean(leAudioDevice->conn_id_);
     BTA_GATTC_Close(leAudioDevice->conn_id_);
     leAudioDevice->conn_id_ = GATT_INVALID_CONN_ID;
+    leAudioDevice->mtu_ = 0;
   }
 
   void DeregisterNotifications(LeAudioDevice* leAudioDevice) {
@@ -1527,11 +1528,7 @@ class LeAudioClientImpl : public LeAudioClient {
 
     leAudioDevice->connecting_actively_ = false;
     leAudioDevice->conn_id_ = conn_id;
-
-    if (mtu == GATT_DEF_BLE_MTU_SIZE) {
-      LOG(INFO) << __func__ << ", Configure MTU";
-      BtaGattQueue::ConfigureMtu(leAudioDevice->conn_id_, 240);
-    }
+    leAudioDevice->mtu_ = mtu;
 
     if (BTM_SecIsSecurityPending(address)) {
       /* if security collision happened, wait for encryption done
@@ -1610,6 +1607,13 @@ class LeAudioClientImpl : public LeAudioClient {
                                  leAudioDevice->address_, ase.hdls);
   }
 
+  void changeMtuIfPossible(LeAudioDevice* leAudioDevice) {
+    if (leAudioDevice->mtu_ == GATT_DEF_BLE_MTU_SIZE) {
+      LOG(INFO) << __func__ << ", Configure MTU";
+      BtaGattQueue::ConfigureMtu(leAudioDevice->conn_id_, GATT_MAX_MTU_SIZE);
+    }
+  }
+
   void OnEncryptionComplete(const RawAddress& address, uint8_t status) {
     LOG(INFO) << __func__ << " " << address << "status: " << int{status};
 
@@ -1631,6 +1635,8 @@ class LeAudioClientImpl : public LeAudioClient {
       }
       return;
     }
+
+    changeMtuIfPossible(leAudioDevice);
 
     /* If we know services, register for notifications */
     if (leAudioDevice->known_service_handles_)
@@ -1673,6 +1679,7 @@ class LeAudioClientImpl : public LeAudioClient {
 
     callbacks_->OnConnectionState(ConnectionState::DISCONNECTED, address);
     leAudioDevice->conn_id_ = GATT_INVALID_CONN_ID;
+    leAudioDevice->mtu_ = 0;
     leAudioDevice->closing_stream_for_disconnection_ = false;
     leAudioDevice->encrypted_ = false;
 
@@ -1748,6 +1755,16 @@ class LeAudioClientImpl : public LeAudioClient {
     leAudioDevice->csis_member_ = false;
     BtaGattQueue::Clean(leAudioDevice->conn_id_);
     DeregisterNotifications(leAudioDevice);
+  }
+
+  void OnMtuChanged(uint16_t conn_id, uint16_t mtu) {
+    LeAudioDevice* leAudioDevice = leAudioDevices_.FindByConnId(conn_id);
+    if (!leAudioDevice) {
+      LOG_DEBUG("Unknown connectect id %d", conn_id);
+      return;
+    }
+
+    leAudioDevice->mtu_ = mtu;
   }
 
   void OnGattServiceDiscoveryDone(const RawAddress& address) {
@@ -3997,6 +4014,7 @@ void le_audio_gattc_callback(tBTA_GATTC_EVT event, tBTA_GATTC* p_data) {
       instance->OnServiceChangeEvent(p_data->remote_bda);
       break;
     case BTA_GATTC_CFG_MTU_EVT:
+      instance->OnMtuChanged(p_data->cfg_mtu.conn_id, p_data->cfg_mtu.mtu);
       break;
 
     default:
