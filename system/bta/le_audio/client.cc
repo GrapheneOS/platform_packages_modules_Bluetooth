@@ -1207,6 +1207,7 @@ class LeAudioClientImpl : public LeAudioClient {
     BtaGattQueue::Clean(leAudioDevice->conn_id_);
     BTA_GATTC_Close(leAudioDevice->conn_id_);
     leAudioDevice->conn_id_ = GATT_INVALID_CONN_ID;
+    leAudioDevice->mtu_ = 0;
   }
 
   void DeregisterNotifications(LeAudioDevice* leAudioDevice) {
@@ -1565,6 +1566,14 @@ class LeAudioClientImpl : public LeAudioClient {
   void RegisterKnownNotifications(LeAudioDevice* leAudioDevice) {
     LOG(INFO) << __func__ << " device: " << leAudioDevice->address_;
 
+    if (leAudioDevice->ctp_hdls_.val_hdl == 0) {
+      LOG_ERROR(
+          "Control point characteristic is mandatory - disconnecting device %s",
+          leAudioDevice->address_.ToString().c_str());
+      DisconnectDevice(leAudioDevice);
+      return;
+    }
+
     /* GATTC will ommit not registered previously handles */
     for (auto pac_tuple : leAudioDevice->snk_pacs_) {
       subscribe_for_notification(leAudioDevice->conn_id_,
@@ -1596,14 +1605,12 @@ class LeAudioClientImpl : public LeAudioClient {
                                  leAudioDevice->address_,
                                  leAudioDevice->audio_supp_cont_hdls_);
 
-    if (leAudioDevice->ctp_hdls_.val_hdl != 0)
-      subscribe_for_notification(leAudioDevice->conn_id_,
-                                 leAudioDevice->address_,
-                                 leAudioDevice->ctp_hdls_);
-
     for (struct ase& ase : leAudioDevice->ases_)
       subscribe_for_notification(leAudioDevice->conn_id_,
                                  leAudioDevice->address_, ase.hdls);
+
+    subscribe_for_notification(leAudioDevice->conn_id_, leAudioDevice->address_,
+                               leAudioDevice->ctp_hdls_);
   }
 
   void changeMtuIfPossible(LeAudioDevice* leAudioDevice) {
@@ -1635,11 +1642,11 @@ class LeAudioClientImpl : public LeAudioClient {
       return;
     }
 
+    changeMtuIfPossible(leAudioDevice);
+
     /* If we know services, register for notifications */
     if (leAudioDevice->known_service_handles_)
       RegisterKnownNotifications(leAudioDevice);
-
-    changeMtuIfPossible(leAudioDevice);
 
     if (leAudioDevice->encrypted_) {
       LOG(INFO) << __func__ << " link already encrypted, nothing to do";
@@ -1652,7 +1659,7 @@ class LeAudioClientImpl : public LeAudioClient {
      * just notify connected  */
     if (leAudioDevice->known_service_handles_ &&
         !leAudioDevice->notify_connected_after_read_) {
-      connectionReady(leAudioDevice);
+      LOG_INFO("Wait for CCC registration and MTU change request");
       return;
     }
 
@@ -1678,6 +1685,7 @@ class LeAudioClientImpl : public LeAudioClient {
 
     callbacks_->OnConnectionState(ConnectionState::DISCONNECTED, address);
     leAudioDevice->conn_id_ = GATT_INVALID_CONN_ID;
+    leAudioDevice->mtu_ = 0;
     leAudioDevice->closing_stream_for_disconnection_ = false;
     leAudioDevice->encrypted_ = false;
 
@@ -2153,6 +2161,15 @@ class LeAudioClientImpl : public LeAudioClient {
     if (status == GATT_SUCCESS) {
       LOG(INFO) << __func__
                 << ", successfully registered on ccc: " << loghex(hdl);
+
+      if (leAudioDevice->ctp_hdls_.ccc_hdl == hdl &&
+          leAudioDevice->known_service_handles_ &&
+          !leAudioDevice->notify_connected_after_read_) {
+        /* Reconnection case. Control point is the last CCC LeAudio is
+         * registering for on reconnection */
+        connectionReady(leAudioDevice);
+      }
+
       return;
     }
 
