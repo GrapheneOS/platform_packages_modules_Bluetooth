@@ -696,7 +696,9 @@ static void btif_av_handle_event(uint8_t peer_sep,
                                  tBTA_AV_HNDL bta_handle,
                                  const BtifAvEvent& btif_av_event);
 static void btif_report_connection_state(const RawAddress& peer_address,
-                                         btav_connection_state_t state);
+                                         btav_connection_state_t state,
+                                         const bt_status_t status,
+                                         uint8_t error_code);
 static void btif_report_audio_state(const RawAddress& peer_address,
                                     btav_audio_state_t state);
 static void btif_av_report_sink_audio_config_state(
@@ -1558,8 +1560,9 @@ bool BtifAvStateMachine::StateIdle::ProcessEvent(uint32_t event, void* p_data) {
                (status == BTA_AV_SUCCESS) ? "SUCCESS" : "FAILED",
                p_bta_data->open.edr);
 
-      btif_report_connection_state(peer_.PeerAddress(),
-                                   BTAV_CONNECTION_STATE_CONNECTING);
+      btif_report_connection_state(
+          peer_.PeerAddress(), BTAV_CONNECTION_STATE_CONNECTING,
+          bt_status_t::BT_STATUS_SUCCESS, BTA_AV_SUCCESS);
 
       if (p_bta_data->open.status == BTA_AV_SUCCESS) {
         peer_.SetEdr(p_bta_data->open.edr);
@@ -1581,8 +1584,9 @@ bool BtifAvStateMachine::StateIdle::ProcessEvent(uint32_t event, void* p_data) {
             sink_disconnect_src(peer_.PeerAddress());
           }
 
-          btif_report_connection_state(peer_.PeerAddress(),
-                                       BTAV_CONNECTION_STATE_DISCONNECTED);
+          btif_report_connection_state(
+              peer_.PeerAddress(), BTAV_CONNECTION_STATE_DISCONNECTED,
+              bt_status_t::BT_STATUS_NOMEM, BTA_AV_FAIL_RESOURCES);
           peer_.StateMachine().TransitionTo(BtifAvStateMachine::kStateIdle);
         } else {
           if (peer_.IsSink()) {
@@ -1595,13 +1599,15 @@ bool BtifAvStateMachine::StateIdle::ProcessEvent(uint32_t event, void* p_data) {
             // Bring up AVRCP connection as well
             BTA_AvOpenRc(peer_.BtaHandle());
           }
-          btif_report_connection_state(peer_.PeerAddress(),
-                                       BTAV_CONNECTION_STATE_CONNECTED);
+          btif_report_connection_state(
+              peer_.PeerAddress(), BTAV_CONNECTION_STATE_CONNECTED,
+              bt_status_t::BT_STATUS_SUCCESS, BTA_AV_SUCCESS);
           peer_.StateMachine().TransitionTo(BtifAvStateMachine::kStateOpened);
         }
       } else {
         btif_report_connection_state(peer_.PeerAddress(),
-                                     BTAV_CONNECTION_STATE_DISCONNECTED);
+                                     BTAV_CONNECTION_STATE_DISCONNECTED,
+                                     bt_status_t::BT_STATUS_FAIL, status);
         peer_.StateMachine().TransitionTo(BtifAvStateMachine::kStateIdle);
       }
       btif_queue_advance();
@@ -1654,7 +1660,8 @@ void BtifAvStateMachine::StateOpening::OnEnter() {
 
   // Inform the application that we are entering connecting state
   btif_report_connection_state(peer_.PeerAddress(),
-                               BTAV_CONNECTION_STATE_CONNECTING);
+                               BTAV_CONNECTION_STATE_CONNECTING,
+                               bt_status_t::BT_STATUS_SUCCESS, BTA_AV_SUCCESS);
 }
 
 void BtifAvStateMachine::StateOpening::OnExit() {
@@ -1688,7 +1695,8 @@ bool BtifAvStateMachine::StateOpening::ProcessEvent(uint32_t event,
                                    A2DP_CONNECTION_ACL_DISCONNECTED,
                                1);
       btif_report_connection_state(peer_.PeerAddress(),
-                                   BTAV_CONNECTION_STATE_DISCONNECTED);
+                                   BTAV_CONNECTION_STATE_DISCONNECTED,
+                                   bt_status_t::BT_STATUS_FAIL, BTA_AV_FAIL);
       peer_.StateMachine().TransitionTo(BtifAvStateMachine::kStateIdle);
       if (peer_.SelfInitiatedConnection()) {
         btif_queue_advance();
@@ -1702,8 +1710,9 @@ bool BtifAvStateMachine::StateOpening::ProcessEvent(uint32_t event,
       log_counter_metrics_btif(android::bluetooth::CodePathCounterKeyEnum::
                                    A2DP_CONNECTION_REJECT_EVT,
                                1);
-      btif_report_connection_state(peer_.PeerAddress(),
-                                   BTAV_CONNECTION_STATE_DISCONNECTED);
+      btif_report_connection_state(
+          peer_.PeerAddress(), BTAV_CONNECTION_STATE_DISCONNECTED,
+          bt_status_t::BT_STATUS_AUTH_REJECTED, BTA_AV_FAIL);
       peer_.StateMachine().TransitionTo(BtifAvStateMachine::kStateIdle);
       if (peer_.SelfInitiatedConnection()) {
         btif_queue_advance();
@@ -1727,8 +1736,9 @@ bool BtifAvStateMachine::StateOpening::ProcessEvent(uint32_t event,
         peer_.SetEdr(p_bta_data->open.edr);
         CHECK(peer_.PeerSep() == p_bta_data->open.sep);
         // Report the connection state to the application
-        btif_report_connection_state(peer_.PeerAddress(),
-                                     BTAV_CONNECTION_STATE_CONNECTED);
+        btif_report_connection_state(
+            peer_.PeerAddress(), BTAV_CONNECTION_STATE_CONNECTED,
+            bt_status_t::BT_STATUS_SUCCESS, BTA_AV_SUCCESS);
         log_counter_metrics_btif(
             android::bluetooth::CodePathCounterKeyEnum::A2DP_CONNECTION_SUCCESS,
             1);
@@ -1748,7 +1758,8 @@ bool BtifAvStateMachine::StateOpening::ProcessEvent(uint32_t event,
         av_state = BtifAvStateMachine::kStateIdle;
         // Report the connection state to the application
         btif_report_connection_state(peer_.PeerAddress(),
-                                     BTAV_CONNECTION_STATE_DISCONNECTED);
+                                     BTAV_CONNECTION_STATE_DISCONNECTED,
+                                     bt_status_t::BT_STATUS_FAIL, status);
         log_counter_metrics_btif(
             android::bluetooth::CodePathCounterKeyEnum::A2DP_CONNECTION_FAILURE,
             1);
@@ -1822,7 +1833,8 @@ bool BtifAvStateMachine::StateOpening::ProcessEvent(uint32_t event,
     case BTA_AV_CLOSE_EVT:
       btif_a2dp_on_stopped(nullptr);
       btif_report_connection_state(peer_.PeerAddress(),
-                                   BTAV_CONNECTION_STATE_DISCONNECTED);
+                                   BTAV_CONNECTION_STATE_DISCONNECTED,
+                                   bt_status_t::BT_STATUS_FAIL, BTA_AV_FAIL);
       peer_.StateMachine().TransitionTo(BtifAvStateMachine::kStateIdle);
       log_counter_metrics_btif(
           android::bluetooth::CodePathCounterKeyEnum::A2DP_CONNECTION_CLOSE, 1);
@@ -1834,7 +1846,8 @@ bool BtifAvStateMachine::StateOpening::ProcessEvent(uint32_t event,
     case BTIF_AV_DISCONNECT_REQ_EVT:
       BTA_AvClose(peer_.BtaHandle());
       btif_report_connection_state(peer_.PeerAddress(),
-                                   BTAV_CONNECTION_STATE_DISCONNECTED);
+                                   BTAV_CONNECTION_STATE_DISCONNECTED,
+                                   bt_status_t::BT_STATUS_FAIL, BTA_AV_FAIL);
       peer_.StateMachine().TransitionTo(BtifAvStateMachine::kStateIdle);
       log_counter_metrics_btif(android::bluetooth::CodePathCounterKeyEnum::
                                    A2DP_CONNECTION_DISCONNECTED,
@@ -1985,8 +1998,9 @@ bool BtifAvStateMachine::StateOpened::ProcessEvent(uint32_t event,
       }
 
       // Inform the application that we are disconnecting
-      btif_report_connection_state(peer_.PeerAddress(),
-                                   BTAV_CONNECTION_STATE_DISCONNECTING);
+      btif_report_connection_state(
+          peer_.PeerAddress(), BTAV_CONNECTION_STATE_DISCONNECTING,
+          bt_status_t::BT_STATUS_SUCCESS, BTA_AV_SUCCESS);
 
       // Wait in closing state until fully closed
       peer_.StateMachine().TransitionTo(BtifAvStateMachine::kStateClosing);
@@ -1995,8 +2009,9 @@ bool BtifAvStateMachine::StateOpened::ProcessEvent(uint32_t event,
     case BTA_AV_CLOSE_EVT:
       // AVDTP link is closed
       // Inform the application that we are disconnecting
-      btif_report_connection_state(peer_.PeerAddress(),
-                                   BTAV_CONNECTION_STATE_DISCONNECTING);
+      btif_report_connection_state(
+          peer_.PeerAddress(), BTAV_CONNECTION_STATE_DISCONNECTING,
+          bt_status_t::BT_STATUS_SUCCESS, BTA_AV_SUCCESS);
       // Change state to Idle, send acknowledgement if start is pending
       if (peer_.CheckFlags(BtifAvPeer::kFlagPendingStart)) {
         BTIF_TRACE_WARNING("%s: Peer %s : failed pending start request",
@@ -2014,8 +2029,9 @@ bool BtifAvStateMachine::StateOpened::ProcessEvent(uint32_t event,
       }
 
       // Inform the application that we are disconnected
-      btif_report_connection_state(peer_.PeerAddress(),
-                                   BTAV_CONNECTION_STATE_DISCONNECTED);
+      btif_report_connection_state(
+          peer_.PeerAddress(), BTAV_CONNECTION_STATE_DISCONNECTED,
+          bt_status_t::BT_STATUS_SUCCESS, BTA_AV_SUCCESS);
       peer_.StateMachine().TransitionTo(BtifAvStateMachine::kStateIdle);
       break;
 
@@ -2175,8 +2191,9 @@ bool BtifAvStateMachine::StateStarted::ProcessEvent(uint32_t event,
       }
 
       // Inform the application that we are disconnecting
-      btif_report_connection_state(peer_.PeerAddress(),
-                                   BTAV_CONNECTION_STATE_DISCONNECTING);
+      btif_report_connection_state(
+          peer_.PeerAddress(), BTAV_CONNECTION_STATE_DISCONNECTING,
+          bt_status_t::BT_STATUS_SUCCESS, BTA_AV_SUCCESS);
 
       // Wait in closing state until fully closed
       peer_.StateMachine().TransitionTo(BtifAvStateMachine::kStateClosing);
@@ -2251,8 +2268,9 @@ bool BtifAvStateMachine::StateStarted::ProcessEvent(uint32_t event,
                BtifAvEvent::EventName(event).c_str(),
                peer_.FlagsToString().c_str());
       // Inform the application that we are disconnecting
-      btif_report_connection_state(peer_.PeerAddress(),
-                                   BTAV_CONNECTION_STATE_DISCONNECTING);
+      btif_report_connection_state(
+          peer_.PeerAddress(), BTAV_CONNECTION_STATE_DISCONNECTING,
+          bt_status_t::BT_STATUS_SUCCESS, BTA_AV_SUCCESS);
 
       peer_.SetFlags(BtifAvPeer::kFlagPendingStop);
 
@@ -2262,8 +2280,9 @@ bool BtifAvStateMachine::StateStarted::ProcessEvent(uint32_t event,
       }
 
       // Inform the application that we are disconnected
-      btif_report_connection_state(peer_.PeerAddress(),
-                                   BTAV_CONNECTION_STATE_DISCONNECTED);
+      btif_report_connection_state(
+          peer_.PeerAddress(), BTAV_CONNECTION_STATE_DISCONNECTED,
+          bt_status_t::BT_STATUS_SUCCESS, BTA_AV_SUCCESS);
 
       peer_.StateMachine().TransitionTo(BtifAvStateMachine::kStateIdle);
       break;
@@ -2341,8 +2360,9 @@ bool BtifAvStateMachine::StateClosing::ProcessEvent(uint32_t event,
 
     case BTA_AV_CLOSE_EVT:
       // Inform the application that we are disconnecting
-      btif_report_connection_state(peer_.PeerAddress(),
-                                   BTAV_CONNECTION_STATE_DISCONNECTED);
+      btif_report_connection_state(
+          peer_.PeerAddress(), BTAV_CONNECTION_STATE_DISCONNECTED,
+          bt_status_t::BT_STATUS_SUCCESS, BTA_AV_SUCCESS);
 
       peer_.StateMachine().TransitionTo(BtifAvStateMachine::kStateIdle);
       break;
@@ -2446,18 +2466,24 @@ static void btif_av_sink_initiate_av_open_timer_timeout(void* data) {
  * @param state the connection state
  */
 static void btif_report_connection_state(const RawAddress& peer_address,
-                                         btav_connection_state_t state) {
+                                         btav_connection_state_t state,
+                                         bt_status_t status,
+                                         uint8_t error_code) {
   LOG_INFO("%s: peer_address=%s state=%d", __func__,
            peer_address.ToString().c_str(), state);
 
   if (btif_av_source.Enabled()) {
-    do_in_jni_thread(FROM_HERE,
-                     base::Bind(btif_av_source.Callbacks()->connection_state_cb,
-                                peer_address, state, btav_error_t{}));
+    do_in_jni_thread(
+        FROM_HERE,
+        base::Bind(btif_av_source.Callbacks()->connection_state_cb,
+                   peer_address, state,
+                   btav_error_t{.status = status, .error_code = error_code}));
   } else if (btif_av_sink.Enabled()) {
-    do_in_jni_thread(FROM_HERE,
-                     base::Bind(btif_av_sink.Callbacks()->connection_state_cb,
-                                peer_address, state, btav_error_t{}));
+    do_in_jni_thread(
+        FROM_HERE,
+        base::Bind(btif_av_sink.Callbacks()->connection_state_cb, peer_address,
+                   state,
+                   btav_error_t{.status = status, .error_code = error_code}));
   }
 }
 
