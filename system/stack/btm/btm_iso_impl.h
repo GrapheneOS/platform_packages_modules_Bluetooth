@@ -201,8 +201,12 @@ struct iso_impl {
     cig_callbacks_->OnCigEvent(kIsoEventCigOnRemoveCmpl, &evt);
   }
 
-  void remove_cig(uint8_t cig_id) {
-    LOG_ASSERT(IsCigKnown(cig_id)) << "No such cig: " << +cig_id;
+  void remove_cig(uint8_t cig_id, bool force) {
+    if (!force) {
+      LOG_ASSERT(IsCigKnown(cig_id)) << "No such cig: " << +cig_id;
+    } else {
+      LOG_WARN("Forcing to remove CIG %d", cig_id);
+    }
 
     btsnd_hcic_remove_cig(cig_id, base::BindOnce(&iso_impl::on_remove_cig,
                                                  base::Unretained(this)));

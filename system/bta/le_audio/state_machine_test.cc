@@ -249,13 +249,19 @@ class StateMachineTest : public Test {
                 for (auto i = 0u; i < p.cis_cfgs.size(); ++i) {
                   conn_handles.push_back(UNIQUE_CIS_CONN_HANDLE(cig_id, i));
                 }
+                auto status = HCI_SUCCESS;
+                if (group_create_command_disallowed_) {
+                  group_create_command_disallowed_ = false;
+                  status = HCI_ERR_COMMAND_DISALLOWED;
+                }
+
                 LeAudioGroupStateMachine::Get()->ProcessHciNotifOnCigCreate(
-                    group.get(), 0, cig_id, conn_handles);
+                    group.get(), status, cig_id, conn_handles);
               }
             });
 
     ON_CALL(*mock_iso_manager_, RemoveCig)
-        .WillByDefault([this](uint8_t cig_id) {
+        .WillByDefault([this](uint8_t cig_id, bool force) {
           DLOG(INFO) << "CreateRemove";
 
           auto& group = le_audio_device_groups_[cig_id];
@@ -1148,6 +1154,7 @@ class StateMachineTest : public Test {
   std::vector<std::shared_ptr<LeAudioDevice>> le_audio_devices_;
   std::map<uint8_t, std::unique_ptr<LeAudioDeviceGroup>>
       le_audio_device_groups_;
+  bool group_create_command_disallowed_ = false;
 };
 
 TEST_F(StateMachineTest, testInit) {
@@ -1263,7 +1270,48 @@ TEST_F(StateMachineTest, testConfigureQosSingle) {
   EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(0);
   EXPECT_CALL(*mock_iso_manager_, RemoveIsoDataPath(_, _)).Times(0);
   EXPECT_CALL(*mock_iso_manager_, DisconnectCis(_, _)).Times(0);
-  EXPECT_CALL(*mock_iso_manager_, RemoveCig(_)).Times(0);
+  EXPECT_CALL(*mock_iso_manager_, RemoveCig(_, _)).Times(0);
+
+  InjectInitialIdleNotification(group);
+
+  ASSERT_TRUE(LeAudioGroupStateMachine::Get()->StartStream(
+      group, static_cast<types::LeAudioContextType>(context_type),
+      context_type));
+
+  // Check if group has transitioned to a proper state
+  ASSERT_EQ(group->GetState(),
+            types::AseState::BTA_LE_AUDIO_ASE_STATE_QOS_CONFIGURED);
+}
+
+TEST_F(StateMachineTest, testConfigureQosSingleRecoverCig) {
+  const auto context_type = kContextTypeRingtone;
+  const int leaudio_group_id = 3;
+
+  /* Assume that on previous BT OFF CIG was not removed */
+  group_create_command_disallowed_ = true;
+
+  // Prepare fake connected device group
+  auto* group = PrepareSingleTestDeviceGroup(leaudio_group_id, context_type);
+
+  /* Since we prepared device with Ringtone context in mind, only one ASE
+   * should have been configured.
+   */
+  auto* leAudioDevice = group->GetFirstDevice();
+  PrepareConfigureCodecHandler(group, 1);
+  PrepareConfigureQosHandler(group, 1);
+
+  // Start the configuration and stream Media content
+  EXPECT_CALL(gatt_queue,
+              WriteCharacteristic(1, leAudioDevice->ctp_hdls_.val_hdl, _,
+                                  GATT_WRITE_NO_RSP, _, _))
+      .Times(3);
+
+  EXPECT_CALL(*mock_iso_manager_, CreateCig(_, _)).Times(2);
+  EXPECT_CALL(*mock_iso_manager_, RemoveCig(_, _)).Times(1);
+  EXPECT_CALL(*mock_iso_manager_, EstablishCis(_)).Times(0);
+  EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(0);
+  EXPECT_CALL(*mock_iso_manager_, RemoveIsoDataPath(_, _)).Times(0);
+  EXPECT_CALL(*mock_iso_manager_, DisconnectCis(_, _)).Times(0);
 
   InjectInitialIdleNotification(group);
 
@@ -1307,7 +1355,7 @@ TEST_F(StateMachineTest, testConfigureQosMultiple) {
   EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(0);
   EXPECT_CALL(*mock_iso_manager_, RemoveIsoDataPath(_, _)).Times(0);
   EXPECT_CALL(*mock_iso_manager_, DisconnectCis(_, _)).Times(0);
-  EXPECT_CALL(*mock_iso_manager_, RemoveCig(_)).Times(0);
+  EXPECT_CALL(*mock_iso_manager_, RemoveCig(_, _)).Times(0);
 
   InjectInitialIdleNotification(group);
 
@@ -1346,7 +1394,7 @@ TEST_F(StateMachineTest, testStreamSingle) {
   EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(1);
   EXPECT_CALL(*mock_iso_manager_, RemoveIsoDataPath(_, _)).Times(0);
   EXPECT_CALL(*mock_iso_manager_, DisconnectCis(_, _)).Times(0);
-  EXPECT_CALL(*mock_iso_manager_, RemoveCig(_)).Times(0);
+  EXPECT_CALL(*mock_iso_manager_, RemoveCig(_, _)).Times(0);
 
   InjectInitialIdleNotification(group);
 
@@ -1391,7 +1439,7 @@ TEST_F(StateMachineTest, testStreamSkipEnablingSink) {
   EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(1);
   EXPECT_CALL(*mock_iso_manager_, RemoveIsoDataPath(_, _)).Times(0);
   EXPECT_CALL(*mock_iso_manager_, DisconnectCis(_, _)).Times(0);
-  EXPECT_CALL(*mock_iso_manager_, RemoveCig(_)).Times(0);
+  EXPECT_CALL(*mock_iso_manager_, RemoveCig(_, _)).Times(0);
 
   InjectInitialIdleNotification(group);
 
@@ -1437,7 +1485,7 @@ TEST_F(StateMachineTest, testStreamSkipEnablingSinkSource) {
   EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(2);
   EXPECT_CALL(*mock_iso_manager_, RemoveIsoDataPath(_, _)).Times(0);
   EXPECT_CALL(*mock_iso_manager_, DisconnectCis(_, _)).Times(0);
-  EXPECT_CALL(*mock_iso_manager_, RemoveCig(_)).Times(0);
+  EXPECT_CALL(*mock_iso_manager_, RemoveCig(_, _)).Times(0);
 
   InjectInitialIdleNotification(group);
 
@@ -1477,7 +1525,7 @@ TEST_F(StateMachineTest, testStreamMultipleConversational) {
   EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(4);
   EXPECT_CALL(*mock_iso_manager_, RemoveIsoDataPath(_, _)).Times(0);
   EXPECT_CALL(*mock_iso_manager_, DisconnectCis(_, _)).Times(0);
-  EXPECT_CALL(*mock_iso_manager_, RemoveCig(_)).Times(0);
+  EXPECT_CALL(*mock_iso_manager_, RemoveCig(_, _)).Times(0);
 
   InjectInitialIdleNotification(group);
 
@@ -1529,7 +1577,7 @@ TEST_F(StateMachineTest, testStreamMultiple) {
   EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(2);
   EXPECT_CALL(*mock_iso_manager_, RemoveIsoDataPath(_, _)).Times(0);
   EXPECT_CALL(*mock_iso_manager_, DisconnectCis(_, _)).Times(0);
-  EXPECT_CALL(*mock_iso_manager_, RemoveCig(_)).Times(0);
+  EXPECT_CALL(*mock_iso_manager_, RemoveCig(_, _)).Times(0);
 
   InjectInitialIdleNotification(group);
 
@@ -1592,7 +1640,7 @@ TEST_F(StateMachineTest, testDisableSingle) {
           _, bluetooth::hci::iso_manager::kRemoveIsoDataPathDirectionInput))
       .Times(1);
   EXPECT_CALL(*mock_iso_manager_, DisconnectCis(_, _)).Times(1);
-  EXPECT_CALL(*mock_iso_manager_, RemoveCig(_)).Times(0);
+  EXPECT_CALL(*mock_iso_manager_, RemoveCig(_, _)).Times(0);
 
   InjectInitialIdleNotification(group);
 
@@ -1660,7 +1708,7 @@ TEST_F(StateMachineTest, testDisableMultiple) {
           _, bluetooth::hci::iso_manager::kRemoveIsoDataPathDirectionInput))
       .Times(2);
   EXPECT_CALL(*mock_iso_manager_, DisconnectCis(_, _)).Times(2);
-  EXPECT_CALL(*mock_iso_manager_, RemoveCig(_)).Times(0);
+  EXPECT_CALL(*mock_iso_manager_, RemoveCig(_, _)).Times(0);
 
   InjectInitialIdleNotification(group);
 
@@ -1725,7 +1773,7 @@ TEST_F(StateMachineTest, testDisableBidirectional) {
               bluetooth::hci::iso_manager::kRemoveIsoDataPathDirectionOutput))
       .Times(1);
   EXPECT_CALL(*mock_iso_manager_, DisconnectCis(_, _)).Times(1);
-  EXPECT_CALL(*mock_iso_manager_, RemoveCig(_)).Times(0);
+  EXPECT_CALL(*mock_iso_manager_, RemoveCig(_, _)).Times(0);
 
   // Start the configuration and stream Media content
   LeAudioGroupStateMachine::Get()->StartStream(
@@ -1771,7 +1819,7 @@ TEST_F(StateMachineTest, testReleaseSingle) {
   EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(1);
   EXPECT_CALL(*mock_iso_manager_, RemoveIsoDataPath(_, _)).Times(1);
   EXPECT_CALL(*mock_iso_manager_, DisconnectCis(_, _)).Times(1);
-  EXPECT_CALL(*mock_iso_manager_, RemoveCig(_)).Times(1);
+  EXPECT_CALL(*mock_iso_manager_, RemoveCig(_, _)).Times(1);
 
   InjectInitialIdleNotification(group);
 
@@ -1827,7 +1875,7 @@ TEST_F(StateMachineTest, testReleaseCachingSingle) {
   EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(1);
   EXPECT_CALL(*mock_iso_manager_, RemoveIsoDataPath(_, _)).Times(1);
   EXPECT_CALL(*mock_iso_manager_, DisconnectCis(_, _)).Times(1);
-  EXPECT_CALL(*mock_iso_manager_, RemoveCig(_)).Times(1);
+  EXPECT_CALL(*mock_iso_manager_, RemoveCig(_, _)).Times(1);
 
   InjectInitialIdleNotification(group);
 
@@ -1900,7 +1948,7 @@ TEST_F(StateMachineTest, testStreamCachingSingle) {
   EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(4);
   EXPECT_CALL(*mock_iso_manager_, RemoveIsoDataPath(_, _)).Times(2);
   EXPECT_CALL(*mock_iso_manager_, DisconnectCis(_, _)).Times(2);
-  EXPECT_CALL(*mock_iso_manager_, RemoveCig(_)).Times(1);
+  EXPECT_CALL(*mock_iso_manager_, RemoveCig(_, _)).Times(1);
 
   InjectInitialIdleNotification(group);
 
@@ -1987,7 +2035,7 @@ TEST_F(StateMachineTest, testActivateStreamCachingSingle) {
   EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(5);
   EXPECT_CALL(*mock_iso_manager_, RemoveIsoDataPath(_, _)).Times(2);
   EXPECT_CALL(*mock_iso_manager_, DisconnectCis(_, _)).Times(2);
-  EXPECT_CALL(*mock_iso_manager_, RemoveCig(_)).Times(1);
+  EXPECT_CALL(*mock_iso_manager_, RemoveCig(_, _)).Times(1);
 
   InjectInitialIdleNotification(group);
 
@@ -2069,7 +2117,7 @@ TEST_F(StateMachineTest, testReleaseMultiple) {
   EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(2);
   EXPECT_CALL(*mock_iso_manager_, RemoveIsoDataPath(_, _)).Times(2);
   EXPECT_CALL(*mock_iso_manager_, DisconnectCis(_, _)).Times(2);
-  EXPECT_CALL(*mock_iso_manager_, RemoveCig(_)).Times(1);
+  EXPECT_CALL(*mock_iso_manager_, RemoveCig(_, _)).Times(1);
 
   InjectInitialIdleNotification(group);
 
@@ -2126,7 +2174,7 @@ TEST_F(StateMachineTest, testReleaseBidirectional) {
   EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(2);
   EXPECT_CALL(*mock_iso_manager_, RemoveIsoDataPath(_, _)).Times(1);
   EXPECT_CALL(*mock_iso_manager_, DisconnectCis(_, _)).Times(1);
-  EXPECT_CALL(*mock_iso_manager_, RemoveCig(_)).Times(1);
+  EXPECT_CALL(*mock_iso_manager_, RemoveCig(_, _)).Times(1);
 
   InjectInitialIdleNotification(group);
 
@@ -2175,7 +2223,7 @@ TEST_F(StateMachineTest, testDisableAndReleaseBidirectional) {
   EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(2);
   EXPECT_CALL(*mock_iso_manager_, RemoveIsoDataPath(_, _)).Times(1);
   EXPECT_CALL(*mock_iso_manager_, DisconnectCis(_, _)).Times(1);
-  EXPECT_CALL(*mock_iso_manager_, RemoveCig(_)).Times(1);
+  EXPECT_CALL(*mock_iso_manager_, RemoveCig(_, _)).Times(1);
 
   // Start the configuration and stream Media content
   LeAudioGroupStateMachine::Get()->StartStream(
@@ -2209,7 +2257,7 @@ TEST_F(StateMachineTest, testAseIdAssignmentIdle) {
   EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(0);
   EXPECT_CALL(*mock_iso_manager_, RemoveIsoDataPath(_, _)).Times(0);
   EXPECT_CALL(*mock_iso_manager_, DisconnectCis(_, _)).Times(0);
-  EXPECT_CALL(*mock_iso_manager_, RemoveCig(_)).Times(0);
+  EXPECT_CALL(*mock_iso_manager_, RemoveCig(_, _)).Times(0);
 
   for (auto* device = group->GetFirstDevice(); device != nullptr;
        device = group->GetNextDevice(device)) {
@@ -2239,7 +2287,7 @@ TEST_F(StateMachineTest, testAseIdAssignmentCodecConfigured) {
   EXPECT_CALL(*mock_iso_manager_, SetupIsoDataPath(_, _)).Times(0);
   EXPECT_CALL(*mock_iso_manager_, RemoveIsoDataPath(_, _)).Times(0);
   EXPECT_CALL(*mock_iso_manager_, DisconnectCis(_, _)).Times(0);
-  EXPECT_CALL(*mock_iso_manager_, RemoveCig(_)).Times(0);
+  EXPECT_CALL(*mock_iso_manager_, RemoveCig(_, _)).Times(0);
 
   for (auto* device = group->GetFirstDevice(); device != nullptr;
        device = group->GetNextDevice(device)) {

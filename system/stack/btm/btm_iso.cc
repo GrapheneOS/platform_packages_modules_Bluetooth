@@ -71,8 +71,8 @@ void IsoManager::ReconfigureCig(
   pimpl_->iso_impl_->reconfigure_cig(cig_id, std::move(cig_params));
 }
 
-void IsoManager::RemoveCig(uint8_t cig_id) {
-  pimpl_->iso_impl_->remove_cig(cig_id);
+void IsoManager::RemoveCig(uint8_t cig_id, bool force) {
+  pimpl_->iso_impl_->remove_cig(cig_id, force);
 }
 
 void IsoManager::EstablishCis(

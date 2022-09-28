@@ -22,7 +22,7 @@ use std::sync::{Arc, Mutex};
 use tokio::sync::mpsc::channel;
 use tokio::sync::mpsc::{Receiver, Sender};
 
-use crate::bluetooth::Bluetooth;
+use crate::bluetooth::{Bluetooth, IBluetooth};
 use crate::bluetooth_gatt::BluetoothGatt;
 use crate::bluetooth_media::{BluetoothMedia, MediaActions};
 use crate::socket_manager::{BluetoothSocketManager, SocketActions};
@@ -39,6 +39,9 @@ use bt_topshim::{
 
 /// Message types that are sent to the stack main dispatch loop.
 pub enum Message {
+    // Shuts down the stack.
+    Shutdown,
+
     // Callbacks from libbluetooth
     A2dp(A2dpCallbacks),
     Avrcp(AvrcpCallbacks),
@@ -119,6 +122,10 @@ impl Stack {
             }
 
             match m.unwrap() {
+                Message::Shutdown => {
+                    bluetooth.lock().unwrap().disable();
+                }
+
                 Message::A2dp(a) => {
                     bluetooth_media.lock().unwrap().dispatch_a2dp_callbacks(a);
                 }
