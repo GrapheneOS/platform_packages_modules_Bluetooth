@@ -321,12 +321,25 @@ impl TryFrom<Vec<u8>> for Uuid {
     type Error = &'static str;
 
     fn try_from(value: Vec<u8>) -> std::result::Result<Self, Self::Error> {
-        if value.len() != 16 {
-            Err("Vector size must be exactly 16.")
-        } else {
-            let mut uu: [u8; 16] = Default::default();
-            uu.copy_from_slice(&value[0..16]);
-            Ok(Uuid { uu })
+        // base UUID defined in the Bluetooth specification
+        let mut uu: [u8; 16] =
+            [0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x10, 0x0, 0x80, 0x0, 0x0, 0x80, 0x5f, 0x9b, 0x34, 0xfb];
+        match value.len() {
+            2 => {
+                uu[2..4].copy_from_slice(&value[0..2]);
+                Ok(Uuid { uu })
+            }
+            4 => {
+                uu[0..4].copy_from_slice(&value[0..4]);
+                Ok(Uuid { uu })
+            }
+            16 => {
+                uu.copy_from_slice(&value[0..16]);
+                Ok(Uuid { uu })
+            }
+            _ => {
+                Err("Vector size must be exactly 2 (16 bit UUID), 4 (32 bit UUID), or 16 (128 bit UUID).")
+            }
         }
     }
 }
