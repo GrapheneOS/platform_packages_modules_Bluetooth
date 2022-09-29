@@ -162,7 +162,7 @@ impl BtSocket {
         };
 
         let uuid_ptr = match uuid {
-            Some(u) => &u as *const Uuid,
+            Some(ref u) => u as *const Uuid,
             None => std::ptr::null(),
         };
 
@@ -199,7 +199,7 @@ impl BtSocket {
         };
 
         let uuid_ptr = match uuid {
-            Some(u) => &u as *const Uuid,
+            Some(ref u) => u as *const Uuid,
             None => std::ptr::null(),
         };
 
