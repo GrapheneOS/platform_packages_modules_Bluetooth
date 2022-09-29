@@ -71,6 +71,9 @@ public class A2dpService extends ProfileService {
     private static final boolean DBG = true;
     private static final String TAG = "A2dpService";
 
+    // TODO(b/240635097): remove in U
+    private static final int SOURCE_CODEC_TYPE_OPUS = 6;
+
     private static A2dpService sA2dpService;
 
     private AdapterService mAdapterService;
@@ -600,6 +603,7 @@ public class A2dpService extends ProfileService {
             // This needs to happen before we inform the audio manager that the device
             // disconnected. Please see comment in updateAndBroadcastActiveDevice() for why.
             updateAndBroadcastActiveDevice(device);
+            updateLowLatencyAudioSupport(device);
 
             BluetoothDevice newActiveDevice = null;
             synchronized (mStateMachines) {
@@ -819,6 +823,7 @@ public class A2dpService extends ProfileService {
             Log.e(TAG, "enableOptionalCodecs: Codec status is null");
             return;
         }
+        updateLowLatencyAudioSupport(device);
         mA2dpCodecConfig.enableOptionalCodecs(device, codecStatus.getCodecConfig());
     }
 
@@ -849,6 +854,7 @@ public class A2dpService extends ProfileService {
             Log.e(TAG, "disableOptionalCodecs: Codec status is null");
             return;
         }
+        updateLowLatencyAudioSupport(device);
         mA2dpCodecConfig.disableOptionalCodecs(device, codecStatus.getCodecConfig());
     }
 
@@ -1205,6 +1211,34 @@ public class A2dpService extends ProfileService {
                     disableOptionalCodecs(device);
                     break;
             }
+        }
+    }
+
+    /**
+     *  Check for low-latency codec support and inform AdapterService
+     *
+     *  @param device device whose audio low latency will be allowed or disallowed
+     */
+    @VisibleForTesting
+    public void updateLowLatencyAudioSupport(BluetoothDevice device) {
+        synchronized (mStateMachines) {
+            A2dpStateMachine sm = mStateMachines.get(device);
+            if (sm == null) {
+                return;
+            }
+            BluetoothCodecStatus codecStatus = sm.getCodecStatus();
+            boolean lowLatencyAudioAllow = false;
+            BluetoothCodecConfig lowLatencyCodec = new BluetoothCodecConfig.Builder()
+                    .setCodecType(SOURCE_CODEC_TYPE_OPUS) // remove in U
+                    .build();
+
+            if (codecStatus != null
+                    && codecStatus.isCodecConfigSelectable(lowLatencyCodec)
+                    && getOptionalCodecsEnabled(device)
+                            == BluetoothA2dp.OPTIONAL_CODECS_PREF_ENABLED) {
+                lowLatencyAudioAllow = true;
+            }
+            mAdapterService.allowLowLatencyAudio(lowLatencyAudioAllow, device);
         }
     }
 
