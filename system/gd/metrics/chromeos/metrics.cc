@@ -54,6 +54,7 @@ void LogMetricsAdapterStateChanged(uint32_t state) {
 }
 
 void LogMetricsBondCreateAttempt(RawAddress* addr, uint32_t device_type) {
+  ConnectionType connection_type;
   int64_t boot_time;
   std::string addr_string;
   std::string boot_id;
@@ -62,26 +63,28 @@ void LogMetricsBondCreateAttempt(RawAddress* addr, uint32_t device_type) {
 
   addr_string = addr->ToString();
   boot_time = bluetooth::common::time_get_os_boottime_us();
+  connection_type = ToPairingDeviceType(addr_string, device_type);
 
   LOG_DEBUG(
       "PairingStateChanged: %s, %d, %s, %d, %d",
       boot_id.c_str(),
       boot_time,
       addr_string.c_str(),
-      device_type,
+      connection_type,
       PairingState::PAIR_STARTING);
 
   ::metrics::structured::events::bluetooth::BluetoothPairingStateChanged()
       .SetBootId(boot_id)
       .SetSystemTime(boot_time)
       .SetDeviceId(addr_string)
-      .SetDeviceType(device_type)
+      .SetDeviceType((int64_t)connection_type)
       .SetPairingState((int64_t)PairingState::PAIR_STARTING)
       .Record();
 }
 
 void LogMetricsBondStateChanged(
     RawAddress* addr, uint32_t device_type, uint32_t status, uint32_t bond_state, int32_t fail_reason) {
+  ConnectionType connection_type;
   int64_t boot_time;
   PairingState pairing_state;
   std::string addr_string;
@@ -91,6 +94,7 @@ void LogMetricsBondStateChanged(
 
   addr_string = addr->ToString();
   boot_time = bluetooth::common::time_get_os_boottime_us();
+  connection_type = ToPairingDeviceType(addr_string, device_type);
   pairing_state = ToPairingState(status, bond_state, fail_reason);
 
   // Ignore the start of pairing event as its logged separated above.
@@ -101,14 +105,14 @@ void LogMetricsBondStateChanged(
       boot_id.c_str(),
       boot_time,
       addr_string.c_str(),
-      device_type,
+      connection_type,
       pairing_state);
 
   ::metrics::structured::events::bluetooth::BluetoothPairingStateChanged()
       .SetBootId(boot_id)
       .SetSystemTime(boot_time)
       .SetDeviceId(addr_string)
-      .SetDeviceType(device_type)
+      .SetDeviceType((int64_t)connection_type)
       .SetPairingState((int64_t)pairing_state)
       .Record();
 }
