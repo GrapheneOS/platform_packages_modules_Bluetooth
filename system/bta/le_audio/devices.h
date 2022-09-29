@@ -214,10 +214,10 @@ class LeAudioDeviceGroup {
         transport_latency_stom_us_(0),
         active_context_type_(types::LeAudioContextType::UNINITIALIZED),
         metadata_context_type_(0),
+        active_contexts_mask_(0),
         pending_update_available_contexts_(std::nullopt),
         target_state_(types::AseState::BTA_LE_AUDIO_ASE_STATE_IDLE),
-        current_state_(types::AseState::BTA_LE_AUDIO_ASE_STATE_IDLE),
-        context_type_(types::LeAudioContextType::UNINITIALIZED) {}
+        current_state_(types::AseState::BTA_LE_AUDIO_ASE_STATE_IDLE) {}
   ~LeAudioDeviceGroup(void);
 
   void AddNode(const std::shared_ptr<LeAudioDevice>& leAudioDevice);
@@ -265,8 +265,6 @@ class LeAudioDeviceGroup {
   bool Configure(types::LeAudioContextType context_type,
                  types::AudioContexts metadata_context_type,
                  std::vector<uint8_t> ccid_list = {});
-  bool SetContextType(types::LeAudioContextType context_type);
-  types::LeAudioContextType GetContextType(void);
   uint32_t GetSduInterval(uint8_t direction);
   uint8_t GetSCA(void);
   uint8_t GetPacking(void);
@@ -286,14 +284,12 @@ class LeAudioDeviceGroup {
   bool ReloadAudioLocations(void);
   bool ReloadAudioDirections(void);
   const set_configurations::AudioSetConfiguration* GetActiveConfiguration(void);
-  types::LeAudioContextType GetCurrentContextType(void);
   bool IsPendingConfiguration(void);
   void SetPendingConfiguration(void);
   void ClearPendingConfiguration(void);
   bool IsConfigurationSupported(
       LeAudioDevice* leAudioDevice,
       const set_configurations::AudioSetConfiguration* audio_set_conf);
-  types::AudioContexts GetActiveContexts(void);
   std::optional<LeAudioCodecConfiguration> GetCodecConfigurationByDirection(
       types::LeAudioContextType group_context_type, uint8_t direction);
   bool IsContextSupported(types::LeAudioContextType group_context_type);
@@ -325,8 +321,16 @@ class LeAudioDeviceGroup {
     pending_update_available_contexts_ = audio_contexts;
   }
 
+  inline types::LeAudioContextType GetCurrentContextType(void) const {
+    return active_context_type_;
+  }
+
   inline types::AudioContexts GetMetadataContextType(void) const {
     return metadata_context_type_;
+  }
+
+  inline types::AudioContexts GetActiveContexts(void) {
+    return active_contexts_mask_;
   }
 
   bool IsInTransition(void);
@@ -353,6 +357,7 @@ class LeAudioDeviceGroup {
   types::LeAudioContextType active_context_type_;
   types::AudioContexts metadata_context_type_;
   types::AudioContexts active_contexts_mask_;
+
   std::optional<types::AudioContexts> pending_update_available_contexts_;
   std::map<types::LeAudioContextType,
            const set_configurations::AudioSetConfiguration*>
@@ -360,7 +365,6 @@ class LeAudioDeviceGroup {
 
   types::AseState target_state_;
   types::AseState current_state_;
-  types::LeAudioContextType context_type_;
   std::vector<std::weak_ptr<LeAudioDevice>> leAudioDevices_;
 };
 
