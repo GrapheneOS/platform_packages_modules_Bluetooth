@@ -117,8 +117,9 @@ void RoundRobinScheduler::start_round_robin() {
         le_acl_packet_credits_ == 0 && acl_queue_handler->second.connection_type_ == ConnectionType::LE;
     if (!acl_queue_handler->second.dequeue_is_registered_ && !classic_buffer_full && !le_buffer_full) {
       acl_queue_handler->second.dequeue_is_registered_ = true;
+      uint16_t acl_handle = acl_queue_handler->first;
       acl_queue_handler->second.queue_->GetDownEnd()->RegisterDequeue(
-          handler_, common::Bind(&RoundRobinScheduler::buffer_packet, common::Unretained(this), acl_queue_handler));
+          handler_, common::Bind(&RoundRobinScheduler::buffer_packet, common::Unretained(this), acl_handle));
     }
     acl_queue_handler = std::next(acl_queue_handler);
     if (acl_queue_handler == acl_queue_handlers_.end()) {
@@ -129,8 +130,14 @@ void RoundRobinScheduler::start_round_robin() {
   starting_point_ = std::next(starting_point_);
 }
 
-void RoundRobinScheduler::buffer_packet(std::map<uint16_t, acl_queue_handler>::iterator acl_queue_handler) {
+void RoundRobinScheduler::buffer_packet(uint16_t acl_handle) {
   BroadcastFlag broadcast_flag = BroadcastFlag::POINT_TO_POINT;
+  auto acl_queue_handler = acl_queue_handlers_.find(acl_handle);
+  if( acl_queue_handler == acl_queue_handlers_.end()) {
+    LOG_ERROR("Ignore since ACL connection vanished with handle: 0x%X", acl_handle);
+    return;
+  }
+
   // Wrap packet and enqueue it
   uint16_t handle = acl_queue_handler->first;
   auto packet = acl_queue_handler->second.queue_->GetDownEnd()->TryDequeue();
