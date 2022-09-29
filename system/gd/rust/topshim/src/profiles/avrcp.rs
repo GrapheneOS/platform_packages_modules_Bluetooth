@@ -1,4 +1,4 @@
-use crate::btif::{BluetoothInterface, RawAddress};
+use crate::btif::{BluetoothInterface, BtStatus, RawAddress};
 use crate::topstack::get_dispatchers;
 
 use std::sync::{Arc, Mutex};
@@ -20,8 +20,8 @@ pub mod ffi {
 
         fn init(self: Pin<&mut AvrcpIntf>);
         fn cleanup(self: Pin<&mut AvrcpIntf>);
-        fn connect(self: Pin<&mut AvrcpIntf>, bt_addr: RustRawAddress) -> i32;
-        fn disconnect(self: Pin<&mut AvrcpIntf>, bt_addr: RustRawAddress) -> i32;
+        fn connect(self: Pin<&mut AvrcpIntf>, bt_addr: RustRawAddress) -> u32;
+        fn disconnect(self: Pin<&mut AvrcpIntf>, bt_addr: RustRawAddress) -> u32;
         fn set_volume(self: Pin<&mut AvrcpIntf>, volume: i8);
 
     }
@@ -135,12 +135,12 @@ impl Avrcp {
         true
     }
 
-    pub fn connect(&mut self, addr: RawAddress) {
-        self.internal.pin_mut().connect(addr.into());
+    pub fn connect(&mut self, addr: RawAddress) -> BtStatus {
+        BtStatus::from(self.internal.pin_mut().connect(addr.into()))
     }
 
-    pub fn disconnect(&mut self, addr: RawAddress) {
-        self.internal.pin_mut().disconnect(addr.into());
+    pub fn disconnect(&mut self, addr: RawAddress) -> BtStatus {
+        BtStatus::from(self.internal.pin_mut().disconnect(addr.into()))
     }
 
     pub fn set_volume(&mut self, volume: i8) {

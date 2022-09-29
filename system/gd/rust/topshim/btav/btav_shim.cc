@@ -152,10 +152,19 @@ static ::rust::Vec<A2dpCodecConfig> to_rust_codec_config_vec(const std::vector<b
   return rconfigs;
 }
 
-static void connection_state_cb(
-    const RawAddress& bd_addr, btav_connection_state_t state, [[maybe_unused]] const btav_error_t& error) {
+static A2dpError to_rust_error(const btav_error_t& error) {
+  A2dpError a2dp_error = {
+      .status = error.status,
+      .error_code = error.error_code,
+      .error_msg = error.error_msg.value_or(""),
+  };
+  return a2dp_error;
+}
+
+static void connection_state_cb(const RawAddress& bd_addr, btav_connection_state_t state, const btav_error_t& error) {
   RustRawAddress addr = rusty::CopyToRustAddress(bd_addr);
-  rusty::connection_state_callback(addr, state);
+  A2dpError a2dp_error = to_rust_error(error);
+  rusty::connection_state_callback(addr, state, a2dp_error);
 }
 static void audio_state_cb(const RawAddress& bd_addr, btav_audio_state_t state) {
   RustRawAddress addr = rusty::CopyToRustAddress(bd_addr);
@@ -208,11 +217,11 @@ int A2dpIntf::init() const {
   return intf_->init(&internal::g_callbacks, 1, a, b);
 }
 
-int A2dpIntf::connect(RustRawAddress bt_addr) const {
+uint32_t A2dpIntf::connect(RustRawAddress bt_addr) const {
   RawAddress addr = rusty::CopyFromRustAddress(bt_addr);
   return intf_->connect(addr);
 }
-int A2dpIntf::disconnect(RustRawAddress bt_addr) const {
+uint32_t A2dpIntf::disconnect(RustRawAddress bt_addr) const {
   RawAddress addr = rusty::CopyFromRustAddress(bt_addr);
   return intf_->disconnect(addr);
 }
@@ -286,11 +295,11 @@ void AvrcpIntf::cleanup() {
   intf_->Cleanup();
 }
 
-int AvrcpIntf::connect(RustRawAddress bt_addr) {
+uint32_t AvrcpIntf::connect(RustRawAddress bt_addr) {
   RawAddress addr = rusty::CopyFromRustAddress(bt_addr);
   return intf_->ConnectDevice(addr);
 }
-int AvrcpIntf::disconnect(RustRawAddress bt_addr) {
+uint32_t AvrcpIntf::disconnect(RustRawAddress bt_addr) {
   RawAddress addr = rusty::CopyFromRustAddress(bt_addr);
   return intf_->DisconnectDevice(addr);
 }
