@@ -537,10 +537,16 @@ class HostBuild():
         shutil.rmtree(self.output_dir)
 
         # Remove Cargo.lock that may have become generated
-        try:
-            os.remove(os.path.join(self.platform_dir, 'bt', 'Cargo.lock'))
-        except FileNotFoundError:
-            pass
+        cargo_lock_files = [
+            os.path.join(self.platform_dir, 'bt', 'Cargo.lock'),
+            os.path.join(self.platform_dir, 'bt', 'tools', 'rootcanal', 'Cargo.lock'),
+        ]
+        for lock_file in cargo_lock_files:
+            try:
+                os.remove(lock_file)
+                print('Removed {}'.format(lock_file))
+            except FileNotFoundError:
+                pass
 
     def _target_all(self):
         """ Build all common targets (skipping doc, test, and clean).
