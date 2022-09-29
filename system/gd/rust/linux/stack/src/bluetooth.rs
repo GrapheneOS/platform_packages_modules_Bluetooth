@@ -1227,7 +1227,11 @@ impl IBluetooth for Bluetooth {
         }
 
         let address = addr.unwrap();
-        let device_type = self.get_remote_type(device);
+        let device_type = match transport {
+            BtTransport::Bredr => BtDeviceType::Bredr,
+            BtTransport::Le => BtDeviceType::Ble,
+            _ => self.get_remote_type(device),
+        };
 
         // We explicitly log the attempt to start the bonding separate from logging the bond state.
         // The start of the attempt is critical to help identify a bonding/pairing session.
