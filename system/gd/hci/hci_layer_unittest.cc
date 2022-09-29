@@ -257,14 +257,14 @@ TEST_F(HciLayerTest, successful_reset) {
 }
 
 TEST_F(HciLayerTest, abort_if_reset_complete_returns_error) {
-  FailIfResetNotSent();
   ASSERT_DEATH(
       {
+        FailIfResetNotSent();
         auto error_code = ErrorCode::UNSPECIFIED_ERROR;
         hal_->InjectResetCompleteEventWithCode(error_code);
-        std::promise<void> promise;
         auto buf = std::make_unique<char[]>(kBufSize);
         std::snprintf(buf.get(), kBufSize, "Reset completed with status: %s", ErrorCodeText(error_code).c_str());
+        std::promise<void> promise;
         log_capture_->WaitUntilLogContains(&promise, buf.get());
       },
       "");
@@ -306,9 +306,9 @@ TEST_F(HciLayerTest, le_event_handler_is_invoked) {
 }
 
 TEST_F(HciLayerTest, abort_on_second_register_event_handler) {
-  FailIfResetNotSent();
   ASSERT_DEATH(
       {
+        FailIfResetNotSent();
         hci_->RegisterEventHandler(EventCode::COMMAND_COMPLETE, hci_handler_->Bind([](EventView view) {}));
         std::promise<void> promise;
         log_capture_->WaitUntilLogContains(&promise, "Can not register a second handler for");
@@ -317,11 +317,11 @@ TEST_F(HciLayerTest, abort_on_second_register_event_handler) {
 }
 
 TEST_F(HciLayerTest, abort_on_second_register_le_event_handler) {
-  FailIfResetNotSent();
-  hci_->RegisterLeEventHandler(
-      SubeventCode::ENHANCED_CONNECTION_COMPLETE, hci_handler_->Bind([](LeMetaEventView view) {}));
   ASSERT_DEATH(
       {
+        FailIfResetNotSent();
+        hci_->RegisterLeEventHandler(
+            SubeventCode::ENHANCED_CONNECTION_COMPLETE, hci_handler_->Bind([](LeMetaEventView view) {}));
         hci_->RegisterLeEventHandler(
             SubeventCode::ENHANCED_CONNECTION_COMPLETE, hci_handler_->Bind([](LeMetaEventView view) {}));
         std::promise<void> promise;
