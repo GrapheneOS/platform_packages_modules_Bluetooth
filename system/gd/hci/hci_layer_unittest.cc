@@ -43,10 +43,15 @@ constexpr char kOurAclEventHandlerWasInvoked[] = "Our ACL event handler was invo
 constexpr char kOurDisconnectHandlerWasInvoked[] = "Our disconnect handler was invoked.";
 constexpr char kOurEventHandlerWasInvoked[] = "Our event handler was invoked.";
 constexpr char kOurLeAclEventHandlerWasInvoked[] = "Our LE ACL event handler was invoked.";
+constexpr char kOurLeAdvertisementEventHandlerWasInvoked[] = "Our LE advertisement event handler was invoked.";
 constexpr char kOurLeDisconnectHandlerWasInvoked[] = "Our LE disconnect handler was invoked.";
 constexpr char kOurLeEventHandlerWasInvoked[] = "Our LE event handler was invoked.";
+constexpr char kOurLeIsoEventHandlerWasInvoked[] = "Our LE ISO event handler was invoked.";
 constexpr char kOurLeReadRemoteVersionHandlerWasInvoked[] = "Our Read Remote Version complete handler was invoked.";
+constexpr char kOurLeScanningEventHandlerWasInvoked[] = "Our LE scanning event handler was invoked.";
 constexpr char kOurReadRemoteVersionHandlerWasInvoked[] = "Our Read Remote Version complete handler was invoked.";
+constexpr char kOurLeSecurityEventHandlerWasInvoked[] = "Our LE security event handler was invoked.";
+constexpr char kOurSecurityEventHandlerWasInvoked[] = "Our security event handler was invoked.";
 }  // namespace
 
 namespace bluetooth {
@@ -366,8 +371,8 @@ TEST_F(HciLayerTest, our_read_remote_version_callback_is_invoked) {
                             uint8_t version,
                             uint16_t manufacturer_name,
                             uint16_t sub_version) { LOG_DEBUG("%s", kOurReadRemoteVersionHandlerWasInvoked); }));
-  hal_->InjectEvent(bluetooth::hci::ReadRemoteVersionInformationCompleteBuilder::Create(
-      ErrorCode::SUCCESS, 0x0001, 0x0b, 0x000f, 0x0000));
+  hal_->InjectEvent(
+      ReadRemoteVersionInformationCompleteBuilder::Create(ErrorCode::SUCCESS, 0x0001, 0x0b, 0x000f, 0x0000));
   std::promise<void> promise;
   log_capture_->WaitUntilLogContains(&promise, kOurReadRemoteVersionHandlerWasInvoked);
 }
@@ -413,10 +418,55 @@ TEST_F(HciLayerTest, our_le_read_remote_version_callback_is_invoked) {
                             uint8_t version,
                             uint16_t manufacturer_name,
                             uint16_t sub_version) { LOG_DEBUG("%s", kOurLeReadRemoteVersionHandlerWasInvoked); }));
-  hal_->InjectEvent(bluetooth::hci::ReadRemoteVersionInformationCompleteBuilder::Create(
-      ErrorCode::SUCCESS, 0x0001, 0x0b, 0x000f, 0x0000));
+  hal_->InjectEvent(
+      ReadRemoteVersionInformationCompleteBuilder::Create(ErrorCode::SUCCESS, 0x0001, 0x0b, 0x000f, 0x0000));
   std::promise<void> promise;
   log_capture_->WaitUntilLogContains(&promise, kOurLeReadRemoteVersionHandlerWasInvoked);
+}
+
+TEST_F(HciLayerTest, our_security_callback_is_invoked) {
+  FailIfResetNotSent();
+  hci_->GetSecurityInterface(
+      hci_handler_->Bind([](EventView view) { LOG_DEBUG("%s", kOurSecurityEventHandlerWasInvoked); }));
+  hal_->InjectEvent(EncryptionChangeBuilder::Create(ErrorCode::SUCCESS, 0x0001, bluetooth::hci::EncryptionEnabled::ON));
+  std::promise<void> promise;
+  log_capture_->WaitUntilLogContains(&promise, kOurSecurityEventHandlerWasInvoked);
+}
+
+TEST_F(HciLayerTest, our_le_security_callback_is_invoked) {
+  FailIfResetNotSent();
+  hci_->GetLeSecurityInterface(
+      hci_handler_->Bind([](LeMetaEventView view) { LOG_DEBUG("%s", kOurLeSecurityEventHandlerWasInvoked); }));
+  hal_->InjectEvent(LeLongTermKeyRequestBuilder::Create(0x0001, {0, 0, 0, 0, 0, 0, 0, 0}, 0));
+  std::promise<void> promise;
+  log_capture_->WaitUntilLogContains(&promise, kOurLeSecurityEventHandlerWasInvoked);
+}
+
+TEST_F(HciLayerTest, our_le_advertising_callback_is_invoked) {
+  FailIfResetNotSent();
+  hci_->GetLeAdvertisingInterface(
+      hci_handler_->Bind([](LeMetaEventView view) { LOG_DEBUG("%s", kOurLeAdvertisementEventHandlerWasInvoked); }));
+  hal_->InjectEvent(LeAdvertisingSetTerminatedBuilder::Create(ErrorCode::SUCCESS, 0x01, 0x001, 0x01));
+  std::promise<void> promise;
+  log_capture_->WaitUntilLogContains(&promise, kOurLeAdvertisementEventHandlerWasInvoked);
+}
+
+TEST_F(HciLayerTest, our_le_scanning_callback_is_invoked) {
+  FailIfResetNotSent();
+  hci_->GetLeScanningInterface(
+      hci_handler_->Bind([](LeMetaEventView view) { LOG_DEBUG("%s", kOurLeScanningEventHandlerWasInvoked); }));
+  hal_->InjectEvent(LeScanTimeoutBuilder::Create());
+  std::promise<void> promise;
+  log_capture_->WaitUntilLogContains(&promise, kOurLeScanningEventHandlerWasInvoked);
+}
+
+TEST_F(HciLayerTest, our_le_iso_callback_is_invoked) {
+  FailIfResetNotSent();
+  hci_->GetLeIsoInterface(
+      hci_handler_->Bind([](LeMetaEventView view) { LOG_DEBUG("%s", kOurLeIsoEventHandlerWasInvoked); }));
+  hal_->InjectEvent(LeCisRequestBuilder::Create(0x0001, 0x0001, 0x01, 0x01));
+  std::promise<void> promise;
+  log_capture_->WaitUntilLogContains(&promise, kOurLeIsoEventHandlerWasInvoked);
 }
 
 }  // namespace hci
