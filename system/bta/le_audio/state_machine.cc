@@ -193,7 +193,6 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
         }
 
         group->CigGenerateCisIds(context_type);
-        group->SetContextType(context_type);
         /* All ASEs should aim to achieve target state */
         SetTargetState(group, AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING);
         PrepareAndSendCodecConfigure(group, group->GetFirstActiveDevice());
