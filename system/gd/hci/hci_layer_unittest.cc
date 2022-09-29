@@ -40,6 +40,8 @@ using namespace std::chrono_literals;
 namespace {
 constexpr size_t kBufSize = 512;
 constexpr char kOurAclEventHandlerWasInvoked[] = "Our ACL event handler was invoked.";
+constexpr char kOurCommandCompleteHandlerWasInvoked[] = "Our command complete handler was invoked.";
+constexpr char kOurCommandStatusHandlerWasInvoked[] = "Our command status handler was invoked.";
 constexpr char kOurDisconnectHandlerWasInvoked[] = "Our disconnect handler was invoked.";
 constexpr char kOurEventHandlerWasInvoked[] = "Our event handler was invoked.";
 constexpr char kOurLeAclEventHandlerWasInvoked[] = "Our LE ACL event handler was invoked.";
@@ -467,6 +469,93 @@ TEST_F(HciLayerTest, our_le_iso_callback_is_invoked) {
   hal_->InjectEvent(LeCisRequestBuilder::Create(0x0001, 0x0001, 0x01, 0x01));
   std::promise<void> promise;
   log_capture_->WaitUntilLogContains(&promise, kOurLeIsoEventHandlerWasInvoked);
+}
+
+TEST_F(HciLayerTest, our_command_complete_callback_is_invoked) {
+  FailIfResetNotSent();
+  auto error_code = ErrorCode::SUCCESS;
+  hal_->InjectResetCompleteEventWithCode(error_code);
+  hci_->EnqueueCommand(ResetBuilder::Create(), hci_handler_->BindOnce([](CommandCompleteView view) {
+    LOG_DEBUG("%s", kOurCommandCompleteHandlerWasInvoked);
+  }));
+  hal_->InjectResetCompleteEventWithCode(error_code);
+  std::promise<void> promise;
+  log_capture_->WaitUntilLogContains(&promise, kOurCommandCompleteHandlerWasInvoked);
+}
+
+TEST_F(HciLayerTest, our_command_status_callback_is_invoked) {
+  FailIfResetNotSent();
+  auto error_code = ErrorCode::SUCCESS;
+  hal_->InjectResetCompleteEventWithCode(error_code);
+  hci_->EnqueueCommand(ReadClockOffsetBuilder::Create(0x001), hci_handler_->BindOnce([](CommandStatusView view) {
+    LOG_DEBUG("%s", kOurCommandStatusHandlerWasInvoked);
+  }));
+  hal_->InjectEvent(ReadClockOffsetStatusBuilder::Create(ErrorCode::SUCCESS, 1));
+  std::promise<void> promise;
+  log_capture_->WaitUntilLogContains(&promise, kOurCommandStatusHandlerWasInvoked);
+}
+
+TEST_F(HciLayerTest, command_complete_callback_is_invoked_with_an_opcode_that_does_not_match_command_queue) {
+  ASSERT_DEATH(
+      {
+        FailIfResetNotSent();
+        hci_->EnqueueCommand(
+            ReadClockOffsetBuilder::Create(0x001), hci_handler_->BindOnce([](CommandCompleteView view) {}));
+        hal_->InjectEvent(ReadClockOffsetStatusBuilder::Create(ErrorCode::SUCCESS, 1));
+        std::promise<void> promise;
+        log_capture_->WaitUntilLogContains(&promise, "Waiting for 0x0c03 (RESET)");
+      },
+      "");
+}
+
+TEST_F(HciLayerTest, command_status_callback_is_invoked_with_an_opcode_that_does_not_match_command_queue) {
+  ASSERT_DEATH(
+      {
+        FailIfResetNotSent();
+        hci_->EnqueueCommand(
+            ReadClockOffsetBuilder::Create(0x001), hci_handler_->BindOnce([](CommandStatusView view) {}));
+        hal_->InjectEvent(ReadClockOffsetStatusBuilder::Create(ErrorCode::SUCCESS, 1));
+        std::promise<void> promise;
+        log_capture_->WaitUntilLogContains(&promise, "Waiting for 0x0c03 (RESET)");
+      },
+      "");
+}
+
+TEST_F(HciLayerTest, command_complete_callback_is_invoked_but_command_queue_empty) {
+  ASSERT_DEATH(
+      {
+        FailIfResetNotSent();
+        auto error_code = ErrorCode::SUCCESS;
+        hal_->InjectResetCompleteEventWithCode(error_code);
+        hal_->InjectResetCompleteEventWithCode(error_code);
+        std::promise<void> promise;
+        log_capture_->WaitUntilLogContains(&promise, "Unexpected event complete with opcode:0x0c3");
+      },
+      "");
+}
+
+TEST_F(HciLayerTest, command_status_callback_is_invoked_but_command_queue_empty) {
+  ASSERT_DEATH(
+      {
+        FailIfResetNotSent();
+        auto error_code = ErrorCode::SUCCESS;
+        hal_->InjectResetCompleteEventWithCode(error_code);
+        hal_->InjectEvent(ReadClockOffsetStatusBuilder::Create(ErrorCode::SUCCESS, 1));
+        std::promise<void> promise;
+        log_capture_->WaitUntilLogContains(&promise, "Unexpected event status with opcode:0x41f");
+      },
+      "");
+}
+
+TEST_F(HciLayerTest, command_status_callback_is_invoked_with_failure_status) {
+  FailIfResetNotSent();
+  auto error_code = ErrorCode::SUCCESS;
+  hal_->InjectResetCompleteEventWithCode(error_code);
+  hci_->EnqueueCommand(ReadClockOffsetBuilder::Create(0x001), hci_handler_->BindOnce([](CommandStatusView view) {}));
+  hal_->InjectEvent(ReadClockOffsetStatusBuilder::Create(ErrorCode::HARDWARE_FAILURE, 1));
+  std::promise<void> promise;
+  log_capture_->WaitUntilLogContains(
+      &promise, "Received UNEXPECTED command status:HARDWARE_FAILURE opcode:0x41f (READ_CLOCK_OFFSET)");
 }
 
 }  // namespace hci
