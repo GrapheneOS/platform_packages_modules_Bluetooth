@@ -29,6 +29,7 @@ import android.os.ParcelFileDescriptor
 import android.util.Log
 import androidx.test.platform.app.InstrumentationRegistry
 import com.google.protobuf.ByteString
+import io.grpc.stub.ServerCallStreamObserver
 import io.grpc.stub.StreamObserver
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -137,7 +138,6 @@ fun <T> grpcUnary(
  * Example usage:
  * ```
  * override fun grpcMethod(
- *   request: TypeOfRequest,
  *   responseObserver: StreamObserver<TypeOfResponse> {
  *     grpcBidirectionalStream(scope, responseObserver) {
  *       block
@@ -193,6 +193,56 @@ fun <T, U> grpcBidirectionalStream(
       e.printStackTrace()
     }
   }
+}
+
+/**
+ * Creates a gRPC coroutine in a given coroutine scope which executes a given suspended function
+ * taking in a Flow of gRPC requests and returning a Flow of gRPC responses and sends it on a given
+ * gRPC stream observer.
+ *
+ * @param T the type of gRPC response.
+ * @param scope coroutine scope used to run the coroutine.
+ * @param responseObserver the gRPC stream observer on which to send the response.
+ * @param block the suspended function producing the response Flow.
+ * @return a StreamObserver for the incoming requests.
+ *
+ * Example usage:
+ * ```
+ * override fun grpcMethod(
+ *   request: TypeOfRequest,
+ *   responseObserver: StreamObserver<TypeOfResponse> {
+ *     grpcServerStream(scope, responseObserver) {
+ *       block
+ *     }
+ *   }
+ * }
+ * ```
+ */
+@kotlinx.coroutines.ExperimentalCoroutinesApi
+fun <T> grpcServerStream(
+  scope: CoroutineScope,
+  responseObserver: StreamObserver<T>,
+  block: CoroutineScope.() -> Flow<T>
+) {
+  val serverCallStreamObserver = responseObserver as ServerCallStreamObserver<T>
+
+  val job =
+    scope.launch {
+      block()
+        .onEach { responseObserver.onNext(it) }
+        .onCompletion { error ->
+          if (error == null) {
+            responseObserver.onCompleted()
+          }
+        }
+        .catch {
+          it.printStackTrace()
+          responseObserver.onError(it)
+        }
+        .launchIn(this)
+    }
+
+  serverCallStreamObserver.setOnCancelHandler { job.cancel() }
 }
 
 /**
