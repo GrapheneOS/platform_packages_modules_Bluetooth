@@ -44,6 +44,7 @@ android_test_helper_app {
     },
 
     test_suites: [
+        "general-tests",
         "device-tests",
         "mts-bluetooth",
     ],

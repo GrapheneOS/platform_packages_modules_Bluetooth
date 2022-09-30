@@ -7,9 +7,13 @@ use bt_topshim::btif::Uuid128Bit;
 
 // Advertising data types.
 const FLAGS: u8 = 0x01;
+const COMPLETE_LIST_16_BIT_SERVICE_UUIDS: u8 = 0x03;
+const COMPLETE_LIST_32_BIT_SERVICE_UUIDS: u8 = 0x05;
 const COMPLETE_LIST_128_BIT_SERVICE_UUIDS: u8 = 0x07;
 const SHORTENED_LOCAL_NAME: u8 = 0x08;
 const COMPLETE_LOCAL_NAME: u8 = 0x09;
+const SERVICE_DATA_16_BIT_UUID: u8 = 0x16;
+const SERVICE_DATA_32_BIT_UUID: u8 = 0x20;
 const SERVICE_DATA_128_BIT_UUID: u8 = 0x21;
 const MANUFACTURER_SPECIFIC_DATA: u8 = 0xff;
 
@@ -52,9 +56,19 @@ pub fn extract_flags(bytes: &[u8]) -> u8 {
 
 // Helper function to extract service uuids (128bit) from advertising data
 pub fn extract_service_uuids(bytes: &[u8]) -> Vec<Uuid128Bit> {
-    iterate_adv_data(bytes, COMPLETE_LIST_128_BIT_SERVICE_UUIDS)
-        .flat_map(|slice| slice.chunks(16))
+    iterate_adv_data(bytes, COMPLETE_LIST_16_BIT_SERVICE_UUIDS)
+        .flat_map(|slice| slice.chunks(2))
         .filter_map(|chunk| Uuid::try_from(chunk.to_vec()).ok().map(|uuid| uuid.uu))
+        .chain(
+            iterate_adv_data(bytes, COMPLETE_LIST_32_BIT_SERVICE_UUIDS)
+                .flat_map(|slice| slice.chunks(4))
+                .filter_map(|chunk| Uuid::try_from(chunk.to_vec()).ok().map(|uuid| uuid.uu)),
+        )
+        .chain(
+            iterate_adv_data(bytes, COMPLETE_LIST_128_BIT_SERVICE_UUIDS)
+                .flat_map(|slice| slice.chunks(16))
+                .filter_map(|chunk| Uuid::try_from(chunk.to_vec()).ok().map(|uuid| uuid.uu)),
+        )
         .collect()
 }
 
@@ -68,12 +82,22 @@ pub fn extract_name(bytes: &[u8]) -> String {
 
 // Helper function to extract service data from advertising data
 pub fn extract_service_data(bytes: &[u8]) -> HashMap<String, Vec<u8>> {
-    iterate_adv_data(bytes, SERVICE_DATA_128_BIT_UUID)
+    iterate_adv_data(bytes, SERVICE_DATA_16_BIT_UUID)
         .filter_map(|slice| {
+            Uuid::try_from(slice.get(0..2)?.to_vec())
+                .ok()
+                .map(|uuid| (uuid.to_string(), slice[2..].to_vec()))
+        })
+        .chain(iterate_adv_data(bytes, SERVICE_DATA_32_BIT_UUID).filter_map(|slice| {
+            Uuid::try_from(slice.get(0..4)?.to_vec())
+                .ok()
+                .map(|uuid| (uuid.to_string(), slice[4..].to_vec()))
+        }))
+        .chain(iterate_adv_data(bytes, SERVICE_DATA_128_BIT_UUID).filter_map(|slice| {
             Uuid::try_from(slice.get(0..16)?.to_vec())
                 .ok()
                 .map(|uuid| (uuid.to_string(), slice[16..].to_vec()))
-        })
+        }))
         .collect()
 }
 
@@ -129,6 +153,16 @@ mod tests {
             2,
             FLAGS,
             3,
+            3,
+            COMPLETE_LIST_16_BIT_SERVICE_UUIDS,
+            0xFE,
+            0x2C,
+            5,
+            COMPLETE_LIST_32_BIT_SERVICE_UUIDS,
+            2,
+            3,
+            4,
+            5,
             17,
             COMPLETE_LIST_128_BIT_SERVICE_UUIDS,
             0,
@@ -149,9 +183,27 @@ mod tests {
             15,
         ];
         let uuids = extract_service_uuids(payload.as_slice());
-        assert_eq!(uuids.len(), 1);
+        assert_eq!(uuids.len(), 3);
         assert_eq!(
             uuids[0],
+            Uuid::try_from(vec![
+                0x0, 0x0, 0xFE, 0x2C, 0x0, 0x0, 0x10, 0x0, 0x80, 0x0, 0x0, 0x80, 0x5f, 0x9b, 0x34,
+                0xfb
+            ])
+            .unwrap()
+            .uu
+        );
+        assert_eq!(
+            uuids[1],
+            Uuid::try_from(vec![
+                0x2, 0x3, 0x4, 0x5, 0x0, 0x0, 0x10, 0x0, 0x80, 0x0, 0x0, 0x80, 0x5f, 0x9b, 0x34,
+                0xfb
+            ])
+            .unwrap()
+            .uu
+        );
+        assert_eq!(
+            uuids[2],
             Uuid::try_from(vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]).unwrap().uu
         );
     }
@@ -178,6 +230,18 @@ mod tests {
         assert_eq!(service_data.len(), 0);
 
         let payload: Vec<u8> = vec![
+            4,
+            SERVICE_DATA_16_BIT_UUID,
+            0xFE,
+            0x2C,
+            0xFF,
+            6,
+            SERVICE_DATA_32_BIT_UUID,
+            2,
+            3,
+            4,
+            5,
+            0xFE,
             18,
             SERVICE_DATA_128_BIT_UUID,
             0,
@@ -217,7 +281,19 @@ mod tests {
             16,
         ];
         let service_data = extract_service_data(payload.as_slice());
-        assert_eq!(service_data.len(), 2);
+        assert_eq!(service_data.len(), 4);
+        let expected_uuid = Uuid::try_from(vec![
+            0x0, 0x0, 0xFE, 0x2C, 0x0, 0x0, 0x10, 0x0, 0x80, 0x0, 0x0, 0x80, 0x5f, 0x9b, 0x34, 0xfb,
+        ])
+        .unwrap()
+        .to_string();
+        assert_eq!(service_data.get(&expected_uuid), Some(&vec![0xFF]));
+        let expected_uuid = Uuid::try_from(vec![
+            0x2, 0x3, 0x4, 0x5, 0x0, 0x0, 0x10, 0x0, 0x80, 0x0, 0x0, 0x80, 0x5f, 0x9b, 0x34, 0xfb,
+        ])
+        .unwrap()
+        .to_string();
+        assert_eq!(service_data.get(&expected_uuid), Some(&vec![0xFE]));
         let expected_uuid =
             Uuid::try_from(vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15])
                 .unwrap()
