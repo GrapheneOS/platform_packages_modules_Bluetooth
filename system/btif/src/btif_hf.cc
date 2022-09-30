@@ -320,10 +320,17 @@ static void btif_hf_upstreams_evt(uint16_t event, char* p_param) {
       break;
     // RFCOMM connected or failed to connect
     case BTA_AG_OPEN_EVT:
-      // Check if an outoging connection is pending
+      bt_hf_callbacks->ConnectionStateCallback(BTHF_CONNECTION_STATE_CONNECTING,
+                                               &(p_data->open.bd_addr));
+      // Check if an outgoing connection is pending
       if (btif_hf_cb[idx].is_initiator) {
+        // There is an outgoing connection.
+        // Check the incoming open event status and the outgoing connection
+        // state.
         if ((p_data->open.status != BTA_AG_SUCCESS) &&
             btif_hf_cb[idx].state != BTHF_CONNECTION_STATE_CONNECTING) {
+          // Check if the incoming open event and the outgoing connection are
+          // for the same device.
           if (p_data->open.bd_addr == btif_hf_cb[idx].connected_bda) {
             LOG(WARNING) << __func__ << ": btif_hf_cb state["
                          << p_data->open.status
@@ -350,10 +357,14 @@ static void btif_hf_upstreams_evt(uint16_t event, char* p_param) {
           break;
         }
 
+        // There is an outgoing connection.
+        // Check the outgoing connection state and address.
         CHECK_EQ(btif_hf_cb[idx].state, BTHF_CONNECTION_STATE_CONNECTING)
             << "Control block must be in connecting state when initiating";
         CHECK(!btif_hf_cb[idx].connected_bda.IsEmpty())
             << "Remote device address must not be empty when initiating";
+        // Check if the incoming open event and the outgoing connection are
+        // for the same device.
         if (btif_hf_cb[idx].connected_bda != p_data->open.bd_addr) {
           LOG(WARNING) << __func__
                        << ": possible connection collision, ignore the "
@@ -372,6 +383,8 @@ static void btif_hf_upstreams_evt(uint16_t event, char* p_param) {
           btif_queue_advance();
         }
       }
+
+      // There is no pending outgoing connection.
       if (p_data->open.status == BTA_AG_SUCCESS) {
         // In case this is an incoming connection
         btif_hf_cb[idx].connected_bda = p_data->open.bd_addr;
@@ -408,12 +421,15 @@ static void btif_hf_upstreams_evt(uint16_t event, char* p_param) {
           "SLC and RFCOMM both disconnected event:%s idx:%d"
           " btif_hf_cb.handle:%d",
           dump_hf_event(event), idx, btif_hf_cb[idx].handle);
+      RawAddress connected_bda = btif_hf_cb[idx].connected_bda;
+      bt_hf_callbacks->ConnectionStateCallback(
+          BTHF_CONNECTION_STATE_DISCONNECTING, &connected_bda);
       // If AG_OPEN was received but SLC was not connected in time, then
       // AG_CLOSE may be received. We need to advance the queue here.
       bool failed_to_setup_slc =
           (btif_hf_cb[idx].state != BTHF_CONNECTION_STATE_SLC_CONNECTED) &&
           btif_hf_cb[idx].is_initiator;
-      RawAddress connected_bda = btif_hf_cb[idx].connected_bda;
+
       reset_control_block(&btif_hf_cb[idx]);
       bt_hf_callbacks->ConnectionStateCallback(btif_hf_cb[idx].state,
                                                &connected_bda);
