@@ -193,6 +193,44 @@ impl BluetoothMedia {
         }
     }
 
+    fn is_profile_connected(&self, addr: RawAddress, profile: uuid::Profile) -> bool {
+        if let Some(connected_profiles) = self.connected_profiles.get(&addr) {
+            return connected_profiles.contains(&profile);
+        }
+        return false;
+    }
+
+    fn add_connected_profile(&mut self, addr: RawAddress, profile: uuid::Profile) {
+        if self.is_profile_connected(addr, profile) {
+            warn!("[{}]: profile is already connected", addr.to_string());
+            return;
+        }
+
+        self.connected_profiles.entry(addr).or_insert_with(HashSet::new).insert(profile);
+
+        self.notify_media_capability_updated(addr);
+    }
+
+    fn rm_connected_profile(
+        &mut self,
+        addr: RawAddress,
+        profile: uuid::Profile,
+        is_profile_critical: bool,
+    ) {
+        if !self.is_profile_connected(addr, profile) {
+            warn!("[{}]: profile is already disconnected", addr.to_string());
+            return;
+        }
+
+        self.connected_profiles.entry(addr).or_insert_with(HashSet::new).remove(&profile);
+
+        if is_profile_critical {
+            self.notify_critical_profile_disconnected(addr);
+        }
+
+        self.notify_media_capability_updated(addr);
+    }
+
     pub fn set_adapter(&mut self, adapter: Arc<Mutex<Box<Bluetooth>>>) {
         self.adapter = Some(adapter);
     }
@@ -215,32 +253,15 @@ impl BluetoothMedia {
                     BtavConnectionState::Connected => {
                         info!("[{}]: a2dp connected.", addr.to_string());
                         self.a2dp_states.insert(addr, state);
-
-                        self.connected_profiles
-                            .entry(addr)
-                            .or_insert_with(HashSet::new)
-                            .insert(uuid::Profile::A2dpSink);
-
-                        self.notify_media_capability_updated(addr);
+                        self.add_connected_profile(addr, uuid::Profile::A2dpSink);
                     }
-                    BtavConnectionState::Disconnected => match self.a2dp_states.remove(&addr) {
-                        Some(_) => {
-                            info!("[{}]: a2dp disconnected.", addr.to_string());
-                            self.a2dp_caps.remove(&addr);
-                            self.a2dp_audio_state.remove(&addr);
-
-                            self.connected_profiles
-                                .entry(addr)
-                                .or_insert_with(HashSet::new)
-                                .remove(&uuid::Profile::A2dpSink);
-
-                            self.notify_critical_profile_disconnected(addr);
-                            self.notify_media_capability_updated(addr);
-                        }
-                        None => {
-                            warn!("[{}]: Unknown address a2dp disconnected.", addr.to_string());
-                        }
-                    },
+                    BtavConnectionState::Disconnected => {
+                        info!("[{}]: a2dp disconnected.", addr.to_string());
+                        self.a2dp_states.remove(&addr);
+                        self.a2dp_caps.remove(&addr);
+                        self.a2dp_audio_state.remove(&addr);
+                        self.rm_connected_profile(addr, uuid::Profile::A2dpSink, true);
+                    }
                     _ => {
                         self.a2dp_states.insert(addr, state);
                     }
@@ -280,19 +301,14 @@ impl BluetoothMedia {
 
                 self.absolute_volume = supported;
 
-                self.connected_profiles
-                    .entry(addr)
-                    .or_insert_with(HashSet::new)
-                    .insert(uuid::Profile::AvrcpController);
-
-                self.notify_media_capability_updated(addr);
-
                 metrics::profile_connection_state_changed(
                     addr,
                     Profile::AvrcpController as u32,
                     BtStatus::Success,
                     BtavConnectionState::Connected as u32,
                 );
+
+                self.add_connected_profile(addr, uuid::Profile::AvrcpController);
             }
             AvrcpCallbacks::AvrcpDeviceDisconnected(addr) => {
                 info!("[{}]: avrcp disconnected.", addr.to_string());
@@ -302,24 +318,24 @@ impl BluetoothMedia {
                 // TODO: better support for multi-device
                 self.absolute_volume = false;
 
-                self.connected_profiles
-                    .entry(addr)
-                    .or_insert_with(HashSet::new)
-                    .remove(&uuid::Profile::AvrcpController);
-
                 // This may be considered a critical profile in the extreme case
                 // where only AVRCP was connected.
-                if self.connected_profiles.is_empty() {
-                    self.notify_critical_profile_disconnected(addr);
-                }
-
-                self.notify_media_capability_updated(addr);
+                let is_profile_critical = match self.connected_profiles.get(&addr) {
+                    Some(profiles) => *profiles == HashSet::from([uuid::Profile::AvrcpController]),
+                    None => false,
+                };
 
                 metrics::profile_connection_state_changed(
                     addr,
                     Profile::AvrcpController as u32,
                     BtStatus::Success,
                     BtavConnectionState::Disconnected as u32,
+                );
+
+                self.rm_connected_profile(
+                    addr,
+                    uuid::Profile::AvrcpController,
+                    is_profile_critical,
                 );
             }
             AvrcpCallbacks::AvrcpAbsoluteVolumeUpdate(volume) => {
@@ -371,34 +387,14 @@ impl BluetoothMedia {
                         if !self.hfp_cap.contains_key(&addr) {
                             self.hfp_cap.insert(addr, HfpCodecCapability::CVSD);
                         }
-
-                        self.connected_profiles
-                            .entry(addr)
-                            .or_insert_with(HashSet::new)
-                            .insert(uuid::Profile::Hfp);
-
-                        self.notify_media_capability_updated(addr);
+                        self.add_connected_profile(addr, uuid::Profile::Hfp);
                     }
                     BthfConnectionState::Disconnected => {
                         info!("[{}]: hfp disconnected.", addr.to_string());
-                        match self.hfp_states.remove(&addr) {
-                            Some(_) => {
-                                self.hfp_cap.remove(&addr);
-                                self.hfp_audio_state.remove(&addr);
-
-                                self.connected_profiles
-                                    .entry(addr)
-                                    .or_insert_with(HashSet::new)
-                                    .remove(&uuid::Profile::Hfp);
-
-                                self.notify_critical_profile_disconnected(addr);
-                                self.notify_media_capability_updated(addr);
-                            }
-                            None => {
-                                warn!("[{}] Unknown address hfp disconnected.", addr.to_string())
-                            }
-                        }
-                        return;
+                        self.hfp_states.remove(&addr);
+                        self.hfp_cap.remove(&addr);
+                        self.hfp_audio_state.remove(&addr);
+                        self.rm_connected_profile(addr, uuid::Profile::Hfp, true);
                     }
                     BthfConnectionState::Connecting => {
                         info!("[{}]: hfp connecting.", addr.to_string());
