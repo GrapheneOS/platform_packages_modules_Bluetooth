@@ -224,7 +224,8 @@ class EattExtension {
    *
    * @return pointer to EATT channel.
    */
-  virtual EattChannel* GetChannelWithQueuedData(const RawAddress& bd_addr);
+  virtual EattChannel* GetChannelWithQueuedDataToSend(
+      const RawAddress& bd_addr);
 
   /**
    * Get EATT channel available to send GATT request.

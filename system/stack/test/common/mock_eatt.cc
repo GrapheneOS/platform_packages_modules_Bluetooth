@@ -86,9 +86,9 @@ bool EattExtension::IsOutstandingMsgInSendQueue(const RawAddress& bd_addr) {
   return pimpl_->IsOutstandingMsgInSendQueue(bd_addr);
 }
 
-EattChannel* EattExtension::GetChannelWithQueuedData(
+EattChannel* EattExtension::GetChannelWithQueuedDataToSend(
     const RawAddress& bd_addr) {
-  return pimpl_->GetChannelWithQueuedData(bd_addr);
+  return pimpl_->GetChannelWithQueuedDataToSend(bd_addr);
 }
 
 EattChannel* EattExtension::GetChannelAvailableForClientRequest(
