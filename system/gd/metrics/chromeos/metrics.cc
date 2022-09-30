@@ -51,6 +51,8 @@ void LogMetricsAdapterStateChanged(uint32_t state) {
       .SetIsFloss(true)
       .SetAdapterState(adapter_state)
       .Record();
+
+  LogMetricsChipsetInfoReport();
 }
 
 void LogMetricsBondCreateAttempt(RawAddress* addr, uint32_t device_type) {
@@ -282,6 +284,35 @@ void LogMetricsAclConnectionStateChanged(
       .SetStateChangeType(event.state)
       .SetAclConnectionState(event.status)
       .Record();
+
+  LogMetricsChipsetInfoReport();
+}
+
+void LogMetricsChipsetInfoReport() {
+  static MetricsChipsetInfo* info = NULL;
+  uint64_t chipset_string_hval = 0;
+  std::string boot_id;
+
+  if (!info) {
+    info = (MetricsChipsetInfo*)calloc(1, sizeof(MetricsChipsetInfo));
+    *info = GetMetricsChipsetInfo();
+  }
+
+  if (!GetBootId(&boot_id)) {
+    return;
+  }
+
+  LOG_DEBUG("ChipsetInfoReport: 0x%x 0x%x %d %s", info->vid, info->pid, info->transport, info->chipset_string.c_str());
+
+  if (IsChipsetInfoInAllowList(
+          info->vid, info->pid, info->transport, info->chipset_string.c_str(), &chipset_string_hval)) {
+    ::metrics::structured::events::bluetooth::BluetoothChipsetInfoReport()
+        .SetBootId(boot_id.c_str())
+        .SetVendorId(info->vid)
+        .SetProductId(info->pid)
+        .SetTransport(info->transport)
+        .SetChipsetStringHashValue(chipset_string_hval);
+  }
 }
 
 }  // namespace metrics

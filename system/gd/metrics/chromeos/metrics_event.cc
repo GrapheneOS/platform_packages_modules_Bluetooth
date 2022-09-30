@@ -15,9 +15,17 @@
  */
 #include "gd/metrics/chromeos/metrics_event.h"
 
+#include <base/files/file_path.h>
+#include <base/files/file_util.h>
+#include <base/strings/pattern.h>
+#include <base/strings/string_number_conversions.h>
+#include <base/strings/string_util.h>
+#include <base/strings/stringprintf.h>
+
 #include <map>
 #include <utility>
 
+#include "gd/common/init_flags.h"
 #include "hci/hci_packets.h"
 #include "include/hardware/bluetooth.h"
 #include "include/hardware/bt_av.h"
@@ -27,6 +35,14 @@
 
 namespace bluetooth {
 namespace metrics {
+
+namespace {
+// these consts path below are for getting the chipset info
+constexpr char kChipsetInfoWlanDirPath[] = "/sys/class/net/wlan0/device";
+constexpr char kChipsetInfoMlanDirPath[] = "/sys/class/net/mlan0/device";
+constexpr char kChipsetInfoModaliasPath[] = "/sys/class/bluetooth/hci%d/device/modalias";
+constexpr char kChipInfoModuleDirPath[] = "/sys/class/bluetooth/hci%d/device/driver/module";
+}  // namespace
 
 // topshim::btif::BtBondState is a copy of hardware/bluetooth.h:bt_bond_state_t
 typedef bt_bond_state_t BtBondState;
@@ -610,6 +626,72 @@ AclConnectionEvent ToAclConnectionEvent(
   event.status = ToAclConnectionStatus(acl_status, (StateChangeType)event.state, hci_reason);
 
   return event;
+}
+
+static int64_t GetChipsetInfoId(const char* path, const char* file) {
+  std::string content;
+  int64_t id;
+
+  if (base::ReadFileToString(base::FilePath(path).Append(file), &content)) {
+    if (base::HexStringToInt64(base::CollapseWhitespaceASCII(content, false), &id)) {
+      return id;
+    }
+  }
+  return 0;
+}
+
+static std::string GetChipsetInfoModuleName() {
+  std::string module;
+  int adapter_index = bluetooth::common::InitFlags::GetAdapterIndex();
+  std::string path = base::StringPrintf(kChipsetInfoModaliasPath, adapter_index);
+
+  if (base::ReadFileToString(base::FilePath(path), &module)) {
+    return module;
+  }
+  return "";
+}
+
+static MetricTransportType GetChipsetInfoTransport(void) {
+  MetricTransportType transport = MetricTransportType::TRANSPORT_TYPE_UNKNOWN;
+  base::FilePath module_realpath;
+  std::string module_name;
+  int adapter_index = bluetooth::common::InitFlags::GetAdapterIndex();
+  std::string path = base::StringPrintf(kChipInfoModuleDirPath, adapter_index);
+
+  // examples of module_realpath: /sys/module/btusb and /sys/module/hci_uart
+  module_realpath = base::MakeAbsoluteFilePath(base::FilePath(path));
+  if (module_realpath.empty()) {
+    return transport;
+  }
+
+  module_name = module_realpath.BaseName().value();
+  if (base::MatchPattern(module_name, "*usb*"))
+    transport = MetricTransportType::TRANSPORT_TYPE_USB;
+  else if (base::MatchPattern(module_name, "*uart*"))
+    transport = MetricTransportType::TRANSPORT_TYPE_UART;
+  else if (base::MatchPattern(module_name, "*sdio*"))
+    transport = MetricTransportType::TRANSPORT_TYPE_SDIO;
+
+  return transport;
+}
+
+MetricsChipsetInfo GetMetricsChipsetInfo() {
+  MetricsChipsetInfo info;
+
+  info.vid = GetChipsetInfoId(kChipsetInfoWlanDirPath, "vendor");
+  info.pid = GetChipsetInfoId(kChipsetInfoWlanDirPath, "device");
+
+  if (!info.vid || !info.pid) {
+    info.vid = GetChipsetInfoId(kChipsetInfoMlanDirPath, "vendor");
+    info.pid = GetChipsetInfoId(kChipsetInfoMlanDirPath, "device");
+  }
+
+  if (!info.vid || !info.pid) {
+    info.chipset_string = GetChipsetInfoModuleName();
+  }
+
+  info.transport = (int)GetChipsetInfoTransport();
+  return info;
 }
 
 }  // namespace metrics

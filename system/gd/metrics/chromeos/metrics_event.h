@@ -186,6 +186,15 @@ enum class MetricAclConnectionInitiator : int64_t {
   ACL_CONNECTION_INITIATOR_SYSTEM = 2,
 };
 
+// ENUM definition for ACL disconnection status that in sync with ChromeOS structured metrics
+// MetricTransportType and BlueZ's metrics_transport_type.
+enum class MetricTransportType {
+  TRANSPORT_TYPE_UNKNOWN = 0,
+  TRANSPORT_TYPE_USB = 1,
+  TRANSPORT_TYPE_UART = 2,
+  TRANSPORT_TYPE_SDIO = 3,
+};
+
 // A struct holds the parsed profile connection event.
 struct ProfileConnectionEvent {
   int64_t type;
@@ -221,6 +230,17 @@ void PendingAclConnectAttemptEvent(std::string addr, int64_t time, uint32_t acl_
 // Convert Floss ACL connection info to AclConnectionEvent.
 AclConnectionEvent ToAclConnectionEvent(
     std::string addr, int64_t time, uint32_t acl_status, uint32_t acl_state, uint32_t direction, uint32_t hci_reason);
+
+// A struct to hold the chipset info.
+struct MetricsChipsetInfo {
+  int64_t vid;
+  int64_t pid;
+  int64_t transport;
+  std::string chipset_string;
+};
+
+// Get the info of the chipset.
+MetricsChipsetInfo GetMetricsChipsetInfo();
 
 }  // namespace metrics
 }  // namespace bluetooth
