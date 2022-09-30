@@ -1076,7 +1076,7 @@ public class LeAudioService extends ProfileService {
             }
 
             if (DBG) {
-                Log.d(TAG, "connect(): " + device);
+                Log.d(TAG, "connect(): " + storedDevice);
             }
 
             synchronized (mStateMachines) {
@@ -1248,8 +1248,13 @@ public class LeAudioService extends ProfileService {
                                 break;
                             case LeAudioStackEvent.CONNECTION_STATE_CONNECTED:
                             case LeAudioStackEvent.CONNECTION_STATE_CONNECTING:
-                                if (descriptor != null) {
-                                    if (DBG) Log.d(TAG, "Removing from lost devices : " + device);
+                                if (descriptor != null
+                                        && Objects.equals(
+                                                descriptor.mLostLeadDeviceWhileStreaming,
+                                                device)) {
+                                    if (DBG) {
+                                        Log.d(TAG, "Removing from lost devices : " + device);
+                                    }
                                     descriptor.mLostLeadDeviceWhileStreaming = null;
                                     /* Try to connect other devices from the group */
                                     connectSet(device);
