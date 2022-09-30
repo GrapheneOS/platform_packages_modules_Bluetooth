@@ -5505,7 +5505,7 @@ public class AdapterService extends Service {
 
         private static final int DEFAULT_SCAN_QUOTA_COUNT = 5;
         private static final long DEFAULT_SCAN_QUOTA_WINDOW_MILLIS = 30 * SECOND_IN_MILLIS;
-        private static final long DEFAULT_SCAN_TIMEOUT_MILLIS = 30 * MINUTE_IN_MILLIS;
+        private static final long DEFAULT_SCAN_TIMEOUT_MILLIS = 10 * MINUTE_IN_MILLIS;
         private static final int DEFAULT_SCAN_UPGRADE_DURATION_MILLIS = (int) SECOND_IN_MILLIS * 6;
 
         @RequiresPermission(android.Manifest.permission.READ_DEVICE_CONFIG)
