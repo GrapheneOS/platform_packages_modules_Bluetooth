@@ -359,6 +359,7 @@ public class A2dpStateMachineTest {
         // Selected codec = SBC, selectable codec = SBC
         mA2dpStateMachine.processCodecConfigEvent(codecStatusSbcAndSbc);
         verify(mA2dpService).codecConfigUpdated(mTestDevice, codecStatusSbcAndSbc, false);
+        verify(mA2dpService, times(1)).updateLowLatencyAudioSupport(mTestDevice);
 
         // Inject an event to change state machine to connected state
         A2dpStackEvent connStCh =
@@ -376,6 +377,7 @@ public class A2dpStateMachineTest {
 
         // Verify that state machine update optional codec when enter connected state
         verify(mA2dpService, times(1)).updateOptionalCodecsSupport(mTestDevice);
+        verify(mA2dpService, times(2)).updateLowLatencyAudioSupport(mTestDevice);
 
         // Change codec status when device connected.
         // Selected codec = SBC, selectable codec = SBC+AAC
@@ -384,12 +386,14 @@ public class A2dpStateMachineTest {
             verify(mA2dpService).codecConfigUpdated(mTestDevice, codecStatusSbcAndSbcAac, true);
         }
         verify(mA2dpService, times(2)).updateOptionalCodecsSupport(mTestDevice);
+        verify(mA2dpService, times(3)).updateLowLatencyAudioSupport(mTestDevice);
 
         // Update selected codec with selectable codec unchanged.
         // Selected codec = AAC, selectable codec = SBC+AAC
         mA2dpStateMachine.processCodecConfigEvent(codecStatusAacAndSbcAac);
         verify(mA2dpService).codecConfigUpdated(mTestDevice, codecStatusAacAndSbcAac, false);
         verify(mA2dpService, times(2)).updateOptionalCodecsSupport(mTestDevice);
+        verify(mA2dpService, times(4)).updateLowLatencyAudioSupport(mTestDevice);
 
         // Update selected codec
         // Selected codec = OPUS, selectable codec = SBC+AAC+OPUS
@@ -398,5 +402,16 @@ public class A2dpStateMachineTest {
             verify(mA2dpService).codecConfigUpdated(mTestDevice, codecStatusOpusAndSbcAacOpus, true);
         }
         verify(mA2dpService, times(3)).updateOptionalCodecsSupport(mTestDevice);
+        // Check if low latency audio been updated.
+        verify(mA2dpService, times(5)).updateLowLatencyAudioSupport(mTestDevice);
+
+        // Update selected codec with selectable codec changed.
+        // Selected codec = SBC, selectable codec = SBC+AAC
+        mA2dpStateMachine.processCodecConfigEvent(codecStatusSbcAndSbcAac);
+        if (!offloadEnabled) {
+            verify(mA2dpService).codecConfigUpdated(mTestDevice, codecStatusSbcAndSbcAac, true);
+        }
+        // Check if low latency audio been update.
+        verify(mA2dpService, times(6)).updateLowLatencyAudioSupport(mTestDevice);
     }
 }

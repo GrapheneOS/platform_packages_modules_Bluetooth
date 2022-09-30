@@ -480,6 +480,7 @@ final class A2dpStateMachine extends StateMachine {
             // codecs (perhaps it's had a firmware update, etc.) and save that state if
             // it differs from what we had saved before.
             mA2dpService.updateOptionalCodecsSupport(mDevice);
+            mA2dpService.updateLowLatencyAudioSupport(mDevice);
             broadcastConnectionState(mConnectionState, mLastConnectionState);
             // Upon connected, the audio starts out as stopped
             broadcastAudioState(BluetoothA2dp.STATE_NOT_PLAYING,
@@ -652,6 +653,7 @@ final class A2dpStateMachine extends StateMachine {
             // for this codec change event.
             mA2dpService.updateOptionalCodecsSupport(mDevice);
         }
+        mA2dpService.updateLowLatencyAudioSupport(mDevice);
         if (mA2dpOffloadEnabled) {
             boolean update = false;
             BluetoothCodecConfig newCodecConfig = mCodecStatus.getCodecConfig();
