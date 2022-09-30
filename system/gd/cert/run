@@ -145,7 +145,7 @@ function parse_options {
         echo -e "${BLUE}  --verbose${NOCOLOR}"
         echo -e "    Displays device logs and test logs to output."
         echo
-        echo -e "Usage: $0 [--clean|--host|--repeat=<N>|--test_config=<config>] [TestGroupName[:IndividualTestName]]"
+        echo -e "Usage: $0 [--clean|--host|--repeat=<N>|--test_config=<config>] [TestGroupName[.IndividualTestName]]"
         echo -e "        ${YELLOW}e.g."
         echo -e "         $0 --host --clean SecurityTest"
         echo -e "         $0 --host --verbose SecurityTest:test_dut_initiated_display_only_display_only ${NOCOLOR}"
