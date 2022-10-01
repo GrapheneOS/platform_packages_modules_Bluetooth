@@ -97,6 +97,7 @@ class L2CAPProxy(ProfileProxy):
             "L2CAP/LE/CFC/BV-09-C",
             "L2CAP/LE/CFC/BV-13-C",
             "L2CAP/LE/CFC/BV-20-C",
+            "L2CAP/LE/CFC/BI-01-C",
         ]
         tests_require_secure_connection = [
             "L2CAP/LE/CFC/BV-13-C",
@@ -334,4 +335,22 @@ class L2CAPProxy(ProfileProxy):
         if self.test_status_map[test] != "OK":
             print('error in MMI_UPPER_TESTER_CONFIRM_RECEIVE_REJECT_RESOURCES', file=sys.stderr)
             raise Exception("Unexpected RECEIVE_COMMAND")
+        return "OK"
+
+    def MMI_IUT_ENABLE_LE_CONNECTION(self, pts_addr: bytes, **kwargs):
+        """
+        Initiate or create LE ACL connection to the PTS.
+        """
+        self.connection = self.host.ConnectLE(address=pts_addr).connection
+        return "OK"
+
+    @assert_description
+    def MMI_IUT_SEND_ACL_DISCONNECTION(self, **kwargs):
+        """
+        Initiate an ACL disconnection from the IUT to the PTS.
+        Description :
+        The Implementation Under Test(IUT) should disconnect ACL channel by
+        sending a disconnect request to PTS.
+        """
+        self.host.DisconnectLE(connection=self.connection)
         return "OK"

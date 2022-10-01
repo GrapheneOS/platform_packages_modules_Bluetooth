@@ -43,6 +43,10 @@ service Host {
   rpc DisconnectLE(DisconnectLERequest) returns (google.protobuf.Empty);
   // Start LE advertisement
   rpc SetLEConnectable(google.protobuf.Empty) returns (google.protobuf.Empty);
+  // Run BR/EDR inquiry and returns each device found
+  rpc RunInquiry(RunInquiryRequest) returns (stream RunInquiryResponse);
+  // Run LE discovery (scanning) and return each device found
+  rpc RunDiscovery(RunDiscoveryRequest) returns (stream RunDiscoveryResponse);
 }
 
 // Response of the `ReadLocalAddress` method.
@@ -140,4 +144,24 @@ message GetLEConnectionResponse {
 // Request of the `DisconnectLE` method
 message DisconnectLERequest {
   Connection connection = 1;
+}
+
+message RunInquiryRequest {
+}
+
+message RunInquiryResponse {
+  repeated Device device = 1;
+}
+
+message RunDiscoveryRequest {
+}
+
+message RunDiscoveryResponse {
+  Device device = 1;
+  uint32 flags = 2;
+}
+
+message Device {
+  string name = 1;
+  bytes address = 2;
 }

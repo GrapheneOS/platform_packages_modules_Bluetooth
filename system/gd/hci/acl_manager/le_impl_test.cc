@@ -62,12 +62,14 @@ constexpr uint16_t kHciHandle = 123;
 [[maybe_unused]] constexpr bool kSkipFilterAcceptList = !kAddToFilterAcceptList;
 [[maybe_unused]] constexpr bool kIsDirectConnection = true;
 [[maybe_unused]] constexpr bool kIsBackgroundConnection = !kIsDirectConnection;
-constexpr ::bluetooth::crypto_toolbox::Octet16 kRotationIrk = {};
+constexpr crypto_toolbox::Octet16 kRotationIrk = {};
 constexpr std::chrono::milliseconds kMinimumRotationTime(14 * 1000);
 constexpr std::chrono::milliseconds kMaximumRotationTime(16 * 1000);
-constexpr uint16_t kIntervalMin = 0x20;
 constexpr uint16_t kIntervalMax = 0x40;
+constexpr uint16_t kIntervalMin = 0x20;
 constexpr uint16_t kLatency = 0x60;
+constexpr uint16_t kLength = 0x5678;
+constexpr uint16_t kTime = 0x1234;
 constexpr uint16_t kTimeout = 0x80;
 constexpr std::array<uint8_t, 16> kPeerIdentityResolvingKey({
     0x00,
@@ -106,11 +108,12 @@ constexpr std::array<uint8_t, 16> kLocalIdentityResolvingKey({
     0x8f,
 });
 
-// Generic template for all commands
-template <typename T, typename U>
-T CreateCommand(U u) {
-  T command;
-  return command;
+template <typename B>
+std::shared_ptr<std::vector<uint8_t>> Serialize(std::unique_ptr<B> build) {
+  auto bytes = std::make_shared<std::vector<uint8_t>>();
+  BitInserter bi(*bytes);
+  build->Serialize(bi);
+  return bytes;
 }
 
 template <typename T>
@@ -140,20 +143,16 @@ T CreateLeEventView(std::shared_ptr<std::vector<uint8_t>> bytes) {
 
 [[maybe_unused]] hci::CommandCompleteView ReturnCommandComplete(hci::OpCode op_code, hci::ErrorCode error_code) {
   std::vector<uint8_t> success_vector{static_cast<uint8_t>(error_code)};
-  auto bytes = std::make_shared<std::vector<uint8_t>>();
-  BitInserter bi(*bytes);
   auto builder = hci::CommandCompleteBuilder::Create(uint8_t{1}, op_code, std::make_unique<RawBuilder>(success_vector));
-  builder->Serialize(bi);
+  auto bytes = Serialize<hci::CommandCompleteBuilder>(std::move(builder));
   return hci::CommandCompleteView::Create(hci::EventView::Create(hci::PacketView<hci::kLittleEndian>(bytes)));
 }
 
 [[maybe_unused]] hci::CommandStatusView ReturnCommandStatus(hci::OpCode op_code, hci::ErrorCode error_code) {
   std::vector<uint8_t> success_vector{static_cast<uint8_t>(error_code)};
-  auto bytes = std::make_shared<std::vector<uint8_t>>();
-  BitInserter bi(*bytes);
   auto builder = hci::CommandStatusBuilder::Create(
       hci::ErrorCode::SUCCESS, uint8_t{1}, op_code, std::make_unique<RawBuilder>(success_vector));
-  builder->Serialize(bi);
+  auto bytes = Serialize<hci::CommandStatusBuilder>(std::move(builder));
   return hci::CommandStatusView::Create(hci::EventView::Create(hci::PacketView<hci::kLittleEndian>(bytes)));
 }
 
@@ -422,6 +421,7 @@ class MockLeConnectionManagementCallbacks : public LeConnectionManagementCallbac
 class LeImplTest : public ::testing::Test {
  protected:
   void SetUp() override {
+    bluetooth::common::InitFlags::SetAllForTesting();
     thread_ = new Thread("thread", Thread::Priority::NORMAL);
     handler_ = new Handler(thread_);
     controller_ = new TestController();
@@ -547,6 +547,23 @@ class LeImplTest : public ::testing::Test {
   struct le_impl* le_impl_;
 };
 
+class LeImplRegisteredWithAddressManagerTest : public LeImplTest {
+ protected:
+  void SetUp() override {
+    LeImplTest::SetUp();
+    set_privacy_policy_for_initiator_address(fixed_address_, LeAddressManager::AddressPolicy::USE_PUBLIC_ADDRESS);
+
+    le_impl_->register_with_address_manager();
+    sync_handler();  // Let |LeAddressManager::register_client| execute on handler
+    ASSERT_TRUE(le_impl_->address_manager_registered);
+    ASSERT_TRUE(le_impl_->pause_connection);
+  }
+
+  void TearDown() override {
+    LeImplTest::TearDown();
+  }
+};
+
 class LeImplWithConnectionTest : public LeImplTest {
  protected:
   void SetUp() override {
@@ -559,8 +576,6 @@ class LeImplWithConnectionTest : public LeImplTest {
           connection_->RegisterCallbacks(&connection_management_callbacks_, handler_);
         });
 
-    auto bytes = std::make_shared<std::vector<uint8_t>>();
-    BitInserter bi(*bytes);
     auto command = LeEnhancedConnectionCompleteBuilder::Create(
         ErrorCode::SUCCESS,
         kHciHandle,
@@ -573,7 +588,7 @@ class LeImplWithConnectionTest : public LeImplTest {
         0x0000,
         0x0011,
         ClockAccuracy::PPM_30);
-    command->Serialize(bi);
+    auto bytes = Serialize<LeEnhancedConnectionCompleteBuilder>(std::move(command));
     auto view = CreateLeEventView<hci::LeEnhancedConnectionCompleteView>(bytes);
     ASSERT_TRUE(view.IsValid());
     le_impl_->on_le_event(view);
@@ -583,6 +598,7 @@ class LeImplWithConnectionTest : public LeImplTest {
   }
 
   void TearDown() override {
+    connection_.reset();
     LeImplTest::TearDown();
   }
 
@@ -649,7 +665,7 @@ TEST_F(LeImplTest, connection_complete_with_periperal_role) {
   hci::Address remote_address;
   Address::FromString("D0:05:04:03:02:01", remote_address);
   hci::AddressWithType address_with_type(remote_address, hci::AddressType::PUBLIC_DEVICE_ADDRESS);
-  EXPECT_CALL(mock_le_connection_callbacks_, OnLeConnectSuccess(address_with_type, ::testing::_));
+  EXPECT_CALL(mock_le_connection_callbacks_, OnLeConnectSuccess(address_with_type, _));
   hci_layer_->IncomingLeMetaEvent(LeConnectionCompleteBuilder::Create(
       ErrorCode::SUCCESS,
       0x0041,
@@ -688,7 +704,7 @@ TEST_F(LeImplTest, enhanced_connection_complete_with_periperal_role) {
   hci::Address remote_address;
   Address::FromString("D0:05:04:03:02:01", remote_address);
   hci::AddressWithType address_with_type(remote_address, hci::AddressType::PUBLIC_DEVICE_ADDRESS);
-  EXPECT_CALL(mock_le_connection_callbacks_, OnLeConnectSuccess(address_with_type, ::testing::_));
+  EXPECT_CALL(mock_le_connection_callbacks_, OnLeConnectSuccess(address_with_type, _));
   hci_layer_->IncomingLeMetaEvent(LeEnhancedConnectionCompleteBuilder::Create(
       ErrorCode::SUCCESS,
       0x0041,
@@ -727,7 +743,7 @@ TEST_F(LeImplTest, connection_complete_with_central_role) {
   ASSERT_EQ(ConnectabilityState::ARMED, le_impl_->connectability_state_);
 
   // Receive connection complete of outgoing connection (Role::CENTRAL)
-  EXPECT_CALL(mock_le_connection_callbacks_, OnLeConnectSuccess(address_with_type, ::testing::_));
+  EXPECT_CALL(mock_le_connection_callbacks_, OnLeConnectSuccess(address_with_type, _));
   hci_layer_->IncomingLeMetaEvent(LeConnectionCompleteBuilder::Create(
       ErrorCode::SUCCESS,
       0x0041,
@@ -765,7 +781,7 @@ TEST_F(LeImplTest, enhanced_connection_complete_with_central_role) {
   ASSERT_EQ(ConnectabilityState::ARMED, le_impl_->connectability_state_);
 
   // Receive connection complete of outgoing connection (Role::CENTRAL)
-  EXPECT_CALL(mock_le_connection_callbacks_, OnLeConnectSuccess(address_with_type, ::testing::_));
+  EXPECT_CALL(mock_le_connection_callbacks_, OnLeConnectSuccess(address_with_type, _));
   hci_layer_->IncomingLeMetaEvent(LeEnhancedConnectionCompleteBuilder::Create(
       ErrorCode::SUCCESS,
       0x0041,
@@ -785,7 +801,6 @@ TEST_F(LeImplTest, enhanced_connection_complete_with_central_role) {
 }
 
 TEST_F(LeImplTest, register_with_address_manager__AddressPolicyNotSet) {
-  bluetooth::common::InitFlags::SetAllForTesting();
   auto log_capture = std::make_unique<LogCapture>();
 
   std::promise<void> promise;
@@ -838,7 +853,6 @@ TEST_F(LeImplTest, register_with_address_manager__AddressPolicyNotSet) {
 }
 
 TEST_F(LeImplTest, disarm_connectability_DISARMED) {
-  bluetooth::common::InitFlags::SetAllForTesting();
   std::unique_ptr<LogCapture> log_capture = std::make_unique<LogCapture>();
 
   le_impl_->connectability_state_ = ConnectabilityState::DISARMED;
@@ -852,7 +866,6 @@ TEST_F(LeImplTest, disarm_connectability_DISARMED) {
 }
 
 TEST_F(LeImplTest, disarm_connectability_DISARMED_extended) {
-  bluetooth::common::InitFlags::SetAllForTesting();
   std::unique_ptr<LogCapture> log_capture = std::make_unique<LogCapture>();
 
   le_impl_->connectability_state_ = ConnectabilityState::DISARMED;
@@ -867,7 +880,6 @@ TEST_F(LeImplTest, disarm_connectability_DISARMED_extended) {
 }
 
 TEST_F(LeImplTest, disarm_connectability_ARMING) {
-  bluetooth::common::InitFlags::SetAllForTesting();
   std::unique_ptr<LogCapture> log_capture = std::make_unique<LogCapture>();
 
   le_impl_->connectability_state_ = ConnectabilityState::ARMING;
@@ -880,7 +892,6 @@ TEST_F(LeImplTest, disarm_connectability_ARMING) {
 }
 
 TEST_F(LeImplTest, disarm_connectability_ARMING_extended) {
-  bluetooth::common::InitFlags::SetAllForTesting();
   std::unique_ptr<LogCapture> log_capture = std::make_unique<LogCapture>();
 
   le_impl_->connectability_state_ = ConnectabilityState::ARMING;
@@ -895,7 +906,6 @@ TEST_F(LeImplTest, disarm_connectability_ARMING_extended) {
 }
 
 TEST_F(LeImplTest, disarm_connectability_ARMED) {
-  bluetooth::common::InitFlags::SetAllForTesting();
   std::unique_ptr<LogCapture> log_capture = std::make_unique<LogCapture>();
 
   le_impl_->connectability_state_ = ConnectabilityState::ARMED;
@@ -909,7 +919,6 @@ TEST_F(LeImplTest, disarm_connectability_ARMED) {
 }
 
 TEST_F(LeImplTest, disarm_connectability_ARMED_extended) {
-  bluetooth::common::InitFlags::SetAllForTesting();
   std::unique_ptr<LogCapture> log_capture = std::make_unique<LogCapture>();
 
   le_impl_->connectability_state_ = ConnectabilityState::ARMED;
@@ -924,7 +933,6 @@ TEST_F(LeImplTest, disarm_connectability_ARMED_extended) {
 }
 
 TEST_F(LeImplTest, disarm_connectability_DISARMING) {
-  bluetooth::common::InitFlags::SetAllForTesting();
   std::unique_ptr<LogCapture> log_capture = std::make_unique<LogCapture>();
 
   le_impl_->connectability_state_ = ConnectabilityState::DISARMING;
@@ -938,7 +946,6 @@ TEST_F(LeImplTest, disarm_connectability_DISARMING) {
 }
 
 TEST_F(LeImplTest, disarm_connectability_DISARMING_extended) {
-  bluetooth::common::InitFlags::SetAllForTesting();
   std::unique_ptr<LogCapture> log_capture = std::make_unique<LogCapture>();
 
   le_impl_->connectability_state_ = ConnectabilityState::DISARMING;
@@ -953,7 +960,6 @@ TEST_F(LeImplTest, disarm_connectability_DISARMING_extended) {
 }
 
 TEST_F(LeImplTest, register_with_address_manager__AddressPolicyPublicAddress) {
-  bluetooth::common::InitFlags::SetAllForTesting();
   std::unique_ptr<LogCapture> log_capture = std::make_unique<LogCapture>();
 
   set_privacy_policy_for_initiator_address(fixed_address_, LeAddressManager::AddressPolicy::USE_PUBLIC_ADDRESS);
@@ -975,7 +981,6 @@ TEST_F(LeImplTest, register_with_address_manager__AddressPolicyPublicAddress) {
 }
 
 TEST_F(LeImplTest, register_with_address_manager__AddressPolicyStaticAddress) {
-  bluetooth::common::InitFlags::SetAllForTesting();
   std::unique_ptr<LogCapture> log_capture = std::make_unique<LogCapture>();
 
   set_privacy_policy_for_initiator_address(fixed_address_, LeAddressManager::AddressPolicy::USE_STATIC_ADDRESS);
@@ -997,7 +1002,6 @@ TEST_F(LeImplTest, register_with_address_manager__AddressPolicyStaticAddress) {
 }
 
 TEST_F(LeImplTest, register_with_address_manager__AddressPolicyNonResolvableAddress) {
-  bluetooth::common::InitFlags::SetAllForTesting();
   std::unique_ptr<LogCapture> log_capture = std::make_unique<LogCapture>();
 
   set_privacy_policy_for_initiator_address(fixed_address_, LeAddressManager::AddressPolicy::USE_NON_RESOLVABLE_ADDRESS);
@@ -1019,7 +1023,6 @@ TEST_F(LeImplTest, register_with_address_manager__AddressPolicyNonResolvableAddr
 }
 
 TEST_F(LeImplTest, register_with_address_manager__AddressPolicyResolvableAddress) {
-  bluetooth::common::InitFlags::SetAllForTesting();
   std::unique_ptr<LogCapture> log_capture = std::make_unique<LogCapture>();
 
   set_privacy_policy_for_initiator_address(fixed_address_, LeAddressManager::AddressPolicy::USE_RESOLVABLE_ADDRESS);
@@ -1041,8 +1044,6 @@ TEST_F(LeImplTest, register_with_address_manager__AddressPolicyResolvableAddress
 }
 
 TEST_F(LeImplTest, add_device_to_resolving_list) {
-  bluetooth::common::InitFlags::SetAllForTesting();
-
   // Some kind of privacy policy must be set for LeAddressManager to operate properly
   set_privacy_policy_for_initiator_address(fixed_address_, LeAddressManager::AddressPolicy::USE_PUBLIC_ADDRESS);
   // Let LeAddressManager::resume_registered_clients execute
@@ -1113,8 +1114,6 @@ TEST_F(LeImplTest, add_device_to_resolving_list) {
 }
 
 TEST_F(LeImplTest, add_device_to_resolving_list__SupportsBlePrivacy) {
-  bluetooth::common::InitFlags::SetAllForTesting();
-
   controller_->supports_ble_privacy_ = true;
 
   // Some kind of privacy policy must be set for LeAddressManager to operate properly
@@ -1208,11 +1207,8 @@ TEST_F(LeImplTest, connectability_state_machine_text) {
 }
 
 TEST_F(LeImplTest, on_le_event__CONNECTION_COMPLETE_CENTRAL) {
-  bluetooth::common::InitFlags::SetAllForTesting();
+  EXPECT_CALL(mock_le_connection_callbacks_, OnLeConnectSuccess(_, _)).Times(1);
   set_random_device_address_policy();
-
-  EXPECT_CALL(mock_le_connection_callbacks_, OnLeConnectSuccess(::testing::_, ::testing::_)).Times(1);
-
   auto command = LeConnectionCompleteBuilder::Create(
       ErrorCode::SUCCESS,
       kHciHandle,
@@ -1223,22 +1219,15 @@ TEST_F(LeImplTest, on_le_event__CONNECTION_COMPLETE_CENTRAL) {
       0x0000,
       0x0011,
       ClockAccuracy::PPM_30);
-  auto bytes = std::make_shared<std::vector<uint8_t>>();
-  BitInserter bi(*bytes);
-  command->Serialize(bi);
+  auto bytes = Serialize<LeConnectionCompleteBuilder>(std::move(command));
   auto view = CreateLeEventView<hci::LeConnectionCompleteView>(bytes);
   ASSERT_TRUE(view.IsValid());
   le_impl_->on_le_event(view);
 }
 
 TEST_F(LeImplTest, on_le_event__CONNECTION_COMPLETE_PERIPHERAL) {
-  bluetooth::common::InitFlags::SetAllForTesting();
+  EXPECT_CALL(mock_le_connection_callbacks_, OnLeConnectSuccess(_, _)).Times(1);
   set_random_device_address_policy();
-
-  EXPECT_CALL(mock_le_connection_callbacks_, OnLeConnectSuccess(::testing::_, ::testing::_)).Times(1);
-
-  auto bytes = std::make_shared<std::vector<uint8_t>>();
-  BitInserter bi(*bytes);
   auto command = LeConnectionCompleteBuilder::Create(
       ErrorCode::SUCCESS,
       kHciHandle,
@@ -1249,18 +1238,15 @@ TEST_F(LeImplTest, on_le_event__CONNECTION_COMPLETE_PERIPHERAL) {
       0x0000,
       0x0011,
       ClockAccuracy::PPM_30);
-  command->Serialize(bi);
+  auto bytes = Serialize<LeConnectionCompleteBuilder>(std::move(command));
   auto view = CreateLeEventView<hci::LeConnectionCompleteView>(bytes);
   ASSERT_TRUE(view.IsValid());
   le_impl_->on_le_event(view);
 }
 
 TEST_F(LeImplTest, on_le_event__ENHANCED_CONNECTION_COMPLETE_CENTRAL) {
-  bluetooth::common::InitFlags::SetAllForTesting();
+  EXPECT_CALL(mock_le_connection_callbacks_, OnLeConnectSuccess(_, _)).Times(1);
   set_random_device_address_policy();
-
-  EXPECT_CALL(mock_le_connection_callbacks_, OnLeConnectSuccess(::testing::_, ::testing::_)).Times(1);
-
   auto command = LeEnhancedConnectionCompleteBuilder::Create(
       ErrorCode::SUCCESS,
       kHciHandle,
@@ -1273,20 +1259,14 @@ TEST_F(LeImplTest, on_le_event__ENHANCED_CONNECTION_COMPLETE_CENTRAL) {
       0x0000,
       0x0011,
       ClockAccuracy::PPM_30);
-  auto bytes = std::make_shared<std::vector<uint8_t>>();
-  BitInserter bi(*bytes);
-  command->Serialize(bi);
+  auto bytes = Serialize<LeEnhancedConnectionCompleteBuilder>(std::move(command));
   auto view = CreateLeEventView<hci::LeEnhancedConnectionCompleteView>(bytes);
   ASSERT_TRUE(view.IsValid());
   le_impl_->on_le_event(view);
 }
 
 TEST_F(LeImplTest, on_le_event__ENHANCED_CONNECTION_COMPLETE_PERIPHERAL) {
-  EXPECT_CALL(mock_le_connection_callbacks_, OnLeConnectSuccess(::testing::_, ::testing::_)).Times(1);
-
-  bluetooth::common::InitFlags::SetAllForTesting();
-  set_random_device_address_policy();
-
+  EXPECT_CALL(mock_le_connection_callbacks_, OnLeConnectSuccess(_, _)).Times(1);
   auto command = LeEnhancedConnectionCompleteBuilder::Create(
       ErrorCode::SUCCESS,
       kHciHandle,
@@ -1299,20 +1279,16 @@ TEST_F(LeImplTest, on_le_event__ENHANCED_CONNECTION_COMPLETE_PERIPHERAL) {
       0x0000,
       0x0011,
       ClockAccuracy::PPM_30);
-  auto bytes = std::make_shared<std::vector<uint8_t>>();
-  BitInserter bi(*bytes);
-  command->Serialize(bi);
+  auto bytes = Serialize<LeEnhancedConnectionCompleteBuilder>(std::move(command));
   auto view = CreateLeEventView<hci::LeEnhancedConnectionCompleteView>(bytes);
   ASSERT_TRUE(view.IsValid());
   le_impl_->on_le_event(view);
 }
 
 TEST_F(LeImplWithConnectionTest, on_le_event__PHY_UPDATE_COMPLETE) {
-  bluetooth::common::InitFlags::SetAllForTesting();
-  set_random_device_address_policy();
-  hci::ErrorCode hci_status;
-  hci::PhyType tx_phy;
-  hci::PhyType rx_phy;
+  hci::ErrorCode hci_status{ErrorCode::STATUS_UNKNOWN};
+  hci::PhyType tx_phy{0};
+  hci::PhyType rx_phy{0};
 
   // Send a phy update
   {
@@ -1322,10 +1298,8 @@ TEST_F(LeImplWithConnectionTest, on_le_event__PHY_UPDATE_COMPLETE) {
           tx_phy = static_cast<PhyType>(_tx_phy);
           rx_phy = static_cast<PhyType>(_rx_phy);
         });
-    auto command = LePhyUpdateCompleteBuilder::Create(ErrorCode::SUCCESS, kHciHandle, 0x01, 0x01);
-    auto bytes = std::make_shared<std::vector<uint8_t>>();
-    BitInserter bi(*bytes);
-    command->Serialize(bi);
+    auto command = LePhyUpdateCompleteBuilder::Create(ErrorCode::SUCCESS, kHciHandle, 0x01, 0x02);
+    auto bytes = Serialize<LePhyUpdateCompleteBuilder>(std::move(command));
     auto view = CreateLeEventView<hci::LePhyUpdateCompleteView>(bytes);
     ASSERT_TRUE(view.IsValid());
     le_impl_->on_le_event(view);
@@ -1334,12 +1308,10 @@ TEST_F(LeImplWithConnectionTest, on_le_event__PHY_UPDATE_COMPLETE) {
   sync_handler();
   ASSERT_EQ(ErrorCode::SUCCESS, hci_status);
   ASSERT_EQ(PhyType::LE_1M, tx_phy);
+  ASSERT_EQ(PhyType::LE_2M, rx_phy);
 }
 
 TEST_F(LeImplWithConnectionTest, on_le_event__DATA_LENGTH_CHANGE) {
-  bluetooth::common::InitFlags::SetAllForTesting();
-  set_random_device_address_policy();
-
   uint16_t tx_octets{0};
   uint16_t tx_time{0};
   uint16_t rx_octets{0};
@@ -1355,9 +1327,7 @@ TEST_F(LeImplWithConnectionTest, on_le_event__DATA_LENGTH_CHANGE) {
           rx_time = _rx_time;
         });
     auto command = LeDataLengthChangeBuilder::Create(kHciHandle, 0x1234, 0x5678, 0x9abc, 0xdef0);
-    auto bytes = std::make_shared<std::vector<uint8_t>>();
-    BitInserter bi(*bytes);
-    command->Serialize(bi);
+    auto bytes = Serialize<LeDataLengthChangeBuilder>(std::move(command));
     auto view = CreateLeEventView<hci::LeDataLengthChangeView>(bytes);
     ASSERT_TRUE(view.IsValid());
     le_impl_->on_le_event(view);
@@ -1371,15 +1341,10 @@ TEST_F(LeImplWithConnectionTest, on_le_event__DATA_LENGTH_CHANGE) {
 }
 
 TEST_F(LeImplWithConnectionTest, on_le_event__REMOTE_CONNECTION_PARAMETER_REQUEST) {
-  bluetooth::common::InitFlags::SetAllForTesting();
-  set_random_device_address_policy();
-
   // Send a remote connection parameter request
-  auto bytes = std::make_shared<std::vector<uint8_t>>();
-  BitInserter bi(*bytes);
   auto command = hci::LeRemoteConnectionParameterRequestBuilder::Create(
       kHciHandle, kIntervalMin, kIntervalMax, kLatency, kTimeout);
-  command->Serialize(bi);
+  auto bytes = Serialize<LeRemoteConnectionParameterRequestBuilder>(std::move(command));
   {
     auto view = CreateLeEventView<hci::LeRemoteConnectionParameterRequestView>(bytes);
     ASSERT_TRUE(view.IsValid());
@@ -1398,6 +1363,97 @@ TEST_F(LeImplWithConnectionTest, on_le_event__REMOTE_CONNECTION_PARAMETER_REQUES
   ASSERT_EQ(kIntervalMax, view.GetIntervalMax());
   ASSERT_EQ(kLatency, view.GetLatency());
   ASSERT_EQ(kTimeout, view.GetTimeout());
+}
+
+TEST_F(LeImplRegisteredWithAddressManagerTest, clear_resolving_list) {
+  le_impl_->clear_resolving_list();
+  ASSERT_EQ(3UL, le_impl_->le_address_manager_->NumberCachedCommands());
+
+  sync_handler();  // Allow |LeAddressManager::pause_registered_clients| to complete
+  sync_handler();  // Allow |LeAddressManager::handle_next_command| to complete
+
+  ASSERT_EQ(1UL, hci_layer_->NumberOfQueuedCommands());
+  {
+    auto view = CreateLeSecurityCommandView<LeSetAddressResolutionEnableView>(hci_layer_->DequeueCommandBytes());
+    ASSERT_TRUE(view.IsValid());
+    ASSERT_EQ(Enable::DISABLED, view.GetAddressResolutionEnable());
+    le_impl_->le_address_manager_->OnCommandComplete(
+        ReturnCommandComplete(OpCode::LE_SET_ADDRESS_RESOLUTION_ENABLE, ErrorCode::SUCCESS));
+  }
+
+  sync_handler();  // Allow |LeAddressManager::check_cached_commands| to complete
+  ASSERT_EQ(1UL, hci_layer_->NumberOfQueuedCommands());
+  {
+    auto view = CreateLeSecurityCommandView<LeClearResolvingListView>(hci_layer_->DequeueCommandBytes());
+    ASSERT_TRUE(view.IsValid());
+    le_impl_->le_address_manager_->OnCommandComplete(
+        ReturnCommandComplete(OpCode::LE_CLEAR_RESOLVING_LIST, ErrorCode::SUCCESS));
+  }
+
+  sync_handler();  // Allow |LeAddressManager::handle_next_command| to complete
+  ASSERT_EQ(1UL, hci_layer_->NumberOfQueuedCommands());
+  {
+    auto view = CreateLeSecurityCommandView<LeSetAddressResolutionEnableView>(hci_layer_->DequeueCommandBytes());
+    ASSERT_TRUE(view.IsValid());
+    ASSERT_EQ(Enable::ENABLED, view.GetAddressResolutionEnable());
+    le_impl_->le_address_manager_->OnCommandComplete(
+        ReturnCommandComplete(OpCode::LE_SET_ADDRESS_RESOLUTION_ENABLE, ErrorCode::SUCCESS));
+  }
+  ASSERT_TRUE(hci_layer_->IsPacketQueueEmpty());
+}
+
+TEST_F(LeImplWithConnectionTest, HACK_get_handle) {
+  sync_handler();
+
+  ASSERT_EQ(kHciHandle, le_impl_->HACK_get_handle(remote_address_));
+}
+
+TEST_F(LeImplTest, on_le_connection_canceled_on_pause) {
+  set_random_device_address_policy();
+  le_impl_->pause_connection = true;
+  le_impl_->on_le_connection_canceled_on_pause();
+  ASSERT_TRUE(le_impl_->arm_on_resume_);
+  ASSERT_EQ(ConnectabilityState::DISARMED, le_impl_->connectability_state_);
+}
+
+TEST_F(LeImplTest, on_create_connection_timeout) {
+  EXPECT_CALL(mock_le_connection_callbacks_, OnLeConnectFail(_, ErrorCode::CONNECTION_ACCEPT_TIMEOUT)).Times(1);
+  le_impl_->create_connection_timeout_alarms_.emplace(
+      std::piecewise_construct,
+      std::forward_as_tuple(
+          remote_public_address_with_type_.GetAddress(), remote_public_address_with_type_.GetAddressType()),
+      std::forward_as_tuple(handler_));
+  le_impl_->on_create_connection_timeout(remote_public_address_with_type_);
+  sync_handler();
+  ASSERT_TRUE(le_impl_->create_connection_timeout_alarms_.empty());
+}
+
+TEST_F(LeImplTest, on_common_le_connection_complete__NoPriorConnection) {
+  auto log_capture = std::make_unique<LogCapture>();
+  le_impl_->on_common_le_connection_complete(remote_public_address_with_type_);
+  ASSERT_TRUE(le_impl_->connecting_le_.empty());
+  ASSERT_TRUE(log_capture->Rewind()->Find("No prior connection request for"));
+}
+
+TEST_F(LeImplTest, cancel_connect) {
+  le_impl_->create_connection_timeout_alarms_.emplace(
+      std::piecewise_construct,
+      std::forward_as_tuple(
+          remote_public_address_with_type_.GetAddress(), remote_public_address_with_type_.GetAddressType()),
+      std::forward_as_tuple(handler_));
+  le_impl_->cancel_connect(remote_public_address_with_type_);
+  sync_handler();
+  ASSERT_TRUE(le_impl_->create_connection_timeout_alarms_.empty());
+}
+
+TEST_F(LeImplTest, set_le_suggested_default_data_parameters) {
+  le_impl_->set_le_suggested_default_data_parameters(kLength, kTime);
+  sync_handler();
+  auto view =
+      CreateLeConnectionManagementCommandView<LeWriteSuggestedDefaultDataLengthView>(hci_layer_->DequeueCommandBytes());
+  ASSERT_TRUE(view.IsValid());
+  ASSERT_EQ(kLength, view.GetTxOctets());
+  ASSERT_EQ(kTime, view.GetTxTime());
 }
 
 }  // namespace acl_manager
