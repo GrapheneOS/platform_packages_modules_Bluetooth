@@ -1138,7 +1138,8 @@ bool gatt_cl_send_next_cmd_inq(tGATT_TCB& tcb) {
       cl_cmd_q = &tcb.cl_cmd_q;
     } else {
       EattChannel* channel =
-          EattExtension::GetInstance()->GetChannelWithQueuedData(tcb.peer_bda);
+          EattExtension::GetInstance()->GetChannelWithQueuedDataToSend(
+              tcb.peer_bda);
       cl_cmd_q = &channel->cl_cmd_q_;
     }
 
