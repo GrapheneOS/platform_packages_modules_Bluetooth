@@ -410,17 +410,6 @@ LeAudioDevice* LeAudioDeviceGroup::GetNextActiveDeviceByDataPathState(
   return iter->lock().get();
 }
 
-bool LeAudioDeviceGroup::SetContextType(LeAudioContextType context_type) {
-  /* XXX: group context policy ? / may it disallow to change type ?) */
-  context_type_ = context_type;
-
-  return true;
-}
-
-LeAudioContextType LeAudioDeviceGroup::GetContextType(void) {
-  return context_type_;
-}
-
 uint32_t LeAudioDeviceGroup::GetSduInterval(uint8_t direction) {
   for (LeAudioDevice* leAudioDevice = GetFirstActiveDevice();
        leAudioDevice != nullptr;
@@ -1579,9 +1568,6 @@ const set_configurations::AudioSetConfiguration*
 LeAudioDeviceGroup::GetActiveConfiguration(void) {
   return active_context_to_configuration_map[active_context_type_];
 }
-AudioContexts LeAudioDeviceGroup::GetActiveContexts(void) {
-  return active_contexts_mask_;
-}
 
 std::optional<LeAudioCodecConfiguration>
 LeAudioDeviceGroup::GetCodecConfigurationByDirection(
@@ -1775,10 +1761,6 @@ void LeAudioDeviceGroup::CreateStreamVectorForOffloader(uint8_t direction) {
           std::make_pair(cis_entry.conn_handle, current_allocation));
     }
   }
-}
-
-types::LeAudioContextType LeAudioDeviceGroup::GetCurrentContextType(void) {
-  return active_context_type_;
 }
 
 bool LeAudioDeviceGroup::IsPendingConfiguration(void) {
@@ -2450,14 +2432,13 @@ bool LeAudioDevice::ActivateConfiguredAses(LeAudioContextType context_type) {
 }
 
 void LeAudioDevice::DeactivateAllAses(void) {
-  /* Just clear states and keep previous configuration for use
-   * in case device will get reconnected
-   */
   for (auto& ase : ases_) {
     if (ase.active) {
       ase.state = AseState::BTA_LE_AUDIO_ASE_STATE_IDLE;
       ase.data_path_state = AudioStreamDataPathState::IDLE;
       ase.active = false;
+      ase.cis_id = le_audio::kInvalidCisId;
+      ase.cis_conn_hdl = 0;
     }
   }
 }

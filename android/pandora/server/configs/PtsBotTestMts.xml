@@ -41,7 +41,7 @@
         <option name="profile" value="HFP/AG/PSI" />
         <option name="profile" value="HFP/AG/SLC" />
         <option name="profile" value="HFP/AG/TCA" />
-        <option name="profile" value="L2CAP/LE/CFC" />
+        <option name="profile" value="L2CAP/LE" />
         <option name="profile" value="SDP/SR" />
         <option name="profile" value="SM/CEN/EKS" />
         <option name="profile" value="SM/CEN/JW" />

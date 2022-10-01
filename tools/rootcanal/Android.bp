@@ -117,6 +117,42 @@ cc_library_static {
     srcs: ["model/devices/scripted_beacon_ble_payload.proto"],
 }
 
+cc_test_host {
+    name: "rootcanal_hci_test",
+    defaults: [
+        "clang_file_coverage",
+        "clang_coverage_bin",
+        "rootcanal_defaults",
+    ],
+    srcs: [
+        "test/controller/le/le_clear_filter_accept_list_test.cc",
+        "test/controller/le/le_add_device_to_filter_accept_list_test.cc",
+        "test/controller/le/le_remove_device_from_filter_accept_list_test.cc",
+        "test/controller/le/le_add_device_to_resolving_list_test.cc",
+        "test/controller/le/le_clear_resolving_list_test.cc",
+        "test/controller/le/le_remove_device_from_resolving_list_test.cc",
+        "test/controller/le/le_set_address_resolution_enable_test.cc",
+    ],
+    header_libs: [
+        "libbluetooth_headers",
+    ],
+    local_include_dirs: [
+        "include",
+        ".",
+    ],
+    include_dirs: [
+        "packages/modules/Bluetooth/system",
+        "packages/modules/Bluetooth/system/gd",
+    ],
+    shared_libs: [
+        "liblog",
+    ],
+    static_libs: [
+        "libbt-rootcanal",
+        "libjsoncpp",
+    ],
+}
+
 // test-vendor unit tests for host
 cc_test_host {
     name: "rootcanal_test_host",

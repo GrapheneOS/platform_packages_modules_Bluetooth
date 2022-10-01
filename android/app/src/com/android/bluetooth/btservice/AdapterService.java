@@ -5258,6 +5258,7 @@ public class AdapterService extends Service {
     private static final String GD_LINK_POLICY_FLAG = "INIT_gd_link_policy";
     private static final String GATT_ROBUST_CACHING_CLIENT_FLAG = "INIT_gatt_robust_caching_client";
     private static final String GATT_ROBUST_CACHING_SERVER_FLAG = "INIT_gatt_robust_caching_server";
+    private static final String IRK_ROTATION_FLAG = "INIT_irk_rotation";
 
     /**
      * Logging flags logic (only applies to DEBUG and VERBOSE levels):
@@ -5318,6 +5319,9 @@ public class AdapterService extends Service {
         if (DeviceConfig.getBoolean(DeviceConfig.NAMESPACE_BLUETOOTH,
                 GATT_ROBUST_CACHING_SERVER_FLAG, false)) {
             initFlags.add(String.format("%s=%s", GATT_ROBUST_CACHING_SERVER_FLAG, "true"));
+        }
+        if (DeviceConfig.getBoolean(DeviceConfig.NAMESPACE_BLUETOOTH, IRK_ROTATION_FLAG, false)) {
+            initFlags.add(String.format("%s=%s", IRK_ROTATION_FLAG, "true"));
         }
         if (DeviceConfig.getBoolean(DeviceConfig.NAMESPACE_BLUETOOTH,
                 LOGGING_DEBUG_ENABLED_FOR_ALL_FLAG, false)) {

@@ -40,13 +40,20 @@ using namespace std::chrono_literals;
 namespace {
 constexpr size_t kBufSize = 512;
 constexpr char kOurAclEventHandlerWasInvoked[] = "Our ACL event handler was invoked.";
+constexpr char kOurCommandCompleteHandlerWasInvoked[] = "Our command complete handler was invoked.";
+constexpr char kOurCommandStatusHandlerWasInvoked[] = "Our command status handler was invoked.";
 constexpr char kOurDisconnectHandlerWasInvoked[] = "Our disconnect handler was invoked.";
 constexpr char kOurEventHandlerWasInvoked[] = "Our event handler was invoked.";
 constexpr char kOurLeAclEventHandlerWasInvoked[] = "Our LE ACL event handler was invoked.";
+constexpr char kOurLeAdvertisementEventHandlerWasInvoked[] = "Our LE advertisement event handler was invoked.";
 constexpr char kOurLeDisconnectHandlerWasInvoked[] = "Our LE disconnect handler was invoked.";
 constexpr char kOurLeEventHandlerWasInvoked[] = "Our LE event handler was invoked.";
+constexpr char kOurLeIsoEventHandlerWasInvoked[] = "Our LE ISO event handler was invoked.";
 constexpr char kOurLeReadRemoteVersionHandlerWasInvoked[] = "Our Read Remote Version complete handler was invoked.";
+constexpr char kOurLeScanningEventHandlerWasInvoked[] = "Our LE scanning event handler was invoked.";
 constexpr char kOurReadRemoteVersionHandlerWasInvoked[] = "Our Read Remote Version complete handler was invoked.";
+constexpr char kOurLeSecurityEventHandlerWasInvoked[] = "Our LE security event handler was invoked.";
+constexpr char kOurSecurityEventHandlerWasInvoked[] = "Our security event handler was invoked.";
 }  // namespace
 
 namespace bluetooth {
@@ -252,14 +259,14 @@ TEST_F(HciLayerTest, successful_reset) {
 }
 
 TEST_F(HciLayerTest, abort_if_reset_complete_returns_error) {
-  FailIfResetNotSent();
   ASSERT_DEATH(
       {
+        FailIfResetNotSent();
         auto error_code = ErrorCode::UNSPECIFIED_ERROR;
         hal_->InjectResetCompleteEventWithCode(error_code);
-        std::promise<void> promise;
         auto buf = std::make_unique<char[]>(kBufSize);
         std::snprintf(buf.get(), kBufSize, "Reset completed with status: %s", ErrorCodeText(error_code).c_str());
+        std::promise<void> promise;
         log_capture_->WaitUntilLogContains(&promise, buf.get());
       },
       "");
@@ -301,9 +308,9 @@ TEST_F(HciLayerTest, le_event_handler_is_invoked) {
 }
 
 TEST_F(HciLayerTest, abort_on_second_register_event_handler) {
-  FailIfResetNotSent();
   ASSERT_DEATH(
       {
+        FailIfResetNotSent();
         hci_->RegisterEventHandler(EventCode::COMMAND_COMPLETE, hci_handler_->Bind([](EventView view) {}));
         std::promise<void> promise;
         log_capture_->WaitUntilLogContains(&promise, "Can not register a second handler for");
@@ -312,11 +319,11 @@ TEST_F(HciLayerTest, abort_on_second_register_event_handler) {
 }
 
 TEST_F(HciLayerTest, abort_on_second_register_le_event_handler) {
-  FailIfResetNotSent();
-  hci_->RegisterLeEventHandler(
-      SubeventCode::ENHANCED_CONNECTION_COMPLETE, hci_handler_->Bind([](LeMetaEventView view) {}));
   ASSERT_DEATH(
       {
+        FailIfResetNotSent();
+        hci_->RegisterLeEventHandler(
+            SubeventCode::ENHANCED_CONNECTION_COMPLETE, hci_handler_->Bind([](LeMetaEventView view) {}));
         hci_->RegisterLeEventHandler(
             SubeventCode::ENHANCED_CONNECTION_COMPLETE, hci_handler_->Bind([](LeMetaEventView view) {}));
         std::promise<void> promise;
@@ -366,8 +373,8 @@ TEST_F(HciLayerTest, our_read_remote_version_callback_is_invoked) {
                             uint8_t version,
                             uint16_t manufacturer_name,
                             uint16_t sub_version) { LOG_DEBUG("%s", kOurReadRemoteVersionHandlerWasInvoked); }));
-  hal_->InjectEvent(bluetooth::hci::ReadRemoteVersionInformationCompleteBuilder::Create(
-      ErrorCode::SUCCESS, 0x0001, 0x0b, 0x000f, 0x0000));
+  hal_->InjectEvent(
+      ReadRemoteVersionInformationCompleteBuilder::Create(ErrorCode::SUCCESS, 0x0001, 0x0b, 0x000f, 0x0000));
   std::promise<void> promise;
   log_capture_->WaitUntilLogContains(&promise, kOurReadRemoteVersionHandlerWasInvoked);
 }
@@ -413,10 +420,142 @@ TEST_F(HciLayerTest, our_le_read_remote_version_callback_is_invoked) {
                             uint8_t version,
                             uint16_t manufacturer_name,
                             uint16_t sub_version) { LOG_DEBUG("%s", kOurLeReadRemoteVersionHandlerWasInvoked); }));
-  hal_->InjectEvent(bluetooth::hci::ReadRemoteVersionInformationCompleteBuilder::Create(
-      ErrorCode::SUCCESS, 0x0001, 0x0b, 0x000f, 0x0000));
+  hal_->InjectEvent(
+      ReadRemoteVersionInformationCompleteBuilder::Create(ErrorCode::SUCCESS, 0x0001, 0x0b, 0x000f, 0x0000));
   std::promise<void> promise;
   log_capture_->WaitUntilLogContains(&promise, kOurLeReadRemoteVersionHandlerWasInvoked);
+}
+
+TEST_F(HciLayerTest, our_security_callback_is_invoked) {
+  FailIfResetNotSent();
+  hci_->GetSecurityInterface(
+      hci_handler_->Bind([](EventView view) { LOG_DEBUG("%s", kOurSecurityEventHandlerWasInvoked); }));
+  hal_->InjectEvent(EncryptionChangeBuilder::Create(ErrorCode::SUCCESS, 0x0001, bluetooth::hci::EncryptionEnabled::ON));
+  std::promise<void> promise;
+  log_capture_->WaitUntilLogContains(&promise, kOurSecurityEventHandlerWasInvoked);
+}
+
+TEST_F(HciLayerTest, our_le_security_callback_is_invoked) {
+  FailIfResetNotSent();
+  hci_->GetLeSecurityInterface(
+      hci_handler_->Bind([](LeMetaEventView view) { LOG_DEBUG("%s", kOurLeSecurityEventHandlerWasInvoked); }));
+  hal_->InjectEvent(LeLongTermKeyRequestBuilder::Create(0x0001, {0, 0, 0, 0, 0, 0, 0, 0}, 0));
+  std::promise<void> promise;
+  log_capture_->WaitUntilLogContains(&promise, kOurLeSecurityEventHandlerWasInvoked);
+}
+
+TEST_F(HciLayerTest, our_le_advertising_callback_is_invoked) {
+  FailIfResetNotSent();
+  hci_->GetLeAdvertisingInterface(
+      hci_handler_->Bind([](LeMetaEventView view) { LOG_DEBUG("%s", kOurLeAdvertisementEventHandlerWasInvoked); }));
+  hal_->InjectEvent(LeAdvertisingSetTerminatedBuilder::Create(ErrorCode::SUCCESS, 0x01, 0x001, 0x01));
+  std::promise<void> promise;
+  log_capture_->WaitUntilLogContains(&promise, kOurLeAdvertisementEventHandlerWasInvoked);
+}
+
+TEST_F(HciLayerTest, our_le_scanning_callback_is_invoked) {
+  FailIfResetNotSent();
+  hci_->GetLeScanningInterface(
+      hci_handler_->Bind([](LeMetaEventView view) { LOG_DEBUG("%s", kOurLeScanningEventHandlerWasInvoked); }));
+  hal_->InjectEvent(LeScanTimeoutBuilder::Create());
+  std::promise<void> promise;
+  log_capture_->WaitUntilLogContains(&promise, kOurLeScanningEventHandlerWasInvoked);
+}
+
+TEST_F(HciLayerTest, our_le_iso_callback_is_invoked) {
+  FailIfResetNotSent();
+  hci_->GetLeIsoInterface(
+      hci_handler_->Bind([](LeMetaEventView view) { LOG_DEBUG("%s", kOurLeIsoEventHandlerWasInvoked); }));
+  hal_->InjectEvent(LeCisRequestBuilder::Create(0x0001, 0x0001, 0x01, 0x01));
+  std::promise<void> promise;
+  log_capture_->WaitUntilLogContains(&promise, kOurLeIsoEventHandlerWasInvoked);
+}
+
+TEST_F(HciLayerTest, our_command_complete_callback_is_invoked) {
+  FailIfResetNotSent();
+  auto error_code = ErrorCode::SUCCESS;
+  hal_->InjectResetCompleteEventWithCode(error_code);
+  hci_->EnqueueCommand(ResetBuilder::Create(), hci_handler_->BindOnce([](CommandCompleteView view) {
+    LOG_DEBUG("%s", kOurCommandCompleteHandlerWasInvoked);
+  }));
+  hal_->InjectResetCompleteEventWithCode(error_code);
+  std::promise<void> promise;
+  log_capture_->WaitUntilLogContains(&promise, kOurCommandCompleteHandlerWasInvoked);
+}
+
+TEST_F(HciLayerTest, our_command_status_callback_is_invoked) {
+  FailIfResetNotSent();
+  auto error_code = ErrorCode::SUCCESS;
+  hal_->InjectResetCompleteEventWithCode(error_code);
+  hci_->EnqueueCommand(ReadClockOffsetBuilder::Create(0x001), hci_handler_->BindOnce([](CommandStatusView view) {
+    LOG_DEBUG("%s", kOurCommandStatusHandlerWasInvoked);
+  }));
+  hal_->InjectEvent(ReadClockOffsetStatusBuilder::Create(ErrorCode::SUCCESS, 1));
+  std::promise<void> promise;
+  log_capture_->WaitUntilLogContains(&promise, kOurCommandStatusHandlerWasInvoked);
+}
+
+TEST_F(HciLayerTest, command_complete_callback_is_invoked_with_an_opcode_that_does_not_match_command_queue) {
+  ASSERT_DEATH(
+      {
+        FailIfResetNotSent();
+        hci_->EnqueueCommand(
+            ReadClockOffsetBuilder::Create(0x001), hci_handler_->BindOnce([](CommandCompleteView view) {}));
+        hal_->InjectEvent(ReadClockOffsetStatusBuilder::Create(ErrorCode::SUCCESS, 1));
+        std::promise<void> promise;
+        log_capture_->WaitUntilLogContains(&promise, "Waiting for 0x0c03 (RESET)");
+      },
+      "");
+}
+
+TEST_F(HciLayerTest, command_status_callback_is_invoked_with_an_opcode_that_does_not_match_command_queue) {
+  ASSERT_DEATH(
+      {
+        FailIfResetNotSent();
+        hci_->EnqueueCommand(
+            ReadClockOffsetBuilder::Create(0x001), hci_handler_->BindOnce([](CommandStatusView view) {}));
+        hal_->InjectEvent(ReadClockOffsetStatusBuilder::Create(ErrorCode::SUCCESS, 1));
+        std::promise<void> promise;
+        log_capture_->WaitUntilLogContains(&promise, "Waiting for 0x0c03 (RESET)");
+      },
+      "");
+}
+
+TEST_F(HciLayerTest, command_complete_callback_is_invoked_but_command_queue_empty) {
+  ASSERT_DEATH(
+      {
+        FailIfResetNotSent();
+        auto error_code = ErrorCode::SUCCESS;
+        hal_->InjectResetCompleteEventWithCode(error_code);
+        hal_->InjectResetCompleteEventWithCode(error_code);
+        std::promise<void> promise;
+        log_capture_->WaitUntilLogContains(&promise, "Unexpected event complete with opcode:0x0c3");
+      },
+      "");
+}
+
+TEST_F(HciLayerTest, command_status_callback_is_invoked_but_command_queue_empty) {
+  ASSERT_DEATH(
+      {
+        FailIfResetNotSent();
+        auto error_code = ErrorCode::SUCCESS;
+        hal_->InjectResetCompleteEventWithCode(error_code);
+        hal_->InjectEvent(ReadClockOffsetStatusBuilder::Create(ErrorCode::SUCCESS, 1));
+        std::promise<void> promise;
+        log_capture_->WaitUntilLogContains(&promise, "Unexpected event status with opcode:0x41f");
+      },
+      "");
+}
+
+TEST_F(HciLayerTest, command_status_callback_is_invoked_with_failure_status) {
+  FailIfResetNotSent();
+  auto error_code = ErrorCode::SUCCESS;
+  hal_->InjectResetCompleteEventWithCode(error_code);
+  hci_->EnqueueCommand(ReadClockOffsetBuilder::Create(0x001), hci_handler_->BindOnce([](CommandStatusView view) {}));
+  hal_->InjectEvent(ReadClockOffsetStatusBuilder::Create(ErrorCode::HARDWARE_FAILURE, 1));
+  std::promise<void> promise;
+  log_capture_->WaitUntilLogContains(
+      &promise, "Received UNEXPECTED command status:HARDWARE_FAILURE opcode:0x41f (READ_CLOCK_OFFSET)");
 }
 
 }  // namespace hci
