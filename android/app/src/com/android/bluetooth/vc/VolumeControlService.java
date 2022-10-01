@@ -586,6 +586,11 @@ public class VolumeControlService extends ProfileService {
      * {@hide}
      */
     public void setGroupVolume(int groupId, int volume) {
+        if (volume < 0) {
+            Log.w(TAG, "Tried to set invalid volume " + volume + ". Ignored.");
+            return;
+        }
+
         mGroupVolumeCache.put(groupId, volume);
         mVolumeControlNativeInterface.setGroupVolume(groupId, volume);
     }
@@ -681,6 +686,15 @@ public class VolumeControlService extends ProfileService {
             mAudioManager.setStreamVolume(streamType, getDeviceVolume(streamType, volume),
                     AudioManager.FLAG_SHOW_UI | AudioManager.FLAG_BLUETOOTH_ABS_VOLUME);
         }
+    }
+
+    /**
+     * {@hide}
+     */
+    public int getAudioDeviceGroupVolume(int groupId) {
+        int volume = getGroupVolume(groupId);
+        if (volume == IBluetoothVolumeControl.VOLUME_CONTROL_UNKNOWN_VOLUME) return -1;
+        return getDeviceVolume(getBluetoothContextualVolumeStream(), volume);
     }
 
     int getDeviceVolume(int streamType, int bleVolume) {
