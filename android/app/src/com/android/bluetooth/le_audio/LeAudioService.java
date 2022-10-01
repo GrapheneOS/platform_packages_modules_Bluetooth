@@ -415,7 +415,7 @@ public class LeAudioService extends ProfileService {
         sLeAudioService = instance;
     }
 
-    private int getGroupVolume(int groupId) {
+    private int getAudioDeviceGroupVolume(int groupId) {
         if (mVolumeControlService == null) {
             mVolumeControlService = mServiceFactory.getVolumeControlService();
             if (mVolumeControlService == null) {
@@ -424,7 +424,7 @@ public class LeAudioService extends ProfileService {
             }
         }
 
-        return mVolumeControlService.getGroupVolume(groupId);
+        return mVolumeControlService.getAudioDeviceGroupVolume(groupId);
     }
 
     public boolean connect(BluetoothDevice device) {
@@ -926,7 +926,7 @@ public class LeAudioService extends ProfileService {
             }
             int volume = IBluetoothVolumeControl.VOLUME_CONTROL_UNKNOWN_VOLUME;
             if (mActiveAudioOutDevice != null) {
-                volume = getGroupVolume(groupId);
+                volume = getAudioDeviceGroupVolume(groupId);
             }
 
             mAudioManager.handleBluetoothActiveDeviceChanged(mActiveAudioOutDevice,
