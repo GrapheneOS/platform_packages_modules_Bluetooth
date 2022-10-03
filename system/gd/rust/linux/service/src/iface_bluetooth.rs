@@ -316,6 +316,11 @@ impl IBluetooth for IBluetoothDBus {
         dbus_generated!()
     }
 
+    #[dbus_method("GetRemoteAppearance")]
+    fn get_remote_appearance(&self, _device: BluetoothDevice) -> u16 {
+        dbus_generated!()
+    }
+
     #[dbus_method("GetRemoteConnected")]
     fn get_remote_connected(&self, _device: BluetoothDevice) -> bool {
         dbus_generated!()
