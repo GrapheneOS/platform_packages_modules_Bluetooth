@@ -626,6 +626,15 @@ void bta_dm_remove_device(const RawAddress& bd_addr) {
   if (other_address == bd_addr) other_address = other_address2;
 
   if (other_address_connected) {
+    // Get real transport
+    if (other_transport == BT_TRANSPORT_AUTO) {
+      bool connected_with_br_edr =
+          BTM_IsAclConnectionUp(other_address, BT_TRANSPORT_BR_EDR);
+      other_transport =
+          connected_with_br_edr ? BT_TRANSPORT_BR_EDR : BT_TRANSPORT_LE;
+    }
+    LOG_INFO("other_address %s with transport %d connected",
+             PRIVATE_ADDRESS(other_address), other_transport);
     /* Take the link down first, and mark the device for removal when
      * disconnected */
     for (int i = 0; i < bta_dm_cb.device_list.count; i++) {
@@ -633,6 +642,7 @@ void bta_dm_remove_device(const RawAddress& bd_addr) {
       if (peer_device.peer_bdaddr == other_address &&
           peer_device.transport == other_transport) {
         peer_device.conn_state = BTA_DM_UNPAIRING;
+        LOG_INFO("Remove ACL of address %s", PRIVATE_ADDRESS(other_address));
 
         /* Make sure device is not in acceptlist before we disconnect */
         GATT_CancelConnect(0, bd_addr, false);
@@ -651,13 +661,6 @@ void bta_dm_remove_device(const RawAddress& bd_addr) {
   /* Delete the other paired device too */
   if (!other_address_connected && !other_address.IsEmpty()) {
     bta_dm_process_remove_device(other_address);
-  }
-
-  /* Check the length of the paired devices, and if 0 then reset IRK */
-  auto paired_devices = btif_config_get_paired_devices();
-  if (paired_devices.empty()) {
-    LOG_INFO("Last paired device removed, resetting IRK");
-    btm_ble_reset_id();
   }
 }
 
@@ -3620,7 +3623,8 @@ static uint8_t bta_dm_ble_smp_cback(tBTM_LE_EVT event, const RawAddress& bda,
                 (static_cast<uint8_t>(p_data->complt.reason))));
 
         if (btm_sec_is_a_bonded_dev(bda) &&
-            p_data->complt.reason == SMP_CONN_TOUT) {
+            p_data->complt.reason == SMP_CONN_TOUT &&
+            !p_data->complt.smp_over_br) {
           // Bonded device failed to encrypt - to test this remove battery from
           // HID device right after connection, but before encryption is
           // established
@@ -4035,6 +4039,20 @@ void bta_dm_proc_open_evt(tBTA_GATTC_OPEN* p_data) {
 void bta_dm_clear_event_filter(void) {
   VLOG(1) << "bta_dm_clear_event_filter in bta_dm_act";
   bluetooth::shim::BTM_ClearEventFilter();
+}
+
+/*******************************************************************************
+ *
+ * Function         bta_dm_ble_reset_id
+ *
+ * Description      Reset the local adapter BLE keys.
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
+void bta_dm_ble_reset_id(void) {
+  VLOG(1) << "bta_dm_ble_reset_id in bta_dm_act";
+  bluetooth::shim::BTM_BleResetId();
 }
 
 /*******************************************************************************

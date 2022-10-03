@@ -128,4 +128,10 @@
     <string name="a2dp_sink_mbs_label" msgid="6035366346569127155">"Bluetooth-hljóð"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"Ekki er hægt að flytja skrár sem eru stærri en 4 GB"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Tengjast við Bluetooth"</string>
+    <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Kveikt á Bluetooth í flugstillingu"</string>
+    <string name="bluetooth_enabled_apm_message" msgid="8990667142380927316">"Ef þú hefur kveikt á Bluetooth verður það áfram í gangi næst þegar þú setur á flugstillingu."</string>
+    <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Áfram kveikt á Bluetooth"</string>
+    <string name="bluetooth_stays_on_message" msgid="2770176686603189536">"Síminn man að hafa kveikt á Bluetooth í flugstillingu. Slökktu á Bluetooth til að breyta þessu."</string>
+    <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Áfram verður kveikt á Wi-Fi og Bluetooth"</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="4120501683284996436">"Síminn man að hafa kveikt á Wi-Fi og Bluetooth í flugstillingu. Til að breyta þessu skaltu slökkva á hvoru tveggja."</string>
 </resources>

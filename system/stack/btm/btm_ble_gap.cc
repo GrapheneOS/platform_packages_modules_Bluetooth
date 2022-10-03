@@ -805,7 +805,7 @@ bool BTM_BleConfigPrivacy(bool privacy_mode) {
 
   GAP_BleAttrDBUpdate(GATT_UUID_GAP_CENTRAL_ADDR_RESOL, &gap_ble_attr_value);
 
-    bluetooth::shim::ACL_ConfigureLePrivacy(privacy_mode);
+  bluetooth::shim::ACL_ConfigureLePrivacy(privacy_mode);
   return true;
 }
 

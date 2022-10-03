@@ -104,7 +104,7 @@
     <string name="download_success" msgid="3438268368708549686">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> ተቀብሎ ተጠናቋል።"</string>
     <string name="upload_success" msgid="143787470859042049">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> ልኮ ተጠናቋል።"</string>
     <string name="inbound_history_title" msgid="189623888169624862">"ወደ ውስጥ ማስተላለፍ"</string>
-    <string name="outbound_history_title" msgid="7614166584551065036">"ወደ ውጪ ማስተላለፍ"</string>
+    <string name="outbound_history_title" msgid="7614166584551065036">"ወደ ውጭ ማስተላለፍ"</string>
     <string name="no_transfers" msgid="740521199933899821">"የዝውውር ታሪክ ባዶ ነው።"</string>
     <string name="transfer_clear_dlg_msg" msgid="586117930961007311">"ሁሉም ዓይነቶች ከዝርዝር ውስጥ ይሰረዛሉ።"</string>
     <string name="outbound_noti_title" msgid="2045560896819618979">"ብሉቱዝ ማጋሪያ፡ የተላኩ ፋይሎች"</string>
@@ -128,4 +128,10 @@
     <string name="a2dp_sink_mbs_label" msgid="6035366346569127155">"የብሉቱዝ ኦዲዮ"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"ከ4 ጊባ በላይ የሆኑ ፋይሎች ሊዛወሩ አይችሉም"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"ከብሉቱዝ ጋር ተገናኝ"</string>
+    <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"ብሉቱዝ በአውሮፕላን ሁነታ ላይ በርቷል"</string>
+    <string name="bluetooth_enabled_apm_message" msgid="8990667142380927316">"ብሉቱዝን አብርተው ካቆዩ ቀጣይ በአውሮፕላን ሁነታ ላይ ሲሆኑ በርቶ ይቆያል"</string>
+    <string name="bluetooth_stays_on_title" msgid="39720820955212918">"ብሉቱዝ በርቶ ይቆያል"</string>
+    <string name="bluetooth_stays_on_message" msgid="2770176686603189536">"ስልክዎ ብሉቱዝን በአውሮፕላን ሁነታ ላይ አብርቶ ማቆየትን ያስታውሳል። ይህን ለመለወጥ ብሉቱዝን ያጥፉ።"</string>
+    <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wi-Fi እና ብሉቱዝ በርተው ይቆያሉ"</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="4120501683284996436">"ስልክዎ Wi-Fiን እና ብሉቱዝን በአውሮፕላን ሁነታ ላይ አብርቶ ማቆየትን ያስታውሳል። ይህን ለመለወጥ ያጥፏቸው።"</string>
 </resources>

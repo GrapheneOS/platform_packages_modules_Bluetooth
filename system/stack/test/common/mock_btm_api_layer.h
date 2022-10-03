@@ -36,6 +36,7 @@ class BtmApiInterface {
                            tBT_TRANSPORT transport) = 0;
   virtual bool IsLinkKeyKnown(const RawAddress& remote_bd_addr,
                               tBT_TRANSPORT transport) = 0;
+  virtual uint8_t ReadSecKeySize(const RawAddress& remote_bd_addr) = 0;
   virtual ~BtmApiInterface() = default;
 };
 
@@ -51,6 +52,7 @@ class MockBtmApiInterface : public BtmApiInterface {
                bool(const RawAddress& remote_bd_addr, tBT_TRANSPORT transport));
   MOCK_METHOD2(IsLinkKeyKnown,
                bool(const RawAddress& remote_bd_addr, tBT_TRANSPORT transport));
+  MOCK_METHOD1(ReadSecKeySize, uint8_t(const RawAddress& remote_bd_addr));
 };
 
 /**

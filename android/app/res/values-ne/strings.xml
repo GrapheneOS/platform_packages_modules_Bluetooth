@@ -128,4 +128,10 @@
     <string name="a2dp_sink_mbs_label" msgid="6035366346569127155">"ब्लुटुथको अडियो"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"४ जि.बि. भन्दा ठूला फाइलहरूलाई स्थानान्तरण गर्न सकिँदैन"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"ब्लुटुथमा कनेक्ट गर्नुहोस्"</string>
+    <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"हवाइजहाज मोडमा ब्लुटुथ अन राखियोस्"</string>
+    <string name="bluetooth_enabled_apm_message" msgid="8990667142380927316">"तपाईंले ब्लुटुथ अन राखिराख्नुभयो भने तपाईंको फोन अर्को पटक हवाइजहाज मोडमा लैजाँदा ब्लुटुथ अन रहिरहने छ"</string>
+    <string name="bluetooth_stays_on_title" msgid="39720820955212918">"ब्लुटुथ अन रहन्छ"</string>
+    <string name="bluetooth_stays_on_message" msgid="2770176686603189536">"हवाइजहाज मोडमा पनि तपाईंको फोनको ब्लुटुथ अन नै रहिरहने छ। यो सेटिङ बदल्न चाहनुहुन्छ भने ब्लुटुथ अफ गर्नुहोस्।"</string>
+    <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wi-Fi र ब्लुटुथ अन रहिरहने छन्"</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="4120501683284996436">"हवाइजहाज मोडमा पनि तपाईंको फोनको Wi-Fi र ब्लुटुथ अन नै रहिरहने छन्। यो सेटिङ बदल्न चाहनुहुन्छ भने यी दुवै अफ गर्नुहोस्।"</string>
 </resources>

@@ -558,7 +558,7 @@ public class MediaControlGattService implements MediaControlGattServiceInterface
             super.onCharacteristicReadRequest(device, requestId, offset, characteristic);
             if (VDBG) {
                 Log.d(TAG, "BluetoothGattServerCallback: onCharacteristicReadRequest offset= "
-                        + offset + " entire value= " + characteristic.getValue());
+                        + offset + " entire value= " + Arrays.toString(characteristic.getValue()));
             }
 
             if ((characteristic.getProperties() & PROPERTY_READ) == 0) {
@@ -846,16 +846,13 @@ public class MediaControlGattService implements MediaControlGattServiceInterface
 
     @VisibleForTesting
     int handleMediaControlPointRequest(BluetoothDevice device, byte[] value) {
-        if (DBG) {
-            Log.d(TAG, "handleMediaControlPointRequest");
-        }
-
         final int payloadOffset = 1;
         final int opcode = value[0];
 
         // Test for RFU bits and currently supported opcodes
         if (!isOpcodeSupported(opcode)) {
-            Log.e(TAG, "handleMediaControlPointRequest: opcode or feature not supported");
+            Log.i(TAG, "handleMediaControlPointRequest: " + Request.Opcodes.toString(opcode)
+                     + " not supported");
             mHandler.post(() -> {
                 setMediaControlRequestResult(new Request(opcode, 0),
                         Request.Results.OPCODE_NOT_SUPPORTED);
@@ -864,6 +861,8 @@ public class MediaControlGattService implements MediaControlGattServiceInterface
         }
 
         if (getMediaControlPointRequestPayloadLength(opcode) != (value.length - payloadOffset)) {
+            Log.w(TAG, "handleMediaControlPointRequest: " + Request.Opcodes.toString(opcode)
+                    + " bad payload length");
             return BluetoothGatt.GATT_INVALID_ATTRIBUTE_LENGTH;
         }
 
@@ -885,8 +884,9 @@ public class MediaControlGattService implements MediaControlGattServiceInterface
 
         Request req = new Request(opcode, intVal);
 
-        if (VDBG) {
-            Log.d(TAG, "handleMediaControlPointRequest: sending request up");
+        if (DBG) {
+            Log.d(TAG, "handleMediaControlPointRequest: sending " + Request.Opcodes.toString(opcode)
+                    + " request up");
         }
 
         if (req.getOpcode() == Request.Opcodes.PLAY) {
@@ -1626,7 +1626,8 @@ public class MediaControlGattService implements MediaControlGattServiceInterface
 
     private boolean isFeatureSupported(long featureBit) {
         if (DBG) {
-            Log.w(TAG, "Feature " + featureBit + " support: " + ((mFeatures & featureBit) != 0));
+            Log.w(TAG, "Feature " + ServiceFeature.toString(featureBit) + " support: "
+                    + ((mFeatures & featureBit) != 0));
         }
         return (mFeatures & featureBit) != 0;
     }

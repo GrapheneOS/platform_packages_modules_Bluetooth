@@ -94,6 +94,8 @@ class MockLeAudioClientInterfaceSink : public LeAudioClientInterface::Sink {
   MOCK_METHOD((void), CancelStreamingRequest, (), (override));
   MOCK_METHOD((void), UpdateAudioConfigToHal,
               (const ::le_audio::offload_config&));
+  MOCK_METHOD((void), UpdateBroadcastAudioConfigToHal,
+              (const ::le_audio::broadcast_offload_config&));
   MOCK_METHOD((size_t), Read, (uint8_t * p_buf, uint32_t len));
 };
 
@@ -170,7 +172,10 @@ void LeAudioClientInterface::Sink::ConfirmStreamingRequest(){};
 void LeAudioClientInterface::Sink::CancelStreamingRequest(){};
 void LeAudioClientInterface::Sink::UpdateAudioConfigToHal(
     const ::le_audio::offload_config& config){};
+void LeAudioClientInterface::Sink::UpdateBroadcastAudioConfigToHal(
+    const ::le_audio::broadcast_offload_config& config){};
 void LeAudioClientInterface::Sink::SuspendedForReconfiguration() {}
+void LeAudioClientInterface::Sink::ReconfigurationComplete() {}
 
 void LeAudioClientInterface::Source::Cleanup() {}
 void LeAudioClientInterface::Source::SetPcmParameters(
@@ -183,6 +188,7 @@ void LeAudioClientInterface::Source::CancelStreamingRequest(){};
 void LeAudioClientInterface::Source::UpdateAudioConfigToHal(
     const ::le_audio::offload_config& config){};
 void LeAudioClientInterface::Source::SuspendedForReconfiguration() {}
+void LeAudioClientInterface::Source::ReconfigurationComplete() {}
 
 size_t LeAudioClientInterface::Source::Write(const uint8_t* p_buf,
                                              uint32_t len) {
@@ -205,8 +211,7 @@ class MockLeAudioClientAudioSinkEventReceiver
               (override));
   MOCK_METHOD((void), OnAudioResume, (), (override));
   MOCK_METHOD((void), OnAudioMetadataUpdate,
-              (std::promise<void> do_update_metadata_promise,
-               const source_metadata_t& source_metadata),
+              (std::vector<struct playback_track_metadata> source_metadata),
               (override));
 };
 
@@ -217,8 +222,7 @@ class MockLeAudioClientAudioSourceEventReceiver
               (override));
   MOCK_METHOD((void), OnAudioResume, (), (override));
   MOCK_METHOD((void), OnAudioMetadataUpdate,
-              (std::promise<void> do_update_metadata_promise,
-               const sink_metadata_t& sink_metadata),
+              (std::vector<struct record_track_metadata> sink_metadata),
               (override));
 };
 

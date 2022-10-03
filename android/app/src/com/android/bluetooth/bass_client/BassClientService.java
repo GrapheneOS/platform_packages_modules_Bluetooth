@@ -56,6 +56,7 @@ import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.btservice.ServiceFactory;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 import com.android.bluetooth.csip.CsipSetCoordinatorService;
+import com.android.bluetooth.le_audio.LeAudioService;
 import com.android.internal.annotations.VisibleForTesting;
 
 import java.util.ArrayList;
@@ -1041,6 +1042,7 @@ public class BassClientService extends ProfileService {
             return;
         }
 
+        byte[] code = sourceMetadata.getBroadcastCode();
         for (BluetoothDevice device : devices) {
             BassClientStateMachine stateMachine = getOrCreateStateMachine(device);
             if (stateMachine == null) {
@@ -1069,6 +1071,15 @@ public class BassClientService extends ProfileService {
                 mCallbacks.notifySourceAddFailed(device, sourceMetadata,
                         BluetoothStatusCodes.ERROR_LE_BROADCAST_ASSISTANT_DUPLICATE_ADDITION);
                 continue;
+            }
+            if ((code != null) && (code.length != 0)) {
+                if ((code.length > 16) || (code.length < 4)) {
+                    log("Invalid broadcast code length: " + code.length
+                            + ", should be between 4 and 16 octets");
+                    mCallbacks.notifySourceAddFailed(device, sourceMetadata,
+                            BluetoothStatusCodes.ERROR_BAD_PARAMETERS);
+                    continue;
+                }
             }
 
             if (isGroupOp) {
@@ -1104,6 +1115,7 @@ public class BassClientService extends ProfileService {
             return;
         }
 
+        byte[] code = updatedMetadata.getBroadcastCode();
         for (Map.Entry<BluetoothDevice, Integer> deviceSourceIdPair : devices.entrySet()) {
             BluetoothDevice device = deviceSourceIdPair.getKey();
             Integer deviceSourceId = deviceSourceIdPair.getValue();
@@ -1126,6 +1138,15 @@ public class BassClientService extends ProfileService {
                 mCallbacks.notifySourceModifyFailed(device, sourceId,
                         BluetoothStatusCodes.ERROR_REMOTE_LINK_ERROR);
                 continue;
+            }
+            if ((code != null) && (code.length != 0)) {
+                if ((code.length > 16) || (code.length < 4)) {
+                    log("Invalid broadcast code length: " + code.length
+                            + ", should be between 4 and 16 octets");
+                    mCallbacks.notifySourceModifyFailed(device, sourceId,
+                            BluetoothStatusCodes.ERROR_BAD_PARAMETERS);
+                    continue;
+                }
             }
             if (stateMachine.hasPendingSourceOperation()) {
                 throw new IllegalStateException("modifySource: source operation already pending");
@@ -1238,6 +1259,25 @@ public class BassClientService extends ProfileService {
             return 0;
         }
         return stateMachine.getMaximumSourceCapacity();
+    }
+
+    boolean isLocalBroadcast(BluetoothLeBroadcastMetadata metaData) {
+        if (metaData == null) {
+            return false;
+        }
+
+        LeAudioService leAudioService = mServiceFactory.getLeAudioService();
+        if (leAudioService == null) {
+            return false;
+        }
+
+        boolean wasFound = leAudioService.getAllBroadcastMetadata()
+                .stream()
+                .anyMatch(meta -> {
+                    return meta.getSourceAdvertisingSid() == metaData.getSourceAdvertisingSid();
+                });
+        log("isLocalBroadcast=" + wasFound);
+        return wasFound;
     }
 
     static void log(String msg) {

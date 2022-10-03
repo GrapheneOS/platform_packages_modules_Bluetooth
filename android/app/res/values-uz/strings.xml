@@ -128,4 +128,10 @@
     <string name="a2dp_sink_mbs_label" msgid="6035366346569127155">"Bluetooth orqali ovoz"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"4 GBdan katta hajmli videolar o‘tkazilmaydi"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Bluetoothga ulanish"</string>
+    <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Bluetooth parvoz rejimida yoniq"</string>
+    <string name="bluetooth_enabled_apm_message" msgid="8990667142380927316">"Bluetooth aloqani yoniq qoldirsangiz, keyingi safar parvoz rejimini faollashtirganingizda yoniq qoladi"</string>
+    <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Bluetooth yoniq turadi"</string>
+    <string name="bluetooth_stays_on_message" msgid="2770176686603189536">"Telefoningiz parvoz rejimida Bluetooth yoqilganini eslab qoladi. Buni oʻzgartirish uchun Bluetoothni faolsizlantiring."</string>
+    <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wi-Fi va Bluetooth yoniq qoladi"</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="4120501683284996436">"Telefoningiz parvoz rejimida Wi‑Fi va Bluetooth yoqilganini eslab qoladi. Buni oʻzgartirish uchun ularni faolsizlantiring."</string>
 </resources>

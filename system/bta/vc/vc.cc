@@ -341,6 +341,13 @@ class VolumeControlImpl : public VolumeControl {
       }
     }
 
+    if (devices.empty() && (is_volume_change || is_mute_change)) {
+      LOG_INFO("No more devices in the group right now");
+      callbacks_->OnGroupVolumeStateChanged(group_id, device->volume,
+                                            device->mute, true);
+      return;
+    }
+
     if (is_volume_change) {
       std::vector<uint8_t> arg({device->volume});
       PrepareVolumeControlOperation(devices, group_id, true,
@@ -612,6 +619,37 @@ class VolumeControlImpl : public VolumeControl {
     }
   }
 
+  void RemovePendingVolumeControlOperations(std::vector<RawAddress>& devices,
+                                            int group_id) {
+    for (auto op = ongoing_operations_.begin();
+         op != ongoing_operations_.end();) {
+      // We only remove operations that don't affect the mute field.
+      if (op->IsStarted() ||
+          (op->opcode_ != kControlPointOpcodeSetAbsoluteVolume &&
+           op->opcode_ != kControlPointOpcodeVolumeUp &&
+           op->opcode_ != kControlPointOpcodeVolumeDown)) {
+        op++;
+        continue;
+      }
+      if (group_id != bluetooth::groups::kGroupUnknown &&
+          op->group_id_ == group_id) {
+        op = ongoing_operations_.erase(op);
+        continue;
+      }
+      for (auto const& addr : devices) {
+        auto it = find(op->devices_.begin(), op->devices_.end(), addr);
+        if (it != op->devices_.end()) {
+          op->devices_.erase(it);
+        }
+      }
+      if (op->devices_.empty()) {
+        op = ongoing_operations_.erase(op);
+      } else {
+        op++;
+      }
+    }
+  }
+
   void OnWriteControlResponse(uint16_t connection_id, tGATT_STATUS status,
                               uint16_t handle, void* data) {
     VolumeControlDevice* device =
@@ -781,6 +819,8 @@ class VolumeControlImpl : public VolumeControl {
       std::vector<RawAddress> devices = {
           std::get<RawAddress>(addr_or_group_id)};
 
+      RemovePendingVolumeControlOperations(devices,
+                                           bluetooth::groups::kGroupUnknown);
       PrepareVolumeControlOperation(devices, bluetooth::groups::kGroupUnknown,
                                     false, opcode, arg);
     } else {
@@ -809,6 +849,7 @@ class VolumeControlImpl : public VolumeControl {
         return;
       }
 
+      RemovePendingVolumeControlOperations(devices, group_id);
       PrepareVolumeControlOperation(devices, group_id, false, opcode, arg);
     }
 
@@ -1017,7 +1058,7 @@ class VolumeControlImpl : public VolumeControl {
 
       case BTA_GATTC_ENC_CMPL_CB_EVT: {
         uint8_t encryption_status;
-        if (!BTM_IsEncrypted(p_data->enc_cmpl.remote_bda, BT_TRANSPORT_LE)) {
+        if (BTM_IsEncrypted(p_data->enc_cmpl.remote_bda, BT_TRANSPORT_LE)) {
           encryption_status = BTM_SUCCESS;
         } else {
           encryption_status = BTM_FAILED_ON_SECURITY;

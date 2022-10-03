@@ -23,7 +23,6 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.IBluetoothAvrcpController;
 import android.content.AttributionSource;
-import android.content.ComponentName;
 import android.content.Intent;
 import android.support.v4.media.MediaBrowserCompat.MediaItem;
 import android.support.v4.media.session.PlaybackStateCompat;
@@ -471,7 +470,7 @@ public class AvrcpControllerService extends ProfileService {
     private void handlePassthroughRsp(int id, int keyState, byte[] address) {
         if (DBG) {
             Log.d(TAG, "passthrough response received as: key: " + id
-                    + " state: " + keyState + "address:" + address);
+                    + " state: " + keyState + "address:" + Arrays.toString(address));
         }
     }
 
@@ -712,7 +711,8 @@ public class AvrcpControllerService extends ProfileService {
             int[] attrIds, String[] attrVals) {
         if (VDBG) {
             Log.d(TAG, "createFromNativeMediaItem uid: " + uid + " type: " + type + " name: " + name
-                    + " attrids: " + attrIds + " attrVals: " + attrVals);
+                    + " attrids: " + Arrays.toString(attrIds)
+                    + " attrVals: " + Arrays.toString(attrVals));
         }
 
         BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
@@ -750,10 +750,10 @@ public class AvrcpControllerService extends ProfileService {
     AvrcpPlayer createFromNativePlayerItem(byte[] address, int id, String name,
             byte[] transportFlags, int playStatus, int playerType) {
         if (VDBG) {
-            Log.d(TAG,
-                    "createFromNativePlayerItem name: " + name + " transportFlags "
-                            + transportFlags + " play status " + playStatus + " player type "
-                            + playerType);
+            Log.d(TAG, "createFromNativePlayerItem name: " + name
+                    + " transportFlags " + Arrays.toString(transportFlags)
+                    + " play status " + playStatus
+                    + " player type " + playerType);
         }
         BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
         AvrcpPlayer.Builder apb = new AvrcpPlayer.Builder();

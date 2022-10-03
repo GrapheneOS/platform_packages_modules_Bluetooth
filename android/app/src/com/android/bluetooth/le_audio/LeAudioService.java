@@ -36,6 +36,7 @@ import android.bluetooth.BluetoothUuid;
 import android.bluetooth.IBluetoothLeAudio;
 import android.bluetooth.IBluetoothLeAudioCallback;
 import android.bluetooth.IBluetoothLeBroadcastCallback;
+import android.bluetooth.IBluetoothVolumeControl;
 import android.content.AttributionSource;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -59,6 +60,7 @@ import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.btservice.ServiceFactory;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
+import com.android.bluetooth.hfp.HeadsetService;
 import com.android.bluetooth.mcp.McpService;
 import com.android.bluetooth.tbs.TbsGatt;
 import com.android.bluetooth.vc.VolumeControlService;
@@ -116,6 +118,7 @@ public class LeAudioService extends ProfileService {
 
     LeAudioNativeInterface mLeAudioNativeInterface;
     boolean mLeAudioNativeIsInitialized = false;
+    BluetoothDevice mHfpHandoverDevice = null;
     LeAudioBroadcasterNativeInterface mLeAudioBroadcasterNativeInterface = null;
     @VisibleForTesting
     AudioManager mAudioManager;
@@ -158,20 +161,20 @@ public class LeAudioService extends ProfileService {
     private final Map<BluetoothDevice, Integer> mDeviceGroupIdMap = new ConcurrentHashMap<>();
     private final Map<BluetoothDevice, Integer> mDeviceAudioLocationMap = new ConcurrentHashMap<>();
 
-    private final int mContextSupportingInputAudio =
-            BluetoothLeAudio.CONTEXT_TYPE_COMMUNICATION | BluetoothLeAudio.CONTEXT_TYPE_MAN_MACHINE;
+    private final int mContextSupportingInputAudio = BluetoothLeAudio.CONTEXT_TYPE_CONVERSATIONAL
+            | BluetoothLeAudio.CONTEXT_TYPE_VOICE_ASSISTANTS;
 
-    private final int mContextSupportingOutputAudio = BluetoothLeAudio.CONTEXT_TYPE_COMMUNICATION |
-            BluetoothLeAudio.CONTEXT_TYPE_MEDIA |
-            BluetoothLeAudio.CONTEXT_TYPE_INSTRUCTIONAL |
-            BluetoothLeAudio.CONTEXT_TYPE_ATTENTION_SEEKING |
-            BluetoothLeAudio.CONTEXT_TYPE_IMMEDIATE_ALERT |
-            BluetoothLeAudio.CONTEXT_TYPE_MAN_MACHINE |
-            BluetoothLeAudio.CONTEXT_TYPE_EMERGENCY_ALERT |
-            BluetoothLeAudio.CONTEXT_TYPE_RINGTONE |
-            BluetoothLeAudio.CONTEXT_TYPE_TV |
-            BluetoothLeAudio.CONTEXT_TYPE_LIVE |
-            BluetoothLeAudio.CONTEXT_TYPE_GAME;
+    private final int mContextSupportingOutputAudio = BluetoothLeAudio.CONTEXT_TYPE_CONVERSATIONAL
+            | BluetoothLeAudio.CONTEXT_TYPE_MEDIA
+            | BluetoothLeAudio.CONTEXT_TYPE_GAME
+            | BluetoothLeAudio.CONTEXT_TYPE_INSTRUCTIONAL
+            | BluetoothLeAudio.CONTEXT_TYPE_VOICE_ASSISTANTS
+            | BluetoothLeAudio.CONTEXT_TYPE_LIVE
+            | BluetoothLeAudio.CONTEXT_TYPE_SOUND_EFFECTS
+            | BluetoothLeAudio.CONTEXT_TYPE_NOTIFICATIONS
+            | BluetoothLeAudio.CONTEXT_TYPE_RINGTONE
+            | BluetoothLeAudio.CONTEXT_TYPE_ALERTS
+            | BluetoothLeAudio.CONTEXT_TYPE_EMERGENCY_ALARM;
 
     private BroadcastReceiver mBondStateChangedReceiver;
     private BroadcastReceiver mConnectionStateChangedReceiver;
@@ -330,6 +333,7 @@ public class LeAudioService extends ProfileService {
         mLeAudioNativeInterface.cleanup();
         mLeAudioNativeInterface = null;
         mLeAudioNativeIsInitialized = false;
+        mHfpHandoverDevice = null;
 
         // Set the service and BLE devices as inactive
         setLeAudioService(null);
@@ -414,10 +418,10 @@ public class LeAudioService extends ProfileService {
     private int getGroupVolume(int groupId) {
         if (mVolumeControlService == null) {
             mVolumeControlService = mServiceFactory.getVolumeControlService();
-        }
-        if (mVolumeControlService == null) {
-            Log.e(TAG, "Volume control service is not available");
-            return -1;
+            if (mVolumeControlService == null) {
+                Log.e(TAG, "Volume control service is not available");
+                return IBluetoothVolumeControl.VOLUME_CONTROL_UNKNOWN_VOLUME;
+            }
         }
 
         return mVolumeControlService.getGroupVolume(groupId);
@@ -632,7 +636,11 @@ public class LeAudioService extends ProfileService {
     private Integer getAudioDirectionsFromActiveContextsMap(Integer activeContexts) {
         Integer supportedAudioDirections = 0;
 
-        if ((activeContexts & mContextSupportingInputAudio) != 0) {
+        if (((activeContexts & mContextSupportingInputAudio) != 0)
+                || (Utils.isPtsTestMode()
+                && (activeContexts
+                & (BluetoothLeAudio.CONTEXT_TYPE_RINGTONE
+                | BluetoothLeAudio.CONTEXT_TYPE_MEDIA)) != 0)) {
             supportedAudioDirections |= AUDIO_DIRECTION_INPUT_BIT;
         }
         if ((activeContexts & mContextSupportingOutputAudio) != 0) {
@@ -663,6 +671,15 @@ public class LeAudioService extends ProfileService {
             Log.w(TAG, "Native interface not available.");
             return;
         }
+        boolean isEncrypted = (broadcastCode != null) && (broadcastCode.length != 0);
+        if (isEncrypted) {
+            if ((broadcastCode.length > 16) || (broadcastCode.length < 4)) {
+                Log.e(TAG, "Invalid broadcast code length. Should be from 4 to 16 octets long.");
+                return;
+            }
+        }
+
+        Log.i(TAG, "createBroadcast: isEncrypted=" + (isEncrypted ? "true" : "false"));
         mLeAudioBroadcasterNativeInterface.createBroadcast(metadata.getRawMetadata(),
                 broadcastCode);
     }
@@ -907,7 +924,7 @@ public class LeAudioService extends ProfileService {
                         + previousOutDevice + ", mActiveOutDevice: " + mActiveAudioOutDevice
                         + " isLeOutput: true");
             }
-            int volume = -1;
+            int volume = IBluetoothVolumeControl.VOLUME_CONTROL_UNKNOWN_VOLUME;
             if (mActiveAudioOutDevice != null) {
                 volume = getGroupVolume(groupId);
             }
@@ -982,6 +999,13 @@ public class LeAudioService extends ProfileService {
             return;
         }
         mLeAudioNativeInterface.groupSetActive(groupId);
+        if (groupId == LE_AUDIO_GROUP_ID_INVALID) {
+            /* Native will clear its states and send us group Inactive.
+             * However we would like to notify audio framework that LeAudio is not
+             * active anymore and does not want to get more audio data.
+             */
+            handleGroupTransitToInactive(currentlyActiveGroupId);
+        }
     }
 
     /**
@@ -1052,7 +1076,7 @@ public class LeAudioService extends ProfileService {
             }
 
             if (DBG) {
-                Log.d(TAG, "connect(): " + device);
+                Log.d(TAG, "connect(): " + storedDevice);
             }
 
             synchronized (mStateMachines) {
@@ -1098,19 +1122,88 @@ public class LeAudioService extends ProfileService {
     }
 
     private void clearLostDevicesWhileStreaming(LeAudioGroupDescriptor descriptor) {
-        if (DBG) {
-            Log.d(TAG, " lost dev: " + descriptor.mLostLeadDeviceWhileStreaming);
+        synchronized (mGroupLock) {
+            if (DBG) {
+                Log.d(TAG, "Clearing lost dev: " + descriptor.mLostLeadDeviceWhileStreaming);
+            }
+
+            LeAudioStateMachine sm =
+                    mStateMachines.get(descriptor.mLostLeadDeviceWhileStreaming);
+            if (sm != null) {
+                LeAudioStackEvent stackEvent =
+                        new LeAudioStackEvent(
+                                LeAudioStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED);
+                stackEvent.device = descriptor.mLostLeadDeviceWhileStreaming;
+                stackEvent.valueInt1 = LeAudioStackEvent.CONNECTION_STATE_DISCONNECTED;
+                sm.sendMessage(LeAudioStateMachine.STACK_EVENT, stackEvent);
+            }
+            descriptor.mLostLeadDeviceWhileStreaming = null;
+        }
+    }
+
+    private void handleGroupTransitToActive(int groupId) {
+        synchronized (mGroupLock) {
+            LeAudioGroupDescriptor descriptor = getGroupDescriptor(groupId);
+            if (descriptor == null || descriptor.mIsActive) {
+                Log.e(TAG, "no descriptors for group: " + groupId + " or group already active");
+                return;
+            }
+
+            descriptor.mIsActive = updateActiveDevices(groupId,
+                            ACTIVE_CONTEXTS_NONE, descriptor.mActiveContexts, true);
+
+            if (descriptor.mIsActive) {
+                notifyGroupStatusChanged(groupId, LeAudioStackEvent.GROUP_STATUS_ACTIVE);
+            }
+        }
+    }
+
+    private void handleGroupTransitToInactive(int groupId) {
+        synchronized (mGroupLock) {
+            LeAudioGroupDescriptor descriptor = getGroupDescriptor(groupId);
+            if (descriptor == null || !descriptor.mIsActive) {
+                Log.e(TAG, "no descriptors for group: " + groupId + " or group already inactive");
+                return;
+            }
+
+            descriptor.mIsActive = false;
+            updateActiveDevices(groupId, descriptor.mActiveContexts,
+                    ACTIVE_CONTEXTS_NONE, descriptor.mIsActive);
+            /* Clear lost devices */
+            if (DBG) Log.d(TAG, "Clear for group: " + groupId);
+            clearLostDevicesWhileStreaming(descriptor);
+            notifyGroupStatusChanged(groupId, LeAudioStackEvent.GROUP_STATUS_INACTIVE);
+        }
+    }
+
+    private void handleGroupIdleDuringCall() {
+        if (mHfpHandoverDevice == null) {
+            if (DBG) {
+                Log.d(TAG, "There is no HFP handover");
+            }
+            return;
+        }
+        HeadsetService headsetService = mServiceFactory.getHeadsetService();
+        if (headsetService == null) {
+            if (DBG) {
+                Log.d(TAG, "There is no HFP service available");
+            }
+            return;
         }
 
-        LeAudioStateMachine sm = mStateMachines.get(descriptor.mLostLeadDeviceWhileStreaming);
-        if (sm != null) {
-            LeAudioStackEvent stackEvent =
-                new LeAudioStackEvent(LeAudioStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED);
-            stackEvent.device = descriptor.mLostLeadDeviceWhileStreaming;
-            stackEvent.valueInt1 = LeAudioStackEvent.CONNECTION_STATE_DISCONNECTED;
-            sm.sendMessage(LeAudioStateMachine.STACK_EVENT, stackEvent);
+        BluetoothDevice activeHfpDevice = headsetService.getActiveDevice();
+        if (activeHfpDevice == null) {
+            if (DBG) {
+                Log.d(TAG, "Make " + mHfpHandoverDevice + " active again ");
+            }
+            headsetService.setActiveDevice(mHfpHandoverDevice);
+        } else {
+            if (DBG) {
+                Log.d(TAG, "Connect audio to " + activeHfpDevice);
+            }
+            headsetService.connectAudio();
         }
-        descriptor.mLostLeadDeviceWhileStreaming = null;
+        mHfpHandoverDevice = null;
     }
 
     // Suppressed since this is part of a local process
@@ -1139,10 +1232,14 @@ public class LeAudioService extends ProfileService {
                         switch (stackEvent.valueInt1) {
                             case LeAudioStackEvent.CONNECTION_STATE_DISCONNECTING:
                             case LeAudioStackEvent.CONNECTION_STATE_DISCONNECTED:
+                                boolean disconnectDueToUnbond =
+                                        (BluetoothDevice.BOND_NONE
+                                                == mAdapterService.getBondState(device));
                                 if (descriptor != null && (Objects.equals(device,
                                         mActiveAudioOutDevice)
                                         || Objects.equals(device, mActiveAudioInDevice))
-                                        && (getConnectedPeerDevices(groupId).size() > 1)) {
+                                        && (getConnectedPeerDevices(groupId).size() > 1)
+                                        && !disconnectDueToUnbond) {
 
                                     if (DBG) Log.d(TAG, "Adding to lost devices : " + device);
                                     descriptor.mLostLeadDeviceWhileStreaming = device;
@@ -1151,8 +1248,13 @@ public class LeAudioService extends ProfileService {
                                 break;
                             case LeAudioStackEvent.CONNECTION_STATE_CONNECTED:
                             case LeAudioStackEvent.CONNECTION_STATE_CONNECTING:
-                                if (descriptor != null) {
-                                    if (DBG) Log.d(TAG, "Removing from lost devices : " + device);
+                                if (descriptor != null
+                                        && Objects.equals(
+                                                descriptor.mLostLeadDeviceWhileStreaming,
+                                                device)) {
+                                    if (DBG) {
+                                        Log.d(TAG, "Removing from lost devices : " + device);
+                                    }
                                     descriptor.mLostLeadDeviceWhileStreaming = null;
                                     /* Try to connect other devices from the group */
                                     connectSet(device);
@@ -1264,47 +1366,23 @@ public class LeAudioService extends ProfileService {
         } else if (stackEvent.type == LeAudioStackEvent.EVENT_TYPE_GROUP_STATUS_CHANGED) {
             int groupId = stackEvent.valueInt1;
             int groupStatus = stackEvent.valueInt2;
-            boolean notifyGroupStatus = false;
 
             switch (groupStatus) {
                 case LeAudioStackEvent.GROUP_STATUS_ACTIVE: {
-                    LeAudioGroupDescriptor descriptor = getGroupDescriptor(groupId);
-                    if (descriptor != null) {
-                        if (!descriptor.mIsActive) {
-                            descriptor.mIsActive = updateActiveDevices(groupId,
-                                    ACTIVE_CONTEXTS_NONE, descriptor.mActiveContexts, true);
-                            notifyGroupStatus = descriptor.mIsActive;
-                        }
-                    } else {
-                        Log.e(TAG, "no descriptors for group: " + groupId);
-                    }
+                    handleGroupTransitToActive(groupId);
                     break;
                 }
                 case LeAudioStackEvent.GROUP_STATUS_INACTIVE: {
-                    LeAudioGroupDescriptor descriptor = getGroupDescriptor(groupId);
-                    if (descriptor != null) {
-                        if (descriptor.mIsActive) {
-                            descriptor.mIsActive = false;
-                            updateActiveDevices(groupId, descriptor.mActiveContexts,
-                                    ACTIVE_CONTEXTS_NONE, descriptor.mIsActive);
-                            notifyGroupStatus = true;
-                            /* Clear lost devices */
-                            if (DBG) Log.d(TAG, "Clear for group: " + groupId);
-                            clearLostDevicesWhileStreaming(descriptor);
-                        }
-                    } else {
-                        Log.e(TAG, "no descriptors for group: " + groupId);
-                    }
+                    handleGroupTransitToInactive(groupId);
+                    break;
+                }
+                case LeAudioStackEvent.GROUP_STATUS_TURNED_IDLE_DURING_CALL: {
+                    handleGroupIdleDuringCall();
                     break;
                 }
                 default:
                     break;
             }
-
-            if (notifyGroupStatus) {
-                notifyGroupStatusChanged(groupId, groupStatus);
-            }
-
         } else if (stackEvent.type == LeAudioStackEvent.EVENT_TYPE_BROADCAST_CREATED) {
             int broadcastId = stackEvent.valueInt1;
             boolean success = stackEvent.valueBool1;
@@ -1487,6 +1565,8 @@ public class LeAudioService extends ProfileService {
                 return;
             }
             if (sm.getConnectionState() != BluetoothProfile.STATE_DISCONNECTED) {
+                Log.w(TAG, "Device is not disconnected yet.");
+                disconnect(device);
                 return;
             }
             removeStateMachine(device);
@@ -1631,6 +1711,8 @@ public class LeAudioService extends ProfileService {
 
             final String action = intent.getAction();
             if (action.equals(AudioManager.RINGER_MODE_CHANGED_ACTION)) {
+                if (!Utils.isPtsTestMode()) return;
+
                 int ringerMode = intent.getIntExtra(AudioManager.EXTRA_RINGER_MODE, -1);
 
                 if (ringerMode < 0 || ringerMode == mStoredRingerMode) return;
@@ -1692,6 +1774,32 @@ public class LeAudioService extends ProfileService {
         }
         return mDeviceAudioLocationMap.getOrDefault(device,
                 BluetoothLeAudio.AUDIO_LOCATION_INVALID);
+    }
+
+    /**
+     * Set In Call state
+     * @param inCall True if device in call (any state), false otherwise.
+     */
+    public void setInCall(boolean inCall) {
+        if (!mLeAudioNativeIsInitialized) {
+            Log.e(TAG, "Le Audio not initialized properly.");
+            return;
+        }
+        mLeAudioNativeInterface.setInCall(inCall);
+    }
+
+    /**
+     * Set Inactive by HFP during handover
+     */
+    public void setInactiveForHfpHandover(BluetoothDevice hfpHandoverDevice) {
+        if (!mLeAudioNativeIsInitialized) {
+            Log.e(TAG, "Le Audio not initialized properly.");
+            return;
+        }
+        if (getActiveGroupId() != LE_AUDIO_GROUP_ID_INVALID) {
+            mHfpHandoverDevice = hfpHandoverDevice;
+            setActiveDevice(null);
+        }
     }
 
     /**
@@ -1811,6 +1919,10 @@ public class LeAudioService extends ProfileService {
 
     private void handleGroupNodeAdded(BluetoothDevice device, int groupId) {
         synchronized (mGroupLock) {
+            if (DBG) {
+                Log.d(TAG, "Device " + device + " added to group " + groupId);
+            }
+
             mDeviceGroupIdMap.put(device, groupId);
             LeAudioGroupDescriptor descriptor = mGroupDescriptors.get(groupId);
             if (descriptor == null) {
@@ -1835,6 +1947,18 @@ public class LeAudioService extends ProfileService {
     }
 
     private void handleGroupNodeRemoved(BluetoothDevice device, int groupId) {
+        if (DBG) {
+            Log.d(TAG, "Removing device " + device + " grom group " + groupId);
+        }
+
+        LeAudioGroupDescriptor descriptor = getGroupDescriptor(groupId);
+        if (DBG) {
+            Log.d(TAG, "Lost lead device is " + descriptor.mLostLeadDeviceWhileStreaming);
+        }
+        if (Objects.equals(device, descriptor.mLostLeadDeviceWhileStreaming)) {
+            clearLostDevicesWhileStreaming(descriptor);
+        }
+
         synchronized (mGroupLock) {
             mDeviceGroupIdMap.remove(device);
             if (!mDeviceGroupIdMap.containsValue(groupId)) {
@@ -2381,6 +2505,45 @@ public class LeAudioService extends ProfileService {
         }
 
         @Override
+        public void setInCall(boolean inCall, AttributionSource source,
+                SynchronousResultReceiver receiver) {
+            try {
+                Objects.requireNonNull(source, "source cannot be null");
+                Objects.requireNonNull(receiver, "receiver cannot be null");
+
+                LeAudioService service = getService(source);
+                if (service == null) {
+                    throw new IllegalStateException("service is null");
+                }
+                enforceBluetoothPrivilegedPermission(service);
+                service.setInCall(inCall);
+                receiver.send(null);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
+            }
+        }
+
+        @Override
+        public void setInactiveForHfpHandover(BluetoothDevice hfpHandoverDevice,
+                AttributionSource source,
+                SynchronousResultReceiver receiver) {
+            try {
+                Objects.requireNonNull(source, "source cannot be null");
+                Objects.requireNonNull(receiver, "receiver cannot be null");
+
+                LeAudioService service = getService(source);
+                if (service == null) {
+                    throw new IllegalStateException("service is null");
+                }
+                enforceBluetoothPrivilegedPermission(service);
+                service.setInactiveForHfpHandover(hfpHandoverDevice);
+                receiver.send(null);
+            } catch (RuntimeException e) {
+                receiver.propagateException(e);
+            }
+        }
+
+        @Override
         public void groupRemoveNode(int groupId, BluetoothDevice device,
                 AttributionSource source, SynchronousResultReceiver receiver) {
             try {
@@ -2625,6 +2788,7 @@ public class LeAudioService extends ProfileService {
         ProfileService.println(sb, "  currentlyActiveGroupId: " + getActiveGroupId());
         ProfileService.println(sb, "  mActiveAudioOutDevice: " + mActiveAudioOutDevice);
         ProfileService.println(sb, "  mActiveAudioInDevice: " + mActiveAudioInDevice);
+        ProfileService.println(sb, "  mHfpHandoverDevice:" + mHfpHandoverDevice);
 
         for (Map.Entry<Integer, LeAudioGroupDescriptor> entry : mGroupDescriptors.entrySet()) {
             LeAudioGroupDescriptor descriptor = entry.getValue();

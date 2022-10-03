@@ -128,4 +128,10 @@
     <string name="a2dp_sink_mbs_label" msgid="6035366346569127155">"බ්ලූටූත් ශ්‍රව්‍යය"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"4GBට වඩා විශාල ගොනු මාරු කළ නොහැකිය"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"බ්ලූටූත් වෙත සබඳින්න"</string>
+    <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"අහස්යානා ආකාරයේ බ්ලූටූත් ක්‍රියාත්මකයි"</string>
+    <string name="bluetooth_enabled_apm_message" msgid="8990667142380927316">"ඔබ බ්ලූටූත් ක්‍රියාත්මක කර තබා ගන්නේ නම්, ඔබ මීළඟ වතාවේ අහස්යානා ආකාරයේ සිටින විට එය ක්‍රියාත්මකව පවතිනු ඇත"</string>
+    <string name="bluetooth_stays_on_title" msgid="39720820955212918">"බ්ලූටූත් ක්‍රියාත්මකව පවතී"</string>
+    <string name="bluetooth_stays_on_message" msgid="2770176686603189536">"ඔබේ දුරකථනයට අහස්යානා ආකාරයේ බ්ලූටූත් ක්‍රියාත්මකව තබා ගැනීමට මතකයි. මෙය වෙනස් කිරීමට, බ්ලූටූත් ක්‍රියාවිරහිත කරන්න."</string>
+    <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wi-Fi සහ බ්ලූටූත් ක්‍රියාත්මකව පවතී"</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="4120501683284996436">"ඔබේ දුරකථනයට අහස්යානා ආකාරයේ Wi-Fi සහ බ්ලූටූත් ක්‍රියාත්මකව තබා ගැනීමට මතකයි. මෙය වෙනස් කිරීමට, ඒවා ක්‍රියා විරහිත කරන්න."</string>
 </resources>

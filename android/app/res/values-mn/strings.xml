@@ -128,4 +128,10 @@
     <string name="a2dp_sink_mbs_label" msgid="6035366346569127155">"Bluetooth Аудио"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"4ГБ-с дээш хэмжээтэй файлыг шилжүүлэх боломжгүй"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Bluetooth-тэй холбогдох"</string>
+    <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Нислэгийн горимд Bluetooth асаалттай"</string>
+    <string name="bluetooth_enabled_apm_message" msgid="8990667142380927316">"Хэрэв та Bluetooth-г асаалттай байлгавал энэ нь таныг дараагийн удаа нислэгийн горимд байхад асаалттай хэвээр байна"</string>
+    <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Bluetooth асаалттай хэвээр байна"</string>
+    <string name="bluetooth_stays_on_message" msgid="2770176686603189536">"Таны утас Bluetooth-г нислэгийн горимд асаалттай байлгахыг санана. Үүнийг өөрчлөхийн тулд Bluetooth-г унтраана уу."</string>
+    <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wi-Fi болон Bluetooth асаалттай хэвээр байна"</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="4120501683284996436">"Таны утас Wi-Fi болон Bluetooth-г нислэгийн горимд асаалттай байлгахыг санана. Үүнийг өөрчлөхийн тулд тэдгээрийг унтраана уу."</string>
 </resources>

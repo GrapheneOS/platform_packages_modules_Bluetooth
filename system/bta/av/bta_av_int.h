@@ -114,7 +114,8 @@ enum {
   BTA_AV_AVDT_RPT_CONN_EVT,
   BTA_AV_API_START_EVT, /* the following 2 events must be in the same order as
                            the *AP_*EVT */
-  BTA_AV_API_STOP_EVT
+  BTA_AV_API_STOP_EVT,
+  BTA_AV_API_SET_LATENCY_EVT,
 };
 
 /* events for AV control block state machine */
@@ -126,13 +127,13 @@ enum {
 
 /* events that do not go through state machine */
 #define BTA_AV_FIRST_NSM_EVT BTA_AV_API_ENABLE_EVT
-#define BTA_AV_LAST_NSM_EVT BTA_AV_API_STOP_EVT
+#define BTA_AV_LAST_NSM_EVT BTA_AV_API_SET_LATENCY_EVT
 
 /* API events passed to both SSMs (by bta_av_api_to_ssm) */
 #define BTA_AV_FIRST_A2S_API_EVT BTA_AV_API_START_EVT
 #define BTA_AV_FIRST_A2S_SSM_EVT BTA_AV_AP_START_EVT
 
-#define BTA_AV_LAST_EVT BTA_AV_API_STOP_EVT
+#define BTA_AV_LAST_EVT BTA_AV_API_SET_LATENCY_EVT
 
 /* maximum number of SEPS in stream discovery results */
 #define BTA_AV_NUM_SEPS 32
@@ -263,6 +264,18 @@ typedef struct {
   tBTA_AV_RS_RES switch_res;
   uint16_t uuid; /* uuid of initiator */
 } tBTA_AV_API_OPEN;
+
+/* data type for BTA_AV_API_SET_LATENCY_EVT */
+typedef struct {
+  BT_HDR_RIGID hdr;
+  bool is_low_latency;
+} tBTA_AV_API_SET_LATENCY;
+
+/* data type for BTA_AV_API_START_EVT and bta_av_do_start */
+typedef struct {
+  BT_HDR_RIGID hdr;
+  bool use_latency_mode;
+} tBTA_AV_DO_START;
 
 /* data type for BTA_AV_API_STOP_EVT */
 typedef struct {
@@ -429,6 +442,8 @@ union tBTA_AV_DATA {
   tBTA_AV_API_ENABLE api_enable;
   tBTA_AV_API_REG api_reg;
   tBTA_AV_API_OPEN api_open;
+  tBTA_AV_API_SET_LATENCY api_set_latency;
+  tBTA_AV_DO_START do_start;
   tBTA_AV_API_STOP api_stop;
   tBTA_AV_API_DISCNT api_discnt;
   tBTA_AV_API_PROTECT_REQ api_protect_req;
@@ -724,6 +739,9 @@ extern bool bta_av_link_role_ok(tBTA_AV_SCB* p_scb, uint8_t bits);
 
 /* nsm action functions */
 extern void bta_av_api_disconnect(tBTA_AV_DATA* p_data);
+extern void bta_av_set_use_latency_mode(tBTA_AV_SCB* p_scb,
+                                        bool use_latency_mode);
+extern void bta_av_api_set_latency(tBTA_AV_DATA* p_data);
 extern void bta_av_sig_chg(tBTA_AV_DATA* p_data);
 extern void bta_av_signalling_timer(tBTA_AV_DATA* p_data);
 extern void bta_av_rc_disc_done(tBTA_AV_DATA* p_data);

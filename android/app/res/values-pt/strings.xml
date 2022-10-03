@@ -128,4 +128,10 @@
     <string name="a2dp_sink_mbs_label" msgid="6035366346569127155">"Áudio Bluetooth"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"Não é possível transferir arquivos maiores que 4 GB"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Conectar ao Bluetooth"</string>
+    <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Bluetooth ativado no modo avião"</string>
+    <string name="bluetooth_enabled_apm_message" msgid="8990667142380927316">"Se você deixar o Bluetooth ativado, ele vai continuar assim na próxima vez em que o dispositivo estiver no modo avião"</string>
+    <string name="bluetooth_stays_on_title" msgid="39720820955212918">"O Bluetooth fica ativado"</string>
+    <string name="bluetooth_stays_on_message" msgid="2770176686603189536">"O smartphone vai manter o Bluetooth ativado no modo avião. Para mudar essa configuração, desative o Bluetooth."</string>
+    <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"O Wi-Fi e o Bluetooth ficam ativados"</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="4120501683284996436">"O smartphone vai manter o Wi-Fi e o Bluetooth ativados no modo avião. Para mudar essa configuração, desative os dois."</string>
 </resources>

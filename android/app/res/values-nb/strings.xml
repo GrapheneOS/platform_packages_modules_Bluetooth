@@ -128,4 +128,10 @@
     <string name="a2dp_sink_mbs_label" msgid="6035366346569127155">"Bluetooth-lyd"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"Filer som er større enn 4 GB, kan ikke overføres"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Koble til Bluetooth"</string>
+    <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Bluetooth er på i flymodus"</string>
+    <string name="bluetooth_enabled_apm_message" msgid="8990667142380927316">"Hvis du lar Bluetooth være på, gjelder dette også for den neste gangen du bruker flymodus"</string>
+    <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Bluetooth blir værende på"</string>
+    <string name="bluetooth_stays_on_message" msgid="2770176686603189536">"Telefonen husker at Bluetooth skal være på i flymodus. Du kan endre dette ved å slå av Bluetooth."</string>
+    <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wifi og Bluetooth holdes påslått"</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="4120501683284996436">"Telefonen husker at wifi og Bluetooth skal være på i flymodus. Du kan endre dette ved å slå dem av."</string>
 </resources>

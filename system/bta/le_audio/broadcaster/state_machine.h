@@ -191,6 +191,7 @@ class IBroadcastStateMachineCallbacks {
                                    const void* data = nullptr) = 0;
   virtual void OnOwnAddressResponse(uint32_t broadcast_id, uint8_t addr_type,
                                     RawAddress address) = 0;
+  virtual void OnBigCreated(const std::vector<uint16_t>& conn_handle) = 0;
 };
 
 std::ostream& operator<<(

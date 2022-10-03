@@ -32,7 +32,10 @@ import android.os.ParcelUuid;
 import android.os.RemoteException;
 import android.util.Log;
 
+import com.android.bluetooth.btservice.ServiceFactory;
 import com.android.bluetooth.le_audio.ContentControlIdKeeper;
+import com.android.bluetooth.le_audio.LeAudioService;
+import com.android.internal.annotations.VisibleForTesting;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -122,6 +125,8 @@ public class TbsGeneric {
     private List<String> mUriSchemes = new ArrayList<>(Arrays.asList("tel"));
     private Receiver mReceiver = null;
     private int mStoredRingerMode = -1;
+    private final ServiceFactory mFactory = new ServiceFactory();
+    private LeAudioService mLeAudioService;
 
     private final class Receiver extends BroadcastReceiver {
         @Override
@@ -157,7 +162,7 @@ public class TbsGeneric {
         mTbsGatt = tbsGatt;
 
         int ccid = ContentControlIdKeeper.acquireCcid(new ParcelUuid(TbsGatt.UUID_GTBS),
-                BluetoothLeAudio.CONTEXT_TYPE_COMMUNICATION);
+                BluetoothLeAudio.CONTEXT_TYPE_CONVERSATIONAL);
         if (!isCcidValid(ccid)) {
             Log.e(TAG, " CCID is not valid");
             cleanup();
@@ -280,7 +285,7 @@ public class TbsGeneric {
         // Acquire CCID for TbsObject. The CCID is released on remove()
         Bearer bearer = new Bearer(token, callback, uci, uriSchemes, capabilities, providerName,
                 technology, ContentControlIdKeeper.acquireCcid(new ParcelUuid(UUID.randomUUID()),
-                        BluetoothLeAudio.CONTEXT_TYPE_COMMUNICATION));
+                        BluetoothLeAudio.CONTEXT_TYPE_CONVERSATIONAL));
         if (isCcidValid(bearer.ccid)) {
             mBearerList.add(bearer);
 
@@ -731,7 +736,7 @@ public class TbsGeneric {
             mLastIndexAssigned = requestId;
         }
 
-
+        setActiveLeDevice(device);
         return TbsGatt.CALL_CONTROL_POINT_RESULT_SUCCESS;
     }
 
@@ -790,6 +795,7 @@ public class TbsGeneric {
                         Request request = new Request(device, callId, opcode, callIndex);
                         try {
                             if (opcode == TbsGatt.CALL_CONTROL_POINT_OPCODE_ACCEPT) {
+                                setActiveLeDevice(device);
                                 bearer.callback.onAcceptCall(requestId, new ParcelUuid(callId));
                             } else if (opcode == TbsGatt.CALL_CONTROL_POINT_OPCODE_TERMINATE) {
                                 bearer.callback.onTerminateCall(requestId, new ParcelUuid(callId));
@@ -835,6 +841,7 @@ public class TbsGeneric {
 
                         Map.Entry<UUID, Bearer> firstEntry = null;
                         List<ParcelUuid> parcelUuids = new ArrayList<>();
+                        result = TbsGatt.CALL_CONTROL_POINT_RESULT_SUCCESS;
                         for (int callIndex : args) {
                             Map.Entry<UUID, Bearer> entry = getCallIdByIndex(callIndex);
                             if (entry == null) {
@@ -856,6 +863,10 @@ public class TbsGeneric {
                             }
 
                             parcelUuids.add(new ParcelUuid(entry.getKey()));
+                        }
+
+                        if (result != TbsGatt.CALL_CONTROL_POINT_RESULT_SUCCESS) {
+                            break;
                         }
 
                         Bearer bearer = firstEntry.getValue();
@@ -1005,10 +1016,38 @@ public class TbsGeneric {
         mForegroundBearer = bearer;
     }
 
+    private boolean isLeAudioServiceAvailable() {
+        if (mLeAudioService != null) {
+            return true;
+        }
+
+        mLeAudioService = mFactory.getLeAudioService();
+        if (mLeAudioService == null) {
+            Log.e(TAG, "leAudioService not available");
+            return false;
+        }
+
+        return true;
+    }
+
+    @VisibleForTesting
+    void setLeAudioServiceForTesting(LeAudioService leAudioService) {
+        mLeAudioService = leAudioService;
+    }
+
     private synchronized void notifyCclc() {
         if (DBG) {
             Log.d(TAG, "notifyCclc");
         }
+
+        if (isLeAudioServiceAvailable()) {
+            if (mCurrentCallsList.size() > 0) {
+                mLeAudioService.setInCall(true);
+            } else {
+                mLeAudioService.setInCall(false);
+            }
+        }
+
         mTbsGatt.setCallState(mCurrentCallsList);
         mTbsGatt.setBearerListCurrentCalls(mCurrentCallsList);
     }
@@ -1027,6 +1066,18 @@ public class TbsGeneric {
 
         mUriSchemes = new ArrayList<>(newUriSchemes);
         mTbsGatt.setBearerUriSchemesSupportedList(mUriSchemes);
+    }
+
+    private void setActiveLeDevice(BluetoothDevice device) {
+        if (device == null) {
+            Log.w(TAG, "setActiveLeDevice: ignore null device");
+            return;
+        }
+        if (!isLeAudioServiceAvailable()) {
+            Log.w(TAG, "mLeAudioService not available");
+            return;
+        }
+        mLeAudioService.setActiveDevice(device);
     }
 
     private static boolean isCallStateTransitionValid(int callState, int requestedOpcode) {

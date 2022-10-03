@@ -73,7 +73,7 @@ class AddressWithType final {
   }
 
   bool operator<(const AddressWithType& rhs) const {
-    return address_ < rhs.address_ && address_type_ < rhs.address_type_;
+    return (address_ != rhs.address_) ? address_ < rhs.address_ : address_type_ < rhs.address_type_;
   }
   bool operator==(const AddressWithType& rhs) const {
     return address_ == rhs.address_ && address_type_ == rhs.address_type_;

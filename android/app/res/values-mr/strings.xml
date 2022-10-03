@@ -90,7 +90,7 @@
     <string name="status_pending" msgid="4781040740237733479">"फाइल स्थानांतरणाचा अद्याप सुरू झाला नाही."</string>
     <string name="status_running" msgid="7419075903776657351">"फाइल स्थानांतर सुरू आहे."</string>
     <string name="status_success" msgid="7963589000098719541">"फाइल स्थानांतरण यशस्वीरित्या पूर्ण झाले."</string>
-    <string name="status_not_accept" msgid="1165798802740579658">"आशय समर्थित नाही."</string>
+    <string name="status_not_accept" msgid="1165798802740579658">"आशयाला सपोर्ट नाही."</string>
     <string name="status_forbidden" msgid="4017060451358837245">"लक्ष्‍य डिव्‍हाइसद्वारे स्‍थानांतरण निषिद्ध केले."</string>
     <string name="status_canceled" msgid="8441679418717978515">"वापरकर्त्याने स्‍थानांतरण रद्द केले."</string>
     <string name="status_file_error" msgid="5379018888714679311">"संचयन समस्‍या."</string>
@@ -128,4 +128,10 @@
     <string name="a2dp_sink_mbs_label" msgid="6035366346569127155">"ब्लूटूथ ऑडिओ"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"4 GB हून मोठ्या फाइल ट्रान्सफर करता येणार नाहीत"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"ब्लूटूथशी कनेक्ट करा"</string>
+    <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"विमान मोडमध्ये ब्लूटूथ सुरू आहे"</string>
+    <string name="bluetooth_enabled_apm_message" msgid="8990667142380927316">"तुम्ही ब्लूटूथ सुरू ठेवल्यास, पुढील वेळी तुम्ही विमान मोडमध्ये असाल, तेव्हा ते सुरू राहील"</string>
+    <string name="bluetooth_stays_on_title" msgid="39720820955212918">"ब्लूटूथ सुरू राहते"</string>
+    <string name="bluetooth_stays_on_message" msgid="2770176686603189536">"तुमचा फोन विमान मोडमध्ये ब्लूटूथ सुरू ठेवण्याचे लक्षात ठेवतो. हे बदलण्यासाठी, ब्लूटूथ बंद करा."</string>
+    <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"वाय-फाय आणि ब्लूटूथ सुरू राहते"</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="4120501683284996436">"तुमचा फोन विमान मोडमध्ये वाय-फाय आणि ब्लूटूथ सुरू ठेवण्याचे लक्षात ठेवतो. हे बदलण्यासाठी, ते बंद करा."</string>
 </resources>

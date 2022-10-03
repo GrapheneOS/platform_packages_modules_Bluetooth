@@ -128,4 +128,10 @@
     <string name="a2dp_sink_mbs_label" msgid="6035366346569127155">"Bluetooth-ääni"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"Yli 4 Gt:n kokoisia tiedostoja ei voi siirtää."</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Muodosta Bluetooth-yhteys"</string>
+    <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Bluetooth päällä lentokonetilassa"</string>
+    <string name="bluetooth_enabled_apm_message" msgid="8990667142380927316">"Jos pidät Bluetoothin päällä, se pysyy päällä, kun seuraavan kerran olet lentokonetilassa"</string>
+    <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Bluetooth pysyy päällä"</string>
+    <string name="bluetooth_stays_on_message" msgid="2770176686603189536">"Puhelimen Bluetooth pysyy päällä lentokonetilassa. Muuta tätä laittamalla Bluetooth pois päältä."</string>
+    <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wi-Fi ja Bluetooth pysyvät päällä"</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="4120501683284996436">"Puhelimen Wi-Fi-yhteys ja Bluetooth pysyvät päällä lentokonetilassa. Voit muuttaa tätä laittamalla ne pois päältä."</string>
 </resources>

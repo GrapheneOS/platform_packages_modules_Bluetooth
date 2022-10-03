@@ -128,4 +128,10 @@
     <string name="a2dp_sink_mbs_label" msgid="6035366346569127155">"Bluetooth Ses"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"4 GB\'tan büyük dosyalar aktarılamaz"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Bluetooth\'a bağlan"</string>
+    <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Uçak modundayken Bluetooth açık"</string>
+    <string name="bluetooth_enabled_apm_message" msgid="8990667142380927316">"Bluetooth\'u açık tutarsanız daha sonra tekrar uçak modunda olduğunuzda açık kalmaya devam eder"</string>
+    <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Bluetooth açık kalır"</string>
+    <string name="bluetooth_stays_on_message" msgid="2770176686603189536">"Telefonunuz, uçak modundayken Bluetooth\'u açık tutmayı hatırlar. Bunu değiştirmek için Bluetooth\'u kapatın."</string>
+    <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Kablosuz bağlantı ve Bluetooth açık kalır"</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="4120501683284996436">"Telefonunuz, uçak modundayken kablosuz bağlantıyı ve Bluetooth\'u açık tutmayı hatırlar. Bunu değiştirmek için her ikisini de kapatın."</string>
 </resources>

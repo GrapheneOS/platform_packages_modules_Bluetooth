@@ -690,7 +690,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
             Log.i(TAG, "maxListCount=" + maxListCount + " listStartOffset=" + listStartOffset
                     + " searchValue=" + searchValue + " searchAttr=" + searchAttr + " needTag="
                     + needTag + " vcard21=" + vcard21 + " order=" + order + "vcardselector="
-                    + vCardSelector + "vcardselop=" + vCardSelectorOperator);
+                    + Arrays.toString(vCardSelector) + "vcardselop=" + vCardSelectorOperator);
         }
     }
 

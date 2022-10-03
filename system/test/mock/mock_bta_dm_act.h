@@ -264,6 +264,15 @@ struct bta_dm_clear_event_filter {
 };
 extern struct bta_dm_clear_event_filter bta_dm_clear_event_filter;
 
+// Name: bta_dm_ble_reset_id
+// Params: None
+// Return: void
+struct bta_dm_ble_reset_id {
+  std::function<void()> body{[]() {}};
+  void operator()() { body(); };
+};
+extern struct bta_dm_ble_reset_id bta_dm_ble_reset_id;
+
 // Name: bta_dm_ble_passkey_reply
 // Params: const RawAddress& bd_addr, bool accept, uint32_t passkey
 // Return: void

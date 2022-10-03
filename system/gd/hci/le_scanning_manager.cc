@@ -384,13 +384,6 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
           return;
       }
 
-      std::vector<uint8_t> advertising_data = {};
-      for (auto gap_data : report.advertising_data_) {
-        advertising_data.push_back((uint8_t)gap_data.size() - 1);
-        advertising_data.push_back((uint8_t)gap_data.data_type_);
-        advertising_data.insert(advertising_data.end(), gap_data.data_.begin(), gap_data.data_.end());
-      }
-
       process_advertising_package_content(
           extended_event_type,
           (uint8_t)report.address_type_,
@@ -401,7 +394,7 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
           kTxPowerInformationNotPresent,
           report.rssi_,
           kNotPeriodicAdvertisement,
-          advertising_data);
+          report.advertising_data_);
     }
   }
 
@@ -459,10 +452,18 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
       int8_t tx_power,
       int8_t rssi,
       uint16_t periodic_advertising_interval,
-      std::vector<uint8_t> advertising_data) {
+      std::vector<bluetooth::hci::LengthAndData> advertising_data) {
     bool is_scannable = event_type & (1 << kScannableBit);
     bool is_scan_response = event_type & (1 << kScanResponseBit);
     bool is_legacy = event_type & (1 << kLegacyBit);
+
+    auto significant_data = std::vector<uint8_t>{};
+    for (const auto& datum : advertising_data) {
+      if (!datum.data_.empty()) {
+        significant_data.push_back(static_cast<uint8_t>(datum.data_.size()));
+        significant_data.insert(significant_data.end(), datum.data_.begin(), datum.data_.end());
+      }
+    }
 
     if (address_type == (uint8_t)DirectAdvertisingAddressType::NO_ADDRESS) {
       scanning_callbacks_->OnScanResult(
@@ -475,7 +476,7 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
           tx_power,
           rssi,
           periodic_advertising_interval,
-          advertising_data);
+          significant_data);
       return;
     } else if (address == Address::kEmpty) {
       LOG_WARN("Receive non-anonymous advertising report with empty address, skip!");
@@ -490,8 +491,8 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
 
     bool is_start = is_legacy && is_scannable && !is_scan_response;
 
-    std::vector<uint8_t> const& adv_data = is_start ? advertising_cache_.Set(address_with_type, advertising_data)
-                                                    : advertising_cache_.Append(address_with_type, advertising_data);
+    std::vector<uint8_t> const& adv_data = is_start ? advertising_cache_.Set(address_with_type, significant_data)
+                                                    : advertising_cache_.Append(address_with_type, significant_data);
 
     uint8_t data_status = event_type >> kDataStatusBits;
     if (data_status == (uint8_t)DataStatus::CONTINUING) {
@@ -826,6 +827,10 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
           update_service_data_filter(apcf_action, filter_index, filter.data, filter.data_mask);
           break;
         }
+        case ApcfFilterType::AD_TYPE: {
+          update_ad_type_filter(apcf_action, filter_index, filter.ad_type, filter.data, filter.data_mask);
+          break;
+        }
         default:
           LOG_ERROR("Unknown filter type: %d", (uint16_t)filter.filter_type);
           break;
@@ -1013,6 +1018,31 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
 
     le_scanning_interface_->EnqueueCommand(
         LeAdvFilterServiceDataBuilder::Create(action, filter_index, combined_data),
+        module_handler_->BindOnceOn(this, &impl::on_advertising_filter_complete));
+  }
+
+  void update_ad_type_filter(
+      ApcfAction action,
+      uint8_t filter_index,
+      uint8_t ad_type,
+      std::vector<uint8_t> data,
+      std::vector<uint8_t> data_mask) {
+    if (data.size() != data_mask.size()) {
+      LOG_ERROR("ad type mask should have the same length as ad type data");
+      return;
+    }
+    std::vector<uint8_t> combined_data = {};
+    if (action != ApcfAction::CLEAR) {
+      combined_data.push_back((uint8_t)ad_type);
+      combined_data.push_back((uint8_t)(data.size()));
+      if (data.size() != 0) {
+        combined_data.insert(combined_data.end(), data.begin(), data.end());
+        combined_data.insert(combined_data.end(), data_mask.begin(), data_mask.end());
+      }
+    }
+
+    le_scanning_interface_->EnqueueCommand(
+        LeAdvFilterADTypeBuilder::Create(action, filter_index, combined_data),
         module_handler_->BindOnceOn(this, &impl::on_advertising_filter_complete));
   }
 
@@ -1365,6 +1395,15 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
         ASSERT(complete_view.IsValid());
         scanning_callbacks_->OnFilterConfigCallback(
             ApcfFilterType::SERVICE_DATA,
+            complete_view.GetApcfAvailableSpaces(),
+            complete_view.GetApcfAction(),
+            (uint8_t)complete_view.GetStatus());
+      } break;
+      case ApcfOpcode::AD_TYPE: {
+        auto complete_view = LeAdvFilterADTypeCompleteView::Create(status_view);
+        ASSERT(complete_view.IsValid());
+        scanning_callbacks_->OnFilterConfigCallback(
+            ApcfFilterType::AD_TYPE,
             complete_view.GetApcfAvailableSpaces(),
             complete_view.GetApcfAction(),
             (uint8_t)complete_view.GetStatus());

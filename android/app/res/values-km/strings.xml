@@ -128,4 +128,10 @@
     <string name="a2dp_sink_mbs_label" msgid="6035366346569127155">"សំឡេងប៊្លូធូស"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"ឯកសារ​ដែល​មាន​ទំហំ​ធំ​ជាង 4 GB មិន​អាចផ្ទេរ​បាន​ទេ"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"ភ្ជាប់​ប៊្លូធូស"</string>
+    <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"បើកប៊្លូធូស​នៅក្នុង​មុខងារពេលជិះយន្តហោះ"</string>
+    <string name="bluetooth_enabled_apm_message" msgid="8990667142380927316">"ប្រសិនបើអ្នក​បើកប៊្លូធូសចោល នោះវានឹងបន្តបើក​នៅពេលបន្ទាប់ ដែលអ្នកកំពុង​ស្ថិតនៅក្នុង​មុខងារពេលជិះយន្តហោះ"</string>
+    <string name="bluetooth_stays_on_title" msgid="39720820955212918">"ប៊្លូធូសបន្តបើក"</string>
+    <string name="bluetooth_stays_on_message" msgid="2770176686603189536">"ទូរសព្ទរបស់អ្នក​ចាំថាត្រូវបើកប៊្លូធូស​នៅក្នុង​មុខងារពេលជិះយន្តហោះ។ ដើម្បីប្ដូរ​វា សូមបិទប៊្លូធូស។"</string>
+    <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wi-Fi និងប៊្លូធូស​បន្តបើក"</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="4120501683284996436">"ទូរសព្ទរបស់អ្នក​ចាំថាត្រូវបើក Wi-Fi និងប៊្លូធូស​នៅក្នុង​មុខងារពេលជិះយន្តហោះ។ ដើម្បីប្ដូរវា សូមបិទ Wi-Fi និងប៊្លូធូស។"</string>
 </resources>

@@ -676,15 +676,22 @@ public class BluetoothInCallService extends InCallService {
         mClccIndexMap.clear();
     }
 
+    private static boolean isConferenceWithNoChildren(BluetoothCall call) {
+        return call.isConference()
+            && (call.can(Connection.CAPABILITY_CONFERENCE_HAS_NO_CHILDREN)
+                    || call.getChildrenIds().isEmpty());
+    }
+
     private void sendListOfCalls(boolean shouldLog) {
         Collection<BluetoothCall> calls = mCallInfo.getBluetoothCalls();
         for (BluetoothCall call : calls) {
             // We don't send the parent conference BluetoothCall to the bluetooth device.
             // We do, however want to send conferences that have no children to the bluetooth
             // device (e.g. IMS Conference).
-            if (!call.isConference()
-                    || (call.isConference()
-                            && call.can(Connection.CAPABILITY_CONFERENCE_HAS_NO_CHILDREN))) {
+            boolean isConferenceWithNoChildren = isConferenceWithNoChildren(call);
+            Log.i(TAG, "sendListOfCalls isConferenceWithNoChildren " + isConferenceWithNoChildren 
+                + ", call.getChildrenIds() size " + call.getChildrenIds().size());
+            if (!call.isConference() || isConferenceWithNoChildren) {
                 sendClccForCall(call, shouldLog);
             }
         }
@@ -705,45 +712,46 @@ public class BluetoothInCallService extends InCallService {
         boolean isForeground = mCallInfo.getForegroundCall() == call;
         int state = getBtCallState(call, isForeground);
         boolean isPartOfConference = false;
-        boolean isConferenceWithNoChildren = call.isConference()
-                && call.can(Connection.CAPABILITY_CONFERENCE_HAS_NO_CHILDREN);
+        boolean isConferenceWithNoChildren = isConferenceWithNoChildren(call);
 
         if (state == CALL_STATE_IDLE) {
             return;
         }
 
         BluetoothCall conferenceCall = getBluetoothCallById(call.getParentId());
-        if (!mCallInfo.isNullCall(conferenceCall)
-                && conferenceCall.hasProperty(Call.Details.PROPERTY_GENERIC_CONFERENCE)) {
+        if (!mCallInfo.isNullCall(conferenceCall)) {
             isPartOfConference = true;
 
-            // Run some alternative states for Conference-level merge/swap support.
-            // Basically, if BluetoothCall supports swapping or merging at the conference-level,
-            // then we need to expose the calls as having distinct states
-            // (ACTIVE vs CAPABILITY_HOLD) or
-            // the functionality won't show up on the bluetooth device.
+            if (conferenceCall.hasProperty(Call.Details.PROPERTY_GENERIC_CONFERENCE)) {
+                // Run some alternative states for CDMA Conference-level merge/swap support.
+                // Basically, if BluetoothCall supports swapping or merging at the conference-level,
+                // then we need to expose the calls as having distinct states
+                // (ACTIVE vs CAPABILITY_HOLD) or
+                // the functionality won't show up on the bluetooth device.
 
-            // Before doing any special logic, ensure that we are dealing with an
-            // ACTIVE BluetoothCall and that the conference itself has a notion of
-            // the current "active" child call.
-            BluetoothCall activeChild = getBluetoothCallById(
-                    conferenceCall.getGenericConferenceActiveChildCallId());
-            if (state == CALL_STATE_ACTIVE && !mCallInfo.isNullCall(activeChild)) {
-                // Reevaluate state if we can MERGE or if we can SWAP without previously having
-                // MERGED.
-                boolean shouldReevaluateState =
-                        conferenceCall.can(Connection.CAPABILITY_MERGE_CONFERENCE)
-                                || (conferenceCall.can(Connection.CAPABILITY_SWAP_CONFERENCE)
-                                        && !conferenceCall.wasConferencePreviouslyMerged());
+                // Before doing any special logic, ensure that we are dealing with an
+                // ACTIVE BluetoothCall and that the conference itself has a notion of
+                // the current "active" child call.
+                BluetoothCall activeChild =
+                        getBluetoothCallById(
+                                conferenceCall.getGenericConferenceActiveChildCallId());
+                if (state == CALL_STATE_ACTIVE && !mCallInfo.isNullCall(activeChild)) {
+                    // Reevaluate state if we can MERGE or if we can SWAP without previously having
+                    // MERGED.
+                    boolean shouldReevaluateState =
+                            conferenceCall.can(Connection.CAPABILITY_MERGE_CONFERENCE)
+                                    || (conferenceCall.can(Connection.CAPABILITY_SWAP_CONFERENCE)
+                                            && !conferenceCall.wasConferencePreviouslyMerged());
 
-                if (shouldReevaluateState) {
-                    isPartOfConference = false;
-                    if (call == activeChild) {
-                        state = CALL_STATE_ACTIVE;
-                    } else {
-                        // At this point we know there is an "active" child and we know that it is
-                        // not this call, so set it to HELD instead.
-                        state = CALL_STATE_HELD;
+                    if (shouldReevaluateState) {
+                        isPartOfConference = false;
+                        if (call == activeChild) {
+                            state = CALL_STATE_ACTIVE;
+                        } else {
+                            // At this point we know there is an "active" child and we know that it
+                            // is not this call, so set it to HELD instead.
+                            state = CALL_STATE_HELD;
+                        }
                     }
                 }
             }
@@ -1362,8 +1370,7 @@ public class BluetoothInCallService extends InCallService {
     private BluetoothLeCall createTbsCall(BluetoothCall call) {
         Integer state = getTbsCallState(call);
         boolean isPartOfConference = false;
-        boolean isConferenceWithNoChildren = call.isConference()
-                && call.can(Connection.CAPABILITY_CONFERENCE_HAS_NO_CHILDREN);
+        boolean isConferenceWithNoChildren = isConferenceWithNoChildren(call);
 
         if (state == null) {
             return null;

@@ -101,12 +101,24 @@ class StackSdpUtilsTest : public ::testing::Test {
   bluetooth::manager::MockBtifConfigInterface btif_config_interface_;
 };
 
-TEST_F(StackSdpUtilsTest, sdpu_set_avrc_target_version_device_in_iop_table) {
+TEST_F(StackSdpUtilsTest,
+       sdpu_set_avrc_target_version_device_in_iop_table_versoin_1_4) {
   RawAddress bdaddr;
   EXPECT_CALL(*localIopMock, InteropMatchAddr(INTEROP_AVRCP_1_4_ONLY, &bdaddr))
       .WillOnce(Return(true));
   sdpu_set_avrc_target_version(&avrcp_attr, &bdaddr);
   ASSERT_EQ(get_avrc_target_version(&avrcp_attr), AVRC_REV_1_4);
+}
+
+TEST_F(StackSdpUtilsTest,
+       sdpu_set_avrc_target_version_device_in_iop_table_versoin_1_3) {
+  RawAddress bdaddr;
+  EXPECT_CALL(*localIopMock, InteropMatchAddr(INTEROP_AVRCP_1_4_ONLY, &bdaddr))
+      .WillOnce(Return(false));
+  EXPECT_CALL(*localIopMock, InteropMatchAddr(INTEROP_AVRCP_1_3_ONLY, &bdaddr))
+      .WillOnce(Return(true));
+  sdpu_set_avrc_target_version(&avrcp_attr, &bdaddr);
+  ASSERT_EQ(get_avrc_target_version(&avrcp_attr), AVRC_REV_1_3);
 }
 
 TEST_F(StackSdpUtilsTest, sdpu_set_avrc_target_version_wrong_len) {
@@ -139,6 +151,8 @@ TEST_F(StackSdpUtilsTest, sdpu_set_avrc_target_version_device_older_version) {
   uint8_t config_0104[2] = {0x04, 0x01};
   EXPECT_CALL(*localIopMock, InteropMatchAddr(INTEROP_AVRCP_1_4_ONLY, &bdaddr))
       .WillOnce(Return(false));
+  EXPECT_CALL(*localIopMock, InteropMatchAddr(INTEROP_AVRCP_1_3_ONLY, &bdaddr))
+      .WillOnce(Return(false));
   EXPECT_CALL(btif_config_interface_, GetBinLength(bdaddr.ToString(), _))
       .WillOnce(Return(2));
   EXPECT_CALL(btif_config_interface_, GetBin(bdaddr.ToString(), _, _, _))
@@ -153,6 +167,8 @@ TEST_F(StackSdpUtilsTest, sdpu_set_avrc_target_version_device_same_version) {
   RawAddress bdaddr;
   uint8_t config_0105[2] = {0x05, 0x01};
   EXPECT_CALL(*localIopMock, InteropMatchAddr(INTEROP_AVRCP_1_4_ONLY, &bdaddr))
+      .WillOnce(Return(false));
+  EXPECT_CALL(*localIopMock, InteropMatchAddr(INTEROP_AVRCP_1_3_ONLY, &bdaddr))
       .WillOnce(Return(false));
   EXPECT_CALL(btif_config_interface_, GetBinLength(bdaddr.ToString(), _))
       .WillOnce(Return(2));
@@ -169,6 +185,8 @@ TEST_F(StackSdpUtilsTest, sdpu_set_avrc_target_version_device_newer_version) {
   uint8_t config_0106[2] = {0x06, 0x01};
   EXPECT_CALL(*localIopMock, InteropMatchAddr(INTEROP_AVRCP_1_4_ONLY, &bdaddr))
       .WillOnce(Return(false));
+  EXPECT_CALL(*localIopMock, InteropMatchAddr(INTEROP_AVRCP_1_3_ONLY, &bdaddr))
+      .WillOnce(Return(false));
   EXPECT_CALL(btif_config_interface_, GetBinLength(bdaddr.ToString(), _))
       .WillOnce(Return(2));
   EXPECT_CALL(btif_config_interface_, GetBin(bdaddr.ToString(), _, _, _))
@@ -183,6 +201,8 @@ TEST_F(StackSdpUtilsTest, sdpu_set_avrc_target_version_no_config_value) {
   RawAddress bdaddr;
   EXPECT_CALL(*localIopMock, InteropMatchAddr(INTEROP_AVRCP_1_4_ONLY, &bdaddr))
       .WillOnce(Return(false));
+  EXPECT_CALL(*localIopMock, InteropMatchAddr(INTEROP_AVRCP_1_3_ONLY, &bdaddr))
+      .WillOnce(Return(false));
   EXPECT_CALL(btif_config_interface_, GetBinLength(bdaddr.ToString(), _))
       .WillOnce(Return(0));
   sdpu_set_avrc_target_version(&avrcp_attr, &bdaddr);
@@ -193,6 +213,8 @@ TEST_F(StackSdpUtilsTest, sdpu_set_avrc_target_version_no_config_value) {
 TEST_F(StackSdpUtilsTest, sdpu_set_avrc_target_version_config_value_1_byte) {
   RawAddress bdaddr;
   EXPECT_CALL(*localIopMock, InteropMatchAddr(INTEROP_AVRCP_1_4_ONLY, &bdaddr))
+      .WillOnce(Return(false));
+  EXPECT_CALL(*localIopMock, InteropMatchAddr(INTEROP_AVRCP_1_3_ONLY, &bdaddr))
       .WillOnce(Return(false));
   EXPECT_CALL(btif_config_interface_, GetBinLength(bdaddr.ToString(), _))
       .WillOnce(Return(1));
@@ -205,6 +227,8 @@ TEST_F(StackSdpUtilsTest, sdpu_set_avrc_target_version_config_value_3_bytes) {
   RawAddress bdaddr;
   EXPECT_CALL(*localIopMock, InteropMatchAddr(INTEROP_AVRCP_1_4_ONLY, &bdaddr))
       .WillOnce(Return(false));
+  EXPECT_CALL(*localIopMock, InteropMatchAddr(INTEROP_AVRCP_1_3_ONLY, &bdaddr))
+      .WillOnce(Return(false));
   EXPECT_CALL(btif_config_interface_, GetBinLength(bdaddr.ToString(), _))
       .WillOnce(Return(3));
   sdpu_set_avrc_target_version(&avrcp_attr, &bdaddr);
@@ -216,6 +240,8 @@ TEST_F(StackSdpUtilsTest, sdpu_set_avrc_target_version_config_value_not_valid) {
   RawAddress bdaddr;
   uint8_t config_not_valid[2] = {0x12, 0x34};
   EXPECT_CALL(*localIopMock, InteropMatchAddr(INTEROP_AVRCP_1_4_ONLY, &bdaddr))
+      .WillOnce(Return(false));
+  EXPECT_CALL(*localIopMock, InteropMatchAddr(INTEROP_AVRCP_1_3_ONLY, &bdaddr))
       .WillOnce(Return(false));
   EXPECT_CALL(btif_config_interface_, GetBinLength(bdaddr.ToString(), _))
       .WillOnce(Return(2));

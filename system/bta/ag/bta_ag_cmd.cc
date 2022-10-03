@@ -763,7 +763,7 @@ static void bta_ag_bind_response(tBTA_AG_SCB* p_scb, uint8_t arg_type) {
 
     bta_ag_send_ok(p_scb);
 
-    /* If the service level connection wan't already open, now it's open */
+    /* If the service level connection wasn't already open, now it's open */
     if (!p_scb->svc_conn) {
       bta_ag_svc_conn_open(p_scb, tBTA_AG_DATA::kEmpty);
     }

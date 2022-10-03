@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+option java_outer_classname = "AvrcpProto";
+
+package pandora;
+
+import "pandora_experimental/host.proto";
+
+
+service AVRCP {
+
+}

@@ -27,12 +27,16 @@
 #include "common/circular_buffer.h"
 #include "common/init_flags.h"
 #include "common/strings.h"
+#include "os/fake_timer/fake_timerfd.h"
 #include "os/files.h"
 #include "os/log.h"
 #include "os/parameter_provider.h"
 #include "os/system_properties.h"
 
 namespace bluetooth {
+#ifdef USE_FAKE_TIMERS
+using os::fake_timer::fake_timerfd_get_clock;
+#endif
 namespace hal {
 
 namespace {
@@ -109,13 +113,18 @@ void delete_btsnoop_files(const std::string& log_path) {
 void delete_old_btsnooz_files(const std::string& log_path, const std::chrono::milliseconds log_life_time) {
   auto opt_created_ts = os::FileCreatedTime(log_path);
   if (!opt_created_ts) return;
-
+#ifdef USE_FAKE_TIMERS
+  auto diff = fake_timerfd_get_clock() - file_creation_time;
+  uint64_t log_lifetime = log_life_time.count();
+  if (diff >= log_lifetime) {
+#else
   using namespace std::chrono;
   auto created_tp = opt_created_ts.value();
   auto current_tp = std::chrono::system_clock::now();
 
   auto diff = duration_cast<milliseconds>(current_tp - created_tp);
   if (diff >= log_life_time) {
+#endif
     delete_btsnoop_files(log_path);
   }
 }
@@ -268,6 +277,9 @@ void SnoopLogger::OpenNextSnoopLogFile() {
   mode_t prevmask = umask(0);
   // do not use std::ios::app as we want override the existing file
   btsnoop_ostream_.open(snoop_log_path_, std::ios::binary | std::ios::out);
+#ifdef USE_FAKE_TIMERS
+  file_creation_time = fake_timerfd_get_clock();
+#endif
   if (!btsnoop_ostream_.good()) {
     LOG_ALWAYS_FATAL("Unable to open snoop log at \"%s\", error: \"%s\"", snoop_log_path_.c_str(), strerror(errno));
   }

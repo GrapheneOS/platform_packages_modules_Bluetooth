@@ -5081,6 +5081,7 @@ public class AdapterService extends Service {
     private static final String GD_LINK_POLICY_FLAG = "INIT_gd_link_policy";
     private static final String GATT_ROBUST_CACHING_CLIENT_FLAG = "INIT_gatt_robust_caching_client";
     private static final String GATT_ROBUST_CACHING_SERVER_FLAG = "INIT_gatt_robust_caching_server";
+    private static final String IRK_ROTATION_FLAG = "INIT_irk_rotation";
 
     /**
      * Logging flags logic (only applies to DEBUG and VERBOSE levels):
@@ -5140,6 +5141,9 @@ public class AdapterService extends Service {
         if (DeviceConfig.getBoolean(DeviceConfig.NAMESPACE_BLUETOOTH,
                 GATT_ROBUST_CACHING_SERVER_FLAG, false)) {
             initFlags.add(String.format("%s=%s", GATT_ROBUST_CACHING_SERVER_FLAG, "true"));
+        }
+        if (DeviceConfig.getBoolean(DeviceConfig.NAMESPACE_BLUETOOTH, IRK_ROTATION_FLAG, false)) {
+            initFlags.add(String.format("%s=%s", IRK_ROTATION_FLAG, "true"));
         }
         if (DeviceConfig.getBoolean(DeviceConfig.NAMESPACE_BLUETOOTH,
                 LOGGING_DEBUG_ENABLED_FOR_ALL_FLAG, false)) {
@@ -5226,33 +5230,30 @@ public class AdapterService extends Service {
         }
     }
 
-    public static int getScanQuotaCount() {
-        if (sAdapterService == null) {
-            return DeviceConfigListener.DEFAULT_SCAN_QUOTA_COUNT;
-        }
-
-        synchronized (sAdapterService.mDeviceConfigLock) {
-            return sAdapterService.mScanQuotaCount;
-        }
-    }
-
-    public static long getScanQuotaWindowMillis() {
-        if (sAdapterService == null) {
-            return DeviceConfigListener.DEFAULT_SCAN_QUOTA_WINDOW_MILLIS;
-        }
-
-        synchronized (sAdapterService.mDeviceConfigLock) {
-            return sAdapterService.mScanQuotaWindowMillis;
+    /**
+     * Returns scan quota count.
+     */
+    public int getScanQuotaCount() {
+        synchronized (mDeviceConfigLock) {
+            return mScanQuotaCount;
         }
     }
 
-    public static long getScanTimeoutMillis() {
-        if (sAdapterService == null) {
-            return DeviceConfigListener.DEFAULT_SCAN_TIMEOUT_MILLIS;
+    /**
+     * Returns scan quota window in millis.
+     */
+    public long getScanQuotaWindowMillis() {
+        synchronized (mDeviceConfigLock) {
+            return mScanQuotaWindowMillis;
         }
+    }
 
-        synchronized (sAdapterService.mDeviceConfigLock) {
-            return sAdapterService.mScanTimeoutMillis;
+    /**
+     * Returns scan timeout in millis.
+     */
+    public long getScanTimeoutMillis() {
+        synchronized (mDeviceConfigLock) {
+            return mScanTimeoutMillis;
         }
     }
 

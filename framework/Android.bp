@@ -70,9 +70,12 @@ java_sdk_library {
         "//external/sl4a/Common",
         "//frameworks/opt/wear",
         "//packages/modules/Bluetooth/android/app/tests/unit",
+        "//packages/modules/Bluetooth/android/pandora/server",
         "//packages/modules/Bluetooth/service",
         "//packages/modules/Connectivity/nearby/tests/multidevices/clients/test_support/fastpair_provider",
         "//packages/services/Car/car-builtin-lib",
+        // TODO(240720385)
+        "//packages/services/Car/tests/carservice_unit_test",
         ":__subpackages__",
     ],
 

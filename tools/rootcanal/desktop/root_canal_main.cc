@@ -13,12 +13,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include <backtrace/Backtrace.h>
-#include <backtrace/backtrace_constants.h>
 #include <client/linux/handler/exception_handler.h>
 #include <gflags/gflags.h>
+#include <unwindstack/AndroidUnwinder.h>
 
 #include <future>
+#include <optional>
 
 #include "model/setup/async_manager.h"
 #include "net/posix/posix_async_socket_connector.h"
@@ -35,6 +35,8 @@ DEFINE_string(controller_properties_file, "",
               "controller_properties.json file path");
 DEFINE_string(default_commands_file, "",
               "commands file which root-canal runs it as default");
+DEFINE_bool(enable_hci_sniffer, false, "enable hci sniffer");
+DEFINE_bool(enable_baseband_sniffer, false, "enable baseband sniffer");
 
 constexpr uint16_t kTestPort = 6401;
 constexpr uint16_t kHciServerPort = 6402;
@@ -47,32 +49,28 @@ extern "C" const char* __asan_default_options() {
 
 bool crash_callback(const void* crash_context, size_t crash_context_size,
                     void* /* context */) {
-  pid_t tid = BACKTRACE_CURRENT_THREAD;
+  std::optional<pid_t> tid;
   if (crash_context_size >=
       sizeof(google_breakpad::ExceptionHandler::CrashContext)) {
     auto* ctx =
         static_cast<const google_breakpad::ExceptionHandler::CrashContext*>(
             crash_context);
-    tid = ctx->tid;
+    *tid = ctx->tid;
     int signal_number = ctx->siginfo.si_signo;
     LOG_ERROR("Process crashed, signal: %s[%d], tid: %d",
               strsignal(signal_number), signal_number, ctx->tid);
   } else {
     LOG_ERROR("Process crashed, signal: unknown, tid: unknown");
   }
-  std::unique_ptr<Backtrace> backtrace(
-      Backtrace::Create(BACKTRACE_CURRENT_PROCESS, tid));
-  if (backtrace == nullptr) {
-    LOG_ERROR("Failed to create backtrace object");
-    return false;
-  }
-  if (!backtrace->Unwind(0)) {
-    LOG_ERROR("backtrace->Unwind failed");
+  unwindstack::AndroidLocalUnwinder unwinder;
+  unwindstack::AndroidUnwinderData data;
+  if (!unwinder.Unwind(tid, data)) {
+    LOG_ERROR("Unwind failed");
     return false;
   }
   LOG_ERROR("Backtrace:");
-  for (size_t i = 0; i < backtrace->NumFrames(); i++) {
-    LOG_ERROR("%s", backtrace->FormatFrameData(i).c_str());
+  for (const auto& frame : data.frames) {
+    LOG_ERROR("%s", unwinder.FormatFrame(frame).c_str());
   }
   return true;
 }
@@ -125,7 +123,8 @@ int main(int argc, char** argv) {
       std::make_shared<PosixAsyncSocketServer>(link_server_port, &am),
       std::make_shared<PosixAsyncSocketServer>(link_ble_server_port, &am),
       std::make_shared<PosixAsyncSocketConnector>(&am),
-      FLAGS_controller_properties_file, FLAGS_default_commands_file);
+      FLAGS_controller_properties_file, FLAGS_default_commands_file,
+      FLAGS_enable_hci_sniffer, FLAGS_enable_baseband_sniffer);
   std::promise<void> barrier;
   std::future<void> barrier_future = barrier.get_future();
   root_canal.initialize(std::move(barrier));

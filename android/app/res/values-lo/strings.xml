@@ -128,4 +128,10 @@
     <string name="a2dp_sink_mbs_label" msgid="6035366346569127155">"ສຽງ Bluetooth"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"ບໍ່ສາມາດໂອນຍ້າຍໄຟລ໌ທີ່ໃຫຍກວ່າ 4GB ໄດ້"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"ເຊື່ອມຕໍ່ກັບ Bluetooth"</string>
+    <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"ເປີດ Bluetooth ໃນໂໝດຢູ່ໃນຍົນ"</string>
+    <string name="bluetooth_enabled_apm_message" msgid="8990667142380927316">"ຫາກທ່ານສືບຕໍ່ເປີດ Bluetooth ໄວ້, ມັນຈະເປີດປະໄວ້ໃນເທື່ອຕໍ່ໄປທີ່ທ່ານຢູ່ໃນໂໝດຢູ່ໃນຍົນ"</string>
+    <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Bluetooth ເປີດຢູ່"</string>
+    <string name="bluetooth_stays_on_message" msgid="2770176686603189536">"ໂທລະສັບຂອງທ່ານຈື່ວ່າຈະຕ້ອງເປີດ Bluetooth ໄວ້ໃນໂໝດຢູ່ໃນຍົນ. ເພື່ອປ່ຽນການຕັ້ງຄ່ານີ້, ໃຫ້ປິດ Bluetooth ໄວ້."</string>
+    <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wi-Fi ແລະ Bluetooth ຈະເປີດປະໄວ້"</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="4120501683284996436">"ໂທລະສັບຂອງທ່ານຈື່ວ່າຈະຕ້ອງເປີດ Wi-Fi ແລະ Bluetooth ໄວ້ໃນໂໝດຢູ່ໃນຍົນ. ເພື່ອປ່ຽນການຕັ້ງຄ່ານີ້, ໃຫ້ປິດພວກມັນໄວ້."</string>
 </resources>

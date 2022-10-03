@@ -128,4 +128,10 @@
     <string name="a2dp_sink_mbs_label" msgid="6035366346569127155">"Dźwięk Bluetooth"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"Nie można przenieść plików przekraczających 4 GB"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Nawiązywanie połączeń przez Bluetooth"</string>
+    <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Bluetooth włączony w trybie samolotowym"</string>
+    <string name="bluetooth_enabled_apm_message" msgid="8990667142380927316">"Jeśli pozostawisz Bluetooth włączony, będzie aktywny, gdy następnym razem uruchomisz tryb samolotowy"</string>
+    <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Bluetooth pozostanie włączony"</string>
+    <string name="bluetooth_stays_on_message" msgid="2770176686603189536">"Bluetooth na telefonie pozostaje włączony w trybie samolotowym. Aby to zmienić, wyłącz tę funkcję."</string>
+    <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wi-Fi i Bluetooth pozostają włączone"</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="4120501683284996436">"Wi-Fi i Bluetooth na telefonie pozostają włączone w trybie samolotowym. Aby to zmienić, wyłącz te funkcje."</string>
 </resources>

@@ -128,4 +128,10 @@
     <string name="a2dp_sink_mbs_label" msgid="6035366346569127155">"Bluetooth audio"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"Ne mogu da se prenose datoteke veće od 4 GB"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Poveži sa Bluetooth-om"</string>
+    <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Bluetooth je uključen u režimu rada u avionu"</string>
+    <string name="bluetooth_enabled_apm_message" msgid="8990667142380927316">"Ako odlučite da ne isključujete Bluetooth, ostaće uključen sledeći put kada budete u režimu rada u avionu"</string>
+    <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Bluetooth se ne isključuje"</string>
+    <string name="bluetooth_stays_on_message" msgid="2770176686603189536">"Telefon pamti da ne treba da isključuje Bluetooth u režimu rada u avionu. Da biste to promenili, isključite Bluetooth."</string>
+    <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"WiFi i Bluetooth ostaju uključeni"</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="4120501683284996436">"Telefon pamti da ne treba da isključuje WiFi i Bluetooth u režimu rada u avionu. Da biste to promenili, isključite ih."</string>
 </resources>

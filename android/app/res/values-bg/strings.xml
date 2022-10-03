@@ -128,4 +128,10 @@
     <string name="a2dp_sink_mbs_label" msgid="6035366346569127155">"Аудио през Bluetooth"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"Файловете с размер над 4 ГБ не могат да бъдат прехвърлени"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"Свързване с Bluetooth"</string>
+    <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"Функцията за Bluetooth е включена в самолетния режим"</string>
+    <string name="bluetooth_enabled_apm_message" msgid="8990667142380927316">"Ако не изключите Bluetooth, функцията ще остане включена следващия път, когато използвате самолетния режим"</string>
+    <string name="bluetooth_stays_on_title" msgid="39720820955212918">"Функцията за Bluetooth няма да се изключи"</string>
+    <string name="bluetooth_stays_on_message" msgid="2770176686603189536">"Телефонът ви помни, че не трябва да изключва Bluetooth в самолетния режим. За да промените това, изключете функцията."</string>
+    <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Функциите за Wi-Fi и Bluetooth няма да бъдат изключени"</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="4120501683284996436">"Телефонът ви помни, че не трябва да изключва Wi‑Fi и Bluetooth в самолетния режим. За да промените това, изключете съответните функции."</string>
 </resources>

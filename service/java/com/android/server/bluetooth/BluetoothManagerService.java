@@ -21,6 +21,13 @@ import static android.os.PowerExemptionManager.TEMPORARY_ALLOW_LIST_TYPE_FOREGRO
 import static android.permission.PermissionManager.PERMISSION_GRANTED;
 import static android.permission.PermissionManager.PERMISSION_HARD_DENIED;
 
+import static com.android.server.bluetooth.BluetoothAirplaneModeListener.APM_BT_ENABLED_NOTIFICATION;
+import static com.android.server.bluetooth.BluetoothAirplaneModeListener.APM_ENHANCEMENT;
+import static com.android.server.bluetooth.BluetoothAirplaneModeListener.APM_USER_TOGGLED_BLUETOOTH;
+import static com.android.server.bluetooth.BluetoothAirplaneModeListener.BLUETOOTH_APM_STATE;
+import static com.android.server.bluetooth.BluetoothAirplaneModeListener.NOTIFICATION_NOT_SHOWN;
+import static com.android.server.bluetooth.BluetoothAirplaneModeListener.USED;
+
 import android.Manifest;
 import android.annotation.NonNull;
 import android.annotation.RequiresPermission;
@@ -182,6 +189,9 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
     @VisibleForTesting
     static final int BLUETOOTH_ON_AIRPLANE = 2;
 
+    private static final int BLUETOOTH_OFF_APM = 0;
+    private static final int BLUETOOTH_ON_APM = 1;
+
     private static final int SERVICE_IBLUETOOTH = 1;
     private static final int SERVICE_IBLUETOOTHGATT = 2;
 
@@ -226,6 +236,8 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
     private BluetoothAirplaneModeListener mBluetoothAirplaneModeListener;
 
     private BluetoothDeviceConfigListener mBluetoothDeviceConfigListener;
+
+    private BluetoothNotificationManager mBluetoothNotificationManager;
 
     // used inside handler thread
     private boolean mQuietEnable = false;
@@ -307,7 +319,6 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
                 UserManager.DISALLOW_BLUETOOTH, userHandle);
         boolean newBluetoothSharingDisallowed = mUserManager.hasUserRestrictionForUser(
                 UserManager.DISALLOW_BLUETOOTH_SHARING, userHandle);
-
         // DISALLOW_BLUETOOTH can only be set by DO or PO on the system user.
         if (userHandle == UserHandle.SYSTEM) {
             if (newBluetoothDisallowed) {
@@ -542,6 +553,8 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
 
         mUserManager = mContext.getSystemService(UserManager.class);
 
+        mBluetoothNotificationManager = new BluetoothNotificationManager(mContext);
+
         mIsHearingAidProfileSupported =
                 BluetoothProperties.isProfileAshaCentralEnabled().orElse(false);
 
@@ -602,7 +615,8 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
         if (airplaneModeRadios == null || airplaneModeRadios.contains(
                 Settings.Global.RADIO_BLUETOOTH)) {
             mBluetoothAirplaneModeListener = new BluetoothAirplaneModeListener(
-                    this, mBluetoothHandlerThread.getLooper(), context);
+                    this, mBluetoothHandlerThread.getLooper(), context,
+                    mBluetoothNotificationManager);
         }
 
         int systemUiUid = -1;
@@ -625,6 +639,13 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
     private boolean isAirplaneModeOn() {
         return Settings.Global.getInt(mContext.getContentResolver(),
                 Settings.Global.AIRPLANE_MODE_ON, 0) == 1;
+    }
+
+    /**
+     *  Returns true if airplane mode enhancement feature is enabled
+     */
+    private boolean isApmEnhancementOn() {
+        return Settings.Global.getInt(mContext.getContentResolver(), APM_ENHANCEMENT, 0) == 1;
     }
 
     private boolean supportBluetoothPersistedState() {
@@ -683,6 +704,43 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
         } finally {
             Binder.restoreCallingIdentity(callingIdentity);
         }
+    }
+
+    /**
+     *  Set the Settings Secure Int value for foreground user
+     */
+    private void setSettingsSecureInt(String name, int value) {
+        if (DBG) {
+            Log.d(TAG, "Persisting Settings Secure Int: " + name + "=" + value);
+        }
+
+        // waive WRITE_SECURE_SETTINGS permission check
+        final long callingIdentity = Binder.clearCallingIdentity();
+        try {
+            Context userContext = mContext.createContextAsUser(
+                    UserHandle.of(ActivityManager.getCurrentUser()), 0);
+            Settings.Secure.putInt(userContext.getContentResolver(), name, value);
+        } finally {
+            Binder.restoreCallingIdentity(callingIdentity);
+        }
+    }
+
+    /**
+     *  Return whether APM notification has been shown
+     */
+    private boolean isFirstTimeNotification(String name) {
+        boolean firstTime = false;
+        // waive WRITE_SECURE_SETTINGS permission check
+        final long callingIdentity = Binder.clearCallingIdentity();
+        try {
+            Context userContext = mContext.createContextAsUser(
+                    UserHandle.of(ActivityManager.getCurrentUser()), 0);
+            firstTime = Settings.Secure.getInt(userContext.getContentResolver(), name,
+                    NOTIFICATION_NOT_SHOWN) == NOTIFICATION_NOT_SHOWN;
+        } finally {
+            Binder.restoreCallingIdentity(callingIdentity);
+        }
+        return firstTime;
     }
 
     /**
@@ -1321,6 +1379,23 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
         synchronized (mReceiver) {
             mQuietEnableExternal = false;
             mEnableExternal = true;
+            if (isAirplaneModeOn() && isApmEnhancementOn()) {
+                setSettingsSecureInt(BLUETOOTH_APM_STATE, BLUETOOTH_ON_APM);
+                setSettingsSecureInt(APM_USER_TOGGLED_BLUETOOTH, USED);
+                if (isFirstTimeNotification(APM_BT_ENABLED_NOTIFICATION)) {
+                    final long callingIdentity = Binder.clearCallingIdentity();
+                    try {
+                        mBluetoothAirplaneModeListener.sendApmNotification(
+                                "bluetooth_enabled_apm_title",
+                                "bluetooth_enabled_apm_message",
+                                APM_BT_ENABLED_NOTIFICATION);
+                    } catch (Exception e) {
+                        Log.e(TAG, "APM enhancement BT enabled notification not shown");
+                    } finally {
+                        Binder.restoreCallingIdentity(callingIdentity);
+                    }
+                }
+            }
             // waive WRITE_SECURE_SETTINGS permission check
             sendEnableMsg(false,
                     BluetoothProtoEnums.ENABLE_DISABLE_REASON_APPLICATION_REQUEST, packageName);
@@ -1361,12 +1436,15 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
         }
 
         synchronized (mReceiver) {
-            if (!isBluetoothPersistedStateOnAirplane()) {
-                if (persist) {
-                    persistBluetoothSetting(BLUETOOTH_OFF);
-                }
-                mEnableExternal = false;
+            if (isAirplaneModeOn() && isApmEnhancementOn()) {
+                setSettingsSecureInt(BLUETOOTH_APM_STATE, BLUETOOTH_OFF_APM);
+                setSettingsSecureInt(APM_USER_TOGGLED_BLUETOOTH, USED);
             }
+
+            if (persist) {
+                persistBluetoothSetting(BLUETOOTH_OFF);
+            }
+            mEnableExternal = false;
             sendDisableMsg(BluetoothProtoEnums.ENABLE_DISABLE_REASON_APPLICATION_REQUEST,
                     packageName);
         }
@@ -1571,7 +1649,7 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
             mBluetoothAirplaneModeListener.start(mBluetoothModeChangeHelper);
         }
         registerForProvisioningStateChange();
-        mBluetoothDeviceConfigListener = new BluetoothDeviceConfigListener(this, DBG);
+        mBluetoothDeviceConfigListener = new BluetoothDeviceConfigListener(this, DBG, mContext);
     }
 
     /**
@@ -2428,6 +2506,7 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
                         Log.d(TAG, "MESSAGE_USER_SWITCHED");
                     }
                     mHandler.removeMessages(MESSAGE_USER_SWITCHED);
+                    mBluetoothNotificationManager.createNotificationChannels();
 
                     /* disable and enable BT when detect a user switch */
                     if (mBluetooth != null && isEnabled()) {
@@ -2933,7 +3012,18 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
                 newState = PackageManager.COMPONENT_ENABLED_STATE_DEFAULT;
             }
 
-            String launcherActivity = "com.android.bluetooth.opp.BluetoothOppLauncherActivity";
+            // Bluetooth OPP activities that should always be enabled,
+            // even when Bluetooth is turned OFF.
+            ArrayList<String> baseBluetoothOppActivities = new ArrayList<String>() {
+                {
+                    // Base sharing activity
+                    add("com.android.bluetooth.opp.BluetoothOppLauncherActivity");
+                    // BT enable activities
+                    add("com.android.bluetooth.opp.BluetoothOppBtEnableActivity");
+                    add("com.android.bluetooth.opp.BluetoothOppBtEnablingActivity");
+                    add("com.android.bluetooth.opp.BluetoothOppBtErrorActivity");
+                }
+            };
 
             PackageManager systemPackageManager = mContext.getPackageManager();
             PackageManager userPackageManager = mContext.createContextAsUser(userHandle, 0)
@@ -2963,20 +3053,21 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
                 }
                 for (var activity : packageInfo.activities) {
                     Log.v(TAG, "Checking activity " + activity.name);
-                    if (launcherActivity.equals(activity.name)) {
-                        final ComponentName oppLauncherComponent = new ComponentName(
-                                candidatePackage, launcherActivity
-                        );
-                        userPackageManager.setComponentEnabledSetting(
-                                oppLauncherComponent, newState, PackageManager.DONT_KILL_APP
-                        );
+                    if (baseBluetoothOppActivities.contains(activity.name)) {
+                        for (String activityName : baseBluetoothOppActivities) {
+                            userPackageManager.setComponentEnabledSetting(
+                                    new ComponentName(candidatePackage, activityName),
+                                    newState,
+                                    PackageManager.DONT_KILL_APP
+                            );
+                        }
                         return;
                     }
                 }
             }
 
             Log.e(TAG,
-                    "Cannot toggle BluetoothOppLauncherActivity, could not find it in any package");
+                    "Cannot toggle Bluetooth OPP activities, could not find them in any package");
         } catch (Exception e) {
             Log.e(TAG, "updateOppLauncherComponentState failed: " + e);
         }

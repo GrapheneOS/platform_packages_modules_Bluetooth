@@ -1024,8 +1024,7 @@ tGATT_STATUS GATTC_ExecuteWrite(uint16_t conn_id, bool is_execute) {
  *
  ******************************************************************************/
 tGATT_STATUS GATTC_SendHandleValueConfirm(uint16_t conn_id, uint16_t cid) {
-  VLOG(1) << __func__ << " conn_id=" << loghex(conn_id)
-          << ", cid=" << loghex(cid);
+  LOG_INFO(" conn_id=0x%04x , cid=0x%04x", conn_id, cid);
 
   tGATT_TCB* p_tcb = gatt_get_tcb_by_idx(GATT_GET_TCB_IDX(conn_id));
   if (!p_tcb) {
@@ -1034,20 +1033,19 @@ tGATT_STATUS GATTC_SendHandleValueConfirm(uint16_t conn_id, uint16_t cid) {
   }
 
   if (p_tcb->ind_count == 0) {
-    VLOG(1) << " conn_id: " << loghex(conn_id)
-            << " ignored not waiting for indicaiton ack";
+    LOG_INFO("conn_id: 0x%04x ignored not waiting for indicaiton ack", conn_id);
     return GATT_SUCCESS;
   }
 
+  LOG_INFO("Received confirmation, ind_count= %d, sending confirmation",
+           p_tcb->ind_count);
+
+  /* Just wait for first confirmation.*/
+  p_tcb->ind_count = 0;
   gatt_stop_ind_ack_timer(p_tcb, cid);
 
-  VLOG(1) << "notif_count= " << p_tcb->ind_count;
   /* send confirmation now */
-  tGATT_STATUS ret = attp_send_cl_confirmation_msg(*p_tcb, cid);
-
-
-
-  return ret;
+  return attp_send_cl_confirmation_msg(*p_tcb, cid);
 }
 
 /******************************************************************************/
@@ -1114,6 +1112,11 @@ tGATT_IF GATT_Register(const Uuid& app_uuid128, std::string name,
                 app_uuid128.ToString().c_str());
       return 0;
     }
+  }
+
+  if (stack_config_get_interface()->get_pts_use_eatt_for_all_services()) {
+    LOG_INFO("PTS: Force to use EATT for servers");
+    eatt_support = true;
   }
 
   for (i_gatt_if = 0, p_reg = gatt_cb.cl_rcb; i_gatt_if < GATT_MAX_APPS;

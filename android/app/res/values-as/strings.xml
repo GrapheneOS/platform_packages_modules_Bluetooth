@@ -128,4 +128,10 @@
     <string name="a2dp_sink_mbs_label" msgid="6035366346569127155">"ব্লুটুথ অডিঅ\'"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"৪ জি. বি. তকৈ ডাঙৰ ফাইল স্থানান্তৰ কৰিব নোৱাৰি"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"ব্লুটুথৰ সৈতে সংযোগ কৰক"</string>
+    <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"এয়াৰপ্লেন ম’ডত ব্লুটুথ অন হৈ থাকিব"</string>
+    <string name="bluetooth_enabled_apm_message" msgid="8990667142380927316">"যদি আপুনি ব্লুটুথ অন কৰি ৰাখে, তেন্তে পৰৱৰ্তী সময়ত আপুনি এয়াৰপ্লেন ম’ডত থকাৰ সময়ত এইটো অন হৈ থাকিব"</string>
+    <string name="bluetooth_stays_on_title" msgid="39720820955212918">"ব্লুটুথ অন হৈ থাকে"</string>
+    <string name="bluetooth_stays_on_message" msgid="2770176686603189536">"আপোনাৰ ফ’নটোৱে এয়াৰপ্লেন ম’ডত ব্লুটুথ অন ৰাখিবলৈ মনত ৰাখে। এইটো সলনি কৰিবলৈ, ব্লুটুথ অফ কৰক।"</string>
+    <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"ৱাই-ফাই আৰু ব্লুটুথ অন হৈ থাকে"</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="4120501683284996436">"আপোনাৰ ফ’নটোৱে এয়াৰপ্লেন ম’ডত ৱাই-ফাই আৰু ব্লুটুথ অন ৰাখিবলৈ মনত ৰাখে। এইটো সলনি কৰিবলৈ, সেইসমূহ অফ কৰক।"</string>
 </resources>

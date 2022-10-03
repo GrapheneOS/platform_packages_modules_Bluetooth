@@ -69,6 +69,126 @@ static uint8_t min_req_devices_cnt(
   return curr_min_req_devices_cnt;
 }
 
+void get_cis_count(const AudioSetConfigurations* audio_set_confs,
+                   types::LeAudioConfigurationStrategy strategy,
+                   int group_ase_snk_cnt, int group_ase_src_count,
+                   uint8_t* cis_count_bidir, uint8_t* cis_count_unidir_sink,
+                   uint8_t* cis_count_unidir_source) {
+  LOG_INFO(" strategy %d, sink ases: %d, source ases %d",
+           static_cast<int>(strategy), group_ase_snk_cnt, group_ase_src_count);
+
+  for (auto audio_set_conf : *audio_set_confs) {
+    std::pair<uint8_t /* sink */, uint8_t /* source */> snk_src_pair(0, 0);
+    uint8_t bidir_count = 0;
+    uint8_t unidir_sink_count = 0;
+    uint8_t unidir_source_count = 0;
+
+    LOG_INFO("%s ", audio_set_conf->name.c_str());
+    bool stategy_mismatch = false;
+    for (auto ent : (*audio_set_conf).confs) {
+      if (ent.strategy != strategy) {
+        LOG_DEBUG("Strategy does not match (%d != %d)- skip this configuration",
+                  static_cast<int>(ent.strategy), static_cast<int>(strategy));
+        stategy_mismatch = true;
+        break;
+      }
+      if (ent.direction == kLeAudioDirectionSink) {
+        snk_src_pair.first += ent.ase_cnt;
+      }
+      if (ent.direction == kLeAudioDirectionSource) {
+        snk_src_pair.second += ent.ase_cnt;
+      }
+    }
+
+    if (stategy_mismatch) {
+      continue;
+    }
+
+    /* Before we start adding another CISes, ignore scenarios which cannot
+     * satisfied because of the number of ases
+     */
+
+    if (group_ase_snk_cnt == 0 && snk_src_pair.first > 0) {
+      LOG_DEBUG("Group does not have sink ASEs");
+      continue;
+    }
+
+    if (group_ase_src_count == 0 && snk_src_pair.second > 0) {
+      LOG_DEBUG("Group does not have source ASEs");
+      continue;
+    }
+
+    /* Configuration list is set in the prioritized order.
+     * it might happen that more prio configuration can be supported
+     * and is already taken into account.
+     * Now let's try to ignore ortogonal configuration which would just
+     * increase our demant on number of CISes but will never happen
+     */
+
+    if (snk_src_pair.first == 0 &&
+        (*cis_count_unidir_sink > 0 || *cis_count_bidir > 0)) {
+      LOG_DEBUG(
+          "More prio configuration using sink ASEs has been taken into "
+          "account");
+      continue;
+    }
+    if (snk_src_pair.second == 0 &&
+        (*cis_count_unidir_source > 0 || *cis_count_bidir > 0)) {
+      LOG_DEBUG(
+          "More prio configuration using source ASEs has been taken into "
+          "account");
+      continue;
+    }
+
+    bidir_count = std::min(snk_src_pair.first, snk_src_pair.second);
+    unidir_sink_count = ((snk_src_pair.first - bidir_count) > 0)
+                            ? (snk_src_pair.first - bidir_count)
+                            : 0;
+    unidir_source_count = ((snk_src_pair.second - bidir_count) > 0)
+                              ? (snk_src_pair.second - bidir_count)
+                              : 0;
+
+    *cis_count_bidir = std::max(bidir_count, *cis_count_bidir);
+
+    /* Check if we can reduce a number of unicast CISes in case bidirectional
+     * are use in other or this scenario */
+    if (bidir_count < *cis_count_bidir) {
+      /* Since we already have bidirectional cises available from other
+       * scenarios, let's decrease number of unicast sinks in this scenario.
+       */
+      uint8_t available_bidir = *cis_count_bidir - bidir_count;
+      unidir_sink_count =
+          unidir_sink_count - std::min(unidir_sink_count, available_bidir);
+      unidir_source_count =
+          unidir_source_count - std::min(unidir_source_count, available_bidir);
+    } else if (bidir_count > *cis_count_bidir) {
+      /* Lets decrease number of the unicast cises from previouse scenarios */
+      uint8_t available_bidir = bidir_count - *cis_count_bidir;
+      *cis_count_unidir_sink =
+          *cis_count_unidir_sink -
+          std::min(*cis_count_unidir_sink, available_bidir);
+      *cis_count_unidir_source =
+          *cis_count_unidir_source -
+          std::min(*cis_count_unidir_source, available_bidir);
+    }
+
+    *cis_count_unidir_sink =
+        std::max(unidir_sink_count, *cis_count_unidir_sink);
+    *cis_count_unidir_source =
+        std::max(unidir_source_count, *cis_count_unidir_source);
+
+    LOG_INFO(
+        "Intermediate step:  Bi-Directional: %d,"
+        " Uni-Directional Sink: %d, Uni-Directional Source: %d ",
+        *cis_count_bidir, *cis_count_unidir_sink, *cis_count_unidir_source);
+  }
+
+  LOG_INFO(
+      " Maximum CIS count, Bi-Directional: %d,"
+      " Uni-Directional Sink: %d, Uni-Directional Source: %d",
+      *cis_count_bidir, *cis_count_unidir_sink, *cis_count_unidir_source);
+}
+
 bool check_if_may_cover_scenario(const AudioSetConfigurations* audio_set_confs,
                                  uint8_t group_size) {
   if (!audio_set_confs) {
@@ -399,24 +519,21 @@ std::string LeAudioLtvMap::ToString() const {
 }  // namespace types
 
 void AppendMetadataLtvEntryForCcidList(std::vector<uint8_t>& metadata,
-                                       int ccid) {
-  if (ccid < 0) return;
+                                       const std::vector<uint8_t>& ccid_list) {
+  if (ccid_list.size() == 0) {
+    LOG_WARN("Empty CCID list.");
+    return;
+  }
 
-  std::vector<uint8_t> ccid_ltv_entry;
-  std::vector<uint8_t> ccid_value = {static_cast<uint8_t>(ccid)};
+  metadata.push_back(
+      static_cast<uint8_t>(types::kLeAudioMetadataTypeLen + ccid_list.size()));
+  metadata.push_back(static_cast<uint8_t>(types::kLeAudioMetadataTypeCcidList));
 
-  ccid_ltv_entry.push_back(
-      static_cast<uint8_t>(types::kLeAudioMetadataTypeLen + ccid_value.size()));
-  ccid_ltv_entry.push_back(
-      static_cast<uint8_t>(types::kLeAudioMetadataTypeCcidList));
-  ccid_ltv_entry.insert(ccid_ltv_entry.end(), ccid_value.begin(),
-                        ccid_value.end());
-
-  metadata.insert(metadata.end(), ccid_ltv_entry.begin(), ccid_ltv_entry.end());
+  metadata.insert(metadata.end(), ccid_list.begin(), ccid_list.end());
 }
 
 void AppendMetadataLtvEntryForStreamingContext(
-    std::vector<uint8_t>& metadata, LeAudioContextType context_type) {
+    std::vector<uint8_t>& metadata, types::AudioContexts context_type) {
   std::vector<uint8_t> streaming_context_ltv_entry;
 
   streaming_context_ltv_entry.resize(
@@ -430,7 +547,7 @@ void AppendMetadataLtvEntryForStreamingContext(
   UINT8_TO_STREAM(streaming_context_ltv_entry_buf,
                   types::kLeAudioMetadataTypeStreamingAudioContext);
   UINT16_TO_STREAM(streaming_context_ltv_entry_buf,
-                   static_cast<uint16_t>(context_type));
+                   static_cast<uint16_t>(context_type.to_ulong()));
 
   metadata.insert(metadata.end(), streaming_context_ltv_entry.begin(),
                   streaming_context_ltv_entry.end());
@@ -445,10 +562,25 @@ uint8_t GetMaxCodecFramesPerSduFromPac(const acs_ac_record* pac) {
   return 1;
 }
 
+uint32_t AdjustAllocationForOffloader(uint32_t allocation) {
+  if ((allocation & codec_spec_conf::kLeAudioLocationAnyLeft) &&
+      (allocation & codec_spec_conf::kLeAudioLocationAnyRight)) {
+    return codec_spec_conf::kLeAudioLocationStereo;
+  }
+  if (allocation & codec_spec_conf::kLeAudioLocationAnyLeft) {
+    return codec_spec_conf::kLeAudioLocationFrontLeft;
+  }
+
+  if (allocation & codec_spec_conf::kLeAudioLocationAnyRight) {
+    return codec_spec_conf::kLeAudioLocationFrontRight;
+  }
+  return 0;
+}
+
 namespace types {
 std::ostream& operator<<(std::ostream& os, const types::CigState& state) {
-  static const char* char_value_[4] = {"NONE", "CREATING", "CREATED",
-                                       "REMOVING"};
+  static const char* char_value_[5] = {"NONE", "CREATING", "CREATED",
+                                       "REMOVING", "RECOVERING"};
 
   os << char_value_[static_cast<uint8_t>(state)] << " ("
      << "0x" << std::setfill('0') << std::setw(2) << static_cast<int>(state)

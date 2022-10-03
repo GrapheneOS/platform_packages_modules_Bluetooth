@@ -650,8 +650,8 @@ void HciLayer::Start() {
   RegisterEventHandler(EventCode::PAGE_SCAN_REPETITION_MODE_CHANGE, drop_packet);
   RegisterEventHandler(EventCode::MAX_SLOTS_CHANGE, drop_packet);
 
-  EnqueueCommand(ResetBuilder::Create(), handler->BindOnce(&fail_if_reset_complete_not_success));
   hal->registerIncomingPacketCallback(hal_callbacks_);
+  EnqueueCommand(ResetBuilder::Create(), handler->BindOnce(&fail_if_reset_complete_not_success));
 }
 
 void HciLayer::Stop() {

@@ -416,10 +416,6 @@ public class BluetoothProxy {
                 LeAudioDeviceStateWrapper valid_device = valid_device_opt.get();
                 LeAudioDeviceStateWrapper.BassData svc_data = valid_device.bassData;
 
-                // TODO: Is the receiver_id same with BluetoothLeBroadcastReceiveState.getSourceId()?
-                //       If not, find getSourceId() usages and fix the issues.
-//                rstate.receiver_id = intent.getIntExtra(
-//                        BluetoothBroadcastAudioScan.EXTRA_BASS_RECEIVER_ID, -1);
                 /**
                  * From "Introducing-Bluetooth-LE-Audio-book" 8.6.3.1:
                  *
@@ -435,8 +431,6 @@ public class BluetoothProxy {
                  */
 
                 /**
-                 * From BluetoothBroadcastAudioScan.EXTRA_BASS_RECEIVER_ID:
-                 *
                  * Broadcast receiver's endpoint identifier.
                  */
                 synchronized(this) {
@@ -1216,6 +1210,15 @@ public class BluetoothProxy {
             return false;
 
         bluetoothHapClient.selectPreset(device, preset_index);
+        return true;
+    }
+
+    public boolean hapSetActivePresetForGroup(BluetoothDevice device, int preset_index) {
+        if (bluetoothHapClient == null)
+            return false;
+
+        int groupId = bluetoothLeAudio.getGroupId(device);
+        bluetoothHapClient.selectPresetForGroup(groupId, preset_index);
         return true;
     }
 

@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "hci/hci_metrics_logging.h"
+
 #include <frameworks/proto_logging/stats/enums/bluetooth/hci/enums.pb.h>
 
+#include "common/audit_log.h"
 #include "common/strings.h"
-#include "hci/hci_metrics_logging.h"
 #include "os/metrics.h"
 #include "storage/device.h"
 
@@ -517,6 +519,10 @@ void log_link_layer_connection_other_hci_event(EventView packet, storage::Storag
           connection_handle,
           status,
           storage_module);
+
+      if (status != ErrorCode::SUCCESS) {
+        common::LogConnectionAdminAuditEvent("Connecting", address, status);
+      }
       break;
     }
     case EventCode::CONNECTION_REQUEST: {
@@ -594,6 +600,12 @@ void log_link_layer_connection_event_le_meta(LeMetaEventView le_meta_event_view)
       static_cast<uint16_t>(leEvt),
       static_cast<uint16_t>(status),
       static_cast<uint16_t>(reason));
+
+  if (status != ErrorCode::SUCCESS && status != ErrorCode::UNKNOWN_CONNECTION) {
+    // ERROR CODE 0x02, unknown connection identifier, means connection attempt was cancelled by host, so probably no
+    // need to log it.
+    common::LogConnectionAdminAuditEvent("Connecting", address, status);
+  }
 }
 
 void log_classic_pairing_other_hci_event(EventView packet) {

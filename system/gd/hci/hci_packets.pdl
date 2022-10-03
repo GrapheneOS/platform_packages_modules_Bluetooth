@@ -57,6 +57,11 @@ enum GapDataType : 8 {
   MANUFACTURER_SPECIFIC_DATA = 0xFF,
 }
 
+struct LengthAndData {
+  _size_(data) : 8,
+  data: 8[],
+}
+
 struct GapData {
   _size_(data) : 8, // Including one byte for data_type
   data_type : GapDataType,
@@ -321,10 +326,10 @@ enum OpCode : 16 {
   LE_SET_PHY = 0x2032,
   LE_ENHANCED_RECEIVER_TEST = 0x2033,
   LE_ENHANCED_TRANSMITTER_TEST = 0x2034,
-  LE_SET_EXTENDED_ADVERTISING_RANDOM_ADDRESS = 0x2035,
+  LE_SET_ADVERTISING_SET_RANDOM_ADDRESS = 0x2035,
   LE_SET_EXTENDED_ADVERTISING_PARAMETERS = 0x2036,
   LE_SET_EXTENDED_ADVERTISING_DATA = 0x2037,
-  LE_SET_EXTENDED_ADVERTISING_SCAN_RESPONSE = 0x2038,
+  LE_SET_EXTENDED_SCAN_RESPONSE_DATA = 0x2038,
   LE_SET_EXTENDED_ADVERTISING_ENABLE = 0x2039,
   LE_READ_MAXIMUM_ADVERTISING_DATA_LENGTH = 0x203A,
   LE_READ_NUMBER_OF_SUPPORTED_ADVERTISING_SETS = 0x203B,
@@ -583,10 +588,10 @@ enum OpCodeIndex : 16 {
   LE_SET_PHY = 356,
   LE_ENHANCED_RECEIVER_TEST = 357,
   LE_ENHANCED_TRANSMITTER_TEST = 360,
-  LE_SET_EXTENDED_ADVERTISING_RANDOM_ADDRESS = 361,
+  LE_SET_ADVERTISING_SET_RANDOM_ADDRESS = 361,
   LE_SET_EXTENDED_ADVERTISING_PARAMETERS = 362,
   LE_SET_EXTENDED_ADVERTISING_DATA = 363,
-  LE_SET_EXTENDED_ADVERTISING_SCAN_RESPONSE = 364,
+  LE_SET_EXTENDED_SCAN_RESPONSE_DATA = 364,
   LE_SET_EXTENDED_ADVERTISING_ENABLE = 365,
   LE_READ_MAXIMUM_ADVERTISING_DATA_LENGTH = 366,
   LE_READ_NUMBER_OF_SUPPORTED_ADVERTISING_SETS = 367,
@@ -827,7 +832,9 @@ enum ErrorCode: 8 {
   CONTROLLER_BUSY = 0x3A,
   ADVERTISING_TIMEOUT = 0x3C,
   CONNECTION_FAILED_ESTABLISHMENT = 0x3E,
+  UNKNOWN_ADVERTISING_IDENTIFIER = 0x42,
   LIMIT_REACHED = 0x43,
+  PACKET_TOO_LONG = 0x45,
 }
 
 // Events that are defined with their respective commands
@@ -1168,6 +1175,26 @@ packet ReadLmpHandleComplete : CommandComplete (command_op_code = READ_LMP_HANDL
   _reserved_ : 32,
 }
 
+enum SynchronousPacketTypeBits : 16 {
+  HV1_ALLOWED = 0x0001,
+  HV2_ALLOWED = 0x0002,
+  HV3_ALLOWED = 0x0004,
+  EV3_ALLOWED = 0x0008,
+  EV4_ALLOWED = 0x0010,
+  EV5_ALLOWED = 0x0020,
+  NO_2_EV3_ALLOWED = 0x0040,
+  NO_3_EV3_ALLOWED = 0x0080,
+  NO_2_EV5_ALLOWED = 0x0100,
+  NO_3_EV5_ALLOWED = 0x0200,
+}
+
+enum RetransmissionEffort : 8 {
+  NO_RETRANSMISSION = 0x00,
+  OPTIMIZED_FOR_POWER = 0x01,
+  OPTIMIZED_FOR_LINK_QUALITY = 0x02,
+  DO_NOT_CARE = 0xFF,
+}
+
 packet SetupSynchronousConnection : ScoConnectionCommand (op_code = SETUP_SYNCHRONOUS_CONNECTION) {
   connection_handle : 12,
   _reserved_ : 4,
@@ -1176,8 +1203,8 @@ packet SetupSynchronousConnection : ScoConnectionCommand (op_code = SETUP_SYNCHR
   max_latency : 16, // 0-3 reserved, 0xFFFF = don't care
   voice_setting : 10,
   _reserved_ : 6,
-  retransmission_effort : 8,
-  packet_type : 16,
+  retransmission_effort : RetransmissionEffort,
+  packet_type : 16, // See SynchronousPacketTypeBits
 }
 
 packet SetupSynchronousConnectionStatus : CommandStatus (command_op_code = SETUP_SYNCHRONOUS_CONNECTION) {
@@ -1190,8 +1217,8 @@ packet AcceptSynchronousConnection : ScoConnectionCommand (op_code = ACCEPT_SYNC
   max_latency : 16, // 0-3 reserved, 0xFFFF = don't care
   voice_setting : 10,
   _reserved_ : 6,
-  retransmission_effort : 8,
-  packet_type : 16,
+  retransmission_effort : RetransmissionEffort,
+  packet_type : 16, // See SynchronousPacketTypeBits
 }
 
 packet AcceptSynchronousConnectionStatus : CommandStatus (command_op_code = ACCEPT_SYNCHRONOUS_CONNECTION) {
@@ -1342,34 +1369,14 @@ enum ScoDataPath : 8 {
   AUDIO_TEST_MODE = 0xFF,
 }
 
-enum SynchronousPacketTypeBits : 16 {
-  HV1_ALLOWED = 0x0001,
-  HV2_ALLOWED = 0x0002,
-  HV3_ALLOWED = 0x0004,
-  EV3_ALLOWED = 0x0008,
-  EV4_ALLOWED = 0x0010,
-  EV5_ALLOWED = 0x0020,
-  NO_2_EV3_ALLOWED = 0x0040,
-  NO_3_EV3_ALLOWED = 0x0080,
-  NO_2_EV5_ALLOWED = 0x0100,
-  NO_3_EV5_ALLOWED = 0x0200,
-}
-
-enum RetransmissionEffort : 8 {
-  NO_RETRANSMISSION = 0x00,
-  OPTIMIZED_FOR_POWER = 0x01,
-  OPTIMIZED_FOR_LINK_QUALITY = 0x02,
-  DO_NOT_CARE = 0xFF,
-}
-
 packet EnhancedSetupSynchronousConnection : ScoConnectionCommand (op_code = ENHANCED_SETUP_SYNCHRONOUS_CONNECTION) {
   connection_handle: 12,
   _reserved_ : 4,
   // Next two items
   // [0x00000000, 0xFFFFFFFE] Bandwidth in octets per second.
   // [0xFFFFFFFF]: Don't care
-  transmit_bandwidth_octets_per_second : 32,
-  receive_bandwidth_octets_per_second : 32,
+  transmit_bandwidth : 32,
+  receive_bandwidth : 32,
   transmit_coding_format : ScoCodingFormat,
   receive_coding_format : ScoCodingFormat,
   // Next two items
@@ -1379,8 +1386,8 @@ packet EnhancedSetupSynchronousConnection : ScoConnectionCommand (op_code = ENHA
   receive_codec_frame_size : 16,
   // Next two items
   // Host to Controller nominal data rate in octets per second.
-  input_bandwidth_octets_per_second : 32,
-  output_bandwidth_octets_per_second : 32,
+  input_bandwidth : 32,
+  output_bandwidth : 32,
   input_coding_format : ScoCodingFormat,
   output_coding_format : ScoCodingFormat,
   // Next two items
@@ -1407,9 +1414,13 @@ packet EnhancedSetupSynchronousConnection : ScoConnectionCommand (op_code = ENHA
   //     of the eSCO window, where the eSCO window is reserved slots plus the
   //     retransmission window
   // [0xFFFF]: don't care
-  max_latency_ms: 16,
-  packet_type : 16, // Or together SynchronousPacketTypeBits
+  max_latency: 16,
+  packet_type : 16, // See SynchronousPacketTypeBits
   retransmission_effort : RetransmissionEffort,
+}
+
+test EnhancedSetupSynchronousConnection {
+  "\x3d\x04\x3b\x02\x00\x40\x1f\x00\x00\x40\x1f\x00\x00\x05\x00\x00\x00\x00\x05\x00\x00\x00\x00\x3c\x00\x3c\x00\x00\x7d\x00\x00\x00\x7d\x00\x00\x04\x00\x00\x00\x00\x04\x00\x00\x00\x00\x10\x00\x10\x00\x02\x02\x00\x00\x01\x01\x00\x00\x0d\x00\x88\x03\x02",
 }
 
 packet EnhancedSetupSynchronousConnectionStatus : CommandStatus (command_op_code = ENHANCED_SETUP_SYNCHRONOUS_CONNECTION) {
@@ -1460,7 +1471,7 @@ packet EnhancedAcceptSynchronousConnection : ScoConnectionCommand (op_code = ENH
   //     retransmission window
   // [0xFFFF]: don't care
   max_latency : 16,
-  packet_type : 16, // Or together SynchronousPacketTypeBits
+  packet_type : 16, // See SynchronousPacketTypeBits
   retransmission_effort : RetransmissionEffort,
 }
 
@@ -2515,6 +2526,7 @@ enum HciVersion : 8 {
   V_5_0 = 0x09,
   V_5_1 = 0x0a,
   V_5_2 = 0x0b,
+  V_5_3 = 0x0c,
 }
 
 enum LmpVersion : 8 {
@@ -2530,6 +2542,7 @@ enum LmpVersion : 8 {
   V_5_0 = 0x09,
   V_5_1 = 0x0a,
   V_5_2 = 0x0b,
+  V_5_3 = 0x0c,
 }
 
 struct LocalVersionInformation {
@@ -3076,7 +3089,7 @@ enum PeerAddressType : 8 {
 
 enum AdvertisingType : 8 {
   ADV_IND = 0x00,
-  ADV_DIRECT_IND = 0x01,
+  ADV_DIRECT_IND_HIGH = 0x01,
   ADV_SCAN_IND = 0x02,
   ADV_NONCONN_IND = 0x03,
   ADV_DIRECT_IND_LOW = 0x04,
@@ -3097,14 +3110,14 @@ enum OwnAddressType : 8 {
 }
 
 packet LeSetAdvertisingParameters : LeAdvertisingCommand (op_code = LE_SET_ADVERTISING_PARAMETERS) {
-  interval_min : 16,
-  interval_max : 16,
-  advt_type : AdvertisingType,
+  advertising_interval_min : 16,
+  advertising_interval_max : 16,
+  advertising_type : AdvertisingType,
   own_address_type : OwnAddressType,
   peer_address_type : PeerAddressType,
   peer_address : Address,
-  channel_map : 8,
-  filter_policy : AdvertisingFilterPolicy,
+  advertising_channel_map : 8,
+  advertising_filter_policy : AdvertisingFilterPolicy,
   _reserved_ : 6,
 }
 
@@ -3640,25 +3653,25 @@ packet LeEnhancedTransmitterTestComplete : CommandComplete (command_op_code = LE
   status : ErrorCode,
 }
 
-packet LeSetExtendedAdvertisingRandomAddress : LeAdvertisingCommand (op_code = LE_SET_EXTENDED_ADVERTISING_RANDOM_ADDRESS) {
+packet LeSetAdvertisingSetRandomAddress : LeAdvertisingCommand (op_code = LE_SET_ADVERTISING_SET_RANDOM_ADDRESS) {
   advertising_handle : 8,
-  advertising_random_address : Address,
+  random_address : Address,
 }
 
-test LeSetExtendedAdvertisingRandomAddress {
+test LeSetAdvertisingSetRandomAddress {
   "\x35\x20\x07\x00\x77\x58\xeb\xd3\x1c\x6e",
 }
 
-packet LeSetExtendedAdvertisingRandomAddressComplete : CommandComplete (command_op_code = LE_SET_EXTENDED_ADVERTISING_RANDOM_ADDRESS) {
+packet LeSetAdvertisingSetRandomAddressComplete : CommandComplete (command_op_code = LE_SET_ADVERTISING_SET_RANDOM_ADDRESS) {
   status : ErrorCode,
 }
 
-test LeSetExtendedAdvertisingRandomAddressComplete {
+test LeSetAdvertisingSetRandomAddressComplete {
   "\x0e\x04\x01\x35\x20\x00",
 }
 
 // The lower 4 bits of the advertising event properties
-enum LegacyAdvertisingProperties : 4 {
+enum LegacyAdvertisingEventProperties : 4 {
   ADV_IND = 0x3,
   ADV_DIRECT_IND_LOW = 0x5,
   ADV_DIRECT_IND_HIGH = 0xD,
@@ -3678,11 +3691,11 @@ enum SecondaryPhyType : 8 {
   LE_CODED = 0x03,
 }
 
-packet LeSetExtendedAdvertisingLegacyParameters : LeAdvertisingCommand (op_code = LE_SET_EXTENDED_ADVERTISING_PARAMETERS) {
+packet LeSetExtendedAdvertisingParametersLegacy : LeAdvertisingCommand (op_code = LE_SET_EXTENDED_ADVERTISING_PARAMETERS) {
   advertising_handle : 8,
-  advertising_event_legacy_properties : LegacyAdvertisingProperties,
+  legacy_advertising_event_properties : LegacyAdvertisingEventProperties,
   _fixed_ = 0x1 : 1, // legacy bit set
-  _reserved_ : 11, // advertising_event_properties
+  _reserved_ : 11, // advertising_event_properties reserved bits
   primary_advertising_interval_min : 24, // 0x20 - 0xFFFFFF N * 0.625 ms
   primary_advertising_interval_max : 24, // 0x20 - 0xFFFFFF N * 0.625 ms
   primary_advertising_channel_map : 3,  // bit 0 - Channel 37, bit 1 - 38, bit 2 - 39
@@ -3700,17 +3713,25 @@ packet LeSetExtendedAdvertisingLegacyParameters : LeAdvertisingCommand (op_code 
   scan_request_notification_enable : Enable,
 }
 
-test LeSetExtendedAdvertisingLegacyParameters {
+test LeSetExtendedAdvertisingParametersLegacy {
   "\x36\x20\x19\x00\x13\x00\x90\x01\x00\xc2\x01\x00\x07\x01\x00\x00\x00\x00\x00\x00\x00\x00\xf9\x01\x00\x01\x01\x00",
   "\x36\x20\x19\x01\x13\x00\x90\x01\x00\xc2\x01\x00\x07\x01\x00\x00\x00\x00\x00\x00\x00\x00\xf9\x01\x00\x01\x01\x00",
 }
 
+struct AdvertisingEventProperties {
+  connectable : 1,
+  scannable : 1,
+  directed : 1,
+  high_duty_cycle : 1,
+  legacy : 1,
+  anonymous : 1,
+  tx_power : 1,
+  _reserved_ : 9,
+}
+
 packet LeSetExtendedAdvertisingParameters : LeAdvertisingCommand (op_code = LE_SET_EXTENDED_ADVERTISING_PARAMETERS) {
   advertising_handle : 8,
-  advertising_event_legacy_properties : 4,
-  _fixed_ = 0 : 1, // legacy bit cleared
-  advertising_event_properties : 3,
-  _reserved_ : 8,
+  advertising_event_properties : AdvertisingEventProperties,
   primary_advertising_interval_min : 24, // 0x20 - 0xFFFFFF N * 0.625 ms
   primary_advertising_interval_max : 24, // 0x20 - 0xFFFFFF N * 0.625 ms
   primary_advertising_channel_map : 3,  // bit 0 - Channel 37, bit 1 - 38, bit 2 - 39
@@ -3778,7 +3799,7 @@ test LeSetExtendedAdvertisingDataComplete {
   "\x0e\x04\x01\x37\x20\x00",
 }
 
-packet LeSetExtendedAdvertisingScanResponse : LeAdvertisingCommand (op_code = LE_SET_EXTENDED_ADVERTISING_SCAN_RESPONSE) {
+packet LeSetExtendedScanResponseData : LeAdvertisingCommand (op_code = LE_SET_EXTENDED_SCAN_RESPONSE_DATA) {
   advertising_handle : 8,
   operation : Operation,
   _reserved_ : 5,
@@ -3788,7 +3809,7 @@ packet LeSetExtendedAdvertisingScanResponse : LeAdvertisingCommand (op_code = LE
   scan_response_data : GapData[],
 }
 
-packet LeSetExtendedAdvertisingScanResponseRaw : LeAdvertisingCommand (op_code = LE_SET_EXTENDED_ADVERTISING_SCAN_RESPONSE) {
+packet LeSetExtendedScanResponseDataRaw : LeAdvertisingCommand (op_code = LE_SET_EXTENDED_SCAN_RESPONSE_DATA) {
   advertising_handle : 8,
   operation : Operation,
   _reserved_ : 5,
@@ -3798,7 +3819,7 @@ packet LeSetExtendedAdvertisingScanResponseRaw : LeAdvertisingCommand (op_code =
   scan_response_data : 8[],
 }
 
-packet LeSetExtendedAdvertisingScanResponseComplete : CommandComplete (command_op_code = LE_SET_EXTENDED_ADVERTISING_SCAN_RESPONSE) {
+packet LeSetExtendedScanResponseDataComplete : CommandComplete (command_op_code = LE_SET_EXTENDED_SCAN_RESPONSE_DATA) {
   status : ErrorCode,
 }
 
@@ -4472,6 +4493,7 @@ packet LeRemoveIsoDataPathComplete : CommandComplete (command_op_code = LE_REMOV
 
 enum LeHostFeatureBits : 8 {
   CONNECTED_ISO_STREAM_HOST_SUPPORT = 32,
+  CONNECTION_SUBRATING_HOST_SUPPORT = 38,
 }
 
 packet LeSetHostFeature : Command (op_code = LE_SET_HOST_FEATURE) {
@@ -4654,7 +4676,7 @@ packet LeMultiAdvtComplete : CommandComplete (command_op_code = LE_MULTI_ADVT) {
 packet LeMultiAdvtParam : LeMultiAdvt (sub_cmd = SET_PARAM) {
   interval_min : 16,
   interval_max : 16,
-  advt_type : AdvertisingType,
+  advertising_type : AdvertisingType,
   own_address_type : OwnAddressType,
   own_address : Address,
   peer_address_type : PeerAddressType,
@@ -4817,6 +4839,7 @@ enum ApcfOpcode : 8 {
   LOCAL_NAME = 0x05,
   MANUFACTURER_DATA = 0x06,
   SERVICE_DATA = 0x07,
+  AD_TYPE = 0x08,
 }
 
 // https://source.android.com/devices/bluetooth/hci_requirements#advertising-packet-content-filter
@@ -4860,6 +4883,7 @@ enum ApcfFilterType : 8 {
   LOCAL_NAME = 0x04,
   MANUFACTURER_DATA = 0x05,
   SERVICE_DATA = 0x06,
+  AD_TYPE = 0x07,
 }
 
 packet LeAdvFilterSetFilteringParameters : LeAdvFilter (apcf_opcode = SET_FILTERING_PARAMETERS) {
@@ -4968,6 +4992,17 @@ packet LeAdvFilterServiceData : LeAdvFilter (apcf_opcode = SERVICE_DATA) {
 }
 
 packet LeAdvFilterServiceDataComplete : LeAdvFilterComplete (apcf_opcode = SERVICE_DATA) {
+  apcf_action : ApcfAction,
+  apcf_available_spaces : 8,
+}
+
+packet LeAdvFilterADType : LeAdvFilter (apcf_opcode = AD_TYPE) {
+  apcf_action : ApcfAction,
+  apcf_filter_index : 8,
+  apcf_ad_type_data : 8[],
+}
+
+packet LeAdvFilterADTypeComplete : LeAdvFilterComplete (apcf_opcode = AD_TYPE) {
   apcf_action : ApcfAction,
   apcf_available_spaces : 8,
 }
@@ -5336,6 +5371,10 @@ packet SynchronousConnectionComplete : Event (event_code = SYNCHRONOUS_CONNECTIO
   air_mode : ScoAirMode,
 }
 
+test SynchronousConnectionComplete {
+  "\x2c\x11\x00\x03\x00\x1d\xdf\xed\x2b\x1a\xf8\x02\x0c\x04\x3c\x00\x3c\x00\x03",
+}
+
 packet SynchronousConnectionChanged : Event (event_code = SYNCHRONOUS_CONNECTION_CHANGED) {
   status : ErrorCode,
   connection_handle : 12,
@@ -5429,12 +5468,20 @@ packet EnhancedFlush : Command (op_code = ENHANCED_FLUSH) {
   packet_type : FlushablePacketType,
 }
 
+test EnhancedFlush {
+  "\x5f\x0c\x03\x02\x00\x00",
+}
+
 packet EnhancedFlushStatus : CommandStatus (command_op_code = ENHANCED_FLUSH) {
 }
 
 packet EnhancedFlushComplete : Event (event_code = ENHANCED_FLUSH_COMPLETE) {
   connection_handle : 12,
   _reserved_ : 4,
+}
+
+test EnhancedFlushComplete {
+  "\x39\x02\x02\x00",
 }
 
 packet UserPasskeyNotification : Event (event_code = USER_PASSKEY_NOTIFICATION) {
@@ -5490,7 +5537,7 @@ struct LeAdvertisingResponse {
   address_type : AddressType,
   address : Address,
   _size_(advertising_data) : 8,
-  advertising_data : GapData[],
+  advertising_data : LengthAndData[],
   rssi : 8,
 }
 
@@ -5644,7 +5691,34 @@ struct LeExtendedAdvertisingResponse {
   direct_address_type : DirectAdvertisingAddressType,
   direct_address : Address,
   _size_(advertising_data) : 8,
-  advertising_data : 8[],
+  advertising_data: LengthAndData[],
+}
+
+struct LeExtendedAdvertisingResponseRaw {
+  connectable : 1,
+  scannable : 1,
+  directed : 1,
+  scan_response : 1,
+  legacy : 1,
+  data_status : DataStatus,
+  _reserved_ : 9,
+  address_type : DirectAdvertisingAddressType,
+  address : Address,
+  primary_phy : PrimaryPhyType,
+  secondary_phy : SecondaryPhyType,
+  advertising_sid : 8, // SID subfield in the ADI field
+  tx_power : 8,
+  rssi : 8, // -127 to +20 (0x7F means not available)
+  periodic_advertising_interval : 16, // 0x006 to 0xFFFF (7.5 ms to 82s)
+  direct_address_type : DirectAdvertisingAddressType,
+  direct_address : Address,
+  _size_(advertising_data) : 8,
+  advertising_data: 8[],
+}
+
+packet LeExtendedAdvertisingReportRaw : LeMetaEvent (subevent_code = EXTENDED_ADVERTISING_REPORT) {
+  _count_(responses) : 8,
+  responses : LeExtendedAdvertisingResponseRaw[],
 }
 
 packet LeExtendedAdvertisingReport : LeMetaEvent (subevent_code = EXTENDED_ADVERTISING_REPORT) {

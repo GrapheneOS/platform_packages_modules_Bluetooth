@@ -128,4 +128,10 @@
     <string name="a2dp_sink_mbs_label" msgid="6035366346569127155">"బ్లూటూత్ ఆడియో"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="6612109860149473930">"4GB కన్నా పెద్ద ఫైళ్లు బదిలీ చేయబడవు"</string>
     <string name="bluetooth_connect_action" msgid="2319449093046720209">"బ్లూటూత్‌కు కనెక్ట్ చేయి"</string>
+    <string name="bluetooth_enabled_apm_title" msgid="6914461147844949044">"విమానం మోడ్‌లో బ్లూటూత్ ఆన్ చేయబడింది"</string>
+    <string name="bluetooth_enabled_apm_message" msgid="8990667142380927316">"మీరు బ్లూటూత్‌ని ఆన్‌లో ఉంచినట్లయితే, తదుపరిసారి మీరు విమానం మోడ్‌లో ఉన్నప్పుడు అది ఆన్‌లో ఉంటుంది"</string>
+    <string name="bluetooth_stays_on_title" msgid="39720820955212918">"బ్లూటూత్ ఆన్‌లో ఉంటుంది"</string>
+    <string name="bluetooth_stays_on_message" msgid="2770176686603189536">"విమానం మోడ్‌లో బ్లూటూత్ ఆన్‌లో ఉంచాలని మీ ఫోన్ గుర్తుంచుకుంటుంది. దీన్ని మార్చడానికి, బ్లూటూత్‌ని ఆఫ్ చేయండి."</string>
+    <string name="bluetooth_and_wifi_stays_on_title" msgid="5821932798860821244">"Wi-Fi, బ్లూటూత్ ఆన్‌లో ఉంటాయి"</string>
+    <string name="bluetooth_and_wifi_stays_on_message" msgid="4120501683284996436">"మీ ఫోన్ విమానం మోడ్‌లో Wi‑Fiని, బ్లూటూత్‌ని ఆన్‌లో ఉంచాలని గుర్తుంచుకుంటుంది. దీన్ని మార్చడానికి, వాటిని ఆఫ్ చేయండి."</string>
 </resources>

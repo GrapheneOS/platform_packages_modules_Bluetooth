@@ -780,6 +780,12 @@ std::vector<uint16_t> L2CA_ConnectCreditBasedReq(uint16_t psm,
 
   L2CAP_TRACE_DEBUG("%s LE Link is up", __func__);
 
+  /* Check if there is no ongoing connection request */
+  if (p_lcb->pending_ecoc_conn_cnt > 0) {
+    LOG_WARN("There is ongoing connection request, PSM: 0x%04x", psm);
+    return allocated_cids;
+  }
+
   tL2C_CCB* p_ccb_primary;
 
   /* Make sure user set proper value for number of cids */
@@ -1029,6 +1035,29 @@ uint8_t L2CA_SetTraceLevel(uint8_t new_level) {
 
 /*******************************************************************************
  *
+ * Function         L2CA_UseLatencyMode
+ *
+ * Description      Sets acl use latency mode.
+ *
+ * Returns          true if a valid channel, else false
+ *
+ ******************************************************************************/
+bool L2CA_UseLatencyMode(const RawAddress& bd_addr, bool use_latency_mode) {
+  /* Find the link control block for the acl channel */
+  tL2C_LCB* p_lcb = l2cu_find_lcb_by_bd_addr(bd_addr, BT_TRANSPORT_BR_EDR);
+  if (p_lcb == nullptr) {
+    LOG_WARN("L2CAP - no LCB for L2CA_SetUseLatencyMode, BDA: %s",
+             bd_addr.ToString().c_str());
+    return false;
+  }
+  LOG_INFO("BDA: %s, use_latency_mode: %s", bd_addr.ToString().c_str(),
+           use_latency_mode ? "true" : "false");
+  p_lcb->use_latency_mode = use_latency_mode;
+  return true;
+}
+
+/*******************************************************************************
+ *
  * Function         L2CA_SetAclPriority
  *
  * Description      Sets the transmission priority for a channel.
@@ -1046,6 +1075,21 @@ bool L2CA_SetAclPriority(const RawAddress& bd_addr, tL2CAP_PRIORITY priority) {
   VLOG(1) << __func__ << " BDA: " << bd_addr
           << ", priority: " << std::to_string(priority);
   return (l2cu_set_acl_priority(bd_addr, priority, false));
+}
+
+/*******************************************************************************
+ *
+ * Function         L2CA_SetAclLatency
+ *
+ * Description      Sets the transmission latency for a channel.
+ *
+ * Returns          true if a valid channel, else false
+ *
+ ******************************************************************************/
+bool L2CA_SetAclLatency(const RawAddress& bd_addr, tL2CAP_LATENCY latency) {
+  LOG_INFO("BDA: %s, latency: %s", bd_addr.ToString().c_str(),
+           std::to_string(latency).c_str());
+  return l2cu_set_acl_latency(bd_addr, latency);
 }
 
 /*******************************************************************************

@@ -17,18 +17,6 @@ package {
     default_applicable_licenses: ["Android-Apache-2.0"],
 }
 
-filegroup {
-    name: "service-bluetooth-tests-sources",
-    srcs: [
-        "src/**/*.java",
-    ],
-    visibility: [
-        "//frameworks/base",
-        "//frameworks/base/services",
-        "//frameworks/base/services/tests/servicestests",
-    ],
-}
-
 android_test {
     name: "ServiceBluetoothTests",
 
@@ -42,8 +30,6 @@ android_test {
 
     static_libs: [
         "androidx.test.rules",
-        "collector-device-lib",
-        "hamcrest-library",
         "mockito-target-extended-minus-junit4",
         "platform-test-annotations",
         "frameworks-base-testutils",
@@ -68,9 +54,12 @@ android_test {
 
     jni_libs: [
         // these are needed for Extended Mockito
+        "libdexmakerjvmtiagent",
+        "libstaticjvmtiagent",
         "libbluetooth_jni",
     ],
     compile_multilib: "both",
+    certificate: ":com.android.bluetooth.certificate",
 
     min_sdk_version: "current",
 
