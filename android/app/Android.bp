@@ -69,12 +69,6 @@ cc_library_shared {
         "libbluetooth",
         "libc++fs",
     ],
-    cflags: [
-        "-Wall",
-        "-Werror",
-        "-Wextra",
-        "-Wno-unused-parameter",
-    ],
     sanitize: {
         scs: true,
     },

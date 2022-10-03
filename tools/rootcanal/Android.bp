@@ -16,14 +16,12 @@ package {
 cc_defaults {
     name: "rootcanal_defaults",
     defaults: [
+        "fluoride_common_options",
         "gd_defaults",
         "gd_clang_tidy",
         "gd_clang_tidy_ignore_android",
     ],
     cflags: [
-        "-Wall",
-        "-Wextra",
-        "-Werror",
         "-fvisibility=hidden",
         "-DROOTCANAL_LMP",
     ],
@@ -157,6 +155,7 @@ cc_test_host {
 cc_test_host {
     name: "rootcanal_test_host",
     defaults: [
+        "fluoride_common_options",
         "clang_file_coverage",
         "clang_coverage_bin",
     ],
@@ -185,9 +184,6 @@ cc_test_host {
         "libbt-rootcanal",
     ],
     cflags: [
-        "-Wall",
-        "-Wextra",
-        "-Werror",
         "-fvisibility=hidden",
         "-DLOG_NDEBUG=1",
     ],
