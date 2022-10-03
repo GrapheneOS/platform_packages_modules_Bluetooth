@@ -37,6 +37,7 @@
 #include "main/shim/shim.h"
 #include "main/shim/stack.h"
 #include "osi/include/allocator.h"
+#include "stack/btm/btm_ble_int.h"
 #include "stack/btm/btm_int_types.h"
 #include "stack/btm/btm_sec.h"
 #include "stack/include/bt_hdr.h"
@@ -1390,5 +1391,10 @@ tBTM_STATUS bluetooth::shim::BTM_SetDefaultEventMask() {
 tBTM_STATUS bluetooth::shim::BTM_SetEventFilterInquiryResultAllDevices() {
   // Autoplumbed
   controller_get_interface()->set_event_filter_inquiry_result_all_devices();
+  return BTM_SUCCESS;
+}
+
+tBTM_STATUS bluetooth::shim::BTM_BleResetId() {
+  btm_ble_reset_id();
   return BTM_SUCCESS;
 }
