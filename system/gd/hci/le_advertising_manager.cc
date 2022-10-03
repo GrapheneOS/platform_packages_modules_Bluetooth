@@ -164,18 +164,27 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
   void multi_advertising_state_change(hci::VendorSpecificEventView event) {
     auto view = hci::LEAdvertiseStateChangeEventView::Create(event);
     ASSERT(view.IsValid());
+
+    auto advertiser_id = view.GetAdvertisingInstance();
+
     LOG_INFO(
         "Instance: 0x%x StateChangeReason: 0x%s Handle: 0x%x Address: %s",
-        view.GetAdvertisingInstance(),
+        advertiser_id,
         VseStateChangeReasonText(view.GetStateChangeReason()).c_str(),
         view.GetConnectionHandle(),
         advertising_sets_[view.GetAdvertisingInstance()].current_address.ToString().c_str());
 
     if (view.GetStateChangeReason() == VseStateChangeReason::CONNECTION_RECEIVED) {
       acl_manager_->OnAdvertisingSetTerminated(
-          ErrorCode::SUCCESS,
-          view.GetConnectionHandle(),
-          advertising_sets_[view.GetAdvertisingInstance()].current_address);
+          ErrorCode::SUCCESS, view.GetConnectionHandle(), advertising_sets_[advertiser_id].current_address);
+
+      enabled_sets_[advertiser_id].advertising_handle_ = kInvalidHandle;
+
+      if (!advertising_sets_[advertiser_id].directed) {
+        // TODO(250666237) calculate remaining duration and advertising events
+        LOG_INFO("Resuming advertising, since not directed");
+        enable_advertiser(advertiser_id, true, 0, 0);
+      }
     }
   }
 
