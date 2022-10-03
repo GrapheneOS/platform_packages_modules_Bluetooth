@@ -49,7 +49,7 @@ class LeScanner(Closable):
     def scan_for_address_expect_none(self, address, addr_type):
         if self.is_scanning:
             print("Already scanning!")
-            return
+            return None
         self.is_scanning = True
         logging.info("Start scanning for identity address {} or type {}".format(address, addr_type))
         self.device.sl4a.bleSetScanSettingsScanMode(ble_scan_settings_modes['low_latency'])
@@ -66,11 +66,12 @@ class LeScanner(Closable):
         advertising_address = self.__wait_for_scan_result_event(expected_event_name, 1)
         assertThat(advertising_address).isNone()
         logging.info("Filter advertisement with address {}".format(advertising_address))
+        return advertising_address
 
     def scan_for_address(self, address, addr_type):
         if self.is_scanning:
             print("Already scanning!")
-            return
+            return None
         self.is_scanning = True
         logging.info("Start scanning for identity address {} or type {}".format(address, addr_type))
         self.device.sl4a.bleSetScanSettingsScanMode(ble_scan_settings_modes['low_latency'])
@@ -87,11 +88,12 @@ class LeScanner(Closable):
         advertising_address = self.__wait_for_scan_result_event(expected_event_name)
         assertThat(advertising_address).isNotNone()
         logging.info("Filter advertisement with address {}".format(advertising_address))
+        return advertising_address
 
     def scan_for_address_with_irk(self, address, addr_type, irk):
         if self.is_scanning:
             print("Already scanning!")
-            return
+            return None
         self.is_scanning = True
         logging.info("Start scanning for identity address {} or type {} using irk {}".format(address, addr_type, irk))
         self.device.sl4a.bleSetScanSettingsScanMode(ble_scan_settings_modes['low_latency'])
@@ -108,11 +110,12 @@ class LeScanner(Closable):
         advertising_address = self.__wait_for_scan_result_event(expected_event_name)
         assertThat(advertising_address).isNotNone()
         logging.info("Filter advertisement with address {}".format(advertising_address))
+        return advertising_address
 
     def scan_for_address_with_irk_pending_intent(self, address, addr_type, irk):
         if self.is_scanning:
             print("Already scanning!")
-            return
+            return None
         self.is_scanning = True
         logging.info("Start scanning for identity address {} or type {} using irk {}".format(address, addr_type, irk))
         self.device.sl4a.bleSetScanSettingsScanMode(ble_scan_settings_modes['low_latency'])
@@ -131,6 +134,7 @@ class LeScanner(Closable):
         advertising_address = self.__wait_for_scan_result_event(expected_event_name)
         assertThat(advertising_address).isNotNone()
         logging.info("Filter advertisement with address {}".format(advertising_address))
+        return advertising_address
 
     def scan_for_name(self, name):
         if self.is_scanning:
