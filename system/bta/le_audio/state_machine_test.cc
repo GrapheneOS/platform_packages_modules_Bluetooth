@@ -2775,5 +2775,154 @@ TEST_F(StateMachineTest, testAttachDeviceToTheStream) {
   ASSERT_NE(std::find(ccids->begin(), ccids->end(), media_ccid), ccids->end());
 }
 
+TEST_F(StateMachineTest, StartStreamAfterConfigure) {
+  const auto context_type = kContextTypeMedia;
+  const auto leaudio_group_id = 6;
+  const auto num_devices = 2;
+
+  ContentControlIdKeeper::GetInstance()->SetCcid(media_context, media_ccid);
+
+  // Prepare multiple fake connected devices in a group
+  auto* group =
+      PrepareSingleTestDeviceGroup(leaudio_group_id, context_type, num_devices);
+  ASSERT_EQ(group->Size(), num_devices);
+
+  PrepareConfigureCodecHandler(group, 0, true);
+  PrepareConfigureQosHandler(group);
+  PrepareEnableHandler(group);
+  PrepareDisableHandler(group);
+  PrepareReleaseHandler(group);
+
+  InjectInitialIdleNotification(group);
+
+  auto* leAudioDevice = group->GetFirstDevice();
+  auto expected_devices_written = 0;
+  while (leAudioDevice) {
+    /* Three Writes:
+     * 1. Codec configure
+     * 2: Codec QoS
+     * 3: Enabling
+     */
+    EXPECT_CALL(gatt_queue,
+                WriteCharacteristic(leAudioDevice->conn_id_,
+                                    leAudioDevice->ctp_hdls_.val_hdl, _,
+                                    GATT_WRITE_NO_RSP, _, _))
+        .Times(3);
+    expected_devices_written++;
+    leAudioDevice = group->GetNextDevice(leAudioDevice);
+  }
+  ASSERT_EQ(expected_devices_written, num_devices);
+
+  // Validate GroupStreamStatus
+  EXPECT_CALL(mock_callbacks_,
+              StatusReportCb(
+                  leaudio_group_id,
+                  bluetooth::le_audio::GroupStreamStatus::CONFIGURED_BY_USER));
+
+  // Start the configuration and stream Media content
+  group->SetPendingConfiguration();
+  LeAudioGroupStateMachine::Get()->ConfigureStream(
+      group, static_cast<types::LeAudioContextType>(context_type),
+      context_type);
+
+  testing::Mock::VerifyAndClearExpectations(&mock_callbacks_);
+
+  group->ClearPendingConfiguration();
+  // Validate GroupStreamStatus
+  EXPECT_CALL(
+      mock_callbacks_,
+      StatusReportCb(leaudio_group_id,
+                     bluetooth::le_audio::GroupStreamStatus::STREAMING));
+
+  // Start the configuration and stream Media content
+  LeAudioGroupStateMachine::Get()->StartStream(
+      group, static_cast<types::LeAudioContextType>(context_type),
+      context_type);
+
+  testing::Mock::VerifyAndClearExpectations(&mock_callbacks_);
+}
+
+TEST_F(StateMachineTest, StartStreamCachedConfig) {
+  const auto context_type = kContextTypeMedia;
+  const auto leaudio_group_id = 6;
+  const auto num_devices = 2;
+
+  ContentControlIdKeeper::GetInstance()->SetCcid(media_context, media_ccid);
+
+  // Prepare multiple fake connected devices in a group
+  auto* group =
+      PrepareSingleTestDeviceGroup(leaudio_group_id, context_type, num_devices);
+  ASSERT_EQ(group->Size(), num_devices);
+
+  PrepareConfigureCodecHandler(group, 0, true);
+  PrepareConfigureQosHandler(group);
+  PrepareEnableHandler(group);
+  PrepareDisableHandler(group);
+  PrepareReleaseHandler(group);
+
+  InjectInitialIdleNotification(group);
+
+  auto* leAudioDevice = group->GetFirstDevice();
+  auto expected_devices_written = 0;
+  while (leAudioDevice) {
+    /* Three Writes:
+     * 1: Codec config
+     * 2: Codec QoS (+1 after restart)
+     * 3: Enabling (+1 after restart)
+     * 4: Release (1)
+     */
+    EXPECT_CALL(gatt_queue,
+                WriteCharacteristic(leAudioDevice->conn_id_,
+                                    leAudioDevice->ctp_hdls_.val_hdl, _,
+                                    GATT_WRITE_NO_RSP, _, _))
+        .Times(6);
+    expected_devices_written++;
+    leAudioDevice = group->GetNextDevice(leAudioDevice);
+  }
+  ASSERT_EQ(expected_devices_written, num_devices);
+
+  // Validate GroupStreamStatus
+  EXPECT_CALL(
+      mock_callbacks_,
+      StatusReportCb(leaudio_group_id,
+                     bluetooth::le_audio::GroupStreamStatus::STREAMING));
+
+  // Start the configuration and stream Media content
+  LeAudioGroupStateMachine::Get()->StartStream(
+      group, static_cast<types::LeAudioContextType>(context_type),
+      context_type);
+
+  testing::Mock::VerifyAndClearExpectations(&mock_callbacks_);
+
+  // Validate GroupStreamStatus
+  EXPECT_CALL(
+      mock_callbacks_,
+      StatusReportCb(leaudio_group_id,
+                     bluetooth::le_audio::GroupStreamStatus::RELEASING));
+
+  EXPECT_CALL(
+      mock_callbacks_,
+      StatusReportCb(
+          leaudio_group_id,
+          bluetooth::le_audio::GroupStreamStatus::CONFIGURED_AUTONOMOUS));
+  // Start the configuration and stream Media content
+  LeAudioGroupStateMachine::Get()->StopStream(group);
+
+  testing::Mock::VerifyAndClearExpectations(&mock_callbacks_);
+
+  // Restart stream
+  EXPECT_CALL(
+      mock_callbacks_,
+      StatusReportCb(leaudio_group_id,
+                     bluetooth::le_audio::GroupStreamStatus::STREAMING));
+
+  // Start the configuration and stream Media content
+  LeAudioGroupStateMachine::Get()->StartStream(
+      group, static_cast<types::LeAudioContextType>(context_type),
+      context_type);
+
+  testing::Mock::VerifyAndClearExpectations(&mock_callbacks_);
+}
+
 }  // namespace internal
 }  // namespace le_audio
