@@ -2435,8 +2435,7 @@ bool LeAudioDevice::ActivateConfiguredAses(LeAudioContextType context_type) {
 
   LOG_INFO(" Configuring device %s", address_.ToString().c_str());
   for (auto& ase : ases_) {
-    if (!ase.active &&
-        ase.state == AseState::BTA_LE_AUDIO_ASE_STATE_CODEC_CONFIGURED &&
+    if (ase.state == AseState::BTA_LE_AUDIO_ASE_STATE_CODEC_CONFIGURED &&
         ase.configured_for_context_type == context_type) {
       LOG_INFO(
           " conn_id: %d, ase id %d, cis id %d, cis_handle 0x%04x is activated.",
