@@ -53,6 +53,8 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
 import pandora.HostProto.Connection
+import pandora.HostProto.InternalConnectionRef
+import pandora.HostProto.Transport
 
 fun shell(cmd: String): String {
   val fd = InstrumentationRegistry.getInstrumentation().getUiAutomation().executeShellCommand(cmd)
@@ -284,7 +286,7 @@ fun <T> getProfileProxy(context: Context, profile: Int): T {
 }
 
 fun Intent.getBluetoothDeviceExtra(): BluetoothDevice =
-  this.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE, BluetoothDevice::class.java)
+  this.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE, BluetoothDevice::class.java)!!
 
 fun ByteString.decodeAsMacAddressToString(): String =
   MacAddress.fromBytes(this.toByteArray()).toString().uppercase()
@@ -293,6 +295,24 @@ fun ByteString.toBluetoothDevice(adapter: BluetoothAdapter): BluetoothDevice =
   adapter.getRemoteDevice(this.decodeAsMacAddressToString())
 
 fun Connection.toBluetoothDevice(adapter: BluetoothAdapter): BluetoothDevice =
-  adapter.getRemoteDevice(this.cookie.toByteArray().decodeToString())
+  adapter.getRemoteDevice(address)
 
-fun BluetoothDevice.toByteArray(): ByteArray = MacAddress.fromString(this.address).toByteArray()
+val Connection.address: String
+  get() = InternalConnectionRef.parseFrom(this.cookie).address.decodeAsMacAddressToString()
+
+val Connection.transport: Transport
+  get() = InternalConnectionRef.parseFrom(this.cookie).transport
+
+fun newConnection(device: BluetoothDevice, transport: Transport) =
+  Connection.newBuilder()
+    .setCookie(
+      InternalConnectionRef.newBuilder()
+        .setAddress(device.toByteString())
+        .setTransport(transport)
+        .build()
+        .toByteString()
+    )
+    .build()!!
+
+fun BluetoothDevice.toByteString() =
+  ByteString.copyFrom(MacAddress.fromString(this.address).toByteArray())!!
