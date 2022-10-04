@@ -76,9 +76,8 @@ class TestChannel:
 
 class RootCanal:
 
-    def __init__(self):
-        # port is CONTROL_ROOTCANAL_PORT defined in tradefed
-        self.channel = TestChannel(port=6212)
+    def __init__(self, port):
+        self.channel = TestChannel(port)
         self.disconnected_dev_phys = None
 
         # discard initialization messages
