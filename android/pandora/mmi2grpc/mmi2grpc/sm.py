@@ -23,6 +23,7 @@ from mmi2grpc._streaming import StreamWrapper
 
 from pandora_experimental.security_grpc import Security
 from pandora_experimental.host_grpc import Host
+from pandora_experimental.host_pb2 import ConnectabilityMode, AddressType
 
 
 def debug(*args, **kwargs):
@@ -89,7 +90,10 @@ class SMProxy(ProfileProxy):
         """
         Action: Place the IUT in connectable mode
         """
-        self.host.SetLEConnectable()
+        self.host.StartAdvertising(
+            connectability_mode=ConnectabilityMode.CONECTABILITY_CONNECTABLE,
+            own_address_type=AddressType.PUBLIC,
+        )
         return "OK"
 
     @assert_description
