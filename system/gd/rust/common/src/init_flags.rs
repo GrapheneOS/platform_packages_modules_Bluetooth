@@ -81,7 +81,8 @@ init_flags!(
         gatt_robust_caching_server,
         btaa_hci,
         gd_rust,
-        gd_link_policy
+        gd_link_policy,
+        irk_rotation
     },
     dependencies: {
         gd_core => gd_security
