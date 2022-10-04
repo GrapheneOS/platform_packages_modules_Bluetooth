@@ -915,10 +915,37 @@ class VolumeControlValueSetTest : public VolumeControlTest {
 };
 
 TEST_F(VolumeControlValueSetTest, test_set_volume) {
-  std::vector<uint8_t> expected_data({0x04, 0x00, 0x10});
-  EXPECT_CALL(gatt_queue, WriteCharacteristic(conn_id, 0x0024, expected_data,
-                                              GATT_WRITE, _, _));
+  ON_CALL(gatt_queue, WriteCharacteristic(conn_id, 0x0024, _, GATT_WRITE, _, _))
+      .WillByDefault([this](uint16_t conn_id, uint16_t handle,
+                            std::vector<uint8_t> value,
+                            tGATT_WRITE_TYPE write_type, GATT_WRITE_OP_CB cb,
+                            void* cb_data) {
+        std::vector<uint8_t> ntf_value({
+            value[2],                            // volume level
+            0,                                   // muted
+            static_cast<uint8_t>(value[1] + 1),  // change counter
+        });
+        GetNotificationEvent(0x0021, ntf_value);
+      });
+
+  const std::vector<uint8_t> vol_x10({0x04, 0x00, 0x10});
+  EXPECT_CALL(gatt_queue,
+              WriteCharacteristic(conn_id, 0x0024, vol_x10, GATT_WRITE, _, _))
+      .Times(1);
   VolumeControl::Get()->SetVolume(test_address, 0x10);
+
+  // Same volume level should not be applied twice
+  const std::vector<uint8_t> vol_x10_2({0x04, 0x01, 0x10});
+  EXPECT_CALL(gatt_queue,
+              WriteCharacteristic(conn_id, 0x0024, vol_x10_2, GATT_WRITE, _, _))
+      .Times(0);
+  VolumeControl::Get()->SetVolume(test_address, 0x10);
+
+  const std::vector<uint8_t> vol_x20({0x04, 0x01, 0x20});
+  EXPECT_CALL(gatt_queue,
+              WriteCharacteristic(conn_id, 0x0024, vol_x20, GATT_WRITE, _, _))
+      .Times(1);
+  VolumeControl::Get()->SetVolume(test_address, 0x20);
 }
 
 TEST_F(VolumeControlValueSetTest, test_mute) {
