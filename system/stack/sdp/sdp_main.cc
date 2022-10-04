@@ -22,8 +22,10 @@
  *
  ******************************************************************************/
 
+#include <base/logging.h>
 #include <string.h>  // memset
 
+#include "gd/common/init_flags.h"
 #include "osi/include/allocator.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/include/bt_hdr.h"
@@ -33,8 +35,6 @@
 #include "stack/include/sdp_api.h"
 #include "stack/sdp/sdpint.h"
 #include "types/raw_address.h"
-
-#include <base/logging.h>
 
 /******************************************************************************/
 /*                     G L O B A L      S D P       D A T A                   */
@@ -351,7 +351,8 @@ tCONN_CB* sdp_conn_originate(const RawAddress& p_bd_addr) {
   // Look for any active sdp connection on the remote device
   cid = sdpu_get_active_ccb_cid(p_bd_addr);
 
-  if (cid == 0) {
+  if (!bluetooth::common::init_flags::sdp_serialization_is_enabled() ||
+      cid == 0) {
     p_ccb->con_state = SDP_STATE_CONN_SETUP;
     cid = L2CA_ConnectReq2(BT_PSM_SDP, p_bd_addr, BTM_SEC_NONE);
   } else {
