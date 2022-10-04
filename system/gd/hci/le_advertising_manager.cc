@@ -182,7 +182,9 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
 
     uint8_t advertiser_id = event_view.GetAdvertisingHandle();
 
+    bool was_rotating_address = false;
     if (advertising_sets_[advertiser_id].address_rotation_alarm != nullptr) {
+      was_rotating_address = true;
       advertising_sets_[advertiser_id].address_rotation_alarm->Cancel();
       advertising_sets_[advertiser_id].address_rotation_alarm.reset();
     }
@@ -209,6 +211,13 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
       if (advertising_sets_[advertiser_id].duration == 0 &&
           advertising_sets_[advertiser_id].max_extended_advertising_events == 0) {
         LOG_INFO("Reenable advertising");
+        if (was_rotating_address) {
+          advertising_sets_[advertiser_id].address_rotation_alarm = std::make_unique<os::Alarm>(module_handler_);
+          advertising_sets_[advertiser_id].address_rotation_alarm->Schedule(
+              common::BindOnce(
+                  &impl::set_advertising_set_random_address_on_timer, common::Unretained(this), advertiser_id),
+              le_address_manager_->GetNextPrivateAddressIntervalMs());
+        }
         enable_advertiser(advertiser_id, true, 0, 0);
       }
     }
