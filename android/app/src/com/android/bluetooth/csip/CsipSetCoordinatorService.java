@@ -598,6 +598,24 @@ public class CsipSetCoordinatorService extends ProfileService {
     }
 
     /**
+     * Get group ID for a given device and UUID
+     * @param device potential group member
+     * @param uuid profile context UUID
+     * @return group ID
+     */
+    public Integer getGroupId(BluetoothDevice device, ParcelUuid uuid) {
+        Map<Integer, Integer> device_groups =
+                mDeviceGroupIdRankMap.getOrDefault(device, new HashMap<>());
+        return mGroupIdToUuidMap.entrySet()
+                .stream()
+                .filter(e -> (device_groups.containsKey(e.getKey())
+                        && e.getValue().equals(uuid)))
+                .map(Map.Entry::getKey)
+                .findFirst()
+                .orElse(IBluetoothCsipSetCoordinator.CSIS_GROUP_ID_INVALID);
+    }
+
+    /**
      * Get device's groups/
      * @param device group member device
      * @return map of group id and related uuids.
