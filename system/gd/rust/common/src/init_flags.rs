@@ -74,6 +74,7 @@ macro_rules! init_flags {
 
 init_flags!(
     flags: {
+        sdp_serialization,
         gd_core,
         gd_security,
         gd_l2cap,
