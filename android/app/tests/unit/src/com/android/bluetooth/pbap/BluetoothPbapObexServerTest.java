@@ -27,15 +27,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import android.content.Context;
 import android.os.Handler;
 import android.os.UserManager;
-import android.util.Log;
 
 import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.SmallTest;
 import androidx.test.runner.AndroidJUnit4;
 
+import com.android.bluetooth.BluetoothMethodProxy;
 import com.android.obex.HeaderSet;
 import com.android.obex.Operation;
 import com.android.obex.ResponseCodes;
@@ -63,7 +62,7 @@ public class BluetoothPbapObexServerTest {
     @Mock PbapStateMachine mMockStateMachine;
 
     @Spy
-    BluetoothPbapMethodProxy mPbapMethodProxy = BluetoothPbapMethodProxy.getInstance();
+    BluetoothMethodProxy mPbapMethodProxy = BluetoothMethodProxy.getInstance();
 
     BluetoothPbapObexServer mServer;
 
@@ -85,14 +84,14 @@ public class BluetoothPbapObexServerTest {
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        BluetoothPbapMethodProxy.setInstanceForTesting(mPbapMethodProxy);
+        BluetoothMethodProxy.setInstanceForTesting(mPbapMethodProxy);
         mServer = new BluetoothPbapObexServer(
                 mMockHandler, InstrumentationRegistry.getTargetContext(), mMockStateMachine);
     }
 
     @After
     public void tearDown() throws Exception {
-        BluetoothPbapMethodProxy.setInstanceForTesting(null);
+        BluetoothMethodProxy.setInstanceForTesting(null);
     }
 
     @Test
