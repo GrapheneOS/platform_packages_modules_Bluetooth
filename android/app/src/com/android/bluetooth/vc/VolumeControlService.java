@@ -26,6 +26,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUuid;
 import android.bluetooth.BluetoothVolumeControl;
+import android.bluetooth.IBluetoothCsipSetCoordinator;
 import android.bluetooth.IBluetoothLeAudio;
 import android.bluetooth.IBluetoothVolumeControl;
 import android.bluetooth.IBluetoothVolumeControlCallback;
@@ -47,6 +48,7 @@ import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.btservice.ServiceFactory;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
+import com.android.bluetooth.csip.CsipSetCoordinatorService;
 import com.android.bluetooth.le_audio.LeAudioService;
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.modules.utils.SynchronousResultReceiver;
@@ -193,7 +195,8 @@ public class VolumeControlService extends ProfileService {
     private BroadcastReceiver mBondStateChangedReceiver;
     private BroadcastReceiver mConnectionStateChangedReceiver;
 
-    private final ServiceFactory mFactory = new ServiceFactory();
+    @VisibleForTesting
+    ServiceFactory mFactory = new ServiceFactory();
 
     public static boolean isEnabled() {
         return BluetoothProperties.isProfileVcpControllerEnabled().orElse(false);
@@ -632,6 +635,29 @@ public class VolumeControlService extends ProfileService {
         mVolumeControlNativeInterface.unmuteGroup(groupId);
     }
 
+    /**
+     * {@hide}
+     */
+    public void handleGroupNodeAdded(int groupId, BluetoothDevice device) {
+        // Ignore disconnected device, its volume will be set once it connects
+        synchronized (mStateMachines) {
+            VolumeControlStateMachine sm = mStateMachines.get(device);
+            if (sm == null) {
+                return;
+            }
+            if (sm.getConnectionState() != BluetoothProfile.STATE_CONNECTED) {
+                return;
+            }
+        }
+
+        // If group volume has already changed, the new group member should set it
+        Integer groupVolume = mGroupVolumeCache.getOrDefault(groupId,
+                IBluetoothVolumeControl.VOLUME_CONTROL_UNKNOWN_VOLUME);
+        if (groupVolume != IBluetoothVolumeControl.VOLUME_CONTROL_UNKNOWN_VOLUME) {
+            mVolumeControlNativeInterface.setVolume(device, groupVolume);
+        }
+    }
+
     void handleVolumeControlChanged(BluetoothDevice device, int groupId,
                                     int volume, boolean mute, boolean isAutonomous) {
 
@@ -973,6 +999,17 @@ public class VolumeControlService extends ProfileService {
                     Log.d(TAG, device + " is unbond. Remove state machine");
                 }
                 removeStateMachine(device);
+            }
+        } else if (toState == BluetoothProfile.STATE_CONNECTED) {
+            // Restore the group volume if it was changed while the device was not yet connected.
+            CsipSetCoordinatorService csipClient = mFactory.getCsipSetCoordinatorService();
+            Integer groupId = csipClient.getGroupId(device, BluetoothUuid.CAP);
+            if (groupId != IBluetoothCsipSetCoordinator.CSIS_GROUP_ID_INVALID) {
+                Integer groupVolume = mGroupVolumeCache.getOrDefault(groupId,
+                        IBluetoothVolumeControl.VOLUME_CONTROL_UNKNOWN_VOLUME);
+                if (groupVolume != IBluetoothVolumeControl.VOLUME_CONTROL_UNKNOWN_VOLUME) {
+                    mVolumeControlNativeInterface.setVolume(device, groupVolume);
+                }
             }
         }
     }
