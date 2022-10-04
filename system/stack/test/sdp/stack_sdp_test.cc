@@ -110,8 +110,6 @@ tCONN_CB* find_ccb(uint16_t cid, uint8_t state) {
 }
 
 TEST_F(StackSdpMainTest, sdp_service_search_request_queuing) {
-  bluetooth::common::InitFlags::SetAllForTesting();
-
   ASSERT_TRUE(SDP_ServiceSearchRequest(addr, sdp_db, nullptr));
   const int cid = L2CA_ConnectReq2_cid;
   tCONN_CB* p_ccb1 = find_ccb(cid, SDP_STATE_CONN_SETUP);
