@@ -441,12 +441,12 @@ void notify_sco_connection_change(RawAddress device, bool is_connected,
     LOG_ERROR(
         "Failed to notify HAL of connection change: hci %d, device %s, "
         "connected %d, codec %d",
-        hci, device.ToString().c_str(), is_connected, codec);
+        hci, ADDRESS_TO_LOGGABLE_CSTR(device), is_connected, codec);
   } else {
     LOG_INFO(
         "Notified HAL of connection change: hci %d, device %s, connected %d, "
         "codec %d",
-        hci, device.ToString().c_str(), is_connected, codec);
+        hci, ADDRESS_TO_LOGGABLE_CSTR(device), is_connected, codec);
   }
 
   close(fd);

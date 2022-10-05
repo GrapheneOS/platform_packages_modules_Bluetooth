@@ -413,7 +413,7 @@ bool l2c_link_hci_disc_comp(uint16_t handle, tHCI_REASON reason) {
                   "p_lcb = %p in_use = %d link_state = %d handle = %d "
                   "link_role = %d is_bonding = %d disc_reason = %d transport = "
                   "%d",
-                  xx, p_lcb->remote_bd_addr.ToString().c_str(), p_lcb,
+                  xx, ADDRESS_TO_LOGGABLE_CSTR(p_lcb->remote_bd_addr), p_lcb,
                   p_lcb->in_use, p_lcb->link_state, p_lcb->Handle(),
                   p_lcb->LinkRole(), p_lcb->IsBonding(),
                   p_lcb->DisconnectReason(), p_lcb->transport);
@@ -1190,7 +1190,7 @@ tBTM_STATUS l2cu_ConnectAclForSecurity(const RawAddress& bd_addr) {
   /* Make sure an L2cap link control block is available */
   if (!p_lcb &&
       (p_lcb = l2cu_allocate_lcb(bd_addr, true, BT_TRANSPORT_BR_EDR)) == NULL) {
-    LOG_WARN("failed allocate LCB for %s", bd_addr.ToString().c_str());
+    LOG_WARN("failed allocate LCB for %s", ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
     return BTM_NO_RESOURCES;
   }
 

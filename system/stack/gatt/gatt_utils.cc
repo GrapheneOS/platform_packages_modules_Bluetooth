@@ -268,7 +268,7 @@ bool gatt_find_the_connected_bda(uint8_t start_idx, RawAddress& bda,
       *p_found_idx = i;
       *p_transport = gatt_cb.tcb[i].transport;
       found = true;
-      LOG_DEBUG("bda: %s", bda.ToString().c_str());
+      LOG_DEBUG("bda: %s", ADDRESS_TO_LOGGABLE_CSTR(bda));
       break;
     }
   }

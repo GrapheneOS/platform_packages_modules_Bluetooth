@@ -1426,7 +1426,7 @@ void sdpu_set_avrc_target_version(const tSDP_ATTRIBUTE* p_attr,
   uint16_t avrcp_version = sdpu_is_avrcp_profile_description_list(p_attr);
   if (avrcp_version == 0) {
     LOG_INFO("Not AVRCP version attribute or version not valid for device %s",
-             bdaddr->ToString().c_str());
+             ADDRESS_TO_LOGGABLE_CSTR(*bdaddr));
     return;
   }
 
@@ -1446,7 +1446,7 @@ void sdpu_set_avrc_target_version(const tSDP_ATTRIBUTE* p_attr,
     LOG_INFO(
         "device=%s is in IOP database. "
         "Reply AVRC Target version %x instead of %x.",
-        bdaddr->ToString().c_str(), iop_version, avrcp_version);
+        ADDRESS_TO_LOGGABLE_CSTR(*bdaddr), iop_version, avrcp_version);
     uint8_t* p_version = p_attr->value_ptr + 6;
     UINT16_TO_BE_FIELD(p_version, iop_version);
     return;
@@ -1467,7 +1467,8 @@ void sdpu_set_avrc_target_version(const tSDP_ATTRIBUTE* p_attr,
   if (version_value_size != sizeof(cached_version)) {
     LOG_ERROR(
         "cached value len wrong, bdaddr=%s. Len is %zu but should be %zu.",
-        bdaddr->ToString().c_str(), version_value_size, sizeof(cached_version));
+        ADDRESS_TO_LOGGABLE_CSTR(*bdaddr), version_value_size,
+        sizeof(cached_version));
     return;
   }
 
@@ -1477,7 +1478,7 @@ void sdpu_set_avrc_target_version(const tSDP_ATTRIBUTE* p_attr,
     LOG_INFO(
         "no cached AVRC Controller version for %s. "
         "Reply default AVRC Target version %x.",
-        bdaddr->ToString().c_str(), avrcp_version);
+        ADDRESS_TO_LOGGABLE_CSTR(*bdaddr), avrcp_version);
     return;
   }
 
@@ -1485,7 +1486,7 @@ void sdpu_set_avrc_target_version(const tSDP_ATTRIBUTE* p_attr,
     LOG_ERROR(
         "cached AVRC Controller version %x of %s is not valid. "
         "Reply default AVRC Target version %x.",
-        cached_version, bdaddr->ToString().c_str(), avrcp_version);
+        cached_version, ADDRESS_TO_LOGGABLE_CSTR(*bdaddr), avrcp_version);
     return;
   }
 
@@ -1493,13 +1494,13 @@ void sdpu_set_avrc_target_version(const tSDP_ATTRIBUTE* p_attr,
     LOG_INFO(
         "read cached AVRC Controller version %x of %s. "
         "Reply AVRC Target version %x.",
-        cached_version, bdaddr->ToString().c_str(), cached_version);
+        cached_version, ADDRESS_TO_LOGGABLE_CSTR(*bdaddr), cached_version);
     uint8_t* p_version = p_attr->value_ptr + 6;
     UINT16_TO_BE_FIELD(p_version, cached_version);
   } else {
     LOG_INFO(
         "read cached AVRC Controller version %x of %s. "
         "Reply default AVRC Target version %x.",
-        cached_version, bdaddr->ToString().c_str(), avrcp_version);
+        cached_version, ADDRESS_TO_LOGGABLE_CSTR(*bdaddr), avrcp_version);
   }
 }
