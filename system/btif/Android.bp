@@ -35,14 +35,11 @@ btifCommonIncludes = [
 
 cc_library {
     name: "libstatslog_bt",
+    defaults: ["fluoride_common_options"],
     host_supported: true,
     generated_sources: ["statslog_bt.cpp"],
     generated_headers: ["statslog_bt.h"],
     export_generated_headers: ["statslog_bt.h"],
-    cflags: [
-        "-Wall",
-        "-Werror",
-    ],
     shared_libs: [
         "libcutils",
     ],
