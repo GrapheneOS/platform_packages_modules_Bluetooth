@@ -719,3 +719,17 @@ void BTA_DmSetEventFilterInquiryResultAllDevices() {
       FROM_HERE,
       base::Bind(bta_dm_set_event_filter_inquiry_result_all_devices));
 }
+
+/*******************************************************************************
+ *
+ * Function         BTA_DmBleResetId
+ *
+ * Description      This function resets the ble keys such as IRK
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+void BTA_DmBleResetId(void) {
+  APPL_TRACE_API("BTA_DmBleResetId");
+  do_in_main_thread(FROM_HERE, base::Bind(bta_dm_ble_reset_id));
+}
