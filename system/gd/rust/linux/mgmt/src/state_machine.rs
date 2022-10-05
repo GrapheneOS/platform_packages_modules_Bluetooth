@@ -38,6 +38,7 @@ pub enum ProcessState {
     TurningOn = 1,  // We are not notified that the Bluetooth is running
     On = 2,         // Bluetooth is running
     TurningOff = 3, // We are not notified that the Bluetooth is stopped
+    Restarting = 4, // Pending restart and not notified that the Bluetooth is stopped
 }
 
 /// Check whether adapter is enabled by checking internal state.
@@ -90,6 +91,7 @@ impl Display for RealHciIndex {
 pub enum AdapterStateActions {
     StartBluetooth(VirtualHciIndex),
     StopBluetooth(VirtualHciIndex),
+    RestartBluetooth(VirtualHciIndex),
     BluetoothStarted(i32, RealHciIndex), // PID and HCI
     BluetoothStopped(RealHciIndex),
     HciDevicePresence(DevPath, RealHciIndex, bool),
@@ -183,6 +185,15 @@ impl StateMachineProxy {
         tokio::spawn(async move {
             let _ =
                 tx.send(Message::AdapterStateChange(AdapterStateActions::StopBluetooth(hci))).await;
+        });
+    }
+
+    pub fn restart_bluetooth(&self, hci: VirtualHciIndex) {
+        let tx = self.tx.clone();
+        tokio::spawn(async move {
+            let _ = tx
+                .send(Message::AdapterStateChange(AdapterStateActions::RestartBluetooth(hci)))
+                .await;
         });
     }
 
@@ -652,6 +663,14 @@ pub async fn mainloop(
                         next_state = ProcessState::TurningOff;
 
                         let action = context.state_machine.action_stop_bluetooth(hci);
+                        cmd_timeout.lock().unwrap().handle_timeout_action(hci, action);
+                    }
+                    AdapterStateActions::RestartBluetooth(i) => {
+                        hci = *i;
+                        prev_state = context.state_machine.get_process_state(hci);
+                        next_state = ProcessState::Restarting;
+
+                        let action = context.state_machine.action_restart_bluetooth(hci);
                         cmd_timeout.lock().unwrap().handle_timeout_action(hci, action);
                     }
                     AdapterStateActions::BluetoothStarted(pid, real_hci) => {
@@ -1310,6 +1329,32 @@ impl StateMachineInternal {
         }
     }
 
+    /// Returns true if we are restarting bluetooth process
+    pub fn action_restart_bluetooth(&mut self, hci: VirtualHciIndex) -> CommandTimeoutAction {
+        if !self.is_known(hci) {
+            warn!("Attempting to restart unknown hci{}", hci);
+            return CommandTimeoutAction::DoNothing;
+        }
+
+        let state = self.get_process_state(hci);
+        let present = self.get_state(hci, move |a: &AdapterState| Some(a.present)).unwrap_or(false);
+        let floss_enabled = self.get_floss_enabled();
+
+        match state {
+            ProcessState::On if present && floss_enabled => {
+                self.modify_state(hci, |s: &mut AdapterState| s.state = ProcessState::Restarting);
+                self.process_manager
+                    .stop(hci.to_string(), self.get_real_hci_by_virtual_id(hci).to_string());
+                CommandTimeoutAction::ResetTimer
+            }
+            ProcessState::TurningOn => {
+                debug!("hci{} is already starting.", hci);
+                CommandTimeoutAction::DoNothing
+            }
+            _ => CommandTimeoutAction::DoNothing,
+        }
+    }
+
     /// Handles a bluetooth started event. Always returns true even with unknown interfaces.
     pub fn action_on_bluetooth_started(
         &mut self,
@@ -1344,6 +1389,13 @@ impl StateMachineInternal {
             ProcessState::TurningOff => {
                 self.modify_state(hci, |s: &mut AdapterState| s.state = ProcessState::Off);
                 CommandTimeoutAction::CancelTimer
+            }
+            ProcessState::Restarting => {
+                debug!("hci{} restarting", hci.to_i32());
+                self.modify_state(hci, |s: &mut AdapterState| s.state = ProcessState::TurningOn);
+                self.process_manager
+                    .start(hci.to_string(), self.get_real_hci_by_virtual_id(hci).to_string());
+                CommandTimeoutAction::ResetTimer
             }
             // Running bluetooth stopped unexpectedly.
             ProcessState::On if floss_enabled && config_enabled => {
