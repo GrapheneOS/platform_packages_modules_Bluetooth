@@ -177,7 +177,7 @@ cc_library {
 cc_test {
     name: "bluetooth_flatbuffer_tests",
     test_suites: ["device-tests"],
-    defaults: ["mts_defaults"],
+    defaults: ["fluoride_common_options", "mts_defaults"],
     host_supported: true,
     test_options: {
         unit_test: true,
@@ -191,10 +191,5 @@ cc_test {
     ],
     generated_headers: [
         "BluetoothFlatbufferTestData_h",
-    ],
-    cflags: [
-        "-Werror",
-        "-Wall",
-        "-Wextra",
     ],
 }

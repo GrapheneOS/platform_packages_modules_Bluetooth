@@ -10,6 +10,9 @@ package {
 
 cc_defaults {
     name: "gd_defaults",
+    defaults: [
+        "fluoride_common_options",
+    ],
     tidy_checks: [
         "-performance-unnecessary-value-param",
     ],
@@ -42,14 +45,12 @@ cc_defaults {
         "-fvisibility=hidden",
         "-DLOG_NDEBUG=1",
         "-DGOOGLE_PROTOBUF_NO_RTTI",
-        "-Wno-unused-parameter",
         "-Wno-unused-result",
     ],
     conlyflags: [
         "-std=c99",
     ],
     header_libs: ["jni_headers"],
-
 }
 
 // Enables code coverage for a set of source files. Must be combined with
