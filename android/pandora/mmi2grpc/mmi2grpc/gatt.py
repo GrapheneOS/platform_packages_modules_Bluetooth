@@ -20,11 +20,10 @@ from mmi2grpc._proxy import ProfileProxy
 
 from pandora_experimental.gatt_grpc import GATT
 from pandora_experimental.host_grpc import Host
-from pandora_experimental.host_pb2 import Connection, ConnectabilityMode, AddressType
+from pandora_experimental.host_pb2 import ConnectabilityMode, AddressType
 from pandora_experimental.gatt_pb2 import AttStatusCode, AttProperties, AttPermissions
-from pandora_experimental.gatt_pb2 import GattService
-from pandora_experimental.gatt_pb2 import GattCharacteristic
-from pandora_experimental.gatt_pb2 import GattCharacteristicDescriptor
+from pandora_experimental.gatt_pb2 import GattServiceParams
+from pandora_experimental.gatt_pb2 import GattCharacteristicParams
 from pandora_experimental.gatt_pb2 import ReadCharacteristicResponse
 from pandora_experimental.gatt_pb2 import ReadCharacteristicsFromUuidResponse
 
@@ -901,15 +900,15 @@ class GATTProxy(ProfileProxy):
             own_address_type=AddressType.PUBLIC,
         )
         self.gatt.RegisterService(
-            service=GattService(
+            service=GattServiceParams(
                 uuid=BASE_READ_WRITE_SERVICE_UUID,
                 characteristics=[
-                    GattCharacteristic(
+                    GattCharacteristicParams(
                         uuid=BASE_READ_CHARACTERISTIC_UUID,
                         properties=AttProperties.PROPERTY_READ,
                         permissions=AttPermissions.PERMISSION_READ,
                     ),
-                    GattCharacteristic(
+                    GattCharacteristicParams(
                         uuid=BASE_WRITE_CHARACTERISTIC_UUID,
                         properties=AttProperties.PROPERTY_WRITE,
                         permissions=AttPermissions.PERMISSION_WRITE,
@@ -986,10 +985,10 @@ class GATTProxy(ProfileProxy):
         """
 
         self.last_added_service = self.gatt.RegisterService(
-            service=GattService(
+            service=GattServiceParams(
                 uuid=CUSTOM_SERVICE_UUID,
                 characteristics=[
-                    GattCharacteristic(
+                    GattCharacteristicParams(
                         uuid=CUSTOM_CHARACTERISTIC_UUID,
                         properties=AttProperties.PROPERTY_READ,
                         permissions=AttPermissions.PERMISSION_NONE,
@@ -1030,10 +1029,10 @@ class GATTProxy(ProfileProxy):
         """
 
         self.last_added_service = self.gatt.RegisterService(
-            service=GattService(
+            service=GattServiceParams(
                 uuid=CUSTOM_SERVICE_UUID,
                 characteristics=[
-                    GattCharacteristic(
+                    GattCharacteristicParams(
                         uuid=CUSTOM_CHARACTERISTIC_UUID,
                         properties=AttProperties.PROPERTY_READ,
                         permissions=AttPermissions.PERMISSION_READ_ENCRYPTED,
@@ -1063,10 +1062,10 @@ class GATTProxy(ProfileProxy):
         """
 
         self.last_added_service = self.gatt.RegisterService(
-            service=GattService(
+            service=GattServiceParams(
                 uuid=CUSTOM_SERVICE_UUID,
                 characteristics=[
-                    GattCharacteristic(
+                    GattCharacteristicParams(
                         uuid=CUSTOM_CHARACTERISTIC_UUID,
                         properties=AttProperties.PROPERTY_READ,
                         permissions=AttPermissions.PERMISSION_NONE,
@@ -1096,10 +1095,10 @@ class GATTProxy(ProfileProxy):
         """
 
         self.last_added_service = self.gatt.RegisterService(
-            service=GattService(
+            service=GattServiceParams(
                 uuid=CUSTOM_SERVICE_UUID,
                 characteristics=[
-                    GattCharacteristic(
+                    GattCharacteristicParams(
                         uuid=CUSTOM_CHARACTERISTIC_UUID,
                         properties=AttProperties.PROPERTY_WRITE,
                         permissions=AttPermissions.PERMISSION_NONE,

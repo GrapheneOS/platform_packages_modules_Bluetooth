@@ -164,6 +164,7 @@ class Security(private val context: Context) : SecurityImplBase() {
             BluetoothDevice.PAIRING_VARIANT_DISPLAY_PASSKEY -> {
               val passkey =
                 intent.getIntExtra(BluetoothDevice.EXTRA_PAIRING_KEY, BluetoothDevice.ERROR)
+              Log.i(TAG, "OnPairing: passkey=${passkey}")
               eventBuilder.passkeyEntryNotification = passkey
             }
 
