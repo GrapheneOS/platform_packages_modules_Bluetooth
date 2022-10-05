@@ -30,7 +30,7 @@
 using namespace bluetooth::vc::internal;
 
 void VolumeControlDevice::Disconnect(tGATT_IF gatt_if) {
-  LOG(INFO) << __func__ << ": " << this->ToString();
+  LOG(INFO) << __func__ << ": " << ADDRESS_TO_LOGGABLE_STR(address);
 
   if (IsConnected()) {
     if (volume_state_handle != 0)

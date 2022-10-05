@@ -389,7 +389,7 @@ class VolumeControlImpl : public VolumeControl {
 
     if (!device->IsReady()) {
       LOG_INFO("Device: %s is not ready yet.",
-               device->address.ToString().c_str());
+               ADDRESS_TO_LOGGABLE_CSTR(device->address));
       return;
     }
 
@@ -466,7 +466,7 @@ class VolumeControlImpl : public VolumeControl {
 
     if (!device->IsReady()) {
       LOG_INFO("Device: %s is not ready yet.",
-               device->address.ToString().c_str());
+               ADDRESS_TO_LOGGABLE_CSTR(device->address));
       return;
     }
 
@@ -491,7 +491,7 @@ class VolumeControlImpl : public VolumeControl {
 
     if (!device->IsReady()) {
       LOG_INFO("Device: %s is not ready yet.",
-               device->address.ToString().c_str());
+               ADDRESS_TO_LOGGABLE_CSTR(device->address));
       return;
     }
 
@@ -526,7 +526,7 @@ class VolumeControlImpl : public VolumeControl {
 
     if (!device->IsReady()) {
       LOG_INFO("Device: %s is not ready yet.",
-               device->address.ToString().c_str());
+               ADDRESS_TO_LOGGABLE_CSTR(device->address));
       return;
     }
 
@@ -796,7 +796,8 @@ class VolumeControlImpl : public VolumeControl {
       VolumeControlDevice* dev = volume_control_devices_.FindByAddress(
           std::get<RawAddress>(addr_or_group_id));
       if (dev != nullptr) {
-        LOG_DEBUG("Address: %s: isReady: %s", dev->address.ToString().c_str(),
+        LOG_DEBUG("Address: %s: isReady: %s",
+                  ADDRESS_TO_LOGGABLE_CSTR(dev->address),
                   dev->IsReady() ? "true" : "false");
         if (dev->IsReady()) {
           std::vector<RawAddress> devices = {dev->address};
@@ -854,12 +855,13 @@ class VolumeControlImpl : public VolumeControl {
     uint8_t opcode = kControlPointOpcodeSetAbsoluteVolume;
 
     if (std::holds_alternative<RawAddress>(addr_or_group_id)) {
-      LOG_DEBUG("Address: %s: ",
-                std::get<RawAddress>(addr_or_group_id).ToString().c_str());
+      LOG_DEBUG("Address: %s: ", ADDRESS_TO_LOGGABLE_CSTR(
+                                     std::get<RawAddress>(addr_or_group_id)));
       VolumeControlDevice* dev = volume_control_devices_.FindByAddress(
           std::get<RawAddress>(addr_or_group_id));
       if (dev != nullptr) {
-        LOG_DEBUG("Address: %s: isReady: %s", dev->address.ToString().c_str(),
+        LOG_DEBUG("Address: %s: isReady: %s",
+                  ADDRESS_TO_LOGGABLE_CSTR(dev->address),
                   dev->IsReady() ? "true" : "false");
         if (dev->IsReady() && (dev->volume != volume)) {
           std::vector<RawAddress> devices = {dev->address};
@@ -1051,7 +1053,7 @@ class VolumeControlImpl : public VolumeControl {
   void ext_audio_out_control_point_helper(const RawAddress& address,
                                           uint8_t ext_output_id, uint8_t opcode,
                                           const std::vector<uint8_t>* arg) {
-    LOG(INFO) << __func__ << ": " << address.ToString()
+    LOG(INFO) << __func__ << ": " << ADDRESS_TO_LOGGABLE_STR(address)
               << " id=" << loghex(ext_output_id) << " op=" << loghex(opcode);
     VolumeControlDevice* device =
         volume_control_devices_.FindByAddress(address);

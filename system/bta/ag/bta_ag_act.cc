@@ -461,7 +461,7 @@ void bta_ag_rfc_open(tBTA_AG_SCB* p_scb, const tBTA_AG_DATA& data) {
             p_scb->peer_addr.ToString(), HFP_VERSION_CONFIG_KEY,
             (uint8_t*)&p_scb->peer_version, &version_value_size)) {
       APPL_TRACE_WARNING("%s: Failed read cached peer HFP version for %s",
-                         __func__, p_scb->peer_addr.ToString().c_str());
+                         __func__, ADDRESS_TO_LOGGABLE_CSTR(p_scb->peer_addr));
       p_scb->peer_version = HFP_HSP_VERSION_UNKNOWN;
     }
     size_t sdp_features_size = sizeof(p_scb->peer_sdp_features);
@@ -476,7 +476,7 @@ void bta_ag_rfc_open(tBTA_AG_SCB* p_scb, const tBTA_AG_DATA& data) {
       }
     } else {
       APPL_TRACE_WARNING("%s: Failed read cached peer HFP SDP features for %s",
-                         __func__, p_scb->peer_addr.ToString().c_str());
+                         __func__, ADDRESS_TO_LOGGABLE_CSTR(p_scb->peer_addr));
     }
   }
 

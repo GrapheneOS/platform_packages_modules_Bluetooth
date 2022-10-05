@@ -370,7 +370,7 @@ class CsisGroup {
         devices_.begin(), devices_.end(), [id, &number_of_connected](auto& d) {
           if (!d->IsConnected()) {
             LOG_DEBUG("Device %s is not connected in group %d",
-                      d->addr.ToString().c_str(), id);
+                      ADDRESS_TO_LOGGABLE_CSTR(d->addr), id);
             return false;
           }
           auto inst = d->GetCsisInstanceByGroupId(id);
@@ -379,7 +379,8 @@ class CsisGroup {
             return false;
           }
           number_of_connected++;
-          LOG_DEBUG("Device %s,  lock state: %d", d->addr.ToString().c_str(),
+          LOG_DEBUG("Device %s,  lock state: %d",
+                    ADDRESS_TO_LOGGABLE_CSTR(d->addr),
                     (int)inst->GetLockState());
           return inst->GetLockState() == CsisLockState::CSIS_STATE_LOCKED;
         });
@@ -388,7 +389,7 @@ class CsisGroup {
               number_of_connected);
     /* If there is no locked device, we are good to go */
     if (iter != devices_.end()) {
-      LOG_WARN("Device %s is locked ", (*iter)->addr.ToString().c_str());
+      LOG_WARN("Device %s is locked ", ADDRESS_TO_LOGGABLE_CSTR((*iter)->addr));
       return false;
     }
 
