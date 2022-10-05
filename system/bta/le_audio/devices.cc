@@ -1576,8 +1576,16 @@ bool LeAudioDeviceGroup::ConfigureAses(
         continue;
       }
 
-      /* For the moment, we configure only connected devices. */
-      if (device->conn_id_ == GATT_INVALID_CONN_ID) continue;
+      /* For the moment, we configure only connected devices and when it is
+       * ready to stream i.e. All ASEs are discovered and device is reported as
+       * connected
+       */
+      if (device->GetConnectionState() != DeviceConnectState::CONNECTED) {
+        LOG_WARN(
+            "Device %s, in the state %s", device->address_.ToString().c_str(),
+            bluetooth::common::ToString(device->GetConnectionState()).c_str());
+        continue;
+      }
 
       if (!device->ConfigureAses(ent, context_type, &active_ase_num,
                                  group_snk_audio_locations,
