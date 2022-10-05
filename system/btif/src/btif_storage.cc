@@ -521,7 +521,7 @@ static bt_status_t btif_in_fetch_bonded_devices(
   for (const auto& bd_addr : btif_config_get_paired_devices()) {
     auto name = bd_addr.ToString();
 
-    BTIF_TRACE_DEBUG("Remote device:%s", name.c_str());
+    BTIF_TRACE_DEBUG("Remote device:%s", ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
     LinkKey link_key;
     size_t size = sizeof(link_key);
     if (btif_config_get_bin(name, "LinkKey", link_key.data(), &size)) {
@@ -579,7 +579,7 @@ static void btif_read_le_key(const uint8_t key_type, const size_t key_len,
       }
 
       BTIF_TRACE_DEBUG("%s() Adding key type %d for %s", __func__, key_type,
-                       bd_addr.ToString().c_str());
+                       ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
       BTA_DmAddBleKey(bd_addr, &key, key_type);
     }
 
@@ -924,7 +924,7 @@ bt_status_t btif_storage_add_bonded_device(RawAddress* remote_bd_addr,
 
   if (GetInterfaceToProfiles()->config->isRestrictedMode()) {
     BTIF_TRACE_WARNING("%s: '%s' pairing will be removed if unrestricted",
-                       __func__, bdstr.c_str());
+                       __func__, ADDRESS_TO_LOGGABLE_CSTR(*remote_bd_addr));
     btif_config_set_int(bdstr, "Restricted", 1);
   }
 
@@ -946,7 +946,8 @@ bt_status_t btif_storage_add_bonded_device(RawAddress* remote_bd_addr,
 bt_status_t btif_storage_remove_bonded_device(
     const RawAddress* remote_bd_addr) {
   std::string bdstr = remote_bd_addr->ToString();
-  LOG_INFO("Removing bonded device addr:%s", bdstr.c_str());
+  LOG_INFO("Removing bonded device addr:%s",
+           ADDRESS_TO_LOGGABLE_CSTR(*remote_bd_addr));
 
   btif_storage_remove_ble_bonding_keys(remote_bd_addr);
 
@@ -1009,8 +1010,8 @@ static void remove_devices_with_sample_ltk() {
 
   for (RawAddress address : bad_ltk) {
     android_errorWriteLog(0x534e4554, "128437297");
-    LOG(ERROR) << __func__
-               << ": removing bond to device using test TLK: " << address;
+    LOG(ERROR) << __func__ << ": removing bond to device using test TLK: "
+               << ADDRESS_TO_LOGGABLE_STR(address);
 
     btif_storage_remove_bonded_device(&address);
   }
@@ -1045,8 +1046,8 @@ void btif_storage_load_le_devices(void) {
             sizeof(tBTM_LE_PID_KEYS)) == BT_STATUS_SUCCESS) {
       if (bonded_devices.devices[i] != key.pid_key.identity_addr) {
         LOG_INFO("found device with a known identity address %s %s",
-                 bonded_devices.devices[i].ToString().c_str(),
-                 key.pid_key.identity_addr.ToString().c_str());
+                 ADDRESS_TO_LOGGABLE_CSTR(bonded_devices.devices[i]),
+                 ADDRESS_TO_LOGGABLE_CSTR(key.pid_key.identity_addr));
 
         if (bonded_devices.devices[i].IsEmpty() ||
             key.pid_key.identity_addr.IsEmpty()) {
@@ -1345,7 +1346,8 @@ bt_status_t btif_storage_get_ble_bonding_key(const RawAddress& remote_bd_addr,
 bt_status_t btif_storage_remove_ble_bonding_keys(
     const RawAddress* remote_bd_addr) {
   std::string bdstr = remote_bd_addr->ToString();
-  LOG_INFO("Removing bonding keys for bd addr:%s", bdstr.c_str());
+  LOG_INFO("Removing bonding keys for bd addr:%s",
+           ADDRESS_TO_LOGGABLE_CSTR(*remote_bd_addr));
   int ret = 1;
   if (btif_config_exist(bdstr, "LE_KEY_PENC"))
     ret &= btif_config_remove(bdstr, "LE_KEY_PENC");
@@ -1617,7 +1619,7 @@ bt_status_t btif_storage_load_bonded_hid_info(void) {
   for (const auto& bd_addr : btif_config_get_paired_devices()) {
     auto name = bd_addr.ToString();
 
-    BTIF_TRACE_DEBUG("Remote device:%s", name.c_str());
+    BTIF_TRACE_DEBUG("Remote device:%s", ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
 
     int value;
     if (!btif_config_get_int(name, "HidAttrMask", &value)) continue;
@@ -1755,7 +1757,8 @@ void btif_storage_add_hearing_aid(const HearingDevice& dev_info) {
       Bind(
           [](const HearingDevice& dev_info) {
             std::string bdstr = dev_info.address.ToString();
-            VLOG(2) << "saving hearing aid device: " << bdstr;
+            VLOG(2) << "saving hearing aid device: "
+                    << ADDRESS_TO_LOGGABLE_STR(dev_info.address);
             btif_config_set_int(bdstr, HEARING_AID_SERVICE_CHANGED_CCC_HANDLE,
                                 dev_info.service_changed_ccc_handle);
             btif_config_set_int(bdstr, HEARING_AID_READ_PSM_HANDLE,
@@ -1807,7 +1810,7 @@ void btif_storage_load_bonded_hearing_aids() {
       continue;
     }
 
-    BTIF_TRACE_DEBUG("Remote device:%s", name.c_str());
+    BTIF_TRACE_DEBUG("Remote device:%s", ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
 
     if (btif_in_fetch_bonded_device(name) != BT_STATUS_SUCCESS) {
       btif_storage_remove_hearing_aid(bd_addr);
@@ -1951,9 +1954,9 @@ void btif_storage_set_gatt_sr_supp_feat(const RawAddress& addr, uint8_t feat) {
       FROM_HERE, Bind(
                      [](const RawAddress& addr, uint8_t feat) {
                        std::string bdstr = addr.ToString();
-                       VLOG(2)
-                           << "GATT server supported features for: " << bdstr
-                           << " features: " << +feat;
+                       VLOG(2) << "GATT server supported features for: "
+                               << ADDRESS_TO_LOGGABLE_STR(addr)
+                               << " features: " << +feat;
                        btif_config_set_int(
                            bdstr, BTIF_STORAGE_KEY_GATT_SERVER_SUPPORTED, feat);
                        btif_config_save();
@@ -1968,7 +1971,7 @@ uint8_t btif_storage_get_sr_supp_feat(const RawAddress& bd_addr) {
   int value = 0;
   btif_config_get_int(name, BTIF_STORAGE_KEY_GATT_SERVER_SUPPORTED, &value);
   BTIF_TRACE_DEBUG("Remote device: %s GATT server supported features 0x%02x",
-                   name.c_str(), value);
+                   ADDRESS_TO_LOGGABLE_CSTR(bd_addr), value);
 
   return value;
 }
@@ -1979,8 +1982,8 @@ void btif_storage_set_leaudio_autoconnect(const RawAddress& addr,
   do_in_jni_thread(FROM_HERE, Bind(
                                   [](const RawAddress& addr, bool autoconnect) {
                                     std::string bdstr = addr.ToString();
-                                    VLOG(2)
-                                        << "saving le audio device: " << bdstr;
+                                    VLOG(2) << "saving le audio device: "
+                                            << ADDRESS_TO_LOGGABLE_STR(addr);
                                     btif_config_set_int(
                                         bdstr, BTIF_STORAGE_LEAUDIO_AUTOCONNECT,
                                         autoconnect);
@@ -2066,7 +2069,8 @@ void btif_storage_set_leaudio_audio_location(const RawAddress& addr,
       Bind(
           [](const RawAddress& addr, int sink_location, int source_location) {
             std::string bdstr = addr.ToString();
-            LOG_DEBUG("saving le audio device: %s", bdstr.c_str());
+            LOG_DEBUG("saving le audio device: %s",
+                      ADDRESS_TO_LOGGABLE_CSTR(addr));
             btif_config_set_int(bdstr, BTIF_STORAGE_LEAUDIO_SINK_AUDIOLOCATION,
                                 sink_location);
             btif_config_set_int(bdstr,
@@ -2087,7 +2091,8 @@ void btif_storage_set_leaudio_supported_context_types(
           [](const RawAddress& addr, int sink_supported_context_type,
              int source_supported_context_type) {
             std::string bdstr = addr.ToString();
-            LOG_DEBUG("saving le audio device: %s", bdstr.c_str());
+            LOG_DEBUG("saving le audio device: %s",
+                      ADDRESS_TO_LOGGABLE_CSTR(addr));
             btif_config_set_int(
                 bdstr, BTIF_STORAGE_LEAUDIO_SINK_SUPPORTED_CONTEXT_TYPE,
                 sink_supported_context_type);
@@ -2123,7 +2128,7 @@ void btif_storage_load_bonded_leaudio() {
       continue;
     }
 
-    BTIF_TRACE_DEBUG("Remote device:%s", name.c_str());
+    BTIF_TRACE_DEBUG("Remote device:%s", ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
 
     int value;
     bool autoconnect = false;
@@ -2371,7 +2376,7 @@ void btif_storage_load_bonded_groups(void) {
         btif_config_get_bin_length(name, BTIF_STORAGE_DEVICE_GROUP_BIN);
     if (buffer_size == 0) continue;
 
-    BTIF_TRACE_DEBUG("Grouped device:%s", name.c_str());
+    BTIF_TRACE_DEBUG("Grouped device:%s", ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
 
     std::vector<uint8_t> in(buffer_size);
     if (btif_config_get_bin(name, BTIF_STORAGE_DEVICE_GROUP_BIN, in.data(),
@@ -2387,7 +2392,8 @@ void btif_storage_set_csis_autoconnect(const RawAddress& addr,
   do_in_jni_thread(FROM_HERE, Bind(
                                   [](const RawAddress& addr, bool autoconnect) {
                                     std::string bdstr = addr.ToString();
-                                    VLOG(2) << "Storing CSIS device: " << bdstr;
+                                    VLOG(2) << "Storing CSIS device: "
+                                            << ADDRESS_TO_LOGGABLE_STR(addr);
                                     btif_config_set_int(
                                         bdstr, BTIF_STORAGE_CSIS_AUTOCONNECT,
                                         autoconnect);
@@ -2419,7 +2425,8 @@ void btif_storage_load_bonded_csis_devices(void) {
   for (const auto& bd_addr : btif_config_get_paired_devices()) {
     auto name = bd_addr.ToString();
 
-    BTIF_TRACE_DEBUG("Loading CSIS device:%s", name.c_str());
+    BTIF_TRACE_DEBUG("Loading CSIS device:%s",
+                     ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
 
     int value;
     bool autoconnect = false;
@@ -2480,7 +2487,7 @@ bt_status_t btif_storage_load_hidd(void) {
   for (const auto& bd_addr : btif_config_get_paired_devices()) {
     auto name = bd_addr.ToString();
 
-    BTIF_TRACE_DEBUG("Remote device:%s", name.c_str());
+    BTIF_TRACE_DEBUG("Remote device:%s", ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
     int value;
     if (btif_in_fetch_bonded_device(name) == BT_STATUS_SUCCESS) {
       if (btif_config_get_int(name, "HidDeviceCabled", &value)) {
@@ -2553,8 +2560,8 @@ void btif_storage_set_gatt_cl_supp_feat(const RawAddress& bd_addr,
       FROM_HERE, Bind(
                      [](const RawAddress& bd_addr, uint8_t feat) {
                        std::string bdstr = bd_addr.ToString();
-                       VLOG(2)
-                           << "saving gatt client supported feat: " << bdstr;
+                       VLOG(2) << "saving gatt client supported feat: "
+                               << ADDRESS_TO_LOGGABLE_STR(bd_addr);
                        btif_config_set_int(
                            bdstr, BTIF_STORAGE_KEY_GATT_CLIENT_SUPPORTED, feat);
                        btif_config_save();
@@ -2569,7 +2576,7 @@ uint8_t btif_storage_get_gatt_cl_supp_feat(const RawAddress& bd_addr) {
   int value = 0;
   btif_config_get_int(name, BTIF_STORAGE_KEY_GATT_CLIENT_SUPPORTED, &value);
   BTIF_TRACE_DEBUG("Remote device: %s GATT client supported features 0x%02x",
-                   name.c_str(), value);
+                   ADDRESS_TO_LOGGABLE_CSTR(bd_addr), value);
 
   return value;
 }
@@ -2637,7 +2644,7 @@ void btif_debug_linkkey_type_dump(int fd) {
   for (const auto& bd_addr : btif_config_get_paired_devices()) {
     auto bdstr = bd_addr.ToString();
     int linkkey_type;
-    dprintf(fd, "  %s\n", bdstr.c_str());
+    dprintf(fd, "  %s\n", ADDRESS_TO_LOGGABLE_CSTR(bd_addr));
 
     dprintf(fd, "    BR: ");
     if (btif_config_get_int(bdstr, "LinkKeyType", &linkkey_type)) {
