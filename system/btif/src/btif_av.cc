@@ -2678,7 +2678,7 @@ static void btif_av_handle_event(uint8_t peer_sep,
                                  tBTA_AV_HNDL bta_handle,
                                  const BtifAvEvent& btif_av_event) {
   LOG_DEBUG("Handle event peer_address=%s bta_handle=0x%x",
-            PRIVATE_ADDRESS(peer_address), bta_handle);
+            ADDRESS_TO_LOGGABLE_CSTR(peer_address), bta_handle);
 
   BtifAvPeer* peer = nullptr;
 
@@ -3034,7 +3034,7 @@ static bt_status_t src_connect_sink(const RawAddress& peer_address) {
 
   RawAddress peer_address_copy(peer_address);
   LOG_DEBUG("Connecting to AV sink peer:%s",
-            PRIVATE_ADDRESS(peer_address_copy));
+            ADDRESS_TO_LOGGABLE_CSTR(peer_address_copy));
 
   return btif_queue_connect(UUID_SERVCLASS_AUDIO_SOURCE, &peer_address_copy,
                             connect_int);

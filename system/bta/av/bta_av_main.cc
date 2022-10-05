@@ -909,7 +909,7 @@ static void bta_av_sco_chg_cback(tBTA_SYS_CONN_STATUS status, uint8_t id,
             << ", num_links=" << +id;
   if (id) {
     bta_av_cb.sco_occupied = true;
-    LOG_DEBUG("SCO occupied peer:%s status:%s", PRIVATE_ADDRESS(peer_addr),
+    LOG_DEBUG("SCO occupied peer:%s status:%s", ADDRESS_TO_LOGGABLE_CSTR(peer_addr),
               bta_sys_conn_status_text(status).c_str());
 
     if (bta_av_cb.features & BTA_AV_FEAT_NO_SCO_SSPD) {
@@ -932,7 +932,7 @@ static void bta_av_sco_chg_cback(tBTA_SYS_CONN_STATUS status, uint8_t id,
     }
   } else {
     bta_av_cb.sco_occupied = false;
-    LOG_DEBUG("SCO unoccupied peer:%s status:%s", PRIVATE_ADDRESS(peer_addr),
+    LOG_DEBUG("SCO unoccupied peer:%s status:%s", ADDRESS_TO_LOGGABLE_CSTR(peer_addr),
               bta_sys_conn_status_text(status).c_str());
 
     if (bta_av_cb.features & BTA_AV_FEAT_NO_SCO_SSPD) {
@@ -1018,7 +1018,7 @@ bool bta_av_link_role_ok(tBTA_AV_SCB* p_scb, uint8_t bits) {
   tHCI_ROLE role;
   if (BTM_GetRole(p_scb->PeerAddress(), &role) != BTM_SUCCESS) {
     LOG_WARN("Unable to find link role for device:%s",
-             PRIVATE_ADDRESS(p_scb->PeerAddress()));
+             ADDRESS_TO_LOGGABLE_CSTR(p_scb->PeerAddress()));
     return true;
   }
 
@@ -1026,7 +1026,7 @@ bool bta_av_link_role_ok(tBTA_AV_SCB* p_scb, uint8_t bits) {
     LOG_INFO(
         "Switch link role to central peer:%s bta_handle:0x%x current_role:%s"
         " conn_audio:0x%x bits:%d features:0x%x",
-        PRIVATE_ADDRESS(p_scb->PeerAddress()), p_scb->hndl,
+        ADDRESS_TO_LOGGABLE_CSTR(p_scb->PeerAddress()), p_scb->hndl,
         RoleText(role).c_str(), bta_av_cb.conn_audio, bits, bta_av_cb.features);
     const tBTM_STATUS status = BTM_SwitchRoleToCentral(p_scb->PeerAddress());
     switch (status) {
@@ -1038,13 +1038,13 @@ bool bta_av_link_role_ok(tBTA_AV_SCB* p_scb, uint8_t bits) {
         // a result such that a timer will not start to repeatedly
         // try something not possible.
         LOG_ERROR("Link can never role switch to central device:%s",
-                  PRIVATE_ADDRESS(p_scb->PeerAddress()));
+                  ADDRESS_TO_LOGGABLE_CSTR(p_scb->PeerAddress()));
         break;
       default:
         /* can not switch role on SCB - start the timer on SCB */
         p_scb->wait |= BTA_AV_WAIT_ROLE_SW_RES_START;
         LOG_ERROR("Unable to switch role to central device:%s error:%s",
-                  PRIVATE_ADDRESS(p_scb->PeerAddress()),
+                  ADDRESS_TO_LOGGABLE_CSTR(p_scb->PeerAddress()),
                   btm_status_text(status).c_str());
         return false;
     }

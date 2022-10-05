@@ -1160,7 +1160,7 @@ bt_status_t HeadsetInterface::PhoneStateChange(
   const RawAddress raw_address(*bd_addr);
   int idx = btif_hf_idx_by_bdaddr(bd_addr);
   if (idx < 0 || idx >= BTA_AG_MAX_NUM_CLIENTS) {
-    LOG_WARN("Invalid index %d for %s", idx, PRIVATE_ADDRESS(raw_address));
+    LOG_WARN("Invalid index %d for %s", idx, ADDRESS_TO_LOGGABLE_CSTR(raw_address));
     return BT_STATUS_FAIL;
   }
   const btif_hf_cb_t& control_block = btif_hf_cb[idx];
@@ -1183,7 +1183,7 @@ bt_status_t HeadsetInterface::PhoneStateChange(
   LOG_DEBUG(
       "bd_addr:%s active_bda:%s num_active:%u prev_num_active:%u num_held:%u "
       "prev_num_held:%u call_state:%s prev_call_state:%s",
-      PRIVATE_ADDRESS((*bd_addr)), PRIVATE_ADDRESS(active_bda), num_active,
+      ADDRESS_TO_LOGGABLE_CSTR((*bd_addr)), ADDRESS_TO_LOGGABLE_CSTR(active_bda), num_active,
       control_block.num_active, num_held, control_block.num_held,
       dump_hf_call_state(call_setup_state),
       dump_hf_call_state(control_block.call_setup_state));

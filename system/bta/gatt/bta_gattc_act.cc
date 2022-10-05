@@ -449,7 +449,7 @@ static void bta_gattc_init_bk_conn(const tBTA_GATTC_API_OPEN* p_data,
       p_data->client_if, p_data->remote_bda, BT_TRANSPORT_LE);
   if (!p_clcb) {
     LOG_WARN("Unable to find connection link for device:%s",
-             PRIVATE_ADDRESS(p_data->remote_bda));
+             ADDRESS_TO_LOGGABLE_CSTR(p_data->remote_bda));
     return;
   }
 
@@ -1252,13 +1252,13 @@ static void bta_gattc_conn_cback(tGATT_IF gattc_if, const RawAddress& bdaddr,
                                  tBT_TRANSPORT transport) {
   if (connected) {
     LOG_INFO("Connected client_if:%hhu addr:%s, transport:%s reason:%s",
-             gattc_if, PRIVATE_ADDRESS(bdaddr),
+             gattc_if, ADDRESS_TO_LOGGABLE_CSTR(bdaddr),
              bt_transport_text(transport).c_str(),
              gatt_disconnection_reason_text(reason).c_str());
     btif_debug_conn_state(bdaddr, BTIF_DEBUG_CONNECTED, GATT_CONN_OK);
   } else {
     LOG_INFO("Disconnected att_id:%hhu addr:%s, transport:%s reason:%s",
-             gattc_if, PRIVATE_ADDRESS(bdaddr),
+             gattc_if, ADDRESS_TO_LOGGABLE_CSTR(bdaddr),
              bt_transport_text(transport).c_str(),
              gatt_disconnection_reason_text(reason).c_str());
     btif_debug_conn_state(bdaddr, BTIF_DEBUG_DISCONNECTED, GATT_CONN_OK);
