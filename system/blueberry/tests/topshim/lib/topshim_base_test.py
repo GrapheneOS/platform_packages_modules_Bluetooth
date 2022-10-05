@@ -32,7 +32,10 @@ from blueberry.tests.gd.cert.os_utils import TerminalColor
 from blueberry.tests.gd.cert.tracelogger import TraceLogger
 from blueberry.tests.gd.cert.truth import assertThat
 from blueberry.tests.topshim.lib.adapter_client import AdapterClient
+from blueberry.tests.topshim.lib.async_closable import asyncSafeClose
 from blueberry.tests.topshim.lib.gatt_client import GattClient
+from blueberry.tests.topshim.lib.security_client import SecurityClient
+from blueberry.tests.topshim.lib.topshim_device import TopshimDevice
 
 from mobly import asserts
 from mobly import base_test
@@ -157,32 +160,35 @@ def dump_crashes_core(dut, cert, rootcanal_running, rootcanal_process, rootcanal
 
 class TopshimBaseTest(base_test.BaseTestClass):
 
-    # TODO(optedoblivion): Make TopshimTestStack class
-    dut_adapter = None
-    dut_gatt = None
+    __dut = None
+    __cert = None
 
-    cert_adapter = None
-    cert_gatt = None
-
-    async def _setup_adapter(self):
-        self.dut_adapter = AdapterClient(port=self.dut_port)
-        self.cert_adapter = AdapterClient(port=self.cert_port)
-        started = await self.dut_adapter._verify_adapter_started()
+    async def __setup_adapter(self):
+        dut_adapter = AdapterClient(port=self.dut_port)
+        cert_adapter = AdapterClient(port=self.cert_port)
+        started = await dut_adapter._verify_adapter_started()
         assertThat(started).isTrue()
-        started = await self.cert_adapter._verify_adapter_started()
+        started = started and await cert_adapter._verify_adapter_started()
         assertThat(started).isTrue()
-        self.dut_gatt = GattClient(port=self.dut_port)
-        self.cert_gatt = GattClient(port=self.cert_port)
+        self.__dut = TopshimDevice(dut_adapter, self.dut_port)
+        self.__cert = TopshimDevice(cert_adapter, self.cert_port)
         return started
 
-    async def _teardown_adapter(self):
-        await self.dut_adapter.terminate()
-        await self.dut_gatt.terminate()
-        await self.cert_adapter.terminate()
-        await self.cert_gatt.terminate()
+    async def __teardown_adapter(self):
+        await asyncSafeClose(self.__dut)
+        await asyncSafeClose(self.__cert)
 
-    def post(self, async_fn):
-        asyncio.get_event_loop().run_until_complete(async_fn)
+    def dut(self):
+        """
+        Get a handle on the DUT device
+        """
+        return self.__dut
+
+    def cert(self):
+        """
+        Get a handle on the CERT device
+        """
+        return self.__cert
 
     def setup_class(self):
         """
@@ -217,7 +223,7 @@ class TopshimBaseTest(base_test.BaseTestClass):
         self.cert_port = controllers[0].grpc_port
         self.dut_port = controllers[1].grpc_port
         asyncio.set_event_loop(asyncio.new_event_loop())
-        asyncio.get_event_loop().run_until_complete(self._setup_adapter())
+        asyncio.get_event_loop().run_until_complete(self.__setup_adapter())
 
     def teardown_class(self):
         _teardown_class_core(
@@ -225,4 +231,4 @@ class TopshimBaseTest(base_test.BaseTestClass):
             rootcanal_process=self.rootcanal_process,
             rootcanal_logger=self.rootcanal_logger,
             subprocess_wait_timeout_seconds=1)
-        asyncio.get_event_loop().run_until_complete(self._teardown_adapter())
+        asyncio.get_event_loop().run_until_complete(self.__teardown_adapter())

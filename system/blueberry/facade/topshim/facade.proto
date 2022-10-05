@@ -15,10 +15,13 @@ service AdapterService {
   rpc LeRand(google.protobuf.Empty) returns (google.protobuf.Empty) {}
   rpc SetEventFilterConnectionSetupAllDevices(google.protobuf.Empty) returns (google.protobuf.Empty) {}
   rpc AllowWakeByHid(google.protobuf.Empty) returns (google.protobuf.Empty) {}
-  rpc RemoveBond(RemoveBondRequest) returns (google.protobuf.Empty) {}
   rpc RestoreFilterAcceptList(google.protobuf.Empty) returns (google.protobuf.Empty) {}
   rpc SetDefaultEventMask(google.protobuf.Empty) returns (google.protobuf.Empty) {}
   rpc SetEventFilterInquiryResultAllDevices(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+}
+
+service SecurityService {
+    rpc RemoveBond(RemoveBondRequest) returns (google.protobuf.Empty) {}
 }
 
 service GattService {
