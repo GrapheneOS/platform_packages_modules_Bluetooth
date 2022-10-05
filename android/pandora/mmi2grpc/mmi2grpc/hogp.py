@@ -19,7 +19,7 @@ def short_uuid(full: uuid.UUID) -> int:
 class HOGPProxy(ProfileProxy):
 
     def __init__(self, channel):
-        super().__init__()
+        super().__init__(channel)
         self.host = Host(channel)
         self.security = Security(channel)
         self.gatt = GATT(channel)

@@ -41,7 +41,7 @@ class A2DPProxy(ProfileProxy):
     source: Optional[Source] = None
 
     def __init__(self, channel):
-        super().__init__()
+        super().__init__(channel)
 
         self.host = Host(channel)
         self.a2dp = A2DP(channel)

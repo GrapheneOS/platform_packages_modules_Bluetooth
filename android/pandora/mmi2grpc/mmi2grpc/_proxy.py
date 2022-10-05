@@ -16,11 +16,14 @@
 from mmi2grpc._helpers import format_function
 from mmi2grpc._helpers import assert_description
 
-import sys
+from pandora_experimental._android_grpc import Android
 
 
 class ProfileProxy:
     """Profile proxy base class."""
+
+    def __init__(self, channel) -> None:
+        self._android = Android(channel)
 
     def interact(self, test: str, mmi_name: str, mmi_description: str, pts_addr: bytes):
         """Translate a MMI call to its corresponding implementation.
@@ -37,10 +40,16 @@ class ProfileProxy:
         try:
             if not mmi_name.isidentifier():
                 mmi_name = "_mmi_" + mmi_name
-            return getattr(self, mmi_name)(test=test, description=mmi_description, pts_addr=pts_addr)
+            self.log(f"starting MMI {mmi_name}")
+            out = getattr(self, mmi_name)(test=test, description=mmi_description, pts_addr=pts_addr)
+            self.log(f"finishing MMI {mmi_name}")
+            return out
         except AttributeError:
             code = format_function(mmi_name, mmi_description)
-            assert False, f'Unhandled mmi {id}\n{code}'
+            assert False, f'Unhandled mmi {mmi_name}\n{code}'
+
+    def log(self, text=""):
+        self._android.Log(text=text)
 
     def test_started(self, test: str, description: str, pts_addr: bytes):
         return "OK"

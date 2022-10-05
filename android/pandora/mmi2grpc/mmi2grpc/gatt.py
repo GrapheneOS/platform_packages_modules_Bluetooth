@@ -49,7 +49,7 @@ CUSTOM_CHARACTERISTIC_UUID = "0000fffe-0000-1000-8000-00805f9b34fb"
 class GATTProxy(ProfileProxy):
 
     def __init__(self, channel):
-        super().__init__()
+        super().__init__(channel)
         self.gatt = GATT(channel)
         self.host = Host(channel)
         self.connection = None
