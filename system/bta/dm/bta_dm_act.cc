@@ -670,13 +670,6 @@ void bta_dm_remove_device(const RawAddress& bd_addr) {
   if (!other_address_connected && !other_address.IsEmpty()) {
     bta_dm_process_remove_device(other_address);
   }
-
-  /* Check the length of the paired devices, and if 0 then reset IRK */
-  auto paired_devices = btif_config_get_paired_devices();
-  if (paired_devices.empty()) {
-    LOG_INFO("Last paired device removed, resetting IRK");
-    btm_ble_reset_id();
-  }
 }
 
 /*******************************************************************************
@@ -4217,6 +4210,20 @@ void bta_dm_set_default_event_mask() {
 void bta_dm_set_event_filter_inquiry_result_all_devices() {
   // Autoplumbed
   bluetooth::shim::BTM_SetEventFilterInquiryResultAllDevices();
+}
+
+/*******************************************************************************
+ *
+ * Function         bta_dm_ble_reset_id
+ *
+ * Description      Reset the local adapter BLE keys.
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
+void bta_dm_ble_reset_id(void) {
+  VLOG(1) << "bta_dm_ble_reset_id in bta_dm_act";
+  bluetooth::shim::BTM_BleResetId();
 }
 
 /*******************************************************************************

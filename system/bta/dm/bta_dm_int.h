@@ -552,6 +552,8 @@ extern void bta_dm_restore_filter_accept_list();
 extern void bta_dm_set_default_event_mask();
 extern void bta_dm_set_event_filter_inquiry_result_all_devices();
 
+extern void bta_dm_ble_reset_id(void);
+
 uint8_t bta_dm_search_get_state();
 void bta_dm_search_set_state(uint8_t state);
 
