@@ -581,7 +581,7 @@ impl Bluetooth {
     }
 }
 
-#[btif_callbacks_dispatcher(Bluetooth, dispatch_base_callbacks, BaseCallbacks)]
+#[btif_callbacks_dispatcher(dispatch_base_callbacks, BaseCallbacks)]
 pub(crate) trait BtifBluetoothCallbacks {
     #[btif_callback(AdapterState)]
     fn adapter_state_changed(&mut self, state: BtState);
@@ -642,7 +642,7 @@ pub(crate) trait BtifBluetoothCallbacks {
     fn le_rand_cb(&mut self, random: u64);
 }
 
-#[btif_callbacks_dispatcher(Bluetooth, dispatch_hid_host_callbacks, HHCallbacks)]
+#[btif_callbacks_dispatcher(dispatch_hid_host_callbacks, HHCallbacks)]
 pub(crate) trait BtifHHCallbacks {
     #[btif_callback(ConnectionState)]
     fn connection_state(&mut self, address: RawAddress, state: BthhConnectionState);
@@ -663,7 +663,7 @@ pub(crate) trait BtifHHCallbacks {
     fn handshake(&mut self, address: RawAddress, status: BthhStatus);
 }
 
-#[btif_callbacks_dispatcher(Bluetooth, dispatch_sdp_callbacks, SdpCallbacks)]
+#[btif_callbacks_dispatcher(dispatch_sdp_callbacks, SdpCallbacks)]
 pub(crate) trait BtifSdpCallbacks {
     #[btif_callback(SdpSearch)]
     fn sdp_search(

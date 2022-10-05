@@ -25,8 +25,14 @@ use tokio::sync::mpsc::{Receiver, Sender};
 
 use crate::battery_manager::BatteryManager;
 use crate::battery_service::{BatteryService, GattBatteryCallbacks};
-use crate::bluetooth::{Bluetooth, IBluetooth};
-use crate::bluetooth_gatt::BluetoothGatt;
+use crate::bluetooth::{
+    dispatch_base_callbacks, dispatch_hid_host_callbacks, dispatch_sdp_callbacks, Bluetooth,
+    IBluetooth,
+};
+use crate::bluetooth_gatt::{
+    dispatch_gatt_client_callbacks, dispatch_le_adv_callbacks, dispatch_le_scanner_callbacks,
+    dispatch_le_scanner_inband_callbacks, BluetoothGatt,
+};
 use crate::bluetooth_media::{BluetoothMedia, MediaActions};
 use crate::socket_manager::{BluetoothSocketManager, SocketActions};
 use crate::suspend::Suspend;
@@ -145,11 +151,11 @@ impl Stack {
                 }
 
                 Message::Base(b) => {
-                    bluetooth.lock().unwrap().dispatch_base_callbacks(b);
+                    dispatch_base_callbacks(bluetooth.lock().unwrap().as_mut(), b);
                 }
 
                 Message::GattClient(m) => {
-                    bluetooth_gatt.lock().unwrap().dispatch_gatt_client_callbacks(m);
+                    dispatch_gatt_client_callbacks(bluetooth_gatt.lock().unwrap().as_mut(), m);
                 }
 
                 Message::GattServer(m) => {
@@ -158,11 +164,14 @@ impl Stack {
                 }
 
                 Message::LeScanner(m) => {
-                    bluetooth_gatt.lock().unwrap().dispatch_le_scanner_callbacks(m);
+                    dispatch_le_scanner_callbacks(bluetooth_gatt.lock().unwrap().as_mut(), m);
                 }
 
                 Message::LeScannerInband(m) => {
-                    bluetooth_gatt.lock().unwrap().dispatch_le_scanner_inband_callbacks(m);
+                    dispatch_le_scanner_inband_callbacks(
+                        bluetooth_gatt.lock().unwrap().as_mut(),
+                        m,
+                    );
                 }
 
                 Message::LeAdvInband(m) => {
@@ -170,7 +179,7 @@ impl Stack {
                 }
 
                 Message::LeAdv(m) => {
-                    bluetooth_gatt.lock().unwrap().dispatch_le_adv_callbacks(m);
+                    dispatch_le_adv_callbacks(bluetooth_gatt.lock().unwrap().as_mut(), m);
                 }
 
                 Message::Hfp(hf) => {
@@ -178,11 +187,11 @@ impl Stack {
                 }
 
                 Message::HidHost(h) => {
-                    bluetooth.lock().unwrap().dispatch_hid_host_callbacks(h);
+                    dispatch_hid_host_callbacks(bluetooth.lock().unwrap().as_mut(), h);
                 }
 
                 Message::Sdp(s) => {
-                    bluetooth.lock().unwrap().dispatch_sdp_callbacks(s);
+                    dispatch_sdp_callbacks(bluetooth.lock().unwrap().as_mut(), s);
                 }
 
                 Message::Media(action) => {
