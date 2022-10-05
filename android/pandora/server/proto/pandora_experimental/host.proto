@@ -275,7 +275,7 @@ enum DiscoverabilityMode {
 enum ConnectabilityMode {
   CONNECTABILITY_UNSPECIFIED = 0;
   CONNECTABILITY_NOT_CONNECTABLE = 1;
-  CONECTABILITY_CONNECTABLE = 2;
+  CONNECTABILITY_CONNECTABLE = 2;
 }
 
 message SetConnectabilityModeRequest {
