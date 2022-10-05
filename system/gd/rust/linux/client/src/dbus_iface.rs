@@ -1442,7 +1442,7 @@ impl ISuspend for SuspendDBus {
     }
 
     #[dbus_method("Suspend")]
-    fn suspend(&self, _suspend_type: SuspendType) {
+    fn suspend(&mut self, _suspend_type: SuspendType) {
         dbus_generated!()
     }
 

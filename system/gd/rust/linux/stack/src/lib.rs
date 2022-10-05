@@ -79,6 +79,7 @@ pub enum Message {
     // Suspend related
     SuspendCallbackRegistered(u32),
     SuspendCallbackDisconnected(u32),
+    SuspendReady(u32),
 
     // Scanner related
     ScannerCallbackDisconnected(u32),
@@ -151,7 +152,8 @@ impl Stack {
                 }
 
                 Message::Base(b) => {
-                    dispatch_base_callbacks(bluetooth.lock().unwrap().as_mut(), b);
+                    dispatch_base_callbacks(bluetooth.lock().unwrap().as_mut(), b.clone());
+                    dispatch_base_callbacks(suspend.lock().unwrap().as_mut(), b);
                 }
 
                 Message::GattClient(m) => {
@@ -220,6 +222,10 @@ impl Stack {
 
                 Message::SuspendCallbackDisconnected(id) => {
                     suspend.lock().unwrap().remove_callback(id);
+                }
+
+                Message::SuspendReady(suspend_id) => {
+                    suspend.lock().unwrap().suspend_ready(suspend_id);
                 }
 
                 Message::ScannerCallbackDisconnected(id) => {

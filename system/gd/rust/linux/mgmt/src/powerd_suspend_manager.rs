@@ -441,8 +441,8 @@ impl PowerdSuspendManager {
         {
             // Anonymous block to contain locked `self.context` which needs to be called multiple
             // times in the `if let` block below. Prevent deadlock by locking only once.
-            let context_locked = self.context.lock().unwrap();
-            if let Some(adapter_suspend_dbus) = &context_locked.adapter_suspend_dbus {
+            let mut context_locked = self.context.lock().unwrap();
+            if let Some(adapter_suspend_dbus) = &mut context_locked.adapter_suspend_dbus {
                 adapter_suspend_dbus.suspend(match suspend_imminent.get_reason() {
                     SuspendImminent_Reason::IDLE => SuspendType::AllowWakeFromHid,
                     SuspendImminent_Reason::LID_CLOSED => SuspendType::NoWakesAllowed,
