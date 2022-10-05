@@ -4845,6 +4845,7 @@ enum ApcfOpcode : 8 {
   MANUFACTURER_DATA = 0x06,
   SERVICE_DATA = 0x07,
   AD_TYPE = 0x08,
+  READ_EXTENDED_FEATURES = 0xFF,
 }
 
 // https://source.android.com/devices/bluetooth/hci_requirements#advertising-packet-content-filter
@@ -5010,6 +5011,22 @@ packet LeAdvFilterADType : LeAdvFilter (apcf_opcode = AD_TYPE) {
 packet LeAdvFilterADTypeComplete : LeAdvFilterComplete (apcf_opcode = AD_TYPE) {
   apcf_action : ApcfAction,
   apcf_available_spaces : 8,
+}
+
+packet LeAdvFilterReadExtendedFeatures : LeAdvFilter (apcf_opcode = READ_EXTENDED_FEATURES) {
+}
+
+test LeAdvFilterReadExtendedFeatures {
+  "\x57\xfd\x01\xff",
+}
+
+packet LeAdvFilterReadExtendedFeaturesComplete : LeAdvFilterComplete (apcf_opcode = READ_EXTENDED_FEATURES) {
+  ad_type_filter : 1,
+  _reserved_ : 15,
+}
+
+test LeAdvFilterReadExtendedFeaturesComplete {
+  "\x0e\x07\x01\x57\xfd\x00\xff\x01\x00",
 }
 
 packet LeEnergyInfo : VendorCommand (op_code = LE_ENERGY_INFO) {
